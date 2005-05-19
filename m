@@ -1,79 +1,56 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:27 +0000
 Subject: [RFC] I2C: Remove the i2c_client id field
-Message-Id: <41D0942B.8020109@penguincomputing.com>
+Message-Id: <20041228114258.35e9b5b7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041227230402.272fafd0.khali@linux-fr.org>
-In-Reply-To: <20041227230402.272fafd0.khali@linux-fr.org>
+	<41D0942B.8020109@penguincomputing.com>
+In-Reply-To: <41D0942B.8020109@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
-Cc: Greg KH <greg@kroah.com>
+To: Philip Pokorny <ppokorny@penguincomputing.com>
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
 
-So only the drives I wrote use the ID in a meaningful way?
+Hi Philip,
 
-What do you propose to replace the ID value in the debug messages with? 
- Ideally it would be the things you mention that uniquely identify the 
-chip in question (bus number and address)
+> So only the drives I wrote use the ID in a meaningful way?
 
-How hard are those values to get at?  Do we have to chase possibly NULL 
-pointers?
+True, providing we limit our consideration to the hardware monitoring
+drivers. Even in your drivers, the meaningfulness is discussable.
 
-:v)
+The lm85 driver simply displays the assigned id once (at the time it
+assigns it). Since the id is then never used, I would consider the lm85
+driver similar to the other hardware monitoring drivers.
 
-Jean Delvare wrote:
+The adm1026 driver, OTOH, does use the id value in all debug messages,
+and it also only reconfigures the GPIO pins for the first client only
+(id = 0). Although this is a real use of the id, it only matters if you
+use the module parameters for GPIO pins reconfiguration and actually
+have more than one ADM1026 chip (a quite rare chip if you remember). You
+don't necessarily know which ADM1026 will get id 0 anyway (if the chips
+are on different busses it depends on the order the bus drivers were
+loaded in), and I am not sure why one would want to reprogram only the
+first chip. Unless someone comes with such a specific hardware setup so
+that we can examine what is really needed, I think we can get rid of the
+"id = 0" test and reconfigure "all" ADM1026 chips (which really is only
+one for the two known boards using an ADM1026).
 
->Hi Greg, hi all,
->
->While porting various hardware monitoring drivers to Linux 2.6 and
->otherwise working on i2c drivers in 2.6, I found that the i2c_client
->structure has an "id" field (of type int) which is mostly unused. I am
->not exactly sure why it was introduced in the first place, and since the
->i2c subsystem code was significantly reworked since, it might not
->actually matter.
->
->Most hardware monitoring drivers allocate a unique (per driver) id
->through an incremented static global variable, and never use it. Some
->(lm85 and most notably adm1026) use the value in debug messages. I saw
->various video drivers appending the id value to the client name between
->square brackets, while others would set the id field to -1 and then
->leave it alone. The i2c core itself doesn't use this field.
->
->Using this field to identify a client doesn't make much sense to me, for
->the following reasons:
->
->1* A client is already uniquely identified by the combination of the
->number of the bus it sits on and the address it is located at on this
->bus.
->
->2* With the implementation described above, the id will possibly change
->depending on which i2c bus drivers are loaded and the order they were
->loaded in. As a consequence, you can't rely on its value from
->user-space, and its usability in kernel-space isn't obvious either.
->
->3* As a matter of fact, no driver in the kernel tree uses this field
->except for debugging (and even then with no obvious benefit), with only
->a few exceptions where I could easily change the code so it wouldn't
->need this field anymore.
->
->Thus, I propose that we simply get rid of this field, so as to save some
->memory space and kill some useless code. If anyone really ever needs to
->carry some sort of id attached to an i2c_client structure, this is
->private data and can be added to whatever structure the data field is
->pointing to for this particular driver.
->
->Unless someone objects with valid reasons, I am going to send patches to
->kill the i2c_client id field. I have everything ready, but don't know
->exactly how I should send them. The difficulty comes from the relatively
->large number of affected drivers (50) and the fact that they spread over
->very different subsystems (the big ones are i2c and media/video, plus
->half a dozen drivers in acorn/char, macintoch and sound).
->
->Greg, can you tell me if you would take such a patch, and how I would
->have to split it for you to accept it?
->
->Thanks,
->  
->
+BTW, does anyone really use the GPIO pins reconfiguration parameters?
 
+> What do you propose to replace the ID value in the debug messages
+> with?
+> Ideally it would be the things you mention that uniquely identify
+> the chip in question (bus number and address)
+> How hard are those values to get at?  Do we have to chase possibly
+> NULL pointers?
+
+Everything is already done. The adm1026 driver (like all other drivers
+of the directory) uses dev_dbg to print its debug messages, and dev_dbg
+prepends the bus number and chip address to any line it prints. This
+means that the "client id" is redundant and can be removed losslessly.
+
+Thanks,
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
