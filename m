@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:23 +0000
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:24 +0000
 Subject: lm75 compute
-Message-Id: <20031030223358.10983fff.khali@linux-fr.org>
+Message-Id: <3FAD9003.25BD6FB@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F9C884D.93E32BDA@paradyne.com>
 In-Reply-To: <3F9C884D.93E32BDA@paradyne.com>
@@ -10,16 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I was hoping to contribute some drivers to your project, based on your
-> interest and if i get some time (Philips ne1617, Vitesse VSC055, or
-> more fun, XFP laser 10G transceivers...).
+Jean Delvare wrote:
+> 
+> > ----------------------------
+> > revision 1.77
+> > date: 2002/11/08 12:06:53;  author: khali;  state: Exp;  lines: +119
+> > -94(Khali) Add section for lm75 in sensors.conf.eg
+> >         Complete the lm78 section in sensors.conf.eg
+> > ----------------------------
+> 
+> BTW, note that the change was almost one year old and this is the first
+> person complaining AFAIK. It might be that the LM75 is so old that it's
+> not used anymore. But it could as well mean that I am not the only one
+> needing that scaling.
+> 
+>
 
-New drivers are welcome. Take a look at the doc directory for
-guidelines, ask your questions on the list, we'll try to help. When you
-have something working, let us know and we'll commit it to our CVS
-repository (or create an account for you if you feel like commiting the
-drivers by yourself).
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+I couldn't find the change because I assumed it was so bad that it must
+have been recent... I was wrong.
+Thanks for researching how it happened.
+Agree that individual LM75's on mobos isn't that common anymore;
+which is why it wasn't caught sooner.
+mds
