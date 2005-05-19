@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:51 +0000
 Subject: subclient leak in asb100 driver
-Message-Id: <20040410180102.GB17335@earth.solarsys.private>
+Message-Id: <20040410202552.769d25fd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040410110533.49ba7483.khali@linux-fr.org>
 In-Reply-To: <20040410110533.49ba7483.khali@linux-fr.org>
@@ -10,27 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-04-10 11:05:33 +0200]:
-> I think that there is a i2c client and memory leak in your asb100 driver
-> (2.4/CVS). In asb100_detach_client, you neither call i2c_detach_client
-> on subclients, nor do you kfree their memory.
+> Nope, the I2C core calls asb100_detach_client() three times... once
+> for the primary client and twice more for the subclients.
 
-Nope, the I2C core calls asb100_detach_client() three times... once for the 
-primary client and twice more for the subclients.
+Ohhhh OK. Now I get it. It's a bit confusing at first. I'd have expected
+two different detach functions (i.e. two different driver structures).
+But I agree it works.
 
-> I think that the same problem exists in the 2.6 version of the driver,
-> as well as in the w83781d driver there. The 2.4/CVS version of the
-> w83781d driver, on the other hand, seems OK.
+> The changes in 2.6 are also on purpose.  They're necessary because the
+> I2C client list was implemented differently than in 2.4,  which caused
+> it to try to release the subclients twice.
 
-The changes in 2.6 are also on purpose.  They're necessary because the
-I2C client list was implemented differently than in 2.4,  which caused
-it to try to release the subclients twice.
+I didn't see much change, except the sysctl_id being gone.
 
-I.e. technically, it's the CVS w83781d driver that's wrong... although
-it happens to be benign vs. 2.4 kernel.
+> I.e. technically, it's the CVS w83781d driver that's wrong... although
+> it happens to be benign vs. 2.4 kernel.
 
-Regards,
+Yes, I see that now. I'm surprised that it doesn't cause more trouble
+than it does. Care to correct the 2.4/CVS driver so that it does what
+your asb100 driver does (i.e. the right thing)?
+
+Thanks.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
