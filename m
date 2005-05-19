@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:54 +0000
 Subject: [PATCH] i2c driver changes for 2.5.68
-Message-Id: <1051228746897@kroah.com>
+Message-Id: <10512287462983@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20030424235836.GA29888@kroah.com>
+In-Reply-To: <1051228746897@kroah.com>
 References: <10512287461373@kroah.com>
 In-Reply-To: <10512287461373@kroah.com>
 MIME-Version: 1.0
@@ -11,60 +11,148 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1179.3.1, 2003/04/23 11:32:48-07:00, hch@lst.de
+ChangeSet 1.1179.3.2, 2003/04/23 11:33:09-07:00, hch@lst.de
 
-[PATCH] i2c: remove dead junk from i2c-sensors.h
+[PATCH] i2c: remove dead code from adm1021
+
+Enough testing :)  This is the last user of some junk in i2c-sensors.h,
+so it should better go away sooner than later..
 
 
- include/linux/i2c-sensor.h |   32 --------------------------------
- 1 files changed, 32 deletions(-)
+ drivers/i2c/chips/adm1021.c |  122 --------------------------------------------
+ 1 files changed, 122 deletions(-)
 
 
-diff -Nru a/include/linux/i2c-sensor.h b/include/linux/i2c-sensor.h
---- a/include/linux/i2c-sensor.h	Thu Apr 24 16:47:45 2003
-+++ b/include/linux/i2c-sensor.h	Thu Apr 24 16:47:45 2003
-@@ -22,18 +22,6 @@
- #ifndef _LINUX_I2C_SENSOR_H
- #define _LINUX_I2C_SENSOR_H
- 
--#include <linux/sysctl.h>
--
--/* The type of callback functions used in sensors_{proc,sysctl}_real */
--typedef void (*i2c_real_callback) (struct i2c_client * client,
--				       int operation, int ctl_name,
--				       int *nrels_mag, long *results);
--
--/* Values for the operation field in the above function type */
--#define SENSORS_PROC_REAL_INFO 1
--#define SENSORS_PROC_REAL_READ 2
--#define SENSORS_PROC_REAL_WRITE 3
--
- /* A structure containing detect information.
-    Force variables overrule all other variables; they force a detection on
-    that place. If a specific chip is given, the module blindly assumes this
-@@ -350,24 +338,4 @@
- 	else
- 		return value;
+diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
+--- a/drivers/i2c/chips/adm1021.c	Thu Apr 24 16:47:35 2003
++++ b/drivers/i2c/chips/adm1021.c	Thu Apr 24 16:47:35 2003
+@@ -416,128 +416,6 @@
+ 	up(&data->update_lock);
  }
+ 
 -
+-/* FIXME, remove these four functions, they are here to verify the sysfs
+- * conversion is correct, or not */
+-__attribute__((unused))
+-static void adm1021_temp(struct i2c_client *client, int operation,
+-			 int ctl_name, int *nrels_mag, long *results)
+-{
+-	struct adm1021_data *data = i2c_get_clientdata(client);
 -
--/* The maximum length of the prefix */
--#define SENSORS_PREFIX_MAX 20
+-	if (operation = SENSORS_PROC_REAL_INFO)
+-		*nrels_mag = 0;
+-	else if (operation = SENSORS_PROC_REAL_READ) {
+-		adm1021_update_client(client);
+-		results[0] = TEMP_FROM_REG(data->temp_max);
+-		results[1] = TEMP_FROM_REG(data->temp_hyst);
+-		results[2] = TEMP_FROM_REG(data->temp_input);
+-		*nrels_mag = 3;
+-	} else if (operation = SENSORS_PROC_REAL_WRITE) {
+-		if (*nrels_mag >= 1) {
+-			data->temp_max = TEMP_TO_REG(results[0]);
+-			adm1021_write_value(client, ADM1021_REG_TOS_W,
+-					    data->temp_max);
+-		}
+-		if (*nrels_mag >= 2) {
+-			data->temp_hyst = TEMP_TO_REG(results[1]);
+-			adm1021_write_value(client, ADM1021_REG_THYST_W,
+-					    data->temp_hyst);
+-		}
+-	}
+-}
 -
--/* Sysctl IDs */
--#ifdef DEV_HWMON
--#define DEV_SENSORS DEV_HWMON
--#else				/* ndef DEV_HWMOM */
--#define DEV_SENSORS 2		/* The id of the lm_sensors directory within the
--				   dev table */
--#endif				/* def DEV_HWMON */
+-__attribute__((unused))
+-static void adm1021_remote_temp(struct i2c_client *client, int operation,
+-				int ctl_name, int *nrels_mag, long *results)
+-{
+-	struct adm1021_data *data = i2c_get_clientdata(client);
+-	int prec = 0;
 -
--#define SENSORS_CHIPS 1
--struct i2c_chips_data {
--	int sysctl_id;
--	char name[SENSORS_PREFIX_MAX + 13];
--};
+-	if (operation = SENSORS_PROC_REAL_INFO)
+-		if (data->type = adm1023) { *nrels_mag = 3; }
+-                 else { *nrels_mag = 0; }
+-	else if (operation = SENSORS_PROC_REAL_READ) {
+-		adm1021_update_client(client);
+-		results[0] = TEMP_FROM_REG(data->remote_temp_max);
+-		results[1] = TEMP_FROM_REG(data->remote_temp_hyst);
+-		results[2] = TEMP_FROM_REG(data->remote_temp_input);
+-		if (data->type = adm1023) {
+-			results[0] = results[0]*1000 + ((data->remote_temp_os_prec >> 5) * 125);
+-			results[1] = results[1]*1000 + ((data->remote_temp_hyst_prec >> 5) * 125);
+-			results[2] = (TEMP_FROM_REG(data->remote_temp_offset)*1000) + ((data->remote_temp_offset_prec >> 5) * 125);
+-			results[3] = (TEMP_FROM_REG(data->remote_temp_input)*1000) + ((data->remote_temp_prec >> 5) * 125);
+-			*nrels_mag = 4;
+-		} else {
+- 			*nrels_mag = 3;
+-		}
+-	} else if (operation = SENSORS_PROC_REAL_WRITE) {
+-		if (*nrels_mag >= 1) {
+-			if (data->type = adm1023) {
+-				prec = ((results[0]-((results[0]/1000)*1000))/125)<<5;
+-				adm1021_write_value(client, ADM1021_REG_REM_TOS_PREC, prec);
+-				results[0] = results[0]/1000;
+-				data->remote_temp_os_prec=prec;
+-			}
+-			data->remote_temp_max = TEMP_TO_REG(results[0]);
+-			adm1021_write_value(client, ADM1021_REG_REMOTE_TOS_W, data->remote_temp_max);
+-		}
+-		if (*nrels_mag >= 2) {
+-			if (data->type = adm1023) {
+-				prec = ((results[1]-((results[1]/1000)*1000))/125)<<5;
+-				adm1021_write_value(client, ADM1021_REG_REM_THYST_PREC, prec);
+-				results[1] = results[1]/1000;
+-				data->remote_temp_hyst_prec=prec;
+-			}
+-			data->remote_temp_hyst = TEMP_TO_REG(results[1]);
+-			adm1021_write_value(client, ADM1021_REG_REMOTE_THYST_W, data->remote_temp_hyst);
+-		}
+-		if (*nrels_mag >= 3) {
+-			if (data->type = adm1023) {
+-				prec = ((results[2]-((results[2]/1000)*1000))/125)<<5;
+-				adm1021_write_value(client, ADM1021_REG_REM_OFFSET_PREC, prec);
+-				results[2]=results[2]/1000;
+-				data->remote_temp_offset_prec=prec;
+-				data->remote_temp_offset=results[2];
+-				adm1021_write_value(client, ADM1021_REG_REM_OFFSET, data->remote_temp_offset);
+-			}
+-		}
+-	}
+-}
 -
- #endif				/* def _LINUX_I2C_SENSOR_H */
+-__attribute__((unused))
+-static void adm1021_die_code(struct i2c_client *client, int operation,
+-			     int ctl_name, int *nrels_mag, long *results)
+-{
+-	struct adm1021_data *data = i2c_get_clientdata(client);
 -
+-	if (operation = SENSORS_PROC_REAL_INFO)
+-		*nrels_mag = 0;
+-	else if (operation = SENSORS_PROC_REAL_READ) {
+-		adm1021_update_client(client);
+-		results[0] = data->die_code;
+-		*nrels_mag = 1;
+-	} else if (operation = SENSORS_PROC_REAL_WRITE) {
+-		/* Can't write to it */
+-	}
+-}
+-
+-__attribute__((unused))
+-static void adm1021_alarms(struct i2c_client *client, int operation,
+-			   int ctl_name, int *nrels_mag, long *results)
+-{
+-	struct adm1021_data *data = i2c_get_clientdata(client);
+-	if (operation = SENSORS_PROC_REAL_INFO)
+-		*nrels_mag = 0;
+-	else if (operation = SENSORS_PROC_REAL_READ) {
+-		adm1021_update_client(client);
+-		results[0] = data->alarms;
+-		*nrels_mag = 1;
+-	} else if (operation = SENSORS_PROC_REAL_WRITE) {
+-		/* Can't write to it */
+-	}
+-}
+-
+ static int __init sensors_adm1021_init(void)
+ {
+ 	return i2c_add_driver(&adm1021_driver);
 
