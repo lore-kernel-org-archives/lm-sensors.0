@@ -1,23 +1,36 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:52 +0000
-Subject: [RFC PATCH 2.6.12-rc2-mm2 0/2] i2c: new sysfs class "hwmon"
-Message-Id: <20050417220919.GG3178@kroah.com>
+From: Alain@Valleton.org (Alain VALLETON)
+Date: Thu, 19 May 2005 06:25:26 +0000
+Subject: Little patch for old gcc (lm_sensors 2.8.8)
+Message-Id: <41B63AD4.4050805@Valleton.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050411044427.GA4963@jupiter.solarsys.private>
-In-Reply-To: <20050411044427.GA4963@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 13, 2005 at 11:34:44AM -0500, Dmitry Torokhov wrote:
-> 
-> This of course depends on Greg adding support for nested classes to
-> the driver code (how is it going, Greg?).
+Otherwise compilation of lm_sensors 2.8.8 fails with gcc 2.95.3
 
-The locking code is still stewing in the -mm tree.  Once all of those
-changes hit mainline, we can start adding new stuff like nested classes.
+Have a nice day,
 
-thanks,
 
-greg k-h
+
+diff -Naur lm_sensors-2.8.8/kernel/chips/lm93.c lm_sensors-2.8.8_new/kernel/chips/lm93.c
+--- lm_sensors-2.8.8/kernel/chips/lm93.c	2004-09-15 15:27:45.000000000 +0200
++++ lm_sensors-2.8.8_new/kernel/chips/lm93.c	2004-12-08 00:08:04.000000000 +0100
+@@ -1678,6 +1678,7 @@
+ {
+ 	struct lm93_data *data = client->data;
+ 	int nr = ctl_name - LM93_SYSCTL_FAN1_SMART_TACH;
++	int mapping = 0;
+ 
+ 	if (0 > nr || nr > 3)
+ 		return; /* ERROR */
+@@ -1688,7 +1689,7 @@
+ 		lm93_update_client(client);
+ 
+ 		/* extract the relevant mapping */
+-		int mapping = (data->sf_tach_to_pwm >> (nr * 2)) & 0x03;
++		mapping = (data->sf_tach_to_pwm >> (nr * 2)) & 0x03;
+ 
+ 		/* if there's a mapping and it's enabled */
+ 		if (mapping && ((data->sfc2 >> nr) & 0x01))
