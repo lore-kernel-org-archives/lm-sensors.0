@@ -1,92 +1,98 @@
-From: bjorn@mork.no (=?iso-8859-1?q?Bj=F8rn_Mork?=)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: SOLVED: Ticket #1409
-Message-Id: <hvd6dewr71.fsf@rasputin.ws.nextra.no>
+Message-Id: <3F7D5ECF.61EB51A@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <hvvfr8digc.fsf@rasputin.ws.nextra.no>
 In-Reply-To: <hvvfr8digc.fsf@rasputin.ws.nextra.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare <khali@linux-fr.org> writes:
+We already have similar super i/o detection in sensors-detect
+and in 3 drivers: vt1211, smsc47m1, and w83627hf.
+There's also super i/o detection in sensors-detect for the it8705, but
+it is
+commented out because the "exit" value is different than for other
+chips and I didn't want to leave other chips stuck in PnP mode
+(although I wonder if your 8712 gets stuck in PnP mode when running
+sensors-detect??).
 
->> I wonder however, would it be possible to include a refined version of
->> the address detection code in the module?  I am willing to try to
->> write it myself, but I won't do it unless I know it has some remote
->> possibility of being included.
->
-> Thanks a lot for reporting your findings. It will hopefully help some
-> other folks someday.
->
-> Here are the possibilities:
->
-> 1* Add address 0x0d00 to sensors-detect.
-> 2* Add address 0x0d00 to it87.
-> 3* Add your code to it87.
-> 4* Add what you found to the it87 doc.
-> 5* Distribute your program into lm_sensors.
+If you port over the super i/o code from one of the 3 drivers listed
+above
+and send us a patch we'll include it.
 
-Maybe 4 or 1 is a good start?  I don't think 3 and 5 makes much sense
-unless Asus or some other manufacturer really use other addresses than
-0x290 and 0xd00. But that's of course difficult to detect without
-providing 3 or 5...
-
-> I'm not easy with ISA chips, since I only wrote I2C chip drivers so far.
-> I know that ISA is typically a little bit more dangerous, but I don't
-> know to which extent. I'd like to hear other people about that. 
-
-I know linux-irda does similar things, but they kind of have to
-because they must enable the irda function on the Super IO chips.
-This doesn't seem to be necessary for enviroment control, probably
-because it's enabled by the BIOS.
-
-> I don't
-> even understand what you code does (or, more precisely, how it does it)
-> but it looks interesting. 
-
-A Super IO chip typically uses two ports for configuration.  These
-ports provide access to the internal registers on the chip.  On an
-IT8712, these ports are fixed at 0x2e (address) and 0x2f (data) or
-0x4e and 0x4f according to the data sheet.  The 0x2e address is
-special since the magic key is always written to this port.
-
-What the program does is
-1) writes a magic key (0x87,0x01,0x55,0x55) to the IT8712 address port
-   (0x2e).  This puts the chip in config mode (aka "MB PnP mode")
-2) reads the chip id (0x8712) from registers 0x20 and 0x21.  This
-   could be used to bail out if there isn't an IT8712F there, but then
-   we've already written 0x87,0x01,0x55,0x55,0x20,0x21 to 0x2e, which
-   I assume might be dangerous anyway...
-3) changes to the "Environment Controller" Logical Device by writing 4
-   to register 7.  This switches register bank for the next steps.
-4) reads registers 0x60, 0x61 and 0x30, which contain i2c port address
-   MSB and LSB, and Environment Controller Activate respectively
-   (didn't really need the last one, but I wanted to make sure it was
-   enabled).
-5) sets bit 1 in register 2 to exit cleanly from config mode
-
-> Is there a chance we could use it for
-> something less specific than your own case? (in other words, how
-> A7N8X-VM specific is it? how it8712F-specific?)
-
-It is very IT8712F-specific.  I assume the other IT87-chips can be
-handled by the same code, just with different chip ids in step 2, but
-I would have to read the data sheets to be sure.
-
-I also expect other Super IO chipsets to have the same detection
-possibilities.  This is basically how they are detected by some (all?)
-of the linux-irda drivers.  Take a look at the probe function in e.g.
-linux/drivers/net/irda/smc-ircc.c.
-
-> I really don't know wether it's better to just add the new address to
-> the list, or include your detection code in some way.
-
-I don't know either.  Maybe add a comment to the it87 docs first and
-see if this is a common problem?  Something you could keep in mind if
-users keep complaining that sensors-detect can't find the enviroment
-controller and nothing shows up in the i2c scans.
+thanks
+mds
 
 
-Bj?rn
+Bj?rn Mork wrote:
+>=20
+> I didn't find any way of updating the ticket, so I'm sending this via
+> mail.  After writing the original ticket I downloaded and read the
+> IT8712F data sheet, which I of course should have done first...  This
+> enabled me to write a small program to retrieve the non-default
+> address of the IT8712F on the Asus A7N8X-VM:
+>=20
+> #include <stdio.h>
+> #include <unistd.h>
+> #include <sys/io.h>
+> #include <string.h>
+>=20
+> int main(int argc, char **argv) {
+>         if (ioperm(0x0, 0x3ff, 1)) {
+>                 perror("Set i/o permission");
+>                 exit(0);
+>         }
+>=20
+>         /* enter MB PnP mode */
+>         outb(0x87, 0x2e);
+>         outb(0x01, 0x2e);
+>         outb(0x55, 0x2e);
+>         outb(0x55, 0x2e);
+>=20
+>         /* get chip ID */
+>         outb(0x20, 0x2e);
+>         printf("chip id =3D 0x%02x", inb(0x2f));
+>         outb(0x21, 0x2e);
+>         printf("%02x\n", inb(0x2f));
+>=20
+>         /* select GPIO */
+>         outb(0x07, 0x2e);
+>         outb(0x04, 0x2f);
+>=20
+>         outb(0x60, 0x2e); /* address MSB */
+>         printf("LDN 4, reg 0x60 =3D 0x%02x\n", inb(0x2f));  /* default 0x=
+02 */
+>         outb(0x61, 0x2e); /* address LSB */
+>         printf("LDN 4, reg 0x61 =3D 0x%02x\n", inb(0x2f));  /* default 0x=
+90 */
+>         outb(0x30, 0x2e); /* enable */
+>         printf("LDN 4, reg 0x30 =3D 0x%02x\n", inb(0x2f));  /* default 0x=
+00, should be >0 */
+>=20
+>         /* exit from MB PnP mode */
+>         outb(0x02, 0x2e);
+>         outb(0x02, 0x2f);
+>         return 0;
+> }
+>=20
+> Which gave the following output right after a reboot:
+>=20
+> chip id =3D 0x8712
+> LDN 4, reg 0x60 =3D 0x0d
+> LDN 4, reg 0x61 =3D 0x00
+> LDN 4, reg 0x30 =3D 0x01
+>=20
+> I.e. Asus have changed the base address from 0x290 to 0xd00.  Using
+> this address with it87 worked perfectly:
+>=20
+>   modprobe it87 probe=9191,0x0d00
+>=20
+> I wonder however, would it be possible to include a refined version of
+> the address detection code in the module?  I am willing to try to
+> write it myself, but I won't do it unless I know it has some remote
+> possibility of being included.
+>=20
+> Bj?rn
