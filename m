@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: Subscribe please
-Message-Id: <20030811224121.50c5d338.khali@linux-fr.org>
+Message-Id: <3F3807CF.90206@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F37F927.5010309@elegant-software.com>
 In-Reply-To: <3F37F927.5010309@elegant-software.com>
@@ -11,15 +11,19 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
+This is a developers' list and not an end-users' list.  Is that OK?  If 
+you still wish to be added, let me know.
+
+
+Phil
+
+Russell Leighton wrote:
+
 > Subscribe please.
-
-Why do you need to be suscribed? Please note you don't need to be
-subscribed to post here. And non-subscribers always get TO: or CC: on
-replies. So subscribing is generally useless for simple users.
-
-Now, if you are a developper, it's a completely different problem and
-we'll subscribe you ASAPHSTL.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+>
+> Thx.
+>
+> Russ
+>
+>
+>
