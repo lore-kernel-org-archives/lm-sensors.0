@@ -1,80 +1,201 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245782@weshml03.winbond.com.tw>
+Message-Id: <Itz1Y6LL.1109587824.9010970.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwgTURTCgpEdXJpbmcgdGhlIHBvcnRpbmcgb2YgdzgzNzkyZCBkcml2ZXIsIHdlIGhh
-dmUgdHdvIHF1ZXN0aW9ucyBoZXJlOgooMSkgVGhlIHN5c2ZzIGludGVyZmFjZSBpbiBsaW51eC0y
-LjYuMTAvRG9jdW1lbnRhdGlvbi9pMmMvc3lzZnMtaW50ZXJmYWNlCmlzIG5vdCBlbm91Z2ggZm9y
-IHc4Mzc5MmQgZHJpdmVyLCB3ZSB3YW50IHRvIGFkZCBzb21lIG90aGVyIGludGVyZmFjZXMsCndo
-aWNoIGFyZSBhYm91dCBXaW5ib25kIFNtYXJ0IEZhbihTbWFydEZhbiBJIGFuZCBTbWFydEZhbiBJ
-SSkuCllvdSBtYXkgcmVmZXIgdG8gdzgzNzkyZCBmb3IgbGludXgtMi40LCBpdCBhbHNvIGhhcyB0
-aGUgaW50ZXJmYWNlcyBhYm91dApTbWFydCBGYW4uCkNvdWxkIHlvdSBnaXZlIG1lIHNvbWUgZ3Vp
-ZGFuY2Ugb24gaG93IHRvIGFkZCBzb21lIG5ldyBzeXNmcyBpbnRlcmZhY2U/Ck5lZWQgd2UgYXNr
-IGZvciB0aGUgcGVybWlzc2lvbiBmcm9tIExNX1NlbnNvcnMgZ3JvdXAgb3IgTGludXgga2VybmVs
-IGdyb3VwPwoKKDIpIEluIGxpbnV4LTIuNCwgdGhlIGludGVyZmFjZSBpbiAvcHJvYyBjYW4gYmUg
-ZWRpdGVkIGRpcmVjdGx5IGJ5ICJ2aSIgY29tbWFuZCwKQnV0IGl0IHNlZW1zIHRoYXQgaW4gbGlu
-dXgtMi42LCB0aGUgaW50ZXJmYWNlIGluIC9zeXMgY2FuIE5PVCwgZXJyb3IgbWVzc2FnZQp3aWxs
-IGFwcGVhciB3aGVuIHNhdmU6CiIvc3lzL2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjFmLjMv
-aTJjLTAvMC0wMDJmL2luM19tYXgiIEU2Njc6IEZzeW5jCmZhaWxlZAoKU28sIEluIGxpbnV4LTIu
-NiwgaWYgd2Ugd2FudCB0byBidWlsZCBzb21lIGFwcGxpY2F0aW9uIGxhdGVyLCBob3cgdG8gdXNl
-CnRoZSBzeXNmcyBpbnRlcmZhY2UgZGlyZWN0bHkgaW5zdGVhZCBvZiB1c2luZyB0aGUgbGlic2Vu
-c29ycz8gSW4gbGludXgtMi40LAppdCdzIHBvc3NpYmxlLgoKClRoYW5rcwpCZXN0IFJlZ2FyZHMK
-CkNodW5oYW8KCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBKZWFuIERlbHZh
-cmUgW21haWx0bzpraGFsaUBsaW51eC1mci5vcmddCj4gU2VudDogMjAwNcTqMtTCNMjVIDE5OjU1
-Cj4gVG86IFBJMTQgSFVBTkcwCj4gQ2M6IFBJMTAgTEhIc3U7IFBJMTQgRFpTSEVOOyBMTSBTZW5z
-b3JzCj4gU3ViamVjdDogUkU6IFdlIHdpbGwgcG9ydCB3ODM3OTJkLmMgdG8gbGludXgtMi42Cj4g
-Cj4gCj4gSGkgQ2h1bmhhbywKPiAKPiA+IFByb3ZpZGVkIHRoYXQgSSBoYXZlIHN1Y2Nlc3NmdWxs
-eSBwb3J0ZWQgdzgzNzkyZC5jIGZyb20gbGludXgtMi40IHRvIDIuNiwKPiA+IEhvdyBzaG91bGQg
-SSBhZGQgaXQgaW50byB0aGUgbGludXgga2VybmVsIHRyZWUgbGludXgtMi42LjEwIGZvciB0ZXN0
-Pwo+ID4gSSBoYXZlIHRyaWVkIHRoZSBmb2xsb3dpbmcgc3RlcHM6Cj4gPiAoMSlBZGQgYSBmaWxl
-IHc4Mzc5MmQuYyBpbnRvIHRoZSBkaXJlY3RvcnkKPiA+ICAgL3Vzci9zcmMvbGludXgtMi42LjEw
-L2RyaXZlcnMvaTJjL2NoaXBzLwo+IAo+IENvcnJlY3QuCj4gCj4gPiAoMikgbW9kaWZ5IC91c3Iv
-c3JjL2xpbnV4LTIuNi4xMC9kcml2ZXJzL2kyYy9jaGlwcy9NYWtlZmlsZSAoYWRkIDc5MiBwYXJ0
-KQo+IAo+IENvcnJlY3QgYWdhaW4uCj4gCj4gPiAoMykgbW9kaWZ5IC91c3Ivc3JjL2xpbnV4LTIu
-Ni4xMC8uY29uZmlnIChhZGQgNzkyIHBhcnQpCj4gCj4gTm90IGNvcnJlY3QuIFlvdSBuZWVkIHRv
-IGVkaXQKPiAvdXNyL3NyYy9saW51eC0yLjYuMTAvZHJpdmVycy9pMmMvY2hpcHMvS2NvbmZpZywg
-d2hlcmUgeW91J2QgYWRkIGEKPiBzZWN0aW9uIGZvciB0aGUgdzgzNzkyZCBkcml2ZXIsIGp1c3Qg
-Y29weSwgcGFzdGUgYW5kIGVkaXQgZnJvbSBhbm90aGVyCj4gY2hpcCdzIHNlY3Rpb24uCj4gCj4g
-T25jZSBkb25lLCB1c2UgIm1ha2Ugb2xkY29uZmlnIiBvciAibWFrZSBtZW51Y29uZmlnIiB0byBl
-bmFibGUgdGhlCj4gbmV3IGRyaXZlciwgcHJlZmVyYWJseSBhcyBhIG1vZHVsZS4gWW91IGNhbiBl
-ZGl0IC5jb25maWcgbWFudWFsbHkgYnV0Cj4gdGhhdCdzIGRlZmluaXRlbHkgbm90IHRoZSBlYXNp
-ZXN0IHdheSEKPiAKPiA+IEJ0dywgdGhlIERvY3VtZW50YXRpb24vaTJjL3dyaXRpbmctY2xpZW50
-cyBpbiBsaW51eC0yLjYuMTAgYW5kCj4gPiBsaW51eC0yLjYuMTEtcmMzIGlzIE5PVCBmb3IgbGlu
-dXgtMi42LCBidXQgZm9yIGxpbnV4LTIuNC4gWW91IG5lZWQgdG8KPiA+IHVwZGF0ZSBpdC4KPiAK
-PiBZb3UgYXJlIHJpZ2h0LCB0aGlzIGZpbGUgaXMgc2V2ZXJseSBvdXRkYXRlZCwgYW5kIHdvdWxk
-IG5lZWQgYW4gdXBkYXRlLgo+IFByb2JhYmx5IG5vdCBldmVyeXRoaW5nIG5lZWRzIHRvIGJlLCB0
-aGUgb3ZlcmFsbCBzdHJ1Y3R1cmUgb2YgdGhlCj4gZG9jdW1lbnQgc2VlbXMgY29ycmVjdCwgdGhl
-IG1ham9yIGNoYW5nZSB3b3VsZCBiZSB0byByZW1vdmUgYWxsCj4gcmVmZXJlbmNlcyB0byBwcm9j
-ZnMgYW5kIHJlcGxhY2Ugd2l0aCBzeXNmcyBpbmZvLiBGZWVsIGZyZWUgdG8gcHJvcG9zZSBhCj4g
-Y29ycmVjdGl2ZSBwYXRjaCBmb3IgdGhhdCBmaWxlIQo+IAo+IFRoYW5rcywKPiAtLQo+IEplYW4g
-RGVsdmFyZQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRo
-ZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBl
-bWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNh
-dGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3Qg
-dGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNp
-YmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5k
-bHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxs
-IGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVk
-aWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJs
-ZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
-ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
-dGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mg
-b2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQg
-YnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNl
-IGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0
-IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6
-sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKo
-z7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjs
-pburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSk
-qaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HC
-xXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C1
-2Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
+
+Hi Chunhao,
+
+> During the porting of w83792d driver, we have two questions here:
+> (1) The sysfs interface in linux-2.6.10/Documentation/i2c/sysfs-interface
+> is not enough for w83792d driver, we want to add some other interfaces,
+> which are about Winbond Smart Fan(SmartFan I and SmartFan II).
+> You may refer to w83792d for linux-2.4, it also has the interfaces about
+> Smart Fan.
+> Could you give me some guidance on how to add some new sysfs interface?
+> Need we ask for the permission from LM_Sensors group or Linux kernel group?
+
+I just took a look at the datasheet. It happens that Smart Fan II fits
+rather good in the auto-fan-speed-control scheme currently defined in
+the 2.6 kernel, so it shouldn't be a problem. The only difference is
+that for each trip point, we define a high temperature limit and an
+hysteresis temperature, while the W83792D chip defines a medium limit
+with a tolerance. It's just a matter of arithmetics to convert from one
+to the other.
+
+Smart Fan I, aka cruise mode, doesn't quite fit in the model, although
+it could be seen as an approximate subset of Smart Fan II. I see little
+reason to implement Smart Fan I when Smart Fan II is so obviously
+better, so I wouldn't implement it at all.
+
+The only thing I think is missing the the sysfs interface for the W83792D
+is the possibility to switch from PWM to DC and back. I would propose
+new files named "pwmN_mode", that would have possible values "PWM"
+and "DC". This however needs to be discussed, and approval by the
+majority of i2c/lm_sensors devs is required (this is obviously
+sujective).
+
+> (2) In linux-2.4, the interface in /proc can be edited directly by "vi"
+> command, But it seems that in linux-2.6, the interface in /sys can NOT,
+> error message will appear when save:
+> "/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/in3_max" E667: Fsync
+> failed
+>
+> So, In linux-2.6, if we want to build some application later, how to use
+> the sysfs interface directly instead of using the libsensors? In linux-2.4,
+> it's possible.
+
+I didn't know it was even possible to use vi directly on procfs files,
+and frankly I wouldn't do it, since these are NOT regular files, and
+sometimes you have to write in a different format than you read from
+these files. Just use "echo", it should work just fine with both
+procfs and sysfs files, I'm using it all the time. You may also use
+"cat" to/from these files.
+
+I took some time to review your current 2.4 driver and here are my
+comments:
+
+1* Use static arrays for registers. For example:
+
+> #define W83792D_REG_IN0 0x20     /* Vcore A in DataSheet */
+> #define W83792D_REG_IN1 0x21     /* Vcore B in DataSheet */
+> #define W83792D_REG_IN2 0x22     /* VIN0 in DataSheet */
+> #define W83792D_REG_IN3 0x23     /* VIN1 in DataSheet */
+> #define W83792D_REG_IN4 0x24     /* VIN2 in DataSheet */
+> #define W83792D_REG_IN5 0x25     /* VIN3 in DataSheet */
+> #define W83792D_REG_IN6 0x26     /* 5VCC in DataSheet */
+> #define W83792D_REG_IN7 0xB0     /* 5VSB in DataSheet */
+> #define W83792D_REG_IN8 0xB1     /* VBAT in DataSheet */
+
+becomes:
+
+static const u8 W83792D_REG_IN = {
+	0x20, /* Vcore A in datasheet */
+	0x21, /* Vcore B in datasheet */
+	0x22, /* VIN0 in datasheet */
+	0x23, /* VIN1 in datasheet */
+	0x24, /* VIN2 in datasheet */
+	0x25, /* VIN3 in datasheet */
+	0x26, /* 5VCC in datasheet */
+	0xB0, /* 5VSB in datasheet */
+	0xB1, /* VBAT in datasheet */
+};
+
+The advantage is that you can then refactor code like this:
+
+> /* Update the Voltages/High Limit/Low Limit */
+> data->in[0] = w83792d_read_value(client, W83792D_REG_IN0);
+> data->in[1] = w83792d_read_value(client, W83792D_REG_IN1);
+> data->in[2] = w83792d_read_value(client, W83792D_REG_IN2);
+> data->in[3] = w83792d_read_value(client, W83792D_REG_IN3);
+> data->in[4] = w83792d_read_value(client, W83792D_REG_IN4);
+> data->in[5] = w83792d_read_value(client, W83792D_REG_IN5);
+> data->in[6] = w83792d_read_value(client, W83792D_REG_IN6);
+> data->in[7] = w83792d_read_value(client, W83792D_REG_IN7);
+> data->in[8] = w83792d_read_value(client, W83792D_REG_IN8);
+
+becomes:
+
+int i;
+for (i = 0; i < 9; i++)
+	data->in[i] = w83792d_read_value(client, W83792D_REG_IN[i]);
+
+Which is both less error-prone and more efficient. You can do the same
+change for almost all register sets. If you do, you'll see that the
+driver will become much smaller!
+
+2* You sometimes give different names to the same register:
+
+> #define W83792D_REG_FAN1_TOL 0x87	/* (bit3-0)SmartFan Fan1 tolerance */
+> #define W83792D_REG_FAN2_TOL 0x87	/* (bit7-4)SmartFan Fan2 tolerance */
+
+This is a bad idea, because you then do:
+
+> /* Update Smart Fan I/II tolerance */
+> data->fan_tolerance[0] >     w83792d_read_value(client, W83792D_REG_FAN1_TOL) & 0x0f;
+> data->fan_tolerance[1] >     (w83792d_read_value(client, W83792D_REG_FAN2_TOL)>>4) & 0x0f;
+
+You actually read the same register twice in a row! Since SMBus reads are
+rather slow, this introduces a performance penalty. You should instead
+do:
+
+#define W83792D_REG_FAN1_TOL 0x87	/* bits 3-0: SmartFan Fan1 tolerance
+					   bits 7-4: SmartFan Fan2 tolerance */
+
+int temp = w83792d_read_value(client, W83792D_REG_FAN1_TOL);
+data->fan_tolerance[0] = temp & 0x0f;
+data->fan_tolerance[1] = temp >> 4;
+
+That way you read the register only once.
+
+3* Do not define nor use w83792d_id. It has been removed from most other
+drivers because it is in fact useless.
+
+4* That comment:
+> /* For each registered W83792D, we need to keep some data in memory. That
+>    data is pointed to by w83792d_list[NR]->data. The structure itself is
+>    dynamically allocated, at the same time when a new w83792d client is
+>    allocated. */
+is bogus and should be deleted
+
+5* Maybe you should leave some values for W83792D_SYSCTL_PWM4-7 in case
+they are implemented later.
+
+6* Initialization to 0 is usless:
+
+> static int w83792d_attach_adapter(struct i2c_adapter *adapter)
+> {
+> 	int i_tmp = 0;
+> 	ENTER()
+> 
+> 	i_tmp = i2c_detect(adapter, &addr_data, w83792d_detect);
+
+7* This can go away completely:
+
+> #ifdef W83792D_DEBUG
+> 	if (i2c_is_isa_adapter(adapter))
+> 	{
+> 		printk("w83792d.o: Called for an ISA bus adapter, aborting.\n");
+> 		LEAVE()
+> 		return 0;
+> 		/* This should NOT happen! because 792 chip
+> 		   only appears on I2C instead of ISA. */
+> 	}
+> #endif
+
+The i2c_check_functionality right after that will discard the ISA bus
+case.
+
+8* Each printk should use one of the KERN_ERR, KERN_DEBUG, KERN_WARNING
+or KERN_INFO constant. Also, don't use "w83792d.o" in the messages
+but only "w83792".
+
+9* It looks like you only use bank 0 of the W83792D chip, and that
+registers in bank 1 are unlikely to be ever used, Also, all register
+seem to be byte-sized. This means that you could simplify the
+w83792d_read_value and w83792d_write_value functions: get rid of the
+lock, get rid of the bank, use u8 instead of u16 and get rid of the
+bitmasking. In fact you'll end up with very simple functions just
+calling one ambus function.
+
+10* In w83792d_update_client, you declare variables (reg0-3) in the
+middle of a block. Older gcc compilers will not accept it, so for best
+compatibility you should declare them at the beginning of the block.
+
+11* In several callback functions, you define nr = ctl_name -
+W83792D_SYSCTL_SOMETHING + 1, then use nr - 1 everywhere in the
+function. It would be both more efficient and more readable to define nr
+= ctl_name - W83792D_SYSCTL_SOMETHING and use nr everywhere after that.
+
+I hope that my comments will help you improve your driver.
+
+Thanks,
+--
+Jean Delvare
