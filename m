@@ -1,21 +1,39 @@
-From: vgmarimon@terra.es (Victor G. Marimon)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: wrong cpu temp
-Message-Id: <000701c33f18$acebb7c0$f265a8c0@gf01>
+From: john@scl.co.uk (John Sutton)
+Date: Thu, 19 May 2005 06:24:24 +0000
+Subject: Datasheet for IT8712F
+Message-Id: <03111311281802.05964@diva.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001201c33f14$0ee832a0$f265a8c0@gf01>
-In-Reply-To: <001201c33f14$0ee832a0$f265a8c0@gf01>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi there
 
+I am working to provide linux support for the hardware sensors in your 
+IT8712F chip on the Gigabyte Technology GA-8LD533(-P) motherboard.
 
-> 
-> > and with 'modprobe it87 temp_type=0x290' tha i think is the correct
-> > parameter for my it87. show negative number
-> 
-> No, it isn't. You should have read the docs... Try temp_type=0x1c.
+According to the lm_sensors web site:
 
-        but i have it8705f and in the docs is 0x290. i try it and wrong too.
+http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/doc/chips/it87
+
+----------------------------------
+IT8712F (untested)
+Addresses scanned: I2C 0x20 - 0x2f (inclusive), ISA 0x290 (8 I/O ports)
+Datasheet: Publicly available at the ITE website
+           http://www.ite.com.tw
+----------------------------------
+
+I've had a look on your website but I can't find the datasheet for the 
+IT8712F.  Can you please send it to me or send me a URL for it.
+
+Thanks in advance.
+
+Best regards
+
+***************************************************
+John Sutton
+SCL Internet
+URL http://www.scl.co.uk/
+Tel. +44 (0) 1239 711 888
+***************************************************
