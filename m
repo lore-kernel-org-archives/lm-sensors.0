@@ -1,32 +1,40 @@
-From: m.heinz@gmx.net (Matthias Heinz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:21 +0000
 Subject: Problems using w83781d (v 2.8.0) on Asus CUV4X
-Message-Id: <1066427722.8562.5.camel@localhost>
+Message-Id: <20031018095213.58b42219.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1066427722.8562.5.camel@localhost>
+In-Reply-To: <1066427722.8562.5.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGksCgp0aGF0J3Mgd2hhdCBpIGdldCwgd2hlbiBpIHRyeSB0byBtb2Rwcm9iZSB0aGUgdzgzNzgx
-ZC1tb2R1bGUgaW50byB0aGUKa2VybmVsLiBXaXRoIGxtLXNlbnNvcnMgMi43LjAgaXQgd29ya2Vk
-LgoKZG1lc2c6Cnc4MzYyN2hmLm8gdmVyc2lvbiAyLjguMCAoMjAwMzA3MTQpCnc4MzYyN2hmLm86
-IFc4MzYyNy82OTcgbm90IGRldGVjdGVkLCBtb2R1bGUgbm90IGluc2VydGVkLgp3ODM3ODFkLm8g
-dmVyc2lvbiAyLjguMCAoMjAwMzA3MTQpCmkyYy1jb3JlLm86IGRyaXZlciAgcmVnaXN0ZXJlZC4K
-VW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1
-YWwgYWRkcmVzcwowMDAwMDAwMQogcHJpbnRpbmcgZWlwOgowMDAwMDAwMQoqcGRlID0gMDAwMDAw
-MDAKT29wczogMDAwMApDUFU6ICAgIDAKRUlQOiAgICAwMDEwOls8MDAwMDAwMDE+XSAgICBUYWlu
-dGVkOiBQCkVGTEFHUzogMDAwMTAyODIKZWF4OiBlMGFmNTUwOCAgIGVieDogMDAwMDAwMDAgICBl
-Y3g6IGUwYWQ4NDI0ICAgZWR4OiBkZTg5N2ZhOAplc2k6IGUwYWQ4NDI0ICAgZWRpOiBlMWQ1ODE0
-MCAgIGVicDogZmZmZmZmZWEgICBlc3A6IGM5ZDEzZWYwCmRzOiAwMDE4ICAgZXM6IDAwMTggICBz
-czogMDAxOApQcm9jZXNzIG1vZHByb2JlLm1vZHV0aSAocGlkOiA4NTQzLCBzdGFja3BhZ2XJZDEz
-MDAwKQpTdGFjazogZTBhZDU0N2UgZTBhZjU1MDggZTFkNTgxNDAgZTFkNTQwMDAgMDAwMDAwMDIg
-MDAwMDAwMDIgZTFkNTc2NGQKZTFkNTgxNDAKICAgICAgIGUxZDU3ODczIGUxZDU3ODZhIGMwMTE5
-NjgyIGUxZDU0MDYwIDA4MGFkNmY4IDAwMDA1ZGY0IGUxZDU3YjJjCjA4MGIxMTE0CiAgICAgICAw
-MDAwM2E3YyAwMDAwMDA2MCAwMDAwMDA2MCAwMDAwMDAwNyBjZWMzNDg2MCBjMjMzMTAwMCBjMjMz
-MzAwMAplMWQ1YjAwMApDYWxsIFRyYWNlOiAgICBbPGUwYWQ1NDdlPl0gWzxlMGFmNTUwOD5dIFs8
-ZTFkNTgxNDA+XSBbPGUxZDU3NjRkPl0KWzxlMWQ1ODE0MD5dCiAgWzxlMWQ1Nzg3Mz5dIFs8ZTFk
-NTc4NmE+XSBbPGMwMTE5NjgyPl0gWzxlMWQ1NDA2MD5dIFs8ZTFkNTdiMmM+XQpbPGUxZDU0MDYw
-Pl0KICBbPGMwMTA3M2NmPl0KCkNvZGU6ICBCYWQgRUlQIHZhbHVlLgoKCgpIYXZlIHlvdSBzcGxp
-dCB0aGVzZSBtb2R1bGVzIG9yIHdoZXJlJ3MgdGhlIHByb2JsZW0/CgpUaGFua3MgZm9yIGFuc3dl
-cgpNYXR0aGlhcwo=
+
+> that's what i get, when i try to modprobe the w83781d-module into the
+> kernel. With lm-sensors 2.7.0 it worked.
+> 
+> dmesg:
+> w83627hf.o version 2.8.0 (20030714)
+> w83627hf.o: W83627/697 not detected, module not inserted.
+> w83781d.o version 2.8.0 (20030714)
+> i2c-core.o: driver  registered.
+> Unable to handle kernel NULL pointer dereference at virtual address
+> 00000001
+
+Have you been patching your the i2c-2.8.0 path as described in our
+installation guide? (http://www.ensicaen.ismra.fr/~delvare/devel/i2c/)
+More generally, how have you been installing lm_sensors?
+If you have that possibility, trying 2.8.1 would probably be a good idea
+(although the structure problem will remain the same, but at least you
+might escape bugs we have been fixing since).
+
+> Have you split these modules or where's the problem?
+
+Structure changes between 2.7.0 and 2.8.0 could be at charge there, this
+is a known problem, documentation is available (see URI right above) and
+we're working on it.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
