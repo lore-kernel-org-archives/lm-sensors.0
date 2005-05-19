@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: 2.8.0 released!
-Message-Id: <3F19DAF4.9020801@paradyne.com>
+Message-Id: <20030721130511.51e20cd4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F13484A.9080207@edgedesign.us>
 In-Reply-To: <3F13484A.9080207@edgedesign.us>
@@ -10,43 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-looks good.
 
-you could make it even more clear that the "unified patch" includes
-a patch to bring the kernel to i2c-2.8.0 plus the patches to the
-other drivers.
+> looks good.
+> 
+> you could make it even more clear that the "unified patch" includes
+> a patch to bring the kernel to i2c-2.8.0 plus the patches to the
+> other drivers.
 
-And the title is lm_sensors installation guide but it's really
-an i2c kernel patch guide.
+OK, done. I already had edited that part on a user request, but better
+be too clear than not enough.
 
-p.s. We're on the front page of freshmeat at the moment.
+> And the title is lm_sensors installation guide but it's really
+> an i2c kernel patch guide.
 
-p.s. it's spelled "supersede"
+I wasn't too sure about this one. Yes, 95% of the guide is for i2cn and
+5% for lm_sensors. But on the other hand people install i2c only if they
+want to use lm_sensors. I'll try to think of a name that says both.
 
-Jean Delvare wrote:
->>Could you check the verbage on the download page to see if it still 
->>makes sense? (I mean with regards to available patches, kernel 
->>conpatibilities, etc.)
-> 
-> 
-> I checked and changed whatever I felt should be. I also changed the page
-> organization, I think it's clearer now. Comments welcome.
-> 
-> I have been setting a page up at:
-> 
->     http://www.ensicaen.ismra.fr/~delvare/devel/i2c/
-> 
-> with my patches for integration of i2c-2.8.0 into the 2.4.21 kernel.
-> I've added a link from our download page to this one. MDS and Greg, I'd
-> really like you to go there and take a look, and tell me what you do
-> think about it. I think such a page could help having our work
-> integrated faster into the Linux kernel source tree.
-> 
-> (Maybe the page should better be on the LM Sensors web server instead of
-> my homepage, but I prefered to build it apart and let you see before we
-> take any decision.)
-> 
-> If noone objects, I think we should add a link to this page on our news
-> page before even thinking of annoucing LM Sensors 2.8.0 on Freshmeat
-> (should save our mailing list from flood.)
-> 
+> p.s. We're on the front page of freshmeat at the moment.
+
+I'll study how it impacts on my web page hit rate, and let you know.
+
+> p.s. it's spelled "supersede"
+
+Oh thanks, fixed.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
