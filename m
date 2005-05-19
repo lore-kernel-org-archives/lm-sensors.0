@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: [PATCH] More i2c driver changes for 2.5.66
-Message-Id: <10493289583037@kroah.com>
+Message-Id: <1049328958830@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10493289582463@kroah.com>
+In-Reply-To: <10493289582408@kroah.com>
 References: <1048295086481@kroah.com>
 In-Reply-To: <1048295086481@kroah.com>
 MIME-Version: 1.0
@@ -11,568 +11,628 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.977.29.6, 2003/04/02 11:32:24-08:00, greg@kroah.com
+ChangeSet 1.977.29.8, 2003/04/02 11:45:21-08:00, greg@kroah.com
 
-i2c: convert adm1021 chip driver to use sysfs files.
-
-Note, some data is not converted and will not be displayed.
-Someone with this hardware is going to have to finish the rest of 
-this conversion.
+i2c: remove proc and sysctl code from i2c-proc as it is no longer used.
 
 
- drivers/i2c/chips/adm1021.c |  358 ++++++++++++++++++++------------------------
- 1 files changed, 166 insertions(+), 192 deletions(-)
+ drivers/i2c/i2c-proc.c   |  546 -----------------------------------------------
+ include/linux/i2c-proc.h |   40 ---
+ 2 files changed, 586 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
---- a/drivers/i2c/chips/adm1021.c	Wed Apr  2 16:01:25 2003
-+++ b/drivers/i2c/chips/adm1021.c	Wed Apr  2 16:01:25 2003
-@@ -53,34 +53,34 @@
+diff -Nru a/drivers/i2c/i2c-proc.c b/drivers/i2c/i2c-proc.c
+--- a/drivers/i2c/i2c-proc.c	Wed Apr  2 16:01:04 2003
++++ b/drivers/i2c/i2c-proc.c	Wed Apr  2 16:01:04 2003
+@@ -37,539 +37,6 @@
+ #include <linux/i2c-proc.h>
+ #include <asm/uaccess.h>
  
- /* The adm1021 registers */
- /* Read-only */
--#define ADM1021_REG_TEMP 0x00
--#define ADM1021_REG_REMOTE_TEMP 0x01
--#define ADM1021_REG_STATUS 0x02
--#define ADM1021_REG_MAN_ID 0x0FE	/* 0x41 = AMD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi*/
--#define ADM1021_REG_DEV_ID 0x0FF	/* ADM1021 = 0x0X, ADM1023 = 0x3X */
--#define ADM1021_REG_DIE_CODE 0x0FF	/* MAX1617A */
-+#define ADM1021_REG_TEMP		0x00
-+#define ADM1021_REG_REMOTE_TEMP		0x01
-+#define ADM1021_REG_STATUS		0x02
-+#define ADM1021_REG_MAN_ID		0x0FE	/* 0x41 = AMD, 0x49 = TI, 0x4D = Maxim, 0x23 = Genesys , 0x54 = Onsemi*/
-+#define ADM1021_REG_DEV_ID		0x0FF	/* ADM1021 = 0x0X, ADM1023 = 0x3X */
-+#define ADM1021_REG_DIE_CODE		0x0FF	/* MAX1617A */
- /* These use different addresses for reading/writing */
--#define ADM1021_REG_CONFIG_R 0x03
--#define ADM1021_REG_CONFIG_W 0x09
--#define ADM1021_REG_CONV_RATE_R 0x04
--#define ADM1021_REG_CONV_RATE_W 0x0A
-+#define ADM1021_REG_CONFIG_R		0x03
-+#define ADM1021_REG_CONFIG_W		0x09
-+#define ADM1021_REG_CONV_RATE_R		0x04
-+#define ADM1021_REG_CONV_RATE_W		0x0A
- /* These are for the ADM1023's additional precision on the remote temp sensor */
--#define ADM1021_REG_REM_TEMP_PREC 0x010
--#define ADM1021_REG_REM_OFFSET 0x011
--#define ADM1021_REG_REM_OFFSET_PREC 0x012
--#define ADM1021_REG_REM_TOS_PREC 0x013
--#define ADM1021_REG_REM_THYST_PREC 0x014
-+#define ADM1021_REG_REM_TEMP_PREC	0x010
-+#define ADM1021_REG_REM_OFFSET		0x011
-+#define ADM1021_REG_REM_OFFSET_PREC	0x012
-+#define ADM1021_REG_REM_TOS_PREC	0x013
-+#define ADM1021_REG_REM_THYST_PREC	0x014
- /* limits */
--#define ADM1021_REG_TOS_R 0x05
--#define ADM1021_REG_TOS_W 0x0B
--#define ADM1021_REG_REMOTE_TOS_R 0x07
--#define ADM1021_REG_REMOTE_TOS_W 0x0D
--#define ADM1021_REG_THYST_R 0x06
--#define ADM1021_REG_THYST_W 0x0C
--#define ADM1021_REG_REMOTE_THYST_R 0x08
--#define ADM1021_REG_REMOTE_THYST_W 0x0E
-+#define ADM1021_REG_TOS_R		0x05
-+#define ADM1021_REG_TOS_W		0x0B
-+#define ADM1021_REG_REMOTE_TOS_R	0x07
-+#define ADM1021_REG_REMOTE_TOS_W	0x0D
-+#define ADM1021_REG_THYST_R		0x06
-+#define ADM1021_REG_THYST_W		0x0C
-+#define ADM1021_REG_REMOTE_THYST_R	0x08
-+#define ADM1021_REG_REMOTE_THYST_W	0x0E
- /* write-only */
--#define ADM1021_REG_ONESHOT 0x0F
-+#define ADM1021_REG_ONESHOT		0x0F
- 
- 
- /* Conversions. Rounding and limit checking is only done on the TO_REG
-@@ -88,8 +88,8 @@
-    these macros are called: arguments may be evaluated more than once.
-    Fixing this is just not worth it. */
- /* Conversions  note: 1021 uses normal integer signed-byte format*/
--#define TEMP_FROM_REG(val) (val > 127 ? val-256 : val)
--#define TEMP_TO_REG(val)   (SENSORS_LIMIT((val < 0 ? val+256 : val),0,255))
-+#define TEMP_FROM_REG(val)	(val > 127 ? val-256 : val)
-+#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val < 0 ? val+256 : val),0,255))
- 
- /* Initial values */
- 
-@@ -97,44 +97,43 @@
- they don't quite work like a thermostat the way the LM75 does.  I.e., 
- a lower temp than THYST actually triggers an alarm instead of 
- clearing it.  Weird, ey?   --Phil  */
--#define adm1021_INIT_TOS 60
--#define adm1021_INIT_THYST 20
--#define adm1021_INIT_REMOTE_TOS 60
--#define adm1021_INIT_REMOTE_THYST 20
-+#define adm1021_INIT_TOS		60
-+#define adm1021_INIT_THYST		20
-+#define adm1021_INIT_REMOTE_TOS		60
-+#define adm1021_INIT_REMOTE_THYST	20
- 
- /* Each client has this additional data */
- struct adm1021_data {
--	int sysctl_id;
- 	enum chips type;
- 
- 	struct semaphore update_lock;
- 	char valid;		/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
- 
--	u8 temp, temp_os, temp_hyst;	/* Register values */
--	u8 remote_temp, remote_temp_os, remote_temp_hyst, alarms, die_code;
-+	u8	temp_max;	/* Register values */
-+	u8	temp_hyst;
-+	u8	temp_input;
-+	u8	remote_temp_max;
-+	u8	remote_temp_hyst;
-+	u8	remote_temp_input;
-+	u8	alarms;
-+	/* special values for ADM1021 only */
-+	u8	die_code;
-         /* Special values for ADM1023 only */
--	u8 remote_temp_prec, remote_temp_os_prec, remote_temp_hyst_prec, 
--	   remote_temp_offset, remote_temp_offset_prec;
-+	u8	remote_temp_prec;
-+	u8	remote_temp_os_prec;
-+	u8	remote_temp_hyst_prec;
-+	u8	remote_temp_offset;
-+	u8	remote_temp_offset_prec;
- };
- 
- static int adm1021_attach_adapter(struct i2c_adapter *adapter);
--static int adm1021_detect(struct i2c_adapter *adapter, int address,
--			  unsigned short flags, int kind);
-+static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind);
- static void adm1021_init_client(struct i2c_client *client);
- static int adm1021_detach_client(struct i2c_client *client);
- static int adm1021_read_value(struct i2c_client *client, u8 reg);
- static int adm1021_write_value(struct i2c_client *client, u8 reg,
- 			       u16 value);
--static void adm1021_temp(struct i2c_client *client, int operation,
--			 int ctl_name, int *nrels_mag, long *results);
--static void adm1021_remote_temp(struct i2c_client *client, int operation,
--				int ctl_name, int *nrels_mag,
--				long *results);
--static void adm1021_alarms(struct i2c_client *client, int operation,
--			   int ctl_name, int *nrels_mag, long *results);
--static void adm1021_die_code(struct i2c_client *client, int operation,
--			     int ctl_name, int *nrels_mag, long *results);
- static void adm1021_update_client(struct i2c_client *client);
- 
- /* (amalysh) read only mode, otherwise any limit's writing confuse BIOS */
-@@ -151,45 +150,63 @@
- 	.detach_client	= adm1021_detach_client,
- };
- 
--/* These files are created for each detected adm1021. This is just a template;
--   though at first sight, you might think we could use a statically
--   allocated list, we need some way to get back to the parent - which
--   is done through one of the 'extra' fields which are initialized
--   when a new copy is allocated. */
--static ctl_table adm1021_dir_table_template[] = {
--	{ADM1021_SYSCTL_TEMP, "temp1", NULL, 0, 0644, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_temp},
--	{ADM1021_SYSCTL_REMOTE_TEMP, "temp2", NULL, 0, 0644, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_remote_temp},
--	{ADM1021_SYSCTL_DIE_CODE, "die_code", NULL, 0, 0444, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_die_code},
--	{ADM1021_SYSCTL_ALARMS, "alarms", NULL, 0, 0444, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_alarms},
+-static int i2c_parse_reals(int *nrels, void *buffer, int bufsize,
+-			       long *results, int magnitude);
+-static int i2c_write_reals(int nrels, void *buffer, size_t *bufsize,
+-			       long *results, int magnitude);
+-static int i2c_proc_chips(ctl_table * ctl, int write,
+-			      struct file *filp, void *buffer,
+-			      size_t * lenp);
+-static int i2c_sysctl_chips(ctl_table * table, int *name, int nlen,
+-				void *oldval, size_t * oldlenp,
+-				void *newval, size_t newlen,
+-				void **context);
+-
+-#define SENSORS_ENTRY_MAX 20
+-static struct ctl_table_header *i2c_entries[SENSORS_ENTRY_MAX];
+-
+-static struct i2c_client *i2c_clients[SENSORS_ENTRY_MAX];
+-
+-static ctl_table i2c_proc_dev_sensors[] = {
+-	{SENSORS_CHIPS, "chips", NULL, 0, 0644, NULL, &i2c_proc_chips,
+-	 &i2c_sysctl_chips},
 -	{0}
 -};
 -
--static ctl_table adm1021_max_dir_table_template[] = {
--	{ADM1021_SYSCTL_TEMP, "temp1", NULL, 0, 0644, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_temp},
--	{ADM1021_SYSCTL_REMOTE_TEMP, "temp2", NULL, 0, 0644, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_remote_temp},
--	{ADM1021_SYSCTL_ALARMS, "alarms", NULL, 0, 0444, NULL, &i2c_proc_real,
--	 &i2c_sysctl_real, NULL, &adm1021_alarms},
+-static ctl_table i2c_proc_dev[] = {
+-	{DEV_SENSORS, "sensors", NULL, 0, 0555, i2c_proc_dev_sensors},
+-	{0},
+-};
+-
+-
+-static ctl_table i2c_proc[] = {
+-	{CTL_DEV, "dev", NULL, 0, 0555, i2c_proc_dev},
 -	{0}
 -};
 -
- /* I choose here for semi-static allocation. Complete dynamic
-    allocation could also be used; the code needed for this would probably
-    take more memory than the datastructure takes now. */
- static int adm1021_id = 0;
- 
-+#define show(value)	\
-+static ssize_t show_##value(struct device *dev, char *buf)	\
-+{								\
-+	struct i2c_client *client = to_i2c_client(dev);		\
-+	struct adm1021_data *data = i2c_get_clientdata(client);	\
-+	int temp;						\
-+								\
-+	adm1021_update_client(client);				\
-+	temp = TEMP_FROM_REG(data->value);			\
-+	return sprintf(buf, "%d\n", temp);			\
-+}
-+show(temp_max);
-+show(temp_hyst);
-+show(temp_input);
-+show(remote_temp_max);
-+show(remote_temp_hyst);
-+show(remote_temp_input);
-+show(alarms);
-+show(die_code);
-+
-+#define set(value, reg)	\
-+static ssize_t set_##value(struct device *dev, const char *buf, size_t count)	\
-+{								\
-+	struct i2c_client *client = to_i2c_client(dev);		\
-+	struct adm1021_data *data = i2c_get_clientdata(client);	\
-+	int temp = simple_strtoul(buf, NULL, 10);		\
-+								\
-+	data->value = TEMP_TO_REG(temp);			\
-+	adm1021_write_value(client, reg, data->value);		\
-+	return count;						\
-+}
-+set(temp_max, ADM1021_REG_TOS_W);
-+set(temp_hyst, ADM1021_REG_THYST_W);
-+set(remote_temp_max, ADM1021_REG_REMOTE_TOS_W);
-+set(remote_temp_hyst, ADM1021_REG_REMOTE_THYST_W);
-+
-+static DEVICE_ATTR(temp_max1, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
-+static DEVICE_ATTR(temp_min1, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
-+static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp_input, NULL);
-+static DEVICE_ATTR(temp_max2, S_IWUSR | S_IRUGO, show_remote_temp_max, set_remote_temp_max);
-+static DEVICE_ATTR(temp_min2, S_IWUSR | S_IRUGO, show_remote_temp_hyst, set_remote_temp_hyst);
-+static DEVICE_ATTR(temp_input2, S_IRUGO, show_remote_temp_input, NULL);
-+static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
-+static DEVICE_ATTR(die_code, S_IRUGO, show_die_code, NULL);
-+
-+
- static int adm1021_attach_adapter(struct i2c_adapter *adapter)
- {
- 	return i2c_detect(adapter, &addr_data, adm1021_detect);
- }
- 
--static int adm1021_detect(struct i2c_adapter *adapter, int address,
--			  unsigned short flags, int kind)
-+static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
- 	struct i2c_client *new_client;
-@@ -202,8 +219,7 @@
- 	   at this moment; i2c_detect really won't call us. */
- #ifdef DEBUG
- 	if (i2c_is_isa_adapter(adapter)) {
--		printk
--		    ("adm1021.o: adm1021_detect called for an ISA bus adapter?!?\n");
-+		dev_dbg(&adapter->dev, "adm1021_detect called for an ISA bus adapter?!?\n");
- 		return 0;
- 	}
- #endif
-@@ -232,35 +248,28 @@
- 	new_client->flags = 0;
- 
- 	/* Now, we do the remaining detection. */
 -
- 	if (kind < 0) {
--		if (
--		    (adm1021_read_value(new_client, ADM1021_REG_STATUS) &
--		     0x03) != 0x00)
-+		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00)
- 			goto error1;
- 	}
- 
- 	/* Determine the chip type. */
+-static struct ctl_table_header *i2c_proc_header;
 -
- 	if (kind <= 0) {
- 		i = adm1021_read_value(new_client, ADM1021_REG_MAN_ID);
- 		if (i = 0x41)
--		  if ((adm1021_read_value (new_client, ADM1021_REG_DEV_ID) & 0x0F0) = 0x030)
--			kind = adm1023;
--		  else
--			kind = adm1021;
-+			if ((adm1021_read_value(new_client, ADM1021_REG_DEV_ID) & 0x0F0) = 0x030)
-+				kind = adm1023;
-+			else
-+				kind = adm1021;
- 		else if (i = 0x49)
- 			kind = thmc10;
- 		else if (i = 0x23)
- 			kind = gl523sm;
- 		else if ((i = 0x4d) &&
--			 (adm1021_read_value
--			  (new_client, ADM1021_REG_DEV_ID) = 0x01))
-+			 (adm1021_read_value(new_client, ADM1021_REG_DEV_ID) = 0x01))
- 			kind = max1617a;
- 		/* LM84 Mfr ID in a different place */
--		else
--		    if (adm1021_read_value
--			(new_client, ADM1021_REG_CONV_RATE_R) = 0x00)
-+		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00)
- 			kind = lm84;
- 		else if (i = 0x54)
- 			kind = mc1066;
-@@ -293,10 +302,8 @@
- 		type_name = "mc1066";
- 		client_name = "MC1066 chip";
- 	} else {
--#ifdef DEBUG
--		printk("adm1021.o: Internal error: unknown kind (%d)?!?",
--		       kind);
--#endif
-+		dev_err(&adapter->dev, "Internal error: unknown kind (%d)?!?",
-+			kind);
- 		goto error1;
- 	}
+-/* This returns a nice name for a new directory; for example lm78-isa-0310
+-   (for a LM78 chip on the ISA bus at port 0x310), or lm75-i2c-3-4e (for
+-   a LM75 chip on the third i2c bus at address 0x4e).  
+-   name is allocated first. */
+-static char *generate_name(struct i2c_client *client, const char *prefix)
+-{
+-	struct i2c_adapter *adapter = client->adapter;
+-	int addr = client->addr;
+-	char name_buffer[50], *name;
+-
+-	if (i2c_is_isa_adapter(adapter)) {
+-		sprintf(name_buffer, "%s-isa-%04x", prefix, addr);
+-	} else if (adapter->algo->smbus_xfer || adapter->algo->master_xfer) {
+-		int id = i2c_adapter_id(adapter);
+-		if (id < 0)
+-			return ERR_PTR(-ENOENT);
+-		sprintf(name_buffer, "%s-i2c-%d-%02x", prefix, id, addr);
+-	} else {	/* dummy adapter, generate prefix */
+-		int end, i;
+-
+-		sprintf(name_buffer, "%s-", prefix);
+-		end = strlen(name_buffer);
+-
+-		for (i = 0; i < 32; i++) {
+-			if (adapter->algo->name[i] = ' ')
+-				break;
+-			name_buffer[end++] = tolower(adapter->algo->name[i]);
+-		}
+-
+-		name_buffer[end] = 0;
+-		sprintf(name_buffer + end, "-%04x", addr);
+-	}
+-
+-	name = kmalloc(strlen(name_buffer) + 1, GFP_KERNEL);
+-	if (unlikely(!name))
+-		return ERR_PTR(-ENOMEM);
+-	strcpy(name, name_buffer);
+-	return name;
+-}
+-
+-/* This rather complex function must be called when you want to add an entry
+-   to /proc/sys/dev/sensors/chips. It also creates a new directory within 
+-   /proc/sys/dev/sensors/.
+-   ctl_template should be a template of the newly created directory. It is
+-   copied in memory. The extra2 field of each file is set to point to client.
+-   If any driver wants subdirectories within the newly created directory,
+-   this function must be updated!  */
+-int i2c_register_entry(struct i2c_client *client, const char *prefix,
+-		       struct ctl_table *leaf)
+-{
+-	struct { struct ctl_table root[2], dev[2], sensors[2]; } *tbl;
+-	struct ctl_table_header *hdr;
+-	struct ctl_table *tmp;
+-	const char *name;
+-	int id;
+-
+-	name = generate_name(client, prefix);
+-	if (IS_ERR(name))
+-		return PTR_ERR(name);
+-
+-	for (id = 0; id < SENSORS_ENTRY_MAX; id++) {
+-		if (!i2c_entries[id])
+-			goto free_slot;
+-	}
+-
+-	goto out_free_name;
+-
+- free_slot:
+-	tbl = kmalloc(sizeof(*tbl), GFP_KERNEL);
+-	if (unlikely(!tbl))
+-		goto out_free_name;
+-	memset(tbl, 0, sizeof(*tbl));
+-
+-	for (tmp = leaf; tmp->ctl_name; tmp++)
+-		tmp->extra2 = client;
+-
+-	tbl->sensors->ctl_name = id+256;
+-	tbl->sensors->procname = name;
+-	tbl->sensors->mode = 0555;
+-	tbl->sensors->child = leaf;
+-
+-	tbl->dev->ctl_name = DEV_SENSORS;
+-	tbl->dev->procname = "sensors";
+-	tbl->dev->mode = 0555;
+-	tbl->dev->child = tbl->sensors;
+-
+-	tbl->root->ctl_name = CTL_DEV;
+-	tbl->root->procname = "dev";
+-	tbl->root->mode = 0555;
+-	tbl->root->child = tbl->dev;
+-
+-	hdr = register_sysctl_table(tbl->root, 0);
+-	if (unlikely(!hdr))
+-		goto out_free_tbl;
+-
+-	i2c_entries[id] = hdr;
+-	i2c_clients[id] = client;
+-
+-	return (id + 256);	/* XXX(hch) why?? */
+-
+- out_free_tbl:
+-	kfree(tbl);
+- out_free_name:
+-	kfree(name);
+-	return -ENOMEM;
+-}
+-
+-void i2c_deregister_entry(int id)
+-{
+-	id -= 256;
+-
+-	if (i2c_entries[id]) {
+-		struct ctl_table_header *hdr = i2c_entries[id];
+-		struct ctl_table *tbl = hdr->ctl_table;
+-
+-		unregister_sysctl_table(hdr);
+-		kfree(tbl->child->child->procname);
+-		kfree(tbl); /* actually the whole anonymous struct */
+-	}
+-
+-	i2c_entries[id] = NULL;
+-	i2c_clients[id] = NULL;
+-}
+-
+-static int i2c_proc_chips(ctl_table * ctl, int write, struct file *filp,
+-		       void *buffer, size_t * lenp)
+-{
+-	char BUF[SENSORS_PREFIX_MAX + 30];
+-	int buflen, curbufsize, i;
+-	struct ctl_table *client_tbl;
+-
+-	if (write)
+-		return 0;
+-
+-	/* If buffer is size 0, or we try to read when not at the start, we
+-	   return nothing. Note that I think writing when not at the start
+-	   does not work either, but anyway, this is straight from the kernel
+-	   sources. */
+-	if (!*lenp || (filp->f_pos && !write)) {
+-		*lenp = 0;
+-		return 0;
+-	}
+-	curbufsize = 0;
+-	for (i = 0; i < SENSORS_ENTRY_MAX; i++)
+-		if (i2c_entries[i]) {
+-			client_tbl -			    i2c_entries[i]->ctl_table->child->child;
+-			buflen -			    sprintf(BUF, "%d\t%s\n", client_tbl->ctl_name,
+-				    client_tbl->procname);
+-			if (buflen + curbufsize > *lenp)
+-				buflen = *lenp - curbufsize;
+-			if(copy_to_user(buffer, BUF, buflen))
+-				return -EFAULT;
+-			curbufsize += buflen;
+-			(char *) buffer += buflen;
+-		}
+-	*lenp = curbufsize;
+-	filp->f_pos += curbufsize;
+-	return 0;
+-}
+-
+-static int i2c_sysctl_chips(ctl_table * table, int *name, int nlen,
+-			 void *oldval, size_t * oldlenp, void *newval,
+-			 size_t newlen, void **context)
+-{
+-	struct i2c_chips_data data;
+-	int i, oldlen, nrels, maxels,ret=0;
+-	struct ctl_table *client_tbl;
+-
+-	if (oldval && oldlenp && !((ret = get_user(oldlen, oldlenp))) && 
+-	    oldlen) {
+-		maxels = oldlen / sizeof(struct i2c_chips_data);
+-		nrels = 0;
+-		for (i = 0; (i < SENSORS_ENTRY_MAX) && (nrels < maxels);
+-		     i++)
+-			if (i2c_entries[i]) {
+-				client_tbl -				    i2c_entries[i]->ctl_table->child->
+-				    child;
+-				data.sysctl_id = client_tbl->ctl_name;
+-				strcpy(data.name, client_tbl->procname);
+-				if(copy_to_user(oldval, &data,
+-					     sizeof(struct
+-						    i2c_chips_data)))
+-					return -EFAULT;
+-				(char *) oldval +-				    sizeof(struct i2c_chips_data);
+-				nrels++;
+-			}
+-		oldlen = nrels * sizeof(struct i2c_chips_data);
+-		if(put_user(oldlen, oldlenp))
+-			return -EFAULT;
+-	}
+-	return ret;
+-}
+-
+-
+-/* This function reads or writes a 'real' value (encoded by the combination
+-   of an integer and a magnitude, the last is the power of ten the value
+-   should be divided with) to a /proc/sys directory. To use this function,
+-   you must (before registering the ctl_table) set the extra2 field to the
+-   client, and the extra1 field to a function of the form:
+-      void func(struct i2c_client *client, int operation, int ctl_name,
+-                int *nrels_mag, long *results)
+-   This function can be called for three values of operation. If operation
+-   equals SENSORS_PROC_REAL_INFO, the magnitude should be returned in 
+-   nrels_mag. If operation equals SENSORS_PROC_REAL_READ, values should
+-   be read into results. nrels_mag should return the number of elements
+-   read; the maximum number is put in it on entry. Finally, if operation
+-   equals SENSORS_PROC_REAL_WRITE, the values in results should be
+-   written to the chip. nrels_mag contains on entry the number of elements
+-   found.
+-   In all cases, client points to the client we wish to interact with,
+-   and ctl_name is the SYSCTL id of the file we are accessing. */
+-int i2c_proc_real(ctl_table * ctl, int write, struct file *filp,
+-		      void *buffer, size_t * lenp)
+-{
+-#define MAX_RESULTS 32
+-	int mag, nrels = MAX_RESULTS;
+-	long results[MAX_RESULTS];
+-	i2c_real_callback callback = ctl->extra1;
+-	struct i2c_client *client = ctl->extra2;
+-	int res;
+-
+-	/* If buffer is size 0, or we try to read when not at the start, we
+-	   return nothing. Note that I think writing when not at the start
+-	   does not work either, but anyway, this is straight from the kernel
+-	   sources. */
+-	if (!*lenp || (filp->f_pos && !write)) {
+-		*lenp = 0;
+-		return 0;
+-	}
+-
+-	/* Get the magnitude */
+-	callback(client, SENSORS_PROC_REAL_INFO, ctl->ctl_name, &mag,
+-		 NULL);
+-
+-	if (write) {
+-		/* Read the complete input into results, converting to longs */
+-		res = i2c_parse_reals(&nrels, buffer, *lenp, results, mag);
+-		if (res)
+-			return res;
+-
+-		if (!nrels)
+-			return 0;
+-
+-		/* Now feed this information back to the client */
+-		callback(client, SENSORS_PROC_REAL_WRITE, ctl->ctl_name,
+-			 &nrels, results);
+-
+-		filp->f_pos += *lenp;
+-		return 0;
+-	} else {		/* read */
+-		/* Get the information from the client into results */
+-		callback(client, SENSORS_PROC_REAL_READ, ctl->ctl_name,
+-			 &nrels, results);
+-
+-		/* And write them to buffer, converting to reals */
+-		res = i2c_write_reals(nrels, buffer, lenp, results, mag);
+-		if (res)
+-			return res;
+-		filp->f_pos += *lenp;
+-		return 0;
+-	}
+-}
+-
+-/* This function is equivalent to i2c_proc_real, only it interacts with
+-   the sysctl(2) syscall, and returns no reals, but integers */
+-int i2c_sysctl_real(ctl_table * table, int *name, int nlen,
+-			void *oldval, size_t * oldlenp, void *newval,
+-			size_t newlen, void **context)
+-{
+-	long results[MAX_RESULTS];
+-	int oldlen, nrels = MAX_RESULTS,ret=0;
+-	i2c_real_callback callback = table->extra1;
+-	struct i2c_client *client = table->extra2;
+-
+-	/* Check if we need to output the old values */
+-	if (oldval && oldlenp && !((ret=get_user(oldlen, oldlenp))) && oldlen) {
+-		callback(client, SENSORS_PROC_REAL_READ, table->ctl_name,
+-			 &nrels, results);
+-
+-		/* Note the rounding factor! */
+-		if (nrels * sizeof(long) < oldlen)
+-			oldlen = nrels * sizeof(long);
+-		oldlen = (oldlen / sizeof(long)) * sizeof(long);
+-		if(copy_to_user(oldval, results, oldlen))
+-			return -EFAULT;
+-		if(put_user(oldlen, oldlenp))
+-			return -EFAULT;
+-	}
+-
+-	if (newval && newlen) {
+-		/* Note the rounding factor! */
+-		newlen -= newlen % sizeof(long);
+-		nrels = newlen / sizeof(long);
+-		if(copy_from_user(results, newval, newlen))
+-			return -EFAULT;
+-
+-		/* Get the new values back to the client */
+-		callback(client, SENSORS_PROC_REAL_WRITE, table->ctl_name,
+-			 &nrels, results);
+-	}
+-	return ret;
+-}
+-
+-
+-/* nrels contains initially the maximum number of elements which can be
+-   put in results, and finally the number of elements actually put there.
+-   A magnitude of 1 will multiply everything with 10; etc.
+-   buffer, bufsize is the character buffer we read from and its length.
+-   results will finally contain the parsed integers. 
+-
+-   Buffer should contain several reals, separated by whitespace. A real
+-   has the following syntax:
+-     [ Minus ] Digit* [ Dot Digit* ] 
+-   (everything between [] is optional; * means zero or more).
+-   When the next character is unparsable, everything is skipped until the
+-   next whitespace.
+-
+-   WARNING! This is tricky code. I have tested it, but there may still be
+-            hidden bugs in it, even leading to crashes and things!
+-*/
+-static int i2c_parse_reals(int *nrels, void *buffer, int bufsize,
+-			 long *results, int magnitude)
+-{
+-	int maxels, min, mag;
+-	long res,ret=0;
+-	char nextchar = 0;
+-
+-	maxels = *nrels;
+-	*nrels = 0;
+-
+-	while (bufsize && (*nrels < maxels)) {
+-
+-		/* Skip spaces at the start */
+-		while (bufsize && 
+-		       !((ret=get_user(nextchar, (char *) buffer))) &&
+-		       isspace((int) nextchar)) {
+-			bufsize--;
+-			((char *) buffer)++;
+-		}
+-
+-		if (ret)
+-			return -EFAULT;	
+-		/* Well, we may be done now */
+-		if (!bufsize)
+-			return 0;
+-
+-		/* New defaults for our result */
+-		min = 0;
+-		res = 0;
+-		mag = magnitude;
+-
+-		/* Check for a minus */
+-		if (!((ret=get_user(nextchar, (char *) buffer)))
+-		    && (nextchar = '-')) {
+-			min = 1;
+-			bufsize--;
+-			((char *) buffer)++;
+-		}
+-		if (ret)
+-			return -EFAULT;
+-
+-		/* Digits before a decimal dot */
+-		while (bufsize && 
+-		       !((ret=get_user(nextchar, (char *) buffer))) &&
+-		       isdigit((int) nextchar)) {
+-			res = res * 10 + nextchar - '0';
+-			bufsize--;
+-			((char *) buffer)++;
+-		}
+-		if (ret)
+-			return -EFAULT;
+-
+-		/* If mag < 0, we must actually divide here! */
+-		while (mag < 0) {
+-			res = res / 10;
+-			mag++;
+-		}
+-
+-		if (bufsize && (nextchar = '.')) {
+-			/* Skip the dot */
+-			bufsize--;
+-			((char *) buffer)++;
+-
+-			/* Read digits while they are significant */
+-			while (bufsize && (mag > 0) &&
+-			       !((ret=get_user(nextchar, (char *) buffer))) &&
+-			       isdigit((int) nextchar)) {
+-				res = res * 10 + nextchar - '0';
+-				mag--;
+-				bufsize--;
+-				((char *) buffer)++;
+-			}
+-			if (ret)
+-				return -EFAULT;
+-		}
+-		/* If we are out of data, but mag > 0, we need to scale here */
+-		while (mag > 0) {
+-			res = res * 10;
+-			mag--;
+-		}
+-
+-		/* Skip everything until we hit whitespace */
+-		while (bufsize && 
+-		       !((ret=get_user(nextchar, (char *) buffer))) &&
+-		       isspace((int) nextchar)) {
+-			bufsize--;
+-			((char *) buffer)++;
+-		}
+-		if (ret)
+-			return -EFAULT;
+-
+-		/* Put res in results */
+-		results[*nrels] = (min ? -1 : 1) * res;
+-		(*nrels)++;
+-	}
+-
+-	/* Well, there may be more in the buffer, but we need no more data. 
+-	   Ignore anything that is left. */
+-	return 0;
+-}
+-
+-static int i2c_write_reals(int nrels, void *buffer, size_t *bufsize,
+-			 long *results, int magnitude)
+-{
+-#define BUFLEN 20
+-	char BUF[BUFLEN + 1];	/* An individual representation should fit! */
+-	char printfstr[10];
+-	int nr = 0;
+-	int buflen, mag, times;
+-	int curbufsize = 0;
+-
+-	while ((nr < nrels) && (curbufsize < *bufsize)) {
+-		mag = magnitude;
+-
+-		if (nr != 0) {
+-			if(put_user(' ', (char *) buffer))
+-				return -EFAULT;
+-			curbufsize++;
+-			((char *) buffer)++;
+-		}
+-
+-		/* Fill BUF with the representation of the next string */
+-		if (mag <= 0) {
+-			buflen = sprintf(BUF, "%ld", results[nr]);
+-			if (buflen < 0) {	/* Oops, a sprintf error! */
+-				*bufsize = 0;
+-				return -EINVAL;
+-			}
+-			while ((mag < 0) && (buflen < BUFLEN)) {
+-				BUF[buflen++] = '0';
+-				mag++;
+-			}
+-			BUF[buflen] = 0;
+-		} else {
+-			times = 1;
+-			for (times = 1; mag-- > 0; times *= 10);
+-			if (results[nr] < 0) {
+-				BUF[0] = '-';
+-				buflen = 1;
+-			} else
+-				buflen = 0;
+-			strcpy(printfstr, "%ld.%0Xld");
+-			printfstr[6] = magnitude + '0';
+-			buflen +-			    sprintf(BUF + buflen, printfstr,
+-				    abs(results[nr]) / times,
+-				    abs(results[nr]) % times);
+-			if (buflen < 0) {	/* Oops, a sprintf error! */
+-				*bufsize = 0;
+-				return -EINVAL;
+-			}
+-		}
+-
+-		/* Now copy it to the user-space buffer */
+-		if (buflen + curbufsize > *bufsize)
+-			buflen = *bufsize - curbufsize;
+-		if(copy_to_user(buffer, BUF, buflen))
+-			return -EFAULT;
+-		curbufsize += buflen;
+-		(char *) buffer += buflen;
+-
+-		nr++;
+-	}
+-	if (curbufsize < *bufsize) {
+-		if(put_user('\n', (char *) buffer))
+-			return -EFAULT;
+-		curbufsize++;
+-	}
+-	*bufsize = curbufsize;
+-	return 0;
+-}
+-
  
-@@ -312,25 +319,24 @@
- 	if ((err = i2c_attach_client(new_client)))
- 		goto error3;
+ /* Very inefficient for ISA detects, and won't work for 10-bit addresses! */
+ int i2c_detect(struct i2c_adapter *adapter,
+@@ -703,26 +170,13 @@
  
--	/* Register a new directory entry with module sensors */
--	err = i2c_register_entry(new_client, type_name,
--			(data->type = adm1021) ?
--				adm1021_dir_table_template :
--				adm1021_max_dir_table_template);
--	if (err < 0)
--		goto error4;
-+	device_create_file(&new_client->dev, &dev_attr_temp_max1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_min1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_input1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_max2);
-+	device_create_file(&new_client->dev, &dev_attr_temp_min2);
-+	device_create_file(&new_client->dev, &dev_attr_temp_input2);
-+	device_create_file(&new_client->dev, &dev_attr_alarms);
-+	if (data->type = adm1021)
-+		device_create_file(&new_client->dev, &dev_attr_die_code);
- 
--	data->sysctl_id = err;
- 	/* Initialize the ADM1021 chip */
- 	adm1021_init_client(new_client);
+ static int __init i2c_proc_init(void)
+ {
+-	printk(KERN_INFO "i2c-proc.o version %s (%s)\n", I2C_VERSION, I2C_DATE);
+-	if (!
+-	    (i2c_proc_header -	     register_sysctl_table(i2c_proc, 0))) {
+-		printk(KERN_ERR "i2c-proc.o: error: sysctl interface not supported by kernel!\n");
+-		return -EPERM;
+-	}
+-	i2c_proc_header->ctl_table->child->de->owner = THIS_MODULE;
  	return 0;
- 
--      error4:
--	i2c_detach_client(new_client);
--      error3:
--      error1:
-+error3:
-+error1:
- 	kfree(new_client);
--      error0:
-+error0:
- 	return err;
  }
  
-@@ -353,21 +359,15 @@
- 
- static int adm1021_detach_client(struct i2c_client *client)
+ static void __exit i2c_proc_exit(void)
  {
+-	unregister_sysctl_table(i2c_proc_header);
+ }
+ 
+-EXPORT_SYMBOL(i2c_register_entry);
+-EXPORT_SYMBOL(i2c_deregister_entry);
+-EXPORT_SYMBOL(i2c_proc_real);
+-EXPORT_SYMBOL(i2c_sysctl_real);
+ EXPORT_SYMBOL(i2c_detect);
+ 
+ MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
+diff -Nru a/include/linux/i2c-proc.h b/include/linux/i2c-proc.h
+--- a/include/linux/i2c-proc.h	Wed Apr  2 16:01:04 2003
++++ b/include/linux/i2c-proc.h	Wed Apr  2 16:01:04 2003
+@@ -34,46 +34,6 @@
+ #define SENSORS_PROC_REAL_READ 2
+ #define SENSORS_PROC_REAL_WRITE 3
+ 
+-/* These funcion reads or writes a 'real' value (encoded by the combination
+-   of an integer and a magnitude, the last is the power of ten the value
+-   should be divided with) to a /proc/sys directory. To use these functions,
+-   you must (before registering the ctl_table) set the extra2 field to the
+-   client, and the extra1 field to a function of the form:
+-      void func(struct i2c_client *client, int operation, int ctl_name,
+-                int *nrels_mag, long *results)
+-   This last function can be called for three values of operation. If
+-   operation equals SENSORS_PROC_REAL_INFO, the magnitude should be returned
+-   in nrels_mag. If operation equals SENSORS_PROC_REAL_READ, values should
+-   be read into results. nrels_mag should return the number of elements
+-   read; the maximum number is put in it on entry. Finally, if operation
+-   equals SENSORS_PROC_REAL_WRITE, the values in results should be
+-   written to the chip. nrels_mag contains on entry the number of elements
+-   found.
+-   In all cases, client points to the client we wish to interact with,
+-   and ctl_name is the SYSCTL id of the file we are accessing. */
+-extern int i2c_sysctl_real(ctl_table * table, int *name, int nlen,
+-			       void *oldval, size_t * oldlenp,
+-			       void *newval, size_t newlen,
+-			       void **context);
+-extern int i2c_proc_real(ctl_table * ctl, int write, struct file *filp,
+-			     void *buffer, size_t * lenp);
 -
- 	int err;
- 
--	i2c_deregister_entry(((struct adm1021_data *) (i2c_get_clientdata(client)))->sysctl_id);
 -
- 	if ((err = i2c_detach_client(client))) {
--		printk
--		    ("adm1021.o: Client deregistration failed, client not detached.\n");
-+		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
- 		return err;
- 	}
- 
- 	kfree(client);
 -
- 	return 0;
+-/* These rather complex functions must be called when you want to add or
+-   delete an entry in /proc/sys/dev/sensors/chips (not yet implemented). It
+-   also creates a new directory within /proc/sys/dev/sensors/.
+-   ctl_template should be a template of the newly created directory. It is
+-   copied in memory. The extra2 field of each file is set to point to client.
+-   If any driver wants subdirectories within the newly created directory,
+-   these functions must be updated! */
+-extern int i2c_register_entry(struct i2c_client *client,
+-				  const char *prefix,
+-				  ctl_table * ctl_template);
 -
- }
- 
- /* All registers are byte-sized */
-@@ -391,39 +391,23 @@
- 
- 	if ((jiffies - data->last_updated > HZ + HZ / 2) ||
- 	    (jiffies < data->last_updated) || !data->valid) {
-+		dev_dbg(&client->dev, "Starting adm1021 update\n");
- 
--#ifdef DEBUG
--		printk("Starting adm1021 update\n");
--#endif
+-extern void i2c_deregister_entry(int id);
 -
--		data->temp = adm1021_read_value(client, ADM1021_REG_TEMP);
--		data->temp_os -		    adm1021_read_value(client, ADM1021_REG_TOS_R);
--		data->temp_hyst -		    adm1021_read_value(client, ADM1021_REG_THYST_R);
--		data->remote_temp -		    adm1021_read_value(client, ADM1021_REG_REMOTE_TEMP);
--		data->remote_temp_os -		    adm1021_read_value(client, ADM1021_REG_REMOTE_TOS_R);
--		data->remote_temp_hyst -		    adm1021_read_value(client, ADM1021_REG_REMOTE_THYST_R);
--		data->alarms -		    adm1021_read_value(client, ADM1021_REG_STATUS) & 0xec;
-+		data->temp_input = adm1021_read_value(client, ADM1021_REG_TEMP);
-+		data->temp_max = adm1021_read_value(client, ADM1021_REG_TOS_R);
-+		data->temp_hyst = adm1021_read_value(client, ADM1021_REG_THYST_R);
-+		data->remote_temp_input = adm1021_read_value(client, ADM1021_REG_REMOTE_TEMP);
-+		data->remote_temp_max = adm1021_read_value(client, ADM1021_REG_REMOTE_TOS_R);
-+		data->remote_temp_hyst = adm1021_read_value(client, ADM1021_REG_REMOTE_THYST_R);
-+		data->alarms = adm1021_read_value(client, ADM1021_REG_STATUS) & 0xec;
- 		if (data->type = adm1021)
--			data->die_code -			    adm1021_read_value(client,
--					       ADM1021_REG_DIE_CODE);
-+			data->die_code = adm1021_read_value(client, ADM1021_REG_DIE_CODE);
- 		if (data->type = adm1023) {
--		  data->remote_temp_prec -		    adm1021_read_value(client, ADM1021_REG_REM_TEMP_PREC);
--		  data->remote_temp_os_prec -		    adm1021_read_value(client, ADM1021_REG_REM_TOS_PREC);
--		  data->remote_temp_hyst_prec -		    adm1021_read_value(client, ADM1021_REG_REM_THYST_PREC);
--		  data->remote_temp_offset -		    adm1021_read_value(client, ADM1021_REG_REM_OFFSET);
--		  data->remote_temp_offset_prec -		    adm1021_read_value(client, ADM1021_REG_REM_OFFSET_PREC);
-+			data->remote_temp_prec = adm1021_read_value(client, ADM1021_REG_REM_TEMP_PREC);
-+			data->remote_temp_os_prec = adm1021_read_value(client, ADM1021_REG_REM_TOS_PREC);
-+			data->remote_temp_hyst_prec = adm1021_read_value(client, ADM1021_REG_REM_THYST_PREC);
-+			data->remote_temp_offset = adm1021_read_value(client, ADM1021_REG_REM_OFFSET);
-+			data->remote_temp_offset_prec = adm1021_read_value(client, ADM1021_REG_REM_OFFSET_PREC);
- 		}
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-@@ -433,6 +417,9 @@
- }
- 
- 
-+/* FIXME, remove these four functions, they are here to verify the sysfs
-+ * conversion is correct, or not */
-+__attribute__((unused))
- static void adm1021_temp(struct i2c_client *client, int operation,
- 			 int ctl_name, int *nrels_mag, long *results)
- {
-@@ -442,15 +429,15 @@
- 		*nrels_mag = 0;
- 	else if (operation = SENSORS_PROC_REAL_READ) {
- 		adm1021_update_client(client);
--		results[0] = TEMP_FROM_REG(data->temp_os);
-+		results[0] = TEMP_FROM_REG(data->temp_max);
- 		results[1] = TEMP_FROM_REG(data->temp_hyst);
--		results[2] = TEMP_FROM_REG(data->temp);
-+		results[2] = TEMP_FROM_REG(data->temp_input);
- 		*nrels_mag = 3;
- 	} else if (operation = SENSORS_PROC_REAL_WRITE) {
- 		if (*nrels_mag >= 1) {
--			data->temp_os = TEMP_TO_REG(results[0]);
-+			data->temp_max = TEMP_TO_REG(results[0]);
- 			adm1021_write_value(client, ADM1021_REG_TOS_W,
--					    data->temp_os);
-+					    data->temp_max);
- 		}
- 		if (*nrels_mag >= 2) {
- 			data->temp_hyst = TEMP_TO_REG(results[1]);
-@@ -460,6 +447,7 @@
- 	}
- }
- 
-+__attribute__((unused))
- static void adm1021_remote_temp(struct i2c_client *client, int operation,
- 				int ctl_name, int *nrels_mag, long *results)
- {
-@@ -471,68 +459,53 @@
-                  else { *nrels_mag = 0; }
- 	else if (operation = SENSORS_PROC_REAL_READ) {
- 		adm1021_update_client(client);
--		results[0] = TEMP_FROM_REG(data->remote_temp_os);
-+		results[0] = TEMP_FROM_REG(data->remote_temp_max);
- 		results[1] = TEMP_FROM_REG(data->remote_temp_hyst);
--		results[2] = TEMP_FROM_REG(data->remote_temp);
-+		results[2] = TEMP_FROM_REG(data->remote_temp_input);
- 		if (data->type = adm1023) {
--		  results[0]=results[0]*1000 + 
--		   ((data->remote_temp_os_prec >> 5) * 125);
--		  results[1]=results[1]*1000 + 
--		   ((data->remote_temp_hyst_prec >> 5) * 125);
--		  results[2]=(TEMP_FROM_REG(data->remote_temp_offset)*1000) + 
--                   ((data->remote_temp_offset_prec >> 5) * 125);
--		  results[3]=TEMP_FROM_REG(data->remote_temp)*1000 + 
--		   ((data->remote_temp_prec >> 5) * 125);
-- 		  *nrels_mag = 4;
-+			results[0] = results[0]*1000 + ((data->remote_temp_os_prec >> 5) * 125);
-+			results[1] = results[1]*1000 + ((data->remote_temp_hyst_prec >> 5) * 125);
-+			results[2] = (TEMP_FROM_REG(data->remote_temp_offset)*1000) + ((data->remote_temp_offset_prec >> 5) * 125);
-+			results[3] = (TEMP_FROM_REG(data->remote_temp_input)*1000) + ((data->remote_temp_prec >> 5) * 125);
-+			*nrels_mag = 4;
- 		} else {
-- 		  *nrels_mag = 3;
-+ 			*nrels_mag = 3;
- 		}
- 	} else if (operation = SENSORS_PROC_REAL_WRITE) {
- 		if (*nrels_mag >= 1) {
- 			if (data->type = adm1023) {
--			  prec=((results[0]-((results[0]/1000)*1000))/125)<<5;
--			  adm1021_write_value(client,
--                                            ADM1021_REG_REM_TOS_PREC,
--                                            prec);
--			  results[0]=results[0]/1000;
--			  data->remote_temp_os_prec=prec;
-+				prec = ((results[0]-((results[0]/1000)*1000))/125)<<5;
-+				adm1021_write_value(client, ADM1021_REG_REM_TOS_PREC, prec);
-+				results[0] = results[0]/1000;
-+				data->remote_temp_os_prec=prec;
- 			}
--			data->remote_temp_os = TEMP_TO_REG(results[0]);
--			adm1021_write_value(client,
--					    ADM1021_REG_REMOTE_TOS_W,
--					    data->remote_temp_os);
-+			data->remote_temp_max = TEMP_TO_REG(results[0]);
-+			adm1021_write_value(client, ADM1021_REG_REMOTE_TOS_W, data->remote_temp_max);
- 		}
- 		if (*nrels_mag >= 2) {
- 			if (data->type = adm1023) {
--			  prec=((results[1]-((results[1]/1000)*1000))/125)<<5;
--			  adm1021_write_value(client,
--                                            ADM1021_REG_REM_THYST_PREC,
--                                            prec);
--			  results[1]=results[1]/1000;
--			  data->remote_temp_hyst_prec=prec;
-+				prec = ((results[1]-((results[1]/1000)*1000))/125)<<5;
-+				adm1021_write_value(client, ADM1021_REG_REM_THYST_PREC, prec);
-+				results[1] = results[1]/1000;
-+				data->remote_temp_hyst_prec=prec;
- 			}
- 			data->remote_temp_hyst = TEMP_TO_REG(results[1]);
--			adm1021_write_value(client,
--					    ADM1021_REG_REMOTE_THYST_W,
--					    data->remote_temp_hyst);
-+			adm1021_write_value(client, ADM1021_REG_REMOTE_THYST_W, data->remote_temp_hyst);
- 		}
- 		if (*nrels_mag >= 3) {
- 			if (data->type = adm1023) {
--			  prec=((results[2]-((results[2]/1000)*1000))/125)<<5;
--			  adm1021_write_value(client,
--                                            ADM1021_REG_REM_OFFSET_PREC,
--                                            prec);
--			  results[2]=results[2]/1000;
--			  data->remote_temp_offset_prec=prec;
--			  data->remote_temp_offset=results[2];
--			  adm1021_write_value(client,
--                                            ADM1021_REG_REM_OFFSET,
--                                            data->remote_temp_offset);
-+				prec = ((results[2]-((results[2]/1000)*1000))/125)<<5;
-+				adm1021_write_value(client, ADM1021_REG_REM_OFFSET_PREC, prec);
-+				results[2]=results[2]/1000;
-+				data->remote_temp_offset_prec=prec;
-+				data->remote_temp_offset=results[2];
-+				adm1021_write_value(client, ADM1021_REG_REM_OFFSET, data->remote_temp_offset);
- 			}
- 		}
- 	}
- }
- 
-+__attribute__((unused))
- static void adm1021_die_code(struct i2c_client *client, int operation,
- 			     int ctl_name, int *nrels_mag, long *results)
- {
-@@ -549,6 +522,7 @@
- 	}
- }
- 
-+__attribute__((unused))
- static void adm1021_alarms(struct i2c_client *client, int operation,
- 			   int ctl_name, int *nrels_mag, long *results)
- {
-@@ -574,8 +548,8 @@
- 	i2c_del_driver(&adm1021_driver);
- }
- 
--MODULE_AUTHOR
--    ("Frodo Looijaard <frodol@dds.nl> and Philip Edelbrock <phil@netroedge.com>");
-+MODULE_AUTHOR ("Frodo Looijaard <frodol@dds.nl> and "
-+		"Philip Edelbrock <phil@netroedge.com>");
- MODULE_DESCRIPTION("adm1021 driver");
- MODULE_LICENSE("GPL");
- 
+-
+ /* A structure containing detect information.
+    Force variables overrule all other variables; they force a detection on
+    that place. If a specific chip is given, the module blindly assumes this
 
