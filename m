@@ -1,20 +1,24 @@
-From: TheOneAndOnlySM@aol.com (TheOneAndOnlySM@aol.com)
-Date: Thu, 19 May 2005 06:24:47 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:51 +0000
 Subject: Nat. Sem. PC87366 also listed under "Sensors Chip" Drivers
-Message-Id: <33.454e65b3.2d85f761@aol.com>
+Message-Id: <20040410174003.0100eee3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <33.454e65b3.2d85f761@aol.com>
+In-Reply-To: <33.454e65b3.2d85f761@aol.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Sorry, I just noticed that the National Semiconductor PC87366 is also listed 
-with "no plan" under the Sensors Chip drivers table. I am also willing to help 
-test out these sensors drivers as well.
+> Sorry, I just noticed that the National Semiconductor PC87366 is also
+> listed with "no plan" under the Sensors Chip drivers table. I am also
+> willing to help test out these sensors drivers as well.
 
-Thanks!
+We have a preliminary (fans-only) driver in CVS if you want to give it a
+try.
 
-email: theoneandonlysm@aol.com; theoneandonlysm@yahoo.com
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040314/03ee69d2/attachment.html
+Oh BTW, your e-mail address is highly lame, didn't you know? :p
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
