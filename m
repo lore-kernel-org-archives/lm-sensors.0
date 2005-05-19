@@ -1,7 +1,7 @@
-From: rysanek@fccps.cz (rysanek@fccps.cz)
+From: chris@hedonism.cx (Christian Vogel)
 Date: Thu, 19 May 2005 06:23:57 +0000
 Subject: SOLVED: an issue + a bug in eepromer/eeprom.c from lm_sensors.tgz
-Message-Id: <Pine.LNX.4.33.0305221553160.23255-100000@usti.fccps.cz>
+Message-Id: <20030522161014.A30242@netlynx-server.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.33.0305221414100.23255-200000@usti.fccps.cz>
 In-Reply-To: <Pine.LNX.4.33.0305221414100.23255-200000@usti.fccps.cz>
@@ -10,46 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 22 May 2003, Mark Studebaker wrote:
->
+Hi Mark,
+
+On Thu, May 22, 2003 at 09:22:17AM -0400, Mark Studebaker wrote:
 > In lm_sensors-2.7.0,
 > we've already made clear in the README files in prog/eepromer
 > that 'eeprom' is for small eeproms and 'eepromer' is for big eeproms.
->
-no doubt you have, and indeed that information was very important to me.
 
-However, in the "eeprom.c vs. eepromer.c" case, the border line is
-between 24C01-to-24C16 (eeprom) vs. 24C32-and-above (eepromer).
-To quote README.eepromer:
+Nobody doubts that :-) The problem with "eeprom.c" is, that it's not
+working with *very* *small* eeproms. The small ones must be written/read
+8 bytes at a time (which also works with the bigger ones) whereas my code uses 16.
 
-#> The EEPROM must be a large EEPROM which uses a 2-byte address
-#> field (24C32 or larger). It will NOT WORK on small EEPROMs
-#> (24C01 - 24C16) such as those used on SDRAM DIMMs.
+Furthermore, Frank found another error (the condition in the
+for(;;)-loop) which should be corrected nevertheless. Therefore please
+consider applying the patch below which is exactly what Frank sent to
+you as a whole file.
 
-Whereas the 8byte vs. 16byte burst size is yet another border line within
-the "eeprom.c" camp: 24C01-&-24C02 (8 bytes) vs. 24C04-to-24C16 (16
-bytes).
+Greetings,
+        Chris
 
-> > I did have to modify eepromer/eeprom.c a bit though, to support
-> > my 24C02. The essential gotcha was this: whereas the 24C16 that
-> > you were using supports maximum burst size of 16 bytes (the same
-> > applies to 24C08 and 24C04), the 24C02 and 24C01 only support
-> > bursts up to 8 bytes long.
-
-Oh, sorry about including the eepromer/ directory in the file
-reference - I meant to distinguish the prog/eepromer/eeprom.c file
-from the eeprom/* directory, that contains stuff for decoding the DIMMs.
-
-As for 8 vs. 16 bytes, no doubt there are several ways to address this
-feature of the "eeprom.c" style devices. Put a comment into the
-documentation, use yet another getopt option in eeprom.c, or just set the
-burst size to 8 bytes as a rule, which is supported by all the
-"eeprom.c" chips (24C01 to 24C16) - IMO the little bit of additional
-bus bandwidth overhead doesn't really matter.
-
-Thanks again for the time you spend doing this great job.
-
-Frank Rysanek
-
-
-
+--- eeprom.c    2003/05/22 13:01:44     1.1
++++ eeprom.c    2003/05/22 14:04:20
+@@ -22,7 +22,9 @@
+ #define DEFAULT_EEPROM_ADDR  0x50         /* the 24C16 sits on i2c address 0x50 */
+ #define DEFAULT_NUM_PAGES    8            /* we default to a 24C16 eeprom which has 8 pages */
+ #define BYTES_PER_PAGE       256          /* one eeprom page is 256 byte */
+-#define MAX_BYTES            16           /* max number of bytes to write in one piece */
++#define MAX_BYTES            8            /* max number of bytes to write in one chunk */
++       /* ... note: 24C02 and 24C01 only allow 8 bytes to be written in one chunk.   *
++        *  if you are going to write 24C04,8,16 you can change this to 16            */
+ 
+ /* write len bytes (stored in buf) to eeprom at address addr, page-offset offset */
+ /* if len=0 (buf may be NULL in this case) you can reposition the eeprom's read-pointer */
+@@ -264,11 +266,11 @@
+                for(j=0;j<sizeof(buf);j++)
+                    buf[j]=0;
+            }
+-           for(j=0;j<MAX_BYTES;j++)
++           for(j=0;j<(BYTES_PER_PAGE/MAX_BYTES);j++)
+                if(eeprom_write(d,addr+i,j*MAX_BYTES,buf+(j*MAX_BYTES),MAX_BYTES)<0)
+                    exit(1);
+        } else {
+-           for(j=0;j<MAX_BYTES;j++)
++           for(j=0;j<(BYTES_PER_PAGE/MAX_BYTES);j++)
+                if(eeprom_read(d,addr+i,j*MAX_BYTES,buf+(j*MAX_BYTES),MAX_BYTES)<0)
+                    exit(1);
+        }
