@@ -1,25 +1,30 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:20 +0000
-Subject: [PATCH 2.6] I2C: Fix amd756 name
-Message-Id: <20041019222845.GH9521@kroah.com>
+From: stumpfm@informatik.tu-muenchen.de (Martin Stumpf)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: GigaByte 7DXR (cleared)
+Message-Id: <20020205053016.GA7663@informatik.tu-muenchen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041016200019.3962f8a4.khali@linux-fr.org>
-In-Reply-To: <20041016200019.3962f8a4.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Oct 16, 2004 at 08:00:19PM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This sets the proper name for busses supported by the i2c-amd756 driver.
-> So far, all busses were named AMD756 regardless of the real hardware.
-> Setting the real name is certainly less confusing for the user, and the
-> sensors-detect script expects this too.
-> 
-> Please apply,
+Hi,
 
-Applied, thanks.
+> I have a GigaByte 7DXR Mainboard. With this board the lm-sensors do
+> not work correctly.
+Now I found a working module combination. I first have to load
+i2c-isa then i2c-viapro and last via686a.
 
-greg k-h
+> The I2C-ViaPro is loaded and the LM80 and LM75.
+My question is why does sensors-detect only finds LM80 and LM75 which
+do not work correctly.
+
+I don't know, whether this can be fixed?
+
+P.S.: A friend with a NMC board had problems, too. He said
+aensors-detect didn't find anything. And then after a while
+he found the working combination i2c-isa, i2c-viapro, via686a.
+
+
+Regards,
+  Martin
