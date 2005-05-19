@@ -1,40 +1,36 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: Documentation Bug (Re: Ticket #1126)
-Message-Id: <3E503EBB.4060503@paradyne.com>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: 405 i2c patch
+Message-Id: <3CAE05EB.F2EC7BF8@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030209084710.GA1470@earthlink.net>
-In-Reply-To: <20030209084710.GA1470@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-good suggestions, thanks, I'll try and add some of them to our docs.
-mds
+sorry. I did get it.
+The original 405 stuff came from Tom Rini at MontaVista.
+Is it safe to assume that you two are working together?
 
-Jason Bucata wrote:
-> This is regarding ticket #1126.
+WIth files being renamed it will take a little while to get this checked in
+because that's harder in CVS.
+
+BTW, what does OCP stand for?
+
+Also, are we allowed to use // comments in the kernel?
+
+Armin Kuster wrote:
 > 
-> The suggestion to turn on CONFIG_I2C_ALGOBIT worked; thanks.  So it
-> appears to be a documentation bug instead of a code/config file bug.
+> Mark,
 > 
-> It makes sense to have to turn something on like that before you can see
-> the option, but IMHO it's very important to tell the users that they
-> need to!
+> I have not heard back on this patch I sent out earlier this week.
 > 
-> None of the following sources of information say anything about having
-> to enable bit-banging devices when compiling the kernel to use this
-> driver:
-> 	http://secure.netroedge.com/~lm78/supported.html
-> 	http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/busses/i2c-via
-> 	sensors-detect
+> Any status?
 > 
-> Maybe that should be stated directly on the Supported Chips and Drivers
-> page, but I think ideally it should go on the per-driver doc page, and
-> have the Supported Chips and Drivers page hyperlink to those, so that we
-> know there's more info available.  (I didn't even know about the
-> driver-specific pages until just now.)
-> 
-> Jason B.
-> 
+> regards,
+> --
+> ==========================> Armin Kuster                 MontaVista Software Inc.
+> Embedded Linux Consultant    1237 East Arques Ave
+> Phone (408) 328-0305         Sunnyvale CA 94085
+> Fax   (408) 328-9204         www.support.mvista.com
+> ==========================
