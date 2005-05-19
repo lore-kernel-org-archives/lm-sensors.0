@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:06 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:11 +0000
 Subject: Third auto-fan control interface proposal
-Message-Id: <20040725175521.33fc80b1.khali@linux-fr.org>
+Message-Id: <20040811200301.GB12506@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200407051449.i65Enjdq031467@zone3.gcu-squad.org>
 In-Reply-To: <200407051449.i65Enjdq031467@zone3.gcu-squad.org>
@@ -10,59 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Just noticed that I never anwsered this point:
+Hello:
 
-> I don't see how this maps to it87 very well.
-> In it87, just like the others, the temperature controls the fans,
-> not vice versa. It's just that the pwm values are selected discretely.
-> Your naming implied to me that the fan controls the temperature
-> for it87??? confusing to me anyway.
-> Shouldn't it87 use the same model as the others, with some additional
-> entries if necessary?
+* Jean Delvare <khali@linux-fr.org> [2004-07-05 16:49:45 +0200]:
 
-The IT87xx does of course adapt fan speeds to the temperatures, not the
-other way around (it a hardware monitor, not an oven ;)). The difference
-with the ADM1031 is in how the fan speed is computed.
+<snip>
 
-For the ADM1031, each temperature channels has its trip points. You use
-them to compute a (virtual) fan speed, then for each fan, see which
-temperature channels are linked to it, and pick the faster speed.
+> It looks like the possibility to select more than one temp channel for a
+> given fan controler is needed (Philip Pokorny), so we wouldn't simplify
+> this. As in the first proposal, the values would be bitfields, 1<<N =
+> temp channel N matters to compute the considered fan's speed.
+> 
+> Files :
+> 
+> fan1_auto_channels
+> fan2_auto_channels
 
-For the IT87xx, each *fan* (not temperature channel) has its trip
-points. You use the fan vs. temperature mapping to find which
-temperatures apply to this fan, pick the hottest temperature, and
-determine the fan speed for that temperature.
+<snip>
 
-The trick is that a fan can be driven by more than one temperature, and
-one temperature can drive more than just one fan, which makes things
-kinda complex, and, more importantly, makes both models incompatible as
-far as I can see.
+I think these should be named e.g. pwm1_auto_channels to make clear
+the distinction between a tacho input (fanX) and a pwm output (pwmX).
 
-Feel free to read the IT87xx and ADM1031 datasheets again to confirm
-that my descriptions of both chips are OK.
+(/me goes off to look at 2.6 sysfs_interface doc again)
 
-If you think it is possible to merge both models in a single interface,
-let me know. I couldn't find a way. Or, if there is a way, it's so
-complex that we would make the drivers unreadable, and we don't want to
-do that, do we? And even then it's not perfect, IIRC.
+Oh dear.  I'm sorry I wasn't paying attention to this sooner, but I
+think our interface needs revision again.  All of the fan[nr]_pwm*
+files should really just be pwm[nr]*.
 
-I would like to propose a Documentation/i2c/sysfs-interface update quite
-soon now, we have delayed this for too long already (although I am not
-the only one to blame here - anyone can do it). The it87 and w83627hf
-drivers have people interested in adding auto-fan control support, and
-are basically blocked by the lack of standardized interface.
+The association between tacho input and pwm output is arbitrary and
+depends on mainboard maker.  E.g. our script prog/pwm/pwmconfig is
+made to discover the relationships.
 
-One point which was still debated is whether pwm_enable should have
-value 2 in auto mode (MDS' proposal), or if we would simply rely on a
-non-empty temperature vs. fan mapping to mean that auto mode is enabled
-(my original proposal). Now that I come to think of it, I think that's
-MDS' way is better, because it's more likely to match the chips
-internals, and that way we can remember the temperature vs. fan mappings
-when not in non-auto mode. It also makes it more clear that pwm_enable
-is the master control. Comments?
+Would anyone object to such a patch for 2.6 kernel drivers?
 
-Thanks.
+* * * * *
+
+This also seems like a good time to introduce an idea that Khali
+and I discussed on IRC some days ago, actually, a rule-of-thumb:
+
+Any patch to the 2.6 kernel which changes/breaks some part of the
+documented sysfs interface must be accompanied by a patch to
+libsensors.  The libsensors patch must preserve backwards compat.
+to the sysfs interface as it existed in every kernel.org kernel
+from 2.6.5-rc1 to present.
+
+I'm not suggesting we support forward-compat... nobody should
+complain if, after upgrading to a newer kernel, they are asked
+to upgrade to a newer libsensors. 
+
+We've had sort of a honeymoon period where we could change the 2.6
+kernel interface at will, and not support older ones with our current
+libsensors.  That pissed some people off, and now that distros are
+releasing not-quite-current 2.6 kernels, it's a real PIA all around.
+So, let's declare the honeymoon over.
+
+Regards,
 
 -- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+Mark M. Hoffman
+mhoffman@lightlink.com
