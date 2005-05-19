@@ -1,103 +1,111 @@
-From: od@fet.uni-hannover.de (Oliver Dawid)
-Date: Thu, 19 May 2005 06:24:23 +0000
-Subject: [od@fet.uni-hannover.de: Trying to find device chrontel 7009 ...]
-Message-Id: <200311050744.10449.od@fet.uni-hannover.de>
+From: dcb@pa.net (Douglas Bollinger)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: From Ticket 1972, Gigabyte 7dpxdw+, making it work correctly
+Message-Id: <20050504174827.11115a83.dcb@pa.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031013205850.GA2164@frodo.local>
-In-Reply-To: <20031013205850.GA2164@frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+This is from Ticket #1972, Gigabyte 7dpxdw+, making it work correctly
 
-On Tuesday 04 November 2003 22:59, you wrote:
+> the lm90 chip, driver, and userspace supports two temperatures.  are you
+> saying that only one is reported or only one is correct?  If only one is
+> reported check that the other is not set to ignore in /etc/sensors.conf.
+> If incorrect you can try adjusting with a compute line in sensors.conf.
+> If you need more help follow up by email, ref. your ticket number.
+> MDS 5/4/05
 
-> > Client found at address 0x2e
-> > Probing for `National Semiconductor LM80'... Success!
-> >     (confidence 3, driver `lm80')
-> > Client found at address 0x2f
-> > Probing for `National Semiconductor LM80'... Success!
-> >     (confidence 3, driver `lm80')
->
-> The LM80 is hard to detect, so it might not be LM80's. Load lm80, run
-> sensors (and sensors -s before that) and see if the values make sense.
+Sorry, I should have been more precise.  This is a duallie board, so the
+LM90 needs to support TWO external temperatures, instead of the usual one,
+along with the usual on-the-chip sensor.  That is what is so special (or
+odd) about this board.
 
-sensors output:
-flex scanner jammed
+Here's a sensor output of what I have so far:
 
-I have lm_sensors 2.7.0. I downloaded 2.8.1 but got this problem while 
-compiling:
-In file included from /lib/modules/2.4.20/build/include/asm/semaphore.h:39,
-                 from /lib/modules/2.4.20/build/include/linux/fs.h:200,
-                 from /lib/modules/2.4.20/build/include/linux/capability.h:17,
-                 from /lib/modules/2.4.20/build/include/linux/binfmts.h:5,
-                 from /lib/modules/2.4.20/build/include/linux/sched.h:9,
-                 from /lib/modules/2.4.20/build/include/linux/mm.h:4,
-                 from /lib/modules/2.4.20/build/include/linux/slab.h:14,
-                 from /lib/modules/2.4.20/build/include/asm/pci.h:32,
-                 from /lib/modules/2.4.20/build/include/linux/pci.h:622,
-                 from kernel/busses/i2c-nforce2.c:35:
-/lib/modules/2.4.20/build/include/asm/system.h: In function `__set_64bit_var':
-/lib/modules/2.4.20/build/include/asm/system.h:190: warning: dereferencing 
-type-punned pointer will break strict-aliasing rules
-/lib/modules/2.4.20/build/include/asm/system.h:190: warning: dereferencing 
-type-punned pointer will break strict-aliasing rules
-kernel/busses/i2c-nforce2.c: In function `nforce2_access':
-kernel/busses/i2c-nforce2.c:242: warning: implicit declaration of function 
-`i2c_delay'
-kernel/busses/i2c-nforce2.c: In function `nforce2_probe_smb':
-kernel/busses/i2c-nforce2.c:317: error: structure has no member named `owner'
-kernel/busses/i2c-nforce2.c:320: error: `I2C_HW_SMBUS_NFORCE2' undeclared 
-(first use in this function)
-kernel/busses/i2c-nforce2.c:320: error: (Each undeclared identifier is 
-reported only once
-kernel/busses/i2c-nforce2.c:320: error: for each function it appears in.)
-make: *** [kernel/busses/i2c-nforce2.o] Error 1
+******
+doug@ghidorah etc $ sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.52 V  (min =  +1.52 V, max =  +1.68 V)       ALARM
+VCore 2:   +1.52 V  (min =  +1.52 V, max =  +1.68 V)       ALARM
++3.3V:     +3.10 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +4.73 V  (min =  +4.76 V, max =  +5.24 V)       ALARM
++12V:     +11.49 V  (min = +10.82 V, max = +13.19 V)
+-12V:     -12.03 V  (min = -13.18 V, max = -10.80 V)
+-5V:       -5.05 V  (min =  -5.25 V, max =  -4.75 V)
+V5SB:      +5.35 V  (min =  +4.76 V, max =  +5.24 V)
+VBat:      +3.20 V  (min =  +2.40 V, max =  +3.60 V)
+fan1:        0 RPM  (min =    0 RPM, div = 2)
+fan2:        0 RPM  (min =    0 RPM, div = 2)
+fan3:        0 RPM  (min =    0 RPM, div = 2)
+temp1:       +30 C  (high =  +127 C)                     sensor = thermistor 
+temp2:     +32.0 C  (high =  +127 C, hyst =  +128 C)   sensor = thermistor 
+temp3:     +37.5 C  (high =  +127 C, hyst =  +128 C)   sensor = thermistor 
+vid:      +1.600 V  (VRM Version 9.0)
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+          Sound alarm disabled
 
-Seems that you depend on different kernel header than 2.4.20?
+eeprom-i2c-1-53
+Adapter: SMBus AMD768 adapter at 50e0
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-> > Client found at address 0x44
->
-> Might be what you're after.
+eeprom-i2c-1-52
+Adapter: SMBus AMD768 adapter at 50e0
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-i2cdump 1 0x44 b
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 0f 04 00 00 00 00 00 00 00 00 00 00 00 00    ..??............
+eeprom-i2c-1-51
+Adapter: SMBus AMD768 adapter at 50e0
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-i2cdump 1 0x2e b
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 01 3f 80 20 5d 5d c7 00 5a 00 1e 21 00 00 00 00    ??? ]]?.Z.?!....
-10: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
-20: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
-30: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
-40: 01 3f 00 20 5d 5d c7 00 5a 00 1e 21 00 00 00 00    ??. ]]?.Z.?!....
-50: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
-60: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
-70: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
-80: 01 3f 00 20 5d 5d c7 00 5a 00 1e 21 00 00 00 00    ??. ]]?.Z.?!....
-90: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
-a0: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
-b0: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
-c0: 01 3f 00 20 5d 5d 07 00 5a 00 1f 21 00 00 00 00    ??. ]]?.Z.?!....
-d0: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
-e0: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
-f0: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
+eeprom-i2c-1-50
+Adapter: SMBus AMD768 adapter at 50e0
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-i2cdump 1 0x2f b
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 01 ff 0f 00 00 ff 0f 00 00 ff 06 00 00 07 85 00    ?.?...?...?..??.
-10: c0 11 00 60 ff ff ff ff ff ff ff ff ff ff ff ff    ??.`............
+lm90-i2c-1-4c
+Adapter: SMBus AMD768 adapter at 50e0
+M/B Temp:    +49 C  (low  =    +0 C, high =   +70 C)
+CPU Temp:  +81.2 C  (low  =  +0.0 C, high = +70.0 C)   ALARM
+M/B Crit:    +85 C  (hyst =   +75 C)
+CPU Crit:    +85 C  (hyst =   +75 C)
 
-Seems like you are right and only one of 0x2e and 0x2f is a real lm80. Can you 
-tell me from dump which one it probably is? Hopefully its 0x2f because 
-chrontel 7009 has tons of registers and it better fits to 0x2e ' s dump.
+Philips NTSC -i2c-0-61
+Adapter: bt878 #0 [sw]
 
-maybe none of these devices is my chrontel so i will have to search on.
+tveeprom-i2c-0-50
+Adapter: bt878 #0 [sw]
+******
 
-Regards,
-od
+From the w83627hf: the voltage readings are OK, the fan RPM readings are OK
+as none of my fans have tach lines and the 3 temp. readings are a mystery.
+They have nothing to do with the CPU temps.
+
+Skipping down to the lm90, I assume the M/B Temp is the "on-the-chip"
+sensor and the CPU temp is the one external temp reading that works.  If I
+stall a CPU fan this reading will rise, so this one is good.  Of course,
+it's way too high, but that's the way it shows in the BIOS and that's easy
+enough to fix anyway.  
+
+The problem is that the lm90 should have one more external temp for the 2nd
+CPU.
+
+The website to this Windows program:
+
+http://mbm.livewiredev.com/
+
+The motherboard list of the above website shows the GA7 DPXDW+ with a
+LM90-1 remote and a LM90-2 remote.  Alas, the program is closed source so
+it's not much help.  The author also quit supporting this program so I
+suppose emailing him and asking how he did it wouldn't be much help either.
 
 -- 
-od@fli4l.de * http://www.fli4l.de/ * the on(e) disk router
+"Rights" is a fictional abstraction.  No one has "Rights", neither machines
+nor flesh-and-blood.  Persons... have opportunities, not rights, which they
+use or do not use.
+		-- Lazarus Long
