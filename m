@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: suggestions for sensors.conf
-Message-Id: <20020406224426.294313cb.khali@linux-fr.org>
+From: delvare@ensicaen.ismra.fr (Jean Delvare)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: mailing list archive
+Message-Id: <Pine.GSO.4.40.0202072301390.979-100000@e450.ensicaen.ismra.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,17 +9,11 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi folks.
-
-Two suggestions for sensors.conf:
-
-1* Don't use the tab char in the header, it will look ugly if tab space
-isn't set to 8 (which is the case for me).
-
-2* I think that this file should contain the lm_sensors versions it
-comes from in its header.
+It seems that the system that archives this mailing list is running out of
+space. I hope that the person who cares for this is reading me now ;)
 
 -- 
-Jean "Khali" Delvare
-mail: khali@linux-fr.org
-http://www.ensicaen.ismra.fr/~delvare/
+       /~~       Jean "Khali" Delvare
+  -----\_                        mail: delvare@ensicaen.ismra.fr
+ --------\                http://www.ensicaen.ismra.fr/~delvare/
+---=ISMRA/- ____________________________________________________
