@@ -1,34 +1,21 @@
-From: pasky@ucw.cz (Petr Baudis)
+From: torvalds@osdl.org (Linus Torvalds)
 Date: Thu, 19 May 2005 06:25:53 +0000
 Subject: [GIT PATCH] I2C and W1 bugfixes for 2.6.12-rc2
-Message-Id: <20050419222609.GE9305@pasky.ji.cz>
+Message-Id: <Pine.LNX.4.58.0504191525290.2274@ppc970.osdl.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050419043938.GA23724@kroah.com> <20050419185807.GA1191@kroah.com> <Pine.LNX.4.58.0504191204480.19286@ppc970.osdl.org> <426583D5.2020308@mesatop.com>
+References: <20050419043938.GA23724@kroah.com> <20050419185807.GA1191@kroah.com>
+ <Pine.LNX.4.58.0504191204480.19286@ppc970.osdl.org> <426583D5.2020308@mesatop.com>
 In-Reply-To: <426583D5.2020308@mesatop.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Steven Cole <elenstev@mesatop.com>
-Cc: Linus Torvalds <torvalds@osdl.org>, Greg KH <greg@kroah.com>, Greg KH <gregkh@suse.de>, Git Mailing List <git@vger.kernel.org>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+Cc: Greg KH <greg@kroah.com>, Greg KH <gregkh@suse.de>, Git Mailing List <git@vger.kernel.org>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-Dear diary, on Wed, Apr 20, 2005 at 12:19:01AM CEST, I got a letter
-where Steven Cole <elenstev@mesatop.com> told me that...
-> Linus Torvalds wrote:
-> >
-> >On Tue, 19 Apr 2005, Greg KH wrote:
-> >
-> >>Nice, it looks like the merge of this tree, and my usb tree worked just
-> >>fine.
-> >
-> >
-> >Yup, it all seems to work out.
-> 
-> [many files patched]
-> patching file mm/mmap.c
-> patching file net/bridge/br_sysfs_if.c
-> patching file scripts/ver_linux
-> ----------------------^^^^^^^^^
-> Hey, that's my patch!  Last...and least.
+
+
+On Tue, 19 Apr 2005, Steven Cole wrote:
+>
 > But perhaps a progress bar right about here might be
 > a good thing for the terminally impatient.
 > 
@@ -38,19 +25,50 @@ where Steven Cole <elenstev@mesatop.com> told me that...
 > 
 > 4 minutes might be long enough to cause some folks to lose hope.
 
-I'm wondering if doing
+Well, the real operations took only 15 seconds. What kind of horribe 
+person are you, that you don't have all of the kernel in your disk cache 
+already? Shame on you.
 
-if [ "$(show-diff)" ]; then
-	git diff | git apply
-else
+Or was the 4 minutes for downloading all the objest too?
+
+Anyway, it looks like you are using pasky's scripts, and the old 
+"patch-based" upgrade at that. You certainly will _not_ see the
+
+	[many files patched]
+	patching file mm/mmap.c
+	..
+
+if you use a real git merge. That's probable be the real problem here.
+
+Real merges have no patches taking place _anywhere_. And they take about 
+half a second. Doing an "update" of your tree should _literally_ boil down 
+to
+
+	#
+	# "repo" needs to point to the repo we update from
+	#
+	rsync -avz --ignore-existing $repo/objects/. .git/objects/.
+	rsync -L $repo/HEAD .git/NEW_HEAD || exit 1
+	read-tree -m $(cat .git/NEW_HEAD) || exit 1
 	checkout-cache -f -a
-fi
+	update-cache --refresh
+	mv .git/NEW_HEAD .git/HEAD
 
-would actually buy us some time; or, how common is it for people to have
-no local changes whatsoever, and whether relative slowdown of additional
-show-diff to git diff would actually matter.
+and if it does anything else, it's literally broken. Btw, the above does
+need my "read-tree -m" thing which I committed today.
 
--- 
-				Petr "Pasky" Baudis
-Stuff: http://pasky.or.cz/
-C++: an octopus made by nailing extra legs onto a dog. -- Steve Taylor
+(CAREFUL: the above is not a good script, because it _will_ just overwrite 
+all your old contents with the stuff you updated to. You should thus not 
+actually use something like this, but a "git update" should literally end 
+up doing the above operations in the end, and just add proper checking).
+
+And if that takes 4 minutes, you've got problems.
+
+Just say no to patches. 
+
+		Linus
+
+PS: If you want a clean tree without any old files or anything else, for
+that matter, you can then do a "show-files -z --others | xargs -0 rm", but
+be careful: that will blow away _anything_ that wasn't revision controlled
+with git. So don't blame me if your pr0n collection is gone afterwards.
