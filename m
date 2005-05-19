@@ -1,7 +1,7 @@
 From: mds4@verizon.net (Mark Studebaker)
 Date: Thu, 19 May 2005 06:24:31 +0000
 Subject: adding support for new 2.6 chips in (lib)sensors
-Message-Id: <3FF1EE64.2090600@verizon.net>
+Message-Id: <3FF1EF41.7090800@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031230214411.6eb029e7.khali@linux-fr.org>
 In-Reply-To: <20031230214411.6eb029e7.khali@linux-fr.org>
@@ -10,8 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-try steps 13-17 (if I counted right) in doc/developers/new_drivers.
-holler if you need more help.
+let me try again.
+They already have 2.4 support, right?
+In that case, for every sysfs entry that is "non-standard"
+(i.e. not covered by the conversion routine getsysname() in lib/proc.c),
+add the name of the sysfs entry at the end of the entry in lib/chips.c.
+If the magnitude is non-standard, add it as well.
+
 
 Jean Delvare wrote:
 > Hi MDS (and others),
