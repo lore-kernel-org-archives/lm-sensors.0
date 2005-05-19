@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: sensors
-Message-Id: <3D28BF8C.4010AB5F@paradyne.com>
+From: gxwpby@ml.org (mdlinfa)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: Sensors
+Message-Id: <200303260152.h2Q1pxpb022625@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
 In-Reply-To: <Pine.LNX.4.21.0207072332570.12801-100000@ond.vein.hu>
@@ -10,23 +10,5 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-see FAQ #4.12
-
-Gyimesi Attila wrote:
-> 
-> Hi!
-> 
-> I have a problem with sensors. There is 6 celsius degree difference
-> between in the BIOS menu and what the sensors says.
-> 
-> I have asus a7a266 and amd XP 1600+ .
-> 
-> sensors says: CPU: +45.0?C  (limit =  +60?C, hysteresis = +50?C) sensor = thermistor
-> BIOS says:  51.0?C
-> 
-> why?
-> 
-> bye
->                                       JiM
->                               My E-MAIL address :
->                                 jim@ond.vein.hu
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030325/c3877b1c/attachment.html
