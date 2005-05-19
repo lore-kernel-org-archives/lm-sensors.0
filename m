@@ -1,7 +1,7 @@
-From: bradley@greystate.com (Bradley Schatz)
+From: jmunsin@abo.fi (Jonas Munsin)
 Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: Single fan sensor not detected
-Message-Id: <1084436242.4433.2.camel@angel>
+Message-Id: <20040513184928.GA23342@nemo.sby.abo.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40A042B0.6060907@greystate.com>
 In-Reply-To: <40A042B0.6060907@greystate.com>
@@ -10,39 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I tested this. pwmconfig didnt manage to stop any of my fans though. It
-looks like my pwm isnt configured at the hardware level.
+On Thu, May 13, 2004 at 06:17:22PM +1000, Bradley Schatz wrote:
+> I tested this. pwmconfig didnt manage to stop any of my fans though. It
+> looks like my pwm isnt configured at the hardware level.
 
-cheers,
+Ok. I don't know pwmconfig, and the patch adds a interface that is only
+proposed atm (i.e., pwmconfig might not know about it). And looking at
+the patch and Documentation/i2c/sysfs-interface makes me think I gave
+some of the stuff the wrong names, need to fix that. So for further
+testing, it's currently better to use the sysfs interface directly.
 
-bradley
+Also, there are starting to be a whole lot of toggles in the interface
+to get wrong... So here is a brief description:
 
+Mode 1: pwm disabled, gives on/off for the fan:
 
-On Thu, 2004-05-13 at 05:41, Jean Delvare wrote:
-> > All is working now. Thanks again. Do the it87 series of chips ever
-> > support pwm?
-> 
-> Yes, the chip supports and even has automatic fan speed control. The 2.4
-> driver has support for both. Takeru was working on adding support to the
-> 2.6 driver but suddenly vanished. I hope he's OK...
-> 
-> Recently, Jonas Munsin started from Takeru's preliminary patch and
-> completed the work. You can see his patch here:
->   http://people.debian.org/~jmunsin/it87.patch2
-> 
-> Hopefully this will be integrated into the main driver soon. Testing is
-> welcome!
-> 
-> > Driver `it87' (should be inserted but causes problems):
-> >   Detects correctly:
-> >   * ISA bus address 0x0290 (Busdriver `i2c-isa')
-> >     Chip `ITE 8705F Super IO Sensors' (confidence: 9)
-> >   Misdetects:
-> >   * ISA bus address 0x0290 (Busdriver `i2c-isa')
-> >     Chip `ITE IT8705F / IT8712F / SiS 950' (confidence: 8)
-> 
-> BTW I have fixed this horrible bug in CVS. Sensors-detect should now be
-> more clever and see that this is the same driver for the same chip and
-> display only one. Care to test?
-> 
-> Thanks.
+xena:/sys/bus/i2c/devices/0-0290# echo 0 > pwm1_enable
+xena:/sys/bus/i2c/devices/0-0290# echo 1 > fan1_enable
+
+now the fan should be on.
+
+xena:/sys/bus/i2c/devices/0-0290# echo 0 > fan1_enable
+
+And that should turn it off.
+
+On my Asus a7v600, this is the only mode that works for the third fan (marked PWR IIRC).
+
+Mode 2: pwm enabled, manual control
+
+xena:/sys/bus/i2c/devices/0-0290# echo 1 > pwm1_enable
+xena:/sys/bus/i2c/devices/0-0290# echo 0 > fan1_auto_enable
+xena:/sys/bus/i2c/devices/0-0290# echo 255 > pwm1
+
+Now it should run with full speed, doing
+
+xena:/sys/bus/i2c/devices/0-0290# echo 200 > pwm1
+
+cuts down the speed a bit.
+
+Mode 3:
+
+xena:/sys/bus/i2c/devices/0-0290# echo 1 > pwm1_enable
+xena:/sys/bus/i2c/devices/0-0290# echo 1 > fan1_auto_enable
+
+Well, this mode isn't really ready yet...
+
+> >   http://people.debian.org/~jmunsin/it87.patch2
