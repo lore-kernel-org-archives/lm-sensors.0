@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:22 +0000
 Subject: [PATCH] I2C fixes for 2.6.10-rc1
-Message-Id: <11003020054093@kroah.com>
+Message-Id: <11003020051927@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20041112232604.GA17203@kroah.com>
+In-Reply-To: <11003020053782@kroah.com>
 References: <11003020053782@kroah.com>
 In-Reply-To: <11003020053782@kroah.com>
 MIME-Version: 1.0
@@ -11,36 +11,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.2093, 2004/11/12 11:39:51-08:00, greg@kroah.com
+ChangeSet 1.2095, 2004/11/12 13:20:15-08:00, khali@linux-fr.org
 
-I2C: fix up some out of date Documentation
+[PATCH] I2C: Missing newlines in debug messages
 
+As discussed on IRC, this simple patch fixes broken debug messages
+missing their trailing newlines. I just applied something similar to
+CVS, and will prepare patches for 2.4 as well.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- Documentation/i2c/dev-interface |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/i2c-core.c          |    2 +-
+ drivers/i2c/i2c-dev.c           |    2 +-
+ drivers/i2c/i2c-sensor-detect.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 
-diff -Nru a/Documentation/i2c/dev-interface b/Documentation/i2c/dev-interface
---- a/Documentation/i2c/dev-interface	2004-11-12 15:22:53 -08:00
-+++ b/Documentation/i2c/dev-interface	2004-11-12 15:22:53 -08:00
-@@ -3,7 +3,7 @@
- the /dev interface. You need to load module i2c-dev for this.
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	2004-11-12 15:22:38 -08:00
++++ b/drivers/i2c/i2c-core.c	2004-11-12 15:22:38 -08:00
+@@ -760,7 +760,7 @@
+ 			if (addr = address_data->normal_i2c[i]) {
+ 				found = 1;
+ 				dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, "
+-					"addr %02x", adap_id,addr);
++					"addr %02x\n", adap_id, addr);
+ 			}
+ 		}
  
- Each registered i2c adapter gets a number, counting from 0. You can
--examine /proc/bus/i2c to see what number corresponds to which adapter.
-+examine /sys/class/i2c-dev/ to see what number corresponds to which adapter.
- I2C device files are character device files with major device number 89
- and a minor device number corresponding to the number assigned as 
- explained above. They should be called "i2c-%d" (i2c-0, i2c-1, ..., 
-@@ -19,7 +19,7 @@
- knows about i2c, there is not much choice.
+diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c	2004-11-12 15:22:38 -08:00
++++ b/drivers/i2c/i2c-dev.c	2004-11-12 15:22:38 -08:00
+@@ -539,7 +539,7 @@
+ out_unreg_chrdev:
+ 	unregister_chrdev(I2C_MAJOR, "i2c");
+ out:
+-	printk(KERN_ERR "%s: Driver Initialisation failed", __FILE__);
++	printk(KERN_ERR "%s: Driver Initialisation failed\n", __FILE__);
+ 	return res;
+ }
  
- Now, you have to decide which adapter you want to access. You should
--inspect /proc/bus/i2c to decide this. Adapter numbers are assigned
-+inspect /sys/class/i2c-dev/ to decide this. Adapter numbers are assigned
- somewhat dynamically, so you can not even assume /dev/i2c-0 is the
- first adapter.
- 
+diff -Nru a/drivers/i2c/i2c-sensor-detect.c b/drivers/i2c/i2c-sensor-detect.c
+--- a/drivers/i2c/i2c-sensor-detect.c	2004-11-12 15:22:38 -08:00
++++ b/drivers/i2c/i2c-sensor-detect.c	2004-11-12 15:22:38 -08:00
+@@ -115,7 +115,7 @@
+ 			for (i = 0; !found && (normal_i2c[i] != I2C_CLIENT_END); i += 1) {
+ 				if (addr = normal_i2c[i]) {
+ 					found = 1;
+-					dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, addr %02x", adapter_id, addr);
++					dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, addr %02x\n", adapter_id, addr);
+ 				}
+ 			}
+ 		}
 
