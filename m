@@ -1,48 +1,119 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:00 +0000
-Subject: [RFC] Dynamic fan clock divider changes (long)
-Message-Id: <20040531112719.10b7d64c.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:25:18 +0000
+Subject: Fourth auto-fan control interface proposal
+Message-Id: <20041003174837.5eb0ae72.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040516222809.2c3d1ea2.khali@linux-fr.org>
-In-Reply-To: <20040516222809.2c3d1ea2.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LM Sensors <sensors@stimpy.netroedge.com>
+Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
 
-> I like the idea of dynamic divisor changes (I'll call it auto fan
-> divisors or A.F.D.). Whether it belongs in the driver or in userspace
-> is a tougher call. There may be more information available to a driver
-> on clock rate and possible divisors, but it would be more work to
-> propagate the code to all the drivers rather than do it once in
-> 'sensors'.
-> 
-> I'm all for AFD in pc87360 as a demonstration / proof of concept.
-> However let's think about what it would take to do the same thing in
-> 'sensors' and whether that offers some advantages.
+Hi all,
 
-We discussed this a bit with MMH already, and as you pointed out, the
-problem is that the userspace would then need to know the possible
-dividers and clock frequency. This is likely to represent more code than
-the AFD algorithm itself, which is why I'm not it favor of this.
+Here comes my fourth (and hopefully last) sysfs interface proposal for
+implementing auto-fan control in 2.6. Previous proposals have been
+discussed here:
 
-One thing MMH and I are in favor of (if we agree that it's more simple
-to put that stuff in the drivers) would be to have a generic function in
-i2c-sensor instead of one in all chip drivers. Almost all chips work on
-the same model, the function would have to know the possible dividers
-and that's about all. Most chips accept a divider "range", typically
-from 1 to 8 or 1 to 128. Only the IT87 fan 3 is different AFAIK (only
-accept 2 and 8) so this one would probably have its own function.
+[1] http://archives.andrew.net.au/lm-sensors/msg07517.html
+[2] http://archives.andrew.net.au/lm-sensors/msg08049.html
+[3] http://archives.andrew.net.au/lm-sensors/msg18008.html
 
-I will try to improve the pc87360 implementation so that everything is
-centralized in a single function. Then, if no problems are reported with
-this implementation, we'll modify the prototype so that the funtion has
-enough parameters to be chip-independant, and move it to i2c-sensor. All
-this won't happen before I (or anyone else) have ported the pc87360
-driver to Linux 2.6, so this leaves enough time for testing and feedback
-if any problem arises.
+The interface is still made up of two parts: per fan temp channels
+selection, and trip points selection. Changes from the third proposal:
+
+pwm[1-*]_enable value 2 is now used to explicitely state the auto pwm
+mode. This was proposed by Mark D. Studebaker [4].
+
+[4] http://archives.andrew.net.au/lm-sensors/msg18011.html
+
+Temp channels selection
+===========
+Renamed files from fan[1-*]_auto_channels to
+pwm[1-*]_auto_channels_temp. The change from fan tp pwm is to match the
+recent renaming suggested by Mark M. Hoffman [5]. The "_temp" suffix is
+to leave some room for a "_fan" suffix at a later time if new chips
+drive auto pwm according to fan speeds instead of temperature.
+
+[5] http://archives.andrew.net.au/lm-sensors/msg18797.html
+
+Trip points
+=====
+Trip points are now numbered (point1, point2, etc...) instead of named
+(_off, _min, _max, _full...). This solves the problem of various chips
+having a different number of trip points. The interface is still chip
+independent in that it doesn't require chip-specific knowledge to be
+used by user-space apps.
+
+The reason for this change is that newer chips tend to have more trip
+points. the LM63 has 8, the LM93 has no less than 12. Also, I read in
+the LM63 datasheet that ideal pwm vs temperature curve were parabolic in
+shape. Seems hard to achieve this if we arbitrarily lock the number of
+trip points to 3 ;)
+
+I also introduced an optional hysteresis temperature for trip points.
+The LM63 has this. Since it makes full sense I'd expect other chips to
+propose this as well.
+
+As before, there are two sets of files, each chip driver picks the one
+matching its internal model: trip points are either temperature
+channel-dependent (ADM1031...) or pwm channel-dependent (IT87xx...). If
+we ever come accross fan speed-driven pwm outputs where trip points are
+fan channel-dependent we may have to offer a third set of files. We'll
+see when/if this happens.
+
+I hope I have taken everyone's comments and advice into account and we
+can make this interface proposal part of the sysfs interface standard
+now. I'm sorry it took so long. Comments welcome.
 
 Thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.9-rc2-mm4/Documentation/i2c/sysfs-interface.orig	2004-10-03 16:42:09.000000000 +0200
++++ linux-2.6.9-rc2-mm4/Documentation/i2c/sysfs-interface	2004-10-03 17:43:13.000000000 +0200
+@@ -138,6 +138,7 @@
+ *******
+ * PWM *
+ *******
++
+ pwm[1-3]	Pulse width modulation fan control.
+ 		Integer value in the range 0 to 255
+ 		Read/Write
+@@ -147,9 +148,31 @@
+ 		Switch PWM on and off.
+ 		Not always present even if fan*_pwm is.
+ 		0 to turn off
+-		1 to turn on
++		1 to turn on in manual mode
++		2 to turn on in automatic mode
+ 		Read/Write
+ 
++pwm[1-*]_auto_channels_temp
++		Select which temperature channels affect this PWM output in
++		auto mode. Bitfield, 1 is temp1, 2 is temp2, 4 is temp3 etc...
++		Which values are possible depend on the chip used.
++
++pwm[1-*]_auto_point[1-*]_pwm
++pwm[1-*]_auto_point[1-*]_temp
++pwm[1-*]_auto_point[1-*]_temp_hyst
++		Define the PWM vs temperature curve. Number of trip points is
++		chip-dependent. Use this for chips which associate trip points
++		to PWM output channels.
++
++OR
++
++temp[1-*]_auto_point[1-*]_pwm
++temp[1-*]_auto_point[1-*]_temp
++temp[1-*]_auto_point[1-*]_temp_hyst
++		Define the PWM vs temperature curve. Number of trip points is
++		chip-dependent. Use this for chips which associate trip points
++		to temperature channels.
++
+ 
+ ****************
+ * Temperatures *
+
 
 -- 
 Jean Delvare
