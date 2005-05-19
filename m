@@ -1,14 +1,21 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
-Subject: [PATCH 2.6] I2C chipset drivers use temp_hyst[1-3]
-Message-Id: <20031116205914.49637571.khali@linux-fr.org>
+Subject: [PATCH 2.6] I2C chipset drivers use temp_hyst[1-3] V2
+Message-Id: <20031118202556.59d8dd12.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031116205914.49637571.khali@linux-fr.org>
+In-Reply-To: <20031116205914.49637571.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The chipset drivers patch now.
+Hi Greg,
+
+Here is an hopefully fixed version of the previous patch. Sorry for
+sending a bad one in the first place.
+
+Mark, please test that patch if you can, thanks.
 
 Summary of the changes:
 adm1021.c: No changes, that chipset uses a real min/max model.
@@ -24,7 +31,8 @@ via686a.c: Rename functions and macros from min/max to hyst/over, what
            files from temp_min[1-3] to temp_hyst[1-3].
 w83781d.c: Rename variables from temp_min* to temp_hyst* (needed so
            that the macros keep working). Update macro calls
-           accordingly. Fix writing temp to max and hyst being swapped.
+           accordingly. Fix writing temp to max and hyst being
+           swapped.
 
 Additional remarks:
 
@@ -36,8 +44,6 @@ all the files.
 I made sure the drivers would still compile after the changes, but did
 not test them otherwise (no working 2.6.0 kernel here, and not all the
 hardware anyway).
-
-
 
 diff -ru linux-2.6.0-test9/drivers/i2c/chips.orig/it87.c linux-2.6.0-test9/drivers/i2c/chips/it87.c
 --- linux-2.6.0-test9/drivers/i2c/chips.orig/it87.c	Sun Nov 16 17:06:15 2003
@@ -195,7 +201,7 @@ diff -ru linux-2.6.0-test9/drivers/i2c/chips.orig/via686a.c linux-2.6.0-test9/dr
  	device_create_file(&new_client->dev, &dev_attr_fan_min1);
 diff -ru linux-2.6.0-test9/drivers/i2c/chips.orig/w83781d.c linux-2.6.0-test9/drivers/i2c/chips/w83781d.c
 --- linux-2.6.0-test9/drivers/i2c/chips.orig/w83781d.c	Sun Nov 16 17:06:15 2003
-+++ linux-2.6.0-test9/drivers/i2c/chips/w83781d.c	Sun Nov 16 18:44:37 2003
++++ linux-2.6.0-test9/drivers/i2c/chips/w83781d.c	Tue Nov 18 19:39:18 2003
 @@ -309,11 +309,11 @@
  	u8 fan[3];		/* Register value */
  	u8 fan_min[3];		/* Register value */
@@ -251,14 +257,14 @@ diff -ru linux-2.6.0-test9/drivers/i2c/chips.orig/w83781d.c linux-2.6.0-test9/dr
  } while (0)
  
  static ssize_t
-@@ -1865,7 +1865,7 @@
+@@ -1865,15 +1865,15 @@
  		}
  
  		data->temp = w83781d_read_value(client, W83781D_REG_TEMP(1));
--		data->temp_min +		data->temp_hyst  		    w83781d_read_value(client, W83781D_REG_TEMP_OVER(1));
- 		data->temp_max  		    w83781d_read_value(client, W83781D_REG_TEMP_HYST(1));
-@@ -1873,7 +1873,7 @@
- 		    w83781d_read_value(client, W83781D_REG_TEMP(2));
+-		data->temp_min -		    w83781d_read_value(client, W83781D_REG_TEMP_OVER(1));
+ 		data->temp_max +		    w83781d_read_value(client, W83781D_REG_TEMP_OVER(1));
++		data->temp_hyst  		    w83781d_read_value(client, W83781D_REG_TEMP_HYST(1));
+ 		data->temp_add[0]  		    w83781d_read_value(client, W83781D_REG_TEMP(2));
  		data->temp_max_add[0]  		    w83781d_read_value(client, W83781D_REG_TEMP_OVER(2));
 -		data->temp_min_add[0] +		data->temp_hyst_add[0]  		    w83781d_read_value(client, W83781D_REG_TEMP_HYST(2));
  		if (data->type != w83783s && data->type != w83697hf) {
