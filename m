@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:47 +0000
+From: cmayor@iders.ca (Cam Mayor)
+Date: Thu, 19 May 2005 06:23:48 +0000
 Subject: i2c bit bashing adapter number allocation (fwd)
-Message-Id: <3E502E97.7040603@paradyne.com>
+Message-Id: <03021710365301.30471@kilauea.iders.ca>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200301291323.h0TDNbZ16513@morannon.frodo.local>
 In-Reply-To: <200301291323.h0TDNbZ16513@morannon.frodo.local>
@@ -10,78 +10,81 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I checked your ID into i2c CVS.
-It will eventually get submitted to the kernel or feel free to include it in one of your patches.
-mds
+Thank you, Mark!  I'm not sure if you got the number I want to add - the 
+OMAHA listing was an example i took from the linux-arm code.  The number i 
+wanted to add is given below (and is also included in a patch against 
+linux-2.4.19-rmk5 (and 6) on the arm-linux maintenance site).  Please add it 
+in if this isn't the number you added.  (the omaha one is also valid, but i 
+don't maintain it)
 
-Frodo Looijaard wrote:
-> Cam Mayor wrote:
->>From cmayor@iders.ca Wed Jan 29 01:25:05 2003
-> Received: by morannon.frodo.local (8.11.3/8.11.3) id h0T0P4q01958 ; Wed, 29 Jan 2003 01:25:05 +0100
-> Return-Path: <cmayor@iders.ca>
-> Received: from pop3.dds.nl [213.196.1.204]
-> 	by localhost with POP3 (fetchmail-6.2.0)
-> 	for frodo@localhost (single-drop); Wed, 29 Jan 2003 01:25:05 +0100 (CET)
-> Received: (qmail-ldap/ctrl 15017 invoked from network); 29 Jan 2003 00:15:40 -0000
-> Received: from h24-66-20-25.wp.shawcable.net (HELO iders01.iders.ca) ([24.66.20.25]) (envelope-sender <cmayor@iders.ca>)
->           by dds.nl (qmail-ldap-1.03) with SMTP
->           for <frodol@dds.nl>; 29 Jan 2003 00:15:40 -0000
-> Received: from kilauea.iders.ca (kilauea.iders.ca [200.123.101.201])
-> 	by iders01.iders.ca (8.12.6/8.12.6/Debian-8) with SMTP id h0T0FM7d029699;
-> 	Tue, 28 Jan 2003 18:15:22 -0600
-> Content-Type: text/plain;
->   charset="iso-8859-1"
-> From: Cam Mayor <cmayor@iders.ca>
-> Organization: Iders Engineering Inc
-> To: Russell King - ARM Linux <linux@arm.linux.org.uk>, simon@tk.uni-linz.ac.at,
->    frodol@dds.nl
-> Subject: Re: i2c bit bashing adapter number allocation
-> Date: Tue, 28 Jan 2003 18:15:22 -0600
-> X-Mailer: KMail [version 1.2]
-> Cc: arm-linux-kernel <linux-arm-kernel@lists.arm.linux.org.uk>
-> References: <03012817221704.02271@kilauea.iders.ca> <20030128233456.F16065@flint.arm.linux.org.uk>
-> In-Reply-To: <20030128233456.F16065@flint.arm.linux.org.uk>
-> MIME-Version: 1.0
-> Message-Id: <03012818152206.02271@kilauea.iders.ca>
-> Content-Transfer-Encoding: 8bit
-> X-Loop-Procmail: PreventLoop
-> 
-> After lots of digging, I found a lead to the answer to where to find an 
-> answer in the place i should have looked but didn't remember - the 
-> MAINTAINERS file.  
-> 
-> Simon, Frodo, do you have an opinion on where i should submit the following:
-> 
-> On Tuesday 28 January 2003 17:34, Russell King - ARM Linux wrote:
-> 
->>On Tue, Jan 28, 2003 at 05:22:17PM -0600, Cam Mayor wrote:
->>
->>>In the file ./include/linux/i2c-id.h
->>>there is a list of bit-algorithm adapters and their associated sequential
->>>numbers.
->>>eg.
->>>	#define I2C_HW_B_OMAHA  0x14    /* Omaha I2C interface                 
->>>*/
->>>
->>>Are the numbers allocated in a first-come-first-serve (or
->>>first-to-propagate-patch-gets-it), or are they allocated in a more
->>>bureaucratic way?  I see nothing listed in ./Documentation/i2c about
->>>this, and i wish to add our hardware to the list.
->>
->>I have no idea; there appears to be no documented method for these IDs.
-> 
-> 
-> I suspect this device will only be used for ARM linux, as it is bit-bashed 
-> from an ARM processor.  However, i don't want to have to continually be 
-> patching the device number.
-> 
-> Russell, it looks like at least two of these allocations are present in the 
-> 2.4.19-rmk5 patch, so perhaps i should just submit this patch to you.
-> 
-> I've added the two I2C maintainers to the mail to see if they have an opinion 
-> on whether i should submit the one-line patch to them or to submit it with 
-> the rest of the i2c code that i'm going to submit to the -rmk tree.
-> 
-> cheers,
-> cam
-> 
+#define I2C_HW_B_GUIDE  0x15    /* Guide bit-basher                     */
+
+thanks,
+cam
+
+ps.  Do you know where Simon Vogel went?  Has he disappeared?  
+
+On Sunday 16 February 2003 18:36, Mark D. Studebaker  wrote:
+> I checked your ID into i2c CVS.
+> It will eventually get submitted to the kernel or feel free to include it
+> in one of your patches. mds
+>
+> Frodo Looijaard wrote:
+> > Cam Mayor wrote:
+> >>From cmayor@iders.ca Wed Jan 29 01:25:05 2003
+[headers snip]
+> >
+> > After lots of digging, I found a lead to the answer to where to find an
+> > answer in the place i should have looked but didn't remember - the
+> > MAINTAINERS file.
+> >
+> > Simon, Frodo, do you have an opinion on where i should submit the
+> > following:
+> >
+> > On Tuesday 28 January 2003 17:34, Russell King - ARM Linux wrote:
+> >>On Tue, Jan 28, 2003 at 05:22:17PM -0600, Cam Mayor wrote:
+> >>>In the file ./include/linux/i2c-id.h
+> >>>there is a list of bit-algorithm adapters and their associated
+> >>> sequential numbers.
+> >>>eg.
+> >>>	#define I2C_HW_B_OMAHA  0x14    /* Omaha I2C interface
+> >>>*/
+> >>>
+> >>>Are the numbers allocated in a first-come-first-serve (or
+> >>>first-to-propagate-patch-gets-it), or are they allocated in a more
+> >>>bureaucratic way?  I see nothing listed in ./Documentation/i2c about
+> >>>this, and i wish to add our hardware to the list.
+> >>
+> >>I have no idea; there appears to be no documented method for these IDs.
+> >
+> > I suspect this device will only be used for ARM linux, as it is
+> > bit-bashed from an ARM processor.  However, i don't want to have to
+> > continually be patching the device number.
+> >
+> > Russell, it looks like at least two of these allocations are present in
+> > the 2.4.19-rmk5 patch, so perhaps i should just submit this patch to you.
+> >
+> > I've added the two I2C maintainers to the mail to see if they have an
+> > opinion on whether i should submit the one-line patch to them or to
+> > submit it with the rest of the i2c code that i'm going to submit to the
+> > -rmk tree.
+> >
+> > cheers,
+> > cam
+
+-- 
+Cameron Mayor
+Iders Incorporated
+600A Clifton Street
+Winnipeg, MB Canada R3G 2X6
+http://www.iders.ca
+tel: 204-779-5400 ext 29
+fax: 204-779-5444
+
+Legalese some customers need us to state for the record:
+This message is intended solely for the use of the designated
+recipient(s) and their appointed delegates, and may contain
+confidential information.  Any unauthorized disclosure,
+copying or distribution of its contents is strictly prohibited.
+If you have received this message in error, please destroy it
+and advise the sender immediately by phone, email or facsimile.
