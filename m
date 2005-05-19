@@ -1,40 +1,54 @@
-From: mfedyk@matchmail.com (Mike Fedyk)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:44 +0000
 Subject: 2.6.3-mm4
-Message-Id: <403F898A.2000801@matchmail.com>
+Message-Id: <20040227205922.6405eff7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040225185536.57b56716.akpm@osdl.org> <403E82D8.3030209@gmx.de> <20040225185536.57b56716.akpm@osdl.org> <20040227001115.GA2627@werewolf.able.es> <20040227004602.GB15075@kroah.com> <1077870909.403f013dd04b6@imp.gcu.info>
-In-Reply-To: <1077870909.403f013dd04b6@imp.gcu.info>
+References: <20040225185536.57b56716.akpm@osdl.org>
+	<403E82D8.3030209@gmx.de>
+	<20040225185536.57b56716.akpm@osdl.org>
+	<20040227001115.GA2627@werewolf.able.es>
+	<20040227004602.GB15075@kroah.com>
+	<1077870909.403f013dd04b6@imp.gcu.info>
+	<403F898A.2000801@matchmail.com>
+In-Reply-To: <403F898A.2000801@matchmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Greg KH <greg@kroah.com>, "J.A. Magallon" <jamagallon@able.es>, "Prakash K. Cheemplavam" <PrakashKC@gmx.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, sensors@Stimpy.netroedge.com
+To: Mike Fedyk <mfedyk@matchmail.com>
+Cc: greg@kroah.com, jamagallon@able.es, PrakashKC@gmx.de, linux-kernel@vger.kernel.org, akpm@osdl.org, sensors@Stimpy.netroedge.com
 
-Jean Delvare wrote:
-> Quoting Greg KH <greg@kroah.com>:
-> 
-> 
->>Anyway, I think all you need to do is get the cvs tree of the
->>lmsensors package.  Sensors people, the needed changes are commited
->>into the tree, right?
-> 
-> 
-> No. The changes are waiting in my local repository, ready to be applied.
-> I didn't want to apply them because we were supposed to release
-> lm_sensors 2.8.5 (for Linux 2.6.3 users) and the sysfs names change
-> wouldn't belong there.
-> 
-> The libsensors patches are available on my personal server here:
-> http://jdelvare.net1.nerim.net/sensors/
-> Apply both patches in order and you'll get a 2.6.3-mm4-compliant
-> library.
-> 
-> I will apply the libsensors changes to the CVS repository as soon as the
-> kernel modules changes are accepted into Linus' tree. If we did not
-> release a new version since there, I'll take a CVS snapshot right
-> before so that Linux 2.6.3 users have a usable version available (but
-> my preference strongly goes to releasing 2.8.5 instead).
+> You have to be kidding me.  Are you saying that with your patches to 
+> libsensors it won't support 2.6.3 style sensor sysfs names?
 
-You have to be kidding me.  Are you saying that with your patches to 
-libsensors it won't support 2.6.3 style sensor sysfs names?
+Yes I am.  This isn't a fundamentally new problem.  Each Linux 2.6 has
+had its matching libsensors version that was not backward compatible
+(with earlier 2.6 kernels; it's still fully compatible with 2.4).
+
+Keeping newer versions of libsensors compatible with all early 2.6
+kernel versions would make it incredibly more complex, with no
+significant benefit IMHO.
+
+The facts are that the sysfs interface to i2c chips is just stabilizing.
+Greg's original naming scheme had many drawbacks (also we can't blame
+him for that, since nobody objected before me), as I have been
+explaining in a previous post on LKML. Also, many chip drivers did not
+comply with it in early 2.6 kernels, and new chip drivers wouldn't fit
+in it anyway.
+
+The new interface is required if we want to write a chip-independant
+libsensors someday. I estimate that this is worth breaking the
+compatibility. The impacted kernels (later 2.5 and earlier 2.6) will
+obviously not be used anymore within a short time anyway.
+
+I invite you to read my original post here:
+http://marc.theaimsgroup.com/?l=linux-kernel&m7715308608606
+
+I explain the problems of the current interface and my goals with the
+new one. If you can think of a better solution to the problem, please
+speak up.
+
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
