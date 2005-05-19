@@ -1,104 +1,68 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:29 +0000
-Subject: [jamagallon@able.es: i2c: lost sensors with 2.6.10(-mm1)]
-Message-Id: <20050107011207.GA20597@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:43 +0000
+Subject: i2c in kernel 2.4
+Message-Id: <20040222204300.5c65d1c6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Anyone have any ideas?  If so, care to join this linux-kernel thread?
+Hi all,
 
------ Forwarded message from "J.A. Magallon" <jamagallon@able.es> -----
+For those of you who would have missed the last episodes of the "how to
+get i2c 2.8 into Linux 2.4", here's a quick summary of the situation.
 
-Date: Fri, 07 Jan 2005 00:46:31 +0000
-From: "J.A. Magallon" <jamagallon@able.es>
-To: Lista Linux-Kernel <linux-kernel@vger.kernel.org>
-Cc: greg@kroah.com, akpm@osdl.org
-Subject: i2c: lost sensors with 2.6.10(-mm1)
+I have been sending three waves of patches to Marcelo. The first wave
+was completely accepted. The second had 40% rejected. The third was
+almost completely rejected. It is clear that Marcelo doesn't want any
+more change to the i2c core in Linux 2.4, unless these are bug fixes. I
+cannot blame him for that. The changes we wanted to do are far from
+being trivial. What's more, as I worked on these patches, I could see
+that our new locking mechanism is incomplete, and our module usage
+counters are broken. Even if Marcelo was less difficult to convince, I
+would *not* want to propose something obviously broken for inclusion
+into Linux 2.4.
 
-Hi...
+As Linux 2.4.25 was released, I had to rebuild a new patchset so that
+people can use both lm_sensors and other i2c stuff with that kernel,
+like I have been doing since release 2.4.21. It took me something like 3
+or 4 hours. I don't plan to do it again. It was OK to make these patches
+as a temporary solution. It doesn't make sense as a definitive one.
 
-I have lost my sensors info with 2.6.10, in particular -mm1.
-They work fine with 2.6.9-mm1 (current state of the box, booted on
-2.6.9 or 10, no other difference).
+Since we won't have our i2c subsystem in Linux 2.4, ever, this means
+that we have to make ours compatible again. This may sound like a
+regression, and it's kind of, admitedly, but face the truth: this change
+belonged to Linux 2.5 and should never have been kept in the 2.4 branch.
 
-Some info follows.
+I don't know exactly how this can be done, since I don't much know the
+internals of i2c-core and i2c-proc. However I see two possibilities:
 
-With 2.6.9-mm1, I get this:
+1* Revert just everything to the old module usage count mechanism. This
+means changing every and all of our drivers.
 
-Module                  Size  Used by
-w83627hf               25128  0
-i2c_sensor              3456  1 w83627hf
-i2c_isa                 2304  0
-i2c_i801                7820  0
-i2c_dev                 8192  0
-i2c_core               19712  5 w83627hf,i2c_sensor,i2c_isa,i2c_i801,i2c_dev
+2* If this is technically possible, make the new and old mechanisms work
+together. What I have in mind sounds like "if it has .inc_use/.dec_use,
+call it, else it must be using the new mechanism, use .owner". The
+problem is that I just don't know which part of the system handles that.
+Is it i2c-proc? Is it i2c-core? Or something deeper into the kernel?
 
-sensors:
-w83627thf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.49 V  (min =  +1.93 V, max =  +1.93 V)
-..
+As far as the structures are concerned, this would mean having both
+.inc_use/.dec_use and .owner in them, with .owner last as to not break
+compatibility with the kernel drivers that are still using non-C99
+initializers. Drivers would have to use either of them, but not both.
 
-With 2.6.10-mm1:
+Since I don't know much how this has to be done, the help of everyone,
+especially Ky?sti, is welcome.
 
-Module                  Size  Used by
-w83627hf               24224  0
-i2c_sensor              3968  1 w83627hf
-i2c_isa                 2304  0
-i2c_i801                9996  0
-i2c_dev                 8960  0
-i2c_core               20992  5 w83627hf,i2c_sensor,i2c_isa,i2c_i801,i2c_dev
+BTW, Ky?sti, some times ago you told us you were working on fixing
+things on i2c. We did not hear from you since. Whatever code changes you
+have, please discuss them with us if you plan to commit them to the
+repository. I'd like to avoid what happened last time when you commited
+so many changes at once that everyone was left puzzled.
 
-sensors:
-No sensors found!
-
-I have noticed different contents in /sys:
-under 2.6.9:
-/sys/devices/platform/i2c-1:
-/sys/devices/platform/i2c-1/1-0290:
-/sys/devices/platform/i2c-1/1-0290/power:
-/sys/devices/platform/i2c-1/power:
-
-under 2.6.10:
-/sys/devices/platform/i2c-1:
-/sys/devices/platform/i2c-1/power:
-
-So some /sys nodes are missing !!!
-(the isa bus)
-
-
-Debug output from 2.6.10-mm1:
-
-Jan  7 01:33:11 werewolf kernel: i2c /dev entries driver
-Jan  7 01:33:11 werewolf kernel: i2c-core: driver dev_driver registered.
-Jan  7 01:33:11 werewolf kernel: i801_smbus 0000:00:1f.3: I801 using PCI Interrupt for SMBus.
-Jan  7 01:33:11 werewolf kernel: i801_smbus 0000:00:1f.3: SMBREV = 0x2
-Jan  7 01:33:11 werewolf kernel: i801_smbus 0000:00:1f.3: I801_smba = 0x500
-Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-0: Registered as minor 0
-Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-0: registered as adapter #0
-Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-1: Registered as minor 1
-Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-1: registered as adapter #1
-Jan  7 01:33:11 werewolf kernel: i2c-core: driver w83627hf registered.
-Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-1: found normal isa entry for adapter 9191, addr 0290
-Jan  7 01:33:12 werewolf sensord: sensord started
-Jan  7 01:33:12 werewolf lm_sensors: sensord startup succeeded
-
-Some ideas ?
-
-TIA
-
---
-J.A. Magallon <jamagallon()able!es>     \               Software is like sex:
-werewolf!able!es                         \         It's better when it's free
-Mandrakelinux release 10.2 (Cooker) for i586
-Linux 2.6.10-jam1 (gcc 3.4.3 (Mandrakelinux 10.2 3.4.3-2mdk)) #2
-
-
-
-
------ End forwarded message -----
+Thanks.
 
 -- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
