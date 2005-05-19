@@ -1,71 +1,160 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: dhoffman_98@yahoo.com (David Hoffman)
 Date: Thu, 19 May 2005 06:25:37 +0000
 Subject: I have information on Winbond W83627EHF Chip
-Message-Id: <Pine.LNX.4.58.0502081439060.7839@desitka.sh.cvut.cz>
+Message-Id: <20050208151433.16545.qmail@web50706.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050208060234.44864.qmail@web50702.mail.yahoo.com>
 In-Reply-To: <20050208060234.44864.qmail@web50702.mail.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Jean, and all...
+
+I would be happy to run any tests and provide whatever information I
+can. Unfortunately, this is not any work that I am doing on behalf of
+my employer or any customer, so it's not so much of a "need to have" as
+much as it is a "nice to have". That being said, I am not in a position
+to contribute any hardware or financial support.
+
+For right now, I can tell you that I am running Fedora Core 3 with
+kernel 2.6.10-1.760_FC3smp. My motherboard is an ASUS P5P800.
+
+I started looking to run i2cdump, but apparently there are no busses
+found in my system, or at least there are no /dev/i2c* devices.
+
+I tried isadump, but I'm not sure what you are expecting the output to
+look like, or if the output I'm getting is valid data.
+
+I'm not in front of the machine right now so I can't capture any data
+from the BIOS screen, but I can do that later today.
+
+I'd be happy to test any new versions you have, just let me know the
+best way to retrieve them, and how you would like me to run them, and
+what output or results you would like me to report back to you.
+
+David Hoffman
 
 
-Hi Khali,
 
-> Don't know which ones you missed, but the HF has actually 9: 7 at
-> 0x20-0x26, and 2 at 0x50-0x51 (VSB and Vbat, bank 5). The EHF
-> additionally has one at 0x52 (bank5), labelled vin4.
 
-Yes it seems I missed such as VSB etc. I compared pins only.
 
->
-> > Some pins are shared, what happen if they are used for other function?
-> > They will return zero? Or bogus?
->
-> For the 2.6 driver, the sysfs file should simply not be created. We can
-> check the Super-I/O configuration to know which functions are enabled
-> and which aren't. For the 2.4 driver we can't prevent the file from
-> being created, so care should be taken that zero values are returned and
-> writes to the files, if apply, are ignored, when the function is
-> disabled. Or maybe we won't write a driver for 2.4 at all, if there is
-> no request to do so.
+--- Jean Delvare <khali@linux-fr.org> wrote:
 
-(For example if configured as VID output we would read register with
-output value and if as VID input we would read input)
+>=20
+> Hi David,
+>=20
+> > I have a new motherboard with the W83627EHF from Winbond and of
+> course
+> > my sensors-detect can't find the chip.
+> >
+> > According to your site, you are looking for the data sheet for this
+> > chip.
+>=20
+> That's right. What motherboard is it, BTW?
+>=20
+> For reference, David D. Madsen (CC) already requested support some
+> times
+> ago:
+> http://secure.netroedge.com/~lm78/readticket.cgi?ticket=1837
+> http://archives.andrew.net.au/lm-sensors/msg28595.html
+>=20
+> > For the past 3 weeks, I have been trying to get in touch with
+> people at
+> > Winbond to get the data sheet. I explained that I was working with
+> > people who develop drivers for monitoring sensors on open source
+> Linux
+> > systems. Today, they finally sent me something along with a pretty
+> cool
+> > note.
+> >
+> > Their rep wrote: "Hi David. I run Fedora core 2 over here on my
+> > non-work computer so I appreciate the Open Source work that is done
+> for
+> > our devices.  Here is the latest data sheet on the =91627EHF.  I=92m
+> not
+> > sure I can answer questions past what is in the data sheet but if
+> you
+> > come up with some I can give it a try."
+> >
+> > And he sent me the data file which I am attaching to this note.
+>=20
+> That's really great :)
+>=20
+> > I can only assume that you already have this information, and are
+> > already working on an update, but I am seriously hoping that this
+> > information is enough to get an update so that this chip can be
+> > recognized and I can use lm-sensors on my machine.
+>=20
+> We didn't have it yet, so thanks a lot for the good work. With the
+> datasheet we can now consider extending our Winbond drivers and
+> user-space tools to support the W83627EHF.
+>=20
+> > Please let me know where this stands and if this driver is in the
+> > works.
+>=20
+> Nothing in the works ATM. I've read the datasheet I found that the
+> W83627EHF has the following differences when compared with the other
+> chips of the family:
+>=20
+> * One additional voltage input.
+> * 8mV LSB for voltages instead of 16mV.
+> * Two additional fan inputs.
+> * I2C interface, but no subclients?
+> * One additional fan control output.
+> * Fan control can optionally operate in DC mode.
+> * 6-bit VID in Super-I/O space.
+>=20
+> I'd like someone else to read the datasheet and confirm/complete this
+> list. Once we know exactly what the differences are, we can decide
+> whether it is better to add support to an existing driver or create a
+> new one. Some of the additional features would be trivial to add
+> (such
+> as the additional voltage input), but some are more tricky (VID for
+> example).
+>=20
+> David (both), which kernel are you running?
+>=20
+> I have a patch for sensors-detect ready to start with, will commit
+> this
+> evening (Europe) for you to test.
+>=20
+> I'd also appreciate a dump of your chips (isadump 0x295 0x296 or
+> i2cdump
+> <bus id> 0x2d, whichever works for you). If possible, please also
+> provide a sample output of hardware monitoring data provided by the
+> BIOS
+> setup screen.
+>=20
+> If any of you is willing to support the development of the W83627EHF
+> support, either through the donation of hardware, or by simply paying
+> a
+> developer to work on it, please let us know. That's obviously the
+> best
+> ways to get the support added fast.
+>=20
+> If not, that doesn't mean we won't do it, of course, just that it'll
+> be one task among the various others we have for the project, so
+> there
+> is no guaranteed timeline. And having a real hardware chip to test
+> our
+> code on is also very convenient and typically ensures better support
+> for
+> the chip, regardless of how much time we take to write the driver in
+> the
+> first place.
+>=20
+> Thanks,
+> --
+> Jean Delvare
+>=20
 
-> Interesting. I wonder if this is really new or simply wasn't documented
-> for older chips.
 
-I found this in HF pdf. And in EHF it is again reserved.
 
- Anyway, I don't think we can use this. For one thing,
-> the I2C driver wouldn't possibly access this bit. For another, we could
-> easily deadlock the ISA driver if either the SMBus gets stuck in the
-> middle of a transaction, of some random write to 0x295 sets the bit and
-> never clears it.
-
-It is read-only.
-
-> But to say the truth, I simply don't plan to implement i2c support for
-> this chip at all. I just don't see the point when we can detect the
-> chip much more reliably as a Super-I/O chip, and have a much faster and
-> more reliable registrer access through ISA.
-
-Yes it sounds very reasonable.
-
-> Side note: The ISA address is said to be aligned on 2-byte a boudary, not
-> 8-byte as expected. I wonder if the older chips supported that too. Not
-> that it really matters, however.
-
-0010 1001 0010 (0x292)
-
-lowest bits listen at 101 and 110
-
-So 0x292 would not work (0x295 would be used). I think they made a
-mistake.
-
-regards
-
-Rudolf
+=09
+	=09
+__________________________________=20
+Do you Yahoo!?=20
+Yahoo! Mail - You care about security. So do we.=20
+http://promotions.yahoo.com/new_mail
