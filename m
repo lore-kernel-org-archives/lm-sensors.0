@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 10:11:33 +0000
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Thu, 19 May 2005 10:16:28 +0000
 Subject: [lm-sensors] Re: New mailing-list
-Message-Id: <428C4319.3090606@sh.cvut.cz>
+Message-Id: <20050519081615.GC14138@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050517204632.58f502af.khali@linux-fr.org>
 In-Reply-To: <20050517204632.58f502af.khali@linux-fr.org>
@@ -10,33 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-> We can help Google find the archive by just linking to it, from our
-> search page of course, but also maybe from our index page in one of the
-> news item related to the new mailing-list, and our FAQ needs an update
-> as well. I'll add a link from my home page too, until Google gets it,
-> and will make sure to use the new archive for references I post to the
-> LKML for now on. I just updated the Freshmeat lm_sensors record. We may
-> additionally ask Andrew to put some link on the old archive, if not for
-> Google, it will certainly help the users.
+On Thu, May 19, 2005 at 09:46:52AM +0200, Rudolf Marek wrote:
+> It seems google knows only:
 > 
+> http://www.google.com/search?hl=cs&q=site%3Alists.lm-sensors.org&btnG=Hledat&lr> 
+> Also why the archive is called lm-sensors
+> and old is known as lm_sensors?
 
-You won already :)
+The site had to be called lm-sensors, '_' is not wllowed in domain
+names. And having a mixed email looks strange. I think Jean tends to
+s/_/-/g anyway ;)
 
-Do you know this page:
-
-http://www.google.com/addurl/?continue=/addurl
-
-I put lists.lm-sensors.org
-
-result:
-
-Thank you
-
-Your URL has been successfully added.
-
-Your site URL has been successfully added to our list of URLs to crawl. Please note that we do not add all submitted URLs to our index, and we cannot make any predictions or guarantees about when or if they will appear.
-
-Regards
-
-Rudolf
+> Maybe we should add keyword lm_sensors too. Or put to old archives
+> "moved pernamently redir"
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.atrpms.net/pipermail/lm-sensors/attachments/20050519/d426ec5b/attachment-0001.bin
