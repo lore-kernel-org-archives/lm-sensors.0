@@ -1,51 +1,158 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: Ticket 892: No sensors found!
-Message-Id: <3CE024F4.B7BA9CC5@paradyne.com>
+From: garman@raw-sewage.net (Matt Garman)
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: Ticket 1564 (Can't access /proc file for writing); strace sensors -s
+Message-Id: <20040205141827.GA3115@raw-sewage.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3CE21B56@epostleser.online.no>
-In-Reply-To: <3CE21B56@epostleser.online.no>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-w83781d isn't getting initialized which we have other reports on 
-(when it is compiled-in) and don't know the reason.
-Don't see a startup message for i2c-viapro either which is bad.
-sensors-detect should run w/o modules but I guess we have to fix that.
-As you can see we have some work to do with no-module kernels.
-The only workaround for you at this point is to enable modules.
 
-Arne Vidar Sj?n?st wrote:
-> 
-> Ref: Ticket 892
-> 
-> The kernel dont support modules, thats why I have patched this into the
-> kernel. Everything built in, no modules. Its running Slackware 7.
-> 
-> Kernelsetup:
-> [Y] I2C support
-> [Y] I2C mainboard interfaces
-> [Y]   VIA Technologies, Inc. VT596A/B, 686A/B, 8233 (NEW)
-> [Y] I2C device interface
-> [Y] I2C /proc interface (required for hardware sensors)
-> 
-> [Y] Hardware sensors support
-> [Y]   Winbond W83781D, W83782D, W83783S, W83627HF, Asus AS99127F
-> 
-> dmesg:
-> i2c-core.o: i2c core module version 2.6.3 (20020322)
-> i2c-dev.o: i2c /dev entries driver module version 2.6.3 (20020322)
-> i2c-proc.o version 2.6.3 (20020322)
-> No other things regarding sensors
-> 
-> sensors:
-> No sensors found!
-> 
-> sensors-detect:
-> Can't access /proc/modules! at /usr/local/sbin/sensors-detect line 991.
-> 
-> lsmod:
-> Module                  Size  Used by
-> lsmod: QM_MODULES: Function not implemented
+This is in reference to ticket 1564.
+
+Here is the output of strace sensors -s (run as root).
+
+Please let me know if you need any more information!
+
+Thank you,
+Matt
+
+
+
+
+
+execve("/usr/bin/sensors", ["sensors", "-s"], [/* 29 vars */]) = 0
+uname({sys="Linux", node="septictank", ...}) = 0
+brk(0)                                  = 0x8066d0c
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x40015000
+open("/etc/ld.so.preload", O_RDONLY)    = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size188, ...}) = 0
+mmap2(NULL, 19188, PROT_READ, MAP_PRIVATE, 3, 0) = 0x40016000
+close(3)                                = 0
+open("/usr/lib/libsensors.so.3", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0]\0\000"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size5144, ...}) = 0
+mmap2(NULL, 205572, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) = 0x4001b000
+mmap2(0x4002a000, 77824, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, 0xe) = 0x4002a000
+mmap2(0x4003d000, 66308, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x4003d000
+close(3)                                = 0
+open("/lib/libc.so.6", O_RDONLY)        = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200^\1"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size73344, ...}) = 0
+mmap2(NULL, 1236740, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) = 0x4004e000
+mmap2(0x40176000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, 0x127) = 0x40176000
+mmap2(0x4017a000, 7940, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x4017a000
+close(3)                                = 0
+open("/lib/libm.so.6", O_RDONLY)        = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\3004\0"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size4357, ...}) = 0
+mmap2(NULL, 134400, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) = 0x4017c000
+mmap2(0x4019c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, 0x1f) = 0x4019c000
+close(3)                                = 0
+munmap(0x40016000, 19188)               = 0
+open("/dev/urandom", O_RDONLY)          = 3
+read(3, "`(\274\220p(j;\231\240}\340vm\20\177wl\233\254\"{\277\25"..., 32) = 32
+close(3)                                = 0
+brk(0)                                  = 0x8066d0c
+brk(0x8087d0c)                          = 0x8087d0c
+brk(0)                                  = 0x8087d0c
+brk(0x8088000)                          = 0x8088000
+open("/etc/sensors.conf", O_RDONLY)     = 3
+open("/proc/mounts", O_RDONLY)          = 4
+fstat64(4, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x40016000
+read(4, "rootfs / rootfs rw 0 0\n/dev/root"..., 4096) = 321
+read(4, "", 4096)                       = 0
+close(4)                                = 0
+munmap(0x40016000, 4096)                = 0
+brk(0)                                  = 0x8088000
+brk(0)                                  = 0x8088000
+brk(0x8087000)                          = 0x8087000
+brk(0)                                  = 0x8087000
+_sysctl({{CTL_DEV, 2, 1}, 3, 0x4003c0e0, 40, (nil), 0}) = 0
+open("/proc/bus/i2c", O_RDONLY)         = 4
+fstat64(4, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x40016000
+read(4, "i2c-0\tsmbus    \tSMBus nForce2 ad"..., 4096) = 247
+read(4, "", 4096)                       = 0
+close(4)                                = 0
+munmap(0x40016000, 4096)                = 0
+ioctl(3, SNDCTL_TMR_TIMEBASE, 0xbfffe87c) = -1 ENOTTY (Inappropriate ioctl for device)
+fstat64(3, {st_mode=S_IFREG|0644, st_sizeT489, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x40016000
+read(3, "# Sensors configuration file use"..., 8192) = 8192
+read(3, " SMBus adapter\"\n#\n# If we refer "..., 8192) = 8192
+read(3, "ard\n# uses the recommended resis"..., 8192) = 8192
+read(3, ", in1, and in2 values (+5, +3, a"..., 8192) = 8192
+read(3, "ing corrections make the sensors"..., 8192) = 8192
+read(3, "CPU1 Temp\"\n    ignore \"2.5V\" # T"..., 8192) = 8192
+read(3, "\t\ttemp5\t\t0x10 (16)\n#\tUCH4\t\tin3\t\t"..., 8192) = 5337
+read(3, "", 4096)                       = 0
+read(3, "", 8192)                       = 0
+ioctl(3, SNDCTL_TMR_TIMEBASE, 0xbfffe84c) = -1 ENOTTY (Inappropriate ioctl for device)
+close(3)                                = 0
+munmap(0x40016000, 4096)                = 0
+_sysctl({{CTL_DEV, 2, 100, 3e8}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3e8}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3e8}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3e8}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3e9}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3e9}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3e9}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3e9}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ea}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ea}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ea}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ea}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3eb}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3eb}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3eb}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3eb}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ec}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ec}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ec}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ec}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ed}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ed}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ed}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ed}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ee}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ee}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ee}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ee}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ef}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ef}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 3ef}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 3ef}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 4b0}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 4b0}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 4b0}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 4b0}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 4b1}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 4b1}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 4b1}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 4b1}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 4b2}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 4b2}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 4b2}, 4, 0x4003c0e0, 12, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 4b2}, 4, (nil), 0, 0x4003c0e0, 8}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 44d}, 4, 0x4003c0e0, 8, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 44d}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 44e}, 4, 0x4003c0e0, 8, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 44e}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+_sysctl({{CTL_DEV, 2, 100, 44f}, 4, 0x4003c0e0, 8, (nil), 0}) = 0
+_sysctl({{CTL_DEV, 2, 100, 44f}, 4, (nil), 0, 0x4003c0e0, 4}) = -1 EACCES (Permission denied)
+write(2, "it87-isa-0290: Can\'t access /pro"..., 52it87-isa-0290: Can't access /proc file for writing;
+) = 52
+write(2, "Run as root?\n", 13Run as root?
+)          = 13
+_exit(1)                                = ?
+
+
+
+
+-- 
+Matt Garman
+email at: http://raw-sewage.net/index.php?file=email
