@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:26 +0000
 Subject: Call for 2.8.2 soon
-Message-Id: <3FC26C7C.3010404@paradyne.com>
+Message-Id: <20031124212915.GA9448@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3FC1646D.18B8555A@paradyne.com>
 In-Reply-To: <3FC1646D.18B8555A@paradyne.com>
@@ -10,22 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-
-
+On Mon, Nov 24, 2003 at 09:23:58PM +0100, Jean Delvare wrote:
+> > After -test10 comes out (assuming it has Khali's patches in it),
+> > then I want to fix up libsensors to match the magnitudes and sysfs
+> > names that test10 has in it, then release 2.8.2.
 > 
-> Here comes my TODO list:
-> 
-> 1* /proc write problem in libsensors.
-> 2* Get rid of dmidecode dependency in sensors-detect.
-> 3* Remove ACPI method in sensors-detect, leave only VPD in.
-> 4* The limit init removal left a few variables unused. Fix that.
-> 5* Sysfs support in sensors-detect?
-> 
-> Point #1 can obviously be postponed, since it's probable I won't find
-> the solution in time.
-> Point #5 would require me to have a working Linux 2.6.0-testX kernel,
-> which I don't really have at the moment.
+> Test10 is out, without the patches. Looks like Greg wants to wait until
+> Linux 2.6.0 is out before applying patches again. This policy is likely
+> to slow down Mark's plan.
 
-How about if I tar up my /sys and send it to you for testing?
-Then you could test on 2.4.
+Sorry about that, but I'll only let real bugfixes in right now.
+Everything else (like the patches sent to me already) are queueing up
+for 2.6.1.
+
+thanks,
+
+greg k-h
