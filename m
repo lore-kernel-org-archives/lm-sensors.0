@@ -1,69 +1,62 @@
-From: jijo@free.net.ph (Federico Sevilla III)
-Date: Thu, 19 May 2005 06:23:36 +0000
-Subject: Follow-up for Ticket # 936 (Solved!)
-Message-Id: <20020718043655.GG29090@leathercollection.ph>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: lm-sensors Debian ppc 2.4.20-ben10
+Message-Id: <20030613124118.3be0cab0.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi there,
+Hi
 
-This is regarding ticket # 936.
+I am running a PPC with 2.4.20-ben10 Kernel.
 
-No, I did not load i2c-isa with via686a, but doing that worked. Attached
-as [1] is the output of `lspci -n` (yes, 0x3057 is there), and as [2] is
-the new output of `sensors`.
+I installed the packages lm-sensors-sources and i2c-source
 
-Thank you very much for the help. :)
+in /usr/src/linux I done make-kpkg modules_image. This gave me two files:
+i2c-2.4.20-ben10_2.7.0-4+zeno.1_powerpc.deb  
+lm-sensors-2.4.20-ben10_2.7.0-5+zeno.1_powerpc.deb
 
- --> Jijo
+Now when I do detect-sensors as root, I get: command not found.
+So I cd to /usr/src/modules/lm-sensors/prog/detect/sensors-detect and run the skript form there.
 
-[1] lspci -n
+All my sensors detect fine:
+#----cut here----
+# I2C adapter drivers
+# modprobe unknown adapter uni-n 0 using Keywest i2c
+# modprobe unknown adapter uni-n 1 using Keywest i2c
+# modprobe unknown adapter mac-io 0 using Keywest i2c
+# modprobe unknown adapter uni-n 0 using Keywest i2c
+# modprobe unknown adapter uni-n 1 using Keywest i2c
+# modprobe unknown adapter mac-io 0 using Keywest i2c
+# modprobe unknown adapter uni-n 0 using Keywest i2c
+# modprobe unknown adapter uni-n 1 using Keywest i2c
+# modprobe unknown adapter mac-io 0 using Keywest i2c
+# I2C chip drivers
+lm75
+eeprom
+#----cut here----
+ 
+Then, run /etc/init.d/modutils
+ 
+ 
+To make the sensors modules behave correctly, add these lines to
+/etc/modutils/local and run update-modules:
+ 
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
 
-00:00.0 Class 0600: 1106:0305 (rev 03)
-00:01.0 Class 0604: 1106:8305
-00:07.0 Class 0601: 1106:0686 (rev 40)
-00:07.1 Class 0101: 1106:0571 (rev 06)
-00:07.2 Class 0c03: 1106:3038 (rev 1a)
-00:07.3 Class 0c03: 1106:3038 (rev 1a)
-00:07.4 Class 0680: 1106:3057 (rev 40)
-00:09.0 Class 0401: 1274:1371 (rev 02)
-00:0d.0 Class 0200: 1282:9102 (rev 31)
-00:0f.0 Class 0200: 8086:1229 (rev 08)
-01:00.0 Class 0300: 10de:002d (rev 15)
+But now when I try to run sensors, I get: command not found!
 
+Has sensors not been installed with my dpkg -i lm-sensors-2.4.20-ben10_2.7.0-5+zeno.1_powerpc.deb ?
 
-[2] `sensors`
+sudo find / -name sensors gives me:
+/usr/src/modules/lm-sensors/prog/init/sensors
+/usr/src/modules/lm-sensors/prog/sensors
 
-max1617-i2c-0-18
-Adapter: SMBus Via Pro adapter at 5000
-Algorithm: Non-I2C SMBus adapter
-Board:       +12=B0C  (min =3D   +4=B0C, max =3D   +0=B0C)
-CPU:          +0=B0C  (min =3D  +12=B0C, max =3D  +60=B0C)ALARM (N/A)
+Thanks for your time and feedback.
 
-eeprom-i2c-0-52
-Adapter: SMBus Via Pro adapter at 5000
-Algorithm: Non-I2C SMBus adapter
-Memory type:            SDRAM DIMM SPD
-SDRAM Size (MB):        256
-
-via686a-isa-6000
-Adapter: ISA adapter
-Algorithm: ISA algorithm
-CPU core:  +1.54 V  (min =3D  +1.79 V, max =3D  +2.18 V)   ALARM
-+2.5V:     +0.29 V  (min =3D  +2.24 V, max =3D  +2.74 V)   ALARM
-I/O:       +3.33 V  (min =3D  +2.95 V, max =3D  +3.62 V)  =20
-+5V:       +4.87 V  (min =3D  +4.47 V, max =3D  +5.49 V)  =20
-+12V:     +11.86 V  (min =3D +10.79 V, max =3D +13.18 V)  =20
-CPU Fan:  4821 RPM  (min =3D 3000 RPM, div =3D 2)         =20
-P/S Fan:     0 RPM  (min =3D 3000 RPM, div =3D 2)         =20
-SYS Temp:  +32.6=B0C  (limit =3D  +60=B0C, hysteresis =3D  +50=B0C)=20
-CPU Temp:  +47.4=B0C  (limit =3D  +60=B0C, hysteresis =3D  +50=B0C)=20
-SBr Temp:  +22.3=B0C  (limit =3D  +60=B0C, hysteresis =3D  +50=B0C)=20
-
---=20
-Federico Sevilla III   :  <http://jijo.free.net.ph/>
-Network Administrator  :  The Leather Collection, Inc.
-GnuPG Key ID           :  0x93B746BE
+Zeno
