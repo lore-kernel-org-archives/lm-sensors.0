@@ -1,35 +1,21 @@
-From: vsu@altlinux.ru (Sergey Vlasov)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:56 +0000
 Subject: [PATCH] fix typo in isaset manpage
-Message-Id: <20050501154647.GA2589@procyon.home>
+Message-Id: <20050501183412.1fb8fff4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050501154647.GA2589@procyon.home>
+In-Reply-To: <20050501154647.GA2589@procyon.home>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello!
+Hi Sergey,
 
-The isaset manpage still has "i2cset" in the NAME section; this patch
-fixes it:
+> The isaset manpage still has "i2cset" in the NAME section; this patch
+> fixes it:
 
---- lm_sensors-2.9.1/prog/dump/isaset.8.alt-man	2004-10-16 18:24:55 +0400
-+++ lm_sensors-2.9.1/prog/dump/isaset.8	2005-05-01 19:40:32 +0400
-@@ -1,6 +1,6 @@
- .TH ISASET 8 "August 2004"
- .SH "NAME"
--i2cset \- set ISA registers
-+isaset \- set ISA registers
- 
- .SH SYNOPSIS
- .B isaset
+Good catch :) Applied, thanks.
 
 -- 
-Sergey Vlasov
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050501/e816d53f/attachment.bin
+Jean Delvare
