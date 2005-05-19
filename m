@@ -1,32 +1,34 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:15 +0000
-Subject: [Fwd: how to use]
-Message-Id: <4147228F.3070800@edgedesign.us>
+From: hydrogenhelium@hotmail.com (Karl and Tanya Pizzolatto)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: works like a charm!
+Message-Id: <F272Py5BzOS1H3zKipn0000fe63@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Mainboard is Supermicro P6DBU
+Chip is winbond
+
+Yeah, I know this is already in your database, but I just thought you'd lik=
+e=20
+to know lmsensors works great!
+
+Thanks for all your hard work.  Now I can prove (in linux) my computer runs=
+=20
+cooler with the cover ON than with it OFF.
+
+BTW, when I ran Windows, MBM never did work right.  You guys rock!
 
 
--------- Original Message --------
-From: Carl Albert Schreiber <ca.schreiber@gmx.at>
-To: phil@netroedge.com
-Subject: how to use
-Date: Tue, 14 Sep 2004 11:15:05 +0200
+Thanks,
 
-Hi,
+Karl Pizzolatto
+karlandtanya@earthlink.net
 
-just trying to install and to use it (SuSE 91 incl. updates), but I 
-can't see
-any hint how to use it if I start it at boot time.
 
-How can I get,read the values from that deamon?
 
-Your really big doc just talks about how detect the board and how to 
-read the
-data from the board but hereafter?
-
-Thanks for all your effort anyhow,
-Carl
+_________________________________________________________________
+Join the world=92s largest e-mail service with MSN Hotmail.=20
+http://www.hotmail.com
