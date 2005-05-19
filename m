@@ -1,50 +1,40 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:48 +0000
-Subject: [04/08] I2C: Fix oops in eeprom driver
-Message-Id: <20050405164711.GE17299@kroah.com>
+From: a.othieno@bluewin.ch (Arthur Othieno)
+Date: Thu, 19 May 2005 06:25:02 +0000
+Subject: [PATCH 2.6] drivers/media/video/tda9887.c: ACK return on
+Message-Id: <20040622154440.GH1473@mars>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050405164539.GA17299@kroah.com>
-In-Reply-To: <20050405164539.GA17299@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: khali@linux-fr.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
+Hi,
 
-------------------
+i2c_add_driver() may actually fail, but this driver returns 0
+regardless. Against 2.6.7. Thanks.
 
-This fixes an oops in the eeprom driver. It was first reported here:
-  http://bugzilla.kernel.org/show_bug.cgi?idC47
+Signed-off-by: Arthur Othieno <a.othieno@bluewin.ch>
 
-It was additionally discussed here (while tracking a completely
-different bug):
-  http://archives.andrew.net.au/lm-sensors/msg30021.html
 
-The patch is already in 2.6.12-rc1:
-  http://linux.bkbits.net:8080/linux-2.5/cset@1.2227
+ tda9887.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-The oops happens when one reads data from the sysfs interface file such
-that (off < 16) and (count < 16 - off). For example "sensors" from
-lm_sensors 2.9.0 does this, and causes the oops.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
-Signed-off-by: Linus Torvalds <torvalds@osdl.org>
-Signed-off-by: Chris Wright <chrisw@osdl.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
---- linux-2.6.11.4/drivers/i2c/chips/eeprom.c.orig	2005-03-13 10:00:01.000000000 +0100
-+++ linux-2.6.11.4/drivers/i2c/chips/eeprom.c	2005-03-17 19:54:07.000000000 +0100
-@@ -130,7 +130,8 @@
+--- a/drivers/media/video/tda9887.c	2004-06-17 17:29:45.000000000 +0200
++++ b/drivers/media/video/tda9887.c	2004-06-17 17:31:21.000000000 +0200
+@@ -458,13 +458,12 @@ static struct i2c_client client_template
+         .driver    = &driver,
+ };
  
- 	/* Hide Vaio security settings to regular users (16 first bytes) */
- 	if (data->nature = VAIO && off < 16 && !capable(CAP_SYS_ADMIN)) {
--		int in_row1 = 16 - off;
-+		size_t in_row1 = 16 - off;
-+		in_row1 = min(in_row1, count);
- 		memset(buf, 0, in_row1);
- 		if (count - in_row1 > 0)
- 			memcpy(buf + in_row1, &data->data[16], count - in_row1);
-
+-static int tda9887_init_module(void)
++static int __init tda9887_init_module(void)
+ {
+-	i2c_add_driver(&driver);
+-	return 0;
++	return i2c_add_driver(&driver);
+ }
+ 
+-static void tda9887_cleanup_module(void)
++static void __exit tda9887_cleanup_module(void)
+ {
+ 	i2c_del_driver(&driver);
+ }
