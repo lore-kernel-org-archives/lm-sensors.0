@@ -1,31 +1,25 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: [PATCH 2.6] it87 reset option
-Message-Id: <20040301192651.GA9609@kroah.com>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:25 +0000
+Subject: sensors-detect enhancement needed for sysfs
+Message-Id: <3FB839E3.6C7D5CCD@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040228183508.200a8655.komoriya@paken.org>
-In-Reply-To: <20040228183508.200a8655.komoriya@paken.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 01, 2004 at 10:22:59AM +0900, Takeru KOMORIYA wrote:
-> Hi,
-> 
-> On Sat, 28 Feb 2004 18:27:58 +0100
-> Jean Delvare <khali@linux-fr.org> wrote:
-> 
-> > First of all, the patch leaves all INIT macros untouched. They are not
-> > used anywhere in the driver now, so they should go.
-> 
-> > No extra line here please.
-> 
-> Sorry for my rush patch. I should have been more careful...
-> I've fixed these two issues.
-> 
-> How about this patch?
+I've enhanced i2cdetect, i2cdump, and i2cset using the new common
+function in
+i2cbusses.c to list all the i2c busses, whether in 2.4 or 2.6 kernels.
+In 2.6 it's essentially 'cat /sys/class/i2c-adapter/*/device/name' but
+see i2cbusses for details like finding the sysfs mount point.
 
-Thanks, I've applied this one.
+We need a perl volunteer to make a similar enhancement at two places
+in sensors-detect where it scans /proc/bus/i2c.
 
-greg k-h
+Note that the adapter name, but not the algorithm, is available in
+sysfs.
+I've hacked around that in libsensors and in the programs above.
+Guess it's not really necessary.
+
+Anybody like to tackle sensors-detect?
