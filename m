@@ -1,57 +1,178 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:25 +0000
-Subject: 712
-Message-Id: <3BE86749.FF76E362@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: [PATCH 2.6] pwm support in w83781d.c
+Message-Id: <20040410204816.0b1560c1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1004614863.1545.25.camel@aurich>
-In-Reply-To: <1004614863.1545.25.camel@aurich>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm not very familiar with it either.
-No great ideas, but...
-Is CONFIG_SENSORS defined?
-Does a 'make clean' help?
+Hi Greg,
 
-Andree Leidenfrost wrote:
-> 
-> Hm, there is a line in .config saying CONFIG_SENSORS_W83781D=y, so that
-> looks ok, I guess. Other than that I'm not really very familiar with how
-> the kernel config works. Anything specific you want me to check out?
-> 
-> BTW, the problem persists with 2.2.20 final.
-> 
-> On Fri, 2001-11-02 at 03:13, Mark Studebaker wrote:
-> > can you please figure out why it isn't getting defined
-> > so we can fix it?
-> >
-> > Andree Leidenfrost wrote:
-> > >
-> > > Hi,
-> > >
-> > > Thanks for the hint. I investigated things and it looks like the problem
-> > > is that CONFIG_SENSORS_W83781D is not getting defined. doing that
-> > > manually in sensors.c fixes the problem.
-> > >
-> > > Best regards & loads of thanks for your help,
-> > >
-> > >         Andree
-> > > --
-> > > Dr Andree Leidenfrost, IT Consultant
-> > >
-> > > Harms Consulting Pty Ltd
-> > > PO Box 643 Bondi Junction NSW 1355 Australia
-> > > Phone  +61 2 9365 0361, Fax +61 2 9300 9386
-> > > Mobile +61 419 032 968
-> > > www.harmsconsulting.com
-> >
-> --
-> Dr Andree Leidenfrost, IT Consultant
-> 
-> Harms Consulting Pty Ltd
-> PO Box 643 Bondi Junction NSW 1355 Australia
-> Phone  +61 2 9365 0361, Fax +61 2 9300 9386
-> Mobile +61 419 032 968
-> www.harmsconsulting.com
+Here is a general pwm support cleanup patch for the w83781d chip driver.
+Featuring:
+
+* Don't pretend that we handle PWM on AS99127F chips. We don't know how
+it works, and one of the register we are accessing for now is clearly
+not a PWM register, and changing its value usually breaks temperature
+readings.
+
+* Discard irrelevant comments.
+
+* Rewrite show_pwmenable_reg. It was obviously taken from the 2.4
+driver, with unneeded tests and the code was much too complicated
+anyway. And now we handle errors correctly.
+
+* Initialize pwm_enable at load time. So far it was done conditionally
+(if init=1) while it should always be done. And pwm2_enable wasn't read
+from the chip, while it should.
+
+I could test that my AS99127F doesn't expose pwm files through ssysfs
+anymore. Which means that I couldn't test the rest of the pwm changes,
+unfortunately.
+
+I've applied similar changes to our 2.4/CVS repository.
+
+Please apply if you like it,
+thanks.
+
+--- linux-2.6.5-mm3/drivers/i2c/chips/w83781d.c.orig	Sat Apr 10 10:35:50 2004
++++ linux-2.6.5-mm3/drivers/i2c/chips/w83781d.c	Sat Apr 10 20:41:52 2004
+@@ -24,7 +24,7 @@
+     Supports following chips:
+ 
+     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
+-    as99127f	7	3	1?	3	0x31	0x12c3	yes	no
++    as99127f	7	3	0	3	0x31	0x12c3	yes	no
+     as99127f rev.2 (type_name = as99127f)	0x31	0x5ca3	yes	no
+     w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
+     w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
+@@ -670,7 +670,6 @@
+ device_create_file(&client->dev, &dev_attr_fan##offset##_div); \
+ } while (0)
+ 
+-/* w83697hf only has two fans */
+ static ssize_t
+ show_pwm_reg(struct device *dev, char *buf, int nr)
+ {
+@@ -678,7 +677,6 @@
+ 	return sprintf(buf, "%ld\n", (long) PWM_FROM_REG(data->pwm[nr - 1]));
+ }
+ 
+-/* w83697hf only has two fans */
+ static ssize_t
+ show_pwmenable_reg(struct device *dev, char *buf, int nr)
+ {
+@@ -706,38 +704,26 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83781d_data *data = i2c_get_clientdata(client);
+-	u32 val, j, k;
++	u32 val, reg;
+ 
+ 	val = simple_strtoul(buf, NULL, 10);
+ 
+-	/* only PWM2 can be enabled/disabled */
+-	if (nr = 2) {
+-		j = w83781d_read_value(client, W83781D_REG_PWMCLK12);
+-		k = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
+-
+-		if (val > 0) {
+-			if (!(j & 0x08))
+-				w83781d_write_value(client,
+-						    W83781D_REG_PWMCLK12,
+-						    j | 0x08);
+-			if (k & 0x10)
+-				w83781d_write_value(client,
+-						    W83781D_REG_BEEP_CONFIG,
+-						    k & 0xef);
++	switch (val) {
++	case 0:
++	case 1:
++		reg = w83781d_read_value(client, W83781D_REG_PWMCLK12);
++		w83781d_write_value(client, W83781D_REG_PWMCLK12,
++				    (reg & 0xf7) | (val << 3));
++
++		reg = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
++		w83781d_write_value(client, W83781D_REG_BEEP_CONFIG,
++				    (reg & 0xef) | (!val << 4));
+ 
+-			data->pwmenable[1] = 1;
+-		} else {
+-			if (j & 0x08)
+-				w83781d_write_value(client,
+-						    W83781D_REG_PWMCLK12,
+-						    j & 0xf7);
+-			if (!(k & 0x10))
+-				w83781d_write_value(client,
+-						    W83781D_REG_BEEP_CONFIG,
+-						    j | 0x10);
++		data->pwmenable[nr - 1] = val;
++		break;
+ 
+-			data->pwmenable[1] = 0;
+-		}
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	return count;
+@@ -1250,6 +1236,9 @@
+ 		data->fan_min[i - 1] = w83781d_read_value(new_client,
+ 					W83781D_REG_FAN_MIN(i));
+ 	}
++	if (kind != w83781d && kind != as99127f)
++		for (i = 0; i < 4; i++)
++			data->pwmenable[i] = 1;
+ 
+ 	/* Register sysfs hooks */
+ 	device_create_file_in(new_client, 0);
+@@ -1290,7 +1279,7 @@
+ 
+ 	device_create_file_beep(new_client);
+ 
+-	if (kind != w83781d) {
++	if (kind != w83781d && kind != as99127f) {
+ 		device_create_file_pwm(new_client, 1);
+ 		device_create_file_pwm(new_client, 2);
+ 		device_create_file_pwmenable(new_client, 2);
+@@ -1578,9 +1567,6 @@
+ 			if (!(i & 0x40))
+ 				w83781d_write_value(client, W83781D_REG_IRQ,
+ 						    i | 0x40);
+-
+-			for (i = 0; i < 3; i++)
+-				data->pwmenable[i] = 1;
+ 		}
+ 	}
+ 
+@@ -1624,20 +1610,19 @@
+ 			data->fan_min[i - 1]  			    w83781d_read_value(client, W83781D_REG_FAN_MIN(i));
+ 		}
+-		if (data->type != w83781d) {
++		if (data->type != w83781d && data->type != as99127f) {
+ 			for (i = 1; i <= 4; i++) {
+ 				data->pwm[i - 1]  				    w83781d_read_value(client,
+ 						       W83781D_REG_PWM(i));
+-				if (((data->type = w83783s)
+-				     || (data->type = w83627hf)
+-				     || (data->type = as99127f)
+-				     || (data->type = w83697hf)
+-				     || ((data->type = w83782d)
+-					 && i2c_is_isa_client(client)))
++				if ((data->type != w83782d
++				     || i2c_is_isa_client(client))
+ 				    && i = 2)
+ 					break;
+ 			}
++			/* Only PWM2 can be disabled */
++			data->pwmenable[1] = (w83781d_read_value(client,
++					      W83781D_REG_PWMCLK12) & 0x08) >> 3;
+ 		}
+ 
+ 		data->temp = w83781d_read_value(client, W83781D_REG_TEMP(1));
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
