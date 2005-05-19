@@ -1,74 +1,41 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: [swan@shockfrosted.org: Ticket #1017]
-Message-Id: <3DA76EE9.CBDD429B@paradyne.com>
+From: ALLEN.C.DOUGLASS@saic.com (Chris Douglass)
+Date: Thu, 19 May 2005 06:24:44 +0000
+Subject: adm1021 + kernel 2.6.3 kills machine
+Message-Id: <1077918018.21481.21.camel@nomad.ad.eecg.saic.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021003110526.GA5364@TK150122.tuwien.teleweb.at>
-In-Reply-To: <20021003110526.GA5364@TK150122.tuwien.teleweb.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Great!
-the 3177 mod clearly works, we will add support in CVS.
-You are unlikely to have a LM80 (often misdetected) or a w83781d
-(i2cdetect doesn't look right).
-Look at your board or ask your board maker to identify sensors chip.
-You can also send us the output of i2cdump 1 0x1b and i2cdump 1 0x2f
-and we can try to identify the chips at those addresses.
+Hello-
+sensors-detect tells me I have and adm1021 sensor. When I try to load
+this module, my monitor turns off, and the hard drive light stays on
+until I shut down and unplug the machine from the wall for several
+seconds. Merely powering off does not help. I don't know if this is a
+bad detection or a hardware issue. I also have a W83682HF chip on the
+mobo which works fine, as well as the eeprom driver.
+It may be of interest to note that the new radeonfb driver includes an
+i2c interface which is detected by sensors-detect and the i2c interface
+itself is detected by the radeonfb driver. If there is any output you
+would like, or investigation I can do to help, let me know. Please
+respond to:
+douglassac@earthlink.net
+Thanks
+-Chris 
 
-mds
 
+My hardware is:
+ABIT NF7-S 2.0 BIOS 21
+Radeon 9700 Pro
 
+Software:
+Slackware 9.1
+kernel 2.6.3
+lm_sensors2 CVS checked out on 2/25/04
 
-Stefan Schwandter wrote:
-> 
-> Stefan Schwandter wrote:
-> 
-> > > does it actually work though? any chips found on the bus?
-> > > (try sensors-detect, or i2cdetect 1)
-> 
-> Ok:
-> 
-> sensors-detect suggests:
-> 
-> #----cut here----
-> # I2C adapter drivers
-> modprobe i2c-viapro
-> modprobe i2c-isa
-> # I2C chip drivers
-> modprobe eeprom
-> modprobe w83781d
-> #----cut here----
-> 
-> To make the sensors modules behave correctly, add these lines to either
-> /etc/modules.conf or /etc/conf.modules:
-> 
-> #----cut here----
-> # I2C module options
-> alias char-major-89 i2c-dev
-> #----cut here----
-> 
-> i2cdetect gives:
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->          00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->          10: XX XX XX XX XX XX XX XX XX XX XX 1b XX XX XX XX
->          20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU
->          30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->          40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->          50: 50 XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->          60: XX XX XX XX XX XX XX XX XX 69 6a XX XX XX XX XX
->          70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 
-> 
-> I can use sensors to look at the values of the lm80 chip (although
-> they're nonsense, but that's another problem - the second chip on the
-> motherboard, w83781d gives sane values).
-> 
-> If you want me to do some more testing, please say so!
-> 
-> regards, Stefan
-> --
-> ----> http://www.shockfrosted.org
+-- 
+-- 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040227/640b42f5/attachment.html
