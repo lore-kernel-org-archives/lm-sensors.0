@@ -1,35 +1,58 @@
 From: jthiessen@penguincomputing.com (Justin Thiessen)
 Date: Thu, 19 May 2005 06:25:23 +0000
 Subject: adm1026 driver port for kernel 2.6.10-rc2  [RE-REVISED DRIVER]
-Message-Id: <20041122193538.GA4698@penguincomputing.com>
+Message-Id: <20041122194327.GB4698@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041102221745.GB18020@penguincomputing.com>
  <NN38qQl1.1099468908.1237810.khali@gcu.info>
  <20041103164354.GB20465@penguincomputing.com>
  <20041118185612.GA20728@penguincomputing.com>
- <20041120105740.1a238842.khali@linux-fr.org>
-In-Reply-To: <20041120105740.1a238842.khali@linux-fr.org>
+ <1100945635.2639.31.camel@laptop.fenrus.org>
+In-Reply-To: <1100945635.2639.31.camel@laptop.fenrus.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@Stimpy.netroedge.com>
-Cc: greg@kroah.com, linux-kernel@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: greg@kroah.com, phil@netroedge.com, khali@linux-fr.org, sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-On Sat, Nov 20, 2004 at 10:57:40AM +0100, Jean Delvare wrote:
-> Hi Justin,
+On Sat, Nov 20, 2004 at 11:13:56AM +0100, Arjan van de Ven wrote:
+> On Thu, 2004-11-18 at 10:56 -0800, Justin Thiessen wrote:
+> > MODULE_PARM(gpio_input,"1-17i");
 > 
-> > Ok, let's try this (yet) again:
+> new 2.6 drivers should NOT use MODULE_PARM, it's deprecated.
+> use module_param() instead
+
+Ok.  You mean module_param_array() in these particular cases, right?
+
+> > int adm1026_attach_adapter(struct i2c_adapter *adapter)
+> > {
+> > 	if (!(adapter->class & I2C_CLASS_HWMON)) {
+> > 		return 0;
+> > 	}
 > 
-> I'm sorry to insist be we really want this as a patch against
-> 2.6.10-rc2. That's what Greg needs. As said earlier, the patch would
-> include the new adm1026.c file (obviously) as well as the necessary
-> changes to Kconfig and Makefile.
+> no need for extra { }'s in such a case
 
-Ack.  Sorry for forgetting the Kconfig and Makefile changes. 
+Of course there's no _need_.  But I find the result stylistically easier to 
+read.  Is there any real objection?
 
-The driver itself is actually a patch against 2.6.10-rc2.
+> > static ssize_t show_in(struct device *dev, char *buf, int nr)
+> > {
+> > 	struct adm1026_data *data = adm1026_update_device(dev);
+> > 	return sprintf(buf,"%d\n", INS_FROM_REG(nr, data->in[nr]));
+> > }
+> 
+> any chance you could make this use snprintf instead ?
 
-I'll post the driver once the issues Arjan raised have been resolved.
+I'll defer to Jean's response...
+
+<snip awkward locking construct>
+
+> this locking construct is rahter awkward; is it possible to refactor the
+> code such that you can down and up in the same function ?
+
+Yes, at the cost of some minor code duplication or the introduction of
+another variable.  Is that preferable?  Is holding the lock across function
+calls a Bad Idea?
 
 Justin Thiessen
 ---------------
