@@ -1,38 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:13 +0000
-Subject: Eeprom driver optimization
-Message-Id: <20030823210908.62520036.khali@linux-fr.org>
+From: p.wautelet@fractalzone.be (Philippe Wautelet)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: Ticket #1352
+Message-Id: <3F2E9EBB.3040600@fractalzone.be>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030816141351.76899190.khali@linux-fr.org>
-In-Reply-To: <20030816141351.76899190.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+For the BIOS, I have is the latest version. Therefore, this is not the 
+solution.
 
-> The refresh time is 5 minutes now.
+I also tried the new 2.6.0-test2 kernel and I got some improvements : 
+now it detects the SMBus but it says it is disabled.
 
-And shouldn't be increased IMHO. And could even be lowered if we support
-writing to eeproms.
+Here is the output of lspci -vv:
 
-> As I've said before, I consider the eeprom driver a "demonstration"
-> rather than something with a whole lot of value.
+00:02.1 SMBus: Silicon Integrated Systems [SiS]: Unknown device 0016
+    Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- 
+Stepping- SERR- FastB2B-
+    Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR-
+    Interrupt: pin B routed to IRQ 10
+    Region 4: I/O ports at 1000 [disabled] [size2]
 
-In this case, we can exclude it from sensors.
-
-> Therefore I don't feel that inefficiency is a big concern.
-> But if there's some generic method to reduce the number of accesses
-> that could be added, that may be interesting.
-
-Give it a look and try and tell me what you think about it.
-
-> I'm not in favor of more Vaio- or EDID-specific stuff
-> ("subsets") in eeprom.c.
-
-I finally chose a generic slices method, as you can see. I too think
-it's better than a Vaio- or EDID- or whatever-oriented partitioning.
+The IRQ is 10 which is the same as the Firewire and the CardBus 
+controllers. However, I didn't compile Firewire and CardBus in the 
+kernel. Therefore, I don't think it is an IRQ conflict.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Philippe Wautelet
+Research assistant,
+Aerodynamics Group, University of Liege, Belgium, http://www.ulg.ac.be/aerodyn
+Private website: http://www.fractalzone.be
+
