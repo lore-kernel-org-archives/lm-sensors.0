@@ -1,45 +1,236 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: Kill i2c_client.id (4/5)
-Message-Id: <11099685942662@kroah.com>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 11/22] W1: move w1_search to the rest of IO code
+Message-Id: <200504210218.12399.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11099685933363@kroah.com>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-ChangeSet 1.2086, 2005/03/02 11:52:48-08:00, khali@linux-fr.org
+W1: move w1_search function to w1_io.c to be with the rest of IO code.
 
-[PATCH] I2C: Kill i2c_client.id (4/5)
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-> (4/5) Deprecate i2c_client.id.
+ w1.c    |   87 --------------------------------------------------------------
+ w1.h    |    1 
+ w1_io.c |   89 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 88 insertions(+), 89 deletions(-)
 
-Now that i2c_client.id has no more users in the kernel (none that I
-could find at least) we could remove that struct member. I however think
-that it's better to only deprecate it at the moment, in case I missed
-users or any of the other patches are delayed for some reason. We could
-then delete the id member definitely in a month or so.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-
- include/linux/i2c.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
-
-diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h	2005-03-04 12:26:05 -08:00
-+++ b/include/linux/i2c.h	2005-03-04 12:26:05 -08:00
-@@ -144,7 +144,7 @@
-  * function is mainly used for lookup & other admin. functions.
-  */
- struct i2c_client {
--	int id;
-+	__attribute__ ((deprecated)) int id;
- 	unsigned int flags;		/* div., see below		*/
- 	unsigned int addr;		/* chip address - NOTE: 7bit 	*/
- 					/* addresses are stored in the	*/
-
+Index: dtor/drivers/w1/w1.c
+=================================--- dtor.orig/drivers/w1/w1.c
++++ dtor/drivers/w1/w1.c
+@@ -488,93 +488,6 @@ static void w1_slave_found(struct w1_mas
+ 	atomic_dec(&dev->refcnt);
+ }
+ 
+-void w1_search(struct w1_master *dev)
+-{
+-	u64 last, rn, tmp;
+-	int i, count = 0;
+-	int last_family_desc, last_zero, last_device;
+-	int search_bit, id_bit, comp_bit, desc_bit;
+-
+-	search_bit = id_bit = comp_bit = 0;
+-	rn = tmp = last = 0;
+-	last_device = last_zero = last_family_desc = 0;
+-
+-	desc_bit = 64;
+-
+-	while (!(id_bit && comp_bit) && !last_device &&
+-	       count++ < dev->max_slave_count) {
+-		last = rn;
+-		rn = 0;
+-
+-		last_family_desc = 0;
+-
+-		/*
+-		 * Reset bus and all 1-wire device state machines
+-		 * so they can respond to our requests.
+-		 *
+-		 * Return 0 - device(s) present, 1 - no devices present.
+-		 */
+-		if (w1_reset_bus(dev)) {
+-			dev_info(&dev->dev, "No devices present on the wire.\n");
+-			break;
+-		}
+-
+-#if 1
+-		w1_write_8(dev, W1_SEARCH);
+-		for (i = 0; i < 64; ++i) {
+-			/*
+-			 * Read 2 bits from bus.
+-			 * All who don't sleep must send ID bit and COMPLEMENT ID bit.
+-			 * They actually are ANDed between all senders.
+-			 */
+-			id_bit = w1_touch_bit(dev, 1);
+-			comp_bit = w1_touch_bit(dev, 1);
+-
+-			if (id_bit && comp_bit)
+-				break;
+-
+-			if (id_bit = 0 && comp_bit = 0) {
+-				if (i = desc_bit)
+-					search_bit = 1;
+-				else if (i > desc_bit)
+-					search_bit = 0;
+-				else
+-					search_bit = ((last >> i) & 0x1);
+-
+-				if (search_bit = 0) {
+-					last_zero = i;
+-					if (last_zero < 9)
+-						last_family_desc = last_zero;
+-				}
+-
+-			} else
+-				search_bit = id_bit;
+-
+-			tmp = search_bit;
+-			rn |= (tmp << i);
+-
+-			/*
+-			 * Write 1 bit to bus
+-			 * and make all who don't have "search_bit" in "i"'th position
+-			 * in it's registration number sleep.
+-			 */
+-			if (dev->bus_ops->touch_bit)
+-				w1_touch_bit(dev, search_bit);
+-			else
+-				w1_write_bit(dev, search_bit);
+-
+-		}
+-#endif
+-
+-		if (desc_bit = last_zero)
+-			last_device = 1;
+-
+-		desc_bit = last_zero;
+-
+-		w1_slave_found(dev, rn);
+-	}
+-}
+-
+ 
+ static int w1_process(void *data)
+ {
+Index: dtor/drivers/w1/w1_io.c
+=================================--- dtor.orig/drivers/w1/w1_io.c
++++ dtor/drivers/w1/w1_io.c
+@@ -178,13 +178,100 @@ u8 w1_calc_crc8(u8 * data, int len)
+ 	return crc;
+ }
+ 
++static void w1_search(struct w1_master *dev, w1_slave_found_callback slave_found_cb)
++{
++	u64 last, rn, tmp;
++	int i, count = 0;
++	int last_family_desc, last_zero, last_device;
++	int search_bit, id_bit, comp_bit, desc_bit;
++
++	search_bit = id_bit = comp_bit = 0;
++	rn = tmp = last = 0;
++	last_device = last_zero = last_family_desc = 0;
++
++	desc_bit = 64;
++
++	while (!(id_bit && comp_bit) && !last_device &&
++	       count++ < dev->max_slave_count) {
++		last = rn;
++		rn = 0;
++
++		last_family_desc = 0;
++
++		/*
++		 * Reset bus and all 1-wire device state machines
++		 * so they can respond to our requests.
++		 *
++		 * Return 0 - device(s) present, 1 - no devices present.
++		 */
++		if (w1_reset_bus(dev)) {
++			dev_info(&dev->dev, "No devices present on the wire.\n");
++			break;
++		}
++
++#if 1
++		w1_write_8(dev, W1_SEARCH);
++		for (i = 0; i < 64; ++i) {
++			/*
++			 * Read 2 bits from bus.
++			 * All who don't sleep must send ID bit and COMPLEMENT ID bit.
++			 * They actually are ANDed between all senders.
++			 */
++			id_bit = w1_touch_bit(dev, 1);
++			comp_bit = w1_touch_bit(dev, 1);
++
++			if (id_bit && comp_bit)
++				break;
++
++			if (id_bit = 0 && comp_bit = 0) {
++				if (i = desc_bit)
++					search_bit = 1;
++				else if (i > desc_bit)
++					search_bit = 0;
++				else
++					search_bit = ((last >> i) & 0x1);
++
++				if (search_bit = 0) {
++					last_zero = i;
++					if (last_zero < 9)
++						last_family_desc = last_zero;
++				}
++
++			} else
++				search_bit = id_bit;
++
++			tmp = search_bit;
++			rn |= (tmp << i);
++
++			/*
++			 * Write 1 bit to bus
++			 * and make all who don't have "search_bit" in "i"'th position
++			 * in it's registration number sleep.
++			 */
++			if (dev->bus_ops->touch_bit)
++				w1_touch_bit(dev, search_bit);
++			else
++				w1_write_bit(dev, search_bit);
++
++		}
++#endif
++
++		if (desc_bit = last_zero)
++			last_device = 1;
++
++		desc_bit = last_zero;
++
++		slave_found_cb(dev, rn);
++	}
++}
++
+ void w1_search_devices(struct w1_master *dev, w1_slave_found_callback cb)
+ {
+ 	dev->attempts++;
+ 	if (dev->bus_ops->search)
+ 		dev->bus_ops->search(dev, cb);
+ 	else
+-		w1_search(dev);
++		w1_search(dev, cb);
+ }
+ 
+ EXPORT_SYMBOL(w1_write_bit);
+Index: dtor/drivers/w1/w1.h
+=================================--- dtor.orig/drivers/w1/w1.h
++++ dtor/drivers/w1/w1.h
+@@ -132,7 +132,6 @@ struct w1_master
+ struct w1_master *w1_allocate_master_device(void);
+ int w1_add_master_device(struct w1_master *);
+ void w1_remove_master_device(struct w1_master *);
+-void w1_search(struct w1_master *);
+ 
+ #endif /* __KERNEL__ */
+ 
