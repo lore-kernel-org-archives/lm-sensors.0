@@ -1,118 +1,93 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: [Fwd: request]
-Message-Id: <3D52A611.2A663C0D@paradyne.com>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:33 +0000
+Subject: i2c patches for 2.5.15
+Message-Id: <3CED7BC6.99258BEB@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D4953FB.63A140D7@paradyne.com>
-In-Reply-To: <3D4953FB.63A140D7@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-nooooooooooooo
-I'm not doing #1 or #2.
-If nobody else is then I'll tell the guy thanks but no thanks.
+Albert,
+sorry for my slow response.
+
+I looked at the new 2.5.17-i2c-* patches in your directory
+and they look good.
+
+I went back to look at cause of the CONFIG changes.
+I applied a patch last October which changed the
+names in Config.in to match the names at the bottom of i2c-core.c.
+
+I think that was a mistake, we should have changed i2c-core.c.
+That's what's now in the kernel, and you maintain that by
+not changing the names in your patch. Good.
+
+I'll change Config.in and i2c-core.c in CVS to match what's
+in the kernel.
+
+It's been a week since you posted your patches so 
+I recommend you go ahead and send them to Linus.
+
+Let us know how it goes.
+If you need any help summarizing the changes for Linus
+then let me know. The big change in i2c-core.c is the addition
+of i2c block reads and writes, in case that wasn't obvious.
+
+Thanks again for your hard work.
+
+mds
 
 
-phil@netroedge.com wrote:
+
+
+Albert Cranford wrote:
 > 
-> #1 sounds too hard.  I'm OK if you receive the funds Mark, and keep
-> just enough to cover the taxes.  We can figure out a more formal
-> method later if we start receiving a lot more donations.
+> Hi all,
+> The latest patches against 2.5.15 with everyones advice.
+> Comments first and URL links at bottom of page.
+> Later,
+> Albert
 > 
-> Phil
+> patch-1
+> # leave CONFIG names as in kernel
+> patch-2
+> # i2c-core.c:Leave LINUX_VERSION in kernel.  Leave i2c_debug=1.  Leave
+> #   CONFIG names as in the kernel.  Remove #ifdef MODULE_LICENSE around
+> #   MODULE_LICENSE.
+> # i2c-dev.c:Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> #   Remove compatibality code for < 2.4.0
+> # i2c-proc.c: Print message on kmalloc failure.  Leave ENOMEM as in kernel.
+> #   Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.  Remove 2.2.19 compat
+> #   code.
+> patch-3
+> # i2c-algo-bit.c: Leave kernel time_before/after_eq
+> #   Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> # i2c-algo-pcf.c: Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> # i2c/i2c-elektor.c: Leave kernel __exit pcf_isa_exit(void)
+> #   Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> # i2c-elv.c: Leave kernel __exit bit_elv_exit(void)
+> #   Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> # i2c-philips-par.c: Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> # i2c/i2c-velleman.c: Leave kernel __exit bit_velle_exit(void)
+> #   Remove #ifdef MODULE_LICENSE around MODULE_LICENSE.
+> # Drop i2c-algo-8xx.[ch] deltas
+> # Drop i2c-algo-ppc405.[ch] deltas
+> # Drop i2c-pcf-epp.c deltas
+> # Drop i2c-ppc405.[ch] deltas
+> # Drop i2c-ppc405adap.h deltas
+> # Drop i2c-pport.c deltas
+> # Drop i2c-rpx.c deltas
+> patch-4
+> # i2c-elektor.c:Adding call to pcf_isa_init to i2c_pcfisa_init causes:
+> # i2c-elektor.o: In function `i2c_pcfisa_init':
+> # i2c-elektor.o(.text.init+0x95): undefined reference to `local symbol
+> # i2c-elektor.c: fix by removing __exit for inline compiling.
 > 
-> On Wed, Aug 07, 2002 at 10:16:51PM -0400, Mark D. Studebaker wrote:
-> > To do it right means incorporating as a 501(c)(3) corporation.
-> > Officers, forms, annual fees and filings.
-> > Then donations are tax-deductible.
-> >
-> > The other method is, I suppose, is skip all that, create a PayPal
-> > account, and see what happens.
-> >
-> > I would guess Phil / Netroedge may have trouble with #2.
-> >
-> > I don't hear any volunteers to do #1.
-> >
-> >
-> > "Mark D. Studebaker" wrote:
-> > >
-> > > A little optimistic that the donation will be laptop-sized...
-> > > IANAL but seems like we can figure out or finesse the tax issue
-> > > without getting carried away. Perhaps we can research...
-> > > Cash is king, let's figure out how to accept it...
-> > >
-> > > phil@netroedge.com wrote:
-> > > >
-> > > > Well, as long as we know how to deal with the tax issues on it, why
-> > > > not?  We could definitely use a Thinkpad or one of these
-> > > > Intellistations to play with.  In fact, if this person is donating
-> > > > something on the order of the cost of a Thinkpad, perhaps he can just
-> > > > buy us one instead of handing us cash?  Also, we could still use a
-> > > > server to put the lm-sensors site/cvs on (1 or 2u rack-mount server
-> > > > would be ideal).
-> > > >
-> > > > Not that we have overwhelming requests for a list of items to donate,
-> > > > but it might be helpful to put a list of wanted items on the web site?
-> > > >
-> > > > Phil
-> > > >
-> > > > On Thu, Aug 01, 2002 at 11:30:03AM -0400, Mark Studebaker wrote:
-> > > > > believe it or not somebody wants to give us money.
-> > > > > Should we accept, if so how?
-> > > > > Should we set up a paypal acct?
-> > > > > What would we do with money?
-> > > > > Did you see at http://lwn.net that they announced they
-> > > > > were shutting down their site and they got $25K donations
-> > > > > in the next week !!! Sheesh.
-> > > > > From: s <srlinuxx@bellsouth.net>
-> > > > > To: "Mark D. Studebaker" <mds@paradyne.com>
-> > > > > Subject: Re: request
-> > > > > Date: Thu, 1 Aug 2002 09:49:30 -0500
-> > > > > User-Agent: KMail/1.4.2
-> > > > > In-Reply-To: <3D23A20D.1BFF0A75@paradyne.com>
-> > > > >
-> > > > > Dear Mark,
-> > > > > As stated previously I would love to make a small donation to your
-> > > > > cause but could not find any links from your site.  Where might one
-> > > > > send monitary donations to the lm_sensors project?
-> > > > >
-> > > > > thanks,
-> > > > > -srlinuxx
-> > > > >
-> > > > > On Wednesday 03 July 2002 08:17 pm, you wrote:
-> > > > > > what do you need? What southbridge do you have - is it the VT8233A
-> > > > > > or something else?
-> > > > > > Do you have the VT1211 Super I/O? that's supported in CVS too.
-> > > > > > Let us know.
-> > > > > > mds
-> > > > > >
-> > > > > > ? wrote:
-> > > > > > > Hi, I have been enjoying your lm_sensors for a couple of years I
-> > > > > > > guess it's been on an i815 mobo (and similar).  But I am going
-> > > > > > > amd, and would soo much appreciate support for the Via
-> > > > > > > VT8367(KT333).  I see where the VT8233A southbridge is recognized
-> > > > > > > in cvs so I'm hoping for continued developement of that too.
-> > > > > > >
-> > > > > > > I would so much love to help with developement, but alas know
-> > > > > > > just enough to utilize other's work.  Of course I'd be first in
-> > > > > > > line to test and I also wouldn't mind supporting your project
-> > > > > > > with a donation.
-> > > > > > >
-> > > > > > > I hope to have the opportunity to continue enjoying lm_sensors or
-> > > > > > > helping you out in some way.
-> > > > > > >
-> > > > > > > Thank you,
-> > > > > > > -?rlinuxx
-> > > > >
-> > > >
-> > > > --
-> > > > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-> > > >    phil@netroedge.com -- http://www.netroedge.com/~phil
-> > > >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+> http://personal.atl.bellsouth.net/mia/a/c/ac9410/albert/patches/i2c-1.html
+> http://personal.atl.bellsouth.net/mia/a/c/ac9410/albert/patches/i2c-2.html
+> http://personal.atl.bellsouth.net/mia/a/c/ac9410/albert/patches/i2c-3.html
+> http://personal.atl.bellsouth.net/mia/a/c/ac9410/albert/patches/i2c-4.html
 > 
 > --
-> Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
->    phil@netroedge.com -- http://www.netroedge.com/~phil
->  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+> Albert Cranford Deerfield Beach FL USA
+> ac9410@bellsouth.net
