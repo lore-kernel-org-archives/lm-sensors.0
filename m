@@ -1,7 +1,7 @@
 From: stefano@codesink.org (Stefano Barbato)
-Date: Thu, 19 May 2005 06:24:26 +0000
+Date: Thu, 19 May 2005 06:24:27 +0000
 Subject: EEPROM read/write user space program
-Message-Id: <200311241714.20695.stefano@codesink.org>
+Message-Id: <200311280048.12678.stefano@codesink.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031122084059.0f9f73fa.khali@linux-fr.org>
 In-Reply-To: <20031122084059.0f9f73fa.khali@linux-fr.org>
@@ -10,14 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'll add a warning and a force flag in the next few days and if I'll have a 
-look on block transfers.  Now I'm ill and not lucid enough to work on it :)
+I've updated eeprog to display a big warning and a confirmation to continue. 
+It's displayed for write AND for read operations because reading from an 8bit 
+eeprom using 16bit addressing can actually *write* to the eeprom. 
 
-I'll let you know.
+I'll see block transfers whenever possible. I'll let you know for updates.
+
+here is the download link:
+   http://codesink.org/download/eeprog-0.7.4.tar.gz
 
 stefano
 
-On Sunday 23 November 2003 01:28, you wrote:
+p.s. if anybody is really willing to proofread this is the warning message :-)
+=================================
+__________________________________WARNING_______________________________
+Erroneously writing to a system EEPROM (like DIMM SPD modules) can brake your
+system.  It will NOT boot any more so you'll not be able to fix it.
+
+Reading from 8bit EEPROMs (like that in your DIMM) without using the -8 switch
+can also UNEXPECTEDLY write to them, so be sure to use the -8 command param 
+when required.
+
+Use -f to disable this warning message
+
+Press ENTER to continue or hit CTRL-C to exit
+=================================
+
+
+On Sunday 23 November 2003 01:28, Mark Studebaker wrote:
 > we have two programs, eeprom for small chips and eepromer for larger
 > ones.
 > They both suffer from the limitation you describe.
