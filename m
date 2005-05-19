@@ -1,47 +1,51 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:42 +0000
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: I found you made a driver for w83792d
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245F0D@weshml03.winbond.com.tw>
+Message-Id: <42376484.90409@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE245F0D@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE245F0D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgTGVlCgpZZXMsIHdlIGhhdmUgZmluaXNoZWQgdGhlIDc5MiBkcml2ZXIgZm9yIGxpbnV4LTIu
-NCwgd2UgaGF2ZSBzZW50IGl0IHRvCkxtX3NlbnNvcnMgZ3JvdXAsIEkgdGhpbmsgdGhleSB3aWxs
-IGNvbW1pdCBpdCBpbnRvIHRoZSBDVlMgaW4gbmVhciBmdXR1cmUuCllvdSBtYXkgY29udGFjdCB0
-aGVtIGFib3V0IGl0LgoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPiAtLS0tLU9yaWdp
-bmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IFNhbmdiYWVrIExlZSBbbWFpbHRvOnNibGVlQG5ldGVu
-Z2luZTEuY29tXQo+IFNlbnQ6IDIwMDXE6jPUwjnI1SAxMDowNAo+IFRvOiBQSTE0IEhVQU5HMAo+
-IFN1YmplY3Q6IEkgZm91bmQgeW91IG1hZGUgYSBkcml2ZXIgZm9yIHc4Mzc5MmQKPiAKPiBHcmVl
-dGluZ3MsCj4gCj4gSSBzYXcgeW91IG1hZGUgdGhlIGRyaXZlciBmb3IgdzgzNzkyZCBiYXNlZCBv
-biBMaW51eCAyLjQga2VybmVsLgo+IEkgY291bGRuJ3Qgc2VlIHRoZXJlIHdlcmUgdzgzNzkyZCBz
-dXBwb3J0IG9uIGxtLXNlbnNvcnMgMi45LjAgY3ZzLgo+IElzIHRoaXMgc3RpbGwgaW4gcHJvZ3Jl
-c3M/IEV2ZW4gaWYgdGhpcyBpcyBzdGlsbCBpbiBwcm9ncmVzcywgSSB3b3VsZAo+IGxpa2UgdG8g
-dGVzdCB0aGUgZHJpdmVyLgo+IENhbiBJIGhhdmUgYWNjZXNzIHRvIHRoYXQgZGV2aWNlIGRyaXZl
-ciBjb2RlPwo+IAo+IFRoYW5rcyEKPiAKPiAtLQo+IFJlZ2FyZHMsCj4gCj4gU2FuZ2JhZWsgTGVl
-Cj4gTmV0RW5naW5lLCBJbmMuCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWlu
-ZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3Nl
-ZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYg
-eW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUg
-bm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24s
-IHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFu
-ZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsg
-c2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0
-IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBp
-bmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5m
-b3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNp
-YWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBu
-b3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2Ug
-Zm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFs
-bHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnS
-p3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio
-+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6
-saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C6
-9Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0
-LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk
-7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/Wp
-zrdOqKMuCg==
+the driver has been checked into CVS, please test it and send feedback to t=
+he mailing list.
+thanks
+mds
+
+Huang0@Winbond.com.tw wrote:
+> Hi Lee
+>=20
+> Yes, we have finished the 792 driver for linux-2.4, we have sent it to
+> Lm_sensors group, I think they will commit it into the CVS in near future.
+> You may contact them about it.
+>=20
+> Thanks
+> Best Regards
+> Chunhao
+>=20
+>=20
+>=20
+>>-----Original Message-----
+>>From: Sangbaek Lee [mailto:sblee@netengine1.com]
+>>Sent: 2005=C4=EA3=D4=C29=C8=D5 10:04
+>>To: PI14 HUANG0
+>>Subject: I found you made a driver for w83792d
+>>
+>>Greetings,
+>>
+>>I saw you made the driver for w83792d based on Linux 2.4 kernel.
+>>I couldn't see there were w83792d support on lm-sensors 2.9.0 cvs.
+>>Is this still in progress? Even if this is still in progress, I would
+>>like to test the driver.
+>>Can I have access to that device driver code?
+>>
+>>Thanks!
+>>
+>>--
+>>Regards,
+>>
+>>Sangbaek Lee
+>>NetEngine, Inc.
