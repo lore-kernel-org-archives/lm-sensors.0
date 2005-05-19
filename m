@@ -1,143 +1,140 @@
-From: gbhatia@persistcorp.com (Gagan Bhatia)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: sensor shows 0 values
-Message-Id: <3CDC7E68.20504@persistcorp.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:51 +0000
+Subject: ALI1563 SMBus driver - please test on your hardware
+Message-Id: <425C4904.8040400@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi ,
-  Please help newbie. I have read your FAQ but couldnt find the solution 
-of this problem.
+Hi Patrick,
 
-I have installed lm_sensors and i2c package. kernel version- 2.4.9
-I run sensors -s and sensors and get ) values for all the variables.
+Please can you test if this works for you on your hardware?
 
-Please tell me what am I doing wrong ???
+Please try this if you can see eeproms on your MB:
 
-Thanks
-Gagan
-Below is the result from sensor command:
-lm84-i2c-2-18
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+i2cdump 0 0x50
+i2cdump 0 0x50 c
+i2cdumo 0 0x50
 
-lm84-i2c-2-19
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+Assuming that 0x50 is correct address (you can get i2cdetect 0 the address of the EEPROMs present on your system)
 
-lm84-i2c-2-1a
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+You should get three same dumps.
+Also please try to load some monitoring driver and load also eeprom module
+than after sensors command all should work.
 
-lm84-i2c-2-29
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+The purpose of the test is to show that continous byte read works for eeproms. (I dont know how it would behave on sensor chip)
+and if my changes to STS_DONE do not affect anyting on your HW.
 
-lm84-i2c-2-2a
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+Thank you
 
-lm84-i2c-2-2b
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+Regards
+Rudolf
 
-lm84-i2c-2-4c
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+diff -Naur a/drivers/i2c/busses/i2c-ali1563.c c/drivers/i2c/busses/i2c-ali1563.c
+--- a/drivers/i2c/busses/i2c-ali1563.c	2005-03-09 09:13:19.000000000 +0100
++++ c/drivers/i2c/busses/i2c-ali1563.c	2005-04-08 21:55:19.000000000 +0200
+@@ -1,4 +1,4 @@
+-/**
++/*
+   *	i2c-ali1563.c - i2c driver for the ALi 1563 Southbridge
+   *
+   *	Copyright (C) 2004 Patrick Mochel
+@@ -13,6 +13,9 @@
+   *	with a little help from the ALi 1563 spec.
+   *
+   *	This file is released under the GPLv2
++ *
++ *	2005-04-08: Fixed SMBus mode setting, fixed byte data transactions 	
++ *			Rudolf Marek <r.marek@sh.cvut.cz>
+   */
 
-lm84-i2c-2-4d
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+  #include <linux/module.h>
+@@ -55,8 +58,7 @@
+  #define HST_CNTL2_BYTE_DATA	0x02
+  #define HST_CNTL2_WORD_DATA	0x03
+  #define HST_CNTL2_BLOCK		0x05
+-
+-
++#define HST_CNTL2_SIZEMASK	0x38
 
-lm84-i2c-2-4e
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-Board:        +0?C  (min =   +0?C, max =   +0?C)
-CPU:          +0?C  (min =   +0?C, max =   +0?C)
+  static unsigned short ali1563_smba;
 
-lm80-i2c-2-20
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithmVTT:       +0.00 V  (min =  +0.00 V, max 
-=  +0.00 V)
-+3.3V:     +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+Vcore:    +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-fan1:       -1 RPM  (min =   -1 RPM, div = 1)
-fan2:       -1 RPM  (min =   -1 RPM, div = 1)
-temp:     +0.00 ?C (hot:limit =  +0?C,  hysteresis =  +0?C)
-         (os: limit =  +0?C,  hysteresis =  +0?C)
+@@ -73,7 +75,7 @@
 
-lm80-i2c-2-21
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-+5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-VTT:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+3.3V:     +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+Vcore:    +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-fan1:       -1 RPM  (min =   -1 RPM, div = 1)
-fan2:       -1 RPM  (min =   -1 RPM, div = 1)
-temp:     +0.00 ?C (hot:limit =  +0?C,  hysteresis =  +0?C)
-         (os: limit =  +0?C,  hysteresis =  +0?C)
+  	data = inb_p(SMB_HST_STS);
+  	if (data & HST_STS_BAD) {
+-		dev_warn(&a->dev,"ali1563: Trying to reset busy device\n");
++		dev_err(&a->dev,"ali1563: Trying to reset busy device\n");
+  		outb_p(data | HST_STS_BAD,SMB_HST_STS);
+  		data = inb_p(SMB_HST_STS);
+  		if (data & HST_STS_BAD)
+@@ -94,19 +96,31 @@
 
-lm80-i2c-2-22
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-+5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-VTT:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+3.3V:     +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+Vcore:    +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-fan1:       -1 RPM  (min =   -1 RPM, div = 1)
-fan2:       -1 RPM  (min =   -1 RPM, div = 1)
-temp:     +0.00 ?C (hot:limit =  +0?C,  hysteresis =  +0?C)
-         (os: limit =  +0?C,  hysteresis =  +0?C)
+  	if (timeout && !(data & HST_STS_BAD))
+  		return 0;
+-	dev_warn(&a->dev, "SMBus Error: %s%s%s%s%s\n",
+-		timeout ? "Timeout " : "",
+-		data & HST_STS_FAIL ? "Transaction Failed " : "",
+-		data & HST_STS_BUSERR ? "No response or Bus Collision " : "",
+-		data & HST_STS_DEVERR ? "Device Error " : "",
+-		!(data & HST_STS_DONE) ? "Transaction Never Finished " : "");
 
-lm80-i2c-2-23
-Adapter: Velleman K8000
-Algorithm: Bit-shift algorithm
-+5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-VTT:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+3.3V:     +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+Vcore:    +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-+12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)
--5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
-fan1:       -1 RPM  (min =   -1 RPM, div = 1)
-fan2:       -1 RPM  (min =   -1 RPM, div = 1)
-temp:     +0.00 ?C (hot:limit =  +0?C,  hysteresis =  +0?C)
-         (os: limit =  +0?C,  hysteresis =  +0?C)
+-	if (!(data & HST_STS_DONE))
++	if (!timeout) {
++		dev_err(&a->dev, "Timeout - Trying to KILL transaction!\n");
+  		/* Issue 'kill' to host controller */
+  		outb_p(HST_CNTL2_KILL,SMB_HST_CNTL2);
+-	else
+-		/* Issue timeout to reset all devices on bus */
++		data = inb_p(SMB_HST_STS);		
++ 	}
++	
++	/* device error - probably missing ACK, from autdetection I2C_QUICK */	
++	if (data & HST_STS_DEVERR) {
++		dev_dbg(&a->dev, "Device error!\n");
++	}
++
++	/* bus collision */
++	if (data & HST_STS_BUSERR) {
++		dev_err(&a->dev, "Bus collision!\n");
++		/* Issue timeout, hoping it helps */
+  		outb_p(HST_CNTL1_TIMEOUT,SMB_HST_CNTL1);
++	}
++
++	if (data & HST_STS_FAIL) {
++		dev_err(&a->dev, "Cleaning fail after KILL!\n");
++		outb_p(0x0,SMB_HST_CNTL2);
++	}
++
+  	return -1;
+  }
 
-lm80-i2c-2-24
-Adapter: Velleman K8000
+@@ -149,7 +163,7 @@
 
-+5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)
+  	if (timeout && !(data & HST_STS_BAD))
+  		return 0;
+-	dev_warn(&a->dev, "SMBus Error: %s%s%s%s%s\n",
++	dev_err(&a->dev, "SMBus Error: %s%s%s%s%s\n",
+  		timeout ? "Timeout " : "",
+  		data & HST_STS_FAIL ? "Transaction Failed " : "",
+  		data & HST_STS_BUSERR ? "No response or Bus Collision " : "",
+@@ -242,13 +256,15 @@
+  	}
 
+  	outb_p(((addr & 0x7f) << 1) | (rw & 0x01), SMB_HST_ADD);
+-	outb_p(inb_p(SMB_HST_CNTL2) | (size << 3), SMB_HST_CNTL2);
++	outb_p((inb_p(SMB_HST_CNTL2) & ~HST_CNTL2_SIZEMASK) | (size << 3), SMB_HST_CNTL2);
 
-
-............
+  	/* Write the command register */
++
+  	switch(size) {
+  	case HST_CNTL2_BYTE:
+  		if (rw= I2C_SMBUS_WRITE)
+-			outb_p(cmd, SMB_HST_CMD);
++			/* Beware it uses DAT0 register and not CMD !!! */
++			outb_p(cmd, SMB_HST_DAT0);
+  		break;
+  	case HST_CNTL2_BYTE_DATA:
+  		outb_p(cmd, SMB_HST_CMD);
