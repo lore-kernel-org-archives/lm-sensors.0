@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: Centrino (855PM, ICH4-M): 82801DBM w/o LPC Bridge/SMBus?
-Message-Id: <1082464313.4085183969283@imp.gcu.info>
+Message-Id: <20040420125056.GB16053@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040412152503.GD6820@neu.nirvana>
 In-Reply-To: <20040412152503.GD6820@neu.nirvana>
@@ -10,36 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> you are right about the CVS renaming pain. I've renamed it back to
-> it original name.
+On Tue, Apr 20, 2004 at 02:31:53PM +0200, Jean Delvare wrote:
+> > you are right about the CVS renaming pain. I've renamed it back to
+> > it original name.
+> > 
+> > Are you considering switching to subversion?
 > 
-> Are you considering switching to subversion?
+> No.
+> 
+> Now, if you tell me that we can switch to subversion and keep all
+> the history we have in CVS at the moment (including all branches)
+> and that subversion allows renaming files without losing their
+> history, we might reconsider.
 
-No.
+I think this is the case. Renaming is one of the major benefits of svn
+in comparison to CVS (along with atomic commits, changesets
+etc.). There is a cvs2svn script that trasnforms *,v RCS files from a
+CVS repo to the svn equivalent.
 
-Now, if you tell me that we can switch to subversion and keep all the
-history we have in CVS at the moment (including all branches) and that
-subversion allows renaming files without losing their history, we might
-reconsider. However, this means extra work for Philip Edelbrock
-(installing subversion, migrating data, updating webcvs - BTW is there
-a subversion equivalent?) and that "all" developers don't mind
-switching. Not sure it's worth it.
+> However, this means extra work for Philip Edelbrock (installing
+> subversion, migrating data, updating webcvs - BTW is there a
+> subversion equivalent?)
 
-> I cannot find the time to do the "proper" thing (e.g. go into
-> i2c_801.c and enable the smbus there), so before it get too cold,
-> I'd rather submit the fixes to the p4b_smbus.c.
+Yes, there is mod_dav_svn and viewcvs. Have a look at my test
+subversion repos at
 
-You're right. That fix is easier and some users may enjoy it. I'll apply
-this once home.
+http://devel.atrpms.net/viewcvs/
+http://devel.atrpms.net/svn/test1/
+http://devel.atrpms.net/svn/test2/
+http://devel.atrpms.net/svn/test3/
 
-> I believe it should also fix
-> http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket04
-
-Correct. We want to contact that person once your fix is commited, in
-case he is still using that laptop.
-
-Thanks.
-
+If anyone wants to test it send me a username/password off-list. I
+wouldn't mind helping out with the involved infrastructure.
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040420/3f14b24c/attachment.bin
