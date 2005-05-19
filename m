@@ -1,30 +1,34 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: [PATCH 2.6] Fix debug bug in lm83 driver
-Message-Id: <20040114212153.5503d1fa.khali@linux-fr.org>
+From: rutger@nospam.com (rutger@nospam.com)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: linux 2.6.6 & w83627hf module & Q-Fan
+Message-Id: <20040516101015.GA19126@nospam.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040111175123.54cdeb9f.khali@linux-fr.org>
-In-Reply-To: <20040111175123.54cdeb9f.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Add #define DEBUG at the start of the file, no vodo magic needed :)
+Hi,
 
-Hm. I wonder if I should really tell you what I did. I'll be ridiculous.
-Hm.
+I've got a question about the w83627thf sensors which can be found on
+a Asus p4p800 motherboard. The comment of the driver (w83627hf.c)
+indicates:
 
-Anyway... My "#define DEBUG" was after all other includes. So dev_dbg
-was resolved to nothing. Because the call to dev_dbg was after my
-#define, I expected it to resolve correctly...
+    Note: automatic ("cruise") fan control for 697, 637 & 627thf not
+    supported yet.
 
-Shame on me, and thanks for the explanation.
+This is called 'Q-Fan' by Asus. How can I support this? Is this not
+implemented because of lack of hardware, lack of time or lack of
+knowledge?
 
-Still doesn't explain why adding -DDEBUG to the main Makefile didn't
-do the trick, but I don't have that much time to waste to investigate it
-all.
+The problem is I want to be able to read the CPU temperature without
+disabling Q-Fan. When I insmod the module now, the fan speeds up to
+maximum speed without reason.
+
+Regards,
+Rutger.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Rutger Nijlunsing ---------------------------- rutger ed tux tmfweb nl
+never attribute to a conspiracy which can be explained by incompetence
+----------------------------------------------------------------------
