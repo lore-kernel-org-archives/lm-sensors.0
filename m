@@ -1,33 +1,21 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: [PATCH lm_sensors2 CVS code] - i2c-prosavage driver
-Message-Id: <20030615043634.GB5661@kroah.com>
+From: jbs@bandos.homelinux.com (Jose Bernardo Silva)
+Date: Thu, 19 May 2005 06:24:08 +0000
+Subject: Usbvision/i2c-algo-usb port to 2.8.0
+Message-Id: <20030730165206.M58081@bandos.homelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.21.0306141542460.16135-200000@axp.arion.loc>
-In-Reply-To: <Pine.LNX.4.21.0306141542460.16135-200000@axp.arion.loc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jun 14, 2003 at 03:52:10PM +0200, henk wrote:
-> 
-> Added i2c-prosavage bus driver to todays lm_sensors2 CVS code, an updated 
-> ./mkpatch/mkpatch.pl and ./kernel/busses/Module.mk is included.
-> 
-> ..
-> /*  18-05-2003 - created
->  *  16-06-2003 - adapted for lm_sensors2
->  *
->  *  This driver interfaces to the I2C bus of the VIA north bridge embedded
->  *  ProSavage4/8 devices. Usefull for gaining access to the TV Encoder
-> chips.
-> ..
-> 
-> Please include this in the CVS tree..
+Is it possible to put a patch for the usbvision drivers
+(http://sourceforge.net/projects/usbvision/) to work with i2c 2.8.0?
 
-Care to make a 2.5 patch too?
+Thanks!
 
-thanks,
-
-greg k-h
+---
+Jose Bernardo B R Silva             | Source Mage GNU/Linux Section Guru
+jbernardo@sourcemage.org            | http://www.sourcemage.org
+http://counter.li.org #245602
+http://cosmos.oninetspeed.pt/jose.bernardo
+jbs@bandos.homelinux.com
