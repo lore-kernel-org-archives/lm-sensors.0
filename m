@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:13 +0000
 Subject: AS99127F module not detecting fan speeds
-Message-Id: <20030820223524.GC29707@earth.solarsys.private>
+Message-Id: <20030823214029.0db60d53.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1061330215.708.36.camel@chevrolet.hybel>
 In-Reply-To: <1061330215.708.36.camel@chevrolet.hybel>
@@ -10,21 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Stian Jordet <liste@jordet.nu> [2003-08-21 00:19:15 +0200]:
-> Again, sorry for the noise. By the way, gkrellm reads right from sysfs,
-> without the need for updated lm-sensors user-space tools. (But I guess
-> you knew that).
 
-I didn't know that.  Hey, and a little surfing shows that the person who
-contributed that to gkrellm is the same person who is hacking on a new
-userspace library... that's good!
+> I saw it when I knew what to look for. Sorry for the noise. Just want
+> to let you know that everything works perfect on a Asus CUV266-DLS.
+> Have to use the third alternative for computing cpu-temps. (compute
+> temp2(@*60/43)+25,(@-25)*43/60) Might perhaps add that in the example
+> config, if anyone cares.
 
-(References)
-http://archives.andrew.net.au/lm-sensors/msg04149.html
-http://web.wt.net/~billw/gkrellm/Changelog2
-
-Thanks for the tip; regards,
+Added to the config file, thanks.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
