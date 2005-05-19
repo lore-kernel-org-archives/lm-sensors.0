@@ -1,38 +1,29 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: Expose switches in w83781d
-Message-Id: <3E2C9F92.7040302@paradyne.com>
+From: miroslav.kubiczek@siemens.com (Miroslav Kubiczek)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: QDI kudoz 7x - temperature sensor problem
+Message-Id: <3E6C89E0.2030408@siemens.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <15915.5243.486340.725978@hertz.ikp.physik.tu-darmstadt.de>
-In-Reply-To: <15915.5243.486340.725978@hertz.ikp.physik.tu-darmstadt.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks for the patch.
+Hi all,
 
-I enhanced PWM support to the w83781d driver in late December, it is in CVS.
-I also attempted to standardize PWM support across all drivers.
-I also put in a userspace tool 'pwmtest', it is in prog/pwm.
+I have the %subj% mobo with the sensor chip ITE IT8705F. I have 
+installed the lm_sensor 2.7.0 - according the documentation (using 
+mandrake9.0). Installing, detectiong of chip and other stuff was fine, 
+but when I started 'sensors' it printed out untrue informations from 
+"Temp1/MB" and "Temp2/CPU" (Temp3 is not used).
+   I also tried set up different (all) kind of sensor type by using the 
+'modprobe it87 temp_type=0xXX' but with no success. The CPU temp was 
+shown either +77'C of +15'C.
+   When I tried the speedfan software (in windows) it showed the correct 
+values. Do you happen to have an idea how to solve this? Is there also 
+necessary converting formula in sensors.conf for temperature?
+   I also couldn't configure the lm_sensors so that pwm was accessible 
+to control my fan speed.
+   Could you please send me a hint if you have an idea?
 
-If you would give it a try I would appreciate it.
-
-Unfortunately CVS sensors requires CVS i2c and things are difficult
-to compile right now, we are making several changes.
-You may wish to wait a week or so.
-
-mds
-
-
-Uwe Bonnes wrote:
-> Hallo,
-> 
-> appended patch exposes the switches in the W83781d. In my Gigabyte BXD6 I
-> can switch on and off the fans of the CPU by switching bit 3 off the
-> switch. I have a small user space control program that reads out
-> /proc/uptime, does some filtering and controls the fan. I would appreciate
-> that something like this could goto into the standard lmsensors
-> distribution.
-> 
-> Bye
+Thanks in advance and best regards,
+Miro Kubiczek
