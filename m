@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: gl518sm chip driver for 2.6 kernel
-Message-Id: <20040129212058.7112ba77.khali@linux-fr.org>
+Message-Id: <20040129222700.58c9e568.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1075295349.4017b475e9031@imp.gcu.info>
 In-Reply-To: <1075295349.4017b475e9031@imp.gcu.info>
@@ -10,51 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > +/* Defining this will enable debug messages for the voltage
-> > iteration+   code used with rev 0 ICs */
-> > +#undef DEBUG_VIN
-> > +#ifdef DEBUG
-> > +#define DEBUG_VIN
-> > +#endif
-> 
-> As you always tie DEBUG_VIN to DEBUG, why even have it at all?  Just
-> get rid of it, and everywhere it's defined.
+A few more comments and random thoughts about the gl518sm driver:
 
-I was wondering. Since it seemed that specific debug was wanted for this
-part of the code, I thought it would make sense to keep a separate
-define. Yes, it is set when DEBUG itself is, but could easily be
-disabled with DEBUG still set, or set when DEBUG isn't.
+* Can you confirm that you do have a GL518SM chipset for testing and
+use? Please also tell us which release it is. This is an old chip and I
+am surprised that someone still uses it. I think we should only port to
+Linux 2.6 drivers that people need. We better don't work for nobody, and
+also don't clutter the kernel tree with useless code.
 
-Anyway, I think that this code will go away, so there's no point
-discussing this anymore.
+* Can you confirm that the 2.4 driver works OK for you? Just to make
+sure that the code we are starting from is working.
 
-Here are the things as I understood them. Please correct me if I am
-mistaking.
+* Your new driver counts voltages starting at 1, instead of 0. This
+will break compatibility with existing code and needs to be fixed (I
+will do).
 
-Release 0x00 of the chipset doesn't support reading in0-in2 values. A
-workaround was implemented into the driver. The idea of it is to change
-the min and max limits of these channels, and watch wether an alarm is
-triggered. After a few iterations, you can get an idea of the
-approximative value of the reading.
+* Your new driver defines two different names for the two different
+releases of the chip. This breaks compatibility with libsensors, and
+would better be fixed (I will do too).
 
-Since the iteration process is slow, an option was introduced to use it
-or not, and possibly trigger it as a background job (thus the thread
-code). Note that when the iteration process is run in the background,
-the driver will return the previous value so that the caller doesn't
-have to wait for the iterations to finish.
+* The "iteration" code increases the driver code size by one third (not
+one fifth as I initially announced). One more reason to get rid of it (I
+already did it, to say the truth).
 
-I sure don't want to see this into the 2.6 kernel. The chip doesn't
-support reading these values? It doesn't support it. Period. So we don't
-report them. It's that simple. 160 lines of complex code (20% of the
-driver code) simply there to workaround a chip design issue is more than
-arguable. What's more, I think we all agree that what really needs to be
-monitored are temperatures and fans. If the voltages are bad, the alarm
-will trigger. You don't really need to know how bad they were. If people
-really want to know, well, they can do the limits trick from user space.
+* The more simple way to handle the two different releases of the chip
+is probably to export 0 as the readings for in0-in2 in release 0x00. I
+had first thought of no file at all, or non-readable files, but this may
+be more confusing than helpful, and this will make things more complex
+in libsensors. MMH reminded me that sensors.conf is there to allow
+people to ignore unused inputs, so we can just do that. Minimal work,
+maximum compatibility. It's simply adding a "if these read 0, just
+ignore them" comment in sensors.conf and chip doc. If someone can think
+of a better and cleaner way of doing it, please speak up.
 
-If anyone wants this "feature" to be kept, speak up. Else let's get rid
-of it. The way we will handle it in libsensors and sensors is a
-different problem, I'll take a look right now.
+I should have something for you to test within a day.
 
 -- 
 Jean Delvare
