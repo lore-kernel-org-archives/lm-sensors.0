@@ -1,7 +1,7 @@
 From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:43 +0000
+Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: bmcsensors port to 2.6
-Message-Id: <25381867050315213679f2f0db@mail.gmail.com>
+Message-Id: <25381867050326201614505c31@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FA095C015271B64E99B197937712FD02510AFF@freedom.grz.icomedias.com>
 In-Reply-To: <FA095C015271B64E99B197937712FD02510AFF@freedom.grz.icomedias.com>
@@ -10,17 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As a side note, I'm working on integrating the ipmi 0.9 patch into the
-2.6 bmcsensors driver, the original ipmi 0.9 patch was not as
-significant as its size would lead one to believe (as you so noted),
-and I'm trying to rework it so it is more maintainable and has less
-code repetition. It looks like the resulting patch should back port
-easily enough to the 2.4 version. BTW have you found any
-documentation/specs on the ipmi 0.9 -> 1.0 differences? I can't seem
-to find any freely available docs/specs on ipmi 0.9 online.
+Hi,
 
-Thanks,
-Yani
+As suggested after some cleanup of the code and waiting on responses
+from testers I'm now submitting the latest patch against the 2.6.11.5
+kernel for inclusion into the kernel/lm_sensors. Due to the size of
+the uncompressed patch I'll have to link to the sourceforge download
+page rather than inline it:
+
+http://sourceforge.net/project/showfiles.php?group_id4509&package_id4011&release_id14376
+
+The driver is a direct port over of the 2.4 bmcsensors and i2c-ipmi
+drivers. I've merged all the patches that were applied to the 2.4
+version since the original port a year ago, and applied a patch
+supporting ipmi 0.9 (which was also back-ported to the 2.4 version),
+as well as a patch moving initialization to a kernel thread. Finally I
+cleaned up the code a bit to better meet the guidelines in
+Documentation/CodingStyle.
+
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
+
+PS: I have a patch adding support for dynamic callbacks in device.h,
+but I'm porting over the bmcsensors driver to make sure that all works
+as expected before posting it here. I'll let post my results when I
+have it working.
 
 On Tue, 15 Mar 2005 17:36:59 -0500, Mark Studebaker <mds@mds.gotdns.com> wrote:
 > I suggest you submit it to us now (email the patch with an explanation and a signed-off-by line)
