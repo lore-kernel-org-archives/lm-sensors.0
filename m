@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: schnobs@babylon-kino.de (Christian Schnobrich)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: low fan speed = zero?
-Message-Id: <20040129205052.5a601bca.khali@linux-fr.org>
+Message-Id: <1075413640.699.38.camel@pferd.babel>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1075385890.672.19.camel@pferd.babel>
 In-Reply-To: <1075385890.672.19.camel@pferd.babel>
@@ -10,47 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I'm a bit shy of mailing a developer, but there doesn't seem to be a
-> public mailing list...
+On Don, 2004-01-29 at 20:50, Jean Delvare wrote:
 
-Welcome to the LM Sensors mailing-list. Yes, really :)
-
-> I've got a temperature-controlled fan here. When the speed drops below
-> an uncertain threshold, it is reported as 0 (zero).
+> > 2400 and over -- a value that's unlikely to be reached even on the
+> > hottest summer's day.
 > 
-> Now, the reason I'm writing is that this threshold seems software
-> related. For testing purposes, I replaced the NTC with a variable
-> resistor.
+> Tell me the brand of your hardware and fan. I'd really appreciate it if
+> such a low fan speed was sufficent to keep my systems cold during
+> summer.
 > 
-> The Windows software that came with my Mobo will report values as low
-> as 1600rpm, the hardware Monitor in BIOS/CMOS setup starts ticking at
-> about 2000rpm, lm_sensors and gkrellm will only give me a reading at
-> 2400 and over -- a value that's unlikely to be reached even on the
-> hottest summer's day.
+<showoff mode>
 
-Tell me the brand of your hardware and fan. I'd really appreciate it if
-such a low fan speed was sufficent to keep my systems cold during
-summer.
+It's an Athlon650 -- total power consumption measured as 120W (+-5W).
+The case fans make between 1800-2100rpm while maintaining 35-40 degrees
+Centigrade. (temperature measured by sticking an thermometer into the
+air exhaust; the Mobo sensor reports 31 C).
 
-> Apparently, some software does a sanity check and won't report values
-> it considers to be too low. Could you give me a hint where this may
-> happen, iow point me to the right place if it is in the lm_sensors
-> code?
+Actually, I did some crude case modding. If someone's interested, I'd
+gladly describe the whole setup -- I'm mighty proud of it. But the
+general concept is that several slow fans make less (and less annoying)
+noise than a single, fastgoing fan.
+</showoff mode>
 
-What you are after is called fan divisor. Since you didn't tell us which
-specific driver you are using, my comments will be generic.
+> What you are after is called fan divisor. Since you didn't tell us which
+> specific driver you are using, my comments will be generic.
 
-First of all, I invite you to take a look at doc/fan-divisors. This will
-give you a good overview of what fan divisors are for. Basically, it let
-you control the accuracy vs. range tradeoff for fan speed measurements.
-Since you are interested in low speed fans, you want a big divisor.
+Doh. I've seen and ignored that file, under the believe that "fan
+divisior" merely relates to some fans giving twice as many clicks per
+revolution.
+Following that advice did help. Thanks, now I get the readings I
+expected.
 
-To change divisors, providing your chip and driver support it, edit
-/etc/sensors.conf to fit your needs. Then run "sensors -s" to update the
-chips internal registers so that it take the change into account.
-
-Hopefully this should let you watch even low speeds.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+cu,
+Schnobs
