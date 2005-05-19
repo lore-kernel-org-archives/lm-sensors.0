@@ -1,23 +1,42 @@
-From: empx@gmx.de (=?ISO-8859-1?Q?Michael_Pfl=FCger?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:33 +0000
 Subject: ASUS P4P800/W83627THF Fan Problems
-Message-Id: <40001A2D.5030007@gmx.de>
+Message-Id: <20040110205323.4893e5c6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <40001A2D.5030007@gmx.de>
+In-Reply-To: <40001A2D.5030007@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-I'm using Kernel 2.6.1-rc2(2.6.0 gave the same results..) and the 
-included i2c modules etc (w83781d driver).
-The Temperature and Voltage Readings work, yet i cant read nor set the 
-Fan speed of my CPUFan.
- cat /sys/bus/i2c/devices/0-0290/fan_input[123] shows always 0, and 
-changing pwm[12] doesn't chnage the fan speed, pwm_enable2 is set to 1 
-(there is no other pwm_enable).
-I have disabled Asus QFan in the BIOS so it shouldn't interfere with this..
-Is this a known problem and will/can it be solved somehow?
+> I'm using Kernel 2.6.1-rc2(2.6.0 gave the same results..) and the 
+> included i2c modules etc (w83781d driver).
+> The Temperature and Voltage Readings work, yet i cant read nor set the
+> the Fan speed of my CPUFan.
+>  cat /sys/bus/i2c/devices/0-0290/fan_input[123] shows always 0,
 
-regards,
-Michael
+See FAQ 4.1.1.
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html#Section%204.1
+
+> and changing pwm[12] doesn't change the fan speed, pwm_enable2 is set to 1
+> (there is no other pwm_enable).
+> I have disabled Asus QFan in the BIOS so it shouldn't interfere with
+> this.. Is this a known problem and will/can it be solved somehow?
+
+PWM doesn't work on all systems, depends on how the chipset is wired by
+the motherboard manufacturer. You should read this document:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/fancontrol.txt
+And then try user-space tools from the prog/pwm directory. But in any
+case you want to fix the fan speed readings before, or you won't go
+anywhere.
+
+Note that we have another driver for the W83627THF but it hasn't been
+ported to Linux 2.6 yet... When it will be, you should get better
+results using it than the w83781d driver. If you're interested in
+porting it yourself, let me know and I'll tell you everything you need
+to know.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
