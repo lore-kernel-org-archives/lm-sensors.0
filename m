@@ -1,67 +1,63 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: mds@mds.gotdns.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E4AE0@weshml03.winbond.com.tw>
+Message-Id: <4237B5CE.8020604@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgTURTCgpZZXMsIEkgY2FuIGdldCB0aGUgZmlsZSB5b3UgcHJvdmlkZWQsIGJ1dCBzaW5jZSBJ
-IGhhdmUgc3RhcnRlZCB0aGUgbW9kaWZpY2F0aW9ucywKSSB3aWxsIHVzZSB0aGUgb25lIGZyb20g
-d2ViIENWUywgYWZ0ZXIgZGVsZXRpbmcgdGhlIGxpbmUgbnVtYmVycywgaXQgaXMgc2FtZSBhcwp0
-aGUgb25lIHlvdSBwcm92aWRlZCwgSSBjb21wYXJlZCB0aGVtIHdpdGggImRpZmYiIDotKQoKSSBo
-YXZlIG9uZSBxdWVzdGlvbiBoZXJlOgpJIGFkZCBXODM3OTJEX0FMQVJNXyogaW50byA3OTIgZHJp
-dmVyIGxpa2UgdGhpczoKKHBsZWFzZSByZWZlciB0byB0aGUgZGF0YSBzaGVldCkKI2RlZmluZSBX
-ODM3OTJEX0FMQVJNX0lOMCAweDAwMDEKI2RlZmluZSBXODM3OTJEX0FMQVJNX0lOMSAweDAwMDIK
-I2RlZmluZSBXODM3OTJEX0FMQVJNX1RFTVAxIDB4MDAwNAojZGVmaW5lIFc4Mzc5MkRfQUxBUk1f
-VEVNUDIgMHgwMDA4CiNkZWZpbmUgVzgzNzkyRF9BTEFSTV9URU1QMyAweDAwMTAKI2RlZmluZSBX
-ODM3OTJEX0FMQVJNX0ZBTjEgMHgwMDIwCiNkZWZpbmUgVzgzNzkyRF9BTEFSTV9GQU4yIDB4MDA0
-MAojZGVmaW5lIFc4Mzc5MkRfQUxBUk1fRkFOMyAweDAwODAKI2RlZmluZSBXODM3OTJEX0FMQVJN
-X0lOMiAweDAxMDAKI2RlZmluZSBXODM3OTJEX0FMQVJNX0lOMyAweDAyMDAKI2RlZmluZSBXODM3
-OTJEX0FMQVJNX0lONCAweDA0MDAKI2RlZmluZSBXODM3OTJEX0FMQVJNX0lONSAweDA4MDAKI2Rl
-ZmluZSBXODM3OTJEX0FMQVJNX0lONiAweDEwMDAKI2RlZmluZSBXODM3OTJEX0FMQVJNX0NIQVMg
-MHgyMDAwCiNkZWZpbmUgVzgzNzkyRF9BTEFSTV9GQU43IDB4ODAwMAojZGVmaW5lIFc4Mzc5MkRf
-QUxBUk1fSU43IDB4ODAwMDAKI2RlZmluZSBXODM3OTJEX0FMQVJNX0lOOCAweDEwMDAwMAojZGVm
-aW5lIFc4Mzc5MkRfQUxBUk1fRkFONCAweDIwMDAwMAojZGVmaW5lIFc4Mzc5MkRfQUxBUk1fRkFO
-NSAweDQwMDAwMAojZGVmaW5lIFc4Mzc5MkRfQUxBUk1fRkFONiAweDgwMDAwMAoKQ2FuIEkgcmVw
-bGFjZSB0aGUgbGFzdCA2IGl0ZW1zIHdpdGggPwojZGVmaW5lIFc4Mzc5MkRfQUxBUk1fRkFONyAw
-eDQwMDAKI2RlZmluZSBXODM3OTJEX0FMQVJNX0lONyAweDgwMDAKI2RlZmluZSBXODM3OTJEX0FM
-QVJNX0lOOCAweDEwMDAwCiNkZWZpbmUgVzgzNzkyRF9BTEFSTV9GQU40IDB4MjAwMDAKI2RlZmlu
-ZSBXODM3OTJEX0FMQVJNX0ZBTjUgMHg0MDAwMAojZGVmaW5lIFc4Mzc5MkRfQUxBUk1fRkFONiAw
-eDgwMDAwCgpXaXRoIG9uZSBpcyBiZXR0ZXI/IFRoZSBmaXJzdCBvbmUgb3IgdGhlIGxhdHRlcj8K
-QXJlIHRoZW0gc2FtZT8KCgpUaGFua3MKQmVzdCBSZWdhcmRzCgpDaHVuaGFvCgo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tCj4gRnJvbTogTWFyayBTdHVkZWJha2VyIFttYWlsdG86bWRzQG1k
-cy5nb3RkbnMuY29tXQo+IFNlbnQ6IDIwMDXE6jPUwjE2yNUgMTE6MTYKPiBUbzogUEkxNCBIVUFO
-RzAKPiBDYzogc2Vuc29yc0BTdGltcHkubmV0cm9lZGdlLmNvbTsgUEkxMCBMSEhzdTsgUEkxNCBE
-WlNIRU4KPiBTdWJqZWN0OiBSZTogdzgzNzkyZF9kcml2ZXItMS4wLjEucGF0Y2g6IFdpbmJvbmQg
-VzgzNzkyRCBkcml2ZXIgZm9yIGxpbnV4LTIuNAo+IChwYXRjaCB0byBsbV9zZW5zb3JzLTIuOS4w
-KQo+IAo+IHlvdSBjYW4gZ2V0IGl0IHdpdGhvdXQgdGhlIGxpbmUgbnVtYmVycyBoZXJlCj4gCj4g
-aHR0cDovL3d3dzIubG0tc2Vuc29ycy5udS9+bG03OC9jdnMvbG1fc2Vuc29yczIva2VybmVsL2No
-aXBzL3c4Mzc5MmQuYwo+IAo+IDopIDopIDopCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9u
-IGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUg
-YWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVt
-YWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWls
-IG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNo
-IHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3Jk
-aW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQg
-bmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJh
-dGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlk
-ZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5k
-IGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRo
-ZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVy
-IGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUg
-Q2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBl
-c3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7
-q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXek
-p6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8
-uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOx
-cblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4g
-r1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+z
-UcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGk
-bKSnpd+z9anOt06ooy4K
+Huang0@Winbond.com.tw wrote:
+> Hi MDS
+> 
+> Yes, I can get the file you provided, but since I have started the modifications,
+> I will use the one from web CVS, after deleting the line numbers, it is same as
+> the one you provided, I compared them with "diff" :-)
+> 
+> I have one question here:
+> I add W83792D_ALARM_* into 792 driver like this:
+> (please refer to the data sheet)
+> #define W83792D_ALARM_IN0 0x0001
+> #define W83792D_ALARM_IN1 0x0002
+> #define W83792D_ALARM_TEMP1 0x0004
+> #define W83792D_ALARM_TEMP2 0x0008
+> #define W83792D_ALARM_TEMP3 0x0010
+> #define W83792D_ALARM_FAN1 0x0020
+> #define W83792D_ALARM_FAN2 0x0040
+> #define W83792D_ALARM_FAN3 0x0080
+> #define W83792D_ALARM_IN2 0x0100
+> #define W83792D_ALARM_IN3 0x0200
+> #define W83792D_ALARM_IN4 0x0400
+> #define W83792D_ALARM_IN5 0x0800
+> #define W83792D_ALARM_IN6 0x1000
+> #define W83792D_ALARM_CHAS 0x2000
+> #define W83792D_ALARM_FAN7 0x8000
+> #define W83792D_ALARM_IN7 0x80000
+> #define W83792D_ALARM_IN8 0x100000
+> #define W83792D_ALARM_FAN4 0x200000
+> #define W83792D_ALARM_FAN5 0x400000
+> #define W83792D_ALARM_FAN6 0x800000
+> 
+> Can I replace the last 6 items with ?
+> #define W83792D_ALARM_FAN7 0x4000
+> #define W83792D_ALARM_IN7 0x8000
+> #define W83792D_ALARM_IN8 0x10000
+> #define W83792D_ALARM_FAN4 0x20000
+> #define W83792D_ALARM_FAN5 0x40000
+> #define W83792D_ALARM_FAN6 0x80000
+> 
+> With one is better? The first one or the latter?
+> Are them same?
+> 
+> 
+> Thanks
+> Best Regards
+> 
+> Chunhao
+
+the easiest is to form the alarms word directly from the three registers: pseudocode below
+alarms=read(0x41) | (read(0x42) << 8) | (read(0x9b) << 16)
+so the first one is better.
