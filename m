@@ -1,156 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: [PATCH: 2.6.11-rc5] i2c chips: ds1337 RTC driver
-Message-Id: <cIyC5ZN2.1109756623.5808030.khali@localhost>
+Message-Id: <20050302165943.GA2393@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <42235171.80500@katalix.com> <20050301075413.GC3791@kroah.com> <4224C0D4.2060303@katalix.com>
 In-Reply-To: <4224C0D4.2060303@katalix.com>
-References: <42235171.80500@katalix.com>
-In-Reply-To: <42235171.80500@katalix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jchapman@katalix.com
-Cc: LM Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
+To: James Chapman <jchapman@katalix.com>
+Cc: sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-
-Hi James,
-
-> diff -Nru a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-> --- a/drivers/i2c/chips/Kconfig	2005-02-27 20:42:22 +00:00
-> +++ b/drivers/i2c/chips/Kconfig	2005-02-27 20:42:22 +00:00
-> @@ -62,6 +62,17 @@
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called asb100.
+On Tue, Mar 01, 2005 at 07:21:56PM +0000, James Chapman wrote:
+> Revised ds1337 chip driver patch.
 > 
-> +config SENSORS_DS1337
-> +      	tristate "Dallas Semiconductor DS1337 Real Time Clock"
-> +	depends on I2C && EXPERIMENTAL
-> +	select I2C_SENSOR
-> +	help
-> +	  If you say yes here you get support for Dallas Semiconductor
-> +	  DS1337 real-time clock chips.
-> +
-> +	  This driver can also be built as a module.  If so, the module
-> +	  will be called ds1337.
-> +
->  config SENSORS_DS1621
->        	tristate "Dallas Semiconductor DS1621 and DS1625"
->  	depends on I2C && EXPERIMENTAL
+> Signed-off-by: James Chapman <jchapman@katalix.com>
+> 
+> - change all driver log messages to use dev_dbg() or dev_err()
+> - remove debug module parameter
 
-I don't think it belongs there. The DS1337 is not a hardware monitoring
-chip, please move it down to the "Other I2C Chip support" menu. I also
-think I see an indentation issue on the "tristate" line, seemingly
-copied from the SENSORS_DS1621 section which would need to be fixed as
-well.
+Hm, doesn't seem to apply at all:
 
-> +static struct i2c_driver ds1337_driver = {
-> +	.owner		= THIS_MODULE,
-> +	.name		= "ds1337",
-> +	.id		= I2C_DRIVERID_DS1337,
-> +	.flags		= I2C_DF_NOTIFY,
-> +	.attach_adapter	= ds1337_attach_adapter,
-> +	.detach_client	= ds1337_detach_client,
-> +	.command	= ds1337_command,
-> +};
+drivers/i2c/chips/Kconfig 1.78: 418 lines
+patching file drivers/i2c/chips/Kconfig
+drivers/i2c/chips/Makefile 1.61: 46 lines
+patching file drivers/i2c/chips/Makefile
+patching file drivers/i2c/chips/ds1337.c
+patch: **** malformed patch at line 420: 
 
-I2C_DRIVERID_DS1337 isn't defined anywhere that I can see, so your
-driver will hardly compile. You don't seem to actually need a driver
-id, so you can simply omit it.
 
-> +static inline int ds1337_read(struct i2c_client *client, u8 reg, u8
-> 	*value)
-> +{
-> +	s32 tmp = i2c_smbus_read_byte_data(client, reg);
-> +
-> +	if (tmp < 0)
-> +		return -EIO;
-> +
-> +	*value = (u8) (tmp & 0xff);
-> +
-> +	return 0;
-> +}
+Care to respin it again?
 
-The bitmasking is a no-op, and so is probably the cast as I'd expect the
-compiler to do the right thing on its own.
+thanks,
 
-> +static int ds1337_get_datetime(struct i2c_client *client, struct rtc_time > 	*dt)
-> +{
-> (...)
-> +	if (!dt || !client) {
-
-How could client be NULL? Same question for ds1337_set_datetime.
-
-> +	memset(buf, 0, sizeof(buf));
-
-Why is this memset needed at all?
-
-> +	result = client->adapter->algo->master_xfer(client->adapter,
-> +						    &msg[0],
-> +						    2);
-
-You did not check that the adapter was capable of raw I2C transfers.
-
-> +static int ds1337_attach_adapter(struct i2c_adapter *adapter)
-> +{
-> +	if (!(adapter->class & I2C_CLASS_HWMON))
-> +		return 0;
-
-You do not want to check that. The DS1337 is not a hardware monitoring
-device!
-
-> +static int ds1337_detect(struct i2c_adapter *adapter, int address, int
->	kind)
-+{
-+	struct i2c_client *new_client;
-+	struct ds1337_data *data;
-+	int err = 0;
-+	const char *name = "";
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		goto exit;
-
-You must verify the ability to do raw I2C transfers here, as said above.
-
-+	err = -ENODEV;
-
-Not correct. The detection function should NOT return a non-zero value
-unless it meets a critical error (such as memory shortage). Just finding
-a different device from what you were looking for isn't an error.
-
-> +		/* Check that control register bits 5-6 are zero */
-> +		if (buf[14] & ((1 << 5) | (1 << 6)))
-> +			goto exit_free;
-> +
-> +		/* Check that status register bits 2-6 are zero */
-> +		if (buf[15] & ((1 << 2) | (1 << 3) | (1 << 4) |
-> +			       (1 << 5) | (1 << 6)))
-> +			goto exit_free;
-
-These would be much more readable as "& 0x60" and "& 0x7c" if you
-want my opinion (but maybe it's just me). Also, I usually write "bits
-6-2", not "2-6" (but again that might be just me).
-
-> +	new_client->id = ds1337_id++;
-
-Client ids are not used by the core and were dropped recently. Don't use
-that struct member.
-
-> +static void ds1337_init_client(struct i2c_client *client)
-> +{
-> +	u8 val;
-> +
-> +	/* Ensure that device is set in 24-hour mode */
-> +	val = i2c_smbus_read_byte_data(client, 2);
-> +	i2c_smbus_write_byte_data(client, 2, val | (1 << 6));
-> +}
-
-You can probably spare a write if the device was already in 24-hour mode.
-It might also be nice to give register 2 a name (DS1337_REG_CONFIG?) and
-use that.
-
-Also note that you are not handling errors properly here. You could get
--1 returned from the read, forcing all bits of the register to 1 on
-subsequent write.
-
---
-Jean Delvare
+greg k-h
