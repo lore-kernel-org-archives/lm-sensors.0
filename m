@@ -1,35 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:06 +0000
-Subject: Support for VT8231
-Message-Id: <20040719202749.7df62b0c.khali@linux-fr.org>
+From: lists@localguru.de (Marcus Schopen)
+Date: Thu, 19 May 2005 06:25:36 +0000
+Subject: lmsensors on Sony PCG-GRX416G
+Message-Id: <200502060103.00747.lists@localguru.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <A15B1A44-D51B-11D8-8070-000A95BD93BE@dartmouth.edu>
-In-Reply-To: <A15B1A44-D51B-11D8-8070-000A95BD93BE@dartmouth.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I'm trying to get sensors to work on a mini-itx motherboard and have 
-> run into the problem that the VT8231 chip isn't supported under the
-> 2.6 kernel.
-> 
-> I would be very grateful if it could be put on the priority list to
-> get ported for the 2.6 kernel.  Unfortunately, my coding skills aren't
-> good enough to do the port myself, but I would be happy to offer my
-> skills at testing.
-> 
-> For reference, I'm using a Epia 800 motherboard and running Gentoo 
-> linux (2.6.7 kernel)
+Hei,
 
-Looks like somebody (we never heard of as far as I can remember) is
-somewhat working on this. You may want to take a look:
-http://tser.org/vt8231/
+is there a chance to get lm-sensors running on a PCG-GRX416G ?
 
-I will not work on this myself since I know that the vt8231 had some
-non-standard issues and I don't have one for testing (and I've already
-ported many chip drivers, time for other people to do now ;)).
+I build i2c 2.8.8 and lmsensors 2.8.8 against a vanilla 2.4.29 kernel. Result 
+of sensors-detect:
 
--- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+/etc/modules.conf:
+
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+
+To load everything that is needed, add this to some /etc/rc* file:
+
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-i801
+# I2C chip drivers
+modprobe eeprom
+# sleep 2 # optional
+/usr/local/bin/sensors -s # recommended
+#----cut here----
+
+But sensors doesn't find any sensors.
+
+Thanks,
+Marcus 
