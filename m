@@ -1,28 +1,26 @@
-From: mmodem00@netvisao.pt (=?iso-8859-1?q?Z=E9?=)
-Date: Thu, 19 May 2005 06:25:48 +0000
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: fan never stops working
-Message-Id: <200504062355.46294.mmodem00@netvisao.pt>
+Message-Id: <Pine.LNX.4.58.0504091841410.2186@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504062355.46294.mmodem00@netvisao.pt>
+In-Reply-To: <200504062355.46294.mmodem00@netvisao.pt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have an Asus A2H, its a P4 2.8Ghz. 
- 
-Im using mandrake 10.2 Rc2 and have just updated my system 
-( kernel-2.6.11.6mdk-1-1mdk)
- The problem is the fan never stops working, makes too noisy (think im going 
-deaf), but as i remember since i use mandrake, since version 7, it always was 
-like this. 
- 
- If i go to Windows the laptop runs smoothly and the fan only works when is 
-needed (compile and such). 
- 
-I already instaled lm_sensors and configured it (sensors-detect) but my fan 
-continues working like before (never stops), its very annoying.
 
-Any help?
--- 
-Z?
-Linux user #378762
+Hello,
+
+Please can you tell us what chips you have on your system?
+Just issue "sensors"
+command and copy output here.
+
+This problem might be related to acpi too. Are you using ACPI or APM?
+
+Thanks
+
+regards
+
+Rudolf
