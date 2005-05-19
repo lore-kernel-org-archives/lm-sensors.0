@@ -1,19 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:42 +0000
-Subject: Please close ticket 1924
-Message-Id: <FkMgVqgi.1110184455.7208910.khali@localhost>
+From: pjlv@mega.ist.utl.pt (Pedro Venda)
+Date: Thu, 19 May 2005 06:25:18 +0000
+Subject: smart battery driver
+Message-Id: <416468FD.6020400@mega.ist.utl.pt>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <422C011D.2060006@shiny.co.il>
-In-Reply-To: <422C011D.2060006@shiny.co.il>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> It's a duplicate of 1925, only with an erroneous email address.
+hello everyone.
 
-OK, done.
+i am willing to write a smart battery driver. reason? i have one.
 
---
-Jean Delvare
+in the acpi-devel ml, people advised me to start from drivers/i2c. later
+i saw that your lmsensors website refers to the smart battery, but with
+no driver name and no status associated.
+
+i have also contacted the sbs-forum people to help me out.
+
+i would like to hear oppinions from you...
+
+1. can i ask questions in this mailing list? about i2c and chip access
+in general, i mean, is this on-topic?
+2. where should i start? i have some experience in C but have never
+programmed in the kernel before, although i have been reading the
+sources for some time now.
+3. where else can i get help/datasheets/whatever i need?
+4. is anyone else doing/trying to do the same as me?
+5. if not, is anyone willing to help?
+
+thanks for your time people.
+regards,
+pedro venda.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFBZGj9eRy7HWZxjWERAmloAKCo1OrgrjR6hkz+Wio35iO8g1Gq2gCfbmfd
+gCEuYsYtkgC8VZpWHgn/+eY=VDvQ
+-----END PGP SIGNATURE-----
