@@ -1,75 +1,77 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: [TRIVIAL] trivial patch (fwd)
-Message-Id: <200302060640.h166er732741@morannon.frodo.local>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: [Fwd: IBM Question]
+Message-Id: <4002F7BF.5010408@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rusty Trivial Russell wrote:
-From rusty@rustcorp.com.au Thu Feb  6 06:40:07 2003
-Received: by morannon.frodo.local (8.11.3/8.11.3) id h165e4q31612 ; Thu, 6 Feb 2003 06:40:06 +0100
-Return-Path: <rusty@rustcorp.com.au>
-Received: from pop3.dds.nl [213.196.1.204]
-	by localhost with POP3 (fetchmail-6.2.0)
-	for frodo@localhost (single-drop); Thu, 06 Feb 2003 06:40:06 +0100 (CET)
-Received: (qmail-ldap/ctrl 10373 invoked from network); 6 Feb 2003 05:38:21 -0000
-Received: from dp.samba.org (HELO lists.samba.org) ([66.70.73.150]) (envelope-sender <rusty@samba.org>)
-          by dds.nl (qmail-ldap-1.03) with SMTP
-          for <frodol@dds.nl>; 6 Feb 2003 05:38:21 -0000
-Received: by lists.samba.org (Postfix, from userid 590)
-	id 5FF8A2C2E5; Thu,  6 Feb 2003 05:38:21 +0000 (GMT)
-From: Rusty Trivial Russell <rusty@rustcorp.com.au>
-To: Marcelo Tosatti <marcelo@conectiva.com.br>
-Cc: Simon Vogl <simon@tk.uni-linz.ac.at>, Frodo Looijaard <frodol@dds.nl>
-Subject: [TRIVIAL] trivial patch
-Date: Thu, 06 Feb 2003 14:15:41 +1100
-Sender: rusty@rustcorp.com.au
-Message-Id: <20030206053821.5FF8A2C2E5@lists.samba.org>
-X-Loop-Procmail: PreventLoop
 
-From:  T.Lukaszewski@elka.pw.edu.pl
 
-  I don't know if it is a good address for that patch, but i hope that 
-  it won't be lost.
-  
-  This patch adds KERN_INFO in two printk() calls (in i2c_core.c and
-  i2c_algo_bit.c). 
-  
-  					Tomasz Lukaszewski
-  					T.Lukaszewski@elka.pw.edu.pl
+-------- Original Message --------
+From: 	- Mon Jan 12 09:35:43 2004
+X-UIDL: 	520e9d30315e1980
+X-Mozilla-Status: 	0001
+X-Mozilla-Status2: 	00000000
+Return-Path: 	<darrenb@startv.com>
+Received: 	from Stimpy.netroedge.com (IDENT:root@Stimpy.netroedge.com 
+[206.228.191.3]) by Ren.netroedge.com (8.12.10/8.12.10) with ESMTP id 
+i0C8SDpT006357 for <phil@ren.netroedge.com>; Mon, 12 Jan 2004 00:28:14 
+-0800
+Received: 	from smtp01.startv.com ([202.84.145.42]) by 
+Stimpy.netroedge.com (8.12.10/8.12.10) with ESMTP id i0C8uX1s006055 for 
+<webmaster@lm-sensors.nu>; Mon, 12 Jan 2004 00:56:34 -0800
+Received: 	from starhk00.startv.com (starhk00.startv.com [172.16.15.34]) 
+by smtp01.startv.com (8.12.9/8.12.9) with ESMTP id i0C8i3cI026158 for 
+<webmaster@lm-sensors.nu>; Mon, 12 Jan 2004 16:44:04 +0800
+Received: 	by starhk00.startv.com with Internet Mail Service 
+(5.5.2657.72) id <VD0C9FYD>; Mon, 12 Jan 2004 16:44:03 +0800
+Message-ID: 	<BDD0F502FD87D511BB4400508BBE54F10143D239@starhk00.startv.com>
+From: 	Darren Breeze (STAR HK) <darrenb@startv.com>
+To: 	'webmaster@lm-sensors.nu' <webmaster@lm-sensors.nu>
+Subject: 	IBM Question
+Date: 	Mon, 12 Jan 2004 16:44:02 +0800
+MIME-Version: 	1.0
+X-Mailer: 	Internet Mail Service (5.5.2657.72)
+Content-Type: 	multipart/alternative; 
+boundary="----_=_NextPart_001_01C3D8E8.3AC0C4F0"
+X-Scanned-By: 	MIMEDefang 2.35
+X-Virus-Scanned: 	by amavisd-new
+X-Quarentine-Loop: 	Processed
+X-Spambayes-Classification: 	spam; 0.97
 
---- trivial-2.4.21-pre4/drivers/i2c/i2c-algo-bit.c.orig	2003-02-06 13:53:52.000000000 +1100
-+++ trivial-2.4.21-pre4/drivers/i2c/i2c-algo-bit.c	2003-02-06 13:53:52.000000000 +1100
-@@ -609,7 +609,7 @@
+
+
+Hello
  
- int __init i2c_algo_bit_init (void)
- {
--	printk("i2c-algo-bit.o: i2c bit algorithm module\n");
-+	printk(KERN_INFO "i2c-algo-bit.o: i2c bit algorithm module\n");
- 	return 0;
- }
+Is there a "Use at your own risk" version of sensors-detect I have IBM 
+servers that do not have the suspect Eeprom, and the modules refucse to 
+load saying that the machine is a laptop.
  
---- trivial-2.4.21-pre4/drivers/i2c/i2c-core.c.orig	2003-02-06 13:53:52.000000000 +1100
-+++ trivial-2.4.21-pre4/drivers/i2c/i2c-core.c	2003-02-06 13:53:52.000000000 +1100
-@@ -1264,7 +1264,7 @@
+the i2c-piix4 module will not not modprobe either.
  
- static int __init i2c_init(void)
- {
--	printk("i2c-core.o: i2c core module\n");
-+	printk(KERN_INFO "i2c-core.o: i2c core module\n");
- 	memset(adapters,0,sizeof(adapters));
- 	memset(drivers,0,sizeof(drivers));
- 	adap_count=0;
--- 
-  Don't blame me: the Monkey is driving
-  File: T.Lukaszewski@elka.pw.edu.pl: trivial patch
+Any help would be great.
+ 
+thanks
+ 
+Darren Breeze
 
 
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+------------------------------------------------------------------------
+This message and its attachments contain confidential information and 
+may also contain legally privileged information. This message is 
+intended solely for the named addressee. If you are not the addressee 
+indicated in this message (or authorized to receive for the addressee), 
+you may not copy or deliver any part of this message or its attachments 
+to anyone or use any part of this message or its attachments. Rather, 
+you should permanently delete this message and its attachments (and all 
+copies) from your system and kindly notify the sender by reply e-mail. 
+Any content of this message and its attachments that does not relate to 
+the official business of STAR Group Limited or its subsidiaries must be 
+taken not to have been sent or endorsed by any of them.
+
+Email communications are not private and no warranty is made that e-mail 
+communications are timely, secure or free from computer virus or other 
+defect.
