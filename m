@@ -1,33 +1,38 @@
-From: pierre_aussaguel@yahoo.fr (Pierre AUSSAGUEL)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:00 +0000
 Subject: Problmem report
-Message-Id: <3EEB9F68.4040308@yahoo.fr>
+Message-Id: <20030615122703.56e9d4aa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <3EEB9F68.4040308@yahoo.fr>
+In-Reply-To: <3EEB9F68.4040308@yahoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-I've read the FAQ and searched trough the www (google) but couldnt find 
-the answer of my problem.
+> sensors reports null values. see attached files for details.
+> Contact me if you need further details.
 
-sensors reports null values. see attached files for details.
+OK, I took a look at your files. Your I2C bus has gone mad for some
+reason. The sensors-detect script finds way too many sensors, you can't
+possibly have them all.
 
-Contact me if you need further details.
+The problem you encountered may be related to another issue I'm
+currently working on. I need the answer to the following questions:
 
-Thank you
+1* Which version of Perl is your system running. I guess 5.8.0. The
+exact package version would be appreciated (so that I can check if
+Mandrake added some patches).
+
+2* Is your Mandrake system UTF8-aware?
+
+3* If the answer to question #2 is yes, are you using an UTF8 locale?
+Check with "locale" (send me the command output in any case).
+
+With these answers, I may have some ideas to investigate one step
+further.
 
 -- 
-Pierre AUSSAGUEL
-ACHROME photographies : http://www.geocities.com/pierre_aussaguel/
-
-"Linux, cause rebooting is for adding new hardware"
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: files.zip
-Type: application/zip
-Size: 10529 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030615/f417c3f5/files.zip
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
