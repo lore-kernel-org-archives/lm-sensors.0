@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: VRM(VRD) detection versus CPUID
-Message-Id: <Pine.LNX.4.58.0407021229300.26054@desitka.sh.cvut.cz>
+Message-Id: <20040703084530.4f515868.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
@@ -10,25 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Yes, use 100. That's already what MDS did if I'm not mistaking.
+> Ok in attach, version that can be used for testing. It is using the
+> numerical VRM, "while" instead of "for" in lookup func and other
+> changes proposed by you. I think this is the end of email storm :)
 
-done
+Tested.
 
-> Yes, it's definitely compile-time stuff. You compile for a given
-> architecture anyway! So what you did is fine.
+On my laptop computer it says 85, CPU is an Intel P3-M Tualatin.
 
-Ok in attach, version that can be used for testing. It is using the
-numerical VRM, "while" instead of "for" in lookup func and other changes
-proposed by you. I think this is the end of email storm :)
+On my desktop computer and my girlfriend's computer it says 90, CPU is
+AMD Athlon for each.
 
+On my server it says 0, CPU is an Intel Pentium.
 
-Regards
+So it's working fine for me, isn't it? :)
 
-Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: cpuidvrm2.c
-Type: text/x-csrc
-Size: 2232 bytes
-Desc: all your base are belong to us :)
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040702/866c3cf6/cpuidvrm2.bin
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
