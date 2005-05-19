@@ -1,104 +1,70 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:26 +0000
-Subject: checksum in (i2c) eeprom driver
-Message-Id: <2MANKxF6.1103102266.7579820.khali@localhost>
+From: ppokorny@penguincomputing.com (Philip Pokorny)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: Patch for AMD8111 support in 2.8.x
+Message-Id: <3FC98E59.2050302@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20041215005741.GB5489@jupiter.solarsys.private>
-References: <lNsWdTVB.1102596784.6279250.khali@localhost>
-In-Reply-To: <lNsWdTVB.1102596784.6279250.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mhoffman@lightlink.com
-Cc: LM Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
+Here is a long promised patch to add the support for the AMD8111 back 
+into the i2c-amd756 driver.  This is a patch against CVS.
 
-On 2004-15-12, Mark M. Hoffman wrote:
+The AMD8111 chip has two lm_sensors bus interfaces.  A "classic" i2c 
+interface that matches the amd756 register model to which most 
+motherboards connect the interesting peripherals and a new SMBus 2.x? 
+compliant interface supported by the i2c-amd8111 driver which rarely has 
+any devices on it.
 
-> In as much as eeprom is a demonstration driver, with very little actual
-> usefulness except as a test device for us sensors people... I think it
-> could probably be removed from the kernel altogether if we create a user-
-> space (w/ i2c-dev interface) replacement for it.
+This compiles and loads on my system at home which is a dual Athlon 
+system with a AMD768, but I don't have an Opteron desktop yet to test it 
+on...
 
-As I already objected on IRC, I wonder how you would make concurent
-accesses safe in this case. Using (continuous) byte reads is not safe in
-this context, while it is the more performant read method among those
-widely available (byte data reads are 50% slower, and i2c block read is
-usually not supported by SMBus Masters.)
-
-Of course we have potentially similar issues with other tools using
-i2c-dev such as sensors-detect and i2cdump, but these tools are not
-meant for daily use. Especially the latter is for
-investigation/debugging purposes only. The former will not attempt to
-identify devices already in use by a kernel driver. If we start using
-i2c-dev for non-debug stuff, then sensors-detect becomes unsafe.
-
-Think of the following scenario:
-You read and/or write EEPROMs using your proposed i2c-dev-based tool,
-using continuous byte read/write. At the same time, someone on the same
-machine runs sensors-detect. sensors-detect will scan these EEPROMs at
-some point, changing their internal address pointer, and as a
-consequence possibly trashing the data read or written by your EEPROM
-manipulation tool.
-
-You may argue that it is unlikely that someone will run sensors-detect at
-the same time he/she reprograms EEPROMs, but 1* you don't really know
-what people do and 2* since people can technically to it, it better be
-safe and 3* sensors-detect is soon to be part of a hotplug solution for
-I2C/SMBus devices so it might be run anytime.
-
-Summary: your proposal doesn't sound safe at all as long as there is no
-possibility for i2c-dev to "request" an address for exclusive use like
-kernel drivers can do. Looking at i2c-dev.h I see no such function at
-the moment. There is also a permission issue because you need to have
-write access to /dev/i2c-* even to only read from a chip (eeprom in this
-case). Giving write access to tehse devices to everyone is of course not
-safe, so your solution would only work for root, right?
-
-Also, having an in-kernel i2c driver allows us to cache the data for some
-times, which not only improves performance (the same could be done in
-user-space) but prevents non-root users from saturating the SMBus.
-
-> If read/write support is needed, IMHO it should be implemented as a proper
-> char device.  The sysfs interface of the current driver makes little sense.
-
-I don't really understand why exactly the sysfs interface isn't
-correct. It does the job as far as I can see. Also think of devices that
-have both an EEPROM and other functions (I remember one RTC chip like
-that). They fit fine in our sysfs design (eeprom file for eeprom access,
-other files for the other functions). Having a separate char device
-would make things more difficult to understand. Just a thought though, I
-am not opposed to the idea of a char device. If there are benefits, that
-is.
-
-> OTOH, note that it would be possible to break RAM modules *permanently* by
-> misusing such a device.  The eeprom itself would still work, but the SIMM
-> or DIMM that it sits on would be effectively broken.  I don't personally
-> consider that a good argument against an eeprom char device, but some do.
-
-You can also trash all your data if you play with, say, /dev/hda, and
-losing personal data may be worth than losing a memory module. The
-can-make-the-module-useless issue is to be considered but certainly not
-a valid reason to never, ever have write support for EEPROMs. Note that
-with the current implementation we could easily have a module parameter
-for explicitely enabling write support (that might not be the best
-solution though).
-
-About "trashed" memory modules, I now wonder... OK, the system will not
-recognize the module anymore, but if there is anotgher working module in
-the machine, I'd expect it to still boot, then the EEPROM should still
-be visible on the I2C bus and could be reprogrammed, no? Or if the
-system checks and stops booting on bad modules, maybe hotplugging it at
-a later time would do it? I'm not willing to sacrifice a memory module
-of mine just to do the test, but I wonder if either of these techniques
-would work.
-
-Back to the original topic... Your ideas about a new way to access the
-EEPROMs is interesting but are hardly related to my original question of
-whether I can remove the checksumming code from the existing driver or
-not. I will continue to maintain this driver as long as no other
-alternative is proposed, accepted, implemented and tested.
-
-Thanks,
---
-Jean Delvare
+:v)
+-------------- next part --------------
+Index: lm_sensors2/kernel/busses/i2c-amd756.c
+=================================RCS file: /home/cvs/lm_sensors2/kernel/busses/i2c-amd756.c,v
+retrieving revision 1.27
+diff -u -r1.27 i2c-amd756.c
+--- lm_sensors2/kernel/busses/i2c-amd756.c	3 Aug 2003 05:11:58 -0000	1.27
++++ lm_sensors2/kernel/busses/i2c-amd756.c	30 Nov 2003 06:39:09 -0000
+@@ -28,10 +28,12 @@
+     2002-04-08: Added nForce support. (Csaba Halasz)
+     2002-10-03: Fixed nForce PnP I/O port. (Michael Steil)
+     2002-12-28: Rewritten into something that resembles a Linux driver (hch)
++    2003-11-29: Added back AMD8111 removed by backport of the previous
++                rewrite. (Philip Pokorny)
+ */
+ 
+ /*
+-   Supports AMD756, AMD766, AMD768 and nVidia nForce
++   Supports AMD756, AMD766, AMD768, AMD8111 and nVidia nForce
+    Note: we assume there can only be one device, with one SMBus interface.
+ */
+ 
+@@ -312,12 +314,13 @@
+ 	.algo		= &smbus_algorithm,
+ };
+ 
+-enum chiptype { AMD756, AMD766, AMD768, NFORCE };
++enum chiptype { AMD756, AMD766, AMD768, NFORCE, AMD8111 };
+ 
+ static struct pci_device_id amd756_ids[] __devinitdata = {
+ 	{PCI_VENDOR_ID_AMD, 0x740B, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD756 },
+ 	{PCI_VENDOR_ID_AMD, 0x7413, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD766 },
+ 	{PCI_VENDOR_ID_AMD, 0x7443, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD768 },
++	{PCI_VENDOR_ID_AMD, 0x746b, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD8111 },
+ 	{PCI_VENDOR_ID_NVIDIA, 0x01B4, PCI_ANY_ID, PCI_ANY_ID, 0, 0, NFORCE },
+ 	{ 0, }
+ };
+@@ -325,7 +328,8 @@
+ static int __devinit amd756_probe(struct pci_dev *pdev,
+ 				  const struct pci_device_id *id)
+ {
+-	int nforce = (id->driver_data = NFORCE), error;
++	int nforce = (id->driver_data = NFORCE);
++	int error;
+ 	u8 temp;
+ 	
+ 	if (amd756_ioport) {
