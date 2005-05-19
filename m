@@ -1,92 +1,99 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: FW: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <Pine.LNX.4.58.0503091142110.25688@desitka.sh.cvut.cz>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245FEF@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-
->    GPIO42 : 0 (Low)
->    GPIO43 : 1 (High)
->
->   For 6300ESB, the access method of these two pins is showed below.
-> Bit10, bit 11 are for these two pins.
-
-Yes thank you.
-
-Here is updated patch.
-
-Regards
-
-Rudolf
-
-diff -Naur a/drivers/pci/quirks.c b/drivers/pci/quirks.c
---- a/drivers/pci/quirks.c	2005-03-02 08:37:31.000000000 +0100
-+++ b/drivers/pci/quirks.c	2005-03-09 10:56:36.877494936 +0100
-@@ -306,6 +306,36 @@
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82371AB_3,	quirk_piix4_acpi );
-
-+/* Not only ASUS hides SMBUS, sometimes hides also devices on it.
-+It is known that they use GPIO lines from ISA bridge or LPC IO chip
-+to trigger the multiplexer on SMBUS.
-+
-+Information for this particular W83792D case was provided by ASUS R&D on
-+request from Winbond.
-+
-+If we want to access W83792D, we should program these to GPO pins to
-+   GPIO42 : 0 (Low)
-+   GPIO43 : 1 (High)
-+(This should work for 6300ESB based motherboards)
-+*/
-+
-+#define GPIO_OUTPUT2_REG_HIGH 0x39
-+#define GPIO_IOSIZE_MASK 0x3F
-+
-+static int __initdata asus_server_board_hides_smbus_devices = 0;
-+
-+static void __init asus_hides_smbus_devices(struct pci_dev *dev) {
-+	if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_ASUSTEK)) {
-+			switch(dev->subsystem_device) {
-+			case 0x8117: /* ASUS server board (NCLV-D) */
-+				asus_server_board_hides_smbus_devices = 1;
-+				break;
-+			}
-+	}
-+}
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ESB_4,	asus_hides_smbus_devices );
-+
-+
- /*
-  * ICH4, ICH4-M, ICH5, ICH5-M ACPI: Three IO regions pointed to by longwords at
-  *	0x40 (128 bytes of ACPI, GPIO & TCO registers)
-@@ -320,6 +350,15 @@
-
- 	pci_read_config_dword(dev, 0x58, &region);
- 	quirk_io_region(dev, region, 64, PCI_BRIDGE_RESOURCES+1);
-+
-+	if (asus_server_board_hides_smbus_devices) {
-+		unsigned char val;
-+		val=inb((region&~GPIO_IOSIZE_MASK)+GPIO_OUTPUT2_REG_HIGH);
-+		val&=~0x4; /* GPIO42 : 0 (Low) */
-+		val|=0x8;  /* GPIO43 : 1 (High) */
-+		outb(val, (region&~GPIO_IOSIZE_MASK)+GPIO_OUTPUT2_REG_HIGH);
-+		printk(KERN_INFO "PCI: Canceling ASUS hide and seek played with SMBus monitoring chip\n");
-+	}
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801AA_0,		quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801AB_0,		quirk_ich4_lpc_acpi );
-@@ -330,6 +369,7 @@
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_0,		quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_12,	quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
-
- /*
-  * VIA ACPI: One IO region pointed to by longword at
+SGkgUnVkb2xmCgpJIGZhaWxlZCB0byBwYXRjaCBpdCwgSXMgdGhlcmUgYW55IHByb2JsZW0gd2hl
+biBJIHVzZSB5b3VyIHBhdGNoPwpQbGVhc2UgY2hlY2sgaXQ6Cgpbcm9vdEAgL3Vzci9zcmMvbGlu
+dXgtMi42LjEwXSMgcGF0Y2ggLXAxIDxwYXRjaDEKcGF0Y2hpbmcgZmlsZSBkcml2ZXJzL3BjaS9x
+dWlya3MuYwpwYXRjaDogKioqKiBtYWxmb3JtZWQgcGF0Y2ggYXQgbGluZSA0MDogQEAgLTMyMCw2
+ICszNTAsMTUgQEAKCltyb290QCAvdXNyL3NyYy9saW51eC0yLjYuMTBdIyBkaWZmIGRyaXZlcnMv
+cGNpL3F1aXJrcy5jIGRyaXZlcnMvcGNpL3F1aXJrcy5jLmJhawpbcm9vdEAgL3Vzci9zcmMvbGlu
+dXgtMi42LjEwXSMKCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8KCgo+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tCj4gRnJvbTogUnVkb2xmIE1hcmVrIFttYWlsdG86Ui5NYXJla0BzaC5j
+dnV0LmN6XQo+IFNlbnQ6IDIwMDXE6jPUwjnI1SAxODo0NAo+IFRvOiBQSTE0IEhVQU5HMAo+IENj
+OiBQSTEwIExISHN1OyBQSTE0IERaU0hFTjsgc2Vuc29yc0BzdGltcHkubmV0cm9lZGdlLmNvbQo+
+IFN1YmplY3Q6IFJlOiBGVzogQXNrIGZvciBzb21lIGluZm9ybWF0aW9uIGFib3V0IG1vdGhlcmJv
+YXJkIEFTVVMgTkNMVi1ECj4gCj4gCj4gCj4gPiAgICBHUElPNDIgOiAwIChMb3cpCj4gPiAgICBH
+UElPNDMgOiAxIChIaWdoKQo+ID4KPiA+ICAgRm9yIDYzMDBFU0IsIHRoZSBhY2Nlc3MgbWV0aG9k
+IG9mIHRoZXNlIHR3byBwaW5zIGlzIHNob3dlZCBiZWxvdy4KPiA+IEJpdDEwLCBiaXQgMTEgYXJl
+IGZvciB0aGVzZSB0d28gcGlucy4KPiAKPiBZZXMgdGhhbmsgeW91Lgo+IAo+IEhlcmUgaXMgdXBk
+YXRlZCBwYXRjaC4KPiAKPiBSZWdhcmRzCj4gCj4gUnVkb2xmCj4gCj4gZGlmZiAtTmF1ciBhL2Ry
+aXZlcnMvcGNpL3F1aXJrcy5jIGIvZHJpdmVycy9wY2kvcXVpcmtzLmMKPiAtLS0gYS9kcml2ZXJz
+L3BjaS9xdWlya3MuYwkyMDA1LTAzLTAyIDA4OjM3OjMxLjAwMDAwMDAwMCArMDEwMAo+ICsrKyBi
+L2RyaXZlcnMvcGNpL3F1aXJrcy5jCTIwMDUtMDMtMDkgMTA6NTY6MzYuODc3NDk0OTM2ICswMTAw
+Cj4gQEAgLTMwNiw2ICszMDYsMzYgQEAKPiAgfQo+ICBERUNMQVJFX1BDSV9GSVhVUF9IRUFERVIo
+UENJX1ZFTkRPUl9JRF9JTlRFTCwKPiAJUENJX0RFVklDRV9JRF9JTlRFTF84MjM3MUFCXzMsCXF1
+aXJrX3BpaXg0X2FjcGkgKTsKPiAKPiArLyogTm90IG9ubHkgQVNVUyBoaWRlcyBTTUJVUywgc29t
+ZXRpbWVzIGhpZGVzIGFsc28gZGV2aWNlcyBvbiBpdC4KPiArSXQgaXMga25vd24gdGhhdCB0aGV5
+IHVzZSBHUElPIGxpbmVzIGZyb20gSVNBIGJyaWRnZSBvciBMUEMgSU8gY2hpcAo+ICt0byB0cmln
+Z2VyIHRoZSBtdWx0aXBsZXhlciBvbiBTTUJVUy4KPiArCj4gK0luZm9ybWF0aW9uIGZvciB0aGlz
+IHBhcnRpY3VsYXIgVzgzNzkyRCBjYXNlIHdhcyBwcm92aWRlZCBieSBBU1VTIFImRCBvbgo+ICty
+ZXF1ZXN0IGZyb20gV2luYm9uZC4KPiArCj4gK0lmIHdlIHdhbnQgdG8gYWNjZXNzIFc4Mzc5MkQs
+IHdlIHNob3VsZCBwcm9ncmFtIHRoZXNlIHRvIEdQTyBwaW5zIHRvCj4gKyAgIEdQSU80MiA6IDAg
+KExvdykKPiArICAgR1BJTzQzIDogMSAoSGlnaCkKPiArKFRoaXMgc2hvdWxkIHdvcmsgZm9yIDYz
+MDBFU0IgYmFzZWQgbW90aGVyYm9hcmRzKQo+ICsqLwo+ICsKPiArI2RlZmluZSBHUElPX09VVFBV
+VDJfUkVHX0hJR0ggMHgzOQo+ICsjZGVmaW5lIEdQSU9fSU9TSVpFX01BU0sgMHgzRgo+ICsKPiAr
+c3RhdGljIGludCBfX2luaXRkYXRhIGFzdXNfc2VydmVyX2JvYXJkX2hpZGVzX3NtYnVzX2Rldmlj
+ZXMgPSAwOwo+ICsKPiArc3RhdGljIHZvaWQgX19pbml0IGFzdXNfaGlkZXNfc21idXNfZGV2aWNl
+cyhzdHJ1Y3QgcGNpX2RldiAqZGV2KSB7Cj4gKwlpZiAodW5saWtlbHkoZGV2LT5zdWJzeXN0ZW1f
+dmVuZG9yID0gUENJX1ZFTkRPUl9JRF9BU1VTVEVLKSkgewo+ICsJCQlzd2l0Y2goZGV2LT5zdWJz
+eXN0ZW1fZGV2aWNlKSB7Cj4gKwkJCWNhc2UgMHg4MTE3OiAvKiBBU1VTIHNlcnZlciBib2FyZCAo
+TkNMVi1EKSAqLwo+ICsJCQkJYXN1c19zZXJ2ZXJfYm9hcmRfaGlkZXNfc21idXNfZGV2aWNlcyA9
+IDE7Cj4gKwkJCQlicmVhazsKPiArCQkJfQo+ICsJfQo+ICt9Cj4gK0RFQ0xBUkVfUENJX0ZJWFVQ
+X0hFQURFUihQQ0lfVkVORE9SX0lEX0lOVEVMLAlQQ0lfREVWSUNFX0lEX0lOVEVMX0VTQl80LAo+
+IAlhc3VzX2hpZGVzX3NtYnVzX2RldmljZXMgKTsKPiArCj4gKwo+ICAvKgo+ICAgKiBJQ0g0LCBJ
+Q0g0LU0sIElDSDUsIElDSDUtTSBBQ1BJOiBUaHJlZSBJTyByZWdpb25zIHBvaW50ZWQgdG8gYnkg
+bG9uZ3dvcmRzCj4gYXQKPiAgICoJMHg0MCAoMTI4IGJ5dGVzIG9mIEFDUEksIEdQSU8gJiBUQ08g
+cmVnaXN0ZXJzKQo+IEBAIC0zMjAsNiArMzUwLDE1IEBACj4gCj4gIAlwY2lfcmVhZF9jb25maWdf
+ZHdvcmQoZGV2LCAweDU4LCAmcmVnaW9uKTsKPiAgCXF1aXJrX2lvX3JlZ2lvbihkZXYsIHJlZ2lv
+biwgNjQsIFBDSV9CUklER0VfUkVTT1VSQ0VTKzEpOwo+ICsKPiArCWlmIChhc3VzX3NlcnZlcl9i
+b2FyZF9oaWRlc19zbWJ1c19kZXZpY2VzKSB7Cj4gKwkJdW5zaWduZWQgY2hhciB2YWw7Cj4gKwkJ
+dmFsPWluYigocmVnaW9uJn5HUElPX0lPU0laRV9NQVNLKStHUElPX09VVFBVVDJfUkVHX0hJR0gp
+Owo+ICsJCXZhbCY9fjB4NDsgLyogR1BJTzQyIDogMCAoTG93KSAqLwo+ICsJCXZhbHw9MHg4OyAg
+LyogR1BJTzQzIDogMSAoSGlnaCkgKi8KPiArCQlvdXRiKHZhbCwgKHJlZ2lvbiZ+R1BJT19JT1NJ
+WkVfTUFTSykrR1BJT19PVVRQVVQyX1JFR19ISUdIKTsKPiArCQlwcmludGsoS0VSTl9JTkZPICJQ
+Q0k6IENhbmNlbGluZyBBU1VTIGhpZGUgYW5kIHNlZWsgcGxheWVkIHdpdGggU01CdXMKPiBtb25p
+dG9yaW5nIGNoaXBcbiIpOwo+ICsJfQo+ICB9Cj4gIERFQ0xBUkVfUENJX0ZJWFVQX0hFQURFUihQ
+Q0lfVkVORE9SX0lEX0lOVEVMLAo+IFBDSV9ERVZJQ0VfSURfSU5URUxfODI4MDFBQV8wLAkJcXVp
+cmtfaWNoNF9scGNfYWNwaSApOwo+ICBERUNMQVJFX1BDSV9GSVhVUF9IRUFERVIoUENJX1ZFTkRP
+Ul9JRF9JTlRFTCwKPiBQQ0lfREVWSUNFX0lEX0lOVEVMXzgyODAxQUJfMCwJCXF1aXJrX2ljaDRf
+bHBjX2FjcGkgKTsKPiBAQCAtMzMwLDYgKzM2OSw3IEBACj4gIERFQ0xBUkVfUENJX0ZJWFVQX0hF
+QURFUihQQ0lfVkVORE9SX0lEX0lOVEVMLAo+IFBDSV9ERVZJQ0VfSURfSU5URUxfODI4MDFEQl8w
+LAkJcXVpcmtfaWNoNF9scGNfYWNwaSApOwo+ICBERUNMQVJFX1BDSV9GSVhVUF9IRUFERVIoUENJ
+X1ZFTkRPUl9JRF9JTlRFTCwKPiBQQ0lfREVWSUNFX0lEX0lOVEVMXzgyODAxREJfMTIsCXF1aXJr
+X2ljaDRfbHBjX2FjcGkgKTsKPiAgREVDTEFSRV9QQ0lfRklYVVBfSEVBREVSKFBDSV9WRU5ET1Jf
+SURfSU5URUwsCj4gUENJX0RFVklDRV9JRF9JTlRFTF84MjgwMUVCXzAsCQlxdWlya19pY2g0X2xw
+Y19hY3BpICk7Cj4gK0RFQ0xBUkVfUENJX0ZJWFVQX0hFQURFUihQQ0lfVkVORE9SX0lEX0lOVEVM
+LAo+IFBDSV9ERVZJQ0VfSURfSU5URUxfRVNCXzEsCQlxdWlya19pY2g0X2xwY19hY3BpICk7Cj4g
+Cj4gIC8qCj4gICAqIFZJQSBBQ1BJOiBPbmUgSU8gcmVnaW9uIHBvaW50ZWQgdG8gYnkgbG9uZ3dv
+cmQgYXQKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhl
+IHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVt
+YWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0
+ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0
+aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2li
+bGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRs
+eSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwg
+Y29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRp
+YXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxl
+IHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9m
+IFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0
+aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBv
+ZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBi
+eSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1J
+ZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2Ug
+aWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQg
+dGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqw
+XbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjP
+sXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOyl
+u6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSp
+pUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLF
+dr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXY
+qLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
