@@ -1,7 +1,7 @@
-From: phil@netroedge.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: CVS upgrade on server
-Message-Id: <3E2DDE90.3090906@netroedge.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: archives
+Message-Id: <20020809192355.0260fd17.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,10 +9,9 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Due to the recient news of a remote exploit of cvs, I upgraded it on 
-cvs.lm-sensors.nu.  Let me know if you notice any bad side-effects from it.
+Who manages the list archives at andrew.net.au? The system stopped
+working about one week ego, it seems.
 
-(http://security.e-matters.de/advisories/012003.html)
-
-
-Phil
+-- 
+Jean "Khali" Delvare
+http://www.ensicaen.ismra.fr/~delvare/
