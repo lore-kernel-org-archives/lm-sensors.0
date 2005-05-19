@@ -1,7 +1,7 @@
-From: gene.heskett@verizon.net (Gene Heskett)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: subscribe gene.heskett@verizon.net
-Message-Id: <200308031028.12799.gene.heskett@verizon.net>
+Message-Id: <20030803165445.6aa6e516.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200308012231.07647.gene.heskett@verizon.net>
 In-Reply-To: <200308012231.07647.gene.heskett@verizon.net>
@@ -10,31 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sunday 03 August 2003 09:21, Jean Delvare wrote:
->> >Anyway, please let us know how it goes with 2.8.0.
->>
->> I just changed that script I sent to do 2.8.0 instead of 2.7.0.
->>
->> Nothing worked, and lsmod didn't show any of them loaded once
->> booted. So I reverted the vmlinuz and /lib/modules/2.4.22-pre10 to
->> the 2.7.0 versions and its all working again.
->
->"Nothing worked" is not something we can help with. If you want us
-> to be able to help, you need to provide much more details than
-> that. Unless you're happy with 2.7.0 and want to stick to that, of
-> course.
 
-Meaning it looked as if it built, but nothing could be modprobed into 
-use.  2.7.0 seems to be working, at least for 2.4 kernels, so I'll 
-'hang ten' till 2.6 is out for good.
+> >It seems that the adm1021 module isn't used, so you may not load it.
+> 
+> Humm, I wonder where I got that from originally?  rmmod'ing it speeds 
+> up the report, a lot!  I'll take that puppy out of rc.local and 
+> modules.conf forthwith.  Thanks for spotting that.
 
-Thanks very much for the assistance.
+The module has 9 different addresses to check (must be the one that has
+more), that's why it must be slow.
+
+> Ah, I didn't know that.  The +1.66 is the -.100 in the current bios 
+> setting, and it did cool it down 5 or so degrees.  It should be 
+> running 1.75 volts. On inspection I find this:
+> 
+>     set in0_min 1.8 * 0.95
+>     set in0_max 1.8 * 1.05
+> 
+> I lowered the 1.8 to 1.75 in both lines but that didn't change the 
+> report.  Is that incorrectly formatted?
+
+No, the line is correct, but I suspect you forgot to run "sensors -s".
+
+> >Voltages are correct, except V5SB which is a bit high.
+> 
+> Whats that feed?  Its not adjustable by any means that I know of,
+> this is a Biostar M7VIB board. But I'm thinking about replacing it
+> with an M7VIK.
+
+It is the stand-by voltage. It's not used if you don't leave you
+computer in standby mode. Anyway, as you noticed, there's no way to
+adjust the value, so let's forget about it.
 
 -- 
-Cheers, Gene
-AMD K6-III@500mhz 320M
-Athlon1600XP@1400mhz  512M
-99.27% setiathome rank, not too shabby for a WV hillbilly
-Yahoo.com attornies please note, additions to this message
-by Gene Heskett are:
-Copyright 2003 by Maurice Eugene Heskett, all rights reserved.
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
