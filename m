@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:01 +0000
+From: haimat@lame.at (Matthias F. Brandstetter)
+Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: lm_sensors: output for all sensors?
-Message-Id: <Pine.LNX.4.58.0406171203580.20062@desitka.sh.cvut.cz>
+Message-Id: <200407081308.52220.haimat@lame.at>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200406161539.50952.haimat@lame.at>
 In-Reply-To: <200406161539.50952.haimat@lame.at>
@@ -10,35 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+---------- quoting Rudolf Marek ----------
+> modprobe i2c-isa
 
-Hello
+Hi Rudolf, after loading this module, I now can see voltage and temp. 
+statistics, thanks for your support. But now I can see a somewhat strange 
+entry:
 
-> attached.
-Thanks
+SYS Temp:  +51.3 C  (high =   +83 C, hyst =   +82 C)
+CPU Temp:  +39.8 C  (high =  +146 C, hyst =   -71 C)
 
-I finally found some time to reply to you.
+Are these entries correct? Is it possible, that my CPU has such a low 
+temp.?
 
-Do you have Asus A7V board? If not please which ?
+Greetings, Matthias
 
-I think you can try:
+PS: I have one entry with "ALARM". What must happen, that such an "ALARM" 
+gets displayed?
 
-modprobe i2c-isa
-modprobe via686a
-then try
+-- 
+Aw, Dad, you've done a lot of great things, but you're a very old man, and
+old people are useless.
 
-sensors
-
-If you see something just follow the configuration in /etc/sensors.conf
-(don't forget to run sensors -s) and you aree done.
-
-If you still have nothing related to sensors, please check dmesg or syslog
-to see if there is something like the driver is complaining about not
-initialized address. You can try this:
-
-modprobe via686a force_addr=0x290
-
-I hope this helps.
-
-Regards
-
-Rudolf
+		-- Homer Simpson
+		   Homer the Vigilante
