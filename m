@@ -1,31 +1,53 @@
-From: haake@logicalimages.com (Bill Haake)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Occasional wild  readings?
-Message-Id: <NDBBJAJICLHDICAJJECFKEJDCIAA.haake@logicalimages.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:36 +0000
+Subject: [PATCH 2.4] Fix bus reset in i2c-philips-par
+Message-Id: <20040125110358.770c41a1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040123213024.79b69112.khali@linux-fr.org>
+In-Reply-To: <20040123213024.79b69112.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
 
-Hi-
+Hi Marcelo,
 
-I have a machine running Redhat 7.2 distribution of kernel 2.4.9-31 with
-lm_sensors 2.4.6. The motherboard is an Elite Group K7AMA with ALI 1645
-chipset. I am using the i2c-ali1535 and gl520sm modules. Things seem to be
-mostly working and I have set up some software to read and plot the data
-every 30 minutes. You see the latest data by looking at http://www.oatka.com
+This patch fixes the bus reset in i2c-philips-par when it is loaded with
+type!=0. For now, the reset is always made as if type=0. This patch was
+built and tested on 2.4.25-pre7.
 
-Occasionally, I get a strange reading that is wildly different from what I
-expect. For example:
+I've committed a similar fix to our i2c CVS repository, and have sent
+a patch to Greg KH for 2.6 too, which he already accepted.
 
-normal fan reading is about 5450 and varies +/- 100 but about once a week I
-get a reading of 1300
-normal CPU reading is about 55 and varies +/- 4 but about once a week I get
-a reading of -125 or +125
+This is a bug fix, however:
+* I think that the i2c-philips-par driver isn't much used.
+* I think that the i2c-philips-par driver with type!=0 is even less
+  used.
+* The bus reset is more or less optional. Skipping it doesn't hurt much.
+* The wrong reset doesn't hurt either.
+So this is in no way critical (and explains why the bug wasn't
+discovered earlier).
 
-Is it normal to get a wild reading once in a while? If not, any idea what
-the problem is?
+On the other hand the fix is easy and clear. Anyway I leave it to you to
+decide if it should be applied to 2.4 or not.
 
-Bill
+Thanks.
 
+--- linux-2.4.25-pre7/drivers/i2c/i2c-philips-par.c.orig	Sun Jan 25 09:57:06 2004
++++ linux-2.4.25-pre7/drivers/i2c/i2c-philips-par.c	Sun Jan 25 09:59:36 2004
+@@ -212,8 +212,8 @@
+ 
+ 	/* reset hardware to sane state */
+ 	parport_claim_or_block(adapter->pdev);
+-	bit_lp_setsda(port, 1);
+-	bit_lp_setscl(port, 1);
++	adapter->bit_lp_data.setsda(port, 1);
++	adapter->bit_lp_data.setscl(port, 1);
+ 	parport_release(adapter->pdev);
+ 
+ 	if (i2c_bit_add_bus(&adapter->adapter) < 0)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
