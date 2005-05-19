@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: [PATCH] I2C patches for 2.6.10
-Message-Id: <11051627762271@kroah.com>
+Message-Id: <11051627761117@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11051627762989@kroah.com>
+In-Reply-To: <11051627751181@kroah.com>
 References: <11051627731563@kroah.com>
 In-Reply-To: <11051627731563@kroah.com>
 MIME-Version: 1.0
@@ -11,260 +11,649 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1938.445.11, 2004/12/21 11:09:49-08:00, jmunsin@iki.fi
+ChangeSet 1.1938.445.7, 2004/12/17 15:30:27-08:00, khali@linux-fr.org
 
-[PATCH] I2C: it87.c update
+[PATCH] I2C: Discard old driver porting documentation
 
- - adds manual PWM
- - removes buggy "reset" module parameter
- - fixes some whitespaces
+The Documentation/i2c/i2c-old-porting file is outdated. There are no
+more drivers left to be ported from that old i2c model (from the times
+of Linux 2.2). Let's simply delete that file.
 
-Signed-off-by: Jonas Munsin <jmunsin@iki.fi>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/chips/it87.c |  147 +++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 130 insertions(+), 17 deletions(-)
+ Documentation/i2c/i2c-old-porting |  626 --------------------------------------
+ 1 files changed, 626 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
---- a/drivers/i2c/chips/it87.c	2005-01-07 14:55:04 -08:00
-+++ b/drivers/i2c/chips/it87.c	2005-01-07 14:55:04 -08:00
-@@ -96,9 +96,6 @@
- /* Update battery voltage after every reading if true */
- static int update_vbat;
- 
--/* Reset the registers on init if true */
--static int reset;
+diff -Nru a/Documentation/i2c/i2c-old-porting b/Documentation/i2c/i2c-old-porting
+--- a/Documentation/i2c/i2c-old-porting	2005-01-07 14:55:35 -08:00
++++ /dev/null	Wed Dec 31 16:00:00 196900
+@@ -1,626 +0,0 @@
+-I2C Conversion Guide for I2C-old to the current I2C API
+-July 2002
+-For Linux Kernel v2.5.x
+-Frank Davis <fdavis@si.rr.com>
+--------------------------------------------------------
 -
- /* Chip Type */
- 
- static u16 chip_type;
-@@ -128,6 +125,8 @@
- #define IT87_REG_FAN(nr)       (0x0d + (nr))
- #define IT87_REG_FAN_MIN(nr)   (0x10 + (nr))
- #define IT87_REG_FAN_MAIN_CTRL 0x13
-+#define IT87_REG_FAN_CTL       0x14
-+#define IT87_REG_PWM(nr)       (0x15 + (nr))
- 
- #define IT87_REG_VIN(nr)       (0x20 + (nr))
- #define IT87_REG_TEMP(nr)      (0x29 + (nr))
-@@ -164,6 +163,9 @@
- 
- #define ALARMS_FROM_REG(val) (val)
- 
-+#define PWM_TO_REG(val)   ((val) >> 1)
-+#define PWM_FROM_REG(val) (((val)&0x7f) << 1)
-+
- static int DIV_TO_REG(int val)
- {
- 	int answer = 0;
-@@ -200,6 +202,8 @@
- 	u8 vid;			/* Register encoding, combined */
- 	int vrm;
- 	u32 alarms;		/* Register encoding, combined */
-+	u8 fan_main_ctrl;	/* Register value */
-+	u8 manual_pwm_ctl[3];   /* manual PWM value set by user */
- };
- 
- 
-@@ -440,18 +444,28 @@
- {
- 	struct it87_data *data = it87_update_device(dev);
- 	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan[nr], 
--				DIV_FROM_REG(data->fan_div[nr])) );
-+				DIV_FROM_REG(data->fan_div[nr])));
- }
- static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
- 	return sprintf(buf,"%d\n",
--		FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr])) );
-+		FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr])));
- }
- static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf,"%d\n", DIV_FROM_REG(data->fan_div[nr]) );
-+	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]));
-+}
-+static ssize_t show_pwm_enable(struct device *dev, char *buf, int nr)
-+{
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf,"%d\n", (data->fan_main_ctrl & (1 << nr)) ? 1 : 0);
-+}
-+static ssize_t show_pwm(struct device *dev, char *buf, int nr)
-+{
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf,"%d\n", data->manual_pwm_ctl[nr]);
- }
- static ssize_t set_fan_min(struct device *dev, const char *buf, 
- 		size_t count, int nr)
-@@ -499,6 +513,44 @@
- 	}
- 	return count;
- }
-+static ssize_t set_pwm_enable(struct device *dev, const char *buf,
-+		size_t count, int nr)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct it87_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+
-+	if (val = 0) {
-+		/* set on/off mode */
-+		data->fan_main_ctrl &= ~(1 << nr);
-+		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
-+	} else if (val = 1) {
-+		/* set SmartGuardian mode */
-+		data->fan_main_ctrl |= (1 << nr);
-+		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
-+		/* set saved pwm value, clear FAN_CTLX PWM mode bit */
-+		it87_write_value(client, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
-+	} else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+static ssize_t set_pwm(struct device *dev, const char *buf,
-+		size_t count, int nr)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct it87_data *data = i2c_get_clientdata(client);
-+	int val = simple_strtol(buf, NULL, 10);
-+
-+	if (val < 0 || val > 255)
-+		return -EINVAL;
-+
-+	data->manual_pwm_ctl[nr] = val;
-+	if (data->fan_main_ctrl & (1 << nr))
-+		it87_write_value(client, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
-+
-+	return count;
-+}
- 
- #define show_fan_offset(offset)						\
- static ssize_t show_fan_##offset (struct device *dev, char *buf)	\
-@@ -533,6 +585,36 @@
- show_fan_offset(2);
- show_fan_offset(3);
- 
-+#define show_pwm_offset(offset)						\
-+static ssize_t show_pwm##offset##_enable (struct device *dev,		\
-+	char *buf)							\
-+{									\
-+	return show_pwm_enable(dev, buf, offset - 1);			\
-+}									\
-+static ssize_t show_pwm##offset (struct device *dev, char *buf)		\
-+{									\
-+	return show_pwm(dev, buf, offset - 1);				\
-+}									\
-+static ssize_t set_pwm##offset##_enable (struct device *dev,		\
-+		const char *buf, size_t count)				\
-+{									\
-+	return set_pwm_enable(dev, buf, count, offset - 1);		\
-+}									\
-+static ssize_t set_pwm##offset (struct device *dev,			\
-+		const char *buf, size_t count)				\
-+{									\
-+	return set_pwm(dev, buf, count, offset - 1);			\
-+}									\
-+static DEVICE_ATTR(pwm##offset##_enable, S_IRUGO | S_IWUSR,		\
-+		show_pwm##offset##_enable,				\
-+		set_pwm##offset##_enable);				\
-+static DEVICE_ATTR(pwm##offset, S_IRUGO | S_IWUSR,			\
-+		show_pwm##offset , set_pwm##offset );
-+
-+show_pwm_offset(1);
-+show_pwm_offset(2);
-+show_pwm_offset(3);
-+
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, char *buf)
- {
-@@ -774,6 +856,12 @@
- 	device_create_file(&new_client->dev, &dev_attr_fan2_div);
- 	device_create_file(&new_client->dev, &dev_attr_fan3_div);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
-+	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
-+	device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
-+	device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
-+	device_create_file(&new_client->dev, &dev_attr_pwm1);
-+	device_create_file(&new_client->dev, &dev_attr_pwm2);
-+	device_create_file(&new_client->dev, &dev_attr_pwm3);
- 
- 	if (data->type = it8712) {
- 		device_create_file_vrm(new_client);
-@@ -851,12 +939,17 @@
- /* Called when we have found a new IT87. */
- static void it87_init_client(struct i2c_client *client, struct it87_data *data)
- {
--	int tmp;
-+	int tmp, i;
- 
--	if (reset) {
--		/* Reset all except Watchdog values and last conversion values
--		   This sets fan-divs to 2, among others */
--		it87_write_value(client, IT87_REG_CONFIG, 0x80);
-+	/* initialize to sane defaults:
-+	 * - if the chip is in manual pwm mode, this will be overwritten with
-+	 *   the actual settings on the chip (so in this case, initialization
-+	 *   is not needed)
-+	 * - if in automatic or on/off mode, we could switch to manual mode,
-+	 *   read the registers and set manual_pwm_ctl accordingly, but currently
-+	 *   this is not implemented, so we initialize to something sane */
-+	for (i = 0; i < 3; i++) {
-+		data->manual_pwm_ctl[i] = 0xff;
- 	}
- 
- 	/* Check if temperature channnels are reset manually or by some reason */
-@@ -876,13 +969,35 @@
- 	}
- 
- 	/* Check if tachometers are reset manually or by some reason */
--	tmp = it87_read_value(client, IT87_REG_FAN_MAIN_CTRL);
--	if ((tmp & 0x70) = 0) {
-+	data->fan_main_ctrl = it87_read_value(client, IT87_REG_FAN_MAIN_CTRL);
-+	if ((data->fan_main_ctrl & 0x70) = 0) {
- 		/* Enable all fan tachometers */
--		tmp = (tmp & 0x8f) | 0x70;
--		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, tmp);
-+		data->fan_main_ctrl |= 0x70;
-+		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
- 	}
- 
-+	/* Set current fan mode registers and the default settings for the
-+	 * other mode registers */
-+	for (i = 0; i < 3; i++) {
-+		if (data->fan_main_ctrl & (1 << i)) {
-+			/* pwm mode */
-+			tmp = it87_read_value(client, IT87_REG_PWM(i));
-+			if (tmp & 0x80) {
-+				/* automatic pwm - not yet implemented, but
-+				 * leave the settings made by the BIOS alone
-+				 * until a change is requested via the sysfs
-+				 * interface */
-+			} else {
-+				/* manual pwm */
-+				data->manual_pwm_ctl[i] = PWM_FROM_REG(tmp);
-+			}
-+		}
-+ 	}
-+
-+	/* make sure the fan is on when in on/off mode */
-+	tmp = it87_read_value(client, IT87_REG_FAN_CTL);
-+	it87_write_value(client, IT87_REG_FAN_CTL, tmp | 0x07);
-+
- 	/* Start monitoring */
- 	it87_write_value(client, IT87_REG_CONFIG,
- 			 (it87_read_value(client, IT87_REG_CONFIG) & 0x36)
-@@ -984,8 +1099,6 @@
- MODULE_DESCRIPTION("IT8705F, IT8712F, Sis950 driver");
- module_param(update_vbat, bool, 0);
- MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
--module_param(reset, bool, 0);
--MODULE_PARM_DESC(reset, "Reset the chip's registers, default no");
- MODULE_LICENSE("GPL");
- 
- module_init(sm_it87_init);
+-There exists several kernel drivers that are using an old version of the I2C
+-API. These drivers need to be converted to the current (kernel 2.5.x) version.
+-The following document provides a guideline to make the appropriate changes to
+-the affected drivers. There maybe slight modifications to this guide that are 
+-specific to the driver you are working on. If you see {driver_name}, replace 
+-that with the respective name of the driver, such as saa7110.c , {driver_name} 
+-= saa7110.
+-
+--------------------------------------------------------
+-
+-Step 1: Include the right header file
+- 
+-Perform the following change within the driver
+- 
+-#include <linux/i2c-old.h> --> #include <linux/i2c.h>
+-
+-Step 2: Add and set the i2c modes
+-
+-Add the following code near the top of the driver
+-
+-static unsigned short normal_i2c[] = {34>>1, I2C_CLIENT_END };
+-static unsigned short normal_i2c_range[] = { I2C_CLIENT_END };
+-static unsigned short probe[2] = { I2C_CLIENT_END , I2C_CLIENT_END };
+-static unsigned short probe_range[2] = { I2C_CLIENT_END , I2C_CLIENT_END };	
+-static unsigned short ignore[2] = { I2C_CLIENT_END , I2C_CLIENT_END };
+-static unsigned short ignore_range[2] = { I2C_CLIENT_END, I2C_CLIENT_END };
+-static unsigned short force[2] = { I2C_CLIENT_END , I2C_CLIENT_END };
+-
+-static struct i2c_client_address_data addr_data  = {
+-	normal_i2c , normal_i2c_range,
+-	probe , probe_range,
+-	ignore , ignore_range,
+-	force
+-};
+-
+-static struct i2c_client client_template;
+-
+-Step 3: Modify the driver info struct
+-
+-Within the struct for the driver , such as struct {driver_name}  ,  make the 
+-following change ,
+-struct i2c_bus *bus --> struct i2c_client *client
+-
+-Make changes where this change affects references within the file.
+-
+-Add a semaphore to the driver struct (as above)
+-
+-struct semaphore lock 
+-
+-Step 5: Remove specific read and write functions
+-
+-Remove the driver specific write and read functions, usually in the form:
+-{driver_name}_write , {driver_name}_read , {driver_name}_write_block , etc.
+-
+-Step 6: Update the write and read functions for the current I2C API
+-
+-Replace all references of {driver_name}_write with i2c_smbus_write_byte_data
+-Replace all references of {driver_name}_read with i2c_smbus_read_byte_data or
+-i2c_smbus_read_byte , depending on args passed in.
+-
+-** Ensure that these functions pass in the i2c_client *client , NOT the
+-decoder/encoder that was passed in the driver specific write and read
+-functions. 
+- 
+-Step 7: Modify the driver's attach function
+-
+-Change the driver attach function prototype :
+-{driver_name}_attach(struct i2c_device *device) --> {driver_name}_attach(struct 
+-i2c_adapter *adap, int addr , unsigned short flags, int kind)
+-
+-Create a i2c_client client...
+-Add the following (where "decoder" is a reference to a struct for the driver
+-info:
+-
+-struct i2c_client *client;
+-client = kmalloc(sizeof(*client), GFP_KERNEL);
+-if(client = NULL)
+-	return -ENOMEM;
+-client_template.adapter = adap;
+-client_template.addr  = addr;
+-memcpy(client, &client_template, sizeof(*client));
+-strcpy(client->name , "{driver_name}");
+-decoder->client = client;
+-client->data = decoder;
+-decoder->addr = addr;
+-
+-Towards the end of the function, add:
+-
+-init_MUTEX(&decoder->lock);
+-i2c_attach_client(client);
+-
+-
+-Step 8: Modify the driver's detach function
+-
+-Change the driver detach function prototype :
+-{driver_name}_detach(struct i2c_device *device) --> {driver_name}_detach(struct 
+-i2c_client *client)
+-
+-In the beginning of the detach function, add:
+-i2c_detach_client(client);
+-
+-Towards the end of the detach function, add:
+-kfree(client->data);
+-kfree(client);
+-
+-Step 9: Modify the driver's command function
+-
+-Change the driver command function prototype :
+-
+-Step 10: Add the probe function after the driver's attach function.
+-
+-Add the following code:
+-
+-static int {driver_name}_probe(struct i2c_adapter *adap)
+-{
+-	return i2c_probe(adap, &addr_data, {driver_name}_attach);
+-
+-}
+-
+-Step 11: Modify the driver's i2c_driver
+-
+-Find the i2c_driver , such as
+-static struct i2c_driver i2c_driver_saa7110
+-It is usually located towards the end of the driver 
+-Replace the values from I2C_DRIVERID_{something} to {driver_name}_attach, and 
+-add the following
+-I2C_DRIVERID_{driver_name} , // verify by looking in include/linux/i2c-id.h 
+-I2C_DF_NOTIFY,
+-{driver_name}_probe, 
+-....
+-
+-Step 12: Adding the i2c_client 
+-
+-Add the i2c_client to the driver. Add the following code:
+-
+-static struct i2c_client client_template = {
+-	"{driver_name}_client",
+-	-1,
+-	0,
+-	0,
+-	NULL,
+-	{i2c_driver reference}
+-};
+-
+-Step 13: Registering and Unregistering
+-
+-Replace i2c_register_driver with i2c_add_driver
+-Replace i2c_unregister_driver with i2c_del_driver
+-
+--------------------------------------------------------
+-
+-Example:
+-
+-The following patch provides the i2c coversion patch for the saa7110 driver
+-based on the above guide (for clarity).
+-
+-
+---- drivers/media/video/saa7110.c.old	Fri Jun 28 10:22:52 2002
+-+++ drivers/media/video/saa7110.c	Thu Jul  4 16:51:08 2002
+-@@ -26,7 +26,7 @@
+- #include <asm/io.h>
+- #include <asm/uaccess.h>
+- 
+--#include <linux/i2c-old.h>
+-+#include <linux/i2c.h>
+- #include <linux/videodev.h>
+- #include "linux/video_decoder.h"
+- 
+-@@ -37,13 +37,31 @@
+- 
+- #define	I2C_SAA7110		0x9C	/* or 0x9E */
+- 
+-+#define IF_NAME	"saa7110"
+- #define	I2C_DELAY		10	/* 10 us or 100khz */
+- 
+-+static unsigned short normal_i2c[] = {34>>1, I2C_CLIENT_END };
+-+static unsigned short normal_i2c_range[] = { I2C_CLIENT_END };
+-+static unsigned short probe[2] = { I2C_CLIENT_END, I2C_CLIENT_END };
+-+static unsigned short probe_range[2] = { I2C_CLIENT_END, I2C_CLIENT_END };
+-+static unsigned short ignore[2] = { I2C_CLIENT_END, I2C_CLIENT_END };
+-+static unsigned short ignore_range[2] = { I2C_CLIENT_END, I2C_CLIENT_END };
+-+static unsigned short force[2] = { I2C_CLIENT_END, I2C_CLIENT_END };
+-+
+-+static struct i2c_client_address_data addr_data = {
+-+	normal_i2c, normal_i2c_range,
+-+	probe, probe_range,
+-+	ignore, ignore_range,
+-+	force
+-+};
+-+
+-+static struct i2c_client client_template;
+-+
+- struct saa7110 {
+--	struct	i2c_bus	*bus;
+-+	struct i2c_client *client;
+- 	int		addr;
+- 	unsigned char	reg[36];
+--
+-+	struct semaphore lock;
+- 	int		norm;
+- 	int		input;
+- 	int		enable;
+-@@ -54,67 +72,10 @@
+- };
+- 
+- /* ----------------------------------------------------------------------- */
+--/* I2C support functions						   */
+--/* ----------------------------------------------------------------------- */
+--static
+--int saa7110_write(struct saa7110 *decoder, unsigned char subaddr, unsigned char data)
+--{
+--	int ack;
+--
+--	LOCK_I2C_BUS(decoder->bus);
+--	i2c_start(decoder->bus);
+--	i2c_sendbyte(decoder->bus, decoder->addr, I2C_DELAY);
+--	i2c_sendbyte(decoder->bus, subaddr, I2C_DELAY);
+--	ack = i2c_sendbyte(decoder->bus, data, I2C_DELAY);
+--	i2c_stop(decoder->bus);
+--	decoder->reg[subaddr] = data;
+--	UNLOCK_I2C_BUS(decoder->bus);
+--	return ack;
+--}
+--
+--static
+--int saa7110_write_block(struct saa7110* decoder, unsigned const char *data, unsigned int len)
+--{
+--	unsigned subaddr = *data;
+--
+--	LOCK_I2C_BUS(decoder->bus);
+--        i2c_start(decoder->bus);
+--        i2c_sendbyte(decoder->bus,decoder->addr,I2C_DELAY);
+--	while (len-- > 0) {
+--                if (i2c_sendbyte(decoder->bus,*data,0)) {
+--                        i2c_stop(decoder->bus);
+--                        UNLOCK_I2C_BUS(decoder->bus);
+--                        return -EAGAIN;
+--                }
+--		decoder->reg[subaddr++] = *data++;
+--        }
+--	i2c_stop(decoder->bus);
+--	UNLOCK_I2C_BUS(decoder->bus);
+--
+--	return 0;
+--}
+--
+--static
+--int saa7110_read(struct saa7110* decoder)
+--{
+--	int data;
+--
+--	LOCK_I2C_BUS(decoder->bus);
+--	i2c_start(decoder->bus);
+--	i2c_sendbyte(decoder->bus, decoder->addr, I2C_DELAY);
+--	i2c_start(decoder->bus);
+--	i2c_sendbyte(decoder->bus, decoder->addr | 1, I2C_DELAY);
+--	data = i2c_readbyte(decoder->bus, 1);
+--	i2c_stop(decoder->bus);
+--	UNLOCK_I2C_BUS(decoder->bus);
+--	return data;
+--}
+--
+--/* ----------------------------------------------------------------------- */
+- /* SAA7110 functions							   */
+- /* ----------------------------------------------------------------------- */
+- static
+--int saa7110_selmux(struct i2c_device *device, int chan)
+-+int saa7110_selmux(struct i2c_client *client, int chan)
+- {
+- static	const unsigned char modes[9][8] = {
+- /* mode 0 */	{ 0x00, 0xD9, 0x17, 0x40, 0x03, 0x44, 0x75, 0x16 },
+-@@ -126,61 +87,59 @@
+- /* mode 6 */	{ 0x80, 0x59, 0x17, 0x42, 0xA3, 0x44, 0x75, 0x12 },
+- /* mode 7 */	{ 0x80, 0x9A, 0x17, 0xB1, 0x13, 0x60, 0xB5, 0x14 },
+- /* mode 8 */	{ 0x80, 0x3C, 0x27, 0xC1, 0x23, 0x44, 0x75, 0x21 } };
+--	struct saa7110* decoder = device->data;
+- 	const unsigned char* ptr = modes[chan];
+- 
+--	saa7110_write(decoder,0x06,ptr[0]);	/* Luminance control	*/
+--	saa7110_write(decoder,0x20,ptr[1]);	/* Analog Control #1	*/
+--	saa7110_write(decoder,0x21,ptr[2]);	/* Analog Control #2	*/
+--	saa7110_write(decoder,0x22,ptr[3]);	/* Mixer Control #1	*/
+--	saa7110_write(decoder,0x2C,ptr[4]);	/* Mixer Control #2	*/
+--	saa7110_write(decoder,0x30,ptr[5]);	/* ADCs gain control	*/
+--	saa7110_write(decoder,0x31,ptr[6]);	/* Mixer Control #3	*/
+--	saa7110_write(decoder,0x21,ptr[7]);	/* Analog Control #2	*/
+-+	i2c_smbus_write_byte_data(client,0x06,ptr[0]);	/* Luminance control	*/
+-+	i2c_smbus_write_byte_data(client,0x20,ptr[1]);	/* Analog Control #1	*/
+-+	i2c_smbus_write_byte_data(client,0x21,ptr[2]);	/* Analog Control #2	*/
+-+	i2c_smbus_write_byte_data(client,0x22,ptr[3]);	/* Mixer Control #1	*/
+-+	i2c_smbus_write_byte_data(client,0x2C,ptr[4]);	/* Mixer Control #2	*/
+-+	i2c_smbus_write_byte_data(client,0x30,ptr[5]);	/* ADCs gain control	*/
+-+	i2c_smbus_write_byte_data(client,0x31,ptr[6]);	/* Mixer Control #3	*/
+-+	i2c_smbus_write_byte_data(client,0x21,ptr[7]);	/* Analog Control #2	*/
+- 
+- 	return 0;
+- }
+- 
+- static
+--int determine_norm(struct i2c_device* dev)
+-+int determine_norm(struct i2c_client* client)
+- {
+--	struct	saa7110* decoder = dev->data;
+- 	int	status;
+- 
+- 	/* mode changed, start automatic detection */
+--	status = saa7110_read(decoder);
+-+	status = i2c_smbus_read_byte(client);
+- 	if ((status & 3) = 0) {
+--		saa7110_write(decoder,0x06,0x80);
+-+		i2c_smbus_write_byte_data(client,0x06,0x80);
+- 		if (status & 0x20) {
+--			DEBUG(printk(KERN_INFO "%s: norm=bw60\n",dev->name));
+--			saa7110_write(decoder,0x2E,0x81);
+-+			DEBUG(printk(KERN_INFO "%s: norm=bw60\n",adp->name));
+-+			i2c_smbus_write_byte_data(client,0x2E,0x81);
+- 			return VIDEO_MODE_NTSC;
+- 		}
+--		DEBUG(printk(KERN_INFO "%s: norm=bw50\n",dev->name));
+--		saa7110_write(decoder,0x2E,0x9A);
+-+		DEBUG(printk(KERN_INFO "%s: norm=bw50\n",adp->name));
+-+		i2c_smbus_write_byte_data(client,0x2E,0x9A);
+- 		return VIDEO_MODE_PAL;
+- 	}
+- 
+--	saa7110_write(decoder,0x06,0x00);
+-+	i2c_smbus_write_byte_data(client,0x06,0x00);
+- 	if (status & 0x20) {	/* 60Hz */
+--		DEBUG(printk(KERN_INFO "%s: norm=ntsc\n",dev->name));
+--		saa7110_write(decoder,0x0D,0x06);
+--		saa7110_write(decoder,0x11,0x2C);
+--		saa7110_write(decoder,0x2E,0x81);
+-+		DEBUG(printk(KERN_INFO "%s: norm=ntsc\n",adp->name));
+-+		i2c_smbus_write_byte_data(client,0x0D,0x06);
+-+		i2c_smbus_write_byte_data(client,0x11,0x2C);
+-+		i2c_smbus_write_byte_data(client,0x2E,0x81);
+- 		return VIDEO_MODE_NTSC;
+- 	}
+- 
+- 	/* 50Hz -> PAL/SECAM */
+--	saa7110_write(decoder,0x0D,0x06);
+--	saa7110_write(decoder,0x11,0x59);
+--	saa7110_write(decoder,0x2E,0x9A);
+-+	i2c_smbus_write_byte_data(client,0x0D,0x06);
+-+	i2c_smbus_write_byte_data(client,0x11,0x59);
+-+	i2c_smbus_write_byte_data(client,0x2E,0x9A);
+- 
+- 	mdelay(150);	/* pause 150 ms */
+- 
+--	status = saa7110_read(decoder);
+-+	status = i2c_smbus_read_byte(client);
+- 	if ((status & 0x03) = 0x01) {
+- 		DEBUG(printk(KERN_INFO "%s: norm=secam\n",dev->name));
+--		saa7110_write(decoder,0x0D,0x07);
+-+		i2c_smbus_write_byte_data(client,0x0D,0x07);
+- 		return VIDEO_MODE_SECAM;
+- 	}
+- 	DEBUG(printk(KERN_INFO "%s: norm=pal\n",dev->name));
+-@@ -188,7 +147,7 @@
+- }
+- 
+- static
+--int saa7110_attach(struct i2c_device *device)
+-+int saa7110_attach(struct i2c_adapter *adap, int  addr, unsigned short flags, int kind)
+- {
+- static	const unsigned char initseq[] = {
+- 	     0, 0x4C, 0x3C, 0x0D, 0xEF, 0xBD, 0xF0, 0x00, 0x00,
+-@@ -198,20 +157,28 @@
+- 		0xD9, 0x17, 0x40, 0x41, 0x80, 0x41, 0x80, 0x4F,
+- 		0xFE, 0x01, 0xCF, 0x0F, 0x03, 0x01, 0x81, 0x03,
+- 		0x40, 0x75, 0x01, 0x8C, 0x03};
+--	struct	saa7110*	decoder;
+-+	struct	saa7110	*decoder;
+-+	struct i2c_client *client;
+- 	int			rv;
+--
+--	device->data = decoder = kmalloc(sizeof(struct saa7110), GFP_KERNEL);
+--	if (device->data = 0)
+-+	client=kmalloc(sizeof(*client), GFP_KERNEL);
+-+	if(client = NULL) 
+- 		return -ENOMEM;
+--
+-+	client_template.adapter = adap;
+-+	client_template.addr = addr;
+-+	memcpy(client, &client_template, sizeof(*client));
+-+
+-+	decoder = kmalloc(sizeof(*decoder), GFP_KERNEL);
+-+	if (decoder = NULL) {
+-+		kfree(client);
+-+		return -ENOMEM;
+-+		}
+- 
+- 	/* clear our private data */
+--	memset(decoder, 0, sizeof(struct saa7110));
+--	strcpy(device->name, "saa7110");
+--	decoder->bus = device->bus;
+--	decoder->addr = device->addr;
+-+	memset(decoder, 0, sizeof(*decoder));
+-+	strcpy(client->name, IF_NAME);
+-+	decoder->client = client;
+-+	client->data = decoder;
+-+	decoder->addr = addr;
+- 	decoder->norm = VIDEO_MODE_PAL;
+- 	decoder->input = 0;
+- 	decoder->enable = 1;
+-@@ -220,40 +187,52 @@
+- 	decoder->hue = 32768;
+- 	decoder->sat = 32768;
+- 
+--	rv = saa7110_write_block(decoder, initseq, sizeof(initseq));
+-+	rv = i2c_master_send(client, initseq, sizeof(initseq));
+- 	if (rv < 0)
+--		printk(KERN_ERR "%s_attach: init status %d\n", device->name, rv);
+-+		printk(KERN_ERR "%s_attach: init status %d\n", client->name, rv);
+- 	else {
+--		saa7110_write(decoder,0x21,0x16);
+--		saa7110_write(decoder,0x0D,0x04);
+--		DEBUG(printk(KERN_INFO "%s_attach: chip version %x\n", device->name, saa7110_read(decoder)));
+--		saa7110_write(decoder,0x0D,0x06);
+-+		i2c_smbus_write_byte_data(client,0x21,0x16);
+-+		i2c_smbus_write_byte_data(client,0x0D,0x04);
+-+		DEBUG(printk(KERN_INFO "%s_attach: chip version %x\n", client->name, i2c_smbus_read_byte(client)));
+-+		i2c_smbus_write_byte_data(client,0x0D,0x06);
+- 	}
+- 
+-+	init_MUTEX(&decoder->lock);
+-+	i2c_attach_client(client);
+- 	/* setup and implicit mode 0 select has been performed */
+- 	return 0;
+- }
+- 
+-+static 
+-+int saa7110_probe(struct i2c_adapter *adap) 
+-+{
+-+	return i2c_probe(adap, &addr_data, saa7110_attach);
+-+}
+-+
+- static
+--int saa7110_detach(struct i2c_device *device)
+-+int saa7110_detach(struct i2c_client *client)
+- {
+--	struct saa7110* decoder = device->data;
+-+	struct saa7110* decoder = client->data;
+- 
+--	DEBUG(printk(KERN_INFO "%s_detach\n",device->name));
+-+	i2c_detach_client(client);
+-+
+-+	DEBUG(printk(KERN_INFO "%s_detach\n",client->name));
+- 
+- 	/* stop further output */
+--	saa7110_write(decoder,0x0E,0x00);
+-+	i2c_smbus_write_byte_data(client,0x0E,0x00);
+- 
+--	kfree(device->data);
+-+	kfree(decoder);
+-+	kfree(client);
+- 
+- 	return 0;
+- }
+- 
+- static
+--int saa7110_command(struct i2c_device *device, unsigned int cmd, void *arg)
+-+int saa7110_command(struct i2c_client *client, unsigned int cmd, void *arg)
+- {
+--	struct saa7110* decoder = device->data;
+-+	struct saa7110* decoder = client->data;
+- 	int	v;
+- 
+- 	switch (cmd) {
+-@@ -272,11 +251,11 @@
+- 
+- 	 case DECODER_GET_STATUS:
+- 		{
+--			struct saa7110* decoder = device->data;
+-+			struct saa7110* decoder = client->data;
+- 			int status;
+- 			int res = 0;
+- 
+--			status = i2c_read(device->bus,device->addr|1);
+-+			status = i2c_smbus_read_byte(client);
+- 			if (status & 0x40)
+- 				res |= DECODER_STATUS_GOOD;
+- 			if (status & 0x03)
+-@@ -301,26 +280,26 @@
+- 		v = *(int*)arg;
+- 		if (decoder->norm != v) {
+- 			decoder->norm = v;
+--			saa7110_write(decoder, 0x06, 0x00);
+-+			i2c_smbus_write_byte_data(client, 0x06, 0x00);
+- 			switch (v) {
+- 			 case VIDEO_MODE_NTSC:
+--				saa7110_write(decoder, 0x0D, 0x06);
+--				saa7110_write(decoder, 0x11, 0x2C);
+--				saa7110_write(decoder, 0x30, 0x81);
+--				saa7110_write(decoder, 0x2A, 0xDF);
+-+				i2c_smbus_write_byte_data(client, 0x0D, 0x06);
+-+				i2c_smbus_write_byte_data(client, 0x11, 0x2C);
+-+				i2c_smbus_write_byte_data(client, 0x30, 0x81);
+-+				i2c_smbus_write_byte_data(client, 0x2A, 0xDF);
+- 				break;
+- 			 case VIDEO_MODE_PAL:
+--				saa7110_write(decoder, 0x0D, 0x06);
+--				saa7110_write(decoder, 0x11, 0x59);
+--				saa7110_write(decoder, 0x2E, 0x9A);
+-+				i2c_smbus_write_byte_data(client, 0x0D, 0x06);
+-+				i2c_smbus_write_byte_data(client, 0x11, 0x59);
+-+				i2c_smbus_write_byte_data(client, 0x2E, 0x9A);
+- 				break;
+- 			 case VIDEO_MODE_SECAM:
+--				saa7110_write(decoder, 0x0D, 0x07);
+--				saa7110_write(decoder, 0x11, 0x59);
+--				saa7110_write(decoder, 0x2E, 0x9A);
+-+				i2c_smbus_write_byte_data(client, 0x0D, 0x07);
+-+				i2c_smbus_write_byte_data(client, 0x11, 0x59);
+-+				i2c_smbus_write_byte_data(client, 0x2E, 0x9A);
+- 				break;
+- 			 case VIDEO_MODE_AUTO:
+--				*(int*)arg = determine_norm(device);
+-+				*(int*)arg = determine_norm(client);
+- 				break;
+- 			 default:
+- 				return -EPERM;
+-@@ -334,7 +313,7 @@
+- 			return -EINVAL;
+- 		if (decoder->input != v) {
+- 			decoder->input = v;
+--			saa7110_selmux(device, v);
+-+			saa7110_selmux(client, v);
+- 		}
+- 		break;
+- 
+-@@ -349,7 +328,7 @@
+- 		v = *(int*)arg;
+- 		if (decoder->enable != v) {
+- 			decoder->enable = v;
+--			saa7110_write(decoder,0x0E, v ? 0x18 : 0x00);
+-+			i2c_smbus_write_byte_data(client,0x0E, v ? 0x18 : 0x00);
+- 		}
+- 		break;
+- 
+-@@ -360,22 +339,22 @@
+- 			if (decoder->bright != pic->brightness) {
+- 				/* We want 0 to 255 we get 0-65535 */
+- 				decoder->bright = pic->brightness;
+--				saa7110_write(decoder, 0x19, decoder->bright >> 8);
+-+				i2c_smbus_write_byte_data(client, 0x19, decoder->bright >> 8);
+- 			}
+- 			if (decoder->contrast != pic->contrast) {
+- 				/* We want 0 to 127 we get 0-65535 */
+- 				decoder->contrast = pic->contrast;
+--				saa7110_write(decoder, 0x13, decoder->contrast >> 9);
+-+				i2c_smbus_write_byte_data(client, 0x13, decoder->contrast >> 9);
+- 			}
+- 			if (decoder->sat != pic->colour) {
+- 				/* We want 0 to 127 we get 0-65535 */
+- 				decoder->sat = pic->colour;
+--				saa7110_write(decoder, 0x12, decoder->sat >> 9);
+-+				i2c_smbus_write_byte_data(client, 0x12, decoder->sat >> 9);
+- 			}
+- 			if (decoder->hue != pic->hue) {
+- 				/* We want -128 to 127 we get 0-65535 */
+- 				decoder->hue = pic->hue;
+--				saa7110_write(decoder, 0x07, (decoder->hue>>8)-128);
+-+				i2c_smbus_write_byte_data(client, 0x07, (decoder->hue>>8)-128);
+- 			}
+- 		}
+- 		break;
+-@@ -383,7 +362,7 @@
+- 	 case DECODER_DUMP:
+- 		for (v=0; v<34; v+) {
+- 			int j;
+--			DEBUG(printk(KERN_INFO "%s: %03x\n",device->name,v));
+-+			DEBUG(printk(KERN_INFO "%s: %03x\n",client->name,v));
+- 			for (j=0; j<16; j++) {
+- 				DEBUG(printk(KERN_INFO " %02x",decoder->reg[v+j]));
+- 			}
+-@@ -402,24 +381,30 @@
+- 
+- static struct i2c_driver i2c_driver_saa7110 - {
+--	"saa7110",			/* name */
+--
+--	I2C_DRIVERID_VIDEODECODER,	/* in i2c.h */
+--	I2C_SAA7110, I2C_SAA7110+1,	/* Addr range */
+--
+--	saa7110_attach,
+--	saa7110_detach,
+--	saa7110_command
+-+	.owner		= THIS_MODULE,
+-+	.name		= IF_NAME,
+-+	.id		= I2C_DRIVERID_SAA7110,
+-+	.flags		= I2C_DF_NOTIFY,
+-+	.attach_adapter	= saa7110_probe,
+-+	.detach_adapter	= saa7110_detach,
+-+	.command	= saa7110_command,
+- };
+-+static struct i2c_client client_template = {
+-+	"saa7110_client",
+-+	-1,
+-+	0,
+-+	0,
+-+	NULL,
+-+	&i2c_driver_saa7110
+-+};
+- 
+- static int saa7110_init(void)
+- {
+--	return i2c_register_driver(&i2c_driver_saa7110);
+-+	return i2c_add_driver(&i2c_driver_saa7110);
+- }
+- 
+- static void saa7110_exit(void)
+- {
+--	i2c_unregister_driver(&i2c_driver_saa7110);
+-+	i2c_del_driver(&i2c_driver_saa7110);
+- }
+- 
+- 
+- 
+-
 
