@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:44 +0000
 Subject: Query on apparently 'disconnected' sysfs interfaces
-Message-Id: <ulam31pub1dplqrjt149rc84hh5tfuv2bo@4ax.com>
+Message-Id: <20050318223348.048e3b48.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
 In-Reply-To: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
@@ -10,48 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 18 Mar 2005 00:25:39 -0500, "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
-. . .
->Each show_temp() defines an entire (small) function.  The preprocessor
->operator ## is used to tack the literal text "input1" onto "show_temp_"
->to form a single token.  See page 90 of K&R/C.
+Hi Grant,
 
-So I gotta go find a copy of a book I chucked >20 years ago?  :o)
->
->> Are there tools written to perform this or similar checking?
->> I'd really dislike re-inventing this stuff.  
->
->I'm not sure what you mean here.  What checking?
+> These items do not appear in doc/i2c/sysfs-interface, yet to 
+> check source context, ad hoc grep & cut in drivers/i2c/chips:
+> 
+> alarm_mask	< beep_mask?  I'd like to have alarm_mask
 
-These items do not appear in doc/i2c/sysfs-interface, yet to 
-check source context, ad hoc grep & cut in drivers/i2c/chips:
+Beep mask and alarm mask are different things. Alarm mask lets you
+ignore an alarm completely. Beep mask preserves the alarm but masks the
+associated beeping.
 
-alarm_mask	< beep_mask?  I'd like to have alarm_mask
-alarms_in
-alarms_temp
-analog_out
-aout_output	< analog_out ?
-die_code
-fan1_auto
-gpio
-gpio_mask
-in1_ref
-out0_enable
-out0_output
-temp1_crit_enable
-temp1_hyst
-temp1_min_hyst
-vid		< cpu0_vid?
+If alarm_mask isn't documented, it should - except that it should be
+alarms_mask.
 
-At this point in time I'm quite happy to document and cross-reference 
-current practice, but I don't want to duplicate a work-in-progress.
+> alarms_in
+> alarms_temp
 
-Whether this is useful to the group I don't know, but I'll chase 
-documentation in preference to ad hoc coding, or blindly copy-paste 
-what might work -- too much of that has happened already.
+Variants of alarms, where you have separate files instead of one single
+one. Could be documented.
 
->I hope this helps; regards,
-yes, it does, thank you.
+> analog_out
+> aout_output	< analog_out ?
+> out0_output
 
-Cheers,
-Grant.
+This is the same thing. If we follow the naming convention for the other
+channels, the correct one would be out0_output. Should be documented,
+and drivers using analog_out and aout_output should be fixed.
+
+> die_code
+
+Should probably be dropped (useless), but see below.
+
+> in1_ref
+> vid		< cpu0_vid?
+
+Both should cpu0_vid, drivers need to be fixed.
+
+> fan1_auto
+> gpio
+> gpio_mask
+> out0_enable
+> temp1_crit_enable
+> temp1_hyst
+> temp1_min_hyst
+
+I see nothing wrong with these. Remember that sysfs-interface documents
+the names for standard interface files. When a drivers has additional
+needs, it is free to use additional names. These might be standardized
+and documented later if other drivers also need the same.
+
+The rule is that undocumented file names can be arbitrarily changed
+afterwards when a standard is established and documented. Documented
+file names should not change.
+
+> At this point in time I'm quite happy to document and cross-reference 
+> current practice, but I don't want to duplicate a work-in-progress.
+
+Nobody is working on this at the moment. We'd welcome patches fixing
+drivers that use incorrect file names, and documentation updates.
+
+Thanks,
+-- 
+Jean Delvare
