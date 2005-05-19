@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: I2C driver for embedded Motorola PPC products
-Message-Id: <20040311015008.GA13614@kroah.com>
+Message-Id: <1078998712.405036b8a9361@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <0AB9C6CD-72E3-11D8-B2B5-000393DBC2E8@motorola.com>
 In-Reply-To: <0AB9C6CD-72E3-11D8-B2B5-000393DBC2E8@motorola.com>
@@ -10,19 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 10, 2004 at 08:30:36PM -0500, Mark Studebaker wrote:
-> 
-> So we're happy to review your driver and help you out if you need it.
+Quoting Mark Studebaker <mds4@verizon.net>:
+
 > But if you're looking to get the driver where people will use it,
 > and ultimately into the mainstream kernel, you should target
 > a PPC 2.6 tree.
 
-The mainline kernel works just fine on a ppc64 box, so the mainline
-kernel is the "ppc 2.6" tree these days :)
+Is it related to i2c-algo-8xx and i2c-rpx we have in our i2c repository?
+If new developments have occured elsewhere, we may even consider
+removing these files completely on our side, since it's more lilely to
+cause trouble (people starting to work on old material when newer
+versions exist) than anything else.
 
-Now yes, there is a separate ppc kernel tree, but the delta between it
-and mainline is getting much smaller, thankfully...
-
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
