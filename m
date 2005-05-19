@@ -1,34 +1,37 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:01 +0000
-Subject: [nikkne@hotpop.com: I2C proc support for 2.5.xx]
-Message-Id: <20030623134854.GB8233@kroah.com>
+From: tenchy@pacbell.net (John Jones)
+Date: Thu, 19 May 2005 06:24:45 +0000
+Subject: lm_sensors problem booting after install
+Message-Id: <4044E51F.9050908@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030623114446.GB20361@frodo.local>
-In-Reply-To: <20030623114446.GB20361@frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Hi, I've noticed that the linux-kernel Documentation says there is i2c
-> proc/ support, but there is none. kernel tree is missing i2c-proc.[h|c]
-> files.
+My system is an AMD64 with Nforce3 and ite8712f-A chips.
 
-For 2.5, yes, sensor information does not show up in /proc anymore.
+I was hoping to get partial info from the ite chip.
 
-> If those files shouldn't exist in kernel-tree, then the documentation
-> and help for CONFIG_I2C should be fixed. Otherwise, those files should
-> be added.
+after placing the following in the /etc/modules.conf
 
-True, want to send a patch to fix this?
+> alias eth1 tulip
+> alias char-major-195 nvidia
+> # I2C module options
+> alias char-major-89 i2c-dev
+> options it87 ignore=-1,0x290
+> # I2C adapter drivers
+> #modprobe i2c-isa
+> # I2C chip drivers
+> #modprobe it87
+> # sleep 2 # optional
+> #/usr/local/bin/sensors -s # recommended
 
-> I've tried to build kernel 2.5.72, with turned on support for i2c (as
-> module) and /proc but there was no i2c-proc, which made sensors tool
-> (from working 2.4.21 instalation) totaly useless.
+when modprobe it87 activates it shuts down all my internal fans.
 
-Yup, lmsensors will need to be changed for 2.5/2.6 kernels due to the
-change to sysfs.  Want to help out?
+anyway commenting out the last 2 modprobes, sensors -s and removing the 
+lm_sensors file from the /etc/rc.d/init.d allows me to reboot.
 
-thanks,
+Also when I rebooted the first time there were massive failures from 
+other devices such as mouse iptables ect...
 
-greg k-h
+Thanks in advanced john
