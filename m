@@ -1,31 +1,29 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: Ticket # 835
-Message-Id: <3C8AA949.3050209@paradyne.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:52 +0000
+Subject: Query: using parport to send 24-bit serial clock and data?
+Message-Id: <hbn5619oiuenbrvpf8sj49fh89kb1fj34s@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.44.0203072305120.250-100000@sadesky.strangelove.net>
-In-Reply-To: <Pine.LNX.4.44.0203072305120.250-100000@sadesky.strangelove.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-It's unlikely that you have a real lm78.
-Please look at your board and verify your device.
-mds
+Hi there,
 
-Brian Macke wrote:
-> Sorry about that.
-> 
-> I cut off the line "lm78-i2c-1-2c" from my sensors output.
-> 
-> 
-> 
-> -Brian James Macke					macke@strangelove.net
-> <http://www.avalon.net/~macke/>                               The Prophet
->     "In order to get that which you wish for, you must first get that which
->      builds it."			-- Unknown
-> 
-> 
+I'd like to make an Aztech radio card work outside of the PC, to 
+improve the reception, as the card is unshielded.  Interface would 
+be parallel port for controlling channel select.
 
+Need to send a 24-bit control word to LM7001 PLL chip.
 
+The format is chip_enable + serial_clock + data.  Bit-bangimg like 
+i2c but not the same as there is no serial address decoder, just one 
+long control word.
+
+I need to take ownership of parport, then bit-bang the serial control 
+word as well as tickle other signals.
+
+So which low-level driver would you suggest as a starting point?
+
+Thanks,
+Grant.
