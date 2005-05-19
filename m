@@ -1,21 +1,53 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:29 +0000
-Subject: [PATCH] sensord: wrong error message with /proc or /sys not
-Message-Id: <20050106194303.7741174e.khali@linux-fr.org>
+From: ladis@linux-mips.org (Ladislav Michl)
+Date: Thu, 19 May 2005 06:25:49 +0000
+Subject: [PATCH] ds1337 1/4
+Message-Id: <20050407231758.GB27226@orphique>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050105212346.GA19356@bode.aurel32.lan>
-In-Reply-To: <20050105212346.GA19356@bode.aurel32.lan>
+References: <20050407111631.GA21190@orphique> <hOrXV5wl.1112879260.3338120.khali@localhost> <20050407142804.GA11284@orphique> <20050407211839.GA5357@kroah.com>
+In-Reply-To: <20050407211839.GA5357@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>
 
-> > True. I would certainly accept a patch that does this ;)
->
-> Attached. 
+On Thu, Apr 07, 2005 at 02:18:39PM -0700, Greg KH wrote:
+> Jean's point is that you should send an individual patch for each type
+> of individual change.  It's ok to say "patch 3 requires you to have
+> applied patches 1 and 2" and so on.  Please split this up better.
 
-Applied, thanks.
+Here it is...
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Use i2c_transfer to send message, so we get proper bus locking.
+
+=== drivers/i2c/chips/ds1337.c 1.1 vs edited ==--- 1.1/drivers/i2c/chips/ds1337.c	2005-03-31 22:58:08 +02:00
++++ edited/drivers/i2c/chips/ds1337.c	2005-04-08 00:18:45 +02:00
+@@ -3,7 +3,7 @@
+  *
+  *  Copyright (C) 2005 James Chapman <jchapman@katalix.com>
+  *
+- *	based on linux/drivers/acron/char/pcf8583.c
++ *	based on linux/drivers/acorn/char/pcf8583.c
+  *  Copyright (C) 2000 Russell King
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -119,8 +119,7 @@
+ 	msg[1].len = sizeof(buf);
+ 	msg[1].buf = &buf[0];
+ 
+-	result = client->adapter->algo->master_xfer(client->adapter,
+-						    &msg[0], 2);
++	result = i2c_transfer(client->adapter, msg, 2);
+ 
+ 	dev_dbg(&client->adapter->dev,
+ 		"%s: [%d] %02x %02x %02x %02x %02x %02x %02x\n",
+@@ -194,8 +193,7 @@
+ 	msg[0].len = sizeof(buf);
+ 	msg[0].buf = &buf[0];
+ 
+-	result = client->adapter->algo->master_xfer(client->adapter,
+-						    &msg[0], 1);
++	result = i2c_transfer(client->adapter, msg, 1);
+ 	if (result < 0) {
+ 		dev_err(&client->adapter->dev, "ds1337[%d]: error "
+ 			"writing data! %d\n", data->id, result);
