@@ -1,42 +1,53 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [Fwd: PC to I2C/SPI/GPIO Interface Adapter]
-Message-Id: <42261557.3030406@edgedesign.us>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:24 +0000
+Subject: [PATCH 2.4] Update I2C maintainers entry
+Message-Id: <20031108170830.4b493a4a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Marcelo Tosatti <marcelo@cyclades.com>, LKML <linux-kernel@vger.kernel.org>
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, Greg KH <greg@kroah.com>
 
 
-I said "no, thanks" to this since a driver for such a thing doesn't 
-belong in our framework (it's a USB device).  But, I'll forward it along 
-as a curiosity.
+Hi Marcelo, hi all,
 
+Below is a patch to MAINTAINERS that updates the I2C DRIVERS entry. I
+volunteered to become the main contact for that subsystem in Linux 2.4,
+since both Simon Vogl and Frodo Looijaard have left the project by now.
+Greg KH will continue to take care of the i2c subsystem in Linux 2.6.
+Relevant threads on the LM Sensors mailing list, that show the
+legitimacy of the change, are:
+  http://archives.andrew.net.au/lm-sensors/msg02456.html
+  http://archives.andrew.net.au/lm-sensors/msg04585.html
 
-Phil
+This also makes the entry more in line with the one in Linux 2.6 (same
+entry name, same mailing-list, same web site).
 
--------- Original Message --------
-Date: 	Wed, 02 Mar 2005 02:09:09 +0200
-From: 	Dmitry Kulik <dima@xdimax.com>
-Organization: 	Dimax
+Please apply.
 
+--- linux-2.4.23-pre9/MAINTAINERS.orig	Sat Nov  8 14:46:45 2003
++++ linux-2.4.23-pre9/MAINTAINERS	Sat Nov  8 16:04:30 2003
+@@ -808,13 +808,11 @@
+ W:	http://artax.karlin.mff.cuni.cz/~mikulas/vyplody/hpfs/index-e.cgi
+ S:	Maintained
+ 
+-I2C DRIVERS
+-P:	Simon Vogl
+-M:	simon@tk.uni-linz.ac.at
+-P:	Frodo Looijaard
+-M:	frodol@dds.nl
+-L:	linux-i2c@pelican.tk.uni-linz.ac.at
+-W:	http://www.tk.uni-linz.ac.at/~simon/private/i2c
++I2C AND SENSORS DRIVERS
++P:	Jean Delvare
++M:	khali@linux-fr.org
++L:	sensors@stimpy.netroedge.com
++W:	http://www.lm-sensors.nu/
+ S:	Maintained
+ 
+ i386 BOOT CODE
 
-
-Hello,
-
-Can you please consider the possibility to add link to ?PC to
-I2C/SPI/GPIO Interface Adapter (USB solution)? at your site. This board
-has support both for Linux and Windows with a lot of open source
-software and flexible API for custom application development. I suppose
-it will fit your site context.
-
-Our device and it?s description you can find at:
-http://www.xdimax.com/u2c/u2c11.html
-
-
-If you have any questions please fill free to contact me.
-
-Thank You.
-Best Regards.
-Dmitry.
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
