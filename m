@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:27 +0000
 Subject: EP-9NDA3+ w/ Winbond W83627THF LPC
-Message-Id: <20041219144520.GA10771@jupiter.solarsys.private>
+Message-Id: <20041219160646.5987c21d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <32906.216.9.170.171.1103272080.spork@webmail.necrotec.com>
 In-Reply-To: <32906.216.9.170.171.1103272080.spork@webmail.necrotec.com>
@@ -10,48 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+Hi Mark,
 
-* Jean Delvare <khali@linux-fr.org> [2004-12-19 14:06:15 +0100]:
-> Hi again Erek,
+> > I have come up with a very simplified patch that would do that. Not
+> > exactly elegant but it keeps the changes to a minimum. The one I
+> > worked on while we were on IRC was really too complex and had
+> > drawbacks too.
 > 
-> > Explanation was: the W83627THF is on secondary Super-I/O address
-> > (0x4e/0x4f), and the driver doesn't support that.
-> > 
-> > The driver would need to be updated in the same way I did for the
-> > pc87360.
+> It looks OK to me; not sure what you don't like about it.
+
+Global variable sucks. The way I supported the secondary Super-I/O
+address to the pc87360 driver looks far better to me, but unfortunately
+it doesn't work for the w83627hf driver because it accesses the
+Super-I/O space outside of the "find" function.
+
+> > +	dev_info(&client->dev, "Reading VID from GPIO5\n");
 > 
-> I have come up with a very simplified patch that would do that. Not
-> exactly elegant but it keeps the changes to a minimum. The one I worked
-> on while we were on IRC was really too complex and had drawbacks too.
+> I think this should be dev_dbg().
 
-It looks OK to me; not sure what you don't like about it.
+Why? I think it's useful for the regular user to know that we are
+reading the VID value from GPIO pins (which by definition could be used
+for something different). It would also help us track problems if people
+report about bad cpu0_vid value with that driver. If you can come up
+with a better message, let me know.
 
-> I have attached the patch to this mail, could you please give it a try?
-> It should apply to your 2.6.8.1 kernel just fine (to the original file
-> of course, not the one we modified together). If it works I'll push it
-> to Greg for inclusion into the main kernel tree, and will also backport
-> it to our lm_sensors CVS repository.
-> 
-> I also have a second patch (attached too) which partly rewrites the way
-> the VID pins (nominal CPU core voltage) are read on the W83627THF (the
-> chip you have). I would be grateful if you could give a try to this one
-> too (again, should apply fine to your 2.6.8.1 kernel on top of the first
-> one of this mail) and report if VID value is still OK for you. The patch
-> drops useless code and adds additional validity checks and support for
-> VRM 10 (6-bit VID values).
+Maybe it would be even better to *not* create any cpu0_vid file when the
+GPIO pins are not possibly used for that, instead of returning the
+default value (all bits set) which in turn will result in a 0V value.
+This would require more changes (including in the sensors program), and
+I don't think I'll go into that until I get a supported chip myself.
 
-I added both patches to my stack and it works fine here.  But of course
-my chip uses the normal 0x2e/0x2f.
-
-(...)
-
-> +	dev_info(&client->dev, "Reading VID from GPIO5\n");
-
-I think this should be dev_dbg().
-
-Regards,
-
+Thanks,
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://khali.linux-fr.org/
