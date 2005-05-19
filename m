@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:48 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.4
-Message-Id: <107939139416@kroah.com>
+Message-Id: <107939139468@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1079391394165@kroah.com>
+In-Reply-To: <10793913942653@kroah.com>
 References: <10793913903814@kroah.com>
 In-Reply-To: <10793913903814@kroah.com>
 MIME-Version: 1.0
@@ -11,145 +11,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1608.74.14, 2004/03/15 13:08:29-08:00, khali@linux-fr.org
+ChangeSet 1.1608.74.12, 2004/03/15 10:28:32-08:00, greg@kroah.com
 
-[PATCH] I2C: fix forced i2c chip drivers have no name
-
-I just noticed that I am doing something wrong in the i2c chip drivers I
-ported to Linux 2.6. If these drivers are forced to a specific chip type
-("kind" as we call it internally), then the device doesn't have its name
-set (and defaults to an empty string).
-
-Affected drivers: gl518sm, lm83, lm90, w83l785ts.
-
-I could verify the problem on my ADM1032 chip (lm90 driver). I also
-verified that the proposed patch fixes the issue.
-
-You may notice that I fix the problem differently for gl518sm and
-w83l785ts on the one hand, and lm83 and lm90 on the other hand. This is
-because the first two drivers are not expected to support more a single
-chip in the future, while lm90 already does and lm83 could someday (for
-example, support for the LM82 could be added on request).
+[PATCH] I2C: add CONFIG_I2C_DEBUG_ALGO to be consistant.
 
 
- drivers/i2c/chips/gl518sm.c   |    5 +----
- drivers/i2c/chips/lm83.c      |    5 ++++-
- drivers/i2c/chips/lm90.c      |    8 ++++++--
- drivers/i2c/chips/w83l785ts.c |    4 +---
- 4 files changed, 12 insertions(+), 10 deletions(-)
+ drivers/i2c/Kconfig              |    9 +++++++++
+ drivers/i2c/algos/Makefile       |    4 ++++
+ drivers/i2c/algos/i2c-algo-bit.c |    2 --
+ drivers/i2c/algos/i2c-algo-pcf.c |    2 --
+ 4 files changed, 13 insertions(+), 4 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/gl518sm.c b/drivers/i2c/chips/gl518sm.c
---- a/drivers/i2c/chips/gl518sm.c	Mon Mar 15 14:34:09 2004
-+++ b/drivers/i2c/chips/gl518sm.c	Mon Mar 15 14:34:09 2004
-@@ -345,7 +345,6 @@
- 	struct i2c_client *new_client;
- 	struct gl518_data *data;
- 	int err = 0;
--	const char *name = "";
+diff -Nru a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+--- a/drivers/i2c/Kconfig	Mon Mar 15 14:34:18 2004
++++ b/drivers/i2c/Kconfig	Mon Mar 15 14:34:18 2004
+@@ -46,6 +46,15 @@
+ 	  messages to the system log.  Select this if you are having a
+ 	  problem with I2C support and want to see more of what is going on.
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
- 				     I2C_FUNC_SMBUS_WORD_DATA))
-@@ -385,10 +384,8 @@
- 		i = gl518_read_value(new_client, GL518_REG_REVISION);
- 		if (i = 0x00) {
- 			kind = gl518sm_r00;
--			name = "gl518sm";
- 		} else if (i = 0x80) {
- 			kind = gl518sm_r80;
--			name = "gl518sm";
- 		} else {
- 			if (kind <= 0)
- 				dev_info(&adapter->dev,
-@@ -400,7 +397,7 @@
- 	}
- 
- 	/* Fill in the remaining client fields */
--	strlcpy(new_client->name, name, I2C_NAME_SIZE);
-+	strlcpy(new_client->name, "gl518sm", I2C_NAME_SIZE);
- 	new_client->id = gl518_id++;
- 	data->type = kind;
- 	data->valid = 0;
-diff -Nru a/drivers/i2c/chips/lm83.c b/drivers/i2c/chips/lm83.c
---- a/drivers/i2c/chips/lm83.c	Mon Mar 15 14:34:09 2004
-+++ b/drivers/i2c/chips/lm83.c	Mon Mar 15 14:34:09 2004
-@@ -284,7 +284,6 @@
- 		if (man_id = 0x01) { /* National Semiconductor */
- 			if (chip_id = 0x03) {
- 				kind = lm83;
--				name = "lm83";
- 			}
- 		}
- 
-@@ -294,6 +293,10 @@
- 			    "chip_id=0x%02X).\n", man_id, chip_id);
- 			goto exit_free;
- 		}
-+	}
++config I2C_DEBUG_ALGO
++	bool "I2C Algorithm debugging messages"
++	depends on I2C
++	help
++	  Say Y here if you want the I2C algorithm drivers to produce a bunch
++	  of debug messages to the system log.  Select this if you are having
++	  a problem with I2C support and want to see more of what is going
++	  on.
 +
-+	if (kind = lm83) {
-+		name = "lm83";
- 	}
- 
- 	/* We can fill in the remaining client fields */
-diff -Nru a/drivers/i2c/chips/lm90.c b/drivers/i2c/chips/lm90.c
---- a/drivers/i2c/chips/lm90.c	Mon Mar 15 14:34:09 2004
-+++ b/drivers/i2c/chips/lm90.c	Mon Mar 15 14:34:09 2004
-@@ -337,7 +337,6 @@
- 				LM90_REG_R_CONFIG2) & 0xF8) = 0x00
- 			   && reg_convrate <= 0x09))) {
- 				kind = lm90;
--				name = "lm90";
- 			}
- 		}
- 		else if (man_id = 0x41) { /* Analog Devices */
-@@ -345,7 +344,6 @@
- 			 && (kind = 0 /* skip detection */
- 			  || (reg_config1 & 0x3F) = 0x00)) {
- 				kind = adm1032;
--				name = "adm1032";
- 			}
- 		}
- 
-@@ -355,6 +353,12 @@
- 			    "chip_id=0x%02X).\n", man_id, chip_id);
- 			goto exit_free;
- 		}
-+	}
+ config I2C_DEBUG_BUS
+ 	bool "I2C Bus debugging messages"
+ 	depends on I2C
+diff -Nru a/drivers/i2c/algos/Makefile b/drivers/i2c/algos/Makefile
+--- a/drivers/i2c/algos/Makefile	Mon Mar 15 14:34:18 2004
++++ b/drivers/i2c/algos/Makefile	Mon Mar 15 14:34:18 2004
+@@ -5,3 +5,7 @@
+ obj-$(CONFIG_I2C_ALGOBIT)	+= i2c-algo-bit.o
+ obj-$(CONFIG_I2C_ALGOPCF)	+= i2c-algo-pcf.o
+ obj-$(CONFIG_I2C_ALGOITE)	+= i2c-algo-ite.o
 +
-+	if (kind = lm90) {
-+		name = "lm90";
-+	} else if (kind = adm1032) {
-+		name = "adm1032";
- 	}
++ifeq ($(CONFIG_I2C_DEBUG_ALGO),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
+diff -Nru a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
+--- a/drivers/i2c/algos/i2c-algo-bit.c	Mon Mar 15 14:34:18 2004
++++ b/drivers/i2c/algos/i2c-algo-bit.c	Mon Mar 15 14:34:18 2004
+@@ -21,8 +21,6 @@
+ /* With some changes from Frodo Looijaard <frodol@dds.nl>, Ky?sti M?lkki
+    <kmalkki@cc.hut.fi> and Jean Delvare <khali@linux-fr.org> */
  
- 	/* We can fill in the remaining client fields */
-diff -Nru a/drivers/i2c/chips/w83l785ts.c b/drivers/i2c/chips/w83l785ts.c
---- a/drivers/i2c/chips/w83l785ts.c	Mon Mar 15 14:34:09 2004
-+++ b/drivers/i2c/chips/w83l785ts.c	Mon Mar 15 14:34:09 2004
-@@ -159,7 +159,6 @@
- 	struct i2c_client *new_client;
- 	struct w83l785ts_data *data;
- 	int err = 0;
--	const char *name = "";
+-/* #define DEBUG 1 */
+-
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+diff -Nru a/drivers/i2c/algos/i2c-algo-pcf.c b/drivers/i2c/algos/i2c-algo-pcf.c
+--- a/drivers/i2c/algos/i2c-algo-pcf.c	Mon Mar 15 14:34:18 2004
++++ b/drivers/i2c/algos/i2c-algo-pcf.c	Mon Mar 15 14:34:18 2004
+@@ -27,8 +27,6 @@
+    messages, proper stop/repstart signaling during receive,
+    added detect code */
  
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-@@ -220,7 +219,6 @@
- 		if (man_id = 0x5CA3) { /* Winbond */
- 			if (chip_id = 0x70) { /* W83L785TS-S */
- 				kind = w83l785ts;			
--				name = "w83l785ts";
- 			}
- 		}
- 	
-@@ -233,7 +231,7 @@
- 	}
- 
- 	/* We can fill in the remaining client fields. */
--	strlcpy(new_client->name, name, I2C_NAME_SIZE);
-+	strlcpy(new_client->name, "w83l785ts", I2C_NAME_SIZE);
- 	new_client->id = w83l785ts_id++;
- 	data->valid = 0;
- 	init_MUTEX(&data->update_lock);
+-/* #define DEBUG 1 */		/* to pick up dev_dbg calls */
+-
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
 
