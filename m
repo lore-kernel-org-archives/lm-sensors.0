@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: olaf@fortytwo.eu.org (Olaf)
 Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: Ticket #1545
-Message-Id: <20040125203745.3cd60136.khali@linux-fr.org>
+Message-Id: <4014233D.8060207@fortytwo.eu.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40140EAE.1010706@fortytwo.eu.org>
 In-Reply-To: <40140EAE.1010706@fortytwo.eu.org>
@@ -10,14 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> 00:04.4 Class 0600: 1106:3057 (rev 30)
+Jean Delvare wrote:
+> This is the correct device. [...]
 
-This is the correct device. So there must be something wrong with the
-detection. Please try loading the module and check dmesg and/or system
-logs right after. This should provide the cause of the failure. Contrary
-to what you seem to think, you do not need to reboot to see the error
-messages.
+OK, I re-loaded the modules, now dmesg says:
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+i2c-core.o: i2c core module version 2.8.3 (20040115)
+i2c-dev.o: i2c /dev entries driver module version 2.8.3 (20040115)
+i2c-proc.o version 2.8.3 (20040115)
+via686a.o version 2.8.3 (20040115)
+via686a.o: base address not set - upgrade BIOS or use force_addr=0xaddr
+
+Hmm, the BIOS is already the latest version...
+
+Olaf
