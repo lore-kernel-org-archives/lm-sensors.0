@@ -1,22 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:42 +0000
-Subject: [PATCH 2.6] Credit James Bolt in w83l785ts
-Message-Id: <20040217225302.GB3976@kroah.com>
+From: jean-marien.despatin@sofrelog.com (Jean-Marien Despatin)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: lm_sensors and Solaris 8
+Message-Id: <NEBBLIFEGKCMPEFNOEOHEEFFCBAA.jean-marien.despatin@sofrelog.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040211203718.67607d40.khali@linux-fr.org>
-In-Reply-To: <20040211203718.67607d40.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 11, 2004 at 08:37:18PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> I forgot to give the credit he deserves to James Bolt for testing the
-> latest w83l785ts driver changes. Here is a patch that fixes that, if you
-> would like to enqueue it for future inclusion.
+Bonjour.
 
-Applied, thanks.
+I have made at office an harness for lm_sensors with
+Solaris 8. It is restricted to Asus mother boards, ie
+CUV4X with "well" documented AS99127F. This is sufficient
+for what we need.
 
-greg k-h
+I say an harness, because there is no change in the
+source file, they are just included whith #define
+and some glue for Solaris.
+
+This is also a dirty work, but may be not without interrest.
+the 1st one is to take care of a new version without
+big change.
+
+Tell me if you want it.
+
+Jean-Marien Despatin
+
+PS. I have not say that, but you know that: lm_sensors is 
+a very big work, thanks for it.
+
+
+
+
