@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: Setting w83627hf fan divisor 128 fails.
-Message-Id: <20050511201551.481ff91f.khali@linux-fr.org>
+Message-Id: <c2u481598oe7tdrt0nkacjro7mvabe753n@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050508193026.GA777@smooth.piipiip.net>
 In-Reply-To: <20050508193026.GA777@smooth.piipiip.net>
@@ -10,16 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> check in
-> thanks
+On Wed, 11 May 2005 20:15:51 +0200, Jean Delvare <khali@linux-fr.org> wrote:
 
-Hm, looks to me that the same is needed for w83781d, right?
+>Same for both the w83627hf and w83781d drivers in Linux 2.6 as far as I
+>can see. 
+>
+>Could anyone please check and provide patches for these as well?
 
-Same for both the w83627hf and w83781d drivers in Linux 2.6 as far as I
-can see. 
+And I'm planning to put auto fan_div in one day soon :)
 
-Could anyone please check and provide patches for these as well?
+Removing all that old set_fan_div...
 
-Thanks,
--- 
-Jean Delvare
+--Grant.
