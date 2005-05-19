@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: AW: lm-sensors support for ASUS chip ASB100 Bach
-Message-Id: <20030520154855.1eaa53fc.khali@linux-fr.org>
+From: bma@tynian.net (Brian Almeida)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: lm-sensors support for ASUS chip ASB100 Bach
+Message-Id: <20030712165216.GJ10176@tynian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <795E03B0F1E26C449762C0EDF5F5659140F50F@Exchange.16.172.in-addr.arpa>
 In-Reply-To: <795E03B0F1E26C449762C0EDF5F5659140F50F@Exchange.16.172.in-addr.arpa>
@@ -10,43 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Sun, 13 Apr 2003, Mark M. Hoffman wrote:
+> I think (but I'm not certain) that most of the problems with 
+> Asus support are for actual AS99127.  As written, ASB100 works
+> well enough for me.  I've heard some Athlon owners found another
+> register that gives better CPU temps, but I haven't seen a patch
+> for it.
 
-> I finally did some cosmetics to the "sensors.conf" file - blanking
-> unused sensors and correcting the temp2 values. The LM-Sensor Software
-> seems to work fine now. I did not modify the W83781D driver, only the
-> "sensors.conf" file which I attached for your information. I also
-> appended a lot of spec information to this file about chip registers
-> and their settings. If somebody needs more details, feel free to
-> contact me. I thank you for your help. Regards
+Hi,
 
-I took a look and am a bit lost. I hardly can understand what is purely
-documentary and what actually needs to be fixed. It seems that most of
-the changes you made don't belong to the config file but to a
-documentation file about the ASB100 chipset instead.
+I wrote a small patch which reports the same values that xmbmon
+does.  It breaks other AS99127 chips right now, but it works
+on my A7V8X.  The reason for this is because the 0x17 register
+holds the actual temp in Celcius, which doesn't work well
+with the TEMP_FROM_REG macros (the >> 7 zeroes the value).
+So I added a conditional which multiplies the raw value by 10
+instead.  After that, the correct value is reported.
+I chose temp3 to modify instead of temp2 because temp2 matches
+the temp3 value that xmbmon reports (chipset).
 
-What I propose is that you send us some clean diffs. What you say seems
-to be valuable (as far as I can say, I'm not a core developer for this
-project), so I don't want it to be lost. Could you please submit:
+Maybe someone else with more knowledge of lm-sensors than I can clean 
+this up for insertion into upstream. Also note that the limit and 
+hysteresis values are incorrect. A reference chart I found at
+http://home.kabelfoon.nl/~bertrik/asb100/asb100.html 
+listed 0x18 and 0x19 as possible locations for them, but 
+a w83781d_read_value returns a 0 for those locations.
 
-1* A clean diff against etc/sensors.conf.eg 2.7.0 or CVS.
-2* A clean diff against doc/chips/w83781d 2.7.0 or CVS.
-
-Sensors.conf.eg should only contain the actual config changes, while the
-doc file should contain any valuable piece of information you gathered
-about the chipset. Both developer and user information about this given
-chipset belong to this doc file.
-
-If you don't know how to generate a diff, just edit the files and send
-them, I'll take care of diff'ing them. What's important is that you must
-change the less things possible to make all changes obvious. Don't
-remove parts because you don't feel concerned, as you did the at first,
-it makes my job only more difficult.
-
-In particular, I couldn't understand what you mean with in7-in12
-"available but not displayed by software". What do you expect us to do?
-
-Thanks.
+You can find the patch at http://tynian.net/asb100/
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Brian Almeida     | http://tynian.net        | bma@tynian.net
+Debian Developer  | http://www.debian.org    | bma@debian.org
