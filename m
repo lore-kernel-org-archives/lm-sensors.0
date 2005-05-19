@@ -1,28 +1,26 @@
-From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:23:45 +0000
-Subject: ACPI and lm_sensors interaction
-Message-Id: <Pine.OSF.4.50.0301161450170.16986-100000@kosh.hut.fi>
+From: eltjo@bash.nl (E. Reijenga [bash bv])
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: IT87temp_type issue
+Message-Id: <NEBBICLPCOGBMIDDMKHIMEKCGEAA.eltjo@bash.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+DeBeheerder StationeryRE: ticket 756,
+http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticketu6
 
-Issues to discuss, and put on TODO:
+Hi,
 
-ACPI and SMBus host
- - ACPI subsystem may access SMBus host too. Locks?
- - On my ancient board using i2c-via, suspend and power switch status
-   seems to be in the same register with SCL and SDA.
+I'm experiencing the same problem.
 
-Suspend-to-disk, losing Vcc
- - Reset i2c client to avoid alarms and SCI interrupts. Currently
-   sensors do not create interrupt with alarms.
+Is there a solution jet?
 
-Return from suspend
- - Reinitialize i2c client.
+Thanks,
 
--- 
-  Ky?sti M?lkki
-  kmalkki@cc.hut.fi
+Eltjo Reijenga
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20011229/5d98c61d/attachment.html
