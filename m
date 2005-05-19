@@ -1,43 +1,43 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: subclient leak in asb100 driver
-Message-Id: <20040511033320.GA20204@earth.solarsys.private>
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Thu, 19 May 2005 06:25:28 +0000
+Subject: Upcoming rpms: i2c headers under /usr/include/i2c
+Message-Id: <20041230173527.GF10397@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040410110533.49ba7483.khali@linux-fr.org>
-In-Reply-To: <20040410110533.49ba7483.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-05-09 12:56:36 +0200]:
-> Hi Mark,
-> 
-> > > I.e. technically, it's the CVS w83781d driver that's wrong...
-> > > although it happens to be benign vs. 2.4 kernel.
-> > 
-> > Yes, I see that now. I'm surprised that it doesn't cause more trouble
-> > than it does. Care to correct the 2.4/CVS driver so that it does what
-> > your asb100 driver does (i.e. the right thing)?
-> 
-> I took a longer look at the w83781d driver and finally, it doesn't seem
-> to be broken. It simply relies on the fact that i2c-core will detach the
-> clients on the same order they were attached. Since the w83781d driver
-> attached the main client before attaching the subclients, the main
-> client is detached first. In the callback function, the driver detaches
-> the subclients "manually" (as opposed to letting i2c-core take care).
-> When returning from the callback function, the subclients are already
-> gone, so i2c-core doesn't do anything for them (verified).
+Hi,
 
-Exactly.  That's what I meant by "happens to be benign".
+packaging up i2c and lm_sensors I had to move the i2c headers
+somehwere else than under /usr/include (and /usr/local is "forbidden"
+for packages).
 
-> So I don't think there's anything that needs fixing here. Let me know if
-> I missed something.
+Due to lack of any further creative thinking I just added another i2c
+directory hierarchy, so the rpms will offer
 
-That's fine with me.
+/usr/include/i2c/linux/i2c -> 2.9.0
 
-Regards,
+and glibc-kernheaders will contain the old i2c headers under
 
+/usr/include/linux/i2c
+
+Building lm_sensors against that is not an issue, as the location of
+the headers can be specified. I wonder if there are other projects
+depending on the i2c headers, that would have to be diverted to the
+new location when packaged.
+
+I also packaged the headers into i2c-kernheaders instead of
+ivtv-devel, as this seems to be the current practice at Red Hat
+(headers for conventional libs get into foo-devel, headers for kernel
+modules get into foo-kernheaders).
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041230/36fa81c6/attachment.bin
