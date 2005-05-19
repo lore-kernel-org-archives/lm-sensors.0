@@ -1,23 +1,32 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: [PATCH 2.6] Kill unused struct members in w83627hf driver
-Message-Id: <20050317063933.GC15075@kroah.com>
+From: dpnsw@optusnet.com.au (David)
+Date: Thu, 19 May 2005 06:23:48 +0000
+Subject: Is this a bug in i2c-philips-par.c?
+Message-Id: <200302232023.40175.dpnsw@optusnet.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050308203358.31e2aa92.khali@linux-fr.org>
-In-Reply-To: <20050308203358.31e2aa92.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 08, 2005 at 08:33:58PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> I just noticed that the pwmenable struct members in the w83627hf driver
-> are not used anywhere (and quite rightly so, as PWM cannot be disabled
-> in these chips as far as I know). Let's just get rid of them and save
-> some bytes of memory.
+Can someone check if this is a bug and apply diff as necessary.
 
-Applied, thanks.
+Looks like it would only affect people of kernels prior to 2.3.4
 
-greg k-h
+Normal cavets apply.
+
+1)	I am not a programmer
+2)	I barely know C
+3)	Consider yourself warned.
+
+Thanks
+-- 
+Best Regards,
+
+David Price
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: diff_i2c-philip-par.c
+Type: text/x-csrc
+Size: 198 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030223/c30f83db/diff_i2c-philip-par.bin
