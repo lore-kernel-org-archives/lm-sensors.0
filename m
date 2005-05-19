@@ -1,27 +1,22 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: [PATCH] ds1337 1/4
-Message-Id: <20050502204117.GC32713@kroah.com>
+From: taoweijia@yahoo.com (=?iso-8859-1?q?Weijia=20Tao?=)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: vt8231 and kernel 2.6.2 on RH 9
+Message-Id: <20040212140756.48144.qmail@web40104.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050407111631.GA21190@orphique> <hOrXV5wl.1112879260.3338120.khali@localhost> <20050407142804.GA11284@orphique> <20050407211839.GA5357@kroah.com> <20050407231758.GB27226@orphique> <20050407233628.GA6703@kroah.com> <20050408130021.GA7054@orphique>
-In-Reply-To: <20050408130021.GA7054@orphique>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>
+To: lm-sensors@vger.kernel.org
 
-On Fri, Apr 08, 2005 at 03:00:21PM +0200, Ladislav Michl wrote:
-> On Thu, Apr 07, 2005 at 04:36:29PM -0700, Greg KH wrote:
-> > Oops, you forgot to add a Signed-off-by: line for every patch, as per
-> > Documentation/SubmittingPatches.  Care to redo them?
-> 
-> Here it is (I'm sorry about that).
-> 
-> Use i2c_transfer to send message, so we get proper bus locking.
-> 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+thanks fellows for your reply for my ticket 1575.
+however, i am confused, on your supported driver,
+vt8231 is listed and it says it supports linux 2.5.x
+does it mean that this vt8231 does not work on 2.6.2?
+the sensors-detect successfully detects vt8231 why it
+doesn't load it?
+thanks,
 
-Applied, thanks.
+Jeff
 
-greg k-h
+http://greetings.yahoo.com.au - Yahoo! Greetings
+Send your love online with Yahoo! Greetings - FREE!
