@@ -1,7 +1,7 @@
-From: margitsw@t-online.de (Margit Schubert-While)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: LM85 - To Mark D. Studebaker
-Message-Id: <4.3.2.7.2.20030213173806.00b65a20@mail.dns-host.com>
+From: danny.backx@skynet.be (Danny Backx)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: modified lm_sensors startup script
+Message-Id: <3E249472.FD16A45@skynet.be>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,38 +9,158 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi,
- > Have you looked at doc/developers/new-drivers?
- > I would like the /proc names to be standard.
- > If you plan on continuing to work on it, I can do the initial checkin
- > and you can request CVS access, or send me patches...
- > Or if you are making changes soon I can wait.
- > Which would you prefer?
 
-	Mark - Yep, I used these names so that my grey cells didn't get
-	confused looking at the proc entries :-)
-	I know that they have to be changed :-)
+I've just gotten lm_sensors to work on my Abit BE-7,
+which appears to have a ICH4 (no surprise) and a Winbond
+chip using the w83781d driver.
 
-	I'm still looking at what we can get out of all these registers.
-	Give me another week to get this in some sort of shape.
-	There are a couple of things that Intel seem to have changed :-(
+The startup script didn't work on my SuSE 8.0 system
+though. The /etc/init.d/functions file is not present.
 
-	Can you E-Mail your E-address to margitsw@t-online.de
-	and, as soon as I have something that's compatible, I'll
-	send it. I'd prefer to get the driver to 90% complete before we shove it
-	into CVS.
+I decided to do the right thing and grab the LSB standard
+(see
+http://www.linuxbase.org/spec/refspecs/LSB_1.3.0/gLSB/gLSB/iniscrptfunc.html)
+and change the script.
 
-	Two things :
-	1)  Can you reserve an I2C device Id (and E me)
-	2)  Do I have to dig through the sensors and related
-	     progs myself or can somebody take that over ?
+I've attached a modified version of
+ lm_sensors-2.7.0/prog/init/lm_sensors.init
+which I renamed to lm_sensors.init.lsb. It appears to work
+on my system, my guess it that it'll work on any LSB system.
 
-	sensors-detect just needs the trivial change from
-		driver => "Unwritten: lm85",
-	to
-		driver => "lm85",
+	Danny
 
-	Should have mentioned in my original mail that I'm using 2.7.0
+-- 
+Danny Backx (danny@gnu.org danny.backx@skynet.be)
+Home page :	http://users.skynet.be/danny.backx
+Projects:	LessTif (http://lesstif.sourceforge.net)
+		Xbae	(http://xbae.sourceforge.net)
+-------------- next part --------------
+#!/bin/sh
+#
+# chkconfig: 2345 26 74
+# description: sensors is used for monitoring motherboard sensor values.
+# config: /etc/sysconfig/sensors
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-	Cheers
+# See also the lm_sensors homepage at:
+#     http://www2.lm-sensors.nu/~lm78/index.html
 
-	Margit
+# It uses a config file /etc/sysconfig/sensors that contains the modules to
+# be loaded/unloaded. That file is sourced into this one.
+
+# The format of that file a shell script that simply defines the modules 
+# in order as normal shell variables with the special names:
+#    MODULE_1, MODULE_2, MODULE_3, etc.
+
+# If sensors isn't supported by the kernel, try loading the module...
+[ -e /proc/sys/dev/sensors ] || /sbin/modprobe i2c-proc &>/dev/null
+
+# Don't bother if /proc/sensors still doesn't exist, kernel doesn't have
+# support for sensors.
+[ -e /proc/sys/dev/sensors ] || exit 0
+
+# If sensors was not already running, unload the module...
+[ -e /var/lock/subsys/sensors ] || /sbin/modprobe -r i2c-proc &>/dev/null
+
+CONFIG=/etc/sysconfig/lm_sensors
+PSENSORS=/usr/local/bin/sensors
+
+# Source function library.
+# . /etc/init.d/functions
+. /lib/lsb/init-functions
+
+RETVAL=0
+
+start() {
+	echo -n $"Starting up sensors: "
+	test -r "$CONFIG" && . "$CONFIG"
+
+        modules=`grep \^MODULE_ $CONFIG | wc -l | tr -d ' '`
+        i=0
+        while [ $i -lt $modules ] ; do
+                module=`eval echo '$'MODULE_$i`
+		echo starting module __${module}__
+		/sbin/modprobe $module &>/dev/null
+		i=`expr $i + 1`
+	done
+
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ] && touch /var/lock/subsys/sensors ; then
+		log_success_msg " "
+	else
+		log_failure_msg " "
+	fi
+}
+
+stop() {
+	echo -n $"Shutting down sensors: "
+	test -r "$CONFIG" && . "$CONFIG"
+
+        modules=`grep \^MODULE_ $CONFIG | wc -l | tr -d ' '`
+        i=`expr $modules`
+        while [ $i -ge 0 ] ; do
+                module=`eval echo '$'MODULE_$i`
+		/sbin/modprobe -r $module &>/dev/null
+		i=`expr $i - 1`
+	done
+	/sbin/modprobe -r i2c-proc &>/dev/null
+
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sensors ; then
+		log_success_msg " "
+	else
+		log_failure_msg " "
+	fi
+}
+
+dostatus() {
+        $PSENSORS
+	RETVAL=$?
+}
+
+restart() {
+	stop
+	start
+	RETVAL=$?
+}
+
+condrestart() {
+	[ -e /var/lock/subsys/sensors ] && restart || :
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	dostatus
+	;;
+  restart|reload)
+	restart
+	;;
+  condrestart)
+	condrestart
+	;;
+  *)
+	log_failure_msg "Usage: sensors.init {start|stop|status|restart|reload|condrestart}"
+	exit 1
+esac
+
+exit $RETVAL
