@@ -1,30 +1,55 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: 1283 ticket datasheet
-Message-Id: <20031217210321.40bafa23.khali@linux-fr.org>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: [mas@ssl.co.uk: [ltp] Incorporating Thinkpad Detection into Lm_sensors]
+Message-Id: <20020722095819.B16805@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1055798868.13976.2.camel@rentnerschreck.mine.nu>
-In-Reply-To: <1055798868.13976.2.camel@rentnerschreck.mine.nu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I'm rather skeptical for this one. I would read the temperature fault
-> limit from register 0x53, according to the data sheet. That said, the
-> value in this register, from a dump one user provided, is 100, while I
-> would expect 85 of 90.
 
-About that point, I confirm my first guess. I saw a number of dumps of
-that chipset, it turns out that register 0x53 always holds 0x55 or 0x64,
-and is constant over subsequent dumps, while the value at 0x26 is not.
-So my belief is that the register 0x53 holds the limit, but the data
-sheet is wrong about the possible values, which are 85 and 100 degrees,
-not 85 and 90.
+More good info from the linux-thinkpad mailing list.
 
-I still don't know if it is possible to write to this register to change
-the value.
+----- Forwarded message from Michael Selway <mas@ssl.co.uk> -----
+
+Delivered-To: linux-thinkpad-outgoing@www.bm-soft.com
+Delivered-To: linux-thinkpad@www.bm-soft.com
+From: Michael Selway <mas@ssl.co.uk>
+Date: Mon, 22 Jul 2002 09:18:21 +0100
+To: linux-thinkpad@www.bm-soft.com
+Subject: [ltp] Incorporating Thinkpad Detection into Lm_sensors
+In-Reply-To: <20020720160329.K1076@Stimpy.netroedge.com>
+X-Mailer: VM 7.04 under Emacs 21.2.1
+Precedence: bulk
+Reply-To: linux-thinkpad@www.bm-soft.com
+X-SpamBouncer: 1.6 beta (6/22/02)
+X-SBNote: FROM_DAEMON/Listserv
+X-SBClass: Bulk
+
+phil@netroedge.com writes:
+ > So, I need your help!  How can we detect a Thinkpad?
+
+There's some code in arch/i386/kernel/dmi_scan.c whose intention
+is to change an APM setting for all IBM laptops.  The relevant
+table entry looks like this in 2.4.18:
+
+{ set_apm_ints, "IBM", {	/* Allow interrupts during suspend on IBM laptops */
+		MATCH(DMI_SYS_VENDOR, "IBM"),
+		NO_MATCH, NO_MATCH, NO_MATCH
+		} },
+
+
+HTH,
+Michael.
+
+----- The Linux ThinkPad mailing list -----
+The linux-thinkpad mailing list home page is at:
+http://www.bm-soft.com/~bm/tp_mailing.html
+
+----- End forwarded message -----
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
