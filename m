@@ -1,76 +1,58 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: Kill i2c_client.id (5/5)
-Message-Id: <11099685942488@kroah.com>
+From: Avgrouppv@aol.com (Avgrouppv@aol.com)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: new automotive device
+Message-Id: <183.181abd7e.2ba1cf9e@aol.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11099685942662@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2087, 2005/03/02 11:58:29-08:00, khali@linux-fr.org
+To the OWNER, pres. or 
+exec.,---------------------------------------------------                     
+                                                                              
+                                                                              
+                                                                              
+              -                                                               
+                                                                              
+ --My name is Lawrence Reina jr., inventor, patent holder, and founder of the 
+A.V. Group. I would like to bring to your attention a new automotive feature 
+I am presenting to industry for your review. The "Auto Visor" / power sun 
+visor.  -----------------Unlike the standard sun visor, the "Auto-Visor" is 
+patented to operate automatically! --The "Auto Visor" is a device that is 
+powered by a switch that automatically deploys and retracts a tinted 
+transparent plexiglass or other type panel from an encased unit hidden within 
+the interior headliner or other concealable location in a vehicle on both 
+driver and passenger sides. A narrow horizontal opening in front of the 
+headliner will allow this panel to come out and down the interior windshield 
+as much or as little as needed by the user to block out the sun or any 
+irritating light from their eyes while driving. The panel being made of a 
+rigid material will allow it to follow closely to the interior windshield as 
+so not to be an obstruction to user. With a switch preferably located on the 
+steering wheel, the driver is then capable of operating one or both visors 
+without taking their hands off the steering wheel. The passenger will be 
+afforded a switch to operate the "Auto-Visor" on their side as well. 
+-----------------------------Presently a working model / prototype has been 
+installed in a vehicle showing its operation.  
+------------------------------------------------------------------------------
 
-[PATCH] I2C: Kill i2c_client.id (5/5)
-
-> (5/5) Documentation update.
-
-Finally, updates are required to the i2c/writing-client and
-i2c/porting-client documents. Remove any reference to i2c_client id and
-invite porters to discard that struct member.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-
- Documentation/i2c/porting-clients |    6 +++---
- Documentation/i2c/writing-clients |    4 ----
- 2 files changed, 3 insertions(+), 7 deletions(-)
-
-
-diff -Nru a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
---- a/Documentation/i2c/porting-clients	2005-03-04 12:25:58 -08:00
-+++ b/Documentation/i2c/porting-clients	2005-03-04 12:25:58 -08:00
-@@ -49,9 +49,8 @@
-   static void lm75_update_client(struct i2c_client *client);
- 
- * [Sysctl] All sysctl stuff is of course gone (defines, ctl_table
--  and functions). Instead, right after the static id definition
--  line, you have to define show and set functions for each sysfs
--  file. Only define set for writable values. Take a look at an
-+  and functions). Instead, you have to define show and set functions for
-+  each sysfs file. Only define set for writable values. Take a look at an
-   existing 2.6 driver for details (lm78 for example). Don't forget
-   to define the attributes for each file (this is that step that
-   links callback functions). Use the file names specified in
-@@ -86,6 +85,7 @@
-   Replace the sysctl directory registration by calls to
-   device_create_file. Move the driver initialization before any
-   sysfs file creation.
-+  Drop client->id.
- 
- * [Init] Limits must not be set by the driver (can be done later in
-   user-space). Chip should not be reset default (although a module
-diff -Nru a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
---- a/Documentation/i2c/writing-clients	2005-03-04 12:25:58 -08:00
-+++ b/Documentation/i2c/writing-clients	2005-03-04 12:25:58 -08:00
-@@ -344,9 +344,6 @@
- 
- For now, you can ignore the `flags' parameter. It is there for future use.
- 
--  /* Unique ID allocation */
--  static int foo_id = 0;
--
-   int foo_detect_client(struct i2c_adapter *adapter, int address, 
-                         unsigned short flags, int kind)
-   {
-@@ -482,7 +479,6 @@
-     data->type = kind;
-     /* SENSORS ONLY END */
- 
--    new_client->id = foo_id++; /* Automatically unique */
-     data->valid = 0; /* Only if you use this field */
-     init_MUTEX(&data->update_lock); /* Only if you use this field */
- 
-
+------------------------All vehicle operators, short, tall, young and old, 
+those who drive a standard shift vehicle, and most importantly, the 
+handicapped, will see that operating the "Auto-Visor" can be a safer and more 
+convenient way of using our visors while driving.---------Other objectives 
+and variable uses of the invention will become apparent to those skilled in 
+the art once properly 
+reviewed.--------------------------------------------------------------I am 
+looking for a company who has the capability to further design, engineer, and 
+ready AV units for various vehicle shapes and sizes for installation. 
+Licensing rights to manufacture, sell or use of the AV is available for 
+negotiation. Numerous calls and e-mails received from parties of interest 
+only lead me to believe this is going to be a huge seller in the industry. 
+Further information, pictures, or video of the working model may be obtained 
+by contacting me personally at avgrouppv @aol.com or ph. 718-599-8943       
+---------------------------------------------------------------------Thank 
+you for your time and I look forward to hearing from you,   Lawrence Reina 
+jr.           
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030313/84772b14/attachment.html
