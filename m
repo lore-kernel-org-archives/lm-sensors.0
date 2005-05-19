@@ -1,32 +1,61 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:36 +0000
-Subject: Ali M1535D datasheet
-Message-Id: <20040120221045.0de9c911.khali@linux-fr.org>
+From: bradley@greystate.com (Bradley Schatz)
+Date: Thu, 19 May 2005 06:24:57 +0000
+Subject: Single fan sensor not detected
+Message-Id: <40A042B0.6060907@greystate.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001c01c3df5f$3b1cb490$b1163951@pc1>
-In-Reply-To: <001c01c3df5f$3b1cb490$b1163951@pc1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On your site lm_sensors, you are asking for the Ali M1535D datasheet.
-> So, You can find it there:
-> http://www.asec.com.tw/download/index.php3?download_areaid=1
+Hi,
 
-In fact we have them already, I forgot to update the page. Still these
-aren't exactly the same versions so I'll take yours too, it cannot hurt.
-Thanks.
+I have a lm-sensors up and running on 2.6.5 kernel, on a VIA KM266 based 
+motherboard. My goal is to get the fan noise down.
 
-> Can you give me some adress on chips data sheets like this one in
-> exchange please?
+Most things appear to be working fine. However, while my BIOS reports 
+activity of two fans (rightly), lm-sensors only seems to be finding one.
 
-Everything we have is listed here:
-http://secure.netroedge.com/~lm78/pdfs.html
+I have tried fidling with the divider to see if that is an issue but 
+still I am missing activity on one fan.
 
-But most of it is fairly old, so I'm not sure you'll find anything
-interesting here.
+Can anyone suggest some steps I might take to get this fan working?
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Thanks,
+
+bradley
+
+
+
+
+
+it87-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.92 V  (min =  +1.42 V, max =  +1.56 V)   ALARM
+VCore 2:   +1.26 V  (min =  +2.40 V, max =  +2.60 V)   ALARM
++3.3V:     +3.28 V  (min =  +3.13 V, max =  +3.45 V)
++5V:       +4.94 V  (min =  +4.72 V, max =  +5.24 V)
++12V:     +11.88 V  (min = +11.36 V, max = +12.60 V)
+-12V:     -14.24 V  (min = -12.63 V, max = -11.41 V)   ALARM
+-5V:       -7.71 V  (min =  -5.28 V, max =  -4.81 V)   ALARM
+Stdby:     +5.11 V  (min =  +4.72 V, max =  +5.24 V)
+VBat:      +0.00 V
+fan1:     4963 RPM  (min =    0 RPM, div = 4)
+fan2:        0 RPM  (min =    0 RPM, div = 4)
+fan3:        0 RPM  (min =    0 RPM, div = 2)
+M/B Temp:    +80?C  (low  =   +15?C, high =   +40?C)   sensor = thermistor
+CPU Temp:    +96?C  (low  =   +15?C, high =   +45?C)   sensor = thermistor
+Temp3:      +127?C  (low  =   +15?C, high =   +45?C)   sensor = thermistor
+
+eeprom-i2c-4-50
+Adapter: SMBus Via Pro adapter at 0400
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
+
+lm90-i2c-4-4c
+Adapter: SMBus Via Pro adapter at 0400
+M/B Temp:    +59?C  (low  =    +0?C, high =   +70?C)   ALARM
+CPU Temp:  +67.6?C  (low  =  +0.0?C, high = +70.0?C)   ALARM
+M/B Crit:    +85?C  (hyst =   +75?C)
+CPU Crit:   +110?C  (hyst =  +100?C)
+
