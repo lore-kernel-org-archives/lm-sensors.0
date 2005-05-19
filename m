@@ -1,23 +1,18 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: compile error 2.4.22
-Message-Id: <20031128073927.43fafe2e.khali@linux-fr.org>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:26 +0000
+Subject: Call for 2.8.2 soon
+Message-Id: <3FC1646D.18B8555A@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031127143753.GA13922@campana.vi.it>
-In-Reply-To: <20031127143753.GA13922@campana.vi.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I just tried the last patch for 2.4.22 (26th Oct). I get the same
-> error I got with the previous patch:
-> (...)
+After -test10 comes out (assuming it has Khali's patches in it),
+then I want to fix up libsensors to match the magnitudes and sysfs names
+that test10 has in it, then release 2.8.2.
 
-Which patch are you talking about? One you generated yourself using
-mkpatch, or one you downloaded from our installation guide (which one?)?
-Our patches shouldn't fail that way.
+The one thing I'd like to get in besides that is the amd756 fixup
+to add the 8111 support back in. Philip?
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Anything else people want to get into the next release?
