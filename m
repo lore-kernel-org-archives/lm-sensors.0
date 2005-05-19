@@ -1,41 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: LM83 test resport (was:  Adapter driver for opencores I2C fpga)
-Message-Id: <20030827124933.4a4723c7.khali@linux-fr.org>
+From: aurel32@debian.org (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:25:28 +0000
+Subject: [PATCH] I2C: Support for sparc64
+Message-Id: <20050103002237.GA7554@bode.aurel32.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <629E717C12A8694A88FAA6BEF9FFCD440224B397@brigadoon.spirentcom.com>
-In-Reply-To: <629E717C12A8694A88FAA6BEF9FFCD440224B397@brigadoon.spirentcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-> > Yes, it works fine, though I have modified it quite a lot. 
-> > The version I got with the 2.8.0 release had four repeats
-> > of essentially the same code, apart from register addresses,
-> > so I merged them into a single function.
-> > I then added some extra status information. I was planning to 
-> > look at the latest in CVS on Monday or Tuesday to see if I had
-> > duplicated any effort before offering this code back.
-> 
-> Heh - the latest code in CVS has exactly the same changes, almost
-> word for word, as I had made. So I have junked my code and am
-> using the CVS version instead. 
+Please find attached a patch that was send to me by a Debian user to
+make possible the build of the i2c modules on a sparc64.
 
-Although I don't like the idea of duplicated work very much, it's great
-to see we came to the same point :)
-
-> It continues to work just fine, within the limits of testing:
-> we use the /proc interface to look at sensor values, but none
-> of the application level stuff like sensors-detect - we made
-> the boards, so we already know what chips are on them :-)
-
-If it works for you, that's great. Let me (or us) know if you need any
-additional feature, or whatever. I think the driver if almost complete,
-but sometimes users need to setup things in a way we wouldn't have
-thought of.
+Bye,
+Aurelien
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+--- i2c-2.9.0.orig/Makefile
++++ i2c-2.9.0/Makefile
+@@ -142,6 +142,12 @@
+ 	     -mcmodel=kernel -fno-reorder-blocks -finline-limit 00 -fno-strength-reduce
+ endif
+ 
++ifeq ($(MACHINE),sparc64)
++MODCFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow \
++	     -ffixed-g4 -fcall-used-g5 -fcall-used-g7 -Wno-sign-compare \
++	     -Wa,--undeclared-regs
++endif
++
+ ifeq ($(SMP),1)
+ MODCPPFLAGS += -D__SMP__
+ endif
