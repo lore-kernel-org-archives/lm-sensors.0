@@ -1,44 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: matthew@wil.cx (Matthew Wilcox)
 Date: Thu, 19 May 2005 06:25:36 +0000
 Subject: M7101
-Message-Id: <20050206152615.1ab7498c.khali@linux-fr.org>
+Message-Id: <20050206150611.GR20386@parcelfarce.linux.theplanet.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41DC59A4.1070006@web.de>
-In-Reply-To: <41DC59A4.1070006@web.de>
+References: <41DC59A4.1070006@web.de> <20050206152615.1ab7498c.khali@linux-fr.org>
+In-Reply-To: <20050206152615.1ab7498c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Enrico Bartky <DOSProfi@web.de>, linux-pci@atrey.karlin.mff.cuni.cz
-Cc: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Maarten Deprez <maartendeprez@scarlet.be>, Greg KH <gregkh@suse.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Enrico Bartky <DOSProfi@web.de>, linux-pci@atrey.karlin.mff.cuni.cz, LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Maarten Deprez <maartendeprez@scarlet.be>, Greg KH <gregkh@suse.de>
 
-Hi Enrico,
+On Sun, Feb 06, 2005 at 03:26:15PM +0100, Jean Delvare wrote:
+> Maarten Deprez then converted it to the proper kernel coding-style:
+> http://marc.theaimsgroup.com/?l=linux-kernel&m0726276414532
+> 
+> I invite you to test the new patch and confirm that it works for you.
+> 
+> Any chance we could get the PCI folks to review the code and push it
+> upwards if it is OK?
 
-Sorry for the delay.
+Looks pretty good to me.  For clarity, I'd change:
 
-> I have a board with the ALI M7101 chip, but I can't activate it in
-> BIOS.  I tried to compile the prog/hotplug/m7101.c but I seen that
-> this is only  for 2.4 Kernels. Is there a module for 2.6?
+-	m7101 = pci_scan_single_device(dev->bus, 0x18);
++	m7101 = pci_scan_single_device(dev->bus, PCI_DEVFN(3, 0));
 
-The prog/hotplug/m7101.c (from the lm_sensors project) was a quick hack
-and only works with 2.4 kernels, as you noticed. For 2.6 kernels, the
-prefered solution is known as PCI quirks (drivers/pci/quirks.c). I can
-see that you already found that and proposed a patch for the 2.6 kernel
-here:
-http://marc.theaimsgroup.com/?l=linux-kernel&m0606482902883
+and then test m7101 for being NULL -- if it fails, you'll get a NULL
+ptr dereference from pci_read_config_byte():
 
-Maarten Deprez then converted it to the proper kernel coding-style:
-http://marc.theaimsgroup.com/?l=linux-kernel&m0726276414532
+-	if (pci_read_config_byte(m7101, 0x5B, &val)) {
++	if (!m7101 || pci_read_config_byte(m7101, 0x5B, &val)) {
 
-I invite you to test the new patch and confirm that it works for you.
+I don't think you need to bother checking the subsequent write for failure:
 
-Any chance we could get the PCI folks to review the code and push it
-upwards if it is OK?
+ 	if (val & 0x06) {
+-		if (pci_write_config_byte(m7101, 0x5B, val & ~0x06)) {
+-			printk(KERN_INFO "PCI: Failed to enable M7101 SMBus Controller\n");
+-			return;
+-		}
++		pci_write_config_byte(m7101, 0x5B, val & ~0x06);
+ 	}
 
-For reference, here are links to the original m7101 unhiding driver code
-and help file:
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/hotplug/m7101.c
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/hotplug/README
+So conceptually, I approve, just some details need fixing.
 
-Thanks,
 -- 
-Jean Delvare
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
