@@ -1,49 +1,104 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: Kernel driver adm1021 locks
-Message-Id: <20031215211302.061ecefb.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:29 +0000
+Subject: [jamagallon@able.es: i2c: lost sensors with 2.6.10(-mm1)]
+Message-Id: <20050107011207.GA20597@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> when adm1021 loads (either by me with modprobe or by the kernel when
-> built in), the computer locks. when i push the reset button my
-> motherboard beeps like crazy and it does not boot. however, when i
-> totally switch off the power supply and switch on again, i can boot
-> again.
-> 
-> my motherboard is a gigabyte GA-8IPE1000 Pro with intel 865PE chipset
-> (ICH5). linux is linux-2.6.0-test11.
-> 
-> could it be that the 2.6.0-test11 i2c drivers are behind the
-> lm_sensors 2.8.2 package?
+Anyone have any ideas?  If so, care to join this linux-kernel thread?
 
-This is a known problem. We used to reset and/or intialize the chips but
-it turned out to be a mistake because in some cases it causes trouble
-such as what you're experiencing right now.
+----- Forwarded message from "J.A. Magallon" <jamagallon@able.es> -----
 
-So 2.8.2 doesn't have that initization code anymore, and shouldn't lock
-your system. But since these changes haven't been ported to 2.6 yet...
+Date: Fri, 07 Jan 2005 00:46:31 +0000
+From: "J.A. Magallon" <jamagallon@able.es>
+To: Lista Linux-Kernel <linux-kernel@vger.kernel.org>
+Cc: greg@kroah.com, akpm@osdl.org
+Subject: i2c: lost sensors with 2.6.10(-mm1)
 
-> if i got that right i need this driver to detect my ICH5 chipset!?
+Hi...
 
-This is unrelated. ICH5 is your I2C *bus* while ADM1021 is your hardware
-monitoring *chip*. You can have one working and the other not working,
-these are different pieces of hardware and different driver as well. Of
-course you need to have both working if you want to be able to monitor
-your system's hardware health.
+I have lost my sensors info with 2.6.10, in particular -mm1.
+They work fine with 2.6.9-mm1 (current state of the box, booted on
+2.6.9 or 10, no other difference).
 
-> OT: btw, do i need i2c-isa support? that motherboard has no isa slots
-> at all, but maybe theres still some kind of isa bus inside (needed for
-> i2c)?
+Some info follows.
 
-Yes, there might still be an ISA bus. You need it if ans only if your
-chips are not using I2C but ISA instead. The sensors-detect script
-should tell you about it. If sensors-detect doesn't tell you to use
-i2c-isa, you don't need it.
+With 2.6.9-mm1, I get this:
+
+Module                  Size  Used by
+w83627hf               25128  0
+i2c_sensor              3456  1 w83627hf
+i2c_isa                 2304  0
+i2c_i801                7820  0
+i2c_dev                 8192  0
+i2c_core               19712  5 w83627hf,i2c_sensor,i2c_isa,i2c_i801,i2c_dev
+
+sensors:
+w83627thf-isa-0290
+Adapter: ISA adapter
+VCore:     +1.49 V  (min =  +1.93 V, max =  +1.93 V)
+..
+
+With 2.6.10-mm1:
+
+Module                  Size  Used by
+w83627hf               24224  0
+i2c_sensor              3968  1 w83627hf
+i2c_isa                 2304  0
+i2c_i801                9996  0
+i2c_dev                 8960  0
+i2c_core               20992  5 w83627hf,i2c_sensor,i2c_isa,i2c_i801,i2c_dev
+
+sensors:
+No sensors found!
+
+I have noticed different contents in /sys:
+under 2.6.9:
+/sys/devices/platform/i2c-1:
+/sys/devices/platform/i2c-1/1-0290:
+/sys/devices/platform/i2c-1/1-0290/power:
+/sys/devices/platform/i2c-1/power:
+
+under 2.6.10:
+/sys/devices/platform/i2c-1:
+/sys/devices/platform/i2c-1/power:
+
+So some /sys nodes are missing !!!
+(the isa bus)
+
+
+Debug output from 2.6.10-mm1:
+
+Jan  7 01:33:11 werewolf kernel: i2c /dev entries driver
+Jan  7 01:33:11 werewolf kernel: i2c-core: driver dev_driver registered.
+Jan  7 01:33:11 werewolf kernel: i801_smbus 0000:00:1f.3: I801 using PCI Interrupt for SMBus.
+Jan  7 01:33:11 werewolf kernel: i801_smbus 0000:00:1f.3: SMBREV = 0x2
+Jan  7 01:33:11 werewolf kernel: i801_smbus 0000:00:1f.3: I801_smba = 0x500
+Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-0: Registered as minor 0
+Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-0: registered as adapter #0
+Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-1: Registered as minor 1
+Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-1: registered as adapter #1
+Jan  7 01:33:11 werewolf kernel: i2c-core: driver w83627hf registered.
+Jan  7 01:33:11 werewolf kernel: i2c_adapter i2c-1: found normal isa entry for adapter 9191, addr 0290
+Jan  7 01:33:12 werewolf sensord: sensord started
+Jan  7 01:33:12 werewolf lm_sensors: sensord startup succeeded
+
+Some ideas ?
+
+TIA
+
+--
+J.A. Magallon <jamagallon()able!es>     \               Software is like sex:
+werewolf!able!es                         \         It's better when it's free
+Mandrakelinux release 10.2 (Cooker) for i586
+Linux 2.6.10-jam1 (gcc 3.4.3 (Mandrakelinux 10.2 3.4.3-2mdk)) #2
+
+
+
+
+----- End forwarded message -----
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
