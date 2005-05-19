@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: Lm_sensors
-Message-Id: <20040118184344.7a0bdf21.khali@linux-fr.org>
+From: David.Shue@rl.af.mil (Shue David R Contr AFRL/IFTC)
+Date: Thu, 19 May 2005 06:25:58 +0000
+Subject: lm_sensors
+Message-Id: <2D19F91CE3BEE84884C8004BBC9298DC066202C3@FSJREZ03.adm.rl.af.mil>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
 In-Reply-To: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
@@ -10,44 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Hello Axell!
-> > I'm make patch to add support lm90 and asb100 sensors into fedora 
-> > kernel. It's work fine for me on Gigabyte  Ga-7vaxp (lm90 cpu
-> > sensor) and Asus P4pe (asb100). Patch based on standart lm_sensors
-> > patch. I'm testing this patch on 2135, 2138, 2140 and 2149 kernel,
-> > all ok. Patch replace your lm_sensors path. I'm think, support for
-> > this modern sensors is needed for community.
-> > Sorry for bad english.
-> > DenV <den@nekto.com>
-> > (some rpms for Fedora core http://den.tourinfo.ru/pack)
-> 
-> On Wed, Jan 14, 2004 at 12:06:10PM +0300, Den wrote:
-> > Hello Axell!
-> > PS. This patch is need 2 lines in configs:
-> > CONFIG_SENSORS_ASB100=m
-> > CONFIG_SENSORS_LM90=m
-> > 
-> > DenV <den@nekto.com>
-> 
-> thanks for the feedback and the testing, they are probably best to be
-> shared with the lm_sensors list (Cced).
-> 
-> These two drivers are built by the lm_sensors project only when doing
-> the kernel modules build option, as they are considered
-> experimental. lm_sensors's patching method is more conservative.
+I have a question please...
 
-This is about to change. It was decided (oh well, *I* decided and nobody
-complained so far) that we would now include all drivers with both
-methods. There's no reason that I can see to do it differently.
+I run lm_sensor on my machines and some do not seem to be changing ever,
+even with a significant change in room temperature.  If I perform a reboot,
+the temperature does change and to what I believe is a more accurate
+(believable) temperature.  I am beginning to think my temperature sensor
+readings are not updating.  Is there a way to update, restart, stop/start
+the sensors software information providing the data?
 
-Not all drivers have been included back into the "patch the kernel tree"
-method yet, but in the long term they should.
+Thanks in advance.
 
-I've been adding five drivers today (lm83, lm90, asb100, max6650 and
-w83l785ts). Patches to enable more of them, or all, are welcome. Else we
-will probably add them on request only (unless I suddently get plenty of
-free time, but it's rather improbable).
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Dave
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050511/afb8a37b/attachment.html
