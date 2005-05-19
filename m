@@ -1,57 +1,44 @@
-From: frodol@dds.nl (frodol@dds.nl)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: lm_sensors for KT266A and Nvidia nForce (fwd)
-Message-Id: <200201021341.g02Dfhg01059@shire.frodo.local>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:29 +0000
+Subject: [leonf@internode.on.net: [gentoo-user] lm_sensors, or rather
+Message-Id: <20031212203342.GA1341@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-polverini@Explo-IT.com wrote:
-From polverini@Explo-IT.com Wed Jan  2 12:55:05 2002
-Received: by morannon.frodo.local (8.11.3/8.11.3) id g02Bt5N05829 ; Wed, 2 Jan 2002 12:55:05 +0100
-Return-Path: <polverini@Explo-IT.com>
-Delivered-To: frodol@dds.nl
-Received: from pop3.dds.nl [213.196.1.122]
-	by localhost with POP3 (fetchmail-5.4.4)
-	for frodo@localhost (single-drop); Wed, 02 Jan 2002 12:55:05 +0100 (CET)
-Received: (qmail 13115 invoked from network); 2 Jan 2002 11:52:20 -0000
-Received: from unknown (HELO module.dima.unige.it) ([130.251.60.126]) (envelope-sender <polverini@Explo-IT.com>)
-          by mail.io.nl (qmail-ldap-1.03) with SMTP
-          for <frodol@dds.nl>; 2 Jan 2002 11:52:20 -0000
-Received: from localhost (IDENT:dusty@module.dima.unige.it [127.0.0.1])
-	by module.dima.unige.it (8.11.6/8.8.7) with ESMTP id g02Btdc09932;
-	Wed, 2 Jan 2002 12:55:39 +0100
-Date: Wed, 2 Jan 2002 12:55:39 +0100 (CET)
-From: <polverini@Explo-IT.com>
-X-X-Sender:  <dusty@module.dima.unige.it>
-To: Undisclosed recipients: ;Undisclosed recipients:;@morannon.frodo.local
-Subject: lm_sensors for KT266A and Nvidia nForce
-Message-ID: <Pine.LNX.4.33.0201021251420.869-100000@module.dima.unige.it>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-
-Hello,
-I have two PCs, one with a Microstar 6380 with KT266A chipset, and the
-other with a nvidia nForce chipset.
-
-I took a quick look on your webpage and it seems like these two chipset
-are not supported.
-Am I missing something (maybe they are compatible with some other device?)
-or there is nothing I can do about it?
-
-Thanks for your help and keep up your great work.
-
-Alex
-
-P.S.: I tried to write to sensors@stimpy.netroedge.com but the mail 
-bounced back
-
-
-
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+LS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgZnJvbSBMZW9uIEZpdGluZ2hvZmYgPGxlb25mQGludGVy
+bm9kZS5vbi5uZXQ+IC0tLS0tCgpEZWxpdmVyeS1EYXRlOiBNb24sIDggRGVjIDIwMDMgMjE6MzA6
+NTkgKzAwMDAKTWFpbGluZy1MaXN0OiBjb250YWN0IGdlbnRvby11c2VyLWhlbHBAZ2VudG9vLm9y
+ZzsgcnVuIGJ5IGV6bWxtCkxpc3QtUG9zdDogPG1haWx0bzpnZW50b28tdXNlckBnZW50b28ub3Jn
+PgpMaXN0LUhlbHA6IDxtYWlsdG86Z2VudG9vLXVzZXItaGVscEBnZW50b28ub3JnPgpMaXN0LVVu
+c3Vic2NyaWJlOiA8bWFpbHRvOmdlbnRvby11c2VyLXVuc3Vic2NyaWJlQGdlbnRvby5vcmc+Ckxp
+c3QtU3Vic2NyaWJlOiA8bWFpbHRvOmdlbnRvby11c2VyLXN1YnNjcmliZUBnZW50b28ub3JnPgpM
+aXN0LUlkOiBHZW50b28gTGludXggbWFpbCA8Z2VudG9vLXVzZXIuZ2VudG9vLm9yZz4KUmVwbHkt
+VG86IGdlbnRvby11c2VyQGdlbnRvby5vcmcKWC1CZWVuVGhlcmU6IGdlbnRvby11c2VyQGdlbnRv
+by5vcmcKRnJvbTogTGVvbiBGaXRpbmdob2ZmIDxsZW9uZkBpbnRlcm5vZGUub24ubmV0PgpUbzog
+ZnJvZG9sQGRkcy5ubApDYzogZ2VudG9vLXVzZXJAZ2VudG9vLm9yZwpTdWJqZWN0OiBbZ2VudG9v
+LXVzZXJdIGxtX3NlbnNvcnMsIG9yIHJhdGhlciAvZXRjL2NvbmYuZC9zZW5zb3JzClgtT3JpZ2lu
+YWxBcnJpdmFsVGltZTogMDggRGVjIDIwMDMgMjE6NDU6MTUuMDg5MCAoVVRDKSBGSUxFVElNRT1b
+OTBGMDc1MjA6MDFDM0JERDRdClgtU3BhbS1TdGF0dXM6IE5vLCBoaXRzPTAuMCByZXF1aXJlZD01
+LjAgdGVzdHPeQVJfU09NRUJPRFksUkNWRF9JTl9SRkNJIHZlcnNpb249Mi4yMApYLVNwYW0tTGV2
+ZWw6IAoKRGVhciBGcm9kbywKCnRoYW5rcyBmb3IgcHJvdmlkaW5nIHRoZSBsbV9zZW5zb3JzIGVi
+dWlsZCBpbiBHZW50b28uCgpTb21ldGltZXMgYSBtb2R1bGUgbmVlZHMgYSBwYXJhbWV0ZXIsIHN1
+Y2ggYXMgdGhlIGl0ODcgZm9yIEFzdXMgQTdWNjAwIGJvYXJkLCAKZWcgdG8gZGVmaW5lIHNlbnNv
+ciB0eXBlcy4gIEhvd2V2ZXIsIG5vd2hlcmUgaXMgaXQgc3RhdGVkIGhvdyB0byBpbmNsdWRlIGEg
+CnBhcmFtZXRlci4KQWZ0ZXIgYWR2aWNlIGZyb20gUGV0ZXIgUnVza2luIG9uIHRoZSBnZW50b28t
+dXNlciBsaXN0LCBJIHRyaWVkIHR3byBtZXRob2RzIAp0aGF0IHdvcmtlZDogcHV0dGluZyB0aGUg
+bW9kdWxlIHdpdGggcGFyYW1ldGVyIGluIHRoZSAKbW9kdWxlcy5hdXRvbG9hZC88a2VybmVsLXZl
+cnNpb24+IGZpbGU7IGFuZCBhZGRpbmcgdGhlIHBhcmFtZXRlciBpbiB0aGUgCmNvbmYuZC9zZW5z
+b3JzIGZpbGUgYXMgCk1PRFVMRV8xPSdpdDg3IHRlbXBfdHlwZT0weDFjJwoKTXkgc3VnZ2VzdGlv
+biBpcyB0aGF0IGluc3RydWN0aW9ucyBmb3IgYWRkaW5nIHBhcmFtZXRlcnMgdG8gbW9kdWxlcyBh
+cmUgYWRkZWQgCnRvIHRoZSB0ZXh0IG9mIGNvbmYuZC9zZW5zb3JzLiAgTWF5YmUgdGhlcmUgaXMg
+YSBiZXR0ZXIgd2F5IC0gb3IgbWF5YmUgZXZlbiBhIApHZW50b28tc3RhbmRhcmQgd2F5IG9mIGhh
+bmRsaW5nIHRoaXMgdHlwZSBvZiBwcm9ibGVtPwoKUmVnYXJkcywKTGVvbgoKCi0tCmdlbnRvby11
+c2VyQGdlbnRvby5vcmcgbWFpbGluZyBsaXN0CgotLS0tLSBFbmQgZm9yd2FyZGVkIG1lc3NhZ2Ug
+LS0tLS0KCi0tIApGcm9kbyBMb29pamFhcmQgPGZyb2RvbEBkZHMubmw+ICBQR1Aga2V5IGFuZCBt
+b3JlOiBodHRwOi8vaHVpemVuLmRkcy5ubC9+ZnJvZG9sCkRlZmVuZXN0cmF0aW9uIG4uIChmb3Jt
+YWwgb3Igam9jLik6CiAgVGhlIGFjdCBvZiByZW1vdmluZyBXaW5kb3dzIGZyb20geW91ciBjb21w
+dXRlciBpbiBkaXNndXN0LCB1c3VhbGx5IGZvbGxvd2VkCiAgYnkgdGhlIGluc3RhbGxhdGlvbiBv
+ZiBMaW51eCBvciBzb21lIG90aGVyIFVuaXgtbGlrZSBvcGVyYXRpbmcgc3lzdGVtLgo=
