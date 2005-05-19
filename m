@@ -1,35 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:52 +0000
-Subject: lm80 default configuration
-Message-Id: <20040412223144.0afa3044.khali@linux-fr.org>
+From: twisti@gmx.net (TWISTI)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: tyan S2460
+Message-Id: <1015780374.550.3.camel@sector17.home.at>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+As in ticket #813 described, i initialized the chip with bios. There i
+had values like this:
 
-Any reason why the default lm80 configuration makes in5 and in6
-dependant on in0?
+CPU0: 52C
+FAN0: 2743
+CPU1: 56C
+FAN1: 2700
 
-     compute in5 (160/35.7)*(@ - in0) + @, (@ + in0 * 160/35.7)/ (1 + 160/35.7)
-     compute in6 (36/16.2)*(@ - in0) + @,  (@ + in0 * 36/16.2) / (1 + 36/16.2)
+After booting and inserting the module with:
 
-I guess that the idea is that negative voltages depend on a reference
-voltage, which would be the same value as in0? In this case, all other
-chips that use a reference voltage for negative values should do the
-same, but don't.
+modprobe w83781d init=0 force_subclients=0,0x2c,0x4a,0x4b
 
-At any rate, shouldn't only the register -> real value conversion do
-that? The other way is used to set limits, and the limits shouldn't
-depend on measured values.
+I got this:
 
-Thanks.
+w83627hf-i2c-2-2c
+Adapter: SMBus AMD7X6 adapter at 80e0
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.74 V  (min =  +1.64 V, max =  +2.04 V)       ALARM  
+VCore 2:   +1.71 V  (min =  +1.64 V, max =  +2.04 V)       ALARM  
++3.3V:     +3.28 V  (min =  +2.81 V, max =  +3.79 V)              
++5V:       +4.84 V  (min =  +6.37 V, max =  +5.98 V)              
++12V:      +9.65 V  (min = +10.56 V, max = +13.49 V)              
+-12V:     -12.29 V  (min =  +6.06 V, max =  -7.77 V)              
+-5V:       -0.05 V  (min =  +3.28 V, max =  +4.88 V)              
+V5SB:      +5.51 V  (min =  +6.42 V, max =  +3.41 V)              
+VBat:      +0.46 V  (min =  +4.08 V, max =  +4.04 V)              
+fan1:     1328 RPM  (min =  803 RPM, div = 8)                     
+fan2:     1350 RPM  (min =    0 RPM, div = 8)                     
+fan3:        0 RPM  (min =  706 RPM, div = 8)                     
+temp1:       +77?C  (limit =  -69?C, hysteresis =  -75?C) sensor thermistor           
+temp2:      +4.0?C  (limit =  +80?C, hysteresis =  +75?C) sensor thermistor           
+temp3:      +4.0?C  (limit =  +80?C, hysteresis =  +75?C) sensor thermistor           
+vid:       +1.85 V
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+          Sound alarm enabled
 
-NB: Try "compute in0    @ + in0, @ - in0" for some fun (doesn't last
-long though).
+I really don't know what to do with these values.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Regards.
+
+TWISTI
