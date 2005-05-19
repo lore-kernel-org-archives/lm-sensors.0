@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: i2c patch out of 2.6.4-rc1-mm1
-Message-Id: <20040308182807.GA21296@kroah.com>
+Message-Id: <20040308194428.4aaa518c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1078150396.404344fc41690@imp.gcu.info>
 In-Reply-To: <1078150396.404344fc41690@imp.gcu.info>
@@ -10,25 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 07, 2004 at 11:23:21AM -0800, Andrew Morton wrote:
-> Jean Delvare <khali@linux-fr.org> wrote:
-> >
-> > Hi Greg, Andrew,
-> > 
-> > We followed the plan and here's the current state:
-> > 
-> > * lm_sensors 2.8.5 has been released. It supports 2.6.3 and 2.6.4
-> > kernels.
-> > 
-> > * CVS has been updated to work with 2.6.3-mm4. This is advertised on our
-> > main page and kernel 2.6 specific page. I'll update these pages as
-> > needed.
-> 
-> Could you please send me a diff against Linus's current tree?
+> I've merged my bk tree with Linus's and now it should have no
+> conflicts if you want to pull from there for your next -mm release.
 
-I've merged my bk tree with Linus's and now it should have no conflicts
-if you want to pull from there for your next -mm release.
+Thanks Greg :')
 
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
