@@ -1,96 +1,63 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: A question when test W83792D driver on another motherboard
-Message-Id: <S072xwh7.1109761934.2007890.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245A55@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> We tried the command "isaset -y -f 0x4b9 0x08", and find that the w83792d
-> driver can "work" now when run "sensors" after load the 792 module, but we
-> meet some other problems:
-> 1* All of the voltage/fan/temperature measured values are fixed, they
-> do NOT change at all. The voltage/fan/temperature limits can NOT be set
-> either.
-> Here is the output message of "sensors", please refer it.
-> Do you ever meet such similar problem before? Our 792 driver for Windows
-> can work well.
-> ******************  output of "sensors"  ************************
-> w83792d-i2c-0-2f
-> Adapter: SMBus I801 adapter at 0400
-> VCoreA:    +2.05 V  (min =  +2.04 V, max =  +2.04 V)       ALARM
-> VCoreB:    +2.05 V  (min =  +2.04 V, max =  +2.04 V)       ALARM
-> VIN0:      +4.09 V  (min =  +4.08 V, max =  +4.08 V)       ALARM
-> VIN1:      +4.09 V  (min =  +4.08 V, max =  +4.08 V)       ALARM
-> VIN2:      +4.09 V  (min =  +4.08 V, max =  +4.08 V)       ALARM
-> VIN3:      +4.09 V  (min =  +4.08 V, max =  +4.08 V)       ALARM
-> 5VCC:      +6.14 V  (min =  +6.12 V, max =  +6.12 V)       ALARM
-> 5VSB:      +6.12 V  (min =  +6.12 V, max =  +6.12 V)
-> VBAT:      +4.08 V  (min =  +4.08 V, max =  +4.08 V)
-> Fan1:        0 RPM  (min =    0 RPM, div = 1)
-> Fan2:        0 RPM  (min =    0 RPM, div = 1)
-> Fan3:        0 RPM  (min =    0 RPM, div = 4080)
-> Fan4:        0 RPM  (min =    0 RPM, div = 255)
-> Fan5:        0 RPM  (min =    0 RPM, div = 255)
-> Fan6:        0 RPM  (min =    0 RPM, div = 255)
-> Fan7:        0 RPM  (min =    0 RPM, div = 255)
-> Temp1:    +255.0??XC  (high = +255.0??XC, hyst = +255.0??XC)
-> Temp2:    +255.5??XC  (high = +255.5??XC, hyst = +255.5??XC)
-> Temp3:    +255.5??XC  (high = +255.5??XC, hyst = +255.5??XC)
-> ERROR: Can't get Chassis data!
-
-This is a typical output when the SMBus is stuck. Reads will return -1,
-which is then misinterpreted as 0xff and results in the output above.
-
-Side notes:
-1* You should check your code for fan clock dividers. It is very
-suspicious that you get different values and some of them are NOT
-possible divider values.
-2* The chassis data error is probably not related so you should check
-your code too (either sensors, or libsensors, or the driver itself).
-
-If you were able to load the driver, it means that at some point the
-reads were succesfull (or the chip detection would have failed). So
-basically you enabled the chip access using isaset, then some reads
-succeeded, then the bus locked itself, or more likely the access to the
-chip was locked again. The bus itself my still work. (No message in the
-logs?)
-
-When does your windows driver exactly write 0x08 to 0x4b9? Once when you
-load the driver? Or before every register read?
-
-> 2* When I rmmod the w83792d module, and insmod it again, the 792 driver
-> will NOT work any more: I get nothing from "sensors".
-
-This is expected. If read fails, the detection cannot possibly succeed.
-Most probably the chip address is no more responsive anyway.
-
-> I'm sure that the 0x04b9 is still "0x08", it does NOT change.
-
-How do you know for sure?
-
-Also, do you know the value at 0x4b9 before you write 0x08? If you know,
-try writing this value again, then 0x08 again, and see if it temporarily
-gives you access to the chip again.
-
-> Btw, the "sensors-detect" still can NOT find the 792 chip after I run
-> "isaset -y -f 0x4b9 0x08".
-
-sensors-detect does much more probings on the bus than your driver. If
-writing 0x08 to 0x4b9 only unlocks the chip access for a limited time or
-limited number of bus operations, it will lock again before
-sensors-detect reaches the w83792d detection code. Also, if this is
-really a bus lockup, it is much more likely to happen with
-sensors-detect than anything else.
-
-Blame Asus and their weird design...
-
---
-Jean Delvare
+SGkgSmVhbgoKPiBUaGlzIGlzIGEgdHlwaWNhbCBvdXRwdXQgd2hlbiB0aGUgU01CdXMgaXMgc3R1
+Y2suIFJlYWRzIHdpbGwgcmV0dXJuCi0xLAo+IHdoaWNoIGlzIHRoZW4gbWlzaW50ZXJwcmV0ZWQg
+YXMgMHhmZiBhbmQgcmVzdWx0cyBpbiB0aGUgb3V0cHV0IGFib3ZlLgo+IAo+IFNpZGUgbm90ZXM6
+Cj4gMSogWW91IHNob3VsZCBjaGVjayB5b3VyIGNvZGUgZm9yIGZhbiBjbG9jayBkaXZpZGVycy4g
+SXQgaXMgdmVyeQo+IHN1c3BpY2lvdXMgdGhhdCB5b3UgZ2V0IGRpZmZlcmVudCB2YWx1ZXMgYW5k
+IHNvbWUgb2YgdGhlbSBhcmUgTk9UCj4gcG9zc2libGUgZGl2aWRlciB2YWx1ZXMuCj4gMiogVGhl
+IGNoYXNzaXMgZGF0YSBlcnJvciBpcyBwcm9iYWJseSBub3QgcmVsYXRlZCBzbyB5b3Ugc2hvdWxk
+IGNoZWNrCj4geW91ciBjb2RlIHRvbyAoZWl0aGVyIHNlbnNvcnMsIG9yIGxpYnNlbnNvcnMsIG9y
+IHRoZSBkcml2ZXIgaXRzZWxmKS4KCk9LLCBJIHdpbGwgY2hlY2sgbXkgY29kZXMgYWZ0ZXIgYSB3
+aGlsZS4KCj4gV2hlbiBkb2VzIHlvdXIgd2luZG93cyBkcml2ZXIgZXhhY3RseSB3cml0ZSAweDA4
+IHRvIDB4NGI5PyBPbmNlIHdoZW4KeW91Cj4gbG9hZCB0aGUgZHJpdmVyPyBPciBiZWZvcmUgZXZl
+cnkgcmVnaXN0ZXIgcmVhZD8KCjc5MiB3aW5kb3dzIGRyaXZlciB3cml0ZSAweDA4IHRvIDB4NGI5
+IGJlZm9yZSBsb2FkaW5nIHRoZSBkcml2ZXIsCmluc3RlYWQgb2YKYmVmb3JlIGV2ZXJ5IHJlZ2lz
+dGVyIHJlYWQuCgo+ID4gSSdtIHN1cmUgdGhhdCB0aGUgMHgwNGI5IGlzIHN0aWxsICIweDA4Iiwg
+aXQgZG9lcyBOT1QgY2hhbmdlLgo+IEhvdyBkbyB5b3Uga25vdyBmb3Igc3VyZT8KCkkgdXNlICJp
+c2FkdW1wIC15IC1mIDB4MDRiOSIgdG8gY2hlY2sgdGhlIHZhbHVlLgoKPiBBbHNvLCBkbyB5b3Ug
+a25vdyB0aGUgdmFsdWUgYXQgMHg0YjkgYmVmb3JlIHlvdSB3cml0ZSAweDA4PyBJZiB5b3UKa25v
+dywKPiB0cnkgd3JpdGluZyB0aGlzIHZhbHVlIGFnYWluLCB0aGVuIDB4MDggYWdhaW4sIGFuZCBz
+ZWUgaWYgaXQKdGVtcG9yYXJpbHkKPiBnaXZlcyB5b3UgYWNjZXNzIHRvIHRoZSBjaGlwIGFnYWlu
+LgoKSSB0cmllZCBpdCBqdXN0IG5vdywgYnV0IGluIHZhaW4sIEkgc3RpbGwgY2FuIE5PVCBhY2Nl
+c3MgdG8gdGhlIGNoaXAsIEkKc3RpbGwKaGF2ZSB0byByZWJvb3QgdGhlIExpbnV4IHRvIGFjY2Vz
+cyB0byB0aGUgY2hpcC4KCklmIHlvdSBoYXZlIG1vcmUgc3VnZ2VzdGlvbiBhYm91dCB0aGlzIHBy
+b2JsZW0sIHBsZWFzZSB0ZWxsIHVzLCBJJ2QgbGlrZQp0bwp0cnkgaXQgaGVyZS4KCkJ0dywgSXMg
+dGhlcmUgYW55IGd1eXMgd2hvIGFyZSBnb2luZyB0byBiYWNrcG9ydCB0aGUgaTJjLWFsaTE1NjMu
+YyBmcm9tCmxpbnV4LTIuNiB0byBsaW51eC0yLjQ/IFdlIHN0aWxsIGNhbiBub3QgcnVuIDc5MiBk
+cml2ZXIgb24gYW5vdGhlcgptb3RoZXJib2FyZAp3aXRoIHRoZSBBbGkgTTE1NjMgY2hpcHNldC4g
+SWYgdGhlcmUgaXMgc29tZSBldm9sdXRpb24gb24gaXQsIHBsZWFzZQp0ZWxsIHVzLgo6LSkKClRo
+YW5rcwoKQmVzdCBSZWdhcmRzCkNodW5oYW8KMjAwNS0wMy0wMwoKCj09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwg
+aW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBv
+bmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9y
+IG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGlu
+IHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVt
+YWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNh
+dGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNv
+bXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5
+b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVz
+ZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9o
+aWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCBy
+ZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVk
+IGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxl
+IHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNz
+YWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1l
+bnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3s
+tW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l
+9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjD
+pd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qt
+zKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jq
+sFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7Fv
+tfissLXYqLm5caRspKel37P1qc63TqijLgo=
