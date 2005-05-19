@@ -1,63 +1,79 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: It87 readings on Asus A7V8X-X
-Message-Id: <20030914002320.64833173.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [linux-usb-devel] [BK PATCH] More I2C patches for 2.6.12-rc1
+Message-Id: <20050401200324.GA12854@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@osdl.org, akpm@osdl.org
+Cc: linux-usb-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+
+Hi,
+
+I messed up on the last batch of i2c patches, and forgot 3 of them that
+I had accepted, and were in my trees, but didn't get copied into the
+tree that I sent for you to pull from.  All 3 of them are bugfixes.
+
+Please pull from:
+	bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
+
+Patches will be posted to linux-kernel and sensors as a follow-up thread
+for those who want to see them.
+
+thanks,
+
+greg k-h
+
+ drivers/i2c/chips/adm1021.c  |    2 +
+ drivers/i2c/chips/adm1025.c  |   12 +++++++++
+ drivers/i2c/chips/adm1026.c  |   55 ++++++++++++++-----------------------------
+ drivers/i2c/chips/adm1031.c  |   23 +++++++----------
+ drivers/i2c/chips/asb100.c   |   25 +++++++++++++++++--
+ drivers/i2c/chips/ds1621.c   |    6 +++-
+ drivers/i2c/chips/fscher.c   |   34 ++++++++++++++++++++------
+ drivers/i2c/chips/fscpos.c   |   18 ++++++++++----
+ drivers/i2c/chips/gl518sm.c  |   25 +++++++++++++++----
+ drivers/i2c/chips/gl520sm.c  |   43 ++++++++++++++++++++++-----------
+ drivers/i2c/chips/it87.c     |   44 +++++++++++++++++++++++++++++-----
+ drivers/i2c/chips/lm63.c     |   19 +++++++++++++-
+ drivers/i2c/chips/lm75.c     |    3 ++
+ drivers/i2c/chips/lm77.c     |   21 +++++++++++++---
+ drivers/i2c/chips/lm78.c     |   30 +++++++++++++++++++++--
+ drivers/i2c/chips/lm80.c     |   16 ++++++++++--
+ drivers/i2c/chips/lm83.c     |    3 ++
+ drivers/i2c/chips/lm85.c     |   44 ++++++++++++----------------------
+ drivers/i2c/chips/lm87.c     |   31 +++++++++++++++++++++---
+ drivers/i2c/chips/lm90.c     |   14 +++++++++-
+ drivers/i2c/chips/lm92.c     |   10 ++++++-
+ drivers/i2c/chips/max1619.c  |    3 ++
+ drivers/i2c/chips/pc87360.c  |   29 ++++++++++++++++++++++
+ drivers/i2c/chips/pcf8574.c  |   27 +++++++--------------
+ drivers/i2c/chips/pcf8591.c  |    6 +++-
+ drivers/i2c/chips/sis5595.c  |   28 +++++++++++++++++++--
+ drivers/i2c/chips/smsc47m1.c |   24 ++++++++++++++----
+ drivers/i2c/chips/via686a.c  |   21 +++++++++++++++-
+ drivers/i2c/chips/w83627hf.c |   32 ++++++++++++++++++++++++-
+ drivers/i2c/chips/w83781d.c  |   29 ++++++++++++++++++++--
+ drivers/i2c/i2c-core.c       |   19 --------------
+ include/linux/i2c.h          |   10 ++++++-
+ 32 files changed, 516 insertions(+), 190 deletions(-)
+-----
 
 
-> CC to khali@linux-fr.org (lm-sensors team) because I think it might
-> be of interest to him
+Jean Delvare:
+  o I2C: Fix a common race condition in hardware monitoring
+  o I2C: Move functionality handling from i2c-core to i2c.h
+  o I2C: pcf8574 doesn't need a lock
 
-Thanks :) (CC:ing the mailing list would have been even better).
 
-> I found something more satisfying
-> You need to load the it87 module with the option temp_type=0x1c 
-> (explained in sensors.conf and the it87 readme file in the lm_sensors 
-> package)
-> Otherwise the readings are all wrong (-80?C etc. like you already
-> noticed)
 
-Yes, that's something rather common for the it87, as detailed in our
-doc.
-
-> Now I get something like:
-> 
-> Temp1/MB:    +52?C  (min =  +20?C, max =  +60?C)
-> Temp2/CPU:   +39?C  (min =  +20?C, max =  +60?C)
-> Temp3:       +86?C  (min =  +20?C, max =  +60?C)
-> 
-> Temp1 is actually cpu temp
-> Temp2 = mb temp (value verified in bios)
-> Temp3 = no idea
-
-That too may vary from motherboard to motherboard. Edit
-/etc/sensors/conf to fit your needs.
-
-Is temp3 constant or not?
-
-> Temp1 (cpu) is not accurate so I tried to calculate the deviation
-> with simple 'rules of 3"
-> Case open I got 48?C (sensor) and 56?C (bios), gives 7/6  ~ 1.166667
-> Case closed I got 52 & 62 ~ 1.1923
-> 
-> So the actual value must be somewhere in between
-
-You won't get accurate values that way. You should consider a possible
-offset (that is, T[real] = K * T[measured] + offset). You'll consider
-that T[real] is T[bios], while T[measured] is T[sensors].
-
-From the two samples you give us, you'd get K = 1.5 and offset = -16.
-More samples would be needed to confirm that. Remember that the noise is
-very important when measuring temperature is these conditions (because
-the CPU isn't idling the same way under linux and in the BIOS) so the
-results may not be accurate anyway.
-
-Hope that helps.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_ide95&alloc_id396&op=click
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
