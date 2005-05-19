@@ -1,28 +1,42 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:04 +0000
-Subject: Gigabyte GA-7VRXP rev 2.0
-Message-Id: <20030707075228.33ba0585.khali@linux-fr.org>
+From: panic@itu.dk (Arne John Glenstrup)
+Date: Thu, 19 May 2005 06:25:44 +0000
+Subject: BIOS Smart CPU Fan affected by lm_sensors
+Message-Id: <423C1182.6090201@itu.dk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi sensors-folks,
 
-Hi Alex,
 
-On this page:
-  http://mbm.livewiredev.com/comp/gigabyte.html
-You say that the Gigabyte GA-7VRXP rev 2.0 has an LM83 on it. After a
-user tried our LM Sensors package on such a motherboard and couldn't get
-it to work properly, I asked him for an I2C dump of the chip that was
-supposed to be an LM83 and it turned out to actually be an LM90
-(manufacturer ID 0x01 at 0xFE, device ID 0x21 at 0xFF).
+I have MSI's K8N Neo Platinum board with a W83627THF chip.
+I couldn't find the following piece of advice in the FAQ, so I had to
+find out the hard way---trial and error:
 
-I just wanted to let you know, so that you can check it and correct the
-information on this page. Let us know if you have additional info about
-this board.
+Q: My Smart CPU Fan goes to full speed when I use lm_sensors!
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+A: The Smart CPU Fan option in the BIOS slows down the fan when
+    the CPU is below a given temperature.  If your CPU temperature
+    *is* below this level and the fan doesn't slow down, this might
+    be caused by sensor chip initialisation.  For the W83627THF
+    chip you can try replacing the line
+
+    MODULE_1=w83627hf
+
+    in /etc/sysconfig/lm_sensors by this line:
+
+    MODULE_1="w83627hf init=0"
+
+  ------------------
+
+Also, I have a fan that runs at RPMs below 600, so I have set
+the fan divisor to 32, which seems to work fine for this chip.
+
+Best Regards,
+
+-- Arne
+____________________________________________________________
+Arne John Glenstrup             mailto:panic@itu.dk
+IT University of Copenhagen
