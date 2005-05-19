@@ -1,27 +1,38 @@
-From: adrian@humboldt.co.uk (Adrian Cox)
-Date: Thu, 19 May 2005 06:23:51 +0000
-Subject: MPC107 I2C driver, interrupt driven
-Message-Id: <1048614855.20101.405.camel@newt>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:59 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc4 14/15] include/linux/i2c-sysfs.h:
+Message-Id: <2538186705051703463587a54@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-embedded@lists.linuxppc.org
-Cc: sensors@stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-The second version of my driver for the I2C unit in Motorola's MPC107
-bridge chip, plus the 824x integrated processors, is now available:
+This patch creates a new header with a potential standard i2c sensor
+attribute type (which simply includes an int representing the sensor
+number/index) and the associated macros, SENSOR_DEVICE_ATTR to define
+a static attribute and to_sensor_dev_attr to get a
+sensor_device_attribute reference from an embedded device_attribute
+reference.
 
-http://www.humboldt.co.uk/mpc10xi2c.html
+Please see the next patch to see how these can be used.
 
-The changes in this release are:
-*) Now interrupt driven.
-*) Faster startup.
-*) Fixed bug in the stop condition (thanks to Timo Rossi).
-*) Uses official adapter and algorithm numbers.
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
 
-Once more, I welcome feedback on how it works for other people.
+---
+-------------- next part --------------
+ i2c-sysfs.h |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+)
 
-- Adrian Cox
-http://www.humboldt.co.uk/
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-i2c.diff
+Type: text/x-patch
+Size: 1767 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/89ff6850/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-i2c.bin
+-------------- next part --------------
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
