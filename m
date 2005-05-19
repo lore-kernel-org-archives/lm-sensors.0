@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:18 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0-test5
-Message-Id: <10642734202631@kroah.com>
+Message-Id: <10642734202220@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10642734202220@kroah.com>
+In-Reply-To: <10642734193216@kroah.com>
 References: <1064273416272@kroah.com>
 In-Reply-To: <1064273416272@kroah.com>
 MIME-Version: 1.0
@@ -11,67 +11,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1315.1.4, 2003/09/15 16:37:19-07:00, greg@kroah.com
+ChangeSet 1.1315.1.3, 2003/09/15 16:15:33-07:00, greg@kroah.com
 
-[PATCH] I2C: add the i2c-via i2c bus driver
+[PATCH] I2C: add the i2c-sis630 i2c bus driver
 
 This is based on the lmsensor cvs version of the driver, but is cleaned
 it up and ported it to 2.6.
 
 
- drivers/i2c/busses/Kconfig   |   17 +++
- drivers/i2c/busses/Makefile  |    1 
- drivers/i2c/busses/i2c-via.c |  183 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 201 insertions(+)
+ drivers/i2c/busses/Kconfig      |   16 +
+ drivers/i2c/busses/Makefile     |    1 
+ drivers/i2c/busses/i2c-sis630.c |  494 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 511 insertions(+)
 
 
 diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig	Mon Sep 22 16:15:36 2003
-+++ b/drivers/i2c/busses/Kconfig	Mon Sep 22 16:15:36 2003
-@@ -207,6 +207,23 @@
+--- a/drivers/i2c/busses/Kconfig	Mon Sep 22 16:15:46 2003
++++ b/drivers/i2c/busses/Kconfig	Mon Sep 22 16:15:46 2003
+@@ -166,6 +166,22 @@
  	  in the lm_sensors package, which you can download at 
  	  http://www.lm-sensors.nu
  
-+config I2C_VIA
-+	tristate "  VIA 82C58B"
++config I2C_SIS630
++	tristate "  Sis630"
 +	depends on I2C && PCI && EXPERIMENTAL
 +	help
++	  If you say yes to this option, support will be included for the 
++	  SiS630 SMBus (a subset of I2C) interface.
 +
-+	  If you say yes to this option, support will be included for the VIA
-+          82C586B I2C interface
-+
-+	  This can also be built as a module which can be inserted and removed
++	  This can also be built as a module which can be inserted and removed 
 +	  while the kernel is running.  If you want to compile it as a module,
 +	  say M here and read <file:Documentation/modules.txt>.
 +
-+	  The module will be called i2c-via.
++	  The module will be called i2c-sis630.
 +
 +	  You will also need the latest user-space utilties: you can find them
-+	  in the lm_sensors package, which you can download at
++	  in the lm_sensors package, which you can download at 
 +	  http://www.lm-sensors.nu
  
- config I2C_VIAPRO
- 	tristate "  VIA 82C596/82C686/823x"
+ config I2C_SIS96X
+ 	tristate "  SiS 96x"
 diff -Nru a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
---- a/drivers/i2c/busses/Makefile	Mon Sep 22 16:15:36 2003
-+++ b/drivers/i2c/busses/Makefile	Mon Sep 22 16:15:36 2003
-@@ -13,4 +13,5 @@
+--- a/drivers/i2c/busses/Makefile	Mon Sep 22 16:15:46 2003
++++ b/drivers/i2c/busses/Makefile	Mon Sep 22 16:15:46 2003
+@@ -11,5 +11,6 @@
+ obj-$(CONFIG_I2C_NFORCE2)	+= i2c-nforce2.o
+ obj-$(CONFIG_I2C_PIIX4)		+= i2c-piix4.o
  obj-$(CONFIG_I2C_SIS5595)	+= i2c-sis5595.o
- obj-$(CONFIG_I2C_SIS630)	+= i2c-sis630.o
++obj-$(CONFIG_I2C_SIS630)	+= i2c-sis630.o
  obj-$(CONFIG_I2C_SIS96X)	+= i2c-sis96x.o
-+obj-$(CONFIG_I2C_VIA)		+= i2c-via.o
  obj-$(CONFIG_I2C_VIAPRO)	+= i2c-viapro.o
-diff -Nru a/drivers/i2c/busses/i2c-via.c b/drivers/i2c/busses/i2c-via.c
+diff -Nru a/drivers/i2c/busses/i2c-sis630.c b/drivers/i2c/busses/i2c-sis630.c
 --- /dev/null	Wed Dec 31 16:00:00 1969
-+++ b/drivers/i2c/busses/i2c-via.c	Mon Sep 22 16:15:36 2003
-@@ -0,0 +1,183 @@
++++ b/drivers/i2c/busses/i2c-sis630.c	Mon Sep 22 16:15:46 2003
+@@ -0,0 +1,494 @@
 +/*
-+    i2c-via.c - Part of lm_sensors,  Linux kernel modules
-+                for hardware monitoring
++    i2c-sis630.c - Part of lm_sensors, Linux kernel modules for hardware
++              monitoring
 +
-+    i2c Support for Via Technologies 82C586B South Bridge
-+
-+    Copyright (c) 1998, 1999 Ky?sti M?lkki <kmalkki@cc.hut.fi>
++    Copyright (c) 2002,2003 Alexander Malysh <amalysh@web.de>
 +
 +    This program is free software; you can redistribute it and/or modify
 +    it under the terms of the GNU General Public License as published by
@@ -88,6 +86,35 @@ diff -Nru a/drivers/i2c/busses/i2c-via.c b/drivers/i2c/busses/i2c-via.c
 +    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 +*/
 +
++/*
++   Changes:
++   24.08.2002
++   	Fixed the typo in sis630_access (Thanks to Mark M. Hoffman)
++	Changed sis630_transaction.(Thanks to Mark M. Hoffman)
++   18.09.2002
++	Added SIS730 as supported
++   21.09.2002
++	Added high_clock module option.If this option is set
++	used Host Master Clock 56KHz (default 14KHz).For now we are save old Host
++	Master Clock and after transaction completed restore (otherwise
++	it's confuse BIOS and hung Machine).
++   24.09.2002
++	Fixed typo in sis630_access
++	Fixed logical error by restoring of Host Master Clock
++   31.07.2003
++   	Added block data read/write support.
++*/
++
++/*
++   Status: beta
++
++   Supports:
++	SIS 630
++	SIS 730
++
++   Note: we assume there can only be one device, with one SMBus interface.
++*/
++
 +#define DEBUG
 +
 +#include <linux/kernel.h>
@@ -96,156 +123,440 @@ diff -Nru a/drivers/i2c/busses/i2c-via.c b/drivers/i2c/busses/i2c-via.c
 +#include <linux/ioport.h>
 +#include <linux/init.h>
 +#include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
 +
-+/* Power management registers */
-+#define PM_CFG_REVID	0x08	/* silicon revision code */
-+#define PM_CFG_IOBASE0	0x20
-+#define PM_CFG_IOBASE1	0x48
 +
-+#define I2C_DIR		(pm_io_base+0x40)
-+#define I2C_OUT		(pm_io_base+0x42)
-+#define I2C_IN		(pm_io_base+0x44)
-+#define I2C_SCL		0x02	/* clock bit in DIR/OUT/IN register */
-+#define I2C_SDA		0x04
++/* SIS630 SMBus registers */
++#define SMB_STS			0x80	/* status */
++#define SMB_EN			0x81	/* status enable */
++#define SMB_CNT			0x82
++#define SMBHOST_CNT		0x83
++#define SMB_ADDR		0x84
++#define SMB_CMD			0x85
++#define SMB_PCOUNT		0x86	/* processed count */
++#define SMB_COUNT		0x87
++#define SMB_BYTE		0x88	/* ~0x8F data byte field */
++#define SMBDEV_ADDR		0x90
++#define SMB_DB0			0x91
++#define SMB_DB1			0x92
++#define SMB_SAA			0x93
 +
-+/* io-region reservation */
-+#define IOSPACE		0x06
-+#define IOTEXT		"via-i2c"
++/* register count for request_region */
++#define SIS630_SMB_IOREGION	20
 +
-+static u16 pm_io_base = 0;
++/* PCI address constants */
++/* acpi base address register  */
++#define SIS630_ACPI_BASE_REG	0x74
++/* bios control register */
++#define SIS630_BIOS_CTL_REG	0x40
 +
-+/*
-+   It does not appear from the datasheet that the GPIO pins are
-+   open drain. So a we set a low value by setting the direction to
-+   output and a high value by setting the direction to input and
-+   relying on the required I2C pullup. The data value is initialized
-+   to 0 in via_init() and never changed.
-+*/
-+static void bit_via_setscl(void *data, int state)
++/* Other settings */
++#define MAX_TIMEOUT		500
++
++/* SIS630 constants */
++#define SIS630_QUICK		0x00
++#define SIS630_BYTE		0x01
++#define SIS630_BYTE_DATA	0x02
++#define SIS630_WORD_DATA	0x03
++#define SIS630_PCALL		0x04
++#define SIS630_BLOCK_DATA	0x05
++
++/* insmod parameters */
++static int high_clock = 0;
++MODULE_PARM(high_clock, "i");
++MODULE_PARM_DESC(high_clock, "Set Host Master Clock to 56KHz (default 14KHz).");
++
++
++static unsigned short acpi_base = 0;
++
++static inline u8 sis630_read(u8 reg)
 +{
-+	outb(state ? inb(I2C_DIR) & ~I2C_SCL : inb(I2C_DIR) | I2C_SCL, I2C_DIR);
++	return inb(acpi_base + reg);
 +}
 +
-+static void bit_via_setsda(void *data, int state)
++static inline void sis630_write(u8 reg, u8 data)
 +{
-+	outb(state ? inb(I2C_DIR) & ~I2C_SDA : inb(I2C_DIR) | I2C_SDA, I2C_DIR);
++	outb(data, acpi_base + reg);
 +}
 +
-+static int bit_via_getscl(void *data)
++static int sis630_transaction_start(struct i2c_adapter *adap, int size, u8 *oldclock)
 +{
-+	return (0 != (inb(I2C_IN) & I2C_SCL));
-+}
++        int temp;
 +
-+static int bit_via_getsda(void *data)
-+{
-+	return (0 != (inb(I2C_IN) & I2C_SDA));
-+}
++	/* Make sure the SMBus host is ready to start transmitting. */
++	if ((temp = sis630_read(SMB_CNT) & 0x03) != 0x00) {
++		dev_dbg(&adap->dev, "SMBus busy (%02x).Resetting...\n",temp);
++		/* kill smbus transaction */
++		sis630_write(SMBHOST_CNT, 0x20);
 +
++		if ((temp = sis630_read(SMB_CNT) & 0x03) != 0x00) {
++			dev_dbg(&adap->dev, "Failed! (%02x)\n", temp);
++			return -1;
++                } else {
++			dev_dbg(&adap->dev, "Successfull!\n");
++		}
++        }
 +
-+static struct i2c_algo_bit_data bit_data = {
-+	.setsda		= bit_via_setsda,
-+	.setscl		= bit_via_setscl,
-+	.getsda		= bit_via_getsda,
-+	.getscl		= bit_via_getscl,
-+	.udelay		= 5,
-+	.mdelay		= 5,
-+	.timeout	= HZ
-+};
++	/* save old clock, so we can prevent machine for hung */
++	*oldclock = sis630_read(SMB_CNT);
 +
-+static struct i2c_adapter vt586b_adapter = {
-+	.owner		= THIS_MODULE,
-+	.name		= "VIA i2c",
-+	.algo_data	= &bit_data,
-+};
++	dev_dbg(&adap->dev, "saved clock 0x%02x\n", *oldclock);
 +
++	/* disable timeout interrupt , set Host Master Clock to 56KHz if requested */
++	if (high_clock > 0)
++		sis630_write(SMB_CNT, 0x20);
++	else
++		sis630_write(SMB_CNT, (*oldclock & ~0x40));
 +
-+static struct pci_device_id vt586b_ids[] __devinitdata = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_3) },
-+	{ 0, }
-+};
++	/* clear all sticky bits */
++	temp = sis630_read(SMB_STS);
++	sis630_write(SMB_STS, temp & 0x1e);
 +
-+static int __devinit vt586b_probe(struct pci_dev *dev, const struct pci_device_id *id)
-+{
-+	u16 base;
-+	u8 rev;
-+	int res;
++	/* start the transaction by setting bit 4 and size */
++	sis630_write(SMBHOST_CNT,0x10 | (size & 0x07));
 +
-+	if (pm_io_base) {
-+		dev_err(&dev->dev, "i2c-via: Will only support one host\n");
-+		return -ENODEV;
-+	}
-+
-+	pci_read_config_byte(dev, PM_CFG_REVID, &rev);
-+
-+	switch (rev) {
-+	case 0x00:
-+		base = PM_CFG_IOBASE0;
-+		break;
-+	case 0x01:
-+	case 0x10:
-+		base = PM_CFG_IOBASE1;
-+		break;
-+
-+	default:
-+		base = PM_CFG_IOBASE1;
-+		/* later revision */
-+	}
-+
-+	pci_read_config_word(dev, base, &pm_io_base);
-+	pm_io_base &= (0xff << 8);
-+
-+	if (!request_region(I2C_DIR, IOSPACE, IOTEXT)) {
-+		dev_err(&dev->dev, "IO 0x%x-0x%x already in use\n", I2C_DIR, I2C_DIR + IOSPACE);
-+		return -ENODEV;
-+	}
-+
-+	outb(inb(I2C_DIR) & ~(I2C_SDA | I2C_SCL), I2C_DIR);
-+	outb(inb(I2C_OUT) & ~(I2C_SDA | I2C_SCL), I2C_OUT);
-+
-+	/* set up the driverfs linkage to our parent device */
-+	vt586b_adapter.dev.parent = &dev->dev;
-+
-+	res = i2c_bit_add_bus(&vt586b_adapter);
-+	if ( res < 0 ) {
-+		release_region(I2C_DIR, IOSPACE);
-+		pm_io_base = 0;
-+		return res;
-+	}
 +	return 0;
 +}
 +
-+static void __devexit vt586b_remove(struct pci_dev *dev)
++static int sis630_transaction_wait(struct i2c_adapter *adap, int size)
 +{
-+	i2c_bit_del_bus(&vt586b_adapter);
-+	release_region(I2C_DIR, IOSPACE);
-+	pm_io_base = 0;
++	int temp, result = 0, timeout = 0;
++
++	/* We will always wait for a fraction of a second! */
++	do {
++		i2c_delay(1);
++		temp = sis630_read(SMB_STS);
++		/* check if block transmitted */
++		if (size = SIS630_BLOCK_DATA && (temp & 0x10))
++			break;
++	} while (!(temp & 0x0e) && (timeout++ < MAX_TIMEOUT));
++
++	/* If the SMBus is still busy, we give up */
++	if (timeout >= MAX_TIMEOUT) {
++		dev_dbg(&adap->dev, "SMBus Timeout!\n");
++		result = -1;
++	}
++
++	if (temp & 0x02) {
++		dev_dbg(&adap->dev, "Error: Failed bus transaction\n");
++		result = -1;
++	}
++
++	if (temp & 0x04) {
++		dev_err(&adap->dev, "Bus collision!\n");
++		result = -1;
++		/*
++		  TBD: Datasheet say:
++		  the software should clear this bit and restart SMBUS operation.
++		  Should we do it or user start request again?
++		*/
++	}
++
++	return result;
++}
++
++static void sis630_transaction_end(struct i2c_adapter *adap, u8 oldclock)
++{
++	int temp = 0;
++
++	/* clear all status "sticky" bits */
++	sis630_write(SMB_STS, temp);
++
++	dev_dbg(&adap->dev, "SMB_CNT before clock restore 0x%02x\n", sis630_read(SMB_CNT));
++
++	/*
++	 * restore old Host Master Clock if high_clock is set
++	 * and oldclock was not 56KHz
++	 */
++	if (high_clock > 0 && !(oldclock & 0x20))
++		sis630_write(SMB_CNT,(sis630_read(SMB_CNT) & ~0x20));
++
++	dev_dbg(&adap->dev, "SMB_CNT after clock restore 0x%02x\n", sis630_read(SMB_CNT));
++}
++
++static int sis630_transaction(struct i2c_adapter *adap, int size)
++{
++	int result = 0;
++	u8 oldclock = 0;
++
++	result = sis630_transaction_start(adap, size, &oldclock);
++	if (!result) {
++		result = sis630_transaction_wait(adap, size);
++		sis630_transaction_end(adap, oldclock);
++	}
++
++	return result;
++}
++
++static int sis630_block_data(struct i2c_adapter *adap, union i2c_smbus_data *data, int read_write)
++{
++	int i, len = 0, rc = 0;
++	u8 oldclock = 0;
++
++	if (read_write = I2C_SMBUS_WRITE) {
++		len = data->block[0];
++		if (len < 0)
++			len = 0;
++		else if (len > 32)
++			len = 32;
++		sis630_write(SMB_COUNT, len);
++		for (i=1; i <= len; i++) {
++			dev_dbg(&adap->dev, "set data 0x%02x\n", data->block[i]);
++			/* set data */
++			sis630_write(SMB_BYTE+(i-1)%8, data->block[i]);
++			if (i=8 || (len<8 && i=len)) {
++				dev_dbg(&adap->dev, "start trans len=%d i=%d\n",len ,i);
++				/* first transaction */
++				if (sis630_transaction_start(adap, SIS630_BLOCK_DATA, &oldclock))
++					return -1;
++			}
++			else if ((i-1)%8 = 7 || i=len) {
++				dev_dbg(&adap->dev, "trans_wait len=%d i=%d\n",len,i);
++				if (i>8) {
++					dev_dbg(&adap->dev, "clear smbary_sts len=%d i=%d\n",len,i);
++					/*
++					   If this is not first transaction,
++					   we must clear sticky bit.
++					   clear SMBARY_STS
++					*/
++					sis630_write(SMB_STS,0x10);
++				}
++				if (sis630_transaction_wait(adap, SIS630_BLOCK_DATA)) {
++					dev_dbg(&adap->dev, "trans_wait failed\n");
++					rc = -1;
++					break;
++				}
++			}
++		}
++	}
++	else {
++		/* read request */
++		data->block[0] = len = 0;
++		if (sis630_transaction_start(adap, SIS630_BLOCK_DATA, &oldclock)) {
++			return -1;
++		}
++		do {
++			if (sis630_transaction_wait(adap, SIS630_BLOCK_DATA)) {
++				dev_dbg(&adap->dev, "trans_wait failed\n");
++				rc = -1;
++				break;
++			}
++			/* if this first transaction then read byte count */
++			if (len = 0)
++				data->block[0] = sis630_read(SMB_COUNT);
++
++			dev_dbg(&adap->dev, "block data read len=0x%x\n", data->block[0]);
++
++			for (i=0; i < 8 && len < data->block[0]; i++,len++) {
++				dev_dbg(&adap->dev, "read i=%d len=%d\n", i, len);
++				data->block[len+1] = sis630_read(SMB_BYTE+i);
++			}
++
++			dev_dbg(&adap->dev, "clear smbary_sts len=%d i=%d\n",len,i);
++
++			/* clear SMBARY_STS */
++			sis630_write(SMB_STS,0x10);
++		} while(len < data->block[0]);
++	}
++
++	sis630_transaction_end(adap, oldclock);
++
++	return rc;
++}
++
++/* Return -1 on error. */
++static s32 sis630_access(struct i2c_adapter *adap, u16 addr,
++			 unsigned short flags, char read_write,
++			 u8 command, int size, union i2c_smbus_data *data)
++{
++	switch (size) {
++		case I2C_SMBUS_QUICK:
++			sis630_write(SMB_ADDR, ((addr & 0x7f) << 1) | (read_write & 0x01));
++			size = SIS630_QUICK;
++			break;
++		case I2C_SMBUS_BYTE:
++			sis630_write(SMB_ADDR, ((addr & 0x7f) << 1) | (read_write & 0x01));
++			if (read_write = I2C_SMBUS_WRITE)
++				sis630_write(SMB_CMD, command);
++			size = SIS630_BYTE;
++			break;
++		case I2C_SMBUS_BYTE_DATA:
++			sis630_write(SMB_ADDR, ((addr & 0x7f) << 1) | (read_write & 0x01));
++			sis630_write(SMB_CMD, command);
++			if (read_write = I2C_SMBUS_WRITE)
++				sis630_write(SMB_BYTE, data->byte);
++			size = SIS630_BYTE_DATA;
++			break;
++		case I2C_SMBUS_PROC_CALL:
++		case I2C_SMBUS_WORD_DATA:
++			sis630_write(SMB_ADDR,((addr & 0x7f) << 1) | (read_write & 0x01));
++			sis630_write(SMB_CMD, command);
++			if (read_write = I2C_SMBUS_WRITE) {
++				sis630_write(SMB_BYTE, data->word & 0xff);
++				sis630_write(SMB_BYTE + 1,(data->word & 0xff00) >> 8);
++			}
++			size = (size = I2C_SMBUS_PROC_CALL ? SIS630_PCALL : SIS630_WORD_DATA);
++			break;
++		case I2C_SMBUS_BLOCK_DATA:
++			sis630_write(SMB_ADDR,((addr & 0x7f) << 1) | (read_write & 0x01));
++			sis630_write(SMB_CMD, command);
++			size = SIS630_BLOCK_DATA;
++			return sis630_block_data(adap, data, read_write);
++		default:
++			printk("Unsupported I2C size\n");
++			return -1;
++			break;
++	}
++
++	if (sis630_transaction(adap, size))
++		return -1;
++
++	if ((size != SIS630_PCALL) &&
++		((read_write = I2C_SMBUS_WRITE) || (size = SIS630_QUICK))) {
++		return 0;
++	}
++
++	switch(size) {
++		case SIS630_BYTE:
++		case SIS630_BYTE_DATA:
++			data->byte = sis630_read(SMB_BYTE);
++			break;
++		case SIS630_PCALL:
++		case SIS630_WORD_DATA:
++			data->word = sis630_read(SMB_BYTE) + (sis630_read(SMB_BYTE + 1) << 8);
++			break;
++		default:
++			return -1;
++			break;
++	}
++
++	return 0;
++}
++
++static u32 sis630_func(struct i2c_adapter *adapter)
++{
++	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE | I2C_FUNC_SMBUS_BYTE_DATA |
++		I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_PROC_CALL |
++		I2C_FUNC_SMBUS_BLOCK_DATA;
++}
++
++static int sis630_setup(struct pci_dev *dummy)
++{
++	unsigned char b;
++	struct pci_dev *sis630_dev = NULL;
++	int retval = -ENODEV;
++
++	/* We need ISA bridge and not pci device passed in.  */
++	sis630_dev = pci_get_device(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_503, sis630_dev);
++	if (!sis630_dev) {
++		dev_err(&dummy->dev, "Error: Can't detect 85C503/5513 ISA bridge!\n");
++		return -ENODEV;
++	}
++
++	/*
++	   Enable ACPI first , so we can accsess reg 74-75
++	   in acpi io space and read acpi base addr
++	*/
++	if (!pci_read_config_byte(sis630_dev, SIS630_BIOS_CTL_REG,&b)) {
++		dev_err(&sis630_dev->dev, "Error: Can't read bios ctl reg\n");
++		goto exit;
++	}
++
++	/* if ACPI already enabled , do nothing */
++	if (!(b & 0x80) &&
++	    !pci_write_config_byte(sis630_dev, SIS630_BIOS_CTL_REG, b | 0x80)) {
++		dev_err(&sis630_dev->dev, "Error: Can't enable ACPI\n");
++		goto exit;
++	}
++	/* Determine the ACPI base address */
++	if (!pci_read_config_word(sis630_dev,SIS630_ACPI_BASE_REG,&acpi_base)) {
++		dev_err(&sis630_dev->dev, "Error: Can't determine ACPI base address\n");
++		goto exit;
++	}
++
++	dev_dbg(&sis630_dev->dev, "ACPI base at 0x%04x\n", acpi_base);
++
++	/* Everything is happy, let's grab the memory and set things up. */
++	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION, "sis630-smbus")) {
++		dev_err(&sis630_dev->dev, "SMBus registers 0x%04x-0x%04x already "
++			"in use!\n", acpi_base + SMB_STS, acpi_base + SMB_SAA);
++		goto exit;
++	}
++
++	retval = 0;
++
++exit:
++	pci_dev_put(sis630_dev);
++	return retval;
 +}
 +
 +
-+static struct pci_driver vt586b_driver = {
-+	.name		= "vt586b smbus",
-+	.id_table	= vt586b_ids,
-+	.probe		= vt586b_probe,
-+	.remove		= __devexit_p(vt586b_remove),
++static struct i2c_algorithm smbus_algorithm = {
++	.name		= "Non-I2C SMBus adapter",
++	.id		= I2C_ALGO_SMBUS,
++	.smbus_xfer	= sis630_access,
++	.functionality	= sis630_func,
 +};
 +
-+static int __init i2c_vt586b_init(void)
++static struct i2c_adapter sis630_adapter = {
++	.owner		= THIS_MODULE,
++	.name		= "unset",
++	.algo		= &smbus_algorithm,
++};
++
++static struct pci_device_id sis630_ids[] __devinitdata = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_630) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_730) },
++	{ 0, }
++};
++
++static int __devinit sis630_probe(struct pci_dev *dev, const struct pci_device_id *id)
 +{
-+	printk(KERN_INFO "i2c-via version %s (%s)\n", I2C_VERSION, I2C_DATE);
-+	return pci_module_init(&vt586b_driver);
++
++	if (sis630_setup(dev)) {
++		dev_err(&dev->dev, "SIS630 comp. bus not detected, module not inserted.\n");
++		return -ENODEV;
++	}
++
++	/* set up the driverfs linkage to our parent device */
++	sis630_adapter.dev.parent = &dev->dev;
++
++	sprintf(sis630_adapter.name, "SMBus SIS630 adapter at %04x",
++		acpi_base + SMB_STS);
++
++	return i2c_add_adapter(&sis630_adapter);
 +}
 +
-+static void __exit i2c_vt586b_exit(void)
++static void __devexit sis630_remove(struct pci_dev *dev)
 +{
-+	pci_unregister_driver(&vt586b_driver);
++	i2c_del_adapter(&sis630_adapter);
 +}
 +
 +
-+MODULE_AUTHOR("Ky?sti M?lkki <kmalkki@cc.hut.fi>");
-+MODULE_DESCRIPTION("i2c for Via vt82c586b southbridge");
++static struct pci_driver sis630_driver = {
++	.name		= "sis630 smbus",
++	.id_table	= sis630_ids,
++	.probe		= sis630_probe,
++	.remove		= __devexit_p(sis630_remove),
++};
++
++static int __init i2c_sis630_init(void)
++{
++	printk("i2c-sis630.o version %s (%s)\n", I2C_VERSION, I2C_DATE);
++	return pci_module_init(&sis630_driver);
++}
++
++
++static void __exit i2c_sis630_exit(void)
++{
++	pci_unregister_driver(&sis630_driver);
++	release_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION);
++}
++
++
 +MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Alexander Malysh <amalysh@web.de>");
++MODULE_DESCRIPTION("SIS630 SMBus driver");
 +
-+module_init(i2c_vt586b_init);
-+module_exit(i2c_vt586b_exit);
++module_init(i2c_sis630_init);
++module_exit(i2c_sis630_exit);
 
