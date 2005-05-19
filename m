@@ -1,174 +1,309 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: [Fwd: i2c-proc correction]
-Message-Id: <3D8D1995.7646CFF3@paradyne.com>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: RFC: adm9240 documentation and introducing myself
+Message-Id: <tqgo21thqjk57b1hn3he7srfoi81b3sjaf@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D78E1D0.FB57803C@paradyne.com>
-In-Reply-To: <3D78E1D0.FB57803C@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Only if you plan to convert to THIS_MODULE and test it.
-I'd rather not rip out the code without a replacement.
+Greetings,
 
-Albert Cranford wrote:
-> 
-> Do you want me to remove this from i2c-proc in CVS ?
-> Albert
-> "Mark D. Studebaker" wrote:
-> >
-> > Documentation/DocBook/procfs* appears to confirm that THIS_MODULE is the
-> > key.
-> >
-> > Mark Studebaker wrote:
-> > >
-> > > Don't know - anybody?
-> > >
-> > > Alexander Viro wrote:
-> > > >
-> > > > On Thu, 5 Sep 2002, Mark D. Studebaker wrote:
-> > > >
-> > > > > removed from i2c-proc.c. As the comments say, the code prevents module
-> > > > > unloading
-> > > > > if the /proc files are in use.
-> > > >
-> > > > So does setting ->owner on them.
-> > > >
-> > > > > Why is this a bad thing?
-> > > >
-> > > > Because module has no business messing with its own reference count.
-> > > >
-> > > > > Is there a better way to do it?
-> > > >
-> > > > See above.
-> > >
-> > > Does Al mean we already do the right thing in i2c-dev.c:89
-> > > static struct file_operations i2cdev_fops {
-> > > owner:  THIS_MODULE,
-> > >
-> > > and i2c-dev.c:495 int __init i2c_dev_init
-> > > ...
-> > > if (register_chrdev(I2C_MAJOR, "i2c", &i2cdev_fops))
-> > >
-> > > If so, we need to find a method to verify his statement.
-> > > Oh, Linus applied the reverse patch for this to 2.5.34.
-> > > Albert
-> > > --
-> > > Albert Cranford Deerfield Beach FL USA
-> > > ac9410@bellsouth.net
-> > >
-> > > =======================================================> > >
-> > >
-> > >
-> > > Subject: Re: i2c-proc correction
-> > > Date: Thu, 05 Sep 2002 22:51:55 -0400
-> > > From: "Mark D. Studebaker" <mds@paradyne.com>
-> > > Organization: Paradyne Networks, Largo FL
-> > > To: viro@math.psu.edu
-> > > CC: Albert Cranford <ac9410@attbi.com>
-> > > References: <3D760B07.D1EFD4C8@attbi.com>
-> > >
-> > > Al,
-> > >
-> > > Albert Cranford and I work on the lm_sensors project.
-> > >
-> > >  in May 2002 you removed what was called
-> > >  "s390 procfs abuse" lines with i2c_fill_inode procedure in
-> > > drivers/i2c/i2c-proc.c -
-> > > kernel 2.5.18 -
-> > >
-> > >  URL
-> > >
-> > > http://linux.bkbits.net:8080/linux-2.5/diffs/drivers/i2c/i2c-proc.c@1.3?nav=index.html|src/.|src/drivers|src/drivers/i2c|hist/drivers/i2c/i2c-proc.c
-> > >
-> > > We inadvertently put the lines back into kernel 2.5.32 with our recent
-> > > patch. Sorry.
-> > > We are submitting a patch to Linus (below) to take them back out in
-> > > kernel 2.5.34.
-> > >
-> > > However, I don't understand what 's390 procfs abuse' is or why these
-> > > lines were
-> > > removed from i2c-proc.c. As the comments say, the code prevents module
-> > > unloading
-> > > if the /proc files are in use. Why is this a bad thing? Is there a
-> > > better way to do it?
-> > >
-> > > Thank you very much for your help.
-> > >
-> > > mds
-> > >
-> > > > --- linux-2.5.33/drivers/i2c/i2c-proc.c.orig    2002-09-04 09:04:30.000000000 -0400
-> > > > +++ linux/drivers/i2c/i2c-proc.c        2002-09-04 09:08:59.000000000 -0400
-> > > > @@ -60,7 +60,6 @@
-> > > >  static struct ctl_table_header *i2c_entries[SENSORS_ENTRY_MAX];
-> > > >
-> > > >  static struct i2c_client *i2c_clients[SENSORS_ENTRY_MAX];
-> > > > -static unsigned short i2c_inodes[SENSORS_ENTRY_MAX];
-> > > >
-> > > >  static ctl_table sysctl_table[] = {
-> > > >         {CTL_DEV, "dev", NULL, 0, 0555},
-> > > > @@ -189,8 +188,6 @@
-> > > >                 return id;
-> > > >         }
-> > > >  #endif                         /* DEBUG */
-> > > > -       i2c_inodes[id - 256] > > > > -           new_header->ctl_table->child->child->de->low_ino;
-> > > >         new_header->ctl_table->child->child->de->owner = controlling_mod;
-> > > >
-> > > >         return id;
-> > > > @@ -213,49 +210,6 @@
-> > > >         }
-> > > >  }
-> > > >
-> > > > -/* Monitor access for /proc/sys/dev/sensors; make unloading i2c-proc.o
-> > > > -   impossible if some process still uses it or some file in it */
-> > > > -void i2c_fill_inode(struct inode *inode, int fill)
-> > > > -{
-> > > > -       if (fill)
-> > > > -               MOD_INC_USE_COUNT;
-> > > > -       else
-> > > > -               MOD_DEC_USE_COUNT;
-> > > > -}
-> > > > -
-> > > > -/* Monitor access for /proc/sys/dev/sensors/ directories; make unloading
-> > > > -   the corresponding module impossible if some process still uses it or
-> > > > -   some file in it */
-> > > > -void i2c_dir_fill_inode(struct inode *inode, int fill)
-> > > > -{
-> > > > -       int i;
-> > > > -       struct i2c_client *client;
-> > > > -
-> > > > -#ifdef DEBUG
-> > > > -       if (!inode) {
-> > > > -               printk(KERN_ERR "i2c-proc.o: Warning: inode NULL in fill_inode()\n");
-> > > > -               return;
-> > > > -       }
-> > > > -#endif                         /* def DEBUG */
-> > > > -
-> > > > -       for (i = 0; i < SENSORS_ENTRY_MAX; i++)
-> > > > -               if (i2c_clients[i]
-> > > > -                   && (i2c_inodes[i] = inode->i_ino)) break;
-> > > > -#ifdef DEBUG
-> > > > -       if (i = SENSORS_ENTRY_MAX) {
-> > > > -               printk
-> > > > -                   (KERN_ERR "i2c-proc.o: Warning: inode (%ld) not found in fill_inode()\n",
-> > > > -                    inode->i_ino);
-> > > > -               return;
-> > > > -       }
-> > > > -#endif                         /* def DEBUG */
-> > > > -       client = i2c_clients[i];
-> > > > -       if (fill)
-> > > > -               client->driver->inc_use(client);
-> > > > -       else
-> > > > -               client->driver->dec_use(client);
-> > > > -}
-> > > > -
-> > > >  int i2c_proc_chips(ctl_table * ctl, int write, struct file *filp,
-> > > >                        void *buffer, size_t * lenp)
-> > > >  {
-> > > >
-> 
-> --
-> Albert Cranford Deerfield Beach FL USA
-> ac9410@bellsouth.net
+My first porting project: I'm looking to complete Michiel Rook's
+port of the ADM9240, DS1780 and LM81 sensor chip module.  
+
+I have produced this reference document as part of building my 
+knowledge of the lmsensors system and the current driver.
+
+This also a whitespace mangle test, comments?
+
+Cheers,
+Grant.
+
+diff -ruN linux-2.6.11-mm1/Documentation/i2c/chips/adm9240.txt linux-2.6.11-mm1-p2x/Documentation/i2c/chips/adm9240.txt
+--- linux-2.6.11-mm1/Documentation/i2c/chips/adm9240.txt	1970-01-01 10:00:00.000000000 +1000
++++ linux-2.6.11-mm1-p2x/Documentation/i2c/chips/adm9240.txt	2005-03-07 22:36:43.000000000 +1100
+@@ -0,0 +1,282 @@
++ADM9240, DS1780 and LM81 Sensor chips
++``````````````````````````````````````
++References
++~~~~~~~~~~
++Analog Devices, Inc. (1998) ADM9240 REV.O (Uppercase 'o')
++<http://www.analog.com/en/prod/0,,766_825_ADM9240%2C00.html>
++
++Maxim Integrated Products (1999) DS1780 CPU Peripheral Monitor
++<http://pdfserv.maxim-ic.com/en/ds/DS1780.pdf>
++(Dallas Semiconductor is now Maxim.)
++
++National Semiconductor Corporation (2002) LM81
++<http://www.national.com/ds.cgi/LM/LM81.pdf>
++
++Temperature-to-Digital Converter
++`````````````````````````````````
++9 bit 2's complement chip temperature: Signed 8-bit -40 to +125'C 
++plus 0.5'C LSB.
++
++No mention of any read order for temperature, but since the data is 
++split with LSB as a separate read the driver may report the wrong 
++LSB if reading the two registers cross a measurement cycle update.
++
++Temperature Limits
++```````````````````
++Temperature comparison is against the 8-bit signed reading.  Three 
++interrupt modes may be defined:
++
++Default Repetitive mode:
++  INT asserted each temperature conversion cycle while temp > Temp Hi Limit
++
++One time mode:
++  INT asserted when temp crosses Temp Hi Limit or Temp Low Limit
++
++Comparator mode:
++  INT asserted while temp > Temp Hi Limit
++
++LM81 extended mode
++```````````````````
++LM81 includes an extended mode where chip temperature may be read as a 
++signed 12 bit value.  The amd9240 driver does not support this feature.
++
++Monitor Cycle Time
++```````````````````
++ADM9240
++~~~~~~~
++Monitoring cycle approx 311us for temp + volts, independent fan speed 
++monitoring cycle depends on fan speed.
++
++DS1780
++~~~~~~
++Montioring cycle approx once per second includes fan speed.
++
++LM81
++~~~~
++Montioring cycle approx once each 400ms includes fan speed.
++
++Analog Output
++``````````````
++Range: 0 - 1.25V output for 0 - 255 setting, may be used to drive external 
++amplifier for fan speed control.  Analog output defaults to maximum value 
++on startup.
++
++Fan RPM-to-Digital Converter
++`````````````````````````````
++ADM9240 has two fan speed counters.
++
++Full scale count: 255, nominal fan speeds are:
++
++     Divisor	RPM   Fan Count	 70% Alarm
++	1	8800	153	   219
++	2	4400	153	   219
++	4	2200	153	   219
++	8	1100	153	   219
++
++Fan Speed Measurement
++~~~~~~~~~~~~~~~~~~~~~
++The period of the fan revolution is measured by gating an on-chip 22.5 kHz 
++clock an 8-bit counter for two periods of the fan tacho output.  
++
++The accumulated count is inversely proportional to the fan speed.
++
++The count is calculated by the equation:
++
++rpm = (22.5 x 10^3 x 60) / (count x divisor)
++    = 1350000 / (count x divisor)  where divisor is 1, 2, 4 or 8.
++
++The slow fan speed alarm is asserted when the fan revolution period rises 
++beyond the limit value.  Fan speed limit value is also scaled by the 
++divisor setting for fan speed measurement.
++
++Chassis Intrusion
++``````````````````
++Digital I/O. An active high input from an external circuit that latches 
++a Chassis Intrusion event. This line can go high without any clamping 
++action regardless of the powered state of the ADM9240. 
++
++The ADM9240 provides an internal open drain on this line, and may output 
++a 20 ms active low pulse to reset the external Chassis Intrusion Latch.
++
++Example: Intel SE440BX-2 expects the intrusion switch to be normally closed,
++but monitors chassis intrusion only while AC power is applied.
++
++Voltage measurement
++````````````````````
++ADM9240 / DS1780 / LM81 internally scale six voltage inputs.
++
++	addr		label		 nominal	maximum
++					   mV		  mV
++	0x20		+2.5V		  2500		 3320
++	0x21		Vccp1		  2700		 3600
++	0x22		+3.3V		  3300		 4380
++	0x23		+5V		  5000		 6640
++	0x24		+12V		 12000		15940
++	0x25		Vccp2		  2700		 3600
++
++The reading is an unsigned 8-bit value, nominal voltage measurement is 
++repesented by a reading of 192, being 3/4 of the measurement range.
++
++The sensor voltage pins may be used to measure negative voltages with 
++addition of external voltage divider from a positive reference to the 
++measured negative voltage.  In this case the driver reports an inverse 
++representation of the measured voltage that will require scaling by 
++the userland readout program.
++
++I2C Interface Address
++``````````````````````
++address: 001011xy
++
++Address lines A1 (x) and A0 (y) have pulldown resistors, so the chip 
++is initially found at one of these i2c addresses: 0x2c, 0x2d. 0x2e or 
++0x2f depending on mainboard wiring and/or multiple chips.  Part of the 
++chip address may be changed by software
++
++Addressing
++```````````
++Address pointer is part of I2C message
++
++Addr	Function		Notes
++----	----------------------- ---------------------------------------------
++0x15	Test Register		do not write to this register
++0x19	Analog Output		rw -- set to 255 max value on reset
++0x20	+2.5V			ro 0..255 (192 for nominal V)
++0x21	+Vccp1			\
++0x22	+3.3V			 |
++0x23	+5.0V			  > As above
++0x24	+12V			 |
++0x25	Vccp2			/
++0x26	Reserved
++0x27	Temperature Reading	ro 2's comp -40 to +125'C
++0x28	Fan1 Reading		ro 1350000 / (rpm x divisor)
++0x29	Fan2 Reading		ro 1350000 / (rpm x divisor)
++0x2a	Reserved
++0x2b	+2.5V High Limit	rw 0..255 (alarm = reading > limit)
++0x2c	+2.5V Low Limit		rw 0..255 (alarm = reading <= limit)
++0x2d	+Vccp1 High Limit	\
++0x2e	+Vccp1 Low Limit	 |
++0x2f	+3.3V High Limit	 |
++0x30	+3.3V Low Limit		 |
++0x31	+5.0V High Limit	  > As above
++0x32	+5.0V Low Limit		 |
++0x33	+12V High Limit		 |
++0x34	+12V Low Limit		 |
++0x35	Vccp2 High Limit	 |
++0x36	Vccp2 Low Limit		/
++0x37	Reserved
++0x38	Reserved
++0x39	Hot Temp Limit (high)	rw	2's comp -- +127 disables alarm
++0x3a	Hot Temp Hyst. (low)	rw		''	''	''
++0x3b	Fan 1 Count Limit	rw	0..255 (alarm = reading > limit)
++0x3c	Fan 2 Count Limit	rw	   .------------------------
++0x3d	Reserved			__/	adm9240	ds1780	lm81
++0x3e	Company ID Number		ro	0x23	0xda	0x01
++0x3f	Revision/Stepping number	ro	??	??	??
++
++- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
++
++Following bits are active high error / mask / control / INT status
++
++Addr	Name			bit	commentary
++----	----------------------- ---	-------------------------------------
++0x40	Configuration Register	0	start (do this after set limits)
++				1	INT enable, don't set this
++				2	Reserved
++				3	Clear INT, stops monitoring cycle
++				4	Reset (armed by 44.7?)
++				5	Reserved
++				6	CI_Reset Clear Chassis Intrusion
++				7	Initialisation to power on values
++
++0x41	INT Status Register 1	0	ro +2.5V error
++				1	ro Vccp1 error
++				2	ro +3.3V error
++				3	ro +5.0V error
++				4	ro Temp error
++				5	Reserved
++				6	Fan1 error
++				7	Fan2 error
++
++0x42	INT Status Register 2	0	+12V error
++				1	Vccp2 error
++				2	Reserved
++				3	Reserved
++				4	Chassis_Error
++				5	Reserved
++				6	Reserved
++				7	Reserved
++
++0x43	INT Mask Register 1	0	+2.5V
++				1	+Vccp1
++				2	+3.3V
++				3	+5.0V
++				4	Temp
++				5	Reserved
++				6	Fan1
++				7	Fan2
++
++0x44	INT Mask Register 2	0	+12V
++				1	Vccp2
++				2	Reserved
++				3	Reserved
++				4	CI
++				5	Reserved
++				6	Reserved
++				7	Reset Enable for Config Reg 40.4
++
++0x45	Compatibility Register		Reserved: initial value = 0	rw
++
++0x46	ChassisIntrusion ClrReg	0-6	Reserved                     __   __
++				7	Clear Chassis Int, output 20ms \_/ 
++
++0x47	VID0-3/Fan Divisor Reg	0-3	CPU Core V-id [3:0]		ro
++	Fan 1 Divisor		4-5	5:4	00	1		rw
++						01	2 **default
++						10	4
++						11	8
++	Fan 2 Divisor		6-7	7:6	00	1		rw
++						01	2 **default
++						10	4
++						11	8
++0x48	Serial Addr Register	0	I2C hardware addr 0 -------.	ro
++				1	I2C hardware addr 1 ------.|	ro
++				2-6	Chip firmware addr 0010 11??	rw
++				7	                   '------------ro
++
++0x49	VID4 Register		0	V-id 4				ro
++				1-7	Reserved			rw
++
++0x4B	Temp Config Register	0-1	1:0	00	repetitive INT	rw
++						01	one time INT
++						10	comparator mode
++						11	repetitive INT
++				2-6	Reserved			rw
++	Temp reading		7	LSB (0.5'C)			ro
++
++- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
++LM81 only
++~~~~~~~~~
++0x4C	lm81 ext mode reg 1	0	enable extended mode and interrupts
++	LOW Int mask		1	prevents LOW propagating to INT
++	T_CRIT_A Int Mode	2-3	3:2	00	repetitive INT  rw
++						01	one time INT
++						10	comparator mode
++						11	repetitive INT
++	T_CRIT_A Int Enable	4	1 = enabled
++	T_CRIT_A Int Polarity	5	0 = active lo, 1 = active hi
++	T_CRIT_A Int Disable	6	prevents T_CRIT_A propagating to INT
++	T_CRIT_A Int Status	7	T_CRIT_A INT has occurred 
++
++0x4D	lm81 ext mode reg 2	0-2	Hysteresis Offset Value [1]
++				3	Enable 12-bit temperature resolution
++				4-7	Temp least significant nybble [2]
++
++Not implemented in this driver.
++
++[1] 3 bit value where lsb = 1'C
++
++[2] bit 0x4d.7 is same as 0x4b.7, so read 0x27 to hi byte, 0x4d to lo byte 
++and shift right by 4 with sign extension for 12 bit 2's complement temp.
++- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
++### Compiled by Grant Coady 2005-03-07 <gcoady@gmail.com>
++### Disclaimer: when in doubt, refer to cited references.
