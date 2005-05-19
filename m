@@ -1,38 +1,23 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: lm_sensors2/lib data.c
-Message-Id: <20030630161630.10a0799a.khali@linux-fr.org>
+From: amalysh@web.de (Alexander Malysh)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: i2c-sis630 bus driver
+Message-Id: <200209182313.06481.amalysh@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Update of /home/cvs/lm_sensors2/lib
-> In directory mordac.netroedge.com:/tmp/cvs-serv17424
-> 
-> Modified Files:
-> 	data.c 
-> Log Message:
-> (Khali) Better warning removal (less code change).
-> 
+Hi Phil,
 
-For information, I just undid my previous fix (which I think would have
-been working though) and used the recommended way instead, as read on
-http://gcc.gnu.org/gcc-3.0/caveats.html.
+i found info for your board and added detection to i2c-sis630.c (Can you 
+please try if it works for you?)
+BTW: Your board is sis730 based ...
+If you are intersted , look at 
+http://www.plasma-online.de/index.html?content=http%3A//www.plasma-online.de/english/identify/picture/sis.html
+and search for [6300.80321043] ASUS_A7S_VM (this should be your board)
 
-Quoting:
-"The undocumented extension that allowed C programs to have a label at
-the end of a compound statement has been deprecated and may be removed
-in a future version. Programs that now generate a warning about this may
-be fixed by adding a null statement (a single semicolon) after the
-label."
+Thanks for you help !
 
-I first tried to have CVS understand that the new fix was to be applied
-to the previous, not current, version of the file, but I failed. I in
-fact don't know if it is possible. So I finally commited it normally, I
-hope I didn't break anything.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Regards,
+Alexander Malysh
