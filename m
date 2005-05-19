@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: amalysh@web.de (Alexander Malysh)
 Date: Thu, 19 May 2005 06:23:37 +0000
 Subject: SIS 630 (ID)
-Message-Id: <3D640DB6.2FD0B41F@paradyne.com>
+Message-Id: <200208220017.46899.amalysh@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200208212357.28390.amalysh@web.de>
 In-Reply-To: <200208212357.28390.amalysh@web.de>
@@ -10,24 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK,
-I'll give you an ID tonight.
-If you haven't please review doc/developers/new-drivers.
-Do you know if the 630 driver will work for any of the other
-SiS devices listed on our new drivers page?
+Am Donnerstag, 22. August 2002 00:01 schrieb Mark Studebaker:
+> OK,
+> I'll give you an ID tonight.
+Thank you ...
 
-Alexander Malysh wrote:
-> 
-> Hello,
-> 
-> as i already wrote , i have implemented smbus support for sis630. Since my
-> first posting i have found and fixed several bugs (please do not use old
-> one). New version can be found at : http://amalysh.bei.t-online.de/linux/
-> Now i need ID for sis630 SMBUS in i2c-id.h
-> 
-> Thank you for you help ...
-> 
-> --
-> Regargs,
-> 
-> Dipl.-Ing. Alexander Malysh
+> If you haven't please review doc/developers/new-drivers.
+yep i have ... You can see this in my code ;)
+
+> Do you know if the 630 driver will work for any of the other
+> SiS devices listed on our new drivers page?
+Don't know , may be ? I have no hardware/datasheet to test/review this ... 
+Therefore I write only sis630, because that is tested and works (for me).
+
+Regards,
+Alexander
