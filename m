@@ -1,40 +1,46 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:05 +0000
-Subject: ADM 1025 on 2.6 kernel
-Message-Id: <20040707082938.6ccd1e5b.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:23 +0000
+Subject: installing lm_sensors 2.8.1
+Message-Id: <20031106190828.0d345682.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1084951647.6186.13.camel@powerride>
-In-Reply-To: <1084951647.6186.13.camel@powerride>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> this is the sensors output:
-> 
-> adm1025-i2c-0-2d
-> Adapter: SMBus I801 adapter at efa0
-> +2.5V:     +2.49 V  (min =  +0.00 V, max =  +3.32 V)
-> VCore:     +1.68 V  (min =  +0.00 V, max =  +2.99 V)
-> +3.3V:     +3.37 V  (min =  +0.00 V, max =  +4.38 V)
-> +5V:       +4.92 V  (min =  +0.00 V, max =  +6.64 V)
-> +12V:     +11.94 V  (min =  +0.00 V, max = +15.94 V)
-> VCC:       +3.39 V  (min =  +0.00 V, max =  +4.38 V)
-> CPU Temp:  +43.0 C  (low  =    +0 C, high =  +127 C)
-> M/B Temp:  +39.0 C  (low  =    +0 C, high =  +127 C)
-> vid:      +1.700 V
-> 
-> The CPU is a Pentium III 866 (SL4MD). Its voltage is supposed to be
-> 1.7V
 
-OK. Looks very good! Now you can copy etc/sensors.conf.eg to
-/etc/sensors.conf and tweak this configuration file to fit your needs.
-Defaults for voltage limits should be just fine, but you may want to
-refine the temperature limits. Then running "sensors -s" will set the
-requested limits.
+Please think of setting a subject to your e-mail next time.
 
-Thanks for reporting, and glad that my driver seems to be working OK :)
+> I', getting compile errors.  I've tried what was in
+> the  documentation.  Any clues on the following.
+> 
+> Kirby
+> 
+> [root@alpha lm_sensors-2.8.1]#
+> kernel/busses/i2c-nforce2.c:387: warning: implicit
+> declaration of function `__devexit_p'
+> > kernel/busses/i2c-nforce2.c:387: initializer element
+> is not constant
+> > kernel/busses/i2c-nforce2.c:387: (near
+> initialization for `nforce2_driver.remove')
+> > kernel/busses/i2c-nforce2.c:388: initializer element
+> is not constant
+> > kernel/busses/i2c-nforce2.c:388: (near
+> initialization for `nforce2_driver')
+> bash: syntax error near unexpected token
+> ``nforce2_driver')'
+> [root@alpha lm_sensors-2.8.1]# make: ***
+> [kernel/busses/i2c-nforce2.o] Error 1
+> bash: make:: command not found
+> [root@alpha lm_sensors-2.8.1]#
+> [root@alpha lm_sensors-2.8.1]#
+
+You must install i2c-2.8.1 prior to lm_sensors-2.8.1. For details on how
+to install i2c-2.8.1, please refer to our installation guide:
+
+http://delvare.free.fr/i2c/
+(or http://www.ensicaen.ismra.fr/~delvare/devel/i2c/)
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/
+http://www.ensicaen.ismra.fr/~delvare/
