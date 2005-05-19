@@ -1,39 +1,36 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:01 +0000
-Subject: LM-Sensors
-Message-Id: <200406171159.i5HBxaAo089171@zone3.gcu-squad.org>
+Date: Thu, 19 May 2005 06:25:12 +0000
+Subject: [PATCH 2.6] I2C: keywest class
+Message-Id: <20040822225059.3cd4171f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3C61EE92.392A5D31@paradyne.com>
-In-Reply-To: <3C61EE92.392A5D31@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-Hallo Horst,
+This is needed for iBook2 owners to be able to use their ADM1030
+hardware monitoring chip. Successfully tested by one user.
 
->I have tested the "new" version and the result is better, but we can live
->with the "old" version too.
+Please apply,
+thanks.
 
-Magnitude of 3 definitely seems to help, as I hoped. I'll commit the
-changes to our CVS repository.
+Signed-off-by: Jean Delvare <khali at linux-fr dot org>
 
->I have attached sensors.conf and a display output for the "new" version.
+--- linux-2.6.8.1/drivers/i2c/busses/i2c-keywest.c.orig	2004-07-24 22:39:04.000000000 +0200
++++ linux-2.6.8.1/drivers/i2c/busses/i2c-keywest.c	2004-08-17 21:03:23.000000000 +0200
+@@ -618,6 +618,8 @@
+ 		chan->iface = iface;
+ 		chan->chan_no = i;
+ 		chan->adapter.id = I2C_ALGO_SMBUS;
++		if (i=1)
++			chan->adapter.class = I2C_CLASS_HWMON;
+ 		chan->adapter.algo = &keywest_algorithm;
+ 		chan->adapter.algo_data = NULL;
+ 		chan->adapter.client_register = NULL;
 
-Still I'm a bit worried by displayed limits being rounded off by 0.01V
-in various places. I don't have the "old" sensors output at hand at
-the moment, but I think it wasn't that way before the magnitude change.
-Most likely, what sensors displays as 2.99V, for example, is actually
-2.999 (or at least 2.995) and should be rounded up to 3.00V for a nicer
-display. There was no reason to have rounding done at this place before
-(driver magnitude and displayed magnitude were the same) but now it
-would be welcome.
 
-Could you please confirm my suspicions by providing the contents of the
-/proc/sys/dev/sensors/pc87366-isa-0fb0/in* files for your current
-configuration?
-
-Thanks.
-
-Jean Delvare
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
