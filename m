@@ -1,88 +1,55 @@
-From: ondrej.cecak@centrum.cz (Ondrej Cecak)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: ne1619 (really solved)
-Message-Id: <200307291959.07420.ondrej.cecak@centrum.cz>
+Message-Id: <20030729215710.48a32986.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200307291959.07420.ondrej.cecak@centrum.cz>
+In-Reply-To: <200307291959.07420.ondrej.cecak@centrum.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dne ?t 29. ?ervence 2003 14:57 jste napsal(a):
-> > ACPI from current Marcelo's kernel (2.4.21) don't work, I'm curious to
-> > new ACPI in kernel 2.4.x (maybe 22, but evidently 23) ...
->
-> The ACPI support in 2.4.x is really thin so far, you really have to use
-> the ACPI patch if you want real support:
-> http://sourceforge.net/project/showfiles.php?group_id6832&release_id15
->34 That's what I use (well, the previous version actually) on my laptop.
 
-OK, now I'am using apm with no problems. I give acpi some time ...
+> It works perfectly. If you can see output, there is:
+> 
+> adm1025-i2c-0-2d
+> Adapter: SMBus I801 adapter at efa0
+> Algorithm: Non-I2C SMBus adapter
+> +2.5V:     +2.49 V  (min =  +2.25 V, max =  +2.75 V)
+> VCore:     +1.46 V  (min =  +1.42 V, max =  +1.57 V)
+> +3.3V:     +3.33 V  (min =  +2.97 V, max =  +3.63 V)
+> +5V:       +5.03 V  (min =  +4.51 V, max =  +5.49 V)
+> +12V:      +0.00 V  (min = +10.81 V, max = +13.19 V)
+> VCC:       +3.27 V  (min =  +2.97 V, max =  +3.63 V)
+> SYS Temp:  +43.0?C  (min =   +5?C, max =  +65?C)
+> CPU Temp:  +43.0?C  (min =   +5?C, max =  +65?C)
+> vid:       +1.50 V
 
-> > It works perfectly. Maybe I made mistake, becase ran gkrellm made Oops
-> > ... I detected it after I mailed you.
->
-> Oops are at kernel level, so if gkrellm made oops, it's likely to be
-> because of one of our drivers... Let us know if it happens again.
+Looks really good, except rounding on VCore which is still a bit too low
+(should be 1.43/1.58) but that's not very important and I'm not even
+sure it is a driver issue (could be a problem (or feature) of the
+sensors library).
 
-now is everything all right. I can't reproduce it.
+Take a look at the config file, there's a line to remove +12V (which
+isn't hardwired on your board, as I explained.)
 
-> > > The limits are still a bit too low, probably a common rounding
-> > > issue, I'll take a look at it tomorrow (and probably ask you to test
-> > > then, if you don't mind).
-> >
-> > with pleasure, but in Czech Republic is now 23:49 ;-))))
->
-> Was the same here, Czech Republic and France are in the same time zone
->
-> :)
+> eeprom-i2c-0-50
+> Adapter: SMBus I801 adapter at efa0
+> Algorithm: Non-I2C SMBus adapter
+> Unknown EEPROM type (1)
+> 
+> eeprom-i2c-0-51
+> Adapter: SMBus I801 adapter at efa0
+> Algorithm: Non-I2C SMBus adapter
+> Unknown EEPROM type (1)
 
-I wasn't sure if you are really from France. Maybe you are with Linus Torvalds 
-:o)
-
-> OK, I updated the driver. I would like you to checkout from CVS this
-> time (because more than just one file was changed). You don't have to
-> checkout i2c (but you are welcome to do so if you wish, since some bugs
-> were fixed since 2.8.0 was released). Don't forget to run "ldconfig"
-> after installation of lm_sensors, since I bumped the library revision.
-> Also, you will want to manually update the sensors.conf file (I added
-> various comments to the adm1025 section).
->
-> How to get CVS checkouts is described on our download page:
-> http://secure.netroedge.com/~lm78/download.html#cvs
->
-> If you can't use CVS for any reason, I can make a snapshot available to
-> you as a simple tar.gz file.
-
-It works perfectly. If you can see output, there is:
-
-adm1025-i2c-0-2d
-Adapter: SMBus I801 adapter at efa0
-Algorithm: Non-I2C SMBus adapter
-+2.5V:     +2.49 V  (min =  +2.25 V, max =  +2.75 V)
-VCore:     +1.46 V  (min =  +1.42 V, max =  +1.57 V)
-+3.3V:     +3.33 V  (min =  +2.97 V, max =  +3.63 V)
-+5V:       +5.03 V  (min =  +4.51 V, max =  +5.49 V)
-+12V:      +0.00 V  (min = +10.81 V, max = +13.19 V)
-VCC:       +3.27 V  (min =  +2.97 V, max =  +3.63 V)
-SYS Temp:  +43.0?C  (min =   +5?C, max =  +65?C)
-CPU Temp:  +43.0?C  (min =   +5?C, max =  +65?C)
-vid:       +1.50 V
-
-eeprom-i2c-0-50
-Adapter: SMBus I801 adapter at efa0
-Algorithm: Non-I2C SMBus adapter
-Unknown EEPROM type (1)
-
-eeprom-i2c-0-51
-Adapter: SMBus I801 adapter at efa0
-Algorithm: Non-I2C SMBus adapter
-Unknown EEPROM type (1)
-
-> Thanks for testing! This is very very appreciated :)
-
-you're welcome, but I have to thanks to all lm_sensors team - thanks a lot ...
+Hey, this isn't working as intended! (When will I leave you alone, you
+must be thinking.) You must have a special kind of memory chips we don't
+support yet. Could you please run the prog/eeprom/decode-dimms.pl? Also,
+a dump of one of your eeproms would be appreciated (unload the eeprom
+module, and run "i2cdump 0 0x50"). Thanks!
 
 -- 
-Ondrej Cecak
-
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
