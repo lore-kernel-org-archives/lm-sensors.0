@@ -1,7 +1,7 @@
 From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:23:48 +0000
 Subject: Updated driver for LM85
-Message-Id: <3E5309E7.9020209@penguincomputing.com>
+Message-Id: <3E5345F1.6010503@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3E51E427.2090903@penguincomputing.com>
 In-Reply-To: <3E51E427.2090903@penguincomputing.com>
@@ -10,22 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark, thanks for the prompt reply.
+I've posted my code at:
 
-I followed the guidelines in developers/new-drivers as closely as possible.
+ftp://ftp.penguincomputing.com/pub/updates/lmsensors/lm_sensors-2.7.0-lm85-2.patch
 
-I contacted the list back in November (Nov 13th) and got a reply from 
-Phil Edelbrock who had put me in touch with Richard Berrington.
+Please read and comment.
 
-Margit, was habben sie?  (Unfortunately, that's about the limit of my 
-German...)
-
-I can make my patch available on ftp.penguincomputing.com for you to 
-download.  I will do that when I get home.
+Margit, if you could forward a pointer to your code, I'll take a look and we 
+can decide what to submit.
 
 :v)
 
 Mark Studebaker wrote:
+
 > you can work with me.
 > I didn't realize (or forgot) you were working on a driver.
 > Coincidentally, Margit (email above) is also working on a driver 
@@ -480,12 +477,5 @@ Mark Studebaker wrote:
 >>   set fan2_min  3000
 >>   set fan3_min  3000
 >>   set fan4_min  3000
-> 
+>>
 
-
-
--- 
-Philip Pokorny, Senior Engineer
-Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-PENGUIN COMPUTING - Simplifying the Solution Process [tm]
-www.penguincomputing.com
