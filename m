@@ -1,47 +1,50 @@
-From: jms_grssm_@hotmail.com (James Grossmann)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: "Really Help"
-Message-Id: <BAY18-F349t0CI76rOJ0001485d@hotmail.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: [PATCH] i2c driver fixes for 2.6.1
+Message-Id: <1074556757661@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BAY18-DAV8khqntKrUV00003109@hotmail.com>
-In-Reply-To: <BAY18-DAV8khqntKrUV00003109@hotmail.com>
+In-Reply-To: <10745567571488@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-I'm working on porting the driver for the MPT008 to the 2.6 kernel.  I've 
-been reading as much about programming those drivers as I can, but I would 
-like to get a data sheet on the chip if possible.  Myson doesn't seem to 
-have it on their site anymore, does anyone know where I can get ahold of it?
-Thanks!
-James Grossmann
+ChangeSet 1.1474.98.2, 2004/01/14 11:09:15-08:00, khali@linux-fr.org
 
->From: "Jean Delvare" <khali@linux-fr.org>
->Reply-To: sensors@Stimpy.netroedge.com
->To: "James Grossmann" <jms_grssm_@hotmail.com>
->CC: sensors@Stimpy.netroedge.com
->Subject: Re: "Really Help"
->Date: Tue, 5 Oct 2004 12:11:11 +0100
+[PATCH] I2C: documentation update
+
+> > They should be converted.  From module.h:
+> > 	/* DEPRECATED: Do not use. */
+> > 	#define MODULE_PARM(var,type) 	\
+> > 	...
 >
->On Mon, 4 Oct 2004 14:52:32 -0500, James Grossmann wrote
-> > If not with that driver, I may be able to help with some of these
-> > things as well. Thanks!
->
->Thanks for the offer. We certainly need help. Do you have anything special 
->in
->mind?
->
->A good way to get started is probably to subscribe to the mailing-list and
->read the docs / older tickets / mailing-list archive to learn how the whole
->thing works. After that you should be able to do some support, propose
->documentation updates etc... If you want to contribute to the code this is
->also very welcome of course.
->
->Thanks.
->
->--
->Jean Delvare
->http://khali.linux-fr.org/
->
+> Note that realistically, it's not going away in 2.6, so mass migration
+> doesn't really win anything.  However, I never implemented mixing old
+> and new style in the same module, so if you're adding a parameter, it
+> makes sense to convert them all.
+
+OK, I don't have much time for a mass conversion anyway. Greg, could you
+please apply the following patch to the "porting-clients" document so
+that at least the new drivers don't need to be converted afterwards?
+
+
+ Documentation/i2c/porting-clients |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
+
+
+diff -Nru a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
+--- a/Documentation/i2c/porting-clients	Mon Jan 19 15:33:17 2004
++++ b/Documentation/i2c/porting-clients	Mon Jan 19 15:33:17 2004
+@@ -92,7 +92,10 @@
+   i2c_get_clientdata(client) instead.
+ 
+ * [Interface] Init function should not print anything. Make sure
+-  there is a MODULE_LICENSE() line.
++  there is a MODULE_LICENSE() line. MODULE_PARM() is replaced
++  by module_param(). Note that module_param has a third parameter,
++  that you should set to 0 by default. See include/linux/moduleparam.h
++  for details.
+ 
+ Coding policy:
+ 
 
