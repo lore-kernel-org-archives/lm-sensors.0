@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: ondrej.cecak@centrum.cz (Ondrej Cecak)
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: [Fwd: i850 && lm_sensors]
-Message-Id: <3F19DED7.6030707@paradyne.com>
+Message-Id: <200307200926.28184.ondrej.cecak@centrum.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F16EFDB.4040504@edgedesign.us>
 In-Reply-To: <3F16EFDB.4040504@edgedesign.us>
@@ -10,52 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-get our new 2.8.0 release and try again to run sensors-detect.
-If it doesn't work email us the output of 'lspci -n'.
+Dne ne 20. ?ervence 2003 02:14 jste napsal(a):
+> get our new 2.8.0 release and try again to run sensors-detect.
+> If it doesn't work email us the output of 'lspci -n'.
 
-Philip Edelbrock wrote:
-> 
-> 
-> -------- Original Message --------
-> From:     - Thu Jul 17 11:49:14 2003
-> X-UIDL:     268d4981861e28c5
-> X-Mozilla-Status:     0001
-> X-Mozilla-Status2:     00000000
-> Return-Path:     <ondrej.cecak@centrum.cz>
-> Received:     from smtp-out2.iol.cz (smtp-out2.iol.cz [194.228.2.87]) by 
-> Ren.netroedge.com (8.12.8p1/8.9.1) with ESMTP id h6HHv8vL015207 for 
-> <phil@netroedge.com>; Thu, 17 Jul 2003 10:57:08 -0700
-> Received:     from a182-160.dialup.iol.cz (a182-160.dialup.iol.cz 
-> [194.228.160.182])5130C345A1 for <phil@netroedge.com>; Thu, 17 Jul 2003 
-> 20:05:56 +0200 (CEST)
-> From:     Ondrej Cecak <ondrej.cecak@centrum.cz>
-> Reply-To:     ondrej.cecak@centrum.cz
-> To:     Philip Edelbrock <phil@netroedge.com>
-> Subject:     i850 && lm_sensors
-> Date:     Thu, 17 Jul 2003 20:03:19 +0200
-> User-Agent:     KMail/1.5
-> MIME-Version:     1.0
-> Content-Type:     text/plain; charset="us-ascii"
-> Content-Transfer-Encoding:     7bit
-> Content-Disposition:     inline
-> Message-Id:     <200307172003.19644.ondrej.cecak@centrum.cz>
-> X-SpamBouncer:     1.5 (8/16/02)
-> X-SBClass:     OK
-> X-Spambayes-Classification:     ham; 0.10
-> 
-> 
-> 
-> hi,
-> I tried to set lm_sensors on my board intel D850(EMV2), but I failed - 
-> sensors-detect found and load two modules: i2c-philips-par.o is not for 
-> my motherboard and i2c-i801 didn't work.
-> I looked to Support section, google, local czech conference - but 
-> without solution of this problem.
-> 
-> now, on release 2.8 version I tried the same and again failed.
-> I looked to section "New Drivers" and Intel (D)850 isn't contained. Do 
-> you know this problem? On internet is a few quiestions with this problem 
-> with none solution.
-> btw: excuse my horrible english
-> 
-> Best Regards
+I tried it before. It doesn't work.
+
+modules:
+i2c-core.o: i2c core module version 2.8.0 (20030714)
+i2c-i801 version 2.8.0 (20030714)
+i2c-dev.o: i2c /dev entries driver module version 2.8.0 (20030714)
+
+results:
+
+Now follows a summary of the probes I have just done.
+ Just press ENTER to continue:
+
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus I801 adapter at efa0' (Non-I2C SMBus adapter)
+    Busdriver `i2c-i801', I2C address 0x50
+    Chip `Serial EEPROM' (confidence: 8)
+  * Bus `SMBus I801 adapter at efa0' (Non-I2C SMBus adapter)
+    Busdriver `i2c-i801', I2C address 0x51
+    Chip `Serial EEPROM' (confidence: 8)
+
+only eeprom, no fan speed, etc ...
+
+lspci -n:
+00:00.0 Class 0600: 8086:2530 (rev 04)
+00:01.0 Class 0604: 8086:2532 (rev 04)
+00:1e.0 Class 0604: 8086:244e (rev 04)
+00:1f.0 Class 0601: 8086:2440 (rev 04)
+00:1f.1 Class 0101: 8086:244b (rev 04)
+00:1f.2 Class 0c03: 8086:2442 (rev 04)
+00:1f.3 Class 0c05: 8086:2443 (rev 04)
+00:1f.5 Class 0401: 8086:2445 (rev 04)
+01:00.0 Class 0300: 10de:0253 (rev a3)
+02:01.0 Class 0c03: 1033:0035 (rev 41)
+02:01.1 Class 0c03: 1033:0035 (rev 41)
+02:01.2 Class 0c03: 1033:00e0 (rev 02)
+02:0b.0 Class 0200: 10b7:9200 (rev 78)
+
+thanks ...
+-- 
+Ondrej Cecak
+
