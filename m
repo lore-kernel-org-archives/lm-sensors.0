@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:13 +0000
 Subject: [PATCH] i2c driver changes 2.6.0-test3
-Message-Id: <20030818210300.GA3276@kroah.com>
+Message-Id: <20030823185915.691010e0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1060972405413@kroah.com>
 In-Reply-To: <1060972405413@kroah.com>
@@ -10,13 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Aug 17, 2003 at 05:32:19PM -0700, Philip Pokorny wrote:
+
 > Why don't we just make it policy that now and in the future we don't 
 > initialize the limits on the sensors?
+> (...)
 
-Sounds good to me.  Anyone want to test the existing 2.6 drivers with
-the init code ripped out from them and send me a patch?
+I think I agree. As long as it doesn't cause extra problems, I believe
+the drivers should be kept as simple and "neutral" as possible. If
+certain drivers really have to intialize limits for any reason, it's OK,
+but I don't object against the default policy being to not initialize.
 
-thanks,
+(Which doesn't mean I'll rush to remove initializations in "my"
+drivers".)
 
-greg k-h
+> We don't know in what crazy way a motherboard manufacturer may have
+> wired or scaled the inputs and with the newer sensors, it's leading to
+> shutdowns and fan spinup behavior that is "less than optimal".
+
+In this precise case, the reason is not initializing, but initializing
+with awful values. That's different.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
