@@ -1,48 +1,72 @@
-From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: Success & packaging questions (was: i2c & lm_sensors for RH)
-Message-Id: <20030807160511.GA27558@puariko.nirvana>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:14 +0000
+Subject: lm_sensors support ticket #1366
+Message-Id: <20030826215125.17041e57.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-kernel & userland tools work very well! Thanks for all the advice so
-far.
 
-I am now resolving some last packaging questions:
-o libsensors.so.1 compatibility:
-  Some packages are dynamically linked to pre-2.8.0 lm_sensors. I
-  would now package that into a lm_sensors270-2.7.0 compatibility
-  package (RH naming convention for compat. versions). Will the tools
-  interface over libsensors.so.1 function properly, or at all?
+> > Thanks a lot for the feedback, it's very appreciated. I fixed the
+> > patches in a similar way, I hope the new patches are OK. I also
+> > setup a mirror of my installation guide here:
+> >   http://delvare.free.fr/i2c/
+> > (You've got some credit there, since you almost wrote the patch
+> > yourself.)
+> >=20
+> > Let me know if you need further assistance.
+>=20
+> I'm getting a kernel exception:
+>=20
+> lirc_dev: lirc_unregister_plugin:plugin lirc_i2c[0] in use!<1>Unable
+> to handle kernel paging request at virtual address e2a37a1c
+>  printing eip:
+>  e297bf12
+>  *pde =3D 1ea3d067
+>  *pte =3D 00000000
+>  Oops: 0000
+>  CPU:    0
+>  EIP:    0010:[<e297bf12>]    Tainted: P=20
+>  EFLAGS: 00010296
+>  eax: c15ab7d8   ebx: e2a379f4   ecx: 00000246   edx: 00000008
+>  esi: d4cdbfe0   edi: 00000000   ebp: 00000003   esp: d4cdbf5c
+>  ds: 0018   es: 0018   ss: 0018
+>  Process lirc_dev (pid: 1702, stackpage=D4cdb000)
+>  Stack: c15ab780 d4cdbfe0 00000000 e29f6040 dc493b40 00000000 d4cdbfa8
+>  0005295b=20
+>         00000000 c02a4000 d9841080 00000000 00000246 d4cdbfa8 c01162e0
+> 	e29f8190=20
+>         c15ab7d8 d4cdbfb0 00000003 c15f3fc0 d4cdbfe0 0005295b
+>         e29f419c c15ab780=20
+>       Call Trace:    [<e29f6040>] [<c01162e0>] [<e29f8190>]
+>       [<e29f419c>] [<e29f6040>]
+>       [<c01070bf>] [<c01070c8>] [<e29f6040>]
+>=20
+>  Code: 8b 43 28 83 78 28 00 0f 84 a1 00 00 00 8b 54 24
+>  40 0f b7 42=20
+>=20
+> This is how to reproduce:
+>=20
+> modprobe lirc_i2c
+> /etc/init.d/lirc start
+> modprobe ivtv
+> rmmod ivtv
+>=20
+> I'm guessing something bad happens when lirc_i2c tries to unregister
+> the happauge remote (from ivtv), but it's in use by the lircd daemon?
+> If I don't start the lircd daemon, it works fine...
+>=20
+> Any hints? Could the problem lie with the ivtv driver?
 
-o [lm_sensors-]sensord
-  A year ago I started packaging sensord with an lm_sensors prefix. I
-  am now considering dropping the prefix to simplify the name (with
-  the resp. steps involved in packaging resolution). Is that a bad
-  idea?
+I use neither ivtv nor lirc, so I don't really know who does what, and I
+can't test either.=20
 
-On Sat, Aug 02, 2003 at 07:20:08PM +0200, Axel Thimm wrote:
-> Is anyone working on this? If not, I'd be interested (I have been
-> maintaining rpms for kernel and userland parts for i2c/lm_sensors
-> 2.7.0 at atrpms).
-> 
-> I am already trying to patch the i2c core and surrounding patches into
-> the latest RH errata kernel (based on 2.4.21-pre3). I might have a
-> question or two, and could use testers, since I am doing it upon
-> request, and the machines I currently have available aren't that
-> sensor friendly (one is a Thinkpad ...).
+What if you remove MOD_INC_USE_COUNT and MOD_DEC_USE_COUNT from
+set_use_inc and set_use_dec respectively? That's almost the only idea I
+have right now, and I don't really have time to work on it.
 
-
-
--- 
-Axel.Thimm@physik.fu-berlin.de
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030807/66a2ca92/attachment.bin
+--=20
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
