@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:52 +0000
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:53 +0000
 Subject: RFC: test results for adm9240 auto fan clock divider
-Message-Id: <20050419192950.373e8915.khali@linux-fr.org>
+Message-Id: <njlg6152hh2gp2hn6o6qvbdm60v68295rm@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <u2l6615hof5r7s4u44gslcaseabv44kbmn@4ax.com>
 In-Reply-To: <u2l6615hof5r7s4u44gslcaseabv44kbmn@4ax.com>
@@ -10,37 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Grant,
+Hi Khali,
 
-> > > automatic fan clock divider
-> > > ````````````````````````````
-> > >     * User sets 0 to fan_min limit
-> > >       - low speed alarm is disabled
-> > >       - fan clock divider not changed
-> > >       - auto fan clock adjuster disabled
-> >
-> > Why would we want to disable the auto fan clock adjuster in this
-> > case?
+On Tue, 19 Apr 2005 19:29:50 +0200, Jean Delvare <khali@linux-fr.org> wrote:
+
+>> this implies enabling bidirectional fan adjustment to do it right?
 >
-> Oops, I just posted new driver...  Bad timing -- I'll need to check, 
-> this implies enabling bidirectional fan adjustment to do it right?
+>No, it doesn't.
+Okay, removed.
 
-No, it doesn't.
+Still doing error checking over extreme user input, and around the 
+fan_div decision point, took a couple days off to see-it-fresh...
 
-> > You also missed one case, which is the main reason why the whole
-> > thing is (IMHO) needed:
-> >
-> >      * User doesn't set any limit
-> >        - auto fan clock adjuster enabled
-> 
-> Again, this implies bidirectional adjustment (...)
+Sometimes I can't see the wood for the trees :)
 
-Again, it doesn't.
+Reworked scaling right through system to trace error sources, now 
+I know of lots of things that don't add errors, static inline 
+scaling doesn't change much but looks neater.
 
-Automatic fan clock adjustment is really automatic fan divider
-increment, in order to prevent zero speed readings when the fan actually
-spins. Decreasing would only possibly improve accuracy, and that's not
-our problem when the user did not set a proper limit.
-
--- 
-Jean Delvare
+Cheers,
+Grant.
