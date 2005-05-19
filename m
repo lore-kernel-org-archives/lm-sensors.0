@@ -1,30 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: asus tusl2-c
-Message-Id: <20050330221854.6986815b.khali@linux-fr.org>
+From: nroeder@inf.ed.ac.uk (Nils Roeder)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: userspace  dev-interface linux-2.6.7
+Message-Id: <42775670.5070709@inf.ed.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050228204516.5c4dd1b9.khaqq@free.fr>
-In-Reply-To: <20050228204516.5c4dd1b9.khaqq@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi khaqq,
+hi
 
-> After updating from linux 2.6.9 to 2.6.11 (new i2c ?) I have had
-> to change the temp2 formulae again. The CUSL2 one was reporting
-> temps near 60C (PIII/1200 with large cooler) while the BIOS
-> said 40C. I think the correct formulae is *now* the same as the
-> A7M266 but it's weird. Can you confirm something changed in the I2C
-> code ?
+i use a userspace program to access /dev/i2c-0 which
+uses (/doc/dev-interface)
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+which works fine in linux-2.4.x
 
-Absolutely. The w83781d driver used to report half the temperature for
-the AS99127F chip, and the error was compensated by libsensors. Now the
-w83781d driver reports the correct value so the formula has to be
-changed to:
+'porting' this to linux-2.6.7 causes too many errors.
+can anyone point me to the right direction so solve these ?
+(i realised in 2.6.7 the smbus macros are missing in i2c-dev.h
+so i am basically a bit lost...)
 
-compute temp2 (@*30/43)+25, (@-25)*43/30
 
--- 
-Jean Delvare
+a more interesting question (for me at least) is -
+do i actually need to do that.
+just today (i must admit) i tried lmsensors for the first time, 
+crosscompiled 'i2cdetect' and realised it can find all my devices 
+attached to /dev/i2c-0.
+so, can i read and write to the devices found by i2cdetect
+(e.g 0x4b on /dev/i2c-0)
+using kernel drivers rather than my userspace program,
+if so how (or where can i read about it) ?
+
+cheers,
+   nils
