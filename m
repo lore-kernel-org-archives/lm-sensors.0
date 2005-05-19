@@ -1,35 +1,85 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: Ticket #: 1955
-Message-Id: <20050422200124.42816260.khali@linux-fr.org>
+From: joerg@dorchain.net (Joerg Dorchain)
+Date: Thu, 19 May 2005 06:24:28 +0000
+Subject: Installation report/Feedback
+Message-Id: <20031207183312.GA855@GreenHouse.dorchain.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1980615917@web.de>
-In-Reply-To: <1980615917@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Christian,
+Hi all,
 
-> As you can see in my sensors.conf I sent along with my ticket, I tried
-> this before, but just ignoring the fans don't work. I tried the
-> version 2.9.1 as you suggested and the error-messages of fans 1 & 3
-> disappeared, but oddly enough fan2 causes still problems.
+I just installed lm_sensors on my box and it went fine.
+The machine is a 4MBO OEM machine sold in Germany as "Plus VolksPC
+2600". It contains an OEM Asus A7N8X MB version with an nvidia nforce2
+chipset. It is supported by the i2c-nforce2 driver out of the box.
+I used the "patch-kernel" approach for i2c and "compile separately" for
+lm_sensors.  Kernel is 2.4.23, lm_sensors 2.8.1
 
-My fault. When I fixed "sensors" I missed fan2, and only really fixes
-fan1 and fan3. This explains what you observe.
+Here is the output of sensors:
 
-You can fetch the latest version from CVS, I just committed a fix.
-Thanks for reporting.
+eeprom-i2c-0-50
+Adapter: SMBus nForce2 adapter at 5000
+Algorithm: Non-I2C SMBus adapter
+Unknown EEPROM type (0)
 
-> Did you heard of someone who got an answer from Soekris about their
-> resistor-network, used sensors etc. because 50?C seems a little to
-> high to me for the internal thermal reading of the mio-chip.
+eeprom-i2c-0-51
+Adapter: SMBus nForce2 adapter at 5000
+Algorithm: Non-I2C SMBus adapter
+Unknown EEPROM type (32)
 
-The other report I had for a net4801 was 83 degrees, so you shouldn't
-complain with 50 ;) For other PC87366 chips, temperature was between 32
-and 53.
+as99127f-i2c-1-2d
+Adapter: SMBus nForce2 adapter at 5500
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.70 V  (min =  +1.49 V, max =  +1.81 V)              
+VCore 2:   +1.70 V  (min =  +1.49 V, max =  +1.81 V)              
++3.3V:     +3.34 V  (min =  +2.98 V, max =  +3.63 V)              
++5V:       +4.89 V  (min =  +4.52 V, max =  +5.48 V)              
++12V:     +11.48 V  (min = +10.83 V, max = +13.15 V)              
+-12V:     -12.00 V  (min =  -0.00 V, max =  -0.00 V)              
+-5V:       -4.54 V  (min =  -0.00 V, max =  -0.00 V)              
+fan1:     6683 RPM  (min = 3000 RPM, div = 2)                     
+fan2:        0 RPM  (min = 3000 RPM, div = 2)                     
+fan3:        0 RPM  (min = 3000 RPM, div = 2)                     
+M/B Temp:    +28?C  (limit =  +60?C)                              
+CPU Temp:  +43.4?C  (limit = +120?C, hysteresis = +100?C)        
+temp3:    +255.4?C  (limit = +120?C, hysteresis = +100?C)        
+vid:      +1.650 V
+alarms:   
+beep_enable:
+          Sound alarm enabled
 
--- 
-Jean Delvare
+eeprom-i2c-2-50
+Adapter: bt848 #0
+Algorithm: Bit-shift algorithm
+Unknown EEPROM type (0)
+
+I have some random notes about it.
+- On the first try, sensors-detect segfaulted. I tried to reboot, which
+  failed because hda had write errors. Only a complete unplug from mains
+  for the usual 30s made it boot again. As I used this machine for some
+  time before witha wild mix of stock kernel, nvidia and lm_sensors
+  modules, I'm not too sure what caused this. After the reboot (which
+  definitivly brought kernel sources and running kernel in sync) is just
+  works now, so IMHO having sources, config and running kernel the same
+  seems to be important.
+- My bttv card run fine as ever.
+- On the sensors output, the fan1 is reported at 3307RPM by the BIOS,
+  CPU Temp as 47 degrees.
+- sensors-detect produced a line # no driver for Winbond W83L785TS yet,
+  ask us for one! and so I do ;-)
+
+I can help with applying patches and retrying, or if you need more info,
+I will provide it.
+
+Bye,
+
+Joerg
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031207/5c677dc6/attachment.bin
