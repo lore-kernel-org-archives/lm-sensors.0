@@ -1,7 +1,7 @@
 From: rnissl@gmx.de (Reinhard Nissl)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <40158E50.9080406@gmx.de>
+Message-Id: <40158FD6.50503@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -14,34 +14,35 @@ Hi,
 
 Jean Delvare wrote:
 
->>The problem is, that the voltage values still need to get devided by
->>10.
->>
->>Shall I scale the values by 1000 for kernel 2.6.1 and by 100 for
->>kernel 2.4.22 and remove the factor 1000 from sensors.conf?
+>>Please have a look at set_pwm(). What shall I do with an unsupported
+>>value? Is it ok to return -1?
 > 
-> Yes, that's the idea.
+> Which values do you consider unsupported? (Pardon my ignorance, I've
+> never dealt with chipsets with PWM so far).
 
-Well, looking at the conversion formula again, this idea is not 100 % perfect, 
-because it doesn't care to scale the offset value. Currently, the offset is 0 
-but there is no guarantee, that it will always be 0.
+I was wrong. Correct is set_fan_div().
 
-What do you think about some further RW files
+static ssize_t set_fan_div (struct i2c_client *client, struct fscher_data 
+*data, const char *buf, size_t count, int nr, int reg)
+{
+   /* supported values: 2, 4, 8 */
+   int v = simple_strtoul(buf, NULL, 10);
 
-	in_refvoltage	= 0x21
-	in_offset0	= 0x00
-	in_offset1	= 0x00
-	in_offset2	= 0x00
-	in_multiplier0	= 0x31
-	in_multiplier1	= 0x14
-	in_multiplier2	= 0x0a
+   switch (v)
+   {
+   case 2:    v = 1;    break;
+   case 4:    v = 2;    break;
+   case 8:    v = 3;    break;
+   default:   return -1;
+   }
 
-that initally have the values of the first driver release, which were taken 
-from dmidecode. The driver would then use those values and supply scaled 
-values for in0, in1 and in2.
+   /* bits 2..7 reserved => mask with 0x03 */
+   data->fan_ripple[FAN_INDEX_FROM_NUM(nr)] &= ~0x03;
+   data->fan_ripple[FAN_INDEX_FROM_NUM(nr)] |= v;
 
-BTW: was the multiplier for temperatures changed from 100 to 1000 around 
-2.6.0-test5, because gkrellm-2.1.25 uses 100 instead of 1000?
+   fscher_write_value(client, reg, data->fan_ripple[FAN_INDEX_FROM_NUM(nr)]);
+   return count;
+}
 
 Bye.
 -- 
