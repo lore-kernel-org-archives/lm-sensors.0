@@ -1,102 +1,128 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH] I2C: group Intel on I2C Hardware Bus support
-Message-Id: <11123113911463@kroah.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] I2C: improve debugging output
+Message-Id: <11099685961542@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1112311391247@kroah.com>
+In-Reply-To: <11099685961559@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: grant_nospam@dodo.com.au
+Cc: icampbell@arcom.com
 
-ChangeSet 1.2330, 2005/03/31 14:07:43-08:00, grant_nospam@dodo.com.au
+ChangeSet 1.2102, 2005/03/02 12:18:03-08:00, icampbell@arcom.com
 
-[PATCH] I2C: group Intel on I2C Hardware Bus support
+[PATCH] I2C: improve debugging output
 
- From an end-user perspective it is easy to miss the third Intel PIIX
-entry on the menuconfig "I2C Hardware Bus support" screen.
-Also the Intel 801 menu item does not mention ICH.
+Rework the pca_xfer() function to always print the number of
+successfully completed transfers in a series when debugging, even when
+exiting with an error.
 
-This trivial patch groups three Intel entries together, adds ICH to
-menu item, and ICH5/ICH5R to the help section.  Includes suggestions
-from Jean Delvare.
-
-Signed-off-by: Grant Coady <gcoady@gmail.com>
+Signed-off-by: Ian Campbell <icampbell@arcom.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
- drivers/i2c/busses/Kconfig |   38 +++++++++++++++++++-------------------
- 1 files changed, 19 insertions(+), 19 deletions(-)
+ drivers/i2c/algos/i2c-algo-pca.c |   28 ++++++++++++++++------------
+ 1 files changed, 16 insertions(+), 12 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig	2005-03-31 15:18:22 -08:00
-+++ b/drivers/i2c/busses/Kconfig	2005-03-31 15:18:22 -08:00
-@@ -108,7 +108,7 @@
- 	  will be called i2c-hydra.
+diff -Nru a/drivers/i2c/algos/i2c-algo-pca.c b/drivers/i2c/algos/i2c-algo-pca.c
+--- a/drivers/i2c/algos/i2c-algo-pca.c	2005-03-04 12:24:16 -08:00
++++ b/drivers/i2c/algos/i2c-algo-pca.c	2005-03-04 12:24:16 -08:00
+@@ -186,6 +186,7 @@
+         int curmsg;
+ 	int numbytes = 0;
+ 	int state;
++	int ret;
  
- config I2C_I801
--	tristate "Intel 801"
-+	tristate "Intel 82801 (ICH)"
- 	depends on I2C && PCI && EXPERIMENTAL
- 	help
- 	  If you say yes to this option, support will be included for the Intel
-@@ -119,7 +119,7 @@
- 	    82801BA
- 	    82801CA/CAM
- 	    82801DB
--	    82801EB
-+	    82801EB/ER (ICH5/ICH5R)
- 	    6300ESB
- 	    ICH6
- 	    ICH7
-@@ -143,6 +143,23 @@
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called i2c-i810.
+ 	state = pca_status(adap);
+ 	if ( state != 0xF8 ) {
+@@ -218,6 +219,7 @@
+ 	}
  
-+config I2C_PIIX4
-+	tristate "Intel PIIX4"
-+	depends on I2C && PCI
-+	help
-+	  If you say yes to this option, support will be included for the Intel
-+	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
-+	  versions of the chipset are supported:
-+	    Intel PIIX4
-+	    Intel 440MX
-+	    Serverworks OSB4
-+	    Serverworks CSB5
-+	    Serverworks CSB6
-+	    SMSC Victory66
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called i2c-piix4.
-+
- config I2C_IBM_IIC
- 	tristate "IBM PPC 4xx on-chip I2C interface"
- 	depends on IBM_OCP && I2C
-@@ -284,23 +301,6 @@
+ 	curmsg = 0;
++	ret = -EREMOTEIO;
+ 	while (curmsg < num) {
+ 		state = pca_status(adap);
  
- 	  This support is also available as a module.  If so, the module 
- 	  will be called i2c-parport-light.
--
--config I2C_PIIX4
--	tristate "Intel PIIX4"
--	depends on I2C && PCI && EXPERIMENTAL
--	help
--	  If you say yes to this option, support will be included for the Intel
--	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
--	  versions of the chipset are supported:
--	    Intel PIIX4
--	    Intel 440MX
--	    Serverworks OSB4
--	    Serverworks CSB5
--	    Serverworks CSB6
--	    SMSC Victory66
--
--	  This driver can also be built as a module.  If so, the module
--	  will be called i2c-piix4.
+@@ -251,7 +253,7 @@
+ 		case 0x20: /* SLA+W has been transmitted; NOT ACK has been received */
+ 			DEB2("NOT ACK received after SLA+W\n");
+ 			pca_stop(adap);
+-			return -EREMOTEIO;
++			goto out;
  
- config I2C_PROSAVAGE
- 	tristate "S3/VIA (Pro)Savage"
+ 		case 0x40: /* SLA+R has been transmitted; ACK has been received */
+ 			pca_rx_ack(adap, msg->len > 1);
+@@ -263,7 +265,7 @@
+ 				numbytes++;
+ 				pca_rx_ack(adap, numbytes < msg->len - 1);
+ 				break;
+-			} 
++			}
+ 			curmsg++; numbytes = 0;
+ 			if (curmsg = num)
+ 				pca_stop(adap);
+@@ -274,15 +276,15 @@
+ 		case 0x48: /* SLA+R has been transmitted; NOT ACK has been received */
+ 			DEB2("NOT ACK received after SLA+R\n");
+ 			pca_stop(adap);
+-			return -EREMOTEIO;
++			goto out;
+ 
+ 		case 0x30: /* Data byte in I2CDAT has been transmitted; NOT ACK has been received */
+ 			DEB2("NOT ACK received after data byte\n");
+-			return -EREMOTEIO;
++			goto out;
+ 
+ 		case 0x38: /* Arbitration lost during SLA+W, SLA+R or data bytes */
+ 			DEB2("Arbitration lost\n");
+-			return -EREMOTEIO;
++			goto out;
+ 			
+ 		case 0x58: /* Data byte has been received; NOT ACK has been returned */
+ 			if ( numbytes = msg->len - 1 ) {
+@@ -297,21 +299,21 @@
+ 				     "Not final byte. numbytes %d. len %d\n",
+ 				     numbytes, msg->len);
+ 				pca_stop(adap);
+-				return -EREMOTEIO;
++				goto out;
+ 			}
+ 			break;
+ 		case 0x70: /* Bus error - SDA stuck low */
+ 			DEB2("BUS ERROR - SDA Stuck low\n");
+ 			pca_reset(adap);
+-			return -EREMOTEIO;
++			goto out;
+ 		case 0x90: /* Bus error - SCL stuck low */
+ 			DEB2("BUS ERROR - SCL Stuck low\n");
+ 			pca_reset(adap);
+-			return -EREMOTEIO;
++			goto out;
+ 		case 0x00: /* Bus error during master or slave mode due to illegal START or STOP condition */
+ 			DEB2("BUS ERROR - Illegal START or STOP\n");
+ 			pca_reset(adap);
+-			return -EREMOTEIO;
++			goto out;
+ 		default:
+ 			printk(KERN_ERR DRIVER ": unhandled SIO state 0x%02x\n", state);
+ 			break;
+@@ -319,11 +321,13 @@
+ 		
+ 	}
+ 
+-	DEB1(KERN_CRIT "}}} transfered %d messages. "
++	ret = curmsg;
++ out:
++	DEB1(KERN_CRIT "}}} transfered %d/%d messages. "
+ 	     "status is %#04x. control is %#04x\n", 
+-	     num, pca_status(adap),
++	     curmsg, num, pca_status(adap),
+ 	     pca_get_con(adap));
+-	return curmsg;
++	return ret;
+ }
+ 
+ static u32 pca_func(struct i2c_adapter *adap)
 
