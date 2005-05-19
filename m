@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <10728219722179@kroah.com>
+Message-Id: <1072821972731@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1072821972731@kroah.com>
+In-Reply-To: <10728219712881@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,171 +11,135 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.9.2, 2003/12/04 13:35:42-08:00, khali@linux-fr.org
+ChangeSet 1.1496.8.40, 2003/12/30 12:10:39-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Fix i2c-algo-bit for adapers that cannot read SCL back
+[PATCH] I2C: lm83 driver updates
 
-Here follows a patch to i2c-algo-bit.c as found in linux-2.6.0-test9,
-with two fixes for adapters that cannot read SCL back. Althouth real
-adapters should be able to read SCL back, there are some that
-cannot, for example the ADM1032 evaluation board I am using. Such
-adapters where supposed to be already supported, but I found a probable
-bug and improved support.
-
-These changes were applied to our i2c CVS repository two weeks ago and
-have been reviewed by Mark D. Studebaker.
-
-List of changes:
-
-* Fix sclhi() for adapters that do not have getscl().
-* Enable bit_test for adapters that do not have getscl().
-* Mostly rewrite test_bus(), cleaner and probably faster.
+Here is a patch for the lm83 driver, to be applied on top of your
+pending patches stack. What it does:
+* Remove limit initialisation by the driver. This is a backport from
+  CVS.
+* A few whitespace changes inspired by my recent porting of the lm90
+  driver.
 
 
- drivers/i2c/algos/i2c-algo-bit.c |   96 ++++++++++++++++++++-------------------
- 1 files changed, 50 insertions(+), 46 deletions(-)
+ drivers/i2c/chips/lm83.c |   37 ++++++++++++-------------------------
+ 1 files changed, 12 insertions(+), 25 deletions(-)
 
 
-diff -Nru a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
---- a/drivers/i2c/algos/i2c-algo-bit.c	Tue Dec 30 12:32:32 2003
-+++ b/drivers/i2c/algos/i2c-algo-bit.c	Tue Dec 30 12:32:32 2003
-@@ -18,10 +18,8 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
- /* ------------------------------------------------------------------------- */
+diff -Nru a/drivers/i2c/chips/lm83.c b/drivers/i2c/chips/lm83.c
+--- a/drivers/i2c/chips/lm83.c	Tue Dec 30 12:27:57 2003
++++ b/drivers/i2c/chips/lm83.c	Tue Dec 30 12:27:57 2003
+@@ -41,7 +41,7 @@
  
--/* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
--   Frodo Looijaard <frodol@dds.nl> */
--
--/* $Id: i2c-algo-bit.c,v 1.44 2003/01/21 08:08:16 kmalkki Exp $ */
-+/* With some changes from Frodo Looijaard <frodol@dds.nl>, Ky?sti M?lkki
-+   <kmalkki@cc.hut.fi> and Jean Delvare <khali@linux-fr.org> */
+ static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+ static unsigned short normal_i2c_range[] = { 0x18, 0x1a, 0x29, 0x2b,
+-    0x4c, 0x4e, I2C_CLIENT_END };
++	0x4c, 0x4e, I2C_CLIENT_END };
+ static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
  
- /* #define DEBUG 1 */
+@@ -78,16 +78,13 @@
+ #define LM83_REG_W_TCRIT		0x5A
  
-@@ -87,8 +85,10 @@
- 	setscl(adap,1);
- 
- 	/* Not all adapters have scl sense line... */
--	if (adap->getscl = NULL )
-+	if (adap->getscl = NULL ) {
-+		udelay(adap->udelay);
- 		return 0;
-+	}
- 
- 	start=jiffies;
- 	while (! getscl(adap) ) {	
-@@ -222,68 +222,72 @@
+ /*
+- * Conversions, initial values and various macros
++ * Conversions and various macros
+  * The LM83 uses signed 8-bit values.
   */
- static int test_bus(struct i2c_algo_bit_data *adap, char* name) {
- 	int scl,sda;
+ 
+ #define TEMP_FROM_REG(val)	((val > 127 ? val-256 : val) * 1000)
+ #define TEMP_TO_REG(val)	((val < 0 ? val+256 : val) / 1000)
+ 
+-#define LM83_INIT_HIGH		100
+-#define LM83_INIT_CRIT		120
+-
+ static const u8 LM83_REG_R_TEMP[] = {
+ 	LM83_REG_R_LOCAL_TEMP,
+ 	LM83_REG_R_REMOTE1_TEMP,
+@@ -114,9 +111,7 @@
+  */
+ 
+ static int lm83_attach_adapter(struct i2c_adapter *adapter);
+-static int lm83_detect(struct i2c_adapter *adapter, int address,
+-    int kind);
+-static void lm83_init_client(struct i2c_client *client);
++static int lm83_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int lm83_detach_client(struct i2c_client *client);
+ static void lm83_update_client(struct i2c_client *client);
+ 
+@@ -137,8 +132,7 @@
+  * Client data (each client gets its own)
+  */
+ 
+-struct lm83_data
+-{
++struct lm83_data {
+ 	struct semaphore update_lock;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+@@ -233,8 +227,7 @@
+  * The following function does more than just detection. If detection
+  * succeeds, it also registers the new chip.
+  */
+-static int lm83_detect(struct i2c_adapter *adapter, int address,
+-    int kind)
++static int lm83_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *new_client;
+ 	struct lm83_data *data;
+@@ -290,6 +283,7 @@
+ 		    LM83_REG_R_MAN_ID);
+ 		chip_id = i2c_smbus_read_byte_data(new_client,
+ 		    LM83_REG_R_CHIP_ID);
 +
-+	if (adap->getscl=NULL)
-+		printk(KERN_INFO "i2c-algo-bit.o: Testing SDA only, "
-+			"SCL is not readable.\n");
+ 		if (man_id = 0x01) { /* National Semiconductor */
+ 			if (chip_id = 0x03) {
+ 				kind = lm83;
+@@ -315,8 +309,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto exit_free;
+ 
+-	/* Initialize the LM83 chip */
+-	lm83_init_client(new_client);
++	/*
++	 * Initialize the LM83 chip
++	 * (Nothing to do for this one.)
++	 */
+ 
+ 	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_temp_input1);
+@@ -338,17 +334,6 @@
+ 	return err;
+ }
+ 
+-static void lm83_init_client(struct i2c_client *client)
+-{
+-	int nr;
+-
+-	for (nr = 0; nr < 4; nr++)
+-		i2c_smbus_write_byte_data(client, LM83_REG_W_HIGH[nr],
+-	            TEMP_TO_REG(LM83_INIT_HIGH));
+-	i2c_smbus_write_byte_data(client, LM83_REG_W_TCRIT,
+-	    TEMP_TO_REG(LM83_INIT_CRIT));
+-}
+-
+ static int lm83_detach_client(struct i2c_client *client)
+ {
+ 	int err;
+@@ -373,6 +358,7 @@
+ 	    (jiffies < data->last_updated) ||
+ 	    !data->valid) {
+ 		int nr;
 +
- 	sda=getsda(adap);
--	if (adap->getscl=NULL) {
--		printk(KERN_WARNING "i2c-algo-bit.o: Warning: Adapter can't read from clock line - skipping test.\n");
--		return 0;		
--	}
--	scl=getscl(adap);
--	printk(KERN_INFO "i2c-algo-bit.o: Adapter: %s scl: %d  sda: %d -- testing...\n",
--	       name,getscl(adap),getsda(adap));
-+	scl=(adap->getscl=NULL?1:getscl(adap));
-+	printk(KERN_DEBUG "i2c-algo-bit.o: (0) scl=%d, sda=%d\n",scl,sda);
- 	if (!scl || !sda ) {
--		printk(KERN_INFO " i2c-algo-bit.o: %s seems to be busy.\n",name);
-+		printk(KERN_WARNING "i2c-algo-bit.o: %s seems to be busy.\n", name);
- 		goto bailout;
- 	}
+ 		dev_dbg(&client->dev, "Updating lm83 data.\n");
+ 		for (nr = 0; nr < 4 ; nr++) {
+ 			data->temp_input[nr] @@ -388,6 +374,7 @@
+ 		    i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS1)
+ 		    + (i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS2)
+ 		    << 8);
 +
- 	sdalo(adap);
--	printk(KERN_DEBUG "i2c-algo-bit.o:1 scl: %d  sda: %d \n",getscl(adap),
--	       getsda(adap));
--	if ( 0 != getsda(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA stuck high!\n",name);
--		sdahi(adap);
-+	sda=getsda(adap);
-+	scl=(adap->getscl=NULL?1:getscl(adap));
-+	printk(KERN_DEBUG "i2c-algo-bit.o: (1) scl=%d, sda=%d\n",scl,sda);
-+	if ( 0 != sda ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SDA stuck high!\n");
- 		goto bailout;
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
  	}
--	if ( 0 = getscl(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL unexpected low while pulling SDA low!\n",
--			name);
-+	if ( 0 = scl ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SCL unexpected low "
-+			"while pulling SDA low!\n");
- 		goto bailout;
- 	}		
-+
- 	sdahi(adap);
--	printk(KERN_DEBUG "i2c-algo-bit.o:2 scl: %d  sda: %d \n",getscl(adap),
--	       getsda(adap));
--	if ( 0 = getsda(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA stuck low!\n",name);
--		sdahi(adap);
-+	sda=getsda(adap);
-+	scl=(adap->getscl=NULL?1:getscl(adap));
-+	printk(KERN_DEBUG "i2c-algo-bit.o: (2) scl=%d, sda=%d\n",scl,sda);
-+	if ( 0 = sda ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SDA stuck low!\n");
- 		goto bailout;
- 	}
--	if ( 0 = getscl(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL unexpected low while SDA high!\n",
--		       name);
--	goto bailout;
-+	if ( 0 = scl ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SCL unexpected low "
-+			"while pulling SDA high!\n");
-+		goto bailout;
- 	}
-+
- 	scllo(adap);
--	printk(KERN_DEBUG "i2c-algo-bit.o:3 scl: %d  sda: %d \n",getscl(adap),
--	       getsda(adap));
--	if ( 0 != getscl(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL stuck high!\n",name);
--		sclhi(adap);
-+	sda=getsda(adap);
-+	scl=(adap->getscl=NULL?0:getscl(adap));
-+	printk(KERN_DEBUG "i2c-algo-bit.o: (3) scl=%d, sda=%d\n",scl,sda);
-+	if ( 0 != scl ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SCL stuck high!\n");
- 		goto bailout;
- 	}
--	if ( 0 = getsda(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA unexpected low while pulling SCL low!\n",
--			name);
-+	if ( 0 = sda ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SDA unexpected low "
-+			"while pulling SCL low!\n");
- 		goto bailout;
- 	}
-+	
- 	sclhi(adap);
--	printk(KERN_DEBUG "i2c-algo-bit.o:4 scl: %d  sda: %d \n",getscl(adap),
--	       getsda(adap));
--	if ( 0 = getscl(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL stuck low!\n",name);
--		sclhi(adap);
-+	sda=getsda(adap);
-+	scl=(adap->getscl=NULL?1:getscl(adap));
-+	printk(KERN_DEBUG "i2c-algo-bit.o: (4) scl=%d, sda=%d\n",scl,sda);
-+	if ( 0 = scl ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SCL stuck low!\n");
- 		goto bailout;
- 	}
--	if ( 0 = getsda(adap) ) {
--		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA unexpected low while SCL high!\n",
--			name);
-+	if ( 0 = sda ) {
-+		printk(KERN_WARNING "i2c-algo-bit.o: SDA unexpected low "
-+			"while pulling SCL high!\n");
- 		goto bailout;
- 	}
- 	printk(KERN_INFO "i2c-algo-bit.o: %s passed test.\n",name);
 
