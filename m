@@ -1,46 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:12 +0000
-Subject: stub for driver testing (was Re: lm87 ported to Linux 2.6)
-Message-Id: <20040825143542.M96484@linux-fr.org>
+From: decibel8@charter.net (David)
+Date: Thu, 19 May 2005 06:23:57 +0000
+Subject: 1250
+Message-Id: <200306021011.37032.decibel8@charter.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040824034244.GA23169@jupiter.solarsys.private>
-In-Reply-To: <20040824034244.GA23169@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I'll make it impossible to build this driver into the kernel... it's 
-> only useful as a module anyway.
+ls -l /proc/sys/dev/sensors
+total 0
+-rw-r--r--    1 root     root            0 Jun  2 10:05 chips
+dr-xr-xr-x    2 root     root            0 Jun  2 09:49 via686a-isa-6000
 
-I can't see any technical reason why it couldn't be used into the kernel. But
-I don't see why one would want to do that either. So all in all I agree with
-you ;)
+ls -l /proc/sys/dev/sensors/via*
+total 0
+-r--r--r--    1 root     root            0 Jun  2 10:06 alarms
+-rw-r--r--    1 root     root            0 Jun  2 10:06 fan1
+-rw-r--r--    1 root     root            0 Jun  2 10:06 fan2
+-rw-r--r--    1 root     root            0 Jun  2 10:06 fan_div
+-rw-r--r--    1 root     root            0 Jun  2 10:06 in0
+-rw-r--r--    1 root     root            0 Jun  2 10:06 in1
+-rw-r--r--    1 root     root            0 Jun  2 10:06 in2
+-rw-r--r--    1 root     root            0 Jun  2 10:06 in3
+-rw-r--r--    1 root     root            0 Jun  2 10:06 in4
+-rw-r--r--    1 root     root            0 Jun  2 10:06 temp1
+-rw-r--r--    1 root     root            0 Jun  2 10:06 temp2
+-rw-r--r--    1 root     root            0 Jun  2 10:06 temp3
 
-> Would it be appropriate to mark it experimental as well?
+But even when I change the via686a-isa-6000 folder to have root write 
+permissions it doesn't work.
 
-Yes, but not because it's for testing purposes. For that, a clear help text
-stating, among other details, "If unsure, say N.", is what you want. The
-experimental tag refers to the code stability, not the driver goal.
+ls -l /proc/sys/dev/sensors
+total 0
+-rw-r--r--    1 root     root            0 Jun  2 10:07 chips
+drwxr-xr-x    2 root     root            0 Jun  2 09:49 via686a-isa-6000
 
-> > I think that this driver would be even more useful if it was possible to
-> > "load" a register map into it. (...)
-> 
-> Um, i2cset works fine for this.
+So still get: 
+sensors -s
+via686a-isa-6000: Can't access /proc file for writing;
+Run as root?
 
-Ah, correct. For some reason (maybe I'm somewhat stupid, or it was too early
-in the morning) I missed that. One more reason to go on providing a way to get
-rid of the 5 second delay in i2cset like I did recently for isaset and isadump.
-
-> BTW: note how there are independent arrays for data/byte and 
-> data/word commands. Depending on if/how a chip driver mixes them,
->  you'll need to be careful.
-
-Yeah, I noticed that. The LM87 doesn't use words so I guess it should cause no
-trouble to me - this time at least.
-
-Thanks.
-
--- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+I don't think the permission is staying either. Would devfs have something to 
+do with this?
