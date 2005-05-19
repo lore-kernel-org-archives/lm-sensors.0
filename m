@@ -1,52 +1,62 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: a.othieno@bluewin.ch (Arthur Othieno)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: [TRIVIAL 2.6] drivers/i2c/busses/i2c-piix4.c: kill duplicate
-Message-Id: <20040417230824.45f51061.khali@linux-fr.org>
+Message-Id: <20040418161229.GP1417@mars>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040417230824.45f51061.khali@linux-fr.org>
+In-Reply-To: <20040417230824.45f51061.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Arthur,
-
-> From scripts/checkincludes.pl:
+On Sat, Apr 17, 2004 at 11:08:24PM +0200, Jean Delvare wrote:
+> Hi Arthur,
 > 
->   ./drivers/i2c/busses/i2c-piix4.c: linux/config.h is included more
->   than once.
+> > From scripts/checkincludes.pl:
+> > 
+> >   ./drivers/i2c/busses/i2c-piix4.c: linux/config.h is included more
+> >   than once.
+> > 
+> > Against 2.6.5. Thanks.
+> > 
+> > 
+> > --- a/drivers/i2c/busses/i2c-piix4.c	2004-04-11 14:05:35.000000000 +0200
+> > +++ b/drivers/i2c/busses/i2c-piix4.c	2004-04-16 17:52:16.000000000 +0200
+> > @@ -31,7 +31,6 @@
+> >  #include <linux/config.h>
+> >  #include <linux/module.h>
+> >  #include <linux/moduleparam.h>
+> > -#include <linux/config.h>
+> >  #include <linux/pci.h>
+> >  #include <linux/kernel.h>
+> >  #include <linux/stddef.h>
 > 
-> Against 2.6.5. Thanks.
+> Actually there are more problems than just this one:
 > 
+> 1* scx200_acb.c, scx200_i2c.c and i2c-keywest.c also include version.h
+>    twice.
+
+I sent separate patches for these three to <wingel@nano-system.com>
+(scx200_{acb,i2c}.c) and <benh@kernel.crashing.org> (i2c-keywest.c)
+(Cc: <trivial@rustcorp.com.au>), but ...
+
+> 2* Most i2c bus drivers do not need to include it at all. Greg, I guess
+>    this is a leftover from the old debugging scheme?
 > 
-> --- a/drivers/i2c/busses/i2c-piix4.c	2004-04-11 14:05:35.000000000 +0200
-> +++ b/drivers/i2c/busses/i2c-piix4.c	2004-04-16 17:52:16.000000000 +0200
-> @@ -31,7 +31,6 @@
->  #include <linux/config.h>
->  #include <linux/module.h>
->  #include <linux/moduleparam.h>
-> -#include <linux/config.h>
->  #include <linux/pci.h>
->  #include <linux/kernel.h>
->  #include <linux/stddef.h>
+> 3* Same goes for most (all?) i2c chip drivers, and core i2c drivers too:
+>    they include config.h but don't seem to need it.
+> 
+> If would probably be better to solve all these problems at once. I think
+> we should get rid of all useless includes. Greg, can you confirm?
+>
+> Rusty, I think you can leave this one to Greg and I, we'll handle it.
 
-Actually there are more problems than just this one:
+.. it's good to know you'll be looking more closely at these :)
 
-1* scx200_acb.c, scx200_i2c.c and i2c-keywest.c also include version.h
-   twice.
-
-2* Most i2c bus drivers do not need to include it at all. Greg, I guess
-   this is a leftover from the old debugging scheme?
-
-3* Same goes for most (all?) i2c chip drivers, and core i2c drivers too:
-   they include config.h but don't seem to need it.
-
-If would probably be better to solve all these problems at once. I think
-we should get rid of all useless includes. Greg, can you confirm?
-
-Rusty, I think you can leave this one to Greg and I, we'll handle it.
-
-Thanks.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+> 
+> Thanks.
+> 
+> -- 
+> Jean Delvare
+> http://www.ensicaen.ismra.fr/~delvare/
