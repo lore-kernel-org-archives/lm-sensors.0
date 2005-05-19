@@ -1,37 +1,59 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:34 +0000
-Subject: IBM Question
-Message-Id: <20040112231811.1378762d.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] I2C: i2c-dev namespace cleanup
+Message-Id: <1109968594850@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11099685943850@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: mhoffman@lightlink.com
 
-> Is there a "Use at your own risk" version of sensors-detect I have
-> IBM servers that do not have the suspect Eeprom, and the modules
-> refuse to load saying that the machine is a laptop.
->  
-> the i2c-piix4 module will not modprobe either.
->  
-> Any help would be great.
+ChangeSet 1.2090, 2005/03/02 12:04:12-08:00, mhoffman@lightlink.com
 
-There is no such version nor options to disable the locks.
+[PATCH] I2C: i2c-dev namespace cleanup
 
-It is assumed that someone skilled enough to decide it is safe to use
-that stuff would also have the skill to disable the checks. There is one
-check in sensors-detect, and one in i2c-piix4. Both are really easy to
-find and disable.
+This patch is namespace cleanup for the i2c-dev module.  Please apply.
 
-We plan to disable at least the sensors-detect lock for non-laptop IBM
-systems, but this hasn't been done yet, since a significant amount of
-work is required to do this correctly.
+Signed-off-by Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
-Please report if you can do anything useful with our package on your
-systems.
 
-Good luck ;)
+ drivers/i2c/i2c-dev.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c	2005-03-04 12:25:37 -08:00
++++ b/drivers/i2c/i2c-dev.c	2005-03-04 12:25:37 -08:00
+@@ -55,7 +55,7 @@
+ static struct i2c_dev *i2c_dev_array[I2C_MINORS];
+ static DEFINE_SPINLOCK(i2c_dev_array_lock);
+ 
+-struct i2c_dev *i2c_dev_get_by_minor(unsigned index)
++static struct i2c_dev *i2c_dev_get_by_minor(unsigned index)
+ {
+ 	struct i2c_dev *i2c_dev;
+ 
+@@ -65,7 +65,7 @@
+ 	return i2c_dev;
+ }
+ 
+-struct i2c_dev *i2c_dev_get_by_adapter(struct i2c_adapter *adap)
++static struct i2c_dev *i2c_dev_get_by_adapter(struct i2c_adapter *adap)
+ {
+ 	struct i2c_dev *i2c_dev = NULL;
+ 
+@@ -173,8 +173,8 @@
+ 	return ret;
+ }
+ 
+-int i2cdev_ioctl (struct inode *inode, struct file *file, unsigned int cmd, 
+-                  unsigned long arg)
++static int i2cdev_ioctl(struct inode *inode, struct file *file,
++		unsigned int cmd, unsigned long arg)
+ {
+ 	struct i2c_client *client = (struct i2c_client *)file->private_data;
+ 	struct i2c_rdwr_ioctl_data rdwr_arg;
+
