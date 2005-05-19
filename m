@@ -1,26 +1,23 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: lm_sensors2/kernel/busses i2c-piix4.c
-Message-Id: <20031028224947.67b5b524.khali@linux-fr.org>
+From: gianluca@interbartolospa.it (gianluca interbartolo)
+Date: Thu, 19 May 2005 06:24:46 +0000
+Subject: i2c-dev
+Message-Id: <4051F5A2.8030209@interbartolospa.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031027215348.6a9f89de.khali@linux-fr.org>
-In-Reply-To: <20031027215348.6a9f89de.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
+I'm using kernel 2.6.4 and module i2c-viapro (I have an Asus A7V8X).
+When I load i2c-dev I get no error, but under /proc/bus there is no i2c
+directory. So using sensors-detect gives an error trying to open
+/proc/bus/i2c.
+Instead there is a /sys/bus/i2c directory, with subdirs that have no
+files. What does it mean? There is a different approach despite of
+documentation or a bug in i2c-dev?
+Bye,
 
-> > (mds) add support for CSB6 based on confirmation in ticket #1424
-> 
-> We have such a chip on my job's server. I may try lm_sensors on it
-> someday (I guess forcing an old (2.7.0) i2c-piix4 driver should work).
+Gianluca Interbartolo
 
-Mmm, no, did not work. After reading the source code, it turns out that
-the force parameter doesn't really force anything in the general case. I
-guess it's meant to be safe that way... So I won't be able to test the
-driver on that server, sorry.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
