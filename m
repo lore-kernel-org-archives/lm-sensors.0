@@ -1,43 +1,39 @@
-From: m.hunold@gmx.de (Michael Hunold)
-Date: Thu, 19 May 2005 06:25:02 +0000
-Subject: [PATCH][2.6] drivers/media/video/tda9840.c: honour return code of
-Message-Id: <40D85585.1060608@gmx.de>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:58 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc4 10/15] drivers/char/raw3270.c -
+Message-Id: <2538186705051703437928b730@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: sensors@stimpy.netroedge.com, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, a.othieno@bluewin.ch
+To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hello Linus,
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
 
-i2c_add_driver() may actually fail, but my driver returns 0
-regardless. Thanks to Arthur Othieno <a.othieno@bluewin.ch> for this 
-obviously correct patch.
+---
+-------------- next part --------------
+ char/raw3270.c   |    6 +++---
+ char/tape_core.c |   10 +++++-----
+ char/vmlogrdr.c  |   12 ++++++------
+ cio/ccwgroup.c   |    6 +++---
+ cio/chsc.c       |    6 +++---
+ cio/cmf.c        |   12 ++++++------
+ cio/device.c     |   14 +++++++-------
+ net/claw.c       |   40 ++++++++++++++++++++--------------------
+ net/ctcmain.c    |   18 +++++++++---------
+ net/lcs.c        |   10 +++++-----
+ net/netiucv.c    |   44 ++++++++++++++++++++++----------------------
+ 11 files changed, 89 insertions(+), 89 deletions(-)
 
-Signed-off-by: Michael Hunold <hunold@linuxtv.org>
-Signed-off-by: Arthur Othieno <a.othieno@bluewin.ch>
-
-  tda9840.c |    7 +++----
-  1 files changed, 3 insertions(+), 4 deletions(-)
-
---- a/drivers/media/video/tda9840.c	2003-12-18 03:59:06.000000000 +0100
-+++ b/drivers/media/video/tda9840.c	2004-06-04 18:15:25.000000000 +0200
-@@ -268,13 +268,12 @@ static struct i2c_driver driver = {
-          .command	= tda9840_command,
-  };
-
--static int tda9840_init_module(void)
-+static int __init tda9840_init_module(void)
-  {
--        i2c_add_driver(&driver);
--        return 0;
-+        return i2c_add_driver(&driver);
-  }
-
--static void tda9840_cleanup_module(void)
-+static void __exit tda9840_cleanup_module(void)
-  {
-          i2c_del_driver(&driver);
-  }
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-drivers.diff.5.diff
+Type: text/x-patch
+Size: 30909 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/f36736cd/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-drivers.diff.5.bin
+-------------- next part --------------
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
