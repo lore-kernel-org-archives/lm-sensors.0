@@ -1,61 +1,47 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] Add class definition to the elektor bus driver
-Message-Id: <11099685973185@kroah.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:25:02 +0000
+Subject: i2c-voodoo3
+Message-Id: <40D9BBDA.4060000@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <110996859785@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2111, 2005/03/02 15:03:15-08:00, khali@linux-fr.org
 
-[PATCH] Add class definition to the elektor bus driver
+Humm, I've run into problems like this when mixing binaries of modules 
+and kernel, or if different compilers were used when creating the kernel 
+binary and/or modules.
 
-Hi Frank, all,
+Is it possible for you to build everything from source from scratch?  
+Perhaps use the latest (2.8.7) of I2C and lm-sensors?
 
-> > Which bus driver are you using? It obviously lacks class declaration,
-> > so the correct fix is to add the class there.
+
+Phil
+
+craig@haquarter.de wrote:
+
+>Hello!
+>I found your email adress at
+>http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/busses/i2c-voodoo3
+>when I was seeking information on the module.
+>I am running Gentoo Linux and the module worked for me, which was very
+>cool :)
+>But 2 days ago I updated my Kernel, re-installed lm-sensors...and it didnt
+>work any more, i2c-voodoo3 always segfaults.
 >
-> The modules that are loading are (in reverse order):
->      adm1031
->      ad5321
->      mic184
->      pca9540
->      i2c_sensor
->      i2c_elektor
->      i2c_algo_pcf
->      i2c_core
+>I also wrote a summery on the isse at:
+>http://forums.gentoo.org/viewtopic.php?t9150&highlight>
+>Do you have any idea what could be wrong? Any hint? I would be very cool
+>if you could help me.
 >
-> So I believe what you are asking for is the i2c_elektor driver for the
-> PCF8584 ISA to I2C chip.
-
-Correct, I just checked and this one actually lacks its class. Patch
-follows.
-
-This patch adds a class definition to the elektor i2c bus driver.
-Without this definition, hardware monitoring chips located on such
-busses cannot possibly be driven.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
-
- drivers/i2c/busses/i2c-elektor.c |    1 +
- 1 files changed, 1 insertion(+)
-
-
-diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
---- a/drivers/i2c/busses/i2c-elektor.c	2005-03-04 12:23:13 -08:00
-+++ b/drivers/i2c/busses/i2c-elektor.c	2005-03-04 12:23:13 -08:00
-@@ -183,6 +183,7 @@
- 
- static struct i2c_adapter pcf_isa_ops = {
- 	.owner		= THIS_MODULE,
-+	.class		= I2C_CLASS_HWMON,
- 	.id		= I2C_HW_P_ELEK,
- 	.algo_data	= &pcf_isa_data,
- 	.name		= "PCF8584 ISA adapter",
-
+>Craig
+>
+>
+>
+>
+>
+>
+>
+>  
+>
