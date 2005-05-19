@@ -1,56 +1,35 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: KT333 || VT8233A || GA-7VRX
-Message-Id: <3D8CFC69.D3F466BA@paradyne.com>
+From: lepalom@vilma.upc.es (Leopold Palomo Avellaneda)
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: Problems with a drivers
+Message-Id: <200309261107.40242.lepalom@vilma.upc.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1032405369.4065.7.camel@margar1taville>
-In-Reply-To: <1032405369.4065.7.camel@margar1taville>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-figure out what chips you have on your board, make sure you have 
-the latest release, see FAQ.
+Hi,
 
-John Wells wrote:
-> 
-> Hi guys.
-> 
-> I'm new to lm_sensors, but got it installed yesterday on one of my
-> systems.  The system contains an Gigabyte GA-7VRX, which in turn has a
-> Via KT333 and a VT8233A (among other chips).
-> 
-> Anyway, the modules the install told me to try were:
-> i2c-viapro
-> adm1021
-> eeprom
-> 
-> However, this was after quite a bit of mucking around with a few install
-> sequences on my part, and *before* I read the online documentation (I
-> know, I know ;-)).
-> 
-> When I run sensors now, I get the following output:
-> 
-> max1617-i2c-0-4c
-> Adapter: SMBus Via Pro adapter at 0400
-> Algorithm: Non-I2C SMBus adapter
-> temp:        +41?C  (min =  +20?C, max =  +60?C)
-> remote_temp:
->              +42?C  (min =  +20?C, max =  +60?C)
-> 
-> eeprom-i2c-0-50
-> Adapter: SMBus Via Pro adapter at 0400
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            DDR SDRAM DIMM SPD
-> SDRAM Size (MB):        512
-> 
-> That's it.  Temperature and memory size.
-> 
-> Does anyone have experience with this board or the VT8233A(CE)?  Is this
-> all the info I can get, or am I missing something here.
-> 
-> Any pointers in the right direction will be greatly appreciated.
-> 
-> Thanks!
-> John
+first of all, I'm sorry if I ask a silly question, I'm new in lm-sensors.
+
+I have compiled my own kernel 2.4.21 with two pathes:
+- openmosix
+- lm_sensor
+
+I'm using debian woody and it's compiled wig gcc 2.95. I'm using the sources 
+lm_sensors 2.8 from debian unstable and i2c too.
+
+My own kernel with openmosix and the i2c modules works well, no problems (As I 
+known by now). I have only a problem with the driver:
+w83781d 
+
+because it's all the time inicialitzating. I have test to do and init=0, too, 
+but I had a segmentation fault:
+e01:~# modprobe w83781d init=0
+Segmentation fault
+
+I'm a bit lost and I don't know what to do. Could you help me please?
+
+Best regards,
+
+Leo
