@@ -1,50 +1,32 @@
-From: marcin_ml@sekretarka.no-ip.org (Marcin =?iso-8859-2?q?Ka=B3u=BFa?=)
-Date: Thu, 19 May 2005 06:25:00 +0000
-Subject: ATXP1 module
-Message-Id: <200405271523.46859.marcin_ml@sekretarka.no-ip.org>
+From: cli@aproimage.com (Calvin Li)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: Regarding ticket #1003
+Message-Id: <004c01c26338$43bbe160$fb00a8c0@cli>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi
-I've finished the first working version of the ATXP1 driver
-There's still some things to do (detection  of the chip, maybe vendor specific 
-features, debug etc), but since my exams are coming soon I suppose I won't 
-have time to do it.
+Hi,
 
-As for now I wouldn't use it on non-EPOX mainboard without checking the 
-function of the registers used, since I can't tell the results...
+I got the reply from support on ticket #1003 ( FSCPOS does not give
+temperature reading ).
 
-I'm open to any critics and suggestions of course ;)
+I did a OS re-install ( Red Hat 7.3, 2.4.18-3 ).
+I changed the Makefile for i2c-2.6.5 :
+LINUX=/usr/src/linux-2.4.18-3   ( originally, it was LINUX=/usr/src/linux ).
 
-The code is in attachments  (in the end I enclose the makefile, just in case I 
-wouldn't be using some defaults - I'm not much into writing modules yet)
-In case they are removed by the server they are here:
-http://sekretarka.no-ip.org/~mk/atxp1/atxp1-1.0-pre1.tgz
+After " make all " , I got some error messages ( 12 same messages at 2
+occations )
+" /usr/src/linux-2.4.18-3/.config : no such file or directory ".
 
-greetz
-Martin
+there is a directory " /usr/src/linux-2.4.18-3/configs ", is it realted ?
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: atxp1.c
-Type: text/x-csrc
-Size: 10031 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040527/20c1a9f0/atxp1.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: Makefile
-Type: text/x-makefile
-Size: 351 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040527/20c1a9f0/Makefile.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: atxp1.h
-Type: text/x-chdr
-Size: 679 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040527/20c1a9f0/atxp1-0001.bin
+What did I do wrong?
+
+Regards,
+
+Please Email me : cli@aproimage.com
+
+Calvin
