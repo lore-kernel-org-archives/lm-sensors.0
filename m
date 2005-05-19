@@ -1,32 +1,32 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: HP ze4145
-Message-Id: <20030210093632.5ac1fd2e.khali@linux-fr.org>
+From: amorabito@funescoop.com.ar (Abel Morabito)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: compilation failure
+Message-Id: <20041121091125.54bf9037.amorabito@funescoop.com.ar>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <web-2276317@euroseek.com>
-In-Reply-To: <web-2276317@euroseek.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Dear developers,
 
-> I own an HP Pavilion ze4145 which uses the ALi M7101 PMU 
-> (i2c-ali1535). Since this driver is still in beta stage, I 
-> was wondering if you guys know about the omnibook module 
-> written by Soos Peter (sp@osb.hu) and available at 
-> http://sourceforge.net/projects/omke. By using this module 
-> I can read (among other things) the CPU's temperature 
-> using /proc/omnibook/temperature.
+I get the following errors when trying to compile lm-sensors 2.8.8:
 
-This is interesting. However, I doubt Peter Soos has rewritten a
-complete I2C/SMBus system, so it is likely that he uses another method,
-probably specific to HP laptops. I'll try to get in touch with him
-however, to have a little bit more information, just in case it can help
-Mark and Phil develop the driver a step further, who knows.
+kernel/chips/lm93.c: In function `lm93_fan_smart_tach':
+kernel/chips/lm93.c:1691: parse error before `int'
+kernel/chips/lm93.c:1694: `mapping' undeclared (first use in this function)
+kernel/chips/lm93.c:1694: (Each undeclared identifier is reported only once
+kernel/chips/lm93.c:1694: for each function it appears in.)
+make: *** [kernel/chips/lm93.o] Error 1
 
-Thanks!
+I succesfully compiled and installed i2c-2.8.8 before and I'm running a 2.4.27 linux kernel on a i686 machine with
+gcc            2.95.4-14
+libc6          2.2.5-11.5
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+/lib/modules/2.4.27 is fine and kernel 2.4.27  sources are under /usr/src/linux
+
+If you've got the time please tell me how to work it out. Thank you!
+
+--
+Abel Morabito
+amorabito@funescoop.com.ar
