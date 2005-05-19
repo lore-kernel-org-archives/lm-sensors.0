@@ -1,23 +1,34 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:40 +0000
-Subject: w83781d kernel module bug report
-Message-Id: <20040205222156.35d2f536.khali@linux-fr.org>
+From: Frenchstylistics@gmx.li (Frenchstylistics@gmx.li)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: AW: ---=== Lm_sensors Support DB Entry Ticket # 1179 ===---
+Message-Id: <000101c2f1e1$22fc9770$0201a8c0@franzose>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->         Hi! I upgraded my Linux kernel from 2.6.1 to 2.6.2, but the
-> temperature now shows incorrectly:
+>Ticket # 1179
 
-As mentioned on our Linux 2.6 dedicated page, Linux 2.6.2-rc1 and later
-need lm_sensors CVS (or 2.8.4 as soon as we release it) in order to work
-properly.
+>you need to answer YES to scan the PIIX4 bus.
 
-Update to lm_sensors CVS or wait for 2.8.4 to be released. The
-temperature magnitude problem should go away.
+I tried to do so but as mentioned in the ticket, the system hangs when
+scanning the PIIX4 bus.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+>So I can?t see where your 83781 is.
+>If it is at 0x29 (the only address you aren?t ignoring),
+>then it should be working.
+
+This is the problem, but when I try to change the ignore range, the
+system hangs too.
+
+I did all modprobes as told in ticket #721.
+
+>old libraryies may be the problem, make sure you don?t have
+>old libsensor libraries in /usr/lib.
+
+Improbable, because I installed it on a "virgin" SuSE system.
+
+Regards....
+
+
