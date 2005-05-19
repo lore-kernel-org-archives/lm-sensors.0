@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: gl518sm chip driver for 2.6 kernel
-Message-Id: <1075368241.4018d131f0799@imp.gcu.info>
+Message-Id: <20040129212058.7112ba77.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1075295349.4017b475e9031@imp.gcu.info>
 In-Reply-To: <1075295349.4017b475e9031@imp.gcu.info>
@@ -10,46 +10,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Chew Hong Gunn <hgchew@gunnet.org>:
+> > +/* Defining this will enable debug messages for the voltage
+> > iteration+   code used with rev 0 ICs */
+> > +#undef DEBUG_VIN
+> > +#ifdef DEBUG
+> > +#define DEBUG_VIN
+> > +#endif
+> 
+> As you always tie DEBUG_VIN to DEBUG, why even have it at all?  Just
+> get rid of it, and everywhere it's defined.
 
-> Do note that these comments are due to the original code that I was
-> not involved in.  I simply ported it over to 2.6 kernel accordingly.
-> Since the chip specification is not available anymore, I can only
-> comment based on what I think the code is doing and from
-> doc/chips/gl518sm.
+I was wondering. Since it seemed that specific debug was wanted for this
+part of the code, I thought it would make sense to keep a separate
+define. Yes, it is set when DEBUG itself is, but could easily be
+disabled with DEBUG still set, or set when DEBUG isn't.
 
-Same here. I'm only discovering the code and was quite surprised that is
-is so different from other chip drivers. Haven't read the docs nor data
-sheet yet, but this will probably be required.
+Anyway, I think that this code will go away, so there's no point
+discussing this anymore.
 
-Note that we *do* have a copy of the data sheet, here:
-http://www2.lm-sensors.nu/~lm78/pdfs/gl518sm_r117.pdf
+Here are the things as I understood them. Please correct me if I am
+mistaking.
 
-(This shows how important it is to centralize the data sheets as we get
-them, so that they survive manuacturer's website evolutions.)
+Release 0x00 of the chipset doesn't support reading in0-in2 values. A
+workaround was implemented into the driver. The idea of it is to change
+the min and max limits of these channels, and watch wether an alarm is
+triggered. After a few iterations, you can get an idea of the
+approximative value of the reading.
 
-> As for the threaded method of reading the values, it would be up to
-> team to decide whether to remove or keep it.  I will update the code
-> accordingly.
+Since the iteration process is slow, an option was introduced to use it
+or not, and possibly trigger it as a background job (thus the thread
+code). Note that when the iteration process is run in the background,
+the driver will return the previous value so that the caller doesn't
+have to wait for the iterations to finish.
 
-I think I understand why this was done that way. This makes the driver
-much more complex however. I have no strong opinion as to wether we
-should keep it that way or simplify it.
+I sure don't want to see this into the 2.6 kernel. The chip doesn't
+support reading these values? It doesn't support it. Period. So we don't
+report them. It's that simple. 160 lines of complex code (20% of the
+driver code) simply there to workaround a chip design issue is more than
+arguable. What's more, I think we all agree that what really needs to be
+monitored are temperatures and fans. If the voltages are bad, the alarm
+will trigger. You don't really need to know how bad they were. If people
+really want to know, well, they can do the limits trick from user space.
 
-One possible replacement is to simply keep two different bufferization
-timings (as this is already the case) for fast registers and slow ones.
-Voltages don't change much as far as I can tell (as opposed to
-temperatures, and fans that can break silently). If the PSU breaks,
-it's likely that you'll notice that before sensors has a chance to tell
-you.
-
-So I'd be perfectly happy with a driver simplification, especially since
-I don't know anything about threads. And a simplified driver is anyway
-better than no driver at all.
-
-But if someone with enough knowledge of threads can handle the problem
-and ensure that the code is clean enough to enter the 2.6 kernel tree,
-it's OK too.
+If anyone wants this "feature" to be kept, speak up. Else let's get rid
+of it. The way we will handle it in libsensors and sensors is a
+different problem, I'll take a look right now.
 
 -- 
 Jean Delvare
