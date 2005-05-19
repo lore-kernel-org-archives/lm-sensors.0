@@ -1,29 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:34 +0000
-Subject: MotherBoard identification
-Message-Id: <20040113223408.6feb4fd4.khali@linux-fr.org>
+From: debry@aix.meng.auth.gr (Edouard Debry)
+Date: Thu, 19 May 2005 06:25:55 +0000
+Subject: lmsensor support for laptop
+Message-Id: <20050427083553.GA28167@aix.meng.auth.gr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1074014435.26008.18.camel@guardix>
-In-Reply-To: <1074014435.26008.18.camel@guardix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Problem:
-> I don't know how to make identification key of customer's host. For
-> example MotherBoard unique ID, is there is any posibility to get some
-> kind of host KEY? My software is almost 'ready to sell', but I have to
-> secure it somehow.
+Hello,
 
-This is in no way related to the LM Sensors project. I don't think we
-can help you.
+I have a (recent) laptop whose motherboard chipset is
+an intel 855GME, this chipset seems not mentionned
+in the lmsensors web pages, 
 
-Maybe you could have a look at dmidecode:
-http://www.nongnu.org/dmidecode/
+could you confirm me that this chipset is not 
+supported, and that it is not worth installing lmsensors
+on my laptop ?
 
-(Use CVS for download as releases download isn't restored yet.)
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Regards
+edouard
