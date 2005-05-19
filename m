@@ -1,29 +1,25 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:45 +0000
-Subject: RFC PATCH Documentation/i2c/porting-clients
-Message-Id: <q6o64114808tamt4m46j5lkjendhjit4p8@4ax.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: i2c/kernel i2c-dev.c
+Message-Id: <20030612031128.GA28664@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
+On Wed, Jun 11, 2003 at 07:36:06PM -0700, author@mordac.netroedge.com wrote:
+> Update of /home/cvs/i2c/kernel
+> In directory mordac.netroedge.com:/tmp/cvs-serv24391/kernel
+> 
+> Modified Files:
+>       Tag: lk2-4
+> 	i2c-dev.c 
+> Log Message:
+> (mds) Greg's fixes from kernel 2.4.21-rc7
 
-Small doc patch to remind porters about update locking.
+What about i2c-dev.h changes?
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
+thanks,
 
-
---- linux-2.6.12-rc1-mm2/Documentation/i2c/porting-clients	2005-03-23 06:34:20.000000000 +1100
-+++ linux-2.6.12-rc1-mm2x/Documentation/i2c/porting-clients	2005-03-25 11:50:38.000000000 +1100
-@@ -98,6 +98,9 @@
- * [Update] Don't access client->data directly, use
-   i2c_get_clientdata(client) instead.
- 
-+  Make sure the driver takes the data->update_lock while performing each 
-+  update, see lm85.c set_fan_min() for an example of how this is done.
-+
- * [Interface] Init function should not print anything. Make sure
-   there is a MODULE_LICENSE() line, at the bottom of the file
-   (after MODULE_AUTHOR() and MODULE_DESCRIPTION(), in this order).
+greg k-h
