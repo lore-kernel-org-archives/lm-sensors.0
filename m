@@ -1,189 +1,85 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:50 +0000
-Subject: ADM1026 support in LM_SENSORS
-Message-Id: <3E793A08.7030503@penguincomputing.com>
+From: c479wy002@sneakemail.com (Geoffrey Hausheer)
+Date: Thu, 19 May 2005 06:25:04 +0000
+Subject: Issue getting sis630 i2c smbus driver to work
+Message-Id: <14164-38866@sneakemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E792B34.302@paradyne.com>
-In-Reply-To: <3E792B34.302@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Oops.  When I said Address, I meant the device selection, not the 
-"register address" inside the device.
+I have a laptop with a sis630 chipset
+When I modprobe i2c-sis630, nothing happens.  The module seems to load
+fine, but there are no messages in dmesg (I have all debuggng options
+for I2C enabled), and 'i2cdetect -l' returns nothing.  Just  to check,
+I loaded the i2c-isa module, which works ok (i2cdetect -l shows the
+isa driver) but there are no isa sensors (not surprising)
 
-I guess I envisioned that I2C and SMBus transcations were implemented at 
-the lowest level as one of two primitives:
+sensors-detect  (obviously) doesn't detect  anything either.
 
-- Put WRITE device address on bus and follow with 1 or more bytes.
+This is a 2.6.7 kernel with lm-sensors 2.8.7
 
-- Put READ device address on bus then expect device to put 1 or more 
-bytes onto bus until we STOP acknowledging them.
+ACPI is enabled if it is important
+please let me know if there is anything else I can do to help debug further.
 
-Then...
+lspci:
+0000:00:00.0 Host bridge: Silicon Integrated Systems [SiS] 630 Host (rev 31)
+0000:00:00.1 IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE] (rev d0)
+0000:00:01.0 ISA bridge: Silicon Integrated Systems [SiS]
+SiS85C503/5513 (LPC Bridge)
+0000:00:01.1 Ethernet controller: Silicon Integrated Systems [SiS]
+SiS900 PCI Fast Ethernet (rev 82)
+0000:00:01.2 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
+Controller (rev 07)
+0000:00:01.3 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
+Controller (rev 07)
+0000:00:01.4 Multimedia audio controller: Silicon Integrated Systems
+[SiS] SiS PCI Audio Accelerator (rev 02)
+0000:00:01.6 Modem: Silicon Integrated Systems [SiS] AC'97 Modem
+Controller (rev a0)
+0000:00:02.0 PCI bridge: Silicon Integrated Systems [SiS] Virtual
+PCI-to-PCI bridge (AGP)
+0000:00:03.0 CardBus bridge: O2 Micro, Inc. OZ6912 Cardbus Controller
+0000:00:09.0 Network controller: Intersil Corporation Prism 2.5
+Wavelan chipset (rev 01)
+0000:00:0a.0 FireWire (IEEE 1394): Lucent Microelectronics FW323 (rev 04)
+0000:01:00.0 VGA compatible controller: Silicon Integrated Systems
+[SiS] 630/730 PCI/AGP VGA Display Adapter (rev 31)
 
-- To write to a register, is one primative: WRITE, with the register 
-address as the first byte followed by data bytes.
+lspci -n
+0000:00:00.0 Class 0600: 1039:0630 (rev 31)
+0000:00:00.1 Class 0101: 1039:5513 (rev d0)
+0000:00:01.0 Class 0601: 1039:0018
+0000:00:01.1 Class 0200: 1039:0900 (rev 82)
+0000:00:01.2 Class 0c03: 1039:7001 (rev 07)
+0000:00:01.3 Class 0c03: 1039:7001 (rev 07)
+0000:00:01.4 Class 0401: 1039:7018 (rev 02)
+0000:00:01.6 Class 0703: 1039:7013 (rev a0)
+0000:00:02.0 Class 0604: 1039:0001
+0000:00:03.0 Class 0607: 1217:6972
+0000:00:09.0 Class 0280: 1260:3873 (rev 01)
+0000:00:0a.0 Class 0c00: 11c1:5811 (rev 04)
+0000:01:00.0 Class 0300: 1039:6300 (rev 31)
 
-- To read from a register, is two primatives: WRITE, with the register 
-address followed by a READ of the data bytes.
+lsmod:
+Module                  Size  Used by
+i2c_sis630              8044  0
+i2c_core               21652  1 i2c_sis630
+sis                    54176  2
 
-I'll study that table some more and look at the code for the SMBus 
-adapters.  It must be that they are not implemented at this level...
+grep 'I2C.*=' .config
+CONFIG_I2C=m
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_ALGOBIT=m
+CONFIG_I2C_ALGOPCF=m
+CONFIG_I2C_ISA=m
+CONFIG_I2C_SIS630=m
+CONFIG_I2C_SENSOR=m
+CONFIG_I2C_DEBUG_CORE=y
+CONFIG_I2C_DEBUG_ALGO=y
+CONFIG_I2C_DEBUG_BUS=y
+CONFIG_I2C_DEBUG_CHIP=y
 
-:v)
+(all sensor chips are  built as modules)
 
-Mark D. Studebaker wrote:
-> 
-> 
-> Philip Pokorny wrote:
-> 
->> Hmmm...
->>
->> I might be able to get by with only block read/write functionality.
->>
->> I'll take another look at the code and the generic xfer function.
->>
->> It looked like current implementation had the idea of a transaction 
->> that would send an address and then transfer a variable number of 
->> bytes.  You could then create a list of transfers to effect a write, 
->> read, byte or word transfers.
->>
-> 
-> Well, at the i2c and the smbus "emulation layer" 
-> (i2c_smbus_[read/write/block]_xxx() functions),
-> address is assumed to be one byte.
-> This chart
-> http://www2.lm-sensors.nu/~lm78/protocol.html
-> will probably help you with understanding these layers.
-> 
-> On an i2c adapter you can of course use the low-level i2c_transfer() 
-> function.
-> For an smbus adapter you are probably out of luck anyway,
-> the hardware for most won't support it, even if you
-> added the emulation layer and support in the driver.
-> 
-> Hopefully this makes sense. If not let me know.
-> 
-> mds
-> 
-> 
->> Not sure what happens when the theory hits the road of actual bus chip 
->> implementations.
->>
->> I guess I'll read the TODO again and dig into the xfer stuff some more.
->>
->> :v)
->>
->> Mark Studebaker wrote:
->>
->>> no support now (although writes will work with a hack). There are 
->>> large i2c eeproms out there now, they aren't supported.
->>> See TODO in the i2c package (heading "16 bit register addresses") for 
->>> details.
->>>
->>> Philip Pokorny wrote:
->>>
->>>> I do have one question...
->>>>
->>>> This ADM1026 has 8k of EEPROM memory on it.  But to access it, you need
->>>> to send a 16-bit address (two bytes).  The EEPROM is mapped at 
->>>> 0x8000 to
->>>> 0x9fff.  There aren't any device registers above 0x60 so they implement
->>>> these 16-bit addresses as a write of the low 8-bits of address to the
->>>> "register" at the high 8-bits.  Then you can read or write a byte or
->>>> block (32 bytes).
->>>>
->>>> An example might be clearer...
->>>>
->>>> If you want to write 0x36 to address 0x8122, then you would execute the
->>>> following i2c transfers:
->>>>
->>>>    Chip address (write), 0x81, 0x22, 0x36
->>>>
->>>> If you want to read from address 0x8234, then you would execute:
->>>>
->>>>    Chip address (write), 0x82, 0x34, Chip address (read), <read value>
->>>>
->>>> I looked at the i2c core code and it isn't clear to me if or how I 
->>>> could
->>>> implement these 16-bit address reads and writes.  Writes could be done
->>>> with a word write, but I don't see how I could implement a read.
->>>>
->>>> Any ideas?
->>>>
->>>> :v)
->>>>
->>>> Mark D. Studebaker wrote:
->>>>
->>>>> Philip,
->>>>> glad to hear you are going to tackle it.
->>>>> let me know if you need help.
->>>>> mds
->>>>>
->>>>>
->>>>> Philip Pokorny wrote:
->>>>>
->>>>>
->>>>>> OK then, I'll get started.
->>>>>>
->>>>>> This board has a simple automatic fan speed control feature as well,
->>>>>> so it will give me an opportunity to see how the LM85/ADM1027 design
->>>>>> works with this chip.
->>>>>>
->>>>>> :v)
->>>>>>
->>>>>> Vojtech Pavlik wrote:
->>>>>>
->>>>>>
->>>>>>> On Wed, Mar 12, 2003 at 07:41:48PM -0800, Philip Pokorny wrote:
->>>>>>>
->>>>>>>
->>>>>>>> Hello again...
->>>>>>>>
->>>>>>>> It seems I will soon be needing ADM1026 support in LM_SENSORS.  I
->>>>>>>> see in the archives that Vojtech Pavlik has mentioned he would 
->>>>>>>> write
->>>>>>>> a driver.
->>>>>>>>
->>>>>>>> Any progress there?
->>>>>>>>
->>>>>>>> This chip is a beast!  It's got more sensors and *stuff* than
->>>>>>>> anything else out there...  (Looks like fun...)
->>>>>>>>
->>>>>>>> I'll write a driver if Vojtech hasn't got one yet...
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> I don't, and I'm not going to write it very soon, because the 
->>>>>>> board I
->>>>>>> needed the support for actually was produced without the chip. Later
->>>>>>> revisions might have it, though. So I'm waiting now.
->>>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>> -- 
->>>> Philip Pokorny, Senior Engineer
->>>> Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
->>>> PENGUIN COMPUTING, INC.
->>>> www.penguincomputing.com
->>>
->>>
->>>
->>
->>
->>
-> 
-
-
-
--- 
-Philip Pokorny, Senior Engineer
-Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-PENGUIN COMPUTING, INC.
-www.penguincomputing.com
+.Geoff
