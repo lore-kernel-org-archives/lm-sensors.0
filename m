@@ -1,20 +1,35 @@
-From: rysanek@fccps.cz (rysanek@fccps.cz)
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: SOLVED: an issue + a bug in eepromer/eeprom.c from lm_sensors.tgz
-Message-Id: <Pine.LNX.4.33.0306020725580.26954-100000@usti.fccps.cz>
+From: marcw@onlymooo.com (Marc Williams)
+Date: Thu, 19 May 2005 06:25:16 +0000
+Subject: bmcsensors howto?
+Message-Id: <e6c87c5df333406bb6fd34c1549fe20d@onlymooo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0305221414100.23255-200000@usti.fccps.cz>
-In-Reply-To: <Pine.LNX.4.33.0305221414100.23255-200000@usti.fccps.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> BTW my interpretation of the Atmel datasheet is that only writes are
-> limited to 8 bytes; reads don't appear to have a limit (although the i2c
-> layer has a 32 byte limit).
->
-exactly, the datasheet does say that, and the original 16byte bursts did
-work for reading.
+After viewing the posts in this forum for a few days, it sure seems like
+this sort of "new user" question should go somewhere else but I didn't see
+any other list.  Please advise if there's somewhere else this would be
+better posted.
 
-F.Rysanek
+While not a totally new lm_sensors user - I have successfully installed a
+few sensors on other FC and Red Hat machines - I am not a developer nor am I
+any sort of sensors guru and I am stumped with my latest attempt.  It seems
+this motherboard has a dual i450 with a 440bx chipset.  I've got a fully
+patched and up to date FC2 running on it quite nicely.  After I load up
+ATRPM's latest version of lm_sensors and run sensors-detect, it tells me to
+load, among other things, the bmcsensors module.  Only problem is that it
+doesn't seem to exist.
+
+Googling around, I found a thread about someone's attempt to port an older
+bmcsensors to work with newer kernels and sensors but I'm afraid I didn't
+understand much of what was being discussed.  And in the chips chart on the
+lm_sensors page I see that bmcsensors is in the process of being ported.
+
+Would it be possible for someone to spell out exactly what I need to do in
+order to aquire and load this bmcsensors thing.  Or even if it's possible?
+
+Sorry for the nooby-ish type question.  Thanks for your time!
+
+
