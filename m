@@ -1,7 +1,7 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: Bugzilla setup for Lm_sensors
-Message-Id: <20050119010457.GN20232@neu.nirvana>
+Message-Id: <qN571diF.1106130129.6907070.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41E718CA.3070305@edgedesign.us>
 In-Reply-To: <41E718CA.3070305@edgedesign.us>
@@ -10,108 +10,88 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-On Tue, Jan 18, 2005 at 05:10:50PM +0100, Jean Delvare wrote:
-> > I've set up a draft bugzilla on http://bugzilla.lm-sensors.org/ for
-> > playing with. Don't enter any serious bugs as the bugs will be wiped
-> > before going in production :)
+Hi Axel & all,
 
-> 1* We would need a list of versions of lm_sensors that existed to be
-> picked from.
+> > 1* We would need a list of versions of lm_sensors that existed to be
+> > picked from.
+>
+> Yes, I had forgotten to place some versions to play with. I added some
+> to "bus drivers" as a demo.
 
-Yes, I had forgotten to place some versions to play with. I added some
-to "bus drivers" as a demo.
+This raises another point. If we go with multiple "products", this
+suggests that each one has its own set of versions, right? It doesn't
+quite work (simply becuse what we have are products, but components). I
+don't quite feel like adding each new version 4 times. Is there a way
+around this?
 
-> 2* I would replace Platform with Architecture, and list there all
-> architectures supposedly supported by lm_sensors (+ "other" just in
-> case).
+Also, the versions show older first, I guess it would make more sense
+with newer first?
 
-Which are these? i386 and x86_64?
+> > 2* I would replace Platform with Architecture, and list there all
+> > architectures supposedly supported by lm_sensors (+ "other" just in
+> > case).
+>
+> Which are these? i386 and x86_64?
 
-> 3* I don't feel a need for a Priority setting. Severity should be
-> sufficient.
+And alpha and ppc, and sparc64 at least. I *think* that's all for now,
+but the list may grow later if needed.
 
-I think this cannot be dumbed. It is also a bit different. A blocker
-severity in a development version could be of lower priority than a
-major serverity of security issues in a released version. Or you could
-move an enhancement at higher priority than a trivial fix etc.
+> > 3* I don't feel a need for a Priority setting. Severity should be
+> > sufficient.
+>
+> I think this cannot be dumbed. It is also a bit different. A blocker
+> severity in a development version could be of lower priority than a
+> major serverity of security issues in a released version. Or you could
+> move an enhancement at higher priority than a trivial fix etc.
 
-> 4* OS can go, as we only support Linux anyway. What would be more
-> interesting would be a version of Linux, which would be a free input
-> (because there are that many, and also because people will often report
-> non-vanilla versions).
-> 
-> Maybe we can keep the OS to make a difference between the Linux trees
-> (2.4, 2.6, and older ones for recovered tickets). This could help people
-> having a problem which they think only affect a given tree (think procfs
-> or sysfs issues).
+I understand the difference between priority and severity. What I meant
+is that we have no need for priorities due to the way we work. We have
+no roadmaps for the releases. Basically we release a new version every
+three months or so, with no named goal in mind. And, when there are high
+priority tasks, they are usually not bug reports so they won't show in
+bugzilla.
 
-That's a good idea. bugzilla only supports one-dimensional versioning,
-e.g. it would not be able to really deal with lm_sensors x Linux
-version tuples. By abusing the OS field, we can effectivly achive
-that. :)
+> Unconfirmed means it may be not a bug at all. New means it is a bug
+> but has not yet been assigned to anyone. You can drop the unconfirmed,
+> I currently set it up for having to vote (with one vote) to make a bug
+> new. Personally I don't think voting in general makes sense, but I
+> left it for playing.
 
-> 5* Not sure why the reporter would be left a choice for the Initial
-> State. What is this "Unconfirmed" state for? A new report is, err,
-> New, period.
+Frankly I don't count on the reporters to properly fill this. People are
+always sure that hey found a bug - it is then up to us to make them
+realize it might be something different.
 
-Unconfirmed means it may be not a bug at all. New means it is a bug
-but has not yet been assigned to anyone. You can drop the unconfirmed,
-I currently set it up for having to vote (with one vote) to make a bug
-new. Personally I don't think voting in general makes sense, but I
-left it for playing.
+I agree that the votes don't make much sense at least for us. We don't
+have a sufficient volume of users and reports to take benefit of it.
+Better let users add a "me too" comment on an existing comment when
+they want us to take a look at a specific bug.
 
-> > I haven't yet renamed products to categories as one of the things to
-> > test is whether this hierarchical setup is OK or not.
-> 
-> Looks OK to me except for the lack of user-space category.
+> flags can be used for example to ask for a review before commiting
+> something. check out the example on
+> http://www.bugzilla.org/docs/2.18/html/flags-overview.html
 
-OK, added. But not components, yet, so it does not show up. Try adding
-some to see the mechanics of it (You are and admin now).
+Ah, that's nice, especially for patches. We don't have a need for these
+right now but I guess that switching to bugzilla will change the way
+people report bugs, which in turn may change the way we work. Time will
+tell.
 
-> > I also allowed for flags, votes, milestone, QA contact and status
-> > whiteboard fields. Some of them are probably too much (or not) for
-> > lm_sensors, but I activated them for demonstration purposes. Anything
-> > that does not serve lm_sensors' needs will be dropped before going up.
-> 
-> I think I see what milestones and votes are for. But what are flags?
+> > Is QA Contact something different than the default assignee for this
+> > category? If yes, I don't think we need this.
+>
+> It's the supervisor of the poor assignee, I also don't like him ;)
 
-flags can be used for example to ask for a review before commiting
-something. check out the example on
-http://www.bugzilla.org/docs/2.18/html/flags-overview.html
+We don't need this at all then.
 
-> Is QA Contact something different than the default assignee for this
-> category? If yes, I don't think we need this.
+Another point: migration of the exiting base. Phil, I guess this would
+fall under your responsability? I guess we would need some script that
+can access both the old base (in pgsql) and the new one (I guess in
+mysql) and transfer all the tickets. It is particularly important that
+ticket numbers are preserved. Then the attributs of each ticket have to
+be set manually since I can't think of a way to automate this. I guess
+we would also need a special user for these imported tickets since we
+won't possibly create accounts for all previous reporters.
 
-It's the supervisor of the poor assignee, I also don't like him ;)
-
-> > Which brings up the question: Who is the "initial owner" of each of
-> > the catgories above? I tend to think, that we need a dummy bugzilla
-> > account that is a catch-all, at least for the beginning. Perhaps
-> > abusing lm-sensors-devel@lm-sensors.org, so that all lm_sensors
-> > developers get to see bugzilla mail on orphaned bugs.
-> 
-> Each non-core driver would have a specific owner (current maintainer)
-> providing this person actually has a bugzilla account. For the rest of
-> the items, we can attribute them on a voluntarism basis, and using the
-> mailing-list for the remaining items and core items seems fine. And if
-> it doesn't please us in the long run we can change then.
-> 
-> > For testing the administrative part send me your created login account
-> > in PM and I will activate administrative access for it (like adding
-> > new components, new keywords, new flags, editing users etc).
-> 
-> Please do for me: (my e-mail address - don't think this is a really
-> private information so I don't think a PM was needed at all ;))
-
-Done so.
--- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050119/59b20250/attachment.bin
+Thanks,
+--
+Jean Delvare
