@@ -1,77 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: Lm_sensors in top 100 at Freshmeat
-Message-Id: <20030806234135.2c3e0c87.khali@linux-fr.org>
+From: Thomas.Viehweger@marconi.com (Thomas Viehweger)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: cat /proc/dev/i2c-0 gives cat: read: Invalid argument
+Message-Id: <OFB2390071.3272C603-ONC1256BF3.003B12AD@uk.marconicomms.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F313605.9000508@edgedesign.us>
-In-Reply-To: <3F313605.9000508@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Mark noted this about year ago, I think?  And, I checked again to see 
-> where Lm_sensors is at in popularity on Freshmeat.net today.  We're
-> 85 of 29,538... not bad! ;')
+Hi,
 
-BTW, I've been doing some hit stats on the installation guide. Here we
-go:
+I patched the kernel (linux-2.4.4-2002-03-21) from denx.de with the actual
+i2c-2.6.3 sources.
 
-*** HITS/DAY ***
-2003-07-15 #########
-2003-07-16 ##########################
-2003-07-17 ##############################
-2003-07-18 ##################################
-2003-07-19 ##########################
-2003-07-20 ############################################################
-2003-07-21 #######################################
-2003-07-22 ######################################
-2003-07-23 ################################
-2003-07-24 ###############################
-2003-07-25 ###########################
-2003-07-26 #####################
-2003-07-27 ####################
-2003-07-28 ######################
-2003-07-29 #############################
-2003-07-30 ######################
-2003-07-31 ####################
-2003-08-01 ##################
-2003-08-02 ###################
-2003-08-03 ####################
-2003-08-04 ######################
-2003-08-05 #####################
-2003-08-06 ##############################
+When executing
 
-Guess on which day our record on Freshmeat was refreshed ;)
+cat /proc/bus/i2c-0
 
-*** DAILY PROFILE ***
-00 ####################################
-01 ###################################
-02 ###################################
-03 ###################
-04 #####################
-05 ##############################
-06 ##################
-07 #############################
-08 ############################
-09 ########################################
-10 ######################################
-11 ###################################################
-12 #############################################
-13 #######################################################
-14 ###########################################
-15 ############################################
-16 ########################################################
-17 ######################################################
-18 #############################################
-19 ###############################################
-20 ####################################################
-21 ##############################################
-22 ############################################################
-23 ######################################
+On my ppc8xx board I got the error "cat: read: Invalid argument".
 
-This is in European time, rotate to match your timezone.
+In i2c-core.c the function i2cproc_bus_read() will be called with a count
+of 8192.
+After modifying "if (count > 4096)" to "if (count > 8192)" the cat
+succeeds.
+Here is a more general patch:
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Regards,
+Thomas Viehweger
+
+--- drivers/i2c/i2c-core.c    9 Jul 2002 13:26:33 -0000      1.3
++++ drivers/i2c/i2c-core.c    11 Jul 2002 14:48:39 -0000
+@@ -655,18 +655,19 @@ ssize_t i2cproc_bus_read(struct file * f
+     struct i2c_client *client;
+     int i,j,k,order_nr,len=0,len_total;
+     int order[I2C_CLIENT_MAX];
++#define OUTPUT_LENGTH_PER_LINE 70
+
+-    if (count > 4096)
+-         return -EINVAL;
+     len_total = file->f_pos + count;
+-    /* Too bad if this gets longer (unlikely) */
+-    if (len_total > 4096)
+-         len_total = 4096;
++    if (len_total > (I2C_CLIENT_MAX * OUTPUT_LENGTH_PER_LINE) )
++         /* adjust to maximum file size */
++         len_total = (I2C_CLIENT_MAX * OUTPUT_LENGTH_PER_LINE);
+     for (i = 0; i < I2C_ADAP_MAX; i++)
+          if (adapters[i]->inode = inode->i_ino) {
+          /* We need a bit of slack in the kernel buffer; this makes the
+             sprintf safe. */
+-              if (! (kbuf = kmalloc(count + 80,GFP_KERNEL)))
++              if (! (kbuf = kmalloc(len_total + OUTPUT_LENGTH_PER_LINE,
++                                    GFP_KERNEL)))
+                    return -ENOMEM;
+               /* Order will hold the indexes of the clients
+                  sorted by address */
