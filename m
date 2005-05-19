@@ -1,36 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:38 +0000
-Subject: lm_sensors 2.8.3
-Message-Id: <1075713406.401e157e38542@imp.gcu.info>
+From: mitch@acetechgroup.com (Mitchell Perilstein)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: National PC87372 chip driver wanted
+Message-Id: <40A9074A.5060604@acetechgroup.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200401291139.58838.jumpyboy@infinito.it>
-In-Reply-To: <200401291139.58838.jumpyboy@infinito.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[Please CC: the mailing-list on reply.]
+Hi Sensor Folks,
 
-> VCore 1:   +1.76 V  (min =  +1.56 V, max =  +1.72 V)
-> (...)
-> Sorry I told you bad. XP not Windows XP, but Athlon XP. I take look
-> at the  Athlon XP's data sheets on AMD site and the told VCore 1.65.
+The Intel 865 series motherboards has this chip, "Nat. Semi. PC87372 
+Super IO Fan Sensors", listed as "no plan" on the site.  Is anyone 
+working on it?
 
-Oh OK. You should be able to select the voltage either in the BIOS setup
-screen or using switches or jumpers on your motherboard. It is
-obviously set to 1.75V at the moment. If you really believe that your
-CPU needs 1.65 instead, go change (unless your CPU is overclocked,
-which I don't recommend BTW).
+We're thinking about encouraging development of the chip driver for it, 
+in the form of either a some funding/donation or maybe the donation or 
+loan of one of these 865 boards.
 
-> No, it's the real temperature. I've got Asus A7V600 and in config
-> file I found  the right formula form my motherboard :D. And the BIOS
-> sensors tell me 56?C  at start up when I reboot machene after about 2
-> hours of activity. I think in winter 60 ? C it's too much.
+Please write if interested.
 
-I don't think my Athlon is much colder than that. These beasts tend to
-heat much, I fear.
-
+Thanks!
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mitchell Perilstein
+ACE Technology Group, LLC
+http://www.acetechgroup.com
+(484) 713-0075
