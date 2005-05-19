@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: lm_sensors/i2c 2.8.2
-Message-Id: <20040104172246.43b0d548.khali@linux-fr.org>
+Message-Id: <20040105150849.GA25497@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040104141910.64b647a2.khali@linux-fr.org>
 In-Reply-To: <20040104141910.64b647a2.khali@linux-fr.org>
@@ -10,43 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I tried to build kernels with i2c/lm_sensors 2.8.2 patched in, and I
-> think I found a bug: The mkpatch generated patch requires lm75.h, but
-> does not include it:
+On Sun, Jan 04, 2004 at 05:18:08PM +0100, Jean Delvare wrote:
+> > > And in fact I could even update my 2.4.21 patch from 2.8.0 to 2.8.2.
+> > > I though nobody would be interested in it, but obviously you, at
+> > > least, are. I want to have a new patch for 2.4.24-preX anyway, so
+> > > I'll some work on the web page and files soon.
+> > 
+> > OK, I'll wait for the 2.4.21 patch, that should apply better to RH's
+> > 2.4.20. FC1 is not the preferred distro for serious and stable server
+> > monitoring that lm_sensors targets, so most people would like to see
+> > it in RH9/RH7.3 (which is 2.4.20 with some 21-pre patches applied).
 > 
-> ../qlogicfas.c: In function `qlogicfas_detect':
-> ../qlogicfas.c:650: warning: passing arg 1 of
-> `scsi_unregister_Rsmp_1e4cecd6' from incompatible pointer type
-> lm75.c:28:18: lm75.h: No such file or directory lm75.c: In function
-> `lm75_temp': lm75.c:286: warning: implicit declaration of function
-> `LM75_TEMP_FROM_REG' lm75.c:292: warning: implicit declaration of
-> function `LM75_TEMP_TO_REG' make[2]: *** [lm75.o] Error 1
-> make[1]: *** [_modsubdir_sensors] Error 2
+> Done! Please give it a try and tell me how it goes.
+
+Looks good, I had to massage 7 chunks, but it applied and built
+well.
+
+But just after finishing the RH9 kernels, I read the mremap() security
+announcement, so I'll have to update the kernels again :(
+
+I hope to have <= RH9 kernels, kernel modules and userland components
+within the next days. I had already uploaded the FC1 equivalents, I
+need to investigate whether the (latest) FC1 kernel I used had already
+the mremap fix applied.
+
+> > Also if 2.8.3/2.9.0 keep i2c 2.8.2 compatibility, I will be able to
+> > supply new kernel module rpms for lm_sensors/i2c w/o rebuilding the
+> > kernel. :)
 > 
-> I will add include/linux/lm75.h as an extra patch to the kernel I am
-> preparing.
+> Yes, it should be compatible. It should be released as 2.8.3 at the
+> time Linux 2.6.1 is released.
 
-Thanks for reporting. This was already fixed in CVS on December 18,
-2003. All you have to do is add the relevant line in mkpatch/FILES.
-Patch follows:
-
-Index: FILES
-=================================RCS file: /home/cvs/lm_sensors2/mkpatch/FILES,v
-retrieving revision 1.22
-retrieving revision 1.23
-diff -u -r1.22 -r1.23
---- FILES	22 Jun 2003 16:28:45 -0000	1.22
-+++ FILES	18 Dec 2003 05:24:55 -0000	1.23
-@@ -31,6 +31,7 @@
- kernel/chips/gl518sm.c		drivers/sensors/gl518sm.c
- kernel/chips/gl520sm.c		drivers/sensors/gl520sm.c
- kernel/chips/it87.c		drivers/sensors/it87.c
-+kernel/chips/lm75.h		drivers/sensors/lm75.h
- kernel/chips/lm75.c		drivers/sensors/lm75.c
- kernel/chips/lm78.c		drivers/sensors/lm78.c
- kernel/chips/lm80.c		drivers/sensors/lm80.c
-
-
+Great!
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Axel.Thimm@physik.fu-berlin.de
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040105/49aa98dc/attachment.bin
