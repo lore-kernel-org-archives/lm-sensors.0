@@ -1,112 +1,52 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
+From: Mario.Holbe@RZ.TU-Ilmenau.DE (Mario 'BitKoenig' Holbe)
 Date: Thu, 19 May 2005 06:24:54 +0000
 Subject: sensord: rrd database and timeslots
-Message-Id: <20040421222823.GA14256@pc.aurel32.private>
+Message-Id: <20040422090442.GA19063@darkside.22.kls.lan>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040421222823.GA14256@pc.aurel32.private>
+In-Reply-To: <20040421222823.GA14256@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi all !
+(I'm the user who suggested the patch)
 
-I received a bug report via the Debian BTS concerning sensord and rrd. I
-already started to discuss about it on IRC with Jean Delvare. So let's
-start with a summary of the problem.
+On Thu, Apr 22, 2004 at 12:28:23AM +0200, Aurelien Jarno wrote:
+> On IRC, Jean Delvare suggests to disable the interpolation function of
 
-sensord has an option to log regularly the values of all the sensors
-into a round robin database using rrd. The polling interval could be set
-using the --rrd-interval option. rrd stores data at fixed interval, or
-to be more precised at fixed time slots. For example if you are using a
-5 minutes interval it uses the time slots 21:00:00, 21:05:00, 21:10:00, 
-21:15:00, etc.
+Afaik you cannot disable the interpolation of rrd, except you
+store data exactly at the 'official timeslots'.
 
-sensord feeds the data every 5 minutes, however not on the time slots
-used by rrd (or you are very lucky ;). In that case rrd interpolates the
-values that are read, and thus the values in the database don't 
-correspond to the read values.
+> On my side, I suggest to use the second part of the patch only, which
+> means that the sensors are sampled at fixed time slots. It's also the 
+> solution given in the examples given with rrd. I don't see why sensord
+> should fake that the sensors were read exactly on the timeslot. In most
+> cases the sensors would be read exactly on the time slot, however if it
+> is not the case (for example on a system with a very high load, if there
+> is a problem on smbus/i2c, etc.) the data would be interpolated.
 
-(the full history could be found on http://bugs.debian.org/cgi-bin/bugreport.cgi?bug$4034)
+I'm currently running the modified sensord with both parts
+of my patch (sampling at fixed timeslots and 'faking' the
+samle time) on a quite fast machine (P3-1000) with quite low
+load (something around 0.5). But even there, according to
+the modification time of the rrd, it happens quite often,
+that the update happens one second after the official timeslot
+(for example at 00:00:01 instead of 00:00:00).
+This is no big issue, if the RRD update interval is something
+like 5 minutes: the deviance in this case would be something
+around 0.3%. However, the issue grows with smaller update
+intervals: with 1 minute update interval you get a deviance
+of 1.6%, which leads to a noticeable interpolation.
 
-
-The user who reported the bug on the Debian BTS proposes a patch, 
-available on:
-http://bugs.debian.org/cgi-bin/bugreport.cgi/sensord-rrdslot.patch?bug$4034&msg&att=1
-
-It contains two parts. The first part fakes that the sensors were read
-exactly on the timeslot even if it is not the case. Without the patch 
-rrd uses "now" as the time value.
-
-The second part modifies the time where sensors are read. Without the
-patch the sensors are read at regular intervals, whereas with the patch
-they are read at fixed time slots corresponding to the rrd ones, which
-also means at regular intervals.
-
-
-On IRC, Jean Delvare suggests to disable the interpolation function of
-rrd. After some experiments, I found that in that case rrd stores the 
-last values it received but it still uses fixed time slots. It means 
-that the timestamps don't correspond to the data!
-
-On my side, I suggest to use the second part of the patch only, which
-means that the sensors are sampled at fixed time slots. It's also the 
-solution given in the examples given with rrd. I don't see why sensord
-should fake that the sensors were read exactly on the timeslot. In most
-cases the sensors would be read exactly on the time slot, however if it
-is not the case (for example on a system with a very high load, if there
-is a problem on smbus/i2c, etc.) the data would be interpolated.
-
-I attached the second part of the patch.
+That's why I'd suggest to apply the first part of my patch
+(giving the timeslot to rrd instead of 'N'(ew)) too.
 
 
-Please give me your comments!
-
-Bye,
-Aurelien
-
-
+regards,
+   Mario
 -- 
-  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
- : :' :  Debian GNU/Linux developer | Electrical Engineering Student 
- `. `'   aurel32@debian.org         | aurelien@aurel32.net
-   `-    people.debian.org/~aurel32 | www.aurel32.net
--------------- next part --------------
-diff -urN lm-sensors-2.8.6.o/prog/sensord/sensord.c lm-sensors-2.8.6/prog/sensord/sensord.c
---- lm-sensors-2.8.6.o/prog/sensord/sensord.c	2002-06-10 19:56:16.000000000 +0200
-+++ lm-sensors-2.8.6/prog/sensord/sensord.c	2004-04-20 00:04:46.000000000 +0200
-@@ -28,6 +28,7 @@
- #include <signal.h>
- #include <syslog.h>
- #include <unistd.h>
-+#include <time.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- 
-@@ -75,7 +76,12 @@
- sensord
- (void) {
-   int ret = 0;
--  int scanValue = 0, logValue = 0, rrdValue = 0;
-+  int scanValue = 0, logValue = 0;
-+  /*
-+   * First RRD update at next RRD timeslot to prevent failures due
-+   * one timeslot updated twice on restart for example.
-+   */
-+  int rrdValue = rrdTime - time(NULL) % rrdTime;
- 
-   sensorLog (LOG_INFO, "sensord started");
- 
-@@ -93,7 +99,11 @@
-     }
-     if ((ret = 0) && rrdTime && rrdFile && (rrdValue <= 0)) {
-       ret = rrdUpdate ();
--      rrdValue += rrdTime;
-+      /*
-+       * We don't add here, but set because next RRD timeslot starts
-+       * exactly then and not sooner!
-+       */
-+      rrdValue = rrdTime - time(NULL) % rrdTime;
-     }
-     if (!done && (ret = 0)) {
-       int a = logTime ? logValue : INT_MAX;
+"Why are we hiding from the police, daddy?"      | J. E. Guenther
+"Because we use SuSE son, they use SYSVR4."      | de.alt.sysadmin.recovery
