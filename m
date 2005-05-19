@@ -1,24 +1,24 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:00 +0000
-Subject: Request for I2C IDs
-Message-Id: <20040604214342.GB13825@kroah.com>
+From: andreas_weinberger@web.de (Andreas Weinberger)
+Date: Thu, 19 May 2005 06:24:02 +0000
+Subject: Future Support for Sensor
+Message-Id: <200306292141.h5TLfiQ03672@mailgate5.cinetic.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040118175528.66a9d01a.khali@linux-fr.org>
-In-Reply-To: <20040118175528.66a9d01a.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, May 31, 2004 at 09:33:05PM +0200, Jean Delvare wrote:
-> > > Greg, should I send a patch to you with these?
-> > 
-> > Sure, if it's needed.
-> 
-> Just noticed that I never sent the promised patch. Here it is. I also
-> added a few other IDs, since we have them in our (2.4) i2c CVS
-> repository. Having them in 2.6 as well will at least prevent collisions.
+hi!
 
-Applied, thanks.
+first of all i'm sorry, if i sent this mail to the wrong mail-address.
 
-greg k-h
+i've got a question: are you going to build in a support for the "winbond W83L78 5TS-S" into sensors.
+in my case, i need this program to read the temperature of the in-core-sensor in an athlonxp. my board is a ASUS A7N8X. this uses that chip to provide the temperatur to the user.
+
+so long...
+
+
+btw: please dont mind my english, i'm from germany!!
+______________________________________________________________________________
+UNICEF bittet um Spenden fur die Kinder im Irak! Hier online an
+UNICEF spenden: https://spenden.web.de/unicef/special/?mc1101
