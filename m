@@ -1,92 +1,35 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: Problem compiling ic2
-Message-Id: <3E2CB0A9.4010106@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: [PATCH 2.6] Credit James Bolt in w83l785ts
+Message-Id: <20040211203718.67607d40.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000001c2b385$3c3f0320$0b0aa8c0@sentlap01>
-In-Reply-To: <000001c2b385$3c3f0320$0b0aa8c0@sentlap01>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Be sure the source at /usr/src/linux is good and has been built;
-you appear to have modversions problems or a kernel source
-that hasn't been compiled.
+Hi Greg,
 
-Frans Boerefijn wrote:
-> When compiling the ic2 package on a Redhat 8.0 with kernel 2.4.18-19.8.0 I
-> get the following compile error:
-> 
-> gcc -I/usr/src/linux/include -O2 -DLM_SENSORS -D__KERNEL__ -DMODULE -fomit-f
-> rame-pointer -DEXPORT_SYMTAB -DMODVERSIONS -include
-> /usr/src/linux/include/linux/modversions.h -c kernel/i2c-core.c -o
-> kernel/i2c-core.o
-> In file included from /usr/src/linux/include/linux/prefetch.h:13,
->                  from /usr/src/linux/include/linux/list.h:6,
->                  from /usr/src/linux/include/linux/module.h:12,
->                  from kernel/i2c-core.c:26:
-> /usr/src/linux/include/asm/processor.h:51: warning: parameter names (without
-> types) in function declaration
-> /usr/src/linux/include/asm/processor.h:51: field `loops_per_jiffy_R_ver_str'
-> declared as a function
-> /usr/src/linux/include/asm/processor.h:73: invalid suffix on integer
-> constant
-> /usr/src/linux/include/asm/processor.h:73: parse error before numeric
-> constant
-> /usr/src/linux/include/asm/processor.h:256: invalid suffix on integer
-> constant
-> /usr/src/linux/include/asm/processor.h:256: parse error before numeric
-> constant
-> /usr/src/linux/include/asm/processor.h:260: warning: parameter names
-> (without types) in function declaration
-> /usr/src/linux/include/asm/processor.h:436: invalid suffix on floating
-> constant
-> /usr/src/linux/include/asm/processor.h:436: parse error before numeric
-> constant
-> /usr/src/linux/include/asm/processor.h:436: `kernel_thread_R_ver_str'
-> declared as function returning a function
-> In file included from kernel/i2c-core.c:26:
-> /usr/src/linux/include/linux/module.h:183: invalid suffix on integer
-> constant
-> /usr/src/linux/include/linux/module.h:183: parse error before numeric
-> constant
-> /usr/src/linux/include/linux/module.h:183: `inter_module_register_R_ver_str'
-> declared as function returning a function
-> /usr/src/linux/include/linux/module.h:184: invalid suffix on integer
-> constant
-> /usr/src/linux/include/linux/module.h:184: parse error before numeric
-> constant
-> /usr/src/linux/include/linux/module.h:184:
-> `inter_module_unregister_R_ver_str' declared as function returning a
-> function
-> /usr/src/linux/include/linux/module.h:185: `inter_module_get_R_ver_str'
-> declared as function returning a function
-> /usr/src/linux/include/linux/module.h:185: warning: parameter names (without
-> types) in function declaration
-> /usr/src/linux/include/linux/module.h:186:
-> `inter_module_get_request_R_ver_str' declared as function returning a
-> function
-> /usr/src/linux/include/linux/module.h:186: warning: parameter names (without
-> types) in function declaration
-> /usr/src/linux/include/linux/module.h:187: invalid suffix on integer
-> constant
-> /usr/src/linux/include/linux/module.h:187: parse error before numeric
-> constant
-> /usr/src/linux/include/linux/module.h:187: `inter_module_put_R_ver_str'
-> declared as function returning a function
-> /usr/src/linux/include/linux/module.h:196: `try_inc_mod_count_R_ver_str'
-> declared as function returning a function
-> /usr/src/linux/include/linux/module.h:196: warning: parameter names (without
-> types) in function declaration
-> make: *** [kernel/i2c-core.o] Error 1
-> 
-> 
-> I have no patches installed, just the bare i2c-2.7.0 package in
-> /usr/src/redhat/SOURCES/i2c-2.7.0 Is there something that I miss??
-> 
-> Please assist,
-> frans
-> 
-> 
-> 
+I forgot to give the credit he deserves to James Bolt for testing the
+latest w83l785ts driver changes. Here is a patch that fixes that, if you
+would like to enqueue it for future inclusion.
+
+Thanks.
+
+--- linux-2.6.3-rc2/drivers/i2c/chips/w83l785ts.c.orig	2004-02-10 14:24:34.000000000 +0100
++++ linux-2.6.3-rc2/drivers/i2c/chips/w83l785ts.c	2004-02-11 09:51:51.000000000 +0100
+@@ -12,6 +12,9 @@
+  * Ported to Linux 2.6 by Wolfgang Ziegler <nuppla@gmx.at> and Jean Delvare
+  * <khali@linux-fr.org>.
+  *
++ * Thanks to James Bolt <james@evilpenguin.com> for benchmarking the read
++ * error handling mechanism.
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
