@@ -1,97 +1,251 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:45 +0000
-Subject: problem with tyan s2720 board
-Message-Id: <3E1B7D7A.6000403@paradyne.com>
+From: dsaxena@plexity.net (Deepak Saxena)
+Date: Thu, 19 May 2005 06:24:42 +0000
+Subject: [PATCH 2.6] Support for IXP42x GPIO-based I2C (updated)
+Message-Id: <20040217212536.GA23535@plexity.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030107215456.B2BEC121124@global.com>
-In-Reply-To: <20030107215456.B2BEC121124@global.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-try CVS which has super I/O detection and a new 83627hf isa driver.
 
-Ramesh Ramakrishnan wrote:
-> hi
-> 
-> i am having trouble in getting lm_sensor 2.7.0 working on tyan s2720 board with 
-> linux kernel 2.4.19.
-> 
-> The s2720 onboard hardware monitoring devices include Winbond W83627HF,
-> Winbond W83782d and two 'on Chip Xeon Thermal Sensor' at address 0x18 and 0x19.
-> 
-> the i2c-detect script suggest to load the following modules i2c-isa, i2c-i801, w83781d
-> and eeprom. After loading the suggested modules on running the i2cdetect gives the 
-> following output
-> 
->   Installed I2C busses:
->     i2c-0       smbus           SMBus I801 adapter at ec80              Non-I2C SMBus adapter
->     i2c-1       dummy           ISA main adapter                        ISA bus algorithm
-> 
-> in the lm_sensor mailing list, found an advice to load the adm1021 module to get the 
-> temperature from xeon processor. loaded the adm1021 module on bus 0,0x18.
-> 
-> running the sensors gives wrong temperature(-1) for adm1021. tried loading the module
-> in both address 0x18 and 0x19.
-> 
-> one think i noticed is when i load the i2c-velleman (this module is loaded when during
-> the sensors-detect script, though the script doesnt suggest to load this module) the i2cdetect
-> shows up the following result. 
-> 
-> again loading the adm1021 on the i2c bus 2 results the same output(-1).
-> 
->   Installed I2C busses:
->     i2c-0       smbus           SMBus I801 adapter at ec80              Non-I2C SMBus adapter
->     i2c-1       dummy           ISA main adapter                        ISA bus algorithm
->     i2c-2       i2c             Velleman K8000                          Bit-shift algorithm
-> 
-> any information is appreciated.
-> 
-> regards
-> ramesh
-> 
-> 
-> the output from i2cdetect
-> -------------------------
-> 
-> w83782d-i2c-0-29
-> Adapter: SMBus I801 adapter at ec80
-> Algorithm: Non-I2C SMBus adapter
-> VCore:     +1.47 V  (min =  +1.21 V, max =  +1.48 V)
-> VCC_1.2:   +1.13 V  (min =  +1.21 V, max =  +1.48 V)       ALARM
-> 3.3V:      +3.42 V  (min =  +2.97 V, max =  +3.63 V)
-> +5V:       +5.07 V  (min =  +4.50 V, max =  +5.48 V)
-> 12V:      +12.16 V  (min = +10.79 V, max = +13.11 V)
-> VCC_2.5:   +2.54 V  (min =  +0.33 V, max =  +0.78 V)
-> VCC_1.8:   +1.76 V  (min =  +0.70 V, max =  +1.02 V)
-> V5SB:      +5.11 V  (min =  +4.50 V, max =  +5.48 V)
-> VBat:      +3.24 V  (min =  +2.70 V, max =  +3.29 V)
-> P1Fan:       0 RPM  (min =  895 RPM, div = 2)
-> P2Fan:       0 RPM  (min =  895 RPM, div = 2)
-> Fan3:        0 RPM  (min =  895 RPM, div = 2)
-> VRM:         +74?C  (limit =  +60?C)                       sensor = thermistor   ALARM
-> vid:      +1.350 V
-> alarms:   Chassis intrusion detection                      ALARM
-> beep_enable:
->           Sound alarm disabled
-> 
-> w83627hf-isa-0290
-> Adapter: ISA adapter
-> Algorithm: ISA algorithm
-> Fan4:        0 RPM  (min = 1500 RPM, div = 2)
-> Fan5:        0 RPM  (min = 1500 RPM, div = 2)
-> Fan6:        0 RPM  (min = 1500 RPM, div = 2)
-> vid:      +1.350 V
-> alarms:
-> beep_enable:
->           Sound alarm disabled
-> 
-> adm1021-i2c-0-18
-> Adapter: SMBus I801 adapter at ec80
-> Algorithm: Non-I2C SMBus adapter
-> CPU0_Sub:     -1?C  (min =   -1?C, max =   -1?C)ALARM (LOW,HIGH)
-> CPU0:         -1?C  (min =   -1?C, max =   -1?C)ALARM (N/A,LOW)
-> die_code:  255
-> 
-> 
+Greg,
+
+Following is an updated patch to add support for using the GPIO lines
+on an Intel IXP42x SOC for I2C.  Changes since last patch include:
+
+- Cleanups as per Jean Delvare's comments
+
+- Rename functions as 42x instead of 425
+
+- Change the comments at the top of the file to better reflect the
+  purpose of this driver.
+
+This code has been tested with the eeprom client driver and worked
+w/o any problems.
+
+Tnx,
+~Deepak
+  
+
+diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig	Tue Feb 17 10:14:52 2004
++++ b/drivers/i2c/busses/Kconfig	Tue Feb 17 10:14:52 2004
+@@ -144,6 +144,17 @@
+ 	  This support is also available as a module.  If so, the module 
+ 	  will be called i2c-ite.
+ 
++config I2C_IXP42X
++	tristate "IXP42x GPIO-Based I2C Interface"
++	depends on I2C && ARCH_IXP425
++	select I2C_ALGOBIT
++	help
++	  Say Y here if you have an Intel IXP42x(420,421,422,425) based 
++	  system and are using GPIO lines for an I2C bus.
++
++	  This support is also available as a module. If so, the module
++	  will be called i2c-ixp42x.
++
+ config I2C_KEYWEST
+ 	tristate "Powermac Keywest I2C interface"
+ 	depends on I2C && PPC_PMAC
+diff -Nru a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
+--- a/drivers/i2c/busses/Makefile	Tue Feb 17 10:14:52 2004
++++ b/drivers/i2c/busses/Makefile	Tue Feb 17 10:14:52 2004
+@@ -15,6 +15,7 @@
+ obj-$(CONFIG_I2C_IOP3XX)	+= i2c-iop3xx.o
+ obj-$(CONFIG_I2C_ISA)		+= i2c-isa.o
+ obj-$(CONFIG_I2C_ITE)		+= i2c-ite.o
++obj-$(CONFIG_I2C_IXP42X)	+= i2c-ixp42x.o
+ obj-$(CONFIG_I2C_KEYWEST)	+= i2c-keywest.o
+ obj-$(CONFIG_I2C_NFORCE2)	+= i2c-nforce2.o
+ obj-$(CONFIG_I2C_PHILIPSPAR)	+= i2c-philips-par.o
+diff -Nru a/drivers/i2c/busses/i2c-ixp42x.c b/drivers/i2c/busses/i2c-ixp42x.c
+--- /dev/null	Wed Dec 31 16:00:00 1969
++++ b/drivers/i2c/busses/i2c-ixp42x.c	Tue Feb 17 10:14:52 2004
+@@ -0,0 +1,180 @@
++/*
++ * drivers/i2c/i2c-adap-ixp42x.c
++ *
++ * Intel's IXP42x XScale NPU chipsets (IXP420, 421, 422, 425) do not have
++ * an on board I2C controller but provide 16 GPIO pins that are often
++ * used to create an I2C bus. This driver provides an i2c_adapter 
++ * interface that plugs in under algo_bit and drives the GPIO pins
++ * as instructed by the alogorithm driver.
++ *
++ * Author: Deepak Saxena <dsaxena@plexity.net>
++ *
++ * Copyright (c) 2003-2004 MontaVista Software Inc.
++ *
++ * This file is licensed under the terms of the GNU General Public 
++ * License version 2. This program is licensed "as is" without any 
++ * warranty of any kind, whether express or implied.
++ *
++ * NOTE: Since different platforms will use different GPIO pins for
++ *       I2C, this driver uses an IXP42x-specific platform_data
++ *       pointer to pass the GPIO numbers to the driver. This 
++ *       allows us to support all the different IXP42x platforms
++ *       w/o having to put #ifdefs in this driver.
++ *
++ *       See arch/arm/mach-ixp42x/ixdp425.c for an example of building a 
++ *       device list and filling in the ixp42x_i2c_pins data structure 
++ *       that is passed as the platform_data to this driver.
++ */
++
++#include <linux/config.h>
++#ifdef CONFIG_I2C_DEBUG_BUS
++#define DEBUG	1
++#endif
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/i2c.h>
++
++#include <asm/hardware.h>	/* Pick up IXP42x-specific bits */
++
++static inline int ixp42x_scl_pin(void *data)
++{
++	return ((struct ixp42x_i2c_pins*)data)->scl_pin;
++}
++
++static inline int ixp42x_sda_pin(void *data)
++{
++	return ((struct ixp42x_i2c_pins*)data)->sda_pin;
++}
++
++static void ixp42x_bit_setscl(void *data, int val)
++{
++	gpio_line_set(ixp42x_scl_pin(data), 0);
++	gpio_line_config(ixp42x_scl_pin(data),
++		val ? IXP425_GPIO_IN : IXP425_GPIO_OUT );
++}
++
++static void ixp42x_bit_setsda(void *data, int val)
++{
++	gpio_line_set(ixp42x_sda_pin(data), 0);
++	gpio_line_config(ixp42x_sda_pin(data),
++		val ? IXP425_GPIO_IN : IXP425_GPIO_OUT );
++}
++
++static int ixp42x_bit_getscl(void *data)
++{
++	int scl;
++
++	gpio_line_config(ixp42x_scl_pin(data), IXP425_GPIO_IN );
++	gpio_line_get(ixp42x_scl_pin(data), &scl);
++
++	return scl;
++}	
++
++static int ixp42x_bit_getsda(void *data)
++{
++	int sda;
++
++	gpio_line_config(ixp42x_sda_pin(data), IXP425_GPIO_IN );
++	gpio_line_get(ixp42x_sda_pin(data), &sda);
++
++	return sda;
++}	
++
++struct ixp42x_i2c_data {
++	struct ixp42x_i2c_pins *gpio_pins;
++	struct i2c_adapter adapter;
++	struct i2c_algo_bit_data algo_data;
++};
++
++static int ixp42x_i2c_remove(struct device *dev)
++{
++	struct platform_device *plat_dev = to_platform_device(dev);
++	struct ixp42x_i2c_data *drv_data = dev_get_drvdata(&plat_dev->dev);
++
++	dev_set_drvdata(&plat_dev->dev, NULL);
++
++	i2c_bit_del_bus(&drv_data->adapter);
++
++	kfree(drv_data);
++
++	return 0;
++}
++
++static int ixp42x_i2c_probe(struct device *dev)
++{
++	int err;
++	struct platform_device *plat_dev = to_platform_device(dev);
++	struct ixp42x_i2c_pins *gpio = plat_dev->dev.platform_data;
++	struct ixp42x_i2c_data *drv_data = 
++		kmalloc(sizeof(struct ixp42x_i2c_data), GFP_KERNEL);
++
++	if(!drv_data)
++		return -ENOMEM;
++
++	memzero(drv_data, sizeof(struct ixp42x_i2c_data));
++	drv_data->gpio_pins = gpio;
++
++	/*
++	 * We could make a lot of these structures static, but
++	 * certain platforms may have multiple GPIO-based I2C
++	 * buses for various device domains, so we need per-device
++	 * algo_data->data. 
++	 */
++	drv_data->algo_data.data = gpio;
++	drv_data->algo_data.setsda = ixp42x_bit_setsda;
++	drv_data->algo_data.setscl = ixp42x_bit_setscl;
++	drv_data->algo_data.getsda = ixp42x_bit_getsda;
++	drv_data->algo_data.getscl = ixp42x_bit_getscl;
++	drv_data->algo_data.udelay = 10;
++	drv_data->algo_data.mdelay = 10;
++	drv_data->algo_data.timeout = 100;
++
++	drv_data->adapter.id = I2C_HW_B_IXP425,
++	drv_data->adapter.algo_data = &drv_data->algo_data,
++
++	drv_data->adapter.dev.parent = &plat_dev->dev;
++
++	gpio_line_config(gpio->scl_pin, IXP425_GPIO_IN);
++	gpio_line_config(gpio->sda_pin, IXP425_GPIO_IN);
++	gpio_line_set(gpio->scl_pin, 0);
++	gpio_line_set(gpio->sda_pin, 0);
++
++	if ((err = i2c_bit_add_bus(&drv_data->adapter) != 0)) {
++		printk(KERN_ERR "ERROR: Could not install %s\n", dev->bus_id);
++
++		kfree(drv_data);
++		return err;
++	}
++
++	dev_set_drvdata(&plat_dev->dev, drv_data);
++
++	return 0;
++}
++
++static struct device_driver ixp42x_i2c_driver = {
++	.name		= "IXP42X-I2C",
++	.bus		= &platform_bus_type,
++	.probe		= ixp42x_i2c_probe,
++	.remove		= ixp42x_i2c_remove,
++};
++
++static int __init ixp42x_i2c_init(void)
++{
++	return driver_register(&ixp42x_i2c_driver);
++}
++
++static void __exit ixp42x_i2c_exit(void)
++{
++	driver_unregister(&ixp42x_i2c_driver);
++}
++
++module_init(ixp42x_i2c_init);
++module_exit(ixp42x_i2c_exit);
++
++MODULE_DESCRIPTION("GPIO-based I2C driver for IXP42x systems");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net>");
++
+
+
+
+-- 
+Deepak Saxena - dsaxena at plexity dot net - http://www.plexity.net/
