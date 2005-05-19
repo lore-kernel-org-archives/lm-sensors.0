@@ -1,7 +1,7 @@
-From: ckelley@ibnads.com (Craig Kelley)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:28 +0000
 Subject: [PATCH 2.6] new sensors driver: SMSC LPC47B397-NC
-Message-Id: <41DAC5E3.1070609@ibnads.com>
+Message-Id: <20050104173824.GA5236@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050102212924.GB17759@jupiter.solarsys.private>
 In-Reply-To: <20050102212924.GB17759@jupiter.solarsys.private>
@@ -10,37 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
+Hi again:
 
->Hi Jean:
->
->(CC Craig Kelly who can skip to the very bottom of this message...)
->
->* Jean Delvare <khali@linux-fr.org> [2005-01-03 20:58:54 +0100]:
->  
->
->>Additional question:
->>This driver uses logical device 8, while sensors-detect probes device
->>0x0a. Is this a bug in sensors-detect?
->>    
->>
->
->Yes, and that's a great catch by the way (since that didn't even appear in
->this patch).  I only tested the sensors-detect patch on real h/w once, and
->it worked that way... but in the driver I don't do any activation test 
->anyway (as it's not specified in the "datasheet")... reading further, I see
->that it's claimed to be present on all ISA PnP so I guess it can't hurt to
->have it in sensors-detect.
->
->Craig: I'll commit a patch to sensors-detect tonight.  I would appreciate
->if you try it again on the actual hardware and let me know if it fails.
->  
->
-Thanks; just let me know when to sync with CVS and I'll give it a go.
+* Jean Delvare <khali@linux-fr.org> [2005-01-04 10:23:03 +0100]:
+> > Is there a published standard for email address obfuscation?  Would it
+> > make sense if there was? ;)
+> 
+> I tried a simple (cowboyz-free) obfuscation in the early days but Greg
+> told me it was making things more complex for him, so I stopped. This
+> probably means that people not wanting their e-mail address known just
+> cannot sign kernel patches.
 
---
-Craig Kelley
-In-Store Broadcasting Network
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050104/7b2714b8/attachment.html
+How about this:
+
+Signed-off-by: Craig Kelly (In-Store Broadcasting Network)
+Signed-off-by: Glenn Ball (Utilitek Systems, Inc.)
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+
+The first two aren't going to maintain the driver anyway, but I want
+the signatures there as contributor of the datasheet and holder of the
+copyright, respectively.  If I'm going to "sign-off" that I am allowed
+to distribute this work, then I also want to include from whom this
+permission came.  Linus wrote [1]:
+
+> The above also allows for companies that have "release criteria" to have
+> the company "release person" sign off on a patch, so that a company can
+> easily incorporate their own internal release procedures and see that all
+> the patches have gone through the right channel. [...]
+
+Therefore, I think Linus intended for us to be able to sign off this way.
+
+[1] http://lwn.net/Articles/86436/
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
