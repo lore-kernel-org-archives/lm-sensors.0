@@ -1,107 +1,160 @@
-From: thiemel@centrum.cz (=?iso-8859-2?Q?Tom=E1=B9_Thiemel?=)
-Date: Thu, 19 May 2005 06:25:49 +0000
-Subject: No subject
-Message-Id: <000001c53bd1$ae167c40$e500a8c0@KRTEK>
+From: jenniferv@messagegate.com (Jennifer Villar)
+Date: Thu, 19 May 2005 06:24:49 +0000
+Subject: No sensors found!
+Message-Id: <62A29338972397468405C79C4FE13C3B916AFA@ex1.messagegate.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
-In-Reply-To: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi. 
-I have this problem:
-==
-i2c-piix4.o: IBM Laptop detected; this module may corrupt your serial
-eeprom! Refusing to load module!
-==
+I am a complete newbie here cutting my teeth on RedHat 9 Kernel
+2.4.20-8smp. I am trying to get lm_sensors to work but I continually get
+the "No Sensors found!" error. I have followed the instructions that
+sensors-detect has provided (except the /etc/rc* entries as I am not
+sure which file to put the entries into, any?). 
 
-And I have read this message:
-####
-http://archives.andrew.net.au/lm-sensors/msg01833.html
-####
+ 
 
-Is my PC on your "whitelist", please?
+I am using a Supermicro server with an Intel 857 chipset and the Super
+P4SCA motherboard. Unfortunately I cannot look at the mother board as
+the system is racked. 
 
+ 
 
-Thanks a lot
+Here is some of the information I have that may shed light to someone
+who knows a thing or two about this stuff.
 
-Tomas Thiemel
-ICQ #170438916
-http://www.wifizabreh.net
+ 
 
-PS: What means "serial eeprom" - is it "BIOS chip"?
+# Results from lsmod
 
-------------------------------
-See information listed below:
+ 
 
+Module                  Size  Used by    Not tainted
 
-***lspci -v ***
-..
-00:02.3 Bridge: Intel Corp. 82371AB/EB/MB PIIX4 ACPI (rev 02)
-        Flags: medium devsel, IRQ 9
-..
+i2c-isa                 1868   0  (unused)
 
-***lspci -n***
-00:00.0 Class 0600: 8086:7190 (rev 03)
-00:01.0 Class 0604: 8086:7191 (rev 03)
-00:02.0 Class 0601: 8086:7110 (rev 02)
-00:02.1 Class 0101: 8086:7111 (rev 01)
-00:02.2 Class 0c03: 8086:7112 (rev 01)
-00:02.3 Class 0680: 8086:7113 (rev 02)
-00:03.0 Class 0200: 8086:1229 (rev 05)
-00:12.0 Class 0280: 1260:3873 (rev 01)
-00:14.0 Class 0280: 1260:3873 (rev 01)
-01:01.0 Class 0300: 5333:8904 (rev 01)
+i2c-dev                 5636   0
 
-***cat /var/log/dmesg***
-Linux version 2.4.29 (root@wifizabreh2) (gcc version 3.2.2 20030222 (Red
-Hat Linux 3.2.2-5)) #12 22:57:14 CEST 07-04-2005
-127MB LOWMEM available.
-..
-IBM machine detected. Enabling interrupts during APM calls.
-Kernel command line: ro root=/dev/hda1
-No local APIC present or hardware disabled
-Initializing CPU#0
-Detected 398.272 MHz processor.
-Console: colour VGA+ 80x25
-Calibrating delay loop... 794.62 BogoMIPS
-Memory: 126864k/131060k available (1508k kernel code, 3808k reserved,
-541k data, 100k init, 0k highmem)
-..
-CPU: L1 I cache: 16K, L1 D cache: 16K
-CPU: L2 cache: 512K
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU:     After generic, caps: 0183f9ff 00000000 00000000 00000000
-CPU:             Common caps: 0183f9ff 00000000 00000000 00000000
-CPU: Intel Pentium II (Deschutes) stepping 02
-Enabling fast FPU save and restore... done.
-Checking 'hlt' instruction... OK.
-POSIX conformance testing by UNIFIX
-mtrr: v1.40 (20010327) Richard Gooch (rgooch@atnf.csiro.au)
-mtrr: detected mtrr type: Intel
-PCI: PCI BIOS revision 2.10 entry at 0xfd85c, last bus=1
-PCI: Using configuration type 1
-PCI: Probing PCI hardware
-PCI: Probing PCI hardware (bus 00)
-PCI: Using IRQ router PIIX/ICH [8086/7110] at 00:02.0
-Limiting direct PCI/PCI transfers.
-isapnp: Scanning for PnP cards...
-isapnp: Card 'Crystal Audio'
-isapnp: 1 Plug & Play card detected total
-Linux NET4.0 for Linux 2.4
-..
-Uniform Multi-Platform E-IDE driver Revision: 7.00beta4-2.4
-ide: Assuming 33MHz system bus speed for PIO modes; override with
-idebus=xx
-PIIX4: IDE controller at PCI slot 00:02.1
-PIIX4: chipset revision 1
-PIIX4: not 100% native mode: will probe irqs later
-    ide0: BM-DMA at 0xfff0-0xfff7, BIOS settings: hda:DMA, hdb:pio
-hda: Maxtor 90644D3, ATA DISK drive
-blk: queue c0346500, I/O limit 4095Mb (mask 0xffffffff)
-ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-..
+i2c-philips-par         3360   0  (unused)
 
+parport                39072   0  [i2c-philips-par]
+
+i2c-elv                 2408   0
+
+i2c-algo-bit            8872   1  [i2c-philips-par i2c-elv]
+
+i2c-proc                9232   0
+
+i2c-core               19908   0  [i2c-isa i2c-dev i2c-algo-bit
+i2c-proc]
+
+autofs                 13684   0  (autoclean) (unused)
+
+e1000                  70400   1
+
+ipt_REJECT              3928   0  (autoclean)
+
+iptable_filter          2412   0  (autoclean)
+
+ip_tables              15864   2  [ipt_REJECT iptable_filter]
+
+keybdev                 2976   0  (unused)
+
+mousedev                5656   0  (unused)
+
+hid                    22308   0  (unused)
+
+input                   6208   0  [keybdev mousedev hid]
+
+usb-uhci               27404   0  (unused)
+
+ehci-hcd               20456   0  (unused)
+
+usbcore                82592   1  [hid usb-uhci ehci-hcd]
+
+ext3                   73376   2
+
+jbd                    56336   2  [ext3]
+
+ 
+
+# Output of sensors-detect
+
+ Detects correctly:
+
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+
+    Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+
+ 
+
+ 
+
+ I will now generate the commands needed to load the I2C modules.
+
+ Sometimes, a chip is available both through the ISA bus and an I2C bus.
+
+ ISA bus access is faster, but you need to load an additional driver
+module
+
+ for it. If you have the choice, do you want to use the ISA bus or the
+
+ I2C/SMBus (ISA/smbus)? Driver `w83627hf' (should be inserted):
+
+  Detects correctly:
+
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+
+    Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+
+ 
+
+To make the sensors modules behave correctly, add these lines to
+
+/etc/modules.conf:
+
+ 
+
+#----cut here----
+
+# I2C module options
+
+alias char-major-89 i2c-dev
+
+#----cut here----
+
+ 
+
+To load everything that is needed, add this to some /etc/rc* file:
+
+ 
+
+#----cut here----
+
+# I2C adapter drivers
+
+modprobe i2c-isa
+
+# I2C chip drivers
+
+modprobe w83627hf
+
+# sleep 2 # optional
+
+/usr/bin/sensors -s # recommended
+
+#----cut here----
+
+ 
+
+Any information would be greatly appreciated.
+
+ 
+
+-Jennifer
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040326/801f2267/attachment.html
