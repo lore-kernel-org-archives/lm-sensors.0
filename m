@@ -1,7 +1,7 @@
 From: mshannon@themattpad.com (Matthew M. Shannon)
-Date: Thu, 19 May 2005 06:24:05 +0000
+Date: Thu, 19 May 2005 06:24:14 +0000
 Subject: i2c kernel patch issue with bttv-if module
-Message-Id: <3F180395.1090505@themattpad.com>
+Message-Id: <3F4C07F3.9080709@themattpad.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F16DAEA.1060802@themattpad.com>
 In-Reply-To: <3F16DAEA.1060802@themattpad.com>
@@ -12,49 +12,44 @@ To: lm-sensors@vger.kernel.org
 
 Jean Delvare wrote:
 
->>>Almost everything is updated, so it may work for you.
->>>      
->>>
->>It does...sort of, temps are still off, but not by much (vs. BIOS)
+>>I have no idea who the right person is for this sort of email, however
+>>I trust someone will forward it on to the right person.
 >>    
 >>
 >
->Someone on this list (I can't remember who) once explained that the
->temperature as shown in the BIOS screen is usually higher than the one
->of an idling Linux system, because the loop that waits for a user event
->in the BIOS screen is poorly designed and leads to a high CPU load.
->Well, that may depend on the BIOS designer, but that may be your case.
->
->You could think that comparing the values with another OS such as
->Windows would lead to better results, but that's not necessarily true. I
->remember my good old Pentium II 400 system had an idle temperature of 38
->deg C under Windows 98 and 32 deg C under Linux (as reported by the BIOS
->right after reboot, so it isn't a matter of which software was used). It
->really depends on how each OS wastes its time, so to say.
->
->Anyway, you most probably don't need a 1 degree accuracy. (BTW, most
->people don't know that but most temperature sensors have an accuracy of
->3 to 4 deg C, although they generally have a resolution of 1 deg C.)
->What matters is not the "absolute" value. What matters is to know the
->"normal value" to be able to detect overheating.
+>I am the one (yeah, I love saying that) and I'm already there so no need
+>to forward.
 >
 >  
 >
-True.
+>>I applied your new i2c patch (i2c-2.8.0) to a virgin 2.4.21 kernel
+>>with zero issues. However during the build process I die at the same
+>>point in the middle of the bttv modules. The bummer is I still love my
+>>bttv card and can't stand to part with it.
+>>
+>>Perhaps there's something missing from the patch.
+>>    
+>>
+>
+>Which patch or set of patches did you applied exactly? (complete URI
+>wanted)
+>
+>I am running a bttv card myself, with a patched 2.4.21 kernel, and it
+>works rather well. However, the source tree is the one I made the
+>changes on and extracted the patches from, so if I forgot to extract
+>one, it could explain the problem you had.
+>
+>  
+>
+Jean-
 
-Say, I really appreciate you taking the time to respond, this is one of 
-the main reasons I love the opensource community.
+I'm still loving your patch, I'm watching TV and my temps at the same 
+time. Ahh the joy.
 
-That..and damn slick software. ;)
+Any chance you guys have ported the patch to the 2.4.22 kernel?
 
-The main reason why I'm trying to be very accurate with my temps is I am 
-experimenting with a new water cooled system. I've got to machine up a 
-nice flow meter and interface it with the fan output.
+It's got some extra support for my AGP and NVIDIA card.
 
-That way an ALARM means no (low) flow...which means, well,  your toast.
+Thanks!
 
-Thanks again!
-
-
-M
-
+Matt
