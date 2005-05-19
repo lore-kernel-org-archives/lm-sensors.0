@@ -1,26 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:16 +0000
-Subject: New patches of 2.8.0 against 2.4.22...
-Message-Id: <20030913164632.378ba87b.khali@linux-fr.org>
+From: mrubioro8@fis.ub.edu (Miquel Rubio)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: about tempX information
+Message-Id: <3DEA8D23.7080002@fis.ub.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F526E97.7010906@realitydiluted.com>
-In-Reply-To: <3F526E97.7010906@realitydiluted.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I've installed lm-sensors 2.6.5 and I use i2c-isa and via686a modules.
 
-> The stuff I did was due to linking errors associated with the SCx200
-> drivers when compiling everything in statically and also header file
-> dependency problems. I am happy with your suggestions as long as
-> testing is done with both statically linking and as modules. I do
-> not have any SCx200 devices, so I just guessed at the dependencies.
+I get:
 
-Same here. I do not have such devices, but wanted the dependencies
-fixed. A careful look at the includes helped a lot finding the best
-fixes.
+S01:/proc# cat /proc/sys/dev/sensors/via686a-isa-6000/temp2
+59.9 55.1 41.3
+S01:/proc# cat /proc/sys/dev/sensors/via686a-isa-6000/temp1
+44.9 39.9 45.3
+S01:/proc# cat /proc/sys/dev/sensors/via686a-isa-6000/temp3
+65.4 59.9 26.4
+
+
+What is the meaning of thins numbers ?
+
+
+
+Thank you
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Miguel Rubio
