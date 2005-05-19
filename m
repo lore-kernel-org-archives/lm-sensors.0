@@ -1,46 +1,56 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: Call to Developers, Testers, and Device Manufacturers
-Message-Id: <3C7C5621.95FA5F78@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:42 +0000
+Subject: [PATCH 2.6] Lowercase chips name
+Message-Id: <20040221091410.33e37296.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0202211613040.19929-100000@orchestra.cs.caltech.edu>
-In-Reply-To: <Pine.LNX.4.33.0202211613040.19929-100000@orchestra.cs.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-interesting links.
-thanks.
-We haven't had any requests for 6657 support;
-but if you have any code you'd like to contribute
-under GPL let us know.
-mds
+Hi Greg,
 
-"George X. Torres" wrote:
-> 
-> I was just checking up on the project, and I saw that you're looking to
-> support new devices.
-> I guess I would be a device manufacturer, as I designed and
-> constructed a prototype of an AMD Athlon XP thermal diode
-> reader with an SMBus interface using a Maxim 6657 IC.
-> I wrote a bit about my project here:
-> 
-> http://arstechnica.infopop.net/OpenTopic/page?a=tpc&sP009562&fw909585&mU40981133&r(80958443#2880958443
-> 
-> a friend of mine has also done a bit of work with his 6657 device here:
-> 
-> http://www.voidyourwarranty.net/review/review.php3?r1=xpdiode/index.php3
-> 
-> and here:
-> 
-> http://www.voidyourwarranty.net/review/review.php3?r1=hstemps/index.php3
-> 
-> I'm writing mostly because I can't seem to get the proper support for the
-> 6657 in windows.  Basic support, without all the nifty features that makes
-> the 6657 superior to the 1617a is all I've been able to get in the past 2
-> months.  Yet the 6657 still has a high resolution mode which I have been
-> unable to access, even though it would be quite useful to me.
-> It's now time to awaken the giant within the 6657.
-> 
-> George
+This patch brings the name field of adm1021.c, it87.c and via686a.c in
+conformance with the defined standard ("all lowercase, as simple as the
+driver name itself"). Please apply.
+
+Thanks.
+
+--- linux-2.6.3/drivers/i2c/chips/via686a.c.orig	Thu Feb  5 22:24:55 2004
++++ linux-2.6.3/drivers/i2c/chips/via686a.c	Sat Feb 21 09:06:11 2004
+@@ -653,7 +653,7 @@
+    smbus_driver and isa_driver, and clients could be of either kind */
+ static struct i2c_driver via686a_driver = {
+ 	.owner		= THIS_MODULE,
+-	.name		= "VIA686A",
++	.name		= "via686a",
+ 	.id		= I2C_DRIVERID_VIA686A,
+ 	.flags		= I2C_DF_NOTIFY,
+ 	.attach_adapter	= via686a_attach_adapter,
+--- linux-2.6.3/drivers/i2c/chips/adm1021.c.orig	Thu Feb  5 22:24:55 2004
++++ linux-2.6.3/drivers/i2c/chips/adm1021.c	Sat Feb 21 09:09:29 2004
+@@ -148,7 +148,7 @@
+ /* This is the driver that will be inserted */
+ static struct i2c_driver adm1021_driver = {
+ 	.owner		= THIS_MODULE,
+-	.name		= "ADM1021-MAX1617",
++	.name		= "adm1021",
+ 	.id		= I2C_DRIVERID_ADM1021,
+ 	.flags		= I2C_DF_NOTIFY,
+ 	.attach_adapter	= adm1021_attach_adapter,
+--- linux-2.6.3/drivers/i2c/chips/it87.c.orig	Wed Feb 18 20:56:10 2004
++++ linux-2.6.3/drivers/i2c/chips/it87.c	Sat Feb 21 09:09:14 2004
+@@ -231,7 +231,7 @@
+ 
+ static struct i2c_driver it87_driver = {
+ 	.owner		= THIS_MODULE,
+-	.name		= "IT87xx",
++	.name		= "it87",
+ 	.id		= I2C_DRIVERID_IT87,
+ 	.flags		= I2C_DF_NOTIFY,
+ 	.attach_adapter	= it87_attach_adapter,
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
