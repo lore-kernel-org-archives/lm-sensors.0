@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:33 +0000
+Date: Thu, 19 May 2005 06:24:41 +0000
 Subject: Dependency problem during compile
-Message-Id: <1073652201.3ffea1e971fbb@imp.gcu.info>
+Message-Id: <20040213212108.232949b1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1073609543.32040.73.camel@localhost>
 In-Reply-To: <1073609543.32040.73.camel@localhost>
@@ -10,17 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The kernel has been compiled and i'm using it successfully.
-> 
-> It still looks to me as if the dependancies are being incorrectly
-> worked out by the make file.
+Hi Darren,
 
-Did you change anything in the Makefile but KERNELVERSION (wasn't
-actually needed AFAICT) and LINUX?
+Could you finally figure out what was going wrong with lm_sensors'
+compilation? I was kind of short of time at that moment so I did not
+answer, sorry.
 
-If the above mentioned kernel is the one you are currently running, you
-shouldn't have to edit the Makefile at all, it should pick the right
-directory directly. Didn't that work?
+Let me know how you solved the problem if you did.
+
+Thanks.
 
 -- 
 Jean Delvare
