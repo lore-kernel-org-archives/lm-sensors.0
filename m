@@ -1,7 +1,7 @@
 From: andreas@schutz.se (andreas@schutz.se)
-Date: Thu, 19 May 2005 06:25:42 +0000
+Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: parport driver
-Message-Id: <33634.83.233.14.177.1110453393.squirrel@webmail1.b-one.nu>
+Message-Id: <34046.83.233.14.177.1112648003.squirrel@webmail1.b-one.nu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
@@ -10,15 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK!
-Thanks...
-I'll download the file and give it a try... I have som info. from
-http://infogroep.be/ISquareC
-that I think follows the same line.
-Have a nice abcense... it hope it is a wacation. When you are back, I'll
-report my (un)success.
+Hi again...
+So i think i have compiled it now... i got the i2c-pport.ko file and no
+errors making it.
+Must confess that I am a little confused though, and the more I read the
+more insecure I get. Seems like Jean boiled the paralell port drivers (5)
+together some day back in 2003? Is that correct? What actually happened
+with the different access modes? Exactly what modules do I need to load to
+get my parallell port lines to speak i2c?
 
+Cheers.
 /Andreas
+
 
 >
 > On Thu, 10 Mar 2005 andreas@schutz.se wrote:
