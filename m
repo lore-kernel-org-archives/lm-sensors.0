@@ -1,48 +1,24 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: two patches
-Message-Id: <3D322847.28D5DDEA@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:26 +0000
+Subject: lm_sensors2/prog/eeprom Module.mk
+Message-Id: <20031123152941.32bf4eab.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020715003408.7c5513a4.khali@linux-fr.org>
-In-Reply-To: <20020715003408.7c5513a4.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I checked in the first one. Good catch.
-Not really dangerous because the file modes in /proc of course
-overrule whatever's in the library.
+> Update of /home/cvs/lm_sensors2/prog/eeprom
+> In directory mordac.netroedge.com:/tmp/cvs-serv31752/prog/eeprom
+> 
+> Added Files:
+> 	Module.mk 
+> Log Message:
+> (mds) add more programs installed in /usr/local/sbin
 
-Let's hold off on the sensors change until after the release.
+I can't see no reason why we install them in sbin, since regular users
+can run these scripts too (decode-*.pl).
 
-mds
-
-
-
-Jean Delvare wrote:
-> 
-> Hello
-> 
-> Here are two patches for lm_sensors2 I wrote in the train two hours ago.
-> 
-> The first one fixes a (maybe dangerous) bug in libsensors where
-> read-only features could be written and write-only features could be
-> read.
-> 
-> The second one simply (re)indents the eeprom section of prog/sensors. I
-> plan to make modifications on this part soon, and it was hardly readable
-> the way it was before.
-> 
-> --
-> Jean "Khali" Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
-> 
->                           Name: lm_sensors-and.diff
->    lm_sensors-and.diff    Type: Plain Text (text/plain)
->                       Encoding: base64
-> 
->                                     Name: lm_sensors-indent-eeprom.diff
->    lm_sensors-indent-eeprom.diff    Type: Plain Text (text/plain)
->                                 Encoding: base64
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
