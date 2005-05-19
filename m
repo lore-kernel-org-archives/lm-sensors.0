@@ -1,68 +1,64 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH] I2C: adm1026.c fixes
-Message-Id: <11059983953842@kroah.com>
+From: nacc@us.ibm.com (Nishanth Aravamudan)
+Date: Thu, 19 May 2005 06:25:37 +0000
+Subject: [PATCH 54/63] w1/dscore: change parameters of
+Message-Id: <20050209064128.GY1419@us.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11059983952608@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: jthiessen@penguincomputing.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2329.2.4, 2005/01/14 14:42:28-08:00, jthiessen@penguincomputing.com
+Hi,
 
-[PATCH] I2C: adm1026.c fixes
+Description: Change units of parameters being passed to
+usb_{control,bulk}_msg() to milliseconds. Patch is compile-tested.
 
-Ok, take 3 on the adm1026 patch.
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 
-In this patch:
-
-(1) Code has been added which ensures that the fan divisor registers are
-    properly read into the data structure before fan minimum speeds are
-    determined.  This prevents a possible divide by zero error.  The line
-    which reads the hardware default fan divisor values has been reformatted
-    as suggested by Andreas Dilger to make the intent of the statement clearer.
-
-(2) In a similar spirit, an unecessary carriage return from a "dev_dbg"
-    statement in the adm1026_print_gpio() function has been elminated,
-    shortening the statement to a single line and making the code easier
-    to read.
-
-Signed-off-by: Justin Thiessen <jthiessen@penguincomputing.com
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-
- drivers/i2c/chips/adm1026.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
-
-
-diff -Nru a/drivers/i2c/chips/adm1026.c b/drivers/i2c/chips/adm1026.c
---- a/drivers/i2c/chips/adm1026.c	2005-01-17 13:20:53 -08:00
-+++ b/drivers/i2c/chips/adm1026.c	2005-01-17 13:20:53 -08:00
-@@ -452,6 +452,14 @@
- 		client->id, value);
- 	data->config1 = value;
- 	adm1026_write_value(client, ADM1026_REG_CONFIG1, value);
-+
-+	/* initialize fan_div[] to hardware defaults */
-+	value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3) |
-+		(adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7) << 8);
-+	for (i = 0;i <= 7;++i) {
-+		data->fan_div[i] = DIV_FROM_REG(value & 0x03);
-+		value >>= 2;
-+	}
- }
- 
- void adm1026_print_gpio(struct i2c_client *client)
-@@ -459,8 +467,7 @@
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	int  i;
- 
--	dev_dbg(&client->dev, "(%d): GPIO config is:",
--			    client->id);
-+	dev_dbg(&client->dev, "(%d): GPIO config is:", client->id);
- 	for (i = 0;i <= 7;++i) {
- 		if (data->config2 & (1 << i)) {
- 			dev_dbg(&client->dev, "\t(%d): %sGP%s%d\n", client->id,
-
+--- 2.6.11-rc3-kj-v/drivers/w1/dscore.c	2005-02-03 16:57:40.000000000 -0800
++++ 2.6.11-rc3-kj/drivers/w1/dscore.c	2005-02-08 14:23:49.000000000 -0800
+@@ -84,7 +84,7 @@ static int ds_send_control_cmd(struct ds
+ 	int err;
+ 	
+ 	err = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, dev->ep[EP_CONTROL]), 
+-			CONTROL_CMD, 0x40, value, index, NULL, 0, HZ);
++			CONTROL_CMD, 0x40, value, index, NULL, 0, 1000);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "Failed to send command control message %x.%x: err=%d.\n", 
+ 				value, index, err);
+@@ -99,7 +99,7 @@ static int ds_send_control_mode(struct d
+ 	int err;
+ 	
+ 	err = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, dev->ep[EP_CONTROL]), 
+-			MODE_CMD, 0x40, value, index, NULL, 0, HZ);
++			MODE_CMD, 0x40, value, index, NULL, 0, 1000);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "Failed to send mode control message %x.%x: err=%d.\n", 
+ 				value, index, err);
+@@ -114,7 +114,7 @@ static int ds_send_control(struct ds_dev
+ 	int err;
+ 	
+ 	err = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, dev->ep[EP_CONTROL]), 
+-			COMM_CMD, 0x40, value, index, NULL, 0, HZ);
++			COMM_CMD, 0x40, value, index, NULL, 0, 1000);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "Failed to send control message %x.%x: err=%d.\n", 
+ 				value, index, err);
+@@ -213,7 +213,7 @@ int ds_recv_data(struct ds_device *dev, 
+ 	
+ 	count = 0;
+ 	err = usb_bulk_msg(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_DATA_IN]), 
+-				buf, size, &count, HZ);
++				buf, size, &count, 1000);
+ 	if (err < 0) {
+ 		printk(KERN_INFO "Clearing ep0x%x.\n", dev->ep[EP_DATA_IN]);
+ 		usb_clear_halt(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_DATA_IN]));
+@@ -239,7 +239,7 @@ int ds_send_data(struct ds_device *dev, 
+ 	int count, err;
+ 	
+ 	count = 0;
+-	err = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, dev->ep[EP_DATA_OUT]), buf, len, &count, HZ);
++	err = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, dev->ep[EP_DATA_OUT]), buf, len, &count, 1000);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "Failed to read 1-wire data from 0x02: err=%d.\n", err);
+ 		return err;
