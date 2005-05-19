@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: lm_sensors
-Message-Id: <5hpypiXp.1115909226.3088720.khali@localhost>
+Message-Id: <iykE5dz9.1115976073.9820140.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
 In-Reply-To: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
@@ -13,40 +13,31 @@ To: lm-sensors@vger.kernel.org
 
 Hi Dmitry,
 
-> > First, check your BIOS for an automatic fan speed adjustment option. Is
-> > there one? If there is one, disable it.
+> > Unfortunately, this could be an indication that PWM is not wired on this
+> > board. the two Gigabyte boards using the it87 driver I have access to
+> > and that have their PWM lines wired do have the option in BIOS.
 >
-> I've found only 'CPU Warning Temperature', 'CPU FAN fail warnig',
-> and 'System FAN fail warning' all disabled.
+> Does it mean, I can do nothing if PWM lines are not wired?
 
-Unfortunately, this could be an indication that PWM is not wired on this
-board. the two Gigabyte boards using the it87 driver I have access to
-and that have their PWM lines wired do have the option in BIOS.
+"Nothing" is a bit exagerated. This means that you cannot use your
+IT8712F chip for fan speed control. There are other solutions to lower
+the speed of your fans:
+1* Add a hardware fan speed controller between the motherboard fan header
+and the fan.
+2* Change the fan for a lower speed model.
+3* Change the fan for a thermoregulated model.
 
-> It is like the same motherboard with Windoze is silent, though I'm not
-> sure.
+Obviously these solutions are more expensive and less flexible than what
+you could have done with the IT8712F chip, but it now seems like these
+are the only options left. You'll have to read some specialized sites
+about low-noise computing and do some hardware hacking.
 
-Please make sure ;) If the motherboard is actually silent under Windows,
-please try to find out what the difference can be. Maybe you are using a
-specific tool under Windows? If your CPU supports some form of power
-saving or throttling, maybe it is enabled under Windows but not under
-Linux (which could result in a faster fan speed if your fan is
-themoregulated).
+> Now to become sure about the wiring of PWM lines?
 
-> Where to find the datasheet?
-
-On ITE's web site:
-http://www.ite.com.tw/product_info/file/pc/IT8712F_V0.8.2.pdf
-
-
-> There is a second definition in the file about it87. Maybe I'd
-> better to use it?
-
-I can't tell, all motherboards are different. For the temperatures, you
-would most likely simply do:
-
-   ignore temp2
-   label temp3 "CPU Temp"
+Your experiments seem to prove that they are not wired. One way to
+confirm this would be to contact the Gygabyte technical support and ask
+them:
+http://www.giga-byte.com/TechSupport/ServiceCenter.htm
 
 --
 Jean Delvare
