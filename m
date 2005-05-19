@@ -1,58 +1,55 @@
-From: S.Assmann@gmx.de (Stefan Assmann)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: lm_sensors problem with sis96x and adm1021
-Message-Id: <41B9BDFD.6070102@gmx.de>
+Message-Id: <77JhTnSN.1102693660.3879540.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <41B9BDFD.6070102@gmx.de>
+In-Reply-To: <41B9BDFD.6070102@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
 
-actually I wanted to send this email to the lm_sensors mailing-list but 
-I couldn't find it.
-Maybe you could tell me the address so I know next time :-)
+> actually I wanted to send this email to the lm_sensors mailing-list but
+> I couldn't find it.
+> Maybe you could tell me the address so I know next time :-)
 
-I already started a ticket with the number 1841.
-When running sensors -s and then sensors I get
+The address is advertised here:
+http://secure.netroedge.com/~lm78/author.html
+I wonder why so many people have a hard time finding it.
 
-asus:/sys/bus/i2c/devices/0-004c# sensors
-max1617-i2c-0-4c
-Adapter: SiS96x SMBus adapter at 0x0c00
-Board:       +56??C  (low  =    +0??C, high =   +70??C)
-CPU:         +54??C  (low  =   +50??C, high =   +70??C)
+The address you are writing to at the moment is an alias for the list, so
+you finally found it ;)
 
-So the values for Board have been set correctly but for CPU it shows no 
-effect.
+> I already started a ticket with the number 1841.
+> When running sensors -s and then sensors I get
+>
+> asus:/sys/bus/i2c/devices/0-004c# sensors
+> max1617-i2c-0-4c
+> Adapter: SiS96x SMBus adapter at 0x0c00
+> Board:       +56??C  (low  =    +0??C, high =   +70??C)
+> CPU:         +54??C  (low  =   +50??C, high =   +70??C)
+>
+> So the values for Board have been set correctly but for CPU it shows no
+> effect.
 
-I was told to send a dump of the chip so here it is.
+These values are different from what you said on the ticket, so there
+have actually been some values written at some point. In the ticket I
+told you to try writing the values to the sysfs files directly and see
+how it was going. Did you try? Beware that sysfs expects temperature
+values in 0.001 degree C (so for example 70 degrees is 70000).
 
-asus:/sys/bus/i2c/devices/0-004c# i2cdump 0 0x4c
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x4c, mode byte
-Continue? [Y/n] y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 39 32 00 00 04 46 00 37 00 00 00 00 00 00 00 00    92..?F.7........
-10: 80 00 00 00 00 00 55 55 00 64 64 64 64 64 64 64    ?.....UU.ddddddd
-20: 64 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    d???????????????
-30: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-40: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-50: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-60: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-70: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-80: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-90: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-a0: 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a 0a    ????????????????
-b0: 0a 0a 0a 0a 0a 0a 0a 00 00 00 00 00 00 00 00 00    ???????.........
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 4d 4d    ..............MM
+> I was told to send a dump of the chip so here it is.
+> (...)
 
+This is most certainly a Maxim MAX6657, MAX6658 or MAX6659, not MAX1617.
+Do you have some documentation that would confirm that? I guess you do
+not have the possibility to open the case and check ;)
 
-I really appreciate your work. Thank you!
+The sensors-detect script should have detected the chip and suggested the
+lm90 driver, not adm1021. Didn't it? Please provide the full log of
+sensors-detect *after* you unload the adm1021 driver.
 
-Greetings,
-Stefan
+--
+Jean Delvare
