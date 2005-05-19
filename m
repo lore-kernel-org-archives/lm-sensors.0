@@ -1,54 +1,44 @@
-From: jui_cell@yahoo.com (Jui Cell)
-Date: Thu, 19 May 2005 06:23:50 +0000
-Subject: Embedded computer card
-Message-Id: <200303200636.h2K6a8lH023559@fembeddeed.mulik.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:44 +0000
+Subject: [PATCH 2.6] I2C: Recognize new revision of the ADT7463 chip
+Message-Id: <20050318232011.2baa8e11.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200303200636.h2K6a7ii023554@fembeddeed.mulik.com>
-In-Reply-To: <200303200636.h2K6a7ii023554@fembeddeed.mulik.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-  JUKI-730-M2 embedded computer system card for only US$ 287
+Hi Greg,
 
-  Features:
+This simple patch to the lm85 driver adds recognition of a new revision
+of the ADT7463 chip.
 
-    . Half size ISA SBC (single board computer) 
+Please apply,
+thanks.
 
-    . Built-in Intel i386SX 40MHz processor
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-    . ALi M6117 chipset / AMI flash BIOS
+--- linux-2.6.11-mm3/drivers/i2c/chips/lm85.c.orig	2005-03-13 20:03:28.000000000 +0100
++++ linux-2.6.11-mm3/drivers/i2c/chips/lm85.c	2005-03-18 23:03:42.000000000 +0100
+@@ -74,6 +74,7 @@
+ #define	LM85_VERSTEP_LM85B		0x62
+ #define	LM85_VERSTEP_ADM1027		0x60
+ #define	LM85_VERSTEP_ADT7463		0x62
++#define	LM85_VERSTEP_ADT7463C		0x6A
+ #define	LM85_VERSTEP_EMC6D100_A0        0x60
+ #define	LM85_VERSTEP_EMC6D100_A1        0x61
+ 
+@@ -1089,7 +1090,8 @@
+ 		    && verstep = LM85_VERSTEP_ADM1027 ) {
+ 			kind = adm1027 ;
+ 		} else if( company = LM85_COMPANY_ANALOG_DEV
+-		    && verstep = LM85_VERSTEP_ADT7463 ) {
++		    && (verstep = LM85_VERSTEP_ADT7463
++			 || verstep = LM85_VERSTEP_ADT7463C) ) {
+ 			kind = adt7463 ;
+ 		} else if( company = LM85_COMPANY_ANALOG_DEV
+ 		    && (verstep & LM85_VERSTEP_VMASK) = LM85_VERSTEP_GENERIC ) {
 
-    . 2MB of RAM built-in (up to 32MB EDO RAM supported)
 
-    . HM86508 LCD/CRT VGA controller on board with 1MB V-RAM
-
-    . 4 serial ports (3 RS-232, 1 RS-422/485)
-
-    . 1 parallel port (SPP/EPP/ECP)
-
-    . 1 PIO-4 IDE port
-
-    . 1 DiskOnChip(tm) socket
-
-    . 1 floppy port
-
-    . Built-in hardware watchdog timer for uninterrupt operation
-
-    . PC/104 expansion connector for add-on cards
-
-    . Non-volatile 1Kbit E2Key(tm) EEPROM to retain application
-      critical read/write data
-
-  * 127 cards available
-  * All cards fully tested 
-  * Price: US$ 287 each
-  * Shipping and handling NOT included
-  * Import/export taxes (if any) NOT included
-  * Minimum of 20 cards per order
-
-  Notice: This is BRAND NEW UNUSED equipament bought for a project which
-	  didn't use all cards
-
-  Contact: jui_cell@yahoo.com
+-- 
+Jean Delvare
