@@ -1,40 +1,26 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: [b.langmann@gmx.de: Posting about bt869]
-Message-Id: <20040520205307.GA1720@frodo.local>
+From: soppscum@online.no (Michael)
+Date: Thu, 19 May 2005 06:23:44 +0000
+Subject: sensors segfaults with glibc2.3.1
+Message-Id: <200212161408.PAA05030@mail44.fg.online.no>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Benjamin Langmann <b.langmann@gmx.de> -----
+(gdb) run
+Starting program: /usr/local/bin/sensors 
 
-X-Authenticated: #143284
-From: Benjamin Langmann <b.langmann@gmx.de>
-To: frodol@dds.nl
-Subject: Posting about bt869
-X-Virus-Scanned: clamd / ClamAV version 0.70, clamav-milter version 0.70j
-X-Spam-Checker-Version: SpamAssassin 2.63 (2004-01-11) on morannon.frodo.local
-X-Spam-Status: No, hits=0.6 required=5.0 tests=HTML_40_50,HTML_MESSAGE,
-	RCVD_IN_SORBS autolearn=no version=2.63
-X-Spam-Level: 
+Program received signal SIGSEGV, Segmentation fault.
+0x400c7184 in strcmp () from /lib/libc.so.6
+(gdb) backtrace
+#0  0x400c7184 in strcmp () from /lib/libc.so.6
+#1  0x4002b485 in sensors_match_chip () from /usr/local/lib/libsensors.so.1
+#2  0x0804915c in do_the_real_work ()
+#3  0x08049069 in main ()
+#4  0x40063bb4 in __libc_start_main () from /lib/libc.so.6
 
-Hello,
-i saw your posting about the voodoo3 bt869 chip in the beginning of this year.
-Did you managed to get the chip working with the 2.6 kernel?
-If you did, could you pplease send me the souce code?
-And if you don't and still got the files, could you send me them too? :)
-I would like to try to get it to work, and want to save me some time.
+I tested the exact same binary in a chroot with glibc 2.2.5 and it runs fine.
+Anyway hope this is the right place to "whine" =D
 
-Cu and thanks,
-Benjamin Langmann
-
-
------ End forwarded message -----
-
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Thanks.
