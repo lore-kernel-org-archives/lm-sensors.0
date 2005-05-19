@@ -1,139 +1,202 @@
-From: pgaige@cadesis.com (=?ISO-8859-1?Q?Gaig=E9_Pierre?=)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:24:02 +0000
 Subject: support for p4s8x motherboard
-Message-Id: <3EFA15C6.5020503@cadesis.com>
+Message-Id: <20030626031859.GB22687@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <3EFA15C6.5020503@cadesis.com>
+In-Reply-To: <3EFA15C6.5020503@cadesis.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sCgpJIGhhdmUgYSBQNFM4WCBtb3RoZXJib2FyZCBmcm9tIEFzdXN0ZWsuCk15IHN5c3Rl
-bSBpcyBNYW5kcmFrZSA5LjEgd2l0aCB0aGUgbGF0ZXN0IDIuNC4yMSBrZXJuZWwgZnJvbSBNYW5k
-cmFrZSAKVXBkYXRlLiBJIGhhdmUganVzdCBpbnN0YWxsIHRoZSBsYXRlc3QgaTJjIGFuZCBsbV9z
-ZW5zb3JzIGZyb20gQ1ZTIGJ1dCBJIAphbSBub3QgYWJsZSB0byBtYWtlIHRoZW0gd29yayAoWW91
-ciB3ZWIgc2l0ZSBhbm5vdW5jZSB0aGF0IHRoZXNlIApjb21iaW5hdGlvbiAtIDY0OC85NjEgLSBz
-aG91bGQgYmUgc3VwcG9ydGVkIHdpdGggdGhlIENWUyB2ZXJzaW9uKS4gSSBhbSAKbm90IGEgZGV2
-ZWxvcHBlciBzbyBJIGNhbid0IGhlbHAgeW91IG11Y2ggYnV0IGhlcmUgaXMgdGhlIHJlc3VsdHMg
-b2YgdGhlIApkaWZmZXJlbnQgY29tbWFuZHMuCkkgaG9wZSBpdCBjYW4gaGVscCB5b3UgaW1wcm92
-ZSB5b3VyIGNvZGUuClRoYW5rcy4KCgoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqCnJlc3VsdCBvZiBzZW5zb3JzLWRldGVj
-dAoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqCltyb290QFBDIFNPVVJDRVNdIyBzZW5zb3JzLWRldGVjdAogIFRoaXMgcHJv
-Z3JhbSB3aWxsIGhlbHAgeW91IHRvIGRldGVybWluZSB3aGljaCBJMkMvU01CdXMgbW9kdWxlcyB5
-b3UgCm5lZWQgdG8KICBsb2FkIHRvIHVzZSBsbV9zZW5zb3JzIG1vc3QgZWZmZWN0aXZlbHkuCiAg
-WW91IG5lZWQgdG8gaGF2ZSBkb25lIGEgYG1ha2UgaW5zdGFsbCcsIGlzc3VlZCBhIGBkZXBtb2Qg
-LWEnIGFuZCBtYWRlIHN1cmUKICBgL2V0Yy9jb25mLm1vZHVsZXMnIChvciBgL2V0Yy9tb2R1bGVz
-LmNvbmYnKSBjb250YWlucyB0aGUgYXBwcm9wcmlhdGUKICBtb2R1bGUgcGF0aCBiZWZvcmUgeW91
-IGNhbiB1c2Ugc29tZSBmdW5jdGlvbnMgb2YgdGhpcyB1dGlsaXR5LiBSZWFkCiAgZG9jL21vZHVs
-ZXMgZm9yIG1vcmUgaW5mb3JtYXRpb24uCiAgQWxzbywgeW91IG5lZWQgdG8gYmUgYHJvb3QnLCBv
-ciBhdCBsZWFzdCBoYXZlIGFjY2VzcyB0byB0aGUgCi9kZXYvaTJjWy0vXSogZmlsZXMKICBmb3Ig
-c29tZSB0aGluZ3MuIFlvdSBjYW4gdXNlIHByb2cvbWtkZXYvbWtkZXYuc2ggdG8gY3JlYXRlIHRo
-ZXNlIC9kZXYgCmZpbGVzCiAgaWYgeW91IGRvIG5vdCBoYXZlIHRoZW0gYWxyZWFkeS4KICBJZiB5
-b3UgaGF2ZSBwYXRjaGVkIHlvdXIga2VybmVsIGFuZCBoYXZlIHNvbWUgZHJpdmVycyBidWlsdC1p
-biB5b3UgY2FuCiAgc2FmZWx5IGFuc3dlciBOTyBpZiBhc2tlZCB0byBsb2FkIHNvbWUgbW9kdWxl
-cy4gSW4gdGhpcyBjYXNlLCB0aGluZ3MgbWF5CiAgc2VlbSBhIGJpdCBjb25mdXNpbmcsIGJ1dCB0
-aGV5IHdpbGwgc3RpbGwgd29yay4KCiAgQklPUyB2ZW5kb3IgKEFDUEkpOiBBU1VTCiAgU3lzdGVt
-IHZlbmRvciAoRE1JKTogU3lzdGVtIE1hbnVmYWN0dXJlcgogIEJJT1MgdmVyc2lvbiAoRE1JKTog
-QVNVUyBQNFM4WCBBQ1BJIEJJT1MgUmV2aXNpb24gMTAwNAogIFdlIGNhbiBzdGFydCB3aXRoIHBy
-b2JpbmcgZm9yIChQQ0kpIEkyQyBvciBTTUJ1cyBhZGFwdGVycy4KICBZb3UgZG8gbm90IG5lZWQg
-YW55IHNwZWNpYWwgcHJpdmlsZWdlcyBmb3IgdGhpcy4KICBEbyB5b3Ugd2FudCB0byBwcm9iZSBu
-b3c/IChZRVMvbm8pOgpQcm9iaW5nIGZvciBQQ0kgYnVzIGFkYXB0ZXJzLi4uClVzZSBkcml2ZXIg
-YGkyYy1zaXM2NDUnIGZvciBkZXZpY2UgMDA6MDAuMDogU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3Rl
-bXMgClNJUzY0OApQcm9iZSBzdWNjZXNmdWxseSBjb25jbHVkZWQuCgogIFdlIHdpbGwgbm93IHRy
-eSB0byBsb2FkIGVhY2ggYWRhcHRlciBtb2R1bGUgaW4gdHVybi4KTW9kdWxlIGBpMmMtc2lzNjQ1
-JyBhbHJlYWR5IGxvYWRlZC4KICBEbyB5b3Ugbm93IHdhbnQgdG8gYmUgcHJvbXB0ZWQgZm9yIG5v
-bi1kZXRlY3RhYmxlIGFkYXB0ZXJzPyAoeWVzL05PKTogeWVzCkxvYWQgYGkyYy1lbGVrdG9yJyAo
-c2F5IE5PIGlmIGJ1aWx0IGludG8geW91ciBrZXJuZWwpPyAoWUVTL25vKToKbW9kcHJvYmU6IENh
-bid0IGxvY2F0ZSBtb2R1bGUgaTJjLWVsZWt0b3IKTG9hZGluZyBmYWlsZWQuLi4gc2tpcHBpbmcu
-CkxvYWQgYGkyYy1lbHYnIChzYXkgTk8gaWYgYnVpbHQgaW50byB5b3VyIGtlcm5lbCk/IChZRVMv
-bm8pOgovbGliL21vZHVsZXMvMi40LjIxLTAuMThtZGtjdXN0b20va2VybmVsL2RyaXZlcnMvaTJj
-L2kyYy1lbHYubzogCmluaXRfbW9kdWxlOiBObyBzdWNoIGRldmljZQpIaW50OiBpbnNtb2QgZXJy
-b3JzIGNhbiBiZSBjYXVzZWQgYnkgaW5jb3JyZWN0IG1vZHVsZSBwYXJhbWV0ZXJzLCAKaW5jbHVk
-aW5nIGludmFsaWQgSU8gb3IgSVJRIHBhcmFtZXRlcnMuCiAgICAgICBZb3UgbWF5IGZpbmQgbW9y
-ZSBpbmZvcm1hdGlvbiBpbiBzeXNsb2cgb3IgdGhlIG91dHB1dCBmcm9tIGRtZXNnCm1vZHByb2Jl
-OiBpbnNtb2QgCi9saWIvbW9kdWxlcy8yLjQuMjEtMC4xOG1ka2N1c3RvbS9rZXJuZWwvZHJpdmVy
-cy9pMmMvaTJjLWVsdi5vIGZhaWxlZAptb2Rwcm9iZTogaW5zbW9kIGkyYy1lbHYgZmFpbGVkCkxv
-YWRpbmcgZmFpbGVkLi4uIHNraXBwaW5nLgpMb2FkIGBpMmMtcGhpbGlwcy1wYXInIChzYXkgTk8g
-aWYgYnVpbHQgaW50byB5b3VyIGtlcm5lbCk/IChZRVMvbm8pOgpNb2R1bGUgbG9hZGVkIHN1Y2Nl
-c2Z1bGx5LgpMb2FkIGBpMmMtdmVsbGVtYW4nIChzYXkgTk8gaWYgYnVpbHQgaW50byB5b3VyIGtl
-cm5lbCk/IChZRVMvbm8pOgovbGliL21vZHVsZXMvMi40LjIxLTAuMThtZGtjdXN0b20va2VybmVs
-L2RyaXZlcnMvaTJjL2kyYy12ZWxsZW1hbi5vOiAKaW5pdF9tb2R1bGU6IE5vIHN1Y2ggZGV2aWNl
-CkhpbnQ6IGluc21vZCBlcnJvcnMgY2FuIGJlIGNhdXNlZCBieSBpbmNvcnJlY3QgbW9kdWxlIHBh
-cmFtZXRlcnMsIAppbmNsdWRpbmcgaW52YWxpZCBJTyBvciBJUlEgcGFyYW1ldGVycy4KICAgICAg
-IFlvdSBtYXkgZmluZCBtb3JlIGluZm9ybWF0aW9uIGluIHN5c2xvZyBvciB0aGUgb3V0cHV0IGZy
-b20gZG1lc2cKbW9kcHJvYmU6IGluc21vZCAKL2xpYi9tb2R1bGVzLzIuNC4yMS0wLjE4bWRrY3Vz
-dG9tL2tlcm5lbC9kcml2ZXJzL2kyYy9pMmMtdmVsbGVtYW4ubyBmYWlsZWQKbW9kcHJvYmU6IGlu
-c21vZCBpMmMtdmVsbGVtYW4gZmFpbGVkCkxvYWRpbmcgZmFpbGVkLi4uIHNraXBwaW5nLgogIFRv
-IGNvbnRpbnVlLCB3ZSBuZWVkIG1vZHVsZSBgaTJjLWRldicgdG8gYmUgbG9hZGVkLgogIElmIGl0
-IGlzIGJ1aWx0LWluIGludG8geW91ciBrZXJuZWwsIHlvdSBjYW4gc2FmZWx5IHNraXAgdGhpcy4K
-aTJjLWRldiBpcyBhbHJlYWR5IGxvYWRlZC4KCiAgV2UgYXJlIG5vdyBnb2luZyB0byBkbyB0aGUg
-YWRhcHRlciBwcm9iaW5ncy4gU29tZSBhZGFwdGVycyBtYXkgaGFuZyAKaGFsZndheQogIHRocm91
-Z2g7IHdlIGNhbid0IHJlYWxseSBoZWxwIHRoYXQuIEFsc28sIHNvbWUgY2hpcHMgd2lsbCBiZSBk
-b3VibGUgCmRldGVjdGVkOwogIHdlIGNob29zZSB0aGUgb25lIHdpdGggdGhlIGhpZ2hlc3QgY29u
-ZmlkZW5jZSB2YWx1ZSBpbiB0aGF0IGNhc2UuCiAgSWYgeW91IGZvdW5kIHRoYXQgdGhlIGFkYXB0
-ZXIgaHVuZyBhZnRlciBwcm9iaW5nIGEgY2VydGFpbiBhZGRyZXNzLCAKeW91IGNhbgogIHNwZWNp
-ZnkgdGhhdCBhZGRyZXNzIHRvIHJlbWFpbiB1bnByb2JlZC4gVGhhdCBvZnRlbgogIGluY2x1ZGVz
-IGFkZHJlc3MgMHg2OSAoY2xvY2sgY2hpcCkuClNlZ21lbnRhdGlvbiBmYXVsdAoKCioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioKSW5mb3JtYXRpb24gc3VwcGxpZWQgYnkgZG1lc2cKKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgppMmMtZWx2Lm86IGky
-YyBFTFYgcGFyYWxsZWwgcG9ydCBhZGFwdGVyIG1vZHVsZSB2ZXJzaW9uIDIuOC4wLUNWUyAoMjAw
-M3h4eHgpCmkyYy12ZWxsZW1hbi5vOiBpMmMgVmVsbGVtYW4gSzgwMDAgYWRhcHRlciBtb2R1bGUg
-dmVyc2lvbiAyLjguMC1DVlMgCigyMDAzeHh4eCkKVW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgcGFn
-aW5nIHJlcXVlc3QgYXQgdmlydHVhbCBhZGRyZXNzIDAwMDQwMDMxCiAgcHJpbnRpbmcgZWlwOgpl
-MjU1YmFhNQoqcGRlID0gMDAwMDAwMDAKT29wczogMDAwMApzZyBzbmQtcGNtLW9zcyBzbmQtbWl4
-ZXItb3NzIHBwZGV2IGkyYy1kZXYgaTJjLXBoaWxpcHMtcGFyIGkyYy1hbGdvLWJpdCAKaTJjLXNp
-czY0NSBvaGNpMTM5NCBpZWVlMTM5NCBzbmQtaW50ZWw4eDAgc25kLXBjbSBzbmQtdGltZXIgc25k
-LW1wdTQwMS11YXJ0CnNuZC1yYXdtaWRpIHNuZC1zZXEtZGV2aWNlIHNuZC1hYzk3LWNvZGVjIHNu
-ZC1wYWdlLWFsbG9jIHNuZCBlaGNpLWhjZCAKZW11MTBrMS1ncCBnYW1lcG9ydCBpMmMtY29yZSB1
-ZGYgc3JfbW9kIGZsb3BweSBiaW5mbXRfbWlzYyBscCBudmlkaWEgCnBhcnBvcnRfcGMgcGFycG9y
-dCBpcHRfVE9TIGlwdF9NQVNRVUVSQURFIGlwdF9MT0cgaXB0X1JFSkVDVCBpcHRfc3RhdGUgCmlw
-dGFibGVfbWFuZ2xlIGlwX25hdF9pcmMgaXBfbmF0X2Z0cCBpcHRhYmxlX25hdCBpcF9jb25udHJh
-Y2tfaXJjIAppcF9jb25udHJhY2tfZnRwIGlwX2Nvbm50cmFjayBpcHRhYmxlX2ZpbHRlciBpcF90
-YWJsZXMgYXVkaWd5IGFjOTdfY29kZWMgCnNvdW5kIHNvdW5kY29yZSBwcHBfYXN5bmMgcHBwX2dl
-bmVyaWMgc2xoYyBzaXM5MDAgYWZfcGFja2V0IApubHNfaXNvODg1OS0xNSBhY20gbnRmcyBzdXBl
-cm1vdW50CmlkZS1jZCBjZHJvbSBpZGUtc2NzaSBzY3NpX21vZCB1c2Jtb3VzZSBrZXliZGV2IG1v
-dXNlZGV2IGFkaXVzYmFkc2wgCnNjYW5uZXIgaGlkIGlucHV0IHVzYi1vaGNpIHVzYmNvcmUgcnRj
-IGV4dDMgamJkCkNQVTogICAgMApFSVA6ICAgIDAwMTA6WzxlMjU1YmFhNT5dICAgIFRhaW50ZWQ6
-IFBGCkVGTEFHUzogMDAyMTAyMDYKRUlQIGlzIGF0IHJlYWRfYnVzX2kyYysweDU1LzB4YzAgW2ky
-Yy1jb3JlXQplYXg6IDAwMDQwMDA5ICAgZWJ4OiAwMDAwMDAwNiAgIGVjeDogZmZmZmZmZmIgICBl
-ZHg6IGUyNTVlMjllCmVzaTogMDAwMDAwMDAgICBlZGk6IGQ3MWMyMDAwICAgZWJwOiAwMDAwMGMw
-MCAgIGVzcDogZDE4OTFmNDQKZHM6IDAwMTggICBlczogMDAxOCAgIHNzOiAwMDE4ClByb2Nlc3Mg
-c2Vuc29ycy1kZXRlY3QgKHBpZDogMTYxOTIsIHN0YWNrcGFnZdE4OTEwMDApClN0YWNrOiBkMTg5
-MWY5NCBjMDEzNTE1ZCBjMDM0MGU2YyBkM2UzNWYwMCAwMDAwMGMwMCBkNzFjMjAwMCBkMTg5MWY5
-OCAKYzAxNjNlNjMKICAgICAgICBkNzFjMjAwMCBkMTg5MWY4OCAwMDAwMDAwMCAwMDAwMGMwMCBk
-MTg5MWY4NCAwMDAwMDAwMCBkNmRmZTYyMCAKMDAwMDAwMDAKICAgICAgICAwMDAwMDAwMCAwMDAw
-MDAwMCAwODI2YjdkMCBkM2UzNWVlMCAwMDAwMTAwMCBkMTg5MWZiYyBjMDE0MzhjNCAKZDNlMzVl
-ZTAKQ2FsbCBUcmFjZToKICBbPGMwMTM1MTVkPl0gZG9fYnJrKzB4ZmQvMHgxZTAgW2tlcm5lbF0K
-ICBbPGMwMTYzZTYzPl0gcHJvY19maWxlX3JlYWQrMHhhMy8weDFjMCBba2VybmVsXQogIFs8YzAx
-NDM4YzQ+XSBzeXNfcmVhZCsweDg0LzB4MTAwIFtrZXJuZWxdCiAgWzxjMDEwOTA5Mz5dIHN5c3Rl
-bV9jYWxsKzB4MzMvMHg0MCBba2VybmVsXQoKQ29kZTogOGIgNTAgMjggODUgZDIgNzQgNDYgOGIg
-NDAgMjQgODUgYzAgNzQgMzYgNTAgNTAgNjggOWYgZTIgNTUKCioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKUmVzdWx0IG9m
-IGxzcGNpCioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioKMDA6MDAuMCBIb3N0IGJyaWRnZTogU2lsaWNvbiBJbnRlZ3JhdGVk
-IFN5c3RlbXMgW1NpU106IFVua25vd24gZGV2aWNlIAowNjQ4IChyZXYgMDIpCjAwOjAxLjAgUENJ
-IGJyaWRnZTogU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3RlbXMgW1NpU10gU2lTIDUzMCBWaXJ0dWFs
-IApQQ0ktdG8tUENJIGJyaWRnZSAoQUdQKQowMDowMi4wIElTQSBicmlkZ2U6IFNpbGljb24gSW50
-ZWdyYXRlZCBTeXN0ZW1zIFtTaVNdOiBVbmtub3duIGRldmljZSAKMDk2MyAocmV2IDA0KQowMDow
-Mi4xIFNNQnVzOiBTaWxpY29uIEludGVncmF0ZWQgU3lzdGVtcyBbU2lTXTogVW5rbm93biBkZXZp
-Y2UgMDAxNgowMDowMi4zIEZpcmVXaXJlIChJRUVFIDEzOTQpOiBTaWxpY29uIEludGVncmF0ZWQg
-U3lzdGVtcyBbU2lTXSBGaXJlV2lyZSAKQ29udHJvbGxlcgowMDowMi41IElERSBpbnRlcmZhY2U6
-IFNpbGljb24gSW50ZWdyYXRlZCBTeXN0ZW1zIFtTaVNdIDU1MTMgW0lERV0KMDA6MDIuNyBNdWx0
-aW1lZGlhIGF1ZGlvIGNvbnRyb2xsZXI6IFNpbGljb24gSW50ZWdyYXRlZCBTeXN0ZW1zIFtTaVNd
-IApTaVM3MDEyIFBDSSBBdWRpbyBBY2NlbGVyYXRvciAocmV2IGEwKQowMDowMy4wIFVTQiBDb250
-cm9sbGVyOiBTaWxpY29uIEludGVncmF0ZWQgU3lzdGVtcyBbU2lTXSBTaVM3MDAxIFVTQiAKQ29u
-dHJvbGxlciAocmV2IDBmKQowMDowMy4xIFVTQiBDb250cm9sbGVyOiBTaWxpY29uIEludGVncmF0
-ZWQgU3lzdGVtcyBbU2lTXSBTaVM3MDAxIFVTQiAKQ29udHJvbGxlciAocmV2IDBmKQowMDowMy4y
-IFVTQiBDb250cm9sbGVyOiBTaWxpY29uIEludGVncmF0ZWQgU3lzdGVtcyBbU2lTXSBTaVM3MDAx
-IFVTQiAKQ29udHJvbGxlciAocmV2IDBmKQowMDowMy4zIFVTQiBDb250cm9sbGVyOiBTaWxpY29u
-IEludGVncmF0ZWQgU3lzdGVtcyBbU2lTXSBTaVM3MDAyIFVTQiAyLjAKMDA6MDQuMCBFdGhlcm5l
-dCBjb250cm9sbGVyOiBTaWxpY29uIEludGVncmF0ZWQgU3lzdGVtcyBbU2lTXSBTaVM5MDAgCjEw
-LzEwMCBFdGhlcm5ldCAocmV2IDkxKQowMDowYy4wIE11bHRpbWVkaWEgYXVkaW8gY29udHJvbGxl
-cjogQ3JlYXRpdmUgTGFicyBTQiBMaXZlISBFTVUxMGsxIChyZXYgMGEpCjAwOjBjLjEgSW5wdXQg
-ZGV2aWNlIGNvbnRyb2xsZXI6IENyZWF0aXZlIExhYnMgU0IgTGl2ZSEgTUlESS9HYW1lIFBvcnQg
-CihyZXYgMGEpCjAwOjBlLjAgUkFJRCBidXMgY29udHJvbGxlcjogUHJvbWlzZSBUZWNobm9sb2d5
-LCBJbmMuIFBEQzIwMzc2IChyZXYgMDIpCjAxOjAwLjAgVkdBIGNvbXBhdGlibGUgY29udHJvbGxl
-cjogblZpZGlhIENvcnBvcmF0aW9uIE5WMjggW0dlRm9yY2U0IFRpIAo0MjAwIEFHUCA4eF0gKHJl
-diBhMSkKCgoK
+* Gaig? Pierre <pgaige@cadesis.com> [2003-06-25 23:36:06 +0200]:
+> Hello,
+>=20
+> I have a P4S8X motherboard from Asustek.
+> My system is Mandrake 9.1 with the latest 2.4.21 kernel from Mandrake=20
+> Update. I have just install the latest i2c and lm_sensors from CVS but I =
+
+> am not able to make them work (Your web site announce that these=20
+> combination - 648/961 - should be supported with the CVS version). I am=20
+
+Your lspci output says 648/963.  Shouldn't matter though, that is
+supported in CVS also.
+
+> not a developper so I can't help you much but here is the results of the =
+
+> different commands.
+> I hope it can help you improve your code.
+> Thanks.
+
+I suggest that you answer "no" to the question "Do you want to be prompted
+for non-detectable adapters" when using sensors-detect.
+
+I tried to repeat your results here (on my 645/961) but I could not.
+My only other advice is to make sure that you have removed any sensors
+or i2c packages which come with your distribution.
+
+>=20
+> *******************************************************************
+> result of sensors-detect
+> *******************************************************************
+> [root@PC SOURCES]# sensors-detect
+>  This program will help you to determine which I2C/SMBus modules you=20
+> need to
+>  load to use lm_sensors most effectively.
+>  You need to have done a `make install', issued a `depmod -a' and made su=
+re
+>  `/etc/conf.modules' (or `/etc/modules.conf') contains the appropriate
+>  module path before you can use some functions of this utility. Read
+>  doc/modules for more information.
+>  Also, you need to be `root', or at least have access to the=20
+> /dev/i2c[-/]* files
+>  for some things. You can use prog/mkdev/mkdev.sh to create these /dev=20
+> files
+>  if you do not have them already.
+>  If you have patched your kernel and have some drivers built-in you can
+>  safely answer NO if asked to load some modules. In this case, things may
+>  seem a bit confusing, but they will still work.
+>=20
+>  BIOS vendor (ACPI): ASUS
+>  System vendor (DMI): System Manufacturer
+>  BIOS version (DMI): ASUS P4S8X ACPI BIOS Revision 1004
+>  We can start with probing for (PCI) I2C or SMBus adapters.
+>  You do not need any special privileges for this.
+>  Do you want to probe now? (YES/no):
+> Probing for PCI bus adapters...
+> Use driver `i2c-sis645' for device 00:00.0: Silicon Integrated Systems=20
+> SIS648
+> Probe succesfully concluded.
+>=20
+>  We will now try to load each adapter module in turn.
+> Module `i2c-sis645' already loaded.
+>  Do you now want to be prompted for non-detectable adapters? (yes/NO): yes
+> Load `i2c-elektor' (say NO if built into your kernel)? (YES/no):
+> modprobe: Can't locate module i2c-elektor
+> Loading failed... skipping.
+> Load `i2c-elv' (say NO if built into your kernel)? (YES/no):
+> /lib/modules/2.4.21-0.18mdkcustom/kernel/drivers/i2c/i2c-elv.o:=20
+> init_module: No such device
+> Hint: insmod errors can be caused by incorrect module parameters,=20
+> including invalid IO or IRQ parameters.
+>       You may find more information in syslog or the output from dmesg
+> modprobe: insmod=20
+> /lib/modules/2.4.21-0.18mdkcustom/kernel/drivers/i2c/i2c-elv.o failed
+> modprobe: insmod i2c-elv failed
+> Loading failed... skipping.
+> Load `i2c-philips-par' (say NO if built into your kernel)? (YES/no):
+> Module loaded succesfully.
+> Load `i2c-velleman' (say NO if built into your kernel)? (YES/no):
+> /lib/modules/2.4.21-0.18mdkcustom/kernel/drivers/i2c/i2c-velleman.o:=20
+> init_module: No such device
+> Hint: insmod errors can be caused by incorrect module parameters,=20
+> including invalid IO or IRQ parameters.
+>       You may find more information in syslog or the output from dmesg
+> modprobe: insmod=20
+> /lib/modules/2.4.21-0.18mdkcustom/kernel/drivers/i2c/i2c-velleman.o failed
+> modprobe: insmod i2c-velleman failed
+> Loading failed... skipping.
+>  To continue, we need module `i2c-dev' to be loaded.
+>  If it is built-in into your kernel, you can safely skip this.
+> i2c-dev is already loaded.
+>=20
+>  We are now going to do the adapter probings. Some adapters may hang=20
+> halfway
+>  through; we can't really help that. Also, some chips will be double=20
+> detected;
+>  we choose the one with the highest confidence value in that case.
+>  If you found that the adapter hung after probing a certain address,=20
+> you can
+>  specify that address to remain unprobed. That often
+>  includes address 0x69 (clock chip).
+> Segmentation fault
+>=20
+>=20
+> *******************************************************************
+> Information supplied by dmesg
+> *******************************************************************
+> i2c-elv.o: i2c ELV parallel port adapter module version 2.8.0-CVS (2003xx=
+xx)
+> i2c-velleman.o: i2c Velleman K8000 adapter module version 2.8.0-CVS=20
+> (2003xxxx)
+> Unable to handle kernel paging request at virtual address 00040031
+>  printing eip:
+> e255baa5
+> *pde =3D 00000000
+> Oops: 0000
+> sg snd-pcm-oss snd-mixer-oss ppdev i2c-dev i2c-philips-par i2c-algo-bit=20
+> i2c-sis645 ohci1394 ieee1394 snd-intel8x0 snd-pcm snd-timer snd-mpu401-ua=
+rt
+> snd-rawmidi snd-seq-device snd-ac97-codec snd-page-alloc snd ehci-hcd=20
+> emu10k1-gp gameport i2c-core udf sr_mod floppy binfmt_misc lp nvidia=20
+> parport_pc parport ipt_TOS ipt_MASQUERADE ipt_LOG ipt_REJECT ipt_state=20
+> iptable_mangle ip_nat_irc ip_nat_ftp iptable_nat ip_conntrack_irc=20
+> ip_conntrack_ftp ip_conntrack iptable_filter ip_tables audigy ac97_codec =
+
+> sound soundcore ppp_async ppp_generic slhc sis900 af_packet=20
+> nls_iso8859-15 acm ntfs supermount
+> ide-cd cdrom ide-scsi scsi_mod usbmouse keybdev mousedev adiusbadsl=20
+> scanner hid input usb-ohci usbcore rtc ext3 jbd
+> CPU:    0
+> EIP:    0010:[<e255baa5>]    Tainted: PF
+> EFLAGS: 00210206
+> EIP is at read_bus_i2c+0x55/0xc0 [i2c-core]
+> eax: 00040009   ebx: 00000006   ecx: fffffffb   edx: e255e29e
+> esi: 00000000   edi: d71c2000   ebp: 00000c00   esp: d1891f44
+> ds: 0018   es: 0018   ss: 0018
+> Process sensors-detect (pid: 16192, stackpage=D1891000)
+> Stack: d1891f94 c013515d c0340e6c d3e35f00 00000c00 d71c2000 d1891f98=20
+> c0163e63
+>        d71c2000 d1891f88 00000000 00000c00 d1891f84 00000000 d6dfe620=20
+> 00000000
+>        00000000 00000000 0826b7d0 d3e35ee0 00001000 d1891fbc c01438c4=20
+> d3e35ee0
+> Call Trace:
+>  [<c013515d>] do_brk+0xfd/0x1e0 [kernel]
+>  [<c0163e63>] proc_file_read+0xa3/0x1c0 [kernel]
+>  [<c01438c4>] sys_read+0x84/0x100 [kernel]
+>  [<c0109093>] system_call+0x33/0x40 [kernel]
+>=20
+> Code: 8b 50 28 85 d2 74 46 8b 40 24 85 c0 74 36 50 50 68 9f e2 55
+>=20
+> *******************************************************************
+> Result of lspci
+> *******************************************************************
+> 00:00.0 Host bridge: Silicon Integrated Systems [SiS]: Unknown device=20
+> 0648 (rev 02)
+> 00:01.0 PCI bridge: Silicon Integrated Systems [SiS] SiS 530 Virtual=20
+> PCI-to-PCI bridge (AGP)
+> 00:02.0 ISA bridge: Silicon Integrated Systems [SiS]: Unknown device=20
+> 0963 (rev 04)
+> 00:02.1 SMBus: Silicon Integrated Systems [SiS]: Unknown device 0016
+> 00:02.3 FireWire (IEEE 1394): Silicon Integrated Systems [SiS] FireWire=20
+> Controller
+> 00:02.5 IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE]
+> 00:02.7 Multimedia audio controller: Silicon Integrated Systems [SiS]=20
+> SiS7012 PCI Audio Accelerator (rev a0)
+> 00:03.0 USB Controller: Silicon Integrated Systems [SiS] SiS7001 USB=20
+> Controller (rev 0f)
+> 00:03.1 USB Controller: Silicon Integrated Systems [SiS] SiS7001 USB=20
+> Controller (rev 0f)
+> 00:03.2 USB Controller: Silicon Integrated Systems [SiS] SiS7001 USB=20
+> Controller (rev 0f)
+> 00:03.3 USB Controller: Silicon Integrated Systems [SiS] SiS7002 USB 2.0
+> 00:04.0 Ethernet controller: Silicon Integrated Systems [SiS] SiS900=20
+> 10/100 Ethernet (rev 91)
+> 00:0c.0 Multimedia audio controller: Creative Labs SB Live! EMU10k1 (rev =
+0a)
+> 00:0c.1 Input device controller: Creative Labs SB Live! MIDI/Game Port=20
+> (rev 0a)
+> 00:0e.0 RAID bus controller: Promise Technology, Inc. PDC20376 (rev 02)
+> 01:00.0 VGA compatible controller: nVidia Corporation NV28 [GeForce4 Ti=20
+> 4200 AGP 8x] (rev a1)
+>=20
+>=20
+>=20
+
+Regards,
+
+--=20
+Mark M. Hoffman
+mhoffman@lightlink.com
