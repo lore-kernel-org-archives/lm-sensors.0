@@ -1,28 +1,63 @@
-From: pascal.ronecker@centrale-lille.net (Pascal Ronecker)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: [Fwd: sensors, kernel 2.4.19, bttv ...]
-Message-Id: <1067290077.2061.2.camel@lenny.homelinux.net>
+From: vsu@altlinux.ru (Sergey Vlasov)
+Date: Thu, 19 May 2005 06:24:29 +0000
+Subject: [PATCH] Fix lm_sensors installation with DESTDIR
+Message-Id: <20031213202108.GF1976@sirius.home>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1067191364.14649.3.camel@lenny.homelinux.net>
-In-Reply-To: <1067191364.14649.3.camel@lenny.homelinux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-You're right : it is done, and it works !
-Thanks for all, 
+Hello!
 
-I only have a few tweaks to do with the new kernel (udma support seem
-lazy, I missed a step somwhere as usually, but that's another short
-story :-) )
+The new lm_sensors-2.8.2 has some bugs in the newly added Module.mk
+files, therefore "make install DESTDIR=something" does not work.
 
-On Mon, 2003-10-27 at 22:10, Jean Delvare wrote:
-> > I'll finally upgrade to 2.4.22 kernel, to use the provided patch.
-> > But before doing that - as it is not that quick (recompiling nvidia
-> > drivers, alsa drivers, and what more?) : i'm using also lirc... and it
-> > seems that it requires also a patch. Will it be that complicated ?
-> 
-> There is a specific patch for lirc, that you'll find on the very same
-> page as the main patch. Both 0.6.6 and CVS versions are supported. So,
-> no, it shouldn't be difficult at all.
+This patch fixes the problem:
+
+--- lm_sensors-2.8.2/prog/pwm/Module.mk.install-fix	2003-10-28 04:41:47 +0300
++++ lm_sensors-2.8.2/prog/pwm/Module.mk	2003-12-13 22:53:00 +0300
+@@ -22,7 +22,8 @@
+                   $(MODULE_DIR)/pwmconfig
+ 
+ install-prog-pwm: $(PROGPWMTARGETS)
+-	$(INSTALL) -o root -g root -m 755 $(PROGPWMTARGETS) $(SBINDIR)
++	$(MKDIR) $(DESTDIR)$(SBINDIR)
++	$(INSTALL) -o root -g root -m 755 $(PROGPWMTARGETS) $(DESTDIR)$(SBINDIR)
+ 
+ user_install :: install-prog-pwm
+ 
+--- lm_sensors-2.8.2/prog/xeon/Module.mk.install-fix	2003-11-29 16:29:59 +0300
++++ lm_sensors-2.8.2/prog/xeon/Module.mk	2003-12-13 22:53:40 +0300
+@@ -21,7 +21,8 @@
+ PROGXEONTARGETS := $(MODULE_DIR)/decode-xeon.pl
+ 
+ install-prog-xeon: $(PROGXEONTARGETS)
+-	$(INSTALL) -o root -g root -m 755 $(PROGXEONTARGETS) $(BINDIR)
++	$(MKDIR) $(DESTDIR)$(BINDIR)
++	$(INSTALL) -o root -g root -m 755 $(PROGXEONTARGETS) $(DESTDIR)$(BINDIR)
+ 
+ user_install :: install-prog-xeon
+ 
+--- lm_sensors-2.8.2/prog/eeprom/Module.mk.install-fix	2003-11-29 16:29:59 +0300
++++ lm_sensors-2.8.2/prog/eeprom/Module.mk	2003-12-13 22:53:00 +0300
+@@ -23,7 +23,8 @@
+                      $(MODULE_DIR)/decode-vaio.pl
+ 
+ install-prog-eeprom: $(PROGEEPROMTARGETS)
+-	$(INSTALL) -o root -g root -m 755 $(PROGEEPROMTARGETS) $(BINDIR)
++	$(MKDIR) $(DESTDIR)$(BINDIR)
++	$(INSTALL) -o root -g root -m 755 $(PROGEEPROMTARGETS) $(DESTDIR)$(BINDIR)
+ 
+ user_install :: install-prog-eeprom
+ 
+
+Best regards,
+Sergey Vlasov
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031213/d4918a23/attachment.bin
