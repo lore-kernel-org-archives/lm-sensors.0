@@ -1,7 +1,7 @@
-From: kronos@kronoz.cjb.net (Kronos)
+From: jonsmirl@yahoo.com (Jon Smirl)
 Date: Thu, 19 May 2005 06:24:44 +0000
 Subject: I2C DDC display
-Message-Id: <20040228182552.GA5124@dreamland.darkstar.lan>
+Message-Id: <20040228191744.46400.qmail@web14911.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040228001023.4653.qmail@web14901.mail.yahoo.com>
 In-Reply-To: <20040228001023.4653.qmail@web14901.mail.yahoo.com>
@@ -10,75 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Il Sat, Feb 28, 2004 at 06:54:08PM +0100, Jean Delvare ha scritto: 
-> According to Jon, it's required only for some old monitors. BTW, Jon,
-> where did you get this information from?
+benh and I have been talking about moving all of the EDID processing and mode
+computations up into user space. This is about 100K of code that is used in
+frequently and really has no need to be in a device driver.  After the mode is
+computed the appropriate register values are passed in to the video driver. None
+of the user space code touches registers directly. The new klibc and initramfs
+support allow the mode to be set from userspace very early in the boot process
+via a hotplug event when the adapter is first detected.
 
-XFree driver.
+It would be preferable if the user space code for retrieving EDID was the same
+for all cards. One way to achive this is for the cards to implement I2C bus
+drivers and then we have a univeral DDC chip implementation. For example right
+now if you load benh's radeon driver the standard i2c eeprom chip module will
+pick up the EDID. Waking up the DDC chip is a monitor issue so all video cards
+will need to deal with it. That why I wanted to fix it in the chip driver
+instead of implementing it in each video driver.
 
-> Frankly, I don't see the point in handling these old monitors. At least,
-> I wouldn't support them unless someone specifically asks for it and
-> provides enough information for us to do the right thing.
+Finally, after we get a working version of an EDID driver, it would probably be
+best to go back and rework the eeprom driver to load decoder functions instead
+of having different drivers for each chip type. Right now there would be three
+implementations: EDID, RAM, generic. 
 
-Agreed, I'll talk to Benh about this issue.
+The user space code will use the eeprom image and decode the edid itself, but I
+need the wake-up DDC code in the kernel. The decoder functions will just be for
+optional fun so that the user can directly view the EDID or RAM contents.
 
-> As for where the code should be, I still think it is *not* possible to
-> put it in the chip driver. If I understand it correctly, before the
-> special sequence is send on the bus, the EDID does *not* respond to any
-> I2C address. This means that the ddcmon driver will *never* be called.
 
-That's not correct. You can remove the code that touches SDA/SCL but you
-need to activate i2c bus first:
+==Jon Smirl
+jonsmirl@yahoo.com
 
-OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUTPUT | VGA_DDC_CLK_OUTPUT));
-
-Btw, the voodoo code is the following:
-
-radeon_gpio_setscl(chan, 1);
-radeon_gpio_setsda(chan, 1);
-/* Looks like a start */
-radeon_gpio_setscl(chan, 1);
-wait for radeon_gpio_getscl(chan); /* ack ? */
-radeon_gpio_setsda(chan, 0);
-radeon_gpio_setscl(chan, 0);
-/* Stop ? */
-radeon_gpio_setsda(chan, 1);
-
-read EDID
-
-radeon_gpio_setsda(chan, 0);
-radeon_gpio_setscl(chan, 0);
-/* Stop ? */
-radeon_gpio_setscl(chan, 1);
-wait for radeon_gpio_getscl(chan); /* ack ? */
-radeon_gpio_setsda(chan, 1);
-/* Start */
-radeon_gpio_setsda(chan, 0);
-radeon_gpio_setscl(chan, 0);
-/* Stop again */
-
-It seems pointeless to me, but it comes from XFree radeon driver. Can
-you make any sense out of it?
-                                                                                
-> > Also, I don't think that is safe to attach a client to radeon DDC
-> > busses (yet). During probe I fiddle directly with the adapter (without
-> > any locking), if another client kicks in I fear that it will blow up.
-> > radeonfb should register its own clients for probing EDID, it's in my
-> > TODO list.
-> 
-> I have been trying it :) And it worked correctly. Anyway, the radeonfb
-> driver only probes the EDID at startup, right? So accessing it later
-> sounds safe.
-
-radeonfb can be build as a module, and we have a preemptible kernel... doh!
-
-> Thanks Kronos for entering the thread. I hadn't even realized you were
-> subscribed to the list.
-
-I'm not, but Jon put me on CC.
-
-Luca
--- 
-Home: http://kronoz.cjb.net
-Let me make your mind, leave yourself behind
-Be not afraid
+__________________________________
+Do you Yahoo!?
+Get better spam protection with Yahoo! Mail.
+http://antispam.yahoo.com/tools
