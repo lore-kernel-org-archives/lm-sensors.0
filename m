@@ -1,62 +1,76 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:20 +0000
-Subject: lm_sensors 2.8.1 test
-Message-Id: <20031007220754.129ba66c.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: i2c, lm_sensors, and 2.4.22
+Message-Id: <20030905235839.5e4fe2a9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200310071243.44286.lamar@synque.com>
-In-Reply-To: <200310071243.44286.lamar@synque.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> lm90-i2c-0-4c
-> Adapter: SMBus AMD75x adapter at 06e0
-> Algorithm: Non-I2C SMBus adapter
-> M/B Temp:    +45?C  (low =   +5?C, high =  +70?C)         
-> CPU Temp:  +55.6?C  (low =  +5.0?C, high = +70.0?C)         
-> tcrit1:      +85?C
-> tcrit2:      +85?C
-> hyst:        +10?C
+> I guess I am quick.  I did however patch the kernel (2.4.22) with the 
+> cumulative patch provided and noticed that my BTTV device started
+> giving Segmentation Faults (like it did in 2.4.21 without your patch).
+> I'm not sure of what's wrong, but I can provide some more info if you
+> need (or want) it to try to fix the problem.
 
-Looks great (except the alignment which is discussable, but that's not
-really important).
+I'm a bit astonished since I have been having success reports by other
+users. Another thing I am wondering about is why you say the patches are
+cumulative. My patches are *not* cumulative. There are two different
+(big) patches, one for 2.4.21, one for 2.4.22. You really have to start
+from a fresh 2.4.22 tree before applying the new 2.4.22 patch. If you
+thing my page is unclear about that, let me know and I'll add details
+where they are needed.
 
-> So yes, the lm90 (if that's what's on my MPX2)
+If you still can't get it to work, please detail which procedure you are
+using, and in particular where you do get your source tree from, how you
+apply my patch and which patch or set of patches it is, wether the patch
+command returns warnings, wether the compilation then returns warnings,
+and so on.
 
-Yes, it is.
+I myself tried the new 2.4.22 patch with my DC10+ and it worked OK. If
+something's wrong, it must be something specific to the BTTV modules.
 
-> is being read correctly (and with higher precision).
+>  On Sun, 31 Aug 2003, Jean Delvare wrote:
+> 
+> > 
+> > > I saw that you updated
+> > > 
+> > > http://www.ensicaen.ismra.fr/~delvare/devel/i2c
+> > 
+> > Yeah, you're quick, the updated wasn't even finished ;)
+> > 
+> > > to include the patch for 2.4.22.  However, it seems that the
+> > > permissions aren't set right on the file because I get a
+> > > "Forbidden" message in my browser when trying to access it.
+> > 
+> > I moved the patches into subdirectories and forgot to update all
+> > links in the web page. That's all fixed now.
+> > 
+> > I tested the whole think quickly and it seems to work. More testing
+> > will be welcome of course, since I just don't have the time to fully
+> > test everything. I'm *very* busy these days (taking a new job
+> > tomorrow)...
+> > 
+> > Thanks for your patience and let me know how it works for you! :)
+> > 
+> > -- 
+> > Jean Delvare
+> > http://www.ensicaen.ismra.fr/~delvare/
+> > 
+> 
+> #####################################################################
+> ######
+> Troy Henderson                  Office: Blocker Building 619
+> Department of Mathematics       Phone : (979) 845-7769
+> Texas A&M University            E-mail: thenders@math.tamu.edu
+> College Station, TX 77845       URL   :
+> http://www.math.tamu.edu/~thenders
+> #####################################################################
+> ######
+> 
 
-Obviously, we could live without the extra precision, but that's a funny
-feature.
-
-> Apparently only CPU0 is supported, I didn't see anything in the docs
-> or configuration filers that would suggest otherwise, so I assume you
-> haven't been able to incorporate Alex's suggestion yet. Let me know if
-> my assumption is wrong and there is something else for me to test.
-
-No, you're right. I'll need some time to implement what Alex suggested.
-It's something relatively new for us, and I don't know how we can handle
-this both cleanly and user-friendly.
-
-> I also think the reporting is cleaned up a bit over 2.8.0.
-> Before I was getting temperature readings reported for the
-> adapter and the chip, in 2.8.1 it is much nicer (unless I
-> had something configured wrong before).
-
-I don't really understand what you mean, so yes, you must have had
-something strangely configured before.
-
-> What is the meaning/purpose of tcrit over temp_high?
-
-They generate different signals when reached. The exact actions depend
-on how your hardware is wired. For example, being over temp_high may
-trigger an extra fan or CPU throttling, while being over tcrit would
-shut down the system. Read the LM90 data sheet if your interested in the
-details:
-http://www.national.com/pf/LM/LM90.html
 
 -- 
 Jean Delvare
