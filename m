@@ -1,17 +1,43 @@
-From: cwingert@qualcomm.com (Christopher Wingert)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Soyo Dragon IT8705F
-Message-Id: <200203261804.g2QI4X0a027823@logansrun.qualcomm.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: High, low and crit are in a boat...
+Message-Id: <20030814183949.5d14ed41.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200203251944.g2PJihZQ004922@logansrun.qualcomm.com>
-In-Reply-To: <200203251944.g2PJihZQ004922@logansrun.qualcomm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Nevermind, figured it out.
 
-                                    Regards,
-                                        Christopher
+Hi all,
 
+I'm on my way to finish the lm90 driver and am facing one more problem.
+This chipset has, for each temperature sensor, a high limit, a low
+limit, and a critical limit (plus a common, relative hysteresis value,
+but that's not the point here). I am wondering in which order I should
+make them appear in the procfs entries. As far as I could see, the only
+chipset offering more than two limits per temperature sensor is the
+lm92. Unfortunately, the order in use here is so bad that I won't use
+it, for sure. The oder is: current, high, low, crit, hyst. All other
+drivers have the current value last, and I want to stick to that. I
+think that the first value should always be high or critical, since
+these are the values people will want to change the more frequently.
+Apart from that, I admit I have no strong opinion, so if anyone has,
+speak up.
+
+Wouldn't it be great to define an order once and for all, so that all
+drivers behave the same wrt this point?
+
+My proposal would be to place higher values first, down to lower ones,
+for all values that are absolute. Then the relative values (I'm mostly
+thinking to chipsets where you can set a relative hysteresis for each
+sensor, and this value applies to all other limits for that sensor). And
+finally the current, read-only value.
+
+So in my case this would be: crit, high, low, current.
+
+Comments welcome, as usual.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
