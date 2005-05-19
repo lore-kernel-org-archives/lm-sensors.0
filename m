@@ -1,7 +1,7 @@
 From: pavel@ucw.cz (Pavel Machek)
 Date: Thu, 19 May 2005 06:23:45 +0000
 Subject: i2c changes Was: sensors in 2.5.54
-Message-Id: <20030108211525.GC32645@atrey.karlin.mff.cuni.cz>
+Message-Id: <20030108211840.GA559@elf.ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.OSF.4.50.0301070020190.17118-200000@kosh.hut.fi>
 In-Reply-To: <Pine.OSF.4.50.0301070020190.17118-200000@kosh.hut.fi>
@@ -12,25 +12,33 @@ To: lm-sensors@vger.kernel.org
 
 Hi!
 
-> >One could generate a branch in CVS from i2c release V2-6-4 to trace back
-> >changes in 2.5 tree, and then reapply it on 2.5 to sync revision tags.
-> >I briefly reviewed some i2c diffs, they mostly handle module refcounting
-> >and declarations which are not likely to change for 2.4 support.
-> >
+> >Optimally, we could keep up with the pace and have relevant 2.5 patches
+> >go through i2c CVS first and have files in sync. This seems not be the
+> >case, so I say it is better to remove revision tags from i2c files in
+> >Linus's tree altogether.
 > 
-> I have Pavel's mail from December 4 to linux-kernel with his submission,
-> which is taken from the contents of our 2.7.0 release of Dec. 8.
-> Right Pavel? (if you made changes before you submitted the patch
+> For i2c, we've kept up for years - in fact we have the opposite problem now,
+> we have lots of stuff in the i2c tree that we haven't gotten in to either 
+> 2.4 or 2.5.
+> (2.4 is at our release 2.6.1, about 15 months old, and 2.5 is at 2.6.4, 
+> about
+> 15 months old).
 
-I made multiple submissions and slightly cleaned up files in between
-(comments came after submissions of what needs to be fixed). I
-certainly did not do any functional changes.
+Hmm, you probably need to patch-bomb Linus a little ;-).
 
-> let's start by having you check those changes in!)
+> Cristoph's changes are largest I can recall that didn't come from us.
+> That's what happens when we aren't getting changes in - other
+> folks make the changes and we get where we are now.
 
-I don't think I have cvs write access...
+Well, I hope it is not too bad. One solution to
+cvs-and-linus-out-of-sync is of course to drop 2.5 from your CVS and
+do all development through Linus... He's not *that* bad at accepting
+patches from maintainers.
 
-							Pavel
+If you want to keep 2.5 in your CVS, easiest probably is to scan
+patch-2.5.XX from linus for any i2c/sensors changes, and if they are
+applicable, just apply them to CVS...
+								Pavel
 -- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+What goes next? Inserting advertisment *into* email?
