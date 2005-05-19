@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:44 +0000
+Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: Bugzilla
-Message-Id: <20050319174457.202c104a.khali@linux-fr.org>
+Message-Id: <20050515212647.7650358e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3Xg1uAGB.1110214165.5308430.khali@localhost>
 In-Reply-To: <3Xg1uAGB.1110214165.5308430.khali@localhost>
@@ -10,50 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi Axel,
 
-> > Would it be possible to tell Bugzilla to start at ticket #2000? That
-> > way the new tickets wouldn't overlap with the older ones.
+> it's lm-sensors day for me ;)
+
+Who would complain :)
+
+> I made it start at #1900, so you can still play a bit with it. When
+> you give the go, I'll bump it up to 2000.
+
+We're already at #1987 in the old base. Make it 2200 to be sure.
+
+> bugzilla supports "products" and "components" (per product). The
+> "version" filed is attached to the products.
 > 
-> Yes, that's possible.
-> 
-> Is other than that the bugzilla instance OK?
+> We could have one product (lm_sensors) and have the current products
+> become "components". Currently components were going to be assigned to
+> drivers etc.
 
-Just taking a closer look to make sure, and in fact I don't think so. In
-the current setup, we still have different versions for each "product",
-were products are "bus drivers", "chip drivers", "i2c core drivers" and
-"user-space". It makes very little sense to me. All these are parts of
-the same product, and versions are common to all these parts. Isn't it
-possible to do that? I think I remember this was discussed already but I
-cannot remember the outcome.
+Sounds better, but what about the drivers? Can there be subcomponents?
+The Linux kernel bugzilla has categories and components.
 
-Other than that, I would ask for:
+No other comments, rest is fine with me.
 
-* Less priorities. 7 priorities is too much. I think we could get rid of
-blocker (critical will do), trivial and enhancement (minor will do).
-
-* No target milestone. I see little use for these in our project.
-
-* No OS. It is a Linux-only product anyway.
-
-* No priority. Priorities might make sense when people are paid for
-support. We are not. We fix things when we feel like it.
-
-* No status whiteboard. What is it for?
-
-* No bug aliases. No use.
-
-Do we need a QA contact? Again, sounds overkill for our project.
-Assignee should be sufficient.
-
-What is the URL for? Can't users just include URLs in their comments if
-they need to?
-
-I guess you've understood that what I really want is that we keep things
-as simple as possible. 10 needless fields are likely to frighten the
-users and potential helpers. If we can stick to what is really needed,
-I'd expect the support to be easier for everyone.
-
-Thanks,
 -- 
 Jean Delvare
