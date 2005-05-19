@@ -1,7 +1,7 @@
 From: minyard@acm.org (Corey Minyard)
 Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [PATCH] Add a non-blocking interface to the I2C code, part3
-Message-Id: <42261B8A.9070409@acm.org>
+Subject: [PATCH] Add a non-blocking interface to the I2C code, part 4
+Message-Id: <42261BCD.6030301@acm.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42261AFB.40001@acm.org>
 In-Reply-To: <42261AFB.40001@acm.org>
@@ -13,201 +13,227 @@ To: Greg KH <greg@kroah.com>, lkml <linux-kernel@vger.kernel.org>, Sensors <sens
 See part 1 for details on what this does...
 
 -------------- next part --------------
-This patch adds handling of the op q to the I2C main code
-in preparation for the non-blocking changes.
+Add a timer to the I2C layer.  This doesn't do much until the
+non-blocking code shows up.
 
 Signed-off-by: Corey Minyard <minyard@acm.org>
 
 Index: linux-2.6.11-rc5-mm1/drivers/i2c/i2c-core.c
 =================================--- linux-2.6.11-rc5-mm1.orig/drivers/i2c/i2c-core.c
 +++ linux-2.6.11-rc5-mm1/drivers/i2c/i2c-core.c
-@@ -85,6 +85,8 @@
- 	complete(&adap->dev_released);
- }
+@@ -30,9 +30,16 @@
+ #include <linux/init.h>
+ #include <linux/idr.h>
+ #include <linux/seq_file.h>
++#include <linux/rcupdate.h>
+ #include <asm/uaccess.h>
  
-+#define entry_completed(e) (atomic_read(&(e)->completed) <= 0)
+ 
++static int i2c_stop_timer(struct i2c_adapter * adap);
++static void i2c_start_timer(struct i2c_adapter * adap,
++			    struct i2c_op_q_entry * entry);
 +
- static struct device_driver i2c_adapter_driver = {
- 	.name =	"i2c_adapter",
- 	.bus = &i2c_bus_type,
-@@ -165,6 +167,8 @@
++#define USEC_PER_JIFFIE (1000000 / HZ)
++
+ static LIST_HEAD(adapters);
+ static LIST_HEAD(drivers);
+ static DECLARE_MUTEX(core_lists);
+@@ -174,6 +181,19 @@
+ 	list_add_tail(&adap->list,&adapters);
+ 	INIT_LIST_HEAD(&adap->clients);
+ 
++	adap->timer = kmalloc(sizeof(*adap->timer), GFP_KERNEL);
++	if (!adap->timer) {
++		res = -ENOMEM;
++		goto out_unlock;
++	}
++		
++	init_timer(&adap->timer->timer);
++	spin_lock_init(&adap->timer->lock);
++	adap->timer->deleted = 0;
++	adap->timer->running = 0;
++	adap->timer->next_call_time = 0;
++	adap->timer->adapter = adap;
++
+ 	/* Add the adapter to the driver core.
+ 	 * If the parent pointer is not set up,
+ 	 * we add this adapter to the host bus.
+@@ -216,6 +236,7 @@
+ 	struct i2c_driver *driver;
+ 	struct i2c_client *client;
+ 	int res = 0;
++	unsigned long flags;
+ 
+ 	down(&core_lists);
+ 
+@@ -260,6 +281,19 @@
+ 		}
  	}
  
- 	adap->nr =  id & MAX_ID_MASK;
-+	spin_lock_init(&adap->q_lock);
-+	INIT_LIST_HEAD(&adap->q);
- 	init_MUTEX(&adap->bus_lock);
- 	init_MUTEX(&adap->clist_lock);
- 	list_add_tail(&adap->list,&adapters);
-@@ -587,6 +591,7 @@
- {
- 	entry->xfer_type = I2C_OP_I2C;
- 	entry->complete = NULL;
-+	kref_init(&entry->usecount);
- 	if (adap->algo->master_xfer) {
-  	 	dev_dbg(&adap->dev, "master_xfer: with %d msgs.\n",
- 			entry->i2c.num);
-@@ -1284,6 +1289,7 @@
- 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
- 	if (!entry)
- 	    return -ENOMEM;
-+	kref_init(&entry->usecount);
++	/* Stop the timer and free its memory */
++	spin_lock_irqsave(&adap->timer->lock, flags);
++	if (i2c_stop_timer(adap)) {
++		spin_unlock_irqrestore(&adap->timer->lock, flags);
++		kfree(adap->timer);
++	} else {
++		adap->timer->deleted = 1;
++		spin_unlock_irqrestore(&adap->timer->lock, flags);
++	}
++	/* Wait to make sure the timer is done. */
++	synchronize_kernel();
++	adap->timer = NULL;
++
+ 	/* clean up the sysfs representation */
+ 	init_completion(&adap->dev_released);
+ 	init_completion(&adap->class_dev_released);
+@@ -582,6 +616,83 @@
+ module_exit(i2c_exit);
  
- 	entry->xfer_type = I2C_OP_SMBUS;
- 	entry->smbus.addr = addr;
-@@ -1335,6 +1341,91 @@
- 	return (func & adap_func) = func;
- }
- 
-+/* ----------------------------------------------------
-+ * Entry handling
+ /* ----------------------------------------------------
++ * Timer operations
 + * ----------------------------------------------------
 + */
++static void i2c_handle_timer(unsigned long data);
 +
-+/* Get the first entry off the head of the queue and lock it there.
-+   The entry is guaranteed to remain first in the list and the handler
-+   not be called until i2c_entry_put() is called. */
-+static struct i2c_op_q_entry *_i2c_entry_get(struct i2c_adapter * adap)
++static void i2c_start_timer(struct i2c_adapter * adap,
++			    struct i2c_op_q_entry * entry)
 +{
-+	struct i2c_op_q_entry * entry = NULL;
++	unsigned int wait_jiffies;
++	struct i2c_timer *t = adap->timer;
++	unsigned long flags;
 +
-+	if (!list_empty(&adap->q)) {
-+		struct list_head * link = adap->q.next;
-+		entry = list_entry(link, struct i2c_op_q_entry, link);
-+		if (entry_completed(entry))
-+			entry = NULL;
-+		else
-+			kref_get(&entry->usecount);
++	wait_jiffies = ((entry->call_again_us + USEC_PER_JIFFIE - 1)
++			/ USEC_PER_JIFFIE);
++	if (wait_jiffies = 0)
++		wait_jiffies = 1;
++	/* This won't be polled from the user code, so
++	   start a timer to poll it. */
++	spin_lock_irqsave(&t->lock, flags);
++	if (! t->running) {
++		t->timer.expires = jiffies + wait_jiffies;
++		t->timer.data = (unsigned long) t;
++		t->timer.function = i2c_handle_timer;
++		t->running = 1;
++		t->next_call_time = wait_jiffies * USEC_PER_JIFFIE;
++		add_timer(&t->timer);
++		t->sequence = adap->timer_sequence;
 +	}
-+	pr_debug("_i2c_entry_get %p %p\n", adap, entry);
-+	return entry;
++	spin_unlock_irqrestore(&t->lock, flags);
 +}
 +
-+struct i2c_op_q_entry *i2c_entry_get(struct i2c_adapter * adap)
++/* Returns true if the timer is stopped (or was not running), false if
++   not.  Must be called with the timer lock held. */
++static int i2c_stop_timer(struct i2c_adapter * adap)
 +{
-+	unsigned long flags;
++	return (!adap->timer->running || del_timer(&adap->timer->timer));
++}
++
++static void i2c_handle_timer(unsigned long data)
++{
++	struct i2c_timer      * t = (void *) data;
++	struct i2c_adapter    * adap;
++	unsigned long         flags;
 +	struct i2c_op_q_entry * entry;
++	unsigned int          sequence_match;
 +
-+	spin_lock_irqsave(&adap->q_lock, flags);
-+	entry = _i2c_entry_get(adap);
-+	spin_unlock_irqrestore(&adap->q_lock, flags);
-+	return entry;
-+}
-+
-+static void i2c_op_release(struct kref *ref)
-+{
-+	/* Nothing to do here, all handling is from the kref_put return
-+	   code. */
-+}
-+
-+void i2c_entry_put(struct i2c_adapter * adap,
-+		   struct i2c_op_q_entry * entry)
-+{
-+	unsigned long flags;
-+	struct i2c_op_q_entry * new_entry;
-+
-+ restart:
-+	pr_debug("i2c_put %p %p\n", adap, entry);
-+
-+	spin_lock_irqsave(&adap->q_lock, flags);
-+	if (kref_put(&entry->usecount, i2c_op_release)) {
-+		list_del(&entry->link);
-+
-+		/* Get the next entry to start. */
-+		new_entry = _i2c_entry_get(adap);
-+		spin_unlock_irqrestore(&adap->q_lock, flags);
-+
-+		entry->handler(entry);
-+
-+		if (new_entry) {
-+			/* start entry will go here. */
-+			if (new_entry->start)
-+				complete(new_entry->start);
-+			/* Do tail recursion ourself. */
-+			entry = new_entry;
-+			goto restart;
-+		}
-+	} else
-+		spin_unlock_irqrestore(&adap->q_lock, flags);
-+}
-+
-+void i2c_op_done(struct i2c_adapter *adap, struct i2c_op_q_entry *e)
-+{
-+	pr_debug("i2c_op_done: %p %p\n", adap, e);
-+	if (atomic_dec_and_test(&e->completed)) {
-+		/* We are the lucky winner!  We get to clean up the
-+		   entry. */
-+		if (e->complete)
-+			e->complete(adap, e);
++	spin_lock_irqsave(&t->lock, flags);
++	if (t->deleted) {
++		spin_unlock_irqrestore(&t->lock, flags);
++		kfree(t);
++		return;
 +	}
 +
-+	i2c_entry_put(adap, e);
++	adap = t->adapter;
++	t->running = 0;
++	sequence_match = adap->timer_sequence = t->sequence;
++	spin_unlock_irqrestore(&t->lock, flags);
++
++	entry = i2c_entry_get(adap);
++	pr_debug("i2c_handle_timer: %p %p\n", adap, entry);
++	if (!entry)
++		return;
++
++	if (sequence_match) {
++		/* Poll will go here. */
++
++		if (!entry_completed(entry))
++			i2c_start_timer(adap, entry);
++	} else if (entry->use_timer)
++		/* We raced in timer deletion, just restart the
++		   timer if necessary. */
++		i2c_start_timer(adap, entry);
++
++	i2c_entry_put(adap, entry);
 +}
 +
- EXPORT_SYMBOL(i2c_add_adapter);
- EXPORT_SYMBOL(i2c_del_adapter);
- EXPORT_SYMBOL(i2c_add_driver);
-@@ -1346,6 +1437,7 @@
- EXPORT_SYMBOL(i2c_clients_command);
- EXPORT_SYMBOL(i2c_check_addr);
- 
-+EXPORT_SYMBOL(i2c_op_done);
- EXPORT_SYMBOL(i2c_master_send);
- EXPORT_SYMBOL(i2c_master_recv);
- EXPORT_SYMBOL(i2c_control);
++/* ----------------------------------------------------
+  * the functional interface to the i2c busses.
+  * ----------------------------------------------------
+  */
+@@ -1419,6 +1530,21 @@
+ 	if (atomic_dec_and_test(&e->completed)) {
+ 		/* We are the lucky winner!  We get to clean up the
+ 		   entry. */
++		if (e->use_timer) {
++			unsigned long    flags;
++			struct i2c_timer *t = adap->timer;
++			spin_lock_irqsave(&t->lock, flags);
++			if (!i2c_stop_timer(adap))
++				/* If we are unable to stop the timer, that
++				   means the timer has gone off but has not
++				   yet run the first part of the handler call.
++				   Increment the sequence so the timer handler
++				   can detect this. */
++				adap->timer_sequence++;
++			else
++				t->running = 0;
++			spin_unlock_irqrestore(&t->lock, flags);
++		}
+ 		if (e->complete)
+ 			e->complete(adap, e);
+ 	}
 Index: linux-2.6.11-rc5-mm1/include/linux/i2c.h
 =================================--- linux-2.6.11-rc5-mm1.orig/include/linux/i2c.h
 +++ linux-2.6.11-rc5-mm1/include/linux/i2c.h
-@@ -34,6 +34,8 @@
- #include <linux/device.h>	/* for struct device */
- #include <linux/completion.h>
+@@ -36,6 +36,7 @@
  #include <linux/kref.h>
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
++#include <linux/timer.h>
  #include <asm/semaphore.h>
  #include <asm/atomic.h>
  
-@@ -182,6 +184,33 @@
- }
+@@ -242,6 +243,21 @@
+ };
  
  /*
-+ * About locking and the non-blocking interface.
-+ *
-+ * The poll operations are called single-threaded (along with the
-+ * xxx_start operations), so if the driver is only polled then there
-+ * is no need to do any locking.  If you are using interrupts, then
-+ * the timer operations and interrupts can race and you need to lock
-+ * appropriately.
-+ * 
-+ * i2c_op_done() can be called multiple times on the same entry (as
-+ * long as each one has a get operation).  This handles poll and
-+ * interrupt races calling i2c_op_done().  It will do the right thing.
++ * The timer has it's own separately allocated data structure because
++ * it needs to be able to exist even if the adapter is deleted (due to
++ * timer cancellation races).
 + */
-+
-+/* Called from an non-blocking interface to get the current working
-+   entry.  Returns NULL if there is none.  This is primarily for
-+   interrupt handlers to determine what they should be working on.
-+   Note that if you call i2c_entry_get() and get a non-null entry, you
-+   must call i2c_entry_put() on it. */
-+struct i2c_op_q_entry *i2c_entry_get(struct i2c_adapter * adap);
-+void i2c_entry_put(struct i2c_adapter * adap,
-+		   struct i2c_op_q_entry * entry);
-+
-+/* Called from an non-blocking interface to report that an operation
-+   has completed.  Can be called from interrupt context. */
-+void i2c_op_done(struct i2c_adapter *adap, struct i2c_op_q_entry *entry);
++struct i2c_timer {
++	spinlock_t lock;
++	int deleted;
++	struct timer_list timer;
++	int running;
++	unsigned int next_call_time;
++	struct i2c_adapter *adapter;
++	unsigned int sequence;
++};
 +
 +/*
-  * The following structs are for those who like to implement new bus drivers:
-  * i2c_algorithm is the interface to a class of hardware solutions which can
-  * be addressed using the same bus algorithms - i.e. bit-banging or the PCF8584
-@@ -229,6 +258,9 @@
- 	int (*client_unregister)(struct i2c_client *);
+  * i2c_adapter is the structure used to identify a physical i2c bus along
+  * with the access algorithms necessary to access it.
+  */
+@@ -263,6 +279,11 @@
  
- 	/* data fields that are valid for all devices	*/
-+	struct list_head q;
-+	spinlock_t q_lock;
-+
  	struct semaphore bus_lock;
  
++	/* Used to time non-blocking operations.  The sequence is used
++	   to handle race conditions in the timer handler. */
++	struct i2c_timer *timer;
++	unsigned int timer_sequence;
++
  	int timeout;
+ 	int retries;
+ 	struct device dev;		/* the adapter device */
