@@ -1,56 +1,133 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:23 +0000
-Subject: Feedback: lm_sensors 2.8.8, SuSE Linux 9.1, and SuperMicro P4SPA+
-Message-Id: <x4e6mC90.1101292110.4424120.khali@gcu.info>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: [PATCH] i2c driver changes for 2.5.66
+Message-Id: <10485563223599@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200411240110.06905.dgersic@myrealbox.com>
-In-Reply-To: <200411240110.06905.dgersic@myrealbox.com>
+In-Reply-To: <1048556321143@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+
+ChangeSet 1.889.357.6, 2003/03/21 16:16:01-08:00, greg@kroah.com
+
+i2c: Removed the name variable from i2c_client as the dev one should be used instead.
 
 
-> Just wanted to send in some feedback on this combination and a thank you
-> for lm_sensors.
+ drivers/i2c/chips/adm1021.c |    2 +-
+ drivers/i2c/chips/lm75.c    |    2 +-
+ drivers/i2c/i2c-core.c      |   14 +++++++-------
+ drivers/i2c/i2c-dev.c       |    4 +++-
+ include/linux/i2c.h         |    1 -
+ 5 files changed, 12 insertions(+), 11 deletions(-)
 
-Thanks :)
 
-> SuSE 9.1 "Personal" edition (kernel 2.6.5-7.104-smp) distribution included
-> lm_sensors 2.8.3-99. This, of course, didn't work. Some searching of your
-> FAQ turned up the recommendation that lm_sensors needed to be 2.8.6 or
-> newer with this kernel version. So, a download, make user, and make
-> user_install later, I have the correct version installed, and it works
-> fine. Thanks to the FAQ editor(s) for this.
-
-Did you report to them? They should really not be distributing
-incompatible packages. Package dependancies are there for a reason.
-
-> # Configuration for Temp sensors
->     label temp1 "System Temp"
->     ignore temp2
->     label temp3 "CPU Temp"
->     compute temp3 @+6,(@-6)
-> # end - dgersic
->
-> and the outputs of lm_sensors status now match the values shown by the BIOS
-> for the FAN speeds and the system and CPU temps.
-
-The 6 degrees offset you are introducing might not be needed. If you
-tried to have Linux idle temperature and BIOS idle temperature match,
-it's not correct. I have a Supermicro (370DLE) motherboard and I know
-for sure that the BIOS has a closed, almost undelayed while(1) loop that
-keeps the CPU busy all the time. Linux reads 26 degrees idle, BIOS reads
-38 degrees. Linux at full load is in the 35-40 degrees range so this
-makes sense.
-
-Like you, I was about to add an offset to sensors.conf, but now I know
-it's not correct. The raw Linux reading is most likely correct and
-lower than what you see in the BIOS just because you are comparing a
-somewhat busy BIOS with an idle Linux.
-
-(Or maybe I'm wrong - all boards are different.)
-
-Thanks for the nice report anyway :)
-
-Jean
+diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
+--- a/drivers/i2c/chips/adm1021.c	Mon Mar 24 17:28:07 2003
++++ b/drivers/i2c/chips/adm1021.c	Mon Mar 24 17:28:07 2003
+@@ -299,7 +299,7 @@
+ 	}
+ 
+ 	/* Fill in the remaining client fields and put it into the global list */
+-	strcpy(new_client->name, client_name);
++	strncpy(new_client->dev.name, client_name, DEVICE_NAME_SIZE);
+ 	data->type = kind;
+ 
+ 	new_client->id = adm1021_id++;
+diff -Nru a/drivers/i2c/chips/lm75.c b/drivers/i2c/chips/lm75.c
+--- a/drivers/i2c/chips/lm75.c	Mon Mar 24 17:28:07 2003
++++ b/drivers/i2c/chips/lm75.c	Mon Mar 24 17:28:07 2003
+@@ -180,7 +180,7 @@
+ 	}
+ 
+ 	/* Fill in the remaining client fields and put it into the global list */
+-	strcpy(new_client->name, client_name);
++	strncpy(new_client->dev.name, client_name, DEVICE_NAME_SIZE);
+ 
+ 	new_client->id = lm75_id++;
+ 	data->valid = 0;
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	Mon Mar 24 17:28:07 2003
++++ b/drivers/i2c/i2c-core.c	Mon Mar 24 17:28:07 2003
+@@ -291,9 +291,9 @@
+ 				    client->driver = driver) {
+ 					DEB2(printk(KERN_DEBUG "i2c-core.o: "
+ 						    "detaching client %s:\n",
+-					            client->name));
++					            client->dev.name));
+ 					if ((res = driver->detach_client(client))) {
+- 						dev_err(&adap->dev, "while "
++						dev_err(&adap->dev, "while "
+ 						       "unregistering driver "
+ 						       "`%s', the client at "
+ 						       "address %02x of "
+@@ -355,7 +355,7 @@
+ 
+ 	printk(KERN_WARNING 
+ 	       " i2c-core.o: attach_client(%s) - enlarge I2C_CLIENT_MAX.\n",
+-	       client->name);
++	       client->dev.name);
+ 
+  out_unlock_list:
+ 	up(&adapter->list);
+@@ -374,7 +374,7 @@
+ 	}
+ 
+ 	DEB(dev_dbg(&adapter->dev, "client [%s] registered to adapter "
+-			"(pos. %d).\n", client->name, i));
++			"(pos. %d).\n", client->dev.name, i));
+ 
+ 	if (client->flags & I2C_CLIENT_ALLOW_USE)
+ 		client->usage_count = 0;
+@@ -395,7 +395,7 @@
+ 		if (res) {
+ 			printk(KERN_ERR
+ 			       "i2c-core.o: client_unregister [%s] failed, "
+-			       "client not detached", client->name);
++			       "client not detached", client->dev.name);
+ 			goto out;
+ 		}
+ 	}
+@@ -410,7 +410,7 @@
+ 
+ 	printk(KERN_WARNING
+ 	       " i2c-core.o: unregister_client [%s] not found\n",
+-	       client->name);
++	       client->dev.name);
+ 	res = -ENODEV;
+ 
+  out_unlock:
+@@ -522,7 +522,7 @@
+ 				client = adapters[i]->clients[order[j]];
+ 				len += sprintf(kbuf+len,"%02x\t%-32s\t%-32s\n",
+ 				              client->addr,
+-				              client->name,
++				              client->dev.name,
+ 				              client->driver->name);
+ 			}
+ 			len = len - file->f_pos;
+diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c	Mon Mar 24 17:28:07 2003
++++ b/drivers/i2c/i2c-dev.c	Mon Mar 24 17:28:07 2003
+@@ -86,7 +86,9 @@
+ };
+ 
+ static struct i2c_client i2cdev_client_template = {
+-	.name		= "I2C /dev entry",
++	.dev		= {
++		.name	= "I2C /dev entry",
++	},
+ 	.id		= 1,
+ 	.addr		= -1,
+ 	.driver		= &i2cdev_driver,
+diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h	Mon Mar 24 17:28:07 2003
++++ b/include/linux/i2c.h	Mon Mar 24 17:28:07 2003
+@@ -156,7 +156,6 @@
+  * function is mainly used for lookup & other admin. functions.
+  */
+ struct i2c_client {
+-	char name[32];
+ 	int id;
+ 	unsigned int flags;		/* div., see below		*/
+ 	unsigned int addr;		/* chip address - NOTE: 7bit 	*/
