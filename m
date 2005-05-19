@@ -1,7 +1,7 @@
 From: ffl@aber.ac.uk (Fred Labrosse)
 Date: Thu, 19 May 2005 06:24:50 +0000
 Subject: Reading a compass CMPS03
-Message-Id: <16498.25133.562134.471157@aber.ac.uk>
+Message-Id: <16498.53442.666985.682507@aber.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <16497.19215.209434.328945@aber.ac.uk>
 In-Reply-To: <16497.19215.209434.328945@aber.ac.uk>
@@ -16,12 +16,20 @@ Mark Studebaker writes:
  > I note that doc/i2c-pport doesn't make a recommendation.
  > 
 
-Well it actually says: "no pullups requied" (sic), which I believed because
-of the resistor on the "out pin" on the diagram in the same file.
-Moreover, a pullup resistor would make it even harder for the device to
-pull down the signal, which seems to be what causes the noack problem.
-Right?
+We just did some measurements using a digital scope on the clock and data
+lines on the compass.
 
-Cheers,
+Just to remind people, the compass sits on address 0x60 (1100000 in binary)
+and I'm trying to use i2c-pport.
+
+When I send the address on the i2c bus (trying to read a register of the
+device), I do read, synchronised with the clock, the address (1100000),
+followed by a 0 (write) followed by something at about 1.2V that should be
+the 0 for the acknowledgement.  So clearly, the device is not pulling down
+enough.
+
+Anybody got any idea?
+
+TIA,
 
 Fred
