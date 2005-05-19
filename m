@@ -1,22 +1,39 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: tickets 1511 and 1522 (HZ)
-Message-Id: <20040117181529.GA19365@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: gl520sm bug
+Message-Id: <1073896762.40025d3a8d993@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040117190618.5f87cce8.khali@linux-fr.org>
-In-Reply-To: <20040117190618.5f87cce8.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 17, 2004 at 07:06:18PM +0100, Jean Delvare wrote:
+> hi
+> i think theres a big bug in your driver
+> when i load it and run sensors my cpu fan stops
+> and it doesn't start again (tested up to 66 degree)
 > 
-> 1* This isn't the vanilla kernel, we don't support it.
+> or am i just too stupid to set it up correctly ?
 
-You should do this.  There's no way you can support all of the
-different, strange, kernel patches out there and try to remain sane :)
+This sometimes happens with various drivers. Our initialization process
+might be a little aggressive.
 
-thanks,
+First, if you are using lm_sensors < 2.8.2, try upgrading to 2.8.2,
+since it has limits initialization removed.
 
-greg k-h
+If it still doesn't work, you'll have to dive into the code of the
+driver and find which initialization command triggers the problem. The
+suspects are in function gl520_init_client. First thing to try is the
+first command, which resets the chipset to default power-on state.
+Comment this one out, recompile and give it a try. If it still doesn't
+work, do the same with all gl520_write_value(...) lines (individually)
+until the fan doesn't stop anymore.
+
+Then please report to us so that we can fix the driver accordingly on
+our side.
+
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
