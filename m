@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: od@fet.uni-hannover.de (Oliver Dawid)
 Date: Thu, 19 May 2005 06:24:23 +0000
 Subject: Trying to find device chrontel 7009
-Message-Id: <20031105222244.594bfe49.khali@linux-fr.org>
+Message-Id: <200311052343.20538.od@fet.uni-hannover.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031105203334.6eab5b78.khali@linux-fr.org>
 In-Reply-To: <20031105203334.6eab5b78.khali@linux-fr.org>
@@ -10,34 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
 
-> > I downloaded the 7009's data sheet and it happens that is not
-> > designed for the I2C interface. Why did you think you would find it
-> > here? To me, it's obvious it can't be there. You have to look for it
-> > somewhere else.
-> 
-> I would be so sorry if this is the truth. So I wasted your time. Here
-> is the sentence I concluded that it could be connected to i2c:
-> 
-> 6. Register Control
-> The CH7009 is controlled via a serial port. The serial port bus uses
-> only the SPC clock to latch data into registers, and does not use any
-> internally generated clocks so that the device can be written to in
-> all power down modes. The device retains all register states.
-> 
-> I somehow thought, because its a synchonous serial bus, it could be a
-> i2c.
+On Wednesday 05 November 2003 20:33, you wrote:
 
-Yes, that's somewhat similar to I2C, but the datasheets shows that the
-data bus is 12-bit wide, while I2C's is 1-bit only. I even wonder how
-they can call that a serial bus. Anyway, that's what made me say it's
-not an I2C chip (plus the fact that searching the data sheet for I2C or
-SMBus returned nothing).
+> I downloaded the 7009's data sheet and it happens that is not designed
+> for the I2C interface. Why did you think you would find it here? To me,
+> it's obvious it can't be there. You have to look for it somewhere else.
 
-> Sorry that I wasted so much time of you,
+You are absolutely right and I should have been reading more precise. After 
+digging through all docs I found out that this serial connection is only for 
+point to point connections. 
 
-No problem. Good luck :)
+But anyway I thank you for your patience. Now I know a lot more about i2c and 
+my board. 
+
+Thanks,
+od
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+od@fli4l.de * http://www.fli4l.de/ * the on(e) disk router
