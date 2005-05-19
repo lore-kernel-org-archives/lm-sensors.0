@@ -1,24 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: Fix some gcc 4.0 compile failures and warnings
-Message-Id: <20050304230242.GA2408@kroah.com>
+From: amalysh@web.de (Alexander Malysh)
+Date: Thu, 19 May 2005 06:24:20 +0000
+Subject: [PATCH] i2c-sis630 fixes for 2.6.0-test7
+Message-Id: <200310101904.19719.amalysh@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <11099685961021@kroah.com> <4228E74F.9070706@pacbell.net>
-In-Reply-To: <4228E74F.9070706@pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mickey Stein <yekkim@pacbell.net>
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Fri, Mar 04, 2005 at 02:55:11PM -0800, Mickey Stein wrote:
-> I was just scanning this email and it looks like you possibly grabbed 
-> the first of my patches with a typo because this last little bit I 
-> corrected in a prior email to you.   It  got into the  *mm* tree  ok.  
-> So I'm not sure where this took a wrong turn again.
+Hi Greg,
 
-You missed the follow-on patch that fixed this up :)
+attached you can find a patch that should fix i2c-sis630 driver for 2.6.0-X 
+kernel. With i2c-sis630 from stock 2.6.0-X we have oops and driver was not 
+correct registered against i2c-core.
 
-thanks,
+Changes:
+	1) fixed a oops while modprobing
+	2) added check for buffer overflow for i2c block data read transaction
+	3) added 'force' modprobe parameter. It's allow more easily testing for not 
+yet supported SiS chips.
 
-greg k-h
+Please apply... Thanks.
+
+-- 
+Best regards,
+Dipl.-Ing.
+Alexander Malysh
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-sis630.diff
+Type: text/x-diff
+Size: 5640 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031010/3ae9d41c/i2c-sis630.bin
