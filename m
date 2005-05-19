@@ -1,45 +1,38 @@
-From: salvador@inti.gov.ar (salvador)
-Date: Thu, 19 May 2005 06:23:28 +0000
-Subject: ALi M5879 and ALi M1535D+
-Message-Id: <3C4C4762.CFB58B7F@inti.gov.ar>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:05 +0000
+Subject: i2c-pport cleanups
+Message-Id: <200407130940.i6D9evQf057079@zone3.gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All!
+Hi Ruik,
 
-I have 2 mothers:
-1) ALi M1535D+ and GL520SM
-2) ALi M1535D+ and ALi M5879
+Can you please test the attached version of i2c-pport (for 2.4). It
+implements all the cleanups and fixes we discussed yesterday.
 
-Problem 1:
-Both prints "command never completed", I had to comment the printk
-(lm_sensors 2.6.1 and 2.6.2).
+Note that:
+* The tests are compeletly gone in bit_pport_init. i2c-algo-bit already
+has this functionality (test_bit=1 IIRC).
+* I also fixed a case where IO address wouldn't be released (if
+i2c_bit_add_bus fails in i2c_bitpport_init).
 
-Problem 2:
-M5879 isn't really supported, I tried LM78 driver (suggested with confidence
-7) and I can use it but some inputs seems to be crossed and also some
-correction  factors are wrong.
-Does anybody have contact with ALi people to ask for data sheets?
-The temperature seems to be OK, but I can't be sure. I'm comparing with
-hmonitor windows tool and meassured voltages.
+Additional cleanups may be done later:
+* Merge i2c_bitpport_init and bit_pport_init. They really belong to the
+same function.
+* Have base and PortData belong to a structure that would be pointed to
+by bit_pport_data.data. That would be way cleaner than having base faked
+as a pointer value and PortData global. This also opens a path to how we
+can integrate this cleanly in 2.6's i2c-parport.
 
-All the rest works quite nice, thanks!
-
-SET
-
-P.S. A message making clear that 1535 means the number of the chip and not
-something in the PCI bus could help users. My PCI bus have something called
-1543 and hence I tried 15x3 first.
-
---
-Salvador Eduardo Tropea (SET). (Electronics Engineer)
-Visit my home page: http://welcome.to/SetSoft or
-http://www.geocities.com/SiliconValley/Vista/6552/
-Alternative e-mail: set@computer.org set@ieee.org
-Address: Curapaligue 2124, Caseros, 3 de Febrero
-Buenos Aires, (1678), ARGENTINA Phone: +(5411) 4759 0013
-
-
+Thanks,
+Jean Delvare
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-pport.c
+Type: application/octet-stream
+Size: 4578 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040713/525620de/i2c-pport.obj
