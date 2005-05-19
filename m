@@ -1,50 +1,55 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:30 +0000
+From: pioppo@ferrara.linux.it (Simone Piunno)
+Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
-Message-Id: <g7Idbr9m.1105713630.9207120.khali@localhost>
+Message-Id: <200501151654.46412.pioppo@ferrara.linux.it>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20050113232904.GC2458@kroah.com>
-References: <20050108103449.345def67.khali@linux-fr.org>
-In-Reply-To: <20050108103449.345def67.khali@linux-fr.org>
+References: <g7Idbr9m.1105713630.9207120.khali@localhost>
+In-Reply-To: <g7Idbr9m.1105713630.9207120.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: pioppo@ferrara.linux.it
-Cc: Greg KH <greg@kroah.com>, Jonas Munsin <jmunsin@iki.fi>, djg@pdp8.net, LM Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Greg KH <greg@kroah.com>, Jonas Munsin <jmunsin@iki.fi>, djg@pdp8.net, LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
 
+On Friday 14 January 2005 15:40, Jean Delvare wrote:
 
-Simone,
+> Kernel 2.6.11-rc1-mm1 is just out, which does contain the latest updates
+> to the it87 driver. I would like you to test them. What you should see:
+> 1* When loading the it87 driver, the fans should not change speeds.
 
-> On Thu, Jan 13, 2005 at 12:27:35AM +0200, Jonas Munsin wrote:
-> > Here is it87.c_2.6.10-jm4-detect_broken_bios_20050112.diff implementing
-> > this. It goes on top of the previous patch.
-> >
-> > - detects broken bioses, disables the pwm for them and prints a message
-> > - fixes an unrelated minor bug in set_fan_div()
-> >
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Signed-off-by: Jonas Munsin <jmunsin@iki.fi>
->
-> Applied, thanks.
+confirmed.
 
-Kernel 2.6.11-rc1-mm1 is just out, which does contain the latest updates
-to the it87 driver. I would like you to test them. What you should see:
+> 2* In the logs, you should see an information line with the chip type,
+> address and revision.
+> 3* Still in the logs, you should see a warning about your BIOS being
+> broken and PWM being disabled as a consequence.
 
-1* When loading the it87 driver, the fans should not change speeds.
+Confirmed, but it looks like there's a missing linefeed in the warning.
 
-2* In the logs, you should see an information line with the chip type,
-address and revision.
+pioppo@roentgen ~ $ uname -a
+Linux roentgen 2.6.11-rc1-mm1 #1 Sat Jan 15 16:23:34 CET 2005 x86_64 AMD 
+Athlon(tm) 64 Processor 3200+ AuthenticAMD GNU/Linux
+pioppo@roentgen ~ $ dmesg|grep it87
+it87: Found IT8705F chip at 0x290, revision 2
+it87 0-0290: detected broken BIOS defaults, disabling pwm interface<6>8139too 
+Fast Ethernet driver 0.9.27
 
-3* Still in the logs, you should see a warning about your BIOS being
-broken and PWM being disabled as a consequence.
+> 4* PWM interface should NOT be available in sysfs.
 
-4* PWM interface should NOT be available in sysfs.
+confirmed.
 
-As soon as you will have confirmed that everything worked as expected,
-Jonas and I will provide a patch adding a pwm polarity reconfiguration
-module parameter for you to test. This should give you access to the PWM
-features of your it87 chip again, but in a safe way for a change ;)
+pioppo@roentgen ~ $ ls /sys/devices/platform/i2c-0/0-0290
+alarms        fan3_div    in2_input  in5_input  in8_input    temp2_min
+detach_state  fan3_input  in2_max    in5_max    name         temp2_type
+driver        fan3_min    in2_min    in5_min    power        temp3_input
+fan1_div      in0_input   in3_input  in6_input  temp1_input  temp3_max
+fan1_input    in0_max     in3_max    in6_max    temp1_max    temp3_min
+fan1_min      in0_min     in3_min    in6_min    temp1_min    temp3_type
+fan2_div      in1_input   in4_input  in7_input  temp1_type
+fan2_input    in1_max     in4_max    in7_max    temp2_input
+fan2_min      in1_min     in4_min    in7_min    temp2_max
 
-Thanks,
---
-Jean Delvare
+/Simone
+
+-- 
+http://thisurlenablesemailtogetthroughoverzealousspamfilters.org
