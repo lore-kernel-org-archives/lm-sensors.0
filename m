@@ -1,34 +1,38 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:48 +0000
 Subject: [RFC][2.6] Additional i2c adapter flags for i2c client
-Message-Id: <20040317210504.34eb192f.khali@linux-fr.org>
+Message-Id: <20040317222057.79f0451f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4056C805.8090004@convergence.de>
-	<20040316154454.GA13854@kroah.com>
-	<20040316201426.1d01f1d3.khali@linux-fr.org>
-	<20040316195325.GA22473@kroah.com>
-	<1079515049.405817a9a3da0@imp.gcu.info>
-	<20040317174255.GE19060@kroah.com>
-In-Reply-To: <20040317174255.GE19060@kroah.com>
+References: <20040316154454.GA13854@kroah.com>
+In-Reply-To: <20040316154454.GA13854@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com, hunold@convergence.de
+To: lm-sensors@vger.kernel.org
 
-> > How would we export the value though? Numerical, with user-space
-> > headers to be included by user-space applications? Or converted to
-> > some explicit text strings so that no headers are needed?
+> This topic makes me think of something _interresting_...
+> 	
+> According to the tests I made on my VIA Nehemiah M10k, the vt1211
+> can be handled by i2c-viapro as an smbus device (via the vt596 it
+> says) and via-ircc as an irda device, BUT this device can not be
+> binded to both drivers at the same time : when one is loaded (and
+> activated), the other finds no device (ENODEV I presume). (I wonder
+> how I should use both smbus*and* irda device)...
 > 
-> A text string would be simple enough to use.
+> Is this totally out of topic ?
 
-I'm not sure.  What about a chip driver that would belong to more than
-one class?  What about the eeprom driver which will belong to all
-classes?  With a numeric value, a simple binary operation handles all
-the cases.  With text strings we would end having to parse a possibly
-multi-valued string, and do string comparisons, with at least one
-exception to handle.  This is likely to require much more resources,
-don't you think?
+"Off-topic" even, yes ;)
+
+> Could a hack prevent these two drivers to be mutually exclusive?
+
+We knew of a similar problem between i2c-viapro and via686a. I didn't
+know that i2c-viapro and via-ircc had the same problem. And I guess that
+i2c-viapro and vt1211 would conflict too?
+
+Mark D. Studebaker is working on a solution for i2c-viapro and via686a.
+I don't know if the same solution will apply in the other cases. Since
+i2c-viapro is involved in all three conflicts, it promises to be damn
+complex...
 
 -- 
 Jean Delvare
