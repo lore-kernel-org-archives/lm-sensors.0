@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:56 +0000
 Subject: [PATCH][2.6]
-Message-Id: <20040505231353.GA30862@kroah.com>
+Message-Id: <20040506213455.29154c51.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <409923F7.7050101@convergence.de>
 In-Reply-To: <409923F7.7050101@convergence.de>
@@ -9,27 +9,43 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Michael Hunold <hunold@convergence.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Jean Delvare <khali@linux-fr.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, sensors@stimpy.netroedge.com
+Cc: torvalds@osdl.org, linux-kernel@vger.kernel.org, akpm@osdl.org, greg@kroah.com, sensors@stimpy.netroedge.com
 
-On Wed, May 05, 2004 at 07:27:19PM +0200, Michael Hunold wrote:
-> The attached patch does the first step:
-> - add .class member to struct i2c_device
-> - remove unused .flags member from struct i2c_adapter
+> With the new I2C_CLASS_ALL flag it will be possible that an adapter
+> can request that really all drivers are probed on the adapter. On the
+> other hand, drivers can make sure that they get the chance to probe on
+> every i2c adapter out there (this is not encouraged, though)
+
+Depends. For example the eeprom driver will do that, and this is
+correct. That said, I agree that this is a collaborative approach and
+everybody will have to play the game.
+
 > - rename I2C_ADAP_CLASS_xxx to I2C_CLASS_xxx (to be used both for 
 > drivers and adapters)
 > - add new I2C_CLASS_ALL and I2C_CLASS_SOUND classes
-> - follow these changes in the existing drivers with copy & paste
-> 
-> I think these things are unquestionable and don't make any functional 
-> changes to the code, so this should be applied to 2.6 now.
-> 
-> From that point on, we can discuss how to proceed.
-> 
-> Comments?
 
-Looks good, I've applied this to my trees, and it will show up in the
-next -mm release.
+Mmm, I once proposed that I2C_ADAP_CLASS_SMBUS would be better renamed
+I2C_ADAP_CLASS_SENSORS (so I2C_CLASS_SENSORS now). What about that? I
+think it would be great to embed that change into your patch, so that
+the name changes only once.
 
-thanks,
+Now that we come to speak about that, I wonder if we would _also_ need a
+SMBUS class. SMBus is mostly a subset of I2C, essentially (but not
+completely) compatible. It may be useful at some point to know if a chip
+is compliant with SMBus or not. I don't think that i2c-core can make use
+of this at the moment, nor can I think of concrete examples where this
+would be needed. It's just a thought at the moment and I mention it here
+in case anyone has comments ;)
 
-greg k-h
+For now we can stick to the classes we have (with the SMBUS->SENSORS
+change and the new SOUND class). The true SMBUS class can always be
+added later if needed, I guess.
+
+BTW, if HWMON is prefered to SENSORS, this is fine with me too, I have
+no strong preference.
+
+Thanks.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
