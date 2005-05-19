@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:42 +0000
 Subject: i2c core enhancements
-Message-Id: <20040221010831.GF18346@kroah.com>
+Message-Id: <20040221060743.735405c3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F274AE5A8F65A848906BEB9DDFC7674C0E83BA@hdsmsx403.hd.intel.com>
 In-Reply-To: <F274AE5A8F65A848906BEB9DDFC7674C0E83BA@hdsmsx403.hd.intel.com>
@@ -10,7 +10,6 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Feb 20, 2004 at 02:25:50PM -0500, Davis, Todd C wrote:
 > 1.	The i2c_delay() inline function needs to spin delay under 2
 > circumstances, 1) when the system is shutting down, all processes are
 > signaled which short circuits the current i2c_delay(). 2) when the
@@ -20,28 +19,40 @@ On Fri, Feb 20, 2004 at 02:25:50PM -0500, Davis, Todd C wrote:
 > modification includes a method to set a flag that i2c_delay() tests to
 > see if it should spin-delay.
 
-Why not just do your own i2c_delay() type function then for your driver?
+As did Greg, I wonder why you don't define this new function in your
+driver itself, especially since you enclose it into a "proprietary"
+define.
 
 > 2.	Pointers to module use count functions are needed to keep the
 > kernel from panic-ing when modules are unloaded in an improper order.
 > This is an enhancement I picked up from RedHat's implementation of the
 > i2c driver, adapter, and client modules. I have modified the i801 bus
-> driver to include these module count routines. It has also been enhanced
-> it to include a new ICH chip. Those enhancements will be merged with the
-> 2.8.4 release and forwarded separately.
+> driver to include these module count routines.
 
-Yeah, patches for this would be appreciated if you have found any
-problems.
+I think you don't get it. The inc_use/dec_use module reference counting
+is how things were done in lm_sensors 2.7.0 and earlier. So, what you
+call "RedHat's implementation" is in fact RedHat being very late in
+upgrading their lm_sensors' packages.
 
-> Attached are diffs of the 2.8.2 release for i2c-core.c and i2c.h that
-> reflect the modifications described above. I hope you will consider
-> these small enhances to the LM_Sensors project. For more information
-> about the OpenIPMI project maintained by Corey Minyard see 
-> http://openipmi.sourceforge.net/. 
+That said, it turned out that the new reference counting mechanism was
+mainly intended for Linux 2.5/2.6, and will not make it into Linux 2.4
+(I mean, as far as the i2c subsystem is concerned). Also, it turned out
+that the new mechanism is less efficient than the old one (for a 2.4
+kernel), which you seem to have noticed since you report that your
+kernel got panics from times to times. This means that we should
+consider reverting that change.
 
-Um, how about patches against the 2.6.3 kernel?  That would make more
-sense...
+What did it take to revert the i2c-i801 driver? Simply define
+inc_use/dec_use instead of owner and you were done? I admit I don't know
+which part of the mechanism is explicitely handled by i2c-core/i2c-proc
+and which one is handled by the common kernel mechanisms. If it is as
+easy as this and no i2c-core/i2c-proc hacking is required, I may well
+revert all drivers. For one thing (and not the least) this would get me
+rid of the necessity to write a new kernel patch each time a new 2.4
+kernel is released of a new version of i2c is.
 
-thanks,
+Thanks.
 
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
