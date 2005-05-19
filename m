@@ -1,8 +1,10 @@
 From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:00 +0000
 Subject: i2c-sis645
-Message-Id: <Pine.LNX.4.58.0405311653260.1458@desitka.sh.cvut.cz>
+Message-Id: <Pine.LNX.4.58.0405311809000.1458@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.58.0405311653260.1458@desitka.sh.cvut.cz>
+In-Reply-To: <Pine.LNX.4.58.0405311653260.1458@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -11,19 +13,20 @@ To: lm-sensors@vger.kernel.org
 
 Hello,
 
-> Hey
->
-> I have an ASUS P4S8X motherboard, and I'm running a 2.6.3 kernel. The
-> problem is, any 2.6.x kernel doesnt include the sis645 module which,
-> according to sensors-detect, is appropriate for my mo/bo. What can I do?
+I would like know why on http://secure.netroedge.com/~lm78/supported.html
+in row called
 
-Yes your ASB100 chip is smbus only so you need some. According to
-lm_sensors pages  no-one is trying to port it to 2.6. However module
-i2c-sis96x may work too. Would you be so kind and give a try?
+Sis 648/96x, 651/96x, 745/96x, 746/96x, xxx/962, xxx/963
 
-If it does not work, I have motherboard with 645 smbus host
-compatible (Sis 745), maybe I can port it for 2.6, if you dont have enough
-skills.
+Is no support for 2.6 and there is also not mentioned i2c-sis92x ?
+
+I looked to a source of kernel, and it seems it to accept any SiS smbus
+device with id 16.
+
+My SiS745 chipset has 00:02.1 Class 0c05: 1039:0016. So I guess it should
+work too.
+
+Maybe mmh will know ?
 
 Regards
 
