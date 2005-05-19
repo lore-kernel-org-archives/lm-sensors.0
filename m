@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:15 +0000
 Subject: MAX6650 driver
-Message-Id: <20030829183909.548d5091.khali@linux-fr.org>
+Message-Id: <20030829185148.6d0e2319.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030827130911.2931281e.khali@linux-fr.org>
 In-Reply-To: <20030827130911.2931281e.khali@linux-fr.org>
@@ -11,21 +11,27 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> > Some months ago, you told us you would write a driver for the
-> > MAX6650 chipset. How far did you go? I ask you now because John
-> > Morris also worked on a driver for this chipset, so I'd like you
-> > both to share what you have. If we could have a working driver
-> > commited to our CVS repository, it would be great.
+> ok, I'll submit mine to CVS.
+
+Yes please :)
+
+> Let's start working through the new_drivers check list...
 > 
-> I'm sorry, the chip never made it on the mainboard I was planning to
-> write support for, so the project for the MAX6650 driver was
-> cancelled.
+> It's ok to put my name on the "New Drivers" page.
 
-OK. That's not a problem, since we now have another person on it. I just
-wanted to make sure :)
+Done.
 
-John, you're the new official driver writer :) I'm updating the web page
-right now.
+> I need an ID reserved in i2c-id.h. I suggest:
+> 
+> --- kernel/i2c-id.h     23 Aug 2003 20:32:57 -0000      1.77
+> +++ kernel/i2c-id.h     29 Aug 2003 13:35:39 -0000
+> @@ -157,6 +157,7 @@
+>  #define I2C_DRIVERID_SAA1064 1041
+>  #define I2C_DRIVERID_LM90 1042
+>  #define I2C_DRIVERID_ASB100 1043
+> +#define I2C_DRIVERID_MAX6650 1044
+
+This ID is now yours ;)
 
 -- 
 Jean Delvare
