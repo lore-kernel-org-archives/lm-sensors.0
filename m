@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: lm77 on national sc1100
-Message-Id: <20040701183213.GC2597@jupiter.solarsys.private>
+Message-Id: <20040701231929.40bbff7c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1088690691.2862.25.camel@null>
 In-Reply-To: <1088690691.2862.25.camel@null>
@@ -10,93 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+OK, I added support for the LM77 to sensors-detect and refined the LM75
+detection.
 
-* Jean Delvare <khali@linux-fr.org> [2004-07-01 20:05:51 +0200]:
-> Care to dump in word mode? Most registers are 16-bit on this chip.
+Mark, please test and confirm that your LM75s are still detected as
+such (with confidence at least 4).
 
-Sure...
+Andras, please test and confirm that your LM77 is correctly detected as
+a LM77 (with confidence at least 3).
 
-[root@earth root]# i2cdump 0 0x4c w
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x4c, mode word
-  You have five seconds to reconsider and press CTRL-C!
-                                                                                                                                            
-     0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
-00: 801b 8000 0032 003c 003c 003c 003c 003c
-08: 801b 8000 0032 003c 003c 003c 003c 003c
-10: 801b 8000 0032 003c 003c 003c 003c 003c
-18: 801b 8000 0032 003c 003c 003c 003c 003c
-20: 801b 8000 0032 003c 003c 003c 003c 003c
-28: 801b 8000 0032 003c 003c 003c 003c 003c
-30: 801b 8000 0032 003c 003c 003c 003c 003c
-38: 801b 8000 0032 003c 003c 003c 003c 003c
-40: 801b 8000 0032 003c 003c 003c 003c 003c
-48: 801b 8000 0032 003c 003c 003c 003c 003c
-50: 801b 8000 0032 003c 003c 003c 003c 003c
-58: 801b 8000 0032 003c 003c 003c 003c 003c
-60: 801b 8000 0032 003c 003c 003c 003c 003c
-68: 801b 8000 0032 003c 003c 003c 003c 003c
-70: 801b 8000 0032 003c 003c 003c 003c 003c
-78: 801b 8000 0032 003c 003c 003c 003c 003c
-80: 801b 8000 0032 003c 003c 003c 003c 003c
-88: 801b 8000 0032 003c 003c 003c 003c 003c
-90: 801b 8000 0032 003c 003c 003c 003c 003c
-98: 801b 8000 0032 003c 003c 003c 003c 003c
-a0: 801b 8000 0032 003c 003c 003c 003c 003c
-a8: 801b 8000 0032 003c 003c 003c 003c 003c
-b0: 801b 8000 0032 003c 003c 003c 003c 003c
-b8: 801b 8000 0032 003c 003c 003c 003c 003c
-c0: 801b 8000 0032 003c 003c 003c 003c 003c
-c8: 801b 8000 0032 003c 003c 003c 003c 003c
-d0: 801b 8000 0032 003c 003c 003c 003c 003c
-d8: 801b 8000 0032 003c 003c 003c 003c 003c
-e0: 801b 8000 0032 003c 003c 003c 003c 003c
-e8: 801b 8000 0032 003c 003c 003c 003c 003c
-f0: 801b 8000 0032 003c 003c 003c 003c 003c
-f8: 801b 8000 0032 003c 003c 003c 003c 003c
+If it works OK, we will have to do similar changes to the lm75 driver.
 
-[root@earth root]# i2cdump 0 0x4d w
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x4d, mode word
-  You have five seconds to reconsider and press CTRL-C!
- 
-     0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
-00: 801d 8000 0032 003c 003c 003c 003c 003c
-08: 801d 8000 0032 003c 003c 003c 003c 003c
-10: 801d 8000 0032 003c 003c 003c 003c 003c
-18: 801d 8000 0032 003c 003c 003c 003c 003c
-20: 801d 8000 0032 003c 003c 003c 003c 003c
-28: 801d 8000 0032 003c 003c 003c 003c 003c
-30: 801d 8000 0032 003c 003c 003c 003c 003c
-38: 801d 8000 0032 003c 003c 003c 003c 003c
-40: 801d 8000 0032 003c 003c 003c 003c 003c
-48: 801d 8000 0032 003c 003c 003c 003c 003c
-50: 801d 8000 0032 003c 003c 003c 003c 003c
-58: 801d 8000 0032 003c 003c 003c 003c 003c
-60: 801d 8000 0032 003c 003c 003c 003c 003c
-68: 801d 8000 0032 003c 003c 003c 003c 003c
-70: 801d 8000 0032 003c 003c 003c 003c 003c
-78: 801d 8000 0032 003c 003c 003c 003c 003c
-80: 801d 8000 0032 003c 003c 003c 003c 003c
-88: 801d 8000 0032 003c 003c 003c 003c 003c
-90: 801d 8000 0032 003c 003c 003c 003c 003c
-98: 801d 8000 0032 003c 003c 003c 003c 003c
-a0: 801d 8000 0032 003c 003c 003c 003c 003c
-a8: 801d 8000 0032 003c 003c 003c 003c 003c
-b0: 801d 8000 0032 003c 003c 003c 003c 003c
-b8: 801d 8000 0032 003c 003c 003c 003c 003c
-c0: 801d 8000 0032 003c 003c 003c 003c 003c
-c8: 801d 8000 0032 003c 003c 003c 003c 003c
-d0: 801d 8000 0032 003c 003c 003c 003c 003c
-d8: 801d 8000 0032 003c 003c 003c 003c 003c
-e0: 801d 8000 0032 003c 003c 003c 003c 003c
-e8: 801d 8000 0032 003c 003c 003c 003c 003c
-f0: 801d 8000 0032 003c 003c 003c 003c 003c
-f8: 801d 8000 0032 003c 003c 003c 003c 003c
+I'm still not sure whether we want to do a separate lm77 driver or not.
+The two chips are definitely not compatible but handling both in a
+single driver gives more control over detection.
 
-Regards,
+Thanks.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://khali.linux-fr.org/
