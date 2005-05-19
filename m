@@ -1,61 +1,59 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:12 +0000
-Subject: Bogus readings on GA 7N400 and ECS N2U400-A
-Message-Id: <20040821084803.76688d25.khali@linux-fr.org>
+From: stanitz@ekp.physik.uni-karlsruhe.de (Marcel Stanitzki)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: Problems with Opteron compilation
+Message-Id: <3F128749.7010603@ekp.physik.uni-karlsruhe.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040819115718.28d02717@shodan.citadel>
-In-Reply-To: <20040819115718.28d02717@shodan.citadel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> VAL is raw register value
-> 
-> label in0 "VCore 1" *0x10 ? (default case)
-> label in1 "VCore 2" *0x10 ? (default case)
-> label in2 "+3.3V" *0x10 ? (default case)
-> label in3 "+5V" => (0xA80*VAL)/0x64
-> label in4 "+12V" => VAL*0x40
-> label in5 "-12V" => 0x4249 - ((VAL*0x2024)/0x64)
-> label in6 "-5V" => 0x2249 - ((VAL*0x13A4)/0x64)
-> label in7 "Stdby" => (0xA80*VAL)/0x64
-> label in8 "VBat" => VAL*0x10
+Hi
 
-This would result in the following configuration lines:
+sorry for sending this to the lm_sensors address, but I did not find any 
+separate i2c address one the web.
 
-label in0 "VCore1"
-label in1 "VCore2"
-label in2 "+3.3V"
-label in3 "+5V"
-label in4 "+12V"
-label in5 "-12V"
-label in6 "-5V"
-label in7 "Stdby"
-label in8 "VBat"
 
-compute in3 ((6.8/10)+1)*@, @/((6.8/10)+1)
-compute in4 ((30/10)+1)*@, @/((30/10)+1)
-compute in5 8.228 - (@*2057/400), (8.228 - @)/(2057/400)
-compute in6 8.777 - (@*1257/400), (8.777 - @)/(1257/400)
-compute in7 ((6.8/10)+1)*@, @/((6.8/10)+1)
+I checked out the most recent source code from CVS and tried to compile 
+the i2c package first, the compilation stopped with the message below
 
-Negative voltage limits look rather suspicious to me. Ruik, can you
-check again? I'd expect it the other way around, i.e. VAL*K - Vref, not
-Vref - VAL*K.
 
-Other formulas are standard so obviously correct.
+gcc -D__SMP__ -I/lib/modules/2.4.19-SMP/build/include -nostdinc -I 
+/opt/gcc33/lib64/gcc-lib/x86_64-suse-linux/3.3/include -Wall -O2 
+-DLM_SENSORS -D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB 
+-fno-strict-aliasing -fno-common -fomit-frame-pointer -mno-red-zone 
+-mcmodel=kernel -fno-reorder-blocks -finline-limit 00 
+-fno-strength-reduce -c kernel/i2c-algo-biths.c -o kernel/i2c-algo-biths.o
+/lib/modules/2.4.19-SMP/build/include/linux/module.h:300: warning: 
+`__module_kernel_version' defined but not used
+kernel/i2c-algo-biths.c:771: warning: `__module_license' defined but not 
+used
+/tmp/cckgMevc.s: Assembler messages:
+/tmp/cckgMevc.s:1387: Error: Incorrect register `%rdx' used with `l' suffix
+make: *** [kernel/i2c-algo-biths.o] Error 1
 
-> (Result/10)+1000 before decimal dot
-> result/1000 after (i'm in hurry so not sure)
 
-Doesn't make much sense to me.
+I run Suse Linux Enterprise Server at the moment with Dual Opteron in 64 
+Bit mode with SLES 2.4.19 kernel (according to suse with the latest 
+relevant Opteron patches.
+The error occurs both with gcc-3.2.2 und gcc-3.3
 
-> If temp has seventh bit set then (XOR TEMP,0xFF)+1 is made
-> and it prints (-) before temp value and degC.
+Maybe this is interesting for you ..
 
-A.k.a. 2's complement, i.e. standard.
+Cheers
+
+Marcel
+
 
 -- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+---------------------------------------------------------------------
+Marcel Stanitzki
+    DELPHI
+Institut fuer Experimentelle Kernphysik (IEKP) /Universitaet Karlsruhe
+Engesserstr. 7  76128 Karlsruhe
+--------------------------------------------------------------------
+Telefon: +49-721-608-7034  Telefax: +49-721-607-262
+
+Email : stanitz@ekp.physik.uni-karlsruhe.de
+Email : Marcel.Stanitzki@cern.ch
+WWW : http://www-ekp.physik.uni-karlsruhe.de/~stanitz
