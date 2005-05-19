@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: Bug #1807: sensors with kernel 2.4, but not with kernel 2.6
-Message-Id: <20041104180847.GB16744@kroah.com>
+Message-Id: <20041108024751.GB16161@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1099499003.11618.13.camel@antares.hausnetz>
 In-Reply-To: <1099499003.11618.13.camel@antares.hausnetz>
@@ -10,41 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Nov 04, 2004 at 02:34:57PM +0100, Jean Delvare wrote:
-> 
-> 1* What is the different between "normal" i2c addresses and "probe"
-> i2c addresses? It seems that both arrays are treated the same way, and
-> no client driver is using "probe" addresses (at a quick glance at
-> least.) Can't we just get rid of it?
+Hi:
 
-Yes we should.  I've started to look at how to reduce the number of
-things in the per-driver structure and this is one that will go away
-soon (along with the ranges, but that's for another email...)
+> * Jean Delvare <khali@linux-fr.org> [2004-11-04 14:34:57 +0100]:
+> > There are several other drivers that would need a similar fix, such as
+> > w83781d and possibly it87. Other drivers I looked at seem to be OK
+> > (lm75, lm83, lm90, w83627hf). I guess that a full review of all client
+> > drivers would be welcome.
 
-> 2* What is the difference between i2c_probe in i2c-core and i2c_detect in
-> i2c-sensor (i2c-proc in 2.4)? Both functions seem to be very similar, I
-> couldn't find a difference (but I admittedly did not compare line by
-> line yet). If there are, it's probably not worth the code duplication.
-> As a matter of fact, I don't see how exactly i2c_detect is supposed to
-> be sensor-related. Can't we get rid of i2c_detect and use i2c_probe
-> everywhere?
+* Mark M. Hoffman <mhoffman@lightlink.com> [2004-11-04 13:01:31 -0500]:
+> Looks like I've misunderstood this for quite some time.  Other drivers
+> are broken like this thanks to me "fixing" them during 2.6.0-pre.  It
+> just seemed obvious that a misdetection should return -ENODEV.  It's no
+> excuse though, as you pointed out - the docs are clear enough.
 
-Yes we can, if we merge the two structures properly.  Right now they
-aren't alike in a very tiny way.  Any patches to fix all of this up
-would be greatly appreciated so that I can mark another thing off of my
-todo list :)
+OK, I reviewed all of the sensor chip drivers to see what is returned from
+each of their respective i2c_detect() callbacks.
 
-> It would be great if we could clean this mess now because I will do
-> significant changes to that part of the code soon (to get rid of the
-> thinkpad breakage issue, just like I did in the userspace tools already).
-> 
-> I admit that I find it a little strange that two things so obviously
-> redundant could have been in place for so long and nobody ever objected.
-> Am I missing something?
+1. Almost all of the drivers return -ENOMEM in response to a kmalloc failure.
+I think this is acceptable.  Exception: isp1301_omap.c
 
-I've always noticed them, but in the 2.6 push to get stable, I ignored
-them as it will take a bit of work to fix them up.
+2. All of the drivers return any error from i2c_attach_client(). This is
+harder to understand... why should failure to attach *this* instance also
+prevent me from *detecting* others?
 
-thanks,
+Not counting the two cases above, the drivers that return non-zero in
+response to (what looks like) a failed detection include: asb100.c,
+it87.c, lm78.c, smsc47m1.c, via686a.c, w83627hf.c, and w83781d.c.  I'll
+work up a patch for these.
 
-greg k-h
+Whatever we agree are legitimate reasons to cancel detection, I would like
+to add specific documentation for them.  I think a case can be made that
+there's *no* legitimate reason for a driver to halt detection that way...
+but I'm sure I'll hear otherwise.  As an interface, this interpretation
+of a return value (I failed so badly that you're not allowed to call me
+again) isn't my favorite.
+
+Also note: all of the drivers register their sysfs files during their
+<driver>_detect() function.  That suddenly seems weird to me... logically
+those calls belong to <driver>_attach_client(), no?
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
