@@ -1,7 +1,7 @@
-From: david_knierim@earthlink.net (David Knierim)
-Date: Thu, 19 May 2005 06:25:16 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: Data block transactions fail on i2c-i801 controller?
-Message-Id: <4658087.1095778719162.JavaMail.root@scooter.psp.pas.earthlink.net>
+Message-Id: <20040922221611.GD4256@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <13938324.1095712833883.JavaMail.root@scooter.psp.pas.earthlink.net>
 In-Reply-To: <13938324.1095712833883.JavaMail.root@scooter.psp.pas.earthlink.net>
@@ -10,50 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The logs were pretty large, so we placed them on the web:
+Hello David:
 
-http://lee.k12.nc.us/~joden/misc/sensors/
-
-dmesg_noblock - block data disabled
-dmesg_withblock - block data enabled
-
-David
-
------Original Message-----
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Sent: Sep 20, 2004 5:22 PM
-To: David Knierim <david_knierim@earthlink.net>
-Subject: Re: Data block transactions fail on i2c-i801 controller?
-
-Hi David:
-
-* David Knierim <david_knierim@earthlink.net> [2004-09-20 16:40:33 -0400]:
+* David Knierim <david_knierim@earthlink.net> [2004-09-21 07:58:37 -0700]:
+> The logs were pretty large, so we placed them on the web:
 > 
-> Hi,
->    I'm working with server based on Intel 7520 (Lindenhurst) chipset.   This uses the i2c-i801 bus driver.   An lm93 is attached to this bus.    If I load the lm93 in it's default mode, which "allows SMBus block data transactions if the host supports them", it takes a long time for sensors to run.   This is the output of "time":
-> real    0m10.901s
-> user    0m0.010s
-> sys     0m0.010s
-> 
-> If the lm93 is loaded with it's disable_block mode, which disables data block transactions, the operation is much faster:
-> real    0m1.261s
-> user    0m0.010s
-> sys     0m0.010s
-> 
-> 
-> In both cases, there are no errors logged to dmesg or /var/log/messages.   The output is correct in both cases.   The data block transaction mode just takes a lot longer to complete.
-> 
-> 
-> Any ideas??
+> http://lee.k12.nc.us/~joden/misc/sensors/
 
-Please uncomment line 42 "#define DEBUG" and rebuild, reinstall,
-and try again.  Now you should get some log messages... please
-send those here; hopefully the original authors (Phil & MDS) can
-have a look as well.
+Thanks for doing that, and for saving some list B/W too.
+
+> dmesg_noblock - block data disabled
+> dmesg_withblock - block data enabled
+
+The i2c-i801 driver has *major* brain damage w.r.t. block xfers.  What
+I *expected* to see in your logs was a timeout of some sort, indicating
+that the bus was not resetting properly after a xfer.
+
+Not even close: the bus driver is actually performing a whole block xfer
+once for each byte!!!  Seeing this, I wouldn't be suprised to find out
+that you are the very first user of that function, ever.  I am honestly
+amazed that it works at all.
+
+So I understand what needs to be done, but actually fixing it is not
+high on my list just now - especially since you have a workaround
+(disable_block=1).
+
+One reason this will take some time is that this driver supports several
+different chipsets.  Apparently some of them have a block xfer buffer
+and some don't; I would have to read through ~5 chipset datasheets to
+sort it out.  This is one reason I was hoping the original authors would
+get involved.
+
+Hopefully, I'll have some time to work on this after I finish some other
+stuff.
 
 Regards,
 
 -- 
 Mark M. Hoffman
 mhoffman@lightlink.com
-
