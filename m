@@ -1,16 +1,18 @@
 From: marc@paracel.com (Marc Rieffel)
 Date: Thu, 19 May 2005 06:24:21 +0000
 Subject: Issues with Arima HDAMA Opteron Motherboard
-Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E13FD85@exch01.paracel.com>
+Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E3E2393@exch01.paracel.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <9D8C1A43309BAD4A9B46071DAF911D9E13FD85@exch01.paracel.com>
+In-Reply-To: <9D8C1A43309BAD4A9B46071DAF911D9E13FD85@exch01.paracel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[I tried to submit a ticked on this but it didn't go through.  I apologize if it's a duplicate.]
+[Correction:  This system has an ADM1026 chip, not a Sinbond chip.]
 
-I'm having trouble with i2c and lm_sensors on my dual Opteron Arima motherboard.  This has an AMD 8111 chip and a Winbod w83627hf chip.  I'm running 64-bit SuSE.
+I'm having trouble with i2c and lm_sensors on my dual Opteron Arima motherboard.  This has an AMD 8111 chip and an ADM 1026jst chip.  I'm running 64-bit SuSE.
 
 When I try to build i2c, I get an error,
 
@@ -171,13 +173,16 @@ Probing for `Winbond W83697HF Super IO Sensors'
 
 
 
-When I try to manually insert the winbond module, it fails,
+When I try to manually insert the adm1026 module, it inserts but finds nothing,
 
-gb0008:~ # insmod w83627hf
-Using /lib/modules/2.4.19MARi2c-NUMA/kernel/drivers/i2c/chips/w83627hf.o
-/lib/modules/2.4.19MARi2c-NUMA/kernel/drivers/i2c/chips/w83627hf.o: init_module: No such device
-Hint: insmod errors can be caused by incorrect module parameters, including invalid IO or IRQ parameters.
-      You may find more information in syslog or the output from dmesg
+# modprobe adm1026
+
+adm1026: Version 2.8.1 (20031005)
+adm1026: See http://www.penguincomputing.com/lm_sensors for more info.
+
+ # /usr/local/bin/sensors
+No sensors found!
+
 
 Any suggestions?
 
