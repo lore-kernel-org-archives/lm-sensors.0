@@ -1,188 +1,262 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: A small "generic" problem
-Message-Id: <3E2C9CE8.1010901@paradyne.com>
+From: valvoline@tiscalinet.it (valvoline)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: new termal sensor ?
+Message-Id: <20020823003332.056f4a9b.valvoline@tiscalinet.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.44.0301181204590.1115-100000@torus.loop.com>
-In-Reply-To: <Pine.LNX.4.44.0301181204590.1115-100000@torus.loop.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-You are correct that writing a program using libsensors requires
-that you compile-in support for each chip.
+hi folks!,
 
-What may work best is a software layer on top of libsensors which
-does what you are proposing.
+recently i bought a new asus laptop (L3C series), with P4 and i845 embedded,
+i've tried to install lm_sensor (2.6.4), but without success...my device se=
+ems=20
+to be not installed or not found...i've tried a manual hacking for the p4b =
+series
+motherboard, but without success...(probable, the device lists in notebook =
+is different).
 
-I'll add your proposal to our TODO list.
+waiting for a response....
 
-Even without libsensors the names in /proc are not completely consistent.
-We now have a standard (in doc/developers/proc) which we are trying to follow.
-it87 doesn't follow that standard in a few areas.
+following are some screen dump of lspci and pcitweak:
 
-If we ever find a chip that has current and humidity sensors
-we will certainly add them.
+>lspci -vvvv
 
-thanks
-mds
+00:00.0 Host bridge: Intel Corp. 82845 845 (Brookdale) Chipset Host Bridge =
+(rev 04)
+	Subsystem: Asustek Computer, Inc.: Unknown device 1626
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort- <TAbort- <M=
+Abort+ >SERR- <PERR-
+	Latency: 0
+	Region 0: Memory at f8000000 (32-bit, prefetchable) [sizedM]
+	Capabilities: [e4] #09 [d104]
+	Capabilities: [a0] AGP version 2.0
+		Status: RQ1 SBA+ 64bit- FW+ Rate=3Dx1,x2,x4
+		Command: RQ=3D0 SBA+ AGP+ 64bit- FW- Rate=3Dx1
+
+00:01.0 PCI bridge: Intel Corp. 82845 845 (Brookdale) Chipset AGP Bridge (r=
+ev 04) (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort- <TAbort- <M=
+Abort- >SERR- <PERR-
+	Latency: 0
+	Bus: primary=00, secondary=01, subordinate=01, sec-latency=3D0
+	I/O behind bridge: 0000d000-0000dfff
+	Memory behind bridge: ef000000-efefffff
+	Prefetchable memory behind bridge: eff00000-f7ffffff
+	BridgeCtl: Parity- SERR- NoISA- VGA+ MAbort- >Reset- FastB2B-
+
+00:1d.0 USB Controller: Intel Corp. 82801CA/CAM USB (Hub #1) (rev 02) (prog=
+-if 00 [UHCI])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1628
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 11
+	Region 4: I/O ports at b800 [size2]
+
+00:1d.1 USB Controller: Intel Corp. 82801CA/CAM USB (Hub #2) (rev 02) (prog=
+-if 00 [UHCI])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1628
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 9
+	Region 4: I/O ports at b400 [size2]
+
+00:1d.2 USB Controller: Intel Corp. 82801CA/CAM USB (Hub #3) (rev 02) (prog=
+-if 00 [UHCI])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1628
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin C routed to IRQ 9
+	Region 4: I/O ports at b000 [size2]
+
+00:1e.0 PCI bridge: Intel Corp. 82801BAM/CAM PCI Bridge (rev 42) (prog-if 0=
+0 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR+ FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort- <TAbort- <M=
+Abort- >SERR- <PERR-
+	Latency: 0
+	Bus: primary=00, secondary=02, subordinate=02, sec-latency2
+	I/O behind bridge: 0000a000-0000afff
+	Memory behind bridge: ee000000-eeffffff
+	Prefetchable memory behind bridge: eff00000-efefffff
+	BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
+
+00:1f.0 ISA bridge: Intel Corp. 82801CAM ISA Bridge (LPC) (rev 02)
+	Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR+ FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+
+00:1f.1 IDE interface: Intel Corp. 82801CAM IDE U100 (rev 02) (prog-if 8a [=
+Master SecP PriP])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1628
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 9
+	Region 0: I/O ports at 9800 [size=3D8]
+	Region 1: I/O ports at 9400 [size=3D4]
+	Region 2: I/O ports at 9000 [size=3D8]
+	Region 3: I/O ports at 8800 [size=3D4]
+	Region 4: I/O ports at 8400 [size=16]
+	Region 5: Memory at ed800000 (32-bit, non-prefetchable) [size=3D1K]
+
+00:1f.5 Multimedia audio controller: Intel Corp. 82801CA/CAM AC'97 Audio (r=
+ev 02)
+	Subsystem: Asustek Computer, Inc.: Unknown device 1583
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 9
+	Region 0: I/O ports at e000 [size%6]
+	Region 1: I/O ports at e100 [sized]
+
+00:1f.6 Modem: Intel Corp. 82801CA/CAM AC'97 Modem (rev 02) (prog-if 00 [Ge=
+neric])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1496
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 9
+	Region 0: I/O ports at e200 [size%6]
+	Region 1: I/O ports at e300 [size=128]
+
+01:00.0 VGA compatible controller: ATI Technologies Inc Radeon Mobility M7 =
+LW (prog-if 00 [VGA])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1622
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng+ SERR- FastB2B-
+	Status: Cap+ 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 64 (2000ns min), cache line size 08
+	Interrupt: pin A routed to IRQ 11
+	Region 0: Memory at f0000000 (32-bit, prefetchable) [size=128M]
+	Region 1: I/O ports at d800 [size%6]
+	Region 2: Memory at ef000000 (32-bit, non-prefetchable) [sizedK]
+	Expansion ROM at effe0000 [disabled] [size=128K]
+	Capabilities: [58] AGP version 2.0
+		Status: RQG SBA+ 64bit- FW- Rate=3Dx1,x2,x4
+		Command: RQ1 SBA+ AGP+ 64bit- FW- Rate=3Dx1
+	Capabilities: [50] Power Management version 2
+		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA PME(D0-,D1-,D2-,D3hot-,D3col=
+d-)
+		Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
+
+02:05.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8139C=
+ (rev 10)
+	Subsystem: Asustek Computer, Inc.: Unknown device 1045
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 32 (8000ns min, 16000ns max)
+	Interrupt: pin A routed to IRQ 9
+	Region 0: I/O ports at a800 [size%6]
+	Region 1: Memory at ee800000 (32-bit, non-prefetchable) [size%6]
+	Capabilities: [50] Power Management version 2
+		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent75mA PME(D0-,D1+,D2+,D3hot+,D3cold+)
+		Status: D0 PME-Enable+ DSel=3D0 DScale=3D0 PME-
+
+02:07.0 CardBus bridge: Ricoh Co Ltd RL5c476 II (rev a8)
+	Subsystem: Asustek Computer, Inc.: Unknown device 1624
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 168
+	Interrupt: pin A routed to IRQ 11
+	Region 0: Memory at ee001000 (32-bit, non-prefetchable) [size=3D4K]
+	Bus: primary=02, secondary=02, subordinate=03, sec-latency=176
+	Memory window 0: ee400000-ee7ff000 (prefetchable)
+	Memory window 1: eec00000-eefff000
+	I/O window 0: 0000a000-0000a0ff
+	I/O window 1: 0000a400-0000a4ff
+	BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset- 16bInt+ PostWrite+
+	16-bit legacy interface ports at 0001
+
+02:07.1 CardBus bridge: Ricoh Co Ltd RL5c476 II (rev a8)
+	Subsystem: Asustek Computer, Inc.: Unknown device 1624
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 168
+	Interrupt: pin B routed to IRQ 9
+	Region 0: Memory at ee002000 (32-bit, non-prefetchable) [size=3D4K]
+	Bus: primary=02, secondary=04, subordinate=07, sec-latency=176
+	Memory window 0: 00000000-00000000 (prefetchable)
+	Memory window 1: 00000000-00000000
+	I/O window 0: 0000ac00-0000acff
+	I/O window 1: 00000000-00000003
+	BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset- 16bInt+ PostWrite+
+	16-bit legacy interface ports at 0001
+
+02:07.2 FireWire (IEEE 1394): Ricoh Co Ltd R5C552 IEEE 1394 Controller (pro=
+g-if 10 [OHCI])
+	Subsystem: Asustek Computer, Inc.: Unknown device 1627
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort- <TAbort=
+- <MAbort- >SERR- <PERR-
+	Latency: 32 (500ns min, 1000ns max)
+	Interrupt: pin C routed to IRQ 9
+	Region 0: Memory at ee000000 (32-bit, non-prefetchable) [size=3D2K]
+	Capabilities: [dc] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0+,D1-,D2-,D3hot+,D3col=
+d+)
+		Status: D0 PME-Enable+ DSel=3D0 DScale=3D2 PME-
 
 
-Mr E_T wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> At the moment a programmer wishing to use the lm_sensors package needs to know
-> what chips are supported and needs to add all those chips into his package.
-> 
-> If you were to add a field or function to your structures to the effect of
-> sensor-function a programmer could use the package a lot more simply.
-> 
-> For values you could do something like -
-> 
-> enum sensor-type { volt, fan, temp, volt_min, volt_max, fan_div, fan_min,
-> temp_over, temp_hyst }
-> 
-> and I wouldn't mind betting that at some point in the future somebody decides
-> to put in sensors for amperage and humidity.
-> 
-> Anyway with this field you would not need to know what sensors belong to what
-> chip.
-> 
-> It seems that at the moment a /etc/sensors.conf file needs to have "default
-> labels" in it for all the user programs to work and if your chip is "none
-> standard" then your users have no idea of what is actually hapening.
-> 
-> I brought this problem up because my mortarboard (elite k7s5a) uses a sis735
-> driven by i2c-sis645 and does not give standard values (according to how I read
-> your docs).
-> 
-> After a lot of rebooting and comparing to my bios values i got a sensor dump of
-> this
-> 
-> eeprom-i2c-0-50
-> Adapter: SMBus SiS645 adapter at 0x0c00
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            SDRAM DIMM SPD
-> Memory size (MB):       256
-> 
-> it87-isa-0290
-> Adapter: ISA adapter
-> Algorithm: ISA algorithm
-> VCore:     +1.50 V  (min =  +1.42 V, max =  +1.56 V)
-> Vcc 2.5V:  +2.48 V  (min =  +2.40 V, max =  +2.60 V)
-> Vcc 3.3V:  +3.29 V  (min =  +3.13 V, max =  +3.45 V)
-> Vcc 5V:    +4.99 V  (min =  +4.72 V, max =  +5.24 V)
-> +12V:     +12.16 V  (min = +11.36 V, max = +12.60 V)
-> Stdby 3V:  +3.44 V  (min =  +3.10 V, max =  +3.48 V)
-> - -12V:     -11.00 V  (min = -13.21 V, max = -10.90 V)
-> Stdby 5V:  +5.04 V  (min =  +4.72 V, max =  +5.24 V)
-> VBat:      +3.05 V
-> CPU fan:  4440 RPM  (min = 2657 RPM, div = 2)
-> SYS fan:     0 RPM  (min =    0 RPM, div = 2)
-> Sys Temp:    +33C  (min =  +25C, max =  +45C)
-> CPU Temp:    +45C  (min =  +25C, max =  +45C)
-> 
-> and my sensors.conf file looks like -
-> 
-> #Sensors for the k7s5a mainboard
-> #
-> # by D.H.McKay <troll@logi.net.au>
-> #
-> # taken from various parts of the orig sensors.conf
-> #
-> bus "i2c-0" "SMBus SiS645 adapter at 0x0c00" "Non-I2C SMBus adapter"
-> 
-> #chip "it87-isa-0290"
-> chip "it87-*"
-> 
-> # The values below have been tested on a Asus K7S5A motherboard
-> 
->     label in0 "VCore"
->     label in1 "Vcc 2.5V"
->     label in2 "Vcc 3.3V"
->     label in3 "Vcc 5V"
->     label in4 "+12V"
->     label in5 "Stdby 3V"
->     label in6 "-12V"
->     label in7 "Stdby 5V"
->     label in8 "VBat"
-> 
->     set in0_min 1.5 * 0.95
->     set in0_max 1.5 * 1.05
->     set in1_min 2.4
->     set in1_max 2.6
->     set in2_min 3.3 * 0.95
->     set in2_max 3.3 * 1.05
->     set in3_min 5.0 * 0.95
->     set in3_max 5.0 * 1.05
->     set in4_min 12 * 0.95
->     set in4_max 12 * 1.05
->     set in5_min 3.3 * 0.94
->     set in5_max 3.3 * 1.06
->     set in6_max -12 * 0.90
->     set in6_min -12 * 1.10
->     set in7_min 5 * 0.95
->     set in7_max 5 * 1.05
->     #the chip does not support in8 min/max
-> 
->     # vid is not monitored
->     # and is not supported by driver at this time
->     ignore  vid
-> 
->     compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
->     compute in4 ((30/10) +1)*@  , @/((30/10) +1)
->     compute in6 (1+232/56)*@ - 4.096*232/56, (@ + 4.096*232/56)/(1+232/56)
->     compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-> 
-> # Temperature
-> #
-> # Important - if your temperature readings are completely whacky
-> # you probably need to change the sensor type. This must be done
-> # with 'modprobe it87 temp_type=0xXX', you can't fix it in this file.
-> # See ../doc/chips/it87 for details and valid 'XX' values!!!
-> #
-> # I use temp_type=0x38 (all thermistors)
-> #
->     label temp3       "CPU Temp"
->     set   temp3_over  45
->     set   temp3_hyst  25
->     label temp2       "Sys Temp"
->     set   temp2_over  45
->     set   temp2_hyst  25
->     ignore temp1
-> 
-> # Fans
->     label fan1 "CPU fan"
->     set fan1_min 2000
->     label fan2 "SYS fan"
->     set fan2_min 0
->     ignore fan3
-> 
-> 
-> And an lsmod produces -
-> 
-> i2c-dev             4420   0  (autoclean) (unused)
-> it87                7560   0
-> eeprom              3728   0
-> i2c-proc            6896   0  [it87 eeprom]
-> i2c-isa             1196   0  (unused)
-> i2c-sis645          4688   0  (unused)
-> i2c-core           15408   0  [i2c-dev it87 eeprom i2c-proc i2c-isa i2c-sis645]
-> 
-> - -- 
-> regs MR E_T
-> _______________________
-> \                      \
->   \   OOHH I hate TYPOS  \
->     \                      \
->       ~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.1 (GNU/Linux)
-> 
-> iD8DBQE+KUMxPBbX35pvTSgRAkmHAJ0ae/FeHOFqO/Y8ah9GXMScqCD2ygCeLiSb
-> m0BlTbStRFPnjuL8nrWT6G8> =wurf
-> -----END PGP SIGNATURE-----
-> 
+> pcitweak -l
+
+PCI: Probing config type using method 1
+PCI: Config type is 1
+PCI: PCI scan (all values are in hex)
+PCI: 00:00:0: chip 8086,1a30 card 1043,1626 rev 04 class 06,00,00 hdr 00
+PCI: 00:01:0: chip 8086,1a31 card 0000,0000 rev 04 class 06,04,00 hdr 01
+PCI: 00:1d:0: chip 8086,2482 card 1043,1628 rev 02 class 0c,03,00 hdr 80
+PCI: 00:1d:1: chip 8086,2484 card 1043,1628 rev 02 class 0c,03,00 hdr 00
+PCI: 00:1d:2: chip 8086,2487 card 1043,1628 rev 02 class 0c,03,00 hdr 00
+PCI: 00:1e:0: chip 8086,2448 card 0000,0000 rev 42 class 06,04,00 hdr 01
+PCI: 00:1f:0: chip 8086,248c card 0000,0000 rev 02 class 06,01,00 hdr 80
+PCI: 00:1f:1: chip 8086,248a card 1043,1628 rev 02 class 01,01,8a hdr 00
+PCI: 00:1f:5: chip 8086,2485 card 1043,1583 rev 02 class 04,01,00 hdr 00
+PCI: 00:1f:6: chip 8086,2486 card 1043,1496 rev 02 class 07,03,00 hdr 00
+PCI: 01:00:0: chip 1002,4c57 card 1043,1622 rev 00 class 03,00,00 hdr 00
+PCI: 02:05:0: chip 10ec,8139 card 1043,1045 rev 10 class 02,00,00 hdr 00
+PCI: 02:07:0: chip 1180,0476 card a000,0000 rev a8 class 06,07,00 hdr 82
+PCI: 02:07:1: chip 1180,0476 card ac00,0000 rev a8 class 06,07,00 hdr 82
+PCI: 02:07:2: chip 1180,0552 card 1043,1627 rev 00 class 0c,00,10 hdr 80
+PCI: End of PCI scan
+
+
+--=20
+[ valvoline :: VRL Team :: s0ftpj :: freaknet Medialab :: GPG key available=
+  ]
+[ key fingerprint :: - :: B7E2 48BC 705F AE8F 9ABE  E422 076A 2561 1D67 B4D=
+D ]
+[ GPG key available on keyserver :: pgp.mit.edu :: with keyID :: 1D67B4DD :=
+: ]
