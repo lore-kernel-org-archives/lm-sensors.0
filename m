@@ -1,50 +1,30 @@
-From: cezarym@pf.pl (Cezary Morga)
-Date: Thu, 19 May 2005 06:25:06 +0000
-Subject: w83627hf module
-Message-Id: <200407241710.20748.cezarym@pf.pl>
+From: motupota@yahoo.com (Jack Yindo)
+Date: Thu, 19 May 2005 06:24:56 +0000
+Subject: lm_sensors device request
+Message-Id: <20040502190113.75974.qmail@web60802.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200407201955.33362.cezarym@pf.pl>
-In-Reply-To: <200407201955.33362.cezarym@pf.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dnia ?ro 21. lipca 2004 21:49, napisa?e?:
-> I think I know your problem.
->
-> You should use  lm_sensors 2.8.5 for Kernels 2.6.3-rc2 to 2.6.4.
-> As it is written here: http://secure.netroedge.com/~lm78/kernel26.html
->
-> Get the 2.8.5 version of lm_sensors.
->
-> Also I suspect that you dont have /sys mounted. It is "similar" to /proc
-> in 2.6 kernels.
->
-> Add as root this line to /etc/fstab
->
-> sysfs /sys sysfs rw 0 0
->
-> than just write
->
-> mount /sys
->
-> If it complains that directory does not exists just create it (mkdir /sys)
-> and repeat :)
->
-> Please dont forget to CC to mailing list.
->
-> I hope this helps
->
-> regards
->
-> Rudolf
+I was wondering if you guys could add support for the
+Texas Instruments tmp100, since I have no progamming
+skills in c :)
+The chip doesn't have an id, here's a dump
+SMBus Register :$48
+>   $00: $12   $01: $80   $02: $4B   $03: $50   $04:
+> $00  $05: $00   $06: $00
+> $07: $00
+the temp is at the first value 12, in hex, so in dec
+18 C.  I looked at the code for the lm75 and really
+had no idea what I was looking at, it shouldn't be to
+hard to add though, I think.
 
-Well, I had /sys mounted :) I've installed lm_sensors 2.8.5 and it works fine. 
-Thanks...
--- 
-Cezary Morga <cezarym@pf.pl>
-Registered Linux User No. 362185
-GG# 169903 ICQ# 328-700-565
-Jabber: thereidos@jabber.aster.pl
-	thereidos@jabberpl.org
+
+	
+		
+__________________________________
+Do you Yahoo!?
+Win a $20,000 Career Makeover at Yahoo! HotJobs  
+http://hotjobs.sweepstakes.yahoo.com/careermakeover 
