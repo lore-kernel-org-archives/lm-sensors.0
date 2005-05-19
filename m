@@ -1,7 +1,7 @@
-From: m.heinz@gmx.net (Matthias Heinz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:21 +0000
 Subject: Problems using w83781d (v 2.8.0) on Asus CUV4X
-Message-Id: <1066480101.2533.13.camel@localhost>
+Message-Id: <20031018162003.171cd86e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1066427722.8562.5.camel@localhost>
 In-Reply-To: <1066427722.8562.5.camel@localhost>
@@ -10,34 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Well, the link is mentioned in 4 out of the 6 latest news items, and
-> twice on the download page too. We can't do much more, can we?
 
-Hm, now i've found it... installation guide.
-But i thought: I read it one year before, why should i read it again?
+> Hm, now i've found it... installation guide.
+> But i thought: I read it one year before, why should i read it again?
 
-You should tell the user, that so much has changed, he should take a
-look at the installation guide, if the modules fails loading.
+Mouahhaha :) I already answered one e-mail today, why should I answer
+this one? ;)
 
-And in BIG RED Letters... maybe i've read it and maybe this mail
-would've never been written and maybe the world turns ... blah ;)
+> You should tell the user, that so much has changed, he should take a
+> look at the installation guide, if the modules fails loading.
 
+I expect the user to come to the news page if anything goes wrong. If
+the user can't think of that and read 4 lines of English (don't take it
+personal ;)) that's his/her problem, not our.
 
-> Anyway, what really should be done is updating the installation guide
-> for 2.8.1, and prepare a patch for submission to the kernel people.
-> Unfortunately, I'm ill these days so I'm not sure I'll have the strength
-> for such a serious work.
+> hm... somebody should tell the package-maintainers from debian that
+> the i2c-source-package is redundant, when using the kernel patch and
+> that those people who've problems with lm-sensors should try this
+> patch. Hm.
 
-hm... somebody should tell the package-maintainers from debian that the
-i2c-source-package is redundant, when using the kernel patch and that
-those people who've problems with lm-sensors should try this patch. Hm.
+Distribution-dependant issue, we are not the ones to blame.
+Unfortunately, the packagers never get it touch with us to discuss and
+solve that kind of issues (except Axel Thimm, must by why his packages
+are appreciated and used by a large number of persons). I estimate they
+have to come to us, not the other way around.
 
+> Why is lm-sensors not a part of the kernel? Too young and unstable?
 
-> Sure we don't like very much being asked about things that are
-> documented and linked from our site, but come on, sometimes you don't
-> get it at all and just need a one line advice to go on. As long as it's
-> asked politely, it's OK :)
+Mostly because it uses procfs a lot, and adding new entries to /proc is,
+well... prohibited. The core and some drivers have been rewritten to use
+sysfs instead, you can get them in Linux 2.6.0. The major problem now is
+that our user-space tools are not aware of the change yet, so you have a
+very limited usability under 2.6.0. But at least you don't have to play
+with patches, everything's already included in the kernel sources.
 
-And i really hate it, to ask. But sometimes i've to disturb you...
-
-Why is lm-sensors not a part of the kernel? Too young and unstable?
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
