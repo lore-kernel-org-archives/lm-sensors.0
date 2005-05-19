@@ -1,88 +1,115 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:44 +0000
-Subject: RFC scaling/constraining user-space input
-Message-Id: <3d4n31l7ac0v73pb79qcr2bti1b4oopmbo@4ax.com>
+From: info@wore.ma.cx (wore)
+Date: Thu, 19 May 2005 06:25:50 +0000
+Subject: SMSC LPC47M192 SMBus question
+Message-Id: <87vf6ua498.wl@wore.ma.cx>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <lllk31p1cgiaao96a5vn16edoda4tkmt19@4ax.com>
-In-Reply-To: <lllk31p1cgiaao96a5vn16edoda4tkmt19@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 18 Mar 2005 16:32:05 +0100 (CET), "Jean Delvare" <khali@linux-fr.org> wrote:
+Hi,
 
-(re-edit reply sent to Jean D. and not the list)
-. . .
-usual temp, voltage scaling okay
-. . .
-re: fan divisor
->> Overkill?
->
->That's the correct way to do it for all discrete values. Rounding +
->range constraints is fine for continuous (voltages) or pseudo-continuous
->(fans) values. Returning an error for these would make no sense. But for
->discrete values, it is better to let the user-space know that the value
->it tried to write was not valid.
-Okay, agree :)
->
->The reason why many drivers don't do it is that it was not previously
->possible to do that (with 2.4 kernels and procfs interface). Now with
->2.6 kernels and sysfs it is possible, so new drivers do it that way, but
->some older drivers still need to be updated.
+Yesterday, I have bought ASUS P4G800-V board for my home linux server.
+I installed linux distribution, then I wanted to see and log cpu temp.
+So, I installed lm_sensors to my box, but part of SMSC LPC47M192 is supported.
+And I began to read datasheet(http://www.smsc.com/main/datasheets/47m192.pdf ).
 
-Perhaps I should do that?  Gain knowledge of system while making 
-smaller changes that shouldn't break anything, nor require testing 
-with particular chip to be valid?  
+It seems that I must access via SMBus to fetch temp and voltage.
+in datasheet (page 129)
+> The Hardware Monitoring Block is a standalone block in the 2.
+> It can be accessed using SMBus interface.
 
->> Apart from the use of a confusing term 'ripple' for
-. . .
->Ripple is not fan clock dividers, it means more like "pulse per
->revolution". I think that another driver has "ppr" for this. That
+Then, I browsed other chips codes and putted some printk debug and 
+i2c_smbus_read_byte_data function as follows.
 
-Abbreviation for: "the period of the fan revolution is
-measured by gating an on-chip 22.5 kHz oscillator into the
-input of an 8-bit counter for two periods of the fan tacho" --adm9240
+The result is failure.
 
-Ripple?  Seemed odd to me, but it is so frequently used in source 
-it becomes 'official', a known label :)  
+> smsc47m1.o version 2.9.0 (20041228) compiled Apr 11 2005 02:02:47
+> smsc47m1_find devid:0x60
+> smsc47m1.o addr: 0x680
+> i2c_check_functionality 0
+> i2c_get_functionality(adapter):0x0
+> i2c-core.o: I2C adapter 50000: I2C level transfers not supported
+> 0x3e rets 0xffffffff
 
->There is no "limits" for fan clock dividers
-. . .
-Agree, see your point now.  
+Anyone know how to access this chip via SMBus?
 
->> Coupled with setting fan divisor, why take special action to
->> adjust fan speed limit when divisor change?  Why not simply
->> tell user-space to set divisor prior to changing fan speed
->> limit?
->
->Because people do not read the docs. So they'll do it the wrong way
->around, then complain that our drivers are broken. We have to protect
->ourselves against users that don't read the docs.
-. . .
-Okay, agree.  Makes sense too.
+Regards,
+wore
 
->> Then we get to the odd VID reporting
-..
->Why do you say it's odd? I like the ways things are done now. Raw VID
->bits are read from the chips, VRM version is guessed from the CPU and
->possibly overwritten by the user, nominal VCore voltage is exposed
->through sysfs. How could it be better than that?
+--
 
-1. because I looped around the code several times before thinking 
-to ask if there was a documentation error re: one read-only (VRM)
-appearing to influence another read-only (VID).
+Here's my loaded modules.
+$ /sbin/lsmod|grep i2c
+i2c-proc                7748   0 [smsc47m1]
+i2c-dev                 4576   0
+i2c-i801                5884   0
+i2c-isa                 1392   0
+i2c-core               19588   0 [smsc47m1 i2c-proc i2c-dev i2c-i801 i2c-isa]
 
-2. because I like simple, obvious solutions, such as VID sense being 
-an index into a lookup table, and VRM selecting which table to lookup, 
-instead I find 'clever' coding obscuring a simple lookup.  Especially 
-the 8.2 vrm 50mV or 100mV per lsb interpretation.  
+-- 
 
-3. because I had trouble discovering why this function reported 
-so differently by the drivers.  a distraction, confusion :)
+This is my debug test.
 
->I hope I answered your questions.
-That you have.  Thanks
-
-Cheers,
-Grant.
+diff -aurN lm_sensors-2.9.0/kernel/chips/smsc47m1.c.orig lm_sensors-2.9.0/kernel/chips/smsc47m1.c
+--- lm_sensors-2.9.0/kernel/chips/smsc47m1.c.orig	2005-04-10 15:48:04.000000000 +0900
++++ lm_sensors-2.9.0/kernel/chips/smsc47m1.c	2005-04-11 02:02:39.000000000 +0900
+@@ -33,7 +33,7 @@
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the sensors");
+ 
+-static unsigned short normal_i2c[] = { SENSORS_I2C_END };
++static unsigned short normal_i2c[] = { 0x2c, 0x2d, SENSORS_I2C_END };
+ static unsigned short normal_i2c_range[] = { SENSORS_I2C_END };
+ static unsigned int normal_isa[] = { 0x0000, SENSORS_ISA_END };
+ static unsigned int normal_isa_range[] = { SENSORS_ISA_END };
+@@ -214,6 +214,7 @@
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
++	printk("smsc47m1_find devid:0x%x\n", val);
+ 
+ 	superio_select();
+ 	val = (superio_inb(SMSC_BASE_REG) << 8) |
+@@ -245,6 +246,15 @@
+ 		return 0;
+ 	}
+ 
++	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++	  printk("i2c_check_functionality 1\n");
++	} else {
++	  printk("i2c_check_functionality 0\n");
++	}
++
++	printk("i2c_get_functionality(adapter):0x%x\n",
++	       i2c_get_functionality(adapter));
++
+ 	if(force_addr)
+ 		address = force_addr & ~(SMSC_EXTENT - 1);
+ 	if (check_region(address, SMSC_EXTENT)) {
+@@ -344,6 +354,8 @@
+ 	/* configure pins for tach function */
+ 	smsc47m1_write_value(client, SMSC47M1_REG_TPIN1, 0x05);
+ 	smsc47m1_write_value(client, SMSC47M1_REG_TPIN2, 0x05);
++	printk("0x3e (company id) rets 0x%x\n", 
++	       i2c_smbus_read_byte_data(client, 0x3e));
+ }
+ 
+ static void smsc47m1_update_client(struct i2c_client *client)
+@@ -488,12 +500,14 @@
+ {
+ 	int addr;
+ 
+-	printk("smsc47m1.o version %s (%s)\n", LM_VERSION, LM_DATE);
++	printk("smsc47m1.o version %s (%s) compiled %s %s\n",
++	       LM_VERSION, LM_DATE, __DATE__, __TIME__);
+ 
+ 	if (smsc47m1_find(&addr)) {
+ 		printk("smsc47m1.o: SMSC 47M1xx not detected, module not inserted.\n");
+ 		return -ENODEV;
+ 	}
++	printk("smsc47m1.o addr: 0x%x\n", addr);
+ 	normal_isa[0] = addr;
+ 
+ 	return i2c_add_driver(&smsc47m1_driver);
