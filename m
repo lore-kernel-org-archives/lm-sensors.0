@@ -1,61 +1,67 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: [PATCH 2.6] I2C: Prevent buffer overflow on SMBus block read in
-Message-Id: <20050201082241.GA22023@kroah.com>
+From: ladis@linux-mips.org (Ladislav Michl)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: [PATCH] ds1337 2/3
+Message-Id: <20050504061354.GC1439@orphique>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050125224258.GA18228@kroah.com> <btE2IXvS.1106731047.5606340.khali@localhost>
-In-Reply-To: <btE2IXvS.1106731047.5606340.khali@localhost>
+References: <20050407231848.GD27226@orphique> <u5mZNEX1.1112954918.3200720.khali@localhost> <20050408130639.GC7054@orphique> <20050502204136.GE32713@kroah.com>
+In-Reply-To: <20050502204136.GE32713@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Sergey Vlasov <vsu@altlinux.ru>
+To: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>
 
-On Wed, Jan 26, 2005 at 10:17:27AM +0100, Jean Delvare wrote:
-> 
-> Hi Greg, all,
-> 
-> > Hm, all distros leave the i2c-dev /dev nodes writable only by root, so
-> > this isn't that "big" of an issue.
-> 
-> Agreed. Non-root write access to these devices would probably be a
-> security issue per se anyway, buffer overflow or not. However, I can't
-> tell if e.g. some embedded systems wouldn't set a particular group on
-> these device files and allow write access to this group, so as to allow
-> some daemon to write data to an EEPROM or something similar. This is why
-> I thought I better warn and push the patch upstream. I wasn't exactly
-> requesting 2.6.10.1 to be released ;)
-> 
-> On second thought, I doubt that embedded designs would rely on a VIA Pro
-> chip anyway. But you never know.
-> 
-> > > @@ -268,6 +268,8 @@
-> > >  		break;
-> > >  	case VT596_BLOCK_DATA:
-> > >  		data->block[0] = inb_p(SMBHSTDAT0);
-> > > +		if (data->block[0] > I2C_SMBUS_BLOCK_MAX)
-> > > +			data->block[0] = I2C_SMBUS_BLOCK_MAX;
-> >
-> > But data->block[0] just came from the hardware, right?  Not from a user.
-> 
-> True, except that with a write access to the device file and depending on
-> the client chip, the user might have just programmed the chip for it to
-> answer with this specific value. See right below.
-> 
-> > Now if we have broken hardware, then we might have a problem here, but
-> > otherwise I don't see it as a security issue right now.
-> 
-> It doesn't take broken hardware.
-> 
-> (Warning: I am going technical at this point, people not interested in
-> the gory details of the I2C and SMBus protocols should better stop here
-> ;))
+i2c_transfer returns number of sucessfully transfered messages. Change
+error checking to accordingly. (ds1337_set_datetime never returned
+sucess)
 
-<snip>
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Signed-off-by: James Chapman <jchapman@katalix.com>
 
-Thanks for the good description.  I've applied your patch to my trees
-and will push it upward soon.
-
-thanks,
-
-greg k-h
+--- linux-omap/drivers/i2c/chips/ds1337.c.orig	2005-04-20 20:08:46.580603672 +0200
++++ linux-omap/drivers/i2c/chips/ds1337.c	2005-04-20 20:34:31.622721568 +0200
+@@ -122,7 +122,7 @@
+ 		__FUNCTION__, result, buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6]);
+ 
+-	if (result >= 0) {
++	if (result = 2) {
+ 		dt->tm_sec = BCD2BIN(buf[0]);
+ 		dt->tm_min = BCD2BIN(buf[1]);
+ 		val = buf[2] & 0x3f;
+@@ -140,12 +140,12 @@
+ 			__FUNCTION__, dt->tm_sec, dt->tm_min,
+ 			dt->tm_hour, dt->tm_mday,
+ 			dt->tm_mon, dt->tm_year, dt->tm_wday);
+-	} else {
+-		dev_err(&client->dev, "error reading data! %d\n", result);
+-		result = -EIO;
++
++		return 0;
+ 	}
+ 
+-	return result;
++	dev_err(&client->dev, "error reading data! %d\n", result);
++	return -EIO;
+ }
+ 
+ static int ds1337_set_datetime(struct i2c_client *client, struct rtc_time *dt)
+@@ -185,14 +185,11 @@
+ 	msg[0].buf = &buf[0];
+ 
+ 	result = i2c_transfer(client->adapter, msg, 1);
+-	if (result < 0) {
+-		dev_err(&client->dev, "error writing data! %d\n", result);
+-		result = -EIO;
+-	} else {
+-		result = 0;
+-	}
++	if (result = 1)
++		return 0;
+ 
+-	return result;
++	dev_err(&client->dev, "error writing data! %d\n", result);
++	return -EIO;
+ }
+ 
+ static int ds1337_command(struct i2c_client *client, unsigned int cmd,
