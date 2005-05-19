@@ -1,34 +1,31 @@
-From: david_knierim@earthlink.net (David Knierim)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: Support for DDR2 DRAM??
-Message-Id: <4186C05E.9020307@earthlink.net>
+From: frank.beesley@aeroflex.com (Frank Beesley)
+Date: Thu, 19 May 2005 06:25:34 +0000
+Subject: One Wire
+Message-Id: <41FE57FB.9080608@aeroflex.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
-In-Reply-To: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Hello,
-> 
-> I lost half hour when I treated 17 as 0x17 ...
-> 
-> Patch is here:
-> 
-> http://www.assembler.cz/download/sensors_ddr2
-> 
->>Rudolf,
->>    Any chance you might have time to look at this??  I'd be happy to
->>test any patches...
-> 
-> 
-> Now you can. Thank you
-> 
+Jean Delvare wrote:
 
-Wow!  That was fast!
+>For one wire devices, you should take a look at the w1 subsystem which
+>was recently introduced in the 2.6 kernels by Evgeniy Polyakov.
+>
+>  
+>
 
-It works fine on my board.   Thanks so much!
+Jean,
 
-David
+I am now looking at the one-wire drivers and see some issues coming up 
+already. Our one-wire devices (DS2401s and DS18B20s) are connected 
+through a CPLD at ISA port 0x304. I am looking at the matrox driver 
+since it has a port to access through. Under the linux documentation 
+(Linux 2.6.9) I can't find anything on one-wire devices. Is there some 
+docs somewhere that discusses how to use these w1 modules. I believe I 
+need w1 and w1_therm to start with but I don't see how everything needs 
+to tie together.
+
+Thanks
+Frank
