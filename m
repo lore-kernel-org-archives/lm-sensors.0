@@ -1,30 +1,55 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: [PATCH 2.6] I2C: Fix macro calls in chip drivers
-Message-Id: <20040908193817.GF6976@kroah.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:25:26 +0000
+Subject: New sensors web site (was Re: 2nd mail archive?)
+Message-Id: <41BDF25A.9030509@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040825224408.67c8d4bd.khali@linux-fr.org>
-In-Reply-To: <20040825224408.67c8d4bd.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Aug 25, 2004 at 10:44:08PM +0200, Jean Delvare wrote:
-> Hi Greg,
+
+Jean Delvare wrote:
+>>Does lm_sensors.org sound good? It is not yet taken (sensors.org is).
 > 
-> I noticed that some I2C chip drivers (all written or reviewed by me, I
-> feel ashamed to say) misuse macros. Passing function calls
-> (simple_strtol in this case) to macros evaluating their argument up to 4
-> times is certainly not wise and obviously performs poorly. It is not
-> critical in that it happens only when writing to the chips (setting
-> limits), which doesn't happen that often. However I'd say it's worth
-> fixing.
 > 
-> Thus, the patch below fixes that, by moving the function calls outside
-> of the macro calls.
+> Random thoughts:
+> 
+> As far as I know, underscores are not allowed in domain names, so it
+> would more likely be a dash (I never liked that underscore anyway).
+> 
+> Phil already has the domain lm-sensors.nu, can't we go on using it if we
+> decide to accept your joint-forces offer?
+> 
+> Another approach is that we might not need a domain name for it at all.
+> Most project hosting systems have a subdirectory for each project,
+> possibly with a subdomain, but not a domain per project, and it looks
+> fine to me.
+> 
+> Thanks,
+> --
+> Jean Delvare
+> 
+
+I like lm-sensors.org (right, no underscores).  We could use that for 
+the new site and then point lm-sensors.nu over to it after we get things 
+finalized.  I can purchase it for us unless somebody has an idea of how 
+to get it for free/ultra-cheap.
+
+I like the idea of a wiki-style edit for web pages (at least only 
+accessible for us).
+
+Other things we will want:
+
+- CVS web browse
+- Support/ticket system
+- Mailing list (and web search)
+
+Anything else?
+
+It probably isn't a bad time to try to roll in a new web design into the 
+site.  I think things are rather too large right now (big fonts, big 
+graphics, nav on left is a little funky, etc.).
 
 
-Applied, thanks.
-
-greg k-h
+Phil
