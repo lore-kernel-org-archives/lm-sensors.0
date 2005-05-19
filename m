@@ -1,55 +1,45 @@
-From: dieter.jurzitza@t-online.de (Dr. Ing. Dieter Jurzitza)
-Date: Thu, 19 May 2005 06:23:34 +0000
-Subject: Tyan 2460 MB
-Message-Id: <XFMail.20020614214139.dieter.jurzitza@t-online.de>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:58 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc4 11/15] drivers/s390/net/qeth_sys.c -
+Message-Id: <25381867050517034323b6451@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Dear people from the lm_sensors team,
-first of all: thank you for your work! The program is  highly functional and
-satisfies (nearly ...) all things that could be interesting.
-You know (from tickets 813,808,781,765) about the Tyan 2460MB:
-- there are two sensor chips on it working on different areas.
-I have an 1.04 bios in use and can tell from my experience:
-- temperature readings are correct if the initialization has not occured (in
-contrast to what has been written in ticket 812), the chip w83782d-i2c-0-2d
-seems to monitor the processor temperature
-- the fan readings are not the ones from the processors, the voltage data are
-hard to interpret. Maybe the due to the voltage divider, as you readily
-mentioned.
-- after initialization the temperature values are identical to those in the
-bios *prior* to initialization and show high numbers (77?C and 78?C).
-- the rpm values from the fans are in an odd relationship to the actual speed,
-I have to recheck. However, the fan data appear to be more plausible after
-initialization.
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
 
-If there are any additional checks I could supply for your help, please let me
-know. Basically one would need to access both chips for different data, but
-this seems impossible from the current lm_sensors package.
+---
+-------------- next part --------------
+ s390/net/qeth_sys.c              |  126 +++++++++++++++++++--------------------
+ s390/scsi/zfcp_scsi.c            |    2 
+ s390/scsi/zfcp_sysfs_adapter.c   |   10 +--
+ s390/scsi/zfcp_sysfs_port.c      |   10 +--
+ s390/scsi/zfcp_sysfs_unit.c      |    6 -
+ scsi/53c700.c                    |    2 
+ scsi/arm/eesox.c                 |    4 -
+ scsi/arm/powertec.c              |    4 -
+ scsi/ipr.c                       |    2 
+ scsi/megaraid/megaraid_mbox.c    |    4 -
+ scsi/scsi_sysfs.c                |   28 ++++----
+ sh/superhyway/superhyway-sysfs.c |    2 
+ usb/core/sysfs.c                 |   24 +++----
+ usb/gadget/dummy_hcd.c           |    4 -
+ usb/gadget/file_storage.c        |    8 +-
+ usb/gadget/net2280.c             |    6 -
+ usb/gadget/pxa2xx_udc.c          |    2 
+ 17 files changed, 122 insertions(+), 122 deletions(-)
 
-Hope you can use the information!
-Take care
-
-
-
-Dieter Jurzitza
-
--- 
------------------------------------------------------------
-E-Mail: Dr. Ing. Dieter Jurzitza <dieter.jurzitza@t-online.de>
-Date: 14-Jun-2002
-Time: 21:21:30                 |
-                                \
-                 /\_/\           |
-                | ~x~ |/-----\   /
-                 \   /-       \_/
-  ^^__   _        /  _  ____   /
- <??__ \- \_/     |  |/    |  |
-  ||  ||         _| _|    _| _|
-
-if you really want to see the pictures above - use some font
-with constant spacing like courier! :-)
------------------------------------------------------------
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-drivers.diff.6.diff
+Type: text/x-patch
+Size: 48532 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/c056e962/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-drivers.diff.6.bin
+-------------- next part --------------
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
