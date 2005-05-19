@@ -1,41 +1,38 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: Problem: i2c-proc w/o sysctl support
-Message-Id: <3C7127F1.76C5AFDB@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:45 +0000
+Subject: [PATCH 2.6] I2C: Fix race condition in it87 driver
+Message-Id: <20050324223901.23beb827.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001801c1b88e$ee6926e0$68a0a8c0@aachen.sourcery.de>
-In-Reply-To: <001801c1b88e$ee6926e0$68a0a8c0@aachen.sourcery.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-you're a genius!
-we have several open tickets on out-of-memory and hadn't figured it out.
-We'll have to update the makefile and our docs.
-thanks
-mds
+Hi Greg,
 
-Sebastian Brandt wrote:
-> 
-> Dear Developers,
-> when I tried to use i2c and lm_sensors, it mysteriously failed for me - of
-> course, for me only, like usual.
-> Loading i2c-proc.o resulted in out-of-memory error, with the usual
-> modprobe/insmod explanation about wrong irqs or io ports. Looking at the
-> code an debugging, I found out that register_sysctl_table fails. Fittingly,
-> /proc/sys did not exist. Syctl-support was not compiled into the kernel.
-> 
-> Resume:
-> If syctl is not supported, i2c-proc.c does not really do anything. Still, it
-> should either load silently and keep silent or check for CONFIG_SYSCTL=y
-> when compiling. None of the i2c-modules can live w/o it.
-> 
-> thanks,
-> Sebastian Brandt
-> 
-> PS.: I hope this is not considered spam ....
-> 
-> /*   If everything seems to be going well, you   */
-> /* obviously don't know what the hell's going on */
-> /*      Sebastian Brandt - SBrandt@gmx.de        */
+I noticed a race condition in the it87, affecting the IT8712F chip only.
+The VRM value is currently initialized *after* creating the vrm and vid
+sysfs files. This leaves a theorical room for reading from these files
+and get an invalid value. It's not critical, but let's still fix it.
+
+Please apply, thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.12-rc1-mm1/drivers/i2c/chips/it87.c.orig	Thu Mar 24 14:06:35 2005
++++ linux-2.6.12-rc1-mm1/drivers/i2c/chips/it87.c	Thu Mar 24 14:08:24 2005
+@@ -889,9 +889,9 @@
+ 	}
+ 
+ 	if (data->type = it8712) {
++		data->vrm = i2c_which_vrm();
+ 		device_create_file_vrm(new_client);
+ 		device_create_file_vid(new_client);
+-		data->vrm = i2c_which_vrm();
+ 	}
+ 
+ 	return 0;
+
+
+-- 
+Jean Delvare
