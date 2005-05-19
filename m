@@ -1,27 +1,55 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [PATCH 2.6] w83627hf needs i2c-isa
-Message-Id: <20050302165542.GC2311@kroah.com>
+From: rob.blomquist@verizon.net (Rob Blomquist)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: Another A7N8X User Waiting Patiently
+Message-Id: <200303242147.59747.rob.blomquist@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050227114604.634d35f0.khali@linux-fr.org>
-In-Reply-To: <20050227114604.634d35f0.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Feb 27, 2005 at 11:46:04AM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> The w83627hf driver is useless unless i2c-isa is present. All other
-> drivers in this case do select I2C_ISA through Kconfig, so this one
-> should as well do.
-> 
-> Please apply,
-> thanks.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Running Mandrake 9.0 stock out of the box (at least with respect to 
+this issue), so my kernel is 2.4.19-16mdk, i2c is built into it, and 
+I have the lm_sensors-2.6.4-5.1mdk.
 
-Applied, thanks.
+I modprobed everything in /i2c and the /sensors directories, and got 
+this:
+[root@timmy2 robbo]# lsmod
+Module                  Size  Used by    Tainted: P
+i2c-isa                 1224   0  (unused)
+i2c-algo-pcf            5212   0
+lm78                    7124   0  (unused)
+lm75                    3232   0  (unused)
+it87                    6852   0  (unused)
+gl520sm                 6824   0  (unused)
+gl518sm                 7888   0  (unused)
+fscscy                  8368   0  (unused)
+fscpos                  6120   0  (unused)
+eeprom                  3476   0  (unused)
+ds1621                  4240   0  (unused)
+ddcmon                  3024   0  (unused)
+bt869                   5368   0  (unused)
+adm9240                 6024   0  (unused)
+adm1025                 5200   0  (unused)
+adm1024                 6592   0  (unused)
+adm1021                 5496   0  (unused)
+i2c-philips-par         2364   0  (unused)
+i2c-algo-bit            7432   0  [i2c-philips-par]
+i2c-dev                 4420   0  (unused)
+i2c-proc                7088   0  [lm78 lm75 it87 gl520sm gl518sm 
+fscscy fscpos eeprom ds1621 ddcmon bt869 adm9240 adm1025 adm1024 
+adm1021]
+i2c-core               15332   0  [i2c-isa i2c-algo-pcf lm78 lm75 it87 
+gl520sm gl518sm fscscy fscpos eeprom ds1621 ddcmon bt869 adm9240 
+adm1025 adm1024 adm1021 i2c-algo-bit i2c-dev i2c-proc]
+parport_pc             21672   1
+parport                23936   1  [i2c-philips-par lp parport_pc]
 
-greg k-h
+If I can help with anymore info, I would be glad, but I think the 
+other folks who processed tickets on this are bigger geeks than I.
+
+Rob
+
+-- 
+Rob Blomquist
+Kirkland, WA
