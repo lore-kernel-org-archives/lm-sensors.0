@@ -1,36 +1,39 @@
-From: frodol@dds.nl (frodol@dds.nl)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: [lm-sensors] TX97
-Message-Id: <200211112133.gABLXuU17853@shire.frodo.local>
+From: chris@nfluid.co.uk (Chris Smith)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: Ticket 815
+Message-Id: <0202151407300A.01391@oberon>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> 
-> 
-> Do you still have your Asus TX97 motheboard working and in use? I am
-> trying to set a correct default configuration for the lm75 chip in
-> sensors.conf.eg. I personnaly own a TX97-E motherboard, and I also saw a
-> ticket (#625) reporting values for a TX97.
 
-Nope, I don't have a TX97 anymore. My smallest computer now is my server,
-with an ABIT BE6 motherboard. Sorry...
- 
-> And you seemd to pretend (ticket #164) that the default config was
-> working fine for you, so I'm a bit lost. Do you confirm that?
+> Will be interested for your confirmation that it?s the 766 not getting
+> initialized. 
+> My theory was the 627HF wasn?t getting initialized.
 
-What I remember is that it worked fine. But motherboards tend to differ
-in their revisions, even going as far as having completely different
-chips, so this might be the reason.
+It's an assumption of mine.
+The 627HF sits on the LPC bus and after you've gone through the BIOS it is 
+visible at 0x0c00.
 
-Good luck,
-  Frodo
+My thinking is that the BIOS maps an address space spanning 0x0c00 to the LPC 
+bus through which it can change the i2c serial address to 0x2c.
 
+Or something like that - from tests registers C0A58 and C0A5C of the AMD-766 
+datasheet don't change regardless of BIOS init or not, so its not those - I'm 
+going to painstakingly dump out all the Function 0 and Function 3 registers 
+to see what changes through a BIOS init -  But it's so tedious!
+
+(You haven't come across a nice way of doing this in your travels have you???)
+
+Very busy at the moment, so I won't get at it for a while.... unless I get 
+bored or something... :o)
+
+Cheers,
+Chris
 -- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Chris Smith
+  Technical Architect - netFluid Technology Limited.
+  "Internet Technologies, Distributed Systems and Tuxedo Consultancy"
+  E: chris@nfluid.co.uk  W: http://www.nfluid.co.uk
