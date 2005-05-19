@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
+From: phil@netroedge.com (phil@netroedge.com)
 Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: i2c-piix4.o: SMB base address uninitialized - upgrade BIOS or use
-Message-Id: <3D248BEF.344102D6@paradyne.com>
+Subject: i2c-piix4.o: SMB base address uninitialized - upgrade BIOS or use force_addr=0xaddr
+Message-Id: <20020705094946.Q9322@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020704182412.D6544@lodz.tpsa.pl>
 In-Reply-To: <20020704182412.D6544@lodz.tpsa.pl>
@@ -10,18 +10,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I don't know any way to pass the address to the driver without modules.
-You'll have to modify the source to put "force_addr=0x1234" somewhere.
 
-You should also use sensors-detect from the lm_sensors package to
-do your detection rather than just loading all the chip drivers.
-Note that you hit the limit on number of loaded drivers.
+Yeah, the problem with the uninitialized base address is that the Bios
+was supposed to configure the chipset on your motherboard to map all
+the base addresses of the different systems to unique and
+non-overlapping addresses.  For some reason, it has left the base
+address of the SMBus system zero/null.  You have a couple choices:
 
-mds
+- figure out if there is a Bios setting (ACPI?) which you need to
+'enable' to cause the Bios to complete the chipset setup.  Oddly, it
+needed to use the SMBus to sense your memory DIMMs (SPD probing).  Why
+it would purposely uninitialize the SMBus system is not clear to me.
+
+- set the base address yourself.  As you mention, you can do it with
+an insmod/modprobe parameter.  If you are building into the kernel,
+then you'll need to tweak the source code a little to get around this.
+in i2c-piix4.c find this piece of code:
+
+/* Determine the address of the SMBus areas */
+        if (force_addr) {
+                piix4_smba = force_addr & 0xfff0;
+                force = 0;
+        } else {
+                pci_read_config_word(PIIX4_dev, SMBBA, &piix4_smba);
+                piix4_smba &= 0xfff0;
+                if(piix4_smba = 0) {
+                        printk(KERN_ERR "i2c-piix4.o: SMB base address uninitialized - upgrade BIOS or use force_addr=0xaddr\n");
+                        return -ENODEV;
+                }
+        }
+
+(line 219)
+
+Go ahead and add a line just before the comment which looks something
+like this:
+
+force_addr=0xYOUR_VALUE_HERE;
+
+I don't know what you should try as an address value.  It must be
+unqiue, yet not overlap with any other memory used by the chipset.
+Only the Bios (or the manufacturer) knows what is safe, but you can
+try a value or two and test to make sure everything on your system is
+working.  You can also check /proc/iospace to see what's being used
+that the kernel knows about.
+
+An idea to find out what a safe value is is to start Windows, run the
+utility to check temps which came with the mobo, and then use loadlin
+or something to get into Linux (don't reboot).  Then insmod
+i2c-piix4.c with a printk() inserted after the pci_read_config_word
+above to print out the current value of piix4_smbus. 
 
 
-Tomasz Papszun wrote:
-> 
+Phil
+
+On Thu, Jul 04, 2002 at 06:24:12PM +0200, Tomasz Papszun wrote:
 > Dear,
 > 
 > I'm trying to use I2C and lm_sensors (2.6.3) on Compaq Proliant ML570
@@ -30,7 +72,7 @@ Tomasz Papszun wrote:
 > I use monolithic kernels (no dynamically inserted modules), currently
 > 2.4.18.
 > 
-> Just after Debian installation, when the kernel was modular, I used
+> Just after Debian installation, when the kernel was modular, I used 
 > 'sensors-detect' and got:
 > 
 > "Use driver 'i2c-piix4' for device 00:0f:0: ServerWorks OSB4 South Bridge
@@ -82,11 +124,12 @@ Tomasz Papszun wrote:
 > 
 > Below I'm including excerpts from the latest dmesg (I'm not sending full
 > one as I don't want to add too much "noise" but if you need it, just tell
-> me).
-> I'm quite confused and down after many days of trials with it so I may be
+> me). 
+> I'm quite confused and down after many days of trials with it so I may be 
 > omitting some info you need. If so, don't hesitate to ask me.
 > 
 > Thank you in advance.
+> 
 > 
 > Linux version 2.4.18 (tomek@kiezmar) (gcc version 2.95.4 20011002 (Debian prerelease)) #1 SMP Wed Jul 3 22:39:06 CEST 2002
 > [...]
@@ -140,7 +183,13 @@ Tomasz Papszun wrote:
 >     ide0: BM-DMA at 0x2c00-0x2c07, BIOS settings: hda:pio, hdb:pio
 >     ide1: BM-DMA at 0x2c08-0x2c0f, BIOS settings: hdc:pio, hdd:pio
 > 
+> 
 > Regards
-> --
+> -- 
 >  Tomasz Papszun   SysAdm @ TP S.A. Lodz, Poland  | And it's only
 >  tomek@lodz.tpsa.pl   http://www.lodz.tpsa.pl/   | ones and zeros.
+
+-- 
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
