@@ -1,7 +1,7 @@
 From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Call for 2.9.1 soon
-Message-Id: <425C0181.6080400@edgedesign.us>
+Message-Id: <425C11E7.2060009@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42374C41.8000401@mds.gotdns.com>
 In-Reply-To: <42374C41.8000401@mds.gotdns.com>
@@ -10,29 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+OK, done.  Please review the home page and download page and edit as needed.
 
+Also, (looking at our notes) we need to clear any outstanding tickets 
+and Mark, if you would like, you can make the Freshmeat announce at your 
+convenience.
 
-Jean Delvare wrote:
-> 
-> Philip, would you accept to continue managing the list once we have moved
-> to the new system?
-> 
-
-Sure, I don't mind.
-
-> Axel, would you agree to be that one European operator?
-> 
-> I'd accept a list operator access, but I have already such a hard time
-> with the code itself, especially on the Linux 2.6 front, that I'd
-> appraciate if someone else could handle the administrative tasks for the
-> project, as is done so far.
-> 
-> (I guess that Mailman will handle the hard work pretty well on its own
-> anyway, so that shouldn't be that much of a burden for the chosen ones.)
-> 
-
-Axel, let me know when you are ready and I'll send you the current list 
-of subscribers and any other related info I have.
+Congrats again to everyone for their hard work! Jean, Mark, and the many 
+others actively contributing over the last several months.
 
 
 Phil
+
+Mark Studebaker wrote:
+> agreed.
+> Phil at your convenience...
+> thanks
+> mds
+> 
+> Jean Delvare wrote:
+> 
+>> Hi Philip,
+>>
+>>
+>>> I'm here and ready to package things up for a release when everyone
+>>> is happy.
+>>
+>>
+>>
+>> Yes, please proceed. The current state of CVS seems to be just fine.
+>>
+>> As usual, the libsensors version was already bumped by MDS so you don't
+>> have to do that.
+>>
+>> Thanks,
+> 
+> 
+> 
