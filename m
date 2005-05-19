@@ -1,37 +1,24 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:23 +0000
-Subject: [PATCH 2.6] Cleanups to the recent smbus functions removal
-Message-Id: <20041119171223.GC19845@kroah.com>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: adm1021
+Message-Id: <1053016162.621.76.camel@zrr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041116223833.4fdeb1aa.khali@linux-fr.org>
-In-Reply-To: <20041116223833.4fdeb1aa.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Nov 17, 2004 at 12:26:46PM +0100, Gabriel Paubert wrote:
-> 	Hi Jean,
-> 
-> On Tue, Nov 16, 2004 at 10:38:33PM +0100, Jean Delvare wrote:
-> > Hi Greg, all,
-> > 
-> > This patch cleans up the recent removal of smbus functions proposed by
-> > Arjan and then fixed by Gabriel. Changes are as follow:
-> > 
-> > 1* Discard i2c_smbus_block_process_call, as it isn't used anywhere
-> >    either. I guess that Arjan missed it because it wasn't exported.
-> > 
-> > 2* Document the functions removal, so that people have at least an idea
-> >    that the functions can be restored later if needed.
-> > 
-> > Maybe it would make sense to apply this before 2.6.10-rc2? Not critical
-> > however, I agree. But obviously safe too, huh? ;)
-> 
-> It seems so. BTW I hate wrong comments and happened to add one 
-> in my patch. To fix my blunder, can you apply the appended one 
-> line removal on top of Jean's patch.
+Hi 
 
-Applied, thanks.
+I would like to force load the adm1021. I got a Dual Intel Xeon -based
+Motherboard.
 
-greg k-h
+but the prog/detect/i2cdetect.c is not prog/detect/i2cdetect
+
+Where can I find the i2cdetect without the .c?
+
+I am willing to test on my new server.
+
+Thanks for your time and help.
+
+Zeno
