@@ -1,79 +1,74 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:35 +0000
-Subject: lm_sensors2/doc/chips mic74
-Message-Id: <pKkaw34y.1107351761.4505810.khali@localhost>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: sensors.cfg for w83697hf (Abit KR7A-133 mainboard)
+Message-Id: <E170W7N-0003Fp-00@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <gqUFWjmh.1107340522.3506030.khali@localhost>
-In-Reply-To: <gqUFWjmh.1107340522.3506030.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-Hi Mark & all,
+I have a mainboard with a w83697hf chip (w83781d driver + i2c_isa), but 
+there is no data into /etc/sensors.cfg.
+I have done one (see attachement), it works for my mainboard (Abit 
+KR7A-133), but it should also work for other mainboards (maybe with minor 
+modifications).
 
-> > I don't see the point in having a kernel driver for this. The driver
-> > currently exposes all the registers directly to procfs, with arbitrary
-> > names. You could achieve the same goal with a user-space program relying
-> > on i2c-dev. I guess that this device is meant for a very specific use
-> > anyway.
->
-> well you have a point there, but that comment also applies to pcf8574, for
-> example.
+Then, the w83697hf chip is noted as "support is complete but has not 
+been well-tested", and I confirm it works well for me.
 
-I completely agree, and some other drivers as well. I believe that the
-different devices have been handled too similarly for a long time now.
-The i2c core is one thing, i2c/smbus master drivers are another, sensor
-chips another, misc chips yet another, and user-space tools as well. One
-may wonder why bus drivers do belong to the lm_sensors package and not
-to i2c package. Likewise, some chip drivers are part of lm_sensors for
-historical reasons but don't truly belong there. The fact that
-libsensors and sensors know about a number of non-sensors chips doesn't
-make much sense when you think of it. And the fact that the 2.4 kernel
-drivers, libsensors and sensors are so tight together is much of a
-concern too.
+Moreover, I would to send you a link in the section "Hardware Monitoring 
+Applications using the lm_sensors package" : 
+http://ksensors.sourceforge.net
 
-The reason why I mention all that now is that we will inevitably have to
-make things way clearer on the 2.6 kernel side within a short time.
-Hardware monitoring chips must be conceptually separated from the i2c
-subsystem, because so many of them are now completely unrelated with
-that. i2c-isa will soon be history, or so I hope. Also, the 2.6-only
-implementation of libsensors (someday...) will only handle sensor chips,
-based on the well-defined standard interface, no more chip-specific
-stuff. While we are still far from this, it would be great to walk in
-the right direction already.
+Aurelien Jarno
+-------------- next part --------------
+chip "w83697hf-*"
 
-> I think this driver has potential for enhancement...
-> for example, if it's really used as a fan controller, the files could be
-> renamed as pwmx and then it would work with pwmconfig, etc.
-> So IMHO it was worth keeping.
+    label in0 "VCore"
+    label in2 "VIO"
+    label in3 "5VSB"
+    label in4 "+12V"
+    label in5 "AGP"
+    label in6 "DDR"
+    label in7 "+5V"
+    label in8 "VBat"
 
-Agreed, the chip can be used as a fan controller and that would belong to
-the project in this case. But who is using this chip and driver exactly?
-I still would like to know where the chip was seen.
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
 
-At any rate, I would prefer a driver that specifically handles fan
-control and only that, with standard interface, and a user-space tool
-which handles the chip as an I/O expander, and only does that. I doubt
-that the chip would be used for both at once, would it?
+# set limits to  5% for the critical voltages
+# set limits to 10% for the non-critical voltages
+# set limits to 20% for the battery voltage
 
-Side note about the chip detection (or lack thereof):
+    set in0_min vid*0.95
+    set in0_max vid*1.05
+    set in2_min 3.5 * 0.95
+    set in2_max 3.5 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.90
+    set in4_max 12 * 1.10
+    set in5_min 1.5 * 0.95
+    set in5_max 1.5 * 1.05
+    set in6_min 2.55 * 0.95
+    set in6_max 2.55 * 1.05
+    set in7_min 5 * 0.95
+    set in7_max 5 * 1.05
+    set in8_min 3.0 * 0.80
+    set in8_max 3.0 * 1.20
 
-You said that the chip was impossible to detect. I don't think so.
-During the past few years, we learnt quite a few tricks for detecting
-chips, which would certainly apply here.
+   label temp1 "MB Temp"
+   label temp2 "CPU Temp"
 
-First, I see unused bits in the configuration register and fan speed
-register. Should probably always read 0.
+# examples for temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 62
+#    set temp2_hyst 57
 
-Then, as for most low register count chips, we could check what happens
-when you read past the last register. Sometimes it returns 0, sometimes
-the last read value, sometimes an i2c error. Sometimes registers cycle
-over some boundary (like the LM75 does). All this can be used to improve
-the detection - even if real identification registers are still prefered
-for speed and reliability, of course. May we see a dump of a mic74 chip?
-
-Thanks,
---
-Jean Delvare
+    set fan1_div 2
+    set fan2_div 4
