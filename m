@@ -1,78 +1,39 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: i2c-sis630 bus driver (was Re: last call for 2.6.5)
-Message-Id: <200209182043.04047.amalysh@web.de>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] Add support for it8712 in sensord
+Message-Id: <20050306220003.GA3694@bode.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020917150545.S20006@Stimpy.netroedge.com>
-In-Reply-To: <20020917150545.S20006@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am Mittwoch, 18. September 2002 20:14 schrieb phil@netroedge.com:
-[snip]
-> >
-> > [snip]
-> > I have this one too ... It's only VGA-Card. Can you please provide full
-> > lspci -vvv from this board ?
->
-> Sure, here it is:
->
-> [root@drtheopolis phil]# lspci -d 1039:6300 -vvv
-[snip]
 
-Phil, I meant without -d option ... Thank you in advance ...
-I'm not sure , what kind of pci-id should be checked ? i found 2 id's = 6300
-	1. PCI_DEVICE_ID_SI_630_VGA (this is your case)
-	2. PCI_DEVICE_ID_SI_6300
+Hi all,
 
-Therefore I would have gladly full lspci output ...
+The attached patch adds support for it8712 in sensord. Please apply.
 
->
-> > > As a test, I substituted PCI_DEVICE_ID_SI_630 with 0x6300:
-> >
-> > no needed anymore , the driver have force option for this :)
->
-> Can we have the driver detect it instead of requiring the users to
-> force it?  I mean, the driver is for the SiS630, and this PCI device
-> is a SiS630.  It wouldn't be obvious to a user that they not only use
-> the driver, but must force it to use it.
-
-You are right , but I meant you does't need to "hack" the code anymore  to 
-probe a driver for supported chips...
-
->
-> > >         /* Look for the SIS630 */
-> > >         if (!(sis630_dev = pci_find_device(PCI_VENDOR_ID_SI,
-> > >                                             PCI_DEVICE_ID_SI_503,
-> > >                                             sis630_dev))) {
-> > >                 printk(KERN_ERR "i2c-sis630.o: Error: Can't detect
-> > > SIS630!\n"); return -ENODEV;
-> > >         }
-> > >         tmp > > > pci_find_device(PCI_VENDOR_ID_SI,/*PCI_DEVICE_ID_SI_630*/0x6300,NULL);
-> > > if (tmp = NULL && force = 0) {
-> > >                 printk(KERN_ERR "i2c-sis630.o: Error: Can't detect
-> > > SIS630!\n"); return -ENODEV;
-> > >         }
-> > >
-> > > And, things seems to be working thus far (but perhaps a bit slow):
-> >
-> > yes it's slow, because I have disabled change of the Host Master Clock 
-> > (it's hang  my Laptop) ... You can try to change i2c-sis630.c at line 194
-> > from: sis630_write(SMB_CNT, 0x00);
-> > to: sis630_write(SMB_CNT, 0x20);
->
-> With just some brief testing, it seems to work.  Doesn't seem much
-> faster, but it works.
->
-> > In this case Host Master Clock will be changed to 56KHz and should be a
-> > bit faster :) Tell me please if it works for you ...
->
-> I'm OK with it being slow for the sake of added stability/reliability.
->
->
-> Phil
+Thanks,
+Aurelien
 
 -- 
-Alexander Malysh
+  .''`.  Aurelien Jarno	            | GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+Index: prog/sensord/chips.c
+=================================RCS file: /home/cvs/lm_sensors2/prog/sensord/chips.c,v
+retrieving revision 1.15
+diff -u -d -p -r1.15 chips.c
+--- prog/sensord/chips.c	29 Jan 2005 22:33:18 -0000	1.15
++++ prog/sensord/chips.c	5 Mar 2005 14:26:00 -0000
+@@ -546,7 +546,7 @@ static const ChipDescriptor lm80_chip = 
+ /** IT87 (thanks to Mike Black) **/
+ 
+ static const char *it87_names[] = {
+-  SENSORS_IT87_PREFIX, NULL
++  SENSORS_IT87_PREFIX, SENSORS_IT8712_PREFIX, NULL
+ };
+ 
+ static const FeatureDescriptor it87_features[] = {
