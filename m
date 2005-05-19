@@ -1,7 +1,7 @@
-From: se.witt@gmx.net (Sebastian Witt)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: ATXP1 kernel patch
-Message-Id: <41EECF3C.9040104@hasw.net>
+Message-Id: <vUyBEGbe.1106216487.5706100.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41D821D9.5030003@hasw.net>
 In-Reply-To: <41D821D9.5030003@hasw.net>
@@ -10,380 +10,163 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I want to add two things to my last message:
 
-- The VRM check in atxp1_detect was moved above i2c_attach_client.
+Hi Sebastian,
 
-- I've channged the detection method, because
-..
-temp = i2c_smbus_read_byte_data(new_client, ATXP1_VID);
-if(!((i2c_smbus_read_byte_data(new_client, 0x10) = temp) &&
-    (i2c_smbus_read_byte_data(new_client, 0x11) = temp)
-...
+> I want to add two things to my last message:
+>
+> - The VRM check in atxp1_detect was moved above i2c_attach_client.
 
-the register 0x10,0x11 aren't the same as 0x00 all time (the dump say 
-it, but I think that's because the device is dumped from 0x00 upwards). 
-If you directly read 0x10, 0x11 they are also zero.
+Good idea. It's better not to register anything if we are giving it all
+up in the end. However, you forgot to free the memory you allocated.
 
-Instead I'm checking register 0x05, bit 7. It is always set:
-..
-if(!(i2c_smbus_read_byte_data(new_client, 0x05) & 0x80))
-..
+> - I've channged the detection method, because
+> ..
+> temp = i2c_smbus_read_byte_data(new_client, ATXP1_VID);
+> if(!((i2c_smbus_read_byte_data(new_client, 0x10) = temp) &&
+>     (i2c_smbus_read_byte_data(new_client, 0x11) = temp)
+> ...
+>
+> the register 0x10,0x11 aren't the same as 0x00 all time (the dump say
+> it, but I think that's because the device is dumped from 0x00 upwards).
+> If you directly read 0x10, 0x11 they are also zero.
 
-Regards,
-Sebastian
--------------- next part --------------
-/*
-    atxp1.c - kernel module for setting Vcore using ATXP1 chip. 
-    
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+You are right that what addresses 0x10 and 0x11 return depend on what was
+previously read from the chip, because these address don't map to
+physical registers. However this is precisely a very good way to detect
+exotic chips such as the ATXP1. Please do some tests to understand what
+exactly determines the values being returned. Usually this is the last
+"real" value read, but in your case this seems to be different.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+At the very least you can check that both addresses (0x10 and 0x11)
+return the same value, whatever this is, right?
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-    
-    Version history:
-    0.1: - Converted 8rdavcore into kernel module (Marcin Kaluza <marcin_ml@sekretarka.no-ip.org>)
-    0.2: - Cleanup, general interface for VCore (Sebastian Witt <hasw@hasw.net>)
-    0.3: - Fixed VID calculation (no FP operation)
-         - Fixed VID setting loop
-         - Added update lock
-         - Renamed device file to cpu_vid
-         - Added low_voltage module option to set lowest possible voltage (1075mV or 1100mV)
-    0.4: - Added GPIO[1,2]
-        - Using I2C VRM functions
-        - Changed detection
-        - Some other small fixes
-*/
+I really think we need to use this, or the detection will be possibly
+unreliable (although we are lucky that the ATXP1 uses uncommon
+addresses).
 
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/module.h>
-#include <linux/moduleparam.h>
-#include <linux/i2c.h>
-#include <linux/i2c-sensor.h>
-#include <linux/i2c-vid.h>
+> Instead I'm checking register 0x05, bit 7. It is always set:
+> ..
+> if(!(i2c_smbus_read_byte_data(new_client, 0x05) & 0x80))
+> ..
 
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("System voltages control via Attansic ATXP1");
-MODULE_VERSION("0.4");
+I don't know how you do know that, but if it works, fine with me.
 
-#define ATXP1_VID	0x00
-#define ATXP1_CVID	0x01
-#define ATXP1_GPIO1	0x06
-#define ATXP1_GPIO2	0x0a
-#define ATXP1_VIDENA	0x20
-#define ATXP1_VIDMASK	0x1f
-#define ATXP1_GPIO1MASK	0x0f
+Now answering your previous post:
 
-static unsigned short normal_i2c[]= { 0x37, 0x4e, I2C_CLIENT_END };
-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
-static int atxp1_attach_adapter(struct i2c_adapter * adapter);
-static int atxp1_detach_client(struct i2c_client * client);
-static struct atxp1_data * atxp1_update_device(struct device *dev);
-static int atxp1_detect(struct i2c_adapter *adapter, int address, int kind);
+> Something like in the attached patch? I've not added the other VRMs yet,
+> first need to know if the ATXP1 is used with other VRMs.
 
-static struct i2c_driver atxp1_driver = {
-	.owner		= THIS_MODULE,
-	.name		= "atxp1",
-	.flags		= I2C_DF_NOTIFY,
-	.attach_adapter = atxp1_attach_adapter,
-	.detach_client	= atxp1_detach_client,
-};
+Yes, something like that.
 
-SENSORS_INSMOD_1(atxp1);
+> > Huh. Looks even more complex. Do you really need to read all 10 first
+> > registers, while you were previously only reading 2? What is the benefit
+> > of having a separate "valid" bit for each register since you always read
+> > them all at once anyway?
+> 
+> For future versions, which are using more (all registers). For general
+> purpose IOs (used to control other voltages, extra functions) and
+> watchdog timer.
 
-struct atxp1_data {
-	struct i2c_client client;
-	struct semaphore update_lock;
-	u16 valid;
-	unsigned char reg[0x0f];
-	u8 vrm;
-};
+We don't much care about future versions at this point. There might
+never be any future version. If there is, you'll be able to do all the
+required changes at that time. The code you will submit for the first
+version of your driver has to make sense per se. Please only read the
+registers you need.
 
-static struct atxp1_data * atxp1_update_device(struct device *dev) 
-{
-	struct i2c_client *client;
-	struct atxp1_data *data;
-	unsigned char count;
-	
-	client = to_i2c_client(dev);
-	data = i2c_get_clientdata(client);
-	
-	down(&data->update_lock);
-	
-	/* Update local register data only if register was written */
-	for(count = 0; count <= 0x0a; count++) {
-		if((data->valid >> count & 1) = 0) {
-			data->reg[count] = i2c_smbus_read_byte_data(client, count);
-			data->valid |= 1 << count;
-		}
-	}
-    	
-	up(&data->update_lock);
-	
-	return(data);
-}
+> Also a register variable gets only updated at start or when a value was
+> written.
 
-static int atxp1_write(struct i2c_client *client, unsigned char adr, unsigned char data) 
-{
-	int ret = -1;
-	
-	ret = i2c_smbus_write_byte_data(client, adr, data);
-	
-	if(ret < 0) {
-		dev_err(&client->dev, "Write failed.\n");
-		return -1;
-	}
+Right, I did not understand what you were doing in the first place,
+because it differs from what the other i2c client drivers do.
 
-	return 0;
-}
+The reason why i2c clients have an update function is to centralize and
+control i2c traffic that can be triggered by regular users. Remember
+that regular users can read from sysfs files your driver exports. In
+order to prevent possible bus saturation by regular users, all client
+drivers have a timer in their update function, which prevent register
+updates more frequent than (typically) one second. Your driver doesn't.
+Please see in e.g. lm90.c how this has to be done, and do the same.
 
-/* Device file functions for VCore */
-ssize_t atxp1_showvcore(struct device *dev, char *buf)
-{
-	int size;
-	struct atxp1_data *data;
-	
-	data = atxp1_update_device(dev);
-	
-	size = sprintf(buf, "%d\n", vid_from_reg(data->reg[ATXP1_VID] & ATXP1_VIDMASK, data->vrm));
+Having individual validity bits then becomes useless. The only driver
+which has that is eeprom.c, but only because it has a very large number
+of "registers" (256 as opposed to less than 30 for most drivers) and a
+very long cache timeout (5 minutes instead of 1 second). For your driver
+it doesn't make sense. You should NOT suppose that register values
+never change, this is dangerous.
 
-	return size;
-}
+So please:
+1* Add a timer check in your update function. 1 second (HZ) should be
+fine.
+2* Only read registers you need.
+3* Have a single valid bit for them all.
 
-ssize_t atxp1_storevcore(struct device *dev, const char* buf, size_t count)
-{
-	struct atxp1_data *data;
-	struct i2c_client *client;
-	char vid;
-	char cvid;
-	unsigned int vcore;
+> I don't know if the ATXP1 is used on boards with < 9.0 at all. Would be
+> interesting if somebody knows.
 
-	client = to_i2c_client(dev);
-	data = atxp1_update_device(dev);
+I have no idea, sorry. I see no reason why it wouldn't be technically
+possible, but it doesn't mean that any motherboard manufacturer
+actually did it.
 
-	vcore = simple_strtoul(buf, NULL, 10);
-	vcore /= 25;	
-	vcore *= 25;	
-	
-	/* Calculate VID */
-	vid = reg_from_vid(vcore, data->vrm);
-	
-	if(vid < 0) {
-		dev_err(dev, "VID calculation failed.\n");
-		return -1;
-	}
-	
-	/* If output enabled, use control register value. Otherwise original CPU VID */
-	if(data->reg[ATXP1_VID] & ATXP1_VIDENA)
-		cvid = data->reg[ATXP1_VID] & ATXP1_VIDMASK;
-	else
-		cvid = data->reg[ATXP1_CVID];
-	
-	/* Nothing changed, aborting */
-	if(vid = cvid)
-		return strlen(buf);
-	
-	dev_info(dev, "Setting VCore to %d mV (0x%02x)\n", vcore, vid);
-	
-	/* Write every 25 mV step to increase stability */
-	if(cvid > vid) {
-		for(; cvid >= vid; cvid--) {
-        		atxp1_write(client, ATXP1_VID, cvid | ATXP1_VIDENA);
-		}
-	}
-	else {
-		for(; cvid <= vid; cvid++) {
-        		atxp1_write(client, ATXP1_VID, cvid | ATXP1_VIDENA);
-		}
-	}
-	
-	data->valid &= ~1;
-	
-	return strlen(buf);
-}
+Random comments on your code now:
 
-/* CPU core reference voltage
-    unit: millivolt
-*/
-static DEVICE_ATTR(cpu0_vid, S_IRUGO | S_IWUSR, atxp1_showvcore, atxp1_storevcore);
+> #include <linux/moduleparam.h>
 
-/* Device file functions for GPIO1 */
-ssize_t atxp1_showgpio1(struct device *dev, char *buf)
-{
-	int size;
-	struct atxp1_data *data;
-	
-	data = atxp1_update_device(dev);
-	
-	size = sprintf(buf, "0x%02x\n", data->reg[ATXP1_GPIO1] & ATXP1_GPIO1MASK);
+You don't need this.
 
-	return size;
-}
+> static int atxp1_write(struct i2c_client *client, unsigned char adr, unsigned char data)
+> {
+> 	int ret = -1;
+> 
+> 	ret = i2c_smbus_write_byte_data(client, adr, data);
+> 
+> 	if(ret < 0) {
+> 		dev_err(&client->dev, "Write failed.\n");
+> 		return -1;
+> 	}
+> 
+> 	return 0;
+> }
 
-ssize_t atxp1_storegpio1(struct device *dev, const char* buf, size_t count)
-{
-	struct atxp1_data *data;
-	struct i2c_client *client;
-	unsigned int value;
-	
-	client = to_i2c_client(dev);
-	data = atxp1_update_device(dev);
+Two D to "address" in english. Initialization of ret to -1 is usless.
+You better propagate the error value than arbitrary return -1 on error.
+You could also change the error message to indicate which address you
+were trying to read, that might help analyzing problems later.
 
-	value = simple_strtoul(buf, NULL, 16);
-	
-	value &= ATXP1_GPIO1MASK;
-	
-	dev_info(dev, "Writing 0x%x to GPIO1.\n", value);
-	
-	if(value != (data->reg[ATXP1_GPIO1] & ATXP1_GPIO1MASK)) {
-		atxp1_write(client, ATXP1_GPIO1, value);
-		data->valid &= ~(1 << ATXP1_GPIO1);
-	}
-	
-	return strlen(buf);
-}
+BTW, you never check the return value whan calling this function.
 
-static DEVICE_ATTR(gpio1, S_IRUGO | S_IWUSR, atxp1_showgpio1, atxp1_storegpio1);
+> 	if(data->vrm != 90) {
+> 		dev_err(&new_client->dev, "Not supporting VRM %d\n", data->vrm);
+> 		return 0;
+> 	}
 
-/* Device file functions for GPIO2 */
-ssize_t atxp1_showgpio2(struct device *dev, char *buf)
-{
-	int size;
-	struct atxp1_data *data;
-	
-	data = atxp1_update_device(dev);
-	
-	size = sprintf(buf, "0x%02x\n", data->reg[ATXP1_GPIO2]);
+Why don't use %d.%d with /10 and %10 like you do in case of success?
 
-	return size;
-}
+> static int atxp1_detach_client(struct i2c_client * client)
+> {
+> 	int err;
+> 
+> 	err = i2c_detach_client(client);
+> 
+> 	if (err)
+> 		dev_err(&client->dev, "Failed to detach client.\n");
+> 	else
+> 		kfree(i2c_get_clientdata(client));
+> 
+> 	return 0;
+> };
 
-ssize_t atxp1_storegpio2(struct device *dev, const char* buf, size_t count)
-{
-	struct atxp1_data *data;
-	struct i2c_client *client;
-	unsigned int value;
-	
-	client = to_i2c_client(dev);
-	data = atxp1_update_device(dev);
+You better propagate the error instead of returning 0 if it occurs.
 
-	value = simple_strtoul(buf, NULL, 16) & 0xff;
-	
-	dev_info(dev, "Writing 0x%x to GPIO1.\n", value);
-	
-	if(value != data->reg[ATXP1_GPIO2]) {
-		atxp1_write(client, ATXP1_GPIO2, value);
-		data->valid &= ~(1 << ATXP1_GPIO2);
-	}
-	
-	return strlen(buf);
-}
+> static int __init atxp1_init(void)
+> {
+> 	i2c_add_driver(&atxp1_driver);
+> 
+> 	return 0;
+> };
 
-static DEVICE_ATTR(gpio2, S_IRUGO | S_IWUSR, atxp1_showgpio2, atxp1_storegpio2);
+Ditto. i2c_add_driver may fail.
 
-
-static int atxp1_attach_adapter(struct i2c_adapter *adapter)
-{
-	return i2c_detect(adapter, &addr_data, &atxp1_detect);
-};
-	
-static int atxp1_detect(struct i2c_adapter *adapter, int address, int kind)
-{
-	struct i2c_client* new_client;
-	struct atxp1_data * data;
-	int err;
-
-	if (!(data = kmalloc(sizeof(struct atxp1_data), GFP_KERNEL)))
-		return -ENOMEM;
-
-	memset(data, 0, sizeof(struct atxp1_data));
-	new_client = &data->client;
-	i2c_set_clientdata(new_client, data);
-	
-	new_client->addr = address;
-	new_client->adapter = adapter;
-	new_client->driver = &atxp1_driver;
-	new_client->flags = 0;
-	
-	/* Detect ATXP1, checking if vendor ID registers are all zero 
-	 * and register 0x05 bit 7 is set */
-	if(!((i2c_smbus_read_byte_data(new_client, 0x3e) = 0) &&
-	     (i2c_smbus_read_byte_data(new_client, 0x3f) = 0) &&
-	     (i2c_smbus_read_byte_data(new_client, 0xfe) = 0) &&
-	     (i2c_smbus_read_byte_data(new_client, 0xff) = 0) )) {
-
-		if(!(i2c_smbus_read_byte_data(new_client, 0x05) & 0x80)) {
-			kfree(data);
-			return 0;
-		}
-	}
-	
-	/* Get VRM */
-	data->vrm = i2c_which_vrm();
-	
-	if(data->vrm != 90) {
-		dev_err(&new_client->dev, "Not supporting VRM %d\n", data->vrm);
-		return 0;
-	}
-	
-	strncpy(new_client->name, "atxp1", I2C_NAME_SIZE);
-
-	data->valid = 0;
-	
-	init_MUTEX(&data->update_lock);
-	
-	if ((err = i2c_attach_client(new_client)))
-	{
-		dev_err(&new_client->dev, "Attach client error.\n");
-		kfree(data);
-		return err;
-	}
-	
-	device_create_file(&new_client->dev, &dev_attr_gpio1);
-	device_create_file(&new_client->dev, &dev_attr_gpio2);
-	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
-	
-	dev_info(&new_client->dev, "Detected on %s. Using VRM: %d.%d\n", 
-			 adapter->name, data->vrm / 10, data->vrm % 10);
-	
-	return 0;
-};
-
-static int atxp1_detach_client(struct i2c_client * client)
-{
-	int err;
-	
-	err = i2c_detach_client(client);
-	
-	if (err) 
-		dev_err(&client->dev, "Failed to detach client.\n");
-	else
-		kfree(i2c_get_clientdata(client));
-	
-	return 0;
-};
- 
-static int __init atxp1_init(void)  
-{ 
-	i2c_add_driver(&atxp1_driver);
-	
-	return 0; 
-};
-
-static void __exit atxp1_exit(void) 
-{ 
-	i2c_del_driver(&atxp1_driver);
-};
-
-module_init(atxp1_init);
-module_exit(atxp1_exit);
+Thanks,
+--
+Jean Delvare
