@@ -1,94 +1,67 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:46 +0000
-Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E548F@weshml03.winbond.com.tw>
+From: ottavio@campana.vi.it (Ottavio Campana)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: compile error 2.4.22
+Message-Id: <20031127143753.GA13922@campana.vi.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
-In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBNRFMsIEplYW4KCkRpZCB5b3UgZXZlciByZWNlaXZlIG15IG1haWwgYmVsb3cgc2VudCBv
-biAyMDA1LTAzLTE2ID8gSSBkbyBub3QgZ2V0CmFueSByZXNwb25zZSBmcm9tIHlvdSwgSSBjaGVj
-a2VkIHRoZSBzZW50IG1haWwganVzdCBub3csIGZpbmQgdGhhdCBJCnNlbnQKaXQgYnkgIkhUTUwi
-IGZvcm1hdCwgbWF5YmUgaXQgd2FzIGJsb2NrZWQgYnkgeW91ciBzcGFtIGZpbHRlci4KCkkgY2hl
-Y2tlZCB0aGUgbG1fc2Vuc29ycyBDVlMganVzdCBub3csIGZpbmQgdGhhdCB0aGUgY29kZXMocGxl
-YXNlIHJlZmVyCnRvIHRoZSBtYWlsIGJlbG93KSB0byBmaXggdGhlIGJ1ZyBvZiBuZWdhdGl2ZSBm
-YW4gbWVhc3VyZWQgdmFsdWUgaGFzIG5vdApiZWVuIGFkZGVkIGludG8gdzgzNzkyZC5jLgpNRFMs
-IHdvdWxkIHlvdSBwbGVhc2UgZml4IGl0IGZvciBtZT8gQmVjYXVzZSBJIGRvIG5vdCBoYXZlIGEg
-Q1ZTCmFjY291bnQuCllvdSBtYXkgdGVzdCBpdCBmaXJzdCBiZWZvcmUgeW91IGNvbW1pdCBpdCBp
-bnRvIENWUy4gSSBmaW5kIHRoYXQgdGhlCmxtX3NlbnNvcnMtMi45LjEgd2lsbCBiZSByZWxlYXNl
-ZCBzb29uLCBJIGhvcGUgaXQgd2lsbCBOT1QgY29udGFpbiB0aGlzCm5lZ2F0aXZlIGZhbiBtZWFz
-dXJlZCB2YWx1ZSBidWcuIDotKQoKQXMgdG8gdGhlIGRvY3VtZW50IGRvY1xjaGlwc1x3ODM3OTJk
-LCBpdCBzdGlsbCBoYXMgTk9UIGJlZW4gZmluaXNoZWQsCmJlY2F1c2UgSSdtIGJ1c3kgdGhlc2Ug
-ZGF5cywgSSB3aWxsIHNlbmQgaXQgdG8geW91IGFzIHNvb24gYXMgcG9zc2libGUKd2hlbiBJIGZp
-bmlzaCBpdC4gVmVyeSBzb3JyeSBmb3IgdGhlIGRlbGF5LgoKQXMgdG8gdGhlIGRpc2N1c3Npb24g
-b24gd2hldGhlciB1c2UgImhhcmR3YXJlLWxldmVsIiBhbGFybSBtZWNoYW5pc20Kb3IgbXkgInNv
-ZnR3YXJlLWxldmVsIiBvbmUsIEkgd2FudCB0byBrZWVwIG15IG9yaWdpbmFsIGNvZGVzLCBiZWNh
-dXNlCmFmdGVyIGEgY29tcGFyZSBhbmQgdGVzdCB0byB0aGVzZSB0d28gbWV0aG9kcywgSSB0aGlu
-ayBteSBtZXRob2QgaXMKYmV0dGVyKHBsZWFzZSByZWZlciB0byBteSByZWxhdGVkIG1haWxzIGlu
-IHRoaXMgdGhyZWFkKS4gSWYgbW9zdCBvZiB0aGUKdXNlcnMgZGlzYWdyZWUgYWJvdXQgaXQgaW4g
-dGhlIGZ1dHVyZSwgd2UgbWF5IGZpeCBpdCBsYXRlci4gOi0pCgpUaGFua3MKCkJlc3QgUmVnYXJk
-cwoKQ2h1bmhhbwoyMDA1LTAzLTI2CgoKCi0tLS0tLS0tLS0tLS0tLS0gIFNlbnQgb24gMjAwNS0w
-My0xNiAgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkhpIEplYW4sIE1EUwogCj4g
-U291bmRzIGxpa2UgYW4gImludGVycnVwdCBtb2RlIiB0byBtZSAoYXMgb3Bwb3NlZCB0byAiY29t
-cGFyYXRvcgptb2RlIikuCj4gVGhlIGFsYXJtIGJpdHMgcmFpc2Ugb24gc3RhdGUgY2hhbmdlIGFu
-ZCB3ZWFyIG9mZiB3aGVuIHJlYWQuIEluCj4gY29tcGFyYXRvciBtb2RlIHlvdSB3b3VsZCBvYnRh
-aW4gd2hhdCB5b3UnZCBleHBlY3QgKGFsYXJtIGJpdCBhbHdheXMKPiByZWZsZWN0aW5nIHRoZSBy
-ZXN1bHQgb2YgdGhlIGNvbXBhcmlzb24pLgoKPiBJZiB0aGUgVzgzNzkyRCBjYW4gYmUgcmVwcm9n
-cmFtZWQgaW4gY29tcGFyYXRvciBtb2RlIEFORCB0aGlzIGRvZXMgTk9UCj4gYWZmZWN0IGFueSBw
-aHlzaWNhbCBvdXRwdXQsIHRoZW4ganVzdCBkbyB0aGF0LiBJZiB0aGUgYWxhcm0gYml0cyBETwo+
-IGFmZmVjdCBhbiBvdXRwdXQsIHRoZW4geW91IHNob3VsZCBub3QgY2hhbmdlIHRoZSBtb2RlLCB3
-aGljaCBtZWFucwp0aGF0Cj4geW91IGNhbm5vdCB1c2UgaGFyZHdhcmUgYWxhcm1zIGlmIHRoZSBj
-aGlwIGlzIGluIGludGVycnVwdCBtb2RlLgoKSG0uLi4gdmVyeSBzb3JyeSB0aGF0IEkgZG8gbm90
-IGNhdGNoIHdoYXQgeW91IHNhaWQgdmVyeSB3ZWxsLiBIb3cgdG8KcmVwcm9ncmFtZWQgNzkyIGRy
-aXZlciBpbiAiY29tcGFyYXRvciBtb2RlIiBpbnN0ZWFkIG9mICJpbnRlcnJ1cHQgbW9kZSI/CkNh
-biB3ZSBzYXkgdGhhdCB0aGUgbWV0aG9kIGluIHN1Ym1pdHRlZCA3OTIgZHJpdmVyIGlzIGluICJj
-b21wYXJhdG9yCm1vZGUiPwpUaGVuIEkgY2FuIGtlZXAgbXkgb3JpZ2luYWwgY29kZXM/Cgo+IEdl
-dCBhIENWUyBzbmFwc2hvdCBoZXJlOgo+IGh0dHA6Ly9zZWN1cmUubmV0cm9lZGdlLmNvbS9+bG03
-OC9hcmNoaXZlL2xtX3NlbnNvcnMtZGFpbHkudGFyLmd6Cj4gQW5kIHByb3ZpZGUgYSBwYXRjaCBh
-Z2FpbnN0IHRoYXQuCgpJZiBJIG5lZWQgbm90IGZpeCB0aGUgInBvaW50IDEiIE1EUyBwcm92aWRl
-ZCwgVGhlIGNvZGVzIHRvIGZpeCAicG9pbnQgMyIKYXJlCnZlcnkgZmV3LiAKIApNRFMsIFdvdWxk
-IHlvdSBwbGVhc2UganVzdCBhZGQgNCBsaW5lcyBpbnRvIHRoZSAiZG8uLi53aGlsZSAoMCkiIGxv
-b3AKb2YgZnVuY3Rpb24gdzgzNzkyZF9mYW4oKT8gSnVzdCBsaWtlIHRoaXM6CgogIDEwMTMgICAg
-IGlmICgoKGRhdGEtPmZhbl9kaXZbbnJdKT49MHgwNyAmJgogIDEwMTQgICAgICAoZGF0YS0+ZmFu
-W25yXSk9MHhmZikgfHwKICAxMDE1ICAgICAgICAgKChkYXRhLT5mYW5fZGl2W25yXSk8PTAgJiYK
-ICAxMDE2ICAgICAgKGRhdGEtPmZhbltucl0pPDB4NzgpKSB7CiAgMTAxNyAgICAgIHJlc3VsdHNb
-MV0gPSAwOwogIDEwMTggICAgICBicmVhazsKICAxMDE5ICAgICB9IGVsc2UgaWYgKChkYXRhLT5m
-YW5fZGl2W25yXSk8MHgwNyAmJgogIDEwMjAgICAgICAgKGRhdGEtPmZhbltucl0pPTB4ZmYpIHsK
-ICAxMDIxICAgICAgKGRhdGEtPmZhbl9kaXZbbnJdKSsrOwogICAgICByZXN1bHRzWzFdID0gRkFO
-X0ZST01fUkVHKGRhdGEtPmZhbltucl0sICA8LS1hZGRlZCBieSBjaHVuaGFvCiAgICAgIERJVl9G
-Uk9NX1JFRyhkYXRhLT5mYW5fZGl2W25yXSkpOyAgICA8LS1hZGRlZCBieSBjaHVuaGFvCiAgMTAy
-MiAgICAgfSBlbHNlIGlmICgoZGF0YS0+ZmFuX2Rpdltucl0pPjAgJiYKICAxMDIzICAgICAgICAo
-ZGF0YS0+ZmFuW25yXSk8MHg3OCkgewogIDEwMjQgICAgICAoZGF0YS0+ZmFuX2Rpdltucl0pLS07
-CiAgICAgICAgcmVzdWx0c1sxXSA9IEZBTl9GUk9NX1JFRyhkYXRhLT5mYW5bbnJdLCAgPC0tYWRk
-ZWQgYnkgY2h1bmhhbwogICAgICBESVZfRlJPTV9SRUcoZGF0YS0+ZmFuX2Rpdltucl0pKTsgICAg
-PC0tYWRkZWQgYnkgY2h1bmhhbwogIDEwMjUgICAgIH0KIApUaGUgbWludXMgZmFuIG1lYXN1cmVk
-IHZhbHVlIHRoZW4gd2lsbCBkaXNhcHBlYXIgZnJvbSBteSBzeXN0ZW0sIAp3b3VsZCB5b3UgcGxl
-YXNlIHRlc3QgaXQgb24geW91ciBzeXN0ZW0/IElmIGl0IHdvcmtzIHRvbywgcGxlYXNlIGNvbW1p
-dAppdCBmb3IgbWUuCiAKVGhhbmtzCkJlc3QgUmVnYXJkcwoKQ2h1bmhhbwoKCj09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRl
-bnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9y
-IHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwg
-YXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNh
-dGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2Yg
-dGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIg
-aW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5
-b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91
-IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3Jp
-emVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3Rs
-eSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2Vz
-IG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUg
-ZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMg
-dW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2lu
-ZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBz
-dGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbI
-scLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ik
-SKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVv
-q0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plin
-QCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6
-vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLqu
-ZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
+I just tried the last patch for 2.4.22 (26th Oct). I get the same error
+I got with the previous patch:
+
+gcc -D__KERNEL__ -I/usr/src/linux-2.4.22/include -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -pipe -mpreferred-stack-boundary=2 -march=i686 -malign-functions=4 -DMODULE -DMODVERSIONS -include /usr/src/linux-2.4.22/include/linux/modversions.h  -nostdinc -iwithprefix include -DKBUILD_BASENAME=bttv_cards  -c -o bttv-cards.o bttv-cards.c
+gcc -D__KERNEL__ -I/usr/src/linux-2.4.22/include -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -pipe -mpreferred-stack-boundary=2 -march=i686 -malign-functions=4 -DMODULE -DMODVERSIONS -include /usr/src/linux-2.4.22/include/linux/modversions.h  -nostdinc -iwithprefix include -DKBUILD_BASENAME=bttv_if  -DEXPORT_SYMTAB -c bttv-if.c
+bttv-if.c:244: unknown field `inc_use' specified in initializer
+bttv-if.c:244: warning: initialization from incompatible pointer type
+bttv-if.c:245: unknown field `dec_use' specified in initializer
+bttv-if.c:245: warning: missing braces around initializer
+bttv-if.c:245: warning: (near initialization for `bttv_i2c_adap_template.name')
+bttv-if.c:245: warning: initialization makes integer from pointer without a cast
+bttv-if.c:245: initializer element is not computable at load time
+bttv-if.c:245: (near initialization for `bttv_i2c_adap_template.name[0]')
+bttv-if.c:246: unknown field `name' specified in initializer
+bttv-if.c:246: warning: initialization makes integer from pointer without a cast
+bttv-if.c:246: initializer element is not computable at load time
+bttv-if.c:246: (near initialization for `bttv_i2c_adap_template.name[1]')
+bttv-if.c:247: unknown field `id' specified in initializer
+bttv-if.c:248: unknown field `client_register' specified in initializer
+bttv-if.c:248: warning: initialization makes integer from pointer without a cast
+bttv-if.c:248: initializer element is not computable at load time
+bttv-if.c:248: (near initialization for `bttv_i2c_adap_template.name[3]')
+make[4]: *** [bttv-if.o] Error 1
+make[4]: Leaving directory `/usr/src/linux-2.4.22/drivers/media/video'
+make[3]: *** [_modsubdir_video] Error 2
+make[3]: Leaving directory `/usr/src/linux-2.4.22/drivers/media'
+make[2]: *** [_modsubdir_media] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.4.22/drivers'
+make[1]: *** [_mod_drivers] Error 2
+make[1]: Leaving directory `/usr/src/linux-2.4.22'
+make: *** [stamp-build] Error 2
+dirac:/usr/src/linux-2.4.22#
+
+And here's the source:
+
+243 static struct i2c_adapter bttv_i2c_adap_template = {
+244         .inc_use           = bttv_inc_use,
+245         .dec_use           = bttv_dec_use,
+246         I2C_DEVNAME("bt848"),
+247         .id                = I2C_HW_B_BT848,
+249         .client_register   = attach_inform,
+250 };
+
+If you need  more infos please cc  the reply, for I'm  not subscribed to
+the list.
+
+Bye
+
+-- 
+Non c'? pi? forza nella normalit?, c'? solo monotonia.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031127/8b807ad5/attachment.bin
