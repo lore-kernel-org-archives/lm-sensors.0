@@ -1,55 +1,38 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: DS1621 support for kernel 2.6 (+question about PCF8591)
-Message-Id: <20040304224220.GB8606@pc.aurel32.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:02 +0000
+Subject: lm_sensors2/lib data.c
+Message-Id: <20030630161630.10a0799a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 03, 2004 at 11:16:19PM +0100, Jean Delvare wrote:
-> Hi Aurelien :)
+> Update of /home/cvs/lm_sensors2/lib
+> In directory mordac.netroedge.com:/tmp/cvs-serv17424
 > 
-> > I have ported the ds1621 driver from lm-sensors 2.8.4 to kernel 2.6.3.
+> Modified Files:
+> 	data.c 
+> Log Message:
+> (Khali) Better warning removal (less code change).
 > 
-> Good news :)
-> 
-> Have you been following the porting-chips and sysfs-interface documents?
-Yes, I have read these documents and tried to follow them. For this
-driver, there is two more file type than described in sysfs-interface,
-continous and enable. However, as they doesn't need to be accessed
-through lm-sensors I think it should not be a problem. They are mostly
-there if you screwed up the device.
- 
-> > I also plan to port the pcf8574 and pcf8591 drivers over the
-> > week-end.
-> 
-> Probably not the most wanted chips ;) but it you have a particular
-> interest for these, do not hesitate.
-Yes I know they are not very common however I sometimes use them. Since
-I switched to a 2.6 kernel, I can't use them anymore, that's why I am 
-interested by ported them.
 
-BTW, I don't know really how to follow the sysfs-interface document with
-the PCF8591. The current driver in lm-sensors creates the following
-files under /proc:
-ain_conf:    used to configure the 4 inputs (single ended, differential,
-             etc.)
-ch[0-3]:     the 4 input channels, representing a voltage
-aout:        the output channel, representing a voltage
-aout_enable: enable/disable the output channel
+For information, I just undid my previous fix (which I think would have
+been working though) and used the recommended way instead, as read on
+http://gcc.gnu.org/gcc-3.0/caveats.html.
 
-I think I can map ch[0-3] to in[0-3] but for the others I don't know
-what to do. If you have an idea, let me know.
+Quoting:
+"The undocumented extension that allowed C programs to have a label at
+the end of a compound statement has been deprecated and may be removed
+in a future version. Programs that now generate a warning about this may
+be fixed by adding a null statement (a single semicolon) after the
+label."
 
-> I'll review your code over the week-end if nodoby has done so before.
-Thanks !
-
-Aurelien
+I first tried to have CVS understand that the new fix was to be applied
+to the previous, not current, version of the file, but I failed. I in
+fact don't know if it is possible. So I finally commited it normally, I
+hope I didn't break anything.
 
 -- 
-  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
- : :' :  Debian GNU/Linux developer | Electrical Engineering Student 
- `. `'   aurel32@debian.org         | aurelien@aurel32.net
-   `-    people.debian.org/~aurel32 | www.aurel32.net
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
