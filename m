@@ -1,117 +1,51 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:21 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:22 +0000
 Subject: [BK PATCH] I2C update for 2.6.10-rc1
-Message-Id: <20041109052229.GA5117@kroah.com>
+Message-Id: <vYBFH9gE.1099992539.9943000.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20041109052229.GA5117@kroah.com>
+References: <20041109052229.GA5117@kroah.com>
+In-Reply-To: <20041109052229.GA5117@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@osdl.org, akpm@osdl.org
+To: greg@kroah.com, akpm@osdl.org
 Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-Hi,
 
-Here are some i2c driver fixes and updates for 2.6.10-rc1.  There are a
-few new i2c sensor and adapter drivers in here, and a number of bug
-fixes.  The structures that the chip drivers use to specify which
-addresses they support has been shrunk, as a step toward moving them to
-use the hotplug interfaces for autoloading.
+Hi Greg,
 
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
+>Greg Kroah-Hartman:
+>  o I2C: delete normal_i2c_range logic from sensors as there are no more
+>         users
+>  o I2C: moved from all sensor drivers from normal_i2c_range to normal_i2c
+>  o I2C: fix i2c_detect to allow NULL fields in adapter address structure
+>  o I2C: remove normal_isa_range from I2C sensor drivers, as it's not used
+>  o I2C: remove ignore_range from I2C sensor drivers, as it's not used
+>  o I2C: remove probe_range from I2C sensor drivers, as it's not used
 
-Individual patches will follow, sent to the sensors and linux-kernel
-lists.
+I'm very happy with that :) A documentation update will be needed though.
 
-thanks,
+Also, while we're at it, is there any reason why I2C_CLIENT_END and
+I2C_CLIENT_ISA_END are two different constants? We could probably go
+with 0xffff (or 0xfffd if you don't like 0xffff) for both. We never saw
+a non-even-aligned ISA address anyway, did we? Just a though anyway, I
+agree it doesn't matter much.
 
-greg k-h
+As a side note, I could never understand why the I2C-ISA kind of
+emulation was implemented the way it is. It could make sense if the
+clients really didn't know that they are accessing the ISA bus. It's
+not the case though, clients are accessing the ISA I/O space directly.
+The i2c-isa driver is almost empty. Client drivers with both I2C and ISA
+bus accesses (lm78, w83781d, it87) are a mess. I understand that the
+original idea was to avoid code duplication for chips supporting both
+bus interfaces, but in the end the benefit is questionable. In
+particular, people only using ISA chips have to bear the overhead of the
+whole I2C subsystem with little benefit. There must be a better way.
+Greg, do you have plans to clean it up? I can think of two completely
+different approaches, either a true i2c-isa emulation, or a complete
+separation of the ISA stuff. We may consider different approaches for
+I2C+ISA chips and ISA only chips, by the way.
 
- drivers/i2c/busses/Kconfig            |   15 
- drivers/i2c/busses/Makefile           |    1 
- drivers/i2c/busses/i2c-ali1535.c      |    4 
- drivers/i2c/busses/i2c-amd756-s4882.c |  261 ++++++
- drivers/i2c/busses/i2c-amd756.c       |   12 
- drivers/i2c/busses/i2c-amd8111.c      |   12 
- drivers/i2c/busses/i2c-ibm_iic.c      |   16 
- drivers/i2c/busses/i2c-s3c2410.c      |   71 +
- drivers/i2c/busses/scx200_acb.c       |    4 
- drivers/i2c/busses/scx200_i2c.c       |    4 
- drivers/i2c/chips/Kconfig             |   28 
- drivers/i2c/chips/Makefile            |    2 
- drivers/i2c/chips/adm1021.c           |    9 
- drivers/i2c/chips/adm1025.c           |    4 
- drivers/i2c/chips/adm1031.c           |    4 
- drivers/i2c/chips/asb100.c            |    5 
- drivers/i2c/chips/ds1621.c            |    5 
- drivers/i2c/chips/eeprom.c            |    5 
- drivers/i2c/chips/fscher.c            |    2 
- drivers/i2c/chips/gl518sm.c           |    2 
- drivers/i2c/chips/it87.c              |   14 
- drivers/i2c/chips/lm63.c              |  571 ++++++++++++++
- drivers/i2c/chips/lm75.c              |    5 
- drivers/i2c/chips/lm77.c              |    4 
- drivers/i2c/chips/lm78.c              |    7 
- drivers/i2c/chips/lm80.c              |    5 
- drivers/i2c/chips/lm83.c              |    8 
- drivers/i2c/chips/lm85.c              |  451 ++++++++++-
- drivers/i2c/chips/lm87.c              |    4 
- drivers/i2c/chips/lm90.c              |    2 
- drivers/i2c/chips/max1619.c           |    8 
- drivers/i2c/chips/pc87360.c           | 1316 +++++++++++++++++++++++++++++++++-
- drivers/i2c/chips/pcf8574.c           |    6 
- drivers/i2c/chips/pcf8591.c           |    5 
- drivers/i2c/chips/rtc8564.c           |    3 
- drivers/i2c/chips/smsc47m1.c          |    8 
- drivers/i2c/chips/via686a.c           |    2 
- drivers/i2c/chips/w83627hf.c          |    2 
- drivers/i2c/chips/w83781d.c           |    6 
- drivers/i2c/chips/w83l785ts.c         |    2 
- drivers/i2c/i2c-core.c                |   73 -
- drivers/i2c/i2c-sensor-detect.c       |   91 --
- drivers/w1/dscore.c                   |    4 
- drivers/w1/w1.c                       |    4 
- drivers/w1/w1_family.c                |    5 
- drivers/w1/w1_int.c                   |    5 
- include/linux/i2c-sensor.h            |   36 
- 47 files changed, 2752 insertions(+), 361 deletions(-)
------
-
-<arjan:infradead.org>:
-  o I2C: remove dead code from i2c
-
-<jthiessen:penguincomputing.com>:
-  o I2C: fix lm85.c build warnings
-  o I2C: lm85.c driver update
-
-Adrian Bunk:
-  o i2c/busses/ : make some code static
-  o i2c it87.c: remove an unused function
-
-Ben Dooks:
-  o S3C2410 i2c updates
-  o I2C: Fix compile of drivers/i2c/busses/i2c-s3c2410.c
-
-Eugene Surovegin:
-  o I2C: fix recently introduced race in IBM PPC4xx I2C driver
-
-Evgeniy Polyakov:
-  o w1/w1_int: replace schedule_timeout() with msleep_interruptible()
-  o w1/dscore: replace schedule_timeout() with msleep_interruptible()
-  o w1/w1: replace schedule_timeout() with msleep_interruptible()
-  o w1/w1_family: replace schedule_timeout() with msleep_interruptible()
-
-Greg Kroah-Hartman:
-  o I2C: delete normal_i2c_range logic from sensors as there are no more users
-  o I2C: moved from all sensor drivers from normal_i2c_range to normal_i2c
-  o I2C: fix i2c_detect to allow NULL fields in adapter address structure
-  o I2C: remove normal_isa_range from I2C sensor drivers, as it's not used
-  o I2C: remove ignore_range from I2C sensor drivers, as it's not used
-  o I2C: remove probe_range from I2C sensor drivers, as it's not used
-  o W1: fix build warnings due to msleep changes
-  o I2C: fix MODULE_PARAM warning in pc87360.c driver
-
-Jean Delvare:
-  o I2C: add Tyan S4882 driver
-  o I2C: Check for unregistered adapter in i2c_del_adapter
-  o I2C: New PC8736x chip driver
-  o I2C: New LM63 chip driver
+Thanks,
+Jean
