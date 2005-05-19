@@ -1,73 +1,25 @@
 From: ac9410@attbi.com (Albert Cranford)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: [PATCH] More i2c driver changes for 2.5.66
-Message-Id: <3E8C31BE.5060000@attbi.com>
+Message-Id: <3E8C3A5A.80804@attbi.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1049328958830@kroah.com> <3E8BD2D9.8050002@attbi.com> <20030403063359.GA1536@kroah.com>
+References: <1048295086481@kroah.com>
+In-Reply-To: <1048295086481@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Your right, nobody outside of sensors uses i2c-proc, but
-why not create a new i2c-sysfs.h in drivers/i2c locally
-and and adjust the couple of existing drivers.
-We all know the application library is not going to have
-access to include/linux/include/i2c-xxxx.h anyhow.
+Linux kenel mail list removed on purpose.
+Whoa!  I just saw the patches submitted to linux kernel
+and not to sensors list.  Come on Greg this is not proper.
 
-Later we can completely remove linux/include/linux/i2c-proc.h
-which the existing application library relies upon.
-ALbert
+Whats this config item CONFIG_SENSOR ?
+This is the wrong way to register sensors to sysfs.
+New sensors can never be tested before included in the kernel
+with this philosophy.
+Whats wrong with the opposite philosophy of creating
+a sysfs interface and in the sensor driver just make
+the sysfs call?
 
-Greg KH wrote:
-> On Thu, Apr 03, 2003 at 01:21:13AM -0500, Albert Cranford wrote:
-> 
->>I read the thread concerning the removal of proc.c & proc.h
->>but hope that this does not go to Linus until the interface
->>between i2c & sensors to application is somewhat defined.
->>
->>At the moment we have a sysctl API used by sensors, video and
->>other i2c kernel applications that is working.
-> 
-> 
-> The only in-kernel drivers that were using the sysctl/proc interface was
-> the lm75 and adm1021 drivers.  The video and other i2c kernel drivers do
-> not use this interface at all.
-> 
-> Those two drivers, and the two other chip drivers that I added to the
-> kernel in this set of patches were converted over to the sysfs interface
-> (well one of the new ones were, the other one will build and run, but
-> doesn't export any sysfs files yet, that will change soon.)
-> 
-> 
->>Our desire to switch the sensors to sysfs interface should not
->>break other applications.  At least until we have a model/api
->>to propose to these other drivers.
-> 
-> 
-> Yes, any applications that used the sysctl interface to get data from
-> those two driver will break.  However we have to switch at some point in
-> time, and the userspace library can't be worked on very well if the
-> kernel can't support it yet :)
-> 
-> So I'm choosing to update the kernel first, and will be working on the
-> library in the coming weeks.  As there is no real sensors support
-> besides those two drivers in the main kernel, I didn't break much :)
-> 
-> 
->>In my personal home systems I use it87 driver and have been
->>somewhat successful in switching to sysfs.  A big blocking
->>point is there is no application to read/set/monitor the
->>driver, so it is basically unverified.
-> 
-> 
-> I tested the changes I did by using echo and cat, no library or other
-> applications are needed just yet.
-> 
-> thanks,
-> 
-> greg k-h
-> 
-> 
-
+Albert
