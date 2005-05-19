@@ -1,120 +1,48 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: [PATCH] i2c driver changes 2.6.0-test3
-Message-Id: <1060972405413@kroah.com>
+Message-Id: <10609724051936@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10609724051936@kroah.com>
+In-Reply-To: <20030815183207.GA3851@kroah.com>
+References: <1060972405413@kroah.com>
+In-Reply-To: <1060972405413@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1123.18.2, 2003/08/11 14:36:29-07:00, khali@linux-fr.org
+ChangeSet 1.1123.18.1, 2003/08/11 14:36:10-07:00, trini@kernel.crashing.org
 
-[PATCH] i2c: user/kernel bug and memory leak in i2c-dev
+[PATCH] I2C: Fix for i2c-piix4 with on some boards
+
+Hello all.  On some boards with an Intel PIIX4 the BIOS (such as the one
+found on a Force CPCI-735) will incorrectly configure the chipset, and
+leaves a register in an undefined state causing i2c to behave strangley.
+The following patches (first vs lm_sensors-2.8.0 and then vs
+2.6.0-test3)  fixes the issue.
 
 
- drivers/i2c/i2c-dev.c |   41 ++++++++++++++++++++++++++---------------
- 1 files changed, 26 insertions(+), 15 deletions(-)
+ drivers/i2c/busses/i2c-piix4.c |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
 
-diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
---- a/drivers/i2c/i2c-dev.c	Fri Aug 15 11:27:09 2003
-+++ b/drivers/i2c/i2c-dev.c	Fri Aug 15 11:27:09 2003
-@@ -181,6 +181,7 @@
- 	struct i2c_smbus_ioctl_data data_arg;
- 	union i2c_smbus_data temp;
- 	struct i2c_msg *rdwr_pa;
-+	u8 **data_ptrs;
- 	int i,datasize,res;
- 	unsigned long funcs;
+diff -Nru a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c	Fri Aug 15 11:27:13 2003
++++ b/drivers/i2c/busses/i2c-piix4.c	Fri Aug 15 11:27:13 2003
+@@ -160,6 +160,15 @@
+ 	}
  
-@@ -214,7 +215,7 @@
- 		return (copy_to_user((unsigned long __user *)arg, &funcs,
- 		                     sizeof(unsigned long)))?-EFAULT:0;
- 
--        case I2C_RDWR:
-+	case I2C_RDWR:
- 		if (copy_from_user(&rdwr_arg, 
- 				   (struct i2c_rdwr_ioctl_data __user *)arg, 
- 				   sizeof(rdwr_arg)))
-@@ -231,28 +232,37 @@
- 
- 		if (rdwr_pa = NULL) return -ENOMEM;
- 
-+		if (copy_from_user(rdwr_pa, rdwr_arg.msgs,
-+				   rdwr_arg.nmsgs * sizeof(struct i2c_msg))) {
-+			kfree(rdwr_pa);
-+			return -EFAULT;
-+		}
+ 	pci_read_config_byte(PIIX4_dev, SMBHSTCFG, &temp);
 +
-+		data_ptrs = (u8 **) kmalloc(rdwr_arg.nmsgs * sizeof(u8 *),
-+					    GFP_KERNEL);
-+		if (data_ptrs = NULL) {
-+			kfree(rdwr_pa);
-+			return -ENOMEM;
-+		}
-+
- 		res = 0;
- 		for( i=0; i<rdwr_arg.nmsgs; i++ ) {
--		    	if(copy_from_user(&(rdwr_pa[i]),
--					&(rdwr_arg.msgs[i]),
--					sizeof(rdwr_pa[i]))) {
--			        res = -EFAULT;
--				break;
--			}
- 			/* Limit the size of the message to a sane amount */
- 			if (rdwr_pa[i].len > 8192) {
- 				res = -EINVAL;
- 				break;
- 			}
-+			data_ptrs[i] = rdwr_pa[i].buf;
- 			rdwr_pa[i].buf = kmalloc(rdwr_pa[i].len, GFP_KERNEL);
- 			if(rdwr_pa[i].buf = NULL) {
- 				res = -ENOMEM;
- 				break;
- 			}
- 			if(copy_from_user(rdwr_pa[i].buf,
--				rdwr_arg.msgs[i].buf,
-+				data_ptrs[i],
- 				rdwr_pa[i].len)) {
--			    	res = -EFAULT;
-+					++i; /* Needs to be kfreed too */
-+					res = -EFAULT;
- 				break;
- 			}
- 		}
-@@ -260,18 +270,18 @@
- 			int j;
- 			for (j = 0; j < i; ++j)
- 				kfree(rdwr_pa[j].buf);
-+			kfree(data_ptrs);
- 			kfree(rdwr_pa);
- 			return res;
- 		}
--		if (!res) {
--			res = i2c_transfer(client->adapter,
--				rdwr_pa,
--				rdwr_arg.nmsgs);
--		}
-+
-+		res = i2c_transfer(client->adapter,
-+			rdwr_pa,
-+			rdwr_arg.nmsgs);
- 		while(i-- > 0) {
- 			if( res>=0 && (rdwr_pa[i].flags & I2C_M_RD)) {
- 				if(copy_to_user(
--					rdwr_arg.msgs[i].buf,
-+					data_ptrs[i],
- 					rdwr_pa[i].buf,
- 					rdwr_pa[i].len)) {
- 					res = -EFAULT;
-@@ -279,6 +289,7 @@
- 			}
- 			kfree(rdwr_pa[i].buf);
- 		}
-+		kfree(data_ptrs);
- 		kfree(rdwr_pa);
- 		return res;
- 
++	/* Some BIOS will set up the chipset incorrectly and leave a register
++	   in an undefined state (causing I2C to act very strangely). */
++	if (temp & 0x02) {
++		printk("Fixed I2C problem on Force CPCI735\n");
++		temp = temp & 0xfd;
++		pci_write_config_byte(PIIX4_dev, SMBHSTCFG, temp);
++	}
++ 
+ 	/* If force_addr is set, we program the new address here. Just to make
+ 	   sure, we disable the PIIX4 first. */
+ 	if (force_addr) {
 
