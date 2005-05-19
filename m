@@ -1,57 +1,29 @@
-From: peter.farrow@3d-computers.co.uk (Peter Farrow)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: LM_Sensors under Linux
-Message-Id: <3EEF9000.6050107@3d-computers.co.uk>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:25 +0000
+Subject: i2c patch for 2.4.22 against 2.4.23-rc1
+Message-Id: <20031115113558.3844a524.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Jason,
 
-LM_sensors is a hardware monitoring system for Linux.
+> It applies cleanly except for bttv-if.c and tvmixer.c, which you can
+> exclude from the patch, since the changes for i2c 2.8.0 and 2.8.1 are
+> in the files already, they are wrapped in #ifdef I2C_PEC or #ifndef
+> I2C_PEC, which is apparently only in the new i2c series...
 
-http://secure.netroedge.com/~lm78/docs.html
+Yes, I saw there had been some changes to these drivers. There's also a
+new driver I ignore for now (w9968cf). Hopefully I'll have some time
+left to update my patch someday.
 
-Unfortunately it labels Asustek as being very unhelpful to providing 
-information allowing this software to run with its boards.
+I guess that parts of the patch are rejected for bttv-if.c and
+tvmixer.c, still the resulting kernel tree should be working, since the
+rejected parts shouldn't be needed anymore.
 
-Here is a snippet from the installation README notes:
+Thanks for the report.
 
-========================Asus boards - as99127f support (w83781d driver)
-
-Several problems. Asus will not release a datasheet.
-Support was developed - and tweaked - with experimentation and user 
-feedback.
-These will not be fixed unless we get a datasheet.
-If you have problems, please lobby Asus to release a datasheet.
-Unfortunately, several others have done so, without success.
-Please do not send mail to us asking for better as99127f support.
-We have done the best we can without a datasheet.
-The changes we do make to please some people generally makes
-things worse for people with other types of motherboard.
-Please do not send mail to the author or the sensors group asking for
-a datasheet or ideas on how to convince Asus.
-See doc/chips/w83781d for more information.
-
-Also, many as99127f chips are misidentified as w83781d or w83782d chips.
-If so, you can fix this by forcing the driver:
-modprobe w83781d force_as99127f=BUS,0x2d where BUS is your bus number
-(cat /proc/bus/i2c to identify your bus number).
-
-=====================
-Asus should help this community in every way possible, because as it is, 
-it gives a very powerful excuse not to use Asus,
-
-I hope Asus can remedy this situation with LM_sensors.
-
-Regards
-
-Pete
-
-
-
-
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
