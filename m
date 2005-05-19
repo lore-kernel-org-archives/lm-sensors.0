@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:11 +0000
 Subject: [PATCH] More i2c driver changes 2.6.0-test2
-Message-Id: <10603869391598@kroah.com>
+Message-Id: <10603869402949@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <106038693850@kroah.com>
+In-Reply-To: <10603869391598@kroah.com>
 References: <10603869373490@kroah.com>
 In-Reply-To: <10603869373490@kroah.com>
 MIME-Version: 1.0
@@ -11,39 +11,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1126, 2003/08/08 16:33:00-07:00, wodecki@gmx.de
+ChangeSet 1.1127, 2003/08/08 16:36:42-07:00, seanlkml@rogers.com
 
-[PATCH] I2C: i2c sysfs rant
+[PATCH] I2C: Additional P4B subsystem id for hidden asus smbus
 
-On Wed, Aug 06, 2003 at 04:22:44PM -0700, Greg KH wrote:
-> On Wed, Aug 06, 2003 at 09:11:45PM +0200, Wiktor Wodecki wrote:
-> > Hello folks,
-> >
-> > I just saw that I2C provides "/sys/bus/i2c/drivers/dev\ driver" in
-> > 2.6.0-test2. It would be nice if you'd consider renaming this to
-> > dev_driver, to avoid un-neccessary quoting in scripts.
-> >
-> > Thank You :-)
->
-> Patches are always gladly accepted :)
-
-here you go
+  This patch adds another P4B motherboard subsystem identifier to the recent
+asus sensor patch for the 2.6 kernel.
 
 
- drivers/i2c/i2c-dev.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/quirks.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
 
-diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
---- a/drivers/i2c/i2c-dev.c	Fri Aug  8 16:47:15 2003
-+++ b/drivers/i2c/i2c-dev.c	Fri Aug  8 16:47:15 2003
-@@ -474,7 +474,7 @@
+diff -Nru a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c	Fri Aug  8 16:47:06 2003
++++ b/drivers/pci/quirks.c	Fri Aug  8 16:47:06 2003
+@@ -681,9 +681,12 @@
+ 	if (likely(dev->subsystem_vendor != PCI_VENDOR_ID_ASUSTEK))
+ 		return;
  
- static struct i2c_driver i2cdev_driver = {
- 	.owner		= THIS_MODULE,
--	.name		= "dev driver",
-+	.name		= "dev_driver",
- 	.id		= I2C_DRIVERID_I2CDEV,
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= i2cdev_attach_adapter,
+-	if ((dev->device = PCI_DEVICE_ID_INTEL_82845_HB) && 
+-	    (dev->subsystem_device = 0x8088)) /* P4B533 */
+-		asus_hides_smbus = 1;
++	if (dev->device = PCI_DEVICE_ID_INTEL_82845_HB)
++		switch(dev->subsystem_device) {
++		case 0x8070: /* P4B */
++	    	case 0x8088: /* P4B533 */
++			asus_hides_smbus = 1;
++		}
+ 	if ((dev->device = PCI_DEVICE_ID_INTEL_82845G_HB) &&
+ 	    (dev->subsystem_device = 0x80b2)) /* P4PE */
+ 		asus_hides_smbus = 1;
 
