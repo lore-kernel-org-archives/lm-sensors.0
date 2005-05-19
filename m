@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:16 +0000
+Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: lm90 driver
-Message-Id: <20030907163003.492956bb.khali@linux-fr.org>
+Message-Id: <20031026103438.4b043d95.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030906000353.40951246.khali@linux-fr.org>
 In-Reply-To: <20030906000353.40951246.khali@linux-fr.org>
@@ -11,44 +11,54 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> > Yes, testers are still wanted. In order to test the driver, you'll
-> > have to install the CVS version of both I2C and LM Sensors. If you
-> > don't use other I2C-related devices (frame grabbers and TV tuners
-> > are, among others), simply follow the instructions here:
-> > http://secure.netroedge.com/~lm78/download.html#cvs
-> > It's as easy as "make && make install" for i2c and "make && make
-> > install&& ldconfig" for LM Sensors. Then, run "sensors-detect" and
-> > it should detect your LM90.
-> > 
-> > If you do use other I2C-related devices, follow the more detailed
-> > installation guide here:
-> > http://www.ensicaen.ismra.fr/~delvare/devel/i2c/
-> > 
-> > (If you don't know, try method 1 first, since it's easiest; if you
-> > encounter problems, move to method 2.)
-> > 
-> > Let us know how the driver works for you!
+> Hi Jean.  I just got 2.8.1 installed successfully on my mandrake 9.2 
+> installation and all appears to be working properly for the lm90
+> driver.  The temp readings I am getting on my Athlon XP clocked at
+> 2GHz are about what my BIOS reports at boot (60C).  Sensors reports
+> 58C at idle and 67-68C at full load.  I was getting a socket reading
+> of 40C from the it87 sensor at full load (36C at idle), so I got a
+> difference that was within my range of expectation.  Also, the temps
+> change quite rapidly when going from full load to idle or vice-versa,
+> which I would also expect from reading the diode.
 > 
-> Thank you for the detailed instructions.  I am a Mandrake user, and it
-> looks like lm_sensors2.8 is in Cooker, so it is most likely that the
-> new Mandrake kernel is already patched to the new I2C.  If I can get
-> Cooker running (it should become 9.2 in a few weeks as Cooker is
-> tagged rc1 right now) on my KT400 machine, I am thinking I'll just try
-> installing lm_sensors from cvs and see how it goes.
+> Also the lm90 reports the board temp at 30C while the it87 reported it
+> at 25C.  
+> From reading the docs, I believe the lm90 is reading it's own temp,
+> so I would expect it to be more accurate than the thermistor reading
+> of the it87.
 
-It's great that 2.8.0 is already in Cooker :) However, I'm not sure
-it'll be sufficent for an out-of-the-box installation of lm_sensors CVS.
-We have a new function (i2c_delay) in i2c CVS, which is used by some
-(most) bus drivers in lm_sensors CVS, so I guess you'll have some
-problems here. I'd recommend that you install i2c CVS prior to
-lm_sensors CVS. If Cooker's kernel is already patched, i2c CVS should
-install like a charm and will not cause any problem to other, and
-lm_sensors CVS will then work OK too.
+I'm glad it works so well :) Just to make sure I understand it well, the
+it87 was on a completely different system, right?
 
-> I'll let you know how it goes.
+> 2.8.0 shipped with mandrake 9.2, and the lm90 module reported 'to be
+> written' with that version, so I was glad to get 2.8.1 working so
+> easily (still screwed up my tv card though).
 
-Yes, please do :)
-Thanks.
+We suspected that the LM90 would be found on a number of motherboards,
+so we included detection for it (as well as half a dozen of similar
+chips) to sensors-detect. Each time someone reports he/she needs one of
+these "to-be-written" drivers, we write the driver (or add support to an
+existing driver). This make it easy to support only chips that are
+really used (thus keeping drivers small), while still letting people
+know that we are able to support some other ones if needed.
+
+> I may go back to the
+> packaged version just to be able to use my tv card and hold off on
+> using the new sensor until a cooker kernel comes out with 2.8.1 fully
+> integrated.  I will spend a little time getting it to work though
+> before I resort to that.
+> (...)
+> Just to follow up, I got it (the tv card) working.  It turns out the
+> problem was the permissions on my video device, not anything to do
+> with lm_sensors.
+
+OK, good to know. Since your system was working OK with 2.8.0, I was
+surprised that you would have problems with 2.8.1. Although 2.8.1 has
+the same compatibility issues as 2.8.0 does, once it has been solved for
+2.8.0, there's no reason it wouldn't work with subsequent versions.
+
+Thanks a lot for your report, it's really great to have positive
+feedback from times to times ;)
 
 -- 
 Jean Delvare
