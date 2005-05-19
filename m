@@ -1,53 +1,65 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:41 +0000
-Subject: [PATCH] updated it87 for kernel 2.6
-Message-Id: <1076935183.4030ba0fe5cfc@imp.gcu.info>
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: [PATCH 2.6] I2C: Prevent buffer overflow on SMBus block read in
+Message-Id: <20050125230348.294aa0b9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040216210601.6dae0bf7.komoriya@paken.org>
-In-Reply-To: <20040216210601.6dae0bf7.komoriya@paken.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>, Linus Torvalds <torvalds@osdl.org>
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Sergey Vlasov <vsu@altlinux.ru>
 
-[Please reply to the list, not to me]
+Hi Greg, Linus, all,
 
-Quoting Takeru KOMORIYA <komoriya@paken.org>:
+I just hit a buffer overflow while playing around with i2cdump and
+i2c-viapro through i2c-dev. This is caused by a missing length check on
+a buffer operation when doing a SMBus block read in the i2c-viapro
+driver. The problem was already known and had been fixed upon report by
+Sergey Vlasov back in August 2003 in lm_sensors (2.4 kernel version of
+the driver) but for some reason it was never ported to the 2.6 kernel
+version.
 
-> I found it87 in kernel 2.6 may be based on old module.
-> It lacks reset_it87 option and smart guardian (sg) features in
-> lm_sensors cvs.
-> 
-> So I tryed to add these features and made the patch for
-> linux-2.6.2-rc2. It works well for me.
-> 
-> If you think the attached patch is useful, please merge it in.
+I am not a security expert but I would guess that such a buffer overflow
+could possibly be used to run arbitrary code in kernel space from user
+space through i2c-dev. The severity obviously depends on the permisions
+set on the i2c device files in /dev. Maybe it wouldn't be a bad idea to
+push this patch upstream rather sooner than later.
 
-I like the idea of porting 2.4 changes to 2.6, but your patch is not
-correct. In 2.6, we decided that each sysfs file would hold a single
-value. I agree that this is a bit different here since the "smart
-guardian" feature is specific to the IT87 chips. Still I don't think
-that Greg KH will accept such a patch.
-
-What do the three values in sgpwm and the five values in sgtl mean? We
-would have to find that many filenames.
-
-How different is the "smart guardian" pwm from the standard pwm?
-
-I also think it would be easier for us if you could split your big patch
-in parts. It looks like you do four different, independant things
-here:
-* change the sensor type selection method
-* add it87_reset (which btw I would more simply call "reset")
-* add pwm support
-* add smart guardian support
-
-Submitting these as separate patches, one at a time, will make it much
-easier for us to ensure that your code is correct and that we can
-safely include it in the Linux 2.6 kernel.
+While I was at it, I also changed a similar size check (for SMBus block
+write this time) in the same driver to use the correct constant
+I2C_SMBUS_BLOCK_MAX instead of its current numerical value. This doesn't
+change a thing at the moment but prevents another potential buffer
+overflow in case the value of I2C_SMBUS_BLOCK_MAX were to be changed in
+the future (admittedly unlikely though).
 
 Thanks.
 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.11-rc1-bk8/drivers/i2c/busses/i2c-viapro.c.orig	2005-01-21 20:05:05.000000000 +0100
++++ linux-2.6.11-rc1-bk8/drivers/i2c/busses/i2c-viapro.c	2005-01-25 21:45:01.000000000 +0100
+@@ -233,8 +233,8 @@
+ 			len = data->block[0];
+ 			if (len < 0)
+ 				len = 0;
+-			if (len > 32)
+-				len = 32;
++			if (len > I2C_SMBUS_BLOCK_MAX)
++				len = I2C_SMBUS_BLOCK_MAX;
+ 			outb_p(len, SMBHSTDAT0);
+ 			i = inb_p(SMBHSTCNT);	/* Reset SMBBLKDAT */
+ 			for (i = 1; i <= len; i++)
+@@ -268,6 +268,8 @@
+ 		break;
+ 	case VT596_BLOCK_DATA:
+ 		data->block[0] = inb_p(SMBHSTDAT0);
++		if (data->block[0] > I2C_SMBUS_BLOCK_MAX)
++			data->block[0] = I2C_SMBUS_BLOCK_MAX;
+ 		i = inb_p(SMBHSTCNT);	/* Reset SMBBLKDAT */
+ 		for (i = 1; i <= data->block[0]; i++)
+ 			data->block[i] = inb_p(SMBBLKDAT);
+
+
 -- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+http://khali.linux-fr.org/
