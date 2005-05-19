@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <10819814531232@kroah.com>
+Message-Id: <1081981453937@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10819814521837@kroah.com>
+In-Reply-To: <10819814532188@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,173 +11,137 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.25, 2004/04/12 15:16:08-07:00, khali@linux-fr.org
+ChangeSet 1.1643.36.29, 2004/04/12 15:17:46-07:00, khali@linux-fr.org
 
-[PATCH] I2C: pwm support in w83781d.c
+[PATCH] I2C: No reset not limit init in via686a
 
-Here is a general pwm support cleanup patch for the w83781d chip driver.
-Featuring:
+The following patch removes limits initialization in the via686a driver.
+It was decided some times ago that this belongs to user-space, not
+kernel. See the thread here:
+http://archives.andrew.net.au/lm-sensors/msg06134.html
 
-* Don't pretend that we handle PWM on AS99127F chips. We don't know how
-it works, and one of the register we are accessing for now is clearly
-not a PWM register, and changing its value usually breaks temperature
-readings.
+It also prevents the sensor chip from being savagely reset at load time.
+This too follows a decision taken long ago that drivers should do as
+little as possible in their init procedure. See the thread here:
+http://archives.andrew.net.au/lm-sensors/msg04593.html
 
-* Discard irrelevant comments.
-
-* Rewrite show_pwmenable_reg. It was obviously taken from the 2.4
-driver, with unneeded tests and the code was much too complicated
-anyway. And now we handle errors correctly.
-
-* Initialize pwm_enable at load time. So far it was done conditionally
-(if init=1) while it should always be done. And pwm2_enable wasn't read
-from the chip, while it should.
-
-I could test that my AS99127F doesn't expose pwm files through ssysfs
-anymore. Which means that I couldn't test the rest of the pwm changes,
-unfortunately.
-
-I've applied similar changes to our 2.4/CVS repository.
+This should make the driver smaller, safer and faster to load. The same
+was done to our 2.4/CVS version of the driver 5 months ago and it seems
+to work just fine.
 
 
- drivers/i2c/chips/w83781d.c |   67 +++++++++++++++++---------------------------
- 1 files changed, 26 insertions(+), 41 deletions(-)
+ drivers/i2c/chips/via686a.c |   90 +++-----------------------------------------
+ 1 files changed, 7 insertions(+), 83 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Wed Apr 14 15:12:45 2004
-+++ b/drivers/i2c/chips/w83781d.c	Wed Apr 14 15:12:45 2004
-@@ -24,7 +24,7 @@
-     Supports following chips:
+diff -Nru a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
+--- a/drivers/i2c/chips/via686a.c	Wed Apr 14 15:12:20 2004
++++ b/drivers/i2c/chips/via686a.c	Wed Apr 14 15:12:20 2004
+@@ -329,45 +329,9 @@
+ #define DIV_FROM_REG(val) (1 << (val))
+ #define DIV_TO_REG(val) ((val)=8?3:(val)=4?2:(val)=1?0:1)
  
-     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
--    as99127f	7	3	1?	3	0x31	0x12c3	yes	no
-+    as99127f	7	3	0	3	0x31	0x12c3	yes	no
-     as99127f rev.2 (type_name = as99127f)	0x31	0x5ca3	yes	no
-     w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
-     w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
-@@ -670,7 +670,6 @@
- device_create_file(&client->dev, &dev_attr_fan##offset##_div); \
- } while (0)
- 
--/* w83697hf only has two fans */
- static ssize_t
- show_pwm_reg(struct device *dev, char *buf, int nr)
- {
-@@ -678,7 +677,6 @@
- 	return sprintf(buf, "%ld\n", (long) PWM_FROM_REG(data->pwm[nr - 1]));
- }
- 
--/* w83697hf only has two fans */
- static ssize_t
- show_pwmenable_reg(struct device *dev, char *buf, int nr)
- {
-@@ -706,38 +704,26 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83781d_data *data = i2c_get_clientdata(client);
--	u32 val, j, k;
-+	u32 val, reg;
- 
- 	val = simple_strtoul(buf, NULL, 10);
- 
--	/* only PWM2 can be enabled/disabled */
--	if (nr = 2) {
--		j = w83781d_read_value(client, W83781D_REG_PWMCLK12);
--		k = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
+-/* Initial limits */
+-#define VIA686A_INIT_IN_0 200
+-#define VIA686A_INIT_IN_1 250
+-#define VIA686A_INIT_IN_2 330
+-#define VIA686A_INIT_IN_3 500
+-#define VIA686A_INIT_IN_4 1200
 -
--		if (val > 0) {
--			if (!(j & 0x08))
--				w83781d_write_value(client,
--						    W83781D_REG_PWMCLK12,
--						    j | 0x08);
--			if (k & 0x10)
--				w83781d_write_value(client,
--						    W83781D_REG_BEEP_CONFIG,
--						    k & 0xef);
-+	switch (val) {
-+	case 0:
-+	case 1:
-+		reg = w83781d_read_value(client, W83781D_REG_PWMCLK12);
-+		w83781d_write_value(client, W83781D_REG_PWMCLK12,
-+				    (reg & 0xf7) | (val << 3));
-+
-+		reg = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
-+		w83781d_write_value(client, W83781D_REG_BEEP_CONFIG,
-+				    (reg & 0xef) | (!val << 4));
- 
--			data->pwmenable[1] = 1;
--		} else {
--			if (j & 0x08)
--				w83781d_write_value(client,
--						    W83781D_REG_PWMCLK12,
--						    j & 0xf7);
--			if (!(k & 0x10))
--				w83781d_write_value(client,
--						    W83781D_REG_BEEP_CONFIG,
--						    j | 0x10);
-+		data->pwmenable[nr - 1] = val;
-+		break;
- 
--			data->pwmenable[1] = 0;
--		}
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	return count;
-@@ -1250,6 +1236,9 @@
- 		data->fan_min[i - 1] = w83781d_read_value(new_client,
- 					W83781D_REG_FAN_MIN(i));
- 	}
-+	if (kind != w83781d && kind != as99127f)
-+		for (i = 0; i < 4; i++)
-+			data->pwmenable[i] = 1;
- 
- 	/* Register sysfs hooks */
- 	device_create_file_in(new_client, 0);
-@@ -1290,7 +1279,7 @@
- 
- 	device_create_file_beep(new_client);
- 
--	if (kind != w83781d) {
-+	if (kind != w83781d && kind != as99127f) {
- 		device_create_file_pwm(new_client, 1);
- 		device_create_file_pwm(new_client, 2);
- 		device_create_file_pwmenable(new_client, 2);
-@@ -1578,9 +1567,6 @@
- 			if (!(i & 0x40))
- 				w83781d_write_value(client, W83781D_REG_IRQ,
- 						    i | 0x40);
+-#define VIA686A_INIT_IN_PERCENTAGE 10
 -
--			for (i = 0; i < 3; i++)
--				data->pwmenable[i] = 1;
- 		}
- 	}
+-#define VIA686A_INIT_IN_MIN_0 (VIA686A_INIT_IN_0 - VIA686A_INIT_IN_0 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MAX_0 (VIA686A_INIT_IN_0 + VIA686A_INIT_IN_0 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MIN_1 (VIA686A_INIT_IN_1 - VIA686A_INIT_IN_1 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MAX_1 (VIA686A_INIT_IN_1 + VIA686A_INIT_IN_1 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MIN_2 (VIA686A_INIT_IN_2 - VIA686A_INIT_IN_2 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MAX_2 (VIA686A_INIT_IN_2 + VIA686A_INIT_IN_2 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MIN_3 (VIA686A_INIT_IN_3 - VIA686A_INIT_IN_3 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MAX_3 (VIA686A_INIT_IN_3 + VIA686A_INIT_IN_3 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MIN_4 (VIA686A_INIT_IN_4 - VIA686A_INIT_IN_4 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-#define VIA686A_INIT_IN_MAX_4 (VIA686A_INIT_IN_4 + VIA686A_INIT_IN_4 \
+-        * VIA686A_INIT_IN_PERCENTAGE / 100)
+-
+-#define VIA686A_INIT_FAN_MIN	3000
+-
+-#define VIA686A_INIT_TEMP_OVER 600
+-#define VIA686A_INIT_TEMP_HYST 500
+-
+-/* For the VIA686A, we need to keep some data in memory. That
+-   data is pointed to by via686a_list[NR]->data. The structure itself is
+-   dynamically allocated, at the same time when a new via686a client is
+-   allocated. */
++/* For the VIA686A, we need to keep some data in memory.
++   The structure is dynamically allocated, at the same time when a new
++   via686a client is allocated. */
+ struct via686a_data {
+ 	struct i2c_client client;
+ 	struct semaphore update_lock;
+@@ -773,53 +737,13 @@
+ /* Called when we have found a new VIA686A. Set limits, etc. */
+ static void via686a_init_client(struct i2c_client *client)
+ {
+-	int i;
+-
+-	/* Reset the device */
+-	via686a_write_value(client, VIA686A_REG_CONFIG, 0x80);
+-
+-	/* Have to wait for reset to complete or else the following
+-	   initializations won't work reliably. The delay was arrived at
+-	   empirically, the datasheet doesn't tell you.
+-	   Waiting for the reset bit to clear doesn't work, it
+-	   clears in about 2-4 udelays and that isn't nearly enough. */
+-	udelay(50);
+-
+-	via686a_write_value(client, VIA686A_REG_IN_MIN(0),
+-			    IN_TO_REG(VIA686A_INIT_IN_MIN_0, 0));
+-	via686a_write_value(client, VIA686A_REG_IN_MAX(0),
+-			    IN_TO_REG(VIA686A_INIT_IN_MAX_0, 0));
+-	via686a_write_value(client, VIA686A_REG_IN_MIN(1),
+-			    IN_TO_REG(VIA686A_INIT_IN_MIN_1, 1));
+-	via686a_write_value(client, VIA686A_REG_IN_MAX(1),
+-			    IN_TO_REG(VIA686A_INIT_IN_MAX_1, 1));
+-	via686a_write_value(client, VIA686A_REG_IN_MIN(2),
+-			    IN_TO_REG(VIA686A_INIT_IN_MIN_2, 2));
+-	via686a_write_value(client, VIA686A_REG_IN_MAX(2),
+-			    IN_TO_REG(VIA686A_INIT_IN_MAX_2, 2));
+-	via686a_write_value(client, VIA686A_REG_IN_MIN(3),
+-			    IN_TO_REG(VIA686A_INIT_IN_MIN_3, 3));
+-	via686a_write_value(client, VIA686A_REG_IN_MAX(3),
+-			    IN_TO_REG(VIA686A_INIT_IN_MAX_3, 3));
+-	via686a_write_value(client, VIA686A_REG_IN_MIN(4),
+-			    IN_TO_REG(VIA686A_INIT_IN_MIN_4, 4));
+-	via686a_write_value(client, VIA686A_REG_IN_MAX(4),
+-			    IN_TO_REG(VIA686A_INIT_IN_MAX_4, 4));
+-	via686a_write_value(client, VIA686A_REG_FAN_MIN(1),
+-			    FAN_TO_REG(VIA686A_INIT_FAN_MIN, 2));
+-	via686a_write_value(client, VIA686A_REG_FAN_MIN(2),
+-			    FAN_TO_REG(VIA686A_INIT_FAN_MIN, 2));
+-	for (i = 0; i <= 2; i++) {
+-		via686a_write_value(client, VIA686A_REG_TEMP_OVER(i),
+-				    TEMP_TO_REG(VIA686A_INIT_TEMP_OVER));
+-		via686a_write_value(client, VIA686A_REG_TEMP_HYST(i),
+-				    TEMP_TO_REG(VIA686A_INIT_TEMP_HYST));
+-	}
++	u8 reg;
  
-@@ -1624,20 +1610,19 @@
- 			data->fan_min[i - 1]  			    w83781d_read_value(client, W83781D_REG_FAN_MIN(i));
- 		}
--		if (data->type != w83781d) {
-+		if (data->type != w83781d && data->type != as99127f) {
- 			for (i = 1; i <= 4; i++) {
- 				data->pwm[i - 1]  				    w83781d_read_value(client,
- 						       W83781D_REG_PWM(i));
--				if (((data->type = w83783s)
--				     || (data->type = w83627hf)
--				     || (data->type = as99127f)
--				     || (data->type = w83697hf)
--				     || ((data->type = w83782d)
--					 && i2c_is_isa_client(client)))
-+				if ((data->type != w83782d
-+				     || i2c_is_isa_client(client))
- 				    && i = 2)
- 					break;
- 			}
-+			/* Only PWM2 can be disabled */
-+			data->pwmenable[1] = (w83781d_read_value(client,
-+					      W83781D_REG_PWMCLK12) & 0x08) >> 3;
- 		}
+ 	/* Start monitoring */
+-	via686a_write_value(client, VIA686A_REG_CONFIG, 0x01);
++	reg = via686a_read_value(client, VIA686A_REG_CONFIG);
++	via686a_write_value(client, VIA686A_REG_CONFIG, (reg|0x01)&0x7F);
  
- 		data->temp = w83781d_read_value(client, W83781D_REG_TEMP(1));
+-	/* Cofigure temp interrupt mode for continuous-interrupt operation */
++	/* Configure temp interrupt mode for continuous-interrupt operation */
+ 	via686a_write_value(client, VIA686A_REG_TEMP_MODE, 
+ 			    via686a_read_value(client, VIA686A_REG_TEMP_MODE) &
+ 			    !(VIA686A_TEMP_MODE_MASK | VIA686A_TEMP_MODE_CONTINUOUS));
 
