@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:29 +0000
 Subject: [PATCH] I2C patches for 2.6.10
-Message-Id: <1105162774832@kroah.com>
+Message-Id: <11051627742463@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1105162774441@kroah.com>
+In-Reply-To: <110516277494@kroah.com>
 References: <11051627731563@kroah.com>
 In-Reply-To: <11051627731563@kroah.com>
 MIME-Version: 1.0
@@ -11,100 +11,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1938.439.48, 2005/01/06 13:55:55-08:00, khali@linux-fr.org
+ChangeSet 1.1938.439.50, 2005/01/06 15:05:25-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Add byte commands to i2c-stub
+[PATCH] I2C: Update fscher pwm functionality
 
-While working on EEPROMs, DDC/EDID and the like these last few days, I
-wanted to use your i2c-stub driver to test my code. However, I noticed
-that it wouldn't handle byte commands, while both i2cdetect and the
-eeprom driver need it for proper operation. Thus I added this
-functionality to the driver. What do you think about it?
+This is a small update to the fscher hardware monitoring chip driver.
+More specifically it fixes two aspects of pwm:
+1* Use the new sysfs names (e.g. pwm1 instead of fan1_pwm).
+2* Better handling of out-of-range pwm values.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- Documentation/i2c/i2c-stub    |    9 +++++++--
- drivers/i2c/busses/i2c-stub.c |   22 ++++++++++++++++++++--
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ drivers/i2c/chips/fscher.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
 
-diff -Nru a/Documentation/i2c/i2c-stub b/Documentation/i2c/i2c-stub
---- a/Documentation/i2c/i2c-stub	2005-01-07 14:54:26 -08:00
-+++ b/Documentation/i2c/i2c-stub	2005-01-07 14:54:26 -08:00
-@@ -2,13 +2,18 @@
+diff -Nru a/drivers/i2c/chips/fscher.c b/drivers/i2c/chips/fscher.c
+--- a/drivers/i2c/chips/fscher.c	2005-01-07 14:54:10 -08:00
++++ b/drivers/i2c/chips/fscher.c	2005-01-07 14:54:10 -08:00
+@@ -198,7 +198,7 @@
+ static DEVICE_ATTR(kind, S_IRUGO, show_##kind##0##sub, NULL);
  
- DESCRIPTION:
- 
--This module is a very simple fake I2C/SMBus driver.  It implements three
--types of SMBus commands: write quick, (r/w) byte data, and (r/w) word data.
-+This module is a very simple fake I2C/SMBus driver.  It implements four
-+types of SMBus commands: write quick, (r/w) byte, (r/w) byte data, and
-+(r/w) word data.
- 
- No hardware is needed nor associated with this module.  It will accept write
- quick commands to all addresses; it will respond to the other commands (also
- to all addresses) by reading from or writing to an array in memory.  It will
- also spam the kernel logs for every command it handles.
-+
-+A pointer register with auto-increment is implemented for all byte
-+operations.  This allows for continuous byte reads like those supported by
-+EEPROMs, among others.
- 
- The typical use-case is like this:
- 	1. load this module
-diff -Nru a/drivers/i2c/busses/i2c-stub.c b/drivers/i2c/busses/i2c-stub.c
---- a/drivers/i2c/busses/i2c-stub.c	2005-01-07 14:54:26 -08:00
-+++ b/drivers/i2c/busses/i2c-stub.c	2005-01-07 14:54:26 -08:00
-@@ -28,6 +28,7 @@
- #include <linux/errno.h>
- #include <linux/i2c.h>
- 
-+static u8  stub_pointer;
- static u8  stub_bytes[256];
- static u16 stub_words[256];
- 
-@@ -44,6 +45,22 @@
- 		ret = 0;
- 		break;
- 
-+	case I2C_SMBUS_BYTE:
-+		if (read_write = I2C_SMBUS_WRITE) {
-+			stub_pointer = command;
-+			dev_dbg(&adap->dev, "smbus byte - addr 0x%02x, "
-+					"wrote 0x%02x.\n",
-+					addr, command);
-+		} else {
-+			data->byte = stub_bytes[stub_pointer++];
-+			dev_dbg(&adap->dev, "smbus byte - addr 0x%02x, "
-+					"read  0x%02x.\n",
-+					addr, data->byte);
-+		}
-+
-+		ret = 0;
-+		break;
-+
- 	case I2C_SMBUS_BYTE_DATA:
- 		if (read_write = I2C_SMBUS_WRITE) {
- 			stub_bytes[command] = data->byte;
-@@ -56,6 +73,7 @@
- 					"read  0x%02x at 0x%02x.\n",
- 					addr, data->byte, command);
- 		}
-+		stub_pointer = command + 1;
- 
- 		ret = 0;
- 		break;
-@@ -87,8 +105,8 @@
- 
- static u32 stub_func(struct i2c_adapter *adapter)
- {
--	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE_DATA |
--		I2C_FUNC_SMBUS_WORD_DATA;
-+	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
-+		I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA;
+ #define sysfs_fan(offset, reg_status, reg_min, reg_ripple, reg_act) \
+-sysfs_rw_n(fan, _pwm   , offset, reg_min) \
++sysfs_rw_n(pwm,        , offset, reg_min) \
+ sysfs_rw_n(fan, _status, offset, reg_status) \
+ sysfs_rw_n(fan, _div   , offset, reg_ripple) \
+ sysfs_ro_n(fan, _input , offset, reg_act)
+@@ -247,7 +247,7 @@
+ #define device_create_file_fan(client, offset) \
+ do { \
+ 	device_create_file(&client->dev, &dev_attr_fan##offset##_status); \
+-	device_create_file(&client->dev, &dev_attr_fan##offset##_pwm); \
++	device_create_file(&client->dev, &dev_attr_pwm##offset); \
+ 	device_create_file(&client->dev, &dev_attr_fan##offset##_div); \
+ 	device_create_file(&client->dev, &dev_attr_fan##offset##_input); \
+ } while (0)
+@@ -483,16 +483,17 @@
+ 	return sprintf(buf, "%u\n", data->fan_status[FAN_INDEX_FROM_NUM(nr)] & 0x04);
  }
  
- static struct i2c_algorithm smbus_algorithm = {
+-static ssize_t set_fan_pwm(struct i2c_client *client, struct fscher_data *data,
++static ssize_t set_pwm(struct i2c_client *client, struct fscher_data *data,
+ 		       const char *buf, size_t count, int nr, int reg)
+ {
+-	data->fan_min[FAN_INDEX_FROM_NUM(nr)] = simple_strtoul(buf, NULL, 10) & 0xff;
++	unsigned long v = simple_strtoul(buf, NULL, 10);
++	data->fan_min[FAN_INDEX_FROM_NUM(nr)] = v > 0xff ? 0xff : v;
+ 
+ 	fscher_write_value(client, reg, data->fan_min[FAN_INDEX_FROM_NUM(nr)]);
+ 	return count;
+ }
+ 
+-static ssize_t show_fan_pwm (struct fscher_data *data, char *buf, int nr)
++static ssize_t show_pwm(struct fscher_data *data, char *buf, int nr)
+ {
+ 	return sprintf(buf, "%u\n", data->fan_min[FAN_INDEX_FROM_NUM(nr)]);
+ }
 
