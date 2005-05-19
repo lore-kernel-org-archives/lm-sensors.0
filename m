@@ -1,24 +1,23 @@
-From: mr-smoke@spinning-plates.eu.org (Romain Riviere)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: Ticket 1400 : corollary
-Message-Id: <1063685016.19354.16.camel@marla.spinning-plates.eu.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: Linux 2.6 i2c patches collection
+Message-Id: <20031128231043.5ec58a34.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello there,
+Hi all,
 
-I've just posted a ticket about sensord that couldn't compile in 2.8.0.
-The reason why I wanted to compile sensord is that after a certain
-amount of time, the kernel unload the i2c modules because via686a is
-reported as "unused". I somehow hope that sensord will make "use" of the
-module, although I've got the feeling it won't change much.
-What bugs me is that I modprobe the modules without the -k option, and I
-have no crontab entry for rmmod.
-Question is : how to "use" this module so that it's not automagically
-removed ?
+I've made my Linux 2.6 i2c patches collection publicly available here:
+  http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/
+  http://delvare.nerim.net/i2c/linux-2.6/
+It's not linked from anywhere yet, don't know if it should. These are
+all patches that are in Greg KH's queue, or will be soon. This will at
+least let us point users to a specific patch if we think it can help
+them.
 
-Thanks and regards,
-Romain
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
