@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.1
-Message-Id: <10745567633966@kroah.com>
+Message-Id: <10745567633048@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10745567633048@kroah.com>
+In-Reply-To: <1074556763161@kroah.com>
 References: <1074556757661@kroah.com>
 In-Reply-To: <1074556757661@kroah.com>
 MIME-Version: 1.0
@@ -11,25 +11,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1474.98.15, 2004/01/15 16:05:33-08:00, greg@kroah.com
+ChangeSet 1.1474.98.14, 2004/01/15 10:34:52-08:00, greg@kroah.com
 
-[PATCH] I2C: remove CONFIG_ISA dependancy for I2C_ISA as x86_64 does not have CONFIG_ISA
-
-
- drivers/i2c/busses/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+[PATCH] I2C: move the Kconfig "source..." out of the drivers/char/ location
 
 
-diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig	Mon Jan 19 15:30:30 2004
-+++ b/drivers/i2c/busses/Kconfig	Mon Jan 19 15:30:30 2004
-@@ -108,7 +108,7 @@
+ drivers/Kconfig      |    2 ++
+ drivers/char/Kconfig |    2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+
+diff -Nru a/drivers/Kconfig b/drivers/Kconfig
+--- a/drivers/Kconfig	Mon Jan 19 15:30:43 2004
++++ b/drivers/Kconfig	Mon Jan 19 15:30:43 2004
+@@ -38,6 +38,8 @@
  
- config I2C_ISA
- 	tristate "ISA Bus support"
--	depends on I2C && ISA && EXPERIMENTAL
-+	depends on I2C && EXPERIMENTAL
- 	help
- 	  If you say yes to this option, support will be included for i2c
- 	  interfaces that are on the ISA bus.
+ source "drivers/char/Kconfig"
+ 
++source "drivers/i2c/Kconfig"
++
+ # source "drivers/misc/Kconfig"
+ 
+ source "drivers/media/Kconfig"
+diff -Nru a/drivers/char/Kconfig b/drivers/char/Kconfig
+--- a/drivers/char/Kconfig	Mon Jan 19 15:30:43 2004
++++ b/drivers/char/Kconfig	Mon Jan 19 15:30:43 2004
+@@ -588,8 +588,6 @@
+ 	bool "Support for console on line printer"
+ 	depends on PC9800_OLDLP
+ 
+-source "drivers/i2c/Kconfig"
+-
+ 
+ menu "Mice"
+ 
 
