@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:23:46 +0000
 Subject: Request to fix mkpatch
-Message-Id: <3E2C9BA0.3050103@paradyne.com>
+Message-Id: <Pine.OSF.4.50.0301211031150.28783-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.OSF.4.50.0301171937460.6850-100000@kosh.hut.fi>
 In-Reply-To: <Pine.OSF.4.50.0301171937460.6850-100000@kosh.hut.fi>
@@ -10,21 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Is i2c mkpatch working for 2.4 kernels now?
-We need that to work and not break from 2.5 fixes.
+On Mon, 20 Jan 2003, Mark Studebaker wrote:
 
-Can we still compile i2c outside of the kernel or do we
-need to patch the kernel?
-Obviously you can't mix old and new modules because of
-refcount changes. But if you remove all your old i2c
-modules and then load new ones it should work, right?
+> Is i2c mkpatch working for 2.4 kernels now?
+> We need that to work and not break from 2.5 fixes.
 
-Trying to figure out the easiest way to get myself going again...
+Most of mkpatch is <2.4 makefile stuff and i2c conversion.
+I have removed some of these for the 2.5, and limited patching
+outside the build system files to get something done.
 
+For 2.4 I have not verified if patching build/config files
+actually produces nice result.
 
-Ky?sti M?lkki wrote:
-> I have little clue of mkpatch. I hope someone could trace back
-> Configure changes from 2.5 tree and have it make clean diffs.
-> 
-> Applies to both i2c and sensors.
-> 
+> Can we still compile i2c outside of the kernel or do we
+> need to patch the kernel?
+
+Yes for 2.4. For 2.5 some includes to asm/ are arch dependent
+and fail (pcf-epp, elektor, rpx, 8xx).
+
+> Obviously you can't mix old and new modules because of
+> refcount changes. But if you remove all your old i2c
+> modules and then load new ones it should work, right?
+
+It should, yes. Problems are only expected if one compiles
+video4linux modules from unpatched tree without modversions
+and then compiles i2c out of kernel and mixes those.
+
+So support of next i2c release would be 2.4.9+ if no video4linux i2c
+drivers are needed, 2.4.20+patching otherwise. V4L in 2.4.20 needs
+patches anyway.
+
+-- 
+  Ky?sti M?lkki
+  kmalkki@cc.hut.fi
