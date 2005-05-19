@@ -1,32 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:59 +0000
-Subject: [lm-sensors] lm-sensors newb needs help
-Message-Id: <20050518210300.46ba2e83.khali@linux-fr.org>
+From: mmbrich@ldl.fc.hp.com (Matthew Brichacek)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: Netserver 1000r and Serverworks OSB4 specs
+Message-Id: <1016214655.1576.23.camel@mattb.fc.hp.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1116388677.22757.6.camel@wlt.obsidian-studios.com>
-In-Reply-To: <1116388677.22757.6.camel@wlt.obsidian-studios.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi William,
+Hello,
+	I have recently tried to get my serverworks osb4 mb to register your
+drivers.  I was able to get the PIIx4 driver to load and recognize the
+SMBus, however no chips are recognized.  I was able to get ServerWorks
+to release the specs to me for their I2C and SMBus stuff.  I am working
+out the details of the confidentiality agreement with them right now. 
+If I was able to provide you with the specs and some hardware could you
+make use of this to complete support for this MB and the chips on it?
 
-> You da man. :) That got me going, not I got output from sensors. Not
-> sure if it's correct or not? I will look into that. I assume if it's
-> not I make changes to sensors.conf file for the differences in values
-> and etc.
+Thanks
 
-True.
-
-> Anyone know if the default stuff for the IT8705F is correct or ? Allot
-> of the commented out stuff seems to be specific to Asus boards.
-
-Defaults are defaults, which by definition means that they are mostly
-fine in most cases, but not perfect in all cases. IOW, YMMV. Read all
-the comments, see if they seem to apply to your case, uncomment or not
-depending on your conclusion.
+Matthew
 
 -- 
-Jean Delvare
-
+Matthew M. Brichacek
+Linux Development Lab R&D Engineer
+Hewlett Packard Company
+3404 Harmony Road
+Ft. Collins, Colorado 80528-9599
+Phone: (970) 898-7346
+email: mmbrich@ldl.fc.hp.com
+              __
+             / /\ 
+            / /  \
+    __     /_/ /\ \
+   /_/\  __\ \ \_\ \
+   \ \ \/ /\\ \ \/ /
+    \ \ \/  \\ \  /
+     \ \  /\ \\ \ \
+      \ \ \ \ \\ \ \
+       \ \ \_\/ \ \ \
+        \ \ \    \_\/
+         \_\/
+        i n v e n t
