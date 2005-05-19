@@ -1,96 +1,26 @@
-From: galak@somerset.sps.mot.com (Kumar Gala)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: [PATCH] I2C-MPC: use wait_event_interruptible_timeout
-Message-Id: <Pine.LNX.4.61.0501131647540.26980@blarg.somerset.sps.mot.com>
+Message-Id: <20050113233616.GB2710@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.61.0501131647540.26980@blarg.somerset.sps.mot.com>
+In-Reply-To: <Pine.LNX.4.61.0501131647540.26980@blarg.somerset.sps.mot.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've changed the i2c-mpc.c driver to use wait_event_interruptible_timeout
+On Thu, Jan 13, 2005 at 04:50:52PM -0600, Kumar Gala wrote:
+> I've changed the i2c-mpc.c driver to use wait_event_interruptible_timeout
+> 
+> Can you take a look and let me know if this looks good.  I'm going to have 
+> some other changes to the driver to handle moving it from an OCP based 
+> driver to using platform_device.
 
-Can you take a look and let me know if this looks good.  I'm going to have 
-some other changes to the driver to handle moving it from an OCP based 
-driver to using platform_device.
+Looks sane to me.  You've tested this out?  If you're comfortable with
+it, care to resend it with a "Signed-off-by:" line to me so I can apply
+it to the kernel tree?
 
-thanks
+thanks,
 
-- kumar
-
-=== drivers/i2c/busses/i2c-mpc.c 1.2 vs edited ==--- 1.2/drivers/i2c/busses/i2c-mpc.c	2004-09-16 18:37:31 -05:00
-+++ edited/drivers/i2c/busses/i2c-mpc.c	2005-01-13 16:41:57 -06:00
-@@ -75,7 +75,6 @@
- 
- static int i2c_wait(struct mpc_i2c *i2c, unsigned timeout, int writing)
- {
--	DECLARE_WAITQUEUE(wait, current);
- 	unsigned long orig_jiffies = jiffies;
- 	u32 x;
- 	int result = 0;
-@@ -92,28 +91,22 @@
- 		x = readb(i2c->base + MPC_I2C_SR);
- 		writeb(0, i2c->base + MPC_I2C_SR);
- 	} else {
--		set_current_state(TASK_INTERRUPTIBLE);
--		add_wait_queue(&i2c->queue, &wait);
--		while (!(i2c->interrupt & CSR_MIF)) {
--			if (signal_pending(current)) {
--				pr_debug("I2C: Interrupted\n");
--				result = -EINTR;
--				break;
--			}
--			if (time_after(jiffies, orig_jiffies + timeout)) {
--				pr_debug("I2C: timeout\n");
--				result = -EIO;
--				break;
--			}
--			msleep_interruptible(jiffies_to_msecs(timeout));
-+		/* Interrupt mode */
-+		result = wait_event_interruptible_timeout(i2c->queue, 
-+			(i2c->interrupt & CSR_MIF), timeout * HZ);
-+
-+		if (unlikely(result < 0))
-+			pr_debug("I2C: wait interrupted\n");
-+		else if (unlikely(!(i2c->interrupt & CSR_MIF))) {
-+			pr_debug("I2C: wait timeout\n");
-+			result = -ETIMEDOUT;
- 		}
--		set_current_state(TASK_RUNNING);
--		remove_wait_queue(&i2c->queue, &wait);
-+
- 		x = i2c->interrupt;
- 		i2c->interrupt = 0;
- 	}
- 
--	if (result < -0)
-+	if (result < 0)
- 		return result;
- 
- 	if (!(x & CSR_MCF)) {
-@@ -165,7 +158,7 @@
- 		     const u8 * data, int length, int restart)
- {
- 	int i;
--	unsigned timeout = HZ;
-+	unsigned timeout = i2c->adap.timeout;
- 	u32 flags = restart ? CCR_RSTA : 0;
- 
- 	/* Start with MEN */
-@@ -193,7 +186,7 @@
- static int mpc_read(struct mpc_i2c *i2c, int target,
- 		    u8 * data, int length, int restart)
- {
--	unsigned timeout = HZ;
-+	unsigned timeout = i2c->adap.timeout;
- 	int i;
- 	u32 flags = restart ? CCR_RSTA : 0;
- 
-@@ -302,6 +295,7 @@
- 	if (!(i2c = kmalloc(sizeof(*i2c), GFP_KERNEL))) {
- 		return -ENOMEM;
- 	}
-+	memset(i2c, 0, sizeof(*i2c));
- 	i2c->ocpdef = ocp->def;
- 	init_waitqueue_head(&i2c->queue);
- 
+greg k-h
