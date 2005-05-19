@@ -1,77 +1,62 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: nico@cam.org (Nicolas Pitre)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
-Message-Id: <CPrisGfK.1106219326.9605690.khali@localhost>
+Message-Id: <Pine.LNX.4.61.0501201042300.5315@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0501191608010.5315@localhost.localdomain>
-References: <20050108103449.345def67.khali@linux-fr.org>
-In-Reply-To: <20050108103449.345def67.khali@linux-fr.org>
+References: <CPrisGfK.1106219326.9605690.khali@localhost>
+In-Reply-To: <CPrisGfK.1106219326.9605690.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: nico@cam.org, sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
-Cc: Jonas Munsin <jmunsin@iki.fi>, Simone Piunno <pioppo@ferrara.linux.it>, Greg KH <greg@kroah.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: sensors@Stimpy.netroedge.com, lkml <linux-kernel@vger.kernel.org>, Jonas Munsin <jmunsin@iki.fi>, Simone Piunno <pioppo@ferrara.linux.it>, Greg KH <greg@kroah.com>
+
+On Thu, 20 Jan 2005, Jean Delvare wrote:
+
+> 
+> Hi Nicolas,
+> 
+> > > I would also appreciate a dump of the chip (isadump 0x295 0x296 unless
+> > > it lives at some uncommon address) to confirm the guess.
+> >
+> >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> > 00: 11 10 80 00 37 ff 00 37 ff 07 13 5b 00 51 40 ff
+> > 10: fe fe ff 71 d7 fe 7f fe 00 00 ff ff ff ff ff ff
+> 
+> Interesting. Your chip does seem to be configured (i.e. pwm polarity is
+> high), so whatever your problem is, it is probably different from what
+> Simone experienced.
+> 
+> Your configuration is as follow:
+> * PWM outputs active high.
+> * PWM 2 and 3 in on/off mode, set to on.
+> * PWM 1 in "smart guardian" mode, set to automatic PWM depending on
+> temp3.
+
+Sensible.
+
+> I would like to know how temperature channels are used by your
+> motherboard, and how fans are used as well. Which temperature and fan
+> channels correspond to your CPU? What other temperature sensors and fans
+> are present?
+
+It looks like only temp3 is used for the CPU temperature, fan1 is the 
+CPU fan and fan2 the case fan.
+
+> The values dumped here make me believe that the PWM outputs were
+> configured by the BIOS. Now maybe not the correct way, at least for you.
+
+I experimented with isaset tweaking individual bits in register 0x14 
+(blindly I confess, haven't read the datasheet) and flipping bit 3 from 
+0 to 1 (writing 0xdf) apparently reverses the behavior, i.e. the CPU fan 
+speed now increases with the CPU temperature.
+
+> I would like you to give a try to a recent version of the it87 driver (as
+> found in 2.6.11-rc1-bk7 or 2.6.11-rc1-mm2).
+
+Will try to do soon.  In the mean time I'm willing to try out things 
+with isaset if you can suggest basic tests (easier than upgrading kernel 
+for the time being).
 
 
-Hi Nicolas,
-
-> > I would also appreciate a dump of the chip (isadump 0x295 0x296 unless
-> > it lives at some uncommon address) to confirm the guess.
->
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 11 10 80 00 37 ff 00 37 ff 07 13 5b 00 51 40 ff
-> 10: fe fe ff 71 d7 fe 7f fe 00 00 ff ff ff ff ff ff
-
-Interesting. Your chip does seem to be configured (i.e. pwm polarity is
-high), so whatever your problem is, it is probably different from what
-Simone experienced.
-
-Your configuration is as follow:
-* PWM outputs active high.
-* PWM 2 and 3 in on/off mode, set to on.
-* PWM 1 in "smart guardian" mode, set to automatic PWM depending on
-temp3.
-
-I would like to know how temperature channels are used by your
-motherboard, and how fans are used as well. Which temperature and fan
-channels correspond to your CPU? What other temperature sensors and fans
-are present?
-
-The values dumped here make me believe that the PWM outputs were
-configured by the BIOS. Now maybe not the correct way, at least for you.
-
-> I guess the BIOS setting will simply be overwritten so changing the BIOS
-> should not affect subsequent use, no?
-
-Changing the BIOS configuration affects the initial register
-configuration, from which the it87 driver decides whether using PWM or
-reconfiguring the chip (changing polarity) is safe or not. This is why
-it might help. With the dump you provided, we now know that the (new)
-it87 driver will accept PWM operations even when your BIOS was left in
-"smart guardian" mode.
-
-I would like you to give a try to a recent version of the it87 driver (as
-found in 2.6.11-rc1-bk7 or 2.6.11-rc1-mm2). This will let us know which
-revision of the IT8712F you have (in case it matters), and will also let
-you experiment with manual PWM.
-
-If manual PWM works, then the problem is in the way temperature interacts
-with PWM in automatic mode.
-
-If manual PWM works the wrong way around (like it did for Simone) then it
-is a polarity issue (after all, maybe *you* need active low).
-
-If manual PWM half works (fan speed changes but not as much as it should)
-it might be a problem of picking the correct base frequency for PWM.
-
-So please let us know how manual PWM behaves, and I'll tell you what I
-think the problem is, and how I think it can be tinkered with (providing
-it can).
-
-In the meantime, you could contact Gigabyte and explain about the
-problem. They better learn about the problem and fix their BIOS is
-needed.
-
-Thanks,
---
-Jean Delvare
+Nicolas
