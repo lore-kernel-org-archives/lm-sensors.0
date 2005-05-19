@@ -1,51 +1,88 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:56 +0000
-Subject: [PATCH][2.6]
-Message-Id: <20040506213455.29154c51.khali@linux-fr.org>
+From: hpj@urpla.net (Hans-Peter Jansen)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: [lm_sensors] hard lockup on modprobe w83781d with Tyan Dual K7/Thunder
+Message-Id: <20011114180440.A8934A99@shrek.lisa.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <409923F7.7050101@convergence.de>
-In-Reply-To: <409923F7.7050101@convergence.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Hunold <hunold@convergence.de>
-Cc: torvalds@osdl.org, linux-kernel@vger.kernel.org, akpm@osdl.org, greg@kroah.com, sensors@stimpy.netroedge.com
+To: sensors@stimpy.netroedge.com
+Cc: linux-kernel@vger.kernel.org
 
-> With the new I2C_CLASS_ALL flag it will be possible that an adapter
-> can request that really all drivers are probed on the adapter. On the
-> other hand, drivers can make sure that they get the chance to probe on
-> every i2c adapter out there (this is not encouraged, though)
+Hello,
 
-Depends. For example the eeprom driver will do that, and this is
-correct. That said, I agree that this is a collaborative approach and
-everybody will have to play the game.
+I'm trying to get serveral lm_sensor versions up to CVS lm_sensors2 from 
+yesterday to run on this mb. Now, I'm at linux-2.4.15-pre4, but also tried
+some 2.4.12(-ac?) versions, to no avail.
 
-> - rename I2C_ADAP_CLASS_xxx to I2C_CLASS_xxx (to be used both for 
-> drivers and adapters)
-> - add new I2C_CLASS_ALL and I2C_CLASS_SOUND classes
+sensors-detect says:
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no): 
+Probing for PCI bus adapters...
+Use driver `i2c-amd756' for device 00:07.3: AMD-766 Athlon ACPI
+Probe succesfully concluded.
 
-Mmm, I once proposed that I2C_ADAP_CLASS_SMBUS would be better renamed
-I2C_ADAP_CLASS_SENSORS (so I2C_CLASS_SENSORS now). What about that? I
-think it would be great to embed that change into your patch, so that
-the name changes only once.
+ We will now try to load each adapter module in turn.
+Module `i2c-amd756' already loaded.
+ Do you now want to be prompted for non-detectable adapters? (yes/NO): 
+ To continue, we need module `i2c-dev' to be loaded.
+ If it is built-in into your kernel, you can safely skip this.
+i2c-dev is already loaded.
 
-Now that we come to speak about that, I wonder if we would _also_ need a
-SMBUS class. SMBus is mostly a subset of I2C, essentially (but not
-completely) compatible. It may be useful at some point to know if a chip
-is compliant with SMBus or not. I don't think that i2c-core can make use
-of this at the moment, nor can I think of concrete examples where this
-would be needed. It's just a thought at the moment and I mention it here
-in case anyone has comments ;)
+ We are now going to do the adapter probings. Some adapters may hang halfway
+ through; we can't really help that. Also, some chips will be double detected;
+ we choose the one with the highest confidence value in that case.
+ If you found that the adapter hung after probing a certain address, you can
+ specify that address to remain unprobed. That often
+ includes address 0x69 (clock chip).
 
-For now we can stick to the classes we have (with the SMBUS->SENSORS
-change and the new SOUND class). The true SMBUS class can always be
-added later if needed, I guess.
+Next adapter: SMBus AMD7X6 adapter at 80e0 (Non-I2C SMBus adapter)
+Do you want to scan it? (YES/no/selectively): 
+Client found at address 0x08
+Probing for `National Semiconductor LM78'... Failed!
+Probing for `National Semiconductor LM78-J'... Failed!
+Probing for `National Semiconductor LM79'... Failed!
+Probing for `Winbond W83781D'... Failed!
+Probing for `Winbond W83782D'... Failed!
+Probing for `Winbond W83783S'... Failed!
+Probing for `Winbond W83627HF'... Failed!
+Probing for `Asus AS99127F'... Failed!
+Client found at address 0x2d
+Probing for `Myson MTP008'... Failed!
+Probing for `National Semiconductor LM78'... Failed!
+Probing for `National Semiconductor LM78-J'... Failed!
+Probing for `National Semiconductor LM79'... Failed!
+Probing for `National Semiconductor LM80'... Failed!
+Probing for `National Semiconductor LM87'... Failed!
+Probing for `Winbond W83781D'... Failed!
+Probing for `Winbond W83782D'... Success!
+    (confidence 8, driver `w83781d'), other addresses: 0x48 0x49
 
-BTW, if HWMON is prefered to SENSORS, this is fine with me too, I have
-no strong preference.
+[eeprom stuff removed]
 
-Thanks.
+Probed modules:
+# I2C adapter drivers
+modprobe i2c-amd756
+# I2C chip drivers
+modprobe w83781d           <---- FREEZE
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+kernel log during sensors-detect:
+Nov 14 17:28:33 tyrex kernel: i2c-core.o: i2c core module
+Nov 14 17:28:33 tyrex kernel: i2c-amd756.o version 2.6.1 (20010830)
+Nov 14 17:28:33 tyrex kernel: i2c-core.o: adapter SMBus AMD7X6 adapter at 
+80e0 registered 
+as adapter 0.
+Nov 14 17:28:33 tyrex kernel: i2c-amd756.o: AMD756/766 bus detected and 
+initialized
+Nov 14 17:28:38 tyrex kernel: i2c-dev.o: i2c /dev entries driver module
+Nov 14 17:28:38 tyrex kernel: i2c-core.o: driver i2c-dev dummy driver 
+registered.
+Nov 14 17:28:38 tyrex kernel: i2c-dev.o: Registered 'SMBus AMD7X6 adapter at 
+80e0' as minor 0
+Nov 14 17:28:49 tyrex kernel: i2c-amd756.o: SMBus collision!
+Nov 14 17:28:49 tyrex last message repeated 3 times
+
+Any suggestions?
+
+Hans-Peter
