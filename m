@@ -1,105 +1,83 @@
-From: vsu@altlinux.ru (Sergey Vlasov)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: PATCH: 2.4.22-pre7 drivers/i2c/i2c-dev.c user/kernel bug and
-Message-Id: <20030804193212.11786d06.vsu@altlinux.ru>
+Message-Id: <20030805103240.02221bed.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030803192312.68762d3c.khali@linux-fr.org>
-In-Reply-To: <20030803192312.68762d3c.khali@linux-fr.org>
+	<20030804193212.11786d06.vsu@altlinux.ru>
+In-Reply-To: <20030804193212.11786d06.vsu@altlinux.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: Sergey Vlasov <vsu@altlinux.ru>, "Robert T. Johnson" <rtjohnso@eecs.berkeley.edu>, Greg KH <greg@kroah.com>
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-On Sun, 3 Aug 2003 19:23:12 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
 
-> Ten days ago, Robert T. Johnson repported two bugs in 2.4's
-> drivers/i2c/i2c-dev.c. It also applies to i2c CVS (out of kernel), which
-> is intended to become 2.4's soon. Being a member of the LM Sensors dev
-> team, I took a look at the repport. My knowledge is somewhat limited but
-> I'll do my best to help (unless Greg wants to handle it alone? ;-)).
+> The current code takes rdwr_arg.msgs (which is a userspace pointer)
+> and then reads rdwr_arg.msgs[i].buf directly, which must not be done.
+
+The reason why this must not be done is unknown to me. This is why I am
+having a hard time figuring why a fix is necessary. If someone can
+explain this to me (off list I guess, unless it is of general interest),
+he/she would be welcome.
+
+Anyway, since you seem to agree with Robert T. Johnson on the fact that
+this needs to be fixed, I have to believe you. But then again I am not
+sure I understand how different your code is from the original one if
+copy_to_user and copy_from_user are regular functions. Are these macros?
+Maybe taking a look at them would help me understand how the whole thing
+works.
+
+> Because both the userspace pointer and the kernel buffer pointer are
+> needed, a second copy must be made.
+
+OK, I get this now (wasn't that obvious at first, especially because I
+hadn't realized the values were used again after i2c_transfer).
+
+> If you want to conserve memory, you may just allocate an array
+> of pointers to keep the userspace buffer pointers during the
+> transfer.
+
+Definitely better than what Robert T. Johnson first proposed. This makes
+it really clear what data actually needs to be "duplicated" and what
+doesn't.
+
+> BTW, an optimization is possible here: the whole rdwr_arg.msgs array
+> can be copied into the kernel memory with one copy_from_user() instead
+> of copying its items one by one.
+
+Nice one, I like it.
+
+> > Contrary to the proposed fix, my fix does not slow down the
+> > non-faulty cases. I also believe it will increase the code size by
+> > fewer bytes than the proposed fix (not verified though).
 > 
-> For the user/kernel bug, I'm not sure I understand how copy_from_user is
-> supposed to work. If I understand what the proposed patch does, it
-> simply allocates a second buffer, copy_from_user to that buffer instead
-> of to the original one, and then copies from that second buffer to the
-> original one (kernel to kernel). I just don't see how different it is
-> from what the current code does, as far as user/kernel issues are
-> concerned. I must be missing something obvious, can someone please bring
-> me some light?
+> This fix should work too. Yet another way is to do ++i there, but that
+> would be too obscure.
 
-The current code takes rdwr_arg.msgs (which is a userspace pointer)
-and then reads rdwr_arg.msgs[i].buf directly, which must not be done.
-This is done in two places - when copying the user data before
-i2c_transfer(), and when copying the result back to the userspace
-after it.
+I don't find it that obscure, and after thinking about it for some
+times, I even find it more elegant. And I guess it's smaller
+(binary-code-wise), although I admit it's almost pointless.
 
-Because both the userspace pointer and the kernel buffer pointer are
-needed, a second copy must be made. If you want to conserve memory,
-you may just allocate an array of pointers to keep the userspace
-buffer pointers during the transfer.
+> Here is my version (with the mentioned optimization - warning: not
+> even compiled):
 
-BTW, an optimization is possible here: the whole rdwr_arg.msgs array
-can be copied into the kernel memory with one copy_from_user() instead
-of copying its items one by one.
+Really, I like it much more than Robert's one. It's probably faster,
+uses less memory, and was easier to read and understand.
 
-> For the mem leak bug, it's clearly there. I admit the proposed patch
-> fixes it, but I think there is a better way to fix it. Compare what the
-> proposed patch does:
-> 
-> --- i2c-dev.c	Sun Aug  3 18:24:33 2003
-> +++ i2c-dev.c.proposed	Sun Aug  3 19:13:58 2003
-> @@ -226,6 +226,7 @@
->  		res = 0;
->  		for( i=0; i<rdwr_arg.nmsgs; i++ )
->  		{
-> +			rdwr_pa[i].buf = NULL;
->  		    	if(copy_from_user(&(rdwr_pa[i]),
->  					&(rdwr_arg.msgs[i]),
->  					sizeof(rdwr_pa[i])))
-> @@ -254,8 +255,9 @@
->  		}
->  		if (res < 0) {
->  			int j;
-> -			for (j = 0; j < i; ++j)
-> -				kfree(rdwr_pa[j].buf);
-> +			for (j = 0; j <= i; ++j)
-> +				if (rdwr_pa[j].buf)
-> +					kfree(rdwr_pa[j].buf);
->  			kfree(rdwr_pa);
->  			return res;
->  		}
-> 
-> with what I suggest:
-> 
-> --- i2c-dev.c	Sun Aug  3 18:24:33 2003
-> +++ i2c-dev.c.khali	Sun Aug  3 19:15:04 2003
-> @@ -247,8 +247,9 @@
->  			if(copy_from_user(rdwr_pa[i].buf,
->  				rdwr_arg.msgs[i].buf,
->  				rdwr_pa[i].len))
->  			{
-> +				kfree(rdwr_pa[i].buf);
->  			    	res = -EFAULT;
->  				break;
->  			}
->  		}
-> 
-> Contrary to the proposed fix, my fix does not slow down the non-faulty
-> cases. I also believe it will increase the code size by fewer bytes than
-> the proposed fix (not verified though).
+Here comes my version, which is basically yours modified. If it pleases
+everyone, we could apply it to 2.4.22-pre10 and i2c-CVS.
 
-This fix should work too. Yet another way is to do ++i there, but that
-would be too obscure.
+Changes:
+1* Amount of white space, twice. Ignore.
+2* Use ++i instead of kfree as discussed above.
+3* Remove conditional test around i2c_transfer, since it isn't necessary
+(if I'm not missing something).
 
-> So, what about it?
-
-Here is my version (with the mentioned optimization - warning: not
-even compiled):
-
---- i2c-dev.c.old	2003-07-28 16:14:34 +0400
-+++ i2c-dev.c	2003-08-04 19:28:25 +0400
-@@ -171,6 +171,7 @@
+diff -ru drivers/i2c/i2c-dev.c drivers/i2c/i2c-dev.c
+--- drivers/i2c/i2c-dev.c	Tue Jul 15 12:23:49 2003
++++ drivers/i2c/i2c-dev.c	Tue Aug  5 09:56:50 2003
+@@ -219,6 +219,7 @@
  	struct i2c_smbus_ioctl_data data_arg;
  	union i2c_smbus_data temp;
  	struct i2c_msg *rdwr_pa;
@@ -107,7 +85,16 @@ even compiled):
  	int i,datasize,res;
  	unsigned long funcs;
  
-@@ -223,21 +224,28 @@
+@@ -248,7 +249,7 @@
+ 		return (copy_to_user((unsigned long *)arg,&funcs,
+ 		                     sizeof(unsigned long)))?-EFAULT:0;
+ 
+-        case I2C_RDWR:
++	case I2C_RDWR:
+ 		if (copy_from_user(&rdwr_arg, 
+ 				   (struct i2c_rdwr_ioctl_data *)arg, 
+ 				   sizeof(rdwr_arg)))
+@@ -265,21 +266,28 @@
  
  		if (rdwr_pa = NULL) return -ENOMEM;
  
@@ -143,7 +130,7 @@ even compiled):
  			rdwr_pa[i].buf = kmalloc(rdwr_pa[i].len, GFP_KERNEL);
  			if(rdwr_pa[i].buf = NULL)
  			{
-@@ -245,9 +253,10 @@
+@@ -287,10 +295,11 @@
  				break;
  			}
  			if(copy_from_user(rdwr_pa[i].buf,
@@ -151,11 +138,13 @@ even compiled):
 +				data_ptrs[i],
  				rdwr_pa[i].len))
  			{
-+				kfree(rdwr_pa[i].buf);
- 			    	res = -EFAULT;
+-			    	res = -EFAULT;
++				++i; /* Needs to be kfreed too */
++				res = -EFAULT;
  				break;
  			}
-@@ -256,6 +265,7 @@
+ 		}
+@@ -298,21 +307,19 @@
  			int j;
  			for (j = 0; j < i; ++j)
  				kfree(rdwr_pa[j].buf);
@@ -163,7 +152,17 @@ even compiled):
  			kfree(rdwr_pa);
  			return res;
  		}
-@@ -270,7 +280,7 @@
+-		if (!res) 
+-		{
+-			res = i2c_transfer(client->adapter,
+-				rdwr_pa,
+-				rdwr_arg.nmsgs);
+-		}
++		res = i2c_transfer(client->adapter,
++			rdwr_pa,
++			rdwr_arg.nmsgs);
+ 		while(i-- > 0)
+ 		{
  			if( res>=0 && (rdwr_pa[i].flags & I2C_M_RD))
  			{
  				if(copy_to_user(
@@ -172,7 +171,7 @@ even compiled):
  					rdwr_pa[i].buf,
  					rdwr_pa[i].len))
  				{
-@@ -279,6 +289,7 @@
+@@ -321,6 +328,7 @@
  			}
  			kfree(rdwr_pa[i].buf);
  		}
@@ -180,3 +179,8 @@ even compiled):
  		kfree(rdwr_pa);
  		return res;
  
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
