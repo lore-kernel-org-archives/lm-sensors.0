@@ -1,7 +1,7 @@
-From: a.othieno@bluewin.ch (Arthur Othieno)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: [TRIVIAL 2.6] drivers/i2c/busses/i2c-piix4.c: kill duplicate
-Message-Id: <20040418161229.GP1417@mars>
+Message-Id: <20040420175457.GD10734@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040417230824.45f51061.khali@linux-fr.org>
 In-Reply-To: <20040417230824.45f51061.khali@linux-fr.org>
@@ -36,27 +36,21 @@ On Sat, Apr 17, 2004 at 11:08:24PM +0200, Jean Delvare wrote:
 > 
 > 1* scx200_acb.c, scx200_i2c.c and i2c-keywest.c also include version.h
 >    twice.
-
-I sent separate patches for these three to <wingel@nano-system.com>
-(scx200_{acb,i2c}.c) and <benh@kernel.crashing.org> (i2c-keywest.c)
-(Cc: <trivial@rustcorp.com.au>), but ...
-
+> 
 > 2* Most i2c bus drivers do not need to include it at all. Greg, I guess
 >    this is a leftover from the old debugging scheme?
-> 
+
+Probably.
+
 > 3* Same goes for most (all?) i2c chip drivers, and core i2c drivers too:
 >    they include config.h but don't seem to need it.
 > 
 > If would probably be better to solve all these problems at once. I think
 > we should get rid of all useless includes. Greg, can you confirm?
->
-> Rusty, I think you can leave this one to Greg and I, we'll handle it.
 
-.. it's good to know you'll be looking more closely at these :)
+Yes, but be careful of includes that are needed by other arches to build
+properly.  Sometimes it's hard to find those.
 
-> 
-> Thanks.
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+thanks,
+
+greg k-h
