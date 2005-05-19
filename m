@@ -1,79 +1,112 @@
-From: mathog@mendel.bio.caltech.edu (David Mathog)
-Date: Thu, 19 May 2005 06:25:17 +0000
-Subject: ticket 1775
-Message-Id: <E1CCMpv-0007kt-00@mendel.bio.caltech.edu>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:23:52 +0000
+Subject: [TRIVIAL PATCH 2.5.67] fix compilation error for various i2c-devices
+Message-Id: <200304091417.h39EHQWq001134@shire.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1C9PtS-000754-00@mendel.bio.caltech.edu>
-In-Reply-To: <E1C9PtS-000754-00@mendel.bio.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-WARNING: This e-mail has been altered by MIMEDefang.  Following this
-paragraph are indications of the actual changes made.  For more
-information about your site's MIMEDefang policy, contact
-andrew.net.au Postmaster <postmaster@andrew.net.au>.  For more information about MIMEDefang, see:
+----- Forwarded message from Thomas Schlichter -----
 
-            http://www.roaringpenguin.com/mimedefang/enduser.php3
+Received: from localhost (frodo@localhost [127.0.0.1])
+	by morannon.frodo.local (8.12.3/8.12.3/Debian-6.3) with ESMTP id h39De4i0012905
+	for <frodo@localhost>; Wed, 9 Apr 2003 15:40:05 +0200
+Received: from pop3.dds.nl [213.204.195.153]
+	by localhost with POP3 (fetchmail-5.9.11)
+	for frodo@localhost (single-drop); Wed, 09 Apr 2003 15:40:05 +0200 (CEST)
+Received: (qmail-ldap/ctrl 29278 invoked from network); 9 Apr 2003 13:26:08 -0000
+Received: from unknown (HELO rumms.uni-mannheim.de) ([134.155.50.52]) (envelope-sender <schlicht@uni-mannheim.de>)
+	         by dds.vsp.scarlet-internet.nl (qmail-ldap-1.03) with SMTP
+	         for <frodol@dds.nl>; 9 Apr 2003 13:26:08 -0000
+Received: from bigboss.workgroup (pD9E4A9C6.dip.t-dialin.net [217.228.169.198])
+	(authenticated bits=0)
+	by rumms.uni-mannheim.de (8.12.9/8.12.9) with ESMTP id h39DPwnA009510;
+	Wed, 9 Apr 2003 15:26:09 +0200 (MEST)
+From: Thomas Schlichter <schlicht@uni-mannheim.de>
+To: simon@tk.uni-linz.ac.at, frodol@dds.nl
+Subject: [TRIVIAL PATCH 2.5.67] fix compilation error for various i2c-devices
+Date: Wed, 9 Apr 2003 15:00:50 +0200
+User-Agent: KMail/1.5
+cc: linux-i2c@pelican.tk.uni-linz.ac.at, trivial@rustcorp.com.au
+Message-ID: <200304091500.51031.schlicht@uni-mannheim.de>
+X-Loop-Procmail: PreventLoop
+Return-Path: <schlicht@uni-mannheim.de>
 
-An attachment named sensor_monitor.sh was removed from this document as it
-constituted a security hazard.  If you require this document, please contact
-the sender and arrange an alternate means of receiving it.
+-- Start of PGP signed section.
+Content-Description: body text
 
--------------- next part --------------
-> > By the way, why are there no shutdown options in sensord?
-> 
-> Sensord is abandonware. It's that easy. None of us developers use it.
+[ Charset ISO-8859-15 unsupported, converting... ]
+Changed the i2c_adapter name definition to match the current interface.
 
-Ah, that would explain a few things.  Guess I'll shut it off then
-until I get enough time to see what state it's really in.
+   Thomas
 
-> 
-> > sensord does pretty much everything mondo does except give
-> > an option for shutdown.  Is this feature going to be added to
-> > sensord anytime soon?
-> 
-> Patches are welcome ;)
-> 
-> > Failing that, what is the most common "shut down on over temperature"
-> > script/program in use with lm_sensors on 2.6.x kernels?
-> 
-> No idea, sorry.
-> 
+[ text/x-diff is unsupported, treating like TEXT/PLAIN ]
 
-Turned out not to be too difficult to roll my own.  One of the
-attached two files use my "extract" program
+[ Charset ISO-8859-15 unsupported, converting... ]
+diff -ur linux-2.5.66/drivers/i2c/i2c-adap-ite.c linux-2.5.66-bk3/drivers/i2c/i2c-adap-ite.c
+--- linux-2.5.66/drivers/i2c/i2c-adap-ite.c	Mon Mar 24 23:00:09 2003
++++ linux-2.5.66-bk3/drivers/i2c/i2c-adap-ite.c	Thu Mar 27 19:57:24 2003
+@@ -196,9 +196,11 @@
+ 
+ static struct i2c_adapter iic_ite_ops = {
+ 	.owner		= THIS_MODULE,
+-	.name		= "ITE IIC adapter",
+ 	.id		= I2C_HW_I_IIC,
+ 	.algo_data	= &iic_ite_data,
++	.dev		= {
++		.name	= "ITE IIC adapter",
++	},
+ };
+ 
+ /* Called when the module is loaded.  This function starts the
+diff -ur linux-2.5.66/drivers/i2c/i2c-frodo.c linux-2.5.66-bk3/drivers/i2c/i2c-frodo.c
+--- linux-2.5.66/drivers/i2c/i2c-frodo.c	Mon Mar 24 22:59:46 2003
++++ linux-2.5.66-bk3/drivers/i2c/i2c-frodo.c	Thu Mar 27 19:57:28 2003
+@@ -59,9 +59,11 @@
+ 
+ static struct i2c_adapter frodo_ops = {
+ 	.owner			= THIS_MODULE,
+-	.name			= "Frodo adapter driver",
+ 	.id			= I2C_HW_B_FRODO,
+ 	.algo_data		= &bit_frodo_data,
++	.dev			= {
++		.name		= "Frodo adapter driver",
++	},
+ };
+ 
+ static int __init i2c_frodo_init (void)
+diff -ur linux-2.5.66/drivers/i2c/scx200_i2c.c linux-2.5.66-bk3/drivers/i2c/scx200_i2c.c
+--- linux-2.5.66/drivers/i2c/scx200_i2c.c	Mon Mar 24 23:00:35 2003
++++ linux-2.5.66-bk3/drivers/i2c/scx200_i2c.c	Thu Mar 27 19:57:30 2003
+@@ -82,9 +82,11 @@
+ 
+ static struct i2c_adapter scx200_i2c_ops = {
+ 	.owner		   = THIS_MODULE,
+-	.name              = "NatSemi SCx200 I2C",
+ 	.id		   = I2C_HW_B_VELLE,
+ 	.algo_data	   = &scx200_i2c_data,
++	.dev		   = {
++		.name      = "NatSemi SCx200 I2C",
++	},
+ };
+ 
+ int scx200_i2c_init(void)
+@@ -110,7 +112,7 @@
+ 
+ 	if (i2c_bit_add_bus(&scx200_i2c_ops) < 0) {
+ 		printk(KERN_ERR NAME ": adapter %s registration failed\n", 
+-		       scx200_i2c_ops.name);
++		       scx200_i2c_ops.dev.name);
+ 		return -ENODEV;
+ 	}
+ 	
+-- End of PGP section.
+----- End of forwarded message from Thomas Schlichter -----
 
- ftp://saf.bio.caltech.edu/pub/software/linux_or_unix_tools/extract.c
-
-and lm_sensors and that's pretty much it to monitor CPU T and Fan
-speeds, with a final poweroff if a value gets too badly out of range,
-logs and warnings otherwise.
-
-[For Unix purists extract could be eliminated and replaced with
-sed, set, awk or the like, but it's my Swiss army
-knife program and builds and runs on every OS I've tried so
-far, so I tend to use it a lot.]
-
-sensor_monitor is the /etc/rc.d/init.d script and should work as
-is on Mandrake, RedHat, and other similar systems. 
-
-sensor_monitor.sh is the daemon script, mine lives in /usr/local/sbin
-
-When running it doesn't go above .3% CPU, and then only once every
-5 seconds, so the load is negligible.
-
-Regards,
-
-
-David Mathog
-mathog@caltech.edu
-Manager, Sequence Analysis Facility, Biology Division, Caltech
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/octet-stream
-Size: 2063 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040928/b5347961/attachment.obj
+-- 
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
