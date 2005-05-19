@@ -1,95 +1,32 @@
-From: war@lucidpixels.com (war)
-Date: Thu, 19 May 2005 06:24:03 +0000
-Subject: Possible hardware damage Dell Optiplex GX1p?
-Message-Id: <Pine.LNX.4.56.0306302235360.28981@p500>
+From: m.heinz@gmx.net (Matthias Heinz)
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: Problems using w83781d (v 2.8.0) on Asus CUV4X
+Message-Id: <1066427722.8562.5.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.56.0306231730330.681@p500>
-In-Reply-To: <Pine.LNX.4.56.0306231730330.681@p500>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Yeah, I have several PCI boards I can use, I was just wondering if it was
-possible HW damage or a resource conflict, thanks for the reply!
-
-
-
-On Mon, 30 Jun 2003, Mark D. Studebaker  wrote:
-
-> might be an interrupt or I/O conflict.
-> doubtful it is hardware damage.
-> I'd go get a $10 PCI sound card.
-> ISA sound cards are way way more trouble than they are worth
-> (and the sound skips so easily when there is CPU load that they aren't worth anything).
-> They can work one day and not the next and it's almost impossible
-> to figure out why.
->
-> war wrote:
-> > While trying to get lm_sensors running on a Dell Optiplex GX1p, I played
-> > around with the io option.
-> >
-> > There are two options for the smbus, force=1, and force=1
-> > io=some_address_here.
-> >
-> > force=1 is what is needed to get it to work, but before I tried that, I
-> > tried setting an io address.
-> >
-> > Now, whenever I boot off the Dell ICU PnP disk (allows you to set/play
-> > with interrupts/irqs, etc), it freezes/stops when it tries to detect the
-> > Crystal Audio ISA PNP sound board in the system.
-> >
-> > I have two of these machines, the other box which I have not played with
-> > lm_sensors on works fine and it detects the board and continues booting
-> > into dos (using dos bootdisk)... then to load the ICU Dell utility.
-> >
-> > However, mine just 'hangs' on the soundcard and does not continue.
-> >
-> > I ran the dell diagnostics disks, they said the sound card is fine, even
-> > though there was an unusual(?) pause while probing for it.
-> >
-> > The sound works OK/fine in Linux, no problems.
-> >
-> > Is it possible to have ruined the hardware or have there been any reports
-> > of problems such as these?
-> >
-> > Is there anyway to further diagnose the problem?
-> >
-> > I was using latest lm_sensors and lm_sensors 2.5.x while testing/trying to
-> > get temperature monitoring to work properly.
-> >
-> > Module Parameters
-> > -----------------
-> >
-> > * force: int
-> >   Forcibly enable the PIIX4. DANGEROUS!
-> > * force_addr: int
-> >   Forcibly enable the PIIX4 at the given address. EXTREMELY DANGEROUS!
-> >
-> >
-> > On some computers (most notably, some Dells), the SMBus is disabled by
-> > default. If you use the insmod parameter 'force=1', the kernel module
-> >  will try to enable it. THIS IS VERY DANGEROUS! If the BIOS did not
-> > set up a correct address for this module, you could get in big trouble
-> > (read: crashes, data corruption, etc.). Try this only as a last resort
-> > (try BIOS updates first, for example), and backup first! An even more
-> > dangerous option is 'force_addr=<IOPORT>'. This will not only enable the
-> > PIIX4 like 'force' foes, but it will also set a new base I/O port address.
-> > The SMBus parts of the PIIX4 needs a range of 8 of these addresses to
-> > function correctly. If these addresses are already reserved by some other
-> > device, you will get into big trouble! DON'T USE THIS IF YOU ARE NOT VERY
-> > SURE ABOUT WHAT YOU ARE DOING!
-> >
-> > Is there anyway to fix the problem, or is it permanently damaged (sound
-> > board issue with the dell boot disk)..
-> >
-> > Anyway to check what is normal or what is not?
-> >
-> > Any feedback would be greatly appreciated.
-> >
-> > Thank you.
-> >
-> >
-> >
->
->
+SGksCgp0aGF0J3Mgd2hhdCBpIGdldCwgd2hlbiBpIHRyeSB0byBtb2Rwcm9iZSB0aGUgdzgzNzgx
+ZC1tb2R1bGUgaW50byB0aGUKa2VybmVsLiBXaXRoIGxtLXNlbnNvcnMgMi43LjAgaXQgd29ya2Vk
+LgoKZG1lc2c6Cnc4MzYyN2hmLm8gdmVyc2lvbiAyLjguMCAoMjAwMzA3MTQpCnc4MzYyN2hmLm86
+IFc4MzYyNy82OTcgbm90IGRldGVjdGVkLCBtb2R1bGUgbm90IGluc2VydGVkLgp3ODM3ODFkLm8g
+dmVyc2lvbiAyLjguMCAoMjAwMzA3MTQpCmkyYy1jb3JlLm86IGRyaXZlciAgcmVnaXN0ZXJlZC4K
+VW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1
+YWwgYWRkcmVzcwowMDAwMDAwMQogcHJpbnRpbmcgZWlwOgowMDAwMDAwMQoqcGRlID0gMDAwMDAw
+MDAKT29wczogMDAwMApDUFU6ICAgIDAKRUlQOiAgICAwMDEwOls8MDAwMDAwMDE+XSAgICBUYWlu
+dGVkOiBQCkVGTEFHUzogMDAwMTAyODIKZWF4OiBlMGFmNTUwOCAgIGVieDogMDAwMDAwMDAgICBl
+Y3g6IGUwYWQ4NDI0ICAgZWR4OiBkZTg5N2ZhOAplc2k6IGUwYWQ4NDI0ICAgZWRpOiBlMWQ1ODE0
+MCAgIGVicDogZmZmZmZmZWEgICBlc3A6IGM5ZDEzZWYwCmRzOiAwMDE4ICAgZXM6IDAwMTggICBz
+czogMDAxOApQcm9jZXNzIG1vZHByb2JlLm1vZHV0aSAocGlkOiA4NTQzLCBzdGFja3BhZ2XJZDEz
+MDAwKQpTdGFjazogZTBhZDU0N2UgZTBhZjU1MDggZTFkNTgxNDAgZTFkNTQwMDAgMDAwMDAwMDIg
+MDAwMDAwMDIgZTFkNTc2NGQKZTFkNTgxNDAKICAgICAgIGUxZDU3ODczIGUxZDU3ODZhIGMwMTE5
+NjgyIGUxZDU0MDYwIDA4MGFkNmY4IDAwMDA1ZGY0IGUxZDU3YjJjCjA4MGIxMTE0CiAgICAgICAw
+MDAwM2E3YyAwMDAwMDA2MCAwMDAwMDA2MCAwMDAwMDAwNyBjZWMzNDg2MCBjMjMzMTAwMCBjMjMz
+MzAwMAplMWQ1YjAwMApDYWxsIFRyYWNlOiAgICBbPGUwYWQ1NDdlPl0gWzxlMGFmNTUwOD5dIFs8
+ZTFkNTgxNDA+XSBbPGUxZDU3NjRkPl0KWzxlMWQ1ODE0MD5dCiAgWzxlMWQ1Nzg3Mz5dIFs8ZTFk
+NTc4NmE+XSBbPGMwMTE5NjgyPl0gWzxlMWQ1NDA2MD5dIFs8ZTFkNTdiMmM+XQpbPGUxZDU0MDYw
+Pl0KICBbPGMwMTA3M2NmPl0KCkNvZGU6ICBCYWQgRUlQIHZhbHVlLgoKCgpIYXZlIHlvdSBzcGxp
+dCB0aGVzZSBtb2R1bGVzIG9yIHdoZXJlJ3MgdGhlIHByb2JsZW0/CgpUaGFua3MgZm9yIGFuc3dl
+cgpNYXR0aGlhcwo=
