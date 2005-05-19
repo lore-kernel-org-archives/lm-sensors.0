@@ -1,7 +1,7 @@
-From: mochel@digitalimplant.org (Patrick Mochel)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: i2c-ali1563 driver
-Message-Id: <Pine.LNX.4.50.0404191148200.32074-100000@monsoon.he.net>
+Message-Id: <20040419220156.671f2eeb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040415202451.3df53f20.khali@linux-fr.org>
 In-Reply-To: <20040415202451.3df53f20.khali@linux-fr.org>
@@ -10,27 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+> > 2* It would be great to add support for it to our userspace tool
+> > "sensors-detect". Basically, all it takes is to add the correct PCI
+> > ID to the list of supported PCI adapters. I guess that the PCI ID is
+> > 10B9:1563. Am I correct? Would you agree to test the updated script
+> > once I am done with it?
+> 
+> Yes, that is the correct ID. And, I would be happy to test the script.
 
+Please grab it from here:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
 
-On Thu, 15 Apr 2004, Jean Delvare wrote:
+Providing you have a recent enough version of lm_sensors (2.8.2+)
+installed, it should work. Let me know if it doesn't.
 
-> Hi Patrick,
->
-> Just noticed that you have been writing a Linux 2.6 driver for ALi's
-> M1563 SMBus. Two questions:
->
-> 1* Do you plan to backport it to Linux 2.4?
+The script should see the adapter and propose you to load the
+i2c-ali1563 driver, and do it if possible.
 
-No, I do not plan to back port it. It should be straight forward, though.
+Thanks.
 
-> 2* It would be great to add support for it to our userspace tool
-> "sensors-detect". Basically, all it takes is to add the correct PCI ID
-> to the list of supported PCI adapters. I guess that the PCI ID is
-> 10B9:1563. Am I correct? Would you agree to test the updated script once
-> I am done with it?
-
-Yes, that is the correct ID. And, I would be happy to test the script.
-
-
-
-	Pat
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
