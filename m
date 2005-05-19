@@ -1,46 +1,30 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: [PATCH] 2.6 lm85.c driver update
-Message-Id: <20041109004918.GA25651@kroah.com>
+From: joon_chae@appro.com (Joon Chae)
+Date: Thu, 19 May 2005 06:23:26 +0000
+Subject: Tyan S2462 SMP Motherboard support
+Message-Id: <0BB79AAAE3DED5118B5300805F65BB560F7E@mail.appro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041004200943.GE22290@penguincomputing.com> <20041019222920.GJ9521@kroah.com> <20041025203610.GA19053@penguincomputing.com> <20041025225959.6026626f.khali@linux-fr.org> <20041025220526.GC19053@penguincomputing.com> <20041105214841.GI1750@kroah.com> <20041105222546.GA31538@penguincomputing.com>
-In-Reply-To: <20041105222546.GA31538@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Justin Thiessen <jthiessen@penguincomputing.com>
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com, phil@netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 05, 2004 at 02:25:46PM -0800, Justin Thiessen wrote:
-> On Fri, Nov 05, 2004 at 01:48:41PM -0800, Greg KH wrote:
-> > On Mon, Oct 25, 2004 at 03:05:26PM -0700, Justin Thiessen wrote:
-> > > On Mon, Oct 25, 2004 at 10:59:59PM +0200, Jean Delvare wrote:
-> > > > > > Hm, there are a number of rejects in this patch.  Care to resync up
-> > > > > > with the next kernel release and resend this?
-> > > > > 
-> > > > > Ok, try this:
-> > > > > 
-> > > > > signed off by:  Justin Thiessen  <jthiessen@penguincomputing.com>
-> > > > > 
-> > > > > patch for kernel 2.6.X lm85 driver follows:
-> 
-> <snip>
-> 
-> > Applied, thanks.
-> > 
-> > But now I get the following build warnings:
-> > 
-> > drivers/i2c/chips/lm85.c:220: warning: 'SMOOTH_TO_REG' defined but not used
-> > drivers/i2c/chips/lm85.c:236: warning: 'SPINUP_TO_REG' defined but not used
-> > 
-> > Care to send me a patch to fix them up?
-> 
-> Ok.
-> 
-> Justin Thiessen
-> 
-> Signed off by Justin Thiessen <jthiessen@penguincomputing.com>
+Dear sir,
 
-Applied, thanks.
+Currently, I am working on Tyan S2462 Motherboard, which have 1.2GHz dual
+AMD Athlon MP processors. I tried install lm_sensors-2.6.2 on to my
+existing RedHat 7.1 kernel 2.4.9-smp, but it seemed to reading weird number
+at the CPU temperature and FAN monitoring. Is lm_sensors-2.6.2 stable for
+Tyan S2462 motherboard?
 
-greg k-h
+Thank you!
+
+
+Joon Chae
+Network Systems Manager
+APPRO International, Inc.
+446 S. Abbott Ave.
+Milpitas, CA  95035
+Voice: (408) 519-8181
+Fax: (408) 941-8138
+E-mail: joon_chae@appro.com <joon_chae@appro.com> 
+Web: http://www.appro.com/ <http://www.appro.com/> 
