@@ -1,112 +1,67 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: Ticket #: 893 lm_sensors 2.6.4.cvs on Intel D850MV with kernel
-Message-Id: <3CEC0575.911F6DBB@paradyne.com>
+From: adc@angstrom.com (Atish Datta Chowdhury)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: adm1026 on dual opteron : No sensors Found
+Message-Id: <1053468785.3ecaa871cebf7@rand.angstrom.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.21.0205162124310.948-100000@hal.bit-side.de>
-In-Reply-To: <Pine.LNX.4.21.0205162124310.948-100000@hal.bit-side.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-So the chip is not responding at all on the non-working boards.
-Perhaps it has not been initialized or released from reset?
-Does it make a difference if you go into the BIOS 
-(or especially the BIOS hardware monitoring screen) before you boot?
-Have you asked Intel?
-Locate the ADM1025 on a working board. Is it also present on the non-working boards?
+Hi,
+       Appreciate any help on getting an adm1026 on a dual opteron
+working. I am listing my observtions below. 'Will be grateful for
+any solution to this..:
 
-Thomas Lazic wrote:
-> 
-> Hi,
-> 
-> thanks a lot for your answer
-> Now it appears that 2 boards are working and 9 do not.
-> 
-> All boards have the same bios version but we dont know anything about the
-> hardware revision. It is always the same type of board (Intel D850MV).
-> 
-> Please see below the output of sensors on the working board und i2cdump on
-> both the working and non-working board.
-> 
-> Regards.
-> Thomas
-> 
-> working board
-> 
-> host:/ # sensors
-> adm1025-i2c-1-2d
-> Adapter: SMBus I801 adapter at efa0
-> Algorithm: Non-I2C SMBus adapter
-> +2.5V:     +2.47 V  (min =  +2.22 V, max =  +2.72 V)
-> VCore:     +1.44 V  (min =  +1.38 V, max =  +1.69 V)
-> +3.3V:     +3.23 V  (min =  +2.93 V, max =  +3.59 V)
-> +5V:       +4.97 V  (min =  +4.45 V, max =  +5.44 V)
-> VCC:       +3.33 V  (min =  +2.93 V, max =  +3.59 V)
-> SYS Temp:  +36.0C  (min =   +0C, max =  +60C)
-> CPU Temp:  +37.0C  (min =   +0C, max =  +60C)
-> 
-> eeprom-i2c-0-50
-> Adapter: bt848 #0
-> Algorithm: Bit-shift algorithm
-> 
-> eeprom-i2c-1-50
-> Adapter: SMBus I801 adapter at efa0
-> Algorithm: Non-I2C SMBus adapter
-> 
-> eeprom-i2c-1-51
-> Adapter: SMBus I801 adapter at efa0
-> Algorithm: Non-I2C SMBus adapter
-> 
-> host:/lm_sensors2/prog/dump# ./i2cdump 1 0x2d
-> Warning: no size specified (using byte-data access)
-> WARNING! This program can confuse your I2C bus, cause data loss and
-> worse!
->   I will probe file /dev/i2c-1, address 0x2d, mode byte
->   You have five seconds to reconsider and press CTRL-C!
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> 10: 5b 5b 5b 5b 5b 00 5b 5b 5b 5b 5b 5b 5b 5b 5b 00    [[[[[.[[[[[[[[[.
-> 20: be 7c bc bf 00 c2 24 24 5b 5b 5b d1 ab 91 76 d1    ?|??.?$$[[[???v?
-> 30: ab d1 ab d1 ab d1 ab 3c 00 3c 00 5b 5b 5b 41 29    ???????<.<.[[[A)
-> 40: 01 00 01 5b 5b 5b 5b 0e 5b 80 5b 5b 5b 5b 5b 5b    ?.?[[[[?[?[[[[[[
-> 50: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> 60: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> 70: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> 80: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> 90: 5b 5b 5b 5b 5b 00 5b 5b 5b 5b 5b 5b 5b 5b 5b 00    [[[[[.[[[[[[[[[.
-> a0: be 7a bc bf 00 c2 25 24 5b 5b 5b d1 ab 91 76 d1    ?z??.?%$[[[???v?
-> b0: ab d1 ab d1 ab d1 ab 3c 00 3c 00 5b 5b 5b 41 29    ???????<.<.[[[A)
-> c0: 01 00 01 5b 5b 5b 5b 0e 5b 80 5b 5b 5b 5b 5b 5b    ?.?[[[[?[?[[[[[[
-> d0: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> e0: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> f0: 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b 5b    [[[[[[[[[[[[[[[[
-> 
-> non-working board
-> 
-> host:/lm_sensors2/prog/dump# ./i2cdump 1 0x2d
-> Warning: no size specified (using byte-data access)
-> WARNING! This program can confuse your I2C bus, cause data loss and
-> worse!
->   I will probe file /dev/i2c-1, address 0x2d, mode byte
->   You have five seconds to reconsider and press CTRL-C!
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+     Problem summary:
+     ----------------
+
+     Motherboard : Arima (BIOS 1.50) dual opteron
+
+     When using lm_sensors with the patch from penguincomputing (Philip
+Pokorney), the adm1026 can be detected by sensors-detect, but even after
+     a correct build and install of the suggested modules, we get the 
+     following error upon running sensors:
+     "No sensors found"
+
+     Possible cause:
+     ---------------
+
+     We did not see the adm1026 either under /proc/sys/dev or /proc/bus/i2c
+     The modules loaded at the time of running sensors were:
+     i2c-core, i2c-dev, i2c-proc, i2c-amd756, adm1026.
+     Are there patches (e.g to adm1026 or i2c-proc) that we are missing?
+
+     Detailed description:
+     ----------------------
+
+     1) downloaded i2c-2.7.0 and lm_sensors 2.7.0 from
+     http://www2.lm-sensors.nu/~lm78/download.html
+     2) patch adm1026 on to lm_Sensors-2.7.0 from  
+ftp.penguincomputing.com/pub/updates/lmsensors/lm_sensors-2.7.0-adm1026-9.patch
+     
+     3) Build (64 bit) against 2.4.19 (Suse's distribution : United Linux 1.0))
+        builds with nominal problems
+     4) Install  (both i2c and lm_sensors)
+     5) sensors-detect finds adm1026 off the SMBus AMD8111 adapter
+        and lists i2c-amd756,  adm1026.
+     6) insmod modules i2c-core, i2c-dev, i2c-porc, i2c-isa , i2c-amd756 and
+     adm1026:
+
+     i2c-core.o: i2c core module version 2.7.0 (20021208)
+     i2c-dev.o: i2c /dev entries driver module version 2.7.0 (20021208)
+     i2c-proc.o version 2.7.0 (20021208)
+     i2c-amd756.o version 2.7.0 (20021208)
+     i2c-amd756.o: Found AMD8111 SMBus controller.
+     adm1026: Version 2.7.0 (20021208)
+     adm1026: See http://www.penguincomputing.com/lm_sensors for more info.
+
+     7) "sensors" gives:
+     No sensors found!
+
+-thanks and regards,
+Atish
+
+Atish Datta Chowdhury
+Software Engineer
+Angstrom Microsystems
