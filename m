@@ -1,32 +1,54 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
-Message-Id: <20050111224130.GA19173@kroah.com>
+Message-Id: <QyFDHyIh.1105523081.6907040.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200501102341.44949.pioppo@ferrara.linux.it> <YN0o4rkI.1105435582.0805630.khali@localhost> <20050111202437.GA2914@nemo.sby.abo.fi>
-In-Reply-To: <20050111202437.GA2914@nemo.sby.abo.fi>
+In-Reply-To: <200501112205.02322.pioppo@ferrara.linux.it>
+References: <20050108103449.345def67.khali@linux-fr.org>
+In-Reply-To: <20050108103449.345def67.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonas Munsin <jmunsin@iki.fi>, Jean Delvare <khali@linux-fr.org>, pioppo@ferrara.linux.it, sensors@Stimpy.netroedge.com, djg@pdp8.net, LKML <linux-kernel@vger.kernel.org>
+To: pioppo@ferrara.linux.it
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, Jonas Munsin <jmunsin@iki.fi>, djg@pdp8.net, Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Tue, Jan 11, 2005 at 10:24:38PM +0200, Jonas Munsin wrote:
-> On Tue, Jan 11, 2005 at 10:26:22AM +0100, Jean Delvare wrote:
-> > 1* Jonas, please send a modified version of your original patch to Greg.
-> > The only difference would be that you wouldn't force on/off mode to be
-> > on at driver load time. Instead, disabling PWM for one fan control
-> > output (echo 0 > pwmN_enable) would both set on/off mode to on for that
-> > output (new) and turn that output to on/off mode (same as before).
-> 
-> Ok, thanks for doing the thinking ;), here is the modified patch
-> (it87.c_2.6.10-jm3-corrected_manual_pwm_20050111.diff). In addition to
-> the above change, it also refreshes fan_main_ctrl in the update routine,
-> as suggested by Jean on IRC.
-> 
->  - adds manual PWM
->  - removes buggy "reset" module parameter
->  - fixes some whitespaces
 
-Applied, thanks.
+Hi Simone,
 
-greg k-h
+> > 2* I would then add a check to the it87 driver, which completely disables
+> > the fan speed control interface if the initial configuration looks weird
+> > (all fans supposedly stopped and polarity set to "active low"). This
+> > should protect users of the driver who have a faulty BIOS.
+>
+> If the driver can perform a similar guess, couldn't it also activate a
+> reverse polarity mode as well?  I think all systems boot with with
+> full-speed fan, so any value you found at loading time should be the
+> full-speed one, shouln't it?
+
+I'm thinking about this. However, there are a couple things to keep in
+mind:
+1* The driver is not necessarily loaded at boot time. For example, one
+might unload and reload the module. In this case, fans might have been
+configured for less-then-full speed, and we have to handle this case
+properly.
+2* This is just a guess. If we are wrong, the user is in trouble. You
+know what I mean ;) For this reason, it sounds better if the user has to
+activate a module parameter by his/herself, because it means he/she is
+aware that bad things might happen.
+3* This is really a workaround for buggy BIOS. It would be better is
+BIOSes were fixed instead. It is time that manufacturer improve the
+quality of the BIOSes for the hardware monitoring parts. I have seen
+brokenesses ain too many BIOSes to keep count of them. Silently working
+around the bugs in the Linux driver is not going to help that.
+
+That said, if no problems are reported after some time, we might consider
+to apply the workaround by default. One thing at a time though.
+
+> BTW:
+>  I'm writing a report to giga-byte.
+
+OK. Let us know how it goes. Feel free to direct them to me if you think
+it can be of any help.
+
+--
+Jean Delvare
