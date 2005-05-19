@@ -1,90 +1,98 @@
-From: wberrier@myrealbox.com (Wade Berrier)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: K7VTA3 v 6.0
-Message-Id: <1110614002.11476.12.camel@crusader>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:12 +0000
+Subject: [BK PATCH] Driver Core patches for 2.6.9-rc1
+Message-Id: <20040825223503.GA27072@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: torvalds@osdl.org, akpm@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-Hello,
+Hi,
 
-I found the lm_sensors project while trying to find out how to control
-the fan speed of my computers.
+Here are some driver core patches for 2.6.9-rc1.  They fix a few minor
+error paths, and shrink down the kref code enough to be able to use it
+in a kobject.  All of the driver patches have been in the patch few -mm
+releases.
 
-I've tried just about everything I can find on the net but when I run
-pwmconfig, I get the following:
+I've also put 4 minor I2C patches, and two PCI patches as they need to
+make it into the mainline tree soon.
 
-There are no pwm-capable sensor modules installed
+Please pull from:
+	bk://kernel.bkbits.net/gregkh/linux/driver-2.6
 
-Here are the modules I'm using from sensors-detect:
+thanks,
 
-i2c-isa
-# I2C chip drivers
-it87
+greg k-h
+
+p.s. I'll send these as patches in response to this email to lkml for
+those who want to see them.
+
+ CREDITS                            |    6 +
+ Documentation/driver-model/bus.txt |   78 ++++++----------------
+ Documentation/i2c/sysfs-interface  |    2=20
+ MAINTAINERS                        |   30 ++++++++
+ drivers/base/class.c               |    9 +-
+ drivers/char/tty_io.c              |   44 +++++++++---
+ drivers/i2c/busses/i2c-keywest.c   |    2=20
+ drivers/i2c/chips/asb100.c         |    4 -
+ drivers/i2c/chips/it87.c           |    4 -
+ drivers/i2c/chips/lm78.c           |    4 -
+ drivers/i2c/chips/lm85.c           |    4 -
+ drivers/i2c/chips/w83627hf.c       |    4 -
+ drivers/i2c/chips/w83781d.c        |    4 -
+ drivers/pci/pci-driver.c           |    7 -
+ drivers/pci/probe.c                |    6 +
+ drivers/pci/remove.c               |   20 +++--
+ drivers/scsi/sd.c                  |  117 +++++++++++++++++++--------------
+ drivers/scsi/sr.c                  |   14 +--
+ drivers/usb/core/config.c          |    7 +
+ drivers/usb/core/message.c         |    4 -
+ drivers/usb/core/urb.c             |    8 +-
+ drivers/usb/core/usb.h             |    1=20
+ drivers/usb/host/ehci-mem.c        |    4 -
+ drivers/usb/serial/usb-serial.c    |  130 +++++++++++++++++---------------=
+-----
+ include/linux/device.h             |    1=20
+ include/linux/kobject.h            |    5 +
+ include/linux/kref.h               |    9 --
+ include/linux/pci.h                |    2=20
+ lib/Makefile                       |    7 -
+ lib/kobject.c                      |   57 ++++++++++------
+ lib/kref.c                         |   29 +++-----
+ 31 files changed, 346 insertions(+), 277 deletions(-)
+-----
 
 
-It almost seems that I should load the i2c-viapro, but it doesn't work.
+<thomas.koeller:baslerweb.com>:
+  o Driver Core: fix minor class reference counting issue on the error path
 
-Here are some of the entries in the /sys filesystem with the i2c-isa and
-it87 modules loaded:
+Dmitry Torokhov:
+  o kobject: fix kobject_set_name comment
 
-cd /sys
-find . -name "*fan*"
+Fran=E7ois Romieu:
+  o pci-driver: function documentation fix
 
-./devices/platform/i2c-1/1-0290/fan3_div
-./devices/platform/i2c-1/1-0290/fan2_div
-./devices/platform/i2c-1/1-0290/fan1_div
-./devices/platform/i2c-1/1-0290/fan3_min
-./devices/platform/i2c-1/1-0290/fan2_min
-./devices/platform/i2c-1/1-0290/fan1_min
-./devices/platform/i2c-1/1-0290/fan3_input
-./devices/platform/i2c-1/1-0290/fan2_input
-./devices/platform/i2c-1/1-0290/fan1_input
+Greg Kroah-Hartman:
+  o kobject: convert struct kobject use kref
+  o KREF: make kref_get() return void as it makes sense to do so
+  o KREF: fix up the current kref users for the changed api
+  o KREF: shrink the size of struct kref down to just a single atomic_t
 
-It appears that pwmconfig is looking for fan1_pwm, but it does not find
-it.
+Jean Delvare:
+  o I2C: update kernel credits/maintainers
+  o I2C: rename in0_ref to cpu0_vid
+  o I2C: keywest class
 
-I don't know if it's a hardware limitation, or a driver limitation.
+John Rose:
+  o PCI Hotplug: create pci_remove_bus()
 
-My motherboard is an ECS K7VTA3 rev6, with the via8235 chipset (although
-lm_sensors seems to like to use the isa interface instead...).
+Jonathan Corbet:
+  o Remove struct bus_type->add()
 
-Any suggestions of how I can get my fans to slow down based on
-temperature?
+Olaf Hering:
+  o export legacy pty info via sysfs
 
-If I get a spare harddrive I may try installing Windows XP and running
-SpeedFan to see if my motherboard is actually capable.
-
-Here is the output of sensors:
-
-crusader:/sys/devices/platform/i2c-1/1-0290# sensors
-it87-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.65 V  (min =  +1.42 V, max =  +1.57 V)   ALARM
-VCore 2:   +2.53 V  (min =  +2.40 V, max =  +2.61 V)   
-+3.3V:     +6.59 V  (min =  +3.14 V, max =  +3.46 V)   ALARM
-+5V:       +5.13 V  (min =  +4.76 V, max =  +5.24 V)   
-+12V:     +12.35 V  (min = +11.39 V, max = +12.61 V)   
--12V:     -11.90 V  (min = -12.63 V, max = -11.41 V)   
--5V:       -3.94 V  (min =  -5.26 V, max =  -4.77 V)   ALARM
-Stdby:     +3.33 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-VBat:      +3.23 V
-fan1:     2445 RPM  (min =    0 RPM, div = 8)          
-fan2:     2812 RPM  (min =  664 RPM, div = 8)          
-fan3:        0 RPM  (min =  664 RPM, div = 8)          
-M/B Temp:    +27?C  (low  =   +15?C, high =   +40?C)   sensor thermistor   
-CPU Temp:    +42?C  (low  =   +15?C, high =   +45?C)   sensor thermistor   
-Temp3:       +45?C  (low  =   +15?C, high =   +45?C)   sensor thermistor   
-
-Thank you for the contributions you've made through your software.
-
-Wade
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050312/16fdc47c/attachment.bin
+Robert Love:
+  o KOBJECT: add kobject_get_path
