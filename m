@@ -1,7 +1,7 @@
 From: marc@paracel.com (Marc Rieffel)
 Date: Thu, 19 May 2005 06:24:45 +0000
 Subject: lm_sensors on Itanium
-Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E3E29F0@exch01.paracel.com>
+Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F3@exch01.paracel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F0@exch01.paracel.com>
 In-Reply-To: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F0@exch01.paracel.com>
@@ -10,12 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[root@gb0010 hotplug]# make
-gcc -D__KERNEL__ -DMODULE -DLINUX -DM7101_DEBUG -O2 -Wall -I/usr/include -c m7101.c -o m7101.o
-m7101.c:67:2: #error ERROR - You must have 'Support for hot-pluggable devices' enabled in your kernel (under 'general setup')!!
-make: *** [m7101.o] Error 1
+Looks like I don't need a new kernel after all,
 
-I'll try recompiling the kernel with hot-plug enabled...
+make -f Makefile.p4b
+insmod p4b_smbus.o
+modprobe  i2c-core
+modprobe  i2c-i801
+modprobe  i2c-dev
+modprobe  i2c-proc
+modprobe adm1026
+
+[root@gb0010 sensors]# cat /proc/bus/i2c
+i2c-1   smbus           SMBus I801 adapter at 0600              Non-I2C SMBus adapter
+
+Still no luck, though,
 
 [root@gb0010 sensors]# ./sensors-detect
 
@@ -32,9 +40,11 @@ seem a bit confusing, but they will still work.
  You do not need any special privileges for this.
  Do you want to probe now? (YES/no):
 Probing for PCI bus adapters...
-Sorry, no PCI bus adapters found.
+Use driver `i2c-i801' for device 00:1f.3: Intel 82801DB ICH4
+Probe succesfully concluded.
 
  We will now try to load each adapter module in turn.
+Module `i2c-i801' already loaded.
  Do you now want to be prompted for non-detectable adapters? (yes/NO):
  To continue, we need module `i2c-dev' to be loaded.
  If it is built-in into your kernel, you can safely skip this.
@@ -47,8 +57,8 @@ i2c-dev is already loaded.
  specify that address to remain unprobed. That often
  includes address 0x69 (clock chip).
 
-Next adapter: ELV Parallel port adaptor (Bit-shift algorithm)
-Do you want to scan it? (YES/no/selectively): no
+Next adapter: SMBus I801 adapter at 0600 (Non-I2C SMBus adapter)
+Do you want to scan it? (YES/no/selectively):
 
  Some chips are also accessible through the ISA bus. ISA probes are
  typically a bit more dangerous, as we have to write to I/O ports to do
@@ -132,67 +142,3 @@ Probing for `Winbond W83697UF Super IO PWM'
  (FAQ #4.24.3) for further information.
  If you find out what chips are on your board, see
  http://secure.netroedge.com/~lm78/newdrivers.html for driver status.
-
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: Tuesday, March 02, 2004 1:32 PM
-> To: Marc Rieffel
-> Cc: sensors@Stimpy.netroedge.com
-> Subject: Re: lm_sensors on Itanium
-> 
-> 
-> > > Step 1: find if you do have a SMBus PCI device. 
-> "/sbin/lspci | grep
-> > > -i smbus" should help.
-> > 
-> > Nope:
-> > 
-> > [root@gb0010 lm_sensors-2.8.4]# lspci|grep -i smbus
-> > [root@gb0010 lm_sensors-2.8.4]# lspci
-> > 00:1d.0 USB Controller: Intel Corp. 82801DB USB (Hub  (rev 02)
-> > 00:1d.1 USB Controller: Intel Corp. 82801DB USB (Hub  (rev 02)
-> > 00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev 82)
-> > 00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
-> > 00:1f.1 IDE interface: Intel Corp. 82801DB IDE U100 (rev 02)
-> 
-> That one (82801DB) is known for its hability to hide itself. 
-> Give a try
-> to the p4b_smbus driver (look in lm_sensors2/prog/hotplug), 
-> it might be
-> what you need.
-> 
-> If it works, you'll need to run sensors-detect again after loading the
-> module (IIRC).
-> 
-> > > My guess goes to a SMSC 47B27x. It isn't a full hardware 
-> monitoring
-> > > chip, but has Fan control capabilities.
-> > 
-> > You win the prize!  Looking on the board, I saw SMSC LPC47B272, ADM
-> > 1026, and ADM 211 chips.  I didn't recognize any others, but that
-> > doesn't mean there weren't any.
-> 
-> The ADM1026 is your monitoring chip. It is I2C-only, so it 
-> has to be on
-> the supposedly hidden 82801 SMBus.
-> 
-> > Yes, I'm willing to try the updated version.  What more 
-> information do
-> > you need?
-> 
-> Get it from here:
-> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/se
-nsors-detect
-
-chmod +x and give it a try :)
-
-> Here's what I got from sensors-detect after I solved the i2c-dev
-> problem:
-
-i2c-dev is needed to probe I2C busses. Since you don't have any detected
-yet, it doesn't change anything. But it will if the p4b_smbus module
-works.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
