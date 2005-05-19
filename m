@@ -1,27 +1,35 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: W83791 (was: How to activate the SMBus on P4B533E/ICH4?)
-Message-Id: <3D178EB6.A0571BA1@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: smsc47m1 ported to Linux 2.6
+Message-Id: <20040720225853.6f67122b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.31.0206221506270.11389-100000@klaus.dns2go.com>
-In-Reply-To: <Pine.LNX.4.31.0206221506270.11389-100000@klaus.dns2go.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-No, as shown on our new drivers page.
-If you have a board with a 791 on it that would be great - let us know.
-As the 791 has SMBus 2.0 support (which I'm working on in i2c-core, etc.)
-there are some interesting things we can test.
+Hi all,
 
-Klaus Woltereck wrote:
->
-> W83791:
-> 
-> I just added some rudimentary support for the W83791SD in the w83781d
-> module.
-> 
-> Before I go on, I would like to know if anyone already done this?
-> 
-> If so, please me know!
+I just finished a preliminary version of the smsc47m1 driver to Linux
+2.6. Patch is available here:
+
+http://khali.linux-fr.org/devel/i2c/linux-2.6/linux-2.6.8-rc2-i2c-smsc47m1-alpha2.diff
+
+It's basically Gabriele Gorla's version, updated to reflect recent
+changes to the kernel and fixes to the 2.4 driver, plus some minor
+tweaks. As the name says, it's built against 2.6.8-rc2, but any recent
+kernel tree (>=2.6.7) should do too.
+
+Note that the patch is completely untested since I don't own a
+compatible device myself. But I felt that the port had been pending for
+too long and I know that there is an impatient crowd waiting for this
+driver to be part of Linux 2.6, so I tried to complete the existing code
+into something people could finally try.
+
+Please test if possible, and tell me how it fails for you ;)
+
+Thanks.
+
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
