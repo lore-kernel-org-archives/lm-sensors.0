@@ -1,27 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: helping
-Message-Id: <20031205220404.1a062eea.khali@linux-fr.org>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:58 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc4 4/15] arch: update device attribute
+Message-Id: <25381867050517034045502624@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-> Great, grab one of the i2c chip drivers that is not ported to 2.4 from
-> the cvs tree, read the docs on how to port the drivers, and then send
-> me a patch against the latest 2.6 kernel with the new driver :)
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
 
-Greg of course means "that is not ported to 2.6". Especially the lm80
-and lm87 drivers would need porting. If possible, don't pick lm90 nor
-adm1025 since I plan to port them soon myself (in this order).
+---
+-------------- next part --------------
+ arm/common/amba.c        |    2 +-
+ arm/kernel/ecard.c       |   12 ++++++------
+ arm26/kernel/ecard.c     |   10 +++++-----
+ ia64/sn/kernel/tiocx.c   |    4 ++--
+ parisc/kernel/drivers.c  |    2 +-
+ ppc/kernel/pci.c         |    2 +-
+ ppc/syslib/ocp.c         |    2 +-
+ ppc/syslib/of_device.c   |    2 +-
+ ppc64/kernel/of_device.c |    2 +-
+ ppc64/kernel/pci.c       |    2 +-
+ ppc64/kernel/vio.c       |    4 ++--
+ 11 files changed, 22 insertions(+), 22 deletions(-)
 
-For documentation on porting, get the three following patches:
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/linux-2.6.0-test9-i2c-doc-porting-clients.diff
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/linux-2.6.0-test9-i2c-doc-sysfs-interface.diff
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/linux-2.6.0-test9-i2c-doc-writing-clients.diff
-and apply them to your 2.6 kernel tree. 
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-arch.diff
+Type: text/x-patch
+Size: 10965 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/f479e927/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-arch.bin
+-------------- next part --------------
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
