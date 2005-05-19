@@ -1,7 +1,7 @@
-From: david_knierim@earthlink.net (David Knierim)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:15 +0000
 Subject: Support for DDR2 DRAM??
-Message-Id: <18741356.1094840060197.JavaMail.root@daisy.psp.pas.earthlink.net>
+Message-Id: <Pine.LNX.4.58.0409102118370.31786@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
 In-Reply-To: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
@@ -10,42 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Well, it's somewhat better now, but still not quite right:
-
-# sensors eeprom-i2c-0-53
-eeprom-i2c-0-53
-Adapter: SMBus I801 adapter at 0540
-Memory type:            DDR2 SDRAM DIMM
-Memory size (MB):       invalid (14 11 96 4)
-
-The memory sticks are 1GB each.
-
-Here's the output of i2cdump you initially requested:
-
-# ./prog/dump/i2cdump 0 0x53
-No size specified (using byte-data access)
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x53, mode byte
-Continue? [Y/n] y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 80 08 08 0e 0b 60 48 00 05 50 60 02 82 04 04 00    ?????`H.?P`????.
-10: 0c 04 18 00 01 05 01 50 60 00 00 3c 1e 3c 28 01    ???.???P`..<?<(?
-20: 35 47 15 27 3c 28 1e 00 00 37 69 80 23 2d 0f 00    5G?'<(?..7i?#-?.
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 11 fa    ..............??
-40: 2c ff ff ff ff ff ff ff 01 31 38 48 54 46 31 32    ,.......?18HTF12
-50: 38 37 32 59 2d 34 30 45 41 32 20 02 00 04 11 c1    872Y-40EA2 ?.???
-60: 18 83 2b 00 00 00 00 00 00 00 00 00 00 00 00 00    ??+.............
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 0f    ...............?
 
 
-I really am impressed with the fast response.   Thank you.
+hello,
 
-David
+Byte 5 changed in DDR2 spec
+
+DDR: http://www.jedec.org/download/search/4_01_02_04R13.PDF
+Byte 5: Number of DIMM Banks
+This field describes the number of physical banks on the SDRAM module. The
+number of logical banks for the SDRAM device is defined in Byte 17.
+
+DDR2: http://www.jedec.org/download/search/N04-NM2.pdf
+
+Byte 5: Module Attributes - Number of Ranks, Package and Height
+This field describes the number of ranks (Rank: any DRAMs connected to
+same physical CS) and package on the SDRAM module, and module height. The
+number of logical banks for the SDRAM device is defined in Byte 17.
+
+Rank has 2 lowest bits,
+
+Bit[ 7, 6, 5]
+ 000 = less than 25.4 mm
+ 001 = 25.4 mm
+ 010 = greater than 25.4 mm and less than 30 mm
+ 011 = 30.0 mm
+ 100 = 30.5 mm
+ 101 = greater than 30.5 mm
+ others :reserved
+
+Bit4:
+DRAM Packgage
+   1 = stack
+  0 = planar
+
+Bit3:
+Card on Card
+  1 = yes
+   0 = no
+
+Bit1:
+# of Ranks
+it [2, 1, 0] :
+  000 = 1 rank
+  001 = 2 ranks
+
+> Memory size (MB):       invalid (14 11 96 4)
+
+
+So 96 is bad bad...
+
+And in byte 3, and 4 are changed also. I'm sorry I cant provide the patch
+right now.
+
+> I really am impressed with the fast response.
+
+Thank Jean :)
+
+Regards
+
+Rudolf
