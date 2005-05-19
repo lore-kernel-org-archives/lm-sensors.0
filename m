@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:49 +0000
 Subject: adm1021 (probably) does something VERY,VERY BAD
-Message-Id: <1080225261.4062eded463e2@imp.gcu.info>
+Message-Id: <1080225507.4062eee3bc10f@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4062C734.5000104@gmx.net>
 In-Reply-To: <4062C734.5000104@gmx.net>
@@ -12,22 +12,14 @@ To: lm-sensors@vger.kernel.org
 
 Quoting Eric <plukje@gmx.net>:
 
-> root@pathfinder eric # i2cdump 0 0x4e
-> (...)
+> Well the main reason I figured wanted to use this chip was to know
+> what was behind it :) Guess that was kinda stupid.
 
-Great, at least we have a preliminary idea of what it does look like. I
-don't have an idea about what it can be though.
-
-It would be interesting if you could try to dump it again from times to
-times, preferably with changing conditions (e.g. after a reboot, or
-under heavy CPU load) and see if any value change.
-
-What I plan to do is use the constant parts of this dump to recognize
-this chip, whatever it is, and prevent sensors-detect from declaring it
-a MAX1617 or LM84 (the two easily misdetected chips of the ADM1021
-family).
-
-Thanks.
+Well, sensors-detect told you to do it, you had no reason not to do it.
+I wouldn't have, because of the other well-known chip on the board, and
+because the detected chip was an LM84, which I know is rare, old and
+easily misdetected. But anyone not as familiar with the project as I am
+would have done the same as you I guess.
 
 -- 
 Jean Delvare
