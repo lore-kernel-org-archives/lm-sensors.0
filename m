@@ -1,36 +1,107 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:36 +0000
-Subject: [mas@ssl.co.uk: [ltp] Incorporating Thinkpad Detection into Lm_sensors]
-Message-Id: <20020722193851.3e09f0a9.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:25:19 +0000
+Subject: [RFC] SMBus multiplexing for the Tyan S4882
+Message-Id: <K2nOCbfL.1097749885.3147790.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020722095819.B16805@Stimpy.netroedge.com>
-In-Reply-To: <20020722095819.B16805@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: greg@kroah.com
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
 
-> There's some code in arch/i386/kernel/dmi_scan.c whose intention
-> is to change an APM setting for all IBM laptops.  The relevant
-> table entry looks like this in 2.4.18:
-> 
-> { set_apm_ints, "IBM", {	/* Allow interrupts during suspend on
-> IBM laptops */
-> 		MATCH(DMI_SYS_VENDOR, "IBM"),
-> 		NO_MATCH, NO_MATCH, NO_MATCH
-> 		} },
+Hi Greg, all,
 
-I was about to suggest the very same. This file contains an impressive
-number of model-based or brand-based workarounds for the Linux kernel,
-not only for IBM laptops but also for many other systems such as Sony or
-Dell, and also more generic things related to chipsets themselves. Thus,
-it looks like a very standard and working way of detecting wether we
-have an IBM or not. I suggest we be very exclusive first (I wouldn't
-mind blacklisting *all* IBM models), at least until we know more about
-which models are causing problems and have a reliable way to be sure of
-what we are doing.
+A couple weeks ago, I started working on hardware monitoring support for
+the Tyan S4882 4-CPU motherboard [1]. The board features an AMD-8111
+dual SMBus adapter. All hardware monitoring devices are located on the
+first (SMBus 1.0) adapter, which the i2c-amd756 driver supports (both in
+the lm_sensors project for Linux 2.4 and in Linux 2.6).
 
--- 
-Jean "Khali" Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+The particularity of the board is that the SMBus is multiplexed using 3
+Philips chips: one PCA9556 (8-way I/O, [2]) for control and two PCA9516
+(5-way I2C mux, [3]). I2C bus multiplexing at the i2c core level was
+discussed before [4], but nothing was ever integrated. I also did write
+a stand-alone driver for the Philips PCA9540 (3-way I2C mux) some times
+ago but this approach is neither convenient (the user has to manually
+switch the mux, only one channel is visible at a given time) nor safe
+(no lock, breaks client buffers).
+
+This time, I tried a different approach. I integrated the multiplexing
+into the bus driver (i2c-amd756). I do think it is the correct way,
+since it isn't too complex (and doesn't affect the i2c subsystem
+core), while still safe and transparent to both the user-space and the
+i2c clients. The drawback is that the added code is highly
+board-specific. I yet have to see a different, working approach with
+less board-specific code though.
+
+A patch against lm_sensors CVS can be seen here:
+http://khali.linux-fr.org/devel/i2c/lm_sensors-CVS-S4882.patch
+This is for Linux 2.4 but I plan to port it to 2.6 soon, which is why I
+am requesting for comments on the LKML.
+
+Here is a summary of what the code does:
+1* Detect the S4882 systems, using the PCI subvendor and subdevice of the
+SMBus device.
+2* Dynamically allocate and fill 4 i2c_adapter structures and the 4
+associated i2c_algorithm structures (one adapter+algorthm per CPU). Also
+alter the main adapter's algorithm structure to point to a slightly
+modified smbus_xfer function.
+3* Register the mux chip (I2C address 0x18) as an i2c_client so that
+nobody else will request it. I do not otherwise use the client, since I
+can send SMBus transfer commands directly.
+4* Clean everything up on unload, of course.
+
+The new SMBus access functions are simple wrappers which change the mux
+configuration and call the main access function. I refactored the code
+wherever possible. The wrappers for "virtual" busses will also only
+accept mux'd addresses, while the wrapper for the main bus will accept
+only non-mux'd addresses. Note that doing this required specific
+knowledge about the S4882 (you need to know which addresses can be
+multiplexed).
+
+Since the monitoring devices (LM63) are located on 4 mux'd busses and
+the memory module EEPROMS are located on 4 other mux'd busses at
+different addresses, I chose to merge the channels on a per-CPU basis.
+This has the advantage of lowering the overhead, reducing the mux
+switching and being overall more user-friendly. Note that doing this
+required specific knowledge about the S4882 (you need to know which
+channels can/should be merged). In particular, there is no way to guess
+which pair of channels corresponds to any given CPU.
+
+The driver also remembers the last mux combination used and only send a
+mux switch command when this is really needed. This significantly lowers
+the SMBus use overhead.
+
+Since this adds a significant amount of code to the driver, I made the
+S4882 support selectable as a configuration option.
+
+Expected Objections & Answers:
+
+O: The PCA9556 support could be moved to a separate driver.
+A: I don't see no benefit. There is very little code for the PCA9556
+driver among the code I added, and I believe that calling a PCA9556
+interface would represent no less code. There is not much code to reuse
+anyway, since the way the PCA9556 driver is used is specific to each
+board. It could even be used for something compeletly different than
+SMBus multiplexing, since it is a simple 8 channel I/O chip.
+
+O: The specific S4882 support could be moved to a completely different
+driver.
+A: This would duplicate most of the i2c-amd756 driver code. The
+additional support will not affect non-S4882 users except for the size
+of the driver. People concerned about the size can recompile the driver
+without the S4882 support.
+
+Before I commit my changes to the lm_sensors CVS and port them to the
+Linux 2.6 driver, I welcome constructive comments about my work.
+
+Thanks,
+Jean Delvare
+
+[1] http://www.tyan.com/products/html/thunderk8qspro.html
+[2] http://www.semiconductors.philips.com/pip/PCA9556PW.html
+[3] http://www.semiconductors.philips.com/pip/PCA9516.html
+[4] http://archives.andrew.net.au/lm-sensors/msg05047.html
+    http://archives.andrew.net.au/lm-sensors/msg23149.html
+    http://archives.andrew.net.au/lm-sensors/msg27255.html
