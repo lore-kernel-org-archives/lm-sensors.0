@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: medaglia@gmail.com (Cadu)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: Winbound W83627EHF sensor
-Message-Id: <20050511191125.6406c96d.khali@linux-fr.org>
+Message-Id: <797de5c305051306283aed3465@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050510203454.27683f7b.medaglia@gmail.com>
 In-Reply-To: <20050510203454.27683f7b.medaglia@gmail.com>
@@ -10,26 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Cadu,
+On 5/11/05, Jean Delvare <khali@linux-fr.org> wrote:
+> And you have it. I am not working on this driver anymore, which is the
+> very reason why I released it unfinished.
+> 
+> If you go on working on this driver, we can list you on our new drivers
+> page.
 
-> Where is the latest version? I have a patch to linux-2.6.12-rc3. I
-> don't know if it is the latest version.
-> Are you hacking this driver now? I'm asking that because if the answer
-> is yes, we can change the same thing at the same time, and maybe it
-> will not be a good thing.
+Thank you. I'm reading the datasheet, and I'm going to work on this
+driver. I'll send a patch and news when I have it... :)
 
-The reference version is the one in Greg KH's i2c tree:
-http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/i2c/i2c-w83627ehf.patch
+I'm thinking to put on my web page the status of the development of
+this driver, with the patches and some other things.
 
-On top of which you have to apply a cleanup patch:
-http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/i2c/i2c-w83627ehf-cleanup.patch
+I'll tell you when I have some news and/or questions.
 
-And you have it. I am not working on this driver anymore, which is the
-very reason why I released it unfinished.
-
-If you go on working on this driver, we can list you on our new drivers
-page.
-
-Thanks,
--- 
-Jean Delvare
+Regards,
+Cadu
