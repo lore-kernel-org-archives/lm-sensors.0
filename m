@@ -1,22 +1,21 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: Linux 2.6 and CONFIG_ISA
-Message-Id: <20040118185253.GC4208@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:31 +0000
+Subject: ADM1025 eval board
+Message-Id: <1072174424.3fe815583d4bc@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1074005072.400404506dd11@imp.gcu.info>
-In-Reply-To: <1074005072.400404506dd11@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 18, 2004 at 01:02:26PM +0100, Jean Delvare wrote:
-> > Applied with a bit of editing to get around my previous change.
-> 
-> BTW, wouldn't it make sense to apply the same idea to i2c algorithms?
+Hi Sean,
 
-Yes it would.  Care to make a patch?
+Do you have any ADM1025 evaluation board available? I will be porting
+our ADM1025/NE1619 driver from Linux 2.4 to Linux 2.6 soon, and having
+hardware to test the ported driver would of course be appreciated.
 
-thanks,
+Thanks :)
 
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
