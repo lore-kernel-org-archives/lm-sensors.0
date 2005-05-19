@@ -1,201 +1,180 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <Itz1Y6LL.1109587824.9010970.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245848@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> During the porting of w83792d driver, we have two questions here:
-> (1) The sysfs interface in linux-2.6.10/Documentation/i2c/sysfs-interface
-> is not enough for w83792d driver, we want to add some other interfaces,
-> which are about Winbond Smart Fan(SmartFan I and SmartFan II).
-> You may refer to w83792d for linux-2.4, it also has the interfaces about
-> Smart Fan.
-> Could you give me some guidance on how to add some new sysfs interface?
-> Need we ask for the permission from LM_Sensors group or Linux kernel group?
-
-I just took a look at the datasheet. It happens that Smart Fan II fits
-rather good in the auto-fan-speed-control scheme currently defined in
-the 2.6 kernel, so it shouldn't be a problem. The only difference is
-that for each trip point, we define a high temperature limit and an
-hysteresis temperature, while the W83792D chip defines a medium limit
-with a tolerance. It's just a matter of arithmetics to convert from one
-to the other.
-
-Smart Fan I, aka cruise mode, doesn't quite fit in the model, although
-it could be seen as an approximate subset of Smart Fan II. I see little
-reason to implement Smart Fan I when Smart Fan II is so obviously
-better, so I wouldn't implement it at all.
-
-The only thing I think is missing the the sysfs interface for the W83792D
-is the possibility to switch from PWM to DC and back. I would propose
-new files named "pwmN_mode", that would have possible values "PWM"
-and "DC". This however needs to be discussed, and approval by the
-majority of i2c/lm_sensors devs is required (this is obviously
-sujective).
-
-> (2) In linux-2.4, the interface in /proc can be edited directly by "vi"
-> command, But it seems that in linux-2.6, the interface in /sys can NOT,
-> error message will appear when save:
-> "/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/in3_max" E667: Fsync
-> failed
->
-> So, In linux-2.6, if we want to build some application later, how to use
-> the sysfs interface directly instead of using the libsensors? In linux-2.4,
-> it's possible.
-
-I didn't know it was even possible to use vi directly on procfs files,
-and frankly I wouldn't do it, since these are NOT regular files, and
-sometimes you have to write in a different format than you read from
-these files. Just use "echo", it should work just fine with both
-procfs and sysfs files, I'm using it all the time. You may also use
-"cat" to/from these files.
-
-I took some time to review your current 2.4 driver and here are my
-comments:
-
-1* Use static arrays for registers. For example:
-
-> #define W83792D_REG_IN0 0x20     /* Vcore A in DataSheet */
-> #define W83792D_REG_IN1 0x21     /* Vcore B in DataSheet */
-> #define W83792D_REG_IN2 0x22     /* VIN0 in DataSheet */
-> #define W83792D_REG_IN3 0x23     /* VIN1 in DataSheet */
-> #define W83792D_REG_IN4 0x24     /* VIN2 in DataSheet */
-> #define W83792D_REG_IN5 0x25     /* VIN3 in DataSheet */
-> #define W83792D_REG_IN6 0x26     /* 5VCC in DataSheet */
-> #define W83792D_REG_IN7 0xB0     /* 5VSB in DataSheet */
-> #define W83792D_REG_IN8 0xB1     /* VBAT in DataSheet */
-
-becomes:
-
-static const u8 W83792D_REG_IN = {
-	0x20, /* Vcore A in datasheet */
-	0x21, /* Vcore B in datasheet */
-	0x22, /* VIN0 in datasheet */
-	0x23, /* VIN1 in datasheet */
-	0x24, /* VIN2 in datasheet */
-	0x25, /* VIN3 in datasheet */
-	0x26, /* 5VCC in datasheet */
-	0xB0, /* 5VSB in datasheet */
-	0xB1, /* VBAT in datasheet */
-};
-
-The advantage is that you can then refactor code like this:
-
-> /* Update the Voltages/High Limit/Low Limit */
-> data->in[0] = w83792d_read_value(client, W83792D_REG_IN0);
-> data->in[1] = w83792d_read_value(client, W83792D_REG_IN1);
-> data->in[2] = w83792d_read_value(client, W83792D_REG_IN2);
-> data->in[3] = w83792d_read_value(client, W83792D_REG_IN3);
-> data->in[4] = w83792d_read_value(client, W83792D_REG_IN4);
-> data->in[5] = w83792d_read_value(client, W83792D_REG_IN5);
-> data->in[6] = w83792d_read_value(client, W83792D_REG_IN6);
-> data->in[7] = w83792d_read_value(client, W83792D_REG_IN7);
-> data->in[8] = w83792d_read_value(client, W83792D_REG_IN8);
-
-becomes:
-
-int i;
-for (i = 0; i < 9; i++)
-	data->in[i] = w83792d_read_value(client, W83792D_REG_IN[i]);
-
-Which is both less error-prone and more efficient. You can do the same
-change for almost all register sets. If you do, you'll see that the
-driver will become much smaller!
-
-2* You sometimes give different names to the same register:
-
-> #define W83792D_REG_FAN1_TOL 0x87	/* (bit3-0)SmartFan Fan1 tolerance */
-> #define W83792D_REG_FAN2_TOL 0x87	/* (bit7-4)SmartFan Fan2 tolerance */
-
-This is a bad idea, because you then do:
-
-> /* Update Smart Fan I/II tolerance */
-> data->fan_tolerance[0] >     w83792d_read_value(client, W83792D_REG_FAN1_TOL) & 0x0f;
-> data->fan_tolerance[1] >     (w83792d_read_value(client, W83792D_REG_FAN2_TOL)>>4) & 0x0f;
-
-You actually read the same register twice in a row! Since SMBus reads are
-rather slow, this introduces a performance penalty. You should instead
-do:
-
-#define W83792D_REG_FAN1_TOL 0x87	/* bits 3-0: SmartFan Fan1 tolerance
-					   bits 7-4: SmartFan Fan2 tolerance */
-
-int temp = w83792d_read_value(client, W83792D_REG_FAN1_TOL);
-data->fan_tolerance[0] = temp & 0x0f;
-data->fan_tolerance[1] = temp >> 4;
-
-That way you read the register only once.
-
-3* Do not define nor use w83792d_id. It has been removed from most other
-drivers because it is in fact useless.
-
-4* That comment:
-> /* For each registered W83792D, we need to keep some data in memory. That
->    data is pointed to by w83792d_list[NR]->data. The structure itself is
->    dynamically allocated, at the same time when a new w83792d client is
->    allocated. */
-is bogus and should be deleted
-
-5* Maybe you should leave some values for W83792D_SYSCTL_PWM4-7 in case
-they are implemented later.
-
-6* Initialization to 0 is usless:
-
-> static int w83792d_attach_adapter(struct i2c_adapter *adapter)
-> {
-> 	int i_tmp = 0;
-> 	ENTER()
-> 
-> 	i_tmp = i2c_detect(adapter, &addr_data, w83792d_detect);
-
-7* This can go away completely:
-
-> #ifdef W83792D_DEBUG
-> 	if (i2c_is_isa_adapter(adapter))
-> 	{
-> 		printk("w83792d.o: Called for an ISA bus adapter, aborting.\n");
-> 		LEAVE()
-> 		return 0;
-> 		/* This should NOT happen! because 792 chip
-> 		   only appears on I2C instead of ISA. */
-> 	}
-> #endif
-
-The i2c_check_functionality right after that will discard the ISA bus
-case.
-
-8* Each printk should use one of the KERN_ERR, KERN_DEBUG, KERN_WARNING
-or KERN_INFO constant. Also, don't use "w83792d.o" in the messages
-but only "w83792".
-
-9* It looks like you only use bank 0 of the W83792D chip, and that
-registers in bank 1 are unlikely to be ever used, Also, all register
-seem to be byte-sized. This means that you could simplify the
-w83792d_read_value and w83792d_write_value functions: get rid of the
-lock, get rid of the bank, use u8 instead of u16 and get rid of the
-bitmasking. In fact you'll end up with very simple functions just
-calling one ambus function.
-
-10* In w83792d_update_client, you declare variables (reg0-3) in the
-middle of a block. Older gcc compilers will not accept it, so for best
-compatibility you should declare them at the beginning of the block.
-
-11* In several callback functions, you define nr = ctl_name -
-W83792D_SYSCTL_SOMETHING + 1, then use nr - 1 everywhere in the
-function. It would be both more efficient and more readable to define nr
-= ctl_name - W83792D_SYSCTL_SOMETHING and use nr everywhere after that.
-
-I hope that my comments will help you improve your driver.
-
-Thanks,
---
-Jean Delvare
+SGkgSmVhbgoKVGhhbmsgeW91IGZvciB5b3VyIHNvIG1hbnkgZ29vZCBzdWdnZXN0aW9ucywgSSB3
+aWxsIGltcHJvdmUgdGhlIDc5MiBkcml2ZXIKd2l0aCB5b3VyIGhlbHAsIEFmdGVyIHRoYXQgSSB3
+aWxsIHNlbmQgeW91IGFub3RoZXIgNzkyIGRyaXZlciBwYXRjaC4KCkJlc3QgUmVnYXJkcwpDaHVu
+aGFvCjIwMDUtMDMtMDEKCgo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gRnJvbTogSmVh
+biBEZWx2YXJlIFttYWlsdG86a2hhbGlAbGludXgtZnIub3JnXQo+IFNlbnQ6IDIwMDXE6jLUwjI4
+yNUgMTg6NTAKPiBUbzogUEkxNCBIVUFORzAKPiBDYzogUEkxMCBMSEhzdTsgUEkxNCBEWlNIRU47
+IExNIFNlbnNvcnMKPiBTdWJqZWN0OiBSRTogV2Ugd2lsbCBwb3J0IHc4Mzc5MmQuYyB0byBsaW51
+eC0yLjYKPiAKPiAKPiBIaSBDaHVuaGFvLAo+IAo+ID4gRHVyaW5nIHRoZSBwb3J0aW5nIG9mIHc4
+Mzc5MmQgZHJpdmVyLCB3ZSBoYXZlIHR3byBxdWVzdGlvbnMgaGVyZToKPiA+ICgxKSBUaGUgc3lz
+ZnMgaW50ZXJmYWNlIGluIGxpbnV4LTIuNi4xMC9Eb2N1bWVudGF0aW9uL2kyYy9zeXNmcy1pbnRl
+cmZhY2UKPiA+IGlzIG5vdCBlbm91Z2ggZm9yIHc4Mzc5MmQgZHJpdmVyLCB3ZSB3YW50IHRvIGFk
+ZCBzb21lIG90aGVyIGludGVyZmFjZXMsCj4gPiB3aGljaCBhcmUgYWJvdXQgV2luYm9uZCBTbWFy
+dCBGYW4oU21hcnRGYW4gSSBhbmQgU21hcnRGYW4gSUkpLgo+ID4gWW91IG1heSByZWZlciB0byB3
+ODM3OTJkIGZvciBsaW51eC0yLjQsIGl0IGFsc28gaGFzIHRoZSBpbnRlcmZhY2VzIGFib3V0Cj4g
+PiBTbWFydCBGYW4uCj4gPiBDb3VsZCB5b3UgZ2l2ZSBtZSBzb21lIGd1aWRhbmNlIG9uIGhvdyB0
+byBhZGQgc29tZSBuZXcgc3lzZnMgaW50ZXJmYWNlPwo+ID4gTmVlZCB3ZSBhc2sgZm9yIHRoZSBw
+ZXJtaXNzaW9uIGZyb20gTE1fU2Vuc29ycyBncm91cCBvciBMaW51eCBrZXJuZWwgZ3JvdXA/Cj4g
+Cj4gSSBqdXN0IHRvb2sgYSBsb29rIGF0IHRoZSBkYXRhc2hlZXQuIEl0IGhhcHBlbnMgdGhhdCBT
+bWFydCBGYW4gSUkgZml0cwo+IHJhdGhlciBnb29kIGluIHRoZSBhdXRvLWZhbi1zcGVlZC1jb250
+cm9sIHNjaGVtZSBjdXJyZW50bHkgZGVmaW5lZCBpbgo+IHRoZSAyLjYga2VybmVsLCBzbyBpdCBz
+aG91bGRuJ3QgYmUgYSBwcm9ibGVtLiBUaGUgb25seSBkaWZmZXJlbmNlIGlzCj4gdGhhdCBmb3Ig
+ZWFjaCB0cmlwIHBvaW50LCB3ZSBkZWZpbmUgYSBoaWdoIHRlbXBlcmF0dXJlIGxpbWl0IGFuZCBh
+bgo+IGh5c3RlcmVzaXMgdGVtcGVyYXR1cmUsIHdoaWxlIHRoZSBXODM3OTJEIGNoaXAgZGVmaW5l
+cyBhIG1lZGl1bSBsaW1pdAo+IHdpdGggYSB0b2xlcmFuY2UuIEl0J3MganVzdCBhIG1hdHRlciBv
+ZiBhcml0aG1ldGljcyB0byBjb252ZXJ0IGZyb20gb25lCj4gdG8gdGhlIG90aGVyLgo+IAo+IFNt
+YXJ0IEZhbiBJLCBha2EgY3J1aXNlIG1vZGUsIGRvZXNuJ3QgcXVpdGUgZml0IGluIHRoZSBtb2Rl
+bCwgYWx0aG91Z2gKPiBpdCBjb3VsZCBiZSBzZWVuIGFzIGFuIGFwcHJveGltYXRlIHN1YnNldCBv
+ZiBTbWFydCBGYW4gSUkuIEkgc2VlIGxpdHRsZQo+IHJlYXNvbiB0byBpbXBsZW1lbnQgU21hcnQg
+RmFuIEkgd2hlbiBTbWFydCBGYW4gSUkgaXMgc28gb2J2aW91c2x5Cj4gYmV0dGVyLCBzbyBJIHdv
+dWxkbid0IGltcGxlbWVudCBpdCBhdCBhbGwuCj4gCj4gVGhlIG9ubHkgdGhpbmcgSSB0aGluayBp
+cyBtaXNzaW5nIHRoZSB0aGUgc3lzZnMgaW50ZXJmYWNlIGZvciB0aGUgVzgzNzkyRAo+IGlzIHRo
+ZSBwb3NzaWJpbGl0eSB0byBzd2l0Y2ggZnJvbSBQV00gdG8gREMgYW5kIGJhY2suIEkgd291bGQg
+cHJvcG9zZQo+IG5ldyBmaWxlcyBuYW1lZCAicHdtTl9tb2RlIiwgdGhhdCB3b3VsZCBoYXZlIHBv
+c3NpYmxlIHZhbHVlcyAiUFdNIgo+IGFuZCAiREMiLiBUaGlzIGhvd2V2ZXIgbmVlZHMgdG8gYmUg
+ZGlzY3Vzc2VkLCBhbmQgYXBwcm92YWwgYnkgdGhlCj4gbWFqb3JpdHkgb2YgaTJjL2xtX3NlbnNv
+cnMgZGV2cyBpcyByZXF1aXJlZCAodGhpcyBpcyBvYnZpb3VzbHkKPiBzdWplY3RpdmUpLgo+IAo+
+ID4gKDIpIEluIGxpbnV4LTIuNCwgdGhlIGludGVyZmFjZSBpbiAvcHJvYyBjYW4gYmUgZWRpdGVk
+IGRpcmVjdGx5IGJ5ICJ2aSIKPiA+IGNvbW1hbmQsIEJ1dCBpdCBzZWVtcyB0aGF0IGluIGxpbnV4
+LTIuNiwgdGhlIGludGVyZmFjZSBpbiAvc3lzIGNhbiBOT1QsCj4gPiBlcnJvciBtZXNzYWdlIHdp
+bGwgYXBwZWFyIHdoZW4gc2F2ZToKPiA+ICIvc3lzL2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAw
+OjFmLjMvaTJjLTAvMC0wMDJmL2luM19tYXgiIEU2Njc6IEZzeW5jCj4gPiBmYWlsZWQKPiA+Cj4g
+PiBTbywgSW4gbGludXgtMi42LCBpZiB3ZSB3YW50IHRvIGJ1aWxkIHNvbWUgYXBwbGljYXRpb24g
+bGF0ZXIsIGhvdyB0byB1c2UKPiA+IHRoZSBzeXNmcyBpbnRlcmZhY2UgZGlyZWN0bHkgaW5zdGVh
+ZCBvZiB1c2luZyB0aGUgbGlic2Vuc29ycz8gSW4gbGludXgtMi40LAo+ID4gaXQncyBwb3NzaWJs
+ZS4KPiAKPiBJIGRpZG4ndCBrbm93IGl0IHdhcyBldmVuIHBvc3NpYmxlIHRvIHVzZSB2aSBkaXJl
+Y3RseSBvbiBwcm9jZnMgZmlsZXMsCj4gYW5kIGZyYW5rbHkgSSB3b3VsZG4ndCBkbyBpdCwgc2lu
+Y2UgdGhlc2UgYXJlIE5PVCByZWd1bGFyIGZpbGVzLCBhbmQKPiBzb21ldGltZXMgeW91IGhhdmUg
+dG8gd3JpdGUgaW4gYSBkaWZmZXJlbnQgZm9ybWF0IHRoYW4geW91IHJlYWQgZnJvbQo+IHRoZXNl
+IGZpbGVzLiBKdXN0IHVzZSAiZWNobyIsIGl0IHNob3VsZCB3b3JrIGp1c3QgZmluZSB3aXRoIGJv
+dGgKPiBwcm9jZnMgYW5kIHN5c2ZzIGZpbGVzLCBJJ20gdXNpbmcgaXQgYWxsIHRoZSB0aW1lLiBZ
+b3UgbWF5IGFsc28gdXNlCj4gImNhdCIgdG8vZnJvbSB0aGVzZSBmaWxlcy4KPiAKPiBJIHRvb2sg
+c29tZSB0aW1lIHRvIHJldmlldyB5b3VyIGN1cnJlbnQgMi40IGRyaXZlciBhbmQgaGVyZSBhcmUg
+bXkKPiBjb21tZW50czoKPiAKPiAxKiBVc2Ugc3RhdGljIGFycmF5cyBmb3IgcmVnaXN0ZXJzLiBG
+b3IgZXhhbXBsZToKPiAKPiA+ICNkZWZpbmUgVzgzNzkyRF9SRUdfSU4wIDB4MjAgICAgIC8qIFZj
+b3JlIEEgaW4gRGF0YVNoZWV0ICovCj4gPiAjZGVmaW5lIFc4Mzc5MkRfUkVHX0lOMSAweDIxICAg
+ICAvKiBWY29yZSBCIGluIERhdGFTaGVldCAqLwo+ID4gI2RlZmluZSBXODM3OTJEX1JFR19JTjIg
+MHgyMiAgICAgLyogVklOMCBpbiBEYXRhU2hlZXQgKi8KPiA+ICNkZWZpbmUgVzgzNzkyRF9SRUdf
+SU4zIDB4MjMgICAgIC8qIFZJTjEgaW4gRGF0YVNoZWV0ICovCj4gPiAjZGVmaW5lIFc4Mzc5MkRf
+UkVHX0lONCAweDI0ICAgICAvKiBWSU4yIGluIERhdGFTaGVldCAqLwo+ID4gI2RlZmluZSBXODM3
+OTJEX1JFR19JTjUgMHgyNSAgICAgLyogVklOMyBpbiBEYXRhU2hlZXQgKi8KPiA+ICNkZWZpbmUg
+VzgzNzkyRF9SRUdfSU42IDB4MjYgICAgIC8qIDVWQ0MgaW4gRGF0YVNoZWV0ICovCj4gPiAjZGVm
+aW5lIFc4Mzc5MkRfUkVHX0lONyAweEIwICAgICAvKiA1VlNCIGluIERhdGFTaGVldCAqLwo+ID4g
+I2RlZmluZSBXODM3OTJEX1JFR19JTjggMHhCMSAgICAgLyogVkJBVCBpbiBEYXRhU2hlZXQgKi8K
+PiAKPiBiZWNvbWVzOgo+IAo+IHN0YXRpYyBjb25zdCB1OCBXODM3OTJEX1JFR19JTiA9IHsKPiAJ
+MHgyMCwgLyogVmNvcmUgQSBpbiBkYXRhc2hlZXQgKi8KPiAJMHgyMSwgLyogVmNvcmUgQiBpbiBk
+YXRhc2hlZXQgKi8KPiAJMHgyMiwgLyogVklOMCBpbiBkYXRhc2hlZXQgKi8KPiAJMHgyMywgLyog
+VklOMSBpbiBkYXRhc2hlZXQgKi8KPiAJMHgyNCwgLyogVklOMiBpbiBkYXRhc2hlZXQgKi8KPiAJ
+MHgyNSwgLyogVklOMyBpbiBkYXRhc2hlZXQgKi8KPiAJMHgyNiwgLyogNVZDQyBpbiBkYXRhc2hl
+ZXQgKi8KPiAJMHhCMCwgLyogNVZTQiBpbiBkYXRhc2hlZXQgKi8KPiAJMHhCMSwgLyogVkJBVCBp
+biBkYXRhc2hlZXQgKi8KPiB9Owo+IAo+IFRoZSBhZHZhbnRhZ2UgaXMgdGhhdCB5b3UgY2FuIHRo
+ZW4gcmVmYWN0b3IgY29kZSBsaWtlIHRoaXM6Cj4gCj4gPiAvKiBVcGRhdGUgdGhlIFZvbHRhZ2Vz
+L0hpZ2ggTGltaXQvTG93IExpbWl0ICovCj4gPiBkYXRhLT5pblswXSA9IHc4Mzc5MmRfcmVhZF92
+YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOMCk7Cj4gPiBkYXRhLT5pblsxXSA9IHc4Mzc5MmRf
+cmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOMSk7Cj4gPiBkYXRhLT5pblsyXSA9IHc4
+Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOMik7Cj4gPiBkYXRhLT5pblsz
+XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOMyk7Cj4gPiBkYXRh
+LT5pbls0XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lONCk7Cj4g
+PiBkYXRhLT5pbls1XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lO
+NSk7Cj4gPiBkYXRhLT5pbls2XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRf
+UkVHX0lONik7Cj4gPiBkYXRhLT5pbls3XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4
+Mzc5MkRfUkVHX0lONyk7Cj4gPiBkYXRhLT5pbls4XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGll
+bnQsIFc4Mzc5MkRfUkVHX0lOOCk7Cj4gCj4gYmVjb21lczoKPiAKPiBpbnQgaTsKPiBmb3IgKGkg
+PSAwOyBpIDwgOTsgaSsrKQo+IAlkYXRhLT5pbltpXSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGll
+bnQsIFc4Mzc5MkRfUkVHX0lOW2ldKTsKPiAKPiBXaGljaCBpcyBib3RoIGxlc3MgZXJyb3ItcHJv
+bmUgYW5kIG1vcmUgZWZmaWNpZW50LiBZb3UgY2FuIGRvIHRoZSBzYW1lCj4gY2hhbmdlIGZvciBh
+bG1vc3QgYWxsIHJlZ2lzdGVyIHNldHMuIElmIHlvdSBkbywgeW91J2xsIHNlZSB0aGF0IHRoZQo+
+IGRyaXZlciB3aWxsIGJlY29tZSBtdWNoIHNtYWxsZXIhCj4gCj4gMiogWW91IHNvbWV0aW1lcyBn
+aXZlIGRpZmZlcmVudCBuYW1lcyB0byB0aGUgc2FtZSByZWdpc3RlcjoKPiAKPiA+ICNkZWZpbmUg
+VzgzNzkyRF9SRUdfRkFOMV9UT0wgMHg4NwkvKiAoYml0My0wKVNtYXJ0RmFuIEZhbjEgdG9sZXJh
+bmNlICovCj4gPiAjZGVmaW5lIFc4Mzc5MkRfUkVHX0ZBTjJfVE9MIDB4ODcJLyogKGJpdDctNClT
+bWFydEZhbiBGYW4yIHRvbGVyYW5jZSAqLwo+IAo+IFRoaXMgaXMgYSBiYWQgaWRlYSwgYmVjYXVz
+ZSB5b3UgdGhlbiBkbzoKPiAKPiA+IC8qIFVwZGF0ZSBTbWFydCBGYW4gSS9JSSB0b2xlcmFuY2Ug
+Ki8KPiA+IGRhdGEtPmZhbl90b2xlcmFuY2VbMF0gPiA+ICAgICB3ODM3OTJkX3JlYWRfdmFsdWUo
+Y2xpZW50LCBXODM3OTJEX1JFR19GQU4xX1RPTCkgJiAweDBmOwo+ID4gZGF0YS0+ZmFuX3RvbGVy
+YW5jZVsxXSA+ID4gICAgICh3ODM3OTJkX3JlYWRfdmFsdWUoY2xpZW50LCBXODM3OTJEX1JFR19G
+QU4yX1RPTCk+PjQpICYgMHgwZjsKPiAKPiBZb3UgYWN0dWFsbHkgcmVhZCB0aGUgc2FtZSByZWdp
+c3RlciB0d2ljZSBpbiBhIHJvdyEgU2luY2UgU01CdXMgcmVhZHMgYXJlCj4gcmF0aGVyIHNsb3cs
+IHRoaXMgaW50cm9kdWNlcyBhIHBlcmZvcm1hbmNlIHBlbmFsdHkuIFlvdSBzaG91bGQgaW5zdGVh
+ZAo+IGRvOgo+IAo+ICNkZWZpbmUgVzgzNzkyRF9SRUdfRkFOMV9UT0wgMHg4NwkvKiBiaXRzIDMt
+MDogU21hcnRGYW4gRmFuMSB0b2xlcmFuY2UKPiAJCQkJCSAgIGJpdHMgNy00OiBTbWFydEZhbiBG
+YW4yIHRvbGVyYW5jZSAqLwo+IAo+IGludCB0ZW1wID0gdzgzNzkyZF9yZWFkX3ZhbHVlKGNsaWVu
+dCwgVzgzNzkyRF9SRUdfRkFOMV9UT0wpOwo+IGRhdGEtPmZhbl90b2xlcmFuY2VbMF0gPSB0ZW1w
+ICYgMHgwZjsKPiBkYXRhLT5mYW5fdG9sZXJhbmNlWzFdID0gdGVtcCA+PiA0Owo+IAo+IFRoYXQg
+d2F5IHlvdSByZWFkIHRoZSByZWdpc3RlciBvbmx5IG9uY2UuCj4gCj4gMyogRG8gbm90IGRlZmlu
+ZSBub3IgdXNlIHc4Mzc5MmRfaWQuIEl0IGhhcyBiZWVuIHJlbW92ZWQgZnJvbSBtb3N0IG90aGVy
+Cj4gZHJpdmVycyBiZWNhdXNlIGl0IGlzIGluIGZhY3QgdXNlbGVzcy4KPiAKPiA0KiBUaGF0IGNv
+bW1lbnQ6Cj4gPiAvKiBGb3IgZWFjaCByZWdpc3RlcmVkIFc4Mzc5MkQsIHdlIG5lZWQgdG8ga2Vl
+cCBzb21lIGRhdGEgaW4gbWVtb3J5LiBUaGF0Cj4gPiAgICBkYXRhIGlzIHBvaW50ZWQgdG8gYnkg
+dzgzNzkyZF9saXN0W05SXS0+ZGF0YS4gVGhlIHN0cnVjdHVyZSBpdHNlbGYgaXMKPiA+ICAgIGR5
+bmFtaWNhbGx5IGFsbG9jYXRlZCwgYXQgdGhlIHNhbWUgdGltZSB3aGVuIGEgbmV3IHc4Mzc5MmQg
+Y2xpZW50IGlzCj4gPiAgICBhbGxvY2F0ZWQuICovCj4gaXMgYm9ndXMgYW5kIHNob3VsZCBiZSBk
+ZWxldGVkCj4gCj4gNSogTWF5YmUgeW91IHNob3VsZCBsZWF2ZSBzb21lIHZhbHVlcyBmb3IgVzgz
+NzkyRF9TWVNDVExfUFdNNC03IGluIGNhc2UKPiB0aGV5IGFyZSBpbXBsZW1lbnRlZCBsYXRlci4K
+PiAKPiA2KiBJbml0aWFsaXphdGlvbiB0byAwIGlzIHVzbGVzczoKPiAKPiA+IHN0YXRpYyBpbnQg
+dzgzNzkyZF9hdHRhY2hfYWRhcHRlcihzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmFkYXB0ZXIpCj4gPiB7
+Cj4gPiAJaW50IGlfdG1wID0gMDsKPiA+IAlFTlRFUigpCj4gPgo+ID4gCWlfdG1wID0gaTJjX2Rl
+dGVjdChhZGFwdGVyLCAmYWRkcl9kYXRhLCB3ODM3OTJkX2RldGVjdCk7Cj4gCj4gNyogVGhpcyBj
+YW4gZ28gYXdheSBjb21wbGV0ZWx5Ogo+IAo+ID4gI2lmZGVmIFc4Mzc5MkRfREVCVUcKPiA+IAlp
+ZiAoaTJjX2lzX2lzYV9hZGFwdGVyKGFkYXB0ZXIpKQo+ID4gCXsKPiA+IAkJcHJpbnRrKCJ3ODM3
+OTJkLm86IENhbGxlZCBmb3IgYW4gSVNBIGJ1cyBhZGFwdGVyLCBhYm9ydGluZy5cbiIpOwo+ID4g
+CQlMRUFWRSgpCj4gPiAJCXJldHVybiAwOwo+ID4gCQkvKiBUaGlzIHNob3VsZCBOT1QgaGFwcGVu
+ISBiZWNhdXNlIDc5MiBjaGlwCj4gPiAJCSAgIG9ubHkgYXBwZWFycyBvbiBJMkMgaW5zdGVhZCBv
+ZiBJU0EuICovCj4gPiAJfQo+ID4gI2VuZGlmCj4gCj4gVGhlIGkyY19jaGVja19mdW5jdGlvbmFs
+aXR5IHJpZ2h0IGFmdGVyIHRoYXQgd2lsbCBkaXNjYXJkIHRoZSBJU0EgYnVzCj4gY2FzZS4KPiAK
+PiA4KiBFYWNoIHByaW50ayBzaG91bGQgdXNlIG9uZSBvZiB0aGUgS0VSTl9FUlIsIEtFUk5fREVC
+VUcsIEtFUk5fV0FSTklORwo+IG9yIEtFUk5fSU5GTyBjb25zdGFudC4gQWxzbywgZG9uJ3QgdXNl
+ICJ3ODM3OTJkLm8iIGluIHRoZSBtZXNzYWdlcwo+IGJ1dCBvbmx5ICJ3ODM3OTIiLgo+IAo+IDkq
+IEl0IGxvb2tzIGxpa2UgeW91IG9ubHkgdXNlIGJhbmsgMCBvZiB0aGUgVzgzNzkyRCBjaGlwLCBh
+bmQgdGhhdAo+IHJlZ2lzdGVycyBpbiBiYW5rIDEgYXJlIHVubGlrZWx5IHRvIGJlIGV2ZXIgdXNl
+ZCwgQWxzbywgYWxsIHJlZ2lzdGVyCj4gc2VlbSB0byBiZSBieXRlLXNpemVkLiBUaGlzIG1lYW5z
+IHRoYXQgeW91IGNvdWxkIHNpbXBsaWZ5IHRoZQo+IHc4Mzc5MmRfcmVhZF92YWx1ZSBhbmQgdzgz
+NzkyZF93cml0ZV92YWx1ZSBmdW5jdGlvbnM6IGdldCByaWQgb2YgdGhlCj4gbG9jaywgZ2V0IHJp
+ZCBvZiB0aGUgYmFuaywgdXNlIHU4IGluc3RlYWQgb2YgdTE2IGFuZCBnZXQgcmlkIG9mIHRoZQo+
+IGJpdG1hc2tpbmcuIEluIGZhY3QgeW91J2xsIGVuZCB1cCB3aXRoIHZlcnkgc2ltcGxlIGZ1bmN0
+aW9ucyBqdXN0Cj4gY2FsbGluZyBvbmUgYW1idXMgZnVuY3Rpb24uCj4gCj4gMTAqIEluIHc4Mzc5
+MmRfdXBkYXRlX2NsaWVudCwgeW91IGRlY2xhcmUgdmFyaWFibGVzIChyZWcwLTMpIGluIHRoZQo+
+IG1pZGRsZSBvZiBhIGJsb2NrLiBPbGRlciBnY2MgY29tcGlsZXJzIHdpbGwgbm90IGFjY2VwdCBp
+dCwgc28gZm9yIGJlc3QKPiBjb21wYXRpYmlsaXR5IHlvdSBzaG91bGQgZGVjbGFyZSB0aGVtIGF0
+IHRoZSBiZWdpbm5pbmcgb2YgdGhlIGJsb2NrLgo+IAo+IDExKiBJbiBzZXZlcmFsIGNhbGxiYWNr
+IGZ1bmN0aW9ucywgeW91IGRlZmluZSBuciA9IGN0bF9uYW1lIC0KPiBXODM3OTJEX1NZU0NUTF9T
+T01FVEhJTkcgKyAxLCB0aGVuIHVzZSBuciAtIDEgZXZlcnl3aGVyZSBpbiB0aGUKPiBmdW5jdGlv
+bi4gSXQgd291bGQgYmUgYm90aCBtb3JlIGVmZmljaWVudCBhbmQgbW9yZSByZWFkYWJsZSB0byBk
+ZWZpbmUgbnIKPiA9IGN0bF9uYW1lIC0gVzgzNzkyRF9TWVNDVExfU09NRVRISU5HIGFuZCB1c2Ug
+bnIgZXZlcnl3aGVyZSBhZnRlciB0aGF0Lgo+IAo+IEkgaG9wZSB0aGF0IG15IGNvbW1lbnRzIHdp
+bGwgaGVscCB5b3UgaW1wcm92ZSB5b3VyIGRyaXZlci4KPiAKPiBUaGFua3MsCj4gLS0KPiBKZWFu
+IERlbHZhcmUKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1U
+aGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMg
+ZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGlj
+YXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90
+IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25z
+aWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2lu
+ZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFs
+bCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1l
+ZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2Fi
+bGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24g
+b2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGlu
+IHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNz
+IG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2Vk
+IGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFz
+ZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQog
+dCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyq
+urBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCy
+qM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo
+7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSk
+pKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGex
+wsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQ
+tdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
