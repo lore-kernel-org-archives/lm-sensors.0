@@ -1,25 +1,52 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:29 +0000
-Subject: [PATCH 2.6] I2C: Update fscher pwm functionality
-Message-Id: <20050107001800.GB26986@kroah.com>
+From: jui_cell@yahoo.com (Jui Cell)
+Date: Thu, 19 May 2005 06:23:50 +0000
+Subject: Embedded computer card
+Message-Id: <200303200636.h2K6a7ii023554@fembeddeed.mulik.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050105224847.4868fe93.khali@linux-fr.org>
-In-Reply-To: <20050105224847.4868fe93.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jan 05, 2005 at 10:48:47PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This is a small update to the fscher hardware monitoring chip driver.
-> More specifically it fixes two aspects of pwm:
-> 1* Use the new sysfs names (e.g. pwm1 instead of fan1_pwm).
-> 2* Better handling of out-of-range pwm values.
-> 
-> Please apply,
+  JUKI-730-M2 embedded computer system card for only US$ 287
 
-Applied, thanks.
+  Features:
 
-greg k-h
+    . Half size ISA SBC (single board computer) 
+
+    . Built-in Intel i386SX 40MHz processor
+
+    . ALi M6117 chipset / AMI flash BIOS
+
+    . 2MB of RAM built-in (up to 32MB EDO RAM supported)
+
+    . HM86508 LCD/CRT VGA controller on board with 1MB V-RAM
+
+    . 4 serial ports (3 RS-232, 1 RS-422/485)
+
+    . 1 parallel port (SPP/EPP/ECP)
+
+    . 1 PIO-4 IDE port
+
+    . 1 DiskOnChip(tm) socket
+
+    . 1 floppy port
+
+    . Built-in hardware watchdog timer for uninterrupt operation
+
+    . PC/104 expansion connector for add-on cards
+
+    . Non-volatile 1Kbit E2Key(tm) EEPROM to retain application
+      critical read/write data
+
+  * 127 cards available
+  * All cards fully tested 
+  * Price: US$ 287 each
+  * Shipping and handling NOT included
+  * Import/export taxes (if any) NOT included
+  * Minimum of 20 cards per order
+
+  Notice: This is BRAND NEW UNUSED equipament bought for a project which
+	  didn't use all cards
+
+  Contact: jui_cell@yahoo.com
