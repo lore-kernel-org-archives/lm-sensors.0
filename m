@@ -1,20 +1,74 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:52 +0000
-Subject: [PATCH 2.6] Fix voltage rounding in lm80
-Message-Id: <20040412232348.GF26817@kroah.com>
+From: war@lucidpixels.com (war)
+Date: Thu, 19 May 2005 06:24:01 +0000
+Subject: Possible hardware damage Dell Optiplex GX1p?
+Message-Id: <Pine.LNX.4.56.0306231730330.681@p500>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040412092227.681cff39.khali@linux-fr.org>
-In-Reply-To: <20040412092227.681cff39.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Apr 12, 2004 at 09:22:27AM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This one line patch fixes voltage rounding in the lm80 chip driver.
+While trying to get lm_sensors running on a Dell Optiplex GX1p, I played
+around with the io option.
 
-Applied, thanks.
+There are two options for the smbus, force=1, and force=1
+io=some_address_here.
 
-greg k-h
+force=1 is what is needed to get it to work, but before I tried that, I
+tried setting an io address.
+
+Now, whenever I boot off the Dell ICU PnP disk (allows you to set/play
+with interrupts/irqs, etc), it freezes/stops when it tries to detect the
+Crystal Audio ISA PNP sound board in the system.
+
+I have two of these machines, the other box which I have not played with
+lm_sensors on works fine and it detects the board and continues booting
+into dos (using dos bootdisk)... then to load the ICU Dell utility.
+
+However, mine just 'hangs' on the soundcard and does not continue.
+
+I ran the dell diagnostics disks, they said the sound card is fine, even
+though there was an unusual(?) pause while probing for it.
+
+The sound works OK/fine in Linux, no problems.
+
+Is it possible to have ruined the hardware or have there been any reports
+of problems such as these?
+
+Is there anyway to further diagnose the problem?
+
+I was using latest lm_sensors and lm_sensors 2.5.x while testing/trying to
+get temperature monitoring to work properly.
+
+Module Parameters
+-----------------
+
+* force: int
+  Forcibly enable the PIIX4. DANGEROUS!
+* force_addr: int
+  Forcibly enable the PIIX4 at the given address. EXTREMELY DANGEROUS!
+
+
+On some computers (most notably, some Dells), the SMBus is disabled by
+default. If you use the insmod parameter 'force=1', the kernel module
+ will try to enable it. THIS IS VERY DANGEROUS! If the BIOS did not
+set up a correct address for this module, you could get in big trouble
+(read: crashes, data corruption, etc.). Try this only as a last resort
+(try BIOS updates first, for example), and backup first! An even more
+dangerous option is 'force_addr=<IOPORT>'. This will not only enable the
+PIIX4 like 'force' foes, but it will also set a new base I/O port address.
+The SMBus parts of the PIIX4 needs a range of 8 of these addresses to
+function correctly. If these addresses are already reserved by some other
+device, you will get into big trouble! DON'T USE THIS IF YOU ARE NOT VERY
+SURE ABOUT WHAT YOU ARE DOING!
+
+Is there anyway to fix the problem, or is it permanently damaged (sound
+board issue with the dell boot disk)..
+
+Anyway to check what is normal or what is not?
+
+Any feedback would be greatly appreciated.
+
+Thank you.
+
+
