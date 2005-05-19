@@ -1,53 +1,38 @@
-From: dzshen@Winbond.com.tw (dzshen)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: New chip driver development plan to Lm_sensors
-Message-Id: <41B3C9BC.5000102@winbond.com.tw>
+Message-Id: <20041206201245.4f6d0036.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 In-Reply-To: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Pgo+Cj4gIAo+Cj4+SSBhbHNvIHRlc3RlZCBhbm90aGVyIFdpbmJvbmQgY2hpcCBXODM2MjdUSEYg
-d2l0aCB0aGUgZHJpdmVyIHc4MzYyN2hmLmMKPj5maW5kIHRoYXQgdGhpcyBwaGVub21lbmEgZG9l
-cyBOT1QgZXhpc3Qgb24gVzgzNjI3VEhGLiBUaGF0J3MgdG8gc2F5IGFsbAo+PnRoZSBkZXZpY2Ug
-ZmlsZXMgb2YgVzgzNjI3VEhGIGNhbiBiZSByZWFkIHZlcnkgcXVpY2tseSBhbG1vc3Qgd2l0aG91
-dCBhbnkKPj5kZWxheSwganVzdCBsaWtlIHJlZ3VsYXIgdGV4dCBmaWxlLgo+PiAgICAKPj4KPgo+
-VGhpcyBpcyBkdWUgdG8gdGhlIHNwZWVkIGRpZmZlcmVuY2UgYmV0d2VlbiBJMkMgKFNNQnVzKSBh
-bmQgSVNBLiBJU0EgaXMKPnJlYWxseSBmYXN0LCBJMkMvU01idXMgaXMgY29tcGFyYXRpdmVseSB2
-ZXJ5IHNsb3cuCj4KCmh0dHA6Ly93d3cubWF4aW0taWMuY29tL2FwcG5vdGVzLmNmbS9hcHBub3Rl
-X251bWJlci8zNTYKClBsZWFzZSBjaGVjayB0aGUgYWJvdmUgbGluayBmb3IgSTJDIHNwZWVkLgpX
-ZWxsLCBJIGFtIG5vIHdheSBhIGhhcmR3YXJlIGd1eSBidXQgSSB3b3VsZCBsaWtlIHRvIGZpZ3Vy
-ZSBvdXQgd2h5IGl0J3MKc2xvdyB1c2luZyBJMkMgYnVzCnRoZW4gSSBzZWFyY2hlZCB0aGUgbmV0
-LiBBY2Nyb2RpbmcgdG8gdGhlIGFib3ZlIHBhZ2UsIHRoZSBzcGVlZCBpcwoxMDBLaHosIHdlbGws
-IGl0J3MgaW5kZWVkIHNsb3cuCk5vIHdvbmRlciB3ZSBjYW4gZmVlbCBodW1hbiBzZW5zaWJsZSBk
-ZWxheSB3aGlsZSByZWFkaW5nIEFMTCByZWdpc3RlcnMuCgp0aGFua3MgcGFscyBmb3IgYWxsIHlv
-dXIgaGVscAoKdGVjaGVuZwoKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5l
-ZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2Vl
-cyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5
-b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBu
-b3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwg
-cGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5k
-IGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBz
-ZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQg
-aXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGlu
-Zm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZv
-cm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lh
-bCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5v
-ciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBm
-b250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxs
-eSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKn
-dLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6
-vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqx
-oafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0
-uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/Qs
-IKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTu
-qrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anO
-t06ooy4KLS0tLS0tLS0tLS0tLS0gbmV4dCBwYXJ0IC0tLS0tLS0tLS0tLS0tCkFuIEhUTUwgYXR0
-YWNobWVudCB3YXMgc2NydWJiZWQuLi4KVVJMOiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
-cGlwZXJtYWlsL2xtLXNlbnNvcnMvYXR0YWNobWVudHMvMjAwNDEyMDYvNDBhNDlhNzUvYXR0YWNo
-bWVudC5odG1sCg==
+> Well, I am no way a hardware guy but I would like to figure out why
+> it's slow using I2C bus
+> then I searched the net. Accroding to the above page, the speed is
+> 100Khz, well, it's indeed slow.
+> No wonder we can feel human sensible delay while reading ALL
+> registers.
+
+I wish SMBus masters were really operating at this speed. That would be
+fast! ;)
+
+If you take a look at real SMBus master datasheets, you'll find that
+they drive the bus at a lower speed. For example my Intel ICH3-M chip
+drives the SMBus between 10 and 16 kHz according to the datasheet.
+Indeed, a quick real-world measure led me to ~15 kHz. Slow as hell...
+
+At this operating frequency, if you only use regular byte data reads,
+you can't expect a read rate faster than 500 reg/s. This emphasizes the
+need for SMBus chip manufacturers to implement faster read methods such
+as continuous byte reads (using autoincrement) or even I2C or SMBus
+block reads where possible. Continuous byte reads at the same operating
+frequency would lead to maybe 700 reg/s, and block reads to 1500 reg/s
+or so.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
