@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: psycho@albatross.co.nz (Keith Duthie)
 Date: Thu, 19 May 2005 06:24:42 +0000
 Subject: Hangs with w83781d
-Message-Id: <20040221054342.5eaa3d3b.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.53.0402212027330.410@loki.albatross.co.nz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.53.0304082321580.3437@loki.albatross.co.nz>
 In-Reply-To: <Pine.LNX.4.53.0304082321580.3437@loki.albatross.co.nz>
@@ -10,38 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > 2* Which value is present in the register 0x4C before you load
-> > w83781d for the first time. (Load the bus driver and use i2cdump to
-> > dump the chip contents.)
-> 
-> loki:~# i2cdump 0 0x4C
-> (...)
+On Sat, 21 Feb 2004, Jean Delvare wrote:
 
-Hm no, this isn't the correct command.
+> Hm no, this isn't the correct command.
 
-> loki:~# i2cdetect 0
->   WARNING! This program can confuse your I2C bus, cause data loss and
->   worse! I will probe file /dev/i2c-0
->   You have five seconds to reconsider and press CTRL-C!
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: XX XX XX XX XX XX XX XX XX XX XX XX 0c XX XX XX
-> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d XX XX
-                                             ^^
-It is here!
+I thought that might be the case.
 
-So the correct command is "i2cdump 0 0x2d" (and then look at the value
-at 0x4C in the output).
+> So the correct command is "i2cdump 0 0x2d" (and then look at the value
+> at 0x4C in the output).
 
-> > 3* The value present in the same register after you load and unload
-> > the w83781d driver *with your modification* (i.e. we'll get the
-> > value resulting from the reset operation).
-> 
-> This doesn't change.
+95
 
-Maybe it will now ;)
+> Maybe it will now ;)
+
+49
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Just because it isn't nice doesn't make it any less a miracle.
+     http://users.albatross.co.nz/~psycho/     O-   -><-
