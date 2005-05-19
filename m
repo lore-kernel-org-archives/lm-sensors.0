@@ -1,94 +1,213 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
+From: dtor_core@ameritech.net (Dmitry Torokhov)
 Date: Thu, 19 May 2005 06:25:54 +0000
 Subject: [RFC/PATCH 0/22] W1: sysfs, lifetime and other fixes
-Message-Id: <1114499202.8527.85.camel@uganda>
+Message-Id: <200504260216.10560.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net>
-	 <d120d500050425132250916bcb@mail.gmail.com>
-	 <1114497816.8527.66.camel@uganda>
-	 <200504260150.00948.dtor_core@ameritech.net>
-In-Reply-To: <200504260150.00948.dtor_core@ameritech.net>
+References: <200504210207.02421.dtor_core@ameritech.net> <200504260150.00948.dtor_core@ameritech.net> <1114499202.8527.85.camel@uganda>
+In-Reply-To: <1114499202.8527.85.camel@uganda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dtor_core@ameritech.net>
+To: johnpol@2ka.mipt.ru
 Cc: sensors@stimpy.netroedge.com, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-On Tue, 2005-04-26 at 01:50 -0500, Dmitry Torokhov wrote:
-> On Tuesday 26 April 2005 01:43, Evgeniy Polyakov wrote:
-> > On Mon, 2005-04-25 at 15:22 -0500, Dmitry Torokhov wrote:
-> > > On 4/25/05, Evgeniy Polyakov <johnpol@2ka.mipt.ru> wrote:
-> > > > While thinking about locking schema
->  > > with respect to sysfs files I recalled,
-> > > > why I implemented such a logic -
-> > > > now one can _always_ remove _any_ module
-> > > > [corresponding object is removed from accessible
-> > > > pathes and waits untill all exsting users are gone],
-> > > > which is very good - I really like it in networking model,
-> > > > while with whole device driver model
-> > > > if we will read device's file very quickly
-> > > > in several threads we may end up not unloading it at all.
+On Tuesday 26 April 2005 02:06, Evgeniy Polyakov wrote:
+> On Tue, 2005-04-26 at 01:50 -0500, Dmitry Torokhov wrote:
+> > 
+> > If you program so that you wait in module_exit for object release - you
+> > get what you deserve. 
+> 
+> But we can remove objects not from rmmod path.
+> You pointed right example in one previous e-mail.
+
+Right, and you need to be careful so that thread does not hold any references
+to the resource it tries to free. rmmod is just one pf the common examples.
+But you need to consider this scenario whether you using driver model or your
+separate refcount - the basic problem is still the same.
+
+> Using above "waiting for device..." message is for debug only.
+> 
+> > > > BTW, I am looking at the connector code ATM and I am just amazed at
+> > > > all wied refounting stuff that is going on there. what a single
+> > > > actomic_dec_and_test() call without checkng reurn vaue is supposed to
+> > > > do again?
 > > > 
-> > > I am sorrry, that is complete bull*. sysfs also allows removing
-> > > modules at an arbitrary time (and usually without annoying "waiting
-> > > for refcount" at that)... You just seem to not understand how driver
-> > > code works, thus the need of inventing your own schema.
+> > > It has explicit barrieres, which guarantees that
+> > > there will not be atomic operation vs. non atomic
+> > > reordering. 
 > > 
-> > Ok, let's try again - now with explanation, 
-> > since it looks like you did not even try to understand what I said.
-> > If you will remove objects from ->remove() callback
-> > you may end up with rmmod being stuck.
-> > Explanation: each read still gets reference counter, 
-> > while in rmmod path there is a wait until it is zero.
-> > If there are too many simultaneous reads - even
-> > if each will put reference counter at the end, we still can have
-> > non zero refcnt each time we check it in rmmod path.
-> > That is why object must be removed from accessible pathes
-> > first, and only freed in ->remove() callback.
+> > And you can't use explicit barriers - why exactly?
 > 
-> Please try to read the code. device_unregister and kobject_unregister
-> do not require caller to wait for the last reference to drop, they rely
-> on availability of release method to clean up the object when last user
-> is gone. driver_unregister is blocking (like your family code) but
-> teardown takes no time. If driver is in use (attributes are open) then
-> module refcount is non-zero and instead of (possibly endless) "waiting for
-> refcount to drop" message you will get nice -EBUSY.
+> I used them - code was following:
+> smp_mb__before_atomic_dec();
+> atomic_dec();
+> smp_mb__after_atomic_dec();
 > 
-> If you program so that you wait in module_exit for object release - you
-> get what you deserve. 
+> I think simple atomic_dec_and_test() or even atomic_dec_and_lock()
+> is better.
 
-But we can remove objects not from rmmod path.
-You pointed right example in one previous e-mail.
+This is usually indicates that there some kiond of a problem. Consider
+following fragment:
 
-Using above "waiting for device..." message is for debug only.
-
-> > > BTW, I am looking at the connector code ATM and I am just amazed at
-> > > all wied refounting stuff that is going on there. what a single
-> > > actomic_dec_and_test() call without checkng reurn vaue is supposed to
-> > > do again?
-> > 
-> > It has explicit barrieres, which guarantees that
-> > there will not be atomic operation vs. non atomic
-> > reordering. 
+> +static void cn_queue_wrapper(void *data)
+> +{
+> +???????struct cn_callback_entry *cbq = (struct cn_callback_entry *)data;
+> +
+> +???????atomic_inc_and_test(&cbq->cb->refcnt);
+> +???????cbq->cb->callback(cbq->cb->priv);
+> +???????atomic_dec_and_test(&cbq->cb->refcnt);
 > 
-> And you can't use explicit barriers - why exactly?
 
-I used them - code was following:
-smp_mb__before_atomic_dec();
-atomic_dec();
-smp_mb__after_atomic_dec();
+What exactly this refcount protects? Can it be that other code decrements
+refcount and frees the object right when one CPU is entering this function?
+If not that means that cb structure is protected by some other means, so
+why we need to increment refcout here and consider ordering?
 
-I think simple atomic_dec_and_test() or even atomic_dec_and_lock()
-is better.
+Btw, cb refcount can be complelely removed, something like the patch below
+(won't apply cleanly as I have some other stuff).
 
 -- 
-        Evgeniy Polyakov
+Dmitry
 
-Crash is better than data corruption -- Arthur Grabowski
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050426/b256574e/attachment.bin
+ drivers/connector/cn_queue.c |   85 +++++++++++--------------------------------
+ include/linux/connector.h    |    2 -
+ 2 files changed, 23 insertions(+), 64 deletions(-)
+
+Index: linux-2.6.11/drivers/connector/cn_queue.c
+=================================--- linux-2.6.11.orig/drivers/connector/cn_queue.c
++++ linux-2.6.11/drivers/connector/cn_queue.c
+@@ -33,49 +33,12 @@
+ 
+ static void cn_queue_wrapper(void *data)
+ {
+-	struct cn_callback_entry *cbq = (struct cn_callback_entry *)data;
++	struct cn_callback_entry *cbq = data;
+ 
+-	atomic_inc_and_test(&cbq->cb->refcnt);
+ 	cbq->cb->callback(cbq->cb->priv);
+-	atomic_dec_and_test(&cbq->cb->refcnt);
+-
+ 	cbq->destruct_data(cbq->ddata);
+ }
+ 
+-static struct cn_callback_entry *cn_queue_alloc_callback_entry(struct cn_callback *cb)
+-{
+-	struct cn_callback_entry *cbq;
+-
+-	cbq = kmalloc(sizeof(*cbq), GFP_KERNEL);
+-	if (!cbq) {
+-		printk(KERN_ERR "Failed to create new callback queue.\n");
+-		return NULL;
+-	}
+-
+-	memset(cbq, 0, sizeof(*cbq));
+-
+-	cbq->cb = cb;
+-
+-	INIT_WORK(&cbq->work, &cn_queue_wrapper, cbq);
+-
+-	return cbq;
+-}
+-
+-static void cn_queue_free_callback(struct cn_callback_entry *cbq)
+-{
+-	cancel_delayed_work(&cbq->work);
+-	flush_workqueue(cbq->pdev->cn_queue);
+-
+-	while (atomic_read(&cbq->cb->refcnt)) {
+-		printk(KERN_INFO "Waiting for %s to become free: refcnt=%d.\n",
+-		       cbq->pdev->name, atomic_read(&cbq->cb->refcnt));
+-
+-		msleep(1000);
+-	}
+-
+-	kfree(cbq);
+-}
+-
+ int cn_cb_equal(struct cb_id *i1, struct cb_id *i2)
+ {
+ #if 0
+@@ -90,40 +53,37 @@ int cn_cb_equal(struct cb_id *i1, struct
+ int cn_queue_add_callback(struct cn_queue_dev *dev, struct cn_callback *cb)
+ {
+ 	struct cn_callback_entry *cbq, *__cbq;
+-	int found = 0;
++	int retval = 0;
+ 
+-	cbq = cn_queue_alloc_callback_entry(cb);
+-	if (!cbq)
++	cbq = kmalloc(sizeof(*cbq), GFP_KERNEL);
++	if (!cbq) {
++		printk(KERN_ERR "Failed to create new callback queue.\n");
+ 		return -ENOMEM;
++	}
+ 
+ 	atomic_inc(&dev->refcnt);
++
++	memset(cbq, 0, sizeof(*cbq));
++	INIT_WORK(&cbq->work, &cn_queue_wrapper, cbq);
++	cbq->cb = cb;
+ 	cbq->pdev = dev;
++	cbq->nls = dev->nls;
++	cbq->seq = 0;
++	cbq->group = cbq->cb->id.idx;
+ 
+ 	spin_lock_bh(&dev->queue_lock);
++
+ 	list_for_each_entry(__cbq, &dev->queue_list, callback_entry) {
+ 		if (cn_cb_equal(&__cbq->cb->id, &cb->id)) {
+-			found = 1;
+-			break;
++			retval = -EEXIST;
++			kfree(cbq);
++			goto out;
+ 		}
+ 	}
+-	if (!found) {
+-		atomic_set(&cbq->cb->refcnt, 1);
+-		list_add_tail(&cbq->callback_entry, &dev->queue_list);
+-	}
++	list_add_tail(&cbq->callback_entry, &dev->queue_list);
++ out:
+ 	spin_unlock_bh(&dev->queue_lock);
+-
+-	if (found) {
+-		atomic_dec(&dev->refcnt);
+-		atomic_set(&cbq->cb->refcnt, 0);
+-		cn_queue_free_callback(cbq);
+-		return -EINVAL;
+-	}
+-
+-	cbq->nls = dev->nls;
+-	cbq->seq = 0;
+-	cbq->group = cbq->cb->id.idx;
+-
+-	return 0;
++	return retval;
+ }
+ 
+ void cn_queue_del_callback(struct cn_queue_dev *dev, struct cb_id *id)
+@@ -142,8 +102,9 @@ void cn_queue_del_callback(struct cn_que
+ 	spin_unlock_bh(&dev->queue_lock);
+ 
+ 	if (found) {
+-		atomic_dec(&cbq->cb->refcnt);
+-		cn_queue_free_callback(cbq);
++		cancel_delayed_work(&cbq->work);
++		flush_workqueue(cbq->pdev->cn_queue);
++		kfree(cbq);
+ 		atomic_dec_and_test(&dev->refcnt);
+ 	}
+ }
+Index: linux-2.6.11/include/linux/connector.h
+=================================--- linux-2.6.11.orig/include/linux/connector.h
++++ linux-2.6.11/include/linux/connector.h
+@@ -115,8 +115,6 @@ struct cn_callback
+ 	struct cb_id		id;
+ 	void			(* callback)(void *);
+ 	void			*priv;
+-
+-	atomic_t		refcnt;
+ };
+ 
+ struct cn_callback_entry
