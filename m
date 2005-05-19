@@ -1,44 +1,48 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: Backport i2c-ali1563.c from linux-2.6 to linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E57DA@weshml03.winbond.com.tw>
+Message-Id: <Pine.LNX.4.58.0503292012440.21101@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKCj4gVGhpcyBmaWxlIGlzIHBhcnQgb2YgdGhlIExpbnV4IGtlcm5lbCwgbm90IHRo
-ZSBsbV9zZW5zb3JzIHByb2plY3QuIFdlCmRvCj4gbm90IG1vZGlmeSBpdC4gVGhlIGNvcnJlY3Qg
-dGhpbmcgdG8gZG8gaXMgdG8gZGVmaW5lIHRoZSB2YWx1ZSBpbiB0aGUKPiBkcml2ZXIgZmlsZSBp
-dHNlbGYsIG5lYXIgdGhlIHRvcC4gSWYgeW91IGxvb2sgYXQgb3RoZXIgZHJpdmVycyBzdWNoIGFz
-Cj4gaTJjLWk4MDEsIHRoYXQncyB3aGF0IHRoZXkgZG8uCj4gCj4gU28geW91J2Qgc2ltcGx5IGFk
-ZCBzb21ldGhpbmcgbGlrZToKPiAKPiAjaWZuZGVmIFBDSV9ERVZJQ0VfSURfQUxfTTE1NjMKPiAj
-ZGVmaW5lIFBDSV9ERVZJQ0VfSURfQUxfTTE1NjMgICAgICAweDE1NjMKPiAjZW5kaWYKPiAKPiBu
-ZWFyIHRoZSB0b3Agb2YgaTJjLWFsaTE1NjMuYywgYW5kIGxlYXZlIHBjaV9pZHMuaCB1bmNoYW5n
-ZWQuCgpZZXMsIHlvdSBhcmUgcmlnaHQsIHRoYW5rcwoKQmVzdCBSZWdhcmRzCkNodW5oYW8KCgo9
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVn
-ZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGlu
-dGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhl
-IG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVz
-c2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRl
-bGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0
-aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9m
-IGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdl
-IHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55
-IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQg
-aXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWls
-IHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
-IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
-Lj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNv
-bXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRo
-ZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7
-IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FL
-qcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr
-/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3Q
-sXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC5
-76nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XO
-tdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3
-frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+Hello,
+
+> Do you have spare time to review my codes and give me some suggestion?
+> I attached it in this mail, If you have the environment to test it, it
+> will
+> be too great!
+
+For me, after quick review, it seems OK.
+
+MODULE_AUTHOR("Patrick Mochel, Chunhao Huang");
+
+Please add emails P.. M.. <.@..>, C... Hu... <..@.. >
+
+And please also yours to the top of document.
+
+It depends if others want to leave ENTER and LEAVE macros. I cant tell
+you. If they do not complain after this email, leave them :)
+
+Also I think you can safy remove lines like:
+        /* dev_warn(&a->dev,"ali1563: Trying to reset busy device\n");  */
+        /* modified by chunhao */
+Because functionality is still same, only expressed other way for this 2.4
+kernels. Could you always add ali1563 to the logs expect the KERN_DEBUG?
+
+   printk(KERN_WARNING "ali1563: <=this helps to locate correct driver
+that wrote this line to kernel log.
+
+Please can you provide me some answers to mail about the EEPROM.
+Maybe we will need to modify the driver if there are some more troubles
+with driver or SMBUs host.
+
+Thank you
+
+Regards
+
+Rudolf
