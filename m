@@ -1,39 +1,29 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: Bug in /etc/sysconfig/lm_sensors
-Message-Id: <3D5F08B3.C1920070@paradyne.com>
+From: lassahn@eup.pandacom.de (Peter Lassahn)
+Date: Thu, 19 May 2005 06:24:16 +0000
+Subject: i2c-2.8.0 : userspace applications using /dev interface
+Message-Id: <000901c37841$38703170$154310ac@NBLASSAHN>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D5A8352.7070108@yahoo.es>
-In-Reply-To: <3D5A8352.7070108@yahoo.es>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks.
-fixed in CVS.
-mds
+Dear Ladies and Gentlemen,
 
-Ricardo Fernandez wrote:
-> 
->       Hi, i'm using lm_sensors-2.6.4.tar.gz and i've found a bug in
-> /etc/sysconfig/lm_sensors.
-> 
-> your  /etc/sysconfig/lm_sensors look like this
-> 
-> MODULE_1=xxxxxxxx
-> MODULE_2=xxxxxxx
-> MODULE_3=xxxxxxx
-> MODULE_4=xxxxxxx
-> 
-> If you have to load 4 modules. The file must be look like this
-> 
-> MODULE_0=xxxxxx    <---- look this
-> MODULE_1=xxxxxx
-> MODULE_2=xxxxxxx
-> MODULE_3=xxxxxxx
-> 
-> The module secuence must start with 0 because in the init script $i
-> start with that number. Otherwise, the last module _never_ will be loaded.
-> 
-> Thanx for your time and excuse my poor english
+We lack some understanding on how i2c-2.8.0 userspace applications using the
+/dev interface and ioctl()s have to be programmed (we tested with kernel
+2.4.22).
+
+It seem to be necessary to include i2c.h in addition to i2c-dev.h in order
+to get access to defines like I2C_SLAVE for the ioctl()s.
+
+However, i2c.h can not be included by userspace applications because it uses
+kernel space typedefs and declarations.
+This is in agreement with your example in the LM Sensors project
+(prog/detect/i2cdetect.c). It uses I2C_SLAVE without including i2c.h.
+
+Is there a way out here ?
+
+Best regards
+
+Peter Lassahn
