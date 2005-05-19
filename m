@@ -1,41 +1,31 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: 2.6 lm85 driver update?
-Message-Id: <20041004174558.GA21924@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: [rivatv-devel] Deadlock in console
+Message-Id: <20030806222911.2ad9505b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Oct 04, 2004 at 09:59:02AM -0700, Justin Thiessen wrote:
-> Hi,
-> 
-> I recently submitted a patch to the lm_sensors mailing list that implements
-> basic fan control for the lm85 and compatibles with the 2.6.X kernel, along
-> with the associated patches in chips.c and chips.h for libsensors.
-> 
-> http://archives.andrew.net.au/lm-sensors/msg18866.html
-> http://archives.andrew.net.au/lm-sensors/msg18867.html
-> http://archives.andrew.net.au/lm-sensors/msg18868.html
-> 
-> Is there any reason that these patches could not go into the tree?
 
-Not that I can see.
+> > I noticed that the rivatv module is slow loading when the monitor
+> > plugged on my videocard does not support DDC/I2C. Why that? Are you
+> > sending I2C commands at module init?
 
-> If there are any changes that need to be made I will be _happy_ to
-> implement them, but I need feedback before I can do so.
-> 
-> It would be really helpful to get these patches officially accepted.
+> Both sensor chips and decoder chips are located on the I2C bus of
+> nVidia cards. So yes, we're driver the I2C bus and sending stuff to
+> it. If your card does not support I2C, you don't need rivatv at all.
 
-Just follow the steps outlined in the Documentation/SubmittingPatches
-file in the kernel for how to properly create the patch (hint, so I can
-apply it with -p1 when sitting inside the main kernel directory), and
-adding a "Signed-off-by:" line.
+My card supports I2C, this is my test monitor not supporting it (my real
+display does). But I think the slow loading can be solved using the
+bit_test=1 parameter for i2c-algo-bit. I did not tested yet, but it
+works for i2c-matroxfb, so I'd expect it to work for rivatv too.
 
-Also be sure to CC: me and the sensors mailing list for anyone to point
-out any problems that might be in them.
+BTW I'd like to report a bug. If I load rivatv or any related module
+while in the console, my system deadlocks. I have to reboot it the hard
+way. The same operations made under X work OK. Any clue?
 
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
