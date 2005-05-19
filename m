@@ -1,69 +1,24 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:34 +0000
-Subject: sensors -f gives always temperature  33.8F ??
-Message-Id: <3D06AFED.4D1888E1@paradyne.com>
+From: tvann@extremenetworks.com (Timothy Vann)
+Date: Thu, 19 May 2005 06:24:43 +0000
+Subject: Any work done on subordinate buses?
+Message-Id: <CEA6A588893A0A47915874C1E8FF2307A4CC39@rtp-msexch-01.rtp.extremenetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3CF4EB8D.50201@iternalinc.com>
-In-Reply-To: <3CF4EB8D.50201@iternalinc.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks for the offer of help.
-A good way to start is to get on the mailing list
-by asking Phil (phil@netroedge.com).
-If you see an email you feel you can answer, go ahead,
-and copy the mailing list.
-Also get the CVS version and test it periodically.
-After you do this for a while, more ideas of ways to help
-will come to you :)
+I'm working on a project where I have a single SMBUS connected to an I2C
+switch which fans out to different cards.  I was wondering if there had been
+any work done to support this sort of setup?  If not any suggestions on the
+best approach?  I had thought about doing a chip driver for the switch that
+could select the subordinate bus but I'm not sure the best way to add the
+subordiante buses such that the switch gets set properly when a subordinate
+bus is accessed.
 
+Regards,
+Tim Vann
+tvann@extremenetworks.com
 
-yswamy wrote:
-> 
-> Thanks for ur speedy reply i will investigate and getback to you if i
-> need anything.
-> 
-> And also let me know how i can help lm sensor guys as u had asked for
-> help in replying e-mail etcc.
-> Let me know i can help u guys anyway either writing programs or
->  contributing my time for any of ur usefull work
-> 
-> with Best Regards
-> Yeri Swamy Lalgondar
-> 
-> Mark D. Studebaker wrote:
-> 
-> >you probably don't havea lm75.
-> >See FAQ #4.17G.
-> >
-> >yswamy wrote:
-> >
-> >>I have Intel 82371AB PIIX4(E), 443MX, ServerWorks OSB4/CSB5, compatable
-> >>i have addedd this one as built on to the kernel. And also lm75 as built
-> >>in to the kernel. when i boot the m/c it recognizes the chip.
-> >>
-> >>I am using linux-2.4.18 kernel using lm_sensors-2.6.3 patch.
-> >>
-> >>But muy sensors -f
-> >>
-> >>output is always like this:-
-> >>
-> >>lm75-i2c-0-4e
-> >>Adapter: SMBus PIIX4 adapter at 0580
-> >>Algorithm: Non-I2C SMBus adapter
-> >>temp:     +33.8?F   (limit = +34?F, hysteresis = +34?F)
-> >>
-> >>Even though i increased the CPU temperature using some assembly
-> >>programs. By doing this i burnt one of CPU still i could'nt get the
-> >>temperature of the CPU different than above so can u please give me more
-> >>info?
-> >>
-> >>I try to compute values in sensors.conf but for lm75 it looks like it
-> >>does'nt work properly,
-> >>
-> >>with Best Regards
-> >>Yeri Swamy Lalgondar
-> >>
-> >
+PS - I'm not on the mailing list so please respond directly, also if someone
+could add me to the mailing list I would appreciate it.
