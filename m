@@ -1,48 +1,50 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: [BUG] i2c_check_addr is broken in 2.8.0
-Message-Id: <20030724020108.GE13286@earth.solarsys.private>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: Complete dead system
+Message-Id: <3C3FB02B.9400DFE6@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030723204822.431c40ac.vsu@altlinux.ru>
-In-Reply-To: <20030723204822.431c40ac.vsu@altlinux.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sergey:
+Translation anybody?
+Sounds like his system dies when i2c-i801 is loaded...
+What were the other sensors modules loaded?
 
-Applied to CVS, thanks!
-
-In case anyone is wondering (Greg KH) this fix is *not* needed
-in 2.6 - I checked.
-
-* Sergey Vlasov <vsu@altlinux.ru> [2003-07-23 20:48:22 +0400]:
-> Hello!
+Rainer Zocholl wrote:
 > 
-> In i2c-2.8.0 i2c_check_addr() is broken - it always returns 0,
-> therefore the duplicate address check is not done. i2cdetect does not
-> ever report 'UU', and I have even seen a case when two chips are
-> registered at the same address.
+> linux-i2c@pelican.tk.uni-linz.ac.at steht im
+> "readme". Hoffentlich ist das keine groessere Mailingliste ;-)
 > 
-> This one-line patch fixes the problem:
+> Problem:
 > 
+> Hardware: MSI MS-6215 MoBo, DVB-s Karten.
 > 
-> --- i2c-2.8.0/kernel/i2c-core.c.check-addr-fix	2003-06-28 22:19:12 +0400
-> +++ i2c-2.8.0/kernel/i2c-core.c	2003-07-22 20:49:39 +0400
-> @@ -315,7 +315,7 @@
->  	rval = __i2c_check_addr(adapter, addr);
->  	up(&adapter->list);
->  
-> -	return 0;
-> +	return rval;
->  }
->  
->  int i2c_attach_client(struct i2c_client *client)
+> Hat im BIOS (V.1.7 )eine Option "Thermal check".
+> Wenn ich das aktiviere h?ngt die Kiste komplett(!) beim hochfahren
+> und laden des Treibers:
 > 
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+>   51:58 msi kernel: i2c-core.o: i2c core module
+>   51:58 msi kernel: i2c-i801.o version 2.6.2 (20011118)
+>   51:58 msi kernel: i2c-core.o: adapter SMBus I801 adapter at 0540 registered as adapter 0.
+> <power off, da nix anderes mehr geht.>
+>   54:26 msi syslogd 1.3-3#33.1: restart.
+> 
+> noch ein Versuch:
+> 
+>   54:37 msi kernel: i2c-core.o: i2c core module
+>   54:37 msi kernel: i2c-i801.o version 2.6.2 (20011118)
+>   54:37 msi kernel: i2c-core.o: adapter SMBus I801 adapter at 0540 registered as adapter 0.
+> <power off, da nix anderes mehr geht.>
+>   57:06 msi syslogd 1.3-3#33.1: restart.
+> 
+> Erst das deaktivieren verhinderte den H?nger.
+> 
+> Was ist das?
+> 
+> Rainer
+> Rainer---<===>                         Vertraulich
+>              //
+>            //
+>          <===>--------------ocholl, Kiel, Germany ------------
