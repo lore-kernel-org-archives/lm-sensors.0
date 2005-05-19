@@ -1,48 +1,80 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:33 +0000
 Subject: w83l785ts.c
-Message-Id: <1073554584.3ffd2498612c6@imp.gcu.info>
+Message-Id: <20040108200434.4c8980b1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1073554584.3ffd2498612c6@imp.gcu.info>
+In-Reply-To: <1073554584.3ffd2498612c6@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> i've found the driver for winbond chip w83l785ts.c you have written.
-> i own this chip (asus a7n8x), so i want to use it.
+> I've tried choice 1. I(!) would not say it is not complex ;) I've
+> never had a closer look to any linux source code and know just some
+> basics of c. i wondered that it's possible to write several functions
+> with the help of defines.
 
-Preliminary disclaimer: the driver is still considered beta stuff, and I
-expect bus problems on a number of systems.
+OK, this isn't trivial, but I don't consider it unfeasable by someone
+with reasonble C knowledge either.
+> 
+> your instructions were not really clear to me, but with the help of
+> the other modules source code (lm83.c, lm78.c), it was more copy,
+> paste and edit ;)
+> i think the document is alright.
 
-> but i wasn't able to build the lmsensors-cvs-vsersion because i'm
-> using kernel 2.6.0. so i tried to build it as an extra kernel module,
-> but i failed cause i didn't know how to do it. (i just tried some
-> ways, i thought it could work)
+I agree that looking at an already converted driver helps much more than
+any guide I could write.
 
-Drivers have to be ported in order to work under Linux 2.6.x. They don't
-work out-of-the-box, far from that, so no surprise you did not
-succeed.
+> so now to my problems ;)
+> 
+> 1. i got this error message by compiling it.
+> 
+> w83l785ts.c:86: error: `I2C_DRIVERID_W83L785TS' undeclared here (not
+> in a function)
+> w83l785ts.c:86: error: initializer element is not constant
+> w83l785ts.c:86: error: (near initialization for `w83l785ts_driver.id')
+> 
+> i think i get it, because the driver must be declared somewhere in the
+> kernel sources. if right, where? which value should the ID get?
+> 
+> i just replaced  ".id = I2C_DRIVERID_W83L785TS," with ".id = 
+> I2C_DRIVERID_W83781D + 1,", so it compiled. (i suppose very dirty ;)
 
-BTW, if you are interested in sensors, you should consider upgrading to
-2.6.1-rc1 or later, since -rc1 contains a huge number of fixes of all
-sorts. Also, you will need lm_sensors CVS for w83l785ts support, and
-lm_sensors CVS has a change that breaks support of 2.6.0 (long story,
-but this is needed).
+Yes that's dirty, but it the end we don't care because IDs are now used.
+The prefered fix though is to add the relevant line to
+include/linux/i2c-id.h:
+#define I2C_DRIVERID_W83L785TS 1047
 
-> so it would be nice, if you would tell me, how i can compile it for
-> kernel 2.6.0 as module (if it works with 2.6.0 also)
+> 2. how can i compile just this one module for my kernel?
+> 
+> i tried compiling with a call i've seen when i was compiling a 2.4.*er
+> kernel.
+> 
+> gcc -D__KERNEL__ -I/usr/src/linux/include -Wall -Wstrict-prototypes
+> -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common
+> -fomit-frame-pointer-pipe -mpreferred-stack-boundary=2 -DMODULE
+> -DMODVERSIONS -nostdinc-iwithprefix include -DKBUILD_BASENAME=isicom 
+> -c w83l785ts.c
+> 
+> so i get a .o file. 
+> the kernel 2.6 compile isn't verbose any more, but i remembered that
+> it has used ld for a modul. but link with what?!?
+> do you know how i can build a kernel 2.6 module (.ko)??
 
-Two choices:
-1* Read Documentation/i2c/porting-clients as found in linux 2.6.1-rc1
-and later, and port the driver yourself. That's not very complex if you
-can follow a guide, especially since the w83l785ts.c driver is really
-simple (and read-only for now). Feedback about the guide is welcome.
-Questions are welcome too.
-2* Wait for me to have some time to do it. The problem here is that the
-waiting time is undetermined. Could be ready tomorrow, or in two weeks,
-or never if I forget about it. And I'm busy these days (who isn't?).
+I don't know. What I'd suggest is that you edit
+drivers/i2c/chips/Kconfig and Makefile to add support for the new
+driver. This is really easy. Cut, paste :) Then, all you have to do is
+configure your kernel, enable the driver, and compile.
 
-Good luck :)
+> i've attached the edited source file. i hope it will do its work.....
+
+Didn't look indeep but it looks overall good to me. I can't test it
+since I do not have any supported device here. Let us know how it goes!
+If you get it to work on your system, we'll prepare a patch and send it
+to Greg KH so that it is included into Linux 2.6.2.
+
+Thanks :)
 
 -- 
 Jean Delvare
