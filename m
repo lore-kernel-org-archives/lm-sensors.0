@@ -1,48 +1,37 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: [eidtmann@informatik.uni-bremen.de: Kernel driver adm1021 locks]
-Message-Id: <20031215110024.GB517@arda.frodo.local>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:58 +0000
+Subject: [BK PATCH] i2c driver changes for 2.5.70
+Message-Id: <20030605205515.GA6846@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
------ Forwarded message from Jan Eidtmann <eidtmann@informatik.uni-bremen.de> -----
-
-From: Jan Eidtmann <eidtmann@informatik.uni-bremen.de>
-Reply-To: eidtmann@informatik.uni-bremen.de
-To: Frodo Looijaard <frodol@dds.nl>
-Subject: Kernel driver adm1021 locks
-Cc: Philip Edelbrock <phil@netroedge.com>
-X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
-X-Spam-Level: 
+To: torvalds@transmeta.com
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
 Hi,
 
-when adm1021 loads (either by me with modprobe or by the kernel when built 
-in), the computer locks. when i push the reset button my motherboard beeps 
-like crazy and it does not boot. however, when i totally switch off the power 
-supply and switch on again, i can boot again.
+Here are some i2c driver changes for 2.5.70.  These consist of some
+small bug fixes to the i2c core which fixes some oopses, a update to the w83781d.c driver, and a sync with the cvs version of the i2c-id.h file.
 
-my motherboard is a gigabyte GA-8IPE1000 Pro with intel 865PE chipset (ICH5). 
-linux is linux-2.6.0-test11.
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.5
 
-could it be that the 2.6.0-test11 i2c drivers are behind the lm_sensors 2.8.2 
-package?
+thanks,
 
-if i got that right i need this driver to detect my ICH5 chipset!?
+greg k-h
 
-OT: btw, do i need i2c-isa support? that motherboard has no isa slots at all, 
-but maybe theres still some kind of isa bus inside (needed for i2c)?
+ drivers/i2c/chips/w83781d.c |  306 +++++++++++++++++++++++++-------------------
+ drivers/i2c/i2c-core.c      |    9 -
+ include/linux/i2c-id.h      |    7 +
+ 3 files changed, 185 insertions(+), 137 deletions(-)
+-----
 
-many thanks!
-Jan
+<aschultz:warp10.net>:
+  o I2C: fix unsafe usage of list_for_each in i2c-core
 
------ End forwarded message -----
+<mhoffman:lightlink.com>:
+  o I2C: more w83781d fixes
+  o I2C: fix oops w83781d during rmmod
 
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Greg Kroah-Hartman:
+  o I2C: sync i2c-id.h with cvs version
