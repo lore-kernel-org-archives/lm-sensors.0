@@ -1,72 +1,92 @@
-From: cedric.perriot@laposte.net (cedric)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:51 +0000
 Subject: changing pwm does not change fan speed
-Message-Id: <40756AB1.60005@laposte.net>
+Message-Id: <1081438713.407571f9ce1d6@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <40756AB1.60005@laposte.net>
+In-Reply-To: <40756AB1.60005@laposte.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-I am using i2c-2.8.4 and lm_sensors-2.8.6 on an Asus A7V133-C
-Install ran fine and the detection as well.
-I came up with the lines :
-    # I2C adapter drivers
-    i2c-viapro
-    i2c-isa
-    # I2C chip drivers
-    w83781d
-     via686a
-for my /etc/modules file.
+[Please reply to the list, not to me]
 
-I can use the sensors command and get the following
-as99127f-i2c-0-2d
-Adapter: SMBus Via Pro adapter at e800
-VCore 1:   +1.86 V  (min =  +1.86 V, max =  +2.05 V)       ALARM 
-VCore 2:   +0.10 V  (min =  +1.86 V, max =  +2.05 V)       ALARM 
-+3.3V:     +3.63 V  (min =  +3.14 V, max =  +3.46 V)       ALARM 
-+5V:       +5.01 V  (min =  +4.74 V, max =  +5.24 V)             
-+12V:     +12.24 V  (min = +10.83 V, max = +13.19 V)             
--12V:     -11.96 V  (min = -13.23 V, max = -10.73 V)             
--5V:       -5.13 V  (min =  -5.25 V, max =  -4.74 V)             
-fan1:        0 RPM  (min =    0 RPM, div = 2)                    
-fan2:     4927 RPM  (min = 2836 RPM, div = 2)                     (beep)
-fan3:        0 RPM  (min =    0 RPM, div = 2)                    
-temp1:       -45?C  (high =  +105?C, hyst =    +0?C)         
-temp2:    +217.4?C  (high =   +95?C, hyst =   +80?C)          (beep)
-temp3:    +211.4?C  (high =  +122?C, hyst =  +121?C)         
-vid:      +1.950 V
-alarms:  
-beep_enable:
-          Sound alarm enabled
+> I am using i2c-2.8.4 and lm_sensors-2.8.6 on an Asus A7V133-C
+> Install ran fine and the detection as well.
+> I came up with the lines :
+>     # I2C adapter drivers
+>     i2c-viapro
+>     i2c-isa
+>     # I2C chip drivers
+>     w83781d
+>     via686a
+> for my /etc/modules file.
 
-via686a-isa-e200
-Adapter: ISA adapter
-CPU core:  +3.03 V  (min =  +1.98 V, max =  +2.49 V)  
-+2.5V:     +1.51 V  (min =  +2.24 V, max =  +3.03 V)  
-I/O:       +3.03 V  (min =  +3.03 V, max =  +4.05 V)  
-+5V:       +3.14 V  (min =  +6.20 V, max =  +6.30 V)  
-+12V:     +15.28 V  (min =  +7.61 V, max =  +7.61 V)  
-CPU Fan:  5314 RPM  (min = 3139 RPM, div = 2)         
-P/S Fan:     0 RPM  (min = 3534 RPM, div = 2)         
-SYS Temp:  +23.2?C  (high =   +45?C, hyst =   +40?C)  
-CPU Temp:  +23.2?C  (high =   +60?C, hyst =   +55?C)  
-SBr Temp:  -50.3?C  (high =   +65?C, hyst =   +60?C)  
- 
+You can get rid of i2c-isa and via686a, they're useless on that board.
+This is an integrated sensor but Asus chose not to use it and to add
+their own monitoring chip (AS99127F) instead.
 
-But if I can't change the speed of the fan. I tried 'echo 10 > 
-/proc/sys/dev/sensors/as99127f-i2c-0-2d/pwm[12]' and It does not change 
-the speed.
- I found in an old ticket (2001 or 2002) something about a bit that has 
-to be changed to activate the pwm control but is it still true ?
+> But if I can't change the speed of the fan. I tried 'echo 10 > 
+> /proc/sys/dev/sensors/as99127f-i2c-0-2d/pwm[12]' and It does not
+> change the speed.
 
+I'm not surprised. I tried this myself (it happens that I have the exact
+same motherboard) and never could get my fans to change speeds. The
+AS99127F support was added to the w83781d driver on the basis that it
+was mostly the same chip, but without documentation. After
+experimenting on several Asus chips, we discovered the following:
 
-Then another minor problem is I tried to use a script 
-(http://www.lula.org/pipermail/lula/2004-January/002290.html) but after 
-launching it the values of the sensors command are stable and wrong and 
-I couldn't figure why.
+Register 0x5B, which is one of the PWM registers on Winbond chips, seems
+to be a sensor type selection register, although only value 0 seems to
+report valid values.
 
-thank you for your help
+Register 0x59, which is the sensor type selection register for Winbond,
+is a PWM register for Asus.
 
+Asus PWM registers are split in two parts:
+bit 7 is a mode selector
+bits 6-0 are the PWM value
 
+The problem is that we don't know exactly what the modes are, nor what
+the value represents. Blame Asus for not releasing a datasheet.
+
+So basically we should just discard PWM support from as99127f since we
+mostly don't know how it works.
+
+One more thing: there are two revisions of the AS99127F. I have a
+revision 1, so I'd assume you do too. This revision doesn't appear to
+have PWM support *at all* so you are probably wasting your time trying
+to get it to work.
+
+> I found in an old ticket (2001 or 2002) something about a bit that
+> has to be changed to activate the pwm control but is it still true?
+
+I don't think so, but you can still try to use i2cset to change
+registers 0x59 and 0x5A. Still I think you won't get any result with
+this board, if it has the revision 1 like mine do.
+
+> Then another minor problem is I tried to use a script 
+> (http://www.lula.org/pipermail/lula/2004-January/002290.html) but
+> after launching it the values of the sensors command are stable and
+> wrong and I couldn't figure why.
+
+I don't know that script but I can imagine that it wrote random values
+to registers 0x5A and 0x5B through the pwm files. Try the following:
+
+i2cset 0 0x2d 0x59 0x9F
+i2cset 0 0x2d 0x5A 0x9F
+i2cset 0 0x2d 0x5B 0x00
+
+This will hopefully restore the registers to the correct values and the
+readings will come back. That said, I'm a bit surprised if it broke all
+the readings since in my experience only the temperatures were affected
+by register 0x5B.
+
+> thank you for your help
+
+You're welcome. Thanks for reporting.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
