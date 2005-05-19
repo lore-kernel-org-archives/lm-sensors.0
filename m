@@ -1,49 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: nico@cam.org (Nicolas Pitre)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
-Message-Id: <20050117201901.3e712cfa.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.61.0501191448160.5315@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <g7Idbr9m.1105713630.9207120.khali@localhost>
-	<200501151654.46412.pioppo@ferrara.linux.it>
-	<20050115175545.743a39f9.khali@linux-fr.org>
-	<200501162332.14324.pioppo@ferrara.linux.it>
-In-Reply-To: <200501162332.14324.pioppo@ferrara.linux.it>
+References: <200501080150.44653.pioppo@ferrara.linux.it>
+ <20050108172020.64999e50.khali@linux-fr.org> <200501082023.54881.pioppo@ferrara.linux.it>
+ <200501102023.44847.pioppo@ferrara.linux.it> <20050110203427.5061cf0d.khali@linux-fr.org>
+In-Reply-To: <20050110203427.5061cf0d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Simone Piunno <pioppo@ferrara.linux.it>
-Cc: djg@pdp8.net, LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
+To: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Jonas Munsin <jmunsin@iki.fi>, Simone Piunno <pioppo@ferrara.linux.it>, djg@pdp8.net, greg@kroah.com
 
-Hi Simone,
+On Mon, 10 Jan 2005, Jean Delvare wrote:
 
-> While we're at it, the fan speed sensor reports an absurd speed when
-> the fan  is driven with very low but non-zero pwm values.  For
-> example, driving it  with pwm=2 I get speeds over 50K rpms, while of
-> course the fan is stopped  (almost?).  This could be just an hardware
-> sensitivity problem in the sensor  chip, or a false measure triggered
-> by fan vibration, but maybe you know  better.
+> When I get this, I'll compare with the datasheets so as to understand
+> how your chip is configured (or left unconfigured) by your BIOS. This
+> will both help me propose a workaround in the it87 driver and explain
+> the Gigabyte support what I think they should do.
 
-This is a frequent problem with PWM. In order to estimate the fan
-rotation speed, chips sample a signal that comes from the fan on its
-third wire (typically two pulses per revolution). Since the fan is not a
-power source by itself, the pulses are powered from the fan header's
-+12V pin. When you start using PWM, you affect the +12V pin duty cycle,
-and as a result you affect the speed signal duty cycle. The lower the
-duty cycle, the harder for the chip to correctly determine the speed.
+FWIW, I have a Gigabyte motherboard with an it87 chip too.  Reading 
+about this it87 polarity thing I'm suspecting something is really wrong 
+here:
 
-Newer chips have the capability to correct the effects of PWM at
-reasonable duty cycles. It however supposes that it knows which fan
-corresponds to which PWM output. Motherboard manufacturers will have to
-take this information into account when designing their boards. And at
-any rate, very low PWM duty cycles cannot possibly corrected.
+When system is idle, the sensors report shows:
+CPU temp = +25?C and CPU fan = 2136 RPM (and rather noisy)
 
-It is possible to affect the fan speed vs. PWM curve by changing the
-base frequency of the PWM signal. This can help achieve lower fan speeds
-with higher PWM duty cycles (and thus better speed readings). Most chips
-support frequency adjustment, but our drivers don't, because it wasn't
-realized until very recently that this could be of any benefit to the
-user.
+When system is 100% busy (with dd if=/dev/urandom of=/dev/null):
+CPU temp = +41?C and CPU fan =   1288 RPM (and obviously much quieter)
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+I'm running a 2.6.10 kernel (not -mm) so I guess the BIOS settings for 
+fan control are not altered.  And incidentally the BIOS has a setting 
+called "smart fan control" set to "enabled" which maps to the ITxxF 
+automatic PWM control mode I suppose.  So if the BIOS actually set the 
+fan polarity wrong then the fan would slow down when the temperature 
+rises and vice versa, right?
+
+
+Nicolas
