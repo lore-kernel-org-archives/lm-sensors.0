@@ -1,25 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:49 +0000
-Subject: SiS 648, P4S8X: success (not total, but still good)
-Message-Id: <20030227095825.64ab2fac.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: probe order for 2.6 sensor chips
+Message-Id: <20030811204839.GA18442@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E5D5A3B.9010701@ens.fr>
-In-Reply-To: <3E5D5A3B.9010701@ens.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-> PCI: No IRQ known for interrupt pin B of device 00:02.1. Please try 
-> using pci=biosirq.
-> (...)
-> This is with <PnP OS: No> in the BIOS. If I set this to "Yes", none
-> of my peripheral gets IRQs!
+Someone just filed an interesting 2.6 bug:
+	http://bugme.osdl.org/show_bug.cgi?id66
 
-Did you try enabling ACPI? You may need this patch to get it work:
-http://sourceforge.net/projects/acpi/
+It pertains to the order of the i2c sensor drivers being loaded.  Is
+there some documentation somewhere that details which drivers need to be
+placed before the others?  Right now I'm just using the alphabetical
+order for link priority, but this is probably wrong as this report has
+determined :)
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Any thoughts as to the correct order?
+
+thanks,
+
+greg k-h
