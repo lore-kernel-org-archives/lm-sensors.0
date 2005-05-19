@@ -1,25 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: beeping issues
-Message-Id: <20030723231514.55e54827.khali@linux-fr.org>
+From: erict@alum.rpi.edu (er0ck)
+Date: Thu, 19 May 2005 06:24:55 +0000
+Subject: Ticket #: 1659   it87: it8712f module stops working
+Message-Id: <1083021688.1553.27.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030721094037.55d98610.khali@linux-fr.org>
-In-Reply-To: <20030721094037.55d98610.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+see ticket for background.
 
-> [root@PC pierre]# i2cdump 0 0xe600
-> Error: Address out of range!
-> (...)
-> Something is wrong with the last command but don't know what other 
-> address value I have to give to the command.
+basically the it87 module stops working on my system (it8712), and
+answers 0x08 to any request.
 
-The address of the chip is 0x2d (0xe600 is the address of the adapter
-the chip is located on).
+i've confirmed that i can reload the module all i want prior to when it
+craps the bed.  
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+i've also been logging sensors output, and time and it appears to always
+stop working at 10 mins of uptime.   but i've only rebooted twice, which
+is the only way to get the chip back...
+
+i'm going to rewrite my script now so it logs the number of calls to
+sensors, finer granularity of time ellapsed, and system state.  i'll
+also turn on debug in lm-sensors.
+
+any other suggestions?
+
+thanks
+-eric
