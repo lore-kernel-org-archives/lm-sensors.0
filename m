@@ -1,27 +1,24 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: today CVS compilation bug
-Message-Id: <20031130132742.3a2a4ad6.khali@linux-fr.org>
+From: danny.backx@skynet.be (Danny Backx)
+Date: Thu, 19 May 2005 06:24:20 +0000
+Subject: my user-space work ? (3d attempt)
+Message-Id: <200310092001.07946.danny.backx@skynet.be>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1070192499.553.4.camel@newdeal>
-In-Reply-To: <1070192499.553.4.camel@newdeal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Today CVS doesn't compile when running make user
-> It loops forever
-> 
-> The problem is that some files have timestamp in the future
-> 
-> A touch of all the tree corrected the problem
+I think I've submitted some patches twice. I've been
+trying to get libsensors and prog/sensors to work
+based on linux 2.6-test4 and test6. But I don't
+see my submissions in the support db, nor did
+I get a reply.
 
-That's right, looks like our CVS serve lives half an hour in the future.
-Phil, could you please fix mordac's time?
+Is anyone interested in this?
 
-Thanks.
-
+	Danny
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Danny Backx (danny@gnu.org danny.backx@skynet.be)
+Home page :	http://users.skynet.be/danny.backx
+Projects:	LessTif (http://lesstif.sourceforge.net)
+		Xbae	(http://xbae.sourceforge.net)
