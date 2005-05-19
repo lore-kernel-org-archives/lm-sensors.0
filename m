@@ -1,69 +1,65 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: I'd like to join the mailling list/New driver for smsc47m15x
-Message-Id: <423766F3.3090107@mds.gotdns.com>
+From: wolfgang.sepp@gmx.net (Wolfgang Sepp)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: modprobe piix4 does not return
+Message-Id: <15076.1042157201@www40.gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1c9de3e4050306120552945ab@mail.gmail.com>
-In-Reply-To: <1c9de3e4050306120552945ab@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-ok, sorry for misremembering rather than checking the datasheet.
-A separate driver sounds good.
-I'll put an ID for you in i2c-id.h but it really isn't used for anything.
-When you have a patch posted somewhere let us know and we'll put a link to it on our
-new drivers page.
-mds
+Hi,
 
-Tomas Holmqvist wrote:
-> In the functional diagram of the chip there's no connections between
-> the SuperIO parts and the HMB, There's no mention of any registers in
-> the LPC interface holding voltage/temp values and there's even the
-> sentences:
-> 
-> "It should be noted that there are two main interfaces used to access
-> the components of this chip. The LPC interface is used to access the
-> Super I/O registers and the SMBus is used to access the Hardware
-> Monitoring registers." -
-> http://www.smsc.com/main/tools/discontinued/47m15x.pdf page 26.
-> 
-> So, a multi interface driver or separate drivers for the separate
-> functions, is needed.
-> As there's already a driver for the fans on the LPC interface, i've
-> implemented my driver separate from the fan one.
-> 
-> On Sun, 06 Mar 2005 15:20:20 -0500, Mark Studebaker <mds@mds.gotdns.com> wrote:
-> 
->>Tomas Holmqvist wrote:
->>
->>>Hi everybody.
->>>
->>>I've written a driver for the Hardware Monitoring Block (HMB) of the smsc47m15x.
->>>That is the part of this chip that sits on the I2C bus. The other
->>>functions of this Super IO are controlled via ISA. The HMB is just a
->>>voltage/temp sensor quite similar to the lm78.
->>>
->>>There are still some small bugs to resolve, I only just found out how
->>>to compile it in the kernel tree.
->>>
->>>I'm using the I2C_DRIVERID_EXP0 id, but when loading it my other
->>>drivers are not found when using the sensors tool.
->>>
->>>Should I post the code here or keep it for my self until it works
->>>without obvious bugs?
->>>
->>>The driver is written with the 2.6.11rc3 kernel, whatever state of
->>>lm_sensors that mean. 2.9.0 I think.
->>>
->>>/Tomas
->>>
->>
->>Isn't the HMB also accessible via superio/ISA, but in a separate "device" than the fan block?
->>If so ISA is much preferred over a split ISA/i2c driver.
->>
->>
-> 
-> 
+I have Linux 2.2.16 running on a Asus Tx97e board. I had several problems
+with the i2c package. 
 
+First, I downloaded the new i2c package i2c-2.7.0.tar.gz. I realized, that
+it does not contain the i2c-piix4.o module. Is that what the developers
+intended?
+Then, I downloaded the lm_sensors-2.7.0.tar.gz package, which contains the
+i2c-piix4.c source code. This time, I had problems with the compilation of the
+package:
+
+------
+kernel/chips/lm92.c:96: warning: parameter names (without types) in function
+deckernel/chips/lm92.c: In function `lm92_temp':
+kernel/chips/lm92.c:180: `mutex' undeclared (first use in this function)
+kernel/chips/lm92.c:180: (Each undeclared identifier is reported only once
+kernel/chips/lm92.c:180: for each function it appears in.)
+kernel/chips/lm92.c: In function `lm92_alarms':
+kernel/chips/lm92.c:207: `mutex' undeclared (first use in this function)
+kernel/chips/lm92.c: In function `lm92_detect':
+kernel/chips/lm92.c:280: `mutex' undeclared (first use in this function)
+kernel/chips/lm92.c:298: `THIS_MODULE' undeclared (first use in this
+function)  
+------
+which I solved by copying the definitin of DECLARE_MUTEX and THIS_MODULE
+from der modules.
+
+Finally, I could modprobe the i2c-piix4 module, but unfortunately the call
+to modprobe does not return and the process cannot be terminated. This is the
+same behavior as with the old module from the 2.2.16 kernel.
+
+sensors-detect  reports the following:
+------
+Probing for PCI bus adapters...
+Use driver `i2c-piix4' for device 00:01.3: Intel 82371AB PIIX4 ACPI
+Probe succesfully concluded.
+------
+dmesg reports:
+------
+i2c-piix4.o version 2.7.0 (20021208)
+i2c-piix4.o: Found PIIX4 device
+------
+
+I did not patch my kernel with the i2c/lm_sensor patches.
+
+Any idea??
+Thank you in advance for any help you can give me,
+
+ciao,
+wolfgang
+
+-- 
++++ GMX - Mail, Messaging & more  http://www.gmx.net +++
+NEU: Mit GMX ins Internet. Rund um die Uhr f?r 1 ct/ Min. surfen!
