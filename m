@@ -1,76 +1,46 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: How to activate the SMBus on P4B533E/ICH4?
-Message-Id: <3D1387A3.1DD63B89@paradyne.com>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for linux-2.4
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.31.0206192315370.4147-100000@klaus.dns2go.com>
-In-Reply-To: <Pine.LNX.4.31.0206192315370.4147-100000@klaus.dns2go.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Well done.
-
-If you would like to send the new p4b_smbus back to me, I can check it in
-for ich4 users, unless you would like to modify the code so it
-handles both in one module.
-
-I'll look into the 40004 messages.
-Congratulations, you're now using beta code...
-
-Klaus Woltereck wrote:
-> 
-> On Fri, 21 Jun 2002, Mark Studebaker wrote:
-> 
-> > now you're back to needing p4b-smbus. That's how it gets into lspci.
-> > Modify it to change the ICH4 PCI ID's (both the base 24C0 and the
-> > smbus 24C3), then if nothing changed from ICH3 then it should work.
-> > To be safe you probably want to compare datasheets but if you're
-> > brave just give it a shot.
-> 
-> OK, I've changed 2440 to 24C0 and 2443 to 24C3....
-> 
-> ---------------------------------------------------------------------------
-> Jun 21 21:09:58 test kernel: SMBus activated in LPC!
-> Jun 21 21:09:58 test kernel: PCI: Assigned IRQ 9 for device 00:1f.3
-> Jun 21 21:09:58 test kernel: i801smbus: Enabled
-> ---------------------------------------------------------------------------
-> 
-> >lspci -v
-> ...
-> 00:1f.3 SMBus: Intel Corporation: Unknown device 24c3 (rev 01)
->         Subsystem: Asustek Computer, Inc.: Unknown device 8089
->         Flags: medium devsel
->         I/O ports at e800 [size2]
-> ...
-> 
-> ---------------------------------------------------------------------------
-> Jun 21 21:12:07 test kernel: i2c-dev.o: i2c /dev entries driver module
-> Jun 21 21:12:07 test kernel: i2c-core.o: driver i2c-dev dummy driver
-> registered.
-> Jun 21 21:12:07 test kernel: i2c-dev.o: Registered 'saa7146(1)' as minor
-> 0
-> Jun 21 21:12:08 test kernel: i2c-proc.o version 2.6.1 (20010825)
-> Jun 21 21:14:50 test kernel: i2c-i801.o version 2.6.3 (20020322)
-> Jun 21 21:14:50 test kernel: i2c-core.o: I2C adapter 40004: I2C level
-> transfers not supported
-> Jun 21 21:14:50 test last message repeated 5 times
-> Jun 21 21:14:50 test kernel: SP8870: no SP8870 found ...
-> Jun 21 21:14:50 test kernel: i2c-core.o: I2C adapter 40004: I2C level
-> transfers not supported
-> Jun 21 21:14:50 test kernel: i2c-core.o: I2C adapter 40004: I2C level
-> transfers not supported
-> Jun 21 21:14:50 test kernel: i2c-dev.o: Registered 'SMBus I801 adapter at
-> e800' as minor 1
-> Jun 21 21:14:50 test kernel: i2c-core.o: adapter SMBus I801 adapter at
-> e800 registered as adapter 1.
-> Jun 21 21:14:50 test kernel: i2c-i801.o: I801 bus detected and
-> initialized
-> ---------------------------------------------------------------------------
-> 
-> Question: Do I have to worry about "I2C level
-> transfers not supported" messages?
-> 
-> Bye,
-> Klaus
+SGkgSmVhbiwgTURTCgoKUGxlYXNlIGNvbW1pdCBpdCBpbnRvIENWUyBmb3IgdXMgd2hlbiB5b3Ug
+Y29uZmlybSB0aGF0IHRoZSBkcml2ZXIgaXMgb2theSBub3cuCklmIHRoZXJlIGFyZSBzdGlsbCBz
+b21lIHNtYWxsIGJ1Z3MgaW4gdGhlIGRyaXZlciwgeW91IG1heSBmaXggaXQgZm9yIHVzIDotKQpB
+ZnRlciB5b3UgY29tbWl0IGl0LCBwbGVhc2UganVzdCBnaXZlIHVzIGEgcmVzcG9uc2UuCgpJZiB5
+b3UgaGF2ZSBhbnkgcXVlc3Rpb25zLCBwbGVhc2UgZG9uJ3QgaGVzaXRhdGUgdG8gdGVsbCB1cy46
+LSkKClRoYW5rcwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoyMDA1LTAzLTA3CgoKPiAtLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IFBJMTQgRFpTSEVOCj4gU2VudDogMjAwNcTqM9TCN8jV
+IDEwOjQxCj4gVG86ICdraGFsaUBsaW51eC1mci5vcmcnOyAnbWRzNEB2ZXJpem9uLm5ldCcKPiBD
+YzogJ3NlbnNvcnNAU3RpbXB5Lm5ldHJvZWRnZS5jb20nOyBQSTEwIExISHN1OyBQSTEzIENGTGk7
+IFBJMTQgSFVBTkcwOyBQSTE0Cj4gRFpTSEVOCj4gU3ViamVjdDogdzgzNzkyZF9kcml2ZXItMS4w
+LjEucGF0Y2g6IFdpbmJvbmQgVzgzNzkyRCBkcml2ZXIgZm9yIGxpbnV4LTIuNAo+IChwYXRjaCB0
+byBsbV9zZW5zb3JzLTIuOS4wKQo+IAo+IAo+IFRoaXMgaXMgdGhlIHVwZGF0ZSBmb3IgdGhlIG9y
+aWdpbmFsIHBhdGNoLgo+IAo+IE1hbnkgdGhhbmtzCj4gCj4gdGVjaGVuZwoKPT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
+dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
+dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBh
+dXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
+ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
+aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBp
+bmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlv
+dXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3Ug
+Zm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6
+ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5
+IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMg
+bm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBk
+ZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1
+bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5n
+IG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0
+YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsix
+wsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRI
+qc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+r
+SKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdA
+LCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+
+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5l
+LKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
