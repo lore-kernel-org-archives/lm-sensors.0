@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:00 +0000
 Subject: [PATCH] i2c driver changes for 2.5.72
-Message-Id: <10559607072903@kroah.com>
+Message-Id: <10559607073182@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10559607073182@kroah.com>
+In-Reply-To: <10559607053930@kroah.com>
 References: <10559607053930@kroah.com>
 In-Reply-To: <10559607053930@kroah.com>
 MIME-Version: 1.0
@@ -11,186 +11,136 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1318.3.3, 2003/06/16 11:31:55-07:00, mhoffman@lightlink.com
+ChangeSet 1.1318.3.2, 2003/06/16 11:31:43-07:00, margitsw@t-online.de
 
-[PATCH] I2C: w83781d bugfix
+[PATCH] I2C: lm85 fixups
 
-My first patch was naive; the patch below solves the problem by
-letting w83781d_detach_client remove the three clients (1 * primary
-+ 2 * subclients) independently.  It's a noisy patch because I had
-to change the way the subclients were kmalloc'ed - sorry.  The meat
-is around line 1422.  This patch works for me... comments?
-
-
- drivers/i2c/chips/w83781d.c |   76 +++++++++++++++++++++++---------------------
- 1 files changed, 40 insertions(+), 36 deletions(-)
+OK Here's the patch which :
+1) Fixes the race conditions
+2) Correctly reports the temps :-)
+3) Removes a bit of gunk in the defines which I forgot
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Wed Jun 18 11:19:39 2003
-+++ b/drivers/i2c/chips/w83781d.c	Wed Jun 18 11:19:39 2003
-@@ -299,8 +299,8 @@
- 	char valid;		/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
+ drivers/i2c/chips/lm85.c |   41 ++++++++++++++++++++++++++++-------------
+ 1 files changed, 28 insertions(+), 13 deletions(-)
+
+
+diff -Nru a/drivers/i2c/chips/lm85.c b/drivers/i2c/chips/lm85.c
+--- a/drivers/i2c/chips/lm85.c	Wed Jun 18 11:19:44 2003
++++ b/drivers/i2c/chips/lm85.c	Wed Jun 18 11:19:44 2003
+@@ -148,20 +148,17 @@
+ #define SCALE(val,from,to)		(((val)*(to) + ((from)/2))/(from))
+ #define INS_TO_REG(n,val)		(SENSORS_LIMIT(SCALE(val,lm85_scaling[n],192),0,255))
+ #define INSEXT_FROM_REG(n,val,ext)	(SCALE((val)*4 + (ext),192*4,lm85_scaling[n]))
+-/*
+ #define INS_FROM_REG(n,val)		(INSEXT_FROM_REG(n,val,0))
+-*/
+-#define INS_FROM_REG(n,val)		( ( (val*4*lm85_scaling[n]) + (192*4/2) ) / (192*4) )
  
--	struct i2c_client *lm75;	/* for secondary I2C addresses */
--	/* pointer to array of 2 subclients */
-+	struct i2c_client *lm75[2];	/* for secondary I2C addresses */
-+	/* array of 2 pointers to subclients */
+ /* FAN speed is measured using 90kHz clock */
+ #define FAN_TO_REG(val)		(SENSORS_LIMIT( (val)<=0?0: 5400000/(val),0,65534))
+ #define FAN_FROM_REG(val)	((val)=0?-1:(val)=0xffff?0:5400000/(val))
  
- 	u8 in[9];		/* Register value - 8 & 9 for 782D only */
- 	u8 in_max[9];		/* Register value - 8 & 9 for 782D only */
-@@ -1043,12 +1043,12 @@
- 	const char *client_name;
- 	struct w83781d_data *data = i2c_get_clientdata(new_client);
+-/* Temperature is reported in .01 degC increments */
+-#define TEMP_TO_REG(val)		(SENSORS_LIMIT(((val)+50)/100,-127,127))
+-#define TEMPEXT_FROM_REG(val,ext)	((val)*100 + (ext)*25)
++/* Temperature is reported in .001 degC increments */
++#define TEMP_TO_REG(val)		(SENSORS_LIMIT(((val)+500)/1000,-127,127))
++#define TEMPEXT_FROM_REG(val,ext)	((val)*1000 + (ext)*250)
+ #define TEMP_FROM_REG(val)		(TEMPEXT_FROM_REG(val,0))
+-#define EXTTEMP_TO_REG(val)		(SENSORS_LIMIT((val)/25,-127,127))
++#define EXTTEMP_TO_REG(val)		(SENSORS_LIMIT((val)/250,-127,127))
  
--	if (!(data->lm75 = kmalloc(2 * sizeof (struct i2c_client),
--			GFP_KERNEL))) {
-+	data->lm75[0] = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
-+	if (!(data->lm75[0])) {
- 		err = -ENOMEM;
- 		goto ERROR_SC_0;
- 	}
--	memset(data->lm75, 0x00, 2 * sizeof (struct i2c_client));
-+	memset(data->lm75[0], 0x00, sizeof (struct i2c_client));
- 
- 	id = i2c_adapter_id(adapter);
- 
-@@ -1066,25 +1066,33 @@
- 		w83781d_write_value(new_client, W83781D_REG_I2C_SUBADDR,
- 				(force_subclients[2] & 0x07) |
- 				((force_subclients[3] & 0x07) << 4));
--		data->lm75[0].addr = force_subclients[2];
-+		data->lm75[0]->addr = force_subclients[2];
- 	} else {
- 		val1 = w83781d_read_value(new_client, W83781D_REG_I2C_SUBADDR);
--		data->lm75[0].addr = 0x48 + (val1 & 0x07);
-+		data->lm75[0]->addr = 0x48 + (val1 & 0x07);
- 	}
- 
- 	if (kind != w83783s) {
-+
-+		data->lm75[1] = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
-+		if (!(data->lm75[1])) {
-+			err = -ENOMEM;
-+			goto ERROR_SC_1;
-+		}
-+		memset(data->lm75[1], 0x0, sizeof(struct i2c_client));
-+
- 		if (force_subclients[0] = id &&
- 		    force_subclients[1] = address) {
--			data->lm75[1].addr = force_subclients[3];
-+			data->lm75[1]->addr = force_subclients[3];
- 		} else {
--			data->lm75[1].addr = 0x48 + ((val1 >> 4) & 0x07);
-+			data->lm75[1]->addr = 0x48 + ((val1 >> 4) & 0x07);
- 		}
--		if (data->lm75[0].addr = data->lm75[1].addr) {
-+		if (data->lm75[0]->addr = data->lm75[1]->addr) {
- 			dev_err(&new_client->dev,
- 			       "Duplicate addresses 0x%x for subclients.\n",
--			       data->lm75[0].addr);
-+			       data->lm75[0]->addr);
- 			err = -EBUSY;
--			goto ERROR_SC_1;
-+			goto ERROR_SC_2;
- 		}
- 	}
- 
-@@ -1103,19 +1111,19 @@
- 
- 	for (i = 0; i <= 1; i++) {
- 		/* store all data in w83781d */
--		i2c_set_clientdata(&data->lm75[i], NULL);
--		data->lm75[i].adapter = adapter;
--		data->lm75[i].driver = &w83781d_driver;
--		data->lm75[i].flags = 0;
--		strlcpy(data->lm75[i].dev.name, client_name,
-+		i2c_set_clientdata(data->lm75[i], NULL);
-+		data->lm75[i]->adapter = adapter;
-+		data->lm75[i]->driver = &w83781d_driver;
-+		data->lm75[i]->flags = 0;
-+		strlcpy(data->lm75[i]->dev.name, client_name,
- 			DEVICE_NAME_SIZE);
--		if ((err = i2c_attach_client(&(data->lm75[i])))) {
-+		if ((err = i2c_attach_client(data->lm75[i]))) {
- 			dev_err(&new_client->dev, "Subclient %d "
- 				"registration at address 0x%x "
--				"failed.\n", i, data->lm75[i].addr);
-+				"failed.\n", i, data->lm75[i]->addr);
- 			if (i = 1)
--				goto ERROR_SC_2;
--			goto ERROR_SC_1;
-+				goto ERROR_SC_3;
-+			goto ERROR_SC_2;
- 		}
- 		if (kind = w83783s)
- 			break;
-@@ -1124,10 +1132,14 @@
- 	return 0;
- 
- /* Undo inits in case of errors */
-+ERROR_SC_3:
-+	i2c_detach_client(data->lm75[0]);
- ERROR_SC_2:
--	i2c_detach_client(&(data->lm75[0]));
-+	if (NULL != data->lm75[1])
-+		kfree(data->lm75[1]);
- ERROR_SC_1:
--	kfree(data->lm75);
-+	if (NULL != data->lm75[0])
-+		kfree(data->lm75[0]);
- ERROR_SC_0:
- 	return err;
- }
-@@ -1326,7 +1338,8 @@
- 				kind, new_client)))
- 			goto ERROR3;
- 	} else {
--		data->lm75 = NULL;
-+		data->lm75[0] = NULL;
-+		data->lm75[1] = NULL;
- 	}
- 
- 	device_create_file_in(new_client, 0);
-@@ -1409,20 +1422,11 @@
- static int
- w83781d_detach_client(struct i2c_client *client)
+ #define PWM_TO_REG(val)			(SENSORS_LIMIT(val,0,255))
+ #define PWM_FROM_REG(val)		(val)
+@@ -437,10 +434,13 @@
  {
--	struct w83781d_data *data = i2c_get_clientdata(client);
- 	int err;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
++	int	val;
  
--	/* release ISA region or I2C subclients first */
--	if (i2c_is_isa_client(client)) {
-+	if (i2c_is_isa_client(client))
- 		release_region(client->addr, W83781D_EXTENT);
--	} else {
--		i2c_detach_client(&data->lm75[0]);
--		if (data->type != w83783s)
--			i2c_detach_client(&data->lm75[1]);
--		kfree(data->lm75);
--	}
+-	int val = simple_strtol(buf, NULL, 10);
++	down(&data->update_lock);
++	val = simple_strtol(buf, NULL, 10);
+ 	data->fan_min[nr] = FAN_TO_REG(val);
+ 	lm85_write_value(client, LM85_REG_FAN_MIN(nr), data->fan_min[nr]);
++	up(&data->update_lock);
+ 	return count;
+ }
  
--	/* now it's safe to scrap the rest */
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 		       "Client deregistration failed, client not detached.\n");
-@@ -1484,7 +1488,7 @@
- 			res = i2c_smbus_read_byte_data(client, reg & 0xff);
- 		} else {
- 			/* switch to subclient */
--			cl = &data->lm75[bank - 1];
-+			cl = data->lm75[bank - 1];
- 			/* convert from ISA to LM75 I2C addresses */
- 			switch (reg & 0xff) {
- 			case 0x50:	/* TEMP */
-@@ -1555,7 +1559,7 @@
- 						  value & 0xff);
- 		} else {
- 			/* switch to subclient */
--			cl = &data->lm75[bank - 1];
-+			cl = data->lm75[bank - 1];
- 			/* convert from ISA to LM75 I2C addresses */
- 			switch (reg & 0xff) {
- 			case 0x52:	/* CONFIG */
+@@ -528,10 +528,13 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
++	int	val;
+ 
+-	int val = simple_strtol(buf, NULL, 10);
++	down(&data->update_lock);
++	val = simple_strtol(buf, NULL, 10);
+ 	data->pwm[nr] = PWM_TO_REG(val);
+ 	lm85_write_value(client, LM85_REG_PWM(nr), data->pwm[nr]);
++	up(&data->update_lock);
+ 	return count;
+ }
+ static ssize_t show_pwm_enable(struct device *dev, char *buf, int nr)
+@@ -590,10 +593,13 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
++	int	val;
+ 
+-	int val = simple_strtol(buf, NULL, 10);
++	down(&data->update_lock);
++	val = simple_strtol(buf, NULL, 10);
+ 	data->in_min[nr] = INS_TO_REG(nr, val);
+ 	lm85_write_value(client, LM85_REG_IN_MIN(nr), data->in_min[nr]);
++	up(&data->update_lock);
+ 	return count;
+ }
+ static ssize_t show_in_max(struct device *dev, char *buf, int nr)
+@@ -609,10 +615,13 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
++	int	val;
+ 
+-	int val = simple_strtol(buf, NULL, 10);
++	down(&data->update_lock);
++	val = simple_strtol(buf, NULL, 10);
+ 	data->in_max[nr] = INS_TO_REG(nr, val);
+ 	lm85_write_value(client, LM85_REG_IN_MAX(nr), data->in_max[nr]);
++	up(&data->update_lock);
+ 	return count;
+ }
+ #define show_in_reg(offset)						\
+@@ -673,10 +682,13 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
++	int	val;
+ 
+-	int val = simple_strtol(buf, NULL, 10);
++	down(&data->update_lock);
++	val = simple_strtol(buf, NULL, 10);
+ 	data->temp_min[nr] = TEMP_TO_REG(val);
+ 	lm85_write_value(client, LM85_REG_TEMP_MIN(nr), data->temp_min[nr]);
++	up(&data->update_lock);
+ 	return count;
+ }
+ static ssize_t show_temp_max(struct device *dev, char *buf, int nr)
+@@ -692,10 +704,13 @@
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm85_data *data = i2c_get_clientdata(client);
++	int	val;
+ 
+-	int val = simple_strtol(buf, NULL, 10);
++	down(&data->update_lock);
++	val = simple_strtol(buf, NULL, 10);
+ 	data->temp_max[nr] = TEMP_TO_REG(val);
+ 	lm85_write_value(client, LM85_REG_TEMP_MAX(nr), data->temp_max[nr]);
++	up(&data->update_lock);
+ 	return count;
+ }
+ #define show_temp_reg(offset)						\
 
