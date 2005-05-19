@@ -1,21 +1,40 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: [PATCH 2.6] Prevent misdetections in adm1021 driver
-Message-Id: <20040330222540.GA12583@kroah.com>
+From: kheops@mdsoft.net (KheOps)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: could not modprobe lm_sensors
+Message-Id: <02061912255602.01687@shoarma.mdsoft.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040327160623.1880befc.khali@linux-fr.org>
-In-Reply-To: <20040327160623.1880befc.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 28, 2004 at 05:41:06PM +0200, Jean Delvare wrote:
-> [Just noticed that there was an extra white-space in my original patch.
-> Fixed in this one, sorry for the trouble.]
+Hello,
 
-No problem, I've applied this one.
+I aplogize for mailing to this address, but I don't know where I shoud mail 
+elsewhere.
+I have a problem with lm_sensors: it successfully compiles, but fails to 
+modprobe. Reporting to your FAQ, it seems that I have a versionning problem:
+# depmod -a -e gives:
+[...]
+depmod: *** Unresolved symbols in /lib/modules/2.4.17/misc/i2c-viapro.o
+depmod:         i2c_del_adapter_R97e1c952
+depmod:         i2c_add_adapter_Rd50a523b
+[...]
 
-thanks,
+# nm --extern /lib/modules/2.4.17/misc/i2c-viapro.o gives:
+[...]
+         U printk_R1b7d4074
+[...]
+# grep printk /proc/ksyms gives:
+c0116630 printk_R1b7d4074
 
-greg k-h
+# dmesg gives no output (!?)
+
+I compiled the module with the 2.4.17 kernel sources, and i'm running this 
+kernel, that is why I don't understand where the probleme come from. My 
+original distribution is a Mandrake, which is quite similar to a RedHat, my 
+modutils version is 2.4.4.
+What should I do ?
+
+Thank you for helping me,
+A. Merel
