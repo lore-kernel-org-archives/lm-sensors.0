@@ -1,41 +1,57 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: saa7146 build fix
-Message-Id: <11099685971963@kroah.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:26 +0000
+Subject: [Fwd: i2c-savage4.c]
+Message-Id: <3FC2A4DF.9060509@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11099685973185@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: akpm@osdl.org
-
-ChangeSet 1.2112, 2005/03/02 15:03:32-08:00, akpm@osdl.org
-
-[PATCH] I2C: saa7146 build fix
-
-include/media/saa7146.h:160: parse error before `*'
-include/media/saa7146.h:160: warning: function declaration isn't a prototype
+To: lm-sensors@vger.kernel.org
 
 
-Signed-off-by: Andrew Morton <akpm@osdl.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Was there a reason why Alex's name isn't mentioned?  If we used any of 
+his code, we should of course give him credit.
 
 
- include/media/saa7146.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+Phil
 
 
-diff -Nru a/include/media/saa7146.h b/include/media/saa7146.h
---- a/include/media/saa7146.h	2005-03-04 12:23:06 -08:00
-+++ b/include/media/saa7146.h	2005-03-04 12:23:06 -08:00
-@@ -157,7 +157,7 @@
- 
- /* from saa7146_i2c.c */
- int saa7146_i2c_adapter_prepare(struct saa7146_dev *dev, struct i2c_adapter *i2c_adapter, u32 bitrate);
--int saa7146_i2c_transfer(struct saa7146_dev *saa, const struct *i2c_msg msgs, int num,  int retries);
-+int saa7146_i2c_transfer(struct saa7146_dev *saa, const struct i2c_msg *msgs, int num,  int retries);
- 
- /* from saa7146_core.c */
- extern struct list_head saa7146_devices;
+-------- Original Message --------
+From: 	- Mon Nov 24 09:57:19 2003
+X-UIDL: 	8d169b85ad2fcb48
+X-Mozilla-Status: 	0003
+X-Mozilla-Status2: 	00000000
+Return-Path: 	<awold@broadpark.no>
+Received: 	from mail.broadpark.no (mail.broadpark.no [217.13.4.2]) by 
+Ren.netroedge.com (8.12.10/8.12.10) with ESMTP id hAOFAHvR002120 for 
+<phil@netroedge.com>; Mon, 24 Nov 2003 07:10:18 -0800
+Received: 	from empress.tribalsunrise.net (181.80-202-66.nextgentel.com 
+[80.202.66.181]) by mail.broadpark.no (Postfix) with ESMTP id 3C31D793A9 
+for <phil@netroedge.com>; Mon, 24 Nov 2003 16:24:14 +0100 (MET)
+Received: 	from [192.168.1.10] (helo=broadpark.no) by 
+empress.tribalsunrise.net with esmtp (Exim 3.35 #1 (Debian)) id 
+1AOIIH-0000UH-00 for <phil@netroedge.com>; Mon, 24 Nov 2003 16:06:29 +0100
+Message-ID: 	<3FC2229E.9090702@broadpark.no>
+Date: 	Mon, 24 Nov 2003 16:24:14 +0100
+From: 	Alexander Wold <awold@broadpark.no>
+User-Agent: 	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.4) 
+Gecko/20030723 Debian/1.4-0jds1
+X-Accept-Language: 	en
+MIME-Version: 	1.0
+To: 	phil@netroedge.com
+Subject: 	i2c-savage4.c
+Content-Type: 	text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 	7bit
+X-Quarentine-Loop: 	Processed
+X-Spambayes-Classification: 	ham; 0.18
+
+
+
+Hello,
+
+I am a bit disappointed that my name has been removed from the 
+i2c-savage4.c file. Could you please include it if you find it reasonable.
+
+Kind regards, Alexander Wold.
+
 
