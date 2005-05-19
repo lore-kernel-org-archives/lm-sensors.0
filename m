@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:18 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0-test5
-Message-Id: <1064273422761@kroah.com>
+Message-Id: <10642734231255@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10642734221213@kroah.com>
+In-Reply-To: <1064273422761@kroah.com>
 References: <1064273416272@kroah.com>
 In-Reply-To: <1064273416272@kroah.com>
 MIME-Version: 1.0
@@ -11,175 +11,216 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1315.1.12, 2003/09/22 11:42:40-07:00, greg@kroah.com
+ChangeSet 1.1315.1.13, 2003/09/22 12:26:49-07:00, greg@kroah.com
 
-I2C: clean up the i2c chips Kconfig logic and help information
-
-
- drivers/i2c/chips/Kconfig |  111 +++++++++++++++++++---------------------------
- 1 files changed, 46 insertions(+), 65 deletions(-)
+I2C: clean up the drivers/i2c/Kconfig file
 
 
-diff -Nru a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig	Mon Sep 22 16:14:08 2003
-+++ b/drivers/i2c/chips/Kconfig	Mon Sep 22 16:14:08 2003
-@@ -1,112 +1,93 @@
- #
--# Sensor device configuration
--# All depend on EXPERIMENTAL and I2C
-+# I2C Sensor device configuration
- #
+ drivers/i2c/Kconfig |  102 +++++++++++++++++++---------------------------------
+ 1 files changed, 38 insertions(+), 64 deletions(-)
+
+
+diff -Nru a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+--- a/drivers/i2c/Kconfig	Mon Sep 22 16:13:58 2003
++++ b/drivers/i2c/Kconfig	Mon Sep 22 16:13:58 2003
+@@ -22,10 +22,20 @@
+ 	  If you want I2C support, you should say Y here and also to the
+ 	  specific driver for your bus adapter(s) below.
  
- menu "I2C Hardware Sensors Chip support"
- 
-+config I2C_SENSOR
-+	tristate
-+	default n
+-	  This I2C support is also available as a module.  If you want to
+-	  compile it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-core.
++	  This I2C support can also be built as a module.  If so, the module
++	  will be called i2c-core.
 +
- config SENSORS_ADM1021
--	tristate "  Analog Devices ADM1021 and compatibles"
-+	tristate "Analog Devices ADM1021 and compatibles"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for Analog Devices ADM1021 
- 	  and ADM1023 sensor chips and clones: Maxim MAX1617 and MAX1617A,
- 	  Genesys Logic GL523SM, National Semi LM84, TI THMC10,
--	  and the XEON processor built-in sensor. This can also 
--	  be built as a module which can be inserted and removed while the 
--	  kernel is running.
-+	  and the XEON processor built-in sensor.
- 
--	  The module will be called adm1021.
--	  
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at 
--	  http://www.lm-sensors.nu
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called adm1021.
- 
- config SENSORS_IT87
--	tristate "  National Semiconductors IT87 and compatibles"
-+	tristate "National Semiconductors IT87 and compatibles"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
--	  The module will be called it87.
-+	  If you say yes here you get support for National Semiconductor IT87
-+	  sensor chips and clones: IT8705F, IT8712F and SiS960.
- 
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at 
--	  http://www.lm-sensors.nu
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called it87.
- 
- config SENSORS_LM75
--	tristate "  National Semiconductors LM75 and compatibles"
-+	tristate "National Semiconductors LM75 and compatibles"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for National Semiconductor LM75
- 	  sensor chips and clones: Dallas Semi DS75 and DS1775, TelCon
--	  TCN75, and National Semi LM77. This can also be built as a module
--	  which can be inserted and removed while the kernel is running.
--
--	  The module will be called lm75.
--
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at 
--	  http://www.lm-sensors.nu
--	  
--config SENSORS_LM85
--	tristate "  National Semiconductors LM85 and compatibles"
--	depends on I2C && EXPERIMENTAL
--	help
--	  If you say yes here you get support for National Semiconductor LM85
--	  sensor chips and clones: ADT7463 and ADM1027.
--	  This can also be built as a module which can be inserted and
--	  removed while the kernel is running.
-+	  TCN75, and National Semi LM77.
- 
--	  The module will be called lm85.
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called lm75.
- 
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at 
--	  http://www.lm-sensors.nu
--	  
- config SENSORS_LM78
--	tristate "  National Semiconductors LM78 and compatibles"
-+	tristate "National Semiconductors LM78 and compatibles"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for National Semiconductor LM78,
- 	  LM78-J and LM79.  This can also be built as a module which can be
- 	  inserted and removed while the kernel is running.
- 
--	  The module will be called lm78.
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called lm78.
-+
-+config SENSORS_LM85
-+	tristate "National Semiconductors LM85 and compatibles"
-+	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
++config I2C_CHARDEV
++	tristate "I2C device interface"
++	depends on I2C
 +	help
-+	  If you say yes here you get support for National Semiconductor LM85
-+	  sensor chips and clones: ADT7463 and ADM1027.
++	  Say Y here to use i2c-* device files, usually found in the /dev
++	  directory on your system.  They make it possible to have user-space
++	  programs use the I2C bus.  Information on how to do this is
++	  contained in the file <file:Documentation/i2c/dev-interface>.
 +
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called lm85.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-dev.
  
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at 
--	  http://www.lm-sensors.nu
--	  
- config SENSORS_VIA686A
--	tristate "  VIA686A"
-+	tristate "VIA686A"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
--	  support for via686a
- 	  If you say yes here you get support for the integrated sensors in
--	  Via 686A/B South Bridges. This can also be built as a module
--	  which can be inserted and removed while the kernel is running.
-+	  Via 686A/B South Bridges.
+ config I2C_ALGOBIT
+ 	tristate "I2C bit-banging interfaces"
+@@ -35,10 +45,8 @@
+ 	  adapters.  Say Y if you own an I2C adapter belonging to this class
+ 	  and then say Y to the specific driver for you adapter below.
  
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at
--	  http://www.lm-sensors.nu
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called via686a.
+-	  This support is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-algo-bit.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-algo-bit.
  
- config SENSORS_W83781D
--	tristate "  Winbond W83781D, W83782D, W83783S, W83627HF, Asus AS99127F"
-+	tristate "Winbond W83781D, W83782D, W83783S, W83627HF, Asus AS99127F"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for the Winbond W8378x series
- 	  of sensor chips: the W83781D, W83782D, W83783S and W83682HF,
--	  and the similar Asus AS99127F. This
--	  can also be built as a module which can be inserted and removed
--	  while the kernel is running.
-+	  and the similar Asus AS99127F.
- 	  
--	  You will also need the latest user-space utilties: you can find them
--	  in the lm_sensors package, which you can download at
--	  http://www.lm-sensors.nu
+ config I2C_PROSAVAGE
+ 	tristate "S3/VIA (Pro)Savage"
+@@ -51,14 +59,8 @@
+ 	    S3/VIA KM266/VT8375 aka ProSavage8
+ 	    S3/VIA KM133/VT8365 aka Savage4
+ 
+-	  This can also be built as a module which can be inserted and removed
+-	  while the kernel is running.  If you want to compile it as a module,
+-	  say M here and read <file:Documentation/modules.txt>.
+-	  The module will be called i2c-prosavage.
 -
--config I2C_SENSOR
--	tristate
--	default y if SENSORS_ADM1021=y || SENSORS_IT87=y || SENSORS_LM75=y || SENSORS_VIA686A=y || SENSORS_W83781D=y || SENSORS_LM85=y
--	default m if SENSORS_ADM1021=m || SENSORS_IT87=m || SENSORS_LM75=m || SENSORS_VIA686A=m || SENSORS_W83781D=m || SENSORS_LM85=m
--	default n
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called w83781d.
+-	  You will also need the latest user-space utilties: you can find them
+-	  in the lm_sensors package, which you can download at
+-	  http://www.lm-sensors.nu
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-prosavage.
  
- endmenu
+ config I2C_PHILIPSPAR
+ 	tristate "Philips style parallel port adapter"
+@@ -67,13 +69,8 @@
+ 	  This supports parallel-port I2C adapters made by Philips.  Say Y if
+ 	  you own such an adapter.
+ 
+-	  This driver is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-philips-par.
+-
+-	  Note that if you want support for different parallel port devices,
+-	  life will be much easier if you compile them all as modules.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-philips-par.
+ 
+ config I2C_ELV
+ 	tristate "ELV adapter"
+@@ -82,10 +79,8 @@
+ 	  This supports parallel-port I2C adapters called ELV.  Say Y if you
+ 	  own such an adapter.
+ 
+-	  This driver is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-elv.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-elv.
+ 
+ config I2C_VELLEMAN
+ 	tristate "Velleman K9000 adapter"
+@@ -94,10 +89,8 @@
+ 	  This supports the Velleman K9000 parallel-port I2C adapter.  Say Y
+ 	  if you own such an adapter.
+ 
+-	  This driver is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-velleman.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-velleman.
+ 
+ config SCx200_I2C
+ 	tristate "NatSemi SCx200 I2C using GPIO pins"
+@@ -107,7 +100,8 @@
+ 
+ 	  If you don't know what to do here, say N.
+ 
+-	  If compiled as a module, it will be called scx200_i2c.
++	  This support is also available as a module.  If so, the module 
++	  will be called scx200_i2c.
+ 
+ config SCx200_I2C_SCL
+ 	int "GPIO pin used for SCL"
+@@ -133,7 +127,8 @@
+ 
+ 	  If you don't know what to do here, say N.
+ 
+-	  If compiled as a module, it will be called scx200_acb.
++	  This support is also available as a module.  If so, the module 
++	  will be called scx200_acb.
+ 
+ config I2C_ALGOPCF
+ 	tristate "I2C PCF 8584 interfaces"
+@@ -143,10 +138,8 @@
+ 	  Say Y if you own an I2C adapter belonging to this class and then say
+ 	  Y to the specific driver for you adapter below.
+ 
+-	  This support is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-algo-pcf.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-algo-pcf.
+ 
+ config I2C_ELEKTOR
+ 	tristate "Elektor ISA card"
+@@ -155,10 +148,8 @@
+ 	  This supports the PCF8584 ISA bus I2C adapter.  Say Y if you own
+ 	  such an adapter.
+ 
+-	  This driver is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-elektor.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-elektor.
+ 
+ config I2C_KEYWEST
+ 	tristate "Powermac Keywest I2C interface"
+@@ -167,9 +158,8 @@
+ 	  This supports the use of the I2C interface in the combo-I/O
+ 	  chip on recent Apple machines.  Say Y if you have such a machine.
+ 
+-	  This driver is also available as a module.  If you want to compile
+-	  it as a module, say M here and read Documentation/modules.txt.
+-	  The module will be called i2c-keywest.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-keywest.
+ 
+ config ITE_I2C_ALGO
+ 	tristate "ITE I2C Algorithm"
+@@ -179,9 +169,8 @@
+ 	  systems. Say Y if you have one of these. You should also say Y for
+ 	  the ITE I2C peripheral driver support below.
+ 
+-	  This support is also available as a module. If you want to compile
+-	  it as a module, say M here and read Documentation/modules.txt.
+-	  The module will be called i2c-algo-ite.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-algo-ite.
+ 
+ config ITE_I2C_ADAP
+ 	tristate "ITE I2C Adapter"
+@@ -191,9 +180,8 @@
+ 	  systems. Say Y if you have one of these. You should also say Y for
+ 	  the ITE I2C driver algorithm support above.
+ 
+-	  This support is also available as a module. If you want to compile
+-	  it as a module, say M here and read Documentation/modules.txt.
+-	  The module will be called i2c-adap-ite.
++	  This support is also available as a module.  If so, the module 
++	  will be called i2c-adap-ite.
+ 
+ config I2C_ALGO8XX
+ 	tristate "MPC8xx CPM I2C interface"
+@@ -210,20 +198,6 @@
+ config I2C_IOP3XX
+ 	tristate "Intel XScale IOP3xx on-chip I2C interface"
+ 	depends on ARCH_IOP3XX && I2C
+-
+-config I2C_CHARDEV
+-	tristate "I2C device interface"
+-	depends on I2C
+-	help
+-	  Say Y here to use i2c-* device files, usually found in the /dev
+-	  directory on your system.  They make it possible to have user-space
+-	  programs use the I2C bus.  Information on how to do this is
+-	  contained in the file <file:Documentation/i2c/dev-interface>.
+-
+-	  This code is also available as a module.  If you want to compile
+-	  it as a module, say M here and read
+-	  <file:Documentation/modules.txt>.
+-	  The module will be called i2c-dev.
+ 
+ 	source drivers/i2c/busses/Kconfig
+ 	source drivers/i2c/chips/Kconfig
 
