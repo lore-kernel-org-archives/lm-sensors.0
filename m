@@ -1,64 +1,48 @@
-From: tzseller@geomant.com (Tamas, ZSELLER)
-Date: Thu, 19 May 2005 06:24:23 +0000
-Subject: [tzseller@geomant.com: ICH5 sensor]
-Message-Id: <000b01c3a3e9$31e42a90$28eb4298@relax>
+From: vsu@altlinux.ru (Sergey Vlasov)
+Date: Thu, 19 May 2005 06:24:29 +0000
+Subject: libsensors version
+Message-Id: <20031213190847.GC1976@sirius.home>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031105194958.GA1871@frodo.local>
-In-Reply-To: <20031105194958.GA1871@frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hi,
-I'm sorry:) I was too lasy/and tired and can't find your webpage..
-after I'd sent the mail I found it, a realized, that it's already in the
-newest versions...
-debian has only a "13 months old"
+Hello!
 
-thanks anyway, I will compile the latest and sorry for the lame question
+Between lm_sensors 2.8.1 and 2.8.2 the libsensors version was changed
+from 2.0.1 to 3.0.0 - so the library soname was changed, indicating an
+incompatibility and forcing recompilation of all library clients.
+However, I don't see a reason for such change.
 
-regards,
+The library soname must be changed if and only if the interface is
+changed in a backward incompatible way.  The interface is defined by
+the public header files - in this case they are error.h, sensors.h,
+chips.h.
 
-Tamas
+Changes in the public header files between 2.8.1 and 2.8.2:
 
+  - error.h: was not changed at all.
 
------ Original Message ----- 
-From: "Jean Delvare" <khali@linux-fr.org>
-To: "Zseller Tamas" <tzseller@geomant.com>
-Cc: <sensors@Stimpy.netroedge.com>
-Sent: Wednesday, November 05, 2003 10:16 PM
-Subject: Re: [tzseller@geomant.com: ICH5 sensor]
+  - sensors.h: only a comment was changed.
 
+  - chips.h: here some new identifiers were added, but none of the
+    existing identifiers were changed or deleted, so older programs
+    would still work without recompilation.
 
->
-> > I installed the sensorsd package on my debian box with an intel 865
-> > motherboard.
-> >
-> > it says:
-> > nicNG:/etc# lspci
-> > (...)
-> > 00:1f.3 SMBus: Intel Corp. 82801EB SMBus Controller (rev 02)
-> > (...)
-> > 82801EB SMBus... that's not supported by your software.
->
-> You must be kidding.
->
-> > nicNG:/usr/share/doc/lm-sensors/doc/busses# sensors -v
-> > sensors version 2.6.5
->
-> Oh, so you meant "not supported by a 13 month-old version of our
-> software". That's different.
->
-> > can you tell me, how is the support for this SMBus device?
->
-> It's supported since June 2003, so releases 2.8.0 and later support it.
->
-> > thanks alot
->
-> You're welcome.
->
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
->
+There were binary-incompatible changes in data.h, but this is an
+internal header file (it is not even installed by "make install"),
+therefore such changes should not cause soname change.
+
+Now it is too late, but I hope there will be no more unneeded soname
+changes in the future...
+
+Best regards,
+Sergey Vlasov
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031213/2f9f9971/attachment.bin
