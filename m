@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:48 +0000
 Subject: sensors.conf hint
-Message-Id: <20030219225306.423a0a38.khali@linux-fr.org>
+Message-Id: <20030219230011.0a5b17f1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030219214848.GA1084@debian>
 In-Reply-To: <20030219214848.GA1084@debian>
@@ -23,10 +23,8 @@ To: lm-sensors@vger.kernel.org
 > I'm using lmsensors 2.7.0 and i2c 2.7.0 (w83781d, i2c-viapro) with
 > kernel 2.4.20
 
-Thanks a lot. This is actually the second time we have a report like
-that. This formula was wrong for my motherboard, so I changed it. Now
-I'll change the config file to list the motherboards that are known to
-work with one or the other.
+Oh, just another question. What about temp3? Is it correct or do you
+have to change it too?
 
 -- 
 Jean Delvare
