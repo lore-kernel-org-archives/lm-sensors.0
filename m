@@ -1,7 +1,7 @@
-From: dsaxena@plexity.net (Deepak Saxena)
-Date: Thu, 19 May 2005 06:24:41 +0000
-Subject: Subscribe to sensors list
-Message-Id: <20040212223734.GA32161@plexity.net>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:25:13 +0000
+Subject: Linear Technology LTC-4302-1
+Message-Id: <4138CABE.4090206@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,11 +9,25 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Since this is not automated, can I also have dsaxena@mvista.com
-unsubscribed from the list?
+No.  To me, it looks too application specific to have a generic driver. 
+  It does, however, look simple enough to write a simple control app. 
+Take a look at some of the example programs in our package (like 
+i2cdetect).  I think you'll see that if you know some C, that it 
+wouldn't be hard to whip up a simple command-line app which would 
+control a chip like this.
 
-Tnx,
-~Deepak
 
--- 
-Deepak Saxena - dsaxena at plexity dot net - http://www.plexity.net/
+Phil
+
+Jim Sommers wrote:
+> Is there a driver in the works for this part?
+> 
+> http://www.linear.com/prod/datasheet.html?datasheet47
+> 
+> Thank you.
+> 
+> Regards,
+> 
+> Jim Sommers
+> 
+> 
