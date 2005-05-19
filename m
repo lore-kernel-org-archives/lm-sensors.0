@@ -1,29 +1,22 @@
-From: bjarvis@astro.umn.edu (Ben Jarvis)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: Ticket #774
-Message-Id: <20011230201254.A11421@nexus.astro.umn.edu>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: included files in asb100 driver
+Message-Id: <cc8q9FUJ.1106644489.4407560.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Here's some more progress on ticket #774.
 
-I put in a different BIOS for the same board but an earlier revision.
-The system then worked, except the CPU temp and System temp lines were
-missing in the BIOS.  I figured this was because it was an older
-version, so I downloaded the latest BIOS image and flashed it.
-The flash worked, but afterwards the system wouldn't post again.
+Hi Mark,
 
-Maybe the old revision of the BIOS worked *because* it wasn't finding
-the chips responsible for the CPU and system temps?  Maybe they were
-somehow screwed up by the lm-sensors install..  The Fan RPMs and power
-supply voltages were reporting correctly.
+Any reson why asb100.c (in linux 2.6.11-rc2) includes linux/ioport.h and
+asm/io.h? As an i2c-only chip driver, I don't think it needs these.
 
-At least I have a way to get my board working now, sans the CPU/MB.
-temps.  I'm hestitant to fiddle with it anymore, though, since I don't
-have any more BIOS chips with the working BIOS revision on them, and no
-flash prom writer. :)
+As a side note, I also wonder what the inclusions of linux/config.h,
+linux/types.h and asm/errno.h are there for.
 
-Ben
+Thanks,
+--
+Jean Delvare
