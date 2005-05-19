@@ -1,143 +1,130 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: Kill i2c_client.id (3/5)
-Message-Id: <11099685933363@kroah.com>
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: [patch] sensors/w83781d.c creates useless sysfs entries
+Message-Id: <20031014202415.GA17026@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11099685932577@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2085, 2005/03/02 11:52:31-08:00, khali@linux-fr.org
+On Tue, Oct 14, 2003 at 05:27:45PM +0200, Kronos wrote:
+> Il Mon, Oct 13, 2003 at 12:31:14PM -0700, Greg KH ha scritto: 
+> > On Sat, Oct 11, 2003 at 06:32:44PM +0200, Kronos wrote:
+> > > Jindrich Makovicka <makovick@kmlinux.fjfi.cvut.cz> ha scritto:
+> > > > Hello,
+> > > > 
+> > > > here is a trivial fix for Winbond sensor driver, which currently creates 
+> > > > useless entries in sys/bus/i2c due to missing braces after if statements 
+> > > > - author probably forgot about the macro expansion.
+> > > 
+> > > IMHO it's better to fix the macro:
+> > 
+> > Thanks, I've applied this version.
+> 
+> I've reviewed the patch, there was a trailing ";" that wasn't supposed
+> to be there:
 
-[PATCH] I2C: Kill i2c_client.id (3/5)
+Good catch.  Actually there were some other issues with those macros.
+I've applied the patch below to the tree.
 
-(3/5) Stop using i2c_client.id in misc drivers.
+thanks,
 
-Affected drivers:
-* acorn/char/pcf8583
-* acorn/char/i2c
-* i2c/i2c-dev
-* macintosh/therm_windtunnel
-* sound/oss/dmasound/dac3550a
-* sound/ppc/keywest
-
-The Acorn pcf8583 driver would give the i2c_client id the same value as
-the i2c_driver id, and later test that client id (in i2c). I changed it
-to test the client's driver id instead. The result is the same and the
-client id is then useless and can be removed.
-
-All other drivers here would allocate the client id to some value and
-then never use it. They are unaffected by the change.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+greg k-h
 
 
- drivers/acorn/char/i2c.c             |    2 +-
- drivers/acorn/char/pcf8583.c         |    1 -
- drivers/i2c/i2c-dev.c                |    1 -
- drivers/macintosh/therm_windtunnel.c |    4 ----
- sound/oss/dmasound/dac3550a.c        |    4 ----
- sound/ppc/keywest.c                  |    2 --
- 6 files changed, 1 insertion(+), 13 deletions(-)
+# I2C: fix more define problems in w83781d driver
 
-
-diff -Nru a/drivers/acorn/char/i2c.c b/drivers/acorn/char/i2c.c
---- a/drivers/acorn/char/i2c.c	2005-03-04 12:26:11 -08:00
-+++ b/drivers/acorn/char/i2c.c	2005-03-04 12:26:11 -08:00
-@@ -313,7 +313,7 @@
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	Tue Oct 14 13:22:22 2003
++++ b/drivers/i2c/chips/w83781d.c	Tue Oct 14 13:22:22 2003
+@@ -426,7 +426,7 @@
+ device_create_file(&client->dev, &dev_attr_in_input##offset); \
+ device_create_file(&client->dev, &dev_attr_in_min##offset); \
+ device_create_file(&client->dev, &dev_attr_in_max##offset); \
+-} while (0);
++} while (0)
  
- static int ioc_client_reg(struct i2c_client *client)
- {
--	if (client->id = I2C_DRIVERID_PCF8583 &&
-+	if (client->driver->id = I2C_DRIVERID_PCF8583 &&
- 	    client->addr = 0x50) {
- 		struct rtc_tm rtctm;
- 		unsigned int year;
-diff -Nru a/drivers/acorn/char/pcf8583.c b/drivers/acorn/char/pcf8583.c
---- a/drivers/acorn/char/pcf8583.c	2005-03-04 12:26:11 -08:00
-+++ b/drivers/acorn/char/pcf8583.c	2005-03-04 12:26:11 -08:00
-@@ -51,7 +51,6 @@
- 		return -ENOMEM;
+ #define show_fan_reg(reg) \
+ static ssize_t show_##reg (struct device *dev, char *buf, int nr) \
+@@ -484,8 +484,10 @@
+ sysfs_fan_min_offset(3);
  
- 	memset(c, 0, sizeof(*c));
--	c->id		= pcf8583_driver.id;
- 	c->addr		= addr;
- 	c->adapter	= adap;
- 	c->driver	= &pcf8583_driver;
-diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
---- a/drivers/i2c/i2c-dev.c	2005-03-04 12:26:11 -08:00
-+++ b/drivers/i2c/i2c-dev.c	2005-03-04 12:26:11 -08:00
-@@ -507,7 +507,6 @@
+ #define device_create_file_fan(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_fan_input##offset); \
+ device_create_file(&client->dev, &dev_attr_fan_min##offset); \
++} while (0)
  
- static struct i2c_client i2cdev_client_template = {
- 	.name		= "I2C /dev entry",
--	.id		= 1,
- 	.addr		= -1,
- 	.driver		= &i2cdev_driver,
- };
-diff -Nru a/drivers/macintosh/therm_windtunnel.c b/drivers/macintosh/therm_windtunnel.c
---- a/drivers/macintosh/therm_windtunnel.c	2005-03-04 12:26:11 -08:00
-+++ b/drivers/macintosh/therm_windtunnel.c	2005-03-04 12:26:11 -08:00
-@@ -47,8 +47,6 @@
- #define LOG_TEMP		0			/* continously log temperature */
+ #define show_temp_reg(reg) \
+ static ssize_t show_##reg (struct device *dev, char *buf, int nr) \
+@@ -568,9 +570,11 @@
+ sysfs_temp_offsets(3);
  
- #define I2C_DRIVERID_G4FAN	0x9001			/* fixme */
--#define THERMOSTAT_CLIENT_ID	1
--#define FAN_CLIENT_ID		2
+ #define device_create_file_temp(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_temp_input##offset); \
+ device_create_file(&client->dev, &dev_attr_temp_max##offset); \
+-device_create_file(&client->dev, &dev_attr_temp_min##offset);
++device_create_file(&client->dev, &dev_attr_temp_min##offset); \
++} while (0)
  
- static int 			do_probe( struct i2c_adapter *adapter, int addr, int kind);
+ static ssize_t
+ show_vid_reg(struct device *dev, char *buf)
+@@ -693,8 +697,10 @@
+ sysfs_beep(MASK, mask);
  
-@@ -372,7 +370,6 @@
- 		goto out;
- 	printk("ADM1030 fan controller [@%02x]\n", cl->addr );
+ #define device_create_file_beep(client) \
++do { \
+ device_create_file(&client->dev, &dev_attr_beep_enable); \
+-device_create_file(&client->dev, &dev_attr_beep_mask);
++device_create_file(&client->dev, &dev_attr_beep_mask); \
++} while (0)
  
--	cl->id = FAN_CLIENT_ID;
- 	strlcpy( cl->name, "ADM1030 fan controller", sizeof(cl->name) );
+ /* w83697hf only has two fans */
+ static ssize_t
+@@ -771,7 +777,9 @@
+ sysfs_fan_div(3);
  
- 	if( !i2c_attach_client(cl) )
-@@ -412,7 +409,6 @@
- 	x.overheat_temp = os_temp;
- 	x.overheat_hyst = hyst_temp;
- 	
--	cl->id = THERMOSTAT_CLIENT_ID;
- 	strlcpy( cl->name, "DS1775 thermostat", sizeof(cl->name) );
+ #define device_create_file_fan_div(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_fan_div##offset); \
++} while (0)
  
- 	if( !i2c_attach_client(cl) )
-diff -Nru a/sound/oss/dmasound/dac3550a.c b/sound/oss/dmasound/dac3550a.c
---- a/sound/oss/dmasound/dac3550a.c	2005-03-04 12:26:11 -08:00
-+++ b/sound/oss/dmasound/dac3550a.c	2005-03-04 12:26:11 -08:00
-@@ -40,9 +40,6 @@
- static int daca_detect_client(struct i2c_adapter *adapter, int address);
- static int daca_detach_client(struct i2c_client *client);
+ /* w83697hf only has two fans */
+ static ssize_t
+@@ -883,10 +891,14 @@
+ sysfs_pwm(4);
  
--/* Unique ID allocation */
--static int daca_id;
--
- struct i2c_driver daca_driver = {  
- 	.owner			= THIS_MODULE,
- 	.name			= "DAC3550A driver  V " DACA_VERSION,
-@@ -176,7 +173,6 @@
- 	new_client->driver = &daca_driver;
- 	new_client->flags = 0;
- 	strcpy(new_client->name, client_name);
--	new_client->id = daca_id++; /* racy... */
+ #define device_create_file_pwm(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_pwm##offset); \
++} while (0)
  
- 	if (daca_init_client(new_client))
- 		goto bail;
-diff -Nru a/sound/ppc/keywest.c b/sound/ppc/keywest.c
---- a/sound/ppc/keywest.c	2005-03-04 12:26:11 -08:00
-+++ b/sound/ppc/keywest.c	2005-03-04 12:26:11 -08:00
-@@ -76,8 +76,6 @@
- 	new_client->flags = 0;
+ #define device_create_file_pwmenable(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_pwm_enable##offset); \
++} while (0)
  
- 	strcpy(i2c_device_name(new_client), keywest_ctx->name);
--
--	new_client->id = keywest_ctx->id++; /* Automatically unique */
- 	keywest_ctx->client = new_client;
- 	
- 	/* Tell the i2c layer a new client has arrived */
-
+ static ssize_t
+ show_sensor_reg(struct device *dev, char *buf, int nr)
+@@ -959,7 +971,9 @@
+ sysfs_sensor(3);
+ 
+ #define device_create_file_sensor(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_sensor##offset); \
++} while (0)
+ 
+ #ifdef W83781D_RT
+ static ssize_t
+@@ -1018,7 +1032,9 @@
+ sysfs_rt(3);
+ 
+ #define device_create_file_rt(client, offset) \
++do { \
+ device_create_file(&client->dev, &dev_attr_rt##offset); \
++} while (0)
+ 
+ #endif				/* ifdef W83781D_RT */
+ 
