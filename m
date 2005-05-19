@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: [PATCH] I2C fixes for 2.6.10-rc2
-Message-Id: <1101860019530@kroah.com>
+Message-Id: <11018600202671@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11018600192512@kroah.com>
+In-Reply-To: <11018600202097@kroah.com>
 References: <20041119220001.GB15956@kroah.com>
 In-Reply-To: <20041119220001.GB15956@kroah.com>
 MIME-Version: 1.0
@@ -11,27 +11,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.2223.2.8, 2004/11/24 14:34:51-08:00, greg@kroah.com
+ChangeSet 1.2223.2.12, 2004/11/30 15:23:40-08:00, johnpol@2ka.mipt.ru
 
-[PATCH] I2C: make fixup_fan_min static in adm1026 driver.
+[PATCH] W1: check nls in return path.
 
+Check netlink socket being non NULL in error return path.
+
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/chips/adm1026.c |    2 +-
+ drivers/w1/w1_int.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
 
-diff -Nru a/drivers/i2c/chips/adm1026.c b/drivers/i2c/chips/adm1026.c
---- a/drivers/i2c/chips/adm1026.c	2004-11-30 16:00:48 -08:00
-+++ b/drivers/i2c/chips/adm1026.c	2004-11-30 16:00:48 -08:00
-@@ -914,7 +914,7 @@
- fan_offset(8);
- 
- /* Adjust fan_min to account for new fan divisor */
--void fixup_fan_min(struct device *dev, int fan, int old_div)
-+static void fixup_fan_min(struct device *dev, int fan, int old_div)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm1026_data *data = i2c_get_clientdata(client);
+diff -Nru a/drivers/w1/w1_int.c b/drivers/w1/w1_int.c
+--- a/drivers/w1/w1_int.c	2004-11-30 16:00:26 -08:00
++++ b/drivers/w1/w1_int.c	2004-11-30 16:00:26 -08:00
+@@ -96,7 +96,7 @@
+ 	err = device_register(&dev->dev);
+ 	if (err) {
+ 		printk(KERN_ERR "Failed to register master device. err=%d\n", err);
+-		if (dev->nls->sk_socket)
++		if (dev->nls && dev->nls->sk_socket)
+ 			sock_release(dev->nls->sk_socket);
+ 		memset(dev, 0, sizeof(struct w1_master));
+ 		kfree(dev);
 
