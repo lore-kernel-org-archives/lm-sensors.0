@@ -1,68 +1,37 @@
-From: gene.heskett@verizon.net (Gene Heskett)
-Date: Thu, 19 May 2005 06:24:29 +0000
-Subject: interface to kernels 2.6.x for gkrellm?
-Message-Id: <200312081936.57892.gene.heskett@verizon.net>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:24:48 +0000
+Subject: [PATCH] Fix for libsensors.3
+Message-Id: <20040320175110.GB20666@pc.aurel32.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200312081015.39276.gene.heskett@verizon.net>
-In-Reply-To: <200312081015.39276.gene.heskett@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Monday 08 December 2003 16:58, Jean Delvare wrote:
->> I have NDI if gkrellm uses lm_sensors, or if its standalone coded,
->> but I sure could use some pointers.  I went to the web page where
->> I saw the announcement that the CVS now had support for 2.6, but
->> when browsing the downloads page the CVS data denies it. 
->> Confusing...
->
->NDI=?
-=No Damned Idea :-)
+Hi alln
 
->The documentation was updated today.
->
->Gkrellm does use the lm_sensors drivers, but it doesn't seem to use
-> the libsensors library under Linux 2.6.0-testX. (Not tried myself,
-> but I think I remember users reported it.)
->
->> When do we get a source tarball thats ready for the stuff thats
->> already in 2.6?
->
->CVS is ready. If yon can't/don't want to get CVS, wait for the 2.8.2
->release (shouldn't take too much time).
+The include line given in libsensors.3 is wrong. It should be
+#include <sensors/sensors.h> instead of #include <sensors.h>
 
-Good.  I'll reboot to 2.4.23-pre8 occasionally to track it in the 
-meantime.
+The attached patch against the current CVS fixes that.
 
->> My wife smokes, and its the nicotene
->> tar that makes the glue that really holds that stuff in like it
->> was flypaper.  Even $50 all copper coolers cannot cope with that!
->
->Change wifes :p
-
-It takes more than that for me to toss an otherwise good woman.  OTOH, 
-at my age (69) I don't imagine I'd go looking for another either.  
-I've had this one now for going on 15 years & figure I might as well 
-ride it out till the end of one of us.
-
->Oh, BTW, your signature is pitiful. Am I the first one to tell you?
-
-Ah, very nearly the first.  I have had some question the advice to the 
-yahoo legal dept, but thats about the extent of it.  I've been doing 
-seti for 5+ years.  But its about done, another few months maybe.
-The yahoo thing came about when one of my messages was echo'd back to 
-me and I found a copyright notice on it giving yahoo full rights to 
-the contents to do with as they saw fit.  I checked the yahoo TOS and 
-damned if they weren't claiming that they owned everything that 
-passed through their servers.  So I beat them to it with a prior 
-claim, valid even if I'm doing a rain dance or ???
+Cheers,
+Aurelien
 
 -- 
-Cheers, Gene
-AMD K6-III@500mhz 320M
-Athlon1600XP@1400mhz  512M
-99.22% setiathome rank, not too shabby for a WV hillbilly
-Yahoo.com attornies please note, additions to this message
-by Gene Heskett are:
-Copyright 2003 by Maurice Eugene Heskett, all rights reserved.
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineering Student 
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+Index: lib/libsensors.3
+=================================RCS file: /home/cvs/lm_sensors2/lib/libsensors.3,v
+retrieving revision 1.3
+diff -u -1 -b -p -r1.3 libsensors.3
+--- lib/libsensors.3	23 Nov 2003 21:26:37 -0000	1.3
++++ lib/libsensors.3	20 Mar 2004 17:47:04 -0000
+@@ -31,3 +31,3 @@ libsensors \- publically accessible func
+ .nf
+-.B #include <sensors.h>
++.B #include <sensors/sensors.h>
+ 
