@@ -1,55 +1,43 @@
-From: frank.beesley@aeroflex.com (Frank Beesley)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: driver for mic184 chip
-Message-Id: <41FE48E5.10700@aeroflex.com>
+From: max.maverick@maverick.eu.org (Benoit Plessis)
+Date: Thu, 19 May 2005 06:24:05 +0000
+Subject: lm_sensors && Asus ASB100
+Message-Id: <Pine.LNX.4.44.0307161343280.790-100000@anubis.univ-lemans.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41FAB35E.1050208@aeroflex.com>
-In-Reply-To: <41FAB35E.1050208@aeroflex.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
 
->Hi Mark,
->
->  
->
->>since MIC184 has TWO sensors, it should not be added to lm75 IMHO.
->>We shouldn't add a second sensor to the lm75 driver.
->>    
->>
->
->It doesn't really have two sensors. It simply can use an external sensor
->*instead of* the internal one. It cannot use both at the same time. It
->is certainly possible to design a driver that continuously switches from
->internal to external and back, but that would require a clever timing
->and I don't think it's worth the effort. The chip is simply not designed
->for this use. I invite you to consider all the drawbacks of such a
->design (delayed interrupt response to overtemperature, need to have the
->same overtemperature and hysteresis temperature for both "channels",
->impossibility to know which "channel" caused an alarm/interrupt, and
->possibly more bad surprises if we were to really write such a driver).
->
->Anyway, I don't think that Frank was interested in this - the mic184.c
->driver he proposed would only export one set of sysfs files.
->
->Thanks,
->  
->
-Jean - I guess I sent one version back that did not have the correct set 
-function. That appears to be the only thing different with my latest 
-version. Thats what happens when you pull from a development machine 
-instead of cvs.
+Hello guy,
 
-Your summary seems to pretty much correct. That's fine. If anybody is 
-looking for this driver in the future, let me know as we will continue 
-to use it ourselves. You did have some good tips that were are going to 
-evaluate.
+i own an Asus Mainboard with it's infamous ASB100 Bach ASIC. I
+wanted to get it work with lm_sensors, but some part were
+behaving mysteriously (mainly the 2d fan speed and the 2nd temp).
 
-As far as our target, it is a Kontron CPU module on a custom carrier 
-board. The carrier then connects to a PCI based backplane that has i2c, 
-onewire, pci, cplds, fpgas, multiple ps2 keypads, and other fun 
-hardware. Currently we are running a 2.4.25 (Redhat 9 based) kernel and 
-I am migrating to a 2.6.9 (or later, may go to 10 or 11) kernel.
+While googling i found something that may interesst you:
+http://www.nt.phys.kyushu-u.ac.jp/shimizu/download/download.html
+
+the xmbmon package which is in the following license:
+  The programs are completely free software.   Any modifications
+and changes to the programs are welcome, and they are freely
+copied and distributed.  The author is not at all responsible if
+anyone have any problems or damages when using the programs.  The
+author won't keep the development of the programs any further, at
+least now.  But if someone develops any new better programs based
+on my own, I am very glad if feedback is made to me (of course,
+it is not at all any duties!).
+
+THis software is able to initialise correctly the ASB100 ASIC
+(since after running mbmon sensors can find the fan 2 speed, but
+not the temp2) and to read the Athlon thermal diod temperature.
+
+Maybe some of its code can be ported to lm_sensors ?
+
+Btw, great works to all
+Benoit
+
+--
+Benoit Plessis					+33 6 77 42 78 32
+<benoit.plessis@tuxfamily.org>
+1024D/B4D74B76 B9A7 3697 661D 25FB A609  E69E 92CA FFAB B4D7 4B76
