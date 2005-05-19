@@ -1,7 +1,7 @@
-From: ckelley@ibnads.com (Craig Kelley)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:23 +0000
 Subject: SMSC LPC57B397-NC
-Message-Id: <41A3A45F.5070209@ibnads.com>
+Message-Id: <20041123220508.50a1289e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <417801FE.2060206@ibnads.com>
 In-Reply-To: <417801FE.2060206@ibnads.com>
@@ -10,44 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
+> It should be 'LPC47B397-NC'
+> (...)
+> I don't know how the '5' got in there; it seemed to have appeared 
+> somewhere after October 18th in the emails.
 
->* Craig Kelley <ckelley@ibnads.com> [2004-11-23 13:41:15 -0700]:
->  
->
->>Jean Delvare wrote:
->>    
->>
->>>I am really surprised that Google doesn't return *anything* by that name
->>>(except for this thread on our mailing-list). The chip isn't listed by
->>>SMSC, nor anything even roughly similar.
->>>
->>>Where did you find the name? Did you have a visual confirmation?
->>>
->>>
->>>      
->>>
->>Here's a photo of the chip:
->>
->>http://egress.ibnads.com:7171/img_2116.jpg
->>
->>It should be 'LPC47B397-NC'
->>    
->>
->
->Gah!  Then I have some cut-n-paste to do... :)
->
->Regards,
->  
->
-Or some perl -p -i -e  ;-)
+Ah, far better. At least Google knows this one (without the -NC, that
+is, and we should probably drop it as well).
 
-I don't know how the '5' got in there; it seemed to have appeared 
-somewhere after October 18th in the emails.
+Thanks!
 
 -- 
-Craig Kelley
-In-Store Broadcasting Network
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041123/5d93b386/attachment.html
+Jean Delvare
+http://khali.linux-fr.org/
