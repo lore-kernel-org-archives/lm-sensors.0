@@ -1,49 +1,136 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: ADM1031 and ADuC812 controller
-Message-Id: <20020225131159.M471@Stimpy.netroedge.com>
+From: info@sensorsportal.com (IFSA)
+Date: Thu, 19 May 2005 06:23:38 +0000
+Subject: Sensors & Transducers
+Message-Id: <200209011934.g81JYNS13724@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020225200035.33231.qmail@web12901.mail.yahoo.com>
-In-Reply-To: <20020225200035.33231.qmail@web12901.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+====================================
+Welcome to Sensors Web Portal
+INTERNATIONAL FREQUENCY SENSORS ASSOCIATION (IFSA) NEWSLETTER
+http://www.sensorsportal.com
+August 28, 2002
 
-We're just beginning to get some ADM1031 chip driver development
-started.  For your application, it might be simple to write a bus
-driver for your specific system, and then the chip drivers should all
-work w/o modification.  Lm_sensors is very modular to support busses
-and sensor/device chips independantly.
+====================================This monthly e-newsletter, written by the editors of Sensors & Transducers e-Digest, delivers the 
+product and research news you asked for, and updates you on happenings in the sensor science
+and industry.
 
-I don't know how far the compiling will go on your system?  The code
-should be fairly cross-platform (e.g. it works on PPC or Intel x86).
+Who should read this Newsletter ? All who are interested in the newest information and trends in
+sensors, transducers, MEMS and sensor instrumentation, including DAQ.
+
+===================================== 
+I. IFSA Celebrates its 3rd Anniversary
+
+It is our great pleasure to congratulate all our 252 members from 50 countries as well as all our 
+visitors with the 3rd  International Frequency Sensor Association anniversary ! Many thanks for
+your great feedback and advices improving IFSA activity and its Sensors Web Portal. The full 
+pages article 'International Frequency Sensor Association  (IFSA): Successful Example of 
+Measurement Infrastructure', 2002  about IFSA activities is in the DIGEST section.
+
+All IFSA members are encouraged to submit articles for the special S&T e-Digest issue. 
+(Deadline: 15 September 2002).
+
+Please inform us who from our members still did not receive the login and password for Members 
+Area access and affiliation number.
+
+______________________________________________________________
+II. New book  
+
+We are pleased to announce that 'Data Acquisition and Signal Processing for Smart Sensors' 
+book (N.V. Kirianaki, S.Y. Yurish, N.O., Shpak, V.P. Deynega) is in stock at
+
+http://www.wileyeurope.com/cda/product/0,,0470843179,00.html for Europe and 
+http://www.wiley.com/cda/product/0,,0470843179,00.html for USA and Canada
+
+The off-line order form is available at http://www.sensorsportal.com/HTML/BOOKSTORE/DAQ_SP.htm
+
+________________________________________________________________
+III. Monthly Sensors Web Portal Up-date Briefs:
+
+NEWS:
+
+* New issue of Sensors & Transducers e-Digest, No.8, August 2002 is in DIGEST section with articles 
+and products (http://www.sensorsportal.com/HTML/DIGEST/New_Digest.htm):
+
+1) IFSA Celebrates its 3rd Anniversary.
+
+2) SMT-160 Evaluation Board for Temperature Sensors with Duty-Cycle Output.
+
+3) Pressure Indicating Sensor Film.
+
+4) Intelligent Image Processing Sensor.
+
+5) Load Cells, Pressure Transducers and Accelerometers with on Board Miniature Amplifiers. 
+
+6) Sensor for Measuring Interfacial Stresses in Real Time.
+
+7) Scanning-Laser Particle Detector for Multi-Point Monitoring of Sub-Micron Contaminants.
+
+Deadline for articles and press releases for the next issue of S&T e-Digest is 15 September 2002.
+
+* Quick Poll in the FORUMS section with poll: 'Sensor's output: What are your preferences ?' 
+Take just a moment to vote and see how your colleagues answered, too.
+
+* Sensors Technologies (page 2) in the Members Area (Sensors Circuits List and Processing are there).
 
 
-Phil
+UP-DATED:
+
+* Training Courses 
+
+* Projects Section (sensors related projects and collaboration possibilities)
+
+* LINKS (sensors related coming events);
+
+* Pressure and Other Sensors (2) sections (new full-pages articles devoted to sensor networks and link 
+to big collection of articles on wireless sensor Networks);
+
+* There is a new content of 'Sensors and Actuators' (A: Physical) journal (vol.100, issue 1, 
+15 August, 2002) with free access to abstracts of articles;
+
+* Lists of Manufacturers: Temperature, Pressure and Other sensors (smart sensors series)
+
+________________________________________________________________
+IV. Smart Sensors Series from Applied Microsystems Ltd.
+
+The Applied Microsystems Ltd. Smart Sensor Series is a family of pre-calibrated sensors designed to 
+easily interface to a data collection platform. The entire series is designed to have standardized 
+electrical, mechanical and communication features. Smart Sensors provide a low cost, high resolution, 
+high accuracy solutions for different applications. All Smart Sensors communicate to a host data logger 
+or computer via RS-232, TTL serial port, or multi-sensor RS-485 communication loop at data rates to 
+38,400 baud. Custom sensors and configurations are available for specific applications upon request.
+
+(Temperature, Pressure, Sound Velocity and Multiparameters sensors)
+http://www.AppliedMicrosystems.com/products.html
+
+====================================V. Subscriber Services
+
+To subscribe, update your address, renew subscription, pass the Newsletter along to a friend or have them 
+subscribe free go to: http://www.sensorsportal.com/HTML/subscribe.htm
+
+Do you have comments about this newsletter? Send them to Sensors Web Portal at mailto:info@sensorsportal.com
+
+To unsubscribe from the Newsletter, reply to this e-mail message, enter "Unsubscribe" in Subject line and the 
+following text in the body of the message: unsubscribe <your email address>. Be sure, that you have received 
+this Newsletter to <your email address> if you are using the e-mail redirection.
+
+Alternatively, you can visit http://www.sensorsportal.com/HTML/Remove.htm and click <Unsubscribe>.
 
 
-On Mon, Feb 25, 2002 at 12:00:35PM -0800, Naeem Afzal wrote:
-> Hi,
-> 
-> We are planning to use ADuC812 to control ADM1031
-> device on our board. We will be runnig Linux on it.
-> How could we use lm_sensors drivers for this, or what
-> sort of effort is needed to port this funcitonality.
-> Seems like you guys dont use controller and program
-> the devices directly.
-> 
-> thanks
-> 
-> naeem
-> 
-> __________________________________________________
-> Do You Yahoo!?
-> Yahoo! Sports - Coverage of the 2002 Olympic Games
-> http://sports.yahoo.com
+With best regards,
 
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Dr. Sergey Y. Yurish,
+IFSA Vice President
+--------------------------------------------------------------
+International Frequency Sensor Association (IFSA)
+European Office:
+Bandera str., 12
+79013, Lviv, UA
+Tel./fax: +380 322 970857
+E-mail: info@sensorsportal.com
+Http://www.sensorsportal.com
+
+- End -
