@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:32 +0000
+From: JHTseng@via.com.tw (JH Tseng)
+Date: Thu, 19 May 2005 06:23:33 +0000
 Subject: Supporting Hardware monitor for VIA chipsets
-Message-Id: <3CEBDDF9.945BB38D@paradyne.com>
+Message-Id: <369B0912E1F5D511ACA5003048222B7555BC01@EXCHANGE2>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <369B0912E1F5D511ACA5003048222B7555BBFE@EXCHANGE2>
 In-Reply-To: <369B0912E1F5D511ACA5003048222B7555BBFE@EXCHANGE2>
@@ -9,6 +9,30 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+Hi,
+
+Attached file is the 686B/8231/8233/8233A datasheet. Basically, it should be
+the same as 686A. For i2c bus/SMBus, the register set for 8233(A) and 8231
+are the same except that the IO Base address location. I will prepare the
+motherboards based on 8231 first for your need.  Could you tell me about
+your address ??
+Here is a question about your package. If the sensor chip is a I/O device,
+then in order to get the hardware monitor component's infor, the i2c bus
+driver need to be loaded ??
+If you need any support, please feel free to contact me! thanks!
+
+
+JH
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds@paradyne.com]
+Sent: Thursday, May 23, 2002 2:06 AM
+To: JH Tseng
+Cc: 'sensors@stimpy.netroedge.com'
+Subject: Re: Supporting Hardware monitor for VIA chipsets
+
 
 Oops, I misspoke.
 We do _not_ support the 8231 i2c bus.
@@ -49,11 +73,15 @@ Mark Studebaker wrote:
 > > >
 > > > Hi Sir,
 > > >
-> > > I am a software engineer in VIA Tech Inc. According to the status report in
-> > > your web site, we find that there are not the sensor chip drivers for latest
-> > > VIA south bridges such as the VT8231, VT8233(A) and VT8235. Therefore, I
+> > > I am a software engineer in VIA Tech Inc. According to the status
+report in
+> > > your web site, we find that there are not the sensor chip drivers for
+latest
+> > > VIA south bridges such as the VT8231, VT8233(A) and VT8235. Therefore,
+I
 > > > need your help or I can provide some HWs and information to you to
-> > > co-develope/co-test the hardware monitor based on the VIA platform. I deeply
+> > > co-develope/co-test the hardware monitor based on the VIA platform. I
+deeply
 > > > appreciate you very much if you have any input.
 > > >
 > > > Best regards
@@ -64,3 +92,32 @@ Mark Studebaker wrote:
 > > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
 > >    phil@netroedge.com -- http://www.netroedge.com/~phil
 > >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: DS686B224.pdf
+Type: application/octet-stream
+Size: 911128 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS686B224.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: DS8231185.pdf
+Type: application/octet-stream
+Size: 1008462 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS8231185.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: DS8233A121.pdf
+Type: application/octet-stream
+Size: 773865 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS8233A121.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: DS8233CE2711.pdf
+Type: application/octet-stream
+Size: 898421 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS8233CE2711.obj
