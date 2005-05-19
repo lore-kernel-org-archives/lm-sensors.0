@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: /proc/device-tree
-Message-Id: <20030807122317.511fddb8.zdavatz@ywesee.com>
+Message-Id: <20030807123045.2482061b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030807121206.73a80468.khali@linux-fr.org>
 In-Reply-To: <20030807121206.73a80468.khali@linux-fr.org>
@@ -10,48 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean
 
-Thanks for your Mail.
-
-ls of my device-tree folder gives me:
-ls
-AAPL,add-fcode-file  copyright           @f4000000           model           packages        pseudo-sound   uni-n
-#address-cells       cpus                @f8000000           multiboot       pci             rom            uni-n@f8000000
-aliases              customer-sw-config  @ff800000           name            pci@f0000000    rom@ff800000
-chosen               device_type         @fff04000           nvram           pci@f2000000    scb#
-clock-frequency      diagnostics         firewire-disk-mode  nvram@fff04000  pci@f4000000    serial-number
-color-code           @f0000000           linux,phandle       openprom        pci-OF-bus-map  #size-cells
-compatible           @f2000000           memory@0            options         pseudo-hid      system-id
-
-Let me know what else you need.
-
-Zeno
-
-On Thu, 7 Aug 2003 12:12:06 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
-
+> Hi Jean
 > 
-> Hi Zeno,
+> Thanks for your Mail.
 > 
-> Do you have a /proc/device-tree directory on your linux-ppc system?
-> 
-> If you do, I'd be interested in a copy.
-> 
-> Thanks.
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
+> ls of my device-tree folder gives me:
 
+Whaou, there are many files there. What I'd need is a copy of the whole
+tree (because I don't know what I am looking for yet).
+
+> Let me know what else you need.
+
+Please "extract" the tree using the following commands:
+
+cp -R /proc/device-tree /tmp
+cd /tmp
+tar zcvf device-tree-zeno.tar.gz device-tree
+
+And send me the file device-tree-zeno.tar.gz (to me, not to the list).
+
+Thanks!
 
 -- 
-Mit freundlichen Gruessen / Best regards
-
-Zeno Davatz
-Strategie und Akquisition
-
-+41 1 350 85 86
-
-www.ywesee.com > intellectual capital connected > www.generika.cc
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
