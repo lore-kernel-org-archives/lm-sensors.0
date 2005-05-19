@@ -1,7 +1,7 @@
 From: pwilsmore@asi.com.au (Peter Wilsmore)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDA06@mssydeb.asi.com.au>
+Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDAB3@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -10,14 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks again, I will get rid of the floating point stuff, as to the limits, after reading parts of the IPMI spec I found that I need to use the 'upper' limit (upper and lower limits are flipped because of the 1/x conversion), however to the actual fan speeds still seem a little high (8000+ RPM). I have a suspicion that my fan is reporting 2 ticks per rotation, however from my limited understanding of IPMI the m factor should cater for that sort of thing. Have I misunderstood the spec or is my M/B behaving weirdly?
+OK, I have got rid of the float stuff - it makes it much more elegant. I have also used the 'upper' limit for the lower limit and have some comments in regarding the odd values and * 2 factor that I seem to have on my M/B. Unfortunately I am on a deadline, so I haven't done any limit stuff.
 
-Thanks,
+Thanks for all the help.
 
 Peter Wilsmore
  
 ASI SOLUTIONS
 Direct: 1300130 837
+
 -----Original Message-----
 From: Mark Studebaker [mailto:mds4@verizon.net] 
 Sent: Thursday, 9 September 2004 10:22 AM
@@ -302,3 +303,10 @@ Peter Wilsmore wrote:
 > 
 > 
 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: bmcsensors.patch
+Type: application/octet-stream
+Size: 951 bytes
+Desc: bmcsensors.patch
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040909/60a30229/bmcsensors.obj
