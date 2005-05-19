@@ -1,34 +1,31 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: i2c_probe() vs i2c_detect()
-Message-Id: <3E937B46.706@paradyne.com>
+From: geert@linux-m68k.org (Geert Uytterhoeven)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: sensors-detect and 2.6.0-test3
+Message-Id: <Pine.GSO.4.21.0308172027560.12924-100000@vervain.sonytel.be>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030403012307.GA6037@kroah.com>
-In-Reply-To: <20030403012307.GA6037@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I guess you've identified the difference.
-There's a fair amount of discussion in doc/writing-clients in the i2c tree,
-but that document doesn't really specify the difference either.
-mds
+	Hi,
 
-Greg KH wrote:
-> Hi all,
-> 
-> Can anyone tell me why both i2c_probe() and i2c_detect() are in the
-> kernel at the same time?  They both almost do the same thing, with the
-> exception being i2c_detect() can handle i2c devices on the isa bus.
-> 
-> It kind of looks like the older i2c code and drivers used the
-> i2c_probe() call, while the lm_sensors code used i2c_detect().
-> 
-> If there are no objections, I'll merge the two of them, cutting about 2k
-> out of the kernel :)
-> 
-> thanks,
-> 
-> greg k-h
-> 
+I'm porting i2c-hydra (which I wrote many years ago) to 2.6.0-test3 and am
+trying to test it. I want to probe for all i2c devices on my i2c bus, but
+sensors-detect doesn't work because /proc/bus/i2c is not there.
+
+According to the FAQ I have to `modprobe i2c-proc', but I cannot find the code
+for that module in the kernel tree.
+
+How do I probe for all i2c devices in 2.6.0-test3? Thanks!
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
