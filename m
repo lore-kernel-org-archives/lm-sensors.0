@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:41 +0000
 Subject: i2cdetect -l is broken
-Message-Id: <20040212220929.GA3647@kroah.com>
+Message-Id: <20040213200509.462f04f9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040211213013.19dccfee.khali@linux-fr.org>
 In-Reply-To: <20040211213013.19dccfee.khali@linux-fr.org>
@@ -10,80 +10,115 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Feb 12, 2004 at 11:04:18PM +0100, Jean Delvare wrote:
-> > > i2cdetect -l is broken on drivers which handle more than a single
-> > > i2c bus (radeonfb in my case). It'll print the same name for all
-> > > busses, and shouldn't.
+> > > But what about the linkages:
 > > > 
-> > > I took a look at the sysfs tree and I couldn't find any way to
-> > > correct it. The fact that i2c-adapters and i2c-devs don't use the
-> > > same numbering policy doesn't give us much chance.
+> > > $ tree /sys/class/i2c-dev/
+> > > /sys/class/i2c-dev/
+> > > `-- i2c-0
+> > >     |-- dev
+> > >     |-- device -> ../../../devices/platform/i2c-0
+> > >     `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
+> > > 
+> > > $ tree /sys/class/i2c-adapter/
+> > > /sys/class/i2c-adapter/
+> > > `-- i2c-0
+> > >     |-- device -> ../../../devices/platform/i2c-0
+> > >     `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
+> > > 
+> > > 
+> > > You can match these devices up by looking at the 'device' symlink.
+> > > 
+> > > This works no matter what numbering scheme there currently is,
+> > > right?
 > > 
-> > But what about the linkages:
-> > 
-> > $ tree /sys/class/i2c-dev/
-> > /sys/class/i2c-dev/
-> > `-- i2c-0
-> >     |-- dev
-> >     |-- device -> ../../../devices/platform/i2c-0
-> >     `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
-> > 
-> > $ tree /sys/class/i2c-adapter/
-> > /sys/class/i2c-adapter/
-> > `-- i2c-0
-> >     |-- device -> ../../../devices/platform/i2c-0
-> >     `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
-> > 
-> > 
-> > You can match these devices up by looking at the 'device' symlink. 
-> > This works no matter what numbering scheme there currently is, right?
+> > Yes, it looks like it does. But this requires that we walk both dirs
+> > and compare the entries. Not something easy to do in C, either we
+> > introduce data structures and have to handle memory allocations, or
+> > we end up with a non-linear algorithm.
+
+BTW: Now that I come to think of it, no, it doesn't work. It works in
+your specific case because this isn't a PCI adapter. See these trees
+with a PCI adapter instead:
+
+i2c-dev
+|-- i2c-0
+|   |-- dev
+|   |-- device -> ../../../devices/pci0000:00/0000:00:04.4
+|   `-- driver -> ../../../bus/pci/drivers/vt596 smbus
+`-- i2c-1
+    |-- dev
+    |-- device -> ../../../devices/platform/i2c-1
+    `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
+
+6 directories, 2 files
+i2c-adapter/
+|-- i2c-1
+|   |-- device -> ../../../devices/platform/i2c-1
+|   `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
+`-- i2c-2
+    |-- device -> ../../../devices/pci0000:00/0000:00:04.4/i2c-2
+    `-- driver -> ../../../bus/i2c/drivers/i2c_adapter
+
+6 directories, 0 files
+
+Adapter i2c-2 matches dev i2c-0. At first sight, you'd say I can guess
+that because both's device link point to PCI device
+"pci0000:00/0000:00:04.4". But what if that PCI device has more than one
+i2c bus? I'm lost, as i2cdetect is. So, unless I missed a thing, there
+is no way to find out which adapter matched with which device in such a
+case. I can go up to the PCI device, but am unable to pick the correct
+i2c adapter once there.
+
+But I may be missing the whole thing once again. As said earlier, I just
+have no idea as to why there are two distincts numberings now while
+there wasn't before.
+
+> libsysfs should be able to help you out here.
+
+Could be, but we don't want i2cdetect to need libsysfs (what about Linux
+2.4 users?), and we also need the information from a Perl script.
+
+(Thanks for pointing out the existence of it however; it could be of
+much use for our future libsensors-new library.)
+
+> > With our 2.4 system, the same operations was as simple as "cat
+> > /proc/bus/i2c".
 > 
-> Yes, it looks like it does. But this requires that we walk both dirs and
-> compare the entries. Not something easy to do in C, either we introduce
-> data structures and have to handle memory allocations, or we end up with
-> a non-linear algorithm.
+> What did that show?
 
-libsysfs should be able to help you out here.
+i2c-0   smbus           SMBus I801 adapter at 1880              Non-I2C SMBus adapter           
+i2c-1   i2c             ADM1032 evaluation board                Bit-shift algorithm             
 
-> With our 2.4 system, the same operations was as simple as "cat
-> /proc/bus/i2c".
-
-What did that show? 
-
-> > > As far as I can tell, i2c-adapters numbering policy is to use N+1
-> > > for a new adapter, where N is the biggest number already use at the
-> > > moment, while i2c-devs numbering policy is to use the lowest
-> > > available.
-> > 
-> > I think this is the same for 2.4, meaning the same problem is there
-> > too, right?  But for 2.4, you don't have the sysfs linkage to help you
-> > out. How do you solve the problem there?
+> Can you see if the numbers get out of sync:
+> 	modprobe i2c_SOME_ADAPTER_DRIVER
+> 	modprobe i2c_SOME_OTHER_ADAPTER_DRIVER
+> 	modprobe i2c_dev
+> 	rmmod i2c_SOME_ADAPTER_DRIVER
+> 	modprobe i2c_SOME_ADAPTER_DRIVER
 > 
-> I don't know much about the details, and I don't even understand why
-> there are two series of identifiers, so I can't speeak about that. But
-> for 2.4, the number given by sensors was also the one you could use in
-> i2cdump. It never looked like there were two distinct series of
-> identifiers there. Either they were in sync, or there was only one
-> series, I can't say. And we have the list in /proc/bus/i2c. No need to
-> parse a complete tree.
+> where you have both types of adapters in your system (like something
+> and i2c-isa).  That should get your numbers out of sync on 2.6, right?
 
-Can you see if the numbers get out of sync:
-	modprobe i2c_SOME_ADAPTER_DRIVER
-	modprobe i2c_SOME_OTHER_ADAPTER_DRIVER
-	modprobe i2c_dev
-	rmmod i2c_SOME_ADAPTER_DRIVER
-	modprobe i2c_SOME_ADAPTER_DRIVER
+Yes, it does. Sensors refer to SOME_ADAPTER_DRIVER as i2c-2, while
+i2cdump and i2detect refer to it as i2c-0.
 
-where you have both types of adapters in your system (like something and
-i2c-isa).  That should get your numbers out of sync on 2.6, right?  What
-happens on 2.4?
+> What happens on 2.4?
 
-> What I see from a user-space developer, user and support-guy point of
-> view is that this double numbering is a source of problems, and I'd like
-> to see it solved if possible.
+SOME_ADAPTER_DRIVER gets i2c-0 back as I load it the second time. No
+desync, sensors and i2cdump both refer to it as i2c-0.
 
-Ok, can you come up with a patch that might solve this?
+> > What I see from a user-space developer, user and support-guy point
+> > of view is that this double numbering is a source of problems, and
+> > I'd like to see it solved if possible.
+> 
+> Ok, can you come up with a patch that might solve this?
 
-thanks,
+I don't think I can. I don't know anything about sysfs, and I don't know
+anything about how the 2.4 drivers where handling the problem. I'm
+probably the less qualified among us all for that task.
 
-greg k-h
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
