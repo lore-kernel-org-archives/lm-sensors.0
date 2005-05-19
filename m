@@ -1,7 +1,7 @@
-From: phil@edgedesign.us (Philip Edelbrock)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: i801 bus problems
-Message-Id: <4137A0AE.8020106@edgedesign.us>
+Message-Id: <Pine.LNX.4.58.0409030940450.19686@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
@@ -11,14 +11,19 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-I may have jumped the gun a bit.  It looks like i801 is working but some 
-client chips are not responding or are missing?
 
+On Thu, 2 Sep 2004, Philip Edelbrock wrote:
 
-Phil
+>
+> I may have jumped the gun a bit.  It looks like i801 is working but some
+> client chips are not responding or are missing?
 
-Philip Edelbrock wrote:
-> 
-> You may need to turn something on in the Bios for the SMBus interface to 
-> be properly set up at boot-time?  A relevent snippet from the i2c-i801 doc:
-> [...]
+Yes you got it :) The bus is simply not working even all modules for bus
+and lm85 are loaded. I thought the bus is confused with autodetection
+process but it does not work even after powercycle and only lm85 loaded as
+client. The question is what to do with it? Is possible somehow to change
+configuration of SMBUs controller, maybe it has some slow devices???
+
+Regards
+
+Rudolf
