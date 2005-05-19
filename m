@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:55 +0000
 Subject: pc87360 sensor-driver results
-Message-Id: <20040425112458.086a0013.khali@linux-fr.org>
+Message-Id: <20040425174214.7845d488.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <408B1888.8050802@hot.rr.com>
 In-Reply-To: <408B1888.8050802@hot.rr.com>
@@ -10,25 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting myself:
+> > If possible, I would like to know if the temperature readings are a
+> > bug or if there is way to adjust them to display correct
+> > temperatures(my bios never reads more than about 130 degrees
+> > fahrenheit or about 55 degrees celcius).
 
-> I would need you to provide the output of the following commands, so
-> that I can compare the values the chip really holds with what the
-> driver reports:
-> 
-> isadump 0x2e 0x2f 7 0x09
-> isadump 0x2e 0x2f 7 0x0d
-> isadump 0x2e 0x2f 7 0x0e
+Yes, there was a bug in temperatures reporting, I just spotted it. A
+stupid one, as usual. It's fixed in CVS. Can you please give it a try?
+I've also added alert flags clearing, so fault conditions that have gone
+shouldn't show forever anymore. Please enable DEBUG (in Makefile), I've
+added some debug output as well.
 
-Don't! I got it wrong here. The correct commands are:
+The improved version of isadump is there too, if the driver still
+doesn't work as intended I'll tell you how to use it.
 
-isadump 0x2e 0x2f 0x09 7
-isadump 0x2e 0x2f 0x0d 7
-isadump 0x2e 0x2f 0x0e 7
-
-Sorry for the bogus info, I should have checked before sending.
-
-Thanks.
+Thanks for testing.
 
 -- 
 Jean Delvare
