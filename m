@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: frank.beesley@aeroflex.com (Frank Beesley)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: Clean up of i2c-elektor.c build for 2.6.11
-Message-Id: <20050311110948.4a8404f6.khali@linux-fr.org>
+Message-Id: <4231FB69.2010601@aeroflex.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <422E2417.7020707@aeroflex.com>
 In-Reply-To: <422E2417.7020707@aeroflex.com>
@@ -10,20 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Frank,
+I will try this again. I did a "diff -v" and see that our workstations 
+have colordiff 1.0.4 on top of diff (GNU diffutils) 2.8.7. This would 
+explain the wonderful colors. I went back to our target machines that 
+have just he diffutils, not colordiff.
 
-> This patch changes the flags variable type from long to unsigned long
-> in  one function. This removes a couple of warnings from the compile 
-> messages for elektor i2c bus driver.
-> 
-> Signed-Off-By Frank Beesley
 
-Should be "Signed-off-by: Frank Beesley <some email address>".
+This patch changes the flags variable type from long to unsigned long in  one function. This removes a couple of warnings from the compile messages for elektor i2c bus driver.
 
-Also, care to resend your patch *without* embedded ANSI colorization? I
-wonder how you did that. It's nice and all, but such a patch cannot be
-applied by "patch" so it's not exactly useful to us.
+Signed-Off-By Frank Beesley <frank.beesley@aeroflex.com>
 
-Thanks,
--- 
-Jean Delvare
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: elektor.diff
+Type: text/x-patch
+Size: 350 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050311/5bc2daf4/elektor.bin
