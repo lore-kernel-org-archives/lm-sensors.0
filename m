@@ -1,78 +1,95 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: ADM1025 (fwd)
-Message-Id: <20020426130727.D28603@Stimpy.netroedge.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:22 +0000
+Subject: [PATCH 2.6] Cleanups to the recent smbus functions removal
+Message-Id: <20041116223833.4fdeb1aa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200204251655.g3PGtLQ03175@shire.frodo.local>
-In-Reply-To: <200204251655.g3PGtLQ03175@shire.frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg, all,
 
-I got this one too.  I tried to reply as well as I could.  If someone
-wants to take another shot at it, go ahead.  BTW- it looks like the
-exact same email I received, save the 'Dear Frodo,' part, of course.
+This patch cleans up the recent removal of smbus functions proposed by
+Arjan and then fixed by Gabriel. Changes are as follow:
+
+1* Discard i2c_smbus_block_process_call, as it isn't used anywhere
+   either. I guess that Arjan missed it because it wasn't exported.
+
+2* Document the functions removal, so that people have at least an idea
+   that the functions can be restored later if needed.
+
+Maybe it would make sense to apply this before 2.6.10-rc2? Not critical
+however, I agree. But obviously safe too, huh? ;)
+
+Thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.10-rc2/Documentation/i2c/writing-clients.orig	2004-11-15 20:15:51.000000000 +0100
++++ linux-2.6.10-rc2/Documentation/i2c/writing-clients	2004-11-15 21:50:03.000000000 +0100
+@@ -676,14 +676,26 @@
+   extern s32 i2c_smbus_read_word_data(struct i2c_client * client, u8 command);
+   extern s32 i2c_smbus_write_word_data(struct i2c_client * client,
+                                        u8 command, u16 value);
+-  extern s32 i2c_smbus_process_call(struct i2c_client * client,
+-                                    u8 command, u16 value);
+-  extern s32 i2c_smbus_read_block_data(struct i2c_client * client,
+-                                       u8 command, u8 *values);
+   extern s32 i2c_smbus_write_block_data(struct i2c_client * client,
+                                         u8 command, u8 length,
+                                         u8 *values);
+ 
++These ones were removed in Linux 2.6.10 because they had no users, but could
++be added back later if needed:
++
++  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
++                                           u8 command, u8 *values);
++  extern s32 i2c_smbus_read_block_data(struct i2c_client * client,
++                                       u8 command, u8 *values);
++  extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
++                                            u8 command, u8 length,
++                                            u8 *values);
++  extern s32 i2c_smbus_process_call(struct i2c_client * client,
++                                    u8 command, u16 value);
++  extern s32 i2c_smbus_block_process_call(struct i2c_client *client,
++                                          u8 command, u8 length,
++                                          u8 *values)
++
+ All these transactions return -1 on failure. The 'write' transactions 
+ return 0 on success; the 'read' transactions return the read value, except 
+ for read_block, which returns the number of values read. The block buffers 
+--- linux-2.6.10-rc2/drivers/i2c/i2c-core.c.orig	2004-11-15 20:15:53.000000000 +0100
++++ linux-2.6.10-rc2/drivers/i2c/i2c-core.c	2004-11-15 21:47:56.000000000 +0100
+@@ -1038,25 +1038,6 @@
+ }
+ 
+ /* Returns the number of read bytes */
+-s32 i2c_smbus_block_process_call(struct i2c_client *client, u8 command, u8 length, u8 *values)
+-{
+-	union i2c_smbus_data data;
+-	int i;
+-	if (length > I2C_SMBUS_BLOCK_MAX - 1)
+-		return -1;
+-	data.block[0] = length;
+-	for (i = 1; i <= length; i++)
+-		data.block[i] = values[i-1];
+-	if(i2c_smbus_xfer(client->adapter,client->addr,client->flags,
+-	                  I2C_SMBUS_WRITE, command,
+-	                  I2C_SMBUS_BLOCK_PROC_CALL, &data))
+-		return -1;
+-	for (i = 1; i <= data.block[0]; i++)
+-		values[i-1] = data.block[i];
+-	return data.block[0];
+-}
+-
+-/* Returns the number of read bytes */
+ s32 i2c_smbus_read_i2c_block_data(struct i2c_client *client, u8 command, u8 *values)
+ {
+ 	union i2c_smbus_data data;
 
 
-Phil
 
-On Thu, Apr 25, 2002 at 06:55:21PM +0200, frodol@dds.nl wrote:
-> V. R. Venkatramana wrote:
-> >From vvenkataramana@yahoo.com Wed Apr 24 22:40:04 2002
-> Received: by morannon.frodo.local (8.11.3/8.11.3) id g3OKe4d04147 ; Wed, 24 Apr 2002 22:40:04 +0200
-> Return-Path: <vvenkataramana@yahoo.com>
-> Received: from pop3.dds.nl [213.196.1.122]
-> 	by localhost with POP3 (fetchmail-5.4.4)
-> 	for frodo@localhost (single-drop); Wed, 24 Apr 2002 22:40:04 +0200 (CEST)
-> Received: (qmail 2807 invoked from network); 24 Apr 2002 20:16:53 -0000
-> Received: from unknown (HELO web13409.mail.yahoo.com) ([216.136.172.17]) (envelope-sender <vvenkataramana@yahoo.com>)
->           by arkanoid.cybercomm.nl (qmail-ldap-1.03) with SMTP
->           for <frodol@dds.nl>; 24 Apr 2002 20:16:53 -0000
-> Message-ID: <20020424202646.12358.qmail@web13409.mail.yahoo.com>
-> Received: from [12.146.153.254] by web13409.mail.yahoo.com via HTTP; Wed, 24 Apr 2002 13:26:46 PDT
-> Date: Wed, 24 Apr 2002 13:26:46 -0700 (PDT)
-> From: "V. R. Venkatramana" <vvenkataramana@yahoo.com>
-> Subject: ADM1025
-> To: frodol@dds.nl
-> MIME-Version: 1.0
-> Content-Type: text/plain; charset=us-ascii
-> 
-> Dear Frodo,
-> 
->     How to access CPU temperature & voltage drvices?
->     Sensor chip:        Analog Devices ADM1025 
->     Intel MotherBoard:  Intel D845WN
-> 
-> I am using vxWorks OS.  vxWorks do not support Advanced 
-> Configuration and Power Interface (ACPI) and cannot access 
-> temperature and voltage devices via ACPI calls in the BIOS.   
-> vxWorks do not have support to access SMBus either.
-> I am wondering how to access temperature an voltage devices
-> located on the SMBus?  Is it possible for me to make BIOS 
-> call to get this info.  If yes, where to find the info on
-> I/O address, how to interpret the BIOS data.
-> 
-> Since I saw your name on linus driver (adm1025), I decided 
-> to approach you directly.  A line in reply will be appreciated.
-> 
-> Thanks, Venkat
-> 
-> 
-> __________________________________________________
-> Do You Yahoo!?
-> Yahoo! Games - play chess, backgammon, pool and more
-> http://games.yahoo.com/
-> 
-> 
-> -- 
-> Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-> Defenestration n. (formal or joc.):
->   The act of removing Windows from your computer in disgust, usually followed
->   by the installation of Linux or some other Unix-like operating system.
-
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+--
+Jean Delvare
+http://khali.linux-fr.org/
