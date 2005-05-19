@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:00 +0000
 Subject: [PATCH] i2c driver changes for 2.5.72
-Message-Id: <10559607092693@kroah.com>
+Message-Id: <10559607091816@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10559607093836@kroah.com>
+In-Reply-To: <10559607092693@kroah.com>
 References: <10559607053930@kroah.com>
 In-Reply-To: <10559607053930@kroah.com>
 MIME-Version: 1.0
@@ -11,49 +11,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1318.3.7, 2003/06/17 15:34:14-07:00, azarah@gentoo.org
+ChangeSet 1.1318.3.8, 2003/06/17 15:37:40-07:00, greg@kroah.com
 
-[PATCH] I2C: fix for previous W83627THF sensor chip patch
-
-Ok, I was wrong in assuming that the W83627THF was on the I2C bus.
-It is on the ISA bus, id 0x90 (thanks to Alex Van Kaam author of
-MBM who corrected my assumption).
+I2C: fix resource leak in i2c-ali15x3.c
 
 
- drivers/i2c/chips/w83781d.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-ali15x3.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Wed Jun 18 11:19:21 2003
-+++ b/drivers/i2c/chips/w83781d.c	Wed Jun 18 11:19:21 2003
-@@ -28,6 +28,7 @@
-     asb100 "bach" (type_name = as99127f)	0x30	0x0694	yes	no
-     w83781d	7	3	0	3	0x10	0x5ca3	yes	yes
-     w83627hf	9	3	2	3	0x20	0x5ca3	yes	yes(LPC)
-+    w83627thf	9	3	2	3	0x90	0x5ca3	no	yes(LPC)
-     w83782d	9	3	2-4	3	0x30	0x5ca3	yes	yes
-     w83783s	5-6	3	2	1-2	0x40	0x5ca3	yes	no
-     w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
-@@ -1285,7 +1286,7 @@
- 			kind = w83782d;
- 		else if (val1 = 0x40 && vendid = winbond && !is_isa)
- 			kind = w83783s;
--		else if ((val1 = 0x20 || val1 = 0x72) && vendid = winbond)
-+		else if ((val1 = 0x20 || val1 = 0x90) && vendid = winbond)
- 			kind = w83627hf;
- 		else if (val1 = 0x30 && vendid = asus && !is_isa)
- 			kind = as99127f;
-@@ -1309,7 +1310,10 @@
- 	} else if (kind = w83783s) {
- 		client_name = "W83783S chip";
- 	} else if (kind = w83627hf) {
--		client_name = "W83627HF chip";
-+		if (val1 = 0x90)
-+			client_name = "W83627THF chip";
-+		else
-+			client_name = "W83627HF chip";
- 	} else if (kind = as99127f) {
- 		client_name = "AS99127F chip";
- 	} else if (kind = w83697hf) {
+diff -Nru a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
+--- a/drivers/i2c/busses/i2c-ali15x3.c	Wed Jun 18 11:19:16 2003
++++ b/drivers/i2c/busses/i2c-ali15x3.c	Wed Jun 18 11:19:16 2003
+@@ -177,17 +177,18 @@
+ 	if(force_addr) {
+ 		dev_info(&ALI15X3_dev->dev, "forcing ISA address 0x%04X\n",
+ 			ali15x3_smba);
+-		if (PCIBIOS_SUCCESSFUL !-		    pci_write_config_word(ALI15X3_dev, SMBBA, ali15x3_smba))
+-			return -ENODEV;
+-		if (PCIBIOS_SUCCESSFUL !-		    pci_read_config_word(ALI15X3_dev, SMBBA, &a))
+-			return -ENODEV;
++		if (PCIBIOS_SUCCESSFUL != pci_write_config_word(ALI15X3_dev,
++								SMBBA,
++								ali15x3_smba))
++			goto error;
++		if (PCIBIOS_SUCCESSFUL != pci_read_config_word(ALI15X3_dev,
++								SMBBA, &a))
++			goto error;
+ 		if ((a & ~(ALI15X3_SMB_IOSIZE - 1)) != ali15x3_smba) {
+ 			/* make sure it works */
+ 			dev_err(&ALI15X3_dev->dev,
+ 				"force address failed - not supported?\n");
+-			return -ENODEV;
++			goto error;
+ 		}
+ 	}
+ 	/* check if whole device is enabled */
+@@ -219,6 +220,9 @@
+ 	dev_dbg(&ALI15X3_dev->dev, "iALI15X3_smba = 0x%X\n", ali15x3_smba);
+ 
+ 	return 0;
++error:
++	release_region(ali15x3_smba, ALI15X3_SMB_IOSIZE);
++	return -ENODEV;
+ }
+ 
+ /* Internally used pause function */
 
