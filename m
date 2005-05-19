@@ -1,41 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: Question concerning sensors chips.c alarm handling
-Message-Id: <20040908073033.M33590@linux-fr.org>
+From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: fix compares of jiffies
+Message-Id: <Pine.OSF.4.50.0211241432520.15523-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0409071447260.8167@malachi.lee.k12.nc.us>
-In-Reply-To: <Pine.LNX.4.58.0409071447260.8167@malachi.lee.k12.nc.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I was looking in the sensors program's chips.c file at the various
-> print_*() routines and found the following code:
-> 
-> 	if (!sensors_get_feature(*name,SENSORS_ADM1025_ALARMS,&cur))
-> 	    alarms = cur + 0.5;
->   	else {
-> 	    printf("ERROR: Can't get alarm data!\n");
-> 	    alarms = 0;
-> 	}
-> 
-> repeated in various routines for various chips.  Why is 0.5 added to
-> the alarm mask value?
 
-Values are retrieved from libsensors as floating point numbers, not integers.
-When converting from floating point to interger, C will simply drop the
-non-interger part. Thus, 12345677.99999 will be converted to 12345677 while we
-are obviously expecting 12345678. Thus it is usually considered a good
-practice to add 0.5 to any floating point value before converting it to an
-integer.
+I came across this in old posts, applies to several i2c drivers.
+Trivial if you know when time_before() has appeared..
 
-Note that I am not sure it is needed in our specific case. The "double" type
-should be able to handle 32-bit integer values without losses, and the drivers
-don't export alarm values over 32-bit as far as I know. So I guess that the "+
-0.5" operation is theoretical and we don't actually need it. Feel free to drop
-it in your own code unless you notice it is actually needed.
+--- linux-2.4.20-pre6/drivers/i2c/i2c-adap-ite.c	Sat Aug  3 02:39:44 2002
++++ linux-2.4.20-pre6-jfix/drivers/i2c/i2c-adap-ite.c	Wed Sep 11 13:01:41 2002
+@@ -82,7 +82,7 @@
+         unsigned long j = jiffies + 10;
+
+ 	DEB3(printk(" Write 0x%02x to 0x%x\n",(unsigned short)val, ctl&0xff));
+-	DEB3({while (jiffies < j) schedule();})
++	DEB3({while (time_before(jiffies, j)) schedule();})
+ 	outw(val,ctl);
+ }
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+  Ky?sti M?lkki
+  kmalkki@cc.hut.fi
