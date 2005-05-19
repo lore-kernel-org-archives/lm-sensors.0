@@ -1,7 +1,7 @@
 From: tomek@lodz.tpsa.pl (Tomasz Papszun)
-Date: Thu, 19 May 2005 06:23:35 +0000
+Date: Thu, 19 May 2005 06:23:36 +0000
 Subject: i2c-piix4.o: SMB base address uninitialized - upgrade BIOS or use force_addr=0xaddr
-Message-Id: <20020715201246.A4244@lodz.tpsa.pl>
+Message-Id: <20020722194201.A27437@lodz.tpsa.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020704182412.D6544@lodz.tpsa.pl>
 In-Reply-To: <20020704182412.D6544@lodz.tpsa.pl>
@@ -10,29 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear,
-sorry for bothering you but I haven't received any reply for my message
-which I sent 5 days ago. Maybe it didn't reach you because of the
-temporary disappearing of domain andrew.net.au.
-I'm forwarding it below.
-
------ Forwarded message from Tomasz Papszun <tomek@lodz.tpsa.pl> -----
-
-Date: Wed, 10 Jul 2002 22:34:44 +0200
-From: Tomasz Papszun <tomek@lodz.tpsa.pl>
-To: phil@netroedge.com
-Cc: sensors@Stimpy.netroedge.com
-Subject: Re: i2c-piix4.o: SMB base address uninitialized - upgrade BIOS or use force_addr=0xaddr
-
 Phil,
 big thanks for your help, but sensors still don't work.
 Please, read on - I'm giving details of my trials between fragments of
 your letter. Sorry, "sensors people" ;-)  for quoting almost all message
 but not all of you remember what I and Phil wrote previously, I think.
-
-BTW, domain of the server with the archive of discussion list -
-archives.andrew.net.au has disappeared! All domain andrew.net.au as well!
-
 
 On Fri, 05 Jul 2002 at  9:49:46 -0700, phil@netroedge.com wrote:
 > 
@@ -288,9 +270,10 @@ ServerWorks OSB4: not 100% native mode: will probe irqs later
 > > 
 > > [...]
 
--- 
+--
  Tomasz Papszun   SysAdm @ TP S.A. Lodz, Poland  | And it's only
  tomek@lodz.tpsa.pl   http://www.lodz.tpsa.pl/   | ones and zeros.
+
 
 # /usr/src/lm_sensors-2.6.3/prog/detect/sensors-detect
  This program will help you to determine which I2C/SMBus modules you need to
@@ -426,11 +409,3 @@ To make the sensors modules behave correctly, add these lines to either
 # I2C module options
 alias char-major-89 i2c-dev
 #----cut here----
-
-
-
------ End forwarded message -----
-
--- 
- Tomasz Papszun   SysAdm @ TP S.A. Lodz, Poland  | And it's only
- tomek@lodz.tpsa.pl   http://www.lodz.tpsa.pl/   | ones and zeros.
