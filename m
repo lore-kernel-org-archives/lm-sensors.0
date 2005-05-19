@@ -1,33 +1,23 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:52 +0000
-Subject: New driver for MAX663x temperature sensor.
-Message-Id: <20040414212404.2ddd7a46.khali@linux-fr.org>
+From: wedge01@hotmail.com (Wedge .)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: nForce2 support
+Message-Id: <F3MVwVn20lbhsKd6QR700002b50@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1081775028.11592.294.camel@uganda>
-In-Reply-To: <1081775028.11592.294.camel@uganda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-> Attached patch for lm_sensors (...)
+Hi, I saw that you can't add nForce2 support into lm_sensors without a=20
+datasheet. Maybe this is a stupid question, but could you just ask nVidia=20
+for the information you need? I use Motherboard Monitor in Windows, and the=
+=20
+person who writes that, Alex van Kaam, got help and information from nVidia=
+=20
+to implement nForce2 support in the latest version of MBM. Maybe they would=
+=20
+do the same for you?
 
-OK, applied with some changes, fixes and improvements. I would
-appreciate it if you could check it out from CVS and test.
-
-BTW, quoting myself:
-
-> > +	for (i=0; i<32; ++i)
->
-> You can skip i=0, it cannot fail.
-
-Of course not. It cannot fail *if* the registers are read only, but we
-don't know if they are (hey, this is why we are testing). That said,
-reverting the for loop order would leave more time for the values to
-change if they have to (but I didn't do that it the patch however).
-
-Thanks for your contribution to our project.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+_________________________________________________________________
+STOP MORE SPAM with the new MSN 8 and get 2 months FREE*=20
+http://join.msn.com/?page=FEatures/junkmail
