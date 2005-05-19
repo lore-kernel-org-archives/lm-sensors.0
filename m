@@ -1,27 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:25 +0000
-Subject: driver initialization of chips
-Message-Id: <20031115120926.596368a7.khali@linux-fr.org>
+From: Claus.Rosenberger@rocnet.de (Claus Rosenberger)
+Date: Thu, 19 May 2005 06:23:48 +0000
+Subject: sensors with K7S5A
+Message-Id: <34986.10.20.2.100.1045593851.squirrel@deathstar.of.rocnet.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3FB5ADC8.A055A6E5@paradyne.com>
-In-Reply-To: <3FB5ADC8.A055A6E5@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-> I'd like to modify all the drivers to not initialize the chips unless
-> there's an init=1 argument (i.e. init=0 is the default).
-> I know there's been some who favor this change...
-> comments?
+i try to use lm_sensors with my K7S5A Mainboard.
 
-I'm in favor of this, although I never took the time to change all the
-drivers. Please take a look at the following thread:
-  http://archives.andrew.net.au/lm-sensors/msg04549.html
-Quite a long thread, I now, still this expresses the opinion of some of
-us about the topic, so it might help you.
+sensors-detect reports following result :
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Use driver `i2c-sis645' for device 00:00.0: Silicon Integrated Systems SIS735
+Use driver `i2c-sis5595' for device 00:02.0: Silicon Integrated Systems
+SIS5595
+Use driver `i2c-matroxfb' for device 01:00.0: MGA G200 AGP
+
+While loading this drivers i get failures because no devices deteced.
+
+In the mainboard list you linked too my mainbard has the SIS950 chipset
+which is in driver it87 included.
+
+Loading this drivers is ok but sensors reports "No sensors found!"
+
+What to do now ??
+
+Thanks,
+   Claus
+
