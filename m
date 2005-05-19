@@ -1,47 +1,189 @@
-From: azarah@gentoo.org (Martin Schlemmer)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:51 +0000
 Subject: w83781d i2c driver updated for 2.5.66 (without sysfs support)
-Message-Id: <1048708449.7569.34.camel@nosferatu.lan>
+Message-Id: <20030326202622.GJ24689@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1048582394.4774.7.camel@workshop.saharact.lan>
-	 <20030325175603.GG15823@kroah.com> <1048705473.7569.10.camel@nosferatu.lan>
-	 <3E82024A.4000809@portrix.net>
+References: <1048582394.4774.7.camel@workshop.saharact.lan> <20030325175603.GG15823@kroah.com> <1048705473.7569.10.camel@nosferatu.lan> <3E82024A.4000809@portrix.net>
 In-Reply-To: <3E82024A.4000809@portrix.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jan Dittmer <j.dittmer@portrix.net>
-Cc: Greg KH <greg@kroah.com>, KML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@brodo.de>, sensors@stimpy.netroedge.com
+Cc: azarah@gentoo.org, KML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@brodo.de>, sensors@stimpy.netroedge.com
 
-On Wed, 2003-03-26 at 21:40, Jan Dittmer wrote:
+On Wed, Mar 26, 2003 at 08:40:58PM +0100, Jan Dittmer wrote:
 > Martin Schlemmer wrote:
-> > 
-> > I did look at the changes needed for sysfs, but this beast have
-> > about 6 ctl_tables, and is hairy in general.  I am not sure what
-> > is the best way to do it for the different chips, so here is what
-> > I have until I or somebody else can do the sysfs stuff.
-> > 
+> >
+> >I did look at the changes needed for sysfs, but this beast have
+> >about 6 ctl_tables, and is hairy in general.  I am not sure what
+> >is the best way to do it for the different chips, so here is what
+> >I have until I or somebody else can do the sysfs stuff.
+> >
 > I've just done this with the via686a driver. Saves about 100 lines of code.
 > 
 > Comments?
-> 
 
-Nice example, thanks =)  The w83781d does things in similar fashion,
-except that it support 6 different 'models', that have more or less
-the same readouts except for here and there a few more or less.
+<snip>
 
+> +/* following are the sysfs callback functions */
+> +static ssize_t show_in(struct device *dev, char *buf, int nr) {
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct via686a_data *data = i2c_get_clientdata(client);
+> +	via686a_update_client(client);
+> +
+> +	return sprintf(buf,"%ld %ld %ld\n",
+> +		IN_FROM_REG(data->in_min[nr], nr),
+> +		IN_FROM_REG(data->in_max[nr], nr),
+> +		IN_FROM_REG(data->in[nr], nr) );
+> +}
 
-Regards,
+We should really split these multivalue files up into individual files,
+as sysfs is for single value files.  Makes parsing easier too.
 
--- 
+Here's a patch for the lm75.c driver that does this.  As we are going to
+need a "generic" read and write for the "real" values that the i2c
+drivers use, I added these files to the i2c-proc.c file.
 
-Martin Schlemmer
+Yes, i2c_read_real() doesn't really work just yet :)
 
+Anyway, I think this is the direction we should be moving to.  And what
+is "temp_os" and "temp_hyst"?  Should these files be named something a
+bit more descriptive?
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030326/dcf89801/attachment.bin
+thanks,
+
+greg k-h
+
+diff -Nru a/drivers/i2c/chips/lm75.c b/drivers/i2c/chips/lm75.c
+--- a/drivers/i2c/chips/lm75.c	Wed Mar 26 12:28:45 2003
++++ b/drivers/i2c/chips/lm75.c	Wed Mar 26 12:28:45 2003
+@@ -102,6 +102,49 @@
+ 
+ static int lm75_id = 0;
+ 
++#define show(value)	\
++static ssize_t show_##value(struct device *dev, char *buf)	\
++{								\
++	struct i2c_client *client = to_i2c_client(dev);		\
++	struct lm75_data *data = i2c_get_clientdata(client);	\
++	int temp;						\
++								\
++	lm75_update_client(client);				\
++	temp = TEMP_FROM_REG(data->value);			\
++	return i2c_write_real(buf, temp, 1);			\
++}
++show(temp);
++show(temp_os);
++show(temp_hyst);
++
++static ssize_t set_temp_os(struct device *dev, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm75_data *data = i2c_get_clientdata(client);
++	int temp;
++
++	i2c_read_real(buf, &temp, 1);
++	data->temp_os = TEMP_TO_REG(temp);
++	lm75_write_value(client, LM75_REG_TEMP_OS, data->temp_os);
++	return count;
++}
++
++static ssize_t set_temp_hyst(struct device *dev, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm75_data *data = i2c_get_clientdata(client);
++	int temp;
++
++	i2c_read_real(buf, &temp, 1);
++	data->temp_hyst = TEMP_TO_REG(temp);
++	lm75_write_value(client, LM75_REG_TEMP_HYST, data->temp_hyst);
++	return count;
++}
++
++static DEVICE_ATTR(temp, S_IRUGO, show_temp, NULL);
++static DEVICE_ATTR(temp_os, 0644, show_temp_os, set_temp_os);
++static DEVICE_ATTR(temp_hyst, 0644, show_temp_hyst, set_temp_hyst);
++
+ static int lm75_attach_adapter(struct i2c_adapter *adapter)
+ {
+ 	return i2c_detect(adapter, &addr_data, lm75_detect);
+@@ -192,6 +235,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto error3;
+ 
++	device_create_file(&new_client->dev, &dev_attr_temp);
++	device_create_file(&new_client->dev, &dev_attr_temp_os);
++	device_create_file(&new_client->dev, &dev_attr_temp_hyst);
++
+ 	/* Register a new directory entry with module sensors */
+ 	i = i2c_register_entry(new_client, type_name, lm75_dir_table_template);
+ 	if (i < 0) {
+diff -Nru a/drivers/i2c/i2c-proc.c b/drivers/i2c/i2c-proc.c
+--- a/drivers/i2c/i2c-proc.c	Wed Mar 26 12:28:45 2003
++++ b/drivers/i2c/i2c-proc.c	Wed Mar 26 12:28:45 2003
+@@ -381,6 +381,14 @@
+ 	return ret;
+ }
+ 
++int i2c_read_real(const char *buf, int *real, int magnitude)
++{
++	char *temp;
++
++	*real = simple_strtoul(buf, &temp, 10);
++
++	return 0;
++}
+ 
+ /* nrels contains initially the maximum number of elements which can be
+    put in results, and finally the number of elements actually put there.
+@@ -499,6 +507,29 @@
+ 	return 0;
+ }
+ 
++int i2c_write_real(char *buf, int real, int magnitude)
++{
++	char printfstr[12];
++	int mag;
++	int times;
++	int field_location;
++
++	mag = magnitude;
++	for (times = 1; mag-- > 0; times *= 10)
++		;
++
++	if (real < 0) {
++		strcpy(printfstr, "-%ld.%0Xld");
++		field_location = 7;
++	} else {
++		strcpy(printfstr, "%ld.%0Xld");
++		field_location = 6;
++	}
++	printfstr[field_location] = magnitude + '0';
++	real = abs(real);
++	return sprintf(buf, printfstr, real / times, real % times);
++}
++
+ static int i2c_write_reals(int nrels, void *buffer, size_t *bufsize,
+ 			 long *results, int magnitude)
+ {
+@@ -724,6 +755,8 @@
+ EXPORT_SYMBOL(i2c_proc_real);
+ EXPORT_SYMBOL(i2c_sysctl_real);
+ EXPORT_SYMBOL(i2c_detect);
++EXPORT_SYMBOL(i2c_write_real);
++EXPORT_SYMBOL(i2c_read_real);
+ 
+ MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
+ MODULE_DESCRIPTION("i2c-proc driver");
+diff -Nru a/include/linux/i2c-proc.h b/include/linux/i2c-proc.h
+--- a/include/linux/i2c-proc.h	Wed Mar 26 12:28:45 2003
++++ b/include/linux/i2c-proc.h	Wed Mar 26 12:28:45 2003
+@@ -410,5 +410,8 @@
+ 	char name[SENSORS_PREFIX_MAX + 13];
+ };
+ 
++extern int i2c_write_real(char *buf, int real, int magnitude);
++extern int i2c_read_real(const char *buf, int *real, int magnitude);
++
+ #endif				/* def _LINUX_I2C_PROC_H */
+ 
