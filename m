@@ -1,7 +1,7 @@
 From: morris@wolfman.com (Jim Morris)
-Date: Thu, 19 May 2005 06:24:00 +0000
+Date: Thu, 19 May 2005 06:24:01 +0000
 Subject: lm_sensors2/prog/detect sensors-detect
-Message-Id: <20030614135944.8D61.MORRIS@wolfman.com>
+Message-Id: <20030622123649.F0FC.MORRIS@wolfman.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021107235845.0037e195.khali@linux-fr.org>
 In-Reply-To: <20021107235845.0037e195.khali@linux-fr.org>
@@ -10,7 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'll get this done over the weekend... sorry for the delay.
+Sorry for the delay, I got busy with some other work...
+
+Ok they are different I attach both files... but here are the juicy bits...
+
+With UTF on..
+Probing for `ITE IT8705F / IT8712F / SiS 950'
+  Trying address 0x0290...
+ite_isa_detect called with chip = 0 and addr = 656
+val = 144
+val = 88
+calling outb with addr = 661 and val = 167
+In the if block
+Failed!
+
+With UTF off...
+Probing for `ITE IT8705F / IT8712F / SiS 950'
+  Trying address 0x0290...
+ite_isa_detect called with chip = 0 and addr = 656
+val = 255
+val = 79
+calling outb with addr = 661 and val = 176
+after return #1
+after return #2
+Success!
+    (confidence 8, driver `it87')
 
 On Thu, 12 Jun 2003 13:33:03 +0200
 Jean Delvare <khali@linux-fr.org> wrote:
@@ -38,3 +62,17 @@ khali>
 
 --
 Jim Morris morris@wolfman.com
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: try2.utf
+Type: application/octet-stream
+Size: 4644 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030622/488d9d10/try2.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: try1.nonutf
+Type: application/octet-stream
+Size: 4817 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030622/488d9d10/try1.obj
