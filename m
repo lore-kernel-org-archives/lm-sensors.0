@@ -1,7 +1,7 @@
-From: yeupou@coleumes.org (Mathieu Roy)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: No fan values with W83637HF
-Message-Id: <m33bye6lgq.fsf@eos.attique.in>
+Message-Id: <20041212191109.6353500a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <m3ekhyb7b9.fsf@eos.attique.in>
 In-Reply-To: <m3ekhyb7b9.fsf@eos.attique.in>
@@ -10,49 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"Jean Delvare" <khali@linux-fr.org> tapota :
+> Hum, I change the value of files in /sys/bus/i2c/devices/0-0290 (like
+> /sys/bus/i2c/devices/1-0290/fan2_pwm) but it does not made obvious
+> changes on the fan speed reported. Is there a pointer to a useful doc
+> about that?
 
->> While (shame on me) I did not read the FAQ, I found on the web clues
->> about this divider problem. I already tried to change the factor within
->> gkrellm before sending the mail. Now I realize that changing the
->> factor in gkrellm is probably not comparable to modifying the divider.
->
-> I guess -s.
+Three possibilities:
 
-Correct,
+1* Your motherboard isn't wired for PWM support. There's nothing more
+you can do.
 
->> And now it seems to be working (somehow surprising results, though
->> - no real speed increase/decrease whatever the CPU temperature ; but
->> it could be explained by the BIOS configuration where 55? is the
->> target temperature, a temperature the CPU hardly reach since the room
->> the computer is within is a bit cold).
->
-> The automatic fan speed adjustment is a special mode of the W83637HF,
-> which is NOT supported by our w83627hf driver yet. The driver will also
-> reset the chip upon load (shame on us) so any configuration made by your
-> BIOS will be lost. Most probably, the fans are not changing speeds
-> because of that. You might try to change their speed manually using the
-> pwm files in /sys/bus/i2c/devices/0-0290 (of whatever it is named
-> exactly on your system).
+2* Your fans don't like the PWM frequency your monitoring chip uses.
+This can be tinkered with.
 
-Hum, I change the value of files in /sys/bus/i2c/devices/0-0290 (like
-/sys/bus/i2c/devices/1-0290/fan2_pwm) but it does not made obvious
-changes on the fan speed reported. Is there a pointer to a useful doc
-about that?
+You can easily differenciate by setting PWM value to 0 (fan stopped). In
+the first case the fan won't stop, in the second it will. Don't leave it
+off too long ;)
 
-Apart from that, will the sensors reset the BIOS power down on extr?me
-heat? This would be quite concerning (despite the fact that I never
-manage to reach such temperatures under GNU/Linux)?
+Make sure you have pwmN_enable set to 1, providing such a file exists
+for you (depend on the chip).
 
-Thanks,
+3* The chip is in automatic fan control mode. Not too sure about what
+would happen then.
 
+> Apart from that, will the sensors reset the BIOS power down on extr?me
+> heat? This would be quite concerning (despite the fact that I never
+> manage to reach such temperatures under GNU/Linux)?
+
+This much depends on the chip configuration and the motherboard wiring,
+so I just can't tell, sorry.
 
 -- 
-Mathieu Roy
-
-  +
-  | Thalie  : <http://yeupou.coleumes.org/> 
-  | Clio    : <http://clio.coleumes.org/>       
-  | Uranie  : <http://alberich.coleumes.org/>
-  | Euterpe : <http://kromaniaks.coleumes.org/>
-  +-----------------------------------------------------------+
+Jean Delvare
+http://khali.linux-fr.org/
