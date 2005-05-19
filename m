@@ -1,7 +1,7 @@
 From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: RFC parameter based voltage scaling
-Message-Id: <0aj481tn58ujge3jihupip7n1q87q6glve@4ax.com>
+Message-Id: <p9o481t6beo0aeek30gr02r6v0aob9eb4k@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
 In-Reply-To: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
@@ -11,125 +11,142 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Mark,
-On Wed, 11 May 2005 10:23:50 -0400, Mark Studebaker <mds@mds.gotdns.com> wrote:
+On Wed, 11 May 2005 10:41:35 -0400, Mark Studebaker <mds@mds.gotdns.com> wrote:
 
->                                But using 5% resistors in front of
->a sensor is just bad design. The Winbond datasheets  I've looked at
->have 1% resistors in the schematics. What's the basis for
->your 5% assumption?
+>IIRC the comment, and these original formulas, are mine.
+>    compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+>    compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+>
+>If I made a mistake doing the formulas on the back of a napkin,
+>or they aren't correct for newer
+>Winbond chips (is the 697f the chip you've been referring to when you say
+>"Winbond"? - there are lots of separate sections for Winbond chips in
+>sensors.conf.eg), then let's fix them in sensors.conf.eg.
 
-1. Inventory = 24 values per decade rather than 96 on stock?  I 
-think my local electronics shop only sells 1% now, but in E24 
-series, so I framed a bad argument for the 5% E24 series.  My bad.
+I can not tell by inspection whether those computes are correct 
+or not, but taking my mobo 624mV through the in5 produces -11.7V
+which corresponds to Winbond 56/232 datasheet values.  What had 
+me upset was a reference up near top of file saying Winbond values 
+better, and was totally bogus formulas as no offset present.
 
-2. Empirical, I asked for and got no answer for a particular issue, 
-coded up a test using E12 series and got a very unambiguous answer, 
-I was quite surprised how 'accurate' this method is.  I try for 
-different issue and go to E24 series, I did have to look up the 
-E96 series :)
+That's what got me 'snippy', not see your formula further down 
+until yesterday, I didn't get past the top bit :)  
 
-The method fails for E96 series as calculation resolution is below 
-measurement resolution =>> no repeatability.  
+Again, if I had more patience... but a friend of mine been using 
+sensors for years and he had problems always with sensors.conf 
+so I started with a negative attitude.
 
-Look at Winbond recommended 56/232 = .241, replace with 24/100 = .240
-only ~1 bit error.  Seems to match my mobo BIOS vs sensors.  the 10/28 
-translates to 20/56 E24 series -- so that 232k is only E96 value on 
-winbond datasheet in functional terms.  The internal resistor values 
-can be anything they want: 34/50, 34/51, 17/33 for various chips, 
-and whether 5V or 5VSB
+>Or you suggested rewriting the formulas to be more transparent -
+>that's a good idea.
 
->You aren't the only EE around here, please don't give us a bad name by being
->snippy.
+That is now what I'm aiming for, transparency in the computes, 
+relating back to datasheet where appropriate.
 
-Mark, my apologies, I retired 12 years ago, burned out, completed 
-a computing degree part time after a motorcycle accident and for 
-the last several months been battling medication issues that have 
-been very difficult for me, and have spilled over as bad attitude, 
-particularly at times in last two months, including last week.
+>But just because the formula's wrong doesn't mean we should shove
+>the calculations into the driver.
 
-Sometimes I don't hit the delete button as often as I should when 
-writing :)
+What set me off in that direction was seeing lm87 has inX_scale 
+in private memory but without accessors, so close?  So yes, why 
+not put entire transform into driver?  I know, wont happen :)
 
-This is what convinces me:
-grant@sempro:~$ wq_discover_R1_R2-w83697hf
+>Let's fix the formulas and be done.
 
-  Grant's voltage divider value finder, version 2005-05-11
-  R1 is from E24 (5%) series, R2 from two decades E24 series
+Then we come to practical reality, this is where they'll go, now 
+that I can describe traceable computes that _work_ into sensors.conf 
+I am much happier with it.
 
-Sync measurement cycle... ... Done.
+If you had an 'include' command in sensors so that various 
+chips can be documented in a modular fashion.  Much less 
+intimidating to this new user than one enormous file that 
+grew some, over the years.
 
-Working on:    12V
-~~~~~~~~~~~~~~~~~~
-    R1    R2    Error   100R2/R1
-   ----  ----   ------     ---
-    20    56    -0.03%     280
-    43   120     0.29%     279
+Couple months ago I'd dismissed sensors.conf as totally stupid, 
+like spaghetti code, just too much in one file.
 
-Working on:   -12V
-~~~~~~~~~~~~~~~~~~
-    R1    R2    Error   100R2/R1
-   ----  ----   ------     ---
-    18    75     0.06%     416
-    24   100     0.06%     416
-    36   150     0.06%     416
+Was only yesterday I find it can work with more transparent 
+computes and Jean Delvare told me it can use other input values, 
+which is needed for adm9240 as it doesn't have reference to drive 
+top of divider for minus voltages, so one uses measured 5V, my 
+mobo was 5.14V and nothing worked out until I took that 5V 
+variation into account.
 
-Working on:    -5V
-~~~~~~~~~~~~~~~~~~
-    R1    R2    Error   100R2/R1
-   ----  ----   ------     ---
-    56   120    -0.07%     214
-    22    47     0.21%     213
+My work on fixed point math was in solving a particular problem, 
+discovery of mobo resistor ratios, and can be applied to the 
+driver or sensors.  
+>
+>I think that's where you are now anyway? not sure...
 
+That is where I am now, reconciling my experience with yours and 
+lmsensors team.  Because I lost trust in sensors early, I've come 
+in now with fresh review from datasheets right through system. 
+But still a sample, not all the drivers yet.
 
-   x     raw    BIOS   final   label   R1   R2  100R2/R1
-   0    1552    1555    1552   Vcore    0    0
-   2    3296    3295    3296     3.3    0    0
-   3    3040    5135    5107   *   5   50   34     68
-   4    3152   11975   11977      12   20   56     280
-   5     624  -11785  -11776     -12   24  100     416
-   6     848   -5045   -5049      -5   56  120     214
-   7    3280    5075    4969   *5VSB   33   17     51
-   8    3376    3375    3376   Vbatt    0    0
+And now I integrate this review back to lmsensors, as it makes 
+sense to me now.
 
-                               * internally scaled
+>Do you now think the formula  is wrong or just hard to understand?
 
-Have I cheated?  I appended 5 instead of 0 to each BIOS voltage 
-to get extra digit for whole mV value.  I think one could argue 
-using 1/2 a digit is okay?
+Hard to understand.  When I first looked, I couldn't see what '@' 
+was, and then the duplication of each formula to get the reciprocal?
+Computers can do that.  The response to my query about the unnecessary 
+duplication was: 'how else would you do it?'  And, at one point the 
+whole shebang looked hopeless to me, yes, very difficult to understand.
 
-shell script at http://scatter.mine.nu/hwmon/voltage/
+So I have provided the 'how else' alternative by going back to the 
+parameters.  The dual formula entry is silly as it describes get/set 
+via the same transform in two ways, the machine can perform the 
+reverse transform all by itself.
 
-Using 100 * R2 / R1 for comparison ratio seems best for fixed 
-point math, as R2 > R1.
+This is wrong[1], sensors.conf line 144:
+# On almost any mainboard we have seen, the Winbond compute values lead to
+# much better results, though.
+#
+#             Vs     R1,Rin   R2,Rf    Vin
+#       in4  +12.0     28      10     +3.00
+#       in5  -12.0    210      60.4   +3.00
+#       in6   -5.0     90.9    60.4   +3.00
+#
+# These leads to these declarations:
+#       compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+#       compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+#       compute in5 -(210/60.4)*@  ,  -@/(210/60.4)
+#       compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
+#
 
-I've set bailout on absolute error at 0.33%, I'm surprised, 
-impressed by how well this method can pick values.  If I change 
-the 24/100 for -12V to winbond 56/232:
+No offsets for Winbond negative values, yet the +12V uses datasheet 
+10/28 -- this is what kicked me into the 'totally bogus' response.
 
-    5     624  -11785  -11705     -12   56  232     414
+Not until line 439 do I read about an offset:
 
-That convinces me that my mobo uses 24/100 instead of 56/232.
-We're looking at ~65mV resolution here.  Supporting your argument 
-that mobo makers use 1% is the fact that this method works at 
-as it uses current chip measurement to reconcile BIOS reading :)
+# Same as above for w83781d except that in5 and in6 are computed differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard positive
+# inputs and the negative voltages are level shifted by a 3.6V reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
 
-I'm trying to make sense of a system that contradicts itself in 
-intent and implementation.  The usual patchy documentation that 
-GNU/Linux is famous for.  Well, we all plan to do documentation.
+And that paragraph is hopelessly user unfriendly, "so we hope that 
+your motherboard...".  Because what it leads to is end-users just 
+fudging their numbers to get something that looks okay.  And some 
+drivers too.
 
-I see strangely implemented transforms and thus have a desire for 
-audit trail back to datasheet values.  Particularly as I was firmly 
-told all chips with internal scaling report pin voltage, and I 
-find many do not, then I see quite weird transforms in drivers or 
-sensors -- this needs fixing.
+[1]It is not wrong, in context that Winbond put inverters in some 
+chips, it is wrong, when I'm looking for the offset positive 
+measurement :)
 
-When I started this exercise it was not clear that sensors could 
-use other inputs in a compute, required for adm9240.  Which I'll 
-work on again soon to verify a sensors compute line for SE440BX-2 
-mobo, though I'm a few years late for that one.
+When I reviewed winbond, I was checking for variations in 5V 
+measurement because drivers not scaling it as per guidelines 
+of presenting internally scaled pin voltage to sysfs, not looking 
+at negative voltage handling as that was outside driver space, 
+done in user space, so I missed the inverters in some winbond 
+chips.
 
-Besides, nothing beats evidence (as per research data collection 
-terminology) to prove a point.  Being told datasheets are in error 
-doesn't cut it for me.  
+For that misunderstanding, my apologies.
+
+I take an instant dislike to R1, R2 formulas with a +1 in them.  
+There is no reason to 'simplify' formulas when writing software, 
+that's the computer's job.  
+
+The compute lines should be traceable to datasheet and/or real world 
+values, computers don't mind computing :)
 
 --Grant.
