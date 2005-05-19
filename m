@@ -1,25 +1,41 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:37 +0000
-Subject: [PATCH] 2.6 preparations for documentation update
-Message-Id: <20050208200444.GB24804@kroah.com>
+From: david_knierim@earthlink.net (David Knierim)
+Date: Thu, 19 May 2005 06:25:21 +0000
+Subject: rpm of 0 with smsc47m1 does not cause alarm
+Message-Id: <41879A3F.3050304@earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0502081427510.7839@desitka.sh.cvut.cz>
-In-Reply-To: <Pine.LNX.4.58.0502081427510.7839@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 08, 2005 at 09:00:23PM +0100, Rudolf Marek wrote:
-> > Why not just send me a patch that does just that?  It would be much
-> > easier...
-> 
-> I'm sorry.
-> Sure next time. But for this time I was convinced that you and/or BK likes
-> this more.
 
-BK can handle a patch that moves a file around just fine :)
+I have recently noticed that one of the fans on a box I am monitoring is 
+no longer sending a tachometer signal, so sensors(1) indicates the 
+RPM=0.  This is as you would expect.   However, I would expect 
+sensors(1) to report an ALARM for this fan.   That is not what I am seeing:
 
-thanks,
+smsc47m1-isa-0680
+Adapter: ISA adapter
+superio,Fan1:
+              0 RPM  (min = 1396 RPM, div = 8)
+superio,Fan2:
+              0 RPM  (min = 1396 RPM, div = 8)
 
-greg k-h
+
+# cat /proc/sys/dev/sensors/smsc47m1-isa-0680/alarms
+0
+
+Hmmm...  This indicates to me that maybe the part doesn't
+think there's a problem??
+
+I really need to get alarms in the cases where the fans are not working.
+
+In researching this, the fan tachometer has not been working for a long 
+time (wiring problem), so if it makes any difference, the superio chip 
+has never seen any tachometer signals since power on.
+
+Any suggestions??
+
+David
+
+
