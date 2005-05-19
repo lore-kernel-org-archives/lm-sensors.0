@@ -1,40 +1,43 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: sensors only as root?
-Message-Id: <3ED8C9FA.3020809@paradyne.com>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: call for 2.6.2 soon
+Message-Id: <3BEB1CB9.B0136C74@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200305301509.00292.dave@nobodynet.net>
-In-Reply-To: <200305301509.00292.dave@nobodynet.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Very strange.
-Haven't heard this one before.
-You can check the permissions on /proc/sys/dev/sensors contents.
-You can also try 'strace sensors' to try and see what's failing.
-Most of the accesses are via sysctl calls.
+2nd call.
+I did the mkpatch update and the w83781d flag.
 
-Dave Smith wrote:
-> Hi,
+Let's say end of the day Sunday 11/11 to get things in.
+
+Also, I would like to ensure that nothing, for a while, in lm_sensors requires
+the user to patch i2c if he has kernel 2.4.13 or greater.
+This way we can give our users a break and reduce the support tickets.
+
+Any new drivers that require an ID please add
+	#ifndef I2C_DRIVERID_xxx
+	#define I2C_DRIVERID_xxx yyy
+	#endif
+to the driver and test against stock 2.4.13 or higher kernel.
+I did this for the first Fujitsu driver; Martin, would you please do it for yours.
+
+Oleg, please let me know what patches go in on the i2c side.
+
+mds
+
+
+
+"Mark D. Studebaker" wrote:
 > 
-> I've had a look through the docs / FAQ, but can't find the answer to my 
-> question.
+> I'd like to put out a 2.6.2 release soon after kernel 2.4.13 is released
+> so we are synchronized with the kernel.
 > 
-> I've just set up lmsensors-2.7.0 on my machine, but I can only run sensors as 
-> root.  I'm using the it87 module, and have also loaded i2c-proc, -dev and 
-> -isa.  I have chmod'ed /dev/i2c0 and /dev/i2c-0 to be read/writable as my 
-> non-root users, but I still only get "No sensors found!" when I run sensors 
-> as a user other than root.
+> Before that, on the sensors side,
+> I'm going to add some drivers to mkpatch in sensors and add
+> a no-initialize flag to w83781d to keep some boards from hanging.
 > 
-> Can you tell me what permissions I may have to change in order to run sensors 
-> as non-root users.  My other machine can do this with no problems, although 
-> that uses different drivers, etc., plus I set it up 2 years ago and can't 
-> remember if I needed to change any permissions on it to get it to work 
-> properly.
-> 
-> Cheers,
-> --Dave
-> 
-> 
+> Anything else on the sensors side please check it in this week.
+> mds
