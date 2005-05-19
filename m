@@ -1,24 +1,28 @@
-From: phil@philedelbrock.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: 2.9.0 released!
-Message-Id: <FBEDEDE0-594C-11D9-801E-000A95A4F536@philedelbrock.com>
+From: marekm@amelek.gda.pl (Marek Michalkiewicz)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: lm_sensors in 2.4.x kernel?
+Message-Id: <E163DtE-0007QO-00@alf.amelek.gda.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
+I've been successfully using the latest (CVS) lm_sensors drivers
+with various 2.4.x kernels for quite a long time now.  The only
+problem I see so far is having to patch the kernel each time - while
+the mkpatch.pl script makes it fairly easy, it would be even easier
+to simply have it in the kernel.  So I'm asking, are there any good
+reasons (serious bugs that still need fixing, etc.) why this hasn't
+happened yet?  (partially done for i2c drivers, but not lm_sensors)
 
-2.9.0 is finally released.
+Another patch I've been using for some time (ext3 filesystem) is
+now included in 2.4.15-pre2, so there is already some precedent for
+adding a lot of new code to stable 2.4.x kernel series...
+After all, it's just a set of new optional drivers, which shouldn't
+break anything if not enabled during kernel configuration.
 
-Please review news announce notes on home page and adjust as needed.
-
-Mark - If you'd like to do the Freshmeat announce, you can do so at 
-your convenience.
-
-Congrats again to everyone for another fantastic release of Lm_sensors 
-which only gets better and better with each release! :')
-
-
-Phil
+Thanks,
+Marek
