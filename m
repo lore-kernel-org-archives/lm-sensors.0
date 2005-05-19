@@ -1,23 +1,19 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: i2c-amd756 and dual opteron sensors not foun
-Message-Id: <20040302215907.10fa5997.khali@linux-fr.org>
+From: paradox@shatteredminds.com (paradox@shatteredminds.com)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: LM78 Temperature reading
+Message-Id: <1045288359.3e4dd5a7db631@webmail.shatteredminds.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E039AC86-6597-11D8-8D31-000A958E5EF8@defenderhosting.com>
-In-Reply-To: <E039AC86-6597-11D8-8D31-000A958E5EF8@defenderhosting.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Just to be sure that the devices are not on the i2c-amd756 bus, can
-> you send the output of i2cdetect if you haven't already...
+Hi! I've just finished installing lm sensors 2.7.0 on my PII 350 running 
+Slackware 8.1.  All the readings appear to be correct except for the 
+temperature, which just sits at +28.0C and never changes.  I'm using a 
+somewhat generic 440BX board with an LM78CCVF-J onboard.
 
-It's here:
-http://archives.andrew.net.au/lm-sensors/msg06674.html
+Thanks!
 
-No LM85.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+-------------------------------------------------
+This mail sent through IMP: http://horde.org/imp/
