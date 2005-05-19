@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <1072821972731@kroah.com>
+Message-Id: <10728219731748@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219712881@kroah.com>
+In-Reply-To: <10728219722179@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,135 +11,86 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.8.40, 2003/12/30 12:10:39-08:00, khali@linux-fr.org
+ChangeSet 1.1496.9.3, 2003/12/04 13:41:40-08:00, khali@linux-fr.org
 
-[PATCH] I2C: lm83 driver updates
+[PATCH] I2C: sysfs interface documentation
 
-Here is a patch for the lm83 driver, to be applied on top of your
-pending patches stack. What it does:
-* Remove limit initialisation by the driver. This is a backport from
-  CVS.
-* A few whitespace changes inspired by my recent porting of the lm90
-  driver.
+1* No more current hysteresis value. I don't think we ever saw a chip
+   which monitors current, and if we ever do, I would be very, very
+   surprised if it would have an hysteresis value.
+2* Temperature input and max can have 4 values. [from the previous
+   patch]
+3* Split temperature min and hysteresis into two separate files.
+4* New file temp_crit. [from previous patch]
+
+The new file temp_crit is subject to change later as we decide more
+precisely how we want to handle values that are common to more than one
+temperature channels.
 
 
- drivers/i2c/chips/lm83.c |   37 ++++++++++++-------------------------
- 1 files changed, 12 insertions(+), 25 deletions(-)
+ Documentation/i2c/sysfs-interface |   33 ++++++++++++++++++++++-----------
+ 1 files changed, 22 insertions(+), 11 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/lm83.c b/drivers/i2c/chips/lm83.c
---- a/drivers/i2c/chips/lm83.c	Tue Dec 30 12:27:57 2003
-+++ b/drivers/i2c/chips/lm83.c	Tue Dec 30 12:27:57 2003
-@@ -41,7 +41,7 @@
+diff -Nru a/Documentation/i2c/sysfs-interface b/Documentation/i2c/sysfs-interface
+--- a/Documentation/i2c/sysfs-interface	Tue Dec 30 12:32:18 2003
++++ b/Documentation/i2c/sysfs-interface	Tue Dec 30 12:32:18 2003
+@@ -68,9 +68,7 @@
+ 		Fixed point XXXXX, divide by 1000 to get Amps.
+ 		Read/Write.
  
- static unsigned short normal_i2c[] = { I2C_CLIENT_END };
- static unsigned short normal_i2c_range[] = { 0x18, 0x1a, 0x29, 0x2b,
--    0x4c, 0x4e, I2C_CLIENT_END };
-+	0x4c, 0x4e, I2C_CLIENT_END };
- static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
- static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
+-curr_min[1-n]	Current min or hysteresis value.
+-		Preferably a hysteresis value, reported as a absolute
+-		current, NOT a delta from the max value.
++curr_min[1-n]	Current min value.
+ 		Fixed point XXXXX, divide by 1000 to get Amps.
+ 		Read/Write.
  
-@@ -78,16 +78,13 @@
- #define LM83_REG_W_TCRIT		0x5A
+@@ -144,25 +142,38 @@
+ 		Integers 1,2,3, or thermistor Beta value (3435)
+ 		Read/Write.
  
- /*
-- * Conversions, initial values and various macros
-+ * Conversions and various macros
-  * The LM83 uses signed 8-bit values.
-  */
+-temp_max[1-3]	Temperature max value.
++temp_max[1-4]	Temperature max value.
+ 		Fixed point value in form XXXXX and should be divided by
+ 		1000 to get degrees Celsius.
+ 		Read/Write value.
  
- #define TEMP_FROM_REG(val)	((val > 127 ? val-256 : val) * 1000)
- #define TEMP_TO_REG(val)	((val < 0 ? val+256 : val) / 1000)
+-temp_min[1-3]	Temperature min or hysteresis value.
++temp_min[1-3]	Temperature min value.
+ 		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.  This is preferably a
+-		hysteresis value, reported as a absolute temperature,
+-		NOT a delta from the max value.
++		1000 to get degrees Celsius.
+ 		Read/Write value.
  
--#define LM83_INIT_HIGH		100
--#define LM83_INIT_CRIT		120
--
- static const u8 LM83_REG_R_TEMP[] = {
- 	LM83_REG_R_LOCAL_TEMP,
- 	LM83_REG_R_REMOTE1_TEMP,
-@@ -114,9 +111,7 @@
-  */
- 
- static int lm83_attach_adapter(struct i2c_adapter *adapter);
--static int lm83_detect(struct i2c_adapter *adapter, int address,
--    int kind);
--static void lm83_init_client(struct i2c_client *client);
-+static int lm83_detect(struct i2c_adapter *adapter, int address, int kind);
- static int lm83_detach_client(struct i2c_client *client);
- static void lm83_update_client(struct i2c_client *client);
- 
-@@ -137,8 +132,7 @@
-  * Client data (each client gets its own)
-  */
- 
--struct lm83_data
--{
-+struct lm83_data {
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -233,8 +227,7 @@
-  * The following function does more than just detection. If detection
-  * succeeds, it also registers the new chip.
-  */
--static int lm83_detect(struct i2c_adapter *adapter, int address,
--    int kind)
-+static int lm83_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct lm83_data *data;
-@@ -290,6 +283,7 @@
- 		    LM83_REG_R_MAN_ID);
- 		chip_id = i2c_smbus_read_byte_data(new_client,
- 		    LM83_REG_R_CHIP_ID);
+-temp_input[1-3] Temperature input value.
++temp_hyst[1-3]	Temperature hysteresis value.
++		Fixed point value in form XXXXX and should be divided by
++		1000 to get degrees Celsius.  Must be reported as an
++		absolute temperature, NOT a delta from the max value.
++		Read/Write value.
 +
- 		if (man_id = 0x01) { /* National Semiconductor */
- 			if (chip_id = 0x03) {
- 				kind = lm83;
-@@ -315,8 +309,10 @@
- 	if ((err = i2c_attach_client(new_client)))
- 		goto exit_free;
++temp_input[1-4] Temperature input value.
++		Fixed point value in form XXXXX and should be divided by
++		1000 to get degrees Celsius.
+ 		Read only value.
  
--	/* Initialize the LM83 chip */
--	lm83_init_client(new_client);
-+	/*
-+	 * Initialize the LM83 chip
-+	 * (Nothing to do for this one.)
-+	 */
- 
- 	/* Register sysfs hooks */
- 	device_create_file(&new_client->dev, &dev_attr_temp_input1);
-@@ -338,17 +334,6 @@
- 	return err;
- }
- 
--static void lm83_init_client(struct i2c_client *client)
--{
--	int nr;
--
--	for (nr = 0; nr < 4; nr++)
--		i2c_smbus_write_byte_data(client, LM83_REG_W_HIGH[nr],
--	            TEMP_TO_REG(LM83_INIT_HIGH));
--	i2c_smbus_write_byte_data(client, LM83_REG_W_TCRIT,
--	    TEMP_TO_REG(LM83_INIT_CRIT));
--}
--
- static int lm83_detach_client(struct i2c_client *client)
- {
- 	int err;
-@@ -373,6 +358,7 @@
- 	    (jiffies < data->last_updated) ||
- 	    !data->valid) {
- 		int nr;
++temp_crit	Temperature critical value, typically greater than all
++		temp_max values.
++		Fixed point value in form XXXXX and should be divided by
++		1000 to get degrees Celsius.
++		Common to all temperature channels.
++		Read/Write value.
 +
- 		dev_dbg(&client->dev, "Updating lm83 data.\n");
- 		for (nr = 0; nr < 4 ; nr++) {
- 			data->temp_input[nr] @@ -388,6 +374,7 @@
- 		    i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS1)
- 		    + (i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS2)
- 		    << 8);
-+
- 		data->last_updated = jiffies;
- 		data->valid = 1;
- 	}
+ 		If there are multiple temperature sensors, temp_*1 is
+ 		generally the sensor inside the chip itself, generally
+-		reported as "motherboard temperature".  temp_*2 and
+-		temp_*3 are generally sensors external to the chip
++		reported as "motherboard temperature".  temp_*2 to
++		temp_*4 are generally sensors external to the chip
+ 		itself, for example the thermal diode inside the CPU or
+ 		a thermistor nearby.
+ 
 
