@@ -1,60 +1,40 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: mds@mds.gotdns.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Winbond W83792D driver
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE36FD92@weshml03.winbond.com.tw>
+Message-Id: <425B3D23.8080303@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKPiBUaGlzIGNhbid0IHdvcmshIEJ5IGRlZmluaXRpb24gaWYgaTJjX2dldF9jbGll
-bnRkYXRhKGNsaWVudCk9TlVMTCwKdGhlbgo+IGRhdGEgaXMgTlVMTCwgc28gZGF0YS0+bG03NSBk
-b2Vzbid0IGV4aXQuIEFsc28sIHlvdSB3b3VsZCBiZSBkZXRhY2hpbmcKPiBzdWJjbGllbnRzIG1v
-cmUgdGhhbiBvbmNlIGlmIGl0IGRpZCB3b3JrLCBhbmQgZnJlZWluZyBtZW1vcnkgbW9yZSB0aGFu
-Cj4gb25jZSB0b28uCj4gCj4gWW91IGFyZSBmYWNpbmcgdGhlIHByb2JsZW0gSSBleHBlY3RlZC4g
-V2l0aCB5b3VyIGN1cnJlbnQgYWxsb2NhdGlvbgo+IG1vZGVsLCBvbmx5IHRoZSBtYWluIGNsaWVu
-dCBjYW4gZnJlZSB0aGUgbWVtb3J5IGFsbG9jYXRlZCBmb3IKPiBzdWJjbGllbnRzLiB0aGUgcHJv
-YmxlbSBpcyB0aGF0IHlvdSBjYW5ub3QgYmUgc3VyZSB0aGF0IHRoZSBzdWJjbGllbnRzCj4gd2ls
-bCBiZSB1bnJlZ2lzdGVyZWQgZmlyc3QsIHNvIHlvdSBjYW4ndCBkbyB0aGF0Lgo+IAo+IEkgcmVh
-bGx5IHRoaW5rIHlvdSB3aWxsIGhhdmUgdG8gbW92ZSB0byBhIGRpZmZlcmVudCBhbGxvY2F0aW9u
-IG1vZGVsLgpTZWUKPiBhc2IxMDAgZm9yIGEgZ29vZCBleGFtcGxlIG9mIGhvdyB0aGluZ3Mgc2hv
-dWxkIGJlIGRvbmUuCj4gCj4gPiBJIG1lZXQgYSBwcm9ibGVtIHdoZW4gbG9hZCB0aGUgNzkyIG1v
-ZHVsZSBhZnRlciB0aGUgbW9kaWZpY2F0aW9uIHRvCj4gPiAxKi01KjogVzgzNzkyZCAwLTAwMmY6
-IFN1YmNsaWVudCAxIHJlZ2lzdHJhdGlvbiBhdCBhZGRyZXNzIDB4NDgKZmFpbGVkLgo+ID4KPiA+
-IFRoZSA3OTIgbW9kdWxlcyBkb2VzIG5vdCB3b3JrLCBkb2VzIGl0IGhhdmUgc29tZXRoaW5nIHRv
-IGRvIHdpdGgKeW91cgo+ID4gaXRlbSA2Kj8KPiA+IERvIHlvdSBrbm93IGhvdyB0byBzb2x2ZSB0
-aGlzIHByb2JsZW0/Cj4gCj4gVGhpcyBtaWdodCBoYXZlIGJlZW4gY2F1c2VkIGJ5IHRoZSBkZXJl
-Z2lzdHJhdGlvbiBwcm9ibGVtcy4gSWYgYQo+IHN1YmNsaWVudCB3YXNuJ3QgcHJvcGVybHkgdW5y
-ZWdpc3RlcmVkLCB0aGVuIGl0J3MgbWFya2VkIGFzIHVzZWQgdW50aWwKPiBuZXh0IHJlYm9vdC4g
-SSdkIHN1Z2dlc3QgdGhhdCB5b3UgY2hhbmdlIHRoZSBpbXBsZW1lbnRhdGlvbiBhbmQgdHJ5Cj4g
-YWdhaW4uIEhvcGVmdWxseSB0aGUgcHJvYmxlbSB3aWxsIGJlIGZpeGVkLgoKSSdtIHJlYWRpbmcg
-dGhlIGFzYjEwMC5jLi4uLmZyb20gbGludXgtMi42LjExLjYKSSB3aWxsIG1vZGlmeSBteSBjb2Rl
-cyB3aXRoIHRoZSBtZXRob2QgaW4gYXNiMTAwLmMgbGF0ZXIuIEFmdGVyIHRoZQptb2RpZmljYXRp
-b24KSSB3aWxsIHNlbmQgeW91IGZvciB5b3VyIGNvbmZpcm1hdGlvbiBhZ2Fpbi4KCgpUaGFua3Mg
-YSBsb3QKQmVzdCBSZWdhcmRzCgpDaHVuaGFvCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9u
-IGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUg
-YWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVt
-YWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWls
-IG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNo
-IHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3Jk
-aW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQg
-bmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJh
-dGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlk
-ZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5k
-IGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRo
-ZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVy
-IGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUg
-Q2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBl
-c3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7
-q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXek
-p6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8
-uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOx
-cblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4g
-r1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+z
-UcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGk
-bKSnpd+z9anOt06ooy4K
+the way I read the datasheet the first time (page 44) bits 2 and 6 were fixed at 0 and 1;
+that's why I coded it the way I did.
+But reading again that doesn't look right, that's just the power-up default,
+they aren't fixed.
+So your patch looks good.
+thanks
+mds
+
+Jean Delvare wrote:
+> Hi Chunhao,
+> 
+> 
+>>>This should be fixed in the 2.4 driver as well.
+>>
+>>Would you please help to fix the bug in 792 driver for linux 2.4?
+>>Because you have the CVS account. I think I need NOT generate a patch
+>>this time.
+> 
+> 
+> I have a patch ready, it's sitting in my local CVS repository. I was
+> only waiting for Mark to comment on this in case I had missed something.
+> I'll commit it this evening.
+> 
+> After that, I think we are ready to release 2.9.1 :)
+> 
+> --
+> Jean Delvare
+
