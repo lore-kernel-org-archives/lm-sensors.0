@@ -1,7 +1,7 @@
-From: adaplas@hotpop.com (Antonino A. Daplas)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: Who should I write to about this OOPS in 2,6,11-mm3?
-Message-Id: <200503162346.28272.adaplas@hotpop.com>
+Message-Id: <20050316173709.6c5eafba.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050315050746.GB13009@kroah.com>
 In-Reply-To: <20050315050746.GB13009@kroah.com>
@@ -10,57 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wednesday 16 March 2005 17:54, Jean Delvare wrote:
-> Hi Mike, Antonio & all,
->
-> > I narrowed the problem down.
-> > In the following scenario, the OOPS occurs:
-> > CONFIG_I2C=y
-> > CONFIG_FB_NVIDIA=y
-> > CONFIG_FB_NVIDIA_I2C=y
-> >
-> > If CONFIG_I2C is changed to build as a module, no crash occurs.
->
-> Hardly relevant, since this means CONFIG_FB_NVIDIA!=y as well.
->
-> > If CONFIG_FB_NVIDIA_I2C is not set, no crash occurs.
-> > If CONFIG_FB_NVIDIA is changed to build as a module, no crash occurs.
->
-> I guess the driver won't auto-load, so you should try to modprobe it
-> afterwards. Maybe it'll crash as well then.
->
-> Mike, can you please provide a decoded oops? There's not much we can do
-> without that.
->
-> I wonder if this problem could be related to this one:
-> http://bugme.osdl.org/show_bug.cgi?idC47
->
-> This too is a bit-banging I2C adapter, part of a framebuffer driver
-> (savage there instead of nv here).
->
-> Antonio, any idea? You wrote both drivers recently.
->
-> I'm rather ignorant when it comes to IRQs so I'm not sure I can really
-> help.
->
+Hi Tony,
 
-I've only seen the savage bug report.  Yes, unfortunately, this is the
-case of 2 drivers attempting to control a single device since the savagefb
-and the i2c prosavage drivers will attempt to ioremap the same mmio region.
-If you need the i2c prosavage bus, then savagefb must be completely
-disabled, as setting CONFIG_FB_SAVAGE_I2C to n will not help.  If both
-savagefb and i2c are needed, then you just have to use the i2c bus
-registered by savagefb. 
+> I've only seen the savage bug report.  Yes, unfortunately, this is the
+> case of 2 drivers attempting to control a single device since the
+> savagefb and the i2c prosavage drivers will attempt to ioremap the
+> same mmio region. If you need the i2c prosavage bus, then savagefb
+> must be completely disabled, as setting CONFIG_FB_SAVAGE_I2C to n will
+> not help.  If both savagefb and i2c are needed, then you just have to
+> use the i2c bus registered by savagefb.
 
-And yes, there is code duplication, but unfortunately savagefb cannot use
-the i2c-prosavage bus since one of them will fail to acquire the io regions.
+I understand the problem you describe, and it should certainly be
+addressed by Kconfig dependencies. However, I don't think this is the
+problem here. If you look at the configuration file, you'll see that
+neither i2c-prosavage nor i2c-savage4 are enabled:
 
-I haven't seen the nvidiafb report, but it is probably something similar.
+# CONFIG_I2C_PROSAVAGE is not set
+# CONFIG_I2C_SAVAGE4 is not set
 
-This is similar to the fbdev/DRM problem of who owns the device.  We can
-also throw in i2c bus drivers in the mix, at least for VGA devices. Perhaps a
-low-level VGA driver (as proposed by Alan Cox) will be needed to resolve
-this problem.
+> And yes, there is code duplication, but unfortunately savagefb cannot
+> use the i2c-prosavage bus since one of them will fail to acquire the
+> io regions.
 
-Tony
+I wonder if the standalone i2c drivers are needed at all anymore, now
+that the framebuffer driver includes the same functionality.
 
+> I haven't seen the nvidiafb report, but it is probably something
+> similar.
+
+Note that there is no i2c bus driver for nvidia graphics adapters in the
+kernel tree. The conflicting driver is rivatv and it lives outside the
+kernel tree.
+
+Miles, are you by any chance using rivatv?
+
+Tony, Miles' original report is here:
+http://marc.theaimsgroup.com/?l=linux-kernel&m1076667232062&w=2
+Sorry for providing the link before.
+
+Thanks,
+-- 
+Jean Delvare
