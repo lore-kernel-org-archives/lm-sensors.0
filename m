@@ -1,35 +1,31 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: help: sensors-detect
-Message-Id: <20030724001913.GA13286@earth.solarsys.private>
+From: are@tuntre.net (Are Pedersen)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: The LPC47M15x sensor chip, fan control
+Message-Id: <419E6C18.4010002@tuntre.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F17172F.4050603@mindspring.com>
-In-Reply-To: <3F17172F.4050603@mindspring.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2003-07-18 09:29:40 +0200]:
-> 
-> It says you don't have any supported device. You did not tell us but I
-> guess you are using lm_sensors 2.7.0. You should wait for Red Hat to
-> package our new 2.8.0 release (could take some weeks) which has support
-> for many more devices. When it's ready, update your old package using
-> the new one and run sensors-detect again.
+I have found out that the SMSC LPC47M15x sensor chip is fan-control
+compatible with the smsc47m1 driver.
 
-You'll be waiting a long time - RedHat still distributes based on 2.6.5.
+I added:
+---
+else if (val = 0x60)
+   printk(KERN_INFO "smsc47m1: Found SMSC47M15x");
+----
+(around line 360)
+To the drivers "smsc47m1_find" function.
 
-I've been considering building RPMs, but they would have to be hosted
-on the sensors site.  (Phil?)  I've built RPMs before for the use
-of myself and my employer... but I need to learn how to sign them
-before putting them up for general redistribution.
+The bios on the MSI Mega 865 barebone (my system) unfortunately have the
+fan polarity inversed, so setting the fan_pwn to 0 will get the fan to
+full speed, and 256 stops it (haven't tried that).
 
-From recent announcements, it looks like RedHat wants to push packaging
-responsibilities upstream anyway.
-
-Regards,
+I'll probably try to patch some more on the driver to get the
+temperature sensors working, but I don't know when.
 
 -- 
-Mark "must learn not to mention it before actually doing it" Hoffman
-mhoffman@lightlink.com
+You are not Are, I am Are, are you another Are, don't think you are Are!
+
