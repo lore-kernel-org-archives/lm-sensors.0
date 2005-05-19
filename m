@@ -1,38 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: High, low and crit are in a boat...
-Message-Id: <20030814220049.42e1ec14.khali@linux-fr.org>
+From: malmostoso@email.it (malmostoso)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: Ticket #1633
+Message-Id: <HW1X4H$02D157720EBB0420D5148E7CB2C5A099@email.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030814183949.5d14ed41.khali@linux-fr.org>
-In-Reply-To: <20030814183949.5d14ed41.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Khali,
+hope you'll get this email.
 
-> I would suggest that the critical and hyst values belong in a
-> *seperate* proc entry.  The /proc entries for temperature should
-> always and only be:
-> 
->     high, low, current
-> or
->     over, hyst, current
-> 
-> as appropriate to the sensor.
+I solved the problem by reinstalling the original kernel rpm:
 
-Thanks for the suggestion, I just did that. As a side effect, it saved
-me from another problem (on the LM90, remote temp and remote tcrit have
-different magnitudes).
+# rpm -Uvh --force kernel-2.4.25-ydl-1.rpm
 
-> The whole /proc stuff is going away as Greg KH is so fond of
-> repeating and with sysfs, you've only got one value per entry so
-> this whole problem goes away.
+This makes me think that some part of all the i2c subsystem was compiled in the kernel and not as a module.
 
-Still we have to live with it until the whole universe is using 2.6.
+Hope this helps, thank you!
 
-BTW my driver is finished, I now need to update the library and sensors.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+--
+Email.it, the professional e-mail, gratis per te: http://www.email.it/f
+
+Sponsor:
+Il pacchetto fiabe - 13 libri di fiabe per ragazzi e adulti
+Sconto del 51% sul prezzo di mercato.
+Clicca qui: http://adv.email.it/cgi-bin/foclick.cgi?mid06&d-4
