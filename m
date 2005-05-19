@@ -1,33 +1,47 @@
-From: dlh2001@comcast.net (Dean L. Hedin)
+From: phil@netroedge.com (phil@netroedge.com)
 Date: Thu, 19 May 2005 06:23:38 +0000
 Subject: [ltp] lm sensors
-Message-Id: <02082509203400.18804@blackbox.localdomain>
+Message-Id: <20020825164104.A7681@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <02082509203400.18804@blackbox.localdomain>
+In-Reply-To: <02082509203400.18804@blackbox.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sunday 25 August 2002 07:41 pm, phil@netroedge.com wrote:
-> No problem, I appreciate you taking the time to double-check.  Facts
-> are still a little sketchy regarding this issue.
->
-> BTW-Is this a mobo which was corrupted by Lm-sensors?
 
-No,   It somehow died when I changed the harddrive (to load linux).
-I had set the passord and some point and then I disabled
-it when I swaped drives.   But the drive I put in was not IBM brand.
-I then tried my old password and it did not work.
-So I ended getting a used motherboard on ebay for about $150.
-This was a 2 years ago and at that time I guess I saw the bad
-info regarding the 24C01A on the web somewhere.
+No problem, I appreciate you taking the time to double-check.  Facts 
+are still a little sketchy regarding this issue.
 
-In any case it does'nt matter now as the company I work for has now given
-me a brand new Toshiba 2400 series laptop.   Whole 'nother set of Linux
-issues with it, including sound APM, MMC, etc..   It's fast, but the quality 
-& feel does not compare to the 600e.  
-
-I have now relegated the 600e to cross-compiling ARM apps for my YOPY
-PDA.   Which I am struggling with right now....
+BTW-Is this a mobo which was corrupted by Lm-sensors?
 
 
+Phil
+
+
+On Sun, Aug 25, 2002 at 07:22:00AM -0400, Dean L. Hedin wrote:
+> Wow, Sorry Phil.  I stand corrected. but....
+> My board layout is totally different than the one shown in that
+> picture!  At least in that area.   After some searching, I found the 
+> ATMEL 24RF08.  Mine is positioned closer to the rear of the board 
+> near the docking connector.   They really rev'd this board.
+> 
+> Sorry for the bad info.
+> 
+> On Sunday 25 August 2002 04:46 pm, phil@netroedge.com wrote:
+> 
+> > Here are pictures and instructions for locating the 24RF08 on the
+> > Thinkpad 600e motherboard (thanks to Joe!):
+> >
+> > http://www.ja.olm.net/unlock/key_for_600e.htm
+> >
+> 
+> ----- The Linux ThinkPad mailing list -----
+> The linux-thinkpad mailing list home page is at:
+> http://www.bm-soft.com/~bm/tp_mailing.html
+
+-- 
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
