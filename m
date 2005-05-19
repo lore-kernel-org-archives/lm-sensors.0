@@ -1,51 +1,71 @@
-From: joerg@dorchain.net (Joerg Dorchain)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: Installation report/Feedback
-Message-Id: <20031221110032.GG495@GreenHouse.dorchain.net>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:45 +0000
+Subject: RFC locking and rate limit updates for i2c?
+Message-Id: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031207183312.GA855@GreenHouse.dorchain.net>
-In-Reply-To: <20031207183312.GA855@GreenHouse.dorchain.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Dec 20, 2003 at 02:08:51PM +0100, Jean Delvare wrote:
-> > The motherboard is Ausus OEM by 4MBO. (...)
-> 
-> I suppose you really mean "Asus"?
+Hi All,
 
-Yes. Sorry.
-> 
-> Sure. Provide i2cdumps for these and I'll take a look. That said, you
-> already have two monitoring chips on smbus 1, so I doubt we'll find any
-> more on smbus 0.
+Requesting information on two issues, taking a the lock for 
+read/modify/write i2c chip update cycles, and rate limiting 
+write access to i2c bus to prevent user-space DoS on the i2c 
+bus with continuous update requests.
 
-i2cdetect 0   WARNING! This program can confuse your I2C bus, cause data
-loss and worse!
-  I will probe file /dev/i2c-0
-  You have five seconds to reconsider and press CTRL-C!
- 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX 31 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+i2c locking:
 
-0x08 gives only XX, 0x31 only 29. 0x50 and 0x51 are recognizes as SPD
-eeproms and work as such. Does not look too interesting to me.
+Thinking about the fan_div setting, it is a read/modify/write 
+(RMW) operation to a chip register, should we take action to 
+prevent another process accessing the chip on i2c during this 
+RMW action?
 
-Bye,
+What I'm thinking is sort of:
+..
+	if new_div not in (valid_divisor_set)
+		return error message
+	~
+	read old_div
+	if (new_div = old_div)
+		goto exit
+	read fan_min
+	adjust fan_min
+	write new_div
+	write fan_min
+exit:
+	~
+..
 
-Joerg
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031221/ee226211/attachment.bin
+Should we hold exclusive access to i2c bus + chip between the 
+tildes above?  Or is my thinking bounding too far into highly 
+unlikely events?
+
+
+preventing DoS, updating i2c bus chips
+
+Another query, we take care not to read chip too frequently, 
+what stops user-space DoS'ing the i2c bus with continuous 
+writes by constant update requests?  
+
+Two methods come to mind:
+
+a cheap block until minimum write interval elapsed enforced 
+perhaps by not granting lock_request until minimum period 
+elapsed?
+
+a more expensive delayed write data buffer (~100 .. ~500ms?) 
+would allow aggregation of update operations and take over 
+the i2c bus at a controlled maximum duty cycle.
+
+The first method may upset user-space with a delay between 
+updates, but is easy/safe to implement.
+
+The second method is far more invasive -- not all drivers 
+have clean data structures that reflect the chip registers, 
+eliminating them from this type of cleanup until they're 
+fixed.
+
+Thanks,
+Grant.
