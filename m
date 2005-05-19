@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: Keywest detection
-Message-Id: <20030807124954.4ac68e3b.khali@linux-fr.org>
+Message-Id: <20030807125655.2fe446de.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030806190950.6326aa8f.khali@linux-fr.org>
 In-Reply-To: <20030806190950.6326aa8f.khali@linux-fr.org>
@@ -11,28 +11,29 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> There's a /proc/device-tree directory on PPCs that have Open Firmware
-> (that is not all PPCs, but all supported PowerMacs) that contains the
-> Open Firmware device-tree.
-
-OK, I just took a look, and it seems to be a complete mess there (2.4).
-I think I will add the Keywest to the list of the _un_detectable
-adapters.
-
-> The CPU itself doesn't have the inX/outX instructions, like most non
-> x86 CPUs, but there is till the possiblility of having an ISA bus on
-> some machines, in which case it's available on a southbridge on the
-> PCI bus. The PowerMacs don't have one though.
+> The driver does it's internal device detection using Open Firmware.  
+> Take a look at this in the kernel source:
 > 
-> There are some techniques to issue IOs from userland, but those
-> involve using some syscalls to find the IO base address of a given
-> PCI bus, then mmap'ing /dev/mem to get access to this IO range, then
-> re-implementing the kernel IO accessors based on this. This isn't
-> something I recommend to do unless it cannot be avoided. (XFree is
-> an example of a userland app that do need that).
+> arch/ppc/kernel/prom.c
+> 
+> It's sort of like a PCI device table, except it includes all sorts of 
+> hardware interfaces besides just PCI devices.
 
-Thanks for the information. I think I will fix isadump but won't compile
-it be default on linux-ppc.
+I'm not used to PCI device tables either, so I'm rather confused.
+
+> If you have a newer Mac around (made within the last few years), you
+> can hold down option-o-f while booting to get into the Open Firmware
+> 'shell'.  It's a Forth type interpreter which lets you do various
+> things like browse the hardware of the computer or change some boot
+> params.
+
+Well, I don't have any Mac.
+
+The real question was if there was a way to add Keywest detection to our
+sensors-detect script. As it turns out, I think there must be one, but
+it will be too complex for inclusion into sensors-detect (and for me
+too). That's why I plan to add it to our undetectable adapters list
+instead.
 
 -- 
 Jean Delvare
