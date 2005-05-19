@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: kw42@gmx.de (Klaus Woltereck)
 Date: Thu, 19 May 2005 06:23:35 +0000
 Subject: How to activate the SMBus on P4B533E/ICH4?
-Message-Id: <3D1359CE.F23F9362@paradyne.com>
+Message-Id: <Pine.LNX.4.31.0206212148260.5078-100000@klaus.dns2go.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.31.0206192315370.4147-100000@klaus.dns2go.com>
 In-Reply-To: <Pine.LNX.4.31.0206192315370.4147-100000@klaus.dns2go.com>
@@ -10,49 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-now you're back to needing p4b-smbus. That's how it gets into lspci.
-Modify it to change the ICH4 PCI ID's (both the base 24C0 and the
-smbus 24C3), then if nothing changed from ICH3 then it should work.
-To be safe you probably want to compare datasheets but if you're
-brave just give it a shot.
+On Fri, 21 Jun 2002, Mark Studebaker wrote:
+
+> now you're back to needing p4b-smbus. That's how it gets into lspci.
+> Modify it to change the ICH4 PCI ID's (both the base 24C0 and the
+> smbus 24C3), then if nothing changed from ICH3 then it should work.
+> To be safe you probably want to compare datasheets but if you're
+> brave just give it a shot.
+
+OK, I've changed 2440 to 24C0 and 2443 to 24C3....
+
+---------------------------------------------------------------------------
+Jun 21 21:09:58 test kernel: SMBus activated in LPC!
+Jun 21 21:09:58 test kernel: PCI: Assigned IRQ 9 for device 00:1f.3
+Jun 21 21:09:58 test kernel: i801smbus: Enabled
+---------------------------------------------------------------------------
+
+>lspci -v
+...
+00:1f.3 SMBus: Intel Corporation: Unknown device 24c3 (rev 01)
+        Subsystem: Asustek Computer, Inc.: Unknown device 8089
+        Flags: medium devsel
+        I/O ports at e800 [size2]
+...
+
+---------------------------------------------------------------------------
+Jun 21 21:12:07 test kernel: i2c-dev.o: i2c /dev entries driver module
+Jun 21 21:12:07 test kernel: i2c-core.o: driver i2c-dev dummy driver
+registered.
+Jun 21 21:12:07 test kernel: i2c-dev.o: Registered 'saa7146(1)' as minor
+0
+Jun 21 21:12:08 test kernel: i2c-proc.o version 2.6.1 (20010825)
+Jun 21 21:14:50 test kernel: i2c-i801.o version 2.6.3 (20020322)
+Jun 21 21:14:50 test kernel: i2c-core.o: I2C adapter 40004: I2C level
+transfers not supported
+Jun 21 21:14:50 test last message repeated 5 times
+Jun 21 21:14:50 test kernel: SP8870: no SP8870 found ...
+Jun 21 21:14:50 test kernel: i2c-core.o: I2C adapter 40004: I2C level
+transfers not supported
+Jun 21 21:14:50 test kernel: i2c-core.o: I2C adapter 40004: I2C level
+transfers not supported
+Jun 21 21:14:50 test kernel: i2c-dev.o: Registered 'SMBus I801 adapter at
+e800' as minor 1
+Jun 21 21:14:50 test kernel: i2c-core.o: adapter SMBus I801 adapter at
+e800 registered as adapter 1.
+Jun 21 21:14:50 test kernel: i2c-i801.o: I801 bus detected and
+initialized
+---------------------------------------------------------------------------
 
 
+Question: Do I have to worry about "I2C level
+transfers not supported" messages?
 
-Klaus Woltereck wrote:
-> 
-> On Thu, 20 Jun 2002, Mark Studebaker wrote:
-> 
-> > ich4 supported in CVS (assuming it's in lspci and you don't need p4b)
-> > bach not supported
-> 
-> Hi Mark,
-> 
-> here is the lspci output:
-> -------------------------------------------------------------------------
-> 00:00.0 Host bridge: Intel Corporation: Unknown device 1a30 (rev 11)
-> 00:01.0 PCI bridge: Intel Corporation: Unknown device 1a31 (rev 11)
-> 00:1d.0 USB Controller: Intel Corporation: Unknown device 24c2 (rev 01)
-> 00:1d.1 USB Controller: Intel Corporation: Unknown device 24c4 (rev 01)
-> 00:1d.2 USB Controller: Intel Corporation: Unknown device 24c7 (rev 01)
-> 00:1d.7 USB Controller: Intel Corporation: Unknown device 24cd (rev 01)
-> 00:1e.0 PCI bridge: Intel Corporation 82820 820 (Camino 2) Chipset PCI
-> (rev 81)
-> 00:1f.0 ISA bridge: Intel Corporation: Unknown device 24c0 (rev 01)
-> 00:1f.1 IDE interface: Intel Corporation: Unknown device 24cb (rev 01)
-> 01:00.0 VGA compatible controller: Matrox Graphics, Inc.: Unknown device
-> 2527 (rev 01)
-> 02:03.0 Multimedia audio controller: C-Media Electronics Inc CM8738 (rev
-> 10)
-> 02:04.0 FireWire (IEEE 1394): NEC Corporation: Unknown device 00f2 (rev
-> 01)
-> 02:08.0 Ethernet controller: Intel Corporation: Unknown device 1039 (rev
-> 81)
-> 02:0a.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-> -------------------------------------------------------------------------
-> If I understand i2c-i801.c right, there have be a PCI device ID "24C3".
-> 
-> So, how do I 'create' an PCI device ID entry in the kernel's PCI device
-> list?
-> 
-> Bye,
-> Klaus
+Bye,
+Klaus
+
