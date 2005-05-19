@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: od@fet.uni-hannover.de (Oliver Dawid)
 Date: Thu, 19 May 2005 06:24:23 +0000
-Subject: [od@fet.uni-hannover.de: Trying to find device chrontel 7009
-Message-Id: <20031104225918.36ff35ea.khali@linux-fr.org>
+Subject: [od@fet.uni-hannover.de: Trying to find device chrontel 7009 ...]
+Message-Id: <200311050744.10449.od@fet.uni-hannover.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031013205850.GA2164@frodo.local>
 In-Reply-To: <20031013205850.GA2164@frodo.local>
@@ -10,76 +10,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
 
-> There are some interesting news:
-> I can load i2c-i810 driver but only DDC (what's that?) can be
-> initialized.
+On Tuesday 04 November 2003 22:59, you wrote:
 
-This is a protocol that allows one to retrieve a monitor's capabilities.
-We have a module (ddcmon) that handles it rather well (if you have
-lm_sensors 2.8.1) and a perl script that can convert this information
-into something XFree86 can read in its configuration.
+> > Client found at address 0x2e
+> > Probing for `National Semiconductor LM80'... Success!
+> >     (confidence 3, driver `lm80')
+> > Client found at address 0x2f
+> > Probing for `National Semiconductor LM80'... Success!
+> >     (confidence 3, driver `lm80')
+>
+> The LM80 is hard to detect, so it might not be LM80's. Load lm80, run
+> sensors (and sensors -s before that) and see if the values make sense.
 
-That said, I'm surprised. I'd have expected the Chrontel to be on that
-(video) i2c bus, not on the other one.
+sensors output:
+flex scanner jammed
 
+I have lm_sensors 2.7.0. I downloaded 2.8.1 but got this problem while 
+compiling:
+In file included from /lib/modules/2.4.20/build/include/asm/semaphore.h:39,
+                 from /lib/modules/2.4.20/build/include/linux/fs.h:200,
+                 from /lib/modules/2.4.20/build/include/linux/capability.h:17,
+                 from /lib/modules/2.4.20/build/include/linux/binfmts.h:5,
+                 from /lib/modules/2.4.20/build/include/linux/sched.h:9,
+                 from /lib/modules/2.4.20/build/include/linux/mm.h:4,
+                 from /lib/modules/2.4.20/build/include/linux/slab.h:14,
+                 from /lib/modules/2.4.20/build/include/asm/pci.h:32,
+                 from /lib/modules/2.4.20/build/include/linux/pci.h:622,
+                 from kernel/busses/i2c-nforce2.c:35:
+/lib/modules/2.4.20/build/include/asm/system.h: In function `__set_64bit_var':
+/lib/modules/2.4.20/build/include/asm/system.h:190: warning: dereferencing 
+type-punned pointer will break strict-aliasing rules
+/lib/modules/2.4.20/build/include/asm/system.h:190: warning: dereferencing 
+type-punned pointer will break strict-aliasing rules
+kernel/busses/i2c-nforce2.c: In function `nforce2_access':
+kernel/busses/i2c-nforce2.c:242: warning: implicit declaration of function 
+`i2c_delay'
+kernel/busses/i2c-nforce2.c: In function `nforce2_probe_smb':
+kernel/busses/i2c-nforce2.c:317: error: structure has no member named `owner'
+kernel/busses/i2c-nforce2.c:320: error: `I2C_HW_SMBUS_NFORCE2' undeclared 
+(first use in this function)
+kernel/busses/i2c-nforce2.c:320: error: (Each undeclared identifier is 
+reported only once
+kernel/busses/i2c-nforce2.c:320: error: for each function it appears in.)
+make: *** [kernel/busses/i2c-nforce2.o] Error 1
 
-> Your script detected a i2c-i801 which has some devices
-> attached to its bus.
-> 
-> Output of sensors-detect looks like this below. I kicked out all lines
-> which failed. Can you please help me interpret this? Does this mean,
-> that there are 8 devices connected to this bus? 0x00, 0x08, 0x30, 0x44
-> and 0x69 are unknown so one of thouse can be my video codec? How can I
-> identify which device it is? I have a paper about chrontel 7009 chip
-> with all register adresses but it don't seem to contain something like
-> an identifier.
-> 
-> Client found at address 0x00
+Seems that you depend on different kernel header than 2.4.20?
 
-General call address. I don't know exactly how it works, but I can tell
-for sure it's not a regular device.
+> > Client found at address 0x44
+>
+> Might be what you're after.
 
-> Client found at address 0x08
-
-This address is called "SMB host" in my docs. Don't know what it means
-either, but I'd guess it's not a regular device (and it's probably
-linked with whatever appears at 0x00).
-
-> Client found at address 0x2e
-> Probing for `National Semiconductor LM80'... Success!
->     (confidence 3, driver `lm80')
-> Client found at address 0x2f
-> Probing for `National Semiconductor LM80'... Success!
->     (confidence 3, driver `lm80')
-
-The LM80 is hard to detect, so it might not be LM80's. Load lm80, run
-sensors (and sensors -s before that) and see if the values make sense.
-
-> Client found at address 0x30
-
-A shadow image of the EEPROM at 0x50, which you can safely ignore.
-
-> Client found at address 0x44
-
-Might be what you're after.
-
-> Client found at address 0x50
-> Probing for `Serial EEPROM'... Success!
->     (confidence 8, driver `eeprom')
-
-EEPROM as found on your first memory module.
-
-> Client found at address 0x69
-
-Clock device, dangerous and uninteresting playing with. Forget about it.
-
-Use i2cdump on the unknown address, this will help us identify the chip
-there:
 i2cdump 1 0x44 b
-(assuming the i2c-i801 has bus id 1). You can also try the same on 0x2e
-and 0x2f if the lm80 module did not give good results.
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 00 0f 04 00 00 00 00 00 00 00 00 00 00 00 00    ..??............
+
+i2cdump 1 0x2e b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 01 3f 80 20 5d 5d c7 00 5a 00 1e 21 00 00 00 00    ??? ]]?.Z.?!....
+10: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
+20: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
+30: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
+40: 01 3f 00 20 5d 5d c7 00 5a 00 1e 21 00 00 00 00    ??. ]]?.Z.?!....
+50: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
+60: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
+70: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
+80: 01 3f 00 20 5d 5d c7 00 5a 00 1e 21 00 00 00 00    ??. ]]?.Z.?!....
+90: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
+a0: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
+b0: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
+c0: 01 3f 00 20 5d 5d 07 00 5a 00 1f 21 00 00 00 00    ??. ]]?.Z.?!....
+d0: ff ff 5d 5d 3c 00 46 5d 50 00 64 5d 50 00 64 5d    ..]]<.F]P.d]P.d]
+e0: 5d 5d 00 d1 41 33 61 5d 5d 5d 5d 5d 5d 5d 5d 5d    ]].?A3a]]]]]]]]]
+f0: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83    ]]]]]]]]]]]]]0A?
+
+i2cdump 1 0x2f b
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 01 ff 0f 00 00 ff 0f 00 00 ff 06 00 00 07 85 00    ?.?...?...?..??.
+10: c0 11 00 60 ff ff ff ff ff ff ff ff ff ff ff ff    ??.`............
+
+Seems like you are right and only one of 0x2e and 0x2f is a real lm80. Can you 
+tell me from dump which one it probably is? Hopefully its 0x2f because 
+chrontel 7009 has tons of registers and it better fits to 0x2e ' s dump.
+
+maybe none of these devices is my chrontel so i will have to search on.
+
+Regards,
+od
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+od@fli4l.de * http://www.fli4l.de/ * the on(e) disk router
