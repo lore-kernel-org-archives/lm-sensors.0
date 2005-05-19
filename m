@@ -1,44 +1,45 @@
-From: tilman.giese@globalview.de (Tilman Giese)
-Date: Thu, 19 May 2005 06:23:48 +0000
-Subject: [1133] i2c-sis645 conflicts with sis900
-Message-Id: <200302171526.29053.tilman.giese@globalview.de>
+From: mvloon@anime-nl.net (Marco van Loon)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: lm_sensors & the /usr/src/linux mess...
+Message-Id: <20030204162045.A514@anime-nl.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> interesting. please send us the output of ?lspci? and ?lspci -n?.
-> by email, reference your ticket number.
+[an almost identical e-mail as the one I've sent to i2c; you seem to kind of
+ share docs and Makefile structure...] 
 
-Here it is:
+Ugh, I hate it when different pieces of documentation say things that are 
+completely contrary to each other... :(
+The kernel README and IIRC also the glibc docs specifically say that
+/usr/src/linux _shouldn't_ contain the header files of the current kernel,
+but of the kernel that was installed at the moment the (glibc) library
+was compiled...   Or in other words:
+"Don't fsck with /usr/src/linux unless you're installing a new glibc"
 
-# lspci
-00:00.0 Host bridge: Silicon Integrated Systems [SiS] 645 Host (rev 02)
-00:01.0 PCI bridge: Silicon Integrated Systems [SiS] 5591/5592 AGP
-00:02.0 ISA bridge: Silicon Integrated Systems [SiS] SiS961 [MuTIOL Media IO]
-00:02.2 USB Controller: Silicon Integrated Systems [SiS] 7001 (rev 07)
-00:02.3 USB Controller: Silicon Integrated Systems [SiS] 7001 (rev 07)
-00:02.5 IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE] (rev d0)
-00:03.0 Ethernet controller: Silicon Integrated Systems [SiS] SiS900 10/100 
-Ethernet (rev 90)
-00:05.0 Multimedia audio controller: C-Media Electronics Inc CM8738 (rev 10)
-00:08.0 VGA compatible controller: Matrox Graphics, Inc. MGA 1064SG [Mystique] 
-(rev 03)
-00:0a.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] (rev 43)
+Now the docs of lm_sensors mention "/usr/src/linux" in the role of
+"current kernel sources" multiple times, which, as alredy said, 
+_isn't_ correct according to the README of the kernel itself... :(
 
-# lspci -n
-00:00.0 Class 0600: 1039:0645 (rev 02)
-00:01.0 Class 0604: 1039:0001
-00:02.0 Class 0601: 1039:0961
-00:02.2 Class 0c03: 1039:7001 (rev 07)
-00:02.3 Class 0c03: 1039:7001 (rev 07)
-00:02.5 Class 0101: 1039:5513 (rev d0)
-00:03.0 Class 0200: 1039:0900 (rev 90)
-00:05.0 Class 0401: 13f6:0111 (rev 10)
-00:08.0 Class 0300: 102b:051a (rev 03)
-00:0a.0 Class 0200: 1106:3065 (rev 43)
 
-I hope it helps.
+Some small comments about the Makefile:
 
-Tilman Giese
+would the makefile language allow for a kind of
+$(shell if [ ! -d $(LINUX_HEADERS) ]; \
+  then <abort the Makefile here>;
+  fi)
+type of construct to be inserted to do an early abort of the Makefile
+if someone is silly enough to run the Makefile while
+/lib/modules/$(KERNELVERSION)/build is a dangling symlink, so the 'grep's,
+'cut's etc. don't go horribly wrong for lack of input(files) in such a case?..
+
+Fortunately  $(shell if [ -L 
+also sees _dangling_ symlinks as symlinks, so there's no disastrous fall-back
+to /usr/src/linux if /lib/modules/$(KERNELVERSION)/build is dangling...
+(my $(KERNELVERSION) is 2.4.20 , /usr/src/linux/include/ contains 2.4.19
+ headers (see rant above))
+
+
+Marco van Loon 
