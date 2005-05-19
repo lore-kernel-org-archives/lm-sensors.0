@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: ggoldberg@vytek.com (Geoff Goldberg)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: Driving non-smbus i2c chip given I2C_FUNC_SMBUS_EMUL adapter
-Message-Id: <3F7CB5C2.12B5D9A4@paradyne.com>
+Message-Id: <D01E65D91799784A816D515B4201AB82030B3A@pluto3.stellcom.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <D01E65D91799784A816D515B4201AB82030B32@pluto3.stellcom.com>
 In-Reply-To: <D01E65D91799784A816D515B4201AB82030B32@pluto3.stellcom.com>
@@ -10,17 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Thanks for the info Mark
+
+- geoff
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds@paradyne.com]
+Sent: Thursday, October 02, 2003 4:33 PM
+To: Geoff Goldberg
+Cc: 'lm78@stimpy.netroedge.com'
+Subject: Re: Driving non-smbus i2c chip given I2C_FUNC_SMBUS_EMUL
+adapter driver
+
+
 Geoff Goldberg wrote:
 > 
 > Greetings,
 > 
-> I read through the docs and FAQ and some driver code but could not determine
+> I read through the docs and FAQ and some driver code but could not
+determine
 > how to communicate with my i2c chip from my chip driver.
 > 
 > I'm working with an embedded system that has the following:
 > 
 > *       i2c adapter
-> *       i2c device (not indicated to be smbus-compatible in the data sheet)
+> *       i2c device (not indicated to be smbus-compatible in the data
+sheet)
 > *       i2c-algo-<arch>.o
 > *       i2c-adap-<arch>.o
 > 
