@@ -1,29 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: Ticket #1851
-Message-Id: <20050101001205.6b2a44d3.khali@linux-fr.org>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: Ticket 1319 - lm_sensors-2.8.0-cvs linux-2.4.20-smp-i386
+Message-Id: <20030710085158.42e68c95.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41D5D075.4000200@paradyne.com>
-In-Reply-To: <41D5D075.4000200@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> anybody see how to get a divide by zero in 2.6 adm1026 set_fan_1_min()
-> ??? It looks fine to me...
-> 
-> <http://secure.netroedge.com/~lm78/readticket.cgi?ticket51>
+Hi
 
-Easy. Try setting fan1_min or fan1_div before ever *reading* from the
-sysfs files. The update fonction not having been called, fan_div[0] is
-equal to 0.
+I followed your advice and compiled again with the CVS-Version, both i2c and lm-sensors.
 
-Justin, can you confirm and provide a patch to fix the issue?
+Before I done make I done cvs update -d
 
-I also wonder if the 2.4 driver has the same problem. I would say it
-does, but the ticket specifically names the 2.6 version.
+i2c goes grest but lm-sensors gives me:
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+kernel/busses/i2c-nforce2.c: In function `nforce2_access':
+kernel/busses/i2c-nforce2.c:154: `I2C_CLIENT_PEC' undeclared (first use in this function)
+kernel/busses/i2c-nforce2.c:154: (Each undeclared identifier is reported only once
+kernel/busses/i2c-nforce2.c:154: for each function it appears in.)
+kernel/busses/i2c-nforce2.c:218: `I2C_SMBUS_BLOCK_PROC_CALL' undeclared (first use in this function)
+kernel/busses/i2c-nforce2.c:233: `I2C_SMBUS_WORD_DATA_PEC' undeclared (first use in this function)
+kernel/busses/i2c-nforce2.c:234: `I2C_SMBUS_BLOCK_DATA_PEC' undeclared (first use in this function)
+kernel/busses/i2c-nforce2.c:235: `I2C_SMBUS_PROC_CALL_PEC' undeclared (first use in this function)
+kernel/busses/i2c-nforce2.c:236: `I2C_SMBUS_BLOCK_PROC_CALL_PEC' undeclared (first use in this function)
+make: *** [kernel/busses/i2c-nforce2.o] Error 1
+make: *** Waiting for unfinished jobs....
+kernel/busses/i2c-ali1535.c:538: unknown field `owner' specified in initializer
+kernel/busses/i2c-ali1535.c:538: warning: missing braces around initializer
+kernel/busses/i2c-ali1535.c:538: warning: (near initialization for `ali1535_adapter.name')
+kernel/busses/i2c-ali1535.c:538: warning: initialization makes integer from pointer without a cast
+kernel/busses/i2c-ali1535.c:538: initializer element is not computable at load time
+kernel/busses/i2c-ali1535.c:538: (near initialization for `ali1535_adapter.name[0]')
+kernel/busses/i2c-ali1535.c:539: initializer element is not constant
+kernel/busses/i2c-ali1535.c:539: (near initialization for `ali1535_adapter.name')
+make: *** [kernel/busses/i2c-ali1535.o] Error 1
+
+Any ideas what I am doing wrong or what I could correct in the Makefile?
+
+Thanks for your time and help.
+
+Zeno
