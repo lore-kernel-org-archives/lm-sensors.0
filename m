@@ -1,54 +1,36 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Issue with lm-sensors 2.4.4.1
-Message-Id: <20020411150704.A31673@Stimpy.netroedge.com>
+From: fako@freemail.hu (Holub Zoltan)
+Date: Thu, 19 May 2005 06:25:02 +0000
+Subject: bug?
+Message-Id: <20040623220306.GA10703@terminal.dnsalias.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3CB604BD.5B0E57DE@metroweb.co.za>
-In-Reply-To: <3CB604BD.5B0E57DE@metroweb.co.za>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi!!
 
-The latest version of Lm_sensors is 2.6.3.  To ensure the latest
-compatibility and support, you need to upgrade.  I suggest you go to
-our web site to get the latest: www.lm-sensors.nu
+I have two asus p5a-b motherboard.
+The first one is Rev 1.03, the second one is Rev 1.04
 
-Also, the error seems to be a dependancy problem unrelated to the
-lm_sensors code.  I suggest downloading the latest i2c and lm_sensors
-sources and following the build instructions carefully.  Most module
-issues we've run across are due to differing kernel sources,
-compilers, or environment (e.g. kernel configuration settings) used
-between the compiling of the kernel and the modules. 
+In the bios i see the cpu and mobo temperature, it works fine.
 
-Good luck!
+I using kernel 2.6
+This mobo needs ALI15X3 hw bus, and Winbond W83781D sensor chip driver.
+With these drivers i see the sensors on sysfs.
 
+The only difference is with rev 1.04 the i dont see the mobo
+temperature value.
+It show constantly -48 celsius. (bios shows correctly)
+MB:        -48.0?C  (high =   +80?C, hyst =   +75?C)
+With 1.03 mobo the mb temp is showed correcty.
 
-Phil
+The cpu temp, voltages and fan speed is showed correctly on the two mobos.
 
-On Thu, Apr 11, 2002 at 11:48:45PM +0200, Wayne Fallows wrote:
-> Hi Joey
-> 
-> I am not sure if this is an issue or just my own stupidity. I have
-> installed lm-sensors 2.4.4.1 on my Debian server 2.2.19.
-> 
-> I get the following error msg when dselect sets up lm-sensors (see
-> lm_error). The motherboard that I am using is a EP-MVP3C their website
-> is http://www.epox.com. I tried getting the out put of the
-> "sensors-detect" with no success. It detects a Via-Pro but is unable to
-> load mod not found. The chip I think it uses is VIA 82C596.
-> 
-> I have attached the dmesg and lspci outputs as text files.
-> 
-> I have read the support file and found that you do support this
-> chip(ticket 316)
-> 
-> Regards
-> 
-> Wayne
+I am using same bios on the two mobos.
 
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+I tried with kernel 2.6.6 and 2.6.7.
+
+Is it a sensors bug or something wrong with the mobo?
+
+fako
