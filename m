@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:19 +0000
-Subject: [BK PATCH] More i2c driver fixes for 2.6.0-test5
-Message-Id: <20030925214838.GA30072@kroah.com>
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: [BK PATCH] More i2c driver fixes for 2.6.0-test7
+Message-Id: <20031015180456.GA22107@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030808235501.GA2795@kroah.com>
 In-Reply-To: <20030808235501.GA2795@kroah.com>
@@ -13,13 +13,9 @@ Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
 Hi,
 
-Here are some more i2c driver fixes and additions for 2.6.0-test5.  I've
-fixed up the check_region/request_region logic for isa drivers and moved
-the i2c algorithms into their own subdirectory, both as recommended by
-Christoph, and added the eeprom i2c chip driver (ported from the 2.4
-tree and converted to use the sysfs binary file interface).
-
-There are a also a few other minor i2c cleanups and fixes in here.
+Here are some more minor i2c driver fixes for 2.6.0-test7.  They fix
+some bugs in the w83781d.c driver, and remove some unneeded MOD_INC and
+MOD_DEC calls (which fixes some compiler warnings.)
 
 Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
 
@@ -27,31 +23,11 @@ thanks,
 
 greg k-h
 
- drivers/i2c/i2c-algo-bit.c        |  567 ------------------------
- drivers/i2c/i2c-algo-ite.c        |  872 --------------------------------------
- drivers/i2c/i2c-algo-pcf.c        |  479 --------------------
- drivers/i2c/i2c-ite.h             |  117 -----
- drivers/i2c/i2c-pcf8584.h         |   78 ---
- Documentation/i2c/sysfs-interface |    5 
- drivers/i2c/Kconfig               |   38 -
- drivers/i2c/Makefile              |    5 
- drivers/i2c/algos/Kconfig         |   45 +
- drivers/i2c/algos/Makefile        |    7 
- drivers/i2c/algos/i2c-algo-bit.c  |  567 ++++++++++++++++++++++++
- drivers/i2c/algos/i2c-algo-ite.c  |  872 ++++++++++++++++++++++++++++++++++++++
- drivers/i2c/algos/i2c-algo-ite.h  |  117 +++++
- drivers/i2c/algos/i2c-algo-pcf.c  |  479 ++++++++++++++++++++
- drivers/i2c/algos/i2c-algo-pcf.h  |   78 +++
- drivers/i2c/busses/i2c-elektor.c  |    2 
- drivers/i2c/chips/Kconfig         |   12 
- drivers/i2c/chips/Makefile        |    1 
- drivers/i2c/chips/eeprom.c        |  290 ++++++++++++
- drivers/i2c/i2c-sensor.c          |    5 
- 20 files changed, 2469 insertions(+), 2167 deletions(-)
------
+------
 
 Greg Kroah-Hartman:
-  o I2C: remove unneeded #defines in the eeprom chip driver
-  o I2C: add eeprom i2c chip driver
-  o I2C: move the i2c algorithm drivers to drivers/i2c/algos
-  o I2C: remove the isa address check alltogether
+  o I2C: fix more define problems in w83781d driver
+  o I2C: remove unneeded MOD_INC and MOD_DEC calls
+
+Luca Tettamanti:
+  o I2C: sensors/w83781d.c creates useless sysfs entries
