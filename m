@@ -1,7 +1,7 @@
 From: andreas@schutz.se (andreas@schutz.se)
-Date: Thu, 19 May 2005 06:25:48 +0000
+Date: Thu, 19 May 2005 06:25:52 +0000
 Subject: parport driver
-Message-Id: <2259.193.180.228.194.1112682343.squirrel@webmail1.b-one.nu>
+Message-Id: <33080.83.233.14.177.1113768675.squirrel@webmail1.b-one.nu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
@@ -10,17 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean!
-My project is to make a new implementation of my ha-server. The server is
-measuring daylight, external temp. and internal temp. through the game
-port and use the data to control heating, light and cars on my estate. As
-soon as I have built the wind speed sensor that will be added to.
-I will start with several pcf8574 on the i2c bus (parallell port) to
-exchange the control functionality I have today (direct driven from the
-parallell port) the pcf8574's should also give me some digital inputs to
-fiddle with.
+Hi again!
+So I tried to load the following modules: i2c_core, i2c_algo_bit,
+i2c_pport, i2c_dev, i2c_sensor, pcf8574.
+Should I be able to se my pcf8574 chip that is hooked up on my parallel
+port now? Cause I can not! Do I have to consider cables (length and
+others) or have I done anything else wrong? Some hints on trouble shooting
+would be apreciated.
 
-Thanks a lot for your answer.
+Thanks.
+
 
 /Andreas
 
