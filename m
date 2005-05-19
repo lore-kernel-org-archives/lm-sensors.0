@@ -1,21 +1,26 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:49 +0000
 Subject: [PATCH 2.6] Prevent misdetections in adm1021 driver
-Message-Id: <20040327160623.1880befc.khali@linux-fr.org>
+Message-Id: <20040328174106.67bc96bd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040327160623.1880befc.khali@linux-fr.org>
+In-Reply-To: <20040327160623.1880befc.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+[Just noticed that there was an extra white-space in my original patch.
+Fixed in this one, sorry for the trouble.]
+
 Hi Greg,
 
 Yet another patch for the adm1021 chip driver. I refined the detection
-code a bit in order to prevent chip misdetection. Some chips handled by
-the adm1021 driver are hard to detect and identify (LM84 and MAX1617) so
-we tend to accept any chip it the valid I2C address range as one of
-these. It has caused much, much trouble already. See these threads for
-example:
+code a bit in order to prevent chip misdetection. Some chips handled
+by the adm1021 driver are hard to detect and identify (LM84 and
+MAX1617) so we tend to accept any chip it the valid I2C address range
+as one of these. It has caused much, much trouble already. See these
+threads for example:
 
 http://archives.andrew.net.au/lm-sensors/msg04448.html
 http://archives.andrew.net.au/lm-sensors/msg04624.html
@@ -47,9 +52,9 @@ rate) to reduce misdetections.
 finish with the LM84 and the MAX1617, in this order, because they are
 harder to identify and are more likely to result in false positives.
 
-* Refine LM84 detection. The LM84 has less features than the other chips
-(chip cannot be stopped, conversion rate cannot be set, no low limits)
-so it has extra unused bits.
+* Refine LM84 detection. The LM84 has less features than the other
+chips(chip cannot be stopped, conversion rate cannot be set, no low
+limits) so it has extra unused bits.
 
 * Do not intialize the chip if it was detected as an LM84. This one
 cannot be stopped so why would we try to start it again? And as said
@@ -58,11 +63,11 @@ right before, conversion rate isn't changeable either.
 Note that I couldn't test the changes on any supported chip since I
 don't own any. Still I believe that they should be applied, since the
 current code already broke one system and seriously harmed several
-others. I believe it's not critical if it turns out that we reject valid
-chips (which shouldn't happen if the datasheets are correct, anyway).
-People will simply let us know and we'll be less restrictive. In the
-meantime they can force the driver. That said, testers are welcome, as
-usual.
+others. I believe it's not critical if it turns out that we reject
+valid chips (which shouldn't happen if the datasheets are correct,
+anyway). People will simply let us know and we'll be less restrictive.
+In the meantime they can force the driver. That said, testers are
+welcome, as usual.
 
 Please apply,
 thanks.
@@ -77,7 +82,7 @@ thanks.
 +		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00
 +		 || (adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x3F) != 0x00
 +		 || (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) & 0xF8) != 0x00) {
-+		 	err = -ENODEV;
++			err = -ENODEV;
  			goto error1;
 +		}
  	}
