@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: ticket# 1649 - i2c-viapro fails to load
-Message-Id: <1082040039.407e9ee70545d@imp.gcu.info>
+Message-Id: <1082098757.407f8445dcc9c@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040415151411.2efbffc1@ekolaptis.>
 In-Reply-To: <20040415151411.2efbffc1@ekolaptis.>
@@ -10,22 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[Please reply to the list, not to me]
+[PLEASE REPLY TO THE LIST, NOT TO ME ONLY]
 
-> I've been asked to provide further information, so here we go:
-> (...)
-> lspci -n:
-> (...)
-> 00:11.0 Class 0601: 1106:3227
+> this is what /var/log/messages has to say:
+> 
+> kernel: i2c-viapro.o version 2.6.5 (20020915)
+> kernel: i2c-viapro.o: Can't detect vt82c596 or compatible device,
+> module not inserted.
+> 
+> erm that seems like a very old version... am i doing something
+> wrong?
 
-So it's there. This is the ID we are looking for so it should work.
+Yes, this is a damn old version that didn't support the KT600 yet. This
+is the cause of your problem. And I would bet that you other problem
+(with the it87) is the same too. Check /var/log/messages next time you
+load it, it's probably version 2.6.5 too.
 
-Does sensors-detect find it? I'd expect it to.
-
-I don't really understand why i2c-viapro doesn't see it, it is supposed
-to support it since version 2.8.2 and was reported to work. Please make
-sure that you are not using an older module. Check it the logs and/or
-dmesg, it should give you the version and the reason of the failure.
+So you now have to reinstall i2c and lm_sensors from the very beginning,
+or (preferably) upgrade your distribution packages for lm_sensors. The
+KT600 is supported since version 2.8.1.
 
 -- 
 Jean Delvare
