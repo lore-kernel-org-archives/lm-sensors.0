@@ -1,28 +1,23 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:59 +0000
+Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: sensors-detect
-Message-Id: <20030610192542.766e220d.khali@linux-fr.org>
+Message-Id: <20030720001638.2daa6fc5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030610192542.766e220d.khali@linux-fr.org>
+In-Reply-To: <20030610192542.766e220d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hello,
-
-I contact you because you seem to be (one of the) packager(s) of
-lm_sensors for Red Hat. We came across an issue you seem to have solved
-in your package version 2.6.5-2. I'm actually refering to this:
-
-* Fri Nov 29 2002 Phil Knirsch <pknirsch@redhat.com> 2.6.5-2
-- Added patch to fix utf8 problem with sensors-detect.
-
-Though we all agree there was a problem, and the patch solves it,
-there's a question I'd like to ask: what makes you think the issue (for
-reminder, a misuse of pack("C", $value);) is related to UTF?
-
-Thanks.
+I've been adding support to sensor-detect for some chips we don't have a
+driver for yet (LM82, LM86, LM90) and I plan to add some more in the
+next few days. I think it's generally a good idea to detect many chips
+even if we don't have drivers for them - and even if we know we won't
+ever write one for some reason. In the first case, this let us know when
+a given driver should be written through user repports. In the second
+case, it may prevent misdetection of the chip as one we support.
 
 -- 
 Jean Delvare
