@@ -1,60 +1,45 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: Support for Intel BMC chipsets via IPMI
-Message-Id: <3DD72665.39FD6E41@paradyne.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:50 +0000
+Subject: [PATCH] i2c driver changes for 2.5.65
+Message-Id: <10481995631475@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <A5974D8E5F98D511BB910002A50A66470580D387@hdsmsx103.hd.intel.com>
-In-Reply-To: <A5974D8E5F98D511BB910002A50A66470580D387@hdsmsx103.hd.intel.com>
+In-Reply-To: <10481995574110@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+
+ChangeSet 1.1143.1.2, 2003/03/18 14:36:49-08:00, greg@kroah.com
+
+[PATCH] i2c i2c-i801.c: remove check_region() usage.
 
 
-> > "Cress, Andrew R" wrote:
-> > >
-> > > Folks,
-> > >
-> > > I like the way your project ties together lots of types of sensors.
-> > > I have a project that uses IPMI to do various things, including get
-> > > sensor data and decode the readings.  It is compatible with either
-> > > the /dev/ipmikcs (valinux) or /dev/imb (Intel) interfaces, and has
-> > > been validated with Corey's IPMI driver.
-> > > This code works with Intel BMC chipsets.
-> > > See  http://panicsel.sourceforge.net  (sensors.c)
-> > >
-> > > I'm currently working on conforming the interface of these utilities
-> > > to the saforum.org's Hardware Platform Interface.  So, I'd be interested
-> > > in what interface you have now, and if you are planning to move to SA
-> HPI
-> > or
-> > > not.
->
+ drivers/i2c/busses/i2c-i801.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-I downloaded the saforum document and spent enough time skimming
-through it (about 30 seconds) to be able to answer your questions.
 
-No we aren't doing that interface.
-
-First of all, we focus on drivers.
-Our drivers generally use direct access to devices, and
-export the data in a relatively simple manner to /proc. From there,
-we have a text program 'sensors'. Others (search sourceforge for
-'sensors')
-have developed GUI interfaces to the data, either with /proc accesses or
-using our libsensors library.
-
-What I am doing with IPMI is accessing the sensors that are hiding
-behind
-the BMC and exporting the data to /proc, following our API.
-This allows people with Intel boards to find out their processor
-temperature,
-using all the existing userspace GUI's, etc. that have been developed.
-But probably 90% of the features and richness of IPMI will be lost going
-through our API. So if you were doing something like the saforum thing,
-our package will just get in the way.
-
-I encourage you to give our package a try. You may have the best results
-on a non-IPMI motherboard, at least in the near future :)
-
-mds
+diff -Nru a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c	Thu Mar 20 12:58:00 2003
++++ b/drivers/i2c/busses/i2c-i801.c	Thu Mar 20 12:58:00 2003
+@@ -158,10 +158,10 @@
+ 		}
+ 	}
+ 
+-	if (check_region(i801_smba, (isich4 ? 16 : 8))) {
++	if (!request_region(i801_smba, (isich4 ? 16 : 8), "i801-smbus")) {
+ 		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
+ 			i801_smba);
+-		error_return = -ENODEV;
++		error_return = -EBUSY;
+ 		goto END;
+ 	}
+ 
+@@ -180,8 +180,6 @@
+ 		pci_write_config_byte(I801_dev, SMBHSTCFG, temp | 1);
+ 		dev_warn(&dev->dev, "enabling SMBus device\n");
+ 	}
+-
+-	request_region(i801_smba, (isich4 ? 16 : 8), "i801-smbus");
+ 
+ 	if (temp & 0x02)
+ 		dev_dbg(&dev->dev, "I801 using Interrupt SMI# for SMBus.\n");
