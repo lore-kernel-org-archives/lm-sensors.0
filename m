@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:27 +0000
 Subject: Temperatures on Gigabyte GA-8PE667
-Message-Id: <20041219143443.09ecd767.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.58.0412231851340.18510@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <JA8AAAAAA4jS8QABYQABj6DB09hU@proteusworld.com>
 In-Reply-To: <JA8AAAAAA4jS8QABYQABj6DB09hU@proteusworld.com>
@@ -10,60 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sebastian,
 
-FYI, lm78@ is an alias on sensors@. No need to send the same message
-twice ;)
+> I understand your needs, but we just can't do anything without
+> additional data that only Gigabyte could provide - and this is if there
+> *is* a way to get the readings. Maybe there isn't at all.
 
-> I was wondering if anyone on this mailing list has managed to properly
-> read temperatures on a Gigabyte GA-8PE667 mainboard or similar?
-> 
-> I have lm_sensors 2.8.7 installed and working, but the CPU and MB
-> temperatures (temp1 and temp2) are definetly wrong. With sensors type
-> set to 2 (thermistor), both temps always say 25 degrees Celsius,
-> regardless of CPU load.
+Oh there is way of bios dissassembly I did. It is not easy and sometimes
+not possible. I had 2 hours of time so I did it:
 
-As far as I remember, thermistors have their nominal resistance known at
-25 degrees Celcius, and the temperature is computed using a voltage
-divisor involving a (non-thermistor) resistor of the same value. So this
-value of 25 degrees may not be exactly random, it could mean that no
-thermistor are used and the inputs have been "neutralized" using regular
-resistors.
+First only temp3 is used and it is programmed as diode.
 
-> The only source with a little more info on this topic I found at:
-> http://www.livewiredev.com/bbs/showthread.php?s=&postid766
-> 
-> However, they discuss over there only about voltage readouts. There
-> are two mentions about temperatures, both stating the same problems as
-> I have.
+(REG51 & F6) | 8 confirms it
 
-I found this:
-http://www.hardwarebg.com/reviews/gigabyte/8pe667ultra/pics/bios_vcore.jpg
+Second there is no formula, just the value is converted to dec. val.
 
-This probably confirms my original thoughts. The BIOS only shows one
-temperature (temp3, obviously). I don't think that the two other
-temperature inputs are wired at all. There's nothing we can do about
-this. You can try asking Gigabyte for confirmation.
+So in chip "it87-*" "it8712-*"
+config section ensure that you have:
 
-> I am sure the sensors work on my mainboard because some time ago I had
-> Windows on the machine and Gigabyte's EasyTune utility was showing
-> proper temperatures.
+ignore temp1
+ignore temp2
+set sensor3 3
+and no compute statement for temp3
 
-Interesting. However, without the source or info from Gigabyte, there's
-not much we can do. Maybe some extra, board-specific step is required to
-enable the readings? I can't tell. That's not something we can guess.
-Either Gigabyte tells you, or you will have to live without the values
-(the CPU temperature is the most important temperature anyway).
+This will gain same temp as it is in bios.
 
-> Any help on this matter would be greatly appreciated. This machine is
-> my home server and I want to reduce the noise volume, but I can't
-> safely do that without being able to check if the system is indeed
-> properly cooled.
+I hope this will help a bit. Dont forget to CC to the list. If any more
+questions. Thanks.
 
-I understand your needs, but we just can't do anything without
-additional data that only Gigabyte could provide - and this is if there
-*is* a way to get the readings. Maybe there isn't at all.
+Regards
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Rudolf
+
+Reference:
+8pe667u.f3    => 8pe667u.bin
+
+seg000:8F0C                 call    inport
+Iseg000:8F0F                 and     al, cs:[si+1]
+Iseg000:8F13                 or      al, cs:[si+2]
+Iseg000:8F17                 call    outport
+
+seg000:92F5 temp3           proc far
+Iseg000:92F5                 cmp     al, 0AAh ; '-'
+Iseg000:92F7                 jz      locret_0_9303
+Iseg000:92F9                 mov     ah, 2Bh ; '+'
+Iseg000:92FB                 call    inport
+Iseg000:92FE                 xor     ah, ah
+Iseg000:9300                 call    temprint
+Iseg000:9303
+Iseg000:9303 locret_0_9303:                          ; CODE XREF:
+Iseg000:9303                 retf
+Iseg000:9303 temp3           endp
