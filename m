@@ -1,70 +1,89 @@
-From: office@voxel.at (Dr. Simon Vogl)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:24 +0000
 Subject: I2C parallel port adapters drivers
-Message-Id: <3FAE7BB1.3090007@voxel.at>
+Message-Id: <20031109222336.29195149.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031102132342.79920c6f.khali@linux-fr.org>	<3FAB6A8C.9070608@voxel.at> <20031107223611.173c82cc.khali@linux-fr.org>
-In-Reply-To: <20031107223611.173c82cc.khali@linux-fr.org>
+References: <20031102132342.79920c6f.khali@linux-fr.org>
+	<3FAB6A8C.9070608@voxel.at>
+	<20031107223611.173c82cc.khali@linux-fr.org>
+	<3FAE7BB1.3090007@voxel.at>
+In-Reply-To: <3FAE7BB1.3090007@voxel.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@stimpy.netroedge.com
-Cc: DI Dr Simon Vogl <simon@voxel.at>, linux-kernel@vger.kernel.org
+To: "Dr. Simon Vogl" <office@voxel.at>
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-Jean,
-some comments, in no particular order :)
 
-When I wrote the parallel port drivers, the parport api was changing a 
-lot. Therefore I did not
-make use of it. Blocking the parport might be a good idea, but it 
-introduces another dependency.
+> When I wrote the parallel port drivers, the parport api was changing a
+> lot. Therefore I did not make use of it. Blocking the parport might be
+> a good idea, but it introduces another dependency.
 
-Anyway, parport only makes real sense when you want to share your 
-parport between multiple devices,
-say a zip drive. Therefore, a question to the whole sensors list: Is 
-anyone really using such a setup?
-It should be at least be configurable as an option (also think of using 
-it in embedded devices, where you
-wouldn't want to bloat the kernel with such things...)
+I guess the parport api is stable now, so there should be no problem
+using it. And yes, not everyone will enjoy the dependency over
+parport.o, especially when it's ten times bigger than the module that
+depends on it. Still this is the clean way of doing things, isn't it?
 
-Also, are there any hardware cracks out there with multiple adapters, 
-like a home-brew philips adapter
-and a velleman kit on two parports?
+> Anyway, parport only makes real sense when you want to share your 
+> parport between multiple devices, say a zip drive. Therefore, a
+> question to the whole sensors list: Is anyone really using such a
+> setup?
 
-Just a few special cases to think about...
+I have been, and could again for testing, but that's not my regular
+configuration. Mind you, it looks like parallel port is a dying
+technology. Most of the time it has been replaced by SCSI or USB, so
+having one parallel port device is quite uncommon nowadays - more than
+one must be really rare.
 
-As for the naming, i2c-parport would conflict with the old i2c-parport 
-module that is still available in 2.4ish
-kernels in the v4l section - maybe i2c-parallel is an option.
+That said, the parport module has more than that. It has a procfs
+interface, device detection, and probably workarounds for broken
+systems. Also, Mark D. Studebaker pointed out that using the parport
+module would probably help a lot on non-PC architectures over direct I/O
+operations. Portability is something we would like in the new driver.
 
-Also, have a look at the wealth of i2c drivers that are present in the 
-2.6 kernels :)
-So long,
-Simon
+> It should at least be configurable as an option (also think of
+> using it in embedded devices, where you wouldn't want to bloat the
+> kernel with such things...)
 
-Jean Delvare wrote:
+If an option, it would have to be a compilation time one, since I
+believe the dependencies are computed at compilation time. And it would
+make the driver even bigger anyway, were it a run time option. I wasn't
+thinking about that option, but you might be right, so I'll think of it.
 
->OK, I'll write a unified driver then. Just one more question. Any reason
->to prefer direct I/O access (ELV/Velleman) over parallel-port-style
->programming (i2c-philips-par)? I'd say that the second is preferable,
->but you might have had a reason to use direct access, that I ignore. If
->not, I'll somehow use i2c-philips-par as a base for my unified driver,
->which I'll probably call i2c-parport (since it won't be Philips-specific
->anymore). That driver would support Philips adapters, ELV, Velleman and
->ADM evaluation boards (I have one here for testing).
->
->Thanks a lot for spending some time replying.
->
->  
->
+Anyway, the driver will be bigger than each of the individual drivers we
+had today, since it will support all known adapters. So I could also set
+them all as compilation time options, so that people needing support for
+a single adapter would only select this one. Having such a modular
+driver will require some more work, but it should make it suitable for
+everyone's specific use.
 
+Having a unified driver could also let me add a preliminary
+autodetection of the hardware. Providing i2c-algo-bit has been loaded
+with the bit_test=1 option, we could try initializing all known modes in
+a row, until one succeeds. Full autodetection is impossible though (some
+adapters have their lines inverted and we have no way to detect that).
+
+> As for the naming, i2c-parport would conflict with the old i2c-parport
+> module that is still available in 2.4ish kernels in the v4l section -
+> maybe i2c-parallel is an option.
+
+Oh, interesting. I had missed that one. So there is a fifth Linux
+i2c-over-parallel-port driver. Funny I missed the only one that has the
+right name ;) But I wouldn't have looked for such a driver in
+media/video, for sure. Why is it lost here?
+
+That driver would be part of my unified driver anyway, so it wouldn't
+hurt to keep the name, would it? (I could just pretend I am extending it
+;))
+
+> Also, have a look at the wealth of i2c drivers that are present in the
+> 2.6 kernels :)
+
+Not sure I get you here. What do you want me to pay attention to
+exactly?
+
+Thanks again Simon for the precious insightful remarks.
 
 -- 
-Dipl.-Ing. Dr. Simon Vogl !  http://www.voxel.at/
-VoXel Interaction Design  !  office@voxel.at
-Breitwiesergutstr. 50     !  +43 650 2323 555
-A-4020 Linz - Austria     !  
-
-
-
-
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
