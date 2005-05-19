@@ -1,41 +1,31 @@
-From: bunk@stusta.de (Adrian Bunk)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:20 +0000
 Subject: [2.6 patch] i2c it87.c: remove an unused function
-Message-Id: <20041029001745.GI29142@stusta.de>
+Message-Id: <5qqD8rRk.1099035252.6524190.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20041029001745.GI29142@stusta.de>
 References: <20041028222039.GO3207@stusta.de>
 In-Reply-To: <20041028222039.GO3207@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Gauthron <chrisg@0-in.com>, greg@kroah.com, phil@netroedge.com
-Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
-
-[ this time without the problems due to a digital signature... ]
-
-The patch below removes an unused function from drivers/i2c/chips/it87.c
+To: bunk@stusta.de, chrisg@0-in.com, greg@kroah.com
+Cc: sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
 
-diffstat output:
- drivers/i2c/chips/it87.c |    7 -------
- 1 files changed, 7 deletions(-)
+Hi Adrian & all,
 
+> The patch below removes an unused function from drivers/i2c/chips/it87.c
+> (...)
+> -static inline void
+> -superio_outb(int reg, int val)
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+For information, this function was most likely there for the case we
+would implement the force_addr module parameter for this driver (see the
+w83627hf driver in the same directory for an example of that).
 
---- linux-2.6.10-rc1-mm1-full/drivers/i2c/chips/it87.c.old	2004-10-28 23:00:26.000000000 +0200
-+++ linux-2.6.10-rc1-mm1-full/drivers/i2c/chips/it87.c	2004-10-28 23:00:37.000000000 +0200
-@@ -56,13 +56,6 @@
- #define PME	0x04	/* The device with the fan registers in it */
- #define	DEVID	0x20	/* Register: Device ID */
- 
--static inline void
--superio_outb(int reg, int val)
--{
--	outb(reg, REG);
--	outb(val, VAL);
--}
--
- static inline int
- superio_inb(int reg)
- {
+That said, I have no objection to the removal of this function. We can
+still add it back later if we ever need it.
+
+Thanks,
+Jean
