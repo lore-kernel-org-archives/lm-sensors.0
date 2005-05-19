@@ -1,27 +1,26 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: [PATCH 2.6] I2C: New PC8736x chip driver
-Message-Id: <20041105223613.GC3199@kroah.com>
+From: sascha@akv-soft.de (Sascha Volkenandt)
+Date: Thu, 19 May 2005 06:24:06 +0000
+Subject: EEPROM write support
+Message-Id: <200307221931.02558.sascha@akv-soft.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041029224731.58d0be48.khali@linux-fr.org>
-In-Reply-To: <20041029224731.58d0be48.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 05, 2004 at 11:32:34PM +0100, Jean Delvare wrote:
-> > Applied, thanks.
-> > 
-> > Oh, and I fixed up your MODULE_PARAM warning too :)
-> 
-> Sorry, I should have noticed the change. That said I did not see any
-> warning. Are these compile-time or run-time warnings? Anything special
-> needs to be done to actually see them?
+Hello list,
 
-Compile time warnings.  You might need a newer version of gcc to see
-them, don't really know.
+I've just connected an old serial EEPROM to my i2c-bus, to see what else can 
+be done with this bus. My question is, why is there no write support (yet)? 
+Mere protection? I've added a basic write functionality myself, and it 
+works pretty fine (the chip didn't blow and presents the written data on 
+next real read-out).
 
-thanks,
+I've also found some other I2C-Chips on the board I have that one from, 
+mostly Audio and Video processors also found in other packages. Are those 
+drivers intentionally not part of lm_sensors but instead their respective 
+driver packages? I'm thinking about abusing the audio- and video-switches 
+inside my machine :-)
 
-greg k-h
+Greetings,
+Sascha
