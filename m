@@ -1,12 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Matt.Smith@analog.com (Smith, Matt)
 Date: Thu, 19 May 2005 06:24:24 +0000
 Subject: ADM1032 documentation
-Message-Id: <20031109171910.7d942c42.khali@linux-fr.org>
+Message-Id: <F7CB408531C5264680C9E37DE4FE71A403BE1776@limkexm2.ad.analog.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031109171910.7d942c42.khali@linux-fr.org>
+In-Reply-To: <20031109171910.7d942c42.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi Jean
+
+Appreciate your feedback and will revise the datasheet.
+
+Thanks
+Matt
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: Sunday, November 09, 2003 4:19 PM
+To: Smith, Matt; Burke, Mary
+Cc: sensors@stimpy.netroedge.com
+Subject: ADM1032 documentation
+
 
 
 Hello Matt,
