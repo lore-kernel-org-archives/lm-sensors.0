@@ -1,33 +1,45 @@
-From: a.othieno@bluewin.ch (Arthur Othieno)
-Date: Thu, 19 May 2005 06:25:02 +0000
-Subject: [PATCH 2.6] drivers/media/video/bt832.c: ACK return on
-Message-Id: <20040622161251.GL1473@mars>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:53 +0000
+Subject: [PATCH] i2c driver changes for 2.5.67
+Message-Id: <10499274993464@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040622151603.GA1473@mars>
-In-Reply-To: <20040622151603.GA1473@mars>
+In-Reply-To: <10499274991641@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-On Tue, Jun 22, 2004 at 05:52:33PM +0200, Jean Delvare wrote:
-> Your patches look good, but we do not have the possibility to apply them
-> ourselves. You should direct your requests to the drivers maintainers
-> (as you did for some of the patches). If you can't find who this is,
-> please try the media/video subsystem maintainer (if there is one). Else
-> I guess you can fallback to Greg KH since this is i2c stuff.
-> 
-> At any rate, please realize that any of these patches, sent only to the
-> lm_sensors mailing list, will be lost unless you redirect them to the
-> correct person.
-> 
-> Thanks,
-> Jean Delvare
+ChangeSet 1.1133.1.3, 2003/04/08 02:49:21-07:00, azarah@gentoo.org
 
-Eeek! And I was using (keeping) the wrong address in the Cc: and To:
-fields all along. So this is what happens when you miss that daily
-dose of caffeine.
+[PATCH] i2c: Fix w83781d sensor to use Milli-Volt for in_* in sysfs
 
-Apologies for the noise.
+I did the w83781d sysfs update as per the old spec, which was not
+milli-volt.  This patch should fix it.
 
-	Arthur
+
+ drivers/i2c/chips/w83781d.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	Wed Apr  9 15:16:04 2003
++++ b/drivers/i2c/chips/w83781d.c	Wed Apr  9 15:16:04 2003
+@@ -364,7 +364,7 @@
+ 	 \
+ 	w83781d_update_client(client); \
+ 	 \
+-	return sprintf(buf,"%ld\n", (long)IN_FROM_REG(data->reg[nr])); \
++	return sprintf(buf,"%ld\n", (long)IN_FROM_REG(data->reg[nr] * 10)); \
+ }
+ show_in_reg(in);
+ show_in_reg(in_min);
+@@ -378,7 +378,7 @@
+ 	u32 val; \
+ 	 \
+ 	val = simple_strtoul(buf, NULL, 10); \
+-	data->in_##reg[nr] = IN_TO_REG(val); \
++	data->in_##reg[nr] = (IN_TO_REG(val) / 10); \
+ 	w83781d_write_value(client, W83781D_REG_IN_##REG(nr), data->in_##reg[nr]); \
+ 	 \
+ 	return count; \
+
