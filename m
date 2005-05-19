@@ -1,134 +1,135 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:39 +0000
 Subject: two questions about w83792d.c for linux-2.4
-Message-Id: <TYWAog2P.1109067782.5308360.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190C6D@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> Question 1:
-> Need I modify my current calculation method again into your above
-> method?
-
-Yes please.
-
-> Is that all the other chip drivers in lm_sensors as what you said:
-> "the values in /proc should really be Volts"? If do, I will try to
-> modify my current method.:-(
-
-Don't be afraid, it's not that difficult. The difficulty is to get what
-has to be done and understand why. After that, the changes to the code
-should be rather simple.
-
-> Question 2:
-> I agree that the LSB of in2-5 is 4mV, so as to in2-5, the method you
-> provided is correct. But about in6-in8, you said that their LSB is
-> also 4mV, then how to calculate their measured value? Because in
-> datasheet
-> 5VCC(in6) Voltage = (CR[26]*4 + CR[3F]&0x30) * 0.006;
-> 5VSB(in7) Voltage = CR[B0] * 0.024;
-> VBAT(in8) Voltage = CR[B1] * 0.016;
-> The voltage factor for in6 is 0.006 instead of 0.004, the voltage factor
-> for in7/8 is 0.024/0.016.
-> So I think that I should use the same method as in2-5, and use the
-> multiplier 1.5 in sensors.conf for in6, use the multiplier 6 for
-> in7, and use the multiplier 4 for in8.
-> Am I right? Can you confirm that for me?
-
-It's a bit more complex than that. First of all, the 0.024 and 0.016
-factors are really (4 * 0.006) and (4 * 0.004), because in7 and in8 do
-not have the additional 2 bits of resolution (exactly the same as the
-limits for all voltages). So in8 is mostly similar to in2-in5 except
-that you have no second register to read:
-in8 = CR[B1] * 4 * 0.004
-    = CR[B1] * 0.016
-
-For in6-in7, the datasheet explains that they are affected by *internal*
-resistors. This means that you'll really have 5V at the pins, but then
-you have internal resistors right before the ADC (this is needed because
-the max value for the ADC is 4.080V which is less than 5V).
-
-The reason why these inputs use internal resistors and not external ones
-is that the W83792D itself *needs* the 5V lines as power suppliers. If
-they were attenuated externally it would obviously not work.
-
-So for in6-in7 the resistors have to be handled inside the driver
-(remember, everything that happens inside the chip belong to the driver,
-everything that happens outside of the chip belong to libsensors). This
-leads to the following in the driver:
-in6 = (CR[26]*4 + ((CR[3F]&0x30)>>4)) * 0.006
-in7 = CR[B0] * 4 * 0.006
-    = CR[B0] * 0.024
-
-Note that you cannot use floating point in the kernel so you will not
-really multiply by 0.006, 0.016 and 0.024. Instead you multiply by 6, 16
-and 24, and set the "in" file magnitude to 3 (which means divide by
-1000). This leads to:
-in6 = (CR[26]*4 + ((CR[3F]&0x30)>>4)) * 6;
-in7 = CR[B0] * 24;
-in8 = CR[B1] * 16;
-
-> Question 3:
-> We discussed the voltage measured value, but how about the voltage
-> limits?
-> I try to get the new calculation method, would you please confirm it?
-> Or please give me the detailed calculation about the voltage limits.
-> VcoreA(in0) Limit = (CR[2B/2C] * 4) * 0.002;
-> VcoreB(in1) Limit = (CR[2D/2E] * 4) * 0.002;
-> VIN0~VIN3(in2-in5) Limit = (CR[2F~36] * 4) * 0.004;
-
-Looks all OK to me (except that the multipliers are really 2 and 4, with
-magnitude is 3, as explained above).
-
-> Note: in0-in5 do NOT use any multiplier in sensors.conf
-
-in0-in1 never will, but in2-in5 may. It all depends on what is wired to
-them, and this choice is left to the motherboard maker. This is the
-exact reason why the multipliers (if any) need to be in sensors.conf and
-not in the driver.
-
-> 5VCC(in6) Limit = (CR[37/38] * 4) * 0.004;
-> Note: in6 use multiplier 1.5 in sensors.conf, same as the one for
-> in6 measured value.
->
-> 5VSB(in7) Limit = CR[B4/B5] * 0.004;
-> Note: in7 use multiplier 6 in sensors.conf, same as the one for
-> in7 measured value.
-
-As explained above, in6 and in7 have internal resistors, so the
-multiplier should be in the driver for these ones.
-
-> VBAT(in8) Limit = (CR[B6/B7] * 0.004);
-> Note: in8 use multiplier 4 in sensors.conf, same as the one for
-> in8 measured value.
-
-Not correct, the multiplier 4 must be in the driver, exactly like
-in2-in5. This multiplier is not due to external resistors, but to the
-lack of additional resolution bits.
-
-I hope I've been clear. I admit it is a bit complicated to get it right
-especially since it is your first driver, and it's a complex one, and
-you're not used to the lm_sensors architecture. The basic rules are:
-1* The driver must export the voltage _measured at its pins_ to /proc, in
-Volts.
-2* External resistors are handled by libsensors.
-Rule 1* implies that internal resistors are handled by the driver.
-The second difficulty is that you are not allowed to work with floating
-point values in the kernel, which is why you always multiply by integer
-values and use the magnitude to divide by 10, 100 or 1000 in the end. In
-fact, for the W83792D voltages, you work in millivolts in the driver,
-and the magnitude of 3 divides by 1000 in /proc, resulting in Volts.
-
-(In Linux 2.6 it has been simplified, /sys handles millivolts too, so
-there is no more magnitude to deal with.)
-
-Thanks,
---
-Jean Delvare
+SGkgSmVhbgoKT0ssIEkgd2lsbCBtb2RpZnkgdGhlIDc5MiBkcml2ZXIgd2l0aCB0aGUgbWV0aG9k
+IHlvdSBwcmVzZW50LApJZiBJIG1lZXQgc29tZSBuZXcgcXVlc3Rpb25zLCBJIHdpbGwgd3JpdGUg
+eW91IGFnYWluLjotKQoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPiAtLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IEplYW4gRGVsdmFyZSBbbWFpbHRvOmtoYWxpQGxpbnV4
+LWZyLm9yZ10KPiBTZW50OiAyMDA1xOoy1MIyMsjVIDE4OjIzCj4gVG86IFBJMTQgSFVBTkcwCj4g
+Q2M6IFBJMTAgTEhIc3U7IFBJMTQgRFpTSEVOOyBMTSBTZW5zb3JzOyBQSTEzIENGTGkKPiBTdWJq
+ZWN0OiBSRTogdHdvIHF1ZXN0aW9ucyBhYm91dCB3ODM3OTJkLmMgZm9yIGxpbnV4LTIuNAo+IAo+
+IAo+IEhpIENodW5oYW8sCj4gCj4gPiBRdWVzdGlvbiAxOgo+ID4gTmVlZCBJIG1vZGlmeSBteSBj
+dXJyZW50IGNhbGN1bGF0aW9uIG1ldGhvZCBhZ2FpbiBpbnRvIHlvdXIgYWJvdmUKPiA+IG1ldGhv
+ZD8KPiAKPiBZZXMgcGxlYXNlLgo+IAo+ID4gSXMgdGhhdCBhbGwgdGhlIG90aGVyIGNoaXAgZHJp
+dmVycyBpbiBsbV9zZW5zb3JzIGFzIHdoYXQgeW91IHNhaWQ6Cj4gPiAidGhlIHZhbHVlcyBpbiAv
+cHJvYyBzaG91bGQgcmVhbGx5IGJlIFZvbHRzIj8gSWYgZG8sIEkgd2lsbCB0cnkgdG8KPiA+IG1v
+ZGlmeSBteSBjdXJyZW50IG1ldGhvZC46LSgKPiAKPiBEb24ndCBiZSBhZnJhaWQsIGl0J3Mgbm90
+IHRoYXQgZGlmZmljdWx0LiBUaGUgZGlmZmljdWx0eSBpcyB0byBnZXQgd2hhdAo+IGhhcyB0byBi
+ZSBkb25lIGFuZCB1bmRlcnN0YW5kIHdoeS4gQWZ0ZXIgdGhhdCwgdGhlIGNoYW5nZXMgdG8gdGhl
+IGNvZGUKPiBzaG91bGQgYmUgcmF0aGVyIHNpbXBsZS4KPiAKPiA+IFF1ZXN0aW9uIDI6Cj4gPiBJ
+IGFncmVlIHRoYXQgdGhlIExTQiBvZiBpbjItNSBpcyA0bVYsIHNvIGFzIHRvIGluMi01LCB0aGUg
+bWV0aG9kIHlvdQo+ID4gcHJvdmlkZWQgaXMgY29ycmVjdC4gQnV0IGFib3V0IGluNi1pbjgsIHlv
+dSBzYWlkIHRoYXQgdGhlaXIgTFNCIGlzCj4gPiBhbHNvIDRtViwgdGhlbiBob3cgdG8gY2FsY3Vs
+YXRlIHRoZWlyIG1lYXN1cmVkIHZhbHVlPyBCZWNhdXNlIGluCj4gPiBkYXRhc2hlZXQKPiA+IDVW
+Q0MoaW42KSBWb2x0YWdlID0gKENSWzI2XSo0ICsgQ1JbM0ZdJjB4MzApICogMC4wMDY7Cj4gPiA1
+VlNCKGluNykgVm9sdGFnZSA9IENSW0IwXSAqIDAuMDI0Owo+ID4gVkJBVChpbjgpIFZvbHRhZ2Ug
+PSBDUltCMV0gKiAwLjAxNjsKPiA+IFRoZSB2b2x0YWdlIGZhY3RvciBmb3IgaW42IGlzIDAuMDA2
+IGluc3RlYWQgb2YgMC4wMDQsIHRoZSB2b2x0YWdlIGZhY3Rvcgo+ID4gZm9yIGluNy84IGlzIDAu
+MDI0LzAuMDE2Lgo+ID4gU28gSSB0aGluayB0aGF0IEkgc2hvdWxkIHVzZSB0aGUgc2FtZSBtZXRo
+b2QgYXMgaW4yLTUsIGFuZCB1c2UgdGhlCj4gPiBtdWx0aXBsaWVyIDEuNSBpbiBzZW5zb3JzLmNv
+bmYgZm9yIGluNiwgdXNlIHRoZSBtdWx0aXBsaWVyIDYgZm9yCj4gPiBpbjcsIGFuZCB1c2UgdGhl
+IG11bHRpcGxpZXIgNCBmb3IgaW44Lgo+ID4gQW0gSSByaWdodD8gQ2FuIHlvdSBjb25maXJtIHRo
+YXQgZm9yIG1lPwo+IAo+IEl0J3MgYSBiaXQgbW9yZSBjb21wbGV4IHRoYW4gdGhhdC4gRmlyc3Qg
+b2YgYWxsLCB0aGUgMC4wMjQgYW5kIDAuMDE2Cj4gZmFjdG9ycyBhcmUgcmVhbGx5ICg0ICogMC4w
+MDYpIGFuZCAoNCAqIDAuMDA0KSwgYmVjYXVzZSBpbjcgYW5kIGluOCBkbwo+IG5vdCBoYXZlIHRo
+ZSBhZGRpdGlvbmFsIDIgYml0cyBvZiByZXNvbHV0aW9uIChleGFjdGx5IHRoZSBzYW1lIGFzIHRo
+ZQo+IGxpbWl0cyBmb3IgYWxsIHZvbHRhZ2VzKS4gU28gaW44IGlzIG1vc3RseSBzaW1pbGFyIHRv
+IGluMi1pbjUgZXhjZXB0Cj4gdGhhdCB5b3UgaGF2ZSBubyBzZWNvbmQgcmVnaXN0ZXIgdG8gcmVh
+ZDoKPiBpbjggPSBDUltCMV0gKiA0ICogMC4wMDQKPiAgICAgPSBDUltCMV0gKiAwLjAxNgo+IAo+
+IEZvciBpbjYtaW43LCB0aGUgZGF0YXNoZWV0IGV4cGxhaW5zIHRoYXQgdGhleSBhcmUgYWZmZWN0
+ZWQgYnkgKmludGVybmFsKgo+IHJlc2lzdG9ycy4gVGhpcyBtZWFucyB0aGF0IHlvdSdsbCByZWFs
+bHkgaGF2ZSA1ViBhdCB0aGUgcGlucywgYnV0IHRoZW4KPiB5b3UgaGF2ZSBpbnRlcm5hbCByZXNp
+c3RvcnMgcmlnaHQgYmVmb3JlIHRoZSBBREMgKHRoaXMgaXMgbmVlZGVkIGJlY2F1c2UKPiB0aGUg
+bWF4IHZhbHVlIGZvciB0aGUgQURDIGlzIDQuMDgwViB3aGljaCBpcyBsZXNzIHRoYW4gNVYpLgo+
+IAo+IFRoZSByZWFzb24gd2h5IHRoZXNlIGlucHV0cyB1c2UgaW50ZXJuYWwgcmVzaXN0b3JzIGFu
+ZCBub3QgZXh0ZXJuYWwgb25lcwo+IGlzIHRoYXQgdGhlIFc4Mzc5MkQgaXRzZWxmICpuZWVkcyog
+dGhlIDVWIGxpbmVzIGFzIHBvd2VyIHN1cHBsaWVycy4gSWYKPiB0aGV5IHdlcmUgYXR0ZW51YXRl
+ZCBleHRlcm5hbGx5IGl0IHdvdWxkIG9idmlvdXNseSBub3Qgd29yay4KPiAKPiBTbyBmb3IgaW42
+LWluNyB0aGUgcmVzaXN0b3JzIGhhdmUgdG8gYmUgaGFuZGxlZCBpbnNpZGUgdGhlIGRyaXZlcgo+
+IChyZW1lbWJlciwgZXZlcnl0aGluZyB0aGF0IGhhcHBlbnMgaW5zaWRlIHRoZSBjaGlwIGJlbG9u
+ZyB0byB0aGUgZHJpdmVyLAo+IGV2ZXJ5dGhpbmcgdGhhdCBoYXBwZW5zIG91dHNpZGUgb2YgdGhl
+IGNoaXAgYmVsb25nIHRvIGxpYnNlbnNvcnMpLiBUaGlzCj4gbGVhZHMgdG8gdGhlIGZvbGxvd2lu
+ZyBpbiB0aGUgZHJpdmVyOgo+IGluNiA9IChDUlsyNl0qNCArICgoQ1JbM0ZdJjB4MzApPj40KSkg
+KiAwLjAwNgo+IGluNyA9IENSW0IwXSAqIDQgKiAwLjAwNgo+ICAgICA9IENSW0IwXSAqIDAuMDI0
+Cj4gCj4gTm90ZSB0aGF0IHlvdSBjYW5ub3QgdXNlIGZsb2F0aW5nIHBvaW50IGluIHRoZSBrZXJu
+ZWwgc28geW91IHdpbGwgbm90Cj4gcmVhbGx5IG11bHRpcGx5IGJ5IDAuMDA2LCAwLjAxNiBhbmQg
+MC4wMjQuIEluc3RlYWQgeW91IG11bHRpcGx5IGJ5IDYsIDE2Cj4gYW5kIDI0LCBhbmQgc2V0IHRo
+ZSAiaW4iIGZpbGUgbWFnbml0dWRlIHRvIDMgKHdoaWNoIG1lYW5zIGRpdmlkZSBieQo+IDEwMDAp
+LiBUaGlzIGxlYWRzIHRvOgo+IGluNiA9IChDUlsyNl0qNCArICgoQ1JbM0ZdJjB4MzApPj40KSkg
+KiA2Owo+IGluNyA9IENSW0IwXSAqIDI0Owo+IGluOCA9IENSW0IxXSAqIDE2Owo+IAo+ID4gUXVl
+c3Rpb24gMzoKPiA+IFdlIGRpc2N1c3NlZCB0aGUgdm9sdGFnZSBtZWFzdXJlZCB2YWx1ZSwgYnV0
+IGhvdyBhYm91dCB0aGUgdm9sdGFnZQo+ID4gbGltaXRzPwo+ID4gSSB0cnkgdG8gZ2V0IHRoZSBu
+ZXcgY2FsY3VsYXRpb24gbWV0aG9kLCB3b3VsZCB5b3UgcGxlYXNlIGNvbmZpcm0gaXQ/Cj4gPiBP
+ciBwbGVhc2UgZ2l2ZSBtZSB0aGUgZGV0YWlsZWQgY2FsY3VsYXRpb24gYWJvdXQgdGhlIHZvbHRh
+Z2UgbGltaXRzLgo+ID4gVmNvcmVBKGluMCkgTGltaXQgPSAoQ1JbMkIvMkNdICogNCkgKiAwLjAw
+MjsKPiA+IFZjb3JlQihpbjEpIExpbWl0ID0gKENSWzJELzJFXSAqIDQpICogMC4wMDI7Cj4gPiBW
+SU4wflZJTjMoaW4yLWluNSkgTGltaXQgPSAoQ1JbMkZ+MzZdICogNCkgKiAwLjAwNDsKPiAKPiBM
+b29rcyBhbGwgT0sgdG8gbWUgKGV4Y2VwdCB0aGF0IHRoZSBtdWx0aXBsaWVycyBhcmUgcmVhbGx5
+IDIgYW5kIDQsIHdpdGgKPiBtYWduaXR1ZGUgaXMgMywgYXMgZXhwbGFpbmVkIGFib3ZlKS4KPiAK
+PiA+IE5vdGU6IGluMC1pbjUgZG8gTk9UIHVzZSBhbnkgbXVsdGlwbGllciBpbiBzZW5zb3JzLmNv
+bmYKPiAKPiBpbjAtaW4xIG5ldmVyIHdpbGwsIGJ1dCBpbjItaW41IG1heS4gSXQgYWxsIGRlcGVu
+ZHMgb24gd2hhdCBpcyB3aXJlZCB0bwo+IHRoZW0sIGFuZCB0aGlzIGNob2ljZSBpcyBsZWZ0IHRv
+IHRoZSBtb3RoZXJib2FyZCBtYWtlci4gVGhpcyBpcyB0aGUKPiBleGFjdCByZWFzb24gd2h5IHRo
+ZSBtdWx0aXBsaWVycyAoaWYgYW55KSBuZWVkIHRvIGJlIGluIHNlbnNvcnMuY29uZiBhbmQKPiBu
+b3QgaW4gdGhlIGRyaXZlci4KPiAKPiA+IDVWQ0MoaW42KSBMaW1pdCA9IChDUlszNy8zOF0gKiA0
+KSAqIDAuMDA0Owo+ID4gTm90ZTogaW42IHVzZSBtdWx0aXBsaWVyIDEuNSBpbiBzZW5zb3JzLmNv
+bmYsIHNhbWUgYXMgdGhlIG9uZSBmb3IKPiA+IGluNiBtZWFzdXJlZCB2YWx1ZS4KPiA+Cj4gPiA1
+VlNCKGluNykgTGltaXQgPSBDUltCNC9CNV0gKiAwLjAwNDsKPiA+IE5vdGU6IGluNyB1c2UgbXVs
+dGlwbGllciA2IGluIHNlbnNvcnMuY29uZiwgc2FtZSBhcyB0aGUgb25lIGZvcgo+ID4gaW43IG1l
+YXN1cmVkIHZhbHVlLgo+IAo+IEFzIGV4cGxhaW5lZCBhYm92ZSwgaW42IGFuZCBpbjcgaGF2ZSBp
+bnRlcm5hbCByZXNpc3RvcnMsIHNvIHRoZQo+IG11bHRpcGxpZXIgc2hvdWxkIGJlIGluIHRoZSBk
+cml2ZXIgZm9yIHRoZXNlIG9uZXMuCj4gCj4gPiBWQkFUKGluOCkgTGltaXQgPSAoQ1JbQjYvQjdd
+ICogMC4wMDQpOwo+ID4gTm90ZTogaW44IHVzZSBtdWx0aXBsaWVyIDQgaW4gc2Vuc29ycy5jb25m
+LCBzYW1lIGFzIHRoZSBvbmUgZm9yCj4gPiBpbjggbWVhc3VyZWQgdmFsdWUuCj4gCj4gTm90IGNv
+cnJlY3QsIHRoZSBtdWx0aXBsaWVyIDQgbXVzdCBiZSBpbiB0aGUgZHJpdmVyLCBleGFjdGx5IGxp
+a2UKPiBpbjItaW41LiBUaGlzIG11bHRpcGxpZXIgaXMgbm90IGR1ZSB0byBleHRlcm5hbCByZXNp
+c3RvcnMsIGJ1dCB0byB0aGUKPiBsYWNrIG9mIGFkZGl0aW9uYWwgcmVzb2x1dGlvbiBiaXRzLgo+
+IAo+IEkgaG9wZSBJJ3ZlIGJlZW4gY2xlYXIuIEkgYWRtaXQgaXQgaXMgYSBiaXQgY29tcGxpY2F0
+ZWQgdG8gZ2V0IGl0IHJpZ2h0Cj4gZXNwZWNpYWxseSBzaW5jZSBpdCBpcyB5b3VyIGZpcnN0IGRy
+aXZlciwgYW5kIGl0J3MgYSBjb21wbGV4IG9uZSwgYW5kCj4geW91J3JlIG5vdCB1c2VkIHRvIHRo
+ZSBsbV9zZW5zb3JzIGFyY2hpdGVjdHVyZS4gVGhlIGJhc2ljIHJ1bGVzIGFyZToKPiAxKiBUaGUg
+ZHJpdmVyIG11c3QgZXhwb3J0IHRoZSB2b2x0YWdlIF9tZWFzdXJlZCBhdCBpdHMgcGluc18gdG8g
+L3Byb2MsIGluCj4gVm9sdHMuCj4gMiogRXh0ZXJuYWwgcmVzaXN0b3JzIGFyZSBoYW5kbGVkIGJ5
+IGxpYnNlbnNvcnMuCj4gUnVsZSAxKiBpbXBsaWVzIHRoYXQgaW50ZXJuYWwgcmVzaXN0b3JzIGFy
+ZSBoYW5kbGVkIGJ5IHRoZSBkcml2ZXIuCj4gVGhlIHNlY29uZCBkaWZmaWN1bHR5IGlzIHRoYXQg
+eW91IGFyZSBub3QgYWxsb3dlZCB0byB3b3JrIHdpdGggZmxvYXRpbmcKPiBwb2ludCB2YWx1ZXMg
+aW4gdGhlIGtlcm5lbCwgd2hpY2ggaXMgd2h5IHlvdSBhbHdheXMgbXVsdGlwbHkgYnkgaW50ZWdl
+cgo+IHZhbHVlcyBhbmQgdXNlIHRoZSBtYWduaXR1ZGUgdG8gZGl2aWRlIGJ5IDEwLCAxMDAgb3Ig
+MTAwMCBpbiB0aGUgZW5kLiBJbgo+IGZhY3QsIGZvciB0aGUgVzgzNzkyRCB2b2x0YWdlcywgeW91
+IHdvcmsgaW4gbWlsbGl2b2x0cyBpbiB0aGUgZHJpdmVyLAo+IGFuZCB0aGUgbWFnbml0dWRlIG9m
+IDMgZGl2aWRlcyBieSAxMDAwIGluIC9wcm9jLCByZXN1bHRpbmcgaW4gVm9sdHMuCj4gCj4gKElu
+IExpbnV4IDIuNiBpdCBoYXMgYmVlbiBzaW1wbGlmaWVkLCAvc3lzIGhhbmRsZXMgbWlsbGl2b2x0
+cyB0b28sIHNvCj4gdGhlcmUgaXMgbm8gbW9yZSBtYWduaXR1ZGUgdG8gZGVhbCB3aXRoLikKPiAK
+PiBUaGFua3MsCj4gLS0KPiBKZWFuIERlbHZhcmUKCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRp
+b24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRo
+ZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMg
+ZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1h
+aWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1
+Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2Nv
+cmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFu
+ZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3Bl
+cmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25m
+aWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBh
+bmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8g
+dGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRo
+ZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29k
+ZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5
+IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUu
+pburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/yp
+d6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZi
+pby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il
+87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHC
+LiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCs
+T7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5
+caRspKel37P1qc63TqijLgo=
