@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <1072821971560@kroah.com>
+Message-Id: <10728219722179@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219701628@kroah.com>
+In-Reply-To: <1072821972731@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,211 +11,171 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.8.32, 2003/12/17 16:04:29-08:00, mhoffman@lightlink.com
+ChangeSet 1.1496.9.2, 2003/12/04 13:35:42-08:00, khali@linux-fr.org
 
-[PATCH] I2C: remove initialization of limits by w83781d driver
+[PATCH] I2C: Fix i2c-algo-bit for adapers that cannot read SCL back
 
-This patch is from the lm_sensors project CVS, from this revision:
+Here follows a patch to i2c-algo-bit.c as found in linux-2.6.0-test9,
+with two fixes for adapters that cannot read SCL back. Althouth real
+adapters should be able to read SCL back, there are some that
+cannot, for example the ADM1032 evaluation board I am using. Such
+adapters where supposed to be already supported, but I found a probable
+bug and improved support.
 
-	1.111 (mds) remove initialization of limits by driver
+These changes were applied to our i2c CVS repository two weeks ago and
+have been reviewed by Mark D. Studebaker.
 
-It is better to set these limits by a combination of /etc/sensors.conf
-and 'sensors -s'; "mechanism not policy." And what's not to like about
-a patch that removes 163 lines?
+List of changes:
+
+* Fix sclhi() for adapters that do not have getscl().
+* Enable bit_test for adapters that do not have getscl().
+* Mostly rewrite test_bus(), cleaner and probably faster.
 
 
- drivers/i2c/chips/w83781d.c |  173 --------------------------------------------
- 1 files changed, 173 deletions(-)
+ drivers/i2c/algos/i2c-algo-bit.c |   96 ++++++++++++++++++++-------------------
+ 1 files changed, 50 insertions(+), 46 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Tue Dec 30 12:30:26 2003
-+++ b/drivers/i2c/chips/w83781d.c	Tue Dec 30 12:30:26 2003
-@@ -208,72 +208,6 @@
- 	return ((u8) i);
- }
+diff -Nru a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
+--- a/drivers/i2c/algos/i2c-algo-bit.c	Tue Dec 30 12:32:32 2003
++++ b/drivers/i2c/algos/i2c-algo-bit.c	Tue Dec 30 12:32:32 2003
+@@ -18,10 +18,8 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
+ /* ------------------------------------------------------------------------- */
  
--/* Initial limits */
--#define W83781D_INIT_IN_0		(vid = 3500 ? 280 : vid / 10)
--#define W83781D_INIT_IN_1		(vid = 3500 ? 280 : vid / 10)
--#define W83781D_INIT_IN_2		330
--#define W83781D_INIT_IN_3		(((500)   * 100) / 168)
--#define W83781D_INIT_IN_4		(((1200)  * 10) / 38)
--#define W83781D_INIT_IN_5		(((-1200) * -604) / 2100)
--#define W83781D_INIT_IN_6		(((-500)  * -604) / 909)
--#define W83781D_INIT_IN_7		(((500)   * 100) / 168)
--#define W83781D_INIT_IN_8		300
--/* Initial limits for 782d/783s negative voltages */
--/* Note level shift. Change min/max below if you change these. */
--#define W83782D_INIT_IN_5		((((-1200) + 1491) * 100)/514)
--#define W83782D_INIT_IN_6		((( (-500)  + 771) * 100)/314)
+-/* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
+-   Frodo Looijaard <frodol@dds.nl> */
 -
--#define W83781D_INIT_IN_PERCENTAGE	10
--#define W83781D_INIT_IN_MIN(val)	(val - val * W83781D_INIT_IN_PERCENTAGE / 100)
--#define W83781D_INIT_IN_MAX(val)	(val + val * W83781D_INIT_IN_PERCENTAGE / 100)
--
--#define W83781D_INIT_IN_MIN_0		W83781D_INIT_IN_MIN(W83781D_INIT_IN_0)
--#define W83781D_INIT_IN_MAX_0		W83781D_INIT_IN_MAX(W83781D_INIT_IN_0)
--#define W83781D_INIT_IN_MIN_1		W83781D_INIT_IN_MIN(W83781D_INIT_IN_1)
--#define W83781D_INIT_IN_MAX_1		W83781D_INIT_IN_MAX(W83781D_INIT_IN_1)
--#define W83781D_INIT_IN_MIN_2		W83781D_INIT_IN_MIN(W83781D_INIT_IN_2)
--#define W83781D_INIT_IN_MAX_2		W83781D_INIT_IN_MAX(W83781D_INIT_IN_2)
--#define W83781D_INIT_IN_MIN_3		W83781D_INIT_IN_MIN(W83781D_INIT_IN_3)
--#define W83781D_INIT_IN_MAX_3		W83781D_INIT_IN_MAX(W83781D_INIT_IN_3)
--#define W83781D_INIT_IN_MIN_4		W83781D_INIT_IN_MIN(W83781D_INIT_IN_4)
--#define W83781D_INIT_IN_MAX_4		W83781D_INIT_IN_MAX(W83781D_INIT_IN_4)
--#define W83781D_INIT_IN_MIN_5		W83781D_INIT_IN_MIN(W83781D_INIT_IN_5)
--#define W83781D_INIT_IN_MAX_5		W83781D_INIT_IN_MAX(W83781D_INIT_IN_5)
--#define W83781D_INIT_IN_MIN_6		W83781D_INIT_IN_MIN(W83781D_INIT_IN_6)
--#define W83781D_INIT_IN_MAX_6		W83781D_INIT_IN_MAX(W83781D_INIT_IN_6)
--#define W83781D_INIT_IN_MIN_7		W83781D_INIT_IN_MIN(W83781D_INIT_IN_7)
--#define W83781D_INIT_IN_MAX_7		W83781D_INIT_IN_MAX(W83781D_INIT_IN_7)
--#define W83781D_INIT_IN_MIN_8		W83781D_INIT_IN_MIN(W83781D_INIT_IN_8)
--#define W83781D_INIT_IN_MAX_8		W83781D_INIT_IN_MAX(W83781D_INIT_IN_8)
--
--/* Initial limits for 782d/783s negative voltages */
--/* These aren't direct multiples because of level shift */
--/* Beware going negative - check */
--#define W83782D_INIT_IN_MIN_5_TMP \
--	(((-1200 * (100 + W83781D_INIT_IN_PERCENTAGE)) + (1491 * 100))/514)
--#define W83782D_INIT_IN_MIN_5 \
--	((W83782D_INIT_IN_MIN_5_TMP > 0) ? W83782D_INIT_IN_MIN_5_TMP : 0)
--#define W83782D_INIT_IN_MAX_5 \
--	(((-1200 * (100 - W83781D_INIT_IN_PERCENTAGE)) + (1491 * 100))/514)
--#define W83782D_INIT_IN_MIN_6_TMP \
--	((( -500 * (100 + W83781D_INIT_IN_PERCENTAGE)) +  (771 * 100))/314)
--#define W83782D_INIT_IN_MIN_6 \
--	((W83782D_INIT_IN_MIN_6_TMP > 0) ? W83782D_INIT_IN_MIN_6_TMP : 0)
--#define W83782D_INIT_IN_MAX_6 \
--	((( -500 * (100 - W83781D_INIT_IN_PERCENTAGE)) +  (771 * 100))/314)
--
--#define W83781D_INIT_FAN_MIN_1		3000
--#define W83781D_INIT_FAN_MIN_2		3000
--#define W83781D_INIT_FAN_MIN_3		3000
--
--/* temp = value / 100 */
--#define W83781D_INIT_TEMP_OVER		6000
--#define W83781D_INIT_TEMP_HYST		12700	/* must be 127 for ALARM to work */
--#define W83781D_INIT_TEMP2_OVER		6000
--#define W83781D_INIT_TEMP2_HYST		5000
--#define W83781D_INIT_TEMP3_OVER		6000
--#define W83781D_INIT_TEMP3_HYST		5000
--
- /* There are some complications in a module like this. First off, W83781D chips
-    may be both present on the SMBus and the ISA bus, and we have to handle
-    those cases separately at some places. Second, there might be several
-@@ -1688,113 +1622,6 @@
- #endif				/* W83781D_RT */
+-/* $Id: i2c-algo-bit.c,v 1.44 2003/01/21 08:08:16 kmalkki Exp $ */
++/* With some changes from Frodo Looijaard <frodol@dds.nl>, Ky?sti M?lkki
++   <kmalkki@cc.hut.fi> and Jean Delvare <khali@linux-fr.org> */
  
- 	if (init) {
--		w83781d_write_value(client, W83781D_REG_IN_MIN(0),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_0));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(0),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_0));
--		if (type != w83783s && type != w83697hf) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(1),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_1));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(1),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_1));
--		}
--
--		w83781d_write_value(client, W83781D_REG_IN_MIN(2),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_2));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(2),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_2));
--		w83781d_write_value(client, W83781D_REG_IN_MIN(3),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_3));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(3),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_3));
--		w83781d_write_value(client, W83781D_REG_IN_MIN(4),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_4));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(4),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_4));
--		if (type = w83781d || type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(5),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_5));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(5),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_5));
--		} else {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(5),
--					    IN_TO_REG(W83782D_INIT_IN_MIN_5));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(5),
--					    IN_TO_REG(W83782D_INIT_IN_MAX_5));
--		}
--		if (type = w83781d || type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(6),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_6));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(6),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_6));
--		} else {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(6),
--					    IN_TO_REG(W83782D_INIT_IN_MIN_6));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(6),
--					    IN_TO_REG(W83782D_INIT_IN_MAX_6));
--		}
--		if ((type = w83782d) || (type = w83627hf) ||
--		    (type = w83697hf)) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(7),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_7));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(7),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_7));
--			w83781d_write_value(client, W83781D_REG_IN_MIN(8),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_8));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(8),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_8));
--			w83781d_write_value(client, W83781D_REG_VBAT,
--					    (w83781d_read_value
--					     (client,
--					      W83781D_REG_VBAT) | 0x01));
--		}
--		w83781d_write_value(client, W83781D_REG_FAN_MIN(1),
--				    FAN_TO_REG(W83781D_INIT_FAN_MIN_1, 2));
--		w83781d_write_value(client, W83781D_REG_FAN_MIN(2),
--				    FAN_TO_REG(W83781D_INIT_FAN_MIN_2, 2));
--		if (type != w83697hf) {
--			w83781d_write_value(client, W83781D_REG_FAN_MIN(3),
--					    FAN_TO_REG(W83781D_INIT_FAN_MIN_3,
--						       2));
--		}
--
--		w83781d_write_value(client, W83781D_REG_TEMP_OVER(1),
--				    TEMP_TO_REG(W83781D_INIT_TEMP_OVER));
--		w83781d_write_value(client, W83781D_REG_TEMP_HYST(1),
--				    TEMP_TO_REG(W83781D_INIT_TEMP_HYST));
--
--		if (type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(2),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(2),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_HYST));
--		} else {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(2),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(2),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_HYST));
--		}
--		w83781d_write_value(client, W83781D_REG_TEMP2_CONFIG, 0x00);
--
--		if (type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(3),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(3),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_HYST));
--		} else if (type != w83783s && type != w83697hf) {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(3),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(3),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_HYST));
--		}
- 		if (type != w83783s && type != w83697hf) {
- 			w83781d_write_value(client, W83781D_REG_TEMP3_CONFIG,
- 					    0x00);
+ /* #define DEBUG 1 */
+ 
+@@ -87,8 +85,10 @@
+ 	setscl(adap,1);
+ 
+ 	/* Not all adapters have scl sense line... */
+-	if (adap->getscl = NULL )
++	if (adap->getscl = NULL ) {
++		udelay(adap->udelay);
+ 		return 0;
++	}
+ 
+ 	start=jiffies;
+ 	while (! getscl(adap) ) {	
+@@ -222,68 +222,72 @@
+  */
+ static int test_bus(struct i2c_algo_bit_data *adap, char* name) {
+ 	int scl,sda;
++
++	if (adap->getscl=NULL)
++		printk(KERN_INFO "i2c-algo-bit.o: Testing SDA only, "
++			"SCL is not readable.\n");
++
+ 	sda=getsda(adap);
+-	if (adap->getscl=NULL) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: Warning: Adapter can't read from clock line - skipping test.\n");
+-		return 0;		
+-	}
+-	scl=getscl(adap);
+-	printk(KERN_INFO "i2c-algo-bit.o: Adapter: %s scl: %d  sda: %d -- testing...\n",
+-	       name,getscl(adap),getsda(adap));
++	scl=(adap->getscl=NULL?1:getscl(adap));
++	printk(KERN_DEBUG "i2c-algo-bit.o: (0) scl=%d, sda=%d\n",scl,sda);
+ 	if (!scl || !sda ) {
+-		printk(KERN_INFO " i2c-algo-bit.o: %s seems to be busy.\n",name);
++		printk(KERN_WARNING "i2c-algo-bit.o: %s seems to be busy.\n", name);
+ 		goto bailout;
+ 	}
++
+ 	sdalo(adap);
+-	printk(KERN_DEBUG "i2c-algo-bit.o:1 scl: %d  sda: %d \n",getscl(adap),
+-	       getsda(adap));
+-	if ( 0 != getsda(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA stuck high!\n",name);
+-		sdahi(adap);
++	sda=getsda(adap);
++	scl=(adap->getscl=NULL?1:getscl(adap));
++	printk(KERN_DEBUG "i2c-algo-bit.o: (1) scl=%d, sda=%d\n",scl,sda);
++	if ( 0 != sda ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SDA stuck high!\n");
+ 		goto bailout;
+ 	}
+-	if ( 0 = getscl(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL unexpected low while pulling SDA low!\n",
+-			name);
++	if ( 0 = scl ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SCL unexpected low "
++			"while pulling SDA low!\n");
+ 		goto bailout;
+ 	}		
++
+ 	sdahi(adap);
+-	printk(KERN_DEBUG "i2c-algo-bit.o:2 scl: %d  sda: %d \n",getscl(adap),
+-	       getsda(adap));
+-	if ( 0 = getsda(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA stuck low!\n",name);
+-		sdahi(adap);
++	sda=getsda(adap);
++	scl=(adap->getscl=NULL?1:getscl(adap));
++	printk(KERN_DEBUG "i2c-algo-bit.o: (2) scl=%d, sda=%d\n",scl,sda);
++	if ( 0 = sda ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SDA stuck low!\n");
+ 		goto bailout;
+ 	}
+-	if ( 0 = getscl(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL unexpected low while SDA high!\n",
+-		       name);
+-	goto bailout;
++	if ( 0 = scl ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SCL unexpected low "
++			"while pulling SDA high!\n");
++		goto bailout;
+ 	}
++
+ 	scllo(adap);
+-	printk(KERN_DEBUG "i2c-algo-bit.o:3 scl: %d  sda: %d \n",getscl(adap),
+-	       getsda(adap));
+-	if ( 0 != getscl(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL stuck high!\n",name);
+-		sclhi(adap);
++	sda=getsda(adap);
++	scl=(adap->getscl=NULL?0:getscl(adap));
++	printk(KERN_DEBUG "i2c-algo-bit.o: (3) scl=%d, sda=%d\n",scl,sda);
++	if ( 0 != scl ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SCL stuck high!\n");
+ 		goto bailout;
+ 	}
+-	if ( 0 = getsda(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA unexpected low while pulling SCL low!\n",
+-			name);
++	if ( 0 = sda ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SDA unexpected low "
++			"while pulling SCL low!\n");
+ 		goto bailout;
+ 	}
++	
+ 	sclhi(adap);
+-	printk(KERN_DEBUG "i2c-algo-bit.o:4 scl: %d  sda: %d \n",getscl(adap),
+-	       getsda(adap));
+-	if ( 0 = getscl(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SCL stuck low!\n",name);
+-		sclhi(adap);
++	sda=getsda(adap);
++	scl=(adap->getscl=NULL?1:getscl(adap));
++	printk(KERN_DEBUG "i2c-algo-bit.o: (4) scl=%d, sda=%d\n",scl,sda);
++	if ( 0 = scl ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SCL stuck low!\n");
+ 		goto bailout;
+ 	}
+-	if ( 0 = getsda(adap) ) {
+-		printk(KERN_WARNING "i2c-algo-bit.o: %s SDA unexpected low while SCL high!\n",
+-			name);
++	if ( 0 = sda ) {
++		printk(KERN_WARNING "i2c-algo-bit.o: SDA unexpected low "
++			"while pulling SCL high!\n");
+ 		goto bailout;
+ 	}
+ 	printk(KERN_INFO "i2c-algo-bit.o: %s passed test.\n",name);
 
