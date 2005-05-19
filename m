@@ -1,7 +1,7 @@
-From: Sean.Gilmour@analog.com (Gilmour, Sean)
-Date: Thu, 19 May 2005 06:24:36 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: ADM1025 eval board
-Message-Id: <F7CB408531C5264680C9E37DE4FE71A40483EA79@limkexm2.ad.analog.com>
+Message-Id: <20040125232232.2012220d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1072174424.3fe815583d4bc@imp.gcu.info>
 In-Reply-To: <1072174424.3fe815583d4bc@imp.gcu.info>
@@ -10,87 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+> >No. The LEDs probably light because the board is somehow sourcing
+> >power from the printer port. A power supply is needed with this
+> >board. A power supply will also be needed with the ADT7468 eval board
+> >to drive the fans (the USB connector can source enough current for
+> >the board but not for the fans). I would recommend a 500mA 12V-15V
+> >PSU if you can get one.
 
-1* Looks like the ADM1025 evaluation board needs an external power
-source. As far as I can see, there are only 3 pins used on the parallel
-port, so no power can be drawn from it (as it is the case with the
-ADM1032EB). What is strange is that the power LED sometimes *does* light
-up as I plug the parallel port. How is it possible? Am I missing
-something?
+I couldn't find any in local stores. Consumer electronics universal PSU
+don't go above +12V. Fortunately, it happens that my ADSL modem/router
+uses a 15V/1A PSU, which I can borrow for my tests. The only drawback is
+that I have to choose between Internet access and the ADM1025 evaluation
+board ;)
 
->No. The LEDs probably light because the board is somehow sourcing power from the printer port. A power supply is needed with this board. A power supply will also be needed with the ADT7468 eval board to drive the fans (the USB connector can source enough current for the board but not for the fans). I would recommend a 500mA 12V-15V PSU if you can get one.
+> > 3* What does it take to a chip to be "ACPI-compliant"? For example
+> > the ADM1032 is tagged "ACPI-compliant". I wonder what it has that
+> > other chips don't.
+>
+> Basically this refers to the parts ability to ensure that PCs/servers
+> are ACPI compliant with respect to hardware monitoring and the SMBus
+> interface.
 
-Anyway I'll go and buy a power supply tomotrow, then I'll be able to
-play with the board :)
+I am sorry to say that you did not really answered my question ;) My
+concerns here are technical. I know what a standard is, I understand
+that parts can comply or not with it. What I am curious about are the
+technical characteristics a temperature monitoring chip has to meet to
+comply with the ACPI standards.
 
-2* Is there a fundamental difference between the ADM series and the ADT
-series?
->No. A while ago, the 'temperature and system monitoring' devices group also incorporated the 'interface' group. This has split and interface products use the ADM prefix for their devices now while we use the ADT prefix. All of our older 'temperature and systems monitoring' devices will still retain the ADM prefix.
+Now, I have been playing with the ADM1025 eval board and I have the bad
+feeling that it doesn't work as it should. Temperatures are OK, +2.5V,
+VCore, VCC and vid are correct, but +3.3V, +5V and +12V (when selected)
+are not. Their values are changing randomly all the time. I tried on my
+other computer with the Windows evaluation software, and that's the same
+story, so it's not a matter of system or Linux driver. Any idea on
+what's going on or how I can fix that?
 
-3* What does it take to a chip to be "ACPI-compliant"? For example the
-ADM1032 is tagged "ACPI-compliant". I wonder what it has that other
-chips don't.
->Basically this refers to the parts ability to ensure that PCs/servers are ACPI compliant with respect to hardware monitoring and the SMBus interface. 
+Another strange behavior I noticed as I was trying to understand and
+workaround the first problem, in case it helps: if I select +12V on the
+board but VID4 inside the chip, all measurements go wrong, including
+temperatures. I'd have expected +12V and/or vid to be wrong, of course,
+but why is this breaking everything else too?
 
-The ADT7468EB is a monster! Impressive. I gave it a try using the USB
-access. Quite complex in fact. I'd need to read the data sheet I guess.
-One thing at a time though, and the ADM1025 has a higher priority.
->This is the latest and greatest device, in the next year you will start seeing a lot of these devices around.
-
-4* Looks like it can be plugged in a PCI slot? Is it safe to use in a
-regular PC?
->Yes. In most new PCs/motherboards an SMBus is available on at least one PCI slot. Plugging in the board into this slot will power up the board and connect it to the ICH SMBus (no more wires or soldering).
-
-5* Is this chip likely to be found in computer systems?
->Yes, lots of them.
-
-Regards,
-Se?n.
-
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org] 
-Sent: 19 January 2004 22:13
-To: Gilmour, Sean
-Cc: LM Sensors
-Subject: Re: ADM1025 eval board
-
-Hi Sean,
-
-I receives the boards today. Everything is in order.
-
-I'd have a few questions though:
-
-1* Looks like the ADM1025 evaluation board needs an external power
-source. As far as I can see, there are only 3 pins used on the parallel
-port, so no power can be drawn from it (as it is the case with the
-ADM1032EB). What is strange is that the power LED sometimes *does* light
-up as I plug the parallel port. How is it possible? Am I missing
-something?
-
-Anyway I'll go and buy a power supply tomotrow, then I'll be able to
-play with the board :)
-
-2* Is there a fundamental difference between the ADM series and the ADT
-series?
-
-3* What does it take to a chip to be "ACPI-compliant"? For example the
-ADM1032 is tagged "ACPI-compliant". I wonder what it has that other
-chips don't.
-
-The ADT7468EB is a monster! Impressive. I gave it a try using the USB
-access. Quite complex in fact. I'd need to read the data sheet I guess.
-One thing at a time though, and the ADM1025 has a higher priority.
-
-4* Looks like it can be plugged in a PCI slot? Is it safe to use in a
-regular PC?
-
-5* Is this chip likely to be found in computer systems?
-
-Thanks a lot for the boards :)
+Thanks.
 
 -- 
 Jean Delvare
 http://www.ensicaen.ismra.fr/~delvare/
-
-
