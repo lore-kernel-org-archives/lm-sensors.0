@@ -1,49 +1,33 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: [PATCH] i2c-sis630 for 2.6.0-test11 get rid of pci init
-Message-Id: <200312252212.31139.amalysh@web.de>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:03 +0000
+Subject: lm_sensors with kernel 2.5.72
+Message-Id: <20030705165156.4a7b525e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200312160048.17954.amalysh@web.de>
-In-Reply-To: <200312160048.17954.amalysh@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
 
-sorry for the late response...
+> my question is about setting up lm_sensors with kernel 2.5.72.
+> my lsmod looks like this:
+> (...)
+> but sensors ( executed as root ) says:
+> 
+> Can't access /proc file
+> /proc/sys/dev/sensors/chips or /proc/bus/i2c unreadable;
+> Make sure you have done 'modprobe i2c-proc'
+> 
+> i'm using sensors version 2.7.0
 
-On Thursday 18 December 2003 00:34, Greg KH wrote:
-> On Tue, Dec 16, 2003 at 12:48:14AM +0100, Alexander Malysh wrote:
-> > Hello,
-> >
-> > 2.6.0 kernel (with great sysfs) just shown a bug that is present in the
-> > current i2c-sis630 and was discussed before with Mark M. Hoffman
-> > (unfortunately w/o any conclusion) that i2c-sis630 is not a pci device
-> > driver and has no need to claiming any pci device.
->
-> Hm, where does that SIS630_ACPI_BASE_REG really live at?  Is it
-> controlled by the PCI_DEVICE_ID_SI_503 device?
-
-acpi base live at io space behind isa-bridge (SI_503 pci dev) and is indeed 
-controlled by isa-bridge.
-
->
-> > This patch removes pci_[init|remove] stuff because i2c-sis630 just
-> > needs a few io ports and should not claim pci device.
->
-> What other driver wants to bind to this device?  If no other, what's the
-> problem with this driver binding to it?  The very nice side-affect of it
-> is that we auto-loading of the driver when the pci bus is scanned for
-> devices, which is a big win for users.
-
-at this point in time, no other driver known that want claim isa-bridge. I do 
-not see any problem to binding driver to isa-bridge. just it has incorrect 
-representation within sysfs in my eyes, but I can live with it, due to a big 
-user win...
-
-thanks,
+It's a known problem. Our libsensors library isn't compatible with the
+sensors modules found in kernel 2.5. We will be working on a solution,
+but had no time to do it yet. With the 2.5 kernel modules, you need to
+read the value from the sysfs filesystem directly, which isn't very
+convenient. If you want to use the library and utilities that make use
+of it such as the "sensors" program, you have to stick to a 2.4 series
+kernel, sorry.
 
 -- 
-Alexander Malysh
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
