@@ -1,48 +1,36 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
 Date: Thu, 19 May 2005 06:24:46 +0000
-Subject: Implemeting an SMBus device to control Fan Speed ?
-Message-Id: <4051022A.8000207@verizon.net>
+Subject: lm_sensors 2.8.5 on i2c 2.8.2: `I2C_DRIVERID_ADM1026' undeclared
+Message-Id: <20040309090846.GG17881@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <EFEF4C473088B847B64CD953D2A6A10401B08EF1@sdso14a.par.siemens.fr>
-In-Reply-To: <EFEF4C473088B847B64CD953D2A6A10401B08EF1@sdso14a.par.siemens.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We support PWM in at least 8 drivers (grep pwm kernel/chips/*.c),
-you should pick one of them to start from if you want to write a driver.
+Hi,
 
-See the Philips PCA954x devices for a method of multiplexing multiple
-i2c busses onto a single bus.
+I tried to build lm_sensors for the RH9 kernels, for which I have i2c
+2.8.2. The build fails with
 
-But that could get messy.
-You may have an easier time of it using a chip with multiple PWM outputs,
-and for which we have an existing driver.
+gcc  -DMODVERSIONS -include /amd/heretic/1/data_nobkp/bach/bach-kernel/rh9/2.4.20-30_37.rh9.at-i686/include/linux/modversions.h -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomi
+t-frame-pointer -I. -Ikernel/include -I/amd/heretic/1/data_nobkp/bach/bach-kernel/rh9/2.4.20-30_37.rh9.at-i686/include  -I/amd/heretic/1/data_nobkp/bach/bach-kernel/rh9/2.
+4.20-30_37.rh9.at-i686/include -nostdinc -I /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include  -Wall -O2  -c kernel/chips/adm1026.c -o kernel/chips/adm1026.o
+kernel/chips/adm1026.c:385: `I2C_DRIVERID_ADM1026' undeclared here (not in a function)
+kernel/chips/adm1026.c:385: initializer element is not constant
+kernel/chips/adm1026.c:385: (near initialization for `adm1026_driver.id')
+make: *** [kernel/chips/adm1026.o] Error 1
 
-mds
+Did I do something wrong, or does lm_sensors still need newer i2c in the kernel?
 
-
-
-BARRE Francois wrote:
-> Hello all,
-> 
-> 	I have a VIA Nehemiah M10k which is not able to set Fan Speed
-> Control, and I had a look on chips which would be able to achieve that. 
-> 	Microchip releases such devices :
-> http://www.microchip.com/1010/pline/analog/anicateg/thermal/dcfan/tc6xx/tc66
-> 4/, which is able to set a PWM for a fan and read the RPM by a
-> self-inductante system (FanSense technology...).
-> 
-> 	I am trying to buy a few ones and test them, but I guess I will have
-> to implement a new smbus device. 
-> 	Did anyone have such experience, and could provide me some wise
-> advices ? Especially how could I deal with multiple SMBus slave devices
-> sharing the same address ?
-> 	Is anyone interested in having a fan speed control ?
-> 
-> 	Thanks for advance,
-> 
-> PS : I would like to subscribe to this ML, how should I proceed ?
-> 
-> 
+Thanks!
+P.S. lm_sensors 2.8.5 for FC1 build fine and will be upload later today.
+-- 
+Axel.Thimm@physik.fu-berlin.de
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040309/c7716222/attachment.bin
