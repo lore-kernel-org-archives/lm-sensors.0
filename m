@@ -1,38 +1,43 @@
-From: p.wautelet@fractalzone.be (Philippe Wautelet)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: Ticket #1352
-Message-Id: <3F3145DC.5090307@fractalzone.be>
+From: dmaze@debian.org (David Z Maze)
+Date: Thu, 19 May 2005 06:23:55 +0000
+Subject: Binary compatibility issues with libsensors
+Message-Id: <87r87igjs6.fsf@watertown.mit.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F2E9EBB.3040600@fractalzone.be>
-In-Reply-To: <3F2E9EBB.3040600@fractalzone.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+Hi.  I have a bug report on the Debian lm-sensors package
+(http://bugs.debian.org/191572) complaining that programs compiled
+against the libsensors from lm-sensors 2.6.5 don't necessarily work
+with the libsensors from lm-sensors 2.7.0; the 'sensors' program from
+the lm-sensors distribution is used as an example.  This looks like
+the same problem as the 28 December "'sensors' segfaults" problem on
+the lm-sensors Web page.
 
->And, if you have another OS on the machine, do you have any hardware
->monitoring working there?
->
-No, I have only linux on this machine.
+The actual problem is a result of adding the busname field to the
+sensors_chip_name structure in lib/sensors.h.  If programs using the
+library either declare an array of sensors_chip_name, as 'sensors'
+does, or embed sensors_chip_name in a structure, the added field means
+that newer libsensors code will try to read the first word of the next
+data structure as the busname.  The particularly troublesome call here
+is sensors_match_chip(sensors_chip_name, sensors_chip_name); the
+called code expects to find the two structures passed on the stack,
+but with the extra word new code and old code put the two structures
+in different places.
 
->00:02.1 being the SMBus device, I suspect all these is related.
->Obviously, your BIOS manufacturer did not allocate an IRQ for the device
->if ACPI isn't used, and did not allocate an adequate I/O space, if I
->followed your discussion with Mark M. Hoffman correctly. I suspect they
->just don't want you to use the device yet. As you say in your other
->mail, a newer BIOS may help someday.
->
->Maybe you should contact Packard-Bell and ask them about it?
->
-Yes, I think I'll do it. Maybe that it could be interesting to also 
-contact Mitac because apparently this is a Mitac 8640 hidden under the 
-Packard-Bell name! If I get some feedback, I will send you the results.
+In turn, this breaks programs that link against the lm-sensors
+libraries.  In Debian, this isn't just the 'sensors' program; there
+are several front-ends that use the library to present hardware status
+information.  The best solution would be to change the library name
+(to, for example, libsensors.so.2) so that both old and new libraries
+could coexist on the system; would you consider this for an lm-sensors
+release?
+
+Thanks,
 
 -- 
-Philippe Wautelet
-Research assistant,
-Aerodynamics Group, University of Liege, Belgium, http://www.ulg.ac.be/aerodyn
-Private website: http://www.fractalzone.be
-
+David Maze         dmaze@debian.org      http://people.debian.org/~dmaze/
+"Theoretical politics is interesting.  Politicking should be illegal."
+	-- Abra Mitchell
