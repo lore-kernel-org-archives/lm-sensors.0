@@ -1,57 +1,48 @@
-From: frodol@dds.nl (frodol@dds.nl)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: lm_sensors driver for the nForce (fwd)
-Message-Id: <200205011726.g41HQC904543@shire.frodo.local>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:53 +0000
+Subject: [a.othieno@bluewin.ch: [TRIVIAL 2.6] drivers/i2c/busses/i2c-piix4.c:
+Message-Id: <20040417195011.GB1163@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Forwarded message:
-> From hcs@ics2.ics.tvnet.hu Wed May  1 19:25:04 2002
-> From: =3D?iso-8859-1?Q?Csaba_Hal=E1sz?=3D <hcs@ics2.ics.tvnet.hu>
-> To: <frodol@dds.nl>, "'Matthias Wientapper'" <m.wientapper@gmx.de>,
->    <Greg_Corson@playstation.sony.com>
-> Subject: lm_sensors driver for the nForce
-> Date: Wed, 1 May 2002 19:22:00 +0200
-> Message-ID: <000101c1f134$b4c29910$0700a8c0@JESTER>
-> MIME-Version: 1.0
-> Content-Type: text/plain;
-> 	charset=3D"iso-8859-1"
-> Content-Transfer-Encoding: 7bit
-> X-Priority: 3 (Normal)
-> X-MSMail-Priority: Normal
-> X-Mailer: Microsoft Outlook CWS, Build 9.0.2416 (9.0.2910.0)
-> Importance: Normal
-> X-MimeOLE: Produced By Microsoft MimeOLE V5.50.4522.1200
->=20
-> Hi guys!
->=20
-> In case you missed it, I have submitted a patch that=20
-> adds support for the nForce using the amd756 driver.
-> (Greg was right :-)
->=20
-> If any of you want to try it, grab a copy from the mailing=20
-> list archive (http://archives.andrew.net.au/lm-sensors/msg01252.html)
-> The amd driver has recently been updated, but the patch should
-> apply anyway (except for sensors-detect, but that is
-> easy to fix manually if you need it).
->=20
-> I am interested in hearing whether it works for you.
-> Also, it is unclear if the spd eeproms can be accessed
-> via the smbus, so I welcome any information about that.
->=20
-> Greets,
-> 	Csaba
->=20
->=20
+----- Forwarded message from Arthur Othieno <a.othieno@bluewin.ch> -----
+
+To: frodol@dds.nl
+Cc: trivial@rustcorp.com.au
+Subject: [TRIVIAL 2.6] drivers/i2c/busses/i2c-piix4.c: kill duplicate #include
+From: Arthur Othieno <a.othieno@bluewin.ch>
+X-Spam-Checker-Version: SpamAssassin 2.63 (2004-01-11) on morannon.frodo.local
+X-Spam-Status: No, hits=0.1 required=5.0 tests=RCVD_IN_SORBS autolearn=no 
+	version=2.63
+X-Spam-Level: 
+
+Hi,
+
+From scripts/checkincludes.pl:
+
+  ./drivers/i2c/busses/i2c-piix4.c: linux/config.h is included more than once.
+
+Against 2.6.5. Thanks.
 
 
---=20
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~fr=
-odol
+--- a/drivers/i2c/busses/i2c-piix4.c	2004-04-11 14:05:35.000000000 +0200
++++ b/drivers/i2c/busses/i2c-piix4.c	2004-04-16 17:52:16.000000000 +0200
+@@ -31,7 +31,6 @@
+ #include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+-#include <linux/config.h>
+ #include <linux/pci.h>
+ #include <linux/kernel.h>
+ #include <linux/stddef.h>
+
+----- End forwarded message -----
+
+-- 
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
 Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually follow=
-ed
+  The act of removing Windows from your computer in disgust, usually followed
   by the installation of Linux or some other Unix-like operating system.
