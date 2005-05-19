@@ -1,70 +1,62 @@
-From: phil@Stimpy.netroedge.com (phil@Stimpy.netroedge.com)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: [SeanH@msicomputer.com: Lm_Sensors Support]
-Message-Id: <Pine.LNX.3.96.1021013191645.5910B-100000@Stimpy.netroedge.com>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: sensors in 2.5.54
+Message-Id: <3E1A4DC0.8000101@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I skimmed through the changes, tried to categorize them, and added a summary
+to TODO in sensors.
 
-Hey Sean (funny, I live next door to a Sean Hall here in Oregon), we'd
-appreciate any help you can provide.  If you'd like to get us some
-motherboards/computers/servers whatever, it would be helpful.  We don't
-allow advertisements on our site, although we often give a 'thank you'
-noting equipment donations. 
+The biggest change is in the PCI drivers, where you have to convert
+to 2.4 kernel facilities for registering a driver for a PCI device.
+Everything else is pretty straightforward.
 
-Let me know what you can provide, and I'll find out where you can best
-ship it.
+Christoph did lots of debug printk changes which is harmless but
+increases the size of the diff substantially.
 
-Thanks!
+One other big change is removing inc_use and dec_use functions
+both from the drivers, and from the driver and adapter structs in i2c.h.
+("modules can't adjust their own refcounts")
+They are replaced with the struct member "owner" which is
+handled in i2c-core.
+This means that Albert's 2.5.53 patches won't work on 2.5.54+,
+without ripping inc_use and dec_use out of each driver.
+
+So in summary, non-PCI drivers don't look too bad,
+PCI drivers will take some more effort.
+I count about 18 PCI and 42 non-pci drivers in our package.
+
+mds
 
 
-Phil
-
-
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
-
-> > 
-> > From: Sean Hall <SeanH@msicomputer.com>
-> > To: sensors@stimpy.netroedge.com
-> > Subject: Lm_Sensors Support
-> > Date: Wed, 9 Oct 2002 13:48:59 -0700
-> > X-Mailer: Internet Mail Service (5.5.2653.19)
-> > X-SpamBouncer: 1.6 beta (6/22/02)
-> > X-SBClass: OK
-> > X-SpamBouncer: 1.6 beta (6/22/02)
-> > X-SBClass: OK
-> > 
-> > Hi,
-> > My name is Sean Hall. I work for MSI managing the sales of MSI's server
-> > boards in North America. We would like to find out what we need to do to
-> > assure MSI's server boards work properly with LM_Sensors.
-> > For starters, we would like to get our K7D Master board working properly.
-> > MSI's K7D Master uses the W83627HF Windond chip and should be supported by
-> > LM_Sensors driver w83781d, but the feedback we've gotten from vendors is
-> > that the data that comes back is erroneous.
-> > 
-> > Where do we start so we can get these issues resolved?
-> > 
-> > I will also ask MSI Taiwan if we can offer support of the LM_Sensors
-> > project. In what areas can MSI offer support to LM_Sensors?
-> > 
-> > Also, can MSI advertise on the LM_Sensor site?
-> > 
-> > Thank you,
-> > 
-> > Sean Hall
-> > 
-> > Sean Hall
-> > MSI Computer Corp
-> > 901 Canada Court
-> > City of Industry, CA 91748
-> > Tel:  626.913.0828 ext. 173
-> > Cell: 626.664.4324
-> > Fax: 626.913.0818
-> > SeanH@msicomputer.com
-> > 
+Pavel Machek wrote:
+> Hi!
+> 
+> 
+>>The patch for i2c-amd756, i2c-amd8111, adm1021, and lm75,
+>>submitted by Pavel Machek, has been included,
+>>with modifications, in kernel 2.5.54 by Cristoph Hellwig.
+>>As you can see from the patch notes below, there were
+>>several modifications to the drivers and to the i2c core.
+>>
+>>Any volunteers to work with Cristoph to feed more drivers in?
+>>Pavel?
+> 
+> 
+> I'm slowly catching up on email flood. I'm unlikely to be mass-porting
+> drivers, but I might port those needed for my boxes, in 4 weeks or so.
+> 
+> 
+>>Also note that the drivers went into i2c/busses and i2c/chips,
+>>so I think that solves that debate. I'll update our
+>>makefiles and mkpatch to put them there and remove
+>>old modules in i2c/ and sensors/ .
+> 
+> 
+> Heh, that was probably me who did that... I did not know I was doing
+> decision ;-).
+> 								Pavel
