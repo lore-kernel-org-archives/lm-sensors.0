@@ -1,43 +1,30 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.1
-Message-Id: <20040121214705.12a0a4a9.khali@linux-fr.org>
+Message-Id: <20040121225012.1addb5c7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10745567571488@kroah.com>
-	<1074556757661@kroah.com>
-	<20040120230322.24cbe005.khali@linux-fr.org>
-	<20040120220750.GA3944@kroah.com>
-In-Reply-To: <20040120220750.GA3944@kroah.com>
+References: <10745567662012@kroah.com>
+	<10745567661358@kroah.com>
+In-Reply-To: <10745567661358@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com, rusty@rustcorp.com.au
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-> Or just send me a patch, backing out your change, I'll apply that :)
+> Also note that I slightly altered the condition to display the PCILynx
+> comment. I think it's more logical that way. Without it, the user
+> could get the message he/she needs I2C, go to enable it, come back and
+> still not see the option.
 
-Here you are. Sorry again for the noise.
+For the records, please let it be noted that this change is *not* included
+in the patch submitted by Greg.
 
---------------------------------
+That said, I still think it was a good idea. Not that it matters much to
+me since I don't use that driver, but anyway... Who should I contact to
+get it included?
 
-Undo a recent change to the i2c documentation. The change belongs to
-2.7.
-
---- linux-2.6.2-rc1/Documentation/i2c/porting-clients.orig	Wed Jan 21 21:41:04 2004
-+++ linux-2.6.2-rc1/Documentation/i2c/porting-clients	Wed Jan 21 21:41:12 2004
-@@ -92,10 +92,7 @@
-   i2c_get_clientdata(client) instead.
- 
- * [Interface] Init function should not print anything. Make sure
--  there is a MODULE_LICENSE() line. MODULE_PARM() is replaced
--  by module_param(). Note that module_param has a third parameter,
--  that you should set to 0 by default. See include/linux/moduleparam.h
--  for details.
-+  there is a MODULE_LICENSE() line.
- 
- Coding policy:
- 
-
+Thanks.
 
 -- 
 Jean Delvare
