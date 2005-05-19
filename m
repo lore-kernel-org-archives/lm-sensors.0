@@ -1,7 +1,7 @@
-From: horst.kretschmer@wincor-nixdorf.com (Kretschmer, Horst)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:01 +0000
-Subject: AW: AW: LM-Sensors
-Message-Id: <95EC70BD6869CC41A0089DC03DAE30BC011C442C@pdbh9a6e.wincor-nixdorf.com>
+Subject: LM-Sensors
+Message-Id: <200406171159.i5HBxaAo089171@zone3.gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3C61EE92.392A5D31@paradyne.com>
 In-Reply-To: <3C61EE92.392A5D31@paradyne.com>
@@ -10,67 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
 
-I have tested the "new" version and the result is better, but we can live
-with the "old" version too.
-I have attached sensors.conf and a display output for the "new" version.
+Hallo Horst,
 
-Thanks and best regards
+>I have tested the "new" version and the result is better, but we can live
+>with the "old" version too.
 
-Horst Kretschmer 
+Magnitude of 3 definitely seems to help, as I hoped. I'll commit the
+changes to our CVS repository.
 
------Urspr?ngliche Nachricht-----
-Von: Jean Delvare [mailto:khali@linux-fr.org]
-Gesendet: Mittwoch, 16. Juni 2004 21:29
-An: Kretschmer, Horst
-Cc: Bervas, Elodie; Oelkers, Hans-Joachim; Duellings, Peter
-Betreff: Re: AW: LM-Sensors
+>I have attached sensors.conf and a display output for the "new" version.
 
+Still I'm a bit worried by displayed limits being rounded off by 0.01V
+in various places. I don't have the "old" sensors output at hand at
+the moment, but I think it wasn't that way before the magnitude change.
+Most likely, what sensors displays as 2.99V, for example, is actually
+2.999 (or at least 2.995) and should be rounded up to 3.00V for a nicer
+display. There was no reason to have rounding done at this place before
+(driver magnitude and displayed magnitude were the same) but now it
+would be welcome.
 
-> I have tested -13V with lower values in sensors.conf with the
-> following results:
-> 
-> sensors.conf    displayed    /proc/sys/....../in1
-> -13
-> -12.99          -13.22       2.42 2.55 2.52
-> -12.98          -13.22       2.42 2.55 2.52
-> ..
-> -12.88          -13.22       2.42 2.55 2.52
-> 
-> -12.87          -12.88       2.44 2.55 2.52
-
-Hmmm, OK. I get one part of the mystery. The native resolution of the
-A-D converter is 0.0116V. It's slightly more than 0.01V, which means
-that, with a magnitude of 2, some values cannot be represented. Among
-others, 2.43V cannot be represented. This explains why the converted
-value jumps from -12.88 to -13.22 directly (while you would at least
-expect -13.05 inbetween).
-
-Also, I just realized that there are four successive roundings when
-setting a limit. libsensors has to round to the driver's magnitude, then
-the driver rounds to an integer (register value), then you read the
-value (with sensors), so conversions are done the other way around. For
-most drivers, this isn't a problem because the ratio between register
-values and exported values is "nice" (typical A-D converters have a
-16mV/bit resolution) so the noise is limited. But the PC87366 has a
-weird resolution and this probably adds noise to the conversions.
-
-I think that using a magnitude of 3 for voltages should reduce that
-noise and the driver should obey "sensors -s" better. Patch attached.
-Could you please apply and test? If it improves the situation for you,
-I'll apply to our CVS repository. Then we'll see if more is needed.
+Could you please confirm my suspicions by providing the contents of the
+/proc/sys/dev/sensors/pc87366-isa-0fb0/in* files for your current
+configuration?
 
 Thanks.
 
--- 
 Jean Delvare
-http://khali.linux-fr.org/
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors_new.zip
-Type: application/octet-stream
-Size: 1167 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040617/4ba2833a/sensors_new.obj
