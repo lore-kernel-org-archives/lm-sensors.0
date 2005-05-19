@@ -1,7 +1,7 @@
 From: pwilsmore@asi.com.au (Peter Wilsmore)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDAB3@mssydeb.asi.com.au>
+Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDAE3@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -9,6 +9,22 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Sorry, I forgot to include the bit to get rid of the warning that nonlinear function 7 is not support.
+
+Thanks,
+
+Peter Wilsmore
+ 
+ASI SOLUTIONS
+Direct: 1300130 837
+
+-----Original Message-----
+From: Peter Wilsmore 
+Sent: Thursday, 9 September 2004 11:21 AM
+To: 'Mark Studebaker'
+Cc: lm78@Stimpy.netroedge.com
+Subject: RE: bmcsensors and strange sensor values.
 
 OK, I have got rid of the float stuff - it makes it much more elegant. I have also used the 'upper' limit for the lower limit and have some comments in regarding the odd values and * 2 factor that I seem to have on my M/B. Unfortunately I am on a deadline, so I haven't done any limit stuff.
 
@@ -307,6 +323,6 @@ Peter Wilsmore wrote:
 A non-text attachment was scrubbed...
 Name: bmcsensors.patch
 Type: application/octet-stream
-Size: 951 bytes
+Size: 1295 bytes
 Desc: bmcsensors.patch
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040909/60a30229/bmcsensors.obj
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040909/05f9abec/bmcsensors.obj
