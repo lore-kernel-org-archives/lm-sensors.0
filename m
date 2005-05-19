@@ -1,37 +1,42 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: [RFC PATCH] Add lm78 sensor chip support (2.5.70)
-Message-Id: <20030616184213.GE25585@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:25 +0000
+Subject: libsensors for linux 2.6
+Message-Id: <20031116144447.6ac271ca.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030608223334.GC30962@earth.solarsys.private>
-In-Reply-To: <20030608223334.GC30962@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 08, 2003 at 06:33:34PM -0400, Mark M. Hoffman wrote:
-> This patch vs. 2.5.70 adds support for LM78, LM78-J, and LM79 sensors
-> chips based on lm_sensors project CVS.  This works on one of my boards.
-> 
-> I want to draw attention to something I did with this driver by
-> comparing it to it87.c in 2.5.70:
-> 
-> > #define IT87_INIT_TEMP_HIGH_1 600
-> > #define IT87_INIT_TEMP_LOW_1  200
-> 
-> The hardware uses degrees C, and sysfs uses degrees C * 1000.  But
-> these #defines are apparently in units of degrees C * 10.  This
-> arbitrary intermediate representation bugs me.  And given the new 2.5
-> sysfs standard, it's unnecessary.
-> 
-> In this patch for lm78, I rewrote the conversion routines in terms
-> of the sysfs units - getting rid of the intermediate nonsense.  If
-> there are no objections, I'm going to start passing patches to do
-> this to the other sensor chip drivers in 2.5 as well.  It would be
-> nice to get some help with this too... especially since I don't
-> have all that hardware at hand to test the results.
 
-Applied, thanks.
+> I broke down and started integrating Danny's patch.
+> stay tuned for progress...
 
-greg k-h
+Just one or two questions, since I haven't been watching the thread very
+carefully - no time for this, sorry.
+
+You might have seen my recent post about sysfs file naming conventions,
+with questions about how to handle values that relate to more than one
+sensor, relative hysteresis values and the such. The goal of this naming
+convention is to have a common, standardized interface with libs and/or
+user-space programs. The fact that libsensors has specific code for each
+and every chipset is a problem. With a sysfs interface where each file
+name can only represent one thing, this shouldn't be needed anymore.
+This basically means that libsensors as we know it should *not* be
+needed for Linux 2.6.
+
+Of course, we would still need a way to tweak values, set limits, set
+labels and ignore values. The source for this is in our sensors.conf
+file. That should almost be the only common part between the old and the
+new library. This make me wonder if this is a good idea to try having
+only one library for both kernel branches. Why don't we start a 2.6
+dedicated library? This would be libsensors.so.3.
+
+That said, this would be better if we could all agree of the sysfs file
+naming convention first. Please post your comments on the other thread.
+Greg KH and Mark Hoffman already have clarified a number of things and
+some points look OK now, but there are still some problems left.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
