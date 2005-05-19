@@ -1,29 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:58 +0000
-Subject: New subscription request to list lm-sensors from
-Message-Id: <20050516213819.2b01e2e6.khali@linux-fr.org>
+From: gerard@linuxfromscratch.org (gerard@linuxfromscratch.org)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: update to ticket 871
+Message-Id: <20020418025107.GA11747@gwaihir.linuxfromscratch.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4288E1AD.5080909@edgedesign.us>
-In-Reply-To: <4288E1AD.5080909@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
+I didn't see an option to add more info to a ticket.
 
-> I thought we'll temporarily close this list, have a final sync with
-> Andrew's archives and then start on the new list. Is that acceptable?
+Anyway, here's what one of you guys wrote:
 
-(If we close the list, it will hardly be "temporarily".)
+Reply from support:
 
-If Philip, Andrew and you can make it all happen in a short period of
-time, it's fine with me. But if this sounds too unprobable that you'll
-be able to synchronize, then I'd better miss a few posts in the archive
-than have no list for a long period of time.
+The perl warnings aren?t the problem.
+You have some chip we don?t support. Sorry.
+Look at your board, see FAQ.
 
-Of course it's all down to what a "short period of time" is. In fact I
-don't know, so I'll let the three of you decide together ;)
+
+Have a look at ticket 875 - it fixed the problem for me:
+
+Problem in detail:
+
+Just did some more fiddling on an Asus P4B266 Board:
+
+while the w83781d driver does not recognice this new chip as something it
+can talk to, forcing the chip to as99127f on module load does get good
+results:
+
+==
+Perhaps that's something that can be added to the w83781d driver?
+
 
 -- 
-Jean Delvare
+Gerard Beekmans
+www.linuxfromscratch.org
+
+-*- If Linux doesn't have the solution, you have the wrong problem -*-
