@@ -1,53 +1,55 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:41 +0000
 Subject: Fw: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
+Message-Id: <Pine.LNX.4.58.0503041448180.25688@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBKZWFuLCBSdWRvbGYKIApUaGlzIGlzIENodW5oYW8sICBJIGNvbnRhY3RlZCBBU1VTIGFn
-YWluIGFib3V0IHRoZSBwcm9ibGVtcyB3ZSBtZWV0LApUaGV5IGdhdmUgbWUgdGhlIGFuc3dlciBi
-eSBtYWlsIHRoaXMgdGltZSwgcGxlYXNlIHJlZmVyIHRvIHRoZW0uCgoxLiBIb3cgZG8gZ2V0IGFj
-Y2VzcyB0byB0aGUgVzgzNzkyRCBjaGlwPyBUaGUgYW5zd2VyIHNob3VsZCBpbmNsdWRlCnRoZSBi
-dXMgdGhlIGNoaXAgc2l0cyBvbiAoSW50ZWwgU01CdXMsIG90aGVyIGNoaXAsIEdQSU9zLi4uKSBh
-bmQgdGhlCm9wZXJhdGlvbnMgbmVlZGVkIHRvIHVubG9jayB0aGF0IGJ1cyAob3Igc2VnbWVudCB0
-aGVyZW9mKSBpZiBzdWNoCm9wZXJhdGlvbnMgYXJlIG5lZWRlZC4KPT5Zb3UgY2FuIHVzZSBERUJV
-RyB1dGlsaXR5IHRvIHdyaXRlIHZhbHVlICIweDA4IiBpbiAiMHgwNGI5IiBpbiBHUElPCnBpbiBv
-ZiBIYW5jZSBSYXBpZCBJQ0guCgoyLiBXZSB3b3VsZCBuZWVkIGRldGFpbGVkIGluZm9ybWF0aW9u
-IG9uIHdoYXQgY2hpcCB3ZSBhdHRlcHQgdG8gY29udHJvbCBhdAp0aGUgcG9ydCAweDA0YjkgYW5k
-IGhvdyB0aGF0IGNoaXAgd29ya3MsIGFuZCBhbHNvIGRldGFpbHMgb24gaG93IHRoZQpTTUJ1cyBp
-cyB3aXJlZC4KPT4gVGhlIGNvbnRyb2wgc2lnbmFsIGRlZmluZWQgR1BJTyBpbiB0aGlzIEhhbmNl
-IFJhcGlkIElDSCwgYW5kIG9ubHkKYWNjZXNzIGEgbWV0aG9kIGluIHRoZSBTTUJ1cy4KCjMuIEJl
-c2lkZSB0aGUgcXVlc3Rpb24gMiwgd2Ugd2lsbCBuZWVkIHRoZSBiYXNlIGFkZHJlc3Mgb2YgdGhh
-dCBJU0EgZGV2aWNlLAphbHNvIGlmIHRoZSBiYXNlIGFkZHJlc3MgaXMgbm90IGZpeGVkIHdlIHdv
-dWxkIG5lZWQgdGhlIGRldGVjdGlvbiBtZXRob2QKaG93IHRvIGdldCB0aGUgYmFzZSBhZGRyZXNz
-LCBmcm9tIHNvbWUgUENJIGNvbmZpZyBzcGFjZSBtYXliZT8pCj0+VGhlIEdQSU8gcGluIGRlZmlu
-ZWQgdG8gcmVsYXRlIHdpdGggc291dGggYnJpZGdlLiBJZiBzb3V0aCBicmlkZ2UgaGFzCmNoYW5n
-ZWQsIHRoZSBHUElPIHBpbiBoYXMgZGlmZmVyZW50LgoKVGhhbmtzCkJlc3QgUmVnYXJkcwogCkNo
-dW5oYW8KMjAwNS0wMy0wNAogCiAKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFp
-bmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNz
-ZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElm
-IHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJl
-IG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29u
-LCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBh
-bmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3Jr
-IHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJ
-dCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwg
-aW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGlu
-Zm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmlj
-aWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4g
-bm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNl
-IGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlh
-bGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp
-0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRI
-qPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaq
-urGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQ
-uvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/
-9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhU
-pO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1
-qc63TqijLgo=
+
+Hello,
+
+> 2. We would need detailed information on what chip we attept to control at
+> the port 0x04b9 and how that chip works, and also details on how the
+> SMBus is wired.
+> => The control signal defined GPIO in this Hance Rapid ICH, and only
+> access a method in the SMBus.
+>
+
+Some questions to think about...
+
+Hmm but what device it controls? Some multiplexer? or some other black box
+doing nasty things ;) ? More likely it is a multiplexer.
+
+
+> 3. Beside the question 2, we will need the base address of that ISA device,
+> also if the base address is not fixed we would need the detection method
+> how to get the base address, from some PCI config space maybe?)
+> =>The GPIO pin defined to relate with south bridge. If south bridge has
+> changed, the GPIO pin has different.
+
+
+I check this
+http://www.intel.com/design/intarch/datashts/30064103.pdf
+
+Page 303/302 nice table. So at least we are able to catch
+the base addr.
+
+I have a theory that maybe SMM (system management mode code) is blocking
+SMBUS controller for time to time, so thatswhy they are always looking if
+the bus is busy or not before writing there Is your windows  driver doing
+same?
+
+If my theory is correct you should see in your system long on that
+motherboards some entries from "i2c-piix4" (whatever it is its name)
+complaing about transaction failure, i2c busy etc...
+
+Jean some other ideas?
+
+Regards
+
+Rudolf
