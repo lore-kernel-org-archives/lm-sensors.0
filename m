@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:43 +0000
 Subject: lmsensors 2.7.0 kann auf SuSE 7.2 nicht kompiliert werden
-Message-Id: <20021213152742.37c43bfa.khali@linux-fr.org>
+Message-Id: <20021213161958.2e36c9c0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <02121221483700.10542@lighthouse>
 In-Reply-To: <02121221483700.10542@lighthouse>
@@ -11,42 +11,31 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I tried a new compilation in my home dir to avoid that the i2c
-> installation will destroy the installed 2.6.5 version of it. To make
-> that way of compilation work I untared lm_sensors, put all necessary
-> header files from i2c (2.7.0) into a subdir of the lm_sensors tree and
-> modified the makefile so that lm_sensors is able to find the i2c
-> header files.
+> I do not have the time to update my old SuSE to the newest release 8.1
 > 
-> At least I got the same errors on the i2c-md8111 module as I found
-> them yesterday installing i2c/lm_sensors as root from /usr/src.
-> 
-> Here the error messages in full length:
-> 
-> gcc  -D__SMP__ -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB
-> -fomit-frame-pointer -I. -Ikernel/include
-> -I/home/marcus/lm_sensors-2.7.0
-> -I/lib/modules/2.4.4-64GB-SMP/build/include   -O2   -c
-> kernel/busses/i2c-amd8111.c -o kernel/busses/i2c-amd8111.o
-> kernel/busses/i2c-amd8111.c: In function `amd8111_access':
-> kernel/busses/i2c-amd8111.c:272: parse error before `u8'
-> kernel/busses/i2c-amd8111.c:281: parse error before `u8'
-> kernel/busses/i2c-amd8111.c:300: parse error before `u8'
-> kernel/busses/i2c-amd8111.c:360: parse error before `u8'
-> kernel/busses/i2c-amd8111.c: At top level:
-> kernel/busses/i2c-amd8111.c:500: initializer element is not constant
-> kernel/busses/i2c-amd8111.c:500: (near initialization for
-> `amd8111_driver.remove') kernel/busses/i2c-amd8111.c:501: initializer
-> element is not constant kernel/busses/i2c-amd8111.c:501: (near
-> initialization for `amd8111_driver') make: ***
-> [kernel/busses/i2c-amd8111.o] Error 1
-> 
-> Wrong version of gcc? My is 2.95.3.
+> although I tenure the 8.1 distribution of SuSE. Maybe I can do the
+> update in january.
 
-No, this is fine. I would be more suspicious about your kernel sources.
-2.4.4 is *way* old and I don't think anyone would still use it,
-considering the impressive number of fixes that have been merged since.
-I'd suggest you update your kernel. 2.4.18 seems to be a clever choice.
+I think you can update the kernel and the kernel tools without updating
+the whole system. I don't know SuSE, but all other distributions I know
+(Slackware, Red Hat, Debian) let the user do so.
+
+> But I do not understand why the parse error has something to do with
+> my kernel source.
+
+We do include some header files from linux/include, which define some
+structures or types we use in our code. If these definitions are "wrong"
+(or at least, are not what we think they are) it can annoy the compiler
+enough to lead to the result you had. And I doubt we'll change our code
+to make it compile with the early 2.4 kernel sources.
+
+> It's is not neccessary to install lm_sensors 2.7.0 because my hardware
+> is supported by the older version of lm_sensors. The only thing I'm
+> affected by 2.7.0 is a bugfix in the w83781d modul (initialization of
+> in0/in1). But I think this fix can be backported to the 2.6.5 which I
+> will try in the next days.
+
+Yes, should work also.
 
 -- 
 Jean Delvare
