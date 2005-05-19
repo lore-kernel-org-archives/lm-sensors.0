@@ -1,27 +1,25 @@
-From: domen@coderock.org (Domen Puncer)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: [trivial patch] i2c/it87: add newline to printk
-Message-Id: <20050125110538.GA4459@nd47.coderock.org>
+Message-Id: <mKaUJLZX.1106651660.3405820.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050125110538.GA4459@nd47.coderock.org>
+In-Reply-To: <20050125110538.GA4459@nd47.coderock.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This printk should have newline, otherwise next string is appended to it.
-Boot tested.
 
+Hi Domen,
 
-Signed-off-by: Domen Puncer <domen@coderock.org>
+> This printk should have newline, otherwise next string is appended to it.
 
---- c/drivers/i2c/chips/it87.c	2005-01-22 02:48:35.000000000 +0100
-+++ a/drivers/i2c/chips/it87.c	2005-01-25 11:43:42.000000000 +0100
-@@ -835,7 +835,7 @@
- 	if ((tmp & 0x87) = 0) {
- 		enable_pwm_interface = 0;
- 		dev_info(&new_client->dev,
--			"detected broken BIOS defaults, disabling pwm interface");
-+			"detected broken BIOS defaults, disabling pwm interface\n");
- 	}
- 
- 	/* Register sysfs hooks */
+True, however this happens to be already fixed by another patch (already
+in Greg's tree and present in 2.6.11-rc2-mm1).
+
+http://lkml.org/lkml/2005/1/15/75
+
+Thanks,
+--
+Jean Delvare
