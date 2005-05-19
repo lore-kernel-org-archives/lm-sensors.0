@@ -1,28 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: [PATCH 2.6] I2C: New lm92 chip driver
-Message-Id: <20050317064023.GG15075@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:26 +0000
+Subject: sensors strace
+Message-Id: <20031123183426.51043260.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050306103250.0dd6f040.khali@linux-fr.org>
-In-Reply-To: <20050306103250.0dd6f040.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 06, 2005 at 10:32:50AM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This is a new i2c chip driver named lm92. It supports the National
-> Semiconductor LM92 and Maxim MAX6635 chips. This time I did not port the
-> driver from the lm_sensors project but instead rewrote it. The reason is
-> that the original driver has a different structure from the other i2c
-> chip drivers, which would have made maintenance harder.
-> 
-> I don't have a compatible chip myself but could test my code thanks to
-> Mark Hoffman's i2c-stub fake bus driver. Later on, James Chapman tested
-> it on a real chip, successfully.
+Hi all,
 
-Applied, thanks.
+As I was investigating the long running "sensors: run as root?" issue, I
+found something strange. There is a mysterious sysctl call before and
+after reading the /etc/sensors.conf file. See:
 
-greg k-h
+open("/etc/sensors.conf", O_RDONLY)     = 3
+(...)
+ioctl(3, TCGETS, 0xbfffe6f8)            = -1 ENOTTY (Inappropriate ioctl
+                                          for device)
+(...)
+ioctl(3, TCGETS, 0xbfffe6c8)            = -1 ENOTTY (Inappropriate ioctl
+                                          for device)
+
+I was unable to find where in the code we do that, but I suspect that
+this is in lex/yacc generated code (which is simply unreadable). Does
+anyone have an explanation? What's that "TCGETS" supposed to do, and why
+is it failing?
+
+Also, the configuration file is never closed. I guess it could be, once
+the parsing has been done, can't it?
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
