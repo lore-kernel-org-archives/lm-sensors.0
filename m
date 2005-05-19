@@ -1,30 +1,32 @@
 From: mattze@t-online.de (Matthias Mohr)
-Date: Thu, 19 May 2005 06:25:50 +0000
+Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: beep alert
-Message-Id: <200504122102.01732.mattze@t-online.de>
+Message-Id: <200504141655.58451.mattze@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504122102.01732.mattze@t-online.de>
+In-Reply-To: <200504122102.01732.mattze@t-online.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+This is the message I got after running sensors. So you can see which chip is 
+used. 
 
-I have installed sensors and it works. but after starting lm_sensors the pc 
-speaker beeps endlessly. I tried to configure the sensors.conf so that every 
-measure is in range but the beep goes on. Is there any possibility to simply 
-turn off the beep of the pc speaker? (I do not want to cut the cable ;-) )
-
-Thanks for help.
+it87-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.69 V  (min =  +1.20 V, max =  +1.80 V)
+VCore 2:   +1.79 V  (min =  +1.69 V, max =  +2.60 V)
++3.3V:     +3.34 V  (min =  +2.96 V, max =  +3.63 V)
++5V:       +4.99 V  (min =  +4.49 V, max =  +5.48 V)
++12V:     +11.76 V  (min = +10.80 V, max = +13.16 V)
+-12V:     -19.38 V  (min = -21.61 V, max = -10.95 V)
+-5V:       -8.44 V  (min =  -9.01 V, max =  -4.50 V)
+Stdby:     +5.07 V  (min =  +4.49 V, max =  +5.48 V)
+VBat:      +2.03 V
+fan1:     4218 RPM  (min =    0 RPM, div = 8)
+M/B Temp:    +25?C  (low  =   +15?C, high =   +40?C)   sensor = thermistor
+CPU Temp:    +25?C  (low  =   +15?C, high =   +45?C)   sensor = thermistor
+Temp3:       +46?C  (low  =   +15?C, high =   +65?C)   sensor = diode
 
 Matthias Mohr
-
--- 
-joining is free and everybody is welcome to join:
-
-? www.hospitalityclub.org
-
-the aim is to bring people together - hosts and guests, travelers and locals
---------------
-matthias mohr
-icq: 156971883
