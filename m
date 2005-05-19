@@ -1,27 +1,23 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH 2.6] I2C: Fix race condition in it87 driver
-Message-Id: <20050328210335.GC3752@kroah.com>
+From: bweber@imsconsultants.com (Bob Weber)
+Date: Thu, 19 May 2005 06:24:02 +0000
+Subject: New i2c driver for ETX-mgx board from Kontron
+Message-Id: <1056749667.1873.35.camel@linux.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050324223901.23beb827.khali@linux-fr.org>
-In-Reply-To: <20050324223901.23beb827.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 24, 2005 at 10:39:01PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> I noticed a race condition in the it87, affecting the IT8712F chip only.
-> The VRM value is currently initialized *after* creating the vrm and vid
-> sysfs files. This leaves a theorical room for reading from these files
-> and get an invalid value. It's not critical, but let's still fix it.
-> 
-> Please apply, thanks.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Hello. I recently wrote (ported, actually) an i2c driver for the ETX-mgx
+board from Kontron. This board uses a Winbond chip for I/O. The I2c
+driver bit-bangs a couple I/O pins. 
 
-Applied, thanks.
+How do I contribute this to the lm_sensors project? Besides the driver,
+I modified Config.in and Makefile in the kernel drivers directory, and
+i2c-id.h in the include/linux directory.
 
-greg k-h
+- Bob Weber
+  R&B Embedded Technologies
+  email: bweber@imsconsultants.com
+  email: rjweber@ieee.org
+
