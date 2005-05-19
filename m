@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: i2c-algo-8xx
-Message-Id: <20030802170006.GG11038@kroah.com>
+Message-Id: <20030802200337.272a7935.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030802133344.71d15fac.khali@linux-fr.org>
 In-Reply-To: <20030802133344.71d15fac.khali@linux-fr.org>
@@ -10,27 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 02, 2003 at 01:33:44PM +0200, Jean Delvare wrote:
+
+> As this is a ppc driver, I'd look in the ppc kernel tree to see if
+> they have included it in their repository and not just synced up with
+> Linus's tree yet.
+
+I didn't know there was an active separate tree for PPC. This must be a
+real mess sync'ing everything... Where can I take a look? Kernel.org
+only has patches up to 2.4.18 as far as I can see.
+
+> As no one seems to be able to compile it right now, and no one has
+> complained, I'll leave it in for now.
 > 
-> Hi Greg,
-> 
-> Just a quick note about something I noticed this morning.
-> 
-> In linux-2.6.0-test2, there is the i2c-rpx driver. It needs the
-> i2c-algo-8xx module and header file, which are *not* in
-> linux-2.6.0-test2, so it won't work, unless I missed something. So I
-> guess i2c-algo-8xx should be ported to Linux 2.6 too, or i2c-rpx will
-> have to be removed.
+> Is that ok?
 
-As this is a ppc driver, I'd look in the ppc kernel tree to see if they
-have included it in their repository and not just synced up with Linus's
-tree yet.
+Yes, no problem. I just saw that and felt you might want to know, no
+more.
 
-As no one seems to be able to compile it right now, and no one has
-complained, I'll leave it in for now.
-
-Is that ok?
-
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
