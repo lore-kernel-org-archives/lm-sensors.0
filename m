@@ -1,27 +1,32 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:12 +0000
-Subject: [BK PATCH] I2C update for 2.6.8-rc1
-Message-Id: <20040825063643.GA8249@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:33 +0000
+Subject: bt869 driver
+Message-Id: <20050129234511.5dc19d3b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040715000527.GA18923@kroah.com> <1093384722.8445.10.camel@tdi> <20040824220450.GE11165@kroah.com> <Pine.LNX.4.58.0408241721330.17766@ppc970.osdl.org> <1093397881.9555.6.camel@tdi> <Pine.LNX.4.58.0408241847460.17766@ppc970.osdl.org> <20040825061445.GA16938@kroah.com>
-In-Reply-To: <20040825061445.GA16938@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Alex Williamson <alex.williamson@hp.com>, akpm@osdl.org, linux-kernel <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Tue, Aug 24, 2004 at 11:14:45PM -0700, Greg KH wrote:
-> On Tue, Aug 24, 2004 at 07:02:47PM -0700, Linus Torvalds wrote:
-> > Now, admittedly, that would be a VERY broken BIOS, and likely such a 
-> > situation wouldn't have worked _anyway_, but you're the PCI maintainer, so 
-> > you get to sit in the hot seat and say aye or nay.
-> 
-> It looks correct to me, please apply it.  If it breaks people's boxes
-> that used to work, I'm sure I'll hear about it :)
+Hi Gerd,
 
-It didn't break my finicky little laptop, so it's fine with me.
+The lm_sensors project hosts a driver for the BT869 video-out chip,
+which I am told is found (among others) on Voodoo3 boards. The driver is
+for Linux 2.4 and gives control of the video out parameters through
+procfs.
 
-thanks,
+http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/kernel/chips/bt869.c
 
-greg k-h
+People are asking for a Linux 2.6 port for quite some time now. I
+believe that such a driver would better live in drivers/media/video than
+drivers/i2c/chips, and I guess that the standard video-out drivers have
+a completely different interface (sysctl instead of procfs?).
+
+Do you have any opinion about this? If the BT869 chip integrates
+properly in the media/video subsystem, I would be happy to see it moved
+there. Don't know how much work this would be though, and have no chip
+myself to hack/test anything.
+
+Thanks,
+-- 
+Jean Delvare
