@@ -1,7 +1,7 @@
-From: sgaddama@sepaton.com (Subba)
+From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: linking libsensors
-Message-Id: <40A0D2C8.1010209@sepaton.com>
+Message-Id: <40A107CD.3060900@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <409FC0E1.7060905@sepaton.com>
 In-Reply-To: <409FC0E1.7060905@sepaton.com>
@@ -9,11 +9,6 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
-All I want to know is whether it is ok to link my application (which 
-will be installed
-on an appliance we ship to our clients) with lm-sensors.
-I don't want to commit any changes to lm-sensors code.
 
 
 
@@ -44,24 +39,17 @@ Mark M. Hoffman wrote:
 >
 >  
 >
->>Subba wrote:
->>
->>    
->>
->>>It is a legal question.
->>>I am asking becuase the README file has the following:
->>>
->>>Note that at this moment, libsensors falls under the GPL, not the LGPL.
->>>In more human language, that means it is FORBIDDEN to link any 
->>>application
->>>to the library, even to the shared version, if the application itself
->>>does not fall under the GPL. This will probably be changed in the future.
->>>In the meantime, you will have to contact us first if you want to do 
->>>this.
->>>      
->>>
->
->Regards,
->
->  
->
+It might be time to actually find someone who can say "IAAL" to tell 
+us.. ;')
+
+There are two issues: linking and distributing the binary (in an 
+appliance).  From my understanding, linking to libsensors and 
+distributing the result in an appliance (to the public) requires that 
+all linked code be released, with the possible exception of the 
+lm-sensors code if it has /not/ been modified.
+
+Otherwise, Mark, I think you are right if they aren't releasing the 
+result to the public in some way.
+
+
+Phil
