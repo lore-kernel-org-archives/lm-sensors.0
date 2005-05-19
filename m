@@ -1,30 +1,28 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: [2.5] Help with ICH5 SMBus and W83627THF
-Message-Id: <20030616184117.GA25585@kroah.com>
+From: rindjon@yahoo.com (Ron Rindzunski)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: 64 bit
+Message-Id: <20050501150050.3337.qmail@web30814.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1055775351.19204.11.camel@nosferatu.lan>
-In-Reply-To: <1055775351.19204.11.camel@nosferatu.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jun 16, 2003 at 04:55:51PM +0200, Martin Schlemmer wrote:
-> Hi
-> 
-> I have been trying to get the W83627THF chip working on this
-> board.  It is an Asus P4C800 with Intel 875p chipset and a
-> W83627THF connected via the SMBus.
-> 
-> There are no data sheet for the W83627THF as far as I can see,
-> but supposidly it is a W83627HF with advance Fan control, etc.
-> 
-> I have applied attached patches, and tried various other things
-> to get it to work, but no avail.  The SMBus on the ICH5 seems to
-> work, and it seems to detect the sensor chip just fine, but it
-> do not seem to read any values from the W83627THF.
+Hi folks
+ 
+I am playing with i2c code for a while now, and recently i am trying to run i2c version 2.6.1 (got it through redhat) on my new 64 bit cpu machine. (a cool thing on its own... :)), but when i try to compile it to make the modules, a nasty warning about i2c-proc keeps poping up:.
+ 
+my question is how does i2c deals with a move from 32 bit to 64 bit machines, especially 2.6.1 version that intrests me, and for what do i need to take notice.
+i'll be happy for a short explanation, and will be happier to get URL references for material about this issue. (a code sample will be awesome !)
+ 
+thanks
+Ron Rinjunsky
 
-I've applied your patches, thanks.
 
-greg k-h
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050501/08442c5d/attachment.html
