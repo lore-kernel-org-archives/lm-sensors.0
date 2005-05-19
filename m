@@ -1,95 +1,76 @@
-From: greg@kroah.com (Greg KH)
+From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: [PATCH] i2c driver changes 2.6.0-test3
-Message-Id: <10609724091170@kroah.com>
+Message-Id: <3F401E93.4030403@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10609724081893@kroah.com>
 References: <1060972405413@kroah.com>
 In-Reply-To: <1060972405413@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.1123.18.8, 2003/08/15 11:06:52-07:00, greg@kroah.com
+Why don't we just make it policy that now and in the future we don't 
+initialize the limits on the sensors?
 
-I2C: add adapter and client name files as the driver core no longer provides them.
+We don't know in what crazy way a motherboard manufacturer may have wired or 
+scaled the inputs and with the newer sensors, it's leading to shutdowns and 
+fan spinup behavior that is "less than optimal".
 
+If the BIOS knows what reasonable limits are, it will set them and we are 
+better off reading and displaying those values than resetting them.  If the 
+BIOS hasn't set any limits, the hardware almost always (does anyone have a 
+counter example?) initializes with the limits at the extreme values.  No harm 
+there.  We've got (or had...) a user space library that could initialize 
+limits with much more configurability than the drivers ever will have.
 
- drivers/i2c/i2c-core.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+)
+I'd really like to see this whole initialization mess go away...
 
+And it would make the drivers blah-blah lines smaller ... :)
 
-diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c	Fri Aug 15 11:26:44 2003
-+++ b/drivers/i2c/i2c-core.c	Fri Aug 15 11:26:44 2003
-@@ -79,12 +79,36 @@
- 	.release =	&i2c_adapter_class_dev_release,
- };
- 
-+static ssize_t show_adapter_name(struct device *dev, char *buf)
-+{
-+	struct i2c_adapter *adap = dev_to_i2c_adapter(dev);
-+	return sprintf(buf, "%s\n", adap->name);
-+}
-+static DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
-+
-+
- static void i2c_client_release(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	complete(&client->released);
- }
- 
-+static ssize_t show_client_name(struct device *dev, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return sprintf(buf, "%s\n", client->name);
-+}
-+
-+/* 
-+ * We can't use the DEVICE_ATTR() macro here as we want the same filename for a
-+ * different type of a device.  So beware if the DEVICE_ATTR() macro ever
-+ * changes, this definition will also have to change.
-+ */
-+static struct device_attribute dev_attr_client_name = {
-+	.attr	= {.name = "name", .mode = S_IRUGO, .owner = THIS_MODULE },
-+	.show	= &show_client_name,
-+};
-+
- 
- /* ---------------------------------------------------
-  * registering functions 
-@@ -120,6 +144,7 @@
- 	adap->dev.driver = &i2c_adapter_driver;
- 	adap->dev.release = &i2c_adapter_dev_release;
- 	device_register(&adap->dev);
-+	device_create_file(&adap->dev, &dev_attr_name);
- 
- 	/* Add this adapter to the i2c_adapter class */
- 	memset(&adap->class_dev, 0x00, sizeof(struct class_device));
-@@ -184,6 +209,7 @@
- 	init_completion(&adap->dev_released);
- 	init_completion(&adap->class_dev_released);
- 	class_device_unregister(&adap->class_dev);
-+	device_remove_file(&adap->dev, &dev_attr_name);
- 	device_unregister(&adap->dev);
- 	list_del(&adap->list);
- 
-@@ -361,6 +387,7 @@
- 		"%d-%04x", i2c_adapter_id(adapter), client->addr);
- 	printk("registering %s\n", client->dev.bus_id);
- 	device_register(&client->dev);
-+	device_create_file(&client->dev, &dev_attr_client_name);
- 	
- 	return 0;
- }
-@@ -387,6 +414,7 @@
- 	down(&adapter->clist_lock);
- 	list_del(&client->list);
- 	init_completion(&client->released);
-+	device_remove_file(&client->dev, &dev_attr_client_name);
- 	device_unregister(&client->dev);
- 	up(&adapter->clist_lock);
- 	wait_for_completion(&client->released);
+:v)
+
+Greg KH wrote:
+
+> ChangeSet 1.1123.18.6, 2003/08/14 14:31:21-07:00, rusty@linux.co.intel.com
+> 
+> [PATCH] I2C: bugfix for initialization bug in adm1021 driver
+> 
+> While initializing the adm1021 device, the driver is performing a conversion
+> from fixed point to Celcius on values that were declaired as Celcius.  On
+> my Dell Precision 220 this results in a shutdown after a couple of minutes
+> running.
+> 
+> This is a very simple patch against the 2.6.0-test3 tree that just removes the
+> conversion.
+> 
+> 
+>  drivers/i2c/chips/adm1021.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> 
+> diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
+> --- a/drivers/i2c/chips/adm1021.c	Fri Aug 15 11:26:53 2003
+> +++ b/drivers/i2c/chips/adm1021.c	Fri Aug 15 11:26:53 2003
+> @@ -356,13 +356,13 @@
+>  {
+>  	/* Initialize the adm1021 chip */
+>  	adm1021_write_value(client, ADM1021_REG_TOS_W,
+> -			    TEMP_TO_REG(adm1021_INIT_TOS));
+> +			    adm1021_INIT_TOS);
+>  	adm1021_write_value(client, ADM1021_REG_THYST_W,
+> -			    TEMP_TO_REG(adm1021_INIT_THYST));
+> +			    adm1021_INIT_THYST);
+>  	adm1021_write_value(client, ADM1021_REG_REMOTE_TOS_W,
+> -			    TEMP_TO_REG(adm1021_INIT_REMOTE_TOS));
+> +			    adm1021_INIT_REMOTE_TOS);
+>  	adm1021_write_value(client, ADM1021_REG_REMOTE_THYST_W,
+> -			    TEMP_TO_REG(adm1021_INIT_REMOTE_THYST));
+> +			    adm1021_INIT_REMOTE_THYST);
+>  	/* Enable ADC and disable suspend mode */
+>  	adm1021_write_value(client, ADM1021_REG_CONFIG_W, 0);
+>  	/* Set Conversion rate to 1/sec (this can be tinkered with) */
+> 
+> 
+> 
 
