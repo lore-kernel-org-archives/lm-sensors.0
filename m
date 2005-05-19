@@ -1,7 +1,7 @@
 From: alexander@isacson.info (Alexander Isacson)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: Adding support for vt1211 in kernel 2.6
-Message-Id: <1071678049.4862.52.camel@travel.isacson.dyndns.info>
+Message-Id: <1071678202.4858.55.camel@travel.isacson.dyndns.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <46951.192.176.33.6.1070287022.squirrel@firewall.isacson.dyndns.info>
 In-Reply-To: <46951.192.176.33.6.1070287022.squirrel@firewall.isacson.dyndns.info>
@@ -85,7 +85,7 @@ Name: Makefile
 Type: text/x-makefile
 Size: 25 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031217/96c0257d/Makefile.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031217/0486bab5/Makefile.bin
 -------------- next part --------------
 make: Entering directory `/usr/src/linux-2.6.0-test11-gentoo-r2'
 *** Warning: Overriding SUBDIRS on the command line can cause
@@ -145,4 +145,4 @@ Name: vt1211.c
 Type: text/x-c
 Size: 25304 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031217/96c0257d/vt1211.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031217/0486bab5/vt1211.bin
