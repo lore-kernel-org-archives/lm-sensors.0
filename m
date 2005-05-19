@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:20 +0000
+From: pjlv@mega.ist.utl.pt (Pedro Venda)
+Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: smart battery driver
-Message-Id: <4181847A.6060109@verizon.net>
+Message-Id: <4187BBFE.6070101@mega.ist.utl.pt>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <416468FD.6020400@mega.ist.utl.pt>
 In-Reply-To: <416468FD.6020400@mega.ist.utl.pt>
@@ -10,13 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-we have had a smartbattery driver, smartbatt.c, in our package for almost two years.
-please review it and if you have questions or would like to enhance it please
-let us know.
+hi,
 
-Pedro Venda wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+Mark Studebaker wrote:
+> we have had a smartbattery driver, smartbatt.c, in our package for 
+> almost two years.
+> please review it and if you have questions or would like to enhance it 
+> please
+> let us know.
+
+i stopped because i need to learn more about kernel programming, but i 
+haven't give up. how can i download and use the driver?
+
+the gentoo ebuild doesn't contain it. do i need to access CVS to get it?
+
+regards,
+pedro venda.
+
+> 
+> Pedro Venda wrote:
 > 
 > hello everyone.
 > 
@@ -42,12 +54,5 @@ Pedro Venda wrote:
 > thanks for your time people.
 > regards,
 > pedro venda.
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.1 (MingW32)
-> Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-> 
-> iD8DBQFBZGj9eRy7HWZxjWERAmloAKCo1OrgrjR6hkz+Wio35iO8g1Gq2gCfbmfd
-> gCEuYsYtkgC8VZpWHgn/+eY> =VDvQ
-> -----END PGP SIGNATURE-----
-> 
-> 
+>>
+>>
