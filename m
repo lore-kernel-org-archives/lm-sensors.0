@@ -1,33 +1,49 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:44 +0000
-Subject: sensord 2.8.2 on 2.6.0/ASUS chip - subclient problem
-Message-Id: <20040229115757.060b7993.khali@linux-fr.org>
+From: martin.bene@icomedias.com (Martin Bene)
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: Ticket # 15731: bmcsensors panics  with Dell Poweredge 1750
+Message-Id: <FA095C015271B64E99B197937712FD020B0159@freedom.grz.icomedias.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200401111319.18817.arvidjaar@mail.ru>
-In-Reply-To: <200401111319.18817.arvidjaar@mail.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andrey,
 
-> > I think you misunderstood me.
-> > Checking for "subclient" should provide this information.
-> > And checking only for a space may work now but could break later.
-> > So please look for a "subclient" substring.
-> 
-> ok, attached
+(kernel panic during i2c_register_entry)
 
-Sorry for the delay. I committed a similar change to our CVS repository
-this morning. It's not exactly what you proposed (I didn't much like the
-idea of using 120 more bytes of the stack) but should work equaly well.
-Tested on my as99127f.
+Update: the kernel panic seems to be timing dependant; after adding lots of debug statements + removing most sensors (leaving just the temperature and fan sensors) it mostly finishes proc registration without crashing.
 
-Please check it out and confirm that it works for you too.
+This however leads to a 2nd problem: reading of sensors returns an error (0xce). ignoring that error (same as the 0xca already present) finaly results in display of sensor data.
 
-Thanks.
+Sensor names: OK
+Fan Sensors: OK
+Temp Sensors: some sensors OK (CPU Planar, Ambient), most show bad values. see below.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+bmc-ipmi-0000
+Adapter: Dummy adapter
+Algorithm: Dummy algorithm
+Fan 1:    6360 RPM  (min = 1080 RPM)
+Fan 2:    6240 RPM  (min = 1080 RPM)
+Fan 3:    6240 RPM  (min = 1080 RPM)
+Fan 4:    6720 RPM  (min = 1080 RPM)
+Fan 5:    6240 RPM  (min = 1080 RPM)
+Fan 6:    6360 RPM  (min = 1080 RPM)
+Fan 7:    6360 RPM  (min = 1080 RPM)
+CPU 1:    -128.0?C  (high =   +80?C, hyst =  +207?C)
+CPU 2:     -72.0?C  (high =   +80?C, hyst =  +207?C)
+CPU 3:     -96.0?C  (high =   +80?C, hyst =  +207?C)
+CPU 4:     -26.0?C  (high =   +80?C, hyst =  +207?C)
+CPU Planar:
+           +41.0?C  (high =   +55?C, hyst =  +182?C)
+Ambient:   +29.0?C  (high =   +40?C, hyst =  +167?C)
+Memy Card A:
+           -76.0?C  (high =   +55?C, hyst =  +182?C)
+Memory Card B:
+           -72.0?C  (high =   +55?C, hyst =  +182?C)
+I/O Planar:
+           -76.0?C  (high =   +55?C, hyst =  +182?C)
+PSDB:      -75.0?C  (high =   +55?C, hyst =  +182?C)
+
+Any indeas, both wrt. crash and wrt. bad values?
+
+Thanks. Martin
