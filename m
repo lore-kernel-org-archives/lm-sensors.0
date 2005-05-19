@@ -1,37 +1,23 @@
-From: xyzzy@speakeasy.org (Trent Piepho)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: VID specifications
-Message-Id: <Pine.LNX.4.04.10204221709250.16907-100000@xyzzy.dsl.speakeasy.net>
+From: empx@gmx.de (=?ISO-8859-1?Q?Michael_Pfl=FCger?=)
+Date: Thu, 19 May 2005 06:24:33 +0000
+Subject: ASUS P4P800/W83627THF Fan Problems
+Message-Id: <40001A2D.5030007@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3CBEB764.C4261708@paradyne.com>
-In-Reply-To: <3CBEB764.C4261708@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 19 Apr 2002, Mark D. Studebaker wrote:
+Hello,
+I'm using Kernel 2.6.1-rc2(2.6.0 gave the same results..) and the 
+included i2c modules etc (w83781d driver).
+The Temperature and Voltage Readings work, yet i cant read nor set the 
+Fan speed of my CPUFan.
+ cat /sys/bus/i2c/devices/0-0290/fan_input[123] shows always 0, and 
+changing pwm[12] doesn't chnage the fan speed, pwm_enable2 is set to 1 
+(there is no other pwm_enable).
+I have disabled Asus QFan in the BIOS so it shouldn't interfere with this..
+Is this a known problem and will/can it be solved somehow?
 
-> Trent,
-> I put programmable VRM support in w83781d in CVS.
-> I changed VID from 2 decimal points to 3.
-> Please look in doc/vid and kernel/include/sensors_vid.h
-> and give it a try.
-> 'set vrm 9.0' should work too.
-> mds
-
-It looks like everything didn't get commited.  The sensors_vid.h file is
-there, but the w83781d.c file is still at rev 1.90 and doesn't use the new
-function.
-
-
-I have a patch for w83781d that will allow for proper initialization and
-detection on the tyan dual athlon motherboards without entering the BIOS
-first.
-
-It still requires init=0 to be specified, or the machine locks when the driver
-is loaded.  I looked at every reference to "init" in the w83781d.c and the
-code it triggers, and I can't see any reason for the lockup.  Do you know if
-there is any code init triggers that I wouldn't find this way?  There
-shouldn't be any reason the temperature/voltage limits can't be initialized
-with this board.
+regards,
+Michael
