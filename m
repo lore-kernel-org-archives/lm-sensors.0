@@ -1,126 +1,95 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: LM83 test results
-Message-Id: <20030806122107.6d678b30.khali@linux-fr.org>
+Message-Id: <20030806184342.42095474.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030806122107.6d678b30.khali@linux-fr.org>
+In-Reply-To: <20030806122107.6d678b30.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Some good news.
-> I have successfully tried the lm_sensors with the LM83 chip!
-> I used a SBSP014 board that has an LM83 sensor attached to a
-> ServerWorks CSB5 chipset's SMbus, on address 32h/33h. 
+> 2.8.0 from the web page.
 
-This is a really great news. You're the messiah I've been waiting for
-for weeks now ;)
+Could you download sensors-detect CVS and give it a try? (unload the
+lm83 driver first)
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
 
-> Following is the sensor detect log and sensor output if interesting?
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 
+> 10: XX XX XX XX XX XX XX XX XX 19 XX XX XX XX XX XX 
+> 20: 20 21 22 23 XX XX XX XX XX XX XX XX XX XX XX XX 
+> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 
+> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 
+> 50: 50 51 52 53 54 55 56 57 XX XX XX XX XX XX XX XX 
+> 60: XX XX XX XX 64 XX XX XX XX XX XX XX XX XX XX XX 
+> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 
 
-Of course it is. The detection works as intended. Just FMI, are you
-using 2.8.0 or CVS?
+There are many devices. 0x50 to 0x57 are eeproms (real or fake, that I
+can't tell). There is a LM device at 0x19. The devices from 0x20 to 0x23
+are really mysterious. If you are curious, you could run "i2cdump 0
+0x20" and see if it returns anything interesting. Warning! We don't have
+the slightest idea on what this device can be, so running this command
+is potentially dangerous. Do as you want, as I explained in the previous
+e-mail.
 
-You seem to have many, many chips on your I2C bus, some of which aren't
-recognized by sensors-detect. I'd be interested in the following command
-output:
-  i2cdetect 0
+> I have been told that "Sensor D1 reads the CPU die temperature, the 
+> local sensor reads the LM83's own temperature. Sensors D2 and D3 
+> measure nothing." 
 
-Warning! This command, and others I could tell you I'm interested in,
-are possibly dangerous, especially if your hardware was made by IBM, or
-if your memory chips are from IBM. If your system is 3-5 years old, you
-should be careful too.
+Who told you that? FYI, the matchings are:
 
-So, whenever I say "I'm interested in something" you are free to do it
-or not. I won't blame you if you don't. These are things I would do on
-my machines because they are not production servers so I don't really
-mind breaking them (I never breaked anything actually). But if your
-system has some real use and you couldn't afford replacing it or part of
-it, don't do the dangerous parts.
+temp1   local
+temp2   D1
+temp3   D2
+temp4   D3
 
-Back to the i2cdetect command above, I think it does approximately the
-same as sensors-detect does, so it should be OK if your system survived
-sensors-detect.
+Temp1 has to be the LMXX own temperature, temp2-4 can be anything remote
+or nothing at all.
 
-> # sensors -s
-> # prog/sensors/sensors
-> lm83-i2c-0-19
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
-> temp1:       +36?C  (limit = +127?C)                      
-> temp2:       +35?C  (limit = +127?C)                      
-> temp3:       +35?C  (limit = +127?C)                      
-> temp4:       +35?C  (limit = +127?C)                      
+> In my testing I have seen that temp1 is fairly stable 36-37. The
+> other ones vary between 33-45 mostly.
 
-Is it a SMP system? Any idea what the four different temperatures are
-for? (A look at the BIOS setup screen could help.)
+Am I right guessing you have always seen temp2=temp3=temp4?
 
-I'd be interested in the following command output:
-  i2cdump 0 0x19
+> # i2cdump 0 0x19
 
-This will dump all the LM83's registers so I can take a deeper look, and
-confirm or infirm some details that were not clear in the datasheet.
-This command isn't dangerous IMHO, since the chipset at 0x19 really has
-to be a LM83 or compatible.
+I suspect it is a LM82, not a LM83. The LM82 is basically a cut down
+LM83 with a singe remote temperature instead of 3. Do you have any
+reason to believe you must have a real LM83, apart from the fact that
+sensors-detect told you so?
 
-Also, the LM83 driver is not completed. If you plan to use it and help
-me testing it, I'll finish it for you, and possibly port it to Linux 2.6
-too.
+> > Are these four entries correct? Do you have 4 SDRAM memory modules
+> > of 256MB each?
+> Well most likely. I have 1GB of memory. If there are any empty slots I
+> do not know. 
 
-> eeprom-i2c-0-50
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            SDRAM DIMM SPD
-> Memory size (MB):       256
->  
-> eeprom-i2c-0-51
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            SDRAM DIMM SPD
-> Memory size (MB):       256
->  
-> eeprom-i2c-0-52
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            SDRAM DIMM SPD
-> Memory size (MB):       256
->  
-> eeprom-i2c-0-53
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            SDRAM DIMM SPD
-> Memory size (MB):       256
+Don't you have the possibility to open the box and check? (You could
+check what your sensor chip really is BTW.)
 
-Are these four entries correct? Do you have 4 SDRAM memory modules of
-256MB each?
+> Any other things to test?
 
-> eeprom-i2c-0-54
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
->  
-> eeprom-i2c-0-55
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
->  
-> eeprom-i2c-0-56
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
->  
-> eeprom-i2c-0-57
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
+Yes, I'd like to verify my theory that your chip is a LM82.
 
-Could that be 4 other empty memory slots?
+Could you try setting limits? Do:
 
-I'd suggest you do *not* play too much with eeproms on your system.
-i2c-piix4 + eeprom is the killing combo for IBM Thinkpads, and your
-system has a strange behavior there (for example your eeproms have
-invalid checksums, although the eeproms seem to contain correct values,
-at first sight). Since I'm insanely curious, I'd love to dig into that,
-but unless you explicitely ask me to do so, we won't.
+echo 80 > /proc/sys/dev/sensors/lm83-i2c-0-19/temp1
+echo 90 > /proc/sys/dev/sensors/lm83-i2c-0-19/temp2
+echo 100 > /proc/sys/dev/sensors/lm83-i2c-0-19/temp3
+echo 110 > /proc/sys/dev/sensors/lm83-i2c-0-19/temp4
 
-Thanks a lot for your report!
+Wait a few seconds, and run "i2cdump 0 0x19 b" again. I should be able
+to conclude.
+
+> Are the output from the commands I tried correct? seems strange!
+
+Unless hexadecimal is your natural alphabet and you speak the sensor
+chip language every day, yes, seems strange. Normally, users don't have
+to deal with this ;)
+
+Thanks a lot for reporting!
 
 -- 
 Jean Delvare
