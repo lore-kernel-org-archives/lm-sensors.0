@@ -1,61 +1,26 @@
-From: Rainer.Lay@informatik.uni-erlangen.de (Rainer Lay)
-Date: Thu, 19 May 2005 06:24:06 +0000
-Subject: solved ticket 1344
-Message-Id: <3F1D45B4.8030306@informatik.uni-erlangen.de>
+From: andrex@alumni.utexas.net (Andrew Schulman)
+Date: Thu, 19 May 2005 06:24:25 +0000
+Subject: testing on kernel 2.6
+Message-Id: <200311181008.19323.andrex@alumni.utexas.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F1C12F2.3080402@informatik.uni-erlangen.de>
-In-Reply-To: <3F1C12F2.3080402@informatik.uni-erlangen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello.  I just saw your answer to ticket # 1442, http://www2.lm-sensors.nu/
+~lm78/readticket.cgi?ticket42.  I didn't file that ticket, but I'd like to 
+help test lm-sensors on kernel 2.6.
 
+I have an Abit IS7 mobo with Intel 865 chipset.  The i2c hardware bus is Intel 
+801 (i2c-801 kernel module), and the monitoring chip is a Winbond W83627HF.  
+sensors-detect successfully detects and loads i2c-801 and i2c-dev, before 
+failing with "Couldn't open /proc/bus/i2c?!?".  
 
-Jean Delvare wrote:
->>I switched module compilation of, since I already compiled them with
->>the kernel.
-> 
-> 
-> I'm not sure I get you. If you followed my installation guide, the
-> modules you had in the kernel were the I2C ones only, not the LM Sensors
-> one. Or did you also applied a patch to include the LM Sensors module
-> into the kernel?
+I'm running kernel 2.6.0-test9 and using the Debian package lm-sensors.  sysfs 
+is mounted on /sys.
 
-My mistake: I didn't distinguish between I2C modules and LM_Sensors
-modules. So I THOUGHT, I had the lm_sensors modules already and thus
-didn't want to compile them again and thus switching off kernel module
-compilation.
-Now I switched it on again and it worked.
+I'll check out CVS and see if I can get it running.  If there's anything else 
+I should know for testing, please let me know.
 
-> 
-> 
->>Your Makefile is not creating sensors.h, since it is not
->>included in the SRCDIRS variable.
-> 
-> 
-> You're right, that's the way it is.
-> 
-> 
->>After switching on kernel module compilation, the header file is 
->>created. This solution is not really nice, since it would overwrite
->>the already created modules.
-> 
-> 
-> As said in the Makefile, you are not supposed to change that variable.
-> You should have been using "make user" and "make user_install" instead.
-
-Right. My mistake.
-
-> However, I agree that there is something to fix there. If we can't use
-> the var it should be removed. If we want to be able to use it, we have
-> to fix it. An opinion anyone?
-> 
-
-In my honest opinion: fix it or remove it. Otherwise you will get more
-silly mails like mine :-)
-
-kind regards
-and thanx for your work!
-
-Rainer
+Andrew Schulman.
