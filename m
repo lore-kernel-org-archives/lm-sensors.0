@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: [PATCH] I2C update for 2.6.6
-Message-Id: <10845773584101@kroah.com>
+Message-Id: <10845773583580@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10845773583910@kroah.com>
+In-Reply-To: <10845773582979@kroah.com>
 References: <10845773562431@kroah.com>
 In-Reply-To: <10845773562431@kroah.com>
 MIME-Version: 1.0
@@ -11,27 +11,141 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1587.15.18, 2004/05/14 15:00:02-07:00, dsaxena@plexity.net
+ChangeSet 1.1587.15.14, 2004/05/11 13:45:12-07:00, R.S.Bultje@students.uu.nl
 
-[PATCH] I2C: Missed ixp42x -> ixp4xx conversion
+[PATCH] I2C: new i2c video decoder calls: saa7111 driver
 
-Forgot to include this with my original patch a few weeks ago...
+Attached patch implements the i2c calls in the saa7111 driver.
+
+The driver is still compatible with old behaviour, so the zr36067 driver
+(the original user of the saa7111 module) doesn't need any changes.  I'll
+probably gradually make everything use DECODER_INIT instead of 0 (that was
+a nice hack back then) somewhere later.
+
+Can I just remove '0' later on? Or are there official ABI rules for
+stable kernel versions?
 
 
- include/linux/i2c-id.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/saa7111.c |   59 ++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 54 insertions(+), 5 deletions(-)
 
 
-diff -Nru a/include/linux/i2c-id.h b/include/linux/i2c-id.h
---- a/include/linux/i2c-id.h	Fri May 14 16:18:19 2004
-+++ b/include/linux/i2c-id.h	Fri May 14 16:18:19 2004
-@@ -222,7 +222,7 @@
- #define I2C_HW_B_OMAHA  0x14    /* Omaha I2C interface (ARM)		*/
- #define I2C_HW_B_GUIDE  0x15    /* Guide bit-basher			*/
- #define I2C_HW_B_IXP2000 0x16	/* GPIO on IXP2000 systems              */
--#define I2C_HW_B_IXP425 0x17	/* GPIO on IXP425 systems		*/
-+#define I2C_HW_B_IXP4XX 0x17	/* GPIO on IXP4XX systems		*/
- #define I2C_HW_B_S3VIA	0x18	/* S3Via ProSavage adapter		*/
- #define I2C_HW_B_ZR36067 0x19	/* Zoran-36057/36067 based boards	*/
+diff -Nru a/drivers/media/video/saa7111.c b/drivers/media/video/saa7111.c
+--- a/drivers/media/video/saa7111.c	Fri May 14 16:19:12 2004
++++ b/drivers/media/video/saa7111.c	Fri May 14 16:19:12 2004
+@@ -9,6 +9,9 @@
+  * Changes by Ronald Bultje <rbultje@ronald.bitfreak.net>
+  *    - moved over to linux>=2.4.x i2c protocol (1/1/2003)
+  *
++ * Changes by Michael Hunold <michael@mihu.de>
++ *    - implemented DECODER_SET_GPIO, DECODER_INIT, DECODER_SET_VBI_BYPASS
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -112,7 +115,7 @@
+ 		u8 block_data[32];
  
+ 		msg.addr = client->addr;
+-		msg.flags = client->flags;
++		msg.flags = 0;
+ 		while (len >= 2) {
+ 			msg.buf = (char *) block_data;
+ 			msg.len = 0;
+@@ -142,6 +145,13 @@
+ 	return ret;
+ }
+ 
++static int
++saa7111_init_decoder (struct i2c_client *client,
++	      struct video_decoder_init *init)
++{
++	return saa7111_write_block(client, init->data, init->len);
++}
++
+ static inline int
+ saa7111_read (struct i2c_client *client,
+ 	      u8                 reg)
+@@ -151,7 +161,7 @@
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static const unsigned char init[] = {
++static const unsigned char saa7111_i2c_init[] = {
+ 	0x00, 0x00,		/* 00 - ID byte */
+ 	0x01, 0x00,		/* 01 - reserved */
+ 
+@@ -201,8 +211,18 @@
+ 	switch (cmd) {
+ 
+ 	case 0:
+-		//saa7111_write_block(client, init, sizeof(init));
+-		break;
++	case DECODER_INIT:
++	{
++		struct video_decoder_init *init = arg;
++		if (NULL != init)
++			return saa7111_init_decoder(client, init);
++		else {
++			struct video_decoder_init vdi;
++			vdi.data = saa7111_i2c_init;
++			vdi.len = sizeof(saa7111_i2c_init);
++			return saa7111_init_decoder(client, &vdi);
++		}
++	}
+ 
+ 	case DECODER_DUMP:
+ 	{
+@@ -274,6 +294,32 @@
+ 	}
+ 		break;
+ 
++	case DECODER_SET_GPIO:
++	{
++		int *iarg = arg;
++		if (0 != *iarg) {
++			saa7111_write(client, 0x11,
++				(decoder->reg[0x11] | 0x80));
++		} else {
++			saa7111_write(client, 0x11,
++				(decoder->reg[0x11] & 0x7f));
++		}
++		break;
++	}
++
++	case DECODER_SET_VBI_BYPASS:
++	{
++		int *iarg = arg;
++		if (0 != *iarg) {
++			saa7111_write(client, 0x13,
++				(decoder->reg[0x13] & 0xf0) | 0x0a);
++		} else {
++			saa7111_write(client, 0x13,
++				(decoder->reg[0x13] & 0xf0));
++		}
++		break;
++	}
++
+ 	case DECODER_SET_NORM:
+ 	{
+ 		int *iarg = arg;
+@@ -465,6 +511,7 @@
+ 	int i;
+ 	struct i2c_client *client;
+ 	struct saa7111 *decoder;
++	struct video_decoder_init vdi;
+ 
+ 	dprintk(1,
+ 		KERN_INFO
+@@ -509,7 +556,9 @@
+ 		return i;
+ 	}
+ 
+-	i = saa7111_write_block(client, init, sizeof(init));
++	vdi.data = saa7111_i2c_init;
++	vdi.len = sizeof(saa7111_i2c_init);
++	i = saa7111_init_decoder(client, &vdi);
+ 	if (i < 0) {
+ 		dprintk(1, KERN_ERR "%s_attach error: init status %d\n",
+ 			I2C_NAME(client), i);
 
