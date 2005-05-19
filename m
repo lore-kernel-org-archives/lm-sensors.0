@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: W83627HF SuperIO support in lm_sensors
-Message-Id: <20030930195645.29a8f9d8.khali@linux-fr.org>
+Message-Id: <20031001074549.GE1876@pua.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030929180436.GB1779@pua.nirvana>
 In-Reply-To: <20030929180436.GB1779@pua.nirvana>
@@ -10,60 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Tue, Sep 30, 2003 at 07:56:45PM +0200, Jean Delvare wrote:
+> > > If you want more drivers, either tweak the FILES and Config.in files
+> > > in mkpatch, or build the modules directly in the lm_sensors
+> > > directory instead of patching the kernel.
+> > 
+> > What do you think is better for an rpm (and what is better supported
+> > by you in general)?
 
-> > If you want more drivers, either tweak the FILES and Config.in files
-> > in mkpatch, or build the modules directly in the lm_sensors
-> > directory instead of patching the kernel.
+> I would use solution 2. This is what I do as a user. It doesn't change a
+> thing as far as packaging is concerned. You may build the modules inside
+> the lm_sensors tree rather than inside the kernel tree, they still end
+> up in /lib/modules, where they have to be. The only difference is that
+> you can't choose which module you want to install with solution 2, but
+> being packaging a kernel, you obviously don't want to exclude any driver
+> anyway.
+
+Ok, the packaging scheme looks like the following:
+lm_sensors-2.8.x-...:			   Contains userland stuff.
+lm_sensors-kmdl-2.4.20-20_29...-2.8.x-...: Contains kernel modules
+					   built for the kernel
+					   version embedded in the rpm
+					   name.
+I.e. there will be one main non-kernel rpm and several kmdl rpms (one
+for each supported kernel rpm). The userland and kernel rpms would be
+built out of the same src.rpm with different passes.
+
+> > OK, sounds reasonable, what do you think, Jean?
 > 
-> What do you think is better for an rpm (and what is better supported
-> by you in general)? I checked the first way and it would require
-> someone providing me with the changes, and these would have to be
-> synced with the next lm_sensors release.
->
-> The second proposal is something I could do propably without
-> assistance (building kernel modules), but this would have to wait for
-> some time (a couple of weeks), as it means ripping lm_sensors out of
-> the atrpms kernels and providing it seperately, and also rebuilding
-> and redistributing all further atrpms kernel modules.
+> Yes, let's go. Either you switch so solution 2, or you wait for us to
+> update our list, if nobody on the list objects it, of course.
 
-I would use solution 2. This is what I do as a user. It doesn't change a
-thing as far as packaging is concerned. You may build the modules inside
-the lm_sensors tree rather than inside the kernel tree, they still end
-up in /lib/modules, where they have to be. The only difference is that
-you can't choose which module you want to install with solution 2, but
-being packaging a kernel, you obviously don't want to exclude any driver
-anyway.
-
-That said, I think that we could add many drivers (if not all) to the
-list of "considered stable" drivers. I can't think of any of our drivers
-that may cause serious problems [1] so there is no real reason not to
-include them all.
-> 
-> On Tue, Sep 30, 2003 at 10:40:20AM +0200, Alfredo Milani-Comparetti
-> wrote:
-
-Aha, you're the almico.com guy. Nice to see you here actually, I did not
-know you were using Linux too :)
-
-> > I see :-)
-> > Anyway: since yours is a kernel recompiled for those who "know what
-> > they're doing" and since setting up lm_sensors needs some knowledge,
-> > I think it would be nice to include all those modules in your
-> > distribution. Consider that sensors-detect script already knows
-> > which modules are dangerous and which ones are not and acts
-> > accordingly. Just a suggestion. Thank you for your time :-)
-> 
-> OK, sounds reasonable, what do you think, Jean?
-
-Yes, let's go. Either you switch so solution 2, or you wait for us to
-update our list, if nobody on the list objects it, of course.
-
-
-
-[1] Actually, the adm1021 driver seems to cause much trouble these days,
-for an unknown reason, and the i2c-piix4 used to cause trouble to
-Thinkpad users - and they *are* both in the list of stable drivers.
-
+I will attack it in about a week, as I am currently on the road again.
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Axel.Thimm@physik.fu-berlin.de
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031001/6775a2e3/attachment.bin
