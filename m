@@ -1,31 +1,27 @@
-From: scott_anderson@mvista.com (Scott Anderson)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: New bus driver for Xilinx Virtex-II Pro (FPGA with a PowerPC 405)
-Message-Id: <3D8FEDC1.B5FE25EE@mvista.com>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: Fujitsu/Siemens PC
+Message-Id: <20011218111824.V21963@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D7FAE37.D4D6D006@mvista.com>
-In-Reply-To: <3D7FAE37.D4D6D006@mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"Mark D. Studebaker" wrote:
-> I suggest you familiarize yourself with our i2c stack and the interface
-> to it,
-> then you should be able to write a much smaller driver. There are plenty
-> of examples
-> in kernel/busses in our package.
-> You may not even need separate algo and adap drivers.
-> 
-> good luck.
-> mds
 
-Thanks for the information.  Once I finish up what I'm working on right
-now, I'll go back and revisit that driver and then resubmit the request.
+BTW- The PC we got from Fujitsu/Siemens has a bad mobo, I think.  The
+IDE channels are really flakey, and after a couple days, the Bios
+couldn't detect anything on the IDE channels any more (I tried
+different cables, drives, power supply, etc.).  The PC looked like it
+had been repackaged a number of times and shipped around.  It probably
+was returned to them as a faulty machine, and eventually made its way
+to us.  Oh well.  At least there is the case, RAM, CPU, power supply,
+etc. which I can probably recycle into a new box. 
 
-Thanks again,
-    Scott Anderson
-    scott_anderson@mvista.com   MontaVista Software Inc.
-    (408)328-9214               1237 East Arques Ave.
-    http://www.mvista.com       Sunnyvale, CA  94085
+
+Phil
+
+-- 
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
