@@ -1,32 +1,30 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: [rapsure@sfcn.org: bt869 module]
-Message-Id: <20040511172807.GA2116@frodo.local>
+From: perrye@linuxmail.org (Perry Gilfillan)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: New vpx3224 module
+Message-Id: <20040118071608.16645.qmail@linuxmail.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Brian Beardall <rapsure@sfcn.org> -----
+Hello,
 
-Subject: bt869 module
-From: Brian Beardall <rapsure@sfcn.org>
-To: frodol@dds.nl
-X-Spam-Checker-Version: SpamAssassin 2.63 (2004-01-11) on morannon.frodo.local
-X-Spam-Status: No, hits=0.1 required=5.0 tests=RCVD_IN_SORBS autolearn=no 
-	version=2.63
-X-Spam-Level: 
+I've taken the existing vpx322x driver found in the v3tv project, and merged it with the vpx3220 driver found in the 2.6.0 kernel, to produce a new, and hopefully better module for the vpx3224 frame grabber.
 
-I can't use the module, becuase it is for the 2.4 kernel.  I am using
-the 2.6 kernel, and so it needs to be ported.
+I'd appreciate feed back and advice on how to make it more acceptable to the kernel.
 
-Brian Beardall
+I've written some commentary on the work at http://gilfillan.org:8000/v3tv/vpx3224/ and you can look in the v3tv  directory to get some background on what I'm doing.
 
------ End forwarded message -----
+I should say that I'm not a programmer by trade or training, so I need all the help I can get.
 
+Thanks,
+
+Perry Gilfillan
 -- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+______________________________________________
+Check out the latest SMS services @ http://www.linuxmail.org 
+This allows you to send and receive SMS through your mailbox.
+
+
+Powered by Outblaze
