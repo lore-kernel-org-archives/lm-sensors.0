@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:08 +0000
 Subject: More mail server fun
-Message-Id: <TbyZLfJH.1091824476.0854600.khali@gcu.info>
+Message-Id: <4113FB23.3020609@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4113C353.4050805@edgedesign.us>
 In-Reply-To: <4113C353.4050805@edgedesign.us>
@@ -11,9 +11,18 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
->I'm working to get the massive flood of mail bounces under control.
->Sorry for the hassle!
+Luckily most got categorized as spam, so didn't go out.  But, there were 
+about 1,000 bounces happening that clogged things up.
 
-Thanks Phil :')
 
-Jean Delvare
+Phil
+
+Jean Delvare wrote:
+>>I'm working to get the massive flood of mail bounces under control.
+>>Sorry for the hassle!
+> 
+> 
+> Thanks Phil :')
+> 
+> Jean Delvare
+> 
