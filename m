@@ -1,46 +1,27 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [Fwd: RE: NCLV-D SMBus - proposal to a solution]
-Message-Id: <4267DC70.9030003@edgedesign.us>
+From: nsx@rm-f.net (john)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: as99127f chipset calculations
+Message-Id: <20020624165647.A11309@your default hostname>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Not sure if this made it to the list.  It seems that footers with 
-chinese(?) get marked as probable spam in most cases.
 
+On the computer I've tested the lm_sensors package on, I have an asus a7a266
+motherboard which has the as99127f hardware sensor chip.  Many of the
+calculations in the example sensors.conf file provided are obviously
+inaccurate.  The two which I have seemingly been able to improve are the cpu
+temperature and cpu fan speed.  As simple as these calculations are, they
+definitely coincide with the bios's readings, throughout a broader range
+of temperatures and fan rpms.
 
-Phil
+compute fan1 @ - 3000 , @ + 3000
+compute temp2 @ + 30 , @ - 30
 
--------- Original Message --------
+Once again, just as you state in the example conf, it's guess work, but this
+sure does seem to be a lot more accurate than the computations that were
+thrown in there.  Hope this helps.
 
-Dear Rudolf
-
-> Ad 3)
-> Maybe it will be wise to check if other asus motherboards are done
-same way
-> so we can extend this concept to more motherboards with winbond chips.
-We have
-> already a user with 792 chip on ASUS mb but also hidden. His board is
-> ASUS NCL-DS. Please can you ask Asus, about this motherboard? (similar
-way we
-> did this time, also great would be the SMBUS schematics)
-> 
-> Maybe you should extend the question like: What ASUS motherboards that
-use our
-> chips needs multiplexer switching? How this switch needs to be done?
-> 
-> Because I think they will use similar approach so than it would be
-very easy
-> to add the functionality or create diffrent driver very quickly.
-
-This is the answer from ASUS:
-    So far most server boards with W83792(A)D follow the same SMBus
-topology.
-You do not need to pay attention to this issue.
-
-Thanks
-Best Regards
-Chunhao
+					-- John
