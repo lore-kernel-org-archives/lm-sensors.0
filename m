@@ -1,7 +1,7 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:56 +0000
 Subject: Controll CPU Cooler on MSI-NEO 2 Board
-Message-Id: <fr2h71thit5p04ji87f4snf93tsfik3no3@4ax.com>
+Message-Id: <PsqnPneQ.1115202664.7537580.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42772B44.8090204@jonasstein.de>
 In-Reply-To: <42772B44.8090204@jonasstein.de>
@@ -10,20 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 04 May 2005 09:30:11 +0200, Rudolf Marek <r.marek@sh.cvut.cz> wrote:
 
->This reminds me have you tried to change FAN divisors?
->
->(Just edit   w83627thf section of config file and add:
->
->set fan1_div 4
->set fan2_div 4
-> set fan3_div 4
->
+Hi Jonas,
 
-Time for me to throw auto fan_div into other drivers yet?
-Test results, info here: http://scatter.mine.nu/hwmon/auto-fan-div/
+> Driver `to-be-written' (should be inserted but causes problems):
+>   Detects correctly:
+>   * Bus `SMBus stub driver'
+>     Busdriver `UNKNOWN', I2C address 0x09
+>     Chip `Smart Battery Charger' (confidence: 5)
+> (...)
 
-One problem solved :o)
+I would suggest that you do not load the i2c-stub driver. It is really
+meant for i2c chip driver development and debugging purposes, and will
+be of no use to you, but is confusing sensors-detect as hell, as you
+must have noticed.
 
---Grant.
+--
+Jean Delvare
