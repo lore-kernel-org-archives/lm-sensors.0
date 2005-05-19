@@ -1,21 +1,27 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: PATCH: i2c: new driver for ds1337 RTC
-Message-Id: <20050317064858.GK15075@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:23:58 +0000
+Subject: /lib/modules/$(KERNELVER)/kernel/drivers/sensors left empty
+Message-Id: <20030608202401.60d0cec0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <422C3155.9000209@katalix.com>
-In-Reply-To: <422C3155.9000209@katalix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 07, 2005 at 10:47:49AM +0000, James Chapman wrote:
-> Greg,
-> 
-> Attached is a driver to add support for the ds1337 RTC chip.
-> Reviewed by Jean.
 
-Applied, thanks.
+Hi,
 
-greg k-h
+I noticed that when upgrading from an old lm_sensors to CVS, modules are
+installed to /lib/modules/$(KERNELVER)/kernel/drivers/i2c instead of
+/lib/modules/$(KERNELVER)/kernel/drivers/sensors. Old modules are
+removed, but the directory itself isn't. Shouldn't we delete it as well?
+Or could possibly be there something that doesn't belong to us?
+
+Also, modules are removed if and only if they are uncompressed. .o.gz
+(do .o.bz2 exist?) modules are not. I know we don't compress modules,
+but maybe removing any existing module could solve possible issues
+before they arise. Comments on this would be welcome.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
