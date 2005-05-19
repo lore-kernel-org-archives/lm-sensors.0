@@ -1,29 +1,27 @@
-From: phil@philedelbrock.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: problems in isadump.8, isaset.8
-Message-Id: <CE7A754A-4633-11D9-907F-000A95A4F536@philedelbrock.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:32 +0000
+Subject: questions on i2c-isa
+Message-Id: <20040104165323.4a824f59.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200411210403.iAL43Ouv014612@snark.thyrsus.com>
-In-Reply-To: <200411210403.iAL43Ouv014612@snark.thyrsus.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-On Dec 4, 2004, at 5:10 AM, Jean Delvare wrote:
+Two questions on i2c-isa:
 
->> This is automatically generated email about problems in a man page for
->> which you appear to be responsible.  If you are not the right person
->> or list, tell me and I will attempt to correct my database.
->
-> Actually the right person is Eric Spammer Raymond <esr@thyrsus.com>.
-> Please direct any further useless, redundant and annoying mail to him.
->
-> Thanks,
+1* Why is it that i2cdump does not work with i2c-isa? I understand that
+i2cdetect cannot work (since i2c-isa isn't a real i2c bus) but i2cdump
+does exactly what a chip driver could do if I'm not mistaking.
 
-No troubles.  I asked Eric to send future notifications to me and I can 
-sort through them.  No need to get our mouse cords in a bunch. ;')
+2* Is i2c-isa broken in 2.6? The sensors-detect script says I should use
+i2c-isa + via686a. I load both and have nothing in sensors. It is with
+2.6.1-rc1. It used to work with 2.4.x + i2c-2.8.x.
 
+Thanks.
 
-Phil
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
