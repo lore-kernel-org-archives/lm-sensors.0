@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:23:45 +0000
 Subject: i2c/kernel i2c.h i2c-velleman.c i2c-rpx.c i2c-proc.c
-Message-Id: <3E24983B.BA5B8C76@paradyne.com>
+Message-Id: <Pine.OSF.4.50.0301150119470.11865-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3E23647B.2070805@paradyne.com>
 In-Reply-To: <3E23647B.2070805@paradyne.com>
@@ -10,28 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I thought we were going to change the refcounts 
-from .inc_use to .owner _after_ the branch...
+On Tue, 14 Jan 2003, Mark Studebaker wrote:
 
-But if you can get the refcount changes into 2.4.21 then maybe we don't need
-to branch at all?
+> I thought we were going to change the refcounts
+> from .inc_use to .owner _after_ the branch...
 
-Ky?sti M?lkki wrote:
-> 
-> On Tue, 14 Jan 2003, Mark Studebaker wrote:
-> 
-> > but it needs to compile outside kernel too.
-> 
-> Yes, but video4linux will still compile in kernel tree and use
-> different i2c header files. Also I dropped .inc_use()
-> completely, in favour of .owner that is common for 2.4 and 2.5.
-> 
-> This temporarily breaks non-CVS i2c code in kernel, but patches
-> can be backported from 2.5.54+. Mkpatch should apply these too.
-> 
-> Once this is done, I would consider 2.8.0 release and sending patches
-> for inclusion in 2.4.21.
-> 
-> --
->   Ky?sti M?lkki
->   kmalkki@cc.hut.fi
+Well, yes. I made the branch already for 2.4 with tag lk2-4.
+I am just about to commit most of 2.5<->2.4 changes back to 2.4.
+
+> But if you can get the refcount changes into 2.4.21 then maybe we
+> don't need to branch at all?
+
+I am optimistic, it is backported from 2.5.53-54 changes.
+In 2.5.54+, the mentioned video4linux drivers were converted.
+Without i2c, video4linux backporting can not proceed.
+And i2c-proc used .owner in 2.3.37 already.
+
+The branch is still useful.
+I would like to push some changes to i2c interface during the 2.5
+cycle, without worrying about 2.4 compatibility:
+ - i2c-algo-biths
+ - master_send/recv removal (issues with multi-master)
+ - pass *client with i2c_transfer (have per-client speed)
+ - master transmitter as slave receiver
+
+-- 
+  Ky?sti M?lkki
+  kmalkki@cc.hut.fi
