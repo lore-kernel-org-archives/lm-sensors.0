@@ -1,66 +1,33 @@
-From: ac9410@attbi.com (Albert Cranford)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:49 +0000
 Subject: [RFC] driver core support for i2c bus and drivers
-Message-Id: <3E6D0D25.26B5584F@attbi.com>
+Message-Id: <20030310221248.GD13145@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030310072337.GJ6512@kroah.com>
+References: <20030310072337.GJ6512@kroah.com> <3E6D0D25.26B5584F@attbi.com>
+In-Reply-To: <3E6D0D25.26B5584F@attbi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: Albert Cranford <ac9410@attbi.com>
+Cc: sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-Greg KH wrote:
-> 
-> Hi all,
-> 
-> Here's a fairly small patch against 2.5.64 that adds initial driver core
-> support for the i2c code.  It only has logic for the i2c bus, i2c bus
-> controllers, and i2c drivers, but it's a start :)
-> 
-> As an example, with this patch, the i2c-piix4 driver shows up in the pci
-> bus as (other devices omitted for clarity):
-> 
-> [greg@desk sys]$ tree bus/pci
-> bus/pci/
-> |-- devices
-> |   |-- 00:07.3 -> ../../../devices/pci0/00:07.3
-> `-- drivers
->     |-- piix4 smbus
->     |   `-- 00:07.3 -> ../../../../devices/pci0/00:07.3
-> 
-> And within that device, the first i2c bus is located:
-> 
-> [greg@desk sys]$ tree devices/pci0/00:07.3
-> devices/pci0/00:07.3
-> |-- i2c-0
-> |   |-- name
-> |   `-- power
-> 
-> And the i2c bus looks like:
-> 
-> [greg@desk sys]$ tree bus/i2c/
-> bus/i2c/
-> |-- devices
-> `-- drivers
->     `-- EEPROM READER
-> 
-> I'll move on to adding i2c device support to the core, but that will be
-> a bit more work.  Comments on this patch are appreciated.
-> 
-> thanks,
-> 
-> greg k-h
-> 
-> p.s. Yes, I added the i2c-piix4 and i2c-ali15x3 and i2c-i801 drivers to
-> my kernel tree, from the i2c CVS tree, and tweaked them to actually work
-> properly.  If someone wants those patches right now, please let me know.
-> 
-I like.  The proc/bus directory was geting cluttered.
-I think the driver model would be a good for i2c/sensors.
-Do you have any input for isa already in your bag of
-goodies?
-Albert
+On Mon, Mar 10, 2003 at 05:09:41PM -0500, Albert Cranford wrote:
+> I like.  The proc/bus directory was geting cluttered.
 
--- 
-Albert Cranford Deerfield Beach FL USA
-ac9410@attbi.com
+Heh, that's an understatement :)
+
+> I think the driver model would be a good for i2c/sensors.
+
+It seems to fit quite nicely, and should clean up a lot of the sysctl
+madness that you have been forced to live with for 2.0, 2.2, and 2.4.
+
+> Do you have any input for isa already in your bag of
+> goodies?
+
+Yes, the i2c-isa driver should add itself to the sys/devices/legacy
+tree, I just hadn't added that patch yet, still bickering with Pat about
+the interface to register devices there :)
+
+thanks,
+
+greg k-h
