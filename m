@@ -1,39 +1,26 @@
-From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: SiS645 driver additions
-Message-Id: <Pine.OSF.4.50.0301240608430.6743-100000@kosh.hut.fi>
+From: lists@localguru.de (Marcus Schopen)
+Date: Thu, 19 May 2005 06:25:34 +0000
+Subject: lm75-i2c-0-49 output
+Message-Id: <200501301824.18376.lists@localguru.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030120002638.A8515@earth.solarsys.net>
-In-Reply-To: <20030120002638.A8515@earth.solarsys.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 23 Jan 2003, Mark M. Hoffman wrote:
->
-> E.g. although I have an Asus P4S333 which has 645/961, the south
-> bridge claims to be 503 anyway.  I assume this is some kind of
-> compatability mode.  Anyway, I can't be sure it's really a 961
-> unless I check against the list of compatible north bridges.
+Hi,
 
-The name "sis645" should have been "sis691" then ?
+is there a possibility to get more output:
 
-> Yes what this driver really wants is to register against the SMBus
-> (sub) device only... and that all the detection and magic enabling
-> stuff belongs elsewhere; perhaps in a separate module.
+lm75-i2c-0-49
+Adapter: SMBus ALI15X3 adapter at f140
+temp:      +43.0?C  (high = +66.0?C, hyst = +63.0?C)
 
-Well, maybe not. Make the magic enabler code another struct pci_driver,
-with the current list of ids. Always return with failure from probe,
-so we leave no driver associated with the southbridge, but still return
-with SMBus part enabled.
+lm75-i2c-0-48
+Adapter: SMBus ALI15X3 adapter at f140
+temp:      +41.5?C  (high = +60.0?C, hyst = +58.0?C)
 
-Next, call pci_module_init for the SMBus function only.
+Kernel 2.6.8, loaded modules: i2c-ali15x3, lm75
 
-In the PCI code, we may want to use pci_{request/release}_region, it
-will call {release/request}_region with the device's idea of the
-resources the driver will use.
-
--- 
-  Ky?sti M?lkki
-  kmalkki@cc.hut.fi
+Thanks,
+Marcus
