@@ -1,48 +1,44 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:44 +0000
 Subject: PATCH RFC fix adm1025 vid reporting
-Message-Id: <6a3o319k8q774n0dgmj2q98u18rum7t2hs@4ax.com>
+Message-Id: <20050319131506.79865e27.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <6a3o319k8q774n0dgmj2q98u18rum7t2hs@4ax.com>
+In-Reply-To: <6a3o319k8q774n0dgmj2q98u18rum7t2hs@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
+Hi Grant,
 
-This trivial patch changes vid reporting for adm1025 to the 
-standard cpu0_vid filename.  It leaves the older in1_ref file 
-in, marked as deprecated for later removal so we do not pull 
-the rug out from anybody.
+> This trivial patch changes vid reporting for adm1025 to the 
+> standard cpu0_vid filename.  It leaves the older in1_ref file 
+> in, marked as deprecated for later removal so we do not pull 
+> the rug out from anybody.
 
-My query is do we need to give notification of feature change 
-or removal as some other kernel sections are doing?  Trying to 
-tread very gently...
+I like it much. Especially keeping the old file in place is very smart.
 
-Compile tested, patch tested, but no run test :(  
+> My query is do we need to give notification of feature change 
+> or removal as some other kernel sections are doing?  Trying to 
+> tread very gently...
 
-Cheers,
-Grant.
+I don't think we have to. Here you are simply fixing an interface which
+was not following the standard. You are not changing a standard.
 
---- linux-2.6.11-mm4/drivers/i2c/chips/adm1025.c	2005-03-17 07:56:47.000000000 +1100
-+++ linux-2.6.11-mm4x/drivers/i2c/chips/adm1025.c	2005-03-19 22:22:40.000000000 +1100
-@@ -275,7 +275,8 @@
- 	struct adm1025_data *data = adm1025_update_device(dev);
- 	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
- }
--static DEVICE_ATTR(in1_ref, S_IRUGO, show_vid, NULL);
-+static DEVICE_ATTR(in1_ref, S_IRUGO, show_vid, NULL); /* deprecated */
-+static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
- 
- static ssize_t show_vrm(struct device *dev, char *buf)
- {
-@@ -425,7 +426,8 @@
- 	device_create_file(&new_client->dev, &dev_attr_temp1_max);
- 	device_create_file(&new_client->dev, &dev_attr_temp2_max);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
--	device_create_file(&new_client->dev, &dev_attr_in1_ref);
-+	device_create_file(&new_client->dev, &dev_attr_in1_ref); /* deprecated */
-+	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
- 	device_create_file(&new_client->dev, &dev_attr_vrm);
- 
- 	/* Pin 11 is either in4 (+12V) or VID4 */
+> Compile tested, patch tested, but no run test :(  
+
+The patch is quite simple, looks all OK to me.
+
+Could you please provide a patch to libsensors, such that cpu0_vid will
+be accessed instead of in1_ref for the adm1025/ne1619 chips? We might
+not apply it immediately so as to not break compatibility, but at least
+let's have it ready.
+
+As a side note, I noticed that the adm9240 support in libsensors uses
+in1_ref as well. Since your driver obviously won't use it, but cpu0_vid
+instead, this should be fixed as well (and without a delay).
+
+Thanks,
+-- 
+Jean Delvare
