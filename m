@@ -1,43 +1,49 @@
 From: delvare@ensicaen.ismra.fr (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:53 +0000
 Subject: IBM Thinkpad issue
-Message-Id: <20030414205658.2451ac9a.delvare@ensicaen.ismra.fr>
+Message-Id: <20030415165435.6784164a.delvare@ensicaen.ismra.fr>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030414205658.2451ac9a.delvare@ensicaen.ismra.fr>
+In-Reply-To: <20030414205658.2451ac9a.delvare@ensicaen.ismra.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Salut!
+> I think you should mention that the issue persists in lmsensors-2.7,
+> the readme only ever talks of 2.6.5.
 
-Hallo!
+Our docs say "2.6.5 and later releases", which means... well, just what
+it says.
 
-> On
-> http://secure.netroedge.com/~lm78/author.html
-> you are named as the responsible developer for IBM Thinkpad problems
-> of lm_sensors. I have downloaded lm_sensors-2.7.0 and readme.thinkpad
-> seems to not have been updated.
+> Maybe incorporate the hint about ACPI as well?
 
-What do you think should be updated?
+Added.
 
-How could you write to me at this address whereas the webpage mentioned
-above specifies another one?
+> Also I would refer to the README.thinkpad in the FAQ, which was the
+> first place I searched.
 
-> Is there any safe way to use hardware monitoring on my laptop? I have
-> a Thinkpad R31 with a 1.2 GHz MobileCeleron. Will I still be able to
-> fry my machine with lm_sensors? Or can I safely try it?
+Done.
 
-Well, lm_sensors will hopefuly refuse to run on your system (that's how
-we want things to be), even though we are pretty sure there's nothing
-that could be broken on recent Thinkpads. Anyway, as far as I know,
-Thinkpads don't have any supported hardware, so lm_sensors is of no
-interest for them. You'll probably get better results using ACPI to get
-some information about temperatures and fan status.
+> > How could you write to me at this address whereas the webpage
+> > mentioned above specifies another one?
+> 
+> I am not sure anymore, I think I picked it out of the source
+> distribution's file. Sorry if I picked up a wrong email adress by
+> mistake, it was not intentional.
 
-If you want to give it a try however, please let me know how it goes. If
-you find something I ignore, I'll try to help, and will also update our
-documentation about the issue.
+Actually, I'd like to know. Not that I am offended or whatever, but I
+grep'd the whole sources, and google'd the website, no reference to this
+address could be found. So I really wonder...
+
+> Unfortunately the ACPI implementation of the Thinkpads is broken as
+> well, but maybe it will work at a later time. I have to try a
+> development kernel.
+
+Broken EEPROMS, broken ACPI implementations... And I though IBM was
+builing the best, yet expensive, laptops on Earth.
+
 
 -- 
 Jean Delvare
