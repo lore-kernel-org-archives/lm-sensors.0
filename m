@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:00 +0000
 Subject: [PATCH] i2c driver changes for 2.5.72
-Message-Id: <10559607081639@kroah.com>
+Message-Id: <10559607093836@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10559607072903@kroah.com>
+In-Reply-To: <10559607081420@kroah.com>
 References: <10559607053930@kroah.com>
 In-Reply-To: <10559607053930@kroah.com>
 MIME-Version: 1.0
@@ -11,72 +11,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1318.3.4, 2003/06/16 11:32:06-07:00, azarah@gentoo.org
+ChangeSet 1.1318.3.6, 2003/06/16 11:40:37-07:00, margitsw@t-online.de
 
-[PATCH] I2C: ICH5 SMBus and W83627THF additions
+[PATCH] I2C: Sensors patch for adm1021
 
-I have been trying to get the W83627THF chip working on this
-board.  It is an Asus P4C800 with Intel 875p chipset and a
-W83627THF connected via the SMBus.
-
-There are no data sheet for the W83627THF as far as I can see,
-but supposidly it is a W83627HF with advance Fan control, etc.
-
-I have applied attached patches, and tried various other things
-to get it to work, but no avail.  The SMBus on the ICH5 seems to
-work, and it seems to detect the sensor chip just fine, but it
-do not seem to read any values from the W83627THF.
+Patch for adm1021
+This corrects temp reporting and a major error whereby
+"alarms" and "die_code" were being put though the "TEMP" macro.
+Compiled but don't have the hardware to test.
 
 
- drivers/i2c/busses/i2c-i801.c |   10 +++++++++-
- drivers/i2c/chips/w83781d.c   |    2 +-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/i2c/chips/adm1021.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c	Wed Jun 18 11:19:35 2003
-+++ b/drivers/i2c/busses/i2c-i801.c	Wed Jun 18 11:19:35 2003
-@@ -27,6 +27,7 @@
-     82801BA		2443           
-     82801CA/CAM		2483           
-     82801DB		24C3   (HW PEC supported, 32 byte buffer not supported)
-+    82801EB		24D3   (HW PEC supported, 32 byte buffer not supported)
+diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
+--- a/drivers/i2c/chips/adm1021.c	Wed Jun 18 11:19:25 2003
++++ b/drivers/i2c/chips/adm1021.c	Wed Jun 18 11:19:25 2003
+@@ -88,8 +88,8 @@
+    these macros are called: arguments may be evaluated more than once.
+    Fixing this is just not worth it. */
+ /* Conversions  note: 1021 uses normal integer signed-byte format*/
+-#define TEMP_FROM_REG(val)	(val > 127 ? val-256 : val)
+-#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val < 0 ? val+256 : val),0,255))
++#define TEMP_FROM_REG(val)	(val > 127 ? (val-256)*1000 : val*1000)
++#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val < 0 ? (val/1000)+256 : val/1000),0,255))
  
-     This driver supports several versions of Intel's I/O Controller Hubs (ICH).
-     For SMBus support, they are similar to the PIIX4 and are part
-@@ -121,7 +122,8 @@
- 		return -ENODEV;
+ /* Initial values */
  
- 	I801_dev = dev;
--	if (dev->device = PCI_DEVICE_ID_INTEL_82801DB_3)
-+	if ((dev->device = PCI_DEVICE_ID_INTEL_82801DB_3) ||
-+	    (dev->device = PCI_DEVICE_ID_INTEL_82801EB_3))
- 		isich4 = 1;
- 	else
- 		isich4 = 0;
-@@ -584,6 +586,12 @@
- 		.device =	PCI_DEVICE_ID_INTEL_82801DB_3,
- 		.subvendor =	PCI_ANY_ID,
- 		.subdevice =	PCI_ANY_ID,
-+	},
-+	{
-+		.vendor =   PCI_VENDOR_ID_INTEL,
-+		.device =   PCI_DEVICE_ID_INTEL_82801EB_3,
-+		.subvendor =    PCI_ANY_ID,
-+		.subdevice =    PCI_ANY_ID,
- 	},
- 	{ 0, }
- };
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Wed Jun 18 11:19:35 2003
-+++ b/drivers/i2c/chips/w83781d.c	Wed Jun 18 11:19:35 2003
-@@ -1285,7 +1285,7 @@
- 			kind = w83782d;
- 		else if (val1 = 0x40 && vendid = winbond && !is_isa)
- 			kind = w83783s;
--		else if (val1 = 0x20 && vendid = winbond)
-+		else if ((val1 = 0x20 || val1 = 0x72) && vendid = winbond)
- 			kind = w83627hf;
- 		else if (val1 = 0x30 && vendid = asus && !is_isa)
- 			kind = as99127f;
+@@ -172,8 +172,18 @@
+ show(remote_temp_max);
+ show(remote_temp_hyst);
+ show(remote_temp_input);
+-show(alarms);
+-show(die_code);
++
++#define show2(value)	\
++static ssize_t show_##value(struct device *dev, char *buf)	\
++{								\
++	struct i2c_client *client = to_i2c_client(dev);		\
++	struct adm1021_data *data = i2c_get_clientdata(client);	\
++								\
++	adm1021_update_client(client);				\
++	return sprintf(buf, "%d\n", data->value);		\
++}
++show2(alarms);
++show2(die_code);
+ 
+ #define set(value, reg)	\
+ static ssize_t set_##value(struct device *dev, const char *buf, size_t count)	\
 
