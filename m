@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: [PATCH 2.6] restore correct vaio handling in eeprom driver
-Message-Id: <20040117194036.447f5207.khali@linux-fr.org>
+Message-Id: <20040121005203.GG5472@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040111205346.6182c330.khali@linux-fr.org>
 In-Reply-To: <20040111205346.6182c330.khali@linux-fr.org>
@@ -10,33 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The only other programs I know of that will access the eeprom file are
-> our (four) Perl eeprom decoding scripts. They are not converted to the
-> sysfs interface yet, but as they will be, they will take benefit of
-> the optimization.
+On Sat, Jan 17, 2004 at 08:31:53AM +0100, Jean Delvare wrote:
+> > One comment: 
+> > > -	if ((jiffies - data->last_updated > 300 * HZ) |
+> > > -	    (jiffies < data->last_updated) || !data->valid) {
+> > > -		dev_dbg(&client->dev, "Starting eeprom update\n");
+> > > +	if (!(data->valid & (1 << slice)) ||
+> > > +	    (jiffies - data->last_updated[slice] > 300 * HZ) ||
+> > > +	    (jiffies < data->last_updated[slice])) {
+> > 
+> > We do these jiffies comparisons a lot, is everyone sure they are
+> > correct?  We should probably be using the proper macros/functions for
+> > this, right?  I think I looked at this a while ago, and think they
+> > look correct, but it would be good if someone else can verify this.
+> 
+> Well, what the code is meant to do looks clear to me (do not refresh
+> more often than every 300 seconds, do not get hosed by jiffies cycling).
+> So I'd expect it to just work, and BTW it wouldn't be much of a problem
+> if it did not (OK, it'll refresh more often, shouldn't harm too much).
+> OTOH, if a macro exists that does this, and maybe handle more corner
+> cases (not that I can think of any, but who knows), sure we should use
+> it. Can you point us to it?
 
-For information, I converted one of them (decode-vaio.pl) to sysfs
-today. Works great, and the driver optimization serves its purpose:
+time_after()
+time_before()
+time_after_eq()
+time_before_eq()
 
-decode-vaio
-2.4.24      : 0m1.990s
-2.6.1       : 0m0.550s
-2.6.1+patch : 0m0.440s
+We should use these instead of our checks to make sure everything is
+always correct.
 
-The benefit is less impressive because the script gathers more
-information than "sensors" does, so it reads 6 out of the 8 slices
-("sensors" needs only 2). The three other scripts should take more
-benefit of the optimization (I'd expect a 4:1 speedup for
-decode-dimms.pl for example).
+thanks,
 
-Another thing I forgot to mention in my previous posts: the speed
-improvement applies only to the first time you run sensors or the
-scripts, or after 5 minutes have passed. Consecutive reads do not
-refresh the data so the speedup doesn't apply here. Still I think it's
-great because the first run is what most users will remember of,
-especially if they find it slow ;) and the buffer wears of after 5
-minutes anyway.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+greg k-h
