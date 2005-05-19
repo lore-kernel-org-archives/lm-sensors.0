@@ -1,7 +1,7 @@
-From: drewie@freemail.hu (Andras BALI)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: lm77 on national sc1100
-Message-Id: <1088698503.2862.80.camel@null>
+Message-Id: <20040701171427.GB2597@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1088690691.2862.25.camel@null>
 In-Reply-To: <1088690691.2862.25.camel@null>
@@ -10,44 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2004-07-01 at 17:45, Jean Delvare wrote:
+* Jean Delvare <khali@linux-fr.org> [2004-07-01 17:45:29 +0200]:
+> Do we have a dump of a LM75 chip? I think I remember Mark Hoffman has
+> access to such a chip. Hopefully, LM75 compatible chips such as the DS75
+> and DS1775 will behave likewise.
 
-> BTW, d15 on lm75 is sign as well. And what's the point in lm77's having
-> 4 bit for sign? If that means that all 4 bits will always be the same,
-> that's something we can use for identification.
+Two of them, actually.  Though they look suspiciously like subclients,
+they're not.  I have confirmed by visual inspection that this board
+has one LM79 and two LM75s.  Here they are:
 
-The high 4 bits can easily be the same for the LM75, too...
+[root@earth root]# i2cdump 0 0x4c
+No size specified (using byte-data access)
+  WARNING! This program can confuse your I2C bus, cause data loss and worse!
+  I will probe file /dev/i2c-0, address 0x4c, mode byte
+  You have five seconds to reconsider and press CTRL-C!
+ 
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+10: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+20: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+30: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+40: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+50: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+60: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+70: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+80: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+90: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+a0: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+b0: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+c0: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+d0: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+e0: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+f0: 1c 00 32 3c 3c 3c 3c 3c 1c 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
 
-> >Maybe we could check for the existence T_high and T_low registers?
+[root@earth root]# i2cdump 0 0x4d
+No size specified (using byte-data access)
+  WARNING! This program can confuse your I2C bus, cause data loss and worse!
+  I will probe file /dev/i2c-0, address 0x4d, mode byte
+  You have five seconds to reconsider and press CTRL-C!
+ 
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+10: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+20: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+30: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+40: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+50: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+60: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+70: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+80: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+90: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+a0: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+b0: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+c0: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+d0: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+e0: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
+f0: 1e 00 32 3c 3c 3c 3c 3c 1e 00 32 3c 3c 3c 3c 3c    ?.2<<<<<?.2<<<<<
 
-> We cannot. LM75 chips will not answer with an error if you try to read
-> these registers. It will return a value, just that this value isn't
-> relevant. I cannot remember exactly what it returns... Possible the
-> value of register 0x03.
+Regards,
 
-I see. Maybe writing could tell us more (write then read back and
-compare) but that can be dangerous obviously.
-
-> What we may use OTOH are:
-> * unused bits in config register if they differ;
-
-The config register is 0x0 at me by default. Don't know anything about
-the LM75 though.
-
-> * unused bits in temperature registers; they differ, and it should be
-> sufficent since it's VERY unlikely that ALL 4 low bits of all
-> temperature values are 0 on a LM77 (while the same bits will read 0 on a
-> LM75). That should be a good thing to start with;
-
-I'm not sure if it's really that unlikely. Some examples: 8, 16, 24,
-32 (!), 40 degrees... 
-
-> Apart from the fact that you are not interested, will you have the
-> possibility to test things like sensors-detect (perl script) or i2cdump
-> on the box?
-
-Yeah, I'd be glad to help.
-
-Thanks,
-Andras
-
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
