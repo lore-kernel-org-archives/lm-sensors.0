@@ -1,53 +1,36 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: Fwd: Re: WinBond W83791D Linux Driver Question!
-Message-Id: <3ED7F813.3000604@paradyne.com>
+From: phil@netroedge.com (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: bounced mails
+Message-Id: <3E63A947.30009@netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We recently received a patch for 791 support from Ross Biro
-(search email archives to find it)
-Please test and let us know how it works.
 
-Klaus, thanks for update.
-
-mds
+I'm sorry, we had a DNS snafu over the weekend which is now fixed.  
+Sorry about the trouble.
 
 
-> Subject:
-> Re: WinBond W83791D Linux Driver Question!
-> From:
-> Klaus Woltereck <kw42@gmx.de>
-> Date:
-> Fri, 25 Apr 2003 00:52:22 +0200 (CEST)
-> To:
-> "Vaishnav, Chintan H (Chintan)" <chintan@avaya.com>, Mark Studebaker 
-> <mdsxyz123@yahoo.com>
-> 
-> 
-> On Thu, 24 Apr 2003, Vaishnav, Chintan H (Chintan) wrote:
-> 
-> 
->>I saw on the Linux lm-sensors web page that you are developing the driver for WinBond W83791D.
-> 
-> 
-> Mark, that info is not up-to-date.
-> 
-> Chintan, I've only a W83791SD on my P4B533E.
-> Its a programmable speech synthesizer - not a HW monitor :-(
-> 
-> 
-> 
->>Is this something you have working already for RedHat 8.0 Kernel 2.4.20?
-> 
-> 
-> No. Feel free to start coding :-)
-> 
-> 
-> 
-> Bye,
-> Klaus
-> 
+Phil
+
+Jean Delvare wrote:
+
+>Hi Phil,
+>
+>For some days now, I can't post to the LM Sensors mailing list. My posts
+>keep being rejected with the error message:
+>
+><sensors@stimpy.netroedge.com>: host stimpy.netroedge.com[206.228.191.3]
+>said:
+>    451 4.1.8 <khali@linux-fr.org>... Domain of sender address
+>    khali@linux-fr.org does not resolve
+>
+>What's wrong? I can contact the domain admin (linux-fr.org) if required,
+>but I don't know what I should say to him.
+>
+>Thanks.
+>
+>  
+>
