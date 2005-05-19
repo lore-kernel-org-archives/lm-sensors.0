@@ -1,92 +1,98 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:49 +0000
+From: m.hunold@gmx.de (Michael Hunold)
+Date: Thu, 19 May 2005 06:24:50 +0000
 Subject: [RFC|PATCH][2.6] Additional i2c adapter flags for i2c client
-Message-Id: <20040330213418.195dc972.khali@linux-fr.org>
+Message-Id: <406EBA38.1030203@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <40686476.7020603@convergence.de>
-In-Reply-To: <40686476.7020603@convergence.de>
+References: <40686476.7020603@convergence.de> <20040330213418.195dc972.khali@linux-fr.org>
+In-Reply-To: <20040330213418.195dc972.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Hunold <hunold@convergence.de>
-Cc: sensors@Stimpy.netroedge.com, LKML <linux-kernel@vger.kernel.org>
+To: sensors@stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
 
-> I've implemented the idea of an additional i2c adapter flag in order to
-> be able to keep i2c drivers away from certain i2c adapters.
+Hello Jean,
+
+On 03/30/04 21:34, Jean Delvare wrote:
+>>First of all I was surprised that "struct i2c_adapter" already contained 
+>>a "flags" field. It doesn't seem to be used anywhere, though -- please 
+>>correct me if I'm wrong.
+
+> You seem to be correct. It looks like the flags member was added to all
+> i2c structures, but for adapters it was left unused.
+
+Ok.
+
+>>I added one flag named "I2C_ADAP_FLAG_CLASS_MATCH" which adapters can 
+>>set if they want the type of the i2c driver match the type of the i2c 
+>>adapter.
+
+> Why would an adapter want to accept non-matching clients once we will have
+> added a clean isolation method?
+
+My goal was to keep all non-dvb i2c clients away from my dvb i2c adapters.
+
+Because the "probe every device on every bus" policy is currently used,
+I didn't want to touch every i2c driver and break things.
+
+>>At both places, the flags field is checked against the newly introduced 
+>>flags I2C_ADAP_FLAG_CLASS_MATCH. If this flag is set and the adapter 
+>>class and the driver class don't match, the driver is not probed on the bus.
+
+> My initial approach was different. I wouldn't have introduced a new
+> flag. Instead I would have defined a "neutral" class I2C_ADAP_CLASS_ANY
+> 0xFFFF, suitable for chips that can belong to any bus (such as
+> eeprom.c). This same value could be used for busses that don't care
+> about which chips are connected to it (i2c-parport comes to mind). No
+> flag needed.
 > 
-> Here is what I did:
-> 
-> First of all I was surprised that "struct i2c_adapter" already contained 
-> a "flags" field. It doesn't seem to be used anywhere, though -- please 
-> correct me if I'm wrong.
+> Finding whether a chip and an adapter match is as easy as checking if
+> ((chip->class & adapter->class) != 0).
 
-You seem to be correct. It looks like the flags member was added to all
-i2c structures, but for adapters it was left unused.
+Yes, agreed.
 
-> I added one flag named "I2C_ADAP_FLAG_CLASS_MATCH" which adapters can 
-> set if they want the type of the i2c driver match the type of the i2c 
-> adapter.
+>>All "old" drivers don't have this flag set, so everything works just 
+>>like before this change.
 
-Why would an adapter want to accept non-matching clients once we will have
-added a clean isolation method?
+> This is where your approach looks slightly better than mine. With my
+> method, backward compatibility isn't provided. However, fixing existing
+> drivers would be rather easy, and I share Greg KH's view that drivers
+> living outside the kernel tree get the pain they deserve.
 
-> Next I added a "class" member to "struct i2c_driver". I decided to use 
-> the same flags as for the "struct i2c_adapter" here, although the are 
-> all named I2C_ADAP_CLASS_* and are a bit misleading now when used for in 
-> the i2c driver.
+8-) If this is the way to go, I totally agree, even if that means that
+some drivers will fail to work in the beginning.
 
-The flags could be renamed if needed. There's at least one flag that we
-already planed to rename (I2C_ADAP_CLASS_SMBUS, because the "SMBUS" part
-is a misnomer - a more correct term would be HWMON or SENSORS).
+> My main point is that if we start defining classes for both chips and
+> adapters and go on using them, we better consider it a policy and do it
+> consistently, or it will probably look confusing to newcomers.
 
-> There are two places in i2c-core where drivers are informed of new adapters.
-> 
-> At both places, the flags field is checked against the newly introduced 
-> flags I2C_ADAP_FLAG_CLASS_MATCH. If this flag is set and the adapter 
-> class and the driver class don't match, the driver is not probed on the bus.
+Sure.
 
-My initial approach was different. I wouldn't have introduced a new
-flag. Instead I would have defined a "neutral" class I2C_ADAP_CLASS_ANY
-0xFFFF, suitable for chips that can belong to any bus (such as
-eeprom.c). This same value could be used for busses that don't care
-about which chips are connected to it (i2c-parport comes to mind). No
-flag needed.
+>>Now it's only possible to load these 5 i2c drivers against the MXB 
+>>saa7146 i2c bus -- all other i2c drivers don't get the chance to probe, 
+>>which is exactly what I wanted.
 
-Finding whether a chip and an adapter match is as easy as checking if
-((chip->class & adapter->class) != 0).
+> I guess you mean "against busses of class I2C_ADAP_CLASS_TV_ANALOG,
+> amongst which is the MXB saa7146 bus"? Or I just lost you.
 
-> All "old" drivers don't have this flag set, so everything works just 
-> like before this change.
+Yes, sorry. If other drivers are in the I2C_ADAP_CLASS_TV_ANALOG class, 
+they will be probed, too.
 
-This is where your approach looks slightly better than mine. With my
-method, backward compatibility isn't provided. However, fixing existing
-drivers would be rather easy, and I share Greg KH's view that drivers
-living outside the kernel tree get the pain they deserve.
+Hm, perhaps we should add another method where an adapter can specify 
+the I2C_DRIVERID_*s from the clients it's expecting. The rationale 
+behind this is, that most PCI cards can be identified uniquely by their 
+vendor/subvendor ids, so the driver author definately knows which i2c 
+clients are on the card and what are expected to be present. No need to 
+probe every i2c client.
 
-My main point is that if we start defining classes for both chips and
-adapters and go on using them, we better consider it a policy and do it
-consistently, or it will probably look confusing to newcomers.
+What do you think?
 
-> Now it's only possible to load these 5 i2c drivers against the MXB 
-> saa7146 i2c bus -- all other i2c drivers don't get the chance to probe, 
-> which is exactly what I wanted.
+>>- Should the I2C_ADAP_CLASS_* be renamed to I2C_CLASS_*, so they can be 
+>>used by both i2c adapters and i2c drivers?
 
-I guess you mean "against busses of class I2C_ADAP_CLASS_TV_ANALOG,
-amongst which is the MXB saa7146 bus"? Or I just lost you.
+> I would say yes, but I'm not the authority.
 
-> Todo list:
-> - check if "flags" member in "struct i2c_adapter" is really unused -- 
-> can any of the i2c experts commment on this?
+If we agree that this change should be done, this sound reasonable to me.
 
-I just tested. You can comment it out in the definition of i2c_adapter,
-and everything still compiles without a complaint. I guess it means you
-get a point.
-
-> - Should the I2C_ADAP_CLASS_* be renamed to I2C_CLASS_*, so they can be 
-> used by both i2c adapters and i2c drivers?
-
-I would say yes, but I'm not the authority.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+CU
+Michael.
