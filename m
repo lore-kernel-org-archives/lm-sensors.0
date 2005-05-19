@@ -1,34 +1,57 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: Trouble accessing CVS
-Message-Id: <3F395183.30102@edgedesign.us>
+From: elricofgrans@yahoo.com (=?iso-8859-1?q?Matthew?=)
+Date: Thu, 19 May 2005 06:23:53 +0000
+Subject: Not able to get it working...
+Message-Id: <20030412012942.50109.qmail@web13807.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030812195922.4ff7f670.khali@linux-fr.org>
-In-Reply-To: <20030812195922.4ff7f670.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+G'Day,
 
-Yeah, it's fixed.  We have a T1 with the class-C subnet 206.228.191.1-255.
+I've tried installing lm_sensors a few times, but
+always had one problem or another. I found a source
+RPM for RH8 today though, so took the easy option: I
+used that, and things installed just fine. My kernel
+version is 2.4, and I believe I have a new enough
+version of I2C (however, I'm not sure how to check).
 
-I'm the DNS. ;')  Of the two DNS servers, one is the same physical box 
-that is hosting the CVS, and the other is the same box hosting our web site.
+I have attached the dmesg output; lsmod does not
+appear to exist. I have attached the output of
+sensors-detect as I reran it just before.
 
+My motherboard is a GA-8PE667 Ultra/Pro; there are
+chips with sensors, but I'm not sure where to look to
+get their numbers.
 
-Phil
+As one note, I have not run `modprobe -a': I tried,
+but there does not seem to be a modprobe.
 
+(I hope that's everything on your list - I don't think
+I missed anything)
 
-Jean Delvare wrote:
+Anywho, I think I've done things more or less right (I
+hope so!), but whenever I try to use a program that
+uses lm_sensors, they act as if it is not there:
+clearly I've done *something* wrong, somewhere along
+the way. Do you have any thoughts or suggestions?
 
->>Incidently, the IP for cvs.lm-sensors.nu is: 206.228.191.162
->>    
->>
->
->Fixed IP?
->
->BTW who is our DNS?
->
->  
->
+Thanks!
+
+http://mobile.yahoo.com.au - Yahoo! Mobile
+- Check & compose your email via SMS on your Telstra or Vodafone mobile.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: dmesg.output
+Type: application/octet-stream
+Size: 7397 bytes
+Desc: dmesg.output
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030412/644c211b/dmesg.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: sensors.output
+Type: application/octet-stream
+Size: 2247 bytes
+Desc: sensors.output
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030412/644c211b/sensors.obj
