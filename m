@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: william.mcclintock@schriever.af.mil (McClintock William J Contr MCOM)
 Date: Thu, 19 May 2005 06:24:27 +0000
 Subject: unknown eeprom type (65) [ticket #1449]
-Message-Id: <3FC51CF5.7030500@paradyne.com>
+Message-Id: <B8BD20F161298A42A3B513D23A28556701101F3F@fsglenex3.schriever.af.mil>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1069703037.8309.4.camel@localhost>
 In-Reply-To: <1069703037.8309.4.camel@localhost>
@@ -9,6 +9,32 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+i2cdump 1 0x50 c...segfaults...i2cdump 1 0x50...never comes back after first
+line...
+
+[root@workstation1 root]# i2cdump 1 0x50 c
+  WARNING! This program can confuse your I2C bus, cause data loss and worse!
+  I will probe file /dev/i2c-1, address 0x50, mode byte consecutive read
+  You have five seconds to reconsider and press CTRL-C!
+
+Segmentation fault
+[root@workstation1 root]# i2cdump 1 0x50
+No size specified (using byte-data access)
+  WARNING! This program can confuse your I2C bus, cause data loss and worse!
+  I will probe file /dev/i2c-1, address 0x50, mode byte
+  You have five seconds to reconsider and press CTRL-C!
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds@paradyne.com]
+Sent: Wednesday, November 26, 2003 2:37 PM
+To: McClintock William J Contr MCOM
+Cc: 'sensors@Stimpy.netroedge.com'; frdurso@yahoo.com.br
+Subject: Re: unknown eeprom type (65) [ticket #1449]
+
 
 sorry. my bad. that's 0x50, not 50.
 so try i2cdump 1 0x50
@@ -20,7 +46,8 @@ McClintock William J Contr MCOM wrote:
 > 
 > [root@workstation1 cvs2]# i2cdump 1 50
 > No size specified (using byte-data access)
->   WARNING! This program can confuse your I2C bus, cause data loss and worse!
+>   WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
 >   I will probe file /dev/i2c-1, address 0x32, mode byte
 >   You have five seconds to reconsider and press CTRL-C!
 > 
@@ -42,7 +69,8 @@ McClintock William J Contr MCOM wrote:
 > e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 > f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 > [root@workstation1 cvs2]# i2cdump 1 50 c
->   WARNING! This program can confuse your I2C bus, cause data loss and worse!
+>   WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
 >   I will probe file /dev/i2c-1, address 0x32, mode byte consecutive read
 >   You have five seconds to reconsider and press CTRL-C!
 > 
@@ -165,4 +193,3 @@ McClintock William J Contr MCOM wrote:
 > 
 > 
 > 
-
