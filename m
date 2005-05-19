@@ -1,37 +1,47 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 31 May 2005 10:18:25 +0000
-Subject: [lm-sensors] sensors-detect failed to see my SMbus
-Message-Id: <429C1DBD.3040908@sh.cvut.cz>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:37 +0000
+Subject: [BK PATCH] i2c driver fixes for 2.6.2-rc2
+Message-Id: <20040127233242.GA28891@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <429A2ABC.1040809@sh.cvut.cz>
-In-Reply-To: <429A2ABC.1040809@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@osdl.org, akpm@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-Hi John,
+Hi,
+
+Here are some i2c driver fixes for 2.6.2-rc2.  It's all a bit of small
+bugfixes and documentation updates.
+
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
+
+Individual patches will follow, sent to the sensors and linux-kernel
+lists.
+
+thanks,
+
+greg k-h
+
+ Documentation/i2c/porting-clients    |    5 --
+ drivers/i2c/busses/i2c-parport.h     |    7 ++-
+ drivers/i2c/busses/i2c-philips-par.c |    4 +-
+ drivers/i2c/busses/i2c-piix4.c       |   48 +++++++++++++-----------
+ drivers/i2c/chips/lm75.c             |   12 +++---
+ drivers/i2c/chips/lm78.c             |   12 +++---
+ drivers/i2c/chips/lm85.c             |   69 ++++++++++-------------------------
+ 7 files changed, 67 insertions(+), 90 deletions(-)
+-----
 
 
-John WICKS wrote:
->    G'day Rudolf,
->    sorry about the subject, my mistake :-(
->    below are the outputs from the commands requested.
->    I would like to attempt to activate the bus as it would be handy considering
->    I work in hot environments a lot.
+Greg Kroah-Hartman:
+  o I2C: remove printk() calls in lm85, and clean up debug logic
 
-CPU temperature is not enough?
-You have it in acpi command:
+Jean Delvare:
+  o I2C: Bring lm75 and lm78 in compliance with sysfs naming conventions
+  o I2C: Add ADM1025EB support to i2c-parport
+  o I2C: Fix bus reset in i2c-philips-par
+  o I2C: undo documentation change
 
->         Thermal 1: ok, 45.0 degrees C
-
-And on SMBUs there will be most likely nothing. I'm sure to 99.9%. But if you really want we can try, but it is your
-risk that you will damage your laptop in worst case scenario.
-
-Also in /proc/acpi you can find some files like battery etc. Maybe there are more temperatures
-You can use cat /proc/acpi/something/somefile to see what is inside.
-
-Regards
-
-Rudolf
-
+Mark M. Hoffman:
+  o I2C: i2c-piix4.c bugfix
