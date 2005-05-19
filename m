@@ -1,39 +1,41 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: i2c-piix4 fix undo
-Message-Id: <20031219194917.GU3017@kroah.com>
+From: frido@zolder.net (Frido Ferdinand)
+Date: Thu, 19 May 2005 06:24:14 +0000
+Subject: #1385 (sensors segfault)
+Message-Id: <20030824213041.GA6171@borneo.zolder.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031206221027.45ecfdea.khali@linux-fr.org>
-In-Reply-To: <20031206221027.45ecfdea.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Dec 19, 2003 at 08:40:04PM +0100, Jean Delvare wrote:
-> > > Sure, got patch?  :)
-> > 
-> > Here you go:
-> > (...)
-> 
-> Checked to apply cleanly against linux-2.6.0. Added to my collection as
-> linux-2.6.0-i2c-piix4-hstcfg.diff.
-> 
-> BTW, I removed linux-2.6.0-test11-i2c-nforce2.diff from my collection
-> now that it made it into linux-2.6.0.
-> 
-> Greg, I have a patch pending that you might not be aware of. Although it
-> touches a driver outside of the i2c subsystem, it is related to i2c:
-> 
-> http://delvare.nerim.net/i2c/linux-2.6/linux-2.6.0-test9-pcmcia-sa1100-noi2c.diff
-> 
-> It simply prevents the sa1100 PCMCIA driver from including the i2c.h
-> header file while not making any use of it. This change was part of the
-> recent wave of patches I sent to Marcelo. Since he accepted it, it seems
-> logical to update the 2.6 driver in the same way.
-> 
-> Could you please have this patch applied to the 2.6 kernel tree?
+Hi,
 
-Thanks, I've made this change to the 2.6 tree of patches to send off.
+Regarding #1385:
 
-greg k-h
+---
+It is completely different from ticket #1267.
+
+Segfaults are often caused by old versions of libsensors being present on your
+system. Please look in both /usr/lib and /usr/local/lib for libsensor* and keep
+only the more recent version. Run "ldconfig" after that.
+
+Another possibility is that you have different versions of i2c, lm_sensors
+modules and lm_sensors userspace tools mixed. Please check that too. How did you
+install the whole thing?
+
+Follow up on the list (sensors@stimpy.netroedge.com), reference your ticket number.
+---
+
+There is only 1 version of libsensors around, this is 2.8.0, both i2c and 
+lm_sensors where run from standard sources with ./configure; make; make install.
+Loaded modules right now are:
+
+i2c-i801                4724   0  (unused)
+i2c-dev                 4772   0  (unused)
+i2c-proc                7312   1 
+i2c-core               13924   1  [i2c-i801 i2c-dev i2c-proc]
+
+/proc/sys/dev/sensors is empty except for chips, which has no entries.
+
+Jorge Luis Borges (1899-1986) said, "Violence is the last sanctuary of the
+weak."
