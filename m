@@ -1,60 +1,52 @@
-From: lepalom@wol.es (Leopold Palomo Avellaneda)
-Date: Thu, 19 May 2005 06:24:20 +0000
-Subject: Fwd: Problems with a drivers, again
-Message-Id: <200309281916.10740.lepalom@wol.es>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: your i2c is to old 'error'
+Message-Id: <1052840152.614.43.camel@zrr>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi
 
-I'm sorry because I send again a message, but my mail box have been attacked 
-(is still) by people with the worm swen, so my mail box is full (25Mb!!!!) 
-every 10h +-, so I'm afraid have lost some important mail from you.
+I got one step further:
 
-Best regards,
+'make all' now gives me:
 
-Leo
+kernel/busses/i2c-amd8111.c:25:2: #error Your i2c is too old - i2c-2.7.0
+or greater required!
+kernel/busses/i2c-amd8111.c: In function `amd8111_access':
 
+I installed the i2c-sources successfully.
 
-----------  Missatge transm?s  ----------
+Thanks for your time and help.
 
-Subject: Problems with a drivers
-Date: Divendres 26 Setembre 2003 11:07
-From: Leopold Palomo Avellaneda <lepalom@vilma.upc.es>
-To: The Lm Sensors Group <sensors@stimpy.netroedge.com>
-Cc: lepalom@wol.es
+Zeno
 
-Hi,
-
-first of all, I'm sorry if I ask a silly question, I'm new in lm-sensors.
-
-I have compiled my own kernel 2.4.21 with two pathes:
-- openmosix
-- lm_sensor
-
-I'm using debian woody and it's compiled wig gcc 2.95. I'm using the sources
-lm_sensors 2.8 from debian unstable and i2c too.
-
-My own kernel with openmosix and the i2c modules works well, no problems (As
- I known by now). I have only a problem with the driver:
-w83781d
-
-because it's all the time inicialitzating. I have test to do and init=0, too,
-but I had a segmentation fault:
-e01:~# modprobe w83781d init=0
-Segmentation fault
-
-I'm a bit lost and I don't know what to do. Could you help me please?
-
-Best regards,
-
-Leo
-
--------------------------------------------------------
-
+On Tue, 2003-05-13 at 16:04, Jean Delvare wrote:
+> > I downloaded the packages.
+> 
+> Which packages?
+> 
+> > In ../modules I done 'make all'
+> > 
+> > and I get:
+> > grep: /usr/src/linux/.config: No such file or directory
+> > make: *** No rule to make target `linux/modversions.h', needed by
+> > `kernel/chips/vt1211.d'.  Stop.
+> > 
+> > Why would that be?
+> 
+> Looks like you are missing kernel sources, but I hardly can help more
+> unless you explain in details what you have being doing, where you want
+> to go and what's in the way.
 -- 
-Linux User 152692 
-Catalonia
+Mit freundlichen Gr?ssen / best regards
+
+Zeno Davatz
+Strategie & Akquisition
+
++41 1 350 85 86
+
+www.ywesee.com > intellectual capital connected > www.generika.cc
