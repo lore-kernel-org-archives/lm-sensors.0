@@ -1,35 +1,33 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: presumed bug in magnitude code
-Message-Id: <3DCEBF7A.CB68FAF9@paradyne.com>
+From: Lars.Ekman@bredband.net (Lars.Ekman@bredband.net)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: VIA vt1211 chip driver for 2.6 available
+Message-Id: <Pine.LNX.4.60.0503041620390.5882@ekman10.ekmanhome>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021109191605.0b9352c5.khali@linux-fr.org>
-In-Reply-To: <20021109191605.0b9352c5.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-agreed.
 
-Jean Delvare wrote:
-> 
-> Hi everyone.
-> 
-> I think I have located a potential bug in the magnitude code. If you
-> take a look at lm_sensors2/lib/proc.c, in sensors_read_proc and
-> sensors_write_proc, you'll see:
-> 
->   for (mag = the_feature->scaling; mag > 0; mag --)
->     value *= 10.0;
->   for (; mag < 0; mag --)
->     value /= 10.0;
-> 
-> It looks obvious to me that any negative magnitude would result in a
-> crash. It's "mag ++" on the third line, right? We never caught it
-> because we never had negative magnitudes, but should it happen someday,
-> I better commit a fix right now.
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+Hello,
+
+I have made a port of the driver for the VIA vt1211 to the
+Linux 2.6.x kernel series. The driver is available at;
+
+   http://hem.bredband.net/ekmlar/vt1211.html
+
+It has been around for about half a year and seems to have
+quite many users with VIA mini-itx boards. I have received
+very fiew complaints for some time so the driver seems
+reasonable stable.
+
+I have received e-mails from users who wonders why the driver
+is not included in the kernel, so I send you this mail to tell
+that the driver exists.
+
+Please include it in your source tree if you think it useful,
+and send me a mail if you think I should correct something.
+
+
+Best Regards,
+Lars Ekman
