@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: A7V8X-X and lm sensors
-Message-Id: <1063972933.3f6af0452f979@imp.gcu.info>
+Message-Id: <1063980027.3f6b0bfb5b4f9@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030918153623.GA3679@pvv.org>
 In-Reply-To: <20030918153623.GA3679@pvv.org>
@@ -10,42 +10,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Preben Randhol <randhol+vim@pvv.org>:
 
-> Jean Delvare <khali@linux-fr.org> wrote on 19/09/2003 (09:58) :
-> > Anyway, you're always free to edit /etc/sensors.conf and use your
-> > favorite formula here, as long as it works for you.
+> Ah good, because I can fit my data with an exp function (have some
+> more
+> measurments now).
 > 
-> I understand. I have one tiny problem though. I want to use this
-> formula:
+>   13.71*(^(0.029116*@))
 > 
->    compute temp1 (19.222-0.064912*@+0.017212*@*@), 
+> and back should be
 > 
-> however I cannot compute this number back to @ as there is no sqrt
-> function.
+>   ((`@)-(`(13.71)))/0.029116
 
-We introduced the exp and ln functions some months ago, so you could use them.
-The exp function is written ^ while the ln function is written `. Since sqrt(x)
-is x at the power 1/2, and x at the power y is exp(y*ln(x)), you can use the
-forumla ^((`@)/2) for sqrt (not sure how many levels of parenthesis are needed).
+I suspect that (`(@/13.71))/0.029116 will be faster (untested).
 
-> Why do one need to convert this number back? Can I only use @
-> after the comma?
+> Oh? Something is written on the chip? Not dangerous I hope?
 
-The first part is used when reading values from the chip, while the second is
-used when writting to it. This is done each time you set a limit, so yes, this
-is required.
+Same as when you write bytes to your hard disk drive. Not dangerous as
+long as what you do is really what you think you do. Monitoring chipsets
+are meant to be configured that way, and most of the time it works OK.
+Problems arise if you misdetected a chipset and then try writing a
+value, because the chipset will interpret the write in a different
+manner. More important problems come with chipsets that get corrupted
+when you write to them in a way they don't like, but this is not that
+frequent (or we would have stopped the project times ago).
 
-However, if the ^((`@)/2) trick above doesn't work, you could consider using the
-linear formula you were proposing the other time, instead of the more complex
-2nd degree polynom, and get rid of the problem. It's unusual to have different
-(well, non-reciprocal) formulae on a given line, but that's one case were we
-could consider doing so.
+So, to make it short, writing the limits to the chipset is OK, that's
+the way they are designed to work.
 
-> Thanks in advance.
+> The formula above should fit with what the other person reported
+> about at 40C. However it doesn't fit with his 8C observation when
+> the BIOS reported 30C. Perhaps you could supply me with his e-mail
+> address and I could ask him how his setup is and what temperatures
+> he is measuring if he runs the CPU to different temperatures and
+> then go fast to BIOS to read what it says there. Would also be
+> nice to know what BIOS version he is using as there was a
+> temperature tuning in on of the later BIOSes that I have flashed.
+> I guess the reason why I have higher temperatures is that I use a
+> controlled fan which will run faster as the temperature get higher
+> whereas he might have a fan that is doing a fixed speed.
 
-You're welcome. Let us know when you come to a "definitive" formula, and we'll
-consider adding it to the default config file, or somewhere in our docs.
+The (very short) relevant threads are here:
+http://archives.andrew.net.au/lm-sensors/msg02813.html
+http://archives.andrew.net.au/lm-sensors/msg02850.html
+You'll find Gary's address in the first post.
+
+Please CC: the list if your discussion is of public interest (and I
+believe it will be).
+
+> Another quick question. The BIOS reports VCORE at 1.63 while
+> lm-sensors report 1.69. Should I leave it or should I adjust this
+> value too?
+
+Strange, never seen that before. You may tweak in0 if you want to.
+That's not very important though, as long as it's near enough of the
+nominal value. Maybe you could ask Gary about that too.
 
 -- 
 Jean Delvare
