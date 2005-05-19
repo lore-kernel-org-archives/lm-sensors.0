@@ -1,27 +1,33 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: possible typo in eeprom doc
-Message-Id: <3DD939D9.8AEF900F@paradyne.com>
+From: skumar@ariodata.com (Sanjay Kumar)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: quick question regarding access of LM75 via /dev file system
+Message-Id: <8A098FDFC6EED94B872CA2033711F86F0EC404@orion.ariodata.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021118191527.4fde7d44.khali@linux-fr.org>
-In-Reply-To: <20021118191527.4fde7d44.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> 
-> Hi,
-> 
-> I think I found a typo in doc/chips/eeprom but I'd prefer a confirmation
-> before correcting it:
-> 
-> * Support for really large devices (24C32, 24C64, 24C128, 24C256,
-> 24C5412).
-> These devices require two-byte address fields and are not supported.
-> 
-> Should I replace 24C5412 with 24C512?
-> 
+Hi,
 
-yes
+Sorry for posting this mail!!!!!
+
+How can i access the different register of LM75 using /dev file system
+interface. I do the following steps:
+
+	1. open (/dev.......................)
+	2. ioctl(fd, I2C_SLAVE, i2c-addr); i2c-addr : slave address for
+LM75.
+	3. read/write
+
+Now using read command how do i access the different register of LM75
+(Ex. conf register, temp register, hyst register etc)
+Again , how do I write it in these register?
+	if i do  read(fd, buf, 1) : which register's data it will return
+to me. 
+
+Will somebody help me here pls.???
+
+Thankx in advance,
+Sanjay
+
