@@ -1,139 +1,107 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:50 +0000
 Subject: Dallas 1-wire protocol implementation.
-Message-Id: <20040402012453.0b5db46e.johnpol@2ka.mipt.ru>
+Message-Id: <20040402002646.GA5831@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040402012453.0b5db46e.johnpol@2ka.mipt.ru>
+In-Reply-To: <20040402012453.0b5db46e.johnpol@2ka.mipt.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Here is driver implementing the most interesting IMHO parts of Dallas
-1-wire protocol for linux kernel 2.6.
-It supports search/reset/read temperature and prowides API like i2c
-layer does.
-Since i only have 18s20 termometer driver provides only
-temperature reading. Obviously it is easy to report alarms,
-writing/reading eeprom and so on with created 1-wire framework.
+On Fri, Apr 02, 2004 at 01:24:53AM +0400, Evgeniy Polyakov wrote:
+> Here is driver implementing the most interesting IMHO parts of Dallas
+> 1-wire protocol for linux kernel 2.6.
 
-For testing i soldered ddc pin in my matrox g400 card to termometer's
-data pin and used this pin in GPIO mode. 
-Strong pull-up was got from harddrive +5V.
+Nice, but can you send this in patch form?  That's necessary if you want
+this added to the kernel tree.
 
-Read/write GPIO bits primitives are written and described in
-matrox_w1.c.
-Great thanks to Petr Vandrovec <VANDROVE@vc.cvut.cz> for explaining some
-bits of his matrox_fb driver, GPIO and I2C.
+> It supports search/reset/read temperature and prowides API like i2c
+> layer does.
+> Since i only have 18s20 termometer driver provides only
+> temperature reading. Obviously it is easy to report alarms,
+> writing/reading eeprom and so on with created 1-wire framework.
+> 
+> For testing i soldered ddc pin in my matrox g400 card to termometer's
+> data pin and used this pin in GPIO mode. 
+> Strong pull-up was got from harddrive +5V.
+> 
+> Read/write GPIO bits primitives are written and described in
+> matrox_w1.c.
+> Great thanks to Petr Vandrovec <VANDROVE@vc.cvut.cz> for explaining some
+> bits of his matrox_fb driver, GPIO and I2C.
+> 
+> The basic schema is following:
+> wire.ko - provides general 1-wire API, netlink logging of search
+> process(can be easily extended to log any other 1-wire events), sysfs
+> processing and so on.
 
-The basic schema is following:
-wire.ko - provides general 1-wire API, netlink logging of search
-process(can be easily extended to log any other 1-wire events), sysfs
-processing and so on.
+Why netlink?  What's wrong with just monitoring the sysfs files?
 
-matrox_w1.ko - low level transport realisation.
+I have a few minor comments on the code below:
 
-w1d - netlink userspace daemon to monitor netlink events.
+> #ifdef MATROX_W1_DEBUG
+> #define log(f, a...) printk(KERN_DEBUG "matrox_w1: " f, ## a)
+> #define loga(f, a...) printk(f, ## a)
+> #else
+> #define log(f, a...)
+> #define loga(f, a...)
+> #endif
 
-All events can be both monitored through sysfs and netlink(after
-extending).
+Stick to the i2c standard logging functions, dev_printk(), dev_dbg(),
+dev_err() and friends.
 
-A bit extended schema:
-after inserting wire.ko it registers new bus type and driver.
-It also creates main control kernel thread which accepts all
-new masters creating/destroying events. This code was
-moved to kernel thread since all sysfs related operations may
-sleep. When matrox_w1.ko or any other low level transport driver wants
-to register new master(i call master the logical connect from
-"master" part of computer to 1-wire device, one can have many masters,
-for example LPT and matrox GPIO masters) it can register bit operations
-it provides with predefined API from 1-wire main driver(wire.ko).
-New initialized 1-wire master object is then inserted into global list
-of masters. 
-After registering main driver creates kernel thread to
-process this master's events. The reason for creating kernel thread is
-the same as for control thread. This thread searches for slaves and
-creates appropriate sysfs entries and sends netlink notifications.
-Reading from appropriate slave sysfs entry initiates READ ROM
-command(from only matching slave device).
+> static __inline__ u8 mreadb(unsigned long addr)
+> {
+> #ifdef MEMORY_MAPPED_ACCESS
+> 	return readb(addr);
+> #else
+> 	return inb_p(addr);
+> #endif
+> }
 
-I think it is easy and simple to extend this framework to work with any
-kind of operations with Dallas's 1-wire protocol.
+Ick.  Can you do this a runtime instead?
 
-I think it is the best and the only mail list to send this kind of
-drivers.
-Please test and comment.
+> static int matrox_w1_find_device(struct matrox_device *dev)
+> {
+> 	struct pci_dev *pdev;
+> 	
+> 	pdev = pci_find_device(PCI_VENDOR_ID_MATROX, PCI_DEVICE_ID_MATROX_G400, NULL);
 
-	Evgeniy Polyakov ( s0mbre )
+Do NOT use pci_find_device anymore.  Please use the proper pci api to
+get your driver called with the proper struct pci_dev already set up for
+you.  It's safer that way, and much nicer.  Also, pci_find_device is
+racy and unsafe in many different ways...
 
-Only failure makes us experts. -- Theo de Raadt
+> 	if (!pdev)
+> 	{
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: matrox_w1.c
-Type: text/x-csrc
-Size: 6372 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/matrox_w1.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1.c
-Type: text/x-csrc
-Size: 14979 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1.h
-Type: text/x-chdr
-Size: 2340 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1_int.c
-Type: text/x-csrc
-Size: 4940 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1_int.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1_int.h
-Type: text/x-chdr
-Size: 1214 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1_int-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1_io.h
-Type: text/x-chdr
-Size: 3594 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1_io.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1_log.h
-Type: text/x-chdr
-Size: 1053 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1_log.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1_netlink.c
-Type: text/x-csrc
-Size: 1552 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1_netlink.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1_netlink.h
-Type: text/x-chdr
-Size: 1136 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1_netlink-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w1d.c
-Type: text/x-csrc
-Size: 2907 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040402/b55e56f2/w1d.bin
+Please follow Documentation/CodingStyle for how you place your {}.  You
+do this wrong in a number of places in your code.
+
+> static int w1_master_match(struct device *dev, struct device_driver *drv)
+> {
+> 	log("%s: dev=%p, rv=%p\n", __func__, dev, drv);
+> 	return 1;
+> }
+
+If you are going to create your own type of bus and driver and devices,
+please do it correctly.  But is it really necessary?  Why not just use
+the i2c framework for this?
+
+> static __inline__ void w1_write_bit(struct w1_master *dev, int bit)
+> {
+> 	if (bit)
+> 	{
+> 		dev->bus_master->write_bit(dev->bus_master->data, 0);
+> 		__udelay(6);
+> 		dev->bus_master->write_bit(dev->bus_master->data, 1);
+> 		__udelay(64);
+
+Why __udelay()?  Why not udelay()?  That should be the proper way to do
+it.
+
+thanks,
+
+greg k-h
