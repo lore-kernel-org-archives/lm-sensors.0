@@ -1,275 +1,274 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: new termal sensor ?
-Message-Id: <3D66AEB1.2A9ED5B4@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:20 +0000
+Subject: More on SMBus multiplexing
+Message-Id: <20041023200215.38e375a1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020823003332.056f4a9b.valvoline@tiscalinet.it>
-In-Reply-To: <20020823003332.056f4a9b.valvoline@tiscalinet.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: LM Sensors <sensors@stimpy.netroedge.com>
+Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
 
-sorry, we don't know what is inside your laptop.
-You probably won't get any luck with asking Asus either.
+Hi all,
 
-valvoline wrote:
->=20
-> hi folks!,
->=20
-> recently i bought a new asus laptop (L3C series), with P4 and i845 embedd=
-ed,
-> i've tried to install lm_sensor (2.6.4), but without success...my device =
-seems
-> to be not installed or not found...i've tried a manual hacking for the p4=
-b series
-> motherboard, but without success...(probable, the device lists in noteboo=
-k is different).
->=20
-> waiting for a response....
->=20
-> following are some screen dump of lspci and pcitweak:
->=20
-> >lspci -vvvv
->=20
-> 00:00.0 Host bridge: Intel Corp. 82845 845 (Brookdale) Chipset Host Bridg=
-e (rev 04)
->         Subsystem: Asustek Computer, Inc.: Unknown device 1626
->         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort- <T=
-Abort- <MAbort+ >SERR- <PERR-
->         Latency: 0
->         Region 0: Memory at f8000000 (32-bit, prefetchable) [sizedM]
->         Capabilities: [e4] #09 [d104]
->         Capabilities: [a0] AGP version 2.0
->                 Status: RQ1 SBA+ 64bit- FW+ Rate=3Dx1,x2,x4
->                 Command: RQ=3D0 SBA+ AGP+ 64bit- FW- Rate=3Dx1
->=20
-> 00:01.0 PCI bridge: Intel Corp. 82845 845 (Brookdale) Chipset AGP Bridge =
-(rev 04) (prog-if 00 [Normal decode])
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort- <T=
-Abort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Bus: primary=00, secondary=01, subordinate=01, sec-latency=3D0
->         I/O behind bridge: 0000d000-0000dfff
->         Memory behind bridge: ef000000-efefffff
->         Prefetchable memory behind bridge: eff00000-f7ffffff
->         BridgeCtl: Parity- SERR- NoISA- VGA+ MAbort- >Reset- FastB2B-
->=20
-> 00:1d.0 USB Controller: Intel Corp. 82801CA/CAM USB (Hub #1) (rev 02) (pr=
-og-if 00 [UHCI])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1628
->         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin A routed to IRQ 11
->         Region 4: I/O ports at b800 [size2]
->=20
-> 00:1d.1 USB Controller: Intel Corp. 82801CA/CAM USB (Hub #2) (rev 02) (pr=
-og-if 00 [UHCI])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1628
->         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin B routed to IRQ 9
->         Region 4: I/O ports at b400 [size2]
->=20
-> 00:1d.2 USB Controller: Intel Corp. 82801CA/CAM USB (Hub #3) (rev 02) (pr=
-og-if 00 [UHCI])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1628
->         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin C routed to IRQ 9
->         Region 4: I/O ports at b000 [size2]
->=20
-> 00:1e.0 PCI bridge: Intel Corp. 82801BAM/CAM PCI Bridge (rev 42) (prog-if=
- 00 [Normal decode])
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR+ FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort- <T=
-Abort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Bus: primary=00, secondary=02, subordinate=02, sec-latency2
->         I/O behind bridge: 0000a000-0000afff
->         Memory behind bridge: ee000000-eeffffff
->         Prefetchable memory behind bridge: eff00000-efefffff
->         BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
->=20
-> 00:1f.0 ISA bridge: Intel Corp. 82801CAM ISA Bridge (LPC) (rev 02)
->         Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR+ FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->=20
-> 00:1f.1 IDE interface: Intel Corp. 82801CAM IDE U100 (rev 02) (prog-if 8a=
- [Master SecP PriP])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1628
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin A routed to IRQ 9
->         Region 0: I/O ports at 9800 [size=3D8]
->         Region 1: I/O ports at 9400 [size=3D4]
->         Region 2: I/O ports at 9000 [size=3D8]
->         Region 3: I/O ports at 8800 [size=3D4]
->         Region 4: I/O ports at 8400 [size=16]
->         Region 5: Memory at ed800000 (32-bit, non-prefetchable) [size=3D1=
-K]
->=20
-> 00:1f.5 Multimedia audio controller: Intel Corp. 82801CA/CAM AC'97 Audio =
-(rev 02)
->         Subsystem: Asustek Computer, Inc.: Unknown device 1583
->         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin B routed to IRQ 9
->         Region 0: I/O ports at e000 [size%6]
->         Region 1: I/O ports at e100 [sized]
->=20
-> 00:1f.6 Modem: Intel Corp. 82801CA/CAM AC'97 Modem (rev 02) (prog-if 00 [=
-Generic])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1496
->         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin B routed to IRQ 9
->         Region 0: I/O ports at e200 [size%6]
->         Region 1: I/O ports at e300 [size=128]
->=20
-> 01:00.0 VGA compatible controller: ATI Technologies Inc Radeon Mobility M=
-7 LW (prog-if 00 [VGA])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1622
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping+ SERR- FastB2B-
->         Status: Cap+ 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 64 (2000ns min), cache line size 08
->         Interrupt: pin A routed to IRQ 11
->         Region 0: Memory at f0000000 (32-bit, prefetchable) [size=128M]
->         Region 1: I/O ports at d800 [size%6]
->         Region 2: Memory at ef000000 (32-bit, non-prefetchable) [sizedK]
->         Expansion ROM at effe0000 [disabled] [size=128K]
->         Capabilities: [58] AGP version 2.0
->                 Status: RQG SBA+ 64bit- FW- Rate=3Dx1,x2,x4
->                 Command: RQ1 SBA+ AGP+ 64bit- FW- Rate=3Dx1
->         Capabilities: [50] Power Management version 2
->                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA PME(D0-,D1-,=
-D2-,D3hot-,D3cold-)
->                 Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
->=20
-> 02:05.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/813=
-9C (rev 10)
->         Subsystem: Asustek Computer, Inc.: Unknown device 1045
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 32 (8000ns min, 16000ns max)
->         Interrupt: pin A routed to IRQ 9
->         Region 0: I/O ports at a800 [size%6]
->         Region 1: Memory at ee800000 (32-bit, non-prefetchable) [size%6]
->         Capabilities: [50] Power Management version 2
->                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent75mA PME(D0-,D1+,D2=
-+,D3hot+,D3cold+)
->                 Status: D0 PME-Enable+ DSel=3D0 DScale=3D0 PME-
->=20
-> 02:07.0 CardBus bridge: Ricoh Co Ltd RL5c476 II (rev a8)
->         Subsystem: Asustek Computer, Inc.: Unknown device 1624
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 168
->         Interrupt: pin A routed to IRQ 11
->         Region 0: Memory at ee001000 (32-bit, non-prefetchable) [size=3D4=
-K]
->         Bus: primary=02, secondary=02, subordinate=03, sec-latency=176
->         Memory window 0: ee400000-ee7ff000 (prefetchable)
->         Memory window 1: eec00000-eefff000
->         I/O window 0: 0000a000-0000a0ff
->         I/O window 1: 0000a400-0000a4ff
->         BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset- 16bInt+ PostWr=
-ite+
->         16-bit legacy interface ports at 0001
->=20
-> 02:07.1 CardBus bridge: Ricoh Co Ltd RL5c476 II (rev a8)
->         Subsystem: Asustek Computer, Inc.: Unknown device 1624
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 168
->         Interrupt: pin B routed to IRQ 9
->         Region 0: Memory at ee002000 (32-bit, non-prefetchable) [size=3D4=
-K]
->         Bus: primary=02, secondary=04, subordinate=07, sec-latency=176
->         Memory window 0: 00000000-00000000 (prefetchable)
->         Memory window 1: 00000000-00000000
->         I/O window 0: 0000ac00-0000acff
->         I/O window 1: 00000000-00000003
->         BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset- 16bInt+ PostWr=
-ite+
->         16-bit legacy interface ports at 0001
->=20
-> 02:07.2 FireWire (IEEE 1394): Ricoh Co Ltd R5C552 IEEE 1394 Controller (p=
-rog-if 10 [OHCI])
->         Subsystem: Asustek Computer, Inc.: Unknown device 1627
->         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 32 (500ns min, 1000ns max)
->         Interrupt: pin C routed to IRQ 9
->         Region 0: Memory at ee000000 (32-bit, non-prefetchable) [size=3D2=
-K]
->         Capabilities: [dc] Power Management version 2
->                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0+,D1-,=
-D2-,D3hot+,D3cold+)
->                 Status: D0 PME-Enable+ DSel=3D0 DScale=3D2 PME-
->=20
-> > pcitweak -l
->=20
-> PCI: Probing config type using method 1
-> PCI: Config type is 1
-> PCI: PCI scan (all values are in hex)
-> PCI: 00:00:0: chip 8086,1a30 card 1043,1626 rev 04 class 06,00,00 hdr 00
-> PCI: 00:01:0: chip 8086,1a31 card 0000,0000 rev 04 class 06,04,00 hdr 01
-> PCI: 00:1d:0: chip 8086,2482 card 1043,1628 rev 02 class 0c,03,00 hdr 80
-> PCI: 00:1d:1: chip 8086,2484 card 1043,1628 rev 02 class 0c,03,00 hdr 00
-> PCI: 00:1d:2: chip 8086,2487 card 1043,1628 rev 02 class 0c,03,00 hdr 00
-> PCI: 00:1e:0: chip 8086,2448 card 0000,0000 rev 42 class 06,04,00 hdr 01
-> PCI: 00:1f:0: chip 8086,248c card 0000,0000 rev 02 class 06,01,00 hdr 80
-> PCI: 00:1f:1: chip 8086,248a card 1043,1628 rev 02 class 01,01,8a hdr 00
-> PCI: 00:1f:5: chip 8086,2485 card 1043,1583 rev 02 class 04,01,00 hdr 00
-> PCI: 00:1f:6: chip 8086,2486 card 1043,1496 rev 02 class 07,03,00 hdr 00
-> PCI: 01:00:0: chip 1002,4c57 card 1043,1622 rev 00 class 03,00,00 hdr 00
-> PCI: 02:05:0: chip 10ec,8139 card 1043,1045 rev 10 class 02,00,00 hdr 00
-> PCI: 02:07:0: chip 1180,0476 card a000,0000 rev a8 class 06,07,00 hdr 82
-> PCI: 02:07:1: chip 1180,0476 card ac00,0000 rev a8 class 06,07,00 hdr 82
-> PCI: 02:07:2: chip 1180,0552 card 1043,1627 rev 00 class 0c,00,10 hdr 80
-> PCI: End of PCI scan
->=20
-> --
-> [ valvoline :: VRL Team :: s0ftpj :: freaknet Medialab :: GPG key availab=
-le  ]
-> [ key fingerprint :: - :: B7E2 48BC 705F AE8F 9ABE  E422 076A 2561 1D67 B=
-4DD ]
-> [ GPG key available on keyserver :: pgp.mit.edu :: with keyID :: 1D67B4DD=
- :: ]
+The more I think of Mark Hoffman's proposal to handle SMBus
+multiplexing, the more I think he pointed us to the right direction.
+However, I now wonder if things aren't even more simple than we first
+thought.
+
+The main idea is to remove the physical adapter from the i2c adapters
+list, and add virtual busses instead. We already have the possibility to
+do that right now. The second thing Mark proposed was to lock the
+physical SMBus. While it may sound safer, I don't think it is really
+necessary. The sole fact of removing it from the main list will
+disconnect all chip clients, and clients loaded later won't see the
+physical bus anymore. The only way to attach a client to the SMBus would
+be to do it manually. Certainly it could hurt if someone would do that
+(because it would interfer with the virtual busses) but it happens that
+nobody does this (the whole thing is based on the idea that the core
+will automatically connect all clients from the client lists with all
+adapters from the adapters list).
+
+What are we trying to protect us from with this "exclusive client" idea
+exactly? It will always be possible to run raw commands on the physical
+bus anyway, just call adapter.algo->smbus_xfer. There is no way we can
+protect us against that. So I think we are trying to protect us from an
+event that will never happen and that the protection can be circumvented
+by someone with enough motivation anyway. Much work for nothing, IMHO.
+
+If we forget about that bus locking and exclusive client access, I don't
+think that anything is missing from the i2c core. All we need is
+i2c_{add,del}_adapter, and possibly a way to find an adapter from its id
+(I didn't find something like i2c_find_adapter, did I miss it?). I'm not
+even sure that this is needed though. A possible approach is to have the
+main smbus driver export its i2c_adapter structure, so that the virtual
+smbus driver can access it. This also automagically creates a dependancy
+between both modules, and ensures that loading the vitual bus driver
+will load the main bus driver first.
+
+Note that this approach (as Mark's original one, but contrary to my
+original one) would require a couple changes to sensors-detect. It
+should really only be a matter of adding the correct entries in the pci
+devices list though. However, this could be made unnecessary by
+requesting the second module after loading the first one, using
+request_module(). I tried, it works, I just don't know if we want to do
+it or not. The drawback is that it makes a few board-specific changes to
+the main module.
+
+As a side note, the concept of "exclusive access" for a multiplexer
+client also raises issues in the case one SMBus would host more that one
+multiplexer chip directly at its "root" level. I see no reason why this
+would be technically impossible, yet Mark's original model wouldn't
+support it. I guess it would be possible to emulate it as if the second
+multiplexer was located behind the first one, but this would certainly
+make things more complex.
+
+Of course, as with Mark's approach, we have the benefit of having two
+separated module, no code duplication and little to very little change
+to the original driver, depending on whether we implement the autoload
+mechanism or not, for a maximum maintainabilty (so that's better than
+my proposal for the amd756-s4882 driver in 2.4/CVS, even after taking
+Mark's comment into account).
+
+I was about to commit my i2c-amd756-s4882 module to the lm_sensors CVS
+repository, but now I think that I'll try that new approach instead of
+my brutal code inclusion, which works but isn't really clean, to say the
+least.
+
+As a kind of proof of concept, I did a fake i2c-i801-vaio module to
+virtualize the SMBus on my laptop (although it doesn't have a mux chip).
+It works just OK as far as I can tell. Of course the code is stupidly
+useless (the virtual adapter doesn't do anything more than dumbly
+redirect the calls to the physical bus), and lacks the mux client
+registration part, since there is no such chip. I think that the idea is
+clear though, and at least now we have code to comment on ;)
+
+Thanks.
+
+Index: kernel/busses/Module.mk
+=================================RCS file: /home/cvs/lm_sensors2/kernel/busses/Module.mk,v
+retrieving revision 1.48
+diff -u -r1.48 Module.mk
+--- kernel/busses/Module.mk	16 Apr 2004 20:56:53 -0000	1.48
++++ kernel/busses/Module.mk	23 Oct 2004 18:24:17 -0000
+@@ -48,6 +48,7 @@
+ endif
+ ifneq ($(shell if grep -q '^CONFIG_I2C_I801=y' $(LINUX)/.config; then echo 1; fi),1)
+ KERNELBUSSESTARGETS += $(MODULE_DIR)/i2c-i801.o
++KERNELBUSSESTARGETS += $(MODULE_DIR)/i2c-i801-vaio.o
+ endif
+ ifneq ($(shell if grep -q '^CONFIG_I2C_I810=y' $(LINUX)/.config; then echo 1; fi),1)
+ KERNELBUSSESTARGETS += $(MODULE_DIR)/i2c-i810.o
+Index: kernel/busses/i2c-i801-vaio.c
+=================================RCS file: kernel/busses/i2c-i801-vaio.c
+diff -N kernel/busses/i2c-i801-vaio.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ kernel/busses/i2c-i801-vaio.c	23 Oct 2004 18:24:17 -0000
+@@ -0,0 +1,93 @@
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include "version.h"
++
++extern struct i2c_adapter i801_adapter;
++
++static s32 i801_vaio_access(struct i2c_adapter * adap, u16 addr,
++		       unsigned short flags, char read_write, u8 command,
++		       int size, union i2c_smbus_data * data)
++{
++	return i801_adapter.algo->smbus_xfer(adap, addr, flags,
++		read_write, command, size, data);
++}
++
++static struct i2c_algorithm smbus_algorithm = {
++	.name		= "Non-I2C SMBus adapter",
++	.id		= I2C_ALGO_SMBUS,
++	.smbus_xfer	= i801_vaio_access,
++};
++
++struct i2c_adapter i801_vaio_adapter = {
++	.owner		= THIS_MODULE,
++	.id		= I2C_ALGO_SMBUS | I2C_HW_SMBUS_I801,
++	.algo		= &smbus_algorithm,
++	.name		= "unset",
++};
++
++static int __init i2c_i801_vaio_init(void)
++{
++	int err;
++
++	printk(KERN_INFO "i2c-i801-vaio version %s (%s)\n", LM_VERSION,
++	       LM_DATE);
++
++	if (pci_find_subsys(PCI_VENDOR_ID_INTEL,
++			    PCI_DEVICE_ID_INTEL_82801CA_3,
++			    PCI_VENDOR_ID_SONY, 0x80e7, NULL) = NULL) {
++		return -ENODEV;
++	}
++
++	err = i2c_del_adapter(&i801_adapter);
++	if (err) {
++		printk(KERN_ERR "i2c-i801-vaio: Failed to delete physical "
++		       "adapter\n");
++		return err;
++	}
++
++	/* Attach mux chip to main adapter here */
++
++	smbus_algorithm.functionality = i801_adapter.algo->functionality;
++	snprintf(i801_vaio_adapter.name, 32, "SMBus I801 virtual adapter");
++
++	err = i2c_add_adapter(&i801_vaio_adapter);
++	if (err) {
++		printk(KERN_ERR "i2c-i801-vaio: Failed to add virtual "
++		       "adapter\n");
++		i2c_add_adapter(&i801_adapter);
++		return err;
++	}
++
++	return 0;
++}
++
++static void __exit i2c_i801_vaio_exit(void)
++{
++	int err;
++	
++	err = i2c_del_adapter(&i801_vaio_adapter);
++	if (err) {
++		printk(KERN_ERR "i2c-i801-vaio: Failed to delete virtual "
++		       "adapter\n");
++		return;
++	}
++
++	/* Detach mux chip from main adapter here */
++
++	i2c_add_adapter(&i801_adapter);
++	if (err) {
++		printk(KERN_ERR "i2c-i801-vaio: Failed to add physical "
++		       "adapter back\n");
++		return;
++	}
++}
++
++MODULE_AUTHOR("Jean Delvare <khali@linux-fr.org");
++MODULE_DESCRIPTION("I801 SMBus multiplexing");
++MODULE_LICENSE("GPL");
++
++module_init(i2c_i801_vaio_init);
++module_exit(i2c_i801_vaio_exit);
+Index: kernel/busses/i2c-i801.c
+=================================RCS file: /home/cvs/lm_sensors2/kernel/busses/i2c-i801.c,v
+retrieving revision 1.36
+diff -u -r1.36 i2c-i801.c
+--- kernel/busses/i2c-i801.c	22 May 2004 04:02:19 -0000	1.36
++++ kernel/busses/i2c-i801.c	23 Oct 2004 18:24:18 -0000
+@@ -49,6 +49,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/kmod.h>
+ #include <asm/io.h>
+ #include "version.h"
+ #include "sensors_compat.h"
+@@ -548,7 +549,7 @@
+ 	.functionality	= i801_func,
+ };
+ 
+-static struct i2c_adapter i801_adapter = {
++struct i2c_adapter i801_adapter = {
+ 	.owner		= THIS_MODULE,
+ 	.id		= I2C_ALGO_SMBUS | I2C_HW_SMBUS_I801,
+ 	.algo		= &smbus_algorithm,
+@@ -558,6 +559,12 @@
+ static struct pci_device_id i801_ids[] __devinitdata = {
+ 	{
+ 		.vendor =	PCI_VENDOR_ID_INTEL,
++		.device =	PCI_DEVICE_ID_INTEL_82801CA_3,
++		.subvendor =	PCI_VENDOR_ID_SONY,
++		.subdevice =	0x80e7,
++	},
++	{
++		.vendor =	PCI_VENDOR_ID_INTEL,
+ 		.device =	PCI_DEVICE_ID_INTEL_82801AA_3,
+ 		.subvendor =	PCI_ANY_ID,
+ 		.subdevice =	PCI_ANY_ID,
+@@ -609,6 +616,7 @@
+ 
+ static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ {
++	int err;
+ 
+ 	if (i801_setup(dev)) {
+ 		dev_warn(dev,
+@@ -618,7 +626,14 @@
+ 
+ 	snprintf(i801_adapter.name, 32,
+ 		"SMBus I801 adapter at %04x", i801_smba);
+-	return i2c_add_adapter(&i801_adapter);
++	if ((err = i2c_add_adapter(&i801_adapter)))
++		return err;
++
++	if (dev->subsystem_vendor = PCI_VENDOR_ID_SONY
++	 && dev->subsystem_device = 0x80e7)
++	 	request_module("i2c-i801-vaio");
++
++	return 0;
+ }
+ 
+ static void __devexit i801_remove(struct pci_dev *dev)
+@@ -651,5 +666,7 @@
+ MODULE_DESCRIPTION("I801 SMBus driver");
+ MODULE_LICENSE("GPL");
+ 
++EXPORT_SYMBOL(i801_adapter);
++
+ module_init(i2c_i801_init);
+ module_exit(i2c_i801_exit);
+
+
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
