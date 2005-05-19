@@ -1,39 +1,65 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: [patch] it87.c patch for Shuttle SS51G and co
-Message-Id: <20040302203620.GA3395@kroah.com>
+From: jomick@rcn.com (Jeff Omick)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: asus 7v 333 sensors.
+Message-Id: <3D9F9FA3.B92E379A@rcn.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040302200945.GA3141@kroah.com>
-In-Reply-To: <20040302200945.GA3141@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 02, 2004 at 09:20:29PM +0100, Jean Delvare wrote:
-> > > The included patch implements a it87 module parameter to
-> > > enable/disable the chip init when explicitely specified. The default
-> > > is still "1". On Shuttle SS51G machines (and related) reseting the
-> > > chip also resets the "vario" speed of the fans, causing them to go
-> > > at full speed thereafter until the next reboot. Noisy :-)
-> > > 
-> > > The patch is against vanilla 2.6.3 i2c.
-> > (...)
-> > Also, please post this to the sensors list (now CCed) so that the
-> > other developers there can make comments on it.
-> 
-> Hm, we already have a patch pending doing just this, by Takeru KOMORIYA.
-> You can get it here:
-> http://delvare.nerim.net/i2c/linux-2.6/linux-2.6.3-i2c-it87-2-reset.diff
-> 
-> Greg, I think I remember it's even already in your BK tree...
 
-Yeah it is.  I would have realized that when I would have tried to apply
-it :)
+Hi,
 
-Anyway, this reinforces the fact that stuff should be sent to the
-mailing list and not only to me...
 
-thanks,
+I saw you post that you got sensors to work with the asus a7v333 motherboard
 
-greg k-h
+i've been trying but have been unsuccessful.
+
+i got all but 12c-viaproc modules to load i get 
+
+[root@molokai proc]# modprobe i2c-viapro 
+/lib/modules/2.4.18-3/kernel/drivers/i2c/i2c-viapro.o: init_module: No such
+device
+Hint: insmod errors can be caused by incorrect module parameters, including
+invalid IO or IRQ parameters
+/lib/modules/2.4.18-3/kernel/drivers/i2c/i2c-viapro.o: insmod
+/lib/modules/2.4.18-3/kernel/drivers/i2c/i2c-viapro.o failed
+/lib/modules/2.4.18-3/kernel/drivers/i2c/i2c-viapro.o: insmod i2c-viapro failed
+
+
+here a lsmod
+
+[root@molokai proc]# lsmod
+Module                  Size  Used by    Not tainted
+w83781d                18592   0  (unused)
+i2c-proc                8160   0  [w83781d]
+i2c-core               18720   0  [w83781d i2c-proc]
+cmpci                  32756   0  (autoclean)
+soundcore               6692   4  (autoclean) [cmpci]
+ipt_state               1536   4  (autoclean)
+ipt_LOG                 4736  10  (autoclean)
+ipt_limit               1952   9  (autoclean)
+iptable_filter          2752   1  (autoclean)
+ipt_MASQUERADE          2464   1  (autoclean)
+ip_conntrack_ftp        5056   0  (unused)
+ip_nat_ftp              4320   0  (unused)
+iptable_nat            20980   2  [ipt_MASQUERADE ip_nat_ftp]
+ip_tables              13952   8  [ipt_state ipt_LOG ipt_limit iptable_filter
+ipt_MASQUERADE iptable_nat]
+ip_conntrack           21132   3  [ipt_state ipt_MASQUERADE ip_conntrack_ftp
+ip_nat_ftp iptable_nat]
+binfmt_misc             7556   1 
+autofs                 12132   0  (autoclean) (unused)
+tulip                  43104   2 
+ide-cd                 30272   0  (autoclean)
+cdrom                  32224   0  (autoclean) [ide-cd]
+ehci-hcd               19520   0  (unused)
+usb-uhci               24452   0  (unused)
+usbcore                73216   1  [ehci-hcd usb-uhci]
+
+
+if you could help out i would really appriciate it.
+
+thanks
+Jeff Omick
