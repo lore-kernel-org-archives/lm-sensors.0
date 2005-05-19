@@ -1,37 +1,29 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:58 +0000
-Subject: [BK PATCH] i2c driver changes for 2.5.70
-Message-Id: <20030605205515.GA6846@kroah.com>
+From: manu@agat.net (Blindauer Emmanuel)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: w83781d 2.7.0 - temp2
+Message-Id: <200306092142.56416.manu@agat.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@transmeta.com
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
 Hi,
+I'm using lm_sensors since a few weeks, for monitoring the temp and fan of 
+my motherboard.
+I was getting bad values with the default config file with as99127f
+I've noticed that some persons have modified the computing of temp2.
+I've used the first values, and it work fine
+"compute temp2 (@*30/43)+25, (@-25)*43/30" is ok with the motherboard Asus 
+A7V333-X
+Fan values are ok, when the bios is set no to slow down the fan in case of 
+low temp.
+When the fan slow down, values returned are bad (168750 RPM, 96428 RPM, 
+675000 RPM and other values like that.
 
-Here are some i2c driver changes for 2.5.70.  These consist of some
-small bug fixes to the i2c core which fixes some oopses, a update to the w83781d.c driver, and a sync with the cvs version of the i2c-id.h file.
+So I hope these informations will help you a little more.
 
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.5
+Emmanuel
 
-thanks,
 
-greg k-h
-
- drivers/i2c/chips/w83781d.c |  306 +++++++++++++++++++++++++-------------------
- drivers/i2c/i2c-core.c      |    9 -
- include/linux/i2c-id.h      |    7 +
- 3 files changed, 185 insertions(+), 137 deletions(-)
------
-
-<aschultz:warp10.net>:
-  o I2C: fix unsafe usage of list_for_each in i2c-core
-
-<mhoffman:lightlink.com>:
-  o I2C: more w83781d fixes
-  o I2C: fix oops w83781d during rmmod
-
-Greg Kroah-Hartman:
-  o I2C: sync i2c-id.h with cvs version
+-- 
