@@ -1,33 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: it87: temp_min or temp_hyst?
-Message-Id: <20040117224931.7ce44ec4.khali@linux-fr.org>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: [poll2@poczta.fm: Kconfig patch]
+Message-Id: <20040207184409.GA2337@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-
-Can anyone who has an it87 chip tell me wether the "low" temperature
-limits are minimums or hysteresis? According to the data sheet I'd say
-min, so I did not correct it in my hyst patch, but libsensors and
-sensors.conf say it's hyst. I doubt it since sensors.conf has these
-default values:
-
-    label temp1       "M/B Temp"
-    set   temp1_over  40
-    set   temp1_hyst  20
-
-That doesn't look like a correct temperature for hysteresis. So I
-believe it is min and that libsensors and sensors.conf should be fixed.
-But I'd like someone who has that chip to confirm first before I do so.
-
-At the moment, Linux 2.6.1 users get errors because of this (much like
-Linux 2.6.0 users used to get errors with w83781d, lm75 and via686a
-drivers). Tickets 1527 and 1528 point this problem out.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+LS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgZnJvbSAtPSBQb2xsID0tIDxwb2xsMkBwb2N6dGEuZm0+
+IC0tLS0tCgpGcm9tOiAtPSBQb2xsID0tIDxwb2xsMkBwb2N6dGEuZm0+ClRvOiBmcm9kb2xAZGRz
+Lm5sClN1YmplY3Q6IEtjb25maWcgcGF0Y2gKWC1TcGFtLVN0YXR1czogTm8sIGhpdHM9MC4wIHJl
+cXVpcmVkPTUuMCB0ZXN0cz0gdmVyc2lvbj0yLjIwClgtU3BhbS1MZXZlbDogCgotLS0tLUJFR0lO
+IFBHUCBTSUdORUQgTUVTU0FHRS0tLS0tCkhhc2g6IFNIQTEKCkhlbGxvLAoKSSd2ZSBhdHRhY2hl
+ZCBzbWFsbCBwYXRjaCBmb3IgbGludXgvZHJpdmVycy9pMmMvYnVzc2VzL0tjb25maWcgd2hpY2gg
+cGVybWl0IHRvIApzZWxlY3QgIklTQSBidXMiIGluICJJMkMgaGFyZHdhcmUgYnVzIHN1cHBvcnQi
+IHdpaG91dCBzZWxlY3RpbmcgIklTQSAKc3VwcG9ydCIuIEl0J3Mgd29ya2luZywgYW5kIGl0IGNh
+biBzYWZlIGZldyBrZXJuZWwgYnl0ZXMuCgotIC0tIAotIC09IFBvbGwgPS0KCkxpbnVYIHJlZ2lz
+dGVyZWQgdXNlciBuby46ICMyMzkzMjIKUEdQIEtleSBJZCAweGI3ZWRkODkyIGF0IGh0dHA6Ly9w
+Z3AubWl0LmVkdQpKSUQ6IHBvbGxbXWF0W11jaHJvbWVbXWRvdFtdcGwKR0c6IDQ2NDQ5MzAKLS0t
+LS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0KVmVyc2lvbjogR251UEcgdjEuMi40IChHTlUvTGlu
+dXgpCgppRDhEQlFGQUpTNEpkT3hmbUxmdDJKSVJBdnVFQUo5ZDNFU3ZaTWY1R2VQVW1paktaRWxH
+MkdSNmZRQ2VKYlhOCko5eS84WklqNEhqMWhNYVdPYk9DeHNv1k5hCi0tLS0tRU5EIFBHUCBTSUdO
+QVRVUkUtLS0tLQoKLS0tIEtjb25maWcub2xkCTIwMDQtMDItMDYgMTk6MDI6NTcuMDAwMDAwMDAw
+ICswMTAwCisrKyBLY29uZmlnCTIwMDQtMDItMDcgMTk6MTg6MjcuMDA4MjMwNDg4ICswMTAwCkBA
+IC0xMTIsNyArMTEyLDcgQEAgY29uZmlnIEkyQ19JT1AzWFgKIAogY29uZmlnIEkyQ19JU0EKIAl0
+cmlzdGF0ZSAiSVNBIEJ1cyBzdXBwb3J0IgotCWRlcGVuZHMgb24gSTJDICYmIEVYUEVSSU1FTlRB
+TAorCWRlcGVuZHMgb24gRVhQRVJJTUVOVEFMCiAJaGVscAogCSAgSWYgeW91IHNheSB5ZXMgdG8g
+dGhpcyBvcHRpb24sIHN1cHBvcnQgd2lsbCBiZSBpbmNsdWRlZCBmb3IgaTJjCiAJICBpbnRlcmZh
+Y2VzIHRoYXQgYXJlIG9uIHRoZSBJU0EgYnVzLgoKCi0tLS0tIEVuZCBmb3J3YXJkZWQgbWVzc2Fn
+ZSAtLS0tLQoKLS0gCkZyb2RvIExvb2lqYWFyZCA8ZnJvZG9sQGRkcy5ubD4gIFBHUCBrZXkgYW5k
+IG1vcmU6IGh0dHA6Ly9odWl6ZW4uZGRzLm5sL35mcm9kb2wKRGVmZW5lc3RyYXRpb24gbi4gKGZv
+cm1hbCBvciBqb2MuKToKICBUaGUgYWN0IG9mIHJlbW92aW5nIFdpbmRvd3MgZnJvbSB5b3VyIGNv
+bXB1dGVyIGluIGRpc2d1c3QsIHVzdWFsbHkgZm9sbG93ZWQKICBieSB0aGUgaW5zdGFsbGF0aW9u
+IG9mIExpbnV4IG9yIHNvbWUgb3RoZXIgVW5peC1saWtlIG9wZXJhdGluZyBzeXN0ZW0uCg==
