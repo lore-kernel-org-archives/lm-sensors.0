@@ -1,7 +1,7 @@
 From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <Pine.LNX.4.58.0503311155520.21101@desitka.sh.cvut.cz>
+Message-Id: <Pine.LNX.4.58.0503311209270.21101@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
@@ -10,97 +10,118 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
 
-> My debug environment is linux-2.6.10, so the eeprom.c you mentioned
-> should not be in lm-sensors package, but in:
-> /usr/src/linux-2.6.10/drivers/i2c/chips/eeprom.c
-> Am I right? Btw, all the dump and debug messages are from linux-2.6
-> instead of linux-2.4.
+We have seen that:
 
-Yes but in the package in directory prog/ is different program :)
-But never mind. We do not need this in this stage.
+1) on one system it reports unknown mem type (with abit mb)
 
->
-> I do NOT modify the eeprom.c, instead, I do the dumps below, please
-> refer to it.
->
->
-> > Please can you obtain several dumps from the bus?
-> >
-> > like:
-> >       #!/bin/bash
-> >       while true ; do
-> >       i2cdump -y 0 0x50 >>eeprom
-> >       i2cdump -y 0 0x50 >>eeprom
-> >       i2cdump -y 0 0x2f >>winbon <=your chip adr I think is this one
-> >       i2cdump -y 0 0x2f >>winbon <=your chip adr I think is this one
-> >       done
-> > (ctrl c to stop after several thousends cycles please)
->
-> I use such script you gave me to dump it, the attachment is the dump
-> output in hundreds of times. Please check it.
->
->     #!/bin/bash
->     while true ; do
->     i2cdump -y 0 0x50
->     i2cdump -y 0 0x50
->     i2cdump -y 0 0x2f
->     i2cdump -y 0 0x2f
->     done
-> I have some questions here,
-> (1) why the script should contains two lines of " i2cdump -y 0 0x2f"?
-> (2) Should I modify the second "i2cdump -y 0 0x50" into " i2cdump -y 0
-> 0x51"?
+eeprom-i2c-0-51
+Adapter: SMBus ALi 1563 Adapter @ 5000
+Unknown EEPROM type (255).   <== this may be rather -1 as error
 
-I think at 0x2f is the monitoring device. But you can add two more lines
-with 0x51 if you want. Lets wait with this a little.
+00: ac 00 07 0d 0b 01 48 00 04 75 75 02 82 04 04 01    ?.????H.?uu?????
+10: 0e 04 0c 01 02 26 c0 a0 75 00 00 50 3c 50 2d 80    ?????&??u..P<P-?
+20: ac 00 50 50 00 00 00 00 00 46 50 30 32 75 00 00    ?.PP.....FP02u..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 3d    ...............40: ac 00 7f 7f 9e 00 00 00 00 31 30 38 31 30 20 20    ?.???....10810
+50: 20 20 20 20 20 20 20 20 20 20 20 00 00 05 03 00               ..??.
+60: ac 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00    ?.?.............
+70: 00 00 00 00 00 00 00 00 00 00 00 20 4f 02 00 00    ........... O?..
+80: ac 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ?...............
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: ac 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ?...............
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: ac 00 00 00 00 00 00 00 00 00 00 28 ff 00 00 00    ?..........(....
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: ac 00 ac 00 00 00 00 00 00 00 00 00 00 00 00 00    ?.?.............
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0f 28    ..............?(
 
-> > put the module to some other motherboard and perform i2cdump on it.
->
-> I dump it again on the platform where can work correctly:
-> RIOWORKS PDPLA0250000005
-> Intel Corp.82801CA/CAM SMBus Controller
-> Intel(R) XEON(TM) CPU 2.00GHz
-> Please check it, the dump output mesasge on this platform is:
-> [root@ ~]# i2cdump 0 0x50
-> No size specified (using byte-data access)
-> WARNING! This program can confuse your I2C bus, cause data loss and
-> worse!
-> I will probe file /dev/i2c-0, address 0x50, mode byte
-> Continue? [Y/n]
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: ac 00 07 0c 0a 01 48 00 04 75 75 02 80 08 08 01    ?.????H.?uu?????
-> 10: 0e 04 0c 01 02 26 00 a0 75 00 00 50 3c 50 30 20    ?????&.?u..P<P0
-> 20: 00 00 50 50 00 00 00 00 00 41 4b 30 32 75 00 00    ..PP.....AK02u..
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1a    ...............?
-> 40: ac 00 00 00 00 00 00 bb ff 00 00 00 00 00 00 00    ?......?........
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 80: ac 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ?...............
-> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> a0: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> c0: ac 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ?...............
-> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> e0: 00 00 ac ff ff ff ff ff ff ff ff ff ff ff ff ff    ..?.............
-> f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> [root@ ~]# sensors
-> eeprom-i2c-0-54
-> Adapter: SMBus I801 adapter at 1100
-> Memory type:            DDR SDRAM DIMM
-> Memory size (MB):       128
->
+But the dump alters sometimes to: (We have seen this only once maybe
+it was due to timeout of reading the bus due to debugging messages)
+This values came really out of the chip:
 
-Hmm it really seems some problem with the SPD chip itself rather than with
-SMBUS. Because in your previous dump was sometimes 00 00 and not ac 00
-as now again. I think I have seen ac 00 in ABIT environment too.
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 00 07 0c 0a 01 48 00 04 75 75 02 80 08 08 01    ..????H.?uu?????
+10: 0e 04 0c 01 02 26 00 a0 75 00 00 50 3c 50 30 20    ?????&.?u..P<P0
+20: 00 00 50 50 00 00 00 00 00 41 4b 30 32 75 00 00    ..PP.....AK02u..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1a    ...............?
+40: 00 00 00 00 00 00 00 bb ff 00 00 00 00 00 00 00    .......?........
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: 00 00 ac ff ff ff ff ff ff ff ff ff ff ff ff ff    ..?.............
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 
-I will check now the dumps. And then I will write what next is needed
-to make us sure what is wrong. And of course good to make a break after
-lunch with this :)
+On other motherboad we have seen:
 
-Regards
+eeprom-i2c-0-50
+Adapter: SMBus I801 adapter at 1100
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       128
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: ac 00 07 0c 0a 01 48 00 04 75 75 02 80 08 08 01    ?.????H.?uu?????
+10: 0e 04 0c 01 02 26 00 a0 75 00 00 50 3c 50 30 20    ?????&.?u..P<P0
+20: 00 00 50 50 00 00 00 00 00 41 4b 30 32 75 00 00    ..PP.....AK02u..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1a    ...............?
+40: ac 00 00 00 00 00 00 bb ff 00 00 00 00 00 00 00    ?......?........
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ac 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ?...............
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ac 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ?...............
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: 00 00 ac ff ff ff ff ff ff ff ff ff ff ff ff ff    ..?.............
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+Conclusions about different dumps:
+
+I assume that the driver is working correctly and in your last email
+you were using the driver WITHOUT a lot of debugging messages. Maybe the
+delay while logging the messages caused troubles.
+
+Conclusions about Unknown type versus Known type:
+
+Please are you sure you were using same version or lm_sensors?
+I think you told us that you just swapped the drives. Maybe something
+is still wrong about error signaling in the ali driver.
+
+Steps to make us sure about bus readings:
+
+1) take some OTHER  memory DDR (different manufacturer if possible)
+2) put into ABIT, remove any other ddr memory modules
+3) do i2cdump 0x50 asume 0x50 is correct addr of the chip
+4) try this several times, also plz load your chip driver
+   and run sensors command from time to time. Check if you get
+   same two first bytes of the dump third should be 0x7 for DDR.
+5) take the same memory module to the intel board
+6) check again if the dumps are same (plz remove any other ram modules)
+
+If this passes and we still get unknown EEPROM and the program versions
+are same it means that in ALI driver there is some error handling bug.
+Or some other bug in general :)
+
+Way from sensors program
+is from libsensors to /sys/bus... or to  /proc/sys...
+there are files with eeprom content that are size of 16 bytes I think.
+
+Thus files are created by eeprom driver which is the driver for eeprom.
+There must be some error that can be propagated this way.
+
+I'm sorry I really must code my homework, please try to find how error
+unknown eeprom type propages through all way. Be careful when adding
+more debug messages to i2c-ali1563 it seems to be sensitive to this.
+
+I will think about it too but later.
+
+regards
 
 Rudolf
