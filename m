@@ -1,34 +1,30 @@
-From: phil@netroedge.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:23:53 +0000
-Subject: I-Buttons
-Message-Id: <3E9DF238.4060602@netroedge.com>
+From: andywu@iei.com.tw (AndyWu)
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: the computer hangs when scans the adapter
+Message-Id: <JFEPIKOAGNNHNFFLLGAHKEAJCCAA.andywu@iei.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000001c30458$e77ce120$0201000a@ulisoft.net>
-In-Reply-To: <000001c30458$e77ce120$0201000a@ulisoft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
+I'm using a board with ServerWorks OSB4 and a ADM1026 chip.
+The computer always hangs here...
+Next adapter: SMBus PIIX4 adapter at 0580 (Non-I2C SMBus adapter)
+Do you want to scan it? (YES/no/selectively): YES
+I'm using Redhat 7.3 with a generic 2.4.18 kernel, and lm_sensors-2.8.1.
+However, if I add something like "print("$addr");" in the sensors-detect scirpt,
+it won't hang anymore!
+But still no chip detected.
+I see no one report this issue on the website.
+I'm appreciated if you can give me some help or advices.
 
-Sorry for the confusion, I think the 1-wire stuff are the chips and 
-components used to implement the iButton systems?  The 1-wire bus host 
-chips come in the same flavors as the ready-to-use iButton interfaces 
-(serial, usb, parallel port, etc.):
+Thanks in advance.
 
-http://para.maxim-ic.com/compare.asp?Fam=1Wire&Tree=1Wire&HP=1-Wire.cfm&ln
-All of those flavors, including the usb, could most easily be implmented 
-in user-space, I'm thinking (makes debugging easier!).
+Andy
 
 
-Phil
-
-Ulrich Moshammer wrote:
-
-> I have also implemented the I-Buttons but I will not implement the 
-> I-Buttons I will implement the one wire bus. For the one wire bus 
-> there are temperature sensors in TO92 package or SOT package 
-> available. This is my main reason to build a kernel driver.
->
->  
->
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031016/07b614d5/attachment.html
