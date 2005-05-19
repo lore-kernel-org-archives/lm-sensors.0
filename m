@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: One-liner fix for i2c-velleman (and problems with i2c-tsunami)
-Message-Id: <20030725104409.45a5c677.khali@linux-fr.org>
+Message-Id: <20030725105440.61630269.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200307242129.59862.kelledin@users.sourceforge.net>
 In-Reply-To: <200307242129.59862.kelledin@users.sourceforge.net>
@@ -11,82 +11,62 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> On Thursday 24 July 2003 06:37 am, you wrote:
-> > OK, I'd prefer a slightly different fix. We don't include
-> > <asm/param.h> in any of our drivers. It seems we include
-> > <linux/slab.h> instead, so I think we should do the same for
-> > this one. Could you try and confirm it works for you?
+> Here's a snippet of my current patch to give you an idea:
 > 
-> Yes, it works with <linux/slab.h> instead of <asm/param.h>.
-
-I changed my mind. If it only needs asm/param.h, why would we overload
-it with things it doesn't need? I'll include <asm/param.h> with a
-comment that says it there is for HZ.
-
-> > The i2c-philips-par driver seems to miss it too. Were you
-> > successful building it?
+>  static struct i2c_algo_bit_data tsunami_i2c_bit_data = {
+> -
+> -       bit_tsunami_setsda,
+> -       bit_tsunami_setscl,
+> -       bit_tsunami_getsda,
+> -       bit_tsunami_getscl,
+> -       10, 10, HZ/2    /* delays/timeout */
+> +       .setsda         = bit_tsunami_setsda,
+> +       .setscl         = bit_tsunami_setscl,
+> +       .getsda         = bit_tsunami_getsda,
+> +       .getscl         = bit_tsunami_getscl,
+> +       .udelay         = 10,
+> +       .mdelay         = 10,
+> +       .timeout        = HZ/2,
+>  };
 > 
-> Oddly, yes.  i2c-philips-par does not complain, at least.
-
-I checked this, and it happens that this module includes
-<linux/parport.h>, which itself includes <linux/proc_fs.h>, which in
-turn includes <linux/slab.h> (which itself includes <asm/param.h> as we
-now know). I will explicitely add an include <linux/slab.h> since I
-think the module needs it (it uses kmalloc/kfree).
-
-Thanks for reporting!
-
-> Well, every one of those warnings is a possible segfault on 
-> 64-bit platforms, because the upper 32 bits of a pointer get 
-> lost.  Actually, in this case (kernel-land code), it might be
-> rather worse--the driver could conceivably end up playing with 
-> the wrong memory region, and do so with impunity.
-
-I don't know about your specific warnings, so I just can't tell. If the
-system you see them on is both Alpha and 64-bit, this makes two big
-differences with what i2c and lm_sensors is usually used on, so no
-wonder it doesn't work out of the box. I don't think any of the
-developers here have an Alpha system. We must have one IA-64 system but
-we don't spend too much time testing on it.
-
-This is far better if the person who has the warnings can take a look
-and fix them. We can hardly fix warnings we don't even see.
-
-> i2c-tsunami does not compile, and its fix is more than just a 
-> one-liner.  It requires the <linux/slab.h> include, plus the 
-> <linux/pci.h> include, plus some changes in static struct 
-> initialization to accomodate recent gcc versions.
-> (...)
-> CVS, as of 20030724, is no better.  Last entry for this driver 
-> was apparently back in January.
-
-You're right, and even these were bulk changes that are not specific to
-that driver. The driver must not havee been tested for months if not
-years (due to the lack of hardware on our side).
-
-> This is especially annoying, as the Tsunami driver is the primary 
-> driver that makes lm_sensors useful at all on Alpha.
+> Apparently gcc-3.2.3/alpha doesn't grok the original method of 
+> static initialization.  It choked on it badly until I switched 
+> it.  gcc-2.95.3/x86 seems to like either way just fine.
 > 
-> Unfortunately, I have no such motherboard with this chipset.  I'd 
-> like to make the driver work anyways.
+> Maybe the C standard has changed, or maybe gcc3 is just being a 
+> fruitcake.  But as the other static structs use a different form 
+> of initialization, I decided to accomodate gcc3 and introduce 
+> proper consistency in one fell swoop.
 
-My experience is that this won't work. Too hard to fix a driver unless
-you have someone that can test it and really wants it to work. Fixing
-things just to make them work almost never led me anywhere.
+The new way complies with C99 (yes, the standard has evolved, if not
+changed) and we try to make all our drivers comply with that. This makes
+struct changes less painful (although it's still tough). Everything in
+i2c should be that way now, but we haven't finished cleaning lm_sensors
+yet.
 
-> Also, the i2c-tsunami driver itself looks...well...unmaintained.  
-> Does anyone maintain it now?
 
-Seems so, yes. Oleg?
+> Hmmm...well, part of the tsunami_driver struct requires a PCI ID 
+> table (tsunami_ids).  I'm not sure what's supposed to go in that 
+> table?
+> 
+> Could it be that someone tried to port the driver to the new API, 
+> half-finished it, and left it for dead?  lm_sensors-2.7.0 makes 
+> no mention of the tsunami_driver struct or the tsunami_ids 
+> table.  Maybe that little struct arrangement isn't supposed to 
+> be there?
 
-> If it's been abandoned, I can 
-> happily take over maintenance, assuming someone can loan or 
-> donate enough to build a sufficiently-working Typhoon/Tsunami 
-> motherboard setup.
+This is really possible (not to say probable). As said in an earlier
+e-mail, the last changes on this driver back in January 2003 were part
+of a bulk change that affected almost all of our drivers. I remember
+there were many thread on this list about PCI drivers needing updates. I
+guess this one has been left over in an unstable state (again due to a
+lack of hardware for testing).
 
-We don't have such hardware, or we probably would maintain the driver by
-ourselves.
+You should go and read this one:
+http://archives.andrew.net.au/lm-sensors/msg02718.html
 
+I think this matches what you suspected pretty good. Maybe Mark will be
+able to tell you what should be done (it's over my own knowledge).
 
 -- 
 Jean Delvare
