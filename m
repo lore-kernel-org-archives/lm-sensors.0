@@ -1,42 +1,33 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: Ticket #: 758, ITE IT8712F-A not detected, and not
-Message-Id: <3C37271B.69CF436D@paradyne.com>
+From: dsaxena@mvista.com (Deepak Saxena)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: Driver for Phillips PCF8594-2 eeprom
+Message-Id: <20030301010514.GA29168@xanadu.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0112191715470.14694-100000@flow.fuw.edu.pl>
-In-Reply-To: <Pine.LNX.4.33.0112191715470.14694-100000@flow.fuw.edu.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-#1 I fixed by increasing it87 confidence to 8 in CVS.
-#2 You are correct, at the least a warning message should be issued.
-   Too difficult for my perl skills but if you would like to contribute
-   a patch that would be great.
-mds
+I've been handed a driver for the PCF8594-2 eeprom driver that I plan
+on cleaning up and pushing out to the community.  Currently, the driver
+exports itself to userspace through /dev/nvram as that is the purpose
+of the eeprom on the custom board its on, but is this OK with the I2C
+maintainers? I know that the lmsensors EEPROM driver uses the sysctl
+interface to export itself, but IMHO that seems like a much harder
+to use interface then just /dev/nvram with read() and write() calls.
+The standard sensors-based EEPROM won't work well on this chip b/c it has
+the feature of allowing 8-byte block transfers that I'd like to see
+supported, plus this driver has the ability to write to the EEPROM.
 
-Jakub Narebski wrote:
-> 
-> On Fri, 4 Jan 2002, Mark Studebaker wrote:
-> 
-> > If you send me the isadump output, then I can check,
-> > but since the it87 has some mfr ID registers that the LM78 doesn't have,
-> > we can be more confident that it's an IT87 if both are recognized,
-> > and we should recommend it over the LM78.
-> 
-> Thats O.K.
-> 
-> > Isn't that what you wanted? I thought that's what you were complaining about.
-> 
-> There are two fairly orthogonal aspects:
-> 
-> 1. If LM78 cannot be recognized as IT87, and IT87 is misrecognized as LM87
-> then of course IT87 should have higher confidence.
-> 
-> 2. If two chips have the same confidence, none should be preffered and the
-> choice should be left to user (look at your motherboard).
-> 
-> --
-> Jakub Nar?bski
->     Poland
+Also, the customer that is using the driver wants a nice eeprom_read()
+and eeprom_write() function that they can use to access the eeprom
+contents for reading the MAC addresses of their custom network drivers.
+I'm assuming something like this is probably not acceptable to the
+community and should just be put in a separate driver layer for the
+customer-specific port?
+
+~Deepak
+
+-- 
+Deepak Saxena, Code Monkey - Ph:480.517.0372 Fax:480.517.0262 
+MontaVista Software - Powering the Embedded Revolution - www.mvista.com
