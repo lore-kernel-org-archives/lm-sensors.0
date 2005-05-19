@@ -1,37 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:59 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: Kill another macro abuse in via686a
-Message-Id: <Eo6YyBBE.1116402774.1330280.khali@localhost>
+From: kmalkki@cc.hut.fi (Kyosti Malkki)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: i2c-algo-bit timing
+Message-Id: <Pine.OSF.4.50.0211241027550.15523-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050517223857.531710cd.khali@linux-fr.org>
-In-Reply-To: <20050517223857.531710cd.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Grant,
 
-> Can I go kill some macros too?  Silly conversion macros, make like
-> adm9240? Was planning to put SCALING() in with SENSORS_LIMIT() in
-> the header somewhere, as those two static functions can be used for
-> most of the scaling conversions.
+I have no scope around to check this, but looking into i2c-algo-bit.c,
+adap->udelay is used where it is not necessary. As an example, udelay=3
+would look roughly like 25/75 duty cycle:
 
-Macros that do not actually improve the code readability are candidates
-to removal, as they additionally slow down the preprocessing. Removing
-macros is not a goal per se though, most of them are actually helpful.
+SDA: -._________---._________---.------------.-
+SCL: _.___---______.___---______.___---______.-
+        ^     ^  ^   ^     ^  ^   ^     ^  ^
 
-> As well, do something with the LM75 include, I see now I duplicated
-> some of the code there, with exception that I right justify signed
-> 9-bit temp on read to local store, rather than on delivery to sysfs.
+Dots just point out where sw goes for next bit, others 1 us wide each.
+That is, all bus transitions use adap->udelay, where a rise/fall delay
+of 1 us (or less) would do.
 
-If you can refactor some code with no side effect, this is welcome.
+Removing the unnecessary 2us marked ^ _above_ :
 
---
-Jean Delvare
+SDA: -._____-._____-.------.-
+SCL: _._---__._---__._---__.-
+            ^ ^      ^    ^
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+When successive bits to put on bus are equal, SDA rise/fall may be
+omitted.
+
+SDA: -._____.____-.-----.-
+SCL: _._---_.---__.---__.-
+
+
+Interrupt service and PCI latency may add to the delay time.  Any
+decrease is not possible, if write-read sequence is used in
+setscl() and setsda(). Right ?
+
+In the process I tested using nominal 1us delay everywhere, and
+i2c_adap->udelay only to clock bits in and out.  I believe it does not
+violate specs, but will likely fail with higher bus capacitance.
+This changes duty-cycle and might break some support, so I won't commit
+it now. It does improve the speed upto 333 kbps, using adap->udelay=1.
+
+I have an unrelated patch for i2c-algo-bit just about ready to commit.
+
+-- 
+  Ky?sti M?lkki
+  kmalkki@cc.hut.fi
