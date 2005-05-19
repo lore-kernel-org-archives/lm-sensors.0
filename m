@@ -1,32 +1,25 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: [b-gruber@gmx.de: lm_sensors && bt869]
-Message-Id: <20031225194120.GA1664@frodo.local>
+From: martin.bene@icomedias.com (Martin Bene)
+Date: Thu, 19 May 2005 06:24:20 +0000
+Subject: Follow up Email for ticket 1406
+Message-Id: <4D618F6493CE064A844A5D496733D667031CF0@freedom.icomedias.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-LS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgZnJvbSBCZXJuaSA8Yi1ncnViZXJAZ214LmRlPiAtLS0t
-LQoKWC1BdXRoZW50aWNhdGVkOiAjMTU5Mjk1NApGcm9tOiBCZXJuaSA8Yi1ncnViZXJAZ214LmRl
-PgpSZXBseS1UbzogQmVybmkgPGItZ3J1YmVyQGdteC5kZT4KVG86IGZyb2RvbEBkZHMubmwKU3Vi
-amVjdDogbG1fc2Vuc29ycyAmJiBidDg2OQpYLVNwYW0tU3RhdHVzOiBObywgaGl0cz0tMC41IHJl
-cXVpcmVkPTUuMCB0ZXN0c95BUl9TT01FQk9EWSB2ZXJzaW9uPTIuMjAKWC1TcGFtLUxldmVsOiAK
-CkRlYXIgRnJvZG8sCgpJIHNhdyB0aGF0IHlvdSBoYXZlIGRldmVsb3BlZCB0aGUgYnQ4NjkgZHJp
-dmVyIGZvciB0aGUgbG1fc2Vuc29ycwpwcm9qZWN0LiBJIGFsd2F5cyB1c2VkIHlvdXIgbW9kdWxl
-IHdpdGggbXkgVm9vZG9vMyAzMDAwIEFHUCB3aXRob3V0Cm1ham9yIHByb2JsZW1zLiBIb3dldmVy
-LCBJIGhhZCB0byBzd2l0Y2ggdG8gdGhlIDIuNi4wIExpbnV4IGtlcm5lbCBhbmQKbm93IEkgZG9u
-J3Qga25vdyBob3cgdG8gZ2V0IHRoZSBUVi1PdXQgd29ya2luZy4gQWNjb3JkaW5nIHRvIHRoZQps
-bS1TZW5zb3JzIGhvbWVwYWdlLCB0aGUgbW9kdWxlcyBjYW4ndCBiZSB1c2VkIHdpdGggdGhlIDIu
-Ni4wIGtlcm5lbAoodGhlIGkyYy12b29kb28zIGlzIGFscmVhZHkgaW5jbHVkZWQgaW4gdGhlIGtl
-cm5lbCBidXQgdGhlcmUncyBubwpidDg2OSkuIERvIHlvdSBrbm93IGFueSB3YXkgaG93IHRvIGdl
-dCBhcm91bmQgdGhhdCBwcm9ibGVtIG9yIGFueW9uZQp3aG8gY291bGQgaGVscCBtZT8gSXNuJ3Qg
-dGhlcmUgYSB3YXkgdG8gbG9hZCB0aGUgYnQ4NjktbW9kdWxlIGluIGEKMi42LjAga2VybmVsPwoK
-VGhhbmtzIGluIGFkdmFuY2UgZm9yIHlvdXIgaGVscCEKCkJlcm5oYXJkIEdydWJlcgoKLS0tLS0g
-RW5kIGZvcndhcmRlZCBtZXNzYWdlIC0tLS0tCgotLSAKRnJvZG8gTG9vaWphYXJkIDxmcm9kb2xA
-ZGRzLm5sPiAgUEdQIGtleSBhbmQgbW9yZTogaHR0cDovL2h1aXplbi5kZHMubmwvfmZyb2RvbApE
-ZWZlbmVzdHJhdGlvbiBuLiAoZm9ybWFsIG9yIGpvYy4pOgogIFRoZSBhY3Qgb2YgcmVtb3Zpbmcg
-V2luZG93cyBmcm9tIHlvdXIgY29tcHV0ZXIgaW4gZGlzZ3VzdCwgdXN1YWxseSBmb2xsb3dlZAog
-IGJ5IHRoZSBpbnN0YWxsYXRpb24gb2YgTGludXggb3Igc29tZSBvdGhlciBVbml4LWxpa2Ugb3Bl
-cmF0aW5nIHN5c3RlbS4K
+Hi, thanks for taking the time of looking at this; as requested, please find
+attached the dmesg output for loading of the bmcsensors module.
+
+Additional information: I've also seen the "too many reservations" error
+described by ticket 1407, hadn't made the connection to cold/warm start
+though. Loading definitely does work after cold boot.
+
+Bye, Martin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: bmcsensors.log
+Type: application/octet-stream
+Size: 11223 bytes
+Desc: bmcsensors.log
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031008/00d8b716/bmcsensors.obj
