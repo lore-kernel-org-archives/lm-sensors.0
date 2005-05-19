@@ -1,42 +1,50 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: nForce2
-Message-Id: <20030625170142.72195ad2.khali@linux-fr.org>
+From: dgersic@myrealbox.com (David Gersic)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: Feedback: lm_sensors 2.8.8, SuSE Linux 9.1, and SuperMicro P4SPA+
+Message-Id: <200411240110.06905.dgersic@myrealbox.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Sea1-F157XvPIPKH5jt0000cb5f@hotmail.com>
-In-Reply-To: <Sea1-F157XvPIPKH5jt0000cb5f@hotmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Just wanted to send in some feedback on this combination and a thank you for 
+lm_sensors.
 
-> Hmm, seems like a lot of playing around.
-> Could you tell me how I would go about detecting the sensors, just to 
-> monitor them with an app like gkrellm? It is really that hard? I have
-> a bit of experience with linux so I know how not to break a system. :)
-> BTW, I'm running Redhat 9 (kernel 2.4.20-8) on a Shuttle SN41G2 XPC
-> and an AthlonXP 2600+ 333FSB.
+SuSE 9.1 "Personal" edition (kernel 2.6.5-7.104-smp) distribution included 
+lm_sensors 2.8.3-99. This, of course, didn't work. Some searching of your FAQ 
+turned up the recommendation that lm_sensors needed to be 2.8.6 or newer with 
+this kernel version. So, a download, make user, and make user_install later, 
+I have the correct version installed, and it works fine. Thanks to the FAQ 
+editor(s) for this.
 
-Gkrellm, just like any other monitoring app, makes use of libsensors,
-which is part of our lm_sensors package, itself relying on our i2c
-packages. These are dependencies you can't ignore, and versions of each
-from your current Red Hat installation are not compatible with the new
-(our) ones. This is why I said you would have to reinstall everything
-from sources - if you really want to do it.
+I'm using a SuperMicro P4SPA+ motherboard, which is detected as having the 
+Winbond w83627hf chip on it. sensors-detect worked fine picking that up. I 
+have a slower than stock CPU fan (a Zalman 7000A kit) installed. There is a 
+case fan, and an "overheat fan" as well, and case and CPU temperature 
+sensors. These values in /etc/sensors.conf seem to be correct for this 
+combination:
 
-So here's the deal. Either you wait for us to release version 2.8.0 of
-our packages (within a month if everything goes OK) and you then wait
-for Red Hat to package it, or you are impatient and want it to work
-right now. In the second case, you'll need to remove existing packages
-and then install from sources. We'll help you doing so if that is what
-you want, but only you know what you want to do.
+# Inserted - 23 November 2004 - dgersic
+# Configuration for Fans
+    label fan1 "CPU Fan"
+    set fan1_div 4
+    set fan1_min 1000
 
-> PS. If possible, please reply to munday@globaldial.com . Thanks.
+    label fan2 "Case Fan"
+    set fan2_div 2
+    set fan2_min 2000
 
-Free to you to set a "Reply-To: munday@globaldial.com" header, the same
-way I set a "Reply-To: sensors@stimpy.netroedge.com" header on my side.
+    label fan3 "Overheat Fan"
+    set fan3_div 2
+    set fan3_min 0
+# Configuration for Temp sensors
+    label temp1 "System Temp"
+    ignore temp2
+    label temp3 "CPU Temp"
+    compute temp3 @+6,(@-6)
+# end - dgersic
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+and the outputs of lm_sensors status now match the values shown by the BIOS 
+for the FAN speeds and the system and CPU temps. I have not yet verified the 
+voltage monitors, but they look like they are probably correct.
