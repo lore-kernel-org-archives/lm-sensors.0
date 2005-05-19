@@ -1,52 +1,72 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245FED@weshml03.winbond.com.tw>
+Message-Id: <Pine.LNX.4.58.0503091308100.25688@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmCgoKPiBXb3VsZCB5b3UgcGxlYXNlIHRyeSBhZ2FpbiB3aXRoIGRlYnVnZ2luZyBl
-bmFibGVkPwo+IChzYW1lIGNhc2UgYXMgd2UgZGlkIGZvciBpODAxKQoKSSByZS1jb21waWxlZCBt
-eSBsaW51eC0yLjYuMTAgd2l0aApDT05GSUdfSTJDX0RFQlVHX0NPUkU9eQpDT05GSUdfSTJDX0RF
-QlVHX0FMR089eQpDT05GSUdfSTJDX0RFQlVHX0JVUz15CkNPTkZJR19JMkNfREVCVUdfQ0hJUD15
-CnRoaXMgdGltZS4KCgo+IDEpIHJlYm9vdC9oYWx0LCBtb2Rwcm9iZSB3ODM3OTJkLCBjb3B5IGxv
-Z3MKVGhlIGRlYnVnIG1lc3NhZ2UgaXM6Ck1hciAgOSAxOTozNDozMCBwaTE0MDAwMSBrZXJuZWw6
-IGkyY19hZGFwdGVyIGkyYy0wOiBTTUJ1cyBFcnJvcjoKVGltZW91dCBEZXZpY2UgRXJyb3IgVHJh
-bnNhY3Rpb24gTmV2ZXIgRmluaXNoZWQKCgo+IDIpIHJlYm9vdC9oYWx0LCBzZW5zb3JzLWRldGVj
-dCwgY29weSBsb2dzCk1hciAgOSAxOTozNzowNiBwaTE0MDAwMSBrZXJuZWw6IGkyYyAvZGV2IGVu
-dHJpZXMgZHJpdmVyCk1hciAgOSAxOTozNzoxMSBwaTE0MDAwMSB3YWl0X2Zvcl9zeXNmc1s1NDM1
-XTogZWl0aGVyIHdhaXRfZm9yX3N5c2ZzCih1ZGV2IDAzOSkgbmVlZHMgYW4gdXBkYXRlIHRvIGhh
-bmRsZSB0aGUgZGV2aWNlICcvY2xhc3MvaTJjLWRldicKcHJvcGVybHkKKGNsYXNzIHNwZWNpZmlj
-IGZpbGUgdW5hdmFpbGFibGUpIG9yIHRoZSBzeXNmcy1zdXBwb3J0IG9mIHlvdXIgZGV2aWNlJ3MK
-ZHJpdmVyCm5lZWRzIHRvIGJlIGZpeGVkLCBwbGVhc2UgcmVwb3J0IHRvCjxsaW51eC1ob3RwbHVn
-LWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldD4KCgo+IDMpIG1vZHByb2JlIHc4Mzc5MmQsIGNv
-cHkgbG9ncwpObyBkZWJ1ZyBtZXNzYWdlIG91dHB1dCB0aGlzIHRpbWUuCgpUaGFua3MKCkJlc3Qg
-UmVnYXJkcwpDaHVuaGFvCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQg
-aW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMg
-YXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91
-IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90
-IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBs
-ZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBk
-ZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2Vy
-dmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlz
-IGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZv
-cm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3Jt
-YXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwg
-YnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3Ig
-ZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9u
-dCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkg
-cmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S1
-2Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5c
-pKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGn
-zqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0
-pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl
-9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6
-LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdO
-qKMuCg==
+Hi,
+
+Please can you take a look to other logs (syslog/messages/debug/) and copy
+it here (from modrobe of i2c-ali...) until modprobe of w83...
+
+I think I need more information to think about it. I hope Patrick will
+have some ideas :)
+
+Regards
+
+Rudolf
+
+
+On Wed, 9 Mar 2005 Huang0@Winbond.com.tw wrote:
+
+> Hi Rudolf
+>
+>
+> > Would you please try again with debugging enabled?
+> > (same case as we did for i801)
+>
+> I re-compiled my linux-2.6.10 with
+> CONFIG_I2C_DEBUG_CORE=y
+> CONFIG_I2C_DEBUG_ALGO=y
+> CONFIG_I2C_DEBUG_BUS=y
+> CONFIG_I2C_DEBUG_CHIP=y
+> this time.
+>
+>
+> > 1) reboot/halt, modprobe w83792d, copy logs
+> The debug message is:
+> Mar  9 19:34:30 pi140001 kernel: i2c_adapter i2c-0: SMBus Error:
+> Timeout Device Error Transaction Never Finished
+>
+>
+> > 2) reboot/halt, sensors-detect, copy logs
+> Mar  9 19:37:06 pi140001 kernel: i2c /dev entries driver
+> Mar  9 19:37:11 pi140001 wait_for_sysfs[5435]: either wait_for_sysfs
+> (udev 039) needs an update to handle the device '/class/i2c-dev'
+> properly
+> (class specific file unavailable) or the sysfs-support of your device's
+> driver
+> needs to be fixed, please report to
+> <linux-hotplug-devel@lists.sourceforge.net>
+>
+>
+> > 3) modprobe w83792d, copy logs
+> No debug message output this time.
+>
+> Thanks
+>
+> Best Regards
+> Chunhao
+>
+>
+> ==============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original author of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such person, please kindly reply the sender indicating accordingly and delete all copies of it from your computer and network server immediately. We thank you for your cooperation. It is advisable that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email that does not relate to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.==============================================If your computer is unable to decode Chinese font, please ignore the following message. They essentially rep!
+ ea!
+>  t the&nbsp; English statement above.???H???????t?????q?l???]???????K?????T, ?????v???o?H?H???w?????H?H???\????. ?????z???D?Q???w?????H?H???]???????]?b???g???v?????????U???????H??, ???z?i?????o?H?H?????Y?N?H???q?q???P???????A???????H????. ?????z???X?@, ?????????P??. ?S??????, ???????g???v?????????????q?l?????K???T???????O?Q?Y???T????. ?H???P?????q?l???~?L???????e,???o?????????q?l?????????N??.
+>
+>
