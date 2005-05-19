@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: New sensors web site (was Re: 2nd mail archive?)
-Message-Id: <rHp6FjXH.1103098764.2879100.khali@localhost>
+Message-Id: <20041215112305.GG18354@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41BDF25A.9030509@edgedesign.us>
 In-Reply-To: <41BDF25A.9030509@edgedesign.us>
@@ -10,48 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+OK, I can arrange for lm-sensors.org with
 
-> > Sure, and if possible something a little bit more user-friendly than what
-> > we had. Being able to download any revision of any file and getting
-> > diffs between revisions are missing at the moment.
->
-> I like things that allow for quick selection of revs, forks, and
-> releases.  And, then lets you download everything in a tarball.  The
-> current CVSweb does this:
->
-> http://www.freebsd.org/cgi/cvsweb.cgi/projects/cvsweb/
->
-> But, I think there was something a little slicker out there that I used
-> at one point, but I forgot what it was and can't find an example of it
-> right now...
+o Web
+o Mailman
+o Wiki (which one?)
+o CVS/subversion with viewcvs (and cvsgraph for cvs)
+o Bugzilla
 
-Viewcvs?
+Migration of the list: Who has a complete archive? A modern approach
+in naming/segmenting lists would be lm-sensors-users@lm-sensors.org
+and lm-sensors-devel@lm-sensors.org. Is that in order?
 
-(e.g. http://cvs.apache.org/viewcvs.cgi/)
+Migration CVS to subversion would be quite easy (I need a copy of the
+CVS repo). It is mainly up to the current developers, whether they'd
+like to change the versioning system.
 
-Seems to support Subversion as well.
+Migration of the ticket system to Bugzilla may be more
+cumbersome. Someone with good bugzilla database knowledge would have
+to check the current ticketing system and migrate it.
 
-> > >- Support/ticket system
-> >
-> > Again, something more user-friendly than what we have ATM would be
-> > welcome. Original posters need to be able to add info to their ticket,
-> > or the system is next to useless. Bugzilla? Or something else?
-> >
->
-> Yeah, I'd suggest something simple to use.  I've always found Bugzilla
-> to be a bit overly confusing and complex for anything but huge projects
-> (like Mozilla).  Searching in it is especially cumbersome, I think.
+First one would have to decide on product/components schemes for
+bugzilla. I believe that it will boil down to
+products={lm_sensors,i2c} and components (for lm_sensors) being the
+busses/chips.
 
-That's true but OTOH people are used to bugzilla because several major
-projects use it (linux kernel, mozilla, xmms and more). I think it can
-be configured and maybe the overkill features can be disabled in our
-case. It's certainly worth giving it a try. If someone can think of
-something as efficient but lighter, I'm listening.
+Who wants to become
+o list admin
+o bugzilla admin
+o wiki admin
 
-Oh, I would consider it a GREAT benefit if it were possible to import our
-existing 2500 tickets in the new support system and keep the numbering
-intact.
-
-Thanks,
---
-Jean Delvare
+Phil, I'm sure some of these tasks are reserved for you :)
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041215/267d0a55/attachment.bin
