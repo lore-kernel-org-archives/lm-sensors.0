@@ -1,25 +1,17 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: [Fwd: Re: New bus driver: XSCALE iop3xx]
-Message-Id: <20030530181246.GA19840@kroah.com>
+From: mds@paradyne.com (Mark D. Studebaker )
+Date: Thu, 19 May 2005 06:23:58 +0000
+Subject: w83781d hangs on i2c bus driver
+Message-Id: <3EDD5C50.5030504@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3ED786AE.6090502@edgedesign.us>
-In-Reply-To: <3ED786AE.6090502@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, May 30, 2003 at 07:02:40PM +0100, Peter Milne wrote:
-> Mark
-> 
-> I'm only interested in 2.5 atm, so I'll leave it there.
-> 
-> (Off to find LinuxJournal on advice from Greg :-)
+Works fine on ISA.
 
-And when finished, a patch sent to the same Greg would be nice so that
-he can include it in the main kernel tree :)
+If you modprobe an i2c bus driver after w83781d is modprobed, the bus driver modprobe hangs,
+presumably while w83781d is scanning the bus.
+If you modprobe w83781d after an i2c bus driver is modprobed, the w83781d modprobe hangs.
 
-thanks,
-
-greg k-h
+Any ideas let us know.
