@@ -1,31 +1,43 @@
-From: ajayr@krithika.net (Ajay Ramaswamy)
+From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:28 +0000
 Subject: Module license issues with i2c 2.6.2 & lm_sensors 2.6.2
-Message-Id: <1010847424.19120.0.camel@mail.1ar.org>
+Message-Id: <3C41BA6A.1148DE20@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1010847424.19120.0.camel@mail.1ar.org>
+In-Reply-To: <1010847424.19120.0.camel@mail.1ar.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-These 2 patches add the MODULE_LICENSE(GPL) to all the remaining cases.
-Please consider applying.
+- keywest we will be putting in a patch to sync with kernel 2.4.18
+shortly,
+that should cover it.
 
-regards
-Ajay
+- piix4 the patch just moves it from top to bottom
 
+- adm1024 was missed, thanks
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: i2c-modules-license.patch
-Type: text/x-patch
-Size: 1427 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020112/a46a2e4c/i2c-modules-license.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensors-modules-license.patch
-Type: text/x-patch
-Size: 1704 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020112/a46a2e4c/lm_sensors-modules-license.bin
+- i2c modules missing GPL I omitted on purpose because there
+  was no GPL boilerplate at the top of the file, we need to contact
+  the authors to verify license status.
+
+thanks
+mds
+
+Ajay Ramaswamy wrote:
+> 
+> These 2 patches add the MODULE_LICENSE(GPL) to all the remaining cases.
+> Please consider applying.
+> 
+> regards
+> Ajay
+> 
+> 
+>                                 Name: i2c-modules-license.patch
+>    i2c-modules-license.patch    Type: text/x-patch
+>                             Encoding: quoted-printable
+> 
+>                                        Name: lm_sensors-modules-license.patch
+>    lm_sensors-modules-license.patch    Type: text/x-patch
+>                                    Encoding: quoted-printable
