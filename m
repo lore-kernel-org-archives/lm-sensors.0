@@ -1,64 +1,28 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: better support for amd 768
-Message-Id: <3CD80F97.381F9EE1@paradyne.com>
+From: lists@localguru.de (Marcus Schopen)
+Date: Thu, 19 May 2005 06:24:55 +0000
+Subject: Intel S845WD1-E
+Message-Id: <200404280005.56044.lists@localguru.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <m2g014mhny.fsf@demo.mitica>
-In-Reply-To: <m2g014mhny.fsf@demo.mitica>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks.
-We have already implemented something similar in CVS.
+Hi,
 
-Juan Quintela wrote:
-> 
-> Hi
->         could you update this patch, please?
->         As you can see, there is not new behaviour, only cleaner code
->         & print messages.
-> 
-> Later, Juan.
-> 
-> diff -u linux/drivers/i2c/i2c-amd756.c.orig linux/drivers/i2c/i2c-amd756.c
-> --- linux/drivers/i2c/i2c-amd756.c.orig 2002-05-07 11:18:20.000000000 +0200
-> +++ linux/drivers/i2c/i2c-amd756.c      2002-05-07 11:20:30.000000000 +0200
-> @@ -52,10 +52,13 @@
->  #ifndef PCI_DEVICE_ID_AMD_766
->  #define PCI_DEVICE_ID_AMD_766 0x7413
->  #endif
-> +#ifndef PCI_DEVICE_ID_AMD_768
-> +#define PCI_DEVICE_ID_AMD_768 0x7443
-> +#endif
-> 
->  static int supported[] = {PCI_DEVICE_ID_AMD_756,
->                            PCI_DEVICE_ID_AMD_766,
-> -                         0x7443, /* AMD768 */
-> +                          PCI_DEVICE_ID_AMD_768,
->                            0 };
-> 
->  /* AMD756 SMBus address offsets */
-> @@ -453,7 +456,7 @@
->         amd756_initialized = 0;
->         if ((res = amd756_setup())) {
->                 printk
-> -                   ("i2c-amd756.o: AMD756/766 not detected, module not inserted.\n");
-> +                   ("i2c-amd756.o: AMD756/766/768 not detected, module not inserted.\n");
->                 amd756_cleanup();
->                 return res;
->         }
-> @@ -467,7 +470,7 @@
->                 return res;
->         }
->         amd756_initialized++;
-> -       printk("i2c-amd756.o: AMD756/766 bus detected and initialized\n");
-> +       printk("i2c-amd756.o: AMD756/766/768 bus detected and initialized\n");
->         return 0;
->  }
-> 
-> 
-> --
-> In theory, practice and theory are the same, but in practice they
-> are different -- Larry McVoy
+is the Intel S845WD1-E supported by lm-sensors?
+
+my lspci output:
+[....]
+00:00.0 Host bridge: Intel Corp. 82845 845 (Brookdale) Chipset Host Bridge 
+(rev 11)
+00:01.0 PCI bridge: Intel Corp. 82845 845 (Brookdale) Chipset AGP Bridge (rev 
+11)
+00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI (rev 05)
+00:1f.0 ISA bridge: Intel Corp. 82820 820 (Camino 2) Chipset ISA Bridge (ICH2) 
+(rev 05)
+00:1f.3 SMBus: Intel Corp. 82820 820 (Camino 2) Chipset SMBus (rev 05)
+[....]
+
+Thanks,
+Marcus
