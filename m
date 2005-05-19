@@ -1,29 +1,37 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Sun, 29 May 2005 23:09:29 +0000
-Subject: [lm-sensors] two queries to lm-sensors list managers: subject line,
-Message-Id: <63bk91hoekevc3a4erejapjim72sojhvqs@4ax.com>
+From: mda@discerning.com (Mark D. Anderson)
+Date: Thu, 19 May 2005 06:25:50 +0000
+Subject: lm_sensors-2.9.0 inconsistent with linux-ipmi-2.4.29-v34-base.diff
+Message-Id: <1113197490.2916.231562416@webmail.messagingengine.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi there,
+It seems that ipmi-2.4.29-v34-base-.diff added an extra argument
+to ipmi_request:
 
-1. Do we really need the "[lm-sensors] " prepended to subject line? 
-There is enough information in the headers to sort list into different 
-directories on receipt.  Dunno about others but I'm running out of 
-visible subject line :)
+@@ -960,6 +1362,7 @@
+                 struct ipmi_addr *addr,
+                 long             msgid,
+                 struct ipmi_msg  *msg,
++                void             *user_msg_data,
+                 int              priority)
+ {
 
-2. Archives: I cannot successfully import archives as they not in unix 
-mail spool or mbox format, the headers been lost.  Most important loss 
-is the date ordering, importing over 4200 messages since July last year 
-becomes a mess.  I have threading, but no obvious date order as that is 
-now 'import to MUA' date/time order :(
+and this causes an error in lm_sensors-2.9.0:
 
-While the web search interface is useful, one cannot easily pull 
-patches from it.  Did I miss something?
+kernel/busses/i2c-ipmi.c: In function `ipmi_i2c_send_message':
+kernel/busses/i2c-ipmi.c:100: too few arguments to function
+`ipmi_request_Rsmp_af6f8fc5'
+kernel/busses/i2c-ipmi.c: In function `ipmi_register_bmc':
+kernel/busses/i2c-ipmi.c:183: warning: `return' with a value, in
+function returning void
 
-Thanks,
---Grant.
+I assume the fix is to simply pass in a 5th argument of 0:
 
+-        ipmi_request(i2c_ipmi_user, &address, (long) id, msg, 0);
++        ipmi_request(i2c_ipmi_user, &address, (long) id, msg, 0, 0);
+
+
+-mda
