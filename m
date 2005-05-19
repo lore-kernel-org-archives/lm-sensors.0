@@ -1,58 +1,45 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:34 +0000
-Subject: could not modprobe lm_sensors
-Message-Id: <20020619093146.E1893@Stimpy.netroedge.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: new chip driver in 2.6, question
+Message-Id: <20040210215758.3c163465.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <02061912255602.01687@shoarma.mdsoft.net>
-In-Reply-To: <02061912255602.01687@shoarma.mdsoft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-It doesn't look like you have I2C support built into your kernel?
-lm_sensors depends on I2C to work.  The latest I2C package is
-available on our web site.  It's the same code as what's in the kernel
-(under character device drivers), although perhaps a little more
-current.
+Is it OK to add new sensor chip drivers to 2.6 for old chipsets that
+haven't been requested yet? I have an lm80 driver port ready, sent by
+Tiago Sousa, who thought he had such a chip but in fact doesn't (it's
+easily misdetected). Now that it is done, I doesn't cost much to include
+it into the kernel, unless you only intend to accept requested and
+tested driver.
 
+A few facts about lm80:
 
-Phil
+1* I've half tested the driver on a misdetected lm80. Found a few
+incorrectness that are now fixes. So the driver can be considered
+half-tested. Thanks a lot to Lennard Klein for that.
 
-On Wed, Jun 19, 2002 at 12:25:56PM +0200, KheOps wrote:
-> Hello,
-> 
-> I aplogize for mailing to this address, but I don't know where I shoud mail 
-> elsewhere.
-> I have a problem with lm_sensors: it successfully compiles, but fails to 
-> modprobe. Reporting to your FAQ, it seems that I have a versionning problem:
-> # depmod -a -e gives:
-> [...]
-> depmod: *** Unresolved symbols in /lib/modules/2.4.17/misc/i2c-viapro.o
-> depmod:         i2c_del_adapter_R97e1c952
-> depmod:         i2c_add_adapter_Rd50a523b
-> [...]
-> 
-> # nm --extern /lib/modules/2.4.17/misc/i2c-viapro.o gives:
-> [...]
->          U printk_R1b7d4074
-> [...]
-> # grep printk /proc/ksyms gives:
-> c0116630 printk_R1b7d4074
-> 
-> # dmesg gives no output (!?)
-> 
-> I compiled the module with the 2.4.17 kernel sources, and i'm running this 
-> kernel, that is why I don't understand where the probleme come from. My 
-> original distribution is a Mandrake, which is quite similar to a RedHat, my 
-> modutils version is 2.4.4.
-> What should I do ?
-> 
-> Thank you for helping me,
-> A. Merel
+2* LM80 chips were only used on a few QDI mainboards (in the PC world at
+least), according to this MBM page:
+http://mbm.livewiredev.com/comp/qdi.html
+
+I think these are Celeron/Pentium II motherboards. It is perfectly
+possible that such boards are still used these days.
+
+3* We already support LM75, LM77 (more or less), LM78 and LM79, which
+are older than the LM80 if I'm not mistaking, but also much more used.
+
+Let me know what you think our policy should be.
+
+(Mine would be: don't actively port unrequested drivers, but accept them
+if it happens that someone provides them.)
+
+Thanks.
 
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
