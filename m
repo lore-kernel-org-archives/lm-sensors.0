@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:27 +0000
 Subject: Via KT600 as I2C controller
-Message-Id: <3FC8CF57.D171594D@paradyne.com>
+Message-Id: <20031129183501.391f4dd1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031126235249.GA7632@gumby>
 In-Reply-To: <20031126235249.GA7632@gumby>
@@ -10,38 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks. would you please download the latest lm_sensors CVS
-and compile the userspace tools with 2.6 support
-(make user and make user_install)
-and use i2cdetect and i2cdump to test the driver.
-use all modes of i2cdump that work (b,w,c,s)
-On a DIMM eeprom, for example, all modes should return the
-same data.
+> thanks. would you please download the latest lm_sensors CVS
+> and compile the userspace tools with 2.6 support
+> (make user and make user_install)
+> and use i2cdetect and i2cdump to test the driver.
+> use all modes of i2cdump that work (b,w,c,s)
+> On a DIMM eeprom, for example, all modes should return the
+> same data.
 
+I don't have DIMM eeproms on my i2c-viapro bus, so I tried on an
+as99127f. b produces a good dump, c doesn't. The byte at 0x00 (value
+0xbd) is repeated everywhere. I guess this is expected because the chip
+doesn't have autoincrement? s gave me a kernel panic (stack trashed with
+0xbd). w is OK (each byte is repeated twice to form a word).
 
-Jean Delvare wrote:
-> 
-> > I have an A7V600 motherboard, which has a Via 8237 on it.
-> > It is not supported by current 2.6 kernels (test8, for example).
-> > I have added support by adding the following lines to vt596_ids[] in
-> > /usr/src/linux-2.6.0-test8/drivers/i2c/busses/i2c-viapro.c.
-> >
-> >     {
-> >         .vendor     = PCI_VENDOR_ID_VIA,
-> >         .device     = PCI_DEVICE_ID_VIA_8237,
-> >         .subvendor  = PCI_ANY_ID,
-> >         .subdevice  = PCI_ANY_ID,
-> >         .driver_data    = SMBBA3
-> >     },
-> >
-> > I have not observed any brokenness, having used it for several weeks.
-> > I could, of course, continue making the change to future kernel
-> > versions, but this would surely benefit others if in the regular dist.
-> 
-> I've added support in our CVS repository. I will also send a patch to
-> Greg KH for Linux 2.6. Don't expect it to be added before 2.6.0 final
-> though, since only bug fixes will be accepted for now.
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
