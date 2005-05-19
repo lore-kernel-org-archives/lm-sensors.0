@@ -1,38 +1,53 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
+From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:59 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc4 15/15]
-Message-Id: <2538186705051704181a70dbbf@mail.gmail.com>
+Message-Id: <0pik81hjboqvbf2jhgdut861cfpgl7sata@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2538186705051703479bd0c29@mail.gmail.com>
-	 <e9iUj0EZ.1116327879.1515720.khali@localhost>
-In-Reply-To: <e9iUj0EZ.1116327879.1515720.khali@localhost>
+References: <2538186705051703479bd0c29@mail.gmail.com> <e9iUj0EZ.1116327879.1515720.khali@localhost> <2538186705051704181a70dbbf@mail.gmail.com>
+In-Reply-To: <2538186705051704181a70dbbf@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Yani Ioannou <yani.ioannou@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Hi Jean,
+Hi Yani,
+On Tue, 17 May 2005 07:18:51 -0400, Yani Ioannou <yani.ioannou@gmail.com> wrote:
 
-On 5/17/05, Jean Delvare <khali@linux-fr.org> wrote:
-> If you could come up with an additional demonstration patch for either
-> the lm90 driver or the it87 driver, I would happily give it a try. The
-> adm1026 has very few users AFAIK so it might not be the best choice to
-> find testers, although I agree that it was a convenient way to
-> demonstrate how drivers could benefit from the proposed change.
+Following is derived from gcc -E adm1026.c with your patch (the 
+script strips all but base number from numbered names):
 
-No problem, I'll give this a shot later today/tomorrow when I get some
-time, it shouldn't be very hard.
+adm1026.c    SENSOR_fan1_div                    RW
+adm1026.c    SENSOR_fan1_input                  R
+adm1026.c    SENSOR_fan1_min                    RW
+adm1026.c    SENSOR_in0_input                   R
+adm1026.c    SENSOR_in0_max                     RW
+adm1026.c    SENSOR_in0_min                     RW
+adm1026.c    SENSOR_temp1_auto_point1_temp      RW
+adm1026.c    SENSOR_temp1_auto_point1_temp_hyst R
+adm1026.c    SENSOR_temp1_crit                  RW
+adm1026.c    SENSOR_temp1_input                 R
+adm1026.c    SENSOR_temp1_max                   RW
+adm1026.c    SENSOR_temp1_min                   RW
+adm1026.c    SENSOR_temp1_offset                RW
+adm1026.c    alarm_mask                         RW
+adm1026.c    alarms                             R
+adm1026.c    analog_out                         RW
+adm1026.c    gpio                               RW
+adm1026.c    gpio_mask                          RW
+adm1026.c    pwm1                               RW << these also should also
+adm1026.c    pwm1_enable                        RW << have SENSOR_ in front 
+adm1026.c    temp1_auto_point1_pwm              RW << of them, seems you 
+adm1026.c    temp1_crit_enable                  RW << missed a group?
+adm1026.c    vid                                R
+adm1026.c    vrm                                RW
 
-> 
-> And, once again, thanks *a lot* for looking into this, this is very much
-> appreciated.
-> 
+I'm assuming some magic elsewhere sees that 'SENSOR_' and removes 
+it before it gets to sysfs.  I can test adm9240, w83627hf and it87 
+drivers as well as watch the overall patterns as above.
 
-The concept benefits bmcsensors more than anything else so it isn't
-exactly unselfish but thanks :-), its great to know its appreciated.
+--Grant.
 
-Yani
 
 _______________________________________________
 lm-sensors mailing list
