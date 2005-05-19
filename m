@@ -1,13 +1,16 @@
 From: THarrington@trilogicsystems.com (Todd Harrington)
 Date: Thu, 19 May 2005 06:23:26 +0000
 Subject: Winbond w83782d hanging problem
-Message-Id: <01Dec7.115131est.119045@bouncer.trilogic.com>
+Message-Id: <01Dec10.101201est.119050@bouncer.trilogic.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <01Dec7.115131est.119045@bouncer.trilogic.com>
+In-Reply-To: <01Dec7.115131est.119045@bouncer.trilogic.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
 We are using a Tyan 2688 motherboard (WinBond w83782d). The problem that I
 am having is the lm_sensors package is hanging when I load the w83781d
@@ -31,6 +34,7 @@ if this related.
 Hoping someone can help me!
 
 Regards,
+
 
 Todd Harrington
 Trilogic Systems
