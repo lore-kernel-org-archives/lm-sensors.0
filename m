@@ -1,29 +1,29 @@
-From: manu@agat.net (Blindauer Emmanuel)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: w83781d 2.7.0 - temp2
-Message-Id: <200306092142.56416.manu@agat.net>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:45 +0000
+Subject: RFC PATCH Documentation/i2c/porting-clients
+Message-Id: <q6o64114808tamt4m46j5lkjendhjit4p8@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-I'm using lm_sensors since a few weeks, for monitoring the temp and fan of 
-my motherboard.
-I was getting bad values with the default config file with as99127f
-I've noticed that some persons have modified the computing of temp2.
-I've used the first values, and it work fine
-"compute temp2 (@*30/43)+25, (@-25)*43/30" is ok with the motherboard Asus 
-A7V333-X
-Fan values are ok, when the bios is set no to slow down the fan in case of 
-low temp.
-When the fan slow down, values returned are bad (168750 RPM, 96428 RPM, 
-675000 RPM and other values like that.
+Greetings,
 
-So I hope these informations will help you a little more.
+Small doc patch to remind porters about update locking.
 
-Emmanuel
+Signed-off-by: Grant Coady <gcoady@gmail.com>
 
 
--- 
+--- linux-2.6.12-rc1-mm2/Documentation/i2c/porting-clients	2005-03-23 06:34:20.000000000 +1100
++++ linux-2.6.12-rc1-mm2x/Documentation/i2c/porting-clients	2005-03-25 11:50:38.000000000 +1100
+@@ -98,6 +98,9 @@
+ * [Update] Don't access client->data directly, use
+   i2c_get_clientdata(client) instead.
+ 
++  Make sure the driver takes the data->update_lock while performing each 
++  update, see lm85.c set_fan_min() for an example of how this is done.
++
+ * [Interface] Init function should not print anything. Make sure
+   there is a MODULE_LICENSE() line, at the bottom of the file
+   (after MODULE_AUTHOR() and MODULE_DESCRIPTION(), in this order).
