@@ -1,1534 +1,236 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:18 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0-test5
-Message-Id: <10642734272108@kroah.com>
+Message-Id: <10642734271040@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10642734271040@kroah.com>
+In-Reply-To: <10642734262308@kroah.com>
 References: <1064273416272@kroah.com>
 In-Reply-To: <1064273416272@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1315.1.23, 2003/09/22 14:21:09-07:00, greg@kroah.com
-
-[PATCH] I2C: move the scx200* drivers to drivers/i2c/busses
-
-
- drivers/i2c/scx200_acb.c        |  553 ----------------------------------------
- drivers/i2c/scx200_i2c.c        |  133 ---------
- drivers/i2c/Kconfig             |   38 --
- drivers/i2c/Makefile            |    2 
- drivers/i2c/busses/Kconfig      |   38 ++
- drivers/i2c/busses/Makefile     |    2 
- drivers/i2c/busses/scx200_acb.c |  553 ++++++++++++++++++++++++++++++++++++++++
- drivers/i2c/busses/scx200_i2c.c |  132 +++++++++
- 8 files changed, 725 insertions(+), 726 deletions(-)
-
-
-diff -Nru a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
---- a/drivers/i2c/Kconfig	Mon Sep 22 16:12:15 2003
-+++ b/drivers/i2c/Kconfig	Mon Sep 22 16:12:15 2003
-@@ -48,44 +48,6 @@
- 	  This support is also available as a module.  If so, the module 
- 	  will be called i2c-algo-bit.
- 
--config SCx200_I2C
--	tristate "NatSemi SCx200 I2C using GPIO pins"
--	depends on SCx200 && I2C_ALGOBIT
--	help
--	  Enable the use of two GPIO pins of a SCx200 processor as an I2C bus.
--
--	  If you don't know what to do here, say N.
--
--	  This support is also available as a module.  If so, the module 
--	  will be called scx200_i2c.
--
--config SCx200_I2C_SCL
--	int "GPIO pin used for SCL"
--	depends on SCx200_I2C
--	default "12"
--	help
--	  Enter the GPIO pin number used for the SCL signal.  This value can
--	  also be specified with a module parameter.
--
--config SCx200_I2C_SDA
--	int "GPIO pin used for SDA"
--	depends on SCx200_I2C
--	default "13"
--	help
--	  Enter the GPIO pin number used for the SSA signal.  This value can
--	  also be specified with a module parameter.
--
--config SCx200_ACB
--	tristate "NatSemi SCx200 ACCESS.bus"
--	depends on I2C_ALGOBIT!=n && I2C
--	help
--	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
--
--	  If you don't know what to do here, say N.
--
--	  This support is also available as a module.  If so, the module 
--	  will be called scx200_acb.
--
- config I2C_ALGOPCF
- 	tristate "I2C PCF 8584 interfaces"
- 	depends on I2C
-diff -Nru a/drivers/i2c/Makefile b/drivers/i2c/Makefile
---- a/drivers/i2c/Makefile	Mon Sep 22 16:12:15 2003
-+++ b/drivers/i2c/Makefile	Mon Sep 22 16:12:15 2003
-@@ -9,8 +9,6 @@
- obj-$(CONFIG_I2C_KEYWEST)	+= i2c-keywest.o
- obj-$(CONFIG_ITE_I2C_ALGO)	+= i2c-algo-ite.o
- obj-$(CONFIG_ITE_I2C_ADAP)	+= i2c-adap-ite.o
--obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
--obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
- obj-$(CONFIG_I2C_IBM_IIC)	+= i2c-ibm_iic.o
- obj-$(CONFIG_I2C_SENSOR)	+= i2c-sensor.o
- obj-$(CONFIG_I2C_IOP3XX)	+= i2c-iop3xx.o
-diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig	Mon Sep 22 16:12:15 2003
-+++ b/drivers/i2c/busses/Kconfig	Mon Sep 22 16:12:15 2003
-@@ -166,6 +166,44 @@
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called i2c-savage4.
- 
-+config SCx200_I2C
-+	tristate "NatSemi SCx200 I2C using GPIO pins"
-+	depends on SCx200 && I2C_ALGOBIT
-+	help
-+	  Enable the use of two GPIO pins of a SCx200 processor as an I2C bus.
-+
-+	  If you don't know what to do here, say N.
-+
-+	  This support is also available as a module.  If so, the module 
-+	  will be called scx200_i2c.
-+
-+config SCx200_I2C_SCL
-+	int "GPIO pin used for SCL"
-+	depends on SCx200_I2C
-+	default "12"
-+	help
-+	  Enter the GPIO pin number used for the SCL signal.  This value can
-+	  also be specified with a module parameter.
-+
-+config SCx200_I2C_SDA
-+	int "GPIO pin used for SDA"
-+	depends on SCx200_I2C
-+	default "13"
-+	help
-+	  Enter the GPIO pin number used for the SSA signal.  This value can
-+	  also be specified with a module parameter.
-+
-+config SCx200_ACB
-+	tristate "NatSemi SCx200 ACCESS.bus"
-+	depends on I2C_ALGOBIT!=n && I2C
-+	help
-+	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
-+
-+	  If you don't know what to do here, say N.
-+
-+	  This support is also available as a module.  If so, the module 
-+	  will be called scx200_acb.
-+
- config I2C_SIS5595
- 	tristate "SiS 5595"
- 	depends on I2C && PCI && EXPERIMENTAL
-diff -Nru a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
---- a/drivers/i2c/busses/Makefile	Mon Sep 22 16:12:15 2003
-+++ b/drivers/i2c/busses/Makefile	Mon Sep 22 16:12:15 2003
-@@ -23,3 +23,5 @@
- obj-$(CONFIG_I2C_VIA)		+= i2c-via.o
- obj-$(CONFIG_I2C_VIAPRO)	+= i2c-viapro.o
- obj-$(CONFIG_I2C_VOODOO3)	+= i2c-voodoo3.o
-+obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
-+obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
-diff -Nru a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
---- /dev/null	Wed Dec 31 16:00:00 1969
-+++ b/drivers/i2c/busses/scx200_acb.c	Mon Sep 22 16:12:15 2003
-@@ -0,0 +1,553 @@
-+/*  linux/drivers/i2c/scx200_acb.c 
-+
-+    Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
-+
-+    National Semiconductor SCx200 ACCESS.bus support
-+    
-+    Based on i2c-keywest.c which is:
-+        Copyright (c) 2001 Benjamin Herrenschmidt <benh@kernel.crashing.org>
-+        Copyright (c) 2000 Philip Edelbrock <phil@stimpy.netroedge.com>
-+    
-+    This program is free software; you can redistribute it and/or
-+    modify it under the terms of the GNU General Public License as
-+    published by the Free Software Foundation; either version 2 of the
-+    License, or (at your option) any later version.
-+   
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+    General Public License for more details.
-+   
-+    You should have received a copy of the GNU General Public License
-+    along with this program; if not, write to the Free Software
-+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+
-+*/
-+
-+#include <linux/config.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/smp_lock.h>
-+#include <linux/pci.h>
-+#include <asm/io.h>
-+
-+#include <linux/scx200.h>
-+
-+#define NAME "scx200_acb"
-+
-+MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
-+MODULE_DESCRIPTION("NatSemi SCx200 ACCESS.bus Driver");
-+MODULE_LICENSE("GPL");
-+
-+#define MAX_DEVICES 4
-+static int base[MAX_DEVICES] = { 0x840 };
-+MODULE_PARM(base, "1-4i");
-+MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
-+
-+#define DEBUG 0
-+
-+#if DEBUG
-+#define DBG(x...) printk(KERN_DEBUG NAME ": " x)
-+#else
-+#define DBG(x...)
-+#endif
-+
-+/* The hardware supports interrupt driven mode too, but I haven't
-+   implemented that. */
-+#define POLLED_MODE 1
-+#define POLL_TIMEOUT (HZ)
-+
-+enum scx200_acb_state {
-+	state_idle,
-+	state_address,
-+	state_command,
-+	state_repeat_start,
-+	state_quick,
-+	state_read,
-+	state_write,
-+};
-+
-+static const char *scx200_acb_state_name[] = {
-+	"idle",
-+	"address",
-+	"command",
-+	"repeat_start",
-+	"quick",
-+	"read",
-+	"write",
-+};
-+
-+/* Physical interface */
-+struct scx200_acb_iface
-+{
-+	struct scx200_acb_iface *next;
-+	struct i2c_adapter adapter;
-+	unsigned base;
-+	struct semaphore sem;
-+
-+	/* State machine data */
-+	enum scx200_acb_state state;
-+	int result;
-+	u8 address_byte;
-+	u8 command;
-+	u8 *ptr;
-+	char needs_reset;
-+	unsigned len;
-+};
-+
-+/* Register Definitions */
-+#define ACBSDA		(iface->base + 0)
-+#define ACBST		(iface->base + 1)
-+#define    ACBST_SDAST		0x40 /* SDA Status */
-+#define    ACBST_BER		0x20 
-+#define    ACBST_NEGACK		0x10 /* Negative Acknowledge */
-+#define    ACBST_STASTR		0x08 /* Stall After Start */
-+#define    ACBST_MASTER		0x02
-+#define ACBCST		(iface->base + 2)
-+#define    ACBCST_BB		0x02
-+#define ACBCTL1		(iface->base + 3)
-+#define    ACBCTL1_STASTRE	0x80
-+#define    ACBCTL1_NMINTE	0x40
-+#define	   ACBCTL1_ACK		0x10
-+#define	   ACBCTL1_STOP		0x02
-+#define	   ACBCTL1_START	0x01
-+#define ACBADDR		(iface->base + 4)
-+#define ACBCTL2		(iface->base + 5)
-+#define    ACBCTL2_ENABLE	0x01
-+
-+/************************************************************************/
-+
-+static void scx200_acb_machine(struct scx200_acb_iface *iface, u8 status)
-+{
-+	const char *errmsg;
-+
-+	DBG("state %s, status = 0x%02x\n", 
-+	    scx200_acb_state_name[iface->state], status);
-+
-+	if (status & ACBST_BER) {
-+		errmsg = "bus error";
-+		goto error;
-+	}
-+	if (!(status & ACBST_MASTER)) {
-+		errmsg = "not master";
-+		goto error;
-+	}
-+	if (status & ACBST_NEGACK)
-+		goto negack;
-+
-+	switch (iface->state) {
-+	case state_idle:
-+		dev_warn(&iface->adapter.dev, "interrupt in idle state\n");
-+		break;
-+
-+	case state_address:
-+		/* Do a pointer write first */
-+		outb(iface->address_byte & ~1, ACBSDA);
-+
-+		iface->state = state_command;
-+		break;
-+
-+	case state_command:
-+		outb(iface->command, ACBSDA);
-+
-+		if (iface->address_byte & 1)
-+			iface->state = state_repeat_start;
-+		else
-+			iface->state = state_write;
-+		break;
-+
-+	case state_repeat_start:
-+		outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
-+		/* fallthrough */
-+		
-+	case state_quick:
-+		if (iface->address_byte & 1) {
-+			if (iface->len = 1) 
-+				outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
-+			else
-+				outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
-+			outb(iface->address_byte, ACBSDA);
-+
-+			iface->state = state_read;
-+		} else {
-+			outb(iface->address_byte, ACBSDA);
-+
-+			iface->state = state_write;
-+		}
-+		break;
-+
-+	case state_read:
-+		/* Set ACK if receiving the last byte */
-+		if (iface->len = 1)
-+			outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
-+		else
-+			outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
-+
-+		*iface->ptr++ = inb(ACBSDA);
-+		--iface->len;
-+
-+		if (iface->len = 0) {
-+			iface->result = 0;
-+			iface->state = state_idle;
-+			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
-+		}
-+
-+		break;
-+
-+	case state_write:
-+		if (iface->len = 0) {
-+			iface->result = 0;
-+			iface->state = state_idle;
-+			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
-+			break;
-+		}
-+		
-+		outb(*iface->ptr++, ACBSDA);
-+		--iface->len;
-+		
-+		break;
-+	}
-+
-+	return;
-+
-+ negack:
-+	DBG("negative acknowledge in state %s\n", 
-+	    scx200_acb_state_name[iface->state]);
-+
-+	iface->state = state_idle;
-+	iface->result = -ENXIO;
-+
-+	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
-+	outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
-+	return;
-+
-+ error:
-+	dev_err(&iface->adapter.dev, "%s in state %s\n", errmsg,
-+		scx200_acb_state_name[iface->state]);
-+
-+	iface->state = state_idle;
-+	iface->result = -EIO;
-+	iface->needs_reset = 1;
-+}
-+
-+static void scx200_acb_timeout(struct scx200_acb_iface *iface) 
-+{
-+	dev_err(&iface->adapter.dev, "timeout in state %s\n",
-+		scx200_acb_state_name[iface->state]);
-+
-+	iface->state = state_idle;
-+	iface->result = -EIO;
-+	iface->needs_reset = 1;
-+}
-+
-+#ifdef POLLED_MODE
-+static void scx200_acb_poll(struct scx200_acb_iface *iface)
-+{
-+	u8 status = 0;
-+	unsigned long timeout;
-+
-+	timeout = jiffies + POLL_TIMEOUT;
-+	while (time_before(jiffies, timeout)) {
-+		status = inb(ACBST);
-+		if ((status & (ACBST_SDAST|ACBST_BER|ACBST_NEGACK)) != 0) {
-+			scx200_acb_machine(iface, status);
-+			return;
-+		}
-+		schedule_timeout(HZ/100+1);
-+	}
-+
-+	scx200_acb_timeout(iface);
-+}
-+#endif /* POLLED_MODE */
-+
-+static void scx200_acb_reset(struct scx200_acb_iface *iface)
-+{
-+	/* Disable the ACCESS.bus device and Configure the SCL
-+           frequency: 16 clock cycles */
-+	outb(0x70, ACBCTL2);
-+	/* Polling mode */
-+	outb(0, ACBCTL1);
-+	/* Disable slave address */
-+	outb(0, ACBADDR);
-+	/* Enable the ACCESS.bus device */
-+	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
-+	/* Free STALL after START */
-+	outb(inb(ACBCTL1) & ~(ACBCTL1_STASTRE | ACBCTL1_NMINTE), ACBCTL1);
-+	/* Send a STOP */
-+	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
-+	/* Clear BER, NEGACK and STASTR bits */
-+	outb(ACBST_BER | ACBST_NEGACK | ACBST_STASTR, ACBST);
-+	/* Clear BB bit */
-+	outb(inb(ACBCST) | ACBCST_BB, ACBCST);
-+}
-+
-+static s32 scx200_acb_smbus_xfer(struct i2c_adapter *adapter,
-+				u16 address, unsigned short flags,	
-+				char rw, u8 command, int size, 
-+				union i2c_smbus_data *data)
-+{
-+	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
-+	int len;
-+	u8 *buffer;
-+	u16 cur_word;
-+	int rc;
-+
-+	switch (size) {
-+	case I2C_SMBUS_QUICK:
-+	    	len = 0;
-+	    	buffer = NULL;
-+	    	break;
-+	case I2C_SMBUS_BYTE:
-+		if (rw = I2C_SMBUS_READ) {
-+			len = 1;
-+			buffer = &data->byte;
-+		} else {
-+			len = 1;
-+			buffer = &command;
-+		}
-+	    	break;
-+	case I2C_SMBUS_BYTE_DATA:
-+	    	len = 1;
-+	    	buffer = &data->byte;
-+	    	break;
-+	case I2C_SMBUS_WORD_DATA:
-+		len = 2;
-+	    	cur_word = cpu_to_le16(data->word);
-+	    	buffer = (u8 *)&cur_word;
-+		break;
-+	case I2C_SMBUS_BLOCK_DATA:
-+	    	len = data->block[0];
-+	    	buffer = &data->block[1];
-+		break;
-+	default:
-+	    	return -EINVAL;
-+	}
-+
-+	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
-+	    size, address, command, len, rw = I2C_SMBUS_READ);
-+
-+	if (!len && rw = I2C_SMBUS_READ) {
-+		dev_warn(&adapter->dev, "zero length read\n");
-+		return -EINVAL;
-+	}
-+
-+	if (len && !buffer) {
-+		dev_warn(&adapter->dev, "nonzero length but no buffer\n");
-+		return -EFAULT;
-+	}
-+
-+	down(&iface->sem);
-+
-+	iface->address_byte = address<<1;
-+	if (rw = I2C_SMBUS_READ)
-+		iface->address_byte |= 1;
-+	iface->command = command;
-+	iface->ptr = buffer;
-+	iface->len = len;
-+	iface->result = -EINVAL;
-+	iface->needs_reset = 0;
-+
-+	outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
-+
-+	if (size = I2C_SMBUS_QUICK || size = I2C_SMBUS_BYTE)
-+		iface->state = state_quick;
-+	else
-+		iface->state = state_address;
-+
-+#ifdef POLLED_MODE
-+	while (iface->state != state_idle)
-+		scx200_acb_poll(iface);
-+#else /* POLLED_MODE */
-+#error Interrupt driven mode not implemented
-+#endif /* POLLED_MODE */	
-+
-+	if (iface->needs_reset)
-+		scx200_acb_reset(iface);
-+
-+	rc = iface->result;
-+
-+	up(&iface->sem);
-+
-+	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
-+	    	data->word = le16_to_cpu(cur_word);
-+
-+#if DEBUG
-+	printk(KERN_DEBUG NAME ": transfer done, result: %d", rc);
-+	if (buffer) {
-+		int i;
-+		printk(" data:");
-+		for (i = 0; i < len; ++i)
-+			printk(" %02x", buffer[i]);
-+	}
-+	printk("\n");
-+#endif
-+
-+	return rc;
-+}
-+
-+static u32 scx200_acb_func(struct i2c_adapter *adapter)
-+{
-+	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
-+	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
-+	       I2C_FUNC_SMBUS_BLOCK_DATA;
-+}
-+
-+/* For now, we only handle combined mode (smbus) */
-+static struct i2c_algorithm scx200_acb_algorithm = {
-+	.name		= "NatSemi SCx200 ACCESS.bus",
-+	.id		= I2C_ALGO_SMBUS,
-+	.smbus_xfer	= scx200_acb_smbus_xfer,
-+	.functionality	= scx200_acb_func,
-+};
-+
-+struct scx200_acb_iface *scx200_acb_list;
-+
-+int scx200_acb_probe(struct scx200_acb_iface *iface)
-+{
-+	u8 val;
-+
-+	/* Disable the ACCESS.bus device and Configure the SCL
-+           frequency: 16 clock cycles */
-+	outb(0x70, ACBCTL2);
-+
-+	if (inb(ACBCTL2) != 0x70) {
-+		DBG("ACBCTL2 readback failed\n");
-+		return -ENXIO;
-+	}
-+
-+	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
-+
-+	val = inb(ACBCTL1);
-+	if (val) {
-+		DBG("disabled, but ACBCTL1=0x%02x\n", val);
-+		return -ENXIO;
-+	}
-+
-+	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
-+
-+	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
-+
-+	val = inb(ACBCTL1);
-+	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
-+		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
-+		return -ENXIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int  __init scx200_acb_create(int base, int index)
-+{
-+	struct scx200_acb_iface *iface;
-+	struct i2c_adapter *adapter;
-+	int rc = 0;
-+	char description[64];
-+
-+	iface = kmalloc(sizeof(*iface), GFP_KERNEL);
-+	if (!iface) {
-+		printk(KERN_ERR NAME ": can't allocate memory\n");
-+		rc = -ENOMEM;
-+		goto errout;
-+	}
-+
-+	memset(iface, 0, sizeof(*iface));
-+	adapter = &iface->adapter;
-+	i2c_set_adapdata(adapter, iface);
-+	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
-+	adapter->owner = THIS_MODULE;
-+	adapter->id = I2C_ALGO_SMBUS;
-+	adapter->algo = &scx200_acb_algorithm;
-+
-+	init_MUTEX(&iface->sem);
-+
-+	snprintf(description, sizeof(description), "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
-+	if (request_region(base, 8, description) = 0) {
-+		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
-+			base, base + 8-1);
-+		rc = -EBUSY;
-+		goto errout;
-+	}
-+	iface->base = base;
-+
-+	rc = scx200_acb_probe(iface);
-+	if (rc) {
-+		dev_warn(&adapter->dev, "probe failed\n");
-+		goto errout;
-+	}
-+
-+	scx200_acb_reset(iface);
-+
-+	if (i2c_add_adapter(adapter) < 0) {
-+		dev_err(&adapter->dev, "failed to register\n");
-+		rc = -ENODEV;
-+		goto errout;
-+	}
-+
-+	lock_kernel();
-+	iface->next = scx200_acb_list;
-+	scx200_acb_list = iface;
-+	unlock_kernel();
-+
-+	return 0;
-+
-+ errout:
-+	if (iface) {
-+		if (iface->base)
-+			release_region(iface->base, 8);
-+		kfree(iface);
-+	}
-+	return rc;
-+}
-+
-+static int __init scx200_acb_init(void)
-+{
-+	int i;
-+	int rc;
-+
-+	printk(KERN_DEBUG NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
-+
-+	/* Verify that this really is a SCx200 processor */
-+	if (pci_find_device(PCI_VENDOR_ID_NS,
-+			    PCI_DEVICE_ID_NS_SCx200_BRIDGE,
-+			    NULL) = NULL)
-+		return -ENODEV;
-+
-+	rc = -ENXIO;
-+	for (i = 0; i < MAX_DEVICES; ++i) {
-+		if (base[i] > 0)
-+			rc = scx200_acb_create(base[i], i);
-+	}
-+	if (scx200_acb_list)
-+		return 0;
-+	return rc;
-+}
-+
-+static void __exit scx200_acb_cleanup(void)
-+{
-+	struct scx200_acb_iface *iface;
-+	lock_kernel();
-+	while ((iface = scx200_acb_list) != NULL) {
-+		scx200_acb_list = iface->next;
-+		unlock_kernel();
-+
-+		i2c_del_adapter(&iface->adapter);
-+		release_region(iface->base, 8);
-+		kfree(iface);
-+		lock_kernel();
-+	}
-+	unlock_kernel();
-+}
-+
-+module_init(scx200_acb_init);
-+module_exit(scx200_acb_cleanup);
-+
-+/*
-+    Local variables:
-+        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
-+        c-basic-offset: 8
-+    End:
-+*/
-+
-diff -Nru a/drivers/i2c/busses/scx200_i2c.c b/drivers/i2c/busses/scx200_i2c.c
---- /dev/null	Wed Dec 31 16:00:00 1969
-+++ b/drivers/i2c/busses/scx200_i2c.c	Mon Sep 22 16:12:15 2003
-@@ -0,0 +1,132 @@
-+/* linux/drivers/i2c/scx200_i2c.c 
-+
-+   Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
-+
-+   National Semiconductor SCx200 I2C bus on GPIO pins
-+
-+   Based on i2c-velleman.c Copyright (C) 1995-96, 2000 Simon G. Vogl
-+
-+   This program is free software; you can redistribute it and/or modify
-+   it under the terms of the GNU General Public License as published by
-+   the Free Software Foundation; either version 2 of the License, or
-+   (at your option) any later version.
-+   
-+   This program is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+   GNU General Public License for more details.
-+   
-+   You should have received a copy of the GNU General Public License
-+   along with this program; if not, write to the Free Software
-+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     
-+*/
-+
-+#include <linux/config.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
-+#include <asm/io.h>
-+
-+#include <linux/scx200_gpio.h>
-+
-+#define NAME "scx200_i2c"
-+
-+MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
-+MODULE_DESCRIPTION("NatSemi SCx200 I2C Driver");
-+MODULE_LICENSE("GPL");
-+
-+MODULE_PARM(scl, "i");
-+MODULE_PARM_DESC(scl, "GPIO line for SCL");
-+MODULE_PARM(sda, "i");
-+MODULE_PARM_DESC(sda, "GPIO line for SDA");
-+
-+static int scl = CONFIG_SCx200_I2C_SCL;
-+static int sda = CONFIG_SCx200_I2C_SDA;
-+
-+static void scx200_i2c_setscl(void *data, int state)
-+{
-+	scx200_gpio_set(scl, state);
-+}
-+
-+static void scx200_i2c_setsda(void *data, int state)
-+{
-+	scx200_gpio_set(sda, state);
-+} 
-+
-+static int scx200_i2c_getscl(void *data)
-+{
-+	return scx200_gpio_get(scl);
-+}
-+
-+static int scx200_i2c_getsda(void *data)
-+{
-+	return scx200_gpio_get(sda);
-+}
-+
-+/* ------------------------------------------------------------------------
-+ * Encapsulate the above functions in the correct operations structure.
-+ * This is only done when more than one hardware adapter is supported.
-+ */
-+
-+static struct i2c_algo_bit_data scx200_i2c_data = {
-+	NULL,
-+	scx200_i2c_setsda,
-+	scx200_i2c_setscl,
-+	scx200_i2c_getsda,
-+	scx200_i2c_getscl,
-+	10, 10, 100,		/* waits, timeout */
-+};
-+
-+static struct i2c_adapter scx200_i2c_ops = {
-+	.owner		   = THIS_MODULE,
-+	.algo_data	   = &scx200_i2c_data,
-+	.name	= "NatSemi SCx200 I2C",
-+};
-+
-+int scx200_i2c_init(void)
-+{
-+	printk(KERN_DEBUG NAME ": NatSemi SCx200 I2C Driver\n");
-+
-+	if (!scx200_gpio_present()) {
-+		printk(KERN_ERR NAME ": no SCx200 gpio pins available\n");
-+		return -ENODEV;
-+	}
-+
-+	printk(KERN_DEBUG NAME ": SCL=GPIO%02u, SDA=GPIO%02u\n", 
-+	       scl, sda);
-+
-+	if (scl = -1 || sda = -1 || scl = sda) {
-+		printk(KERN_ERR NAME ": scl and sda must be specified\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Configure GPIOs as open collector outputs */
-+	scx200_gpio_configure(scl, ~2, 5);
-+	scx200_gpio_configure(sda, ~2, 5);
-+
-+	if (i2c_bit_add_bus(&scx200_i2c_ops) < 0) {
-+		printk(KERN_ERR NAME ": adapter %s registration failed\n", 
-+		       scx200_i2c_ops.name);
-+		return -ENODEV;
-+	}
-+	
-+	return 0;
-+}
-+
-+void scx200_i2c_cleanup(void)
-+{
-+	i2c_bit_del_bus(&scx200_i2c_ops);
-+}
-+
-+module_init(scx200_i2c_init);
-+module_exit(scx200_i2c_cleanup);
-+
-+/*
-+    Local variables:
-+        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
-+        c-basic-offset: 8
-+    End:
-+*/
-diff -Nru a/drivers/i2c/scx200_acb.c b/drivers/i2c/scx200_acb.c
---- a/drivers/i2c/scx200_acb.c	Mon Sep 22 16:12:15 2003
-+++ /dev/null	Wed Dec 31 16:00:00 1969
-@@ -1,553 +0,0 @@
--/*  linux/drivers/i2c/scx200_acb.c 
--
--    Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
--
--    National Semiconductor SCx200 ACCESS.bus support
--    
--    Based on i2c-keywest.c which is:
--        Copyright (c) 2001 Benjamin Herrenschmidt <benh@kernel.crashing.org>
--        Copyright (c) 2000 Philip Edelbrock <phil@stimpy.netroedge.com>
--    
--    This program is free software; you can redistribute it and/or
--    modify it under the terms of the GNU General Public License as
--    published by the Free Software Foundation; either version 2 of the
--    License, or (at your option) any later version.
--   
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--    General Public License for more details.
--   
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--
--*/
--
--#include <linux/config.h>
--#include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/i2c.h>
--#include <linux/smp_lock.h>
--#include <linux/pci.h>
--#include <asm/io.h>
--
--#include <linux/scx200.h>
--
--#define NAME "scx200_acb"
--
--MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
--MODULE_DESCRIPTION("NatSemi SCx200 ACCESS.bus Driver");
--MODULE_LICENSE("GPL");
--
--#define MAX_DEVICES 4
--static int base[MAX_DEVICES] = { 0x840 };
--MODULE_PARM(base, "1-4i");
--MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
--
--#define DEBUG 0
--
--#if DEBUG
--#define DBG(x...) printk(KERN_DEBUG NAME ": " x)
--#else
--#define DBG(x...)
--#endif
--
--/* The hardware supports interrupt driven mode too, but I haven't
--   implemented that. */
--#define POLLED_MODE 1
--#define POLL_TIMEOUT (HZ)
--
--enum scx200_acb_state {
--	state_idle,
--	state_address,
--	state_command,
--	state_repeat_start,
--	state_quick,
--	state_read,
--	state_write,
--};
--
--static const char *scx200_acb_state_name[] = {
--	"idle",
--	"address",
--	"command",
--	"repeat_start",
--	"quick",
--	"read",
--	"write",
--};
--
--/* Physical interface */
--struct scx200_acb_iface
--{
--	struct scx200_acb_iface *next;
--	struct i2c_adapter adapter;
--	unsigned base;
--	struct semaphore sem;
--
--	/* State machine data */
--	enum scx200_acb_state state;
--	int result;
--	u8 address_byte;
--	u8 command;
--	u8 *ptr;
--	char needs_reset;
--	unsigned len;
--};
--
--/* Register Definitions */
--#define ACBSDA		(iface->base + 0)
--#define ACBST		(iface->base + 1)
--#define    ACBST_SDAST		0x40 /* SDA Status */
--#define    ACBST_BER		0x20 
--#define    ACBST_NEGACK		0x10 /* Negative Acknowledge */
--#define    ACBST_STASTR		0x08 /* Stall After Start */
--#define    ACBST_MASTER		0x02
--#define ACBCST		(iface->base + 2)
--#define    ACBCST_BB		0x02
--#define ACBCTL1		(iface->base + 3)
--#define    ACBCTL1_STASTRE	0x80
--#define    ACBCTL1_NMINTE	0x40
--#define	   ACBCTL1_ACK		0x10
--#define	   ACBCTL1_STOP		0x02
--#define	   ACBCTL1_START	0x01
--#define ACBADDR		(iface->base + 4)
--#define ACBCTL2		(iface->base + 5)
--#define    ACBCTL2_ENABLE	0x01
--
--/************************************************************************/
--
--static void scx200_acb_machine(struct scx200_acb_iface *iface, u8 status)
--{
--	const char *errmsg;
--
--	DBG("state %s, status = 0x%02x\n", 
--	    scx200_acb_state_name[iface->state], status);
--
--	if (status & ACBST_BER) {
--		errmsg = "bus error";
--		goto error;
--	}
--	if (!(status & ACBST_MASTER)) {
--		errmsg = "not master";
--		goto error;
--	}
--	if (status & ACBST_NEGACK)
--		goto negack;
--
--	switch (iface->state) {
--	case state_idle:
--		dev_warn(&iface->adapter.dev, "interrupt in idle state\n");
--		break;
--
--	case state_address:
--		/* Do a pointer write first */
--		outb(iface->address_byte & ~1, ACBSDA);
--
--		iface->state = state_command;
--		break;
--
--	case state_command:
--		outb(iface->command, ACBSDA);
--
--		if (iface->address_byte & 1)
--			iface->state = state_repeat_start;
--		else
--			iface->state = state_write;
--		break;
--
--	case state_repeat_start:
--		outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
--		/* fallthrough */
--		
--	case state_quick:
--		if (iface->address_byte & 1) {
--			if (iface->len = 1) 
--				outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
--			else
--				outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
--			outb(iface->address_byte, ACBSDA);
--
--			iface->state = state_read;
--		} else {
--			outb(iface->address_byte, ACBSDA);
--
--			iface->state = state_write;
--		}
--		break;
--
--	case state_read:
--		/* Set ACK if receiving the last byte */
--		if (iface->len = 1)
--			outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
--		else
--			outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
--
--		*iface->ptr++ = inb(ACBSDA);
--		--iface->len;
--
--		if (iface->len = 0) {
--			iface->result = 0;
--			iface->state = state_idle;
--			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
--		}
--
--		break;
--
--	case state_write:
--		if (iface->len = 0) {
--			iface->result = 0;
--			iface->state = state_idle;
--			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
--			break;
--		}
--		
--		outb(*iface->ptr++, ACBSDA);
--		--iface->len;
--		
--		break;
--	}
--
--	return;
--
-- negack:
--	DBG("negative acknowledge in state %s\n", 
--	    scx200_acb_state_name[iface->state]);
--
--	iface->state = state_idle;
--	iface->result = -ENXIO;
--
--	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
--	outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
--	return;
--
-- error:
--	dev_err(&iface->adapter.dev, "%s in state %s\n", errmsg,
--		scx200_acb_state_name[iface->state]);
--
--	iface->state = state_idle;
--	iface->result = -EIO;
--	iface->needs_reset = 1;
--}
--
--static void scx200_acb_timeout(struct scx200_acb_iface *iface) 
--{
--	dev_err(&iface->adapter.dev, "timeout in state %s\n",
--		scx200_acb_state_name[iface->state]);
--
--	iface->state = state_idle;
--	iface->result = -EIO;
--	iface->needs_reset = 1;
--}
--
--#ifdef POLLED_MODE
--static void scx200_acb_poll(struct scx200_acb_iface *iface)
--{
--	u8 status = 0;
--	unsigned long timeout;
--
--	timeout = jiffies + POLL_TIMEOUT;
--	while (time_before(jiffies, timeout)) {
--		status = inb(ACBST);
--		if ((status & (ACBST_SDAST|ACBST_BER|ACBST_NEGACK)) != 0) {
--			scx200_acb_machine(iface, status);
--			return;
--		}
--		schedule_timeout(HZ/100+1);
--	}
--
--	scx200_acb_timeout(iface);
--}
--#endif /* POLLED_MODE */
--
--static void scx200_acb_reset(struct scx200_acb_iface *iface)
--{
--	/* Disable the ACCESS.bus device and Configure the SCL
--           frequency: 16 clock cycles */
--	outb(0x70, ACBCTL2);
--	/* Polling mode */
--	outb(0, ACBCTL1);
--	/* Disable slave address */
--	outb(0, ACBADDR);
--	/* Enable the ACCESS.bus device */
--	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
--	/* Free STALL after START */
--	outb(inb(ACBCTL1) & ~(ACBCTL1_STASTRE | ACBCTL1_NMINTE), ACBCTL1);
--	/* Send a STOP */
--	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
--	/* Clear BER, NEGACK and STASTR bits */
--	outb(ACBST_BER | ACBST_NEGACK | ACBST_STASTR, ACBST);
--	/* Clear BB bit */
--	outb(inb(ACBCST) | ACBCST_BB, ACBCST);
--}
--
--static s32 scx200_acb_smbus_xfer(struct i2c_adapter *adapter,
--				u16 address, unsigned short flags,	
--				char rw, u8 command, int size, 
--				union i2c_smbus_data *data)
--{
--	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
--	int len;
--	u8 *buffer;
--	u16 cur_word;
--	int rc;
--
--	switch (size) {
--	case I2C_SMBUS_QUICK:
--	    	len = 0;
--	    	buffer = NULL;
--	    	break;
--	case I2C_SMBUS_BYTE:
--		if (rw = I2C_SMBUS_READ) {
--			len = 1;
--			buffer = &data->byte;
--		} else {
--			len = 1;
--			buffer = &command;
--		}
--	    	break;
--	case I2C_SMBUS_BYTE_DATA:
--	    	len = 1;
--	    	buffer = &data->byte;
--	    	break;
--	case I2C_SMBUS_WORD_DATA:
--		len = 2;
--	    	cur_word = cpu_to_le16(data->word);
--	    	buffer = (u8 *)&cur_word;
--		break;
--	case I2C_SMBUS_BLOCK_DATA:
--	    	len = data->block[0];
--	    	buffer = &data->block[1];
--		break;
--	default:
--	    	return -EINVAL;
--	}
--
--	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
--	    size, address, command, len, rw = I2C_SMBUS_READ);
--
--	if (!len && rw = I2C_SMBUS_READ) {
--		dev_warn(&adapter->dev, "zero length read\n");
--		return -EINVAL;
--	}
--
--	if (len && !buffer) {
--		dev_warn(&adapter->dev, "nonzero length but no buffer\n");
--		return -EFAULT;
--	}
--
--	down(&iface->sem);
--
--	iface->address_byte = address<<1;
--	if (rw = I2C_SMBUS_READ)
--		iface->address_byte |= 1;
--	iface->command = command;
--	iface->ptr = buffer;
--	iface->len = len;
--	iface->result = -EINVAL;
--	iface->needs_reset = 0;
--
--	outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
--
--	if (size = I2C_SMBUS_QUICK || size = I2C_SMBUS_BYTE)
--		iface->state = state_quick;
--	else
--		iface->state = state_address;
--
--#ifdef POLLED_MODE
--	while (iface->state != state_idle)
--		scx200_acb_poll(iface);
--#else /* POLLED_MODE */
--#error Interrupt driven mode not implemented
--#endif /* POLLED_MODE */	
--
--	if (iface->needs_reset)
--		scx200_acb_reset(iface);
--
--	rc = iface->result;
--
--	up(&iface->sem);
--
--	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
--	    	data->word = le16_to_cpu(cur_word);
--
--#if DEBUG
--	printk(KERN_DEBUG NAME ": transfer done, result: %d", rc);
--	if (buffer) {
--		int i;
--		printk(" data:");
--		for (i = 0; i < len; ++i)
--			printk(" %02x", buffer[i]);
--	}
--	printk("\n");
--#endif
--
--	return rc;
--}
--
--static u32 scx200_acb_func(struct i2c_adapter *adapter)
--{
--	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
--	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
--	       I2C_FUNC_SMBUS_BLOCK_DATA;
--}
--
--/* For now, we only handle combined mode (smbus) */
--static struct i2c_algorithm scx200_acb_algorithm = {
--	.name		= "NatSemi SCx200 ACCESS.bus",
--	.id		= I2C_ALGO_SMBUS,
--	.smbus_xfer	= scx200_acb_smbus_xfer,
--	.functionality	= scx200_acb_func,
--};
--
--struct scx200_acb_iface *scx200_acb_list;
--
--int scx200_acb_probe(struct scx200_acb_iface *iface)
--{
--	u8 val;
--
--	/* Disable the ACCESS.bus device and Configure the SCL
--           frequency: 16 clock cycles */
--	outb(0x70, ACBCTL2);
--
--	if (inb(ACBCTL2) != 0x70) {
--		DBG("ACBCTL2 readback failed\n");
--		return -ENXIO;
--	}
--
--	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
--
--	val = inb(ACBCTL1);
--	if (val) {
--		DBG("disabled, but ACBCTL1=0x%02x\n", val);
--		return -ENXIO;
--	}
--
--	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
--
--	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
--
--	val = inb(ACBCTL1);
--	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
--		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
--		return -ENXIO;
--	}
--
--	return 0;
--}
--
--static int  __init scx200_acb_create(int base, int index)
--{
--	struct scx200_acb_iface *iface;
--	struct i2c_adapter *adapter;
--	int rc = 0;
--	char description[64];
--
--	iface = kmalloc(sizeof(*iface), GFP_KERNEL);
--	if (!iface) {
--		printk(KERN_ERR NAME ": can't allocate memory\n");
--		rc = -ENOMEM;
--		goto errout;
--	}
--
--	memset(iface, 0, sizeof(*iface));
--	adapter = &iface->adapter;
--	i2c_set_adapdata(adapter, iface);
--	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
--	adapter->owner = THIS_MODULE;
--	adapter->id = I2C_ALGO_SMBUS;
--	adapter->algo = &scx200_acb_algorithm;
--
--	init_MUTEX(&iface->sem);
--
--	snprintf(description, sizeof(description), "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
--	if (request_region(base, 8, description) = 0) {
--		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
--			base, base + 8-1);
--		rc = -EBUSY;
--		goto errout;
--	}
--	iface->base = base;
--
--	rc = scx200_acb_probe(iface);
--	if (rc) {
--		dev_warn(&adapter->dev, "probe failed\n");
--		goto errout;
--	}
--
--	scx200_acb_reset(iface);
--
--	if (i2c_add_adapter(adapter) < 0) {
--		dev_err(&adapter->dev, "failed to register\n");
--		rc = -ENODEV;
--		goto errout;
--	}
--
--	lock_kernel();
--	iface->next = scx200_acb_list;
--	scx200_acb_list = iface;
--	unlock_kernel();
--
--	return 0;
--
-- errout:
--	if (iface) {
--		if (iface->base)
--			release_region(iface->base, 8);
--		kfree(iface);
--	}
--	return rc;
--}
--
--static int __init scx200_acb_init(void)
--{
--	int i;
--	int rc;
--
--	printk(KERN_DEBUG NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
--
--	/* Verify that this really is a SCx200 processor */
--	if (pci_find_device(PCI_VENDOR_ID_NS,
--			    PCI_DEVICE_ID_NS_SCx200_BRIDGE,
--			    NULL) = NULL)
--		return -ENODEV;
--
--	rc = -ENXIO;
--	for (i = 0; i < MAX_DEVICES; ++i) {
--		if (base[i] > 0)
--			rc = scx200_acb_create(base[i], i);
--	}
--	if (scx200_acb_list)
--		return 0;
--	return rc;
--}
--
--static void __exit scx200_acb_cleanup(void)
--{
--	struct scx200_acb_iface *iface;
--	lock_kernel();
--	while ((iface = scx200_acb_list) != NULL) {
--		scx200_acb_list = iface->next;
--		unlock_kernel();
--
--		i2c_del_adapter(&iface->adapter);
--		release_region(iface->base, 8);
--		kfree(iface);
--		lock_kernel();
--	}
--	unlock_kernel();
--}
--
--module_init(scx200_acb_init);
--module_exit(scx200_acb_cleanup);
--
--/*
--    Local variables:
--        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
--        c-basic-offset: 8
--    End:
--*/
--
-diff -Nru a/drivers/i2c/scx200_i2c.c b/drivers/i2c/scx200_i2c.c
---- a/drivers/i2c/scx200_i2c.c	Mon Sep 22 16:12:15 2003
-+++ /dev/null	Wed Dec 31 16:00:00 1969
-@@ -1,133 +0,0 @@
--/* linux/drivers/i2c/scx200_i2c.c 
--
--   Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
--
--   National Semiconductor SCx200 I2C bus on GPIO pins
--
--   Based on i2c-velleman.c Copyright (C) 1995-96, 2000 Simon G. Vogl
--
--   This program is free software; you can redistribute it and/or modify
--   it under the terms of the GNU General Public License as published by
--   the Free Software Foundation; either version 2 of the License, or
--   (at your option) any later version.
--   
--   This program is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--   GNU General Public License for more details.
--   
--   You should have received a copy of the GNU General Public License
--   along with this program; if not, write to the Free Software
--   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     
--*/
--
--#include <linux/config.h>
--#include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/i2c.h>
--#include <linux/i2c-algo-bit.h>
--#include <asm/io.h>
--
--#include <linux/scx200_gpio.h>
--
--#define NAME "scx200_i2c"
--
--MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
--MODULE_DESCRIPTION("NatSemi SCx200 I2C Driver");
--MODULE_LICENSE("GPL");
--
--MODULE_PARM(scl, "i");
--MODULE_PARM_DESC(scl, "GPIO line for SCL");
--MODULE_PARM(sda, "i");
--MODULE_PARM_DESC(sda, "GPIO line for SDA");
--
--static int scl = CONFIG_SCx200_I2C_SCL;
--static int sda = CONFIG_SCx200_I2C_SDA;
--
--static void scx200_i2c_setscl(void *data, int state)
--{
--	scx200_gpio_set(scl, state);
--}
--
--static void scx200_i2c_setsda(void *data, int state)
--{
--	scx200_gpio_set(sda, state);
--} 
--
--static int scx200_i2c_getscl(void *data)
--{
--	return scx200_gpio_get(scl);
--}
--
--static int scx200_i2c_getsda(void *data)
--{
--	return scx200_gpio_get(sda);
--}
--
--/* ------------------------------------------------------------------------
-- * Encapsulate the above functions in the correct operations structure.
-- * This is only done when more than one hardware adapter is supported.
-- */
--
--static struct i2c_algo_bit_data scx200_i2c_data = {
--	NULL,
--	scx200_i2c_setsda,
--	scx200_i2c_setscl,
--	scx200_i2c_getsda,
--	scx200_i2c_getscl,
--	10, 10, 100,		/* waits, timeout */
--};
--
--static struct i2c_adapter scx200_i2c_ops = {
--	.owner		   = THIS_MODULE,
--	.id		   = I2C_HW_B_VELLE,
--	.algo_data	   = &scx200_i2c_data,
--	.name	= "NatSemi SCx200 I2C",
--};
--
--int scx200_i2c_init(void)
--{
--	printk(KERN_DEBUG NAME ": NatSemi SCx200 I2C Driver\n");
--
--	if (!scx200_gpio_present()) {
--		printk(KERN_ERR NAME ": no SCx200 gpio pins available\n");
--		return -ENODEV;
--	}
--
--	printk(KERN_DEBUG NAME ": SCL=GPIO%02u, SDA=GPIO%02u\n", 
--	       scl, sda);
--
--	if (scl = -1 || sda = -1 || scl = sda) {
--		printk(KERN_ERR NAME ": scl and sda must be specified\n");
--		return -EINVAL;
--	}
--
--	/* Configure GPIOs as open collector outputs */
--	scx200_gpio_configure(scl, ~2, 5);
--	scx200_gpio_configure(sda, ~2, 5);
--
--	if (i2c_bit_add_bus(&scx200_i2c_ops) < 0) {
--		printk(KERN_ERR NAME ": adapter %s registration failed\n", 
--		       scx200_i2c_ops.name);
--		return -ENODEV;
--	}
--	
--	return 0;
--}
--
--void scx200_i2c_cleanup(void)
--{
--	i2c_bit_del_bus(&scx200_i2c_ops);
--}
--
--module_init(scx200_i2c_init);
--module_exit(scx200_i2c_cleanup);
--
--/*
--    Local variables:
--        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
--        c-basic-offset: 8
--    End:
--*/
-
+Q2hhbmdlU2V0IDEuMTMxNS4xLjIyLCAyMDAzLzA5LzIyIDE0OjA5OjE3LTA3OjAwLCBncmVnQGty
+b2FoLmNvbQoKW1BBVENIXSBJMkM6IG1vdmUgaTJjLXZlbGxlbWFuIGRyaXZlciB0byBkcml2ZXJz
+L2kyYy9idXNzZXMKCgogZHJpdmVycy9pMmMvaTJjLXZlbGxlbWFuLmMgICAgICAgIHwgIDE2MSAt
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogZHJpdmVycy9pMmMvS2NvbmZp
+ZyAgICAgICAgICAgICAgIHwgICAxMCAtLQogZHJpdmVycy9pMmMvTWFrZWZpbGUgICAgICAgICAg
+ICAgIHwgICAgMSAKIGRyaXZlcnMvaTJjL2J1c3Nlcy9LY29uZmlnICAgICAgICB8ICAgMTAgKysK
+IGRyaXZlcnMvaTJjL2J1c3Nlcy9NYWtlZmlsZSAgICAgICB8ICAgIDEgCiBkcml2ZXJzL2kyYy9i
+dXNzZXMvaTJjLXZlbGxlbWFuLmMgfCAgMTYwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysKIDYgZmlsZXMgY2hhbmdlZCwgMTcxIGluc2VydGlvbnMoKyksIDE3MiBkZWxldGlv
+bnMoLSkKCgpkaWZmIC1OcnUgYS9kcml2ZXJzL2kyYy9LY29uZmlnIGIvZHJpdmVycy9pMmMvS2Nv
+bmZpZwotLS0gYS9kcml2ZXJzL2kyYy9LY29uZmlnCU1vbiBTZXAgMjIgMTY6MTI6MjYgMjAwMwor
+KysgYi9kcml2ZXJzL2kyYy9LY29uZmlnCU1vbiBTZXAgMjIgMTY6MTI6MjYgMjAwMwpAQCAtNDgs
+MTYgKzQ4LDYgQEAKIAkgIFRoaXMgc3VwcG9ydCBpcyBhbHNvIGF2YWlsYWJsZSBhcyBhIG1vZHVs
+ZS4gIElmIHNvLCB0aGUgbW9kdWxlIAogCSAgd2lsbCBiZSBjYWxsZWQgaTJjLWFsZ28tYml0Lgog
+Ci1jb25maWcgSTJDX1ZFTExFTUFOCi0JdHJpc3RhdGUgIlZlbGxlbWFuIEs5MDAwIGFkYXB0ZXIi
+Ci0JZGVwZW5kcyBvbiBJMkNfQUxHT0JJVCAmJiBJU0EKLQloZWxwCi0JICBUaGlzIHN1cHBvcnRz
+IHRoZSBWZWxsZW1hbiBLOTAwMCBwYXJhbGxlbC1wb3J0IEkyQyBhZGFwdGVyLiAgU2F5IFkKLQkg
+IGlmIHlvdSBvd24gc3VjaCBhbiBhZGFwdGVyLgotCi0JICBUaGlzIHN1cHBvcnQgaXMgYWxzbyBh
+dmFpbGFibGUgYXMgYSBtb2R1bGUuICBJZiBzbywgdGhlIG1vZHVsZSAKLQkgIHdpbGwgYmUgY2Fs
+bGVkIGkyYy12ZWxsZW1hbi4KLQogY29uZmlnIFNDeDIwMF9JMkMKIAl0cmlzdGF0ZSAiTmF0U2Vt
+aSBTQ3gyMDAgSTJDIHVzaW5nIEdQSU8gcGlucyIKIAlkZXBlbmRzIG9uIFNDeDIwMCAmJiBJMkNf
+QUxHT0JJVApkaWZmIC1OcnUgYS9kcml2ZXJzL2kyYy9NYWtlZmlsZSBiL2RyaXZlcnMvaTJjL01h
+a2VmaWxlCi0tLSBhL2RyaXZlcnMvaTJjL01ha2VmaWxlCU1vbiBTZXAgMjIgMTY6MTI6MjYgMjAw
+MworKysgYi9kcml2ZXJzL2kyYy9NYWtlZmlsZQlNb24gU2VwIDIyIDE2OjEyOjI2IDIwMDMKQEAg
+LTUsNyArNSw2IEBACiBvYmotJChDT05GSUdfSTJDKQkJKz0gaTJjLWNvcmUubwogb2JqLSQoQ09O
+RklHX0kyQ19DSEFSREVWKQkrPSBpMmMtZGV2Lm8KIG9iai0kKENPTkZJR19JMkNfQUxHT0JJVCkJ
+Kz0gaTJjLWFsZ28tYml0Lm8KLW9iai0kKENPTkZJR19JMkNfVkVMTEVNQU4pCSs9IGkyYy12ZWxs
+ZW1hbi5vCiBvYmotJChDT05GSUdfSTJDX0FMR09QQ0YpCSs9IGkyYy1hbGdvLXBjZi5vCiBvYmot
+JChDT05GSUdfSTJDX0tFWVdFU1QpCSs9IGkyYy1rZXl3ZXN0Lm8KIG9iai0kKENPTkZJR19JVEVf
+STJDX0FMR08pCSs9IGkyYy1hbGdvLWl0ZS5vCmRpZmYgLU5ydSBhL2RyaXZlcnMvaTJjL2J1c3Nl
+cy9LY29uZmlnIGIvZHJpdmVycy9pMmMvYnVzc2VzL0tjb25maWcKLS0tIGEvZHJpdmVycy9pMmMv
+YnVzc2VzL0tjb25maWcJTW9uIFNlcCAyMiAxNjoxMjoyNiAyMDAzCisrKyBiL2RyaXZlcnMvaTJj
+L2J1c3Nlcy9LY29uZmlnCU1vbiBTZXAgMjIgMTY6MTI6MjYgMjAwMwpAQCAtMjAzLDYgKzIwMywx
+NiBAQAogCSAgVGhpcyBkcml2ZXIgY2FuIGFsc28gYmUgYnVpbHQgYXMgYSBtb2R1bGUuICBJZiBz
+bywgdGhlIG1vZHVsZQogCSAgd2lsbCBiZSBjYWxsZWQgaTJjLXNpczk2eC4KIAorY29uZmlnIEky
+Q19WRUxMRU1BTgorCXRyaXN0YXRlICJWZWxsZW1hbiBLOTAwMCBhZGFwdGVyIgorCWRlcGVuZHMg
+b24gSTJDX0FMR09CSVQgJiYgSVNBCisJaGVscAorCSAgVGhpcyBzdXBwb3J0cyB0aGUgVmVsbGVt
+YW4gSzkwMDAgcGFyYWxsZWwtcG9ydCBJMkMgYWRhcHRlci4gIFNheSBZCisJICBpZiB5b3Ugb3du
+IHN1Y2ggYW4gYWRhcHRlci4KKworCSAgVGhpcyBzdXBwb3J0IGlzIGFsc28gYXZhaWxhYmxlIGFz
+IGEgbW9kdWxlLiAgSWYgc28sIHRoZSBtb2R1bGUgCisJICB3aWxsIGJlIGNhbGxlZCBpMmMtdmVs
+bGVtYW4uCisKIGNvbmZpZyBJMkNfVklBCiAJdHJpc3RhdGUgIlZJQSA4MkM1OEIiCiAJZGVwZW5k
+cyBvbiBJMkNfQUxHT0JJVCAmJiBQQ0kgJiYgRVhQRVJJTUVOVEFMCmRpZmYgLU5ydSBhL2RyaXZl
+cnMvaTJjL2J1c3Nlcy9NYWtlZmlsZSBiL2RyaXZlcnMvaTJjL2J1c3Nlcy9NYWtlZmlsZQotLS0g
+YS9kcml2ZXJzL2kyYy9idXNzZXMvTWFrZWZpbGUJTW9uIFNlcCAyMiAxNjoxMjoyNiAyMDAzCisr
+KyBiL2RyaXZlcnMvaTJjL2J1c3Nlcy9NYWtlZmlsZQlNb24gU2VwIDIyIDE2OjEyOjI2IDIwMDMK
+QEAgLTE5LDYgKzE5LDcgQEAKIG9iai0kKENPTkZJR19JMkNfU0lTNTU5NSkJKz0gaTJjLXNpczU1
+OTUubwogb2JqLSQoQ09ORklHX0kyQ19TSVM2MzApCSs9IGkyYy1zaXM2MzAubwogb2JqLSQoQ09O
+RklHX0kyQ19TSVM5NlgpCSs9IGkyYy1zaXM5Nngubworb2JqLSQoQ09ORklHX0kyQ19WRUxMRU1B
+TikJKz0gaTJjLXZlbGxlbWFuLm8KIG9iai0kKENPTkZJR19JMkNfVklBKQkJKz0gaTJjLXZpYS5v
+CiBvYmotJChDT05GSUdfSTJDX1ZJQVBSTykJKz0gaTJjLXZpYXByby5vCiBvYmotJChDT05GSUdf
+STJDX1ZPT0RPTzMpCSs9IGkyYy12b29kb28zLm8KZGlmZiAtTnJ1IGEvZHJpdmVycy9pMmMvYnVz
+c2VzL2kyYy12ZWxsZW1hbi5jIGIvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy12ZWxsZW1hbi5jCi0t
+LSAvZGV2L251bGwJV2VkIERlYyAzMSAxNjowMDowMCAxOTY5CisrKyBiL2RyaXZlcnMvaTJjL2J1
+c3Nlcy9pMmMtdmVsbGVtYW4uYwlNb24gU2VwIDIyIDE2OjEyOjI2IDIwMDMKQEAgLTAsMCArMSwx
+NjAgQEAKKy8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KKy8qIGkyYy12ZWxsZW1hbi5jIGkyYy1odyBh
+Y2Nlc3MgZm9yIFZlbGxlbWFuIEs5MDAwIGFkYXB0ZXJzCQkgICAgICovCisvKiAtLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tICovCisvKiAgIENvcHlyaWdodCAoQykgMTk5NS05NiwgMjAwMCBTaW1vbiBHLiBWb2ds
+CisKKyAgICBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1
+dGUgaXQgYW5kL29yIG1vZGlmeQorICAgIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdl
+bmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5CisgICAgdGhlIEZyZWUgU29mdHdh
+cmUgRm91bmRhdGlvbjsgZWl0aGVyIHZlcnNpb24gMiBvZiB0aGUgTGljZW5zZSwgb3IKKyAgICAo
+YXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgorCisgICAgVGhpcyBwcm9ncmFtIGlz
+IGRpc3RyaWJ1dGVkIGluIHRoZSBob3BlIHRoYXQgaXQgd2lsbCBiZSB1c2VmdWwsCisgICAgYnV0
+IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkg
+b2YKKyAgICBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBP
+U0UuICBTZWUgdGhlCisgICAgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0
+YWlscy4KKworICAgIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBH
+ZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgICAgYWxvbmcgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5v
+dCwgd3JpdGUgdG8gdGhlIEZyZWUgU29mdHdhcmUKKyAgICBGb3VuZGF0aW9uLCBJbmMuLCA2NzUg
+TWFzcyBBdmUsIENhbWJyaWRnZSwgTUEgMDIxMzksIFVTQS4JCSAgICAgKi8KKy8qIC0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0gKi8KKworLyogJElkOiBpMmMtdmVsbGVtYW4uYyx2IDEuMjkgMjAwMy8wMS8yMSAw
+ODowODoxNiBrbWFsa2tpIEV4cCAkICovCisKKyNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KKyNp
+bmNsdWRlIDxsaW51eC9pb3BvcnQuaD4KKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KKyNpbmNs
+dWRlIDxsaW51eC9pbml0Lmg+CisjaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KKyNpbmNsdWRlIDxs
+aW51eC9pMmMuaD4KKyNpbmNsdWRlIDxsaW51eC9pMmMtYWxnby1iaXQuaD4KKyNpbmNsdWRlIDxh
+c20vaW8uaD4KKworLyogLS0tLS0gZ2xvYmFsIGRlZmluZXMgLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0JKi8KKyNkZWZpbmUgREVCKHgpCQkvKiBzaG91bGQg
+YmUgcmVhc29uYWJsZSBvcGVuLCBjbG9zZSAmYy4gCSovCisjZGVmaW5lIERFQjIoeCkgCS8qIGxv
+dyBsZXZlbCBkZWJ1Z2dpbmcgLSB2ZXJ5IHNsb3cgCQkqLworI2RlZmluZSBERUJFKHgpCXgJLyog
+ZXJyb3IgbWVzc2FnZXMgCQkJCSovCisKKwkJCQkJLyogUGluIFBvcnQgIEludmVydGVkCW5hbWUJ
+Ki8KKyNkZWZpbmUgSTJDX1NEQQkJMHgwMgkJLyogIGN0cmwgYml0IDEgCShpbnYpCSovCisjZGVm
+aW5lIEkyQ19TQ0wJCTB4MDgJCS8qICBjdHJsIGJpdCAzIAkoaW52KQkqLworCisjZGVmaW5lIEky
+Q19TREFJTgkweDEwCQkvKiBzdGF0IGJpdCA0CQkqLworI2RlZmluZSBJMkNfU0NMSU4JMHgwOAkJ
+LyogY3RybCBiaXQgMyAoaW52KShyZWFkcyBvd24gb3V0cHV0KSovCisKKyNkZWZpbmUgSTJDX0RN
+QVNLCTB4ZmQKKyNkZWZpbmUgSTJDX0NNQVNLCTB4ZjcKKworCisvKiAtLS0gQ29udmVuaWVuY2Ug
+ZGVmaW5lcyBmb3IgdGhlIHBhcmFsbGVsIHBvcnQ6CQkJKi8KKyNkZWZpbmUgQkFTRQkodW5zaWdu
+ZWQgaW50KShkYXRhKQorI2RlZmluZSBEQVRBCUJBU0UJCQkvKiBDZW50cm9uaWNzIGRhdGEgcG9y
+dAkJKi8KKyNkZWZpbmUgU1RBVAkoQkFTRSsxKQkJLyogQ2VudHJvbmljcyBzdGF0dXMgcG9ydAkq
+LworI2RlZmluZSBDVFJMCShCQVNFKzIpCQkvKiBDZW50cm9uaWNzIGNvbnRyb2wgcG9ydAkqLwor
+CisjZGVmaW5lIERFRkFVTFRfQkFTRSAweDM3OAorc3RhdGljIGludCBiYXNlPTA7CisKKy8qIC0t
+LS0tIGxvY2FsIGZ1bmN0aW9ucyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0gKi8KKworc3RhdGljIHZvaWQgYml0X3ZlbGxlX3NldHNjbCh2b2lkICpk
+YXRhLCBpbnQgc3RhdGUpCit7CisJaWYgKHN0YXRlKSB7CisJCW91dGIoaW5iKENUUkwpICYgSTJD
+X0NNQVNLLCAgIENUUkwpOworCX0gZWxzZSB7CisJCW91dGIoaW5iKENUUkwpIHwgSTJDX1NDTCwg
+Q1RSTCk7CisJfQorCQorfQorCitzdGF0aWMgdm9pZCBiaXRfdmVsbGVfc2V0c2RhKHZvaWQgKmRh
+dGEsIGludCBzdGF0ZSkKK3sKKwlpZiAoc3RhdGUpIHsKKwkJb3V0YihpbmIoQ1RSTCkgJiBJMkNf
+RE1BU0sgLCBDVFJMKTsKKwl9IGVsc2UgeworCQlvdXRiKGluYihDVFJMKSB8IEkyQ19TREEsIENU
+UkwpOworCX0KKwkKK30gCisKK3N0YXRpYyBpbnQgYml0X3ZlbGxlX2dldHNjbCh2b2lkICpkYXRh
+KQoreworCXJldHVybiAoIDAgPSAoIChpbmIoQ1RSTCkpICYgSTJDX1NDTElOICkgKTsKK30KKwor
+c3RhdGljIGludCBiaXRfdmVsbGVfZ2V0c2RhKHZvaWQgKmRhdGEpCit7CisJcmV0dXJuICggMCAh
+PSAoIChpbmIoU1RBVCkpICYgSTJDX1NEQUlOICkgKTsKK30KKworc3RhdGljIGludCBiaXRfdmVs
+bGVfaW5pdCh2b2lkKQoreworCWlmICghcmVxdWVzdF9yZWdpb24oYmFzZSwgKGJhc2UgPSAweDNi
+YykgPyAzIDogOCwgCisJCQkiaTJjIChWZWxsZW1hbm4gYWRhcHRlcikiKSkKKwkJcmV0dXJuIC1F
+Tk9ERVY7CisKKwliaXRfdmVsbGVfc2V0c2RhKCh2b2lkKiliYXNlLDEpOworCWJpdF92ZWxsZV9z
+ZXRzY2woKHZvaWQqKWJhc2UsMSk7CisJcmV0dXJuIDA7Cit9CisKKy8qIC0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQorICogRW5jYXBzdWxhdGUgdGhlIGFib3ZlIGZ1bmN0aW9ucyBpbiB0aGUgY29ycmVjdCBvcGVy
+YXRpb25zIHN0cnVjdHVyZS4KKyAqIFRoaXMgaXMgb25seSBkb25lIHdoZW4gbW9yZSB0aGFuIG9u
+ZSBoYXJkd2FyZSBhZGFwdGVyIGlzIHN1cHBvcnRlZC4KKyAqLworCitzdGF0aWMgc3RydWN0IGky
+Y19hbGdvX2JpdF9kYXRhIGJpdF92ZWxsZV9kYXRhID0geworCS5zZXRzZGEJCT0gYml0X3ZlbGxl
+X3NldHNkYSwKKwkuc2V0c2NsCQk9IGJpdF92ZWxsZV9zZXRzY2wsCisJLmdldHNkYQkJPSBiaXRf
+dmVsbGVfZ2V0c2RhLAorCS5nZXRzY2wJCT0gYml0X3ZlbGxlX2dldHNjbCwKKwkudWRlbGF5CQk9
+IDEwLAorCS5tZGVsYXkJCT0gMTAsCisJLnRpbWVvdXQJPSBIWgorfTsKKworc3RhdGljIHN0cnVj
+dCBpMmNfYWRhcHRlciBiaXRfdmVsbGVfb3BzID0geworCS5vd25lcgkJPSBUSElTX01PRFVMRSwK
+KwkuYWxnb19kYXRhCT0gJmJpdF92ZWxsZV9kYXRhLAorCS5uYW1lCQk9ICJWZWxsZW1hbiBLODAw
+MCIsCit9OworCitzdGF0aWMgaW50IF9faW5pdCBpMmNfYml0dmVsbGVfaW5pdCh2b2lkKQorewor
+CXByaW50ayhLRVJOX0lORk8gImkyYy12ZWxsZW1hbi5vOiBpMmMgVmVsbGVtYW4gSzgwMDAgYWRh
+cHRlciBtb2R1bGUgdmVyc2lvbiAlcyAoJXMpXG4iLCBJMkNfVkVSU0lPTiwgSTJDX0RBVEUpOwor
+CWlmIChiYXNlPTApIHsKKwkJLyogcHJvYmUgc29tZSB2YWx1ZXMgKi8KKwkJYmFzZd5GQVVMVF9C
+QVNFOworCQliaXRfdmVsbGVfZGF0YS5kYXRhPSh2b2lkKilERUZBVUxUX0JBU0U7CisJCWlmIChi
+aXRfdmVsbGVfaW5pdCgpPTApIHsKKwkJCWlmKGkyY19iaXRfYWRkX2J1cygmYml0X3ZlbGxlX29w
+cykgPCAwKQorCQkJCXJldHVybiAtRU5PREVWOworCQl9IGVsc2UgeworCQkJcmV0dXJuIC1FTk9E
+RVY7CisJCX0KKwl9IGVsc2UgeworCQliaXRfdmVsbGVfZGF0YS5kYXRhPSh2b2lkKiliYXNlOwor
+CQlpZiAoYml0X3ZlbGxlX2luaXQoKT0wKSB7CisJCQlpZihpMmNfYml0X2FkZF9idXMoJmJpdF92
+ZWxsZV9vcHMpIDwgMCkKKwkJCQlyZXR1cm4gLUVOT0RFVjsKKwkJfSBlbHNlIHsKKwkJCXJldHVy
+biAtRU5PREVWOworCQl9CisJfQorCXByaW50ayhLRVJOX0RFQlVHICJpMmMtdmVsbGVtYW4ubzog
+Zm91bmQgZGV2aWNlIGF0ICUjeC5cbiIsYmFzZSk7CisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyB2
+b2lkIF9fZXhpdCBpMmNfYml0dmVsbGVfZXhpdCh2b2lkKQorewkKKwlpMmNfYml0X2RlbF9idXMo
+JmJpdF92ZWxsZV9vcHMpOworCXJlbGVhc2VfcmVnaW9uKGJhc2UsIChiYXNlID0gMHgzYmMpID8g
+MyA6IDgpOworfQorCitNT0RVTEVfQVVUSE9SKCJTaW1vbiBHLiBWb2dsIDxzaW1vbkB0ay51bmkt
+bGluei5hYy5hdD4iKTsKK01PRFVMRV9ERVNDUklQVElPTigiSTJDLUJ1cyBhZGFwdGVyIHJvdXRp
+bmVzIGZvciBWZWxsZW1hbiBLODAwMCBhZGFwdGVyIik7CitNT0RVTEVfTElDRU5TRSgiR1BMIik7
+CisKK01PRFVMRV9QQVJNKGJhc2UsICJpIik7CisKK21vZHVsZV9pbml0KGkyY19iaXR2ZWxsZV9p
+bml0KTsKK21vZHVsZV9leGl0KGkyY19iaXR2ZWxsZV9leGl0KTsKZGlmZiAtTnJ1IGEvZHJpdmVy
+cy9pMmMvaTJjLXZlbGxlbWFuLmMgYi9kcml2ZXJzL2kyYy9pMmMtdmVsbGVtYW4uYwotLS0gYS9k
+cml2ZXJzL2kyYy9pMmMtdmVsbGVtYW4uYwlNb24gU2VwIDIyIDE2OjEyOjI2IDIwMDMKKysrIC9k
+ZXYvbnVsbAlXZWQgRGVjIDMxIDE2OjAwOjAwIDE5NjkKQEAgLTEsMTYxICswLDAgQEAKLS8qIC0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0gKi8KLS8qIGkyYy12ZWxsZW1hbi5jIGkyYy1odyBhY2Nlc3MgZm9yIFZl
+bGxlbWFuIEs5MDAwIGFkYXB0ZXJzCQkgICAgICovCi0vKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCi0v
+KiAgIENvcHlyaWdodCAoQykgMTk5NS05NiwgMjAwMCBTaW1vbiBHLiBWb2dsCi0KLSAgICBUaGlz
+IHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29y
+IG1vZGlmeQotICAgIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGlj
+IExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5Ci0gICAgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlv
+bjsgZWl0aGVyIHZlcnNpb24gMiBvZiB0aGUgTGljZW5zZSwgb3IKLSAgICAoYXQgeW91ciBvcHRp
+b24pIGFueSBsYXRlciB2ZXJzaW9uLgotCi0gICAgVGhpcyBwcm9ncmFtIGlzIGRpc3RyaWJ1dGVk
+IGluIHRoZSBob3BlIHRoYXQgaXQgd2lsbCBiZSB1c2VmdWwsCi0gICAgYnV0IFdJVEhPVVQgQU5Z
+IFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKLSAgICBNRVJD
+SEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhl
+Ci0gICAgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWlscy4KLQotICAg
+IFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1Ymxp
+YyBMaWNlbnNlCi0gICAgYWxvbmcgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwgd3JpdGUgdG8g
+dGhlIEZyZWUgU29mdHdhcmUKLSAgICBGb3VuZGF0aW9uLCBJbmMuLCA2NzUgTWFzcyBBdmUsIENh
+bWJyaWRnZSwgTUEgMDIxMzksIFVTQS4JCSAgICAgKi8KLS8qIC0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8K
+LQotLyogJElkOiBpMmMtdmVsbGVtYW4uYyx2IDEuMjkgMjAwMy8wMS8yMSAwODowODoxNiBrbWFs
+a2tpIEV4cCAkICovCi0KLSNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KLSNpbmNsdWRlIDxsaW51
+eC9pb3BvcnQuaD4KLSNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KLSNpbmNsdWRlIDxsaW51eC9p
+bml0Lmg+Ci0jaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KLSNpbmNsdWRlIDxsaW51eC9pMmMuaD4K
+LSNpbmNsdWRlIDxsaW51eC9pMmMtYWxnby1iaXQuaD4KLSNpbmNsdWRlIDxhc20vaW8uaD4KLQot
+LyogLS0tLS0gZ2xvYmFsIGRlZmluZXMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0JKi8KLSNkZWZpbmUgREVCKHgpCQkvKiBzaG91bGQgYmUgcmVhc29uYWJs
+ZSBvcGVuLCBjbG9zZSAmYy4gCSovCi0jZGVmaW5lIERFQjIoeCkgCS8qIGxvdyBsZXZlbCBkZWJ1
+Z2dpbmcgLSB2ZXJ5IHNsb3cgCQkqLwotI2RlZmluZSBERUJFKHgpCXgJLyogZXJyb3IgbWVzc2Fn
+ZXMgCQkJCSovCi0KLQkJCQkJLyogUGluIFBvcnQgIEludmVydGVkCW5hbWUJKi8KLSNkZWZpbmUg
+STJDX1NEQQkJMHgwMgkJLyogIGN0cmwgYml0IDEgCShpbnYpCSovCi0jZGVmaW5lIEkyQ19TQ0wJ
+CTB4MDgJCS8qICBjdHJsIGJpdCAzIAkoaW52KQkqLwotCi0jZGVmaW5lIEkyQ19TREFJTgkweDEw
+CQkvKiBzdGF0IGJpdCA0CQkqLwotI2RlZmluZSBJMkNfU0NMSU4JMHgwOAkJLyogY3RybCBiaXQg
+MyAoaW52KShyZWFkcyBvd24gb3V0cHV0KSovCi0KLSNkZWZpbmUgSTJDX0RNQVNLCTB4ZmQKLSNk
+ZWZpbmUgSTJDX0NNQVNLCTB4ZjcKLQotCi0vKiAtLS0gQ29udmVuaWVuY2UgZGVmaW5lcyBmb3Ig
+dGhlIHBhcmFsbGVsIHBvcnQ6CQkJKi8KLSNkZWZpbmUgQkFTRQkodW5zaWduZWQgaW50KShkYXRh
+KQotI2RlZmluZSBEQVRBCUJBU0UJCQkvKiBDZW50cm9uaWNzIGRhdGEgcG9ydAkJKi8KLSNkZWZp
+bmUgU1RBVAkoQkFTRSsxKQkJLyogQ2VudHJvbmljcyBzdGF0dXMgcG9ydAkqLwotI2RlZmluZSBD
+VFJMCShCQVNFKzIpCQkvKiBDZW50cm9uaWNzIGNvbnRyb2wgcG9ydAkqLwotCi0jZGVmaW5lIERF
+RkFVTFRfQkFTRSAweDM3OAotc3RhdGljIGludCBiYXNlPTA7Ci0KLS8qIC0tLS0tIGxvY2FsIGZ1
+bmN0aW9ucyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0gKi8KLQotc3RhdGljIHZvaWQgYml0X3ZlbGxlX3NldHNjbCh2b2lkICpkYXRhLCBpbnQgc3Rh
+dGUpCi17Ci0JaWYgKHN0YXRlKSB7Ci0JCW91dGIoaW5iKENUUkwpICYgSTJDX0NNQVNLLCAgIENU
+UkwpOwotCX0gZWxzZSB7Ci0JCW91dGIoaW5iKENUUkwpIHwgSTJDX1NDTCwgQ1RSTCk7Ci0JfQot
+CQotfQotCi1zdGF0aWMgdm9pZCBiaXRfdmVsbGVfc2V0c2RhKHZvaWQgKmRhdGEsIGludCBzdGF0
+ZSkKLXsKLQlpZiAoc3RhdGUpIHsKLQkJb3V0YihpbmIoQ1RSTCkgJiBJMkNfRE1BU0sgLCBDVFJM
+KTsKLQl9IGVsc2UgewotCQlvdXRiKGluYihDVFJMKSB8IEkyQ19TREEsIENUUkwpOwotCX0KLQkK
+LX0gCi0KLXN0YXRpYyBpbnQgYml0X3ZlbGxlX2dldHNjbCh2b2lkICpkYXRhKQotewotCXJldHVy
+biAoIDAgPSAoIChpbmIoQ1RSTCkpICYgSTJDX1NDTElOICkgKTsKLX0KLQotc3RhdGljIGludCBi
+aXRfdmVsbGVfZ2V0c2RhKHZvaWQgKmRhdGEpCi17Ci0JcmV0dXJuICggMCAhPSAoIChpbmIoU1RB
+VCkpICYgSTJDX1NEQUlOICkgKTsKLX0KLQotc3RhdGljIGludCBiaXRfdmVsbGVfaW5pdCh2b2lk
+KQotewotCWlmICghcmVxdWVzdF9yZWdpb24oYmFzZSwgKGJhc2UgPSAweDNiYykgPyAzIDogOCwg
+Ci0JCQkiaTJjIChWZWxsZW1hbm4gYWRhcHRlcikiKSkKLQkJcmV0dXJuIC1FTk9ERVY7Ci0KLQli
+aXRfdmVsbGVfc2V0c2RhKCh2b2lkKiliYXNlLDEpOwotCWJpdF92ZWxsZV9zZXRzY2woKHZvaWQq
+KWJhc2UsMSk7Ci0JcmV0dXJuIDA7Ci19Ci0KLS8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQotICogRW5jYXBz
+dWxhdGUgdGhlIGFib3ZlIGZ1bmN0aW9ucyBpbiB0aGUgY29ycmVjdCBvcGVyYXRpb25zIHN0cnVj
+dHVyZS4KLSAqIFRoaXMgaXMgb25seSBkb25lIHdoZW4gbW9yZSB0aGFuIG9uZSBoYXJkd2FyZSBh
+ZGFwdGVyIGlzIHN1cHBvcnRlZC4KLSAqLwotCi1zdGF0aWMgc3RydWN0IGkyY19hbGdvX2JpdF9k
+YXRhIGJpdF92ZWxsZV9kYXRhID0gewotCS5zZXRzZGEJCT0gYml0X3ZlbGxlX3NldHNkYSwKLQku
+c2V0c2NsCQk9IGJpdF92ZWxsZV9zZXRzY2wsCi0JLmdldHNkYQkJPSBiaXRfdmVsbGVfZ2V0c2Rh
+LAotCS5nZXRzY2wJCT0gYml0X3ZlbGxlX2dldHNjbCwKLQkudWRlbGF5CQk9IDEwLAotCS5tZGVs
+YXkJCT0gMTAsCi0JLnRpbWVvdXQJPSBIWgotfTsKLQotc3RhdGljIHN0cnVjdCBpMmNfYWRhcHRl
+ciBiaXRfdmVsbGVfb3BzID0gewotCS5vd25lcgkJPSBUSElTX01PRFVMRSwKLQkuaWQJCT0gSTJD
+X0hXX0JfVkVMTEUsCi0JLmFsZ29fZGF0YQk9ICZiaXRfdmVsbGVfZGF0YSwKLQkubmFtZQkJPSAi
+VmVsbGVtYW4gSzgwMDAiLAotfTsKLQotc3RhdGljIGludCBfX2luaXQgaTJjX2JpdHZlbGxlX2lu
+aXQodm9pZCkKLXsKLQlwcmludGsoS0VSTl9JTkZPICJpMmMtdmVsbGVtYW4ubzogaTJjIFZlbGxl
+bWFuIEs4MDAwIGFkYXB0ZXIgbW9kdWxlIHZlcnNpb24gJXMgKCVzKVxuIiwgSTJDX1ZFUlNJT04s
+IEkyQ19EQVRFKTsKLQlpZiAoYmFzZT0wKSB7Ci0JCS8qIHByb2JlIHNvbWUgdmFsdWVzICovCi0J
+CWJhc2XeRkFVTFRfQkFTRTsKLQkJYml0X3ZlbGxlX2RhdGEuZGF0YT0odm9pZCopREVGQVVMVF9C
+QVNFOwotCQlpZiAoYml0X3ZlbGxlX2luaXQoKT0wKSB7Ci0JCQlpZihpMmNfYml0X2FkZF9idXMo
+JmJpdF92ZWxsZV9vcHMpIDwgMCkKLQkJCQlyZXR1cm4gLUVOT0RFVjsKLQkJfSBlbHNlIHsKLQkJ
+CXJldHVybiAtRU5PREVWOwotCQl9Ci0JfSBlbHNlIHsKLQkJYml0X3ZlbGxlX2RhdGEuZGF0YT0o
+dm9pZCopYmFzZTsKLQkJaWYgKGJpdF92ZWxsZV9pbml0KCk9MCkgewotCQkJaWYoaTJjX2JpdF9h
+ZGRfYnVzKCZiaXRfdmVsbGVfb3BzKSA8IDApCi0JCQkJcmV0dXJuIC1FTk9ERVY7Ci0JCX0gZWxz
+ZSB7Ci0JCQlyZXR1cm4gLUVOT0RFVjsKLQkJfQotCX0KLQlwcmludGsoS0VSTl9ERUJVRyAiaTJj
+LXZlbGxlbWFuLm86IGZvdW5kIGRldmljZSBhdCAlI3guXG4iLGJhc2UpOwotCXJldHVybiAwOwot
+fQotCi1zdGF0aWMgdm9pZCBfX2V4aXQgaTJjX2JpdHZlbGxlX2V4aXQodm9pZCkKLXsJCi0JaTJj
+X2JpdF9kZWxfYnVzKCZiaXRfdmVsbGVfb3BzKTsKLQlyZWxlYXNlX3JlZ2lvbihiYXNlLCAoYmFz
+ZSA9IDB4M2JjKSA/IDMgOiA4KTsKLX0KLQotTU9EVUxFX0FVVEhPUigiU2ltb24gRy4gVm9nbCA8
+c2ltb25AdGsudW5pLWxpbnouYWMuYXQ+Iik7Ci1NT0RVTEVfREVTQ1JJUFRJT04oIkkyQy1CdXMg
+YWRhcHRlciByb3V0aW5lcyBmb3IgVmVsbGVtYW4gSzgwMDAgYWRhcHRlciIpOwotTU9EVUxFX0xJ
+Q0VOU0UoIkdQTCIpOwotCi1NT0RVTEVfUEFSTShiYXNlLCAiaSIpOwotCi1tb2R1bGVfaW5pdChp
+MmNfYml0dmVsbGVfaW5pdCk7Ci1tb2R1bGVfZXhpdChpMmNfYml0dmVsbGVfZXhpdCk7Cgo=
