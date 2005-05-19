@@ -1,7 +1,7 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
+From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: New sensors web site (was Re: 2nd mail archive?)
-Message-Id: <20041215112305.GG18354@neu.nirvana>
+Message-Id: <41C08207.5040801@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41BDF25A.9030509@edgedesign.us>
 In-Reply-To: <41BDF25A.9030509@edgedesign.us>
@@ -10,43 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK, I can arrange for lm-sensors.org with
 
-o Web
-o Mailman
-o Wiki (which one?)
-o CVS/subversion with viewcvs (and cvsgraph for cvs)
-o Bugzilla
+Jean Delvare wrote:
+> [...]
+> 
+> Viewcvs?
+> 
+> (e.g. http://cvs.apache.org/viewcvs.cgi/)
+> 
+> Seems to support Subversion as well.
+> 
 
-Migration of the list: Who has a complete archive? A modern approach
-in naming/segmenting lists would be lm-sensors-users@lm-sensors.org
-and lm-sensors-devel@lm-sensors.org. Is that in order?
+That's another option, although I couldn't see how to download tarballs. 
+(not critical)
 
-Migration CVS to subversion would be quite easy (I need a copy of the
-CVS repo). It is mainly up to the current developers, whether they'd
-like to change the versioning system.
+>[...]Searching in it is especially cumbersome, I think.
+> 
+> 
+> That's true but OTOH people are used to bugzilla because several major
+> projects use it (linux kernel, mozilla, xmms and more). I think it can
+> be configured and maybe the overkill features can be disabled in our
+> case. It's certainly worth giving it a try. If someone can think of
+> something as efficient but lighter, I'm listening.
+> 
 
-Migration of the ticket system to Bugzilla may be more
-cumbersome. Someone with good bugzilla database knowledge would have
-to check the current ticketing system and migrate it.
+I'm not opposed to bugzilla if it is the best option.  Especially if we 
+can start with a simplified version and grow into it's more advanced 
+features.
 
-First one would have to decide on product/components schemes for
-bugzilla. I believe that it will boil down to
-products={lm_sensors,i2c} and components (for lm_sensors) being the
-busses/chips.
+Lots of interesting options on Freshmeat, but of course most solutions 
+are somebody's half-baked weekend project written over a weekend in Ada 
+for their Amiga. ;')
 
-Who wants to become
-o list admin
-o bugzilla admin
-o wiki admin
+http://freshmeat.net/browse/846/
 
-Phil, I'm sure some of these tasks are reserved for you :)
--- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041215/267d0a55/attachment.bin
+But, take a look at this:
+
+http://www.edgewall.com/trac/screenshots.html
+
+It happens to cover most of the things we were discussing, and a few 
+more we hadn't thought of (like project time line, changeset summary, 
+etc.)  A few shortfalls, but might be adaptable... just kicking around 
+some thoughts.
+
+> Oh, I would consider it a GREAT benefit if it were possible to import our
+> existing 2500 tickets in the new support system and keep the numbering
+> intact.
+> 
+
+Yes!  If the new system uses a SQL backend (like my favorite 
+PostgreSQL), then it shouldn't be too bad to figure out how to import 
+all the existing tickets in.
+
+
+Phil
