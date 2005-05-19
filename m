@@ -1,37 +1,60 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:32 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:33 +0000
 Subject: Winbond 792 source codes for lm_sensor
-Message-Id: <20050125195140.395fb259.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE18FE7B@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE0673FD@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE0673FD@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao,
-
-> The version of lm_sensors I'm working is 2.9.0. And I find there are
-> some codes about 792 in script sensors-detect, But it seems that it
-> does NOT work, because it can NOT find W83792D chip. Neither do the
-> version 2.8.8. The attachment is the detect result log, you may refer
-> to it and check the script again.
-
-The log shows the following error:
-
-Error: First argument not a number!
-Syntax: i2cdetect I2CBUS
-  I2CBUS is an integer
-  Installed I2C busses:
-    i2c-0       smbus           SMBus I801 adapter at 0500              Non-I2C SMBus adapter
-
-This means that the version of i2cdetect you are using it too old. Make
-sure that you have no old version of this tool lying around. The error
-causes the SMBus not to be probed at all, which is probably why your
-W83792D chip was not detected. With a newer version of i2cdetect
-installed, sensors-detect should work fine (hopefully).
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+SGkgSmVhbgoKWW91IGFyZSByaWdodCwgd2hlbiBJIHJlbW92ZSB0aGUgb2xkIGkyY2RldGVjdCBh
+bmQgdXNlIHRoZSB2ZXJzaW9uIDIuOS4wClRoZSBzY3JpcHQgc2Vuc29ycy1kZXRlY3Qgd29ya3Mg
+d2VsbCwgaXQgY2FuIGRldGVjdCB0aGUgY2hpcCBXODM3OTJELgoKCkJlc3QgUmVnYXJkcwpDaHVu
+aGFvCgoKPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IEplYW4gRGVsdmFyZSBb
+bWFpbHRvOmtoYWxpQGxpbnV4LWZyLm9yZ10KPiBTZW50OiAyMDA1xOox1MIyNsjVIDAyOjUyCj4g
+VG86IFBJMTQgSFVBTkcwCj4gQ2M6IHNlbnNvcnNAU3RpbXB5Lm5ldHJvZWRnZS5jb207IFBJMTAg
+TEhIc3U7IFBJMTQgRFpTSEVOCj4gU3ViamVjdDogUmU6IFdpbmJvbmQgNzkyIHNvdXJjZSBjb2Rl
+cyBmb3IgbG1fc2Vuc29yCj4gCj4gSGkgQ2h1bmhhbywKPiAKPiA+IFRoZSB2ZXJzaW9uIG9mIGxt
+X3NlbnNvcnMgSSdtIHdvcmtpbmcgaXMgMi45LjAuIEFuZCBJIGZpbmQgdGhlcmUgYXJlCj4gPiBz
+b21lIGNvZGVzIGFib3V0IDc5MiBpbiBzY3JpcHQgc2Vuc29ycy1kZXRlY3QsIEJ1dCBpdCBzZWVt
+cyB0aGF0IGl0Cj4gPiBkb2VzIE5PVCB3b3JrLCBiZWNhdXNlIGl0IGNhbiBOT1QgZmluZCBXODM3
+OTJEIGNoaXAuIE5laXRoZXIgZG8gdGhlCj4gPiB2ZXJzaW9uIDIuOC44LiBUaGUgYXR0YWNobWVu
+dCBpcyB0aGUgZGV0ZWN0IHJlc3VsdCBsb2csIHlvdSBtYXkgcmVmZXIKPiA+IHRvIGl0IGFuZCBj
+aGVjayB0aGUgc2NyaXB0IGFnYWluLgo+IAo+IFRoZSBsb2cgc2hvd3MgdGhlIGZvbGxvd2luZyBl
+cnJvcjoKPiAKPiBFcnJvcjogRmlyc3QgYXJndW1lbnQgbm90IGEgbnVtYmVyIQo+IFN5bnRheDog
+aTJjZGV0ZWN0IEkyQ0JVUwo+ICAgSTJDQlVTIGlzIGFuIGludGVnZXIKPiAgIEluc3RhbGxlZCBJ
+MkMgYnVzc2VzOgo+ICAgICBpMmMtMCAgICAgICBzbWJ1cyAgICAgICAgICAgU01CdXMgSTgwMSBh
+ZGFwdGVyIGF0IDA1MDAKPiBOb24tSTJDIFNNQnVzIGFkYXB0ZXIKPiAKPiBUaGlzIG1lYW5zIHRo
+YXQgdGhlIHZlcnNpb24gb2YgaTJjZGV0ZWN0IHlvdSBhcmUgdXNpbmcgaXQgdG9vIG9sZC4gTWFr
+ZQo+IHN1cmUgdGhhdCB5b3UgaGF2ZSBubyBvbGQgdmVyc2lvbiBvZiB0aGlzIHRvb2wgbHlpbmcg
+YXJvdW5kLiBUaGUgZXJyb3IKPiBjYXVzZXMgdGhlIFNNQnVzIG5vdCB0byBiZSBwcm9iZWQgYXQg
+YWxsLCB3aGljaCBpcyBwcm9iYWJseSB3aHkgeW91cgo+IFc4Mzc5MkQgY2hpcCB3YXMgbm90IGRl
+dGVjdGVkLiBXaXRoIGEgbmV3ZXIgdmVyc2lvbiBvZiBpMmNkZXRlY3QKPiBpbnN0YWxsZWQsIHNl
+bnNvcnMtZGV0ZWN0IHNob3VsZCB3b3JrIGZpbmUgKGhvcGVmdWxseSkuCj4gCj4gLS0KPiBKZWFu
+IERlbHZhcmUKPiBodHRwOi8va2hhbGkubGludXgtZnIub3JnLwoKPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBp
+bmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9u
+bHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Ig
+b2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4g
+dGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1h
+aWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0
+aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29t
+cHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlv
+dXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNl
+IG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hp
+Yml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJl
+bGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQg
+YXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUg
+dG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3Nh
+Z2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVu
+dCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1
+b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0
+pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl
+36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3M
+pf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqw
+VKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1
++KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
