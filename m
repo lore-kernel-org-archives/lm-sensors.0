@@ -1,54 +1,125 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:13 +0000
-Subject: Questions on LM Sensor
-Message-Id: <20030823215318.79a09558.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: [PATCH] i2c driver changes for 2.5.64
+Message-Id: <10476033213315@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Law10-F108KShPdHfKs00056d19@hotmail.com>
-In-Reply-To: <Law10-F108KShPdHfKs00056d19@hotmail.com>
+In-Reply-To: <10476033191486@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+
+ChangeSet 1.1108, 2003/03/13 11:38:03-08:00, greg@kroah.com
+
+i2c: get i2c-i801 driver to actually bind to a PCI device.
 
 
->   I have been going through the source code of lm_sensor, on the
->   w83627 
-> section particularly. From the source code flow, i managed to write
-> some code snippets which read all the PC health monitoring values from
-> the chip. However, I failed to inteprete some of those values.
-> 
->   Could you provide some guidelines on how to translate the "Voltage"
->   values 
-> collected directly from the monitoring register into the readable
-> format, i.e. those displayed on the CMOS setting.
-> 
->   Currently what i extracted from my program are as follows:
-> 
-> +3.3 VIN         : 202
-> +5 VIN            : 180
-> +12 VIN          : 195
-> fan 3 count      : 110
-> 
-> Values seen from CMOS setting are as follows:
-> 
-> V3P3             : 2.23 V
-> V5P0              : 4.86 V
-> V12P0            : 11.85 V
-> CPU Fan Speed : 6136 RPM
-> 
-> The question again is what is the formula which translates those
-> "Voltage" values from the 1st group into those in the second? I
-> managed to inteprete only the fan count into RPM, based on formula
-> given on the WinBond specification.
-> 
-> Any clue?
+ drivers/i2c/busses/i2c-i801.c |   74 +++++++++++++++++++++---------------------
+ 1 files changed, 38 insertions(+), 36 deletions(-)
 
-I don't understand what you are trying to do. We already have a driver
-(well, two) for the W83627HF. Why don't you simply use them?
 
-Anyway, the answer to your questions can be found in our source code and
-in Winbond's datasheet, which you can get from their website.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+diff -Nru a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c	Thu Mar 13 16:57:41 2003
++++ b/drivers/i2c/busses/i2c-i801.c	Thu Mar 13 16:57:41 2003
+@@ -128,49 +128,21 @@
+ static int i801_block_transaction(union i2c_smbus_data *data,
+ 				  char read_write, int command);
+ 
++static unsigned short i801_smba;
++static struct pci_dev *I801_dev;
++static int isich4;
+ 
+-
+-
+-static unsigned short i801_smba = 0;
+-static struct pci_dev *I801_dev = NULL;
+-static int isich4 = 0;
+-
+-/* Detect whether a I801 can be found, and initialize it, where necessary.
+-   Note the differences between kernels with the old PCI BIOS interface and
+-   newer kernels with the real PCI interface. In compat.h some things are
+-   defined to make the transition easier. */
+-int i801_setup(void)
++static int i801_setup(struct pci_dev *dev)
+ {
+ 	int error_return = 0;
+ 	int *num = supported;
+ 	unsigned char temp;
+ 
+-	/* First check whether we can access PCI at all */
+-	if (pci_present() = 0) {
+-		printk(KERN_WARNING "i2c-i801.o: Error: No PCI-bus found!\n");
+-		error_return = -ENODEV;
+-		goto END;
+-	}
+-
+-	/* Look for each chip */
+ 	/* Note: we keep on searching until we have found 'function 3' */
+-	I801_dev = NULL;
+-	do {
+-		if((I801_dev = pci_find_device(PCI_VENDOR_ID_INTEL,
+-					      *num, I801_dev))) {
+-			if(PCI_FUNC(I801_dev->devfn) != 3)
+-				continue;
+-			break;
+-		}
+-		num++;
+-	} while (*num != 0);
++	if(PCI_FUNC(dev->devfn) != 3)
++		return -ENODEV;
+ 
+-	if (I801_dev = NULL) {
+-		printk
+-		    (KERN_WARNING "i2c-i801.o: Error: Can't detect I801, function 3!\n");
+-		error_return = -ENODEV;
+-		goto END;
+-	}
++	I801_dev = dev;
+ 	isich4 = *num = PCI_DEVICE_ID_INTEL_82801DB_SMBUS;
+ 
+ /* Determine the address of the SMBus areas */
+@@ -658,13 +630,43 @@
+ 
+ 
+ static struct pci_device_id i801_ids[] __devinitdata = {
++	{
++		.vendor =	PCI_VENDOR_ID_INTEL,
++		.device =	PCI_DEVICE_ID_INTEL_82801AA_3,
++		.subvendor =	PCI_ANY_ID,
++		.subdevice =	PCI_ANY_ID,
++	},
++	{
++		.vendor =	PCI_VENDOR_ID_INTEL,
++		.device =	PCI_DEVICE_ID_INTEL_82801AB_3,
++		.subvendor =	PCI_ANY_ID,
++		.subdevice =	PCI_ANY_ID,
++	},
++	{
++		.vendor =	PCI_VENDOR_ID_INTEL,
++		.device =	PCI_DEVICE_ID_INTEL_82801BA_2,
++		.subvendor =	PCI_ANY_ID,
++		.subdevice =	PCI_ANY_ID,
++	},
++	{
++		.vendor =	PCI_VENDOR_ID_INTEL,
++		.device =	PCI_DEVICE_ID_INTEL_82801CA_SMBUS,
++		.subvendor =	PCI_ANY_ID,
++		.subdevice =	PCI_ANY_ID,
++	},
++	{
++		.vendor =	PCI_VENDOR_ID_INTEL,
++		.device =	PCI_DEVICE_ID_INTEL_82801DB_SMBUS,
++		.subvendor =	PCI_ANY_ID,
++		.subdevice =	PCI_ANY_ID,
++	},
+ 	{ 0, }
+ };
+ 
+ static int __devinit i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ {
+ 
+-	if (i801_setup()) {
++	if (i801_setup(dev)) {
+ 		printk
+ 		    (KERN_WARNING "i2c-i801.o: I801 not detected, module not inserted.\n");
+ 		return -ENODEV;
