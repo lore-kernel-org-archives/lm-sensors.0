@@ -1,47 +1,54 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH] I2C: Make master_xfer debug messages more useful
-Message-Id: <1112311390208@kroah.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] I2C: fix for fscpos voltage values
+Message-Id: <11099685943850@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1112311390987@kroah.com>
+In-Reply-To: <11099685944086@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+Cc: stefan@desire.ch
 
-ChangeSet 1.2328, 2005/03/31 14:07:05-08:00, khali@linux-fr.org
+ChangeSet 1.2089, 2005/03/02 11:59:41-08:00, stefan@desire.ch
 
-[PATCH] I2C: Make master_xfer debug messages more useful
+[PATCH] I2C: fix for fscpos voltage values
 
-While working on the recent saa7110 mess, I found that the debug message
-displayed when calling master_xfer wasn't as useful as it could be. Here
-is a patch improving this.
+Multiplied the voltage multipliers by 10 in order to comply with the sysfs
+guidelines.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
-
- drivers/i2c/i2c-core.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletion(-)
+Signed-off-by: Stefan Ott <stefan@desire.ch>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
-diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c	2005-03-31 15:18:36 -08:00
-+++ b/drivers/i2c/i2c-core.c	2005-03-31 15:18:36 -08:00
-@@ -587,7 +587,13 @@
- 	int ret;
+ drivers/i2c/chips/fscpos.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+
+diff -Nru a/drivers/i2c/chips/fscpos.c b/drivers/i2c/chips/fscpos.c
+--- a/drivers/i2c/chips/fscpos.c	2005-03-04 12:25:44 -08:00
++++ b/drivers/i2c/chips/fscpos.c	2005-03-04 12:25:44 -08:00
+@@ -244,19 +244,19 @@
+ static ssize_t show_volt_12(struct device *dev, char *buf)
+ {
+ 	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[0], 1420));
++	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[0], 14200));
+ }
  
- 	if (adap->algo->master_xfer) {
-- 	 	dev_dbg(&adap->dev, "master_xfer: with %d msgs.\n", num);
-+#ifdef DEBUG
-+		for (ret = 0; ret < num; ret++) {
-+			dev_dbg(&adap->dev, "master_xfer[%d] %c, addr=0x%02x, "
-+				"len=%d\n", ret, msgs[ret].flags & I2C_M_RD ?
-+				'R' : 'W', msgs[ret].addr, msgs[ret].len);
-+		}
-+#endif
+ static ssize_t show_volt_5(struct device *dev, char *buf)
+ {
+ 	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[1], 660));
++	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[1], 6600));
+ }
  
- 		down(&adap->bus_lock);
- 		ret = adap->algo->master_xfer(adap,msgs,num);
+ static ssize_t show_volt_batt(struct device *dev, char *buf)
+ {
+ 	struct fscpos_data *data = fscpos_update_device(dev);
+-	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[2], 330));
++	return sprintf(buf, "%u\n", VOLT_FROM_REG(data->volt[2], 3300));
+ }
+ 
+ /* Watchdog */
 
