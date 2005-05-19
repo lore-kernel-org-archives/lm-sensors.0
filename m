@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:24 +0000
+From: marc@paracel.com (Marc Rieffel)
+Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: Issues with Arima HDAMA Opteron Motherboard
-Message-Id: <3FAD94A6.F6AACE6C@paradyne.com>
+Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E4C8B2D@exch01.paracel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9D8C1A43309BAD4A9B46071DAF911D9E13FD85@exch01.paracel.com>
 In-Reply-To: <9D8C1A43309BAD4A9B46071DAF911D9E13FD85@exch01.paracel.com>
@@ -10,57 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-oops looks like that backport has my initials on it :(
-Sorry.
-If you need any help getting it working again let me know.
-mds
+I'm back to playing with lm_sensors and i2c, now 2.8.6 and 2.8.4, on the Arima HDAMA motherboard.  Only now I'm using a ROCKS 3.1 system, which is based on RHEL 3.0.  I notice that I still have the same problem I saw long ago,   
 
-Philip Pokorny wrote:
-> 
-> I found the source of the problem.
-> 
-> In the backport that created CVS version 1.23 from version 1.22 the
-> entire driver got pretty much wacked.  As a result, the entries that
-> were added to support the AMD8111 in 2.7.0 (version 1.22) got removed
-> along with just about all the rest of the code.
-> 
-> So that explains why 2.7.0 works and 2.8 and following don't.
-> 
-> The PCI device ID for the AMD756 compatible interface in the 8111 chip is:
-> 
->     0x746b
-> 
-> I'll try and find a few more minutes to work on the patch.
-> 
-> :v)
-> 
-> Jean Delvare wrote:
-> >>The problem is that the i2c-amd756 driver doesn't have the PCI entries
-> >>
-> >>for the AMD8111 in it.  The AMD8111 has *two* SMBus interfaces on it.
-> >>One is SMBus 2.0 and the other is the amd756 compatible bus that most
-> >>commonly has devices connected to it.
-> >>
-> >>(...)
-> >>
-> >>So it fails to attach to the chip and you don't have the BUS you need
-> >>to see the devices.
-> >>
-> >>I've been meaning to submit a patch for this, but I haven't had the
-> >>time to get one together.  The patch is very simple.
-> >
-> >
-> > Philip,
-> >
-> > That would be really great if you could find some time to commit that
-> > patch, especially if it is simple. This isn't the first user complaining
-> > about that problem.
-> >
-> > Thanks.
-> >
-> 
-> --
-> Philip Pokorny, Director of Engineering
-> Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-> PENGUIN COMPUTING, INC.
-> www.penguincomputing.com
+gcc -D__SMP__ -DMODVERSIONS -include /lib/modules/2.4.21-4.0.1.ELsmp/build/include/linux/modversions.h -I/lib/modules/2.4.21-4.0.1.ELsmp/build/include -nostdinc -I /usr/lib/gcc-lib/x86_64-redhat-linux/3.2.3/include -Wall -O2 -DLM_SENSORS -D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -fno-strict-aliasing -fno-common -fomit-frame-pointer -mno-red-zone -mcmodel=kernel -fno-reorder-blocks -finline-limit 00 -fno-strength-reduce -c kernel/i2c-algo-biths.c -o kernel/i2c-algo-biths.o
+/tmp/ccdTd1Ul.s: Assembler messages:
+/tmp/ccdTd1Ul.s:1437: Error: Incorrect register `%rdx' used with `l' suffix
+make: *** [kernel/i2c-algo-biths.o] Error 1
+
+I've removed it from Module.mk as you suggested in the past and now it builds OK, but I thought you might like to know that the problem is still there.
+
+Everything else worked just fine, though.  It detected the adm1026 chip automatically.
+
