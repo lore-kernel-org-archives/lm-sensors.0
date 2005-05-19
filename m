@@ -1,27 +1,39 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: Obscured email addresses in tickets
-Message-Id: <3F007579.4867DBBE@paradyne.com>
+From: tobias.edler@stud.uni-goettingen.de (Tobias Edler)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: Ticket #: 910: missing " in sensors-detect
+Message-Id: <3D06E2EB.4040007@stud.uni-goettingen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F00723D.4040000@edgedesign.us>
-In-Reply-To: <3F00723D.4040000@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-sounds good
+Hi !
+The problem is in sensors-detect, not in sensors.conf. in the CVS version.
+I just checked lm-sensors2 out via cvs, an the problem is still there.In
+prog/detect/sensors-detect in line 104, there's a " missing at the end
+of the statement:
 
-Philip Edelbrock wrote:
-> 
-> I tweaked the perl in the ticket system to obscure email addresses (e.g.
-> "this@that.com" is now "this at that dot com").  There aren't any
-> mailto: links, so I'm hoping that will be good enough to thwart most
-> spam harvesting engines.  I thought about removing the email addresses
-> completely, but I still would like folks to be able to contact each
-> other freely to discuss troubles w/o having to use us as an in-between
-> each time.
-> 
-> Does this sound OK?
-> 
-> Phil
+quote from the file:
+
+  {
+       vendid => 0x8086,
+       devid  => 0x24C3,
+       func => 3,
+       procid => "Intel 82801DB ICH4, <-- This is line 104.
+       driver => "i2c-i801",
+       match => sub { $_[0] =~ /^SMBus I801 adapter at [0-9,a-f]{4}/ },
+     } ,
+
+when I try to run prog/detect/sensors-detect, all I get is al long list
+of errors, "might be a run-away string from line ..."
+
+
+BTW: how can I join the ML ? I found nothing on the homepage.
+
+Regards from Germany
+-- 
+________
+\  |      GPG (PGP) Key: www.stud.uni-goettingen.de/~s242275/pgpkey.pub
+ \ |--    Jabber-ID at a-message.de: te_linuxguru
+  \|____  ICQ: 124557012
