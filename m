@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:23:46 +0000
 Subject: i2c and sensors for 2.4/2.5
-Message-Id: <3E28B7BA.80509@paradyne.com>
+Message-Id: <3E2C98E7.7040105@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.OSF.4.50.0301171830420.22376-101000@kosh.hut.fi>
 In-Reply-To: <Pine.OSF.4.50.0301171830420.22376-101000@kosh.hut.fi>
@@ -10,11 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-FYI
-2.5.59 contains:
+On the sensors side, I think you have asked for help on:
+	- all PCI drivers (I'll start with via686a)
+	- mkpatch (which I consider low priority)
 
-Christoph Hellwig <hch@lst.de>:
-  o remove more junk from i2c headers
+If you see anything on LKML about somebody volunteering for something
+and they didn't copy our list, please forward it.
+
+We should also remove check_region(), are you doing that
+or do you need a volunteer.
+Everything else in TODO I think you have tackled.
+
+I'll copy into TODO the other mail you sent about
+ACPI, etc.
+If ACPI and sensors use the same address space or
+even the same registers in a device, that could
+be a problem. With the new PCI layer, will it let
+two drivers claim the same region or not?
+
 
 
 Ky?sti M?lkki wrote:
