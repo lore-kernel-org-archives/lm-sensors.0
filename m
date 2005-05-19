@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:24:45 +0000
 Subject: i2c-amd756 and dual opteron sensors not foun
-Message-Id: <20040302015135.GB30448@earth.solarsys.private>
+Message-Id: <4044ED18.8070801@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E039AC86-6597-11D8-8D31-000A958E5EF8@defenderhosting.com>
 In-Reply-To: <E039AC86-6597-11D8-8D31-000A958E5EF8@defenderhosting.com>
@@ -10,64 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Quoting Charles Galpin <charles@defenderhosting.com>:
-> > How can I explain the concept of "activating the AMD-8111 SMBus" to 
-> > him? What do you need - memory locations to address the chip with?
-
-* Jean Delvare <khali@linux-fr.org> [2004-03-01 18:27:58 +0100]:
-> Modern computers are mostly made of PCI devices. This is what lspci
-> lists. Each device has one or more "functions" (understand:
-> sub-devices).  Devices also belong to a group or bus. This is the
-> meaning of the three values in front of lspci's line. For example,
-> "00:09.0" means bus 0, device 9, function 0.
+Jean Delvare wrote:
+> Quoting Philip Pokorny <ppokorny@penguincomputing.com>:
 > 
-> In your specific case your lspci shows:
-> (...)
-> 00:07.1 Class 0101: 1022:7469 (rev 03)
-> 00:07.3 Class 0680: 1022:746b (rev 05)
-> (...)
 > 
-> The AMD-8111 SMBus function has PCI ID 1022:746a. It should obvously
-> show between the two other lines as function 2 of PCI device 7 on bus
-> 0. But it does not.
+>>The ADM1027 is a monitoring chip.  There is a driver written for it.
+>>"adm1027"
+>>(...)
 > 
-> It is almost certain that this function *is* here (because the device
-> is, and you cannot easily remove a function from a given device). It it
-> doesn't show up, this is because the BIOS has been told to remove it
-> from the PCI devices list.
 > 
-> The reason why manufacturers sometimes do this are obscure. One often
-> heard reason is that it would frighten Windows user because it would
-> appear as a unknown device in the System panel. Anyway, we had to deal
-> with similar behaviors on some ALi and Intel chipsets so far. Never
-> with AMD.
+> Aha :) Philip, now I'm sure you have a filter on "lm85" ;)
 
-Also SiS chipsets.  Keep in mind that the BIOS comes from the board maker,
-not the chipset maker... e.g. both Asus/SiS and Asus/Intel boards often
-do this.
+No, I'm just incredibly busy at work right now.  No time for "fun".
 
-> Usually, the solution it to change the value of some bits in some place.
-> The question is: which bits, which place. We cannot guess that without
-> documentation.
-> 
-> So basically you need to ask them what operation is needed to re-enable
-> that specific PCI function.
+> FYI, the problem is not with the ADM1027 itself (if that's what it is)
+> but with activating the AMD-8111 bus it is supposed to be connected
+> to.
 
-If they won't tell you this, there may be another way:
+In the past, the motherboards I have worked with have put the sensors on 
+the i2c bus, not on the SMBus.  But we're sure this motherboard is 
+different?
 
-If they provide a system monitoring app for Windows, see if you can get
-it to run under Wine.  Email me off-list for help with that.  If you
-can get that working, we can probably find out how to enable the device.
-That's exactly what I did for the SiS96x quirk.
+> This much ressembles the hidden SMBus problem seen on ICH2 and ICH4
+> chips, as well as some ALi chips if I remember correctly. But we've
+> never seen it on AMD's so far, and I don't know how we can get
+> information about it.
+>
+> If you know anything about how we could activate that hidden 8111 bus,
+> please let us know!
 
-Jean: 
+The bits to enable or disable the SMBus should be documented in AMD's 
+8111 chip documentation.
 
-I quickly browsed through this datasheet, and I see nothing obvious...
+Those documents are available at www.amd.com.  Try here and download the 
+8111 I/O Hub documents:
 
-http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/24674.pdf
+http://www.amd.com/us-en/Processors/TechnicalResources/0,,30_182_739_9004,00.html
 
-Regards,
+:v)
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Philip Pokorny, Director of Engineering
+Tel: 415-954-2823   Fax: 415-954-2899   Toll Free: 888-PENGUIN
+PENGUIN COMPUTING, INC.
+www.penguincomputing.com
