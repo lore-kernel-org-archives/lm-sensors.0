@@ -1,33 +1,62 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:46 +0000
-Subject: ticket 1599 explanation
-Message-Id: <20040306182153.295ae36e.khali@linux-fr.org>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: sensors gives no useful output.
+Message-Id: <20030806183452.4755ebf8.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040306020526.50077.qmail@home.pl>
-In-Reply-To: <20040306020526.50077.qmail@home.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> It works !! Thanks!!
+On Wed, 6 Aug 2003 18:13:04 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-Great :)
 
-> There was a problem with line 10 of patch:
-> 
-> patching file src/i2c-riva.c
-> patch: **** malformed patch at line 10: };
-> 
-> But I replaced two lines manually and now everything works great.
+> Other addresses are abviously used by the eeprom and lm75 modules.
+> Unload them (and dmasound_pmac again), and run sensors-detect again. You
+> should see the same things you first saw. If you could log the whole
+> thing, I'd like to take a look. You may use "script" to do that (run
+> "script sensors-detect.log", then "sensors-detect", then "exit", and you
+> have a nice logfile).
+ok, done that. And followed the instructions of the 'sensors-detect' output. I did not ad the lines to /etc/rc.* as the lm75 and eeprom are already loaded at bootup.
 
-I guess that your mail client broke the inline patch... Well, as long as
-you got it to work :)
+My sensors output now is:
+lm75-i2c-0-48
+Adapter: uni-n 0
+Algorithm: Keywest i2c
+temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
 
-I've submitted a bug report to the rivatv folks, with that patch, so
-that they can "correct" it in CVS too (also I wouldn't call this a bug
-of theirs).
+lm75-i2c-0-49
+Adapter: uni-n 0
+Algorithm: Keywest i2c
+temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+eeprom-i2c-0-50
+Adapter: uni-n 0
+Algorithm: Keywest i2c
+
+lm75-i2c-1-48
+Adapter: uni-n 1
+Algorithm: Keywest i2c
+temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
+
+lm75-i2c-1-49
+Adapter: uni-n 1
+Algorithm: Keywest i2c
+temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
+
+eeprom-i2c-1-50
+Adapter: uni-n 1
+Algorithm: Keywest i2c
+
+eeprom-i2c-2-56
+Adapter: mac-io 0
+Algorithm: Keywest i2c
+Machine name:
+Serial number:
+
+Any hints to get some useful output?
+
+Thanks for feedback.
+
+Zeno
