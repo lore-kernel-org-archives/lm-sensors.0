@@ -1,120 +1,56 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH] I2C: Cleanups to the eeprom driver
-Message-Id: <1105998395257@kroah.com>
+From: mds@paradyne.com (Mark D. Studebaker )
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: tkt 1137
+Message-Id: <3E6A6AC0.2000504@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11059983951840@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2329.2.6, 2005/01/14 14:43:10-08:00, khali@linux-fr.org
+your temp1 and temp2 registers (0x20 -21) are FF. So they aren't connected
+(unless there is an undocumented configuration bit that needs to be set,
+but we haven't seen this problem before).
+Your other temps are probably connected to a different chip.
+You may wish to ask the board mfr. for connection information.
 
-[PATCH] I2C: Cleanups to the eeprom driver
-
-Here comes a cleanup patch to the i2c eeprom client driver:
-
-* Get rid of the unused i2c_client client_id.
-* Get rid of the redundant non-ISA bus check.
-* Fix the adapter capability check. We were previously using
-  capabilities without checking if they were supported. Document
-  which capabilities are required and which are optional.
-* Reorder things a bit. In particular, wait to have a valid client
-  before we bother checking if this is a Vaio EEPROM.
-* Use strlcpy instead of strncpy, because I Heard It Was Better (TM) and
-  all other chip drivers use it.
-* Take benefit of the auto-increment feature of EEPROMs to speed up the
-  Vaio check.
-* Display an information message when a Vaio EEPROM is detected.
-
-Tested successfully on my laptop, which happens to be a Vaio.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-
- drivers/i2c/chips/eeprom.c |   47 +++++++++++++++++++++------------------------
- 1 files changed, 22 insertions(+), 25 deletions(-)
-
-
-diff -Nru a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
---- a/drivers/i2c/chips/eeprom.c	2005-01-17 13:20:34 -08:00
-+++ b/drivers/i2c/chips/eeprom.c	2005-01-17 13:20:34 -08:00
-@@ -78,8 +78,6 @@
- 	.detach_client	= eeprom_detach_client,
- };
- 
--static int eeprom_id;
--
- static void eeprom_update_client(struct i2c_client *client, u8 slice)
- {
- 	struct eeprom_data *data = i2c_get_clientdata(client);
-@@ -165,16 +163,14 @@
- 	struct eeprom_data *data;
- 	int err = 0;
- 
--	/* Make sure we aren't probing the ISA bus!! This is just a safety check
--	   at this moment; i2c_detect really won't call us. */
--#ifdef DEBUG
--	if (i2c_is_isa_adapter(adapter)) {
--		dev_dbg(&adapter->dev, " eeprom_detect called for an ISA bus adapter?!?\n");
--		return 0;
--	}
--#endif
--
--	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+	/* There are three ways we can read the EEPROM data:
-+	   (1) I2C block reads (faster, but unsupported by most adapters)
-+	   (2) Consecutive byte reads (100% overhead)
-+	   (3) Regular byte data reads (200% overhead)
-+	   The third method is not implemented by this driver because all
-+	   known adapters support at least the second. */
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA
-+					    | I2C_FUNC_SMBUS_BYTE))
- 		goto exit;
- 
- 	/* OK. For now, we presume we have a valid client. We now create the
-@@ -197,26 +193,27 @@
- 	/* prevent 24RF08 corruption */
- 	i2c_smbus_write_quick(new_client, 0);
- 
--	data->nature = UNKNOWN;
--	/* Detect the Vaio nature of EEPROMs.
--	   We use the "PCG-" prefix as the signature. */
--	if (address = 0x57) {
--		if (i2c_smbus_read_byte_data(new_client, 0x80) = 'P' && 
--		    i2c_smbus_read_byte_data(new_client, 0x81) = 'C' && 
--		    i2c_smbus_read_byte_data(new_client, 0x82) = 'G' &&
--		    i2c_smbus_read_byte_data(new_client, 0x83) = '-')
--			data->nature = VAIO;
--	}
--
- 	/* Fill in the remaining client fields */
--	strncpy(new_client->name, "eeprom", I2C_NAME_SIZE);
--	new_client->id = eeprom_id++;
-+	strlcpy(new_client->name, "eeprom", I2C_NAME_SIZE);
- 	data->valid = 0;
- 	init_MUTEX(&data->update_lock);
-+	data->nature = UNKNOWN;
- 
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(new_client)))
- 		goto exit_kfree;
-+
-+	/* Detect the Vaio nature of EEPROMs.
-+	   We use the "PCG-" prefix as the signature. */
-+	if (address = 0x57) {
-+		if (i2c_smbus_read_byte_data(new_client, 0x80) = 'P'
-+		 && i2c_smbus_read_byte(new_client) = 'C'
-+		 && i2c_smbus_read_byte(new_client) = 'G'
-+		 && i2c_smbus_read_byte(new_client) = '-')
-+			dev_info(&new_client->dev, "Vaio EEPROM detected, "
-+				"enabling password protection\n");
-+			data->nature = VAIO;
-+	}
- 
- 	/* create the sysfs eeprom file */
- 	sysfs_create_bin_file(&new_client->dev.kobj, &eeprom_attr);
-
+Marek Cervenka wrote:
+>>Your Lm_sensors support entry has been updated.
+>>
+>>Please go to http://secure.netroedge.com/~lm78/support.html to check
+>>the status of your entry.  
+>>
+>>Ticket # 1137
+> 
+> 
+> refering to ticket 1137
+> 
+> [root@backupnode root]# isadump -f 0x6000
+>   WARNING! Running this program can cause system crashes, data loss and 
+> worse!
+>   I will probe address range 0x6000 to 0x60ff.
+>   You have five seconds to reconsider and press CTRL-C!
+> 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01
+> 10: 00 00 00 ff 8a ff 9e 81 00 00 00 00 00 c7 b7 81
+> 20: ff ff 87 0e ca c6 c6 7f 7f 8a 00 ff 00 e7 bd e4
+> 30: ba de b5 dc b4 ab d1 ab 06 c7 b7 e1 e1 c7 b7 a2
+> 40: 01 12 1a 00 00 00 00 50 2d 65 00 80 00 00 00 00
+> 50: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01
+> 60: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01
+> 70: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01
+> 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> 
+> 
+> other info: i have the same motherboard in other PC (with redhat 7.2 
+> kernel 2.4.19 (patch) lm_sensor 2.6.5 + utils 2.7.0) 
+> temperature in this PC is reported correctly
+> 
