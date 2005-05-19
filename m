@@ -1,36 +1,48 @@
-From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: lm_sensors 2.8.5 on i2c 2.8.2: `I2C_DRIVERID_ADM1026' undeclared
-Message-Id: <20040309090846.GG17881@neu.nirvana>
+Message-Id: <1078827479.404d99d746dff@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040309090846.GG17881@neu.nirvana>
+In-Reply-To: <20040309090846.GG17881@neu.nirvana>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Quoting Axel Thimm <Axel.Thimm@physik.fu-berlin.de>:
 
-I tried to build lm_sensors for the RH9 kernels, for which I have i2c
-2.8.2. The build fails with
+> I tried to build lm_sensors for the RH9 kernels, for which I have
+> i2c 2.8.2. The build fails with (...)
+> kernel/chips/adm1026.c:385: `I2C_DRIVERID_ADM1026' undeclared here
+> (not in a function)
+> (...)
+> make: *** [kernel/chips/adm1026.o] Error 1
+> 
+> Did I do something wrong, or does lm_sensors still need newer i2c in
+> the kernel?
 
-gcc  -DMODVERSIONS -include /amd/heretic/1/data_nobkp/bach/bach-kernel/rh9/2.4.20-30_37.rh9.at-i686/include/linux/modversions.h -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomi
-t-frame-pointer -I. -Ikernel/include -I/amd/heretic/1/data_nobkp/bach/bach-kernel/rh9/2.4.20-30_37.rh9.at-i686/include  -I/amd/heretic/1/data_nobkp/bach/bach-kernel/rh9/2.
-4.20-30_37.rh9.at-i686/include -nostdinc -I /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/include  -Wall -O2  -c kernel/chips/adm1026.c -o kernel/chips/adm1026.o
-kernel/chips/adm1026.c:385: `I2C_DRIVERID_ADM1026' undeclared here (not in a function)
-kernel/chips/adm1026.c:385: initializer element is not constant
-kernel/chips/adm1026.c:385: (near initialization for `adm1026_driver.id')
-make: *** [kernel/chips/adm1026.o] Error 1
+My bad, I forgot this one :(
 
-Did I do something wrong, or does lm_sensors still need newer i2c in the kernel?
+You can add these lines right after the includes in adm1026.c:
 
-Thanks!
-P.S. lm_sensors 2.8.5 for FC1 build fine and will be upload later today.
+#ifndef I2C_DRIVERID_ADM1026
+#define I2C_DRIVERID_ADM1026	1048
+#endif
+
+And it should then compile correctly.
+
+I'll fix that in CVS this evening (UTC +0100).
+
+> Thanks!
+> P.S. lm_sensors 2.8.5 for FC1 build fine and will be upload later
+> today.
+
+Great :)
+
+Sorry for the trouble again,
+thanks.
+
 -- 
-Axel.Thimm@physik.fu-berlin.de
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040309/c7716222/attachment.bin
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
