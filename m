@@ -1,57 +1,44 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:57 +0000
 Subject: RFC parameter based voltage scaling
-Message-Id: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
+Message-Id: <RPaRl8wR.1115645736.3506290.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
+In-Reply-To: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
 
-Parameter based conversions is an easy way for drivers to scale 
-voltages with fixed point math.
+Hi Grant,
 
-I've written fixed point math routines in bash to prove the concept, 
-but if driver scaling has been vetoed, I'd rather know now than 
-submit something unwanted.  lm87 driver almost has it, carrying 
-scaling factors in private memory, loaded at chip detect time.
+> I've written fixed point math routines in bash to prove the concept,
+> but if driver scaling has been vetoed, I'd rather know now than
+> submit something unwanted.  lm87 driver almost has it, carrying
+> scaling factors in private memory, loaded at chip detect time.
 
-Surveying the Winbond sensor chips, I came up with:
+The rule is: drivers should provide the voltages as seen at their pins.
+This means that, where scaling is external, it has to be done in
+user-space, while where scaling is internal, it has to be done by the
+driver itself. All drivers respect that rule as far as I remember.
 
-/*
- * Winbond inX internal scaling -- fullscale is 4096mV, Vref is 3600mV
- *
- * These sensor chips perform internal scaling for 5V (in3) and 5VSB
- * Using datasheet resistor values for traceability:
- *
- * 83781D, 83782D, 83783D, 83L784R      5V is 34/50
- * 83726F, 83726HF, 83697HF             5V is 34/50, 5VSB is 17/33
- * 83627THF, 83637HF                    5V is 34/51, 5VSB is 34/51
- */
-static const u8 r1[] = {0, 0, 0, 34, 0, 0, 0, 17, 0};
-static const u8 r2[] = {1, 1, 1, 50, 1, 1, 1, 33, 1};
+> * Winbond inX internal scaling -- fullscale is 4096mV, Vref is 3600mV
+> *
+> * These sensor chips perform internal scaling for 5V (in3) and 5VSB
 
-static inline unsigned long IN_FROM_REG(u8 reg, int n)
-{
-        return SCALE(reg, 4096 * (r1[n] + r2[n]), 256 * r2[n]);
-}
+I don't think so. Can you point us to a datasheet stating this?
 
-static inline u8 IN_TO_REG(unsigned long val, int n)
-{
-        return SENSORS_LIMIT(SCALE(val, 256 * r2[n],
-                                4096 * (r1[n] + r2[n])), 0, 255);
-}
+> Comments?
 
-Of course a 'real' driver would have the table in private memory and 
-load appropriate values on chip detect, lm87 does this, worth doing 
-for Winbond?
+Your code makes sense for external resistors, but not for internal
+scaling as far as I can see, so it won't be of any help in the drivers.
+And libsensors mostly works the way you describe already, just not in as
+formal a way (because compute lines were meant for all values, not just
+voltages).
 
-There is not much more to making some of the values preset to chip 
-standard values for +12 and negative, and making those external to 
-sensor chip values settable from user-space.
+So all in all I think that you are trying to fix a problem that doesn't
+exist in the first place, sorry.
 
-Comments?  
-
---Grant.
+--
+Jean Delvare
