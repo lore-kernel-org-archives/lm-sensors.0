@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: call for 2.6.6
-Message-Id: <3DD68CA1.702D4602@paradyne.com>
+Message-Id: <20021117110954.784c06de.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3DD5999A.49A03347@paradyne.com>
 In-Reply-To: <3DD5999A.49A03347@paradyne.com>
@@ -10,27 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> I don't know about the adm1021 module. What would it cost not to use the
-> SENSORS_INSMOD_8 thing?
-> 
+(Resending.)
 
-It was added for mc1066 support in adm1021. The only way around it
-is to combine support for some of the 8 different chips and report
-only 7 different chip types max.
+> > I don't know about the adm1021 module. What would it cost not to use
+> > the SENSORS_INSMOD_8 thing?
+> It was added for mc1066 support in adm1021. The only way around it
+> is to combine support for some of the 8 different chips and report
+> only 7 different chip types max.
+OK I get it. This workaround isn't acceptable IMHO (makes things more
+complex to understand with no benefit except the dependency issue).
 
-> I don't think we have to care about the dependency issue. 15 months is
-> really much, there were many fixes to i2c since, and having people
-> upgrade can't hurt. If for any reason they don't want to, 2.6.3 to 2.6.5
-> are working for almost everyone (at least, one of these is working for
-> each one).
-> 
-> Does 2.7.0 mean "developement/unstable tree" for you? I think it will
-> sound like that for almost everyone, including me. And if this means
-> less support issues, it also means less feedback IMHO, so it's worth
-> discussing.
-> 
+The fact that you need to have one macro for each possible number of
+chips associated with one driver is weird. What if there's another chip
+supported by adm1021? And then another again? We break the dependencies
+each time. Could we find some cleaner method? I have no idea for now,
+but there's a need.
 
-Doesn't mean unstable to me. We don't use the odd/even system, we've
-been
-stable for years :)
+> > Does 2.7.0 mean "developement/unstable tree" for you? I think it
+> > will sound like that for almost everyone, including me. And if this
+> > means less support issues, it also means less feedback IMHO, so it's
+> > worth discussing.
+> Doesn't mean unstable to me. We don't use the odd/even system, we've
+> been stable for years :)
+
+Well, the SENSORS_INSMOD_42 issue together with the need for dynamic
+allocations for bmcsensors makes me think that we could want a 2.7.0
+release, with the unstable meaning associated. Try to move back to
+cleaner code (I read that there are a lot of hacks in the recent code
+you commited, right?), even if it means a one-on-one dependency between
+i2c and lm_sensors releases for some time. When we're OK, we move to
+2.8.0. Simple suggestion of course, my knowledge of the code and
+possibilities to enhance it is really thin. If there is no way to clean
+the code or you don't think we (globally) have the time/manpower
+required to do so, we keep the things the way they are.
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
