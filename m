@@ -1,66 +1,59 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: compiling on alpha
-Message-Id: <20030612032625.GA23949@earth.solarsys.private>
+From: henk.vergonet@t-mobile.nl (Vergonet, Henk)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: New i2c bus driver for S3/VIA chipsets
+Message-Id: <5488F12E9B54CC4C9FF74BBE0F08959A07E034D7@ben-hqmail01.ben.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030407161316.GA579@mcelrath.org>
-In-Reply-To: <20030407161316.GA579@mcelrath.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Mark D. Studebaker <mds@paradyne.com> [2003-06-11 21:15:36 -0400]:
-> >From early April.
-> Do we want to tackle this?
 
-Seems like the better option for non-x86 would be mkpatch, if it works.
+Gentlemen (women?), 
 
-> MH, what about GFP_ATOMIC?
+I would like to submit a new i2c backend driver (GPL), can you give me a
+hint
+on how to get this in the standard lm_sensors development tree?
 
-Done.  Probably won't help i2c-sis645 to load on an alpha. ;)
+Is there a public mailing list I could send the code as an atachment?
 
-> 
-> Mark D. Studebaker wrote:
-> >thanks, we'll try to incorporate these mds
-> >
-> >Bob McElrath wrote:
-> >
-> >>I am attempting to get the sensors package to compile on alpha (kernel
-> >>2.4.21-pre7), and it does not do so cleanly.  I am using the
-> >>lm-sensors-source package which is included in debian.  It has a version
-> >>2.6.5 from 20020915.  (If the bugs I mention below have been fixed in a
-> >>newer version then please disregard this mail)
-> >>
-> >>First, the file kernel/busses/i2c-sis645.c must include the header
-> >><linux/mm.h> in order to get the symbol GFP_ATOMIC.
-> >>
-> >>Second, the Makefile should grab the necessary CFLAGS for modules from
-> >>the linux/arch/$(arch)/Makefile.  This can be done with a little
-> >>makefile code like this:
-> >>    LINUX_SOURCE := /usr/src/linux
-> >>    ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ 
-> >>-e s/arm.*/arm/ -e s/sa110/arm/)
-> >>    include $(LINUX_SOURCE)/arch/$(ARCH)/Makefile
-> >>This will of course set CFLAGS so maybe save it and put it in MODCFLAGS
-> >>for your makefile.  In particular on alpha the compile bombs with:
-> >>    /tmp/ccEu5TN5.s: Assembler messages:
-> >>    /tmp/ccEu5TN5.s:73: Error: macro requires $at register while noat 
-> >>in effect
-> >>unless the compiler flag -mcpu=ev67 is included.  (or whatever CPU the
-> >>user has)
-> >>
-> >>Cheers,
-> >>Bob McElrath [Univ. of Wisconsin at Madison, Department of Physics]
-> >>
-> >>    "You measure democracy by the freedom it gives its dissidents, not 
-> >>the
-> >>    freedom it gives its assimilated conformists." -- Abbie Hoffman
-> >>
-> >
+Can you reserve a adaptor ID for this hardware driver? For example:
 
-Regards,
+#define I2C_HW_B_S3VIA	0x13	/* S3VIA ProSavage adapter		*/
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+
+Kind Regards,
+
+Henk Vergonet
+
+
+
+/*  18-05-2003 - created
+ *
+ *  This driver interfaces to the I2C bus of the VIA north bridge embedded
+ *  ProSavage4/8 devices. Usefull for gaining access to the TV Encoder
+chips.
+ *
+ *  Two serial busses are implemented:
+ *   SERIAL1 - I2C serial communications interface
+ *   SERIAL2 - DDC2 monitor communications interface
+ *
+ *  Should work for these graphics cores (and possibly others):
+ *   S3/VIA KM266/VT8375 aka ProSavage8
+ *   S3/VIA KM133/VT8365 aka Savage4
+ *
+ *  Only tested on a FX41 mainboard, see http://www.shuttle.com
+ * 
+ *
+ */
+
+
+
+
+
+N.B.: op (de inhoud van) deze e-mail is een DISCLAIMER met belangrijke
+VOORBEHOUDEN van toepassing: zie http://www.t-mobile.nl/disclaimer 
+
+This e-mail and its contents are subject to a DISCLAIMER with important
+RESERVATIONS: see http://www.t-mobile.nl/disclaimer 
+
