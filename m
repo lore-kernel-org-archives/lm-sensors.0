@@ -1,51 +1,65 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:36 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <yLKFpvUU.1107518117.7806190.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190748@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> Provided that I have successfully ported w83792d.c from linux-2.4 to 2.6,
-> How should I add it into the linux kernel tree linux-2.6.10 for test?
-> I have tried the following steps:
-> (1)Add a file w83792d.c into the directory
->   /usr/src/linux-2.6.10/drivers/i2c/chips/
-
-Correct.
-
-> (2) modify /usr/src/linux-2.6.10/drivers/i2c/chips/Makefile (add 792 part)
-
-Correct again.
-
-> (3) modify /usr/src/linux-2.6.10/.config (add 792 part)
-
-Not correct. You need to edit
-/usr/src/linux-2.6.10/drivers/i2c/chips/Kconfig, where you'd add a
-section for the w83792d driver, just copy, paste and edit from another
-chip's section.
-
-Once done, use "make oldconfig" or "make menuconfig" to enable the
-new driver, preferably as a module. You can edit .config manually but
-that's definitely not the easiest way!
-
-> Btw, the Documentation/i2c/writing-clients in linux-2.6.10 and 
-> linux-2.6.11-rc3 is NOT for linux-2.6, but for linux-2.4. You need to
-> update it.
-
-You are right, this file is severly outdated, and would need an update.
-Probably not everything needs to be, the overall structure of the
-document seems correct, the major change would be to remove all
-references to procfs and replace with sysfs info. Feel free to propose a
-corrective patch for that file!
-
-Thanks,
---
-Jean Delvare
+SGkgSmVhbgoKV2l0aCB5b3VyIGhlbHAsIEkgZ2V0IHRoZSBwb3J0aW5nIGVudmlyb25tZW50IG5v
+dy4gOi0pClRoYW5rcwoKQmVzdCBSZWdhcmRzCkNodW5oYW8KCgo+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tCj4gRnJvbTogSmVhbiBEZWx2YXJlIFttYWlsdG86a2hhbGlAbGludXgtZnIub3Jn
+XQo+IFNlbnQ6IDIwMDXE6jLUwjTI1SAxOTo1NQo+IFRvOiBQSTE0IEhVQU5HMAo+IENjOiBQSTEw
+IExISHN1OyBQSTE0IERaU0hFTjsgTE0gU2Vuc29ycwo+IFN1YmplY3Q6IFJFOiBXZSB3aWxsIHBv
+cnQgdzgzNzkyZC5jIHRvIGxpbnV4LTIuNgo+IAo+IAo+IEhpIENodW5oYW8sCj4gCj4gPiBQcm92
+aWRlZCB0aGF0IEkgaGF2ZSBzdWNjZXNzZnVsbHkgcG9ydGVkIHc4Mzc5MmQuYyBmcm9tIGxpbnV4
+LTIuNCB0byAyLjYsCj4gPiBIb3cgc2hvdWxkIEkgYWRkIGl0IGludG8gdGhlIGxpbnV4IGtlcm5l
+bCB0cmVlIGxpbnV4LTIuNi4xMCBmb3IgdGVzdD8KPiA+IEkgaGF2ZSB0cmllZCB0aGUgZm9sbG93
+aW5nIHN0ZXBzOgo+ID4gKDEpQWRkIGEgZmlsZSB3ODM3OTJkLmMgaW50byB0aGUgZGlyZWN0b3J5
+Cj4gPiAgIC91c3Ivc3JjL2xpbnV4LTIuNi4xMC9kcml2ZXJzL2kyYy9jaGlwcy8KPiAKPiBDb3Jy
+ZWN0Lgo+IAo+ID4gKDIpIG1vZGlmeSAvdXNyL3NyYy9saW51eC0yLjYuMTAvZHJpdmVycy9pMmMv
+Y2hpcHMvTWFrZWZpbGUgKGFkZCA3OTIgcGFydCkKPiAKPiBDb3JyZWN0IGFnYWluLgo+IAo+ID4g
+KDMpIG1vZGlmeSAvdXNyL3NyYy9saW51eC0yLjYuMTAvLmNvbmZpZyAoYWRkIDc5MiBwYXJ0KQo+
+IAo+IE5vdCBjb3JyZWN0LiBZb3UgbmVlZCB0byBlZGl0Cj4gL3Vzci9zcmMvbGludXgtMi42LjEw
+L2RyaXZlcnMvaTJjL2NoaXBzL0tjb25maWcsIHdoZXJlIHlvdSdkIGFkZCBhCj4gc2VjdGlvbiBm
+b3IgdGhlIHc4Mzc5MmQgZHJpdmVyLCBqdXN0IGNvcHksIHBhc3RlIGFuZCBlZGl0IGZyb20gYW5v
+dGhlcgo+IGNoaXAncyBzZWN0aW9uLgo+IAo+IE9uY2UgZG9uZSwgdXNlICJtYWtlIG9sZGNvbmZp
+ZyIgb3IgIm1ha2UgbWVudWNvbmZpZyIgdG8gZW5hYmxlIHRoZQo+IG5ldyBkcml2ZXIsIHByZWZl
+cmFibHkgYXMgYSBtb2R1bGUuIFlvdSBjYW4gZWRpdCAuY29uZmlnIG1hbnVhbGx5IGJ1dAo+IHRo
+YXQncyBkZWZpbml0ZWx5IG5vdCB0aGUgZWFzaWVzdCB3YXkhCj4gCj4gPiBCdHcsIHRoZSBEb2N1
+bWVudGF0aW9uL2kyYy93cml0aW5nLWNsaWVudHMgaW4gbGludXgtMi42LjEwIGFuZAo+ID4gbGlu
+dXgtMi42LjExLXJjMyBpcyBOT1QgZm9yIGxpbnV4LTIuNiwgYnV0IGZvciBsaW51eC0yLjQuIFlv
+dSBuZWVkIHRvCj4gPiB1cGRhdGUgaXQuCj4gCj4gWW91IGFyZSByaWdodCwgdGhpcyBmaWxlIGlz
+IHNldmVybHkgb3V0ZGF0ZWQsIGFuZCB3b3VsZCBuZWVkIGFuIHVwZGF0ZS4KPiBQcm9iYWJseSBu
+b3QgZXZlcnl0aGluZyBuZWVkcyB0byBiZSwgdGhlIG92ZXJhbGwgc3RydWN0dXJlIG9mIHRoZQo+
+IGRvY3VtZW50IHNlZW1zIGNvcnJlY3QsIHRoZSBtYWpvciBjaGFuZ2Ugd291bGQgYmUgdG8gcmVt
+b3ZlIGFsbAo+IHJlZmVyZW5jZXMgdG8gcHJvY2ZzIGFuZCByZXBsYWNlIHdpdGggc3lzZnMgaW5m
+by4gRmVlbCBmcmVlIHRvIHByb3Bvc2UgYQo+IGNvcnJlY3RpdmUgcGF0Y2ggZm9yIHRoYXQgZmls
+ZSEKPiAKPiBUaGFua3MsCj4gLS0KPiBKZWFuIERlbHZhcmUKCj09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5m
+b3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5
+IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9m
+IHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRo
+aXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWls
+IHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGlu
+ZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1
+dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3Vy
+IGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBv
+ZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJp
+dGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxh
+dGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFz
+IG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRv
+IGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdl
+LiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQg
+YWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+r
+SKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9Kbz
+reymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+n
+WbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9
+prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSq
+uqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7Fvtfis
+sLXYqLm5caRspKel37P1qc63TqijLgo=
