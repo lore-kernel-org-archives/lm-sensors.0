@@ -1,220 +1,32 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: [PATCH 2.6] Documentation for i2c-parport
-Message-Id: <20040707081936.5f48db6a.khali@linux-fr.org>
+Message-Id: <20040708230633.GB20431@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040707081936.5f48db6a.khali@linux-fr.org>
+In-Reply-To: <20040707081936.5f48db6a.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+On Wed, Jul 07, 2004 at 08:19:36AM +0200, Jean Delvare wrote:
+> Hi Greg,
+> 
+> At least, the i2c-parport gets some documentation. I heard several
+> persons complaining that there was no sample electronics schema for
+> building their own i2c-over-parallel-port, so I did just that, with the
+> help of Sylvain Munaut. The documentation also includes the list of
+> supported adapters, and a short comparison with other drivers using the
+> parallel port to drive an i2c bus. At the end of the document I included
+> an updated version of the i2c-velleman doc file (which I then deleted).
 
-At least, the i2c-parport gets some documentation. I heard several
-persons complaining that there was no sample electronics schema for
-building their own i2c-over-parallel-port, so I did just that, with the
-help of Sylvain Munaut. The documentation also includes the list of
-supported adapters, and a short comparison with other drivers using the
-parallel port to drive an i2c bus. At the end of the document I included
-an updated version of the i2c-velleman doc file (which I then deleted).
+Applied, thanks.
 
-This also raises a question about Documentation/i2c/i2c-pport. Should we
-keep a document about a driver which is not in the kernel tree (and
-hasn't even been ported to 2.6 yet)?
+> This also raises a question about Documentation/i2c/i2c-pport. Should we
+> keep a document about a driver which is not in the kernel tree (and
+> hasn't even been ported to 2.6 yet)?
 
-Please apply,
-Thanks.
+No we should not.  Care to send a patch to delete it?
 
-Signed-off-by: Jean Delvare <khali at linux-fr dot org>
-
-diff -ruN linux-2.6.7-mm5/Documentation/i2c.orig/i2c-parport linux-2.6.7-mm5/Documentation/i2c/i2c-parport
---- linux-2.6.7-mm5/Documentation/i2c.orig/i2c-parport	Thu Jan  1 01:00:00 1970
-+++ linux-2.6.7-mm5/Documentation/i2c/i2c-parport	Tue Jul  6 16:43:39 2004
-@@ -0,0 +1,156 @@
-+=========
-+i2c-parport driver
-+=========
-+
-+2004-07-06, Jean Delvare
-+
-+This is a unified driver for several i2c-over-parallel-port adapters,
-+such as the ones made by Philips, Velleman or ELV. This driver is
-+meant as a replacement for the older, individual drivers:
-+ * i2c-philips-par
-+ * i2c-elv
-+ * i2c-velleman
-+ * video/i2c-parport (NOT the same as this one, dedicated to home brew
-+                      teletext adapters)
-+
-+It currently supports the following devices:
-+ * Philips adapter
-+ * home brew teletext adapter
-+ * Velleman K8000 adapter
-+ * ELV adapter
-+ * Analog Devices evaluation boards (ADM1025, ADM1030, ADM1031, ADM1032)
-+
-+These devices use different pinout configurations, so you have to tell
-+the driver what you have, using the type module parameter. There is no
-+way to autodetect the devices. Support for different pinout configurations
-+can be easily added when needed.
-+
-+
-+Building your own adapter
-+-------------------------
-+
-+If you want to build you own i2c-over-parallel-port adapter, here is
-+a sample electronics schema (credits go to Sylvain Munaut):
-+
-+Device                                                      PC
-+Side          ___________________Vdd (+)                    Side
-+               |    |         |
-+              ---  ---       ---
-+              | |  | |       | |
-+              |R|  |R|       |R|
-+              | |  | |       | |
-+              ---  ---       ---
-+               |    |         |
-+               |    |    /|   |
-+SCL  ----------x--------o |-----------x-------------------  pin 2
-+                    |    \|   |       |
-+                    |         |       |
-+                    |   |\    |       |
-+SDA  ----------x----x---| o---x---------------------------  pin 13
-+               |        |/            |
-+               |                      |
-+               |         /|           |
-+               ---------o |----------------x--------------  pin 3
-+                         \|           |    |
-+                                      |    |
-+                                     ---  ---
-+                                     | |  | |
-+                                     |R|  |R|
-+                                     | |  | |
-+                                     ---  ---
-+                                      |    | 
-+                                     ###  ###
-+                                     GND  GND
-+        
-+Remarks:
-+ - This is the exact pinout and electronics used on the Analog Devices
-+   evaluation boards.
-+                   /|
-+ - All inverters -o |- must be 74HC05, they must be open collector output.
-+                   \|
-+ - All resitors are 10k.
-+ - Pins 18-25 of the parallel port connected to GND.
-+ - Pins 4-9 (D2-D7) could be used as VDD is the driver drives them high.
-+   The ADM1032 evaluation board uses D4-D7. Beware that the amount of
-+   current you can draw from the parallel port is limited. Also note that
-+   all connected lines MUST BE driven at the same state, else you'll short
-+   circuit the output buffers! So plugging the I2C adapter after loading
-+   the i2c-parport module might be a good safety since data line state
-+   prior to init may be unknown. 
-+ - This is 5V!
-+ - Obviously you cannot read SCL (so it's not really standard-compliant).
-+   Pretty easy to add, just copy the SDA part and use another input pin.
-+   That would give (ELV compatible pinout):
-+
-+
-+Device                                                      PC
-+Side          ______________________________Vdd (+)         Side
-+               |    |            |    |
-+              ---  ---          ---  ---
-+              | |  | |          | |  | |
-+              |R|  |R|          |R|  |R|
-+              | |  | |          | |  | |
-+              ---  ---          ---  ---
-+               |    |            |    |
-+               |    |      |\    |    |
-+SCL  ----------x--------x--| o---x------------------------  pin 15
-+                    |   |  |/         | 
-+                    |   |             |
-+                    |   |   /|        |
-+                    |   ---o |-------------x--------------  pin 2
-+                    |       \|        |    |
-+                    |                 |    |
-+                    |                 |    |
-+                    |      |\         |    |
-+SDA  ---------------x---x--| o--------x-------------------  pin 10
-+                        |  |/              |
-+                        |                  |
-+                        |   /|             |
-+                        ---o |------------------x---------  pin 3
-+                            \|             |    |
-+                                           |    |
-+                                          ---  ---
-+                                          | |  | |
-+                                          |R|  |R|
-+                                          | |  | |
-+                                          ---  ---
-+                                           |    | 
-+                                          ###  ###
-+                                          GND  GND
-+
-+
-+If possible, you should use the same pinout configuration as existing
-+adapters do, so you won't even have to change the code.
-+
-+
-+Similar (but different) drivers
-+-------------------------------
-+
-+This driver is NOT the same as the i2c-pport driver found in the i2c package.
-+The i2c-pport driver makes use of modern parallel port features so that
-+you don't need additional electronics. It has other restrictions however, and
-+was not ported to Linux 2.6 (yet).
-+
-+This driver is also NOT the same as the i2c-pcf-epp driver found in the
-+lm_sensors package. The i2c-pcf-epp driver doesn't use the parallel port
-+as an I2C bus directly. Instead, it uses it to control an external I2C bus
-+master. That driver was not ported to Linux 2.6 (yet) either.
-+
-+
-+Legacy documentation for Velleman adapter
-+-----------------------------------------
-+
-+Useful links:
-+Velleman                http://www.velleman.be/
-+Velleman K8000 Howto    http://howto.htlw16.ac.at/k8000-howto.html
-+
-+The project has lead to new libs for the Velleman K8000 and K8005:
-+  LIBK8000 v1.99.1 and LIBK8005 v0.21
-+With these libs, you can control the K8000 interface card and the K8005
-+stepper motor card with the simple commands which are in the original
-+Velleman software, like SetIOchannel, ReadADchannel, SendStepCCWFull and
-+many more, using /dev/velleman.
-+  http://home.wanadoo.nl/hihihi/libk8000.htm
-+  http://home.wanadoo.nl/hihihi/libk8005.htm
-+  http://struyve.mine.nu:8080/index.php?block=k8000
-+  http://sourceforge.net/projects/libk8005/
-diff -ruN linux-2.6.7-mm5/Documentation/i2c.orig/i2c-velleman linux-2.6.7-mm5/Documentation/i2c/i2c-velleman
---- linux-2.6.7-mm5/Documentation/i2c.orig/i2c-velleman	Sun Apr  4 05:37:06 2004
-+++ linux-2.6.7-mm5/Documentation/i2c/i2c-velleman	Thu Jan  1 01:00:00 1970
-@@ -1,23 +0,0 @@
--i2c-velleman driver
---------------------
--This is a driver for i2c-hw access for Velleman K8000 and other adapters.
--
--Useful links
--------------
--Velleman:
--	http://www.velleman.be/
--
--Velleman K8000 Howto:
--	http://howto.htlw16.ac.at/k8000-howto.html
--
--K8000 and K8005 libraries
---------------------------
--The project has lead to new libs for the Velleman K8000 and K8005:
--LIBK8000 v1.99.1 and LIBK8005 v0.21
--
--With these libs, you can control the K8000 interface card and the K8005
--stepper motor card with the simple commands which are in the original
--Velleman software, like SetIOchannel, ReadADchannel, SendStepCCWFull and
--many more, using /dev/velleman.
--
--The libs can be found on http://groups.yahoo.com/group/k8000/files/linux/
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+greg k-h
