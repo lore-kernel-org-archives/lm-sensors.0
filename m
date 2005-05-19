@@ -1,24 +1,46 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: [PATCH] sensord: support for in7 and fan3 for the it87 driver
-Message-Id: <20040321113814.7ebc0500.khali@linux-fr.org>
+From: troydwill@yahoo.com (Troy Will)
+Date: Thu, 19 May 2005 06:25:24 +0000
+Subject: pwm fan control with IT8705F I/O chip it87 module
+Message-Id: <20041128203714.40067.qmail@web13425.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040320231026.GA31811@pc.aurel32.private>
-In-Reply-To: <20040320231026.GA31811@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Sensord misses a few sensors with an it87 chip, in7 and fan3, whereas
-> they are supported in the library and in sensors.
+                   Novmember 28, 2004
+Hello,
+I've been attempting to control the fan speed on a
+Biostar iDEQ 210V computer which has an IT8705F Super
+I/O chip. Does the it87 module ( which controls the
+IT8705F chip ) enable pwm motor fan control? I have
+read similar queries but haven't read any definitive
+answers.
 
-Correct.
+The it87 documentaton says this: "The fan control
+features can be enabled by setting bits 0-2 of the
+fan_ctl register to 1." However, the documentation is
+silent on how to set this these bits. Can these
+register bits be set with isaset? Can they be set
+somehow in the /etc/sensors.conf file?
 
-> The attached patch fixes that.
+Similarly, the it87 documentation says this: "Bit 7 of
+the pwm[1-3] registers enables/disables the chips
+automatic temperature control mode for the specified
+fan." But again, it has no mention on how to set or
+read these registers.
 
-Applied, thanks.
+Any help would be apprecitated. By the way, I can read
+the fan speed. Since I'm sure other people are trying
+to do the same thing I will set up the following web
+page if I come up with a solution:
+      biostar-linux.com/fancontrol.html
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+The all-new My Yahoo! - Get yours free! 
+http://my.yahoo.com 
+ 
