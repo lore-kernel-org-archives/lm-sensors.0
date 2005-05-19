@@ -1,36 +1,50 @@
-From: johannes@johanneshuebner.com (=?ISO-8859-1?Q?Johannes_H=FCbner?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:08 +0000
 Subject: w83l785ts inserted but no readings right away
-Message-Id: <410E4CA4.6070601@johanneshuebner.com>
+Message-Id: <20040802222227.31c49e37.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <410E4CA4.6070601@johanneshuebner.com>
+In-Reply-To: <410E4CA4.6070601@johanneshuebner.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGksCgpJIGhhdmUgYW4gQXN1cyBBN044WC1YIG1haW5ib2FyZCB3aXRoIHRoZSBhc2IxMDAgKGJh
-Y2gpIGFuZCB0aGUgCnc4M2w3ODV0cyBjaGlwLiBMYXR0ZXIgb25lIHJlYWRzIHRoZSBpbnRlcm5h
-bCBDUFUtdGVtcC1kaW9kZS4gV2hlbiBhbGwgCm5lZWRlZCBtb2R1bGVzIGFyZSBsb2FkZWQgaXQg
-d29ya3MgcmVhbGx5IHdlbGwgaW5jbHVkaW5nIGZhbmNvbnRyb2wuIEJ1dCAKdGhlIHc4M2w3ODV0
-cyBkb2Vzbid0IGFsd2F5cyB3b3JrLiBXaGVuIHRoZSBtb2R1bGUgaXMgaW5zZXJ0ZWQgdHJvdWdo
-IAp0aGUgbG1fc2Vuc29ycyBzdGFydC1zY3JpcHQgaXQgaXMgbGlzdGVkIHdoZW4gZG9pbmcgbHNt
-b2QgYnV0IHRoZXJlIGlzIApubyAvc3lzL2J1cy9pMmMvZGV2aWNlcy8xLTAwMmUvIGRpcmVjdG9y
-eS4gQWZ0ZXIgSSBybW1vZCBhbmQgbW9kcHJvYmUgCnRoZSBtb2R1bGUgKHNvbWV0aW1lcyBzZXZl
-cmFsIHRpbWVzKSBldmVyeXRoaW5nIHdvcmtzLiBXaGVuIHVzaW5nIApXaW5kb3dzIEkgcmVhbGl6
-ZWQgdGhhdCBTcGVlZCBGYW4gYWxzbyBzb21ldGltZXMgZmFpbGVzIHRvIGRldGVjdCB0aGUgCnc4
-M2w3ODV0cy1jaGlwLiBJcyB0aGlzIGEga25vd24gcHJvYmxlbSBhbmQgZG8geW91IGtub3cgYSB3
-b3JrYXJvdW5kPwpUaGVyZSBhcmUgbm8gZXJyb3ItbWVzc2FnZXMgZnJvbSBtb2Rwcm9iZSwgZG1l
-c2cgb3IgYW55Ym9keSBlbHNlLgoKSGVyZSBpcyBteSBjb25maWd1cmF0aW9uClN5c3RlbTogRmVk
-b3JhIENvcmUgMgp1bmFtZSAtciA6IDIuNi42LTEuNDM1LjIuMwpzZW5zb3JzIC0tdmVyc2lvbiA6
-ICAyLjguNgpjYXQgL2V0Yy9zeXNjb25maWcvbG1fc2Vuc29yczoKLS0tLS0KTU9EVUxFXzA9aTJj
-LW5mb3JjZTIKTU9EVUxFXzHucHJvbQpNT0RVTEVfMj1hc2IxMDAKTU9EVUxFXzM9dzgzbDc4NXRz
-Ci0tLS0tCmNhdCAvZXRjL2ZhbmNvbnRyb2wgOgotLS0tLQpJTlRFUlZBTBAKRkNURU1QUz0gMS0w
-MDJkL2ZhbjFfcHdtPTEtMDAyZS90ZW1wMV9pbnB1dApGQ0ZBTlM9IDEtMDAyZC9mYW4xX3B3bT0x
-LTAwMmQvZmFuMV9pbnB1dApNSU5URU1QPSAxLTAwMmQvZmFuMV9wd20lCk1BWFRFTVA9IDEtMDAy
-ZC9mYW4xX3B3bWAKTUlOU1RBUlQ9IDEtMDAyZC9mYW4xX3B3bRMwCk1JTlNUT1A9IDEtMDAyZC9m
-YW4xX3B3bZAKLS0tLS0KCkkgaG9wZSB0aGlzIGlzIGFsbCBpbmZvcm1hdGlvbiB5b3UgbmVlZApU
-aGFua3MgZm9yIHlvdXIgaGVscCBpbiBhZHZhbmNlIGFuZCB0aGFuayB5b3UgZm9yIGxtX3NlbnNv
-cnMhCgpKb2hhbm5lcyBIP2JuZXIKCkJUVzogSSBoYWQgdG8gY2hhbmdlIHB3bWNvbmZpZyBhIGJp
-dCBmb3IgaXQgdG8gZGV0ZWN0IHRoZSBmYW5YX3B3bSBsaW5lcyAKb2YgdGhlIGFzYjEwMC4gSW4g
-aXQgcyBjdXJyZW50IHN0YXRlIGl0IG9ubHkgZmluZHMgcHdtWCAuIEkgY2FuIHNlbmQgaXQgCnRv
-IHlvdSBpZiB5b3UgZG9uJ3Qga25vdyB3aGF0IEkgbWVhbi4K
+> I have an Asus A7N8X-X mainboard with the asb100 (bach) and the 
+> w83l785ts chip. Latter one reads the internal CPU-temp-diode. When
+> all needed modules are loaded it works really well including
+> fancontrol.
+>
+> But the w83l785ts doesn't always work. When the module is inserted
+> trough the lm_sensors start-script it is listed when doing lsmod but
+> there is no /sys/bus/i2c/devices/1-002e/ directory. After I rmmod and
+> modprobe the module (sometimes several times) everything works. When
+> using Windows I realized that Speed Fan also sometimes failes to
+> detect the w83l785ts-chip. Is this a known problem and do you know a
+> workaround? There are no error-messages from modprobe, dmesg or
+> anybody else.
+
+This much reminds me this bug report:
+http://bugzilla.kernel.org/show_bug.cgi?id(99
+
+Please read the whole thread and confirm, or detail why your case is
+different.
+
+Next step would be to apply the proposed patch and recompile your
+kernel, including "I2C chip debugging messages", then compare a working
+case with a failing one, and report. I suspect that reads are sometimes
+wrong with no error reported, due to the BIOS messing up with the SMBus.
+If that's the case there's (unfortunately) not much we can do...
+
+> BTW: I had to change pwmconfig a bit for it to detect the fanX_pwm
+> lines of the asb100. In it s current state it only finds pwmX . I can
+> send it to you if you don't know what I mean.
+
+Yes, please provide your changes in the form of a patch. We'll review it
+and see if it's acceptable.
+
+Thanks.
+
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
