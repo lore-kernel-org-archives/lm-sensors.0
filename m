@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: David_Papasan@Dell.com (David_Papasan@Dell.com)
 Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: LM Sensors Module ADM 1021 running on P4 Xeon (Foster) Procs (Dell
-Message-Id: <3C3A1FA9.C4F7B09A@paradyne.com>
+Subject: LM Sensors Module ADM 1021 running on P4 Xeon (Foster) Procs
+Message-Id: <2DFA1D631549D5118E0C0090277B30ED0238AB6A@ausxmpn202.us.dell.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2DFA1D631549D5118E0C0090277B30ED0238AB5F@ausxmpn202.us.dell.com>
 In-Reply-To: <2DFA1D631549D5118E0C0090277B30ED0238AB5F@ausxmpn202.us.dell.com>
@@ -9,6 +9,30 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Seem to have gotten it working, If I run Sensors -s -c from the console
+BEFORE X Starts it doesnt shutdown at 60C any longer.
+
+I tried setting up a section for the ADM1023, it accepted the "Chip" line,
+but regected the label and set lines (didn't see a  listing for it in the
+doc so just used the same format at the 1021.
+
+Ideas on why starting Sensors -s -c before X Windows would fix everything ?
+or how to get the 1023 to display the 2nd proc's temp ?
+
+Thanks again
+Knickia Papasan
+Dell Precision IPS
+ 
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds@paradyne.com]
+Sent: Monday, January 07, 2002 4:23 PM
+To: David_Papasan@exchange.dell.com
+Cc: LM_Sensors developers
+Subject: Re: LM Sensors Module ADM 1021 running on P4 Xeon (Foster)
+Procs (Dell Precision 530)
+
 
 The xeon only has one sensor in it, the adm1021 and 1023 each support two.
 So one of the two entries for the 1021 is bogus.
@@ -98,25 +122,32 @@ David_Papasan@Dell.com wrote:
 > > monitoring. LM Sensors detects an Analog devices 1021, which would be
 > fairly
 > > accurate because the xeon's have Max 1617 chips on them. Dell's normal
-> > monitor is that the Max monitors the chip, and works with the PC87365, the
+> > monitor is that the Max monitors the chip, and works with the PC87365,
+the
 > > bios has preset thermal limits ( 70C clock throttle, 90C Thermal warning
 > and
 > > shutdown counter set to 90second, 105C quickshutdown).
 > >
 > >         What seems to be happening is
 > > 1.) ADM1021 loads and resets temps to 20C warning, 60C shutdown
-> > 2.) If you run Sensors -c it sets the desired temperature on the Secondary
+> > 2.) If you run Sensors -c it sets the desired temperature on the
+Secondary
 > > Proc, but leaves the Primary at 20C/60C.
-> > 3.) after 7 mins or so of 100% CPU utilization the system will do a dirty
-> > shitdown and the bios indicates a thermal event was reported (even thou if
+> > 3.) after 7 mins or so of 100% CPU utilization the system will do a
+dirty
+> > shitdown and the bios indicates a thermal event was reported (even thou
+if
 > > you monitor with Sensors the Temp only got to 60C)
 > >
 > > I dont think sensors is handling the primary proc right in a dual CPU
-> > situation because if I remove the second CPU Sensors is not seeing any of
-> > the max chips. But if I dont load ADM 1021 the system will run at 100% CPU
+> > situation because if I remove the second CPU Sensors is not seeing any
+of
+> > the max chips. But if I dont load ADM 1021 the system will run at 100%
+CPU
 > > without error.
 > >
-> > Is there a module that will work with the PC87365 ? or a way to monitor 2
+> > Is there a module that will work with the PC87365 ? or a way to monitor
+2
 > > Max 1617 chips and set the temperature accordingly ?
 > >
 > > Thanks
