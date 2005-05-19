@@ -1,25 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: I2C crash - ADM1021
-Message-Id: <20031015191457.2dcc5f34.khali@linux-fr.org>
+From: cedric.pradalier@inrialpes.fr (Cedric Pradalier)
+Date: Thu, 19 May 2005 06:24:48 +0000
+Subject: Adm1030 driver
+Message-Id: <20040319224106.79f6cec3.cedric.pradalier@inrialpes.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1063901946.2937.27.camel@localhost>
-In-Reply-To: <1063901946.2937.27.camel@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-> > for that now. Chips like the PCF8591 could also be simply removed
-> > from sensors-detect (after all, we *can't* detect them so what's the
-> > point?). That second option is an easy one and would probably make
-> > the users happier in average.
-> 
-> I agree!
+	I use debian on an ibook (2.2) and the chip which control the fan and
+monitor temperature is an adm1030. I made a little kernel module for
+2.6.4 which provides access to the chip through sysfs (temperature
+reading and read/set the parameter of the integrated fan control
+algorithm). I've seen that this chip driver is in development and I
+wonder if my driver can help. 
 
-OK, done that.
+Please let me know.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Cedric
+
+"[Of course] I'm French! Why do think I have this outrageous 
+accent, you silly king-a?!"  Monty Python and the Holy Grail
