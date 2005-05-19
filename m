@@ -1,24 +1,27 @@
-From: hans-fr@nexgo.de (Hans-Frieder Vogt)
+From: hfvogt@arcor.de (Hans-Frieder Vogt)
 Date: Thu, 19 May 2005 06:23:47 +0000
 Subject: [NEW DRIVER] nForce2 SMB support
-Message-Id: <20030202142027.5F6331F53@achilles.nass-vogt.home>
+Message-Id: <20030202142606.256731F53@achilles.nass-vogt.home>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030202142027.5F6331F53@achilles.nass-vogt.home>
+In-Reply-To: <20030202142027.5F6331F53@achilles.nass-vogt.home>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+(resend because of errorneous sender identity in first e-mail)
 Hello,
 
-I just wrote a driver for the SMBus (more precise: the SMBuses) in the nVidia 
-nForce2 southbridge (based on the AMD-8111 driver). It runs both with version 
-2.6.5 and with CVS. Although it is not very well tested, it runs perfectly on 
-my computer and I think it might be useful for others as well. Please include 
+I just wrote a driver for the SMBus (more precise: the SMBuses) in the nVidia
+nForce2 southbridge (based on the AMD-8111 driver). It runs both with version
+2.6.5 and with CVS. Although it is not very well tested, it runs perfectly on
+my computer and I think it might be useful for others as well. Please include
 it in lm_sensors.
 
 Cheers,
 Hans-Frieder
--- 
+--
 --
 Hans-Frieder Vogt                 e-mail: hfvogt@arcor.de
 -------------- next part --------------
@@ -71,4 +74,4 @@ Name: i2c-nforce2.c
 Type: text/x-c
 Size: 11637 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030202/9893118e/i2c-nforce2.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030202/151fdc8a/i2c-nforce2.bin
