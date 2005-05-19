@@ -1,43 +1,38 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:17 +0000
-Subject: no i2c device !!!
-Message-Id: <20040923205346.4758d3fe.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: [PATCH 2.6] Enable debugging in fscher
+Message-Id: <20040210191533.19e6bbc7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040923170611.GA29569@cereve.enpc.fr>
-In-Reply-To: <20040923170611.GA29569@cereve.enpc.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I installed linux on an laptop toshiba-satellite 2140 CDS
-> 
-> I had also some difficulties in finding the name of ships or buses 
-> ( why compiled them all ), hard also to retrive info from toshiba
-> itself,
-> 
-> I compiled the 2.6 kernel, with all i2C devices, bus and chips as
-> modules, but when installing lm-sensors, I had no positive answeer
-> for bus or ships corresponding ( although all compiled )
-> 
-> I wonder if it is possible that this laptop has no i2c device ??
+Hi Greg,
 
-Yes, this is highly possible. Most laptops don't have hardware
-monitoring chips, and some of them even disable the SMBus entirely.
+I just noticed that I forgot to enable debugging in the new fscher
+driver. Sorry for that. Here is a patch that fixes this (applies on top
+of 2.6.3-rc2). This can safely be delayed until after 2.6.3 is released,
+of course.
 
-There is a possibilty though that your SMBus is disabled BUT there are
-hardware monitoring chips on it. The reason why manufacturers do that
-are not clear.
+Thanks.
 
-If your SMBus is disabled (sensors-detect didn't find it) and you know
-it's an Intel i801, you may try to forcibly enable it. Follow the
-instructions in lm_sensors2/proc/hotplug, and then tweak the
-drivers/pci/quirks.c file in Linux 2.6. That's not trivial but if you
-are motivated enough you may get it to work.
+--- linux-2.6.3-rc2/drivers/i2c/chips/fscher.c.orig	2004-02-10 15:47:27.000000000 +0100
++++ linux-2.6.3-rc2/drivers/i2c/chips/fscher.c	2004-02-10 15:48:05.000000000 +0100
+@@ -26,6 +26,11 @@
+  *  and Philip Edelbrock <phil@netroedge.com>
+  */
+ 
++#include <linux/config.h>
++#ifdef CONFIG_I2C_DEBUG_CHIP
++#define DEBUG	1
++#endif
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
 
-If on the other hand the bus is enabled and sensors-detect did not find
-anything on it, game is over.
 
 -- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
