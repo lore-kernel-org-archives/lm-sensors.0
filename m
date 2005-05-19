@@ -1,37 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: Userquestion: A/D-Converter on Parport
-Message-Id: <20031019124237.54246c01.khali@linux-fr.org>
+From: morten@tuxtail.org (Morten Schmidt)
+Date: Thu, 19 May 2005 06:25:37 +0000
+Subject: vt8231 and kernel 2.6.10?
+Message-Id: <200502141301.52274.morten@tuxtail.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200310182049.38529.chris_honschu@gmx.de>
-In-Reply-To: <200310182049.38529.chris_honschu@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi
 
-> So I bought a I2C 7Bit-Adress ADS1110 (ADS1110A0IDBVT by
-> TexasInstruments) 16-Bit and would like to mount it to a
-> i2c-philips-par wireing. The Datasheet of the ADS1110 can be found at:
-> 
-> http://www-s.ti.com/sc/ds/ads1110.pdf
-> 
-> But howto talk to the ADS1110 ? Is there a simple C Program/Example? 
-> Is it hard to write sutch a driver? Do I have to be root to read out
-> the values? Are there other known similar projects to mine?
+I have been trying for more then a week now. I can't seem to get the "make 
+user" and "make user_install" to work, when compiling the lm_sensors.2.9.0...
 
-Writing a driver isn't too hard, since i2c-core takes care of all the
-protocol and kernel details. All you have to do is to write a chip
-driver. Take a look at the pcf85xx chips we already have drivers and
-docs for. I'd expect your ads1110 to be a chip of the same kind. Follow
-the guidelines found in doc/developers/new_drivers.
+Do I have to do something speciel for this to work?
 
-If you ever have a driver working, please send it to us together with
-documentation and we'll make it part of our distribution.
+I have a "Via EPIA 800" board
 
-Thanks.
+lspci:
+maggie:/home/smet# lspci
+0000:00:00.0 Host bridge: VIA Technologies, Inc. VT8601 [Apollo ProMedia] (rev 
+05)
+0000:00:01.0 PCI bridge: VIA Technologies, Inc. VT8601 [Apollo ProMedia AGP]
+0000:00:11.0 ISA bridge: VIA Technologies, Inc. VT8231 [PCI-to-ISA Bridge] 
+(rev 10)
+0000:00:11.1 IDE interface: VIA Technologies, Inc. 
+VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06)
+0000:00:11.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
+Controller (rev 1e)
+0000:00:11.3 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
+Controller (rev 1e)
+0000:00:11.4 Bridge: VIA Technologies, Inc. VT8235 ACPI (rev 10)
+0000:00:11.5 Multimedia audio controller: VIA Technologies, Inc. VT82C686 AC97 
+Audio Controller (rev 40)
+0000:00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] 
+(rev 51)
+0000:01:00.0 VGA compatible controller: Trident Microsystems CyberBlade/i1 
+(rev 6a)
+
+
+result of sensors-detect:
+#----cut here----
+# I2C adapter drivers
+i2c-viapro
+i2c-isa
+# I2C chip drivers
+eeprom
+vt8231
+#----cut here----
+
+
+Thank you in advance
+/morten
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Powered by Debian GNU/Linux & PalmOS5
