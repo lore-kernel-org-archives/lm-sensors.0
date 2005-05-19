@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: psycho@albatross.co.nz (Keith Duthie)
 Date: Thu, 19 May 2005 06:24:42 +0000
 Subject: Hangs with w83781d
-Message-Id: <20040221084002.47b358bf.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.53.0402212114420.410@loki.albatross.co.nz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.53.0304082321580.3437@loki.albatross.co.nz>
 In-Reply-To: <Pine.LNX.4.53.0304082321580.3437@loki.albatross.co.nz>
@@ -10,19 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > So the correct command is "i2cdump 0 0x2d" (and then look at the
-> > value at 0x4C in the output).
-> 
-> 95
-> 
-> > Maybe it will now ;)
-> 
-> 49
+On Sat, 21 Feb 2004, Jean Delvare wrote:
 
-Are these decimal or hexadecimal values?
+> > > So the correct command is "i2cdump 0 0x2d" (and then look at the
+> > > value at 0x4C in the output).
+> >
+> > 95
+> >
+> > > Maybe it will now ;)
+> >
+> > 49
+>
+> Are these decimal or hexadecimal values?
 
-Thanks.
+Whoops, just noticed: I was looking at 0x4D for the first of those.
 
+It's 0x49 both before and after the module has been loaded.
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Just because it isn't nice doesn't make it any less a miracle.
+     http://users.albatross.co.nz/~psycho/     O-   -><-
