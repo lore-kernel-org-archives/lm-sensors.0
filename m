@@ -1,7 +1,7 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: Bugzilla setup for Lm_sensors
-Message-Id: <20050118135710.GG20232@neu.nirvana>
+Message-Id: <yRrTkCal.1106064650.7706850.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41E718CA.3070305@edgedesign.us>
 In-Reply-To: <41E718CA.3070305@edgedesign.us>
@@ -10,85 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-On Fri, Jan 14, 2005 at 10:27:13AM -0800, Philip Edelbrock wrote:
-> Jean Delvare wrote:
-> > > I'm thinking 'i2c' and 'lm_sensors' for the products. And then breaking
-> > > out each driver (chip and bus) for the components, each app in 'prog'
-> > > (e.g. 'i2c-detect','sensors-detect',etc.) and adding either a catchall
-> > > for the rest of the code or breaking them out further (e.g. 'dev',
-> > > 'proc', 'core', etc.).
-> > > What do you think?
-> >
-> > What are these "Products"? When looking at the kernel's bugzilla I see
-> > categories and components within the categories, but no products.
+Hi Axel, hi Philip,
 
-> I think it's the same, it's just a labelling difference.
+> I've set up a draft bugzilla on http://bugzilla.lm-sensors.org/ for
+> playing with. Don't enter any serious bugs as the bugs will be wiped
+> before going in production :)
 
-Yes, they are the same, just a different "locale" :)
+Great.
 
+Here are some random thoughts.
 
-> > I would use the Categories for that. I would propose the following
-> > categories, with non-exhaustive components lists:
-> >
-> > i2c core drivers
-> >    |--> i2c-core
-> >    |--> i2c-proc
-> >    |--> i2c-dev
-> >    |--> i2c-isa
-> > bus drivers
-> >    |--> i2c-ali15x3
-> >    |--> i2c-ali1535
-> >    |--> i2c-i801
-> >    |--> i2c-viapro
-> >    |--> ...
-> > chip drivers
-> >    |--> adm1021
-> >    |--> adm1025
+1* We would need a list of versions of lm_sensors that existed to be
+picked from. I guess we can start at 2.0.0, and drop the few tickets of
+the old base that refer to older versions. We might even set the
+reversed deadline after that and drop everything before 2.5.0 for
+example. Moving all the old tickets to the new base will be a
+significant work so this would limit it, and I don't think anybody care
+about these very very old tickets anyway. Default to the latest version.
 
-> > I guess it somehow covers the hierarchical structure you were thinking of.
-> I like this.  Seems more intuitive than what I originally was thinking.
+2* I would replace Platform with Architecture, and list there all
+architectures supposedly supported by lm_sensors (+ "other" just in
+case).
 
-I've set up a draft bugzilla on http://bugzilla.lm-sensors.org/ for
-playing with. Don't enter any serious bugs as the bugs will be wiped
-before going in production :)
+3* I don't feel a need for a Priority setting. Severity should be
+sufficient.
 
-I haven't yet renamed products to categories as one of the things to
-test is whether this hierarchical setup is OK or not.
+4* OS can go, as we only support Linux anyway. What would be more
+interesting would be a version of Linux, which would be a free input
+(because there are that many, and also because people will often report
+non-vanilla versions).
 
-I also allowed for flags, votes, milestone, QA contact and status
-whiteboard fields. Some of them are probably too much (or not) for
-lm_sensors, but I activated them for demonstration purposes. Anything
-that does not serve lm_sensors' needs will be dropped before going up.
+Maybe we can keep the OS to make a difference between the Linux trees
+(2.4, 2.6, and older ones for recovered tickets). This could help people
+having a problem which they think only affect a given tree (think procfs
+or sysfs issues).
 
-> > > The main purpose of components is for developers to be auto-assigned
-> > > them and to be able to sort easier through the bugs.
-> >
-> > Completely agree. It would help much if we could all get an alert
-> > when one of "our" drivers gets a report, instead of having to
-> > watch the tickets as they are created and ignore those we don't
-> > feel competent for.
+5* Not sure why the reporter would be left a choice for the Initial
+State. What is this "Unconfirmed" state for? A new report is, err,
+New, period.
 
-Which brings up the question: Who is the "initial owner" of each of
-the catgories above? I tend to think, that we need a dummy bugzilla
-account that is a catch-all, at least for the beginning. Perhaps
-abusing lm-sensors-devel@lm-sensors.org, so that all lm_sensors
-developers get to see bugzilla mail on orphaned bugs.
+> I haven't yet renamed products to categories as one of the things to
+> test is whether this hierarchical setup is OK or not.
 
-For testing the bugzilla entity: Just create your account. You will
-have user access, e.g. you will be able to create new bugs, comment on
-others, menipulate your own bugs as submitters etc.
+Looks OK to me except for the lack of user-space category.
 
-For testing the administrative part send me your created login account
-in PM and I will activate administrative access for it (like adding
-new components, new keywords, new flags, editing users etc).
--- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050118/27d616ff/attachment.bin
+> I also allowed for flags, votes, milestone, QA contact and status
+> whiteboard fields. Some of them are probably too much (or not) for
+> lm_sensors, but I activated them for demonstration purposes. Anything
+> that does not serve lm_sensors' needs will be dropped before going up.
+
+I think I see what milestones and votes are for. But what are flags?
+
+Is QA Contact something different than the default assignee for this
+category? If yes, I don't think we need this.
+
+> Which brings up the question: Who is the "initial owner" of each of
+> the catgories above? I tend to think, that we need a dummy bugzilla
+> account that is a catch-all, at least for the beginning. Perhaps
+> abusing lm-sensors-devel@lm-sensors.org, so that all lm_sensors
+> developers get to see bugzilla mail on orphaned bugs.
+
+Each non-core driver would have a specific owner (current maintainer)
+providing this person actually has a bugzilla account. For the rest of
+the items, we can attribute them on a voluntarism basis, and using the
+mailing-list for the remaining items and core items seems fine. And if
+it doesn't please us in the long run we can change then.
+
+> For testing the administrative part send me your created login account
+> in PM and I will activate administrative access for it (like adding
+> new components, new keywords, new flags, editing users etc).
+
+Please do for me: (my e-mail address - don't think this is a really
+private information so I don't think a PM was needed at all ;))
+
+Thanks,
+--
+Jean Delvare
