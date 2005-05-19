@@ -1,30 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: [PATCH 2.6.0-test3]bugfix for initialization bug in adm1021
-Message-Id: <20030815112613.39bc5700.khali@linux-fr.org>
+From: clauz@punkass.com (Claws)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: Regarding the W83627HF..
+Message-Id: <20031222214430.066b3e4d.clauz@punkass.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1060731495.11264.8.camel@vmhack>
-In-Reply-To: <1060731495.11264.8.camel@vmhack>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+After batteling with lm_sensors on a new linux 2.6.0 kernel a couple of hours i realised that my W83627HF wasen't being recognized properly by 'sensors-detect' - It told to modprobe for W83682HF which in the 2.6.x series dosent exist since it has been merged into one driver or something (i don't have programming skills O_o ) namely the:
 
-> > While initializing the adm1021 device, the driver is performing a
-> > conversion from fixed point to Celcius on values that were declaired
-> > as Celcius.  On my Dell Precision 220 this results in a shutdown
-> > after a couple of minutes running.
-> > 
-> > This is a very simple patch against the 2.6.0-test3 tree that just
-> > removes the conversion.
-> 
-> Applied, thanks.
+CONFIG_SENSORS_W83781D:                                                 ___
+                     ___ If you say yes here you get support for the Winbond W8378x series       ___
+                     ___ of sensor chips: the W83781D, W83782D, W83783S and W83682HF,            ___
+                     ___ and the similar Asus AS99127F.  
 
-I just checked and this does not apply to our CVS tree. The bug was
-introduced by the sysfs conversion (because millidegrees are in use
-there, while these are degrees in CVS).
+So when i modprobe'd the W83781D module everything worked Ok.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+The lm_sensors i use are pulled from CVS.
+ 
+I hope this helps someone :)
+
+Thanks for some awsome software, and merry x-mas to all :)
+
