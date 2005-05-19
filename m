@@ -1,61 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:26 +0000
-Subject: lm_sensors problem with sis96x and adm1021
-Message-Id: <20041211132843.4f0261be.khali@linux-fr.org>
+From: robe@amd.co.at (Michael Renner)
+Date: Thu, 19 May 2005 06:24:28 +0000
+Subject: Problems with Tyan Thunder LE-T
+Message-Id: <Pine.LNX.4.50.0312052212300.7299-100000@trottelkunde.amd.co.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41B9BDFD.6070102@gmx.de>
-In-Reply-To: <41B9BDFD.6070102@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Yes right, after running sensors -s the values for Board changed to
-> the values I defined. As you suggested 0 for low and 70 for high.
-> The values for CPU however did not apply. The default values are 0
-> low and 55 high when the fan is off and change to 50 low and
-> 70 high when the fan is turned on. However inserting the values
-> through sysfs did work, but the values are overriden as soon as the
-> fan starts spinning again.
+Hi!
 
-The MAX6657 is not able to do that by itself. It has alarm outputs that
-can tell another chip on your system to do it, though. Reprogramming the
-limits on the fly does sound weird, there are better ways to achieve
-conditional fan activity.
+I was trying to get I2C/lm_sensors running on one of our "refurbished"
+servers, but ran into freezes while loading the i2c-piix driver.
 
-> Sorry I can't crack the case open ;-) sensors-detect didn't suggest
-> anything except sis-96x I'll drop the complete output here. So I just
-> modprobed all modules and the only one that did show something was
-> adm1021.
+Here's some basic info:
 
-This is odd. I had expected that sensors-detect would suggest both the
-adm1021 driver (for a MAX1617) and the lm90 driver (for a MAX6657), and
-pick the former arbitrarily. When comparing the sensors-detect code with
-the dump you sent, I just cannot get why it isn't the case. Both tests
-(MAX1617 and MAX6657) should be positive. Are you certain that you are
-using an up-to-date version of sensors-detect? Please try with the CVS
-version:
+Kernel: 2.4.23 with modularized i2c/lm_sensors 2.8.1 or 2.6.0test11 with
+builtin i2c/lm_sensors
+Motherboard: Tyan Thunder LE-t (S2518) (flashed with the latest bios
+(1.09))
+lspci states:
 
-http://www2.lm-sensors.nu/%7Elm78/cvs/lm_sensors2/prog/detect/sensors-detect
+00:00.0 Host bridge: ServerWorks CNB20LE Host Bridge (rev 06)
+00:00.1 Host bridge: ServerWorks CNB20LE Host Bridge (rev 06)
+00:01.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 27)
+00:04.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
+00:05.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 08)
+00:0f.0 ISA bridge: ServerWorks OSB4 South Bridge (rev 50)
+00:0f.1 IDE interface: ServerWorks OSB4 IDE Controller
 
-If it still won't detect your chip as neither a MAX1617 nor a MAX6657,
-and you have some perl knowledge, it would be great if you could add
-some debug in the adm1021_detect and lm90_detect functions (for $chip=2
-and $chip=4, respectively) and see where the detection is failing
-exactly. If you don't have such a knowledge I'll send you a modified
-version of the script for you to test it.
+Currently running with SMP (two P3 1266 Mhz processors) and HIGHMEM (3 GB
+ram) support.
 
-> Client found at address 0x10
-> (...)
-> Client found at address 0x6a
+As soon as I load the i2c-piix driver, it seems as if the userland commits
+suicide:
 
-I wonder what these are. Could you please provide dumps of these as
-well?
+Local console is dead (numlock works though), the box still responds to
+icmp messages and accepts new tcp-connections on previously-openend ports
+(e.g. ssh) (although no daemon actually responds on that port)
 
-I'd also be interested to know the model name of your laptop, in case I
-can find some technical documentation.
+You can find the kernel output before the freeze at
+http://amd.co.at/images/i2c-bug.jpg
 
-Thanks,
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Is this something which can be fixed in the driver or is the BIOS
+fubar'ed?
+
+Do you need any further information?
+
+best regards and thanks in advance,
+michael
