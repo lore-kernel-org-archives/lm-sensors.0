@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: New subscription request to list lm-sensors from
-Message-Id: <20050516204117.7d5529bd.khali@linux-fr.org>
+Message-Id: <20050516185354.GB14433@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4288E1AD.5080909@edgedesign.us>
 In-Reply-To: <4288E1AD.5080909@edgedesign.us>
@@ -10,64 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I got this, so I assume it's working. ;')
+On Mon, May 16, 2005 at 08:41:17PM +0200, Jean Delvare wrote:
+> > I got this, so I assume it's working. ;')
+> > 
+> > Phil
+> > 
+> > lm-sensors-owner@lm-sensors.org wrote:
+> > > Your authorization is required for a mailing list subscription
+> > > request approval:
+> > > 
+> > >     For:  khali@linux-fr.org
+> > >     List: lm-sensors@lm-sensors.org
+> > > 
+> > > At your convenience, visit:
+> > > 
+> > >     http://lists.lm-sensors.org/mailman/admindb/lm-sensors
+> > > 	
+> > > to process the request.
+> > > 
 > 
-> Phil
+> Actually I disabled this for both list, as I don't think we want to
+> constantly monitor who's joining the list. Anyone who wants to subscribe
+> can do so.
+
+OK. There are two switches to turn off, subscription approval (the
+mail above) and subscription notification.
+
+> I set the lm-sensors list so that non-members can post. I set the
+> lm-sensors-commit list so that only members can post, except for the CVS
+> robot.
+
+Why, shouldn't only the CVS robot be able to post? How about setting
+replies to the discussion list? That's what most projects do, e.g. the
+-commits list is a read-only list and any discussion started from there
+is relayed to a -devel list.
+
+> Axel, checklist:
 > 
-> lm-sensors-owner@lm-sensors.org wrote:
-> > Your authorization is required for a mailing list subscription
-> > request approval:
-> > 
-> >     For:  khali@linux-fr.org
-> >     List: lm-sensors@lm-sensors.org
-> > 
-> > At your convenience, visit:
-> > 
-> >     http://lists.lm-sensors.org/mailman/admindb/lm-sensors
-> > 	
-> > to process the request.
-> > 
+> 1* Blast the test messages from the lm-sensors archive.
 
-Actually I disabled this for both list, as I don't think we want to
-constantly monitor who's joining the list. Anyone who wants to subscribe
-can do so.
+OK, there is also:
 
-Sooooo. We have two lists set up (lm-sensors and lm-sensors commit).
-I've changed some options and think things are now fine. Rudolf Marek
-and I made some tests on lm-sensors and it seems to work just fine. I
-think we are ready to move on.
+2* import old archives
 
-I set the lm-sensors list so that non-members can post. I set the
-lm-sensors-commit list so that only members can post, except for the CVS
-robot.
+I have all archives until yesterday.
 
-Philip, checklist:
-
-1* Copy and paste the subscriber list from the old list to the new one.
-You can omit Rudolf and me, as we're already there.
-
-2* Make sure that the ticket system will advertise the new list instead
-of the old one.
-
-3* Block the old list, make it send a message pointing the users to
-http://www.lm-sensors.nu/, where relevant information will be available
-(soon).
-
-4* Kill the lm78@ address.
-
-5* Edit the CVS trigger that posted commit information to the old list,
-so that it now posts them to the new lm-sensors-commit list.
-
-Axel, checklist:
-
-1* Blast the test messages from the lm-sensors archive.
-
-Me, checklist:
-
-1* Search and replace all the references to the old list in i2c,
-lm_sensors2, website, linux.
-
-Let's go :)
+> Me, checklist:
+> 
+> 1* Search and replace all the references to the old list in i2c,
+> lm_sensors2, website, linux.
+> 
+> Let's go :)
+> 
 
 -- 
-Jean Delvare
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050516/9e80dc8f/attachment.bin
