@@ -1,60 +1,77 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: New i2c driver for ETX-mgx board from Kontron
-Message-Id: <3EFCECF5.3090303@paradyne.com>
+From: nacc@us.ibm.com (Nishanth Aravamudan)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: [PATCH 9/20] w1/w1: remove interruptible_sleep_on_timeout() usage
+Message-Id: <20050202191418.GK2546@us.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1056749667.1873.35.camel@linux.local>
-In-Reply-To: <1056749667.1873.35.camel@linux.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-It could be a good example for embedded folks,
-so send it over, why not.
-thanks
+Hello,
 
+Please consider applying.
 
-Bob Weber wrote:
-> Hello Mark.
-> 
-> The Kontron board is an x86-based board designed for embedded
-> applications. Most of what I read on the website seems geared towards
-> PCs, but i2c is big in the embedded world, and I'd personally like to
-> see such drivers supported on the website too. 
-> 
-> If you'll put it on the website, I'll send you the file and patches. I
-> think someone would find it useful. But, it is not really a general
-> interest board. Let me know what you think.
-> 
-> - Bob
-> 
-> On Fri, 2003-06-27 at 16:41, Mark D. Studebaker wrote:
-> 
->>You can contribute by sending us a patch against CVS or against a 2.5 kernel.
->>See also doc/developers/new-drivers in lm_sensors.
->>However if the driver is not of general interest
->>(I myself have never heard of Kontron, and GPIO bit-banger drivers
->>are generally non-standard) then it may not be worth
->>putting into CVS or the kernel.
->>
->>
->>Bob Weber wrote:
->>
->>>Hello. I recently wrote (ported, actually) an i2c driver for the ETX-mgx
->>>board from Kontron. This board uses a Winbond chip for I/O. The I2c
->>>driver bit-bangs a couple I/O pins. 
->>>
->>>How do I contribute this to the lm_sensors project? Besides the driver,
->>>I modified Config.in and Makefile in the kernel drivers directory, and
->>>i2c-id.h in the include/linux directory.
->>>
->>>- Bob Weber
->>>  R&B Embedded Technologies
->>>  email: bweber@imsconsultants.com
->>>  email: rjweber@ieee.org
->>>
->>>
->>
->>
-> 
+Description: Replace deprecated interruptible_sleep_on_timeout() with direct
+wait-queue usage. Ideally, I would use wait_event_interruptible_timeout();
+however, there is no condition to sleep on here, unless I was to use the
+try_to_freeze() call as one. That is not the case in the current code, though,
+and I'm not sure it can/should be. Since timeout is a jiffies-unit variable,
+change the type to unsigned long. Patch is compile-tested.
+
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+
+--- 2.6.11-rc2-kj-v/drivers/w1/w1.c	2005-01-24 09:34:16.000000000 -0800
++++ 2.6.11-rc2-kj/drivers/w1/w1.c	2005-02-02 11:11:21.000000000 -0800
+@@ -32,6 +32,7 @@
+ #include <linux/device.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/wait.h>
+ 
+ #include "w1.h"
+ #include "w1_io.h"
+@@ -646,10 +647,12 @@ void w1_destroy_master_attributes(struct
+ 
+ int w1_control(void *data)
+ {
++	DEFINE_WAIT(wait);
+ 	struct w1_slave *sl;
+ 	struct w1_master *dev;
+ 	struct list_head *ent, *ment, *n, *mn;
+-	int err, have_to_wait = 0, timeout;
++	int err, have_to_wait = 0;
++	unsigned long timeout;
+ 
+ 	daemonize("w1_control");
+ 	allow_signal(SIGTERM);
+@@ -659,7 +662,9 @@ int w1_control(void *data)
+ 
+ 		timeout = w1_timeout*HZ;
+ 		do {
+-			timeout = interruptible_sleep_on_timeout(&w1_control_wait, timeout);
++			prepare_to_wait(&w1_control_wait, &wait, TASK_INTERRUPTIBLE);
++			timeout = schedule_timeout(timeout);
++			finish_wait(&w1_control_wait, &wait);
+ 			try_to_freeze(PF_FREEZE);
+ 		} while (!signal_pending(current) && (timeout > 0));
+ 
+@@ -720,6 +725,7 @@ int w1_control(void *data)
+ 
+ int w1_process(void *data)
+ {
++	DEFINE_WAIT(wait);
+ 	struct w1_master *dev = (struct w1_master *) data;
+ 	unsigned long timeout;
+ 	struct list_head *ent, *n;
+@@ -731,7 +737,9 @@ int w1_process(void *data)
+ 	while (!dev->need_exit) {
+ 		timeout = w1_timeout*HZ;
+ 		do {
+-			timeout = interruptible_sleep_on_timeout(&dev->kwait, timeout);
++			prepare_to_wait(&w1_control_wait, &wait, TASK_INTERRUPTIBLE);
++			timeout = schedule_timeout(timeout);
++			finish_wait(&w1_control_wait, &wait);
+ 			try_to_freeze(PF_FREEZE);
+ 		} while (!signal_pending(current) && (timeout > 0));
+ 
