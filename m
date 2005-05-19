@@ -1,17 +1,29 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:25:07 +0000
-Subject: [1/13] w1: attributes split, timeout unit changed.
-Message-Id: <1090821713.2876.30.camel@uganda>
+From: dodo@kanoistika.sk (Dodo Ivanecky)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: SIS 735
+Message-Id: <200212011704.07922.dodo@kanoistika.sk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Skipped content of type multipart/mixed-------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040726/3b920296/attachment.bin
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi,
+
+I would like to assist you with testing or creating - if it is not done yet - 
+of driver for SiS 735 chipset.
+
+best regards
+
+Jozef
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
+
+iQCVAwUBPeoy9kSNhHOqN0hUAQJagQP7BNGol5GdtcuAF6Wdc7pNSdWiaEmC1+fk
+aXFXu+7Ww3HjU/w8yaM0E3+ajMBsu6eqRmvExpil8olKH0895Bz+mlyu9IupwvQw
+GZ3yOxMAHAahfHiQrQS0ntdlZb2aCrDX6lytzVm4bxDV7b8gkGQonNLlVBkFus8c
+9nW++43GKPE=LcWY
+-----END PGP SIGNATURE-----
