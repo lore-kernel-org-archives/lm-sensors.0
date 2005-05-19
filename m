@@ -1,44 +1,31 @@
-From: happycactus@vene.ws (HappyCactus)
-Date: Thu, 19 May 2005 06:24:04 +0000
-Subject: lm_sensors and 2.4.21 kernel patches
-Message-Id: <20030709154543.471976a7.happycactus@vene.ws>
+From: thiemel@centrum.cz (=?iso-8859-2?Q?Tom=E1=B9_Thiemel?=)
+Date: Thu, 19 May 2005 06:25:50 +0000
+Subject: question (IBM i2c-piix4) - last question
+Message-Id: <000101c53d1b$cb824250$e500a8c0@KRTEK>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030709152306.690e38f1.happycactus@vene.ws>
-In-Reply-To: <20030709152306.690e38f1.happycactus@vene.ws>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 9 Jul 2003 15:41:48 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
+Done. I've removed all eeprom drivers.
 
-> > I downloaded the kernel source patches for the 2.4.20 kernel, and
-> > tryed to patch my 2.4.21, obviously did not work correctly.
-> 
-> We are about to release a new version of i2c and lm_sensors, which
-> will work with the 2.4.21 kernel directly (except an incompatibility
-> with some video devices, but that's a quite different issue we are
-> already working on). 
+>Both, as this is the same driver.
+ 
+And my last question is (I want to be sure):
+These files ("eeprom drivers") will not harm my PC, will they?
 
-ok, I will wait for it ;)
+/usr/lib/perl5/5.8.0/i386-linux-thread-multi/linux/eeprom.ph
+/usr/include/linux/eeprom.h
+/usr/src/linux-2.4.29/include/linux/eeprom.h
+/usr/src/linux-2.4.29/include/asm-mips/lasat/eeprom.h
+/usr/src/linux-2.4.29/include/asm-parisc/eisa_eeprom.h
+/usr/src/linux-2.4.29/drivers/gsc/eisa_eeprom.c
+/usr/src/linux-2.4.29/drivers/net/e100/e100_eeprom.c
+/usr/src/linux-2.4.29/drivers/net/tulip/eeprom.c
+/usr/src/linux-2.4.29/arch/mips/pmc-sierra/yosemite/atmel_read_eeprom.c
+/usr/src/linux-2.4.29/arch/cris/drivers/eeprom.c
 
-> So we won't make use of your patch, but that was
-> nice to you. Thanks for using our drivers!
+Tomas Thiemel
 
-No problems, I believe in Open Source and I try to do what I can.
 
-> > It is a Sis chipset, identified by sensors-detect as sis5595...
-> 
-> Many, many SiS chipsets are misdetected as SiS 5595, so I can't tell
-> you what you really have. Only the 5595 is supported by our drivers.
-
-Yes, I read the howto/faq and I notice that. no problem, I did not mean
-to disturb you with this issue.
-Just for your information, i could send you a lspci or other information
-you need on the chipset I have (it's a rocky 3705 EV industrial SBC)...
-just if it is of any use for you.
-
-Best Regards and Thank you!
-
-HappyCactus
