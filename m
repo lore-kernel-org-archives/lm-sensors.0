@@ -1,40 +1,55 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:06 +0000
-Subject: 2.8.0 released!
-Message-Id: <20030721130511.51e20cd4.khali@linux-fr.org>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:57 +0000
+Subject: [PATCH 2.6.12-rc4 3/3] (dynamic sysfs callbacks) device_attribute
+Message-Id: <2538186705051100583c6b1ffb@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F13484A.9080207@edgedesign.us>
-In-Reply-To: <3F13484A.9080207@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>, LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org
+Cc: Justin Thiessen <jthiessen@penguincomputing.com>
 
+Hi,
 
-> looks good.
-> 
-> you could make it even more clear that the "unified patch" includes
-> a patch to bring the kernel to i2c-2.8.0 plus the patches to the
-> other drivers.
+This patch presents as an example one possible way to use the dynamic
+callbacks to clean up one of the i2c chip drivers, adm1026 (for more
+information please see
+http://archives.andrew.net.au/lm-sensors/msg31310.html).
 
-OK, done. I already had edited that part on a user request, but better
-be too clear than not enough.
+The first patch defines a new macros like DEVICE_ATTR that also sets
+the attribute private data (Greg whats your opinion on defining a
+separate set of macros for this v.s. rolling it into one macro?).
 
-> And the title is lm_sensors installation guide but it's really
-> an i2c kernel patch guide.
+The second patch changes adm1026 to pass the sensor index/number via
+the private data pointer. I can't test this patch (so you won't want
+to apply this) but I'm CCing it to the adm1026 maintainer.
 
-I wasn't too sure about this one. Yes, 95% of the guide is for i2cn and
-5% for lm_sensors. But on the other hand people install i2c only if they
-want to use lm_sensors. I'll try to think of a name that says both.
+The size difference:
 
-> p.s. We're on the front page of freshmeat at the moment.
+-----------------2.6.11.7--------------------
+Module                  Size  Used by
+adm1026                44692  0
+------2.6.12-rc4-sysdyncallback-----
+Module                  Size  Used by
+adm1026                32656  0
 
-I'll study how it impacts on my web page hit rate, and let you know.
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
 
-> p.s. it's spelled "supersede"
+Thanks,
+Yani
 
-Oh thanks, fixed.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+---
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-macro.diff
+Type: text/x-patch
+Size: 1252 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050511/b643cab7/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-macro.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: adm1026-sysdyncallback.diff
+Type: text/x-patch
+Size: 21594 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050511/b643cab7/adm1026-sysdyncallback.bin
