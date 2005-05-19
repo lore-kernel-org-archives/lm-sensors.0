@@ -1,41 +1,47 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:13 +0000
-Subject: Ticket 1372:
-Message-Id: <20030820213616.GA28515@earth.solarsys.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:07 +0000
+Subject: as99127f pwm register
+Message-Id: <20030724225359.2546fa71.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1061061579.6212.1.camel@campgrounds>
-In-Reply-To: <1061061579.6212.1.camel@campgrounds>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* schiebe <t7thguest@gmx.de> [2003-08-16 21:19:40 +0200]:
-> Hi, sorry but i use lm_sensors 2.8
-> 
-> [root@campgrounds sbin]# rpm -q lm_sensors
-> lm_sensors-2.8.0-1_14.rh9.at
 
-Did you get these from Axel Thimm?  It looks like his lm_sensors package
-includes userspace tools only.  You probably need to use his custom
-kernel for the 2.8.0 version of I2C and sensors kernel modules.
+> check what I wrote carefully, the secondary detection might be like
+> the winbond, but the primary ($58) is $31 and that is not winbond but
+> Asus in this case, that is why I have the 1st and 2nd detection.  The
+> fact the other 2 ID's are like winbond simply shows you that Asus
+> bought them from winbond:)
 
-> dmesg:
-> i2c-core.o: i2c core module
-> i2c-viapro.o version 2.6.5 (20020915)
-                       ^^^^^
-Yes this is definitely an old kernel module.
+Oh sorry, I forgot to mention one thing. In our detection script, we
+ignore the LSB of register $58. Thus the AS99127F rev2 ID ($31) and the
+W83782D ($30) look the same, that's why I got confused. I don't know why
+we ignore this bit, I couldn't read anything about that in the
+datasheets. I will take a look at our CVS logs tommorow and see what
+made us add this in the past.
 
-> i2c-viapro.o: Can't detect vt82c596 or compatible device, module not
-> insert
-> 
-> maybe i should use the tarballs :-)
+> a diffrence we have -i think- is that MBM does not use the $48
+> register, MBM detects a sensor chip.... Asus on $2D.... then the 2
+> LM75's.... I just name/label these 2 LM75's Asus 2 and 3 but IF the
+> chip on $2D is a Asus, if it's a winbond I name then winbond 2 and
+> 3.... internaly they are LM75's so I really don't need the $48 to show
+> me where the LM75's are, if there are more then 2 LM75's on a board
+> (not found one so far) the extra LM75's are LM75's while those 2 on
+> the default adres are Asus 2 and 3
 
-They're pretty easy to build and install; make sure that you remove any
-old versions first, and follow the READMEs.
+The register $48 is supposed to contain the I2C address of the main chip
+itself (that is the address we are "talking" to at the moment). I don't
+know what the idea was, but at least this adds some reliability to the
+detection. Looks like Winbond only does this, the Asus chipsets seen so
+far did not.
 
-Regards,
+The subaddresses are computer using register $4A (but that's a different
+thing).
+
+Thanks again for your help.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
