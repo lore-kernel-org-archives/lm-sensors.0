@@ -1,30 +1,23 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: Future Support for Sensor
-Message-Id: <3F0075D6.35BE1666@paradyne.com>
+From: shiny_razor@hotmail.com (Kris Jones)
+Date: Thu, 19 May 2005 06:24:01 +0000
+Subject: i2c-2.7.0 compile errors... right place to ask?
+Message-Id: <Law9-F29F5TvMpR4YzQ0000e8ad@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200306292141.h5TLfiQ03672@mailgate5.cinetic.de>
-In-Reply-To: <200306292141.h5TLfiQ03672@mailgate5.cinetic.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-It's listed on our New Drivers page.
-If anyone starts working on the driver we will update that page.
+I've been trying to get lm_sensors to work for several days now, but I'm=20
+having the hardest time getting i2c to compile.
 
-Andreas Weinberger wrote:
-> 
-> hi!
-> 
-> first of all i'm sorry, if i sent this mail to the wrong mail-address.
-> 
-> i've got a question: are you going to build in a support for the "winbond W83L78 5TS-S" into sensors.
-> in my case, i need this program to read the temperature of the in-core-sensor in an athlonxp. my board is a ASUS A7N8X. this uses that chip to provide the temperatur to the user.
-> 
-> so long...
-> 
-> btw: please dont mind my english, i'm from germany!!
-> ______________________________________________________________________________
-> UNICEF bittet um Spenden fur die Kinder im Irak! Hier online an
-> UNICEF spenden: https://spenden.web.de/unicef/special/?mc1101
+I looked for a support forum mailing list or web-address, but this was abou=
+t=20
+the only one I found. Is this the right place to ask some questions about=20
+compiling i2c?
+
+Thanks!
+
+_________________________________________________________________
+The new MSN 8: smart spam protection and 2 months FREE* =20
+http://join.msn.com/?page=FEatures/junkmail
