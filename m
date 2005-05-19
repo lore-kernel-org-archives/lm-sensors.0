@@ -1,23 +1,32 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: as99127f bug?
-Message-Id: <20031130191755.137855b9.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: OMKE and temperature
+Message-Id: <20030210095456.458d0d87.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031130134504.142f7cde.khali@linux-fr.org>
-In-Reply-To: <20031130134504.142f7cde.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > If you want sensors to match your BIOS readings, don't use fan
-> > divisors, use the following line in your configuration file instead:
-> > 
-> >    compute fan1  @/2,  2*@
->
-> Make a note to use that for a7n8x-x also
 
-Good idea, will do.
+Hello,
+
+I am working with the LM Sensors group (http://www.lm-sensors.nu/) on
+I2C/SMBus busses and devices for hardware health monitoring. We have
+been informed by Virgil that OMKE was able to report temperature for his
+HP Pavilion ze4145, while our own driver doesn't work (if I understood
+correctly). My first guess is that you don't use anything I2C/SMBus
+related, but some HP-specific interface. Am I right?
+
+If this is the case, well, there isn't anything we can do (since I don't
+think we want to support very specific methods, nor any non-I2C/SMBus
+one).
+
+But if not, we'd like you to share information you might have and we do
+not. If you have datasheets or whatever concerning the ALI1535, it would
+be kind to you to let us know.
+
+Thanks!
 
 -- 
 Jean Delvare
