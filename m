@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:23:51 +0000
 Subject: add eeprom i2c driver
-Message-Id: <20030326213723.GC26886@kroah.com>
+Message-Id: <3E822AF7.56E8EF7E@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030325172024.GC15823@kroah.com>
 In-Reply-To: <20030325172024.GC15823@kroah.com>
@@ -10,36 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 25, 2003 at 06:17:00PM -0500, Mark Studebaker wrote:
-> Jean described the history of the driver well.
+As I just put in my other email, here's the /proc standards.
+The other email has info on why it should stay the same.
+
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/developers/proc
+
+See lib/chips.c in our package for an example of what has to change if
+we can't keep things the same...
+I'm not defending lib/chips.c or libsensors as a thing of beauty.
+I'm just pointing out the obvious. Change things and it all breaks.
+
+mds
+
+
+
+Greg KH wrote:
 > 
-> I would call it more of a "demonstration" driver than something
-> that is exceptionally useful.
-> (the CVS continues that tradition, I added I2C Block read capability to the
-> driver, more as a demonstration and block read test than anything else).
+> On Wed, Mar 26, 2003 at 10:42:23AM +0100, Jan Dittmer wrote:
+> > Greg KH wrote:
+> >  As an example of the changes necessary, here's a patch against the i2c
+> > >cvs version of the eeprom.c driver that converts it over to use sysfs,
+> > >instead of the /proc and sysctl interface.  It's still a bit rough, but
+> > >you should get the idea of where I'm wanting to go with this.  As you
+> > >can see, it takes about 100 lines of code off of this driver, which is
+> > >nice.
+> > >
+> > I thought about doing something like this for adding sysfs support.
+> > Should the voltages and other data appear as integer or as floats in
+> > sysfs tree? (ie. 1.20V or 120cV)
 > 
-> It's also useful to us as a diagnostic tool with users -
-> (if eeprom works then the i2c bus works. if eeprom is the only
-> thing found on the i2c bus then the sensors must be on the ISA bus).
-
-Well, that's a good reason for it to stick around, right?
-
-> As such, I'm not really sentimental about the existing interface in /proc
-> or what it could be in sysfs, or whether it goes into the kernel at all. 
-> If the debate makes it more trouble than
-> it's worth to get into the kernel, it can stay out of the kernel
-> as far as I'm concerned.
+> floats are a pain!
 > 
-> For Greg, it's probably best to start with lm75, not eeprom, to review
-> the changes W.R.T. sysfs.
-
-Good point, I've sent my patch for lm75 to the list.
-
-It looks like the binary files for sysfs support isn't as easy when you
-are in the driver model, so it will take a bit longer to add that
-support (need to add some driver core wrapper support first).  But that
-is the way the eeprom driver should move to.
-
-thanks,
-
-greg k-h
+> As we should have only one value per file, why not just "know" the units
+> of the file, so that we don't have to mess with a decimal point.  Makes
+> the kernel a lot simpler and smaller, and then userspace can easily
+> parse the number and do any needed conversions.
+> 
+> > And what should be written back? I think the /proc interface expects
+> > floats...
+> 
+> Again, I would vote for simple integers.
+> 
+> And good documentation about what each file's units are :)
+> 
+> thanks,
+> 
+> greg k-h
