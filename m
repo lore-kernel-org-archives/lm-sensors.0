@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:52 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <10819814492936@kroah.com>
+Message-Id: <1081981449409@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1081981449280@kroah.com>
+In-Reply-To: <10819814492866@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,34 +11,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.3, 2004/03/25 10:50:47-08:00, khali@linux-fr.org
+ChangeSet 1.1643.36.5, 2004/03/26 13:52:39-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Discard out-of-date comment in adm1021 driver
+[PATCH] I2C: adm1021 (probably) does something VERY,VERY BAD
 
-This simple patch discards an out-of-date comment in the adm1021 driver.
-I've done the same in our CVS repository where many more drivers were
-affected.
+Quoting myself:
 
-I agree it's not very important, but I prefer it to be done before any
-driver with the error is used as a base to port a new driver, and the
-misinformation spreads.
+> 3* Drop adm1021's limit init. This was already done in the 2.4 driver
+> and should have been done in 2.6 as well.
+
+Here is a patch that does that. It also prevents bit 7 (and unused bits)
+of configuration register from being reset, as was discussed before:
+  http://archives.andrew.net.au/lm-sensors/msg04593.html
+That second part needs to be backported to the 2.4 driver, and I will do
+so.
+
+Additionally, we get rid of a useless label.
+
+The patch is untested (I don't own any supported chip) but quite
+straightforward IMHO.
 
 
- drivers/i2c/chips/adm1021.c |    3 ---
- 1 files changed, 3 deletions(-)
+ drivers/i2c/chips/adm1021.c |   19 +++----------------
+ 1 files changed, 3 insertions(+), 16 deletions(-)
 
 
 diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
---- a/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:49 2004
-+++ b/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:49 2004
-@@ -151,9 +151,6 @@
- 	.detach_client	= adm1021_detach_client,
- };
+--- a/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:38 2004
++++ b/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:38 2004
+@@ -98,10 +98,6 @@
+ they don't quite work like a thermostat the way the LM75 does.  I.e., 
+ a lower temp than THYST actually triggers an alarm instead of 
+ clearing it.  Weird, ey?   --Phil  */
+-#define adm1021_INIT_TOS		60
+-#define adm1021_INIT_THYST		20
+-#define adm1021_INIT_REMOTE_TOS		60
+-#define adm1021_INIT_REMOTE_THYST	20
  
--/* I choose here for semi-static allocation. Complete dynamic
--   allocation could also be used; the code needed for this would probably
--   take more memory than the datastructure takes now. */
- static int adm1021_id = 0;
+ /* Each client has this additional data */
+ struct adm1021_data {
+@@ -306,7 +302,7 @@
  
- #define show(value)	\
+ 	/* Tell the I2C layer a new client has arrived */
+ 	if ((err = i2c_attach_client(new_client)))
+-		goto error3;
++		goto error1;
+ 
+ 	/* Initialize the ADM1021 chip */
+ 	adm1021_init_client(new_client);
+@@ -324,7 +320,6 @@
+ 
+ 	return 0;
+ 
+-error3:
+ error1:
+ 	kfree(new_client);
+ error0:
+@@ -333,17 +328,9 @@
+ 
+ static void adm1021_init_client(struct i2c_client *client)
+ {
+-	/* Initialize the adm1021 chip */
+-	adm1021_write_value(client, ADM1021_REG_TOS_W,
+-			    adm1021_INIT_TOS);
+-	adm1021_write_value(client, ADM1021_REG_THYST_W,
+-			    adm1021_INIT_THYST);
+-	adm1021_write_value(client, ADM1021_REG_REMOTE_TOS_W,
+-			    adm1021_INIT_REMOTE_TOS);
+-	adm1021_write_value(client, ADM1021_REG_REMOTE_THYST_W,
+-			    adm1021_INIT_REMOTE_THYST);
+ 	/* Enable ADC and disable suspend mode */
+-	adm1021_write_value(client, ADM1021_REG_CONFIG_W, 0);
++	adm1021_write_value(client, ADM1021_REG_CONFIG_W,
++		adm1021_read_value(client, ADM1021_REG_CONFIG_R) & 0xBF);
+ 	/* Set Conversion rate to 1/sec (this can be tinkered with) */
+ 	adm1021_write_value(client, ADM1021_REG_CONV_RATE_W, 0x04);
+ }
 
