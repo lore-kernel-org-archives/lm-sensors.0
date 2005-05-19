@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: m.strong@tnsa.com.au (Mark Strong)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: fan speeds and temps no reading
-Message-Id: <20050113215149.49cf3292.khali@linux-fr.org>
+Message-Id: <1105652131.15001.191.camel@tooheys.tnsa.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1104907933.3003.195.camel@tooheys.tnsa.com.au>
 In-Reply-To: <1104907933.3003.195.camel@tooheys.tnsa.com.au>
@@ -10,32 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Hey,
-> 	Jean,
-> 		I'm doing it now, but is it supposed to do this
-> 
-> [root@bambi ~]# isaset -y -f 0x2e 0x87
-> Data mismatch, wrote 0x87, read 0xff back.
-> [root@bambi ~]# isaset -y -f 0x2e 0x87
-> Data mismatch, wrote 0x87, read 0xff back.
+Jean,
+	here's the data
 
-Don't worry, mismatches are expected. Sorry, I should have told you.
+[root@bambi ~]# isaset -y -f 0x2e 0x87
+Data mismatch, wrote 0x87, read 0xff back.
+[root@bambi ~]# isaset -y -f 0x2e 0x87
+Data mismatch, wrote 0x87, read 0xff back.
+[root@bambi ~]# isaset 0x2e 0x2f 0x07 8
+WARNING! Running this program can cause system crashes, data loss and
+worse!
+I will write value 0x08 to address 0x07 of chip with address register
+0x2e
+and data register 0x2f.
+Continue? [Y/n]
+[root@bambi ~]# isaset 0x2e 0x2f 0x30 1
+WARNING! Running this program can cause system crashes, data loss and
+worse!
+I will write value 0x01 to address 0x30 of chip with address register
+0x2e
+and data register 0x2f.
+Continue? [Y/n]
+[root@bambi ~]# isadump 0x2e 0x2f > w83627thf-ld8.dump
+WARNING! Running this program can cause system crashes, data loss and
+worse!
+I will probe address register 0x2e and data register 0x2f.
+Continue? [Y/n]
+[root@bambi ~]# isaset -y -f 0x2e 0xaa
+Data mismatch, wrote 0xaa, read 0xff back.
+[root@bambi ~]#
 
-Dump is OK, but the logical device is disabled, so some information seem
-to be hidden. We will have to enable it.
 
-isaset -y -f 0x2e 0x87
-isaset -y -f 0x2e 0x87
-isaset 0x2e 0x2f 0x07 8
-isaset 0x2e 0x2f 0x30 1
-isadump 0x2e 0x2f > w83627thf-ld8.dump
-isaset -y -f 0x2e 0xaa
+Mark.
 
-Beware this is slightly more risky that the previous set of commands,
-although I think it should be OK. Don't do it if you couldn't afford a
-system reboot or just don't feel like it.
-
-Thanks,
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+ps Its a development server, just built, so I can afford a reboot or
+two.
