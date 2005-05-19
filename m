@@ -1,31 +1,23 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: driver development
-Message-Id: <3D4D6929.232772E9@paradyne.com>
+From: joden@lee.k12.nc.us (James Olin Oden)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: linking against libsensors
+Message-Id: <Pine.LNX.4.58.0406170815240.13125@malachi.lee.k12.nc.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1028480189.696.1.camel@jane>
-In-Reply-To: <1028480189.696.1.camel@jane>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-It depends what services you plan to offer :)
+Hi All,
 
-Our Documentation page (link on our home page)
-has links to just about every document we've written.
+I realize this is a real stupid question, but I was hopping that it would
+also be an easy one for someone to answer.  I was trying write a simple 
+program that uses libsensors, mainly to try to figure out how to use it,
+and when I tried to link against libsensors (using -lsensors as the linker 
+option), it would never be able to find the libsensors library.  I finally
+figured out that I did not have a symlink /usr/lib/libsensors.so.  I 
+created the link and my test programed linked fine.  My question is, is 
+there away to tell the ld (or ld through gcc) to use a particular version 
+of a .so (for instance I had a libsensors.so.1 and a libsensors.so.1.2.1)?
 
-We always need testers.
-
-If you have some chip on your board that you would like
-to add support for, tell us about the chip and we can help
-point you in the right direction.
-
-mds
-
-
-Daniel Miles wrote:
-> 
-> I'm a bit of a novice coder (just a few years of school), is there a
-> page somewhere that would tell me what I need to learn before I offer my
-> services?
+Thanks...james
