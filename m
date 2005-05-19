@@ -1,7 +1,7 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:57 +0000
 Subject: [RFC PATCH 2.6.12-rc3] dynamic driver sysfs callbacks and RFC on
-Message-Id: <2538186705050901066def6d69@mail.gmail.com>
+Message-Id: <WrfYjmjl.1115647014.3607340.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2538186705042422366584aff4@mail.gmail.com>
 In-Reply-To: <2538186705042422366584aff4@mail.gmail.com>
@@ -10,33 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Two patches for comment, first defining a set of macros as I
-previously described would be useful, and second an initial patch to
-adapt net/core/net-sysfs.c to take advantage of dynamic callbacks
-(although this needs testing) using said macros.
 
-Before: 15K linux-2.6.12-rc4/usr/src/linux/net/core/net-sysfs.o
-After: 12K  linux-2.6.12-rc4-sysfsdyncallback-net-sysfs/net/core/net-sysfs.o
+Hi Yani,
 
-Obviously not as big a difference as with adm1026, but that's to be
-expected, it doesn't define near as many attributes. I think the patch
-cleans up the code aesthetically quite a bit too. If someone could
-work out how to get rid of the macros for sprintfs (FIELD_FORMAT, etc)
-that would be even better.
+> The naming might make the distinction in use, but nothing is really
+> stopping anyone from using one or the other and it might even confuse
+> further (i.e. not understanding the difference, using both, using the
+> wrong one). Since the two would be mutually exclusive I also can't
+> help feel it would be a waste of space. Maybe naming the macro that
+> sets the data member to something appropriate would help?
 
-Night...errr morning :-),
-Yani
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-datamacros.diff
-Type: text/x-patch
-Size: 3218 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050509/d3771d4c/patch-linux-2.6.12-rc4-sysfsdyncallback-datamacros.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-net-sysfs.diff
-Type: text/x-patch
-Size: 7291 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050509/d3771d4c/patch-linux-2.6.12-rc4-sysfsdyncallback-net-sysfs.bin
+If both are actually mutually exclusive, you could use a union in the
+struct definition.
+
+Also, if we go for two different attributes, wouldn't it make sense to
+have the static one an int and the per-instance one a void*? I keep
+thinking that a pointer for the static case won't be of any help and is
+actually error-prone.
+
+That being said, these are only my random thoughts on the topic. I am not
+going to make a decision or even emit an authoritative opinion here
+(especially not when it seems that Greg has different views). Hopefully
+I'll be back "soon", the worst seems to be behind me now.
+
+Thanks,
+--
+Jean Delvare
