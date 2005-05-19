@@ -1,79 +1,62 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: TR : RE : VIA VT1211 Port to 2.6.x in progress
-Message-Id: <40A6410F.9060509@verizon.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:19 +0000
+Subject: Adding S4882 support to the i2c-amd756 driver
+Message-Id: <20041017222721.1f12466d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <400DF5D5.4020209@verizon.net>
-In-Reply-To: <400DF5D5.4020209@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I guess what I meant to ask is,
-there are two ports, Nuno's and Francois', have you two done any merging or updating
-or do you want me to just pick one?
+Hi all,
 
-Mark Studebaker wrote:
-> sorry for 2 month delay.
-> I'm ready to test your driver. Is the code at the link below still the 
-> latest?
-> 
-> Mark Studebaker wrote:
-> 
->> I promised Khali I'd test your driver but first I have to move my 1211 
->> board over to 2.6,
->> hope to get to it soon.
->> mds
->>
->>
->> BARRE Francois wrote:
->>
->>> Hello all,
->>>
->>> This is my own port of the vt1211 for 2.6.x which seems to work 
->>> pretty well,
->>> including extensive insmod/rmmod uses, ...
->>> I just have a problem with temp_[hyst|over]2, not solved yet... 
->>> Working on
->>> it !
->>>
->>> I hope it will be of some help...
->>>
->>> By the way, should someone include me in the sensors ml ?
->>>
->>> Thanks in advance.
->>>
->>> -----Message d'origine-----
->>> De : Nuno Grilo [mailto:nuno.grilo@netcabo.pt] Envoy? : lundi 26 
->>> janvier 2004 00:58
->>> ? : Alexander Isacson; Mark Studebaker
->>> Cc : BARRE Francois; 'nuno.grilo@netcabo.pt'; LM Sensors
->>> Objet : Re: TR : RE : VIA VT1211 Port to 2.6.x in progress
->>>
->>> Hi
->>>
->>> Take a look at my port, I think it should be usable enough for what you
->>> want: http://pwp.netcabo.pt/0246517002/vt1211.c
->>>
->>> On Sunday 25 January 2004 21:28, Alexander Isacson wrote:
->>>
->>>> Hello all.
->>>>
->>>> I'm wondering about the status of the port. I'm approaching the 
->>>> deadline
->>>> for my project and I need to monitor voltages and temperature. Is that
->>>> working in the current version? If so, could someone please e-mail 
->>>> it to
->>>> me?
->>>>
->>>> Thanks allot, keep up the good work!
->>>
->>>
->>>
->>>
->>>
->>
->>
-> 
-> 
+As mentioned some days ago, I am in the process of adding support for
+the Tyan S4882 motherboard to lm_sensors.
+
+The support for the LM63 monitoring chip is already in, nothing
+particular to say about that.
+
+The SMBus support is a bit trickier though, since the board uses
+multiplexing. For now, I added support directly into the i2c-amd756
+driver. Since it increases the size of the driver, I made the extra code
+optional (will show as an option when configuring the kernel, or can be
+manually switched on and off when compiling directly in the lm_sensors
+tree; default is to include support).
+
+The size isn't necessarily a problem, since the driver is small to start
+with, and the overhead is small as well (in absolute size, that is).
+However, Mark M. Hoffman objected that in the interest of
+maintainability, separating the S4882-specific code would be better. I'm
+all for that, but my attemps to do so did all fail so far.
+
+* Composite module
+I don't know how this can be done in the lm_sensors tree. Hint anyone?
+
+* Separate module
+My initial attempt to have a separate i2c-amd756-s4882 module works in
+that the code belongs to a different file. However, both modules will be
+loaded in all cases, whether the board is a S4882 or not, because the
+main module has references to functions belonging to the extra module. I
+think it might be a little confusing for the user. The correct approach
+would be to have three modules: 1* main code, 2* pci detection for
+regular boards and 3* pci detection + extra code for the S4882. Having
+three different modules sound overkill. Also, this would probably
+involve renaming files and modules, which will make things even more
+confusing for everyone, and significant changes to the original code.
+I'm not going into that.
+
+So I think I will stick to my original plan to simply include the extra
+code in the main driver. If anyone object, please tell me how I can
+either do a composite module in the lm_sensors tree (one single module
+made of two source files), or any other way to have things done more
+cleanly.
+
+Note: All this is for 2.4/CVS only. For 2.6, Mark M. Hoffman is working
+on a completely different approach for multiplexing support, and I will
+wait for his proposal and build my work on top of that.
+
+Thanks.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
