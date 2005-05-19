@@ -1,40 +1,42 @@
-From: a.othieno@bluewin.ch (Arthur Othieno)
-Date: Thu, 19 May 2005 06:25:02 +0000
-Subject: [PATCH 2.6] drivers/media/video/ir-kbd-i2c.c: ACK return on
-Message-Id: <20040622151905.GB1473@mars>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: CVS problem
+Message-Id: <20020108165944.A14967@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-i2c_add_driver() may actually fail, but this driver returns 0
-regardless. Against 2.6.7. Thanks.
-
-Signed-off-by: Arthur Othieno <a.othieno@bluewin.ch>
+Ah, got it.  It should be fixed now.  New directories are being
+created with the wrong group designation for some reason.
 
 
- ir-kbd-i2c.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+Phil
 
---- a/drivers/media/video/ir-kbd-i2c.c	2004-05-20 23:48:07.000000000 +0200
-+++ b/drivers/media/video/ir-kbd-i2c.c	2004-05-19 13:19:21.000000000 +0200
-@@ -388,13 +388,12 @@ MODULE_AUTHOR("Gerd Knorr, Michal Kochan
- MODULE_DESCRIPTION("input driver for i2c IR remote controls");
- MODULE_LICENSE("GPL");
- 
--static int ir_init(void)
-+static int __init ir_init(void)
- {
--	i2c_add_driver(&driver);
--	return 0;
-+	return i2c_add_driver(&driver);
- }
- 
--static void ir_fini(void)
-+static void __exit ir_fini(void)
- {
- 	i2c_del_driver(&driver);
- }
+On Tue, Jan 08, 2002 at 07:33:28PM -0500, Mark D. Studebaker wrote:
+> Ticket #783
+> 
+> I made a new directory prog/init
+> and it has caused problems on checkout.
+> 
+> I tried it myself and had same problem.
+> thanks
+> mds
+> 
+> -------------------
+> 
+> 
+> cvs server: Updating lm_sensors2/prog/init
+> cvs server: failed to create lock directory for
+> `/home/cvs/lm_sensors2/prog/init'
+> (/home/cvs/lm_sensors2/prog/init/#cvs.lock): Permission denied
+> cvs server: failed to obtain dir lock in repository
+> `/home/cvs/lm_sensors2/prog/init'
+> cvs [server aborted]: read lock failed - giving up
+
+-- 
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
