@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: r.marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: [PATCH] ALI1563 SMBus driver fix
-Message-Id: <20050412214932.2c7df487.khali@linux-fr.org>
+Message-Id: <425C471F.8040006@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050411081712.17417.qmail@desitka.sh.cvut.cz>
 In-Reply-To: <20050411081712.17417.qmail@desitka.sh.cvut.cz>
@@ -10,36 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ruik,
+Hi Greg and Jean
 
-> -/**
-> +/*
->   *	i2c-ali1563.c - i2c driver for the ALi 1563 Southbridge
->   *
->   *	Copyright (C) 2004 Patrick Mochel
+I'm very sorry about my patch submitting policy I hope I will improve in future :)
 
-Please avoid noise in patches, it doesn't help review.
+> 
+>>+	/* device error - probably missing ACK, from autdetection I2C_QUICK */
+>>+	if (data & HST_STS_DEVERR) {
+>>+		dev_dbg(&a->dev, "Device error!\n");
+>>+	}
+> 
+> 
+> I don't like this. If this "error" is normal for I2C_QUICK, then don't
+> issue any message and return 0 in this case, and issue an *error*, not
+> debug, message in the other cases.
 
-> +	/* device error - probably missing ACK, from autdetection I2C_QUICK */
-> +	if (data & HST_STS_DEVERR) {
-> +		dev_dbg(&a->dev, "Device error!\n");
-> +	}
+Yes this will happen when no-one will respond to I2C_QUICK. If we would return 0;
+then i2cdetect would have detected all devices as "present"??? (Or am I missing something? Its quite late
+here...When someting will respond to I2C QUICK we would leave the routine more to the top)
 
-I don't like this. If this "error" is normal for I2C_QUICK, then don't
-issue any message and return 0 in this case, and issue an *error*, not
-debug, message in the other cases.
+> 
+> As far as I can see, this means adding a second parameter to
+> ali1563_transaction, but I don't think this is a problem.
 
-As far as I can see, this means adding a second parameter to
-ali1563_transaction, but I don't think this is a problem.
+Please can you explain more? Or tomorrow on IRC if you want...
 
->  	/* Write the command register */
-> +
->  	switch(size) {
+I will remove all noise in future revisions of this patch.
 
-Noise :p
+> I'm otherwise fine with your patch, thanks a lot for your great
+> investigation work on this.
 
-I'm otherwise fine with your patch, thanks a lot for your great
-investigation work on this.
+Thank you, it was nice detective story, so I'm proud that I found all "murders" in our case.
+Funny is that I could not take a look to book :)
 
--- 
-Jean Delvare
+Before I will create new patch I will send patch to Patrick in extra thread.
+
+Regards
+
+Rudolf
