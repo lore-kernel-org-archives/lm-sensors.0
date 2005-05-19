@@ -1,7 +1,7 @@
 From: jonsmirl@yahoo.com (Jon Smirl)
 Date: Thu, 19 May 2005 06:24:44 +0000
 Subject: I2C DDC display
-Message-Id: <20040228191744.46400.qmail@web14911.mail.yahoo.com>
+Message-Id: <20040228192735.8393.qmail@web14912.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040228001023.4653.qmail@web14901.mail.yahoo.com>
 In-Reply-To: <20040228001023.4653.qmail@web14901.mail.yahoo.com>
@@ -10,30 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-benh and I have been talking about moving all of the EDID processing and mode
-computations up into user space. This is about 100K of code that is used in
-frequently and really has no need to be in a device driver.  After the mode is
-computed the appropriate register values are passed in to the video driver. None
-of the user space code touches registers directly. The new klibc and initramfs
-support allow the mode to be set from userspace very early in the boot process
-via a hotplug event when the adapter is first detected.
+--- Jean Delvare <khali@linux-fr.org> wrote:
+> As for where the code should be, I still think it is *not* possible to
+> put it in the chip driver. If I understand it correctly, before the
+> special sequence is send on the bus, the EDID does *not* respond to any
+> I2C address. This means that the ddcmon driver will *never* be called.
+> 
 
-It would be preferable if the user space code for retrieving EDID was the same
-for all cards. One way to achive this is for the cards to implement I2C bus
-drivers and then we have a univeral DDC chip implementation. For example right
-now if you load benh's radeon driver the standard i2c eeprom chip module will
-pick up the EDID. Waking up the DDC chip is a monitor issue so all video cards
-will need to deal with it. That why I wanted to fix it in the chip driver
-instead of implementing it in each video driver.
+Am I reading this wrong? It looks to me like driver.attach_adapter,
+int ddcmon_attach_adapter(struct i2c_adapter *adapter)
+is always called when a bus is going to be probed.
 
-Finally, after we get a working version of an EDID driver, it would probably be
-best to go back and rework the eeprom driver to load decoder functions instead
-of having different drivers for each chip type. Right now there would be three
-implementations: EDID, RAM, generic. 
+Most of the drivers implement it like this:
+int ddcmon_attach_adapter(struct i2c_adapter *adapter)
+{
+	return i2c_detect(adapter, &addr_data, ddcmon_detect);
+}
 
-The user space code will use the eeprom image and decode the edid itself, but I
-need the wake-up DDC code in the kernel. The decoder functions will just be for
-optional fun so that the user can directly view the EDID or RAM contents.
+It's then i2c_detect() that goes and looks for the devices and decides to call
+ddcmon_detect(); I see that ddcmon_detect() will not be called if none of the
+devices are present.
+
+So the wakeup function can be added to the attach_adapter code. Isn't the whole
+point of the attach_adapter function to allow the implementation of a custom
+probing function?
 
 
 ==Jon Smirl
