@@ -1,61 +1,52 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: joden@lee.k12.nc.us (James Olin Oden)
 Date: Thu, 19 May 2005 06:25:02 +0000
 Subject: Return code of i2c transaction ignored in lm87
-Message-Id: <40DCA811.4080206@verizon.net>
+Message-Id: <Pine.LNX.4.58.0406252130410.9950@malachi.lee.k12.nc.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0406250822110.16214@malachi.lee.k12.nc.us>
 In-Reply-To: <Pine.LNX.4.58.0406250822110.16214@malachi.lee.k12.nc.us>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-A clarification:
+On Fri, 25 Jun 2004, Jean Delvare wrote:
 
-The w83l785ts error handling is in the 2.6 kernel version only.
+> [please remember to CC the mailing list on reply]
+> 
+> >Would a 2.4 patch be acceptable that merely returns a read or write error
+> >to the thing trying to read the sensor information.
+> 
+> The drivers architecture will hardly let you implement this. I dont think
+> you even have the possibility to return a non-zero error code in procfs
+> (callback functions return void IIRC). In 2.6 it's better since
+> callback functions can return an error value. However, in both cases
+> (2.4 and 2.6) the registers are read all at once in a different function
+> (mainly to ensure that the chip will get some rest from times to times)
+> so if an error occurs, it occurs in that common update function, *not*
+> in the reader callback function, so you cannot just return -1 and
+> consider that the read failed. The register which failed may not be the
+> one you are reading at that moment. You would have to keep track of
+> whether each register read succeeded or failed. Although not unfeasable,
+> this would be a very important change and I don't think it's
+> acceptable in 2.4/CVS. I'm not even sure I would like this in 2.6...
+> 
+How about this (and I am assuming I will eventually have to produce a 
+patch with the lm87 driver and drill it down into lib sensors for any real 
+by in).  The routine that reads all the sensor data detects that there is 
+error when reading one of the registers.  In the event of such an error it 
+sets a value to one in the chips structure (or a bit).  If the read was 
+succesful it sets it to zero.  A new proc entry is created called perhaps
+readerror (please give me a better name).  Whenever someone is scanning 
+the the proc values they can check this proc entry to see if the last read 
+of the registers had no errors.  If it did not then all is well, if it did
+then the program can act appropriately (ultimately, I would hope sensors 
+the program would return an error and print one).  Also, when an error on 
+a read is detected the syslog is notified.
 
-The adm1021 driver has error handling in the 2.4 kernel version only.
+I haven't thought through writes yet, but how does that sound for making 
+read errors visable to user space?  This would not have to be implemented 
+for all sensors either but if the mechansim was agreed upon implentation 
+could occur as individuals cared.
 
-mds
-
-
-Jean Delvare wrote:
->>I was reading through the lm87 code and noted (unless I am missing
->>something...highly possible) that an error return code from the I2C layer
->>seems to be ignored.  First off, am I reading this right, and secondly
->>is this on purpose (i.e. is there some reason that this is the right thing
->>to do that I am not getting)?
->=20
->=20
-> Please review the 50 other chip drivers. If you can find one which *does*
-> handle i2c-layer errors properly, let me know ;) [1]
->=20
-> More seriously, no, you're not missing anything. All our drivers are
-> shamelessly ignoring errors. This has been reported many times, see for
-> example these tickets:
-> http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticketQ7
-> http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket=855
-> And there's probably more in both the ticket base and the mailing-list
-> archive.
->=20
-> The (bad) reason behind this is that most likely, if there are read
-> errors, the driver will be unusable anyway.
->=20
-> [1] The only driver handling the errors correctly as far as I know is the
-> w83l785ts. I implemented it because there is a popular Asus board using
-> this chip and Asus' C.O.P. "feature" interacts with the chip
-> repeatedly, causing frequent (as in a few percents) read errors.
-> Detecting such errors and retrying reading fixes the problem in most
-> cases.
->=20
-> A similar method could be implemented in other chips, but when people
-> complain, we usually spend time trying to fix their bus (either driver
-> or hardware) instead, since that's what is really needed.
->=20
-> At any rate, I would not work on this in 2.4 anymore, but more likely in
-> 2.6, where having more "serious" drivers would be welcome.
->=20
-> Thanks,
-> Jean Delvare
->=20
->=20
+Cheers...james
