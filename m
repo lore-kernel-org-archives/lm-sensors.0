@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:45 +0000
+From: anthonyp@lantronix.com (Anthony Petillo)
+Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: I am developing a driver for MAX6900 (RTC chip)
-Message-Id: <4047E1B3.9080701@verizon.net>
+Message-Id: <603BA0CFF3788E46A0DB0918D9AA9510943D00@sj580004wcom.int.lantronix.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <603BA0CFF3788E46A0DB0918D9AA9510943CFD@sj580004wcom.int.lantronix.com>
 In-Reply-To: <603BA0CFF3788E46A0DB0918D9AA9510943CFD@sj580004wcom.int.lantronix.com>
@@ -9,6 +9,20 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+I am also trying to find a driver for AD7414 (temperature sensor with 5 registers). I have looked at the DS75, LM75, ADM1021A datasheets and they are all different enough that it looks as though I need to write a driver for the AD7414 as well. There are so many drivers, does anyone know if there is one that I can use for the AD7414 instead of writing one?
+
+Thank-you,
+
+Anthony
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds4@verizon.net]
+Sent: Thursday, March 04, 2004 9:11 PM
+To: Anthony Petillo
+Cc: sensors@Stimpy.netroedge.com
+Subject: Re: I am developing a driver for MAX6900 (RTC chip)
+
 
 Anthony is correct, a real time clock is quite different from
 the type of clock driver chip supported by icspll, and a new device ID is appropriate.
@@ -50,3 +64,4 @@ Anthony Petillo wrote:
 > 
 > Thanks.
 > 
+
