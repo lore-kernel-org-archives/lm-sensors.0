@@ -1,63 +1,70 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:34 +0000
-Subject: [PATCH 2.4] i2c cleanups, third wave (1/8)
-Message-Id: <20040111145150.3e1d04fc.khali@linux-fr.org>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: lm_sensors on IBM systems
+Message-Id: <3FC8D12F.E742F394@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040111144214.7a6a4e59.khali@linux-fr.org>
-In-Reply-To: <20040111144214.7a6a4e59.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
 
-This patch fixes a few errors in drivers/i2c/Config.in:
-* missing dependancy
-* empty line, indentation, typo
+We're working on a method to identify the systems that have the 24RF08
+eeprom in them
+so that we don't have to blacklist all IBM systems.
+In the meantime, you may wish to verify that your system does not have
+this chip
+(look at the board, read server docs). While you're at it try to
+identify
+what chips are on the board that our package supports (see our FAQ too).
+Then, if you are brave, edit the sensors-detect program
+to bypass the check (you're in a sysadmin course, should be easy for
+you...)
+and try again. You should read the README.thinkpad file carefully first.
+No promises that it won't destroy the server though.
+Call it a learning experience.
+And if it works you'll have a better report.
 
-The thin part of this patch that also applies to linux 2.6 has been sent
-to Greg KH.
 
-
---- linux-2.4.24-pre3/drivers/i2c/Config.in.orig	Wed Dec 31 17:22:11 2003
-+++ linux-2.4.24-pre3/drivers/i2c/Config.in	Sun Jan  4 20:00:59 2004
-@@ -7,7 +7,6 @@
- tristate 'I2C support' CONFIG_I2C
- 
- if [ "$CONFIG_I2C" != "n" ]; then
--
-    dep_tristate 'I2C bit-banging interfaces'  CONFIG_I2C_ALGOBIT $CONFIG_I2C
-    if [ "$CONFIG_I2C_ALGOBIT" != "n" ]; then
-       dep_tristate '  Philips style parallel port adapter' CONFIG_I2C_PHILIPSPAR $CONFIG_I2C_ALGOBIT $CONFIG_PARPORT
-@@ -36,7 +35,7 @@
-    if [ "$CONFIG_8xx" = "y" ]; then
-       dep_tristate 'MPC8xx CPM I2C interface' CONFIG_I2C_ALGO8XX $CONFIG_I2C
-       if [ "$CONFIG_RPXLITE" = "y" -o "$CONFIG_RPXCLASSIC" = "y" ]; then
--         dep_tristate '  Embedded Planet RPX Lite/Classic suppoort' CONFIG_I2C_RPXLITE $CONFIG_I2C_ALGO8XX
-+         dep_tristate '  Embedded Planet RPX Lite/Classic support' CONFIG_I2C_RPXLITE $CONFIG_I2C_ALGO8XX
-       fi
-    fi
-    if [ "$CONFIG_405" = "y" ]; then
-@@ -55,14 +54,14 @@
-       dep_tristate '  MAX1617 Temperature Sensor' CONFIG_I2C_MAX1617 $CONFIG_I2C_ALGO_SIBYTE
-    fi
- 
--  if [ "$CONFIG_SGI_IP22" = "y" ]; then
--     dep_tristate 'I2C SGI interfaces' CONFIG_I2C_ALGO_SGI $CONFIG_I2C
--  fi
-+   if [ "$CONFIG_SGI_IP22" = "y" ]; then
-+      dep_tristate 'I2C SGI interfaces' CONFIG_I2C_ALGO_SGI $CONFIG_I2C
-+   fi
-  
- # This is needed for automatic patch generation: sensors code starts here
- # This is needed for automatic patch generation: sensors code ends here
- 
-    dep_tristate 'I2C device interface' CONFIG_I2C_CHARDEV $CONFIG_I2C
--   dep_tristate 'I2C /proc interface (required for hardware sensors)' CONFIG_I2C_PROC $CONFIG_I2C
-+   dep_tristate 'I2C /proc interface (required for hardware sensors)' CONFIG_I2C_PROC $CONFIG_I2C $CONFIG_SYSCTL
- fi
- endmenu
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+cst01074@cs.camosun.bc.ca wrote:
+> 
+> To whom it may concern,
+> 
+> I am a student at Camosun College in Victoria, B.C.. As a project for a RedHat Linux System Admin
+> course that I am currently taking, my partner and I were given the task of installing (or trying
+> to install) "lmsensors". Our instructor had made a previous attempt without success, and was not
+> really expecting us to succeed, but to gain experience in the process. Our instructor has
+> "lmsensors" running  on a few of his own (non-IBM) machines successfully. He was aware of the
+> obstacles that we would encounter as well. Although we would have liked to have proven him wrong,
+> we too were unsuccessful.We are running an IBM Xseries 305 server, with multiple IBM NetVista Type
+> 6794-11U subservers all running on Redhat 9 platforms. We encountered the following message during
+> our installation attempt, and were forced to resign our attempt. Unfortunately, we will also have
+> to make the focus of our oral report on hardware compatibility issues and the effect that they
+> have on future purchasing decisions. Are you aware of a patch for IBM machines that can be used
+> with "lmsensors" so that future students may be more successful than we were? If so, we would be
+> happy to pass this on to our instructor. The Open Source Community has suggested that they would
+> be willing to write the patches if the necessary API's were made available.Is that a possibility
+> for the future?
+> 
+> Thanks in advance for any assistance that you may be able to provide.
+> 
+> This is a printout of the fail message that we encountered.
+> 
+> BIOS vendor (ACPI): PTLTD
+>  System vendor (DMI): IBM
+>  BIOS version (DMI): 20KT34AUS
+>  Sorry, we won't let you go on. IBM systems are known to have
+>  serious problems with lm_sensors, resulting in hardware failures.
+>  For more information, see README.thinkpad or
+>  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad.
+>  We used two methods to determine your system's vendor, and they led
+>  to different results. We'd appreciate to have feedback about such
+>  systems. Please, take some time and contact the lm_sensors mailing
+>  list at <sensors@stimpy.netroedge.com>.
+>  We need the following information:
+>   * The brand and model of your system
+>   * The BIOS vendor (ACPI) displayed above
+>   * The System vendor (DMI) displayed above
+>  Thanks!
+> 
+> Thanks again,
+> Brad and Tim
