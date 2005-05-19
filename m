@@ -1,7 +1,7 @@
-From: phil@edgedesign.us (Philip Edelbrock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: website
-Message-Id: <3F37C9DA.3030402@edgedesign.us>
+Message-Id: <20030811190559.0107e0fd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030811142506.019784b9.khali@linux-fr.org>
 In-Reply-To: <20030811142506.019784b9.khali@linux-fr.org>
@@ -11,25 +11,16 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Done.
+> Done.
 
-I didn't include that because it has code and CGI's which run on the 
-server.  This is my company's server.  If we get a dedicated server, 
-I'll make things like that more open.
+Thanks.
 
+> I didn't include that because it has code and CGI's which run on the 
+> server.  This is my company's server.  If we get a dedicated server, 
+> I'll make things like that more open.
 
-Phil
+Oh, OK, I understand.
 
-Jean Delvare wrote:
-
->Hi Phil,
->
->Could you please edit the "support2.html" webpage and remove the
->auto-refresh settings? I find it rather annoying.
->
->BTW, why isn't that part of our website available using CVS?
->
->Thanks.
->
->  
->
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
