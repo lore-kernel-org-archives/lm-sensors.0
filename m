@@ -1,32 +1,49 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:24:08 +0000
-Subject: i2c-sis630 driver
-Message-Id: <200307302047.54360.amalysh@web.de>
+From: medlock@turboshower.net (Jan Medlock)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: Ticket number 725
+Message-Id: <20011113225818.A4133@milhouse.turboshower.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030730170901.423a48ce.khali@linux-fr.org>
-In-Reply-To: <20030730170901.423a48ce.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+here's the output from 'sensors':
 
-this problem occurs only if ACPI enabled. this is because i2c register are in 
-ACPI io space. I have a test version here with acpi running, but it is tooo 
-ugly now. I will do cleanup of module and commit it within next 2 weeks... 
-Sorry but I am to busy now with my job.
+[medlock@milhouse medlock]$ sensors
+eeprom-i2c-0-50
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Non-I2C SMBus adapter
 
-Thanks...
+eeprom-i2c-0-51
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Non-I2C SMBus adapter
 
-Am Mittwoch, 30. Juli 2003 17:09 schrieb Jean Delvare:
-> Hi folks,
->
-> We have been having two tickets about i2c-sis630 driver not working
-> anymore since 2.8.0.
->
-> http://secure.netroedge.com/~lm78/readticket.cgi?ticket50
-> http://secure.netroedge.com/~lm78/readticket.cgi?ticket51
->
-> Could you please take a look? The reports are complete but I don't know
-> where to look at (I don't know much about bus drivers).
+w83627hf-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+VCore 1:   +1.79 V  (min =  +1.23 V, max =  +1.36 V)              
+VCore 2:   +0.00 V  (min =  +1.23 V, max =  +1.36 V)              
++3.3V:     +1.50 V  (min =  +3.13 V, max =  +3.45 V)              
++5V:       +4.97 V  (min =  +4.72 V, max =  +5.24 V)              
++12V:     +11.89 V  (min = +10.79 V, max = +13.19 V)              
+-12V:      +2.10 V  (min = -10.90 V, max = -13.21 V)              
+-5V:       +0.52 V  (min =  -4.76 V, max =  -5.26 V)              
+V5SB:      +5.38 V  (min =  +4.72 V, max =  +5.24 V)              
+VBat:      +3.12 V  (min =  +2.40 V, max =  +3.60 V)              
+fan1:     4963 RPM  (min = 3000 RPM, div = 2)                     
+fan2:        0 RPM  (min = 3000 RPM, div = 2)                     
+fan3:        0 RPM  (min =  750 RPM, div = 8)                     
+temp1:       +24  (limit =  +60, hysteresis =  +50) sensor thermistor           
+temp2:     +36.0  (limit =  +60, hysteresis =  +50) sensor thermistor           
+temp3:    +255.5  (limit = +256, hysteresis = +256) sensor thermistor           
+vid:      +1.30 V
+alarms:   Chassis intrusion detection                             
+beep_enable:
+          Sound alarm disabled
+
+I was asked to do an 'i2cdump' but this doesn't work because the chip
+is on an ISA bus.  I presume that I should use 'isadump' but with what
+arguments?
+
+Thanks.
