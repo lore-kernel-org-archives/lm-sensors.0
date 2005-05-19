@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:04 +0000
 Subject: Ticket 1319 - lm_sensors-2.8.0-cvs linux-2.4.20-smp-i386
-Message-Id: <20030710095827.47a22bb6.zdavatz@ywesee.com>
+Message-Id: <20030710101047.0b576ccb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030710085158.42e68c95.zdavatz@ywesee.com>
 In-Reply-To: <20030710085158.42e68c95.zdavatz@ywesee.com>
@@ -10,26 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 10 Jul 2003 09:53:48 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
 
-> [PLEASE DON'T REPLY TO ME ONLY. REPLY TO THE LIST INSTEAD.]
-Ok, sorry.
+> Still get the same error.
+> 
+> Did I miss anything?
 
-> Rather logical. Debian is shipping an old (and stable) version of our
-> package, which has less devices supported.
-Ok.
+Let's see. Please locate *all* "i2c.h" files that are present on your
+system. Either do:
+  dbupdate
+  locate i2c.h
+or:
+  find / -name "i2c.h"
 
-> Please make sure you uninstall all Debian i2c and lm_sensors packages
-> before trying CVS. If you don't, there will be old i2c headers lying
-> around and lm_sensors may accidentally get those instead of ours when
-> you try to compile it. That too could explain the errors you get.
-Ok. I uninstalled i2c-source, lm-sensors-source and lm-sensors
+And tell me what it returns. Your lm_sensors compilation error shows
+that a bad i2c.h file must be picked instead of the new one. If we knew
+where it is lurking, we could maybe understand what's going wrong.
 
-Still get the same error.
-
-Did I miss anything?
-
-Thanks for your Feedback.
-
-Zeno
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
