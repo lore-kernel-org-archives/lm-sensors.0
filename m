@@ -1,47 +1,90 @@
-From: adrian@humboldt.co.uk (Adrian Cox)
+From: hunold-ml@web.de (Michael Hunold)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <1095970724.1683.232.camel@localhost>
+Message-Id: <41545421.5080408@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org>
-	 <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de>
-	 <41506D78.6030106@web.de> <1095843365.18365.48.camel@localhost>
-	 <20040922102938.M15856@linux-fr.org> <1095854048.18365.75.camel@localhost>
-	 <41527696.5060002@linuxtv.org>
-In-Reply-To: <41527696.5060002@linuxtv.org>
+References: <414F111C.9030809@linuxtv.org> <20040921154111.GA13028@kroah.com>
+In-Reply-To: <20040921154111.GA13028@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Hunold <hunold@linuxtv.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com, Jon Smirl <jonsmirl@gmail.com>, Greg KH <greg@kroah.com>
+To: Greg KH <greg@kroah.com>
+Cc: Michael Hunold <hunold@linuxtv.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@stimpy.netroedge.com
 
-On Thu, 2004-09-23 at 08:09, Michael Hunold wrote:
-> We need to keep in mind, that the adapter interface must be a per-client 
-> interface. On PCI devices it's simple: you have a i2c bus bound to a dvb 
-> card and know which chipsets can be there. The bus is dvb specific.
+Hi,
+
+On 21.09.2004 17:41, Greg KH wrote:
+> On Mon, Sep 20, 2004 at 07:19:24PM +0200, Michael Hunold wrote:
 > 
-> On embedded platforms, however, you usually have one one i2c bus, where 
-> everything is present: dvb frontends, audio/video multiplexers, 
-> digital/analog audio converters, stuff like that.
+>> 
+>>+	/* a ioctl like command that can be used to perform specific functions
+>>+	 * with the adapter.
+>>+	 */
+>>+	int (*command)(struct i2c_adapter *adapter, unsigned int cmd, void *arg);
 > 
-> So if you create *the* i2c bus and invite i2c client to participate at 
-> the party, you need to provide different interfaces to the different 
-> chipsets.
+> 
+> Ick ick ick.  We don't like ioctls for the very reason they aren't type
+> safe, and you can pretty much stick anything in there you want.  So
+> let's not try to add the same type of interface to another subsystem.
 
-I may have to solve a similar problem when connecting an image sensor
-directly to an embedded processor. My current idea looks a bit like
-this:
+Ok, Gerd Knorr and I have been discussing this and we have come up with 
+the following idea.
 
-1) The I2C bus is a platform device, created at boot time, independent
-of my video capture module.
-2) My module contains a dummy I2C driver, which exists solely to grab an
-i2c_adapter pointer for the platform I2C device.
+We like to have an completly isolated i2c adapter, where the device 
+driver can invite i2c drivers to connect an i2c client to. When the 
+connection is made, an "interface" pointer with client-specific data or 
+function pointers can be provided.
 
-My underlying libraries don't have to worry whether the i2c_adapter came
-from a parent PCI device or a platform device. My only worry is that
-power management may still provide us with a headache, as we'll have to
-cope with platform devices being suspended in any order.
+- i2c adapter and i2c clients register themselves as usual
 
-- Adrian Cox
-Humboldt Solutions Ltd.
+- add a new NO_PROBE flag to struct i2c_adapter, so a particular adapter 
+is never probed by anyone
 
+- add these two functions to struct i2c_driver:
+int (*connect)(struct i2c_adapter *adapter, void *interface, struct 
+i2c_client **client);
+int (*disconnect)(struct i2c_client *client);
+
+- add new generic i2c functions:
+struct i2c_driver* i2c_driver_get(char *name);
+void i2c_driver_put(struct i2c_driver *drv);
+
+- the dvb-ttpci driver now can do the following:
+
+struct stv0299_interface {
+	struct dvb_adapter *dvb_adap;
+	int tuner_addr;
+};
+
+struct stv0299_interface s_if;
+struct i2c_driver *drv;
+struct i2c_client *clt;
+
+request_module("stv0299");
+drv = i2c_driver_get("stv0299");
+// fill s_if here
+drv->connect(adap, &s_if, &clt);
+
+Now inside the "connect" function of the stv0299 demodulator i2c driver 
+the device is probed, registered to the adapter and the pointer to the 
+interface with the h/w dependend information is stored.
+
+> thanks,
+> greg k-h
+
+The crucial point is probably the void * interface pointer, isn't it? Is 
+this a no-no in this situation?
+
+The dvb-ttpci driver is inviting a very specific driver, no probing 
+involved. The driver interface is well-defined and will only be hidden 
+behind the void * pointer to avoid a functional reference to the 
+demodulator driver.
+
+We have discussed simply adding a type-safe stv0299-specific connect 
+function as well, but that would introduce a functional dependency. The 
+dvb-ttpci driver can be used with about 8 different frontend drivers, so 
+loading the driver would cause unnecessary frontend drivers to be loaded 
+as well.
+
+CU
+Michael.
