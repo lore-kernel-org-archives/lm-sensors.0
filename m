@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:45 +0000
 Subject: RFC locking and rate limit updates for i2c?
-Message-Id: <9va241l9vnda4judqptqdcsbdbckrvr5vd@4ax.com>
+Message-Id: <AM46Y3QI.1111570385.4530770.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 In-Reply-To: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
@@ -10,39 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Philip,
 
-On Wed, 23 Mar 2005 00:23:24 -0800, Philip Pokorny <ppokorny@penguincomputing.com> wrote:
->>Not at all.
->
->I'm sorry, I didn't mean to offend.
+Hi Grant,
 
-Not offended, upset at not being able to work out how all this 
-fits together, now that I'm passed the silly errors, learning 
-how people build symbols inside macros and other weird stuff.  
+> Thinking about the fan_div setting, it is a read/modify/write
+> (RMW) operation to a chip register, should we take action to
+> prevent another process accessing the chip on i2c during this
+> RMW action?
 
-So, we have yourself and Mark telling me not to worry, but I'm 
-uneasy about the model or mental picture I build to describe 
-what may be.  And yes, I don't have evidence yet, but these 
-are areas I'm treating with suspicion, if you like.
+Can you (or anyone) point out a concrete example where the lack of
+locking on write could cause a problem that locking would actually
+resolve? It's better to know what we are trying to fix before we change
+anything.
 
-You ever focus on wrong issues and build wrong model of 
-what is important?  That's where I'm at trying to build 
-understanding of a system I don't even have end-user 
-experience with yet.
-
-I get to the stage of cherry-picking the best ideas I've seen 
-in the drivers, not one driver has struck me as a model driver.
-
->In addition to the way I know my drivers worked, I believe that all 
->other drivers have an update_lock semaphore that could be used to 
->protect read-modify-write's in the same way.
-
-But they don't, and I wonder if they should?
-
-
-Of course, I may have missed something...  I doubt I'll 
-submit a non-compile-tested patch again, f'instance. :o)
-
-Cheers,
-Grant.
+Thanks,
+--
+Jean Delvare
