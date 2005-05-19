@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: [PATCH] I2C update for 2.6.8-rc1
-Message-Id: <1089850035501@kroah.com>
+Message-Id: <10898500351442@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10898500321009@kroah.com>
+In-Reply-To: <10898500353542@kroah.com>
 References: <10898500251206@kroah.com>
 In-Reply-To: <10898500251206@kroah.com>
 MIME-Version: 1.0
@@ -11,128 +11,108 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1784.13.13, 2004/07/14 11:50:09-07:00, mhoffman@lightlink.com
+ChangeSet 1.1784.1.96, 2004/07/14 16:04:27-07:00, orange@fobie.net
 
-[PATCH] I2C: Remove extra inits from lm78 driver
+[PATCH] I2C: patch quirks.c - SMBus hidden on hp laptop
 
-This patch is from the lm_sensors project CVS, from this revision:
+This patch unhides the SMBus on the hp nc8000 and nc6000 laptops. The
+patch has been co-written by Jean Delvare and Rudolf Marek. I've only
+tested this on nc8000, but it should work for the nc6000 too.
 
-	1.63 (mds) remove initialization of limits by driver
+Unfortunatley, we had to little information to fix the problem described
+in the reported bug below, as is probably the same problem. But if we're
+very lucky it might solve it too.
+http://bugzilla.kernel.org/show_bug.cgi?id)76
 
-It is better to set these limits by a combination of /etc/sensors.conf
-and 'sensors -s'; "mechanism not policy."  Please apply.
 
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: ?rjan Persson <orange@fobie.net>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/chips/lm78.c |   88 -----------------------------------------------
- 1 files changed, 88 deletions(-)
+ drivers/pci/quirks.c |   58 ++++++++++++++++++++++++++++++---------------------
+ 1 files changed, 35 insertions(+), 23 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/lm78.c b/drivers/i2c/chips/lm78.c
---- a/drivers/i2c/chips/lm78.c	2004-07-14 16:59:07 -07:00
-+++ b/drivers/i2c/chips/lm78.c	2004-07-14 16:59:07 -07:00
-@@ -123,55 +123,6 @@
+diff -Nru a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c	2004-07-14 16:58:40 -07:00
++++ b/drivers/pci/quirks.c	2004-07-14 16:58:40 -07:00
+@@ -694,29 +694,38 @@
+ 
+ static void __init asus_hides_smbus_hostbridge(struct pci_dev *dev)
+ {
+-	if (likely(dev->subsystem_vendor != PCI_VENDOR_ID_ASUSTEK))
+-		return;
+-
+-	if (dev->device = PCI_DEVICE_ID_INTEL_82845_HB)
+-		switch(dev->subsystem_device) {
+-		case 0x8070: /* P4B */
+-	    	case 0x8088: /* P4B533 */
+-			asus_hides_smbus = 1;
+-		}
+-	if (dev->device = PCI_DEVICE_ID_INTEL_82845G_HB)
+-		switch(dev->subsystem_device) {
+- 		case 0x80b1: /* P4GE-V */
+-		case 0x80b2: /* P4PE */
+- 		case 0x8093: /* P4B533-V */
+-			asus_hides_smbus = 1;
+-		}
+-	if ((dev->device = PCI_DEVICE_ID_INTEL_82850_HB) &&
+-	    (dev->subsystem_device = 0x8030)) /* P4T533 */
+-		asus_hides_smbus = 1;
+-	if ((dev->device = PCI_DEVICE_ID_INTEL_7205_0) &&
+-	    (dev->subsystem_device = 0x8070)) /* P4G8X Deluxe */
+-		asus_hides_smbus = 1;
+-	return;
++	if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_ASUSTEK)) {
++		if (dev->device = PCI_DEVICE_ID_INTEL_82845_HB)
++			switch(dev->subsystem_device) {
++			case 0x8070: /* P4B */
++			case 0x8088: /* P4B533 */
++				asus_hides_smbus = 1;
++			}
++		if (dev->device = PCI_DEVICE_ID_INTEL_82845G_HB)
++			switch(dev->subsystem_device) {
++			case 0x80b1: /* P4GE-V */
++			case 0x80b2: /* P4PE */
++			case 0x8093: /* P4B533-V */
++				asus_hides_smbus = 1;
++			}
++		if (dev->device = PCI_DEVICE_ID_INTEL_82850_HB)
++			switch(dev->subsystem_device) {
++			case 0x8030: /* P4T533 */
++				asus_hides_smbus = 1;
++			}
++		if (dev->device = PCI_DEVICE_ID_INTEL_7205_0)
++			switch (dev->subsystem_device) {
++			case 0x8070: /* P4G8X Deluxe */
++				asus_hides_smbus = 1;
++			}
++	} else if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_HP)) {
++		if (dev->device =  PCI_DEVICE_ID_INTEL_82855PM_HB)
++			switch(dev->subsystem_device) {
++			case 0x088C: /* HP Compaq nc8000 */
++			case 0x0890: /* HP Compaq nc6000 */
++				asus_hides_smbus = 1;
++			}
++	}
  }
- #define DIV_FROM_REG(val) (1 << (val))
  
--/* Initial limits. To keep them sane, we use the 'standard' translation as
--   specified in the LM78 sheet. Use the config file to set better limits. */
--#define LM78_INIT_IN_0(vid) ((vid)=3500 ? 2800 : (vid))
--#define LM78_INIT_IN_1(vid) ((vid)=3500 ? 2800 : (vid))
--#define LM78_INIT_IN_2 3300
--#define LM78_INIT_IN_3 (((5000)   * 100)/168)
--#define LM78_INIT_IN_4 (((12000)  * 10)/38)
--#define LM78_INIT_IN_5 (((-12000) * -604)/2100)
--#define LM78_INIT_IN_6 (((-5000)  * -604)/909)
--
--#define LM78_INIT_IN_PERCENTAGE 10
--
--#define LM78_INIT_IN_MIN_0(vid) (LM78_INIT_IN_0(vid) - \
--	LM78_INIT_IN_0(vid) * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_0(vid) (LM78_INIT_IN_0(vid) + \
--	LM78_INIT_IN_0(vid) * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MIN_1(vid) (LM78_INIT_IN_1(vid) - \
--	LM78_INIT_IN_1(vid) * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_1(vid) (LM78_INIT_IN_1(vid) + \
--	LM78_INIT_IN_1(vid) * LM78_INIT_IN_PERCENTAGE / 100)
--
--#define LM78_INIT_IN_MIN_2 \
--        (LM78_INIT_IN_2 - LM78_INIT_IN_2 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_2 \
--        (LM78_INIT_IN_2 + LM78_INIT_IN_2 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MIN_3 \
--        (LM78_INIT_IN_3 - LM78_INIT_IN_3 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_3 \
--        (LM78_INIT_IN_3 + LM78_INIT_IN_3 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MIN_4 \
--        (LM78_INIT_IN_4 - LM78_INIT_IN_4 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_4 \
--        (LM78_INIT_IN_4 + LM78_INIT_IN_4 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MIN_5 \
--        (LM78_INIT_IN_5 - LM78_INIT_IN_5 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_5 \
--        (LM78_INIT_IN_5 + LM78_INIT_IN_5 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MIN_6 \
--        (LM78_INIT_IN_6 - LM78_INIT_IN_6 * LM78_INIT_IN_PERCENTAGE / 100)
--#define LM78_INIT_IN_MAX_6 \
--        (LM78_INIT_IN_6 + LM78_INIT_IN_6 * LM78_INIT_IN_PERCENTAGE / 100)
--
--#define LM78_INIT_FAN_MIN_1 3000
--#define LM78_INIT_FAN_MIN_2 3000
--#define LM78_INIT_FAN_MIN_3 3000
--
--#define LM78_INIT_TEMP_OVER 60000
--#define LM78_INIT_TEMP_HYST 50000
--
- /* There are some complications in a module like this. First off, LM78 chips
-    may be both present on the SMBus and the ISA bus, and we have to handle
-    those cases separately at some places. Second, there might be several
-@@ -755,45 +706,6 @@
- 	else
- 		vid |= 0x10;
- 	vid = VID_FROM_REG(vid);
--
--	lm78_write_value(client, LM78_REG_IN_MIN(0),
--			 IN_TO_REG(LM78_INIT_IN_MIN_0(vid)));
--	lm78_write_value(client, LM78_REG_IN_MAX(0),
--			 IN_TO_REG(LM78_INIT_IN_MAX_0(vid)));
--	lm78_write_value(client, LM78_REG_IN_MIN(1),
--			 IN_TO_REG(LM78_INIT_IN_MIN_1(vid)));
--	lm78_write_value(client, LM78_REG_IN_MAX(1),
--			 IN_TO_REG(LM78_INIT_IN_MAX_1(vid)));
--	lm78_write_value(client, LM78_REG_IN_MIN(2),
--			 IN_TO_REG(LM78_INIT_IN_MIN_2));
--	lm78_write_value(client, LM78_REG_IN_MAX(2),
--			 IN_TO_REG(LM78_INIT_IN_MAX_2));
--	lm78_write_value(client, LM78_REG_IN_MIN(3),
--			 IN_TO_REG(LM78_INIT_IN_MIN_3));
--	lm78_write_value(client, LM78_REG_IN_MAX(3),
--			 IN_TO_REG(LM78_INIT_IN_MAX_3));
--	lm78_write_value(client, LM78_REG_IN_MIN(4),
--			 IN_TO_REG(LM78_INIT_IN_MIN_4));
--	lm78_write_value(client, LM78_REG_IN_MAX(4),
--			 IN_TO_REG(LM78_INIT_IN_MAX_4));
--	lm78_write_value(client, LM78_REG_IN_MIN(5),
--			 IN_TO_REG(LM78_INIT_IN_MIN_5));
--	lm78_write_value(client, LM78_REG_IN_MAX(5),
--			 IN_TO_REG(LM78_INIT_IN_MAX_5));
--	lm78_write_value(client, LM78_REG_IN_MIN(6),
--			 IN_TO_REG(LM78_INIT_IN_MIN_6));
--	lm78_write_value(client, LM78_REG_IN_MAX(6),
--			 IN_TO_REG(LM78_INIT_IN_MAX_6));
--	lm78_write_value(client, LM78_REG_FAN_MIN(0),
--			 FAN_TO_REG(LM78_INIT_FAN_MIN_1, 2));
--	lm78_write_value(client, LM78_REG_FAN_MIN(1),
--			 FAN_TO_REG(LM78_INIT_FAN_MIN_2, 2));
--	lm78_write_value(client, LM78_REG_FAN_MIN(2),
--			 FAN_TO_REG(LM78_INIT_FAN_MIN_3, 2));
--	lm78_write_value(client, LM78_REG_TEMP_OVER,
--			 TEMP_TO_REG(LM78_INIT_TEMP_OVER));
--	lm78_write_value(client, LM78_REG_TEMP_HYST,
--			 TEMP_TO_REG(LM78_INIT_TEMP_HYST));
+ static void __init asus_hides_smbus_lpc(struct pci_dev *dev)
+@@ -987,13 +996,16 @@
  
- 	/* Start monitoring */
- 	lm78_write_value(client, LM78_REG_CONFIG,
+ 	/*
+ 	 * on Asus P4B boards, the i801SMBus device is disabled at startup.
++	 * this also goes for boards in HP Compaq nc6000 and nc8000 notebooks.
+ 	 */
+ 	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82845_HB,	asus_hides_smbus_hostbridge },
+ 	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82845G_HB,	asus_hides_smbus_hostbridge },
+ 	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82850_HB,	asus_hides_smbus_hostbridge },
+ 	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_7205_0,	asus_hides_smbus_hostbridge },
++	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82855PM_HB,	asus_hides_smbus_hostbridge },
+ 	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801DB_0,	asus_hides_smbus_lpc },
+ 	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801BA_0,	asus_hides_smbus_lpc },
++	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801DB_12,	asus_hides_smbus_lpc },
+ 
+ #ifdef CONFIG_SCSI_SATA
+ 	/* Fixup BIOSes that configure Parallel ATA (PATA / IDE) and
 
