@@ -1,58 +1,94 @@
-From: elenstev@mesatop.com (Steven Cole)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [GIT PATCH] I2C and W1 bugfixes for 2.6.12-rc2
-Message-Id: <200504191741.57626.elenstev@mesatop.com>
+From: js@convergence.de (Johannes Stezenbach)
+Date: Thu, 19 May 2005 06:24:29 +0000
+Subject: 2.6.0-test11: i2c-dev.h for userspace
+Message-Id: <20031212145652.GA30747@convergence.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050419043938.GA23724@kroah.com> <200504191704.48976.elenstev@mesatop.com> <Pine.LNX.4.58.0504191627420.2274@ppc970.osdl.org>
-In-Reply-To: <Pine.LNX.4.58.0504191627420.2274@ppc970.osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Greg KH <greg@kroah.com>, Greg KH <gregkh@suse.de>, Git Mailing List <git@vger.kernel.org>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: sensors@stimpy.netroedge.com
+Cc: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org
 
-On Tuesday 19 April 2005 05:38 pm, Linus Torvalds wrote:
-> 
-> On Tue, 19 Apr 2005, Steven Cole wrote:
-> > 
-> > I wasn't complaining about the 4 minutes, just the lack of feedback
-> > during the majority of that time.  And most of it was after the last
-> > patching file message.
-> 
-> That should be exactly the thing that the new "read-tree -m" fixes.
-> 
-> Before, when you read in a new tree (which is what you do when you update
-> to somebody elses version), git would throw all the cached information
-> away, and so you'd end up doing a "checkout-cache -f -a" that re-wrote
-> every single checked-out file, followed by "update-cache --refresh" that
-> then re-created the cache for every single file.
-> 
-> With the new read-tree, the same sequence (assuming you have the "-m"  
-> flag to tell read-tree to merge the cache information) will now only write
-> out and re-check the files that actually changed due to the update or
-> merge.
-> 
-> So that last phase should go from minutes to seconds - instead of checking
-> 17,000+ files, you'd end up checking maybe a few hundred for most "normal"
-> updates.
-> 
-> For example, updating all the way from the git root (ie plain 2.6.12-rc2)  
-> to the current head, only 577 files have changed, and the rest (16,740)
-> should never be touched at all.
-> 
-> You can see why doing just the 577 instead of the full 17,317 might speed
-> things up a bit ;)
-> 
-> 		Linus
+Hi,
 
-Cool.  Petr, I hope this works like this with your tools tomorrow.
+I had some trouble compiling a userspace application
+which uses the I2C device interface (the DirectFB
+Matrox driver). Apparently some stuff has been removed
+from i2c-dev.h, and Documentation/i2c/dev-interface is
+out of date. I'm using Debian unstable (where glibc is
+built with kernel 2.6 headers).
 
-> 
-> PS. Of course, right now it probably does make sense to waste some time
-> occasionally, and run "fsck-cache $(cat .git/HEAD)" every once in a while.
-> Just in case..
-> 
-> 
-Sounds like a good thing to schedule for $WEEHOUR.
+The patch below puts back some "#if __KERNEL__" conditionals
+so i2c.h can be included without errors in userspace progams.
 
-Steven
+Regards,
+Johannes
+
+
+
+--- linux-2.6.0-test11-bk8/include/linux/i2c.h.orig	2003-12-12 15:19:12.000000000 +0100
++++ linux-2.6.0-test11-bk8/include/linux/i2c.h	2003-12-12 15:19:37.000000000 +0100
+@@ -28,21 +28,26 @@
+ #ifndef _LINUX_I2C_H
+ #define _LINUX_I2C_H
+ 
++#ifdef __KERNEL__
+ #include <linux/module.h>
+-#include <linux/types.h>
+-#include <linux/i2c-id.h>
+ #include <linux/device.h>	/* for struct device */
+ #include <asm/semaphore.h>
++#endif
++#include <linux/types.h>
++#include <linux/i2c-id.h>
+ 
+ /* --- General options ------------------------------------------------	*/
+ 
+ struct i2c_msg;
++union i2c_smbus_data;
++
++#ifdef __KERNEL__
++
+ struct i2c_algorithm;
+ struct i2c_adapter;
+ struct i2c_client;
+ struct i2c_driver;
+ struct i2c_client_address_data;
+-union i2c_smbus_data;
+ 
+ /*
+  * The master routines are the ones normally used to transmit data to devices
+@@ -384,6 +389,7 @@
+ 
+ /* Return 1 if adapter supports everything we need, 0 if not. */
+ extern int i2c_check_functionality (struct i2c_adapter *adap, u32 func);
++#endif /* #if __KERNEL__ */
+ 
+ /*
+  * I2C Message - used for pure i2c transaction, also from /dev interface
+@@ -530,6 +536,8 @@
+ 				/* written byte (except address)	*/
+ #define I2C_MDELAY	0x0706	/* millisec delay between written bytes */
+ 
++
++#ifdef __KERNEL__
+ /* ----- I2C-DEV: char device interface stuff ------------------------- */
+ 
+ #define I2C_MAJOR	89		/* Device major number		*/
+@@ -605,5 +613,6 @@
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 	schedule_timeout(timeout);
+ }
++#endif /* #if __KERNEL__ */
+ 
+ #endif /* _LINUX_I2C_H */
+--- linux-2.6.0-test11-bk8/include/linux/i2c-dev.h.orig	2003-12-12 15:19:17.000000000 +0100
++++ linux-2.6.0-test11-bk8/include/linux/i2c-dev.h	2003-12-12 15:19:37.000000000 +0100
+@@ -25,6 +25,7 @@
+ #define _LINUX_I2C_DEV_H
+ 
+ #include <linux/types.h>
++#include <linux/compiler.h>
+ 
+ /* Some IOCTL commands are defined in <linux/i2c.h> */
+ /* Note: 10-bit addresses are NOT supported! */
