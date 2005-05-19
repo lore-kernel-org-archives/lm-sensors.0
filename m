@@ -1,7 +1,7 @@
-From: jmunsin@abo.fi (Jonas Munsin)
+From: bradley@greystate.com (Bradley Schatz)
 Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: Single fan sensor not detected
-Message-Id: <20040512200446.GA16515@nemo.sby.abo.fi>
+Message-Id: <1084436242.4433.2.camel@angel>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40A042B0.6060907@greystate.com>
 In-Reply-To: <40A042B0.6060907@greystate.com>
@@ -10,7 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 12, 2004 at 09:41:43PM +0200, Jean Delvare wrote:
+I tested this. pwmconfig didnt manage to stop any of my fans though. It
+looks like my pwm isnt configured at the hardware level.
+
+cheers,
+
+bradley
+
+
+On Thu, 2004-05-13 at 05:41, Jean Delvare wrote:
 > > All is working now. Thanks again. Do the it87 series of chips ever
 > > support pwm?
 > 
@@ -24,9 +32,17 @@ On Wed, May 12, 2004 at 09:41:43PM +0200, Jean Delvare wrote:
 > 
 > Hopefully this will be integrated into the main driver soon. Testing is
 > welcome!
-
-The manual pwm works in that patch, so that can be tested.
-
-The automatic fan speed sort of works, but isn't really usable yet if
-you don't know its misfeatures :). It will probably take a few days
-before I have time to fix it properly.
+> 
+> > Driver `it87' (should be inserted but causes problems):
+> >   Detects correctly:
+> >   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+> >     Chip `ITE 8705F Super IO Sensors' (confidence: 9)
+> >   Misdetects:
+> >   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+> >     Chip `ITE IT8705F / IT8712F / SiS 950' (confidence: 8)
+> 
+> BTW I have fixed this horrible bug in CVS. Sensors-detect should now be
+> more clever and see that this is the same driver for the same chip and
+> display only one. Care to test?
+> 
+> Thanks.
