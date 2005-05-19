@@ -1,83 +1,57 @@
-From: simon@voxel.at (DI Dr Simon Vogl)
-Date: Thu, 19 May 2005 06:24:19 +0000
-Subject: Fw: linux-2.4/MAINTAINERS, i2c drivers
-Message-Id: <3F73DC39.3030805@voxel.at>
+From: Jerome.KIEFFER@crans.org (Jerome KIEFFER)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: Feedback + problem with cooling.
+Message-Id: <20020616173854.151fa923.Jerome.KIEFFER@crans.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1064476786.3f72a0728dbdb@imp.gcu.info>
-In-Reply-To: <1064476786.3f72a0728dbdb@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-well really, I have been quiet -- I finished my PhD in winter
-and several projects kept me busy. As I don't see much free time
-for me to restart active development in this area, I am perfectly
-happy with this change.
+Hello,
 
-Simon
+Here is a feed-back :
+lm-sensors (2.6.3) work under linux-2.4.19-pre10-ac2-preemp (please do
+not kick because I use an alpha version of the kernel) on the Shuttle
+FS40 Mobo ( http://www.shuttleonline.com/spec.php3?model=ss40 ) based on
+the SiS 740 Chipset (
+http://www.sis.com/products/chipsets/integrated/socketa/740fea.htm )
+This computer is an all in one barebone.
 
+I loaded the following modules to make the sensors work :
+it87                    7104   0 
+i2c-proc                6368   0  [it87]
+i2c-isa                 1220   0  (unused)
 
-Jean Delvare wrote:
-> (Looks like simon@tk.uni-linz.ac.at doesn't work anymore.)
-> 
-> Begin forwarded message:
-> 
-> Date: Thu, 25 Sep 2003 09:59:46 +0200
-> From: Jean Delvare <khali@linux-fr.org>
-> To: Simon Vogl <simon@tk.uni-linz.ac.at>, Frodo Looijaard
-> <frodol@dds.nl>
-> Cc: sensors@Stimpy.netroedge.com, greg@kroah.com
-> Subject: linux-2.4/MAINTAINERS, i2c drivers
-> 
-> 
-> 
-> Dear Simon and Frodo,
-> 
-> I am planning to submit a patch to the MAINTAINERS file in Linux 2.4.
-> It seems that the "I2C DRIVERS" record is out of date. Frodo regularly
-> forwards mails to our mailing list. I haven't heard from Simon for
-> months. You both made remarkable work on Linux I2C layer, but maybe it's
-> time to update the record to point to active developers, lists and web
-> sites. It would ease communications between all actors, wouldn't it?
-> 
-> I volunteer to be the new maintainer of the i2c subsystem in 2.4. Greg
-> is already doing a great job in 2.6.
-> 
-> To the questions now:
-> 
-> Is a record update OK?
-> 
-> Are the following mailing list and web site still alive?
-> L:      linux-i2c@pelican.tk.uni-linz.ac.at
-> W:      http://www.tk.uni-linz.ac.at/~simon/private/i2c
-> Should they be kept in the record?
-> 
-> Here is my proposal of new record. Please tell me what you do think
-> about it:
-> 
-> I2C DRIVERS
-> P:      Jean Delvare
-> M:      khali@linux-fr.org
-> L:      sensors@stimpy.netroedge.com
-> W:      http://www.lm-sensors.nu/
-> S:      Maintained
-> 
-> Would it make sense to split the record into "I2C SUBSYSTEM" and "SENSOR
-> DRIVERS"? "I2C DRIVERS" doesn't really make sense, there are much more
-> I2C drivers in the kernel than just ours. On the other hand, we have
-> non-sensor drivers in our repository.
-> 
-> Comments welcome.
-> 
-> 
+jerome@taz:~$ sensors 
+it87-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+VCore 1:   +1.74 V  (min =  +1.53 V, max =  +1.87 V)   
+VCore 2:   +1.93 V  (min =  +2.25 V, max =  +2.75 V)   ALARM
++3.3V:     +3.32 V  (min =  +1.48 V, max =  +1.80 V)   ALARM
++5V:       +5.21 V  (min =  +4.50 V, max =  +5.48 V)   
++12V:     +11.52 V  (min = +11.36 V, max = +13.80 V)   
+Stdby:     +5.16 V  (min =  +4.50 V, max =  +5.48 V)   
+VBat:      +0.00 V
+fan1:     3629 RPM  (min = 3000 RPM, div = 2)          
+Temp1/MB:    +38?C  (min =  +20?C, max =  +60?C) 
+Temp2/CPU:   +46?C  (min =  +20?C, max =  +60?C) 
+Temp3/PSU:   +36?C  (min =  +20?C, max =  +60?C) 
+
+Well everything seems to work EXCEPT the "CPU-fan-auto-gardian", a
+system that modifies the fan speed according
+to the CPU temperature (set up in the bios). Now the fan is all the time
+at full speed and very loud (should be at 2000 rpm at 46?C.
+The fan speeds-up when I load the 2 modules so I think my problem has
+something to do with these modules and maybe your the right person to
+ask. I hope I gave all the details you may need.
+
+Best regards and thanks for your work on lm-sensors.
+
 
 -- 
-Dipl.-Ing. Dr. Simon Vogl !  http://www.voxel.at/
-VoXel Interaction Design  !  office@voxel.at
-Breitwiesergutstr. 50     !  +43 650 2323 555
-A-4020 Linz - Austria     !
-
-
-
+J?r?me @taz : Tbird900 + 512Mo DDR in a 10L SS40G
+"Windows 95 is a 32-bit shell for a 16-bit extension to an 8-bit
+operating system designed for a 4-bit microprocessor by a 2-bit company
+that can't stand one bit of competition."
