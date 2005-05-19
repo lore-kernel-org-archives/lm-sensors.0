@@ -1,45 +1,40 @@
-From: zdavatz@ywesee.com (Zeno Davatz)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: gnome-settings-daemon restartet to often
-Message-Id: <20030804130232.21514.qmail@debian>
+From: vgmarimon@terra.es (Victor G. Marimon)
+Date: Thu, 19 May 2005 06:23:54 +0000
+Subject: formula for calculating cpu temp with ASUS cusl2-c
+Message-Id: <200304252010.06867.vgmarimon@terra.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030804061411.11921.qmail@debian>
-In-Reply-To: <20030804061411.11921.qmail@debian>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare writes: 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> 
->> > No. I don't use Gnome myself. If you can get more detailed
->> > information in the log, it would help. 
->>
->> What should I look for in witch log?
-> 
-> /var/log/syslog, /var/log/messages, or any gnome-specific log (I don't
-> know their names, I don't even know if there are any).
-I checked there but did not find anything useful so far. 
+Hi, i have an asus cusl2-c mainboard and lm_sensors report bad temp in cpu.
 
-> 
->> PS: I reinstalled gnome2 from a different source and now when I get
->> into gnome 'mozilla-bin' just about crashes my computer because it
->> starts so many sessions (I believe). 
-> 
-> As said before, this is unlikely to be related to lm_sensors. I'm of
-> course sorry for you that your system broke at the same time you were
-> trying to get lm_sensors to work, maybe there is some obscure relation
-> between both things, but can't do much more than I already did.
-No Problem. 
+I have a ASUS iPanel and i test some temperatures and i found this formula 
+correct:
 
-/home/zeno/.xsession-errors has:
-(gnome-session:1790): Gtk-WARNING **: gtkmessagedialog.c:270: invalid 
-property id 1 for "message-type" of type `GParamEnum' in `GtkMessageDialog' 
 
-Somehow I also believe that there is a Bonobo-Bug somewhere or maybe a 
-Gnome-settings-daemon Bug. 
+	realvalue = (1,39 * programvalue) + 24,5
 
-Thanks for helping so far. 
+in sensors.conf:
 
-Zeno 
+
+    compute temp2 (@*1.39)+24.55,(@-24.55)/1.39
+
+
+See Ya
+
+- -- 
+Victor G. Marimon
+Miembro de Bulma (http://bulmalug.net)
+Usando Gentoo Linux 1.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+qXn+mAtZm4z1xakRApeWAJ9It/dRtI77bSME2ObPo06ID7lvWwCffp0p
+VbFjLtakZnzehsxBgNeotdY=ZPjW
+-----END PGP SIGNATURE-----
+
