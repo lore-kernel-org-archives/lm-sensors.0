@@ -1,19 +1,29 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:05 +0000
-Subject: [Fwd: [PATCH] - i2c/i2c-dev.c::i2c_dev_init() cleanup.]
-Message-Id: <20040708235251.GA11583@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: CVS (Was: Tickets #1322 and #1323)
+Message-Id: <20030708110554.791fcc87.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <40EC3194.2070302@edgedesign.us>
-In-Reply-To: <40EC3194.2070302@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 07, 2004 at 10:23:32AM -0700, Philip Edelbrock wrote:
+
+> > Probably the better you can do, right. By the way, would you have
+> > some time to try our complete CVS packages? We're about to release
+> > and testers are very welcome!
 > 
-> I don't think this ever made it to the list:
+> yes, of course!
+> 
+> I use this commands, it's ok?
+> 
+> cvs -d :pserver:anon@cvs.lm-sensors.nu:/home/cvs login
+> cvs -d :pserver:anon@cvs.lm-sensors.nu:/home/cvs checkout lm_sensors2
+> cvs -d :pserver:anon@cvs.lm-sensors.nu:/home/cvs checkout -r lk2-4 i2c
 
-I got it and applied it to my tree, thanks.
+Looks OK, yes. Don't forget you have to install i2c before compiling
+lm_sensors2, contrary to what the lines above could make you think.
 
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
