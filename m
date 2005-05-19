@@ -1,7 +1,7 @@
 From: js@jonasstein.de (Jonas Stein)
 Date: Thu, 19 May 2005 06:25:56 +0000
 Subject: Controll CPU Cooler on MSI-NEO 2 Board
-Message-Id: <427731F3.9010108@jonasstein.de>
+Message-Id: <427731FD.1000201@jonasstein.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42772B44.8090204@jonasstein.de>
 In-Reply-To: <42772B44.8090204@jonasstein.de>
