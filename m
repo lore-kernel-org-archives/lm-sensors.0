@@ -1,47 +1,29 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:02 +0000
-Subject: i2c-voodoo3
-Message-Id: <40D9BBDA.4060000@edgedesign.us>
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Thu, 19 May 2005 06:24:46 +0000
+Subject: 2.8.5 rpms for FC1, RH9, RH8.0, RH73 (was: lm_sensors 2.8.5 on i2c
+Message-Id: <20040311095128.GL27965@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Thanks for the fix, Jean!
 
-Humm, I've run into problems like this when mixing binaries of modules 
-and kernel, or if different compilers were used when creating the kernel 
-binary and/or modules.
+The rpms have been uploaded to
 
-Is it possible for you to build everything from source from scratch?  
-Perhaps use the latest (2.8.7) of I2C and lm-sensors?
+    http://atrpms.physik.fu-berlin.de/name/lm_sensors/
 
+You need of course the i2c 2.8.x enabled kernels at
 
-Phil
-
-craig@haquarter.de wrote:
-
->Hello!
->I found your email adress at
->http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/busses/i2c-voodoo3
->when I was seeking information on the module.
->I am running Gentoo Linux and the module worked for me, which was very
->cool :)
->But 2 days ago I updated my Kernel, re-installed lm-sensors...and it didnt
->work any more, i2c-voodoo3 always segfaults.
->
->I also wrote a summery on the isse at:
->http://forums.gentoo.org/viewtopic.php?t9150&highlight>
->Do you have any idea what could be wrong? Any hint? I would be very cool
->if you could help me.
->
->Craig
->
->
->
->
->
->
->
->  
->
+    http://atrpms.physik.fu-berlin.de/name/kernel/
+    (2.8.4 for FC1, 2.8.2 for the rest)
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040311/0e4e0f0d/attachment.bin
