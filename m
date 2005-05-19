@@ -1,47 +1,34 @@
-From: greg@kroah.com (Greg KH)
+From: yani.ioannou@gmail.com (Yani Ioannou)
 Date: Thu, 19 May 2005 06:25:59 +0000
 Subject: [lm-sensors] Re: [PATCH 2.6.12-rc4 1/15] (dynamic sysfs callbacks)
-Message-Id: <20050518073756.GA12382@kroah.com>
+Message-Id: <2538186705051800412ec07d5c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2538186705051703394944e949@mail.gmail.com> <20050518072239.GA11889@kroah.com> <253818670505180028696cc991@mail.gmail.com>
-In-Reply-To: <253818670505180028696cc991@mail.gmail.com>
+References: <2538186705051703394944e949@mail.gmail.com>
+	 <20050518072239.GA11889@kroah.com>
+	 <253818670505180028696cc991@mail.gmail.com>
+	 <20050518073756.GA12382@kroah.com>
+In-Reply-To: <20050518073756.GA12382@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yani Ioannou <yani.ioannou@gmail.com>
+To: Greg KH <greg@kroah.com>
 Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Russell King <rmk+lkml@arm.linux.org.uk>
 
-On Wed, May 18, 2005 at 03:28:23AM -0400, Yani Ioannou wrote:
-> Hi Greg,
-> 
-> On 5/18/05, Greg KH <greg@kroah.com> wrote:
-> > Ok, I think I got all of these patches applied properly (hint, don't
-> > label your intro message as 1/15, it should be 0/14, with 14 different
-> > patches, that threw me off for a bit.)  I've also included your i2c
-> > driver patch for the adm1026 driver only.  All of these patches are now
-> > in my tree and can be found on kernel.org in the place where my
-> > patchscripts notified you.  If you could verify them I would appreciate
-> > it (I also added a few patches for stuff that was in my tree only, like
-> > new i2c drivers and some usb and pci sysfs stuff to make them build
-> > properly.)  All of this should show up in the next -mm release too.
-> 
-> Thanks a lot! Sorry about the incorrect numbering, first time I've
-> done an intro. I'll have to send you a patch against the differences
-> between 2.6.12-rc4 and 2.6.12-rc4-mm2 so we don't run into a huge
-> amount of trouble when they merge...
+On 5/18/05, Greg KH <greg@kroah.com> wrote:
+> On Wed, May 18, 2005 at 03:28:23AM -0400, Yani Ioannou wrote:
+> > Hi Greg,
+> I don't have a git tree for stuff that is not ready to be sent to Linus
+> at that moment.  I'm using quilt to stage stuff and have them be sucked
+> into the -mm releases.  It's easier that way for me right now.
 
-That would be good.
+Yes I just realized my mistake, OK I'll try the patches against -mm2
+along with a patch to update all the added device
+callbacks/differences and make sure nothing goes horribly wrong with
+it tomorrow. BTW I sent a patch against it87.c to lm_sensors so Jean
+could test things (apparently adm1026 hasn't got many users).
 
-> A quick glance through everything looks fine, but I'll do a proper
-> check tomorrow using your git tree.
-
-I don't have a git tree for stuff that is not ready to be sent to Linus
-at that moment.  I'm using quilt to stage stuff and have them be sucked
-into the -mm releases.  It's easier that way for me right now.
-
-thanks,
-
-greg k-h
+Thanks again,
+Yani
 
 _______________________________________________
 lm-sensors mailing list
