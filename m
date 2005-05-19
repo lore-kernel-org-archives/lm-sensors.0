@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:17 +0000
-Subject: W83792D datasheet
-Message-Id: <20040928075030.M54818@linux-fr.org>
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:50 +0000
+Subject: Question for ALI about M1563 smbus transfer mode
+Message-Id: <Pine.LNX.4.58.0504082204540.2186@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,16 +10,23 @@ To: lm-sensors@vger.kernel.org
 
 Hello,
 
-Do you plan to release a datasheet for your new W83792D hardware monitoring
-chip? It looks like motherboard manufacturers start using it on their latest
-boards, we already had two users requesting support, but without a datasheet
-we cannot add support for it to our lm_sensors software (Linux hardware
-monitoring support) [1].
+Please can you forward my question to ALI/ULI?  (maybe strip my name, so
+it seems it comes from you directly :) Please take a look to your
+datasheet first If it is written there or not, but I think it is not,
+because simply commands belong usually to command register :)
 
-Thanks.
+Question:
 
-[1] http://www.lm-sensors.nu/
+We are implementing the driver for M1563 SMBus host and we ran into some
+trouble. We have implemented in our SMBUS driver the "continous byte mode"
+SMB_CMD 001, in all other chipsets it seems command belong to CMD
+register, but this mode accepts command in DAT0 register. Is this
+undocumented feature or a "silicon" bug?
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Can you tell us if this is true also for M1535, M1541 and M1543C ?
+
+Thanks
+
+Regards
+
+Rudolf
