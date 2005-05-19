@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
+From: mds@mds.gotdns.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:52 +0000
 Subject: Winbond W83792D driver
-Message-Id: <425F8DB8.5020303@sh.cvut.cz>
+Message-Id: <425FE9A1.4060804@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
@@ -10,16 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all.
+I made the same mistake at first,
+Khali caught it and on rereading the datasheet I agree.
+It's the same behavior as the w83781d, other than the power-on default.
+All 3 bits can be modified.
+mds
 
-We just tried and all three bits can be used despite the fact datasheet proposes
-on page 37 that bit2 should be 0 and bit6 1
 
-We tried to write 0x76 and subclients moved to 0x4e and 0x4f.
+Rudolf Marek wrote:
+> Hi all.
+> 
+> We just tried and all three bits can be used despite the fact datasheet proposes
+> on page 37 that bit2 should be 0 and bit6 1
+> 
+> We tried to write 0x76 and subclients moved to 0x4e and 0x4f.
+> 
+> Maybe the datasheet should be clearified that values on bit2 and bit6
+> are power on defaults but all three bits can be altered.
+> 
+> Regards
+> 
+> Rudolf
 
-Maybe the datasheet should be clearified that values on bit2 and bit6
-are power on defaults but all three bits can be altered.
-
-Regards
-
-Rudolf
