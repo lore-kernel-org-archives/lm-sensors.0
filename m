@@ -1,47 +1,57 @@
-From: galak@freescale.com (Kumar Gala)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: [PATCH] I2C-MPC: Allow for sharing of the interrupt line
-Message-Id: <Pine.LNX.4.61.0505031849120.19691@nylon.am.freescale.net>
+From: peter.farrow@3d-computers.co.uk (Peter Farrow)
+Date: Thu, 19 May 2005 06:24:00 +0000
+Subject: LM_Sensors under Linux
+Message-Id: <3EEF9000.6050107@3d-computers.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com, linuxppc-embedded <linuxppc-embedded@ozlabs.org>
+To: lm-sensors@vger.kernel.org
 
-I2C-MPC: Allow for sharing of the interrupt line
+Dear Jason,
 
-On the MPC8548 devices we have multiple I2C-MPC buses however they are on the
-same interrupt line.  Made request_irq pass SA_SHIRQ now so the second bus can
-register for the same IRQ.
+LM_sensors is a hardware monitoring system for Linux.
 
-Signed-off-by: Kumar Gala <kumar.gala@freescale.com>
+http://secure.netroedge.com/~lm78/docs.html
 
----
-commit cc75b79f8142eb8a50432cf612bb1ab189136cd0
-tree 79fd2184cd5cfee440f3ca2952f7c9f834ece443
-parent 52292c9b8c16aa9024a65aaeeca434bb8fec7d24
-author Kumar K. Gala <kumar.gala@freescale.com> 1115164017 -0500
-committer Kumar K. Gala <kumar.gala@freescale.com> 1115164017 -0500
+Unfortunately it labels Asustek as being very unhelpful to providing 
+information allowing this software to run with its boards.
 
-Index: drivers/i2c/busses/i2c-mpc.c
-=================================--- 59c7aae8cab7c4e1e557dd3a4fff6afbffab38e2/drivers/i2c/busses/i2c-mpc.c  (mode:100644 sha1:6f33496d31c31e6c57d3d2479db4afb4dad23617)
-+++ 79fd2184cd5cfee440f3ca2952f7c9f834ece443/drivers/i2c/busses/i2c-mpc.c  (mode:100644 sha1:c8a8703dcbcb16fdd5ccd5fddf8f322d2509d5dd)
-@@ -325,7 +325,7 @@
- 	if (i2c->irq != OCP_IRQ_NA)
- 	{
- 		if ((result = request_irq(ocp->def->irq, mpc_i2c_isr,
--					  0, "i2c-mpc", i2c)) < 0) {
-+					  SA_SHIRQ, "i2c-mpc", i2c)) < 0) {
- 			printk(KERN_ERR
- 			       "i2c-mpc - failed to attach interrupt\n");
- 			goto fail_irq;
-@@ -424,7 +424,7 @@
- 
- 	if (i2c->irq != 0)
- 		if ((result = request_irq(i2c->irq, mpc_i2c_isr,
--					  0, "fsl-i2c", i2c)) < 0) {
-+					  SA_SHIRQ, "i2c-mpc", i2c)) < 0) {
- 			printk(KERN_ERR
- 			       "i2c-mpc - failed to attach interrupt\n");
- 			goto fail_irq;
+Here is a snippet from the installation README notes:
+
+========================Asus boards - as99127f support (w83781d driver)
+
+Several problems. Asus will not release a datasheet.
+Support was developed - and tweaked - with experimentation and user 
+feedback.
+These will not be fixed unless we get a datasheet.
+If you have problems, please lobby Asus to release a datasheet.
+Unfortunately, several others have done so, without success.
+Please do not send mail to us asking for better as99127f support.
+We have done the best we can without a datasheet.
+The changes we do make to please some people generally makes
+things worse for people with other types of motherboard.
+Please do not send mail to the author or the sensors group asking for
+a datasheet or ideas on how to convince Asus.
+See doc/chips/w83781d for more information.
+
+Also, many as99127f chips are misidentified as w83781d or w83782d chips.
+If so, you can fix this by forcing the driver:
+modprobe w83781d force_as99127f=BUS,0x2d where BUS is your bus number
+(cat /proc/bus/i2c to identify your bus number).
+
+=====================
+Asus should help this community in every way possible, because as it is, 
+it gives a very powerful excuse not to use Asus,
+
+I hope Asus can remedy this situation with LM_sensors.
+
+Regards
+
+Pete
+
+
+
+
+
+
