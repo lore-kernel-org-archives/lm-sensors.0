@@ -1,30 +1,31 @@
-From: david.goodenough@btconnect.com (David Goodenough)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: LM87 sensor on Routerboard
-Message-Id: <200504272301.08930.david.goodenough@btconnect.com>
+From: ckelley@ibnads.com (Craig Kelley)
+Date: Thu, 19 May 2005 06:25:20 +0000
+Subject: SMSC LPC57B397-NC
+Message-Id: <417801FE.2060206@ibnads.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <019401c54b66$d4a13810$19680a0a@braintrust.net>
-In-Reply-To: <019401c54b66$d4a13810$19680a0a@braintrust.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wednesday 27 April 2005 21:22, Anthony Rios wrote:
-> Hey all,
->     I read through the archives and found information on the porting
-> of the LM87 chip driver to 2.6 kernels. I believe David Goodenough
-> was working on the port specifically to work on the Routerboard
-> 230.  Maybe he can help me out here.
->
->     I am a bit confused as to what I need to get my sensors going. In
-> the 2.4 kernel I needed patches for i2c-nscacb as well as lm87.  Is
-> this still necessary? Should I be using the same patches?
->
-> TIA.
->
-> Tony
-There is nothing to be ported, there is already a driver.  Rather than
-using the i2c-nscacb driver you need to use the scx200_acb driver.
+Greetings;
 
-David
+ruik asked me to send an email to this address for a request to support 
+this sensor in lmsensors.  He was able to get the 2.6.9 kernel to 
+recognize it with a variant of the smsc47m1 module.  This is for a new 
+desktop computer that HP is set to release (dc7100).
+
+How much would it cost to have the rest of the driver developed?  I have 
+the documentation, and have also sent it on to two different people in 
+lm_sensors -- if you need it again, please let me know.
+
+Thanks a bunch,
+
+ -Craig
+
+-- 
+Craig Kelley
+In-Store Broadcasting Network
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041021/76b3552e/attachment.html
