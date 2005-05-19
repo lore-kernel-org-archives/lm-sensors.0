@@ -1,7 +1,7 @@
-From: rnissl@gmx.de (Reinhard Nissl)
+From: mds4@verizon.net (Mark Studebaker)
 Date: Thu, 19 May 2005 06:24:34 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <4001BC6C.3080106@gmx.de>
+Message-Id: <4001CA3B.8020103@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -10,48 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-Jean Delvare wrote:
 
->>>I don't see any difficulty here. They are in0, in1 and in2. We never
->>>give names to the channels, only number. Labels are set with
->>>sensors.conf.
+Reinhard Nissl wrote:
+
+> Jean Delvare wrote:
+> 
+
 >>
->>Ok, so everything is like before, besides the values beeing unscaled.
-> 
-> Correct. Please consider updating the 2.4 driver in a similar way once
-> you're over with the 2.6 driver, so that the same sensors.conf works
-> with both versions.
-
-Ok.
-
->>BTW: I'm not on the ML.
-> 
-> Want to be?
-
-Not yet. Maybe soon, if I get further documentation from Fujitsu-Siemens.
-
->>Ok, but then I should complete the output of sensors for fscher and
->>also include alarms and watchdog.
-> 
-> You wanted to do so anyway, DIDN'T YOU? ;)
-
-As I'm now more familar with sensors, shure!
-
->>>You like reading and writing to /proc files directly, don't you? ;)
+>>> Concerning alarms: what do you mean by comparator mode?
 >>
->>Maybe, I was just to lazy to look for a different solution. From
->>coding the module, I knew that it would work that easy ;-).
+>>
+>> Some chipsets can be configured in different modes. Interrupt mode means
+>> that alarms don't wear off automatically as the cause of the alarm
+>> disappears. Comparator means that it does. I'm not too comfortable with
+>> changing modes, since hardware may be wired so as to work in one mode
+>> and not in the other. So I would leave things as they are.
 > 
-> Adding a few lines to sensors.conf isn't that difficult, really. I'd
-> even find it easier than setting up a startup script that echoes values
-> to /proc files. But that's a matter of taste I guess.
+> 
+> HERMES doesn't allow changing this behaviour (at least it is not 
+> documented). So, from the above, I'd say that HERMES is using interrupt 
+> mode.
+> 
 
-It's time to change to sensors, because it solves dual-boot issues (2.4.x: 
-procfs, 2.6.x: sysfs).
 
-Bye.
--- 
-Dipl.-Inform. (FH) Reinhard Nissl
-mailto:rnissl@gmx.de
+I think Jean has the descriptions backwards, at least as Winbond has documented it,
+and we copied that terminology into the documents doc/developers/proc in our package,
+and i2c/sysfs-interface in the 2.6 kernel.
+The lm_sensors standard is that alarms are persistent ("don't wear off automatically")
+which Winbond calls "comparator".
+
+Drivers should configure the hardware for that mode (whatever it's called).
+
+mds
