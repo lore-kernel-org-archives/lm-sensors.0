@@ -1,45 +1,41 @@
-From: anthonyp@lantronix.com (Anthony Petillo)
-Date: Thu, 19 May 2005 06:24:46 +0000
-Subject: I am developing a driver for MAX6900 (RTC chip)
-Message-Id: <603BA0CFF3788E46A0DB0918D9AA9510943D01@sj580004wcom.int.lantronix.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: Possible incorrectness in w83627hf.c
+Message-Id: <20040212194619.40fc8495.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <603BA0CFF3788E46A0DB0918D9AA9510943CFD@sj580004wcom.int.lantronix.com>
-In-Reply-To: <603BA0CFF3788E46A0DB0918D9AA9510943CFD@sj580004wcom.int.lantronix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thank-you
+MDS,
 
-As for trying the detect-script, I might not be able to try it because my mips platform does not have enough room in flash to hold perl. I may be able to use an nfs share. I will let you know.
+Here is an excerpt from w83627hf.c:
 
-(as for the "reserved" register, I don't see what harm it could have to use it as another way to confirm that the correct chip is present; if a problem shows up in the future, it can be changed)
+if (type != w83697hf) {
+	/* enable PWM2 control (can't hurt since PWM reg
+           should have been reset to 0xff) */
+	w83627hf_write_value(client, W83781D_REG_PWMCLK12, 0x19);
+}
 
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org]
-Sent: Monday, March 08, 2004 3:49 PM
-To: Anthony Petillo
-Cc: LM Sensors
-Subject: Re: I am developing a driver for MAX6900 (RTC chip)
+According to the data sheets, this register (0x5C) does only have a
+meaning for the W83627HF. So I'd suggest changing the condition to "type
+= w83627hf" so that we don't access that register on the W83627THF (and
+possibly others such as the W83637HF, which I plan to add support for).
 
+And, as we come to speak about this, I don't frankly see the point in
+writing anything to this register. You seem to try and write the default
+value anyway (and possibly change the value of reserved bits BTW, which
+is no good). Can't we simply get rid of that write?
 
-> just to let you know, its okay to put my name on the new drivers list:
-> Anthony Petillo and can you please put me on the mailing list.
-> 
-> I will be developing the driver for Linux kernel version 2.4 only.
-
-OK, I've added this information on our "New drivers" page.
-
-I also added MAX6900 detection to our sensors-detect script. Could you
-please give it a try and confirm it works for you?
-
-(BTW, do you think that the "reserved" register at 0x97 could be used
-for identification? According to the datasheet, it looks like a
-read-only register that should always return 0x07, although it has a
-write address too. Strange...)
+BTW, if someone could tell me what these "PWM clock frequencies" are
+meant for... The data sheet don't seem to explain it at all.
 
 Thanks.
+
+PS: Looks like this driver would benefit a massive refresh. The
+references to w83781d everywhere make things hard to understand
+sometimes.
 
 -- 
 Jean Delvare
