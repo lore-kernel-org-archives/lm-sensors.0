@@ -1,7 +1,7 @@
-From: nroeder@inf.ed.ac.uk (Nils Roeder)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:57 +0000
 Subject: linux-2.6.7 parallel port adapter
-Message-Id: <427F7B60.7000404@inf.ed.ac.uk>
+Message-Id: <20050509182751.678ba137.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <427B6E12.9000008@inf.ed.ac.uk>
 In-Reply-To: <427B6E12.9000008@inf.ed.ac.uk>
@@ -10,25 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Nils,
 
-> Which architecture is it?
-Intel's (ARM)  XScale PXA255
+> i could post the panic data (any particular kernel debug settings i
+> should enable ?) if it would help.
 
-> i2c-parport-light does direct I/O access on the parallel-port, which I
-> think does only work on i386-like hardware.
-It works perfectly fine under Linux-2.4.26,
-it only crashes under Linux-2.6.7
+Enabling all four I2C debug options (core, algorithms, busses, chips)
+may help.
 
-the i2c-parport (not light) does seem to work under 2.6.7, at least
-with the problem i described earlier (it is damn slow).
-i get a sysfs entry
+> do i have to have modules enabled to get this option ?
+> (or is this not a kernel config parameter ?)
 
-/sys/devices/platform/i2c-0
+You can pass i2c_algo_bit.bit_test=1 to your boot loader.
 
-with all device/chip subdirectories
-(e.g. /0-004c for a pcf8591 with that address).
-however reading and writing the input/output or
-read/write files seems to be tooo slow.
-
-thanks,
-   nils
+-- 
+Jean Delvare
