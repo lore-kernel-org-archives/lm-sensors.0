@@ -1,38 +1,43 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: emc6d102 support
-Message-Id: <pmJ9bZye.1112170073.2714890.khali@localhost>
+Date: Thu, 19 May 2005 06:25:40 +0000
+Subject: [PATCH 2.6] Trivial indentation fix in i2c/chips/Kconfig
+Message-Id: <20050302194522.2512fe02.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200502011003.40803.rafael.espindola@gmail.com>
-In-Reply-To: <200502011003.40803.rafael.espindola@gmail.com>
+References: <4224C0D4.2060303@katalix.com>
+	<cIyC5ZN2.1109756623.5808030.khali@localhost>
+In-Reply-To: <cIyC5ZN2.1109756623.5808030.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: James Chapman <jchapman@katalix.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
 
+Hi Greg,
 
-Hi Rafael,
+Quoting myself:
 
-> A minimal patch is attached, but I am not sure about the "template_used = 
-> 0"...
+> (...) I also think I see an indentation issue on the "tristate" line,
+> seemingly copied from the SENSORS_DS1621 section which would need to
+> be fixed as well.
 
-Looks OK to me, will apply tonight.
-
-> It seems to be possible to port the support for the extended precision
-> since the ADM1027 has support for it. I could do it if there is some
-> interest in it. But I am a bit short of time so I can work only during the
-> weekend. By the way, sorry for the delay in answering.
-
-No problem. Adding support for the extended precision can be done anytime
-later, and actually it might be preferable to postpone it until after
-lm_sensors 2.9.1 is released.
-
-What I was minly interested in was that the emc6d102 itself was
-recognized by the lm_sensors driver, because the Linux 2.6 driver and
-sensors-detect now know about it and it's quite confusing for the user
-when suggested to load a driver for his/her chip, and the driver then
-doesn't seem to support that chip.
+Here is the trivial patch fixing that, if you want to apply it.
 
 Thanks,
---
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.11/drivers/i2c/chips/Kconfig.orig	Wed Mar  2 15:12:34 2005
++++ linux-2.6.11/drivers/i2c/chips/Kconfig	Wed Mar  2 15:15:12 2005
+@@ -63,7 +63,7 @@
+ 	  will be called asb100.
+ 
+ config SENSORS_DS1621
+-      	tristate "Dallas Semiconductor DS1621 and DS1625"
++	tristate "Dallas Semiconductor DS1621 and DS1625"
+ 	depends on I2C && EXPERIMENTAL
+ 	select I2C_SENSOR
+ 	help
+
+
+-- 
 Jean Delvare
