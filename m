@@ -1,7 +1,7 @@
-From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:24:25 +0000
-Subject: i2c-algo-biths uncovered
-Message-Id: <Pine.LNX.4.53.0311182300270.22120@cosmos.private>
+From: phil@Stimpy.netroedge.com (phil@Stimpy.netroedge.com)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: [SeanH@msicomputer.com: Lm_Sensors Support]
+Message-Id: <Pine.LNX.3.96.1021013191645.5910B-100000@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,40 +9,62 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-My unfinished thoughts about the unfinished i2c-algo-biths driver.
-So to say, in bottom-to-top order.
+Hey Sean (funny, I live next door to a Sean Hall here in Oregon), we'd
+appreciate any help you can provide.  If you'd like to get us some
+motherboards/computers/servers whatever, it would be helpful.  We don't
+allow advertisements on our site, although we often give a 'thank you'
+noting equipment donations. 
 
-Create an imaginary RISC machine with registers for control, errors,
-timer and a shift register. This is within struct i2c_algo_biths.
+Let me know what you can provide, and I'll find out where you can best
+ship it.
 
-To change the state of bus lines, we must program control and timer
-register, and start the machine. This is essentially done with macro
-definitions _setscl and _setsda,
+Thanks!
 
-Actual setting and reading of bus states with requested timing is
-in i2c_setscl, i2c_getscl, i2c_setsda and i2c_getsda.
-If timeout, bus lockup or SDA arbitration occurs, a respective error
-flag is set and machine may enter recovery routine (Stop's) or idle bus
-after SDA arbitration.
 
-Four functions are then implemented:
+Phil
 
-i2c_start : pulse Start
-i2c_stop  : pulse Stop
-i2c_outbits : clock number of bits out of shift register
-i2c_inbits : clock number of bits into shift register
 
-Two more functions to transfer byte and acknowledge, using i2c_outbits
-and i2c_inbits above:
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
 
-i2c_outb : output 8, input 1 bit  -- "master transmit"
-i2c_inb : input 8, output 1 bit  -- "master receive"
-
-Finally, there is a state machine that calls i2c_{start,outb,inb,stop}
-to output an i2c message and do error recovery.
-
-If someone dares to ask, I'll explain about the signal timing and
-choices for use of udelay.
-
--- 
-  Ky?sti M?lkki  <kyosti.malkki@welho.com>  +358 50 462 8786
+> > 
+> > From: Sean Hall <SeanH@msicomputer.com>
+> > To: sensors@stimpy.netroedge.com
+> > Subject: Lm_Sensors Support
+> > Date: Wed, 9 Oct 2002 13:48:59 -0700
+> > X-Mailer: Internet Mail Service (5.5.2653.19)
+> > X-SpamBouncer: 1.6 beta (6/22/02)
+> > X-SBClass: OK
+> > X-SpamBouncer: 1.6 beta (6/22/02)
+> > X-SBClass: OK
+> > 
+> > Hi,
+> > My name is Sean Hall. I work for MSI managing the sales of MSI's server
+> > boards in North America. We would like to find out what we need to do to
+> > assure MSI's server boards work properly with LM_Sensors.
+> > For starters, we would like to get our K7D Master board working properly.
+> > MSI's K7D Master uses the W83627HF Windond chip and should be supported by
+> > LM_Sensors driver w83781d, but the feedback we've gotten from vendors is
+> > that the data that comes back is erroneous.
+> > 
+> > Where do we start so we can get these issues resolved?
+> > 
+> > I will also ask MSI Taiwan if we can offer support of the LM_Sensors
+> > project. In what areas can MSI offer support to LM_Sensors?
+> > 
+> > Also, can MSI advertise on the LM_Sensor site?
+> > 
+> > Thank you,
+> > 
+> > Sean Hall
+> > 
+> > Sean Hall
+> > MSI Computer Corp
+> > 901 Canada Court
+> > City of Industry, CA 91748
+> > Tel:  626.913.0828 ext. 173
+> > Cell: 626.664.4324
+> > Fax: 626.913.0818
+> > SeanH@msicomputer.com
+> > 
