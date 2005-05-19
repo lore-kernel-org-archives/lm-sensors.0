@@ -1,28 +1,32 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: [BK PATCH] i2c driver fix for 2.6.0-test11
-Message-Id: <20031204222752.GA2541@kroah.com>
+From: Rich.West@divatv.com (Rich West)
+Date: Thu, 19 May 2005 06:23:26 +0000
+Subject: Ticket # 748
+Message-Id: <3C0C3F18.1070800@divatv.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@osdl.org
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Hi,
+Actually, believe it or not, I got it working.
 
-Here is a i2c driver fixes for 2.6.0-test11.  It fixes an problem in the
-i2c-nforce2 driver when it is used to talk to the eeprom i2c driver.
+I realized that I was using GCC 3.0.2 to compile up the lm_sensors 
+modules, but the i2c modules (2.6.1), which are part of the kernel, were 
+compiled with GCC 2.96 (RH 7.2).
 
-Please pull from:  bk://linuxusb.bkbits.net/i2c-2.6
+Now, when I went back and recompiled everything using GCC 2.96, I was 
+able to get it to work.  I had to insert the modules by hand, but, after 
+all was said and done, lsmod gives:
+eeprom                  2960   0 (unused)
+gl520sm                 6688   0 (unused)
+i2c-ali1535             4080   0
+i2c-dev                 3616   0
+i2c-proc                6128   0 [eeprom gl520sm]
+i2c-core               13248   0 [eeprom gl520sm i2c-ali1535 i2c-dev 
+i2c-proc]
 
-thanks,
+And, from there, sensors gives decent output!
 
-greg k-h
+Thanks a lot for a great app!
 
- drivers/i2c/busses/i2c-nforce2.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
------
-
-Jean Delvare:
-  o I2C: fix i2c_smbus_write_byte() for i2c-nforce2
+-Rich
