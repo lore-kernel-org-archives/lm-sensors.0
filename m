@@ -1,8 +1,10 @@
-From: lskwsk@wszib.edu.pl (=?Windows-1250?B?TWljaGGzIExhc2tvd3NraQ==?=)
+From: joker_pl@2com.pl (=?windows-1250?Q?Micha=B3_Laskowski?=)
 Date: Thu, 19 May 2005 06:23:47 +0000
 Subject: SMBus on WinNT READING problem. Can u help me?
-Message-Id: <57041875.20030203013908@wszib.edu.pl>
+Message-Id: <14965115330.20030203174701@2com.pl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <57041875.20030203013908@wszib.edu.pl>
+In-Reply-To: <57041875.20030203013908@wszib.edu.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -54,7 +56,14 @@ hi !
   If u can help me it would be very nice.
   Thanks a LOT
 
-
+  PLEASE SEND REPLY
 -- 
 Michal Laskowski
-                         mailto:lskwsk@wszib.edu.pl
+                         mailto:joker_pl@2com.pl
+
+
+Serwis www.logo.hoga.pl - sci?gaj bajery na telefony
+Nokia, Siemens, Alcatel, Ericsson, Motorola,Samsung
+------------------------------------------------------------
+mks_vir 2002 zosta? nominowany do plebiscytu magazynu CHIP PRODUKT
+ROKU 2002. Kupon do g?osowania znajduje si? w magazynie CHIP 12/2002.
