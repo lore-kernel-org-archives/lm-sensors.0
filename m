@@ -1,71 +1,71 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for
-Message-Id: <20050316113024.3254ef6e.khali@linux-fr.org>
+Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for linux-2.4
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE08BE65@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao,
-
-> I finished fixing the point 1 "alarms" and point 3 "fan speeds in
-> /proc" MDS provided me, and tested it briefly. But I don't think the
-> "hardware-level" alarm mechanism is better than "software-level",
-> besides the above reason, I also find such phenomenon:
-> Step 1:
-> #sensors:
-> VCoreA:    +1.47 V  (min =  +1.40 V, max =  +1.60 V)
-> 
-> Step 2:
-> modify the low limit into 1.5V, then run #sensors -s:
-> 
-> Step 3:
-> VCoreA:    +1.47 V  (min =  +1.50 V, max =  +1.60 V)  ALARM
-> 
-> Step 4:
-> VCoreA:    +1.47 V  (min =  +1.50 V, max =  +1.60 V)
-> The ALARM will disappear when run "sensors" again, although the
-> measured value is larger than low limit. Same as when I mentioned
-> above
-> 
-> Step 5:
-> When I modify the low limit back from 1.5 V into 1.4V, run #sensors
-> -s, Then run #sensors, I find the "ALARM" appears again, while the
-> measured value is between the limits at this time:
-> VCoreA:    +1.47 V  (min =  +1.40 V, max =  +1.60 V)  ALARM
-> It's not reasonable, don't you think so?
-
-Sounds like an "interrupt mode" to me (as opposed to "comparator mode").
-The alarm bits raise on state change and wear off when read. In
-comparator mode you would obtain what you'd expect (alarm bit always
-reflecting the result of the comparison).
-
-If the W83792D can be reprogramed in comparator mode AND this does NOT
-affect any physical output, then just do that. If the alarm bits DO
-affect an output, then you should not change the mode, which means that
-you cannot use hardware alarms if the chip is in interrupt mode.
-
-As a side note, same is true for several other drivers, which would need
-to be fixed.
-
-> My another question is:
-> There are 4 files which have been modified by me this time:
-> kernel/chips/w83792d.c
-> lib/chips.c
-> lib/chips.h
-> prog/sensors/chips.c
-> Since I can NOT access lm_sensors CVS here, If I need to commit them,
-> Need I generate another patch to lm_sensors-2.9.0, and send the patch
-> to you? Or just you the above 4 files?
-
-Get a CVS snapshot here:
-http://secure.netroedge.com/~lm78/archive/lm_sensors-daily.tar.gz
-And provide a patch against that.
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbiwgTURTCiAKPiBTb3VuZHMgbGlrZSBhbiAiaW50ZXJydXB0IG1vZGUiIHRvIG1lIChh
+cyBvcHBvc2VkIHRvICJjb21wYXJhdG9yIG1vZGUiKS4KPiBUaGUgYWxhcm0gYml0cyByYWlzZSBv
+biBzdGF0ZSBjaGFuZ2UgYW5kIHdlYXIgb2ZmIHdoZW4gcmVhZC4gSW4KPiBjb21wYXJhdG9yIG1v
+ZGUgeW91IHdvdWxkIG9idGFpbiB3aGF0IHlvdSdkIGV4cGVjdCAoYWxhcm0gYml0IGFsd2F5cwo+
+IHJlZmxlY3RpbmcgdGhlIHJlc3VsdCBvZiB0aGUgY29tcGFyaXNvbikuCgo+IElmIHRoZSBXODM3
+OTJEIGNhbiBiZSByZXByb2dyYW1lZCBpbiBjb21wYXJhdG9yIG1vZGUgQU5EIHRoaXMgZG9lcyBO
+T1QKPiBhZmZlY3QgYW55IHBoeXNpY2FsIG91dHB1dCwgdGhlbiBqdXN0IGRvIHRoYXQuIElmIHRo
+ZSBhbGFybSBiaXRzIERPCj4gYWZmZWN0IGFuIG91dHB1dCwgdGhlbiB5b3Ugc2hvdWxkIG5vdCBj
+aGFuZ2UgdGhlIG1vZGUsIHdoaWNoIG1lYW5zIHRoYXQKPiB5b3UgY2Fubm90IHVzZSBoYXJkd2Fy
+ZSBhbGFybXMgaWYgdGhlIGNoaXAgaXMgaW4gaW50ZXJydXB0IG1vZGUuCgpIbS4uLiB2ZXJ5IHNv
+cnJ5IHRoYXQgSSBkbyBub3QgY2F0Y2ggd2hhdCB5b3Ugc2FpZCB2ZXJ5IHdlbGwuIEhvdyB0bwpy
+ZXByb2dyYW1lZCA3OTIgZHJpdmVyIGluICJjb21wYXJhdG9yIG1vZGUiIGluc3RlYWQgb2YgImlu
+dGVycnVwdCBtb2RlIj8KQ2FuIHdlIHNheSB0aGF0IHRoZSBtZXRob2QgaW4gc3VibWl0dGVkIDc5
+MiBkcml2ZXIgaXMgaW4gImNvbXBhcmF0b3IgbW9kZSI/ClRoZW4gSSBjYW4ga2VlcCBteSBvcmln
+aW5hbCBjb2Rlcz8KCj4gR2V0IGEgQ1ZTIHNuYXBzaG90IGhlcmU6Cj4gaHR0cDovL3NlY3VyZS5u
+ZXRyb2VkZ2UuY29tL35sbTc4L2FyY2hpdmUvbG1fc2Vuc29ycy1kYWlseS50YXIuZ3oKPiBBbmQg
+cHJvdmlkZSBhIHBhdGNoIGFnYWluc3QgdGhhdC4KCklmIEkgbmVlZCBub3QgZml4IHRoZSAicG9p
+bnQgMSIgTURTIHByb3ZpZGVkLCBUaGUgY29kZXMgdG8gZml4ICJwb2ludCAzIiBhcmUKdmVyeSBm
+ZXcuIAogCk1EUywgV291bGQgeW91IHBsZWFzZSBqdXN0IGFkZCA0IGxpbmVzIGludG8gdGhlICJk
+by4uLndoaWxlICgwKSIgbG9vcApvZiBmdW5jdGlvbiB3ODM3OTJkX2ZhbigpPyBKdXN0IGxpa2Ug
+dGhpczoKCiAgMTAxMyAgICAgaWYgKCgoZGF0YS0+ZmFuX2Rpdltucl0pPj0weDA3ICYmCiAgMTAx
+NCAgICAgIChkYXRhLT5mYW5bbnJdKT0weGZmKSB8fAogIDEwMTUgICAgICAgICAoKGRhdGEtPmZh
+bl9kaXZbbnJdKTw9MCAmJgogIDEwMTYgICAgICAoZGF0YS0+ZmFuW25yXSk8MHg3OCkpIHsKICAx
+MDE3ICAgICAgcmVzdWx0c1sxXSA9IDA7CiAgMTAxOCAgICAgIGJyZWFrOwogIDEwMTkgICAgIH0g
+ZWxzZSBpZiAoKGRhdGEtPmZhbl9kaXZbbnJdKTwweDA3ICYmCiAgMTAyMCAgICAgICAoZGF0YS0+
+ZmFuW25yXSk9MHhmZikgewogIDEwMjEgICAgICAoZGF0YS0+ZmFuX2Rpdltucl0pKys7CiAgICAg
+IHJlc3VsdHNbMV0gPSBGQU5fRlJPTV9SRUcoZGF0YS0+ZmFuW25yXSwgIDwtLWFkZGVkIGJ5IGNo
+dW5oYW8KICAgICAgRElWX0ZST01fUkVHKGRhdGEtPmZhbl9kaXZbbnJdKSk7ICAgIDwtLWFkZGVk
+IGJ5IGNodW5oYW8KICAxMDIyICAgICB9IGVsc2UgaWYgKChkYXRhLT5mYW5fZGl2W25yXSk+MCAm
+JgogIDEwMjMgICAgICAgIChkYXRhLT5mYW5bbnJdKTwweDc4KSB7CiAgMTAyNCAgICAgIChkYXRh
+LT5mYW5fZGl2W25yXSktLTsKICAgICAgICByZXN1bHRzWzFdID0gRkFOX0ZST01fUkVHKGRhdGEt
+PmZhbltucl0sICA8LS1hZGRlZCBieSBjaHVuaGFvCiAgICAgIERJVl9GUk9NX1JFRyhkYXRhLT5m
+YW5fZGl2W25yXSkpOyAgICA8LS1hZGRlZCBieSBjaHVuaGFvCiAgMTAyNSAgICAgfQogClRoZSBt
+aW51cyBmYW4gbWVhc3VyZWQgdmFsdWUgdGhlbiB3aWxsIGRpc2FwcGVhciBmcm9tIG15IHN5c3Rl
+bSwgCndvdWxkIHlvdSBwbGVhc2UgdGVzdCBpdCBvbiB5b3VyIHN5c3RlbT8gSWYgaXQgd29ya3Mg
+dG9vLCBwbGVhc2UgY29tbWl0IGl0IGZvciBtZS4KIApUaGFua3MKQmVzdCBSZWdhcmRzCiAKQ2h1
+bmhhbwogCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhl
+IHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVt
+YWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0
+ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0
+aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2li
+bGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRs
+eSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwg
+Y29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRp
+YXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxl
+IHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9m
+IFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0
+aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBv
+ZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBi
+eSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1J
+ZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2Ug
+aWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQg
+dGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqw
+XbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjP
+sXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOyl
+u6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSp
+pUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLF
+dr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXY
+qLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
