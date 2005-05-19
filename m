@@ -1,25 +1,40 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: [PATCH 2.6] I2C: Do not show disabled pc87360 fans
-Message-Id: <20050131182914.GC21546@kroah.com>
+From: goofee79@hotmail.com (tom paris)
+Date: Thu, 19 May 2005 06:24:57 +0000
+Subject: Ticket 1671
+Message-Id: <BAY18-F35Ejb0zNqBRH0000e079@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050127231022.6331ef93.khali@linux-fr.org>
-In-Reply-To: <20050127231022.6331ef93.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jan 27, 2005 at 11:10:22PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> The pc87360 driver create sysfs files even for disabled fans. Since data
-> won't ever be updated, it doesn't make much sense. The following patch
-> adds some tests to only create the interface files that are actually
-> needed.
-> 
-> Please apply,
+Hello!
 
-Applied, thanks.
+In addition to the case that Khali has looked at i'm sending you more info.
 
-greg k-h
+1. I load i2c-dev in modules.conf yes.
+2. The sensors -v reveals 2.8.5 and sensors is located in /usr/local/bin. I=
+=20
+simply wrote wrong.
+3. /sys/bus/i2c/devices contains these directories 1-002d,  1-002e,  1-0048=
+=20
+and  1-0049.
+
+Under the directory 1-002d i can see all correct files telling me voltage, =
+
+fan rpms and temps, and if i look in at them for example temp1_input i=20
+clearly gives me my temperatures. Name contains asb100.
+
+But still when i run sensors i get:
+w83l785ts-i2c-1-2e
+Adapter: SMBus nForce2 adapter at 5500
+ERROR: Can't get temperature data!
+
+Thank you for your help on this!
+
+Regards,
+Goofee
+
+_________________________________________________________________
+Help STOP SPAM with the new MSN 8 and get 2 months FREE* =20
+http://join.msn.com/?page=FEatures/junkmail
