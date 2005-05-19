@@ -1,54 +1,34 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:43 +0000
-Subject: [dma_k@mail.ru: Compilation question.]
-Message-Id: <20040222160116.GA1032@frodo.local>
+From: wellhard@roxen.com (Marcus Wellhard)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: Asus as99127f temp2 compute notice
+Message-Id: <4jr8le1ymq.fsf@leguan.idonex.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Dmitry Katsubo <dma_k@mail.ru> -----
+Hello,
 
-From: Dmitry Katsubo <dma_k@mail.ru>
-To: Frodo Looijaard <frodol@dds.nl>
-Subject: Compilation question.
-X-Enigmail-Version: 0.76.1.0
-X-Enigmail-Supports: pgp-inline, pgp-mime
-X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
-X-Spam-Level: 
+Thanks for a great package!
 
-Hello, Frodo Looijaard!
+I have a ASUS-A7V333 Motherboard with an Athlon xp 1800+ processor. I
+am using the i2c-viapro bus driver and the w83781d chip driver forced
+to as99127f (modprobe w83781d force_as99127f=0,0x2d). The lm_sensors
+package is compiled from cvs. I have compared the cpu-temperature
+between the lm75 and the w83781d driver. I have noticed that the
+compute line for as99127f/temp2 in /etc/sensors.conf is wrong for my
+motherboard. If I change it from:
 
-I am writing to you, as to the contributor of I2C project.
-I am not sure you can answer my question (if not, just tell me
-whom I can ask).
+  compute temp2 (@*30/43)+25, (@-25)*43/30
 
-The question is:
+to:
 
-After applying i2c-2.8.4.tar.gz to linux-2.4.25 the following options are no 
-longer compilable
-(as they do not correspond to the new I2C interface?):
+  compute temp2 @*2, @/2
 
-    Character devices -> I2C support -> NatSemi SCx200 I2C GPIO pins 
-    (CONFIG_SCx200_I2C)
-    Character devices -> I2C support -> NatSemi SCx200 ACCESS.bus 
-    (CONFIG_SCx200_ACB)
-    Multimedia devices -> Video For Linux -> SAA5249 Teletext processor 
-    (CONFIG_VIDEO_SAA5249)
-    Multimedia devices -> Video For Linux -> SAB3036 tuner 
-    (CONFIG_TUNER_3036)
-
-(files: scx200_i2c.c, scx200_acb.c, saa5249.c, tuner-3036.c).
-
-What can be done to make them back again? Are they supported anymore?
-
-Thanks.
-
------ End forwarded message -----
+it matches almoust exactely with the output from lm75. Unfortunately
+the half degrees become 0.1 degrees less, for example 62.4 and not 62.5.
 
 -- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Marcus Wellhardh, Developer             e-mail: wellhardh@roxen.com
+Roxen Internet Software AB              Voice: +46 13 376802
