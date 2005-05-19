@@ -1,41 +1,74 @@
-From: herbert@mamute.net (Herbert G. Fischer)
-Date: Thu, 19 May 2005 06:24:56 +0000
-Subject: No sensors found
-Message-Id: <001401c43072$6f72dc60$0100000a@volcano>
+From: gertjan@sfnet.saturnus.nl (ing. Gert-Jan de Jonge)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: testing adm1026
+Message-Id: <4.3.2.7.0.20020815223522.00ba6180@192.168.72.5>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000801c43068$c801a6e0$0100000a@volcano>
-In-Reply-To: <000801c43068$c801a6e0$0100000a@volcano>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-By now I'm doing it as hardcoded for my computer.
-If I have time on the future, I'll do-it.
+Hi,
 
-Thanks
+After following some instructions on the "New drivers" page, I did the 
+following:
+/sbin/modprobe i2c-core
+/sbin/modprobe i2c-dev
+/sbin/modprobe i2c-piix4
+/sbin/modprobe i2c-proc
+/sbin/modprobe adm1025 force_adm1025=0,0x51,0,0x52
 
------ Original Message ----- 
-From: "Jean Delvare" <khali@linux-fr.org>
-To: "Herbert G. Fischer" <herbert@mamute.net>
-Cc: <sensors@Stimpy.netroedge.com>
-Sent: Sunday, May 02, 2004 3:20 PM
-Subject: Re: No sensors found
+sensors output showed no correct temperature, after comparing the both 
+datasheets i noticed the temp registers are located at
+different adresses. After playing around with the code of adm1025.c (only 
+for the temp) I get the following output:
+adm1025-i2c-0-51
+Adapter: SMBus PIIX4 adapter at 0580
+Algorithm: Non-I2C SMBus adapter
++2.5V:     +0.27 V  (min =  +2.22 V, max =  +2.72 V)
+VCore:     +0.09 V  (min =  +1.73 V, max =  +1.93 V)
++3.3V:     +0.36 V  (min =  +2.93 V, max =  +3.59 V)   ALARM
++5V:       +0.20 V  (min =  +4.45 V, max =  +5.44 V)   ALARM
++12V:      +0.00 V  (min = +10.68 V, max = +13.06 V)
+VCC:       +0.00 V  (min =  +2.93 V, max =  +3.59 V)
+SYS Temp:  +32.0?C  (min =   +0?C, max =  +60?C) ALARM
+CPU Temp:   +0.0?C  (min =   +0?C, max =  +60?C) ALARM
+vid:       +1.85 V
 
+adm1025-i2c-0-52
+Adapter: SMBus PIIX4 adapter at 0580
+Algorithm: Non-I2C SMBus adapter
++2.5V:     +0.27 V  (min =  +2.22 V, max =  +2.72 V)
+VCore:     +0.09 V  (min =  +1.73 V, max =  +1.93 V)
++3.3V:     +0.36 V  (min =  +2.93 V, max =  +3.59 V)   ALARM
++5V:       +0.20 V  (min =  +4.45 V, max =  +5.44 V)   ALARM
++12V:      +0.00 V  (min = +10.68 V, max = +13.06 V)
+VCC:       +0.00 V  (min =  +2.93 V, max =  +3.59 V)
+SYS Temp:  +32.0?C  (min =   +0?C, max =  +60?C) ALARM
+CPU Temp:   +0.0?C  (min =   +0?C, max =  +60?C) ALARM
+vid:       +1.85 V
 
-> > I've already did this.
-> > 
-> > The problem is that prog/rrd/* doesn't recognise the kernel 2.6
-> > change.
-> > 
-> > I'm did some hardcoded paths in there.
-> 
-> Correct. If you can update it so that it works for 2.6 (while still
-> maintaining compatibility with 2.4), please contribute back.
-> 
-> Thanks.
-> 
-> -- 
-> Jean Delvare
-> http://khali.linux-fr.org/
-> 
+I have not looked at the other values, at this moment i am especially 
+interested in the temp, because it's causing some problems. ;)
+
+regards,
+Gert-Jan de Jonge
+
+p.s.: in adm1025.c i changed the following as a test:
+.....
+//#define ADM1025_REG_RTEMP 0x26
+#define ADM1025_REG_RTEMP 0x29
+//#define ADM1025_REG_TEMP 0x27
+#define ADM1025_REG_TEMP 0x1F
+.....
+//#define ADM1025_REG_RTEMP_HIGH 0x37
+//#define ADM1025_REG_RTEMP_LOW 0x38
+//#define ADM1025_REG_TEMP_HIGH 0x39
+//#define ADM1025_REG_TEMP_LOW 0x3A
+#define ADM1025_REG_RTEMP_HIGH 0x41
+#define ADM1025_REG_RTEMP_LOW 0x49
+#define ADM1025_REG_TEMP_HIGH 0x68
+#define ADM1025_REG_TEMP_LOW 0x69
+Gert-Jan de Jonge
+http://www.saturnus.nl/~gertjan
+
