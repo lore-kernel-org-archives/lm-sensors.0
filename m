@@ -1,7 +1,7 @@
-From: delvare@ensicaen.ismra.fr (Jean Delvare)
+From: frodol@dds.nl (frodol@dds.nl)
 Date: Thu, 19 May 2005 06:23:29 +0000
-Subject: patches for i2c and lm_sensors
-Message-Id: <Pine.GSO.4.40.0202020159260.19539-100000@e450.ensicaen.ismra.fr>
+Subject: patches for i2c and lm_sensors (fwd)
+Message-Id: <200202031006.g13A6Mm01076@shire.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200202011945.g11JjIs04517@shire.frodo.local>
 In-Reply-To: <200202011945.g11JjIs04517@shire.frodo.local>
@@ -10,20 +10,240 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Forwarded message:
+> From delvare@ensicaen.ismra.fr Sun Feb  3 00:25:04 2002
+> Date: Sun, 3 Feb 2002 00:18:37 +0100 (MET)
+> From: Jean Delvare <delvare@ensicaen.ismra.fr>
+> To: frodol@dds.nl
+> Subject: Re: patches for i2c and lm_sensors
+> In-Reply-To: <200202020958.g129wxs01081@shire.frodo.local>
+> Message-ID: <Pine.GSO.4.40.0202030009330.7218-300000@e450.ensicaen.ismra.fr>
+> MIME-Version: 1.0
+> Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1012691917=:7218"
+> 
+>   This message is in MIME format.  The first part should be readable text,
+>   while the remaining parts are likely unreadable without MIME-aware tools.
+>   Send mail to mime@docserver.cac.washington.edu for more info.
+> 
+> ---559023410-851401618-1012691917=:7218
+> Content-Type: TEXT/PLAIN; charset=US-ASCII
+> 
+> 
+> > A Maxtor 30 GB and an older Seagate Medalist, my server data and system
+> > disks. They were on the same IDE chain, and now they don't want to spin
+> > up any more :-(.
+> 
+> I'm so sorry for you. I lost a 45Gb IBM some months ago, so I understand
+> your sorrow.
+> 
+> Here are the two patches I told you about. They are rather simple, but
+> feel free to contact me if required.
+> 
+> Thanks.
+> 
+> -- 
+>        /~~       Jean "Khali" Delvare
+>   -----\_                        mail: delvare@ensicaen.ismra.fr
+>  --------\                http://www.ensicaen.ismra.fr/~delvare/
+> ---=ISMRA/- ____________________________________________________
+> 
+> ---559023410-851401618-1012691917=:7218
+> Content-Type: TEXT/PLAIN; charset=US-ASCII; name="i2c-kernel-2.2.19+.diff"
+> Content-Transfer-Encoding: BASE64
+> Content-ID: <Pine.GSO.4.40.0202030018370.7218@e450.ensicaen.ismra.fr>
+> Content-Description: 
+> Content-Disposition: attachment; filename="i2c-kernel-2.2.19+.diff"
+> 
+> ZGlmZiAtcnVOIGkyYy1vcmlnL2tlcm5lbC9pMmMtcHJvYy5jIGkyYy9rZXJu
+> ZWwvaTJjLXByb2MuYw0KLS0tIGkyYy1vcmlnL2tlcm5lbC9pMmMtcHJvYy5j
+> CUZyaSBGZWIgIDEgMTU6MDM6MTYgMjAwMg0KKysrIGkyYy9rZXJuZWwvaTJj
+> LXByb2MuYwlGcmkgRmViICAxIDE1OjM1OjA2IDIwMDINCkBAIC00OSwxMCAr
+> NDksMTggQEANCiBzdGF0aWMgaW50IGkyY19wcm9jX2NoaXBzKGN0bF90YWJs
+> ZSAqIGN0bCwgaW50IHdyaXRlLA0KIAkJCSAgICAgIHN0cnVjdCBmaWxlICpm
+> aWxwLCB2b2lkICpidWZmZXIsDQogCQkJICAgICAgc2l6ZV90ICogbGVucCk7
+> DQorI2lmIChMSU5VWF9WRVJTSU9OX0NPREUgPj0gS0VSTkVMX1ZFUlNJT04o
+> MiwyLDE5KSkgJiYgXA0KKyAgICAoTElOVVhfVkVSU0lPTl9DT0RFIDwgS0VS
+> TkVMX1ZFUlNJT04oMiwzLDApKQ0KK3N0YXRpYyBpbnQgaTJjX3N5c2N0bF9j
+> aGlwcyhjdGxfdGFibGUgKiB0YWJsZSwgaW50ICpuYW1lLCB1bnNpZ25lZCBu
+> bGVuLA0KKwkJCQl2b2lkICpvbGR2YWwsIHNpemVfdCAqIG9sZGxlbnAsDQor
+> CQkJCXZvaWQgKm5ld3ZhbCwgc2l6ZV90IG5ld2xlbiwNCisJCQkJdm9pZCAq
+> KmNvbnRleHQpOw0KKyNlbHNlDQogc3RhdGljIGludCBpMmNfc3lzY3RsX2No
+> aXBzKGN0bF90YWJsZSAqIHRhYmxlLCBpbnQgKm5hbWUsIGludCBubGVuLA0K
+> IAkJCQl2b2lkICpvbGR2YWwsIHNpemVfdCAqIG9sZGxlbnAsDQogCQkJCXZv
+> aWQgKm5ld3ZhbCwgc2l6ZV90IG5ld2xlbiwNCiAJCQkJdm9pZCAqKmNvbnRl
+> eHQpOw0KKyNlbmRpZiAvKiAyLjIuMTkrICovDQogDQogaW50IF9faW5pdCBz
+> ZW5zb3JzX2luaXQodm9pZCk7DQogDQpAQCAtMjk4LDkgKzMwNiwxNiBAQA0K
+> IAlyZXR1cm4gMDsNCiB9DQogDQorI2lmIChMSU5VWF9WRVJTSU9OX0NPREUg
+> Pj0gS0VSTkVMX1ZFUlNJT04oMiwyLDE5KSkgJiYgXA0KKyAgICAoTElOVVhf
+> VkVSU0lPTl9DT0RFIDwgS0VSTkVMX1ZFUlNJT04oMiwzLDApKQ0KK2ludCBp
+> MmNfc3lzY3RsX2NoaXBzKGN0bF90YWJsZSAqIHRhYmxlLCBpbnQgKm5hbWUs
+> IHVuc2lnbmVkIG5sZW4sDQorCQkJIHZvaWQgKm9sZHZhbCwgc2l6ZV90ICog
+> b2xkbGVucCwgdm9pZCAqbmV3dmFsLA0KKwkJCSBzaXplX3QgbmV3bGVuLCB2
+> b2lkICoqY29udGV4dCkNCisjZWxzZQ0KIGludCBpMmNfc3lzY3RsX2NoaXBz
+> KGN0bF90YWJsZSAqIHRhYmxlLCBpbnQgKm5hbWUsIGludCBubGVuLA0KIAkJ
+> CSB2b2lkICpvbGR2YWwsIHNpemVfdCAqIG9sZGxlbnAsIHZvaWQgKm5ld3Zh
+> bCwNCiAJCQkgc2l6ZV90IG5ld2xlbiwgdm9pZCAqKmNvbnRleHQpDQorI2Vu
+> ZGlmIC8qIDIuMi4xOSsgKi8NCiB7DQogCXN0cnVjdCBpMmNfY2hpcHNfZGF0
+> YSBkYXRhOw0KIAlpbnQgaSwgb2xkbGVuLCBucmVscywgbWF4ZWxzLHJldD0w
+> Ow0KQEAgLTQwNSw5ICs0MjAsMTYgQEANCiANCiAvKiBUaGlzIGZ1bmN0aW9u
+> IGlzIGVxdWl2YWxlbnQgdG8gaTJjX3Byb2NfcmVhbCwgb25seSBpdCBpbnRl
+> cmFjdHMgd2l0aA0KICAgIHRoZSBzeXNjdGwoMikgc3lzY2FsbCwgYW5kIHJl
+> dHVybnMgbm8gcmVhbHMsIGJ1dCBpbnRlZ2VycyAqLw0KKyNpZiAoTElOVVhf
+> VkVSU0lPTl9DT0RFID49IEtFUk5FTF9WRVJTSU9OKDIsMiwxOSkpICYmIFwN
+> CisgICAgKExJTlVYX1ZFUlNJT05fQ09ERSA8IEtFUk5FTF9WRVJTSU9OKDIs
+> MywwKSkNCitpbnQgaTJjX3N5c2N0bF9yZWFsKGN0bF90YWJsZSAqIHRhYmxl
+> LCBpbnQgKm5hbWUsIHVuc2lnbmVkIG5sZW4sDQorCQkJdm9pZCAqb2xkdmFs
+> LCBzaXplX3QgKiBvbGRsZW5wLCB2b2lkICpuZXd2YWwsDQorCQkJc2l6ZV90
+> IG5ld2xlbiwgdm9pZCAqKmNvbnRleHQpDQorI2Vsc2UNCiBpbnQgaTJjX3N5
+> c2N0bF9yZWFsKGN0bF90YWJsZSAqIHRhYmxlLCBpbnQgKm5hbWUsIGludCBu
+> bGVuLA0KIAkJCXZvaWQgKm9sZHZhbCwgc2l6ZV90ICogb2xkbGVucCwgdm9p
+> ZCAqbmV3dmFsLA0KIAkJCXNpemVfdCBuZXdsZW4sIHZvaWQgKipjb250ZXh0
+> KQ0KKyNlbmRpZiAvKiAyLjIuMTkrICovDQogew0KIAlsb25nIHJlc3VsdHNb
+> TUFYX1JFU1VMVFNdOw0KIAlpbnQgb2xkbGVuLCBucmVscyA9IE1BWF9SRVNV
+> TFRTLHJldD0wOw0KZGlmZiAtcnVOIGkyYy1vcmlnL2tlcm5lbC9pMmMtcHJv
+> Yy5oIGkyYy9rZXJuZWwvaTJjLXByb2MuaA0KLS0tIGkyYy1vcmlnL2tlcm5l
+> bC9pMmMtcHJvYy5oCUZyaSBGZWIgIDEgMTU6MDM6MTYgMjAwMg0KKysrIGky
+> Yy9rZXJuZWwvaTJjLXByb2MuaAlGcmkgRmViICAxIDE1OjM1OjA2IDIwMDIN
+> CkBAIC01NiwxMCArNTYsMTggQEANCiAgICBmb3VuZC4NCiAgICBJbiBhbGwg
+> Y2FzZXMsIGNsaWVudCBwb2ludHMgdG8gdGhlIGNsaWVudCB3ZSB3aXNoIHRv
+> IGludGVyYWN0IHdpdGgsDQogICAgYW5kIGN0bF9uYW1lIGlzIHRoZSBTWVND
+> VEwgaWQgb2YgdGhlIGZpbGUgd2UgYXJlIGFjY2Vzc2luZy4gKi8NCisjaWYg
+> KExJTlVYX1ZFUlNJT05fQ09ERSA+PSBLRVJORUxfVkVSU0lPTigyLDIsMTkp
+> KSAmJiBcDQorICAgIChMSU5VWF9WRVJTSU9OX0NPREUgPCBLRVJORUxfVkVS
+> U0lPTigyLDMsMCkpDQorZXh0ZXJuIGludCBpMmNfc3lzY3RsX3JlYWwoY3Rs
+> X3RhYmxlICogdGFibGUsIGludCAqbmFtZSwgdW5zaWduZWQgbmxlbiwNCisJ
+> CQkgICAgICAgdm9pZCAqb2xkdmFsLCBzaXplX3QgKiBvbGRsZW5wLA0KKwkJ
+> CSAgICAgICB2b2lkICpuZXd2YWwsIHNpemVfdCBuZXdsZW4sDQorCQkJICAg
+> ICAgIHZvaWQgKipjb250ZXh0KTsNCisjZWxzZQ0KIGV4dGVybiBpbnQgaTJj
+> X3N5c2N0bF9yZWFsKGN0bF90YWJsZSAqIHRhYmxlLCBpbnQgKm5hbWUsIGlu
+> dCBubGVuLA0KIAkJCSAgICAgICB2b2lkICpvbGR2YWwsIHNpemVfdCAqIG9s
+> ZGxlbnAsDQogCQkJICAgICAgIHZvaWQgKm5ld3ZhbCwgc2l6ZV90IG5ld2xl
+> biwNCiAJCQkgICAgICAgdm9pZCAqKmNvbnRleHQpOw0KKyNlbmRpZiAvKiAy
+> LjIuMTkrICovDQogZXh0ZXJuIGludCBpMmNfcHJvY19yZWFsKGN0bF90YWJs
+> ZSAqIGN0bCwgaW50IHdyaXRlLCBzdHJ1Y3QgZmlsZSAqZmlscCwNCiAJCQkg
+> ICAgIHZvaWQgKmJ1ZmZlciwgc2l6ZV90ICogbGVucCk7DQogDQo> ---559023410-851401618-1012691917=:7218
+> Content-Type: TEXT/PLAIN; charset=US-ASCII; name="lm_sensors2-kernel-2.2.18+.diff"
+> Content-Transfer-Encoding: BASE64
+> Content-ID: <Pine.GSO.4.40.0202030018371.7218@e450.ensicaen.ismra.fr>
+> Content-Description: 
+> Content-Disposition: attachment; filename="lm_sensors2-kernel-2.2.18+.diff"
+> 
+> ZGlmZiAtcnVOIGxtX3NlbnNvcnMyLW9yaWcva2VybmVsL2NoaXBzL2FkbTEw
+> MjUuYyBsbV9zZW5zb3JzMi9rZXJuZWwvY2hpcHMvYWRtMTAyNS5jDQotLS0g
+> bG1fc2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMvYWRtMTAyNS5jCUZyaSBG
+> ZWIgIDEgMTU6MDM6MDkgMjAwMg0KKysrIGxtX3NlbnNvcnMyL2tlcm5lbC9j
+> aGlwcy9hZG0xMDI1LmMJRnJpIEZlYiAgMSAxNTozNjoxMCAyMDAyDQpAQCAt
+> NDUsNyArNDUsNyBAQA0KICNkZWZpbmUgaW5pdF9NVVRFWChzKSBkbyB7ICoo
+> cykgPSBNVVRFWDsgfSB3aGlsZSgwKQ0KICNlbmRpZg0KIA0KLSNpZiBMSU5V
+> WF9WRVJTSU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigyLDMsMTMpDQorI2lm
+> bmRlZiBUSElTX01PRFVMRQ0KICNkZWZpbmUgVEhJU19NT0RVTEUgTlVMTA0K
+> ICNlbmRpZg0KIA0KZGlmZiAtcnVOIGxtX3NlbnNvcnMyLW9yaWcva2VybmVs
+> L2NoaXBzL2J0ODY5LmMgbG1fc2Vuc29yczIva2VybmVsL2NoaXBzL2J0ODY5
+> LmMNCi0tLSBsbV9zZW5zb3JzMi1vcmlnL2tlcm5lbC9jaGlwcy9idDg2OS5j
+> CUZyaSBGZWIgIDEgMTU6MDM6MDkgMjAwMg0KKysrIGxtX3NlbnNvcnMyL2tl
+> cm5lbC9jaGlwcy9idDg2OS5jCUZyaSBGZWIgIDEgMTU6MzY6MTAgMjAwMg0K
+> QEAgLTQwLDcgKzQwLDcgQEANCiAjZGVmaW5lIGluaXRfTVVURVgocykgZG8g
+> eyAqKHMpID0gTVVURVg7IH0gd2hpbGUoMCkNCiAjZW5kaWYNCiANCi0jaWYg
+> TElOVVhfVkVSU0lPTl9DT0RFIDwgS0VSTkVMX1ZFUlNJT04oMiwzLDEzKQ0K
+> KyNpZm5kZWYgVEhJU19NT0RVTEUNCiAjZGVmaW5lIFRISVNfTU9EVUxFIE5V
+> TEwNCiAjZW5kaWYNCiANCmRpZmYgLXJ1TiBsbV9zZW5zb3JzMi1vcmlnL2tl
+> cm5lbC9jaGlwcy9kZGNtb24uYyBsbV9zZW5zb3JzMi9rZXJuZWwvY2hpcHMv
+> ZGRjbW9uLmMNCi0tLSBsbV9zZW5zb3JzMi1vcmlnL2tlcm5lbC9jaGlwcy9k
+> ZGNtb24uYwlGcmkgRmViICAxIDE1OjAzOjA5IDIwMDINCisrKyBsbV9zZW5z
+> b3JzMi9rZXJuZWwvY2hpcHMvZGRjbW9uLmMJRnJpIEZlYiAgMSAxNTozNjox
+> MCAyMDAyDQpAQCAtMzcsNyArMzcsNyBAQA0KICNkZWZpbmUgaW5pdF9NVVRF
+> WChzKSBkbyB7ICoocykgPSBNVVRFWDsgfSB3aGlsZSgwKQ0KICNlbmRpZg0K
+> IA0KLSNpZiBMSU5VWF9WRVJTSU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigy
+> LDMsMTMpDQorI2lmbmRlZiBUSElTX01PRFVMRQ0KICNkZWZpbmUgVEhJU19N
+> T0RVTEUgTlVMTA0KICNlbmRpZg0KIA0KZGlmZiAtcnVOIGxtX3NlbnNvcnMy
+> LW9yaWcva2VybmVsL2NoaXBzL2dsNTIwc20uYyBsbV9zZW5zb3JzMi9rZXJu
+> ZWwvY2hpcHMvZ2w1MjBzbS5jDQotLS0gbG1fc2Vuc29yczItb3JpZy9rZXJu
+> ZWwvY2hpcHMvZ2w1MjBzbS5jCUZyaSBGZWIgIDEgMTU6MDM6MDkgMjAwMg0K
+> KysrIGxtX3NlbnNvcnMyL2tlcm5lbC9jaGlwcy9nbDUyMHNtLmMJRnJpIEZl
+> YiAgMSAxNTozNjoxMCAyMDAyDQpAQCAtMzcsNyArMzcsNyBAQA0KICNkZWZp
+> bmUgaW5pdF9NVVRFWChzKSBkbyB7ICoocykgPSBNVVRFWDsgfSB3aGlsZSgw
+> KQ0KICNlbmRpZg0KIA0KLSNpZiBMSU5VWF9WRVJTSU9OX0NPREUgPCBLRVJO
+> RUxfVkVSU0lPTigyLDMsMTMpDQorI2lmbmRlZiBUSElTX01PRFVMRQ0KICNk
+> ZWZpbmUgVEhJU19NT0RVTEUgTlVMTA0KICNlbmRpZg0KIA0KZGlmZiAtcnVO
+> IGxtX3NlbnNvcnMyLW9yaWcva2VybmVsL2NoaXBzL2ljc3BsbC5jIGxtX3Nl
+> bnNvcnMyL2tlcm5lbC9jaGlwcy9pY3NwbGwuYw0KLS0tIGxtX3NlbnNvcnMy
+> LW9yaWcva2VybmVsL2NoaXBzL2ljc3BsbC5jCUZyaSBGZWIgIDEgMTU6MDM6
+> MDkgMjAwMg0KKysrIGxtX3NlbnNvcnMyL2tlcm5lbC9jaGlwcy9pY3NwbGwu
+> YwlGcmkgRmViICAxIDE1OjM2OjEwIDIwMDINCkBAIC00Niw3ICs0Niw3IEBA
+> DQogI2RlZmluZSBpbml0X01VVEVYKHMpIGRvIHsgKihzKSA9IE1VVEVYOyB9
+> IHdoaWxlKDApDQogI2VuZGlmDQogDQotI2lmIExJTlVYX1ZFUlNJT05fQ09E
+> RSA8IEtFUk5FTF9WRVJTSU9OKDIsMywxMykNCisjaWZuZGVmIFRISVNfTU9E
+> VUxFDQogI2RlZmluZSBUSElTX01PRFVMRSBOVUxMDQogI2VuZGlmDQogDQpk
+> aWZmIC1ydU4gbG1fc2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMvbG04Ny5j
+> IGxtX3NlbnNvcnMyL2tlcm5lbC9jaGlwcy9sbTg3LmMNCi0tLSBsbV9zZW5z
+> b3JzMi1vcmlnL2tlcm5lbC9jaGlwcy9sbTg3LmMJRnJpIEZlYiAgMSAxNTow
+> MzowOSAyMDAyDQorKysgbG1fc2Vuc29yczIva2VybmVsL2NoaXBzL2xtODcu
+> YwlGcmkgRmViICAxIDE1OjM2OjEwIDIwMDINCkBAIC03NSw3ICs3NSw3IEBA
+> DQogI2RlZmluZSBpbml0X01VVEVYKHMpIGRvIHsgKihzKSA9IE1VVEVYOyB9
+> IHdoaWxlKDApDQogI2VuZGlmDQogDQotI2lmIExJTlVYX1ZFUlNJT05fQ09E
+> RSA8IEtFUk5FTF9WRVJTSU9OKDIsMywxMykNCisjaWZuZGVmIFRISVNfTU9E
+> VUxFDQogI2RlZmluZSBUSElTX01PRFVMRSBOVUxMDQogI2VuZGlmDQogDQpk
+> aWZmIC1ydU4gbG1fc2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMvbWF0b3Ji
+> LmMgbG1fc2Vuc29yczIva2VybmVsL2NoaXBzL21hdG9yYi5jDQotLS0gbG1f
+> c2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMvbWF0b3JiLmMJRnJpIEZlYiAg
+> MSAxNTowMzowOSAyMDAyDQorKysgbG1fc2Vuc29yczIva2VybmVsL2NoaXBz
+> L21hdG9yYi5jCUZyaSBGZWIgIDEgMTU6MzY6MTAgMjAwMg0KQEAgLTQwLDcg
+> KzQwLDcgQEANCiAjZW5kaWYNCiANCiANCi0jaWYgTElOVVhfVkVSU0lPTl9D
+> T0RFIDwgS0VSTkVMX1ZFUlNJT04oMiwzLDEzKQ0KKyNpZm5kZWYgVEhJU19N
+> T0RVTEUNCiAjZGVmaW5lIFRISVNfTU9EVUxFIE5VTEwNCiAjZW5kaWYNCiAN
+> CmRpZmYgLXJ1TiBsbV9zZW5zb3JzMi1vcmlnL2tlcm5lbC9jaGlwcy9tYXhp
+> bGlmZS5jIGxtX3NlbnNvcnMyL2tlcm5lbC9jaGlwcy9tYXhpbGlmZS5jDQot
+> LS0gbG1fc2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMvbWF4aWxpZmUuYwlG
+> cmkgRmViICAxIDE1OjAzOjA5IDIwMDINCisrKyBsbV9zZW5zb3JzMi9rZXJu
+> ZWwvY2hpcHMvbWF4aWxpZmUuYwlGcmkgRmViICAxIDE1OjM2OjEwIDIwMDIN
+> CkBAIC03NCw3ICs3NCw3IEBADQogI2RlZmluZSBpbml0X01VVEVYKHMpIGRv
+> IHsgKihzKSA9IE1VVEVYOyB9IHdoaWxlKDApDQogI2VuZGlmDQogDQotI2lm
+> IExJTlVYX1ZFUlNJT05fQ09ERSA8IEtFUk5FTF9WRVJTSU9OKDIsMywxMykN
+> CisjaWZuZGVmIFRISVNfTU9EVUxFDQogI2RlZmluZSBUSElTX01PRFVMRSBO
+> VUxMDQogI2VuZGlmDQogDQpkaWZmIC1ydU4gbG1fc2Vuc29yczItb3JpZy9r
+> ZXJuZWwvY2hpcHMvbXRwMDA4LmMgbG1fc2Vuc29yczIva2VybmVsL2NoaXBz
+> L210cDAwOC5jDQotLS0gbG1fc2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMv
+> bXRwMDA4LmMJRnJpIEZlYiAgMSAxNTowMzowOSAyMDAyDQorKysgbG1fc2Vu
+> c29yczIva2VybmVsL2NoaXBzL210cDAwOC5jCUZyaSBGZWIgIDEgMTU6MzY6
+> MTAgMjAwMg0KQEAgLTQxLDcgKzQxLDcgQEANCiAjZGVmaW5lIGluaXRfTVVU
+> RVgocykgZG8geyAqKHMpID0gTVVURVg7IH0gd2hpbGUoMCkNCiAjZW5kaWYN
+> CiANCi0jaWYgTElOVVhfVkVSU0lPTl9DT0RFIDwgS0VSTkVMX1ZFUlNJT04o
+> MiwzLDEzKQ0KKyNpZm5kZWYgVEhJU19NT0RVTEUNCiAjZGVmaW5lIFRISVNf
+> TU9EVUxFIE5VTEwNCiAjZW5kaWYNCiANCmRpZmYgLXJ1TiBsbV9zZW5zb3Jz
+> Mi1vcmlnL2tlcm5lbC9jaGlwcy9wY2Y4NTc0LmMgbG1fc2Vuc29yczIva2Vy
+> bmVsL2NoaXBzL3BjZjg1NzQuYw0KLS0tIGxtX3NlbnNvcnMyLW9yaWcva2Vy
+> bmVsL2NoaXBzL3BjZjg1NzQuYwlGcmkgRmViICAxIDE1OjAzOjA5IDIwMDIN
+> CisrKyBsbV9zZW5zb3JzMi9rZXJuZWwvY2hpcHMvcGNmODU3NC5jCUZyaSBG
+> ZWIgIDEgMTU6MzY6MTAgMjAwMg0KQEAgLTU1LDcgKzU1LDcgQEANCiAjZGVm
+> aW5lIGluaXRfTVVURVgocykgZG8geyAqKHMpID0gTVVURVg7IH0gd2hpbGUo
+> MCkNCiAjZW5kaWYNCiANCi0jaWYgTElOVVhfVkVSU0lPTl9DT0RFIDwgS0VS
+> TkVMX1ZFUlNJT04oMiwzLDEzKQ0KKyNpZm5kZWYgVEhJU19NT0RVTEUNCiAj
+> ZGVmaW5lIFRISVNfTU9EVUxFIE5VTEwNCiAjZW5kaWYNCiANCmRpZmYgLXJ1
+> TiBsbV9zZW5zb3JzMi1vcmlnL2tlcm5lbC9jaGlwcy90aG1jNTAuYyBsbV9z
+> ZW5zb3JzMi9rZXJuZWwvY2hpcHMvdGhtYzUwLmMNCi0tLSBsbV9zZW5zb3Jz
+> Mi1vcmlnL2tlcm5lbC9jaGlwcy90aG1jNTAuYwlGcmkgRmViICAxIDE1OjAz
+> OjA5IDIwMDINCisrKyBsbV9zZW5zb3JzMi9rZXJuZWwvY2hpcHMvdGhtYzUw
+> LmMJRnJpIEZlYiAgMSAxNTozNjoxMCAyMDAyDQpAQCAtMzgsNyArMzgsNyBA
+> QA0KICNkZWZpbmUgaW5pdF9NVVRFWChzKSBkbyB7ICoocykgPSBNVVRFWDsg
+> fSB3aGlsZSgwKQ0KICNlbmRpZg0KIA0KLSNpZiBMSU5VWF9WRVJTSU9OX0NP
+> REUgPCBLRVJORUxfVkVSU0lPTigyLDMsMTMpDQorI2lmbmRlZiBUSElTX01P
+> RFVMRQ0KICNkZWZpbmUgVEhJU19NT0RVTEUgTlVMTA0KICNlbmRpZg0KIA0K
+> ZGlmZiAtcnVOIGxtX3NlbnNvcnMyLW9yaWcva2VybmVsL2NoaXBzL3ZpYTY4
+> NmEuYyBsbV9zZW5zb3JzMi9rZXJuZWwvY2hpcHMvdmlhNjg2YS5jDQotLS0g
+> bG1fc2Vuc29yczItb3JpZy9rZXJuZWwvY2hpcHMvdmlhNjg2YS5jCUZyaSBG
+> ZWIgIDEgMTU6MDM6MDkgMjAwMg0KKysrIGxtX3NlbnNvcnMyL2tlcm5lbC9j
+> aGlwcy92aWE2ODZhLmMJRnJpIEZlYiAgMSAxNTozNjoxMCAyMDAyDQpAQCAt
+> NTksNyArNTksNyBAQA0KICNkZWZpbmUgaW5pdF9NVVRFWChzKSBkbyB7ICoo
+> cykgPSBNVVRFWDsgfSB3aGlsZSgwKQ0KICNlbmRpZg0KIA0KLSNpZiBMSU5V
+> WF9WRVJTSU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigyLDMsMTMpDQorI2lm
+> bmRlZiBUSElTX01PRFVMRQ0KICNkZWZpbmUgVEhJU19NT0RVTEUgTlVMTA0K
+> ICNlbmRpZg0KIA0K
+> ---559023410-851401618-1012691917=:7218--
+> 
 
-> It may well have been the deep-space option. About two month ago, I had
-> a massive disk crash. It may have been lost then.
-Let me guess... IBM GXP-75 ?
-
-> If you still have the patches, and if they still are relevant, please
-> send them again.
-Yes, I still have them.  I will have a look at CVS versions to be sure
-they still apply the way they are supposed to, and send them to you then.
-
-Thanks.
 
 -- 
-       /~~       Jean "Khali" Delvare
-  -----\_                        mail: delvare@ensicaen.ismra.fr
- --------\                http://www.ensicaen.ismra.fr/~delvare/
----=ISMRA/- ____________________________________________________
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
