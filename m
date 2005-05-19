@@ -1,7 +1,7 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: New subscription request to list lm-sensors from
-Message-Id: <20050516192918.GF14433@neu.nirvana>
+Message-Id: <20050516213819.2b01e2e6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4288E1AD.5080909@edgedesign.us>
 In-Reply-To: <4288E1AD.5080909@edgedesign.us>
@@ -10,34 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, May 16, 2005 at 09:14:34PM +0200, Jean Delvare wrote:
-> > OK, there is also:
-> > 
-> > 2* import old archives
-> > 
-> > I have all archives until yesterday.
-> 
-> Correct. And I guess you can pick the few additional ones from your own
-> mbox? Not a big problem if a few posts are missing anyway.
+Hi Axel,
 
-That's not an option, I want them all ;)
+> I thought we'll temporarily close this list, have a final sync with
+> Andrew's archives and then start on the new list. Is that acceptable?
 
-I thought we'll temporarily close this list, have a final sync with
-Andrew's archives and then start on the new list. Is that acceptable?
+(If we close the list, it will hardly be "temporarily".)
 
-> Oh, while we're at it. The old archive has a whole lot of posts named
-> "Notification d'?tat de la distribution" (with "Undeliverable:" 0 or
-> more times in front). These are crap. Could you possibly delete them
-> before you push the old archive into Mailman? They're all grouped
-> together.
+If Philip, Andrew and you can make it all happen in a short period of
+time, it's fine with me. But if this sounds too unprobable that you'll
+be able to synchronize, then I'd better miss a few posts in the archive
+than have no list for a long period of time.
 
-OK, I'll check on that.
+Of course it's all down to what a "short period of time" is. In fact I
+don't know, so I'll let the three of you decide together ;)
+
 -- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050516/28744b22/attachment.bin
+Jean Delvare
