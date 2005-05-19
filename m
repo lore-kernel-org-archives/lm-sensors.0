@@ -1,26 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: I2C_ALGO_MAX
-Message-Id: <20030829182339.243aa828.khali@linux-fr.org>
+From: ppokorny@penguincomputing.com (Philip Pokorny)
+Date: Thu, 19 May 2005 06:24:50 +0000
+Subject: seperate mallocs
+Message-Id: <406E5CFB.6030309@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030806164123.5f88f7b8.khali@linux-fr.org>
-In-Reply-To: <20030806164123.5f88f7b8.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > I think that's what Greg was advocating...
-> 
-> I was?  Hm, don't remember that, I was trying to fix a real problem
-> that some users had, which was solved by the link order change.
-> 
-> But how about removing the static arrays all together.  That's what
-> 2.6 has :)
+In the patch:
 
-And that's why 2.6 will be used by everyone someday, while 2.4 will be
-forgotten. That's too much change for 2.4/CVS IMHO.
+    
+http://jdelvare.net1.nerim.net/sensors/lm_sensors-CVS-separate-mallocs.diff
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+to break the kmalloc's out, why did you remove the
+
+-	default :
+-		printk("lm85: Internal error, invalid kind (%d)!", kind);
+-		err = -EFAULT ;
+-		goto ERROR1;
+
+
+clause from the kind detection switch statement in the ADM1026 and LM85 drivers?   Shouldn't we trap any invalid "kind" values?
+
+:v)
+
+
