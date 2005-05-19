@@ -1,49 +1,99 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:03 +0000
-Subject: [kevin.w.white@lmco.com: Question of the day...]
-Message-Id: <20030703124212.GA575@frodo.local>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: [PATCH] I2C: Use standard temperature converters for as99127f
+Message-Id: <11074523383338@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <1107452338762@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
 
------ Forwarded message from "White, Kevin W (N-Gift horse Inc)" <kevin.w.white@lmco.com> -----
+ChangeSet 1.2043, 2005/02/03 00:29:27-08:00, khali@linux-fr.org
 
-From: "White, Kevin W (N-Gift horse Inc)" <kevin.w.white@lmco.com>
-Subject: Question of the day...
-To: frodol@dds.nl
-X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
-X-Spam-Level: 
+[PATCH] I2C: Use standard temperature converters for as99127f
 
-Mr. Looijaard,
+When support for the Asus AS99127F chip was once added to the w83781d
+driver, it was decided that we would treat temp2 and temp3 as having a
+LSB of 0.25 degree C, as opposed to 0.5 degree C for the compatible
+Winbond chips. The reason why this was done seems to be a couple of
+users reporting that these temperatures were reading twice as high as it
+should for them in the first place. We had much more feedback about the
+A99127F chip since, and it turns out that the exact conversion required
+for temp2 and temp3 depends on the motherboard model. For some models
+(including my A7V133-C), we now have to multiply the readings by 2,
+effectively negating the change that was once done in the driver. For
+other models, a linear conversion formula is needed. The bottom line is
+that the raw readings from the driver are correct for no known board,
+while it would be for at least some of them if we had kept the same LSB
+as the Winbond chips are known to have. Thus I believe that the standard
+LSB of 0.5 degree C should be restored.
 
-I enjoyed reading some details on a project regarding lm sensors that I
-found from a search for information on Google.
+There is no datasheet available for the AS99127F chip, so whatever was
+done was guess work (and still is). I see no reason why we would keep
+additional code in the w83781d driver to handle this former supposed
+difference, especially when the facts now tend to prove that this
+difference doesn't exist.
 
-I am trying to do some low-level development, and could use some ideas on
-how to attack my problem.  I am trying to somehow get some values out of the
-BIOS of our PCs.  According to our hardware documentation (which are PC-104s
-by-the-way), there are some int 15h SFR functions that are available for
-reading, etc.  We are interested in reading the number of booterror, low
-battery, etc.  We would also like to have some control over the watchdog
-timer if that is possible.  At any rate, I was wondering if you had any
-ideas.  I have started by digging into the APM stuff to learn more about how
-to access stuff directly in memory from a program, but I have not been
-entirely successful (yet), but I have only been working on this for a day
-also.
+The following patch drops the additional code and treats temp2 and temp3
+the same way for all chips supported by the w83781d driver. A similar
+change will be made to the 2.4 version of this driver, and the default
+sensors.conf will be updated accordingly. Users will have to update
+their configuration file, or their readings will of course read twice as
+high as they should due to the old conversion formulae.
 
-Anyway, I thought I would send out an email or two to see if anyone might
-have an idea on how to access BIOS directly from user-land using c/c++.
 
-Thanks in advance for any help,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
--Kevin
 
------ End forwarded message -----
+ drivers/i2c/chips/w83781d.c |   20 +++-----------------
+ 1 files changed, 3 insertions(+), 17 deletions(-)
 
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	2005-02-03 09:35:09 -08:00
++++ b/drivers/i2c/chips/w83781d.c	2005-02-03 09:35:09 -08:00
+@@ -175,11 +175,6 @@
+ 						: (val)) / 1000, 0, 0xff))
+ #define TEMP_FROM_REG(val)		(((val) & 0x80 ? (val)-0x100 : (val)) * 1000)
+ 
+-#define AS99127_TEMP_ADD_TO_REG(val)	(SENSORS_LIMIT((((val) < 0 ? (val)+0x10000*250 \
+-						: (val)) / 250) << 7, 0, 0xffff))
+-#define AS99127_TEMP_ADD_FROM_REG(val)	((((val) & 0x8000 ? (val)-0x10000 : (val)) \
+-						>> 7) * 250)
+-
+ #define ALARMS_FROM_REG(val)		(val)
+ #define PWM_FROM_REG(val)		(val)
+ #define PWM_TO_REG(val)			(SENSORS_LIMIT((val),0,255))
+@@ -417,13 +412,8 @@
+ { \
+ 	struct w83781d_data *data = w83781d_update_device(dev); \
+ 	if (nr >= 2) {	/* TEMP2 and TEMP3 */ \
+-		if (data->type = as99127f) { \
+-			return sprintf(buf,"%ld\n", \
+-				(long)AS99127_TEMP_ADD_FROM_REG(data->reg##_add[nr-2])); \
+-		} else { \
+-			return sprintf(buf,"%d\n", \
+-				LM75_TEMP_FROM_REG(data->reg##_add[nr-2])); \
+-		} \
++		return sprintf(buf,"%d\n", \
++			LM75_TEMP_FROM_REG(data->reg##_add[nr-2])); \
+ 	} else {	/* TEMP1 */ \
+ 		return sprintf(buf,"%ld\n", (long)TEMP_FROM_REG(data->reg)); \
+ 	} \
+@@ -442,11 +432,7 @@
+ 	val = simple_strtol(buf, NULL, 10); \
+ 	 \
+ 	if (nr >= 2) {	/* TEMP2 and TEMP3 */ \
+-		if (data->type = as99127f) \
+-			data->temp_##reg##_add[nr-2] = AS99127_TEMP_ADD_TO_REG(val); \
+-		else \
+-			data->temp_##reg##_add[nr-2] = LM75_TEMP_TO_REG(val); \
+-		 \
++		data->temp_##reg##_add[nr-2] = LM75_TEMP_TO_REG(val); \
+ 		w83781d_write_value(client, W83781D_REG_TEMP_##REG(nr), \
+ 				data->temp_##reg##_add[nr-2]); \
+ 	} else {	/* TEMP1 */ \
+
