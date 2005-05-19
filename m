@@ -1,54 +1,29 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:45 +0000
-Subject: Linux i2c id request (fwd)
-Message-Id: <3E1B75CD.1050703@paradyne.com>
+From: azarah@gentoo.org (Martin Schlemmer)
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: [PATCH 2.6] Fix conversion from milli volts in store_in_reg() for
+Message-Id: <1062622452.5275.38.camel@nosferatu.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200301072326.h07NQFG01056@arda.frodo.local>
-In-Reply-To: <200301072326.h07NQFG01056@arda.frodo.local>
+References: <3ED8067E.1050503@paradyne.com>
+	 <20030601143808.GA30177@earth.solarsys.private>
+	 <20030602172040.GC4992@kroah.com>
+	 <20030605023922.GA8943@earth.solarsys.private>
+	 <20030605194734.GA6238@kroah.com>
+	 <1055136870.5280.196.camel@workshop.saharacpt.lan>
+	 <20030610054107.GA22719@earth.solarsys.private>
+	 <1055401021.5280.3143.camel@workshop.saharacpt.lan>
+	 <20030613023651.GA1401@earth.solarsys.private>
+	 <1055571995.12868.5.camel@nosferatu.lan> <20030616184149.GC25585@kroah.com>
+In-Reply-To: <20030616184149.GC25585@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@stimpy.netroedge.com>
 
-#define I2C_DRIVERID_STM41T00	52	/* real time clock		*/
-
-
-frodol@dds.nl wrote:
-> Montgomery, Tim wrote:
->>From timm@artesyncp.com Tue Jan  7 22:25:04 2003
-> Received: by morannon.frodo.local (8.11.3/8.11.3) id h07LP4g23691 ; Tue, 7 Jan 2003 22:25:04 +0100
-> Return-Path: <timm@artesyncp.com>
-> Received: from pop3.dds.nl [213.196.1.204]
-> 	by localhost with POP3 (fetchmail-6.2.0)
-> 	for frodo@localhost (single-drop); Tue, 07 Jan 2003 22:25:04 +0100 (CET)
-> Received: (qmail-ldap/ctrl 32398 invoked from network); 7 Jan 2003 21:23:12 -0000
-> Received: from frankfurter.heurikon.com ([192.48.245.20]) (envelope-sender <timm@artesyncp.com>)
->           by dds.nl (qmail-ldap-1.03) with SMTP
->           for <frodol@dds.nl>; 7 Jan 2003 21:23:12 -0000
-> Received: from bratwurst-dmz.heurikon.com by frankfurter.heurikon.com
->           via smtpd (for dds.nl [213.196.1.204]) with SMTP; 7 Jan 2003 21:23:12 UT
-> Received: from frankfurterDMZ.heurikon.com (unknown [10.64.16.18])
-> 	by bratwurst.heurikon.com (Postfix) with SMTP id 6349CCC8CB
-> 	for <frodol@dds.nl>; Tue,  7 Jan 2003 15:23:11 -0600 (CST)
-> Received: from c3po.heurikon.com by frankfurterDMZ.heurikon.com
->           via smtpd (for bratwurst-dmz.heurikon.com [10.64.48.10]) with SMTP; 7 Jan 2003 21:23:11 UT
-> Received: by c3po.heurikon.com with Internet Mail Service (5.5.2653.19)
-> 	id <YHVKN6X9>; Tue, 7 Jan 2003 15:23:11 -0600
-> Message-ID: <F9102D41F595D311ACA7009027DE2C84033FFEC7@c3po.heurikon.com>
-> From: "Montgomery, Tim" <timm@artesyncp.com>
-> To: "'frodol@dds.nl'" <frodol@dds.nl>
-> Subject: Linux i2c id request
-> Date: Tue, 7 Jan 2003 15:23:10 -0600 
-> MIME-Version: 1.0
-> X-Mailer: Internet Mail Service (5.5.2653.19)
-> Content-Type: text/plain;
-> 	charset="iso-8859-1"
-> X-Loop-Procmail: PreventLoop
-> 
-> Hello,
-> 
-> I would like to reserve an i2c device ID for an ST Microelectronics M41T00 i2c real time clock.
-> 
-> Thank You
-> 
-> 
+Skipped content of type multipart/mixed-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030903/8b8fcaa6/attachment.bin
