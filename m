@@ -1,49 +1,27 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: i2c-philips-par
-Message-Id: <1074242713.4007a49945749@imp.gcu.info>
+From: psycho@albatross.co.nz (Keith Duthie)
+Date: Thu, 19 May 2005 06:23:52 +0000
+Subject: Hangs with w83781d
+Message-Id: <Pine.LNX.4.53.0304082321580.3437@loki.albatross.co.nz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1074182942.4006bb1e3fdf9@imp.gcu.info>
-In-Reply-To: <1074182942.4006bb1e3fdf9@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Try replacing the line I told you to add by this one:
-> > #define HZ 100
-> > (...)
-> 
-> Okay, this line seams to be work. After adding it to the
-> i2c-philips-par.c "make all" also exits by parsing the files
-> i2c-velleman.c, i2c-elv.c and i2c-pport.c. I added the line on each
-> file and it works - except i2c-pport.c. On this file I will get the
-> same error.
+In recent versions of lm_sensors, once I load the w83781d driver, apm
+suspend stops working (immediately resumes), and I've experienced a number
+of hangs that must be related to this.
 
-This is strange. Could you double-check that the error is strictly
-identical?
+The problem exists in 2.6.5 and 2.7.0, but does not exist in 2.6.3.
 
-BTW I have another idea. I think that the "right" fix is to add this
-line:
-#include <linux/sched.h>
-instead of the others I suggested so far. Could you please verify that
-it works for you? If it does I'll apply it to our CVS repository.
+The kernel I'm using is 2.4.20 (with the ext3 and ptrace patches); the
+motherboard is an abit bx6-r2 with the most recent bios.
 
-> So far I commented the line for this file out in the Module.mk and
-> make all runs with no errors. I think the pport isn't so important
-> for using ml_sensors, is it?!
+Gcc is 2.95.3, binutils is 2.11.92.0.12.3, make is 2.79.1.
 
-Correct, you most likely won't need it. Still I wonder why the fix
-doesn't work for these.
 
-> Hm, don't know why I will get these errors. My CPU is an AMD Athlon
-> XP 2600+. My "uname -a" output is "Linux igge 2.4.21-166-athlon #1
-> Thu Dec 18 18:24:05 UTC 2003 i686 athlon i386 GNU/Linux".
-
-So it is an i386 architecture. Do you have anything else particular on
-this machine? The other person who has the same problem as you reports
-he is using win4lin.
-
+I'm currently using i2c and lm_sensors 2.7.0 with the 2.6.3 w83781d
+module, and have noticed no problems so far since downgrading w83781d.
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Just because it isn't nice doesn't make it any less a miracle.
+     http://users.albatross.co.nz/~psycho/     O-   -><-
