@@ -1,92 +1,76 @@
-From: liste@jordet.nu (Stian Jordet)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:35 +0000
 Subject: i2c_adapter i2c-0: Bus collision!
-Message-Id: <1074304828.780.2.camel@chevrolet.hybel>
+Message-Id: <20040117094856.2f8b44c8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1073527236.624.7.camel@buick>
-	 <20040108230559.05a5674c.khali@linux-fr.org> <1073707567.621.5.camel@buick>
-In-Reply-To: <1073707567.621.5.camel@buick>
+	<1073707567.621.5.camel@buick>
+	<1074304828.780.2.camel@chevrolet.hybel>
+In-Reply-To: <1074304828.780.2.camel@chevrolet.hybel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sensors@stimpy.netroedge.com
+To: Stian Jordet <liste@jordet.nu>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-Jean,
+> sorry to bother you again, but this didn't tell you anything about
+> what's going on?
 
-sorry to bother you again, but this didn't tell you anything about
-what's going on?
+Sorry for the delay. Too much work, not enough time. You know the story
+I guess.
 
-Best regards,
-Stian
+> > I forgot to mention it in my last mail, but I sometime has to
+> > reload the modules before "sensors" finds any sensor.
 
-l?r, 10.01.2004 kl. 05.06 skrev Stian Jordet:
-> tor, 08.01.2004 kl. 23.05 skrev Jean Delvare: 
-> > > i2c_adapter i2c-0: Bus collision! SMBus may be locked until next hard
-> > > reset. (sorry!)
-> > > 
-> > > Kernel 2.6.0 with lm-sensors 2.8.2.
+As we load sensor chip drivers, we make sure that the chip we want to
+handle is what we think it is. Technically, this means reading from a
+few registers and compare the values with what we would expect for this
+chip. So the same read errors that make your hardware monitoring values
+jump make the chip identification fail sometimes.
+
+> > Attached three runs. Seems to be some read errors :( On these three
+> > runs I got first three bus-collisions, then one, and last two.
+
+Not all read errors are detected as bus collisions. Anyway, you got
+loads of 'XX' as I expected, "moving" from run to run, which means that
+your i2c bus is unreliable.
+
+My conclusion would be: bad hardware design generates noise on the i2c
+bus, resulting in read errors.
+
+> > > Did you have to enable any particular option in MBM?
 > > 
-> > Are you able to reproduce the same behavior with kernel 2.4.24 and
-> > lm-sensors 2.8.2?
-> 
-> Just tried, and I do. I forgot to mention it in my last mail, but I
-> sometime has to reload the modules before "sensors" finds any sensor.
-> 
-> > > I get very weird results, especially on the fan, but others as well.
-> > > Here are three runs of sensors:
-> > > (...)
-> > 
-> > Could you provide a few outputs of "i2cdump 0 0x2d"? I wonder if this
-> > will show read errors (as "XX") or simply changing values.
-> 
-> Attached three runs. Seems to be some read errors :( On these three runs I got
-> first three bus-collisions, then one, and last two.
-> 
-> > Does your BIOS provide a feature such as "Circle Of Protection" or
-> > anything that sounds like "active" hardware monitoring? Is it enabled?
-> 
-> No such option.
-> 
-> > If you have any other chips (eeproms for example) on the bus, do you
-> > observe similar behavior with these?
-> 
-> Not other chips.
-> 
-> > > It works fine with MBM in Windows. Well, MBM is having some troubles
-> > > with the temperature (it gets lower and lower as time pass, and ends
-> > > on about 8-9 degrees celsius. But fan and temperatures are read just
-> > > fine, never any glitch. On thing thing though, the Vcore2 is 1,70. The
-> > > Bios reports it correctly, but both MBM and LM-sensors says 1,50. Have
-> > > no idea why. The 1,50 is static, never changes, while VCore1 (which
-> > > ideally should be 1,75) varies from 1,75 to 1,79. In the BIOS both
-> > > seem sane, and varies with 3-4 degrees.
-> > > 
-> > > I guess all these problems are because of the bus collision, which I
-> > > have read usually happens because of bad boards. Which I admit that I
-> > > do have, but it works in Windows :(
-> > 
-> > Which motherboard is it?
-> 
-> A Rioworks SDVIA (http://www.rioworks.com/SDVIA.htm) Not very new, I'm afraid.
-> And not very good.
-> 
-> > Did you have to enable any particular option in MBM?
-> 
-> Nah, it just worked :)
-> 
-> > > What are the most common reasons for the bus collisions (...)?
-> > 
-> > Bad brakes?
-> > 
-> > Just kidding... ;)
-> 
-> Hehe :)
-> 
-> I guess this is unsolvable, but I just wanted to hear what you say. Kinda weird
-> it works so well with MBM, but that's ok. It's just for fun I want it to work.
-> 
-> Thanks for your reply :)
-> 
-> Best regards,
-> Stian
+> > Nah, it just worked :)
+
+I asked Alex van Kaam (MBM's brilliant author) about his strategy with
+bus collisions. To make it short, he explained he resets the bus on
+problems. If you confirm that the smbus MBM detected was Via, Alex will
+send me his code so that I can compare with ours, just in case. But I
+doubt it'll change anything (our driver is working, it's just a matter
+of how errors are - or aren't - handled).
+
+Basically we don't handle read errors at all (because it is so rare).
+Handling them correctly would make all chip drivers (and possibly i2c
+core and bus drivers as well) more complex. I'm not sure it's worth it.
+
+That said, a similar problem was reported with W83L785TS-S chips (A7N8X
+motherboards). I think that the cause is different (BIOS trying to
+access the bus at the same time we do) but the consequences are the
+same. I plan to add basic error handling to this specific chip driver
+(don't know when I'll find the time to do so though). If it works and
+could be extended to other drivers as well, we'll consider it.
+
+> > I guess this is unsolvable, but I just wanted to hear what you say.
+> > Kinda weird it works so well with MBM, but that's ok. It's just for
+> > fun I want it to work.
+
+I think it is work-around-able, but doubt it's worth it. Anyway, thanks
+for reporting, as it increased our knowledge of the topic.
+
+> > Thanks for your reply :)
+
+You're welcome. Sorry for the delay again.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
