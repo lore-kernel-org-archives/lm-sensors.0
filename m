@@ -1,37 +1,28 @@
-From: ben@bdlow.net (Ben Low)
+From: ben@bdlow.net (ben@bdlow.net)
 Date: Thu, 19 May 2005 06:23:32 +0000
 Subject: ALiM1535D+ w/ i2c-ali1535.o: Error: command never completed
-Message-Id: <200205041121.g44BLJD28499@Stimpy.netroedge.com>
+Message-Id: <20020505134151.GA23742@preston>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200205041121.g44BLJD28499@Stimpy.netroedge.com>
+In-Reply-To: <200205041121.g44BLJD28499@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hello,
+On Sat, May 04, 2002 at 12:51:23PM -0400, Mark Studebaker wrote:
+> #1 you probably don't have a LM78; see FAQ
 
-I've an IWill XP333 motherboard with a ALiM1535D+ southbridge, and am
-attempting to get lm_sensors-2.6.3 working.
+Ahh. http://mbm.livewiredev.com/ lists the IWill XP333 mb as having a
+ALI M5879 sensor (knowing what I was looking for, I eventually found 
+this chip on my board). Alas, it is listed as 'not planned' in the driver 
+support table; a) is there a "similar" supported driver I could force, 
+b) is there anything I can do to help to get this driver supported?
 
-sensors-detect probes the i2c-ali1535 driver, and goes on to pick up a
-lm78 and others (see below). However:
-
- 1) the lm78 temp never changes: /proc/sys/dev/sensors/lm78-i2c-0-2c/temp
-reads "60.0 50.0 43.0" and never changes
- 2) dmesg notes repeated "i2c-ali1535.o: Error: command never completed"
-messages one or more times after every "access".
-
-Also, sensors-detect seems to detect a different subset of devices each 
-time; that is it always detects the lm78, but sometimes detects a lm75,
-eeprom, or adm1021. "Sometimes" = different every time I run it.
-
-It appears the ALiM1535D+ isn't supported, are there plans to? Anything I
-can do to help (testing, etc?)
+ALI's 'request' form for a datasheet wants to know about signing an NDA, 
+how has the lm-sensors project handled this issue so far? (if at all).
 
 Regards,
 
---
-Ben Low
-"Glory is fleeting, but obscurity is forever."
-	- Napoleon Bonaparte (1769-1821)
+Ben
