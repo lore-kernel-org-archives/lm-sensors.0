@@ -1,49 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: ploujj@gmail.com (Michael P)
 Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: Ticket #1941: nforce4 support in sensors-detect
-Message-Id: <20050325220626.4fdc613c.khali@linux-fr.org>
+Message-Id: <18e5751305032615416cb51b9c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050325220626.4fdc613c.khali@linux-fr.org>
+In-Reply-To: <20050325220626.4fdc613c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hello,
+Thank you for a prompt peply.
+I have not been able to test the patch since the patching process is
+taking longer than it should for me. I originally used gentoo's
+portage to install lm_sensors, and I don't know how to patch the
+ebuild (package) yet. On the other hand, I have yet to successfully
+compile lm_sensors from source 'manually'.
 
-Here is a patch to sensors-detect which should add detection for your
-nForce4 SMBus. Can you please try and report? If it doesn't work, please
-provide the output of lspci -v and lspci -n.
+In the mean time, I decided to give you my lspci info anyways.
 
-Thanks,
--- 
-Jean Delvare
+Thank you for your time.
+
+
+On Fri, 25 Mar 2005 22:06:26 +0100, Jean Delvare <khali@linux-fr.org> wrote:
+> Hi,
+> 
+> Here is a patch to sensors-detect which should add detection for your
+> nForce4 SMBus. Can you please try and report? If it doesn't work, please
+> provide the output of lspci -v and lspci -n.
+> 
+> Thanks,
+> --
+> Jean Delvare
+> 
+> 
+>
 -------------- next part --------------
-Index: prog/detect/sensors-detect
-=================================RCS file: /home/cvs/lm_sensors2/prog/detect/sensors-detect,v
-retrieving revision 1.376
-diff -u -r1.376 sensors-detect
---- prog/detect/sensors-detect	20 Mar 2005 21:10:24 -0000	1.376
-+++ prog/detect/sensors-detect	25 Mar 2005 21:23:03 -0000
-@@ -670,6 +670,22 @@
-        match => sub { $_[0] =~ /^SMBus nForce2 adapter at / },
-      }, 
-      {
-+       vendid => 0x10de,
-+       devid  => 0x00E4,
-+       func => 1,
-+       procid => "nVidia Corporation nForce3 250Gb SMBus (MCP)",
-+       driver => "i2c-nforce2",
-+       match => sub { $_[0] =~ /^SMBus nForce2 adapter at / },
-+     }, 
-+     {
-+       vendid => 0x10de,
-+       devid  => 0x0052,
-+       func => 1,
-+       procid => "nVidia Corporation nForce4 SMBus (MCP)",
-+       driver => "i2c-nforce2",
-+       match => sub { $_[0] =~ /^SMBus nForce2 adapter at / },
-+     }, 
-+     {
-        vendid => 0x1166,
-        devid  => 0x0200,
-        func => 0,
+A non-text attachment was scrubbed...
+Name: lspciv
+Type: application/octet-stream
+Size: 8025 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050326/c4f05c45/lspciv.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lspcin
+Type: application/octet-stream
+Size: 1019 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050326/c4f05c45/lspcin.obj
