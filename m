@@ -1,96 +1,84 @@
-From: mlists@you.oih.rwth-aachen.de (Hajo Noerenberg)
-Date: Thu, 19 May 2005 06:23:36 +0000
-Subject: Follow up on ticket 954
-Message-Id: <E17Xzdm-00039b-00@relay>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [PATCH] I2C: Avoid repeated resets of i2c-viapro
+Message-Id: <11123113921804@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11123113921928@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
+
+ChangeSet 1.2337, 2005/03/31 14:28:46-08:00, khali@linux-fr.org
+
+[PATCH] I2C: Avoid repeated resets of i2c-viapro
+
+It was reported that the i2c-viapro SMBus driver sometimes has trouble
+on recent systems (VT8237 south bridge). The "Host Status" register has
+at least one additional bit used when compared with older south bridges
+of this family. The driver currently considers this additional bit as an
+error condition when it's set, causing repeated bus resets and sometimes
+read failures.
+
+This patch makes the driver ignore the bits of the "Host Status"
+register for which no definition is known. I wish I had a datasheet for
+the VIA VT8237, so that I could check what the additional bit is
+supposed to mean, but I don't. If someone has a datasheet or good
+contacts at VIA, please let me know.
+
+The patch was reported to fix the problem on a system with the VT8237,
+and was also tested not to break the driver on older VIA south bridges,
+so it seems to be safe. Thanks to Aurelien Jarno for the tests.
+
+Additionally, the patch makes the post-transaction bus reset slightly
+more efficient by sparing a few unneeded I/O operations.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
-Thank you very much for your quick answer ! I tried the
-"force_subclients=0,0x2c,0x4a,0x4b"-option from ticket #840
-yesterday and (of course - thats my fault) that did not
-work (wrong chip address).
-
-"modprobe w83781d force_subclients=0,0x2a,0x4a,0x4b" works
-and both sensors are detected:
-
-# sensors
-w83782d-i2c-0-29
-Adapter: SMBus PIIX4 adapter at 0580
-Algorithm: Non-I2C SMBus adapter
-VCore 1:   +1.48 V  (min =  +1.37 V, max =  +1.52 V)       ALARM  
-VCore 2:   +1.24 V  (min =  +1.37 V, max =  +1.52 V)              
-+3.3V:     +3.36 V  (min =  +3.13 V, max =  +3.45 V)              
-+5V:       +5.07 V  (min =  +4.72 V, max =  +5.24 V)              
-+12V:     +12.08 V  (min = +10.79 V, max = +13.19 V)              
--12V:      -1.03 V  (min = -13.21 V, max = -10.90 V)              
--5V:       +2.84 V  (min =  -5.26 V, max =  -4.76 V)              
-V5SB:      +5.11 V  (min =  +4.72 V, max =  +5.24 V)              
-VBat:      +3.32 V  (min =  +2.40 V, max =  +3.60 V)              
-fan1:     6136 RPM  (min = 3000 RPM, div = 2)                     
-fan2:     6617 RPM  (min = 3000 RPM, div = 2)                     
-fan3:     7336 RPM  (min = 3000 RPM, div = 2)                     
-temp1:       +44?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 3904 transistor           
-temp2:     +18.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 3904 transistor           
-temp3:     +18.0?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 3904 transistor           
-vid:       +1.45 V
-alarms:   Chassis intrusion detection                      ALARM
-beep_enable:
-          Sound alarm disabled
-
-w83782d-i2c-0-2a
-Adapter: SMBus PIIX4 adapter at 0580
-Algorithm: Non-I2C SMBus adapter
-VCore 1:   +0.01 V  (min =  +0.00 V, max =  +0.00 V)       ALARM  
-VCore 2:   +0.01 V  (min =  +0.00 V, max =  +0.00 V)       ALARM  
-+3.3V:     +0.01 V  (min =  +3.13 V, max =  +3.45 V)              
-+5V:       +5.07 V  (min =  +4.72 V, max =  +5.24 V)              
-+12V:      +0.04 V  (min = +10.79 V, max = +13.19 V)              
--12V:     -14.86 V  (min = -13.21 V, max = -10.90 V)              
--5V:       -7.68 V  (min =  -5.26 V, max =  -4.76 V)              
-V5SB:      +0.02 V  (min =  +4.72 V, max =  +5.24 V)              
-VBat:      +3.36 V  (min =  +2.40 V, max =  +3.60 V)              
-fan1:        0 RPM  (min = 3000 RPM, div = 2)                     
-fan2:        0 RPM  (min = 3000 RPM, div = 2)                     
-fan3:        0 RPM  (min = 3000 RPM, div = 2)                     
-temp1:      +127?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 3904 transistor           
-temp2:    +127.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 3904 transistor           
-temp3:    +127.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 3904 transistor           
-vid:       +0.00 V
-alarms:   
-beep_enable:
-          Sound alarm disabled
-#
-
-Values from BIOS:
-CPU1 - Temp:		37 - 38  	?C 
-CPU2 - Temp:		37		?C
-System - Temp:	42		?C
-CPU1 - Fan:		3750 - 3792 	RPM
-CPU1 - Fan:		3924 - 4017 	RPM
-Chassis - Fan:	4326 - 4500	RPM
-VCore:			1.47 - 1.48	V
-Vcc +3.3V:		+3,36 - 3.37	V
-Vcc +5V:		+5.08		V
-Vcc +12V		+12.54		V
-
-Comments:
-
-1.) w83782d-i2c-0-2a does not seem to produce any usable values (with
-different sensor types)
-2.) w83782d-i2c-0-29 gets close(r) to the real values with sensor 3904 transistor (2)
-3.) fan values are ~ 200%, temp2 and temp3 are ~ 50% of real values (wrong compute lines?)
-4.) temp1 probably is the correct system temp 
-5.) -12V and -5V seem to be measured by the same transistors as temp2/3 (values
-change if you change sensor type)
-
-I'll investigate further on that next week and provide feedback.
-
-Thank you,
-Hajo
+ drivers/i2c/busses/i2c-viapro.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
 
+diff -Nru a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+--- a/drivers/i2c/busses/i2c-viapro.c	2005-03-31 15:17:32 -08:00
++++ b/drivers/i2c/busses/i2c-viapro.c	2005-03-31 15:17:32 -08:00
+@@ -121,12 +121,12 @@
+ 		inb_p(SMBHSTDAT1));
+ 
+ 	/* Make sure the SMBus host is ready to start transmitting */
+-	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
++	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 		dev_dbg(&vt596_adapter.dev, "SMBus busy (0x%02x). "
+ 				"Resetting...\n", temp);
+ 		
+ 		outb_p(temp, SMBHSTSTS);
+-		if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
++		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 			dev_dbg(&vt596_adapter.dev, "Failed! (0x%02x)\n", temp);
+ 			
+ 			return -1;
+@@ -168,13 +168,14 @@
+ 		dev_dbg(&vt596_adapter.dev, "Error: no response!\n");
+ 	}
+ 
+-	if (inb_p(SMBHSTSTS) != 0x00)
+-		outb_p(inb(SMBHSTSTS), SMBHSTSTS);
+-
+-	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
+-		dev_dbg(&vt596_adapter.dev, "Failed reset at end of "
+-			"transaction (%02x)\n", temp);
++	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
++		outb_p(temp, SMBHSTSTS);
++		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
++			dev_warn(&vt596_adapter.dev, "Failed reset at end "
++				 "of transaction (%02x)\n", temp);
++		}
+ 	}
++
+ 	dev_dbg(&vt596_adapter.dev, "Transaction (post): CNT=%02x, CMD=%02x, "
+ 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
+ 		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
 
