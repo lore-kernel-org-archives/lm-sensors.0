@@ -1,58 +1,42 @@
-From: vdykt@icon.co.za (Tobias van Dyk)
-Date: Thu, 19 May 2005 06:25:59 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 09:32:25 +0000
 Subject: [lm-sensors] Abit uGuru
-Message-Id: <428A38E8.2000801@icon.co.za>
+Message-Id: <428C40E1.9020700@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <428A38E8.2000801@icon.co.za>
+In-Reply-To: <428A38E8.2000801@icon.co.za>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I recently tried Olle Sandberg's test code for reading the Winbond 
-W83L950D ports (aka uGuru) on an ABIT AG8-V. Provided his uGuru detect 
-routine is shorted I got satisfactory results on this MB - as shown below
+Hello,
 
-How do I go about to help to include a partial implementation into 
-lm_sensors (or alternatively is it more feasible to think of a GKrellM 
-plugin)?
+> How do I go about to help to include a partial implementation into
+> lm_sensors (or alternatively is it more feasible to think of a GKrellM
+> plugin)?
 
-I must confess that I miss the temperature readings on my PC because the 
-current (windows) speedfan beta now understands uGuru.
+It can be imlemented as classical kernel module - hw monitoring module.
 
-If required I can post the Olle Sandberg ollebull@gmail.com February 
-2005 source.
+> I must confess that I miss the temperature readings on my PC because the
+> current (windows) speedfan beta now understands uGuru.
 
+We did not start developement ourselfs - we do not support undocumented chips.
 
-[root@linux64 uguru]# /root/uguru/openGuru
-uGuru detected!
+> If required I can post the Olle Sandberg ollebull@gmail.com February
+> 2005 source.
 
-Temperatures:
-CPU:            42C
-SYS:            36C
-PWM:            38C
+If you want you can, but no-one will write the driver. Maybe it would be good to keep his
+code penamently somewhere in archive so it is not lost.
 
-Voltages:
-Vcore:          1.40V
-DDRVdd:         2.67V
-DDRVtt:         1.35V
-NBVdd:          2.89V
-SBVdd:          1.23V
-HTVdd:          1.55V
-AGPVdd:         2.55V
-Vdd5V:          5.05V
-Vdd3V3:         3.30V
-Vdd5VSB:        5.02V
-Vdd3VDual:      0.65V
+Our policy is not support undocumented chips. It simply brings a lot of troubles.
+If you want support under linux go and complain to Abit or do not buy their products.
+However if you get the official specs we will write most likely the driver.
 
-Fans:
-CPU fan:        1800RPM
-NB fan:         3660RPM
-SYS fan:        1080RPM
-AUX fan1:       0RPM
-AUX fan2:       0RPM
+If you want to write driver yourself and do all support about uGuru stuff you can.
+We can't forbid you doing so. I know Olle did not write because he told me recently that he
+does not feel lot skills in linux.
 
+Regards
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Rudolf
