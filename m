@@ -1,7 +1,7 @@
-From: phil@netroedge.com (phil@netroedge.com)
+From: delvare@ensicaen.ismra.fr (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:29 +0000
 Subject: eeprom driver
-Message-Id: <20020204134622.R1871@Stimpy.netroedge.com>
+Message-Id: <Pine.GSO.4.40.0202051941590.10434-100000@e3000.ensicaen.ismra.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020201105452.C1871@Stimpy.netroedge.com>
 In-Reply-To: <20020201105452.C1871@Stimpy.netroedge.com>
@@ -11,27 +11,43 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-I think this was noted as a laptop.  Some of the strangest hardware
-and I2C configurations are on laptops.  Sometimes battery/power
-controllers and backlight controls may be on the SMBus/I2C, although
-I'm guessing that the 0x57 isn't much more than a eeprom.  Perhaps
-even for the Bios?
-
-
-Phil
-
-On Mon, Feb 04, 2002 at 04:34:30PM -0500, Mark Studebaker wrote:
-> The 0x57 eeprom is clearly set up for some non-volatile storage on the motherboard.
-> I see a lot of ASCII numbers and letters;
-> At row E0, for example, is "11/15/01 13:26:37"
+> The 0x57 eeprom is clearly set up for some non-volatile storage on the
+> motherboard. I see a lot of ASCII numbers and letters; At row E0, for
+> example, is "11/15/01 13:26:37"
 > This answers your second question.
-> 
-> Your first question (why the second slot doesn't make an appearance),
-> I have no idea.
-> 
-> mds
+
+Well done :)
+
+You're perfectly right.
+
+I modified i2cdump so that is shows a "string" version of the data, and it
+is now clear to me that 0x57 is used to "identify" the laptop.  I could
+find the model name and serial number, among other things.
+
+I am writing a perl script right now, to show what I understood from this
+eeprom.  It's called decode-vaio.pl and could take place with phil's
+decode-dimms.pl in eeprom/, I guess.  I would like to get in touch with
+other Vaio users, to have more than just my eeprom to do the job.
+
+So, three things I could actually add to the project :
+
+1* The modifications I made to the eeprom driver, so that it shows 256
+bytes instead of 128.  It is required for the Vaio eeprom.  Maybe we could
+move to a device-specific length (for exemple, still limit to 128 if we
+recognise a DIMM module.)  I don't know how accurate it can be, so we may
+need to discuss this a bit.
+
+2* The enhancement I made to i2cdump.
+
+3* The script itself.
+
+If the script gives good results on more than just my machine, maybe we
+could consider adding the vaio eeprom decoding to sensors itself.
+
+Work is still in progress anyway, any comments welcome.
 
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+       /~~       Jean "Khali" Delvare
+  -----\_                        mail: delvare@ensicaen.ismra.fr
+ --------\                http://www.ensicaen.ismra.fr/~delvare/
+---=ISMRA/- ____________________________________________________
