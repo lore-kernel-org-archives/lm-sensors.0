@@ -1,20 +1,34 @@
-From: hch@infradead.org (Christoph Hellwig)
-Date: Thu, 19 May 2005 06:24:19 +0000
-Subject: [PATCH] i2c driver fixes for 2.6.0-test5
-Message-Id: <20030923200824.A24300@infradead.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:59 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc4 15/15]
+Message-Id: <e9iUj0EZ.1116327879.1515720.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10642734271572@kroah.com> <1064273428551@kroah.com> <20030923091617.B10818@infradead.org> <20030923161929.GB4402@kroah.com> <20030923172258.B19880@infradead.org> <20030923190440.GA5205@kroah.com>
-In-Reply-To: <20030923190440.GA5205@kroah.com>; from greg@kroah.com on Tue, Sep 23, 2003 at 12:04:40PM -0700
+In-Reply-To: <2538186705051703479bd0c29@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: yani.ioannou@gmail.com
+Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-On Tue, Sep 23, 2003 at 12:04:40PM -0700, Greg KH wrote:
-> Heh, good point.  Ok, I dug out a box that uses a isa i2c adapter and
-> tested the patch below.  As the chip drivers are using request_region
-> properly, taking this check out of i2c-sensor.c makes sense.
 
-Looks better already, but I really wonder WTF this i2c_check_addr
-thing is.  It looks at least as racy as check_region..
+Hi Yani,
+
+> Again I'd prefer someone test this particular patch before it be
+> applied, because I haven't got an adm1026 to test it with :-).
+
+If you could come up with an additional demonstration patch for either
+the lm90 driver or the it87 driver, I would happily give it a try. The
+adm1026 has very few users AFAIK so it might not be the best choice to
+find testers, although I agree that it was a convenient way to
+demonstrate how drivers could benefit from the proposed change.
+
+And, once again, thanks *a lot* for looking into this, this is very much
+appreciated.
+
+--
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
