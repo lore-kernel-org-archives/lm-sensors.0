@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: grant_nospam@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:45 +0000
 Subject: RFC locking and rate limit updates for i2c?
-Message-Id: <4240BADF.8040908@penguincomputing.com>
+Message-Id: <irf141ps6ek4l2sh6gtoguh5n9u93jdlra@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 In-Reply-To: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
@@ -10,53 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The ADM1026 and LM85 drivers should be requesting the semaphore on the 
-internal per-chip data structure before doing any modification of the 
-fan_div.  In that way there is only one writer to the data structure and 
-consistency should be enforced.  If someone pokes at the hardware 
-without going through the driver there isn't much we can do...
+On Tue, 22 Mar 2005 16:40:00 -0800, Philip Pokorny <ppokorny@penguincomputing.com> wrote:
 
-With 2.6 (and perhaps 2.4?) there are one-writer or multiple reader 
-locks that might be more appropriate for locking the per chip data 
-structures...
+>The ADM1026 and LM85 drivers should be requesting the semaphore on the 
+     ^^^^^^^-- off my work list as it requires too much change
+for an obvious fix, care to comment on partial patch?  
 
-:v)
+I stopped when I realised it had an odd data structure and fixing 
+that is too invasive as I cannot go further than compile test.
 
-Grant Coady wrote:
 
->Hi All,
->
->Requesting information on two issues, taking a the lock for 
->read/modify/write i2c chip update cycles, and rate limiting 
->write access to i2c bus to prevent user-space DoS on the i2c 
->bus with continuous update requests.
->
->i2c locking:
->
->Thinking about the fan_div setting, it is a read/modify/write 
->(RMW) operation to a chip register, should we take action to 
->prevent another process accessing the chip on i2c during this 
->RMW action?
->
->What I'm thinking is sort of:
->..
->	if new_div not in (valid_divisor_set)
->		return error message
->	~
->	read old_div
->	if (new_div = old_div)
->		goto exit
->	read fan_min
->	adjust fan_min
->	write new_div
->	write fan_min
->exit:
->	~
->..
->
->Should we hold exclusive access to i2c bus + chip between the 
->tildes above?  Or is my thinking bounding too far into highly 
->unlikely events?
->  
->
+Per register access locking achieves nothing for a read/modify/write 
+cycle as another proces may change that register during the modify 
+phase if i2c bus released.  
 
+On one hand I've been told not to trust cache coherency with chip 
+registers, thus implying read/modify/write cycle, which should take 
+exclusive access to i2c bus for the read and writeback operations.
+
+Does that clarify my query?
+
+Thnaks,
+Grant.
