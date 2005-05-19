@@ -1,7 +1,7 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:38 +0000
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: [PATCH] i2c-nforce2: add support for nForce4 (patch against
-Message-Id: <20050218034924.GA26314@suse.de>
+Message-Id: <20050225184657.GA24343@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200502180019.20440.hfvogt@gmx.net>
 In-Reply-To: <200502180019.20440.hfvogt@gmx.net>
