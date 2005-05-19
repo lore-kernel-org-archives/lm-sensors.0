@@ -1,37 +1,46 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: rmk+lkml@arm.linux.org.uk (Russell King)
 Date: Thu, 19 May 2005 06:25:57 +0000
 Subject: [PATCH] ds1337 driver works also with ds1339 chip
-Message-Id: <u7zs9Dp4.1115728806.6659250.khali@localhost>
+Message-Id: <20050510134834.A3358@flint.arm.linux.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20050510120804.GA2492@orphique>
-References: <20050510120804.GA2492@orphique>
-In-Reply-To: <20050510120804.GA2492@orphique>
+References: <20050504061438.GD1439@orphique> <Ky47NT3d.1115201231.3150830.khali@localhost> <20050510120804.GA2492@orphique>
+In-Reply-To: <20050510120804.GA2492@orphique>; from ladis@linux-mips.org on Tue, May 10, 2005 at 02:08:04PM +0200
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ladis@linux-mips.org
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>, Greg KH <greg@kroah.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Greg KH <greg@kroah.com>, Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>
 
+On Tue, May 10, 2005 at 02:08:04PM +0200, Ladislav Michl wrote:
+> On Wed, May 04, 2005 at 12:07:11PM +0200, Jean Delvare wrote:
+> > > Chip is searched by bus number rather than its own proprietary id.
+> > 
+> > Yes, I think it makes much more sense (especially since the proprietary
+> > id was not known by anyone outside of the ds1337 driver).
+> > 
+> > I think I understand that ds1337_do_command() will be called from some
+> > other kernel driver. Why isn't it exported then? I'd expect:
+> > EXPORT_SYMBOL(ds1337_do_command);
+> 
+> RTC is hooked early in boot process. It should be available even sooner
+> than rootfs is mounted. Therefore RTC drivers are usualy compiled in
+> kernel. Anyway, exporting that function shouldn't hurt :)
 
-Hi Ladislav,
+You don't have to set the kernel time during time_init(), and this
+is especially true with I2C RTCs.  The only thing that time_init()
+has to do is to start the kernel tick going.
 
-> > next to the end of the ds1337 driver. Maybe it would also make sense to
-> > have a ds1337.h header file declaring this function?
->
-> I'm not sure if adding yet another driver specific header is a good
-> idea. Perhaps we should consolidate I2C RTC drivers a bit more and
-> create common header for them?
+There is no reason why it can't be initialised during the normal
+driver initialisation - which is how we do it on a number of ARM
+platforms.
 
-Agreed, although I would go one step further. I see no reason why it
-matters whether these are *I2C* RTC or not. I have no concrete proposal
-but it really sounds like a common RTC interface would be needed here -
-if it doesn't exist already. Can't say more unfortunately, as I never
-had to use a RTC myself.
+There are some ARM platforms where we can only get the time via
+ntpdate, and this is also satisfactory.
 
-> Document the fact that ds1337 driver works also with DS1339 real-time
-> clock chip.
+So please don't get hung up on the x86 way of doing things.  It's
+both conceptually wrong and actually unnecessary.
 
-Good work, thanks.
-
---
-Jean Delvare
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:  2.6 Serial core
