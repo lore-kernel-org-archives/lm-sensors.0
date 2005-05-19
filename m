@@ -1,17 +1,29 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:25:07 +0000
-Subject: [6/13] w1: Added w1_read_block() and w1_write_block() callbacks
-Message-Id: <1090822158.2876.46.camel@uganda>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:46 +0000
+Subject: 2.8.5 rpms for FC1, RH9, RH8.0, RH73
+Message-Id: <20040312191233.7db79673.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Skipped content of type multipart/mixed-------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040726/c2878806/attachment.bin
+> Thanks for the fix, Jean!
+
+You're welcome :)
+
+> The rpms have been uploaded to
+> 
+>     http://atrpms.physik.fu-berlin.de/name/lm_sensors/
+> 
+> You need of course the i2c 2.8.x enabled kernels at
+> 
+>     http://atrpms.physik.fu-berlin.de/name/kernel/
+>     (2.8.4 for FC1, 2.8.2 for the rest)
+
+Great, I've make an annoucement on our news page and updated the
+download page as well. Thanks for the great work :)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
