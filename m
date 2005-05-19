@@ -1,28 +1,23 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: seperate mallocs
-Message-Id: <20040417205221.51df2892.khali@linux-fr.org>
+From: synaptical@linuxquestions.net (synaptical)
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: can't compile i2c-2.8.3 on linux-2.6.2
+Message-Id: <20040204194802.35A2CACA5@sitemail.everyone.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <406E5CFB.6030309@penguincomputing.com>
-In-Reply-To: <406E5CFB.6030309@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I'm not convinced by your argument, and I don't think I'm going to 
-> change your mind, so I propose a comprimise.
-> 
-> Why not enclose the default: block with #ifdef DEBUG/#endif.  That
-> way during driver development, we have the extra check and during
-> "normal" runtime you don't have the overhead?
+i compiled the kernel with make clean; lm_sensors compiled after a make clean in lm_sensors. but i2c won't compile, it keeps giving me a "no rule to make target" error:
 
-Solution #3:
+make: *** No rule to make target `mach_mpspec.h', needed by `kernel/i2c-pport.d'.  Stop.
 
-I've commited a different fix which doesn't imply changes in error
-paths, so I have no reason to change what you did and everyone's happy
-;)
+i've made clean in the i2c directory, but i notice /usr/include/linux doesn't contain mach.mpspec.h -- is it supposed to? any idea on how i fix things so i2c will compile? 
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+thank you,
+syn
+
+
+_____________________________________________________________
+Thank you for choosing LinuxQuestions.
+http://www.linuxquestions.org
