@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: [PATCH] I2C update for 2.6.6
-Message-Id: <10845773583910@kroah.com>
+Message-Id: <10845773582979@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1084577358220@kroah.com>
+In-Reply-To: <10845773573133@kroah.com>
 References: <10845773562431@kroah.com>
 In-Reply-To: <10845773562431@kroah.com>
 MIME-Version: 1.0
@@ -11,144 +11,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1587.15.17, 2004/05/14 14:59:26-07:00, bjorn@mork.no
+ChangeSet 1.1587.15.13, 2004/05/11 13:44:19-07:00, R.S.Bultje@students.uu.nl
 
-[PATCH] I2C: "probe" module param broken for it87 in Linux 2.6.6
+[PATCH] I2C: new i2c video decoder calls
 
-Jean Delvare <khali@linux-fr.org> writes:
-> So I'd suggest that you simply use the standard exit sequence in the
-> it87 driver (the second one in your current patch). A patch for the 2.4
-> driver would be appreciated as well.
+Attached patch adds three new calls to the i2c video decoder API.  The changes
+were requested by Michael (CC'ed) and approved by Gerd Knorr (v4l maintainer,
+CC'ed).
 
-OK.  I've attached a new version of the patch against linux-2.6.6.
-I'll send a patch against current lm_sensors CVS removing the extra
-exit command in a separate mail.
+Short explanation:
 
-Greg KH <greg@kroah.com> writes:
-> On Wed, May 12, 2004 at 04:38:03PM +0200, Bj?rn Mork wrote:
->> +	if (!it87_find(&addr)) {
->> +		printk("it87.o: new ISA address: 0x%04x\n", addr);
->
-> That printk is wrong (no KERN_ level, or dev_printk() style use).
-> Please fix it in your next revision of this patch.
+* INIT is a general initialization call with optional initialization data.
+  Reason for this is that several i2c decoders (or general: clients) are being
+  used by several adapters (main drivers), and in some cases, one adapter
+  simply needs different settings than the other, either because the adapter
+  is completely different or because the card was reverse engineered in a way
+  that doesn't allow multiple adapters to run using the same original
+  initialization data.  Michael faces such a problem right now.  Both he and
+  me lack time to properly sit together and work out the exact details or a
+  proper way to merge.
 
-Errh, I just added it to document my sloppyness.  It was never meant
-to be in the patch I sent you.  Sorry.  Removed in the attached patch.
-The style of these drivers seem to be "just working, making no noise"
-so I assume informational printk's are unwanted.
+* VBI_BYPASS and GPIO set specific pins on the decoder.  This will be used
+  in the saa7111 driver.  My driver (zr36067, original user of the saa7111
+  driver) doesn't use any of this, but Michael's does.
 
 
- drivers/i2c/chips/it87.c |   78 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 78 insertions(+)
+ include/linux/video_decoder.h |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
 
-diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
---- a/drivers/i2c/chips/it87.c	Fri May 14 16:18:36 2004
-+++ b/drivers/i2c/chips/it87.c	Fri May 14 16:18:36 2004
-@@ -49,6 +49,54 @@
- /* Insmod parameters */
- SENSORS_INSMOD_1(it87);
+diff -Nru a/include/linux/video_decoder.h b/include/linux/video_decoder.h
+--- a/include/linux/video_decoder.h	Fri May 14 16:19:20 2004
++++ b/include/linux/video_decoder.h	Fri May 14 16:19:20 2004
+@@ -22,6 +22,10 @@
+ #define	DECODER_STATUS_NTSC	8	/* auto detected */
+ #define	DECODER_STATUS_SECAM	16	/* auto detected */
  
-+#define	REG	0x2e	/* The register to read/write */
-+#define	DEV	0x07	/* Register: Logical device select */
-+#define	VAL	0x2f	/* The value to read/write */
-+#define PME	0x04	/* The device with the fan registers in it */
-+#define	DEVID	0x20	/* Register: Device ID */
-+
-+static inline void
-+superio_outb(int reg, int val)
-+{
-+	outb(reg, REG);
-+	outb(val, VAL);
-+}
-+
-+static inline int
-+superio_inb(int reg)
-+{
-+	outb(reg, REG);
-+	return inb(VAL);
-+}
-+
-+static inline void
-+superio_select(void)
-+{
-+	outb(DEV, REG);
-+	outb(PME, VAL);
-+}
-+
-+static inline void
-+superio_enter(void)
-+{
-+	outb(0x87, REG);
-+	outb(0x01, REG);
-+	outb(0x55, REG);
-+	outb(0x55, REG);
-+}
-+
-+static inline void
-+superio_exit(void)
-+{
-+	outb(0x02, REG);
-+	outb(0x02, VAL);
-+}
-+
-+/* just IT8712F for now - this should be extended to support the other
-+   chips as well */
-+#define IT8712F_DEVID 0x8712
-+#define IT87_ACT_REG  0x30
-+#define IT87_BASE_REG 0x60
++struct video_decoder_init {
++	unsigned char len;
++	const unsigned char *data;
++};
  
- /* Update battery voltage after every reading if true */
- static int update_vbat;
-@@ -158,6 +206,7 @@
+ #define	DECODER_GET_CAPABILITIES _IOR('d', 1, struct video_decoder_capability)
+ #define	DECODER_GET_STATUS    	_IOR('d', 2, int)
+@@ -30,6 +34,9 @@
+ #define	DECODER_SET_OUTPUT	_IOW('d', 5, int)	/* 0 <= output < #outputs */
+ #define	DECODER_ENABLE_OUTPUT	_IOW('d', 6, int)	/* boolean output enable control */
+ #define	DECODER_SET_PICTURE   	_IOW('d', 7, struct video_picture)
++#define	DECODER_SET_GPIO	_IOW('d', 8, int)	/* switch general purpose pin */
++#define	DECODER_INIT		_IOW('d', 9, struct video_decoder_init)	/* init internal registers at once */
++#define	DECODER_SET_VBI_BYPASS	_IOW('d', 10, int)	/* switch vbi bypass */
  
- 
- static int it87_attach_adapter(struct i2c_adapter *adapter);
-+static int it87_find(int *address);
- static int it87_detect(struct i2c_adapter *adapter, int address, int kind);
- static int it87_detach_client(struct i2c_client *client);
- 
-@@ -505,6 +554,30 @@
- 	return i2c_detect(adapter, &addr_data, it87_detect);
- }
- 
-+/* SuperIO detection - will change normal_isa[0] if a chip is found */
-+static int it87_find(int *address)
-+{
-+	u16 val;
-+
-+	superio_enter();
-+	val = (superio_inb(DEVID) << 8) |
-+	       superio_inb(DEVID + 1);
-+	if (val != IT8712F_DEVID) {
-+		superio_exit();
-+		return -ENODEV;
-+	}
-+
-+	superio_select();
-+	val = (superio_inb(IT87_BASE_REG) << 8) |
-+	       superio_inb(IT87_BASE_REG + 1);
-+	superio_exit();
-+	*address = val & ~(IT87_EXTENT - 1);
-+	if (*address = 0) {
-+		return -ENODEV;
-+	}
-+	return 0;
-+}
-+
- /* This function is called by i2c_detect */
- int it87_detect(struct i2c_adapter *adapter, int address, int kind)
- {
-@@ -853,6 +926,11 @@
- 
- static int __init sm_it87_init(void)
- {
-+	int addr;
-+
-+	if (!it87_find(&addr)) {
-+		normal_isa[0] = addr;
-+	}
- 	return i2c_add_driver(&it87_driver);
- }
+ #define	DECODER_DUMP		_IO('d', 192)		/* debug hook */
  
 
