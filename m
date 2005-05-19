@@ -1,42 +1,40 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 09:32:25 +0000
-Subject: [lm-sensors] Abit uGuru
-Message-Id: <428C40E1.9020700@sh.cvut.cz>
+From: olaf@fortytwo.eu.org (Olaf)
+Date: Thu, 19 May 2005 06:24:36 +0000
+Subject: Ticket #1545
+Message-Id: <40140EAE.1010706@fortytwo.eu.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <428A38E8.2000801@icon.co.za>
-In-Reply-To: <428A38E8.2000801@icon.co.za>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi *,
 
-> How do I go about to help to include a partial implementation into
-> lm_sensors (or alternatively is it more feasible to think of a GKrellM
-> plugin)?
+as mentioned in this ticked I checked by using lspci:
 
-It can be imlemented as classical kernel module - hw monitoring module.
+00:00.0 Host bridge: VIA Technologies, Inc. VT82C693A/694x [Apollo PRO133x] 
+(rev c4)
+00:01.0 PCI bridge: VIA Technologies, Inc. VT82C598/694x [Apollo 
+MVP3/Pro133x AGP]
+00:04.0 ISA bridge: VIA Technologies, Inc. VT82C686 [Apollo Super South] 
+(rev 22)
+00:04.1 IDE interface: VIA Technologies, Inc. Bus Master IDE (rev 10)
+00:04.2 USB Controller: VIA Technologies, Inc. UHCI USB (rev 10)
+00:04.3 USB Controller: VIA Technologies, Inc. UHCI USB (rev 10)
+00:04.4 Host bridge: VIA Technologies, Inc. VT82C686 [Apollo Super ACPI] 
+(rev 30)
+00:05.0 Multimedia audio controller: Ensoniq 5880 AudioPCI (rev 03)
+00:0a.0 PCI bridge: Digital Equipment Corporation DECchip 21152 (rev 03)
+00:0b.0 Ethernet controller: Digital Equipment Corporation DECchip 21140 
+[FasterNet] (rev 22)
+01:00.0 VGA compatible controller: ATI Technologies Inc Rage 128 RF
+02:04.0 Ethernet controller: Intel Corp. 82557 [Ethernet Pro 100] (rev 05)
+02:05.0 Ethernet controller: Intel Corp. 82557 [Ethernet Pro 100] (rev 05)
 
-> I must confess that I miss the temperature readings on my PC because the
-> current (windows) speedfan beta now understands uGuru.
+Board is Asus CUV4X-CM.
 
-We did not start developement ourselfs - we do not support undocumented chips.
-
-> If required I can post the Olle Sandberg ollebull@gmail.com February
-> 2005 source.
-
-If you want you can, but no-one will write the driver. Maybe it would be good to keep his
-code penamently somewhere in archive so it is not lost.
-
-Our policy is not support undocumented chips. It simply brings a lot of troubles.
-If you want support under linux go and complain to Abit or do not buy their products.
-However if you get the official specs we will write most likely the driver.
-
-If you want to write driver yourself and do all support about uGuru stuff you can.
-We can't forbid you doing so. I know Olle did not write because he told me recently that he
-does not feel lot skills in linux.
+dmesg iss full of iptables messages (it is a server), and I cannot reboot it 
+right now - but will do if you need more input.
 
 Regards
-
-Rudolf
+Olaf
