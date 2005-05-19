@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mds4@verizon.net (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: RFC: complete rewrite of i2c-i801 for 2.6.x
-Message-Id: <Gjci285V.1102499921.2180000.khali@localhost>
+Message-Id: <41B73BA4.7030800@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041128193640.GB5855@jupiter.solarsys.private>
 In-Reply-To: <20041128193640.GB5855@jupiter.solarsys.private>
@@ -10,75 +10,131 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+thanks for offer. i2c block read support for ich5 and later is now in CVS.
+Best way to test bus drivers is with 'i2cdump'.
+In particular to test i2c block reads, best way is with the "i" mode of i2cdump.
+If it works, regular byte ("b") mode and "i" mode should have identical results
+when reading from an eeprom.
 
-Hi Mark,
+For the ICH7, first we've heard of it, but not surprised it would be the chip
+after ICH6 :)
+I see there's nothing on developer.intel.com about it. Will there be any
+changes in the SMBus controller? What is the device ID? Datasheet availability?
+Whether you submit 2.4 or 2.6 patches doesn't really matter.
+But with the device ID, and assurances that the SMBus part of the chip didn't change,
+it's real easy.
 
-> Interesting.  It looks like that datasheet only shows this:
->
->	S Addr Wr [A] Comm [A] D0 [A] D1 [A] S (read bytes...)
->
-> I agree that's not like any transaction we support.
+mds
 
-True. Not only that but it seems that this function is broken at least in
-the ICH3-M (which I have). The specification update from Intel [1] says
-so.
 
-> OTOH, the ICH5 [1] datasheet shows this:
->
->	S Addr Wr [A] D1 [A] S (read bytes...)
->
-> That's exactly the transfer protocol that eeproms need, right?  (That's why
-> I mentioned to Khali by IRC last weekend that I thought it should be
+Gaston, Jason D wrote:
+> Mark,
+> 
+> I would be willing to do some testing of the i2c-i801 driver on ICH5,
+> ICH6, ESB6300 and ICH7.  I have access to boards/systems, but I am not
+> proficient in i2c testing, other then running "sensors" and seeing the
+> data.  If you know of some instructions for the testing you are looking
+> for, I am willing to give it a go.
+> 
+> In addition, I will soon want to get support for ICH7 added to the
+> i2c-i801 driver.  Last time, when I wanted to get support for ICH6
+> added, I posted a patch, adding the DID's, to the LKML and Greg KH.
+> This made it into the 2.6 kernel.  Perhaps I should get support added
+> here first and then the base kernel?
+> 
+> Let me know how I can help,
+> 
+> Jason Gaston
+> Jason.d.gaston@intel.com
+> 
+> 
+>     
+> 
+> -----Original Message-----
+> From: Mark Studebaker [mailto:mds4@verizon.net] 
+> Sent: Tuesday, December 07, 2004 7:02 PM
+> To: Sensors
+> Subject: Re: RFC: complete rewrite of i2c-i801 for 2.6.x
+> 
+> 
+> 
+> Mark M. Hoffman wrote:
+> 
+>>Hi Mark:
+>>
+>>(CCs trimmed)
+>>
+>>* Mark D. Studebaker <mds4@verizon.net> [2004-12-07 11:20:54 -0500]:
+>>
+>>
+>>>My reading of the DB datasheet (in 2002 and now) is that it doesn't
+> 
+> support a
+> 
+>>>standard i2c block read. The driver functionality bitmask reflects
+> 
+> that.
+> 
+>>>I fixed the error message (which would only print out if a driver
+> 
+> ignored 
+> 
+>>>the functionality mask).
+>>
+>>
+>>Interesting.  It looks like that datasheet only shows this:
+>>
+>>	S Addr Wr [A] Comm [A] D0 [A] D1 [A] S (read bytes...)
+>>
+>>I agree that's not like any transaction we support.
+> 
+> 
+> correct. don't know what they were thinking.
+> 
+> 
+>>OTOH, the ICH5 [1] datasheet shows this:
+>>
+>>	S Addr Wr [A] D1 [A] S (read bytes...)
+>>
+>>That's exactly the transfer protocol that eeproms need, right?
+> 
+> (That's why I
+> 
+>>mentioned to Khali by IRC last weekend that I thought it should be
+> 
 > possible.)
-
-True again.
-
-> It would be really bizarre if these two chipsets behaved differently in
-> this respect - I wonder if the datasheets are correct?
-
-I think they are. Intel are very serious with datasheets. I believe they
-implemented a useless function, realized that and simply changed it in
-the newer revisions of the ICH. BTW it would certainly be worth looking
-at the revision numbers of our chips. The revision is shown by lspci
-(aming others). Mine is 01. I would expect a different value for the
-chips with the new I2C block read function. If I'm right, that would be
-a convenient detection method.
-
-I will not try the weird I2C block read on my system since it really
-starts like a write command and I wouldn't want to trash my eeproms
-accidentally.
-
-> [1] Well I just scanned all the other datasheets... only ICH5, ICH6, and
-> 6300ESB appear to support the standard I2C block read.  Sorry Khali. :)
-
-Yes, it looks so. I guess I'll have to change my laptop for an
-ICH6-based one then ;)
-
-However, what I had in mind was NOT to use that weird function but to
-hi-jack the SMBus block read command. Unless I am mistaken, the only
-difference between SMBus and I2C block reads is that the former has an
-additional leading (read) byte for the length while the latter doesn't.
-My plan was to implement I2C block reads using the SMBus block read. All
-I'd need to do is copy the supposed length byte as the first data byte
-and shift all other data bytes by one position. Sounds simple... except
-that it doesn't seem to work. Or, more precisely, sometimes it works
-and sometimes is doesn't. Seems to depend on the first byte read. I
-suppose that the ICH3-M trusts this byte more than the LAST_BYTE bit
-(the specification update confirms that this is the case for the weird
-I2C block read function, making it useless as I said earlier). I tried
-to overwrite the byte length with 32 after the first transfer of the
-block but it didn't seem to help. Also, I see no relation between the
-value of the first byte and the point at which the block read dies on a
-timeout, although this is perfectly reproducible.
-
-I'll investigate again this evening but with little hope. And anyway
-this sounds like a trick we might not want to implement in the released
-driver even if it somewhat works, especially since I2C block reads are
-really only a bonus for EEPROMs, not a vital feature for hardware
-monitoring.
-
-[1] http://www.intel.com/design/chipsets/specupdt/290718.htm
-
-Thanks,
---
-Jean Delvare
+> 
+> 
+> I think it is what eeproms need (you omitted 'Addr' after the second
+> 'S').
+> It matches what I wrote in doc/smbus-protocol in i2c
+> (that is, the i2c block functions are defined to take a 'command' byte,
+> matching
+>  what eeproms need for 'random' reads and writes).
+> 
+> Does anybody have a ICH5/6? If so I can add support to the driver for
+> testing.
+> 
+> mds
+> 
+> 
+> 
+>>It would be really bizarre if these two chipsets behaved differently
+> 
+> in this
+> 
+>>respect - I wonder if the datasheets are correct?
+>>
+>>[1] Well I just scanned all the other datasheets... only ICH5, ICH6,
+> 
+> and
+> 
+>>6300ESB appear to support the standard I2C block read.  Sorry Khali.
+> 
+> :)
+> 
+>>Regards,
+>>
+> 
+> 
+> 
