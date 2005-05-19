@@ -1,7 +1,7 @@
 From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: i801 bus problems
-Message-Id: <Pine.LNX.4.58.0409030940450.19686@desitka.sh.cvut.cz>
+Message-Id: <Pine.LNX.4.58.0409031054540.19686@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
@@ -11,18 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
+Hi I went through System Management Bus 2.0 (SMBus) Driver
+intelsmb.sys
 
-On Thu, 2 Sep 2004, Philip Edelbrock wrote:
+(This driver contains support for ICHx based chipsets on Windows2000,
+WindowsXP, & WindowsServer2003.)
 
->
-> I may have jumped the gun a bit.  It looks like i801 is working but some
-> client chips are not responding or are missing?
+And found:
 
-Yes you got it :) The bus is simply not working even all modules for bus
-and lm85 are loaded. I thought the bus is confused with autodetection
-process but it does not work even after powercycle and only lm85 loaded as
-client. The question is what to do with it? Is possible somehow to change
-configuration of SMBUs controller, maybe it has some slow devices???
+SMIOpportunityWindow
+Parameters
+SMIPollingPeriod
+
+What I think happen is that SMM mode routines are overtaking the bus
+when we want to comunicate with it. It seems that this intel driver knows
+this :)
+
+Unfortunately I dont have IDA full version I found this strings with
+strings command so I cant figure out to which routines it applies. (but I
+will try anyway :)
 
 Regards
 
