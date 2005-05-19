@@ -1,7 +1,7 @@
 From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: i2c/kernel i2c-algo-bit.c
-Message-Id: <Pine.LNX.4.53.0311161748390.7421@cosmos.private>
+Message-Id: <Pine.LNX.4.53.0311161950340.7421@cosmos.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031101170944.386fd941.khali@linux-fr.org>
 In-Reply-To: <20031101170944.386fd941.khali@linux-fr.org>
@@ -11,50 +11,37 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-1. You called? Sincere apologies. Yes, still alive.
-2. About 3k of unread messages in sensors :)
-3. You can compile -bit compliant version of -biths. Adapter code
-needs no changes. You can't go as fast but are able to test for
-other features.
-4. Other features include verbose bit-level debugging.
-5. Anyone with approriate hardware, comments and experience with -biths
-is welcome. Year ago I got none. I hope someone could make sure it
-still compiles. I will explain logic behind -biths #defines later.
+As noted before, bit-banging puts some limitations on the type of
+devices the bus may have. My (unverified) comments in the order of TODO.
 
-6. The Story: Writing of i2c-algo-biths ...
+1. Even if both SCL and SDA lines are temporarily high, another master
+may have issued Start sequence and the bus is considered Busy until a Stop
+sequence is issued. Detecting these sequences requires (minimal)
+external hardware, a status changed flag, or fast (<1us) sampling of
+SCL and SDA lines. It will work most of the time, but messages from
+other hosts on the same bus may get corrupted. For a multi-master
+configuration, choose a hardware based i2c approach instead.
 
-About bit_test. Yes, good practise to check the hw we are about to use,
-test pattern should be valid i2c transitions, between Start and Stop.
-Otherwise, the bus may appear as busy for possible other master.
-With display adapters, one concern is fighting over bus control with X
-server, and leaving the bus in the correct state.
+2. SMBus has 50 usec of SCL (hi) to detect a free bus. Pretty easy if
+the GPIO can trigger on edge or has status change flag.
 
-I would describe that i2c-algo-bit does its job blindfolded -- assuming
-it has full control over the lines and hardware never fails. It does
-this fairly well.
+3. If the adapter hardware cannot read SCL line status, client devices
+that may hold SCL low must not be used. This is crucial, otherwise
+system looses sync of data and acknowledge bits (missing SCL pulse).
+Even Stop may fail (SCL still low). Once released SCL, client will hold
+SDA low to signal acknowledge. Master cannot signal Start. Get the
+point already?
 
-A big issue to solve with i2c-algo-bit, and the main reason why I chose
-for almost complete rewrite, is monitoring the bus lines, and graceful
-returning if there was any error. I found return codes to be
-uncomprehensible, ignored and missing.
+4. SDA arbitration. Strictly a multi-master issue. Pointless unless we
+implement (1) or (2) above. I think i2c-algo-biths implements this as
+part of being always so paranoid.
 
-In opposite, i2c-algo-biths is paranoid every single time the bus
-state is changed. It detects for bus lock-ups on the run, SCL low
-extensions and even SDA arbitration. It provides option of using timer
-more accurate than udelay. While not strictly necessary, it implements
-nominal 50/50 SCL duty cycle.
 
-Since this type of adapter cannot detect when another master issues
-Start or Stop sequence on the bus, bit-banging (alone) cannot be
-reliably used on a multi-master system. I think it takes 2 NAND gates
-or like for the test, and one more input on the adapter.
-
-As earlier, I have some time at this time of year. I will post more
-critics about original i2c-algo-bit once I browse through it.
-And I see some of the old notes found their way in the TODO.
-
-No need for Cc:, old address is still valid. Nowadays, who should I
-contact to get list and CVS logs at a different address? Phil?
+I did put some thought on the various timing issues while writing
+i2c-algo-biths. I thought that one could create a queue of i2c bus
+changes (ie. timed mem/io operations) and empty this queue within an
+"approriate" timer interrupt. Kind of a RISC machine that ticks forwards
+a predetermined program if no error flag is set.
 
 -- 
   Ky?sti M?lkki  <kyosti.malkki@welho.com>  +358 50 462 8786
