@@ -1,39 +1,28 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:59 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc4 15/15] drivers/i2c/chips/adm1026.c:
-Message-Id: <2538186705051703479bd0c29@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: Tickets tickets 1511 and 1522
+Message-Id: <20040117211853.788f8cc7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Finally (phew!) this patch demonstrates how to adapt the adm1026 to
-take advantage of the new callbacks, and the i2c-sysfs.h defined
-structure/macros. Most of the other sensor/hwmon drivers could be
-updated in the same way. The odd few exceptions (bmcsensors for
-example) however might be better off with their own custom attribute
-structure.
+Hi guys,
 
-Again I'd prefer someone test this particular patch before it be
-applied, because I haven't got an adm1026 to test it with :-).
+It turns out that SuSE 9.0 pro includes some special kernel patche that
+define HZ as a function instead of an integer constant. This is what
+causes the compilation trouble you reported. We don't plan to support
+this since it isn't part of the vanilla kernel.
 
-Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
+So you have two choices left:
+1* Use SuSE lm-sensors packages.
+2* Replace any occurence of HZ in our code by 100 and see how it is
+going this way. No guarantee of any sort, of course.
 
----
--------------- next part --------------
- drivers/i2c/chips/adm1026.c |  524 ++++++++++++++++++++------------------------
- include/linux/i2c-sysfs.h   |    2 
- 2 files changed, 242 insertions(+), 284 deletions(-)
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-i2c-adm1026.diff
-Type: text/x-patch
-Size: 41313 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/00459ca1/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-i2c-adm1026.bin
--------------- next part --------------
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+I'll be closing the tickets now.
+Good luck.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
