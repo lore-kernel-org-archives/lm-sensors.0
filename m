@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:15 +0000
+From: david_knierim@earthlink.net (David Knierim)
+Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: Support for DDR2 DRAM??
-Message-Id: <Pine.LNX.4.58.0409140949470.31786@desitka.sh.cvut.cz>
+Message-Id: <41868121.30005@earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
 In-Reply-To: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
@@ -10,15 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Looks like you did most of the detective work already. Care to propose a
-> patch (which would include my preliminary one)?
+Rudolf Marek wrote on September 14:
+>  I will have time for this next week. This week I will go
+> hiking to the mountains :)
+> 
+> Sorry.
+> 
+> Regards
+> 
+> Rudolf
+> 
+> 
 
-Unfortunately it is not sufficient, now I must figure out how to calculate
-the DRAM size. I will have time for this next week. This week I will go
-hiking to the mountains :)
+Rudolf,
+    Any chance you might have time to look at this??  I'd be happy to 
+test any patches...
 
-Sorry.
-
-Regards
-
-Rudolf
+David
