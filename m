@@ -1,27 +1,49 @@
-From: pioppo@ferrara.linux.it (Simone Piunno)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
-Message-Id: <200501162332.14324.pioppo@ferrara.linux.it>
+Message-Id: <20050117201901.3e712cfa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <g7Idbr9m.1105713630.9207120.khali@localhost> <200501151654.46412.pioppo@ferrara.linux.it> <20050115175545.743a39f9.khali@linux-fr.org>
-In-Reply-To: <20050115175545.743a39f9.khali@linux-fr.org>
+References: <g7Idbr9m.1105713630.9207120.khali@localhost>
+	<200501151654.46412.pioppo@ferrara.linux.it>
+	<20050115175545.743a39f9.khali@linux-fr.org>
+	<200501162332.14324.pioppo@ferrara.linux.it>
+In-Reply-To: <200501162332.14324.pioppo@ferrara.linux.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
-Cc: Greg KH <greg@kroah.com>, Jonas Munsin <jmunsin@iki.fi>, djg@pdp8.net
+To: Simone Piunno <pioppo@ferrara.linux.it>
+Cc: djg@pdp8.net, LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
 
+Hi Simone,
 
-Hi,
+> While we're at it, the fan speed sensor reports an absurd speed when
+> the fan  is driven with very low but non-zero pwm values.  For
+> example, driving it  with pwm=2 I get speeds over 50K rpms, while of
+> course the fan is stopped  (almost?).  This could be just an hardware
+> sensitivity problem in the sensor  chip, or a false measure triggered
+> by fan vibration, but maybe you know  better.
 
-While we're at it, the fan speed sensor reports an absurd speed when the fan 
-is driven with very low but non-zero pwm values.  For example, driving it 
-with pwm=2 I get speeds over 50K rpms, while of course the fan is stopped 
-(almost?).  This could be just an hardware sensitivity problem in the sensor 
-chip, or a false measure triggered by fan vibration, but maybe you know 
-better.
+This is a frequent problem with PWM. In order to estimate the fan
+rotation speed, chips sample a signal that comes from the fan on its
+third wire (typically two pulses per revolution). Since the fan is not a
+power source by itself, the pulses are powered from the fan header's
++12V pin. When you start using PWM, you affect the +12V pin duty cycle,
+and as a result you affect the speed signal duty cycle. The lower the
+duty cycle, the harder for the chip to correctly determine the speed.
 
-/Simone
+Newer chips have the capability to correct the effects of PWM at
+reasonable duty cycles. It however supposes that it knows which fan
+corresponds to which PWM output. Motherboard manufacturers will have to
+take this information into account when designing their boards. And at
+any rate, very low PWM duty cycles cannot possibly corrected.
+
+It is possible to affect the fan speed vs. PWM curve by changing the
+base frequency of the PWM signal. This can help achieve lower fan speeds
+with higher PWM duty cycles (and thus better speed readings). Most chips
+support frequency adjustment, but our drivers don't, because it wasn't
+realized until very recently that this could be of any benefit to the
+user.
 
 -- 
-http://thisurlenablesemailtogetthroughoverzealousspamfilters.org
+Jean Delvare
+http://khali.linux-fr.org/
