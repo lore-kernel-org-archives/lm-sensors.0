@@ -1,27 +1,28 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:26 +0000
 Subject: [PATCH 2.4] Trivial changes to I2C stuff
-Message-Id: <20031122164907.GA3121@kroah.com>
+Message-Id: <20031122182902.26f859fd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031122161510.7d5b4d20.khali@linux-fr.org>
-In-Reply-To: <20031122161510.7d5b4d20.khali@linux-fr.org>
+	<20031122154720.GA18110@alpha.home.local>
+In-Reply-To: <20031122154720.GA18110@alpha.home.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Marcelo Tosatti <marcelo@cyclades.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
+To: Willy Tarreau <willy@w.ods.org>
+Cc: marcelo@cyclades.com, linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com, greg@kroah.com
 
-On Sat, Nov 22, 2003 at 04:15:10PM +0100, Jean Delvare wrote:
-> Hi Marcelo, hi list,
+> > @@ -199,7 +199,7 @@
+> >  #define I2C_HW_SMBUS_AMD756	0x05
+> >  #define I2C_HW_SMBUS_SIS5595	0x06
+> >  #define I2C_HW_SMBUS_ALI1535	0x07
+> > -#define I2C_HW_SMBUS_W9968CF	0x08
+> > +#define I2C_HW_SMBUS_W9968CF	0x0d
 > 
-> Below is a simple patch that does some trivial changes to a few i2c
-> drivers in 2.4.23-rc3. The changes are only white space and comment
-> changes, and line reordering. There are also two simple changes to
-> i2c-id.h to keep it in line with the one in Linux 2.6.0-test9.
+> Is this one intentionnal or just a typo ?
 
-Woah, -rc3 is _way_ too late for patches such as this.  Please wait for
-2.4.23 to come out first.
+Intentional. 0x08 is I2C_HW_SMBUS_SIS630 in both i2c-CVS and Linux 2.6.0-test9, so I chose the next available ID, which happens to be 0x0d. Anyway, these IDs have no real use AFAIK, so there is nothing to be afraid of here.
 
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
