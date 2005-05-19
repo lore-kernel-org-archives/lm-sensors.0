@@ -1,31 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: [Fwd: Broken link on web page] VIA datasheets
-Message-Id: <20030121221216.6d507657.khali@linux-fr.org>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:05 +0000
+Subject: Yay for 2.8.0
+Message-Id: <3F16EBA8.145CD9FD@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E248908.80200@netroedge.com>
-In-Reply-To: <3E248908.80200@netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Congratulations and thanks to everyone for helping get out
+our first release in 7 months.
 
-> go for it
+Let's try to get back to a 2-4 month release cycle if possible.
 
-Here we are.
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/useful_addresses.html
+A couple of requests -
 
-This is a first version, I have only checked the five top sections (four
-more to go). I am leaving for some days and will be going on as soon as
-I return.
+- Please don't forget to update CHANGES, it's the only way we can keep
+  track of things and when I try to record what others have done I
+  inevitably miss things
 
-Note that I have placed anchors on section names, so one can refer to a
-specific section such as in:
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/useful_addresses.html#chips
+- Please help with tickets
 
-Please tell me what you think about it.
+- Khali can you copy i2c lk2-4 over to HEAD and update the CVS docs?
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+- Khali can you please change all the "CVS" entries to "2.8.0" on the
+  new drivers page?
+
+- I'll update freshmeat tomorrow.
+
+- I'll answer some of the 2.4 patch questions this weekend.
+
+mds
