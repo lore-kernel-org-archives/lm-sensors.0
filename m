@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:19 +0000
 Subject: #1787 Wrong temps on dual 533FSB Xeon with i7505 chipset
-Message-Id: <ScOAEvzl.1097851023.7402210.khali@gcu.info>
+Message-Id: <20041016090904.79d09520.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <416FDE52.2040804@liv.ac.uk>
 In-Reply-To: <416FDE52.2040804@liv.ac.uk>
@@ -10,30 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Richard,
 
-Hi Richard,
+> thanks for the quick response. Now have a consistent 2.8.8 installed, 
+> the output of sensors-detect is now:
+> (...)
 
->Below is the output of the CVS version of sensors-detect, as requested.
->Error: First argument not a number!
->Syntax: i2cdetect I2CBUS
->   I2CBUS is an integer
->   Installed I2C busses:
->     i2c-0       smbus           SMBus I801 adapter at 18a0
->  Non-I2C SMBus adapter
+This at least confirms that you have a single monitoring chip on your
+board, a Winbond W83627HF (as advertised by Tyan).
 
-Your lm_sensors installation is incomplete or broken. The sensors-detect
-script needs the i2cdetect binary and appears to find an outdated
-version of it. Please review your installation and make sure that no
-sensors, i2cdetect or other binaries from lm_sensors nor libsensors
-files are in the way. A common error is to have older files under
-/usr/bin and /usr/lib, and newer files in /usr/local/bin and
-/usr/local/lib (or the other way around). This could explain a number of
-problems you have. If you remove old libraries, don't forget to run
-ldconfig afterwards. You may also need to clear your shell's binary
-history using "hash -r" or "rehash".
+> Driver `w83781d' (should be inserted):
+>    Detects correctly:
+>    * Bus `SMBus I801 adapter at 1460' (Non-I2C SMBus adapter)
+>      Busdriver `i2c-i801', I2C address 0x2d (and 0x48 0x49)
+>      Chip `Winbond W83627HF' (confidence: 8)
+> 
+> Driver `w83627hf' (should be inserted):
+>    Detects correctly:
+>    * ISA bus address 0x0c00 (Busdriver `i2c-isa')
+>      Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
 
-Once you have fixed the problem, please run sensors-detect again. It
-should be able to scan your SMBus adapter.
+Sensors-detect is broken here, it should NOT tell you to load the
+w83781d driver. I'm not sure how we can fix that though. Both drivers
+support your chip, but only one should be loaded at any given time. The
+w83627hf driver is prefered in your case.
 
-Thanks,
+> To load everything that is needed, add this to some /etc/rc* file:
+> 
+> #----cut here----
+> # I2C adapter drivers
+> modprobe i2c-i801
+> modprobe i2c-isa
+> # I2C chip drivers
+> modprobe w83781d
+> modprobe w83627hf
+> # sleep 2 # optional
+> /usr/local/bin/sensors -s # recommended
+> #----cut here----
+
+Remove i2c-i801 and w83781d from that list.
+
+> This gives two entries in /proc, w83627hf-i2c-0-2d which reads 0 in
+> all cases, and w83627hf-isa-0c00, which has broken cpu temps as
+> before.
+
+Of course, because the latter prevents accesses from the former.
+
+Please edit your init files as required so as to only load the w83627hf
+and i2c-isa drivers, then cold reboot your system. Not certain it'll
+help for the temperatures but at least we will have a sane base to work
+on.
+
+
+-- 
 Jean Delvare
+http://khali.linux-fr.org/
