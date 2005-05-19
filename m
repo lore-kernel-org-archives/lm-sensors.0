@@ -1,55 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: jonsmirl@gmail.com (Jon Smirl)
 Date: Thu, 19 May 2005 06:25:16 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <20040922122848.M14129@linux-fr.org>
+Message-Id: <9e47339104092208403d9de6f4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org> <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de> <41506D78.6030106@web.de> <1095843365.18365.48.camel@localhost> <20040922102938.M15856@linux-fr.org> <1095854048.18365.75.camel@localhost>
-In-Reply-To: <1095854048.18365.75.camel@localhost>
+References: <414F111C.9030809@linuxtv.org> <20040921154111.GA13028@kroah.com>
+	 <41506099.8000307@web.de> <41506D78.6030106@web.de>
+	 <1095843365.18365.48.camel@localhost>
+	 <20040922102938.M15856@linux-fr.org>
+	 <1095854048.18365.75.camel@localhost>
+	 <20040922122848.M14129@linux-fr.org>
+In-Reply-To: <20040922122848.M14129@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Cox <adrian@humboldt.co.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com
-Cc: Michael Hunold <hunold-ml@web.de>, Jon Smirl <jonsmirl@gmail.com>, Greg KH <greg@kroah.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@stimpy.netroedge.com
+Cc: Adrian Cox <adrian@humboldt.co.uk>, Michael Hunold <hunold-ml@web.de>, Greg KH <greg@kroah.com>
 
-On Wed, 22 Sep 2004 12:54:08 +0100, Adrian Cox wrote
-> On Wed, 2004-09-22 at 13:08, Jean Delvare wrote:
-> > Well, I don't quite follow you here. On the one hand you agree that
-> > sensors and video/embedded stuff should be handled differently, but
-> > then you don't want us to tag them according to their function in order
-> > to actually behave differently.
-> 
-> I don't want them tagged because I don't want them to ever appear on 
-> a system-wide list. They're an internal detail of a particular card, 
-> and don't even need to be in sysfs. The only reason to have any 
-> shared I2C code at all for these cards is to avoid duplicating the
-> implementation of bit-banging.
-> (...)
-> What I want is a way for a card driver to create a private I2C 
-> adapter, and private instances of I2C clients, for purposes of code 
-> reuse. The card driver would be responsible for attaching those 
-> clients to the bus and cleaning up the objects on removal. The bus 
-> wouldn't be visible in sysfs, or accessible from user-mode.
+On Wed, 22 Sep 2004 14:38:46 +0100, Jean Delvare <khali@linux-fr.org> wrote:
+> Aha, this is an interesting point (which was missing from your previous
+> explanation). The base of your proposal would be to have several small i2c
+> "trees" (where a tree is a list of adapters and a list of clients) instead of
+> a larger, unique one. This would indeed solve a number of problems, and I
+> admit that it is somehow equivalent to Michael's classes in that it
+> efficiently prevents the hardware monitoring clients from probing the video
+> stuff. The rest is just details internal to each "tree". As I understand it,
+> each video device would be a tree on itself, while the whole hardware
+> monitoring stuff would constitute one (bigger) tree. Correct?
 
-Aha, this is an interesting point (which was missing from your previous
-explanation). The base of your proposal would be to have several small i2c
-"trees" (where a tree is a list of adapters and a list of clients) instead of
-a larger, unique one. This would indeed solve a number of problems, and I
-admit that it is somehow equivalent to Michael's classes in that it
-efficiently prevents the hardware monitoring clients from probing the video
-stuff. The rest is just details internal to each "tree". As I understand it,
-each video device would be a tree on itself, while the whole hardware
-monitoring stuff would constitute one (bigger) tree. Correct?
-
-> Some USB webcams have internal I2C busses to connect the sensor to 
-> the USB chip. The drivers for these ignore the I2C core completely, and
-> invent their own system for reading and writing the sensor registers.
-> Maybe that's actually the best way of dealing with this.
-
-With your proposal, these drivers could use the common code again while still
-being completely separated from the other i2c busses, right?
-
-Thanks.
+Any DDC solution needs to leave the data visible in sysfs and
+accessible from user space. I'm trying to move the EDID parsing code
+out of the kernel.
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Jon Smirl
+jonsmirl@gmail.com
