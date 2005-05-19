@@ -1,41 +1,42 @@
-From: SeanH@msicomputer.com (Sean Hall)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: Lm_Sensors Support
-Message-Id: <16919CAF763FBB488125FDF5265132EA467B41@mail.msicomputer.com>
+From: paul.aviles@palei.com (Paul Aviles)
+Date: Thu, 19 May 2005 06:25:27 +0000
+Subject: No rule to make target
+Message-Id: <000201c4ea05$a19e51e0$3224050a@avilespaxp>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-My name is Sean Hall. I work for MSI managing the sales of MSI's server
-boards in North America. We would like to find out what we need to do to
-assure MSI's server boards work properly with LM_Sensors. 
-For starters, we would like to get our K7D Master board working properly.
-MSI's K7D Master uses the W83627HF Windond chip and should be supported by
-LM_Sensors driver w83781d, but the feedback we've gotten from vendors is
-that the data that comes back is erroneous.
+Sorry for being a pain.. a lot of this stuff is new to me and I don't want 
+to give up. Using
 
-Where do we start so we can get these issues resolved?
+ rpmbuild -ba lm_sensors-rh.spec
 
-I will also ask MSI Taiwan if we can offer support of the LM_Sensors
-project. In what areas can MSI offer support to LM_Sensors? 
+I am getting this. I does work using a regular make, but I need to have an 
+rpm. Guys, thanks so much for all your help.
 
-Also, can MSI advertise on the LM_Sensor site?
+Happy Holidays to all!!!!!
 
-Thank you,
-
-Sean Hall
+Paul
 
 
-Sean Hall
-MSI Computer Corp
-901 Canada Court
-City of Industry, CA 91748
-Tel:  626.913.0828 ext. 173
-Cell: 626.664.4324
-Fax: 626.913.0818
-SeanH@msicomputer.com
+
+Module.mk' @' > kernel/busses/i2c-ipmb.d
+cat kernel/include/sensors.h.template > kernel/include/sensors.h
+make: *** No rule to make target `linux/rhconfig.h', needed by 
+`kernel/chips/vt1211.d'.  Stop.
+make: *** Waiting for unfinished jobs....
+awk '/SENSORS SYSCTL START/,/SENSORS SYSCTL END/' kernel/chips/*.c >> 
+kernel/include/sensors.h
+make: *** Waiting for unfinished jobs....
+echo '#endif' >> kernel/include/sensors.h
+make: *** Waiting for unfinished jobs....
+error: Bad exit status from /var/tmp/rpm-tmp.12994 (%build)
 
 
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
