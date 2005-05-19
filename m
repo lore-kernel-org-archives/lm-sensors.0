@@ -1,7 +1,7 @@
-From: rnissl@gmx.de (Reinhard Nissl)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:34 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <40015850.1080403@gmx.de>
+Message-Id: <20040111154426.312e9182.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -10,87 +10,127 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-Jean Delvare wrote:
-
->>Now as kernel 2.6.0 is released, I feel the need to port fscher to
->>2.6.0. I've already started today, but didn't have success so far.
+> > If you have questions that are not answered there, ask. If you want
+> > things to be added to the document, tell me.
 > 
-> That would be great to have a ported driver for sure :)
+> How would you name the file, where the chip revision will be made
+> available (rev, revision, ...)? Should it be made availble?
 
-[snip]
+I don't think that any other drivers do, but this is no reason for yours
+not to. "revision" sounds fine.
 
->>Attached you'll find what I've done so far. Please send me your
->>comments and hints.
+> HERMES has a 'Global event status register'. It's something like
+> alarms. E. g. bit 0 tells you, that there is a 'Global fan fault
+> event'. Which fan is faulty must be determined by looking at the fan
+> status registers, where bit 2 tells one, that the fan is faulty.
 > 
-> I'd suggest you first read Documentation/i2c/porting-clients as found in
-> Linux 2.6.1-rc1 and later. That's a document I wrote about porting chip
-> drivers from linux 2.4 to linux 2.6. I believe that almost all questions
-> you'd ask are answered there. If you don't mind, I'll take a look at
-> your code after you read that document and applied its contents to
-> your driver.
+> Is it ok to create fan_status1...3 files, containing the fan's status
+> register value?
 
-I had a look at it.
+This makes sense.
 
-> If you have questions that are not answered there, ask. If you want
-> things to be added to the document, tell me.
+> Concerning alarms: what do you mean by comparator mode?
 
-How would you name the file, where the chip revision will be made available 
-(rev, revision, ...)? Should it be made availble?
+Some chipsets can be configured in different modes. Interrupt mode means
+that alarms don't wear off automatically as the cause of the alarm
+disappears. Comparator means that it does. I'm not too comfortable with
+changing modes, since hardware may be wired so as to work in one mode
+and not in the other. So I would leave things as they are.
 
-HERMES has a 'Global event status register'. It's something like alarms. E. g. 
-bit 0 tells you, that there is a 'Global fan fault event'. Which fan is faulty 
-must be determined by looking at the fan status registers, where bit 2 tells 
-one, that the fan is faulty.
+> HERMES e. g. signals 'Global fan fault event' as long as any of the
+> fan status registers signals 'Fan fault'. Clearing all fan status
+> registers (by writing this bit2 to 1) will finally have HERMES clear
+> the 'Global fan fault event' (Globel event status register bit 0). Is
+> this the expected behaviour?
 
-Is it ok to create fan_status1...3 files, containing the fan's status register 
-value?
+I'm surprise that you are allowed to write to a status registers. Would
+you rather mean "as the bit2 clears itself due to the fan working
+correctly again"?
 
-Concerning alarms: what do you mean by comparator mode?
+Anyway, the "Global fan fault event" is only a summary (technically a
+logical OR) of the other registers' bit2, so it doesn't really matter.
+What does (as far as interrupt vs comparator mode is concerned) is how
+fan registers bit2 is cleared.
 
-HERMES e. g. signals 'Global fan fault event' as long as any of the fan status 
-registers signals 'Fan fault'. Clearing all fan status registers (by writing 
-this bit2 to 1) will finally have HERMES clear the 'Global fan fault event' 
-(Globel event status register bit 0). Is this the expected behaviour?
+> One of the event bits is called 'Global software event'. This bit can
+> be set and cleared by writing bit 0 of the global control register to
+> 1 respectively 0. Is it ok to supply a file named 'control' for this
+> purpose?
 
-One of the event bits is called 'Global software event'. This bit can be set 
-and cleared by writing bit 0 of the global control register to 1 respectively 
-0. Is it ok to supply a file named 'control' for this purpose?
+I don't see when you will want to set it. Can you provide a concrete
+example?
 
-Concerning beep*: I assume, that the hardware must support some way of making 
-noise, when an alarm occurs. This is not the case for HERMES.
+> Concerning beep*: I assume, that the hardware must support some way of
+> making noise, when an alarm occurs. This is not the case for HERMES.
 
-Concerning in_input*: HERMES only tells me unscaled values for +5.0V, +12.0V 
-and +3.0V for the backup battery. In the current release, I used dmidecode to 
-get the scaling factors and offsets from my mainboard and used them to finally 
-hardcode scaling of the supplied values.
+Then you just don't have beep* files. That said, chipsets that do don't
+make noise themselves. Instead, they have some way to have the PC
+speaker make noise for them (don't know all the details).
 
-What shall I do for kernel 2.6.x? Which numbers shall I append to in_input? 
-Where shell I put the battery voltage? Is there a way to read the dmi values 
-from withing the fscher module?
+> Concerning in_input*: HERMES only tells me unscaled values for +5.0V,
+> +12.0V and +3.0V for the backup battery. In the current release, I
+> used dmidecode to get the scaling factors and offsets from my
+> mainboard and used them to finally hardcode scaling of the supplied
+> values.
+> 
+> What shall I do for kernel 2.6.x? Which numbers shall I append to
+> in_input? Where shell I put the battery voltage? Is there a way to
+> read the dmi values from withing the fscher module?
 
-Concerning temp*: HERMES supplies a 'Sensor status register' for each 
-temperature sensor, where it signals over temperature respectively sensor 
-hadrware faults (similar to fan_status). Is it ok to supply temp_status files?
+I don't really see the problem here, but I admit I haven't read the
+Hermes data sheet. If scaling factors are motherboard-dependant, they
+don't belong to your driver but to /etc/sensors.conf instead. That is,
+your driver will return the raw value, and then the conversions formulae
+are taken from the configuration files. People with a different
+motherboard only have to edit the configuration file, as opposed to edit
+the kernel driver code and recompile. Your 2.4 driver should do the same
+BTW, unless I misunderstood something.
 
-Finally the watchdog:
-I'd supply a 'watchdog_control' file, which is used e. g. to retrigger the 
-watchdog. Then I would supply a 'watchdog_status' file, which tells you that a 
-  system reset due to a watchdog event has occured. And last but not least a 
-file 'watchdog_preset' where to set the watchdog time.
+And no, I don't think you can get dmi values from a kernel module.
 
-Is this all ok?
+> Concerning temp*: HERMES supplies a 'Sensor status register' for each 
+> temperature sensor, where it signals over temperature respectively
+> sensor hadrware faults (similar to fan_status). Is it ok to supply
+> temp_status files?
 
-> Please note that limits initialization has been removed from all
-> drivers since it sometimes caused much trouble, and the same can be
-> achived with "sensors -s". That's not a 2.6 porting issue, but that's
-> something new since you wrote your original driver.
+Go for it. Strange how they split their alarms in so many different
+registers. Usually we combine all of them into a single, 32-bit max
+value (the "alarms" file) but it looks like the Hermes has just too many
+of them do to so. Unless only a few bits are used in each registers? If
+the total number of alarm bits is less than 32, you should consider
+combining them all into a single value.
 
-Can you tell me more, if it is still of interest?
+> Finally the watchdog:
+> I'd supply a 'watchdog_control' file, which is used e. g. to retrigger
+> the watchdog. Then I would supply a 'watchdog_status' file, which
+> tells you that a system reset due to a watchdog event has occured. And
+> last but not least a file 'watchdog_preset' where to set the watchdog
+> time.
+> 
+> Is this all ok?
 
-Bye.
+No objection.
+
+> > Please note that limits initialization has been removed from all
+> > drivers since it sometimes caused much trouble, and the same can be
+> > achived with "sensors -s". That's not a 2.6 porting issue, but
+> > that's something new since you wrote your original driver.
+> 
+> Can you tell me more, if it is still of interest?
+
+Basically we considered that limits initializations belong to
+user-space, and is done with "sensors -s" which reads them from
+/etc/sensors.conf, so leaving them into the driver themselves
+additionally wasn't needed. This makes drivers smaller.
+
+We are also considering removing some initializations (not limits this
+time) that are known to cause problems for certain chips, but that's
+something different.
+
+For you, all what this means is that if your old fscher driver used to
+set limits as it is loaded, you are invited not to port that part of the
+code into your 2.6 driver.
+
 -- 
-Dipl.-Inform. (FH) Reinhard Nissl
-mailto:rnissl@gmx.de
-
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
