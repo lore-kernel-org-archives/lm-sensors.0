@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:22 +0000
 Subject: i2c_force_data
-Message-Id: <20041111012539.GB26899@kroah.com>
+Message-Id: <20041111083917.689150c9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041109005252.GA26855@kroah.com>
 In-Reply-To: <20041109005252.GA26855@kroah.com>
@@ -10,60 +10,76 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Nov 09, 2004 at 05:27:39PM +0100, Jean Delvare wrote:
-> I'm not diving into the LKML archives today. I think I remember of
-> threads about how to standardize the way devices are numbered and
-> identified among the various bus types so that the hotplug stuff can be
-> kept simple. I guess this is what you refer to. I were not aware that
-> other busses had device id forcing requirements like we have for I2C
-> though.
+Hi Greg,
 
-You can now add pci ids on the fly through sysfs, which causes drivers
-to accept new devices from what they were originally compiled with.
-
-We're extending that logic to say, "try to bind this driver to that
-device" from userspace through sysfs, which should be sufficient to
-replace this force logic, right?
-
-> > Speed really isn't an issue, as device probing will soon be
-> > multithreaded within the kernel.  It would just be a thread off doing
-> > the probing while everything else happens like normal.
+> You can now add pci ids on the fly through sysfs, which causes drivers
+> to accept new devices from what they were originally compiled with.
 > 
-> I'm more concerned about bus load. We have seen poor hardware
-> implementations and messy BIOSes causing SMBus locks on high load. We
-> don't want this to happen at boot time.
+> We're extending that logic to say, "try to bind this driver to that
+> device" from userspace through sysfs, which should be sufficient to
+> replace this force logic, right?
 
-Hm, I'll have to think about this.  I really don't want a white/black
-list of busses that this will work on, as if you look at the kernel code
-today, we already scan all addresses for validity in i2c_detect() before
-handing off to the chip driver (yeah, that's a bit different from
-scanning all addresses, I agree, but conceptually it's the same.)
+So basically we would load the driver first, it wouldn't recognize the
+device at first, then we would write something to sysfs and the driver
+would attempt to recognize the device again, successfully this time?
 
-Wonder if we just sleep for a second or two between bus address probes,
-if that will help out or not :)
-	
-> If I understand correctly, the information the kernel would transmit to
-> hotplug would be "a client chip was found at I2C address (N, M)", and
-> it would be left to the user-space to probe that address (sensors-detect
-> like) and load the appropriate module?
+This matches the "force" module parameter we have pretty well. However
+we also have e.g. force_w83782d, force_lm84 etc... which not only
+forcibly bind a driver to a device, but also invite the driver to handle
+that chip in a specific way. Will this be doable as well?
 
-Exactly.  Hm, it will really be even simpler, it will just be a "this
-address was found" type hotplug event that today gets generated when we
-add a chip device to the sysfs tree.  We will just be adding the devices
-to sysfs _before_ binding them to a driver, which is the "proper" order
-in which to do this (unlike today, where I cheated and did it the other
-way around...)
-
-> > I agree, I'll go slowly, and I know everyone here will be sure to tell
-> > me when I get things wrong :)
+> > I'm more concerned about bus load. We have seen poor hardware
+> > implementations and messy BIOSes causing SMBus locks on high load.
+> > We don't want this to happen at boot time.
 > 
-> True. Feel free to share your code and thoughts as you go, in case I
-> could be of some help.
+> Hm, I'll have to think about this.  I really don't want a white/black
+> list of busses that this will work on, as if you look at the kernel
+> code today, we already scan all addresses for validity in i2c_detect()
+> before handing off to the chip driver (yeah, that's a bit different
+> from scanning all addresses, I agree, but conceptually it's the same.)
 
-I will do that.  Looks like I'm signing myself up to rework the whole
-locking model in the driver core to fix some of these issues first, so
-it might be a while before I get back to i2c work :(
+That's not quite what I was thinking about. My point was that
+sensors-detect will issue dozens of register reads for each responsive
+address, including several reads on the very same registers. This is
+caused by a faulty design in the first place (well the script knew about
+half a dozen client chips in the first place, and 85 now, that explains
+it). For a family of chip we would need one detection function that
+tells what the most likely chip of the family is. Instead we have one
+function per chip type returning its own confidence value (zero for
+almost all and non-zero for one or sometimes two). Each function is
+probing the registers again, thus the bus load. This could be improved
+by introducing a local cache of the registers, but this ain't trivial
+either because some chips have "banks" which means that a given address
+may be a different register next time you ask for it. Rewriting the
+whole thing with a better design would probably be even better, but
+sensors-detect is a very sensible piece of code and it simply seems that
+nobody wants to take the risk.
 
-thanks,
+The client drivers, in that respect, behave much better than
+sensors-detect does.
 
-greg k-h
+The bus load issue in sensors-detect wasn't critical as long as it was a
+stand-alone script meant to be run just once. Now that a similar action
+is supposed to be taken on each boot (or bus driver load) this is a
+different matter.
+
+My proposal would be not to blacklist any bus, but to limit the bus
+traffic we will be generating. One way to do that is to only support
+autoloading of the easy-to-identify chips through the hotplug interface.
+Recent chips have chip ID and manufacturer ID registers at relatively
+standard locations. These can be easily identified. Older chips cannot
+and we use bus-intensive, half-reliable heuristics to detect them. See
+the CVS log of sensors-detect if you want to figure out how much I have
+been refining detection heuristics in the last year. Maybe we don't want
+to support such chips through hotplug.
+
+> Wonder if we just sleep for a second or two between bus address
+> probes, if that will help out or not :)
+
+You must be kidding, right?
+
+Thanks.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
