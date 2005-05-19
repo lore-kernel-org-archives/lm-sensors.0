@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: [PATCH 2.6] ADM1030 and Co sensors chips support for 2.6.7-mm1
-Message-Id: <200406301454.i5UEsV14042921@zone3.gcu-squad.org>
+Message-Id: <20040701023223.GC5247@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040622195209.77f852a6.alex@alexdalton.org>
 In-Reply-To: <20040622195209.77f852a6.alex@alexdalton.org>
@@ -10,18 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello:
 
->I agree on that point. I will have to re-send the patch updated.
+> Quoting "Mark M. Hoffman" <mhoffman@lightlink.com>:
+> > A recent driver core patch *necessitates* the trailing semicolon for
+> > DEVICE_ATTR().
 
-I think you should rather send an additional patch with just the changes,
-to be applied after your original patch. It's far easier for the
-reviewers. If you send a brand new patch they have to review the whole
-thing again, or do a diff against your patches, which is usually hard to
-read.
+* Alexandre d'Alton <alex@alexdalton.org> [2004-06-30 09:33:01 +0200]:
+> In fact, I already put the semicolons on the iner calls to DEVICE_ATTR(), but as
+> when I "instanciate"
+> the macros I put a semicolon, I thought that it was unnecessary on the last one.
+> If you confirm that I have to add them, I'll be glad to do it.
 
-Greg especially cannot "just trust you" and assume that the new patch
-is really the old one (which MMH and I reviewed) with the few requested
-changes. You could be an evil guy! ;)
+No, you're right.  Sorry for the noise.
 
-Thanks,
-Jean Delvare
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
