@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:48 +0000
+Date: Thu, 19 May 2005 06:23:49 +0000
 Subject: double file name in "/proc/sys/dev/sensors/"
-Message-Id: <20030226162105.79e90993.khali@linux-fr.org>
+Message-Id: <20030227100307.3d01b4b3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3E5CA690.5060608@mytrix.ru>
 In-Reply-To: <3E5CA690.5060608@mytrix.ru>
@@ -11,35 +11,32 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I am use "linux-2.4.20-suse1/2" from Hubert Mante. (SuSE).
+[Please answer to the list instead of just me.]
 
-It is Mantel, isn't it?
+> > > I am use "linux-2.4.20-suse1/2" from Hubert Mante. (SuSE).
+> >
+> > It is Mantel, isn't it?
+>
+> yes
 
-> Has detected something strange:
+> > > How can be two files with the identical name?
+> >
+> > This can happen because the /proc filesystem is virtual. It
+> > shouldn't happen though. Could you please check you don't have two
+> > different versions of libsensors installed in two different places
+> > (usually/usr/lib and /usr/local/lib)?
 > 
-> an:/proc/sys/dev/sensors# ls -la
->   total 0
->   dr-xr-xr-x    5 root     root            0 2003-02-20 19:35 .
->   dr-xr-xr-x    7 root     root            0 2003-02-20 19:35 ..
->   -rw-r--r--    1 root     root            0 2003-02-20 19:36 chips
->   -rw-r--r--    1 root     root            0 2003-02-20 19:36 chips
->   dr-xr-xr-x    2 root     root            0 2003-02-20 19:36 
-> eeprom-i2c-1-51
->   dr-xr-xr-x    2 root     root            0 2003-02-20 19:36 
-> eeprom-i2c-1-52
->   dr-xr-xr-x    2 root     root            0 2003-02-20 19:36 
-> w83782d-i2c-1-2d
-> 
-> 
-> ls -Q
-> "chips"  "chips"  "eeprom-i2c-1-51"  "w83782d-i2c-1-2d"
-> 
-> How can be two files with the identical name?
+> no, only one version library.
+> dpkg -l |grep sensors
+> ii  libsensors-dev 2.6.3-5        Lm-sensors development kit
+> ii  libsensors1    2.6.3-5        Library to read
+> temperature/voltage/fan sens
 
-This can happen because the /proc filesystem is virtual. It shouldn't
-happen though. Could you please check you don't have two different
-versions of libsensors installed in two different places (usually
-/usr/lib and /usr/local/lib)?
+You could have an old file installed from the sources, not from a debian
+package.
+
+On the other hand, 2.6.3 is a bit old and the bug has possibly been
+fixed since. Trying 2.6.5 wouldn't hurt.
 
 -- 
 Jean Delvare
