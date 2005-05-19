@@ -1,7 +1,7 @@
 From: kirbratr@yahoo.com (Kirby Dotson)
 Date: Thu, 19 May 2005 06:24:23 +0000
 Subject: installing lm_sensors 2.8.1
-Message-Id: <20031106225953.20895.qmail@web40503.mail.yahoo.com>
+Message-Id: <20031106230007.15359.qmail@web40501.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031106190828.0d345682.khali@linux-fr.org>
 In-Reply-To: <20031106190828.0d345682.khali@linux-fr.org>
