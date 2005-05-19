@@ -1,61 +1,40 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: [eidtmann@informatik.uni-bremen.de: Re: Kernel driver adm1021 locks]
-Message-Id: <20031215110016.GA517@arda.frodo.local>
+From: rcrook@vtown.com.au (Randall Crook)
+Date: Thu, 19 May 2005 06:24:03 +0000
+Subject: Willing tester....
+Message-Id: <1057233128.5569.9.camel@trinity>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Jan Eidtmann <eidtmann@informatik.uni-bremen.de> -----
+Hi,
 
-From: Jan Eidtmann <eidtmann@informatik.uni-bremen.de>
-Reply-To: eidtmann@informatik.uni-bremen.de
-To: Frodo Looijaard <frodol@dds.nl>
-Subject: Re: Kernel driver adm1021 locks
-Cc: Philip Edelbrock <phil@netroedge.com>
-X-Spam-Status: No, hits=-4.4 required=5.0 tests=IN_REP_TO version=2.20
-X-Spam-Level: 
+Just a quick note to say I would be willing to test any SiS651 drivers
+that might be developed...
 
-sorry, its already reported! see:
-http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket34
+I am not what you would class as any sort of programmer, but I am
+willing to learn with a lot of hand holding. I can code a little C and
+have done some assembly (over 10 years ago), but don't even know where
+to start with something like a device driver so I could probably do
+testing and perhaps some bug tracing.
 
-when i load the module i get this (no matter if i add force_adm=0,something):
-
-[registering forced address]
-registering 0-004e
-
-then the computer locks hard like described before.
-
-Jan
-
-Am Montag, 15. Dezember 2003 02:54 schrieb Jan Eidtmann:
-> Hi,
->
-> when adm1021 loads (either by me with modprobe or by the kernel when built
-> in), the computer locks. when i push the reset button my motherboard beeps
-> like crazy and it does not boot. however, when i totally switch off the
-> power supply and switch on again, i can boot again.
->
-> my motherboard is a gigabyte GA-8IPE1000 Pro with intel 865PE chipset
-> (ICH5). linux is linux-2.6.0-test11.
->
-> could it be that the 2.6.0-test11 i2c drivers are behind the lm_sensors
-> 2.8.2 package?
->
-> if i got that right i need this driver to detect my ICH5 chipset!?
->
-> OT: btw, do i need i2c-isa support? that motherboard has no isa slots at
-> all, but maybe theres still some kind of isa bus inside (needed for i2c)?
->
-> many thanks!
-> Jan
-
------ End forwarded message -----
+If you need something like this, let me know and I can see what I can
+do. 
 
 -- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Regards,
+------------------------------------
+Randall Crook
+rcrook@vtown.com.au
+
+Fatal Error: (Out of Cheese)
+Shutting Down the Universe.........
+------------------------------------
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030703/ba7fec18/attachment.bin
