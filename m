@@ -1,71 +1,63 @@
-From: peterm@remware.demon.co.uk (Peter Milne)
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: New bus driver: XSCALE iop3xx
-Message-Id: <3ECF4C68.6020102@remware.demon.co.uk>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:17 +0000
+Subject: It87 readings on Asus A7V8X-X
+Message-Id: <20030914002320.64833173.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi
 
-This is a repost. Please advise if I'm writing to the wrong list :-)
+> CC to khali@linux-fr.org (lm-sensors team) because I think it might
+> be of interest to him
 
-trying to follow the recipe from
-http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/doc/developers/new_drivers,
-step 1 ( "Contact us first" )
+Thanks :) (CC:ing the mailing list would have been even better).
 
-All I'm really asking for is an entry in i2c-id.h
+> I found something more satisfying
+> You need to load the it87 module with the option temp_type=0x1c 
+> (explained in sensors.conf and the it87 readme file in the lm_sensors 
+> package)
+> Otherwise the readings are all wrong (-80?C etc. like you already
+> noticed)
 
-Thanks
+Yes, that's something rather common for the it87, as detailed in our
+doc.
 
-Peter.
+> Now I get something like:
+> 
+> Temp1/MB:    +52?C  (min =  +20?C, max =  +60?C)
+> Temp2/CPU:   +39?C  (min =  +20?C, max =  +60?C)
+> Temp3:       +86?C  (min =  +20?C, max =  +60?C)
+> 
+> Temp1 is actually cpu temp
+> Temp2 = mb temp (value verified in bios)
+> Temp3 = no idea
 
+That too may vary from motherboard to motherboard. Edit
+/etc/sensors/conf to fit your needs.
 
+Is temp3 constant or not?
 
-Dear Phil et al
+> Temp1 (cpu) is not accurate so I tried to calculate the deviation
+> with simple 'rules of 3"
+> Case open I got 48?C (sensor) and 56?C (bios), gives 7/6  ~ 1.166667
+> Case closed I got 52 & 62 ~ 1.1923
+> 
+> So the actual value must be somewhere in between
 
-I've recently implemented a combined algo/adapter driver for the Intel 
-Xscale IOP321 (IOP3xx family) processor.
+You won't get accurate values that way. You should consider a possible
+offset (that is, T[real] = K * T[measured] + offset). You'll consider
+that T[real] is T[bios], while T[measured] is T[sensors].
 
-The IOP321 features a two channel i2c controller, so this is an "on chip 
-peripheral" in the sense of
+From the two samples you give us, you'd get K = 1.5 and offset = -16.
+More samples would be needed to confirm that. Remember that the noise is
+very important when measuring temperature is these conditions (because
+the CPU isn't idling the same way under linux and in the BIOS) so the
+results may not be accurate anyway.
 
-I2C_ALGO_OCP/I2C_HW_OCP.
+Hope that helps.
 
-There are other IOP3xx chips that should share the same algorithm, but 
-have different adaptors.
-I would like you please to allocate me an algorithm and an adapter number:
-
-suggest:
-
-#define I2C_ALGO_OCP_IOP3XX  0x140000 /* XSCALE IOP3XX On-chip I2C alg */
-
-and
-
-/* --- XSCALE on-chip adapters                          */
-#define I2C_HW_IOP321 0x00
-
-If that's ok, should I submit a patch for i2c-id.h with the right values 
-and appropriate comments.
-
-The driver comprises two files drivers/i2c/i2c-iop3xx.[ch]
-
-Although they are only of use to someone building for this specific processor arch,
-would it be appropriate for me to submit the files to you for inclusion in the
-i2c package?.
-
-
-
-Thanks!.
-
-ps: hooking up to your framework was a snap, now I'm looking forward to 
-leveraging some of those chip drivers,
-and maybe even contributing a couple back.
-
-Best regards
-
-Peter
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
