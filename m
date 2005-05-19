@@ -1,52 +1,27 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:08 +0000
-Subject: Availability of Lm_sensors for custom hardware
-Message-Id: <41100287.7090104@edgedesign.us>
+From: mds@paradyne.com (Mark D. Studebaker )
+Date: Thu, 19 May 2005 06:24:02 +0000
+Subject: PCI modules problem
+Message-Id: <3F00E297.5080802@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E29B519C04DC2443BAC819F14AE93F803F1EE8@server02.TANDELSYSTEMS>
-In-Reply-To: <E29B519C04DC2443BAC819F14AE93F803F1EE8@server02.TANDELSYSTEMS>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Lm_sensors isn't motherboard/computer specific.  It will support any 
-hardware which it has drivers for.  In lm-sensors is a utility called 
-"sensors-detect" which will probe your hardware to make a guess as to 
-what bus and chip drivers you will need. Start with that.
+I figured out why i2c-voodoo3 and i2c-viapro weren't loading for me on some machines.
 
+The kernel PCI module init code
+(pci_module_init() in pci.h, then pci_register_driver() and pci_dev_driver() in pci.c)
+allows only one driver registration per PCI device. If another driver gets in there
+first we won't load.
 
-Phil
+This is a big problem for drivers on multi-purpose PCI devices. Especially on our
+i2c bit-bangers for video chips, where we only use a couple of registers,
+and we have to coexist with video drivers.
 
-Rajesh Brahmankar wrote:
-> -->
-> 
-> Hi,
-> 
->  
-> 
-> I am Rajesh Brahmankar working for Tandel Systems, LLC. We have the 
-> customer which requires Node health monitoring tool for Linux cluster 
-> having Dual AMD Opteron 240(1.4 Ghz) processor as Compute node, Nortel 
-> Networks 5510-48 Gigabit Ethernet Network Switch as interconnect.
-> 
-> I have the following questions.
-> 
-> 1. Is Lm_sensor available for above mentioned hardware?
-> 
-> 2. If not, is it possible to make Lm_sensor working for above mentioned 
-> cluster?
-> 
-> 3. If it is possible then whom to contact further?
-> 
->  
-> 
-> We need your help as soon as possible. If you want to know more hardware 
-> details about the cluster then let me know.
-> 
->  
-> 
-> Thanks & Regards,
-> 
-> Rajesh
-> 
+Do we have any choice but to back out some of the pci_module_init cleanup?
+Perhaps we need to go through each PCI driver and assess whether the PCI
+device it attaches to is "single-function"?
+
+Is there any easy way around this???
+arghhhhhhhhhh...
