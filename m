@@ -1,42 +1,69 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:36 +0000
-Subject: More flash eeprom fun on a Thinkpad
-Message-Id: <3D40A0C6.14FF6598@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: [PATCH 2.6] I2C: Fix i2c-sis5595 pci configuration accesses
+Message-Id: <20050123101504.79f65398.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020721144141.C11600@Stimpy.netroedge.com>
-In-Reply-To: <20020721144141.C11600@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm hoping that the corruption is only in the
-24RF08 "access protection page" which is at 0x5C.
-That's what Australia Joe thinks and I'm inclined to agree.
-Since the portion of the chip at 0x54-57 is just a regular-old
-24C08, it stands to reason that the problem is in the other part.
-Stay tuned...
+Hi Greg,
+
+The i2c-sis5595 bus driver has logic errors on pci configuration
+accesses. It returns an error on success and vice versa. The 2.4 kernel
+version of the driver, as found in the lm_sensors CVS repository, is
+correct, so the problem was introducted when the driver was ported to
+the 2.6 kernel tree  (in 2.6.0-test6). As odd as it sounds, the driver
+has been sitting here broken and unusable for 17 months and nobody ever
+reported, until yesterday.
+
+Credits go to Sebastian Hesselbarth for discovering and analyzing the
+problem.
+
+Here is a patch that fixes the problem, succesfully tested by Aurelien
+Jarno and Sebastian Hesselbarth. Please apply.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.11-rc2/drivers/i2c/busses/i2c-sis5595.c.orig	2004-12-24 22:35:50.000000000 +0100
++++ linux-2.6.11-rc2/drivers/i2c/busses/i2c-sis5595.c	2005-01-22 18:55:09.000000000 +0100
+@@ -181,9 +181,11 @@
+ 
+ 	if (force_addr) {
+ 		dev_info(&SIS5595_dev->dev, "forcing ISA address 0x%04X\n", sis5595_base);
+-		if (!pci_write_config_word(SIS5595_dev, ACPI_BASE, sis5595_base))
++		if (pci_write_config_word(SIS5595_dev, ACPI_BASE, sis5595_base)
++		    != PCIBIOS_SUCCESSFUL)
+ 			goto error;
+-		if (!pci_read_config_word(SIS5595_dev, ACPI_BASE, &a))
++		if (pci_read_config_word(SIS5595_dev, ACPI_BASE, &a)
++		    != PCIBIOS_SUCCESSFUL)
+ 			goto error;
+ 		if ((a & ~(SIS5595_EXTENT - 1)) != sis5595_base) {
+ 			/* doesn't work for some chips! */
+@@ -192,13 +194,16 @@
+ 		}
+ 	}
+ 
+-	if (!pci_read_config_byte(SIS5595_dev, SIS5595_ENABLE_REG, &val))
++	if (pci_read_config_byte(SIS5595_dev, SIS5595_ENABLE_REG, &val)
++	    != PCIBIOS_SUCCESSFUL)
+ 		goto error;
+ 	if ((val & 0x80) = 0) {
+ 		dev_info(&SIS5595_dev->dev, "enabling ACPI\n");
+-		if (!pci_write_config_byte(SIS5595_dev, SIS5595_ENABLE_REG, val | 0x80))
++		if (pci_write_config_byte(SIS5595_dev, SIS5595_ENABLE_REG, val | 0x80)
++		    != PCIBIOS_SUCCESSFUL)
+ 			goto error;
+-		if (!pci_read_config_byte(SIS5595_dev, SIS5595_ENABLE_REG, &val))
++		if (pci_read_config_byte(SIS5595_dev, SIS5595_ENABLE_REG, &val)
++		    != PCIBIOS_SUCCESSFUL)
+ 			goto error;
+ 		if ((val & 0x80) = 0) {
+ 			/* doesn't work for some chips? */
 
 
-phil@netroedge.com wrote:
-> 
-> I think DIMM eeproms with SPD data can be anywhere from 0x50-0x57
-> (allowing for up to 8 DIMM slots per I2C/SMBus).  The addresses are
-> set by hardwiring certain pins on the DIMM slots which are in turn
-> connected to the address pins on the eeprom.  Some CPU's, like Xeons
-> have eeproms on them which show up at higher addresses.  For example,
-> it's not uncommon to see a Xeon box with only 4 DIMM slots, but have
-> eeproms showing up at 0x50, 0x51, and 0x57.
-> 
-> BTW-Did you try dumping the contents of the 0x57 to see what was in
-> it?
-> 
-> Phil
-> 
-> On Mon, Jul 22, 2002 at 08:59:51PM +0200, Jean Delvare wrote:
-> >
-> > > Could we simply blacklist the 0x54-0x57 area unless the user
-> > > explicitly 'forces' regular usage of that area?
-> >
-> > Just for information, it seems that recent Sony Vaio laptops (at least
-> > mine) have an information eeprom at 0x57.
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
