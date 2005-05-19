@@ -1,61 +1,26 @@
-From: mds@paradyne.com (Mark D. Studebaker)
+From: trini@kernel.crashing.org (Tom Rini)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: 8xx i2c refers to unspecified chip errata
-Message-Id: <3DD8014B.D88A6C34@paradyne.com>
+Message-Id: <20021118141042.GA15279@opus.bloom.county>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <IGEFJKJNHJDCBKALBJLLMEFNFHAA.joakim.tjernlund@lumentis.se>
+References: <IGEFJKJNHJDCBKALBJLLMEFNFHAA.joakim.tjernlund@lumentis.se> <3DD8014B.D88A6C34@paradyne.com> <001101c28e82$88d2bc40$0200a8c0@telia.com>
+In-Reply-To: <001101c28e82$88d2bc40$0200a8c0@telia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: joakim.tjernlund@lumentis.se
-Cc: Tom Rini <trini@kernel.crashing.org>, linuxppc-embedded@lists.linuxppc.org, sensors@stimpy.netroedge.com
+To: Joakim Tjernlund <Joakim.Tjernlund@lumentis.se>
+Cc: "Mark D. Studebaker" <mds@paradyne.com>, linuxppc-embedded@lists.linuxppc.org, sensors@stimpy.netroedge.com
 
-Tom + Joakim,
-we're doing a release soon over here at sensors/i2c,
-do you want this checked in as-is, with mods, or not at all?
+On Sun, Nov 17, 2002 at 10:44:40PM +0100, Joakim Tjernlund wrote:
+ 
+> > Tom + Joakim,
+> > we're doing a release soon over here at sensors/i2c,
+> > do you want this checked in as-is, with mods, or not at all?
+>
+> As-is for me. No problems reported to me.
 
-Joakim Tjernlund wrote:
-> 
-> > >
-> > > Here is a patch against the PPC 2.4 devel tree for the i2c-algo-8xx.c
-> >
-> > Can you please split this into logical chunks, or give me a list of each
-> > fix in here?  Thanks.
-> 
-> ohh, kind of hard to remember all that went into that patch. The path
-> has evoled over many days, but I can try summarize. I have tested this code
-> pretty well it does not fail for me. Speed has been between 10-150KHz. The
-> old code fails as soon you start to stress it a little.
-> 
->  - replace invalidate_dcache_range with flush_dcache_range, since buffers are
->    NOT cache aligned. flush will write to memory AND invalidate the cache.
-> 
->  - move the chip errata stuff from irq routine into read/write routines. Made
->    it default off since it causes lock ups on my I2C device. I think it causes
->    a too short STOP condition. If enabled I2C will behave better than before, but
->    may still cause problems if the read/write is interrupted with a signal while
->    microcode is enabled.
-> 
->  - set default speed to 60 KHz instead.
-> 
->  - missing/faulty initialization of parameter ram when I2C micro patch is active.
-> 
->  - replaced assingments with mask operations with relevant bits. Example:
->       /* Shut down IIC. */
->       i2c->i2c_i2mod = 0;
->         i2c->i2c_i2mod &= ~1;
-> 
->  - When reading from I2C device, let the receive BD generate interrupt instead of
->    the dummy trasmit. This is important since the TX interrupt will be too early sometimes, before
->    the RX BD has closed. There is one case where the RX irq is before the TX irq, if iic_mrblr is set
->    to match the number of bytes to read. Therefore must the iic_mrblr be one byte larger than
->    the expected number of bytes.
-> 
->  - busy wait for small transfers since it's faster.
-> 
->  - save_flags(flags); cli(); cleanups
-> 
->  - interruptible_sleep_on_timeout() instead of interruptible_sleep_on() so it won't hang forever if an
->    irq is lost.
-> 
->  Jocke
+Works for me then.
+
+-- 
+Tom Rini (TR1265)
+http://gate.crashing.org/~trini/
