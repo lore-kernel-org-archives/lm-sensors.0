@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:23:58 +0000
 Subject: website download.html
-Message-Id: <3EDFFDC2.1070707@paradyne.com>
+Message-Id: <3EDFFDCE.8040108@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020823210408.1d4a8289.khali@linux-fr.org>
 In-Reply-To: <20020823210408.1d4a8289.khali@linux-fr.org>
