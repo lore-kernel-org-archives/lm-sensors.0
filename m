@@ -1,7 +1,7 @@
-From: sebastian.hesselbarth@stud.uni-hannover.de (Sebastian Hesselbarth)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: R: i2c-sis5595.c, kernel 2.6.10
-Message-Id: <41F2B4AD.30206@stud.uni-hannover.de>
+Message-Id: <20050122213056.54f64b37.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050122192536.08fb5248.khali@linux-fr.org>
 In-Reply-To: <20050122192536.08fb5248.khali@linux-fr.org>
@@ -10,31 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> As incredible as it may sound, I think you are right and the tests are
-> wrong in i2c-sis5595. Most probably this driver never worked in the 2.6
-> Linix kernel. It's really odd that nobody ever complained.
+Hi Sebastian,
+
+> The driver loads and adds the i2c device. i2cdetect -l tells:
 > 
-> FYI, pci errors are not necessarily negative, some of them are positive.
-> The only success value is PCIBIOS_SUCCESSFUL, AKA 0.
-> 
-> I've prepared a patch that should hopefully fix the i2c-sis5595 driver.
-> Could you please give it a try and confirm that the driver works once
-> you apply it?
+> i2c-1 unknown SMBus SIS5595 adapter at 5038 Algorithm unavailable
+> i2c-0 dummy   ISA main adapter              ISA bus algorithm
 
-The driver loads and adds the i2c device. i2cdetect -l tells:
+Great, so it somehow works. I'll send the patch to Greg KH for inclusion
+into his tree.
 
-i2c-1 unknown SMBus SIS5595 adapter at 5038 Algorithm unavailable
-i2c-0 dummy   ISA main adapter              ISA bus algorithm
+> Is there any way to allow sensors to read out the internal voltage
+> and temperature values from the sis5595's Data Acquisition Module ?
+> Or just check the i2c function (i2cdump !?)
 
+First of all you should try "i2cdetect 1" to find out whether there are
+chips on the SMBus or not.
 
-Is there any way to allow sensors to read out the internal voltage and 
-temperature values from the sis5595's Data Acquisition Module ?
-Or just check the i2c function (i2cdump !?)
+Then you might try loading the sis5595 chip driver (no i2c- prefix).
 
-> Thanks,
+If it doesn't work, there is always the sensors-detect script which can
+hint you at which drivers you should try.
 
-Regards,
-
-Sebastian
-
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
