@@ -1,37 +1,33 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH 2.6] I2C: i2c-s3c2410 functionality and fixes
-Message-Id: <20050328210410.GD3752@kroah.com>
+From: amalysh@web.de (Alexander Malysh)
+Date: Thu, 19 May 2005 06:23:38 +0000
+Subject: MC10166 (onsemi)
+Message-Id: <200208272152.13816.amalysh@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050326190444.7c4c5367.khali@linux-fr.org>
-In-Reply-To: <20050326190444.7c4c5367.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Mar 26, 2005 at 07:04:44PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This patch does the following updates to the i2c-s3c2410 bus driver:
-> 
-> * Properly report the i2c functionality by adding to the
->   `.functionality` field of the adapter
-> 
-> * Change the dev_err() call on no-ack to an dev_dbg() to make
->   it less noisy when the bus is being probed by i2cdetect, etc.
-> 
-> * Add I2C_M_REV_DIR_ADDR to fully implement the
->   I2C_FUNC_PROTOCOLO_MANGLING.
-> 
-> * Ensure that the adapter owner field is set to THIS_MODULE
-> 
-> Please apply, thanks.
-> 
-> (Once this is applied, all i2c bus drivers will be properly reporting
-> their functionality so I'll be able to go on with the i2c functionality
-> core cleanups.)
+-----BEGIN PGP SIGNED MESSAGE-----
 
-Applied, thanks.
+Helo List,
 
-greg k-h
+i would like to know , whether someone works on support DC1066 thermal sensor 
+made by onsemi ?
+I have this sensor on my Laptop and can write driver for this sensor , if 
+nobody works on it.
+
+Thank you in advance,
+Alexander Malysh
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iQEVAwUBPWvYah+GWItMR/cNAQE1yQf9EXBd+FCelv/JeTInrhOAZVC9Hvla3j9m
+T217dFMgXKrp4FUEq81Piixwh6YWX2Qdy7RMdFkQ6gOoDCrDP/d1KmCmEwPr3Mr3
+yh+iq6gpgEX3hfRZelcpkDDZQSyUyROXXmeiPLqivv0NpbaMCq/TYtuWYh6DGun6
+rRgF9lIRaN1SPc4dLm0NnmnJYbkl8iZ+1bKL3HagfCZ5g0QUF9LoGgOy671CNCVc
+3c4cAFPRDXfGJdMobvCLbnFpcW1MOq7837ozux9yTg25jLduL5TWBMlMOi8OauwI
+ebA7h/BTRmMOGBxpJfR5joJjk2sxmcGMOoAweP+xZ/KTvlAbF6/97Q=
+=PKIU
+-----END PGP SIGNATURE-----
