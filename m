@@ -1,31 +1,29 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: deadline
-Message-Id: <3DCA79F7.1AC059CC@paradyne.com>
+From: proteus@proteusworld.com (Sebastian Paul Avarvarei)
+Date: Thu, 19 May 2005 06:25:26 +0000
+Subject: Temperatures on Gigabyte GA-8PE667
+Message-Id: <JA8AAAAAA4jS8QABYQABj6DB09hU@proteusworld.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021106210923.2dd33ee3.khali@linux-fr.org>
-In-Reply-To: <20021106210923.2dd33ee3.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-oops I see you did already do CHANGES. thanks.
+Hello!
 
-Mark Studebaker wrote:
-> 
-> We don't have any firm plans, since the 2.5 submission went up in flames.
-> End of the month is probably a good target.
-> BTW thanks for all the good checkins - please update CHANGES to list what you did.
-> mds
-> 
-> Jean Delvare wrote:
-> >
-> > Do we have a release date planed for 2.6.6? It seems to me that the
-> > change list has reached a reasonable length to start thinking about it.
-> > I still have some things to commit, which could be done within a few
-> > hours.
-> >
-> > --
-> > Jean Delvare
-> > http://www.ensicaen.ismra.fr/~delvare/
+I was wondering if anyone on this mailing list has managed to properly read temperatures on a Gigabyte GA-8PE667 mainboard or similar?
+
+I have lm_sensors 2.8.7 installed and working, but the CPU and MB temperatures (temp1 and temp2) are definetly wrong. With sensors type set to 2 (thermistor), both temps always say 25 degrees Celsius, regardless of CPU load.
+
+The only source with a little more info on this topic I found at:
+http://www.livewiredev.com/bbs/showthread.php?s=&postid766
+
+However, they discuss over there only about voltage readouts. There are two mentions about temperatures, both stating the same problems as I have.
+
+I am sure the sensors work on my mainboard because some time ago I had Windows on the machine and Gigabyte's EasyTune utility was showing proper temperatures.
+
+Any help on this matter would be greatly appreciated. This machine is my home server and I want to reduce the noise volume, but I can't safely do that without being able to check if the system is indeed properly cooled.
+
+
+Best regards,
+Sebastian Paul Avarvarei
+
