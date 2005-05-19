@@ -1,36 +1,115 @@
-From: floeff@arcor.de (Florian Effenberger)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: i2c-ali1535.c:548: warning: initialization from incompatible
-Message-Id: <41DAF175.7060509@arcor.de>
+From: hpj@urpla.net (Hans-Peter Jansen)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: [lm_sensors] wrong sensors readings from w83782d on Tyan Dual K7/Thunder
+Message-Id: <20011115152423.03BD910A3@shrek.lisa.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41D6E143.8030204@arcor.de>
-In-Reply-To: <41D6E143.8030204@arcor.de>
+In-Reply-To: <Pine.LNX.4.30.0111141847300.31580-100000@anime.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Dan Hollis <goemon@anime.net>
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-Hi Jean,
 
-> The first test proves that the values are read and written properly, so
-> the only problem here is the default value, which is either set by your
-> BIOS or not set at all. There's not much lm_sensors could have done bad.
+Dan, thanks, for your ultimate help on this topic.
 
-That still does not explain why it worked in 2.8.8. ;-)
+On Thursday, 15. November 2001 03:50, Dan Hollis wrote:
+> On Wed, 14 Nov 2001, Hans-Peter Jansen wrote:
+> > fan1:     7180 RPM  (min = 3000 RPM, div = 2)                      
+> > <3590> fan2:     7105 RPM  (min = 3000 RPM, div = 2)                     
+> >  <3515>
+>
+> Fan divisor is wrong.
+> adjust /proc/sys/dev/sensors/w83782d-i2c-0-2d/fan_div as needed.
 
-> Can you check in sensors.conf if you explicitely set the fan clock
-> dividers to 8? I think that the default is 2. Maybe the divider change
-> affected the min value in an unexpected way.
+ok, then
 
-Sorry, I don't understand. What exactly should I do?
+tyrex:~# echo "4 4 4" > /proc/sys/dev/sensors/w83782d-i2c-0-2d/fan_div
+tyrex:~# sensors | egrep ^fan
+fan1:     6887 RPM  (min = 1500 RPM, div = 4)                     
+fan2:     7031 RPM  (min = 1500 RPM, div = 4)                     
 
-> Also, you said that previous versions of lm_sensors would yield a
-> different default min value. What was that value? What was the value of
-> the dividers?
+tyrex:~# echo "1 1 1" > /proc/sys/dev/sensors/w83782d-i2c-0-2d/fan_div
+tyrex:~# sensors | egrep ^fan
+fan1:     7142 RPM  (min = 6000 RPM, div = 1)                     
+fan2:     6716 RPM  (min = 6000 RPM, div = 1)                     
 
-Unfortunately, I don't know, I don't have a system with the old version 
-ready. :-( I never changed anything in sensors.conf, so the default 
-values from older versions were there.
+Is adjusting the min value the intended behaviour?
+I also tried this in /etc/sensors.conf:
+   set fan1_div 4
+   set fan2_div 4
+   set fan1_min 2000
+   set fan2_min 2000
+   ignore fan3
 
-Thanks
-Florian
+Again, with no success. The fan value isn't corrected. Or is this
+a userland problem. (Divide yourself and get happy?)
+
+> > temp1:    +77.0?C   (limit = +60?C, hysteresis = +50?C) sensor > > thermistor <46?C>
+> > temp2:    +76.5?C   (limit = +60?C, hysteresis = +50?C) sensor > > thermistor <41?C>
+> > temp3:    +77.0?C   (limit = +60?C, hysteresis = +50?C) sensor > > thermistor <46?C>
+>
+> thermistor type is wrong.
+>
+> echo "2" > /proc/sys/dev/sensors/w83782d-i2c-0-2d/sensor{1..3}
+
+That does the trick. I was looking at the wrong place ("w83781d")...
+
+   set sensor1 2
+   set sensor2 2
+   set sensor3 2
+
+# examples for temperature limits
+    set temp1_over 65???
+    set temp1_hyst 55???
+    set temp2_over 65???
+    set temp2_hyst 55???
+    set temp3_over 65???
+    set temp3_hyst 55???
+
+Readings from temp2 are always lower than from 1 and 3.
+BIOS says:
+temp1 = cpu0
+temp2 = cpu1
+temp3 = chassis
+
+I tend to distrust the BIOS and think that 1 and 3 are cpu temps,
+and 2 is chassis temp, but I also tend to distrust these reading
+generally, because of the low variance between the readings:
+tyrex:~# sensors | egrep ^temp
+temp1:    +46.0?C   (limit = +65?C, hysteresis = +55?C) sensor = 3904 
+transistor           
+temp2:    +42.0?C   (limit = +65?C, hysteresis = +55?C) sensor = 3904 
+transistor           
+temp3:    +45.0?C   (limit = +65?C, hysteresis = +55?C) sensor = 3904 
+transistor          
+
+tyrex:~# sensors | egrep ^temp
+temp1:    +46.0?C   (limit = +65?C, hysteresis = +55?C) sensor = 3904 
+transistor           
+temp2:    +43.0?C   (limit = +65?C, hysteresis = +55?C) sensor = 3904 
+transistor           
+temp3:    +46.0?C   (limit = +65?C, hysteresis = +55?C) sensor = 3904 
+transistor          
+
+More of a headache are the voltage readings:
+VCore 1:   +1.74 V  (min =  +1.74 V, max =  +1.93 V)       ALARM  
+VCore 2:   +2.84 V  (min =  +1.74 V, max =  +1.93 V)              
++3.3V:     +3.32 V  (min =  +3.13 V, max =  +3.45 V)              
++5V:       +4.89 V  (min =  +4.72 V, max =  +5.24 V)              
++12V:      +4.71 V  (min = +10.79 V, max = +13.19 V)              
+-12V:      -2.11 V  (min = -10.90 V, max = -13.21 V)              
+-5V:       +2.71 V  (min =  -4.76 V, max =  -5.26 V)              
+V5SB:      +4.32 V  (min =  +4.72 V, max =  +5.24 V)              
+VBat:      +3.29 V  (min =  +2.40 V, max =  +3.60 V)              
+vid:      +1.85 V
+
+VCore 2, +12V, -12V, -5V, V5SB are bogus (and no ALARM flag)
+
+I have no idea how to correct the corresponding formulas in
+/etc/sensors.conf. Does somebody did it, before?
+
+> -Dan
+
+Cheers,
+Hans-Peter
