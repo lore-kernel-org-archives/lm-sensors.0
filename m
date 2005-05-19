@@ -1,163 +1,237 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: adm1021, PU-DLS ASUS
-Message-Id: <3EC534DE.1000600@penguincomputing.com>
+From: upgrdman@mindspring.com (Farrell Farahbod)
+Date: Thu, 19 May 2005 06:24:06 +0000
+Subject: sensors program library problems
+Message-Id: <1058790442.16275.6.camel@farrell.freemans.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-See below...
+you guys may remember me from earlier this week with some questions
+about sensors-detect. well, i jsut today compile by hand both i2c and
+lm_sensors (both version are 2.8.0).
 
-Zeno R.R. Davatz wrote:
+both compile without compile stopping errors and installed just fine as
+far as i can tell.
 
-> On Fri, 2003-05-16 at 18:09, Philip Pokorny wrote:
-> 
-> 
->>    modprobe i2c-i801
->>
-> gives me:
-> /lib/modules/2.4.20/lm-sensors/i2c-i801.o: init_module: No such device
-> Hint: insmod errors can be caused by incorrect module parameters,
-> including invalid IO or IRQ parameters.
->       You may find more information in syslog or the output from dmesg
-> /lib/modules/2.4.20/lm-sensors/i2c-i801.o: insmod
-> /lib/modules/2.4.20/lm-sensors/i2c-i801.o failed
-> /lib/modules/2.4.20/lm-sensors/i2c-i801.o: insmod i2c-i801 failed
-> 
-> the log tells me:
-> May 16 18:10:47 whitie kernel: i2c-i801.o version 2.7.0 (20021208)
-> May 16 18:10:47 whitie kernel: i2c-i801.o: Error: Can't detect I801,
-> function 3!
-> May 16 18:10:47 whitie kernel: i2c-i801.o: I801 not detected, module not
-> inserted.
+i then ran sensors-detect, and after modifing that perl script twice
+(chaning "modprobe" to "/sbin/modprobe" etc..) i got it to run without
+errors.
 
+but now when i run the program "sensors" i get this at the command line:
 
-Until you get this working, I doubt that you'll be able to access the on-board 
-monitoring chip...
+[root@farrell doc]# sensors
+sensors: error while loading shared libraries: libsensors.so.2: cannot
+open shared object file: No such file or directory
+[root@farrell doc]#
 
-Is there an area in the BIOS where you can see the monitoring chip results? 
-Perhaps it will display the voltages and CPU temperatures?  While you are in 
-the BIOS, look for something that might be disabling the on-board SMBus or 
-sensors.
+did i do something wrong?
 
-See my answer to your question below for more information.
+here is the full output of sensors-detect, if this helps:
 
+[root@farrell doc]# /usr/local/sbin/sensors-detect
+ This program will help you to determine which I2C/SMBus modules you
+need to
+ load to use lm_sensors most effectively.
+ You need to have done a `make install', issued a `depmod -a' and made
+sure
+ `/etc/conf.modules' (or `/etc/modules.conf') contains the appropriate
+ module path before you can use some functions of this utility. Read
+ doc/modules for more information.
+ Also, you need to be `root', or at least have access to the
+/dev/i2c[-/]* files
+ for some things. You can use prog/mkdev/mkdev.sh to create these /dev
+files
+ if you do not have them already.
+ If you have patched your kernel and have some drivers built-in you can
+ safely answer NO if asked to load some modules. In this case, things
+may
+ seem a bit confusing, but they will still work.
+ 
+ BIOS vendor (ACPI): KT400
+ System vendor (DMI): VIA Technologies, Inc.
+ BIOS version (DMI): 6.00 PG
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `i2c-viapro' for device 00:11.0: VIA Technologies
+VT8233A/8235 South Bridge
+Use driver `<DISABLED>' for device 01:00.0: GeForce2 MX
+Probe succesfully concluded.
+ 
+ We will now try to load each adapter module in turn.
+Module `i2c-viapro' already loaded.
+ Do you now want to be prompted for non-detectable adapters? (yes/NO):
+ To continue, we need module `i2c-dev' to be loaded.
+ If it is built-in into your kernel, you can safely skip this.
+ i2c-dev is not loaded. Do you want to load it now? (YES/no):
+ Module loaded succesfully.
+ 
+ We are now going to do the adapter probings. Some adapters may hang
+halfway
+ through; we can't really help that. Also, some chips will be double
+detected;
+ we choose the one with the highest confidence value in that case.
+ If you found that the adapter hung after probing a certain address, you
+can
+ specify that address to remain unprobed. That often
+ includes address 0x69 (clock chip).
+ 
+Next adapter: SMBus Via Pro adapter at 5000 (Non-I2C SMBus adapter)
+Do you want to scan it? (YES/no/selectively):
+Client found at address 0x2e
+Probing for `Myson MTP008'... Failed!
+Probing for `National Semiconductor LM78'... Failed!
+Probing for `National Semiconductor LM78-J'... Failed!
+Probing for `National Semiconductor LM79'... Failed!
+Probing for `National Semiconductor LM80'... Failed!
+Probing for `National Semiconductor LM85'... Failed!
+Probing for `Analog Devices ADM1027 or ADT7463'... Failed!
+Probing for `SMSC EMC6D100 and EMC6D101'... Failed!
+Probing for `National Semiconductor LM87'... Failed!
+Probing for `Winbond W83781D'... Failed!
+Probing for `Winbond W83782D'... Failed!
+Probing for `Winbond W83783S'... Failed!
+Probing for `Winbond W83791D'... Failed!
+Probing for `Winbond W83627HF'... Failed!
+Probing for `Asus AS99127F'... Failed!
+Probing for `Winbond W83L784R/AR'... Failed!
+Probing for `Winbond W83L785TS'... Success!
+    (confidence 8, driver `to-be-written')
+Probing for `Analog Devices ADM9240'... Failed!
+Probing for `Dallas Semiconductor DS1780'... Failed!
+Probing for `National Semiconductor LM81'... Failed!
+Probing for `Analog Devices ADM1026'... Failed!
+Probing for `Analog Devices ADM1025'... Failed!
+Probing for `Analog Devices ADM1024'... Failed!
+Probing for `Analog Devices ADM1022'... Failed!
+Probing for `Texas Instruments THMC50'... Failed!
+Probing for `ITE IT8705F / IT8712F / SiS 950'... Failed!
+Client found at address 0x50
+Probing for `Serial EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Probing for `DDC monitor'... Failed!
+Client found at address 0x69
+ 
+ Some chips are also accessible through the ISA bus. ISA probes are
+ typically a bit more dangerous, as we have to write to I/O ports to do
+ this.  Do you want to scan the ISA bus? (YES/no):
+Probing for `National Semiconductor LM78'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM78-J'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM79'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83782D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83697HF'
+  Trying address 0x0290... Success!
+    (confidence 8, driver `w83781d')
+Probing for `Silicon Integrated Systems SIS5595'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT82C686 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT8231 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `ITE IT8705F / IT8712F / SiS 950'
+  Trying address 0x0290... Failed!
+Probing for `IPMI BMC KCS'
+  Trying address 0x0ca0... Failed!
+Probing for `IPMI BMC SMIC'
+  Trying address 0x0ca8... Failed!
+ 
+ Some Super I/O chips may also contain sensors. Super I/O probes are
+ typically a bit more dangerous, as we have to write to I/O ports to do
+ this.  Do you want to scan for Super I/O sensors? (YES/no):
+Probing for `SMSC 47M1xx Super IO Fan Sensors'
+  Failed!
+Probing for `VT1211 Super IO Sensors'
+  Failed! (0x60)
+Probing for `Winbond W83627HF Super IO Sensors'
+  Failed! (0x60)
+Probing for `Winbond W83627THF Super IO Sensors'
+  Failed! (0x60)
+Probing for `Winbond W83697HF Super IO Sensors'
+  Success... found at address 0x0290
+ 
+ Now follows a summary of the probes I have just done.
+ Just press ENTER to continue:
+ 
+Driver `to-be-written' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus Via Pro adapter at 5000' (Non-I2C SMBus adapter)
+    Busdriver `i2c-viapro', I2C address 0x2e
+    Chip `Winbond W83L785TS' (confidence: 8)
+ 
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus Via Pro adapter at 5000' (Non-I2C SMBus adapter)
+    Busdriver `i2c-viapro', I2C address 0x50
+    Chip `Serial EEPROM' (confidence: 8)
+ 
+Driver `w83781d' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83697HF' (confidence: 8)
+ 
+Driver `w83627hf' (may not be inserted):
+  Misdetects:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83697HF Super IO Sensors' (confidence: 8)
+ 
+ 
+ I will now generate the commands needed to load the I2C modules.
+ Sometimes, a chip is available both through the ISA bus and an I2C bus.
+ ISA bus access is faster, but you need to load an additional driver
+module
+ for it. If you have the choice, do you want to use the ISA bus or the
+ I2C/SMBus (ISA/smbus)?
+ 
+To make the sensors modules behave correctly, add these lines to either
+/etc/modules.conf or /etc/conf.modules:
+ 
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+ 
+To load everything that is needed, add this to some /etc/rc* file:
+ 
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-viapro
+modprobe i2c-isa
+# I2C chip drivers
+modprobe to-be-written
+modprobe eeprom
+modprobe w83781d
+# sleep 2 # optional
+/usr/local/bin/sensors -s # recommended
+#----cut here----
+ 
+WARNING! If you have some things built into your kernel, the list above
+will contain too many modules. Skip the appropriate ones! You really
+should
+try these commands right now to make sure everything is working
+properly.
+Monitoring programs won't work until it's done.
+ 
+Do you want to generate /etc/sysconfig/lm_sensors? (YES/no):
+Copy prog/init/lm_sensors.init to /etc/rc.d/init.d/lm_sensors
+for initialization at boot time.
 
->>    modprobe i2c-isa
->>
-> worked fine.
+i was so happy i got it all compiled and installed...but now senors wont
+runs :-|
 
+thanks again,
 
-Some motherboards have sensor chips on the ISA bus.  Yours doesn't (based on 
-what we see below) so you don't need to do this in the future...
+farrell farahbod
 
->>Then run 'sensors' and see if you've found your chips.
->>
-> gives me:
-> adm1021-i2c-0-2d
-> Adapter: ELV Parallel port adaptor
-> Algorithm: Bit-shift algorithm
-> Board:        -1?C  (min =   -1?C, max =   -1?C)ALARM (LOW,HIGH)
-> CPU:          -1?C  (min =   -1?C, max =   -1?C)ALARM (N/A,LOW)
-> die_code:  255
-
-
-That's just wrong and probably caused by the broken loading of i2c-elv.
-
->>When replying, please include the output from:
->>
->>    ls -1 /proc/sys/dev/sensors
->>
-> gives me:
-> adm1021-i2c-0-2d
-> chips
-> 
-> 
->>and
->>
->>    cat /proc/sys/dev/sensors/chips
->>
-> gives me:
-> 256     adm1021-i2c-0-2d
-> 
-> 
->>Have you run 'sensors-detect'?  What was the output?
->>
-> - Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Sorry, no PCI bus adapters found.
-> 
-> ..
-> 
-> The ELV Parallel hangs. Top gives me 99.9% CPU usage.
-
-
-This strongly suggests that you NOT load the elv driver.  You don't have one 
-of these interfaces on the board and it's causing you problems.
-
-     rmmod i2c-elv
-
-and don't probe for it again.
-
-> ISA bus gives me:
-> Probing for `National Semiconductor LM78'
->   Trying address 0x0290... Failed!
-> Probing for `National Semiconductor LM78-J'
->   Trying address 0x0290... Failed!
-> Probing for `National Semiconductor LM79'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83781D'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83782D'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83627HF'
->   Trying address 0x0290... Failed!
-> Probing for `Winbond W83697HF'
->   Trying address 0x0290... Failed!
-> Probing for `Silicon Integrated Systems SIS5595'
->   Trying general detect... Failed!
-> Probing for `VIA Technologies VT82C686 Integrated Sensors'
->   Trying general detect... Failed!
-> Probing for `VIA Technologies VT8231 Integrated Sensors'
->   Trying general detect... Failed!
-> Probing for `ITE IT8705F / IT8712F / SiS 950'
->   Trying address 0x0290... Failed!
-> Probing for `IPMI BMC KCS'
->   Trying address 0x0ca0... Failed!
-> Probing for `IPMI BMC SMIC'
->   Trying address 0x0ca8... Failed!
-> 
-> 
-> Why would i2c-i801 not be loadable?
-
-
-There are three possible reasons:
-
-1. Your motherboard really doesn't have it.  In which case you probably don't 
-have any sensors.
-
-2. The BIOS hasn't enabled it.  It doesn't show up in your LSPCI output.  I 
-expect you should be looking for a device with PCI ID 2483.  It will be on PCI 
-BUS 0.  The other devices are there (2482, 2484, 2487, 2480, 248b) so perhaps 
-the BIOS has disabled it.
-
-00:00.0 Host bridge: Intel Corp.: Unknown device 254c (rev 01)
-00:02.0 PCI bridge: Intel Corp.: Unknown device 2543 (rev 01)
-00:1d.0 USB Controller: Intel Corp.: Unknown device 2482 (rev 02)
-00:1d.1 USB Controller: Intel Corp.: Unknown device 2484 (rev 02)
-00:1d.2 USB Controller: Intel Corp.: Unknown device 2487 (rev 02)
-00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI (rev
-42)
-00:1f.0 ISA bridge: Intel Corp.: Unknown device 2480 (rev 02)
-00:1f.1 IDE interface: Intel Corp.: Unknown device 248b (rev 02)
-
-3. Your motherboard is broken.  The chip is faulty and the SMBus function is 
-not working.  If you get voltages, temperatures and fan speeds in the BIOS, 
-that would elminate this cause.
-
-> Thanks for your time and help.
-
-
-:v)
+p.s. i use redhat9, with the kernel and kernel-source rpms installed for
+2.4.20-18.9.
