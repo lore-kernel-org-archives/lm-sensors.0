@@ -1,60 +1,48 @@
-From: hfvogt@arcor.de (Hans-Frieder Vogt)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: Possible bug in i2c-nforce2
-Message-Id: <200311302216.06446.hfvogt@arcor.de>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Thu, 19 May 2005 06:25:20 +0000
+Subject: [2.6 patch] i2c it87.c: remove an unused function
+Message-Id: <20041028222039.GO3207@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031126205657.3f965e47.khali@linux-fr.org>
-In-Reply-To: <20031126205657.3f965e47.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Chris Gauthron <chrisg@0-in.com>, greg@kroah.com, phil@netroedge.com
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-Jean, Mark,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-thanks, you spotted this bug much quicker than me. 
-I have also tested the patch and found no unexpected behaviour, e.g. both
-i2cdump 0 0x50
-and
-i2cdump 0 0x50 c
-work and give the same output, which indicates for me that the patch must have 
-solved this bug.
+The patch below removes an unused function from drivers/i2c/chips/it87.c
 
-Thanks.
-Hans-Frieder
 
-> Hi again Hans-Frieder,
->
-> > Recent failure reports with the i2c-nforce2+eeprom combination led me
-> > to the conclusion that your i2c-norce2 module might not support
-> > i2c_smbus_write_byte() correctly. It is used in the eeprom driver and
-> > doesn't seem to set the address register as it should.
->
-> Mark D. Studebaker probably found and fixed that bug. The following change
-> was made to your driver:
->
-> Index: i2c-nforce2.c
-> =================================> RCS file: /home/cvs/lm_sensors2/kernel/busses/i2c-nforce2.c,v
-> retrieving revision 1.6
-> retrieving revision 1.7
-> diff -u -r1.6 -r1.7
-> --- i2c-nforce2.c	3 Aug 2003 05:32:01 -0000	1.6
-> +++ i2c-nforce2.c	27 Nov 2003 02:37:43 -0000	1.7
-> @@ -143,7 +143,7 @@
->
->  		case I2C_SMBUS_BYTE:
->  			if (read_write = I2C_SMBUS_WRITE)
-> -				outb_p(data->byte, NVIDIA_SMB_DATA);
-> +				outb_p(command, NVIDIA_SMB_CMD);
->  			protocol |= NVIDIA_SMB_PRTCL_BYTE;
->  			break;
->
->
-> Comments on this change are welcome. If you confirm it's OK, I'll send a
-> patch to Greg KH to update the driver present in Linux 2.6.
->
-> Thanks.
+diffstat output:
+ drivers/i2c/chips/it87.c |    7 -------
+ 1 files changed, 7 deletions(-)
 
--- 
---
-Hans-Frieder Vogt                 e-mail: hfvogt@arcor.de
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+- --- linux-2.6.10-rc1-mm1-full/drivers/i2c/chips/it87.c.old	2004-10-28 23:00:26.000000000 +0200
++++ linux-2.6.10-rc1-mm1-full/drivers/i2c/chips/it87.c	2004-10-28 23:00:37.000000000 +0200
+@@ -56,13 +56,6 @@
+ #define PME	0x04	/* The device with the fan registers in it */
+ #define	DEVID	0x20	/* Register: Device ID */
+ 
+- -static inline void
+- -superio_outb(int reg, int val)
+- -{
+- -	outb(reg, REG);
+- -	outb(val, VAL);
+- -}
+- -
+ static inline int
+ superio_inb(int reg)
+ {
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFBgXC3mfzqmE8StAARAnheAJ4oIAZ/LT/MvhtbLjQpkCokdnkCzQCeMUx+
+0hf83OAbIcIyj95pPV3hUWg=AgjG
+-----END PGP SIGNATURE-----
