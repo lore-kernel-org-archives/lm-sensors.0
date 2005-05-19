@@ -1,42 +1,33 @@
-From: Timo.Bolse@SerNet.DE (Timo.Bolse@SerNet.DE)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:08 +0000
 Subject: bug report?!
-Message-Id: <E1Bt0wR-0002TF-00@intern.SerNet.DE>
+Message-Id: <L0BXzZKE.1091789362.2184150.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <E1Bt0wR-0002TF-00@intern.SerNet.DE>
+In-Reply-To: <E1Bt0wR-0002TF-00@intern.SerNet.DE>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear LM-Sensors Team,
 
-I tried to compile i2c and lm_sensors on this machine: 
+>I tried to compile i2c and lm_sensors on this machine:
+>
+>Linux dhcp230 2.4.21-99-athlon #1 Wed Sep 24 13:34:32 UTC 2003 i686 athlon i386
+> GNU/Linux).
+>gcc version 3.3.1 (SuSE Linux)
+>
+>While compilation i get on both i2c and lm_sensors the following error:
+>
+>kernel/i2c-pport.c:154: error: initializer element is not constant
+>kernel/i2c-pport.c:154: error: (near initialization for `bit_pport_data.timeout'
 
-Linux dhcp230 2.4.21-99-athlon #1 Wed Sep 24 13:34:32 UTC 2003 i686 athlon i386
- GNU/Linux).
-gcc version 3.3.1 (SuSE Linux)
+Suse hacked their kernel tree in a way which makes it incompatible with
+our sources. Several users already reported about that.
 
-While compilation i get on both i2c and lm_sensors the following error:
+We do not support that. Either complain to Suse, or use their packages
+for lm_sensors (if such packages exist) or use a vanilla kernel instead
+of a Suse one. Our packages are tested to work perfectly with vanilla
+kernels.
 
-kernel/i2c-pport.c:154: error: initializer element is not constant
-kernel/i2c-pport.c:154: error: (near initialization for `bit_pport_data.timeout'
-
-Not only for i2c-pport.c. I spent some time covering this bug. I found out that
-you take the HZ Value out of asm/param.h for the timeouts in many of your 
-modules. For me i switch to a hardcoded value so that the element is constant.
-I took the value defined for userspace in asm/param.h. (On my system 100) and
-everything compiled fine. I'am not a very good c programmer so i don't know how
-to cover this i think you need this timeout HZ definition because param.h makes
-a difference between kernelmode and userspace.
-
-The other problem i spotted is that your tar.gz archive of i2c-2.8.7 is not a
-gzip archive.
-
-dhcp230:~ # file i2c-2.8.7.tar.gz
-i2c-2.8.7.tar.gz: POSIX tar archive
-
-A not that much confidant user could be very confused if he is downloading a
-tar.gz from you website which is a tar.
-
-Regards,
-Timo Bolse
+Jean Delvare
