@@ -1,7 +1,7 @@
-From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:13 +0000
 Subject: i2c & lm_sensors for RH
-Message-Id: <20030819165553.GG2099@pua.nirvana>
+Message-Id: <1061321395.3f427ab373aec@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030802172008.GA10034@puariko.nirvana>
 In-Reply-To: <20030802172008.GA10034@puariko.nirvana>
@@ -10,25 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-On Mon, Aug 11, 2003 at 03:57:17PM +0200, Jean Delvare wrote:
-> > I will be on vacation this week, and lirc is quite a nasty beast to
-> > package (all different builds have the same name), so I won't be
-> > really looking into it until the end of August, I guess.
-> 
-> I finished the patches (one for 0.6.6 on another user's request, one for
-> CVS), they are available on my page.
+> I just went to get them (people are asking for lirc support for these
+> kernels) and the installation guide is blocked (403 permission
+> denied). Even http://www.ensicaen.ismra.fr/ itself is returning 403.
 
-I just went to get them (people are asking for lirc support for these
-kernels) and the installation guide is blocked (403 permission
-denied). Even http://www.ensicaen.ismra.fr/ itself is returning 403.
--- 
-Axel.Thimm@physik.fu-berlin.de
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030819/bd640e3e/attachment.bin
+My school's webserver is dead broken, and there's nothing I can do :(
+
+What's more, I'm not at home now and can't send you the files. Please wait 
+until saterday and I'll send them to you. Sorry.
+
+-------------------------------------------------
+This mail sent through IMP: http://horde.org/imp/
