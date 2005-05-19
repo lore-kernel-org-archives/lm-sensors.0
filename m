@@ -1,47 +1,37 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:28 +0000
-Subject: loading failed@.. skipping
-Message-Id: <3C3BA38D.A01B6537@paradyne.com>
+From: kronos@kronoz.cjb.net (Kronos)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: [PATCH] Update sensors.conf.eg for Epox 8K3A
+Message-Id: <20040210183436.GA15475@dreamland.darkstar.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3C39219D.20409@ztel.com>
-In-Reply-To: <3C39219D.20409@ztel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Try 'depmod'. Then 'modprobe -l' and make sure i2c-viapro is listed.
+Hi,
+my motherboard  (Epox 8K3A) has  a w83697hf. I  need the same  labels as
+Tyan Trinity  S2495 except that  in7 and in8 are  swapped. The following
+patch documents this little difference:
 
-Walter Hutchins wrote:
-> 
-> Everything seemed to compile without complaint.
-> Though I am not up to speed with lingo about what to do, I would like to
-> use this
-> software. I tried as best I could to follow the steps. I am using SuSE
-> linux 7.1.
-> I would greatly appreciate any suggestions as to why this cannot find
-> i2c-viapro.
-> 
-> root@walterh2:/home/wnh >uname -a
-> Linux walterh2 2.4.0-4GB #1 Wed Jan 24 15:55:09 GMT 2001 i686 unknown
-> 
-> Do you want to probe now? (YES/no): YES
-> Probing for PCI bus adapters...
-> Use driver `i2c-viapro' for device 00:04.4: VIA Technologies VT 82C686
-> Apollo ACPI
-> Probe succesfully concluded.
-> 
->  We will now try to load each adapter module in turn.
-> Load `i2c-viapro' (say NO if built into your kernel)? (YES/no): YES
-> modprobe: Can't locate module i2c-viapro
-> Loading failed ()... skipping.
-> 
-> root@walterh2:/home/wnh >find / -name "i2c-viapro*" -print
-> /lib/modules/2.4.0/misc/i2c-viapro.o
-> /usr/share/doc/packages/sensors/busses/i2c-viapro
-> /home/wnh/LM_SENSORS/lm_sensors-2.6.2/doc/busses/i2c-viapro
-> /home/wnh/LM_SENSORS/lm_sensors-2.6.2/kernel/busses/i2c-viapro.c
-> /home/wnh/LM_SENSORS/lm_sensors-2.6.2/kernel/busses/i2c-viapro.d
-> /home/wnh/LM_SENSORS/lm_sensors-2.6.2/kernel/busses/i2c-viapro.o
-> root@walterh2:/home/wnh >modprobe i2c-viapro
-> modprobe: Can't locate module i2c-viapro
+--- lm_sensors-2.8.4/etc/sensors.conf.eg.orig	Tue Feb 10 19:26:10 2004
++++ lm_sensors-2.8.4/etc/sensors.conf.eg	Tue Feb 10 19:28:03 2004
+@@ -533,6 +533,11 @@
+ #    label in6 "Vdimm"
+ #    label in7 "VBat"
+ #    label in8 "V5SB"
++#
++# For Epox 8K3A you should swap in7 and in8:
++#    label in7 "V5SB"
++#    label in8 "VBat"
++#
+ # You'll also want to comment out the in5 and in6 compute lines right below.
+ 
+     compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+
+Luca
+-- 
+Reply-To: kronos@kronoz.cjb.net
+Home: http://kronoz.cjb.net
+"Fare l'amore con dieci donne e` fantastico, soprattutto perche` ti
+ presentano un sacco di amiche." -- Fabio Di Iorio
