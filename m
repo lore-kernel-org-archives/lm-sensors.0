@@ -1,7 +1,7 @@
-From: DwaineGarden@rogers.com (Dwaine Garden)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: i2c-2.8.0 USBVision Patch
-Message-Id: <3F9772D1.2010802@rogers.com>
+Message-Id: <20031023205844.7b1f5073.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031018131614.4b3b8c95.khali@linux-fr.org>
 In-Reply-To: <20031018131614.4b3b8c95.khali@linux-fr.org>
@@ -10,30 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
 
->>I happen to stumble on your conversation and patch.  
->>
->>Thanks,  I will update our code base.
->>    
->>
->
->Once done, please confirm which constant you have been using and if you
->want a comment associated in i2c-id.h.
->
->Thanks.
->
->  
->
-Please change the following...
+> Please change the following...
+> 
+> .id                = I2C_HW_B_BT848,
+> 
+> to the following...
+> 
+> .id                = I2C_USBVISION,
 
-.id                = I2C_HW_B_BT848,
+That ID is for an adapter, so it has to be I2C_HW_USBVISION (or even
+longer? Please take a look at i2c-id.h in the Linux kernel sources and
+tell me what you think).
 
-to the following...
+Also, there's a second ID you'd need to change: I2C_ALGO_BIT should
+become I2C_ALGO_USB, right?
 
-.id                = I2C_USBVISION,
-
-Thanks....
-Dwaine.
-http://www.emuit.com/webcam.html
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
