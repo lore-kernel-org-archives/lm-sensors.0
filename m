@@ -1,59 +1,44 @@
-From: bezza@org.ukr.net (Andrew Bezugly)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:56 +0000
 Subject: cpu temperature discovering problem on w83627hf
-Message-Id: <70486737687.20030519114320@org.ukr.net>
+Message-Id: <20030519113938.39e0279f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <70486737687.20030519114320@org.ukr.net>
+In-Reply-To: <70486737687.20030519114320@org.ukr.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello!
 
-I have a problem with CPU temperature discovering.
+> temp1:       +46?C  (limit =  +40?C, hysteresis =  +37?C)
+> temp2:      +0.0?C  (limit =  +80?C, hysteresis =  +75?C)
+> temp3:     +1.5?C  (limit =  +80?C, hysteresis =  +75?C)
 
-Motherboard - Tyan S2460 Tiger MP AMD 760MP
-CPUs - 2 ? AMD Athlon MP 2200+
-I/O & SMART@I/O chip - Winbond w83627hf
+> Temp1 is probably normal, but the other two  - ???
+> I have no idea how to cope with it. Could you help?
 
-I  installed lm-sensors-2.7.0 and configured as told in documentation.
-And here are results:
+You don't necessarily have them on your motherboard. They're here
+because they're supported by the chipset, but they may not be wired at
+all on your specific motherboard.
 
-[root@peshka sensors]# sensors
-w83627hf-i2c-0-2c
-Adapter: SMBus AMD766 adapter at 80e0
-Algorithm: Non-I2C SMBus adapter
-VCore 1:   +1.71 V  (min =  +1.56 V, max =  +1.72 V)       ALARM  
-VCore 2:   +1.61 V  (min =  +1.56 V, max =  +1.72 V)       ALARM  
-+3.3V:     +3.34 V  (min =  +3.13 V, max =  +3.45 V)              
-+5V:       +4.72 V  (min =  +4.72 V, max =  +5.24 V)       ALARM  
-+12V:      +9.58 V  (min = +10.79 V, max = +13.19 V)              
--12V:     -12.03 V  (min = -13.21 V, max = -10.90 V)              
--5V:       -0.24 V  (min =  -5.26 V, max =  -4.76 V)              
-V5SB:      +5.53 V  (min =  +4.72 V, max =  +5.24 V)              
-VBat:      +3.28 V  (min =  +2.40 V, max =  +3.60 V)              
-fan1:     4500 RPM  (min = 3000 RPM, div = 2)                     
-fan2:     4411 RPM  (min = 3000 RPM, div = 2)                     
-fan3:        0 RPM  (min = 3000 RPM, div = 2)                     
-temp1:       +46?C  (limit =  +40?C, hysteresis =  +37?C) sensor = 3904 transistor           
-temp2:      +0.0?C  (limit =  +80?C, hysteresis =  +75?C) sensor = 3904 transistor           
-temp3:      +1.5?C  (limit =  +80?C, hysteresis =  +75?C) sensor = 3904 transistor           
-vid:      +1.650 V
-alarms:   Chassis intrusion detection                      ALARM
-beep_enable:
-          Sound alarm enabled
+Anyway, if you think they are, here are some hints.
 
-Temp1 is probably normal, but the other two  - ???
-I have no idea how to cope with it. Could you help?
+1* Try changing the sensor type (edit the relevant lines in
+/etc/modules.conf). Don't forget to run "sensors -s" each time you
+change the value (I can't remember if it's actually required, but it
+won't hurt).
+2* Try overloading your system (compile something big such as a kernel)
+and see if the values change or not. If they don't change, they're
+probably nor wired.
+3* You may need to plug external thermal sensors onto your motherboard
+in order to have the values reported. Though most sensors are internal,
+there used to be external ones.
 
+Finally, if you come to the conclusion they are not wired, simply add
+some ignore statements to /etc/modules.conf in order not to have them
+displayed anymore.
 
-Thank you.
-
-Ukraine,Kiev,
-SDPU(U),
-System administrator,
-Andrew Bezugly
-
-mailto: bezza@sdpuo.com
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
