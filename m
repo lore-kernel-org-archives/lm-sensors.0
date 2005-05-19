@@ -1,34 +1,72 @@
-From: vence@fromru.com (Vyacheslav Sokolov)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: lm_sensors on Tyan S2460
-Message-Id: <3CA3526A.5000806@fromru.com>
+From: david.goodenough@btconnect.com (David Goodenough)
+Date: Thu, 19 May 2005 06:25:12 +0000
+Subject: LM87.c and kernel 2.6.8
+Message-Id: <200408191209.19658.david.goodenough@btconnect.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+I am trying to use the lm87 support that I have been successfully using 
+under 2.6.7 for a while now with 2.6.8.
 
-I have installed lm_sensors 2.6.3 but I am still in trouble 
-with my Tyan S2460 Tiger MP (rev. 1.03) motherboard. 
+When I try to build the kernel I get the following errors:-
 
-Is this motherboad supported? How must I proceed to make lm_sensors work?
+  CC [M]  drivers/i2c/chips/lm87.o
+drivers/i2c/chips/lm87.c:341: error: parse error before "static"
+drivers/i2c/chips/lm87.c:342: error: parse error before "static"
+drivers/i2c/chips/lm87.c:343: error: parse error before "static"
+drivers/i2c/chips/lm87.c:344: error: parse error before "static"
+drivers/i2c/chips/lm87.c:345: error: parse error before "static"
+drivers/i2c/chips/lm87.c:346: error: parse error before "static"
+drivers/i2c/chips/lm87.c:539: error: parse error before "static"
+drivers/i2c/chips/lm87.c:540: error: parse error before "static"
+drivers/i2c/chips/lm87.c: In function `lm87_detect':
+drivers/i2c/chips/lm87.c:867: error: `dev_attr_in0_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:867: error: (Each undeclared identifier is reported 
+only once
+drivers/i2c/chips/lm87.c:867: error: for each function it appears in.)
+drivers/i2c/chips/lm87.c:870: error: `dev_attr_in1_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:873: error: `dev_attr_in2_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:876: error: `dev_attr_in3_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:879: error: `dev_attr_in4_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:882: error: `dev_attr_in5_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:894: error: `dev_attr_fan1_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c:895: error: `dev_attr_fan2_min' undeclared (first use 
+in this function)
+drivers/i2c/chips/lm87.c: At top level:
+drivers/i2c/chips/lm87.c:341: warning: `show_in0_min' defined but not used
+drivers/i2c/chips/lm87.c:341: warning: `set_in0_min' defined but not used
+drivers/i2c/chips/lm87.c:342: warning: `show_in1_min' defined but not used
+drivers/i2c/chips/lm87.c:342: warning: `set_in1_min' defined but not used
+drivers/i2c/chips/lm87.c:343: warning: `show_in2_min' defined but not used
+drivers/i2c/chips/lm87.c:343: warning: `set_in2_min' defined but not used
+drivers/i2c/chips/lm87.c:344: warning: `show_in3_min' defined but not used
+drivers/i2c/chips/lm87.c:344: warning: `set_in3_min' defined but not used
+drivers/i2c/chips/lm87.c:345: warning: `show_in4_min' defined but not used
+drivers/i2c/chips/lm87.c:345: warning: `set_in4_min' defined but not used
+drivers/i2c/chips/lm87.c:346: warning: `show_in5_min' defined but not used
+drivers/i2c/chips/lm87.c:346: warning: `set_in5_min' defined but not used
+drivers/i2c/chips/lm87.c:539: warning: `show_fan1_min' defined but not used
+drivers/i2c/chips/lm87.c:539: warning: `set_fan1_min' defined but not used
+drivers/i2c/chips/lm87.c:540: warning: `show_fan2_min' defined but not used
+drivers/i2c/chips/lm87.c:540: warning: `set_fan2_min' defined but not used
+make[4]: *** [drivers/i2c/chips/lm87.o] Error 1
 
-I have read all the tickets and I try as follows: 
+I guess something has changes in the i2c support in 2.6.8 that is causing,
+has anyone got any idea what I need to do to fix it?
 
-I go into BIOS before booting to initialize w83627hf; 
-then 
-# modprobe w83781d init=0 force_subclients=0,0x2c,0x4a,0x4b 
+Is there any chance (once this compile problem has been fixed) if getting
+the lm87 support submitted for inclusion in the official kernel?
 
-I find that the w83782d shows reasonable temperatures with "set sensor1,2,3 2" (transistor) 
-in /etc/modules.conf.
-However the w83627hf _does not_ recognize such lines as "set sensor1 2"  and _always_ says
-it works with thermistor. Accordingly, the temperatures have no sense.
+Thanks in advance
 
-Is there any workaround to get true temperatures (and voltages as well...)? 
-
-Thanking you in advance,
-Sincerely
-V.Sokolov
-
+David
