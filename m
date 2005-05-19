@@ -1,7 +1,7 @@
 From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: [PATCH 2.6] I2C: New hardware monitor driver: adm9240 (3rd try)
-Message-Id: <2m1371d74n7uo16orlecuroqn0gcirmeja@4ax.com>
+Subject: [PATCH 2.6] I2C: New hardware monitor driver: adm9240
+Message-Id: <g7r671hvcmltcuadcb5a8boif3ut5ntkmi@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5pst6197ke5d20ouv6h0rgokd32mdbsndi@4ax.com>
 In-Reply-To: <5pst6197ke5d20ouv6h0rgokd32mdbsndi@4ax.com>
@@ -10,17 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, Khali,
+Hi Greg,
 
 Completion of Michiel Rook's port of adm9240 to 2.6 with addition 
-of auto fan clock divider and replace scaling macros with static 
-inlines.
+of auto fan clock divider based on Jean Delvare's algorithm, and 
+replaces scaling macros with static inlines.  
 
-This patch replaces earlier versions and fixes default limit set 
-'for' loop found by Jean Delvare, minor reporting and comment 
-changes.
+This patch is updated against 2.6.12-rc3-mm1, no other changes.
+
+Development on 2.6.11.7 and compile tested on 2.6.12-rc3-mm1.
 
 --Grant.
+
 
 Signed-off-by: Grant Coady <gcoady@gmail.com>
 
@@ -30,9 +31,9 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  adm9240.c |  768 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 780 insertions(+)
 
-diff -X dontdiff -Nru linux-2.6.12-rc3/drivers/i2c/chips/Kconfig linux-2.6.12-rc3b/drivers/i2c/chips/Kconfig
---- linux-2.6.12-rc3/drivers/i2c/chips/Kconfig	2005-04-21 19:50:36.000000000 +1000
-+++ linux-2.6.12-rc3b/drivers/i2c/chips/Kconfig	2005-04-29 09:54:01.000000000 +1000
+diff -X dontdiff -Nru linux-2.6.12-rc3-mm1/drivers/i2c/chips/Kconfig linux-2.6.12-rc3-mm1b/drivers/i2c/chips/Kconfig
+--- linux-2.6.12-rc3-mm1/drivers/i2c/chips/Kconfig	2005-04-30 21:12:20.000000000 +1000
++++ linux-2.6.12-rc3-mm1b/drivers/i2c/chips/Kconfig	2005-04-30 21:27:43.000000000 +1000
 @@ -51,6 +51,17 @@
  	  This driver can also be built as a module.  If so, the module
  	  will be called adm1031.
@@ -51,9 +52,9 @@ diff -X dontdiff -Nru linux-2.6.12-rc3/drivers/i2c/chips/Kconfig linux-2.6.12-rc
  config SENSORS_ASB100
  	tristate "Asus ASB100 Bach"
  	depends on I2C && EXPERIMENTAL
-diff -X dontdiff -Nru linux-2.6.12-rc3/drivers/i2c/chips/Makefile linux-2.6.12-rc3b/drivers/i2c/chips/Makefile
---- linux-2.6.12-rc3/drivers/i2c/chips/Makefile	2005-04-21 19:50:36.000000000 +1000
-+++ linux-2.6.12-rc3b/drivers/i2c/chips/Makefile	2005-04-29 09:54:24.000000000 +1000
+diff -X dontdiff -Nru linux-2.6.12-rc3-mm1/drivers/i2c/chips/Makefile linux-2.6.12-rc3-mm1b/drivers/i2c/chips/Makefile
+--- linux-2.6.12-rc3-mm1/drivers/i2c/chips/Makefile	2005-04-30 21:12:20.000000000 +1000
++++ linux-2.6.12-rc3-mm1b/drivers/i2c/chips/Makefile	2005-04-30 21:27:43.000000000 +1000
 @@ -11,6 +11,7 @@
  obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
  obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
@@ -62,9 +63,9 @@ diff -X dontdiff -Nru linux-2.6.12-rc3/drivers/i2c/chips/Makefile linux-2.6.12-r
  obj-$(CONFIG_SENSORS_DS1337)	+= ds1337.o
  obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
  obj-$(CONFIG_SENSORS_EEPROM)	+= eeprom.o
-diff -X dontdiff -Nru linux-2.6.12-rc3/drivers/i2c/chips/adm9240.c linux-2.6.12-rc3b/drivers/i2c/chips/adm9240.c
---- linux-2.6.12-rc3/drivers/i2c/chips/adm9240.c	1970-01-01 10:00:00.000000000 +1000
-+++ linux-2.6.12-rc3b/drivers/i2c/chips/adm9240.c	2005-04-29 10:52:49.000000000 +1000
+diff -X dontdiff -Nru linux-2.6.12-rc3-mm1/drivers/i2c/chips/adm9240.c linux-2.6.12-rc3-mm1b/drivers/i2c/chips/adm9240.c
+--- linux-2.6.12-rc3-mm1/drivers/i2c/chips/adm9240.c	1970-01-01 10:00:00.000000000 +1000
++++ linux-2.6.12-rc3-mm1b/drivers/i2c/chips/adm9240.c	2005-04-30 21:27:43.000000000 +1000
 @@ -0,0 +1,768 @@
 +/*
 + * adm9240.c	Part of lm_sensors, Linux kernel modules for hardware
