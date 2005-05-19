@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: william.mcclintock@schriever.af.mil (McClintock William J Contr MCOM)
 Date: Thu, 19 May 2005 06:24:26 +0000
 Subject: unknown eeprom type (65) [ticket #1449]
-Message-Id: <20031125211929.1566a2b8.khali@linux-fr.org>
+Message-Id: <B8BD20F161298A42A3B513D23A28556701101F3A@fsglenex3.schriever.af.mil>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1069703037.8309.4.camel@localhost>
 In-Reply-To: <1069703037.8309.4.camel@localhost>
@@ -9,6 +9,43 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+> This probably means that lm_sensors2 used older i2c headers. Did you
+> also install i2c-2.8.1 or CVS? It's a requirement.
+
+CVS version of i2c and lm_sensors were both installed on the redhat 9
+system.  Now whether it installed the headers in the correct place...I never
+checked but all seemed to work well so...no harm no fowl...
+
+> Please provide the output of "ls -l
+> /proc/sys/dev/sensors/eeprom-i2c-0-50".
+
+[root@workstation1 root]# ls -l /proc/sys/dev/sensors/eeprom-i2c-0-50
+total 0
+-r--r--r--    1 root     root            0 Nov 25 14:36 00
+-r--r--r--    1 root     root            0 Nov 25 14:36 10
+-r--r--r--    1 root     root            0 Nov 25 14:36 20
+-r--r--r--    1 root     root            0 Nov 25 14:36 30
+-r--r--r--    1 root     root            0 Nov 25 14:36 40
+-r--r--r--    1 root     root            0 Nov 25 14:36 50
+-r--r--r--    1 root     root            0 Nov 25 14:36 60
+-r--r--r--    1 root     root            0 Nov 25 14:36 70
+-r--r--r--    1 root     root            0 Nov 25 14:36 80
+-r--r--r--    1 root     root            0 Nov 25 14:36 90
+-r--r--r--    1 root     root            0 Nov 25 14:36 a0
+-r--r--r--    1 root     root            0 Nov 25 14:36 b0
+-r--r--r--    1 root     root            0 Nov 25 14:36 c0
+-r--r--r--    1 root     root            0 Nov 25 14:36 d0
+-r--r--r--    1 root     root            0 Nov 25 14:36 e0
+-r--r--r--    1 root     root            0 Nov 25 14:36 f0
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: Tuesday, November 25, 2003 1:19 PM
+To: McClintock William J Contr MCOM
+Cc: sensors@Stimpy.netroedge.com; frdurso@yahoo.com.br
+Subject: Re: unknown eeprom type (65) [ticket #1449]
+
 
 > Requested output below...Sensors installed on this machine are CVS as
 > of a few days ago...I had to tweak a file to get the package to build
