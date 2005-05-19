@@ -1,7 +1,7 @@
-From: shawn.starr@datawire.net (Shawn Starr)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: False IBM Laptop detection - PIIX4 (440BX) - IBM 300PL 6892-N2U Tower desktop - lm_sensors 2.7.0 /w
-Message-Id: <200302071102.00426.shawn.starr@datawire.net>
+Subject: False IBM Laptop detection - PIIX4 (440BX) - IBM 300PL 6892-N2U
+Message-Id: <20030208213038.0a536e92.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200302071048.27227.shawn.starr@datawire.net>
 In-Reply-To: <200302071048.27227.shawn.starr@datawire.net>
@@ -11,50 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Also, I can try booting 2.5 and CVS lm_sensors / i2c stuff for testing.
-
-Shawn.
-
-On February 7, 2003 10:48 am, Shawn Starr wrote:
-> I have an IBM 300PL 6892-N2U just picked it up yesterday but lm_sensors
-> 2.7.0 refuses to load anything!
->
-> I am using a Tower desktop not a laptop unless this is a defunked bios?
->
+> I have an IBM 300PL 6892-N2U just picked it up yesterday but
+> lm_sensors 2.7.0 refuses to load anything!
+> 
+> I am using a Tower desktop not a laptop unless this is a defunked
+> bios?
+> 
 > Let me know what info you need from me.
->
-> Shawn.
->
-> --------------------------
->
-> from sensors-detect:
->
->  BIOS vendor (ACPI): IBM
->  System vendor (DMI): IBM
->  BIOS version (DMI): NVKT48AUS
->  Sorry, we won't let you go on. IBM systems are known to have
->  serious problems with lm_sensors, resulting in hardware failures.
->  For more information, see README.thinkpad or
->  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad.
->
-> ---
->
-> from dmesg:
->
-> i2c-piix4.o version 2.7.0 (20021208)
-> i2c-piix4.o: Found PIIX4 device
-> dmi_scan.o version 2.7.0 (20021208)
-> dmi_scan.o: SM BIOS found
-> i2c-piix4.o: IBM Laptop detected; this module may corrupt
->              your serial eeprom! Refusing to load module!
-> i2c-piix4.o: Module insertion failed.
+
+Thanks for the report. We are working on a large rewrite of the i2c
+layer (well, Ky?sti M?lkki is) so this is not the time for me to mess up
+with IBM detection code. What's more, we are still missing some
+information to do it correctly.
+
+So, my advice is: if you don't need 2.7.0 and if 2.6.5 was working for
+you, stick to this version.
+
+We'll let you know (I hope I won't forget) if we need some help from
+you. Thanks.
 
 -- 
-Shawn Starr
-UNIX Systems Administrator, Operations
-Datawire Communication Networks Inc.
-10 Carlson Court, Suite 300
-Toronto, ON, M9W 6L2
-T: 416-213-2001 ext 179  F: 416-213-2008
-shawn.starr@datawire.net
-"The power to Transact" - http://www.datawire.net
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
