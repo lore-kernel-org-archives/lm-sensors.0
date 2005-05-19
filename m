@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:47 +0000
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: RFC lmsensors sysfs interface documentation
-Message-Id: <20050329211753.022b29c3.khali@linux-fr.org>
+Message-Id: <1qkq41l7hf1riqmoq53ig4os81gaiogtn8@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9kug41tbmj5kp8bmadk4t7bupgvnl15q0m@4ax.com>
 In-Reply-To: <9kug41tbmj5kp8bmadk4t7bupgvnl15q0m@4ax.com>
@@ -10,25 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Grant,
+On Tue, 29 Mar 2005 07:53:35 +1000, Grant Coady <grant_nospam@dodo.com.au> wrote:
 
-> > rt[1-3] is now gone thanks to your patch to w83781d.c.
+>Hi All,
 >
-> Not gone upstream as far as I know, thought you'd ack it or 
-> something.  
+>I've started a little documentation project here:
+>
+>  http://scatter.mine.nu/lmsensors/sysfs-names/
 
-When you want Greg to pick a patch, you have to:
+Now contains two cross-reference lists:
 
-1* CC: him explicitely.
+	drivers -> sysfs names
+	sysfs name -> drivers
 
-2* Make the subject explicit, e.g. "[PATCH 2.6] I2C: Drop useless
-w83781d RT feature". In particular, drop any "RFC" or question marks in
-the subject.
+The generator script is there, comments on accuracy and usefulness 
+would be appreciated.
 
-3* Include a nice comment and a signed-off-by line.
+Yes, an X-Y mapping would be better than a pair of denormalised lists, 
+but I start somewhere easy to see what the the data looks like first.
 
-Unless you do that, Greg will not pick your patches.
-
-Thanks,
--- 
-Jean Delvare
+Cheers,
+Grant.
