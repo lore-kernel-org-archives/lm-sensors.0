@@ -1,45 +1,48 @@
-From: adobriyan@mail.ru (Alexey Dobriyan)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:35 +0000
 Subject: [PATCH 2.6] I2C: New chip driver: sis5595
-Message-Id: <200502011857.24786.adobriyan@mail.ru>
+Message-Id: <UG87F3dV.1107277247.9606340.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <w2Am1HDp.1107265957.3006340.khali@localhost>
-In-Reply-To: <w2Am1HDp.1107265957.3006340.khali@localhost>
+In-Reply-To: <20050201165434.GD23118@kroah.com>
+References: <20050125220945.GA23560@bode.aurel32.net>
+In-Reply-To: <20050125220945.GA23560@bode.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Aurelien Jarno <aurelien@aurel32.net>, Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
+To: greg@kroah.com, aurelien@aurel32.net
+Cc: Alexey Dobriyan <adobriyan@mail.ru>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
 
-On Tuesday 01 February 2005 15:52, Jean Delvare wrote:
 
-> > What about making sis5595_update_device() a simple jiffies-related wrapper
-> > around function that updates "struct sis5595" unconditionally. I'm not sure
-> > I plugged sis5595_do_update_client right, but you'll get the idea.
+Hi Greg & all,
 
-> 1* It forces a chip update (i.e. full register read) on driver load (or
-> more precisely on client detection). Since I2C/SMBus accesses are really
-> slow, it will result in a significant time penalty. As the read values
-> are only considered valid for 1.5 second (or equivalent duration for the
-> other drivers), this penalty brings statistically no benefit in return.
-> 
-> 2* Each subsequent update (or attempt thereof) will conditionally require
-> an additional function call, which represents a small time penalty again
-> (much more than a comparison if I'm not mistaken).
+> > +/* Locate SiS bridge and correct base address for SIS5595 */
+> > +static int sis5595_find_sis(int *address)
+> > +{
+> > +	u16 val;
+> > +	int *i;
+> > +
+> > +	if (!(s_bridge > > +	    pci_get_device(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_503, NULL)))
+> > +		return -ENODEV;
+>
+> You never free the reference you grabbed on the pci_dev here.  Please
+> read the docs on how pci_get_device() is to be used, it isn't just a
+> drop in replacement for pci_find_device(), sorry.
+>
+> > +	/* Look for imposters */
+> > +	for(i = blacklist; *i != 0; i++) {
+> > +		if (pci_get_device(PCI_VENDOR_ID_SI, *i, NULL)) {
+>
+> Same here, you are leaking a reference count.
+>
+> Why are you not using the pci driver interface instead?
 
-lm90 (all sensors chips have approximately the same speed, right?) spec says:
-"It takes the LM90 31.25 ms to measure the temperature of the remote diod and
-internal diode". Google says: "The buses [I2C, SMBus] operate at the same
-speed, up to 100kHz, but the I2C bus has both 400kHz and 2MHz versions."
+Not sure it exactly answers your question, but the sis5595 much
+ressembles the via686a in that respect, i.e. it isn't driving a PCI
+device, merely grabbing the ISA I/O address data from PCI configuration
+space, then driving that ISA device. I'd guess that whatever was done
+in via686a (including the recent updates) should work equally well for
+the sis5595.
 
-What I'm trying to say that you shouldn't care about s/cmp; jcc/call/ if the
-actual measurement is infinite from CPU's POV.
-
-> We are only trying to avoid a conditional test and to get rid of a local
-> variable, and end up with a much slower init
-
-Well, yes, I agree that initialization will become slower. But how long is
-register read (from first outb command to the moment when CPU sees it)?
-I'm trying to build time hierarchy of things we're discussing in my head.
-
-	Alexey
+Thanks,
+--
+Jean Delvare
