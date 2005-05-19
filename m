@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: W83L785R Support
-Message-Id: <20040221171327.21f76a0e.khali@linux-fr.org>
+Message-Id: <20040221173955.543b057c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200402201842.48537.coflynn@newae.com>
 In-Reply-To: <200402201842.48537.coflynn@newae.com>
@@ -10,27 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Did you try
-> http://rivatv.sourceforge.net/download.html
-> 
-> It should have a driver called
-> 
-> i2c-riva
+> Does RivaTV work with 2.6? I get:
 
-Since some times now, they have a single module for everything
-(including i2c), so it is called rivatv.
+Version 0.8.3 doesn't seem to. CVS, however, could, since there are a
+lot of comments "support for 2.6.x kernels added" dated November 14th,
+2003, in the CVS logs.
 
-> so you dont need to override the bus.
-> It will create new bus with hopefully this device too.
+I think they should release...
 
-Yes, it should.
+> PS: sensors-detect never did anything before besides detect the one
+> sensor on my motherboard (which works great!), and i2cdetect didn't
+> show the bus, it just did:
+> (...)
 
-A recent version of sensors-detect *should* also have detected it and
-suggest that you go and get the above-mentioned module. Colin, didn't
-that happen? If it did not, please provide the output of lspci -v and
-lspci -n so that we can add your card to the list.
-
-Thanks.
+I2cdetect is a misnomer. It doesn't detect busses, it lists the one that
+have been registered (i.e. have a driver loaded for them).
 
 -- 
 Jean Delvare
