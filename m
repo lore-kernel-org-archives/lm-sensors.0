@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+From: zdavatz@ywesee.com (Zeno Davatz)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: failed again; vetctor 300
-Message-Id: <20030806003310.2f6da31b.zdavatz@ywesee.com>
+Message-Id: <20030806093901.4512.qmail@debian>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030805222340.3799d819.zdavatz@ywesee.com>
 In-Reply-To: <20030805222340.3799d819.zdavatz@ywesee.com>
@@ -10,35 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Aug 2003 14:34:15 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
+Hi Jean 
 
-> 
-> > make of lm-sensors_2.7.0 gives me:
-> > 
-> > usses/i2c-amd8111.c -o kernel/busses/i2c-amd8111.o
-> > kernel/busses/i2c-amd8111.c:25:2: #error Your i2c is too old -
-> > i2c-2.7.0 or greater required!
-> > (...)
-> > Any hints?
-> 
-> Sure. http://secure.netroedge.com/~lm78/, see new item "# May 31st,
-> 2003". Get the updated Makefile and config.c, should work OK then.
-Ok, done that. Now I get this:
-gcc -I. -Ikernel/include -I/usr/local/include -I/lib/modules/2.4.21-ben2/build/include  -Wall -O2   -c lib/data.c -o lib/data.ao
-In file included from lib/data.c:20:
-/usr/include/stdlib.h:445: error: Syntaxfehler before "int32_t"
-/usr/include/stdlib.h:447: error: Syntaxfehler before '*' token
-/usr/include/stdlib.h:451: error: Syntaxfehler before '*' token
-/usr/include/stdlib.h:452: error: Syntaxfehler before '}' token
-/usr/include/stdlib.h:455: error: Syntaxfehler before "int32_t"
-lib/data.c: In function `sensors_parse_chip_name':
-lib/data.c:117: Warnung: deprecated use of label at end of compound statement
-lib/data.c:151: Warnung: deprecated use of label at end of compound statement
-make: *** [lib/data.ao] Fehler 1
+I tried to install lm-sensors 2.8.0 again ( I got my computer back and 
+running on KDE). 
 
-Any hints?
+While running sensors-detect it hung at checking for IS0... 
 
-Thanks for Feedback.
+No I get the same error message again during start up as I got last time 
+when we had to delete something from /usr/src/linux/.... 
+
+I can't remember anymore what you told me exactly to do. Can you resent me 
+that mail please. 
+
+My error again is:
+vector 300 at pc = e238c288, lr = e238f080
+msr = 9032, sp = d8667cf0 [d8667c40]
+dar = 24, dsisr = 40000000
+current = d8666000, pid = 879, comm = modprobe
+mon> 
+
+Then everything hangs while startup. 
+
+Thanks for yor feedback. 
 
 Zeno
