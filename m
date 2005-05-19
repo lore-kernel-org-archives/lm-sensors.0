@@ -1,44 +1,23 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: I2C slave mode for Linux host
-Message-Id: <413B39C4.2090203@verizon.net>
+From: arios@avionica.com (Anthony Rios)
+Date: Thu, 19 May 2005 06:25:55 +0000
+Subject: LM87 sensor on Routerboard
+Message-Id: <019401c54b66$d4a13810$19680a0a@braintrust.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1094205518.28654.27.camel@fortress>
-In-Reply-To: <1094205518.28654.27.camel@fortress>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-see some brief notes at the 10th bullet in i2c/TODO;
-also a couple of notes in i2c.h (function pointer stubs).
+Hey all,
+    I read through the archives and found information on the porting
+of the LM87 chip driver to 2.6 kernels. I believe David Goodenough
+was working on the port specifically to work on the Routerboard
+230.  Maybe he can help me out here.
 
-Leif Lindholm wrote:
-> Hi
-> 
-> I was directed here from the irc channel - please cc any replies to me
-> as I'm not subscribed to the list.
-> 
-> I'm implementing slave mode transfers (well, just reads for now) on an
-> embedded board, and noticed there wasn't really any support in the
-> subsystem for this (other than two unused function pointers in a struct
-> in linux/i2c.h.
-> 
-> For now the code is mostly located in the algo driver, but I was
-> wondering if you had any design thoughts for integrating it into the
-> core/dev files?
-> 
-> As far as I can see, the modifications required would be:
-> * a flag in the adapter struct indicating master/slave mode
-> * ioctl in i2c_control for setting master/slave mode (with function
->   pointer - or should this be all in the algo driver?)
-> * hooks in i2cdev_read/write() for distinguishing between modes
-> * putting read/write buffers in the adapter struct
-> 
-> Thoughts?
-> 
-> regards
-> 	/
-> 		Leif
-> 
-> 
+    I am a bit confused as to what I need to get my sensors going. In
+the 2.4 kernel I needed patches for i2c-nscacb as well as lm87.  Is
+this still necessary? Should I be using the same patches?
+
+TIA.
+
+Tony
