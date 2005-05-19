@@ -1,7 +1,7 @@
-From: charles@defenderhosting.com (Charles Galpin)
-Date: Thu, 19 May 2005 06:24:44 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:45 +0000
 Subject: i2c-amd756 and dual opteron sensors not foun
-Message-Id: <B130880A-6B09-11D8-9854-000A958E5EF8@defenderhosting.com>
+Message-Id: <1078135086.4043092eee0b9@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E039AC86-6597-11D8-8D31-000A958E5EF8@defenderhosting.com>
 In-Reply-To: <E039AC86-6597-11D8-8D31-000A958E5EF8@defenderhosting.com>
@@ -10,44 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Quoting Charles Galpin <charles@defenderhosting.com>:
 
-On Feb 29, 2004, at 5:14 PM, Jean Delvare wrote:
+> I was trying not to bother everyone before emailing again. I have  
+> requested more info from the vendor who has a close relationship
+> with MSI and *should* be able to provide the info.
 
-> Hi Charles,
->
-> The Super-I/O chip on your board seems to be a PC87366 by National
-> Semiconductor. At least the device ID matches. That said, it still  
-> looks
-> like a disabled chip (at least the hardware monitoring part of it).
->
-> Please confirm this information if you can (docs, manufacturer,
-> visual... whatever).
+Great :)
 
-Hi Jean
+> I did get to look at the hardware last night though. It turns out
+> the motherboard is a MS-9145 - which I cannot find any info on.
 
-I was trying not to bother everyone before emailing again. I have  
-requested more info from the vendor who has a close relationship with  
-MSI and *should* be able to provide the info.
+Neither could I. OTOH, I could find more on a MS-9245, which is what I
+think you have. See here:
 
-I did get to look at the hardware last night though. It turns out the  
-motherboard is a MS-9145 - which I cannot find any info on. The only  
-winbond chip I see is a W986432DH-6 which is SDRAM.  I'm honestly not  
-exactly sure what I'm looking for so I wrote down the info for any  
-chips i could see. I did find info on one marked 'ADM1027 51'. google  
-pointed me to
+http://www.msi.com.tw/program/support/download/dld/spt_dld_detail.php?UIDQ0&kind=3
 
-http://www.analog.com/Analog_Root/productPage/productHome/ 
-0%2C%2CADM1027%2C00.html
+This damn seems to match the output of "lspci" on your system, doesn't
+it?
 
-Which looks right on the money. Not sure it jives with your PC87366  
-identification though?
+> The only winbond chip I see is a W986432DH-6 which is SDRAM.
 
-Everything else was clearly not a sensor, and I did not see anything  
-with PC87366 on it.
+Obviously unrelated with our problem.
 
-Does this help?
+> I'm honestly not exactly sure what I'm looking for so I wrote down
+> the info for any chips i could see. I did find info on one marked
+> 'ADM1027 51'.
 
-I'll let you know what I get from the vendor. Thanks again for  
-continuing to look into this!
+Aha. That would be it :)
 
-charles
+Good news: we do support the ADM1027 (lm85 driver).
+
+> Which looks right on the money. Not sure it jives with your PC87366
+> identification though?
+
+Since the hardware monitoring part of the PC87366 (if that's what it is)
+is disabled, this makes full sense that another hardware monitoring
+chip is present and used.
+
+> I'll let you know what I get from the vendor. Thanks again for  
+> continuing to look into this!
+
+OK.
+
+One thing I'd like to add here is that on the above-mentioned MS-9245
+page, there is a Windows "AMD 8111 SMBus Driver". So there *must* be a
+way to activate it under Linux too. Most likely, the ADM1027 chipset is
+connected to it. I believe that the only difficulty left is to enable
+the 8111 smbus. Once we know how to do it, we already have all the
+necessary drivers to driver your motherboard's monitoring system (if
+I'm not mistaking).
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
