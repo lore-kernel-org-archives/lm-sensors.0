@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <10728219731748@kroah.com>
+Message-Id: <10728219742126@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219722179@kroah.com>
+In-Reply-To: <10728219741342@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,86 +11,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.9.3, 2003/12/04 13:41:40-08:00, khali@linux-fr.org
+ChangeSet 1.1496.9.5, 2003/12/04 13:53:21-08:00, khali@linux-fr.org
 
-[PATCH] I2C: sysfs interface documentation
+[PATCH] I2C: fix author of i2c-savage4.c driver
 
-1* No more current hysteresis value. I don't think we ever saw a chip
-   which monitors current, and if we ever do, I would be very, very
-   surprised if it would have an hysteresis value.
-2* Temperature input and max can have 4 values. [from the previous
-   patch]
-3* Split temperature min and hysteresis into two separate files.
-4* New file temp_crit. [from previous patch]
+This patch rehabilitates Alexander Wold as the author of the i2c-savage4
+driver. For some reason, his name was not mentioned anywhere in the
+first place.
 
-The new file temp_crit is subject to change later as we decide more
-precisely how we want to handle values that are common to more than one
-temperature channels.
+The change was requested by Alexander Wold himself.
 
 
- Documentation/i2c/sysfs-interface |   33 ++++++++++++++++++++++-----------
- 1 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/i2c/busses/i2c-savage4.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
 
-diff -Nru a/Documentation/i2c/sysfs-interface b/Documentation/i2c/sysfs-interface
---- a/Documentation/i2c/sysfs-interface	Tue Dec 30 12:32:18 2003
-+++ b/Documentation/i2c/sysfs-interface	Tue Dec 30 12:32:18 2003
-@@ -68,9 +68,7 @@
- 		Fixed point XXXXX, divide by 1000 to get Amps.
- 		Read/Write.
+diff -Nru a/drivers/i2c/busses/i2c-savage4.c b/drivers/i2c/busses/i2c-savage4.c
+--- a/drivers/i2c/busses/i2c-savage4.c	Tue Dec 30 12:31:52 2003
++++ b/drivers/i2c/busses/i2c-savage4.c	Tue Dec 30 12:31:52 2003
+@@ -1,13 +1,11 @@
+ /*
+     i2c-savage4.c - Part of lm_sensors, Linux kernel modules for hardware
+               monitoring
+-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>,
+-    Philip Edelbrock <phil@netroedge.com>,
+-    Ralph Metzler <rjkm@thp.uni-koeln.de>, and
++    Copyright (C) 1998-2003  The LM Sensors Team
++    Alexander Wold <awold@bigfoot.com>
+     Mark D. Studebaker <mdsxyz123@yahoo.com>
+     
+-    Based on code written by Ralph Metzler <rjkm@thp.uni-koeln.de> and
+-    Simon Vogl
++    Based on i2c-voodoo3.c.
  
--curr_min[1-n]	Current min or hysteresis value.
--		Preferably a hysteresis value, reported as a absolute
--		current, NOT a delta from the max value.
-+curr_min[1-n]	Current min value.
- 		Fixed point XXXXX, divide by 1000 to get Amps.
- 		Read/Write.
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -195,9 +193,7 @@
+ 	pci_unregister_driver(&savage4_driver);
+ }
  
-@@ -144,25 +142,38 @@
- 		Integers 1,2,3, or thermistor Beta value (3435)
- 		Read/Write.
- 
--temp_max[1-3]	Temperature max value.
-+temp_max[1-4]	Temperature max value.
- 		Fixed point value in form XXXXX and should be divided by
- 		1000 to get degrees Celsius.
- 		Read/Write value.
- 
--temp_min[1-3]	Temperature min or hysteresis value.
-+temp_min[1-3]	Temperature min value.
- 		Fixed point value in form XXXXX and should be divided by
--		1000 to get degrees Celsius.  This is preferably a
--		hysteresis value, reported as a absolute temperature,
--		NOT a delta from the max value.
-+		1000 to get degrees Celsius.
- 		Read/Write value.
- 
--temp_input[1-3] Temperature input value.
-+temp_hyst[1-3]	Temperature hysteresis value.
-+		Fixed point value in form XXXXX and should be divided by
-+		1000 to get degrees Celsius.  Must be reported as an
-+		absolute temperature, NOT a delta from the max value.
-+		Read/Write value.
-+
-+temp_input[1-4] Temperature input value.
-+		Fixed point value in form XXXXX and should be divided by
-+		1000 to get degrees Celsius.
- 		Read only value.
- 
-+temp_crit	Temperature critical value, typically greater than all
-+		temp_max values.
-+		Fixed point value in form XXXXX and should be divided by
-+		1000 to get degrees Celsius.
-+		Common to all temperature channels.
-+		Read/Write value.
-+
- 		If there are multiple temperature sensors, temp_*1 is
- 		generally the sensor inside the chip itself, generally
--		reported as "motherboard temperature".  temp_*2 and
--		temp_*3 are generally sensors external to the chip
-+		reported as "motherboard temperature".  temp_*2 to
-+		temp_*4 are generally sensors external to the chip
- 		itself, for example the thermal diode inside the CPU or
- 		a thermistor nearby.
- 
+-MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
+-		"Philip Edelbrock <phil@netroedge.com>, "
+-		"Ralph Metzler <rjkm@thp.uni-koeln.de>, "
++MODULE_AUTHOR("Alexander Wold <awold@bigfoot.com> "
+ 		"and Mark D. Studebaker <mdsxyz123@yahoo.com>");
+ MODULE_DESCRIPTION("Savage4 I2C/SMBus driver");
+ MODULE_LICENSE("GPL");
 
