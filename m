@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:16 +0000
+Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: Ticket 1382 : Update
-Message-Id: <20030913221256.69de3b09.khali@linux-fr.org>
+Message-Id: <20030913222128.58f023c1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1061487346.2223.4.camel@marla.spinning-plates.eu.org>
 In-Reply-To: <1061487346.2223.4.camel@marla.spinning-plates.eu.org>
@@ -12,18 +12,34 @@ To: lm-sensors@vger.kernel.org
 
 
 
-> Ok here goes.
-> My motherboard is a Gigabyte GA-6VTXE-A, featuring the infamous
-> ApolloPro133 (VT82C694T and 686B). Now for the dump :
-> (...)
+> I noticed that there's a linear fit in the via686a.c, in the temp
+> conversion section, in the remarks.
+> The way I understand it, the linear fit is actually valid within a
+> short range of temperatures, while the 5th degree polynomial is
+> actually more accurate for the whole range.
 
-Doesn't look like a LM80 to my, although this chip is admitedly hard to
-identify.
+That's not the way I understand it. the 5th degree polynomial is valid
+for interger (that is, 7-bit) readings, and the linear interpolation is
+made for the 3 extra bits (value .125 degree). So the whole range has
+the same average accuracy.
 
-Did you try loading the LM80 driver? I wonder if the values would make
-sense.
+> The thing is, since I'm clueless at C, I don't know if the readings
+> output by sensors when questioning the via686a are processed with any
+> of these fits.
 
-Sorry, I can't tell you what it is if it isn't a LM80.
+Looks like there are, or why would they be in the module code?
+
+> I tried applying the linear fit in the common temp range (temp = val x
+> 0.427 + 32.08) in gkrellm, and behold! the readings *look* better.
+> Now, I don't know if it's just a coincidence, or if it's actually the
+> way it should work.
+> I'd really appreciate your comments on that one.
+
+I think it is a coincidence. Either formula should be used, not both.
+Our formula, derived from Alex van Kaam's one (the author of Motherboard
+Monitor), is supposed to be better than the linear fits.
+
+Anyway, if you get something better that way, why not...
 
 -- 
 Jean Delvare
