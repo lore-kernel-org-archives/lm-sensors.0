@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: jeffreydm@sbcglobal.net (Jeffrey Mitchell)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: portability issue?
-Message-Id: <20040926181028.31b531fc.khali@linux-fr.org>
+Message-Id: <20040926162038.31076.qmail@web80302.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040926153810.85135.qmail@web80314.mail.yahoo.com>
 In-Reply-To: <20040926153810.85135.qmail@web80314.mail.yahoo.com>
@@ -10,6 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+thank you so much for the explanation and I agree that it is a GREAT eaxample of why orpen source is preferable. I myself would make the switch to linux 100% if it wasn't for the fact that it still doesn't fully support anti-virus and cd/dvd rw type functions. 
+Keep up the good work and thank you for a great product!
+
+Jean Delvare <khali@linux-fr.org> wrote:
 > is there any chance you will be developing a Windows version of the
 > sensors package?
 
@@ -46,3 +50,6 @@ the quality of MBM though.
 -- 
 Jean Delvare
 http://khali.linux-fr.org/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040926/a51e70b8/attachment.html
