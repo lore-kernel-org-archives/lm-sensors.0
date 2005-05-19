@@ -1,28 +1,58 @@
-From: trini@kernel.crashing.org (Tom Rini)
-Date: Thu, 19 May 2005 06:23:33 +0000
-Subject: i2c patches for 2.5.15
-Message-Id: <20020525183527.GC12561@opus.bloom.county>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: Eeprom driver optimization
+Message-Id: <20030816141351.76899190.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3CED7BC6.99258BEB@paradyne.com>
-In-Reply-To: <3CED7BC6.99258BEB@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, May 23, 2002 at 10:22:36PM -0400, Mark D. Studebaker wrote:
 
-> Note this recent change,
-> not sure what it does, this is post-2.5.17.
-> Anybody understand this change?
-> 
-> http://linux.bkbits.net:8080/linux-2.5/diffs/drivers/i2c/i2c-proc.c@1.3?nav=index.html|src/.|src/drivers|src/drivers/i2c|hist/drivers/i2c/i2c-proc.c
+Hi all,
 
-This appears to be removing compatibility #ifdefs to make things more
-readable (Which of course is a PITA for out-of-kernel things and
-projects which still support 2.2.x/2.4.x/2.0.x) and proc
-cleanups/updates.
+As I was working on the eeprom driver, one thing came to my mind. If
+should be possible to significantly speed the eeprom module up. As it is
+now, requesting one single byte from the eeprom cause the whole eeprom
+(256 bytes) to be read. Of course, we don't want to refresh bytes
+one-by-one, it would be too complex. But maybe we could define subsets
+of bytes that should be refreshed at once. In a way, this joins a
+previous discussion about driver design
+(http://archives.andrew.net.au/lm-sensors/msg03657.html). Philip Pokorny
+already did something similar in the adm1026 driver, introducing a
+second refresh frequency for limits, as opposed to measured values.
+Still there is a single update function in the adm1026 driver, and this
+too could be discussed. And a general discussion about these policies
+would be welcome for sensor drivers.
+
+But let's stick to the eeprom module for now (my train leaves in less
+than 3 hours now so I'm a bit short in time).
+
+When sensors is called for regular memory eeproms, the rows that will be
+accessed (to return the memory type and the memory size) are 1 and 2
+(counting rows from 1 to 16). When called for a Sony Vaio EEPROM, it
+will read rows 9, 13 and 14. For an EDID it will read rows 1 and 9 (but
+this could be changed to row 1 only). Likewise, running the
+decode-eeprom, decode-vaio and decode-edid scripts will only access
+subsets of the eeprom. At the very least, I believe we should divide the
+eeprom in two subsets: rows 1-2 and rows 3-16. That would make sensors
+far faster on memory eeproms. Additionally, I think I remember these
+eeproms are usually 64-byte or 128-byte long (EDIDs are), only the
+Vaio's are 256-byte long. So we could define 4 subsets instead: rows
+1-2, rows 3-4, rows 5-8 and rows 9-16. I believe that this would speed
+up sensors and scripts much. This would require to add separated refresh
+timers, but I think it's worth it.
+
+I don't know if it's worth it defining more complex subsets. For example
+we could define a subset for the 5 bytes used by sensors for memory
+eeproms. This would make things even faster, but OTOH too many subsets
+will be difficult to optimize, especially if more and more eeprom types
+appear (I think I remember see many unknown eeproms in user reports
+these last months).
+
+I'll try this while in the train, but I still would like to hear
+opinions about this.
 
 -- 
-Tom Rini (TR1265)
-http://gate.crashing.org/~trini/
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
