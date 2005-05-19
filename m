@@ -1,25 +1,22 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:38 +0000
-Subject: [PATCH 2.6] I2C: New chip driver: sis5595 (resubmit)
-Message-Id: <20050217222549.GF21188@kroah.com>
+From: sensors@pstaehli.ch (Patrik)
+Date: Thu, 19 May 2005 06:24:55 +0000
+Subject: Who is working on the 2.6 port of vt1211?
+Message-Id: <408E44FC.5090203@pstaehli.ch>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050206202641.GA31771@bode.aurel32.net>
-In-Reply-To: <20050206202641.GA31771@bode.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Aur?lien Jarno <aurelien@aurel32.net>, sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sun, Feb 06, 2005 at 09:26:41PM +0100, Aur?lien Jarno wrote:
-> Hi Greg,
-> 
-> Please find below the new version of the patch against kernel
-> 2.6.11-rc3-mm1 to add the sis5595 driver (sensor part).
-> 
-> As you suggested, I have changed the PCI part of the driver, taking the
-> via686a driver as an example. I have also changed the comparison of 
-> jiffies by using time_after.
+Hello!
 
-Applied, thanks.
+I haven't read anything on the progress of vt1211 support for 2.6.x 
+lately, so I wondered if I could be of any help.
+I've seen versions of Nuno Grilo and of Francois Barre, but I couldn't 
+find out if there is some coordinated development going on...
+I'm willing to spare some time at testing/developing this driver.
 
-greg k-h
+Is there a BK repository for the 2.6 sensors development?
+
+best regards
+Patrik
