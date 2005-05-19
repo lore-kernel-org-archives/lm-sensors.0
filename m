@@ -1,7 +1,7 @@
-From: bbkr@post.pl (Pawel Pabian)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: ticket 1599 explanation
-Message-Id: <20040306155925.52261.qmail@home.pl>
+Message-Id: <20040306182153.295ae36e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040306020526.50077.qmail@home.pl>
 In-Reply-To: <20040306020526.50077.qmail@home.pl>
@@ -10,64 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-It works !! Thanks!!
+> It works !! Thanks!!
 
-There was a problem with line 10 of patch:
+Great :)
 
-patching file src/i2c-riva.c
-patch: **** malformed patch at line 10: };
-
-But I replaced two lines manually and now everything works great.
-
-Thanks again!!
-
-bbkr
-
-
-From: Jean Delvare <khali@linux-fr.org>
-To: "Pawel Pabian" <bbkr@post.pl>
-X-From: khali@linux-fr.org Sat Mar 6 09:51:12 2004
-Subject: Re: ticket 1599 explanation
-Date: Sat, 6 Mar 2004 09:51:43 +0100
-
-> > the problem is, that I have ONLY mainboard sensors output. GeForce
-> > card sensors are detected by sensors-detect but not visible after
-> > runing "sensors".
+> There was a problem with line 10 of patch:
 > 
-> Looks like rivatv doesn't declare bus classes correctly.
+> patching file src/i2c-riva.c
+> patch: **** malformed patch at line 10: };
 > 
-> Here is a patch that should fix your problem:
-> 
-> --- rivatv-0.8.4/src/i2c-riva.c.orig Sat Mar  6 09:48:13 2004
-> +++ rivatv-0.8.4/src/i2c-riva.c Sat Mar  6 09:47:58 2004
-> @@ -249,7 +249,7 @@
->   .owner             = THIS_MODULE,
->  #endif
->  #ifdef I2C_ADAP_CLASS_TV_ANALOG
-> -        .class             = I2C_ADAP_CLASS_TV_ANALOG,
-> +        .class             = I2C_ADAP_CLASS_TV_ANALOG |
-I2C_ADAP_CLASS_DDC,
->  #endif
->  };
->  
-> @@ -265,7 +265,7 @@
->   .owner             = THIS_MODULE,
->  #endif
->  #ifdef I2C_ADAP_CLASS_TV_ANALOG
-> -        .class             = I2C_ADAP_CLASS_TV_ANALOG,
-> +        .class             = I2C_ADAP_CLASS_TV_ANALOG |
-I2C_ADAP_CLASS_SMBUS,
->  #endif
->  };
->  
-> Let me know if it works. If it does I'll send it to the rivatv team.
-> 
-> BTW, "No i2c-bus specified!" on i2cdetect simply means that i2cdetect
-> expects a bus number as its first argument, which you had not being
-> suplying. Try "i2cdetect 2" for example, and it'll scan the i2c bus 2
-> for devices.
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
+> But I replaced two lines manually and now everything works great.
+
+I guess that your mail client broke the inline patch... Well, as long as
+you got it to work :)
+
+I've submitted a bug report to the rivatv folks, with that patch, so
+that they can "correct" it in CVS too (also I wouldn't call this a bug
+of theirs).
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
