@@ -1,7 +1,7 @@
 From: alex@alexdalton.org (Alexandre d'Alton)
-Date: Thu, 19 May 2005 06:24:52 +0000
+Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: ADM1030 Driver
-Message-Id: <1081938139.407d10db2c415@imp5-q.free.fr>
+Message-Id: <1082400088.656.5.camel@megapc>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040319224106.79f6cec3.cedric.pradalier@inrialpes.fr>
 In-Reply-To: <20040319224106.79f6cec3.cedric.pradalier@inrialpes.fr>
@@ -10,58 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Jean Delvare <khali@linux-fr.org>:
-
-> > I thought that I had changed all to take 0-1 as parameter.
-> > The bottom macros uses 1-2 bacause of the file naming conventions, I
-> > think that defining registers with not real values is also confusing.
-> 
-> I'm not sure I get what you mean exactly.
-> 
-> You can still call the macros with (nr-1) as the parameter, so it
-> shouldn't cause problems (and I now see that you already do that).
-
-OK we agreed then.
-
-> 
-> > > You aren't taking advantage of the extended temperature resolution
-> > > bits, are you?
-> > 
-> > No I don't for instance.
-> 
-> ("for instance" = "par exemple")
-
-Have to improve my english :)
-So I would say, I don't take advantage of extended resolution YET.
-
-> 
-> > > > /* These macros converts sysfs-sensors compliant values into
-> > > >  * corresponding register value.
-> > > >  */
-> > > > #define to_reg_temp_min(reg, val) ((((val)/500) & 0xf8)|((reg) &
-> > 0x7))
-> > > > #define to_reg_temp_range(reg, val) (((reg) & 0xf8) | \
-> > > > (((val)<10000 ? 0 :                                   \
-> > > >   (val)<20000 ? 1 :                                   \
-> > > >   (val)<40000 ? 2 :                                   \
-> > > >   (val)<80000 ? 3 : 4) & 7))
-> > > 
-> > > It just me, or is this macro plain broken?
-> > 
-> > Can I ask why without beeing an idiot ?
-> 
-> Answer 1: it was just me. So I am the actual idiot ;)
-
-Nobody is an idiot.
-
-> 
-> > > And usually, converters do not deal with the registers as you do.
-> > > The converters should return the "raw" values, and the caller can
-> > > then combine these with other values.
-> > 
-> > That means that we'll have different versions of set and show
-> > functions ?
-> 
+On Wed, 2004-04-14 at 12:07, Jean Delvare wrote:
 > Now I see that most of your choices were guided by the choice to have a
 > single macro for all "set" functions. The other drivers also try to
 > refactor these functions where possible, but to a lesser extent,
@@ -77,8 +26,9 @@ Nobody is an idiot.
 > don't know if it is shared by the other developers. So just do as you
 > like.
 
-So, if I get you, if it is easier to read to define more than one set macro or
-function, I can do it ?
+So I'll try to be more compliant with lm85 driver. And for the tricky
+registers, I'll define functions that handles them without using the
+global show and set macros.
 
 > 
 > > > Now I get why you were defining multiple macros. You can just pass
@@ -95,9 +45,6 @@ function, I can do it ?
 > was refering to. I was thinking of the fan speed (in RPM, not PWM)
 > below which an alarm is triggered. All fan monitoring chips have that.
 > Don't the ADM1030 do?
-
-Yes, it is the TACH register. I have to implement the access to that register.
-
 > 
 > > > Where is fan1_min?
 > > 
@@ -105,11 +52,6 @@ Yes, it is the TACH register. I have to implement the access to that register.
 > 
 > This cannot be, BTW, since fan1_min has to be a RPM value according to
 > Documentation/i2c/sysfs-interface.
-
-I misunderstood, you're right, pwm1 will be the min value at which the fan will
-spin, and fan1_min (to be added) will be the fan speed uner which the chip will
-generate a fan_fault interrupt.
-
 > 
 > > > 1* How does bit 0 of configuration register 2 work? Maybe it could
 > > > be exported as pwm1_enable (if that's what it does).
@@ -120,7 +62,7 @@ generate a fan_fault interrupt.
 > 
 > Please try and tell me.
 
-I'll test it as soon as I'll be in front of my computer.
+Clearing that bit disables PWM output, so the fan doesn't run at all!
 
 > 
 > > I'll try to integrate adm1031 support in the next version i'll post.
@@ -145,18 +87,3 @@ I'll test it as soon as I'll be in front of my computer.
 > You got it.
 > 
 > More on automatic PWM after lunch ;)
-
-Bon appetit !
-
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
-> 
-
-
--- 
--------------------------------------------------
-Alexandre d'ALTON
-                              alex@alexdalton.org
