@@ -1,31 +1,15 @@
 From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:47 +0000
-Subject: i2c-dev
-Message-Id: <405256CE.2060407@verizon.net>
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: i2c 2.8.7
+Message-Id: <40CA311E.7040100@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4051F5A2.8030209@interbartolospa.it>
-In-Reply-To: <4051F5A2.8030209@interbartolospa.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-recent versions of sensors-detect should find the busses under /sys.
-Get our latest userspace tools and it should work.
-
-gianluca interbartolo wrote:
-> Hi,
-> I'm using kernel 2.6.4 and module i2c-viapro (I have an Asus A7V8X).
-> When I load i2c-dev I get no error, but under /proc/bus there is no i2c
-> directory. So using sensors-detect gives an error trying to open
-> /proc/bus/i2c.
-> Instead there is a /sys/bus/i2c directory, with subdirs that have no
-> files. What does it mean? There is a different approach despite of
-> documentation or a bug in i2c-dev?
-> Bye,
-> 
-> Gianluca Interbartolo
-> 
-> 
-> 
-> 
+I'm not sure we needed to do a 2.8.7 package for i2c,
+or to say on the download page that sensors 2.8.7 requires i2c 2.8.7.
+There's nothing in the i2c changelog of note (and the changelog needs to be fixed
+to note that we didn't have a 2.8.5 or 2.8.6 release).
+Khali do you know of anything? If not let's fix the download page.
