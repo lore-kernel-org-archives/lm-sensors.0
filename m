@@ -1,48 +1,47 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: mds@mds.gotdns.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: Winbond W83792D driver
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5757@weshml03.winbond.com.tw>
+Message-Id: <4248F684.4090307@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBNRFMKCj4gPiBJIGZpeGVkIGEgYnVnIHdoZW4gZGlzcGxheWluZyBuZWdhdGl2ZSB0ZW1w
-ZXJhdHVyZXMgYW5kIHNldHRpbmcKPiA+IHRlbXBlcmF0dXJlIGxpbWl0cyBpbnRvIG5lZ2F0aXZl
-IHZhbHVlLgo+ID4KPiA+IFBsZWFzZSB1c2UgdGhlIGF0dGFjaGVkIHBhdGNoIHRvIHVwZGF0ZSA3
-OTIgZHJpdmVyIGZvciBsaW51eC0yLjQKPiA+IGZvciBtZS4KPiAKPiBjaGVja2VkIGluLiB0aGFu
-a3MgZm9yIHNlbmRpbmcgaXQgaW4gcGF0Y2ggZm9ybS4gcGVyZmVjdC4KPiBtZHMKCkFyZSB5b3Ug
-c3VyZSB5b3UgdGhhdCBoYXZlIGNoZWNrIGludG8gdGhlIGxtX3NlbnNvcnMgQ1ZTPyBCdXQgSSBj
-YW4gTk9UCmZpbmQgdGhlIG1vZGlmaWNhdGlvbiBuZWl0aGVyIGluOgpodHRwOi8vd3d3Mi5sbS1z
-ZW5zb3JzLm51L35sbTc4L2N2cy9sbV9zZW5zb3JzMi9rZXJuZWwvY2hpcHMvdzgzNzkyZC5jCm5v
-cgpodHRwOi8vd3d3Mi5sbS1zZW5zb3JzLm51L35sbTc4L2N2cy9icm93c2UuY2dpL2xtX3NlbnNv
-cnMyL2tlcm5lbC9jaGlwcy8KdzgzNzkyZC5jCgpCdHcsIHdoYXQncyB0aGUgZGlmZmVyZW5jZSBi
-ZXR3ZWVuIHRoZSBhYm92ZSB0d28gdmVyc2lvbnM/IEJlc2lkZXMgdGhhdApsYXR0ZXIgY29udGFp
-bnMgbGluZSBudW1iZXJzLiBXaGljaCBvbmUgc2hvdWxkIEkgdXNlIGFzIHRoZSBuZXdlc3QKdmVy
-c2lvbgp0byBkb3dubG9hZD8KClRoYW5rcwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25m
-aWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQg
-Zm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2lu
-YWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5k
-aWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkg
-b2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5k
-ZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJv
-bSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsg
-eW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRo
-b3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJp
-Y3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBk
-b2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwg
-YmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIg
-aXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxv
-d2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlz
-aCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQs
-ILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6as
-q0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t
-7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6
-plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGk
-bKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSn
-pLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
+Huang0@Winbond.com.tw wrote:
+> Dear MDS
+> 
+> 
+>>>I fixed a bug when displaying negative temperatures and setting
+>>>temperature limits into negative value.
+>>>
+>>>Please use the attached patch to update 792 driver for linux-2.4
+>>>for me.
+>>
+>>checked in. thanks for sending it in patch form. perfect.
+>>mds
+> 
+> 
+> Are you sure you that have check into the lm_sensors CVS? But I can NOT
+> find the modification neither in:
+> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/kernel/chips/w83792d.c
+> nor
+> http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/kernel/chips/
+> w83792d.c
+> 
+> Btw, what's the difference between the above two versions? Besides that
+> latter contains line numbers. Which one should I use as the newest
+> version
+> to download?
+> 
+> Thanks
+> Best Regards
+> Chunhao
+
+haha I thought I had checked it in but I hadn't. Sorry.
+
+the only difference in the two links is one has line numbers.
+
+have a great tuesday :)
