@@ -1,7 +1,7 @@
-From: phil@philedelbrock.com (Philip Edelbrock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:27 +0000
 Subject: Call for 2.9.0
-Message-Id: <89D94EB2-57A8-11D9-984F-000A95A4F536@philedelbrock.com>
+Message-Id: <20041228135237.44db83da.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041208224836.7794b56c.khali@linux-fr.org>
 In-Reply-To: <20041208224836.7794b56c.khali@linux-fr.org>
@@ -10,37 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Quoting myself (again):
 
-OK, I just got back from a family gathering.  I'll release tomorrow 
-unless there is some urgency pointed out to me.
+> I just verified compatibility with old kernels back to 2.4.10, and
+> commited a couple trivial fixes for this. 2.4.9 is no longer
+> supported, as it would require more work than is worth (most notably
+> because MODULE_LICENSE doesn't exist back there).
 
+I was not quite correct here. MODULE_LICENSE is properly handled from a
+long time through a quirk in i2c.h. i2c 2.9.0 will actually be
+2.4.9-compatible. However, lm_sensors 2.0 won't and we probably don't
+want it to be. 2.4.9 not only lacks MODULE_LICENSE but also snprintf,
+min_t/max_t and a couple other functions/macros used in various
+lm_sensors drivers. I see little point in supporting 2.4.9 in i2c and
+only 2.4.10 in lm_sensors, which is why I believe we can happily go with
+2.4.10 for both. Only a fool would use such old kernels today anyway.
 
-Phil
-
-On Dec 24, 2004, at 7:55 AM, Mark Studebaker wrote:
-
-> agreed. I bumped libsensors.
-> Phil, at your convenience....
-> merry christmas.
-> mds
->
-> Jean Delvare wrote:
->> Quoting myself:
->>> Can we schedule a release for next week?
->> I just verified compatibility with old kernels back to 2.4.10, and
->> commited a couple trivial fixes for this. 2.4.9 is no longer 
->> supported,
->> as it would require more work than is worth (most notably because
->> MODULE_LICENSE doesn't exist back there).
->> I also reviewed the documentation and updated it where needed, most
->> notably to reflect the fact that 2.4.10 is now the oldest supported
->> kernel, and also to discard references to the now gone bttv
->> compatibility issue.
->> I think we are ready for a release. Libsensors version will need a 
->> bump,
->> not exactly sure if we would number it 3.0.7 or 3.1.0.
->> I will be mostly away from the Internet for the next few days. Feel 
->> free
->> to release while I am gone unless a problem arise.
->> Thanks,
->
+Thanks,
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
