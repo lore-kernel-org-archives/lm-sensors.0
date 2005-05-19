@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: LM83 driver
-Message-Id: <3F19E82E.2080409@paradyne.com>
+Message-Id: <3F19E97F.6030705@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030703194558.60bc8955.khali@linux-fr.org>
 In-Reply-To: <20030703194558.60bc8955.khali@linux-fr.org>
@@ -10,21 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Of course with libsensors apps you don't care about /proc standards.
 
+The benefit is in writing simple non-libsensors scripts, etc.
+(see our new prog/pwm/pwmconfig) which are only feasible if we follow
+consistent standards for /proc.
 
 Jean Delvare wrote:
->>- You could have done one /proc callback function rather than 4
+>>For no longer than the /proc standard is going to last (sysfs anyone)
+>>I think it would be much better to have a "dummy" value.
 > 
 > 
-> Hm, how do I know who's calling me then? Using ctl_name and the
-> LM83_SYSCTL_* constants defined earlier? I don't exactly see the
-> interest yet. Though the functions are similar, most of the code really
-> depend on the sensor, so I don't think we'll win in clarity nor code
-> size. But maybe it's just me. Where could I look at a similar situation
-> in our code?
+> Why that? Our structures are flexible enough to support that, libsensors
+> supports it, sensors supports it. In which case would the dummy value
+> help? I just can't see any.
 > 
-
-
-See w83781d_pwm() in w83781d.c which uses subtraction to convert the SYSCTL number
-to PWM number, and the W83781D_REG_PWM macro which indexes into a static array of
-register numbers.
+> As for the procfs vs. sysfs thing, it is unrelated IMHO. If we are to
+> allow 2-values temperature files for sysfs, we can as well do so for
+> procfs. If anything needs to be changed to support this (I still don't
+> see what yet), it will have to for at least sysfs so it maybe won't even
+> notice it's the same for some recent procfs drivers.
+> 
+> Of course, adding a dummy value is easy and we already have at least one
+> driver that does it - adm1021 for lm84 - but I don't like adding
+> constraints when I feel they will only slow us down on our path to
+> progress. Letting the driver choose how many temperature values it wants
+> to repport is a good idea, methinks. One could imagine drivers only
+> repporting the current value, or max and current (this is the case for
+> my lm83 driver), or over, hyst and current as most of our drivers do.
+> But there are other possibilities, such as max, min, current (I think we
+> have some drivers that do that) or max, hystmax, min, hystmin and
+> current resulting in a 5-value file. The same could apply to other
+> measures such as in's and fan's.
+> 
+> The fact that we try to have a common base for all sensor drivers
+> doesn't mean we must ignore chips specificity. Sadly, it looks like this
+> is what we tend to do when a single drivers support many, many chips. I
+> think that's something we should think about. After all, that's the idea
+> Unix is living with for decades (do one thing and do it well).
+> 
+> Comments welcome, of course.
+> 
