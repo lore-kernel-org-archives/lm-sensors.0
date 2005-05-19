@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: sensors-detect enhancement needed for sysfs
-Message-Id: <3FBA2873.9030305@paradyne.com>
+Message-Id: <20031118212251.1558691d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3FB839E3.6C7D5CCD@paradyne.com>
 In-Reply-To: <3FB839E3.6C7D5CCD@paradyne.com>
@@ -10,30 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-oops, I've been working on an isaset and forgot it was in Module.mk.
-isaset isn't ready yet so feel free to remove it from Module.mk
-or I'll do it tonight.
-thanks
-mds
 
+> I've enhanced i2cdetect, i2cdump, and i2cset using the new common
+> function in i2cbusses.c to list all the i2c busses, whether in 2.4 or
+> 2.6 kernels. In 2.6 it's essentially 'cat
+> /sys/class/i2c-adapter/*/device/name' but see i2cbusses for details
+> like finding the sysfs mount point.
+> 
+> We need a perl volunteer to make a similar enhancement at two places
+> in sensors-detect where it scans /proc/bus/i2c.
+> 
+> Note that the adapter name, but not the algorithm, is available in
+> sysfs. I've hacked around that in libsensors and in the programs
+> above. Guess it's not really necessary.
+> 
+> Anybody like to tackle sensors-detect?
 
-Mark M. Hoffman wrote:
+I'm on it, providing you tell me what exactly I'm supposed to do there.
 
-> * Mark D. Studebaker <mds@paradyne.com> [2003-11-16 22:00:51 -0500]:
-> 
-> 
->>I've enhanced i2cdetect, i2cdump, and i2cset using the new common
->>function in
->>i2cbusses.c to list all the i2c busses, whether in 2.4 or 2.6 kernels.
->>In 2.6 it's essentially 'cat /sys/class/i2c-adapter/*/device/name' but
->>see i2cbusses for details like finding the sysfs mount point.
-> 
-> 
-> Hmm, did you forgot to 'cvs add prog/dump/isaset.c'?  I'm getting
-> a build error...
-> 
-> make: *** No rule to make target `prog/dump/isaset.rd'.  Stop.
-> 
-> Regards,
-> 
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
