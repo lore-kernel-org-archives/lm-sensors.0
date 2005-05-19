@@ -1,211 +1,74 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:42 +0000
-Subject: FW: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <Pine.LNX.4.58.0503091325360.25688@desitka.sh.cvut.cz>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:46 +0000
+Subject: Fw: Ask for some information about motherboard ASUS NCLV-D
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E548E@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-Yes stupid mail client.
-In attachment this time. Need to go to school. See you later.
-
-regards
-
-Rudolf
-
-
-
-On Wed, 9 Mar 2005 Huang0@Winbond.com.tw wrote:
-
-> Hi Rudolf
->
-> I failed to patch it, Is there any problem when I use your patch?
-> Please check it:
->
-> [root@ /usr/src/linux-2.6.10]# patch -p1 <patch1
-> patching file drivers/pci/quirks.c
-> patch: **** malformed patch at line 40: @@ -320,6 +350,15 @@
->
-> [root@ /usr/src/linux-2.6.10]# diff drivers/pci/quirks.c drivers/pci/quirks.c.bak
-> [root@ /usr/src/linux-2.6.10]#
->
->
-> Thanks
-> Best Regards
-> Chunhao
->
->
-> > -----Original Message-----
-> > From: Rudolf Marek [mailto:R.Marek@sh.cvut.cz]
-> > Sent: 2005??3??9?? 18:44
-> > To: PI14 HUANG0
-> > Cc: PI10 LHHsu; PI14 DZSHEN; sensors@stimpy.netroedge.com
-> > Subject: Re: FW: Ask for some information about motherboard ASUS NCLV-D
-> >
-> >
-> >
-> > >    GPIO42 : 0 (Low)
-> > >    GPIO43 : 1 (High)
-> > >
-> > >   For 6300ESB, the access method of these two pins is showed below.
-> > > Bit10, bit 11 are for these two pins.
-> >
-> > Yes thank you.
-> >
-> > Here is updated patch.
-> >
-> > Regards
-> >
-> > Rudolf
-> >
-> > diff -Naur a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-> > --- a/drivers/pci/quirks.c	2005-03-02 08:37:31.000000000 +0100
-> > +++ b/drivers/pci/quirks.c	2005-03-09 10:56:36.877494936 +0100
-> > @@ -306,6 +306,36 @@
-> >  }
-> >  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > 	PCI_DEVICE_ID_INTEL_82371AB_3,	quirk_piix4_acpi );
-> >
-> > +/* Not only ASUS hides SMBUS, sometimes hides also devices on it.
-> > +It is known that they use GPIO lines from ISA bridge or LPC IO chip
-> > +to trigger the multiplexer on SMBUS.
-> > +
-> > +Information for this particular W83792D case was provided by ASUS R&D on
-> > +request from Winbond.
-> > +
-> > +If we want to access W83792D, we should program these to GPO pins to
-> > +   GPIO42 : 0 (Low)
-> > +   GPIO43 : 1 (High)
-> > +(This should work for 6300ESB based motherboards)
-> > +*/
-> > +
-> > +#define GPIO_OUTPUT2_REG_HIGH 0x39
-> > +#define GPIO_IOSIZE_MASK 0x3F
-> > +
-> > +static int __initdata asus_server_board_hides_smbus_devices = 0;
-> > +
-> > +static void __init asus_hides_smbus_devices(struct pci_dev *dev) {
-> > +	if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_ASUSTEK)) {
-> > +			switch(dev->subsystem_device) {
-> > +			case 0x8117: /* ASUS server board (NCLV-D) */
-> > +				asus_server_board_hides_smbus_devices = 1;
-> > +				break;
-> > +			}
-> > +	}
-> > +}
-> > +DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ESB_4,
-> > 	asus_hides_smbus_devices );
-> > +
-> > +
-> >  /*
-> >   * ICH4, ICH4-M, ICH5, ICH5-M ACPI: Three IO regions pointed to by longwords
-> > at
-> >   *	0x40 (128 bytes of ACPI, GPIO & TCO registers)
-> > @@ -320,6 +350,15 @@
-> >
-> >  	pci_read_config_dword(dev, 0x58, &region);
-> >  	quirk_io_region(dev, region, 64, PCI_BRIDGE_RESOURCES+1);
-> > +
-> > +	if (asus_server_board_hides_smbus_devices) {
-> > +		unsigned char val;
-> > +		val=inb((region&~GPIO_IOSIZE_MASK)+GPIO_OUTPUT2_REG_HIGH);
-> > +		val&=~0x4; /* GPIO42 : 0 (Low) */
-> > +		val|=0x8;  /* GPIO43 : 1 (High) */
-> > +		outb(val, (region&~GPIO_IOSIZE_MASK)+GPIO_OUTPUT2_REG_HIGH);
-> > +		printk(KERN_INFO "PCI: Canceling ASUS hide and seek played with SMBus
-> > monitoring chip\n");
-> > +	}
-> >  }
-> >  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > PCI_DEVICE_ID_INTEL_82801AA_0,		quirk_ich4_lpc_acpi );
-> >  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > PCI_DEVICE_ID_INTEL_82801AB_0,		quirk_ich4_lpc_acpi );
-> > @@ -330,6 +369,7 @@
-> >  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > PCI_DEVICE_ID_INTEL_82801DB_0,		quirk_ich4_lpc_acpi );
-> >  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > PCI_DEVICE_ID_INTEL_82801DB_12,	quirk_ich4_lpc_acpi );
-> >  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
-> > +DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,
-> > PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
-> >
-> >  /*
-> >   * VIA ACPI: One IO region pointed to by longword at
->
->
-> ==============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original author of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such person, please kindly reply the sender indicating accordingly and delete all copies of it from your computer and network server immediately. We thank you for your cooperation. It is advisable that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email that does not relate to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.==============================================If your computer is unable to decode Chinese font, please ignore the following message. They essentially repea!
->  t the&nbsp; English statement above.???H???????t?????q?l???]???????K?????T, ?????v???o?H?H???w?????H?H???\????. ?????z???D?Q???w?????H?H???]???????]?b???g???v?????????U???????H??, ???z?i?????o?H?H?????Y?N?H???q?q???P???????A???????H????. ?????z???X?@, ?????????P??. ?S??????, ???????g???v?????????????q?l?????K???T???????O?Q?Y???T????. ?H???P?????q?l???~?L???????e,???o?????????q?l?????????N??.
->
->
--------------- next part --------------
-diff -Naur a/drivers/pci/quirks.c b/drivers/pci/quirks.c
---- a/drivers/pci/quirks.c	2005-03-02 08:37:31.000000000 +0100
-+++ b/drivers/pci/quirks.c	2005-03-09 10:56:36.877494936 +0100
-@@ -306,6 +306,36 @@
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82371AB_3,	quirk_piix4_acpi );
- 
-+/* Not only ASUS hides SMBUS, sometimes hides also devices on it. 
-+It is known that they use GPIO lines from ISA bridge or LPC IO chip
-+to trigger the multiplexer on SMBUS.
-+
-+Information for this particular W83792D case was provided by ASUS R&D on
-+request from Winbond.
-+
-+If we want to access W83792D, we should program these to GPO pins to
-+   GPIO42 : 0 (Low)
-+   GPIO43 : 1 (High)
-+(This should work for 6300ESB based motherboards)
-+*/
-+
-+#define GPIO_OUTPUT2_REG_HIGH 0x39
-+#define GPIO_IOSIZE_MASK 0x3F
-+
-+static int __initdata asus_server_board_hides_smbus_devices = 0;
-+
-+static void __init asus_hides_smbus_devices(struct pci_dev *dev) {
-+	if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_ASUSTEK)) {
-+			switch(dev->subsystem_device) {
-+			case 0x8117: /* ASUS server board (NCLV-D) */
-+				asus_server_board_hides_smbus_devices = 1;
-+				break;
-+			}
-+	}
-+}
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ESB_4,	asus_hides_smbus_devices );
-+
-+
- /*
-  * ICH4, ICH4-M, ICH5, ICH5-M ACPI: Three IO regions pointed to by longwords at
-  *	0x40 (128 bytes of ACPI, GPIO & TCO registers)
-@@ -320,6 +350,15 @@
- 
- 	pci_read_config_dword(dev, 0x58, &region);
- 	quirk_io_region(dev, region, 64, PCI_BRIDGE_RESOURCES+1);
-+	
-+	if (asus_server_board_hides_smbus_devices) {
-+		unsigned char val;
-+		val=inb((region&~GPIO_IOSIZE_MASK)+GPIO_OUTPUT2_REG_HIGH);
-+		val&=~0x4; /* GPIO42 : 0 (Low) */
-+		val|=0x8;  /* GPIO43 : 1 (High) */		
-+		outb(val, (region&~GPIO_IOSIZE_MASK)+GPIO_OUTPUT2_REG_HIGH);
-+		printk(KERN_INFO "PCI: Canceling ASUS hide and seek played with SMBus monitoring chip\n");
-+	}
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801AA_0,		quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801AB_0,		quirk_ich4_lpc_acpi );
-@@ -330,6 +369,7 @@
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_0,		quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_12,	quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
- 
- /*
-  * VIA ACPI: One IO region pointed to by longword at
+RGVhciBKZWFuLCBSdWRvbGYKCkFzIHRvIHRoZSBwcm9ibGVtIHdlIG1lZXQgb24gdGhlIEFTVVMg
+TkNMVi1EIG1vdGhlcmJvYXJkIHdoZW4gdGVzdGluZwp3ODM3OTJkIGRyaXZlciB1bmRlciBsaW51
+eC0yLjQsIHdlIHNvbHZlIGl0IHdpdGggeW91ciBoZWxwIGJ5IHdyaXRpbmcgdGhlCnZhbHVlICIw
+eDA4IiBpbiAiMHgwNGI5IiwgYW5kIHVubG9hZGluZyB0aGUgZWVwcm9tIG1vZHVsZXMuCgpJIGhh
+dmUgdHdvIHF1ZXN0aW9ucyBoZXJlOgooMSkgQXMgd2Uga25vdywgaXQgd2lsbCBiZSB2ZXJ5IGlu
+Y29udmVuaWVudCBmb3IgdGhvc2UgdXNlcnMgd2l0aCBBU1VTCk5DTFYtRCBtb3RoZXJib2FyZCBh
+bmQgd2FudCB0byB1c2UgdzgzNzkyZCBkcml2ZXIgdW5kZXIgbGludXgtMi40LCBpZiB0aGV5Cmhh
+dmUgdG8gd3JpdGUgdGhlIHZhbHVlICIweDA4IiBpbnRvICIweDA0YjkiIGJ5IHRoZW1zZWx2ZXMg
+ZWFjaCB0aW1lLgpTbyBJIHdvbmRlciB3aGV0aGVyIHRoZSByZWxhdGVkIGJ1cyBkcml2ZXIgaGFz
+IGJlZW4gbW9kaWZpZWQgc28gdGhhdCB1c2VycwpjYW4gdXNlIHc4Mzc5MmQgZHJpdmVyIGVhc2ls
+eT8gV2lsbCB0aGUgY29taW5nIGxtX3NlbnNvcnMtMi45LjEgZml4IGl0PwoKKDIpIEhvdyBhYm91
+dCB0aGUgcHJvYmxlbSBvZiB1cGxvYWRpbmcgZWVwcm9tPyBOZWVkIHVzZXMgaGF2ZSB0byB1cGxv
+YWQgdGhlCmVlcHJvbSBieSB0aGVtc2VsdmVzPyBPciB0aGlzIHByb2JsZW0gYWxzbyBoYXMgYmVl
+biBmaXhlZD8KClRoYW5rcwoKQmVzdCBSZWdhcmRzCkNodW5oYW8KMjAwNS0wNS0yNgoKCj4gLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBQSTE0IEhVQU5HMAo+IFNlbnQ6IDIwMDXE
+6jPUwjfI1SAxMDowNwo+IFRvOiAnUnVkb2xmIE1hcmVrJzsgJ0plYW4gRGVsdmFyZScKPiBDYzog
+UEkxMCBMSEhzdTsgUEkxNCBEWlNIRU47IFBJMTMgQ0ZMaTsgc2Vuc29yc0BTdGltcHkubmV0cm9l
+ZGdlLmNvbQo+IFN1YmplY3Q6IFJFOiBGdzogQXNrIGZvciBzb21lIGluZm9ybWF0aW9uIGFib3V0
+IG1vdGhlcmJvYXJkIEFTVVMgTkNMVi1ECj4gCj4gRGVhciBSdWRvbGYsIEplYW4KPiAKPiA+IEkg
+aGF2ZSBhIHNvbHV0aW9uLiBCbG9jayByZWFkcyB0byBlZXByb20gYXJlIGxvY2tpbmcgdGhlIGJ1
+cy4KPiA+IFBsZWFzZSB1c2UgQ1ZTIHZlcnNpb24gb2YgbG1fc2Vuc29ycyBvciBkbyBOT1QgbG9h
+ZCBlZXByb20gbW9kdWxlLgo+ID4gVGhlbiBpdCBzaG91bGQgd29yay4gUGxlYXNlIG5vdGUgeW91
+IG5lZWQgdG8gZG8gdGhlIGlzYXNldCB0cmljay4KPiA+IEkgd2lsbCB3b3JrIG9uIHF1aXJrLmMg
+dG8ga2VybmVsIHRoaXMgd2Vla2VuZC4KPiAKPiBHb29kLCBhZnRlciBJIHVubG9hZCB0aGUgZWVw
+cm9tLCB0aGUgNzkyIGRyaXZlciBjYW4gd29yayBub3cuIFRoYW5rcwo+IGEgbG90Lgo+IAo+IAo+
+ID4gWWVzIEkgaGF2ZSBvbmUgcXVlc3Rpb24uIFRoZXkgYWR2aXNlIHRvIHdyaXRlIHRvIHBvcnQg
+YWxsIDggYml0cy4KPiA+IE1vcmUgY2xlYXIgc29sdXRpb24gd291bGQgYmUgdG8gbW9kaWZ5IHRo
+ZSBiaXRzIHRoYXQgYXJlICJpbiB0aGUgZ2FtZSIKPiA+IFNvIG15IHF1ZXN0aW9uIGlzOgo+ID4g
+V2hhdCBiaXQocykgZXhhY3RseSBpbiB0aGF0IHBvcnQgbmVlZChzKSB0byBiZSBtb2RpZmllZD8K
+PiA+IFdlIHNpbXBseSBsaWtlIGNsZWFuIHNvbHV0aW9ucy4KPiAKPiBJIGhhdmUgZm9yd2FyZGVk
+IHRoaXMgcXVlc3Rpb24gdG8gQVNVUywgd2hlbiBJIGdldCB0aGUgYW5zd2VyLCBJIHdpbGwKPiBm
+b3J3YXJkIHlvdS4KPiAKPiAKPiA+IEFsc28gaGVyZSBwYXRjaCBmb3IgMi42IGtlcm5lbHMgaXQg
+c2hvdWxkIGRvIHRoZSBpc2FzZXQgYXV0b21hdGljYWxseS4KPiA+IEl0IGNhbiBiZSBhcHBsaWVk
+IHRvIDIuNi4xMCBvciAyLjYuMTEKPiAKPiBJIHdpbGwgdXNlIHRoZSBwYXRjaCBpbiB0aGUgZnV0
+dXJlLCBiZWNhdXNlIHdlIGRvIE5PVCBoYXZlIGEgbGludXgtMi42Cj4gZW52aXJvbm1lbnQgb24g
+dGhpcyBtb3RoZXJib2FyZCwgYW5kIHRoZSA3OTIgZHJpdmVyIGZvciBsaW51eC0yLjYgaXMgc3Rp
+bGwKPiB1bmRlciBteSBkZXZlbG9wbWVudC4gSSB3aWxsIHVzZSBpdCB3aGVuIHdlIHN0YXJ0IHRv
+IHRlc3QgNzkyIGRyaXZlciBmb3IKPiBsaW51eC0yLjYsIHRoYW5rcy4gOi0pCj4gCj4gQmVzdCBS
+ZWdhcmRzCj4gCj4gQ2h1bmhhbwo+IDIwMDUtMDMtMDcKCgo9PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9y
+bWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBi
+eSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0
+aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlz
+IGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0
+byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcg
+YWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRl
+ciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBj
+b29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2Yg
+Y29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRl
+ZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRl
+IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBu
+ZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBk
+ZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4g
+VGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFi
+b3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ik
+SKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863s
+pl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mx
+TqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5
+rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm
+5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC1
+2Ki5uXGkbKSnpd+z9anOt06ooy4K
