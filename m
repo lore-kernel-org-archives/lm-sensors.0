@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: lm_sensors2/prog/detect sensors-detect
-Message-Id: <3FB59DE4.55A72B0F@paradyne.com>
+Message-Id: <20031115104547.50399d8d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021107235845.0037e195.khali@linux-fr.org>
 In-Reply-To: <20021107235845.0037e195.khali@linux-fr.org>
@@ -10,54 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-never mind.
-I think, on the iopener, when sensors-detect gave the IBM warning,
-I was running as non-root.
-It doesn't give the warning when run as root.
-Sorry for the false alarm.
 
-But anyway, would it be helpful to put out a message in sensors-detect
-when it can't determine the system type, even as root?
+> never mind.
+> I think, on the iopener, when sensors-detect gave the IBM warning,
+> I was running as non-root.
+> It doesn't give the warning when run as root.
+> Sorry for the false alarm.
 
-And yes, on the 2 "typical" machines, it doesn't mention VPD.
+I prefer it that way, since I had some difficulties imagining what would
+have cause such a failure in the detection code.
 
-nice job on the dmidecode package and website BTW.
+> But anyway, would it be helpful to put out a message in sensors-detect
+> when it can't determine the system type, even as root?
 
-Jean Delvare wrote:
-> 
-> > tested new sensors-detect on 4 machines.
-> > 2 w/ ACPI+DMI worked fine.
-> 
-> Typical configuration. The output doesn't even mention VPD, right?
-> 
-> > One with neither (iopener) gave the standard Thinkpad warning at the
-> > beginning.
-> 
-> Should not happen. This could happen if /dev/mem is unreadable for some
-> reason. Could you download dmidecode CVS and give a try to biosdecode?
-> Then edit the Makefile, remove -DUSE_MMAP, compile again and retry.
-> Might crash. If it does, this means I should use mmap() to access
-> /dev/mem in sensors-detect - although I don't even know how to do that.
-> 
-> Anything special about that iopener? You once sent me a copy of the BIOS
-> area and there's nothing strange at first sight, except that it actually
-> doesn't support any of ACPI, SMBIOS nor VPD.
-> 
-> If biosdecode works OK on it (both with and without -DUSE_MMAP), please
-> try to track down why system_safeness_by_vpd in sensors-detect returns
-> 0. There are three reasons it could (you'll see in the code). The third
-> one is the more likely to cause problems (I think).
-> 
-> > On my HP ia64 machine it didn't give any ACPI or DMI info but didn't
-> > give the Thinkpad warning either... what's up with that?
-> 
-> That's the expected behavior. This is why VPD supersedes the other
-> methods. If ACPI or DMI isn't present, you can't conclude, while VPD
-> being not there *does* mean that it's not an IBM system (with the
-> exception of one very specific Thinkpad model).
-> 
-> Thanks a lot for the feedback.
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+Auxiliary question, should we even accept running as non-root? We can't
+detect an IBM system if we are not root, still the user can scan any
+already-loaded bus driver, providing i2c-dev is loaded too. Isn't it
+dangerous? OTOH i2c-dev shouldn't be loaded on such a system, and
+i2c-piix4 shouldn't possibly load anyway.
+
+(BTW, should I replace DMI with VPD in i2c-piix4/dmi_scan? Or is it
+considered a feature to use different protection systems? Not all
+Thinkpads have a DMI table. OTOH, DMI scan is already handled by the
+kernel so idealy we could get rid of dmi_scan, as it was done in
+Linux 2.6. And after all, the eeprom module is supposed to be safe WRT
+faulty eeproms now, so dmi/vpd detection at this level is not really
+required anymore, right?)
+
+To answer your question, failing to detect the system type now (with
+VPD) can only occur if we can't read /dev/mem (because we are not root,
+or because a read error occured, which could happen on some non-i386
+architectures). Since all Thinkpads are i386 systems AFAIK, the second
+case isn't really a problem.
+
+And we already output a message if the system type couldn't be detected.
+I'll just leave it in place.
+
+> And yes, on the 2 "typical" machines, it doesn't mention VPD.
+
+Which basically means "the system is safe", left apart the two cases
+mentioned above.
+
+> nice job on the dmidecode package and website BTW.
+
+Thanks :) Do you really like the website. I'm not sure how to organize
+it. For now, there's a single page with anything on it. I wonder if I
+should split it into many pages, but actually there isn't that much to
+write about it, so my conclusion so far was that it wasn't necessary.
+
+As for the design, see how clean and easy it is to use CSS and XHTML to
+get an easy-to-maintain site. Admittedly, I kept the look very simple,
+half because I like simple and fast-loading pages as a user, half
+because I am not particularily talented when it comes to complex design.
+
+I'd love to see the lm_sensors website with a single CSS and clean HTML
+pages too, unfortunately I don't really have the time to work on this -
+and after all the current website does its job rather well, methinks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
