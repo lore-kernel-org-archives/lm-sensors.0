@@ -1,95 +1,74 @@
-From: jaclu@galdrion.com (Jacob Lundqvist)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: config for Asus a7v333 motherboard
-Message-Id: <200208051135.17821.Jacob Lundqvist Jacob Lundqvist>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: [PATCH 2.6] sensors chip updates (1 of 4)
+Message-Id: <20031216040204.GB1658@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031216035219.GA1658@earth.solarsys.private>
+In-Reply-To: <20031216035219.GA1658@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@Stimpy.netroedge.com>
 
-Hi,
-It took me some time to get my motherboard running, thought I should share the 
-config, since I didnt find anyplace on the site, I use this adr, sorry if I 
-bother the wrong person...
 
-	regards /Jacob Lundqvist
+This patch improves chip detection.  It was forward ported from the 
+lm_sensors project CVS, from these revisions:
 
------- /etc/modules.conf ---------
-alias char-major-89 i2c-dev
-options w83781d force_as99127f=0,0x2d
----------------------------------------------
+	1.104 (Khali) Enhance chip detection (stricter).
+	1.108 (Khali) Fix W83627HF detection.
 
------- /etc/modules.conf --------
-chip "as99127f-*"
-
-#
-# Configured for Asus a7v333 by Jacob Lundqvist (jaclu@galdrion.com)
-# 2002-07-22
-#
-# Same as above for w83782d except that in5 and in6 negative voltages
-# are computed as in the w83781d.
-# Asus won't release a datasheet so this is guesswork.
-# New in5 and temp2 calculations courtesy Guntram Blohm.
-
-    label in0 "VCore 1"
-    label in1 "VCore 2"
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    label in5 "-12V"
-    label in6 "-5V"
-
-    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
-    compute in5 -(240/60.4)*@ ,  -@/(240/60.4)
-    compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
-
-    label fan1 "CPU Fan"
-    label fan2 "P/S Fan"
-
-    label temp2 "CPU Temp"
-    label temp1 "MB Temp"
-
-    #compute temp2 (@*30/43)+25, (@-25)*43/30
-    compute temp2 @*2, @/2
-    set temp2_over 65
-    set temp2_hyst 62
-    set fan1_div 8
-    set fan2_div 8
-    set fan3_div 8
-
-    ignore fan3 # comment if you got a third fan
-
-    # dont know what temp3 is, so I just ignore it...
-    ignore temp3
-
-    label vid "Core cfg"
-
-# adjust this if your vid is wrong; see doc/vid
-#   set vrm 9.0
-
-# set limits to  5% for the critical voltages
-# set limits to 10% for the non-critical voltages
-# set limits to 20% for the battery voltage
-
-    set in0_min vid*0.95
-    set in0_max vid*1.05
-    set in1_min vid*0.95
-    set in1_max vid*1.05
-    set in2_min 3.3 * 0.95
-    set in2_max 3.3 * 1.05
-    set in3_min 5.0 * 0.95
-    set in3_max 5.0 * 1.05
-    set in4_min 12 * 0.90
-    set in4_max 12 * 1.10
-    set in5_max -12 * 0.90
-    set in5_min -12 * 1.10
-    set in6_max -5 * 0.95
-    set in6_min -5 * 1.05
-----------------------------------------------------
-
-------- modules to load at startup --------
-modprobe i2c-viapro
-modprobe w83781d
-----------------------------
+--- linux-2.6.0-test11-gkh/drivers/i2c/chips/w83781d.c	2003-12-14 13:53:50.000000000 -0500
++++ linux-2.6.0-test11-mmh/drivers/i2c/chips/w83781d.c	2003-12-14 15:50:46.000000000 -0500
+@@ -24,10 +24,11 @@
+     Supports following chips:
+ 
+     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
+-    as99127f	7	3	1?	3	0x30	0x12c3	yes	no
+-    asb100 "bach" (type_name = as99127f)	0x30	0x0694	yes	no
+-    w83781d	7	3	0	3	0x10	0x5ca3	yes	yes
+-    w83627hf	9	3	2	3	0x20	0x5ca3	yes	yes(LPC)
++    as99127f	7	3	1?	3	0x31	0x12c3	yes	no
++    as99127f rev.2 (type_name = 1299127f)	0x31	0x5ca3	yes	no
++    asb100 "bach" (type_name = as99127f)	0x31	0x0694	yes	no
++    w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
++    w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
+     w83627thf	9	3	2	3	0x90	0x5ca3	no	yes(LPC)
+     w83782d	9	3	2-4	3	0x30	0x5ca3	yes	yes
+     w83783s	5-6	3	2	1-2	0x40	0x5ca3	yes	no
+@@ -1264,7 +1265,7 @@
+ 			goto ERROR2;
+ 		}
+ 		/* If Winbond SMBus, check address at 0x48.
+-		   Asus doesn't support */
++		   Asus doesn't support, except for as99127f rev.2 */
+ 		if ((!is_isa) && (((!(val1 & 0x80)) && (val2 = 0xa3)) ||
+ 				  ((val1 & 0x80) && (val2 = 0x5c)))) {
+ 			if (w83781d_read_value
+@@ -1295,18 +1296,17 @@
+ 			goto ERROR2;
+ 		}
+ 
+-		/* mask off lower bit, not reliable */
+-		val1 -		    w83781d_read_value(new_client, W83781D_REG_WCHIPID) & 0xfe;
+-		if (val1 = 0x10 && vendid = winbond)
++		val1 = w83781d_read_value(new_client, W83781D_REG_WCHIPID);
++		if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
+ 			kind = w83781d;
+ 		else if (val1 = 0x30 && vendid = winbond)
+ 			kind = w83782d;
+-		else if (val1 = 0x40 && vendid = winbond && !is_isa)
++		else if (val1 = 0x40 && vendid = winbond && !is_isa
++				&& address = 0x2d)
+ 			kind = w83783s;
+-		else if ((val1 = 0x20 || val1 = 0x90) && vendid = winbond)
++		else if ((val1 = 0x21 || val1 = 0x90) && vendid = winbond)
+ 			kind = w83627hf;
+-		else if (val1 = 0x30 && vendid = asus && !is_isa)
++		else if (val1 = 0x31 && !is_isa && address >= 0x28)
+ 			kind = as99127f;
+ 		else if (val1 = 0x60 && vendid = winbond && is_isa)
+ 			kind = w83697hf;
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
