@@ -1,66 +1,71 @@
-From: rtos@vsnl.net (Jeff)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Development Services on RTOS and Drivers
-Message-Id: <200203201150.g2KBo5X31990@Stimpy.netroedge.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:38 +0000
+Subject: negative voltages (was Re: [BK PATCH] i2c driver fixes for
+Message-Id: <20040202014639.GA21554@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200203180626.g2I6QlX09813@Stimpy.netroedge.com>
-In-Reply-To: <200203180626.g2I6QlX09813@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Development Services on RTOS and Drivers for your organization
+(trimmed CC list - we can report back to LKML with conclusion)
 
-Dear Sir/Madam,
+> > * J.A. Magallon <jamagallon@able.es> [2004-01-29 23:56:59 +0100]:
+> >
+> > > Oops, not so good:
+> > >           
+> > > > -12V:     -12.18 V  (min = -12.57 V, max = -11.35 V)    ALARM
+> > > > -5V:       -4.96 V  (min =  -5.25 V, max =  -4.74 V)    ALARM
+> > > 
+> > > Why ALARM ?
 
-Greetings.
+<trimmed>
 
-I am Jeff, Executive-Business Development for Real-Time Embedded solutions, India. 
+* Jean Delvare <khali@linux-fr.org> [2004-01-30 10:36:51 +0100]:
+> What Mark says is perfectly true as a generic remark, but this isn't the
+> problem here. The problem is that the limits of negative voltages are
+> swapped. Internally, the low limit is the one nearer from 0, i.e. the
+> lesser in absolute value. Your output shows the contrary.
+> 
+> This is a bug in the driver, or libsensors, or both. We have to take a
+> look at this really soon. This is on my to-do list for some times
+> already, just gimme some more time.
 
-We specialize in RTOSs and Device Driver Development to deliver 'first-to-market' solutions.
+There is no bug in the driver, *nor* (I think) in libsensors...
 
-We would like to work with you in providing development with RTOSs and Device Drivers for you and your clients business requirements.
+Nevermind sensors(1) or libsensors for a moment.  With my w83781d,  I
+see this:
 
-These are the offshore development services offered by us:
+/sys/.../in_max5   => 3.616V
+/sys/.../in_input5 => 3.328V
+/sys/.../in_min5   => 3.264V
 
-Platforms:
+This scenario shows no alarm, nor should it.  This represents the voltage at
+the pin of the w83781d.  Making no assumptions about what in5 is, this is the
+correct and logical conclusion.
 
-* Application development with RTOS
-- VxWorks,pSOS, Nucleus,CMX, embedded and RT Linux, embedded NT 
-* Development/porting of proprietary RTOS/schedulers to new HW platform 
-* Device Drivers for Windows ( WDM, NDIS ) and Linux 
-* Board Support Packages (BSP) 
-* Benchmarking, fine tuning and optimization 
-* Development/Testing of BIOS 
+Using sensors(1), I see this:
 
-Our value proposition to your firm and your clients  include:
+-12V:     -11.57 V  (min = -11.35 V, max = -12.57 V)
 
-* Cost effective offshore development services
-* Experienced development team with good project management and communications skills
-* In-depth knowledge and expertise in design and development of Real Time Embedded systems
-* Quick ramp-up of additional Technical and Project Management Teams
-* Established Quality Processes and Project Management Expertise
-* Web based project tracking and collaboration environment for easy remote project execution 
-  and management
-* Proven Expertise
+But it can't be that min > max, so how to fix it?  Since changing the driver
+has been ruled out...
 
-We will mail you detailed expertise summary of our firm based on your request. 
-We can further discuss about our offerings and areas for working together along with our 
-technology team depending on your availability. Could you please confirm a date and time for the 
-telephonic conversations and a meeting.
+If we reverse the sense of min/max in libsensors, that leads to the 
+undesirable effect of in_max5 modifying /sys/.../in_min5.  But worse,
+what if in5 is a positive voltage on a given board?  Oops, now we
+broke it for them.
 
-Looking forward to hearing from you in this regard.
+If anything, what is needed in sensors.conf is a "negative voltage" flag
+which can signal the situtation to the library so it can be handled
+correctly.
 
-Best Regards,
+Or, we can just document that min/max are absolute values and be done
+with it.  That would force a review of all 2.4 drivers that might have
+reversed voltages (are there any?),  but that's my vote... comments?
 
-Jeff. S
-Executive-Business Development
-rtos@vsnl.net
- 
-San Francisco ... New Jersey ... Bangalore
--------------------------------------------------------------------------------------
-The information in this email and any attachments is confidential and
-may be legally privileged. All liability for viruses is excluded to the
-fullest extent permitted by law.  Any views expressed in this message are those of the
-individual sender, except where the sender states them, with requisite authority.
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
