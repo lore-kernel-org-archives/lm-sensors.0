@@ -1,7 +1,7 @@
 From: ben@fluff.org.uk (Ben Dooks)
 Date: Thu, 19 May 2005 06:25:38 +0000
 Subject: TI TMP101 driver
-Message-Id: <20050219231713.GD28744@home.fluff.org>
+Message-Id: <20050219232242.GE28744@home.fluff.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050218154856.GA14189@home.fluff.org>
 In-Reply-To: <20050218154856.GA14189@home.fluff.org>
@@ -10,43 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Feb 19, 2005 at 05:46:19PM +0100, Jean Delvare wrote:
-> Hi Ben, hi Mark,
+On Sat, Feb 19, 2005 at 12:06:12PM -0500, Mark Studebaker wrote:
+> Jean Delvare wrote:
+> >Hi Ben, hi Mark,
+> >
+> >
+> >>>isn't this chip compatible with the LM75 and its driver?
+> >>>what's different about it if anything?
+> >>
+> >>configuration register is different, the temperature
+> >>comparison is also different (tmp101 has low/high range)
+> >
+> >
+> >Configuration is extended but compatible. Your driver doesn't seem to
+> >make use of the extra configuration bits (only raises OS/ALERT, which is
+> >already set by default).
 > 
-> > > isn't this chip compatible with the LM75 and its driver?
-> > > what's different about it if anything?
-> > 
-> > configuration register is different, the temperature
-> > comparison is also different (tmp101 has low/high range)
-> 
-> Configuration is extended but compatible. Your driver doesn't seem to
-> make use of the extra configuration bits (only raises OS/ALERT, which is
-> already set by default).
+> I'm going to fix the lm75 driver to only rewrite the CMP/INT bit,
+> and only if it's set to INT, OK?
+> This will be kinder to compatible chips.
 
-The driver also has resolution control.
- 
-> I also see no difference in the comparison mechanism. Tlow and Thigh are
-> misnomers, if you look at the output transfer functions diagrams (page 6
-> of the datasheet) you see that it really is a high limit with an
-> hysteresis, just like the LM75 has.
-> 
-> I agree with Mark, your driver is essentially redundant with the lm75
-> driver. I invite you to test the lm75 driver on your device. You might
-> need to use the force parameter (the detection method is quite tricky)
-> but otherwise I'd expect it to work just fine. If it does, we might
-> simply need to tweak the detection function (once more) to recognize the
-> TMP101.
+Would it be possible to have an option to add converter resolution
+control at the same time please?
 
-I'll try and check it
- 
-> See this thread for a previous discussion on this same topic:
-> http://archives.andrew.net.au/lm-sensors/msg26681.html
-> 
-> (Side question, where do you have such a chip? Seems to be quite rarely
-> used.)
-
-All new boards by Simtec Electronics... the EB2410ITX and at least one
-custom board for a client.
+If the data-sheet had said it was an lm75 compatible, it'd have saved
+me a bit of time. gah.
 
 -- 
 Ben (ben@fluff.org, http://www.fluff.org/)
