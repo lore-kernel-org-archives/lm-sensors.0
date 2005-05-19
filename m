@@ -1,46 +1,64 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: Winbond chips - design questions
-Message-Id: <3F973584.D0FA0335@paradyne.com>
+From: swl@ucs.co.za (stu)
+Date: Thu, 19 May 2005 06:25:05 +0000
+Subject: bug : mkdev.sh creates devices that sensors-detect cannot use
+Message-Id: <20040708184144.4554439e@pegasus.ucs.co.za>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031022022051.GB8764@earth.solarsys.private>
-In-Reply-To: <20031022022051.GB8764@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi everyone
+
+I hope this is the correct forum to report bugs, and that this bug
+hasn't been reported already. If it isn't the correct forum, please let
+me know where I should report it.
+
+Just downloaded and installed lm_sensors-2.8.7 from source. I've found a
+small bug. When I run mkdev.sh, it creates devices named like so :
+
+/dev/i2c-0
+/dev/i2c-1
+/dev/i2c-2
+
+etc
+
+However, sensors-detect looks for a device named /dev/i2c/0  and can't
+find it. This causes sensors-detect to skip the probing of my SMBus Via
+Pro adapter, and gives the error :
+
+Can't open /dev/i2c/0
+
+To get around this I hacked sensors-detect and changed the line :
+
+   $dev_i2c = '/dev/i2c/';
+
+to read
+
+   $dev_i2c = '/dev/i2c-';
+
+in subroutine 'initialize_conf' . This solved my problem.
+
+I'll gladly provide more information if necessary. My apologies if this
+bug has already been reported.
 
 
-"Mark M. Hoffman" wrote:
-> 
-> * Mark D. Studebaker <mds@paradyne.com> [2003-10-22 20:32:55 -0400]:
-> <snip>
-> >
-> > The new driver is isa-only and includes super i/o
-> > detection, so that the isa address is always discovered.
-> > This makes the new driver much better at finding a chip.
-> 
-> Is this just ISA PnP?  I have no experience with that.
-> 
+Regards and best wishes
+- -- 
+Stuart Logie
+Programmer
 
-I don't know PnP so I don't know.
-You can look in the driver or in sensors-detect to see
-what super i/o looks like. If there's a real name
-for it I don't know what it is. I just followed the
-super i/o datasheets then realized all the chips were similar.
+UNIVERSAL COMPUTER SERVICES (PTY) LTD
+   
+Powered by Debian GNU/Linux
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-> <snip>
-> 
-> 
-> Why are those enormous tables present in libsensors at all?
-> And then again what is the point of libsensors if the
-> sensors program needs special code for each driver?  Yuck.
-> I guess I should go read the source of gkrellm and see what
-> they're doing.
-> 
->
-
-Agreed that libsensors is problematic.
-One reason why I've pushed for and documented firm /proc standards
-as an alternative.
+iQCVAwUBQO15SOuEbVzzghHCAQIy7gQApF6xKKcooqhb5VTPDe44xqpI7+D7F+Ej
+sJnwYq3eSiSMYMMBAkIKSuqXKUmpYFG0yDNz3V76FTXK04rNLO8rAbUGnKr+TyH+
+UBm/nmKuNXNjcvGdikZ5PT7FBx4LMbE6hSG7tpr86/7KSlR25hHaBgSKO7Tt2p6j
+OdBMfA0JNCk=wJjp
+-----END PGP SIGNATURE-----
