@@ -1,31 +1,40 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: [PATCH][2.5] Support for W83627THF sensor chip (Was Re: [2.5]
-Message-Id: <20030618174924.GB1666@kroah.com>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: RFC PATCH Trivial: Query :- is sysfs vrm supposed to be read/write?
+Message-Id: <ekmf31hdtifbqdb04lhustt5aab3o0ufuj@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1055807044.7227.7.camel@nosferatu.lan>
-In-Reply-To: <1055807044.7227.7.camel@nosferatu.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jun 17, 2003 at 04:03:50AM +0200, Martin Schlemmer wrote:
-> > So my preference is to limit the additions to w83781d.
-> > 
-> > There's no plans to split the existing w83781d driver.
-> > We don't rename existing drivers because of CVS limitations and
-> > wanting to minimize changes for our users.
-> > 
-> 
-> Right, but what about 2.5 side ?  Will patches to do this in 2.5
-> be considered ?
+Hi there,
 
-Sure, I'm always willing to take patches to fix things.
-The kernel tree doesn't have the CVS limitations at all, so feel free to
-split things up, or rename the driver if you need to :)
+I've looped this loop a couple times and something doesn't fit,
+go on with something else then want to finalise this little thing.
+
+Reported read-only VID depends on VRM, also marked read-only.
+
+Doesn't seem right to me, where does VRM type value come from?
+If it is a driver constant, okay.
+If it is outside the driver, where do I get it from?
+If it is a documentation mistake, someone please let me know, 
+this just an extra irritant I forget to resolve every couple days :)
+
+Cheers,
+Grant.
 
 
-thanks,
 
-greg k-h
+
+--- linux-2.6.11-mm3-p2x/Documentation/i2c/sysfs-interface.orig	2004-12-25 08:34:01.000000000 +1100
++++ linux-2.6.11-mm3-p2x/Documentation/i2c/sysfs-interface	2005-03-16 18:02:27.000000000 +1100
+@@ -110,7 +110,7 @@
+ 		Not always correct.
+ 
+ vrm		Voltage Regulator Module version number. 
+-		Read only.
++		Read/Write
+ 		Two digit number, first is major version, second is
+ 		minor version.
+ 		Affects the way the driver calculates the CPU core reference
