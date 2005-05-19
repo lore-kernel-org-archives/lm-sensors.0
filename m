@@ -1,40 +1,23 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: [kronos@kronoz.cjb.net: Re: [patch] sensors/w83781d.c creates
-Message-Id: <20031013161015.GA10552@kroah.com>
+From: arpoweb@hotmail.com (Arkadiy Pomerantsev)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: I2C Question
+Message-Id: <BAY13-DAV55rtOhmWyC00006ec4@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031011193739.GA2999@frodo.local>
-In-Reply-To: <20031011193739.GA2999@frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Oct 11, 2003 at 09:37:39PM +0200, Frodo Looijaard wrote:
-> ----- Forwarded message from Kronos <kronos@kronoz.cjb.net> -----
-> 
-> From: Kronos <kronos@kronoz.cjb.net>
-> To: linux-kernel@vger.kernel.org
-> Cc: frodol@dds.nl, Jindrich Makovicka <makovick@kmlinux.fjfi.cvut.cz>
-> Subject: Re: [patch] sensors/w83781d.c creates useless sysfs entries
-> Reply-To: kronos@kronoz.cjb.net
-> X-Spam-Status: No, hits=-7.4 required=5.0 tests=IN_REP_TO,UNIFIED_PATCH,RCVD_IN_OSIRUSOFT_COM version=2.20
-> X-Spam-Level: 
-> 
-> Jindrich Makovicka <makovick@kmlinux.fjfi.cvut.cz> ha scritto:
-> > Hello,
-> > 
-> > here is a trivial fix for Winbond sensor driver, which currently creates 
-> > useless entries in sys/bus/i2c due to missing braces after if statements 
-> > - author probably forgot about the macro expansion.
-> 
-> IMHO it's better to fix the macro:
+Hello
 
-I'll take this fix, thanks.
+On your hardware hacking page located at http://secure.netroedge.com/~lm78/hardhack.html, you have a blank DIMM module that woul allow taping into SMBus.  Is there a similar device for SODIMM 144 pin?  
 
-Oh, and do you want to be removed from the MAINTAINERS list in the
-2.6 kernel, so as to not receive these kinds of messages?
+Also I noticed that lm_sensors has a problem with thinkpad 24rf08 eeprom, is it safe to assume that 24rf08 eeprom on thinkpads is connected to SMBus, and if the blank SODIMM module (mentioned above) exists, would it allow access to the 24rf08 EEPROM?
 
-thanks,
+Lastly, are you aware of any external access points to thinkpad SMBus?  Like through a battery connector maybe?  If the battery connector has SMBus pins it, would you know which pins those are?
 
-greg k-h
+Thank you for you help
+Arkadiy
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031219/9c921f36/attachment.html
