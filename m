@@ -1,35 +1,19 @@
-From: ed.tman@verizon.net (Ed Harrison)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: Fans
-Message-Id: <20021116155753.NWEU1423.pop017.verizon.net@[192.168.1.101]>
+From: veikko.werner@logware.de (Veikko Werner)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: driver for W83L784R/AR
+Message-Id: <8BEFECF23C9C264094D4B53DFC3ACE983DD26C@ex09-00-z001.berlin.logware.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021115113947.11c4b1d3.khali@linux-fr.org>
-In-Reply-To: <20021115113947.11c4b1d3.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-** Reply to message from Jean Delvare <khali@linux-fr.org> on Sat, 16 Nov 2002 08:49:28 +0100
+hi guys,
 
+I couldn't find a driver for the Winbond W83L784AR.
+since it's not 100% compatible to the W83781 types I need my own one.
 
-# > You mess around with fanx_div and fanx_min and sooner or later you wil
-# > get a beep alarm for the one that is not configured properly.  My case
-# > fan is on fan3, but I cannot get anything out of it but  0 rpm, or
-# > "beep" when I set the min too high.
-# 
-# Do you have the same motherboard as Zeno? (ASUS TR-DLS)
+Is there anybody else writing on such a driver?
+if not, let me give it a try
 
-No.  I have the A7V333.
-
-
-Ed Harrison, broadcasting on
-----/ /
----/ /     (_) __  __  _    _ _   __ 
---/ /__ /  //   \/  // /_/ /\ \/  /
--/___//_//_/\_//__,_/ /_/\_\
-
-
-by SuSE(8.1), Kernel 2.4.19, X 4.2
-or Windows98 (running in vmware 3.2)
-PolarBarMailer 1.23 with IBMJDK 1.3.1-2
+veikko
