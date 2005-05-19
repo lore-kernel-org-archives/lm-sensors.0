@@ -1,71 +1,54 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: r.marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE3701DA@weshml03.winbond.com.tw>
+Message-Id: <425E71A7.3080108@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmCgpJJ20gc29ycnkgdGhhdCBJIHJlYWxseSBjYW4gZmluZCB0aGUgZGVidWcgbWVz
-c2FnZSBvbiB0aGUgYm9vdCBzdGVwIG9mIHRoZQpsaW51eCwgSSBzaG91bGQgbm90IGxvb2sgZm9y
-IHRoZSBkZWJ1ZyBtZXNzYWdlIGF0IHRoZSBzdGVwIG9mIGxvYWRpbmcgbW9kdWxlcy4KClBsZWFz
-ZSBjaGVjayB0aGUgYXR0YWNobWVudCBmb3IgdGhlIGRlYnVnIG1lc3NhZ2UuCgpUaGFua3MKQmVz
-dCBSZWdhcmRzCkNodW5oYW8KCgo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gRnJvbTog
-UEkxNCBIVUFORzAKPiBTZW50OiAyMDA1xOo01MIxM8jVIDE4OjIyCj4gVG86ICdSdWRvbGYgTWFy
-ZWsnCj4gQ2M6IHNlbnNvcnNAU3RpbXB5Lm5ldHJvZWRnZS5jb20KPiBTdWJqZWN0OiBSRTogQXNr
-IGZvciBzb21lIGluZm9ybWF0aW9uIGFib3V0IG1vdGhlcmJvYXJkIEFTVVMgTkNMVi1ECj4gCj4g
-SGkgUnVkb2xmCj4gCj4gPiBMaWtlIGluIHRoYXQgdHdvIHJvdXRpbmVzOgo+ID4gK3N0YXRpYyB2
-b2lkIF9faW5pdCBhc3VzX2hpZGVzX3NtYnVzX2RldmljZXMoc3RydWN0IHBjaV9kZXYgKmRldikg
-ewo+ID4gKyAgICAgICBpZiAodW5saWtlbHkoZGV2LT5zdWJzeXN0ZW1fdmVuZG9yID0gUENJX1ZF
-TkRPUl9JRF9BU1VTVEVLKSkgewo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgc3dpdGNoKGRl
-di0+c3Vic3lzdGVtX2RldmljZSkgewo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgY2FzZSAw
-eDgxMTc6IC8qIEFTVVMgc2VydmVyIGJvYXJkIChOQ0xWLUQpICovCj4gPiArICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIGFzdXNfc2VydmVyX2JvYXJkX2hpZGVzX3NtYnVzX2RldmljZXMg
-PiAxOwo+ID4gKyAgICAgICAgICAgICAgICAgICAgICBhc3VzX3NlcnZlcl9ib2FyZF9oaWRlc19z
-bWJ1c19kZXZpY2VzCj4gPiBicmVhazsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIH0KPiA+
-ICsgICAgICAgfQo+ID4KPiA+IE5vdyBJIHRoaW5rIHlvdSB3aWxsIGdldCBpdC4gV2UgbXVzdCBm
-aW5kIG91dCBpZiBvdXIgbmV3IGNvZGUgaXMgYWN0aXZhdGVkLAo+ID4gYW5kIGlmIG5vdCB3aGF0
-IHBhcnQgZmFpbGVkLgo+IAo+IEkgYWRkZWQgdGhlIGRlYnVnIG1lc3NhZ2VzIGFzIHlvdSB0b2xk
-IG1lLCByZS1jb21waWxlZCB0aGUgbGludXgtMi42LjExIGFuZAo+IHJlYm9vdAo+IHRoZSBzeXN0
-ZW0sYnV0IE5PTkUgb2YgdGhlIG1lc3NhZ2VzIGNhbiBiZSBmb3VuZCBpbiAvdmFyL2xvZy9tZXNz
-YWdlCj4gd2hlbiBJIGxvYWQgdGhlIG1vZHVsZSBpMmMtaTgwMSwgdzgzNzkyZCwgYW5kIGVlcHJv
-bS4KPiBJIGFsc28gdHJpZWQgdG8gbG9hZCB0aGVzZSBtb2R1bGVzIGFmdGVyIHRoZSAiaXNhc2V0
-IiB0cmljaywgbm8gbWVzc2FnZXMgY2FuCj4gYmUgZm91bmQgZWl0aGVyLgo+IAo+IFRoZSBhdHRh
-Y2htZW50IGlzIHRoZSBkcml2ZXJzL3BjaS9xdWlya3MuYyBtb2RpZmllZCBieSBtZSwgcGxlYXNl
-IGNoZWNrIGl0Lgo+IAo+IEJlc3QgUmVnYXJkcwo+IENodW5oYW8KPiAKCgoKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
-dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBh
-dXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
-ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
-aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBp
-bmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlv
-dXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3Ug
-Zm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6
-ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5
-IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMg
-bm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBk
-ZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1
-bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5n
-IG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWF0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRl
-bWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2
-rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6m
-XaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRI
-qMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn
-2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FL
-uOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSj
-sW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0t
-LS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4uCk5hbWU6IG1l
-c3NhZ2VzClR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQpTaXplOiAxODIwMSBieXRlcwpE
-ZXNjOiBtZXNzYWdlcwpVcmwgOiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWls
-L2xtLXNlbnNvcnMvYXR0YWNobWVudHMvMjAwNTA0MTQvYWQzZDIxZDIvbWVzc2FnZXMub2JqCi0t
-LS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0tLS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0dGFjaG1l
-bnQgd2FzIHNjcnViYmVkLi4uCk5hbWU6IHF1aXJrcy5jClR5cGU6IGFwcGxpY2F0aW9uL29jdGV0
-LXN0cmVhbQpTaXplOiA0NDkzMSBieXRlcwpEZXNjOiBxdWlya3MuYwpVcmwgOiBodHRwOi8vbGlz
-dHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvYXR0YWNobWVudHMvMjAwNTA0
-MTQvYWQzZDIxZDIvcXVpcmtzLm9iago=
+> Hi Rudolf
+> 
+> I'm sorry that I really can find the debug message on the boot step of the
+> linux, I should not look for the debug message at the step of loading modules.
+
+No problem.
+
+Apr 14 18:15:05 CFLi kernel: ACPI: Subsystem revision 20050211
+Apr 14 18:15:05 CFLi kernel: ACPI: Interpreter enabled
+Apr 14 18:15:05 CFLi kernel: ACPI: Using PIC for interrupt routing
+Apr 14 18:15:05 CFLi kernel: ACPI: PCI Root Bridge [PCI0] (00:00)
+Apr 14 18:15:05 CFLi kernel: PCI: Probing PCI hardware (bus 00)
+Apr 14 18:15:05 CFLi kernel: enter quirk_ich4_lpc_acpi() ...
+Apr 14 18:15:05 CFLi kernel: In INTEL IO REGION QUIRK
+Apr 14 18:15:05 CFLi kernel: PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
+Apr 14 18:15:05 CFLi kernel: PCI: Transparent bridge - 0000:00:1e.0
+Apr 14 18:15:05 CFLi kernel: ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
+Apr 14 18:15:05 CFLi kernel: ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
+
+Hmm both quirks routines are called but in wrong order?!  Please someone else has some ideas what might went wrong?
+
+The asus smb vendor check routine is fist and Intel LPC quirk is second. I made it same way as other "twoparters" quirks.
+So now I really do not understand why is second called first.
+
+Chunhao please can you just put:
+
+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ESB_4,	asus_hides_smbus_devices );
+just "bellow" the DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
+and see if it works?
+
+Now when we know what went wrong please can you experiment with it?
+
+We need the first routine to be called first. So log messages should look like this:
+Apr 14 18:15:05 CFLi kernel: Value of asus_server_board_devices: 1
+First in log and second Apr 14 18:15:05 CFLi kernel: enter quirk_ich4_lpc_acpi() ...
+here the quirk fix will get activated
+
+Thanks
+
+Regards
+
+Rudolf
