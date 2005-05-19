@@ -1,32 +1,30 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: [Fwd: [PATCH] video/saa5249.c, video/tuner-3036.c get rid of
-Message-Id: <20030913231959.7e9b0a80.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: Varyfan
+Message-Id: <20030924225753.555af42b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F5E5D6D.3000406@edgedesign.us>
-In-Reply-To: <3F5E5D6D.3000406@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Get rid of MOD_INC/DEC since ref count comes from owner field on I2C
-> for these drivers.
-> 
-> Not sure who is maintaining these, maybe no one because they haven't
-> been purged of MOD stuff  yet.
-> 
-> diff -Nru a/drivers/media/video/saa5249.c
-> (...)
-> diff -Nru a/drivers/media/video/tuner-3036.c
+Hi Ian,
 
-Thanks for the information. My current patch does not get rid of these,
-mostly because things do "work" (compile, run) with them still there.
+I am a member or the I2C & LM Sensors development team. We recently
+heard about your Varyfan project. Since it is closely related to our
+project, I'd like to discuss with you about some points.
 
-I guess I'll have to incorporate them before we submit a patch to the
-LKML. And this also means that I should make sure I did not miss other
-similar ones (likely I did).
+How live is your project? Are you still working on it?
+
+How does it compare with our own PWM programs? See here:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/pwm/pwmconfig
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/pwm/fancontrol
+
+We have a "useful links" page and could add a link to your page there if
+you think that your project is of general interest for our users.
+
+Thanks!
 
 -- 
 Jean Delvare
