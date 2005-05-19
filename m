@@ -1,7 +1,7 @@
 From: rene.mayrhofer@gibraltar.at (Rene Mayrhofer)
 Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: vt1211 fan speed control
-Message-Id: <3F94D718.7040701@gibraltar.at>
+Message-Id: <3F956350.30207@gibraltar.at>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F8C6A50.5080604@gibraltar.at>
 In-Reply-To: <3F8C6A50.5080604@gibraltar.at>
@@ -15,13 +15,13 @@ Mark Studebaker wrote:
 > After writing a 1 to the second value you should be able to change the
 > first value
 > in subsequent writes.
-> You can also try the program prog/pwm/pwmconfig and see if that works.
-> If it does you can try prog/pwm/fancontrol.
-> If things don't work let us know.
-I just wanted to post a quick thanks because I am probably unable to try 
-this in the next few days due to other workload. As soon as I have a 
-success (or failure) report, I will post it.
+I've now tried
+echo 128 1 > /proc/sys/dev/sensors/vt1211-isa-6000/pwm1
+echo 0 1 > /proc/sys/dev/sensors/vt1211-isa-6000/pwm1
+echo 0 > /proc/sys/dev/sensors/vt1211-isa-6000/pwm1
 
-Many thanks for your work,
+But cat /proc/sys/dev/sensors/vt1211-isa-6000/pwm1 returns "255 1" every 
+time.
+
+best regards,
 Rene
-
