@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: louis-martin.cote@verint.com (cote, louis-martin)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: Possible bug in i2c_register_entry ?
-Message-Id: <20040928231914.25c45f28.khali@linux-fr.org>
+Message-Id: <6C25030C55C5D84FBEFD632E966730653109A3@mtlmail1.Co.Corp.VerintSystems.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <6C25030C55C5D84FBEFD632E96673065310998@mtlmail1.Co.Corp.VerintSystems.com>
 In-Reply-To: <6C25030C55C5D84FBEFD632E96673065310998@mtlmail1.Co.Corp.VerintSystems.com>
@@ -10,30 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I stumbled upon a possible bug in i2c_register_entry() (file
-> i2c-proc.c).
+> As strange as it may sound if you consider the age of the code, I
+> believe that you are right and we should rely on ctl_name instead of
+> procname. It has gone unnoticed so far most probably because all
+> hardware monitoring device drivers export all their sysctl entries to
+> procfs.
 > 
-> The function counts the number if sysctl entries by looking at
-> i2c_client.procname . My sensor module needs to register sysctls that
-> are not visible through proc, so their procname entry is NULL.
+> I will fix that in CVS, and send a similar fix to Marcelo Tosatti for
+> Linux 2.4, although I'm not sure he will accept it. The fix doesn't
+> apply to 2.6 since we are using sysfs instead of procfs now.
 > 
-> My question is: shouldn't i2c_register_entry() rely on
-> i2c_client.ctl_name for counting the number of entries ?
+> BTW, for which device are you writing a driver?
 
-As strange as it may sound if you consider the age of the code, I
-believe that you are right and we should rely on ctl_name instead of
-procname. It has gone unnoticed so far most probably because all
-hardware monitoring device drivers export all their sysctl entries to
-procfs.
+Bonjour Jean,
 
-I will fix that in CVS, and send a similar fix to Marcelo Tosatti for
-Linux 2.4, although I'm not sure he will accept it. The fix doesn't
-apply to 2.6 since we are using sysfs instead of procfs now.
+Je suis tent? de vous r?pondre en fran?ais, mais je r?siste, for other people's sake !
 
-BTW, for which device are you writing a driver?
+I'm writing a device driver for a Philips PCA9555 chip, which is a 16-bit I/O port with interrupt I2C device.
 
-Thanks for reporting.
+Since our project in for an embedded system, the driver itself it tightly bound to the way the chip is integrated into our hardware.
+I doubt it is of any interest for anyone outside, considering it relies on a homebrewed CPLD for interrupt management.
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+However, before doing that, I "backported" the LM77 driver found in Linux 2.6 to Linux 2.4.
+If you are interested in getting it, I will be glad to provide it. Just tell me where to submit it, and maybe give me 1 hour to remove customizations I made for supporting our embedded platform (like interrupts)! The basic functionality (temp read/write) should run fine on any host hardware (PC / Mac / whatever).
+
+Thanks for getting back to me.
+Merci !
+
+
+Louis-Martin
+
+
+
