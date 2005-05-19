@@ -1,47 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:50 +0000
-Subject: installation problems
-Message-Id: <1080915603.406d769357d1b@imp.gcu.info>
+From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+Date: Thu, 19 May 2005 06:23:46 +0000
+Subject: [i2c-piix4.o: IBM Laptop detected; this module may corrupt your
+Message-Id: <Pine.OSF.4.50.0301200940470.13795-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200404021403.13048.maik.goette@uni-kassel.de>
-In-Reply-To: <200404021403.13048.maik.goette@uni-kassel.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[Please answer to the list, not to me]
 
-According to Maik G?tte:
 
-> I am Linux newbie, and am in need of a cpu temperature monitoring
-> tool.
-> So I tried to install lm_sensors, as told on your page.
-> For I use SuSE 9.0 (2.4.21-199Athlon Kernel), I downloaded Version
-> 2.7.0.
-> 
-> The following occurs and tells me nothing:
-> (...)
-> /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h -c 
-> kernel/i2c-philips-par.c -o kernel/i2c-philips-par.o
-> kernel/i2c-philips-par.c:163: error: initializer element is not
-> constant
-> kernel/i2c-philips-par.c:163: error: (near initialization for 
-> `bit_lp_data.timeout')
-> kernel/i2c-philips-par.c:172: error: initializer element is not
-> constant
-> kernel/i2c-philips-par.c:172: error: (near initialization for 
-> `bit_lp_data2.timeout')
-> make: *** [kernel/i2c-philips-par.o] Error 1
+---------- Forwarded message ----------
+Date: Mon, 20 Jan 2003 07:28:11 +0100
+From: Andreas Hartmann <andreas.hartmann@fiducia.de>
+To: "Ingo Oeser <ingo.oeser" <ingo.oeser@informatik.tu-chemnitz.de>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Antwort: Re: [i2c-piix4.o: IBM Laptop detected; this module may
+    corrupt your serial eeprom! Refusing to load module!] on xSeries 232 -Server
 
-See tickets 1511 and 1522 in our tickets database, and my answer on the
-list here:
-http://archives.andrew.net.au/lm-sensors/msg06032.html
 
-The suggested method, especially if you're only starting with Linux, is
-to use the official lm_sensors package from SuSE (as opposed to
-compiling it by yourself).
+Hi,
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Am 16.01.2003 18:29:20 schrieb Ingo Oeser :
+> Hi,
+>
+> On Thu, Jan 16, 2003 at 02:45:12PM +0100, Andreas Hartmann wrote:
+> > I'm using kernel 2.4.19 (SuSE 8.1; k_deflt-2.4.19-174 - actual
+> > patch release) on an IBM xSeries 232 Server. When I'm trying to
+> > load the module i2c-piix4, the module claims, it would be
+> > running on an IBM Laptop. This is definitely wrong.  The old
+> > SuSE kernel (k_deflt-2.4.19-49) didn't show this problem.
+>
+> Looks like those "xSeries 232 Server" are not very handy laptops ;-)
+
+You are definitely right! But the problem consists :-(.
+
+
+
+Regards,
+Andreas Hartmann
+
+
