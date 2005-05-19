@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: michael.hufer@freenet.de (Michael Hufer)
 Date: Thu, 19 May 2005 06:24:19 +0000
 Subject: fan speed for it87?? chips added
-Message-Id: <20030924180512.GF10443@kroah.com>
+Message-Id: <200309242037.35721.michael.hufer@freenet.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200309232035.29480.michael.hufer@freenet.de>
 In-Reply-To: <200309232035.29480.michael.hufer@freenet.de>
@@ -10,17 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 23, 2003 at 11:22:36PM +0200, Jean Delvare wrote:
-> 
-> 2* Should we provide a init=0 parameter? I think yes. Should it be the
-> default? Not too sure. (But actually, some things *need* to be
-> initialized, while some others do not need to. Especially, temperature
-> and voltage limits belong to userspace, as it has already been
-> discussed). Greg, what's your policy in 2.6 (if you have one)?
+Hi there,
+here is a new diff agains current cvs.
+I added separate 'init' and 'reset_it87' module parameter. 'reset_it87' 
+(default=0, disable chip reset) only enable/disable the chip reset (writing 
+0x80 into register 0x00). 'init' (default=1, enable init) enable/disable 
+(re-)initialization of the register values.
 
-I don't have one, yet.  Haven't thought that much about it.  Any good
-proposals for one?
+I also addressed your concerns regarding the fan_div3 code.
 
-thanks,
+More comments?
 
-greg k-h
+
+	Micha.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: it87_pwm-cvs.diff
+Type: text/x-diff
+Size: 22964 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030924/f070424e/it87_pwm-cvs.bin
