@@ -1,71 +1,53 @@
-From: enrico_tux@yahoo.it (Cataldi Enrico)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: sensors on Acer TM427LC
-Message-Id: <200312180413.34171.enrico_tux@yahoo.it>
+Message-Id: <20031220141449.381bc88d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200312170127.30400.enrico_tux@yahoo.it>
 In-Reply-To: <200312170127.30400.enrico_tux@yahoo.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEExCgpPbiBXZWRuZXNk
-YXkgMTcgRGVjZW1iZXIgMjAwMyAyMzowMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgoKPiBXaGF0IHdv
-dWxkIHlvdSBleHBlY3QgZnJvbSBhIGhhcmR3YXJlIG1hbnVmYWN0dXJlciBzdXBwb3J0PyA7KQoK
-QXQgbGVhc3QgZm9yIDIuNDAwIGV1cm9zLCBpIHdvdWxkIGxpa2UgdG8ga25vdyB0aGUgbW9kZWwg
-b2YgbWluZSB3aW5ib25kIApTRC9NTUMgTWVtb3J5IFN0aWNrLi4uIGJ1dCBuZWl0aGVyIHRoaXMu
-Li4gTXkgbGFzdCB0aW1lIHdpdGggQWNlci4uLiA6LS8KCj4gV2hpY2ggdmVyc2lvbiBvZiBsbV9z
-ZW5zb3JzIGhhdmUgeW91IGJlZW4gdHJ5aW5nPyBJZiBhIHJlY2VudCB2ZXJzaW9uIG9mCj4gc2Vu
-c29ycy1kZXRlY3QgZGlkIGZpbmQgdW5rbm93biBjaGlwcywgd2UgbWlnaHQgaGVscC4gSWYgbm90
-LCB0aGVyZSdzCj4gcHJvYmFibHkgbm90aGluZyB3ZSBjYW4gZG8uIElmIGluIGRvdWJ0LCBwbGVh
-c2UgcHJvdmlkZSB0aGUgb3V0cHV0IG9mCj4gImkyY2RldGVjdCAwIi4KCkkgZ290IHRoZSBsYXRl
-c3QgKDIuOC4yIG9mIGkyYyAmIG9mIGxtLXNlbnNvcnMuLi4pLi4uCgpNeSBpMmNkZXRlY3QgMDoK
-CiAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAgZCAgZSAgZgowMDog
-WFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFgKMTA6IFhYIFhY
-IFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYCjIwOiBYWCBYWCBYWCBY
-WCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWAozMDogMzAgWFggWFggWFggWFgg
-WFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFgKNDA6IFhYIFhYIFhYIFhYIFhYIFhYIFhY
-IFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYCjUwOiBVVSBYWCBYWCBYWCBYWCBYWCBYWCBYWCBY
-WCBYWCBYWCBYWCBYWCBYWCBYWCBYWAo2MDogWFggWFggWFggWFggWFggWFggWFggWFggWFggNjkg
-WFggWFggWFggWFggWFggWFgKNzA6IFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhY
-IFhYIFhYIFhYIFhYCgpJIGdvdHRhIGp1c3QgdGhpcyBieSBzZW5zb3JzLWRldGVjdCAmIHNlbnNv
-cnM6CgplZXByb20taTJjLTAtNTAKQWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDE4NDAK
-QWxnb3JpdGhtOiBOb24tSTJDIFNNQnVzIGFkYXB0ZXIKTWVtb3J5IHR5cGU6ICAgICAgICAgICAg
-RERSIFNEUkFNIERJTU0KTWVtb3J5IHNpemUgKE1CKTogICAgICAgNTEyCgpBbmQgaSd2ZSB0aGVz
-ZSBtb2R1bGVzIGxvYWRlZDoKaTJjLWRldiA8LSBpIGxvYWRlZCBpdCBtYW51YWxseSB0byBnZXQg
-aTJjZGV0ZWN0IHJ1bm5pbmcuLi4KaTJjLWk4MDEKaTJjLXByb2MKaTJjLWNvcmUKCj4gT24gbXkg
-b3duIGxhcHRvcCB0aGVyZSdzIG5vIHNlbnNvciBjaGlwIGxtX3NlbnNvcnMgY2FuIGRlYWwgd2l0
-aC4gQWxsIEkKPiBoYXZlIGlzIG9uZSB0ZW1wZXJhdHVyZSBzZW5zb3JzIHRob3NlIHRlbXBlcmF0
-dXJlIGlzIHJlcG9ydGVkIGJ5IEFDUEkuCj4gSWYgeW91IGRpZCBub3QgdHJ5IHRoaXMgYWxyZWFk
-eSwgZW5hYmxlIEFDUEkgYW5kIFRoZXJtYWwgWm9uZSBpbiBBQ1BJLgo+IElmIHlvdXIgbGFwdG9w
-IHN1cHBvcnRzIGl0LCB5b3Ugc2hvdWxkIGJlIGFibGUgdG8gZ2V0IHRoZSB0ZW1wZXJhdHVyZQo+
-IGZyb20gL3Byb2MvYWNwaS90aGVybWFsX3pvbmUvWFhYWC90ZW1wZXJhdHVyZSAoWFhYWCBkZXBl
-bmRzIG9uIHRoZQo+IHN5c3RlbSkuCgpBdCBsZWFzdCB1IGdvdHRhIGl0IGJ5IGFjcGkuLiBJIGNh
-bid0Li4gaGVoZWgsIGknbSBub3Qgc28gbHVja3kuLi4gCgpJIHdvdWxkIGxpa2UgdG8gYmUgdXNl
-ZnVsbCBmb3IgdGhlIHByb2plY3QgYW5kIGZvciB0aGUgcGVvcGxlIHdobyBoYXMgdGhpcyAKbGFw
-dG9wLi4uIHNvIGlmIGkgY2FuIGRvIHNvbWV0aGluZywganVzdCB0ZWxsIG1lLCBvaz8KCkkgbWVh
-biwgaWYgdGhlcmUgYXJlIGd1aWRlcywgdHV0b3JpYWwgb3Igc29tZXRoaW5nIHRoYXQgaSBjYW4g
-cmVhZCB0byBpbXByb3ZlIAp1ciBwcm9qZWN0LCB1IGp1c3QgdGVsbCBpdCB0byBtZS4uLiA7KQoK
-SSBob3BlIHRoYXQgd2l0aCAyLjQwMCBldXJvcywgdGhleSBoYWQgcHV0IGF0IGxlYXN0IDEgc2Vu
-c29yLi4uCgotIC0tIAp+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
-fn5+fgpDYXRhbGRpIEVucmljbwpVbmRlcmdyYWR1YXRlIHN0dWRlbnQgQCBDb21wdXRlciBTY2ll
-bmNlClVuaXZlcnNpdHkgb2YgQm9sb2duYSAtIEl0YWx5IC0KSG9tZXBhZ2U6IGh0dHA6Ly9lY2F0
-YWxkaS53ZWIuY3MudW5pYm8uaXQvCm1haWwgdG86IGVucmljb190dXhAeWFob28uaXQgZWNhdGFs
-ZGlAY3MudW5pYm8uaXQKTXkgUHVibGljIGtleSBpcyBhdmFpYmxlIG9uIG15IGhvbWUgcGFnZS4K
-fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KLS0tLS1CRUdJ
-TiBQR1AgU0lHTkFUVVJFLS0tLS0KVmVyc2lvbjogR251UEcgdjEuMi4zIChHTlUvTGludXgpCgpp
-UUlWQXdVQlArRWJXZ2lnQ05VNm9BTWdBUUlwV0JBQWdDaVZCdjNQR3hyV0MrVjdubEV6aEFOU0pr
-UUxlOHU3ClFicnZOVUppYW1qZE5tZDd5eWFkYjhYS3BWMUMxNGxPY1ZEMXFNL2dXUVJjTE9RVVhW
-dXJzdEYxNHJDT3c3bHgKK2R3OUlVM2N5Q3phRUQ1a3ErbFBpTSttQklhT0RsZVN1Uk5kL2E0TWVt
-aysyOVY2WkZaTEFNL3Z2TytpR2diRQp6TFh3Z00yZmpPWjlzdlY2dVA0NnR6RkxRUGZ1RUcvRFhG
-ZnB1R28wVzZURUVXcE5Td0N6NjdBNTM1NzZTUWFLCnVTWVB4SEZmR0VEK0JQSVFXOUlWRVJVa2FQ
-K1VRemdQUVk2MDRuaThxL0ZKL1lOdFM2bjcvc0svUUZEN05TVjYKWmI1Nk9PTWtkTVBBSE9EWVVR
-R3Bzd0tjR0RuQ3hTMTBHTWZkQjYxUFV5TDRYRC9Wd3huWllJSGVqQm5aWjBpMwpOUk84bnJNMmhI
-MjQ2RWcySzJhVEhoVmp3cTlNd3U2UmY4Yy94ZGdwSXEzUU9ZaWlPMW44RktRaEk0Y3N4N1dyCjZM
-Nk9yZnhWOFRwS1p4V3hZVWxnUHBkOGhneWZ1UERDYXFLK0R4UDc3OGl2RlovRkhGWFo4OWdtK0FL
-Q3BrVW4KQmNIbjRPaHdBdVkwdjRBc1F5Q0R5eG5BMVorMklVWXNLLy9CcUdjMFhIQzVyYUlGdjZO
-NkFXemsvWnJQbTl0cwpzZURXWGEwbzNFSWFSY0hXREpvbjIyOWU2ZndQMmxuTmtUOXRvdUxMaUhK
-cmRCcEo0WlM3TStYQUd3aS9ZaEJ6CjVDcmJ3czFycm1hem5SMFpwZ2U0UDR1ZSt1Z3FMcW1zRGdW
-RHZwSVhnWDdyZGxIMVdOSFlUZXJkU1lWMlNicjEKWjJQWUprVFgrQlmQNFYKLS0tLS1FTkQgUEdQ
-IFNJR05BVFVSRS0tLS0tCgo=
+> At least for 2.400 euros, i would like to know the model of mine
+> winbond SD/MMC Memory Stick... but neither this... My last time with
+> Acer... :-/
+
+Other laptops manufacturers aren't necessarily better. I have a Sony and
+they refused to help too. The grass isn't always greener on the other
+side.
+
+> My i2cdetect 0:
+> 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 30: 30 XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 50: UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+
+Very similar to what I have. 69 is a useless (from our point of view)
+clock chip. 50 is your memory chip's eeprom, 30 is a shadow of it.
+Nothing else (and so no hardware monitoring).
+
+> At least u gotta it by acpi.. I can't.. heheh, i'm not so lucky... 
+
+Give a try to the "relaxed AML" option (or something similar, I don't
+remember exactly). Maybe it can help.
+
+> I would like to be usefull for the project and for the people who has
+> this laptop... so if i can do something, just tell me, ok?
+
+Unfortunately there's nothing we can do. Your best chance is on the ACPI
+side. Enable the debug mode, take a look at your logs and see if
+something indicates that you do have a thermal sensor but it fails being
+supported for some reason. In this case, report to the ACPI folks and
+maybe they'll be able to help.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
