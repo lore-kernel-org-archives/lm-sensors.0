@@ -1,28 +1,33 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:51 +0000
-Subject: Setting vrm with 'sensors -s' is broken (w/ Linux 2.6.x)
-Message-Id: <20040411040601.GB17920@earth.solarsys.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: sensors shows uninteresting chips
+Message-Id: <20031130145100.722ebe68.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040407035157.GD6289@earth.solarsys.private>
-In-Reply-To: <20040407035157.GD6289@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-04-07 21:56:33 +0200]:
-> > Replacing
-> >   *sysmag = (feature->scaling=0?0:3);
-> > with
-> >   *sysmag = feature->scaling;
-> > as it used to be before I broke it should fix the problem.
-> 
-> Just did that.
+Hi all,
 
-BTW thanks.  I figured that would be the fix but I wasn't sure.
+The sensors program displays all i2c chips it'll find even the ones that
+do not have sensors interface. For example, I have a DC10+ capture
+board, and sensors will display entries for the adv7176 and the saa7110
+that live on it. This has no interest and sensors would better keep
+quiet about them IMHO.
 
-Regards,
+For this reason, I plan to add a command line switch to ignore unknown
+chips. But I'm wondering if displaying them should still be the default,
+or if we should hide them by default (thus the switch would show them
+again). Since I don't see any interest in showing them, I'd opt for the
+second choice, but sometimes you have reasons I ignore. I remember I
+once proposed to hide adapters and algorithms by default, without
+realizing how valuable it was when it comes to helping users in support
+tickets and on the mailing-list. Maybe there's something similar for
+unknown chips? Can't think of anything, but maybe one of you will.
+
+Thanks.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
