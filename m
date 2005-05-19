@@ -1,43 +1,36 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:54 +0000
-Subject: what next (was Re: success on Asus P4S8X-X)
-Message-Id: <3EA1D677.8080809@paradyne.com>
+From: gws@mtco.com (Gary W. Sandvik)
+Date: Thu, 19 May 2005 06:23:41 +0000
+Subject: lm_sensors and Soyo K7V Motherboard
+Message-Id: <200210191842.23680.gws@mtco.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Agreed that we need to make a decision.
-"Finishing what Kyosti started" means getting it working AND submitting a patch to 2.4.
+Hi,
 
-Your option a) may be necessary for the i2c side; for the sensors side,
-simply adding back the owner and usage_count members of the structs
-(or were they even taken out?).
-Remember, sensors was never branched, only i2c.
+After a lot of time and effort I was finally able to get the sensors.conf 
+set-up for my Dragon+. The values for the Rin/Rf for the -12 and -5 voltages 
+are not correct in the sample sensors.conf. 
 
-If the fix to i2c-proc is the only thing we need to get the lk2-4 branch of
-i2c working, go ahead and do that. Whatever we do, it will take some merging.
-Do you know how to do CVS merging? I don't.
-Even if we go back to 2.7.0 we will need to merge some stuff from the tree.
+After contacting SOYO, a representative contacted me directly.I questioned the 
+values and she checked on the schematic and found the values for the -12V to 
+be 232K/56K and for -5V 120K/56K..
 
-So what should we do?
+I stated that I would be sharing this with the lm_sensors group.
 
+One other problem exists with lm_sensors and the SOYO MB. The Temp/CPU and 
+Temp/MB are transposed. Of course  I can change the labels but the values are 
+still transposed. Any reports to other programs will not be correct. I'm 
+using ksensors-0.7 and the values indeed are reported transpoed. THe MB temp 
+is higher than the CPU temperature. When I know that is not the case.
 
-Mark M. Hoffman wrote:
-> * Fabrice Bellet <fabrice@bellet.info> [2003-04-13 16:23:38 +0200]:
-> 
-> 
->>So I added support for the SiS963 bridge in i2c-sis645.c. The patch is
->>attached for version 2.7.0 (merging code from the CVS too).
-> 
-> 
-> Thank you.  You are the second person to submit such a patch.  I'm
-> not sure what to do with it, because CVS tag lk2-4 is broken and
-> has been abandoned for many weeks now.
-> 
-> At this point, if nobody is interested in finishing what Kyosti
-> started, I think we should either a) re-branch from 2.7.0 to support
-> kernel 2.4 or b) announce in bold type on the sensors homepage that
-> 2.7.0 is *it* for 2.4.
-> 
+I'm using lm_sensors-2.6.5 and i2c-2.6.5. Everything installed, no errors 
+noted.
+
+-- 
+Regards and God speed,
+Gary
+
+The Magic is in the Magician not the wand!
