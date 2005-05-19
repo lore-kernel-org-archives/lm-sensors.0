@@ -1,41 +1,62 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:23:38 +0000
-Subject: MC10166 (onsemi)
-Message-Id: <200208272218.34349.amalysh@web.de>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: failed again; vetctor 300
+Message-Id: <20030805222340.3799d819.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200208272152.13816.amalysh@web.de>
-In-Reply-To: <200208272152.13816.amalysh@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
+On Wed, 6 Aug 2003 12:37:15 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-Am Dienstag, 27. August 2002 22:06 schrieben Sie:
-> > i would like to know , whether someone works on support DC1066 thermal
-> > sensor made by onsemi ?
-> > I have this sensor on my Laptop and can write driver for this sensor ,
-> > if nobody works on it.
->
-> Nobody told us about this sensor in any way. We happily accept your
-> proposal :)
-> Please keep us informed of the evolution of your work.
+> > Does this affect my sound? 
+> 
+> It could, if your sound chip is using the i2c bus.
+> 
+> (Flash of Insight)
+> 
+> OMG, that's it. You just found the reason why everything dies each time
+> you try to install lm_sensors. Let's see if I'm right.
+> 
+> You have been trying to install i2c-2.8.0 and lm_sensors 2.8.0.
+> 
+> You have a PPC system and use an audio driver that relies on the I2C bus
+> (DAC3550A or TAS3001C).
+> 
+> You have been installing i2c from its own directory, you did *not* use
+> the i2c kernel patch.
+> 
+> You use Gnome, and Gnome tries to setup the sound at startup, because it
+> will sometime play sound on particular events (or simply setups the ESD
+> sound daemon).
+Here you are right and wrong. As Gnome is not starting anymore because I do not have the newest version of Orbit and libbonobo (Debian packages are not released yet - I am running unstable) I am now running KDE. If I do depmod -a I get: 
 
-Ok , then I start to write the driver  and can really test i2c-sis630.c :)
+depmod: *** Unresolved symbols in /lib/modules/2.4.21-ben2/kernel/drivers/sound/dmasound/dmasound_pmac.o 
 
-- -- 
-Regards
-Alexander Malysh
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+My feeling tells me you must be right.
 
-iQEVAwUBPWvemR+GWItMR/cNAQGnGAf/QERL8zNgQ3DhlsegkbcKhh+ARyNa8YF2
-sksm6H6Gz7jILaislVb0YrSJ6TGWlDOZO2LpZ1vh3N10c+PncAeeZ18oZUwyQnp7
-lOwYDE+iJ4xXrkEuRy6ZHecqaT9h7rhzy+93SRdLZpkjmkzPz8B784HN0t7ePsau
-kH7GdA+mrR1jMdcbQwisJhJLw2v4By00lINVe2g/LGCz1BrObvXfFWYfV/HsEBco
-AS/PttFltue96uvqja8wD5r7gOl+yiMHIQUfEyllht2iwdN3YA2M6K1fWkJ3fb5Z
-KLgLQUsyjYiP/Tz4hQ/NtgCDsch1KJ1oSJJsvncgl6WwaaqU6nVaQA=
-=jjQa
------END PGP SIGNATURE-----
+> Am I wrong on any point? If I'm not, I fully understand what happened. I
+> have been wrong pretending this wasn't our fault, because it actually is
+> (well, sort of).
+> 
+> (It does *not* explain why sensors-detect locks on the ISA bus scanning,
+I was not the ISA Bus it was the check afterwards, I think it did not check for that in the last lm-sensors version I thouhgt it started an I... (bad memory chip in my brain - sorry).
+
+> but it explains the trouble you have been encountering after installing
+> lm_sensors, or, more precisely, i2c-2.8.0).
+Ok, how do I get my sound back? I could just install my latest kernel-image I think that would help.
+
+Thanks for feedback.
+Zeno
+
+-- 
+Mit freundlichen Gruessen / Best regards
+
+Zeno Davatz
+Strategie und Akquisition
+
++41 1 350 85 86
+
+www.ywesee.com > intellectual capital connected > www.generika.cc
