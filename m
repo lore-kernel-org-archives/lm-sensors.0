@@ -1,34 +1,49 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:38 +0000
-Subject: Invoking section 5.6 of the FAQ
-Message-Id: <42175C7B.70906@mds.gotdns.com>
+From: phil@netroedge.com (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:23:41 +0000
+Subject: FW: ADM1021 on Xeon ...
+Message-Id: <3DCAA055.3070908@netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4120052417514746@thevortex.com>
-In-Reply-To: <4120052417514746@thevortex.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks for the note and the subject line which gave me a good laugh.
-mds
 
-rendezvous wrote:
-> Ladies & Gents.  It just worked.
-> 
-> Ok, so I had to read the docs, but not many of them.  Excellent code, I
-> really like it.
-> 
-> Running a SY-K7V Dragon Plus
-> Via KT266A motherboard.
-> 
-> It seems to lock up when I have my lights on (Those tall hot warm cheap
-> things you can get at walmart with the halogen lights) and when I do heavy
-> compiling while doing stuff in the background.
-> 
-> So I figured I try this out and see what exactly the critical temp is, and
-> thanks to this program, now I'll know when I need to go get some Ice (for
-> my computer) and Water (for me).
-> 
-> Cheers and thanks for the code!
-> 
+Have you run sensors-detect?  From my understanding, a basic temp sensor 
+is on the xeon, but the chip (adm1021) is not.  I.e., for it to work, 
+your motherboard needs some sort of chip which we can drive which is 
+connected to the sensor on the Xeon.
+
+
+Phil
+
+Manish Lachwani wrote:
+
+>Hello,
+>
+>  
+>
+>> -----Original Message-----
+>>From: 	Manish Lachwani  
+>>Sent:	Wednesday, November 06, 2002 1:17 PM
+>>To:	'David_Papasan@Dell.com'; 'mds@paradyne.com';
+>>'sensors@Stimpy.netroedge.com'
+>>Cc:	Manish Lachwani
+>>Subject:	ADM1021 on Xeon ...
+>>
+>>Hello,
+>>
+>>I am making use of 2.4 GHZ Xeon CPUs. Do they have a adm1021 chip on it? I
+>>am using a adm1021.c driver and it cannot detect the adm1021 chip on the
+>>processor. How do I use force_adm1021 when using the adm1021.c compiled in
+>>the kernel? 
+>>
+>>Any help is appreciated ...
+>>
+>>Thanks
+>>manish
+>>    
+>>
+>
+>  
+>
