@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: bus scan removal
-Message-Id: <20031222091102.GA29580@kroah.com>
+Message-Id: <Pine.LNX.4.53.0312221427491.23656@cosmos.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031221100543.28eaf2ff.khali@linux-fr.org>
 In-Reply-To: <20031221100543.28eaf2ff.khali@linux-fr.org>
@@ -10,28 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Dec 21, 2003 at 01:07:32PM +0100, Jean Delvare wrote:
-> > > BTW, does i2cdetect work on non-i386 architectures?
-> > 
-> > Its pretty straight-forward. If it doesn't work, problem is more
-> > likely in i2c-dev.
-> 
-> That's not how I meant it. My point is that I think I remember Greg
-> saying someting about i2c-dev not being portable cross platforms. If I'm
-> not mistaking, i2cdetect relies on i2c-dev. What I mean is that removing
-> in-modules bus scanning might not be accepted if the architectures using
-> these modules are not able to use the new and prefered method, i.e.
-> i2cdetect.
-> 
-> I searched my mail archive for Greg's original comment, but couldn't
-> find it. Greg, any chance you could refresh my memory?
+On Sun, 21 Dec 2003, Jean Delvare wrote:
 
-For systems that have a 64bit kernel, and a 32bit userspace, all ioctls
-in the kernel need a "thunking" layer in order to pass the data between
-the kernel and userspace properly.  Last I looked that layer did not
-contain any i2c ioctls, so i2c-dev will not work on those kinds of
-systems (ppc64, sparc64, mips64, amd64, ia64, etc...)
+> > Not all chips acknowledge the read address. With the i2c-ibm_iic, I
+> > don't see the reason for using one-byte read,  if hw could not do
+> > quick write a one-byte read is next best choice.
+>
+> I don't quite follow you there. Is the one-byte read method a good
+> choice or not?
 
-Hope this helps,
+Depends of the chip, really. Commands in order of preference, what is
+least likely to cause ill side effects on the bus.
 
-greg k-h
+1. Write Quick Wr "0"
+2. Write Quick Rd "1"
+3. Read Byte(s)
+4. Write Byte(s)
+
+
+Seems i2c_probe/detect requires Write Quick, while the chip driver
+itself could do without it, so the chip never gets properly detected.
+By properly, I mean the code in the chip driver that knows the specific
+message format to use.
+
+
+-- 
+  Ky?sti M?lkki  <kyosti.malkki@welho.com>
