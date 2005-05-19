@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:45 +0000
 Subject: RFC locking and rate limit updates for i2c?
-Message-Id: <ee554114ks8v2d7vc84ntceo9eof76hoo9@4ax.com>
+Message-Id: <FhJaayQs.1111667171.3125820.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 In-Reply-To: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
@@ -10,85 +10,116 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
 
-On Thu, 24 Mar 2005 10:17:37 +0100 (CET), "Jean Delvare" <khali@linux-fr.org> wrote:
+Hi Grant,
 
->I have a disconnected via686 chip at home, I'll give a try to your patch
->this evening.
+> Surveyed drivers/i2c/chips/*.c containing "_write_value(" and...
+>
+> The winner is lm85.c :o)
+>
+> driver          write lock taken status [0]
+> --------------  ---------------------------------------------------
+> adm1021.c       no, appears to not need it
 
-okay, here are changes as requested, compile tested :)
+Out of curiousity, I took a look. See what I found:
 
-Cheers,
-Grant.
+	data->value = TEMP_TO_REG(temp);
+	adm1021_write_value(client, reg, data->value);
 
+As long as we don't hold update_lock here, it could happen that
+data->value is overwritten by an update right inbetween these two lines,
+right? Causing the write to become silently useless, which is no good.
+So, either the lock should be held even in this most simple write case,
+or we should use a temporary variable and put the lines the other way
+around:
 
-This patch for via686a driver updates set_fan_div
+	w = TEMP_TO_REG(temp);
+	adm1021_write_value(client, reg, w);
+	data->value = w;
 
-Added: Reports error when given invalid values for new fan divisor.
-Updating fan divisor is skipped when no change to reduce i2c bus traffic.
-The fan speed minimum limit is adjusted to suit new divisor so not to 
-confuse user.
-Driver now holds update_lock during the read, update, write cycle.
+This should be concurrent-update-safe as far as I can see. I don't know
+what is preferable, performance-wise. At least, locking is a general
+solution to the problem. Temporary variables might be fine for simple
+cases like the one above, but it might become a mess for more complex
+functions. Also, using locks make it clear to the user that a concurrent
+access issue exists. The trick of using local variables isn't as
+obvious, and future code cleanup attempts might break it. So all in all
+I believe that using the lock is better.
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
+> asb100.c        no locking, needs it 357
 
---- linux-2.6.12-rc1-mm1/drivers/i2c/chips/via686a.c	2005-03-23 06:34:26.000000000 +1100
-+++ linux-2.6.12-rc1-mm1x/drivers/i2c/chips/via686a.c	2005-03-24 21:09:52.000000000 +1100
-@@ -297,7 +297,6 @@
- #define ALARMS_FROM_REG(val) (val)
- 
- #define DIV_FROM_REG(val) (1 << (val))
--#define DIV_TO_REG(val) ((val)=8?3:(val)=4?2:(val)=1?0:1)
- 
- /* For the VIA686A, we need to keep some data in memory.
-    The structure is dynamically allocated, at the same time when a new
-@@ -506,15 +505,46 @@
- 	via686a_write_value(client, VIA686A_REG_FAN_MIN(nr+1), data->fan_min[nr]);
- 	return count;
- }
-+
-+/*
-+ * Set fan divisor.  Reports error when invalid divisor value requested.
-+ * Skip update when no change in divisor to reduce i2c bus traffic, and
-+ * adjust fan_min to match the new divisor providing 'least astonishment'.
-+ */
- static ssize_t set_fan_div(struct device *dev, const char *buf, 
- 		size_t count, int nr) {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct via686a_data *data = i2c_get_clientdata(client);
- 	int val = simple_strtol(buf, NULL, 10);
--	int old = via686a_read_value(client, VIA686A_REG_FANDIV);
--	data->fan_div[nr] = DIV_TO_REG(val);
-+	u8 new, old;
-+	unsigned long min;
-+
-+	switch (val) {
-+	case 1: new = 0; break;
-+	case 2: new = 1; break;
-+	case 4: new = 2; break;
-+	case 8: new = 3; break;
-+	default:
-+		dev_err(&client->dev, "fan_div value %d not supported. "
-+				"Choose one of 1, 2, 4, or 8!\n", val);
-+		return -EINVAL;
-+	}
-+	if (new = data->fan_div[nr])
-+		goto exit;
-+	
-+	down(&data->update_lock);
-+
-+	old = via686a_read_value(client, VIA686A_REG_FANDIV);
-+	min = FAN_FROM_REG(data->fan_min[nr], 
-+					DIV_FROM_REG(data->fan_div[nr]));
-+	data->fan_div[nr] = new;
- 	old = (old & 0x0f) | (data->fan_div[1] << 6) | (data->fan_div[0] << 4);
- 	via686a_write_value(client, VIA686A_REG_FANDIV, old);
-+	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
-+	via686a_write_value(client, VIA686A_REG_FAN_MIN(nr + 1),
-+					data->fan_min[nr]);
-+	up(&data->update_lock);
-+exit:
- 	return count;
- }
- 
+True. Currently, data->fan_div[nr] might be overwritten by a concurrent
+update.
+
+> ds1621.c        no, appears to not need it
+> fscher.c        no, appears to not need it
+> fscpos.c        no, appears to not need it
+> gl518sm.c       no, appears to not need it
+
+I believe they all do, exactly for the same reason adm1021 does. As long
+as data->anything is used to store a new value before it is written to a
+register, locking is needed.
+
+> gl520sm.c       no locking, needs it 371
+
+That's right, if both fan1_min and fan2_min are set at the same time,
+the current code may miss one of them.
+
+> it87.c          no locking ??
+
+What do you mean? It has the same update_lock the other drivers have,
+used only for the big update so far. A quick look shows that it needs
+locks for at least the same reason the adm1021 does, let alone possible
+multiple functions registers.
+
+Skipping the other ones, as obviously all drivers need lock on register
+write for one reason or another.
+
+> lm85.c          Yes -- full locking from data-> access to completion!
+
+How different is it from adm1026 and adm1031? These two ones look all
+right to me too.
+
+What about the drivers not listed here? adm1025, lm83, lm90, lm92,
+w83l785ts (surprisingly enough, all mine)?
+
+> [0] assuming lock not required until after client init completed
+
+Assumption is correct, locking makes no sense until we create at least
+one sysfs file, and sysfs file creations happens after init (if not this
+is considered a bug and shall be fixed).
+
+> [1] down() may be before or after: val = simple_strtol(buf, NULL, 10);
+> Is this a problem?  Can anthing can stomp 'buf'?
+
+"buf" is ours. There is no reason to hold the lock during the
+simple_strtol, so for better performance the down() should be moved
+below it.
+
+> Query: Should all drivers follow lm85 model where lock taken by
+> write accessors prior to reading data->somevalue through to
+> completion?
+
+I think so. Shame on me for not realizing before. I think I remember it
+was already discussed here before, and back then I didn't realize what
+the issue was, and possibly gave bad advice to drivers porters. Please
+forgive me.
+
+> As far as i2c bus saturation or rate limiting goes, that is not
+> something for the chip drivers, I now think it it belongs to the
+> i2c bus driver.
+
+It doesn't. For one thing, rate limitation is chip-specific, because the
+value update time differs from chip to chip. For another, some chips
+must *not* be limited in any way, or they become useless (think I/O
+expanders). Even for chips where we have a rate limitation, it doesn't
+apply to all parts of the driver, so there is no way this can be moved
+outside of the driver.
+
+> 'Somebody Else's Problem' --Douglas Adams
+
+In which book is this?
+
+Thanks,
+--
+Jean Delvare
