@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:23:58 +0000
 Subject: CVS tests report
-Message-Id: <3EE13424.9010904@paradyne.com>
+Message-Id: <3EE15EE4.9070500@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030606183514.2e884183.khali@linux-fr.org>
 In-Reply-To: <20030606183514.2e884183.khali@linux-fr.org>
@@ -10,79 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Great catch on the eeprom problem.
-I duplicated it here.
-i2cdump returns the correct values.
-However all eeprom directories in /proc/sys/dev/sensors contain
-the same values (I have eeproms at 50,51,52 and all the values
-are from the chip at 52).
+That's definitely it.
+i2c_register_entry() in lk2-4 doesn't kmalloc and copy the client's ctl_table_template.
+So the sysctl table is all messed up.
+The HEAD branch looks much closer to correct.
+But the CVS log shows merges by Kyosti from 2.5 back to 2.4 so not quite sure
+yet what went wrong.
+I'll work on it tomorrow.
+BTW when you rmmod i2c-proc right now, it doesn't completely remove
+the sysctl table, and things really go bad.
+I'm doing lots of diffs to figure out what to do next and hope to get things into shape tomorrow.
+mds
 
-I wonder if the problem is in i2c_register_entry() in i2c-proc.c.
-The function was rewritten between 2.7.0 and the branch, then
-rewritten again after the branch in the HEAD branch.
-I tried the i2c-proc from the HEAD branch but it oopsed
-in i2c_register_entry().
-
-I'll keep looking. Anybody with ideas speak up.
-
-Jean Delvare wrote:
-> Hi,
+Mark D. Studebaker wrote:
+> Great catch on the eeprom problem.
+> I duplicated it here.
+> i2cdump returns the correct values.
+> However all eeprom directories in /proc/sys/dev/sensors contain
+> the same values (I have eeproms at 50,51,52 and all the values
+> are from the chip at 52).
 > 
-> I finished my tests on i2c-CVS and lm_sensors2-CVS. I tested on a first
-> machine with a VIA Pro this morning and already posted the results. I
-> tested on three other machines since (my fifth one being dead broken, I
-> couldn't even setup the network adapter to get the files). There are two
-> machines based on a PIIX4 and one based on an Intel i801.
+> I wonder if the problem is in i2c_register_entry() in i2c-proc.c.
+> The function was rewritten between 2.7.0 and the branch, then
+> rewritten again after the branch in the HEAD branch.
+> I tried the i2c-proc from the HEAD branch but it oopsed
+> in i2c_register_entry().
 > 
-> The first problem concerns unresolved symbols. Three different issues
-> exist there:
+> I'll keep looking. Anybody with ideas speak up.
 > 
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18/kernel/drivers/video/matrox/matroxfb_maven.o.gz
-> depmod:         i2c_inc_use_client
-> depmod:         i2c_dec_use_client
+> Jean Delvare wrote:
 > 
-> This is the same I had this morning with zoran.o. I leave the resolution
-> to someone else, I simply don't know what should be done.
-> 
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18/kernel/drivers/i2c/i2c-algo-biths.o
-> depmod:         cond_resched
-> 
-> This one is easily explained. cond_resched() was added in linux 2.4.20,
-> so there's no suprise it is unresolved on earlier versions. A patch
-> proposal is attached (borrowed the idea from diff'ing
-> linux/drivers/mtd/devices/doc2000.c between 2.4.20 and 2.4.21-rc1). Note
-> that this is guess work, I absolutely don't know how scheduling is
-> supposed to work. The module now loads, but I couldn't test it (I have
-> no device using it, as far as I know).
-> 
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18/kernel/drivers/i2c/i2c-proc.o
-> depmod:         unlikely
-> 
-> This third one is strange. The symbol name sounds funny, isn't it ;) The
-> problem seems to happen only with 2.4.18 (and probably earlier) kernels
-> and is a serious one (considering we hardly can do anything without
-> i2c-proc). What's really strange is that unlikely() actually already
-> exists in 2.4.18 (in linux/include/linux/compiler.h, a file that didn't
-> change at all between 2.4.18 and 2.4.19). I'm somewhat clueless on this
-> one.
-> 
-> The second problem I had is with the eeprom module. On two machines
-> (using i2c-i801 and i2c-piix4, repectively), the eeprom module returns
-> wrong values. More precisely, it returns the same values for all
-> eeproms. On the first machine (my Sony laptop) I had a memory EEPROM
-> showing at 0x50 and a proprietary Sony EEPROM at 0x57. Now, the Sony
-> EEPROM shows at both 0x50 and 0x57. Same for the other machine where I
-> have one 32MB memory chip at 0x50 and a 128MB memory chip at 0x52. Now,
-> both chips pretend to be the 128MB one. I guess the recent changes on
-> the module may have caused this side effect (which may have been hiding
-> so far because most people will actually have the same memory chip sizes
-> in all slots).
-> 
-> So, these things would need to be fixed before I can affirm i801 and
-> piix4 drivers have been converted successfully.
-> 
-> (I will of course test any fix if kindly asked to :))
-> 
+>> Hi,
