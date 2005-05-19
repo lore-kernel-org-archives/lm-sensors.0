@@ -1,25 +1,28 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:01 +0000
-Subject: i2c 2.8.7
-Message-Id: <20040612083814.1dc79ba6.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:53 +0000
+Subject: i2c-ali1563 driver
+Message-Id: <20040415202451.3df53f20.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <40CA311E.7040100@verizon.net>
-In-Reply-To: <40CA311E.7040100@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> why don't khali and I straighten it out in the morning on IRC and then
-> after it's fixed (if it needs to be) I'll do freshmeat.
+Hi Patrick,
 
-OK, I'll be there.
+Just noticed that you have been writing a Linux 2.6 driver for ALi's
+M1563 SMBus. Two questions:
 
-(Short answer, lm_sensors 2.8.7 definitely doesn't need i2c > 2.8.1, but
-a few installation quirks have been fixed recently, which may justify a
-release, especially because we skipped the 2.8.5 and 2.8.6. But I'll
-take another look to make sure I didn't miss a thing.)
+1* Do you plan to backport it to Linux 2.4?
+
+2* It would be great to add support for it to our userspace tool
+"sensors-detect". Basically, all it takes is to add the correct PCI ID
+to the list of supported PCI adapters. I guess that the PCI ID is
+10B9:1563. Am I correct? Would you agree to test the updated script once
+I am done with it?
+
+Thanks.
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/
+http://www.ensicaen.ismra.fr/~delvare/
