@@ -1,39 +1,37 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: Ticket #: 1365 w83627hf fan3_div
-Message-Id: <3F50DFBF.3040804@paradyne.com>
+From: schnobs@babylon-kino.de (Christian Schnobrich)
+Date: Thu, 19 May 2005 06:24:37 +0000
+Subject: low fan speed = zero?
+Message-Id: <1075385890.672.19.camel@pferd.babel>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Law10-F1207IDkrBuOk0004d1a0@hotmail.com>
-In-Reply-To: <Law10-F1207IDkrBuOk0004d1a0@hotmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Good that it is not corrupting the lower bits of register 5d.
-Bad in that I don't know what could be the problem.
+Hello,
 
-Run isadump before and after changing the fan_div and look for any other
-changes. If you want, send both to us. But I'm out of ideas.
+I'm a bit shy of mailing a developer, but there doesn't seem to be a
+public mailing list...
 
-Jason Anderson wrote:
-> Thanks.  5d changes from 05 to 85 when changing fan_div from '4 2 1' to 
-> '4 2 64'.  Is that good?
-> 
-> Do you think my Winbond chip is messed up, and that's what's causing this?
-> 
->> From: "Mark Studebaker" <mds@paradyne.com>
->> To: Jason Anderson <jasonofhoulton@hotmail.com>
->> CC: lm78@Stimpy.netroedge.com
->> Subject: Re: Ticket #: 1365 w83627hf fan3_div
->> Date: Wed, 27 Aug 2003 14:40:00 -0400
->>
->> isadump 0x295 0x296
->>
->> Jason Anderson wrote:
->> >
->> > Hi!  I tried isadump, but I guess I don't know how to use it.  Please
->> > enlighten me.
->> >
->> > Update: My Windows motherboard utility reports 0 for fan3 now, too.
->> >
+I've got a temperature-controlled fan here. When the speed drops below
+an uncertain threshold, it is reported as 0 (zero).
+
+Now, the reason I'm writing is that this threshold seems software
+related. For testing purposes, I replaced the NTC with a variable
+resistor.
+
+The Windows software that came with my Mobo will report values as low as
+1600rpm, the hardware Monitor in BIOS/CMOS setup starts ticking at about
+2000rpm, lm_sensors and gkrellm will only give me a reading at 2400 and
+over -- a value that's unlikely to be reached even on the hottest
+summer's day.
+
+Apparently, some software does a sanity check and won't report values it
+considers to be too low. Could you give me a hint where this may happen,
+iow point me to the right place if it is in the lm_sensors code?
+
+
+regards,
+Schnobs
+
+
