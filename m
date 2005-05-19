@@ -1,67 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: od@fet.uni-hannover.de (Oliver Dawid)
 Date: Thu, 19 May 2005 06:24:23 +0000
 Subject: Trying to find device chrontel 7009
-Message-Id: <20031105203334.6eab5b78.khali@linux-fr.org>
+Message-Id: <200311052211.21893.od@fet.uni-hannover.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031105203334.6eab5b78.khali@linux-fr.org>
+In-Reply-To: <20031105203334.6eab5b78.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
 
-> > The LM80 is hard to detect, so it might not be LM80's. Load lm80,
-> > run sensors (and sensors -s before that) and see if the values make
-> > sense.
-> 
-> sensors output:
-> flex scanner jammed
+On Wednesday 05 November 2003 20:33, you wrote:
 
-U-ho. That's something that happens when you are using a configuration
-file (/etc/sensors.conf) that is newer than libsensors. Is that the case
-here? Try using the right config file (copy it manually from lm_sensors'
-etc/sensors.conf.eg) and see if it goes any better. If not, that means
-that you have found a bug, and we'll start hunting it.
+> I downloaded the 7009's data sheet and it happens that is not designed
+> for the I2C interface. Why did you think you would find it here? To me,
+> it's obvious it can't be there. You have to look for it somewhere else.
 
-> I have lm_sensors 2.7.0. I downloaded 2.8.1 but got this problem
-> while compiling:
-> (...)
-> Seems that you depend on different kernel header than 2.4.20?
+I would be so sorry if this is the truth. So I wasted your time. Here is the 
+sentence I concluded that it could be connected to i2c:
 
-Sure it does. You need to install an i2c version that at least matches
-the version of lm_sensors you want to use. See our installation guide
-here for installing 2.8.x since it's a bit tricky:
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/
+6. Register Control
+The CH7009 is controlled via a serial port. The serial port bus uses only the 
+SPC clock to latch data into registers, and does not use any internally 
+generated clocks so that the device can be written to in all power down 
+modes. The device retains all register states.
 
-> i2cdump 1 0x44 b
-> (...)
+I somehow thought, because its a synchonous serial bus, it could be a i2c.
 
-I don't know what this is.
+Sorry that I wasted so much time of you,
 
-> i2cdump 1 0x2e b
-> (...)
-> 30: 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 5d 30 41 83
-                                             ^^ ^^  ^
-This is an Analog Devices ADM1030, revision 3. That's a hardware
-monitoring chip. Unfortunately, we don't support it yet. We might add
-support for it later though.
-
-> i2cdump 1 0x2f b
-> (...)
-
-Don't know what it is either.
-
-> Seems like you are right and only one of 0x2e and 0x2f is a real lm80.
-
-Actually I now believe none of them is.
-
-> maybe none of these devices is my chrontel so i will have to search
-> on.
-
-I downloaded the 7009's data sheet and it happens that is not designed
-for the I2C interface. Why did you think you would find it here? To me,
-it's obvious it can't be there. You have to look for it somewhere else.
-
+bye,
+od
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+od@fli4l.de * http://www.fli4l.de/ * the on(e) disk router
