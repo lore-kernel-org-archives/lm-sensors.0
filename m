@@ -1,7 +1,7 @@
 From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:57 +0000
 Subject: RFC parameter based voltage scaling
-Message-Id: <n10381tg1rejgouc272lhar7dvf2122bof@4ax.com>
+Message-Id: <0dn381l7s6fcq1kdvkaokn235437a29mbj@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
 In-Reply-To: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
@@ -11,28 +11,49 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Khali,
-On Mon, 9 May 2005 15:35:36 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
+On Tue, 10 May 2005 14:35:31 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
 
-Okay, its up, some notes, the script, the runtime output
-at http://scatter.mine.nu/hwmon/voltage/
+Sorry for mixing the thread up.  Just got a working set of computes 
+for w83697hf chip using sensors.conf.
 
-If you could confirm sensors compute can do the transforms in one 
-of my earlier answers this morning (before coffee) then we can 
-leave it for now.  
+Its the comments up the top of file wrong, down further they mention 
+the 3.6 volt offset but unfortunately comment:
+"
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
+"
+I'd have to agree with convoluted math :)
 
-I'm thinking an array of u16 'fake' nominal scale readings for internal 
-scaling is easiest to do for winbond, that way all drivers have similar 
-looking scaling transform, it works, I had it in at some stage.
+>and motherboards have a long history of not following the
+>recommendations anyway.
 
-Probably less confusing than having R1/R2 scaling perhaps just in
-winbond chips, a comment would advise derivation of values.  Yes?
+This is the issue what I'm trying to redress by exposing resistor 
+values in the computes, and providing (planning?) a user-space 
+program for those with non-standard values on their mobo's.
 
-Problem now is the backwards compatability issue, or simply document 
-what has been done and move on.  I'd prefer to see correct mV from 
-sysfs.  Same as fan rpm, temperature -- other oddball is pwm presented 
-as 0..255 rather than percentage?
+I've changed Winbond datasheet values to E24 values as I suspect 
+that is what's on my mobo.  These work for me, CVS lm_sensors 
+(so I did compile that other patch, later :)
+
+ignore in1
+compute in3 @ * (50 + 34) / 50,         @ * 50 / (50 + 34)
+compute in4 @ * (56 + 20) / 20,         @ * 20 / (56 + 20)
+compute in5 ((@ - 3.6) * 100 / 24) + @, 3.6 - ((3.6 - @) * 24 / (100 + 24))
+compute in6 ((@ - 3.6) * 120 / 56) + @, 3.6 - ((3.6 - @) * 56 / (120 + 56))
+compute in7 @ * (33 + 17) / 33,         @ * 33 / (33 + 17)
+
+These can be simplified back, but then we lose traceability?  
+
+From a documentation point of view the verbose example may be 
+better?
+
+At least I've learned a bit more about libsensors + sensors.conf 
+today, not quite as bad as first look :o)
+
+This is using 2.6.12-rc3-mm3 standard driver (lsmod):
+
+w83627hf               29480  0
+i2c_sensor              2944  1 w83627hf
+i2c_isa                 1856  0
 
 --Grant.
-
-
-
