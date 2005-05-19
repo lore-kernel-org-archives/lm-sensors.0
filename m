@@ -1,24 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: i2c/kernel i2c-proc.c
-Message-Id: <20030610112617.1eb23f0e.khali@linux-fr.org>
+From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
+Date: Thu, 19 May 2005 06:24:20 +0000
+Subject: W83627HF SuperIO support in lm_sensors
+Message-Id: <20030929180436.GB1779@pua.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3EE246E6.1020806@penguincomputing.com>
-In-Reply-To: <3EE246E6.1020806@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Log Message:
-> (mds) fix problem with multiple chips from same driver
->       found by Khali. This was caused by not mallocing space for
->       and copying the ctl_template.
->       This also fixes incomplete removal of the sysctl table
->       when i2c-proc is rmmodded.
+Hi Alfredo,
 
-Tested, it's working OK now.
+copying sensors@Stimpy.netroedge.com on this one.
 
+On Mon, Sep 29, 2003 at 05:49:47PM +0200, Alfredo Milani-Comparetti wrote:
+> The main problem is that the W83627HF module is not included amongst the 
+> loadable modules that can be MODPROBEd with your latest kernel for RH9.
+> This leads to a SENSORS-DETECT routine that suggests to load W83627HF, which, 
+> in turn, is actually unavailable.
+> At present I've reverted to the original kernel from RH9 and written by hand a 
+> PERL script which enables some bits in the SuperIO chip in order to let it be 
+> found on the SMBus, but I think it would be nice to be able to find all 
+> available modules for all known chips :-)
+
+I used the kernel-patching method described in the lm_sensors 2.8.0
+documentation. Could you try to do the same, to reproduce whether the
+problem is in the packaging or in the upstream sources?
+
+Thanks!
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Axel.Thimm@physik.fu-berlin.de
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030929/508c97d7/attachment.bin
