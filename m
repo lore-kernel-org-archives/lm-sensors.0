@@ -1,35 +1,25 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
-Date: Thu, 19 May 2005 06:23:29 +0000
-Subject: pcf8574 driver
-Message-Id: <E16ZrFS-0001ZT-00@localhost>
+From: yanzickp@yanzisoft.dyndns.org (yanzickp@yanzisoft.dyndns.org)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: Sensors programming
+Message-Id: <Pine.LNX.4.33.0111081827590.11629-100000@CD237282-A.sxflls1.sd.home.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hello!
 
-I have to use the pcf8574 chip with my I2C interface, however, the pcf8574 
-drivers in lm-sensors is a bit basic. It supposes the pin P1 is used as an 
-input and the others pin as outputs.
+I am working on a project where a company created an LCD panel that uses
+i2c to work with.  I am curious where I can find resources on how to
+program for i2c because I would like to work on creating an application to
+use the LCD and buttons myself.  The issue is that the company that
+designed it will not release the source code, so I do not have much to go
+off of other than it is connected by 4 wires.  I have never done any
+driver programming before, so this may be over my head, but I would like
+to make an attempt so that at least I can say that I tried.
 
-Attached is a patch which corrects that, providing to files in /proc 
-interface, one for writting, the other for reading. It also modifies a bit 
-the driver to support the pcf8574a (it is a pcf8574 with a different address 
-range), and add a documentation file in doc/chips.
+Any help or suggestions you can offer would be appreciated.
 
-The patch also includes some cosmetic changes in the pcf8591 driver I wrote 
-previously, that is to say it modify the chip name in some places I had 
-forgotten to change when I made a copy/paste from another driver.
-
-Feel free to include it or not.
-
-Aurelien Jarno
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: pcf8574.diff.gz
-Type: application/x-gzip
-Size: 3771 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020210/b10f8b62/pcf8574.diff.gz
+Thanks
+Paul
