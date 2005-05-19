@@ -1,44 +1,48 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:41 +0000
-Subject: SENSDEV problems with Makefile in prog/rrd/
-Message-Id: <1076504282.402a26da797bd@imp.gcu.info>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:34 +0000
+Subject: [PATCH 2.6] I2C: unnecessary #includes in asb100.c
+Message-Id: <20050131050010.GA5334@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040211120945.BNUH21240.mxfep02.bredband.com@mo0ze>
-In-Reply-To: <20040211120945.BNUH21240.mxfep02.bredband.com@mo0ze>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[Please reply to the list, not to me.]
+Hi Jean, Greg:
 
-Quoting Sami Virtanen <sami.virtanen@bredband.net>:
+* Jean Delvare <khali@linux-fr.org> [2005-01-25 10:14:49 +0100]:
+> Any reson why asb100.c (in linux 2.6.11-rc2) includes linux/ioport.h and
+> asm/io.h? As an i2c-only chip driver, I don't think it needs these.
+>
+> As a side note, I also wonder what the inclusions of linux/config.h,
+> linux/types.h and asm/errno.h are there for.
 
-> I cant make the rrd package it just ends up saying: Makefile:32: ***
-> error - sensor asb100-i2c-1-2d not installed - check SENSDEV
-> definition in Makefile.
-> Stop.
-> 
-> And according to output from doing the cmd sensors it is the
-> asb100-i2c-1-2d sensor being used.
-> 
-> My system: 
-> Debian 3.0 with 2.6.2 kernel and lm_sensors 2.8.4 compiled with make
-> user and make user_install.
-> 
-> What am I doing wrong? Or is it just the script package that isn't
-> using the new /sys instead of the old /proc?
+Because they look pretty?  Here's a patch Greg, please apply...
 
-Yes, I think it's that easy. The scripts in prog/rrd haven't been ported
-to support sysfs yet.
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-I don't know anything about these scripts since I don't use rrd, so I
-won't be of much help here.
-
-However, if you would like to take your chance and update the scripts so
-that they work with your 2.6 kernel, go on and let us know how it
-goes.
+Index: linux-2.6.11-rc2-bk8/drivers/i2c/chips/asb100.c
+=================================--- linux-2.6.11-rc2-bk8.orig/drivers/i2c/chips/asb100.c	2005-01-30 18:20:41.000000000 -0500
++++ linux-2.6.11-rc2-bk8/drivers/i2c/chips/asb100.c	2005-01-30 23:50:53.000000000 -0500
+@@ -36,17 +36,12 @@
+     asb100	7	3	1	4	0x31	0x0694	yes	no
+ */
+ 
+-#include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/ioport.h>
+-#include <linux/types.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-sensor.h>
+ #include <linux/i2c-vid.h>
+ #include <linux/init.h>
+-#include <asm/errno.h>
+-#include <asm/io.h>
+ #include "lm75.h"
+ 
+ /*
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mark M. Hoffman
+mhoffman@lightlink.com
