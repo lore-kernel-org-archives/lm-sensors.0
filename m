@@ -1,68 +1,52 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: Backport i2c-ali1563.c from linux-2.6 to linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5765@weshml03.winbond.com.tw>
+Message-Id: <faxLAJ1u.1112088328.7489650.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBSdWRvbGYsIEplYW4sIE1EUywgYW5kIFBhdHJpY2sKCkRvIHlvdSBoYXZlIGFueSBzdWdn
-ZXN0aW9uIHRvIHRoZSBBTEkgTTE1NjMgZHJpdmVyIGZvciBsaW51eC0yLjQgYmFja3BvcnRlZApi
-eSBtZT8gSSBoYXZlIG5vdCBnb3R0ZW4gYW55IHJlc3BvbnNlIHlldC4gOi0oCgpJIHlvdSBkbyBO
-T1QgaGF2ZSBhbnkgc3VnZ2VzdGlvbiwgSSdkIGxpa2UgdG8gc2VuZCB5b3UgdGhlIGZpbmFsIHZl
-cnNpb24gYWZ0ZXIKZGVsZXRpbmcgc29tZSBjb21tZW50cywgYW5kIE1EUyB0byBoZWxwIHVzIGNo
-ZWNrIGl0IGludG8gbG1fc2Vuc29ycyBDVlMuCgpBbmQgSSBoYXZlIG9uZSBxdWVzdGlvbiBhYm91
-dCB0aGlzIGRyaXZlciBmb3IgbGludXgtMi40OgpJbiB0aGUgaTJjLWFsaTE1NjMgZHJpdmVyIGZv
-ciBsaW51eC0yLjQsIGl0IG5lZWQgIlBDSV9ERVZJQ0VfSURfQUxfTTE1NjMiCmluIHRoZSBmb2xs
-b3dpbmcgY29kZXM6CnN0YXRpYyBzdHJ1Y3QgcGNpX2RldmljZV9pZCBhbGkxNTYzX2lkc1tdIF9f
-ZGV2aW5pdGRhdGEgPSB7CiAgICAgICAgewogICAgICAgIC52ZW5kb3IgPSAgICAgICBQQ0lfVkVO
-RE9SX0lEX0FMLAogICAgICAgIC5kZXZpY2UgPSAgICAgICBQQ0lfREVWSUNFX0lEX0FMX00xNTYz
-LAogICAgICAgIC5zdWJ2ZW5kb3IgPSAgICBQQ0lfQU5ZX0lELAogICAgICAgIC5zdWJkZXZpY2Ug
-PSAgICBQQ0lfQU5ZX0lELAogICAgICAgIH0sCiAgICAgICAgeyAwLCB9Cn07CgpTbyBJIGhhdmUg
-dG8gaW5zZXJ0OgojZGVmaW5lIFBDSV9ERVZJQ0VfSURfQUxfTTE1NjMgICAgICAgICAgMHgxNTYz
-CmludG8gL3Vzci9zcmMvbGludXgtMi40LjIyL2luY2x1ZGUvbGludXgvcGNpX2lkcy5oCm1hbnVh
-bGx5IGJ5IG15c2VsZiwgb3RoZXJ3aXNlIHRoZSBjb21waWxlIHdpbGwgZmFpbGVkLgoKQnV0IEkg
-a25vdyB0aGF0IHRoZSBmaWxlIC91c3Ivc3JjL2xpbnV4LTIuNC4yMi9pbmNsdWRlL2xpbnV4L3Bj
-aV9pZHMuaApTaG91bGQgTk9UIGJlIG1vZGlmaWVkIGJ5IG1lLCB3aG8gYXJlIGluIGNoYXJnZSBv
-ZiB0aGlzIG1vZGlmaWNhdGlvbj8KClRoYW5rcwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj4gLS0t
-LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBQSTE0IEhVQU5HMAo+IFNlbnQ6IDIwMDXE
-6jPUwjI3yNUgMTc6MzQKPiBUbzogJ0plYW4gRGVsdmFyZSc7ICdSdWRvbGYgTWFyZWsnOyBtb2No
-ZWxAZGlnaXRhbGltcGxhbnQub3JnOwo+IG1kc0BtZHMuZ290ZG5zLmNvbQo+IENjOiBMTSBTZW5z
-b3JzOyBQSTE0IERaU0hFTjsgUEkxMCBMSEhzdTsgUEkxMyBDRkxpCj4gU3ViamVjdDogQmFja3Bv
-cnQgaTJjLWFsaTE1NjMuYyBmcm9tIGxpbnV4LTIuNiB0byBsaW51eC0yLjQKPiAKPiBIaSBSdWRv
-bGYsIEplYW4sIE1EUywgYW5kIFBhdHJpY2sKPiAKPiBJIGZpbmlzaGVkIHRoZSBiYWNrcG9ydCBv
-ZiBpMmMtYWxpMTU2My5jLCB3aXRoIHRoZSBoZWxwIG9mIFJ1ZG9sZiBhbmQgb3RoZXIKPiBtZW1i
-ZXJzLCBpdCBjYW4gd29yayB3ZWxsIG9uIHRoaXMgbW90aGVyYm9hcmQgQUJpdCBTVS0yUyB3aXRo
-IEFsaSBNMTU2My4KPiAKPiBEbyB5b3UgaGF2ZSBzcGFyZSB0aW1lIHRvIHJldmlldyBteSBjb2Rl
-cyBhbmQgZ2l2ZSBtZSBzb21lIHN1Z2dlc3Rpb24/Cj4gSSBhdHRhY2hlZCBpdCBpbiB0aGlzIG1h
-aWwsIElmIHlvdSBoYXZlIHRoZSBlbnZpcm9ubWVudCB0byB0ZXN0IGl0LCBpdCB3aWxsCj4gYmUg
-dG9vIGdyZWF0IQo+IAo+IEkgd2lsbCBkZWxldGUgc29tZSByZWR1bmRhbnQgY29tbWVudHMgYW5k
-IGNvbW1pdCBpdCB0byBsbV9zZW5zb3JzIGFmdGVyCj4geW91ciByZXZpZXcuCj4gCj4gVGhhbmtz
-Cj4gQmVzdCBSZWdhcmRzCj4gQ2h1bmhhbwo+IDIwMDUtMy0yNwoKCj09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwg
-aW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBv
-bmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9y
-IG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGlu
-IHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVt
-YWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNh
-dGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNv
-bXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5
-b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVz
-ZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9o
-aWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCBy
-ZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVk
-IGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxl
-IHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNz
-YWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1l
-bnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3s
-tW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l
-9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjD
-pd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qt
-zKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jq
-sFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7Fv
-tfissLXYqLm5caRspKel37P1qc63TqijLgo=
+
+Hi Chunhao,
+
+> And I have one question about this driver for linux-2.4:
+> In the i2c-ali1563 driver for linux-2.4, it need "PCI_DEVICE_ID_AL_M1563"
+> in the following codes:
+> static struct pci_device_id ali1563_ids[] __devinitdata = {
+>        {
+>        .vendor =       PCI_VENDOR_ID_AL,
+>        .device =       PCI_DEVICE_ID_AL_M1563,
+>        .subvendor =    PCI_ANY_ID,
+>        .subdevice =    PCI_ANY_ID,
+>        },
+>        { 0, }
+> };
+>
+> So I have to insert:
+> #define PCI_DEVICE_ID_AL_M1563          0x1563
+> into /usr/src/linux-2.4.22/include/linux/pci_ids.h
+> manually by myself, otherwise the compile will failed.
+>
+> But I know that the file /usr/src/linux-2.4.22/include/linux/pci_ids.h
+> Should NOT be modified by me, who are in charge of this modification?
+
+This file is part of the Linux kernel, not the lm_sensors project. We do
+not modify it. The correct thing to do is to define the value in the
+driver file itself, near the top. If you look at other drivers such as
+i2c-i801, that's what they do.
+
+So you'd simply add something like:
+
+#ifndef PCI_DEVICE_ID_AL_M1563
+#define PCI_DEVICE_ID_AL_M1563      0x1563
+#endif
+
+near the top of i2c-ali1563.c, and leave pci_ids.h unchanged.
+
+Thanks,
+--
+Jean Delvare
