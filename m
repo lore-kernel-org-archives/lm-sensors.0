@@ -1,7 +1,7 @@
 From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:23:45 +0000
 Subject: remove 2.2 support?
-Message-Id: <Pine.OSF.4.50.0301131307360.32351-100000@kosh.hut.fi>
+Message-Id: <Pine.OSF.4.50.0301132021440.4463-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3E0E709B.5000900@paradyne.com>
 In-Reply-To: <3E0E709B.5000900@paradyne.com>
@@ -10,29 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 12 Jan 2003, Mark Studebaker wrote:
 
-> We have a vote from Ky?sti for branching.
-> Albert suggested the same thing to me in an email.
-> Pavel suggested abandoning CVS and doing everything in Linus' tree.
->
-> I'm really reluctant to branch but it may be the only realistic way to do it
-> unless somebody volunteers to do patches manually (and perpetually).
+I have i2c now in sync with 2.5.54, waiting for branch.
 
-There was still a choice of what to branch. Choosing wisely, we can
-limit commits between branches to one direction.
+The same thing as sensors.h suffered happened to i2c-dev.h, userland
+exports were removed. So I left that part unpathced.
 
-I suggest we have main branch for 2.5 development,
-
-- Some day 2.5 results become main anyway.
-- Patches to 2.4 are not likely to touch kernel interfaces
-  -> merging 2.4->2.5 painless
-- Patches to 2.5 are likely to touch kernel interfaces only
-  -> little to none merges 2.5->2.4
-
-I see no reason to release 2.8.0 immediately. Just tag CVS before we
-branch, then do 2.4<->2.5 cleanup and de release once there is something
-new to offer.
+There are some bits worth of porting back to 2.4:
+ - check_region vs. request_region
+ - MINOR() vs minor() for /dev
+ - /dev with devfs
 
 -- 
   Ky?sti M?lkki
