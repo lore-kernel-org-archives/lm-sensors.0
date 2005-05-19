@@ -1,7 +1,7 @@
-From: phil@edgedesign.us (Philip Edelbrock)
+From: lepalom@wol.es (Leopold Palomo Avellaneda)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: Some nice feature
-Message-Id: <3F7B3750.3070908@edgedesign.us>
+Message-Id: <200310021124.42473.lepalom@wol.es>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200310011619.49340.lepalom@wol.es>
 In-Reply-To: <200310011619.49340.lepalom@wol.es>
@@ -10,40 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-I don't know.  I could use a good book on XML for xmas. ;')
+first of all, I'm sorry. It has been my fault. I didn't want to begin a flame 
+war. 
 
-Obviously flame bait.  Libsensors is a decent API if it is looked into.  
-Lm_sensors is the standard for hardware health monitoring in Linux.  
-It's not nessesary to get in a war of words defending it's ease of 
-application.  If another project works better, then of course there is 
-no harm if they go with that.
+The person who did it, after do an explication about the message, and I think 
+that he has some reason. Howeber, I insist, please, I send the comment as a 
+interesting thing. Take off all the "ranted"( ?, some comment inapropiated to 
+provoke a reaction?) comments and take only the idea. Maybe it could be a 
+good idea, I don't know. That's all.
 
+Please don't take only my message, look all the message thread. My message was
+http://www.beowulf.org/pipermail/beowulf/2003-October/008101.html
+and the theread has the subject: Environment monitoring.
 
-Phil
+Otherwise I have so say that a lot of people that are using beowulf cluster 
+are using lmsensors to monitorizing the nodes, so I think that all of has to  
+to agree your job.
 
-Jean Delvare wrote:
+Thank's all.
 
->>Hi,
->>
->>I cannot avoid to send you a part of a mail that I have read in the
->>beowulf list, we have talking about the option to use lmsensors to
->>monitorizing the cluster with a cron command. Someone have said that
->>is not a good option, so says:
->>
->>[....]
->>
->>What do you think?
->>    
->>
->
->I think that cross-posting what could become a flame war is better
->avoided.
->
->Apart from that, I believe that if that guy really wanted something
->done, he would have told us directly, or even done it by himself. We
->never heard about him, which means that he isn't interested in and/or
->convinced by what he proposes, and we can safely ignore him.
->
->  
->
+Best regards,
+
+Leo
+
