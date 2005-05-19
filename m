@@ -1,17 +1,37 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Thu, 19 May 2005 06:25:59 +0000
-Subject: [lm-sensors] Re: January 2000 archives
-Message-Id: <20050517113335.GC5369@neu.nirvana>
+From: david_knierim@earthlink.net (David Knierim)
+Date: Thu, 19 May 2005 06:25:19 +0000
+Subject: PATCH: LM87 read retry tuning
+Message-Id: <4170478A.6060407@earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <K4GOVX69.1116316919.3849580.khali@localhost>
-In-Reply-To: <K4GOVX69.1116316919.3849580.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Skipped content of type multipart/signed-------------- next part --------------
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+
+This is a tiny patch to tune the lm87 read retry failure loop that was
+recently added.  On my board, if I got one retry failure, I always got
+3, so I increased the amount of delay before a retry.
+
+David Knierim
+
+
+
+--- kernel/chips/lm87.c.orig  2004-10-10 08:03:48.000000000 -0400
++++ kernel/chips/lm87.c 2004-10-15 14:47:20.000000000 -0400
+@@ -492,10 +492,11 @@
+
+   printk(KERN_WARNING "lm87.o: Read byte data failed, "
+          "address 0x%02x\n", reg);
+-           mdelay(i);
++           mdelay(i + 3);
+  }
+
+  /* <TODO> what to return in case of error? */
++     printk(KERN_ERR "lm87.o: All read byte retries failed!!\n");
+  return 0;
+ }
+
+
+
