@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:52 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <10819814502649@kroah.com>
+Message-Id: <10819814504116@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10819814503946@kroah.com>
+In-Reply-To: <1081981449409@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,116 +11,121 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.8, 2004/03/30 14:26:38-08:00, khali@linux-fr.org
+ChangeSet 1.1643.36.6, 2004/03/26 13:53:01-08:00, khali@linux-fr.org
 
-[PATCH] I2C: i2c documentation update (1/2)
+[PATCH] I2C: Setting w83627hf fan_div preserves fan_min
 
-Here is an update to my 2.4 to 2.6 i2c client porting guide. The changes
-were inspired by the feedback I got with the drivers that have been
-ported so far.
+Here is a patch that updates the w83627hf driver in the exact same way I
+did recently for the w83781d driver. There were two problems:
+1* Fan divisor storing code was ugly, badly ripped from the 2.4 w83627hf
+   driver and/or the 2.6 w83781d driver.
+2* Setting fan divisors wouldn't preserve fan mins.
+
+Exactly the same as w83781d:
+http://archives.andrew.net.au/lm-sensors/msg06952.html
+http://archives.andrew.net.au/lm-sensors/msg07008.html
+
+No surprise since the w83627hf driver is a fork of the w83781d driver.
+
+Since the two drivers are strongly similar, I took the code directly
+from the updated w83781d driver. I cannot test the w83627hf driver
+(testers welcome BTW) but this makes me feel confident that the code is
+correct.
+
+To make it clear, this single patch is the w83627f equivalent of the
+three patches I submitted for the w83781d:
+* Cleanup
+* Refactoring
+* Setting fan_div preserves fan_min
+All in one (much better looking BTW).
 
 
- Documentation/i2c/porting-clients |   46 +++++++++++++++++++++++---------------
- 1 files changed, 29 insertions(+), 17 deletions(-)
+ drivers/i2c/chips/w83627hf.c |   54 ++++++++++++++++++++++++-------------------
+ 1 files changed, 31 insertions(+), 23 deletions(-)
 
 
-diff -Nru a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
---- a/Documentation/i2c/porting-clients	Wed Apr 14 15:14:22 2004
-+++ b/Documentation/i2c/porting-clients	Wed Apr 14 15:14:22 2004
-@@ -1,4 +1,4 @@
--Revision 3, 2003-10-04
-+Revision 4, 2004-03-30
- Jean Delvare <khali@linux-fr.org>
- Greg KH <greg@kroah.com>
+diff -Nru a/drivers/i2c/chips/w83627hf.c b/drivers/i2c/chips/w83627hf.c
+--- a/drivers/i2c/chips/w83627hf.c	Wed Apr 14 15:14:33 2004
++++ b/drivers/i2c/chips/w83627hf.c	Wed Apr 14 15:14:33 2004
+@@ -659,34 +659,37 @@
+ 		       (long) DIV_FROM_REG(data->fan_div[nr - 1]));
+ }
  
-@@ -24,9 +24,10 @@
-   #include <linux/slab.h>
-   #include <linux/i2c.h>
-   #include <linux/i2c-sensor.h>
--  #include <linux/i2c-vid.h>     /* if you need VRM support */
--  #include <asm/io.h>            /* if you have I/O operations */
--  Some extra headers may be required for a given driver.
-+  #include <linux/i2c-vid.h>	/* if you need VRM support */
-+  #include <asm/io.h>		/* if you have I/O operations */
-+  Please respect this inclusion order. Some extra headers may be
-+  required for a given driver (e.g. "lm75.h").
++/* Note: we save and restore the fan minimum here, because its value is
++   determined in part by the fan divisor.  This follows the principle of
++   least suprise; the user doesn't expect the fan minimum to change just
++   because the divisor changed. */
+ static ssize_t
+ store_fan_div_reg(struct device *dev, const char *buf, size_t count, int nr)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83627hf_data *data = i2c_get_clientdata(client);
+-	u32 val, old, old2, old3 = 0;
++	unsigned long min;
++	u8 reg;
  
- * [Addresses] SENSORS_I2C_END becomes I2C_CLIENT_END, SENSORS_ISA_END
-   becomes I2C_CLIENT_ISA_END.
-@@ -37,9 +38,9 @@
-   names for sysfs files (see the Sysctl section below).
- 
- * [Function prototypes] The detect functions loses its flags
--  parameter. Sysctl (e.g. lm75_temp) and miscellaneous (e.g.
--  swap_bytes) functions are off the list of prototypes. This
--  usually leaves five prototypes:
-+  parameter. Sysctl (e.g. lm75_temp) and miscellaneous functions
-+  are off the list of prototypes. This usually leaves five
-+  prototypes:
-   static int lm75_attach_adapter(struct i2c_adapter *adapter);
-   static int lm75_detect(struct i2c_adapter *adapter, int address,
-       int kind);
-@@ -70,13 +71,14 @@
- * [Detect] As mentioned earlier, the flags parameter is gone.
-   The type_name and client_name strings are replaced by a single
-   name string, which will be filled with a lowercase, short string
--  (typically the driver name, e.g. "lm75"). The errorN labels are
--  reduced to the number needed. If that number is 2 (i2c-only
--  drivers), it is advised that the labels are named exit and
--  exit_free. For i2c+isa drivers, labels should be named ERROR0,
--  ERROR1 and ERROR2. Don't forget to properly set err before
--  jumping to error labels. By the way, labels should be
--  left-aligned.
-+  (typically the driver name, e.g. "lm75").
-+  In i2c-only drivers, drop the i2c_is_isa_adapter check, it's
-+  useless.
-+  The errorN labels are reduced to the number needed. If that number
-+  is 2 (i2c-only drivers), it is advised that the labels are named
-+  exit and exit_free. For i2c+isa drivers, labels should be named
-+  ERROR0, ERROR1 and ERROR2. Don't forget to properly set err before
-+  jumping to error labels. By the way, labels should be left-aligned.
-   Use memset to fill the client and data area with 0x00.
-   Use i2c_set_clientdata to set the client data (as opposed to
-   a direct access to client->data).
-@@ -85,6 +87,11 @@
-   device_create_file. Move the driver initialization before any
-   sysfs file creation.
- 
-+* [Init] Limits must not be set by the driver (can be done later in
-+  user-space). Chip should not be reset default (although a module
-+  parameter may be used to force is), and initialization should be
-+  limited to the strictly necessary steps.
+-	val = simple_strtoul(buf, NULL, 10);
+-	old = w83627hf_read_value(client, W83781D_REG_VID_FANDIV);
+-	old3 = w83627hf_read_value(client, W83781D_REG_VBAT);
+-	data->fan_div[nr - 1] = DIV_TO_REG(val);
+-
+-	if (nr >= 3 && data->type != w83697hf) {
+-		old2 = w83627hf_read_value(client, W83781D_REG_PIN);
+-		old2 = (old2 & 0x3f) | ((data->fan_div[2] & 0x03) << 6);
+-		w83627hf_write_value(client, W83781D_REG_PIN, old2);
+-		old3 = (old3 & 0x7f) | ((data->fan_div[2] & 0x04) << 5);
+-	}
+-	if (nr >= 2) {
+-		old = (old & 0x3f) | ((data->fan_div[1] & 0x03) << 6);
+-		old3 = (old3 & 0xbf) | ((data->fan_div[1] & 0x04) << 4);
+-	}
+-	if (nr >= 1) {
+-		old = (old & 0xcf) | ((data->fan_div[0] & 0x03) << 4);
+-		w83627hf_write_value(client, W83781D_REG_VID_FANDIV, old);
+-		old3 = (old3 & 0xdf) | ((data->fan_div[0] & 0x04) << 3);
+-		w83627hf_write_value(client, W83781D_REG_VBAT, old3);
+-	}
++	/* Save fan_min */
++	min = FAN_FROM_REG(data->fan_min[nr],
++			   DIV_FROM_REG(data->fan_div[nr]));
 +
- * [Detach] Get rid of data, remove the call to
-   i2c_deregister_entry.
- 
-@@ -92,7 +99,8 @@
-   i2c_get_clientdata(client) instead.
- 
- * [Interface] Init function should not print anything. Make sure
--  there is a MODULE_LICENSE() line.
-+  there is a MODULE_LICENSE() line, at the bottom of the file
-+  (after MODULE_AUTHOR() and MODULE_DESCRIPTION(), in this order).
- 
- Coding policy:
- 
-@@ -102,8 +110,7 @@
-   can. Calls to printk/pr_debug for debugging purposes are replaced
-   by calls to dev_dbg. Here is an example on how to call it (taken
-   from lm75_detect):
--  dev_dbg(&adapter->dev,
--          "lm75_detect called for an ISA bus adapter?!?\n");
-+  dev_dbg(&client->dev, "Starting lm75 update\n");
-   Replace other printk calls with the dev_info, dev_err or dev_warn
-   function, as appropriate.
- 
-@@ -119,3 +126,8 @@
- * [Layout] Avoid extra empty lines between comments and what they
-   comment. Respect the coding style (see Documentation/CodingStyle),
-   in particular when it comes to placing curly braces.
++	data->fan_div[nr] = DIV_TO_REG(simple_strtoul(buf, NULL, 10));
 +
-+* [Comments] Make sure that no comment refers to a file that isn't
-+  part of the Linux source tree (typically doc/chips/<chip name>),
-+  and that remaining comments still match the code. Merging comment
-+  lines when possible is encouraged.
++	reg = (w83627hf_read_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV)
++	       & (nr=0 ? 0xcf : 0x3f))
++	    | ((data->fan_div[nr] & 0x03) << (nr=0 ? 4 : 6));
++	w83627hf_write_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV, reg);
++
++	reg = (w83627hf_read_value(client, W83781D_REG_VBAT)
++	       & ~(1 << (5 + nr)))
++	    | ((data->fan_div[nr] & 0x04) << (3 + nr));
++	w83627hf_write_value(client, W83781D_REG_VBAT, reg);
++
++	/* Restore fan_min */
++	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
++	w83627hf_write_value(client, W83781D_REG_FAN_MIN(nr+1), data->fan_min[nr]);
+ 
+ 	return count;
+ }
+@@ -700,7 +703,7 @@
+ store_regs_fan_div_##offset (struct device *dev, \
+ 			    const char *buf, size_t count) \
+ { \
+-	return store_fan_div_reg(dev, buf, count, offset); \
++	return store_fan_div_reg(dev, buf, count, offset - 1); \
+ } \
+ static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
+ 		  show_regs_fan_div_##offset, store_regs_fan_div_##offset)
+@@ -981,6 +984,11 @@
+ 
+ 	/* Initialize the chip */
+ 	w83627hf_init_client(new_client);
++
++	/* A few vars need to be filled upon startup */
++	data->fan_min[0] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(1));
++	data->fan_min[1] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(2));
++	data->fan_min[2] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(3));
+ 
+ 	/* Register sysfs hooks */
+ 	device_create_file_in(new_client, 0);
 
