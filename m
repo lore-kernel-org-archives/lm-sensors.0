@@ -1,66 +1,52 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: fixed up the i2c-id.h algo ids.
-Message-Id: <11099685971064@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:26 +0000
+Subject: I2C Patch
+Message-Id: <20031122084806.4d77d42c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11099685973684@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: gregkh@suse.de
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2114, 2005/03/02 15:50:42-08:00, gregkh@suse.de
+> I'm sorry to bother you, I couldn't find a board to post to, but I
+> just have an easy question about the I2C patch.
 
-[PATCH] I2C: fixed up the i2c-id.h algo ids.
+I CC'd the mailing-list.
 
-Thanks to Jean Delvare <khali@linux-fr.org> for the help with this.
+> I am running Debian
+> Sid 2.4.21 right now and I stupidly upgraded both i2c and lm-sensors
+> to 2.8.1 (using apt) without reading that it would disable my bttv. So
+> I downloaded kernel 2.4.22 and patched it using your I2C patch. (I
+> think I patched it correctly, but I had type in each file to be
+> patched.)
 
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+You probably forgot the "-p1" option to patch, or gave a bad value to
+it. Typically, you have to move inside the /usr/src/linux-2.4.22
+directory and use "patch -p1 < /path/to/linux-2.4.22-i2c-2.8.1.patch"
 
+> My question is, after I recompile this new kernel with the
+> patch do I have to reinstall both i2c and lm-sensors or just
+> lm-sensors? I don't want to screw up my system more than I have
+> already.
 
- include/linux/i2c-id.h |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+Lm-sensors should be sufficent, providing you did not only patch your
+kernel but also configure it so that it will build the required modules
+(i2c-core is obviously already there if you use bttv, but you also need
+at least i2c-proc and preferably i2c-dev too). If this was done, you can
+install lm-sensors directly. Note that you should edit the Makefile to
+have the I2C_HEADERS variable point to $(LINUX_HEADERS) (this is simply
+a line to uncomment).
 
+That said, you can also install both i2c and lm-sensors as before, if
+will work too.
 
-diff -Nru a/include/linux/i2c-id.h b/include/linux/i2c-id.h
---- a/include/linux/i2c-id.h	2005-03-04 12:22:52 -08:00
-+++ b/include/linux/i2c-id.h	2005-03-04 12:22:52 -08:00
-@@ -20,8 +20,6 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
- /* ------------------------------------------------------------------------- */
- 
--/* $Id: i2c-id.h,v 1.68 2003/02/25 02:55:18 mds Exp $ */
--
- #ifndef LINUX_I2C_ID_H
- #define LINUX_I2C_ID_H
- 
-@@ -196,11 +194,15 @@
- #define I2C_ALGO_OCP    0x120000	/* IBM or otherwise On-chip I2C algorithm */
- #define I2C_ALGO_BITHS	0x130000	/* enhanced bit style adapters	*/
- #define I2C_ALGO_IOP3XX	0x140000	/* XSCALE IOP3XX On-chip I2C alg */
--#define I2C_ALGO_PCA	0x150000	/* PCA 9564 style adapters	*/
--
- #define I2C_ALGO_SIBYTE 0x150000	/* Broadcom SiByte SOCs		*/
--#define I2C_ALGO_SGI	0x160000        /* SGI algorithm                */
--#define I2C_ALGO_AU1550	0x170000        /* Au1550 PSC algorithm		*/
-+#define I2C_ALGO_SGI	0x160000	/* SGI algorithm		*/
-+
-+#define I2C_ALGO_USB	0x170000	/* USB algorithm		*/
-+#define I2C_ALGO_VIRT	0x180000	/* Virtual bus adapter		*/
-+
-+#define I2C_ALGO_MV64XXX 0x190000	/* Marvell mv64xxx i2c ctlr	*/
-+#define I2C_ALGO_PCA	0x1a0000	/* PCA 9564 style adapters	*/
-+#define I2C_ALGO_AU1550	0x1b0000        /* Au1550 PSC algorithm		*/
- 
- #define I2C_ALGO_EXP	0x800000	/* experimental			*/
- 
-@@ -240,6 +242,7 @@
- #define I2C_HW_B_IXP4XX 0x17	/* GPIO on IXP4XX systems		*/
- #define I2C_HW_B_S3VIA	0x18	/* S3Via ProSavage adapter		*/
- #define I2C_HW_B_ZR36067 0x19	/* Zoran-36057/36067 based boards	*/
-+#define I2C_HW_B_PCILYNX 0x1a	/* TI PCILynx I2C adapter		*/
- #define I2C_HW_B_CX2388x 0x1b	/* connexant 2388x based tv cards	*/
- 
- /* --- PCF 8584 based algorithms					*/
+> Again I am sorry to bother you with this, and if you could
+> point me in the direction of a message board I would glady post it
+> there instead so I wouldn't waste your time. Thank you again, and
+> thanks for the great code!
 
+You're welcome, thanks for the nice words :)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
