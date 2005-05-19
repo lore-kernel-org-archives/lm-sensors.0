@@ -1,22 +1,29 @@
-From: nacc@us.ibm.com (Nishanth Aravamudan)
+From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
 Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: [PATCH 39/39] w1/w1_therm: replace schedule_timeout() with
-Message-Id: <20050121214307.GT3340@us.ibm.com>
+Message-Id: <20050122011746.55a3585b@zanzibar.2ka.mipt.ru>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050121214307.GT3340@us.ibm.com>
+In-Reply-To: <20050121214307.GT3340@us.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: kernel-janitors@vger.kernel.org
 
-Hi,
+> Hi,
 
-Please consider applying.
+> Please consider applying.
 
-Description: Use msleep_interruptible() instead of schedule_timeout() to
-guarantee the task delays as expected. Changed tm to an int, as it now is in
-terms of msecs, not jiffies.
+> Description: Use msleep_interruptible() instead of schedule_timeout() to
+> guarantee the task delays as expected. Changed tm to an int, as it now is in
+> terms of msecs, not jiffies.
+
+I've applied it to my tree, thank you.
+
+Greg please push it upstream.
 
 Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
 --- 2.6.11-rc1-kj-v/drivers/w1/w1_therm.c	2005-01-15 16:55:44.000000000 -0800
 +++ 2.6.11-rc1-kj/drivers/w1/w1_therm.c	2005-01-21 13:41:08.000000000 -0800
@@ -51,3 +58,8 @@ Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
  				if (signal_pending(current))
  					flush_signals(current);
  			}
+
+
+	Evgeniy Polyakov
+
+Only failure makes us experts. -- Theo de Raadt
