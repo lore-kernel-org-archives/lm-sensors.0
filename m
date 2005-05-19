@@ -1,27 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:22 +0000
-Subject: More on SMBus multiplexing
-Message-Id: <7skl1yxQ.1099996231.4961130.khali@gcu.info>
+From: bernard@brenda-arkle.demon.co.uk (Bernard Leak)
+Date: Thu, 19 May 2005 06:25:03 +0000
+Subject: Missing PGP keys?
+Message-Id: <000001c45d10$823e7e10$07dc6551@endyvlwz58nhmy>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041023200215.38e375a1.khali@linux-fr.org>
-In-Reply-To: <20041023200215.38e375a1.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Dear Sensors,
+               apologies if I'm doing something stupid
+(I don't think so).  All links to PGP keys from the page
 
-Hi Greg,
+http://www2.lm-sensors.nu/~lm78/download.html
 
->You sent this patch with the wrong -p level :(
->I fixed it up...
+lead to apparently empty pages.  I think the page
+actually doesn't exist, but is being faked as an
+empty page by the server, since attempting to
+download the PGP keys directly to disc fails
+*immediately* (the "Save as..." dialogue appears
+and then disappears at once).
 
-Oops. I'm really sorry about this. I generated the patch as a test to
-make sure it was correct first, and completely forgot that it wasn't
-meant to be sent to you. Thanks for fixing my silly mistakes. I'll try
-[1] to be more careful next times.
+I am using someone else's browser (IE5 on Windows
+XP), but I doubt whether this is very relevant.
 
-Thanks,
-Jean
+			Yours faithfully,
+						Bernard Leak
 
-[1] There is no try. I *will* be more careful next times ;)
