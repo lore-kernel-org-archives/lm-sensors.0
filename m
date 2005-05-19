@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Call for 2.9.1 soon
-Message-Id: <42587A25.8090702@mds.gotdns.com>
+Message-Id: <425AE7A8.3080100@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42374C41.8000401@mds.gotdns.com>
 In-Reply-To: <42374C41.8000401@mds.gotdns.com>
@@ -10,27 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-everybody ready and happy?
-docs OK?
+Sounds good to me.
+
+
+Phil
 
 Jean Delvare wrote:
-> Hi all,
+> Hi Philip,
 > 
 > 
->>>Khali mentioned i2c_adapter incompatibilities to be fixed.
->>
->>On second thought this requires discussion (and not an easy one) so it
->>should be left for later. This is not a major issue (this is about
->>binary compatibility, not source copatibility).
+>>Whoa...  I put in a rule to catch those and unsubscribed the
+>>offfending  address.
 > 
 > 
-> On third thought we took our chance and it seemed to be doable with not
-> too much difficulties. I just committe the changes.
+> In fact, blocking postmaster@* permanently sounds like a sane thing to
+> do.
 > 
-> As the change isn't exactly trivial, I'd like to give it one more week
-> of test. Can we schedule the release for March 6th or so?
 > 
-> I commited all my other changes already.
+>>Sorry about that!
+> 
+> 
+> I think this would be a good time to move to a real mailing-list. Axel
+> had propose to host lists for us some times ago IIRC. If the offer is
+> still valid, I think we should accept it.
+> 
+> Axel, would it be possible to create a mailing-list, with some kind of
+> spam killer, open for posting, where all current users of the list would
+> be automatically subscribed? If it is, let's go.
+> 
+> Then Phil could put some auto reply on the old list address to redirect
+> the users to the new list - manually. I'd like to avoid automatic
+> redirection for obvious reasons ;)
 > 
 > Thanks,
-
