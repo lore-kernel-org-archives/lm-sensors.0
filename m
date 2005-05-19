@@ -1,32 +1,42 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:52 +0000
-Subject: Query: Intel SE440BX-2 negative voltage?
-Message-Id: <q4r0619qmanpl3sm8jk3nh61a6bc7frk27@4ax.com>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Thu, 19 May 2005 06:25:29 +0000
+Subject: [2.6 patch] 2.6.10-mm2: let I2C_ALGO_SGI depend on MIPS
+Message-Id: <20050106181519.GG3096@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <c5g0615rejeqqrtp08i56nj8b62vnq2rfn@4ax.com>
-In-Reply-To: <c5g0615rejeqqrtp08i56nj8b62vnq2rfn@4ax.com>
+References: <20050106002240.00ac4611.akpm@osdl.org>
+In-Reply-To: <20050106002240.00ac4611.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, greg@kroah.com, Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com, ralf@linux-mips.org, linux-mips@linux-mips.org
 
-On Sat, 16 Apr 2005 08:45:22 +1000, Grant Coady <grant_lkml@dodo.com.au> wrote:
+On Thu, Jan 06, 2005 at 12:22:40AM -0800, Andrew Morton wrote:
+>...
+> All 560 patches:
+>...
+> bk-i2c.patch
+>...
 
->Hi Gang,
->
->The Intel SE440BX-2 measures -5V and -12V, however I can find 
->no reference as to which input measures what negative rail.
 
-Found it -- wrote a script to describe possible resistor dividers 
-for measured voltages and one interpretation wins hands down over 
-the other -- me happy.  Computer as calculator, what a novel idea :)
+There's no reason for offering a MIPS-only driver on other architectures 
+(even though it does compile).
 
-	-5V to Vccp1	-12V to Vccp2
-R1, R2	1200, 2700	1500, 8200
+Even better dependencies on specific MIPS variables might be possible 
+that obsolete this patch, but this patch fixes at least the !MIPS case.
 
-Assume R1 to +5V as Vref, R2 to Vminus.  Self calibrate by using 
-measured +5V to calculate Vminus, dunno if sensors does that, works 
-for me.  Match is within measurement resolution.
 
-Cheers,
-Grant.
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+--- linux-2.6.10-mm2-full/drivers/i2c/algos/Kconfig.old	2005-01-06 19:07:16.000000000 +0100
++++ linux-2.6.10-mm2-full/drivers/i2c/algos/Kconfig	2005-01-06 19:08:22.000000000 +0100
+@@ -61,7 +61,7 @@
+ 
+ config I2C_ALGO_SGI
+ 	tristate "I2C SGI interfaces"
+-	depends on I2C
++	depends on I2C && MIPS
+ 	help
+ 	  Supports the SGI interfaces like the ones found on SGI Indy VINO
+ 	  or SGI O2 MACE.
+
