@@ -1,18 +1,293 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: [PATCH] i2c-nforce2 and mkpatch
-Message-Id: <20040416225543.1843339c.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: proposed update to sysfs-interface
+Message-Id: <20040205193033.6626dc12.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040416184158.GA31563@pc.aurel32.private>
-In-Reply-To: <20040416184158.GA31563@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> New patch, this time the help is working.
+Hi all,
 
-Thanks, applied.
+Below is a proposed update of the sysfs-interface document. I'd like to
+hear comments about it. I do not post it as a patch because it's not
+easily readable due to structure changes. I better describe the changes:
+
+* I expose our goals for the new interface and the possible new library
+(chip-independancy).
+
+* I explain why bypassing the library is not a good idea and why a
+library is still needed even with a chip-independant sysfs files naming
+scheme.
+
+* I describe the files naming scheme. Note that I still don't like it,
+as mentioned in a previous post:
+http://archives.andrew.net.au/lm-sensors/msg06206.html
+BTW I did not have a single answer and am a bit sad about that. I think
+this is something important and I wouldn't want to change things unless
+at least someone agrees it is not too bad an idea.
+
+* In the files list, I group the entries by categories. I think this is
+easier to read for the newcomer.
+
+I plan to reword the files descriptions as well, but this is a different
+story.
+
+And I still plan to make real changes to the interface. But that's a
+different story again.
+
+And I would also want to add entries present in the fscher and gl518fs
+drivers that are not described in the document yet. Another story again.
+
+Thanks.
+
+
+Naming and data format standards for sysfs files
+------------------------------------------------
+
+The libsensors library offers an interface to the raw sensors data
+through the sysfs interface. See libsensors documentation and source for
+more further information. As of writing this document, libsensors
+(from lm_sensors 2.8.3) is heavily chip-dependant. Adding or updating
+support for any given chip requires modifying the library's code.
+This is because libsensors was written for the procfs interface
+older kernel modules were using, which wasn't standardized enough.
+Recent versions of libsensors (from lm_sensors 2.8.2 and later) have
+support for the sysfs interface, though.
+
+The new sysfs interface was designed to be as chip-independant as
+possible.
+
+Note that motherboards vary widely in the connections to sensor chips.
+There is no standard that ensures, for example, that the second
+temperature sensor is connected to the CPU, or that the second fan is on
+the CPU. Also, some values reported by the chips need some computation
+before they make full sense. For example, most chips can only measure
+voltages between 0 and +4V. Other voltages are scaled back into that
+range using external resistors. Since the values of these resistors
+can change from motherboard to motherboard, the conversions cannot be
+hard coded into the driver and have to be done in user space.
+
+For this reason, even if we aim at a chip-independant libsensors, it will
+still require a configuration file (e.g. /etc/sensors.conf) for proper
+values conversion, labeling of inputs and hiding of unused inputs.
+
+An alternative method that some programs use is to access the sysfs
+files directly. This document briefly describes the standards that the
+drivers follow, so that an application program can scan for entries and
+access this data in a simple and consistent way. That said, such programs
+will have to implement conversion, labeling and hiding of inputs. For
+this reason, it is still not recommended to bypass the library.
+
+If you are developing a userspace application please send us feedback on
+this standard.
+
+Note that this standard isn't completely established yet, so it is subject
+to changes, even important ones. One more reason to use the library instead
+of accessing sysfs files directly.
+
+Each chip gets its own directory in the sysfs /sys/devices tree.  To
+find all sensor chips, it is easier to follow the symlinks from
+/sys/i2c/devices/
+
+All sysfs values are fixed point numbers.  To get the true value of some
+of the values, you should divide by the specified value.
+
+There is only one value per file, unlike the older /proc specification.
+The common scheme for files naming is: <type>_<item><number>. Usual
+types for sensor chips are "in" (voltage), "temp" (temperature) and
+"fan" (fan). Usual items are "input" (measured value), "max" (high
+threshold, "min" (low threshold). Numbering usually starts from 1,
+except for voltages which start from 0 (because most data sheets use
+this). A number is always used for elements that can be present more
+than once, even if there is a single element of the given type on the
+specific chip. Other files do not refer to a specific element, so
+they have a simple name, and no number.
+
+Alarms are direct indications read from the chips. The drivers do NOT
+make comparisons of readings to thresholds. This allows violations
+between readings to be caught and alarmed. The exact definition of an
+alarm (for example, whether a threshold must be met or must be exceeded
+to cause an alarm) is chip-dependent.
+
+
+-------------------------------------------------------------------------
+
+************
+* Voltages *
+************
+
+in_min[0-8]	Voltage min value.
+		Fixed point value in form XXXX.  Divide by 1000 to get
+		Volts.
+		Read/Write
+		
+in_max[0-8]	Voltage max value.
+		Fixed point value in form XXXX.  Divide by 1000 to get
+		Volts.
+		Read/Write
+		
+in_input[0-8]	Voltage input value.
+		Fixed point value in form XXXX.  Divide by 1000 to get
+		Volts.
+		Read only
+		Actual voltage depends on the scaling resistors on the
+		motherboard, as recommended in the chip datasheet.
+		This varies by chip and by motherboard.
+		Because of this variation, values are generally NOT scaled
+		by the chip driver, and must be done by the application.
+		However, some drivers (notably lm87 and via686a)
+		do scale, with various degrees of success.
+		These drivers will output the actual voltage.
+		First two values are read/write and third is read only.
+		Typical usage:
+			in_*0	CPU #1 voltage (not scaled)
+			in_*1	CPU #1 voltage (not scaled)
+			in_*2	3.3V nominal (not scaled)
+			in_*3	5.0V nominal (scaled)
+			in_*4	12.0V nominal (scaled)
+			in_*5	-12.0V nominal (scaled)
+			in_*6	-5.0V nominal (scaled)
+			in_*7	varies
+			in_*8	varies
+
+vid		CPU core voltage.
+		Read only.
+		Fixed point value in form XXXX corresponding to CPU core
+		voltage as told to the sensor chip.  Divide by 1000 to
+		get Volts.  Not always correct.
+
+vrm		Voltage Regulator Module version number. 
+		Read only.
+		Two digit number (XX), first is major version, second is
+		minor version.
+		Affects the way the driver calculates the core voltage from
+		the vid pins. See doc/vid for details.
+
+
+********
+* Fans *
+********
+
+fan_min[1-3]	Fan minimum value
+		Integer value indicating RPM
+		Read/Write.
+
+fan_input[1-3]	Fan input value.
+		Integer value indicating RPM
+		Read only.
+
+fan_div[1-3]	Fan divisor.
+		Integers in powers of two (1,2,4,8,16,32,64,128).
+		Some chips only support values 1,2,4,8.
+		See doc/fan-divisors for details.
+
+pwm[1-3]	Pulse width modulation fan control.
+		Integer 0 - 255
+		Read/Write
+		255 is max or 100%.
+		Corresponds to the fans 1-3.
+
+pwm_enable[1-3] pwm enable
+		not always present even if pwm* is.
+		0 to turn off
+		1 to turn on
+		Read/Write
+
+
+****************
+* Temperatures *
+****************
+
+sensor[1-3]	Sensor type selection.
+		Integers 1,2,3, or thermistor Beta value (3435)
+		Read/Write.
+
+temp_max[1-4]	Temperature max value.
+		Fixed point value in form XXXXX and should be divided by
+		1000 to get degrees Celsius.
+		Read/Write value.
+
+temp_min[1-3]	Temperature min value.
+		Fixed point value in form XXXXX and should be divided by
+		1000 to get degrees Celsius.
+		Read/Write value.
+
+temp_hyst[1-3]	Temperature hysteresis value.
+		Fixed point value in form XXXXX and should be divided by
+		1000 to get degrees Celsius.  Must be reported as an
+		absolute temperature, NOT a delta from the max value.
+		Read/Write value.
+
+temp_input[1-4] Temperature input value.
+		Fixed point value in form XXXXX and should be divided by
+		1000 to get degrees Celsius.
+		Read only value.
+
+temp_crit	Temperature critical value, typically greater than all
+		temp_max values.
+		Fixed point value in form XXXXX and should be divided by
+		1000 to get degrees Celsius.
+		Common to all temperature channels.
+		Read/Write value.
+
+		If there are multiple temperature sensors, temp_*1 is
+		generally the sensor inside the chip itself, generally
+		reported as "motherboard temperature".  temp_*2 to
+		temp_*4 are generally sensors external to the chip
+		itself, for example the thermal diode inside the CPU or
+		a thermistor nearby.
+
+
+************
+* Currents *
+************
+
+Note that no known chip provides current measurements as of writing,
+so this part is theoretical, so to say.
+
+curr_max[1-n]	Current max value
+		Fixed point XXXXX, divide by 1000 to get Amps.
+		Read/Write.
+
+curr_min[1-n]	Current min value.
+		Fixed point XXXXX, divide by 1000 to get Amps.
+		Read/Write.
+
+curr_input[1-n]	Current input value
+		Fixed point XXXXX, divide by 1000 to get Amps.
+		Read only.
+
+
+*********
+* Other *
+*********
+
+alarms		Alarm bitmask.
+		Read only.
+		Integer representation of one to four bytes.
+		A '1' bit means an alarm.
+		Chips should be programmed for 'comparator' mode so that
+		the alarm will 'come back' after you read the register
+		if it is still valid.
+		Generally a direct representation of a chip's internal
+		alarm registers; there is no standard for the position
+		of individual bits.
+		Bits are defined in kernel/include/sensors.h.
+
+beep_enable	Beep/interrupt enable
+		0 to disable.
+		1 to enable.
+		Read/Write
+
+beep_mask	Bitmask for beep.
+		Same format as 'alarms' with the same bit locations.
+		Read only.
+
+eeprom		Raw EEPROM data in binary form.
+		Read only.
+
 
 -- 
 Jean Delvare
