@@ -1,12 +1,16 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: [PATCH 2.6] I2C: Kill address ranges in non-sensors i2c chip
-Message-Id: <20050402184103.6048d243.khali@linux-fr.org>
+Message-Id: <20050402203102.459659a8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050402184103.6048d243.khali@linux-fr.org>
+In-Reply-To: <20050402184103.6048d243.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+[Once again, this time *with* the signed-off-by line...]
 
 Hi Greg,
 
@@ -14,7 +18,7 @@ Some months ago, you killed the address ranges mechanism from all
 sensors i2c chip drivers (both the module parameters and the in-code
 address lists). I think it was a very good move, as the ranges can
 easily be replaced by individual addresses, and this allowed for
-significant cleaups in the i2c core (let alone the impressive size
+significant cleanups in the i2c core (let alone the impressive size
 shrink for all these drivers).
 
 Unfortunately you did not do the same for non-sensors i2c chip drivers.
@@ -35,6 +39,8 @@ i2c code (and we want to do this).
 
 Please apply,
 thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
 diff -ruN linux-2.6.12-rc1-bk5.orig/Documentation/i2c/writing-clients linux-2.6.12-rc1-bk5/Documentation/i2c/writing-clients
 --- linux-2.6.12-rc1-bk5.orig/Documentation/i2c/writing-clients	Thu Mar 31 14:28:40 2005
