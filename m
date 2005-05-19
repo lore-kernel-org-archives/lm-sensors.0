@@ -1,44 +1,42 @@
-From: esr@thyrsus.com (esr@thyrsus.com)
-Date: Thu, 19 May 2005 06:25:06 +0000
-Subject: problems in one or more man pages you maintain
-Message-Id: <200407170016.i6H0G95Y020742@snark.thyrsus.com>
+From: rutger@nospam.com (rutger@nospam.com)
+Date: Thu, 19 May 2005 06:24:56 +0000
+Subject: pwmconfig fix
+Message-Id: <20040506215442.GA31272@nospam.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200407121514.i6CFEqXm017215@snark.thyrsus.com>
-In-Reply-To: <200407121514.i6CFEqXm017215@snark.thyrsus.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is automatically generated email about problems in a man page for which
-you appear to be responsible.  If you are not the right person or list, tell
-me and I will attempt to correct my database.
+Hi,
 
-See http://catb.org/~esr/doclifter/problems.html for details on how and
-why these patches were generated.  Feel free to email me with any questions.
+[little bug report + fix]
 
-Note: This patch does not change the mod date of the manual page.  You
-may wish to do that by hand.
+On my Asus P4P800 motherboard with a w83627thf sensor chip, pwmconfig
+from lm_sensors-2.8.6 doesn't detect the pwm-files by default
+(2.6.6-rc3, module w83627hf). This is the listing of
+/sys/devices/platform/i2c-1/1-0290:
 
-Problems with isadump.8:
+alarms        fan2_input  in0_min    in3_max    in8_max         temp2_max
+beep_enable   fan2_min    in0_ref    in3_min    in8_min         temp2_max_hyst
+beep_mask     fan2_pwm    in1_input  in4_input  name            temp2_type
+detach_state  fan3_div    in1_max    in4_max    power           temp3_input
+fan1_div      fan3_input  in1_min    in4_min    temp1_input     temp3_max
+fan1_input    fan3_min    in2_input  in7_input  temp1_max       temp3_max_hyst
+fan1_min      fan3_pwm    in2_max    in7_max    temp1_max_hyst  temp3_type
+fan1_pwm      in0_input   in2_min    in7_min    temp1_type      vrm
+fan2_div      in0_max     in3_input  in8_input  temp2_input
 
-1. Parenthesized comments in command synopsis.  This is impossible
-to translate to DocBook.
+As you can see the pwm files are called 'fan[1-9]_pwm'. Likewise for
+the fan inputs, which are called fan[1-9]_input.
 
---- isadump.8-orig	2004-07-10 06:49:29.502190656 -0400
-+++ isadump.8	2004-07-10 06:50:39.737513264 -0400
-@@ -7,11 +7,9 @@
- .I addrreg
- .I datareg
- .RI [ "bank " [ bankreg ]]
--(for I\u2\dC-like access)
- .br
- .B isadump
- .BI "-f " address
--(for flat address space)
- 
- .SH DESCRIPTION
- isadump is a small helper program to examine registers visible through the ISA
+After changing this in pwmconfig to take those files into account,
+your script worked. Thanks.
 
---
-                             Eric S. Raymond
+Regards,
+Rutger.
+
+-- 
+Rutger Nijlunsing ---------------------------- rutger ed tux tmfweb nl
+never attribute to a conspiracy which can be explained by incompetence
+----------------------------------------------------------------------
