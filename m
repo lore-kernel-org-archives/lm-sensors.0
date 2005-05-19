@@ -1,45 +1,35 @@
-From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:24:26 +0000
-Subject: i2c/kernel i2c-algo-bit.c
-Message-Id: <Pine.LNX.4.53.0311211238550.27319@cosmos.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:23:41 +0000
+Subject: back to life
+Message-Id: <20021027223720.0c148138.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031101170944.386fd941.khali@linux-fr.org>
-In-Reply-To: <20031101170944.386fd941.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 1 Nov 2003, Jean Delvare wrote:
 
-> > Modified Files:
-> > 	i2c-algo-bit.c
-> > Log Message:
-> > (Khali) Fix sclhi() for adapters that do not have getscl().
-> >         Enable bit_test for adapters that do not have getscl().
-> >         Mostly rewrite test_bus(), cleaner and probably faster.
->
-> I'd like reviewers and testers on this, since I plan to submit a similar
-> for Linux 2.6. There are two distinct changes:
->
-> 1* Fixed sclhi() for adapters that do not have getscl(). It looks like
-> there was a udelay call missing in this case.
+Hi everyone. I hope everybody's OK by now and that the incidents of
+yesterday won't have too many consequences.
 
-1*
+Phil, is it OK? I hope that your employer won't cause trouble because of
+what happened.
 
-Your fix for adapters not capable of reading SCL looks correct.
-I introduced this bug as I moved udelay() call _after_ SCL is read back
-as HIGH. Purpose of udelay() there is to guarantee SCL HIGH time.
-I think we agree upon this change?
+I think that my theory of a loop caused by a mailbox quota exceeded is
+right. I don't intend to blame anyone, this could happen, period. But
+now we have to protect ourselves against the problem:
 
-But, the bus has some capacitance and first call(s) to getscl() after
-setscl(1) are likely to return LOW. This may slow down transmission and
-generate undesirable amount of scheduling as cond_resched() is called.
+Two suggestions:
 
-Results of my bug fix: Earlier it could, rarely, output very short SCL
-high pulses. Now it will, likely, output very long SCL high pulses.
+1* Discard messages from Mail Administrator etc.
+2* Filter messages with size > say 50k. I checked all the legitimate
+mails received on the list for the past 4 months and except two at
+around 100k, they are all below 30k. Messages over the size limit should
+be subject to manual acceptance.
 
-To see i2c-algo-biths solution, search for "rdcount".
+Now I hope we'll be able to work on the project again. I have been
+working on it these days and have some questions.
 
 -- 
-  Ky?sti M?lkki  <kyosti.malkki@welho.com>  +358 50 462 8786
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
