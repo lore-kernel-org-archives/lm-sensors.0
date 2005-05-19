@@ -1,45 +1,61 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:52 +0000
 Subject: Winbond W83792D driver
-Message-Id: <20050415184945.30be8ead.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE40F90F@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
-
-> We just tried and all three bits can be used despite the fact
-> datasheet proposes on page 37 that bit2 should be 0 and bit6 1
-> 
-> We tried to write 0x76 and subclients moved to 0x4e and 0x4f.
-> 
-> Maybe the datasheet should be clearified that values on bit2 and bit6
-> are power on defaults but all three bits can be altered.
-
-The datasheet looks already very clear to me (although it seems that it
-confused several persons already). The bit definitions for CR4A clearly
-state that all 3 low address bits can be changed for both subclients. I
-don't think that the datasheet can be more clear about this. Insead, we
-should simply pay more attention to what is written ;)
-
-We already discussed this subclient address issue a few days ago, and I
-fixed a problem related to this in the CVS right before the 2.9.1
-release.
-
-Whether or not we allow the user to force arbitrary subclient addresses
-or force each in a separate range doesn't make much difference IMHO. The
-chip has no limitation, but adding at the driver level is unlikely to
-cause problems. Forcing subclient addresses is a feature only a few
-users need.
-
-Just remember that if we do *not* force subaddresses to different ranges,
-then the driver has to handle the duplicate address case when the user
-forces the addresses.
-
-Thanks,
--- 
-Jean Delvare
+RGVhciBNRFMKClF1b3RpbmcgTURTCj4gNCkgYSBkb2N1bWVudGF0aW9uIGZpbGUgZm9yIGRvYy9j
+aGlwcyB3b3VsZCBiZSBncmVhdGx5IGFwcHJlY2lhdGVkIDopCgpJIGZpbmlzaGVkIHRoZSBkb2Mv
+Y2hpcHMvdzgzNzkyZCB5ZXN0ZXJkYXksIHBsZWFzZSBjaGVjayB0aGUgYXR0YWNobWVudCwKSWYg
+eW91IGhhdmUgdGltZSwgeW91IG1heSBoZWxwIG1lIHRvIHJldmlldyB0aGlzIGRvY3VtZW50IGFu
+ZCBhZGQgc29tZQpzdXBwbGVtZW50IGludG8gaXQsIFRoZW4gcGxlYXNlIGhlbHAgdG8gY29tbWl0
+IGl0IGludG8gQ1ZTLgpJIHdpbGwgY29udGludWUgdG8gdXBkYXRlIHRoaXMgZG9jdW1lbnQgaWYg
+bmVlZC4KCgpUaGFua3MKQmVzdCBSZWdhcmRzCgpDaHVuaGFvCgoKCj4gLS0tLS1PcmlnaW5hbCBN
+ZXNzYWdlLS0tLS0KPiBGcm9tOiBNYXJrIFN0dWRlYmFrZXIgW21haWx0bzptZHNAbWRzLmdvdGRu
+cy5jb21dCj4gU2VudDogMjAwNcTqNNTCMTbI1SAwOjIwCj4gVG86IExNIFNlbnNvcnMKPiBDYzog
+UEkxNCBIVUFORzAKPiBTdWJqZWN0OiBSZTogV2luYm9uZCBXODM3OTJEIGRyaXZlcgo+IAo+IEkg
+bWFkZSB0aGUgc2FtZSBtaXN0YWtlIGF0IGZpcnN0LAo+IEtoYWxpIGNhdWdodCBpdCBhbmQgb24g
+cmVyZWFkaW5nIHRoZSBkYXRhc2hlZXQgSSBhZ3JlZS4KPiBJdCdzIHRoZSBzYW1lIGJlaGF2aW9y
+IGFzIHRoZSB3ODM3ODFkLCBvdGhlciB0aGFuIHRoZSBwb3dlci1vbiBkZWZhdWx0Lgo+IEFsbCAz
+IGJpdHMgY2FuIGJlIG1vZGlmaWVkLgo+IG1kcwo+IAo+IAo+IFJ1ZG9sZiBNYXJlayB3cm90ZToK
+PiA+IEhpIGFsbC4KPiA+Cj4gPiBXZSBqdXN0IHRyaWVkIGFuZCBhbGwgdGhyZWUgYml0cyBjYW4g
+YmUgdXNlZCBkZXNwaXRlIHRoZSBmYWN0IGRhdGFzaGVldAo+IHByb3Bvc2VzCj4gPiBvbiBwYWdl
+IDM3IHRoYXQgYml0MiBzaG91bGQgYmUgMCBhbmQgYml0NiAxCj4gPgo+ID4gV2UgdHJpZWQgdG8g
+d3JpdGUgMHg3NiBhbmQgc3ViY2xpZW50cyBtb3ZlZCB0byAweDRlIGFuZCAweDRmLgo+ID4KPiA+
+IE1heWJlIHRoZSBkYXRhc2hlZXQgc2hvdWxkIGJlIGNsZWFyaWZpZWQgdGhhdCB2YWx1ZXMgb24g
+Yml0MiBhbmQgYml0Ngo+ID4gYXJlIHBvd2VyIG9uIGRlZmF1bHRzIGJ1dCBhbGwgdGhyZWUgYml0
+cyBjYW4gYmUgYWx0ZXJlZC4KPiA+Cj4gPiBSZWdhcmRzCj4gPgo+ID4gUnVkb2xmCj4gCgoKCj09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdl
+ZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50
+ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUg
+b3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNz
+ZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVs
+aXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRo
+ZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2Yg
+aXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2Ug
+dGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkg
+dW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBp
+cyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwg
+dGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQg
+c2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQu
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29t
+cHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhl
+IGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhdCB0aGUmbmJzcDsgRW5n
+bGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjq
+sFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXek
+p6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdp
+qr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOx
+eqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5
+uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD
+9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgotLS0tLS0tLS0tLS0tLSBuZXh0
+IHBhcnQgLS0tLS0tLS0tLS0tLS0KQSBub24tdGV4dCBhdHRhY2htZW50IHdhcyBzY3J1YmJlZC4u
+LgpOYW1lOiB3ODM3OTJkClR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQpTaXplOiAxNDc1
+OCBieXRlcwpEZXNjOiB3ODM3OTJkClVybCA6IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9w
+aXBlcm1haWwvbG0tc2Vuc29ycy9hdHRhY2htZW50cy8yMDA1MDQxOC9kN2YwMjRjNC93ODM3OTJk
+Lm9iago=
