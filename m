@@ -1,7 +1,7 @@
-From: b-gruber@gmx.de (Berni)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: lm_sensors && bt869
-Message-Id: <2149564019.20040101013639@gmx.de>
+Message-Id: <20040101081057.6748d6ff.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031228153744.49065c91.khali@linux-fr.org>
 In-Reply-To: <20031228153744.49065c91.khali@linux-fr.org>
@@ -10,46 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Jean Delvare,
+> Well...I think I could manage to change almost everything according to
+> the guide and other ported files but there where 2 points where I ran
+> into problems:
+> 1. Section "Detect", Device Creation: Do I have to use names from the
+> sysfs-interface-doc here? The problem is, that I couldn't find
+> anything useable here as the bt869 isn't a sensor chip in the
+> traditional way (it does neither read temperatures nor voltages or
+> whatever...).
+> 2. Quite the same problem is at the point where I have to define
+> show and set functions: I should use names from the
+> sysfs-interface-doc but there isn't anything according to the
+> functions which the bt869 has...
 
-am Mittwoch, 31. Dezember 2003 um 22:15 schrieben Sie:
+The sysfs-interface is really meant for sensor chips IMHO, with the
+exception of eeprom because it it both generic (it is a raw reading of
+the whole addressing space) and special (because it is a binary file).
 
->> Well...I don't actually know what the difference between kernel
->> modules in 2.4 and 2.6 is.
+So you of course can't use what's documented in sysfs-interface for now.
+What we should do is chose files that make sense for your chipset, while
+keeping a few simple rules in mind:
+* The names should not interfere with those documented in sysfs. It's
+unlikely it would happen anyway.
+* The names should be such that anyone doubtlessly know what the value
+represents, just from the name.
+* The names should follow the naming scheme described in
+sysfs-interface whenever it applies (i.e. <channel>_<value><number>).
+This choice is still subject to change but I want names to be consistent
+until there.
+* Remember that sysfs has only one value per file, which wasn't the case
+with procfs. So you typically have more files in the new driver than in
+the old one.
+* The names you chose should be reusable by other video chips driver.
+For example, you would prefer "video_norm_out" over"video_norm" because
+other chips could have "video_norm_in".
 
-JD> Just to make it clear, the difference we are talking about is somewhat
-JD> i2c-chip-drivers specific (although one of the most important changes is
-JD> that they now use sysfs instead of procfs, which is a typical 2.4 to 2.6
-JD> change).
+Our goal with the sysfs interface is that no particular knowledge about
+chip specificity should be required to read from and write to the sysfs
+interface files. This hopefully should let us have a much simpler
+library to access this information, with no chip specific data. The
+library we have for now needs to be updated as soon as new drivers are
+written or old drivers are changed.
 
->> Does the module need to be fully rewritten or do I only have to change
->> parts?
+So I invite you to submit a file names proposal on this list, as
+detailed as possible when it comes to the reasons of your choices each
+time it isn't obvious (and possibly even when it seems to be). We'll
+discuss it together to make sure it will be a safe base for future video
+drivers as well, and then you can go coding ;)
 
-JD> Well, somewhere in the middle. There is much more to do than just a few
-JD> trivial changes. Still I don't consider it unfeasable, even for a
-JD> newbie, if you can follow a guide and keep track of four files at once
-JD> (see below).
+Thanks.
 
->> Could you point me to those docs?
-
-JD> See Documentation/i2c/porting clients in linux-2.6.1-rc1. I suggest that
-JD> you follow that guide, with four additional files opened: the old bt869
-JD> driver, the new bt869 (that you'll be writing), and the old and new
-JD> version of an arbitrary driver that has already been ported (I'd suggest
-JD> lm75 or lm83). This is what I did and it works well.
-
-JD> Good luck. Feel free to ask questions as they come.
-
-Well...I think I could manage to change almost everything according to the
-guide and other ported files but there where 2 points where I ran into
-problems:
-1. Section "Detect", Device Creation: Do I have to use names from the
-sysfs-interface-doc here? The problem is, that I couldn't find anything
-useable here as the bt869 isn't a sensor chip in the traditional
-way (it does neither read temperatures nor voltages or whatever...).
-2. Quite the same problem is at the point where I have to define show
-and set functions: I should use names from the sysfs-interface-doc but
-there isn't anything according to the functions which the bt869 has...
-
-Thanks for your help!
-Bernhard Gruber
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
