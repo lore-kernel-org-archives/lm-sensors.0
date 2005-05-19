@@ -1,31 +1,37 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: clockchips via SMBus - sorry for offtopic but I can't find any
-Message-Id: <Pine.LNX.4.58.0405122212270.21202@desitka.sh.cvut.cz>
+From: baton@ozwide.net.au (Aaron Theodore)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: vt1211 2.6.6-mm4 patch
+Message-Id: <010201c43f3c$a3b14d30$2500920a@bruce>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200405121723.29867.marcin_ml@sekretarka.no-ip.org>
-In-Reply-To: <200405121723.29867.marcin_ml@sekretarka.no-ip.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+heres a patch to get the via vt1211 working under the 2.6.6 kernel
+(it should work under any 2.6 kernel though)
 
-Hello,
+id spent weeks trying to get the vt1211 working under linux, after lotsa
+searching i found:
 
+http://jdelvare.net1.nerim.net/sensors/vt1211.c
 
-http://www.hasw.net/8rdavcore/
+it compiled fine in 2.6  but all the devices in sysfs were wrong so i edited
+this file to follow the 2.6 naming convention
 
-Here is something for you.
-It is the program for overclocking the boards, using ATXP1 chip
-http://freshmeat.net/redir/8rdavcore/40216/url_bz2/8rdavcore-0.5.5.tar.bz2
-this is linux version that can at least change voltages.
+so here the patch is:
+http://bat.ath.cx/vt1211-2.6.6-mm4.patch.gz
+(also attatched to email)
 
-It seems that FSB regulation is not there (this chip has no public
-datasheet) Maybe you can ask for sources the author of this program.
+enjoy!
 
-Hope this helps
+latero
 
-Regards
-
-Rudolf
+Aaron Theodore
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: vt1211-2.6.6-mm4.patch.gz
+Type: application/x-gzip
+Size: 6106 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040522/e701c69b/vt1211-2.6.6-mm4.patch.gz
