@@ -1,30 +1,41 @@
-From: blackcat@sympato.ch (Ivan Topolsky)
-Date: Thu, 19 May 2005 06:25:37 +0000
-Subject: Quick'n'dirty port of bt869 drivers.
-Message-Id: <1108309645-0fef1b49043bce553a1d97f6c4d3aecf@sympato.ch>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:47 +0000
+Subject: [PATCH] I2C: Clean up of i2c-elektor.c build
+Message-Id: <11123113922923@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11123113914006@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: frank.beesley@aeroflex.com
 
-A few weeks ago, I wrote the following ticket :
-http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket78
+ChangeSet 1.2333, 2005/03/31 14:08:41-08:00, frank.beesley@aeroflex.com
 
-So I submit here my quick hack.
-It may be useful to people who want TV-out for their 3DFX Voodoo 3,
-until it gets finally added to the X server tdfx driver.
-(Which, I think, will take up some time, because developpement on the tdfx driver look almost dead. Still no SLI support for Voodoo 5...)
+[PATCH] I2C: Clean up of i2c-elektor.c build
 
-BTW: Do you know whom I should contact about adding bt869 support to tdfx driver ?
+This patch changes the flags variable type from long to unsigned long in
+one function. This removes a couple of warnings from the compile
+messages for elektor i2c bus driver.
 
-Have a nice day !
+Signed-off-by: Frank Beesley <frank.beesley@aeroflex.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-- DrYak -
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: bt869.tar.bz2
-Type: application/octet-stream
-Size: 12445 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050213/bbf8c442/bt869.tar.obj
+
+ drivers/i2c/busses/i2c-elektor.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+
+diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
+--- a/drivers/i2c/busses/i2c-elektor.c	2005-03-31 15:18:01 -08:00
++++ b/drivers/i2c/busses/i2c-elektor.c	2005-03-31 15:18:01 -08:00
+@@ -112,7 +112,7 @@
+ static void pcf_isa_waitforpin(void) {
+ 	DEFINE_WAIT(wait);
+ 	int timeout = 2;
+-	long flags;
++	unsigned long flags;
+ 
+ 	if (irq > 0) {
+ 		spin_lock_irqsave(&lock, flags);
+
