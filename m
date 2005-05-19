@@ -1,7 +1,7 @@
 From: phil@netroedge.com (phil@netroedge.com)
 Date: Thu, 19 May 2005 06:23:25 +0000
 Subject: lm_sensors SiS730
-Message-Id: <20011113141311.I5776@Stimpy.netroedge.com>
+Message-Id: <20011113151159.K5776@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200111132117.NAA12073@jerry-garcia.accessgroupinc.com>
 In-Reply-To: <200111132117.NAA12073@jerry-garcia.accessgroupinc.com>
@@ -11,48 +11,30 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Bob, I've got one of these mobo's.  Nice all-in-one solution, and
-it's quite reasonably priced!  Anyways, I'm using the IT87 driver.
-Here's what my lsmod looks like:
+My computer is strange, it's originally a RH5.2, but it's had many
+things updated by hand including the kernel, compilers, libs, etc.
 
-[phil@drtheopolis phil]$ lsmod
-Module                  Size  Used by
-it87                    7056   0
-eeprom                  3120   0 (unused)
-ddcmon                  3120   0 (unused)
-i2c-isa                 1168   0 (unused)
-matorb                  2656   0 (unused)
-i2c-proc                6304   0 [it87 eeprom ddcmon matorb]
-i2c-core               12944   0 [it87 eeprom ddcmon i2c-isa matorb i2c-proc]
-
-Not everything is being used (eeprom, ddcmon, matorb).  The IT87 is
-accessed via the ISA bus.  The I2C/SMBus isn't accessable yet.  There
-is a driver written (i2c-sis5595) but it doesn't like this hardware
-for some reason.  Possibly because of the Bios used.  Technical
-information and help for the SiS chips are hard to come by, too.
-
-PS- my temp values aren't right, but I'm using an older sensors.conf. 
+In a nutshell, I'm using a receint 2.4.x kernel with i2c patches.  Get
+the i2c distro from the lm-sensors download page, and do a cd
+i2c;mkpatch/mkpatch.pl . /usr/src/linux > /usr/src/i2c.patch;cd
+/usr/src/linux;patch -p1 <../i2c.patch  Built the kernel with I2C
+support (dev and proc).  Got Lm_sensors2 (use CVS), edited Makefile to
+find the I2C headers in the kernel, did a 'make' and a 'make install'. 
+sensorslib is installed in /usr/local/lib, so make sure your
+ld.so.conf is up-to-date, and then do a 'ldconfig'.  insmod the
+modules, and run 'sensors'.  Salt and pepper to taste, serve hot. 
 
 
 Phil
 
-On Tue, Nov 13, 2001 at 01:17:29PM -0800, Bob Ramstad wrote:
-> Howdy.  I wanted to write and first thank you for the i2c and
-> lm_sensors work.  It's cool that such a package exists for linux.
+On Tue, Nov 13, 2001 at 02:22:13PM -0800, Bob Ramstad wrote:
+> Phil, thanks so much for the quick reply!
 > 
-> I have an ASUS A7S-VM m/b with SiS730 chipset and i2c + lm_sensors
-> 2.6.1 packages which I've compiled and installed.
-> 
-> Is there anything I could do to help with testing out a solution for
-> this chipset?  Has anyone proposed an "alpha" solution that I could
-> try?
-> 
-> The website makes a cryptic reference to it87, if you can give me
-> explicit directions on how to set things up to try that out, I'd be
-> happy to give it a shot and report back.
-> 
-> Thanks in advance, and of course, if this chipset is just too far
-> below the radar to be worth the time to fiddle with, I understand.
+> If you have a sec, I'd appreciate it very much if you could tell me
+> what linux distro you're using and what commands you put where to get
+> things running... the INSTALL and QUICKSTART docs are pretty good, but
+> nothing beats a cut and paste from a running config...  thanks in
+> advance!
 > 
 > -- Bob
 
