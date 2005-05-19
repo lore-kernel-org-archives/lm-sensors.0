@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: smsc47m1 ported to Linux 2.6
-Message-Id: <20040721201708.60f64113.khali@linux-fr.org>
+Message-Id: <20040721224031.33f7b811.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040720225853.6f67122b.khali@linux-fr.org>
 In-Reply-To: <20040720225853.6f67122b.khali@linux-fr.org>
@@ -10,14 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+BTW, I think that there's still something broken in the 2.4 smsc47m1
+driver. If I read the datasheets correctly, pwm_enable currently does
+what you tell it not to do, ie: 1 will force fan to full speed while 0
+will enable PWM.
 
-Just updated my smsc47m1 patch after I found some errors in the previous
-versions. You can get it here:
+Can someone (Mark?) confirm?
 
-http://khali.linux-fr.org/devel/i2c/linux-2.6/linux-2.6.8-rc2-i2c-smsc47m1-alpha3.diff
-
-Thanks.
+Thanks,
 
 -- 
 Jean "Khali" Delvare
