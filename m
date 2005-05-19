@@ -1,346 +1,200 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: Intel 82801BA issue (was Can't seem to enter my issue into
-Message-Id: <4267ED75.20905@mds.gotdns.com>
+From: xuan--sensors--2003.12.20@baldauf.org (Xuan Baldauf)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: Hidden and disabled SMBus SiS0016, please enable
+Message-Id: <3FE4DB3C.8050504@baldauf.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <e0e94cf9c5098ca5d41ab2dd3fde4aca@houston.rr.com>
-In-Reply-To: <e0e94cf9c5098ca5d41ab2dd3fde4aca@houston.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-great.
-BTW the 1f.3  device in lspci _is_ the 24x3 device, which  you will see in 'lspci -n'.
+Hello Alex and Mark,
 
-David Smoot wrote:
-> You were absolutely correct.  Upgraded the kernel.  Installed the latest 
-> version.  Followed the directions and it worked just dandy.
-> 
-> Hopefully I can contribute something of use to you guys.
-> 
-> Thank you for a great product
-> 
-> David
-> On Apr 20, 2005, at 10:42 PM, Mark Studebaker wrote:
-> 
->> you have the device in lspci so you don't need hotplug or setpci.
->>
->> To get SMBus working for sensors-detect you need to fix this
->>     Can't open /dev/i2c[-/]2
->> by creating the device (see prog/mkdev) or running as root if you aren't.
->>
->> But driver should find the chip on the ISA side.
->> Or on the SMBus side if you modprobe i2c-i801.
->>
->> sensors says no sensors found?
->> what does dmesg say after modprobes?
->>
->>
->> Big problem also is 2.7.0 is very very (very) old, try upgrading to 
->> latest release.
->> In that release, recommended driver will be w83627hf.
->>
->>
->> David Smoot wrote:
->>
->>> OK, I have examined the board and I most definitely have the Intel 
->>> 82801BA I/O Controller (ICH2).  When I do an lspci,I get:
->>> [root@houlnx hotplug]# /sbin/lspci
->>> 00:00.0 Host bridge: Intel Corporation 82815 815 Chipset Host Bridge 
->>> and Memory Controller Hub (rev 04)
->>> 00:02.0 VGA compatible controller: Intel Corporation 82815 CGC 
->>> [Chipset Graphics Controller]  (rev 04)
->>> 00:1e.0 PCI bridge: Intel Corporation 82801BAM PCI (rev 05)
->>> 00:1f.0 ISA bridge: Intel Corporation 82801BA ISA Bridge (ICH2) (rev 05)
->>> 00:1f.1 IDE interface: Intel Corporation 82801BA IDE U100 (rev 05)
->>> 00:1f.2 USB Controller: Intel Corporation 82801BA(M) USB (Hub A) (rev 
->>> 05)
->>> 00:1f.3 SMBus: Intel Corporation 82801BA(M) SMBus (rev 05)
->>> 00:1f.4 USB Controller: Intel Corporation 82801BA(M) USB (Hub B) (rev 
->>> 05)
->>> 01:05.0 Ethernet controller: Intel Corporation 82557 [Ethernet Pro 
->>> 100] (rev 08)
->>> 01:08.0 Ethernet controller: Intel Corporation 82801BA(M) Ethernet 
->>> (rev 03)
->>>  From i2c-801 in doc/busses:
->>> "If you do NOT see the 24x3 device at function 3, and you can't
->>> figure out any way in the BIOS to enable it,
->>> (and especially if you have an Asus P4B board),
->>> see prog/hotplug/README.p4b."
->>> So I went and read README.p4b and followed the instructions there.   
->>> Here is a cut and paste of the setpci:
->>> [root@houlnx hotplug]# /sbin/setpci -d 8086:2440 f2.w
->>> 0060
->>> Problem is 0x60 already has bits 3 and 8 cleared.  What do I do now?
->>> Thanks
->>> David Smoot
->>> On Apr 20, 2005, at 8:55 AM, David Smoot wrote:
->>>
->>>> I've tried twice now and I don't get an error message, it just goes 
->>>> to the main support ticket page and I don't get a ticket number and 
->>>> it does not show up in the list.
->>>>
->>>> Here is the text of the ticket I was trying to submit:
->>>> I thought I submitted a ticket last night but apparently I screwed 
->>>> it up.  Forgive me if this is a repeat.
->>>>
->>>> I installed i2c and lm sensors on a virgin redhat 7.2 box.  Took a 
->>>> little effort but everything compiled and installed.
->>>>
->>>> I have a PCI form factor single board computer, the PCA-6180F from 
->>>> Advantech.  The manufacturer has confirmed they use a WinBond 
->>>> W83627HF chip for hardware monitoring.  Sensors-detect correctly 
->>>> identifies the chip.
->>>>
->>>> ###Begin pasted output of sensors detect
->>>> [root@houlnx sbin]# 
->>>> /home/dsmoot/hwmonitor/lm_sensors-2.7.0/prog/detect/sensors-detect
->>>>  This program will help you to determine which I2C/SMBus modules you 
->>>> need to
->>>>  load to use lm_sensors most effectively.
->>>>  You need to have done a `make install', issued a `depmod -a' and 
->>>> made sure
->>>>  `/etc/conf.modules' (or `/etc/modules.conf') contains the appropriate
->>>>  module path before you can use some functions of this utility. Read
->>>>  doc/modules for more information.
->>>>  Also, you need to be `root', or at least have access to the 
->>>> /dev/i2c[-/]* files
->>>>  for some things. You can use prog/mkdev/mkdev.sh to create these 
->>>> /dev files
->>>>  if you do not have them already.
->>>>  If you have patched your kernel and have some drivers built-in you can
->>>>  safely answer NO if asked to load some modules. In this case, 
->>>> things may
->>>>  seem a bit confusing, but they will still work.
->>>>
->>>>  IF THIS IS AN IBM THINKPAD, PRESS CTRL-C NOW!
->>>>  IBM Thinkpads have a severely broken i2c/SMBus implementation, just 
->>>> scanning
->>>>  the bus will break your Thinkpad forever!
->>>>  If this is a non-Thinkpad IBM, we still suggest you press CTRL+C. 
->>>> We have
->>>>  had users reporting system breakage on other IBM systems as well.
->>>>
->>>>  We can start with probing for (PCI) I2C or SMBus adapters.
->>>>  You do not need any special privileges for this.
->>>>  Do you want to probe now? (YES/no):
->>>> Probing for PCI bus adapters...
->>>> Use driver `i2c-i810' for device 00:02.0: Intel 82815 GMCH
->>>> Use driver `i2c-i801' for device 00:1f.3: Intel 82801BA ICH2
->>>> Probe succesfully concluded.
->>>>
->>>>  We will now try to load each adapter module in turn.
->>>> Load `i2c-i810' (say NO if built into your kernel)? (YES/no):
->>>> Can't exec "modprobe": No such file or directory at 
->>>> /home/dsmoot/hwmonitor/lm_sensors-2.7.0/prog/detect/sensors-detect 
->>>> line 3112, <STDIN> line 2.
->>>> Loading failed... skipping.
->>>> Load `i2c-i801' (say NO if built into your kernel)? (YES/no):
->>>> [root@houlnx sbin]# export PATH=$PATH:/sbin
->>>> [root@houlnx sbin]# 
->>>> /home/dsmoot/hwmonitor/lm_sensors-2.7.0/prog/detect/sensors-detect
->>>>  This program will help you to determine which I2C/SMBus modules you 
->>>> need to
->>>>  load to use lm_sensors most effectively.
->>>>  You need to have done a `make install', issued a `depmod -a' and 
->>>> made sure
->>>>  `/etc/conf.modules' (or `/etc/modules.conf') contains the appropriate
->>>>  module path before you can use some functions of this utility. Read
->>>>  doc/modules for more information.
->>>>  Also, you need to be `root', or at least have access to the 
->>>> /dev/i2c[-/]* files
->>>>  for some things. You can use prog/mkdev/mkdev.sh to create these 
->>>> /dev files
->>>>  if you do not have them already.
->>>>  If you have patched your kernel and have some drivers built-in you can
->>>>  safely answer NO if asked to load some modules. In this case, 
->>>> things may
->>>>  seem a bit confusing, but they will still work.
->>>>
->>>>  IF THIS IS AN IBM THINKPAD, PRESS CTRL-C NOW!
->>>>  IBM Thinkpads have a severely broken i2c/SMBus implementation, just 
->>>> scanning
->>>>  the bus will break your Thinkpad forever!
->>>>  If this is a non-Thinkpad IBM, we still suggest you press CTRL+C. 
->>>> We have
->>>>  had users reporting system breakage on other IBM systems as well.
->>>>
->>>>  We can start with probing for (PCI) I2C or SMBus adapters.
->>>>  You do not need any special privileges for this.
->>>>  Do you want to probe now? (YES/no):
->>>> Probing for PCI bus adapters...
->>>> Use driver `i2c-i810' for device 00:02.0: Intel 82815 GMCH
->>>> Use driver `i2c-i801' for device 00:1f.3: Intel 82801BA ICH2
->>>> Probe succesfully concluded.
->>>>
->>>>  We will now try to load each adapter module in turn.
->>>> Load `i2c-i810' (say NO if built into your kernel)? (YES/no):
->>>> Module loaded succesfully.
->>>> Load `i2c-i801' (say NO if built into your kernel)? (YES/no):
->>>> Module loaded succesfully.
->>>>  Do you now want to be prompted for non-detectable adapters? (yes/NO):
->>>>  To continue, we need module `i2c-dev' to be loaded.
->>>>  If it is built-in into your kernel, you can safely skip this.
->>>>  i2c-dev is not loaded. Do you want to load it now? (YES/no):
->>>>  Module loaded succesfully.
->>>>
->>>>  We are now going to do the adapter probings. Some adapters may hang 
->>>> halfway
->>>>  through; we can't really help that. Also, some chips will be double 
->>>> detected;
->>>>  we choose the one with the highest confidence value in that case.
->>>>  If you found that the adapter hung after probing a certain address, 
->>>> you can
->>>>  specify that address to remain unprobed. That often
->>>>  includes address 0x69 (clock chip).
->>>>
->>>> Next adapter: I810/I815 I2C Adapter (Bit-shift algorithm)
->>>> Do you want to scan it? (YES/no/selectively):
->>>>
->>>> Next adapter: I810/I815 DDC Adapter (Bit-shift algorithm)
->>>> Do you want to scan it? (YES/no/selectively):
->>>>
->>>> Next adapter: SMBus I801 adapter at 5000 (Non-I2C SMBus adapter)
->>>> Do you want to scan it? (YES/no/selectively):
->>>> Can't open /dev/i2c[-/]2
->>>>
->>>>  Some chips are also accessible through the ISA bus. ISA probes are
->>>>  typically a bit more dangerous, as we have to write to I/O ports to do
->>>>  this.  Do you want to scan the ISA bus? (YES/no):
->>>> Probing for `National Semiconductor LM78'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `National Semiconductor LM78-J'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `National Semiconductor LM79'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `Winbond W83781D'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `Winbond W83782D'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `Winbond W83627HF'
->>>>   Trying address 0x0290... Success!
->>>>     (confidence 8, driver `w83781d')
->>>> Probing for `Winbond W83697HF'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `Silicon Integrated Systems SIS5595'
->>>>   Trying general detect... Failed!
->>>> Probing for `VIA Technologies VT82C686 Integrated Sensors'
->>>>   Trying general detect... Failed!
->>>> Probing for `VIA Technologies VT8231 Integrated Sensors'
->>>>   Trying general detect... Failed!
->>>> Probing for `ITE IT8705F / IT8712F / SiS 950'
->>>>   Trying address 0x0290... Failed!
->>>> Probing for `IPMI BMC KCS'
->>>>   Trying address 0x0ca0... Failed!
->>>> Probing for `IPMI BMC SMIC'
->>>>   Trying address 0x0ca8... Failed!
->>>>
->>>>  Now follows a summary of the probes I have just done.
->>>>  Just press ENTER to continue:
->>>>
->>>> Driver `w83781d' (should be inserted):
->>>>   Detects correctly:
->>>>   * ISA bus address 0x0290 (Busdriver `i2c-isa')
->>>>     Chip `Winbond W83627HF' (confidence: 8)
->>>>
->>>>
->>>>  I will now generate the commands needed to load the I2C modules.
->>>>  Sometimes, a chip is available both through the ISA bus and an I2C 
->>>> bus.
->>>>  ISA bus access is faster, but you need to load an additional driver 
->>>> module
->>>>  for it. If you have the choice, do you want to use the ISA bus or the
->>>>  I2C/SMBus (ISA/smbus)?
->>>>
->>>> WARNING! If you have some things built into your kernel, the
->>>> below list will contain too many modules. Skip the appropriate ones!
->>>> To load everything that is needed, add this to some /etc/rc* file:
->>>>
->>>> #----cut here----
->>>> # I2C adapter drivers
->>>> modprobe i2c-isa
->>>> # I2C chip drivers
->>>> modprobe w83781d
->>>> #----cut here----
->>>>
->>>> To make the sensors modules behave correctly, add these lines to either
->>>> /etc/modules.conf or /etc/conf.modules:
->>>>
->>>> #----cut here----
->>>> # I2C module options
->>>> alias char-major-89 i2c-dev
->>>> #----cut here----
->>>>
->>>> Do you want to generate /etc/sysconfig/lm_sensors? (YES/no):
->>>> Copy prog/init/lm_sensors.init to /etc/rc.d/init.d/lm_sensors
->>>> for initialization at boot time.
->>>> ####End cut and paste of sensors-detect######
->>>>
->>>> What I did:
->>>> Made the recommended edit to /etc/modules.conf
->>>> Added the recommended modprobes to /etc/rc.d/rc.local
->>>> copied the lm_sensors.init to /etc/rc.d/init.d/lm_sensors
->>>>
->>>> After a reboot, I ran sensors.  No sensors detected.  The modules 
->>>> are loading just fine (lsmod shows the modules there).  I got an 
->>>> error about i2c-proc not being loaded so I added i2c-proc to the 
->>>> startup list.
->>>>
->>>> ######Output of lsmod######
->>>> w83781d                19488   0 (unused)
->>>> i2c-proc                6448   0 [w83781d]
->>>> i2c-isa                 1168   0 (unused)
->>>> i2c-core               15120   0 [w83781d i2c-proc i2c-isa]
->>>> autofs                 10720   0 (autoclean) (unused)
->>>> eepro100               17440   1
->>>> ipchains               36448   0
->>>> usb-uhci               21424   0 (unused)
->>>> usbcore                50912   1 [usb-uhci]
->>>> ext3                   63184   2
->>>> jbd                    40032   2 [ext3]
->>>> ##########End of output of lsmod##########
->>>>
->>>> I'm confused.  The hardware can be recognized but apparently not 
->>>> communicated with.  I've tried a number of things just shooting in 
->>>> the dark:
->>>> manually run /prog/init/lm_sensors.init start (starts OK but takes a 
->>>> good solid minute for the w83781d to load)
->>>> manually edited the sensors.conf file to w83781d-isa-0290
->>>> tried directly calling sensors w83781d-isa-0290
->>>> tried browsing /proc (chip headers are there but no data)
->>>>
->>>> the output of prog/dump/isadump 0x295 0x296
->>>>   WARNING! Running this program can cause system crashes, data loss 
->>>> and worse!
->>>>   I will probe address register 0x0295 and data register 0x0296.
->>>>   You have five seconds to reconsider and press CTRL-C!
->>>>
->>>>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->>>> 00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>> 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>> 20: 5c 4e ca b4 c6 1c de 1a 8e ff ff 67 54 67 54 e3
->>>> 30: ba cc a8 d8 b2 31 15 40 2c 3c 7f e1 e1 e1 00 00
->>>> 40: 01 82 2c 00 00 00 00 5b 2d 02 01 44 41 95 00 a3
->>>> 50: ff ff 00 ff ff ff 00 00 21 70 ff ff 19 09 ff 05
->>>> 60: 5c 4e ca b4 c6 1c de 1a 8e ff ff 67 54 67 54 e3
->>>> 70: ba cc a8 d8 b2 31 15 40 2c 3c 7f e1 e1 e1 00 00
->>>> 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>> a0: 5c 4e ca b4 c6 1c de 1a 8e ff ff 67 54 67 54 e3
->>>> b0: ba cc a8 d8 b2 31 15 40 2c 3c 7f e1 e1 e1 00 00
->>>> c0: 01 00 00 00 00 00 00 5b 2d 02 01 44 41 95 00 a3
->>>> d0: ff ff 00 ff ff ff 00 00 21 70 ff ff 19 09 ff 05
->>>> e0: 5c 4e ca b4 c6 1c de 1a 8e ff ff 67 54 67 54 e3
->>>> f0: ba cc a8 d8 b2 31 15 40 2c 3c 7f e1 e1 e1 00 00
->>>>
->>>> Sensors version 2.7.0
->>>> Kernel Version 2.4.7-10
->>>>
->>>> Any idea what I am doing wrong?
->>>> David
->>>>
->>
->>
-> 
+I'm referring to your discussions at 
+http://archives.andrew.net.au/lm-sensors/msg01299.html
 
+I have got a new notebook "Mitac 8640m". (The same as in 
+http://archives.andrew.net.au/lm-sensors/msg03881.html ) It is based on 
+a SiS645DX ("SiS646") northbridge and a SiS962 southbridge. There is a 
+SMBus device 1039:0016 from SiS, but the BIOS (which does not seem very 
+usable) seems to hide that device. (See 
+http://archives.andrew.net.au/lm-sensors/msg01872.html ).
+
+    * When using Linux 2.6, the device is unhidden at boot (
+      http://archives.andrew.net.au/lm-sensors/msg02573.html ).
+    * Under Linux 2.4, i2c-sis645 seems to unhide it (but not for the
+      kernel, "lspci" won't show it, but "lspci -H1" will show it).
+    * Under Windows, MBM seems to unhide it.
+
+Unfortunately, the I/O-ports will not be enabled,
+
+    * neither under Windows using MBM 5.3.5.0
+    * nor under Linux 2.6 using i2c-sis96x (Linux 2.6.0)
+    * nor under Linux 2.4 using i2c-sis645 (lm-sensors 2.8.2).
+
+I can verify this by looking at the PCI config space word at byte offset 
+0x04 ("PCI_COMMAND", see 
+http://lxr.linux.no/source/include/linux/pci.h?v=2.6.0#L28 ).  For I/O 
+ports being enabled bit 0 (PCI_COMMAND_IO) has to be set. This is not 
+the case:
+
+<MBM PCI Dump>
+Bus :00 Device :02 Func :01 Vendor :1039 Device ID :0016
+
+  $0000:  39 10 16 00 00 00 80 02 00 00 05 0C 00 00 00 00
+</MBM PCI Dump>
+
+Under Linux 2.4 and Linux 2.6, I can try to manually set 
+PCI_COMMAND=0x01. This works, so that then modules "i2c-sis96x" and 
+"i2c-sis645" respectively can be loaded.
+
+    * But under Linux 2.6, "i2cdetect 0" returns only "XX" results and
+      is pretty slow. I enabled the "#define DEBUG" in the sourcecode if
+      "i2c-sis96x" and saw that every request to the SMBus times out.
+    * Under Linux 2.4, "i2cdetect 0" or "sensors" crashes with a
+      (recoverable) kernel oops
+
+Under Windows, the pci device actually cannot be enabled manually (after 
+running MBM 5, device manager will recognize an "SM-Bus-Controller", but 
+I cannot find a driver for that device). When running "SMB Dump" in MBM, 
+I get this:
+
+
+------MBM SMB DUMP-------
+
+SMB SiS0016 via SiS0008 @ $0000
+
+SMBus Register :$10
+  $0000:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  $0010:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  $0020:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[...only zeros...]
+
+
+So it seems that I'm missing something when manually enabling the 
+device. MBM 5.3.5.0 also seems to misidentify the device (SiS5595 
+instead of SiS962) and base I/O port address (the I/O-port-space of the 
+SMBus device is at 0x1080).
+
+So I'm asking you (Alex and Mark) wether it is possible to enable the 
+device not just by unhiding it, but also by enabling I/O-ports and other 
+stuff I'm not familiar with so that the SMBus device will get usable.
+
+I'd like to get rid of the CPU fan noise by manually controlling the CPU 
+fan based on CPU temperature (or by even unplugging the CPU fan and 
+verifying success by reading the CPU temperature).
+
+I'm willing to run tests, alpha versions and the like.
+
+Thank you,
+Xu?n.
+
+
+
+----MBM SYSTEM INFO-----
+ 
+MBM 5.3.5.0
+MBM 5 Core EXE                : 5.3.5.0
+MBM 5 Core DLL                : 5.3.5.1
+MBM 5 Settings DLL            : 5.3.5.0
+MBM 5 Dashboard DLL           : 5.3.5.0
+MBM 5 Hibernation DLL         : 5.0.0.0
+MBM 5 Ras DLL                 : 5.0.0.0
+MBM 5 Logger DLL              : 5.3.4.0
+MBM 5 Mail, FTP and UDP DLL   : 5.3.4.0
+MBM 5 OSD DLL                 : 5.0.0.3
+MBM 5 ASPI DLL                : 5.2.1.0
+MBM 5 Heat Up EXE             : 5.0.0.0
+MBM 5 Wizard                  : 5.3.5.0
+MBMIO DLL                     : 1.0.0.2
+MBMIO Driver                  : 1.1
+ 
+DLL Folder Location           : C:\Programme\Motherboard Monitor 5\DLL\
+Data Folder Location          : C:\Programme\Motherboard Monitor 5\Data\
+Language Folder Location      : C:\Programme\Motherboard Monitor 5\Language\
+Log Folder Location (Alarm)   : c:\programme\motherboard monitor 5\log\
+Log Folder Location (High Low): c:\programme\motherboard monitor 5\log\
+Log Folder Location (Interval): c:\programme\motherboard monitor 5\log\
+ 
+Selected Language             : English
+ 
+Info ChipInfo.ini             : 16576 bytes  24.10.2003 13:37:26
+Info shdn.ini                 : 388 bytes    12.10.2000 18:47:06
+Info Voltage.ini              : 31808 bytes  24.10.2003 13:09:22
+Info Language file            : 22920 bytes  17.10.2003 08:33:40
+ 
+Up Time MBM session           : 00:00:11:23
+Up Time MBM total             : 00:00:32:02
+ 
+------Sensor Chip-------
+ 
+Main Sensor Chip              : Sis SiS5595
+SMB Address                   : $0000
+Used Bus                      : ISA
+ISA Address                   : $8008
+ 
+-Sensor Chip Selections-
+ 
+Possible Temp Sensors[2]      : SiS5595
+ 
+Selected Temp Sensors[1]      : SiS5595  (115)
+Selected Temp Sensors[2]      : Custom  (185)
+Selected Temp Sensors[3]      : Custom  (185)
+ 
+Possible Voltage Sensors[2]   : MBM Fixed
+ 
+Selected Voltage Sensors[1]   : MBM Fixed  (2)
+Selected Voltage Sensors[2]   : MBM Fixed  (2)
+Selected Voltage Sensors[3]   : MBM Fixed  (2)
+Selected Voltage Sensors[4]   : MBM Fixed  (2)
+Selected Voltage Sensors[5]   : MBM Fixed  (2)
+Selected Voltage Sensors[6]   : MBM Fixed  (2)
+Selected Voltage Sensors[7]   : MBM Fixed  (2)
+ 
+Possible Fan Sensors[1]       : SiS5595-1
+Possible Fan Sensors[2]       : SiS5595-2
+ 
+Selected Fan Sensors[1]       : SiS5595-1  T1  D4  (32)
+Selected Fan Sensors[2]       : SiS5595-2  T1  D4  (33)
+Selected Fan Sensors[3]       : Asus-3  T1  D4  (31)
+ 
+Possible Voltage Sub Types[0] : Sis 5595 Standard
+Selected Voltage Sub Type     : Sis 5595 Standard  (0)
+ 
+--Sensor Chip Readings--
+ 
+Temperature Readout[1]        : 51
+Temperature Readout[2]        : 51
+Voltage Readout[1]            : 4,08
+Voltage Readout[3]            : 4,08
+Voltage Readout[4]            : 6,8544
+Voltage Readout[5]            : 15,504
+ 
+---------System---------
+ 
+Operating System              : Microsoft Windows XP (NT 5.1) (Build 
+2600) Service Pack 1
+User                          : Administrator
+Memory in use                 : 89%
+Total Physical Memory         : 261616 KB
+Available Physical Memory     : 28716 KB
+ 
+----------CPU-----------
+ 
+CPU Speed                     : 1792 MHz
+Nr of CPU's                   : 1
+ 
+-------3rd Party--------
+ 
+ShutDownNow                   :
+ 
+----Advanced Settings---
+ 
+Fan Temp                      : 0
+Custom Temp Table             : 0
+Startup Delay                 : 0
+2E 4E Enabled                 : 0
+2E Forced                     : 0
+4E Forced                     : 0
+Do Not Reset                  : 1
+SMB Scan Range                : $10 - $7F
