@@ -1,60 +1,49 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:06 +0000
-Subject: use of I2C addresses
-Message-Id: <3F1985DC.5010303@paradyne.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: OOPS w83781d during rmmod (2.5.70-bk1[1234])
+Message-Id: <20030610054107.GA22719@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030719114549.0165ba96.khali@linux-fr.org>
-In-Reply-To: <20030719114549.0165ba96.khali@linux-fr.org>
+References: <20030524183748.GA3097@earth.solarsys.private> <3ED8067E.1050503@paradyne.com> <20030601143808.GA30177@earth.solarsys.private> <20030602172040.GC4992@kroah.com> <20030605023922.GA8943@earth.solarsys.private> <20030605194734.GA6238@kroah.com> <1055136870.5280.196.camel@workshop.saharacpt.lan>
+In-Reply-To: <1055136870.5280.196.camel@workshop.saharacpt.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Martin Schlemmer <azarah@gentoo.org>
+Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@Stimpy.netroedge.com>
 
-interesting.
-it could go in prog/detect or doc/developer.
+* Martin Schlemmer <azarah@gentoo.org> [2003-06-09 07:34:30 +0200]:
+> 
+> Anyhow, Only change I have made to the w83781d driver, is one line
+> (just tell it to that if the chip id is 0x72, its also of type
+> w83726HF), but now (2.5.70-bk1[123]) it segfaults for me on rmmod, where
+> it did not with 2.5.68 kernels when I still had the other board.  I will
+> attach a oops tomorrow or such when I get home.
 
-Jean Delvare wrote:
-> Hi all,
-> 
-> I wrote a simple perl script for fun this morning, which may be of
-> interest for the rest of you, so I though I'd just share it with you.
-> 
-> The script scans sensors-detect and prints a map of scanned i2c
-> addresses, with a number that say how chips can use the address. Here is
-> a sample output for the CVS sensors-detect:
-> 
-> *** START ***
-> 
-> sensors-detect knows 53 chips and scans 49 addresses.
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:                         -- -- -- 01 -- -- -- --
-> 10: -- -- -- -- -- -- -- -- 09 09 09 -- -- -- -- --
-> 20: 12 12 12 12 12 12 12 12 12 21 21 21 28 29 26 17
-> 30: -- -- -- -- -- -- -- -- 02 02 02 02 01 01 01 01
-> 40: -- -- -- -- -- -- -- -- 03 03 03 03 13 12 12 03
-> 50: 02 01 01 01 01 01 01 01 01 01 01 -- -- -- -- --
-> 60: -- 01 -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 70: -- -- -- 02 -- -- -- --                        
-> 
-> *** END ***
-> 
-> I did this by curiousity mainly, but I think it may be interesting to
-> know how many other chips use our addresses, when we do add support for
-> a new chip. This may help us decide how precise the detection must be.
-> 
-> Should I add this script to our CVS repository? (where?)
-> 
-> Should we include the output of this script at the beginning of
-> sensors-detect?
-> 
-> One feature I could add is the possibility to ask *which* chips are know
-> to use a given address (or range of address). This would require some
-> more code but is probably not very complicated to do. This would let us
-> check all "concurrent" chips each time we add one, to make sure the
-> different detection routines are working well altogether.
-> 
-> (I may send the script to anyone interested.)
-> 
-> Comments welcome.
-> 
+I reproduced the segfault here.  It looks like i2c_del_driver() tries
+to call w83781d_detach_client() more than once now, partly because of
+the safe list fix in 2.5.70-bk11.  But that function should only be
+called for the "primary" client, not the subclients.
+
+The quick/ugly patch below fixes the symptom, but maybe not the disease.
+There might be more fundamental brokenness in the whole subclient scheme.
+I'll keep looking when I get the chance.
+
+--- linux-2.5.70-bk14/drivers/i2c/chips/w83781d.c	2003-06-10 00:49:19.831210956 -0400
++++ linux-2.5.70/drivers/i2c/chips/w83781d.c	2003-06-10 00:53:35.041027614 -0400
+@@ -1412,6 +1412,10 @@
+ 	struct w83781d_data *data = i2c_get_clientdata(client);
+ 	int err;
+ 
++	/* if this is a subclient, do nothing */
++	if (!data)
++		return 0;
++
+ 	/* release ISA region or I2C subclients first */
+ 	if (i2c_is_isa_client(client)) {
+ 		release_region(client->addr, W83781D_EXTENT);
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
