@@ -1,41 +1,86 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: New driver: DS1307 RTC
-Message-Id: <3C8030E2.5C26D24C@paradyne.com>
+From: andrewm@isoar.ca (Andrew E. Mileski)
+Date: Thu, 19 May 2005 06:24:46 +0000
+Subject: PATCH - ALI 1535
+Message-Id: <4050ECF0.4030302@isoar.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <B25E2E5A003CD311B61E00902778AF2A02BBDBB0@SERVER1>
-In-Reply-To: <B25E2E5A003CD311B61E00902778AF2A02BBDBB0@SERVER1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-the comment inside the code says it exports to /proc/rtc but
-I think it is /dev/rtc.
+The enclosed patch adds an adapter class to the ALI1535 bus driver.
+The patch is against Linux kernel 2.6.1, but is trivial so it should
+apply to more recent kernels.
 
-The 1302 driver came from the kris/ARM people, not us.
-If you would like to add i2c-proc support to your 1307 driver
-we will consider including it in our package.
-Otherwise you may wish to send it to the 1302 people,
-or if you have a web page for it we can link to it.
+Background
+   The ADM1021 chip driver fails to detect the pair of MAX1617A on one
+   of my ALI1535 equipped systems.  The detection never gets performed,
+   as the first thing adm1021_attach_adapter() does is check for
+   I2C_ADAP_CLASS_SMBUS.
 
-mds
+   I figured the ALI1535 bus driver was probably not popular enough to
+   be thoroughly tested in 2.6, so I looked at the PIIX4 bus driver
+   and noticed that it explictly set the adapter class.  Doing the same
+   in the ALI1535 bus driver causes the ADM1021 driver to detect as
+   expected, and appears to be "The right thing to do".
+
+Additional
+   The ADM1021 chip driver returns success for several error conditions.
+   This should probably be addressed.
+
+-- 
+Andrew E. Mileski
+
+-------------- next part --------------
+From: "Andrew E. Mileski" <andrewm@isoar.ca>
+To: "Andrew E. Mileski" <andrewm@isoar.ca>
+Subject: ALI1535 patch
+MIME-Version: 1.0
+Content-type: multipart/mixed; boundary="B_3073578747_26242"
+
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
+
+B_3073578747_26242
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+
+The enclosed patch adds an adapter class to the ALI1535 bus driver.
+The patch is against Linux kernel 2.6.1, but is trivial so it should
+apply to more recent kernels.
+
+Background
+  The ADM1021 chip driver fails to detect the pair of MAX1617A on one of
+  my ALI1535 equipped systems.  The detection never gets performed, as
+  the first thing adm1021_attach_adapter() does is check for
+  I2C_ADAP_CLASS_SMBUS.
+
+  I figured the ALI1535 bus driver was probably not popular enough to be
+  thoroughly tested in 2.6, so I looked at the PIIX4 bus driver and noticed
+  that it explictly set the adapter class.  Doing the same in the ALI1535
+  bus driver causes the ADM1021 driver to detect as expected, and appears
+  to be "the right thing to do".
+
+Additional
+  The ADM1021 chip driver returns success for several error conditions.
+  This should probably be addressed.
 
 
+B_3073578747_26242
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-disposition: attachment;
+  filename="i2c-ali1535.patch"
 
-Brian Kuschak wrote:
-> 
-> Hi, I didn't see a mailing list on your webpage, so I'm just send this
-> driver as an attachment.  It's not a sensors driver, but it is for a Dallas
-> I2C real-time-clock chip.  Developed and tested on a PowerPC platform, but
-> should work on x86 as well.
-> 
-> Regards,
-> Brian
-> 
->  <<ds1307.c>>
-> 
-> 
->                Name: ds1307.c
->    ds1307.c    Type: unspecified type (application/octet-stream)
->            Encoding: quoted-printable
+diff -urN drivers/i2c/busses/i2c-ali1535.c.orig drivers/i2c/busses/i2c-ali1535.c
+--- drivers/i2c/busses/i2c-ali1535.c.orig	2004-03-11 06:14:37.938198293 -0500
++++ drivers/i2c/busses/i2c-ali1535.c	2004-03-11 06:16:14.190730740 -0500
+@@ -481,6 +481,7 @@
+ 
+ static struct i2c_adapter ali1535_adapter = {
+ 	.owner		= THIS_MODULE,
++	.class		= I2C_ADAP_CLASS_SMBUS,
+ 	.algo		= &smbus_algorithm,
+ 	.name		= "unset",
+ };
+B_3073578747_26242
