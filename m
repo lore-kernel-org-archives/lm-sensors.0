@@ -1,35 +1,39 @@
-From: shishz@alum.rpi.edu (Zing Zing Shishak)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: IBM NetVista info
-Message-Id: <Pine.LNX.4.58.0402231012030.19067@liberty.intra.assembly.state.ny.us>
+Message-Id: <1077554185.403a2c093f162@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.58.0402231012030.19067@liberty.intra.assembly.state.ny.us>
+In-Reply-To: <Pine.LNX.4.58.0402231012030.19067@liberty.intra.assembly.state.ny.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Quoting Zing Zing Shishak <shishz@alum.rpi.edu>:
 
-Here's my info from a sensors-detect run on a IBM NetVista TYPE 6792-2DU:
+> Here's my info from a sensors-detect run on a IBM NetVista TYPE
+> 6792-2DU:
+> 
+>  BIOS vendor (ACPI): PTLTD
+>  System vendor (DMI): IBM
+>  BIOS version (DMI): 20KT43AUS
 
+You must be using a slightly old version of sensors-detect, since we
+removed the report request in newer releases of lm_sensors. Anyway,
+thanks for the report.
 
- BIOS vendor (ACPI): PTLTD
- System vendor (DMI): IBM
- BIOS version (DMI): 20KT43AUS
- Sorry, we won't let you go on. IBM systems are known to have
- serious problems with lm_sensors, resulting in hardware failures.
- For more information, see README.thinkpad or
- http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad.
- We used two methods to determine your system's vendor, and they led
- to different results. We'd appreciate to have feedback about such
- systems. Please, take some time and contact the lm_sensors mailing
- list at <sensors@stimpy.netroedge.com>.
- We need the following information:
-  * The brand and model of your system
-  * The BIOS vendor (ACPI) displayed above
-  * The System vendor (DMI) displayed above
- Thanks!
+It happens that I am personnaly looking for Netvista owners for tests on
+another project of mine, dmidecode:
+http://www.nongnu.org/dmidecode/
 
-HTH
+I would appreciate it much if you could get the CVS version of it and
+give a try to the included "vpddecode" tool, and report results
+(directly) to me. I plan to release a new version before the end of the
+month, so testers are welcome.
 
---
-shishz@alum.rpi.edu
+Thanks again.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
