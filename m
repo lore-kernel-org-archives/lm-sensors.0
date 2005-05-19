@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:04 +0000
 Subject: LM83 driver
-Message-Id: <3F0AF329.1090405@penguincomputing.com>
+Message-Id: <20030709102012.3b0165ef.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030703194558.60bc8955.khali@linux-fr.org>
 In-Reply-To: <20030703194558.60bc8955.khali@linux-fr.org>
@@ -10,42 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-For no longer than the /proc standard is going to last (sysfs anyone) I think 
-it would be much better to have a "dummy" value.
 
-:v)
+> For no longer than the /proc standard is going to last (sysfs anyone)
+> I think it would be much better to have a "dummy" value.
 
-Mark D. Studebaker wrote:
+Why that? Our structures are flexible enough to support that, libsensors
+supports it, sensors supports it. In which case would the dummy value
+help? I just can't see any.
 
-> looks good.
-> A couple of things I may have done differently -
-> but that doesn't make the way you did it wrong :)
-> 
-> - You could have done one /proc callback function rather than 4
-> - This is our first chip without two limits per sensor. To maintain our
->   /proc standard for temps we would need a 'dummy' second value between
->   the high limit and the reading. But if National did it, others will too,
->   so probably better to add to our /proc standard to say it could
->   be two values instead of three. Interesting.
-> 
-> 
-> Jean Delvare wrote:
-> 
->> If anyone could take a look at my code for the LM83, I'd appreciate it.
->> This is my first driver, as you must know. I followed the guidelines in
->> doc/developers/new_drivers, tried to follow the coding standards, but I
->> may have missed a few things.
->>
->> I propose the following changes to new_drivers file:
->>
->> - Change the recommended driver to use as a template. The writer should
->> use the driver that is the more similar to the chip he is writing a
->> driver for. I personally used much more the lm75 and adm1021 drivers
->> than the recommended lm78. And actually, using two different drivers as
->> templates was great.
->>
->> - Don't ask for testing with 2.2 kernels! Maybe we should add a line
->> about sending a 2.5 version (if possible) to Greg KH instead?
->>
-> 
+As for the procfs vs. sysfs thing, it is unrelated IMHO. If we are to
+allow 2-values temperature files for sysfs, we can as well do so for
+procfs. If anything needs to be changed to support this (I still don't
+see what yet), it will have to for at least sysfs so it maybe won't even
+notice it's the same for some recent procfs drivers.
 
+Of course, adding a dummy value is easy and we already have at least one
+driver that does it - adm1021 for lm84 - but I don't like adding
+constraints when I feel they will only slow us down on our path to
+progress. Letting the driver choose how many temperature values it wants
+to repport is a good idea, methinks. One could imagine drivers only
+repporting the current value, or max and current (this is the case for
+my lm83 driver), or over, hyst and current as most of our drivers do.
+But there are other possibilities, such as max, min, current (I think we
+have some drivers that do that) or max, hystmax, min, hystmin and
+current resulting in a 5-value file. The same could apply to other
+measures such as in's and fan's.
+
+The fact that we try to have a common base for all sensor drivers
+doesn't mean we must ignore chips specificity. Sadly, it looks like this
+is what we tend to do when a single drivers support many, many chips. I
+think that's something we should think about. After all, that's the idea
+Unix is living with for decades (do one thing and do it well).
+
+Comments welcome, of course.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
