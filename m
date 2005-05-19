@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: david_knierim@earthlink.net (David Knierim)
 Date: Thu, 19 May 2005 06:25:16 +0000
 Subject: Data block transactions fail on i2c-i801 controller?
-Message-Id: <20040921005425.GE758@jupiter.solarsys.private>
+Message-Id: <4658087.1095778719162.JavaMail.root@scooter.psp.pas.earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <13938324.1095712833883.JavaMail.root@scooter.psp.pas.earthlink.net>
 In-Reply-To: <13938324.1095712833883.JavaMail.root@scooter.psp.pas.earthlink.net>
@@ -10,13 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Oops, forgot to CC the list...
+The logs were pretty large, so we placed them on the web:
 
------ Forwarded message from "Mark M. Hoffman" <mhoffman@lightlink.com> -----
+http://lee.k12.nc.us/~joden/misc/sensors/
 
+dmesg_noblock - block data disabled
+dmesg_withblock - block data enabled
+
+David
+
+-----Original Message-----
 From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Sent: Sep 20, 2004 5:22 PM
 To: David Knierim <david_knierim@earthlink.net>
-Date: Mon, 20 Sep 2004 20:22:55 -0400
 Subject: Re: Data block transactions fail on i2c-i801 controller?
 
 Hi David:
@@ -50,3 +56,4 @@ Regards,
 -- 
 Mark M. Hoffman
 mhoffman@lightlink.com
+
