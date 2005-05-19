@@ -1,29 +1,27 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: via ch p vo-vn sorset
-Message-Id: <3DA8A556.9020900@paradyne.com>
+From: spider@omskart.ru (Alexey Belyaev)
+Date: Thu, 19 May 2005 06:25:45 +0000
+Subject: Help me with VT82C586B
+Message-Id: <14410443364.20050325100723@omskart.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1032812972.2682.5.camel@zion>
-In-Reply-To: <1032812972.2682.5.camel@zion>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-8233A 0x3147 supported in 2.6.5.
-8233A 0x3177 supported in CVS.
-use lspci -n to see which you have.
+???????????, sensors! 
 
-Jonas wrote:
-> Hello!
-> I noticed that you have support for the South Bridge Chipset: VIA(r)
-> VT8233A Bus, but I did not find the 8233A sensor chip only the 8231A. 
-> I dont know if it should work but it didnt for me. I have used
-> lm_sensors befor (on my old computer with an other via-chipset) and it
-> worked very well. I tried to force the via686a driver but that didnt
-> help (with any port). Will there be a 8233A driver soon or ever?
-> /Jonas ?dahl
-> 
-> 
+HELP!
 
+/usr/local/bin/sensors
+eeprom-i2c-0-51
+Adapter: VIA i2c
+Memory type:            SDR SDRAM DIMM
+Memory size (MB):       128
 
+and that is all?
+______________________________________________________________________
+? ?????????? ???????????, Alexey!
+* Origin: H? ??? ?? ????????, ??? ??????. (25 ????? 2005 ?. 10:06:42)
+?????? ??????: spider@omskart.ru
+Under:Windows XP 5.1 Build 2600 Service Pack 2
+WEB: http://kotlowan.net.ru
