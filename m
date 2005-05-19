@@ -1,39 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: [i2c-piix4.o: IBM Laptop detected; this module may corrupt your
-Message-Id: <20030120231710.7a164fa2.khali@linux-fr.org>
+From: Jeffrey.Oliver@mascorp.com (Jeff Oliver)
+Date: Thu, 19 May 2005 06:24:50 +0000
+Subject: LM87 support in LK2.6
+Message-Id: <406C6981.6060306@mascorp.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.OSF.4.50.0301200940470.13795-100000@kosh.hut.fi>
-In-Reply-To: <Pine.OSF.4.50.0301200940470.13795-100000@kosh.hut.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I searched through the mail archives and found that the LM87 chip had no 
+plans to convert to the 2.6 kernel at the moment.  First I wanted to get 
+an update on that status,  and second, I'm going to be using it on a 
+project im working on, so if there is nothing ported at the moment, I'll 
+probably end up porting it myself.  Actually, the port is in progress, 
+unfortunately, I don't have my hardware to test it out on yet.  The 
+driver porting directions have been very helpful on getting started on 
+the conversion. 
 
-> > > I'm using kernel 2.4.19 (SuSE 8.1; k_deflt-2.4.19-174 - actual
-> > > patch release) on an IBM xSeries 232 Server. When I'm trying to
-> > > load the module i2c-piix4, the module claims, it would be
-> > > running on an IBM Laptop. This is definitely wrong.  The old
-> > > SuSE kernel (k_deflt-2.4.19-49) didn't show this problem.
-> >
-> > Looks like those "xSeries 232 Server" are not very handy laptops ;-)
+Thanks
 
-Ingo,
+Jeffrey Oliver
 
-We are aware about the problem. We had to blacklist all IBM systems
-because we don't have any reliable way of detecting the faulty ones, so
-far. It was the only way to have lm_sensors integrated into the main
-Linux tree. We are now working on a better solution. Our discussions
-with IBM are on their way and we should have a working detection
-mechanism in some time. At least, I hope so.
 
-If we can't get to an acceptable detection mechanism, we may still add a
-"whitelist" of known-to-work machines. In this case, we'll recontact you
-to have more details about your system.
 
-Thanks for your patience.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+
+Disclaimer: The information contained in this transmission, including any 
+attachments, may contain confidential information of Matsushita Avionics 
+Systems Corporation.  This transmission is intended only for the use of the 
+addressee(s) listed above.  Unauthorized review, dissemination or other use 
+of the information contained in this transmission is strictly prohibited. 
+If you have received this transmission in error or have reason to believe 
+you are not authorized to receive it, please notify the sender by return 
+email and promptly delete the transmission 
+
+
