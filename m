@@ -1,67 +1,144 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: [PATCH] I2C driver updates for 2.6.0-test11
-Message-Id: <20031204223923.GA2600@kroah.com>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 14/22] W1: rename timeout to scan_interval
+Message-Id: <200504210221.16881.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Hi,
+W1: more master attributes changes:
+    - rename timeout parameter/attribute to scan_interval to better
+      reflect its purpose;
+    - make scan_timeout be a per-device attribute and allow changing
+      it from userspace via sysfs;
+    - allow changing max_slave_count it from userspace as well.
 
-Here's a patch and a bk tree that contains all of the i2c fixes and
-updates that aren't going to be sent for inclusion in the main kernel
-tree until 2.6.0 comes out.
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-Everything in one patch against 2.6.0-test11 can be found at:
-	kernel.org/pub/linux/kernel/people/gregkh/i2c/2.6/2.6.0-test11/i2c-devel-2.6.0-test11.patch
+ w1.c |   60 +++++++++++++++++++++++++++++++++++++++++++++++++-----------
+ w1.h |    1 +
+ 2 files changed, 50 insertions(+), 11 deletions(-)
 
-and a bk tree (if you want to pull the individual patches) can be found
-at:
-	bk://linuxusb.bkbits.net/i2c-devel-2.6
-
-Here's a diffstat of the patch:
-
- Documentation/i2c/porting-clients |  121 +++++++++++
- Documentation/i2c/sysfs-interface |   33 ++-
- Documentation/i2c/writing-clients |   57 -----
- drivers/i2c/algos/i2c-algo-bit.c  |   96 ++++----
- drivers/i2c/busses/Kconfig        |    4 
- drivers/i2c/busses/i2c-piix4.c    |    9 
- drivers/i2c/busses/i2c-savage4.c  |   12 -
- drivers/i2c/busses/i2c-viapro.c   |    8 
- drivers/i2c/chips/Kconfig         |   11 +
- drivers/i2c/chips/Makefile        |    1 
- drivers/i2c/chips/it87.c          |   11 -
- drivers/i2c/chips/lm75.c          |    4 
- drivers/i2c/chips/lm78.c          |    4 
- drivers/i2c/chips/lm83.c          |  413 ++++++++++++++++++++++++++++++++++++++
- drivers/i2c/chips/via686a.c       |   46 ++--
- drivers/i2c/chips/w83781d.c       |   24 +-
- include/linux/i2c-id.h            |    1 
- 17 files changed, 694 insertions(+), 161 deletions(-)
-
-
-And the bitkeeper shortlog output is:
-
-Jean Delvare:
-  o I2C: it87 and via686a alarms
-  o I2C: add KT600 support to i2c-viapro driver
-  o I2C: add Serverworks CSB6 support to i2c-piix4
-  o I2C: fix author of i2c-savage4.c driver
-  o I2C: make I2C chipset drivers use temp_hyst[1-3]
-  o I2C: sysfs interface documentation
-  o I2C: Fix i2c-algo-bit for adapers that cannot read SCL back
-  o I2C: i2c documentation (2 of 2)
-  o I2C: i2c documentation (1 of 2)
-  o I2C: Add lm83 chip driver
-
-
-
-If anyone has sent me any i2c patches and you don't see them here,
-please let me know as I think I've finally caught up with them all.
-
-thanks,
-
-greg k-h
+Index: dtor/drivers/w1/w1.c
+=================================--- dtor.orig/drivers/w1/w1.c
++++ dtor/drivers/w1/w1.c
+@@ -42,11 +42,11 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol.");
+ 
+-static int w1_timeout = 10;
++static int w1_scan_interval = 10;
+ static int w1_max_slave_count = 10;
+ static int w1_max_slave_ttl = 10;
+ 
+-module_param_named(timeout, w1_timeout, int, 0);
++module_param_named(scan_interval, w1_scan_interval, int, 0);
+ module_param_named(max_slave_count, w1_max_slave_count, int, 0);
+ module_param_named(slave_ttl, w1_max_slave_ttl, int, 0);
+ 
+@@ -357,7 +357,7 @@ static int w1_process(void *data)
+ 
+ 	while (!dev->need_exit) {
+ 		try_to_freeze(PF_FREEZE);
+-		msleep_interruptible(w1_timeout * 1000);
++		msleep_interruptible(dev->scan_interval * 1000);
+ 
+ 		if (signal_pending(current))
+ 			flush_signals(current);
+@@ -401,33 +401,71 @@ static ssize_t w1_master_attribute_show_
+ 	return sprintf(buf, "%s\n", master->name);
+ }
+ 
+-static ssize_t w1_master_attribute_show_timeout(struct device *dev, char *buf)
++static ssize_t
++w1_master_attribute_show_scan_interval(struct device *dev, char *buf)
+ {
+-	ssize_t count;
+-	count = sprintf(buf, "%d\n", w1_timeout);
+-	return count;
++	struct w1_master *master = to_w1_master(dev);
++
++	return sprintf(buf, "%d\n", master->scan_interval);
++}
++
++static ssize_t
++w1_master_attribute_set_scan_interval(struct device *dev, const char *buf,
++				      size_t n)
++{
++	struct w1_master *master = to_w1_master(dev);
++	int interval;
++
++	interval = simple_strtoul(buf, NULL, 10);
++	if (!interval)
++		return -EINVAL;
++
++	master->scan_interval = interval;
++	return 0;
+ }
+ 
+-static ssize_t w1_master_attribute_show_max_slave_count(struct device *dev, char *buf)
++static ssize_t
++w1_master_attribute_show_max_slave_count(struct device *dev, char *buf)
+ {
+ 	struct w1_master *master = to_w1_master(dev);
+ 
+ 	return sprintf(buf, "%d\n", master->max_slave_count);
+ }
+ 
++static ssize_t
++w1_master_attribute_set_max_slave_count(struct device *dev, const char *buf,
++					size_t n)
++{
++	struct w1_master *master = to_w1_master(dev);
++	int max_count;
++
++	max_count = simple_strtoul(buf, NULL, 10);
++	if (!max_count)
++		return -EINVAL;
++
++	master->max_slave_count = max_count;
++	return 0;
++}
++
+ #define W1_MASTER_ATTR_RO(_name, _mode)				\
+ 	struct device_attribute w1_master_attribute_##_name =	\
+ 		__ATTR(_name, _mode,				\
+ 		       w1_master_attribute_show_##_name, NULL)
+ 
++#define W1_MASTER_ATTR_RW(_name, _mode)				\
++	struct device_attribute w1_master_attribute_##_name =	\
++		__ATTR(_name, _mode,				\
++		       w1_master_attribute_show_##_name,	\
++		       w1_master_attribute_set_##_name)
++
+ static W1_MASTER_ATTR_RO(name, S_IRUGO);
+-static W1_MASTER_ATTR_RO(max_slave_count, S_IRUGO);
+-static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
++static W1_MASTER_ATTR_RW(max_slave_count, S_IWUSR | S_IRUGO);
++static W1_MASTER_ATTR_RW(scan_interval, S_IWUSR | S_IRUGO);
+ 
+ static struct attribute *w1_master_default_attrs[] = {
+ 	&w1_master_attribute_name.attr,
+ 	&w1_master_attribute_max_slave_count.attr,
+-	&w1_master_attribute_timeout.attr,
++	&w1_master_attribute_scan_interval.attr,
+ 	NULL
+ };
+ 
+Index: dtor/drivers/w1/w1.h
+=================================--- dtor.orig/drivers/w1/w1.h
++++ dtor/drivers/w1/w1.h
+@@ -107,6 +107,7 @@ struct w1_master
+ 	struct list_head	slist;
+ 	int			max_slave_count;
+ 	int			slave_ttl;
++	int			scan_interval;
+ 	int			initialized;
+ 	u32			id;
+ 
