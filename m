@@ -1,65 +1,53 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:33 +0000
-Subject: fan speeds and temps no reading
-Message-Id: <20050129162546.58a46ea2.khali@linux-fr.org>
+From: nacc@us.ibm.com (Nishanth Aravamudan)
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: [PATCH 39/39] w1/w1_therm: replace schedule_timeout() with
+Message-Id: <20050121214307.GT3340@us.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1104907933.3003.195.camel@tooheys.tnsa.com.au>
-In-Reply-To: <1104907933.3003.195.camel@tooheys.tnsa.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-Hi Mark,
+Hi,
 
-> tried commands below, looked ok to start with but, still nothing
-> detected on the "i2cdetect" aside from the eeprom stuff at 50+.
+Please consider applying.
 
-Too bad :(
+Description: Use msleep_interruptible() instead of schedule_timeout() to
+guarantee the task delays as expected. Changed tm to an int, as it now is in
+terms of msecs, not jiffies.
 
-The dump you sent suggests that the GPIO reconfiguration failed (so I'm
-not surprised that nothing new showed on the SMBus). What is really odd
-is that two of the three writes succeeded according to isaset, while the
-third one supposedly failed, but the dump doesn't agree with this at
-all. I just don't get it. I wonder if something is trying to access the
-chip concurrently (sounds like paranoia but I'm almost left to that at
-this point).
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 
-I may have missed one configuration step. You can try again with this
-additional step. Let's also enforce the logical device value for each
-write, just in case (yes, I'm going paranoid).
-
-(Note that you NEED isaset from lm_sensors 2.9.0 or CVS for the
-additional command to work, as it requires the new masked write
-feature.)
-
-rmmod w83627hf
-rmmod eeprom
-
-isaset -y -f 0x2e 0x87
-isaset -y -f 0x2e 0x87
-isaset -y 0x2e 0x2f 0x2b 0x30 0x30
-isaset -y 0x2e 0x2f 0x07 8
-isaset -y 0x2e 0x2f 0x30 1
-isaset -y 0x2e 0x2f 0x07 8
-isaset -y 0x2e 0x2f 0xf2 0xe7
-isaset -y 0x2e 0x2f 0x07 8
-isaset -y 0x2e 0x2f 0xf0 0xe7
-isaset -y 0x2e 0x2f 0x07 8
-isaset -y 0x2e 0x2f 0xf1 0xe7
-isadump -y 0x2e 0x2f 8 > w83627thf-ld8-1.dump
-sleep 10
-isadump -y 0x2e 0x2f 8 > w83627thf-ld8-2.dump
-isaset -y -f 0x2e 0xaa
-
-I invite you to put all the isaset and isadump commands in a shell
-script so that you can run them all in a row. It will lower the risk
-that something accesses the chip inbetween commands.
-
-If registers 0xf0, 0xf1 and 0xf2 of the dumps still have value 0xff
-after that, I'm giving up...
-
-Thanks,
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+--- 2.6.11-rc1-kj-v/drivers/w1/w1_therm.c	2005-01-15 16:55:44.000000000 -0800
++++ 2.6.11-rc1-kj/drivers/w1/w1_therm.c	2005-01-21 13:41:08.000000000 -0800
+@@ -26,6 +26,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/device.h>
+ #include <linux/types.h>
++#include <linux/delay.h>
+ 
+ #include "w1.h"
+ #include "w1_io.h"
+@@ -128,7 +129,7 @@ static ssize_t w1_therm_read_bin(struct 
+ 		if (!w1_reset_bus (dev)) {
+ 			int count = 0;
+ 			u8 match[9] = {W1_MATCH_ROM, };
+-			unsigned long tm;
++			unsigned int tm = 750;
+ 
+ 			memcpy(&match[1], (u64 *) & sl->reg_num, 8);
+ 			
+@@ -136,11 +137,8 @@ static ssize_t w1_therm_read_bin(struct 
+ 
+ 			w1_write_8(dev, W1_CONVERT_TEMP);
+ 
+-			tm = jiffies + msecs_to_jiffies(750);
+-			while(time_before(jiffies, tm)) {
+-				set_current_state(TASK_INTERRUPTIBLE);
+-				schedule_timeout(tm-jiffies);
+-
++			while (tm) {
++				tm = msleep_interruptible(tm);
+ 				if (signal_pending(current))
+ 					flush_signals(current);
+ 			}
