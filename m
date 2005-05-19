@@ -1,33 +1,23 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: Problem status (ABIT NV7m)
-Message-Id: <20030625105312.0e66515c.khali@linux-fr.org>
+From: JHTseng@via.com.tw (JH Tseng)
+Date: Thu, 19 May 2005 06:23:32 +0000
+Subject: Supporting Hardware monitor for VIA chipsets
+Message-Id: <369B0912E1F5D511ACA5003048222B7555BBFE@EXCHANGE2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030616210337.1874dc27.khali@linux-fr.org>
-In-Reply-To: <20030616210337.1874dc27.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Don't recall seeing the original mail, guess I was busy.
+Hi Sir,
 
-I think so, too.
+I am a software engineer in VIA Tech Inc. According to the status report in
+your web site, we find that there are not the sensor chip drivers for latest
+VIA south bridges such as the VT8231, VT8233(A) and VT8235. Therefore, I
+need your help or I can provide some HWs and information to you to
+co-develope/co-test the hardware monitor based on the VIA platform. I deeply
+appreciate you very much if you have any input.
 
-> In the original mail referenced below, the nforce driver is totally
-> whacked. It's giving a response to every address. Either the driver or
-> the bus itself is hosed. Power-cycle and try again.
+Best regards
 
-We already tried this (in both Yann's case and the other one) without
-success.
-
-> Since you say you have a 83627hf, your best bet is to use the new
-> ISA-only w83627hf driver in CVS. Then you can bypass whatever problem
-> you're having with nforce or its i2c bus.
-
-That would be an interesting thing to try, thanks.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+JH
