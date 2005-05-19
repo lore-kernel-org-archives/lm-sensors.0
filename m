@@ -1,32 +1,22 @@
-From: stefan@desire.ch (Stefan Ott)
-Date: Thu, 19 May 2005 06:25:27 +0000
-Subject: Porting the fscpos driver to 2.6
-Message-Id: <20041219144429.119e44a7@bart.desire.ch>
+From: george@dexy.org (George Wright)
+Date: Thu, 19 May 2005 06:23:52 +0000
+Subject: i'll help with lm-sensors
+Message-Id: <Pine.LNX.4.53.0304012122420.5457@tcgent.coram>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041217184827.36da6d90@bart.desire.ch>
-In-Reply-To: <20041217184827.36da6d90@bart.desire.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean
+Hi there
 
-I've been using kernel 2.6.9 so far - I'll just diff the fscher driver to see what changed.
+I'll help out with email/ support tickets and patches
 
-Thanks for the sysfs information (shame on me for that one :)), the pdf (looks quite helpful!) and your help in general. I'll get back to you in a couple of days - hopefully with a fully-working driver.
+what do you need help with on the sensors.conf database?
+
+Not too hot with RPMs though, but will do what I can
 
 Regards
--- 
-Stefan Ott
-http://www.desire.ch
 
-"Quelli come me si svegliano alle tre e dicono che i giorni sono corti"
-  -- Luciano Ligabue
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041219/9a8d6198/attachment.bin
+George Wright
+
