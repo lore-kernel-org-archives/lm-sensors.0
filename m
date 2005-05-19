@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: FW: Fix for problems with the Intel 82810 driver of lm-sensors
-Message-Id: <3DD42063.D7A757ED@paradyne.com>
+Message-Id: <3DD7FD64.224AADC@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <PFEKKDLGBCAKPFINAMGJEEPHCBAA.michael@5dot1.de>
 In-Reply-To: <PFEKKDLGBCAKPFINAMGJEEPHCBAA.michael@5dot1.de>
@@ -10,10 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'll take a look at it this weekend since I'm supporting the 810 driver.
+so it appears that the 810AA pins are not open-drain.
+If you modprobe i2c-algo-bit bit_test=1, does it fail when
+you load i2c-i810 without your changes and pass with your changed
+i2c-i810?
 
-On the FS451, see doc/developers/new-drivers if you haven't already.
-I'll put an ID in for you.
+Flipping the pins to inputs should work for all chips. I was
+just trying to save a couple of writes.
+
+So if your test results are favorable I'll just check in a simple
+change that affects all chips.
 
 mds
 
@@ -97,7 +103,7 @@ Michael Dreher wrote:
 >     Michael Dreher
 >     <michael@5dot1.de>
 > 
->   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> 
 >                     Name: i810_fix.diff
 >    i810_fix.diff    Type: unspecified type (application/octet-stream)
 >                 Encoding: quoted-printable
