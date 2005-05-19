@@ -1,23 +1,17 @@
-From: John.Morris@spirentcom.com (Morris, John)
-Date: Thu, 19 May 2005 06:24:52 +0000
-Subject: CVS?
-Message-Id: <629E717C12A8694A88FAA6BEF9FFCD44056485DC@brigadoon.spirentcom.com>
+From: hellasaltine@gmail.com (some dude)
+Date: Thu, 19 May 2005 06:25:15 +0000
+Subject: SiS5595 graphics chip driver
+Message-Id: <2542f0f704091021006829b558@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <629E717C12A8694A88FAA6BEF9FFCD440564855E@brigadoon.spirentcom.com>
-In-Reply-To: <629E717C12A8694A88FAA6BEF9FFCD440564855E@brigadoon.spirentcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I'm now wondering if our IS people have added some port filters
-> to the firewall since last time I accessed it. I'll check with them - 
-> and maybe try accessing outside the firewall. Don't kick anything
-> until I can find out.
+Hey, I just installed Linux for the first time (Debian) and my
+motherboard's on-board stuff doesn't work (specifically the SiS5595
+graphics chip). Therefore, I can't get X to work.. Can you point me in
+the right direction? I found your driver, but I don't know what to do
+with it or how to use it...
 
-Yes, the problem was here, and was the firewall setup, although convincing
-IS took some
-time. All better now - sorry for the false alarm. And for the previous blank
-message...
-
-John.
+-Anthony
