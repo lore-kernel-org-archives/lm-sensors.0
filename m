@@ -1,81 +1,43 @@
-From: bjorn@mork.no (=?iso-8859-1?q?Bj=F8rn_Mork?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: SOLVED: Ticket #1409
-Message-Id: <hvvfr8digc.fsf@rasputin.ws.nextra.no>
+Message-Id: <20031002223441.4d936495.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <hvvfr8digc.fsf@rasputin.ws.nextra.no>
+In-Reply-To: <hvvfr8digc.fsf@rasputin.ws.nextra.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I didn't find any way of updating the ticket, so I'm sending this via
-mail.  After writing the original ticket I downloaded and read the
-IT8712F data sheet, which I of course should have done first...  This
-enabled me to write a small program to retrieve the non-default
-address of the IT8712F on the Asus A7N8X-VM:
 
+> I wonder however, would it be possible to include a refined version of
+> the address detection code in the module?  I am willing to try to
+> write it myself, but I won't do it unless I know it has some remote
+> possibility of being included.
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/io.h>=20
-#include <string.h>
+Thanks a lot for reporting your findings. It will hopefully help some
+other folks someday.
 
-int main(int argc, char **argv) {
-        if (ioperm(0x0, 0x3ff, 1)) {
-                perror("Set i/o permission");
-                exit(0);
-        }
+Here are the possibilities:
 
-        /* enter MB PnP mode */
-        outb(0x87, 0x2e);
-        outb(0x01, 0x2e);
-        outb(0x55, 0x2e);
-        outb(0x55, 0x2e);
+1* Add address 0x0d00 to sensors-detect.
+2* Add address 0x0d00 to it87.
+3* Add your code to it87.
+4* Add what you found to the it87 doc.
+5* Distribute your program into lm_sensors.
 
-        /* get chip ID */
-        outb(0x20, 0x2e);
-        printf("chip id =3D 0x%02x", inb(0x2f));
-        outb(0x21, 0x2e);
-        printf("%02x\n", inb(0x2f));
+I'm not easy with ISA chips, since I only wrote I2C chip drivers so far.
+I know that ISA is typically a little bit more dangerous, but I don't
+know to which extent. I'd like to hear other people about that. I don't
+even understand what you code does (or, more precisely, how it does it)
+but it looks interesting. Is there a chance we could use it for
+something less specific than your own case? (in other words, how
+A7N8X-VM specific is it? how it8712F-specific?)
 
-        /* select GPIO */
-        outb(0x07, 0x2e);
-        outb(0x04, 0x2f);
+I really don't know wether it's better to just add the new address to
+the list, or include your detection code in some way.
 
-        outb(0x60, 0x2e); /* address MSB */
-        printf("LDN 4, reg 0x60 =3D 0x%02x\n", inb(0x2f));  /* default 0x02=
- */
-        outb(0x61, 0x2e); /* address LSB */
-        printf("LDN 4, reg 0x61 =3D 0x%02x\n", inb(0x2f));  /* default 0x90=
- */
-        outb(0x30, 0x2e); /* enable */
-        printf("LDN 4, reg 0x30 =3D 0x%02x\n", inb(0x2f));  /* default 0x00=
-, should be >0 */
-
-        /* exit from MB PnP mode */
-        outb(0x02, 0x2e);
-        outb(0x02, 0x2f);
-        return 0;
-}
-
-
-Which gave the following output right after a reboot:
-
-chip id =3D 0x8712
-LDN 4, reg 0x60 =3D 0x0d
-LDN 4, reg 0x61 =3D 0x00
-LDN 4, reg 0x30 =3D 0x01
-
-I.e. Asus have changed the base address from 0x290 to 0xd00.  Using
-this address with it87 worked perfectly:
-
-  modprobe it87 probe=9191,0x0d00
-
-
-I wonder however, would it be possible to include a refined version of
-the address detection code in the module?  I am willing to try to
-write it myself, but I won't do it unless I know it has some remote
-possibility of being included.
-
-
-Bj?rn
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
