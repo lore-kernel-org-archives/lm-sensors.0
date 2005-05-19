@@ -1,69 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: lm-sensors 2.9.0 i2c-ipmi and bmcsensors compile-time issues
-Message-Id: <KX6LnVmZ.1107163175.2408030.khali@localhost>
+From: armenb@cs.umass.edu (Armen Babikyan)
+Date: Thu, 19 May 2005 06:25:31 +0000
+Subject: Sensors on IBM eServer 335/345?
+Message-Id: <2A5055C0-6929-11D9-98D6-003065F94C4C@cs.umass.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050131003801.GA679@astro.su.se>
-In-Reply-To: <20050131003801.GA679@astro.su.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Sergio,
+Thanks, Jean, for the info about the "IBM Laptop detected" problem.  
+The i2c-piix4 bus driver now loads with no problem on this IBM eServer 
+335.
 
-> Just discovered a couple of typos in lm-sensors 2.9.0 code:
->
-> 1) kernel/busses/i2c-ipmi.c, line 183:
-> that return (with a value, in a void function, with an unreachable "if
-> (error)" immediately afterwards) is premature. I'm tentatively replacing
-> it with
->	error = i2c_add_adapter(&i2c_ipmi_adapter);
-> which makes a lot more sense in that context.
+However, sensors-detect still isn't finding any sensor chips on this 
+system.  Is there a giant table somewhere that lists motherboard/chip 
+combinations so I can find the appropriate drivers for this system?  Or 
+any general guidelines to what IBM or Serverworks prefer to use with 
+their systems/electronics?  Could the sensor chips be proprietary?
 
-I think you are correct. The Linux 2.6 kernel version of the driver [1]
-was fixed in a similar way. Care to send a patch we could apply to
-lm_sensors CVS?
+Or has anyone used sensors on these machines and knows offhand? :)
 
-> 2) kernel/chips/bmcsensors.c, line 300:
-> gcc points out that m is not declared (did anyone ever try to compile
-> this?!)
-> I'm guessing that sd->m was meant.
-> [OK, this one is already in CVS. But I rediscovered it anyway.]
+Are there any gotchas with regards to installing the latest 
+i2c/lmsensors (2.9.0) on an older kernel (2.4.21)?  I know this machine 
+has two Xeon processors, and Xeons have embedded temperature sensors, 
+but have not had much luck trying to access them after inserting the 
+xeontemp lmsensors module - just wondering if my old kernel could have 
+anything to do with it.
 
-Both the i2c-ipmi and the bmcsensors drivers can only be compiled when
-the underlying kernel supports IPMI. I personally don't need it, so I
-never happen to compile these drivers, and I suspect that most people
-are in the same case. This explains why these drivers are more likely to
-contain compilation errors and warnings than the other ones.
+Any insight is appreciated!
 
-The fact that lm_sensors 2.9.0 was released with a bmcsensors driver that
-wouldn't even compile is of course a problem, and I will try to at
-least compile-test all drivers before the next releases.
+Thanks,
 
-> Also, a comment on kernel/busses/i2c-ipmi.c line 100:
-> OpenIPMI patch v33 adds an argument to ipmi_request(), so users who've
-> patched their 2.4 kernels will need to replace the final ", 0)" with
-> ", NULL, 0)" --- or would a non-NULL value be more appropriate? We'll see.
-> Probably not worth changing your code yet, but a mention in the
-> installation notes may be in order.
-
-I don't know what the extra parameter is for, but the 2.6 version of the
-drivers has NULL for it so I guess we can do the same. Looks like it was
-actually added in v30, not v33. I searched for a way to check the
-version in ipmi.h but there is none. However, at least two defines were
-added to that file at the same time the function prototype was changed:
-IPMI_LAN_ADDR_TYPE and IPMI_RESPONSE_RESPONSE_TYPE. Maybe we could check
-for them and do the correct call? That way the user wouldn't have to
-care. I don't really like checking unrelated things but that's the
-best we have as far as I can see.
-
-Care to send a patch (for the code, documentation, or both)?
-
-Thanks.
-
-[1] http://bmcsensors-26.sourceforge.net/
-
---
-Jean Delvare
+   - Armen
