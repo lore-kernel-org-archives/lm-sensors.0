@@ -1,134 +1,45 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: lm_sensors on Itanium
-Message-Id: <405C7500.2090009@penguincomputing.com>
+From: sesshoumaru@altern.org (Sesshoumaru)
+Date: Thu, 19 May 2005 06:23:57 +0000
+Subject: SMbus problem ?
+Message-Id: <20030602222815.14c7b37f.sesshoumaru@altern.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F0@exch01.paracel.com>
-In-Reply-To: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F0@exch01.paracel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->
->
->[root@gb0010 sensors]# cat /proc/bus/i2c
->i2c-0   smbus           SMBus I801 adapter at 0600              Non-I2C SMBus adapter
->i2c-1   dummy           ISA main adapter                        ISA bus algorithm
->  
->
+Hello !
 
-Now that the i801 based i2c bus is showing up in /proc/bus/i2c, can you 
-re-run the i2c-detect against the bus? (It's now 0 in this case)
+I have a few problems with lm_sensors. I installed i2c-2.7.0 packages
+and after that i do a depmod -a.
+But when i compile lm_sensors i have this errors at make step :
 
-You might also try loading the adm1026 driver again.  Have you tried 
-enabling DEBUG when compiling adm1026?
+[root@calculus:/tmp/lm_sensors-2.7.0]# make
+gcc  -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomit-frame-pointer -I. -Ikernel/include -I/usr/local/include -I/lib/modules/2.4.20/build/include   -O2   -c kernel/busses/i2c-amd8111.c -o kernel/busses/i2c-amd8111.o
+kernel/busses/i2c-amd8111.c:25:2: #error Your i2c is too old - i2c-2.7.0 or greater required!
+kernel/busses/i2c-amd8111.c: In function `amd8111_access':
+kernel/busses/i2c-amd8111.c:238: `I2C_CLIENT_PEC' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c:238: (Each undeclared identifier is reported only once
+kernel/busses/i2c-amd8111.c:238: for each function it appears in.)
+kernel/busses/i2c-amd8111.c:298: `I2C_SMBUS_BLOCK_PROC_CALL' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c:309: `I2C_SMBUS_WORD_DATA_PEC' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c:310: `I2C_SMBUS_BLOCK_DATA_PEC' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c:311: `I2C_SMBUS_PROC_CALL_PEC' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c:312: `I2C_SMBUS_BLOCK_PROC_CALL_PEC' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c: In function `amd8111_func':
+kernel/busses/i2c-amd8111.c:385: `I2C_FUNC_SMBUS_BLOCK_PROC_CALL' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c:386: `I2C_FUNC_SMBUS_HWPEC_CALC' undeclared (first use in this function)
+kernel/busses/i2c-amd8111.c: In function `amd8111_probe':
+kernel/busses/i2c-amd8111.c:426: `I2C_HW_SMBUS_AMD8111' undeclared (first use in this function)
+make: *** [kernel/busses/i2c-amd8111.o] Error 1
 
-:v)
+However i have installed i2c-2.7.0.
 
+An ideas ?
 
-Marc Rieffel wrote:
+Regards
 
->After modifying smsc47m1.c, sensors-detect didn't detect anything, but manually loading the smsc47m1 driver succeeded and gave me bogus fan speeds,
->
->sensors
->smsc47m1-isa-0800
->Adapter: ISA adapter
->fan1:       -1 RPM  (min = 2997 RPM, div = 2)
->fan2:       -1 RPM  (min = 2997 RPM, div = 2)
->
->
->ls /proc/sys/dev/sensors/smsc47m1-isa-0800/
->alarms  fan1  fan2  fan_div  pwm1  pwm2
->
->[root@gb0010 sensors]# cat /proc/sys/dev/sensors/smsc47m1-isa-0800/*
->0
->2997 -1
->2997 -1
->2 2
->0 0
->0 0
->
->I must have sent you the i2c info before I had loaded one of the modules.  I can see both i2c-0 and i2c-1:
->
->[root@gb0010 sensors]# cat /proc/bus/i2c
->i2c-0   smbus           SMBus I801 adapter at 0600              Non-I2C SMBus adapter
->i2c-1   dummy           ISA main adapter                        ISA bus algorithm
->
->What do you think is preventing us from accessing the adm1026 chip?
->
->  
->
->>-----Original Message-----
->>From: Jean Delvare [mailto:khali@linux-fr.org]
->>Sent: Wednesday, March 03, 2004 11:52 AM
->>To: Marc Rieffel
->>Cc: LM Sensors
->>Subject: Re: lm_sensors on Itanium
->>
->>
->>    
->>
->>>With that change, I found the SMSC chip but no sensors.
->>>      
->>>
->>This at least means that, if nothing else, you may be able to monitor
->>your fans with that SMSC chip. The smsc47m1 driver wouldn't 
->>load because
->>it doesn't recognize the device ID as one it handles. I took a quick
->>look at the 47B27x datasheet and it _seems_ to be compatible with the
->>47M1xx. Same logical device, same registers. If there are subtle
->>differences, I could have missed them. If you want to take 
->>your chance,
->>edit smsc47m1.c, edit SMSC_DEVID_MATCH so that it likes your ID (0x51)
->>and try using it.
->>
->>    
->>
->>>Neither i2c bus shows anything.
->>>      
->>>
->>>[root@gb0010 sensors]# cat /proc/bus/i2c
->>>i2c-0   dummy           ISA main adapter                        ISA
->>>bus algorithm
->>>
->>>[root@gb0010 sensors]# lm_sensors-2.8.4/prog/detect/i2cdetect 0
->>>Error: Can't use SMBus Quick Write command on this bus (ISA bus?)
->>>
->>>[root@gb0010 sensors]# lm_sensors-2.8.4/prog/detect/i2cdetect 1
->>>  WARNING! This program can confuse your I2C bus, cause 
->>>      
->>>
->>data loss and
->>    
->>
->>>  worse! I will probe file /dev/i2c-1
->>>  You have five seconds to reconsider and press CTRL-C!
->>>
->>>     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->>>00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
->>>      
->>>
->>That still surprises me much. How can i2c-1 exist and not be listed in
->>/proc/bus/i2c? Very strange.
->>
->>The SMBus way looks like a dead end anyway. I fear that we won't
->>possibly offer you anything but fan monitoring with the SMSC chip.
->>
->>-- 
->>Jean Delvare
->>http://www.ensicaen.ismra.fr/~delvare/
->>
->>    
->>
->
->  
->
-
+-- 
+La modestie est au m?rite ce que les ombres 
+sont aux figures dans un tableau: elle lui 
+donne de la force et du relief.
