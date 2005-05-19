@@ -1,26 +1,25 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:56 +0000
-Subject: Announcement ML
-Message-Id: <200405071510.i47FAef8031789@zone3.gcu-squad.org>
+Date: Thu, 19 May 2005 06:24:08 +0000
+Subject: i2c-sis630 driver
+Message-Id: <20030730170901.423a48ce.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000001c43443$c4590cc0$0201000a@BKSTATION>
-In-Reply-To: <000001c43443$c4590cc0$0201000a@BKSTATION>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
->LM Sensors is very, VERY usefull (for me, and a lot of people I know who use
->it in production environments).
->I was wondering if you planned to create an announcement ML, which is, I
->think, the best (only ?) way to keep one's system up to date.
+Hi folks,
 
-We make an annoucement on Freshmeat each time we update our packages.
-Just subscribe to the project there and you'll be warned each time.
+We have been having two tickets about i2c-sis630 driver not working
+anymore since 2.8.0. 
 
->Thanx for the answer, and again, greetings for the job
+http://secure.netroedge.com/~lm78/readticket.cgi?ticket50
+http://secure.netroedge.com/~lm78/readticket.cgi?ticket51
 
-Thanks :)
+Could you please take a look? The reports are complete but I don't know
+where to look at (I don't know much about bus drivers).
 
-Jean
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
