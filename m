@@ -1,28 +1,15 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:05 +0000
-Subject: [PATCH 2.6] I2C: Refine detection of LM75 chips
-Message-Id: <20040714183528.GC10099@kroah.com>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: remove 2.2 support?
+Message-Id: <3E0E709B.5000900@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040714105222.262c586d.khali@linux-fr.org>
-In-Reply-To: <20040714105222.262c586d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 14, 2004 at 10:52:22AM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> The LM75 detection method was a bit loose so far and would accept
-> non-LM75-compatible chips from times to times. It should be better now.
-> Additionally, the help for the lm75 driver was reworked because we now
-> know that the LM75 and the LM77 are not compatible.
-> 
-> Please apply,
-> thanks.
-> 
-> Signed-off-by: Jean Delvare <khali at linux-fr dot org>
-
-Applied, thanks.
-
-greg k-h
+testing and fixing 2.2 support was a real pain at the end of the 2.7.0 cycle.
+It also adds a lot of cruft in the drivers and adds to patch misery.
+What do you think of removing 2.2 support and making 2.7.0 the last 2.2-compatible release?
+For reference, we dropped 2.0 support in release 2.5.0, March 2000.
+mds
