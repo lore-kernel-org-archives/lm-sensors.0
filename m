@@ -1,75 +1,51 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: sensors gives no useful output.
-Message-Id: <20030806190933.224ed5d1.zdavatz@ywesee.com>
+From: frodol@dds.nl (frodol@dds.nl)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: major lm_sensors problem (fwd)
+Message-Id: <200207301755.g6UHtga04064@shire.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030806183452.4755ebf8.zdavatz@ywesee.com>
-In-Reply-To: <20030806183452.4755ebf8.zdavatz@ywesee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Aug 2003 19:03:54 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
+Minesh Khatri wrote:
+From khatri80@yahoo.com Tue Jul 30 19:55:04 2002
+Received: by morannon.frodo.local (8.11.3/8.11.3) id g6UHt4k28392 ; Tue, 30 Jul 2002 19:55:04 +0200
+Return-Path: <khatri80@yahoo.com>
+Received: from pop3.dds.nl [213.196.1.122]
+	by localhost with POP3 (fetchmail-5.4.4)
+	for frodo@localhost (single-drop); Tue, 30 Jul 2002 19:55:04 +0200 (CEST)
+Received: (qmail 10760 invoked from network); 30 Jul 2002 17:25:57 -0000
+Received: from unknown (HELO web11405.mail.yahoo.com) ([216.136.131.235]) (envelope-sender <khatri80@yahoo.com>)
+          by arkanoid.cybercomm.nl (qmail-ldap-1.03) with SMTP
+          for <frodol@dds.nl>; 30 Jul 2002 17:25:57 -0000
+Message-ID: <20020730174035.30312.qmail@web11405.mail.yahoo.com>
+Received: from [129.33.49.207] by web11405.mail.yahoo.com via HTTP; Tue, 30 Jul 2002 10:40:35 PDT
+Date: Tue, 30 Jul 2002 10:40:35 -0700 (PDT)
+From: Minesh Khatri <khatri80@yahoo.com>
+Subject: major lm_sensors problem
+To: mdsxyz123@yahoo.com, phil@netroedge.com, frodol@dds.nl
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+X-Loop-Procmail: PreventLoop
 
-> 
-> > ok, done that. And followed the instructions of the 'sensors-detect'
-> > output. I did not ad the lines to /etc/rc.* as the lm75 and eeprom are
-> > already loaded at bootup.
-> 
-> Yes, I think I remember that.
-> 
-> > My sensors output now is:
-> > lm75-i2c-0-48
-> > Adapter: uni-n 0
-> > Algorithm: Keywest i2c
-> > temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
-> > 
-> > lm75-i2c-0-49
-> > Adapter: uni-n 0
-> > Algorithm: Keywest i2c
-> > temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
-> > 
-> > eeprom-i2c-0-50
-> > Adapter: uni-n 0
-> > Algorithm: Keywest i2c
-> > 
-> > lm75-i2c-1-48
-> > Adapter: uni-n 1
-> > Algorithm: Keywest i2c
-> > temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
-> > 
-> > lm75-i2c-1-49
-> > Adapter: uni-n 1
-> > Algorithm: Keywest i2c
-> > temp:       -1.0?C  (limit =  -1.0?C, hysteresis =  -1.0?C)
-> > 
-> > eeprom-i2c-1-50
-> > Adapter: uni-n 1
-> > Algorithm: Keywest i2c
-> > 
-> > eeprom-i2c-2-56
-> > Adapter: mac-io 0
-> > Algorithm: Keywest i2c
-> > Machine name:
-> > Serial number:
-> > 
-> > Any hints to get some useful output?
-> 
-> Unfortunately, it seems that all these chips are awfully misdetected.
-> You probably don't have any LM75 chip on your system, and the eeproms
-> are of an unknown type. Since we skipped the compilation of the dump
-> tools in order to be able to install lm_sensors, there's almost nothing
-> we can do now :(
-> 
-> If we ever can figure out why these tools wouldn't compile correctly on
-> PPC, we'll let you know.
-> 
-> Sorry I can't help you more :/
-Ok, thanks for your great help so far.
+Hi,
 
-Tomorrow is another day and we may find more.
+I ran your program, sensors-detect, on Red Hat 7.3, and now it has screwed up my
+computer (IBM Intellistation). Linux will no longer boot. I was wondering if you
+had any solutions or reasons as to why this is happening? 
 
-Thanks
-Zeno
+Thanks,
+Minesh
+
+__________________________________________________
+Do You Yahoo!?
+Yahoo! Health - Feel better, live better
+http://health.yahoo.com
+
+
+-- 
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
