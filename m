@@ -1,20 +1,21 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: i2c-core on 2.6.0-test10
-Message-Id: <20031129183822.64efee85.khali@linux-fr.org>
+From: jargon@hurg.org (Johannes =?utf-8?B?V2Vpw59s?=)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: Ticket #1376
+Message-Id: <20030817003245.GA12961@hurg.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1069707536.1010.8.camel@phoebus>
-In-Reply-To: <1069707536.1010.8.camel@phoebus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> sensors gives me segfault:
+Hello,
 
-Should be fixed in current CVS, if you want to give it a try.
-Thanks for reporting.
+I don't have applied the GRSEC patch to my kernel (I've downloaded
+the kernel source from kernel.org).
+
+I upgraded to 2.8.0 (after removing ALL 2.7.0 remains), but the error
+is still there.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+cu,
+Johannes Wei?l
