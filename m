@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:42 +0000
 Subject: Linux 2.6.3, lm_sensors 2.8.5
-Message-Id: <20040220214538.41a2f07e.khali@linux-fr.org>
+Message-Id: <20040220220912.5e1011da.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040218232559.2621d402.khali@linux-fr.org>
 In-Reply-To: <20040218232559.2621d402.khali@linux-fr.org>
@@ -10,35 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Yes, that's what I am after, and the suggestion above was to embed it
-> in the versioning scheme itself. Which is the minimal required i2c in
-> kernel for lm_sensors 2.8.4/2.8.5?
+Quoting MDS:
 
-Sadly, i2c 2.8.4, although it shouldn't (the "incompatibility" comes
-from new IDs, this can be avoided easily.)
+> I don't think we should do a sensors release just because of
+> w83l785ts.
 
-> BTW I am about to build new kernels for FC1 (2.4.22 & lots of
-> backports based) and would like to include 2.8.5 (currently at 2.8.2),
-> will you provide an i2c patch for it again? :)
+Well, from a 2.6 kernel point of view, there's also a sysfs enabled
+decode-edid.pl.
 
-To anyone else I'd have replied "no way, I'm busy". But since this is
-you... I just updated the files, go pick them and tell me how it goes :)
+For 2.4 kernels, there is w83637hf support and some fixes to a few
+drivers.
 
-> (...)
-> If you are referring to the kernel-i2c versioning scheme, the
-> kernel-drm dependeny to XFree86 has been the patron of the above
-> suggestion ;)
+I agree that there are less changes than usual (quite normal since there
+has been only 2 weeks since previous release). But is is comparable to
+2.8.3, for example. From 2.0.0 to 2.5.0, most releases had far less than
+we have here.
 
-I guess we might consider it then... However, I still want to keep in
-sync (sort of) with Linux 2.6 for now. Once the rush is behind us,
-maybe...
+Releasing doesn't cost us much. In return, it is likely to save half a
+dozen reports about w83l785ts not working in Linux 2.6.3, if nothing
+else. For this reason I think we should release. And I guess Greg will
+agree with me. Supporters of MDS, speak up ;)
 
-That said, we better start with not creating unneeded dependencies with
-IDs, as MDS suggested. And keeping the docs accurate too. This should
-already make your life a bit easier.
+> We also shouldn't be forcing people to upgrade i2c releases.
+> The last couple of new sensors drivers have not had #ifndef
+> I2C_DRIVERID_xxx in the new drivers, which forces people to upgrade
+> i2c for very little reason. IMO we should always #ifndef the driverids
+> in new drivers.
 
-Feel free to come back with your suggestion within a few months, in case
-we forget about it and you're still interested.
+Correct. This is my fault. I'll try to think of it from now on.
+
+Maybe I could fix that before the next release, so as it will work with
+versions down to 2.8.0 of i2c? Doesn't cost much, and likely to save
+some users (and us with them) some trouble.
+
+Thanks.
 
 -- 
 Jean Delvare
