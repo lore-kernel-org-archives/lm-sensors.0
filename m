@@ -1,7 +1,7 @@
 From: mds4@verizon.net (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: More on SMBus multiplexing
-Message-Id: <4182F2B7.5020407@verizon.net>
+Message-Id: <4185AF58.6010204@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041023200215.38e375a1.khali@linux-fr.org>
 In-Reply-To: <20041023200215.38e375a1.khali@linux-fr.org>
@@ -10,7 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks for the detailed response. comments below
+Khali and I discussed this at length this weekend on IRC.
+We agree on a general direction toward a generic implementation,
+modeled in part on i2c-virtual.
+In the meantime, we agree that his i2c-amd756-4882 module is straightforward
+is headed in the right direction, and is acceptable for 2.6;
+so I no longer object to his patch.
+In the near future I'll be working on cleaning up the original i2c-virtual implmementation.
+
+mds
+
+
 
 Jean Delvare wrote:
 > Hi Mark,
@@ -35,12 +45,6 @@ Jean Delvare wrote:
 > changes belong to 2.4/CVS where compatibility and stability are (well,
 > should be) our main goal.
 > 
-
-If there's a way to do locking without affecting the core I'm all for it.
-If there's a way to do it without locking at all, even better.
-I'll look further into what you did to better understand your approach.
-At the moment I don't understand how you avoided i2c-core changes :)
-
 > 2* SMBus multiplexing *is* board-specific, no matter how you look at it.
 > For I2C multiplexers which are controllable with I2C commands (such as
 > the PCA9540), autodetection may be used (but see below). However, on the
@@ -57,15 +61,6 @@ At the moment I don't understand how you avoided i2c-core changes :)
 > pairs, so as to have one virtual bus per CPU, which is both more
 > convenient for the user and less resource consuming.
 > 
-agreed.
-The power of the i2c-virtual approach is that it's separated into
-two pieces - algorithm and adapter.
-The algorithm is the generic mux code (and locking?).
-Perhaps a better name than i2c-virtual for that module is i2c-mux.
-The adapter is the board-specific part. 
-By separating the two, the board-specific (adapter) part is simple
-and easy to clone into multiple versions for different boards.
-
 > 3* Multiplexer controllers are usually hard, if not impossible, to
 > detect. The PCA9540 has a single register which is accessed with
 > smbus_{read,write}_byte commands, NOT smbus_{read,write}_byte_data
@@ -77,29 +72,16 @@ and easy to clone into multiple versions for different boards.
 > not detectable. This adds up to the fact that multiplexers controller
 > are not necessarily chips on the SMBus.
 > 
-agreed.
-some adapter modules may contain rudamentary detection
-(recognition of address 0x70, for example), others
-may have none, and activate on module loading
-perhaps with a module parameter to identify "root" bus number?)
-
 > 4* The previous proposal is around for quite some times now, but was
 > never merged in. If I remember correctly you had implementation
 > objections, which were never addressed.
 > 
-Because these boards are rare (and I don't have access to one).
-What I call "i2c-virtual" I really mean
-"the original i2c-virtual implementation plus my
-suggestions" which you are right, were never addressed.
-
 > 5* There are only a couple boards with multiplexing out there, and I can
 > only hope that there won't be too many more in the future. Multiplexing
 > makes things slower and more complex, as everyone can easily understand.
 > I'm not sure it's worth to add things at the core level for just a
 > handful of boards.
 > 
-agreed. the less core mods the better.
-
 > So, I understand that you like defining clean interfaces for new things,
 > I do to. However, I don't see any added value in this specific case.
 > This won't allow for fully automatic detection. This won't allow for
@@ -128,10 +110,6 @@ agreed. the less core mods the better.
 > weekend though, since I will not be at home all the time. I'll take my
 > laptop with me and connect as time and technical conditions permit.
 > 
-thanks for letting me comment vaguely and then elaborate later
-without getting cranky, I appreciate it...
-don't lug a laptop around Paris just for me :)
-
 > Thanks again,
 > Jean
 > 
