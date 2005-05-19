@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: make fails
-Message-Id: <20030730132845.1fb48ce3.zdavatz@ywesee.com>
+Message-Id: <20030730135144.2c037917.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030722165359.538d577f.khali@linux-fr.org>
 In-Reply-To: <20030722165359.538d577f.khali@linux-fr.org>
@@ -10,45 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean
 
-Thanks for your Mail. Was on holiday for two weeks thats why no reply from my side so far.
+> Thanks for your Mail. Was on holiday for two weeks thats why no reply
+> from my side so far.
+> 
+> Yes, please close that bug, I managed to compile now.
 
-Yes, please close that bug, I managed to compile now.
-
-Thanks for your time and help.
-
-Zeno
-
-On Tue, 22 Jul 2003 16:53:59 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
-
-> 
-> Hi Zeno,
-> 
-> Three weeks ago, you created a ticket on our database about the
-> following problem:
-> 
-> sudo make j2
-> Makefile:185: *** missing separator.  Stop.
-> 
-> Does lm_sensors 2.8.0 still do that? We would want to close the ticket
-> if you finally found a solution.
-> 
-> Thanks.
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
-
+Anything we should add to the ticket (how you solve the problem...)? The
+tickets are also meant for the other users who could encounter the same
+problem.
 
 -- 
-Mit freundlichen Gruessen / Best regards
-
-Zeno Davatz
-Strategie und Akquisition
-
-+41 1 350 85 86
-
-www.ywesee.com > intellectual capital connected > www.generika.cc
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
