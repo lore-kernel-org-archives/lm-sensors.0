@@ -1,21 +1,24 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: LM-Sensors TODO list: adm9240
-Message-Id: <f2n571h8p0fbmkkd5c0sjevh7uo4en1fcb@4ax.com>
+From: mds@paradyne.com (Mark D. Studebaker )
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: tickets etc
+Message-Id: <3E45356D.7070503@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
+Been fairly busy lately and have had internet access trouble as well.
+Probably won't be able to do much until early-to-mid March.
+Will try and do more testing though.
 
-There is a note in CVS TODO file about checking voltage reporting 
-of adm9240, this I have done as far as revision 2 of the chip.  
+Thanks to folks for answering mailing list mail, please keep it up.
 
-The method I used to discover negative voltage resistor values 
-also would account for the ~140k input impedance.  It is also 
-a measurement dependent on reading two input voltages -- I wonder 
-if whomever raised the TODO item remembers what their issue was?
+I just went through 3 weeks worth of tickets (16 of them).
+Once again I appeal for help on answering tickets.
+It's not good for me to be the only one.
+No experience necessary :)
+If you need the ticket psswd ask Phil.
 
---Grant.
+thanks
+mds
