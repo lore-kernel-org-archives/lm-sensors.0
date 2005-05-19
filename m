@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: trini@kernel.crashing.org (Tom Rini)
 Date: Thu, 19 May 2005 06:24:31 +0000
 Subject: RFC: 2.6 cleanups for i2c-piix4.c
-Message-Id: <20031229205535.03e71f7a.khali@linux-fr.org>
+Message-Id: <20031229223712.GD1109@stop.crashing.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031227005834.GA1026@earth.solarsys.private>
 In-Reply-To: <20031227005834.GA1026@earth.solarsys.private>
@@ -10,13 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Fri, Dec 26, 2003 at 07:58:34PM -0500, Mark M. Hoffman wrote:
+
+> (cc'ed Tom as a potential tester)
+> 
 > The following is very lightly tested here.  It applies
 > on top of Greg's -test11 stack.  Comments?
 
-The machine on which I have a PIIX4 for testing cannot run with 2.6
-kernels at the moment. Would this patch apply to the CVS version of the
-driver as well?
+And I don't have a machine I can easily test stuff on either, sorry.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Tom Rini
+http://gate.crashing.org/~trini/
