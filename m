@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:23:57 +0000
 Subject: i2c-dev.h
-Message-Id: <20030602161450.GG4782@kroah.com>
+Message-Id: <3EDB9037.90106@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3ED81794.9060303@paradyne.com>
 In-Reply-To: <3ED81794.9060303@paradyne.com>
@@ -10,39 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 01, 2003 at 10:27:06PM -0700, Philip Pokorny wrote:
-> So '- km' in the sensors.h comments must be Kyosti...
+Greg KH wrote:
+> On Sun, Jun 01, 2003 at 10:27:06PM -0700, Philip Pokorny wrote:
 > 
-> There has got to be some common header files between kernel and user space 
-> so that data structures and "magic" constants are shared.
+>>So '- km' in the sensors.h comments must be Kyosti...
+>>
+>>There has got to be some common header files between kernel and user space 
+>>so that data structures and "magic" constants are shared.
+> 
+> No, two separate header files, both kept in sync.  That's the way to do
+> this today.
 
-No, two separate header files, both kept in sync.  That's the way to do
-this today.
+How are they kept in sync.  Force of will?  Without some automatic way 
+to keep them in sync you've just exchanged one set of problems for 
+another...
 
-> If user space can't include kernel headers, then the kernel will have to 
-> include a "user space" header.
+>>If user space can't include kernel headers, then the kernel will have to 
+>>include a "user space" header.
+> 
+> Nope, see the many threads on the linux-kernel mailing list about this
+> issue.
 
-Nope, see the many threads on the linux-kernel mailing list about this
-issue.
+OK.  So H Peter Anvin suggested something very like what I'm suggesting 
+here:
 
-> It would seem to me that the alternative of having two copies of the same 
-> data structures and constants would be worse.
+http://groups.google.com/groups?hl=en&lr=&ie=UTF-8&oe=UTF-8&selm=aho5ql%249ja%241%40cesium.transmeta.com
 
-Nope.
+Google doesn't seem to turn up much else on the linux.kernel mailing 
+list other than "IOCTL's are bad" comments (and the variations that boil 
+down to "BINARY interfaces are bad")  I would view this as supporting my 
+position that it's annoying (and has been for a long time), but not 
+worse than the alternatives and not so annoying as to require fixing.
 
-> When did this become such a big issue?
+>>It would seem to me that the alternative of having two copies of the same 
+>>data structures and constants would be worse.
+> 
+> Nope.
 
-Always has been :)
+So we disagree...
 
-> Absolutely, either put the old code back or create another file with the 
-> common code that can be included one place or the other...
+:v)
 
-So does this mean that the drivers/i2c/* files in the 2.4 tree are out
-of date with the cvs versions?  If so, I have some changes that are now
-in 2.4 that need to be put into the cvs tree...
-
-Also, any reason not to update the in-tree 2.4 kernel versions?
-
-thanks,
-
-greg k-h
+-- 
+Philip Pokorny, Director of Engineering
+Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
+PENGUIN COMPUTING, INC.
+www.penguincomputing.com
