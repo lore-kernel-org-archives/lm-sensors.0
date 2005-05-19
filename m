@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:19 +0000
 Subject: [PATCH] eeprom chip driver for 2.6
-Message-Id: <3F70F740.8040202@penguincomputing.com>
+Message-Id: <1064387595.3f71440b4105c@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030923232510.GB6265@kroah.com>
 In-Reply-To: <20030923232510.GB6265@kroah.com>
@@ -10,44 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-In the following loop:
 
-+ for (i=0; i < EEPROM_SIZE; i += I2C_SMBUS_I2C_BLOCK_MAX)
-+	if (i2c_smbus_read_i2c_block_data(client, i, data->data + i) != 
-I2C_SMBUS_I2C_BLOCK_MAX)
-
-Is it possible that EEPROM_SIZE might not be a multiple of the SMBus 
-block size?  Is there a way to read less than a full block of data other 
-than a byte at a time?
-
-Should EEPROM_SIZE be configurable?  Or is the limitation that addresses 
-must be a single byte?  I recall that being a problem when I wanted to 
-address the EEPROM memory included in one of the monitoring chip drivers 
-I wrote.
-
-:v)
-
-Greg KH wrote:
 > Ok, I finally got the sysfs binary file interface hooked up to the
-> eeprom driver in 2.6.  Turned out to be easier than I thought.  Below is
-> the patch that I'll be sending to Linus in a bit.  If anyone has any
-> comments on it, I'd appreciate it.
-> 
-> thanks,
-> 
-> greg k-h
-> 
+> eeprom driver in 2.6.  Turned out to be easier than I thought.  Below
+> is the patch that I'll be sending to Linus in a bit.  If anyone has
+> any comments on it, I'd appreciate it.
+
 > p.s. I added the Viao check too :)
+
+Thanks :) BTW, where is my name? ;)) (just kidding)
+
+Overall, it's OK for me. I'm still concerned by the performance issue.
+This driver will be far "slower" than current CVS' one (from sensors'
+point of view) but this has already been discussed and I have no
+concrete solution to propose, so let's forget about it.
+
+> +/* EEPROM memory types: */
+> +#define ONE_K			1
+> +#define TWO_K			2
+> +#define FOUR_K			3
+> +#define EIGHT_K			4
+> +#define SIXTEEN_K		5
 > 
-> # I2C: add eeprom i2c chip driver.
-> #
-> # This is based on the i2c cvs driver, but ported to 2.6 and rewritten
-> # to use the sysfs binary file interface.
 
-
+This could go away, the defines are unused as far as I can tell.
 
 -- 
-Philip Pokorny, Director of Engineering
-Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-PENGUIN COMPUTING, INC.
-www.penguincomputing.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
+
+-------------------------------------------------
+This mail sent through IMP: http://horde.org/imp/
