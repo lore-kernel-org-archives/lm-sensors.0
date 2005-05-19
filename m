@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: pwilsmore@asi.com.au (Peter Wilsmore)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <413FA237.7040005@verizon.net>
+Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDA06@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -9,6 +9,21 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thanks again, I will get rid of the floating point stuff, as to the limits, after reading parts of the IPMI spec I found that I need to use the 'upper' limit (upper and lower limits are flipped because of the 1/x conversion), however to the actual fan speeds still seem a little high (8000+ RPM). I have a suspicion that my fan is reporting 2 ticks per rotation, however from my limited understanding of IPMI the m factor should cater for that sort of thing. Have I misunderstood the spec or is my M/B behaving weirdly?
+
+Thanks,
+
+Peter Wilsmore
+ 
+ASI SOLUTIONS
+Direct: 1300130 837
+-----Original Message-----
+From: Mark Studebaker [mailto:mds4@verizon.net] 
+Sent: Thursday, 9 September 2004 10:22 AM
+To: Peter Wilsmore
+Cc: lm78@Stimpy.netroedge.com
+Subject: Re: bmcsensors and strange sensor values.
 
 your code looks functionally correct
 since from your previous dmesg output we know m) and k2=9 (i.e. k2=-7 signed)
@@ -286,3 +301,4 @@ Peter Wilsmore wrote:
 > 
 > 
 > 
+
