@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:17 +0000
+Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: fan2 readout on Chaintech MB
-Message-Id: <20030917225126.420740fc.khali@linux-fr.org>
+Message-Id: <20030930194010.41bb5d3f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200308310230.14115.ljubo108@vip.hr>
 In-Reply-To: <200308310230.14115.ljubo108@vip.hr>
@@ -10,42 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I have been trying to use recent CVS version. I update CVS whenever I 
-> can with cvs update -d, I did not updated just lm90 or any file
-> separately.
+
+> Sorry that it took me so long to reply but I just received temporary 
+> replacment for my board.
+> Unfortunately it is not the same and it seems that it hasn't got lm90,
+> this time I've got Soltek NForce2 motherboard. It has W83627HF
+> hardware monitor. Readings are OK, but when I put set fan1_div line in
+> sensors.conf and run sensors -s same thing happend.
+> [root@localhost etc]# sensors -s
+> w83627hf-isa-0290: Can't access /proc file for writing;
+> Run as root?
 > 
-> My install procedure goes like this(Mandrake 9.1):
-> 1. vanilla 2.4.22 kernel
-> 2. con kolivas 2.4.22-ck2 patch set
-> 3. patching kernel with i2c and lm_sensors
-> 4. loading my kernel config file
-> 5. compiling and installing kernel
-> 6. reboot
-> 7. cd into lm_sensors, make and make install
-> 8. /prog/detect/sensors-detect
-> 9. then I edit modules and modules.conf as suggested
-> 10. reboot
-> 11. Gkrellm, KSensors or just sensors
+> I did not update cvs from time of your last mail, so it is about 2
+> weeks old. Maybe I should try to do a test with updated drivers?
+
+No need to update anything, we haven't changed anything serious these
+last weeks.
+
+This at least proves that the problem is driver independant, and lies
+either in i2c-core, i2c-proc or libsensors.
+
+> I will try with vanilla kernel and see what happends.
+
+Yes, interesting test.
+
+> I almost forgot to answer to your previous question:
 > 
-> I have used con kolivas ck1 patchset on previous lm_sensors config.
+> > What's inside that patchset? Anything related to either ACL or
+> > GRSEC?
+> 
+> GRSEC is inside the patchset but it is disabled.
+> 
+> You can find some more info on kon kolivas patches here:
+> 
+> http://members.optusnet.com.au/ckolivas/kernel/
 
-What's inside that patchset? Anything related to either ACL or GRSEC?
+I am offline now, will take a look later. What would be interesting to
+see is which differences exit between ck1 and ck2 patches, because I
+remember that it was working before you updated to ck2.
 
-Can you remember all changes that occured between when "sensors -s" was
-working OK, and when it wasn't anymore? I'd appreciate if you could take
-all the steps back to a state where "sensors -s" works again. If we
-could isolate the problem, we would have a chance to understand it.
+> I will have to wait and see if my old board will be back, with lm90 or
+> maybe I will receive some other mobo. Until then I will see if my
+> friend has board with lm90 so that he can do some lm90 testing.  
 
-> Unfortunately I have had some problems with 166MHz FSB jumper on my 
-> motherboard and I have RMA the board. I thing that replacment/new
-> board will arrive next week so I can't do more testing now :-((
-
-No problem, I am busy myself and most of the lm_sensors developers also
-are.
-
-> As soone as I get it working again I will do more testing.
-
-OK, thanks.
+Thanks a lot for your help.
 
 -- 
 Jean Delvare
