@@ -1,7 +1,7 @@
-From: js@jonasstein.de (Jonas Stein)
+From: r.marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:56 +0000
 Subject: Controll CPU Cooler on MSI-NEO 2 Board
-Message-Id: <427731FD.1000201@jonasstein.de>
+Message-Id: <427732CF.5000600@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42772B44.8090204@jonasstein.de>
 In-Reply-To: <42772B44.8090204@jonasstein.de>
@@ -10,18 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> 2) run sensors command to see if you get some fan speeds
+Hi
 
-All fan speeds stick to "0 RPM"
+Please include full output of sensors-detect
+and full output of sensors command.
 
+Thanks
 
-> 3) I think thre is someting called pwmconfig that will let you configure fan speeds
+Regards
 
-pwmconfig says it could not find any fan.
-
-It seems to bee easier if i would weld some regulator.
-
--- 
-Mit besten Gr??en / best regards
-
-Jonas Stein <js@jonasstein.de>
+Rudolf
