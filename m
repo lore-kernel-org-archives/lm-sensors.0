@@ -1,7 +1,7 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
+From: dmitry.torokhov@gmail.com (Dmitry Torokhov)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: [RFC PATCH 2.6.12-rc2-mm2 0/2] i2c: new sysfs class "hwmon"
-Message-Id: <2538186705041309247574bc9c@mail.gmail.com>
+Message-Id: <d120d50005041309342a0ad6d5@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050411044427.GA4963@jupiter.solarsys.private>
 In-Reply-To: <20050411044427.GA4963@jupiter.solarsys.private>
@@ -10,101 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Just a note that this is also very important for moving away from
-i2c-ipmi so the bmcsensors driver can be included in 2.6, so I'll be
-working with Jean and Mark on this (there is a thread from last week
-where Jean and I were discussing the problem). Unfortunately "real"
-work has been keeping me busy since that discussion, but I hope to get
-around to it this weekend.
-
-Jean, in reply to your message last week, separating i2c-ipmi is much
-easier than the task you have of separating i2c-isa since there is no
-overlap at all for ipmi as there seems to be for isa accessible chips.
-When I get home I'll send my preliminary patch for dynamic sysfs
-callbacks to you and get your opinion on things :-).
-
-Thanks,
-Yani
-
-On 4/13/05, Jean Delvare <khali@linux-fr.org> wrote:
-> 
-> Hi Mark, hi Greg,
-> 
-> Sorry for joining the thread late. Don't misinterpret this, I am *very*
-> interested by what Mark proposes.
-> 
-> Greg, I am working at one end of the problem (making it possible to
-> separate ISA hardware monitoring drivers from the i2c-core), while Mark
-> works at the other end (preparing a hwmon class which is independant
-> from i2c so all hardware monitoring device drivers can use it regardless
-> of the bus they are connected to). Hopefully we'll meet at some point,
-> and the job will be done.
-> 
-> > > Khali is working on patches to get rid of the i2c-isa 'pseudo-adapter'.
-> > > Since any sensor chip attached to the ISA bus will no longer appear in
-> > > the /sys/bus/i2c tree, a new way is needed.  Userspace tools can be
-> > > taught to look in /sys/class/hwmon first, and then /sys/bus/i2c for
-> > > backwards-compatibility.
-> >
-> > Ok, that sounds acceptable.
-> 
-> As Mark underlined, it's not only acceptable. It's needed. Newer
-> Super-I/O hardware monitoring logical devices just don't fit in the i2c
-> subsystem (for a reason: they are not I2C devices at all). These drivers
-> are currently very ugly and their registration is inefficient and
-> overall broken.
-> 
-> The key here is that, from the early days, it was assumed that i2c and
-> hardware monitoring were the same thing. That's simply not true, which
-> is the reason why I want us to clean up the mess now, and have drivers
-> really attach to where they belong instead of an arbitrary bus. The
-> embedded folks will thank us when they won't need to load i2c-core for
-> their ISA hardware monitoring devices anymore (let alone the shrink in
-> the size of the drivers themselves).
-> 
-> That being said, if your "acceptable" means that Mark's approach is
-> not the prefered way to do it, I'd certainly like to hear about the
-> proper way. We will change the hardware monitoring device drivers in a
-> major way, so we better get it right.
-> 
-> > > > > 1. I don't like "1-0290" for a class ID, but it was the easiest
-> > > > > thing to use at the time.  A better name might be w83627thf-0.
-> > > >
-> > > > As long as it's unique, that's the only requirement.
-> > >
-> > > I just strlcpy'd the '1-0290' ID from the /sys/bus/i2c tree because it
-> > > is unique.  My concern is that it's not very descriptive.
-> >
-> > True, pick something else if you don't like that :)
-> 
-> Once the ISA hardware monitoring drivers will have moved outside of the
-> i2c subsystem, their old client ID will make no more sense (the bus
-> part, that is), and will be changed to something that makes sense for an
-> ISA device. I don't know how other ISA device drivers do, but using the
-> base address alone would make sense. This means that 1-0290 would become
-> 0290.
-> 
-> The reason why I mention that at this point is that it means that the
-> various driver types will have different ID schemes, so using the same
-> ID for the device and for its class sounds dangerous, as we wouldn't be
-> able to guarantee the uniqueness. (This is all new to me, I didn't know
-> that class entries needed an ID on their own.) Maybe we can take a look
-> at what other classes chose as an ID scheme?
-> 
-> > Ok, if you have _no_ sysfs files, and you have no where anyone else
-> > could ever grab ahold of a reference to you, then no, you don't need a
-> > release function.  But that's really not how a class_device structure
-> > should be used.
-> 
-> How should it be used then? Do you suggest that all sysfs files should be
-> "physically" moved from the i2c device to the hwmon class? This would
-> break compatibility with the current user-space stuff :(
-> 
-> I thought that classes were really only links to where the devices were
-> in the sysfs tree. Looks like I was wrong.
-> 
-> Thanks,
-> --
-> Jean Delvare
-> 
->
+Hi,
+Sorry for breaking the thread (I was not subscribed to this list)...
+I think that just simply linking current i2c device attributes intoclass structure is not the best thing to do. Since userspace needs tobe changed anyway (to a certain extent) we should evaluate whether itwould be beneficial to change layout too.
+I would like to see something like this:
+sys/class/sensors---fan---0---(min,in,div)                  |     |                  |     --1---(min,in,div)                  |                  |-temp---0---(type,min,max,hyst?)                  |      |                  |      --1---(type,min,max,hyst..)                  |                  --curr----0---(min,max,in)
+This of course depends on Greg adding support for nested classes tothe driver code (how is it going, Greg?). Alternatively we couldflatten a tree a bit doingfan%d, temp%d...
+We would have: sensors_register_fan, sensors_register_temp,sensors_register_curr, sensors_register_generic...
+struct sensor_fan_dev {	char name[MAX_SENSOR_NAME]	int min, div;	struct class_device class_dev;
+	int (*read)(struct sensor_temp_dev *);	int  (*start)(struct sensor_temp_dev *, int speed)};
+struct sensor_temp_dev {	char name[MAX_SENSOR_NAME]	int type, min, max, hyst;	struct class_device class_dev;
+	int (*read)(struct sensor_temp_dev *);};
+This way every sensor input is registered as an independent classdevice, all their attributes are kept together, names are muchsimplier and there are less chances of clashes and I believe they areeasier to maintain. Other subsystems should also be able to add to thehierarchy without knowing anything about i2c internals.
+What do you think?
+-- Dmitry
