@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:19 +0000
 Subject: [PATCH] eeprom chip driver for 2.6
-Message-Id: <20030924180256.GD10443@kroah.com>
+Message-Id: <20030924180407.GE10443@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030923232510.GB6265@kroah.com>
 In-Reply-To: <20030923232510.GB6265@kroah.com>
@@ -10,35 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 24, 2003 at 09:13:15AM +0200, Jean Delvare wrote:
+On Tue, Sep 23, 2003 at 06:45:36PM -0700, Philip Pokorny wrote:
+> In the following loop:
 > 
-> > Ok, I finally got the sysfs binary file interface hooked up to the
-> > eeprom driver in 2.6.  Turned out to be easier than I thought.  Below
-> > is the patch that I'll be sending to Linus in a bit.  If anyone has
-> > any comments on it, I'd appreciate it.
+> + for (i=0; i < EEPROM_SIZE; i += I2C_SMBUS_I2C_BLOCK_MAX)
+> +	if (i2c_smbus_read_i2c_block_data(client, i, data->data + i) != 
+> I2C_SMBUS_I2C_BLOCK_MAX)
 > 
-> > p.s. I added the Viao check too :)
-> 
-> Thanks :) BTW, where is my name? ;)) (just kidding)
-> 
-> Overall, it's OK for me. I'm still concerned by the performance issue.
-> This driver will be far "slower" than current CVS' one (from sensors'
-> point of view) but this has already been discussed and I have no
-> concrete solution to propose, so let's forget about it.
+> Is it possible that EEPROM_SIZE might not be a multiple of the SMBus 
+> block size?  Is there a way to read less than a full block of data other 
+> than a byte at a time?
 
-Ah, missed that part of your change to the driver.  Patches are always
-welcome :)
+Probably, I left this alone from what used to be in the cvs tree.  Now
+it looks like it's been changed.
 
-> > +/* EEPROM memory types: */
-> > +#define ONE_K			1
-> > +#define TWO_K			2
-> > +#define FOUR_K			3
-> > +#define EIGHT_K			4
-> > +#define SIXTEEN_K		5
-> > 
-> 
-> This could go away, the defines are unused as far as I can tell.
+> Should EEPROM_SIZE be configurable?  Or is the limitation that addresses 
+> must be a single byte?  I recall that being a problem when I wanted to 
+> address the EEPROM memory included in one of the monitoring chip drivers 
+> I wrote.
 
-Looks that way, thanks.  Same thing for the cvs version too...
+I thought I remembered some mention of different sized eeproms.  And
+yes, it could be made configurable if people need that in the future.
+
+thanks for taking a look at it.
 
 greg k-h
