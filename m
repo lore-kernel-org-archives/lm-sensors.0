@@ -1,117 +1,65 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH] I2C-MPC: use wait_event_interruptible_timeout between
-Message-Id: <11059983961556@kroah.com>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: LM Sensors problems
+Message-Id: <3C50B879.3A62166B@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11059983962750@kroah.com>
-References: <Pine.LNX.4.61.0501131647540.26980@blarg.somerset.sps.mot.com>
-In-Reply-To: <Pine.LNX.4.61.0501131647540.26980@blarg.somerset.sps.mot.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: galak@somerset.sps.mot.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2329.2.10, 2005/01/14 14:44:42-08:00, galak@somerset.sps.mot.com
+A1: fix in /etc/sensors.conf
+A2: don't know about "lvcool", is it also accessing sensor data?
+    perhaps there is a locking problem?
+A3: LM80 is often misdetected, you probably have something else,
+    look at your motherboard to verify.
+B1: See A3 above for LM80. Via686 data doesn't look that bad.
 
-[PATCH] I2C-MPC: use wait_event_interruptible_timeout between transactions
-
-Use wait_event_interruptible_timeout so we dont waste time waiting between
-transactions like we use to.  Also, we use the adapters timeout so the
-ioctl cmd I2C_TIMEOUT will now work.
-
-Signed-off-by: Kumar Gala <kumar.gala@freescale.com>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+mds
 
 
- drivers/i2c/busses/i2c-mpc.c |   36 +++++++++++++++---------------------
- 1 files changed, 15 insertions(+), 21 deletions(-)
-
-
-diff -Nru a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
---- a/drivers/i2c/busses/i2c-mpc.c	2005-01-17 13:19:57 -08:00
-+++ b/drivers/i2c/busses/i2c-mpc.c	2005-01-17 13:19:57 -08:00
-@@ -6,7 +6,7 @@
-  * MPC107/Tsi107 PowerPC northbridge and processors that include
-  * the same I2C unit (8240, 8245, 85xx). 
-  *
-- * Release 0.6
-+ * Release 0.7
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-@@ -75,7 +75,6 @@
- 
- static int i2c_wait(struct mpc_i2c *i2c, unsigned timeout, int writing)
- {
--	DECLARE_WAITQUEUE(wait, current);
- 	unsigned long orig_jiffies = jiffies;
- 	u32 x;
- 	int result = 0;
-@@ -92,28 +91,22 @@
- 		x = readb(i2c->base + MPC_I2C_SR);
- 		writeb(0, i2c->base + MPC_I2C_SR);
- 	} else {
--		set_current_state(TASK_INTERRUPTIBLE);
--		add_wait_queue(&i2c->queue, &wait);
--		while (!(i2c->interrupt & CSR_MIF)) {
--			if (signal_pending(current)) {
--				pr_debug("I2C: Interrupted\n");
--				result = -EINTR;
--				break;
--			}
--			if (time_after(jiffies, orig_jiffies + timeout)) {
--				pr_debug("I2C: timeout\n");
--				result = -EIO;
--				break;
--			}
--			msleep_interruptible(jiffies_to_msecs(timeout));
-+		/* Interrupt mode */
-+		result = wait_event_interruptible_timeout(i2c->queue, 
-+			(i2c->interrupt & CSR_MIF), timeout * HZ);
-+
-+		if (unlikely(result < 0))
-+			pr_debug("I2C: wait interrupted\n");
-+		else if (unlikely(!(i2c->interrupt & CSR_MIF))) {
-+			pr_debug("I2C: wait timeout\n");
-+			result = -ETIMEDOUT;
- 		}
--		set_current_state(TASK_RUNNING);
--		remove_wait_queue(&i2c->queue, &wait);
-+
- 		x = i2c->interrupt;
- 		i2c->interrupt = 0;
- 	}
- 
--	if (result < -0)
-+	if (result < 0)
- 		return result;
- 
- 	if (!(x & CSR_MCF)) {
-@@ -165,7 +158,7 @@
- 		     const u8 * data, int length, int restart)
- {
- 	int i;
--	unsigned timeout = HZ;
-+	unsigned timeout = i2c->adap.timeout;
- 	u32 flags = restart ? CCR_RSTA : 0;
- 
- 	/* Start with MEN */
-@@ -193,7 +186,7 @@
- static int mpc_read(struct mpc_i2c *i2c, int target,
- 		    u8 * data, int length, int restart)
- {
--	unsigned timeout = HZ;
-+	unsigned timeout = i2c->adap.timeout;
- 	int i;
- 	u32 flags = restart ? CCR_RSTA : 0;
- 
-@@ -302,6 +295,7 @@
- 	if (!(i2c = kmalloc(sizeof(*i2c), GFP_KERNEL))) {
- 		return -ENOMEM;
- 	}
-+	memset(i2c, 0, sizeof(*i2c));
- 	i2c->ocpdef = ocp->def;
- 	init_waitqueue_head(&i2c->queue);
- 
-
+Timothy Covell wrote:
+> 
+> Hi.  I've had a couple problems, one somewhat serious
+> when using lm sensors.
+> 
+> System A:  Duron 800 MHz on KT133A MoBo
+> Sensors output: attached file: sensors.out
+> Modules:
+> 
+> i2c-voodoo3             2720   0 (unused)
+> i2c-algo-bit            6880   2 [i2c-voodoo3]
+> eeprom                  3056   0 (unused)
+> via686a                 8256   0 (unused)
+> lm80                    5216   0 (unused)
+> sensors                 6320   0 [eeprom via686a lm80]
+> i2c-isa                 1136   0 (unused)
+> i2c-viapro              3856   0 (unused)
+> i2c-core               12832   0 [i2c-algo-bit eeprom via686a lm80 sensors
+> i2c-isa i2c-viapro]
+> 
+> Problem 1: CPU/System temperatures should be swapped
+> 
+> Problem 2: When running "lvcool" to try to cool better, the
+> sensors program hangs after printing out data and only a
+> reboot will kill cpu hogging "zombie".
+> 
+> Problem 3: lm80 data is completely meaningless and all backwards
+> 
+> System B: Via C3 on VT82C694X based MoBo.
+> 
+> Problem: Output is meaningless, see attached file gauss.sensors.out
+> 
+> Thanks.
+> 
+> --
+> timothy.covell@ashavan.org.
+> 
+> 
+>                   Name: sensors.out
+>    sensors.out    Type: Plain Text (text/plain)
+>               Encoding: base64
+> 
+>                         Name: gauss.sensors.out
+>    gauss.sensors.out    Type: Plain Text (text/plain)
+>                     Encoding: base64
