@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: stefan@desire.ch (Stefan Ott)
 Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: [patch] fscpos upgrade for sensor library
-Message-Id: <20050120204659.5e199ee9.khali@linux-fr.org>
+Message-Id: <20050120205413.GA11337@desire.ch>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050119213747.GB26072@desire.ch>
 In-Reply-To: <20050119213747.GB26072@desire.ch>
@@ -10,17 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Okay, I misunderstood that one. Here's the patch which just adds the
-> new features and leaves the old ones alone :)
+On Thu, Jan 20, 2005 at 08:46:59PM +0100, Jean Delvare wrote:
 
-Thanks, applied with the following changes:
+> Thanks, applied with the following changes:
+> 
+> 1* No labels for inN_input in sensors.conf. Libsensors is based on the
+>    2.4 symbol names only.
 
-1* No labels for inN_input in sensors.conf. Libsensors is based on the
-   2.4 symbol names only.
+Okay, makes sense. How how about renaming "+3.3V" to "Battery" though?
 
-2* No changed to lib/chips.h. Why define new constants when you don't
-   use them anywhere? ;)
+> 2* No changed to lib/chips.h. Why define new constants when you don't
+>    use them anywhere? ;)
 
+Indeed.
+
+Regards
+Stefan
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Stefan Ott
+http://www.desire.ch
+
+"Give a man a fire and he's warm for a day, but set fire to him and he's
+warm for the rest of his life."  -- Terry Pratchett, Jingo
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050120/3a46af9a/attachment.bin
