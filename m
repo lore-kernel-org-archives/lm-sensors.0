@@ -1,43 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:24 +0000
-Subject: I2C documentation in Linux 2.6
-Message-Id: <20031110191129.40346894.khali@linux-fr.org>
+From: robert@paulsenonline.net (Robert C. Paulsen Jr.)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: sensors-detect problem in CVS 2.6.4 -- patch included
+Message-Id: <20020612223708.GA8506@avalon.paulsen.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031109143302.76713452.khali@linux-fr.org>
-In-Reply-To: <20031109143302.76713452.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Minor problem in sensors-detect. Here is the output from cvs diff:
 
-> Can you split this into two different email messages, both as patches
-> that I can apply to the kernel tree?  That makes it a world easier to
-> apply them.
-
-Will do.
-
-> > +  static struct i2c_driver foo_driver = {
-> > +    .owner          = THIS_MODULE,
-> > +    .name           = "Foo version 2.3 driver",
-> > +    .id             = I2C_DRIVERID_FOO, /* usually from i2c-id.h */
-> 
-> Why is this needed anymore?
-
-I don't say it is. The document is about what is, not about what should
-be ;) I don't know why ID's were given in the first place, so I can't
-tell you wether we should keep them or not. If you wan't to get rid of
-them in 2.6, go for it. If it proves to be safe, I suppose we'll
-backport to CVS/2.4.
-
-> > +    .flags          = I2C_DF_NOTIFY,
-> 
-> Are there any usages of this field besides the I2C_DF_NOTIFY?  In a
-> quick grep, it looks like everyone sets this value, so why even have
-> this field at all?
-
-i2c-dev has I2C_DF_DUMMY instead, so I wouldn't remove it.
+> cvs diff prog/detect/sensors-detect
+Index: prog/detect/sensors-detect
+=================================RCS file: /home/cvs/lm_sensors2/prog/detect/sensors-detect,v
+retrieving revision 1.167
+diff -r1.167 sensors-detect
+103c103
+<        procid => "Intel 82801DB ICH4,
+---
+>        procid => "Intel 82801DB ICH4",
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Robert C. Paulsen, Jr.
+robert@paulsenonline.net
