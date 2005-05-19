@@ -1,7 +1,7 @@
 From: d.piccoli@murdoch.edu.au (Daniel Piccoli)
-Date: Thu, 19 May 2005 06:25:03 +0000
+Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: ADM 1025 on 2.6 kernel
-Message-Id: <1088524998.6419.25.camel@powerride>
+Message-Id: <1089173282.7376.1.camel@powerride>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1084951647.6186.13.camel@powerride>
 In-Reply-To: <1084951647.6186.13.camel@powerride>
@@ -10,10 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks for the info,
+Hi Jean,
+
+I have just tried the unified linux patch for ADM 1025 and everything
+seems to be working fine.
+
+The VID value is +1.700 V
 
 regards,
-Dan
+
+Daniel.
 
 On Mon, 2004-06-28 at 03:55, Jean Delvare wrote:
 > Hi Daniel,
