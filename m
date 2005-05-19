@@ -1,34 +1,42 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: request for drivers
-Message-Id: <20040320121210.5474bcf7.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:08 +0000
+Subject: beeping issues (solved)
+Message-Id: <20030730172101.1a01a380.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1079336501.25709.182679907@webmail.messagingengine.com>
-In-Reply-To: <1079336501.25709.182679907@webmail.messagingengine.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > From what I remember of my datasheets reading, the 47B27x should be
-> > fully compatible with the 47M10x chips, so the smsc47m1 driver
-> > should work. Please find attached a patch which adds the 47B27x
-> > device ID to the smsc47m1 driver. After applying it, you should be
-> > able to load the driver, and hopefully it will work out-of-the-box.
-> > 
-> > Please provide feedback so that I know if I should apply this patch
-> > to our CVS repository.
->
-> Yep, works just fine.  Thanks!
 
-Great :) I've applied my patch to the CVS repository, and updated our
-docs accordingly.
+Hi all,
 
-Thanks for testing. BTW, the driver is still marked "beta" in our docs.
-If you test if completely and everything seems to work OK, we may
-consider marking it "tested" instead. Let us know :)
+Here is the solution (hopefully) to the beeping problem you encountered
+using LM Sensors with the AS99127F chip.
 
-Thanks.
+It turns out that the beeping is caused by VCore being out of range
+(Thanks to "The Master" for noticing this.) The reason why it beeps is
+obscure, and we can't do anything against that since we don't have a
+data sheet for the AS19927F (Damn Asus. Ask them if you want one.)
+
+So, since we can't turn the beeping off, the solution is to ensure VCore
+isn't out of range anymore. Most of the time, VCore is indeed OK, but
+the chip thinks it isn't because the limits are bad. Bad limits are
+usually caused by a bad VID reading. So here are the things to try, in
+order:
+
+1* Edit the vrm option in /etc/sensors.conf, section as99127f-*.
+Typically, this means uncommenting the "vrm 9.0" line. It should make
+the VID reading OK. Run "sensors -s", the beeping should stop.
+
+2* Edit the in0_min and in0_max lines in /etc/sensors/conf, section
+as99127f-*. Instead of using vid, write down the value you know VCore
+should have (simply run sensors to see what it is). Run "sensors -s",
+the beeping should stop.
+
+You can check that the limits are OK by running "sensors".
+
+Please let us know wether it works or not.
 
 -- 
 Jean Delvare
