@@ -1,52 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: [BK PATCH] More i2c driver changes for 2.5.70
-Message-Id: <20030611203544.GA26458@kroah.com>
+From: george@cs.caltech.edu (George X. Torres)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: Call to Developers, Testers, and Device Manufacturers
+Message-Id: <Pine.LNX.4.33.0202211613040.19929-100000@orchestra.cs.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030322010405.GA18613@kroah.com>
-In-Reply-To: <20030322010405.GA18613@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@transmeta.com
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Hi,
+I was just checking up on the project, and I saw that you're looking to
+support new devices.
+I guess I would be a device manufacturer, as I designed and
+constructed a prototype of an AMD Athlon XP thermal diode
+reader with an SMBus interface using a Maxim 6657 IC.
+I wrote a bit about my project here:
 
-Here are some more i2c driver changes for 2.5.70.  These consist of a new i2c
-client driver, a new i2c bus driver, some coding style fixes for the new bus
-driver, and a bunch of sparse warning removels.
+http://arstechnica.infopop.net/OpenTopic/page?a=tpc&sP009562&fw909585&mU40981133&r(80958443#2880958443
 
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.5
+a friend of mine has also done a bit of work with his 6657 device here:
 
-thanks,
+http://www.voidyourwarranty.net/review/review.php3?r1=xpdiode/index.php3
 
-greg k-h
+and here:
 
------
+http://www.voidyourwarranty.net/review/review.php3?r1=hstemps/index.php3
 
- drivers/i2c/Kconfig        |    4 
- drivers/i2c/Makefile       |    1 
- drivers/i2c/chips/Kconfig  |   19 
- drivers/i2c/chips/Makefile |    1 
- drivers/i2c/chips/lm85.c   | 1223 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/i2c/i2c-core.c     |   36 -
- drivers/i2c/i2c-dev.c      |   10 
- drivers/i2c/i2c-iop3xx.c   |  868 +++++++++++++++++++++++++------
- drivers/i2c/i2c-iop3xx.h   |  238 ++++++--
- include/linux/i2c-dev.h    |    6 
- include/linux/i2c.h        |    4 
- 11 files changed, 2150 insertions(+), 260 deletions(-)
------
+I'm writing mostly because I can't seem to get the proper support for the
+6657 in windows.  Basic support, without all the nifty features that makes
+the 6657 superior to the 1617a is all I've been able to get in the past 2
+months.  Yet the 6657 still has a high resolution mode which I have been
+unable to access, even though it would be quite useful to me.
+It's now time to awaken the giant within the 6657.
 
-<margitsw:t-online.de>:
-  o I2C: add LM85 driver
-
-<peterm:remware.demon.co.uk>:
-  o I2C: add New bus driver: XSCALE iop3xx
-
-Greg Kroah-Hartman:
-  o I2C: fix up sparse warnings in the i2c-dev driver
-  o I2C: fix up sparse warnings in drivers/i2c/i2c-core.c
-  o I2C: fix some errors found by sparse in include/linux/i2c.h
-  o I2C: coding style updates for i2c-iop3xx driver
+George
