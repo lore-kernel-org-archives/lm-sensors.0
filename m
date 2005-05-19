@@ -1,44 +1,57 @@
-From: crazy_pete@swissinfo.org (crazy_pete@swissinfo.org)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: LM Sensors FAQ
-Message-Id: <3D7D1B3B000000F8@fugu.sri.ch>
+From: dirk.meul@epost.de (Dirk Meul)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: [Fwd: Re: i2c & lm_sensors2 patch for kernel 2.5]
+Message-Id: <1015515764.2586.4.camel@aragorn>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello friends!
+Hello.
 
-I have taken the liberty of converting the (text) FAQ i found on your
-website to Gnu Texinfo format.  As you probably know, texinfo formats
-can be easily converted to a wide variety of other formats, including
-info, docbook, html, pdf, ps, XML, etc.  (I wanted an HTML version of
-your FAQ, so I could jump to specific questions more easily.  You may
-wish to put an HTML version your your website.  I have attached the
-file as lm_sensorsFAQ.tar.bz2.  You are of course, given full possesion
-of these modifications, and there is no need to credit myself should
-you choose to use them.  However if you DO credit me, please do not
-place my email on the web without some sort of spam munging! ;-)
-Thank you VERY much for writing lm_sensors and making it available
-under the GPL.
+The same.
 
-Best Wishes
-
-Peter
-
-
-
-
-________________________________________
-Dreaming of a Swiss Account? Get it here: http://freemail.swissinfo.org
-
-
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensorsFAQ.tar.bz2
-Type: application/x-bzip2
-Size: 17610 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020910/2d5ae6dd/lm_sensorsFAQ.tar.bz2
+-----Weitergeleitete Nachricht-----
+> From: Dirk Meul <dirk.meul@epost.de>
+> To: linux-i2c@pelican.tk.uni-linz.ac.at
+> Subject: Re: i2c & lm_sensors2 patch for kernel 2.5
+> Date: 05 Mar 2002 19:36:42 +0100
+> 
+> Hello, again!
+> 
+> [i2c/i2c-algo-bit.c]
+> This patch didn't work with linux-2.4.19-pre2 + preempt, so i think this
+> will be part of scehd-O(1).
+> 
+> Everything else works fine, even the kdev_t patches without ?#define
+> minor MINOR?!
+> 
+> Am Die, 2002-03-05 um 19.02 schrieb Dirk Meul:
+> > Hello!
+> > 
+> > I did a checkout at Tue Mar 5 17:32:03 CET 2002 and patched my kernel
+> > (2.5.6-pre2) with it. Everything but the file
+> > linux-2.5.6-pre2/Documentation/Configure.help went fine. But i've to
+> > apply attached patch for compiling.
+> > 
+> > [i2c/i2c-algo-bit.c]
+> > I didn't know if it is correct, but i think so.
+> > 
+> > [i2c/i2c-dev.c]
+> > The kdev_t fixes. Maybe a ?#define minor MINOR? will be good.
+> > 
+> > [sensors/*.c]
+> > Add ?#include <linux/sched.h>? for missing jiffies.
+> > 
+> > Some days ago a kernel 2.5.5 with these patches works fine.
+> > 
+> > PS: I'm not subscribed to this list, so please CC to me.
+> > 
+> > Regards,
+> > -- 
+> > Dirk Meul <dirk.meul@epost.de>
+> 
+> Regards,
+> -- 
+> Dirk Meul <dirk.meul@epost.de>
