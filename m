@@ -1,65 +1,190 @@
-From: david_knierim@earthlink.net (David Knierim)
-Date: Thu, 19 May 2005 06:25:19 +0000
-Subject: [PATCH ] LM87: Add code to retry reads on error
-Message-Id: <416EB02C.7040505@earthlink.net>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:57 +0000
+Subject: [PATCH 2.6.12-rc4 2/3] (dynamic sysfs callbacks) device_attribute
+Message-Id: <253818670505110057b96cf62@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <23812885.1096307898769.JavaMail.root@huey.psp.pas.earthlink.net>
-In-Reply-To: <23812885.1096307898769.JavaMail.root@huey.psp.pas.earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>, LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org
 
-Jean Delvare wrote:
->>>In the w83l785ts driver I do return the last know value for that
->>>register, passed as an additional parameter by the caller. It doesn't
->>>help for the first read, of course, and tends to hide errors, but is
->>>IMHO better than arbitrarily returning 0.
->>
->>I see what you did.  I'm not a C coder, so I'm not sure I can pull it
->>off.  I will see what I can do.
-> 
-> 
-> My method needs more changes to the code since it alters the function
-> prototype. If you don't feel a need for it in your case, let's not
-> change anything.
+Hi,
 
-Well, it works fine the way it is.   I would like to enhance it, but I 
-have a lot of other stuff that are higher priority...
+This second patch removes the "initialization from incompatible
+pointer type" warnings resulting from the code using the old callback
+function signatures. It is mainly auto-generated (see inlined
+shell/perl scripts below), and is 308K so I'm linking to it:
 
-> 
-> 
->>>There's something strange in your patch, methinks. You issue warnings on
->>>read errors, but you don't actually issue an error message if you are
->>>not able to recover from the successive errors. You may provide a patch
->>>against CVS that fixes that and I'll apply it.
->>
->>Yeah, I thought of that after I sent the patch off.   The patch I have
->>been using logs when the maximum number of retries has been exhausted.
->>I held back from sending a patch to my patch until I got some feedback :^)
-> 
-> 
-> And does it actually happen? The delay between retries may be
-> experimented with. I came with a very simple model but other approaches
-> could lead to better results in some cases. Feel free to alter the
-> delays and see if it helps.
+http://osdn.dl.sourceforge.net/sourceforge/bmcsensors-26/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-nowarn.diff
 
-I have only ever seen the maximum number of retries reached once, and 
-that was under extreme system stress.  In fact, all other times that I 
-have seen, exactly 3 retries required if there is an error.  I'll try a 
-bit longer wait and see what happens.
+Note that the diffstat # of changes (approx # of sysfs callbacks)
+gives you some idea of which drivers will most benefit from this
+patch.
 
-> 
-> 
-> Do you suggest that you have a new product using LM87 chips? I thought
-> these chips were pretty old and not used for new designs anymore.
-> 
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
 
-Yes, we have new products that are using the LM87.  I don't select the 
-hardware, so I don't know much about how that particular chip was 
-selected.  They do check for single sources and get input from the 
-vendor concerning predicted lifespan, so they must feel it will be 
-available for a long time (we build telco products with a minimum 5 year 
-support life).
+Thanks,
+Yani
 
-David Knierim
+---
+ Documentation/filesystems/sysfs.txt      |    2
+ arch/arm/common/amba.c                   |    2
+ arch/arm/kernel/ecard.c                  |   12 +-
+ arch/arm26/kernel/ecard.c                |   10 +-
+ arch/ia64/sn/kernel/tiocx.c              |    4
+ arch/parisc/kernel/drivers.c             |    2
+ arch/ppc/kernel/pci.c                    |    2
+ arch/ppc/syslib/ocp.c                    |    2
+ arch/ppc/syslib/of_device.c              |    2
+ arch/ppc64/kernel/of_device.c            |    2
+ arch/ppc64/kernel/pci.c                  |    2
+ arch/ppc64/kernel/vio.c                  |    4
+ drivers/base/dmapool.c                   |    2
+ drivers/base/interface.c                 |    4
+ drivers/base/power/sysfs.c               |    4
+ drivers/block/ub.c                       |    2
+ drivers/char/hvcs.c                      |   14 +--
+ drivers/char/mbcs.c                      |    4
+ drivers/char/mwave/mwavedd.c             |    2
+ drivers/char/tpm/tpm.c                   |    6 -
+ drivers/dio/dio-sysfs.c                  |   10 +-
+ drivers/eisa/eisa-bus.c                  |    4
+ drivers/i2c/chips/adm1021.c              |    6 -
+ drivers/i2c/chips/adm1025.c              |   28 +++---
+ drivers/i2c/chips/adm1026.c              |   98 ++++++++++++------------
+ drivers/i2c/chips/adm1031.c              |   44 +++++-----
+ drivers/i2c/chips/asb100.c               |   46 +++++------
+ drivers/i2c/chips/ds1621.c               |    6 -
+ drivers/i2c/chips/fscher.c               |    8 -
+ drivers/i2c/chips/fscpos.c               |   16 +--
+ drivers/i2c/chips/gl518sm.c              |   12 +-
+ drivers/i2c/chips/gl520sm.c              |    8 -
+ drivers/i2c/chips/it87.c                 |   50 ++++++------
+ drivers/i2c/chips/lm63.c                 |   24 ++---
+ drivers/i2c/chips/lm75.c                 |    4
+ drivers/i2c/chips/lm77.c                 |   14 +--
+ drivers/i2c/chips/lm78.c                 |   36 ++++----
+ drivers/i2c/chips/lm80.c                 |   20 ++--
+ drivers/i2c/chips/lm83.c                 |    6 -
+ drivers/i2c/chips/lm85.c                 |   72 ++++++++---------
+ drivers/i2c/chips/lm87.c                 |   46 +++++------
+ drivers/i2c/chips/lm90.c                 |   12 +-
+ drivers/i2c/chips/lm92.c                 |   14 +--
+ drivers/i2c/chips/max1619.c              |    6 -
+ drivers/i2c/chips/pc87360.c              |   68 ++++++++--------
+ drivers/i2c/chips/pcf8574.c              |    6 -
+ drivers/i2c/chips/pcf8591.c              |   10 +-
+ drivers/i2c/chips/sis5595.c              |   34 ++++----
+ drivers/i2c/chips/smsc47b397.c           |    4
+ drivers/i2c/chips/smsc47m1.c             |   20 ++--
+ drivers/i2c/chips/via686a.c              |   32 +++----
+ drivers/i2c/chips/w83627hf.c             |   56 ++++++-------
+ drivers/i2c/chips/w83781d.c              |   52 ++++++------
+ drivers/i2c/chips/w83l785ts.c            |    4
+ drivers/i2c/i2c-core.c                   |    4
+ drivers/ieee1394/nodemgr.c               |   16 +--
+ drivers/ieee1394/sbp2.c                  |    2
+ drivers/input/gameport/gameport.c        |    4
+ drivers/input/keyboard/atkbd.c           |    4
+ drivers/input/mouse/psmouse.h            |    4
+ drivers/input/serio/serio.c              |   16 +--
+ drivers/macintosh/therm_adt746x.c        |    8 -
+ drivers/macintosh/therm_pm72.c           |    4
+ drivers/macintosh/therm_windtunnel.c     |    4
+ drivers/mca/mca-bus.c                    |    4
+ drivers/message/fusion/mptscsih.c        |    2
+ drivers/mmc/mmc_sysfs.c                  |    2
+ drivers/pci/hotplug/cpqphp_sysfs.c       |    4
+ drivers/pci/hotplug/shpchp_sysfs.c       |    4
+ drivers/pci/pci-sysfs.c                  |    6 -
+ drivers/pcmcia/ds.c                      |    4
+ drivers/pnp/card.c                       |    4
+ drivers/pnp/interface.c                  |    8 -
+ drivers/s390/block/dasd_devmap.c         |   10 +-
+ drivers/s390/block/dcssblk.c             |   24 ++---
+ drivers/s390/char/raw3270.c              |    6 -
+ drivers/s390/char/tape_core.c            |   10 +-
+ drivers/s390/char/vmlogrdr.c             |   12 +-
+ drivers/s390/cio/ccwgroup.c              |    6 -
+ drivers/s390/cio/chsc.c                  |    6 -
+ drivers/s390/cio/cmf.c                   |   12 +-
+ drivers/s390/cio/device.c                |   14 +--
+ drivers/s390/net/claw.c                  |   40 ++++-----
+ drivers/s390/net/ctcmain.c               |   18 ++--
+ drivers/s390/net/lcs.c                   |   10 +-
+ drivers/s390/net/netiucv.c               |   44 +++++-----
+ drivers/s390/net/qeth_sys.c              |  126 +++++++++++++++----------------
+ drivers/s390/scsi/zfcp_scsi.c            |    2
+ drivers/s390/scsi/zfcp_sysfs_adapter.c   |   10 +-
+ drivers/s390/scsi/zfcp_sysfs_port.c      |   10 +-
+ drivers/s390/scsi/zfcp_sysfs_unit.c      |    6 -
+ drivers/scsi/53c700.c                    |    2
+ drivers/scsi/arm/eesox.c                 |    4
+ drivers/scsi/arm/powertec.c              |    4
+ drivers/scsi/ipr.c                       |    2
+ drivers/scsi/megaraid/megaraid_mbox.c    |    4
+ drivers/scsi/scsi_sysfs.c                |   28 +++---
+ drivers/sh/superhyway/superhyway-sysfs.c |    2
+ drivers/usb/core/sysfs.c                 |   24 ++---
+ drivers/usb/gadget/dummy_hcd.c           |    4
+ drivers/usb/gadget/file_storage.c        |    8 -
+ drivers/usb/gadget/net2280.c             |    6 -
+ drivers/usb/gadget/pxa2xx_udc.c          |    2
+ drivers/usb/input/aiptek.c               |   78 +++++++++----------
+ drivers/usb/misc/cytherm.c               |   20 ++--
+ drivers/usb/misc/phidgetkit.c            |   14 +--
+ drivers/usb/misc/phidgetservo.c          |    4
+ drivers/usb/misc/usbled.c                |    4
+ drivers/usb/serial/ftdi_sio.c            |    6 -
+ drivers/usb/storage/scsiglue.c           |    4
+ drivers/video/gbefb.c                    |    4
+ drivers/video/w100fb.c                   |   12 +-
+ drivers/w1/w1.c                          |   16 +--
+ drivers/w1/w1_family.h                   |    4
+ drivers/w1/w1_smem.c                     |    8 -
+ drivers/w1/w1_therm.c                    |    8 -
+ drivers/zorro/zorro-sysfs.c              |    4
+ include/asm-ppc/ocp.h                    |    2
+ 118 files changed, 854 insertions(+), 854 deletions(-)
+
+--- updatedyncallbackdevattr.pl
+
+#!/usr/bin/perl
+
+use strict;
+
+my $infile=shift;
+
+if(!defined $infile){
+        open(IN,"<&STDIN") or die "Could not open an input stream";
+}else{
+        open(IN,"<$infile") or die "Could not open an input stream";
+}
+
+my $subs = 0;
+my $code = "";
+
+while(<IN>){$code.=$_};
+close(IN);
+
+$code =~ s/(static[\s\\]+?ssize_t[\s\\]+?[^(;]+?\(\s*?struct[\s\\]+?(?:device)[\s\\]*?\*[^,);]*?,[\s\\]*?char[\s\\]*?\*[^,);]*?)[\s\\]*?\)/$1,
+void *private)/gs && $subs++;
+$code =~ s/(static[\s\\]+?ssize_t[\s\\]+?[^(;]+?\(\s*?struct[\s\\]+?(?:device)[\s\\]*?\*[^,);]*?,[\s\\]*?const[\s\\]+?char[\s\\]*?\*[^,);]*?[\s\\]*?,[\s\\]*size_t[^,);]*?)[\s\\]*\)/$1,
+void *private)/gs && $subs++;
+
+if($subs){
+        if(!defined $infile){
+                open(OUT,">&STDOUT") or die "Could not open an output stream";
+        }else{
+                open(OUT,">$infile") or die "Could not open an output stream";
+        }
+        $|;
+        print OUT $code;
+        close(OUT);
+        $infile && print STDOUT "$infile updated.\n";
+}
+
+---  doupdatedevattr.sh
+#!/bin/sh
+find linux-2.6.12-rc4-sysfsdyncallback-deviceattr-nowarn -type f -exec
+./updatedyncallbackdevattr.pl {} \; 2>&1 |tee subs.log
