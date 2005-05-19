@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: VRM(VRD) detection versus CPUID
-Message-Id: <20040703084530.4f515868.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.58.0407042118290.26289@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
@@ -10,21 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Ok in attach, version that can be used for testing. It is using the
-> numerical VRM, "while" instead of "for" in lookup func and other
-> changes proposed by you. I think this is the end of email storm :)
+> Tested.
 
-Tested.
+Thanks
+>
+> So it's working fine for me, isn't it? :)
+seems so :)
 
-On my laptop computer it says 85, CPU is an Intel P3-M Tualatin.
+Any ideas how to implement the which_vrm function to lm_sensors ?
 
-On my desktop computer and my girlfriend's computer it says 90, CPU is
-AMD Athlon for each.
+21:06 < Khali> hmm I don't know exactly
+21:06 < Khali> there are several options
+21:07 < Khali> inline function in sensor_vid
+21:07 < Khali> or regular function in i2c-proc/i2c_sensor
+21:07 < ruik> which is better ?
+21:07 < Khali> or new module sensor_vid, replacing the header file
+21:08 < ruik> its too small to be in module?
+21:08 < Khali> yes it's a bit small
+21:08 < Khali> sounds a bit overkill
+21:08 < Khali> but I'm not sure
+21:08 < Khali> maybe we should ask other people what they think
+21:08 < Khali> especially Greg
+21:09 < Khali> and mds maybe
+21:09 < ruik> will you :) ?
+21:09 < Khali> no :p
 
-On my server it says 0, CPU is an Intel Pentium.
+So I'm asking :)
 
-So it's working fine for me, isn't it? :)
+What are your ideas ?
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Thanks
+
+Regards
+
+Rudolf
