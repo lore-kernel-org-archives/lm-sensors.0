@@ -1,69 +1,94 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: lm_sensors2/kernel/chips w83792d.c
-Message-Id: <20050329050036.GC14733@jupiter.solarsys.private>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5744@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050329011601.GA14733@jupiter.solarsys.private>
 In-Reply-To: <20050329011601.GA14733@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao:
-
-I wrote:
-> > Why is there a huge 'do {...} while(0)' loop in w83792d_fan()?  I guess
-> > it's some kind of fan divisor auto-configuration.  If that's the case,
-> > shouldn't it be 'do {...} while(1)'?
-
-* Chunhao <Huang0@Winbond.com.tw> [2005-03-29 11:46:36 +0800]:
-> We use that huge 'do {...} while(0)' to substitute the "goto" sentence,
-> because the "goto" sentence is NOT welcome in most cases, we want to
-> avoid
-> it. :-)
-
-If that was your intention, I would prefer if you just used goto.
-To use 'do {...} while(0)' as a "stealth" goto is even worse.
-
-> Although the idea of changing "while (0)" into "while (1)" is feasible,
-> We can NOT do that, it's dangerous to use such endless loop. We have
-> tested
-> it, the "while (1)" leads to bad result, while "while (0)" works well.
-
-Well, the purpose of this part of the code was not immediately clear
-to me.  Now I've read it more closely.  It seems you are trying to
-settle on an appropriate fan divisor - one which is appropriate for
-the measured fan speed.  But... the loop obviously isn't a loop at
-all, so you're only incrementing or decrementing fan_div[nr] by 1.
-That means the user would have to read the fan multiple times before
-the fan_div arrives at a useful value.  Is that what you wanted?
-
-Also notice, the way it's written now... the value reported in 
-results[0] (the limit) will be wrong if the fan_div is written
-back to the chip immediately after.
-
-> > Also, why not move the w83792d_update_client() call to the bottom of
-> > the loop?
-> 
-> Which case do you mean ? Case 1 or Case 2?
-> (snip)
-
-I should have noticed in the first place... but actually it doesn't
-matter at all.  It will only really update the values once anyway
-because of the rate limiting.  As it's written now, you may just as
-well get rid of the second one altogether.  Do you see why?
-
-At any rate, I think there are multiple problems here.  Could you
-please explain exactly what you are trying to do between these lines?
-Then maybe I can help you better.
-
-> 1000 else if (operation = SENSORS_PROC_REAL_READ) {
-> ???
-> 1042 } else if (operation = SENSORS_PROC_REAL_WRITE) {
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+SGkgTWFyayBNLiBIb2ZmbWFuCgo+ID4gV2UgdXNlIHRoYXQgaHVnZSAnZG8gey4uLn0gd2hpbGUo
+MCknIHRvIHN1YnN0aXR1dGUgdGhlICJnb3RvIgpzZW50ZW5jZSwKPiA+IGJlY2F1c2UgdGhlICJn
+b3RvIiBzZW50ZW5jZSBpcyBOT1Qgd2VsY29tZSBpbiBtb3N0IGNhc2VzLCB3ZSB3YW50IHRvCj4g
+PiBhdm9pZAo+ID4gaXQuIDotKQo+IAo+IElmIHRoYXQgd2FzIHlvdXIgaW50ZW50aW9uLCBJIHdv
+dWxkIHByZWZlciBpZiB5b3UganVzdCB1c2VkIGdvdG8uCj4gVG8gdXNlICdkbyB7Li4ufSB3aGls
+ZSgwKScgYXMgYSAic3RlYWx0aCIgZ290byBpcyBldmVuIHdvcnNlLgoKTWF5YmUgeW91IGFyZSBy
+aWdodCwgSSBjb3BpZWQgdGhlc2UgY29kZXMgZnJvbSBvdXIgV2luZG93cyBkcml2ZXIsCndpdGhv
+dXQKdG9vIG11Y2ggY29uc2lkZXJhdGlvbiBhYm91dCBpdC4gSSBkb24ndCByZXNpc3QgImdvdG8i
+IGluIG15IDc5MiBkcml2ZXIsCnlvdQpjYW4gc2VlIHRoZXJlIGFyZSBzb21lICJnb3RvIiBzZW50
+ZW5jZXMgaW4gc29tZSBvdGhlciBwbGFjZXMgb2YgdGhlCmRyaXZlci4KCllvdSBtYXkgaGVscCBt
+ZSBjaGFuZ2UgdGhlICJkby4uLndoaWxlKDApIiBpbnRvICJnb3RvIiBzZW50ZW5jZSBpZiB5b3UK
+d2FudCwKc2luY2UgSSBkbyBOT1QgaGF2ZSBhIGxtX3NlbnNvcnMgQ1ZTIGFjY291bnQsIElmIEkg
+d2FudCB0byBtb2RpZnkgaXQsIEkKaGF2ZSB0byBnZW5lcmF0ZSBhIHBhdGNoIGFuZCBzZW5kIGl0
+IHRvIE1EUyBmb3IgaGlzIGhlbHAuCgpBZnRlciB0aGUgbW9kaWZpY2F0aW9uLCBwbGVhc2UganVz
+dCBzZW5kIG1lIGEgbm90aWNlIHNvIHRoYXQgSSBjYW4KZG93bmxvYWQKZnJvbSBDVlMgYW5kIHRl
+c3QgaXQgaW1tZWRpYXRlbHkuIE9yIHlvdSBtYXkgc2VuZCBpdCB0byBtZSBmaXJzdCBmb3IgbXkK
+dGVzdCwgdGhlbiBjb21taXQgaXQgaW50byBDVlMgYWZ0ZXIgdGhlIHRlc3QuCgo+ID4gQWx0aG91
+Z2ggdGhlIGlkZWEgb2YgY2hhbmdpbmcgIndoaWxlICgwKSIgaW50byAid2hpbGUgKDEpIiBpcwpm
+ZWFzaWJsZSwKPiA+IFdlIGNhbiBOT1QgZG8gdGhhdCwgaXQncyBkYW5nZXJvdXMgdG8gdXNlIHN1
+Y2ggZW5kbGVzcyBsb29wLiBXZSBoYXZlCj4gPiB0ZXN0ZWQKPiA+IGl0LCB0aGUgIndoaWxlICgx
+KSIgbGVhZHMgdG8gYmFkIHJlc3VsdCwgd2hpbGUgIndoaWxlICgwKSIgd29ya3MKd2VsbC4KPiAK
+PiBXZWxsLCB0aGUgcHVycG9zZSBvZiB0aGlzIHBhcnQgb2YgdGhlIGNvZGUgd2FzIG5vdCBpbW1l
+ZGlhdGVseSBjbGVhcgo+IHRvIG1lLiAgTm93IEkndmUgcmVhZCBpdCBtb3JlIGNsb3NlbHkuICBJ
+dCBzZWVtcyB5b3UgYXJlIHRyeWluZyB0bwo+IHNldHRsZSBvbiBhbiBhcHByb3ByaWF0ZSBmYW4g
+ZGl2aXNvciAtIG9uZSB3aGljaCBpcyBhcHByb3ByaWF0ZSBmb3IKPiB0aGUgbWVhc3VyZWQgZmFu
+IHNwZWVkLiAgQnV0Li4uIHRoZSBsb29wIG9idmlvdXNseSBpc24ndCBhIGxvb3AgYXQKPiBhbGws
+IHNvIHlvdSdyZSBvbmx5IGluY3JlbWVudGluZyBvciBkZWNyZW1lbnRpbmcgZmFuX2Rpdltucl0g
+YnkgMS4KPiBUaGF0IG1lYW5zIHRoZSB1c2VyIHdvdWxkIGhhdmUgdG8gcmVhZCB0aGUgZmFuIG11
+bHRpcGxlIHRpbWVzIGJlZm9yZQo+IHRoZSBmYW5fZGl2IGFycml2ZXMgYXQgYSB1c2VmdWwgdmFs
+dWUuICBJcyB0aGF0IHdoYXQgeW91IHdhbnRlZD8KClllcywgeW91IGFyZSByaWdodCwgdGhhdCBp
+cyB3aGF0IEkgd2FudCwgdXNlcnMgaGF2ZSB0byBydW4gInNlbnNvcnMiCmZvciBzZXZlcmFsIHRp
+bWVzIGJlZm9yZSB0aGV5IGdldCBhbiBhcHByb3ByaWF0ZSBmYW4gbWVhc3VyZWQgdmFsdWUuCklu
+IG91ciA3OTIgV2luZG93cyB2ZXJzaW9uLCB0aGVyZSBpcyBhIEdVSSB3aGljaCBhY2Nlc3MgdGhl
+IDc5MiBjaGlwCndpdGggYW4gaW50ZXJ2YWwgc3VjaCBhcyBldmVyeSA1IHNlY29uZHMuIFNvIGFm
+dGVyIHNldmVyYWwgc2Vjb25kcywgaXQKd2lsbCByZWFjaCB0aGUgYXBwcm9wcmlhdGUgZmFuIG1l
+YXN1cmVkIHZhbHVlIGF1dG9tYXRpY2FsbHkuCgoKPiBBbHNvIG5vdGljZSwgdGhlIHdheSBpdCdz
+IHdyaXR0ZW4gbm93Li4uIHRoZSB2YWx1ZSByZXBvcnRlZCBpbgo+IHJlc3VsdHNbMF0gKHRoZSBs
+aW1pdCkgd2lsbCBiZSB3cm9uZyBpZiB0aGUgZmFuX2RpdiBpcyB3cml0dGVuCj4gYmFjayB0byB0
+aGUgY2hpcCBpbW1lZGlhdGVseSBhZnRlci4KCj4gSSBzaG91bGQgaGF2ZSBub3RpY2VkIGluIHRo
+ZSBmaXJzdCBwbGFjZS4uLiBidXQgYWN0dWFsbHkgaXQgZG9lc24ndAo+IG1hdHRlciBhdCBhbGwu
+ICBJdCB3aWxsIG9ubHkgcmVhbGx5IHVwZGF0ZSB0aGUgdmFsdWVzIG9uY2UgYW55d2F5Cj4gYmVj
+YXVzZSBvZiB0aGUgcmF0ZSBsaW1pdGluZy4gIEFzIGl0J3Mgd3JpdHRlbiBub3csIHlvdSBtYXkg
+anVzdCBhcwo+IHdlbGwgZ2V0IHJpZCBvZiB0aGUgc2Vjb25kIG9uZSBhbHRvZ2V0aGVyLiAgRG8g
+eW91IHNlZSB3aHk/Cj4gCj4gQXQgYW55IHJhdGUsIEkgdGhpbmsgdGhlcmUgYXJlIG11bHRpcGxl
+IHByb2JsZW1zIGhlcmUuICBDb3VsZCB5b3UKPiBwbGVhc2UgZXhwbGFpbiBleGFjdGx5IHdoYXQg
+eW91IGFyZSB0cnlpbmcgdG8gZG8gYmV0d2VlbiB0aGVzZSBsaW5lcz8KPiBUaGVuIG1heWJlIEkg
+Y2FuIGhlbHAgeW91IGJldHRlci4KPiAKPiA+IDEwMDAgZWxzZSBpZiAob3BlcmF0aW9uID0gU0VO
+U09SU19QUk9DX1JFQUxfUkVBRCkgewo+ID4gPz8/Cj4gPiAxMDQyIH0gZWxzZSBpZiAob3BlcmF0
+aW9uID0gU0VOU09SU19QUk9DX1JFQUxfV1JJVEUpIHsKCldoZW4gSSB3cm90ZSB0aGVzZSBjb2Rl
+cywgSSdtIGFsc28gYWZyYWlkIG9mIGxlYWRpbmcgdG8gc29tZSBwcm9ibGVtcywKQnV0IHRoZSB0
+ZXN0IHJlc3VsdCBvbiBvdXIgdHdvIG1vdGhlcmJvYXJkcyBzZWVtcyBnb29kLCBTbyBJIGtlcHQg
+dGhvc2UKY29kZXMuIEkgcmVtZW1iZXIgdGhhdCBJIGhhdmUgZXZlciBzZW50IGEgbWFpbCB0byBs
+bV9zZW5zb3JzIGdyb3VwCmZvciB5b3VyIHN1Z2dlc3Rpb24gYWJvdXQgdGhpcyBmdW5jdGlvbiB3
+ODM3OTJkX2ZhbigpLCBidXQgZG8gTk9UIGdldAphbnkgcmVzcG9uc2UuOi0oCgpJZiB5b3UgY2Fu
+IGhlbHAgbWUgdG8gbW9kaWZ5IHRoZXNlIGNvZGVzIGJldHRlciwgeW91IG1heSB0cnkgdG8gbW9k
+aWZ5Cml0LCBhbmQgYXNrIG1lIHRvIHRlc3QuIEJ1dCBwbGVhc2Uga2VlcCBteSBwdXJwb3NlIG9m
+IG1vZGlmeWluZyB0aGUKZmFuIGRpdmlzb3IgYW5kIG1lYXN1cmVkIHZhbHVlIGF1dG9tYXRpY2Fs
+bHksIGJlY2F1c2UgaXQgdGhlIHJlcXVlc3Qgb2YKb3VyIGN1c3RvbWVycy4gOi0pCgpUaGFua3MK
+QmVzdCBSZWdhcmRzCkNodW5oYW8KMjAwNS0zLTI5CgoKPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1h
+dGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkg
+dGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhp
+cyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBl
+bWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8g
+c3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFj
+Y29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIg
+YW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29v
+cGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNv
+bmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7
+IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0
+byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVp
+dGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVj
+b2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRo
+ZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92
+ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir
+/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZd
+pmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6r
+SKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1Q
+wcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puas
+sKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+Kywtdio
+ublxpGykp6Xfs/WpzrdOqKMuCg==
