@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: aurelien@aurel32.net (Aurelien Jarno)
 Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: Preliminary version of the sis5595 driver for Linux 2.6
-Message-Id: <2y0sE5NY.1106648604.2705990.khali@localhost>
+Message-Id: <20050125151121.GA2707@bode.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050125003630.GA21545@bode.aurel32.net>
 In-Reply-To: <20050125003630.GA21545@bode.aurel32.net>
@@ -10,23 +10,166 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Aurelien,
+Here is a new version of the patch. As some of the changes you suggested
+also apply to the lm78 driver, you will also find a patch for it.
 
-> As I already said to Jean Delvare, I started to port the sis5595 driver
-> to Linux 2.6. Here is my preliminary version, it would be nice if
-> somebody could review it. Thanks!
+On Tue, Jan 25, 2005 at 11:23:24AM +0100, Jean Delvare wrote:
+> +/* TEMP: mC (-128C to +127C)
+> +   REG: 0.83C/bit + 52.12, two's complement  */
+> 
+> If the all registers value are possible (-128 to +127) then the possible
+> temperature range is from -54.12 to +157.53 degree C, not -128 to +127.
+> 
+> +static inline int TEMP_FROM_REG(u8 val)
+> +{
+> +	return (val>=0x80 ? val-0x100 : val) * 830 + 5212;
+> +}
+> 
+> That would be + 52120.
 
-Great job. See my comments inline.
+True, the bad thing is that my sis5595 is configured in 5 voltage inputs
+so I can't verify the temperature is ok.
+ 
+> +int sis5595_detect(struct i2c_adapter *adapter, int address, int kind)
+> 
+> With the current i2c_detect() implementation, detect function are not
+> supposed to return an error (non-zero value) on non-fatal errors such as
+> a missing device. Thus you should get rid of all "err = -ENODEV;".
+It seems almost all other i2c drivers do that, so I havent changed my
+patch yet. I have checked in the 2.6.11-rc2-mm1 patch, and it seems no
+change have been made about that. Is there something that is still to be
+done?
 
-> Some notes
-> ----------
-> 1) In the sis5595_find_sis() function, I am not sure about the use of
->    printk. I can't replace them by dev_err() as i2c_adapter is not
->    available.
+> I would appreciate if you could backport to the lm_sensors/CVS driver all
+> changes made to the 2.6 driver that would also make sense there.
+I will do that when the port to the 2.6 kernel is done.
 
-The use of printk in this case looks OK to me.
+Bye,
+Aurelien
 
+-- 
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+diff -urN kernel-source-2.6.10/drivers/i2c/chips/Kconfig kernel-source-2.6.10.sis5595/drivers/i2c/chips/Kconfig
+--- kernel-source-2.6.10/drivers/i2c/chips/Kconfig	2004-12-24 22:34:58.000000000 +0100
++++ kernel-source-2.6.10.sis5595/drivers/i2c/chips/Kconfig	2005-01-23 16:54:23.000000000 +0100
+@@ -239,6 +239,18 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called pc87360.
+ 
++config SENSORS_SIS5595
++	tristate "Silicon Integrated Systems Corp. SiS5595"
++	depends on I2C && PCI && EXPERIMENTAL
++	select I2C_SENSOR
++	select I2C_ISA
++	help
++	  If you say yes here you get support for the integrated sensors in
++	  SiS5595 South Bridges.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called sis5595.
++
+ config SENSORS_SMSC47M1
+ 	tristate "SMSC LPC47M10x and compatibles"
+ 	depends on I2C && EXPERIMENTAL
+diff -urN kernel-source-2.6.10/drivers/i2c/chips/Makefile kernel-source-2.6.10.sis5595/drivers/i2c/chips/Makefile
+--- kernel-source-2.6.10/drivers/i2c/chips/Makefile	2004-12-24 22:35:50.000000000 +0100
++++ kernel-source-2.6.10.sis5595/drivers/i2c/chips/Makefile	2005-01-23 16:55:02.000000000 +0100
+@@ -30,6 +30,7 @@
+ obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+ obj-$(CONFIG_SENSORS_RTC8564)	+= rtc8564.o
++obj-$(CONFIG_SENSORS_SIS5595)	+= sis5595.o
+ obj-$(CONFIG_SENSORS_SMSC47M1)	+= smsc47m1.o
+ obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
+ obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
+diff -urN kernel-source-2.6.10/drivers/i2c/chips/sis5595.c kernel-source-2.6.10.sis5595/drivers/i2c/chips/sis5595.c
+--- kernel-source-2.6.10/drivers/i2c/chips/sis5595.c	1970-01-01 01:00:00.000000000 +0100
++++ kernel-source-2.6.10.sis5595/drivers/i2c/chips/sis5595.c	2005-01-25 15:26:11.000000000 +0100
+@@ -0,0 +1,786 @@
++/*
++    sis5595.c - Part of lm_sensors, Linux kernel modules
++		for hardware monitoring
++
++    Copyright (C) 1998 - 2001 Frodo Looijaard <frodol@dds.nl>,
++			Ky? M?ki <kmalkki@cc.hut.fi>, and
++			Mark D. Studebaker <mdsxyz123@yahoo.com>
++    Ported to Linux 2.6 by Aurelien Jarno <aurelien@aurel32.net> with
++    the help of Jean Delvare <khali@linux-fr.org>
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/
++
++/*
++   SiS southbridge has a LM78-like chip integrated on the same IC.
++   This driver is a customized copy of lm78.c
++   
++   Supports following revisions:
++	Version		PCI ID		PCI Revision
++	1		1039/0008	AF or less
++	2		1039/0008	B0 or greater
++
++   Note: these chips contain a 0008 device which is incompatible with the
++	 5595. We recognize these by the presence of the listed
++	 "blacklist" PCI ID and refuse to load.
++
++   NOT SUPPORTED	PCI ID		BLACKLIST PCI ID	
++	 540		0008		0540
++	 550		0008		0550
++	5513		0008		5511
++	5581		0008		5597
++	5582		0008		5597
++	5597		0008		5597
++	5598		0008		5597/5598
++	 630		0008		0630
++	 645		0008		0645
++	 730		0008		0730
++	 735		0008		0735
++*/
++
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/ioport.h>
++#include <linux/pci.h>
++#include <linux/i2c.h>
++#include <linux/i2c-sensor.h>
++#include <linux/init.h>
++#include <asm/io.h>
++
++
++/* If force_addr is set to anything different from 0, we forcibly enable
++   the device at the given address. */
++static u16 force_addr;
++module_param(force_addr, ushort, 0);
++MODULE_PARM_DESC(force_addr,
++		 "Initialize the base address of the sensors");
++
++/* Addresses to scan.
++   Note that we can't determine the ISA address until we have initialized
++   our module */
++static unsigned short normal_i2c[] = { I2C_CLIENT_END };
++static unsigned int normal_isa[] = { 0x0000, I2C_CLIENT_ISA_END };
++
++/* Insmod parameters */
++SENSORS_INSMOD_1(sis5595);
++
 +static int blacklist[] = {
 +			PCI_DEVICE_ID_SI_540,
 +			PCI_DEVICE_ID_SI_550,
@@ -37,112 +180,362 @@ The use of printk in this case looks OK to me.
 +						  use the 5511 ID for recognition */
 +			PCI_DEVICE_ID_SI_5597,
 +			PCI_DEVICE_ID_SI_5598,
-+			0x645,
-+			0x735,
-+                          0 };
-
-0x645 and 0x735 are defined in linux/pci_ids.h as:
-#define PCI_DEVICE_ID_SI_645            0x0645
-#define PCI_DEVICE_ID_SI_735            0x0735
-So you can use these names.
-
-Watch the identation on last line.
-
-+/*
-+   SiS southbridge has a LM78-like chip integrated on the same IC.
-+   This driver is a customized copy of lm78.c
-+*/
-
-I would suggest that you move that comment to the heading comment block -
-this explains why the driver exists at all so this is the first comment
-one would want to read.
-
++			PCI_DEVICE_ID_SI_645,
++			PCI_DEVICE_ID_SI_735,
++			0 };
++
++/* Many SIS5595 constants specified below */
++
++/* Length of ISA address segment */
++#define SIS5595_EXTENT 8
++/* PCI Config Registers */
++#define SIS5595_REVISION_REG 0x08
++#define SIS5595_BASE_REG 0x68
++#define SIS5595_PIN_REG 0x7A
++#define SIS5595_ENABLE_REG 0x7B
++
++/* Where are the ISA address/data registers relative to the base address */
++#define SIS5595_ADDR_REG_OFFSET 5
++#define SIS5595_DATA_REG_OFFSET 6
++
++/* The SIS5595 registers */
++#define SIS5595_REG_IN_MAX(nr) (0x2b + (nr) * 2)
++#define SIS5595_REG_IN_MIN(nr) (0x2c + (nr) * 2)
++#define SIS5595_REG_IN(nr) (0x20 + (nr))
++
++#define SIS5595_REG_FAN_MIN(nr) (0x3b + (nr))
++#define SIS5595_REG_FAN(nr) (0x28 + (nr))
++
++/* On the first version of the chip, the temp registers are separate.
++   On the second version,
++   TEMP pin is shared with IN4, configured in PCI register 0x7A.
++   The registers are the same as well.
++   OVER and HYST are really MAX and MIN. */
++
++#define REV2MIN	0xb0
++#define SIS5595_REG_TEMP 	(( data->revision) >= REV2MIN) ? \
++					SIS5595_REG_IN(4) : 0x27
++#define SIS5595_REG_TEMP_OVER	(( data->revision) >= REV2MIN) ? \
++					SIS5595_REG_IN_MAX(4) : 0x39
++#define SIS5595_REG_TEMP_HYST	(( data->revision) >= REV2MIN) ? \
++					SIS5595_REG_IN_MIN(4) : 0x3a
++
++#define SIS5595_REG_CONFIG 0x40
++#define SIS5595_REG_ALARM1 0x41
++#define SIS5595_REG_ALARM2 0x42
++#define SIS5595_REG_FANDIV 0x47
++
++/* Conversions. Limit checking is only done on the TO_REG
++   variants. */
++
++/* IN: mV, (0V to 4.08V)
++   REG: 16mV/bit */
++static inline u8 IN_TO_REG(unsigned long val)
++{
++	unsigned long nval = SENSORS_LIMIT(val, 0, 4080);
++	return (nval + 8) / 16;
++}
++#define IN_FROM_REG(val) ((val) *  16)
++
 +static inline u8 FAN_TO_REG(long rpm, int div)
 +{
 +	if (rpm = 0)
 +		return 255;
-+	rpm = SENSORS_LIMIT(rpm, 1, 1000000);
 +	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
 +}
-
-Any chance you could rewrite this one so as to call SENSORS_LIMIT only
-once?
-
-+/* TEMP: mC (-128C to +127C)
++
++static inline int FAN_FROM_REG(u8 val, int div)
++{
++	return val=0 ? -1 : val=255 ? 0 : 1350000/(val*div);
++}
++
++/* TEMP: mC (-54.12C to +157.53C)
 +   REG: 0.83C/bit + 52.12, two's complement  */
-
-If the all registers value are possible (-128 to +127) then the possible
-temperature range is from -54.12 to +157.53 degree C, not -128 to +127.
-
-+static inline int TEMP_FROM_REG(u8 val)
++static inline int TEMP_FROM_REG(s8 val)
 +{
-+	return (val>=0x80 ? val-0x100 : val) * 830 + 5212;
++	return val * 830 + 52120;
 +}
-
-That would be + 52120.
-
-You may also save some tests by handling the temperature register as s8
-instead of u8.
-
-+static inline u8 TEMP_TO_REG(int val)
++static inline s8 TEMP_TO_REG(int val)
 +{
-+	int nval = SENSORS_LIMIT(val, -128000, 127000) ;
-+	return nval<0 ? (nval-5212-415)/830+0x100 : (nval-5212+415)/830;
++	int nval = SENSORS_LIMIT(val, -54120, 157530) ;
++	return nval<0 ? -(nval-5212-415)/830 : (nval-5212+415)/830;
 +}
-
-Ditto. Also, you either want to move the SENSORS_LIMIT after the
-computation, or use the limit values I gave above.
-
-+/* ALARMS: chip-specific bitmask
-+   REG: (same) */
-+#define ALARMS_FROM_REG(val) (val)
-
-Maybe you could get rid of it completely?
-
++
 +/* FAN DIV: 1, 2, 4, or 8 (defaults to 2)
 +   REG: 0, 1, 2, or 3 (respectively) (defaults to 1) */
 +static inline u8 DIV_TO_REG(int val)
 +{
 +	return val=8 ? 3 : val=4 ? 2 : val=1 ? 0 : 1;
 +}
-
-A better behavior would be to accept only these 4 values, and return an
-error on other values instead of arbitrarily and silently defaulting to
-a divider of 2. See the fscher driver for an example.
-
++#define DIV_FROM_REG(val) (1 << (val))
++
 +/* For the SIS5595, we need to keep some data in memory. That
 +   data is pointed to by sis5595_list[NR]->data. The structure itself is
 +   dynamically allocated, at the time when the new sis5595 client is
 +   allocated. */
-
-That comment is totally outdated (even for the lm_sensors/CVS driver, it
-is).
-
-+	u8 temp_over;		/* Register value  - really max */
-+	u8 temp_hyst;		/* Register value  - really min */
-
-Why don't you simply rename them to temp_max and temp_min then? OTOH the
-rest of the driver (including the sysfs file names) suggests that these
-really are over and hyst. Can you please check again?
-
-+/* The driver. I choose to use type i2c_driver, as at is identical to
-both
-+   smbus_driver and isa_driver, and clients could be of either kind */
-
-Outdated comment (which I suspect was never correct for this driver
-anyway), discard.
-
++struct sis5595_data {
++	struct i2c_client client;
++	struct semaphore lock;
++
++	struct semaphore update_lock;
++	char valid;		/* !=0 if following fields are valid */
++	unsigned long last_updated;	/* In jiffies */
++	char maxins;		/* = 3 if temp enabled, otherwise = 4 */
++	u8 revision;		/* Reg. value */
++
++	u8 in[5];		/* Register value */
++	u8 in_max[5];		/* Register value */
++	u8 in_min[5];		/* Register value */
++	u8 fan[2];		/* Register value */
++	u8 fan_min[2];		/* Register value */
++	s8 temp;		/* Register value */
++	s8 temp_over;		/* Register value */
++	s8 temp_hyst;		/* Register value */
++	u8 fan_div[2];		/* Register encoding, shifted right */
++	u16 alarms;		/* Register encoding, combined */
++};
++
++static struct pci_dev *s_bridge;	/* pointer to the (only) sis5595 */
++
++static int sis5595_attach_adapter(struct i2c_adapter *adapter);
++static int sis5595_detect(struct i2c_adapter *adapter, int address, int kind);
++static int sis5595_detach_client(struct i2c_client *client);
++
++static int sis5595_read_value(struct i2c_client *client, u8 register);
++static int sis5595_write_value(struct i2c_client *client, u8 register, u8 value);
++static struct sis5595_data *sis5595_update_device(struct device *dev);
++static void sis5595_init_client(struct i2c_client *client);
++static int sis5595_find_sis(int *address);
++
++static struct i2c_driver sis5595_driver = {
++	.owner		= THIS_MODULE,
++	.name		= "sis5595",
++	.id		= I2C_DRIVERID_SIS5595,
++	.flags		= I2C_DF_NOTIFY,
++	.attach_adapter	= sis5595_attach_adapter,
++	.detach_client	= sis5595_detach_client,
++};
++
++/* 4 Voltages */
++static ssize_t show_in(struct device *dev, char *buf, int nr)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr]));
++}
++
++static ssize_t show_in_min(struct device *dev, char *buf, int nr)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr]));
++}
++
++static ssize_t show_in_max(struct device *dev, char *buf, int nr)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr]));
++}
++
++static ssize_t set_in_min(struct device *dev, const char *buf,
++	       size_t count, int nr)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	unsigned long val = simple_strtoul(buf, NULL, 10);
++	data->in_min[nr] = IN_TO_REG(val);
++	sis5595_write_value(client, SIS5595_REG_IN_MIN(nr), data->in_min[nr]);
++	return count;
++}
++
++static ssize_t set_in_max(struct device *dev, const char *buf,
++	       size_t count, int nr)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	unsigned long val = simple_strtoul(buf, NULL, 10);
++	data->in_max[nr] = IN_TO_REG(val);
++	sis5595_write_value(client, SIS5595_REG_IN_MAX(nr), data->in_max[nr]);
++	return count;
++}
++
 +#define show_in_offset(offset)					\
 +static ssize_t							\
 +	show_in##offset (struct device *dev, char *buf)		\
 +{								\
-+	return show_in(dev, buf, 0x##offset);			\
++	return show_in(dev, buf, offset);			\
 +}								\
-
-Please get rid of all these 0x## all over the code. Mark Hoffman cleaned
-up all drivers some months ago, we better don't reintroduce this
-ugliness now.
-
++static DEVICE_ATTR(in##offset##_input, S_IRUGO, 		\
++		show_in##offset, NULL);				\
++static ssize_t							\
++	show_in##offset##_min (struct device *dev, char *buf)	\
++{								\
++	return show_in_min(dev, buf, offset);			\
++}								\
++static ssize_t							\
++	show_in##offset##_max (struct device *dev, char *buf)	\
++{								\
++	return show_in_max(dev, buf, offset);			\
++}								\
++static ssize_t set_in##offset##_min (struct device *dev,	\
++		const char *buf, size_t count)			\
++{								\
++	return set_in_min(dev, buf, count, offset);		\
++}								\
++static ssize_t set_in##offset##_max (struct device *dev,	\
++		const char *buf, size_t count)			\
++{								\
++	return set_in_max(dev, buf, count, offset);		\
++}								\
++static DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,		\
++		show_in##offset##_min, set_in##offset##_min);	\
++static DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,		\
++		show_in##offset##_max, set_in##offset##_max);
++
++show_in_offset(0);
++show_in_offset(1);
++show_in_offset(2);
++show_in_offset(3);
++show_in_offset(4);
++
++/* Temperature */
++static ssize_t show_temp(struct device *dev, char *buf)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp));
++}
++
++static ssize_t show_temp_over(struct device *dev, char *buf)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_over));
++}
++
++static ssize_t set_temp_over(struct device *dev, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++	data->temp_over = TEMP_TO_REG(val);
++	sis5595_write_value(client, SIS5595_REG_TEMP_OVER, data->temp_over);
++	return count;
++}
++
++static ssize_t show_temp_hyst(struct device *dev, char *buf)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_hyst));
++}
++
++static ssize_t set_temp_hyst(struct device *dev, const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++	data->temp_hyst = TEMP_TO_REG(val);
++	sis5595_write_value(client, SIS5595_REG_TEMP_HYST, data->temp_hyst);
++	return count;
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
++static DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR,
++		show_temp_over, set_temp_over);
++static DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
++		show_temp_hyst, set_temp_hyst);
++
++/* 2 Fans */
++static ssize_t show_fan(struct device *dev, char *buf, int nr)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
++		DIV_FROM_REG(data->fan_div[nr])) );
++}
++
++static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan_min[nr],
++		DIV_FROM_REG(data->fan_div[nr])) );
++}
++
++static ssize_t set_fan_min(struct device *dev, const char *buf,
++		size_t count, int nr)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	unsigned long val = simple_strtoul(buf, NULL, 10);
++	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
++	sis5595_write_value(client, SIS5595_REG_FAN_MIN(nr), data->fan_min[nr]);
++	return count;
++}
++
++static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
++{
++	struct sis5595_data *data = sis5595_update_device(dev);
++	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]) );
++}
++
++/* Note: we save and restore the fan minimum here, because its value is
++   determined in part by the fan divisor.  This follows the principle of
++   least suprise; the user doesn't expect the fan minimum to change just
++   because the divisor changed. */
++static ssize_t set_fan_div(struct device *dev, const char *buf,
++	size_t count, int nr)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	unsigned long min = FAN_FROM_REG(data->fan_min[nr],
++			DIV_FROM_REG(data->fan_div[nr]));
++	unsigned long val = simple_strtoul(buf, NULL, 10);
++	int reg = sis5595_read_value(client, SIS5595_REG_FANDIV);
++	switch (val) {
++	case 1: data->fan_div[nr] = 0; break;
++	case 2: data->fan_div[nr] = 1; break;
++	case 4: data->fan_div[nr] = 2; break;
++	case 8: data->fan_div[nr] = 3; break;
++	default:
++		dev_err(&client->dev, "fan_div value %ld not "
++			"supported. Choose one of 1, 2, 4 or 8!\n", val);
++		return -EINVAL;
++	}
++	
++	switch (nr) {
++	case 0:
++		reg = (reg & 0xcf) | (data->fan_div[nr] << 4);
++		break;
++	case 1:
++		reg = (reg & 0x3f) | (data->fan_div[nr] << 6);
++		break;
++	}
++	sis5595_write_value(client, SIS5595_REG_FANDIV, reg);
++	data->fan_min[nr] +		FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
++	sis5595_write_value(client, SIS5595_REG_FAN_MIN(nr), data->fan_min[nr]);
++	return count;
++}
++
++#define show_fan_offset(offset)						\
++static ssize_t show_fan_##offset (struct device *dev, char *buf)	\
++{									\
++	return show_fan(dev, buf, offset - 1);			\
++}									\
++static ssize_t show_fan_##offset##_min (struct device *dev, char *buf)	\
++{									\
++	return show_fan_min(dev, buf, offset - 1);			\
++}									\
++static ssize_t show_fan_##offset##_div (struct device *dev, char *buf)	\
++{									\
++	return show_fan_div(dev, buf, offset - 1);			\
++}									\
++static ssize_t set_fan_##offset##_min (struct device *dev,		\
++		const char *buf, size_t count)				\
++{									\
++	return set_fan_min(dev, buf, count, offset - 1);		\
++}									\
++static DEVICE_ATTR(fan##offset##_input, S_IRUGO, show_fan_##offset, NULL);\
++static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,		\
++		show_fan_##offset##_min, set_fan_##offset##_min);
++
++show_fan_offset(1);
++show_fan_offset(2);
++
 +static ssize_t set_fan_1_div(struct device *dev, const char *buf,
 +		size_t count)
 +{
@@ -154,76 +547,448 @@ ugliness now.
 +{
 +	return set_fan_div(dev, buf, count, 1) ;
 +}
++static DEVICE_ATTR(fan1_div, S_IRUGO | S_IWUSR,
++		show_fan_1_div, set_fan_1_div);
++static DEVICE_ATTR(fan2_div, S_IRUGO | S_IWUSR,
++		show_fan_2_div, set_fan_2_div);
 +
-+show_fan_offset(1);
-+show_fan_offset(2);
-
-It would probably be better to swap these, i.e. call show_fan_offset()
-right after you define it, and move to the dividers only after.
-
++/* Alarms */
 +static ssize_t show_alarms(struct device *dev, char *buf)
 +{
 +	struct sis5595_data *data = sis5595_update_device(dev);
-+	return sprintf(buf, "%d\n", ALARMS_FROM_REG(data->alarms));
++	return sprintf(buf, "%d\n", data->alarms);
 +}
-
-data->alarms is unsigned, so that would be %u, not %d.
-
++static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++ 
++/* This is called when the module is loaded */
++static int sis5595_attach_adapter(struct i2c_adapter *adapter)
++{
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
++	return i2c_detect(adapter, &addr_data, sis5595_detect);
++}
++
++/* Locate SiS bridge and correct base address for SIS5595 */
++static int sis5595_find_sis(int *address)
++{
++	u16 val;
++	int *i;
++
++	if (!(s_bridge +	      pci_find_device(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_503,
++			     NULL)))
++		return -ENODEV;
++
++	/* Look for imposters */
++	for(i = blacklist; *i != 0; i++) {
++		if (pci_find_device(PCI_VENDOR_ID_SI, *i, NULL)) {
++			printk("sis5595.ko: Error: Looked for SIS5595 but found unsupported device %.4X\n", *i);
++			return -ENODEV;
++		}
++	}
++
++	if (PCIBIOS_SUCCESSFUL !+	    pci_read_config_word(s_bridge, SIS5595_BASE_REG, &val))
++		return -ENODEV;
++
++	*address = val & ~(SIS5595_EXTENT - 1);
++	if (*address = 0 && force_addr = 0) {
++		printk("sis5595.ko: base address not set - upgrade BIOS or use force_addr=0xaddr\n");
++		return -ENODEV;
++	}
++	if (force_addr)
++		*address = force_addr;	/* so detect will get called */
++
++	return 0;
++}
++
 +int sis5595_detect(struct i2c_adapter *adapter, int address, int kind)
-
-With the current i2c_detect() implementation, detect function are not
-supposed to return an error (non-zero value) on non-fatal errors such as
-a missing device. Thus you should get rid of all "err = -ENODEV;".
-
-+	if (!request_region(address, SIS5595_EXTENT, "sis5595")) {
-
-Please use sis5595_driver.name for as the name for requesting the region,
-os as to avoid string duplication.
-
-+	if(data->revision < REV2MIN) {
-+		data->maxins = 3;
-+	} else {
++{
++	int i, err;
++	struct i2c_client *new_client;
++	struct sis5595_data *data;
++	char val;
++	u16 a;
++
++	/* Make sure we are probing the ISA bus!!  */
++	if (!i2c_is_isa_adapter(adapter)) {
++		err = -ENODEV;
++		goto ERROR0;
++	}
++
++	if(force_addr)
++		address = force_addr & ~(SIS5595_EXTENT - 1);
++	/* Reserve the ISA region */
++	if (!request_region(address, SIS5595_EXTENT, sis5595_driver.name)) {
++		err = -EBUSY;
++		goto ERROR0;
++	}
++	if(force_addr) {
++		dev_warn(&adapter->dev, "forcing ISA address 0x%04X\n", address);
++		if (PCIBIOS_SUCCESSFUL !+		    pci_write_config_word(s_bridge, SIS5595_BASE_REG, address)) {
++			err = -ENODEV;
++			goto ERROR1;
++		}
++		if (PCIBIOS_SUCCESSFUL !+		    pci_read_config_word(s_bridge, SIS5595_BASE_REG, &a)) {
++			err = -ENODEV;
++			goto ERROR1;
++		}
++		if ((a & ~(SIS5595_EXTENT - 1)) != address) {
++			/* doesn't work for some chips? */
++			err = -ENODEV;
++			goto ERROR1;
++		}
++	}
++
++	if (PCIBIOS_SUCCESSFUL !+	    pci_read_config_byte(s_bridge, SIS5595_ENABLE_REG, &val)) {
++		err = -ENODEV;
++		goto ERROR1;
++	}
++	if((val & 0x80) = 0) {
++		if (PCIBIOS_SUCCESSFUL !+		    pci_write_config_byte(s_bridge, SIS5595_ENABLE_REG,
++		                      val | 0x80)) {
++			err = -ENODEV;
++			goto ERROR1;
++		}
++		if (PCIBIOS_SUCCESSFUL !+		    pci_read_config_byte(s_bridge, SIS5595_ENABLE_REG, &val)) {
++			err = -ENODEV;
++			goto ERROR1;
++		}
++		if((val & 0x80) = 0) {	/* doesn't work for some chips! */
++			err = -ENODEV;
++			goto ERROR1;
++		}
++	}
++
++	if (!(data = kmalloc(sizeof(struct sis5595_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto ERROR1;
++	}
++	memset(data, 0, sizeof(struct sis5595_data));
++
++	new_client = &data->client;
++	new_client->addr = address;
++	init_MUTEX(&data->lock);
++	i2c_set_clientdata(new_client, data);
++	new_client->adapter = adapter;
++	new_client->driver = &sis5595_driver;
++	new_client->flags = 0;
++
++	/* Check revision and pin registers to determine whether 4 or 5 voltages */
++	pci_read_config_byte(s_bridge, SIS5595_REVISION_REG, &(data->revision));
++	/* 4 voltages, 1 temp */
++	data->maxins = 3;
++	if(data->revision >= REV2MIN) {
 +		pci_read_config_byte(s_bridge, SIS5595_PIN_REG, &val);
-+		if(val & 0x80)
-+			/* 4 voltages, 1 temp */
-+			data->maxins = 3;
-+		else
++		if (!(val & 0x80))
 +			/* 5 voltages, no temps */
 +			data->maxins = 4;
 +	}
-
-This code could probably be made more simple if you were initializing
-data->maxins to 3 in the first place. I believe this is the most common
-case anyway?
-
-+	/* release ISA region first */
-+	if(i2c_is_isa_client(client))
-+		release_region(client->addr, SIS5595_EXTENT);
++	
++	/* Fill in the remaining client fields and put it into the global list */
++	strlcpy(new_client->name, "sis5595", I2C_NAME_SIZE);
 +
-+	/* now it's safe to scrap the rest */
++	data->valid = 0;
++	init_MUTEX(&data->update_lock);
++
++	/* Tell the I2C layer a new client has arrived */
++	if ((err = i2c_attach_client(new_client)))
++		goto ERROR2;
++	
++	/* Initialize the SIS5595 chip */
++	sis5595_init_client(new_client);
++
++	/* A few vars need to be filled upon startup */
++	for (i = 0; i < 2; i++) {
++		data->fan_min[i] = sis5595_read_value(new_client,
++					SIS5595_REG_FAN_MIN(i));
++	}
++
++	/* Register sysfs hooks */
++	device_create_file(&new_client->dev, &dev_attr_in0_input);
++	device_create_file(&new_client->dev, &dev_attr_in0_min);
++	device_create_file(&new_client->dev, &dev_attr_in0_max);
++	device_create_file(&new_client->dev, &dev_attr_in1_input);
++	device_create_file(&new_client->dev, &dev_attr_in1_min);
++	device_create_file(&new_client->dev, &dev_attr_in1_max);
++	device_create_file(&new_client->dev, &dev_attr_in2_input);
++	device_create_file(&new_client->dev, &dev_attr_in2_min);
++	device_create_file(&new_client->dev, &dev_attr_in2_max);
++	device_create_file(&new_client->dev, &dev_attr_in3_input);
++	device_create_file(&new_client->dev, &dev_attr_in3_min);
++	device_create_file(&new_client->dev, &dev_attr_in3_max);
++	if (data->maxins = 4) {
++		device_create_file(&new_client->dev, &dev_attr_in4_input);
++		device_create_file(&new_client->dev, &dev_attr_in4_min);
++		device_create_file(&new_client->dev, &dev_attr_in4_max);
++	}
++	device_create_file(&new_client->dev, &dev_attr_fan1_input);
++	device_create_file(&new_client->dev, &dev_attr_fan1_min);
++	device_create_file(&new_client->dev, &dev_attr_fan1_div);
++	device_create_file(&new_client->dev, &dev_attr_fan2_input);
++	device_create_file(&new_client->dev, &dev_attr_fan2_min);
++	device_create_file(&new_client->dev, &dev_attr_fan2_div);
++	device_create_file(&new_client->dev, &dev_attr_alarms);
++	if (data->maxins = 3) {
++		device_create_file(&new_client->dev, &dev_attr_temp1_input);
++		device_create_file(&new_client->dev, &dev_attr_temp1_max);
++		device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
++	}
++	return 0;
++	
++      ERROR2:
++	kfree(data);
++      ERROR1:
++	release_region(address, SIS5595_EXTENT);
++      ERROR0:
++	return err;
++}
++
++static int sis5595_detach_client(struct i2c_client *client)
++{
++	int err;
++
 +	if ((err = i2c_detach_client(client))) {
 +		dev_err(&client->dev,
 +		    "Client deregistration failed, client not detached.\n");
 +		return err;
 +	}
-
-Hm, shouldn't it precisely be done in the contrary order? As long as the
-client is attached, people can access the sysfs files. If the region is
-already released this will lead to I/O on a released region. As a matter
-of fact, the order in the original sis5595 driver used the order I
-suggest.
-
-+   There are some ugly typecasts here, but the good news is - they should
-+   nowhere else be necessary! */
-
-Old comment, drop.
-
-Rest is fine with me. Feel free to put youself in MODULE_AUTHOR() instead
-of Ky?sti.
-
-I would appreciate if you could backport to the lm_sensors/CVS driver all
-changes made to the 2.6 driver that would also make sense there.
-
-Thanks,
---
-Jean Delvare
++
++	if(i2c_is_isa_client(client))
++		release_region(client->addr, SIS5595_EXTENT);
++
++	kfree(i2c_get_clientdata(client));
++
++	return 0;
++}
++
++
++/* ISA access must be locked explicitly. */
++static int sis5595_read_value(struct i2c_client *client, u8 reg)
++{
++	int res;
++
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	down(&data->lock);
++	outb_p(reg, client->addr + SIS5595_ADDR_REG_OFFSET);
++	res = inb_p(client->addr + SIS5595_DATA_REG_OFFSET);
++	up(&data->lock);
++	return res;
++}
++
++static int sis5595_write_value(struct i2c_client *client, u8 reg, u8 value)
++{
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	down(&data->lock);
++	outb_p(reg, client->addr + SIS5595_ADDR_REG_OFFSET);
++	outb_p(value, client->addr + SIS5595_DATA_REG_OFFSET);
++	up(&data->lock);
++	return 0;
++}
++
++/* Called when we have found a new SIS5595. */
++static void sis5595_init_client(struct i2c_client *client)
++{
++	u8 config = sis5595_read_value(client, SIS5595_REG_CONFIG);
++	if (!(config & 0x01))
++		sis5595_write_value(client, SIS5595_REG_CONFIG,
++				(config & 0xf7) | 0x01);
++}
++
++static struct sis5595_data *sis5595_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sis5595_data *data = i2c_get_clientdata(client);
++	int i;
++
++	down(&data->update_lock);
++
++	if ((jiffies - data->last_updated > HZ + HZ / 2) ||
++	    (jiffies < data->last_updated) || !data->valid) {
++
++		for (i = 0; i <= data->maxins; i++) {
++			data->in[i] +			    sis5595_read_value(client, SIS5595_REG_IN(i));
++			data->in_min[i] +			    sis5595_read_value(client,
++					       SIS5595_REG_IN_MIN(i));
++			data->in_max[i] +			    sis5595_read_value(client,
++					       SIS5595_REG_IN_MAX(i));
++		}
++		for (i = 0; i < 2; i++) {
++			data->fan[i] +			    sis5595_read_value(client, SIS5595_REG_FAN(i));
++			data->fan_min[i] +			    sis5595_read_value(client,
++					       SIS5595_REG_FAN_MIN(i));
++		}
++		if(data->maxins = 3) {
++			data->temp +			    sis5595_read_value(client, SIS5595_REG_TEMP);
++			data->temp_over +			    sis5595_read_value(client, SIS5595_REG_TEMP_OVER);
++			data->temp_hyst +			    sis5595_read_value(client, SIS5595_REG_TEMP_HYST);
++		}
++		i = sis5595_read_value(client, SIS5595_REG_FANDIV);
++		data->fan_div[0] = (i >> 4) & 0x03;
++		data->fan_div[1] = i >> 6;
++		data->alarms +		    sis5595_read_value(client, SIS5595_REG_ALARM1) |
++		    (sis5595_read_value(client, SIS5595_REG_ALARM2) << 8);
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	up(&data->update_lock);
++
++	return data;
++}
++
++
++
++static int __init sm_sis5595_init(void)
++{
++	int addr;
++
++	if (sis5595_find_sis(&addr))
++		return -ENODEV;
++	normal_isa[0] = addr;
++
++	return i2c_add_driver(&sis5595_driver);
++}
++
++static void __exit sm_sis5595_exit(void)
++{
++	i2c_del_driver(&sis5595_driver);
++}
++
++
++
++MODULE_AUTHOR("Aurelien Jarno <aurelien@aurel32.net>");
++MODULE_DESCRIPTION("SiS 5595 Sensor device");
++MODULE_LICENSE("GPL");
++
++module_init(sm_sis5595_init);
++module_exit(sm_sis5595_exit);
+-------------- next part --------------
+diff -urN kernel-source-2.6.10/drivers/i2c/chips/lm78.c kernel-source-2.6.10.sis5595/drivers/i2c/chips/lm78.c
+--- kernel-source-2.6.10/drivers/i2c/chips/lm78.c	2004-12-24 22:35:24.000000000 +0100
++++ kernel-source-2.6.10.sis5595/drivers/i2c/chips/lm78.c	2005-01-25 15:26:15.000000000 +0100
+@@ -83,7 +83,6 @@
+ {
+ 	if (rpm = 0)
+ 		return 255;
+-	rpm = SENSORS_LIMIT(rpm, 1, 1000000);
+ 	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
+ }
+ 
+@@ -94,15 +93,15 @@
+ 
+ /* TEMP: mC (-128C to +127C)
+    REG: 1C/bit, two's complement */
+-static inline u8 TEMP_TO_REG(int val)
++static inline s8 TEMP_TO_REG(int val)
+ {
+ 	int nval = SENSORS_LIMIT(val, -128000, 127000) ;
+-	return nval<0 ? (nval-500)/1000+0x100 : (nval+500)/1000;
++	return nval<0 ? -(nval-500)/1000 : (nval+500)/1000;
+ }
+ 
+-static inline int TEMP_FROM_REG(u8 val)
++static inline int TEMP_FROM_REG(s8 val)
+ {
+-	return (val>=0x80 ? val-0x100 : val) * 1000;
++	return val * 1000;
+ }
+ 
+ /* VID: mV
+@@ -112,16 +111,6 @@
+ 	return val=0x1f ? 0 : val>=0x10 ? 5100-val*100 : 2050-val*50;
+ }
+ 
+-/* ALARMS: chip-specific bitmask
+-   REG: (same) */
+-#define ALARMS_FROM_REG(val) (val)
+-
+-/* FAN DIV: 1, 2, 4, or 8 (defaults to 2)
+-   REG: 0, 1, 2, or 3 (respectively) (defaults to 1) */
+-static inline u8 DIV_TO_REG(int val)
+-{
+-	return val=8 ? 3 : val=4 ? 2 : val=1 ? 0 : 1;
+-}
+ #define DIV_FROM_REG(val) (1 << (val))
+ 
+ /* There are some complications in a module like this. First off, LM78 chips
+@@ -157,9 +146,9 @@
+ 	u8 in_min[7];		/* Register value */
+ 	u8 fan[3];		/* Register value */
+ 	u8 fan_min[3];		/* Register value */
+-	u8 temp;		/* Register value */
+-	u8 temp_over;		/* Register value */
+-	u8 temp_hyst;		/* Register value */
++	s8 temp;		/* Register value */
++	s8 temp_over;		/* Register value */
++	s8 temp_hyst;		/* Register value */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+ 	u8 vid;			/* Register encoding, combined */
+ 	u16 alarms;		/* Register encoding, combined */
+@@ -357,7 +346,17 @@
+ 			DIV_FROM_REG(data->fan_div[nr]));
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	int reg = lm78_read_value(client, LM78_REG_VID_FANDIV);
+-	data->fan_div[nr] = DIV_TO_REG(val);
++	switch (val) {
++	case 1: data->fan_div[nr] = 0; break;
++	case 2: data->fan_div[nr] = 1; break;
++	case 4: data->fan_div[nr] = 2; break;
++	case 8: data->fan_div[nr] = 3; break;
++	default:
++		dev_err(&client->dev, "fan_div value %ld not "
++			"supported. Choose one of 1, 2, 4 or 8!\n", val);
++		return -EINVAL;
++	}
++
+ 	switch (nr) {
+ 	case 0:
+ 		reg = (reg & 0xcf) | (data->fan_div[nr] << 4);
+@@ -430,7 +429,7 @@
+ static ssize_t show_alarms(struct device *dev, char *buf)
+ {
+ 	struct lm78_data *data = lm78_update_device(dev);
+-	return sprintf(buf, "%d\n", ALARMS_FROM_REG(data->alarms));
++	return sprintf(buf, "%u\n", data->alarms);
+ }
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+@@ -462,7 +461,7 @@
+ 
+ 	/* Reserve the ISA region */
+ 	if (is_isa)
+-		if (!request_region(address, LM78_EXTENT, "lm78")) {
++		if (!request_region(address, LM78_EXTENT, lm78_driver.name)) {
+ 			err = -EBUSY;
+ 			goto ERROR0;
+ 		}
+@@ -633,17 +632,15 @@
+ {
+ 	int err;
+ 
+-	/* release ISA region first */
+-	if(i2c_is_isa_client(client))
+-		release_region(client->addr, LM78_EXTENT);
+-
+-	/* now it's safe to scrap the rest */
+ 	if ((err = i2c_detach_client(client))) {
+ 		dev_err(&client->dev,
+ 		    "Client deregistration failed, client not detached.\n");
+ 		return err;
+ 	}
+ 
++	if(i2c_is_isa_client(client))
++		release_region(client->addr, LM78_EXTENT);
++
+ 	kfree(i2c_get_clientdata(client));
+ 
+ 	return 0;
+@@ -653,9 +650,7 @@
+    We don't want to lock the whole ISA bus, so we lock each client
+    separately.
+    We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
+-   would slow down the LM78 access and should not be necessary. 
+-   There are some ugly typecasts here, but the good new is - they should
+-   nowhere else be necessary! */
++   would slow down the LM78 access and should not be necessary.  */
+ static int lm78_read_value(struct i2c_client *client, u8 reg)
+ {
+ 	int res;
