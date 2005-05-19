@@ -1,75 +1,99 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:46 +0000
-Subject: Fw: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5497@weshml03.winbond.com.tw>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:50 +0000
+Subject: Ask for some information about motherboard ASUS NCLV-D
+Message-Id: <425AE9F5.3090707@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBSdWRvbGYKCkkgY2FuIHVuZGVyc3RhbmQgeW91ciBmZWVsaW5ncyBhbmQgY29tcGxhaW50
-IGFic29sdXRlbHksIEknbSBzb3JyeSBmb3IgdGhlCnRyb3VibGUgYW5kIG9ic3RhY2xlcyBicm91
-Z2h0IHlvdS4gSSB3aWxsIGRpc2N1c3Mgd2l0aCBteSBtYW5hZ2VycyBhYm91dAppdCBhbmQgZXhw
-cmVzcyB5b3VyIG1lYW5pbmcsIEkgdGhpbmsgd2UgbWF5IGltcHJvdmUgaXQgaW4gb3VyIGZ1dHVy
-ZQpjb29wZXJhdGlvbi4KClRoYW5rcyBhIGxvdC4KCkJlc3QgUmVnYXJkcwpDaHVuaGFvCjIwMDUt
-My0yNwoKCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBSdWRvbGYgTWFyZWsg
-W21haWx0bzpSLk1hcmVrQHNoLmN2dXQuY3pdCj4gU2VudDogMjAwNcTqM9TCMjbI1SAyMDo1MAo+
-IFRvOiBQSTE0IEhVQU5HMAo+IENjOiBSLk1hcmVrQHNoLmN2dXQuY3o7IGtoYWxpQGxpbnV4LWZy
-Lm9yZzsgUEkxMCBMSEhzdTsgUEkxNCBEWlNIRU47IFBJMTMgQ0ZMaTsKPiBzZW5zb3JzQFN0aW1w
-eS5uZXRyb2VkZ2UuY29tCj4gU3ViamVjdDogUkU6IEZ3OiBBc2sgZm9yIHNvbWUgaW5mb3JtYXRp
-b24gYWJvdXQgbW90aGVyYm9hcmQgQVNVUyBOQ0xWLUQKPiAKPiBIZWxsbywKPiAKPiA+IEkgaGF2
-ZSB0d28gcXVlc3Rpb25zIGhlcmU6Cj4gPiAoMSkgQXMgd2Uga25vdywgaXQgd2lsbCBiZSB2ZXJ5
-IGluY29udmVuaWVudCBmb3IgdGhvc2UgdXNlcnMgd2l0aCBBU1VTCj4gPiBOQ0xWLUQgbW90aGVy
-Ym9hcmQgYW5kIHdhbnQgdG8gdXNlIHc4Mzc5MmQgZHJpdmVyIHVuZGVyIGxpbnV4LTIuNCwgaWYg
-dGhleQo+ID4gaGF2ZSB0byB3cml0ZSB0aGUgdmFsdWUgIjB4MDgiIGludG8gIjB4MDRiOSIgYnkg
-dGhlbXNlbHZlcyBlYWNoIHRpbWUuCj4gCj4gQWZ0ZXIgdGFsa2luZyB3aXRoIEplYW4gd2UgYWdy
-ZWVkIG9uIHRoaXM6Cj4gCj4gSSdtIHNvcnJ5IHRoZXJlIGlzIG5vIGVhc3kgd2F5IHRvIGZpeCB0
-aGlzLiBXZSBjb25zaWRlciB0aGlzIGFzIEJJT1MgYnVnCj4gYW5kIGl0IHNob3VsZCBiZSBmaXhl
-ZCBieSBBU1VTLiBJZiBjb21wYW5pZXMgIHVzZSAiZW50ZXJwcmlzZSAyLjQgbGludXgiCj4gSSBo
-b3BlIHRoZXkgd2lsbCBjb21wbGFpbiBhYm91dCB0aGlzIGFuZCBBU1VTIHJlbW92ZXMgc3VjaCBz
-dHVwaWQKPiByZXN0cmljdGlvbi4gVXNlcnNwYWNlIHBvc3NpYmlsdHkgaXMgbGVmdCBmb3Igc3Vj
-aCB1c2Vycy4gVGhlaXIgZGlzY29tZm9ydAo+IGlzIEFTVVMgZmF1bHQuCj4gCj4gTXkgb2ZmZXI6
-Cj4gCj4gTWF5YmUgeW91IHNob3VsZCBhc2sgQVNVUyB0byBnaXZlIHlvdSBmdWxsIGxpc3Qgb2Yg
-bW90aGVyYm9hcmRzIHRoYXQgYXJlCj4gaGlkaW5nIHlvdXIgY2hpcHMgKGFuZCBvZiBjb3Vyc2Ug
-aG93IHRvIHVubG9jayB0aGVtKS4gSSdtIHdpbGxpbmcgdG8KPiBpbXBsZW1lbnQgcXVpcmtzLmMg
-Zm9yIDIuNiBrZXJuZWxzIGJ1dCB0aGF0cyBhbGwgSSBjb3VsZCBkbyBmb3IgeW91Lgo+IAo+IE15
-IG9wcGluaW9uLCBidXQgSSB0aGluayBvdGhlcnMgd2lsbCBhZ3JlZSBvbiB0aGlzIHRvbzoKPiAK
-PiBJJ20gc29ycnksIHdlIHN0cm9uZ2x5IGJlbGl2ZSB0aGF0IHRoaXMgcHJhY3RpY2VzIGFyZSBq
-dXN0IHB1dHRpbmcKPiBvYnN0YWNsZXMgdG8gb3VyIHdvcmsuIEkga25vdyBwZW9wbGUgd2VyZW50
-IGhhcHB5IHdpdGggdGhlaXIgcHJvcHJpZXRhcnkKPiBBU01BIHNvZnR3YXJlIHVuZGVyIExpbnV4
-LiBNYXliZSB0aGF0cyB0aGUgcmVhc29uIHlvdSBhcmUgd3JpdGluZyB0aGUKPiBkcml2ZXIgZm9y
-IGxtX3NlbnNvcnMgaW5mYXJzdHJ1Y3R1cmUuCj4gCj4gTW9yZW92ZXIgbW9yZSBvYnN0YWNsZXMg
-YXJlIHNldDoKPiAKPiAxKSBDaGlwcyBkb2NzIHVuZGVyIE5EQQo+IDIpIEJ1cyBjaGlwcyB1bmRl
-ciBOREEKPiAzKSBIaWRlIGFuZCBzZWVrIGdhbWVzIHdpdGggQVNVUwo+IDQpIE1vdGhlcmJvYXJk
-IG1hbnVmYWN0dXJlcyByZWZ1c2luZyB0byB0ZWxsIHVzIHdoYXQgZm9ybXVsYXMgdGhleSB1c2Uu
-Cj4gICAgKHRoZXkgd2FudCBOREEsIG9yIHNpbXBseSBkbyBub3QgcmVzcG9uZCkKPiAKPiBQbGVh
-c2UgaGVscCB1cyB0byBjaGFuZ2UgdGhpcyBwcmFjdGljZSEgSSBjYW4ndCBnZXQgd2h5IHRoZXkg
-YXJlIGRvaW5nCj4gc3VjaCB0aGluZ3MuIFdlIGFyZSBzaW1wbHkgd29ya2luZyBvbiBzdXBwb3J0
-IG9mIHRoZWlyIG1vdGhlcmJvYXJkcyBmb3IKPiBmcmVlIGFuZCB0aGV5IGRvbnQgZ2V0IGl0ISEh
-Cj4gCj4gUmVnYXJkcwo+IAo+IFJ1ZG9sZgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBj
-b250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFk
-ZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFp
-bC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBv
-ciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBw
-ZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGlu
-Z2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5l
-dHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRp
-b24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBh
-bnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUg
-b2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBn
-aXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENo
-aW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNz
-ZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tI
-pfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKem
-rKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhn
-scLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5
-cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9T
-prm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HE
-Wa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGyk
-p6Xfs/WpzrdOqKMuCg==
+Huang0@Winbond.com.tw wrote:
+> Hi Rudolf
+> 
+> I tested your patch "hide_and_seek_2" under linux-2.6.11 under this motherboard
+> ASUS NCLV-D, the 792 driver for linux-2.6 can work if I execute "isaset -y -f 0x04b9 0x08" at first, 
+even if the eeprom modules is loaded. But the eeprom
+> modules can NOT get the memory information.
+
+Hmm thats strange. You should see in syslog the message from the patch and you should
+be able to modprobe the 792 driver without the isaset. Can you see the message in the log
+from my patch?
+
+If not can you put some printks around to see where is problem? Thanks.
+We need to know:
+
+1) if our patch was activated
+2) if it works same way as isaset
+
+> I remember that under linux-2.4 on this motherboard, the 792 driver can NOT
+> work if eeprom modules is loaded.
+
+yes it was because the i2c-i801 did not handle correctly the i2c-block reads, this is already
+fixed in CVS.
+
+> [root@localhost linux-2.6.11]# sensors
+> w83792d-i2c-0-2f
+> Adapter: SMBus I801 adapter at 0400
+> VCoreA:    +1.33 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
+> VCoreB:    +0.35 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
+> VIN0:      +3.28 V  (min =  +3.20 V, max =  +3.39 V)
+> VIN1:      +3.17 V  (min =  +3.09 V, max =  +3.30 V)
+> VIN2:      +1.51 V  (min =  +1.39 V, max =  +1.49 V)       ALARM
+> VIN3:      +2.50 V  (min =  +2.59 V, max =  +2.64 V)       ALARM
+> 5VCC:      +5.08 V  (min =  +4.73 V, max =  +5.23 V)
+> 5VSB:      +4.92 V  (min =  +4.73 V, max =  +5.23 V)
+> VBAT:      +3.01 V  (min =  +2.85 V, max =  +3.14 V)
+> Fan1:        0 RPM  (min =    0 RPM, div = 128)
+> Fan2:     1448 RPM  (min = 1500 RPM, div = 4)              ALARM
+> Fan3:        0 RPM  (min =    0 RPM, div = 128)
+> Fan4:        0 RPM  (min =    0 RPM, div = 128)
+> Fan5:        0 RPM  (min =    0 RPM, div = 128)
+> Fan6:        0 RPM  (min =    0 RPM, div = 2)
+> Fan7:        0 RPM  (min =    0 RPM, div = 128)
+> Temp1:     +37.0??C  (high = +42.0??C, hyst = +37.0??C)
+> Temp2:     +57.0??C  (high = +43.0??C, hyst = +38.0??C)   ALARM
+> Temp3:     -32.0??C  (high = +45.0??C, hyst = +40.0??C)   ALARM
+> chassis:  Chassis is normal.
+> 
+> eeprom-i2c-0-55
+> Adapter: SMBus I801 adapter at 0400
+> Unknown EEPROM type (255).
+> 
+> eeprom-i2c-0-54
+> Adapter: SMBus I801 adapter at 0400
+> Unknown EEPROM type (255).
+> 
+
+Hmm again some more problems...
+
+Maybe the "trick" disabled the EEPROM part of the bus.
+Can you please try with clean boot:
+
+modprobe i2c-i801  (I hope it is this driver)
+
+i2cdetect 0
+isaset .... (put here the trick line)
+i2cdetect 0
+
+Afterwards if you still can see address 0x54 and 0x55
+can you do:
+i2cdump 0 0x55
+i2cdump 0 0x55 c
+modprobe eeprom
+sensors
+modprobe your792driver
+sensors
+i2cdump 0 0x55 c
+
+If you cannot see addresses 54 55 as "responsive - no XX" than it means the trick switched the bus. And because
+the quirk did not work and you did it manualy than eeprom driver cant get data because the chip is "away"
+
+thanks
+
+regards
+
+Rudolf
+
