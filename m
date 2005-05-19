@@ -1,25 +1,17 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: [PATCH] Rapid Hance quirk
-Message-Id: <20050428062813.GB11670@kroah.com>
+From: azarah@gentoo.org (Martin Schlemmer)
+Date: Thu, 19 May 2005 06:24:00 +0000
+Subject: [2.5] Help with ICH5 SMBus and W83627THF
+Message-Id: <1055775351.19204.11.camel@nosferatu.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050421104906.17401.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20050421104906.17401.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Apr 21, 2005 at 10:49:06AM -0000, R.Marek@sh.cvut.cz wrote:
-> Hello,
-> 
-> This patch just adds Intel's Hance Rapid south bridge IDs to ICH4 region quirk.
-> Patch was successfuly tested by Chunhao Huang from Winbond.
-> 
-> Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
-> 
-> Please apply.
-
-Applied, thanks.
-
-greg k-h
+Skipped content of type multipart/mixed-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030616/8a7170e1/attachment.bin
