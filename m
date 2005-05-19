@@ -1,7 +1,7 @@
-From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: ATI i2c bus driver
-Message-Id: <Pine.LNX.4.53.0401031426280.27769@cosmos.private>
+Message-Id: <20040103161141.2b059188.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040102115144.219b5579.khali@linux-fr.org>
 In-Reply-To: <20040102115144.219b5579.khali@linux-fr.org>
@@ -10,14 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2 Jan 2004, Mark Studebaker wrote:
+> Katos, Gatos, ATI.2. I think all are hosted at sourceforge, you should
+> find XFree86 I2C/DDC interface code there. Many ATI datasheets were
+> not publicly available the last time I looked.
 
-> start by finding a datasheet.
-> after that it's easy :)
+I'll give a try to the gatos-devel mailing-list.
 
-Katos, Gatos, ATI.2. I think all are hosted at sourceforge, you should
-find XFree86 I2C/DDC interface code there. Many ATI datasheets were not
-publicly available the last time I looked.
+There must be some code in XFree as well, but that's so complex that I
+did not understand anything (probably because it's mixed with so many
+other parts). I'd hope that data sheets, if they exist and are somewhat
+available, would be more helpful.
 
 -- 
-  Ky?sti M?lkki  <kyosti.malkki@welho.com>
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
