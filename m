@@ -1,22 +1,251 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:14 +0000
-Subject: Gone again
-Message-Id: <1061740021.3f48ddf5afa23@imp.gcu.info>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:46 +0000
+Subject: Meaningless data: 233 exports to sysfs from i2c
+Message-Id: <q27d41t53athbj0ncf0bretoivv81vvd97@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi there,
 
-I'll be gone for another week. I can't tell exactly when I'll be back, nor how 
-much I'll be able to help once I am.
+Wanted to produce this for ages, mongrel sed + grep + cut + 
+etcetera and a cat walked over keyboard to produce:
 
-Good luck :)
+Cheers,
+Grant.
 
-Khali
-
-
--------------------------------------------------
-This mail sent through IMP: http://horde.org/imp/
+alarm_mask
+alarms
+alarms_in
+alarms_temp
+analog_out
+aout_output
+auto_fan1_channel
+auto_fan1_min_pwm
+auto_fan2_channel
+auto_fan2_min_pwm
+auto_temp1_max
+auto_temp1_min
+auto_temp1_off
+auto_temp2_max
+auto_temp2_min
+auto_temp2_off
+auto_temp3_max
+auto_temp3_min
+auto_temp3_off
+beep_enable
+beep_mask
+control
+cpu0_vid
+die_code
+event
+fan1_auto
+fan1_div
+fan1_input
+fan1_min
+fan1_off
+fan1_ripple
+fan1_status
+fan2_div
+fan2_input
+fan2_min
+fan2_ripple
+fan2_status
+fan3_div
+fan3_input
+fan3_min
+fan3_ripple
+fan3_status
+fan4_div
+fan4_input
+fan4_min
+fan5_div
+fan5_input
+fan5_min
+fan6_div
+fan6_input
+fan6_min
+fan7_div
+fan7_input
+fan7_min
+fan8_div
+fan8_input
+fan8_min
+gpio
+gpio_mask
+in0_input
+in0_max
+in0_min
+in0_status
+in10_input
+in10_max
+in10_min
+in10_status
+in11_input
+in11_max
+in11_min
+in12_input
+in12_max
+in12_min
+in13_input
+in13_max
+in13_min
+in14_input
+in14_max
+in14_min
+in15_input
+in15_max
+in15_min
+in16_input
+in16_max
+in16_min
+in1_input
+in1_max
+in1_min
+in1_ref
+in1_status
+in2_input
+in2_max
+in2_min
+in2_status
+in3_input
+in3_max
+in3_min
+in3_status
+in4_input
+in4_max
+in4_min
+in4_status
+in5_input
+in5_max
+in5_min
+in5_status
+in6_input
+in6_max
+in6_min
+in6_status
+in7_input
+in7_max
+in7_min
+in7_status
+in8_input
+in8_max
+in8_min
+in8_status
+in9_input
+in9_max
+in9_min
+in9_status
+out0_enable
+out0_output
+pwm1
+pwm1_auto_channels
+pwm1_auto_pwm_freq
+pwm1_auto_pwm_min
+pwm1_auto_pwm_minctl
+pwm1_enable
+pwm2
+pwm2_auto_channels
+pwm2_auto_pwm_freq
+pwm2_auto_pwm_min
+pwm2_auto_pwm_minctl
+pwm2_enable
+pwm3
+pwm3_auto_channels
+pwm3_auto_pwm_freq
+pwm3_auto_pwm_min
+pwm3_auto_pwm_minctl
+pwm3_enable
+pwm4
+read
+revision
+rt1
+rt2
+rt3
+temp1_auto_point1_pwm
+temp1_auto_point1_temp
+temp1_auto_point1_temp_hyst
+temp1_auto_point2_pwm
+temp1_auto_point2_temp
+temp1_auto_temp_crit
+temp1_auto_temp_max
+temp1_auto_temp_min
+temp1_auto_temp_off
+temp1_crit
+temp1_crit_enable
+temp1_crit_hyst
+temp1_input
+temp1_max
+temp1_max_hyst
+temp1_min
+temp1_min_hyst
+temp1_offset
+temp1_reset
+temp1_status
+temp1_type
+temp2_auto_point1_pwm
+temp2_auto_point1_temp
+temp2_auto_point1_temp_hyst
+temp2_auto_point2_pwm
+temp2_auto_point2_temp
+temp2_auto_temp_crit
+temp2_auto_temp_max
+temp2_auto_temp_min
+temp2_auto_temp_off
+temp2_crit
+temp2_crit_enable
+temp2_crit_hyst
+temp2_input
+temp2_max
+temp2_max_hyst
+temp2_min
+temp2_offset
+temp2_reset
+temp2_status
+temp2_type
+temp3_auto_point1_pwm
+temp3_auto_point1_temp
+temp3_auto_point1_temp_hyst
+temp3_auto_point2_pwm
+temp3_auto_point2_temp
+temp3_auto_temp_crit
+temp3_auto_temp_max
+temp3_auto_temp_min
+temp3_auto_temp_off
+temp3_crit
+temp3_crit_enable
+temp3_input
+temp3_max
+temp3_max_hyst
+temp3_min
+temp3_offset
+temp3_reset
+temp3_status
+temp3_type
+temp4_crit
+temp4_input
+temp4_max
+temp4_max_hyst
+temp4_min
+temp4_status
+temp5_crit
+temp5_input
+temp5_max
+temp5_min
+temp5_status
+temp6_crit
+temp6_input
+temp6_max
+temp6_min
+temp6_status
+vid
+vrm
+watchdog_control
+watchdog_preset
+watchdog_status
+wdog_control
+wdog_preset
+wdog_state
+write
