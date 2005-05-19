@@ -1,45 +1,44 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH] I2C: add MODULE_DEVICE_TABLE to via686a.c driver
-Message-Id: <11059983952870@kroah.com>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: [alexzapatka@hotmail.com: lm sensors and mkpatch]
+Message-Id: <20030924150053.GA1356@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20050117214543.GB28400@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: greg@kroah.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2329.2.1, 2005/01/14 14:41:19-08:00, greg@kroah.com
+----- Forwarded message from Alexander Zapatka <alexzapatka@hotmail.com> -----
 
-[PATCH] I2C: add MODULE_DEVICE_TABLE to via686a.c driver
+X-Originating-IP: [159.247.50.4]
+X-Originating-Email: [alexzapatka@hotmail.com]
+From: Alexander Zapatka <alexzapatka@hotmail.com>
+To: frodol@dds.nl
+Subject: lm sensors and mkpatch
+X-OriginalArrivalTime: 24 Sep 2003 14:18:46.0706 (UTC) FILETIME=[C45C2120:01C382A6]
+X-Spam-Status: No, hits=3.5 required=5.0 tests=CLICK_BELOW,RCVD_IN_OSIRUSOFT_COM version=2.20
+X-Spam-Level: ***
 
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+thanks for the coolie work on the lmsensors stuff!  i wanted to add the 
+i2c_nforce2 bus to the coolie mkpatch script... but i am a novice programer 
+and have trouble with the dependancy tracking as to what actually needs to 
+be added to the kernel with the mkpatch program... could you give me some 
+help and point me in some direction?
 
 
- drivers/i2c/chips/via686a.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
 
+     -o)
+     /\\    Message void if penguin violated
+    _\_V    Don't mess with the penguin
 
-diff -Nru a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
---- a/drivers/i2c/chips/via686a.c	2005-01-17 13:21:21 -08:00
-+++ b/drivers/i2c/chips/via686a.c	2005-01-17 13:21:21 -08:00
-@@ -786,14 +786,11 @@
- }
- 
- static struct pci_device_id via686a_pci_ids[] = {
--       {
--	       .vendor 		= PCI_VENDOR_ID_VIA, 
--	       .device 		= PCI_DEVICE_ID_VIA_82C686_4, 
--	       .subvendor	= PCI_ANY_ID, 
--	       .subdevice	= PCI_ANY_ID, 
--       },
-+       { PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4) },
-        { 0, }
- };
-+
-+MODULE_DEVICE_TABLE(pci, via686a_pci_ids);
- 
- static int __devinit via686a_pci_probe(struct pci_dev *dev,
-                                       const struct pci_device_id *id)
+_________________________________________________________________
+High-speed Internet access as low as $29.95/month (depending on the local 
+service providers in your area). Click here.   https://broadband.msn.com
 
+----- End forwarded message -----
+
+-- 
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
