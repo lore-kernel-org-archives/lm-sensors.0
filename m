@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: [PATCH 2.4] i2c cleanups
-Message-Id: <20031217202854.3914cb8d.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.53.0312172239370.23656@cosmos.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031213191258.2d78a9f7.khali@linux-fr.org>
 In-Reply-To: <20031213191258.2d78a9f7.khali@linux-fr.org>
@@ -10,33 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The 4 patches were accepted, you can see them in 2.4.23-bk13. A first
-battle we won :) but the war is far from being over.
 
-From 246kB for the patch that was required to update Linux 2.4.23 to
-i2c 2.8.2, the patch size is reduced to 215kB with 2.4.23-bk13. If we
-leave apart the new drivers, which I don't plan to submit, the remaining
-size is 129k. This basically means that I've only done one fifth of the
-job so far. I will sumbit another wave of patches as soon as possible.
+Long story short, as I recall it.
 
-There's something I would need help with. The main reason why we are
-submitting patches is the change in the way module references are
-counted. Sooner or later I'll have to submit a patch for that point. I
-read on this list that the new method might not be correct though. I
-don't want to submit a buggy patch this late in Linux 2.4's life, but on
-the other hand I don't have the knowledge nor time to solve the problem,
-if there is one. So I would like someone to review that part of our
-code, to tell me if this is correct or not and why, and to commit the
-required changes to our i2c CVS repository, if needed.
+For kernel 2.2 : MOD_INC/DEC_USE_COUNT and necessary callbacks in the
+i2c structs. I _think_ there was some race condition of calling rmmod to
+release the module and another process half-way to MOD_INC_COUNT.
 
-Ky?sti, you seem to understand the problem rather well, so I was
-hoping you could help me here. MDS and Greg also would probably be able
-to help. Guys, please work it out if you can. And remember that time is
-against us, since a structure change won't be accepted after 2.4.24 is
-released (it's not even sure it will be accepted *before*...)
+For kernel 2.4 : Replace MOD_INC_COUNT with try_inc_mod_count(), this
+may fail if the module in question is about to be removed from kernel.
+The callback in i2c_adapter and i2c_driver is void (*inc_use)() so the
+choice of exporting .owner=THIS_MODULE to i2c-core as was already
+done in 2.5 tree seemed like the correct choice. This is the essential
+question whether the cleanup is just an api change or a real bugfix.
 
-If anyone else wants to help, this is very welcome too, of course ;)
+A problem I see there is procfs allowing only one module reference per
+opened file. In terms of i2c architecture, we need to hold both adapter
+and driver modules in place. Currently neither is done and I think it
+will oops if you enter a directory under /proc/sys/dev/sensors and rmmod
+either of the two hw interface modules. The fill_inode from days of
+2.2.x does not seem either.
+
+For kernel 2.6: kobjects. This is the essentials of driver-model and
+sysfs allowing a tree-like topology of devices and drivers. Reference a
+device on the bus, and its driver and parent device are also referenced.
+In turn, this would obsolete .owner if driver-model gets more thoroughly
+implemented during 2.7 cycle. I have some compiling and running code for
+that, will post for review on holidays.
+
+Maybe someone can pop more details right off their stack.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+  Ky?sti M?lkki  <kyosti.malkki@welho.com>
