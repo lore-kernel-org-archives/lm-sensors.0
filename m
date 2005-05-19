@@ -1,7 +1,7 @@
 From: adaplas@hotpop.com (Antonino A. Daplas)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: Who should I write to about this OOPS in 2,6,11-mm3?
-Message-Id: <200503180411.04839.adaplas@hotpop.com>
+Message-Id: <200503180411.12456.adaplas@hotpop.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050315050746.GB13009@kroah.com>
 In-Reply-To: <20050315050746.GB13009@kroah.com>
@@ -10,36 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday 18 March 2005 03:10, Jean Delvare wrote:
-> Hi Tony, hi all,
-> I think I found the problem. If count is less than in_row1, bad things
-> will happen with the code above. Shame on me for not noticing when I
-> wrote it in the first place.
->
-> Suggested fix would be:
->
-> --- linux-2.6.11.4/drivers/i2c/chips/eeprom.c.orig	2005-03-13
-> 10:00:01.000000000 +0100 +++
-> linux-2.6.11.4/drivers/i2c/chips/eeprom.c	2005-03-17 19:54:07.000000000
-> +0100 @@ -130,7 +130,8 @@
->
->  	/* Hide Vaio security settings to regular users (16 first bytes) */
->  	if (data->nature = VAIO && off < 16 && !capable(CAP_SYS_ADMIN)) {
-> -		int in_row1 = 16 - off;
-> +		size_t in_row1 = 16 - off;
-> +		in_row1 = min(in_row1, count);
->  		memset(buf, 0, in_row1);
->  		if (count - in_row1 > 0)
->  			memcpy(buf + in_row1, &data->data[16], count - in_row1);
+On Thursday 17 March 2005 00:37, Jean Delvare wrote:
+> Hi Tony,
 >
 >
-> Please test and report.
+> Tony, Miles' original report is here:
+> http://marc.theaimsgroup.com/?l=linux-kernel&m1076667232062&w=2
+> Sorry for providing the link before.
 >
 
-Tested on nvidiafb.  No more hang, thanks.
+Before I go on debugging, a few questions, as my knowledge of the i2c
+framework is quite limited:
 
-I can test on savagefb too, if you want, but I expect the same result.
+This particular bug seems to be triggered in i2c_dev_init when calling
+i2c_add_driver.
+
+1. nvidiafb gets loaded before i2c_dev_init(), and when setting up i2c,
+calls i2c_bit_add_bus. Is this safe to do? 
+
+2.  In i2c_add_driver, there is a call to list_add_tail.  Is this acceptable
+without doing a LIST_HEAD_INIT first?  Or is the list_head initialized
+somewhere?
 
 Tony
-
+ 
+> Thanks,
 
