@@ -1,88 +1,58 @@
 From: hpj@urpla.net (Hans-Peter Jansen)
 Date: Thu, 19 May 2005 06:23:25 +0000
 Subject: [lm_sensors] hard lockup on modprobe w83781d with Tyan Dual K7/Thunder
-Message-Id: <20011114180440.A8934A99@shrek.lisa.de>
+Message-Id: <20011114215215.0692E1097@shrek.lisa.de>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20011114180440.A8934A99@shrek.lisa.de>
+References: <20011114180440.A8934A99@shrek.lisa.de>
+In-Reply-To: <20011114180440.A8934A99@shrek.lisa.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sensors@stimpy.netroedge.com
 Cc: linux-kernel@vger.kernel.org
 
-Hello,
+On Wednesday, 14. November 2001 19:04, Hans-Peter Jansen wrote:
+> Hello,
+>
+> I'm trying to get serveral lm_sensor versions up to CVS lm_sensors2 from
+> yesterday to run on this mb. Now, I'm at linux-2.4.15-pre4, but also tried
+> some 2.4.12(-ac?) versions, to no avail.
 
-I'm trying to get serveral lm_sensor versions up to CVS lm_sensors2 from 
-yesterday to run on this mb. Now, I'm at linux-2.4.15-pre4, but also tried
-some 2.4.12(-ac?) versions, to no avail.
+I finally managed to get the w83781d loading under 2.4.13-ac7. (b/c it's butt 
+kicking processor power)
 
-sensors-detect says:
- We can start with probing for (PCI) I2C or SMBus adapters.
- You do not need any special privileges for this.
- Do you want to probe now? (YES/no): 
-Probing for PCI bus adapters...
-Use driver `i2c-amd756' for device 00:07.3: AMD-766 Athlon ACPI
-Probe succesfully concluded.
+But it's readings are bogus <BIOS>:
+tyrex:~# sensors
+w83782d-i2c-0-2d
+Adapter: SMBus AMD7X6 adapter at 80e0
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.72 V  (min =  +1.74 V, max =  +1.93 V)       ALARM    <1.75>
+VCore 2:   +2.83 V  (min =  +1.74 V, max =  +1.93 V)                <1.76>
++3.3V:     +3.32 V  (min =  +3.13 V, max =  +3.45 V)              
++5V:       +4.89 V  (min =  +4.72 V, max =  +5.24 V)                <5.11>
++12V:      +4.67 V  (min = +10.79 V, max = +13.19 V)                <12.35>
+-12V:      -2.01 V  (min = -10.90 V, max = -13.21 V)                <-12.15>
+-5V:       +2.71 V  (min =  -4.76 V, max =  -5.26 V)              
+V5SB:      +4.32 V  (min =  +4.72 V, max =  +5.24 V)              
+VBat:      +3.29 V  (min =  +2.40 V, max =  +3.60 V)              
+fan1:     7180 RPM  (min = 3000 RPM, div = 2)                       <3590>
+fan2:     7105 RPM  (min = 3000 RPM, div = 2)                       <3515>
+fan3:        0 RPM  (min = 3000 RPM, div = 2)                     
+temp1:    +77.0?C   (limit = +60?C, hysteresis = +50?C) sensor = thermistor 
+<46?C>          
+temp2:    +76.5?C   (limit = +60?C, hysteresis = +50?C) sensor = thermistor   
+<41?C>        
+temp3:    +77.0?C   (limit = +60?C, hysteresis = +50?C) sensor = thermistor   
+<46?C>        
+vid:      +1.85 V
+alarms:   Chassis intrusion detection                      ALARM  
+beep_enable:
+          Sound alarm disabled
 
- We will now try to load each adapter module in turn.
-Module `i2c-amd756' already loaded.
- Do you now want to be prompted for non-detectable adapters? (yes/NO): 
- To continue, we need module `i2c-dev' to be loaded.
- If it is built-in into your kernel, you can safely skip this.
-i2c-dev is already loaded.
+ALARM flags seems to appear randomly and unrelated to error conditions.
+Do I need completely new formula's for that beast?
+Any further suggestions?
 
- We are now going to do the adapter probings. Some adapters may hang halfway
- through; we can't really help that. Also, some chips will be double detected;
- we choose the one with the highest confidence value in that case.
- If you found that the adapter hung after probing a certain address, you can
- specify that address to remain unprobed. That often
- includes address 0x69 (clock chip).
-
-Next adapter: SMBus AMD7X6 adapter at 80e0 (Non-I2C SMBus adapter)
-Do you want to scan it? (YES/no/selectively): 
-Client found at address 0x08
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Client found at address 0x2d
-Probing for `Myson MTP008'... Failed!
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `National Semiconductor LM80'... Failed!
-Probing for `National Semiconductor LM87'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Success!
-    (confidence 8, driver `w83781d'), other addresses: 0x48 0x49
-
-[eeprom stuff removed]
-
-Probed modules:
-# I2C adapter drivers
-modprobe i2c-amd756
-# I2C chip drivers
-modprobe w83781d           <---- FREEZE
-
-kernel log during sensors-detect:
-Nov 14 17:28:33 tyrex kernel: i2c-core.o: i2c core module
-Nov 14 17:28:33 tyrex kernel: i2c-amd756.o version 2.6.1 (20010830)
-Nov 14 17:28:33 tyrex kernel: i2c-core.o: adapter SMBus AMD7X6 adapter at 
-80e0 registered 
-as adapter 0.
-Nov 14 17:28:33 tyrex kernel: i2c-amd756.o: AMD756/766 bus detected and 
-initialized
-Nov 14 17:28:38 tyrex kernel: i2c-dev.o: i2c /dev entries driver module
-Nov 14 17:28:38 tyrex kernel: i2c-core.o: driver i2c-dev dummy driver 
-registered.
-Nov 14 17:28:38 tyrex kernel: i2c-dev.o: Registered 'SMBus AMD7X6 adapter at 
-80e0' as minor 0
-Nov 14 17:28:49 tyrex kernel: i2c-amd756.o: SMBus collision!
-Nov 14 17:28:49 tyrex last message repeated 3 times
-
-Any suggestions?
-
+Cheers,
 Hans-Peter
