@@ -1,34 +1,20 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:03 +0000
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: [PATCH 2.6] Class of scx200_acb
-Message-Id: <20040701211758.27f136a0.khali@linux-fr.org>
+Message-Id: <20040708230705.GE20431@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040701211758.27f136a0.khali@linux-fr.org>
+In-Reply-To: <20040701211758.27f136a0.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+On Thu, Jul 01, 2004 at 09:17:58PM +0200, Jean Delvare wrote:
+> Hi Greg,
+> 
+> This is needed for the scx200_acb to accept hardware monitoring chips.
 
-This is needed for the scx200_acb to accept hardware monitoring chips.
+Applied, thanks.
 
-Please apply,
-thanks.
-
-Signed-off-by: Jean Delvare <khali at linux-fr dot org>
-
---- linux-2.6.7-mm5/drivers/i2c/busses/scx200_acb.c.orig	Thu Jul  1 20:22:17 2004
-+++ linux-2.6.7-mm5/drivers/i2c/busses/scx200_acb.c	Thu Jul  1 20:34:47 2004
-@@ -458,6 +458,7 @@
- 	adapter->owner = THIS_MODULE;
- 	adapter->id = I2C_ALGO_SMBUS;
- 	adapter->algo = &scx200_acb_algorithm;
-+	adapter->class = I2C_CLASS_HWMON;
- 
- 	init_MUTEX(&iface->sem);
- 
-
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+greg k-h
