@@ -1,27 +1,20 @@
-From: marius.reiner@hdev.de (Marius Reiner)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: lm-sensors debian specific daemon installation
-Message-Id: <20040518203500.525581a3.marius.reiner@hdev.de>
+From: csad5478@uibk.ac.at (csad5478)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: support for i845 chipset
+Message-Id: <3EC3EA13.8050801@uibk.ac.at>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aurelien,
+Hey!
+I've seen Your cool tool in connection with gkrellm on the System of a 
+friend of mine.
+While trying to set it up on my Linux-Box i recognised there is no 
+support for i845 chipset. I'd love to see this implemented soon! I think 
+you Guys are doing great Stuff and im looking forward to use your tool. 
+I'm not able to donate you my only mainboard thou. Thanks alot for your 
+work and keep doing such neat Stuff!
 
-lm-sensors contains a shellscript which adjusts fanspeeds corresponding
-to temperature changes on sensors. This script runs like a daemon and
-already gets installed with the current lm-sensors package in sid.
-Now my question is: Do you want to include an init script in the debian
-package and let the user decide whether to install it and run
-update-rc.d automatically or should it just go to the examples directory
-in the lm-sensors documentation?
-Currently I know of two unstable-users (including me ;)), so I can send
-you a working init script.
-
-Please let me know how we should handle this.
-
-Best regards,
-
-Marius
+Florian Lechner
