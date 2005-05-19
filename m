@@ -1,7 +1,7 @@
 From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:39 +0000
+Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: A question when test W83792D driver on another motherboard
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245626@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245780@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
@@ -12,65 +12,53 @@ To: lm-sensors@vger.kernel.org
 
 Hi Rudolf, Jean
 
-This is Chunhao.
-The following messages are for your reference:
-[root@localhost root]# modprobe i2c-dev
-[root@localhost root]# i2cdetect -l
-i2c-0   smbus           SMBus I801 adapter at 0400              Non-I2C SMB=
-us adapter
-i2c-1   dummy           ISA main adapter                        ISA bus alg=
-orithm
-[root@localhost root]# i2cdetect 0
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0.
-I will probe address range 0x03-0x77.
-Continue? [Y/n]
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX UU XX XX XX UU XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX
+As to this problem we meet, we get more information from ASUS, it's in Chin=
+ese,
+I'm trying to forward you by English, If you still can NOT gain the informa=
+tion
+you need, please tell me, I will ask our Windows 792 driver maintainer to r=
+eply.
 
+*************** From ASUS ****************
+1st step:
+Identify whether SMBus Controller is on ASUS motherboard by such method:
+Read the "Subsystem Vendor ID" and "Subsystem ID" (2Ch-2Fh) on "PCI Configu=
+ration
+Space" of SMBus Controller, if "Subsystem Vendor ID" is 0x1043 and
+"Subsystem ID" is 0x8117, then
+it can be confirmed that this is ASUS motherboard.
 
-[root@localhost root]# cat /proc/ioports
-0000-001f : dma1
-0020-003f : pic1
-0040-005f : timer
-0060-006f : keyboard
-0070-007f : rtc
-0080-008f : dma page reg
-00a0-00bf : pic2
-00c0-00df : dma2
-00f0-00ff : fpu
-01f0-01f7 : ide0
-02f8-02ff : serial(auto)
-03c0-03df : vga+
-03f6-03f6 : ide0
-03f8-03ff : serial(auto)
-0400-041f : PCI device 8086:25a4 (Intel Corp.)
-  0400-040f : i801-smbus
-0cf8-0cff : PCI conf1
-a880-a89f : PCI device 8086:25a9 (Intel Corp.)
-  a880-a89f : usb-uhci
-ac00-ac1f : PCI device 8086:25aa (Intel Corp.)
-  ac00-ac1f : usb-uhci
-b000-bfff : PCI Bus #01
-c000-cfff : PCI Bus #02
-d000-dfff : PCI Bus #03
-  d800-d8ff : PCI device 11ab:6041 (Galileo Technology Ltd.)
-e000-e0ff : ATI Technologies Inc Rage XL
-fc00-fc0f : PCI device 8086:25a2 (Intel Corp.)
+2nd step:
+When it has been confirmed that it is ASUS motherboard, write the value 0x08
+into the port 0x04b9.
+As the ASUS said, writing this port will make the system switch to the i2c =
+bus
+where our 792 chip resides. All ASUS server motherboard use this step to do
+the bus switching job.
+******************************************
 
+Here is part of the Windows for your reference, it works well on Windows OS:
+
+	GetSMBusBaseULONG( &ReadValue, 0x8086, 0x25a4, 0x2c);
+	if(ReadValue =3D 0x81171043) {
+		WRITE_PORT_UCHAR((PUCHAR)0x04b9, 0x08);
+	}
+	flag=3DEnableICHSMBusController(0X8086,0x24c0,0xf2,&data);
+	// intel ich5(Server)
+	Result =3D GetSMBusBaseAddr( &BaseAddr, 0x8086 , 0x25a4  ,0x20);
+	if(flag)
+		RestoreICHSMBusController(0X8086,0x24c0,0xf2,data);
+	if(Result=3D0)
+		ChipSetType=3D1;
+
+Then, do you have any idea on how to solve the problem we meet?
+If do, please tell me, I'd like to test it on this motherboard.
 
 Thanks
 Best Regards
 
 Chunhao
-2005-02-25
+2005-02-28
 
 
 > -----Original Message-----
