@@ -1,32 +1,40 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:50 +0000
-Subject: Question for ALI about M1563 smbus transfer mode
-Message-Id: <Pine.LNX.4.58.0504082204540.2186@desitka.sh.cvut.cz>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: [Fwd: Oops: 2.6.11-mm3 -- NULL pointer -- EIP is at
+Message-Id: <42363BA2.5050504@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
 
-Please can you forward my question to ALI/ULI?  (maybe strip my name, so
-it seems it comes from you directly :) Please take a look to your
-datasheet first If it is written there or not, but I think it is not,
-because simply commands belong usually to command register :)
+I don't know if this made it to the list.  If not, here it is.
 
-Question:
 
-We are implementing the driver for M1563 SMBus host and we ran into some
-trouble. We have implemented in our SMBUS driver the "continous byte mode"
-SMB_CMD 001, in all other chipsets it seems command belong to CMD
-register, but this mode accepts command in DAT0 register. Is this
-undocumented feature or a "silicon" bug?
+Phil
 
-Can you tell us if this is true also for M1535, M1541 and M1543C ?
+-------- Original Message --------
+Date: Sun, 13 Mar 2005 22:50:47 -0800
+From: Miles Lane <miles.lane@gmail.com>
+Reply-To: Miles Lane <miles.lane@gmail.com>
+To: Jean Delvare <khali@linux-fr.org>, Philip Edelbrock <phil@netroedge.com>
+Subject: Oops: 2.6.11-mm3 -- NULL pointer -- EIP is at 
+i2c_add_driver+0xa2/0xd0
 
-Thanks
+Dear I2C developers,
 
-Regards
+I hope one of you can use this bug report.
 
-Rudolf
+http://marc.theaimsgroup.com/?l=linux-kernel&m1076667232062&w=2
+
+I am compiling with gcc 3.3 (latest in Debian Unstable)
+My motherboard is an ASUS A7N8X (revision 2.0).
+http://usa.asus.com/products/mb/socketa/a7n8x/overview.htm
+
+Do you need the output of lspci and ver_linux?
+I will happily send this later.  I am not currently in front
+of that machine.
+
+Thanks!
+       Miles
