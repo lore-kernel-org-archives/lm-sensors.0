@@ -1,44 +1,50 @@
-From: greg@kroah.com (Greg KH)
+From: torvalds@osdl.org (Linus Torvalds)
 Date: Thu, 19 May 2005 06:25:12 +0000
 Subject: [BK PATCH] I2C update for 2.6.8-rc1
-Message-Id: <20040824220450.GE11165@kroah.com>
+Message-Id: <Pine.LNX.4.58.0408241721330.17766@ppc970.osdl.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040715000527.GA18923@kroah.com> <1093384722.8445.10.camel@tdi>
-In-Reply-To: <1093384722.8445.10.camel@tdi>
+ <20040824220450.GE11165@kroah.com>
+In-Reply-To: <20040824220450.GE11165@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alex Williamson <alex.williamson@hp.com>
-Cc: torvalds@osdl.org, akpm@osdl.org, linux-kernel <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>
+Cc: Alex Williamson <alex.williamson@hp.com>, akpm@osdl.org, linux-kernel <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com
 
-On Tue, Aug 24, 2004 at 03:58:42PM -0600, Alex Williamson wrote:
-> On Wed, 2004-07-14 at 17:05 -0700, Greg KH wrote:
+
+
+On Tue, 24 Aug 2004, Greg KH wrote:
 > 
-> > <orange:fobie.net>:
-> >   o I2C: patch quirks.c - SMBus hidden on hp laptop
-> 
->    This particular patch, along w/ the new 20040715 ACPI drop has made
-> my nc6000 laptop unusable.  The problem is we're exposing a device that
-> firmware considers hidden.  The new motherboard driver in ACPI goes out
-> and tries to claim resources to prevent them from being stepped on.  It
-> rightfully considers the hidden SMBus device a motherboard resource.
-> The PCI code then stumbles onto this device, sees that the BAR it's
-> using is unavailable and moves it somewhere else in the address space.
-> At this point, I lose two for the three thermal zones on the laptop
-> because the AML that deals with them assumes they haven't moved.
-> 
->    I'm not sure what the point on un-hiding this devices it.  ACPI sets
-> up an OpRegion to access this device and should have exclusive access to
-> that region.  Letting a sensor driver poke at it may be fun, but I'd
-> rather not fry my laptop.  Can we drop the un-hiding of the SMBus for
-> this laptop (probably the nc8000 too), or is there some way to make the
-> ACPI motherboard driver and this quirk live together?  Thanks,
+> If someone can come up with a patch that works for everyone, I'll be
+> glad to apply it.
 
-See the bugzilla.kernel.org bug #3191 for more information.
+Hmm.. Why exactly does the PCI layer re-locate the IO ports?
 
-If someone can come up with a patch that works for everyone, I'll be
-glad to apply it.
+Afaik, ACPI requesting the region shouldn't matter. The 
+"request_resource()" should still be happy..
 
-thanks,
+Ahh. I see the problem. Because the ACPI code allocates the sub-resources, 
+the request_resource thing is indeed not happy.
 
-greg k-h
+How about this _trivial_ change? Does that fix things for you guys? Can 
+you send the /proc/ioport output if this works out for you, just so that 
+we can see?
+
+(The difference between "request_resource()" and "insert_resource()" is 
+that the latter accepts pre-existing sub-resources that the firmware might 
+have allocated within the resource we have..)
+
+		Linus
+
+=== arch/i386/pci/i386.c 1.16 vs edited ==--- 1.16/arch/i386/pci/i386.c	2003-07-31 16:47:19 -07:00
++++ edited/arch/i386/pci/i386.c	2004-08-24 17:36:10 -07:00
+@@ -142,7 +142,7 @@
+ 				DBG("PCI: Resource %08lx-%08lx (f=%lx, d=%d, p=%d)\n",
+ 				    r->start, r->end, r->flags, disabled, pass);
+ 				pr = pci_find_parent_resource(dev, r);
+-				if (!pr || request_resource(pr, r) < 0) {
++				if (!pr || insert_resource(pr, r) < 0) {
+ 					printk(KERN_ERR "PCI: Cannot allocate resource region %d of device %s\n", idx, pci_name(dev));
+ 					/* We'll assign a new address later */
+ 					r->end -= r->start;
