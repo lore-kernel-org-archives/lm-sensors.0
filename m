@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: Request for I2C IDs
-Message-Id: <20040119223640.4e0fb36e.khali@linux-fr.org>
+Message-Id: <20040120012714.GD6309@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040118175528.66a9d01a.khali@linux-fr.org>
 In-Reply-To: <20040118175528.66a9d01a.khali@linux-fr.org>
@@ -10,13 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> >#define I2C_HW_SMBUS_OVFX2	0x11	/* Cypress Ez-USB FX2 USB 2.0	*/
+On Sun, Jan 18, 2004 at 05:55:28PM +0100, Jean Delvare wrote:
 > 
-> You should change that last comment to "Cypress/OmniVision FX2
-> webcam", since lots of other (non-webcam) devices utilize the FX2.
+> Greg, should I send a patch to you with these?
 
-Done.
+Sure, if it's needed.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+thanks,
+
+greg k-h
