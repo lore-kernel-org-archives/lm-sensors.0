@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: pth@suse.de (Philipp Thomas)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: Fix for type punning in lm_sensors2
-Message-Id: <20040308043707.GB29089@earth.solarsys.private>
+Message-Id: <20040308092204.GK28985@paradies.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040305164220.GG28985@paradies.suse.de>
 In-Reply-To: <20040305164220.GG28985@paradies.suse.de>
@@ -10,32 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Philipp Thomas <pth@suse.de> [2004-03-05 17:42:20 +0100]:
-> 
-> Current gcc versions warn when type punning is used, as this breaks the
-> strict aliasing analysis gcc 3.3 does by default. When checking the causes
-> for these warnings I discovered that sensors_malloc_array,
-> sensors_free_array, sensors_add_array_el and sensors_add_array_els in
-> lib/general.c all take a 'void **' for the list. This is plain wrong as
-> the C standard only allow 'char *' and 'void *' to alias any other type, so
-> if these functions should take a generic pointer, it *must* be a 'void *'
-> that's internally cast to a 'void **'.
+* Mark M. Hoffman (mhoffman@lightlink.com) [20040308 05:37]:
 
-Hmmm... "gcc (GCC) 3.3.2 20031022 (Red Hat Linux 3.3.2-1)" doesn't
-throw any warnings about this.  What version do you use?
+> Hmmm... "gcc (GCC) 3.3.2 20031022 (Red Hat Linux 3.3.2-1)" doesn't
+> throw any warnings about this.
 
-> The attached patch does this and adapts all places where these functions are
-> called. Note that when done correctly, no cast what-so-ever in the calling
-> code is needed.
+Even when given -Wall?
 
-Yes that does read better.
+>  What version do you use?
 
-> The patch is against current lm_sensors2 cvs version.
+gcc (GCC) 3.3.2 (SuSE Linux)
 
-I've applied it - thanks!
+The warnings from the compiler where what got me startet in the first place
+because this warning is among those that will make the package fail in our
+automatic build system. And instead of using -fno-strict-aliasing I decided
+to fix the code instead.
 
-Regards,
+> Yes that does read better.
+
+My rule of thumb: if it needs casts it needs serious reconsideration :)
+ 
+> I've applied it - thanks!
+
+Thanks for applying it so quick. One patch less to maintain :)
+
+Philipp
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Philipp Thomas <pth AT suse DOT de>
+SUSE LINUX AG, Maxfeldstr. 5, D-90409 Nuremberg, Germany
