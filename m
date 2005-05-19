@@ -1,33 +1,27 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: 11-bit temperature problem
-Message-Id: <20030814184519.244fdf0b.khali@linux-fr.org>
+From: leo.duran@amd.com (leo.duran@amd.com)
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: Linux SMBus support
+Message-Id: <AFF2EB205B84D011ADB200805FFE6E010BE14EAD@txexmta2.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030812000544.71047b61.khali@linux-fr.org>
-In-Reply-To: <20030812000544.71047b61.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Gah!  I'm sorry: (b) + (c) *is* i2c_smbus_read_byte_data() minus a
-> stop bit.
+Hello,
 
-Aha, OK, that's it. Didn't know that (there are sooo many things I still
-don't know, shame on me).
+I have a few questions to which I'd appreciate some answers.
+I am a system software developer at AMD, looking to support future
+chipsets (south bridges) with SMBus functionality.
 
-> SMBus Read Byte Data
-> ==========
-> 
-> This reads a single byte from a device, from a designated register.
-> The register is specified through the Comm byte.
-> 
-> S Addr Wr [A] Comm [A] S Addr Rd [A] [Data] NA P
-> 
-> So, that makes 39 bits not 29.
+1) Are there any plans for supporting SMBus v2.0 features such as ARP?
+If so, Would that be done in an "adapter driver", or a separate "generic"
+driver (assuming functionality is avaliable from "adapter" device).?
 
-You're perfectly right. But that doesn't matter anymore ;)
+2) How those the code in your repository makes its way into future
+Linux ditributions?  Hwo often dows this happen?
 
--- 
-Jean "I swear I'll read the I2C specs soon" Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Thanks,
+Leo.
+leo.duran@amd.com
+
