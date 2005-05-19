@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: Gnome hangs after sensors installation
-Message-Id: <BB4EF44B.6D5F%zdavatz@ywesee.com>
+Message-Id: <20030731164232.16a36ffa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BB4EE262.6D4C%zdavatz@ywesee.com>
 In-Reply-To: <BB4EE262.6D4C%zdavatz@ywesee.com>
@@ -10,10 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 31.7.2003 16:05, "Jean Delvare" <khali@linux-fr.org> wrote:
 
-> Which other settings? Details are precious.
-Gdm starts wonderfully. When I log into GDM the error appears and everything
-hangs with the mentioned black 'banner' and the error messages...
+> So I done: 
+> Grep sensors -ir * /etc/rc2.d/
 
-Zeno
+Bad command. You want to do:
+
+grep sensors -ir /etc/rc2.d/*
+
+(BTW I'm surprised you are in runlevel 2, it's unusual.)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
