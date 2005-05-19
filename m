@@ -1,92 +1,110 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:29 +0000
 Subject: [PATCH] I2C patches for 2.6.10
-Message-Id: <11051627731563@kroah.com>
+Message-Id: <1105162774832@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11051627732076@kroah.com>
+In-Reply-To: <1105162774441@kroah.com>
+References: <11051627731563@kroah.com>
+In-Reply-To: <11051627731563@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1938.439.46, 2005/01/06 13:54:52-08:00, khali@linux-fr.org
+ChangeSet 1.1938.439.48, 2005/01/06 13:55:55-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Improve VID code for the W83627THF
+[PATCH] I2C: Add byte commands to i2c-stub
 
-This patch cleans up and improves the VID pins value retrieval for the
-W83627THF chip in the w83627hf driver. Tested successfully by Mark
-Hoffman. The previous code was using an unrelated lock and reading
-register values it didn't need. The new code supports 6-bit VID values
-(as defined by Intel VRM 10), and also ensures that the GPIO pins are
-possibly used as VID inputs.
+While working on EEPROMs, DDC/EDID and the like these last few days, I
+wanted to use your i2c-stub driver to test my code. However, I noticed
+that it wouldn't handle byte commands, while both i2cdetect and the
+eeprom driver need it for proper operation. Thus I added this
+functionality to the driver. What do you think about it?
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/chips/w83627hf.c |   31 +++++++++++++++++++++++--------
- 1 files changed, 23 insertions(+), 8 deletions(-)
+ Documentation/i2c/i2c-stub    |    9 +++++++--
+ drivers/i2c/busses/i2c-stub.c |   22 ++++++++++++++++++++--
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83627hf.c b/drivers/i2c/chips/w83627hf.c
---- a/drivers/i2c/chips/w83627hf.c	2005-01-07 14:54:41 -08:00
-+++ b/drivers/i2c/chips/w83627hf.c	2005-01-07 14:54:41 -08:00
-@@ -90,9 +90,9 @@
+diff -Nru a/Documentation/i2c/i2c-stub b/Documentation/i2c/i2c-stub
+--- a/Documentation/i2c/i2c-stub	2005-01-07 14:54:26 -08:00
++++ b/Documentation/i2c/i2c-stub	2005-01-07 14:54:26 -08:00
+@@ -2,13 +2,18 @@
  
- #define	DEVID	0x20	/* Register: Device ID */
+ DESCRIPTION:
  
-+#define W83627THF_GPIO5_EN	0x30 /* w83627thf only */
- #define W83627THF_GPIO5_IOSR	0xf3 /* w83627thf only */
- #define W83627THF_GPIO5_DR	0xf4 /* w83627thf only */
--#define W83627THF_GPIO5_INVR	0xf5 /* w83627thf only */
+-This module is a very simple fake I2C/SMBus driver.  It implements three
+-types of SMBus commands: write quick, (r/w) byte data, and (r/w) word data.
++This module is a very simple fake I2C/SMBus driver.  It implements four
++types of SMBus commands: write quick, (r/w) byte, (r/w) byte data, and
++(r/w) word data.
  
- static inline void
- superio_outb(int reg, int val)
-@@ -1190,16 +1190,31 @@
+ No hardware is needed nor associated with this module.  It will accept write
+ quick commands to all addresses; it will respond to the other commands (also
+ to all addresses) by reading from or writing to an array in memory.  It will
+ also spam the kernel logs for every command it handles.
++
++A pointer register with auto-increment is implemented for all byte
++operations.  This allows for continuous byte reads like those supported by
++EEPROMs, among others.
  
- static int w83627thf_read_gpio5(struct i2c_client *client)
+ The typical use-case is like this:
+ 	1. load this module
+diff -Nru a/drivers/i2c/busses/i2c-stub.c b/drivers/i2c/busses/i2c-stub.c
+--- a/drivers/i2c/busses/i2c-stub.c	2005-01-07 14:54:26 -08:00
++++ b/drivers/i2c/busses/i2c-stub.c	2005-01-07 14:54:26 -08:00
+@@ -28,6 +28,7 @@
+ #include <linux/errno.h>
+ #include <linux/i2c.h>
+ 
++static u8  stub_pointer;
+ static u8  stub_bytes[256];
+ static u16 stub_words[256];
+ 
+@@ -44,6 +45,22 @@
+ 		ret = 0;
+ 		break;
+ 
++	case I2C_SMBUS_BYTE:
++		if (read_write = I2C_SMBUS_WRITE) {
++			stub_pointer = command;
++			dev_dbg(&adap->dev, "smbus byte - addr 0x%02x, "
++					"wrote 0x%02x.\n",
++					addr, command);
++		} else {
++			data->byte = stub_bytes[stub_pointer++];
++			dev_dbg(&adap->dev, "smbus byte - addr 0x%02x, "
++					"read  0x%02x.\n",
++					addr, data->byte);
++		}
++
++		ret = 0;
++		break;
++
+ 	case I2C_SMBUS_BYTE_DATA:
+ 		if (read_write = I2C_SMBUS_WRITE) {
+ 			stub_bytes[command] = data->byte;
+@@ -56,6 +73,7 @@
+ 					"read  0x%02x at 0x%02x.\n",
+ 					addr, data->byte, command);
+ 		}
++		stub_pointer = command + 1;
+ 
+ 		ret = 0;
+ 		break;
+@@ -87,8 +105,8 @@
+ 
+ static u32 stub_func(struct i2c_adapter *adapter)
  {
--	struct w83627hf_data *data = i2c_get_clientdata(client);
--	int res, inv;
-+	int res = 0xff, sel;
- 
--	down(&data->lock);
- 	superio_enter();
- 	superio_select(W83627HF_LD_GPIO5);
--	res = superio_inb(W83627THF_GPIO5_DR);
--	inv = superio_inb(W83627THF_GPIO5_INVR);
-+
-+	/* Make sure these GPIO pins are enabled */
-+	if (!(superio_inb(W83627THF_GPIO5_EN) & (1<<3))) {
-+		dev_dbg(&client->dev, "GPIO5 disabled, no VID function\n");
-+		goto exit;
-+	}
-+
-+	/* Make sure the pins are configured for input
-+	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
-+	sel = superio_inb(W83627THF_GPIO5_IOSR);
-+	if ((sel & 0x1f) != 0x1f) {
-+		dev_dbg(&client->dev, "GPIO5 not configured for VID "
-+			"function\n");
-+		goto exit;
-+	}
-+
-+	dev_info(&client->dev, "Reading VID from GPIO5\n");
-+	res = superio_inb(W83627THF_GPIO5_DR) & sel;
-+
-+exit:
- 	superio_exit();
--	up(&data->lock);
- 	return res;
+-	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE_DATA |
+-		I2C_FUNC_SMBUS_WORD_DATA;
++	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
++		I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA;
  }
  
-@@ -1272,7 +1287,7 @@
- 		int hi = w83627hf_read_value(client, W83781D_REG_CHIPID);
- 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
- 	} else if (w83627thf = data->type) {
--		data->vid = w83627thf_read_gpio5(client) & 0x1f;
-+		data->vid = w83627thf_read_gpio5(client) & 0x3f;
- 	}
- 
- 	/* Read VRM & OVT Config only once */
+ static struct i2c_algorithm smbus_algorithm = {
 
