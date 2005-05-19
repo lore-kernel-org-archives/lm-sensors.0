@@ -1,49 +1,41 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: Ticket comments
-Message-Id: <20030618044844.GF6532@earth.solarsys.private>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:18 +0000
+Subject: 2.6 lm85 driver update?
+Message-Id: <20041004174558.GA21924@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+On Mon, Oct 04, 2004 at 09:59:02AM -0700, Justin Thiessen wrote:
+> Hi,
+> 
+> I recently submitted a patch to the lm_sensors mailing list that implements
+> basic fan control for the lm85 and compatibles with the 2.6.X kernel, along
+> with the associated patches in chips.c and chips.h for libsensors.
+> 
+> http://archives.andrew.net.au/lm-sensors/msg18866.html
+> http://archives.andrew.net.au/lm-sensors/msg18867.html
+> http://archives.andrew.net.au/lm-sensors/msg18868.html
+> 
+> Is there any reason that these patches could not go into the tree?
 
-So I took a look at the support tickets page and *wow* you guys
-must be swamped.  Is there any way to route tickets to me for
-i2c-sis645 only (for now)?  I have no idea what the backend
-interface can do.
+Not that I can see.
 
-Anyway, here are some comments for tickets that I saw when I
-searched on "sis645", "bach", and "asb100"...
+> If there are any changes that need to be made I will be _happy_ to
+> implement them, but I need feedback before I can do so.
+> 
+> It would be really helpful to get these patches officially accepted.
 
-#1293 - I'm sorry to say I don't believe this user's running
-kernel config matches the one against which sensors were
-built.  The two offending undefined symbols are clearly
-wrapped with #ifdef CONFIG_HOTPLUG in the code.
+Just follow the steps outlined in the Documentation/SubmittingPatches
+file in the kernel for how to properly create the patch (hint, so I can
+apply it with -p1 when sitting inside the main kernel directory), and
+adding a "Signed-off-by:" line.
 
-#1237 - Looks like the same problem to me, at least w.r.t.
-i2c-sis645.  I don't know about the rest though.
+Also be sure to CC: me and the sensors mailing list for anyone to point
+out any problems that might be in them.
 
-#1133, #1161 - I was able to confirm with sajmmiller@yahoo.com
-that his suggested workaround - load i2c-sis645 *before* sis900 -
-does indeed solve the problem.  I suspect that the real solution
-is to move the magic PCI space bit-frobbing into pci/quirks.c
-like I did for 2.5; I can't prove it because I don't have the
-builtin network device and I haven't yet found someone who does
-who is willing to boot 2.5.
+thanks,
 
-#1108, 1124 - The Asus "BACH" chip aka asb100 is I2C bus only.
-These two users either have a currently unsupported I2C bus
-or (in the case of the P4PE user) an Intel chipset for which
-Asus has lovingly hidden the I2C bus PCI device w/ broken BIOS.
-A fix for this was mentioned here:
-
-http://archives.andrew.net.au/lm-sensors/msg02724.html
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+greg k-h
