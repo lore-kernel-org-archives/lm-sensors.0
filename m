@@ -1,13 +1,14 @@
 From: l3ech@l3ech.dyns.net (L3ECH)
 Date: Thu, 19 May 2005 06:23:34 +0000
 Subject: sensors fail randomally (hardware weirdness?)
-Message-Id: <1023701513.1407.10.camel@l3ech.dyns.net>
+Message-Id: <1023798310.12473.0.camel@l3ech.dyns.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1023701513.1407.10.camel@l3ech.dyns.net>
+In-Reply-To: <1023701513.1407.10.camel@l3ech.dyns.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
 
 lm_sensors, i2c drivers and everything else installs and works just
 fine.
