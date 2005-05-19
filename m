@@ -1,7 +1,7 @@
-From: gene.heskett@verizon.net (Gene Heskett)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: subscribe gene.heskett@verizon.net
-Message-Id: <200308030426.38858.gene.heskett@verizon.net>
+Message-Id: <20030803105603.63f95aba.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200308012231.07647.gene.heskett@verizon.net>
 In-Reply-To: <200308012231.07647.gene.heskett@verizon.net>
@@ -10,103 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Saturday 02 August 2003 23:50, Mark M. Hoffman wrote:
->* Mark M. Hoffman <mhoffman@lightlink.com> [2003-08-02 23:31:55 
--0400]:
->> This just tells your system to update its list of where to find
->> shared libraries.  There will be notes about this at the end of
->> the second "make install" - read them and you should be all set.
->
->Oops, I lied.  The notes are actually in lm_sensors2/INSTALL...
 
-I put it into my script, worked just fine. :-)
+> I see.  I think.  So to build against the kernel being built, I would 
+> make this line read
+> LINUX :=/usr/src/linux
+> since this link will be valid for the kernel being built.
 
->> If `sensors' returns some error message about not being able to
->> load libsensors, you have to add the directory in which it is
->> installed (by default /usr/local/lib) to /etc/ld.so.conf and run
->> `ldconfig'.
->
->Dunno why I thought that was added to the "make install" notes -
-> sorry.
->
->Regards,
+You got it.
 
-This script I've been talking about is one that I punched up quite 
-some time back because I got tired of scrolling back thru 1/2 meg of 
-shell history to see if a compile had failed.  I put everything in 
-order and ended every active line with a && \
-that way, if there is an error, its still on-screen when I get back to 
-that screen.
+> Then I ran sensors-detect,  Everything worked except it detected an 
+> lm75 instead of an adm1021 for the temp stuffs.  As I already had an 
+> old line to bring it in with an option adm1021 line in modules.conf 
+> so it would ignore one potential address, canceling the lm75 and 
+> re-enabling the adm1021 modload in rc.local made everything work 
+> again.
 
-Here it is:
----
-#!/bin/sh
-## this script assumes you have downloaded, unpacked and linked 
-## kernel-whatever.version.minor to "/usr/src/linux"
-## First, set the version string to match the Makefile setting
-VER=2.4.22-pre10
-## For use with the lm_sensors kit, you'll need the following lines 
-## inserted into your /etc/rc.d/rc.local script
-[snip ancient history]
-##------------------
-## And add these lines to /etc/conf.modules
-# I2C module options
-#alias char-major-89 i2c-dev
-##------------------
-## Now, the real work.  This assumes you have copied your
-## .config and .config.old
-## files from the source directory of your previous kernel install, 
-## and have done 'make oldconfig' in the new source directory and 
-## answered all the questions, and then do a 'make xconfig' to 
-## check/change anything you wanted to
+I guess your ADM1021 is in fact a MAX1617, which is hard to detect, as
+the LM75 is. However, we have been improving detection for the lm75 and
+the adm1021 families, so I'd expect that thing will be better with
+lm_sensors-2.8.0. BTW, I'm a bit astonished that a non-LM75 chip could
+ever be detected as a LM75 with the detection procedure we use. What is
+possible is that you have both an LM75 and an adm1021-like chipset. Most
+motherboards that use a LM75 use it as a secondary chip, and have
+another chip as their primari monitoring chip.
 
-## The above is NOT for major version upgrades, you must start from 
-## scratch, do NOT copy over the older .config's when upping from 
-## 2.2.x to 2.4.x
+Anyway, please let us know how it goes with 2.8.0.
 
-## I've re-arranged this to be one contiguous command line, because 
-## this way if there is an error, it dies right there instead of 
-## making you scroll back 300k in the history to check for errors.
+> But, I think I've got some hardware problems, and suspect they are 
+> only going to be cured by replacing my athlon cpu with a barton cored 
+> unit, this DX-1600 has been running at 170F or more, .100 volts low 
+> on its core vcc for going on 3 years now, and several of my reboots 
+> hung either at the post stage just before the memory scan, and once 
+> it spontainously rebooted when the viapro module was modprobed.  Gawd 
+> I hate flaky hardware...  I have a friend with a barton cored athlon 
+> DX-2400 that rarely exceeds 120F, and then only when doing mpeg2 
+> smunching.
 
-make clean && \
-make dep && \
-make bzImage && \
-make modules && \
-rm -f /boot/vmlinuz-$VER-old && \
-touch /boot/vmlinuz-$VER && \
-mv -f /boot/vmlinuz-$VER /boot/vmlinuz-$VER-old && \
-cp -f arch/i386/boot/bzImage /boot/vmlinuz-$VER && \
-rm -fR /lib/modules/$VER.old && \
-touch /lib/modules/$VER && \
-mv -f /lib/modules/$VER /lib/modules/$VER.old && \
-make modules_install && \
-rm -f /boot/System.map-$VER.old && \
-cp -f System.map /boot/System.map-$VER && \
-cd /boot && \
-rm -f System.map && \
-ln -s System.map-$VER System.map && \
-cd /usr/src/i2c-2.7.0 && \
-echo "Makeing in i2c-2.7.0 now" && \
-make clean && \
-make && \
-make install && \
-# this s/b version 2.7.0
-cd /usr/src/lm_sensors-2.7.0 && \
-echo "Makeing in lm_sensors-2.7.0 now" && \
-make clean && \
-make  && \
-make install && \
-ldconfig && \
-echo All done! reboot and chose your kernel at the lilo or grub prompt
-------------
-as you can see, it also saves the previous version if its a remake.  
-Handy for reversions if the new one doesn't work. :)
+170F is a bit hot for sure, you must have some serious heatsink/fan
+issue. No wonder your system may be a bit unstable. And you really need
+lm_sensors working on such a system ;)
+
+Good luck with your hardware.
 
 -- 
-Cheers, Gene
-AMD K6-III@500mhz 320M
-Athlon1600XP@1400mhz  512M
-99.27% setiathome rank, not too shabby for a WV hillbilly
-Yahoo.com attornies please note, additions to this message
-by Gene Heskett are:
-Copyright 2003 by Maurice Eugene Heskett, all rights reserved.
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
