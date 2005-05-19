@@ -1,26 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:26 +0000
-Subject: 82801DA support?
-Message-Id: <20031122092822.4b155203.khali@linux-fr.org>
+From: tjs@skilta.cc.tut.fi (Timo Salmi)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: ---=== Lm_sensors Support DB Entry #1692 ===---
+Message-Id: <20040609062212.GC448@skilta.cc.tut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3FBD076A.8050206@metz.supelec.fr>
-In-Reply-To: <3FBD076A.8050206@metz.supelec.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Tue, Jun 08, 2004 at 06:23:12PM -0700, Nobody wrote:
+> Your Lm_sensors support entry has been updated.
+> 
+> Please go to http://secure.netroedge.com/~lm78/support.html to check
+> the status of your entry.  
+> 
+> Ticket # 1692
 
-> I was wondering why 82801DA is not supported, unlike many 82801**
-> chips... I apologize if this email address was not intended to receive
-> such mails. Thanks again for your work on the sensors, it's
-> appreciated! Regards,
+I hadn't noticed the instructions below the tables at new drivers page.
 
-No particular reason. I suspect it has the same PCI ID as the 82801DB so
-using i2c-i801 could work out of the box. If not, please provide the
-output of lspci -v and lspci -n, so that we can add the ID and let you
-test if it works.
+I added to my modules.conf:
+options lm90 force_lm90=0,0x4c
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+After that everything worked fine. 
+
+lm90-i2c-0-4c
+Adapter: SMBus I801 adapter at 0c00
+M/B Temp:    +38 C  (low  =    +0 C, high =  +105 C)
+CPU Temp:  +50.4 C  (low  =  +0.0 C, high = +55.0 C)
+M/B Crit:   +105 C  (hyst =   +95 C)
+CPU Crit:   +105 C  (hyst =   +95 C)
+
+Thank you for the fast support!
