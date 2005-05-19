@@ -1,7 +1,7 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: Works like a charm.
-Message-Id: <3EFB4598.5070907@edgedesign.us>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:08 +0000
+Subject: Tickets #1350 and #1351
+Message-Id: <20030731095320.63eb172d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,28 +9,13 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Glad it's working for you.  Thanks for the note.
+OK folks, we have Alexander Amalysh and Mark M. Hoffman working on the
+problem. There's a preliminary fix that has been commited to CVS, feel
+free to give it a try. It will possibly raise other problems, and as
+such is probably not the definitive fix.
 
+We'll let you know as soon as a new fix is available.
 
-Phil
-
-KRB wrote:
-
->ASUS A7M266-D motherboard,
->w83782d
->SMBus AMD7X6 adapter
-> 
-> 
-> 
->
->Keith R. Boden
->Information Systems Technician
->Malatesta Hawke & McKeon LLP
->100 N. Tenth Street
->Harrisburg, PA 17101
->717-236-1300
->717-236-4841 (Fax)
->cdbonitz@mhm-law.com
->
->  
->
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
