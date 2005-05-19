@@ -1,7 +1,7 @@
 From: pete4abw@comcast.net (Peter Hyman)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: I2C crash - ADM1021
-Message-Id: <1065180667.10613.3.camel@localhost>
+Message-Id: <1065743960.2954.9.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1063901946.2937.27.camel@localhost>
 In-Reply-To: <1063901946.2937.27.camel@localhost>
@@ -10,15 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Well, FWIW, removing the driver from loading still gives me valid info
-from the it87 and lm90 that match the sensor readings from the mobo
-bios.  I can only assume that the implementation of the chip on my mobo
-is non-standard or incorrect.  Nonetheless, the reaction was SEVERE!  I
-felt it was worth reporting if for no other reason than to spare others
-what occurred with me.  Not to worry, I was fully backed up, so all I
-lost was a little time!!!!!
+Just a quick FYI update.
 
-Thanks for writing back.
+Today, I updated all source for I2C and lmsensors from CVS.  When
+running sensors-detect, it had slightly different settings for the
+OPTIONS line in modules.conf for the adm1021 driver.
+
+Previously, the line read
+options adm1021 ignore=0,0x18,0,0x4c
+
+Now, the instructions correctly show
+options adm1021 ignore=0,0x4c,0,0x4e
+
+The difference being that the driver was polling a port it had no
+business doing and I believe this is what caused my system to crash!
+
+Now, the irony is that the information from port 0x18 is totally useless
+as it shows system and cpu temperature at -41C!
+
+/sbin/modprobe adm1021 ignore=0,0x4c,0,0x4e
+
+sensors
+----------------
+lm84-i2c-0-18
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Non-I2C SMBus adapter
+Board:       -41?C  (low =   -1?C, high =  -17?C)
+CPU:         -41?C  (low =  +60?C, high =   -1?C)
+
+But thank you anyway for making that minor correction!  I hope it was
+only me that had the disk trashing trouble!
+
+One interesting note is that when rebooting, I had to completely do a
+cold start.
+
+Let me know if I can provide you with any additional detail.
 
 On Fri, 2003-10-03 at 07:22, Mark Studebaker wrote:
 > this could simply be from chip reset or limit setting by the driver
@@ -89,4 +115,4 @@ Name: not available
 Type: application/pgp-signature
 Size: 193 bytes
 Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031003/f5a2e2d5/attachment.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031009/482965b1/attachment.bin
