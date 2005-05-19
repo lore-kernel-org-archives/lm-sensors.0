@@ -1,214 +1,332 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: [PATCH 2.6] sensors chip updates (2 of 4)
-Message-Id: <20031216040251.GC1658@earth.solarsys.private>
+From: jthiessen@penguincomputing.com (Justin Thiessen)
+Date: Thu, 19 May 2005 06:25:17 +0000
+Subject: lm85 fan control - patch for lib/chips.c
+Message-Id: <20040929182408.GC23221@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031216035219.GA1658@earth.solarsys.private>
-In-Reply-To: <20031216035219.GA1658@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@Stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
+
+And finally the patch for lib/chips.c that goes along with the patches for 
+lm85.c and lib/chips.h, adding in fan control for the lm85 in kernel 2.6.X
+
+Again, feedback appreciated.
+
+Justin Thiessen
+---------------
+jthiessen@penguincomputing.com
+http://www.penguincomputing.com
 
 
-This patch is from the lm_sensors project CVS, from this revision:
+--- lib/chips.c	2004-09-29 09:27:35.000000000 -0700
++++ lib_lm85_fancontrol/chips.c	2004-09-29 09:25:41.000000000 -0700
+@@ -3271,33 +3271,33 @@
+     { SENSORS_LM85_PWM3_SPINUP, "pwm3_spinup", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG3, VALUE(1), 1 },
+-    { SENSORS_LM85_PWM1_MIN, "pwm1_min", SENSORS_LM85_PWM1, 
++    { SENSORS_LM85_PWM1_AUTO_PWM_MIN, "pwm1_auto_pwm_min", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG1, VALUE(2), 1 },
+-    { SENSORS_LM85_PWM2_MIN, "pwm2_min", SENSORS_LM85_PWM2, 
++                         LM85_SYSCTL_PWM_CFG1, VALUE(2), 0 },
++    { SENSORS_LM85_PWM2_AUTO_PWM_MIN, "pwm2_auto_pwm_min", SENSORS_LM85_PWM2, 
+                          NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG2, VALUE(2), 1 },
+-    { SENSORS_LM85_PWM3_MIN, "pwm3_min", SENSORS_LM85_PWM3, 
++                         LM85_SYSCTL_PWM_CFG2, VALUE(2), 0 },
++    { SENSORS_LM85_PWM3_AUTO_PWM_MIN, "pwm3_auto_pwm_min", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG3, VALUE(2), 1 },
+-    { SENSORS_LM85_PWM1_FREQ, "pwm1_freq", SENSORS_LM85_PWM1, 
++                         LM85_SYSCTL_PWM_CFG3, VALUE(2), 0 },
++    { SENSORS_LM85_PWM1_AUTO_PWM_FREQ, "pwm1_auto_pwm_freq", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG1, VALUE(3), 1 },
+-    { SENSORS_LM85_PWM2_FREQ, "pwm2_freq", SENSORS_LM85_PWM2, 
++    { SENSORS_LM85_PWM2_AUTO_PWM_FREQ, "pwm2_auto_pwm_freq", SENSORS_LM85_PWM2, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG2, VALUE(3), 1 },
+-    { SENSORS_LM85_PWM3_FREQ, "pwm3_freq", SENSORS_LM85_PWM3, 
++    { SENSORS_LM85_PWM3_AUTO_PWM_FREQ, "pwm3_auto_pwm_freq", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG3, VALUE(3), 1 },
+-    { SENSORS_LM85_PWM1_MIN_CTL, "pwm1_min_ctl", SENSORS_LM85_PWM1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG1, VALUE(4), 1 },
+-    { SENSORS_LM85_PWM2_MIN_CTL, "pwm2_min_ctl", SENSORS_LM85_PWM2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG2, VALUE(4), 1 },
+-    { SENSORS_LM85_PWM3_MIN_CTL, "pwm3_min_ctl", SENSORS_LM85_PWM3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG3, VALUE(4), 1 },
++    { SENSORS_LM85_PWM1_AUTO_PWM_MINCTL, "pwm1_auto_pwm_minctl",
++                         SENSORS_LM85_PWM1, NOMAP, RW, 
++                         LM85_SYSCTL_PWM_CFG1, VALUE(4), 0 },
++    { SENSORS_LM85_PWM2_AUTO_PWM_MINCTL, "pwm2_auto_pwm_minctl",
++                         SENSORS_LM85_PWM2, NOMAP, RW, 
++                         LM85_SYSCTL_PWM_CFG2, VALUE(4), 0 },
++    { SENSORS_LM85_PWM3_AUTO_PWM_MINCTL, "pwm3_auto_pwm_minctl",
++                         SENSORS_LM85_PWM3, NOMAP, RW, 
++                         LM85_SYSCTL_PWM_CFG3, VALUE(4), 0 },
+     { SENSORS_LM85_PWM1_INVERT, "pwm1_invert", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG1, VALUE(5), 0 },
+@@ -3307,52 +3307,51 @@
+     { SENSORS_LM85_PWM3_INVERT, "pwm3_invert", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG3, VALUE(5), 0 },
+-    { SENSORS_LM85_PWM1_ZONE, "pwm1_zone", SENSORS_LM85_PWM1, 
+-                         NOMAP, RW, 
++    { SENSORS_LM85_PWM1_AUTO_CHANNELS, "pwm1_auto_channels",
++                         SENSORS_LM85_PWM1, NOMAP, RW, 
+                          LM85_SYSCTL_PWM_ZONE1, VALUE(1), 0 },
+-    { SENSORS_LM85_PWM2_ZONE, "pwm2_zone", SENSORS_LM85_PWM2, 
+-                         NOMAP, RW, 
++    { SENSORS_LM85_PWM2_AUTO_CHANNELS, "pwm2_auto_channels",
++                         SENSORS_LM85_PWM2, NOMAP, RW, 
+                          LM85_SYSCTL_PWM_ZONE2, VALUE(1), 0 },
+-    { SENSORS_LM85_PWM3_ZONE, "pwm3_zone", SENSORS_LM85_PWM3, 
+-                         NOMAP, RW, 
++    { SENSORS_LM85_PWM3_AUTO_CHANNELS, "pwm3_auto_channels",
++                         SENSORS_LM85_PWM3, NOMAP, RW, 
+                          LM85_SYSCTL_PWM_ZONE3, VALUE(1), 0 },
+-    { SENSORS_LM85_ZONE1_LIMIT, "zone1_limit", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE2_LIMIT, "zone2_limit", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE3_LIMIT, "zone3_limit", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE1_HYST, "zone1_hyst", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(2), 1 },
+-    { SENSORS_LM85_ZONE2_HYST, "zone2_hyst", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(2), 1 },
+-    { SENSORS_LM85_ZONE3_HYST, "zone3_hyst", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(2), 1 },
+-    { SENSORS_LM85_ZONE1_RANGE, "zone1_range", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(3), 1 },
+-    { SENSORS_LM85_ZONE2_RANGE, "zone2_range", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(3), 1 },
+-    { SENSORS_LM85_ZONE3_RANGE, "zone3_range", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(3), 1 },
+-    { SENSORS_LM85_ZONE1_CRITICAL, "zone1_critical", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(4), 1 },
+-    { SENSORS_LM85_ZONE2_CRITICAL, "zone2_critical", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(4), 1 },
+-    { SENSORS_LM85_ZONE3_CRITICAL, "zone3_critical", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(4), 1 },
+-
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_MIN, "temp1_auto_temp_min",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(1), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_MIN, "temp2_auto_temp_min",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(1), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_MIN, "temp3_auto_temp_min",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(1), 3 },
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_OFF, "temp1_auto_temp_off",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(2), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_OFF, "temp2_auto_temp_off",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(2), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_OFF, "temp3_auto_temp_off",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(2), 3 },
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_MAX, "temp1_auto_temp_max",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(3), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_MAX, "temp2_auto_temp_max",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(3), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_MAX, "temp3_auto_temp_max",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(3), 3 },
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_CRIT, "temp1_auto_temp_crit",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(4), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_CRIT, "temp2_auto_temp_crit",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(4), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_CRIT, "temp3_auto_temp_crit",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(4), 3 },
+     { SENSORS_LM85_PWM1_SPINUP_CTL, "pwm1_spinup_ctl", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_SPINUP_CTL, VALUE(1), 0 },
+@@ -3371,13 +3370,13 @@
+     { SENSORS_LM85_FAN3_TACH_MODE, "fan3_tach_mode", SENSORS_LM85_FAN3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_TACH_MODE, VALUE(3), 0 },
+-    { SENSORS_LM85_ZONE1_SMOOTH, "zone1_smooth", SENSORS_LM85_TEMP1, 
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_SMOOTH, "zone1_smooth", SENSORS_LM85_TEMP1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_SMOOTH1, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE2_SMOOTH, "zone2_smooth", SENSORS_LM85_TEMP2, 
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_SMOOTH, "zone2_smooth", SENSORS_LM85_TEMP2, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_SMOOTH2, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE3_SMOOTH, "zone3_smooth", SENSORS_LM85_TEMP3, 
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_SMOOTH, "zone3_smooth", SENSORS_LM85_TEMP3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_SMOOTH3, VALUE(1), 1 },
+     { 0 }
+@@ -3477,33 +3476,33 @@
+     { SENSORS_LM85_PWM3_SPINUP, "pwm3_spinup", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG3, VALUE(1), 1 },
+-    { SENSORS_LM85_PWM1_MIN, "pwm1_min", SENSORS_LM85_PWM1, 
++    { SENSORS_LM85_PWM1_AUTO_PWM_MIN, "pwm1_auto_pwm_min", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG1, VALUE(2), 1 },
+-    { SENSORS_LM85_PWM2_MIN, "pwm2_min", SENSORS_LM85_PWM2, 
++                         LM85_SYSCTL_PWM_CFG1, VALUE(2), 0 },
++    { SENSORS_LM85_PWM2_AUTO_PWM_MIN, "pwm2_auto_pwm_min", SENSORS_LM85_PWM2, 
+                          NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG2, VALUE(2), 1 },
+-    { SENSORS_LM85_PWM3_MIN, "pwm3_min", SENSORS_LM85_PWM3, 
++                         LM85_SYSCTL_PWM_CFG2, VALUE(2), 0 },
++    { SENSORS_LM85_PWM3_AUTO_PWM_MIN, "pwm3_auto_pwm_min", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG3, VALUE(2), 1 },
+-    { SENSORS_LM85_PWM1_FREQ, "pwm1_freq", SENSORS_LM85_PWM1, 
++                         LM85_SYSCTL_PWM_CFG3, VALUE(2), 0 },
++    { SENSORS_LM85_PWM1_AUTO_PWM_FREQ, "pwm1_auto_pwm_freq", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG1, VALUE(3), 1 },
+-    { SENSORS_LM85_PWM2_FREQ, "pwm2_freq", SENSORS_LM85_PWM2, 
++    { SENSORS_LM85_PWM2_AUTO_PWM_FREQ, "pwm2_auto_pwm_freq", SENSORS_LM85_PWM2, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG2, VALUE(3), 1 },
+-    { SENSORS_LM85_PWM3_FREQ, "pwm3_freq", SENSORS_LM85_PWM3, 
++    { SENSORS_LM85_PWM3_AUTO_PWM_FREQ, "pwm3_auto_pwm_freq", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG3, VALUE(3), 1 },
+-    { SENSORS_LM85_PWM1_MIN_CTL, "pwm1_min_ctl", SENSORS_LM85_PWM1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG1, VALUE(4), 1 },
+-    { SENSORS_LM85_PWM2_MIN_CTL, "pwm2_min_ctl", SENSORS_LM85_PWM2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG2, VALUE(4), 1 },
+-    { SENSORS_LM85_PWM3_MIN_CTL, "pwm3_min_ctl", SENSORS_LM85_PWM3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_PWM_CFG3, VALUE(4), 1 },
++    { SENSORS_LM85_PWM1_AUTO_PWM_MINCTL, "pwm1_auto_pwm_minctl",
++                         SENSORS_LM85_PWM1, NOMAP, RW, 
++                         LM85_SYSCTL_PWM_CFG1, VALUE(4), 0 },
++    { SENSORS_LM85_PWM2_AUTO_PWM_MINCTL, "pwm2_auto_pwm_minctl",
++                         SENSORS_LM85_PWM2, NOMAP, RW, 
++                         LM85_SYSCTL_PWM_CFG2, VALUE(4), 0 },
++    { SENSORS_LM85_PWM3_AUTO_PWM_MINCTL, "pwm3_auto_pwm_minctl",
++                         SENSORS_LM85_PWM3, NOMAP, RW, 
++                         LM85_SYSCTL_PWM_CFG3, VALUE(4), 0 },
+     { SENSORS_LM85_PWM1_INVERT, "pwm1_invert", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG1, VALUE(5), 0 },
+@@ -3513,52 +3512,51 @@
+     { SENSORS_LM85_PWM3_INVERT, "pwm3_invert", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_CFG3, VALUE(5), 0 },
+-    { SENSORS_LM85_PWM1_ZONE, "pwm1_zone", SENSORS_LM85_PWM1, 
++    { SENSORS_LM85_PWM1_AUTO_CHANNELS, "pwm1_auto_channels", SENSORS_LM85_PWM1, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_ZONE1, VALUE(1), 0 },
+-    { SENSORS_LM85_PWM2_ZONE, "pwm2_zone", SENSORS_LM85_PWM2, 
++    { SENSORS_LM85_PWM2_AUTO_CHANNELS, "pwm2_auto_channels", SENSORS_LM85_PWM2, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_ZONE2, VALUE(1), 0 },
+-    { SENSORS_LM85_PWM3_ZONE, "pwm3_zone", SENSORS_LM85_PWM3, 
++    { SENSORS_LM85_PWM3_AUTO_CHANNELS, "pwm3_auto_channels", SENSORS_LM85_PWM3, 
+                          NOMAP, RW, 
+                          LM85_SYSCTL_PWM_ZONE3, VALUE(1), 0 },
+-    { SENSORS_LM85_ZONE1_LIMIT, "zone1_limit", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE2_LIMIT, "zone2_limit", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE3_LIMIT, "zone3_limit", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(1), 1 },
+-    { SENSORS_LM85_ZONE1_HYST, "zone1_hyst", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(2), 1 },
+-    { SENSORS_LM85_ZONE2_HYST, "zone2_hyst", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(2), 1 },
+-    { SENSORS_LM85_ZONE3_HYST, "zone3_hyst", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(2), 1 },
+-    { SENSORS_LM85_ZONE1_RANGE, "zone1_range", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(3), 1 },
+-    { SENSORS_LM85_ZONE2_RANGE, "zone2_range", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(3), 1 },
+-    { SENSORS_LM85_ZONE3_RANGE, "zone3_range", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(3), 1 },
+-    { SENSORS_LM85_ZONE1_CRITICAL, "zone1_critical", SENSORS_LM85_TEMP1, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE1, VALUE(4), 1 },
+-    { SENSORS_LM85_ZONE2_CRITICAL, "zone2_critical", SENSORS_LM85_TEMP2, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE2, VALUE(4), 1 },
+-    { SENSORS_LM85_ZONE3_CRITICAL, "zone3_critical", SENSORS_LM85_TEMP3, 
+-                         NOMAP, RW, 
+-                         LM85_SYSCTL_ZONE3, VALUE(4), 1 },
+-
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_MIN, "temp1_auto_temp_min",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(1), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_MIN, "temp2_auto_temp_min",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(1), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_MIN, "temp3_auto_temp_min",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(1), 3 },
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_OFF, "temp1_auto_temp_off",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(2), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_OFF, "temp2_auto_temp_off",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(2), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_OFF, "temp3_auto_temp_off",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(2), 3 },
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_MAX, "temp1_auto_temp_max",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(3), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_MAX, "temp2_auto_temp_max",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(3), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_MAX, "temp3_auto_temp_max",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(3), 3 },
++    { SENSORS_LM85_TEMP1_AUTO_TEMP_CRIT, "temp1_auto_temp_crit",
++                         SENSORS_LM85_TEMP1, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE1, VALUE(4), 3 },
++    { SENSORS_LM85_TEMP2_AUTO_TEMP_CRIT, "temp2_auto_temp_crit",
++                         SENSORS_LM85_TEMP2, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE2, VALUE(4), 3 },
++    { SENSORS_LM85_TEMP3_AUTO_TEMP_CRIT, "temp3_auto_temp_crit",
++                         SENSORS_LM85_TEMP3, NOMAP, RW, 
++                         LM85_SYSCTL_ZONE3, VALUE(4), 3 },
+     { SENSORS_ADM1027_FAN1_TACH_MODE, "fan1_tach_mode", SENSORS_LM85_FAN1, 
+                          NOMAP, RW, 
+                          ADM1027_SYSCTL_TACH_MODE, VALUE(1), 0 },
 
-	1.111 (mds) remove initialization of limits by driver
-
-It is better to set these limits by a combination of /etc/sensors.conf
-and 'sensors -s'; "mechanism not policy." And what's not to like about
-a patch that removes 163 lines?
-
---- linux-2.6.0-test11-mmh/drivers/i2c/chips/w83781d.c.old	2003-12-14 17:22:51.307815925 -0500
-+++ linux-2.6.0-test11-mmh/drivers/i2c/chips/w83781d.c	2003-12-14 17:20:35.000000000 -0500
-@@ -208,72 +208,6 @@
- 	return ((u8) i);
- }
- 
--/* Initial limits */
--#define W83781D_INIT_IN_0		(vid = 3500 ? 280 : vid / 10)
--#define W83781D_INIT_IN_1		(vid = 3500 ? 280 : vid / 10)
--#define W83781D_INIT_IN_2		330
--#define W83781D_INIT_IN_3		(((500)   * 100) / 168)
--#define W83781D_INIT_IN_4		(((1200)  * 10) / 38)
--#define W83781D_INIT_IN_5		(((-1200) * -604) / 2100)
--#define W83781D_INIT_IN_6		(((-500)  * -604) / 909)
--#define W83781D_INIT_IN_7		(((500)   * 100) / 168)
--#define W83781D_INIT_IN_8		300
--/* Initial limits for 782d/783s negative voltages */
--/* Note level shift. Change min/max below if you change these. */
--#define W83782D_INIT_IN_5		((((-1200) + 1491) * 100)/514)
--#define W83782D_INIT_IN_6		((( (-500)  + 771) * 100)/314)
--
--#define W83781D_INIT_IN_PERCENTAGE	10
--#define W83781D_INIT_IN_MIN(val)	(val - val * W83781D_INIT_IN_PERCENTAGE / 100)
--#define W83781D_INIT_IN_MAX(val)	(val + val * W83781D_INIT_IN_PERCENTAGE / 100)
--
--#define W83781D_INIT_IN_MIN_0		W83781D_INIT_IN_MIN(W83781D_INIT_IN_0)
--#define W83781D_INIT_IN_MAX_0		W83781D_INIT_IN_MAX(W83781D_INIT_IN_0)
--#define W83781D_INIT_IN_MIN_1		W83781D_INIT_IN_MIN(W83781D_INIT_IN_1)
--#define W83781D_INIT_IN_MAX_1		W83781D_INIT_IN_MAX(W83781D_INIT_IN_1)
--#define W83781D_INIT_IN_MIN_2		W83781D_INIT_IN_MIN(W83781D_INIT_IN_2)
--#define W83781D_INIT_IN_MAX_2		W83781D_INIT_IN_MAX(W83781D_INIT_IN_2)
--#define W83781D_INIT_IN_MIN_3		W83781D_INIT_IN_MIN(W83781D_INIT_IN_3)
--#define W83781D_INIT_IN_MAX_3		W83781D_INIT_IN_MAX(W83781D_INIT_IN_3)
--#define W83781D_INIT_IN_MIN_4		W83781D_INIT_IN_MIN(W83781D_INIT_IN_4)
--#define W83781D_INIT_IN_MAX_4		W83781D_INIT_IN_MAX(W83781D_INIT_IN_4)
--#define W83781D_INIT_IN_MIN_5		W83781D_INIT_IN_MIN(W83781D_INIT_IN_5)
--#define W83781D_INIT_IN_MAX_5		W83781D_INIT_IN_MAX(W83781D_INIT_IN_5)
--#define W83781D_INIT_IN_MIN_6		W83781D_INIT_IN_MIN(W83781D_INIT_IN_6)
--#define W83781D_INIT_IN_MAX_6		W83781D_INIT_IN_MAX(W83781D_INIT_IN_6)
--#define W83781D_INIT_IN_MIN_7		W83781D_INIT_IN_MIN(W83781D_INIT_IN_7)
--#define W83781D_INIT_IN_MAX_7		W83781D_INIT_IN_MAX(W83781D_INIT_IN_7)
--#define W83781D_INIT_IN_MIN_8		W83781D_INIT_IN_MIN(W83781D_INIT_IN_8)
--#define W83781D_INIT_IN_MAX_8		W83781D_INIT_IN_MAX(W83781D_INIT_IN_8)
--
--/* Initial limits for 782d/783s negative voltages */
--/* These aren't direct multiples because of level shift */
--/* Beware going negative - check */
--#define W83782D_INIT_IN_MIN_5_TMP \
--	(((-1200 * (100 + W83781D_INIT_IN_PERCENTAGE)) + (1491 * 100))/514)
--#define W83782D_INIT_IN_MIN_5 \
--	((W83782D_INIT_IN_MIN_5_TMP > 0) ? W83782D_INIT_IN_MIN_5_TMP : 0)
--#define W83782D_INIT_IN_MAX_5 \
--	(((-1200 * (100 - W83781D_INIT_IN_PERCENTAGE)) + (1491 * 100))/514)
--#define W83782D_INIT_IN_MIN_6_TMP \
--	((( -500 * (100 + W83781D_INIT_IN_PERCENTAGE)) +  (771 * 100))/314)
--#define W83782D_INIT_IN_MIN_6 \
--	((W83782D_INIT_IN_MIN_6_TMP > 0) ? W83782D_INIT_IN_MIN_6_TMP : 0)
--#define W83782D_INIT_IN_MAX_6 \
--	((( -500 * (100 - W83781D_INIT_IN_PERCENTAGE)) +  (771 * 100))/314)
--
--#define W83781D_INIT_FAN_MIN_1		3000
--#define W83781D_INIT_FAN_MIN_2		3000
--#define W83781D_INIT_FAN_MIN_3		3000
--
--/* temp = value / 100 */
--#define W83781D_INIT_TEMP_OVER		6000
--#define W83781D_INIT_TEMP_HYST		12700	/* must be 127 for ALARM to work */
--#define W83781D_INIT_TEMP2_OVER		6000
--#define W83781D_INIT_TEMP2_HYST		5000
--#define W83781D_INIT_TEMP3_OVER		6000
--#define W83781D_INIT_TEMP3_HYST		5000
--
- /* There are some complications in a module like this. First off, W83781D chips
-    may be both present on the SMBus and the ISA bus, and we have to handle
-    those cases separately at some places. Second, there might be several
-@@ -1688,113 +1622,6 @@
- #endif				/* W83781D_RT */
- 
- 	if (init) {
--		w83781d_write_value(client, W83781D_REG_IN_MIN(0),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_0));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(0),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_0));
--		if (type != w83783s && type != w83697hf) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(1),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_1));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(1),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_1));
--		}
--
--		w83781d_write_value(client, W83781D_REG_IN_MIN(2),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_2));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(2),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_2));
--		w83781d_write_value(client, W83781D_REG_IN_MIN(3),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_3));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(3),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_3));
--		w83781d_write_value(client, W83781D_REG_IN_MIN(4),
--				    IN_TO_REG(W83781D_INIT_IN_MIN_4));
--		w83781d_write_value(client, W83781D_REG_IN_MAX(4),
--				    IN_TO_REG(W83781D_INIT_IN_MAX_4));
--		if (type = w83781d || type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(5),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_5));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(5),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_5));
--		} else {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(5),
--					    IN_TO_REG(W83782D_INIT_IN_MIN_5));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(5),
--					    IN_TO_REG(W83782D_INIT_IN_MAX_5));
--		}
--		if (type = w83781d || type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(6),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_6));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(6),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_6));
--		} else {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(6),
--					    IN_TO_REG(W83782D_INIT_IN_MIN_6));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(6),
--					    IN_TO_REG(W83782D_INIT_IN_MAX_6));
--		}
--		if ((type = w83782d) || (type = w83627hf) ||
--		    (type = w83697hf)) {
--			w83781d_write_value(client, W83781D_REG_IN_MIN(7),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_7));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(7),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_7));
--			w83781d_write_value(client, W83781D_REG_IN_MIN(8),
--					    IN_TO_REG(W83781D_INIT_IN_MIN_8));
--			w83781d_write_value(client, W83781D_REG_IN_MAX(8),
--					    IN_TO_REG(W83781D_INIT_IN_MAX_8));
--			w83781d_write_value(client, W83781D_REG_VBAT,
--					    (w83781d_read_value
--					     (client,
--					      W83781D_REG_VBAT) | 0x01));
--		}
--		w83781d_write_value(client, W83781D_REG_FAN_MIN(1),
--				    FAN_TO_REG(W83781D_INIT_FAN_MIN_1, 2));
--		w83781d_write_value(client, W83781D_REG_FAN_MIN(2),
--				    FAN_TO_REG(W83781D_INIT_FAN_MIN_2, 2));
--		if (type != w83697hf) {
--			w83781d_write_value(client, W83781D_REG_FAN_MIN(3),
--					    FAN_TO_REG(W83781D_INIT_FAN_MIN_3,
--						       2));
--		}
--
--		w83781d_write_value(client, W83781D_REG_TEMP_OVER(1),
--				    TEMP_TO_REG(W83781D_INIT_TEMP_OVER));
--		w83781d_write_value(client, W83781D_REG_TEMP_HYST(1),
--				    TEMP_TO_REG(W83781D_INIT_TEMP_HYST));
--
--		if (type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(2),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(2),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_HYST));
--		} else {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(2),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(2),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP2_HYST));
--		}
--		w83781d_write_value(client, W83781D_REG_TEMP2_CONFIG, 0x00);
--
--		if (type = as99127f) {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(3),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(3),
--					    AS99127_TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_HYST));
--		} else if (type != w83783s && type != w83697hf) {
--			w83781d_write_value(client, W83781D_REG_TEMP_OVER(3),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_OVER));
--			w83781d_write_value(client, W83781D_REG_TEMP_HYST(3),
--					    TEMP_ADD_TO_REG
--					    (W83781D_INIT_TEMP3_HYST));
--		}
- 		if (type != w83783s && type != w83697hf) {
- 			w83781d_write_value(client, W83781D_REG_TEMP3_CONFIG,
- 					    0x00);
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
