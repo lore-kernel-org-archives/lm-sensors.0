@@ -1,50 +1,61 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: Configure.help entries for the I2C subsystem.
-Message-Id: <3C1FE2ED.420D2E03@paradyne.com>
+From: philpi@apu.edu (Phillip Pi)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: Installing i2c and lm_sensors in RH Linux 7.2?
+Message-Id: <Pine.LNX.4.33.0111200151400.1364-100000@home.apu.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200112130444.fBD4iW501669@snark.thyrsus.com>
-In-Reply-To: <200112130444.fBD4iW501669@snark.thyrsus.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Eric, 
-those came from the MIPS people,
-here's the lines from the top of drivers/i2c/i2c-algo-ite.c:
+Hi. I am trying to compile and install i2c-2.6.2 and lm_sensors-2.6.2 on
+my new Red Hat Linux v7.2 box. I haven't upgraded and tweaked my Kernel
+v2.4.7-10 yet. Do I still need to download the Kernel source from
+kernel.org even though I see the source (installed from CD installation)?
 
-  
--------------------------------------------------------------------------
-   i2c-adap-ite.c i2c-hw access for the IIC peripheral on the ITE MIPS
-system
-  
--------------------------------------------------------------------------
-   Hai-Pao Fan, MontaVista Software, Inc.
-   hpfan@mvista.com or source@mvista.com
+If not, then I am having problems compiling after make all. When I do make 
+install, I get this:
 
-   Copyright 2001 MontaVista Software Inc.
+[root@ANTux-P3 i2c-2.6.2]# make install
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
+if [ -n " kernel/i2c-core.o kernel/i2c-dev.o kernel/i2c-algo-bit.o 
+kernel/i2c-philips-par.o kernel/i2c-elv.o kernel/i2c-velleman.o 
+kernel/i2c-algo-pcf.o kernel/i2c-elektor.o kernel/i2c-proc.o 
+kernel/i2c-pport.o" ] ; then \
+  mkdir -p /lib/modules/`grep UTS_RELEASE 
+/usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
+  install -o root -g root -m 644  kernel/i2c-core.o kernel/i2c-dev.o 
+kernel/i2c-algo-bit.o kernel/i2c-philips-par.o kernel/i2c-elv.o 
+kernel/i2c-velleman.o kernel/i2c-algo-pcf.o kernel/i2c-elektor.o 
+kernel/i2c-proc.o kernel/i2c-pport.o /lib/modules/`grep UTS_RELEASE 
+/usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
+fi
+install: `/lib/modules/2.4.7-10smp' is a directory
+install: `2.4.7-10BOOT' is a directory
+install: `2.4.7-10enterprise' is a directory
+install: `2.4.7-10debug' is a directory
+make: *** [install-kernel] Error 1
 
-mds
+Am I doing something wrong? I am still new with Linux so I might be doing
+something wrong. I hope I don't have to fiddle with the Kernel. Note: I2C
+is not built in my kernel according to its make xconfig. Also, I did edit
+Makefile to have it point to /usr/src/linux-2.4.7-10 for source files.
 
-
-"Eric S. Raymond" wrote:
-> 
-> Matthew David Reuther <mreuther@engin.umich.edu> suggested that your
-> group might be able to suppy Configure.help entries for the following
-> symbols:
-> 
-> CONFIG_ITE_I2C_ADAP: drivers/i2c/Config.in drivers/i2c/Makefile
-> CONFIG_ITE_I2C_ALGO: drivers/i2c/Config.in drivers/i2c/Makefile
-> 
-> Please help if you can.  I'm vdery close to getting the Configure.help
-> file completely caught up to the starte of the kernel; this would
-> reduce the number of missing entries to 27
-> --
->                 <a href="http://www.tuxedo.org/~esr/">Eric S. Raymond</a>
-> 
-> The people of the various provinces are strictly forbidden to have in their
-> possession any swords, short swords, bows, spears, firearms, or other types
-> of arms. The possession of unnecessary implements makes difficult the
-> collection of taxes and dues and tends to foment uprisings.
->         -- Toyotomi Hideyoshi, dictator of Japan, August 1588
+Thank you in advance for a reply. :)
+--
+"Thanks for giving me the courage to eat all those ants." --unknown
+--
+  /\___/\                               Phillip Pi (Ant) from apu.edu.
+ / /\ /\ \              E-Mail: philpi@earthlink.net or philpi@apu.edu
+| |.   .| |
+   \ _ /                     The Ant Farm: http://antfarm.home.dhs.org
+    ( )       ICQ UIN: 2223658. Resume: http://ptp-resume.home.dhs.org
