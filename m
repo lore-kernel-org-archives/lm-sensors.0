@@ -1,94 +1,49 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: pmarques@grupopie.com (Paulo Marques)
 Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: [RFC] Dynamic fan clock divider changes (long)
-Message-Id: <20040520110312.101c5c11.khali@linux-fr.org>
+Message-Id: <40AC947E.2050706@grupopie.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040516222809.2c3d1ea2.khali@linux-fr.org>
-	<20040518021540.GB11012@earth.solarsys.private>
-In-Reply-To: <20040518021540.GB11012@earth.solarsys.private>
+In-Reply-To: <20040516222809.2c3d1ea2.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
+To: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
 
-> > I think I'll stick to #2 for now. The extra code is reasonable, and
-> > I don't really see the low accuracy at high speed as a problem. What
-> > matters much to me is that the user shouldn't have to worry about
-> > selecting dividers himself, and #2 does this.
-> > 
-> > Part of the extra code may be moved to i2c_sensor if several drivers
-> > use it. Also, remember that the new policy will remove some code
-> > from the drivers (reading and setting dividers manually) so this
-> > gives us some margin anyway.
-> 
-> The keyword in your conclusion is "policy", which reminds me of the
-> phrase "mechanism, not policy".
+Jean Delvare wrote:
+> The user still doesn't have to care, which is fine, but if the user has
+> a fan speed between 2000 and 5000 RPM, with low limit set to 1500 RPM,
+> he/she will have a "bad" accuracy at 5000 RPM (+/- 104 RPM). I see this
+> as the low limit "nailing" the divider ;)
 
-I don't quite see how appropriate this phrase is in the context, and, to
-say the truth, I'm not even sure I understand what you imply by saying
-that. Could you please explain in great details why you seem to think
-that my proposal is no good idea?
+This doesn't sound so bad at all. And this seems to be the simplest approach.
 
-If the use of the word "policy" is incorrect, maybe I should have used
-another. What I meant was that, if we start implementing that kind of
-stuff in several drivers, we better discuss it together before, and
-implement it the same, optimal way, so that we don't have to change it
-afterwards, and it can be documented, and the user doesn't observe
-different behaviors on different drivers. I'm trying to spare the user
-some trouble, so let's not replace it with different trouble.
+> This is what I implemented in my new pc87360 driver (after trying #1). I
+> use 85 and 224 as the arbitrary limits for changing dividers.
 
-> The driver should behave exactly as commanded, nothing more.
+This confused me a bit. It seems that a direct consequence of implementation #2 
+is that the divider will be set in a way that the low limit will be between 128 
+and 255, and that there is no point in changing the divider, because it will 
+only get worse. This leads directly to implementation #4. Am I missing something?
 
-Well, most hardware monitoring chip drivers do more than that, and I
-don't think this should be changed. For example, drivers enable
-monitoring on load and configure what needs to be. We have limited their
-action to the least possible, and I think it was a clever move, but some
-things definitely need to be done. Drivers may also need to reset alarm
-flags after they read them. This belongs to the driver's job to do that!
-Likewise, I believe that the fact that a clock divider has to be chosen
-is a hardware implementation detail the user-space shouldn't even be
-aware about.
+Anyway, if the user is really concerned about accuracy an average of several 
+measurements should increase precision in this kind of problem. See the 
+following ascii art:
 
-> The solution to the fan divisor madness can and should be done in
-> userspace.
+clock:
+     ___     ___     ___     ___     ___     ___     ___     ___
+___|   |___|   |___|   |___|   |___|   |___|   |___|   |___|   |__
 
-I agree it could (the whole hardware monitoring chip drivers could).
-However, the current interface doesn't allow that. The user-space would
-need to know which dividers are available for each driver, and would
-need to know the base clock frequency for each driver as well (or,
-alternatively, we would have to export raw register readings for fan
-tachometers). The amount of driver code required to do this would
-probably be equal to, or even greater than, what I am proposing.
+fan complete turn pulse:
 
-For information, my current implementation of the in-driver dynamic
-clock adjustement is about 15 lines of code at update time, if you omit
-comments and debugging, and 7 lines of code at low limit change time.
-The current interface code to fan_div alone has about as much (about 22
-lines)! If we are to export everything we need to do the same in
-user-space, it will make the drivers even bigger, and add overhead at
-the user-space/kernel-space interface. So why would we want to do that?
+____________________|_____________________|_____________________|
 
-If you have a reason to believe that what I propose is not correct,
-please explain why you do, with as much details as needed. I would also
-want to read a concrete proposal of how we would do it your way. Simply
-pretending that "it's not the correct way to do it" without additional
-explanation nor proposal doesn't help me much, unfortunately.
+So the first measurement is 3 (assuming rising edge counting), but some of the 
+period will slip into the second measurement giving a count of only 2, and so 
+on. So the jitter on the counts is actually correlated with the fan speed.
 
-I'm definitely surprised that you don't seem to like my proposal at all,
-while I thought you were suggesting we could do something similar a few
-months ago [1]. Quoting you back in January:
-
-"(...) we'd auto-increment the fan_div until we got a non-zero reading
-or we hit the max.  Then the first set to a fan_div turns the feature
-off; that would allow sensors.conf/sensors -s to override."
-
-Or do I misread you somehow?
-
-Thanks.
-
-[1] http://archives.andrew.net.au/lm-sensors/msg05815.html
+Just my 2 cents,
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Paulo Marques - www.grupopie.com
+"In a world without walls and fences who needs windows and gates?"
