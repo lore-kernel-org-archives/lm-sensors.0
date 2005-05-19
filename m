@@ -1,47 +1,48 @@
-From: greg@kroah.com (Greg KH)
+From: vandrove@vc.cvut.cz (Petr Vandrovec)
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: [PATCH] More i2c driver changes for 2.5.65
-Message-Id: <10482950921680@kroah.com>
+Message-Id: <20030322023351.GB2050@vana.vc.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10482950873871@kroah.com>
-References: <1048295086481@kroah.com>
-In-Reply-To: <1048295086481@kroah.com>
+References: <1048295082521@kroah.com> <1048295084971@kroah.com>
+In-Reply-To: <1048295084971@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1195, 2003/03/21 16:39:04-08:00, greg@kroah.com
+On Fri, Mar 21, 2003 at 05:04:00PM -0800, Greg KH wrote:
+> ChangeSet 1.1189, 2003/03/21 12:45:28-08:00, greg@kroah.com
+> 
+> i2c: remove i2c_adapter->name and use dev->name instead.
+> 
+> 
+>  drivers/i2c/busses/i2c-ali15x3.c |    8 ++--
+>  drivers/i2c/busses/i2c-amd756.c  |    6 ++-
+>  drivers/i2c/busses/i2c-amd8111.c |    4 +-
+>  drivers/i2c/busses/i2c-i801.c    |    8 ++--
+>  drivers/i2c/busses/i2c-isa.c     |    4 +-
+>  drivers/i2c/busses/i2c-piix4.c   |    8 ++--
+>  drivers/i2c/i2c-algo-bit.c       |   13 +++---
+>  drivers/i2c/i2c-algo-pcf.c       |   19 ++++------
+>  drivers/i2c/i2c-core.c           |   73 ++++++++++++++++-----------------------
+>  drivers/i2c/i2c-dev.c            |   17 +++------
+>  drivers/i2c/i2c-elektor.c        |   10 +++--
+>  drivers/i2c/i2c-elv.c            |    4 +-
+>  drivers/i2c/i2c-philips-par.c    |    4 +-
+>  drivers/i2c/i2c-velleman.c       |    4 +-
+>  drivers/i2c/scx200_acb.c         |   28 ++++++--------
+>  include/linux/i2c.h              |    1 
+>  16 files changed, 105 insertions(+), 106 deletions(-)
 
-[PATCH] i2c: fix up the chip driver names to play nice with sysfs
+Although you'll not break matroxfb more than it is currently, can you
+also update drivers/video/matrox/{i2c-matroxfb,matroxfb_maven}.* in 
+your updates? Or I'll send you patch after this change hits Linus kernel... 
 
-
- drivers/i2c/chips/adm1021.c |    2 +-
- drivers/i2c/chips/lm75.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-
-diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
---- a/drivers/i2c/chips/adm1021.c	Fri Mar 21 16:52:40 2003
-+++ b/drivers/i2c/chips/adm1021.c	Fri Mar 21 16:52:40 2003
-@@ -144,7 +144,7 @@
- /* This is the driver that will be inserted */
- static struct i2c_driver adm1021_driver = {
- 	.owner		= THIS_MODULE,
--	.name		= "ADM1021, MAX1617 sensor driver",
-+	.name		= "ADM1021-MAX1617",
- 	.id		= I2C_DRIVERID_ADM1021,
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= adm1021_attach_adapter,
-diff -Nru a/drivers/i2c/chips/lm75.c b/drivers/i2c/chips/lm75.c
---- a/drivers/i2c/chips/lm75.c	Fri Mar 21 16:52:40 2003
-+++ b/drivers/i2c/chips/lm75.c	Fri Mar 21 16:52:40 2003
-@@ -82,7 +82,7 @@
- /* This is the driver that will be inserted */
- static struct i2c_driver lm75_driver = {
- 	.owner		= THIS_MODULE,
--	.name		= "LM75 sensor chip driver",
-+	.name		= "LM75 sensor",
- 	.id		= I2C_DRIVERID_LM75,
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= lm75_attach_adapter,
+Only problem is that there are apps which search DDC channel by 
+looking for i2c bus named "DDC:fbX #Y on i2c-matroxfb", and this 
+looks too long for generic driver infrastructure. But "DDC:fbX #Y"
+looks acceptable...
+					Thanks,
+						Petr Vandrovec
+						vandrove@vc.cvut.cz
