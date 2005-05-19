@@ -1,23 +1,22 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: [PATCH 2.6] Add support for the nForce2 Ultra 400 to i2c-nforce2
-Message-Id: <20041129234245.GB21496@kroah.com>
+From: philpi@apu.edu (Phillip Pi)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: Quick Question: How do I turn off beep_enable alarm?
+Message-Id: <Pine.LNX.4.44.0211300516220.12614-100000@home.apu.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041129220347.737b1705.khali@linux-fr.org>
-In-Reply-To: <20041129220347.737b1705.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Nov 29, 2004 at 10:03:47PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This simple patch adds support for the nForce2 Ultra 400 to i2c-nforce2.
-> I just made a similar update on the 2.4/CVS version of the driver.
-> 
-> Please apply,
+Is there a way? I can't find in the message archive, Web site, 
+documentation, sensors.conf file, and FAQ. I might have overlooked it.
 
-Applied, thanks.
-
-greg k-h
+Thank you in advance.
+-- 
+          "Everything tastes better at a picnic... the ants, the sand,
+                                                everything." --unknown
+  /\___/\
+ / /\ /\ \        Phillip Pi (Ant); The Ant Farm: http://antfarm.ma.cx
+| |o   o| |
+   \ _ /                E-mail: philpi@apu.edu or philpi@earthlink.net
+    ( )
