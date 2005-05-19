@@ -1,56 +1,71 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: mds@mds.gotdns.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E4ABF@weshml03.winbond.com.tw>
+Message-Id: <4237A4EE.90601@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgTURTLCBKZWFuCgo+ID4gSnVzdCBhIGNvdXBsZSBjbGFyaWZpY2F0aW9uczoKPiA+Cj4gPiAx
-KiBOb3QgYWxsIGNoaXBzIGhhdmUgc3ViY2xpZW50cywgaW4gZmFjdCBtb3N0IGhhdmVuJ3QsIG9u
-bHkgV2luYm9uZAo+ID4gY2hpcHMgYW5kIEFzdXMgY2xvbmVzIGhhdmUuCj4gPgo+ID4gMiogSW4g
-b3VyIGN1cnJlbnQgaW1wbGVtZW50YXRpb24sIHN1YmNsaWVudHMgYXJlIHJlZ2lzdGVyZWQgb25s
-eSB0bwo+ID4gcHJldmVudCBvdGhlciBkcml2ZXJzIHRvIHVzZSB0aGVtLiBUaGV5IGFyZSBub3Qg
-YWNjZXNzZWQgYnkgdGhlaXIKPiA+IGFkZHJlc3MgKHRoZSBzYW1lIGZ1bmN0aW9ucyBhcmUgYXZh
-aWxhYmxlIGZyb20gdGhlIG1haW4gYWRkcmVzcykuCj4gCj4gS2hhbGkgaXMgY29ycmVjdC4gSXQg
-ZG9lc24ndCBhZmZlY3Qgb3BlcmF0aW9uIG9mIHRoZSBkcml2ZXIsIG9ubHkKcHJldmVudCBvdGhl
-cgo+IGRyaXZlcnMgZnJvbSBpbnRlcmZlcmluZy4KPiAKPiBJIGFkZGVkLCB0ZXN0ZWQsIGFuZCBj
-aGVja2VkIGluIHRoZSBzdWJjbGllbnQgcmVnaXN0cmF0aW9uIGNvZGUuCj4gSSBhbHNvIGNoYW5n
-ZWQgdGhlIGluaXQgZGVmYXVsdCB0byAwLCB3aGljaCBpcyBvdXIgc3RhbmRhcmQuCgpJIHNhdyB0
-aGUgY29kZXMgcmVsYXRlZCB3aXRoIHRoZSBzdWJjbGllbnRzIG9uIFdlYiBDVlMganVzdCBub3cs
-IHRoYW5rcy4KCgo+IEFueXdheSwgSSBoYXBwZW4gdG8gYWdyZWUgd2l0aCB0aGUgZm91ciBwb2lu
-dHMgbGlzdGVkLCBwb2ludCAzCihuZWdhdGl2ZQo+IGZhbiBzcGVlZCB2YWx1ZXMpIGJlaW5nIHRo
-ZSBtb3N0IGltcG9ydGFudCB0byBmaXggcXVpY2tseSBJTUhPLgoKU2luY2UgSSBkbyBOT1QgaGF2
-ZSBhIGxtX3NlbnNvcnMgQ1ZTIGFjY291bnQsIGFuZCBjYW4gTk9UIGxvZ2luIENWUyBpbgpteQpi
-eSBhbm9ueW1vdXMgYWNjb3VudChtYXliZSBvdXIgY29tcGFueSBmb3JiaWQgdGhlIHBvcnQpLApJ
-IGRvd25sb2FkZWQgdGhlIHc4Mzc5MmQuYyBmcm9tIHdlYiBDVlMsIGRlbGV0aW5nIHRoZSBsaW5l
-IG51bWJlciBvbgplYWNoIGxpbmUsCnRvIGdldCB0aGUgbmV3ZXN0IDc5MiBkcml2ZXIgbW9kaWZp
-ZWQgYnkgTURTLiBJJ20gdXNpbmcgaXQgdG8gc29sdmUgdGhlCnBvaW50cwpNRFMgc2VudCBtZS4K
-ClRoYW5rcwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRp
-b24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRo
-ZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMg
-ZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1h
-aWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1
-Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2Nv
-cmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFu
-ZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3Bl
-cmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25m
-aWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBh
-bmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8g
-dGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRo
-ZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29k
-ZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5
-IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUu
-pburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/yp
-d6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZi
-pby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il
-87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHC
-LiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCs
-T7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5
-caRspKel37P1qc63TqijLgo=
+you can get it without the line numbers here
+
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/kernel/chips/w83792d.c
+
+:) :) :)
+
+Huang0@Winbond.com.tw wrote:
+> Hi MDS, Jean
+> 
+> 
+>>>Just a couple clarifications:
+>>>
+>>>1* Not all chips have subclients, in fact most haven't, only Winbond
+>>>chips and Asus clones have.
+>>>
+>>>2* In our current implementation, subclients are registered only to
+>>>prevent other drivers to use them. They are not accessed by their
+>>>address (the same functions are available from the main address).
+>>
+>>Khali is correct. It doesn't affect operation of the driver, only
+> 
+> prevent other
+> 
+>>drivers from interfering.
+>>
+>>I added, tested, and checked in the subclient registration code.
+>>I also changed the init default to 0, which is our standard.
+> 
+> 
+> I saw the codes related with the subclients on Web CVS just now, thanks.
+> 
+> 
+> 
+>>Anyway, I happen to agree with the four points listed, point 3
+> 
+> (negative
+> 
+>>fan speed values) being the most important to fix quickly IMHO.
+> 
+> 
+> Since I do NOT have a lm_sensors CVS account, and can NOT login CVS in
+> my
+> by anonymous account(maybe our company forbid the port),
+> I downloaded the w83792d.c from web CVS, deleting the line number on
+> each line,
+> to get the newest 792 driver modified by MDS. I'm using it to solve the
+> points
+> MDS sent me.
+> 
+> Thanks
+> Best Regards
+> Chunhao
+> 
+> 
+> ==============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original author of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such person, please kindly reply the sender indicating accordingly and delete all copies of it from your computer and network server immediately. We thank you for your cooperation. It is advisable that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email that does not relate to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.==============================================If your computer is unable to decode Chinese font, please ignore the following message. They essentially repe
+a!
+>  t the&nbsp; English statement above.???H???????t?????q?l???]???????K?????T, ?????v???o?H?H???w?????H?H???\????. ?????z???D?Q???w?????H?H???]???????]?b???g???v?????????U???????H??, ???z?i?????o?H?H?????Y?N?H???q?q???P???????A???????H????. ?????z???X?@, ?????????P??. ?S??????, ???????g???v?????????????q?l?????K???T???????O?Q?Y???T????. ?H???P?????q?l???~?L???????e,???o?????????q?l?????????N??.
+> 
+
