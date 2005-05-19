@@ -1,58 +1,60 @@
-From: support@obsidian-studios.com (William L. Thomson Jr.)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:59 +0000
 Subject: [lm-sensors] lm-sensors newb needs help
-Message-Id: <1116388677.22757.6.camel@wlt.obsidian-studios.com>
+Message-Id: <Q1nnFZHu.1116408532.5621530.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1116388677.22757.6.camel@wlt.obsidian-studios.com>
+In-Reply-To: <1116388677.22757.6.camel@wlt.obsidian-studios.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Lost a machine recently not sure if temp or etc had to do with it but it
-prompted me to follow up with the last aspect of my servers monitoring,
-lm_sensors.
 
-One of the machines I am working with has a PC Chips M863G mb with SIS
-741GX/963L chipsets.
+Hi William,
 
-Now I can see a winbond chip on the board, but got nothing when I
-compiled in support for it. Through trial and error I finally have the
-following showing up in dmesg.
+> Now I can see a winbond chip on the board, but got nothing when I
+> compiled in support for it. Through trial and error I finally have the
+> following showing up in dmesg.
 
-i2c /dev entries driver
-i2c-sis96x version 1.0.0
-sis96x_smbus 0000:00:02.1: SiS96x SMBus base address: 0x0c00
-it87: Found IT8705F chip at 0x290, revision 3
+Which Winbond chip? Not all of these are hardware monitoring chips,
+Winbond produces many many different chips.
 
-However when I do I get
+> i2c-sis96x version 1.0.0
+> sis96x_smbus 0000:00:02.1: SiS96x SMBus base address: 0x0c00
+> it87: Found IT8705F chip at 0x290, revision 3
 
-root # sensors
-No sensors found!
-root # sensors-detect
-Can't access /proc/modules! at /usr/sbin/sensors-detect line 1837.
-root # i2cdetect -l
-i2c-0   unknown         SiS96x SMBus adapter at 0x0c00          Algorithm unavailable
+That IT8705F chip, made by ITE, would be your hardware monitoring device.
 
-Now I have no clue what to do with the sensors.conf file with regard to
-how I get the values and etc to go in there.
+> However when I do I get
+>
+> root # sensors
+> No sensors found!
 
-Do I have the stuff compiled as modules? I have all algorithms compiled
-in for i2c? Not sure if I missed something or what I need to do?
+I suspect that you did not load or compile in the i2c-isa driver, which
+you need in combination with the it87 driver.
 
-Any help or pointers in the right direction is greatly appreciated. I
-have a variety of machines to do this on, but if I can get the basics
-down. I am sure I can get the rest.
+> root # sensors-detect
+> Can't access /proc/modules! at /usr/sbin/sensors-detect line 1837.
 
-Thanks in advance.
+This is an old bug affecting monolithic kernels, which was fixed in
+lm_sensors 2.8.8. You may want to upgrade, or hack the script by
+yourself (just remove the bogus check).
 
--- 
-Sincerely,
-William L. Thomson Jr.
-Support Group
-Obsidian-Studios, Inc.
-http://www.obsidian-studios.com
-	
+> root # i2cdetect -l
+> i2c-0   unknown         SiS96x SMBus adapter at 0x0c00
+>                         Algorithm unavailable
 
+You should see the ISA pseudo-adapter as well (from the i2c-isa driver
+mentioned above). If you get this one, I'd expect the IT8705F chip to
+show the hardware monitoring data you are after.
+
+You'll find the i2c-isa driver under Device Drivers > I2C support > I2C
+Hardware Bus support when configuring your kernel, it's named "ISA Bus
+support". Just make sure you have it enabled.
+
+--
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
