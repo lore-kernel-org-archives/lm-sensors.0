@@ -1,24 +1,712 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:27 +0000
-Subject: [PATCH 2.6] I2C: Use PCI_DEVICE in bus drivers
-Message-Id: <20041221191041.GC8916@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:20 +0000
+Subject: Patches for 2.6.0 (lm83 and misc)
+Message-Id: <20031004160750.70561b1d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041218191234.4fc7fd76.khali@linux-fr.org>
-In-Reply-To: <20041218191234.4fc7fd76.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Dec 18, 2004 at 07:12:34PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> > Hint, the PCI_DEVICE() macro makes this a lot simpler :)
-> 
-> What about this cleanup patch then? It generalizes the use of
-> PCI_DEVICE() among i2c/busses drivers (with some pci ids cleanups for
-> free).
 
-Nice.  Applied, thanks.
+Hi Greg,
 
-greg k-h
+Please find attached three patches for Linux 2.6.0(-test6).
+The main patch adds support for the LM83. I followed all your
+recommendations, so I hope it is all correct now, but feel free to buzz
+if something isn't.
+The second patch corrects some errors in i2c/chips/Kconfig.
+The third patch fixes all chip drivers (but lm83) by moving the
+initialization before any sysfs entry is created, as you once requested.
+I don't think it is worth backporting that to CVS. It is very unlikely
+to cause problems, isn't it? I can't even think of a scenario that
+would.
+
+Comments are of course welcome.
+
+Future plans:
+- Update my chip driver porting guide, publish it (lm_sensors CVS,
+should it go into Linux 2.6.0 as well?)
+- Port my lm90 driver.
+- Port the adm1025 driver.
+
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
+-------------- next part --------------
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/Kconfig linux-2.6.0-test6-k1/drivers/i2c/chips/Kconfig
+--- linux-2.6.0-test6/drivers/i2c/chips/Kconfig	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k1/drivers/i2c/chips/Kconfig	Fri Oct  3 20:47:42 2003
+@@ -68,6 +68,17 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm78.
+ 
++config SENSORS_LM83
++	tristate "National Semiconductor LM83"
++	depends on I2C && EXPERIMENTAL
++	select I2C_SENSOR
++	help
++	  If you say yes here you get support for National Semiconductor
++	  LM83 sensor chips.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called lm83.
++
+ config SENSORS_LM85
+ 	tristate "National Semiconductors LM85 and compatibles"
+ 	depends on I2C && EXPERIMENTAL
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/Makefile linux-2.6.0-test6-k1/drivers/i2c/chips/Makefile
+--- linux-2.6.0-test6/drivers/i2c/chips/Makefile	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k1/drivers/i2c/chips/Makefile	Sun Sep 28 17:52:41 2003
+@@ -10,5 +10,6 @@
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
+ obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
++obj-$(CONFIG_SENSORS_LM83)	+= lm83.o
+ obj-$(CONFIG_SENSORS_LM85)	+= lm85.o
+ obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/lm83.c linux-2.6.0-test6-k1/drivers/i2c/chips/lm83.c
+--- linux-2.6.0-test6/drivers/i2c/chips/lm83.c	Thu Jan  1 01:00:00 1970
++++ linux-2.6.0-test6-k1/drivers/i2c/chips/lm83.c	Sat Oct  4 15:05:41 2003
+@@ -0,0 +1,413 @@
++/*
++ * lm83.c - Part of lm_sensors, Linux kernel modules for hardware
++ *          monitoring
++ * Copyright (C) 2003  Jean Delvare <khali@linux-fr.org>
++ *
++ * Heavily inspired from the lm78, lm75 and adm1021 drivers. The LM83 is
++ * a sensor chip made by National Semiconductor. It reports up to four
++ * temperatures (its own plus up to three external ones) with a 1 deg
++ * resolution and a 3-4 deg accuracy. Complete datasheet can be obtained
++ * from National's website at:
++ *   http://www.national.com/pf/LM/LM83.html
++ * Since the datasheet omits to give the chip stepping code, I give it
++ * here: 0x03 (at register 0xff).
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/i2c-sensor.h>
++
++/*
++ * Addresses to scan
++ * Address is selected using 2 three-level pins, resulting in 9 possible
++ * addresses.
++ */
++
++static unsigned short normal_i2c[] = { I2C_CLIENT_END };
++static unsigned short normal_i2c_range[] = { 0x18, 0x1a, 0x29, 0x2b,
++    0x4c, 0x4e, I2C_CLIENT_END };
++static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
++static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
++
++/*
++ * Insmod parameters
++ */
++
++SENSORS_INSMOD_1(lm83);
++
++/*
++ * The LM83 registers
++ * Manufacturer ID is 0x01 for National Semiconductor.
++ */
++
++#define LM83_REG_R_MAN_ID		0xFE
++#define LM83_REG_R_CHIP_ID		0xFF
++#define LM83_REG_R_CONFIG		0x03
++#define LM83_REG_W_CONFIG		0x09
++#define LM83_REG_R_STATUS1		0x02
++#define LM83_REG_R_STATUS2		0x35
++#define LM83_REG_R_LOCAL_TEMP		0x00
++#define LM83_REG_R_LOCAL_HIGH		0x05
++#define LM83_REG_W_LOCAL_HIGH		0x0B
++#define LM83_REG_R_REMOTE1_TEMP		0x30
++#define LM83_REG_R_REMOTE1_HIGH		0x38
++#define LM83_REG_W_REMOTE1_HIGH		0x50
++#define LM83_REG_R_REMOTE2_TEMP		0x01
++#define LM83_REG_R_REMOTE2_HIGH		0x07
++#define LM83_REG_W_REMOTE2_HIGH		0x0D
++#define LM83_REG_R_REMOTE3_TEMP		0x31
++#define LM83_REG_R_REMOTE3_HIGH		0x3A
++#define LM83_REG_W_REMOTE3_HIGH		0x52
++#define LM83_REG_R_TCRIT		0x42
++#define LM83_REG_W_TCRIT		0x5A
++
++/*
++ * Conversions, initial values and various macros
++ * The LM83 uses signed 8-bit values.
++ */
++
++#define TEMP_FROM_REG(val)	((val > 127 ? val-256 : val) * 1000)
++#define TEMP_TO_REG(val)	((val < 0 ? val+256 : val) / 1000)
++
++#define LM83_INIT_HIGH		100
++#define LM83_INIT_CRIT		120
++
++static const u8 LM83_REG_R_TEMP[] = {
++	LM83_REG_R_LOCAL_TEMP,
++	LM83_REG_R_REMOTE1_TEMP,
++	LM83_REG_R_REMOTE2_TEMP,
++	LM83_REG_R_REMOTE3_TEMP
++};
++
++static const u8 LM83_REG_R_HIGH[] = {
++	LM83_REG_R_LOCAL_HIGH,
++	LM83_REG_R_REMOTE1_HIGH,
++	LM83_REG_R_REMOTE2_HIGH,
++	LM83_REG_R_REMOTE3_HIGH
++};
++
++static const u8 LM83_REG_W_HIGH[] = {
++	LM83_REG_W_LOCAL_HIGH,
++	LM83_REG_W_REMOTE1_HIGH,
++	LM83_REG_W_REMOTE2_HIGH,
++	LM83_REG_W_REMOTE3_HIGH
++};
++
++/*
++ * Functions declaration
++ */
++
++static int lm83_attach_adapter(struct i2c_adapter *adapter);
++static int lm83_detect(struct i2c_adapter *adapter, int address,
++    int kind);
++static void lm83_init_client(struct i2c_client *client);
++static int lm83_detach_client(struct i2c_client *client);
++static void lm83_update_client(struct i2c_client *client);
++
++/*
++ * Driver data (common to all clients)
++ */
++ 
++static struct i2c_driver lm83_driver = {
++	.owner		= THIS_MODULE,
++	.name		= "lm83",
++	.id		= I2C_DRIVERID_LM83,
++	.flags		= I2C_DF_NOTIFY,
++	.attach_adapter	= lm83_attach_adapter,
++	.detach_client	= lm83_detach_client,
++};
++
++/*
++ * Client data (each client gets its own)
++ */
++
++struct lm83_data
++{
++	struct semaphore update_lock;
++	char valid; /* zero until following fields are valid */
++	unsigned long last_updated; /* in jiffies */
++
++	/* registers values */
++	u8 temp_input[4];
++	u8 temp_high[4];
++	u8 temp_crit;
++	u16 alarms; /* bitvector, combined */
++};
++
++/*
++ * Internal variables
++ */
++
++static int lm83_id = 0;
++
++/*
++ * Sysfs stuff
++ */
++
++#define show_temp(suffix, value) \
++static ssize_t show_temp_##suffix(struct device *dev, char *buf) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm83_data *data = i2c_get_clientdata(client); \
++	lm83_update_client(client); \
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->value)); \
++}
++show_temp(input1, temp_input[0]);
++show_temp(input2, temp_input[1]);
++show_temp(input3, temp_input[2]);
++show_temp(input4, temp_input[3]);
++show_temp(high1, temp_high[0]);
++show_temp(high2, temp_high[1]);
++show_temp(high3, temp_high[2]);
++show_temp(high4, temp_high[3]);
++show_temp(crit, temp_crit);
++
++#define set_temp(suffix, value, reg) \
++static ssize_t set_temp_##suffix(struct device *dev, const char *buf, \
++	size_t count) \
++{ \
++	struct i2c_client *client = to_i2c_client(dev); \
++	struct lm83_data *data = i2c_get_clientdata(client); \
++	data->value = TEMP_TO_REG(simple_strtoul(buf, NULL, 10)); \
++	i2c_smbus_write_byte_data(client, reg, data->value); \
++	return count; \
++}
++set_temp(high1, temp_high[0], LM83_REG_W_LOCAL_HIGH);
++set_temp(high2, temp_high[1], LM83_REG_W_REMOTE1_HIGH);
++set_temp(high3, temp_high[2], LM83_REG_W_REMOTE2_HIGH);
++set_temp(high4, temp_high[3], LM83_REG_W_REMOTE3_HIGH);
++set_temp(crit, temp_crit, LM83_REG_W_TCRIT);
++
++static ssize_t show_alarms(struct device *dev, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm83_data *data = i2c_get_clientdata(client);
++	lm83_update_client(client);
++	return sprintf(buf, "%d\n", data->alarms);
++}
++
++static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp_input1, NULL);
++static DEVICE_ATTR(temp_input2, S_IRUGO, show_temp_input2, NULL);
++static DEVICE_ATTR(temp_input3, S_IRUGO, show_temp_input3, NULL);
++static DEVICE_ATTR(temp_input4, S_IRUGO, show_temp_input4, NULL);
++static DEVICE_ATTR(temp_max1, S_IWUSR | S_IRUGO, show_temp_high1,
++    set_temp_high1);
++static DEVICE_ATTR(temp_max2, S_IWUSR | S_IRUGO, show_temp_high2,
++    set_temp_high2);
++static DEVICE_ATTR(temp_max3, S_IWUSR | S_IRUGO, show_temp_high3,
++    set_temp_high3);
++static DEVICE_ATTR(temp_max4, S_IWUSR | S_IRUGO, show_temp_high4,
++    set_temp_high4);
++static DEVICE_ATTR(temp_crit, S_IWUSR | S_IRUGO, show_temp_crit,
++    set_temp_crit);
++static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++
++/*
++ * Real code
++ */
++
++static int lm83_attach_adapter(struct i2c_adapter *adapter)
++{
++	if (!(adapter->class & I2C_ADAP_CLASS_SMBUS))
++		return 0;
++	return i2c_detect(adapter, &addr_data, lm83_detect);
++}
++
++/*
++ * The following function does more than just detection. If detection
++ * succeeds, it also registers the new chip.
++ */
++static int lm83_detect(struct i2c_adapter *adapter, int address,
++    int kind)
++{
++	struct i2c_client *new_client;
++	struct lm83_data *data;
++	int err = 0;
++	const char *name = "";
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		goto exit;
++
++	if (!(new_client = kmalloc(sizeof(struct i2c_client) +
++	    sizeof(struct lm83_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto exit;
++	}
++	memset(new_client, 0x00, sizeof(struct i2c_client) +
++	    sizeof(struct lm83_data));
++
++	/* The LM83-specific data is placed right after the common I2C
++	 * client data. */
++	data = (struct lm83_data *) (new_client + 1);
++	i2c_set_clientdata(new_client, data);
++	new_client->addr = address;
++	new_client->adapter = adapter;
++	new_client->driver = &lm83_driver;
++	new_client->flags = 0;
++
++	/* Now we do the detection and identification. A negative kind
++	 * means that the driver was loaded with no force parameter
++	 * (default), so we must both detect and identify the chip
++	 * (actually there is only one possible kind of chip for now, LM83).
++	 * A zero kind means that the driver was loaded with the force
++	 * parameter, the detection step shall be skipped. A positive kind
++	 * means that the driver was loaded with the force parameter and a
++	 * given kind of chip is requested, so both the detection and the
++	 * identification steps are skipped. */
++	if (kind < 0) { /* detection */
++		if (((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS1)
++		    & 0xA8) != 0x00) ||
++		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS2)
++		    & 0x48) != 0x00) ||
++		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_CONFIG)
++		    & 0x41) != 0x00)) {
++			dev_dbg(&client->dev,
++			    "LM83 detection failed at 0x%02x.\n", address);
++			goto exit_free;
++		}
++	}
++
++	if (kind <= 0) { /* identification */
++		u8 man_id, chip_id;
++
++		man_id = i2c_smbus_read_byte_data(new_client,
++		    LM83_REG_R_MAN_ID);
++		chip_id = i2c_smbus_read_byte_data(new_client,
++		    LM83_REG_R_CHIP_ID);
++		if (man_id = 0x01) { /* National Semiconductor */
++			if (chip_id = 0x03) {
++				kind = lm83;
++				name = "lm83";
++			}
++		}
++
++		if (kind <= 0) { /* identification failed */
++			dev_info(&adapter->dev,
++			    "Unsupported chip (man_id=0x%02X, "
++			    "chip_id=0x%02X).\n", man_id, chip_id);
++			goto exit_free;
++		}
++	}
++
++	/* We can fill in the remaining client fields */
++	strlcpy(new_client->name, name, I2C_NAME_SIZE);
++	new_client->id = lm83_id++;
++	data->valid = 0;
++	init_MUTEX(&data->update_lock);
++
++	/* Tell the I2C layer a new client has arrived */
++	if ((err = i2c_attach_client(new_client)))
++		goto exit_free;
++
++	/* Initialize the LM83 chip */
++	lm83_init_client(new_client);
++
++	/* Register sysfs hooks */
++	device_create_file(&new_client->dev, &dev_attr_temp_input1);
++	device_create_file(&new_client->dev, &dev_attr_temp_input2);
++	device_create_file(&new_client->dev, &dev_attr_temp_input3);
++	device_create_file(&new_client->dev, &dev_attr_temp_input4);
++	device_create_file(&new_client->dev, &dev_attr_temp_max1);
++	device_create_file(&new_client->dev, &dev_attr_temp_max2);
++	device_create_file(&new_client->dev, &dev_attr_temp_max3);
++	device_create_file(&new_client->dev, &dev_attr_temp_max4);
++	device_create_file(&new_client->dev, &dev_attr_temp_crit);
++	device_create_file(&new_client->dev, &dev_attr_alarms);
++
++	return 0;
++
++exit_free:
++	kfree(new_client);
++exit:
++	return err;
++}
++
++static void lm83_init_client(struct i2c_client *client)
++{
++	int nr;
++
++	for (nr = 0; nr < 4; nr++)
++		i2c_smbus_write_byte_data(client, LM83_REG_W_HIGH[nr],
++	            TEMP_TO_REG(LM83_INIT_HIGH));
++	i2c_smbus_write_byte_data(client, LM83_REG_W_TCRIT,
++	    TEMP_TO_REG(LM83_INIT_CRIT));
++}
++
++static int lm83_detach_client(struct i2c_client *client)
++{
++	int err;
++
++	if ((err = i2c_detach_client(client))) {
++		dev_err(&client->dev,
++		    "Client deregistration failed, client not detached.\n");
++		return err;
++	}
++
++	kfree(client);
++	return 0;
++}
++
++static void lm83_update_client(struct i2c_client *client)
++{
++	struct lm83_data *data = i2c_get_clientdata(client);
++
++	down(&data->update_lock);
++
++	if ((jiffies - data->last_updated > HZ * 2) ||
++	    (jiffies < data->last_updated) ||
++	    !data->valid) {
++		int nr;
++		dev_dbg(&client->dev, "Updating lm83 data.\n");
++		for (nr = 0; nr < 4 ; nr++) {
++			data->temp_input[nr] +			    i2c_smbus_read_byte_data(client,
++			    LM83_REG_R_TEMP[nr]);
++			data->temp_high[nr] +			    i2c_smbus_read_byte_data(client,
++			    LM83_REG_R_HIGH[nr]);
++		}
++		data->temp_crit +		    i2c_smbus_read_byte_data(client, LM83_REG_R_TCRIT);
++		data->alarms +		    i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS1)
++		    + (i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS2)
++		    << 8);
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	up(&data->update_lock);
++}
++
++static int __init sensors_lm83_init(void)
++{
++	return i2c_add_driver(&lm83_driver);
++}
++
++static void __exit sensors_lm83_exit(void)
++{
++	i2c_del_driver(&lm83_driver);
++}
++
++MODULE_AUTHOR("Jean Delvare <khali@linux-fr.org>");
++MODULE_DESCRIPTION("LM83 driver");
++MODULE_LICENSE("GPL");
++
++module_init(sensors_lm83_init);
++module_exit(sensors_lm83_exit);
+diff -ruN linux-2.6.0-test6/include/linux/i2c-id.h linux-2.6.0-test6-k1/include/linux/i2c-id.h
+--- linux-2.6.0-test6/include/linux/i2c-id.h	Sun Sep 28 17:43:40 2003
++++ linux-2.6.0-test6-k1/include/linux/i2c-id.h	Sun Sep 28 22:54:01 2003
+@@ -153,6 +153,7 @@
+ #define I2C_DRIVERID_FS451 1037
+ #define I2C_DRIVERID_W83627HF 1038
+ #define I2C_DRIVERID_LM85 1039
++#define I2C_DRIVERID_LM83 1040
+ 
+ /*
+  * ---- Adapter types ----------------------------------------------------
+-------------- next part --------------
+--- linux-2.6.0-test6/drivers/i2c/chips/Kconfig	2003-10-03 21:12:54.000000000 +0200
++++ linux-2.6.0-test6/drivers/i2c/chips/Kconfig	2003-10-03 21:38:36.000000000 +0200
+@@ -15,7 +15,7 @@
+ 	help
+ 	  If you say yes here you get support for Analog Devices ADM1021 
+ 	  and ADM1023 sensor chips and clones: Maxim MAX1617 and MAX1617A,
+-	  Genesys Logic GL523SM, National Semi LM84, TI THMC10,
++	  Genesys Logic GL523SM, National Semiconductor LM84, TI THMC10,
+ 	  and the XEON processor built-in sensor.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+@@ -34,30 +34,30 @@
+ 	  will be called eeprom.
+ 
+ config SENSORS_IT87
+-	tristate "National Semiconductors IT87 and compatibles"
++	tristate "ITE IT87xx and compatibles"
+ 	depends on I2C && EXPERIMENTAL
+ 	select I2C_SENSOR
+ 	help
+-	  If you say yes here you get support for National Semiconductor IT87
+-	  sensor chips and clones: IT8705F, IT8712F and SiS960.
++	  If you say yes here you get support for ITE IT87xx sensor chips
++	  and clones: SiS960.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
+ 
+ config SENSORS_LM75
+-	tristate "National Semiconductors LM75 and compatibles"
++	tristate "National Semiconductor LM75 and compatibles"
+ 	depends on I2C && EXPERIMENTAL
+ 	select I2C_SENSOR
+ 	help
+ 	  If you say yes here you get support for National Semiconductor LM75
+ 	  sensor chips and clones: Dallas Semi DS75 and DS1775, TelCon
+-	  TCN75, and National Semi LM77.
++	  TCN75, and National Semiconductor LM77.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm75.
+ 
+ config SENSORS_LM78
+-	tristate "National Semiconductors LM78 and compatibles"
++	tristate "National Semiconductor LM78 and compatibles"
+ 	depends on I2C && EXPERIMENTAL
+ 	select I2C_SENSOR
+ 	help
+@@ -80,7 +80,7 @@
+ 	  will be called lm83.
+ 
+ config SENSORS_LM85
+-	tristate "National Semiconductors LM85 and compatibles"
++	tristate "National Semiconductor LM85 and compatibles"
+ 	depends on I2C && EXPERIMENTAL
+ 	select I2C_SENSOR
+ 	help
+-------------- next part --------------
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/adm1021.c linux-2.6.0-test6-k2/drivers/i2c/chips/adm1021.c
+--- linux-2.6.0-test6/drivers/i2c/chips/adm1021.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/adm1021.c	Sat Oct  4 13:46:32 2003
+@@ -322,6 +322,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto error3;
+ 
++	/* Initialize the ADM1021 chip */
++	adm1021_init_client(new_client);
++
++	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_temp_max1);
+ 	device_create_file(&new_client->dev, &dev_attr_temp_min1);
+ 	device_create_file(&new_client->dev, &dev_attr_temp_input1);
+@@ -332,8 +336,6 @@
+ 	if (data->type = adm1021)
+ 		device_create_file(&new_client->dev, &dev_attr_die_code);
+ 
+-	/* Initialize the ADM1021 chip */
+-	adm1021_init_client(new_client);
+ 	return 0;
+ 
+ error3:
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/it87.c linux-2.6.0-test6-k2/drivers/i2c/chips/it87.c
+--- linux-2.6.0-test6/drivers/i2c/chips/it87.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/it87.c	Sat Oct  4 13:45:29 2003
+@@ -701,7 +701,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto ERROR1;
+ 
+-	/* register sysfs hooks */
++	/* Initialize the IT87 chip */
++	it87_init_client(new_client, data);
++
++	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_in_input0);
+ 	device_create_file(&new_client->dev, &dev_attr_in_input1);
+ 	device_create_file(&new_client->dev, &dev_attr_in_input2);
+@@ -750,8 +753,6 @@
+ 	device_create_file(&new_client->dev, &dev_attr_fan_div3);
+ 	device_create_file(&new_client->dev, &dev_attr_alarm);
+ 
+-	/* Initialize the IT87 chip */
+-	it87_init_client(new_client, data);
+ 	return 0;
+ 
+ ERROR1:
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/lm75.c linux-2.6.0-test6-k2/drivers/i2c/chips/lm75.c
+--- linux-2.6.0-test6/drivers/i2c/chips/lm75.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/lm75.c	Sat Oct  4 13:45:05 2003
+@@ -204,11 +204,14 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto exit_free;
+ 
++	/* Initialize the LM75 chip */
++	lm75_init_client(new_client);
++	
++	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_temp_max);
+ 	device_create_file(&new_client->dev, &dev_attr_temp_min);
+ 	device_create_file(&new_client->dev, &dev_attr_temp_input);
+ 
+-	lm75_init_client(new_client);
+ 	return 0;
+ 
+ exit_free:
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/lm78.c linux-2.6.0-test6-k2/drivers/i2c/chips/lm78.c
+--- linux-2.6.0-test6/drivers/i2c/chips/lm78.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/lm78.c	Sat Oct  4 13:44:29 2003
+@@ -648,7 +648,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto ERROR2;
+ 
+-	/* register sysfs hooks */
++	/* Initialize the LM78 chip */
++	lm78_init_client(new_client);
++
++	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_in_input0);
+ 	device_create_file(&new_client->dev, &dev_attr_in_min0);
+ 	device_create_file(&new_client->dev, &dev_attr_in_max0);
+@@ -685,8 +688,6 @@
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 	device_create_file(&new_client->dev, &dev_attr_vid);
+ 
+-	/* Initialize the LM78 chip */
+-	lm78_init_client(new_client);
+ 	return 0;
+ 
+ ERROR2:
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/lm85.c linux-2.6.0-test6-k2/drivers/i2c/chips/lm85.c
+--- linux-2.6.0-test6/drivers/i2c/chips/lm85.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/lm85.c	Sat Oct  4 13:43:13 2003
+@@ -888,6 +888,10 @@
+ 	/* Set the VRM version */
+ 	data->vrm = LM85_INIT_VRM ;
+ 
++	/* Initialize the LM85 chip */
++	lm85_init_client(new_client);
++
++	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_fan_input1);
+ 	device_create_file(&new_client->dev, &dev_attr_fan_input2);
+ 	device_create_file(&new_client->dev, &dev_attr_fan_input3);
+@@ -930,8 +934,6 @@
+ 	device_create_file(&new_client->dev, &dev_attr_vid);
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 
+-	/* Initialize the LM85 chip */
+-	lm85_init_client(new_client);
+ 	return 0;
+ 
+ 	/* Error out and cleanup code */
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/via686a.c linux-2.6.0-test6-k2/drivers/i2c/chips/via686a.c
+--- linux-2.6.0-test6/drivers/i2c/chips/via686a.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/via686a.c	Sat Oct  4 13:43:22 2003
+@@ -735,7 +735,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto ERROR3;
+ 	
+-	/* register sysfs hooks */
++	/* Initialize the VIA686A chip */
++	via686a_init_client(new_client);
++
++	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_in_input0);
+ 	device_create_file(&new_client->dev, &dev_attr_in_input1);
+ 	device_create_file(&new_client->dev, &dev_attr_in_input2);
+@@ -768,8 +771,6 @@
+ 	device_create_file(&new_client->dev, &dev_attr_fan_div2);
+ 	device_create_file(&new_client->dev, &dev_attr_alarm);
+ 
+-	/* Initialize the VIA686A chip */
+-	via686a_init_client(new_client);
+ 	return 0;
+ 
+       ERROR3:
+diff -ruN linux-2.6.0-test6/drivers/i2c/chips/w83781d.c linux-2.6.0-test6-k2/drivers/i2c/chips/w83781d.c
+--- linux-2.6.0-test6/drivers/i2c/chips/w83781d.c	Sun Sep 28 17:43:37 2003
++++ linux-2.6.0-test6-k2/drivers/i2c/chips/w83781d.c	Sat Oct  4 13:42:43 2003
+@@ -1346,6 +1346,10 @@
+ 		data->lm75[1] = NULL;
+ 	}
+ 
++	/* Initialize the chip */
++	w83781d_init_client(new_client);
++
++	/* Register sysfs hooks */
+ 	device_create_file_in(new_client, 0);
+ 	if (kind != w83783s && kind != w83697hf)
+ 		device_create_file_in(new_client, 1);
+@@ -1408,8 +1412,6 @@
+ 	}
+ #endif
+ 
+-	/* Initialize the chip */
+-	w83781d_init_client(new_client);
+ 	return 0;
+ 
+ ERROR3:
