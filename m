@@ -1,33 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 22 May 2005 13:47:33 +0000
-Subject: [lm-sensors] Re: New mailing-list
-Message-Id: <20050522131932.2c815875.khali@linux-fr.org>
+From: David_Papasan@Dell.com (David_Papasan@Dell.com)
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: LM Sensors Module ADM 1021 running on P4 Xeon (Foster) Procs (Del
+Message-Id: <2DFA1D631549D5118E0C0090277B30ED0238AB5F@ausxmpn202.us.dell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050517204632.58f502af.khali@linux-fr.org>
-In-Reply-To: <20050517204632.58f502af.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
+	We have a user running LM_Sensors under Linux 7.1 that is
+experiencing thermal shutdowns at normal temperatures. The system is a Dell
+Precision 530, P4 Xeon, Intel 860 Chipset, National Inst. PC87365 HW
+monitoring. LM Sensors detects an Analog devices 1021, which would be fairly
+accurate because the xeon's have Max 1617 chips on them. Dell's normal
+monitor is that the Max monitors the chip, and works with the PC87365, the
+bios has preset thermal limits ( 70C clock throttle, 90C Thermal warning and
+shutdown counter set to 90second, 105C quickshutdown).
 
-> > I'm confident that Google will find the new archive soon enough
-> > anyway. Shall we bet? Before I go to the Guadec it should be
-> > done.
-> 
-> Google has already picked some parts before we moved the archive in
-> the last days:
-> 
-> http://www.google.de/search?q=site%3Alm-sensors.org
-> 
-> So I won't hold a bet against you ;)
+	What seems to be happening is 
+1.) ADM1021 loads and resets temps to 20C warning, 60C shutdown
+2.) If you run Sensors -c it sets the desired temperature on the Secondary
+Proc, but leaves the Primary at 20C/60C.
+3.) after 7 mins or so of 100% CPU utilization the system will do a dirty
+shitdown and the bios indicates a thermal event was reported (even thou if
+you monitor with Sensors the Temp only got to 60C)
 
-You could have bet that Google would take way less time than that to do
-the job, and you'd have won. The whole archive is indexed already :)
-Quite impressive, methinks.
+I dont think sensors is handling the primary proc right in a dual CPU
+situation because if I remove the second CPU Sensors is not seeing any of
+the max chips. But if I dont load ADM 1021 the system will run at 100% CPU
+without error.
 
-BTW, anyone else coming at the Guadec?
+Is there a module that will work with the PC87365 ? or a way to monitor 2
+Max 1617 chips and set the temperature accordingly ?
 
--- 
-Jean Delvare
+
+Thanks
+Knickia Papasan
+Dell Precision IPS
