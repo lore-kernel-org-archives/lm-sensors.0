@@ -1,36 +1,18 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:46 +0000
-Subject: RFC PATCH driver pcf8574 not quite right
-Message-Id: <5egc41pajhqqmdjingp9utu2m9gd24si4q@4ax.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:59 +0000
+Subject: for everyone who sends kernel patches
+Message-Id: <20040523210714.GA9934@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
+Please read Linus's patch on lkml:
+	http://thread.gmane.org/gmane.linux.kernel/205867
+and weigh in if you object in any manner (on lkml, not here) as it will
+change the way people send me patches in a very tiny way.
 
-pcf8574 tried to write an untested value to the chip, one 
-way to 'fix' this is simply force the value to byte range.
+thanks,
 
-Who knows proper fix please?
-
-Cheers,
-Grant.
-
---- linux-2.6.12-rc1-mm3/drivers/i2c/chips/pcf8574.c	2005-03-23 06:34:26.000000000 +1100
-+++ linux-2.6.12-rc1-mm3x/drivers/i2c/chips/pcf8574.c	2005-03-27 12:31:05.000000000 +1000
-@@ -97,8 +97,12 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct pcf8574_data *data = i2c_get_clientdata(client);
--	data->write = simple_strtoul(buf, NULL, 10);
-+	unsigned long val = simple_strtoul(buf, NULL, 10) & 0xff;
-+
-+	down(&data->update_lock);
-+	data->write = val;
- 	i2c_smbus_write_byte(client, data->write);
-+	up(&data->update_lock);
- 	return count;
- }
- 
+greg k-h
