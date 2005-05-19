@@ -1,7 +1,7 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:55 +0000
 Subject: [RFC PATCH 2.6.12-rc3] dynamic driver sysfs callbacks and RFC on
-Message-Id: <200504260245.06859.dtor_core@ameritech.net>
+Message-Id: <20050426075415.GB6795@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2538186705042422366584aff4@mail.gmail.com>
 In-Reply-To: <2538186705042422366584aff4@mail.gmail.com>
@@ -10,26 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-On Monday 25 April 2005 00:36, Yani Ioannou wrote:
-> Hi all,
+On Tue, Apr 26, 2005 at 09:42:11AM +0200, Jean Delvare wrote:
+> > And the void * shouldn't be called ptr, use what other structures call
+> > their void pointers, "data", "private", etc.
 > 
-> I'm sending this driver sysfs callback patch to the lm-sensors list to
-> get more of the sensor driver maintainer's comments on the patch
-> (specifically the type to be associated with each sysfs entry) before
-> submitting to LKML. Jean and Greg have already given me invaluable
-> feedback and are supportive of the general idea of the patch (the
-> problem of which is epitomized by the kludge the 2.6 bmcsensors driver
-> is at the moment - see previous discussions in the list archive).
-> 
-> Included is a patch against drivers/base/core.c and
-> include/linux/driver.h that adds a void * to the device attribute
-> struct and passes it back to the two sysfs callbacks show/store.
+> What are these other structures, BTW? I'd like to take a look at them,
+> maybe it would enlighten my views.
 
-If void is added directly to the attribute structure that means that same
-attribute can not be shared between several instances of the same device
--> unexpected. So far all attributes could be statically created.
+struct device
+struct file
+struct inode
 
--- 
-Dmitry
+And others.  No one needs to define a pointer as "ptr", that's just
+redundant :)
+
+But yes, it should be a "void *" that part is correct.  No matter what
+we want to store in there, that will be sufficient.
+
+thanks,
+
+greg k-h
