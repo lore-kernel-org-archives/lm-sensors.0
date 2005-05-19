@@ -1,45 +1,28 @@
-From: mvloon@anime-nl.net (Marco van Loon)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: lm_sensors & the /usr/src/linux mess...
-Message-Id: <20030204162045.A514@anime-nl.net>
+From: helvecio@gmail.com (Helvecio Oliveira)
+Date: Thu, 19 May 2005 06:25:34 +0000
+Subject: Asus - No support for lm_sensors
+Message-Id: <c5e1a3c05013104124e262d3e@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[an almost identical e-mail as the one I've sent to i2c; you seem to kind of
- share docs and Makefile structure...] 
+Dear Asus Team,
 
-Ugh, I hate it when different pieces of documentation say things that are 
-completely contrary to each other... :(
-The kernel README and IIRC also the glibc docs specifically say that
-/usr/src/linux _shouldn't_ contain the header files of the current kernel,
-but of the kernel that was installed at the moment the (glibc) library
-was compiled...   Or in other words:
-"Don't fsck with /usr/src/linux unless you're installing a new glibc"
+I am a Asus buyer since last milenium. But...
 
-Now the docs of lm_sensors mention "/usr/src/linux" in the role of
-"current kernel sources" multiple times, which, as alredy said, 
-_isn't_ correct according to the README of the kernel itself... :(
+I would like to tell you, that I will never buy an Asus board any more. 
 
+Way not? Because Asus is a closed board. I need monitor my board in
+linux, and there are no support for lm_sensors due the policy of Asus.
 
-Some small comments about the Makefile:
+Thank?s
 
-would the makefile language allow for a kind of
-$(shell if [ ! -d $(LINUX_HEADERS) ]; \
-  then <abort the Makefile here>;
-  fi)
-type of construct to be inserted to do an early abort of the Makefile
-if someone is silly enough to run the Makefile while
-/lib/modules/$(KERNELVERSION)/build is a dangling symlink, so the 'grep's,
-'cut's etc. don't go horribly wrong for lack of input(files) in such a case?..
+See lm_sensors page below.
 
-Fortunately  $(shell if [ -L 
-also sees _dangling_ symlinks as symlinks, so there's no disastrous fall-back
-to /usr/src/linux if /lib/modules/$(KERNELVERSION)/build is dangling...
-(my $(KERNELVERSION) is 2.4.20 , /usr/src/linux/include/ contains 2.4.19
- headers (see rant above))
+http://secure.netroedge.com/~lm78/newdrivers.html
 
-
-Marco van Loon 
+Asus 
+ASM58 
+(2004-09-14) No datasheet. We do not support undocumented chips.
