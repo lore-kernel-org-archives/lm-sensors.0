@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:25:45 +0000
 Subject: RFC locking and rate limit updates for i2c?
-Message-Id: <jdh241t0jadl9n3aju9ljfiuj3ae11n3l0@4ax.com>
+Message-Id: <4241946D.2060907@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 In-Reply-To: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
@@ -10,39 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
+Grant Coady wrote:
 
-On Wed, 23 Mar 2005 10:33:05 +0100 (CET), "Jean Delvare" <khali@linux-fr.org> wrote:
-
->> Thinking about the fan_div setting, it is a read/modify/write
->> (RMW) operation to a chip register, should we take action to
->> prevent another process accessing the chip on i2c during this
->> RMW action?
+>You ever focus on wrong issues and build wrong model of 
+>what is important?  That's where I'm at trying to build 
+>understanding of a system I don't even have end-user 
+>experience with yet.
+>  
 >
->Can you (or anyone) point out a concrete example where the lack of
->locking on write could cause a problem that locking would actually
->resolve? It's better to know what we are trying to fix before we change
->anything.
+Certainly, wouldn't be an experiecned programmer if I hadn't.
 
-I'm thinking that there is a very small window between reading 
-a register, modifying some bits and writing it back out, where 
-another process also does it.  Say SMP and one CPU update fan_div1
-while other update fan_div2 -- adm1026 has eight of these over 
-two bytes to potentially interfere with each other.  
+>I get to the stage of cherry-picking the best ideas I've seen 
+>in the drivers, not one driver has struck me as a model driver.
+>
+>  
+>
+>>In addition to the way I know my drivers worked, I believe that all 
+>>other drivers have an update_lock semaphore that could be used to 
+>>protect read-modify-write's in the same way.
+>>    
+>>
+>
+>But they don't, and I wonder if they should?
+>  
+>
+Ahh...  That's where I haven't really done a good job explaining 
+myself.  I fully agree with you that they should.  It's obvious to me 
+that the functions that *set* the values need to be protected to prevent 
+an SMP machine from borking things up.  That's why I added the down/up 
+calls in all of the write paths of the drivers I wrote.
 
-But if the update request event stream is serialised by sysfs 
-or elsewhere on its way to the driver then there is no problem.
+Perhaps I should have made a bigger deal about this when I first 
+realized it in the drivers I created and submitted patches for the other 
+drivers...  Would have saved you the trouble...
 
-If the i2c bus driver rate limits write traffic to bus, then 
-again there is no issue.  I simply do not know.  I ask to learn.
-
-I've attempted to not access the chip if divisor didn't 
-change, which now makes it trivial to add locking around the 
-read/modify/write, if the notion is deemed worthwhile.
-
-Defensive programming.  From what?  Perhaps nothing.
-
-Perhaps the query would make more sense with relevant patch?
-
-Cheers,
-Grant.
+:v)
