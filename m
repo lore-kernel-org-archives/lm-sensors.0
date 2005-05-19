@@ -1,81 +1,125 @@
-From: siegert@sfu.ca (Martin Siegert)
+From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:30 +0000
 Subject: Tyan 2462 (ticket #813)
-Message-Id: <20020215152003.A26195@stikine.ucs.sfu.ca>
+Message-Id: <3C7C579E.ABCE77D3@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20020215152003.A26195@stikine.ucs.sfu.ca>
+In-Reply-To: <20020215152003.A26195@stikine.ucs.sfu.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGksCgpGWUk6CgpJIGp1c3QgdHJpZWQgd2hhdCB5b3UgZGVzY3JpYmVkIGF0Cmh0dHA6Ly93d3cy
-LmxtLXNlbnNvcnMubnUvfmxtNzgvcmVhZHRpY2tldC5jZ2k/dGlja2V0gTMKaS5lLiwgSSBnb3Qg
-dGhlIENWUyB2ZXJzaW9uIG9mIHc4Mzc4MWQKYW5kIGNvbXBpbGVkIGl0LiBPbiB0aGUgVHlhbiAy
-NDYyIChUaHVuZGVyIEs3KSB0aGVyZSBpcyBubyBCSU9TIG9wdGlvbgp0byBpbml0aWFsaXplIHRo
-ZSBoYXJkd2FyZSBzZW5zb3JzIC0gdGhleSBzZWVtIHRvIGJlIG9uIGFsd2F5cy4KCkFueXdheToK
-CiMgbW9kcHJvYmUgaTJjLWFtZDc1NgojIG1vZHByb2JlIGkyYy1wcm9jCiMgbW9kcHJvYmUgaTJj
-LWRldgojIG1vZHByb2JlIHc4Mzc4MWQgaW5pdD0wIGZvcmNlX3N1YmNsaWVudHM9MCwweDJjLDB4
-NGEsMHg0YgoKd29ya3Mgc3VjY2Vzc2Z1bGx5OgoKIyBzZW5zb3JzIC1zCiMgc2Vuc29ycwp3ODM2
-MjdoZi1pMmMtMC0yYwpBZGFwdGVyOiBTTUJ1cyBBTUQ3WDYgYWRhcHRlciBhdCA4MGUwCkFsZ29y
-aXRobTogTm9uLUkyQyBTTUJ1cyBhZGFwdGVyClZDb3JlIDE6ICAgKzEuNzQgViAgKG1pbiA9ICAr
-MS43NCBWLCBtYXggPSAgKzEuOTMgVikgICAgICAgQUxBUk0gIApWQ29yZSAyOiAgICsxLjc0IFYg
-IChtaW4gPSAgKzEuNzQgViwgbWF4ID0gICsxLjkzIFYpICAgICAgIEFMQVJNICAKKzMuM1Y6ICAg
-ICArMy4zNyBWICAobWluID0gICszLjEzIFYsIG1heCA9ICArMy40NSBWKSAgICAgICAgICAgICAg
-Cis1VjogICAgICAgKzQuOTkgViAgKG1pbiA9ICArNC43MiBWLCBtYXggPSAgKzUuMjQgVikgICAg
-ICAgICAgICAgIAorMTJWOiAgICAgKzExLjE3IFYgIChtaW4gPSArMTAuNzkgViwgbWF4ID0gKzEz
-LjE5IFYpICAgICAgICAgICAgICAKLTEyVjogICAgIC0xMS44OCBWICAobWluID0gLTEwLjkwIFYs
-IG1heCA9IC0xMy4yMSBWKSAgICAgICAgICAgICAgCi01VjogICAgICAgLTUuNjEgViAgKG1pbiA9
-ICAtNC43NiBWLCBtYXggPSAgLTUuMjYgVikgICAgICAgICAgICAgIApWNVNCOiAgICAgICs1LjQ0
-IFYgIChtaW4gPSAgKzQuNzIgViwgbWF4ID0gICs1LjI0IFYpICAgICAgICAgICAgICAKVkJhdDog
-ICAgICArMi44OCBWICAobWluID0gICsyLjQwIFYsIG1heCA9ICArMy42MCBWKSAgICAgICAgICAg
-ICAgCmZhbjE6ICAgICAgICAwIFJQTSAgKG1pbiA9IDMwMDAgUlBNLCBkaXYgPSAyKSAgICAgICAg
-ICAgICAgICAgICAgIApmYW4yOiAgICAgICAgMCBSUE0gIChtaW4gPSAzMDAwIFJQTSwgZGl2ID0g
-MikgICAgICAgICAgICAgICAgICAgICAKZmFuMzogICAgICAgIDAgUlBNICAobWluID0gIDc1MCBS
-UE0sIGRpdiA9IDgpICAgICAgICAgICAgICAgICAgICAgCnRlbXAxOiAgICAgKzQ0LjA/QyAgKGxp
-bWl0ID0gICs2MD9DLCBoeXN0ZXJlc2lzID0gICs1MD9DKSBzZW5zb3IgPSAzOTA0IHRyYW5zaXN0
-b3IgICAgICAgICAgIAp0ZW1wMjogICAgICAgKzM2P0MgIChsaW1pdCA9ICArNzI/QywgaHlzdGVy
-ZXNpcyA9ICArMzI/Qykgc2Vuc29yID0gMzkwNCB0cmFuc2lzdG9yICAgICAgICAgICAKdGVtcDM6
-ICAgICAgICszND9DICAobGltaXQgPSAgKzcyP0MsIGh5c3RlcmVzaXMgPSAgKzMyP0MpIHNlbnNv
-ciA9IDM5MDQgdHJhbnNpc3RvciAgICAgICAgICAgCnZpZDogICAgICArMS44NSBWCmFsYXJtczog
-ICBDaGFzc2lzIGludHJ1c2lvbiBkZXRlY3Rpb24gICAgICAgICAgICAgICAgICAgICAgQUxBUk0g
-IApiZWVwX2VuYWJsZToKICAgICAgICAgIFNvdW5kIGFsYXJtIGRpc2FibGVkCgp3ODM3ODJkLWky
-Yy0wLTJkCkFkYXB0ZXI6IFNNQnVzIEFNRDdYNiBhZGFwdGVyIGF0IDgwZTAKQWxnb3JpdGhtOiBO
-b24tSTJDIFNNQnVzIGFkYXB0ZXIKVkNvcmUgMTogICArMS43NiBWICAobWluID0gICsxLjc0IFYs
-IG1heCA9ICArMS45MyBWKSAgICAgICAgICAgICAgClZDb3JlIDI6ICAgKzIuODQgViAgKG1pbiA9
-ICArMS43NCBWLCBtYXggPSAgKzEuOTMgVikgICAgICAgICAgICAgIAorMy4zVjogICAgICszLjQw
-IFYgIChtaW4gPSAgKzMuMTMgViwgbWF4ID0gICszLjQ1IFYpICAgICAgICAgICAgICAKKzVWOiAg
-ICAgICArNC44OSBWICAobWluID0gICs0LjcyIFYsIG1heCA9ICArNS4yNCBWKSAgICAgICAgICAg
-ICAgCisxMlY6ICAgICAgKzQuNzEgViAgKG1pbiA9ICsxMC43OSBWLCBtYXggPSArMTMuMTkgVikg
-ICAgICAgICAgICAgIAotMTJWOiAgICAgIC0yLjExIFYgIChtaW4gPSAtMTAuOTAgViwgbWF4ID0g
-LTEzLjIxIFYpICAgICAgICAgICAgICAKLTVWOiAgICAgICArMi43OCBWICAobWluID0gIC00Ljc2
-IFYsIG1heCA9ICAtNS4yNiBWKSAgICAgICAgICAgICAgClY1U0I6ICAgICAgKzQuMjMgViAgKG1p
-biA9ICArNC43MiBWLCBtYXggPSAgKzUuMjQgVikgICAgICAgICAgICAgIApWQmF0OiAgICAgICsy
-LjkxIFYgIChtaW4gPSAgKzIuNDAgViwgbWF4ID0gICszLjYwIFYpICAgICAgICAgICAgICAKZmFu
-MTogICAgIDUyNzMgUlBNICAobWluID0gMzAwMCBSUE0sIGRpdiA9IDIpICAgICAgICAgICAgICAg
-ICAgICAgCmZhbjI6ICAgICA1MTkyIFJQTSAgKG1pbiA9IDMwMDAgUlBNLCBkaXYgPSAyKSAgICAg
-ICAgICAgICAgICAgICAgIApmYW4zOiAgICAgICAgMCBSUE0gIChtaW4gPSAxNTAwIFJQTSwgZGl2
-ID0gNCkgICAgICAgICAgICAgICAgICAgICAKdGVtcDE6ICAgICArNDAuMD9DICAobGltaXQgPSAr
-MTAwP0MsIGh5c3RlcmVzaXMgPSArMTI3P0MpIHNlbnNvciA9IDM5MDQgdHJhbnNpc3RvciAgICAg
-ICAgICAgCnRlbXAyOiAgICAgICArMzk/QyAgKGxpbWl0ID0gICs3Mj9DLCBoeXN0ZXJlc2lzID0g
-ICszMj9DKSBzZW5zb3IgPSAzOTA0IHRyYW5zaXN0b3IgICAgICAgICAgIAp0ZW1wMzogICAgICAg
-KzM5P0MgIChsaW1pdCA9ICArNzI/QywgaHlzdGVyZXNpcyA9ICArMzI/Qykgc2Vuc29yID0gMzkw
-NCB0cmFuc2lzdG9yICAgICAgICAgICAKdmlkOiAgICAgICsxLjg1IFYKYWxhcm1zOiAgIENoYXNz
-aXMgaW50cnVzaW9uIGRldGVjdGlvbiAgICAgICAgICAgICAgICAgICAgICBBTEFSTSAgCmJlZXBf
-ZW5hYmxlOgogICAgICAgICAgU291bmQgYWxhcm0gZW5hYmxlZAoKVGh1cywgaXQgbG9va3MgYXMg
-aWYgSSBjYW4gdXNlIHRoZSBmaXJzdCBwYXJ0ICh3ODM2MjdoZi1pMmMtMC0yYykgZm9yIHZvbHRh
-Z2VzCmFuZCB0ZW1wZXJhdHVyZXMgYW5kIHRoZSBzZWNvbmQgcGFydCAodzgzNzgyZC1pMmMtMC0y
-ZCkgZm9yIGZhbiBzcGVlZHMuCgpUaGFua3MgYSBsb3QhCgpPbmUgbWlub3IgcGVjdWxpYXJpdHk6
-IHdoZW4gSSBzZXQgCgogICAgc2V0IGZhbjFfZGl2IDEKICAgIHNldCBmYW4yX2RpdiAxCgppbiAv
-ZXRjL3NlbnNvcnMuY29uZiAodGhlIDUyMDAgcnBtIHNob3duIGFib3ZlIGFyZSB0aGUgYWN0dWFs
-IHJwbXMsIHRodXMKZmFuX2RpdiBzaG91bGQgYmUgMSkgdGhlbiBmYW4xIHNob3dzIHNvZW10aGlu
-ZyBhcm91bmQgNTIwMCBSUE0gYWJvdXQKaGFsZiB0aGUgdGltZSwgdGhlIG90aGVyIGhhbGYgaXQg
-c2hvd3MgMCwgd2hlcmVhcyBmYW4yIGlzIDAgYWxsIHRoZSB0aW1lCih0aGlzIGFwcGxpZXMgdG8g
-dGhlIHc4Mzc4MmQtaTJjLTAtMmQgc2VjdGlvbikuIFRodXMsIEkgbXVzdCBzZXQKCiAgICBzZXQg
-ZmFuMV9kaXYgMgogICAgc2V0IGZhbjJfZGl2IDIKCnRvIGdldCBzZW5zaWJsZSBvdXRwdXQgKGln
-bm9yaW5nIHRoZSBkaXYgc2V0dGluZykuCgpDaGVlcnMsCk1hcnRpbgoKPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09Ck1hcnRpbiBTaWVnZXJ0CkFjYWRlbWljIENvbXB1dGluZyBT
-ZXJ2aWNlcyAgICAgICAgICAgICAgICAgICAgICAgIHBob25lOiAoNjA0KSAyOTEtNDY5MQpTaW1v
-biBGcmFzZXIgVW5pdmVyc2l0eSAgICAgICAgICAgICAgICAgICAgICAgICAgICBmYXg6ICAgKDYw
-NCkgMjkxLTQyNDIKQnVybmFieSwgQnJpdGlzaCBDb2x1bWJpYSAgICAgICAgICAgICAgICAgICAg
-ICAgICAgZW1haWw6IHNpZWdlcnRAc2Z1LmNhCkNhbmFkYSAgVjVBIDFTNgo9PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT0K
+thanks for the feedback.
+See doc/fan-divisors for an explanation of your fan_div 'peculiarity'
+mds
+
+
+Martin Siegert wrote:
+>=20
+> Hi,
+>=20
+> FYI:
+>=20
+> I just tried what you described at
+> http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket=813
+> i.e., I got the CVS version of w83781d
+> and compiled it. On the Tyan 2462 (Thunder K7) there is no BIOS option
+> to initialize the hardware sensors - they seem to be on always.
+>=20
+> Anyway:
+>=20
+> # modprobe i2c-amd756
+> # modprobe i2c-proc
+> # modprobe i2c-dev
+> # modprobe w83781d init=3D0 force_subclients=3D0,0x2c,0x4a,0x4b
+>=20
+> works successfully:
+>=20
+> # sensors -s
+> # sensors
+> w83627hf-i2c-0-2c
+> Adapter: SMBus AMD7X6 adapter at 80e0
+> Algorithm: Non-I2C SMBus adapter
+> VCore 1:   +1.74 V  (min =3D  +1.74 V, max =3D  +1.93 V)       ALARM
+> VCore 2:   +1.74 V  (min =3D  +1.74 V, max =3D  +1.93 V)       ALARM
+> +3.3V:     +3.37 V  (min =3D  +3.13 V, max =3D  +3.45 V)
+> +5V:       +4.99 V  (min =3D  +4.72 V, max =3D  +5.24 V)
+> +12V:     +11.17 V  (min =3D +10.79 V, max =3D +13.19 V)
+> -12V:     -11.88 V  (min =3D -10.90 V, max =3D -13.21 V)
+> -5V:       -5.61 V  (min =3D  -4.76 V, max =3D  -5.26 V)
+> V5SB:      +5.44 V  (min =3D  +4.72 V, max =3D  +5.24 V)
+> VBat:      +2.88 V  (min =3D  +2.40 V, max =3D  +3.60 V)
+> fan1:        0 RPM  (min =3D 3000 RPM, div =3D 2)
+> fan2:        0 RPM  (min =3D 3000 RPM, div =3D 2)
+> fan3:        0 RPM  (min =3D  750 RPM, div =3D 8)
+> temp1:     +44.0?C  (limit =3D  +60?C, hysteresis =3D  +50?C) sensor =3D =
+3904 transistor
+> temp2:       +36?C  (limit =3D  +72?C, hysteresis =3D  +32?C) sensor =3D =
+3904 transistor
+> temp3:       +34?C  (limit =3D  +72?C, hysteresis =3D  +32?C) sensor =3D =
+3904 transistor
+> vid:      +1.85 V
+> alarms:   Chassis intrusion detection                      ALARM
+> beep_enable:
+>           Sound alarm disabled
+>=20
+> w83782d-i2c-0-2d
+> Adapter: SMBus AMD7X6 adapter at 80e0
+> Algorithm: Non-I2C SMBus adapter
+> VCore 1:   +1.76 V  (min =3D  +1.74 V, max =3D  +1.93 V)
+> VCore 2:   +2.84 V  (min =3D  +1.74 V, max =3D  +1.93 V)
+> +3.3V:     +3.40 V  (min =3D  +3.13 V, max =3D  +3.45 V)
+> +5V:       +4.89 V  (min =3D  +4.72 V, max =3D  +5.24 V)
+> +12V:      +4.71 V  (min =3D +10.79 V, max =3D +13.19 V)
+> -12V:      -2.11 V  (min =3D -10.90 V, max =3D -13.21 V)
+> -5V:       +2.78 V  (min =3D  -4.76 V, max =3D  -5.26 V)
+> V5SB:      +4.23 V  (min =3D  +4.72 V, max =3D  +5.24 V)
+> VBat:      +2.91 V  (min =3D  +2.40 V, max =3D  +3.60 V)
+> fan1:     5273 RPM  (min =3D 3000 RPM, div =3D 2)
+> fan2:     5192 RPM  (min =3D 3000 RPM, div =3D 2)
+> fan3:        0 RPM  (min =3D 1500 RPM, div =3D 4)
+> temp1:     +40.0?C  (limit =3D +100?C, hysteresis =3D +127?C) sensor =3D =
+3904 transistor
+> temp2:       +39?C  (limit =3D  +72?C, hysteresis =3D  +32?C) sensor =3D =
+3904 transistor
+> temp3:       +39?C  (limit =3D  +72?C, hysteresis =3D  +32?C) sensor =3D =
+3904 transistor
+> vid:      +1.85 V
+> alarms:   Chassis intrusion detection                      ALARM
+> beep_enable:
+>           Sound alarm enabled
+>=20
+> Thus, it looks as if I can use the first part (w83627hf-i2c-0-2c) for vol=
+tages
+> and temperatures and the second part (w83782d-i2c-0-2d) for fan speeds.
+>=20
+> Thanks a lot!
+>=20
+> One minor peculiarity: when I set
+>=20
+>     set fan1_div 1
+>     set fan2_div 1
+>=20
+> in /etc/sensors.conf (the 5200 rpm shown above are the actual rpms, thus
+> fan_div should be 1) then fan1 shows soemthing around 5200 RPM about
+> half the time, the other half it shows 0, whereas fan2 is 0 all the time
+> (this applies to the w83782d-i2c-0-2d section). Thus, I must set
+>=20
+>     set fan1_div 2
+>     set fan2_div 2
+>=20
+> to get sensible output (ignoring the div setting).
+>=20
+> Cheers,
+> Martin
+>=20
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Martin Siegert
+> Academic Computing Services                        phone: (604) 291-4691
+> Simon Fraser University                            fax:   (604) 291-4242
+> Burnaby, British Columbia                          email: siegert@sfu.ca
+> Canada  V5A 1S6
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
