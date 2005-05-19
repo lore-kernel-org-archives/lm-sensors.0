@@ -1,39 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: lm_sensors question: sensors-detect
-Message-Id: <20050306212443.5d2edd73.khali@linux-fr.org>
+From: timm@fnal.gov (Steven Timm)
+Date: Thu, 19 May 2005 06:25:37 +0000
+Subject: Any success reading sensors on IBM 326, HP DL145, Sunfire v20z
+Message-Id: <Pine.LNX.4.58.0502141723200.11696@boxer.fnal.gov>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200503040134.18474.chrisf@iquest.net>
-In-Reply-To: <200503040134.18474.chrisf@iquest.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+I have tried to use lm_sensors to read out IBM e-server 326, HP DL145,
+Sun Sunfire v20z.  On the IBM and sun all I can get are the eeprom's,
+on the Sun sunfire I can get one w83627hf but with nothing
+important attached to it.  Has anyone else done better up till now?
+(note, the above are all opterons, I am running the 32-bit (athlon)
+kernel on them at the moment and compiled i2c/lm_sensors 2.9.0 
+accordingly).  Same RPMS work on Accelertech (HDAMA) and Tyan S2882.
 
-> When I run sensors-detect I get the following error:
-> 
-> Can't exec "i2cdetect": No such file or directory 
-> at ../../prog/detect/sensors-detect line 4829, <STDIN> line 2.
-> 
-> I've looked through the documentation and couldn't find reference to
-> this  error. I also did a scan of my hard drive and could not find the
-> file.
-> 
-> Any help would be appreciated.
+Steve Timm
 
-You are probably trying to run sensors-detect directly from the
-lm_sensors source directory, but have not compiled it before. i2cdetect
-is part of lm_sensors. You need to compile it (use "make user"), then
-install user-space tools ("make user_install"). Then sensors-detect
-should work.
 
-If you really don't want to install the user-space tools, you can
-instead add "." (current directory) to your $PATH, and move into
-prog/detect before running ./sensors-detect. Note that you still need to
-compile i2cdetect before you do.
-
-Hope that helps,
--- 
-Jean Delvare
+------------------------------------------------------------------
+Steven C. Timm, Ph.D  (630) 840-8525  timm@fnal.gov  http://home.fnal.gov/~timm/
+Fermilab Computing Div/Core Support Services Dept./Scientific Computing Section
+Assistant Group Leader, Farms and Clustered Systems Group
+Lead of Computing Farms Team
