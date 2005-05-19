@@ -1,33 +1,22 @@
-From: kraxel@bytesex.org (Gerd Knorr)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: i2c address probing and AT24RF08 corruption
-Message-Id: <20040419191304.GA16954@bytesex.org>
+From: chronic_tautologist@hotmail.com (Doan Vu)
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: i2c and lm_sensors: 2.8.1
+Message-Id: <Law12-F59zJUMWO2gcC00006992@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1082123259.407fe3fb3d41c@imp.gcu.info>
-In-Reply-To: <1082123259.407fe3fb3d41c@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> My proposal of address ranges is admitedly a trick, just meant to
-> prevent about any form of eeprom corruption (although I of course put
-> the stress on the AT24RF08 because we know how bad it is). It is not
-> meant as a solution to prevent any kind of bus or video chips hangs. For
-> this, the .class selection mechanism is what we want. Also note that the
-> .class thing alone would not solve the eeprom corruption issues, since
-> they usually live on the same bus as the hardware monitoring chips.
+Hi,
 
-Yup, .class can not fully replace the address range lists, but it should
-reduce the number of cases where the address lists are needed and thus
-simplify maintaining them ;)
+I got errors compiling the new i2c and lm_sensors, so I went to your site 
+and the installation guide is only for the 2.8.0 version. I have been told 
+that kernel 2.4.22 does not need i2c and lm_sensors - is this correct?
 
-Analog TV cards usually have a have eeprom at 0xa0, with PCI Subsystem
-ID and sometimes config info, serial number and such stuff ...
-Everything else isn't critical, at least I'm not aware of any touble
-cases in the analog TV world.
+Thanks,
+Doan
 
-  Gerd
-
--- 
-http://bigendian.bytesex.org
+_________________________________________________________________
+Protect your inbox from harmful viruses with new ninemsn Premium. Click here 
+  http://ninemsn.com.au/premium/landing.asp
