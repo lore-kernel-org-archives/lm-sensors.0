@@ -1,68 +1,69 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: [PATCH] New driver-id for radeon-i2c
-Message-Id: <20030830201919.46467b0e.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:25:27 +0000
+Subject: [PATCH 2.6] I2C: Remove checksum code in eeprom driver
+Message-Id: <20041219201934.511ace3e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030823173658.GA3278@kroah.com>
-In-Reply-To: <20030823173658.GA3278@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-> agreed.
-> Khali?
+As a follow-up to my earlier proposal to remove the checksum code from
+the i2c eeprom driver, here is a patch that does just that. This shrinks
+the driver size by around 5%, and paves the way for further fixes and
+cleanups.
 
-OK, done.
+Please apply,
+thanks.
 
-> Greg KH wrote:
-> > On Fri, Aug 29, 2003 at 06:47:51PM +0200, Jean Delvare wrote:
-> > 
-> >>>On Sat, Aug 23, 2003 at 06:58:47PM +0200, Kronos wrote:
-> >>>
-> >>>>Hi Greg,
-> >>>>I forgot to cc you when I sent the radeonfb-i2c patch to fbdev. I
-> >>>>need a new driver-id:
-> >>>>
-> >>>>
-> >>>>--- linux-2.6.vanilla/include/linux/i2c-id.h	Tue Jul 15 14:27:55
-> >>>>2003+++ linux-2.6/include/linux/i2c-id.h	Wed Aug 20 19:22:58 2003
-> >>>>@@ -99,6 +99,7 @@
-> >>>> #define I2C_DRIVERID_24LC32A	51	/* Microchip 24LC32A 32k EEPROM	*/
-> >>>> #define I2C_DRIVERID_STM41T00	52	/* real time clock		*/
-> >>>> #define I2C_DRIVERID_UDA1342	53	/* UDA1342 audio codec		*/
-> >>>>+#define I2C_DRIVERID_RADEON	54	/* I2C bus on Radeon boards	*/
-> >>>
-> >>>Thanks, I've given you the id of 55, as someone else is already
-> >using>>54.  I'll send the patch on to Linus in a few days.
-> >>
-> >>Hey, wait a minute. *We* (the LM Sensors group) are the authority
-> >for>giving the IDs. And we gave 54 for Radeon. Whoever else is using
-> >54 has>no right to do so. So, please use 54 for Radeon in 2.6 too,
-> >and ask the>other person to contact us to get an ID (which will
-> >probably be 55).
-> > 
-> > 
-> > Ah, the joys of trying to control a codebase that is out of your
-> > control :)
-> > 
-> > It looks like the big zoran driver update that went into the 2.6
-> > kernel tree added an id for number 54:
-> > 	#define I2C_DRIVERID_ADV7170	54	/* video encoder	*/
-> > 
-> > As that driver also has 3 other ids, I guess they got there first.
-> > 
-> > I've cced the person who sent in the patch to Linus for this driver.
-> > 
-> > Personally, I think we should just make the Radeon #55 as I've done
-> > in the 2.6 tree and move on, we all have better things to do with
-> > our time...
-> > 
-> > thanks,
-> > 
-> > greg k-h
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.10-rc3/drivers/i2c/chips/eeprom.c.orig	2004-12-05 17:33:04.000000000 +0100
++++ linux-2.6.10-rc3/drivers/i2c/chips/eeprom.c	2004-12-19 19:57:19.000000000 +0100
+@@ -43,13 +43,6 @@
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(eeprom);
+ 
+-static int checksum = 0;
+-module_param(checksum, bool, 0);
+-MODULE_PARM_DESC(checksum, "Only accept eeproms whose checksum is correct");
+-
+-
+-/* EEPROM registers */
+-#define EEPROM_REG_CHECKSUM	0x3f
+ 
+ /* Size of EEPROM in bytes */
+ #define EEPROM_SIZE		256
+@@ -168,7 +161,6 @@
+ /* This function is called by i2c_detect */
+ int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+-	int i, cs;
+ 	struct i2c_client *new_client;
+ 	struct eeprom_data *data;
+ 	int err = 0;
+@@ -205,17 +197,6 @@
+ 	/* prevent 24RF08 corruption */
+ 	i2c_smbus_write_quick(new_client, 0);
+ 
+-	/* Now, we do the remaining detection. It is not there, unless you force
+-	   the checksum to work out. */
+-	if (checksum) {
+-		cs = 0;
+-		for (i = 0; i <= 0x3e; i++)
+-			cs += i2c_smbus_read_byte_data(new_client, i);
+-		cs &= 0xff;
+-		if (i2c_smbus_read_byte_data (new_client, EEPROM_REG_CHECKSUM) != cs)
+-			goto exit_kfree;
+-	}
+-
+ 	data->nature = UNKNOWN;
+ 	/* Detect the Vaio nature of EEPROMs.
+ 	   We use the "PCG-" prefix as the signature. */
+
 
 -- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+http://khali.linux-fr.org/
