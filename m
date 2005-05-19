@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:36 +0000
 Subject: I have information on Winbond W83627EHF Chip
-Message-Id: <n2mAV8aJ.1107861473.6408920.khali@localhost>
+Message-Id: <EH62wpRa.1107861787.2408510.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050208060234.44864.qmail@web50702.mail.yahoo.com>
 In-Reply-To: <20050208060234.44864.qmail@web50702.mail.yahoo.com>
@@ -9,6 +9,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+Ooops, sorry for the typo. It's David _W._ Madsen, not D.
+
+--- Original Message ---
+Date: 2/8/2005
+From: "Jean Delvare" <khali@linux-fr.org>
+Subject: Re: I have information on Winbond W83627EHF Chip
+
 
 
 Hi David,
@@ -21,7 +30,7 @@ Hi David,
 
 That's right. What motherboard is it, BTW?
 
-For reference, David D. Madsen (CC) already requested support some times
+For reference, David W. Madsen (CC) already requested support some times
 ago:
 http://secure.netroedge.com/~lm78/readticket.cgi?ticket37
 http://archives.andrew.net.au/lm-sensors/msg28595.html
