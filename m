@@ -1,45 +1,43 @@
-From: DarKRaveR@verfeiert.org (DarKRaveR@verfeiert.org)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: Follow-UP to ticket 1578 as requested
-Message-Id: <298642146.20040320175000@verfeiert.org>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:01 +0000
+Subject: [rol@as2917.net: Need help for kernel 2.5.x ???]
+Message-Id: <20030622185659.GB2380@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1076891110.6884.10.camel@dumbo.whgl.uni-frankfurt.de>
-In-Reply-To: <1076891110.6884.10.camel@dumbo.whgl.uni-frankfurt.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
+----- Forwarded message from Paul Rolland <rol@as2917.net> -----
 
-I guess the next thing I will try to work out, is to find out which
-values are reported and which seem to be missing, concerning the
-naming etc.
-Saturday, March 20, 2004, 5:37:00 PM, you wrote:
+From: Paul Rolland <rol@as2917.net>
+To: alla@lysator.liu.se, frodol@dds.nl, simon@tk.uni-linz.ac.at
+Cc: rol@as2917.net
+Subject: Need help for kernel 2.5.x ???
+Importance: Normal
+X-Spam-Status: No, hits=0.9 required=5.0 tests=SUBJ_ENDS_IN_Q_MARK,SUBJ_HAS_Q_MARK version=2.20
+X-Spam-Level: 
 
->> I upgraded my kernel and  I just used newer packages of i2c and
->> lm_sensors from gentoo, which are not oficially released.
->> After that, the winbond gets used, the readings look okay in majority.
+Hello,
 
-JD> Great :)
+Homepage of lm-sensors states that you need help to migrate to kernel 2.5.x.
+I'm running 2.5.72, and i'd like to have lm-sensors running on my platform.
 
->> Just one fan is reporter at 0 rpm, and there's a couple fans as well
->> as one heat sensor missing and I got no clue, where to get the data.
->> :-)
+Thus, I'm ready to give a try helping you.
 
-JD> Maybe you need to increase the fan divisor (see doc/fan-divisors).
+Problem is : it seems that no currently available version is to be used
+for kernel 2.5.
 
-True that, I will check that, but after skipping a nights sleep, I
-will keep that for soem other day ;-).
+What should be the one I have to start with ? CVS ? 2.7.0 ?
 
-JD> As for the missing sensors, according to the output of sensors-detect
-JD> from your first post, it's not something we support.  Maybe you can get
-JD> the values from ACPI.
+Thanks for your answer,
+Regards,
+Paul
 
-Sounds interesting, I will check on that too.
-
-Thnx so far.
+----- End forwarded message -----
 
 -- 
-Best regards,
- DarKRaveR                            mailto:DarKRaveR@verfeiert.org
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
