@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:23:46 +0000
 Subject: lm_sensors 2.7.0 and bmcsensors.o
-Message-Id: <20030121182721.5320bb5b.khali@linux-fr.org>
+Message-Id: <3E2D8D2D.86EEC479@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <C823AC1DB499D511BB7C00B0D0F0574C1DF89B@serverdell2200.interclean.com>
 In-Reply-To: <C823AC1DB499D511BB7C00B0D0F0574C1DF89B@serverdell2200.interclean.com>
@@ -10,18 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+you need your kernel patched with IPMI and have it enabled.
+see doc/chips/bmcsensors for more info.
 
-> > Have you been trying the same with 2.6.5? I'd like to know if this
-> > is the result of some change in 2.7.0 or if this is broken for a
-> > longer time.
+David Brodbeck wrote:
 > 
-> Actualy, 2.6.5 doesn't seem to have bmcsensors.o.  (Sensors detect
-> lists it as 'to-be-written' in the modprobe lines.)
-
-Stupid me. You're of course right. IIRC, Mark Studebaker wrote the
-driver, so I think he'll be more able to help you than I am. Just give
-him some time to answer.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+> I'm having an odd problem with lm_sensors 2.7.0.  I can't get the bmcsensors
+> module to compile.  'make' simply doesn't generate a .o file from
+> bmcsensors.c.  I'm sure there's some silly piece of configuration I'm
+> missing, but I can't figure it out.  According to sensors_detect I need to
+> load this module.
+> 
+> ----------
+> 
+> David Brodbeck, System Administrator
+> InterClean Equipment, Inc.
+> Ypsilanti, Michigan
+> davidb@mail.interclean.com
+> (734) 975-2967 x221
