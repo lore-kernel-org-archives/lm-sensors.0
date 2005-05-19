@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:25 +0000
+From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+Date: Thu, 19 May 2005 06:24:26 +0000
 Subject: i2c/kernel i2c-algo-bit.c
-Message-Id: <3FB7D0A1.DB4C0CBE@paradyne.com>
+Message-Id: <Pine.LNX.4.53.0311211238550.27319@cosmos.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031101170944.386fd941.khali@linux-fr.org>
 In-Reply-To: <20031101170944.386fd941.khali@linux-fr.org>
@@ -10,21 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ky?sti M?lkki wrote:
-> 
-> 1. You called? Sincere apologies. Yes, still alive.
-> 2. About 3k of unread messages in sensors :)
+On Sat, 1 Nov 2003, Jean Delvare wrote:
+
+> > Modified Files:
+> > 	i2c-algo-bit.c
+> > Log Message:
+> > (Khali) Fix sclhi() for adapters that do not have getscl().
+> >         Enable bit_test for adapters that do not have getscl().
+> >         Mostly rewrite test_bus(), cleaner and probably faster.
 >
+> I'd like reviewers and testers on this, since I plan to submit a similar
+> for Linux 2.6. There are two distinct changes:
+>
+> 1* Fixed sclhi() for adapters that do not have getscl(). It looks like
+> there was a udelay call missing in this case.
 
-Really great to hear from you. I thought something bad happened
-since you vanished so suddenly. Think I even googled once
-trying to find clues...
+1*
 
+Your fix for adapters not capable of reading SCL looks correct.
+I introduced this bug as I moved udelay() call _after_ SCL is read back
+as HIGH. Purpose of udelay() there is to guarantee SCL HIGH time.
+I think we agree upon this change?
 
+But, the bus has some capacitance and first call(s) to getscl() after
+setscl(1) are likely to return LOW. This may slow down transmission and
+generate undesirable amount of scheduling as cond_resched() is called.
 
-> No need for Cc:, old address is still valid. Nowadays, who should I
-> contact to get list and CVS logs at a different address? Phil?
-> 
+Results of my bug fix: Earlier it could, rarely, output very short SCL
+high pulses. Now it will, likely, output very long SCL high pulses.
 
+To see i2c-algo-biths solution, search for "rdcount".
 
-yes
+-- 
+  Ky?sti M?lkki  <kyosti.malkki@welho.com>  +358 50 462 8786
