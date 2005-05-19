@@ -1,7 +1,7 @@
 From: zdavatz@ywesee.com (Zeno R.R. Davatz)
-Date: Thu, 19 May 2005 06:24:07 +0000
+Date: Thu, 19 May 2005 06:24:08 +0000
 Subject: make fails
-Message-Id: <20030730144403.77f1f0e2.zdavatz@ywesee.com>
+Message-Id: <20030730155036.094c0c5d.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030722165359.538d577f.khali@linux-fr.org>
 In-Reply-To: <20030722165359.538d577f.khali@linux-fr.org>
@@ -26,6 +26,18 @@ Jean Delvare <khali@linux-fr.org> wrote:
 > 
 > What about this one? Did you find a solution at that time, do you
 > remember what it was?
-Ok, I need to recompile my kernel and then I will get back to you.
+Ok, recompiled. i2c installs great but lm-sensors gives me:
+
+In file included from lib/data.c:20:
+/usr/include/stdlib.h:445: error: parse error before "int32_t"
+/usr/include/stdlib.h:447: error: parse error before '*' token
+/usr/include/stdlib.h:451: error: parse error before '*' token
+/usr/include/stdlib.h:452: error: parse error before '}' token
+/usr/include/stdlib.h:455: error: parse error before "int32_t"
+make: *** [lib/data.ao] Fehler 1
+
+this ticket can be expanded to this error - or shall I open a new one?
+
+Thanks for your Feedback.
 
 Zeno
