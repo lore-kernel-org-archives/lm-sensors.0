@@ -1,30 +1,24 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: PATCH: i2c: add adt7461 chip support to lm90 driver
-Message-Id: <20050328210433.GE3752@kroah.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:02 +0000
+Subject: Obscured email addresses in tickets
+Message-Id: <3F00723D.4040000@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <422C305F.3000301@katalix.com>
-In-Reply-To: <422C305F.3000301@katalix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 27, 2005 at 02:34:15PM +0200, Jean Delvare wrote:
-> Hi Greg, James, all,
-> 
-> > > > Attached is another version of my adt7461 patch, for inclusion in
-> > > > the 2.6 tree. Reviewed by Jean.
-> > 
-> > May we have an additional patch to Kconfig for this one?
-> 
-> Here it finally comes.
-> 
-> This simple patch adds a mention to the ADT7461 chip in Kconfig, now
-> that the lm90 driver supports it.
-> 
-> Please apply,
 
-Applied, thanks.
 
-greg k-h
+I tweaked the perl in the ticket system to obscure email addresses (e.g. 
+"this@that.com" is now "this at that dot com").  There aren't any 
+mailto: links, so I'm hoping that will be good enough to thwart most 
+spam harvesting engines.  I thought about removing the email addresses 
+completely, but I still would like folks to be able to contact each 
+other freely to discuss troubles w/o having to use us as an in-between 
+each time.
+
+Does this sound OK?
+
+
+Phil
