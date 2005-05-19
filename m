@@ -1,7 +1,7 @@
-From: me@andrew.net.au (Andrew Pollock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: Mailing-list garbage
-Message-Id: <20050413071441.GV20370@daedalus.andrew.net.au>
+Message-Id: <IClhitip.1113380600.2977830.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <uB7Gk4h4.1113293860.2927470.khali@localhost>
 In-Reply-To: <uB7Gk4h4.1113293860.2927470.khali@localhost>
@@ -10,45 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 12, 2005 at 04:32:07PM +0200, Axel Thimm wrote:
-> Hi,
-> 
-> On Tue, Apr 12, 2005 at 04:07:13PM +0200, Jean Delvare wrote:
-> > Hi Andrew,
-> > 
-> > > Well that explains a thing or two, and it certainly was an inconvenience.
-> > > My server started dying really badly last night at around the time of the
-> > > first message. 300-odd messages later...
-> > 
-> > I'm very sorry about this. That's definitely not fair from us after you
-> > have been so helpful with the archive along the years.
-> > 
-> > > I run Mailman. If you would like to switch over to a Mailman list, that
-> > > you can have full administrative control over, let me know. Added bonus
-> > > is Mailman does its own archiving, automatically.
-> > 
-> > We have had a similar offer earlier by Axel Thimm, which we are enclined
-> > to accept. But if it won't happen for some reason, we will certainly
-> > consider your offer, thanks.
-> > 
-> > Side question... Do you know if it would be possible to inject the old
-> > archive into the new Mailman system so that the new archive has both the
-> > old and new posts? (We definitely can do without this, I'm only
-> > wondering.)
-> 
-> Wouldn't be bad. Andrew, do you have an mbox copy of the archives? Thanks!
-> 
 
-Okay, I've got a large (750Mish) file at
+Hi Axel, Andrew,
 
-http://www.andrew.net.au/~lm-sensors/lm-sensors.1st_2Gb.bz2
+> > When are you planning to cut over? (Don't subscribe my archive email
+> > address, and you won't get duplicates).
 
-A much smaller (13M) file with the most recent mail will appear at 
+What is going to happen to the current archive after the switch? We have
+used it to point people to posts in various places (support ticket area,
+mailing-list posts, LKML and even BK commit comments), so it would be
+convenient if it could stay up for some more time. Also, having an
+additional archive can't hurt, so maybe we can keep it growing? Unless
+this is going to be a problem for Andrew, of course.
 
-http://www.andrew.net.au/~lm-sensors/lm-sensors
+> How about this weekend? Is that OK with everybody?
 
-at 4pm on Sunday (GMT+10)
+Fine with me (but in fact anytime is fine with me).
 
-regards
-
-Andrew
+Thanks,
+--
+Jean Delvare
