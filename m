@@ -1,7 +1,7 @@
-From: se.witt@gmx.net (Sebastian Witt)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:49 +0000
 Subject: 8rdavcore GPL issue
-Message-Id: <405E2519.5060803@hasw.net>
+Message-Id: <1079971817.405f0fe923d87@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <405C821F.4050003@verizon.net>
 In-Reply-To: <405C821F.4050003@verizon.net>
@@ -10,39 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Quoting Sebastian Witt <se.witt@gmx.net>:
 
-I'm very sorry about this. I haven't tought about the license in the 
-early stage of the project and than forget this code. Now I've updated 
-the freshmeat project page and the tar-archive and hope that the 
-lm-sensors project can forgive me my mistake.
+> I'm very sorry about this. I haven't tought about the license in
+> the early stage of the project and than forget this code. Now I've
+> updated the freshmeat project page and the tar-archive and hope
+> that the lm-sensors project can forgive me my mistake.
 
-Best regards,
-Sebastian Witt
+I'd have two objections:
 
+1* I still see "BSD License (revised)" listed on Freshmeat (as well as
+GPL). Is it intentional? IANAL, but I don't think you can do that kind
+of dual licensing in this case, since the BSD License is less
+restrictive than the BSD license, and part of the code was originally
+under GPL.
 
-Mark Studebaker wrote:
-> Your project referenced here
-> 
-> http://freshmeat.net/projects/8rdavcore/
-> 
-> in the following package:
-> 
-> http://freshmeat.net/redir/8rdavcore/40216/url_bz2/8rdavcore-0.5.5.tar.bz2
-> 
-> appears to include GPL code copied from our lm-sensors project,
-> licensed under the GPL,
-> in particular, code in the file i2c-linux.c appears to be copied
-> from our file i2cdetect.c.
-> 
-> Your package is not licensed under the GPL. Would you please correct 
-> this by licensing
-> your package under the GPL and please let our mailing list know when you
-> have done so.
-> 
-> Thank you.
-> 
-> Mark Studebaker
-> for the lm-sensors project
-> http://secure.netroedge.com/~lm78/
-> 
+2* I would ask you to do the same for your "8RDA hardware watchdog
+timer" project as well, since it seems to contain the same part of
+i2cdetect the "8rdavcore" project does.
+
+And now a few hints and questions:
+
+1* In this document:
+  http://www.hasw.net/8rdawdt/README
+you suggest the w83781d driver for ISA W83627HF. The w83627hf is known
+to work better.
+
+2* Any reason why 8rdawdt was implemented as a user-space program
+relying on i2c-dev, instead of as a kernel driver?
+
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
