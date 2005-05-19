@@ -1,74 +1,33 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: 'virtual I2c adapter' driver
-Message-Id: <3F50DA64.2080307@paradyne.com>
+From: dlh2001@comcast.net (Dean L. Hedin)
+Date: Thu, 19 May 2005 06:23:38 +0000
+Subject: [ltp] lm sensors
+Message-Id: <02082509203400.18804@blackbox.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030828201955.74757.qmail@web40902.mail.yahoo.com>
-In-Reply-To: <20030828201955.74757.qmail@web40902.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Yes this does sound good. We have heard of this type of multiplexing before.
-As Greg said, if you have a 2.6-compatible patch it can go into the kernel;
-If you have a 2.4-compatible patch see doc/developers/new_drivers in
-the sensors package and send it to this mailing list.
+On Sunday 25 August 2002 07:41 pm, phil@netroedge.com wrote:
+> No problem, I appreciate you taking the time to double-check.  Facts
+> are still a little sketchy regarding this issue.
+>
+> BTW-Is this a mobo which was corrupted by Lm-sensors?
 
-thanks
-mds
+No,   It somehow died when I changed the harddrive (to load linux).
+I had set the passord and some point and then I disabled
+it when I swaped drives.   But the drive I put in was not IBM brand.
+I then tried my old password and it did not work.
+So I ended getting a used motherboard on ebay for about $150.
+This was a 2 years ago and at that time I guess I saw the bad
+info regarding the 24C01A on the web somewhere.
+
+In any case it does'nt matter now as the company I work for has now given
+me a brand new Toshiba 2400 series laptop.   Whole 'nother set of Linux
+issues with it, including sound APM, MMC, etc..   It's fast, but the quality 
+& feel does not compare to the 600e.  
+
+I have now relegated the 600e to cross-compiling ARM apps for my YOPY
+PDA.   Which I am struggling with right now....
 
 
-
-Brian Kuschak wrote:
-> Hello,
-> 
-> I work for an networking storage company, supporting
-> linux for our custom embedded hardware.  My company
-> makes extensive use of the I2C bus in our products. 
-> Some of these product are chassis/blade based and as a
-> result many times a given I2C bus is multiplexed into
-> several bus segments to prevent address conflicts when
-> many I2C devices exist with the same address.  Some
-> muxes are I2C based, some based on GPIO lines or
-> CPLDs, etc.  
-> 
-> In my experience this is a common hardware solution,
-> but it is difficult to fit into the existing i2c
-> driver implementation.
-> 
-> I wanted to design a nice architecture to handle these
-> bus multiplexors in the most transparent and simple
-> way possible.  My solution was to create a new i2c
-> adapter driver (i2c-virtual.c) which registers a new
-> i2c adapter/bus for each multiplexed bus segment. 
-> This virtual adapter then makes calls to the real i2c
-> adapter to select the mux, perform the transfer, and
-> deselect again.  Locking of the buses is handled.  The
-> code also prevents "aliasing" of the same I2C device
-> onto multiple virtual I2C buses, putting all
-> non-multiplexed devices on the real bus, and only
-> multiplexed devices on the virtual busses.
-> 
-> The result is that all the existing i2c client drivers
-> and sensor drivers work with this multiplexed hardware
-> without any changes, just by scanning the additional
-> buses.
-> 
-> If anyone from this your group is interested in
-> reviewing or integrating this code into the official
-> sources, please let me know and I'll send a patch.
-> 
-> BTW, do you have a mailing list?  I couldn't find one.
-> 
-> Best regards,
-> 
-> Brian Kuschak
-> Brocade Communications Sys.
-> 
-> 
-> __________________________________
-> Do you Yahoo!?
-> Yahoo! SiteBuilder - Free, easy-to-use web site design software
-> http://sitebuilder.yahoo.com
-> 
