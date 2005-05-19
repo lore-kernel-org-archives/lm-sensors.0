@@ -1,20 +1,30 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: Tyan S2720 Information
-Message-Id: <3D84B6F2.9FB3AF8D@paradyne.com>
+From: John.Morris@spirentcom.com (Morris, John)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: CVS?
+Message-Id: <629E717C12A8694A88FAA6BEF9FFCD440564855E@brigadoon.spirentcom.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <EAEEKDDCGGEDNOGFKCEGOENGCFAA.hmueller@megware.de>
-In-Reply-To: <EAEEKDDCGGEDNOGFKCEGOENGCFAA.hmueller@megware.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-if the xeon responds to i2cdetect at 0x18 then using the adm1021 driver
-as documented in doc/chips/SUMMARY with modprobe adm1021
-force_adm1021=0,0x18
-shoud give you good results. adm1021 will report 2 temps, one will be
-invalid
-and the other is the real temp.
-Send us the results and the output of i2cdump 0 0x18 (assuming i2c is
-bus 0).
+Hi,
+
+I know all the fun stuff is happening on BK for the 2.6 kernels, but sadly
+I'm still stuck working on 2.4.
+
+I've been working on other stuff for a while, but now I have a new sensor
+to code up for the 2.4.20 kernel. I tried to do a CVS update to get the
+latest sensors for 2.4, but got a timeout:
+
+cvs [update aborted]: connect to cvs.lm-sensors.nu(206.228.191.162):2401
+failed: Connection timed out
+
+The machine is still there (I can ping it). Is the CVS server down, or
+with the new development on BK has it just been stopped? The downloads 
+page of the web site indicates that it is still there.
+
+Sorry if this has already been discussed - I've only been able to
+skim the mail list for the last few months.
+
+John.
