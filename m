@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: fan2 readout on Chaintech MB
-Message-Id: <1063712194.3f66f5c2a0e46@imp.gcu.info>
+Message-Id: <1063712534.3f66f71690bad@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200308310230.14115.ljubo108@vip.hr>
 In-Reply-To: <200308310230.14115.ljubo108@vip.hr>
