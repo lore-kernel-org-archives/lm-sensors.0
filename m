@@ -1,30 +1,72 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Fri, 27 May 2005 20:41:55 +0000
-Subject: [lm-sensors] Query: what chance to get scaled voltages into
-Message-Id: <cnie91td9ofqnqcpm6ahakr4782n0kcs3v@4ax.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:57 +0000
+Subject: [PATCH 2.6] kill duplicate includes in i2c bus drivers
+Message-Id: <20040509202400.4b5b4a90.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <b6qc91dgk33k2ucv21du0aqsqbk3egj389@4ax.com>
-In-Reply-To: <b6qc91dgk33k2ucv21du0aqsqbk3egj389@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
-On Fri, 27 May 2005 16:48:47 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
->
->Thinking about it, I am not even sure this is a problem we want to fix.
->Mixing scaled and unscaled values within the same driver is likely to
->make this driver more complex. Did you try?
+Hi Greg,
 
-Yes, it works, right now.  Plus I simplified the scaling macro mess, 
-that might be in eyes of beholder, looks neater to me :)  
->
->                                                  Whatever, you should
->really provide concrete examples (or even a complete list) when stating
->that something is broken.
+Following a suggestion of Arthur Othieno, here is a trivial patch that
+kills duplicate inclusions of config.h in four i2c bus drivers.
 
-Been there done that, seems unwanted.  
+At first I was thinking of also removing inclusions of config.h wherever
+it doesn't seem to be necessary but Eugene doesn't seem to think it's a
+good idea. So I may give it a try later (in 2.7), but for now this
+simple patch will be enough.
 
---Grant.
+Please apply,
+thanks.
 
+diff -ru linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/i2c-keywest.c linux-2.6.6-rc3-mm2/drivers/i2c/busses/i2c-keywest.c
+--- linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/i2c-keywest.c	Sun Apr  4 09:52:29 2004
++++ linux-2.6.6-rc3-mm2/drivers/i2c/busses/i2c-keywest.c	Sun May  9 19:45:24 2004
+@@ -48,7 +48,6 @@
+ 
+ #include <linux/config.h>
+ #include <linux/module.h>
+-#include <linux/config.h>
+ #include <linux/kernel.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
+diff -ru linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/i2c-piix4.c linux-2.6.6-rc3-mm2/drivers/i2c/busses/i2c-piix4.c
+--- linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/i2c-piix4.c	Sun Apr  4 09:52:29 2004
++++ linux-2.6.6-rc3-mm2/drivers/i2c/busses/i2c-piix4.c	Sun May  9 19:45:43 2004
+@@ -31,7 +31,6 @@
+ #include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+-#include <linux/config.h>
+ #include <linux/pci.h>
+ #include <linux/kernel.h>
+ #include <linux/stddef.h>
+diff -ru linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/scx200_acb.c linux-2.6.6-rc3-mm2/drivers/i2c/busses/scx200_acb.c
+--- linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/scx200_acb.c	Sun Apr  4 09:52:29 2004
++++ linux-2.6.6-rc3-mm2/drivers/i2c/busses/scx200_acb.c	Sun May  9 19:45:30 2004
+@@ -25,7 +25,6 @@
+ */
+ 
+ #include <linux/config.h>
+-#include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+diff -ru linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/scx200_i2c.c linux-2.6.6-rc3-mm2/drivers/i2c/busses/scx200_i2c.c
+--- linux-2.6.6-rc3-mm2/drivers/i2c.orig/busses/scx200_i2c.c	Sun Apr  4 09:52:29 2004
++++ linux-2.6.6-rc3-mm2/drivers/i2c/busses/scx200_i2c.c	Sun May  9 19:45:34 2004
+@@ -22,7 +22,6 @@
+ */
+ 
+ #include <linux/config.h>
+-#include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
