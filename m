@@ -1,28 +1,64 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:50 +0000
-Subject: update_lock
-Message-Id: <1080746019.406ae0233bf15@imp.gcu.info>
+Date: Thu, 19 May 2005 06:25:52 +0000
+Subject: [PATCH] drivers/i2c/*: #include <linux/config.h> cleanup
+Message-Id: <20050416184922.7c09d848.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040320184909.4c7d8d80.khali@linux-fr.org>
-In-Reply-To: <20040320184909.4c7d8d80.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Selon Aurelien Jarno :
+Hi Alexey,
 
-> You're right that it can cause some problems, on my system I need to
-> load the ds1621 module before the pcf8591 otherwise my ds1621 chip
-> is recognized as a pcf8591.
+> Files that don't use CONFIG_* stuff shouldn't include config.h
+> Files that use CONFIG_* stuff should include config.h
+>
+> It's that simple. ;-)
 
-In case you didn't know that, you can add a line like this in your
-/etc/modules.conf file:
-options pcf8591 ignore=0,0x42
-where 0 is the bus number and 0x42 the i2c address of your DS1621 chip.
+I agree. This won't change anything though, as all drivers include
+either device.h or module.h, which in turn include config.h. But you are
+still correct, so I approve your patch.
 
-Then you can load the driver modules in any order.
+For completeness, I would propose the following on top of your own
+patch:
+
+i2c bus drivers do not need to define DEBUG themselves, as the Kconfig
+system takes care of it.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+Index: linux-2.6.12-rc2/drivers/i2c/busses/i2c-ixp2000.c
+=================================--- linux-2.6.12-rc2.orig/drivers/i2c/busses/i2c-ixp2000.c	2004-12-24 22:35:50.000000000 +0100
++++ linux-2.6.12-rc2/drivers/i2c/busses/i2c-ixp2000.c	2005-04-16 18:41:14.000000000 +0200
+@@ -26,11 +26,6 @@
+  * 'enabled' to drive the GPIOs.
+  */
+ 
+-#include <linux/config.h>
+-#ifdef CONFIG_I2C_DEBUG_BUS
+-#define DEBUG	1
+-#endif
+-
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
+Index: linux-2.6.12-rc2/drivers/i2c/busses/i2c-ixp4xx.c
+=================================--- linux-2.6.12-rc2.orig/drivers/i2c/busses/i2c-ixp4xx.c	2005-04-06 19:42:31.000000000 +0200
++++ linux-2.6.12-rc2/drivers/i2c/busses/i2c-ixp4xx.c	2005-04-16 18:41:00.000000000 +0200
+@@ -26,11 +26,6 @@
+  *       that is passed as the platform_data to this driver.
+  */
+ 
+-#include <linux/config.h>
+-#ifdef CONFIG_I2C_DEBUG_BUS
+-#define DEBUG	1
+-#endif
+-
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
+
+
 
 -- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
