@@ -1,28 +1,27 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:17 +0000
-Subject: [PATCH 1/2] i2c: sensors chip driver updates
-Message-Id: <20040929204208.GB16800@kroah.com>
+From: jeldo.metz@onlinehome.de (Jeldo.Metz)
+Date: Thu, 19 May 2005 06:24:00 +0000
+Subject: Ticket 1303
+Message-Id: <200306191404.28560.jeldo.metz@onlinehome.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040923041609.GG4256@jupiter.solarsys.private>
-In-Reply-To: <20040923041609.GG4256@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Sep 23, 2004 at 12:16:09AM -0400, Mark M. Hoffman wrote:
-> This patch modifies some sysfs file names for sensors chip drivers in
-> accordance with the standard interface proposed here [1] and refined
-> here [2].  The lm_sensors userspace tools have been modified to accept
-> both the new and old names.  This patch was tested for some drivers,
-> and at least compile tested for the rest.
-> 
-> [1] http://archives.andrew.net.au/lm-sensors/msg08477.html
-> 
-> [2] http://archives.andrew.net.au/lm-sensors/msg18391.html
-> 
-> Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-Applied, thanks.
+ok i recompiled the kernel and Patched the kernel for v4l2 support 
 
-greg k-h
+The thing is with the bttv 0.9 driver it also doesnt work.
+
+My System is:
+
+CPU: P4-2.6-HT 
+Mainboard: Intel D875PBZ
+RAM: 2x512MB DDR
+VGA: Geforce 3 ti200
+Kontrollers: 3ware 7000-2 (2x IBM 30GB Raid0)
+		   SCSI Kontroller AM53C974
+Sound: SB-Live Value 
+TV-Card: Haupauge bt848 kompatible
+Network: Intel 10/100/1000 Desktop VE in Chipset integratet 
+
