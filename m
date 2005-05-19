@@ -1,37 +1,22 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:58 +0000
-Subject: [lm-sensors] PATCH lm_senors: add Grant Coady to CONTRIBUTORS,
-Message-Id: <465j819inmlc8kp7lr8c8anpcosdc2aer6@4ax.com>
+From: ahagge@wbfa.com (Alan Hagge)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: Extra info for ticket # 848
+Message-Id: <3CA3C56F.9080903@wbfa.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch adds myself to contributors file
+Extra info for ticket # 848 (K7S5A motherboard = "No sensors found!)
 
---Grant.
+FYI, I just downgraded from kernel 2.4.17 to kernel 2.4.7 and it started 
+working fine.  I then tried again with 2.4.17 (fresh compile of 
+everything), and it still failed.
 
+Do you know of any problems with recent kernels?
 
-
-Signed-off-by: Grant Coady <gcoady@gmail.com>
-
----
- CONTRIBUTORS |    4 ++++
- 1 files changed, 4 insertions(+)
-
---- lm_sensors2/CONTRIBUTORS	2004-05-25 06:25:12.000000000 +1000
-+++ lm_sensors2a/CONTRIBUTORS	2005-05-17 16:47:38.000000000 +1000
-@@ -96,3 +96,7 @@
-   Author of the fscher driver.
- * Alexey Fisher <fishor@mail.ru>
-   Author of the max1619 chip driver.
-+* Grant Coady <gcoady@gmail.com>
-+  Author of adm9240 port to 2.6 (with others), finding documentation 
-+  exceptions and measurement scaling issues.  Tester, auto fan_div 
-+  testing, voltage scaling checking.  Sysfs naming crossref and fixes.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Alan
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020328/e7e0f281/attachment.html
