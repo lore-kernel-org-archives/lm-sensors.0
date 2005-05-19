@@ -1,7 +1,7 @@
-From: lists@edeca.net (David Cannings)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:28 +0000
 Subject: w83697hf -12v readings
-Message-Id: <41D2979A.6090503@edeca.net>
+Message-Id: <20041229125930.0e550e93.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41D28D44.5080900@edeca.net>
 In-Reply-To: <41D28D44.5080900@edeca.net>
@@ -10,27 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi David,
->> The readings from 'sensors' under the section w83697hf-isa-0290
->> show the following:
->> -12V:      +2.22 V  (min = -13.16 V, max = -10.77 V)       ALARM 
->> -5V:       +0.60 V  (min =  -5.23 V, max =  -4.73 V)       ALARM
->> I would hope this is incorrect!  Is it possible to fix the values
->> so they display correctly?  All of the other output seems fine and 
->> correlates with either the ACPI thermal zone, BIOS readings, etc.
-> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html#Section-4_002e6
-> Does the BIOS display values for -12V and -5V? If it does, what are 
-> they?
+Hi David,
 
-No, it does not, I hadn't noticed this.  It does display values for
-Vdimm and Vio though which aren't in sensors.
+> > Does the BIOS display values for -12V and -5V? If it does, what are 
+> > they?
+> 
+> No, it does not, I hadn't noticed this.  It does display values for
+> Vdimm and Vio though which aren't in sensors.
 
->> The chips on board are the SIS 961 and a Winbond W83697HF.
-> What motherboard is it exactly?
+Don't you come to a conclusion at this point? ;)
 
-An Epox 4SDM2+.  Thanks for the FAQ reference, I've never had a new
-enough board that doesn't show the -12v and -5v lines until now.  I've
-simply ignored the two sensors in the configuration file, for now.
+What sensors think are -12V and -5V have to be Vdimm and Vio. Edit
+/etc/sensors.conf:
 
-David
+    label in5 "Vdimm"
+    label in6 "Vio"
+
+Comment out the compute in5 and in6 lines.
+
+    set in5_min 3.3 * 0.95
+    set in5_max 3.3 * 1.05
+    set in6_min 2.5 * 0.95
+    set in6_max 2.6 * 1.05
+
+Run sensors -s && sensors, see what it looks like. And adjust the limits
+afterwards if needed.
+
+Note that the sensors.conf.eg file has interesting comments about Epox
+boards in the w83697hf-* section. You should read them, they seem to
+apply to your board.
+
+We may add specific notes for your board if you share your experience
+once you get the correct configuration values.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
