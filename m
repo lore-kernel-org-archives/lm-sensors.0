@@ -1,51 +1,70 @@
-From: adrian@humboldt.co.uk (Adrian Cox)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:18 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <1096633365.16121.125.camel@newt>
+Message-Id: <20041001123741.M30026@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org>
-	 <20040921154111.GA13028@kroah.com> <41545421.5080408@web.de>
-	 <20040924200503.652ccf8e.khali@linux-fr.org> <415481B4.10804@web.de>
-	 <20041001065209.GA9561@kroah.com>
-In-Reply-To: <20041001065209.GA9561@kroah.com>
+References: <414F111C.9030809@linuxtv.org> <20040921154111.GA13028@kroah.com> <41545421.5080408@web.de> <20040924200503.652ccf8e.khali@linux-fr.org> <415481B4.10804@web.de> <20041001065209.GA9561@kroah.com> <1096633365.16121.125.camel@newt>
+In-Reply-To: <1096633365.16121.125.camel@newt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
+To: Adrian Cox <adrian@humboldt.co.uk>, Greg KH <greg@kroah.com>
 Cc: Michael Hunold <hunold-ml@web.de>, linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-On Fri, 2004-10-01 at 07:52, Greg KH wrote:
-> On Fri, Sep 24, 2004 at 10:21:08PM +0200, Michael Hunold wrote:
-
-> > If we have a PCI card where we exactly know what we are doing, we can 
-> > use the NO_PROBE flag to effectively block any probing and can use the 
-> > proposed interface to manually connect the clients.
+On Fri, 01 Oct 2004 13:22:45 +0100, Adrian Cox wrote
+> Either the i2c devices need to be able to support a list of permitted
+> adapters, or the i2c adapters need a list of permitted clients. A single
+> class isn't adequate. Consider the following scenario:
 > 
-> But why?  The .class feature can accomplish this too.  Just create a new
-> class for this type of adapter and device.  Then only that device will
-> be able to be connected to that adapter, just like you want to have
-> happen, right?
+> The FooTV123 has multiplexor MX3R0K3 and frontend XYZZY, the TVMatic3000
+> has frontend XYZZY and multiplexor MX31337, and the FooTV124 has
+> multiplexor MX31337 and frontend FR012. All three cards are 
+> installed in the same machine. In the worst case the probe code for 
+> MX31337 puts MX3R0K3 into a state that requires a hard reset.
+> 
+> Manual connection of clients makes it easier to develop a driver outside
+> the kernel tree, then merge it when ready, without having to 
+> allocate a number from a central authority.
 
-Either the i2c devices need to be able to support a list of permitted
-adapters, or the i2c adapters need a list of permitted clients. A single
-class isn't adequate. Consider the following scenario:
+Agreed. Greg's proposal would somehow mean one class per video device adapter,
+which doesn't sound good. We have room for only 32 classes anyway. However, I
+agree with Greg that a "no probe" flag isn't needed if we already have
+well-defined classes.
 
-The FooTV123 has multiplexor MX3R0K3 and frontend XYZZY, the TVMatic3000
-has frontend XYZZY and multiplexor MX31337, and the FooTV124 has
-multiplexor MX31337 and frontend FR012. All three cards are installed in
-the same machine. In the worst case the probe code for MX31337 puts
-MX3R0K3 into a state that requires a hard reset.
+Basically, probing is something only hardware monitoring chip drivers do (+
+eeprom, so we can include the DDC world). Video clients don't probe as far as
+I know (because probing just doesn't work here). So, if we were to have a "no
+probe" flag, it would always be clear when class is VIDEO and always set when
+class is HWMON (I voluntarily simplify, there are a couple more classes), so
+it means that the "no probe" flag is redundant. To put it short, simply not
+declaring an adapter as class HWMON means it won't be probed ever (the eeprom
+case is to be considered separately and may require a class of its own).
 
-Manual connection of clients makes it easier to develop a driver outside
-the kernel tree, then merge it when ready, without having to allocate a
-number from a central authority.
+> Creating the adapter with a list of permitted clients is also an
+> adequate solution for a bus like I2C which doesn't properly support
+> probing. The OCP bus on PowerPC has no explicit probing, and uses a
+> similar approach of creating the bus with a list of the devices possible
+> for that PowerPC model.
 
-Creating the adapter with a list of permitted clients is also an
-adequate solution for a bus like I2C which doesn't properly support
-probing. The OCP bus on PowerPC has no explicit probing, and uses a
-similar approach of creating the bus with a list of the devices possible
-for that PowerPC model.
+This may be fine for the PPC world, but in the i386 world it wont work. To
+give you an idea, the MBM database has 1155 motherboards listed, most of which
+have hardware monitoring chips on-board. It happens quite often that I don't
+find motherboard models I am looking for therein, so a complete base would
+have maybe 1500 or 2000 entries. We certainly don't want to have such a base
+in the linux kernel tree. It would be unmaintainable, and also would ensure
+that new hardware has no chance to work until us developers know about it.
+Probing is the way to go there, even if the I2C bus was obviously not designed
+for this.
 
-- Adrian Cox
-Humboldt Solutions Ltd.
+So I2C bus probing won't go away. Classes or flags are what we need (unless we
+go for separated I2C adapter lists, but that's a completely different
+approach, and obviously we are not interested until someone comes with a solid
+patch that really does this.) A working classes system is really next door,
+Michael did most of the work already, half of which is already merged into the
+kernel tree.
 
+Thanks.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
