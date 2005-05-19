@@ -1,36 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: PATCH: lm92: port for 2.6 kernel
-Message-Id: <bJwzT1U6.1109665128.9708300.khali@localhost>
+From: aurelien.jarno@laposte.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: PCF8591
+Message-Id: <E165yoo-0006Us-00@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <422318E5.4000201@katalix.com>
-In-Reply-To: <422318E5.4000201@katalix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello
 
-Hi James,
+I have seen that the patch for the PCF8591 has been put in the CVS, but yet 
+it doesn't compile. It seems the file kernel/include/sensors.h has not been 
+patch (I don't understand why).
+So here is a new patch to correct this.
 
-> This was what was confusing me too. As I understand it now (Jean please
-> correct me if I'm wrong) the core code behind the smbus read/write
-> word_data() routines presents the u16 value as a little endian value.
-> If the chip driver knows the chip implements 16-bit registers as big
-> endian then it must swap the bytes, regardless of cpu endian.
-
-Correct.
-
-> I don't think Jean's statement that "the conversion is done by the
-> bus drivers" is true, but maybe I still don't understand... :)
-
-It wasn't true in the case of Mark's driver, you are right. It is in
-fact true only for SMBus master drivers. For I2C masters, the i2c-core
-emulates the SMBus protocol, so the conversion is done by i2c-core.
-
-What I wanted to focus on was the fact that, in the general case, any CPU
-endianness issue would need to be fixed in the bus driver, not the chip
-driver.
-
---
-Jean Delvare
+Aurelien Jarno
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: pcf8591.patch2
+Type: text/x-diff
+Size: 849 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20011120/83a41ae8/pcf8591.bin
