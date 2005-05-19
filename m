@@ -1,55 +1,42 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: lm-sensors-2.70 and chip W83977EF
-Message-Id: <20030405214152.3c0ced22.khali@linux-fr.org>
+From: gawrysz@camk.edu.pl (Artur Gawryszczak)
+Date: Thu, 19 May 2005 06:24:09 +0000
+Subject: i2c-amd756.o and SMBus collisions, timeouts, lockups
+Message-Id: <200308011117.39975@phoenix.camk.edu.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200304040904.02936.jean.ribiere@wanadoo.fr>
-In-Reply-To: <200304040904.02936.jean.ribiere@wanadoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-[PLEASE ALWAYS ANSWER TO THE LIST, NOT TO ME ALONE]
+I'm using lm_sensors 2.7.0 on a mini-cluster, which consists of 8 Dual-Athlon 
+nodes running on Tyan Tiger motherboards (two of them have older AMD760MP 
+chipset, six have 760MPX). Kernel version is 2.4.19. 
 
-(You'd think people would figure out by themselves...)
+During last 4 months I've noticed two failures related to lm_sensors i this 
+cluster. In both cases machines stopped responding, logged strange values of 
+temperatures and voltages, and finally, mondo daemon succeeded to shutdown 
+them (mondo was set to protect machines from overheating due to fan failures  
+and does `halt -fp' if something seems to be going wrong). 
 
-> I have examined the informations in the BIOS setup :
-> - Temperature warning 70?C/158?F
-> - CPU (CON2) Temperature : N/A
-> - System temperature : varies from 31?C to 32?C
-> - CPU Fan : 0 RPM
-> - Chassis Fan : 0 RPM
-> - VCore : varies from 1.63V to 1.64V
-> - 3.3V : varies from 3.36V to 3.37V
-> - +5V : stable  5.16V
-> - +12V : varies from 11.97 to 12.03 V
-> - -12V : stable -12.03 V
-> 
-> I have also installed livewiredev under Windows, withe the same
-> results
-> 
-> So I have modified sensors.conf to ignore fans, in6 and temp1 and the 
-> output is conform to the BIOS information.
+Here comes part of the log from /var/log/messages
 
-So my theory was exact, nothing was wrong, only unused sensors.
+Aug  1 05:30:03 onyx kernel: i2c-amd756.o: SMBus collision!
+Aug  1 05:30:08 onyx kernel: i2c-amd756.o: Busy wait timeout! (0800)
+Aug  1 05:30:08 onyx kernel: i2c-amd756.o: Sending abort.
 
-> For information, I had a problem in the installation :
-> the script lm_sensors.init contains a line :
-> . /etc/init.d/functions
-> but in Slackaware I don't have a directory /etc/init.d
-> so I had to modify this script to define echo_failure() and
-> echo_success()
+Mondo wants to read sensors every 5 sec, so it was repeated many times, until 
+the machine went down. It's worth to note, that it took ~40 minutes to halt 
+the machine, normally `halt -fp' should do a poweroff within few seconds. 
+Another software, that reads the sensors is gkrellmd - is it possible, that 
+problem comes from simultanous attempts to read the sensors chip?
 
-This script is intended for Red Hat-like distributions, which Slackware
-isn't. That's why the script isn't installed by default on non Red
-Hat-like systems.
-
-By the was, Slackware users are supposed to be clever enough to tweak
-the initscripts by themselves to make them work for their system
-(Slackware user speaking ;)).
+I don't know how to reproduce this behavior, it occurs so rarely (two cases on 
+8 machines in 4 months gives a MTBF > 1 year), and, unfortunately, I had no 
+chance to get the console just as the error occurred as yet, because I was 
+away from server room.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Greetings
+Artur Gawryszczak
