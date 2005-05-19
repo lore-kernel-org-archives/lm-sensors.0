@@ -1,35 +1,40 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:44 +0000
 Subject: 2.6.3-mm4
-Message-Id: <20040227004602.GB15075@kroah.com>
+Message-Id: <1077870909.403f013dd04b6@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040225185536.57b56716.akpm@osdl.org> <403E82D8.3030209@gmx.de> <20040225185536.57b56716.akpm@osdl.org> <20040227001115.GA2627@werewolf.able.es>
-In-Reply-To: <403E82D8.3030209@gmx.de> <20040227001115.GA2627@werewolf.able.es>
+References: <20040225185536.57b56716.akpm@osdl.org> <403E82D8.3030209@gmx.de> <20040225185536.57b56716.akpm@osdl.org> <20040227001115.GA2627@werewolf.able.es> <20040227004602.GB15075@kroah.com>
+In-Reply-To: <20040227004602.GB15075@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "J.A. Magallon" <jamagallon@able.es>, "Prakash K. Cheemplavam" <PrakashKC@gmx.de>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, sensors@stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>
+Cc: "J.A. Magallon" <jamagallon@able.es>, "Prakash K. Cheemplavam" <PrakashKC@gmx.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, sensors@Stimpy.netroedge.com
 
-On Fri, Feb 27, 2004 at 01:11:15AM +0100, J.A. Magallon wrote:
-> 
-> As somebody also stated, there are problems with sensors:
-> 
+Quoting Greg KH <greg@kroah.com>:
 
-On Fri, Feb 27, 2004 at 12:35:52AM +0100, Prakash K. Cheemplavam wrote:
-> Hi,
-> 
-> this release made my sensors broken. With mm3 it worked nicely.
+> Anyway, I think all you need to do is get the cvs tree of the
+> lmsensors package.  Sensors people, the needed changes are commited
+> into the tree, right?
 
-Yup, we changed all of the sensors sysfs names :)
+No. The changes are waiting in my local repository, ready to be applied.
+I didn't want to apply them because we were supposed to release
+lm_sensors 2.8.5 (for Linux 2.6.3 users) and the sysfs names change
+wouldn't belong there.
 
-Hey, we did warn everyone here on lkml we were going to do this, and no
-one complained...
+The libsensors patches are available on my personal server here:
+http://jdelvare.net1.nerim.net/sensors/
+Apply both patches in order and you'll get a 2.6.3-mm4-compliant
+library.
 
-Anyway, I think all you need to do is get the cvs tree of the lmsensors
-package.  Sensors people, the needed changes are commited into the tree,
-right?
+I will apply the libsensors changes to the CVS repository as soon as the
+kernel modules changes are accepted into Linus' tree. If we did not
+release a new version since there, I'll take a CVS snapshot right
+before so that Linux 2.6.3 users have a usable version available (but
+my preference strongly goes to releasing 2.8.5 instead).
 
-thanks,
+Thanks for testing.
 
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
