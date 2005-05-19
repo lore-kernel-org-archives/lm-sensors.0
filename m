@@ -1,45 +1,86 @@
 From: beejay@gentoo.org (Benjamin Judas)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: Bug #1807: sensors with kernel 2.4, but not with kernel 2.6
-Message-Id: <1099501427.11618.18.camel@antares.hausnetz>
+Message-Id: <1099508524.11618.21.camel@antares.hausnetz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1099499003.11618.13.camel@antares.hausnetz>
 In-Reply-To: <1099499003.11618.13.camel@antares.hausnetz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Bonsoir Jean,
+Following an IRC-request by Jean here:
 
-> What I am mostly interested is the devices directory, not the drivers
-> directory. Do you see any subdirectory named *-002d there, those
-> "name" file reads asb100? What else do you see in this subdirectory?
-> There should be a whole bunch of in*, temp* and fan* files.
+this is a log-excerpt that shows the life of the driver from loading
+until bailing out:
 
-I don't have that directory in /sys/bus/i2c/devices. What I have is:
+Oct 31 22:03:05 antares kernel: i2c-core: driver asb100 registered.
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: found normal
+i2c_range entry for adapter 1, addr 0028
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (pre):
+CNT=00, CMDO, ADDP, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: SMBus busy (0x40).
+Resetting...
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Successfull!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Error: no response!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (post):
+CNT=00, CMDO, ADDP, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: found normal
+i2c_range entry for adapter 1, addr 0029
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (pre):
+CNT=00, CMDO, ADDR, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: SMBus busy (0x40).
+Resetting...
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Successfull!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Error: no response!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (post):
+CNT=00, CMDO, ADDR, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: found normal
+i2c_range entry for adapter 1, addr 002a
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (pre):
+CNT=00, CMDO, ADDT, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: SMBus busy (0x40).
+Resetting...
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Successfull!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Error: no response!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (post):
+CNT=00, CMDO, ADDT, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: found normal
+i2c_range entry for adapter 1, addr 002b
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (pre):
+CNT=00, CMDO, ADDV, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: SMBus busy (0x40).
+Resetting...
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Successfull!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (post):
+CNT=00, CMDO, ADDV, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (pre):
+CNT=08, CMDN, ADDW, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: SMBus busy (0x40).
+Resetting...
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Successfull!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (post):
+CNT=08, CMDN, ADDW, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (pre):
+CNT=08, CMDO, ADDW, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: SMBus busy (0x40).
+Resetting...
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Successfull!
+Oct 31 22:03:05 antares kernel: i2c_adapter i2c-1: Transaction (post):
+CNT=08, CMDO, ADDW, DAT0=00, DAT1=FF
+Oct 31 22:03:05 antares kernel: asb100.o: detect failed, bad chip id
+0x00!
 
-antares /sys/bus/i2c/devices # ls -al
-insgesamt 0
-drwxr-xr-x  2 root root 0  3. Nov 17:31 .
-drwxr-xr-x  4 root root 0  3. Nov 17:31 ..
-lrwxrwxrwx  1 root root 0  3. Nov 17:31 0-0018
--> ../../../devices/pci0000:00/0000:00:0b.0/i2c-0/0-0018
-lrwxrwxrwx  1 root root 0  3. Nov 17:31 0-0040
--> ../../../devices/pci0000:00/0000:00:0b.0/i2c-0/0-0040
-lrwxrwxrwx  1 root root 0  3. Nov 17:31 0-0042
--> ../../../devices/pci0000:00/0000:00:0b.0/i2c-0/0-0042
-lrwxrwxrwx  1 root root 0  3. Nov 17:31 0-0061
--> ../../../devices/pci0000:00/0000:00:0b.0/i2c-0/0-0061
 
-Regards,
-  Benjamin
 
--- 
+
+--=20
 
 Benjamin Judas
 
----------------------------------------------------------------------                                  
+---------------------------------------------------------------------      =
+                           =20
 Gentoo-developer                        http://dev.gentoo.org/~beejay
 Giessen, Germany                                http://www.gentoo.org
 
@@ -54,4 +95,5 @@ Name: not available
 Type: application/pgp-signature
 Size: 189 bytes
 Desc: Dies ist ein digital signierter Nachrichtenteil
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041103/d44738d1/attachment.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041103=
+/9e77f68c/attachment.bin
