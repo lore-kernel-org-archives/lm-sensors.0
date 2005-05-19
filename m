@@ -1,44 +1,53 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: lm_sensors2/kernel/chips adm1021.c adm1024.c...
-Message-Id: <20041204232606.37c5b281.khali@linux-fr.org>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: Fw: Ask for some information about motherboard ASUS NCLV-D
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041203234747.2a54e981.khali@linux-fr.org>
-In-Reply-To: <20041203234747.2a54e981.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-> Update of /home/cvs/lm_sensors2/kernel/chips
-> In directory mordac.netroedge.com:/tmp/cvs-serv14403
-> 
-> Modified Files:
-> 	adm1021.c adm1024.c adm1025.c adm1026.c adm1031.c adm9240.c 
-> 	asb100.c bmcsensors.c bt869.c ddcmon.c ds1621.c eeprom.c 
-> 	fscher.c fscpos.c fscscy.c gl518sm.c gl520sm.c icspll.c it87.c 
-> 	lm63.c lm75.c lm78.c lm80.c lm83.c lm85.c lm87.c lm90.c lm92.c 
-> 	lm93.c ltc1710.c matorb.c max1619.c max6650.c maxilife.c 
-> 	mtp008.c pc87360.c pca9540.c pca954x.c pcf8574.c pcf8591.c 
-> 	saa1064.c sis5595.c smartbatt.c smbus-arp.c smsc47m1.c 
-> 	thmc50.c via686a.c vt1211.c vt8231.c w83627hf.c w83781d.c 
-> 	w83l785ts.c xeontemp.c 
-> Log Message:
-> (Khali) Restore controlling_mod argument to i2c_register_entry(). This
-> is needed to properly lock chip drivers in memory while anyone uses
-> their/proc entries. This also brings back compatibility with the 2.4
-> Linux kernel.
-
-This was step #4, restoring module reference counting for chip drivers.
-At this point, binary and source compatibility with Linux 2.4 is
-completely restored (at least as far as reference counting is
-concerned), although it was almost already done at step #3.
-
-Last step is to make bus drivers dependent from chip drivers as soon as
-a client registers /proc entries.
-
-And then we are ready to release 2.9.0 :)
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+RGVhciBKZWFuLCBSdWRvbGYKIApUaGlzIGlzIENodW5oYW8sICBJIGNvbnRhY3RlZCBBU1VTIGFn
+YWluIGFib3V0IHRoZSBwcm9ibGVtcyB3ZSBtZWV0LApUaGV5IGdhdmUgbWUgdGhlIGFuc3dlciBi
+eSBtYWlsIHRoaXMgdGltZSwgcGxlYXNlIHJlZmVyIHRvIHRoZW0uCgoxLiBIb3cgZG8gZ2V0IGFj
+Y2VzcyB0byB0aGUgVzgzNzkyRCBjaGlwPyBUaGUgYW5zd2VyIHNob3VsZCBpbmNsdWRlCnRoZSBi
+dXMgdGhlIGNoaXAgc2l0cyBvbiAoSW50ZWwgU01CdXMsIG90aGVyIGNoaXAsIEdQSU9zLi4uKSBh
+bmQgdGhlCm9wZXJhdGlvbnMgbmVlZGVkIHRvIHVubG9jayB0aGF0IGJ1cyAob3Igc2VnbWVudCB0
+aGVyZW9mKSBpZiBzdWNoCm9wZXJhdGlvbnMgYXJlIG5lZWRlZC4KPT5Zb3UgY2FuIHVzZSBERUJV
+RyB1dGlsaXR5IHRvIHdyaXRlIHZhbHVlICIweDA4IiBpbiAiMHgwNGI5IiBpbiBHUElPCnBpbiBv
+ZiBIYW5jZSBSYXBpZCBJQ0guCgoyLiBXZSB3b3VsZCBuZWVkIGRldGFpbGVkIGluZm9ybWF0aW9u
+IG9uIHdoYXQgY2hpcCB3ZSBhdHRlcHQgdG8gY29udHJvbCBhdAp0aGUgcG9ydCAweDA0YjkgYW5k
+IGhvdyB0aGF0IGNoaXAgd29ya3MsIGFuZCBhbHNvIGRldGFpbHMgb24gaG93IHRoZQpTTUJ1cyBp
+cyB3aXJlZC4KPT4gVGhlIGNvbnRyb2wgc2lnbmFsIGRlZmluZWQgR1BJTyBpbiB0aGlzIEhhbmNl
+IFJhcGlkIElDSCwgYW5kIG9ubHkKYWNjZXNzIGEgbWV0aG9kIGluIHRoZSBTTUJ1cy4KCjMuIEJl
+c2lkZSB0aGUgcXVlc3Rpb24gMiwgd2Ugd2lsbCBuZWVkIHRoZSBiYXNlIGFkZHJlc3Mgb2YgdGhh
+dCBJU0EgZGV2aWNlLAphbHNvIGlmIHRoZSBiYXNlIGFkZHJlc3MgaXMgbm90IGZpeGVkIHdlIHdv
+dWxkIG5lZWQgdGhlIGRldGVjdGlvbiBtZXRob2QKaG93IHRvIGdldCB0aGUgYmFzZSBhZGRyZXNz
+LCBmcm9tIHNvbWUgUENJIGNvbmZpZyBzcGFjZSBtYXliZT8pCj0+VGhlIEdQSU8gcGluIGRlZmlu
+ZWQgdG8gcmVsYXRlIHdpdGggc291dGggYnJpZGdlLiBJZiBzb3V0aCBicmlkZ2UgaGFzCmNoYW5n
+ZWQsIHRoZSBHUElPIHBpbiBoYXMgZGlmZmVyZW50LgoKVGhhbmtzCkJlc3QgUmVnYXJkcwogCkNo
+dW5oYW8KMjAwNS0wMy0wNAogCiAKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFp
+bmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNz
+ZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElm
+IHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJl
+IG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29u
+LCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBh
+bmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3Jr
+IHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJ
+dCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwg
+aW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGlu
+Zm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmlj
+aWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4g
+bm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNl
+IGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlh
+bGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp
+0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRI
+qPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaq
+urGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQ
+uvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/
+9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhU
+pO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1
+qc63TqijLgo=
