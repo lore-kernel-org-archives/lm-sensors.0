@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: OT: Please. Can someone lock the mailing list to only accept mail from registered users
-Message-Id: <20030513032802.GA5834@kroah.com>
+Subject: OT: Please. Can someone lock the mailing list to only accept
+Message-Id: <20030513095913.76ed0da2.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200305131012.25719.dpnsw@optusnet.com.au>
 In-Reply-To: <200305131012.25719.dpnsw@optusnet.com.au>
@@ -10,29 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, May 12, 2003 at 05:58:09PM -0700, Philip Edelbrock wrote:
-> What I might do is split the lists:
+
+> > What I might do is split the lists:
+> > 
+> > sensors-devel@
+> > sensors-users@
 > 
-> sensors-devel@
-> sensors-users@
+> Is that really needed?  The traffic here is quite low, splitting the
+> lists doesn't seem to make much sense.
 
-Is that really needed?  The traffic here is quite low, splitting the
-lists doesn't seem to make much sense.
+I agree with Greg, I'm not sure it's necessary. Most (if not all)
+subscribers are developers, so we don't have to hide from ourselves (if
+I'm clear).
 
-> What do you guys think?  Spam sucks, and I really resent being forced to 
-> add an extra degree of seperation from us and the rest of the world but 
-> there may not be another reasonable alternative....
+> Banning HTML mail takes care of 99% of the spam that tries to get
+> through to the linux-usb-* mailing lists.  Sure, some of it slips
+> through, but I never notice it, as my local spam filters pick them up
+> usually :)
 
-Banning HTML mail takes care of 99% of the spam that tries to get
-through to the linux-usb-* mailing lists.  Sure, some of it slips
-through, but I never notice it, as my local spam filters pick them up
-usually :)
+Sounds great. In this case, we should explicitly mention on the web page
+that HTML mail will be rejected, or it's unfair to human posters. I know
+nice people don't use HTML mail anyway (I am a nice guy! yeah! ;)) but
+we shouldn't be too integrist with people that are just different.
 
-You might want to try that, it's a good first step, which also keeps the
-lists open for non-subscribers to post to (which is a good thing,
-considering that you have to ask someone before being able to join this
-list, which I think is a bit strange...)
+Another thing I have been suggesting for years now (OK, it's exagerated,
+say months) is to keep a single address for the mailing list. Having
+lm78@ *and* sensors@ doesn't double the number of interesting e-mails we
+receive, but it actually doubles the amount of spam.
 
-thanks,
+> You might want to try that, it's a good first step, which also keeps
+> the lists open for non-subscribers to post to (which is a good thing,
+> considering that you have to ask someone before being able to join
+> this list, which I think is a bit strange...)
 
-greg k-h
+Not that strange. Or, at least, not a problem IMHO. Only very few people
+need to be there, and that's how we manage to keep the number of
+subscribers low. Remember it isn't a "real" mailing list. Phil is
+handling it by himself. We have been having severe issues with bouncing
+mails some months ago, spam is a regular question also. So, I understand
+that Phil doesn't want to have too many subscribers to handle on the
+list.
+
+Third possibility would be to moderate the posts for unsubscribed users.
+Drawback is that a human intervention is needed, which means more work
+for Phil (or someone else) and delayed answers since Phil (or anyone
+else) is a busy man. We all are rather busy, isn't it? (And do you know
+why? Because we are nice people. (TM)) This may also be technically
+impossible due to the way our mailing list is handled. But that's just
+an idea after all.
+
+OK, that was just some morling thoughts. Comments welcome, I got to go
+now.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
