@@ -1,7 +1,7 @@
 From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: i801 bus problems
-Message-Id: <41378C5B.2030006@edgedesign.us>
+Message-Id: <4137A0AE.8020106@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
@@ -11,32 +11,14 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-You may need to turn something on in the Bios for the SMBus interface to 
-be properly set up at boot-time?  A relevent snippet from the i2c-i801 doc:
-
-"If you do NOT see the 24x3 device at function 3, and you can't
-figure out any way in the BIOS to enable it,
-(and especially if you have an Asus P4B board),
-see prog/hotplug/README.p4b."
-
-See:
-
-http://secure.netroedge.com/~lm78/cvs/browse.cgi/lm_sensors2/prog/hotplug/README.p4b
+I may have jumped the gun a bit.  It looks like i801 is working but some 
+client chips are not responding or are missing?
 
 
 Phil
 
-Rudolf Marek wrote:
+Philip Edelbrock wrote:
 > 
-> Hello,
-> 
-> Ovis came with  Intel D915GEV desktop board (very new board)
-> 
-> here on the picture:
-> http://www.intel.com/design/motherbd/ev/pix/D915GEV_lg.jpg
-> 
-> 00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev d3)
-> 00:1f.0 ISA bridge: Intel Corp.: Unknown device 2640 (rev 03)
-> 00:1f.1 IDE interface: Intel Corp.: Unknown device 266f (rev 03)
-> 00:1f.3 SMBus: Intel Corp.: Unknown device 266a (rev 03)
+> You may need to turn something on in the Bios for the SMBus interface to 
+> be properly set up at boot-time?  A relevent snippet from the i2c-i801 doc:
 > [...]
