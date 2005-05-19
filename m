@@ -1,7 +1,7 @@
-From: lists@localguru.de (Marcus Schopen)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:08 +0000
 Subject: i2c-piix4 problem
-Message-Id: <200408050306.11594.lists@localguru.de>
+Message-Id: <20040805080657.0eafacb6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200408041637.21472.lists@localguru.de>
 In-Reply-To: <200408041637.21472.lists@localguru.de>
@@ -10,25 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wednesday 04 August 2004 18:22, Jean Delvare wrote:
-> > I've problem to get values for my "82371AB PIIX4 ACPI (rev 01)". Could
-> > anyone send me a working sensors.conf? I get just parse errors or "No
-> > sensors found!".
+> > > The following kernel modules are loaded:
+> > >
+> > > # lsmod:
+> > > Module                  Size  Used by    Tainted: P
+> > > i2c-proc                6272   0
+> > > i2c-dev                 3680   0
+> > > i2c-piix4               3908   0
+> > > i2c-core               12160   0  [i2c-proc i2c-dev i2c-piix4]
 > >
-> > The following kernel modules are loaded:
-> >
-> > # lsmod:
-> > Module                  Size  Used by    Tainted: P
-> > i2c-proc                6272   0
-> > i2c-dev                 3680   0
-> > i2c-piix4               3908   0
-> > i2c-core               12160   0  [i2c-proc i2c-dev i2c-piix4]
->
-> i2c-piix4 is a bus driver. You need an additional chip driver to get
-> temperature readings. Try "sensors-detect" to find out which one you
-> need.
+> > i2c-piix4 is a bus driver. You need an additional chip driver to get
+> > temperature readings. Try "sensors-detect" to find out which one you
+> > need.
+> 
+> That's what sensors-detect found out / loaded.
 
-That's what sensors-detect found out / loaded.
+A.k.a. no sensors found, unless a problem occured. If you're certain
+that there is a hardware monitoring chip on that board and
+sensors-detect missed it, please give us:
+1* The brand and name of the motherboard.
+2* The full output of sensors-detect.
+3* The brand and name of the monitoring chipset we are after.
 
-Cheers,
-Marcus
+Thanks.
+
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
