@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: Bug #1807: sensors with kernel 2.4, but not with kernel 2.6
-Message-Id: <20041104180131.GC4054@jupiter.solarsys.private>
+Message-Id: <20041104180847.GB16744@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1099499003.11618.13.camel@antares.hausnetz>
 In-Reply-To: <1099499003.11618.13.camel@antares.hausnetz>
@@ -10,47 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
-
-* Jean Delvare <khali@linux-fr.org> [2004-11-04 14:34:57 +0100]:
-> > I.e. after the chip driver correctly decides that the device responding
-> > to 0x2b is NOT an asb100, it never gets the chance to examine 0x2d.
-> 
-> This would explain the behavior observed on Benjamin's board, correct.
-> 
-> > I'm not sure that replacing "return err;" with "continue;" is good enough.
-> > Also note that if it loops through the whole range but finds nothing, it
-> > returns 0 instead of e.g. -ENODEV.  The whole function seems to want a
-> > re-write... would it break otherwise working configs if I cleaned this
-> > thing up?
-> 
-> I don't think your analysis is correct. My feeling is that *_detect
-> functions found in the client drivers should NOT return non-zero values
-> on "misdetections". A misdetection is not an error per se, and
-> obviously the i2c_detect function was written with that in mind. So I
-> believe that the asb100 driver, not i2c_detect, would need to be fixed.
-
-Well, you're right.
-
-> There are several other drivers that would need a similar fix, such as
-> w83781d and possibly it87. Other drivers I looked at seem to be OK
-> (lm75, lm83, lm90, w83627hf). I guess that a full review of all client
-> drivers would be welcome.
-
-Looks like I've misunderstood this for quite some time.  Other drivers
-are broken like this thanks to me "fixing" them during 2.6.0-pre.  It
-just seemed obvious that a misdetection should return -ENODEV.  It's no
-excuse though, as you pointed out - the docs are clear enough.
-
-I'll prepare a patch when I get the chance.
-
-> My investigations led me to ask several related questions:
+On Thu, Nov 04, 2004 at 02:34:57PM +0100, Jean Delvare wrote:
 > 
 > 1* What is the different between "normal" i2c addresses and "probe"
 > i2c addresses? It seems that both arrays are treated the same way, and
 > no client driver is using "probe" addresses (at a quick glance at
 > least.) Can't we just get rid of it?
-> 
+
+Yes we should.  I've started to look at how to reduce the number of
+things in the per-driver structure and this is one that will go away
+soon (along with the ranges, but that's for another email...)
+
 > 2* What is the difference between i2c_probe in i2c-core and i2c_detect in
 > i2c-sensor (i2c-proc in 2.4)? Both functions seem to be very similar, I
 > couldn't find a difference (but I admittedly did not compare line by
@@ -58,7 +28,12 @@ I'll prepare a patch when I get the chance.
 > As a matter of fact, I don't see how exactly i2c_detect is supposed to
 > be sensor-related. Can't we get rid of i2c_detect and use i2c_probe
 > everywhere?
-> 
+
+Yes we can, if we merge the two structures properly.  Right now they
+aren't alike in a very tiny way.  Any patches to fix all of this up
+would be greatly appreciated so that I can mark another thing off of my
+todo list :)
+
 > It would be great if we could clean this mess now because I will do
 > significant changes to that part of the code soon (to get rid of the
 > thinkpad breakage issue, just like I did in the userspace tools already).
@@ -67,18 +42,9 @@ I'll prepare a patch when I get the chance.
 > redundant could have been in place for so long and nobody ever objected.
 > Am I missing something?
 
-Good questions...
+I've always noticed them, but in the 2.6 push to get stable, I ignored
+them as it will take a bit of work to fix them up.
 
-> 3* Did we ever see an ASB100 chip at any other address than 0x2d? We
-> don't have any documentation for that chip so it would probably be more
-> reasonable to limit the range to the only known address so far. As a
-> side effect, I suspect that it could help solve that ticket:
-> http://bugzilla.kernel.org/show_bug.cgi?id(99
+thanks,
 
-Fair enough; I'll do a patch for this too.
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+greg k-h
