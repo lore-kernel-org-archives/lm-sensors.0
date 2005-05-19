@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: lm-sensors (fwd)
-Message-Id: <3D5F052C.AB8EC78B@paradyne.com>
+From: mrodmac@enter.net (M. Roderic MacCallum)
+Date: Thu, 19 May 2005 06:23:44 +0000
+Subject: lm-sensors
+Message-Id: <3E0B7260.5070705@enter.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3C61EE92.392A5D31@paradyne.com>
 In-Reply-To: <3C61EE92.392A5D31@paradyne.com>
@@ -10,31 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Be wary of as99127f changes, I've pretty much given up because everytime
-I change something for somebody a ton of people complain that it
-broke something for them. Definitely at the point of
-diminishing returns.
-mds
+Greetings,
 
-Jean Delvare wrote:
-> 
-> > Hi
-> >
-> > Is possible that for as99127f (A7V133)
-> > computing of temp2 is (@*2)
-> > rather than (@*30/43)+25 ?
-> >
-> > the first options seems to be inline with
-> > bios result.
-> 
-> I got the same card (A7V133-C to be precise) and I use @*2.0 for a long
-> time (and for temp3 also). Maybe there are other boards where
-> (@*30/43)+25 is correct? I will change to @*2.0, and we'll see if
-> someone complains. I leave the original as a comment anyway, just in
-> case.
-> 
-> Thanks for reporting!
-> 
-> --
-> Jean "Khali" Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+I discovered your code after an unfortunate crapping out of my cpu fan 
+over Thanksgiving. Fortunately I got to the machine in time and got it 
+turned off, avoiding serious damage.
+
+I installed a new fan and heat sink, then installed lm-sensors to keep 
+an eye on things. I also, with the help of a couple of guys in my LUG 
+(Lancaster Co.[PA] LUG), wrote a python script to monitor, and shutdown 
+if necessary. I haven't had it running long, but it seems to work fine. 
+I put the script in /sbin and run it from cron every 2 minutes.
+
+I've attached the script so you guys can look at it, alter it or laugh 
+at it and delete it  :)
+
+Thanks for a great piece of software.
+
+Sincerely,
+Rod
+-- 
+M. Roderic MacCallum
+808 Center Rd.
+Womelsdorf, PA 19567
+610.589.5017
+mrodmac@comcast.net
+
+-------------- next part --------------
+#!/usr/bin/python2
+
+# This script works for me, YMMV!
+# Thanks rubberpaw for the "int(os.popen" help
+# Thanks to malaclypse for the smtplib script
+
+import os
+import smtplib
+
+t= int(os.popen("sensors -f | grep CPU_Temp | cut -d ':' -f 2 | cut -d '+' -f 2 | cut -d '.' -f 1", "r").read())
+
+if t > 115:
+	
+	# Email an alert
+	fromaddr = "YourEmailAddy"
+	toaddrs  = "email","cell"
+	msg = "Your Message"
+	server = smtplib.SMTP('YourServer')
+	#server.set_debuglevel(1)
+	server.sendmail(fromaddr, toaddrs, msg)
+	server.quit()
+
+	# Shut the machine down
+	os.system("/sbin/shutdown -h now")
+
+else:
+	exit
