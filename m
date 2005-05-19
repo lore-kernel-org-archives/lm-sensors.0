@@ -1,101 +1,40 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH] I2C: fix it87 sensor driver stops CPU fan
-Message-Id: <11059983961494@kroah.com>
+Subject: [PATCH 2.6] I2C: Kill i2c_client.id (4/5)
+Message-Id: <20050116204630.7296f884.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1105998395257@kroah.com>
+References: <20050116194653.17c96499.khali@linux-fr.org>
+In-Reply-To: <20050116194653.17c96499.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: jmunsin@iki.fi
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
 
-ChangeSet 1.2329.2.7, 2005/01/14 14:43:30-08:00, jmunsin@iki.fi
+> (4/5) Deprecate i2c_client.id.
 
-[PATCH] I2C: fix it87 sensor driver stops CPU fan
-
-> 2* I would then add a check to the it87 driver, which completely disables
-> the fan speed control interface if the initial configuration looks weird
-> (all fans supposedly stopped and polarity set to "active low"). This
-> should protect users of the driver who have a faulty BIOS.
->
-> When a bogus configuration is detected, we would of course complain in
-> the logs and invite the user to complain to his/her motherboard maker
-> too.
-
-Here is it87.c_2.6.10-jm4-detect_broken_bios_20050112.diff implementing
-this. It goes on top of the previous patch.
-
-- detects broken bioses, disables the pwm for them and prints a message
-- fixes an unrelated minor bug in set_fan_div()
+Now that i2c_client.id has no more users in the kernel (none that I
+could find at least) we could remove that struct member. I however think
+that it's better to only deprecate it at the moment, in case I missed
+users or any of the other patches are delayed for some reason. We could
+then delete the id member definitely in a month or so.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Jonas Munsin <jmunsin@iki.fi>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+
+diff -ruN linux-2.6.11-rc1.orig/include/linux/i2c.h linux-2.6.11-rc1/include/linux/i2c.h
+--- linux-2.6.11-rc1.orig/include/linux/i2c.h	2004-12-24 22:34:01.000000000 +0100
++++ linux-2.6.11-rc1/include/linux/i2c.h	2005-01-16 18:41:51.000000000 +0100
+@@ -144,7 +144,7 @@
+  * function is mainly used for lookup & other admin. functions.
+  */
+ struct i2c_client {
+-	int id;
++	__attribute__ ((deprecated)) int id;
+ 	unsigned int flags;		/* div., see below		*/
+ 	unsigned int addr;		/* chip address - NOTE: 7bit 	*/
+ 					/* addresses are stored in the	*/
 
 
- drivers/i2c/chips/it87.c |   29 ++++++++++++++++++++++-------
- 1 files changed, 22 insertions(+), 7 deletions(-)
-
-
-diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
---- a/drivers/i2c/chips/it87.c	2005-01-17 13:20:25 -08:00
-+++ b/drivers/i2c/chips/it87.c	2005-01-17 13:20:25 -08:00
-@@ -500,7 +500,7 @@
- 		else
- 			data->fan_div[nr] = 3;
- 	}
--	val = old & 0x100;
-+	val = old & 0x80;
- 	val |= (data->fan_div[0] & 0x07);
- 	val |= (data->fan_div[1] & 0x07) << 3;
- 	if (data->fan_div[2] = 3)
-@@ -703,6 +703,8 @@
- 	int err = 0;
- 	const char *name = "";
- 	int is_isa = i2c_is_isa_adapter(adapter);
-+	int enable_pwm_interface;
-+	int tmp;
- 
- 	if (!is_isa && 
- 	    !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-@@ -812,6 +814,17 @@
- 	/* Initialize the IT87 chip */
- 	it87_init_client(new_client, data);
- 
-+	/* Some BIOSes fail to correctly configure the IT87 fans. All fans off
-+	 * and polarity set to active low is sign that this is the case so we
-+	 * disable pwm control to protect the user. */
-+	enable_pwm_interface = 1;
-+	tmp = it87_read_value(new_client, IT87_REG_FAN_CTL);
-+	if ((tmp & 0x87) = 0) {
-+		enable_pwm_interface = 0;
-+		dev_info(&new_client->dev,
-+			"detected broken BIOS defaults, disabling pwm interface");
-+	}
-+
- 	/* Register sysfs hooks */
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in1_input);
-@@ -860,12 +873,14 @@
- 	device_create_file(&new_client->dev, &dev_attr_fan2_div);
- 	device_create_file(&new_client->dev, &dev_attr_fan3_div);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
--	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
--	device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
--	device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
--	device_create_file(&new_client->dev, &dev_attr_pwm1);
--	device_create_file(&new_client->dev, &dev_attr_pwm2);
--	device_create_file(&new_client->dev, &dev_attr_pwm3);
-+	if (enable_pwm_interface) {
-+		device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
-+		device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
-+		device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
-+		device_create_file(&new_client->dev, &dev_attr_pwm1);
-+		device_create_file(&new_client->dev, &dev_attr_pwm2);
-+		device_create_file(&new_client->dev, &dev_attr_pwm3);
-+	}
- 
- 	if (data->type = it8712) {
- 		device_create_file_vrm(new_client);
-
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
