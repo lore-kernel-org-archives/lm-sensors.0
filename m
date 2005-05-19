@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: [PATCH] I2C patches for 2.6.10
-Message-Id: <11051627753674@kroah.com>
+Message-Id: <11051627751088@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1105162775137@kroah.com>
+In-Reply-To: <11051627753411@kroah.com>
 References: <11051627731563@kroah.com>
 In-Reply-To: <11051627731563@kroah.com>
 MIME-Version: 1.0
@@ -11,103 +11,117 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1938.445.2, 2004/12/15 11:36:57-08:00, khali@linux-fr.org
+ChangeSet 1.1938.445.4, 2004/12/15 11:37:45-08:00, khali@linux-fr.org
 
-[PATCH] I2C: use chip driver name to request regions
+[PATCH] I2C: i2c-algo-bit should support I2C_FUNC_I2C
 
-> Trivial patch against 2.6.10-rc3-bk2.
-> When request_region is called name is set to "", use module name.
+> Very few drivers seem to support the I2C_FUNC_I2C functionality, is
+> there a reason for that?
 
-Correct. I even think we should do the same for other chip drivers. For
-now they all use an arbitrary string. Using the driver's name would be
-both more consistent and more efficient (spares some bytes of memory).
+Yes, most bus drivers are for SMBus, not I2C, masters. SMBus is a subset
+of I2C. These SMBus master are fully I2C-capable, although in most cases
+it doesn't matter. Most chip drivers are for SMBus clients as well.
+Almost all hardware monitoring chips are SMBus devices. So it's not
+surprising not to see I2C_FUNC_I2C widely used.
 
+> I have an I2C bus on my platform constructed from a couple of GPIO lines
+> using the i2c-algo-bit driver. The device on the bus is a DS1307 I2C RTC
+> and the driver for that currently checks for
+> 	I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_WRITE_BYTE
+> however the datasheet suggests it is a simple i2c device with none of
+> this smbus stuff, Russell King queried this here
+> http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id 21/1
 
+First, note that all SMBus commands are valid I2C transfers. In fact,
+the SMBus specification doesn't do much except put names on specific I2C
+transfers, and sometimes give meanings to the data being transfered. As
+a result, "I2C" clients, although not specifically SMBus-compatible, may
+enjoy SMBus commands such as SMBUS_READ_BYTE, SMBUS_READ_BYTE_DATA and
+SMBUS_WRITE_BYTE_DATA. One typical example of that are EEPROMs and the
+eeprom driver. It relies on i2c_smbus_write_byte and i2c_smbus_read_byte
+(BTW I just noticed that it doesn't properly check for these
+functionalities... have to fix that) because it's so much easier to call
+these standard functions than rewrite I2C code manually. Also, this let
+us access the EEPROMs on SMBus (non-I2C) busses.
+
+Now, note that Russell is not quite correct in is assertion: "Do we
+really require SMBUS functionality, or is i2c functionality sufficient?"
+It's actually the other way around. SMBus puts restrictions on what a
+valid I2C transfer is. "Do we need the full I2C functionality or is the
+SMBus subset sufficient?" would make more sense.
+
+As for the exact functionality you need to check, let's just see how you
+access the bus. As far as I can see (providing that the code below
+Russell's comments is still valid), you rely on:
+ * i2c_smbus_write_byte_data
+ * i2c_smbus_read_byte_data
+ * i2c_transfer
+
+So yo *need* to check for the availability of I2C_FUNC_SMBUS_BYTE_DATA
+on the adapter (which is part of I2C_FUNC_SMBUS_EMUL so any bus driver
+using that, including any relying on i2c-algo-bit, will work with your
+client driver) for the first two. And you also need to check for
+I2C_FUNC_I2C for the third one.
+
+Of course, any adapter with I2C_FUNC_I2C will be able to do SMBus byte
+data transfers, but since you do not use i2c_transfer to do them, you
+need to check the functionality separately (I think).
+
+Also, I think that what you do with i2c_transfer is similar to
+I2C_FUNC_SMBUS_READ_I2C_BLOCK, which is supported by some SMBus
+(non-I2C) masters. If you convert your code to use
+i2c_smbus_read_i2c_block_data, then you don't rely on the full I2C
+capatbilities of the bus, which means that your chip driver will be
+useable on more plateforms. That said, note that this feature is
+unimplemented on most SMBus master drivers as of now, and broken on a
+number of others (but I guess we would start paying more attention to
+them if there were more users for this function).
+
+> If I change it to a check for I2C_FUNC_I2C and change the algo-bit
+> driver to declare I2C_FUNC_I2C then the driver continues to work fine.
+
+You are right that i2c-algo-bit should declare itself I2C_FUNC_I2C
+capable. I even think that every bus being I2C_FUNC_SMBUS_EMUL capable
+is very likely to be I2C_FUNC_I2C capable. This means that other
+algorithms (ite, pcf, maybe pca) could most probably be declared
+I2C_FUNC_I2C capable as well. Can anyone confirm?
+
+> Given the above, is the following patch appropriate, or is there
+> something about the relationship between i2c and smbus that I don't
+> understand.
+
+I admit that the relationship between I2C and SMBus is somewhat tricky,
+it took me some time to get it and even then I am sometimes not sure to
+understand exactly what implies what ;) So we cannot blame you for not
+getting it at first. I hope I helped make things a little clearer. If
+not I welcome questions.
+
+Whether or not you change your code to use SMBus only in your driver to
+make it more widely useable, your patch to i2c-algo-bit is valid, I am
+signing it too and will apply it to the 2.4 version of the driver as
+well.
+
+Signed-off-by: Ian Campbell <icampbell@arcom.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/chips/lm78.c     |    2 +-
- drivers/i2c/chips/pc87360.c  |    3 ++-
- drivers/i2c/chips/smsc47m1.c |    2 +-
- drivers/i2c/chips/via686a.c  |    2 +-
- drivers/i2c/chips/w83627hf.c |    2 +-
- drivers/i2c/chips/w83781d.c  |    3 ++-
- 6 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/i2c/algos/i2c-algo-bit.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/lm78.c b/drivers/i2c/chips/lm78.c
---- a/drivers/i2c/chips/lm78.c	2005-01-07 14:56:14 -08:00
-+++ b/drivers/i2c/chips/lm78.c	2005-01-07 14:56:14 -08:00
-@@ -462,7 +462,7 @@
+diff -Nru a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
+--- a/drivers/i2c/algos/i2c-algo-bit.c	2005-01-07 14:55:58 -08:00
++++ b/drivers/i2c/algos/i2c-algo-bit.c	2005-01-07 14:55:58 -08:00
+@@ -511,8 +511,8 @@
  
- 	/* Reserve the ISA region */
- 	if (is_isa)
--		if (!request_region(address, LM78_EXTENT, "lm78")) {
-+		if (!request_region(address, LM78_EXTENT, lm78_driver.name)) {
- 			err = -EBUSY;
- 			goto ERROR0;
- 		}
-diff -Nru a/drivers/i2c/chips/pc87360.c b/drivers/i2c/chips/pc87360.c
---- a/drivers/i2c/chips/pc87360.c	2005-01-07 14:56:14 -08:00
-+++ b/drivers/i2c/chips/pc87360.c	2005-01-07 14:56:14 -08:00
-@@ -756,7 +756,8 @@
+ static u32 bit_func(struct i2c_adapter *adap)
+ {
+-	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR | 
+-	       I2C_FUNC_PROTOCOL_MANGLING;
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | 
++	       I2C_FUNC_10BIT_ADDR | I2C_FUNC_PROTOCOL_MANGLING;
+ }
  
- 	for (i = 0; i < 3; i++) {
- 		if (((data->address[i] = extra_isa[i]))
--		 && !request_region(extra_isa[i], PC87360_EXTENT, "pc87360")) {
-+		 && !request_region(extra_isa[i], PC87360_EXTENT,
-+		 		    pc87360_driver.name)) {
- 			dev_err(&new_client->dev, "Region 0x%x-0x%x already "
- 				"in use!\n", extra_isa[i],
- 				extra_isa[i]+PC87360_EXTENT-1);
-diff -Nru a/drivers/i2c/chips/smsc47m1.c b/drivers/i2c/chips/smsc47m1.c
---- a/drivers/i2c/chips/smsc47m1.c	2005-01-07 14:56:14 -08:00
-+++ b/drivers/i2c/chips/smsc47m1.c	2005-01-07 14:56:14 -08:00
-@@ -400,7 +400,7 @@
- 		return 0;
- 	}
  
--	if (!request_region(address, SMSC_EXTENT, "smsc47m1")) {
-+	if (!request_region(address, SMSC_EXTENT, smsc47m1_driver.name)) {
- 		dev_err(&adapter->dev, "Region 0x%x already in use!\n", address);
- 		return -EBUSY;
- 	}
-diff -Nru a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
---- a/drivers/i2c/chips/via686a.c	2005-01-07 14:56:14 -08:00
-+++ b/drivers/i2c/chips/via686a.c	2005-01-07 14:56:14 -08:00
-@@ -613,7 +613,7 @@
- 	}
- 
- 	/* Reserve the ISA region */
--	if (!request_region(address, VIA686A_EXTENT, "via686a-sensor")) {
-+	if (!request_region(address, VIA686A_EXTENT, via686a_driver.name)) {
- 		dev_err(&adapter->dev,"region 0x%x already in use!\n",
- 		       address);
- 		return -ENODEV;
-diff -Nru a/drivers/i2c/chips/w83627hf.c b/drivers/i2c/chips/w83627hf.c
---- a/drivers/i2c/chips/w83627hf.c	2005-01-07 14:56:14 -08:00
-+++ b/drivers/i2c/chips/w83627hf.c	2005-01-07 14:56:14 -08:00
-@@ -984,7 +984,7 @@
- 	if(force_addr)
- 		address = force_addr & ~(WINB_EXTENT - 1);
- 
--	if (!request_region(address, WINB_EXTENT, "w83627hf")) {
-+	if (!request_region(address, WINB_EXTENT, w83627hf_driver.name)) {
- 		err = -EBUSY;
- 		goto ERROR0;
- 	}
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	2005-01-07 14:56:14 -08:00
-+++ b/drivers/i2c/chips/w83781d.c	2005-01-07 14:56:14 -08:00
-@@ -1065,7 +1065,8 @@
- 	}
- 	
- 	if (is_isa)
--		if (!request_region(address, W83781D_EXTENT, "w83781d")) {
-+		if (!request_region(address, W83781D_EXTENT,
-+				    w83781d_driver.name)) {
- 			dev_dbg(&adapter->dev, "Request of region "
- 				"0x%x-0x%x for w83781d failed\n", address,
- 				address + W83781D_EXTENT - 1);
 
