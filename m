@@ -1,26 +1,48 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH 2.6.12-rc1] i2c: i2c-mv64xxx - set adapter owner and class
-Message-Id: <20050331200638.GD664@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:31 +0000
+Subject: [PATCH 2.6] I2C: Kill i2c_client.id
+Message-Id: <20050116194653.17c96499.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <424B18D2.1070302@mvista.com>
-In-Reply-To: <424B18D2.1070302@mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
 
-On Wed, Mar 30, 2005 at 02:23:30PM -0700, Mark A. Greer wrote:
-> i2c: Set adapter owner and class fields.
-> 
-> This patch adds the correct values for the 'owner' and 'class' fields of
-> the adapter structure in the mv64xxx i2c bus driver.  The missing class
-> field caused some i2c chip drivers to refuse to attempt a probe on the 
-> mv64xxx i2c bus. 
-> 
-> Signed-off-by: Chris Elston <chris.elston@radstone.co.uk>
-> Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+Hi Greg,
 
-Applied, thanks.
+As discussed earlier on the LKML [1], here comes a patch set killing the
+id member of the i2c_client structure. Let me recap my main reasons for
+doing so:
 
-greg k-h
+1* A client is already uniquely identified by the combination of the
+number of the bus it sits on and the address it is located at on this
+bus.
+
+2* The i2c core doesn't make use of this struct member. Such an id, if
+needed, would thus be private data and as such would belong to the data
+member. In fact, none of the drivers using this field really needs it as
+far as I could see.
+
+Killing that useless struct member will let us save some memory and kill
+some useless code (not much, admittedly).
+
+I will send 5 different patches, to be applied in order, although
+nothing critical will happen if applied in a different order. In each
+patch, most chucks are themselves independent from each other, so if any
+is rejected or delayed for some reason, the rest can still be applied.
+
+(1/5) Stop using i2c_client.id in i2c/chips drivers (mostly hardware
+      monitoring drivers).
+(2/5) Stop using i2c_client.id in media/video drivers.
+(3/5) Stop using i2c_client.id in misc drivers.
+(4/5) Deprecate i2c_client.id.
+(5/5) Documentation update.
+
+Thanks.
+
+[1] http://lkml.org/lkml/2004/12/27/132
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
