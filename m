@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:01 +0000
 Subject: Xeon II motherboard and CPU temp readings
-Message-Id: <Pine.LNX.4.58.0406182240440.6087@desitka.sh.cvut.cz>
+Message-Id: <20040618212248.GA2661@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.GSU.4.58.0406181602240.12794@adore.lightlink.com>
 In-Reply-To: <Pine.GSU.4.58.0406181602240.12794@adore.lightlink.com>
@@ -10,54 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Homer:
 
-Hello,
+What a small world, eh?
 
+Assuming I can actually help you, will you give me a break on my
+email account? ;)
+
+* Homer Wilson Smith <homer@lightlink.com> [2004-06-18 16:12:54 -0400]:
+> 
+>      Running Redhat 8.0, 2.4.20-24.8smp, sensors 2.6.3
+
+That version of sensors is almost 3 years old, just FYI.
+
+>      Dual Xeon motherboard only shows one temp reading for
+> CPU's and no fan readings at all.
+> 
+>      Using the w83627hf-isa-0290 driver.
+> 
 >      Am I doing something wrong or can this been fixed?
-Yes both things can be fixed.
+> 
+>      Pointers to RTFM welcome.
 
-> fan1:        0 RPM  (min = 3000 RPM, div = 2)
-> fan2:        0 RPM  (min = 3000 RPM, div = 2)
-> fan3:        0 RPM  (min = 3000 RPM, div = 2)
+That's pretty much the answer for the fans...
 
-You need to change the "fan divisor".  Try 4 or 8 in this order.
-You can do it by editing  sensor.conf file. Find the corresponding
-section in your configuration  file. It will start from line with
-chip  "w83627hf-*"
-(or similar)
+http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/doc/fan-divisors
 
-You can add
+But for the temp sensors, you'll probably  need to get an updated version of
+our software - the xeontemp driver wasn't added until (I think) 2.8.something
+and we're now at 2.8.7.
 
-set fan1_div 4
-set fan2_div 4
-..
+You'll need both the I2C package and lm_sensors2 package.  This old message
+might also be useful when building for RH (says 9, but applies to 8 also)
 
-Note you can also set lower limits with
-set fan1_min xxx
-set fan2_min xxx
+http://archives.andrew.net.au/lm-sensors/msg03904.html
 
-When finished with editing run sensors -s to propagate the changes.
+Regards,
 
-Before that you can try to solve CPU temp problems.
-
-> modprobe adm1021
-
-Please make sure you loaded this module, but before
-remove BOTH lines from modules.conf
-
-> options adm1021 ignore=0,0x19
-> options w83781d ignore=0,0x2c
-
-Your roadmap of changes should be:
-
-1) remove options lines from modules.conf (or conf.modules)
-2) reload both modules rmmod/modprobe
-3) edit sensors.conf
-4) sensors -s
-5) sensors
-
-I hope this helps.
-
-Regards
-
-Rudolf
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
