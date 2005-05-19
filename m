@@ -1,191 +1,525 @@
-From: jackie_lola@yahoo.fr (jackie)
-Date: Thu, 19 May 2005 06:25:37 +0000
-Subject: Impossible tu use CPU Temp    with superkaramba  ( lm_sensors-2.9.0)
-Message-Id: <200502141702.04783.jackie_lola@yahoo.fr>
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:25:38 +0000
+Subject: Impossible tu use CPU Temp    with superkaramba  (
+Message-Id: <42177537.4070006@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200502141702.04783.jackie_lola@yahoo.fr>
+In-Reply-To: <200502141702.04783.jackie_lola@yahoo.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-U3VwZXJrYXJhbWFiYSBjYW4ndCBkaXNwbGF5IHRoZSBDUFUgVGVtcCAsIHdpdGggdHdvIGRpZmZl
-cmVudHMgdGhlbWVzIGZvciAKc3VwZXJrYXJhbWJhIDogVERFIGFuZCBNaS1rYXJhbWJhLgogCkl0
-JyBzIGxpa2UgaWYgc3VwZXJrYXJhbWJhIHdhcyBsb29raW5nIGZvciBhIHdyb25nIHNlbnNvciBh
-ZHJlc3MsIHdpdGggQ1BVIApUZW1wICEhISBpc24ndCBpdCA/CgpDYW4geW91IGdpdmUgbWUgYSBs
-aXR0bGUgaGVscC4KCgoKSGVyZSBpcyB0aGUgb3V0cHV0ICBvZiBzZW5zb3JzIGNvbW1hbmQuCgpp
-cC0xMDovaG9tZS9qYWNraWUgIyBzZW5zb3JzCmVlcHJvbS1pMmMtMC01MQpBZGFwdGVyOiBTTUJ1
-cyBJODAxIGFkYXB0ZXIgYXQgZTgwMApNZW1vcnkgdHlwZTogICAgICAgICAgICBERFIgU0RSQU0g
-RElNTQpNZW1vcnkgc2l6ZSAoTUIpOiAgICAgICA1MTIKCmFzYjEwMC1pMmMtMC0yZApBZGFwdGVy
-OiBTTUJ1cyBJODAxIGFkYXB0ZXIgYXQgZTgwMApWQ29yZSAxOiAgICsxLjYwIFYgIChtaW4gPSAg
-KzEuNDYgViwgbWF4ID0gICsxLjYwIFYpCiAgICAgICBBTEFSTQorMy4zVjogICAgICszLjMzIFYg
-IChtaW4gPSAgKzMuMTQgViwgbWF4ID0gICszLjQ3IFYpCis1VjogICAgICAgKzUuMDUgViAgKG1p
-biA9ICArNC43NiBWLCBtYXggPSAgKzUuMjQgVikKKzEyVjogICAgICsxMS42MSBWICAobWluID0g
-KzEwLjgyIFYsIG1heCA9ICsxMy4xOSBWKQotMTJWIChyZXNlcnZlZCk6CiAgICAgICAgICAtMTIu
-MTMgViAgKG1pbiA9ICAtMC4wMCBWLCBtYXggPSAgLTAuMDAgVikKLTVWIChyZXNlcnZlZCk6CiAg
-ICAgICAgICAgLTUuMDkgViAgKG1pbiA9ICAtMC4wMCBWLCBtYXggPSAgLTAuMDAgVikKQ1BVIEZh
-bjogIDI4ODQgUlBNICAobWluID0gMTk5NyBSUE0sIGRpdiA9IDQpCk0vQiBUZW1wOiAgICArMzA/
-QyAgKGhpZ2ggPSAgICs0NT9DLCBoeXN0ID0gICArNDA/QykKQ1BVIFRlbXAgKEludGVsKToKICAg
-ICAgICAgICAgICszOD9DICAoaGlnaCA9ICAgKzYwP0MsIGh5c3QgPSAgICs1MD9DKQp2aWQ6ICAg
-ICAgKzEuNTI1IFYKYWxhcm1zOgoKaXAtMTA6L2hvbWUvamFja2llICMgICAgCgpIZXJlIGlzICBt
-eSBzdXBlcmthcmFtYmEgdGhlbWUgOiBUREUgdHBvd2VyCgojV3JpdHRlbiBieSBDaGlwMjAwMyAK
-I1B1Ymxpc2hlZCB1bmRlciBHUEwgb24gd3d3LmtkZS1sb29rLm9yZwojVGhpcyBpcyBwYXJ0IG9m
-IFRERSAtIFQgRGVza3RvcCBFbmhhbmNlbWVudHMKCiNUaGlzIFRoZW1lIC0gVFBvd2VyIC0gc2hv
-d3MgdmFyaW91cyBpbmZvcm1hdGlvbiBhYm91dCBwb3dlciBzdGF0dXMgYW5kIAp0ZW1wZXJhdHVy
-ZXMsIGFzIENQVSBhbmQgY2FzZSB0ZW1wZXJhdHVyZXMsIEZhbiBSUE0sIHZvbHRhZ2VzLiBGb3Ig
-c29tZSAKdmFsdWVzLCB5b3UgbmVlZCB0aGUgcHJvZ3JhbSAnc2Vuc29ycychCgojIGdlbmVyYWwK
-S0FSQU1CQSAgWHg1IFmYIFcjMCBIGDUgaW50ZXJ2YWwgMDAgbG9ja2Vk+mxzZQppbWFnZSB4PTAg
-eT0wCXBhdGg9ImltYWdlL2JhY2sucG5nIgpkZWZhdWx0Zm9udCBmb250PSJBcmlhbCIgZm9udHNp
-emUQIGNvbG9yPTAsMCwwIGFsaWduPSJyaWdodCIKCgo8R1JPVVA+IHgZIHkkCiMgQ1BVCiMgInR5
-cGUiIGRlcGVuZHMgb24geW91ciBtYWluYm9hcmQuIFJ1biAnc2Vuc29ycycgdG8gc2hvdyBhbGwg
-cG9zc2libGUgdmFsdWVzIAooTXVzdCBiZSBpbnN0YWxsZWQsIG9mIGNvdXJzZSAuLi4pCiMgcmFu
-Z2UgaXMgdXAgdG8gNzAgZGVncmVlcyBjZWxzaXVzLiBjaGFuZ2UgJ21heCcgdmFsdWUgaWYgbmVl
-ZGVkLgppbWFnZSB4PTAgeT0wIHBhdGg9ImltYWdlL3RpbGUucG5nIgppbWFnZSB4PTcgeREgcGF0
-aD0iaW1hZ2UvY3B1LnBuZyIKaW1hZ2UgeGAgeREgcGF0aD0iaW1hZ2UvZmFuX3MucG5nIgppbWFn
-ZSB4EjcgeT05IHBhdGg9ImltYWdlL3RoZXJtb21ldGVyX2sucG5nIgoKdGV4dCB4ETAgeRUgc2Vu
-c29yPXNlbnNvciB0eXBlPSJDUFUgRmFuIiBmb3JtYXQ9IiV2IiBhbGlnbj0icmlnaHQiIApjb2xv
-cj0wLDAsMCBmb250c2l6ZRAgZm9udD0iQXJpYWwiCnRleHQgeBc4IHkVIHNlbnNvcj1zZW5zb3Ig
-dHlwZT0iQ1BVIFRlbXAgKEludGVsKSIgZm9ybWF0PSIldiBDIiAKYWxpZ249InJpZ2h0IiBjb2xv
-cj0wLDAsMCBmb250c2l6ZRAgZm9udD0iQXJpYWwiCgo8L0dST1VQPgoKCiMgQ2hhc3Npcwo8R1JP
-VVA+IHgZIHlpCmltYWdlIHg9MCB5PTAgcGF0aD0iaW1hZ2UvdGlsZS5wbmciCmltYWdlIHg9NyB5
-PTcgcGF0aD0iaW1hZ2UvY29tcHV0ZXIucG5nIgojaW1hZ2UgeGAgeREgcGF0aD0iaW1hZ2UvZmFu
-X3MucG5nIgppbWFnZSB4EjcgeT05IHBhdGg9ImltYWdlL3RoZXJtb21ldGVyX2sucG5nIgoKdGV4
-dCB4FzggeRUgc2Vuc29yPXNlbnNvciB0eXBlPSJNL0IgVGVtcCIgZm9ybWF0PSIldiBDIiBjb2xv
-cj0wLDAsMCAKYWxpZ249InJpZ2h0IiBmb250c2l6ZRAgZm9udD0iQXJpYWwiCiN0ZXh0IHgRMCB5
-FSBzZW5zb3I9c2Vuc29yIHR5cGU9ImZhbjEiIGZvcm1hdD0iJXYiIGFsaWduPSJyaWdodCIgCmNv
-bG9yPTAsMCwwIGZvbnRzaXplECBmb250PSJBcmlhbCIKPC9HUk9VUD4KCiMgVm9sdGFnZXMKPEdS
-T1VQPiB4GSB5ETQKaW1hZ2UgeD0wIHk9MCBwYXRoPSJpbWFnZS90aWxlLnBuZyIKaW1hZ2UgeBAg
-eT03IHBhdGg9ImltYWdlL3Bvd2VyLnBuZyIKCnRleHQgeBcwIHk9OCBzZW5zb3I9c2Vuc29yIHR5
-cGU9IisxMlYiIGZvcm1hdD0iKyV2IFYiIGNvbG9yPTAsMCwwIAphbGlnbj0icmlnaHQiIGZvbnRz
-aXplECBmb250PSJBcmlhbCIKdGV4dCB4FzAgeSAgc2Vuc29yPXNlbnNvciB0eXBlPSJWQ29yZSAx
-IiBmb3JtYXQ9IisldiBWIiBjb2xvcj0wLDAsMCAKYWxpZ249InJpZ2h0IiBmb250c2l6ZRAgZm9u
-dD0iQXJpYWwiCnRleHQgeJAgeT04IHNlbnNvcj1zZW5zb3IgdHlwZT0iKzMuM1YiIGZvcm1hdD0i
-KyV2IFYiIGFsaWduPSJyaWdodCIgCmNvbG9yPTAsMCwwIGZvbnRzaXplECBmb250PSJBcmlhbCIK
-dGV4dCB4kCB5ICBzZW5zb3I9c2Vuc29yIHR5cGU9Iis1ViIgZm9ybWF0PSIrJXYgViIgYWxpZ249
-InJpZ2h0IiAKY29sb3I9MCwwLDAgZm9udHNpemUQIGZvbnQ9IkFyaWFsIgo8L0dST1VQPgoKSSBo
-YXZlIHRyaWVkIGEgbG90IG9mIHBvc3NpYmlsaXRpZXMgdG8gZGVmaW5lIENQVSBUZW1wIChJbnRl
-bCkKCiBCZWZvcmUgSSdkIHR3byBDUFUgdGVtcCBzZW5zb3JzICA6IEludGVsIGFuZCBBTUQuCgpJ
-J3ZlIG1vZGlmaWVkICBteSAvZXRjL3NlbnNvcnMuY29uZiAgCiggcGFydCBhc2IxMDAgKSB0byBp
-Z25vcmUgdW5pbnN0YWxsZWQgZmFucyBhbmQgc2Vuc29ycywgZXNwZWNpYWxseSBDUFUgVGVtcCAK
-KEFNRCkuIAoKV2VsbCBkb25lIGluIHRoZSBuZXcgc2Vuc29yIG91dHB1dC4KCiMKIyBUaGlzIGV4
-YW1wbGUgd2FzIHRlc3RlZCB2cy4gQXN1cyBQNFMzMzMKIwpjaGlwICJhc2IxMDAtKiIKc2V0IHZy
-bSA5LjAKCmxhYmVsIGluMCAiVkNvcmUgMSIKc2V0IGluMF9taW4gdmlkICogMC45NQpzZXQgaW4w
-X21heCB2aWQgKiAxLjA1CgpsYWJlbCBpbjEgIlZDb3JlIDIiCmlnbm9yZSBpbjEKc2V0IGluMV9t
-aW4gdmlkICogMC45NQpzZXQgaW4xX21heCB2aWQgKiAxLjA1CgpsYWJlbCBpbjIgIiszLjNWIgpz
-ZXQgaW4yX21pbiAzLjMgKiAwLjk1CnNldCBpbjJfbWF4IDMuMyAqIDEuMDUKCmxhYmVsIGluMyAi
-KzVWIgpjb21wdXRlIGluMyAxLjY4ICogQCAsIEAgLyAxLjY4CnNldCBpbjNfbWluIDUuMCAqIDAu
-OTUKc2V0IGluM19tYXggNS4wICogMS4wNQoKbGFiZWwgaW40ICIrMTJWIgpjb21wdXRlIGluNCAz
-LjggKiBAICwgQCAvIDMuOApzZXQgaW40X21pbiAxMiAqIDAuOTAKc2V0IGluNF9tYXggMTIgKiAx
-LjEwCgpsYWJlbCBpbjUgIi0xMlYgKHJlc2VydmVkKSIKI2lnbm9yZSBpbjUKY29tcHV0ZSBpbjUg
-LUAgKiAzLjk3ICwgLUAgLyAzLjk3CnNldCBpbjVfbWF4IC0xMiAqIDAuOTAKc2V0IGluNV9taW4g
-LTEyICogMS4xMAoKbGFiZWwgaW42ICItNVYgKHJlc2VydmVkKSIKI2lnbm9yZSBpbjYKY29tcHV0
-ZSBpbjYgLUAgKiAxLjY2NiAsIC1AIC8gMS42NjYKc2V0IGluNl9tYXggLTUgKiAwLjk1CnNldCBp
-bjZfbWluIC01ICogMS4wNQoKbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgpzZXQgdGVtcDFfb3ZlciA0
-NQpzZXQgdGVtcDFfaHlzdCA0MAoKbGFiZWwgdGVtcDIgIkNQVSBUZW1wIChJbnRlbCkiCiNpZ25v
-cmUgdGVtcDIKc2V0IHRlbXAyX292ZXIgNjAKc2V0IHRlbXAyX2h5c3QgNTAKCiMgUFdSVE1QIGNv
-bm5lY3RvciBvbiBQNFMzMzMsIGZvciBleHRlcm5hbCBzZW5zb3IKbGFiZWwgdGVtcDMgIlBvd2Vy
-IFRlbXAiCmlnbm9yZSB0ZW1wMwpzZXQgdGVtcDNfb3ZlciA0NQpzZXQgdGVtcDNfaHlzdCA0MAoK
-CiMgVXNlZCBmb3IgQXRobG9uIGRpb2RlLCBpZ25vcmUgZm9yIFA0UzMzMwpsYWJlbCB0ZW1wNCAi
-Q1BVIFRlbXAgKEFNRCkiCmlnbm9yZSB0ZW1wNApzZXQgdGVtcDRfb3ZlciA2MApzZXQgdGVtcDRf
-aHlzdCA1MAoKCmxhYmVsIGZhbjEgIkNQVSBGYW4iCnNldCBmYW4xX2RpdiA0CnNldCBmYW4xX21p
-biAyMDAwCgpsYWJlbCBmYW4yICJDaGFzc2lzIEZhbiIKc2V0IGZhbjJfZGl2IDIKc2V0IGZhbjJf
-bWluIDQwMDAKaWdub3JlIGZhbjIKCmxhYmVsIGZhbjMgIlBvd2VyIEZhbiIKc2V0IGZhbjNfZGl2
-IDIKc2V0IGZhbjNfbWluIDQwMDAKaWdub3JlIGZhbjMKCkhlcmUgaXMgbXkuLi4vZXRjL3N5c2Nv
-bmZpZy9sbV9zZW5zb3JzCgojICAgIC9ldGMvc3lzY29uZmlnL3NlbnNvcnMgLSBEZWZpbmVzIG1v
-ZHVsZXMgbG9hZGVkIApieSAvZXRjL3JjLmQvaW5pdC5kL2xtX3NlbnNvcnMKIyAgICBDb3B5cmln
-aHQgKGMpIDE5OTggLSAyMDAxICBGcm9kbyBMb29pamFhcmQgPGZyb2RvbEBkZHMubmw+CiMKLgoj
-IFNlZSBhbHNvIHRoZSBsbV9zZW5zb3JzIGhvbWVwYWdlIGF0OgojICAgICBodHRwOi8vd3d3Mi5s
-bS1zZW5zb3JzLm51L35sbTc4L2luZGV4Lmh0bWwKIwojIFRoaXMgZmlsZSBpcyB1c2VkIGJ5IC9l
-dGMvcmMuZC9pbml0LmQvbG1fc2Vuc29ycyBhbmQgZGVmaW5lcyB0aGUgbW9kdWxlcyB0bwojIGJl
-IGxvYWRlZC91bmxvYWRlZC4gVGhpcyBmaWxlIGlzIHNvdXJjZWQgaW50byAvZXRjL3JjLmQvaW5p
-dC5kL2xtX3NlbnNvcnMuCiMKIyBUaGUgZm9ybWF0IG9mIHRoaXMgZmlsZSBpcyBhIHNoZWxsIHNj
-cmlwdCB0aGF0IHNpbXBseSBkZWZpbmVzIHRoZSBtb2R1bGVzCiMgaW4gb3JkZXIgYXMgbm9ybWFs
-IHZhcmlhYmxlcyB3aXRoIHRoZSBzcGVjaWFsIG5hbWVzOgojICAgIE1PRFVMRV8wLCBNT0RVTEVf
-MSwgTU9EVUxFXzIsIGV0Yy4KIwojIExpc3QgdGhlIG1vZHVsZXMgdGhhdCBhcmUgdG8gYmUgbG9h
-ZGVkIGZvciB5b3VyIHN5c3RlbQojCiMgR2VuZXJhdGVkIGJ5IHNlbnNvcnMtZGV0ZWN0IG9uIFN1
-biBGZWIgMTMgMTU6MTQ6MzcgMjAwNQpNT0RVTEVfMD1pMmMtaTgwMQpNT0RVTEVfMT1hc2IxMDAK
-TU9EVUxFXzLucHJvbQoKSSd2ZSBhbiBBU1VTIFA0UEUtWCwgd2l0aCBJbnRlbCBDZWxlcm9uLgoK
-CldoYXQgaSBkaWQgd2l0aCBzZW5zb3JzLWRldGVjdC4KCgogSSB0cmllZCB2YXJpb3VzIG9wdGlv
-bnMsIGJlZm9yZSwgYnV0IGkgZG9udCAndW5kZXJzdGFuZCB3aGF0IHRoaXMgZmlsZSBpcyAKZG9p
-bmcuCgoKaXAtMTA6L2hvbWUvamFja2llICMgc2Vuc29ycy1kZXRlY3QKClRoaXMgcHJvZ3JhbSB3
-aWxsIGhlbHAgeW91IGRldGVybWluZSB3aGljaCBJMkMvU01CdXMgbW9kdWxlcyB5b3UgbmVlZCB0
-bwpsb2FkIHRvIHVzZSBsbV9zZW5zb3JzIG1vc3QgZWZmZWN0aXZlbHkuIFlvdSBuZWVkIHRvIGhh
-dmUgaTJjIGFuZApsbV9zZW5zb3JzIGluc3RhbGxlZCBiZWZvcmUgcnVubmluZyB0aGlzIHByb2dy
-YW0uCgpBbHNvLCB5b3UgbmVlZCB0byBiZSBgcm9vdCcsIG9yIGF0IGxlYXN0IGhhdmUgYWNjZXNz
-IHRvIHRoZSAvZGV2L2kyYy0qCmZpbGVzLCBmb3IgbW9zdCB0aGluZ3MuCgpJZiB5b3UgaGF2ZSBw
-YXRjaGVkIHlvdXIga2VybmVsIGFuZCBoYXZlIHNvbWUgZHJpdmVycyBidWlsdCBpbiwgeW91IGNh
-bgpzYWZlbHkgYW5zd2VyIE5PIGlmIGFza2VkIHRvIGxvYWQgc29tZSBtb2R1bGVzLiBJbiB0Cmhp
-cyBjYXNlLCB0aGluZ3MgbWF5IHNlZW0gYSBiaXQgY29uZnVzaW5nLCBidXQgdGhleSB3aWxsIHN0
-aWxsIHdvcmsuCgpJdCBpcyBnZW5lcmFsbHkgc2FmZSBhbmQgcmVjb21tZW5kZWQgdG8gYWNjZXB0
-IHRoZSBkZWZhdWx0IGFuc3dlcnMgdG8gYWxsCnF1ZXN0aW9ucywgdW5sZXNzIHlvdSBrbm93IHdo
-YXQgeW91J3JlIGRvaW5nLgoKIFdlIGNhbiBzdGFydCB3aXRoIHByb2JpbmcgZm9yIChQQ0kpIEky
-QyBvciBTTUJ1cyBhZGFwdGVycy4KIFlvdSBkbyBub3QgbmVlZCBhbnkgc3BlY2lhbCBwcml2aWxl
-Z2VzIGZvciB0aGlzLgogRG8geW91IHdhbnQgdG8gcHJvYmUgbm93PyAoWUVTL25vKTogWUVTClBy
-b2JpbmcgZm9yIFBDSSBidXMgYWRhcHRlcnMuLi4KVXNlIGRyaXZlciBgaTJjLWk4MDEnIGZvciBk
-ZXZpY2UgMDA6MWYuMzogSW50ZWwgODI4MAoxREIgSUNINApQcm9iZSBzdWNjZXNmdWxseSBjb25j
-bHVkZWQuCgpXZSB3aWxsIG5vdyB0cnkgdG8gbG9hZCBlYWNoIGFkYXB0ZXIgbW9kdWxlIGluIHR1
-cm4uCk1vZHVsZSBgaTJjLWk4MDEnIGFscmVhZHkgbG9hZGVkLgpJZiB5b3UgaGF2ZSB1bmRldGVj
-dGFibGUgb3IgdW5zdXBwb3J0ZWQgYWRhcHRlcnMsIHlvdSBjYW4gaGF2ZSB0aGVtCnNjYW5uZWQg
-YnkgbWFudWFsbHkgbG9hZGluZyB0aGUgbW9kdWxlcyBiZWZvcmUgcnVubmkKbmcgdGhpcyBzY3Jp
-cHQuCgogVG8gY29udGludWUsIHdlIG5lZWQgbW9kdWxlIGBpMmMtZGV2JyB0byBiZSBsb2FkZWQu
-CiBJZiBpdCBpcyBidWlsdC1pbiBpbnRvIHlvdXIga2VybmVsLCB5b3UgY2FuIHNhZmVseSBza2lw
-IHRoaXMuCiBpMmMtZGV2IGlzIG5vdCBsb2FkZWQuIERvIHlvdSB3YW50IHRvIGxvYWQgaXQgbm93
-PyAoWUVTL25vKTogWUVTCiBNb2R1bGUgbG9hZGVkIHN1Y2Nlc2Z1bGx5LgoKIFdlIGFyZSBub3cg
-Z29pbmcgdG8gZG8gdGhlIGFkYXB0ZXIgcHJvYmluZ3MuIFNvbWUgYWRhcHRlcnMgbWF5IGhhbmcg
-aGFsZndheQogdGhyb3VnaDsgd2UgY2FuJ3QgcmVhbGx5IGhlbHAgdGhhdC4gQWxzbywgc29tZSBj
-aGlwcyB3aWxsIGJlIGRvdWJsZSBkZXRlY3RlZDsKIHdlIGNob29zZSB0aGUgb25lIHdpdGggdGhl
-IGhpZ2hlc3QgY29uZmlkZW5jZSB2YWx1ZSBpbiB0aGF0IGNhc2UuCiAKSWYgeW91IGZvdW5kIHRo
-YXQgdGhlIGFkYXB0ZXIgaHVuZyBhZnRlciBwcm9iaW5nIGEgY2VydGFpbiBhZGRyZXNzLCB5b3Ug
-Y2FuCiBzcGVjaWZ5IHRoYXQgYWRkcmVzcyB0byByZW1haW4gdW5wcm9iZWQuIFRoYXQgb2Z0ZW4K
-IGluY2x1ZGVzIGFkZHJlc3MgMHg2OSAoY2xvY2sgY2hpcCkuCgpOZXh0IGFkYXB0ZXI6IFNNQnVz
-IEk4MDEgYWRhcHRlciBhdCBlODAwIChBbGdvcml0aG0gdW5hdmFpbGFibGUpCkRvIHlvdSB3YW50
-IHRvIHNjYW4gaXQ/IChZRVMvbm8vc2VsZWN0aXZlbHkpOiBZRVMKQ2xpZW50IGZvdW5kIGF0IGFk
-ZHJlc3MgMHgwOApDbGllbnQgYXQgYWRkcmVzcyAweDJkIGNhbiBub3QgYmUgcHJvYmVkIC0gdW5s
-b2FkIGFsbCBjbGllbnQgZHJpdmVycyBmaXJzdCEKQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHg0
-NApQcm9iaW5nIGZvciBgTWF4aW0gTUFYNjYzMy9NQVg2NjM0L01BWDY2MzUnLi4uIEZhaWxlZCEK
-Q2xpZW50IGF0IGFkZHJlc3MgMHg0OCBjYW4gbm90IGJlIHByb2JlZCAtIHVubG9hZCBhbGwgY2xp
-ZW50IGRyaXZlcnMgZmlyc3QhCkNsaWVudCBhdCBhZGRyZXNzIDB4NDkgY2FuIG5vdCBiZSBwcm9i
-ZWQgLSB1bmxvYWQgYWxsIGNsaWVudCBkcml2ZXJzIGZpcnN0IQpDbGllbnQgYXQgYWRkcmVzcyAw
-eDUxIGNhbiBub3QgYmUgcHJvYmVkIC0gdW5sb2FkIGFsbCBjbGllbnQgZHJpdmVycyBmaXJzdCEK
-ClNvbWUgY2hpcHMgYXJlIGFsc28gYWNjZXNzaWJsZSB0aHJvdWdoIHRoZSBJU0EgYnVzLgpJU0Eg
-cHJvYmVzIGFyZSB0eXBpY2FsbHkgYSBiaXQgbW9yZSBkYW5nZXJvdXMsIGFzIHdlIGhhdmUgdG8g
-d3JpdGUKdG8gSS9PIHBvcnRzIHRvIGRvIHRoaXMuIFRoaXMgaXMgdXN1YWxseSBzYWZlIHRob3Vn
-aC4KCkRvIHlvdSB3YW50IHRvIHNjYW4gdGhlIElTQSBidXM/IChZRVMvbm8pOiBubwoKU29tZSBT
-dXBlciBJL08gY2hpcHMgbWF5IGFsc28gY29udGFpbiBzZW5zb3JzLiBTdXBlciBJL08gcHJvYmVz
-IGFyZQp0eXBpY2FsbHkgYSBiaXQgbW9yZSBkYW5nZXJvdXMsIGFzIHdlIGhhdmUgdG8gd3JpdGUg
-dG8gSS9PIHBvcnRzIHRvIGRvCnRoaXMuIFRoaXMgaXMgdXN1YWxseSBzYWZlIHRob3VnaC4KCkRv
-IHlvdSB3YW50IHRvIHNjYW4gZm9yIFN1cGVyIEkvTyBzZW5zb3JzPyAoWUVTL25vKTogWUVTClBy
-b2JpbmcgZm9yIGBJVEUgODcwMkYgU3VwZXIgSU8gU2Vuc29ycycgRmFpbGVkISAoMHg4NzA4KQpQ
-cm9iaW5nIGZvciBgSVRFIDg3MDVGIFN1cGVyIElPIFNlbnNvcnMnIEZhaWxlZCEgKDB4ODcwOCkK
-UHJvYmluZyBmb3IgYElURSA4NzEyRiBTdXBlciBJTyBTZW5zb3JzJyBGYWlsZWQhICgweDg3MDgp
-ClByb2JpbmcgZm9yIGBOYXQuIFNlbWkuIFBDODczNTEgU3VwZXIgSU8gRmFuIFNlbnNvcnMKJ0Zh
-aWxlZCEgKHNraXBwaW5nIGZhbWlseSkKUHJvYmluZyBmb3IgYFNNU0MgNDdCMjd4IFN1cGVyIElP
-IEZhbiBTZW5zb3JzJyBGYWlsZWQhIChza2lwcGluZyBmYW1pbHkpClByb2JpbmcgZm9yIGBWVDEy
-MTEgU3VwZXIgSU8gU2Vuc29ycycgRmFpbGVkISAoMHg4NykKUHJvYmluZyBmb3IgYFdpbmJvbmQg
-VzgzNjI3SEYgU3VwZXIgSU8gU2Vuc29ycycgRmFpbGVkISAoMHg4NykKUHJvYmluZyBmb3IgYFdp
-bmJvbmQgVzgzNjI3VEhGIFN1cGVyIElPIFNlbnNvcnMnIEZhaWxlZCEgKDB4ODcpClByb2Jpbmcg
-Zm9yIGBXaW5ib25kIFc4MzYzN0hGIFN1cGVyIElPIFNlbnNvcnMnIEZhaWxlZCEgKDB4ODcpClBy
-b2JpbmcgZm9yIGBXaW5ib25kIFc4MzY5N0hGIFN1cGVyIElPIFNlbnNvcnMnIEZhaWxlZCEgKDB4
-ODcpClByb2JpbmcgZm9yIGBXaW5ib25kIFc4MzY5N1NGL1VGIFN1cGVyIElPIFBXTScgRmFpbGVk
-ISAoMHg4NykKUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzTDUxN0QgU3VwZXIgSU8nIEZhaWxlZCEg
-KDB4ODcpCgpEbyB5b3Ugd2FudCB0byBzY2FuIGZvciBzZWNvbmRhcnkgU3VwZXIgSS9PIHNlbnNv
-cnM/IChZRVMvbm8pOiBZRVMKUHJvYmluZyBmb3IgYElURSA4NzAyRiBTdXBlciBJTyBTZW5zb3Jz
-JyAgRmFpbGVkISAoc2tpcHBpbmcgZmFtaWx5KQpQcm9iaW5nIGZvciBgTmF0LiBTZW1pLiBQQzg3
-MzUxIFN1cGVyIElPIEZhbiBTZW5zb3JzJyBGYWlsZWQhIChza2lwcGluZyAKZmFtaWx5KQpQcm9i
-aW5nIGZvciBgU01TQyA0N0IyN3ggU3VwZXIgSU8gRmFuIFNlbnNvcnMnIEZhaWxlZCEgKHNraXBw
-aW5nIGZhbWlseSkKUHJvYmluZyBmb3IgYFZUMTIxMSBTdXBlciBJTyBTZW5zb3JzJyBGYWlsZWQh
-IChza2lwcGluZyBmYW1pbHkpCgogU29ycnksIG5vIGNoaXBzIHdlcmUgZGV0ZWN0ZWQuCiBFaXRo
-ZXIgeW91ciBzZW5zb3JzIGFyZSBub3Qgc3VwcG9ydGVkLCBvciB0aGV5IGFyZSBjb25uZWN0ZWQg
-dG8gYW4gSTJDIGJ1cyAKYWRhcHRlciB0aGF0IHdlIGRvIG5vdCBzdXBwb3J0LgoKU2VlIGRvYy9G
-QVEsIGRvYy9sbV9zZW5zb3JzLUZBUS5odG1sLCBvcgogaHR0cDovL3d3dzIubG0tc2Vuc29ycy5u
-dS9+bG03OC9jdnMvbG1fc2Vuc29yczIvZG9jCi9sbV9zZW5zb3JzLUZBUS5odG1sIChGQVEgIzQu
-MjQuMykgZm9yIGZ1cnRoZXIgaW5mb3JtYXRpb24uCgpJZiB5b3UgZmluZCBvdXQgd2hhdCBjaGlw
-cyBhcmUgb24geW91ciBib2FyZCwgc2VlCiBodHRwOi8vc2VjdXJlLm5ldHJvZWRnZS5jb20vfmxt
-NzgvbmV3ZHJpdmVycy5odG1sIGZvciBkcml2ZXIgc3RhdHVzLgoKIEknbSBnb2luZyB0byByZWFk
-IHRoZXNlIGluZm9ybWF0aW9ucy4uLgogCgpJIGRvbnQgdW5kZXJzYXRhbmQgd2h5IHN1cGVya2Fy
-YW1iYSBkb24ndCAgZGlzcGxheSBvbmx5IENQVSB0ZW1wLCBhbHRob3VnaHQgaSAKaGF2ZSBpdCB3
-aXRoIHNlbnNvcnMuICggb25seSBzaXggbW9udGhzIHdpdGggTGludXggKQoKIEEgbGl0dGxlIGhl
-bHAgcGxlYXNlICEgQXl1ZGEgcG9yIGZhdm9yICEKCiBKYWNxdWVsaW5lCgoKCgoKCgoKCgoKICAg
-ICAgICAgICAgCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0tLS0tLS0tLS0tLQpBbiBIVE1M
-IGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4uClVSTDogaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
-b3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzL2F0dGFjaG1lbnRzLzIwMDUwMjE0L2Y1YjBkMWNjL2F0
-dGFjaG1lbnQuaHRtbAo=
+we don't know anything about 'superkaramba' or 'TDE' but
+your temp2 and temp3 sensors are configured to be ignored in sensors.conf.
+you may wish to take out those lines.
+Any one of the three, temp1-temp3, could be your CPU temperature.
+Khali may be able to help you further in french :)
+
+jackie wrote:
+> Superkaramaba can't display the CPU Temp , with two differents themes=20
+> for superkaramba : TDE and Mi-karamba.
+>=20
+> It' s like if superkaramba was looking for a wrong sensor adress, with=20
+> CPU Temp !!! isn't it ?
+>=20
+> Can you give me a little help.
+>=20
+> Here is the output of sensors command.
+>=20
+> ip-10:/home/jackie # sensors
+>=20
+> eeprom-i2c-0-51
+>=20
+> Adapter: SMBus I801 adapter at e800
+>=20
+> Memory type: DDR SDRAM DIMM
+>=20
+> Memory size (MB): 512
+>=20
+> asb100-i2c-0-2d
+>=20
+> Adapter: SMBus I801 adapter at e800
+>=20
+> VCore 1: +1.60 V (min =3D +1.46 V, max =3D +1.60 V)
+>=20
+> ALARM
+>=20
+> +3.3V: +3.33 V (min =3D +3.14 V, max =3D +3.47 V)
+>=20
+> +5V: +5.05 V (min =3D +4.76 V, max =3D +5.24 V)
+>=20
+> +12V: +11.61 V (min =3D +10.82 V, max =3D +13.19 V)
+>=20
+> -12V (reserved):
+>=20
+> -12.13 V (min =3D -0.00 V, max =3D -0.00 V)
+>=20
+> -5V (reserved):
+>=20
+> -5.09 V (min =3D -0.00 V, max =3D -0.00 V)
+>=20
+> CPU Fan: 2884 RPM (min =3D 1997 RPM, div =3D 4)
+>=20
+> M/B Temp: +30?C (high =3D +45?C, hyst =3D +40?C)
+>=20
+> CPU Temp (Intel):
+>=20
+> +38?C (high =3D +60?C, hyst =3D +50?C)
+>=20
+> vid: +1.525 V
+>=20
+> alarms:
+>=20
+> ip-10:/home/jackie #
+>=20
+> Here is my superkaramba theme : TDE tpower
+>=20
+> #Written by Chip2003
+>=20
+> #Published under GPL on www.kde-look.org
+>=20
+> #This is part of TDE - T Desktop Enhancements
+>=20
+> #This Theme - TPower - shows various information about power status and=20
+> temperatures, as CPU and case temperatures, Fan RPM, voltages. For some=20
+> values, you need the program 'sensors'!
+>=20
+> # general
+>=20
+> KARAMBA Xx5 Y=98 W#0 H=185 interval 00 locked=FAlse
+>=20
+> image x=3D0 y=3D0 path=3D"image/back.png"
+>=20
+> defaultfont font=3D"Arial" fontsize=10 color=3D0,0,0 align=3D"right"
+>=20
+> <GROUP> x=19 y$
+>=20
+> # CPU
+>=20
+> # "type" depends on your mainboard. Run 'sensors' to show all possible=20
+> values (Must be installed, of course ...)
+>=20
+> # range is up to 70 degrees celsius. change 'max' value if needed.
+>=20
+> image x=3D0 y=3D0 path=3D"image/tile.png"
+>=20
+> image x=3D7 y=11 path=3D"image/cpu.png"
+>=20
+> image x` y=11 path=3D"image/fan_s.png"
+>=20
+> image x=127 y=3D9 path=3D"image/thermometer_k.png"
+>=20
+> text x=110 y=15 sensor=3Dsensor type=3D"CPU Fan" format=3D"%v" align=3D"r=
+ight"=20
+> color=3D0,0,0 fontsize=10 font=3D"Arial"
+>=20
+> text x=178 y=15 sensor=3Dsensor type=3D"CPU Temp (Intel)" format=3D"%v C"=
+=20
+> align=3D"right" color=3D0,0,0 fontsize=10 font=3D"Arial"
+>=20
+> </GROUP>
+>=20
+> # Chassis
+>=20
+> <GROUP> x=19 yi
+>=20
+> image x=3D0 y=3D0 path=3D"image/tile.png"
+>=20
+> image x=3D7 y=3D7 path=3D"image/computer.png"
+>=20
+> #image x` y=11 path=3D"image/fan_s.png"
+>=20
+> image x=127 y=3D9 path=3D"image/thermometer_k.png"
+>=20
+> text x=178 y=15 sensor=3Dsensor type=3D"M/B Temp" format=3D"%v C" color=
+=3D0,0,0=20
+> align=3D"right" fontsize=10 font=3D"Arial"
+>=20
+> #text x=110 y=15 sensor=3Dsensor type=3D"fan1" format=3D"%v" align=3D"rig=
+ht"=20
+> color=3D0,0,0 fontsize=10 font=3D"Arial"
+>=20
+> </GROUP>
+>=20
+> # Voltages
+>=20
+> <GROUP> x=19 y=114
+>=20
+> image x=3D0 y=3D0 path=3D"image/tile.png"
+>=20
+> image x=10 y=3D7 path=3D"image/power.png"
+>=20
+> text x=170 y=3D8 sensor=3Dsensor type=3D"+12V" format=3D"+%v V" color=3D0=
+,0,0=20
+> align=3D"right" fontsize=10 font=3D"Arial"
+>=20
+> text x=170 y  sensor=3Dsensor type=3D"VCore 1" format=3D"+%v V" color=3D0=
+,0,0=20
+> align=3D"right" fontsize=10 font=3D"Arial"
+>=20
+> text x=90 y=3D8 sensor=3Dsensor type=3D"+3.3V" format=3D"+%v V" align=3D"=
+right"=20
+> color=3D0,0,0 fontsize=10 font=3D"Arial"
+>=20
+> text x=90 y  sensor=3Dsensor type=3D"+5V" format=3D"+%v V" align=3D"right=
+"=20
+> color=3D0,0,0 fontsize=10 font=3D"Arial"
+>=20
+> </GROUP>
+>=20
+> I have tried a lot of possibilities to define CPU Temp (Intel)
+>=20
+> Before I'd two CPU temp sensors : Intel and AMD.
+>=20
+> I've modified my /etc/sensors.conf
+>=20
+> ( part asb100 ) to ignore uninstalled fans and sensors, especially CPU=20
+> Temp (AMD).
+>=20
+> Well done in the new sensor output.
+>=20
+> #
+>=20
+> # This example was tested vs. Asus P4S333
+>=20
+> #
+>=20
+> chip "asb100-*"
+>=20
+> set vrm 9.0
+>=20
+> label in0 "VCore 1"
+>=20
+> set in0_min vid * 0.95
+>=20
+> set in0_max vid * 1.05
+>=20
+> label in1 "VCore 2"
+>=20
+> ignore in1
+>=20
+> set in1_min vid * 0.95
+>=20
+> set in1_max vid * 1.05
+>=20
+> label in2 "+3.3V"
+>=20
+> set in2_min 3.3 * 0.95
+>=20
+> set in2_max 3.3 * 1.05
+>=20
+> label in3 "+5V"
+>=20
+> compute in3 1.68 * @ , @ / 1.68
+>=20
+> set in3_min 5.0 * 0.95
+>=20
+> set in3_max 5.0 * 1.05
+>=20
+> label in4 "+12V"
+>=20
+> compute in4 3.8 * @ , @ / 3.8
+>=20
+> set in4_min 12 * 0.90
+>=20
+> set in4_max 12 * 1.10
+>=20
+> label in5 "-12V (reserved)"
+>=20
+> #ignore in5
+>=20
+> compute in5 -@ * 3.97 , -@ / 3.97
+>=20
+> set in5_max -12 * 0.90
+>=20
+> set in5_min -12 * 1.10
+>=20
+> label in6 "-5V (reserved)"
+>=20
+> #ignore in6
+>=20
+> compute in6 -@ * 1.666 , -@ / 1.666
+>=20
+> set in6_max -5 * 0.95
+>=20
+> set in6_min -5 * 1.05
+>=20
+> label temp1 "M/B Temp"
+>=20
+> set temp1_over 45
+>=20
+> set temp1_hyst 40
+>=20
+> label temp2 "CPU Temp (Intel)"
+>=20
+> #ignore temp2
+>=20
+> set temp2_over 60
+>=20
+> set temp2_hyst 50
+>=20
+> # PWRTMP connector on P4S333, for external sensor
+>=20
+> label temp3 "Power Temp"
+>=20
+> ignore temp3
+>=20
+> set temp3_over 45
+>=20
+> set temp3_hyst 40
+>=20
+> # Used for Athlon diode, ignore for P4S333
+>=20
+> label temp4 "CPU Temp (AMD)"
+>=20
+> ignore temp4
+>=20
+> set temp4_over 60
+>=20
+> set temp4_hyst 50
+>=20
+> label fan1 "CPU Fan"
+>=20
+> set fan1_div 4
+>=20
+> set fan1_min 2000
+>=20
+> label fan2 "Chassis Fan"
+>=20
+> set fan2_div 2
+>=20
+> set fan2_min 4000
+>=20
+> ignore fan2
+>=20
+> label fan3 "Power Fan"
+>=20
+> set fan3_div 2
+>=20
+> set fan3_min 4000
+>=20
+> ignore fan3
+>=20
+> Here is my.../etc/sysconfig/lm_sensors
+>=20
+> # /etc/sysconfig/sensors - Defines modules loaded by=20
+> /etc/rc.d/init.d/lm_sensors
+>=20
+> # Copyright (c) 1998 - 2001 Frodo Looijaard <frodol@dds.nl>
+>=20
+> #
+>=20
+> .
+>=20
+> # See also the lm_sensors homepage at:
+>=20
+> # http://www2.lm-sensors.nu/~lm78/index.html
+>=20
+> #
+>=20
+> # This file is used by /etc/rc.d/init.d/lm_sensors and defines the=20
+> modules to
+>=20
+> # be loaded/unloaded. This file is sourced into /etc/rc.d/init.d/lm_senso=
+rs.
+>=20
+> #
+>=20
+> # The format of this file is a shell script that simply defines the modul=
+es
+>=20
+> # in order as normal variables with the special names:
+>=20
+> # MODULE_0, MODULE_1, MODULE_2, etc.
+>=20
+> #
+>=20
+> # List the modules that are to be loaded for your system
+>=20
+> #
+>=20
+> # Generated by sensors-detect on Sun Feb 13 15:14:37 2005
+>=20
+> MODULE_0=3Di2c-i801
+>=20
+> MODULE_1=3Dasb100
+>=20
+> MODULE_2=EEprom
+>=20
+> I've an ASUS P4PE-X, with Intel Celeron.
+>=20
+> What i did with sensors-detect.
+>=20
+> I tried various options, before, but i dont 'understand what this file=20
+> is doing.
+>=20
+> ip-10:/home/jackie # sensors-detect
+>=20
+> This program will help you determine which I2C/SMBus modules you need to
+>=20
+> load to use lm_sensors most effectively. You need to have i2c and
+>=20
+> lm_sensors installed before running this program.
+>=20
+> Also, you need to be `root', or at least have access to the /dev/i2c-*
+>=20
+> files, for most things.
+>=20
+> If you have patched your kernel and have some drivers built in, you can
+>=20
+> safely answer NO if asked to load some modules. In t
+>=20
+> his case, things may seem a bit confusing, but they will still work.
+>=20
+> It is generally safe and recommended to accept the default answers to all
+>=20
+> questions, unless you know what you're doing.
+>=20
+> We can start with probing for (PCI) I2C or SMBus adapters.
+>=20
+> You do not need any special privileges for this.
+>=20
+> Do you want to probe now? (YES/no): YES
+>=20
+> Probing for PCI bus adapters...
+>=20
+> Use driver `i2c-i801' for device 00:1f.3: Intel 8280
+>=20
+> 1DB ICH4
+>=20
+> Probe succesfully concluded.
+>=20
+> We will now try to load each adapter module in turn.
+>=20
+> Module `i2c-i801' already loaded.
+>=20
+> If you have undetectable or unsupported adapters, you can have them
+>=20
+> scanned by manually loading the modules before runni
+>=20
+> ng this script.
+>=20
+> To continue, we need module `i2c-dev' to be loaded.
+>=20
+> If it is built-in into your kernel, you can safely skip this.
+>=20
+> i2c-dev is not loaded. Do you want to load it now? (YES/no): YES
+>=20
+> Module loaded succesfully.
+>=20
+> We are now going to do the adapter probings. Some adapters may hang halfw=
+ay
+>=20
+> through; we can't really help that. Also, some chips will be double=20
+> detected;
+>=20
+> we choose the one with the highest confidence value in that case.
+>=20
+> If you found that the adapter hung after probing a certain address, you c=
+an
+>=20
+> specify that address to remain unprobed. That often
+>=20
+> includes address 0x69 (clock chip).
+>=20
+> Next adapter: SMBus I801 adapter at e800 (Algorithm unavailable)
+>=20
+> Do you want to scan it? (YES/no/selectively): YES
+>=20
+> Client found at address 0x08
+>=20
+> Client at address 0x2d can not be probed - unload all client drivers firs=
+t!
+>=20
+> Client found at address 0x44
+>=20
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
+>=20
+> Client at address 0x48 can not be probed - unload all client drivers firs=
+t!
+>=20
+> Client at address 0x49 can not be probed - unload all client drivers firs=
+t!
+>=20
+> Client at address 0x51 can not be probed - unload all client drivers firs=
+t!
+>=20
+> Some chips are also accessible through the ISA bus.
+>=20
+> ISA probes are typically a bit more dangerous, as we have to write
+>=20
+> to I/O ports to do this. This is usually safe though.
+>=20
+> Do you want to scan the ISA bus? (YES/no): no
+>=20
+> Some Super I/O chips may also contain sensors. Super I/O probes are
+>=20
+> typically a bit more dangerous, as we have to write to I/O ports to do
+>=20
+> this. This is usually safe though.
+>=20
+> Do you want to scan for Super I/O sensors? (YES/no): YES
+>=20
+> Probing for `ITE 8702F Super IO Sensors' Failed! (0x8708)
+>=20
+> Probing for `ITE 8705F Super IO Sensors' Failed! (0x8708)
+>=20
+> Probing for `ITE 8712F Super IO Sensors' Failed! (0x8708)
+>=20
+> Probing for `Nat. Semi. PC87351 Super IO Fan Sensors
+>=20
+> 'Failed! (skipping family)
+>=20
+> Probing for `SMSC 47B27x Super IO Fan Sensors' Failed! (skipping family)
+>=20
+> Probing for `VT1211 Super IO Sensors' Failed! (0x87)
+>=20
+> Probing for `Winbond W83627HF Super IO Sensors' Failed! (0x87)
+>=20
+> Probing for `Winbond W83627THF Super IO Sensors' Failed! (0x87)
+>=20
+> Probing for `Winbond W83637HF Super IO Sensors' Failed! (0x87)
+>=20
+> Probing for `Winbond W83697HF Super IO Sensors' Failed! (0x87)
+>=20
+> Probing for `Winbond W83697SF/UF Super IO PWM' Failed! (0x87)
+>=20
+> Probing for `Winbond W83L517D Super IO' Failed! (0x87)
+>=20
+> Do you want to scan for secondary Super I/O sensors? (YES/no): YES
+>=20
+> Probing for `ITE 8702F Super IO Sensors' Failed! (skipping family)
+>=20
+> Probing for `Nat. Semi. PC87351 Super IO Fan Sensors' Failed! (skipping=20
+> family)
+>=20
+> Probing for `SMSC 47B27x Super IO Fan Sensors' Failed! (skipping family)
+>=20
+> Probing for `VT1211 Super IO Sensors' Failed! (skipping family)
+>=20
+> Sorry, no chips were detected.
+>=20
+> Either your sensors are not supported, or they are connected to an I2C=20
+> bus adapter that we do not support.
+>=20
+> See doc/FAQ, doc/lm_sensors-FAQ.html, or
+>=20
+> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc
+>=20
+> /lm_sensors-FAQ.html (FAQ #4.24.3) for further information.
+>=20
+> If you find out what chips are on your board, see
+>=20
+> http://secure.netroedge.com/~lm78/newdrivers.html for driver status.
+>=20
+> I'm going to read these informations...
+>=20
+> I dont undersatand why superkaramba don't display only CPU temp,=20
+> althought i have it with sensors. ( only six months with Linux )
+>=20
+> A little help please ! Ayuda por favor !
+>=20
+> Jacqueline
+>=20
+
