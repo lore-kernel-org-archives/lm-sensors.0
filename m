@@ -1,27 +1,41 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH 2.6] I2C: Kill i2c_client.id
-Message-Id: <20050119233713.GA6178@kroah.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:05 +0000
+Subject: i2c-sis645 / lm_sensors problems
+Message-Id: <20030718113117.GB22673@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050116194653.17c96499.khali@linux-fr.org>
-In-Reply-To: <20050116194653.17c96499.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 16, 2005 at 07:46:53PM +0100, Jean Delvare wrote:
-> Hi Greg,
+* Jon Still <jon@tertial.org> [2003-07-10 22:23:34 +0100]:
+> Hi Mark,
 > 
-> As discussed earlier on the LKML [1], here comes a patch set killing the
-> id member of the i2c_client structure. Let me recap my main reasons for
-> doing so:
+> I got your details from the i2c-sis645 page lm-sensors.nu  
+> (http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/busses/i2c- 
+> sis645), and I was wondering if you could give me a hand with getting  
+> lm_sensors working.  I've made sure that i2c in my kernel (2.4.21) is  
+> set to module.  I've installed i2c-2.7.0 (make all, make install) and  
+> the same for lm_sensors-2.7.0.  I then try to modprobe i2c-sis645 and I  
+> get the following errors:
 
-I've applied all 5 patches, and then just deleted the field altogether
-(mainly because sparse complained about it, and there's no reason to
-have it around anymore.)
+<snip>
 
-thanks for doing this work, it was really needed.
+> And finally lspci shows:
+> 00:00.0 Host bridge: Silicon Integrated Systems [SiS]: Unknown device  
+> 0648 (rev 03)
 
-greg k-h
+<snip>
+
+Your chipset has been supported in CVS for some time now; it is also
+supported by the recent 2.8.0 release.  Let us know if this still
+doesn't work.
+
+Also - please use the mailing list for questions.  You might get a 
+faster answer e.g. if the developer was on vacation.  ;)
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
