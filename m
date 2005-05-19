@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: andrew.r.cress@intel.com (Cress, Andrew R)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: Support for Intel BMC chipsets via IPMI
-Message-Id: <3DD3C466.D74CC36@paradyne.com>
+Message-Id: <A5974D8E5F98D511BB910002A50A66470580D39F@hdsmsx103.hd.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <A5974D8E5F98D511BB910002A50A66470580D387@hdsmsx103.hd.intel.com>
 In-Reply-To: <A5974D8E5F98D511BB910002A50A66470580D387@hdsmsx103.hd.intel.com>
@@ -9,6 +9,22 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Mark, 
+
+I can't speak for boards designed by OEMs or others with Intel Xeon
+processors, but all Intel-designed Xeon boards will have the sensors exposed
+via the BMC (IPMI), so this should cover a lot of ground.
+
+Andy
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds@paradyne.com] 
+Sent: Thursday, November 14, 2002 10:43 AM
+To: Cress Andrew R
+Cc: 'sensors@stimpy.netroedge.com'
+Subject: Re: Support for Intel BMC chipsets via IPMI
+
 
 Thanks for the mail.
 I'm working with Corey and with HP on a sensors-IPMI interface.
@@ -36,7 +52,8 @@ mds
 > 
 > I'm currently working on conforming the interface of these utilities
 > to the saforum.org's Hardware Platform Interface.  So, I'd be interested
-> in what interface you have now, and if you are planning to move to SA HPI or
+> in what interface you have now, and if you are planning to move to SA HPI
+or
 > not.
 > 
 > You had "Intel Xeon" chips listed as not yet supported, but these would be
