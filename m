@@ -1,26 +1,144 @@
-From: xuan--sensors--2003.12.20@baldauf.org (Xuan Baldauf)
-Date: Thu, 19 May 2005 06:24:32 +0000
-Subject: Hidden and disabled SMBus SiS0016, please enable
-Message-Id: <3FF200F5.60807@baldauf.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:31 +0000
+Subject: [PATCH 2.6] lm83 driver updates
+Message-Id: <20031230190618.729e1c47.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3FE4DB3C.8050504@baldauf.org>
-In-Reply-To: <3FE4DB3C.8050504@baldauf.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
+Hi Greg,
 
->But, what about this kernel oops under 2.4?  Whatever the state of the
->hardware, this shouldn't happen.  Could you give more details about that?
->I2C and lm_sensors versions, how you built them, anything else special...
->And of course a copy of the oops message itself.
->  
->
-Sorry, it was my fault. I digged into this and found that lm-sensors 
-modules had different assumptions about some "struct"s than i2c-core. 
-The reason was that I did not use i2c-2.8.0 but i2c provided from kernel 
-2.4. After using the correct i2c version, the oops disappeared.
+Here is a patch for the lm83 driver, to be applied on top of your
+pending patches stack. What it does:
+* Remove limit initialisation by the driver. This is a backport from
+  CVS.
+* A few whitespace changes inspired by my recent porting of the lm90
+  driver.
 
-Xu?n.
+I still need to test the new lm90 driver, I'll send you a patch once
+it's ready.
+
+Thanks
+
+diff -ruN drivers/i2c.orig/chips/lm83.c drivers/i2c/chips/lm83.c
+--- linux-2.6.0/drivers/i2c/chips/lm83.c	2003-12-29 15:49:06.000000000 +0100
++++ linux-2.6.0/drivers/i2c/chips/lm83.c	2003-12-29 16:32:51.000000000 +0100
+@@ -41,7 +41,7 @@
+ 
+ static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+ static unsigned short normal_i2c_range[] = { 0x18, 0x1a, 0x29, 0x2b,
+-    0x4c, 0x4e, I2C_CLIENT_END };
++	0x4c, 0x4e, I2C_CLIENT_END };
+ static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
+ 
+@@ -78,16 +78,13 @@
+ #define LM83_REG_W_TCRIT		0x5A
+ 
+ /*
+- * Conversions, initial values and various macros
++ * Conversions and various macros
+  * The LM83 uses signed 8-bit values.
+  */
+ 
+ #define TEMP_FROM_REG(val)	((val > 127 ? val-256 : val) * 1000)
+ #define TEMP_TO_REG(val)	((val < 0 ? val+256 : val) / 1000)
+ 
+-#define LM83_INIT_HIGH		100
+-#define LM83_INIT_CRIT		120
+-
+ static const u8 LM83_REG_R_TEMP[] = {
+ 	LM83_REG_R_LOCAL_TEMP,
+ 	LM83_REG_R_REMOTE1_TEMP,
+@@ -114,9 +111,7 @@
+  */
+ 
+ static int lm83_attach_adapter(struct i2c_adapter *adapter);
+-static int lm83_detect(struct i2c_adapter *adapter, int address,
+-    int kind);
+-static void lm83_init_client(struct i2c_client *client);
++static int lm83_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int lm83_detach_client(struct i2c_client *client);
+ static void lm83_update_client(struct i2c_client *client);
+ 
+@@ -137,8 +132,7 @@
+  * Client data (each client gets its own)
+  */
+ 
+-struct lm83_data
+-{
++struct lm83_data {
+ 	struct semaphore update_lock;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+@@ -233,8 +227,7 @@
+  * The following function does more than just detection. If detection
+  * succeeds, it also registers the new chip.
+  */
+-static int lm83_detect(struct i2c_adapter *adapter, int address,
+-    int kind)
++static int lm83_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *new_client;
+ 	struct lm83_data *data;
+@@ -290,6 +283,7 @@
+ 		    LM83_REG_R_MAN_ID);
+ 		chip_id = i2c_smbus_read_byte_data(new_client,
+ 		    LM83_REG_R_CHIP_ID);
++
+ 		if (man_id = 0x01) { /* National Semiconductor */
+ 			if (chip_id = 0x03) {
+ 				kind = lm83;
+@@ -315,8 +309,10 @@
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto exit_free;
+ 
+-	/* Initialize the LM83 chip */
+-	lm83_init_client(new_client);
++	/*
++	 * Initialize the LM83 chip
++	 * (Nothing to do for this one.)
++	 */
+ 
+ 	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_temp_input1);
+@@ -338,17 +334,6 @@
+ 	return err;
+ }
+ 
+-static void lm83_init_client(struct i2c_client *client)
+-{
+-	int nr;
+-
+-	for (nr = 0; nr < 4; nr++)
+-		i2c_smbus_write_byte_data(client, LM83_REG_W_HIGH[nr],
+-	            TEMP_TO_REG(LM83_INIT_HIGH));
+-	i2c_smbus_write_byte_data(client, LM83_REG_W_TCRIT,
+-	    TEMP_TO_REG(LM83_INIT_CRIT));
+-}
+-
+ static int lm83_detach_client(struct i2c_client *client)
+ {
+ 	int err;
+@@ -373,6 +358,7 @@
+ 	    (jiffies < data->last_updated) ||
+ 	    !data->valid) {
+ 		int nr;
++
+ 		dev_dbg(&client->dev, "Updating lm83 data.\n");
+ 		for (nr = 0; nr < 4 ; nr++) {
+ 			data->temp_input[nr] @@ -388,6 +374,7 @@
+ 		    i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS1)
+ 		    + (i2c_smbus_read_byte_data(client, LM83_REG_R_STATUS2)
+ 		    << 8);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
