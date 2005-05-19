@@ -1,7 +1,7 @@
-From: destri@mib.infn.it (Claudio Destri)
+From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:23:49 +0000
 Subject: help?
-Message-Id: <Pine.LNX.4.44.0303012159420.28609-200000@localhost.localdomain>
+Message-Id: <3E6A7AD0.3020109@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.44.0302252341500.5703-100000@localhost.localdomain>
 In-Reply-To: <Pine.LNX.4.44.0302252341500.5703-100000@localhost.localdomain>
@@ -10,22 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Your eeproms are DDR.
+I don't know why they aren't recognized in 'sensors', unless your 'sensors' version
+is 2.6.3 or older (we added DDR support in 2.6.4).
+The eeproms are "serial presence detect" memory (one per DDR memory DIMM)
+which store configuration data about your DDR.
+They have nothing at all to do with your sensors other than they are on
+the same I2C bus.
 
-Attached is the output of decode-dimms.pl
-Just to see if I understand anything of all this: are these two eeprom
-chips the memory banks holding the programs that run the physical sensors?
- 
 
--- 
-			CLAUDIO DESTRI   Claudio.Destri@mib.infn.it
-                        DIPARTIMENTO DI FISICA G. OCCHIALINI,
-                        UNIVERSITA` MILANO-BICOCCA
-                        PIAZZA DELLA SCIENZA 3, 20126 MILANO
-                        tel: (39)(2)64482539  fax: (39)(2)64482585
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: decode.25116DEFANGED-html
-Type: application/octet-stream
-Size: 9742 bytes
-Desc: 
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030301/1a7e9018/decode.obj
+Claudio Destri wrote:
+> Attached is the output of decode-dimms.pl
+> Just to see if I understand anything of all this: are these two eeprom
+> chips the memory banks holding the programs that run the physical sensors?
+>  
+> 
