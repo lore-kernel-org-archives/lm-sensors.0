@@ -1,49 +1,71 @@
-From: matthew@wil.cx (Matthew Wilcox)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: [PATCH] Some I2C chipsets are architecture-specific
-Message-Id: <20050307153256.GG28741@parcelfarce.linux.theplanet.co.uk>
+Message-Id: <DvdW0MEV.1110212088.6608520.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050307153256.GG28741@parcelfarce.linux.theplanet.co.uk>
+In-Reply-To: <20050307153256.GG28741@parcelfarce.linux.theplanet.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Some of the i2c chipsets look architecture specific, so don't trouble
-other architectures with these questions.  It's quite possible I'm
-mistaken, so please double-check.
+Hi Matthew,
 
-Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+> Some of the i2c chipsets look architecture specific, so don't trouble
+> other architectures with these questions.  It's quite possible I'm
+> mistaken, so please double-check.
+> (...)
+>  config SENSORS_ASB100
+>  	tristate "Asus ASB100 Bach"
+> -	depends on I2C && EXPERIMENTAL
+> +	depends on I2C && X86 && EXPERIMENTAL
 
-Index: ./drivers/i2c/chips/Kconfig
-=================================RCS file: /var/cvs/linux-2.6/drivers/i2c/chips/Kconfig,v
-retrieving revision 1.17
-diff -u -p -r1.17 Kconfig
---- ./drivers/i2c/chips/Kconfig	12 Jan 2005 20:16:25 -0000	1.17
-+++ ./drivers/i2c/chips/Kconfig	7 Mar 2005 04:52:24 -0000
-@@ -53,7 +53,7 @@ config SENSORS_ADM1031
- 
- config SENSORS_ASB100
- 	tristate "Asus ASB100 Bach"
--	depends on I2C && EXPERIMENTAL
-+	depends on I2C && X86 && EXPERIMENTAL
- 	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for the ASB100 Bach sensor
-@@ -266,7 +266,7 @@ config SENSORS_SMSC47M1
- 
- config SENSORS_VIA686A
- 	tristate "VIA686A"
--	depends on I2C && PCI && EXPERIMENTAL
-+	depends on I2C && X86 && PCI && EXPERIMENTAL
- 	select I2C_SENSOR
- 	select I2C_ISA
- 	help
+The ASB100 is a standalone SMBus hardware monitoring chip. It could be
+found on virtually any system. That being said, the chip is made by Asus
+for its own boards, and I don't think Asus makes non-x86 hardware ATM
+(but this may change). So I wouldn't limit this one to x86.
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+> config SENSORS_VIA686A
+> 	tristate "VIA686A"
+>-	depends on I2C && PCI && EXPERIMENTAL
+>+	depends on I2C && X86 && PCI && EXPERIMENTAL
+> 	select I2C_SENSOR
+> 	select I2C_ISA
+
+Yes, I think this makes sense. This is an integrated sensor in an x86
+southbridge.
+
+On a more generic approach, SMBus/I2C clients shouldn't be limited to
+x86. OTOH, some ISA hardware monitoring chips (which all have "select
+I2C_ISA") are more likely to be x86-specific. In fact these chips fall
+into three categories:
+1* I2C/SMBus chip with an additional ISA access (not tagged "select
+I2C_ISA")
+2* Super-I/O chips with integrated sensors.
+3* Southbridges with integrated sensors.
+
+For category 1 we obviously cannot limit to x86 (same as I2C-only chips,
+can be found on any architecture, at least in theory).
+
+For category 2 I'm not sure, I know these Super-I/O chips are normaly
+found only on PCs, but I remember of some embedded devices made by
+Soekris (net4801) which were using Super-I/O chips as well. I think
+these net4801 are 586-based so x86, but maybe other similar devices use
+non-x86 arch?
+
+For category 3 I guess it's safe to limit to x86. The via686a driver
+falls into this category. The recently added sis5595 driver does as
+well, and so will the vt1211 and vt8231 drivers once they are ported to
+Linux 2.6.
+
+I am open to discussion about this, as I only have vague ideas on what
+can or cannot be found on other architectures. I admit I had never
+considered limiting hardware monitoring device drivers according to
+achitecture, but that sounds like a good idea to me (providing we know
+what we are doing, of course).
+
+Thanks,
+--
+Jean Delvare
