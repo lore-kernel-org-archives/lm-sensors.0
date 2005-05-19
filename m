@@ -1,29 +1,47 @@
-From: tk0624c@yahoo.com.tw (=?big5?q?joce?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: some problem with insall hotappet.
-Message-Id: <20030319192915.99582.qmail@web16610.mail.tpe.yahoo.com>
+Message-Id: <20030322121647.583e0ab5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030319192915.99582.qmail@web16610.mail.tpe.yahoo.com>
+In-Reply-To: <20030319192915.99582.qmail@web16610.mail.tpe.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-aGVsbG86CgoxLgpjYW4gaSBpbnN0YWxsIGl0KGhvdGFwcGxldCkgb24gbm90ZWJvb2soSUJNIFRo
-aW5rUGFkClIzMik/CgoyLgpteSBzeXN0ZW0gaXMgcmVkaGF0IGxpbnV4IDguMC4KaSBpbnN0YWxs
-ZWQgImxpYmdub21ldWkiICJsaWJwYW5lbC1hcHBsZXQiICJsaWJnbGFkZSIgCiAgIHBhY2thZ2Uu
-CmJ1dCx3aGVuIGkgY29uZmlnIGl0IHBvc3QgZXJyb3IgbWVzc2FnZSA6CioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqCmNoZWNraW5nIGZvciBs
-aWJnbm9tZXVpLTIuMCBsaWJwYW5lbGFwcGxldC0yLjAKbGliZ2xhZGUtMi4wLi4uIFBhY2thZ2Ug
-bGliZ25vbWUtMi4wIHdhcyBub3QgZm91bmQgaW4KdGhlIHBrZy1jb25maWcgc2VhcmNoIHBhdGgu
-ClBlcmhhcHMgeW91IHNob3VsZCBhZGQgdGhlIGRpcmVjdG9yeSBjb250YWluaW5nCmBsaWJnbm9t
-ZS0yLjAucGMnCnRvIHRoZSBQS0dfQ09ORklHX1BBVEggZW52aXJvbm1lbnQgdmFyaWFibGUKUGFj
-a2FnZSAnbGliZ25vbWUtMi4wJywgcmVxdWlyZWQgYnkgJ2xpYmdub21ldWknLCBub3QKZm91bmQK
-CmNvbmZpZ3VyZTogZXJyb3I6IExpYnJhcnkgcmVxdWlyZW1lbnRzIChsaWJnbm9tZXVpLTIuMAps
-aWJwYW5lbGFwcGxldC0yLjAgbGliZ2xhZGUtMi4wKSBub3QgbWV0OyBjb25zaWRlcgphZGp1c3Rp
-bmcgdGhlIFBLR19DT05GSUdfUEFUSCBlbnZpcm9ubWVudCB2YXJpYWJsZSBpZgp5b3VyIGxpYnJh
-cmllcyBhcmUgaW4gYSBub25zdGFuZGFyZCBwcmVmaXggc28KcGtnLWNvbmZpZyBjYW4gZmluZCB0
-aGVtLgoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKgpjYW4geW91IHRlYWNoIG1lIGhvdyB0byBmaXggaXQ/Cgp0aGFuayB5b3WhSaFJCgoKLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KqEOk0bOjIFlhaG9vIalfvK8KuNO0q6R1p0CkRrbcPyAtIMCwp0G64qVYs8ymWL5Bqrqo
-RMK+pOimVgpodHRwOi8vZmF0ZS55YWhvby5jb20udHcvCg==
+
+> 1.
+> can i install it(hotapplet) on notebook(IBM ThinkPad
+> R32)?
+> 
+> 2.
+> my system is redhat linux 8.0.
+> i installed "libgnomeui" "libpanel-applet" "libglade" 
+>    package.
+> but,when i config it post error message :
+> ********************************************************
+> checking for libgnomeui-2.0 libpanelapplet-2.0
+> libglade-2.0... Package libgnome-2.0 was not found in
+> the pkg-config search path.
+> Perhaps you should add the directory containing
+> `libgnome-2.0.pc'
+> to the PKG_CONFIG_PATH environment variable
+> Package 'libgnome-2.0', required by 'libgnomeui', not
+> found
+> 
+> configure: error: Library requirements (libgnomeui-2.0
+> libpanelapplet-2.0 libglade-2.0) not met; consider
+> adjusting the PKG_CONFIG_PATH environment variable if
+> your libraries are in a nonstandard prefix so
+> pkg-config can find them.
+> ********************************************************
+> can you teach me how to fix it?
+
+This doesn't seem to be related to LM Sensors. The problems are related
+to the higher lever applications you are using, and to your distribution
+also. There's nothing we can do for you. Good luck.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
