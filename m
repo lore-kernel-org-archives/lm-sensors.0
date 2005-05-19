@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:34 +0000
 Subject: [PATCH 2.6] Fix w83781d temp
-Message-Id: <20040114025138.GJ894@earth.solarsys.private>
+Message-Id: <1074073813.400510d5aba91@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040110140700.5b5ab705.khali@linux-fr.org>
 In-Reply-To: <20040110140700.5b5ab705.khali@linux-fr.org>
@@ -10,22 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-01-10 14:07:00 +0100]:
-
-> This patch fixes the temperature handling in the w83781d driver:
-> 1* Fix bad magnitude.
-> 2* Use MMH's lm75.h.
-> 3* Allow negative temperatures.
+> > This applies on top of the patches stack. In particular, the
+> > asb100 patch needs to be applied before this one so that lm75.h is
+> > present.
 > 
-> This applies on top of the patches stack. In particular, the asb100
-> patch needs to be applied before this one so that lm75.h is present.
+> Actually, it only requires an earlier patch...
+> http://archives.andrew.net.au/lm-sensors/msg05580.html
 
-Actually, it only requires an earlier patch...
+You're perfectly right. I don't know why I though that the lm75.h
+addition was part of the asb100 patch. It wouldn't have fit well in the
+"one patch, one thing" philosphy we try to stick too.
 
-http://archives.andrew.net.au/lm-sensors/msg05580.html
-
-Regards,
+So I'm sorry for the trouble, the "w83781d temp" patch doesn't require
+the "asb100" at all, only the "lm75.h" patch, and since that one is
+already in Linux 2.6.1, it doesn't require anything at all.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
