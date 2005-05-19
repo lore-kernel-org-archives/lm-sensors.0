@@ -1,35 +1,42 @@
-From: alex@alexdalton.org (Alexandre d'Alton)
-Date: Thu, 19 May 2005 06:24:55 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:56 +0000
 Subject: ADM1031 / ADM1030 Driver
-Message-Id: <1083188185.5337.5.camel@megapc>
+Message-Id: <20040504214412.4b45b125.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1083188185.5337.5.camel@megapc>
+In-Reply-To: <1083188185.5337.5.camel@megapc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Here is a patch that adds support for adm1030 / adm1031 chip on the
-linux-2.6.6-rc3 kernel.
+Hi Alex,
 
-Tested with adm1030 chip.
+> ADM1031 driver with activation of monitoring by default.
+> 
+> removed tempX_enable files as they are for interrupt, not
+> measurements.
 
-If the code is ok, I'll add documentation (how to use and inline
-comments) in order to submit the final version.
+I'm testing at the moment.
 
-Jean: Concerning via686a chip driver, temps seems to be OK on my
-computer.
+The fans are now starting as I load the driver (well, a few seconds
+after), and temperature monitoring works :)
 
-Alex.
+Bugs found:
 
-Patch attached because my client wraps lines.
+1* I cannot set temperature critical limits.
 
+2* Whatever I set the PWM values to, the fans turn, probably to full
+speed.
 
+3* Fan speed values don't seem to be correct. They read 1323 (which
+seems to be the minimal value with divisor = 2) and 0, respectively, and
+never change. Since both fans are running at fast speed, it can't be.
 
+Also, your driver doesn't export alarms?
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-adm1031-2.6.6-rc3.diff
-Type: text/x-patch
-Size: 34129 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040428/324f3f3a/patch-adm1031-2.6.6-rc3.bin
+Thanks.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
