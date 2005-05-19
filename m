@@ -1,8 +1,10 @@
 From: null@uucpssh.org (junk scanner)
-Date: Thu, 19 May 2005 06:25:08 +0000
+Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: **Message you sent blocked by our SPAM filter**
-Message-Id: <SS09815-04@main>
+Message-Id: <SS06539-09@main>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <SS09815-04@main>
+In-Reply-To: <SS09815-04@main>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +14,7 @@ Your message to: alex@alexdalton.org
 has triggered our SPAM filters and has been rejected. The email you sent with
 the following subject has NOT BEEN DELIVERED:
 
-Subject: ???? mail.jxptt.zj.cn ??????
+Subject: 
 
 We uses a set of email filters to help block the delivery of unsolicited
 commercial email, otherwise known as SPAM. For more information on SPAM, please
@@ -36,6 +38,6 @@ Skipped content of type message/delivery-status-------------- next part --------
 A non-text attachment was scrubbed...
 Name: not available
 Type: text/rfc822-headers
-Size: 1213 bytes
+Size: 1355 bytes
 Desc: Undelivered-message headers
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040803/e9e9aa8e/attachment.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041202/afd72983/attachment.bin
