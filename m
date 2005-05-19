@@ -1,46 +1,40 @@
-From: ebrower@usa.net (Eric)
-Date: Thu, 19 May 2005 06:25:38 +0000
-Subject: [RFC/PATCH] lost arbitration detection for PCF8584
-Message-Id: <112JBsTvy2928S01.1108842444@uwdvg001.cms.usa.net>
+From: Rich.West@wesmo.com (Rich West)
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: not sure how to report these
+Message-Id: <3F57E1B0.6040505@wesmo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4216C459.1060703@usa.net>
-In-Reply-To: <4216C459.1060703@usa.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I've personally compensated for these issues, but I thought I would help 
+out and report what I have come across.
 
+Using the latest drivers, and going all of the way back to 2.6.3, the 
+gl520sm-i2c-0-2d driver on my ECS K7AMA motherboard (using the 
+i2c-ali1535 module), has always reported the fan speeds as twice their 
+actual value.
 
------- Original Message ------
-Received: Sat, 19 Feb 2005 01:43:12 AM PST
-From: "Oleg I. Vdovikin" <vdovikin@jscc.ru>
-To: Eric Brower <ebrower@usa.net>Cc: lm78@stimpy.netroedge.com
-Subject: Re: [RFC/PATCH] lost arbitration detection for PCF8584
+The other issue is that I have an ECS K7S5A motherboard, using the 
+it87-isa-0290 driver (using the i2c-sis645 module), it seems to report 
+the temperatures strangely.
 
-> Hi,
-> 
->   the patch is looks fine to me, except these lines:
-> 
-> > @@ -414,8 +452,8 @@
-> >  
-> >  static u32 pcf_func(struct i2c_adapter *adap)
-> >  {
-> > -       return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | 
-> > -              I2C_FUNC_10BIT_ADDR | I2C_FUNC_PROTOCOL_MANGLING; 
-> > +       return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR | 
-> > +              I2C_FUNC_PROTOCOL_MANGLING; 
-> >  }
->   Why you've removed I2C_FUNC_I2C?
+It is listing:
+Temp1/MB:    +25C (min = +20C, max= +60C)
+Temp2/CPU:   -126C (min = +20C, max = +60C)
+Temp3:   +46C (min = +20C, max = +60C)
 
-It was not on purpose-- I've been working between two BK trees and one
-apparently was older than the other so the change propagated-- that section of
-the patch can certainly be dropped.  My appologies for not trimming that bogus
-section.
+So, it seems that my motherboard temp is 25C, and my CPU is at a 
+whopping -126C.  I'm not sure what Temp3 is.. :)
 
-E
+I'm guessing it is reading something incorrectly.. Maybe, just maybe, 
+the CPU is at 46C (it ususally ran higher with my older processor.. 
+around 55C), but I would just be guessing.
 
+Thanks for the great software!  I've been using it for some time, in 
+combination with Cricket (cricket.sourceforge.net) and some modules I 
+contributed, to monitor my systems!
 
-
-
+-Rich
 
