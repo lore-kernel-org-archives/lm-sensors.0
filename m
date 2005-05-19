@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <1072821970727@kroah.com>
+Message-Id: <10728219711046@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1072821970466@kroah.com>
+In-Reply-To: <10728219713483@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,53 +11,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.23.2, 2003/12/19 11:37:00-08:00, trini@kernel.crashing.org
+ChangeSet 1.1496.8.38, 2003/12/30 12:10:08-08:00, khali@linux-fr.org
 
-[PATCH] I2C: make i2c-piix4 fix optional
+[PATCH] I2C: Fix SCx200 dependancies
 
-On Thu, Dec 18, 2003 at 10:26:40AM -0800, Greg KH wrote:
+The following patch fixes incorrect dependencies (as far as I can see)
+for the SCx200 modules. A similar patch (with even more fixes) is also
+needed for Linux 2.4, and will be part of my next wave to Marcelo. Note
+that I don't have the necessary hardware to actually test anything, but
+a quick look at the code doesn't leave much place for doubt IMHO.
 
 
- drivers/i2c/busses/i2c-piix4.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c	Tue Dec 30 12:29:37 2003
-+++ b/drivers/i2c/busses/i2c-piix4.c	Tue Dec 30 12:29:37 2003
-@@ -99,6 +99,13 @@
- 		 "Forcibly enable the PIIX4 at the given address. "
- 		 "EXTREMELY DANGEROUS!");
+diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig	Tue Dec 30 12:28:44 2003
++++ b/drivers/i2c/busses/Kconfig	Tue Dec 30 12:28:44 2003
+@@ -202,7 +202,7 @@
  
-+/* If fix_hstcfg is set to anything different from 0, we reset one of the
-+   registers to be a valid value. */
-+static int fix_hstcfg = 0;
-+MODULE_PARM(fix_hstcfg, "i");
-+MODULE_PARM_DESC(fix_hstcfg,
-+		"Fix config register. Needed on some boards (Force CPCI735).");
-+
- static int piix4_transaction(void);
+ config SCx200_I2C
+ 	tristate "NatSemi SCx200 I2C using GPIO pins"
+-	depends on SCx200 && I2C_ALGOBIT
++	depends on SCx200_GPIO && I2C_ALGOBIT
+ 	help
+ 	  Enable the use of two GPIO pins of a SCx200 processor as an I2C bus.
  
+@@ -229,7 +229,7 @@
  
-@@ -164,9 +171,17 @@
- 	/* Some BIOS will set up the chipset incorrectly and leave a register
- 	   in an undefined state (causing I2C to act very strangely). */
- 	if (temp & 0x02) {
--		dev_info(&PIIX4_dev->dev, "Worked around buggy BIOS (I2C)\n");
--		temp = temp & 0xfd;
--		pci_write_config_byte(PIIX4_dev, SMBHSTCFG, temp);
-+		if (fix_hstcfg) {
-+			dev_info(&PIIX4_dev->dev, "Working around buggy BIOS "
-+					"(I2C)\n");
-+			temp &= 0xfd;
-+			pci_write_config_byte(PIIX4_dev, SMBHSTCFG, temp);
-+		} else {
-+			dev_info(&PIIX4_dev->dev, "Unusual config register "
-+					"value\n");
-+			dev_info(&PIIX4_dev->dev, "Try using fix_hstcfg=1 if "
-+					"you experience problems\n");
-+		}
- 	}
-  
- 	/* If force_addr is set, we program the new address here. Just to make
+ config SCx200_ACB
+ 	tristate "NatSemi SCx200 ACCESS.bus"
+-	depends on I2C_ALGOBIT!=n && I2C
++	depends on I2C
+ 	help
+ 	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
+ 
 
