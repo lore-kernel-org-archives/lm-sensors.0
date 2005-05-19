@@ -1,51 +1,61 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: Dell PowerEdge 300SC temps (lm79, adm1021)
-Message-Id: <416B29DC.8010502@verizon.net>
+From: dieter.jurzitza@t-online.de (Dr. Ing. Dieter Jurzitza)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: Question ...
+Message-Id: <XFMail.20020618211645.dieter.jurzitza@t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BAY18-F1uQinOkrx8Bi00036235@hotmail.com>
-In-Reply-To: <BAY18-F1uQinOkrx8Bi00036235@hotmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-'board' is the internal adm1021 temperature. 'CPU' is the remote sensor.
-If you have that LM79 error you have a libsensors problem, make sure you don't have
-old libraries around (see FAQ).
-Look at your board to verify what chips you have.
+Dear lm_sensors people,
+first of all: many many thanks for the time you spent writing lm_sensors and
+making it public available. I am very happy with that tool because it is highly
+effective in device control (watching overheat issues with my mb for example).
 
-Jason Anderson wrote:
-> The chips seem to be detected correctly as an lm79 and 2 adm1021, but I 
-> need some help interpreting the temps.
-> 
-> adm1021-i2c-1-4c
-> Adapter: SMBus PIIX4 adapter at 0850
-> Board:       +43??C  (low  =    -5??C, high =   +90??C)
-> CPU:          +0??C  (low  =  -128??C, high =  +127??C)  ALARM (N/A)
-> die_code:    4
-> 
-> adm1021-i2c-1-18
-> Adapter: SMBus PIIX4 adapter at 0850
-> Board:       +41??C  (low  =    -5??C, high =  +127??C)
-> CPU:         +49??C  (low  =    -5??C, high =  +110??C)
-> die_code:    4
-> 
-> I think there are two because it supports two cpus, but I only have one 
-> (PIII).  That makes sense, because CPU temp is 0 on the first one, but 
-> what are the "Board" temps?  Also, the cpu temp seems to jump around a 
-> lot, is that normal for a PIII?  It goes between 31 and 52 while idle, 
-> and up to 69 under load.
-> 
-> The lm79 has some trouble, it always says "ERROR: Can't get TEMP data!", 
-> even if I "ignore temp".  However, temp1_input seems like good data, 
-> usually 35-36.  Is this my motherboard temp?
-> 
-> I also have an nVidia GeForce FX 5200, but I don't think there's a 
-> sensor on it.
-> 
-> Thanks,
-> jason
-> 
-> 
-> 
+One question to you: you write in the docs, that alarm triggers only occur by
+the sensor chip. This is nice - if the chip honors the limits you give
+(currently I am using a Tyan 2460 MB (amd756 / wXXX)) and want to shut it down
+in case of an overtemperature event, kernel 2.4.18 (SuSE), lm_sensors version
+2.6.0). This is difficult if there is no alarm trigger even though the condition
+for a trigger is met (i.e. temperature above the limiting value).
+
+Two possibilities:
+1.) tell me upgrade here and there and things (may) get better,
+2.) do some awk magic (this is what I did) and check for the actual reading to
+be larger than some value XY.
+
+However, I have to run (and have) awk every other minute to ensure apropriate
+operation. Would it be bad to have an /etc/sensors.conf option that
+allows lm_sensors itself to interpret the limits given and say "alarm" if
+an "alarm" condition is met? According to my understanding there must be
+a program internal structure containing those values. Or even allow a user
+command to be executed as soon as some limiting values cross a certain border
+(shutdown -h now for example)?
+
+Please give me your opinion on that (and again, don't take me wrong, I am
+*very* happy with this software and to have a chance to build a thermal
+supervision on my own, as long as ACPI is still in its early stages.
+Take care,
+
+
+
+Dieter Jurzitza
+
+
+-- 
+-----------------------------------------------------------
+E-Mail: Dr. Ing. Dieter Jurzitza <dieter.jurzitza@t-online.de>
+Date: 18-Jun-2002
+Time: 21:02:55                 |
+                                \
+                 /\_/\           |
+                | ~x~ |/-----\   /
+                 \   /-       \_/
+  ^^__   _        /  _  ____   /
+ <??__ \- \_/     |  |/    |  |
+  ||  ||         _| _|    _| _|
+
+if you really want to see the pictures above - use some font
+with constant spacing like courier! :-)
+-----------------------------------------------------------
