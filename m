@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: p.koegler@el-me.de (=?iso-8859-1?Q?K=F6gler_Peter?=)
 Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: i2c_smbus_write_* will never work
-Message-Id: <200407121142.i6CBgXqY020839@zone3.gcu-squad.org>
+Message-Id: <367ED8C46538D7119DAC000A0D106744520D66@elmegmbh.elmedmn.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <367ED8C46538D7119DAC000A0D106744520D5F@elmegmbh.elmedmn.com>
 In-Reply-To: <367ED8C46538D7119DAC000A0D106744520D5F@elmegmbh.elmedmn.com>
@@ -9,6 +9,37 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+hi jean,
+your explanation is very detailed. thank you very much. 
+
+i posted this "bug" in reaction of a mail of pieter@sanpeople.com. he is
+responsible for at91_i2c.c, the arm AT91RM9200 part of the I2C. so i gona
+forward your mail to him and see what he thinks.
+
+wbr
+
+peter
+
+--------------------------------------------------------------
+Peter K?gler
+EL-ME AG
+Gewerbering 1
+D-84072 Au i. d. Hallertau
+
+Tel.:     +49 / 8752 / 864 - 527
+Fax.:     +49 / 8752 / 864 - 100
+mailto.:  p.koegler@el-me.de         
+Web:      www.el-me.de
+ 
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: Monday, July 12, 2004 1:43 PM
+To: p.koegler@el-me.de
+Cc: sensors@Stimpy.netroedge.com
+Subject: RE: i2c_smbus_write_* will never work
+
 
 
 Hi Peter, all,
