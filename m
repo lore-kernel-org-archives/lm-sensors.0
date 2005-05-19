@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: kumar.gala@motorola.com (Kumar Gala)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: I2C driver for embedded Motorola PPC products
-Message-Id: <20040310224453.GA24336@kroah.com>
+Message-Id: <7B1B61A8-72E5-11D8-B2B5-000393DBC2E8@motorola.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <0AB9C6CD-72E3-11D8-B2B5-000393DBC2E8@motorola.com>
 In-Reply-To: <0AB9C6CD-72E3-11D8-B2B5-000393DBC2E8@motorola.com>
@@ -10,17 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 10, 2004 at 04:34:07PM -0600, Kumar Gala wrote:
-> All,
-> 
-> We are working on a driver for the I2C controller on the MPC8540 
-> (should also run on MPC824x, and MPC10x) for linux-2.4.  I was 
-> wondering who we should be submitting the driver to at this point.
+Thanks, quick question -- any significant changes in APIs between 2.4 
+and 2.6?
 
-For 2.6, send the patch to me and the sensors list (against the latest
-2.6 tree).  For 2.4 try the sensors list only (against the latest cvs
-tree)
+- kumar
 
-thanks,
+On Mar 10, 2004, at 4:44 PM, Greg KH wrote:
 
-greg k-h
+> On Wed, Mar 10, 2004 at 04:34:07PM -0600, Kumar Gala wrote:
+>> All,
+>>
+>> We are working on a driver for the I2C controller on the MPC8540
+>> (should also run on MPC824x, and MPC10x) for linux-2.4.  I was
+>> wondering who we should be submitting the driver to at this point.
+>
+> For 2.6, send the patch to me and the sensors list (against the latest
+> 2.6 tree).  For 2.4 try the sensors list only (against the latest cvs
+> tree)
+>
+> thanks,
+>
+> greg k-h
