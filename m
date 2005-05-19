@@ -1,7 +1,7 @@
 From: lists@edeca.net (David Cannings)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: bmcsensors howto?
-Message-Id: <200409262351.56542.lists@edeca.net>
+Message-Id: <200409271001.27383.lists@edeca.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <e6c87c5df333406bb6fd34c1549fe20d@onlymooo.com>
 In-Reply-To: <e6c87c5df333406bb6fd34c1549fe20d@onlymooo.com>
@@ -36,6 +36,6 @@ times and neither have responded to me.  I am not competent enough to do the
 coding myself unfortunately, so I'll just have to hope somebody else with an 
 interest manages to do it.
 
-I am more than happy to test code on the board if people can supply it.
+I am more than happy to test code on the board if people need me to.
 
 David
