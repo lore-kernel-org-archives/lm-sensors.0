@@ -1,38 +1,90 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
-Date: Thu, 19 May 2005 06:24:47 +0000
-Subject: Small fixes to sensord.8 and sensors.conf.5
-Message-Id: <20040314221810.GA30353@pc.aurel32.private>
+From: bbkr@post.pl (Pawel Pabian)
+Date: Thu, 19 May 2005 06:24:46 +0000
+Subject: ticket 1599 explanation
+Message-Id: <20040306020526.50077.qmail@home.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040314182002.GA7183@pc.aurel32.private>
-In-Reply-To: <20040314182002.GA7183@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 14, 2004 at 08:06:36PM +0100, Jean Delvare wrote:
-> > - sensors.conf.5
-> >   This man page refers to itself in the SEE ALSO section
-> 
-> I would tend to thing that it was trying to reference libsensors(3),
-> since libsensors(3) is referencing sensors.conf(5). I would take a patch
-> doing this.
+hello 
 
-Please find attached a new patch for that.
+the problem is, that I have ONLY mainboard sensors output. GeForce
+card sensors are detected by sensors-detect but not visible after
+runing "sensors".
 
--- 
-  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
- : :' :  Debian GNU/Linux developer | Electrical Engineering Student 
- `. `'   aurel32@debian.org         | aurelien@aurel32.net
-   `-    people.debian.org/~aurel32 | www.aurel32.net
--------------- next part --------------
-Index: lib/sensors.conf.5
-=================================RCS file: /home/cvs/lm_sensors2/lib/sensors.conf.5,v
-retrieving revision 1.2
-diff -u -1 -b -p -r1.2 sensors.conf.5
---- lib/sensors.conf.5	24 Dec 1999 22:44:41 -0000	1.2
-+++ lib/sensors.conf.5	14 Mar 2004 22:22:46 -0000
-@@ -410,2 +410,2 @@ lm_sensors-2.x
- .SH SEE ALSO
--sensors.conf(5)
-+libsensors(3)
+on 2.4 kernel I had BOTH Mainborad and GeForce output:
+
+bash-2.05b# sensors
+as99127f-i2c-1-2d
+Adapter: SMBus I801 adapter at e800
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.66 V  (min =  +1.58 V, max =  +1.92 V)
+VCore 2:   +1.66 V  (min =  +1.58 V, max =  +1.92 V)
++3.3V:     +3.13 V  (min =  +2.97 V, max =  +3.63 V)
++5V:       +5.04 V  (min =  +4.50 V, max =  +5.48 V)
++12V:     +11.17 V  (min = +10.79 V, max = +13.11 V)
+-12V:     -11.68 V  (min =  -0.00 V, max =  -0.00 V)
+-5V:       -4.42 V  (min =  -0.00 V, max =  -0.00 V)
+fan1:        0 RPM  (min = 3000 RPM, div = 2)
+fan2:        0 RPM  (min =  750 RPM, div = 8)
+fan3:        0 RPM  (min =  750 RPM, div = 8)
+temp1:       +29?C  (limit =  +60?C)
+temp2:     +46.4?C  (limit = +120?C, hysteresis = +100?C)
+temp3:    +255.4?C  (limit = +120?C, hysteresis = +100?C)
+vid:      +1.750 V
+alarms:
+beep_enable:
+          Sound alarm enabled
+
+
+w83781d-i2c-2-2d
+Adapter: NVIDIA display adapter bus 1
+Algorithm: Bit-shift algorithm
+VCore 1:   +2.84 V  (min =  +0.00 V, max =  +0.00 V)       ALARM
+VCore 2:   +1.40 V  (min =  +0.00 V, max =  +0.00 V)       ALARM
++3.3V:     +2.97 V  (min =  +2.97 V, max =  +3.63 V)       ALARM
++5V:       +4.91 V  (min =  +4.50 V, max =  +5.48 V)
++12V:     +11.48 V  (min = +10.79 V, max = +13.11 V)
+-12V:      -0.00 V  (min = -13.18 V, max = -10.78 V)       ALARM
+-5V:       -0.00 V  (min =  -5.48 V, max =  -4.50 V)       ALARM
+fan1:        0 RPM  (min = 3000 RPM, div = 2)              ALARM
+fan2:        0 RPM  (min = 3000 RPM, div = 2)              ALARM
+fan3:        0 RPM  (min = 3000 RPM, div = 2)              ALARM
+temp1:       +54?C  (limit =  +60?C)
+temp2:     +54.0?C  (limit =  +60?C, hysteresis =  +50?C)
+temp3:     +11.0?C  (limit =  +60?C, hysteresis =  +50?C)
+vid:      +0.000 V
+alarms:
+beep_enable:
+          Sound alarm disabled
+
+on 2.6.3 kernel output looks like this:
+
+linux root # sensors
+as99127f-i2c-0-2d
+Adapter: SMBus I801 adapter at e800
+VCore 1:   +1.68 V  (min =  +1.18 V, max =  +1.79 V)
+VCore 2:   +1.68 V  (min =  +1.18 V, max =  +1.79 V)
++3.3V:     +3.12 V  (min =  +2.96 V, max =  +3.63 V)
++5V:       +5.03 V  (min =  +4.49 V, max =  +5.51 V)
++12V:     +11.19 V  (min =  +9.55 V, max = +14.41 V)
+-12V:     -11.70 V  (min =  -0.00 V, max =  -0.00 V)
+-5V:       -4.43 V  (min =  -0.00 V, max =  -0.00 V)
+fan1:        0 RPM  (min = 3994 RPM, div = 2)              ALARM
+fan2:        0 RPM  (min =  998 RPM, div = 8)              ALARM
+fan3:        0 RPM  (min =  998 RPM, div = 8)              ALARM
+temp1:       +22?C  (high =   +80?C, hyst =   +75?C)
+temp2:     +39.0?C  (high =  +100?C, hyst =   +90?C)
+temp3:      -0.5?C  (high =   +80?C, hyst =   +75?C)
+vid:      +1.750 V
+alarms:
+beep_enable:
+          Sound alarm enabled
+
+as you see there are no readings from GF card. so that was the problem
+in ticket I posted.
+
+thanx for your time.
+bbkr
