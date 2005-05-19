@@ -1,41 +1,61 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:53 +0000
-Subject: Should drivers INIT? Was: Re: success on Asus P4S8X-X
-Message-Id: <3E9A4F92.5090206@penguincomputing.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] Add class definition to the elektor bus driver
+Message-Id: <11099685973185@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <110996859785@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
 
-You know, perhaps it should be made a new recommendation/rule that drivers 
-*not* initialize limits on chips by default.
+ChangeSet 1.2111, 2005/03/02 15:03:15-08:00, khali@linux-fr.org
 
-I had a problem with the LM85 shutting down Margit's motherboard.  Other 
-drivers have an init=0 option.
+[PATCH] Add class definition to the elektor bus driver
 
-With the different VRM specs that are now out there it's even harder to set 
-accurate defaults.
+Hi Frank, all,
 
-And if the BIOS *has* setup the chip, then when the driver "initializes" it, 
-the user looses what are presumably good limits for the given motherboard.
+> > Which bus driver are you using? It obviously lacks class declaration,
+> > so the correct fix is to add the class there.
+>
+> The modules that are loading are (in reverse order):
+>      adm1031
+>      ad5321
+>      mic184
+>      pca9540
+>      i2c_sensor
+>      i2c_elektor
+>      i2c_algo_pcf
+>      i2c_core
+>
+> So I believe what you are asking for is the i2c_elektor driver for the
+> PCF8584 ISA to I2C chip.
 
-Lastly, it would make the chip drivers smaller by a significant amount which 
-seems to be a current focus of development [grin]...
+Correct, I just checked and this one actually lacks its class. Patch
+follows.
 
-:v)
+This patch adds a class definition to the elektor i2c bus driver.
+Without this definition, hardware monitoring chips located on such
+busses cannot possibly be driven.
 
-
-> "set vrm 9.0" worked. thanks.
-> now I have a better vid value :
-> 
-> VCore 1:   +1.58 V  (min =  +1.44 V, max =  +1.60 V)              
-> [...]
-> vid:      +1.525 V
-> 
-> I just can now ear a very short alarm signal trigered by the motherboard,
-> after the module is loaded, and before "sensors -s" is launched. I can 
-> live with that. I usually don't reboot very often :-)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
+ drivers/i2c/busses/i2c-elektor.c |    1 +
+ 1 files changed, 1 insertion(+)
+
+
+diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
+--- a/drivers/i2c/busses/i2c-elektor.c	2005-03-04 12:23:13 -08:00
++++ b/drivers/i2c/busses/i2c-elektor.c	2005-03-04 12:23:13 -08:00
+@@ -183,6 +183,7 @@
+ 
+ static struct i2c_adapter pcf_isa_ops = {
+ 	.owner		= THIS_MODULE,
++	.class		= I2C_CLASS_HWMON,
+ 	.id		= I2C_HW_P_ELEK,
+ 	.algo_data	= &pcf_isa_data,
+ 	.name		= "PCF8584 ISA adapter",
 
