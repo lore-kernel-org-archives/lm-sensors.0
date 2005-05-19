@@ -1,23 +1,22 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: [PATCH] Architecture dependent build flags
-Message-Id: <20050311213713.22d7cc4e.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:47 +0000
+Subject: i2c-parport ancestors
+Message-Id: <20040313203134.1d043690.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050310022816.GA928@bode.aurel32.net>
-In-Reply-To: <20050310022816.GA928@bode.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aurelien,
+Hi Greg,
 
-> Please find two patches, one for i2c and one for lm-sensors, to set
-> gcc flags that are architecture dependent (to match the kernel ABI).
+Any plan to remove i2c-elv, i2c-velleman and i2c-philips-par from the
+2.6 kernel tree? Now that i2c-parport and i2c-parport-light are supposed
+to replace them, it would be nice if we could avoid spending energy
+maintaining them.
 
-Applied, thanks.
-
-Not sure lm_sensors is of any use on all these, but it cannot hurt.
+Thanks.
 
 -- 
 Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
