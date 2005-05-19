@@ -1,39 +1,127 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:25 +0000
-Subject: New driver for PCF8591
-Message-Id: <3BEEF85B.8D6032CA@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:49 +0000
+Subject: [PATCH 2.6] Setting w83627hf fan_div preserves fan_min
+Message-Id: <20040325205143.6820ae6e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E162vWB-0000d5-00@localhost>
-In-Reply-To: <E162vWB-0000d5-00@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-#define I2C_DRIVERID_PCF8591 1030
+Hi Greg, hi all,
 
-I added an entry on the new drivers page for you.
+Here is a patch that updates the w83627hf driver in the exact same way I
+did recently for the w83781d driver. There were two problems:
+1* Fan divisor storing code was ugly, badly ripped from the 2.4 w83627hf
+   driver and/or the 2.6 w83781d driver.
+2* Setting fan divisors wouldn't preserve fan mins.
 
-Good luck. Let us know if you need any help.
+Exactly the same as w83781d:
+http://archives.andrew.net.au/lm-sensors/msg06952.html
+http://archives.andrew.net.au/lm-sensors/msg07008.html
 
-mds
+No surprise since the w83627hf driver is a fork of the w83781d driver.
+
+Since the two drivers are strongly similar, I took the code directly
+from the updated w83781d driver. I cannot test the w83627hf driver
+(testers welcome BTW) but this makes me feel confident that the code is
+correct.
+
+To make it clear, this single patch is the w83627f equivalent of the
+three patches I submitted for the w83781d:
+* Cleanup
+* Refactoring
+* Setting fan_div preserves fan_min
+All in one (much better looking BTW).
+
+Please apply,
+thanks.
+
+--- linux-2.6.5-rc1/drivers/i2c/chips/w83627hf.c.orig	Tue Mar 16 21:43:43 2004
++++ linux-2.6.5-rc1/drivers/i2c/chips/w83627hf.c	Thu Mar 25 20:30:00 2004
+@@ -659,34 +659,37 @@
+ 		       (long) DIV_FROM_REG(data->fan_div[nr - 1]));
+ }
+ 
++/* Note: we save and restore the fan minimum here, because its value is
++   determined in part by the fan divisor.  This follows the principle of
++   least suprise; the user doesn't expect the fan minimum to change just
++   because the divisor changed. */
+ static ssize_t
+ store_fan_div_reg(struct device *dev, const char *buf, size_t count, int nr)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83627hf_data *data = i2c_get_clientdata(client);
+-	u32 val, old, old2, old3 = 0;
++	unsigned long min;
++	u8 reg;
+ 
+-	val = simple_strtoul(buf, NULL, 10);
+-	old = w83627hf_read_value(client, W83781D_REG_VID_FANDIV);
+-	old3 = w83627hf_read_value(client, W83781D_REG_VBAT);
+-	data->fan_div[nr - 1] = DIV_TO_REG(val);
+-
+-	if (nr >= 3 && data->type != w83697hf) {
+-		old2 = w83627hf_read_value(client, W83781D_REG_PIN);
+-		old2 = (old2 & 0x3f) | ((data->fan_div[2] & 0x03) << 6);
+-		w83627hf_write_value(client, W83781D_REG_PIN, old2);
+-		old3 = (old3 & 0x7f) | ((data->fan_div[2] & 0x04) << 5);
+-	}
+-	if (nr >= 2) {
+-		old = (old & 0x3f) | ((data->fan_div[1] & 0x03) << 6);
+-		old3 = (old3 & 0xbf) | ((data->fan_div[1] & 0x04) << 4);
+-	}
+-	if (nr >= 1) {
+-		old = (old & 0xcf) | ((data->fan_div[0] & 0x03) << 4);
+-		w83627hf_write_value(client, W83781D_REG_VID_FANDIV, old);
+-		old3 = (old3 & 0xdf) | ((data->fan_div[0] & 0x04) << 3);
+-		w83627hf_write_value(client, W83781D_REG_VBAT, old3);
+-	}
++	/* Save fan_min */
++	min = FAN_FROM_REG(data->fan_min[nr],
++			   DIV_FROM_REG(data->fan_div[nr]));
++
++	data->fan_div[nr] = DIV_TO_REG(simple_strtoul(buf, NULL, 10));
++
++	reg = (w83627hf_read_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV)
++	       & (nr=0 ? 0xcf : 0x3f))
++	    | ((data->fan_div[nr] & 0x03) << (nr=0 ? 4 : 6));
++	w83627hf_write_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV, reg);
++
++	reg = (w83627hf_read_value(client, W83781D_REG_VBAT)
++	       & ~(1 << (5 + nr)))
++	    | ((data->fan_div[nr] & 0x04) << (3 + nr));
++	w83627hf_write_value(client, W83781D_REG_VBAT, reg);
++
++	/* Restore fan_min */
++	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
++	w83627hf_write_value(client, W83781D_REG_FAN_MIN(nr+1), data->fan_min[nr]);
+ 
+ 	return count;
+ }
+@@ -700,7 +703,7 @@
+ store_regs_fan_div_##offset (struct device *dev, \
+ 			    const char *buf, size_t count) \
+ { \
+-	return store_fan_div_reg(dev, buf, count, offset); \
++	return store_fan_div_reg(dev, buf, count, offset - 1); \
+ } \
+ static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
+ 		  show_regs_fan_div_##offset, store_regs_fan_div_##offset)
+@@ -981,6 +984,11 @@
+ 
+ 	/* Initialize the chip */
+ 	w83627hf_init_client(new_client);
++
++	/* A few vars need to be filled upon startup */
++	data->fan_min[0] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(1));
++	data->fan_min[1] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(2));
++	data->fan_min[2] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(3));
+ 
+ 	/* Register sysfs hooks */
+ 	device_create_file_in(new_client, 0);
 
 
-
-Aurelien Jarno wrote:
-> 
-> Hello,
-> 
-> I would like to write a new driver for the PCF8591. It is an 8-bit A/D and
-> D/A converter (4 analog input and one analog ouptpu) for the I2C bus produced
-> by Philips Semiconductors.
-> 
-> According to the website in the "New Drivers" section, nobody has started to
-> write a driver for this chip. Please tell me if it is wrong.
-> 
-> I have read the new_drivers file in the lm-sensors package and I have seen I
-> am needing an ID reserved in i2c-id.h. Could you provide me one ?
-> 
-> Thanks
-> 
-> Aurelien Jarno
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
