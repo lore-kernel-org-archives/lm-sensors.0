@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: rol@as2917.net (Paul Rolland)
 Date: Thu, 19 May 2005 06:24:01 +0000
 Subject: [rol@as2917.net: Need help for kernel 2.5.x ???]
-Message-Id: <20030623025405.GA5913@kroah.com>
+Message-Id: <004301c33955$4e29c6f0$4100a8c0@witbe>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030622185659.GB2380@frodo.local>
 In-Reply-To: <20030622185659.GB2380@frodo.local>
@@ -10,30 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 22, 2003 at 08:56:59PM +0200, Frodo Looijaard wrote:
-> ----- Forwarded message from Paul Rolland <rol@as2917.net> -----
-> 
-> From: Paul Rolland <rol@as2917.net>
-> To: alla@lysator.liu.se, frodol@dds.nl, simon@tk.uni-linz.ac.at
-> Cc: rol@as2917.net
-> Subject: Need help for kernel 2.5.x ???
-> Importance: Normal
-> X-Spam-Status: No, hits=0.9 required=5.0 tests=SUBJ_ENDS_IN_Q_MARK,SUBJ_HAS_Q_MARK version=2.20
-> X-Spam-Level: 
-> 
-> Hello,
-> 
-> Homepage of lm-sensors states that you need help to migrate to kernel 2.5.x.
-> I'm running 2.5.72, and i'd like to have lm-sensors running on my platform.
-> 
-> Thus, I'm ready to give a try helping you.
-> 
-> Problem is : it seems that no currently available version is to be used
-> for kernel 2.5.
+Hello,
 
-The version is already built into the 2.5 kernel.  So select the i2c
-driver options in that kernel and see how well they work.
+> The version is already built into the 2.5 kernel.  So select 
+> the i2c driver options in that kernel and see how well they work.
+> 
+Yes, I2C are present, and I have them available within sysfs.
 
-thanks,
+My mail was motivated by :
+ - I can't find anymore i2c within /proc/bus or anywhere else
+   within /proc and it seems that lm_sensors tools are still
+   looking for something there.
+ - the home page was related to libsensors.a and not to i2c sensors
+   and I was thinking that libsensors was the stuff that new where 
+   to get the details in the system (thus switching from /proc to 
+   sysfs should be in libsensors for user space application), and
+   I was ready to give it a try.
 
-greg k-h
+Sorry I badly understood.
+
+Regards,
+Paul
