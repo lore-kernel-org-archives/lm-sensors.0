@@ -1,40 +1,44 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: Cannot have lm-sensors work with my NV7m ABIT motherboard
-Message-Id: <3E8DDF5F.C92B6453@paradyne.com>
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: Asus Boards: A New Hope
+Message-Id: <Pine.LNX.4.58.0503091025440.25688@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1048326224.4015.63.camel@Ordiyann>
-In-Reply-To: <1048326224.4015.63.camel@Ordiyann>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-been busy @ work this week and was out of town last wkend, will
-be catching up on my sensors mail this weekend.
-mds
+Hello,
 
-Jean Delvare wrote:
-> 
-> > I come to you to see if you did it to contact Mark, and if you had
-> > some time to study my problem...
-> >
-> > Please, let me know...
-> 
-> Well, Mark is supposed to read the list the same way I do. I don't feel
-> like bothering him if he doesn't want to answer. Actually, it looks like
-> both Mark and Phil are really busy these days, and there's nothing I can
-> do about it.
-> 
-> What's more, there is a lot of development on I2C and LM Sensors right
-> know (moving into the 2.5 kernel series), so it may not be the best
-> chosen moment for individual support requests. I'd suggest you try to
-> live without a perfectly working sensor system for now, and take a
-> chance in a few months when the code is stabilized and people are more
-> available.
-> 
-> Thanks for your patience.
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+You board has same GPIO base addr so the trick might work too.
+Because I dont know how to force isadump to dump only one byte
+I made some program that could do the trick for you.
+
+We dont know if this would work. In general  it is not good to
+play with  GPIO when we dont know what they doing but the risk
+is sometimes gain :)
+
+#include <sys/io.h>
+#include <stdio.h>
+int main(void) {
+unsigned char val;
+iopl(3);
+val=inb(0x4B9);
+printf("Was %x\n",val);
+val&=~0x4; //clear bit 2
+val|=0x8; //set bit3
+outb(val,0x4B9);
+printf("Wrote %x, readback %x\n",val,inb(0x4B9));
+return 0;
+}
+
+gcc trick.c -o trick
+su
+./trick
+
+I would like to see the i2cdump (or if you have recent sensors-detect you
+can try it also) and dump of this program.
+
+Thanks
+
+Rudolf
