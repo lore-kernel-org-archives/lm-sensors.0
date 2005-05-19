@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: grant_nospam@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: [PATCH 2.6] Trivial: group Intel on I2C Hardware Bus support menu
-Message-Id: <UrMWOmfy.1110369137.3109400.khali@localhost>
+Message-Id: <lmiu21dd4lirboemdbr5a5ds2bm6tu5rcp@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <71ss2156tl8s8mb4afff8511nu3gke4qi8@4ax.com>
 In-Reply-To: <71ss2156tl8s8mb4afff8511nu3gke4qi8@4ax.com>
@@ -10,48 +10,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Greetings,
 
-Hi Grant, all,
+From an end-user perspective it is easy to miss the third Intel 
+PIIX4 entry on the menuconfig "I2C Hardware Bus support" screen.
+Also the Intel 801 menu item does not mention ICH.
 
-> From an end-user perspective it is easy to miss the third Intel PIIX
-> entry on the menuconfig "I2C Hardware Bus support" screen.
-> Also the Intel 801 menu item does not mention ICH.
->
-> This trivial patch groups three Intel entries together, adds ICH to
-> menu item, and ICH5/ICH5R to the help section.
+This trivial patch groups three Intel entries together, adds ICH to
+menu item, and ICH5/ICH5R to the help section.  This patch includes 
+changes suggested by Jean Delvare, and also removes EXPERIMENTAL 
+dependency from the PIIX4 item.
 
-I'm all for it, as it makes full sense. I would simply suggest the
-following variations (I feel like nitpicking today):
+Signed off by: Grant Coady <gcoady@gmail.com>
 
->  config I2C_I801
-> -	tristate "Intel 801"
-> +	tristate "Intel 801/ICH"
 
-I'd rather say "Intel 82801 (ICH)". It's an alternate name for the
-same thing, not two separate chips/families.
-
->@@ -119,7 +119,7 @@
-> 	    82801BA
-> 	    82801CA/CAM
-> 	    82801DB
->-	    82801EB
->+	    82801EB/82801ER (ICH5/ICH5R)
-
-That would be /ER if you follow the example above.
-
-> +config I2C_PIIX4
-> +	tristate "Intel PIIX4"
-> +	depends on I2C && PCI && EXPERIMENTAL
-
-While you are there, feel free to discard EXPERIMENTAL. The driver exists
-for maybe 6 years, if we don't consider it stable now, we never will.
-
-Care to repost a version of your patch including all suggested changes
-that you found relevant, it any?
-
-Note that you have to CC: Greg KH when posting such patches if you want
-him to include them in his tree and later push them to Andrew Morton.
-
-Thanks for your help,
---
-Jean Delvare
+--- linux-2.6.11-mm2/drivers/i2c/busses/Kconfig	2005-03-09 15:12:20.000000000 +1100
++++ linux-2.6.11-mm2b/drivers/i2c/busses/Kconfig	2005-03-10 05:35:17.000000000 +1100
+@@ -108,7 +108,7 @@
+ 	  will be called i2c-hydra.
+ 
+ config I2C_I801
+-	tristate "Intel 801"
++	tristate "Intel 82801 (ICH)"
+ 	depends on I2C && PCI && EXPERIMENTAL
+ 	help
+ 	  If you say yes to this option, support will be included for the Intel
+@@ -119,7 +119,7 @@
+ 	    82801BA
+ 	    82801CA/CAM
+ 	    82801DB
+-	    82801EB
++	    82801EB/ER (ICH5/ICH5R)
+ 	    6300ESB
+ 	    ICH6
+ 	    ICH7
+@@ -143,6 +143,23 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-i810.
+ 
++config I2C_PIIX4
++	tristate "Intel PIIX4"
++	depends on I2C && PCI
++	help
++	  If you say yes to this option, support will be included for the Intel
++	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
++	  versions of the chipset are supported:
++	    Intel PIIX4
++	    Intel 440MX
++	    Serverworks OSB4
++	    Serverworks CSB5
++	    Serverworks CSB6
++	    SMSC Victory66
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-piix4.
++
+ config I2C_IBM_IIC
+ 	tristate "IBM PPC 4xx on-chip I2C interface"
+ 	depends on IBM_OCP && I2C
+@@ -285,23 +302,6 @@
+ 	  This support is also available as a module.  If so, the module 
+ 	  will be called i2c-parport-light.
+ 
+-config I2C_PIIX4
+-	tristate "Intel PIIX4"
+-	depends on I2C && PCI && EXPERIMENTAL
+-	help
+-	  If you say yes to this option, support will be included for the Intel
+-	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
+-	  versions of the chipset are supported:
+-	    Intel PIIX4
+-	    Intel 440MX
+-	    Serverworks OSB4
+-	    Serverworks CSB5
+-	    Serverworks CSB6
+-	    SMSC Victory66
+-
+-	  This driver can also be built as a module.  If so, the module
+-	  will be called i2c-piix4.
+-
+ config I2C_PROSAVAGE
+ 	tristate "S3/VIA (Pro)Savage"
+ 	depends on I2C && PCI && EXPERIMENTAL
