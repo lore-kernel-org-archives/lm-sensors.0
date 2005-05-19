@@ -1,32 +1,28 @@
-From: p5yke@optusnet.com.au (p5yke)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:54 +0000
 Subject: LM99 support
-Message-Id: <1082749445.2933.5.camel@c211-30-214-50.rivrw3.nsw.optusnet.com.au>
+Message-Id: <20040423234121.11deba18.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1082749445.2933.5.camel@c211-30-214-50.rivrw3.nsw.optusnet.com.au>
+In-Reply-To: <1082749445.2933.5.camel@c211-30-214-50.rivrw3.nsw.optusnet.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have started 12 hour shifts this morning so it might be 4 days before
-I have time to apply with this. I tried briefy. 
+> Is the command 'patch <linux-2.6.3-i2c-lm99.diff' in the chips
+> directory?? Do the Failed messages matter?
 
-I dont know C and I have never patched before. Unfortunately I think I
-know just enough to be dangerous! LOL
+The right command is "patch -p1 < linux-2.6.3-i2c-lm99.diff" run from
+the *linux* directory. Then make modules && make modules_install &&
+depmod -ae.
 
-Is the command 'patch <linux-2.6.3-i2c-lm99.diff' in the chips
-directory?? Do the Failed messages matter?
+Note that "sensors" won't work out of the box since the "lm99" name
+isn't know there yet. I'll commit my changes tomorrow. However, you
+should be able to see the chip under /sys/bus/i2c/devices already.
 
-Scott
+Thanks.
 
-On Sat, 2004-04-24 at 04:24, Jean Delvare wrote:
-> Hi Psyke,
-> 
-> Here are the relevant patches to add LM99 support to the lm90 kernel.
-> There's one against 2.6.3 and one against 2.6.6-rc2, pick the one you
-> prefer. If you prefer a patch against a different kernel, just tell me.
-> 
-> Let me know how it works for you! I will now be adding support to the
-> user-space tools.
-> 
-> Thanks.
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
