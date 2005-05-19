@@ -1,7 +1,7 @@
 From: pwilsmore@asi.com.au (Peter Wilsmore)
 Date: Thu, 19 May 2005 06:25:15 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <45A0FF82385BEB4C8670E255530B3385B23D70@mssydeb.asi.com.au>
+Message-Id: <45A0FF82385BEB4C8670E255530B3385B23D7A@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -9,6 +9,22 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+I think I may have worked out _what_ is happening, just not _why_. Whenever there is a warning light on the front on the chassis the sensors program will crash as described in the previous email, otherwise it seems to run ok. Any suggestions on what I can do to fix this? Is there something that the the IPMI interface is returning that the bmcsensors module has not been setup to handle?
+
+Thanks,
+
+Peter Wilsmore
+ 
+ASI SOLUTIONS
+Direct: 1300130 837
+
+-----Original Message-----
+From: Peter Wilsmore 
+Sent: Wednesday, 15 September 2004 5:52 PM
+To: 'Mark Studebaker'
+Cc: 'lm78@Stimpy.netroedge.com'
+Subject: RE: bmcsensors and strange sensor values.
 
 Hi,
 I'm still having problems with this bmcsensors module, only this time I get the right readings - when it works. I found from MSI whilst my values seemed high they were correct, so I now have conv_val looking like:
