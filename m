@@ -1,78 +1,66 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: intel ESB rapid quirk fix
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE40FD1F@weshml03.winbond.com.tw>
+From: ebs@ebshome.net (Eugene Surovegin)
+Date: Thu, 19 May 2005 06:25:20 +0000
+Subject: [PATCH] fix recently introduced race in IBM PPC4xx I2C driver
+Message-Id: <20041020062633.GA16580@gate.ebshome.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4266914C.6040101@sh.cvut.cz>
-In-Reply-To: <4266914C.6040101@sh.cvut.cz>
+References: <10982315061975@kroah.com> <1098231506495@kroah.com> <20041020052108.GA14871@gate.ebshome.net>
+In-Reply-To: <20041020052108.GA14871@gate.ebshome.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com, Nishanth Aravamudan <nacc@us.ibm.com>
 
-RGVhciBSdWRvbGYKCkkgdGVzdGVkIHlvdXIgc2NyaXB0cyBvbiB0aGUgQVNVUyBtb3RoZXJib2Fy
-ZCwgSSBhdHRhY2hlZCB0aHJlZSBpb3BvcnRzCmluIHRoaXMgbWFpbC4KClRoZSBpb3BvcnRzXzEg
-aXMgdGhlIG9uZSB3aGVuIEkgdXNlIHRoZSBjbGVhbiBsaW51eC0yLjYuMTEga2VybmVsLCB3aXRo
-b3V0CmFueSBwYXRjaHMuCgpUaGUgaW9wb3J0c18yIGlzIHRoZSBvbmUgd2hlbiBwYXRjaGVkIHlv
-dXIgaGlkZV9hbmRfc2Vla18yIG9uIGNsZWFuCmxpbnV4LTIuNi4xMSBrZXJuZWwsIHdoaWNoIHdh
-cyBzZW50IHRvIG1lIG9uIGFib3V0IDIwMDUtMDMtMDkKClRoZSBpb3BvcnRzXzMgaXMgdGhlIG9u
-ZSB3aGVuIHBhdGNoZWQgeW91ciBwYXRjaCBzZW50IG1lIHllc3RlcmRheQpvbiBDTEVBTiBsaW51
-eC0yLjYuMTEga2VybmVsLgoKClBsZWFzZSBjaGVjayB0aGVtCgpUaGFua3MKQmVzdCBSZWdhcmRz
-CkNodW5oYW8KCgo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gRnJvbTogUnVkb2xmIE1h
-cmVrIFttYWlsdG86ci5tYXJla0BzaC5jdnV0LmN6XQo+IFNlbnQ6IDIwMDXE6jTUwjIxyNUgMToy
-OQo+IFRvOiBQSTE0IEhVQU5HMDsgTE0gU2Vuc29ycwo+IFN1YmplY3Q6IGludGVsIEVTQiByYXBp
-ZCBxdWlyayBmaXgKPiAKPiBIZWxsbywKPiAKPiBUaGlzIHBhdGNoIG9ubHkgYmluZHMgQUNQSSBh
-bmQgR1BJTyBJTyBzcGFjZSByZWdpb25zIHRvIHNvdXRoYnJpZGdlLgo+IFBsZWFzZSBjYW4geW91
-IHRlc3Qgb24gdGhhdCBBU1VTIGJvYXJkIHRoaXMgcGF0Y2g/Cj4gCj4gWW91IGNhbiB0cnkgYmVm
-b3JlIHlvdSBhcHBseToKPiBjYXQgL3Byb2MvaW9wb3J0cwo+IGFmdGVyIHlvdSByZWJvb3Qgd2l0
-aCB0aGUgcGF0Y2gKPiBjYXQgL3Byb2MvaW9wb3J0cwo+IDIgbmV3IHJlZ2lvbnMgc2hvdWxkIGJl
-IHRoZXJlLiAocm91bmQgMHg0MDApCj4gCj4gVGhhbmtzLAo+IHJlZ2FyZHMKPiAKPiBSdWRvbGYK
-PiAKPiBkaWZmIC1OYXVyIGEvZHJpdmVycy9wY2kvcXVpcmtzLmMgYy9kcml2ZXJzL3BjaS9xdWly
-a3MuYwo+IC0tLSBhL2RyaXZlcnMvcGNpL3F1aXJrcy5jCTIwMDUtMDQtMDQgMTg6Mzc6NTEuMDAw
-MDAwMDAwICswMjAwCj4gKysrIGMvZHJpdmVycy9wY2kvcXVpcmtzLmMJMjAwNS0wNC0yMCAxOTox
-OTo1My42NjY1NjgyMDAgKzAyMDAKPiBAQCAtMzI4LDYgKzMyOCw3IEBACj4gIERFQ0xBUkVfUENJ
-X0ZJWFVQX0hFQURFUihQQ0lfVkVORE9SX0lEX0lOVEVMLAo+IFBDSV9ERVZJQ0VfSURfSU5URUxf
-ODI4MDFEQl8wLAkJcXVpcmtfaWNoNF9scGNfYWNwaSApOwo+ICBERUNMQVJFX1BDSV9GSVhVUF9I
-RUFERVIoUENJX1ZFTkRPUl9JRF9JTlRFTCwKPiBQQ0lfREVWSUNFX0lEX0lOVEVMXzgyODAxREJf
-MTIsCXF1aXJrX2ljaDRfbHBjX2FjcGkgKTsKPiAgREVDTEFSRV9QQ0lfRklYVVBfSEVBREVSKFBD
-SV9WRU5ET1JfSURfSU5URUwsCj4gUENJX0RFVklDRV9JRF9JTlRFTF84MjgwMUVCXzAsCQlxdWly
-a19pY2g0X2xwY19hY3BpICk7Cj4gK0RFQ0xBUkVfUENJX0ZJWFVQX0hFQURFUihQQ0lfVkVORE9S
-X0lEX0lOVEVMLAo+IFBDSV9ERVZJQ0VfSURfSU5URUxfRVNCXzEsCQlxdWlya19pY2g0X2xwY19h
-Y3BpICk7Cj4gCj4gIC8qCj4gICAqIFZJQSBBQ1BJOiBPbmUgSU8gcmVnaW9uIHBvaW50ZWQgdG8g
-YnkgbG9uZ3dvcmQgYXQKCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQg
-aW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMg
-YXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91
-IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90
-IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBs
-ZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBk
-ZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2Vy
-dmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlz
-IGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZv
-cm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3Jt
-YXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwg
-YnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3Ig
-ZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9u
-dCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkg
-cmVwZWF0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5
-uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKel
-zi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSn
-pFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviq
-Qb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbz
-pby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCr
-SKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMu
-Ci0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0tLS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0dGFj
-aG1lbnQgd2FzIHNjcnViYmVkLi4uCk5hbWU6IGlvcG9ydHNfMwpUeXBlOiBhcHBsaWNhdGlvbi9v
-Y3RldC1zdHJlYW0KU2l6ZTogNzc5IGJ5dGVzCkRlc2M6IGlvcG9ydHNfMwpVcmwgOiBodHRwOi8v
-bGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvYXR0YWNobWVudHMvMjAw
-NTA0MjEvOGM0YzBlMjIvaW9wb3J0c18zLm9iagotLS0tLS0tLS0tLS0tLSBuZXh0IHBhcnQgLS0t
-LS0tLS0tLS0tLS0KQSBub24tdGV4dCBhdHRhY2htZW50IHdhcyBzY3J1YmJlZC4uLgpOYW1lOiBp
-b3BvcnRzXzEKVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtClNpemU6IDcxOSBieXRlcwpE
-ZXNjOiBpb3BvcnRzXzEKVXJsIDogaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFp
-bC9sbS1zZW5zb3JzL2F0dGFjaG1lbnRzLzIwMDUwNDIxLzhjNGMwZTIyL2lvcG9ydHNfMS5vYmoK
-LS0tLS0tLS0tLS0tLS0gbmV4dCBwYXJ0IC0tLS0tLS0tLS0tLS0tCkEgbm9uLXRleHQgYXR0YWNo
-bWVudCB3YXMgc2NydWJiZWQuLi4KTmFtZTogaW9wb3J0c18yClR5cGU6IGFwcGxpY2F0aW9uL29j
-dGV0LXN0cmVhbQpTaXplOiA3NzkgYnl0ZXMKRGVzYzogaW9wb3J0c18yClVybCA6IGh0dHA6Ly9s
-aXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy9hdHRhY2htZW50cy8yMDA1
-MDQyMS84YzRjMGUyMi9pb3BvcnRzXzIub2JqCg==
+On Tue, Oct 19, 2004 at 10:21:08PM -0700, Eugene Surovegin wrote:
+
+[snip]
+
+> It looks like this change added race I tried to avoid here.
+> 
+> This code is modeled after __wait_event_interruptible_timeout, where 
+> "prepare_to_wait" is done _before_ checking completion status. This 
+> change breaks this, e.g. if IRQ happens right after we check iic->sts, 
+> but before calling msleep_interruptible(). In this case we'll sleep 
+> much more than required (seconds instead of microseconds)
+> 
+> Greg, if my analysis is correct, please rollback this change.
+> 
+> Nishanth, I'd be nice if you CC'ed me with this patch, my e-mail is at 
+> the top of that source file.
+
+Oh, well. I should have used wait_event_interruptible_timeout when I 
+ported this driver to 2.6.
+
+This patch fixes recently introduced race and also cleans ups some 
+2.4-ism.
+
+Please, apply.
+
+Signed-off-by: Eugene Surovegin <ebs@ebshome.net>
+
+=== drivers/i2c/busses/i2c-ibm_iic.c 1.12 vs edited ==--- 1.12/drivers/i2c/busses/i2c-ibm_iic.c	2004-10-14 11:30:08 -07:00
++++ edited/drivers/i2c/busses/i2c-ibm_iic.c	2004-10-19 23:18:16 -07:00
+@@ -412,18 +412,12 @@
+ 	
+ 	if (dev->irq >= 0){
+ 		/* Interrupt mode */
+-		wait_queue_t wait;
+-    		init_waitqueue_entry(&wait, current);
+-		
+-		add_wait_queue(&dev->wq, &wait);
+-		if (in_8(&iic->sts) & STS_PT)
+-			msleep_interruptible(dev->adap.timeout * 1000);
+-		remove_wait_queue(&dev->wq, &wait);
+-		
+-		if (unlikely(signal_pending(current))){
++		ret = wait_event_interruptible_timeout(dev->wq, 
++			!(in_8(&iic->sts) & STS_PT), dev->adap.timeout * HZ);
++
++		if (unlikely(ret < 0))
+ 			DBG("%d: wait interrupted\n", dev->idx);
+-			ret = -ERESTARTSYS;
+-		} else if (unlikely(in_8(&iic->sts) & STS_PT)){
++		else if (unlikely(in_8(&iic->sts) & STS_PT)){
+ 			DBG("%d: wait timeout\n", dev->idx);
+ 			ret = -ETIMEDOUT;
+ 		}
