@@ -1,29 +1,38 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:55 +0000
-Subject: [PATCH 2.6-bk] Update IXP4xx I2C bus driver
-Message-Id: <20040502053703.GC31886@kroah.com>
+From: khali@linux-fr.org (Khali)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: lm_sensors2 Makefile
+Message-Id: <1033131073.3d945441d6d95@imp.free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040415180759.GA15522@plexity.net>
-In-Reply-To: <20040415180759.GA15522@plexity.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Apr 15, 2004 at 11:07:59AM -0700, Deepak Saxena wrote:
-> 
-> Greg,
-> 
-> The 2.6 IXP4xx code has been cleaned up to change all references to
-> IXP42x/IXP425 with IXP4xx. The following patch updates the I2C bits.
-> Before applying, you need to 'bk move i2c-ixp42x.c ixp-4xx.c".
 
-Hm, I think you meant:
-	bk mv i2c-ixp42x.c i2c-ixp4xx.c
-instead, as that is what your patch reflected :)
+> Modified Files:
+> 	Makefile 
+> Log Message:
+> (mds) take LINUX from /lib/modules/x.x.x/build; patch from
+>       Dave Johnson <ddj@cascv.brown.edu>
 
-I've done that and applied your patch.
+Hmmm...
+This isn't that clear to me.
 
-thanks,
+While the new way (/lib/modules/$(shell uname -r)/build) ensures we are 
+compiling the modules for the current kernel, the old way (/usr/src/linux) 
+allowed one to compile the modules for the default kernel, whatever the current 
+kernel is.
 
-greg k-h
+As far as I'm concerned, I prefer the old way. I happen to change kernel 
+versions quite often (testing both ACPI and CPUFreq on my system) and have to 
+reconfigure and reinstall i2c and lm_sensors everytime. Using /usr/src/linux as 
+the default, I am able to do so *before* I actually reboot on the new kernel. 
+With the new way, I would have to do the same *after* the reboot.
+
+I would be pleased to listen to arguments in favor of the new way.
+
+Anyway, whatever we decide, I think that we should do the same in i2c and 
+lm_sensors (which isn't the case right now).
+
+Later,
+Khali
