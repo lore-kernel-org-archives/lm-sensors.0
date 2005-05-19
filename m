@@ -1,26 +1,19 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:24:04 +0000
-Subject: About to release
-Message-Id: <3F0AEFB5.8040206@edgedesign.us>
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: it87 and lm85 tickets
+Message-Id: <42374305.6030000@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030707154107.556a1372.khali@linux-fr.org>
-In-Reply-To: <20030707154107.556a1372.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+it87 PWM on 2.6 kernels: tickets 1925, 1932
+I think it87 PWM on 2.6 is a work in progress? Who's working on this?
 
-Gotcha.  I'm glad I asked.
+lm85 new stepping 0x69: ticket 1933 (khali)
 
+also is anybody able to tackle ticket 1906?
 
-Phil
-
-Mark D. Studebaker wrote:
-
-> I added a note to checklist but in case you miss it,
-> make the i2c release is from the lk2-4 branch, not HEAD!!!
-> sensors is from HEAD, we never branched.
->
-> We'll give you the goahead in a day or two.
->
+thanks
+mds
