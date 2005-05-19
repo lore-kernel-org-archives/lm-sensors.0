@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:16 +0000
 Subject: 2.4.22 kernel patches available
-Message-Id: <20030907181045.6ff920f1.khali@linux-fr.org>
+Message-Id: <20030907182130.541bf643.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030831172730.775fb950.khali@linux-fr.org>
 In-Reply-To: <20030831172730.775fb950.khali@linux-fr.org>
@@ -11,60 +11,55 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> On sybyte and max1617 we should try and find the authors and bring
-> them into the fold.
+> > I noticed that new I2C drivers exist there: i2c-sibyte (plus
+> > i2c-algo-sibyte) and i2c-max1617. Why they end up there without us
+> > even hearing about it is a complete mystery to me. The max1617
+> > driver is crappy (polling + working only with the sibyte bus) and
+> > completely useless since we already support that chip for years. The
+> > bus driver probably should have been built into a single module. And
+> > none of these modules will even compile since they use I2C IDs that
+> > are not defined.
+> > 
+> > My 2.4.22 patch simply wipe them out. I can't understand how they
+> > were accepted into the main kernel tree. I couldn't find anything
+> > related to them in the kernel changelog nor in LKML archives.
+> 
+> These all came in from the merge with the MIPS maintainer.  Bitkeeper
+> is nice :)
 
-The author is Kip Walker from Broadcom Corp., it seems. Googl'ing the
-name should provide an e-mail address, but I admit I'm too busy to
-contact him right now, and I hope that one of you will do so.
+Oh, OK. Not used to bitkeeper yet (and no time for this now).
 
-> On you moving on, hopefully you can find 1-2 hours a week for us which
-> would still qualify you as "active"! We've appreciated your energy and
-> enthusiasm(and new ideas) over the recent months, especially as it
-> came when I was running out of all of those...
+> > I feel like we should complain about that, but unfortunately I don't
+> > have time for that right now. Greg, you have more contact with the
+> > kernel people than any of us here, do you have any information we
+> > don't have?
+> 
+> Why complain?  What is it hurting?  The cvs code sure isn't in the
+> kernel tree so what do we have to base our complaint on?  :)
 
-Finding a few hours a week won't be difficult, especially since I
-*really like* contributing to the project. The real difficulty for now
-is that I hardly have a place I can call home (although I *do* have a
-flat now). Hopefully, I'll have brand new bed and fridge there within a
-few days, a phone line and, even more important, power supply :) Once
-all these are OK, I'll move there for good and you'll see more often
-again.
+The I2C architecture as we know it has been defined some years ago,
+IIRC. And the i2c subsystem is regularly updated from our CVS repository
+AFAIK (although it has been some time since it was last done). People
+needing I2C IDs should know they have to ask. People wanting to write
+I2C drivers should read our docs and follow the guidelines. Or why are
+we writing docs?
 
-> Any proposal for how to proceed with the 2.4 patch?
+> So I'm guessing that some people with MIPS platforms actually use this
+> driver.  Good for them.  I would not recommend that your patches "wipe
+> them out" for that reason.
 
-Release 2.8.1 (hi, Phil ;)), generate patches, post patches on LKML.
-Wait and see.
+I wiped them out because they would not *compile* and I don't want
+people to think that our patch is faulty, while it isn't. I think that
+we should preserve the sibyte driver (and algo). But I want the
+i2c-max1617 driver out, because we *do* have a driver for that chip for
+a very long time, which respects the overall architecture, with procfs
+and libsensors support. So we just don't need another, poor max1617
+driver.
 
-Phil, I remind you that you don't have to bump the library's version, as
-I already did.
-
-> Without you to generate a 2.8.1->2.4.23 patch, what should we do?
-
-There's no such thing as "without me". I won't let you down :) The patch
-is almost already generated. The patches I made available for Linux
-2.4.22 users will be OK for inclusion into Linux 2.4.23, with the
-exception of the main patch that will have to be regenerated once i2c
-2.8.1 is released. But that one is automatically generated, so that's
-not a big problem.
-
-The main concern IMHO are the new sibyte and max1617 drivers, that
-really entered the tree at the worst possible time. I don't know exactly
-what to do with them. Wiping them out is bad. But integrating them
-correctly could take some more time. Suggestions welcome.
-
-> And if you don't mind, what are you going to be doing for a living?
-
-I've been hired as a development engineer (and that's great, because
-that's what I just am). I'll be working in Paris (well, so near that
-it's the same) and living there too (likewise, so near that's it's the
-same, although that's not the same "so near", unfortunately). My first
-task will be about web application development, using PHP 4 and a some
-HTML/CSS design too.
-
-> thanks again
-
-You're more than welcome. Not sure who should thank the other here :)
+We'll have to define the required IDs for the sibyte driver and algo
+(BTW, shouldn't the algo be included into the driver? Is it likely to be
+reused?), since that's them missing that prevent the modules from
+compiling.
 
 -- 
 Jean Delvare
