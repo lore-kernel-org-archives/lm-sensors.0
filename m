@@ -1,71 +1,45 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: Fw: Question on I2C driver development for Motorola chips
-Message-Id: <3F9737CC.B4008DB@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH 2.6] Cleanup adm1021 unused defines
+Message-Id: <20050306085255.1cb6e862.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BB30349BF3FE18418DC420BDDCAE22AF0144AC06@az33exm54.corp.mot.com>
-In-Reply-To: <BB30349BF3FE18418DC420BDDCAE22AF0144AC06@az33exm54.corp.mot.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Xianghua,
-we appreciate your offer.
-Of course any contribution must be GPL.
-A consolidated driver would be helpful.
-While we have PPC drivers in our tree, they may not get as much
-use or maintenance as the drivers in the PPC-specific kernel branches
-found elsewhere on the net.
-You should consider where the best home for your consolidated
-driver should be, and perhaps discuss it on the appropriate
-PPC mailing list.
+Hi Greg,
 
-mds
+While working on the adm1021 driver, I found that this driver has a
+number of unused (and useless) defines we could get rid of.
+
+Please apply,
+thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.11-mm1/drivers/i2c/chips/adm1021.c.orig	Fri Mar  4 13:03:33 2005
++++ linux-2.6.11-mm1/drivers/i2c/chips/adm1021.c	Fri Mar  4 13:24:16 2005
+@@ -28,18 +28,6 @@
+ #include <linux/i2c-sensor.h>
+ 
+ 
+-/* Registers */
+-#define ADM1021_SYSCTL_TEMP		1200
+-#define ADM1021_SYSCTL_REMOTE_TEMP	1201
+-#define ADM1021_SYSCTL_DIE_CODE		1202
+-#define ADM1021_SYSCTL_ALARMS		1203
+-
+-#define ADM1021_ALARM_TEMP_HIGH		0x40
+-#define ADM1021_ALARM_TEMP_LOW		0x20
+-#define ADM1021_ALARM_RTEMP_HIGH	0x10
+-#define ADM1021_ALARM_RTEMP_LOW		0x08
+-#define ADM1021_ALARM_RTEMP_NA		0x04
+-
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x18, 0x19, 0x1a,
+ 					0x29, 0x2a, 0x2b,
 
 
-Jean Delvare wrote:
-> 
-> Hi Michael,
-> 
-> Xianghua is trying to reach you to share your works on Motorola MPC
-> drivers, so I am forwarding his message to you so that you can get in
-> touch.
-> 
-> Begin forwarded message:
-> 
-> Date: Tue, 21 Oct 2003 13:10:26 -0700
-> From: Xiao Xianghua-r6aads <X.Xiao@motorola.com>
-> To: "'sensors@stimpy.netroedge.com'" <sensors@Stimpy.netroedge.com>
-> Cc: Xiao Xianghua-r6aads <X.Xiao@motorola.com>
-> Subject: Question on I2C driver development for Motorola chips
-> 
-> Hello,
-> 
-> I'm an engineer working in Motorola. I have a 'working' I2C driver for
-> the new chip MPC8540/MPC8560 and I'm eager to add this driver to your
-> CVS, and I hope it can be pushed to the linux kernel in the near future.
-> 
-> I noticed a MPC8245 I2C driver is under development by Mike Primm from
-> your newdriver
-> webpage(http://secure.netroedge.com/%7Elm78/newdrivers.html), and I'm
-> very interested in his progress, however there is no way for me to reach
-> him(there is no email address :( ). Additionally, there is another Linux
-> I2C driver for MPC824x(http://www.humboldt.co.uk/mpc10xi2c.html).
-> Include my driver, all of us are trying to do the same thing because
-> MPC8540/MPC8560/MPC824x/MPC107 are having the similar I2C design. I
-> would like to find a way to provide a generic I2C for all these Motorola
-> chips.
-> 
-> I'm also interested in getting the current Motorola 8xx I2C driver a new
-> name if possible, because that driver can also be shared by
-> 8xx/82xx/83xx(forthcoming new chip), i.e. any Motorola chip with a
-> CPM(Communication Process Module) part on it.
-> 
-> Thanks a lot for your helps.
-> 
-> Xianghua
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+-- 
+Jean Delvare
