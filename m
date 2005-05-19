@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: rusty@rustcorp.com.au (Rusty Russell)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <20040105214654.GB29790@kroah.com>
+Message-Id: <20040106054159.798C92C015@lists.samba.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 05, 2004 at 09:21:25PM +0100, Jean Delvare wrote:
+In message <20040105212125.4e26a7e4.khali@linux-fr.org> you write:
 > > > BTW, it'd be nice if someone converted these to module_param, too...
 > > (...)
 > > -MODULE_PARM(force, "i");
@@ -19,31 +19,29 @@ On Mon, Jan 05, 2004 at 09:21:25PM +0100, Jean Delvare wrote:
 > 
 > Two questions for my personal knowledge:
 > 1* What does the final 0 stand for?
-
-As found in include/linux/moduleparam.h:
-	/* This is the fundamental function for registering boot/module
-	   parameters.  perm sets the visibility in driverfs: 000 means
-	   it's not there, read bits mean it's readable, write bits mean
-	   it's writable. */
-
-So a 0 there, means it doesn't show up in sysfs.  I don't know if anyone
-has ever enabled that option yet, unfortunatly...
-
 > 2* Aren't we supposed to convert MODULE_PARM_DESC too?
 
-To what?  There isn't a module_param_desc() call/macro in the kernel,
-yet.
+1) Permissions when these appear in sysfs (there's a patch floating
+   around from Greg).  0 means it won't appear.  0400 means it'll be
+   read only, etc.  If the parameter only effects behavior at
+   insertion time, or is __initdata, then 0 is appropriate.  If it
+   doesn't make sense to change, or you can't be bothered writing the
+   code to change it safely, then 0400 or 0444 is appropriate.
+   Something like 'debug' might be 0644 though.
+
+2) I didn't change that at all.  It's a little messy, perhaps, but I
+   don't like to break things unless there's a good reason.
 
 > There are loads of MODULE_PARM() used in the whole i2c subsystem. If we
 > are supposed to convert them all, let me know, tell me how to do this
 > cleanly (i.e. what to with that third parameter of module_param, and
 > what to do with MODULE_PARM_DESC) and I'll submit a patch.
 
-They should be converted.  From module.h:
-	/* DEPRECATED: Do not use. */
-	#define MODULE_PARM(var,type) 	\
-	...
+The big advantage of changing is that you also get boot parameters of
+the form "modulename.paramname".  Type safety, sysfs, ability to add
+own types are benifits mainly for new code.
 
-thanks,
-
-greg k-h
+Hope that clarifies!
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
