@@ -1,7 +1,7 @@
-From: mirage@kaotik.org (Tiago Sousa)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:42 +0000
 Subject: Ported lm80 to Linux 2.6
-Message-Id: <Pine.LNX.4.58.0402180210230.12120@home.darksun.com.pt>
+Message-Id: <20040218222517.552a6438.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1076403383.40289cb779c27@imp.gcu.info>
 In-Reply-To: <1076403383.40289cb779c27@imp.gcu.info>
@@ -10,30 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 17 Feb 2004, Jean Delvare wrote:
-> Interesting. I will analyze the data and try to summarize some facts.
-> Could you dump the chip again under high load? If it is some temperature
-> sensor, we should see at least one register increase.
+> On Tue, 17 Feb 2004, Jean Delvare wrote:
+> > Interesting. I will analyze the data and try to summarize some
+> > facts. Could you dump the chip again under high load? If it is some
+> > temperature sensor, we should see at least one register increase.
+> 
+> Here they are, baked at 75 C :)
 
-Here they are, baked at 75 C :)
+Thanks. I have more information since yesterday. It happens that this
+mysterious chip is simply your via686a chip, except that you access it
+through the SMBus instead of ISA. Until then I didn't know that this
+chip could possibly be accessed that way.
 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 01 13 16 00 00 00 00 50 ad 35 00 00 00 00 00 00    ???....P?5......
-10: 00 00 00 7f 60 ff 3c 8b 00 00 00 00 00 ce c7 81    ...?`.<?.....???
-20: d8 96 91 14 ce c2 c6 7f 7f 9e 00 d2 a8 e7 bd e4    ??????????.?????
-30: ba de b5 dc b4 ff ff ff ff ae a4 e1 e1 c7 c0 a2    ?????....???????
-40: 01 13 16 00 00 00 00 50 ad 35 00 00 00 00 00 00    ???....P?5......
-50: 00 00 00 27 1d ff b7 81 00 00 00 00 00 ce c7 81    ...'?.??.....???
-60: d8 96 91 14 ce c2 c6 7f 7f 9e 00 d2 a8 e7 bd e4    ??????????.?????
-70: ba de b5 dc b4 ff ff ff ff ae a4 e1 e1 c7 c0 a2    ?????....???????
-80: 01 00 00 00 00 00 00 50 ad 35 00 00 00 00 00 00    ?......P?5......
-90: 00 00 00 d8 31 ff 35 81 00 00 00 00 00 ce c7 81    ...?1.5?.....???
-a0: d8 96 91 14 ce c2 c6 7f 7f 9e 00 d2 a8 e7 bd e4    ??????????.?????
-b0: ba de b5 dc b4 ff ff ff ff ae a4 e1 e1 c7 c0 a2    ?????....???????
-c0: 01 00 00 00 00 00 00 50 ad 35 00 00 00 00 00 00    ?......P?5......
-d0: 00 00 00 27 37 ff bc 81 00 00 00 00 00 ce c7 81    ...'7.??.....???
-e0: d8 96 91 14 ce c2 c6 7f 7f 9e 00 d2 a8 e7 bd e4    ??????????.?????
-f0: ba de b5 dc b4 ff ff ff ff ae a4 e1 e1 c7 c0 a2    ?????....???????
+Now, there's a theory I would like to confirm, if you can provide one
+more dump. I'd like you to load i2c-isa and via686a. Then note the
+address of the via686a. If should be relatively high (such as 0x5800 or
+0x6000). Then unload via686a and dump it using the following command:
+isadump -f 0x<address>
 
---
-Tiago Sousa
+This should give you a dump similar to what i2cdump gave you so far.
+Please send it to me :)
+
+Thanks.
+
+(BTW, your lm80 driver will be part of Linux 2.6.4, in case I didn't
+already told you! Congratulations.)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
