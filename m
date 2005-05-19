@@ -1,7 +1,7 @@
-From: nuppla@gmx.at (fago)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:33 +0000
 Subject: w83l785ts.c
-Message-Id: <1073604301.1061.8.camel@ws1>
+Message-Id: <1073637595.3ffe68db27a8e@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1073554584.3ffd2498612c6@imp.gcu.info>
 In-Reply-To: <1073554584.3ffd2498612c6@imp.gcu.info>
@@ -10,26 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am Do, den 08.01.2004 schrieb Jean Delvare um 21:34:
-> > Yeah it works :))
-> > Thanky you for your help, really cool =)
-> 
-> You're welcome.
-> 
-> > I'm getting a temperature of 46?C, which is what i expected about. I'm
-> > also running the ASUS C.O.P feature, which also uses this chip for
-> > determining the temperature (so i've read somewhere), i hope there
-> > will be no problems, let's see.
-> 
-> I fear that problem could arise. Could you do a test for me? Unload the
-> w83l785ts driver, and run "i2ddump 0 0x4e" (assuming your i2c bus has
-> number 0). Some users have reported "XX" which basically means read
-> errors. I suspect that this is related to the C.O.P. feature. I'd like
-> you to do the test with and without this feature enabled, to see if it
-> makes any difference.
+> i think it's 2 because the sysfs entries are in 2-00**
 
-eeehm, in the mail before concerning the i2cdumps - i've made the
-mistake to use i2cdetect instead of i2cdump. only with i2cdetect i got
-values. with i2cdump i always got X, with and without C.O.P, with and
-without the modules.
-sry, fago
+You're right.
+
+> i am also running the module w83781d for the other sensors on my
+> board.
+
+Starting with lm_sensors 2.8.2, you can use the asb100 driver instead of
+the w83781d. It wil support your chipset better.
+
+> i disabled C.O.P unloaded the modules and  i 've got something for
+> 0,1 and 2
+
+Just to be sure I understand you: disabling the C.O.P is something you
+do in the BIOS setup screen, right?
+
+> i2cdetect 2 0x4e:
+> 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d 2e 2f
+> 30: XX XX XX XX XX XX XX 37 XX XX XX XX XX XX XX XX
+> 40: XX XX XX XX XX XX XX XX 48 49 XX XX XX XX XX XX
+> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 60: XX 61 XX 63 XX XX XX XX XX XX XX XX XX XX XX XX
+> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 
+> 
+> after loading w83l785ts i've got
+> 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d 2e 2f
+> 30: XX XX XX XX XX XX XX 37 XX XX XX XX XX XX XX XX
+> 40: XX XX XX XX XX XX XX XX 48 49 XX XX XX XX XX XX
+> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 60: XX 61 XX 63 XX XX XX XX XX XX XX XX XX XX XX XX
+> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+
+Something wrong there, 2e should be marked as used ("UU").
+
+> then i enabled the C.O.P feature and again the tests
+> 
+> both modules loaded:
+> 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX UU UU 2f
+> 30: XX XX XX XX XX XX XX 37 XX XX XX XX XX XX XX XX
+> 40: XX XX XX XX XX XX XX XX UU UU XX XX XX XX XX XX
+> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 60: XX 61 XX 63 XX XX XX XX XX XX XX XX XX XX XX XX
+> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+
+That's better. Later dumps are OK too.
+
+> i think its no coincidence that 2e changes and the sysfs files are in
+> a directory called "2-002e"
+
+Of course it is no coincidence ;)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
