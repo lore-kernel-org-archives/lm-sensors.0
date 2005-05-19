@@ -1,37 +1,65 @@
-From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
-Date: Thu, 19 May 2005 06:24:43 +0000
-Subject: Linux 2.6.3, lm_sensors 2.8.5
-Message-Id: <20040224223130.GC16826@neu.nirvana>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:23 +0000
+Subject: I2C parallel port adapters drivers
+Message-Id: <20031102132342.79920c6f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040218232559.2621d402.khali@linux-fr.org>
-In-Reply-To: <20040218232559.2621d402.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Simon Vogl <simon@voxel.at>, Daniel Smolik <marvin@sitour.cz>
+Cc: Greg KH <greg@kroah.com>, sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-On Tue, Feb 24, 2004 at 09:09:26PM +0100, Jean Delvare wrote:
-> > Thanks a lot! Rebuilding kernels, lm_sensors and kernel modules for
-> > all other projects took me quite some time, but now there is the
-> > latest FC1 kernel with patched in lm_sensors/i2c 2.8.4 as well as
-> > lm_sensors 2.8.4 userland bits (and external kernel modules, but they
-> > are probably redundant) available at
-> > 
-> > 	 http://atrpms.physik.fu-berlin.de/name/kernel/
-> > 	 http://atrpms.physik.fu-berlin.de/name/lm_sensors/
-> 
-> BTW, I have fixed the unnecessary dependencies that lm_sensors-2.8.2, .3
-> and .4 had to i2c-2.8.2, .3 and .4, respectively. Thus, lm_sensors
-> 2.8.5, when we release it, will need i2c 2.8.1 only.
 
-That is great, I could build it then for RH9/8.0/7.3, too, where I
-have i2c 2.8.2 patched in :)
+Hi all,
+
+I have been playing with I2C parallel port adapters drivers for the last
+few days and I believe that some cleanups would be welcome. I will
+expose the facts as I gathered and understood them, and then do some
+proposals about what I think should be made.
+
+There are four different drivers that let you use the parallel port as
+an I2C bus.
+
+i2c-philips-par
+i2c-elv
+i2c-velleman
+i2c-pport
+
+The first three are already present in Linux 2.4 and have also been
+ported to Linux 2.6. The fourth is obviously newer (admittedly derived
+from i2c-velleman) and only present in i2c CVS.
+
+The last three drivers are very, very similar. Take a look at them, and
+you'll see that they only differ in which pins are used for the I2C bus'
+SCL and SDA lines. They access the parallel port directly, without using
+the parport module.
+
+The first one, i2c-philips-par, is different, since it relies on the
+parport module. That said, it is similar to the other ones in spirit,
+using the parallel port pins as an I2C bus. Only the access method
+differ.
+
+My point is that we don't need four different modules for the very same
+purpose. We'd better have one single module, supporting all adapter
+types through a parameter. The i2c-philips-par module already has such a
+mechanism, allowing for two different pins configuration trough its type
+parameter.
+
+I know have to understand why one module is using the parport module,
+while the other ones are bypassing it. Do we have a reason to prefer one
+method to the other? Using the hardware I have, I could check that both
+methods are working (at least for me), but I might be missing something
+the original modules authors had to mind when writing them. I guess that
+the kernel has policies about how drivers should rely on each other, I
+would want to learn about that.
+
+I think we should merge the four drivers into a single one, or at least
+(if there is one good reason to access the parallel port using two
+different methods) the last three drivers into a single one. I volunteer
+to do so, but I want to ear opinions about the idea before going on.
+
+Comments welcome (requested, even).
+
 -- 
-Axel.Thimm@physik.fu-berlin.de
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040224/b2907cb5/attachment.bin
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
