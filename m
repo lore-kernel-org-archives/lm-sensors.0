@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: [PATCH 2.6] I2C: Fix incorrect sysfs file permissions in it87 and
-Message-Id: <20050406190049.GB30839@kroah.com>
+Message-Id: <20050406190134.GC30839@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050402212631.41916710.khali@linux-fr.org>
 In-Reply-To: <20050402212631.41916710.khali@linux-fr.org>
@@ -27,7 +27,14 @@ On Sat, Apr 02, 2005 at 09:26:31PM +0200, Jean Delvare wrote:
 > in sysfs_create_file, so maybe we could add two more?
 > 
 > Please apply,
+> thanks.
+> 
+> (I leave it to you to decide whether this is a candidate for -stable.)
 
-Applied, thanks.
+I will queue it up for the next round of patches for -stable.  In the
+future, please just send stuff like this to the stable@kernel.org email
+address, it will get picked up sooner and easier that way.
+
+thanks,
 
 greg k-h
