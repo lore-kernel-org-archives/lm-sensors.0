@@ -1,56 +1,57 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: [PATCH] i2c driver changes for 2.5.72
-Message-Id: <3EFCF10A.3050209@paradyne.com>
+From: sig@netdot.net (sig)
+Date: Thu, 19 May 2005 06:23:38 +0000
+Subject: SiS730
+Message-Id: <1030667598.1583.32.camel@lazlo.netdot.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10559607053930@kroah.com>
-In-Reply-To: <10559607053930@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'll chime in here to agree.
-You can't generally think of read_word_data as getting one byte and the next byte.
-If a chip supports it at all it may return a "word" (2 bytes)
-from a single address (see Winbond chips vendor ID at address 0x4f).
-eeproms do it right by doing "autoincrement" to the next byte.
-You can use 'i2cdump z 0xzz w' to experiment with
-word reads and see how a chip behaves....
+I have an SiS730 sensor chip that I was able to get working using
+lm_sensors-2.6.4, and I thought you guys might be interested in the
+details. I used:
 
-Mark M. Hoffman wrote:
-> * Philip Pokorny <ppokorny@penguincomputing.com> [2003-06-23 20:57:36 -0700]:
-> 
->>Mark M. Hoffman wrote:
->>
->>>* Greg KH <greg@kroah.com> [2003-06-23 16:41:14 -0700]:
-> 
-> 
->>>>Hm, so I can understand if we need to protect access to the hardware
->>>>when we read two values in a row, like this:
->>>>              res = i2c_smbus_read_byte_data(client, reg) & 0xff ;
->>>>              res |= i2c_smbus_read_byte_data(client, reg+1) << 8 ;
->>>>
->>>>or the same thing when writing.
->>>
->>>
->>>Good point.  The I2C core provides I2C/SMBus locking to prevent trashing
->>>the bus itself, but that doesn't help the above.  Which brings about
->>>another question... why wasn't i2c_smbus_read_word_data() used in that
->>>case?  Philip?
->>
->>I actually tried that, but it didn't work.  My original code had a 
->>#define that would let you try and re-enable it, but I ditched it when I 
->>didn't see any other drivers using read_word variants.
->>
->>I should have spoken up that read_word seemed to be broken at the time.
->>
->>But as I write this, I think I read in the chip data sheet that it 
->>doesn't support SMBus word reads...  (Go figure...)  That was probably 
->>the real reason I pulled the read_word code...
-> 
-> 
-> It's just as well... maybe some bus drivers don't support it either.  It
-> doesn't hurt to use lowest common denominator SMBus routines if possible.
-> 
-> 
+modprobe i2c-isa
+modprobe it87 temp_type=0x1c
+sensors -s
+sensors
+
+and I had to change some lines in /etc/sensors.conf. Under the it87
+section, I told it to ignore temp3, and I reversed the labels of temp1
+and temp2, so that temp1 is the CPU temp and temp2 is the System temp.
+
+When I try to probe I get something like
+
+Use driver `<To Be Written>' for device 00:00.0: Silicon Integrated
+Systems SIS730 (To be written - Do not use 5595 drivers)
+Use driver `i2c-sis5595' for device 00:01.0: Silicon Integrated Systems
+SIS5595
+Probe succesfully concluded.
+
+We will now try to load each adapter module in turn.
+Use of uninitialized value in string eq at
+/usr/local/sbin/sensors-detect line 1000, <STDIN> line 1.
+Use of uninitialized value in string eq at
+/usr/local/sbin/sensors-detect line 1000, <STDIN> line 1.
+
+[snip...]
+
+but I just ignored all that and installed the modules as I said above,
+and it works like a champ.
+
+The Motherboard is an ECS K7SEM. The specs say it has an SiS730S chipset
+with an integrated SiS 950/ITE8705 hardware monitor. It would be nice if
+this chip were to work out of the box, so if you need someone to test
+something, just let me know. Please CC any replies to me since I'm not
+on this list.
+
+cya
+.sig
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 232 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020829/efc5b7f3/attachment.bin
