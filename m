@@ -1,48 +1,31 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:26 +0000
-Subject: How do I get i2c-viapro kernel module
-Message-Id: <3BFFF12B.235D49AC@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: Tickets #1322 and #1323
+Message-Id: <20030708093213.642bde1a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1006531457.32098.3.camel@astrolinux.com>
-In-Reply-To: <1006531457.32098.3.camel@astrolinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-character devices -> hardware sensors -> via 596 a/b
-assuming you patched with a recent lm_sensors
-we are now at 2.6.2.
+Hi Martin,
 
-mds
+I'm a bit troubled by your tickets. First, I guess that you were using
+i2c & lm_sensors CVS, not 2.7.0.
 
+You say that the depmod commands at the end of our Makefile were
+preventing you from compiling lm_sensors. I can't understand, since they
+are run by "make install", not make. Also, didn't you have the same
+problem with installing i2c? The very same commands are run when you run
+"make install" for i2c.
 
+A more detailed problem description than "I have problem to compile"
+would be greatly appreciated. For example, could you provide a log of
+the error as it shows? These commands are specificaly meant not to
+interrupt the installation even if they fail (see the leading dash) so I
+just don't understand what your problem could be.
 
-
-
-Alex Duggan wrote:
-> 
-> Hi Guys
-> 
-> I'm having a bit of a problem that I think you can clarify.  I would
-> like to use lm_sensors and I need the i2c-viapro kernel module.  I have
-> tried kernel 2.4.10 and kernel 2.4.14 (latest stable) and I can't seem
-> to find an option to build that module anywhere in 'make xconfig'.  What
-> do I need to do to make this module???  I've tried patching with you
-> mkpatch.pl script to no avail.  I noticed that the stock redhat
-> kernel, which I don't use, has it included in it, what do I need to do
-> to build this module into my kernel?
-> 
-> PS If I've sent this to the wrong email, who do I want to be contacting
-> about this?
-> 
-> Thanks
-> Alex
-> --
->   ___  ____ ____       _____                      _____
->  / _ \|  __|  _ \
-> | /_\ | |_ | | | |     Alex Duggan
-> |  _  |  _|| | | |     alex@openup.com/aldug@openup.com
-> | | | | |  | |_| |     http://darthvader.astrolinux.com
-> |_| |_|_|  |____/      _____                      _____
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
