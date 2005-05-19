@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: [PATCH] I2C update for 2.6.8-rc1
-Message-Id: <10898500313698@kroah.com>
+Message-Id: <10898500322333@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10898500311477@kroah.com>
+In-Reply-To: <10898500313698@kroah.com>
 References: <10898500251206@kroah.com>
 In-Reply-To: <10898500251206@kroah.com>
 MIME-Version: 1.0
@@ -11,97 +11,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1784.13.10, 2004/07/09 15:07:03-07:00, greg@kroah.com
+ChangeSet 1.1784.13.11, 2004/07/09 15:08:41-07:00, alex@alexdalton.org
 
-I2C: sparse cleanups for a few i2c drivers.
+[PATCH] I2C: small ADM1030 fix
+
+Please find an incremental patch that applies on top of the previous one
+(the one from the first message of the thread) and that adds parenthesis
+to the macro as pointed out by Mark.
 
 
- drivers/i2c/busses/i2c-elektor.c |    6 +++---
- drivers/i2c/chips/adm1031.c      |   29 +++++++++++++----------------
- 2 files changed, 16 insertions(+), 19 deletions(-)
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
-diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
---- a/drivers/i2c/busses/i2c-elektor.c	2004-07-14 16:59:33 -07:00
-+++ b/drivers/i2c/busses/i2c-elektor.c	2004-07-14 16:59:33 -07:00
-@@ -143,7 +143,7 @@
- 		}
- 	}
- 	if (irq > 0) {
--		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", 0) < 0) {
-+		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
- 			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
- 			irq = 0;
- 		} else
-@@ -244,7 +244,7 @@
-  fail:
- 	if (irq > 0) {
- 		disable_irq(irq);
--		free_irq(irq, 0);
-+		free_irq(irq, NULL);
- 	}
- 
- 	if (!mmapped)
-@@ -258,7 +258,7 @@
- 
- 	if (irq > 0) {
- 		disable_irq(irq);
--		free_irq(irq, 0);
-+		free_irq(irq, NULL);
- 	}
- 
- 	if (!mmapped)
+ drivers/i2c/chips/adm1031.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+
 diff -Nru a/drivers/i2c/chips/adm1031.c b/drivers/i2c/chips/adm1031.c
---- a/drivers/i2c/chips/adm1031.c	2004-07-14 16:59:33 -07:00
-+++ b/drivers/i2c/chips/adm1031.c	2004-07-14 16:59:33 -07:00
-@@ -101,10 +101,6 @@
- static int adm1031_detect(struct i2c_adapter *adapter, int address, int kind);
- static void adm1031_init_client(struct i2c_client *client);
- static int adm1031_detach_client(struct i2c_client *client);
--static inline u8 adm1031_read_value(struct i2c_client *client, u8 reg);
--static inline int
--adm1031_write_value(struct i2c_client *client, u8 reg, unsigned int value);
--
- static struct adm1031_data *adm1031_update_device(struct device *dev);
+--- a/drivers/i2c/chips/adm1031.c	2004-07-14 16:59:22 -07:00
++++ b/drivers/i2c/chips/adm1031.c	2004-07-14 16:59:22 -07:00
+@@ -162,8 +162,8 @@
+ 	(AUTO_TEMP_MIN_FROM_REG(reg) - 5000)
  
- /* This is the driver that will be inserted */
-@@ -116,7 +112,19 @@
- 	.detach_client = adm1031_detach_client,
- };
+ #define AUTO_TEMP_MAX_FROM_REG(reg)		\
+-	AUTO_TEMP_RANGE_FROM_REG(reg) +		\
+-	AUTO_TEMP_MIN_FROM_REG(reg)
++	(AUTO_TEMP_RANGE_FROM_REG(reg) +	\
++	AUTO_TEMP_MIN_FROM_REG(reg))
  
--static int adm1031_id = 0;
-+static int adm1031_id;
-+
-+static inline u8 adm1031_read_value(struct i2c_client *client, u8 reg)
-+{
-+	return i2c_smbus_read_byte_data(client, reg);
-+}
-+
-+static inline int
-+adm1031_write_value(struct i2c_client *client, u8 reg, unsigned int value)
-+{
-+	return i2c_smbus_write_byte_data(client, reg, value);
-+}
-+
- 
- #define TEMP_TO_REG(val)		(((val) < 0 ? ((val - 500) / 1000) : \
- 					((val + 500) / 1000)))
-@@ -847,17 +855,6 @@
- 	}
- 	kfree(client);
- 	return 0;
--}
--
--static inline u8 adm1031_read_value(struct i2c_client *client, u8 reg)
--{
--	return i2c_smbus_read_byte_data(client, reg);
--}
--
--static inline int
--adm1031_write_value(struct i2c_client *client, u8 reg, unsigned int value)
--{
--	return i2c_smbus_write_byte_data(client, reg, value);
- }
- 
- static void adm1031_init_client(struct i2c_client *client)
+ static int AUTO_TEMP_MAX_TO_REG(int val, int reg, int pwm)
+ {
 
