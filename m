@@ -1,7 +1,7 @@
-From: clemy@clemy.org (Bernhard Schrenk)
-Date: Thu, 19 May 2005 06:24:42 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: [PATCH] Port of w83627hf to kernel 2.6
-Message-Id: <002701c3f6c6$86aa6fa0$3d07010a@isispapyrus.com>
+Message-Id: <20040221165017.50eda046.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000801c3f596$0f1ffd00$0300a8c0@berninoti>
 In-Reply-To: <000801c3f596$0f1ffd00$0300a8c0@berninoti>
@@ -10,26 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+> I have corrected this and attached the new patch to the mail.
 
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-> But, there's still this (which is my fault for not being clear earlier):
->
-> > #define IN_FROM_REG(val) (((val) * 16 + 5) / 10)
->
-> And then later...
->
-> >         return sprintf(buf,"%ld\n", (long)IN_FROM_REG(data->reg[nr] *
-10)); \
+I just commited a new fix to the w83627hf driver (CVS). Could you
+incorporate it in your driver? (Sorry ;))
 
-I have corrected this and attached the new patch to the mail.
+Also, please consider changing this:
++     If you say yes here you get support for the Winbond W836X series
+to:
++     If you say yes here you get support for the Winbond W836X7 series
 
-Regards,
-Bernhard
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w83627hf.patch3.bz2
-Type: application/octet-stream
-Size: 9405 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040219/68476067/w83627hf.patch3.obj
+Not very important, I admit, but I think it designates the family better.
+
+MMH, can you take care about this port (review, test if possible, and
+send to Greg)?
+
+Thanks (both of you).
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
