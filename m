@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:55 +0000
 Subject: [PATCH] i2c driver changes for 2.5.69
-Message-Id: <10522676151566@kroah.com>
+Message-Id: <10522676153273@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10522676152488@kroah.com>
+In-Reply-To: <1052267615125@kroah.com>
 References: <10522676142536@kroah.com>
 In-Reply-To: <10522676142536@kroah.com>
 MIME-Version: 1.0
@@ -11,43 +11,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1042.48.4, 2003/04/29 10:19:14-07:00, greg@kroah.com
+ChangeSet 1.1085, 2003/05/06 17:18:27-07:00, greg@kroah.com
 
-i2c: fix up the MAINTAINERS i2c entry
-
-Removed the dead web page and email address, and merged with the sensors entry
-and added myself.
+[PATCH] i2c: fix compile error due to previous patches.
 
 
- MAINTAINERS |   13 +++----------
- 1 files changed, 3 insertions(+), 10 deletions(-)
+ drivers/i2c/i2c-core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 
-diff -Nru a/MAINTAINERS b/MAINTAINERS
---- a/MAINTAINERS	Tue May  6 17:24:51 2003
-+++ b/MAINTAINERS	Tue May  6 17:24:51 2003
-@@ -790,20 +790,13 @@
- M:	drivers@neukum.org
- S:	Maintained
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	Tue May  6 17:24:28 2003
++++ b/drivers/i2c/i2c-core.c	Tue May  6 17:24:28 2003
+@@ -309,8 +309,8 @@
+ 		}
+ 	}
  
--I2C DRIVERS
--P:	Simon Vogl
--M:	simon@tk.uni-linz.ac.at
--P:	Frodo Looijaard
--M:	frodol@dds.nl
--L:	linux-i2c@pelican.tk.uni-linz.ac.at
--W:	http://www.tk.uni-linz.ac.at/~simon/private/i2c
--S:	Maintained
--
--SENSORS DRIVERS
-+I2C AND SENSORS DRIVERS
- P:      Frodo Looijaard
- M:      frodol@dds.nl
- P:      Philip Edelbrock
- M:      phil@netroedge.com
-+P:	Greg Kroah-Hartman
-+M:	greg@kroah.com
- L:      sensors@stimpy.netroedge.com
- W:      http://www.lm-sensors.nu/
- S:      Maintained
+-	DEB(dev_dbg(&adapter->dev, "client [%s] registered to adapter "
+-			"(pos. %d).\n", client->dev.name, i));
++	DEB(dev_dbg(&adapter->dev, "client [%s] registered to adapter\n",
++			client->dev.name));
+ 
+ 	if (client->flags & I2C_CLIENT_ALLOW_USE)
+ 		client->usage_count = 0;
 
