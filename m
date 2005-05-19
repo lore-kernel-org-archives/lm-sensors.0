@@ -1,45 +1,35 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: development list
-Message-Id: <416304FB.5070405@edgedesign.us>
+From: Bruce.Lee@landesk.com (Lee, Bruce)
+Date: Thu, 19 May 2005 06:24:24 +0000
+Subject: Support for w83791d
+Message-Id: <2B6C784DD3723745978C27C72801F7F8AC80F6@cba0e2k04.cba0.centerbeam.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041004235838.GA12218@home.fluff.org>
-In-Reply-To: <20041004235838.GA12218@home.fluff.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'll forward this on and add you to the list.
+I am trying to monitor sensors on a gateway 980 with an Winbond 83791d
+chip.  I am using lm_sensors 2.8.0 and have loaded the w83781d module
+(sensors-detect failed to detect this chip) but I am seeing no results.
+Is this chip supported and if so, how do I get the module to load and
+run correctly? Do I need to do a force_w83791d on the command line and
+if so how do I do this?
+ 
+results from lsmod
 
+w83781d                24880   0  (unused)
+i2c-i801                5460   0  (unused)
+i2c-dev                 5056   0  (unused)
+i2c-proc                8084   0  [w83781d]
+i2c-core               20164   0  [w83781d i2c-i801 i2c-dev i2c-proc]
+ 
+results from sensors
 
-Phil
-
-Ben Dooks wrote:
-> On Tue, Oct 05, 2004 at 01:15:28PM -0700, Philip Edelbrock wrote:
-> 
->>It looks like a microcontroller?  Is it running a Linux kernel and 
->>you've developed a i2c-bus driver for it?  Not sure what you are doing 
->>or what you are asking.
-> 
-> 
-> I have written an i2c driver for linux 2.6.9 for it
-> (i've done an lot of the s3c2410 support in 2.6).
-> 
-> It is an ARM920, designed for PDA use.
-> 
-> Our board is at http://www.simtec.co.uk/products/EB2410ITX/
-> 
-> I would like to get the  following registered with proper
-> numbers in include/linux/i2c-id.h
-> 
-> I2C_ALGO_S3C2410
-> 
-> I2C_DRIVERID_BASTPMU
-> 
-> 	Power Management chip on the S3C2410
-> 
-> I2C_DRIVERID_TLV320AIC23
-> 
-> 	Audio (I2S) Codec
-> 
+No sensors found!
+ 
+thanks
+Bruce Lee
+bruce.lee@landesk.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031111/33023c39/attachment.html
