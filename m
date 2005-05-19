@@ -1,123 +1,109 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:38 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:39 +0000
 Subject: two questions about w83792d.c for linux-2.4
-Message-Id: <0JKtpivv.1108980406.7209860.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190BDF@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> I think the reason most of my multipliers are less than 1 is that:
-> The /proc/in0-in6 measured value keep such as (CR[20]*4 + CR[3E]&0x03)
-> Which are different from the traditional one, because they are about 4
-> times of CR[20]. While the /proc/in7-in8 only keep such as CR[B0]/
-> CR[B1], so their multipliers are greater than 1.
-> I explained it in my mail sent on 2005-02-18, please refer it.
->
-> So my in0-in6 multipliers in sensors.conf is the quarter of the
-> traditional one. If you multiply my multipliers of in0-in6 with the
-> value 4, you will find that most of them will be greater than 1,
-> except in0 and in1(0.8)
->
-> The multipliers in sensors.conf is corresponding with the data sheet,
-> You may check it. :-)
-
-Hm, in fact I think the reason is more complex than that. I have read the
-datasheet again. I do not deny that the final computations as shown in
-"sensors" are correct, I think they are. But I think you do some
-computations in sensors.conf that should be done in the driver
-(ironically the exact opposite of the original problem).
-
-What you do for now is export the raw register value (or combined
-registers value for in0-6), with magnitude 2, so the value is divided by
-100. That's what /proc files have: register values, possibly combined,
-divided by 100. This is an arbitrary unit, it's not standard (standard
-is Volts). You had to compensate in sensors.conf (* 0.2 for in0-1
-because they have a resolution of 2mV, * 0.4 for other inputs because
-they have a resolution of 4mV).
-
-The values in /proc should really be Volts. If a /proc file reads 1.12 it
-really must mean 1.12V at that pin of the chip, and not that the
-register was holding value 112. User-space doesn't care about
-implementation details nor register values, it wants standard values
-expressed in Volts.
-
-So what the driver should do is export the following value, e.g.:
-(CR[20]*4 + CR[3E]&0x03) * 2, with magnitude 3
-
-* 2 is because of the 2mV resolution, magnitude 3 (divide by 1000) for
-milliVolts.
-
-For in2-8, this would be * 4 instead of * 2, because LSB is 4mV.
-
-That way you will really export values in Volts through /proc, which is
-the standard. You will find that, after doing that, most compute lines
-in sensors.conf are unnecessary. In fact you should only need such lines
-for inputs which involve resistors (negative voltages, and positive
-voltages greater than 2.04 or 4.08 V).
-
-> OK, please refer to the following function, Is it what you need?
-
-That's it. I could find why it doesn't work (I think). I also found
-another bug:
-
->		if(nr <= 6){
->			vol_count = (vol_count << 2);
->			switch (nr)
->			{
->			case 0:  /* vin0 */
->				low_bits = (data->low_bits[0]) & 0x03;
->				break;
->			case 1:  /* vin1 */
->				low_bits = (data->low_bits[0]) & 0x0c;
->				break;
->			case 2:  /* vin2 */
->				low_bits = (data->low_bits[0]) & 0x30;
->				break;
->			case 3:  /* vin3 */
->				low_bits = (data->low_bits[0]) & 0xc0;
->				break;
->			case 4:  /* vin4 */
->				low_bits = (data->low_bits[1]) & 0x03;
->				break;
->			case 5:  /* vin5 */
->				low_bits = (data->low_bits[1]) & 0x0c;
->				break;
->			case 6:  /* vin6 */
->				low_bits = (data->low_bits[1]) & 0x30;
->				break;
->			default:
->				break;
->			}
->			vol_count = vol_count | low_bits;
->		}
-
-You have a bug here. in0 and in4 will be OK, but in1, in2, in3, in5 and
-in6 will not be. For example, in1 should be:
-
-case 1:  /* vin1 */
-	low_bits = (data->low_bits[0] & 0x0c) >> 2;
-	break;
-
-If you don't properly shift the 2 bits you extract, they won't be
-placed at the right location when you add them ("|") to the main value
-later.
-
->	} else if (operation = SENSORS_PROC_REAL_WRITE) {
->		if( *nrels_mag < 3 ){
->			return;
->		}
-
-And the reason why you cannot write voltage limits is here, I think. It
-should be "< 2", not "< 3" (or even "!= 2", since you obviously
-expect exactly 2 parameters).
-
-Thanks,
---
-Jean Delvare
+SGkgSmVhbgoKVGhpcyBpcyBDaHVuaGFvLgpUaGUgZm9sbG93aW5nIGFyZSBteSByZXBseSBhbmQg
+bmV3IHF1ZXN0aW9ucywgcGxlYXNlIHJlZmVyIHRoZW0uCgo+IEhtLCBpbiBmYWN0IEkgdGhpbmsg
+dGhlIHJlYXNvbiBpcyBtb3JlIGNvbXBsZXggdGhhbiB0aGF0LiBJIGhhdmUgcmVhZAp0aGUKPiBk
+YXRhc2hlZXQgYWdhaW4uIEkgZG8gbm90IGRlbnkgdGhhdCB0aGUgZmluYWwgY29tcHV0YXRpb25z
+IGFzIHNob3duIGluCj4gInNlbnNvcnMiIGFyZSBjb3JyZWN0LCBJIHRoaW5rIHRoZXkgYXJlLiBC
+dXQgSSB0aGluayB5b3UgZG8gc29tZQo+IGNvbXB1dGF0aW9ucyBpbiBzZW5zb3JzLmNvbmYgdGhh
+dCBzaG91bGQgYmUgZG9uZSBpbiB0aGUgZHJpdmVyCj4gKGlyb25pY2FsbHkgdGhlIGV4YWN0IG9w
+cG9zaXRlIG9mIHRoZSBvcmlnaW5hbCBwcm9ibGVtKS4KCj4gVGhlIHZhbHVlcyBpbiAvcHJvYyBz
+aG91bGQgcmVhbGx5IGJlIFZvbHRzLiBJZiBhIC9wcm9jIGZpbGUgcmVhZHMgMS4xMgppdAo+IHJl
+YWxseSBtdXN0IG1lYW4gMS4xMlYgYXQgdGhhdCBwaW4gb2YgdGhlIGNoaXAsIGFuZCBub3QgdGhh
+dCB0aGUKPiByZWdpc3RlciB3YXMgaG9sZGluZyB2YWx1ZSAxMTIuIFVzZXItc3BhY2UgZG9lc24n
+dCBjYXJlIGFib3V0Cj4gaW1wbGVtZW50YXRpb24gZGV0YWlscyBub3IgcmVnaXN0ZXIgdmFsdWVz
+LCBpdCB3YW50cyBzdGFuZGFyZCB2YWx1ZXMKPiBleHByZXNzZWQgaW4gVm9sdHMuCj4gCj4gU28g
+d2hhdCB0aGUgZHJpdmVyIHNob3VsZCBkbyBpcyBleHBvcnQgdGhlIGZvbGxvd2luZyB2YWx1ZSwg
+ZS5nLjoKPiAoQ1JbMjBdKjQgKyBDUlszRV0mMHgwMykgKiAyLCB3aXRoIG1hZ25pdHVkZSAzCj4g
+Cj4gKiAyIGlzIGJlY2F1c2Ugb2YgdGhlIDJtViByZXNvbHV0aW9uLCBtYWduaXR1ZGUgMyAoZGl2
+aWRlIGJ5IDEwMDApIGZvcgo+IG1pbGxpVm9sdHMuCgpJJ20gbm90IGZhbWlsaWFyIHdpdGggdGhl
+IHJlbGF0aW9uc2hpcCBiZXR3ZWVuIExTQiBhbmQgdm9sdGFnZSBvdXRwdXQsCldoZW4gSSB3cml0
+ZSA3OTIgZHJpdmVyLCBJIHJlZmVyIG91ciA3OTIgZHJpdmVyIGZvciBXaW5kb3dzIGFuZCA3ODEK
+ZHJpdmVyCmluIGxtX3NlbnNvcnMsIGFzIHdlbGwgYXMgdGhlIGRhdGEgc2hlZXQuIEluIG91ciA3
+OTIgZHJpdmVyIGZvciBXaW5kb3dzLAppdCBzZWVtcyB0aGF0IGl0IHVzZSBteSBhYm92ZSBtZXRo
+b2QgdG8gY2FsY3VsYXRlIHZvbHRhZ2UgbWVhc3VyZWQgdmFsdWUKYW5kIGxpbWl0IHZhbHVlLiBU
+aGF0IGlzIHZvbHRhZ2UgZmFjdG9yKHN1Y2ggYXMgMC4wMDIpIG11bHRpcGx5IHRoZQpyZWdpc3Rl
+ciB2YWx1ZShzdWNoIGFzIENSWzIwXSo0K0NSWzNFXSYweDAzKS4KCkJ1dCBhZnRlciB5b3VyIGV4
+cGxhbmF0aW9uIGFib3ZlLCBJIGNhbiBjYXRjaCB5b3UgbWVhbmluZywgYmVjYXVzZSB5b3VyCmV4
+cGxhbmF0aW9uIGlzIHNvIGRldGFpbGVkLiA6LSkKTWF5YmUgeW91IGFyZSByaWdodCwgbm93IEkg
+aGF2ZSBzb21lIG90aGVyIHF1ZXN0aW9ucyBhYm91dCBpdCwgd291bGQgeW91CnBsZWFzZSBnaXZl
+IG1lIHRoZSBhbnN3ZXI/ClF1ZXN0aW9uIDE6Ck5lZWQgSSBtb2RpZnkgbXkgY3VycmVudCBjYWxj
+dWxhdGlvbiBtZXRob2QgYWdhaW4gaW50byB5b3VyIGFib3ZlCm1ldGhvZD8KSXMgdGhhdCBhbGwg
+dGhlIG90aGVyIGNoaXAgZHJpdmVycyBpbiBsbV9zZW5zb3JzIGFzIHdoYXQgeW91IHNhaWQ6CiJ0
+aGUgdmFsdWVzIGluIC9wcm9jIHNob3VsZCByZWFsbHkgYmUgVm9sdHMiPyBJZiBkbywgSSB3aWxs
+IHRyeSB0bwptb2RpZnkKbXkgY3VycmVudCBtZXRob2QuOi0oCgo+IEZvciBpbjItOCwgdGhpcyB3
+b3VsZCBiZSAqIDQgaW5zdGVhZCBvZiAqIDIsIGJlY2F1c2UgTFNCIGlzIDRtVi4KUXVlc3Rpb24g
+MjoKSSBhZ3JlZSB0aGF0IHRoZSBMU0Igb2YgaW4yLTUgaXMgNG1WLCBzbyBhcyB0byBpbjItNSwg
+dGhlIG1ldGhvZCB5b3UKcHJvdmlkZWQgaXMgY29ycmVjdC4gQnV0IGFib3V0IGluNi1pbjgsIHlv
+dSBzYWlkIHRoYXQgdGhlaXIgTFNCIGlzCmFsc28gNG1WLCB0aGVuIGhvdyB0byBjYWxjdWxhdGUg
+dGhlaXIgbWVhc3VyZWQgdmFsdWU/IEJlY2F1c2UgaW4KZGF0YXNoZWV0CjVWQ0MoaW42KSBWb2x0
+YWdlID0gKENSWzI2XSo0ICsgQ1JbM0ZdJjB4MzApICogMC4wMDY7CjVWU0IoaW43KSBWb2x0YWdl
+ID0gQ1JbQjBdICogMC4wMjQ7ClZCQVQoaW44KSBWb2x0YWdlID0gQ1JbQjFdICogMC4wMTY7ClRo
+ZSB2b2x0YWdlIGZhY3RvciBmb3IgaW42IGlzIDAuMDA2IGluc3RlYWQgb2YgMC4wMDQsIHRoZSB2
+b2x0YWdlIGZhY3Rvcgpmb3IgaW43LzggaXMgMC4wMjQvMC4wMTYuClNvIEkgdGhpbmsgdGhhdCBJ
+IHNob3VsZCB1c2UgdGhlIHNhbWUgbWV0aG9kIGFzIGluMi01LCBhbmQgdXNlIHRoZQptdWx0aXBs
+aWVyIDEuNSBpbiBzZW5zb3JzLmNvbmYgZm9yIGluNiwgdXNlIHRoZSBtdWx0aXBsaWVyIDYgZm9y
+CmluNywgYW5kIHVzZSB0aGUgbXVsdGlwbGllciA0IGZvciBpbjguCkFtIEkgcmlnaHQ/IENhbiB5
+b3UgY29uZmlybSB0aGF0IGZvciBtZT8KClF1ZXN0aW9uIDM6CldlIGRpc2N1c3NlZCB0aGUgdm9s
+dGFnZSBtZWFzdXJlZCB2YWx1ZSwgYnV0IGhvdyBhYm91dCB0aGUgdm9sdGFnZQpsaW1pdHM/Ckkg
+dHJ5IHRvIGdldCB0aGUgbmV3IGNhbGN1bGF0aW9uIG1ldGhvZCwgd291bGQgeW91IHBsZWFzZSBj
+b25maXJtIGl0PwpPciBwbGVhc2UgZ2l2ZSBtZSB0aGUgZGV0YWlsZWQgY2FsY3VsYXRpb24gYWJv
+dXQgdGhlIHZvbHRhZ2UgbGltaXRzLgpWY29yZUEoaW4wKSBMaW1pdCA9IChDUlsyQi8yQ10gKiA0
+KSAqIDAuMDAyOwpWY29yZUIoaW4xKSBMaW1pdCA9IChDUlsyRC8yRV0gKiA0KSAqIDAuMDAyOwpW
+SU4wflZJTjMoaW4yLWluNSkgTGltaXQgPSAoQ1JbMkZ+MzZdICogNCkgKiAwLjAwNDsKTm90ZTog
+aW4wLWluNSBkbyBOT1QgdXNlIGFueSBtdWx0aXBsaWVyIGluIHNlbnNvcnMuY29uZgoKNVZDQyhp
+bjYpIExpbWl0ID0gKENSWzM3LzM4XSAqIDQpICogMC4wMDQ7Ck5vdGU6IGluNiB1c2UgbXVsdGlw
+bGllciAxLjUgaW4gc2Vuc29ycy5jb25mLCBzYW1lIGFzIHRoZSBvbmUgZm9yCmluNiBtZWFzdXJl
+ZCB2YWx1ZS4KCjVWU0IoaW43KSBMaW1pdCA9IENSW0I0L0I1XSAqIDAuMDA0OwpOb3RlOiBpbjcg
+dXNlIG11bHRpcGxpZXIgNiBpbiBzZW5zb3JzLmNvbmYsIHNhbWUgYXMgdGhlIG9uZSBmb3IKaW43
+IG1lYXN1cmVkIHZhbHVlLgoKVkJBVChpbjgpIExpbWl0ID0gKENSW0I2L0I3XSAqIDAuMDA0KTsK
+Tm90ZTogaW44IHVzZSBtdWx0aXBsaWVyIDQgaW4gc2Vuc29ycy5jb25mLCBzYW1lIGFzIHRoZSBv
+bmUgZm9yCmluOCBtZWFzdXJlZCB2YWx1ZS4KQW0gSSByaWdodD8gQ2FuIHlvdSBjb25maXJtIHRo
+YXQgZm9yIG1lPwoKCgo+IFlvdSBoYXZlIGEgYnVnIGhlcmUuIGluMCBhbmQgaW40IHdpbGwgYmUg
+T0ssIGJ1dCBpbjEsIGluMiwgaW4zLCBpbjUKYW5kCj4gaW42IHdpbGwgbm90IGJlLiBGb3IgZXhh
+bXBsZSwgaW4xIHNob3VsZCBiZToKPiAKPiBjYXNlIDE6ICAvKiB2aW4xICovCj4gCWxvd19iaXRz
+ID0gKGRhdGEtPmxvd19iaXRzWzBdICYgMHgwYykgPj4gMjsKPiAJYnJlYWs7Cj4gCj4gSWYgeW91
+IGRvbid0IHByb3Blcmx5IHNoaWZ0IHRoZSAyIGJpdHMgeW91IGV4dHJhY3QsIHRoZXkgd29uJ3Qg
+YmUKPiBwbGFjZWQgYXQgdGhlIHJpZ2h0IGxvY2F0aW9uIHdoZW4geW91IGFkZCB0aGVtICgifCIp
+IHRvIHRoZSBtYWluIHZhbHVlCj4gbGF0ZXIuCgpZZXMsIHlvdSBhcmUgcmlnaHQsIHRoZSBidWcg
+aGFzIGJlZW4gZml4ZWQuCgoKPiA+CX0gZWxzZSBpZiAob3BlcmF0aW9uID0gU0VOU09SU19QUk9D
+X1JFQUxfV1JJVEUpIHsKPiA+CQlpZiggKm5yZWxzX21hZyA8IDMgKXsKPiA+CQkJcmV0dXJuOwo+
+ID4JCX0KPiAKPiBBbmQgdGhlIHJlYXNvbiB3aHkgeW91IGNhbm5vdCB3cml0ZSB2b2x0YWdlIGxp
+bWl0cyBpcyBoZXJlLCBJIHRoaW5rLgpJdAo+IHNob3VsZCBiZSAiPCAyIiwgbm90ICI8IDMiIChv
+ciBldmVuICIhPSAyIiwgc2luY2UgeW91IG9idmlvdXNseQo+IGV4cGVjdCBleGFjdGx5IDIgcGFy
+YW1ldGVycykuCgpZZXMsIHlvdSBhcmUgcmlnaHQsIGFnYWluLiA6LSkKVGhlIGVycm9yIGhhcyBh
+bHNvIGJlZW4gZml4ZWQuIEkgYWRvcHQgdGhlIHNpbWlsYXIgbWV0aG9kIGFzIDc4MSBkcml2ZXIu
+CgoKVGhhbmtzCgpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoyMDA1LTAyLTIyCgoKPT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
+dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
+dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBh
+dXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
+ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
+aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBp
+bmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlv
+dXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3Ug
+Zm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6
+ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5
+IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMg
+bm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBk
+ZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1
+bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5n
+IG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0
+YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsix
+wsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRI
+qc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+r
+SKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdA
+LCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+
+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5l
+LKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
