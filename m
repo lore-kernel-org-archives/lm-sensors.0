@@ -1,12 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mbm@livewiredev.com (MBM Support)
 Date: Thu, 19 May 2005 06:24:11 +0000
 Subject: who is this ?
-Message-Id: <20030809094756.6f6f9756.khali@linux-fr.org>
+Message-Id: <FJEPJHGHDGKMMPFFGCLOGEHAEIAA.mbm@livewiredev.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030809094756.6f6f9756.khali@linux-fr.org>
+In-Reply-To: <20030809094756.6f6f9756.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+thanks Jean
+
+I also noticed that, but since the voltages are controlled via the INI file
+I just go with the minumum voltage input and will add them if I ever
+encouter a board that uses it (beside the combo MSI board)
+
+Regards, Alex
+
+- Please always attach all previous mails !
+----------------------------------------------------------------------
+The Motherboard Monitor:
+http://mbm.livewiredev.com/
+----------------------------------------------------------------------
+For long you live and high you fly,
+And smiles you'll give and tears you'll cry,
+And all you touch and all you see,
+Is all your life will ever be.
+----------------------------------------------------------------------
+
+
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: zaterdag 9 augustus 2003 09:48
+To: MBM Support
+Cc: sensors@stimpy.netroedge.com
+Subject: Re: who is this ?
+
 
 
 > btw, if you update the detection to also check for 65 as version
@@ -36,6 +67,6 @@ and therefore no 3.3V, 1.5V or 1.8V inputs, perhaps if those inputs read
 Well, I guess you'd have find all that in the datasheet anyway, but now
 you know how we do handle these chips.
 
--- 
+--
 Jean Delvare
 http://www.ensicaen.ismra.fr/~delvare/
