@@ -1,7 +1,7 @@
 From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: Winbond 792 source codes for lm_sensor
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0E9CD8@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0E9CEF@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE0673FD@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE0673FD@weshml03.winbond.com.tw>
@@ -12,158 +12,248 @@ To: lm-sensors@vger.kernel.org
 
 Hi MDS, Jean, and Mark
 
-This is chunhao.
+I have two questions which need your help:
+(1)
+Some tester of our company want to test my 792 driver.
+Assume that he is NOT very familiar with Linux, he just has a
+RedHat9 Linux(same as mine) with 792 chip. If he does NOT want
+to compile all the source codes of i2c-2.8.8.tar.gz and
+lm_sensors-2.8.8.tar.gz but just want my supply of some
+library/head/binary files to him(the fewer, the better),
+so that he can run lm_sensors.
 
-I have sent the w83792d driver source code and datasheet to you
-for about 20 days, But I have NOT get any comments till now.
+So which files need I send him? Can you give me some suggestion?
 
-Did you review my codes? If you have some suggestions,=20
-Please don't hesitate to tell me. :-)
+
+(2)
+When I compiled the i2c-2.8.8.tar.gz on my RedHat9 several months ago,
+I meet a problem, that is can NOT find /lib/modules/2.4.20-8/build/.config
+When run "make install" (full error message is attached in the mail end)
+The method I adopted to solve this problem is:
+cp /lib/modules/2.4.20-8/build/configs/kernel-2.4.20-i386.config  /lib/modu=
+les/2.4.20-8/build/.config
+The i2c can be successfully installed at last. But I'm still not very sure
+about this solution method. Can you confirm it?
+
+Btw the way, It took me long time to finish installing i2c, maybe it's
+more than 6 hours, I think it's abnormal, do you think so?
+Could you tell me usually how long it will take?
 
 
 Thanks
 Best Regards
-
 Chunhao
+
+*******************     error message    *******************
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+Makefile:170: kernel/i2c-core.d: No such file or directory
+Makefile:170: kernel/i2c-dev.d: No such file or directory
+Makefile:170: kernel/i2c-algo-bit.d: No such file or directory
+Makefile:170: kernel/i2c-algo-biths.d: No such file or directory
+Makefile:170: kernel/i2c-elv.d: No such file or directory
+Makefile:170: kernel/i2c-velleman.d: No such file or directory
+Makefile:170: kernel/i2c-algo-pcf.d: No such file or directory
+Makefile:170: kernel/i2c-proc.d: No such file or directory
+Makefile:170: kernel/i2c-pport.d: No such file or directory
+grep: /lib/modules/2.4.20-8/build/.config: No such file or directory
+
+Error - missing file /lib/modules/2.4.20-8/build/.config !!
+  Verify kernel source is in /lib/modules/2.4.20-8/build and then
+  cd to /lib/modules/2.4.20-8/build and run 'make config' !!
+
+Exception: if you're using a stock RedHat/Fedora kernel...
+  (1) Install the appropriate kernel-source RPM.
+  (2) Copy the appropriate config...
+      from /lib/modules/2.4.20-8/build/configs/<...>
+      to /lib/modules/2.4.20-8/build/.config
+  (3) Do *NOT* 'make dep' or 'make config'.
+
+make: *** [/lib/modules/2.4.20-8/build/.config] Error 1
+
+
 
 
 > -----Original Message-----
-> From: Mark Studebaker [mailto:mds4@verizon.net]
-> Sent: 2004=E5=B9=B412=E6=9C=8824=E6=97=A5 01:03
-> To: PI14 HUANG0
+> From: PI14 HUANG0
+> Sent: 2005=E5=B9=B41=E6=9C=8812=E6=97=A5 10:44
+> To: 'Mark Studebaker'; 'khali@linux-fr.org'; 'mhoffman@lightlink.com'
 > Cc: PI10 LHHsu; PI14 DZSHEN; sensors@Stimpy.netroedge.com
-> Subject: Re: Winbond 792 source codes for lm_sensor
+> Subject: RE: Winbond 792 source codes for lm_sensor
 >=20
-> chunhao,
-> we received both the datasheet and the code.
-> thank you very much.
-> I'm sure you'll receive comments soon.
-> mds
+> Hi MDS, Jean, and Mark
 >=20
-> Huang0@Winbond.com.tw wrote:
-> > Hi MDS, Jean, and Mark
+> This is chunhao.
+>=20
+> I have sent the w83792d driver source code and datasheet to you
+> for about 20 days, But I have NOT get any comments till now.
+>=20
+> Did you review my codes? If you have some suggestions,
+> Please don't hesitate to tell me. :-)
+>=20
+>=20
+> Thanks
+> Best Regards
+>=20
+> Chunhao
+>=20
+>=20
+> > -----Original Message-----
+> > From: Mark Studebaker [mailto:mds4@verizon.net]
+> > Sent: 2004=E5=B9=B412=E6=9C=8824=E6=97=A5 01:03
+> > To: PI14 HUANG0
+> > Cc: PI10 LHHsu; PI14 DZSHEN; sensors@Stimpy.netroedge.com
+> > Subject: Re: Winbond 792 source codes for lm_sensor
 > >
-> > This is chunhao.
+> > chunhao,
+> > we received both the datasheet and the code.
+> > thank you very much.
+> > I'm sure you'll receive comments soon.
+> > mds
 > >
-> > The 792 driver of trial version has been sent to you,
-> > Please check it, and please just me us a response if
-> > you get it.
-> >
-> > I'd like to add some comments to the 792 driver:
-> > 1 The source is just a trial version, I will continue
-> > to modify it, so please don't add it into the cvs.
-> > And I will commit it by lm_sensors cvs, later, which
-> > maybe need your help. :-)
-> >
-> >
-> > 2 The file sent to you is only one: w83792d.c
-> > I also modified the following files:
-> >   2.1 prog/sensors/main.c
-> >   2.2 prog/sensors/chips.h
-> >   2.3 prog/sensors/chips.c
-> >   2.4 lib/chips.h
-> >   2.5 lib/chips.c
-> >   2.6 lib/proc.c
-> > If you need refer to them, please tell me.
-> >
-> > 3. some of the function are added by me in 792, maybe
-> > they do NOT exist in w83781d.c, I will write some
-> > documents to them when I release it in the future.
-> > For example: the following functions
-> > w83792d_thermal_cruise()
-> > w83792d_fan_tolerance()
-> > w83792d_sf2_points()
-> > w83792d_sf2_levels()
-> > w83792d_fan_cfg()
-> > have something to do with SmartFanI and SmartFanII
-> > mode. As to the SmartFan mode, you may refer to the 792
-> > data sheet.
-> >
-> >
-> > 4. If you find some bugs in the source, please don't
-> > hesitate to tell us, and you may also give me some other
-> > suggestions about it.
-> > :-)
-> >
-> > Btw, Do you have an available w83792d chip? If do, maybe
-> > you can do some simple test for me when you are free?
-> >
-> > Thanks
-> > Best Regards
-> >
-> >
-> > Chunhao
-> >
-> > ________________________________________
-> > From: PI14 DZSHEN
-> > Sent: 2004=E5=B9=B412=E6=9C=8823=E6=97=A5 16:59
-> > To: 'mds4@verizon.net'; 'khali@linux-fr.org'; 'mhoffman@lightlink.com';
-> 'sensors@Stimpy.netroedge.com'
-> > Cc: PI14 HUANG0; PI10 LHHsu
-> > Subject: Winbond 792 source codes for lm_sensor
-> >
-> > Dear all:
-> >   Per my manager=E2=80=99s request (Haoge, lhhsu@winbond.com.tw), I am =
-sending
-> > this 792 source code. If you have any technical questions, please
-> > contact huang0@winbond.com.tw.
-> >
-> > Best regards
-> >
-> > techeng
-> >
+> > Huang0@Winbond.com.tw wrote:
+> > > Hi MDS, Jean, and Mark
+> > >
+> > > This is chunhao.
+> > >
+> > > The 792 driver of trial version has been sent to you,
+> > > Please check it, and please just me us a response if
+> > > you get it.
+> > >
+> > > I'd like to add some comments to the 792 driver:
+> > > 1 The source is just a trial version, I will continue
+> > > to modify it, so please don't add it into the cvs.
+> > > And I will commit it by lm_sensors cvs, later, which
+> > > maybe need your help. :-)
+> > >
+> > >
+> > > 2 The file sent to you is only one: w83792d.c
+> > > I also modified the following files:
+> > >   2.1 prog/sensors/main.c
+> > >   2.2 prog/sensors/chips.h
+> > >   2.3 prog/sensors/chips.c
+> > >   2.4 lib/chips.h
+> > >   2.5 lib/chips.c
+> > >   2.6 lib/proc.c
+> > > If you need refer to them, please tell me.
+> > >
+> > > 3. some of the function are added by me in 792, maybe
+> > > they do NOT exist in w83781d.c, I will write some
+> > > documents to them when I release it in the future.
+> > > For example: the following functions
+> > > w83792d_thermal_cruise()
+> > > w83792d_fan_tolerance()
+> > > w83792d_sf2_points()
+> > > w83792d_sf2_levels()
+> > > w83792d_fan_cfg()
+> > > have something to do with SmartFanI and SmartFanII
+> > > mode. As to the SmartFan mode, you may refer to the 792
+> > > data sheet.
+> > >
+> > >
+> > > 4. If you find some bugs in the source, please don't
+> > > hesitate to tell us, and you may also give me some other
+> > > suggestions about it.
+> > > :-)
+> > >
+> > > Btw, Do you have an available w83792d chip? If do, maybe
+> > > you can do some simple test for me when you are free?
+> > >
+> > > Thanks
+> > > Best Regards
+> > >
+> > >
+> > > Chunhao
+> > >
+> > > ________________________________________
+> > > From: PI14 DZSHEN
+> > > Sent: 2004=E5=B9=B412=E6=9C=8823=E6=97=A5 16:59
+> > > To: 'mds4@verizon.net'; 'khali@linux-fr.org'; 'mhoffman@lightlink.com=
+';
+> > 'sensors@Stimpy.netroedge.com'
+> > > Cc: PI14 HUANG0; PI10 LHHsu
+> > > Subject: Winbond 792 source codes for lm_sensor
+> > >
+> > > Dear all:
+> > >   Per my manager=E2=80=99s request (Haoge, lhhsu@winbond.com.tw), I a=
+m sending
+> > > this 792 source code. If you have any technical questions, please
+> > > contact huang0@winbond.com.tw.
+> > >
+> > > Best regards
+> > >
+> > > techeng
+> > >
+> > >
 > >
 > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D=3D=3D=3D=3D=3D=3D=3DThe privileged confidential information contai=
-ned in this
-> email is intended for use only by the addressees as indicated by the orig=
-inal
-> author of this email. If you are not the addressee indicated in this emai=
-l or
-> are not responsible for delivery of the email to such person, please kind=
-ly
-> reply the sender indicating accordingly and delete all copies of it from =
-your
-> computer and network server immediately. We thank you for your cooperatio=
-n.
-> It is advisable that any unauthorized use of confidential information of
-> Winbond is strictly prohibited; and any information in this email that do=
-es
-> not relate to the official business of Winbond shall be deemed as neither=
- given
-> nor endorsed by
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3DThe privileged confidential information cont=
+ained in this
+> > email is intended for use only by the addressees as indicated by the or=
+iginal
+> > author of this email. If you are not the addressee indicated in this em=
+ail
+> or
+> > are not responsible for delivery of the email to such person, please ki=
+ndly
+> > reply the sender indicating accordingly and delete all copies of it fro=
+m your
+> > computer and network server immediately. We thank you for your cooperat=
+ion.
+> > It is advisable that any unauthorized use of confidential information of
+> > Winbond is strictly prohibited; and any information in this email that =
+does
+> > not relate to the official business of Winbond shall be deemed as neith=
+er
+> given
+> > nor endorsed by
+> >
 > Winbond.=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DIf your computer is unable to deco=
-de Chinese font,
-> please ignore the following message. They essentially repe
-> a!
-> >  t the&nbsp; English statement above.=E3=82=BB=E7=8D=BA=E3=83=B3=E3=81=
-=9A=E2=94=AE=EE=9C=BA=E5=9C=B0=C3=BC=E7=AD=BF=EE=98=92=EE=80=99=E7=99=A9=E7=
-=8E=BB=E2=94=A6=E8=AF=80=E7=9B=9E=E2=94=A6=E6=88=88
-> =E7=99=9F, =E5=BA=A6=E7=94=AD=E8=88=A6=EE=85=A5=E7=A5=87=E7=8D=BA=EE=97=
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DIf your computer is unable to de=
+code Chinese font,
+> > please ignore the following message. They essentially repe
+> > a!
+> > >  t the&nbsp; English statement above.=E3=82=BB=E7=8D=BA=E3=83=B3=E3=
+=81=9A=E2=94=AE=EE=9C=BA=E5=9C=B0=C3=BC=E7=AD=BF=EE=98=92=EE=80=99=E7=99=A9=
+=E7=8E=BB=E2=94=A6=E8=AF=80=E7=9B=9E=E2=94=A6
+> =E6=88=88
+> > =E7=99=9F, =E5=BA=A6=E7=94=AD=E8=88=A6=EE=85=A5=E7=A5=87=E7=8D=BA=EE=97=
 =AE=EE=82=B9=EF=B9=9A=E3=81=87=CE=9C=E7=8D=BA=EE=97=AE?=E7=B6=B7=E3=81=87=
 =E3=83=8E. =E5=AE=89=E3=84=8F=E7=9C=A4?=E7=8D=B6=E7=A0=86=EE=82=B9=EF=B9=9A=
-=E3=81=87=CE=9C=E7=8D=BA=EE=97=AE=E2=94=AA=EE=9B=83=E3=83=B4?=EE=85=A5=EE=
-=9B=83
-> =EE=9B=88=E3=82=BC=E7=AB=92=E7=94=AD=E8=88=A6=EE=80=99=E8=96=84?=E3=81=87=
-=EE=97=BB=CE=9C?=E3=82=BB=E7=8D=BA=E3=83=B3, =E5=8F=AB=E7=9C=A4=EE=9C=AF=EE=
-=80=9D=EE=85=A5=E7=A5=87=E7=8D=BA=EE=97=AE?=E3=83=9F=EE=9C=9F=E7=9B=A2=E7=
-=8D=BA=E3=83=B3=E7=9C=96=E7=AD=BF=E7=A6=8F=E7=B1=94=E5=91=BC=E9=9A=94?=E7=
-=8B=9D=E7=AB=9F
-> =E3=81=84=E3=81=89=EE=99=8E=EE=87=8F=E5=9F=83. =E7=99=B8?=E7=9C=A4=EE=80=
-=99=EE=9A=BE=EE=9C=86, =D0=B8=EE=85=85??=E7=92=93=E8=B0=85. =E7=96=AD?=E7=
-=9F=97=E7=9C=B6, =E3=83=B4?=E3=82=BC=E7=AB=92=E7=94=AD=E8=88=A6=E8=8F=8A?=
-=E3=84=8F=E3=83=8E=E5=9C=B0=C3=BC=E7=AD=BF=EE=98=92=EE=80=99
-> =E8=AF=80=E7=9B=9E=E6=88=88=E7=99=9F=EE=80=99=EF=B8=BD=EE=83=8B=E7=90=8C=
-=E7=A0=86=E8=85=A8=EE=86=BD=E7=AA=BD=E3=82=8E=EE=80=99. =E7=8D=BA=E3=83=B3=
-=E7=B1=94=E5=9C=B0=C3=BC=E7=AD=BF=EE=98=92=E7=8A=81=E7=A9=A8=E7=A4=9A=E9=97=
-=BD=E3=81=87=E3=81=9A=E7=94=A7,=E3=81=83=E7=9C=94=E8=B7=8C=EE=83=8B=E5=9C=
-=B0=C3=BC=E7=AD=BF=EE=98=92
-> =E3=81=87=E3=83=9F=E5=88=9D=E2=94=AA=E7=A8=AE=C7=8E.
-> >
-> >
+=E3=81=87=CE=9C=E7=8D=BA=EE=97=AE=E2=94=AA=EE=9B=83=E3=83=B4?=EE=85=A5
+> =EE=9B=83
+> > =EE=9B=88=E3=82=BC=E7=AB=92=E7=94=AD=E8=88=A6=EE=80=99=E8=96=84?=E3=81=
+=87=EE=97=BB=CE=9C?=E3=82=BB=E7=8D=BA=E3=83=B3, =E5=8F=AB=E7=9C=A4=EE=9C=AF=
+=EE=80=9D=EE=85=A5=E7=A5=87=E7=8D=BA=EE=97=AE?=E3=83=9F=EE=9C=9F=E7=9B=A2=
+=E7=8D=BA=E3=83=B3=E7=9C=96=E7=AD=BF=E7=A6=8F=E7=B1=94=E5=91=BC=E9=9A=94?=
+=E7=8B=9D
+> =E7=AB=9F
+> > =E3=81=84=E3=81=89=EE=99=8E=EE=87=8F=E5=9F=83. =E7=99=B8?=E7=9C=A4=EE=
+=80=99=EE=9A=BE=EE=9C=86, =D0=B8=EE=85=85??=E7=92=93=E8=B0=85. =E7=96=AD?=
+=E7=9F=97=E7=9C=B6, =E3=83=B4?=E3=82=BC=E7=AB=92=E7=94=AD=E8=88=A6=E8=8F=8A=
+?=E3=84=8F=E3=83=8E=E5=9C=B0=C3=BC=E7=AD=BF=EE=98=92
+> =EE=80=99
+> > =E8=AF=80=E7=9B=9E=E6=88=88=E7=99=9F=EE=80=99=EF=B8=BD=EE=83=8B=E7=90=
+=8C=E7=A0=86=E8=85=A8=EE=86=BD=E7=AA=BD=E3=82=8E=EE=80=99. =E7=8D=BA=E3=83=
+=B3=E7=B1=94=E5=9C=B0=C3=BC=E7=AD=BF=EE=98=92=E7=8A=81=E7=A9=A8=E7=A4=9A=E9=
+=97=BD=E3=81=87=E3=81=9A=E7=94=A7,=E3=81=83=E7=9C=94=E8=B7=8C=EE=83=8B=E5=
+=9C=B0=C3=BC=E7=AD=BF
+> =EE=98=92
+> > =E3=81=87=E3=83=9F=E5=88=9D=E2=94=AA=E7=A8=AE=C7=8E.
+> > >
+> > >
 
 
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
