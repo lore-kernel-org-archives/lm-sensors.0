@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:47 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.4
-Message-Id: <10793913912632@kroah.com>
+Message-Id: <10793913911774@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10793913913858@kroah.com>
+In-Reply-To: <10793913902844@kroah.com>
 References: <10793913903814@kroah.com>
 In-Reply-To: <10793913903814@kroah.com>
 MIME-Version: 1.0
@@ -11,35 +11,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1557.61.11, 2004/02/23 16:28:43-08:00, khali@linux-fr.org
+ChangeSet 1.1557.61.7, 2004/02/18 09:39:10-08:00, greg@kroah.com
 
-[PATCH] I2C: fix Hangs with w83781d
+I2C: fix oops in i2c-ali1535 driver if no hardware is present.
 
-Here is a patch for the w83781d driver that prevents register bits from
-being arbitrary changed when we force temp2/3 to comparator mode. Keith
-Duthie had been reporting various problems with that driver and finally
-found that this arbitrary change was the cause of them. He also tested
-this patch, which he confirmed to work.
+Thanks to Dave Jones for pointing this out.
 
 
- drivers/i2c/chips/w83781d.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-ali1535.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Mon Mar 15 14:37:03 2004
-+++ b/drivers/i2c/chips/w83781d.c	Mon Mar 15 14:37:03 2004
-@@ -1632,7 +1632,11 @@
- 		if (type != w83781d) {
- 			/* enable comparator mode for temp2 and temp3 so
- 			   alarm indication will work correctly */
--			w83781d_write_value(client, W83781D_REG_IRQ, 0x41);
-+			i = w83781d_read_value(client, W83781D_REG_IRQ);
-+			if (!(i & 0x40))
-+				w83781d_write_value(client, W83781D_REG_IRQ,
-+						    i | 0x40);
-+
- 			for (i = 0; i < 3; i++)
- 				data->pwmenable[i] = 1;
- 		}
+diff -Nru a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
+--- a/drivers/i2c/busses/i2c-ali1535.c	Mon Mar 15 14:37:27 2004
++++ b/drivers/i2c/busses/i2c-ali1535.c	Mon Mar 15 14:37:27 2004
+@@ -517,6 +517,7 @@
+ static void __devexit ali1535_remove(struct pci_dev *dev)
+ {
+ 	i2c_del_adapter(&ali1535_adapter);
++	release_region(ali1535_smba, ALI1535_SMB_IOSIZE);
+ }
+ 
+ static struct pci_driver ali1535_driver = {
+@@ -534,7 +535,6 @@
+ static void __exit i2c_ali1535_exit(void)
+ {
+ 	pci_unregister_driver(&ali1535_driver);
+-	release_region(ali1535_smba, ALI1535_SMB_IOSIZE);
+ }
+ 
+ MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
 
