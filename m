@@ -1,65 +1,63 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:40 +0000
-Subject: [fraga@myrealbox.com: w83781d kernel module bug report]
-Message-Id: <20040205201634.GB13885@frodo.local>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:05 +0000
+Subject: bt869 user feedback
+Message-Id: <3F185730.7040309@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Daniel Fraga <fraga@myrealbox.com> -----
 
-From: Daniel Fraga <fraga@myrealbox.com>
-To: frodol@dds.nl, phil@netroedge.com, mdsxyz123@yahoo.com
-Subject: w83781d kernel module bug report
-X-Spam-Status: No, hits=0.5 required=5.0 tests=RCVD_IN_RFCI version=2.20
-X-Spam-Level: 
 
-        Hi! I upgraded my Linux kernel from 2.6.1 to 2.6.2, but the
-temperature now shows incorrectly:
+-------- Original Message --------
+From: 	- Fri Jul 18 13:21:06 2003
+X-UIDL: 	2ef9b05b94e308a4
+X-Mozilla-Status: 	0001
+X-Mozilla-Status2: 	00800000
+Return-Path: 	<thephantom@aei.ca>
+Received: 	from aeimail.aei.ca (root@aeimail.aei.ca [206.123.6.14]) by 
+Ren.netroedge.com (8.12.8p1/8.9.1) with ESMTP id h6IK9LvL013499 for 
+<phil@netroedge.com>; Fri, 18 Jul 2003 13:09:22 -0700
+Received: 	from aei.ca (phantom@dsl-140-185.aei.ca [66.36.140.185]) by 
+aeimail.aei.ca (8.11.6/8.10.1) with ESMTP id h6IKIHk04571 for 
+<phil@netroedge.com>; Fri, 18 Jul 2003 16:18:17 -0400 (EDT)
+Message-ID: 	<3F185605.8070802@aei.ca>
+Disposition-Notification-To: 	Phantom <thephantom@aei.ca>
+Date: 	Fri, 18 Jul 2003 16:18:13 -0400
+From: 	Phantom <thephantom@aei.ca>
+User-Agent: 	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.3) Gecko/20030625
+X-Accept-Language: 	en-us, en
+MIME-Version: 	1.0
+To: 	phil@netroedge.com
+X-Enigmail-Version: 	0.74.3.0
+X-Enigmail-Supports: 	pgp-inline, pgp-mime
+Content-Type: 	text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 	7bit
+X-SpamBouncer: 	1.5 (8/16/02)
+X-SBClass: 	OK
+X-Spambayes-Classification: 	unsure; 0.26
 
-k6-2/500
-Motherboard Asus P5A-B 
-Linux 2.6.2
-gcc 3.3.1
 
-w83781d                29696  0 
-i2c_sensor              2624  1 w83781d
-i2c_isa                 1760  0 
-i2c_core               20996  3 w83781d,i2c_sensor,i2c_isa
 
-fraga@tux ~/src$ sensors
-w83781d-isa-0290
-Adapter: ISA adapter
-Algorithm: ISA algorithm
-VCore 1:   +2.26 V  (min =  +0.00 V, max =  +4.08 V)              
-VCore 2:   +2.27 V  (min =  +0.00 V, max =  +4.08 V)              
-+3.3V:     +3.60 V  (min =  +2.82 V, max =  +3.79 V)              
-+5V:       +5.05 V  (min =  +1.08 V, max =  +0.00 V)       ALARM  
-+12V:     +12.34 V  (min =  +0.00 V, max =  +1.03 V)       ALARM  
--12V:     -12.85 V  (min =  -0.89 V, max =  -0.00 V)       ALARM  
--5V:       -5.10 V  (min =  -0.00 V, max =  -0.00 V)       ALARM  
-fan1:        0 RPM  (min =   -1 RPM, div = 2)              ALARM  
-fan2:        0 RPM  (min = 168750 RPM, div = 2)              ALARM  
-fan3:        0 RPM  (min = 10546 RPM, div = 2)              ALARM  
-temp1:      +360?C  (high =    +0?C, hyst =    +0?C)          
-temp2:    +405.0?C  (high = +1220?C, hyst = +1210?C)          
-temp3:    -480.0?C  (high =  +800?C, hyst =  +750?C)          
-vid:      +3.500 V
-alarms:   
-beep_enable:
-          Sound alarm disabled
+Hi
+I tried the bt869 driver and here is the result:
+1) insmod it enable the output, but in monochrome
+2) cat any value to the proc files make the screen goes blank, rmmod and 
+insmod fix it
+3) reading the value of those proc files also blank the screen (same as 2)
+4) colorbar dosen't show up (blank screen, issue 2)
+5) svideo dosen't seems to work (issue 2 related?)
 
-        ***
+System:
+Voodoo 3 3500TV
+NTSC composite tv
 
-        It worked fine with 2.6.1, but it seems that some changes
-lead to this wrong extremely high temperature. Thanks!
 
------ End forwarded message -----
+amd athlon 1.4, 512megs ddr
+gentoo
+kernel 2.4.20-openmosix
+xfree 4.3.0 / gnome
 
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+
+
