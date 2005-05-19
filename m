@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:57 +0000
+Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: [PATCH] I2C update for 2.6.6
-Message-Id: <10845773573133@kroah.com>
+Message-Id: <10845773571232@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10845773573392@kroah.com>
+In-Reply-To: <10845773573553@kroah.com>
 References: <10845773562431@kroah.com>
 In-Reply-To: <10845773562431@kroah.com>
 MIME-Version: 1.0
@@ -11,68 +11,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1587.15.12, 2004/05/11 13:43:55-07:00, khali@linux-fr.org
+ChangeSet 1.1587.15.10, 2004/05/05 15:34:40-07:00, khali@linux-fr.org
 
-[PATCH] I2C: kill duplicate includes in i2c bus drivers
+[PATCH] I2C: Fix memory leaks in w83781d and asb100
 
-Following a suggestion of Arthur Othieno, here is a trivial patch that
-kills duplicate inclusions of config.h in four i2c bus drivers.
+Quoting myself
 
-At first I was thinking of also removing inclusions of config.h wherever
-it doesn't seem to be necessary but Eugene doesn't seem to think it's a
-good idea. So I may give it a try later (in 2.7), but for now this
-simple patch will be enough.
+> U-ho. I think I've introduced a memory leak with this patch :(
+>
+> For drivers that handle subclients (asb100 and w83781d on i2c), the
+> sublient memory is never released if I read the code correctly. This
+> is because we now free the private data on unload, assuming that it
+> contains the i2c client data as well. That's true for the main i2c
+> client, but not for the subclients (data = NULL so nothing is freed).
+>
+> Could someone take a look and confirm?
+
+I could test and actually saw memory leaking when cycling the w83781d
+driver at a sustained rate (5/s).
+
+> I can see two different fixes:
+>
+> 1* When freeing the memory, free the data if it's not NULL (main
+> client), else free client (subclients). Cleaner (I suppose?).
+>
+> 2* When creating subclients, do data = &client instead of data = NULL.
+> Then freeing will work. Less code, faster. Are there side effects? (I
+> don't think so)
+>
+> My preference would go to 2*.
+
+I ended up implementing 1*. That's cleaner and there's actually almost
+no extra code.
+
+Mark, can you confirm that I'm doing the correct thing? I'll do
+something similar in our CVS repository (for now, the asb100 and w83781d
+drivers had not their memory allocation scheme reworked there).
 
 
- drivers/i2c/busses/i2c-keywest.c |    1 -
- drivers/i2c/busses/i2c-piix4.c   |    1 -
- drivers/i2c/busses/scx200_acb.c  |    1 -
- drivers/i2c/busses/scx200_i2c.c  |    1 -
- 4 files changed, 4 deletions(-)
+ drivers/i2c/chips/asb100.c  |    8 +++++++-
+ drivers/i2c/chips/w83781d.c |    8 +++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/i2c-keywest.c b/drivers/i2c/busses/i2c-keywest.c
---- a/drivers/i2c/busses/i2c-keywest.c	Fri May 14 16:19:27 2004
-+++ b/drivers/i2c/busses/i2c-keywest.c	Fri May 14 16:19:27 2004
-@@ -48,7 +48,6 @@
+diff -Nru a/drivers/i2c/chips/asb100.c b/drivers/i2c/chips/asb100.c
+--- a/drivers/i2c/chips/asb100.c	Fri May 14 16:19:58 2004
++++ b/drivers/i2c/chips/asb100.c	Fri May 14 16:19:58 2004
+@@ -855,7 +855,13 @@
+ 		return err;
+ 	}
  
- #include <linux/config.h>
- #include <linux/module.h>
--#include <linux/config.h>
- #include <linux/kernel.h>
- #include <linux/ioport.h>
- #include <linux/pci.h>
-diff -Nru a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c	Fri May 14 16:19:27 2004
-+++ b/drivers/i2c/busses/i2c-piix4.c	Fri May 14 16:19:27 2004
-@@ -31,7 +31,6 @@
- #include <linux/config.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
--#include <linux/config.h>
- #include <linux/pci.h>
- #include <linux/kernel.h>
- #include <linux/stddef.h>
-diff -Nru a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
---- a/drivers/i2c/busses/scx200_acb.c	Fri May 14 16:19:27 2004
-+++ b/drivers/i2c/busses/scx200_acb.c	Fri May 14 16:19:27 2004
-@@ -25,7 +25,6 @@
- */
+-	kfree(i2c_get_clientdata(client));
++	if (i2c_get_clientdata(client)=NULL) {
++		/* subclients */
++		kfree(client);
++	} else {
++		/* main client */
++		kfree(i2c_get_clientdata(client));
++	}
  
- #include <linux/config.h>
--#include <linux/config.h>
- #include <linux/module.h>
- #include <linux/errno.h>
- #include <linux/kernel.h>
-diff -Nru a/drivers/i2c/busses/scx200_i2c.c b/drivers/i2c/busses/scx200_i2c.c
---- a/drivers/i2c/busses/scx200_i2c.c	Fri May 14 16:19:27 2004
-+++ b/drivers/i2c/busses/scx200_i2c.c	Fri May 14 16:19:27 2004
-@@ -22,7 +22,6 @@
- */
+ 	return 0;
+ }
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	Fri May 14 16:19:58 2004
++++ b/drivers/i2c/chips/w83781d.c	Fri May 14 16:19:58 2004
+@@ -1336,7 +1336,13 @@
+ 		return err;
+ 	}
  
- #include <linux/config.h>
--#include <linux/config.h>
- #include <linux/module.h>
- #include <linux/errno.h>
- #include <linux/kernel.h>
+-	kfree(i2c_get_clientdata(client));
++	if (i2c_get_clientdata(client)=NULL) {
++		/* subclients */
++		kfree(client);
++	} else {
++		/* main client */
++		kfree(i2c_get_clientdata(client));
++	}
+ 
+ 	return 0;
+ }
 
