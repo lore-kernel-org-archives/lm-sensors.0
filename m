@@ -1,34 +1,55 @@
-From: Mario.Holbe@RZ.TU-Ilmenau.DE (Mario 'BitKoenig' Holbe)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: AS99127F: in7 + in8?
-Message-Id: <20040303160144.GD16642@darkside.22.kls.lan>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:17 +0000
+Subject: [PATCH] i2c driver fixes for 2.6.0-test5
+Message-Id: <1064273416272@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040303152742.GA16642@darkside.22.kls.lan>
-In-Reply-To: <20040303152742.GA16642@darkside.22.kls.lan>
+In-Reply-To: <10642734162392@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-On Wed, Mar 03, 2004 at 04:58:21PM +0100, Jean Delvare wrote:
-> Quoting Mario 'BitKoenig' Holbe <Mario.Holbe@RZ.TU-Ilmenau.DE>:
-> > useful values for in7 and in8:
-> You find these useful? How useful can wrong, never changing values be?
+ChangeSet 1.1153.85.2, 2003/08/27 15:29:33-07:00, mds@paradyne.com
 
-my fault... s/useful/seemingly senseful/
+[PATCH] I2C: i2c-isa functionality
 
-I had no idea, if that were real values, but they did look
-like - they did fit into min/max.
-
-> They were dummies, as you say, and were dropped on purpose.
-
-Thanks for your answer.
+The "functionality" return was incorrectly removed for i2c-isa.c when porting to 2.5.
+A driver that does nothing must return a 0 or else i2c-core assumes
+0xffffffff (all functionality).
 
 
-regards,
-   Mario
--- 
-Independence Day: Fortunately, the alien computer operating system works just
-fine with the laptop. This proves an important point which Apple enthusiasts
-have known for years. While the evil empire of Microsoft may dominate the
-computers of Earth people, more advanced life forms clearly prefer Mac's.
+ drivers/i2c/busses/i2c-isa.c |    9 +++++++++
+ 1 files changed, 9 insertions(+)
+
+
+diff -Nru a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
+--- a/drivers/i2c/busses/i2c-isa.c	Mon Sep 22 16:17:05 2003
++++ b/drivers/i2c/busses/i2c-isa.c	Mon Sep 22 16:17:05 2003
+@@ -30,10 +30,13 @@
+ #include <linux/errno.h>
+ #include <linux/i2c.h>
+ 
++static u32 isa_func(struct i2c_adapter *adapter);
++
+ /* This is the actual algorithm we define */
+ static struct i2c_algorithm isa_algorithm = {
+ 	.name		= "ISA bus algorithm",
+ 	.id		= I2C_ALGO_ISA,
++	.functionality	= isa_func,
+ };
+ 
+ /* There can only be one... */
+@@ -44,6 +47,12 @@
+ 	.algo		= &isa_algorithm,
+ 	.name		= "ISA main adapter",
+ };
++
++/* We can't do a thing... */
++static u32 isa_func(struct i2c_adapter *adapter)
++{
++	return 0;
++}
+ 
+ static int __init i2c_isa_init(void)
+ {
+
