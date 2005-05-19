@@ -1,7 +1,7 @@
-From: m.strong@tnsa.com.au (Mark Strong)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: fan speeds and temps no reading
-Message-Id: <1105655862.15001.194.camel@tooheys.tnsa.com.au>
+Message-Id: <qEHOc0gR.1105696557.6106170.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1104907933.3003.195.camel@tooheys.tnsa.com.au>
 In-Reply-To: <1104907933.3003.195.camel@tooheys.tnsa.com.au>
@@ -10,32 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean,
-	sorry, mind's on other stuff.
 
+Hi Mark,
 
-Mark.
-On Thu, 2005-01-13 at 22:49 +0100, Jean Delvare wrote:
-> > Jean,
-> > 	here's the data
-> 
-> Hmm, where's the attachement? ;)
-> 
--------------- next part --------------
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: ff ff ff ff ff ff ff 08 ff ff ff ff ff ff ff ff 
-10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-20: 82 84 ff fe e2 00 00 ff 20 00 00 1a 58 20 00 ff 
-30: 01 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+I'm admittedly surprised by the dump, as all registers in the 0xF0-0xF7
+range are set to 0xFF while the datasheet mentions default values of
+0x00 for most. We might assume that the datasheet is wrong and continue,
+but this still worries me.
+
+isaset -y -f 0x2e 0x87
+isaset -y -f 0x2e 0x87
+isaset -y 0x2e 0x2f 0x07 8
+isaset -y 0x2e 0x2f 0xf2 0xe7
+isaset -y 0x2e 0x2f 0xf0 0xe7
+
+At this point you can modprobe i2c-i801 if you didn't already. Then do
+"i2cdetect -l" to get the id of the i801 bus (most probably 0 or 1)
+and do "i2cdetect 0" or 1 or whatever number the i801 bus id is. See
+if any new device appeared especially in the 0x28-0x2f range.
+
+If nothing showed, try:
+isaset -y 0x2e 0x2f 0xf1 0xef
+
+And try i2cdetect again. If still nothing:
+
+isaset -y 0x2e 0x2f 0xf1 0xf7
+
+And try i2cdetect again. If still nothing:
+
+isaset -y 0x2e 0x2f 0xf1 0xe7
+
+And i2cdetect again. If still nothing we have lost :( so let's just hope
+that one of the i2cdetect above found something.
+
+Finally release the super-io chip with:
+isaset -y -f 0x2e 0xaa
+
+Thanks,
+--
+Jean Delvare
