@@ -1,24 +1,46 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: [PATCH 2.6] more i2c bus drivers
-Message-Id: <20031205193859.3a6bac78.khali@linux-fr.org>
+From: quintela@mandrakesoft.com (Juan Quintela)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: [PATCH]: sensord  man page should belong to section 8
+Message-Id: <m28z3m3dq7.fsf@demo.mitica>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
 
-I will be sending 2 more patches to you, based on linux-2.6.0-test11.
-They still concern bus drivers. These fixes and improvements were
-already made to our CVS repository, and should go to Linux 2.6 too.
+Hi
+        what do you think about this change?  All the other system
+        daemons man pages are in the section 8, section 1 is for user
+        programs.
 
-Details about what the patch do, credits and more will be found with
-each patch.
+Later, Juan.
 
-Thanks.
+diff -up lm_sensors-2.6.4/prog/sensord/Module.mk.orig lm_sensors-2.6.4/prog/sensord/Module.mk
+--- lm_sensors-2.6.4/prog/sensord/Module.mk.orig	2002-08-04 16:17:47.000000000 +0200
++++ lm_sensors-2.6.4/prog/sensord/Module.mk	2002-08-04 16:20:06.000000000 +0200
+@@ -25,8 +25,8 @@
+ MODULE_DIR := prog/sensord
+ PROGSENSORDDIR := $(MODULE_DIR)
+ 
+-PROGSENSORDMAN1DIR := $(MANDIR)/man8
+-PROGSENSORDMAN1FILES := $(MODULE_DIR)/sensord.8
++PROGSENSORDMAN8DIR := $(MANDIR)/man8
++PROGSENSORDMAN8FILES := $(MODULE_DIR)/sensord.8
+ 
+ # Regrettably, even 'simply expanded variables' will not put their currently
+ # defined value verbatim into the command-list of rules...
+@@ -46,7 +46,7 @@ all :: all-prog-sensord
+ install-prog-sensord: all-prog-sensord
+ 	$(MKDIR) $(DESTDIR)$(SBINDIR) $(DESTDIR)$(PROGSENSORDMAN1DIR)
+ 	$(INSTALL) -m 755 $(PROGSENSORDTARGETS) $(DESTDIR)$(SBINDIR)
+-	$(INSTALL) -m 644 $(PROGSENSORDMAN1FILES) $(DESTDIR)$(PROGSENSORDMAN1DIR)
++	$(INSTALL) -m 644 $(PROGSENSORDMAN8FILES) $(DESTDIR)$(PROGSENSORDMAN8DIR)
+ install :: install-prog-sensord
+ 
+ clean-prog-sensord:
+
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+In theory, practice and theory are the same, but in practice they 
+are different -- Larry McVoy
