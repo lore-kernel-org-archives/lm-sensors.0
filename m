@@ -1,30 +1,35 @@
-From: akpm@osdl.org (Andrew Morton)
-Date: Thu, 19 May 2005 06:25:16 +0000
-Subject: [PATCH] Connector and SuperIO inclusion.
-Message-Id: <20040921031702.333f34bc.akpm@osdl.org>
+From: fabrice@yako.via.ecp.fr (Fabrice Ollivier)
+Date: Thu, 19 May 2005 06:24:06 +0000
+Subject: stdarg.h inclusion problem (ticket #1343)
+Message-Id: <1058736432.30749.4.camel@kalaha>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040921095933.GA6274@uganda.factory.vocord.ru>
-In-Reply-To: <20040921095933.GA6274@uganda.factory.vocord.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Evgeniy Polyakov <johnpol@2ka.mipt.ru> wrote:
->
-> Connector driver adds possibility to connect various agents using
->  netlink based network.
+I have stdarg.h :cif@kalaha ~% locate stdarg.h
+/usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h
+/usr/lib/gcc-lib/i386-linux/3.0.4/include/stdarg.h
+/usr/lib/gcc-lib/i386-linux/3.2.3/include/stdarg.h
+/usr/lib/gcc-lib/i386-linux/3.3.1/include/stdarg.h
+(an updatedb was made just before)
 
-Well I'm not sure what to make of this.  Can see a few minor implementation
-problems but I don't get the big picture.  (No pun intended - that drawing
-doesn't help a lot either).  You'll need to describe the motivation for
-this with a little more care.
+cif@kalaha ~% gcc -print-search-dirs
+install?s: /usr/lib/gcc-lib/i386-linux/3.3.1/
+programmes:
+=/usr/lib/gcc-lib/i386-linux/3.3.1/:/usr/lib/gcc-lib/i386-linux/3.3.1/:/usr/
+lib/gcc-lib/i386-linux/:/usr/lib/gcc/i386-linux/3.3.1/:/usr/lib/gcc/i386-linux/:
+/usr/lib/gcc-lib/i386-linux/3.3.1/../../../../i386-linux/bin/i386-linux/3.3.1/:
+/usr/lib/gcc-lib/i386-linux/3.3.1/../../../../i386-linux/bin/
+libraries:
+=/usr/lib/gcc-lib/i386-linux/3.3.1/:/usr/lib/gcc/i386-linux/3.3.1/:/usr/lib/
+gcc-lib/i386-linux/3.3.1/../../../../i386-linux/lib/i386-linux/3.3.1/:/usr/lib/
+gcc-lib/i386-linux/3.3.1/../../../../i386-linux/lib/:/usr/lib/gcc-lib/i386-linux/
+3.3.1/../../../i386-linux/3.3.1/:/usr/lib/gcc-lib/i386-linux/3.3.1/../../../:
+/lib/i386-linux/3.3.1/:/lib/:/usr/lib/i386-linux/3.3.1/:/usr/lib/
 
-You'll also need to split the patch up and document the separte parts,
-please.  The `connector' thing shouldn't be in the same patch as SuperIO
-device driver stuff!  Each "concept" should appear in its own patch.
+Any Idea ?
 
-When you have prepared and fully described the patches, please send them to
-linux-kernel for review and comment.
-
-Thanks.
+-- 
+Cif
