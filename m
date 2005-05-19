@@ -1,65 +1,69 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: lm_sensors2/kernel/chips w83792d.c
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5717@weshml03.winbond.com.tw>
+Message-Id: <20050329050036.GC14733@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050329011601.GA14733@jupiter.solarsys.private>
 In-Reply-To: <20050329011601.GA14733@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgTWFyayBNLiBIb2ZmbWFuCgpUaGFuayB5b3UgZm9yIHlvdXIgc3VnZ2VzdGlvbiwgcGxlYXNl
-IHJlZmVyIHRvIG15IGFuc3dlciBiZWxvdy4KCj4gV2h5IGlzIHRoZXJlIGEgaHVnZSAnZG8gey4u
-Ln0gd2hpbGUoMCknIGxvb3AgaW4gdzgzNzkyZF9mYW4oKT8gIEkKZ3Vlc3MKPiBpdCdzIHNvbWUg
-a2luZCBvZiBmYW4gZGl2aXNvciBhdXRvLWNvbmZpZ3VyYXRpb24uICBJZiB0aGF0J3MgdGhlIGNh
-c2UsCj4gc2hvdWxkbid0IGl0IGJlICdkbyB7Li4ufSB3aGlsZSgxKSc/CgpXZSB1c2UgdGhhdCBo
-dWdlICdkbyB7Li4ufSB3aGlsZSgwKScgdG8gc3Vic3RpdHV0ZSB0aGUgImdvdG8iIHNlbnRlbmNl
-LApiZWNhdXNlIHRoZSAiZ290byIgc2VudGVuY2UgaXMgTk9UIHdlbGNvbWUgaW4gbW9zdCBjYXNl
-cywgd2Ugd2FudCB0bwphdm9pZAppdC4gOi0pCgpBbHRob3VnaCB0aGUgaWRlYSBvZiBjaGFuZ2lu
-ZyAid2hpbGUgKDApIiBpbnRvICJ3aGlsZSAoMSkiIGlzIGZlYXNpYmxlLApXZSBjYW4gTk9UIGRv
-IHRoYXQsIGl0J3MgZGFuZ2Vyb3VzIHRvIHVzZSBzdWNoIGVuZGxlc3MgbG9vcC4gV2UgaGF2ZQp0
-ZXN0ZWQKaXQsIHRoZSAid2hpbGUgKDEpIiBsZWFkcyB0byBiYWQgcmVzdWx0LCB3aGlsZSAid2hp
-bGUgKDApIiB3b3JrcyB3ZWxsLgoKCj4gQWxzbywgd2h5IG5vdCBtb3ZlIHRoZSB3ODM3OTJkX3Vw
-ZGF0ZV9jbGllbnQoKSBjYWxsIHRvIHRoZSBib3R0b20gb2YKdGhlIGxvb3A/CgpXaGljaCBjYXNl
-IGRvIHlvdSBtZWFuID8gQ2FzZSAxIG9yIENhc2UgMj8KT3JpZ2luYWw6CgkJLyogYWRqdXN0IEZh
-biBEaXZpc29yLCB0aGVuIGNoYW5nZSBSUE0gKi8KCQlkbyB7CgkJCXc4Mzc5MmRfdXBkYXRlX2Ns
-aWVudChjbGllbnQpOwoJCQlpZiAoKGRhdGEtPmZhbltucl0+MHg1MCkgJiYKKGRhdGEtPmZhbltu
-cl08MHhmZikpIHsKCQkJCS4uLi4uLgoJCQl9IGVsc2UgewoJCQkJLi4uLi4uCgkJCX0KCQl9IHdo
-aWxlICgwKTsKCkFmdGVyIG1vZGlmaWNhdGlvbiwgQ2FzZSAxOgoJCS8qIGFkanVzdCBGYW4gRGl2
-aXNvciwgdGhlbiBjaGFuZ2UgUlBNICovCgkJZG8gewoJCQlpZiAoKGRhdGEtPmZhbltucl0+MHg1
-MCkgJiYKKGRhdGEtPmZhbltucl08MHhmZikpIHsKCQkJCS4uLi4uLgoJCQl9IGVsc2UgewoJCQkJ
-Li4uLi4uCgkJCX0KCQkJdzgzNzkyZF91cGRhdGVfY2xpZW50KGNsaWVudCk7CgkJfSB3aGlsZSAo
-MCk7CgoKQWZ0ZXIgbW9kaWZpY2F0aW9uLCBDYXNlIDI6CgkJLyogYWRqdXN0IEZhbiBEaXZpc29y
-LCB0aGVuIGNoYW5nZSBSUE0gKi8KCQlkbyB7CgkJCWlmICgoZGF0YS0+ZmFuW25yXT4weDUwKSAm
-JgooZGF0YS0+ZmFuW25yXTwweGZmKSkgewoJCQkJLi4uLi4uCgkJCX0gZWxzZSB7CgkJCQkuLi4u
-Li4KCQkJfQoJCX0gd2hpbGUgKDApOwoJCXc4Mzc5MmRfdXBkYXRlX2NsaWVudChjbGllbnQpOwoK
-SXQgc2VlbXMgdGhlICJDYXNlIDEiIGlzIE5PVCBnb29kLCBiZWNhdXNlIHRoZSAiCnc4Mzc5MmRf
-dXBkYXRlX2NsaWVudCgpIgp3aWxsIE5PVCBiZSBleGVjdXRlZCB3aGVuIHNvbWUgImJyZWFrIiBh
-cHBlYXJzLgoKVG8gdGVsbCB0aGUgdHJ1dGgsIEkgZGlkIG5vdCBjb25zaWRlciBzdWNoIHByb2Js
-ZW0gYmVmb3JlLApXb3VsZCB5b3UgcGxlYXNlIGdpdmUgbWUgdGhlIHN1ZmZpY2llbnQgcmVhc29u
-IG9mIHRoZSBtb2RpZmljYXRpb24/CgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8KCgo9PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQg
-Y29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVu
-ZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9y
-aWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2Vl
-IGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2
-ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUg
-c2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0
-IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRo
-YW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVu
-YXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMg
-c3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRo
-YXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNo
-YWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1
-dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBm
-b2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVu
-Z2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq4
-6rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3
-pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqn
-aaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nz
-sXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdio
-ublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVM
-w/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+Hi Chunhao:
+
+I wrote:
+> > Why is there a huge 'do {...} while(0)' loop in w83792d_fan()?  I guess
+> > it's some kind of fan divisor auto-configuration.  If that's the case,
+> > shouldn't it be 'do {...} while(1)'?
+
+* Chunhao <Huang0@Winbond.com.tw> [2005-03-29 11:46:36 +0800]:
+> We use that huge 'do {...} while(0)' to substitute the "goto" sentence,
+> because the "goto" sentence is NOT welcome in most cases, we want to
+> avoid
+> it. :-)
+
+If that was your intention, I would prefer if you just used goto.
+To use 'do {...} while(0)' as a "stealth" goto is even worse.
+
+> Although the idea of changing "while (0)" into "while (1)" is feasible,
+> We can NOT do that, it's dangerous to use such endless loop. We have
+> tested
+> it, the "while (1)" leads to bad result, while "while (0)" works well.
+
+Well, the purpose of this part of the code was not immediately clear
+to me.  Now I've read it more closely.  It seems you are trying to
+settle on an appropriate fan divisor - one which is appropriate for
+the measured fan speed.  But... the loop obviously isn't a loop at
+all, so you're only incrementing or decrementing fan_div[nr] by 1.
+That means the user would have to read the fan multiple times before
+the fan_div arrives at a useful value.  Is that what you wanted?
+
+Also notice, the way it's written now... the value reported in 
+results[0] (the limit) will be wrong if the fan_div is written
+back to the chip immediately after.
+
+> > Also, why not move the w83792d_update_client() call to the bottom of
+> > the loop?
+> 
+> Which case do you mean ? Case 1 or Case 2?
+> (snip)
+
+I should have noticed in the first place... but actually it doesn't
+matter at all.  It will only really update the values once anyway
+because of the rate limiting.  As it's written now, you may just as
+well get rid of the second one altogether.  Do you see why?
+
+At any rate, I think there are multiple problems here.  Could you
+please explain exactly what you are trying to do between these lines?
+Then maybe I can help you better.
+
+> 1000 else if (operation = SENSORS_PROC_REAL_READ) {
+> ???
+> 1042 } else if (operation = SENSORS_PROC_REAL_WRITE) {
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
