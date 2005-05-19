@@ -1,105 +1,131 @@
-From: debry@cereve.enpc.fr (Edouard Debry)
-Date: Thu, 19 May 2005 06:24:41 +0000
-Subject: lecture fan
-Message-Id: <20040211102635.GA4014@cereve.enpc.fr>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: [BK PATCH] i2c driver fixes for 2.6.1
+Message-Id: <20040119235733.GA5549@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: torvalds@osdl.org, akpm@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-bonjour,
+Hi,
 
-ceci est une reponse a votre reponse concernant le pb de lecture de
-vitesse d'un fan :
+Here are some i2c driver fixes and updates for 2.6.1.  There are a
+number of bug fixes here, and a few new drivers have been added to the
+tree.
 
-j'ai rajoute dans sensors.conf des lignes 'set fanx_min xxx'
-cela regle le pb du '-1' trouve pour le fan1, la valeur min est
-egalement prise en compte par le fan2 mais ne change rien a la lecture
-de sa vitesse toujour fantaisiste,=20
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
 
-le symptome le plus troublant est que d=E8s que j'augmente le voltage
-du ventilo, la lecture de sa vitesse prend une valeur correcte et
-stable (~2000), alors que si je le laisse sous-volt=E9 au minimum,
-la vitesse est pratiquement multipli=E9 par 10 (~20000) et surtout elle=20
-devient + ou - aleatoire
+Individual patches will follow, sent to the sensors and linux-kernel
+lists.
 
-le pb semble venir du ventilo lui-meme ( je vais le changer pour voir )
+thanks,
 
-par ailleurs j'ai vu dans lm_sensors/prog/init/ des scripts d'init,
-est-il necessaire de passer par eux ? est-ce que le demon sensord est
-necessaire ? ( jusqu'=E0 present je me contente de charger les modules et
-d'executer 'sensors -s' )
+greg k-h
 
-en vous remerciant d'avance pour votre attention
-cordialement
-edouard
+ Documentation/i2c/porting-clients      |    5 
+ drivers/Kconfig                        |    2 
+ drivers/char/Kconfig                   |    2 
+ drivers/i2c/Kconfig                    |   32 
+ drivers/i2c/algos/Kconfig              |    1 
+ drivers/i2c/algos/i2c-algo-pcf.h       |    2 
+ drivers/i2c/busses/Kconfig             |  101 ++-
+ drivers/i2c/busses/Makefile            |    2 
+ drivers/i2c/busses/i2c-ali1535.c       |    5 
+ drivers/i2c/busses/i2c-ali15x3.c       |    5 
+ drivers/i2c/busses/i2c-amd756.c        |    5 
+ drivers/i2c/busses/i2c-amd8111.c       |    5 
+ drivers/i2c/busses/i2c-elektor.c       |   19 
+ drivers/i2c/busses/i2c-elv.c           |   17 
+ drivers/i2c/busses/i2c-frodo.c         |    5 
+ drivers/i2c/busses/i2c-i801.c          |    5 
+ drivers/i2c/busses/i2c-i810.c          |    5 
+ drivers/i2c/busses/i2c-ibm_iic.c       |    8 
+ drivers/i2c/busses/i2c-iop3xx.c        |    9 
+ drivers/i2c/busses/i2c-isa.c           |    5 
+ drivers/i2c/busses/i2c-ite.c           |   24 
+ drivers/i2c/busses/i2c-keywest.c       |   36 -
+ drivers/i2c/busses/i2c-nforce2.c       |    5 
+ drivers/i2c/busses/i2c-parport-light.c |  179 +++++
+ drivers/i2c/busses/i2c-parport.c       |  273 ++++++++
+ drivers/i2c/busses/i2c-parport.h       |   87 ++
+ drivers/i2c/busses/i2c-philips-par.c   |    9 
+ drivers/i2c/busses/i2c-piix4.c         |   12 
+ drivers/i2c/busses/i2c-prosavage.c     |    5 
+ drivers/i2c/busses/i2c-rpx.c           |    9 
+ drivers/i2c/busses/i2c-savage4.c       |    5 
+ drivers/i2c/busses/i2c-sis5595.c       |   10 
+ drivers/i2c/busses/i2c-sis630.c        |    5 
+ drivers/i2c/busses/i2c-sis96x.c        |    5 
+ drivers/i2c/busses/i2c-velleman.c      |   14 
+ drivers/i2c/busses/i2c-via.c           |    7 
+ drivers/i2c/busses/i2c-viapro.c        |    5 
+ drivers/i2c/busses/i2c-voodoo3.c       |    5 
+ drivers/i2c/busses/scx200_acb.c        |   15 
+ drivers/i2c/busses/scx200_i2c.c        |   10 
+ drivers/i2c/chips/Kconfig              |   36 +
+ drivers/i2c/chips/Makefile             |    7 
+ drivers/i2c/chips/adm1021.c            |    5 
+ drivers/i2c/chips/asb100.c             | 1059 ++++++++++++++++++++++++++++++++-
+ drivers/i2c/chips/eeprom.c             |   67 +-
+ drivers/i2c/chips/it87.c               |   13 
+ drivers/i2c/chips/lm75.c               |    5 
+ drivers/i2c/chips/lm78.c               |    7 
+ drivers/i2c/chips/lm83.c               |    7 
+ drivers/i2c/chips/lm85.c               |    5 
+ drivers/i2c/chips/lm90.c               |  529 ++++++++++++++++
+ drivers/i2c/chips/via686a.c            |    5 
+ drivers/i2c/chips/w83781d.c            |   37 -
+ drivers/i2c/chips/w83l785ts.c          |  314 +++++++++
+ drivers/i2c/i2c-core.c                 |  114 +--
+ drivers/i2c/i2c-dev.c                  |   10 
+ drivers/i2c/i2c-sensor.c               |    5 
+ drivers/ieee1394/Kconfig               |    9 
+ drivers/media/video/Kconfig            |   13 
+ drivers/media/video/saa7146.h          |    1 
+ drivers/video/Kconfig                  |   21 
+ include/linux/i2c-id.h                 |    3 
+ 62 files changed, 2966 insertions(+), 266 deletions(-)
+-----
 
+<ebs:ebshome.net>:
+  o I2C: IBM IIC compile fix
 
+Greg Kroah-Hartman:
+  o I2C: remove unneeded CVS Id: lines
+  o I2C: add I2C_DEBUG_BUS config option and convert the i2c bus drivers to use it
+  o I2C: add I2C_DEBUG_CHIP config option and convert the i2c chip drivers to use it
+  o I2C: add I2C_DEBUG_CORE config option and convert the i2c core code to use it
+  o I2C: only select I2C_ITE if we are a MIPS system
+  o I2C: remove CONFIG_ISA dependancy for I2C_ISA as x86_64 does not have CONFIG_ISA
+  o I2C: move the Kconfig "source..." out of the drivers/char/ location
 
+Jean Delvare:
+  o I2C: Autoselect i2c algos
+  o I2C: New driver: w83l785ts
+  o I2C: Fix i2c busses warnings with DEBUG
+  o I2C: Fix i2c-core.c with DEBUG
+  o I2C: Fix lm90.c with DEBUG
+  o I2C: speed up eeprom driver by a factor of 4
+  o I2C: i2c-i801 help
+  o I2C: clean up ISA dependancies
+  o I2C: restore correct vaio handling in eeprom driver
+  o I2C: Fix debug bug in lm83 driver
+  o I2C: Fix w83781d temp
+  o I2C: New chip driver: lm90
+  o I2C: New parport bus drivers
+  o I2C: i2c-rpx.c doesn't need ioports.h nor parport.h
+  o I2C: Typo in i2c/busses/Kconfig
+  o I2C: saa7146.h doesn't need i2c.h
+  o I2C: documentation update
 
-PRECEDENT MESSAGE :
-> je viens d'installer lm_sensors 2.8.2, sur un noyau 2.4.22 ( patch?
-> comme conseill? sur votre site ), ca marche, les temperatures ont =20
-> l'air corrects, seule la lecture des RPM des fans me donne une
-> inqui?tude :
->=20
-> pour l'un d'eux ( fan2 ) j'obtiens 0 ou une valeur completement
-> fausse ( ce sont souvent les 4 derniers chiffres du min ),=20
->=20
-> j'ai suivi le conseil du FAQ, et j'ai regl? le fan2_div
-> mais m?me en le r?glant ? 8 voire 16, la valeur min indiqu? par
-> 'sensors' est incroyablement grande ( ~ 10000 RPM ) et je n'arrive
-> pas a la faire descendre plus bas
+Mark M. Hoffman:
+  o I2C: link asb100 in the proper order
+  o I2C: Add ported sensor chip driver: asb100
 
-Il est possible que ton ventillateur envoie plus que 2 impulsions par
-tour (c'est le standard), auquel cas la valeur doit ?tre divis?e en
-cons?quence. Cependant, cette hypoth?se est peu probable, voir plus bas.
+Matthew Wilcox:
+  o I2C: Kconfig cleanups
 
-> sur le premier fan ( fan1 ) j'obtiens une valeur correcte en ajustant=20
-> egalement le fan1_div, mais le min reste invariablement fixe a -1 RPM
-> !!
-
-G?n?ralement, -1 est synonyme d'erreur. En l'occurence ?a veut dire que
-le registre contenait 0, qui est une valeur impossible (car la valeur du
-registre est inversement proportionelle ? la vitesse de rotation).
-
-Y'a-t-il une ligne "set fan1_min" dans ton fichier de configuration ?
-S'il n'y en a pas, essaye d'en rajouter une.
-
-> lorsque je regarde les valeurs du bios, celui-ci ne me donne des
-> valeurs differentes de 0 que si la valeur en RPM est >=1500, mais a
-> part ca les valeurs du bios ont l'air correctes
-
-Si les valeurs du BIOS sont correctes (m?me occasionnellement) c'est que
-ton ventillateur est standard. Les 0 signifient juste qu'ils ne tournent
-pas tr?s vite et qu'il conviendrait d'augmenter le diviseur.
-
-> donc je ne sais pas trop comment regler ce pb=20
-> je n'ai pas vu d'autre conseils dans votre FAQ, aussi me tourne vers
-> vous
->
-> PS : ma CM est une MSI-K7N2 delta-l,=20
-> j'utilise les pilotes i2c-nforce2 i2c-isa eeprom w83627hf ( ou ..fh )
-
-On peut se tutoyer ;)
-
-Je n'ai pas non plus beaucoup d'id?es. Je ne suis pas l'auteur de ce
-driver, et c'est la premi?re fois que ce probl?me est rapport?. Tout ce
-que je peux te sugg?rer c'est de charger le driver avec l'option
-"init=3D0" pour court-circuiter la r?initialisation du driver. Peut-?tre
-que le BIOS configure le chip d'une certaine fa?on qu'il convient de
-pr?server...
-
-Voil? j'esp?re que ?a te donne quelques pistes ? explorer.
-
---=20
-*-----------------------------------------------------------------*
-|                          Edouard DEBRY                          |
-| Ph-D student at E.N.P.C - C.E.R.E.A   http://www.enpc.fr/cerea/ |
-|                                                                 |
-| 21 Rue Nobel, Cit=E9 Descartes        TEL  : 33 1 64 15 21 52     |
-| 77455 CHAMPS SUR MARNE              MAIL : debry@cerea.enpc.fr  |
-|                                                                 |
-| Thesis subject: MODELING OF AN ATMOSPHERIC AEROSOL DISTRIBUTION |
-*-----------------------------------------------------------------*
+Tom Rini:
+  o I2C: module_parm fixes for i2c-piix4.c
