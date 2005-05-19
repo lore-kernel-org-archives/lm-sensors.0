@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:32 +0000
+Date: Thu, 19 May 2005 06:25:33 +0000
 Subject: CPU temp does not update
-Message-Id: <5ipw65wb.1106662037.0906340.khali@localhost>
+Message-Id: <iDcUe6bd.1106741671.8705550.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200501241750.44403.jrclarke@btinternet.com>
 In-Reply-To: <200501241750.44403.jrclarke@btinternet.com>
@@ -11,59 +11,61 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-[Please do not forget to CC: the sensors list on reply]
+Hi John,
 
-Hi again John,
-
-> > If possible, restart your system so that the w83627hf is not even
-> > loaded, in case it had a "permanent" (till next reboot) effect on the
-> > chip.
-> Not sure how to do this, should I go to all sensors conf files and replace
-> w83627hf with w83781d and then reboot ?
-
-Simply edit /etc/rc.d/rc.local, replace "modprobe w83627hf" with
-"modprobe w83781d". Even better, comment out the modprobe line
-altogether, so that you can load the drivers manually for now. Remove
-the call to "sensors -s" if you do.
-
-> temp2:     +25.5?C  (high =   +52?C, hyst =   +47?C)   sensor = thermistor
+> here is lsmod immediately after reboot
 > (...)
-> isadump 0x295 0x296 1
+
+(no w83627hf)
+
+> and here is
+> # isadump 0x295 0x296 1
+> (..)
+> 50: 2d 80 01 7a 00 7f 00 ff ff ff ff ff ff ff ff ff
+
+To my great surprise, temp2 is *already* disabled at this point. This
+suggests the following things:
+1* This is probably the hardware default, contrary to what the datasheet
+says.
+2* Your BIOS doesn't enable temp2 on regular boot, although it obviously
+enables it when you enter the setup screen (you saw the temperature
+update there).
+
+> I have now done modprobe w83627hf init=0
 > (...)
-> 50: 19 80 01 2f 00 34 00 ff ff ff ff ff ff ff ff ff
+> Unfortunately it does not change (I ran cpuburn for a few minutes, fan
+> speed increased as expected but no change to temp2)
 
-The register values match what was displayed by "sensors". However,
-configuration register (at 0x52) reads 0x01 which means (surprise)
-"stop monitoring". This explains why the value is never updated.
+You are lucky that the fan speed changed at all. If it was based solely
+on the CPU temperature it wouldn't have. I guess it somehow also
+depends on the system temperature (which is not disabled and probably
+cannot be). Unless this is a self-regulating fan?
 
-The w83781d driver in lm_sensors 2.7.0 explicitely re-enables temp2 and
-temp3, which is why it works fine on your Mandrake 9.1 system. The
-w83781d driver in Linux 2.6 re-enables temp3 but for some reason not
-temp2. Don't even bother testing it, it will not behave any better than
-w83627hf does. The w83627hf driver in Linux 2.6 doesn't re-enable any
-of them, thus the problem you observed.
+Skipping the init would have preserved a correct setup done by the BIOS,
+but since such a setup was not done in the first place, it didn't help.
+No surprise here.
 
-I would like you to dump the chip again (with "isadump 0x295 0x296 1")
-after a reboot but before you load any chip driver (this supposes that
-you commented out the modprobe line in /etc/rc.d/rc.local as explained
-above). That way we will know what state the chip is in in the first
-place. The datasheet says that temp2 and temp3 are enabled by default,
-but I start doubting that.
+So, what next? You can just reconfigure the chip on the fly, thanks to
+the following command sequence:
 
-Then you may try loading the w83627hf driver with the init parameter set
-to 0:
-modprobe w83627hf init=0
-Among others, it will skip the chip reset. I have been advocating a
-removal of chip resets from all drivers for a long time now, BTW.
+isaset -y 0x295 0x296 0x4e 0x01
+isaset -y 0x295 0x295 0x52 0x00
+isaset -y 0x295 0x296 0x4e 0x00
 
-Let us know if temp2 now updates properly or not.
+Preferably you would prepare the lines in a script so as to run them all
+in a row. It is important to make sure that nobody accesses the chip
+between the commands.
 
-If it does, you may want to add the following line to /etc/modprobe.conf:
-options w83627hf init=0
-That would solve your problem for now.
+You can run this sequence either before loading the w83627hf driver, in
+which case you would still need "init=0", or after the w83627hf driver
+has been loaded.
 
-Nevertheless, we obviously need to fix the Linux 2.6 drivers so that they
-re-enable temp2 and temp3 again.
+This should hopefully re-enable temp2, for good this time. Of course this
+is only a temporary method. Now that I know what should be done, I will
+update the drivers so as to enable the temperature channels by default -
+maybe with a warning in the logs since the channels may actually not be
+used (no remote sensor connected). Expect some delay before the update
+reaches your distribution kernel though.
 
 Thanks,
 --
