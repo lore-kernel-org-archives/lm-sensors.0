@@ -1,37 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:43 +0000
+From: dma_k@mail.ru (Dmitry Katsubo)
+Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: Compilation question
-Message-Id: <20040222183932.46d8b4b9.khali@linux-fr.org>
+Message-Id: <4049DF95.1010500@mail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040222183932.46d8b4b9.khali@linux-fr.org>
+In-Reply-To: <20040222183932.46d8b4b9.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> After applying i2c-2.8.4.tar.gz to linux-2.4.25 the following options
-> are no longer compilable
-> (as they do not correspond to the new I2C interface?):
+Jean Delvare wrote:
+>>After applying i2c-2.8.4.tar.gz to linux-2.4.25 the following options
+>>are no longer compilable
+>>What can be done to make them back again? Are they supported anymore?
 > 
->     Character devices -> I2C support -> NatSemi SCx200 I2C GPIO pins 
->     (CONFIG_SCx200_I2C)
->     Character devices -> I2C support -> NatSemi SCx200 ACCESS.bus 
->     (CONFIG_SCx200_ACB)
->     Multimedia devices -> Video For Linux -> SAA5249 Teletext
->     processor (CONFIG_VIDEO_SAA5249)
->     Multimedia devices -> Video For Linux -> SAB3036 tuner 
->     (CONFIG_TUNER_3036)
+> Get my patch here:
+> http://delvare.nerim.net/i2c/
 > 
-> (files: scx200_i2c.c, scx200_acb.c, saa5249.c, tuner-3036.c).
-> 
-> What can be done to make them back again? Are they supported anymore?
+> This is the same as the one you'd obtain using mkpatch.pl, plus
+> additional ones that workaround the compatibility issues you have been
+> encountering.
 
-Get my patch here:
-http://delvare.nerim.net/i2c/
+Thank you very much for the link! I have just completed my compilation tests and it works perfectly 
+for me. Possibly you may wish also to keep in touch with v4l-2 latest patch (v4l is knows to 
+collaborate with lm_sensors):
 
-This is the same as the one you'd obtain using mkpatch.pl, plus
-additional ones that workaround the compatibility issues you have been
-encountering.
+ftp://bytesex.org/patches/2.4.25-rc1-1/
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Thanks a lot.
+
+Bye.
