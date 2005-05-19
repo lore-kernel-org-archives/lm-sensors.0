@@ -1,35 +1,41 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:58 +0000
-Subject: [PATCH 2.6.12-rc4] (dynamic sysfs callbacks) adm1026 (2nd try)
-Message-Id: <2538186705051113106f6f14fd@mail.gmail.com>
+From: mpietrek@fsforth.de (Markus Pietrek)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: EEPROM Driver for 24LC64
+Message-Id: <200407201548.12108.mpietrek@fsforth.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2538186705051100583c6b1ffb@mail.gmail.com>
-	 <20050511170750.GE15398@kroah.com>
-In-Reply-To: <20050511170750.GE15398@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, Justin Thiessen <jthiessen@penguincomputing.com>
-Cc: LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Attached is the corrected adm1026 patch (incorrect casting of void *
-argument in callbacks). Justin if you have the ability to test this
-patch that would be much appreciated.
+Hello LM Sensors Group,
 
-Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
+find attached the EEPROM driver for the Microchip 24LC64. It has been tested 
+with the I2C stack in linux-2.6.2 on the A9M9750 ARM module.
 
-Thanks,
-Yani
+o 32byte page read/writes are supported for aligned addresses.
+o big endian systems are not yet supported.
+o probing is not supported
 
----
- adm1026.c |  235
-++++++++++++++++++++------------------------------------------ 1 files
-changed, 78 insertions(+), 157 deletions(-)
----
+Please contact me if you have further questions.
+
+Bye,
+
+-- 
+Markus Pietrek / FS Forth-Systeme GmbH
+Kueferstrasse 8, D-79206 Breisach, Germany
+Phone: +49 (7667) 908 145,  Fax +49 (7667) 908 245, http://www.fsforth.de
 -------------- next part --------------
 A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-adm1026.diff
-Type: text/x-patch
-Size: 21737 bytes
+Name: 24c64.c
+Type: text/x-csrc
+Size: 9071 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050511/5afb2d01/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-adm1026.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040720/c38e7876/24c64.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch_24c64
+Type: text/x-diff
+Size: 1331 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040720/c38e7876/patch_24c64.bin
