@@ -1,82 +1,60 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:52 +0000
-Subject: [PATCH 2.6.12-rc2-mm3] i2c: new adm9240 driver
-Message-Id: <82a8615210tic9fkbtdhi4op2to2qor994@4ax.com>
+From: s13361562@bach.sun.ac.za (Hugo van der Merwe)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: temperature at -128 always
+Message-Id: <20020403170311.GA26025@vervet.localnet>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1v4861l0755o0ghph0dmb0rv5u69q45r52@4ax.com>
-In-Reply-To: <1v4861l0755o0ghph0dmb0rv5u69q45r52@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 19 Apr 2005 06:27:41 +1000, Grant Coady <grant_lkml@dodo.com.au> wrote:
+Hello,
 
->Hi Khali, Greg,
->
->Another update of new adm9240 driver, completing Michiel Rook's port 
->to 2.6.  This driver adds auto new fan clock divider that is set by 
->the driver in response to fan speed limit and adjusted on fan measurement 
->overflow to always display fan speeds within measurement range without 
->further user intervention.
->
-This small fixup applies over the current patch and adds bidirectional 
-fan clock divider control when fan_min is disabled.  Tested at great 
-risk of personal injury by sticking my finger into the fan to slow it 
-down :o) 
+I have a Gigabyte motherboard, not sure exactly what the code is, but I
+can find out. I had a quick look at the FAQ and BUGS files, did not find
+anything that looked directly applicable to my motherboard. I have
+kernel 2.4.18 and lm-sensors version 2.6.2. Here's the output of sensors
+and lspci:
 
-The bidirectional adjust will not 'hunt' for a value as one switchpoint 
-is < 96 underrange, the other is =255 overrange.
+$ sensors
+lm80-i2c-0-2d
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Non-I2C SMBus adapter
++5V:       +5.08 V  (min =  +4.50 V, max =  +0.00 V)   ALARM
+VTT:       +1.53 V  (min =  +1.71 V, max =  +2.09 V)   ALARM
++3.3V:     +2.59 V  (min =  +2.97 V, max =  +3.63 V)   ALARM
++Vcore:    +1.36 V  (min =  +2.52 V, max =  +3.08 V)   ALARM
++12V:     +12.82 V  (min = +10.80 V, max = +13.20 V)   ALARM
+-12V:     -11.97 V  (min = -13.40 V, max = -11.32 V)
+-5V:       -4.85 V  (min =  -5.78 V, max =  -4.56 V)   ALARM
+fan1:     10546 RPM  (min = 6000 RPM, div = 1)
+fan2:     11637 RPM  (min = 6000 RPM, div = 1)
+temp:     -128.00 ?C (hot:limit =  +6?C,  hysteresis =  +5?C) ALARM
+         (os: limit =  +6?C,  hysteresis =  +5?C) ALARM
+alarms:   Board temperature input (a LM75 perhaps?)    ALARM
+alarms:   Chassis intrusion detection                  ALARM
 
-Signed-Off-By: Grant Coady <gcoady@gmail.com>
+eeprom-i2c-0-51
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Non-I2C SMBus adapter
 
 
----
- adm9240.c |   25 ++++++++++++++++++-------
- 1 files changed, 18 insertions(+), 7 deletions(-)
 
---- linux-2.6.12-rc2-mm3k/drivers/i2c/chips/adm9240.c.old	2005-04-19 07:30:57.000000000 +1000
-+++ linux-2.6.12-rc2-mm3k/drivers/i2c/chips/adm9240.c	2005-04-19 07:31:33.000000000 +1000
-@@ -649,24 +649,35 @@ static struct adm9240_data *adm9240_upda
- 			data->fan[i] = adm9240_read_value(client,
- 					ADM9240_REG_FAN(i));
- 
--			/* adjust fan clock divider when:
-+			/* adjust fan clock divider upwards when:
- 			 * - measurement overflows, and
--			 * - auto fan_div enabled, and
- 			 * - fan_div < max value
--			 * also adjust fan_min to suit new fan_div,
--			 * but do not let fan_min go to zero */
--			if (data->fan[i] = 255 && data->fan_min[i] < 255
--					&& data->fan_div[i] < 3) {
-+			 * also adjust fan_min to suit new fan_div if:
-+			 * - fan_min is active, and
-+			 * - fan_min > 1 to prevent value going to zero */
-+			if (data->fan[i] = 255 && data->fan_div[i] < 3) {
- 
- 				data->fan_div[i]++;
- 				adm9240_write_fan_div(client, i,
- 						data->fan_div[i]);
- 
--				if (data->fan_min[i] > 1) {
-+				if (data->fan_min[i] < 255
-+						&& data->fan_min[i] > 1) {
- 					data->fan_min[i]++;
- 					data->fan_min[i] >>= 1;
- 				}
- 			}
-+			/* adjust fan clock divider downwards when:
-+			 * - measurement underflows resolution, and
-+			 * - fan_min is disabled, and
-+			 * - fan_div > min value */
-+			if (data->fan[i] < 96 && data->fan_div[i] > 0
-+					&& data->fan_min[i] = 255) {
-+				data->fan_div[i]--;
-+				adm9240_write_fan_div(client, i,
-+						data->fan_div[i]);
-+			}
-+
- 			data->alarms[i] = adm9240_read_value(client,
- 					ADM9240_REG_INT(i));
- 		}
+$ /sbin/lspci
+00:00.0 Host bridge: Advanced Micro Devices [AMD] AMD-760 [Irongate] System Controller (rev 12)
+00:01.0 PCI bridge: Advanced Micro Devices [AMD] AMD-760 [Irongate] AGP Bridge
+00:07.0 ISA bridge: VIA Technologies, Inc. VT82C686 [Apollo Super South] (rev 40)
+00:07.1 IDE interface: VIA Technologies, Inc. Bus Master IDE (rev 06)
+00:07.2 USB Controller: VIA Technologies, Inc. UHCI USB (rev 16)
+00:07.3 USB Controller: VIA Technologies, Inc. UHCI USB (rev 16)
+00:07.4 SMBus: VIA Technologies, Inc. VT82C686 [Apollo Super ACPI] (rev 40)
+00:0d.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139 (rev 10)
+00:0e.0 Multimedia audio controller: Ensoniq 5880 AudioPCI (rev 03)
+00:0f.0 Multimedia audio controller: Creative Labs SB Live! EMU10k1 (rev 03)
+00:0f.1 Input device controller: Creative Labs SB Live! (rev 01)
+01:05.0 VGA compatible controller: ATI Technologies Inc Radeon QD
+
+
+
+Thanks,
+Hugo van der Merwe
