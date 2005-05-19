@@ -1,40 +1,96 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: IBM hardware
-Message-Id: <1079701837.405af14d1faa4@imp.gcu.info>
+From: galak@somerset.sps.mot.com (Kumar Gala)
+Date: Thu, 19 May 2005 06:25:30 +0000
+Subject: [PATCH] I2C-MPC: use wait_event_interruptible_timeout
+Message-Id: <Pine.LNX.4.61.0501131647540.26980@blarg.somerset.sps.mot.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200403161623.00418.rafael.espindola@ic.unicamp.br>
-In-Reply-To: <200403161623.00418.rafael.espindola@ic.unicamp.br>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Rafael ?vila de Esp?ndola <rafael.espindola@ic.unicamp.br>:
+I've changed the i2c-mpc.c driver to use wait_event_interruptible_timeout
 
-> Some additional info.
-> The computer is a "IBM ThinkCentre M50 8188-LPF".
-> The output from the command 
-> dd if=/dev/mem of=/tmp/mem-rafael bsdk skip count=1
-> is attached.
+Can you take a look and let me know if this looks good.  I'm going to have 
+some other changes to the driver to handle moving it from an OCP based 
+driver to using platform_device.
 
-Thanks :) I've already added this information to vpddecode, and added
-your BIOS image to the collection I use for regression tests.
+thanks
 
-If I can find some time for this, I'll go on improving sensors-detect so
-that it recognizes your machine as safe. The needed mechanisms are not
-set up yet.
+- kumar
 
-> I will try to discover if there is any other sensor in the
-> motherboard.
-
-OK, let us know if you find something interesting.
-
-> Ps.: Sorry for the previous (incomplete) email
-
-Oh well, nothing to be sorry about. How could you have guessed what I
-wanted? ;)
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+=== drivers/i2c/busses/i2c-mpc.c 1.2 vs edited ==--- 1.2/drivers/i2c/busses/i2c-mpc.c	2004-09-16 18:37:31 -05:00
++++ edited/drivers/i2c/busses/i2c-mpc.c	2005-01-13 16:41:57 -06:00
+@@ -75,7 +75,6 @@
+ 
+ static int i2c_wait(struct mpc_i2c *i2c, unsigned timeout, int writing)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+ 	unsigned long orig_jiffies = jiffies;
+ 	u32 x;
+ 	int result = 0;
+@@ -92,28 +91,22 @@
+ 		x = readb(i2c->base + MPC_I2C_SR);
+ 		writeb(0, i2c->base + MPC_I2C_SR);
+ 	} else {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		add_wait_queue(&i2c->queue, &wait);
+-		while (!(i2c->interrupt & CSR_MIF)) {
+-			if (signal_pending(current)) {
+-				pr_debug("I2C: Interrupted\n");
+-				result = -EINTR;
+-				break;
+-			}
+-			if (time_after(jiffies, orig_jiffies + timeout)) {
+-				pr_debug("I2C: timeout\n");
+-				result = -EIO;
+-				break;
+-			}
+-			msleep_interruptible(jiffies_to_msecs(timeout));
++		/* Interrupt mode */
++		result = wait_event_interruptible_timeout(i2c->queue, 
++			(i2c->interrupt & CSR_MIF), timeout * HZ);
++
++		if (unlikely(result < 0))
++			pr_debug("I2C: wait interrupted\n");
++		else if (unlikely(!(i2c->interrupt & CSR_MIF))) {
++			pr_debug("I2C: wait timeout\n");
++			result = -ETIMEDOUT;
+ 		}
+-		set_current_state(TASK_RUNNING);
+-		remove_wait_queue(&i2c->queue, &wait);
++
+ 		x = i2c->interrupt;
+ 		i2c->interrupt = 0;
+ 	}
+ 
+-	if (result < -0)
++	if (result < 0)
+ 		return result;
+ 
+ 	if (!(x & CSR_MCF)) {
+@@ -165,7 +158,7 @@
+ 		     const u8 * data, int length, int restart)
+ {
+ 	int i;
+-	unsigned timeout = HZ;
++	unsigned timeout = i2c->adap.timeout;
+ 	u32 flags = restart ? CCR_RSTA : 0;
+ 
+ 	/* Start with MEN */
+@@ -193,7 +186,7 @@
+ static int mpc_read(struct mpc_i2c *i2c, int target,
+ 		    u8 * data, int length, int restart)
+ {
+-	unsigned timeout = HZ;
++	unsigned timeout = i2c->adap.timeout;
+ 	int i;
+ 	u32 flags = restart ? CCR_RSTA : 0;
+ 
+@@ -302,6 +295,7 @@
+ 	if (!(i2c = kmalloc(sizeof(*i2c), GFP_KERNEL))) {
+ 		return -ENOMEM;
+ 	}
++	memset(i2c, 0, sizeof(*i2c));
+ 	i2c->ocpdef = ocp->def;
+ 	init_waitqueue_head(&i2c->queue);
+ 
