@@ -1,45 +1,50 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:23:57 +0000
 Subject: Dead code in i2c
-Message-Id: <3EDAEE68.9010407@penguincomputing.com>
+Message-Id: <3EDBDED5.7070400@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <3EDAEE68.9010407@penguincomputing.com>
+In-Reply-To: <3EDAEE68.9010407@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm trying to compile i2c-cvs on a Red Hat beta kernel.
+This was not in 2.7.0.
+Kyosti put it in before the branch so it's in both branches.
+Nothing in our trees use the driver->command function but it may be worthwhile in
+the future. Adding an inline function to make it more accessible is fine too.
+How about just adding #include <linux/errno.h> to i2c.h?
 
-I'm getting an error due to EINVAL not being defined.  But the reference to 
-EINVAL is in a function that apears to be dead code.  The function is not 
-referenced in any other i2c or lm_sensors files...
-
-The following patch removes the offending function...
-
-Index: kernel/i2c.h
-=================================RCS file: /home/cvs/i2c/kernel/i2c.h,v
-retrieving revision 1.68
-diff -u -r1.68 i2c.h
---- kernel/i2c.h	21 Jan 2003 08:08:16 -0000	1.68
-+++ kernel/i2c.h	2 Jun 2003 06:21:27 -0000
-@@ -318,15 +318,6 @@
-  		struct i2c_client_address_data *address_data,
-  		i2c_client_found_addr_proc *found_proc);
-
--static inline int i2c_client_command(struct i2c_client *client,
-- 
-			     unsigned int cmd, void *arg)
--{
-- 
-if (client->driver && client->driver->command)
-- 
-	return client->driver->command(client, cmd, arg);
-- 
-else
-- 
-	return -EINVAL;
--}
--
-  /* An ioctl like call to set div. parameters of the adapter.
-   */
-  extern int i2c_control(struct i2c_client *,unsigned int, unsigned long);
+Philip Pokorny wrote:
+> I'm trying to compile i2c-cvs on a Red Hat beta kernel.
+> 
+> I'm getting an error due to EINVAL not being defined.  But the reference 
+> to EINVAL is in a function that apears to be dead code.  The function is 
+> not referenced in any other i2c or lm_sensors files...
+> 
+> The following patch removes the offending function...
+> 
+> Index: kernel/i2c.h
+> =================================> RCS file: /home/cvs/i2c/kernel/i2c.h,v
+> retrieving revision 1.68
+> diff -u -r1.68 i2c.h
+> --- kernel/i2c.h    21 Jan 2003 08:08:16 -0000    1.68
+> +++ kernel/i2c.h    2 Jun 2003 06:21:27 -0000
+> @@ -318,15 +318,6 @@
+>          struct i2c_client_address_data *address_data,
+>          i2c_client_found_addr_proc *found_proc);
+> 
+> -static inline int i2c_client_command(struct i2c_client *client,
+> -                  unsigned int cmd, void *arg)
+> -{
+> - if (client->driver && client->driver->command)
+> -     return client->driver->command(client, cmd, arg);
+> - else
+> -     return -EINVAL;
+> -}
+> -
+>  /* An ioctl like call to set div. parameters of the adapter.
+>   */
+>  extern int i2c_control(struct i2c_client *,unsigned int, unsigned long);
+> 
