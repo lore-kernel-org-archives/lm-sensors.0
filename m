@@ -1,7 +1,7 @@
 From: zdavatz@ywesee.com (Zeno R.R. Davatz)
 Date: Thu, 19 May 2005 06:24:04 +0000
 Subject: Ticket 1319 - lm_sensors-2.8.0-cvs linux-2.4.20-smp-i386
-Message-Id: <20030710110758.56feb15c.zdavatz@ywesee.com>
+Message-Id: <20030710112700.3307a6f1.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030710085158.42e68c95.zdavatz@ywesee.com>
 In-Reply-To: <20030710085158.42e68c95.zdavatz@ywesee.com>
@@ -17,17 +17,20 @@ Jean Delvare <khali@linux-fr.org> wrote:
 > you got from CVS) installs them. So, if you don't have them, either you
 > did *not* run "make install" for i2c, or you tweaked the Makefile and
 > did not tell us...
+> 
+> So, what did you really do?
+I am very sorry but I just done a fresh checkout of the cvs then make all and make install.
 
-I done make install and my include dir is 
+I get: installation successful!
 
-LINUX_INCLUDE_DIR := /usr/local/include/linux
+but there is no i2c.h in /usr/local/include/linux
 
-I just done make install again and I find no i2c in LINUX_INCLUDE_DIR := /usr/local/include/linux
+there is one in /usr/include/linux...
 
-What I get there is:
+the only files I got in /usr/local/include/linux are:
 i2c-algo-bit.h  i2c-algo-biths.h  i2c-algo-pcf.h  i2c-dev.h
 
-Why whould that be?
+I did not change anything on the Makefile, also I did not forget to do make install.
 
 Thanks for your Feedback.
 
