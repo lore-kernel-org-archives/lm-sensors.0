@@ -1,68 +1,53 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: Iwill MPX2 - LM83/LM90 confusion
-Message-Id: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
+Message-Id: <1065540024.3f82d9b86ef5c@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
+In-Reply-To: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I believe there is some confusion about what chips are on the Iwill
-> MPX2. I obviously own one, and I'm guilty of looking at it to try and
-> see what chips are on it (it's already installed in the case!) but
-> I've done a bit of research, and I strongly believe that the MPX2 has
-> a LM90, not LM83 on board. 
+> One more item, I hope this isn't noise, but there may be two(!)
+> LM90s/LM83s on the MPX2.
 
-I wouldn't be surprised. The confusion comes from two different facts:
-1* The LM83 data sheet is missing the device ID.
-2* Both chips are partly compatible.
+Maybe, maybe not. Running 2.8.1's sensors-detect will tell you that (and
+possibly more).
 
-> The best evidence is the Motherboard Monitor, MBM
-> (http://mbm.livewiredev.com/) site (undoubtedly you've heard of it);
+> At any rate, I had seen the 2.8.1 but was loathe to install it
+> because:
+> 1) I'd just installed 2.8.0
 
-Sure I have, we are sometimes working together with Alex van Kaam, MBM's
-author, and share our views and experiences.
+This means you'd have installed 2.8.1 easily, since the procedure hasn't
+changed ;)
 
-> it lists the MPX2 as having a LM90.
+> 2) 2.8.1 was beta
 
-This is no proof. Both chips being partly compatible, one can use a lm90
-driver on a LM83 and get reasonable results. I remember Alex told me he
-wasn't really interested in having a separate lm83 driver.
+In now way it is. What made you think it could be?
 
-> Furthermore, I have installed the MBM and it does show temperatures
-> for both CPUs.
+> But if you invested the time to write it the least I can do is
+> install and test it.
 
-More interesting. Incidentally, Alex and I were discussing about that
-some days ago. He uses special tricks to handle that (and kindly shared
-that information with me). I had some difficulties understanding it at
-first, because I had never seen systems requiring the trick, maybe
-you'll make me change my mind.
+If you wan't LM90 support, you want 2.8.1. It's that simple ;)
 
-> On the other hand, only temp1 and temp3 on lm_sensors LM83 show
-> temperatures for the MPX2; temp 2 and temp4 both report 0C.
+> Question: why does the i2c version always have to increase
+> to support lm_sensors?
 
-This is definitely the sign that this isn't a LM83 - unless the
-motherboard designer was crazy enough to solder a 4-temp sensor where a
-2-temp one would suffice.
+Because most sensor chips are located on the I2C bus (aka SMBus).
 
-> I am willing to test whatever LM90 software you may have.
-> (...) I currently have 2.8.0, i2c and lm_sensors, installed.
+> Are you upgrading i2c to handle devices that lm_sensors will use?
 
-To the good news now...
+Yes, sort of. We add utility functions, remove unused ones, adapt
+internal structures to reflect kernel policy changes, and so on. You do
+not always need the exact same version of i2c and lm_sensors, but since
+we also fix bugs it i2c, you always want to update i2c to match the
+version of lm_sensors you plan to install.
 
-LM Sensors 2.8.1, which was released yesterday, has full support for the
-LM90 :) Please give it a try, and tell me how it works for you.
-
-If Alex's trick is required for the MPX2, you'll see only the
-temperature for one CPU. In that case, I'll think of a way to use the
-trick in lm_sensors so that you can access both. (Don't know how at all
-for now, we'll see that later.)
-
-Thanks a lot for your feedback. Comments about how the detection works,
-how the driver works, how accurate/useful the docs are, are always
-welcome :)
+Let us know how 2.8.1 does work for you :)
+Thanks.
 
 -- 
 Jean Delvare
