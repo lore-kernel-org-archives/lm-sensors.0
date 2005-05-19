@@ -1,44 +1,61 @@
-From: dgallagher@starnetusa.net (Dom Gallagher)
-Date: Thu, 19 May 2005 06:23:38 +0000
-Subject: Support tickets #310, #384 and #667
-Message-Id: <5.1.1.2.2.20020904230835.01970628@maild.starnetinc.com>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: [eidtmann@informatik.uni-bremen.de: Re: Kernel driver adm1021 locks]
+Message-Id: <20031215110016.GA517@arda.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Just a heads-up regarding these tickets and the Asus P3V4X, as the tickets 
-don't appear to have a successful resolution.
+----- Forwarded message from Jan Eidtmann <eidtmann@informatik.uni-bremen.de> -----
 
-I was experiencing exactly the same issues mentioned in all 3 tickets.  The 
-stock sensors.conf from version 2.6.4 both fixes the temperature (temp2 
-sensor) issue and more importantly the massive slowdown (almost exactly 1/4 
-speed).
+From: Jan Eidtmann <eidtmann@informatik.uni-bremen.de>
+Reply-To: eidtmann@informatik.uni-bremen.de
+To: Frodo Looijaard <frodol@dds.nl>
+Subject: Re: Kernel driver adm1021 locks
+Cc: Philip Edelbrock <phil@netroedge.com>
+X-Spam-Status: No, hits=-4.4 required=5.0 tests=IN_REP_TO version=2.20
+X-Spam-Level: 
 
-To confirm your guesses:
+sorry, its already reported! see:
+http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket34
 
-The temp alarm is what's causing the slowdown, of this I am 100% sure.  If 
-I change the settings on the temp sensor 'compute' entry to trigger an 
-alarm, I get massive slowdown.  When I change it back, it fixes the issue.
-However, this reversal does not happen if I do not force as99127f detection 
-(it stays unbearably slow until reboot).
+when i load the module i get this (no matter if i add force_adm=0,something):
 
-Forcing as99127f rather than relying on 'automatic' detection via the 
-w8378xd driver uses the correct sensor.conf entries, and works well all 
-round.  Incidentally, sensor-detect does not detect either of the two chip 
-drivers, just the base i2c-viapro.
+[registering forced address]
+registering 0-004e
 
-Great piece of software, if one that causes interesting light and sound 
-shows in our colo room ;)
+then the computer locks hard like described before.
 
-D.
+Jan
+
+Am Montag, 15. Dezember 2003 02:54 schrieb Jan Eidtmann:
+> Hi,
+>
+> when adm1021 loads (either by me with modprobe or by the kernel when built
+> in), the computer locks. when i push the reset button my motherboard beeps
+> like crazy and it does not boot. however, when i totally switch off the
+> power supply and switch on again, i can boot again.
+>
+> my motherboard is a gigabyte GA-8IPE1000 Pro with intel 865PE chipset
+> (ICH5). linux is linux-2.6.0-test11.
+>
+> could it be that the 2.6.0-test11 i2c drivers are behind the lm_sensors
+> 2.8.2 package?
+>
+> if i got that right i need this driver to detect my ICH5 chipset!?
+>
+> OT: btw, do i need i2c-isa support? that motherboard has no isa slots at
+> all, but maybe theres still some kind of isa bus inside (needed for i2c)?
+>
+> many thanks!
+> Jan
+
+----- End forwarded message -----
+
 -- 
-Dom Gallagher (dgallagher@starnetusa.net)
-Development Engineering
-StarNet/MegaPOP - http://www.megapop.net
-WX is wireless - http://www.starnetwx.net
-
-This message is sent in confidence to the addressees.
-It may contain privileged, proprietary, or confidential information.
-
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
