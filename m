@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:52 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <1081981449409@kroah.com>
+Message-Id: <10819814493235@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10819814492866@kroah.com>
+In-Reply-To: <20040414222215.GA26225@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,80 +11,155 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.5, 2004/03/26 13:52:39-08:00, khali@linux-fr.org
+ChangeSet 1.1643.36.1, 2004/03/19 13:24:14-08:00, khali@linux-fr.org
 
-[PATCH] I2C: adm1021 (probably) does something VERY,VERY BAD
+[PATCH] I2C: w83781d fan_div code refactoring
 
 Quoting myself:
 
-> 3* Drop adm1021's limit init. This was already done in the 2.4 driver
-> and should have been done in 2.6 as well.
+> This tends to increase the size of the three set_store_regs_fan_div
+> functions, and I am considering refactoring them at some point. Later
+> though.
 
-Here is a patch that does that. It also prevents bit 7 (and unused bits)
-of configuration register from being reset, as was discussed before:
-  http://archives.andrew.net.au/lm-sensors/msg04593.html
-That second part needs to be backported to the 2.4 driver, and I will do
-so.
+Here is the promised refactoring. Tested on my AS99127F rev.1, seems to
+work. As for the previous patch, there is a part that I cannot test with
+the AS99127F, so additional testing is welcome.
 
-Additionally, we get rid of a useless label.
-
-The patch is untested (I don't own any supported chip) but quite
-straightforward IMHO.
+I agree this makes the code slightly less readable, but this saves 60
+lines of code (1754 bytes, around 3% of the driver total), and is
+actually far less complex that I first feared.
 
 
- drivers/i2c/chips/adm1021.c |   19 +++----------------
- 1 files changed, 3 insertions(+), 16 deletions(-)
+ drivers/i2c/chips/w83781d.c |   94 +++++++-------------------------------------
+ 1 files changed, 17 insertions(+), 77 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
---- a/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:38 2004
-+++ b/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:38 2004
-@@ -98,10 +98,6 @@
- they don't quite work like a thermostat the way the LM75 does.  I.e., 
- a lower temp than THYST actually triggers an alarm instead of 
- clearing it.  Weird, ey?   --Phil  */
--#define adm1021_INIT_TOS		60
--#define adm1021_INIT_THYST		20
--#define adm1021_INIT_REMOTE_TOS		60
--#define adm1021_INIT_REMOTE_THYST	20
- 
- /* Each client has this additional data */
- struct adm1021_data {
-@@ -306,7 +302,7 @@
- 
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(new_client)))
--		goto error3;
-+		goto error1;
- 
- 	/* Initialize the ADM1021 chip */
- 	adm1021_init_client(new_client);
-@@ -324,7 +320,6 @@
- 
- 	return 0;
- 
--error3:
- error1:
- 	kfree(new_client);
- error0:
-@@ -333,17 +328,9 @@
- 
- static void adm1021_init_client(struct i2c_client *client)
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	Wed Apr 14 15:15:00 2004
++++ b/drivers/i2c/chips/w83781d.c	Wed Apr 14 15:15:00 2004
+@@ -620,7 +620,7 @@
+    least suprise; the user doesn't expect the fan minimum to change just
+    because the divisor changed. */
+ static ssize_t
+-store_regs_fan_div_1(struct device *dev, const char *buf, size_t count)
++store_fan_div_reg(struct device *dev, const char *buf, size_t count, int nr)
  {
--	/* Initialize the adm1021 chip */
--	adm1021_write_value(client, ADM1021_REG_TOS_W,
--			    adm1021_INIT_TOS);
--	adm1021_write_value(client, ADM1021_REG_THYST_W,
--			    adm1021_INIT_THYST);
--	adm1021_write_value(client, ADM1021_REG_REMOTE_TOS_W,
--			    adm1021_INIT_REMOTE_TOS);
--	adm1021_write_value(client, ADM1021_REG_REMOTE_THYST_W,
--			    adm1021_INIT_REMOTE_THYST);
- 	/* Enable ADC and disable suspend mode */
--	adm1021_write_value(client, ADM1021_REG_CONFIG_W, 0);
-+	adm1021_write_value(client, ADM1021_REG_CONFIG_W,
-+		adm1021_read_value(client, ADM1021_REG_CONFIG_R) & 0xBF);
- 	/* Set Conversion rate to 1/sec (this can be tinkered with) */
- 	adm1021_write_value(client, ADM1021_REG_CONV_RATE_W, 0x04);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83781d_data *data = i2c_get_clientdata(client);
+@@ -628,92 +628,28 @@
+ 	u8 reg;
+ 
+ 	/* Save fan_min */
+-	min = FAN_FROM_REG(data->fan_min[0],
+-			   DIV_FROM_REG(data->fan_div[0]));
++	min = FAN_FROM_REG(data->fan_min[nr],
++			   DIV_FROM_REG(data->fan_div[nr]));
+ 
+-	data->fan_div[0] = DIV_TO_REG(simple_strtoul(buf, NULL, 10),
++	data->fan_div[nr] = DIV_TO_REG(simple_strtoul(buf, NULL, 10),
+ 				      data->type);
+ 
+-	reg = w83781d_read_value(client, W83781D_REG_VID_FANDIV) & 0xcf;
+-	reg |= (data->fan_div[0] & 0x03) << 4;
+-	w83781d_write_value(client, W83781D_REG_VID_FANDIV, reg);
++	reg = (w83781d_read_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV)
++	       & (nr=0 ? 0xcf : 0x3f))
++	    | ((data->fan_div[nr] & 0x03) << (nr=0 ? 4 : 6));
++	w83781d_write_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV, reg);
+ 
+ 	/* w83781d and as99127f don't have extended divisor bits */
+ 	if (data->type != w83781d && data->type != as99127f) {
+-		reg = w83781d_read_value(client, W83781D_REG_VBAT) & 0xdf;
+-		reg |= (data->fan_div[0] & 0x04) << 3;
++		reg = (w83781d_read_value(client, W83781D_REG_VBAT)
++		       & ~(1 << (5 + nr)))
++		    | ((data->fan_div[nr] & 0x04) << (3 + nr));
+ 		w83781d_write_value(client, W83781D_REG_VBAT, reg);
+ 	}
+ 
+ 	/* Restore fan_min */
+-	data->fan_min[0] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[0]));
+-	w83781d_write_value(client, W83781D_REG_FAN_MIN(1), data->fan_min[0]);
+-
+-	return count;
+-}
+-
+-static ssize_t
+-store_regs_fan_div_2(struct device *dev, const char *buf, size_t count)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct w83781d_data *data = i2c_get_clientdata(client);
+-	unsigned long min;
+-	u8 reg;
+-
+-	/* Save fan_min */
+-	min = FAN_FROM_REG(data->fan_min[1],
+-			   DIV_FROM_REG(data->fan_div[1]));
+-
+-	data->fan_div[1] = DIV_TO_REG(simple_strtoul(buf, NULL, 10),
+-				      data->type);
+-
+-	reg = w83781d_read_value(client, W83781D_REG_VID_FANDIV) & 0x3f;
+-	reg |= (data->fan_div[1] & 0x03) << 6;
+-	w83781d_write_value(client, W83781D_REG_VID_FANDIV, reg);
+-
+-	/* w83781d and as99127f don't have extended divisor bits */
+-	if (data->type != w83781d && data->type != as99127f) {
+-		reg = w83781d_read_value(client, W83781D_REG_VBAT) & 0xbf;
+-		reg |= (data->fan_div[1] & 0x04) << 4;
+-		w83781d_write_value(client, W83781D_REG_VBAT, reg);
+-	}
+-
+-	/* Restore fan_min */
+-	data->fan_min[1] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[1]));
+-	w83781d_write_value(client, W83781D_REG_FAN_MIN(2), data->fan_min[1]);
+-
+-	return count;
+-}
+-
+-static ssize_t
+-store_regs_fan_div_3(struct device *dev, const char *buf, size_t count)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct w83781d_data *data = i2c_get_clientdata(client);
+-	unsigned long min;
+-	u8 reg;
+-
+-	/* Save fan_min */
+-	min = FAN_FROM_REG(data->fan_min[2],
+-			   DIV_FROM_REG(data->fan_div[2]));
+-
+-	data->fan_div[2] = DIV_TO_REG(simple_strtoul(buf, NULL, 10),
+-				      data->type);
+-
+-	reg = w83781d_read_value(client, W83781D_REG_PIN) & 0x3f;
+-	reg |= (data->fan_div[2] & 0x03) << 6;
+-	w83781d_write_value(client, W83781D_REG_PIN, reg);
+-
+-	/* w83781d and as99127f don't have extended divisor bits */
+-	if (data->type != w83781d && data->type != as99127f) {
+-		reg = w83781d_read_value(client, W83781D_REG_VBAT) & 0x7f;
+-		reg |= (data->fan_div[2] & 0x04) << 5;
+-		w83781d_write_value(client, W83781D_REG_VBAT, reg);
+-	}
+-
+-	/* Restore fan_min */
+-	data->fan_min[2] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[2]));
+-	w83781d_write_value(client, W83781D_REG_FAN_MIN(3), data->fan_min[2]);
++	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
++	w83781d_write_value(client, W83781D_REG_FAN_MIN(nr+1), data->fan_min[nr]);
+ 
+ 	return count;
  }
+@@ -722,6 +658,10 @@
+ static ssize_t show_regs_fan_div_##offset (struct device *dev, char *buf) \
+ { \
+ 	return show_fan_div_reg(dev, buf, offset); \
++} \
++static ssize_t store_regs_fan_div_##offset (struct device *dev, const char *buf, size_t count) \
++{ \
++	return store_fan_div_reg(dev, buf, count, offset - 1); \
+ } \
+ static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, show_regs_fan_div_##offset, store_regs_fan_div_##offset)
+ 
 
