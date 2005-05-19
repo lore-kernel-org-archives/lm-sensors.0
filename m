@@ -1,40 +1,46 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Bad link for klm, klm dead?
-Message-Id: <3CB4A94B.69AA1BC9@paradyne.com>
+From: ml@secondimpact.de (Stephen D. Leedle)
+Date: Thu, 19 May 2005 06:24:17 +0000
+Subject: KSysGuard and lm_sensors
+Message-Id: <200309211402.58124.ml@secondimpact.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200204020421.g324L6Z08868@user69.net117.lv.sprint-hsd.net>
-In-Reply-To: <200204020421.g324L6Z08868@user69.net117.lv.sprint-hsd.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-klm 0.6
+Hello everybody!
 
-http://linux.tucows.com/kdehtml/preview/31716.html
+(Want to subscribe to this list)
 
+My problem, in short terms:
+I can't get KDE's KSysGuard to use lm_sensors as data source. I know(!) 
+that there is this /opt/kde/etc/ksysguarddrc config file, which works 
+with every other sensor, but only not with LmSensors.
 
-"Frank T. Lofaro Jr." wrote:
-> 
-> I am having trouble downloading klm
-> 
-> http://www.brendy.addr.com/linux/klm/klm_home.html
-> 
-> gives host unknown, another site (synergy.linuxbox.com)
-> is on an expired domain with disconnected phone numbers
-> for the domain contacts, and another site for it
-> (synergy.linuxave.net) gives a page with no content
-> except the words "google.com", postmaster and root
-> at that site bounced, and the technical contact
-> won't answer his/her/its phone.
-> 
-> I had klm-0.5.0 but it won't compile with my KDE version
-> as my version of KDE (the one from Slackware 8.0) gives an
-> error saying qwindow.h is gone.
-> 
-> Please tell me where klm is or if it is dead.
-> 
-> If it is dead, please tell me where I can get a KDE app
-> for lm_sensors. I do not, nor ever intend to run
-> GNOME again.
+System:
+Slackware 9,
+Kernel 2.4.22
+KDE 3.1.3 (I know, there is 3.1.4, but the newest instable devel release 
+3.1.91 (-> 3.2) is not solving this problem!)
+i2c 2.8.0
+lm_sensors 2.8.0
+
+"# sensors" gives output, yes.
+
+My question: Is this version of KSysGuard and lm_sensors incompatible to 
+each other? I couldn't install an older version (2.7.0) because the 
+"make" on lm_sensors-2.7.0 refused because of "an to old version of i2c 
+(>= 2.7.0) which I have compiled and installed before.
+
+OK, I might have done a fatal mistake at some place ... I'm not this 
+experienced in Linux etc.
+
+That's all I've got on my mind, for now, I would be happy about any 
+suggestions, thanks for replies!
+
+Greetings, Stephen
+
+-- 
+--
+Stephen D. Leedle AKA Verlorene Seele AKA St. Douglas Lee De L'Est
+ml@secondimpact.de
