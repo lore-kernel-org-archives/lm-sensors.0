@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: zdavatz@ywesee.com (Zeno Davatz)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: Gnome hangs after sensors installation
-Message-Id: <20030731170031.1927abeb.khali@linux-fr.org>
+Message-Id: <BB4F04AB.6D64%zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BB4EE262.6D4C%zdavatz@ywesee.com>
 In-Reply-To: <BB4EE262.6D4C%zdavatz@ywesee.com>
@@ -10,35 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On 31.7.2003 17:00, "Jean Delvare" <khali@linux-fr.org> wrote:
 
-> > grep sensors -ir /etc/rc2.d/*
-> I have nothing in there. The command returns nothing.
+> If not, try the following:
+> 
+> cd /lib/modules/$(uname -r)/kernel/drivers/i2c
+> 
+> (make sure this command succeeded before running the rm commands below)
+> 
+> rm *.o
+> rm -r busses
+> rm -r chips
+> 
+> With no more sensor modules installed, everything should be back to
+> normal I guess.
+Ok, this worked. I did not reboot but changed straight into another console.
+When starting Gnome now I get tons of Bonobo-Activation-Errors... That say
+the 'panel' will now terminate...
 
-OK, no init script (at first sight).
+I clicked OK several times and now just have the Terminal on my screen...
 
-> > (BTW I'm surprised you are in runlevel 2, it's unusual.)
-> What runlevel do you expect me to be in? Xserver starts fine,  as does
-> gdm..
+Everything else is gone...
 
-This usually corresponds to runlevel 4 or 5. But nevermind.
+Any hints?
 
-Can you take a look at /etc/modules.conf? If you see anything that looks
-i2c- or lm_sensors-related, delete it (or simply comment it with a #)
-and see if it goes any better.
-
-If not, try the following:
-
-cd /lib/modules/$(uname -r)/kernel/drivers/i2c
-
-(make sure this command succeeded before running the rm commands below)
-
-rm *.o
-rm -r busses
-rm -r chips
-
-With no more sensor modules installed, everything should be back to
-normal I guess.
+Zeno
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mit freundlichen Gr?ssen / best regards
+
+Zeno Davatz
+Strategie & Akquisition
+
++41 1 350 85 86
+
+www.ywesee.com > intellectual capital connected > www.generika.cc
+
+
