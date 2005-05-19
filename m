@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: LM83 driver
-Message-Id: <20030721110328.26d6bfb1.khali@linux-fr.org>
+Message-Id: <20030721121217.1c28ef16.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030703194558.60bc8955.khali@linux-fr.org>
 In-Reply-To: <20030703194558.60bc8955.khali@linux-fr.org>
@@ -11,18 +11,31 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> > Hm, how do I know who's calling me then? Using ctl_name and the
-> > LM83_SYSCTL_* constants defined earlier? I don't exactly see the
-> > interest yet. Though the functions are similar, most of the code
-> > really depend on the sensor, so I don't think we'll win in clarity
-> > nor code size. But maybe it's just me. Where could I look at a
-> > similar situation in our code?
+> Of course with libsensors apps you don't care about /proc standards.
 > 
-> See w83781d_pwm() in w83781d.c which uses subtraction to convert the
-> SYSCTL number to PWM number, and the W83781D_REG_PWM macro which
-> indexes into a static array of register numbers.
+> The benefit is in writing simple non-libsensors scripts, etc.
+> (see our new prog/pwm/pwmconfig) which are only feasible if we follow
+> consistent standards for /proc.
 
-OK, I've done that. Looks better for sure, thanks for the tip.
+I read that script and fancontrol too, and I admit fancontrol wouldn't
+work if there were 2-values temp files. It's really easy to fix though.
+Just replace "cut -d' ' -f3" with "sed -e 's/^.* \(.*\)$/\1/'" and it's
+done (I think awk would be better to do that, but unfortunately I don't
+know awk at all).
+
+Having 2-temp files (or 1-temp, or 4-temp) causes IMHO far less problems
+than other differences we already have. This can always be workarounded
+in scripts, as long as the first temp is the high limit, and the last
+one is the current value (and my driver respects that). The fact that
+some drivers output values that are *not* the real temps and that a
+conversion formula is required is much more trouble, and that's the way
+our drivers work however (or what would be sensors.conf for?) so the
+non-libsensors scripts already have to handle that.
+
+Maybe there will be some script to fix if we decide to allow
+non-3-values temperature files, but I really think it will always be
+easy and it makes the drivers easier to write, maintain and in some
+cases even use.
 
 -- 
 Jean Delvare
