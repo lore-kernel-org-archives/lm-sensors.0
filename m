@@ -1,153 +1,217 @@
-From: LHHsu@winbond.com.tw (LHHsu@winbond.com.tw)
+From: mds@mds.gotdns.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:49 +0000
 Subject: Future cooperation needs.
-Message-Id: <08D42CA11E602348905334D09A3B67F993A038@wehqml01>
+Message-Id: <42556432.5060304@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0503282227270.21101@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0503282227270.21101@desitka.sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gTG0tc2Vuc29ycyB0ZWFtIDoKCUkgc2VudCB0aGUgZW1haWwgbGlzdGVkIGJlbG93LiBE
-byB5b3UgaGF2ZSBhbnkgcmVjb21tZW5kYXRpb24/IApCUgpMSCBIc3UKCi0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tCkZyb206IFBJMTAgTEhIc3UgClNlbnQ6IFdlZG5lc2RheSwgTWFyY2ggMzAs
-IDIwMDUgNzoxMyBQTQpUbzogUnVkb2xmIE1hcmVrOyBQSTE0IEhVQU5HMApDYzoga2hhbGlAbGlu
-dXgtZnIub3JnOyBQSTE0IERaU0hFTjsgc2Vuc29yc0BTdGltcHkubmV0cm9lZGdlLmNvbQpTdWJq
-ZWN0OiBSRTogRnV0dXJlIGNvb3BlcmF0aW9uIG5lZWRzLgoKSGVsbG8gTG0tc2Vuc29ycyB0ZWFt
-IDoKCVRoaXMgaXMgTEggSHN1LCBzb2Z0d2FyZSBjb29yZGluYXRvciBvZiBXaW5ib25kIGNvbXB1
-dGVyIHJlbGF0ZWQKcHJvZHVjdC4gSSBhcHByZWNpYXRlIHlvdSBjb250cmlidXRpb24gZm9yIExp
-bnV4IGRlc2lnbiBhbmQga2luZCBoZWxwCmZvciBoYXJkd2FyZSBtb25pdG9yIGRldmVsb3BtZW50
-IG9mIG91ciBzdGFmZi4KCUNodW5oYW8gIHdvcmtzIGluIG1haW5sYW5kIENoaW5hLiBDdXJyZW50
-bHkgSSBhbSBpbiBidXNpbmVzcwp0cmlwIGluIENoaW5hLiBNb3N0IG9mIHRpbWUgSSB3b3JrIGF0
-IFRhaXdhbi4gVGhlIGFyZWEgb2YgVGFpd2FuIGlzCmNsb3NlZCB0byBtb3RoZXIgYm9hcmQgbWFr
-ZXIgSSBjYW4gZG8gbXkgYmVzdCB0byBoYXZlIGNvb3BlcmF0aW9uLgoJWW91ciAgbWVhbmluZyBp
-cyB5b3UgbmVlZCB0aGUgZGF0YSBzaGVldC4sIGVzcGVjaWFsbHkgU01CdXMKcGFydC4gU29tZSBv
-ZiBtb3RoZXIgYm9hcmQgbWFrZXIgb3IgY2hpcCBzZXQgbWFrZXIgYXJlIG5vdCBwdWJsaWMgdGhh
-dC4KSSBjYW4gbm90IGdldCBhbGwgb2YgZGF0YSBzaGVldCBvciBtb3RoZXIgYm9hcmQgaW5mb3Jt
-YXRpb24uIEkgc3VnZ2VzdAp5b3UgZ290IHRoZSBtb3RoZXIgYm9hcmQgYW5kIFdpbmJvbmQgY2hp
-cCBtb3VudGVkIFN1cGVyIElPLCA3OHggb3IgNzl4KS4KUGxlYXNlIHNlbmQgbWUgdGhlIG1vdGhl
-ciBib2FyZCBtYWtlciB2ZW5kb3IsIG1vdGhlciBib2FyZCBtb2RlbCwgc291dGgKYnJpZGdlIGJy
-YW5kICwgc291dGggYnJpZGdlIGNoaXBzZXQgbm8gYW5kIHlvdXIgcmVxdWlyZW1lbnQuIEkgY2Fu
-IGRvIG15CmJlc3QgdG8gY29sbGVjdCBpbmZvcm1hdGlvbi4gSXQgaXMgaW1wb3NzaWJsZSBmb3Ig
-bW90aGVyIGJvYXJkIG1ha2VyIHRvCnJlbGVhc2UgY2hpcHNldCBudW1iZXIgb2YgYWxsIG1vZGVs
-LiBJIGNhbiBjb25zdWx0IG1vdGhlciBib2FyZCBtYWtlcgphYm91dCBXaW5ib25kIHByb2R1Y3Qu
-ICAKCVNvbWUgaW5mb3JtYXRpb24gb2YgbW90aGVyIGJvYXJkIG1ha2VyIGlzIGNvbmZpZGVudGlh
-bC4gSWYgaXQgaXMKcmVxdWlyZWQgZm9yIHlvdXIgZGV2ZWxvcG1lbnQsIHlvdSBjYW4gIGxldCBt
-ZSBrbm93LCB0b28uIEkgdHJ5IHRvIGRvLgoJRFpTaGVuIGlzIHRoZSBjb29yZGluYXRvciBvZiBM
-aW51eCBkZXZlbG9wbWVudC4gSGUgaXMgZmFtaWxpYXIKd2l0aCBMaW51eCBkZXNpZ24uIFBsZWFz
-ZSBzZW5kIHlvdXIgcmVxdWlyZW1lbnQgLHRvby4KIEJlc3QgUmVnYXJkcwogTEggSHN1CgoKLS0t
-LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KRnJvbTogUnVkb2xmIE1hcmVrIFttYWlsdG86Ui5NYXJl
-a0BzaC5jdnV0LmN6XSAKU2VudDogVHVlc2RheSwgTWFyY2ggMjksIDIwMDUgNDoyOSBBTQpUbzog
-UEkxNCBIVUFORzAKQ2M6IFIuTWFyZWtAc2guY3Z1dC5jejsga2hhbGlAbGludXgtZnIub3JnOyBQ
-STEwIExISHN1OyBQSTE0IERaU0hFTjsKUEkxMyBDRkxpOyBzZW5zb3JzQFN0aW1weS5uZXRyb2Vk
-Z2UuY29tClN1YmplY3Q6IEZ1dHVyZSBjb29wZXJhdGlvbiBuZWVkcy4KCk9wcHMsIEkgbWlzc2Vk
-IG15IHN1YmplY3QuIFNvcnJ5LgoKSGVsbG8sCgo+IEkgY2FuIHVuZGVyc3RhbmQgeW91ciBmZWVs
-aW5ncyBhbmQgY29tcGxhaW50IGFic29sdXRlbHksIEknbSBzb3JyeSBmb3IKPiB0aGUgdHJvdWJs
-ZSBhbmQgb2JzdGFjbGVzIGJyb3VnaHQgeW91LiBJIHdpbGwgZGlzY3VzcyB3aXRoIG15IG1hbmFn
-ZXJzCj4gYWJvdXQgaXQgYW5kIGV4cHJlc3MgeW91ciBtZWFuaW5nLCBJIHRoaW5rIHdlIG1heSBp
-bXByb3ZlIGl0IGluIG91cgo+IGZ1dHVyZSBjb29wZXJhdGlvbi4KPiBUaGFuayB5b3UhCgpUaGFu
-ayB5b3UgdG9vIGZvciBnb29kIGNvb3Jwb3JhdGlvbi4KCkkgY3JlYXRlZCBzb21lIHBhcGVyIGZv
-ciB5b3VyICJyZXNwb25zaWJsZSBtYW5hZ2VyIiBzdGFmZi4KUGxlYXNlIGZvcndhcmQgaXQgdG8g
-dGhlbS4KCk5lZWRzIG9mIG9wZW5zb3VyY2Ugc29mdHdhcmUgZGV2ZWxvcG1lbnQgbW9kZWwKb24g
-ZmllbGRzIG9mIHN5c3RlbSBtb25pdG9yaW5nCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tCgpNb3N0IG9mIG1vdGhlcmJvYXJkIG1hbnVmYWN0dXJlcnMgZG8g
-bm90IHN1cHBvcnQgdGhlIGhhcmR3YXJlIG1vbml0b3JpbmcKY2FwYWJpbGl0aWVzIG9mIHRoZWly
-IHByb2R1Y3RzIGluIGZyZWUgb3BlcmF0aW5nIHN5c3RlbXMgKG9yIHNpbXBseQpvdGhlciB0aGFu
-IFdpbmRvd3MpLiBUaHVzLCBvcGVuIHByb2plY3RzIHdlcmUgY3JlYXRlZCB0byBidWlsZApzdXBw
-b3J0IG9mIHRoZSBoYXJkd2FyZSBtb25pdG9yaW5nIGNoaXBzICJvbiB0aGVpciBvd24iLgoKT24g
-dGhlIExpbnV4IHBsYXRmb3JtIHByb2plY3QgbG0tc2Vuc29ycyBjcmVhdGVkIHVuaWZpZWQgaW5m
-cmFzdHJ1Y3R1cmUKYW5kCmZyYW1ld29yayB0byBzdXBwb3J0IGRpZmZlcmVudCBoYXJkd2FyZSBt
-b25pdG9yaW5nIGNoaXBzIGFuZCBidXNzZXMuIEluCm1lYW4KdGltZSBuZXcgY2hpcHMgb3IgYnVz
-c2VzIHN1cHBvcnQgaXMgaGFuZGxlZCBieSBtZW1iZXJzIG9mIGxtLXNlbnNvcnMKcHJvamVjdC4K
-VGhleSBhcmUgd29ya2luZyBmb3IgZnJlZSwgb3Igc29tZXRpbWVzIHNvbWVvbmUgc3VwcG9ydHMg
-dGhlaXIgd29yayBieQpkb25hdGluZyB0aGUgaGFyZHdhcmUsIGluIG1hbnkgY2FzZXMgbm90IHRo
-ZSBjaGlwIG1ha2VycyBidXQgZnJ1c3RyYXRlZAp0aGlyZCBwYXJ0aWVzIHRoYXQgYXJlIHdpbGxp
-bmcgdG8gc3VwcG9ydCB0aGlzIHByb2plY3QuIENvb3BlcmF0aW9uIHdpdGgKbWFudWZhY3R1cmVz
-IHdhcyBsaW1pdGVkIHRvIGV2YWx1YXRpb24gYm9hcmQgZG9uYXRpb25zIG9yIGRhdGFzaGVldApz
-dXBwb3J0LgoKV2UgYXJlIGdsYWQgdGhhdCBXaW5ib25kIGRlY2lkZWQgdG8gd29yayBvbiBzdXBw
-b3J0IG9mIG5ldyBjaGlwcyB3aXRoCnVzLApkaXJlY3RseSBzdXBwb3J0aW5nIG91ciBwcm9qZWN0
-IHdpdGggbmV3IGRyaXZlci4gSG93ZXZlciB0byBlbmhhbmNlIG91cgpmdXR1cmUgY29vcGVyYXRp
-b24gaXQgaXMgZXNzZW50aWFsIHRvIHVuZGVyc3RhbmQgc3BlY2lmaWMgbmVlZHMgb2YKb3BlbiBz
-b3VyY2UgZGV2ZWxvcG1lbnQuCgoqIEZyZWUgYWNjZXNzIHRvIGRvY3VtZW50YXRpb24KT3VyIHNv
-dXJjZSBjb2RlIGlzIG5vdCBwcm9wcmlldGFyeSwgdW5kZXIgbGljZW5zZSBjb25kaXRpb25zIGFu
-eW9uZSBjYW4KZml4Cm9yIG1vZGlmeSB0aGUgc291cmNlIGNvZGUuIENoaXAgZHJpdmVyIG1haW50
-ZW5hbmNlIGltcGxpZXMgYWNjZXNzIHRvCmNoaXAKZG9jdW1lbnRhdGlvbi4gV2l0aG91dCB0aGF0
-IGZ1dHVyZSBtYWludGVuYW5jZSBvZiBkcml2ZXIgaXMgbm90CnBvc3NpYmxlLgoKKiBGcmVlIGFj
-Y2VzcyB0byBTTUJ1cyBob3N0IGRvY3VtZW50YXRpb24KT3VyIGRyaXZlcnMgYXJlIGJ1aWxkIHVw
-b24gdHJhbnNwb3J0IGxheWVyIHByb3ZpZGVkIGJ5IG90aGVyIGRyaXZlcnMgZm9yClNNQnVzIChT
-eXN0ZW0gTWFuYWdlbWVudCBCdXMpLiBJdCBpcyBlc3NlbnRpYWwgdGhhdCBkb2N1bWVudGF0aW9u
-IHRvCnRoaXMgU01CdXMKaG9zdCBjaGlwIGlzIGFsc28gYWNjZXNzaWJsZS4gV2UgZG8gbm90IG5l
-ZWQgd2hvbGUgc291dGhicmlkZ2UKZG9jdW1lbnRhdGlvbgp3ZSBqdXN0IG5lZWQgdG8ga25vdyB0
-aGUgd2F5IGhvdyB0byBzcGVhayB3aXRoIFNNQlVTIGhvc3QuIFBsZWFzZSB0cnkgdG8KY29udmlu
-Y2Ugc29tZSBjaGlwc2V0IG1ha2VycyBhYm91dCB0aGlzLCBzcGVjaWFsbHkgTlZJRElBLCBTaVMg
-YW5kIEFMSS4KTW9zdApvZiByZWdpc3RlcnMgaXMgZG9uZSBzYW1lIHdheSBpbiBhbGwgY2hpcHNl
-dCBmb2xsb3dpbmcgQUNQSSBzdGFuZGFydCwKYnV0Cml0IGlzIGVzc2VudGlhbCB0byBrbm93IHdo
-YXQgaXMgZG9uZSBkaWZmZXJlbnRseS4KCiogU3VwcG9ydCBmcm9tIG1vdGhlcmJvYXJkIG1hbnVm
-YWN0dXJlcnMKVGhpcyBpcyB2ZXJ5IGNydWNpYWwgYW5kIGFudGljaXBhdG9yeSBwb2ludC4gVGhl
-cmUgaXMgbm8gY29vcGVyYXRpb24KdGhlc2UKZGF5cy4gV2hlbiBtb3RoZXJib2FyZCBtYW51ZmFj
-dHVyZXJzIGZvbGxvd3MgcmVjb21tZW5kZWQgdmFsdWVzIG9mCnJlc2lzdG9ycwpuZXRzLCBjb252
-ZXJzaW9uIGZvcm11bGFzIGNhbiBiZSBnYWluZWQgZnJvbSBkYXRhc2hlZXQuIEVuZCB1c2VycyBh
-cmUKaGFwcHkKdGhhdCBvdXIgcHJvamVjdCBpcyBzdXBwb3J0aW5nIHRoZWlyIHdvcmtzdGF0aW9u
-cyBvciBjb21wYW55IHNlcnZlcnMKaW5zdGVhZApvZiAibm8gc3VwcG9ydCIgZnJvbSBtb3RoZXJi
-b2FyZCBtYW51ZmFjdHVyZXIuIEJ1dCBmcm9tIHRpbWUgdG8gdGltZQptb3RoZXJib2FyZCBtYWtl
-ciBkZWNpZGVzIHRvIHVzZSBvdGhlciBjb21wb25lbnRzIHJlc3VsdGluZyBpbiB1bmtub3duCmNv
-bnZlcnNpb24gZm9ybXVsYXMuIE1vdGhlcmJvYXJkIG1hbnVmYWN0dXJlcnMgZG8gbm90IHdhbnQg
-dG8gZGlzY2xvc2UKaW5mb3JtYXRpb24gYWJvdXQgdGhlIGZvcm11bGFzIG9yIHNpbXBseSBkbyBu
-b3QgcmVzcG9uZC4gVGhpcyBpcyB2ZXJ5CnN0cmFuZ2UgYmVoYXZpb3IsIHdlIGNyZWF0ZWQgb3Vy
-IHByb2plY3QgdG8gc3VwcG9ydCBkaWZmZXJlbnQga2luZCBvZgpoYXJkd2FyZSBhbmQgaW5kaXJl
-Y3RseSB3ZSBhcmUgc3VwcG9ydGluZyBtb3RoZXJib2FyZCBtYW51ZmFjdHVyZXJzCnByb2R1Y3Rz
-CmJ5IG91ciB3b3JrLiBXZSBjYW4ndCB1bmRlcnN0YW5kIHRoYXQgdGhpcyBzaW1wbGUgdGhpbmcg
-aXMgbm90CnVuZGVyc3Rvb2QuCgoqIEFkZGl0aW9uYWwgb2JzdGFjbGVzIHNldCBieSBtb3RoZXJi
-b2FyZCBtYW51ZmFjdHVyZXMKU29tZSBjcmVhdGVkIHByb3ByaWV0YXJ5IG1vbml0b3JpbmcgaW50
-ZXJmYWNlcyBvciB0aGVpciBvd24gQVNJQyBhbmQKdGhleQpkbyBub3Qgd2FudCB0byBkaXNjbG9z
-ZSBkb2N1bWVudGF0aW9uIHRvIHRoaXMgY2hpcHMuIFNvbWUgYXJlIHBsYXlpbmcKaGlkZQphbmQg
-c2Vlay4KCkluZmFtb3VzIGV4YW1wbGVzOgoKQWJpdCBjcmVhdGVkIHRoZWlyIHVHdXJ1IChpbiBm
-YWN0IHByb2dyYW1tZWQgV2luYm9uZCBJQyksIHRoZXkgZG8gbm90CndhbnQgdG8KZGlzY2xvc2Ug
-aW5mb3JtYXRpb24gZXZlbiB0byAiY2xvc2VkIHNvdXJjZSIgY29tcGFuaWVzLiBCYWQgbHVjaywg
-d2UgY2FuCm9ubHkgdGVsbCB0byBncm93aW5nIExpbnV4IHVzZXJiYXNlIC0gYXZvaWQgdGhlbQoK
-QVNVUyBjcmVhdGVkIHRoZWlyIG93biBwcm9wcmlldGFyeSBBU0lDIGNoaXBzLCBob3dldmVyIHRo
-ZWlyIHByb2dyYW1taW5nCmludGVyZmFjZSBpcyB2ZXJ5IHZlcnkgY2xvc2UgdG8gV2luYm9uZCBz
-byBvdXIgZHJpdmVyIHdhcyBkZXZlbG9wZWQgb24KImd1ZXNzd29yayIuIFdlIGRvIG5vdCBzdXBw
-b3J0IG5ldyBjaGlwcyB3aXRoIG5vIGRvY3VtZW50YXRpb24gdG9kYXkuClVuZm9ydHVuYXRlbHkg
-d2UgY2FuJ3QgZHJvcCBzdXBwb3J0IGZvciBhbHJlYWR5IHN1cHBvcnRlZCBvbmVzIGV2ZW4gaWYK
-aXQncyBhIHBhaW4uCgpBU1VTIGlzIGV2ZW4gbW9yZSBjcmVhdGl2ZSwgdGhleSBzdGFydGVkIHRv
-IGhpZGUgU01CVVMgaG9zdCwgbGF0ZXIgdGhleQpzdGFydCB0byBoaWRlICJ3ZWxsIGtub3duIiBt
-b25pdG9yaW5nIGNoaXBzLCByZXN1bHQgaXMgdGhhdCB3ZSBjYW5ub3QKaGVscCBtdWNoIHdpdGgg
-dGhpcyB0byBlbmQgdXNlcnMuIENvbXBsYWludHMgdG8gQVNVUyBkbyBub3Qgd29yay4KClN1bW1h
-cnkKLS0tLS0tLQpQbGVhc2UgdHJ5IHRvIGV4cGxhaW4gdGhlIG1vdGhlcmJvYXJkIGNvbXBhbmll
-cyB0aGF0IHRoZXkgaGF2ZSB1bmlxdWUKb3Bwb3J0dW5pdHkgdG8gaGF2ZSBzdXBwb3J0IG9mIHRo
-ZWlyIG1vbml0b3JpbmcgY2hpcHMgaW4gTGludXggd2l0aCBubwphZGRpdGlvbmFsIGNvc3QgdG8g
-dGhlbSwgd2hlbiB0aGV5IHdpbGwgY29tbXVuaWNhdGUgd2l0aCB1cyBhbmQgcHJvdmlkZQpkb2N1
-bWVudGF0aW9uIHRoYXQgaXMgZXNzZW50aWFsIHRvIHN1cHBvcnQgdGhlaXIgbW90aGVyYm9hcmQu
-CgpQbGVhc2UgdHJ5IHRvIGV4cGxhaW4gdG8gY2hpcHNldCBtYWtlcnMgdGhhdCB3ZSByZWFsbHkg
-bmVlZCBwYXJ0cyBvZgpkb2N1bWVudGF0aW9uIG9mIHRoZWlyIHNvdXRoYnJpZGdlIHRvIGJlIGFi
-bGUgdG8gaW1wbGVtZW50IFNNQlVTIGhvc3QKZHJpdmVyLiBXZSBkbyBub3QgbmVlZCBmdWxsIGRh
-dGFzaGVldCBvbmx5IHNtYWxsIHBhcnQgb2YgaXQuCgpXaGVuIGl0IGlzIG5vdCBwb3NzaWJsZSB0
-byBkaXNjbG9zZSB0aGUgY2hpcCBkb2N1bWVudGF0aW9uIHRvIHB1YmxpYyB3ZQp3b3VsZCBsaWtl
-IHRvIGhhdmUgYSBwb3NzaWJpbGl0eSB0byBtZW1iZXJzIG9mIG91ciBwcm9qZWN0IHRvIGhhdmUK
-c2hhcmVkIGFjY2VzcyB0byB0aGUgZG9jdW1lbnRhdGlvbi4KClRoYW5rIHlvdSwKCkxtLXNlbnNv
-cnMgdGVhbS4KCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlz
-IGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRp
-Y2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5v
-dCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9u
-c2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtp
-bmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBh
-bGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1t
-ZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNh
-YmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9u
-IG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBp
-biB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVz
-cyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNl
-ZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVh
-c2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEK
-IHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRs
-qrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCw
-sqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaas
-qOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmk
-pKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhn
-scLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7
-ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+LH,
+thanks for the email, sorry we didn't reply sooner.
+
+Unfortunately we aren't looking for information on a specific motherboard.
+We're looking for general cooperation from the motherboard manufacturers,
+as Rudolf described.
+
+One example is Tyan, who publishes lm_sensors configuration data
+here:
+
+http://www.tyan.com/support/html/software_utilities.html#lms
+
+One way to see what chips we are looking for information about
+is to see our New Drivers page:
+
+http://www2.lm-sensors.nu/~lm78/newdrivers.html
+
+When somebody asks us for support for a new chip, we put the
+chip on this page. As you can see there are several Winbond chips
+on the list. For most of these chips we do not have datasheets.
+If you can release datasheets for these chips that would be very helpful.
+
+I'm sure you realize, as a person in the software business,
+that attempting to write a driver without a datasheet is
+not possible. Anything you can do to influence your company and  others
+to release datasheets would be most helpful.
+
+We look forward to continuing work with your company.
+
+mds
+
+
+
+LHHsu@winbond.com.tw wrote:
+> Hello Lm-sensors team :
+> 	I sent the email listed below. Do you have any recommendation? 
+> BR
+> LH Hsu
+> 
+> -----Original Message-----
+> From: PI10 LHHsu 
+> Sent: Wednesday, March 30, 2005 7:13 PM
+> To: Rudolf Marek; PI14 HUANG0
+> Cc: khali@linux-fr.org; PI14 DZSHEN; sensors@Stimpy.netroedge.com
+> Subject: RE: Future cooperation needs.
+> 
+> Hello Lm-sensors team :
+> 	This is LH Hsu, software coordinator of Winbond computer related
+> product. I appreciate you contribution for Linux design and kind help
+> for hardware monitor development of our staff.
+> 	Chunhao  works in mainland China. Currently I am in business
+> trip in China. Most of time I work at Taiwan. The area of Taiwan is
+> closed to mother board maker I can do my best to have cooperation.
+> 	Your  meaning is you need the data sheet., especially SMBus
+> part. Some of mother board maker or chip set maker are not public that.
+> I can not get all of data sheet or mother board information. I suggest
+> you got the mother board and Winbond chip mounted Super IO, 78x or 79x).
+> Please send me the mother board maker vendor, mother board model, south
+> bridge brand , south bridge chipset no and your requirement. I can do my
+> best to collect information. It is impossible for mother board maker to
+> release chipset number of all model. I can consult mother board maker
+> about Winbond product.  
+> 	Some information of mother board maker is confidential. If it is
+> required for your development, you can  let me know, too. I try to do.
+> 	DZShen is the coordinator of Linux development. He is familiar
+> with Linux design. Please send your requirement ,too.
+>  Best Regards
+>  LH Hsu
+> 
+> 
+> -----Original Message-----
+> From: Rudolf Marek [mailto:R.Marek@sh.cvut.cz] 
+> Sent: Tuesday, March 29, 2005 4:29 AM
+> To: PI14 HUANG0
+> Cc: R.Marek@sh.cvut.cz; khali@linux-fr.org; PI10 LHHsu; PI14 DZSHEN;
+> PI13 CFLi; sensors@Stimpy.netroedge.com
+> Subject: Future cooperation needs.
+> 
+> Opps, I missed my subject. Sorry.
+> 
+> Hello,
+> 
+> 
+>>I can understand your feelings and complaint absolutely, I'm sorry for
+>>the trouble and obstacles brought you. I will discuss with my managers
+>>about it and express your meaning, I think we may improve it in our
+>>future cooperation.
+>>Thank you!
+> 
+> 
+> Thank you too for good coorporation.
+> 
+> I created some paper for your "responsible manager" staff.
+> Please forward it to them.
+> 
+> Needs of opensource software development model
+> on fields of system monitoring
+> -----------------------------------------------
+> 
+> Most of motherboard manufacturers do not support the hardware monitoring
+> capabilities of their products in free operating systems (or simply
+> other than Windows). Thus, open projects were created to build
+> support of the hardware monitoring chips "on their own".
+> 
+> On the Linux platform project lm-sensors created unified infrastructure
+> and
+> framework to support different hardware monitoring chips and busses. In
+> mean
+> time new chips or busses support is handled by members of lm-sensors
+> project.
+> They are working for free, or sometimes someone supports their work by
+> donating the hardware, in many cases not the chip makers but frustrated
+> third parties that are willing to support this project. Cooperation with
+> manufactures was limited to evaluation board donations or datasheet
+> support.
+> 
+> We are glad that Winbond decided to work on support of new chips with
+> us,
+> directly supporting our project with new driver. However to enhance our
+> future cooperation it is essential to understand specific needs of
+> open source development.
+> 
+> * Free access to documentation
+> Our source code is not proprietary, under license conditions anyone can
+> fix
+> or modify the source code. Chip driver maintenance implies access to
+> chip
+> documentation. Without that future maintenance of driver is not
+> possible.
+> 
+> * Free access to SMBus host documentation
+> Our drivers are build upon transport layer provided by other drivers for
+> SMBus (System Management Bus). It is essential that documentation to
+> this SMBus
+> host chip is also accessible. We do not need whole southbridge
+> documentation
+> we just need to know the way how to speak with SMBUS host. Please try to
+> convince some chipset makers about this, specially NVIDIA, SiS and ALI.
+> Most
+> of registers is done same way in all chipset following ACPI standart,
+> but
+> it is essential to know what is done differently.
+> 
+> * Support from motherboard manufacturers
+> This is very crucial and anticipatory point. There is no cooperation
+> these
+> days. When motherboard manufacturers follows recommended values of
+> resistors
+> nets, conversion formulas can be gained from datasheet. End users are
+> happy
+> that our project is supporting their workstations or company servers
+> instead
+> of "no support" from motherboard manufacturer. But from time to time
+> motherboard maker decides to use other components resulting in unknown
+> conversion formulas. Motherboard manufacturers do not want to disclose
+> information about the formulas or simply do not respond. This is very
+> strange behavior, we created our project to support different kind of
+> hardware and indirectly we are supporting motherboard manufacturers
+> products
+> by our work. We can't understand that this simple thing is not
+> understood.
+> 
+> * Additional obstacles set by motherboard manufactures
+> Some created proprietary monitoring interfaces or their own ASIC and
+> they
+> do not want to disclose documentation to this chips. Some are playing
+> hide
+> and seek.
+> 
+> Infamous examples:
+> 
+> Abit created their uGuru (in fact programmed Winbond IC), they do not
+> want to
+> disclose information even to "closed source" companies. Bad luck, we can
+> only tell to growing Linux userbase - avoid them
+> 
+> ASUS created their own proprietary ASIC chips, however their programming
+> interface is very very close to Winbond so our driver was developed on
+> "guesswork". We do not support new chips with no documentation today.
+> Unfortunately we can't drop support for already supported ones even if
+> it's a pain.
+> 
+> ASUS is even more creative, they started to hide SMBUS host, later they
+> start to hide "well known" monitoring chips, result is that we cannot
+> help much with this to end users. Complaints to ASUS do not work.
+> 
+> Summary
+> -------
+> Please try to explain the motherboard companies that they have unique
+> opportunity to have support of their monitoring chips in Linux with no
+> additional cost to them, when they will communicate with us and provide
+> documentation that is essential to support their motherboard.
+> 
+> Please try to explain to chipset makers that we really need parts of
+> documentation of their southbridge to be able to implement SMBUS host
+> driver. We do not need full datasheet only small part of it.
+> 
+> When it is not possible to disclose the chip documentation to public we
+> would like to have a possibility to members of our project to have
+> shared access to the documentation.
+> 
+> Thank you,
+> 
+> Lm-sensors team.
+> 
