@@ -1,48 +1,28 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: Fix up some build warnings in the fscpos driver.
-Message-Id: <11099685931959@kroah.com>
+From: bjarvis@astro.umn.edu (Ben Jarvis)
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: Added comment to lm sensors ticket #774
+Message-Id: <20011229185252.A16586@nexus.astro.umn.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1109968592905@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: greg@kroah.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2082, 2005/03/02 11:51:21-08:00, greg@kroah.com
+Re: Ticket #774 biostar m7mia won?t post after lm_sensors install
 
-[PATCH] I2C: Fix up some build warnings in the fscpos driver.
+I put the cpu, memory, and power supply from the m7mia-r that won't post
+after installing lm sensors on an m7mia v1.2, essentially the same
+board without the HPT370 controller, and it posts.  Therefore, I have
+extremely high confidence that my motherboard broke in the 2 or 3
+minute interval that I was installing lm_sensors, which looks pretty
+suspicious.  Any help would be appreciated.
 
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-
- drivers/i2c/chips/fscpos.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
-
-
-diff -Nru a/drivers/i2c/chips/fscpos.c b/drivers/i2c/chips/fscpos.c
---- a/drivers/i2c/chips/fscpos.c	2005-03-04 12:26:32 -08:00
-+++ b/drivers/i2c/chips/fscpos.c	2005-03-04 12:26:32 -08:00
-@@ -51,8 +51,6 @@
-  * The FSCPOS registers
-  */
- 
--#define DEBUG
--
- /* chip identification */
- #define FSCPOS_REG_IDENT_0		0x00
- #define FSCPOS_REG_IDENT_1		0x01
-@@ -566,10 +564,10 @@
- 
- 	if ((jiffies - data->last_updated > 2 * HZ) ||
- 			(jiffies < data->last_updated) || !data->valid) {
-+		int i;
- 
- 		dev_dbg(&client->dev, "Starting fscpos update\n");
- 
--		int i;
- 		for (i = 0; i < 3; i++) {
- 			data->temp_act[i] = fscpos_read_value(client,
- 						FSCPOS_REG_TEMP_ACT[i]);
-
+Thanks,
+Ben
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 232 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20011229/d09c82ff/attachment.bin
