@@ -1,26 +1,35 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:11 +0000
+From: magnus.f@telia.com (=?iso-8859-1?Q?Magnus=20Forsstr=F6m?=)
+Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: New LM83 driver
-Message-Id: <20030809231304.74f73999.khali@linux-fr.org>
+Message-Id: <200308121447.h7CEloK21314@d1o403.telia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030809231304.74f73999.khali@linux-fr.org>
+In-Reply-To: <20030809231304.74f73999.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Hello!
+I only downloaded the lm83.c file and recompiled it. How do I see/test
+the status register? I was expecting something from the sensors output.
 
-High Magnus,
+The sensors output was:
+Adapter: SMBus PIIX4 adapter at 0580
+Algorithm: Non-I2C SMBus adapter
+temp1:       +36=B0C  (limit =3D +100=B0C)                     =20
+temp2:       +39=B0C  (limit =3D +100=B0C)                     =20
+temp3:       +50=B0C  (limit =3D +100=B0C)                     =20
+temp4:       +42=B0C  (limit =3D +100=B0C)       =20
 
-I commited my changes to the lm83 driver to CVS. It adds support for
-T_CRIT (Critical temperature, common to all four temperature sensors)
-and gives access to the two status registers (alarm flags and diode
-fault detection). Could you please give it a try? I'd like to know if it
-works as intended.
+In the proc filesystem Ive got:
+# ls /proc/sys/dev/sensors/lm83-i2c-0-19/
+alarms  tcrit   temp1   temp2   temp3   temp4  =20
 
-Note that you'll need i2c-CVS in order to use lm_sensors2-CVS.
+# cat /proc/sys/dev/sensors/lm83-i2c-0-19/tcrit
+120
+# cat /proc/sys/dev/sensors/lm83-i2c-0-19/alarms=20
+0
 
-Thanks!
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Regards
+Magnus Forsstr=F6m
