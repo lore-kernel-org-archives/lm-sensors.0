@@ -1,27 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: /proc/device-tree
-Message-Id: <20030807125132.01a70560.khali@linux-fr.org>
+From: srlinuxx@bellsouth.net (=?iso-8859-1?q?=A7?=)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: request
+Message-Id: <200206291408.37113.srlinuxx@bellsouth.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030807121206.73a80468.khali@linux-fr.org>
-In-Reply-To: <20030807121206.73a80468.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi, I have been enjoying your lm_sensors for a couple of years I guess it's 
+been on an i815 mobo (and similar).  But I am going amd, and would soo much 
+appreciate support for the Via VT8367(KT333).  I see where the VT8233A 
+southbridge is recognized in cvs so I'm hoping for continued developement of 
+that too.
 
-> here you go:
-> 
-> Let me know your Feedback.
+I would so much love to help with developement, but alas know just enough to 
+utilize other's work.  Of course I'd be first in line to test and I also 
+wouldn't mind supporting your project with a donation.
 
-Thanks. It seems that the directory structure is awfully complex. I was
-expecting something simple that I could have used to detect the Keywest
-(the i2c bus adapter on your ppc) but I guess I have to give up. I'll
-add it to our list of undetectable adapters.
+I hope to have the opportunity to continue enjoying lm_sensors or helping you 
+out in some way.
 
-Thanks again.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Thank you,
+-?rlinuxx
