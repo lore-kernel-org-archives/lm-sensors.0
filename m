@@ -1,70 +1,59 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:39 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: two small questions when compile lm_sensors
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE24564F@weshml03.winbond.com.tw>
+Message-Id: <F0CC4AHh.1109319741.9408490.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE24564F@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE24564F@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKSSBtZWV0IHR3byBzbWFsbCBxdWVzdGlvbnMgd2hlbiBjb21waWxlIGxtX3NlbnNv
-cnMsIHRoZXkgYXJlIG5vdCB1cmdlbnQsCnlvdSBtYXkgZ2l2ZSBtZSBzb21lIGhlbHAgd2hlbiB5
-b3UgYXJlIGZyZWUuCgpRdWVzdGlvbiAxOgpFcnJvciBhcHBlYXJzIHdoZW4gY29tcGlsZSB0aGUg
-bW9kdWxlIGtlcm5lbC9jaGlwcy9ibWNzZW5zb3JzLm8KClRoZSBtZXNzYWdlIGlzIGF0dGFjaGVk
-IGluIHRoaXMgbWFpbC4gVGhlIHN0cmFuZ2UgdGhpbmcgaXMgdGhhdDoKSSByZW1lbWJlciB0aGF0
-IHdoZW4gSSBjb21waWxlZCBsbV9zZW5zb3JzLTIuOS4wIGZvciB0aGUgZmlyc3QgdGltZQoocmln
-aHQgYWZ0ZXIgaW5zdGFsbGVkIG15IFJlZGhhdDkpLCB0aGlzIGVycm9yIGRpZCBOT1QgYXBwZWFy
-LgoKTm93LCBJIGhhdmUgdG8gY29tbWVudCBvdXQgdGhlIG1vZHVsZSBibWNzZW5zb3JzIGZyb20g
-dGhlIGZpbGUKa2VybmVsL2NoaXBzL01vZHVsZS5tawoqKioqKioqKioqICAgICBlcnJvciBtZXNz
-YWdlICAgICAqKioqKioqKioqKioqKioqKioqKgpbcm9vdEBsb2NhbGhvc3QgbG1fc2Vuc29ycy0y
-LjkuMF0jIG1ha2UKZ2NjICAtRF9fU01QX18gLURNT0RWRVJTSU9OUyAtaW5jbHVkZQovbGliL21v
-ZHVsZXMvMi40LjIwLTgvYnVpbGQvaW5jbHVkZS9saW51eC9tb2R2ZXJzaW9ucy5oIC1EX19LRVJO
-RUxfXwotRE1PRFVMRSAtREVYUE9SVF9TWU1UQUIgLWZvbWl0LWZyYW1lLXBvaW50ZXIgLUkuIC1J
-a2VybmVsL2luY2x1ZGUKLUkvdXNyL2xvY2FsL2luY2x1ZGUgIC1JL2xpYi9tb2R1bGVzLzIuNC4y
-MC04L2J1aWxkL2luY2x1ZGUgLW5vc3RkaW5jIC1JCi91c3IvbGliL2djYy1saWIvaTM4Ni1yZWRo
-YXQtbGludXgvMy4yLjIvaW5jbHVkZSAgLVdhbGwgLU8yICAtYwprZXJuZWwvY2hpcHMvYm1jc2Vu
-c29ycy5jIC1vIGtlcm5lbC9jaGlwcy9ibWNzZW5zb3JzLm8Ka2VybmVsL2NoaXBzL2JtY3NlbnNv
-cnMuYzogSW4gZnVuY3Rpb24gYGlwbWlfc3ByaW50Zic6Cmtlcm5lbC9jaGlwcy9ibWNzZW5zb3Jz
-LmM6MjIwOiB3YXJuaW5nOiBvcGVyYXRpb24gb24gYGZyb20nIG1heSBiZQp1bmRlZmluZWQKa2Vy
-bmVsL2NoaXBzL2JtY3NlbnNvcnMuYzoyMjE6IHdhcm5pbmc6IG9wZXJhdGlvbiBvbiBgZnJvbScg
-bWF5IGJlCnVuZGVmaW5lZAprZXJuZWwvY2hpcHMvYm1jc2Vuc29ycy5jOiBJbiBmdW5jdGlvbiBg
-Ym1jc2Vuc29yc19zZWxlY3RfdGhyZXNob2xkcyc6Cmtlcm5lbC9jaGlwcy9ibWNzZW5zb3JzLmM6
-MzAwOiBgbScgdW5kZWNsYXJlZCAoZmlyc3QgdXNlIGluIHRoaXMKZnVuY3Rpb24pCmtlcm5lbC9j
-aGlwcy9ibWNzZW5zb3JzLmM6MzAwOiAoRWFjaCB1bmRlY2xhcmVkIGlkZW50aWZpZXIgaXMgcmVw
-b3J0ZWQKb25seSBvbmNlCmtlcm5lbC9jaGlwcy9ibWNzZW5zb3JzLmM6MzAwOiBmb3IgZWFjaCBm
-dW5jdGlvbiBpdCBhcHBlYXJzIGluLikKa2VybmVsL2NoaXBzL2JtY3NlbnNvcnMuYzogQXQgdG9w
-IGxldmVsOgprZXJuZWwvY2hpcHMvYm1jc2Vuc29ycy5jOjQ1OiB3YXJuaW5nOiBgYWRkcl9kYXRh
-JyBkZWZpbmVkIGJ1dCBub3QgdXNlZAptYWtlOiAqKiogW2tlcm5lbC9jaGlwcy9ibWNzZW5zb3Jz
-Lm9dIEVycm9yIDEKCgpRdWVzdGlvbiAyOgpPY2Nhc2lvbmFsbHksIHdoZW4gSSBjb21waWxlZCBs
-bV9zZW5zb3JzLTIuOS4wKG9yIGkyYy0yLjkuMCksIGl0IHRvb2sgbWUKdmVyeSBsb25nIHRpbWUo
-bWF5YmUgc2V2ZXJhbCBob3VycykgdG8gZmluaXNoIGNvbXBpbGluZy4gVGhlICIqLmQiIGZpbGVz
-CmluCmxtX3NlbnNvcnMtMi45LjAva2VybmVsL2NoaXBzLyAob3IgaTJjLTIuOS4wL2tlcm5lbC8q
-LmQpIHdlcmUKcHJvZHVjZWQocmVmcmVzaGVkKSBhZ2FpbiBhbmQgYWdhaW4uCgpXaGVuIEkgaW50
-ZXJydXB0IHRoZSBjb21waWxlLCB0aGlzIHBoZW5vbWVub24gc29tZXRpbWVzIGNvbnRpbnVlcywg
-b3IKZGlzYXBwZWFyOiBvbmNlLCBJIHJlLWNvbXBpbGUgaXQgb24gdGhlIHNlY29uZCBkYXksIHRo
-aXMgc3RyYW5nZQpwaGVub21lbmEKZGlzYXBwZWFyZWQuCgpJIGNhbiBub3QgZmluZCB0aGUgcmVh
-c29uIGFib3V0IGl0LCBDYW4geW91PwoKClRoYW5rcwpCZXN0IFJlZ2FyZHMKCkNodW5oYW8KMjAw
-NS0wMi0yNQoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1U
-aGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMg
-ZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGlj
-YXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90
-IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25z
-aWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2lu
-ZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFs
-bCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1l
-ZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2Fi
-bGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24g
-b2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGlu
-IHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNz
-IG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2Vk
-IGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFz
-ZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQog
-dCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyq
-urBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCy
-qM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo
-7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSk
-pKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGex
-wsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQ
-tdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
+
+Hi Chunhao,
+
+> Question 1:
+> Error appears when compile the module kernel/chips/bmcsensors.o
+>
+> The message is attached in this mail. The strange thing is that:
+> I remember that when I compiled lm_sensors-2.9.0 for the first time
+> (right after installed my Redhat9), this error did NOT appear.
+
+This is a known bug in lm_sensors 2.9.0, which has since been fixed in
+CVS.
+http://archives.andrew.net.au/lm-sensors/msg28802.html
+
+The reason why you did not have the error at first is that the bmcsensors
+module is only compiled if the underlying kernel has IPMI support. Maybe
+your original kernel didn't have. I never included IPMI support myself
+so far (I don't need it) which is why the compilation error slipped
+into 2.9.0 without me noticing. Now I do include it but just in order to
+find out compilation errors before we release.
+
+> Now, I have to comment out the module bmcsensors from the file
+> kernel/chips/Module.mk
+
+That's OK then, as you don't really need that driver anyway.
+
+> Question 2:
+> Occasionally, when I compiled lm_sensors-2.9.0(or i2c-2.9.0), it took me
+> very long time(maybe several hours) to finish compiling. The "*.d" files
+> in lm_sensors-2.9.0/kernel/chips/ (or i2c-2.9.0/kernel/*.d) were
+> produced(refreshed) again and again.
+>
+> When I interrupt the compile, this phenomenon sometimes continues, or
+> disappear: once, I re-compile it on the second day, this strange
+> phenomena disappeared.
+>
+> I can not find the reason about it, Can you?
+
+Yeah, I remember similar reports about the CVS version. This was caused
+by a misproperly configured clock. If your clock is set in the past,
+make is not able to satisfy dependancies and might loop forever. When
+this happens, just check that the clock is correct and that no file in
+the lm_sensors tree has time in the future.
+
+Hope that helps,
+--
+Jean Delvare
