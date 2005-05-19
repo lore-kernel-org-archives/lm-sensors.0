@@ -1,25 +1,42 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:22 +0000
-Subject: [PATCH] I2C update for 2.6.10-rc1
-Message-Id: <20041110052659.GA13479@kroah.com>
+From: Timo.Bolse@SerNet.DE (Timo.Bolse@SerNet.DE)
+Date: Thu, 19 May 2005 06:25:08 +0000
+Subject: bug report?!
+Message-Id: <E1Bt0wR-0002TF-00@intern.SerNet.DE>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10999778552595@kroah.com>
-In-Reply-To: <10999778552595@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Nov 10, 2004 at 02:04:56PM +1100, Rusty Russell wrote:
-> On Mon, 2004-11-08 at 21:24 -0800, Greg KH wrote:
-> > +static int init = 1;
-> > +MODULE_PARM(init, "i");
-> 
-> You meant, of course, module_param(), or were you checking if my scripts
-> were broken? 8)
+Dear LM-Sensors Team,
 
-Read on in the patch series...
+I tried to compile i2c and lm_sensors on this machine: 
 
-Your scripts need to check for replacements too :)
+Linux dhcp230 2.4.21-99-athlon #1 Wed Sep 24 13:34:32 UTC 2003 i686 athlon i386
+ GNU/Linux).
+gcc version 3.3.1 (SuSE Linux)
 
-greg k-h
+While compilation i get on both i2c and lm_sensors the following error:
+
+kernel/i2c-pport.c:154: error: initializer element is not constant
+kernel/i2c-pport.c:154: error: (near initialization for `bit_pport_data.timeout'
+
+Not only for i2c-pport.c. I spent some time covering this bug. I found out that
+you take the HZ Value out of asm/param.h for the timeouts in many of your 
+modules. For me i switch to a hardcoded value so that the element is constant.
+I took the value defined for userspace in asm/param.h. (On my system 100) and
+everything compiled fine. I'am not a very good c programmer so i don't know how
+to cover this i think you need this timeout HZ definition because param.h makes
+a difference between kernelmode and userspace.
+
+The other problem i spotted is that your tar.gz archive of i2c-2.8.7 is not a
+gzip archive.
+
+dhcp230:~ # file i2c-2.8.7.tar.gz
+i2c-2.8.7.tar.gz: POSIX tar archive
+
+A not that much confidant user could be very confused if he is downloading a
+tar.gz from you website which is a tar.
+
+Regards,
+Timo Bolse
