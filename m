@@ -1,20 +1,15 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: [PATCH] sensors: print the degree sign in the terminal's
-Message-Id: <20040321204021.07d9dc28.khali@linux-fr.org>
+From: seppo_kemivirta@fi.ibm.com (Seppo)
+Date: Thu, 19 May 2005 06:23:48 +0000
+Subject: lm_sensor in IBM Servers?
+Message-Id: <3E544936.FCA4C470@fi.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040321013630.GA28378@pc.aurel32.private>
-In-Reply-To: <20040321013630.GA28378@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Please find attached a new patch, I hope less ugly than the previous
-> one. I made it using the advice Jean Delvare give me on IRC.
+Hello,
 
-Thanks, applied with the fix we discussed on IRC.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+if I understood right, that problem with IBM is only in laptops
+which have RFID. The servers should not have such a feature,
+so should I compile and run the packet without problem?
