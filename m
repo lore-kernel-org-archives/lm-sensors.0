@@ -1,79 +1,122 @@
 From: jchapman@katalix.com (James Chapman)
 Date: Thu, 19 May 2005 06:25:41 +0000
 Subject: [PATCH: 2.6.11-rc5] i2c chips: add adt7461 support to lm90 driver
-Message-Id: <422744A0.8020506@katalix.com>
+Message-Id: <42274958.4050400@katalix.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4223513F.4030403@katalix.com>
-In-Reply-To: <4223513F.4030403@katalix.com>
+References: <4223513F.4030403@katalix.com>	<20050302165532.GB2311@kroah.com> <20050302203721.7cce650d.khali@linux-fr.org>
+In-Reply-To: <20050302203721.7cce650d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, Greg KH <greg@kroah.com>
 
-Hi Jean,
+A revised adt7461 patch addressing all of Jean's comments is
+attached.
 
-Jean Delvare wrote:
+This driver will detect the adt7461 chip only if boot firmware
+has left the chip in its default lm90-compatible mode.
 
->>>Add ADT7461 (temperature sensor) support to LM90 driver.
 
-Thanks for your good comments. I'll post a revised kernel patch soon.
-
-ADT7461 will only be supported in lm90-compat mode.
-
-> I would also appreciate a patch to lm_sensors' sensors-detect script for
-> the ADT7461, and possibly a patch for libsensors and sensors as well,
-> unless you are not interested in these (in which case you would need to
-> explicitely mention in Kconfig that the ADT7461 has no user-space
-> support at the moment).
-
-Patch to add adt7461 support to lmsensors-2.9.0 is attached. I'm new to
-the internals of lmsensors so I may not have done all I need to.
-
-I'm unable to test it since I can't run sensors on my target
-which is an embedded ppc board and lmsensors won't cross-compile. I
-don't have enough space to run perl anyway! :)
-
-/james
 -------------- next part --------------
-Index: lm_sensors-2.9.0/prog/detect/sensors-detect
-=================================--- lm_sensors-2.9.0.orig/prog/detect/sensors-detect	2004-12-10 20:10:09.000000000 +0000
-+++ lm_sensors-2.9.0/prog/detect/sensors-detect	2005-03-03 16:46:08.000000000 +0000
-@@ -1293,7 +1293,7 @@
-      },
-      {
-        name => "Analog Devices ADT7461",
--       driver => "to-be-written",
-+       driver => "lm90",
-        i2c_addrs => [0x4c],
-        i2c_detect => sub { lm90_detect 5, @_ },
-      },
-Index: lm_sensors-2.9.0/lib/chips.c
-=================================--- lm_sensors-2.9.0.orig/lib/chips.c	2004-11-24 04:31:40.000000000 +0000
-+++ lm_sensors-2.9.0/lib/chips.c	2005-03-03 16:51:41.000000000 +0000
-@@ -5350,6 +5350,7 @@
-  { SENSORS_LM99_PREFIX, lm90_features },
-  { SENSORS_LM86_PREFIX, lm90_features },
-  { SENSORS_MAX6657_PREFIX, lm90_features },
-+ { SENSORS_ADT7461_PREFIX, lm90_features },
-  { SENSORS_LM63_PREFIX, lm63_features },
-  { SENSORS_MAX1619_PREFIX, max1619_features },
-  { SENSORS_XEONTEMP_PREFIX, xeontemp_features },
-Index: lm_sensors-2.9.0/lib/chips.h
-=================================--- lm_sensors-2.9.0.orig/lib/chips.h	2004-11-24 04:31:40.000000000 +0000
-+++ lm_sensors-2.9.0/lib/chips.h	2005-03-03 16:50:42.000000000 +0000
-@@ -475,13 +475,14 @@
- #define SENSORS_LM85_ZONE3_RANGE           100  /* RW -- zone3_range  */
- #define SENSORS_LM85_ZONE3_SMOOTH          101  /* RW -- zone3_smooth  */
+i2c: add adt7461 chip support
+
+Signed-off-by: James Chapman <jchapman@katalix.com>
+
+The Analog Devices ADT7461 temperature sensor chip is compatible with
+the lm90 device provided its extended temperature range is not
+enabled.  The chip will be ignored if the boot firmware enables
+extended temperature range.
+
+Also, since the adt7461 treats temp values <0 as 0 and >127 as 127,
+the driver prevents temperature values outside the supported range
+from being set.
+
+Index: linux-2.6.i2c/drivers/i2c/chips/lm90.c
+=================================--- linux-2.6.i2c.orig/drivers/i2c/chips/lm90.c	2005-03-03 15:02:40.000000000 +0000
++++ linux-2.6.i2c/drivers/i2c/chips/lm90.c	2005-03-03 15:44:34.000000000 +0000
+@@ -43,6 +43,12 @@
+  * variants. The extra address and features of the MAX6659 are not
+  * supported by this driver.
+  *
++ * This driver also supports the ADT7461 chip from Analog Devices but
++ * only in its "compatability mode". If an ADT7461 chip is found but
++ * is configured in non-compatible mode (where its temperature
++ * register values are decoded differently) it is ignored by this
++ * driver.
++ *
+  * Since the LM90 was the first chipset supported by this driver, most
+  * comments will refer to this chipset, but are actually general and
+  * concern all supported chipsets, unless mentioned otherwise.
+@@ -76,6 +82,7 @@
+  * LM86, LM89, LM90, LM99, ADM1032, MAX6657 and MAX6658 have address 0x4c.
+  * LM89-1, and LM99-1 have address 0x4d.
+  * MAX6659 can have address 0x4c, 0x4d or 0x4e (unsupported).
++ * ADT7461 always has address 0x4c.
+  */
  
--/* LM86/LM89/LM90/LM99/ADM1032/MAX6657 chips */
-+/* LM86/LM89/LM90/LM99/ADM1032/MAX6657/ADT7461 chips */
+ static unsigned short normal_i2c[] = { 0x4c, 0x4d, I2C_CLIENT_END };
+@@ -85,7 +92,7 @@
+  * Insmod parameters
+  */
  
- #define SENSORS_LM90_PREFIX "lm90"
- #define SENSORS_ADM1032_PREFIX "adm1032"
- #define SENSORS_LM99_PREFIX "lm99"
- #define SENSORS_LM86_PREFIX "lm86"
- #define SENSORS_MAX6657_PREFIX "max6657"
-+#define SENSORS_ADT7461_PREFIX "adt7461"
+-SENSORS_INSMOD_5(lm90, adm1032, lm99, lm86, max6657);
++SENSORS_INSMOD_6(lm90, adm1032, lm99, lm86, max6657, adt7461);
  
- #define SENSORS_LM90_LOCAL_TEMP 51 /* R */
- #define SENSORS_LM90_LOCAL_HIGH 52 /* RW */
+ /*
+  * The LM90 registers
+@@ -180,6 +187,7 @@
+ 	struct semaphore update_lock;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
++	int kind;
+ 
+ 	/* registers values */
+ 	s8 temp_input1, temp_low1, temp_high1; /* local */
+@@ -221,6 +229,8 @@
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct lm90_data *data = i2c_get_clientdata(client); \
+ 	long val = simple_strtol(buf, NULL, 10); \
++	if ((data->kind = adt7461) && ((val < 0) || (val > 127000))) \
++		return -EINVAL; \
+ 	data->value = TEMP1_TO_REG(val); \
+ 	i2c_smbus_write_byte_data(client, reg, data->value); \
+ 	return count; \
+@@ -232,6 +242,8 @@
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct lm90_data *data = i2c_get_clientdata(client); \
+ 	long val = simple_strtol(buf, NULL, 10); \
++	if ((data->kind = adt7461) && ((val < 0) || (val > 127000))) \
++		return -EINVAL; \
+ 	data->value = TEMP2_TO_REG(val); \
+ 	i2c_smbus_write_byte_data(client, regh, data->value >> 8); \
+ 	i2c_smbus_write_byte_data(client, regl, data->value & 0xff); \
+@@ -386,6 +398,12 @@
+ 			 && (reg_config1 & 0x3F) = 0x00
+ 			 && reg_convrate <= 0x0A) {
+ 				kind = adm1032;
++			} else
++			if (address = 0x4c
++			 && chip_id = 0x51 /* ADT7461 */
++			 && (reg_config1 & 0x3F) = 0x00
++			 && reg_convrate <= 0x0A) {
++				kind = adt7461;
+ 			}
+ 		} else
+ 		if (man_id = 0x4D) { /* Maxim */
+@@ -423,12 +441,15 @@
+ 		name = "lm86";
+ 	} else if (kind = max6657) {
+ 		name = "max6657";
++	} else if (kind = adt7461) {
++		name = "adt7461";
+ 	}
+ 
+ 	/* We can fill in the remaining client fields */
+ 	strlcpy(new_client->name, name, I2C_NAME_SIZE);
+ 	new_client->id = lm90_id++;
+ 	data->valid = 0;
++	data->kind = kind;
+ 	init_MUTEX(&data->update_lock);
+ 
+ 	/* Tell the I2C layer a new client has arrived */
