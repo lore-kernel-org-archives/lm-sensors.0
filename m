@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: CPU temp does not update
-Message-Id: <DsZ5PdIV.1106656106.6905960.khali@localhost>
+Message-Id: <5ipw65wb.1106662037.0906340.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200501241750.44403.jrclarke@btinternet.com>
 In-Reply-To: <200501241750.44403.jrclarke@btinternet.com>
@@ -11,47 +11,59 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi John,
+[Please do not forget to CC: the sensors list on reply]
 
-> Additionally, it may help you to know that if I put  my Mandrake 9.1
-> installation into the same machine (I only have one computer - system hard
-> drives are mounted in removable trays) sensors all work correctly within
-> 9.1, this is using lm_sensors 2.7.0-2mdk and kernel 2.4.21-0.33mdk.
+Hi again John,
 
-This is an extremely useful information, since it discards the
-possibility of hardware failure or motherboard wiring oddity.
+> > If possible, restart your system so that the w83627hf is not even
+> > loaded, in case it had a "permanent" (till next reboot) effect on the
+> > chip.
+> Not sure how to do this, should I go to all sensors conf files and replace
+> w83627hf with w83781d and then reboot ?
 
-The w83627hf did not exist back then, so this means that you are using
-the w83781d driver on your Mandrake 9.1. Can you please confirm?
+Simply edit /etc/rc.d/rc.local, replace "modprobe w83627hf" with
+"modprobe w83781d". Even better, comment out the modprobe line
+altogether, so that you can load the drivers manually for now. Remove
+the call to "sensors -s" if you do.
 
-The w83781d driver is still there in Linux 2.6 and should support your
-W83697HF chipset just fine. On your Mandrake 10.1 system, please try
-unloading the w83627hf driver and instead use the w83781d driver. Let us
-know whether you observe the same problem with CPU temp or not. If
-possible, restart your system so that the w83627hf is not even loaded,
-in case it had a "permanent" (till next reboot) effect on the chip.
+> temp2:     +25.5?C  (high =   +52?C, hyst =   +47?C)   sensor = thermistor
+> (...)
+> isadump 0x295 0x296 1
+> (...)
+> 50: 19 80 01 2f 00 34 00 ff ff ff ff ff ff ff ff ff
 
-This test should let us know whether this is a driver issue (w83781d vs
-w83627hf) or a version issue (lm_sensors 2.7.0 vs linux 2.6).
+The register values match what was displayed by "sensors". However,
+configuration register (at 0x52) reads 0x01 which means (surprise)
+"stop monitoring". This explains why the value is never updated.
 
-> > 4* Please provide a dump of the chip (isadump 0x295 0x296).
->
-> # isadump 0x295 0x296
+The w83781d driver in lm_sensors 2.7.0 explicitely re-enables temp2 and
+temp3, which is why it works fine on your Mandrake 9.1 system. The
+w83781d driver in Linux 2.6 re-enables temp3 but for some reason not
+temp2. Don't even bother testing it, it will not behave any better than
+w83627hf does. The w83627hf driver in Linux 2.6 doesn't re-enable any
+of them, thus the problem you observed.
 
-Ah, my bad. I should have asked for something slightly different:
+I would like you to dump the chip again (with "isadump 0x295 0x296 1")
+after a reboot but before you load any chip driver (this supposes that
+you commented out the modprobe line in /etc/rc.d/rc.local as explained
+above). That way we will know what state the chip is in in the first
+place. The datasheet says that temp2 and temp3 are enabled by default,
+but I start doubting that.
 
-isadump 0x295 0x296 1
+Then you may try loading the w83627hf driver with the init parameter set
+to 0:
+modprobe w83627hf init=0
+Among others, it will skip the chip reset. I have been advocating a
+removal of chip resets from all drivers for a long time now, BTW.
 
-(The "1" stands for Bank #1, where the CPU temp data resides.)
+Let us know if temp2 now updates properly or not.
 
-I would like you to run "sensors" right before isadump, so that I can
-compare whether the temperature reported matches the register values or
-not. If it matches, this is definitely a hardware configuration problem.
-If not, the driver is obviously at fault.
+If it does, you may want to add the following line to /etc/modprobe.conf:
+options w83627hf init=0
+That would solve your problem for now.
 
-In the meantime, I skimmed through the driver source code in search for
-an obvious problem with temp2 on the W83697HF chip, but couldn't find
-anything.
+Nevertheless, we obviously need to fix the Linux 2.6 drivers so that they
+re-enable temp2 and temp3 again.
 
 Thanks,
 --
