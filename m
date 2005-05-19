@@ -1,33 +1,41 @@
-From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: [PATCH]  i2c/doc/writing-clients
-Message-Id: <200209131420.AA00055@k7.kit.hi-ho.ne.jp>
+From: akpm@osdl.org (Andrew Morton)
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: Fw: [Bug 4332] System very slow with >=2.6.11-rc3
+Message-Id: <20050313152714.3b31fb32.akpm@osdl.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-attached patch fix bug in i2c/doc/writing-clients
 
-Index: writing-clients
-=================================RCS file: /home/cvs/i2c/doc/writing-clients,v
-retrieving revision 1.16
-diff -u -r1.16 writing-clients
---- writing-clients	2001/11/11 23:03:40	1.16
-+++ writing-clients	2002/09/13 14:23:51
-@@ -448,9 +448,9 @@
-     /* Note that we reserve some space for foo_data too. If you don't
-        need it, remove it. We do it here to help to lessen memory
-        fragmentation. */
--    if (! (new_client = kmalloc(sizeof(struct i2c_client)) + 
-+    if (! (new_client = kmalloc(sizeof(struct i2c_client) + 
-                                 sizeof(struct foo_data),
--                                GFP_KERNEL)) {
-+                                GFP_KERNEL))) {
-       err = -ENOMEM;
-       goto ERROR0;
-     }
+Guys, could you please review this bug report?  Seems that
+we have a regression in there.
 
-----
-Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
+Thanks.
+
+Begin forwarded message:
+
+Date: Sun, 13 Mar 2005 15:11:21 -0800
+From: bugme-daemon@osdl.org
+To: akpm@digeo.com
+Subject: [Bug 4332] System very slow with >=2.6.11-rc3
+
+
+http://bugme.osdl.org/show_bug.cgi?idC32
+
+
+
+
+
+------- Additional Comments From jasmin@atlantica.ch  2005-03-13 15:11 -------
+I narrowed the problem down now: 
+2.6.11-rc3 works 
+2.6.11-rc3-bk1 does not 
+and it's only there if I load the modules i2c-i801 + w83781d. 
+I also noticed that if I load the modules, the CPU temperature is totally 
+wrong. After the modules are loaded, unloading them does not help. 
+ 
+
+------- You are receiving this mail because: -------
+You are on the CC list for the bug, or are watching someone who is.
