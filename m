@@ -1,39 +1,88 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:42 +0000
-Subject: Ported lm80 to Linux 2.6
-Message-Id: <1077275755.4035ec6c03c89@imp.gcu.info>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: [PATCH] Architecture dependent build flags
+Message-Id: <20050310022816.GA928@bode.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1076403383.40289cb779c27@imp.gcu.info>
-In-Reply-To: <1076403383.40289cb779c27@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Tiago Sousa <mirage@kaotik.org>:
+Hi,
 
-> darksun:~# isadump -f 0x6000
->   WARNING! Running this program can cause system crashes, data loss
-> and worse!
->   I will probe address range 0x6000 to 0x60ff.
->   You have five seconds to reconsider and press CTRL-C!
-> 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01
-> 10: 00 00 00 ce e2 ff 26 85 00 00 00 00 00 c7 b7 81
-> 20: d0 96 91 15 cf c2 c5 7f 7f 9d 00 d2 a8 e7 bd e4
-> 30: ba de b5 dc b4 ff ff ff ff c7 b7 e1 e1 c7 b7 a2
-> 40: 01 13 16 00 00 00 00 50 2d 85 00 40 00 00 00 00
-                              ^^
-Which happens to be the i2c address of the chip. Same result from the
-other reporter. It might not be a coincidence.
+Please find two patches, one for i2c and one for lm-sensors, to set
+gcc flags that are architecture dependent (to match the kernel ABI).
 
-> Even my untrained eyes see the similarities. Seems you've hit
-> jackpot. :)
-
-Of course you have to limit the comparison to addresses 0x10-0x4f, but
-yes, there are many similitudes, far too many to be a coincidence ;)
+Bye,
+Aurelien
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+  .''`.  Aurelien Jarno	            | GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+Index: Makefile
+=================================RCS file: /home/cvs/i2c/Makefile,v
+retrieving revision 1.35
+diff -u -d -p -r1.35 Makefile
+--- Makefile	3 Jan 2005 18:38:09 -0000	1.35
++++ Makefile	10 Mar 2005 02:37:53 -0000
+@@ -134,7 +134,7 @@ MODCFLAGS := $(CFLAGS) -D__KERNEL__ -DMO
+              -DEXPORT_SYMTAB
+ 
+ ifeq ($(MACHINE),alpha)
+-MODCFLAGS += -ffixed-8 -ffixed-8 -mno-fp-regs -mcpu=ev56
++MODCFLAGS += -ffixed-8 -mno-fp-regs -mcpu=ev56
+ endif
+ 
+ ifeq ($(MACHINE),x86_64)
+@@ -148,6 +148,20 @@ MODCFLAGS += -m64 -pipe -mno-fpu -mcpu=u
+ 	     -Wa,--undeclared-regs
+ endif
+ 
++ifeq ($(MACHINE),mips)
++MODCFLAGS += -mabi2 -mips3 -Wa,-32 -Wa,-mips3 -Wa,--trap
++endif
++
++ifeq ($(MACHINE),sparc32)
++MODCFLAGS += -m32 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
++endif
++
++ifeq ($(MACHINE),sparc64)
++MODCFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow \
++	     -ffixed-g4 -fcall-used-g5 -fcall-used-g7 -Wno-sign-compare \
++	     -Wa,--undeclared-regs
++endif
++
+ ifeq ($(SMP),1)
+ MODCPPFLAGS += -D__SMP__
+ endif
+-------------- next part --------------
+Index: Makefile
+=================================RCS file: /home/cvs/lm_sensors2/Makefile,v
+retrieving revision 1.94
+diff -u -d -p -r1.94 Makefile
+--- Makefile	7 Feb 2005 19:58:57 -0000	1.94
++++ Makefile	10 Mar 2005 02:39:46 -0000
+@@ -215,6 +215,20 @@ MODCFLAGS += -fno-strict-aliasing -fno-c
+ 	     -mcmodel=kernel -fno-reorder-blocks -finline-limit 00 -fno-strength-reduce
+ endif
+ 
++ifeq ($(MACHINE),mips)
++MODCFLAGS += -mabi2 -mips3 -Wa,-32 -Wa,-mips3 -Wa,--trap
++endif
++
++ifeq ($(MACHINE),sparc32)
++MODCFLAGS += -m32 -pipe -mno-fpu -fcall-used-g5 -fcall-used-g7
++endif
++
++ifeq ($(MACHINE),sparc64)
++MODCFLAGS += -m64 -pipe -mno-fpu -mcpu=ultrasparc -mcmodel=medlow \
++	     -ffixed-g4 -fcall-used-g5 -fcall-used-g7 -Wno-sign-compare \
++	     -Wa,--undeclared-regs
++endif
++
+ ifeq ($(SMP),1)
+ MODCPPFLAGS += -D__SMP__
+ endif
