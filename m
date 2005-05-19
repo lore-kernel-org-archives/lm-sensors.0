@@ -1,51 +1,64 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:25 +0000
-Subject: S3Graphics Savage4 i2c driver
-Message-Id: <20011031095325.P5150@Stimpy.netroedge.com>
+From: rtos@vsnl.net (Jeff)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: Development Services on RTOS and Drivers
+Message-Id: <200203180626.g2I6QlX09813@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3BDFD65B.B8327B91@bigfoot.com>
-In-Reply-To: <3BDFD65B.B8327B91@bigfoot.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Development Services on RTOS and Drivers for your organization
 
-It's possible that a device on the bus is hanging when probed/dumped.
-In that case, it might not be possible to solve.  How similar to
-i2c-voodoo3 is it?  Can it be rolled into it?
+Dear Sir/Madam,
 
+Greetings.
 
-Phil
+I am Jeff, Executive-Business Development for Real-Time Embedded solutions, India. 
 
-On Wed, Oct 31, 2001 at 09:08:24AM -0500, Mark Studebaker wrote:
-> sure, we'll take it.
-> You should get i2cdump working first.
-> 
-> If you are using i2c-algo-bit, you can use
-> modprobe i2c-algo-bit bit_test=1 debug=2 (IIRC - check the source)
->  to help debug things
-> 
-> mds
-> 
-> 
-> 
-> Alexander Wold wrote:
-> > 
-> > Hello,
-> > 
-> > I have recently created an i2c driver for the Savage4. It is based upon
-> > the i2c-voodoo3 driver. The main motivation was to get access to the
-> > bt868 connected to S3Savge4`s i2c bus. If this driver is of general
-> > interest, I will be happy to submit it to the project. The driver is
-> > complete, and working. There are some issues thow, i2cdump hangs the
-> > bus, and after starting X, writes to the i2c bus don`t work. When
-> > reloading/loading the module in X (or while x is running) it works fine.
-> > 
-> > Regards,
-> >     Alexander Wold
+We specialize in RTOSs and Device Driver Development to deliver 'first-to-market' solutions.
 
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+We would like to work with you in providing development with RTOSs and Device Drivers for you and your clients business requirements.
+
+These are the offshore development services offered by us:
+
+Platforms:
+
+* Application development with RTOS
+- VxWorks,pSOS, Nucleus,CMX, embedded and RT Linux, embedded NT 
+* Development/porting of proprietary RTOS/schedulers to new HW platform 
+* Device Drivers for Windows ( WDM, NDIS ) and Linux 
+* Board Support Packages (BSP) 
+* Benchmarking, fine tuning and optimization 
+* Development/Testing of BIOS 
+
+Our value proposition to your firm and your clients  include:
+
+* Cost effective offshore development services
+* Experienced development team with good project management and communications skills
+* In-depth knowledge and expertise in design and development of Real Time Embedded systems
+* Quick ramp-up of additional Technical and Project Management Teams
+* Established Quality Processes and Project Management Expertise
+* Web based project tracking and collaboration environment for easy remote project execution 
+  and management
+* Proven Expertise
+
+We will mail you detailed expertise summary of our firm based on your request. 
+We can further discuss about our offerings and areas for working together along with our 
+technology team depending on your availability. Could you please confirm a date and time for the 
+telephonic conversations and a meeting.
+
+Looking forward to hearing from you in this regard.
+
+Best Regards,
+
+Jeff. S
+Executive-Business Development
+rtos@vsnl.net
+ 
+San Francisco ... New Jersey ... Bangalore
+-------------------------------------------------------------------------------------
+The information in this email and any attachments is confidential and
+may be legally privileged. All liability for viruses is excluded to the
+fullest extent permitted by law.  Any views expressed in this message are those of the
+individual sender, except where the sender states them, with requisite authority.
