@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: Some thoughts about the sysfs interface (repost)
-Message-Id: <20031115203301.GC23877@kroah.com>
+Message-Id: <20031116162516.0d202025.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031109125157.51f9d552.khali@linux-fr.org>
 In-Reply-To: <20031109125157.51f9d552.khali@linux-fr.org>
@@ -10,84 +10,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Nov 09, 2003 at 12:51:57PM +0100, Jean Delvare wrote:
+> A fixed point number is not "just" an integer.  It has a whole part
+> and/or a fractional part.  The location of the split is "fixed" as a
+> matter of interpretation, nothing more.  E.g. the LM75 temperature
+> reading is in 9 bits, with the LSB representing 0.5 degrees C.
+
+Thanks for the clarification. I had never seen fixed point arithmerics
+that way before. I must have been troubled by the fact there was no
+(visible) dot, so it couldn't be anything but an integer.
+
+This doesn't make the "in form XXXXX" clearer. Wouldn't something like
+"with a 3 digit fractional part" be better?
+
+The fact that fixed point binary representation cannot easily be
+converted to and from fixed point decimal representation adds to (my)
+confusion. What motivated the choice of fixed point decimals? Fixed
+point binaries would have been faster since this is how chipsets do
+work. But I agree it would have been less easily readable from sysfs.
+That said, users are not supposed to browse sysfs to get the hardware
+monitoring information for their system.
+
+> > informational value of "in form XXXXX". Wouldn't it be much clearer
+> > to write "Integer value, thousandth of degrees Celsius"?
 > 
-> Hi all,
+> I like to document fixed point representations this way, e.g.:
 > 
-> (Same player, try again, *with* the patch, that time.)
+> /* temp: 0.5C/bit (-55C to +125C) */
+
+Do you suggest we could say something like "temp1_input: 1mC/bit"? Using
+"bits" here isn't really natural since we are in fixed point decimals.
+This is why speaking of integers in a given unit (millidegree Celcius
+here) makes more sense to me. But it might be just me.
+
+> So, just make two absolute hyst values which are linked... a change in
+> one forces a change in the other.  Userland s/w should not assume any
+> sensors sysfs file to be static anyway.  It might be a little
+> suprising to the user - just document it as the hardware limitation
+> that it is and move on.
+
+I would prefer it that way too, or at least I do think so at the moment.
+
+> (1) I like this.  It greatly simplifies the userland side. 
+> Ultimately, we should be able to add a chip driver and have immediate
+> library support for free, just by sticking to these conventions.
+
+This is precisely what I am after (and what I believe the sysfs
+interface was intended for from the very begnining).
+
+> > The drawbacks of the second
+> > method are: we break the one-one link between sysfs and the hardware
+> > (which helps a lot to understand how a chip works, IMHO), we create
+> > more
 > 
-> I had to update the doc/developers/proc document for the lm83 driver (it
-> has four temperature channels). The same change will be needed when the
-> driver makes it into Linux 2.6. Greg, attached is a patch I suggest you
-> apply at the same time you'll apply my lm83 patch to Linux-2.6.0.
-> 
-> Some points I'd like to discuss about:
-> 
-> 1* Most entries are described using sentences like "Fixed point value in
-> form XXXXX and should be divided by 1000 to get degrees Celsius". I
-> don't understand the "fixed point" thing, nor do I understand the
-> informational value of "in form XXXXX". Wouldn't it be much clearer to
-> write "Integer value, thousandth of degrees Celsius"?
+> Yes, but it's either that or make userland more complicated.
 
-They are pretty much the same thing, right?  Either way is fine with me.
+You got it, there's a choice to make. I believe that a simplified (and
+over-standardized) interface with user-land would be great enough to
+allow for some sacrifices.
 
-> 2* temp_min[1-3] reads: "Temperature min or hysteresis value.". This is
-> a Bad Idea (TM) IMHO. One very interesting point in the sysfs interface
-> over the procfs one is that it could be easily be made chip-independant
-> (libsensors and sensors could then be drastically simplified). If the
-> file is named temp_minN, it has to be a min temp. Be it a hysteresis
-> one, let's call the file temp_hystN instead. It's in no way harder to do
-> it that way, and it will be way easier for the interface users
-> (includind ourselves) if we stick to the one name, one use philosophy.
+That said, it would obvisouly require some changes to existing drivers.
+At least my lm83, not taken a look at the others yet.
 
-Ah, I like this proposal, it makes a lot more sense.  Care to also fix
-up the drivers that are in the current 2.6 tree to follow this rule?
+Thanks a lot for your insights and opinions.
 
-> 3* One additional note about hysteresis temperatures (and critical
-> temperatures also). Some chips have several temperature channels, but a
-> single hysteresis and/or critical temperature register, common to all
-> channels. For example, the LM83 has four temperature channels, four max
-> values, but one single critical value. The ADM1032 has two temperature
-> channels, two min values, two max values, two critical temperatures, but
-> a single, relative hysteresis value that applies to both critical
-> values.
-> 
-> I propose that chips that values that are common to all channels simply
-> have no digit appended. That's how I made it in the lm83 driver.
-
-Makes sense.
-
-> Now, for the hysteresis, that's more complicated, since not only it may
-> apply to one or more channels, but it can also happen to one or more
-> limit, and be relative or absolute. I think that hysteresis files should
-> be named after the limit they are an hysteresis for. In the case of the
-> lm90 driver, we would have the following files:
->   temp1_input
->   temp2_input
->   temp1_min
->   temp2_min
->   temp1_max
->   temp2_max
->   temp1_crit
->   temp2_crit
->   temp_crit_hyst
-> Note that the digit is also omitted, since the value is common to both
-> channels. An hysteresis that would apply to all temperatures of one
-> channel would be named "temp1_hyst". An hysteresis that would apply to
-> more than one channel and more than one limit for each channel would be
-> called temp_hyst. I think you get the idea.
-
-As you stated, this has some problems.  I think we should probably not
-do this for now, and if we have some real compilcated chips in the
-future, that we need these changes for, we can revisit it.
-
-Sound ok?
-
-> --- linux-2.6.0-test9/Documentation/i2c/sysfs-interface	Sun Nov  9 11:13:32 2003
-> +++ linux-2.6.0-test9/Documentation/i2c/sysfs-interface.lm83	Sun Nov  9 12:40:48 2003
-
-Should I still apply this patch?
-
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
