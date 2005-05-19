@@ -1,54 +1,41 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:41 +0000
-Subject: [PATCH] i2c driver fixes for 2.6.3-rc1
-Message-Id: <10763687754014@kroah.com>
+From: andre.fisser@imtech.nl (Andre Fisser)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: I2C block read fixed size to 32
+Message-Id: <F815C23DC37A74429D347AAE3FAC186009F6BF@mpc034.mountside.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10763687741075@kroah.com>
-References: <10763687741938@kroah.com>
-In-Reply-To: <10763687741938@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.1500.11.3, 2004/02/02 14:51:45-08:00, khali@linux-fr.org
+Hi,
 
-[PATCH] I2C: Bring w83l785ts in compliance with sysfs naming conventions
+are there plans to remove the fixed size of i2c block reads? I use the I2C
+driver to communicate through the printer port with a kind of Philips dongle
+to a custom microprocessor circuit. The fixed block size is wasting
+bus-bandwidth which is a problem for me.
+I'm planning to remove this limitation myself if there's nobody already
+working on it. Maybe you guys have some advice for me how it can be best
+done?
 
-Here is a patch that brings the w83l785ts driver in compliance with
-sysfs naming conventions. This is pretty much the same problem and
-solution that occured very recently with the lm75 and lm78 drivers.
-
-The patch was tested to work fine by James Bolt.
+Best regards,
+Andre
 
 
- drivers/i2c/chips/w83l785ts.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Andr? Fisser
 
+Imtech ICT Technical Systems
+Flight Forum 800,
+5657 DV  Eindhoven
 
-diff -Nru a/drivers/i2c/chips/w83l785ts.c b/drivers/i2c/chips/w83l785ts.c
---- a/drivers/i2c/chips/w83l785ts.c	Mon Feb  9 15:05:59 2004
-+++ b/drivers/i2c/chips/w83l785ts.c	Mon Feb  9 15:05:59 2004
-@@ -137,8 +137,8 @@
- 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_over));
- }
- 
--static DEVICE_ATTR(temp_input, S_IRUGO, show_temp, NULL)
--static DEVICE_ATTR(temp_max, S_IRUGO, show_temp_over, NULL)
-+static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp, NULL)
-+static DEVICE_ATTR(temp_max1, S_IRUGO, show_temp_over, NULL)
- 
- /*
-  * Real code
-@@ -249,8 +249,8 @@
- 	 */
- 
- 	/* Register sysfs hooks */
--	device_create_file(&new_client->dev, &dev_attr_temp_input);
--	device_create_file(&new_client->dev, &dev_attr_temp_max);
-+	device_create_file(&new_client->dev, &dev_attr_temp_input1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_max1);
- 
- 	return 0;
- 
+Telephone +31 (0)40 8484444 
+Fax       +31 (0)40 8484440 
+Email     Andre.Fisser@Imtech.nl  
+www       www.imtech.nl 
+
+Imtech ICT is een full service ICT-dienstverlener die op een no-nonsense
+manier bijdraagt aan het succes van haar klanten. Imtech ICT biedt
+hoogwaardige dienstverlening op het gebied van projectmanagement, advies,
+technische automatisering, informatisering en communicatietechnologie, en is
+onderdeel van het beursgenoteerde Imtech.
 
