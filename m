@@ -1,7 +1,7 @@
 From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: RFC: complete rewrite of i2c-i801 for 2.6.x
-Message-Id: <20041207235449.GE5295@jupiter.solarsys.private>
+Message-Id: <20041208005641.GF5295@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041128193640.GB5855@jupiter.solarsys.private>
 In-Reply-To: <20041128193640.GB5855@jupiter.solarsys.private>
@@ -12,35 +12,32 @@ To: lm-sensors@vger.kernel.org
 
 Hi Mark:
 
-(trimmed CCs)
+(CCs trimmed)
 
-* I wrote:
-> >BTW, there's really no point to implementing I2C_FUNC_SMBUS_BLOCK_DATA in
-> >the new i801 driver as i2c_smbus_[read|write]_block_data() were yanked
-> >out of i2c-core anyway.  And that reminds me: you probably shouldn't speak
-> >too loudly about any other parts (shhhh... PEC, SMBus 2.0) that have no
-> >current users, as the bloat police might show up and rip them out too. ;)
+* Mark D. Studebaker <mds4@verizon.net> [2004-12-07 11:20:54 -0500]:
+> My reading of the DB datasheet (in 2002 and now) is that it doesn't support a
+> standard i2c block read. The driver functionality bitmask reflects that.
+> I fixed the error message (which would only print out if a driver ignored 
+> the functionality mask).
 
-* Mark D. Studebaker <mds4@verizon.net> [2004-12-07 14:14:23 -0500]:
-> As I understand the bloat-police thread, there's no objection to adding 
-> back in the removed functions
-> when they're needed. 
-> It's a little irritating that things are being ripped out but I can 
-> understand it.
+Interesting.  It looks like that datasheet only shows this:
 
-:)
+	S Addr Wr [A] Comm [A] D0 [A] D1 [A] S (read bytes...)
 
-> It should be our goal to get the block functions back in as soon as 
-> possible.
-> You should include it with any 801 patch submission.
+I agree that's not like any transaction we support.
 
-I will.  Contrary to what I wrote above, userspace can still access those
-transfers without the i2c-core helpers.  And who is to say that there aren't
-any block transfer users through i2c-dev?
+OTOH, the ICH5 [1] datasheet shows this:
 
-> I guess the write was already put back but the read wasn't?
+	S Addr Wr [A] D1 [A] S (read bytes...)
 
-Sounds right.
+That's exactly the transfer protocol that eeproms need, right?  (That's why I
+mentioned to Khali by IRC last weekend that I thought it should be possible.)
+
+It would be really bizarre if these two chipsets behaved differently in this
+respect - I wonder if the datasheets are correct?
+
+[1] Well I just scanned all the other datasheets... only ICH5, ICH6, and
+6300ESB appear to support the standard I2C block read.  Sorry Khali. :)
 
 Regards,
 
