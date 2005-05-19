@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:35 +0000
 Subject: Linux 2.6 and CONFIG_ISA
-Message-Id: <20040118130226.426e4142.khali@linux-fr.org>
+Message-Id: <20040118185253.GC4208@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1074005072.400404506dd11@imp.gcu.info>
 In-Reply-To: <1074005072.400404506dd11@imp.gcu.info>
@@ -10,16 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Applied with a bit of editing to get around my previous change.
+On Sun, Jan 18, 2004 at 01:02:26PM +0100, Jean Delvare wrote:
+> > Applied with a bit of editing to get around my previous change.
+> 
+> BTW, wouldn't it make sense to apply the same idea to i2c algorithms?
 
-BTW, wouldn't it make sense to apply the same idea to i2c algorithms?
-I.e. adapters would not depend on them, but select them instead.  I
-don't expect people to know which algorithms them need.  The way is is
-now, I think that users may miss half a dozen adapters just because they
-did not enable i2c-algo-bit.  Not very friendly, is it?
+Yes it would.  Care to make a patch?
 
-Thanks.
+thanks,
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+greg k-h
