@@ -1,25 +1,57 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: [PATCH] i2c-vid.h: Support for VID to reg conversion 2
-Message-Id: <20050502210948.GB27708@kroah.com>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:25:29 +0000
+Subject: [PATCH] sensord: wrong error message with /proc or /sys not
+Message-Id: <20050105212346.GA19356@bode.aurel32.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050412163404.GA14857@kroah.com>
-In-Reply-To: <20050412163404.GA14857@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 13, 2005 at 10:25:39PM +0200, Sebastian Witt wrote:
-> 
-> Adds conversion from VID (mV) to register value. Used by the atxp1 I2C 
-> module.
-> Removed uneeded switch case.
-> 
-> Signed-off-by: Sebastian Witt <se.witt@gmx.net>
+Hi all,
 
-Wow, that's a messed up patch.  I fixed it up by hand and applied it.
+There is currently a bug in sensord, which causes it to print the
+following message if /proc files are not accessible:
 
-thanks,
+  Error -4 loading sensors configuration file: /etc/sensors.conf
 
-greg k-h
+Not really an explicit message :)
+
+It should instead print the following message.
+  Error reading /proc; modules probably not loaded
+
+The problem is that the library returns a negative number if there is an
+error, and the error numbers in the .h files are not negative. Thus one
+of the operand of the comparison should be negated. Patch to fix that is
+attached.
+
+BTW, on 2.6 kernels the sensors informations are in /sys and not /proc.
+The message may be changed into:
+
+  Error reading /proc or /sys; modules probably not loaded
+
+Bye,
+Aur?lien
+
+-- 
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+Index: prog/sensord/lib.c
+=================================RCS file: /home/cvs/lm_sensors2/prog/sensord/lib.c,v
+retrieving revision 1.4
+diff -u -1 -b -p -r1.4 lib.c
+--- prog/sensord/lib.c	31 Jul 2002 14:27:49 -0000	1.4
++++ prog/sensord/lib.c	5 Jan 2005 21:22:07 -0000
+@@ -81,3 +81,3 @@ loadConfig
+       if ((ret = sensors_init (stdin))) {
+-        if (ret = SENSORS_ERR_PROC)
++        if (ret = -SENSORS_ERR_PROC)
+           sensorLog (LOG_ERR, "Error reading /proc; modules probably not loaded");
+@@ -98,3 +98,3 @@ loadConfig
+     } else if ((ret = sensors_init (cfg))) {
+-      if (ret = SENSORS_ERR_PROC)
++      if (ret = -SENSORS_ERR_PROC)
+         sensorLog (LOG_ERR, "Error reading /proc; modules probably not loaded");
