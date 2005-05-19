@@ -1,67 +1,84 @@
-From: ajohnson@lastaccess.com (Andrew D. Johnson)
-Date: Thu, 19 May 2005 06:25:03 +0000
-Subject: PC87366 with the net4801
-Message-Id: <1088415642.10snyvhow0ps@lastaccess.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:52 +0000
+Subject: NCLV-D SMBus - proposal to a solution
+Message-Id: <4262C492.10808@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200406240822.i5O8M634041403@zone3.gcu-squad.org>
-In-Reply-To: <200406240822.i5O8M634041403@zone3.gcu-squad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As for the main topic, I'm just going to wait until Soekris gets back to me with
-some more info before asking for more of your time. :)
+Hello,
 
-On Mon 28 Jun 2004 04:17:43 AM CDT Jean Delvare <khali@linux-fr.org> said:
-> >I use lm sensors in a fairly specific manner (nagios monitoring). Sensors is
-> >run on a regular interval, and the shell script looks something sort of like
-> >this:
-> >if ( sensors | grep -q ALARM ); then
-> >exit $SERVICE_CRITICAL
-> >else
-> >exit $SERVICE_OK
-> >fi
-> >
-> >This makes things pretty easy assuming the alarms work, so perhaps you can
-> see
-> >why I would ask such a question :) I do completely understand your
-> reasoning,
-> >though.
->
-> Yeah, I understand what you mean and need.
->
-> Anyway, if a specific chip is known to have problems, it's better to fix
-> it at the driver level (even if it includes faking hardare alarms in
-> software). That way, not every program or script needs to handle it
-> specifically.
->
-> Also note that the new sysfs interface to hardware monitoring chips has
-> been reworked in such a way that scripts should be able to perform any
-> kind of tests by themselves. Each sysfs file only contains one integer
-> value, so you could easily read a value and its limit, and compare them
-> manually if you want to. That said, I insist on the fact that in most
-> cases you should rely on hardware alarms since they work OK.
+Here I would like to propose some solution and "to be done" list to asus board
+types.
 
-Yep, they do work great for us in the majority of cases.
+1) Patch to kernel that adds io region allocation for ICH4 in /proc/ioports
 
-> As far as the PC87366 chip is concerned, remember that only the critical
-> limit is unusable, min and max limits are OK, so you'll still get an
-> alarm if the measured temperature goes beyond these limits.
+2) Some kind of multiplexing bus driver that will allow us to "see" both of
+memory EEPROMs and monitoring chip.
 
-Ah, ok, I didn't realize this.
+3) Some other ASUS server boards considerations.
 
-> Are there other hardware monitoring chips you are woking with and which
-> are causing trouble?
+Ad 1)
+Remember we could not see the region in /proc/ioports for GPIO ports? I will
+create the patch that will fix this. (It is just one line to quirks.c)
 
-Well, now I'm really straying from the topic, but I don't seem to have much luck
-with getting alarms to triger consistently using the asb100 chip on an A7M266
-board. It uses set temp_over and temp_hyst rather than min and max. AFAIK,
-silly Asus continues to refuse to supply a datasheet for this chip. I believe
-the Alarm Notes section describes some of these problems:
-http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/doc/chips/asb100
+Ad 2)
+Thank you for information there are very helpful. We agreed with Jean that most
+clean solution to a problem would be a "multiplexing bus driver" (users can use
+until this is done the isaset trick). As you might noticed the multiplexer just
+switches the intel SMBus host between four busses. We are interrested in bus 0
+and bus 1. One is with SPD EEPROMs and second contain 792 chip. We have already
+similar driver in kernel for this that is called i2c-amd756-s4882.c.
 
---
-Andrew D. Johnson
-PGP Fingerprint: 77BD 80B1 4918 1D98 9EBF 2E62 073B 9B31 A1DC 41F4
-KeyID: 0xA1DC41F4
+Your driver will be very similar except that the multiplexer itself is not
+on the smbus but you need to do same trick as with isaset command. Generally
+you would need to register the PCI device to your multiplexing driver, get the
+GPIO base addr (same as my hide and seek patch) and switch it to 0x0 or 0x08
+when you have request from bus 0 or bus 1...
+
+How is the multiplexed bus concept working:
+
+It creates more busses from i2c core point of view. When there is some request
+to read or write from a driver it will go to this virtual bus driver,
+this driver will switch the bus and call the original driver. So it just create
+handlers for "xfer" function that is the transmission function.
+
+When it is done you will have more virtual busses.
+
+modprobe i2c-i801
+modprobe your multiplex driver
+
+so if you will do
+i2cdetect 0
+It will switch the multiplexer and you will see only SPD eeproms here
+if you will do:
+i2cdetect 1
+You will see addresses with 792 chip.
+
+Later you just modprobe eeprom and modprobe w83792 and all will work as expected
+. You will see in sensors command both eeproms and chip data.
+
+The existing driver has 200 lines and I guess yours would have like 300 so it is
+not so difficult to write it. Unfortunalely I'm quite busy these days and Jean
+has a lot of work too so I cant write it for you but of course I will help you.
+
+Ad 3)
+Maybe it will be wise to check if other asus motherboards are done same way
+so we can extend this concept to more motherboards with winbond chips. We have
+already a user with 792 chip on ASUS mb but also hidden. His board is
+ASUS NCL-DS. Please can you ask Asus, about this motherboard? (similar way we
+did this time, also great would be the SMBUS schematics)
+
+Maybe you should extend the question like: What ASUS motherboards that use our
+chips needs multiplexer switching? How this switch needs to be done?
+
+Because I think they will use similar approach so than it would be very easy
+to add the functionality or create diffrent driver very quickly.
+
+I also would like to hear comments from others if any.
+
+Regards
+
+Rudolf
