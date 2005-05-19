@@ -1,7 +1,7 @@
-From: akpm@osdl.org (Andrew Morton)
+From: miles.lane@gmail.com (Miles Lane)
 Date: Thu, 19 May 2005 06:25:45 +0000
 Subject: Who should I write to about this OOPS in 2,6,11-mm3?
-Message-Id: <20050322020826.1c5ca019.akpm@osdl.org>
+Message-Id: <a44ae5cd0503221101176aa0e7@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050315050746.GB13009@kroah.com>
 In-Reply-To: <20050315050746.GB13009@kroah.com>
@@ -10,185 +10,294 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"Jean Delvare" <khali@linux-fr.org> wrote:
->
-> 
-> Hi Andrew,
-> 
-> > > >>EIP; c02f094f <i2c_detect+f/500>   <==> > >
-> > > >>ebx; f7c076fc <pg0+376a46fc/3fa9b400>
-> > > >>edx; f7c07558 <pg0+376a4558/3fa9b400>
-> > > >>esi; c047c8e0 <eeprom_driver+0/e0>
-> > >
-> > > Trace; c0104d7f <show_stack+7f/a0>
-> > > Trace; c0104f1a <show_registers+15a/1c0>
-> > > Trace; c0105184 <die+164/2e0>
-> > > Trace; c0119936 <do_page_fault+356/68d>
-> > > Trace; c0104853 <error_code+4f/54>
-> > > Trace; c02f1aa1 <eeprom_attach_adapter+21/30>
-> > > Trace; c02ee704 <i2c_add_driver+b4/e0>
-> > > Trace; c050a652 <eeprom_init+12/40>
-> > > Trace; c04ee8ab <do_initcalls+2b/c0>
-> > > Trace; c0100302 <init+32/130>
-> > > Trace; c0101351 <kernel_thread_helper+5/14>
-> >
-> > Ah.  adapter->algo is NULL in i2c_detect().
-> 
-> Forgive a possibly stupid question, but how did you manage to come to
-> this conclusion from the stack above alone? Is there any magic I am not
-> aware of?
+Good news!
 
-Well it oopsed at one of the first statements in i2c_detect(), and the
-faulting address was 0x00000020.  And the offset of i2c_algorithm.id is 32.
-So adapter->algo is NULL in i2c_is_isa_adapter().
+The OOPS is gone with your patch.  I tested with both the EEPROM and
+NVidia drivers built into the kernel.  I have included the debugging
+output from your latest patch below:
 
-> My first impression was that the adapter itself was missing, like it had
-> been deleted without being removed from the main i2c adapters list.
-> 
-> Anyway, this test at leasted proved one thing: the i2c-dev driver isn't
-> involved in the oops per se. Using a different i2c chip driver (eeprom
-> here) triggers it as well. This tends to confirm that the problem is
-> related to a specific i2c adapter driver.
+CONFIG_I2C=y
+CONFIG_I2C_CHARDEV=y
 
-I'd say so.
+CONFIG_I2C_ALGOBIT=y
+CONFIG_I2C_ALGOPCF=y
+CONFIG_I2C_ALGOPCA=y
 
-> > I don't think i2c_adapters are allowed to do that.
-> 
-> Correct, they are not.
-> 
-> > It could have been any old adapter, registered at some earlier time.
-> 
-> Except that we have a strong suspicion that it is nvidiafb, instead of
-> just any old adapter.
+CONFIG_I2C_ISA=y
+CONFIG_I2C_NFORCE2=y
 
-Could be.
+CONFIG_I2C_SENSOR=y
+CONFIG_SENSORS_ADM1021=y
+CONFIG_SENSORS_ADM1025=y
+CONFIG_SENSORS_ADM1026=y
+CONFIG_SENSORS_ADM1031=y
+CONFIG_SENSORS_LM63=y
+CONFIG_SENSORS_LM75=y
+CONFIG_SENSORS_LM77=y
+CONFIG_SENSORS_LM78=y
+CONFIG_SENSORS_LM80=y
+CONFIG_SENSORS_LM83=y
+CONFIG_SENSORS_LM85=y
+CONFIG_SENSORS_LM87=y
+CONFIG_SENSORS_LM90=y
 
-> > If I'm right, this debug patch should point us at the culprit.
-> 
-> I doubt it will help (but let's still try). The nvidiafb i2c adapters
-> are added by i2c-algo-bit:i2c_bit_add_bus(), which does set
-> adapter->algo to &i2c_bit_algo right before it calls i2c_add_adapter. I
-> don't think that algo is NULL when the adapter is added. Rather, it
-> becomes NULL later, most possibly because adapter itself point to a now
-> gone structure. Just my theory though.
+CONFIG_SENSORS_EEPROM=y
+CONFIG_I2C_DEBUG_CORE=y
+CONFIG_I2C_DEBUG_ALGO=y
+CONFIG_I2C_DEBUG_BUS=y
+CONFIG_I2C_DEBUG_CHIP=y
 
-urgh.  That explains why the patch didn't work.
+Linux version 2.6.12-rc1 (root@Monkey100) (gcc version 3.3.5 (Debian
+1:3.3.5-12)) #2 Tue Mar 22 13:40:51 EST 2005
+i2c /dev entries driver
+i2c-core: driver dev_driver registered.
+i2c_adapter i2c-0: Registered as minor 0
+i2c_adapter i2c-0: registered as adapter #0
+i2c_adapter i2c-1: Registered as minor 1
+i2c_adapter i2c-1: registered as adapter #1
+i2c_adapter i2c-1: nForce2 SMBus adapter at 0x5000
+i2c_adapter i2c-2: Registered as minor 2
+i2c_adapter i2c-2: registered as adapter #2
+i2c_adapter i2c-2: nForce2 SMBus adapter at 0x5500
+i2c-core: driver adm1021 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 18
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 19
+input: AT Translated Set 2 keyboard on isa0060/serio0
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 1a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 29
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2b
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 18
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 19
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 1a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 29
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2b
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4d
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4e
+i2c-core: driver adm1025 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+i2c_adapter i2c-2: ADM1025 detection failed at 0x2d.
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2e
+i2c_adapter i2c-2: ADM1025 detection failed at 0x2e.
+i2c-core: driver adm1026 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+ : Detecting device at 2,0x2d with COMPANY: 0x00 and VERSTEP: 0x19
+ : Autodetecting device at 2,0x2d ...
+ : : Autodetection failed
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2e
+ : Detecting device at 2,0x2e with COMPANY: 0xff and VERSTEP: 0xff
+ : Autodetecting device at 2,0x2e ...
+ : : Autodetection failed
+i2c-core: driver adm1031 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2e
+i2c-core: driver eeprom registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 50
+i2c_adapter i2c-1: client [eeprom] registered to adapter
+registering 1-0050
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 51
+i2c_adapter i2c-1: client [eeprom] registered to adapter
+registering 1-0051
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 52
+i2c_adapter i2c-1: client [eeprom] registered to adapter
+registering 1-0052
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 53
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 54
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 55
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 56
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 57
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 50
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 51
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 52
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 53
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 54
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 55
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 56
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 57
+i2c-core: driver lm63 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4c
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4c
+i2c-core: driver lm75 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 48
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 49
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4b
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4e
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4f
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 48
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 49
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4b
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4d
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4e
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4f
+i2c-core: driver lm77 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 48
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 49
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4b
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 48
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 49
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4b
+i2c-core: driver lm78 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+i2c_adapter i2c-0: found normal isa entry for adapter 9191, addr 0290
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 20
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 21
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 22
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 23
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 24
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 25
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 26
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 27
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 28
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 29
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2b
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2f
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 20
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 21
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 22
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 23
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 24
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 25
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 26
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 27
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 28
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 29
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2b
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+i2c-core: driver lm80 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 28
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 29
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2b
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2f
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 28
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 29
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2b
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2e
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2f
+i2c-core: driver lm83 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 18
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 19
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 1a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 29
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2a
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2b
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 18
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 19
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 1a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 29
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2a
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2b
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4d
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4e
+i2c-core: driver lm85 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+i2c_adapter i2c-2: Detecting device at 2,0x2d with COMPANY: 0x00 and
+VERSTEP: 0x00
+i2c_adapter i2c-2: Autodetecting device at 2,0x2d ...
+i2c_adapter i2c-2: Autodetection failed
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2e
+i2c_adapter i2c-2: Detecting device at 2,0x2e with COMPANY: 0x00 and
+VERSTEP: 0x00
+i2c_adapter i2c-2: Autodetecting device at 2,0x2e ...
+i2c_adapter i2c-2: Autodetection failed
+i2c-core: driver lm87 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2d
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 2e
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2d
+i2c_adapter i2c-2: LM87 detection failed at 0x2d.
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 2e
+i2c_adapter i2c-2: LM87 detection failed at 0x2e.
+i2c-core: driver lm90 registered.
+drivers/i2c/busses/i2c-isa.c:59: c03eede0
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4c
+i2c_adapter i2c-1: found normal i2c entry for adapter 1, addr 4d
+drivers/i2c/busses/i2c-nforce2.c:332: c03ef000
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4c
+i2c_adapter i2c-2: found normal i2c entry for adapter 2, addr 4d
 
-Miles, there's a new debug patch below.
-
-> Maybe it would help if Miles could give a try to Tony's patch here and
-> report?
-> http://archives.andrew.net.au/lm-sensors/msg30044.html
-
-That too.
-
- 25-akpm/drivers/i2c/algos/i2c-algo-bit.c |    6 ++++--
- 25-akpm/drivers/i2c/i2c-core.c           |   12 ++++++++++--
- 25-akpm/include/linux/i2c-algo-bit.h     |    3 ++-
- 25-akpm/include/linux/i2c.h              |    6 +++++-
- 4 files changed, 21 insertions(+), 6 deletions(-)
-
-diff -puN include/linux/i2c.h~i2c-debugging include/linux/i2c.h
---- 25/include/linux/i2c.h~i2c-debugging	2005-03-22 02:02:53.000000000 -0800
-+++ 25-akpm/include/linux/i2c.h	2005-03-22 02:06:50.000000000 -0800
-@@ -244,6 +244,8 @@ struct i2c_adapter {
- 	char name[I2C_NAME_SIZE];
- 	struct completion dev_released;
- 	struct completion class_dev_released;
-+	char *file;
-+	int line;
- };
- #define dev_to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
- #define class_dev_to_i2c_adapter(d) container_of(d, struct i2c_adapter, class_dev)
-@@ -314,7 +316,9 @@ struct i2c_client_address_data {
- 
- /* administration...
-  */
--extern int i2c_add_adapter(struct i2c_adapter *);
-+#define i2c_add_adapter(a) __i2c_add_adapter(__FILE__, __LINE__, a)
-+
-+extern int __i2c_add_adapter(char *file, int line, struct i2c_adapter *);
- extern int i2c_del_adapter(struct i2c_adapter *);
- 
- extern int i2c_add_driver(struct i2c_driver *);
-diff -puN drivers/i2c/i2c-core.c~i2c-debugging drivers/i2c/i2c-core.c
---- 25/drivers/i2c/i2c-core.c~i2c-debugging	2005-03-22 02:02:53.000000000 -0800
-+++ 25-akpm/drivers/i2c/i2c-core.c	2005-03-22 02:02:53.000000000 -0800
-@@ -144,12 +144,15 @@ static struct device_attribute dev_attr_
-  * when a new hw adapter registers. A new device is register to be
-  * available for clients.
-  */
--int i2c_add_adapter(struct i2c_adapter *adap)
-+int __i2c_add_adapter(char *file, int line, struct i2c_adapter *adap)
- {
- 	int id, res = 0;
- 	struct list_head   *item;
- 	struct i2c_driver  *driver;
- 
-+	adap->file = file;
-+	adap->line = line;
-+
- 	down(&core_lists);
- 
- 	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) = 0) {
-@@ -310,6 +313,11 @@ int i2c_add_driver(struct i2c_driver *dr
- 	if (driver->flags & I2C_DF_NOTIFY) {
- 		list_for_each(item,&adapters) {
- 			adapter = list_entry(item, struct i2c_adapter, list);
-+			printk("%s:%d: %p\n", adapter->file, adapter->line,
-+					adapter->algo);
-+			if (adapter->algo = NULL)
-+				for ( ; ; )
-+					;
- 			driver->attach_adapter(adapter);
- 		}
- 	}
-@@ -1246,7 +1254,7 @@ int i2c_check_functionality (struct i2c_
- 	return (func & adap_func) = func;
- }
- 
--EXPORT_SYMBOL(i2c_add_adapter);
-+EXPORT_SYMBOL(__i2c_add_adapter);
- EXPORT_SYMBOL(i2c_del_adapter);
- EXPORT_SYMBOL(i2c_add_driver);
- EXPORT_SYMBOL(i2c_del_driver);
-diff -puN drivers/i2c/algos/i2c-algo-bit.c~i2c-debugging drivers/i2c/algos/i2c-algo-bit.c
---- 25/drivers/i2c/algos/i2c-algo-bit.c~i2c-debugging	2005-03-22 02:03:15.000000000 -0800
-+++ 25-akpm/drivers/i2c/algos/i2c-algo-bit.c	2005-03-22 02:04:31.000000000 -0800
-@@ -528,10 +528,12 @@ static struct i2c_algorithm i2c_bit_algo
- /* 
-  * registering functions to load algorithms at runtime 
-  */
--int i2c_bit_add_bus(struct i2c_adapter *adap)
-+int __i2c_bit_add_bus(char *file, int line, struct i2c_adapter *adap)
- {
- 	struct i2c_algo_bit_data *bit_adap = adap->algo_data;
- 
-+	adap->file = file;
-+	adap->line = line;
- 	if (bit_test) {
- 		int ret = test_bus(bit_adap, adap->name);
- 		if (ret<0)
-@@ -558,7 +560,7 @@ int i2c_bit_del_bus(struct i2c_adapter *
- 	return i2c_del_adapter(adap);
- }
- 
--EXPORT_SYMBOL(i2c_bit_add_bus);
-+EXPORT_SYMBOL(__i2c_bit_add_bus);
- EXPORT_SYMBOL(i2c_bit_del_bus);
- 
- MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
-diff -puN include/linux/i2c-algo-bit.h~i2c-debugging include/linux/i2c-algo-bit.h
---- 25/include/linux/i2c-algo-bit.h~i2c-debugging	2005-03-22 02:03:33.000000000 -0800
-+++ 25-akpm/include/linux/i2c-algo-bit.h	2005-03-22 02:05:08.000000000 -0800
-@@ -48,7 +48,8 @@ struct i2c_algo_bit_data {
- 
- #define I2C_BIT_ADAP_MAX	16
- 
--int i2c_bit_add_bus(struct i2c_adapter *);
-+#define i2c_bit_add_bus(a) __i2c_bit_add_bus(__FILE__, __LINE__, a)
-+int __i2c_bit_add_bus(char *file, int line, struct i2c_adapter *);
- int i2c_bit_del_bus(struct i2c_adapter *);
- 
- #endif /* _LINUX_I2C_ALGO_BIT_H */
-_
+            -- Miles
