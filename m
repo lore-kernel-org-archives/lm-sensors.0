@@ -1,33 +1,70 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:29 +0000
-Subject: [PATCH 2.4] i2c cleanups (4/4)
-Message-Id: <20031213203614.2fc6dd05.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: [PATCH] I2C: Fix DS1621 detection
+Message-Id: <11074523381178@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031213191258.2d78a9f7.khali@linux-fr.org>
-In-Reply-To: <20031213191258.2d78a9f7.khali@linux-fr.org>
+In-Reply-To: <20050203173745.GA24076@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: aurelien@aurel32.net
 
-This small patch fixes the pcmcia sa1100 driver including the i2c.h
-header, while it doesn't make any use of it. I found that while working
-on my various i2c patches.
+ChangeSet 1.2041, 2005/02/03 00:28:34-08:00, aurelien@aurel32.net
 
-Please apply.
+[PATCH] I2C: Fix DS1621 detection
 
---- linux-2.4.24-pre1/drivers/pcmcia/sa1100_stork.c.orig	Tue Jul 15 12:23:03 2003
-+++ linux-2.4.24-pre1/drivers/pcmcia/sa1100_stork.c	Sat Dec 13 18:57:40 2003
-@@ -24,7 +24,6 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
--#include <linux/i2c.h>
+Dallas Semiconductors as recently changed the design of their DS1621
+chips, including the bits that were checked in the kernel driver to
+detect it.
+
+The patch below fixes the detection by checking an other bit of the
+configuration register instead.
+
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+
+
+ drivers/i2c/chips/ds1621.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
+
+
+diff -Nru a/drivers/i2c/chips/ds1621.c b/drivers/i2c/chips/ds1621.c
+--- a/drivers/i2c/chips/ds1621.c	2005-02-03 09:35:23 -08:00
++++ b/drivers/i2c/chips/ds1621.c	2005-02-03 09:35:23 -08:00
+@@ -42,9 +42,8 @@
+ /* Many DS1621 constants specified below */
+ /* Config register used for detection         */
+ /*  7    6    5    4    3    2    1    0      */
+-/* |Done|THF |TLF |NVB | 1  | 0  |POL |1SHOT| */
+-#define DS1621_REG_CONFIG_MASK		0x0C
+-#define DS1621_REG_CONFIG_VAL		0x08
++/* |Done|THF |TLF |NVB | X  | X  |POL |1SHOT| */
++#define DS1621_REG_CONFIG_NVB		0x10
+ #define DS1621_REG_CONFIG_POLARITY	0x02
+ #define DS1621_REG_CONFIG_1SHOT		0x01
+ #define DS1621_REG_CONFIG_DONE		0x80
+@@ -55,6 +54,7 @@
+ #define DS1621_REG_TEMP_MAX		0xA2 /* word, RW */
+ #define DS1621_REG_CONF			0xAC /* byte, RW */
+ #define DS1621_COM_START		0xEE /* no data */
++#define DS1621_COM_STOP			0x22 /* no data */
  
- #include <asm/hardware.h>
- #include <asm/irq.h>
+ /* The DS1621 configuration register */
+ #define DS1621_ALARM_TEMP_HIGH		0x40
+@@ -212,9 +212,13 @@
+ 
+ 	/* Now, we do the remaining detection. It is lousy. */
+ 	if (kind < 0) {
++		/* The NVB bit should be low if no EEPROM write has been 
++		   requested during the latest 10ms, which is highly 
++		   improbable in our case. */
+ 		conf = ds1621_read_value(new_client, DS1621_REG_CONF);
+-		if ((conf & DS1621_REG_CONFIG_MASK) != DS1621_REG_CONFIG_VAL)
++		if (conf & DS1621_REG_CONFIG_NVB)
+ 			goto exit_free;
++		/* The 7 lowest bits of a temperature should always be 0. */
+ 		temp = ds1621_read_value(new_client, DS1621_REG_TEMP);
+ 		if (temp & 0x007f)
+ 			goto exit_free;
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
