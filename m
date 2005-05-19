@@ -1,30 +1,40 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:03 +0000
-Subject: [Soekris] Re: PC87366 with the net4801
-Message-Id: <20040630225740.02ef3c60.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:49 +0000
+Subject: PWM on a W83697HF
+Message-Id: <1079973316.405f15c4abd09@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <91E705F1F7FF9FD061ADEF73@bingo.lan.spacehopper.org>
-In-Reply-To: <91E705F1F7FF9FD061ADEF73@bingo.lan.spacehopper.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> <http://phk.freebsd.dk/soekris/env4801/> may help, though I don't
-> think temperature values are processed at all. Scales for voltage
-> readings are included.
+Quoting Uwe Andersen:
 
-Quite an interesting read, which offered me some paths to follow. Input
-voltage data is very incomplete but that's still something to start
-with. The guy also does some additional chip reconfiguration, some of
-which I want to try.
+> do you know how to work with the fan control capability (PWM) of a
+> Winbond W83697HF?
+> I tried various values in the bank0-registers 0x00, 0x01, 0x02, 0x03,
+> 0x04 with various fans(do PWM need special fans?) but the fan
+> rotation never changed.
 
-Andrew, I updated the driver in CVS. Could you please check it out and
-give it a try? You'll have to pass init=2 so that the new init sequence
-is activated. Let me know if it changes the results in any way.
+PWM doesn't need special fans AFAIK (unlike fan speed reporting).
 
-Thanks.
+The W83697HF has two PWM channels (registers 0x01 and 0x03) which are
+handled by our drivers (w83781d and w83627hf). You should not have to
+play with registers directly, simply use the the pwm1 and pwm2 files
+exported through procfs (2.4 kernels) or sysfs (2.6 kernels). The value
+to write to/read from the file is between 0 and 255 (these are the
+values of the registers, unchanged).
+
+For gory details, see the W83697HF datasheet, but it should not be
+needed (unless you suspect there is some bug in our drivers).
+
+You may want to take a look at the tools under prog/pwm and
+doc/fancontrol.txt in our package.
+
+Note that for PWM to work, your motherboard manufacturer must have wired
+the chip and fans correctly. If you cannot get it to work, this may
+simply mean that this wasn't done. Which motherboard is it after all?
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/
+http://www.ensicaen.ismra.fr/~delvare/
