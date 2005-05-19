@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: as99127f pwm registers
-Message-Id: <20030724224729.1fed348d.khali@linux-fr.org>
+Message-Id: <20030727114022.44840363.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030722093411.25d749c5.khali@linux-fr.org>
 In-Reply-To: <20030722093411.25d749c5.khali@linux-fr.org>
@@ -11,35 +11,36 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Well if the MBM user base is any indication then there are no
-> side-effects using the bank switch, it did solve a lot of detection
-> problems I got.  When I 1st started using this there where a few
-> issues with bios's that asumed they where on bank 1 and did not check
-> or put it to bank 1 after mbm set it to 0, but have no encountered
-> that in ages :)
+> I have send a lot of info in the last month to lm_sensor users, so
+> it's not always clear to me who is asking this for lm_sensor or for
+> himselves.  so if possible maybe post this somewhere on your
+> site/forum/anything so I can direct requests from lm_sensor users to
+> it.
+> (...)
+> please let me know if this was usefull and if you posted it so I have
+> the url :)
 
-Well, what would happen if the chip there isn't really a w83781d or
-clone? You would write 0 to a register and you don't know what can
-result of this action. That's what I was thinking of. I suppose that it
-is very, very unlikely that another chip would be in that address range,
-pass two id checks and is *not* what you thought it was. However, I
-think we will stick to our detection policy and not write anything to
-the chip (which means we only detect the chip if a the bank is 0 at
-start). We could improve things a bit and detect it with a lower
-confidence value if the bank is 1 or 2.
+OK, here it is:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/w83781d
 
-> thanks for the url, will save that.
+It's mostly a reformated copy of your post.
 
-Note that the text isn't there yet. I'll take some time to add it
-tomorrow.
+Some more questions about the Mozart-2, which I thought about while
+editing your comments (you must really be think I will never leave you
+alone...):
 
-> the voltages of MBM are in the voltage.ini so no code change needed
-> either and you can rip them out if you want/need them, there are a lot
-> of board specific voltages
+- Were there ever a Mozart-1 chip?
 
-Likewise, feel free to take a look at our sensors.conf file if there's
-anything you can learn. We have few board specific configurations, but
-some comments are very interesting.
+- How do you know the names of the Mozart-2 chips since no datasheets
+exist? On the other hand, how don't you know the third one's name if you
+could get the first two? Also, I could see many references to "ASM58" on
+the web, but not a single page references the AS2K129R. Are you sure
+this name is correct?
+
+- What are the voltages marked "255"? How do you treat them? Simply
+ignore them?
+
+Thanks a lot again.
 
 -- 
 Jean Delvare
