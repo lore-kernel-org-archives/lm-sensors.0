@@ -1,44 +1,64 @@
-From: dirkleni@rendo.dekooi.nl (Franssens)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: gl518sm
-Message-Id: <000e01c2ccef$228d97b0$0300a8c0@ZYNTH>
+From: marc@paracel.com (Marc Rieffel)
+Date: Thu, 19 May 2005 06:24:22 +0000
+Subject: RPM spec file patches for i2c and lm_sensors 2.8.1
+Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E13FDA5@exch01.paracel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020205121432.I19496@Stimpy.netroedge.com>
-In-Reply-To: <20020205121432.I19496@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm having quit some difficulties with lm-sensors.
-Everything, including installing and compiling worked great,
-but now it doesn't seem to recognize my gl518sm detectors.
-when I modprobe that module,
-and then perform a "sensors -s", it says; no sensors found!.
-But it really IS listed on your supported hardware page.
+I had to make these changes to be able to build i2c and lm_sensors rpms that worked.  Also, lm_sensors.init isn't included in any of the rpms.  Looks like nobody's touched these for several versions.
 
-some help:
-motherboard: FullYes (82440lx), pentiumII 300HMz, 96MB RAM.
+i2c.spec:
 
-lsmod:
-Module                  Size  Used by
-gl518sm                 8096   0  (unused)
-i2c-proc                6064   0  [gl518sm]
-i2c-dev                 3712   0
-i2c-core               13328   0  [gl518sm i2c-proc i2c-dev]
+25c27
+< %define ver 2.8.1
+---
+> %define ver 2.5.0
+37a43,44
+> Conflicts: kernel >= 2.3.38
+70,72c75,77
+< %dir /lib/modules/%{kversion}
+< %dir /lib/modules/%{kversion}/kernel/drivers/i2c
+< /lib/modules/%{kversion}/kernel/drivers/i2c/*
+---
+> %dir /lib/modules/%{mversion}
+> %dir /lib/modules/%{mversion}/misc
+> /lib/modules/%{mversion}/misc/*
 
-the problem was, that sensordetect did not detect that gl518sm,
-but a piix4 an an eeprom.
-The only output sensors would give me then, was some info from eeprom,
-NOT voltages or fans etc.
-then I manually tried to modprobe gl518sm, with success. (as you can see)
-but unfortunately;
-sensors -s now says: no sensors found!
 
-can you help me?
 
-thnx!
-Anne
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030205/8b1179f3/attachment.html
+And similarly for lm_sensors.spec.  Note that %{prefix}/include/linux/*.h gives conflicts with header files installed by the i2c rpm, so I had to just list the  one specific file that should be installed.
+
+
+
+
+33c33
+< %define kversion %(uname -r)
+---
+> %define kversion 2.2.14
+34a35
+> #Another example for the above: %define kversion 2.2.14-SMP
+37c38
+< %define ver 2.8.1
+---
+> %define ver 2.5.0
+120,121d120
+< #Add %{prefix}/lib to the ldconfig.
+< grep "{%prefix}/lib" /etc/ld.so.conf || echo "%{prefix}/lib" >> /etc/ld.so.conf
+150,155c149,150
+< %dir /lib/modules/%{mversion}/kernel/drivers/i2c/
+< /lib/modules/%{mversion}/kernel/drivers/i2c/*
+< %dir /lib/modules/%{mversion}/kernel/drivers/i2c/busses
+< /lib/modules/%{mversion}/kernel/drivers/i2c/busses/*
+< %dir /lib/modules/%{mversion}/kernel/drivers/i2c/chips
+< /lib/modules/%{mversion}/kernel/drivers/i2c/chips/*
+---
+> %dir /lib/modules/%{mversion}/misc
+> /lib/modules/%{mversion}/misc/*
+157c152
+< %{prefix}/include/linux/sensors.h
+---
+> %{prefix}/include/linux/*.h
+
