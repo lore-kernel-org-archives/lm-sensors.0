@@ -1,22 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: [PATCH] Manpages for i2cdetect and sensors-detect
-Message-Id: <20040322213149.71da7285.khali@linux-fr.org>
+From: kermet@simail.it (Fulvio Molinengo)
+Date: Thu, 19 May 2005 06:25:52 +0000
+Subject: support for NS 87591?
+Message-Id: <6.2.1.2.2.20050418171625.027962a0@pop3.simail.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040321202314.GA18469@pc.aurel32.private>
-In-Reply-To: <20040321202314.GA18469@pc.aurel32.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-> Please find attached manpages for i2cdetect and sensors-detect. They
-> are very small, but the programs are very easy to start (ie very few
-> options).
 
-I used these as a base and augmented them a bit before committing them.
-Thanks :)
+Hi, i would like to know if there will be a driver (maybe, when?) that=20
+supports National Semiconductor 87591 on I2C bus, i have Acer's 1714smi=20
+laptop and i'd like to know how are going temperatures...
+greetings and salutations.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Fulvio Molinengo <kermet@simail.it> =20
+
+
+__________________________________
+Simail.it\Spot
+
+Naviga in Internet con Adsl senza l'obbligo del canone Telecom!!!!
+Con www.siadsl.it =E8 possibile!!!!
+
+Info line 848.580222
