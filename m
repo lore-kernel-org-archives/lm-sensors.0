@@ -1,36 +1,270 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:57 +0000
-Subject: [PATCH 2.6.12-rc4 1/3] (dynamic sysfs callbacks) device_attribute
-Message-Id: <2538186705051100563e884f2f@mail.gmail.com>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 10/22] W1: drop main control thread
+Message-Id: <200504210217.05859.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Hi,
+W1: Drop control thread from w1 core, whatever it does can
+    also be done in the context of w1_remove_master_device.
+    Also, pin the module when registering new master device
+    to make sure that w1 core is not unloaded until last
+    device is gone. This simplifies logic a lot.
 
-This patch adds support to the sysfs device_attribute to pass the new
-void * attribute member to it's callback functions. The device
-attribute will benefit the most from the dynamic sysfs callback patch
-compared to the other attributes simply because of it's greater usage.
-
-The first patch simply adds the void * parameter to the device
-attribute function types and passes them when calling the callbacks.
-
-Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
-
-Thanks,
-Yani
-
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 ---
- drivers/base/core.c    |    4 ++--
- include/linux/device.h |    5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr.diff
-Type: text/x-patch
-Size: 1629 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050511/d6eab251/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr.bin
+
+ w1.c |  157 +++++++++++++++----------------------------------------------------
+ w1.h |    1 
+ 2 files changed, 36 insertions(+), 122 deletions(-)
+
+Index: dtor/drivers/w1/w1.c
+=================================--- dtor.orig/drivers/w1/w1.c
++++ dtor/drivers/w1/w1.c
+@@ -50,14 +50,8 @@ module_param_named(timeout, w1_timeout, 
+ module_param_named(max_slave_count, w1_max_slave_count, int, 0);
+ module_param_named(slave_ttl, w1_max_slave_ttl, int, 0);
+ 
+-static DEFINE_SPINLOCK(w1_mlock);
+-static LIST_HEAD(w1_masters);
+ static u32 w1_ids = 1;
+ 
+-static pid_t control_thread;
+-static int control_needs_exit;
+-static DECLARE_COMPLETION(w1_control_complete);
+-
+ static int w1_master_match(struct device *dev, struct device_driver *drv)
+ {
+ 	return 1;
+@@ -582,66 +576,6 @@ void w1_search(struct w1_master *dev)
+ }
+ 
+ 
+-static int w1_control(void *data)
+-{
+-	struct w1_slave *slave, *nexts;
+-	struct w1_master *master, *nextm;
+-	int err, have_to_wait = 0;
+-
+-	daemonize("w1_control");
+-	allow_signal(SIGTERM);
+-
+-	while (!control_needs_exit || have_to_wait) {
+-		have_to_wait = 0;
+-
+-		try_to_freeze(PF_FREEZE);
+-		msleep_interruptible(w1_timeout * 1000);
+-
+-		if (signal_pending(current))
+-			flush_signals(current);
+-
+-		list_for_each_entry_safe(master, nextm, &w1_masters, node) {
+-
+-			if (!control_needs_exit && !master->need_exit)
+-				continue;
+-			/*
+-			 * Little race: we can create thread but not set the flag.
+-			 * Get a chance for external process to set flag up.
+-			 */
+-			if (!master->initialized) {
+-				have_to_wait = 1;
+-				continue;
+-			}
+-
+-			spin_lock(&w1_mlock);
+-			list_del(&master->node);
+-			spin_unlock(&w1_mlock);
+-
+-			if (control_needs_exit) {
+-				master->need_exit = 1;
+-
+-				err = kill_proc(master->kpid, SIGTERM, 1);
+-				if (err)
+-					dev_err(&master->dev,
+-						 "Failed to send signal to w1 kernel thread %d.\n",
+-						 master->kpid);
+-			}
+-
+-			wait_for_completion(&master->dev_exited);
+-
+-			list_for_each_entry_safe(slave, nexts, &master->slist, node) {
+-				list_del(&slave->node);
+-				w1_slave_detach(slave);
+-				kfree(slave);
+-			}
+-			w1_destroy_master_attributes(master);
+-			atomic_dec(&master->refcnt);
+-		}
+-	}
+-
+-	complete_and_exit(&w1_control_complete, 0);
+-}
+-
+ static int w1_process(void *data)
+ {
+ 	struct w1_master *dev = (struct w1_master *) data;
+@@ -731,12 +665,22 @@ struct w1_master *w1_allocate_master_dev
+ 	return dev;
+ }
+ 
+-static void w1_free_dev(struct w1_master *dev)
++static void w1_free_master_dev(struct w1_master *dev)
+ {
+ 	device_unregister(&dev->dev);
+ 	kfree(dev);
+ }
+ 
++static void w1_stop_master_device(struct w1_master *dev)
++{
++	dev->need_exit = 1;
++	if (kill_proc(dev->kpid, SIGTERM, 1))
++		dev_err(&dev->dev,
++			 "Failed to send signal to w1 kernel thread %d.\n",
++			 dev->kpid);
++	wait_for_completion(&dev->dev_exited);
++}
++
+ int w1_add_master_device(struct w1_master *dev)
+ {
+ 	int error;
+@@ -762,36 +706,32 @@ int w1_add_master_device(struct w1_maste
+ 
+ 	dev->initialized = 1;
+ 
+-	spin_lock(&w1_mlock);
+-	list_add(&dev->node, &w1_masters);
+-	spin_unlock(&w1_mlock);
++	__module_get(THIS_MODULE);
+ 
+ 	return 0;
+ 
+ err_out_kill_thread:
+-	dev->need_exit = 1;
+-	if (kill_proc(dev->kpid, SIGTERM, 1))
+-		dev_err(&dev->dev,
+-			 "Failed to send signal to w1 kernel thread %d.\n",
+-			 dev->kpid);
+-	wait_for_completion(&dev->dev_exited);
++	w1_stop_master_device(dev);
+ 
+ err_out_free_dev:
+-	w1_free_dev(dev);
++	w1_free_master_dev(dev);
+ 
+ 	return error;
+ }
+ 
+ void w1_remove_master_device(struct w1_master *dev)
+ {
+-	int err;
++	struct w1_slave *slave, *next;
+ 
+-	dev->need_exit = 1;
+-	err = kill_proc(dev->kpid, SIGTERM, 1);
+-	if (err)
+-		dev_err(&dev->dev,
+-			 "%s: Failed to send signal to w1 kernel thread %d.\n",
+-			 __func__, dev->kpid);
++	w1_stop_master_device(dev);
++
++	list_for_each_entry_safe(slave, next, &dev->slist, node) {
++		list_del(&slave->node);
++		w1_slave_detach(slave);
++		kfree(slave);
++	}
++
++	w1_destroy_master_attributes(dev);
+ 
+ 	while (atomic_read(&dev->refcnt)) {
+ 		printk(KERN_INFO "Waiting for %s to become free: refcnt=%d.\n",
+@@ -801,61 +741,36 @@ void w1_remove_master_device(struct w1_m
+ 			flush_signals(current);
+ 	}
+ 
+-	w1_free_dev(dev);
++	w1_free_master_dev(dev);
++	module_put(THIS_MODULE);
+ }
+ 
+ 
+ int w1_init(void)
+ {
+-	int retval;
++	int error;
+ 
+ 	printk(KERN_INFO "Driver for 1-wire Dallas network protocol.\n");
+ 
+-	retval = bus_register(&w1_bus_type);
+-	if (retval) {
+-		printk(KERN_ERR "Failed to register bus. err=%d.\n", retval);
+-		goto err_out_exit_init;
++	error = bus_register(&w1_bus_type);
++	if (error) {
++		printk(KERN_ERR "Failed to register bus. err=%d.\n", error);
++		return error;
+ 	}
+ 
+-	retval = driver_register(&w1_driver);
+-	if (retval) {
++	error = driver_register(&w1_driver);
++	if (error) {
+ 		printk(KERN_ERR
+-			"Failed to register master driver. err=%d.\n",
+-			retval);
+-		goto err_out_bus_unregister;
+-	}
+-
+-	control_thread = kernel_thread(&w1_control, NULL, 0);
+-	if (control_thread < 0) {
+-		printk(KERN_ERR "Failed to create control thread. err=%d\n",
+-			control_thread);
+-		retval = control_thread;
+-		goto err_out_driver_unregister;
++			"Failed to register master driver. err=%d.\n", error);
++		bus_unregister(&w1_bus_type);
++		return error;
+ 	}
+ 
+ 	return 0;
+-
+-err_out_driver_unregister:
+-	driver_unregister(&w1_driver);
+-
+-err_out_bus_unregister:
+-	bus_unregister(&w1_bus_type);
+-
+-err_out_exit_init:
+-	return retval;
+ }
+ 
+ void w1_fini(void)
+ {
+-	struct w1_master *master, *next;
+-
+-	list_for_each_entry_safe(master, next, &w1_masters, node)
+-		w1_remove_master_device(master);
+-
+-	control_needs_exit = 1;
+-
+-	wait_for_completion(&w1_control_complete);
+-
+ 	driver_unregister(&w1_driver);
+ 	bus_unregister(&w1_bus_type);
+ }
+Index: dtor/drivers/w1/w1.h
+=================================--- dtor.orig/drivers/w1/w1.h
++++ dtor/drivers/w1/w1.h
+@@ -103,7 +103,6 @@ struct w1_bus_ops
+ 
+ struct w1_master
+ {
+-	struct list_head	node;
+ 	unsigned char		name[W1_MAXNAMELEN];
+ 	struct list_head	slist;
+ 	int			max_slave_count, slave_count;
