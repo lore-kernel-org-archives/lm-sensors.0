@@ -1,98 +1,148 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: 'sensors' never installed
-Message-Id: <20030625111049.6d85972b.khali@linux-fr.org>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:54 +0000
+Subject: [RFC PATCH 2.6.12-rc3] dynamic driver sysfs callbacks and RFC on
+Message-Id: <2538186705042422366584aff4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030615132841.54681.qmail@web40809.mail.yahoo.com>
-In-Reply-To: <20030615132841.54681.qmail@web40809.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-> because...
-> 
-> [root@localhost as99127f-i2c-0-2d]# cat < temp1 temp2
-> temp3
-> 60.0 50.0 22.0
-> 60.0 50.0 112.2
-> 
-> it "eats" the output for the first value! don't ask me
-> why, I am a linux noob. So I just wrote 'temp1' twice
-> to be used as a dummy value. it means nothing.
+I'm sending this driver sysfs callback patch to the lm-sensors list to
+get more of the sensor driver maintainer's comments on the patch
+(specifically the type to be associated with each sysfs entry) before
+submitting to LKML. Jean and Greg have already given me invaluable
+feedback and are supportive of the general idea of the patch (the
+problem of which is epitomized by the kludge the 2.6 bmcsensors driver
+is at the moment - see previous discussions in the list archive).
 
-This is because you don't *need* to use '<'. This is probably not the
-place for a complete lesson about shell basics, but if you use "cat
-temp1 temp2 temp3" (*without* the '<') you'll get what you want.
+Included is a patch against drivers/base/core.c and
+include/linux/driver.h that adds a void * to the device attribute
+struct and passes it back to the two sysfs callbacks show/store. Also
+included is a simple perl script we can run against the source tree to
+update drivers to use the correct callback pointer types (otherwise
+warnings are generated on compile for each). Of course 'real' fixes in
+the spirit of the new callbacks would be to use the void */passed type
+to implement a single/few dynamic callback instead of the messy static
+callbacks at present, but I leave that up to the individual driver
+maintainer.
 
-> I agree that temp1 is the motherboard temp in C. It
-> agrees nicely with what the hardware monitor in my
-> BIOS setup program displays. It also agree with the
-> fact that temp1 computation doesn't exist in the
-> sensors.conf file which has proven to be useless
-> anyway.
+The original patch I sent out to Jean/Greg for comment just passed the
+sysfs name of the corresponding sysfs entry, and Jean wisely suggested
+that this was not ideal and suggested using an int instead. Greg
+instead suggested we use a void pointer (apparently like most other
+such linux callbacks), and I am also favourable to that idea, although
+both ideas are better than the present callbacks.
 
-At least one that is working :)
+I do believe Greg's suggestion to pass back a void * is probably the
+best balance of generalization and efficiency for kernel device
+drivers, thinking just in terms of bmcsensors it is actually ideal. An
+IPMI BMC (baseboard management controller) represents sensors by SDRs
+(sensor data records) each of which is read by bmcsensors through the
+i2c-ipmi (and in turn through the kernel IPMI interface) and into a
+struct, and thereafter all are referenced in a fixed length array (as
+in the original 2.4 driver).
 
-> For the processor, the BIOS program reports 58C/136F
-> with case and HeatSink/Fan set to low. The minimum
-> i've seen in the BIOS is 46C/114.5F with side door
-> removed and proc/case fans set to highest. temp3 MIGHT
-> have been close as F, EXCEPT for the fact that I just
-> noticed it NEVER moves. I don't have any idea where it
-> comes from. Temp2 is active, and SEEMS to be the
-> processor, however, the original output of "26.0" or
-> "22.0" is obviously miscalculated.
+With the new callbacks I could actually associate each of these SDRs
+with the sysfs entries by passing a pointer to each struct, nothing
+could be simpler to use. I can then use a linked-list (rather than the
+fixed array) to store the pointers to aid in the de-allocation of the
+SDR struct memory (or maybe even find a way to find all the pointers
+created by the driver from the sysfs system and thus not even need the
+list? I have to look into it).
 
-Temp3 may simply be not linked to anything. Most motherboards only have
-two temperature sensors, one for the CPU and one for the motherboard.
+Compared to passing back an int this has a distinct advantage - giving
+each sdr an id and getting the id from the sysfs callback I would have
+to search through the linked list of sdrs (using an array would imply
+a fixed number/upper limit to the number of sensors), while given a
+pointer to the sdr entry we don't need the id or to search for the
+sdr.
 
-> I think using that information, at the very least I
-> should be able to interpolate the final values, but
-> depending on the computation used to obtain "22/26",
-> it may not be very accurate since when dealing with
-> temperature, the value/starting point of 0 you would
-> use when comparing two sets of values is meaningless,
-> especially since I don't know if "22/26" is C, F, or
-> neither.
+Of course the best point about void * is that if all you want is an in
+you can of course use a reference to an int...I don't think that the
+allocation of memory for these ints is a problem given the amount of
+memory we already allocate in creating the sysfs entry names, etc. I
+really do think that this added complexity is trivial compared to the
+added flexibility of a void * callback. We don't want to have to
+change these sysfs callbacks ever again if we can help it (once will
+be quite enough trouble! ;-) ) so I believe we should do things with
+other driver's future needs in mind, and get it right the first time.
 
-This is a raw value, that is actually in "neither" unit, as you say. See
-below for more details.
+Thus at present my plan for re-writing bmcsensors goes something along
+the lines of:
 
-> NOTE: in the previous e-mail I incorrectly stated my
-> mobo as A7V-266-E, when it is actually A7V-133-C. My
-> Windoze computer is the A7V-266-E. Same sensor chip
-> for both, so it doesn't change anything.
+- get this (or a similar) patch accepted into the kernel.
+- remove i2c-ipmi, roll IPMI interface back into bmcsensors/remove
+what can be done directly with the kernel IPMI system.
+- add bmcsensors to the new hwmon class of hardware sensors removing
+any reference to the fake i2c code.
+- remove fixed sdr list and replace with linked list.
+- using the dynamic device callbacks this patch would introduce,
+associate each sysfs entry with the corresponding sdr, replace the
+kludge of the 100 (!) macro defined static sysfs callbacks with one
+single dynamic callback that uses the void * pointer to the sdr to
+decide what to return, thus allowing a virtually unlimited number of
+sensors.
+- cross fingers and submit to this list for testing and later
+(hopefully) inclusion in kernel.
 
-It changes much if you consider that I own an A7V133C here, which means
-I *must* have a working config for it :)
+Mind you at the moment my IPMI BMC isn't even working in newer
+(2.6.11.5) kernels, and I've got no response from the Linux IPMI list
+on my problems so this might be a bit difficult for me to
+develop/test.
 
-(skipped, the last part which is pointless I think)
+Yani
+-------------- next part --------------
+diff -uprN -X dontdiff linux-2.6.12-rc3/drivers/base/core.c linux-2.6.12-rc3-devdyncallback/drivers/base/core.c
+--- linux-2.6.12-rc3/drivers/base/core.c	2005-04-23 14:55:03.000000000 -0400
++++ linux-2.6.12-rc3-devdyncallback/drivers/base/core.c	2005-04-23 15:10:46.000000000 -0400
+@@ -41,7 +41,7 @@ dev_attr_show(struct kobject * kobj, str
+ 	ssize_t ret = 0;
+ 
+ 	if (dev_attr->show)
+-		ret = dev_attr->show(dev, buf);
++		ret = dev_attr->show(dev, buf, dev_attr->ptr);
+ 	return ret;
+ }
+ 
+@@ -54,7 +54,7 @@ dev_attr_store(struct kobject * kobj, st
+ 	ssize_t ret = 0;
+ 
+ 	if (dev_attr->store)
+-		ret = dev_attr->store(dev, buf, count);
++		ret = dev_attr->store(dev, buf, count, dev_attr->ptr);
+ 	return ret;
+ }
+ 
+diff -uprN -X dontdiff linux-2.6.12-rc3/include/linux/device.h linux-2.6.12-rc3-devdyncallback/include/linux/device.h
+--- linux-2.6.12-rc3/include/linux/device.h	2005-04-23 14:55:11.000000000 -0400
++++ linux-2.6.12-rc3-devdyncallback/include/linux/device.h	2005-04-23 15:10:05.000000000 -0400
+@@ -335,8 +335,13 @@ extern void driver_attach(struct device_
+ 
+ struct device_attribute {
+ 	struct attribute	attr;
+-	ssize_t (*show)(struct device * dev, char * buf);
+-	ssize_t (*store)(struct device * dev, const char * buf, size_t count);
++	ssize_t (*show)(struct device * dev, char * buf, void * ptr);
++	ssize_t (*store)(struct device * dev, const char * buf, size_t count, void * ptr);
++	/* 
++	 * void pointer can be used by driver to identify sysfs entry 
++	 * for 'dynamic' callbacks.
++	 */
++	void * ptr;
+ };
+ 
+ #define DEVICE_ATTR(_name,_mode,_show,_store) \
 
-OK, Let's make things clear.
 
-1* You *need* the "sensors" program to have your sensors working
-correctly.
 
-2* Compiling and installing the "sensors" program is easy, if not
-trivial. The program is included in the source package you say you
-downloaded and installed. It is installed by default in /usr/local/bin
-when you run "make install".
 
-So, you please carefully take another walk through the installation
-process and see if anything fails there. Check in /usr/local/bin that
-the program is installed. Check that /usr/local/bin is in your PATH
-environment var ('echo "$PATH"' will let you know). If anything fails,
-we can't guess what it is unless you give us a details log of what you
-did and how the installation process behave.
-
-For what it's worth, the correct temp2 formula for your motherboard is:
-    compute temp2 @*2.0, @/2.0
-Which means that the 22-26 values you are seeing are actually in a "2
-deg C" unit. Your CPU must be living around 48 deg C (which makes
-sense).
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: updatedyncallback.9249DEFANGED-pl
+Type: application/octet-stream
+Size: 257 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050425/68cb3ba7/updatedyncallback.obj
