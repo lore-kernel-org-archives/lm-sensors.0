@@ -1,46 +1,49 @@
-From: merlin@merlin.org (merlin)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: Problem with i2c-amd756.o
-Message-Id: <20030611182143.7B4A433826@primary.mx.nitric.com>
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:19 +0000
+Subject: [PATCH] fix base address hinting in via686a docs
+Message-Id: <Pine.LNX.4.58.0410142059130.9204@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0306051208440.4183-100000@lancelot.cems.umn.edu>
-In-Reply-To: <Pine.LNX.4.33.0306051208440.4183-100000@lancelot.cems.umn.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Unfortunately the AMD 756 (and siblings) SMBUS does not seem to be
-entirely reliable; I have similar problems with it locking up and not
-coming back (on a similar machine). You need to disable whatever
-is trying to read your hardware sensors; this will either be a GUI
-application (a couple of the system monitors do this) or a daemon (e.g.,
-sensord).
+Hello,
 
-merlin
+According to google, 307 hits place the 686a chip to 0x6000
+two to 0xC00 and one hit to 0xe200. I also add some info to
+sensors-detect.
 
-r/mds@paradyne.com/2003.06.09/21:29:40
->something is accessing the bus every few seconds.
->If things seem to be working anyway you can comment the messages out in the driver.
->
->Shriram Ramanathan wrote:
->> Hi,
->> 
->> I have a dual processor (AMD 1.8 GHz) machine with Redhat Linux installed.
->> I have this awfully irritating message cropping up on my terminal every
->> few seconds.
->> 
->> "i2c-amd756.o: Busy wait timeout! (0d00)
->> i2c-amd756.o: Sending abort."
->> 
->> I dont know how to fix this (I havent tried rebooting the m/c as yet)
->> Could you tell  me what is going wrong ?
->> 
->> Thanks.
->> 
->> Regards,
->> shriram
->> 
->> PS : I am a newbie to sysadmin and so might need some
->> elaboration on this....i.e. if it is not too much of a trouble for you.
+I would like to thank Khali for advices about perl ;)
+
+regards
+
+Rudolf
+
+diff -Naur lm_sensors-2.8.8/doc/chips/via686a lm_sensors-2.8.8new/doc/chips/via686a
+--- lm_sensors-2.8.8/doc/chips/via686a	2002-08-22 04:15:07.000000000 +0200
++++ lm_sensors-2.8.8new/doc/chips/via686a	2004-10-14 20:43:54.000000000 +0200
+@@ -23,7 +23,7 @@
+ 			PCI force; the via686a must still be present in lspci.
+ 			Don't use this unless the driver complains that the
+ 			base address is not set.
+-			Example: 'modprobe via686a force_addr=0x290'
++			Example: 'modprobe via686a force_addr=0x6000'
+
+
+ Description
+diff -Naur lm_sensors-2.8.8/prog/detect/sensors-detect lm_sensors-2.8.8new/prog/detect/sensors-detect
+--- lm_sensors-2.8.8/prog/detect/sensors-detect	2004-10-03 22:51:47.000000000 +0200
++++ lm_sensors-2.8.8new/prog/detect/sensors-detect	2004-10-14 20:57:00.000000000 +0200
+@@ -4440,7 +4440,9 @@
+         printf "ISA bus address 0x%04x (Busdriver `i2c-isa')\n",
+                $data->{isa_addr};
+       } else {
+-        printf "ISA bus, undetermined address (Busdriver `i2c-isa')\n"
++        print "ISA bus, undetermined address (Busdriver `i2c-isa')\n".
++              "Hint: Try forcing the chip address. Consult the documentation\n".
++              "of particular chip for details and address value.\n";
+       }
+     }
+     printf "    Chip `%s' (confidence: %d)\n",
