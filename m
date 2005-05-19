@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:34 +0000
+Date: Thu, 19 May 2005 06:24:35 +0000
 Subject: linux-2.6.1, ECS K7S5A / SiS735
-Message-Id: <1073983802.4003b13ac0d4e@imp.gcu.info>
+Message-Id: <20040115181809.23867c8d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040113004723.5892cfb2.Dexter.Filmore@gmx.de>
 In-Reply-To: <20040113004723.5892cfb2.Dexter.Filmore@gmx.de>
@@ -10,48 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I just installed lm-sensors 2.8.2 user utils to read the sis735 board
-> sensors in my server, running linux-2.6.1.
+> here seems to be the problem: i2c-core is statically, i2c-dev and
+> i2c-sis96x are loaded as modules. after that I did i2cdump.
+> it doesn't find any buses. i2cdetect 0 tells me there is no such
+> device. strange, i did mkdev.sh and the files are in dev.
 > 
-> first of all I got confused over what to compile or not. As of now,
-> there is sis5595 as a module (since sensors-detect asks for it), then
-> there is sis96x as a module since the kernel help says it supports
-> the 735 chipset. i2c support is compiled in statically.
+> ideas? do have to hack more than i2cdetect to make sis96x work on my
+> sis735 board?
 
-Should be supported by i2c-sis96x, yes.
-
-> now first of all I hacked the detect script to look for sis96x since
-> sis645 module doesn't exist at all.
-
-Right, that's on my to-do list for some times already, but couldn't find
-the time to fix that problem yet, sorry.
-
-> script loads it fine, the it8705 chip, too (*and* the sis5595, bob
-> knows why)
-
-It shouldn't. And you shouldn't try to load it, as it might confuse your
-bus.
-
-> but later on after everything is loaded, namely:
-> i2c_sis96x              4416  0
-> it87                   21632  0
-> i2c_sensor              2368  1 it87
-> 
-> it still tells me "no sensors found".
-> 
-> any ideas?
-
-Not really, except ths sis5595-might-have-confused-your-bus mentioned
-right above.
-
-Make sure you have sysfs support enabled in your kernel and mounted
-under /sys on your system. Check your dmesg for possible hints, and
-have a loot at what /sys/bus/i2c contains.
-
-You could also unload it87 and run i2cdetect on your sis735 bus, to make
-sure you see your it87 chip there (I expect you to see it if
-sensors-detect suggested it). If you can see the chip, run i2cdump on
-it and we'll try to understand why the it87 drivers did not like it.
+I'm rather clueless. I'm not even sure wether this is related to the
+sis96x driver or not. Maybe you want to see with Mark, our SiS busses
+expert.
 
 -- 
 Jean Delvare
