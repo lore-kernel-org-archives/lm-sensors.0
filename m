@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:42 +0000
 Subject: 2.7.0 testings
-Message-Id: <3DEB7A09.C116DCB3@paradyne.com>
+Message-Id: <3DEC10FB.84C929CB@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021127213903.5b84866d.khali@linux-fr.org>
 In-Reply-To: <20021127213903.5b84866d.khali@linux-fr.org>
@@ -9,8 +9,6 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
-I'll look at tonight.
 
 Jean Delvare wrote:
 > 
@@ -23,3 +21,7 @@ Jean Delvare wrote:
 > --
 > Jean Delvare
 > http://www.ensicaen.ismra.fr/~delvare/
+
+fixed. hopefully that's the last problem... let us know.
+thanks
+mds
