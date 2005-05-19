@@ -1,54 +1,30 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [PATCH] W1: fix printk format warning
-Message-Id: <1109834904.28266.72.camel@uganda>
+From: tomhol@gmail.com (Tomas Holmqvist)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: I'd like to join the mailling list/New driver for smsc47m15x
+Message-Id: <1c9de3e4050306120552945ab@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050302215345.6e8d51df.rddunlap@osdl.org>
-In-Reply-To: <20050302215345.6e8d51df.rddunlap@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2005-03-02 at 21:53 -0800, Randy.Dunlap wrote:
-> Use 'unsigned long long' for __u64 printk:
-> 
-> drivers/w1/w1.c:415: warning: long long unsigned int format, __u64 arg (arg 6)
+Hi everybody.
 
-Thank you, I've applied it to me tree.
-Andrew, please, push it upstrem.
+I've written a driver for the Hardware Monitoring Block (HMB) of the smsc47m15x.
+That is the part of this chip that sits on the I2C bus. The other
+functions of this Super IO are controlled via ISA. The HMB is just a
+voltage/temp sensor quite similar to the lm78.
 
-> Signed-off-by: Randy Dunlap <rddunlap@osdl.org>
+There are still some small bugs to resolve, I only just found out how
+to compile it in the kernel tree.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+I'm using the I2C_DRIVERID_EXP0 id, but when loading it my other
+drivers are not found when using the sensors tool.
 
-> diffstat:>  drivers/w1/w1.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff -Naurp ./drivers/w1/w1.c~w1_printk ./drivers/w1/w1.c
-> --- ./drivers/w1/w1.c~w1_printk	2005-03-01 23:37:54.000000000 -0800
-> +++ ./drivers/w1/w1.c	2005-03-02 13:17:15.534605432 -0800
-> @@ -413,7 +413,8 @@ static int w1_attach_slave_device(struct
->  	if (!f) {
->  		spin_unlock(&w1_flock);
->  		dev_info(&dev->dev, "Family %x for %02x.%012llx.%02x is not registered.\n",
-> -			  rn->family, rn->family, rn->id, rn->crc);
-> +			  rn->family, rn->family,
-> +			  (unsigned long long)rn->id, rn->crc);
->  		kfree(sl);
->  		return -ENODEV;
->  	}
-> 
-> 
-> ---
--- 
-        Evgeniy Polyakov
+Should I post the code here or keep it for my self until it works
+without obvious bugs?
 
-Crash is better than data corruption -- Arthur Grabowski
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050303/340cee0d/attachment.bin
+The driver is written with the 2.6.11rc3 kernel, whatever state of
+lm_sensors that mean. 2.9.0 I think.
+
+/Tomas
