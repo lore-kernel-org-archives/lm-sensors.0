@@ -1,72 +1,103 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:25:45 +0000
-Subject: [rootkit85@yahoo.it: gcc-4.0 compilation issue]
-Message-Id: <20050324212602.GA8963@frodo.local>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: sensors error
+Message-Id: <20020809092113.F32640@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Matteo Croce <rootkit85@yahoo.it> -----
 
-From: Matteo Croce <rootkit85@yahoo.it>
-Subject: gcc-4.0 compilation issue
-Cc: Ky?sti M?lkki <kmalkki@cc.hut.fi>, Frodo Looijaard <frodol@dds.nl>,
-	"Simon G.Vogl" <simon@tk.uni-linz.ac.at>
-To: "Undisclosed.Recipients": ;
-X-Virus-Scanned: ClamAV 0.83/782/Thu Mar 24 13:29:35 2005 on morannon.frodo=
-.local
-X-Virus-Scanned: amavisd-new isd-holland.nl
-X-Virus-Status: Clean
-X-Spam-Checker-Version: SpamAssassin 3.0.2 (2004-11-16) on=20
-	morannon.frodo.local
-X-Spam-Status: No, score=3D-2.6 required=3D5.0 tests=BAYES_00 autolearn=3Dh=
-am=20
-	version=3D3.0.2
-X-Spam-Level:=20
-
-Hi,
-i've made this trivial patch to make the linux kernel
-i2c driver compile with gcc-4.0
-
-Regards,
-Matteo Croce
-
-diff -urN linux-2.6.11.5/include/linux/i2c.h linux-2.6.11.5-vanilla/include=
-/linux/i2c.h
---- linux-2.6.11.5/include/linux/i2c.h	2005-03-24 17:27:52.000000000 +0100
-+++ linux-2.6.11.5-vanilla/include/linux/i2c.h	2005-03-19 07:34:52.00000000=
-0 +0100
-@@ -55,7 +55,7 @@
-=20
- /* Transfer num messages.
-  */
--extern int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msg,int =
-num);
-+extern int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],int=
- num);
-=20
- /*
-  * Some adapter types (i.e. PCF 8584 based ones) may support slave behaviu=
-or.=20
-@@ -194,7 +194,7 @@
- 	   to NULL. If an adapter algorithm can do SMBus access, set=20
- 	   smbus_xfer. If set to NULL, the SMBus protocol is simulated
- 	   using common I2C messages */
--	int (*master_xfer)(struct i2c_adapter *adap,struct i2c_msg *msgs,=20
-+	int (*master_xfer)(struct i2c_adapter *adap,struct i2c_msg msgs[],=20
- 	                   int num);
- 	int (*smbus_xfer) (struct i2c_adapter *adap, u16 addr,=20
- 	                   unsigned short flags, char read_write,
+I think we just receintly got some info on that chip.  If there is 
+anything written yet (it may be too soon), it would be in CVS.
 
 
------ End forwarded message -----
+Phil
 
---=20
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~fr=
-odol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually follow=
-ed
-  by the installation of Linux or some other Unix-like operating system.
+On Fri, Aug 09, 2002 at 07:55:57AM -0700, Bryan Dang wrote:
+> Phil,
+> 
+> The Intel Westvile server uses the ADM1026 chips. Sensors-detect probed
+> ADM1021. I did not find the ADM1026 drivers from about 16 sensors drivers
+> that lm_sensors generated. Do you know if there is a driver for this ADM1026
+> chip?
+> 
+> Bryan
+> 
+> 
+> -----Original Message-----
+> From: phil@netroedge.com [mailto:phil@netroedge.com]
+> Sent: Thursday, August 08, 2002 4:44 PM
+> To: Bryan Dang
+> Subject: Re: sensors error
+> 
+> 
+> 
+> Sorry, I can't say w/o knowing any related details about your
+> hardware, install setup, versions, etc.  Try reading the 
+> documentation, FAQ's, information on our site (like the support 
+> tickets), etc.
+> 
+> 
+> Phil
+> 
+> On Thu, Aug 08, 2002 at 04:16:53PM -0700, Bryan Dang wrote:
+> > Thanks Phil. 'make install" didn't work right for me. The
+> /etc/sensors.conf
+> > wasn't generated. But I copied lm_sensors/prog/etc/sensors.conf.eg over
+> and
+> > it worked now. Although it only showed the Board and CPU temperature. Is
+> > that it? The sensors-detect probed the ADM1021 chip on my board.
+> > 
+> > -----Original Message-----
+> > From: phil@netroedge.com [mailto:phil@netroedge.com]
+> > Sent: Thursday, August 08, 2002 3:49 PM
+> > To: Bryan Dang
+> > Subject: Re: sensors error
+> > 
+> > 
+> > 
+> > Probably /etc/sensors.conf?  Doing a 'make install' should put it 
+> > there, but you might be using the package w/o doing an install?
+> > 
+> > 
+> > Phil
+> > 
+> > On Thu, Aug 08, 2002 at 03:47:32PM -0700, Bryan Dang wrote:
+> > > Phil,
+> > > 
+> > > I ran into this error when running "sensors:
+> > > 
+> > > Could not locate or open config file!
+> > > 
+> > > What config file and where is it supposed to be located?
+> > > 
+> > > Thanks
+> > > 
+> > > Bryan Dang
+> > > Firmware Engineer
+> > > Quantum Corporation
+> > > Storage Solutions Group
+> > > P.O. Box 57100, Irvine, CA 92619-7100
+> > > 
+> > > Tel:	(949) 856-7807
+> > > Fax:	(949) 856-7799
+> > > bryan.dang@quantum.com
+> > > www.quantum.com
+> > > 
+> > 
+> > -- 
+> > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+> >    phil@netroedge.com -- http://www.netroedge.com/~phil
+> >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+> 
+> -- 
+> Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+>    phil@netroedge.com -- http://www.netroedge.com/~phil
+>  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+
+-- 
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
