@@ -1,94 +1,165 @@
-From: peter.oehry@gmx.li (Peter Oehry)
-Date: Thu, 19 May 2005 06:25:03 +0000
-Subject: w83627hf driver
-Message-Id: <1088710103.7174.10.camel@zeus>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:25:07 +0000
+Subject: [Fwd: xeontemp vs. adm1021]
+Message-Id: <4109462F.1060409@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4060A2B2.2060004@edgedesign.us>
-In-Reply-To: <4060A2B2.2060004@edgedesign.us>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hello
 
-I've done some work. I hope I had a recent file to do the diff. (Took it
-from the newest Kernel source 2.6.7-bk14). The patch is attached.
-By the way I'm using this driver since my first mail and I enjoy the
-silent CPU-fan :-)
+That's a good question.  It certainly looks as if it is the CPU temp=20
+since it is quite a bit higher than the board temp.  Strange that the=20
+two CPU's are so different in temp readings, though.  It's also possible=20
+that those readings are actually for something else (like the power supply).
 
-On Wed, 2004-06-30 at 05:13, Mark M. Hoffman wrote:
-> Hello Peter:
-> 
-> Wow, I see it's been a long time, but... yes I'm interested in what
-> you've done with the w83627hf driver - at least what's below looks
-> pretty good to me.  If you have a patch against current, that'd be
-> great!  Otherwise, send whatever you have directly to the sensors
-> mailing list and we'll have a look:
-> 
-> LM Sensors <sensors@Stimpy.netroedge.com>
-> 
-> > Peter Oehry wrote:
-> > 
-> > >Hello Philip
-> > >
-> > >I updated the w83627hf driver with some code to support the QFan options
-> > >of the w83627thf chip. I think, if we have a Chip, that is able to
-> > >control the fans, it's better to let the chip do this work rather than
-> > >software.
-> > >So far my updated driver can control nearly all qfan settings through
-> > >some new sysfs nodes. It does the work perfect for me. I was only able
-> > >to test the settings for fan2 as the MB (ASUS P4P800) so far as I now
-> > >has only the cpu-fan-pwm connected to the chip.
-> > >
-> > >I don't know if there is another driver in the lm_sensors, that can
-> > >already do this. The problem of getting this things into the lm_sensors
-> > >project might be de discussion of how should the new nodes in the sysfs
-> > >be named an how do they behave. I have now idea how many chips the
-> > >ability of qfan have and how different they are to control.
-> > >
-> > >So far I created the following nodes:
-> > >They correspond direct with the datasheet of the w83627thf
-> > >
-> > >qfan[1-3]_mode		Mode are defined as follows:
-> > >			0 = manual Mode
-> > >			1 = thermal cruise
-> > >			2 = fan speed cruise
-> > >			3 = reserved no function
-> > >			offset of 4 controls duty-Bit (if set fan does
-> > >			not turn off)
-> > >qfan[1-3]_start		When at Thermal Cruise mode, fan_pwm will
-> > >			increase from 0 to this register value to provide
-> > >			a minimum value to turn on the fan.
-> > >qfan[1-3]_stop		minimal value for fan_pwm (before it turns of)
-> > >qfan[1-3]_stop_time	defines the time from stop value to 0 in 0.1s
-> > >qfan[1-3]_target	target temperature in ?C
-> > >qfan[1-3]_tolerance	+/- tolerance for target temperature
-> > >qfan_step_down		determines the speed of fan_pwm decreasing 
-> > >the
-> > >			speed, when temperature is below
-> > >			target-tolerance (Unit is 1.6 seconds)
-> > >qfan_step_up		determines the speed of fan_pwm increasing the
-> > >			speed, when temperature is above
-> > >			target+tolerance (Unit is 1.6 seconds)
-> > >
-> > >the good thing about all these changes is that all other functions
-> > >(except that it's not possible to change the pwm_value during cruise
-> > >mode) remains the same. So any front-end application can use all the old
-> > >functions as before.
-> > >
-> > >Let me know if you're interested in my work. I can send you the driver
-> > >as it is or make a diff against my source. It might need some cosmetic
-> > >work before I can give you the driver. I thought I'll do this only if
-> > >you're interested. I can also help in further development or testing. By
-> > >the way I worked with the driver I got from the latest Kernel patch
-> > >(2.6.5-rc2). I am still using a 2.6.1 Kernel patched with some drivers.
-> 
-> Regards,
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: w83627hf.patch
-Type: text/x-patch
-Size: 15588 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040701/c0495d37/w83627hf.bin
+What I would try is to load the machine and monitor the temperatures.=20
+The board temps should rise slowly, but the CPU temps should rise=20
+quickly.  That should give you a easy and definitive answer in just a=20
+minute or so.
+
+
+Phil
+
+PS- Nice to see our stuff at work at Fermilab! ;')
+
+-------- Original Message --------
+Date: Thu, 29 Jul 2004 13:27:01 -0500 (CDT)
+From: Steven Timm <timm@fnal.gov>
+To: frodol@dds.nl, phil@netroedge.com, mdsxyz123@yahoo.com
+Subject: xeontemp vs. adm1021
+Message-ID: <Pine.LNX.4.58.0407291316090.10290@boxer.fnal.gov>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=3DUS-ASCII
+X-Quarentine-Loop: Processed
+X-Spambayes-Classification: ham; 0.00
+
+
+Hi Guys..
+
+Was reading your documentation at
+
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/xeontemp
+
+and
+
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/adm1021
+
+My hardware, Supermicro X5DPA-GG motherboard,
+dual Xeon 2.66GHz 533 FSB chips,512kb L2 cache
+and
+dual Xeon 3.06GHz 533 FSB chips,512kb L2 cache
+
+Running kernel 2.4.20-30.7smp from Redhat with
+lm_sensors 2.8.3 and i2c 2.8.3 modules loaded over top of it.
+
+In modules.conf
+alias char-major-89 i2c-dev
+
+sensors-detect finds the following:
+MODULE_0=3Di2c-i801
+MODULE_1=ADm1021
+MODULE_2=3Dw83781d
+MODULE_3=EEprom
+MODULE_4=3Dsmbus-arp
+
+My question is the following:
+
+The docs on xeontemp which I mention above say that 533 MHz
+xeons don't have the external sensor for the die temp.
+"unfortunately the 533 MHz FSB Xeons dropped the on-board sensor chip"
+
+but the adm1021 docs say " If you have a Xeon and the adm1021
+module loads and both temperatures appear valid, then things are good"
+
+In my case the adm1021 module does load, and I get this:
+
+
+root@fnpc151 root]# sensors
+max1617-i2c-0-18
+Adapter: SMBus I801 adapter at 0540
+Algorithm: Non-I2C SMBus adapter
+Board:       +47C  (low  =3D   -55C, high =3D  +127C)
+CPU:         +53C  (low  =3D   -55C, high =3D   +78C)
+
+max1617-i2c-0-1a
+Adapter: SMBus I801 adapter at 0540
+Algorithm: Non-I2C SMBus adapter
+Board:       +48C  (low  =3D   -55C, high =3D  +127C)
+CPU:         +73C  (low  =3D   -55C, high =3D   +78C)
+
+The CPU temperatures go up and down with CPU activity, as
+expected.
+
+My question is--is this "CPU" temperature that I am
+reading out the temperature of the die?  The vendor
+is telling me that it is.  The documentation you have
+hints that it should be too, but I am just confused by
+the statement that 533MHZ FSB chips don't have this sensor.
+
+At first with lm_sensors 2.6 we did not see the sensor
+but once we ran the sensors-detect from lm_sensors 2.8.3
+we could see it just fine and it appears to be functioning.
+
+Is this sensor the die temperature?
+
+Thanks for your help.
+
+Steve Timm
+
+
+
+
+[root@fnpc151 root]# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 15
+model           : 2
+model name      : Intel(R) Xeon(TM) CPU 3.06GHz
+stepping        : 9
+cpu MHz         : 3066.856
+cache size      : 512 KB
+physical id     : 0
+siblings        : 1
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
+cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm
+bogomips        : 6121.06
+
+processor       : 1
+vendor_id       : GenuineIntel
+cpu family      : 15
+model           : 2
+model name      : Intel(R) Xeon(TM) CPU 3.06GHz
+stepping        : 9
+cpu MHz         : 3066.856
+cache size      : 512 KB
+physical id     : 0
+siblings        : 1
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
+cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm
+bogomips        : 6121.06
+
+
+------------------------------------------------------------------
+Steven C. Timm, Ph.D  (630) 840-8525  timm@fnal.gov=20
+http://home.fnal.gov/~timm/
+Fermilab Computing Division/Core Support Services Dept.
+Assistant Group Leader, Scientific Computing Support Group
+Lead of Computing Farms Team
