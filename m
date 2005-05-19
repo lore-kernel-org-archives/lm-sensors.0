@@ -1,75 +1,58 @@
-From: robs@multiplayer.it (Roberto Sebastiano)
-Date: Thu, 19 May 2005 06:24:26 +0000
-Subject: kernel 2.6.0test10 and sensors 2.8.1 CVS wrong temperature
-Message-Id: <1069871084.1646.9.camel@newdeal>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [PATCH 2.6] I2C: Fix incorrect sysfs file permissions in it87 and
+Message-Id: <20050402212631.41916710.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1069852347.3fc4a6bb69deb@webmail.multiplayer.it>
-In-Reply-To: <1069852347.3fc4a6bb69deb@webmail.multiplayer.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Il mer, 2003-11-26 alle 17:13, Mark Studebaker ha scritto:
-> the temps are 10x too low.
-> fixed in CVS late yesterday.
+Hi Greg,
 
-newdeal:/usr/src/sensors/lm_sensors2# sensors
-eeprom-i2c-0-51
-Adapter: SMBus nForce2 adapter at 5000
-Algorithm: Unavailable from sysfs
-ERROR: data 1
+The it87 and via686a hardware monitoring drivers each create a sysfs
+file named "alarms" in R/W mode, while they should really create it in
+read-only mode. Since we don't provide a store function for these files,
+write attempts to these files will do something undefined (I guess) and
+bad (I am sure). My own try resulted in a locked terminal (where I
+attempted the write) and a 100% CPU load until next reboot.
 
-as99127f-i2c-1-2d
-Adapter: SMBus nForce2 adapter at 5500
-Algorithm: Unavailable from sysfs
-VCore 1:   +1.71 V  (min =3D  +1.49 V, max =3D  +1.81 V)             =20
-VCore 2:   +1.71 V  (min =3D  +1.49 V, max =3D  +1.81 V)             =20
-+3.3V:     +3.41 V  (min =3D  +2.98 V, max =3D  +3.63 V)             =20
-+5V:       +4.95 V  (min =3D  +4.52 V, max =3D  +5.48 V)             =20
-+12V:     +11.61 V  (min =3D +10.82 V, max =3D +13.13 V)             =20
--12V:     -12.14 V  (min =3D  -0.00 V, max =3D  -0.00 V)             =20
--5V:       -4.60 V  (min =3D  -0.00 V, max =3D  -0.00 V)             =20
-fan1:     4753 RPM  (min =3D 3000 RPM, div =3D 2)                    =20
-fan2:        0 RPM  (min =3D 3000 RPM, div =3D 2)                    =20
-fan3:        0 RPM  (min =3D 3000 RPM, div =3D 2)                    =20
-M/B Temp:    +46?C  (high =3D  +127?C, hyst =3D   +60?C)         =20
-CPU Temp:  +33.4?C  (high =3D  +120?C, hyst =3D  +100?C)         =20
-temp3:    +255.4?C  (high =3D  +100?C, hyst =3D  +100?C)         =20
-vid:      +1.650 V
-alarms:  =20
-beep_enable:
-          Sound alarm enabled
+As a side note, wouldn't it make sense to check, when creating sysfs
+files, that readable files have a non-NULL show method, and writable
+files have a non-NULL store method? I know drivers are not supposed to
+do stupid things, but there is already a BUG_ON for several conditions
+in sysfs_create_file, so maybe we could add two more?
 
-Segmentation fault
+Please apply,
+thanks.
 
-M/B and CPU Temp are swapped
-temp3 should be disabled
-also, high and hyst value doesn't make sense I think
+(I leave it to you to decide whether this is a candidate for -stable.)
 
-The backtrace:
-Program received signal SIGSEGV, Segmentation fault.
-0x400bba6b in free () from /lib/tls/libc.so.6
-(gdb) bt
-#0  0x400bba6b in free () from /lib/tls/libc.so.6
-#1  0x4017f8c0 in __after_morecore_hook () from /lib/tls/libc.so.6
-#2  0x080683c0 in ?? ()
-#3  0x40047a98 in __JCR_LIST__ () from /usr/local/lib/libsensors.so.3
-#4  0x40047c64 in completed.1 () from /usr/local/lib/libsensors.so.3
-#5  0xbffff8c0 in ?? ()
-#6  0x4002f67a in free_bus () from /usr/local/lib/libsensors.so.3
-#7  0x4002f584 in sensors_cleanup () from /usr/local/lib/libsensors.so.3
-#8  0x080492a8 in main ()
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.12-rc1-bk5/drivers/i2c/chips/it87.c.orig	2005-04-02 18:09:59.000000000 +0200
++++ linux-2.6.12-rc1-bk5/drivers/i2c/chips/it87.c	2005-04-02 21:12:46.000000000 +0200
+@@ -668,7 +668,7 @@
+ 	struct it87_data *data = it87_update_device(dev);
+ 	return sprintf(buf,"%d\n", ALARMS_FROM_REG(data->alarms));
+ }
+-static DEVICE_ATTR(alarms, S_IRUGO | S_IWUSR, show_alarms, NULL);
++static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+ static ssize_t
+ show_vrm_reg(struct device *dev, char *buf)
+--- linux-2.6.12-rc1-bk5/drivers/i2c/chips/via686a.c.orig	2005-04-02 18:22:48.000000000 +0200
++++ linux-2.6.12-rc1-bk5/drivers/i2c/chips/via686a.c	2005-04-02 21:12:55.000000000 +0200
+@@ -574,7 +574,7 @@
+ 	struct via686a_data *data = via686a_update_device(dev);
+ 	return sprintf(buf,"%d\n", ALARMS_FROM_REG(data->alarms));
+ }
+-static DEVICE_ATTR(alarms, S_IRUGO | S_IWUSR, show_alarms, NULL);
++static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+ /* The driver. I choose to use type i2c_driver, as at is identical to both
+    smbus_driver and isa_driver, and clients could be of either kind */
 
 
-
---=20
-Roberto Sebastiano <robs@multiplayer.it>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Questa parte del messaggio =3D?ISO-8859-1?Q?=E8?=3D firmata
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031126=
-/e30452fa/attachment.bin
+-- 
+Jean Delvare
