@@ -1,50 +1,69 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <20050310204046.6e317c6a.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE246186@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Patrick,
-
-> Note that while not *identical*, the controller shares a lot of
-> similarities with the i810 driver.
-
-I assume i801.
-
-> In SMB_HST_STS (offset 0), bit 6 is "ISUSE_STS", which reads a 0 the
-> first time after the device is reset, then a 1 after that. Seems like
-> it can be used to check if the deivce is ready to be used after a
-> reset..
-
-Thanks for the info. Incidentally it might help me with a problem I have
-with the i2c-viapro driver. You would be surprised how many common
-points there are between the various SMBus masters found on x86
-motherboards.
-
-I guess that this bit is read-only?
-
-According to the source, bit 7 is "DONE". I guess it is read-only as
-well, and set after a successful transaction?
-
-If bit 5 used for anything?
-
-> It says that it only happens at address 0x58. Is there a device there?
-> If there is, perhaps you could try increasing the timeout?
-
-I would guess that 0x58 is the value of the register, which is 7 bits of
-address and 1 bit of R/W. So the device address would rather be 0x44
-(0x58 >> 1). It happens that 0x44 is a special address for SMBus 2.0, if
-I am not mistaken.
-
-I don't know much more, unfortunately.
-
-Anyway thanks Patrick for the info.
-
--- 
-Jean Delvare
+SGkgSmVhbgoKCj4gPiBEdXJpbmcgdGhlIHBvcnRpbmcgb2YgdzgzNzkyZCBkcml2ZXIsIHdlIGhh
+dmUgdHdvIHF1ZXN0aW9ucyBoZXJlOgo+ID4gKDEpIFRoZSBzeXNmcyBpbnRlcmZhY2UgaW4KbGlu
+dXgtMi42LjEwL0RvY3VtZW50YXRpb24vaTJjL3N5c2ZzLWludGVyZmFjZQo+ID4gaXMgbm90IGVu
+b3VnaCBmb3IgdzgzNzkyZCBkcml2ZXIsIHdlIHdhbnQgdG8gYWRkIHNvbWUgb3RoZXIKaW50ZXJm
+YWNlcywKPiA+IHdoaWNoIGFyZSBhYm91dCBXaW5ib25kIFNtYXJ0IEZhbihTbWFydEZhbiBJIGFu
+ZCBTbWFydEZhbiBJSSkuCj4gPiBZb3UgbWF5IHJlZmVyIHRvIHc4Mzc5MmQgZm9yIGxpbnV4LTIu
+NCwgaXQgYWxzbyBoYXMgdGhlIGludGVyZmFjZXMKYWJvdXQKPiA+IFNtYXJ0IEZhbi4KPiA+IENv
+dWxkIHlvdSBnaXZlIG1lIHNvbWUgZ3VpZGFuY2Ugb24gaG93IHRvIGFkZCBzb21lIG5ldyBzeXNm
+cwppbnRlcmZhY2U/Cj4gPiBOZWVkIHdlIGFzayBmb3IgdGhlIHBlcm1pc3Npb24gZnJvbSBMTV9T
+ZW5zb3JzIGdyb3VwIG9yIExpbnV4IGtlcm5lbApncm91cD8KPiAKPiBJIGp1c3QgdG9vayBhIGxv
+b2sgYXQgdGhlIGRhdGFzaGVldC4gSXQgaGFwcGVucyB0aGF0IFNtYXJ0IEZhbiBJSSBmaXRzCj4g
+cmF0aGVyIGdvb2QgaW4gdGhlIGF1dG8tZmFuLXNwZWVkLWNvbnRyb2wgc2NoZW1lIGN1cnJlbnRs
+eSBkZWZpbmVkIGluCj4gdGhlIDIuNiBrZXJuZWwsIHNvIGl0IHNob3VsZG4ndCBiZSBhIHByb2Js
+ZW0uIFRoZSBvbmx5IGRpZmZlcmVuY2UgaXMKPiB0aGF0IGZvciBlYWNoIHRyaXAgcG9pbnQsIHdl
+IGRlZmluZSBhIGhpZ2ggdGVtcGVyYXR1cmUgbGltaXQgYW5kIGFuCj4gaHlzdGVyZXNpcyB0ZW1w
+ZXJhdHVyZSwgd2hpbGUgdGhlIFc4Mzc5MkQgY2hpcCBkZWZpbmVzIGEgbWVkaXVtIGxpbWl0Cj4g
+d2l0aCBhIHRvbGVyYW5jZS4gSXQncyBqdXN0IGEgbWF0dGVyIG9mIGFyaXRobWV0aWNzIHRvIGNv
+bnZlcnQgZnJvbQpvbmUKPiB0byB0aGUgb3RoZXIuCj4gCj4gU21hcnQgRmFuIEksIGFrYSBjcnVp
+c2UgbW9kZSwgZG9lc24ndCBxdWl0ZSBmaXQgaW4gdGhlIG1vZGVsLCBhbHRob3VnaAo+IGl0IGNv
+dWxkIGJlIHNlZW4gYXMgYW4gYXBwcm94aW1hdGUgc3Vic2V0IG9mIFNtYXJ0IEZhbiBJSS4gSSBz
+ZWUKbGl0dGxlCj4gcmVhc29uIHRvIGltcGxlbWVudCBTbWFydCBGYW4gSSB3aGVuIFNtYXJ0IEZh
+biBJSSBpcyBzbyBvYnZpb3VzbHkKPiBiZXR0ZXIsIHNvIEkgd291bGRuJ3QgaW1wbGVtZW50IGl0
+IGF0IGFsbC4KCkl0IHNlZW1zIHRoYXQgb25seSB0aGUgYWRtMTAyNiBjaGlwIGRyaXZlciBjb250
+YWlucwphdXRvLWZhbi1zcGVlZC1jb250cm9sCnNjaGVtZSwgYnV0IHRoZXJlIGFyZSBmZXcgY29t
+bWVudHMgYW5kIGRvY3VtZW50cyBhYm91dCBpdCwgSSBkbyBub3QKY29tcHJlaGVuZAppdCB2ZXJ5
+IHdlbGwuOi0oCgpJIGhhdmUgb25lIHN1Z2dlc3Rpb246CkNhbiB3ZSBhZGQgc29tZSBzbWFydCBm
+YW4gcmVsYXRlZCBzeXNmcy1pbnRlcmZhY2VzLCB3aGljaCBzdGFydCB3aXRoCiJ3Yl8iID8KIndi
+XyIgaW5kaWNhdGVzIHRoYXQgdGhlc2UgaW50ZXJmYWNlcyBhcmUgY3JlYXRlZCBieSBXaW5ib25k
+IGhhcmR3YXJlCm1vbml0b3IKZHJpdmVyLCB0aGVuIHdlIG1heSBpbXBsZW1lbnQgYWxsIHRoZSBT
+bWFydCBGYW4gcmVsYXRlZCBmdW5jdGlvbiBpbiA3OTIKZHJpdmVyLAppbmNsdWRpbmcgU21hcnQg
+RmFuIEkuIGp1c3QgbGlrZSB0aGUgNzkyIGRyaXZlciBmb3IgbGludXgtMi40LgpTbyB0aGF0IHdl
+IGNhbiB3cml0ZSBzb21lIGFwcGxpY2F0aW9ucyBmb3Igb3VyIGN1c3RvbWVycyBlYXNpbHkgaW4g
+dGhlCmZ1dHVyZQpieSB0aGVzZSBpbnRlcmZhY2VzLgoKV2hhdCdzIHlvdXIgb3Bpbmlvbj8gOi0p
+CgoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFvCjIwMDUtMDMtMTEKCgo9PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50
+aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1
+c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1
+dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRl
+ZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRo
+ZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGlu
+ZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91
+ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBm
+b3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXpl
+ZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkg
+cHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBu
+b3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRl
+ZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVu
+YWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcg
+bWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3Rh
+dGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHC
+xXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEip
+zqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tI
+pEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0As
+IKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73
+sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUs
+pKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
