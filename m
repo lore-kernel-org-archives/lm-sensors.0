@@ -1,26 +1,66 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: sensors.c
-Message-Id: <3ED8C09D.8080309@paradyne.com>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 6/22] W1: drop owner field from master and slave
+Message-Id: <200504210213.01427.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Kyosti deleted everything in kernel/sensors.c.
-This was an initialization module used in patched kernels.
+W1: drop owner field from w1_master and w1_slave structures.
+    Just having it there does not magically fixes lifetime
+    rules.
 
-Does anybody have an idea if mkpatch and mkpatched kernels
-will work? How does the initialization work with compiled-in
-sensors in a mkpatched kernel?
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-If somebody would volunteer to test out mkpatch on i2c lk2-4
-and on sensors and report results that would be great.
-We have to figure out what to do with mkpatch.
+ w1.c     |    1 -
+ w1.h     |    2 --
+ w1_int.c |    1 -
+ 3 files changed, 4 deletions(-)
 
-I'm working this weekend on the last two months of email and
-a month of tickets to try and get things into shape
-for a release.
-
-mds
+Index: dtor/drivers/w1/w1_int.c
+=================================--- dtor.orig/drivers/w1/w1_int.c
++++ dtor/drivers/w1/w1_int.c
+@@ -60,7 +60,6 @@ struct w1_master * w1_alloc_dev(u32 id, 
+ 
+ 	dev->bus_master = (struct w1_bus_master *)(dev + 1);
+ 
+-	dev->owner		= THIS_MODULE;
+ 	dev->max_slave_count	= slave_count;
+ 	dev->slave_count	= 0;
+ 	dev->attempts		= 0;
+Index: dtor/drivers/w1/w1.c
+=================================--- dtor.orig/drivers/w1/w1.c
++++ dtor/drivers/w1/w1.c
+@@ -407,7 +407,6 @@ static int w1_attach_slave_device(struct
+ 
+ 	memset(sl, 0, sizeof(*sl));
+ 
+-	sl->owner = THIS_MODULE;
+ 	sl->master = dev;
+ 	set_bit(W1_SLAVE_ACTIVE, &sl->flags);
+ 
+Index: dtor/drivers/w1/w1.h
+=================================--- dtor.orig/drivers/w1/w1.h
++++ dtor/drivers/w1/w1.h
+@@ -64,7 +64,6 @@ struct w1_reg_num
+ 
+ struct w1_slave
+ {
+-	struct module		*owner;
+ 	unsigned char		name[W1_MAXNAMELEN];
+ 	struct list_head	node;
+ 	struct w1_reg_num	reg_num;
+@@ -108,7 +107,6 @@ struct w1_bus_master
+ struct w1_master
+ {
+ 	struct list_head	node;
+-	struct module		*owner;
+ 	unsigned char		name[W1_MAXNAMELEN];
+ 	struct list_head	slist;
+ 	int			max_slave_count, slave_count;
