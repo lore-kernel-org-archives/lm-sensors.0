@@ -1,41 +1,34 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: bug with sensors-detect recommendation for modprobe (fwd)
-Message-Id: <20030216142544.47c76f94.khali@linux-fr.org>
+From: obi@saftware.de (Andreas Oberritter)
+Date: Thu, 19 May 2005 06:25:40 +0000
+Subject: [PATCH] possible bug in i2c-algo-bit's inb function
+Message-Id: <E1D5GN2-0000Bi-KG@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200302161315.h1GDFx1N000464@shire.frodo.local>
-In-Reply-To: <200302161315.h1GDFx1N000464@shire.frodo.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: greg@kroah.com
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com, simon@tk.uni-linz.ac.at
 
+Hi,
 
-Hello,
+while writing a driver for a cardbus card which is supposed to use the
+bit-banging algorithm I noticed that communication with the I2C slave
+(Philips TDA10046) would fail without this patch. It forces SDA to high
+for every bit in i2c_inb() instead of once per byte. Can this patch go
+into the mainline kernel or will this break other drivers? I am using
+Kernel version 2.6.10.
 
-> I found a problem with the modprobe recommendation of sensors-detect.
->=20
-> It should be=20
->=20
->   MODULE_0=3Di2c-viapro
->   MODULE_1=3Di2c-isa
->   MODULE_2=EEprom
->   MODULE_3=ADm1021
->   MODULE_4=3Dvia686a
->=20
-> instead of
->=20
->   MODULE_1=3Di2c-viapro
->   MODULE_2=3Di2c-isa
->   MODULE_3=EEprom
->   MODULE_4=ADm1021
->   MODULE_5=3Dvia686a
+Signed-off-by: Andreas Oberritter <obi@saftware.de>
 
-This is a known problem. We fixed it in 2.6.5, so you might want to
-upgrade.
-
-Thanks for the report anyway.
-
---=20
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+--- linux-2.6/drivers/i2c/algos/i2c-algo-bit.c.orig	2005-02-27 04:39:33.663444536 +0100
++++ linux-2.6/drivers/i2c/algos/i2c-algo-bit.c	2005-02-27 04:39:54.978204200 +0100
+@@ -197,8 +197,8 @@ static int i2c_inb(struct i2c_adapter *i
+ 	struct i2c_algo_bit_data *adap = i2c_adap->algo_data;
+ 
+ 	/* assert: scl is low */
+-	sdahi(adap);
+ 	for (i=0;i<8;i++) {
++		sdahi(adap);
+ 		if (sclhi(adap)<0) { /* timeout */
+ 			DEB2(printk(KERN_DEBUG " i2c_inb: timeout at bit #%d\n", 7-i));
+ 			return -ETIMEDOUT;
