@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: fishor@gmx.net (Alexey Fisher)
 Date: Thu, 19 May 2005 06:25:00 +0000
 Subject: max1619
-Message-Id: <20040526232112.6833cfba.khali@linux-fr.org>
+Message-Id: <200405271651.22592.fishor@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200405211303.18083.fishor@gmx.net>
 In-Reply-To: <200405211303.18083.fishor@gmx.net>
@@ -10,42 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> About this misterious chip, yesterday i did open my computer and found
-> many chips ;-)    . Some i identifide and some not.
-> 
-> W48C111-16H   - Fregency generator
-> SST 28SF040A -  EEPROM
-> HIN 211CAS - ???
-> LTC 1736 CG - Step Down
-> W40S11-02W - SDRAM buff
-> H043 FDS - ???
-> 4431 AWGT 118 - ???
-> AD373 - ???
-> H8 3434 - PROM
-> LM 358 - ??? somthing for powersuplay
-> 4463 AH(A or D) T12A - ???
-> 724661-001 - ???
-> P12AB   FST3383 - ???
-> PCA3356  TK41111 - ???
-> LM4880M - amplfire
-> OCDC42K  MC4303 - ???
-> PU 2211  OCK - ???
-> EP7209-CV-D   -   mp3 (whau i have a mp3  :-o )
-> 
-> maybe you  can halp me to recognise some of them :-)
+> +show_temp(temp_input1, TEMP_FROM_REG);
+> +show_temp(temp_input2, TEMP_FROM_REG);
+> +show_temp(temp_low2, TEMP_FROM_REG);
+> +show_temp(temp_high2, TEMP_FROM_REG);
+> +show_temp(temp_crit2, TEMP_FROM_REG);
+> +show_temp(temp_hyst2, TEMP_FROM_REG);
+>
+> TEMP_FROM_REG doesn't have to be passed by parameter, since it's always
+> the same.
+>
 
-Not really. I hardly know any of these.
+Jaen, I'm not sure what you mean. If you about "temp_hyst2", in these driverer  
+hyst is chenchebl, not always the same.
 
-Your best chance is to ask Google about them. You are looking for a chip
-that is I2C or SMBus compatible, with 0x1f being a possible address
-(some docs could refer to is as 0x3e, which is more or less the "read
-address" for i2c address 0x1f).
+> Once you have fixed everything, and have tested the new version with
+> lm_sensors CVS, you should be able to submit your new driver to Greg KH
+> for inclusion into the main 2.6 tree. Briefly explain what the driver is
+> for and how you wrote it (including the fact that I reviewed it). Don't
+> forget to CC: the lm_sensors mailing list. Note that you have to send
+> the patch *inline* (as opposed to in attachement) when sending patches
+> to Greg. Make sure that your e-mail client won't break it (various
+> e-mail clients would break long lines or replace tabs with spaces...).
 
-Remember that you are probably after a really small chip, since it has
-very few registers.
+Actioly i dont know who is Greg. Am i can finde his Email in documentation ?
 
-Good luck.
+> Thanks, and congratulations again :)
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Thank you, without your halp i newer did it :-)
