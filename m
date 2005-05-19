@@ -1,45 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:57 +0000
+From: azarah@gentoo.org (Martin Schlemmer)
+Date: Thu, 19 May 2005 06:23:58 +0000
 Subject: [RFC PATCH] Re: [OOPS] w83781d during rmmod (2.5.69-bk17)
-Message-Id: <20030602172040.GC4992@kroah.com>
+Message-Id: <1054617753.5269.44.camel@workshop.saharacpt.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030524183748.GA3097@earth.solarsys.private> <3ED8067E.1050503@paradyne.com> <20030601143808.GA30177@earth.solarsys.private>
-In-Reply-To: <20030601143808.GA30177@earth.solarsys.private>
+References: <20030524183748.GA3097@earth.solarsys.private>
+	 <3ED8067E.1050503@paradyne.com>
+	 <20030601143808.GA30177@earth.solarsys.private>
+	 <20030602172040.GC4992@kroah.com>
+In-Reply-To: <20030602172040.GC4992@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@stimpy.netroedge.com>, "Mark D. Studebaker" <mds@paradyne.com>
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@stimpy.netroedge.com>
 
-On Sun, Jun 01, 2003 at 10:38:08AM -0400, Mark M. Hoffman wrote:
-> 
-> This fixes the oops during w83781d module removal by putting the
-> subclient registration back in.  While I was in there, I split
-> w83781d_detect in half in an attempt to reduce the goto madness.
-> 
-> So, the /sys tree looks like this, where 48 & 49 are the subclients.
-> There are no entries (besides name & power) for the subclients.
-> 
-> /sys/bus/i2c/
-> |-- devices
-> |   |-- 0-002d -> ../../../devices/pci0/00:02.1/i2c-0/0-002d
-> |   |-- 0-0048 -> ../../../devices/pci0/00:02.1/i2c-0/0-0048
-> |   `-- 0-0049 -> ../../../devices/pci0/00:02.1/i2c-0/0-0049
-> `-- drivers
->     |-- i2c_adapter
->     `-- w83781d
->         |-- 0-002d -> ../../../../devices/pci0/00:02.1/i2c-0/0-002d
->         |-- 0-0048 -> ../../../../devices/pci0/00:02.1/i2c-0/0-0048
->         `-- 0-0049 -> ../../../../devices/pci0/00:02.1/i2c-0/0-0049
-> 
-> Also, I fixed a bug where this driver would request and release an
-> ISA region, then poke around in that region, then finally request
-> it again.
-> 
-> This patch against 2.5.70 works for me vs. an SMBus adapter.  It needs
-> re-testing against an ISA adapter since my particular chip is SMBus only.
+On Mon, 2003-06-02 at 19:20, Greg KH wrote:
 
-I've applied this and will send it off to Linus in a bit.
+Hiya Greg
 
-thanks,
+While sorda on the topic ... since I did the w83781d driver some time
+ago, I changed boards for a P4C800 (Intel 875 chipset), that have a
+ICH5 southbridge, and not a ICH4 one ....  I tried to add the ID's
+to the i810 driver, and although it does load (even without the
+ID's added), the I2C bus/sensor does not show in /sys.  The w83781d
+driver also load fine btw.
 
-greg k-h
+Any ideas ? Anybody working on 875 support that I can help test ?
+
+
+Thanks,
+
+-- 
+Martin Schlemmer
+
