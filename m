@@ -1,48 +1,27 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: lm_sensors on HP Visualize X-Class?
-Message-Id: <3E937F1F.7010102@paradyne.com>
+From: TJFang@Xyterra.com (TJ Fang)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: application for LM75 sensor
+Message-Id: <E7FEE1294B1AD51192490002A50EF31F0134D3@EXCHSERV>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <264C7DF5751032419C3ED55FF3F546BF04FBC1@saebe007.nmp.nokia.com>
-In-Reply-To: <264C7DF5751032419C3ED55FF3F546BF04FBC1@saebe007.nmp.nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-sorry, we don't know.
-Our usual advice is look at the board, see our FAQ.
+Hi...
 
-Ville.Steudle@nokia.com wrote:
-> Dear lm_sensors team,
-> 
-> I am trying to get the lm_sensors package working on the following hardware:
-> 
-> Name: HP Visualize X-Class (or XL-class if shipped with Linux), HP code is A1280
-> Mainboard: proprietary, rumours say it's manufactured by Tyan for HP
-> Chipset: Serverworks III WS
-> CPU: 2 * Pentium Coppermine (slot 1)
-> Busses: AGP, PCI-32, PCI-64
-> 
-> Note that this is not one of the "Kayak" stations but a bit newer.
-> 
-> The system does have a case LCD panel showing some kind of status info (e.g. "CPU temperature" if the CPU is too hot).
-> 
-> sensors-detect can find the i2c-piix4, but no sensor chips.
-> 
-> maxilife can be loaded, but does not seem to find any sensors, the same with lm75. (Or, that's always possible, I am doing something wrong here.)
-> 
-> 
-> Do you have any idea whether this hardware is supported by lm_sensors?
-> 
-> Any hints what I could/should try?
-> 
-> 
-> HP's end user support was of no help for me (as usual, unfortunately).
-> 
-> 
-> Thanks for reading & thinking.  :-)
-> 
-> Regards,
-> Ville
-> 
+I want to write a linux application to use LM75 sensor driver. Could you
+please tell me how I interface to the driver. Can I consider it as a
+character device driver, which using OPEN, READ, WRITE, CLOSE. If there is
+any example to deal with the LM75 driver will be much helpful, thanks.
+ 
+Regards
+T.J.Fang
+Software Engineer
+Xyterra Computing Inc.
+(480)609-5118
+tjfang@xyterra.com
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020110/5beafdfa/attachment.html
