@@ -1,7 +1,7 @@
-From: killers_soul@hotmail.com (Jason Longland)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: nforce2 i2c module compilation
-Message-Id: <000a01c35bf7$d5cdcd30$0100a8c0@downstairs>
+Message-Id: <20030806121813.GA15366@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000f01c35b57$0985ec80$0100a8c0@downstairs>
 In-Reply-To: <000f01c35b57$0985ec80$0100a8c0@downstairs>
@@ -10,74 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+* Jason Longland <killers_soul@hotmail.com> [2003-08-06 18:50:36 +1000]:
+> 
+> > 2* Is /lib/modules/2.4.20-19.9/build pointing to a real directory, with
+> > sources that match your running kernel? Does this dir have a .config
+> > file that also match your current config?
+> >
+> 
+> by default with recent rh kernels it seems /lib/modules/<insert version
+> here...>/build is actually a real directory, no symlinks involved,
+> containing all the necessary headers and configuration bits and pieces to
+> compile the 3rd party modules (or whatever the case may be)
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+No.  It's a symlink, or it *should* be...
 
-cool... ok...
+mark@jupiter:9[1]$ cat /etc/issue
+Red Hat Linux release 9 (Shrike)
+Kernel \r on an \m
+ 
+mark@jupiter:9[2]$ uname -a
+Linux jupiter.solarsys.private 2.4.20-19.9 #1 Tue Jul 15 17:18:13 EDT 2003 i686 i686 i386 GNU/Linux
+mark@jupiter:9[3]$ cd /lib/modules/2.4.20-19.9
+mark@jupiter:9[4]$ ls -lad build
+lrwxrwxrwx    1 root     root           34 Aug  3 17:20 build -> ../../../usr/src/linux-2.4.20-19.9
+mark@jupiter:9[5]$
 
-> 1* Did you compile and install i2c-2.8.0 before trying to compile
-> lm_sensors? Did it produce any error or warning?
->
+> at the moment though my kernel version is 2.4.21-something-or-ther... as i'm
+> using severn, or trying to...
 
-yes i certainly did in all cases, in one case where i had been using
-2.4.21-ck3 i patched the kernel and set it up as modules that way just to
-try when running sensors-detect although i know that it doesn't patch the
-nforce2 i2c module in that way although i did find that alan cox included it
-in his 2.6.0-test1-ac3 patch, shame no one else does for 2.4 or any other
-kernel
+Maybe they changed this symlink in severn but I very much doubt it.
 
+The only other thing I notice is that you have gcc 3.3, right?  Did
+you build this yourself?  RedHat doesn't provide it yet.
 
-> 2* Is /lib/modules/2.4.20-19.9/build pointing to a real directory, with
-> sources that match your running kernel? Does this dir have a .config
-> file that also match your current config?
->
+ * * * * * * * * * *
 
-by default with recent rh kernels it seems /lib/modules/<insert version
-here...>/build is actually a real directory, no symlinks involved,
-containing all the necessary headers and configuration bits and pieces to
-compile the 3rd party modules (or whatever the case may be)
+Step by step i2c & lm_sensors 2.8.0 on RH9 (derived from my earlier
+message: http://archives.andrew.net.au/lm-sensors/msg02553.html):
 
-at the moment though my kernel version is 2.4.21-something-or-ther... as i'm
-using severn, or trying to...
+1) Install the appropriate kernel-source RPM.  Copy the config file
+that matches your kernel into its proper place, something like this:
 
-> 3* Is /usr/include/asm a real directory or a symlink? To what?
->
+$ cp /usr/src/linux-2.4.20-9/configs/kernel-2.4.20-i686.config \
+     /usr/src/linux-2.4.20-9/.config
 
-yes /usr/include/asm IS a real directory, again no symlinks containing i
-assume are the include headers for building asm related programs
+2) Do *not* do anything else in that tree.  Don't "make clean", don't
+"make dep", nothing.  That screws it all up.  Uninstall & reinstall
+the RPM if you must.
 
-> 4* What if you disable the i2c-nforce2 module (edit
-> kernel/busses/Module.mk)? Does the compilation fail on next module, or
-> goes on?
+NOTE: from here on, I assume you're already running the kernel that
+matches the config above.  That does make it easier.
 
-no idea at the moment as i'm in windblows but will let you know when i give
-it a shot shortly
+3) There is no step 3 anymore ;)
 
+4) Now build & install I2C.
 
+NOTE: If you're using the same tree which failed to build earlier,
+please do a "make clean" first.
 
-*********************************************************************
+5) Now build & install lm_sensors2; same note as above.
 
-All messages originating from me are digitally signed to
-ensure authenticity.
+6) Run sensors-detect, etc.
 
-If any message is not signed it could be due to one of the following to
-reasons:
+That's it!  At i2c/sensors 2.8.0 things got much easier for RH users.
+The only difference from plain vanilla is that you have to remember
+to put that config file in place if you use RH kernels.
 
-1.  my email client isn't working and I've had to use the web browser
-2.  it isn't from me and could be a virus
+Regards,
 
-All content contained herein is copyright (or copyleft...) of the sender.
-
-All messages are scanned using the latest virus definitions
-for Norton Antivirus 2003 prior to sending.
-
-*********************************************************************
------BEGIN PGP SIGNATURE-----
-Version: PGP 8.0
-
-iQA/AwUBPzDBWk9XUfpwf1ScEQKwvQCfckdTWILz8mcssDW1NgTg5sa1bogAnjOJ
-97Wog3ory/3gFY64tF1pmYfi
-=9vtA
------END PGP SIGNATURE-----
-
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
