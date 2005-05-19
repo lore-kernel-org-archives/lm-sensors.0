@@ -1,36 +1,46 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:47 +0000
-Subject: [PATCH 2.6] Setting w83781d fan_div preserves fan_min
-Message-Id: <20040315211200.GB32636@kroah.com>
+From: jcromie@divsol.com (Jim Cromie)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: soekris net4801, at your service.
+Message-Id: <40C67B8C.8010109@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040314174331.60dd549e.khali@linux-fr.org>
-In-Reply-To: <20040314174331.60dd549e.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 14, 2004 at 05:43:31PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This patch makes the w83781d driver preserve fan_min settings when the
-> user changes fan_divs. This isn't done "by default" because the actual
-> fan min value (in RPMs) depends on both the fan_min register and the
-> fan_div register. Only two drivers handle it properly at the moment as
-> far as I know (lm78 and asb100). Several other drivers would need to be
-> fixed the same way, but well, once at a time ;)
-> 
-> Tested on my AS99127F rev.1.
-> 
-> Credits go to Philip Pokorny, since I think I remember he is the one who
-> introduced the method in the lm78 driver in the first place.
-> 
-> This tends to increase the size of the three set_store_regs_fan_div
-> functions, and I am considering refactoring them at some point. Later
-> though.
-> 
-> Please apply, thanks.
 
-Applied, thanks.
+hey folks,
 
-greg k-h
+I just got a soekris net4801, and Id like to offer it up as
+a test/development target.
+
+It has a Geode SC-1100 processor, an i2c/sms bus, a pc87366 super-IO, etc.
+
+Since Im new here, and new to LKM hacking generally,
+heres my (relevant) story, so you know what limits youre dealing with...
+
+I followed Mike Machado's recipe:
+http://www.innercite.com/~mike/soekris/
+so I have a small debian setup running there,
+either via NFS, or the CF onboard.
+
+Ive also got 2.4.26-adeos running on it, (adeos.o loads.. I havent tried 
+anything else)
+an ov511 webcam, and a bunch of other {drivers/}net/* modules. (again, 
+they load..)
+
+Ive patched pci.ids to add some Geode-Fu, which shows up in /proc/pci
+Where should I ask what 'good' identification strings are ? here ?
+
+I also forced scx200.c to recognize PCI DEV ID = 510 in addition to ID = 
+500,
+and the module loads. ( Ive gone no further yet, I dont want to burn my 
+box )
+
+Im a perl geek, so hi Jean Delvare, Id love to get my hands on some of
+your test-scripts, theyll help a lot in giving me some context, use cases.
+
+
+thanks all, hope I can help,
+
+Jim Cromie
