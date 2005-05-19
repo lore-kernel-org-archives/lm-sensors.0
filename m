@@ -1,33 +1,43 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: Fw: [PATCH 2.6] New chip driver: pcf8574
-Message-Id: <20040319212133.GA12366@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:33 +0000
+Subject: as99127f additional temps
+Message-Id: <20040110134945.6e58ea97.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040318224531.GA23105@pc.aurel32.private>
-In-Reply-To: <20040318224531.GA23105@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 18, 2004 at 11:45:31PM +0100, Aurelien Jarno wrote:
-> Oops, I send a patch to Greg KH and I forgot to copy the lm-sensors 
-> list. Please find below the mail I sent to him.
-> 
-> Sorry for all.
-> 
-> ----- Original Message -----
-> From: Aurelien Jarno <aurelien@aurel32.net>
-> To: Greg KH <greg@kroah.com>
-> Sent: Thu, 18 Mar 2004 23:37:37 +0100
-> Subject: [PATCH 2.6] New chip driver: pcf8574
-> 
-> Hi Greg,
-> 
-> Please find below a patch against kernel 2.6.5-rc1 to add the pcf8574
-> driver (an I/O expander for the I2C bus). I have ported it from the 2.4
-> version, and it includes some fixes and simplifications.
+Hi all,
 
-Applied to my trees, thanks.
+From what I see in the w83781d driver, it is assumed that the as99127f
+extra temperatures are 9 bit signed values with LSB = 0.25 degree C (as
+opposed to LSB = 0.5 degree C in other winbond chips and lm75 itself).
 
-greg k-h
+What reason do we have for such an assumption?
+
+I think we are wrong here, for the following reasons:
+
+1* Asus chips are known to be copied from Winbond ones. I don't see any
+reason they would change the LSB value. What's more, MMH's asb100 driver
+uses standard lm75 conventions.
+
+2* For all boards using the as99127f, a conversion is needed for temp2
+and temp3 (which is not that frequent AFAIK), and the default is:
+    compute temp2 @*2.0, @/2.0
+    compute temp3 @*2.0, @/2.0
+Which brings us back to a 0.5 LSB. I know that Asus are the recognized
+international champions of senseless temperature conversions (as I have
+experienced on my TX97-E) but let's not charge them with something they
+probably haven't done.
+
+So I propose that we use standard lm75 conversions for the as99127f
+subclients. This will simplify the code much. Comments, objections?
+
+BTW, MMH, would it make sense to move the as99127f support from w83781d
+to asb100? I haven't looked at the code in deep myself yet, just
+wondering if you have an opinion.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
