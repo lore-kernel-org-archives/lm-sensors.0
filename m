@@ -1,143 +1,32 @@
-From: ben-linux@fluff.org (Ben Dooks)
-Date: Thu, 19 May 2005 06:25:46 +0000
-Subject: [PATCH] s3c2410 i2c functionality and fixes
-Message-Id: <20050326171358.GA25534@home.fluff.org>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:31 +0000
+Subject: [b-gruber@gmx.de: lm_sensors && bt869]
+Message-Id: <20031225194120.GA1664@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-This patch, from an request by Jean Delvare, does the following
-updates to the s3c2410 i2c driver:
-
-Properly report the i2c functionality by adding to the
-`.functionality` field of the adapter
-
-Change the dev_err() call on no-ack to an dev_dbg() to make
-it less noisy when the bus is being probed by i2cdetect, etc.
-
-Add I2C_M_REV_DIR_ADDR to properly implement the
-I2C_FUNC_PROTOCOLO_MANGLING.
-
-Ensure that the adapter owner field is set to THIS_MODULE
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-
-diff -urN -X ../dontdiff linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c
---- linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c	2005-03-25 11:47:29.000000000 +0000
-+++ linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c	2005-03-26 17:02:35.000000000 +0000
-@@ -1,6 +1,6 @@
- /* linux/drivers/i2c/busses/i2c-s3c2410.c
-  *
-- * Copyright (C) 2004 Simtec Electronics
-+ * Copyright (C) 2004,2005 Simtec Electronics
-  *	Ben Dooks <ben@simtec.co.uk>
-  *
-  * S3C2410 I2C Controller
-@@ -188,6 +188,9 @@
- 	} else
- 		stat |= S3C2410_IICSTAT_MASTER_TX;
- 
-+	if (msg->flags & I2C_M_REV_DIR_ADDR)
-+		addr ^= 1;
-+
- 	// todo - check for wether ack wanted or not
- 	s3c24xx_i2c_enable_ack(i2c);
- 
-@@ -287,7 +290,7 @@
- 		    !(i2c->msg->flags & I2C_M_IGNORE_NAK)) {
- 			/* ack was not received... */
- 
--			dev_err(i2c->dev, "ack was not received\n" );
-+			dev_dbg(i2c->dev, "ack was not received\n" );
- 			s3c24xx_i2c_stop(i2c, -EREMOTEIO);
- 			goto out_ack;
- 		}
-@@ -555,11 +558,19 @@
- 	return -EREMOTEIO;
- }
- 
-+/* declare our i2c functionality */
-+
-+static u32 s3c24xx_i2c_func(struct i2c_adapter *adap)
-+{
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_PROTOCOL_MANGLING;
-+}
-+
- /* i2c bus registration info */
- 
- static struct i2c_algorithm s3c24xx_i2c_algorithm = {
- 	.name			= "S3C2410-I2C-Algorithm",
- 	.master_xfer		= s3c24xx_i2c_xfer,
-+	.functionality		= s3c24xx_i2c_func,
- };
- 
- static struct s3c24xx_i2c s3c24xx_i2c = {
-@@ -567,6 +578,7 @@
- 	.wait	= __WAIT_QUEUE_HEAD_INITIALIZER(s3c24xx_i2c.wait),
- 	.adap	= {
- 		.name			= "s3c2410-i2c",
-+		.owner			= THIS_MODULE,
- 		.algo			= &s3c24xx_i2c_algorithm,
- 		.retries		= 2,
- 		.class			= I2C_CLASS_HWMON,
--------------- next part --------------
-diff -urN -X ../dontdiff linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c
---- linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c	2005-03-25 11:47:29.000000000 +0000
-+++ linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c	2005-03-26 17:02:35.000000000 +0000
-@@ -1,6 +1,6 @@
- /* linux/drivers/i2c/busses/i2c-s3c2410.c
-  *
-- * Copyright (C) 2004 Simtec Electronics
-+ * Copyright (C) 2004,2005 Simtec Electronics
-  *	Ben Dooks <ben@simtec.co.uk>
-  *
-  * S3C2410 I2C Controller
-@@ -188,6 +188,9 @@
- 	} else
- 		stat |= S3C2410_IICSTAT_MASTER_TX;
- 
-+	if (msg->flags & I2C_M_REV_DIR_ADDR)
-+		addr ^= 1;
-+
- 	// todo - check for wether ack wanted or not
- 	s3c24xx_i2c_enable_ack(i2c);
- 
-@@ -287,7 +290,7 @@
- 		    !(i2c->msg->flags & I2C_M_IGNORE_NAK)) {
- 			/* ack was not received... */
- 
--			dev_err(i2c->dev, "ack was not received\n" );
-+			dev_dbg(i2c->dev, "ack was not received\n" );
- 			s3c24xx_i2c_stop(i2c, -EREMOTEIO);
- 			goto out_ack;
- 		}
-@@ -555,11 +558,19 @@
- 	return -EREMOTEIO;
- }
- 
-+/* declare our i2c functionality */
-+
-+static u32 s3c24xx_i2c_func(struct i2c_adapter *adap)
-+{
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_PROTOCOL_MANGLING;
-+}
-+
- /* i2c bus registration info */
- 
- static struct i2c_algorithm s3c24xx_i2c_algorithm = {
- 	.name			= "S3C2410-I2C-Algorithm",
- 	.master_xfer		= s3c24xx_i2c_xfer,
-+	.functionality		= s3c24xx_i2c_func,
- };
- 
- static struct s3c24xx_i2c s3c24xx_i2c = {
-@@ -567,6 +578,7 @@
- 	.wait	= __WAIT_QUEUE_HEAD_INITIALIZER(s3c24xx_i2c.wait),
- 	.adap	= {
- 		.name			= "s3c2410-i2c",
-+		.owner			= THIS_MODULE,
- 		.algo			= &s3c24xx_i2c_algorithm,
- 		.retries		= 2,
- 		.class			= I2C_CLASS_HWMON,
+LS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgZnJvbSBCZXJuaSA8Yi1ncnViZXJAZ214LmRlPiAtLS0t
+LQoKWC1BdXRoZW50aWNhdGVkOiAjMTU5Mjk1NApGcm9tOiBCZXJuaSA8Yi1ncnViZXJAZ214LmRl
+PgpSZXBseS1UbzogQmVybmkgPGItZ3J1YmVyQGdteC5kZT4KVG86IGZyb2RvbEBkZHMubmwKU3Vi
+amVjdDogbG1fc2Vuc29ycyAmJiBidDg2OQpYLVNwYW0tU3RhdHVzOiBObywgaGl0cz0tMC41IHJl
+cXVpcmVkPTUuMCB0ZXN0c95BUl9TT01FQk9EWSB2ZXJzaW9uPTIuMjAKWC1TcGFtLUxldmVsOiAK
+CkRlYXIgRnJvZG8sCgpJIHNhdyB0aGF0IHlvdSBoYXZlIGRldmVsb3BlZCB0aGUgYnQ4NjkgZHJp
+dmVyIGZvciB0aGUgbG1fc2Vuc29ycwpwcm9qZWN0LiBJIGFsd2F5cyB1c2VkIHlvdXIgbW9kdWxl
+IHdpdGggbXkgVm9vZG9vMyAzMDAwIEFHUCB3aXRob3V0Cm1ham9yIHByb2JsZW1zLiBIb3dldmVy
+LCBJIGhhZCB0byBzd2l0Y2ggdG8gdGhlIDIuNi4wIExpbnV4IGtlcm5lbCBhbmQKbm93IEkgZG9u
+J3Qga25vdyBob3cgdG8gZ2V0IHRoZSBUVi1PdXQgd29ya2luZy4gQWNjb3JkaW5nIHRvIHRoZQps
+bS1TZW5zb3JzIGhvbWVwYWdlLCB0aGUgbW9kdWxlcyBjYW4ndCBiZSB1c2VkIHdpdGggdGhlIDIu
+Ni4wIGtlcm5lbAoodGhlIGkyYy12b29kb28zIGlzIGFscmVhZHkgaW5jbHVkZWQgaW4gdGhlIGtl
+cm5lbCBidXQgdGhlcmUncyBubwpidDg2OSkuIERvIHlvdSBrbm93IGFueSB3YXkgaG93IHRvIGdl
+dCBhcm91bmQgdGhhdCBwcm9ibGVtIG9yIGFueW9uZQp3aG8gY291bGQgaGVscCBtZT8gSXNuJ3Qg
+dGhlcmUgYSB3YXkgdG8gbG9hZCB0aGUgYnQ4NjktbW9kdWxlIGluIGEKMi42LjAga2VybmVsPwoK
+VGhhbmtzIGluIGFkdmFuY2UgZm9yIHlvdXIgaGVscCEKCkJlcm5oYXJkIEdydWJlcgoKLS0tLS0g
+RW5kIGZvcndhcmRlZCBtZXNzYWdlIC0tLS0tCgotLSAKRnJvZG8gTG9vaWphYXJkIDxmcm9kb2xA
+ZGRzLm5sPiAgUEdQIGtleSBhbmQgbW9yZTogaHR0cDovL2h1aXplbi5kZHMubmwvfmZyb2RvbApE
+ZWZlbmVzdHJhdGlvbiBuLiAoZm9ybWFsIG9yIGpvYy4pOgogIFRoZSBhY3Qgb2YgcmVtb3Zpbmcg
+V2luZG93cyBmcm9tIHlvdXIgY29tcHV0ZXIgaW4gZGlzZ3VzdCwgdXN1YWxseSBmb2xsb3dlZAog
+IGJ5IHRoZSBpbnN0YWxsYXRpb24gb2YgTGludXggb3Igc29tZSBvdGhlciBVbml4LWxpa2Ugb3Bl
+cmF0aW5nIHN5c3RlbS4K
