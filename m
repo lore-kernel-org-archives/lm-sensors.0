@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: fishor@gmx.net (Alexey Fisher)
 Date: Thu, 19 May 2005 06:24:59 +0000
 Subject: max1619
-Message-Id: <20040524225201.01acb423.khali@linux-fr.org>
+Message-Id: <200405251005.31345.fishor@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200405211303.18083.fishor@gmx.net>
 In-Reply-To: <200405211303.18083.fishor@gmx.net>
@@ -10,24 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I houp it's last one diff
+Hi Jean
 
-I commited your work, with a few unimportant fixes (indentation and the
-like). Thanks!
+> By the way, did
+> you test your 2.4 driver?
 
-If you ever want to do any change to the driver, just send a patch based
-on latest CVS.
+yes i did and i tested new CVS
 
-> if avery think is OK I begin with 2.6.6-mm4. Or i supou beginn with
-> 2.6.6-mm5?
+linux 2.6.6-mm5 is testet too.
 
-Yes, 2.6.6-mm5 is fine.
+here is two patches for linux kernel and for CVS
 
-It shouldn't be more difficult than for the 2.4 driver. By the way, did
-you test your 2.4 driver?
-
-Thanks.
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Thank you : - )
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: linux-2.6.6-mm5-max1619.diff
+Type: text/x-diff
+Size: 12917 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040525/43054f65/linux-2.6.6-mm5-max1619.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors2-max1619-prog.diff
+Type: text/x-diff
+Size: 1187 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040525/43054f65/lm_sensors2-max1619-prog.bin
