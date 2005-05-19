@@ -1,76 +1,63 @@
-From: jthiessen@penguincomputing.com (Justin Thiessen)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: Ticket #1851 - PATCH (take 2) for adm1026.c, kernel 2.6.10-bk6
-Message-Id: <20050103221249.GB12765@penguincomputing.com>
+From: maurice@harddata.com (Maurice Hilarius)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: lmsensors on Tyan S2466 motherboard
+Message-Id: <5.1.0.14.2.20020223105744.0427c230@mail.harddata.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41D5D075.4000200@paradyne.com>
- <20050101001205.6b2a44d3.khali@linux-fr.org>
- <20050103194355.GA11979@penguincomputing.com>
- <20050103201056.3c55e330.khali@linux-fr.org>
- <20050103213707.GA12765@penguincomputing.com>
- <20050103205231.GK9923@schnapps.adilger.int>
-In-Reply-To: <20050103205231.GK9923@schnapps.adilger.int>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 03, 2005 at 01:52:31PM -0700, Andreas Dilger wrote:
-> On Jan 03, 2005  13:37 -0800, Justin Thiessen wrote:
-> > The amount of duplicated code is only a few lines, and I think the result is
-> > clearer if it is not extracted into a separate function.  See the following
-> > patch.
-> 
-> > +	value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3)
-> > +		| (adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7)
-> > +		<< 8);
-> 
-> The formatting of this makes it hard to follow the logic.  The "<< 8"
-> operation isn't aligned with the nesting parenthesis and at first I
-> thought there was an ambiguous order of operation "|" vs "<<".
-> 
-> How about the following:
-> 
-> --- linux-2.6.10/drivers/i2c/chips/adm1026.c.orig	2005-01-02 15:21:58.000000000 -0800
-> +++ linux-2.6.10/drivers/i2c/chips/adm1026.c	2005-01-02 18:27:40.695689832 -0800
-> @@ -452,6 +452,14 @@ void adm1026_init_client(struct i2c_clie
->  		client->id, value);
->  	data->config1 = value;
->  	adm1026_write_value(client, ADM1026_REG_CONFIG1, value);
-> +
-> +	/* initialize fan_div[] to hardware defaults */
-> +	value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3) |
-> +		(adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7) << 8);
-> +	for (i = 0;i <= 7;++i) {
-> +		data->fan_div[i] = DIV_FROM_REG(value & 0x03);
-> +		value >>= 2;
-> +	}
->  }
->  
->  void adm1026_print_gpio(struct i2c_client *client)
+I am interested in getting lmsensors working on the Tyan S2466 motherboard 
+(AMD 768MPX)
+I asked Tyan's people if they could share some info on their 
+implementation, and the following is what I got.
+I do not know of this is useful or not, but I thought it could not hurt to 
+send..
+
+On this subject, I wonder if anyone is working on this?
+
+Thanks!
+
+======================Winbond83627HF SuperI/O & Hardware Monitor chip
+and
+Winbond83782D Hardware Monitor chip.
+
+W83627HF SMBus slave address is 0x2C
+Sensor                pin#            address
+CPU1 FAN              113                0x28
+CPU2 FAN              112                0x29
+CPU1 Core Voltage     100                0x20
+CPU2 Core Voltage      99                0x21
+System Voltage 3.3V    98                0x22
+System Voltage 12V     96                0x24
+System Voltage -12V    95                0x25
+VRM1 Temperature      104                0x27
+DDR Temperature       102                0x50(bank2)
+AGP Temperature       103                0x50(bank1)
 
 
-I'm fine with shifting the CRs around if it makes everyone happier.  I was
-lazy when I cut and pasted the snippet of code and did nothing other than
-change the number of tabs to match the surrounding code. This, of course, 
-is what actually made the reformatting you did possible.  I've read these and 
-similar lines so many times I'm not sure if I'd notice whether or not they
-were hard or easy to parse.  Feedback is GOOD.
+W83782D SMBus slave address is 0x2D
+Sensor                pin#             address
+Chassis Fan 1          20                0x28
+Chassis Fan 2          19                0x29
+Chassis Fan 3          18                0x2A
+System Voltage 5V      33                0x23
+AGP Voltage            34                0x22
+DDR Voltage            32                0x24
+Battery Voltage        30                0x51(bank5)
+Standby 3.3V           28                0x26
+CPU1 Temperature       39                0x50(bank1)
+CPU2 Temperature       38                0x50(bank2)
+VRM2 Temperature       40                0x27
 
-> Also, on a completely "I don't know what the hell I'm talking about" point,
-> it seems odd that for values named "0_3" and "4_7" you would upshift the
-> "4_7" value 8 bits instead of 4, but it could be just a bad choice of
-> variable names.
 
-It's a variable nomenclature that I inherited from the 2.4.X kernel series
-driver.  If you look a bit closer the code will make sense.  Remember this:
+With our best regards,
 
-(1) There are 8 fan divisors stored in 2 byte-size registers.
-(2) Each fan divisor is represented by 2 bits.
+Maurice W. Hilarius       Telephone: 01-780-456-9771
+Hard Data Ltd.               FAX:       01-780-456-9772
+11060 - 166 Avenue        mailto:maurice@harddata.com
+Edmonton, AB, Canada      http://www.harddata.com/
+    T5X 1Y3
 
-And the result should be clear.
-
-Justin Thiessen
----------------
-jthiessen@penguincomputing.com
-
+Ask me about the UP1500 Alpha - Full systems from $3,500!
