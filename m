@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:49 +0000
 Subject: help?
-Message-Id: <20030227101236.77243cc6.khali@linux-fr.org>
+Message-Id: <20030228105631.46152599.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.44.0302252341500.5703-100000@localhost.localdomain>
 In-Reply-To: <Pine.LNX.4.44.0302252341500.5703-100000@localhost.localdomain>
@@ -11,63 +11,80 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I have installed lm_sensors on a dual Athlon MP2200+ Tyan motherboard.
-> A Winbond chip is detected and this is the evidently wrong output of 
-> sensors:
+[PLEASE REPLY TO THE LIST, NOT TO ME ALONE]
+
+> > Well, it's not that wrong. The incorrect values may just mean you
+> > don't have the sensor and you have to ignore the value. Having a
+> > look "in the BIOS" sometimes show which sensors your motherboard is
+> > supposed to have.
 > 
-> w83627hf-i2c-0-2c
+> Thank you for the swift answer.
+> The BIOS says nothing but reports quite different values for
+> temperatures and fan's rpms w.r.t. the sensors command. Also some
+> voltage is off limits. By the way, is it conceivable to read data
+> directly from the bios or is the bios completely inactive when the
+> linux kernel runs? 
+
+As far as I know, the "BIOS" does just what we do with i2c/lm_sensors
+for Linux. I don't think there's anything like "reading data directly
+from the BIOS". If you don't have the same results between the BIOS and
+lm_sensors, then there's somethinhg wrong and it needs fixin'. There are
+two possibilities. Either the driver is OK but the resistors are
+different on this motherboard, so you have to tweak the formula to get
+the right value. Or the driver isn't working for you. Both cases,
+there's almost nothing we can do until you investigate and give us
+valuable information to start from (either from the motherboard docs or
+experimental). So, if you want us to fix the problem, please gather as
+much information as possible and let us know.
+
+> > You have to edit /etc/sensors.conf. Look for "w83627hf" and you
+> > should find where to change it a few dozen lines below. However, it
+> > is supposed to work with 782d/783s only. You still can give it a
+> > try, though.
+> 
+> I edited those lines but the readings do not change, including the 
+> statement that sensors are  PII Celeron diodes. 
+
+Didn't you forget to issue a "sensors -s" (as root) after editing the
+config file?
+
+> By the way, sensors-detect says it find also some eeprom chips (and
+> twice with the same confidence level 8 of the w83627hf. But when I
+> insert the eeprom module in the kernel, noting is read:
+> 
+> eeprom-i2c-0-50
 > Adapter: SMBus AMD7X6 adapter at 80e0
 > Algorithm: Non-I2C SMBus adapter
-> VCore 1:   +1.66 V  (min =  +1.48 V, max =  +1.80 V)              
-> VCore 2:   +1.66 V  (min =  +1.48 V, max =  +1.80 V)              
-> +3.3V:     +3.29 V  (min =  +2.97 V, max =  +3.63 V)              
-> +5V:       +4.89 V  (min =  +4.50 V, max =  +5.48 V)              
-> +12V:      +9.42 V  (min = +10.79 V, max = +13.11 V)              
-> -12V:     -12.29 V  (min = -13.21 V, max = -10.90 V)              
-> -5V:       +0.01 V  (min =  -5.51 V, max =  -4.51 V)              
-> V5SB:      +5.38 V  (min =  +4.50 V, max =  +5.48 V)              
-> VBat:      +3.28 V  (min =  +2.70 V, max =  +3.29 V)              
-> fan1:     2721 RPM  (min = 3000 RPM, div = 2)                     
-> fan2:     2848 RPM  (min = 3000 RPM, div = 2)                     
-> fan3:        0 RPM  (min = 1500 RPM, div = 4)                     
-> temp1:       +67?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 
-> PII/Celeron diode           
-> temp2:      +1.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 
-> PII/Celeron diode           
-> temp3:      +3.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 
-> PII/Celeron diode           
-> vid:       +1.65 V
-> alarms:   Chassis intrusion detection                      ALARM
-> beep_enable:
->           Sound alarm disabled
-
-Well, it's not that wrong. The incorrect values may just mean you don't
-have the sensor and you have to ignore the value. Having a look "in the
-BIOS" sometimes show which sensors your motherboard is supposed to have.
-
-> What should I do? Perhaps changing from "PII/Celeron diode" according
-> to the suggestion in /usr/share/doc/lm_sensors-2.6.3/doc/chips/w83781d
 > 
->         sensor[1-3]: (782d/783s only)
->           Controls the sensor type. To change to a different
->           sensor type, for example, do 'echo 2 > sensor1'.
->           Valid values:
->                1: Pentium II / Celeron diode
->                2: 2N3904 Transistor in a diode configuration
->             3435: Thermistor with Beta = 3435. Beta is a measure
->                   of sensitivity to temperature.
+> eeprom-i2c-0-51
+> Adapter: SMBus AMD7X6 adapter at 80e0
+> Algorithm: Non-I2C SMBus adapter
 > 
-> But I haven't quite understood how.
+> eeprom-i2c-0-54
+> Adapter: SMBus AMD7X6 adapter at 80e0
+> Algorithm: Non-I2C SMBus adapter
+> 
+> Does that simply mean that sensors-detect is fooled or the problem is
+> that no specifications are provided in /etc/sensors.conf? I have other
+> dual motherboards in a cluster where only the eeprom and no w83627hf
+> are reported by sensors-detect. 
 
-You have to edit /etc/sensors.conf. Look for "w83627hf" and you should
-find where to change it a few dozen lines below. However, it is supposed
-to work with 782d/783s only. You still can give it a try, though.
+It probably means that it doesn't recognize the kind of EEPROM it found.
+Usually, EEPROMS are found on memory chips. We've also seen proprietary
+EEPROMs on some laptops (namely Sony Vaio). Is this system a laptop (or
+a desktop of some brand)?
 
-If it doesn't work, you may just want to suppress the output for values
-that don't make a sense for you. To do this, you'll have to add "ignore"
-lines in /etc/sensors.conf. For exemple, "ignore temp3" will remove the
-"temp3" line. Just make sure you add the line in the right section of
-the config file, or it won't work.
+You may want to dump the EEPROM's contents to guess what it may be. To
+do this, unload the eeprom module (rmmod eeprom), then run the following
+commands:
+
+i2cdump 0 0x50
+i2cdump 0 0x51
+i2cdump 0 0x54
+
+> Thank you again.
+
+You're welcome.
 
 -- 
 Jean Delvare
