@@ -1,19 +1,27 @@
-From: Helpdesk@twilightinc.nl (TwiLight INC)
+From: r.marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: Asus PCH-DR
-Message-Id: <425E7468.8020500@twilightinc.nl>
+Message-Id: <425ED53C.1050109@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <425E7468.8020500@twilightinc.nl>
+In-Reply-To: <425E7468.8020500@twilightinc.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear sir/madam,
+Hello,
 
-I have an PCH_DR motherboard with W83627HF at least thats what it said,
-my question is if there is some sort of port to get the right data from it.
+Please install lm_sensors package on your system. You can have it from our website.
+(Follow different instructions for 2.6 and 2.4 kernels)
 
-Yours Faithfully
+When installed please run sensors-detect
+It will tell you what chip it found and what modules to load.
 
-M Veldhuizen
-Netherlands
+Load them and issue sensors command. You can fine tune your configuration by editing /etc/sensors.conf
+
+I hope this helps
+
+Regards
+
+Rudolf
