@@ -1,32 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:06 +0000
-Subject: Lm-sensors 2.8.0 on Asus P3B-F
-Message-Id: <20030721084610.4e96adee.khali@linux-fr.org>
+From: rindjon@yahoo.com (Ron Rindzunski)
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: struct i2c_adapter
+Message-Id: <20050313095755.65690.qmail@web30809.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <OFCA88DDCC.BD2AC8B4-ONC1256D69.007A5603-C1256D69.007B6BB2@apelseth.com>
-In-Reply-To: <OFCA88DDCC.BD2AC8B4-ONC1256D69.007A5603-C1256D69.007B6BB2@apelseth.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi !
+trying to port my own application using i2c 2.6.1 interface version to i2c 2.9.0 version i got two compile errors, both referring to changes been done in struct i2c_adapter in i2c.h file:
+problem # 1:
+struct i2c_adapter {
+-    struct semaphore lock; 
+      was replaced by    
++   struct semaphore bus;
++   struct semaphore list;
+problem # 2:
+-    int client_count;
+     has been deleted completely
+}
+ 
+can you please explain to me what were those fields original intention, why did you apply the changes, and most important - what should i do in order to overcome the problems resulting from those changes.
+ 
+thanks
+Ron
+rindjon@yahoo.com  
 
-> Thank's for the fast reply and now i might hav another silly question.
-> 
-> How can i pick out the "temp2" value from sensors then?
-> 
-> With the sensors command:
-> temp2:     +40.0?C  (limit =  +67?C, hysteresis =  +60?C)
-> 
-> but with the: head -1l /proc/sys/dev/sensors/as99127f-i2c-0-2d/temp2
-> 60.0 50.0 22.0
 
-As Mark told you, the values in /proc are raw ones, they don't have to
-have a meaning. Use the values 'sensors' returns. That said, the support
-for as99127f was made with no datasheet, so some values it reports may
-be wrong, and there's nothing we can do until Asus accepts helping us -
-which should not happend before one dozen centuries, as it turns out :(
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+		
+---------------------------------
+Do you Yahoo!?
+ Yahoo! Mail - You care about security. So do we.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050313/47501b6f/attachment.html
