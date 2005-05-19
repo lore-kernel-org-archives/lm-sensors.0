@@ -1,35 +1,40 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:16 +0000
-Subject: Donation of an I2C host adapter to lm_sensors
-Message-Id: <20040920000322.GB3652@jupiter.solarsys.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: I2C driver for Linux
+Message-Id: <20040515083517.5d91a699.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1095095083.3132.28.camel@localhost.localdomain>
-In-Reply-To: <1095095083.3132.28.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Derek:
+> My current project is "PC-based, Linux robot". I need to use I2C. I
+> made an adapter with 74LS05 and I try to operate with C codes I found.
+> But I could not operate this.
+>  
+> Could you help me? Would like to know what distribution you used.
+> Could you show me step by step, hard and software for controlling I2C
+> bus. Could I have you sample codes of using I2C bus?
 
-* Derek Fung <derek@totalphase.com> [2004-09-17 09:59:16 -0700]:
-> This is a very interesting use-case for the Aardvark adapter. 
-> Unfortunately, we would not be able to directly support development of
-> this, but here are some thoughts:
-> 
-> 1) aardvark.so is very complex and cannot easily be ported into kernel
-> space.
-> 
-> 2) We are unable to release the source code to aardvark.so for IP
-> reasons.
+Distribution is irrelevant, any will do.
 
-I don't think this is what MDS was asking for.
+No chance we will guide you step by step. There is plenty of
+documentation and code available. Read them first. We'll help on
+specific questions, but cannot do the whole work for you.
 
-Are you able to release specifications for the hardware which would be
-sufficient for us to write our own drivers?
+Anything you need is in our i2c and lm_sensors packages, which you can
+download here:
+http://secure.netroedge.com/~lm78/download.html
 
-Regards,
+i2c has the lowest level drivers, while lm_sensors has
+hardware-monitoring drivers and tools.
+
+Sample kernel code can be found under lm_sensors/kernel/chip. Sample
+user-space code can be found under lm_sensors/prog/dump and
+lm_sensors/prog/sensors.
+
+Good luck.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://khali.linux-fr.org/
