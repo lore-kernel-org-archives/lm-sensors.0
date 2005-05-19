@@ -1,30 +1,66 @@
-From: olegg@ukrpack.net (Oleg Gritsinevich)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: Problems with Intel SDS2 server board
-Message-Id: <20040322083749.GA1879@kunashir.ukrpack.net>
+From: meo@rru.com (Miles O'Neal)
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: old Dell support
+Message-Id: <200310110353.h9B3r6815801@hostname.rru.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040318142540.GA1450@kunashir.ukrpack.net>
-In-Reply-To: <20040318142540.GA1450@kunashir.ukrpack.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Mar 20, 2004 at 05:40:26PM -0500, Mark Studebaker wrote:
-> Be sure you have IPMI enabled in the kernel,
-> then load it, and load our i2c-ipmi driver, then bmcsensors should
-> return useful information.
-> 
-	Mark, thank you very much! I loaded with 'modprobe' following
-modules: ipmi_msghandler, ipmi_devintf, ipmi_kcs_drv, ipmi_watchdog,
-i2c-ipmi. Then I run '/etc/init.d/lm_sensors start', it loaded modules
-found by 'sensors-detect' and all start to work!
-	Now bmcsensors gives me data from 3 temp, 10 volt, 0 current,
-6 fan sensors. I'm happy :-)
+I have a Dell PE2200 server at home I'd like lmsensor
+support for.
 
-	Maybe maintainers of 'sensors-detect' will find it usefull to
-add dependency bmcsensors->{ipmi_msghandler,ipmi_devintf,ipmi_kcs_drv,
-ipmi_watchdog,i2c-ipmi} into 'sensors-detect'. I think it will help some
-people.
--- 
-With best regards, Oleg Gritsinevich
+I'm including output from "lspci" and "cat /proc/pci".
+My PC hardware experience is limited, esp. at the
+lower levels. 8^(
+
+I'm guessing the host bridge is the only thing you
+might support.  Any chance of such support?  Obviously
+I can test. 8^)  We have just started using lmsensors
+at work (~250 linnux systems, at least a dozen MBs);
+we will be happy to pass along any results there as well.
+
+Thanks,
+Miles
+
+-------------------------------------------------------------
+foo:meo[174]>/sbin/lspci
+00:00.0 Host bridge: Intel Corp. 440FX - 82441FX PMC [Natoma] (rev 02)
+00:0f.0 Non-VGA unclassified device: Intel Corp. 82375EB (rev 05)
+00:11.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 27)
+00:12.0 SCSI storage controller: Adaptec AIC-7880U
+00:13.0 Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 02)
+00:14.0 VGA compatible controller: ATI Technologies Inc 264VT [Mach64 VT] (rev 40)
+foo:meo[175]>cat /proc/pci
+PCI devices found:
+  Bus  0, device   0, function  0:
+    Host bridge: Intel Corp. 440FX - 82441FX PMC [Natoma] (rev 2).
+      Master Capable.  Latency2.  
+  Bus  0, device  15, function  0:
+    Non-VGA unclassified device: Intel Corp. 82375EB (rev 5).
+      Master Capable.  Latency$8.  
+  Bus  0, device  17, function  0:
+    VGA compatible controller: ATI Technologies Inc Rage XL (rev 39).
+      IRQ 9.
+      Master Capable.  Latencyf.  Min Gnt=8.
+      Non-prefetchable 32 bit memory at 0xfc000000 [0xfcffffff].
+      I/O at 0xe800 [0xe8ff].
+      Non-prefetchable 32 bit memory at 0xfdffe000 [0xfdffefff].
+  Bus  0, device  18, function  0:
+    SCSI storage controller: Adaptec AIC-7880U (rev 0).
+      IRQ 15.
+      Master Capable.  Latencyd.  Min Gnt=8.Max Lat=8.
+      I/O at 0xf800 [0xf8ff].
+      Non-prefetchable 32 bit memory at 0xfdfff000 [0xfdffffff].
+  Bus  0, device  19, function  0:
+    Ethernet controller: Intel Corp. 82557/8/9 [Ethernet Pro 100] (rev 2).
+      IRQ 11.
+      Master Capable.  Latencyf.  Min Gnt=8.Max LatV.
+      Prefetchable 32 bit memory at 0xfdffd000 [0xfdffdfff].
+      I/O at 0xf0e0 [0xf0ff].
+      Non-prefetchable 32 bit memory at 0xfde00000 [0xfdefffff].
+  Bus  0, device  20, function  0:
+    VGA compatible controller: ATI Technologies Inc 264VT [Mach64 VT] (rev 64).
+      Prefetchable 32 bit memory at 0xf9000000 [0xf9ffffff].
+      I/O at 0xf400 [0xf4ff].
