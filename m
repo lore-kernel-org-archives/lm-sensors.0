@@ -1,7 +1,7 @@
-From: amalysh@web.de (Alexander Malysh)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: [PATCH] i2c-sis630 for 2.6.0-test11 get rid of pci init
-Message-Id: <200312161225.15589.amalysh@web.de>
+Message-Id: <20031217233412.GA6140@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200312160048.17954.amalysh@web.de>
 In-Reply-To: <200312160048.17954.amalysh@web.de>
@@ -10,72 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tuesday 16 December 2003 01:46, Mark Studebaker wrote:
-> Good question.
->
-> We have 5 bus drivers in our package where we've commented out
-> pci_module_init()
-> because other drivers have claimed the device and prevented ours from
-> loading.
-> (i810, savage4, via, viapro, voodoo3)
+On Tue, Dec 16, 2003 at 12:48:14AM +0100, Alexander Malysh wrote:
+> Hello,
+> 
+> 2.6.0 kernel (with great sysfs) just shown a bug that is present in the 
+> current i2c-sis630 and was discussed before with Mark M. Hoffman 
+> (unfortunately w/o any conclusion) that i2c-sis630 is not a pci device driver 
+> and has no need to claiming any pci device.
 
-this is not exactly the same.. e.g. for i810 lspci shows SMBus pci device, but 
-for sis630 no pci device exists at all and I consider it as a BUG that 
-i2c-sis630 will claim any pci device.
+Hm, where does that SIS630_ACPI_BASE_REG really live at?  Is it
+controlled by the PCI_DEVICE_ID_SI_503 device?  
 
->
-> It appears that we should do the same thing to some other drivers
-> (amd756 for example?).
-> It's one thing if we conflict with an ACPI driver that's doing the same
-> thing.
-> But some completely unrelated driver, hopefully we can coexist.
+> This patch removes pci_[init|remove] stuff because i2c-sis630 just
+> needs a few io ports and should not claim pci device.
 
-on my laptop i2c-sis630 and ACPI coexist w/o any problems, because acpi 
-doesn't use smbus (not defined in DSDT).
-but it would be nice to use acpi api to read/write smbus registers... I will 
-look in it.
+What other driver wants to bind to this device?  If no other, what's the
+problem with this driver binding to it?  The very nice side-affect of it
+is that we auto-loading of the driver when the pci bus is scanned for
+devices, which is a big win for users.
 
->
-> This is particularly a problem with video chip drivers where there's
-> almost always
-> a conflict.
->
-> I tried doing the same thing to voodoo3 in 2.6 as an experiment.
-> It worked but eventually oopsed. In sysfs, things did appear
-> under the other PCI device driver. Didn't look into it further at the
-> time.
->
-> I've seen opinions in the past that if a chip needed two drivers, the
-> chip was
-> broken, tough. But hopefully that's not the only option.
->
-> Greg, can you give us some guidance here? Unless we can bypass
-> pci_module_init()
-> in 2.6 a lot of the bus drivers are not going to load.
->
-> mds
->
-> Alexander Malysh wrote:
-> > Hello,
-> >
-> > 2.6.0 kernel (with great sysfs) just shown a bug that is present in the
-> > current i2c-sis630 and was discussed before with Mark M. Hoffman
-> > (unfortunately w/o any conclusion) that i2c-sis630 is not a pci device
-> > driver and has no need to claiming any pci device. This patch removes
-> > pci_[init|remove] stuff because i2c-sis630 just needs a few io ports and
-> > should not claim pci device.
-> >
-> > any comments?
-> >
-> > --
-> > Best regards,
-> > Dipl.-Ing.
-> > Alexander Malysh
-> >
-> >
-> >                        Name: i2c-sis630.patch
-> >    i2c-sis630.patch    Type: text/x-diff
-> >                    Encoding: quoted-printable
-> >
-> >    Part 1.2       Type: application/pgp-signature
-> >            Description: signature
+thanks,
+
+greg k-h
