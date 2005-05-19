@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: clemy@clemy.org (Bernhard Schrenk)
 Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: [PATCH] Port of w83627hf to kernel 2.6
-Message-Id: <20040225051106.GB20698@earth.solarsys.private>
+Message-Id: <001901c3fb79$18ffd5a0$3d07010a@isispapyrus.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000801c3f596$0f1ffd00$0300a8c0@berninoti>
 In-Reply-To: <000801c3f596$0f1ffd00$0300a8c0@berninoti>
@@ -10,36 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-02-21 16:50:17 +0100]:
-> > I have corrected this and attached the new patch to the mail.
-> 
-> I just commited a new fix to the w83627hf driver (CVS). Could you
-> incorporate it in your driver? (Sorry ;))
-> 
-> Also, please consider changing this:
-> +     If you say yes here you get support for the Winbond W836X series
-> to:
-> +     If you say yes here you get support for the Winbond W836X7 series
-> 
-> Not very important, I admit, but I think it designates the family better.
-> 
-> MMH, can you take care about this port (review, test if possible, and
-> send to Greg)?
+Hi,
 
-I have reviewed and tested it, btw, on w83627thf.
+Please excuse my late response. I have attached the new patch including the
+changes in latest cvs revision (1.15) of the driver and the suggestion from
+Jean to change the descriptive text. The patch is against kernel version
+2.6.3.
 
-I can take over and make the changes you (Jean) mentioned.  But, what
-about the sysfs names?  Do we want this driver to go through -mm tree
-first?  If so, I'll make those changes as well and prepare a patch.
+> * Jean Delvare <khali@linux-fr.org> [2004-02-21 16:50:17 +0100]:
+> > MMH, can you take care about this port (review, test if possible, and
+> > send to Greg)?
 
-Better still, Greg, please apply Bernhard's most recent patch as-is for
--mm; then I will send another patch within a couple days for the rest.
-
-(This way there's a clear attribution for Bernhard's good work before
-I take over and foul it up. ;)
+I can take care about this, but its my first linux kernel patch, so I do not
+really know the required review and test process.
+I am testing this on w83627thf. It is now running for some days without
+reboot and without any problems (used by fancontrol).
 
 Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Bernhard
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: w83627hf.patch4.bz2
+Type: application/octet-stream
+Size: 9405 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040225/19c2ffc7/w83627hf.patch4.obj
