@@ -1,7 +1,7 @@
 From: jonsmirl@yahoo.com (Jon Smirl)
 Date: Thu, 19 May 2005 06:24:41 +0000
 Subject: I2C on 2.6
-Message-Id: <20040210010220.56463.qmail@web14905.mail.yahoo.com>
+Message-Id: <20040210010927.41108.qmail@web14910.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040206032153.63685.qmail@web14917.mail.yahoo.com>
 In-Reply-To: <20040206032153.63685.qmail@web14917.mail.yahoo.com>
@@ -10,10 +10,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Maybe /sys/class/i2c-adapter shouldn't exist. USB is using a different model to
-solve the same problem. With USB the adapters are in /sys/bus/usb/devices as
-usb1, usb2, etc. What about eliminating /sys/class/i2c-adapter and moving i2c-1,
-i2c-2, etc into ls /sys/bus/i2c/devices to match USB?
+I see now that the usb hosts are in /sys/class/usb_host. But to be symetrical
+with USB and PCI we should have i2c-1, i2c-2, etc in /sys/bus/i2c/devices.
 
 --- Greg KH <greg@kroah.com> wrote:
 > On Thu, Feb 05, 2004 at 07:21:53PM -0800, Jon Smirl wrote:
