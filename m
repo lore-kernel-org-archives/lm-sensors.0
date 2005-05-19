@@ -1,63 +1,45 @@
-From: LHHsu@winbond.com.tw (LHHsu@winbond.com.tw)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:44 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <08D42CA11E602348905334D09A3B67F9939FE5@wehqml01>
+Message-Id: <Pine.LNX.4.58.0503211639500.20694@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gUnVkb2xmCgk+IElzIFNNTSAoc3lzdGVtIG1hbmFnZW1lbnQgbW9kZSkgY29kZSBhY2Nl
-c3NpbmcgU01CdXMKY290cm9sbGVyPwo+IElmIHNvIHdoYXQgYXJlIHRoZSBhbGdvcml0aG1zIHdo
-ZW4gYnVzL2NvbnRyb2xsZXIgaXMgbm90IHJlYWR5PwoJQW5zIDogSSBjYW4gbm90IGdldCB5b3Vy
-IHJlYWwgbWVhbmluZyBvZiBTTU0uIElzIHRoZSBkYXRhIHNoZWV0Cm9mIE0xNTYzIHNvdXRoIGJy
-aWRnZSBhZHZhbnRhZ2UgdG8geW91ID8gSSB0cnkgdG8gY29ubmVjdCB3aXRoIEFiaXQgdG8KZ2V0
-IG9uZSBjb3B5LiAKQlIKTEggaHN1CgkKLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KRnJvbTog
-UEkxNCBIVUFORzAgClNlbnQ6IE1vbmRheSwgTWFyY2ggMjEsIDIwMDUgNToxNiBQTQpUbzogUnVk
-b2xmIE1hcmVrCkNjOiBzZW5zb3JzQFN0aW1weS5uZXRyb2VkZ2UuY29tOyBtb2NoZWxAZGlnaXRh
-bGltcGxhbnQub3JnOyBQSTEwIExISHN1OwpQSTE0IERaU0hFTjsgUEkxMyBDRkxpClN1YmplY3Q6
-IFJFOiBXZSB3aWxsIHBvcnQgdzgzNzkyZC5jIHRvIGxpbnV4LTIuNgoKSGkgUnVkb2xmCgo+IElz
-IFNNTSAoc3lzdGVtIG1hbmFnZW1lbnQgbW9kZSkgY29kZSBhY2Nlc3NpbmcgU01CdXMgY290cm9s
-bGVyPwo+IElmIHNvIHdoYXQgYXJlIHRoZSBhbGdvcml0aG1zIHdoZW4gYnVzL2NvbnRyb2xsZXIg
-aXMgbm90IHJlYWR5PwoKQXMgdG8gdGhpcyBxdWVzdGlvbiwgSSdtIGFza2luZyB0aGUgaGVscCBv
-ZiBteSBtYW5hZ2VyLCBzbyB0aGF0IEkgY2FuCnNlbmQgdGhpcyBxdWVzdGlvbiB0byBBYml0LgoK
-PiBXaGF0IHdlIGhhdmUgc2VlbiB3aXRoIGJpdCA2IHNldCBjb3VsZCBsZWFkIHRvIGZvbGxvd2lu
-ZzoKPiB0aGF0IHNvbWUgY29kZSBkaWQgYSBraWxsIHRyYW5zYWN0aW9uIG9yIGRldmljZSByZXNl
-dC4gQmVjYXVzZSBJdAp3YXNudAo+IG91ciBkcml2ZXIgb25seSB0aGluZyB0aGF0IGlzIGxlZnQg
-aXMgU01NLgo+IAo+IFRvIHByb3Bvc2VkIGRyaXZlciBjaGFuZ2U6Cj4gCj4gUGxlYXNlIGNhbiB5
-b3UgdHJ5IHRvIGltcGxlbWVudCBzb21lIGJ1cyByZWNvdmVyeSBmcm9tIHRoaXMgc2l0dWF0aW9u
-CmV2ZW4KPiBpZiBpdCBpcyBub3cgc29tZWhvdyB3b3JraW5nPyAobGlrZSBraWxsIHRyYW5zYWN0
-aW9uIGFmdGVyIGEgd2hpbGUKZXRjKQo+IGFuZCBub3QganVzdCBibGluZGx5IGV4aXQgaG9waW5n
-IHRoYXQgZXJyb3IgZG9lcyBub3QgbWF0dGVyLgoKWWVzLCB0aGUgbWV0aG9kIEknbSB0cnlpbmcg
-aXMgbm90IHByZWNpc2UsIEkga25vdyB0aGF0LCBJIGp1c3QgbW9kaWZ5CnRoZQpjb2RlcyBpbiB0
-aGF0IHdheSBzbyB0aGF0IDc5MiBkcml2ZXIgY2FuIHdvcmsgdGVtcG9yYXJpbHkuIDotKQpJdCBt
-dXN0IGJlIG1vZGlmaWVkIGluIHRoZSBmdXR1cmUsIENvdWxkIHlvdSBnaXZlIG1lIG1vcmUgZ3Vp
-ZGFuY2UgYWJvdXQKeW91ciBhYm92ZSBwcm9wb3NpdGlvbj8gQmVjYXVzZSBJIGtub3cgdmVyeSBm
-ZXcgYWJvdXQgdGhlIGJ1cyBkcml2ZXIsCllvdSBtYXkganVzdCBnaXZlIG1lIHRoZSBtb2RpZmll
-ZCBjb2RlcyBpZiB5b3UgY2FuLgoKVGhhbmtzCgpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBj
-b25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5k
-ZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3Jp
-Z2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUg
-aW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZl
-cnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBz
-ZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQg
-ZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhh
-bmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5h
-dXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBz
-dHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhh
-dCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hh
-bGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0
-ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZv
-bGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5n
-bGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjq
-sFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXek
-p6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdp
-qr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOx
-eqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5
-uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD
-9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
+Hello,
+
+> > If so what are the algorithms when bus/controller is not ready?
+> 	Ans : I can not get your real meaning of SMM. Is the data sheet
+> of M1563 south bridge advantage to you ? I try to connect with Abit to
+> get one copy.
+
+Yes datasheet would be nice. There is always good for us to have
+datasheets but I dont know if we can get more. Patrick already
+told us what we wanted to know but perhaps he could not
+give us his own. Maybe there is some problem with some agreements.
+
+SMM mode is a microprocesor mode similar to Protected Mode or Real Mode,
+Processsor can fall into this mode with SMI interrupt. Then special code
+will be executed and after finishing procesor will return back to its
+original state. Simply you can imagine SMM mode as some interupt service
+routine that is independent of operating system. Typically this SMM
+routine does USB legacy emulation and also handles overtemperature events
+etc. If their code is working with SMBus controller than it might be the
+issue of our problem.
+
+Memory used while in SMM mode is that RAM memory that is hidden bellow
+VIDEO RAM. (between 640Kb-1M) chipset is handling the memory map swapping.
+
+So my question is: are routine implemented in BIOS SMM code part using the
+SMBus controller? If so how they handle the "bus free/not free" also how
+often is SMM code executed.
+
+I hope this helps
+
+regards
+
+Rudolf
