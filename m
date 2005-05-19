@@ -1,39 +1,25 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: Ticket 964/967
-Message-Id: <20020822165250.A19611@Stimpy.netroedge.com>
+From: amartin@eurielec.etsit.upm.es (Alejandro Martinez)
+Date: Thu, 19 May 2005 06:25:08 +0000
+Subject: Ticket #1734 patch OK
+Message-Id: <20040802101704.GA1792@eurielec.etsit.upm.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000801c24a1b$419e6ff0$dd3cfb3e@host>
-In-Reply-To: <000801c24a1b$419e6ff0$dd3cfb3e@host>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-CVS = Concurrent Versions System
+The proposed patch for ticket #1734 worked fine on a 2.6.7
 
-It's what we use to manage our code.  You can use it to get the latest 
-of what we have.  You can get it and learn about it here:
+Now the i2c bus is there:
+  Installed I2C busses:
+      i2c-0       unknown         SMBus SIS630 adapter at 1080
+	  Algorithm unavailable
 
-http://www.cvshome.org/
+sensors-detect only scans ISA and Super I/O buses and fails to
+find any chip. But as sensors was already configured, it works:
+mc1066-i2c-0-4e
+Adapter: SMBus SIS630 adapter at 1080
+..
 
-
-Phil
-
-
-On Thu, Aug 22, 2002 at 10:34:02PM +0200, Hans van Beek wrote:
-> I would like to follow yor advise and download CVS/ 2.6.5.
-> 
-> However. I am absolutely blank concerning what you mean by CVS. As I can see on your website, you need CVS but what it means and how to get ???
-> Looking further on your site, I can't find anything cencernig 2.6.5
-> Maybe a littlebit stupid 
-> Yhe best thing for me to do is to wait for your official release 2.6.5
-> 
-> Best regards
-> Hans van Beek
-
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Thanks
