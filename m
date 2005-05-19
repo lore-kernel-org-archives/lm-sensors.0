@@ -1,47 +1,110 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: DS1621 support for kernel 2.6
-Message-Id: <20040303231619.0e8ddda6.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: [PATCH] I2C fixes for 2.6.10-rc2
+Message-Id: <20041119220001.GB15956@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040303211301.GA19859@pc.aurel32.private>
-In-Reply-To: <20040303211301.GA19859@pc.aurel32.private>
+References: <20041119215935.GA15956@kroah.com>
+In-Reply-To: <20041119215935.GA15956@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-Hi Aurelien :)
+ChangeSet 1.2164, 2004/11/19 09:12:35-08:00, khali@linux-fr.org
 
-> I have ported the ds1621 driver from lm-sensors 2.8.4 to kernel 2.6.3.
+[PATCH] I2C: Do not register useless smsc47m1
 
-Good news :)
+While verifying my stack of patches against what you sent to Linus last
+week, I noticed this one. Looks like I simply forgot to send it to you,
+as I cannot find any trace of it in the lm_sensors mailing-list
+archives.
 
-Have you been following the porting-chips and sysfs-interface documents?
+The patch prevents an smsc47m1 device from being registered when no
+monitoring function is actually active within the chip. See this ticket
+for background:
+  http://secure.netroedge.com/~lm78/readticket.cgi?ticket01
+This is certainly better to explicitely fail in this case than leave the
+user with an empty sysfs directory (except for alarms), which tends to
+make him/her think of a driver bug, which it isn't (what it really is is
+a BIOS brokenness).
 
-> I have such a chip at home and I have made some tests, everything
-> works fine. Please find attached a patch against kernel 2.6.3 (it
-> should also works with 2.6.4-rc* kernels, I suppose).
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
-Yes it should. 2.6.3 and 2.6.4 will be mostly similar, i2c-wise.
 
-> What it the way to get it merge? Should I send the patch directly to
-> Linus?
+ drivers/i2c/chips/smsc47m1.c |   29 +++++++++++++++++++++--------
+ 1 files changed, 21 insertions(+), 8 deletions(-)
 
-No. You send it to us (you got it right :)) and we'll discuss it on the
-list. Once ready we'll send it to Greg, who'll merge it into his trees.
-Then it'll move into Andrew Morton's tree for testing. Once tested it
-goes to Linus'. Quite a long trip, isn't it? ;)
 
-> I also plan to port the pcf8574 and pcf8591 drivers over the
-> week-end.
-
-Probably not the most wanted chips ;) but it you have a particular
-interest for these, do not hesitate.
-
-I'll review your code over the week-end if nodoby has done so before.
-
-Thanks.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+diff -Nru a/drivers/i2c/chips/smsc47m1.c b/drivers/i2c/chips/smsc47m1.c
+--- a/drivers/i2c/chips/smsc47m1.c	2004-11-19 11:40:54 -08:00
++++ b/drivers/i2c/chips/smsc47m1.c	2004-11-19 11:40:54 -08:00
+@@ -394,6 +394,7 @@
+ 	struct i2c_client *new_client;
+ 	struct smsc47m1_data *data;
+ 	int err = 0;
++	int fan1, fan2, pwm1, pwm2;
+ 
+ 	if (!i2c_is_isa_adapter(adapter)) {
+ 		return 0;
+@@ -423,6 +424,22 @@
+ 	new_client->id = smsc47m1_id++;
+ 	init_MUTEX(&data->update_lock);
+ 
++	/* If no function is properly configured, there's no point in
++	   actually registering the chip. */
++	fan1 = (smsc47m1_read_value(new_client, SMSC47M1_REG_TPIN(0)) & 0x05)
++	       = 0x05;
++	fan2 = (smsc47m1_read_value(new_client, SMSC47M1_REG_TPIN(1)) & 0x05)
++	       = 0x05;
++	pwm1 = (smsc47m1_read_value(new_client, SMSC47M1_REG_PPIN(0)) & 0x05)
++	       = 0x04;
++	pwm2 = (smsc47m1_read_value(new_client, SMSC47M1_REG_PPIN(1)) & 0x05)
++	       = 0x04;
++	if (!(fan1 || fan2 || pwm1 || pwm2)) {
++		dev_warn(&new_client->dev, "Device is not configured, will not use\n");
++		err = -ENODEV;
++		goto error_free;
++	}
++
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto error_free;
+ 
+@@ -434,8 +451,7 @@
+ 	   function. */
+ 	smsc47m1_update_device(&new_client->dev, 1);
+ 
+-	if ((smsc47m1_read_value(new_client, SMSC47M1_REG_TPIN(0)) & 0x05)
+-	    = 0x05) {
++	if (fan1) {
+ 		device_create_file(&new_client->dev, &dev_attr_fan1_input);
+ 		device_create_file(&new_client->dev, &dev_attr_fan1_min);
+ 		device_create_file(&new_client->dev, &dev_attr_fan1_div);
+@@ -443,8 +459,7 @@
+ 		dev_dbg(&new_client->dev, "Fan 1 not enabled by hardware, "
+ 			"skipping\n");
+ 
+-	if ((smsc47m1_read_value(new_client, SMSC47M1_REG_TPIN(1)) & 0x05)
+-	    = 0x05) {
++	if (fan2) {
+ 		device_create_file(&new_client->dev, &dev_attr_fan2_input);
+ 		device_create_file(&new_client->dev, &dev_attr_fan2_min);
+ 		device_create_file(&new_client->dev, &dev_attr_fan2_div);
+@@ -452,15 +467,13 @@
+ 		dev_dbg(&new_client->dev, "Fan 2 not enabled by hardware, "
+ 			"skipping\n");
+ 
+-	if ((smsc47m1_read_value(new_client, SMSC47M1_REG_PPIN(0)) & 0x05)
+-	    = 0x04) {
++	if (pwm1) {
+ 		device_create_file(&new_client->dev, &dev_attr_pwm1);
+ 		device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
+ 	} else
+ 		dev_dbg(&new_client->dev, "PWM 1 not enabled by hardware, "
+ 			"skipping\n");
+-	if ((smsc47m1_read_value(new_client, SMSC47M1_REG_PPIN(1)) & 0x05)
+-	    = 0x04) {
++	if (pwm2) {
+ 		device_create_file(&new_client->dev, &dev_attr_pwm2);
+ 		device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
+ 	} else
