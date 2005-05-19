@@ -1,224 +1,112 @@
-From: afe0108@yahoo.com (*)
-Date: Thu, 19 May 2005 06:24:08 +0000
-Subject: support for ivtv drivers?
-Message-Id: <20030731000810.22806.qmail@web41802.mail.yahoo.com>
+From: dpnsw@optusnet.com.au (David)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: Close ticket 1131
+Message-Id: <200302130933.00282.dpnsw@optusnet.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030722041815.57457.qmail@web41801.mail.yahoo.com>
-In-Reply-To: <20030722041815.57457.qmail@web41801.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello, sorry for the late reply.  I wanted to report that this patch
-works beautifully with 2.4.21!  I tried with 2.6.0-test2 and it
-wouldn't compile but at least I can use the latest lm_sensors now.
-Maybe I will inquire about 2.6 support on the ivtv list.
+Hi,
 
-Thanks again,
-Jonah
+I have raised a ticket about not being able to find how to get the i2c-pcf-epp 
+module. Ticket number 1131. This can be closed as I now know where it is and 
+why it is this way. 
 
+Maybe you could consider adding a bit of text on the page
+http://www2.lm-sensors.nu/~lm78/docs.html
+under the single paragraph of explanation for the diagram.
 
---- Jean Delvare <khali@linux-fr.org> wrote:
-> 
-> > Hello, thanks for your work on i2c!  I have a driver request for i2c
-> > 2.8.0, when you have the time to work on it, or if enough other people
-> > request it.  It's for the ivtv drivers, which are for the WinTV
-> > PVR-250(TV card with hardware decoding) which are also used by MythTV:
-> > 
-> > http://ivtv.sourceforge.net/
-> > http://sourceforge.net/projects/ivtv/
-> 
-> Patch attached. Note that this patch ports the driver for use with a
-> 2.4.21 kernel with the i2c-2.8.0 subsystem. It is *not* meant for Linux
-> 2.5/2.6. You can still try, but I fear much more work would be needed
-> (and this is *not* our job, it is the driver author's one).
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> > diff -ru ivtv-orig/driver/ivtv-i2c.c ivtv-i2c/driver/ivtv-i2c.c
-> --- ivtv-orig/driver/ivtv-i2c.c	Thu Jul 24 05:48:55 2003
-> +++ ivtv-i2c/driver/ivtv-i2c.c	Thu Jul 24 17:06:53 2003
-> @@ -41,14 +41,13 @@
->  }
->  
->  static struct i2c_adapter ivtv_i2c_adapter_template = {
-> -        "ivtv i2c driver",	/*name*/
-> -        I2C_HW_B_BT848,		/*id?? (algo-bit is OR'd with this)*/
-> -        NULL, 			/*algorighm (set by i2c-algo-bit)*/
-> -        NULL,		 	/*algodata, filled from template*/
-> -        ivtv_i2c_inc, 		/*inc usage*/
-> -        ivtv_i2c_dec, 		/*dec usage*/
-> -	client_register:	attach_inform,
-> -	client_unregister:	detach_inform,
-> +	.owner = THIS_MODULE,
-> +	.name = "ivtv i2c driver",
-> +	.id = I2C_HW_B_BT848, /*algo-bit is OR'd with this*/
-> +	.algo = NULL, /*set by i2c-algo-bit*/
-> +	.algo_data = NULL, /*filled from template*/
-> +	.client_register = attach_inform,
-> +	.client_unregister = detach_inform,
->  };
->  
->  static struct i2c_algo_bit_data ivtv_i2c_algo_template = {
-> @@ -175,16 +174,6 @@
->  	}
->  
->  	return 0;
-> -}
-> -
-> -void ivtv_i2c_inc(struct i2c_adapter *adapter) {
-> -	IVTV_DEBUG(IVTV_DEBUG_I2C, "i2c increasing usage count\n");
-> -	MOD_INC_USE_COUNT;
-> -}
-> -
-> -void ivtv_i2c_dec(struct i2c_adapter *adapter) {
-> -	IVTV_DEBUG(IVTV_DEBUG_I2C, "i2c decreasing usage count\n");
-> -	MOD_DEC_USE_COUNT;
->  }
->  
->  /* init + register i2c algo-bit adapter */
-> diff -ru ivtv-orig/driver/saa7115.c ivtv-i2c/driver/saa7115.c
-> --- ivtv-orig/driver/saa7115.c	Thu Jul 24 05:16:53 2003
-> +++ ivtv-i2c/driver/saa7115.c	Thu Jul 24 17:02:02 2003
-> @@ -958,22 +958,6 @@
->  
->  /* -----------------------------------------------------------------------
-> */
->  
-> -static void
-> -saa7114_inc_use (struct i2c_client *client)
-> -{
-> -#ifdef MODULE
-> -	MOD_INC_USE_COUNT;
-> -#endif
-> -}
-> -
-> -static void
-> -saa7114_dec_use (struct i2c_client *client)
-> -{
-> -#ifdef MODULE
-> -	MOD_DEC_USE_COUNT;
-> -#endif
-> -}
-> -
->  /*
->   * Generic i2c probe
->   * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
-> @@ -1094,6 +1078,7 @@
->  /* -----------------------------------------------------------------------
-> */
->  
->  struct i2c_driver i2c_driver_saa7114 = {
-> +	.owner = THIS_MODULE,
->  	.name = "saa7115",
->  
->  	.id = I2C_DRIVERID_SAA7114,
-> @@ -1102,8 +1087,6 @@
->  	.attach_adapter = saa7114_attach_adapter,
->  	.detach_client = saa7114_detach_client,
->  	.command = saa7114_command,
-> -	.inc_use = saa7114_inc_use,
-> -	.dec_use = saa7114_dec_use,
->  };
->  
->  EXPORT_NO_SYMBOLS;
-> diff -ru ivtv-orig/driver/saa7127.c ivtv-i2c/driver/saa7127.c
-> --- ivtv-orig/driver/saa7127.c	Thu Jul 24 05:16:53 2003
-> +++ ivtv-i2c/driver/saa7127.c	Thu Jul 24 17:02:34 2003
-> @@ -878,25 +878,6 @@
->  /* -----------------------------------------------------------------------
-> */
->  
->  
-> -static void saa7127_inc_use (struct i2c_client *client)
-> -{
-> -  #ifdef MODULE
-> -    MOD_INC_USE_COUNT;
-> -  #endif
-> -}
-> -
-> -
-> -/* -----------------------------------------------------------------------
-> */
-> -
-> -static void saa7127_dec_use (struct i2c_client *client)
-> -{
-> -  #ifdef MODULE
-> -    MOD_DEC_USE_COUNT;
-> -  #endif
-> -}
-> -
-> -
-> -
->  /*
->   * Generic i2c probe
->   * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
-> @@ -1071,14 +1052,13 @@
->  
->  struct i2c_driver i2c_driver_saa7127 >  {
-> +  .owner          = THIS_MODULE,
->    .name           = "saa7127",
->    .id             = I2C_DRIVERID_SAA7127,
->    .flags          = I2C_DF_NOTIFY,
->    .attach_adapter = saa7127_attach_adapter,
->    .detach_client  = saa7127_detach_client,
->    .command        = saa7127_command,
-> -  .inc_use        = saa7127_inc_use,
-> -  .dec_use        = saa7127_dec_use,
->  };
->  
->  EXPORT_NO_SYMBOLS;
-> diff -ru ivtv-orig/driver/tveeprom.c ivtv-i2c/driver/tveeprom.c
-> --- ivtv-orig/driver/tveeprom.c	Tue Apr  1 06:42:35 2003
-> +++ ivtv-i2c/driver/tveeprom.c	Thu Jul 24 17:02:57 2003
-> @@ -450,22 +450,6 @@
->  
->  /* -----------------------------------------------------------------------
-> */
->  
-> -static void
-> -tveeprom_inc_use (struct i2c_client *client)
-> -{
-> -#ifdef MODULE
-> -/*	MOD_INC_USE_COUNT; */
-> -#endif
-> -}
-> -
-> -static void
-> -tveeprom_dec_use (struct i2c_client *client)
-> -{
-> -#ifdef MODULE
-> -/*	MOD_DEC_USE_COUNT; */
-> -#endif
-> -}
-> -
->  /*
->   * Generic i2c probe
->   * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
-> @@ -557,6 +541,7 @@
->  /* -----------------------------------------------------------------------
-> */
->  
->  struct i2c_driver i2c_driver_tveeprom = {
-> +	.owner = THIS_MODULE,
->  	.name = "tveeprom",
->  
->  	.id = I2C_DRIVERID_TVEEPROM,
-> @@ -565,8 +550,6 @@
->  	.attach_adapter = tveeprom_attach_adapter,
->  	.detach_client = tveeprom_detach_client,
->  	.command = tveeprom_command,
-> -	.inc_use = tveeprom_inc_use,
-> -	.dec_use = tveeprom_dec_use,
->  };
->  
->  EXPORT_NO_SYMBOLS;
-> 
+I offer the following for comments, suggestions and corrections. It is 
+something that I feel would have helped me a great deal as I sought to 
+understand the lm_sensors project and would have also avoided me raising 2 
+support requests.
+
+So here goes::
+
+The program rectangle is made up of the lm_sensors userspace programs and 
+configuration and documentation files.
+Examples of which are:
+sensors
+sensors-detect
+i2cdetect
+isadump
+sensors.conf
+and associated man pages 
+
+As you can see from the diagram this is only a small part of a working 
+lm_sensors installation. The rest of the work is done inside the kernel by 
+two branches of lm_sensors that work together, one is called sensors (or 
+should that be sensors2) while the other is i2c. You will need both in order 
+to fully utilise lm_sensors. Depending on what kernel you are using (or more 
+specifically what kernel your distribution has provided to you) will 
+determine what lm_sensors is capable of doing. If you find that you cannot 
+address all of the sensor chips you have or maybe you can't even get 
+i2cdetect to see your adaptor chip then you should check to see if lm_sensors 
+supports your hardware on  
+
+If your hardware is supported but your current kernel/distribution isn't 
+working then you will probably have to patch and compile the kernel.
+
+You could just download the latest kernel version from www.kernel.org or get 
+the sources from your distribution. If you do this and compile it, being 
+carefull to configure all the devices you need, you should be aware that even 
+the latest kernel from kernel.org does not have all of the supported sensors 
+and chips in it. To enable a kernel from kernel.org to support all of the 
+sensors, algorithms and adaptors that it is capable of you will need to patch 
+the kernel. Patches are available from http://home.attbi.com/~ac9410/ for the 
+later 2.4 series kernels. 
+
+You can apply patches by:
+cd path_to_your_kernel_sources
+path -p1 -E < path_to_the_patches/2.4.20-sensors-1-patch
+
+Do the same for all the sensors and i2c patches you downloaded.
+Note: As patches are prepared against kernels from kernel.org if you are 
+patching against your distribution specific source code there is a 
+possibility that the patches won't cleanly apply. If this is the case you can 
+either try and resolve it manually (if you are capable of doing this), get a 
+kernel from kernel.org or give up and go and do something else.
+
+Detailed information about compiling & patching the kernel is available at 
+http://en.tldp.org/HOWTO/Kernel-HOWTO.html
+
+A note about algorithm and adaptor code:
+Most code for algorithm and adaptors are combined into the one module as you 
+need both in order to be able to function correctly. There are a couple of 
+exceptions to this in the form of parallel port adaptors.
+
+Parallel port adaptors
+Most people don't need to worry about this.
+If you are installing parallel port adaptors it means you are probably messing 
+around with wires and IC's and the like. If you have purchased a card that 
+provides external an external i2c/smbus this will have combined algorithm and 
+adaptor code. If you are doing it yourself by using the parallel port there 
+are basically 2 options.
+
+1) Using the parallel port and using the i2c-pport adaptor module and the 
+i2c-algo-bit algorithm module together to enable you to wire up your parallel 
+port to act as an i2c/smbus. This provides a bus that will enable most 
+sensors to work but doesn't support the entire i2c/smbus capability
+
+2) Using the parallel port to interface to a Philips PCF8584 parallel to i2c 
+adaptor chip. You will need to build a bit of a circuit to do this. This 
+configuration needs the i2c-pcf-epp adaptor module and the i2c-algo-pcf 
+algorithm module. This support almost all of the i2c/smbus capabilities
 
 
-__________________________________
-Do you Yahoo!?
-Yahoo! SiteBuilder - Free, easy-to-use web site design software
-http://sitebuilder.yahoo.com
+
+
+Okay that's it. Did I get it mostly right?
+
+Turned out a bit longer than I expected. Feel free to use, change or omit as 
+you feel appropriate.
+
+Many thanks for all your efforts and the project. It is really great (be even 
+better when I get it working ;)
+
+-- 
+Best Regards,
+
+David Price
