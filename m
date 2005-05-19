@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:11 +0000
 Subject: [PATCH] sensors-detect and udev
-Message-Id: <20040811203651.1926bfa9.khali@linux-fr.org>
+Message-Id: <20040811191015.GA12506@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040810225714.GA2700@pc.aurel32.lan>
 In-Reply-To: <20040810225714.GA2700@pc.aurel32.lan>
@@ -10,31 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> sensors-detect currently checks at the beginning of its execution if
-> the i2c device nodes exists. It can't work on a system using udev as
-> the nodes are created when the i2c-dev module is inserted.
-> 
-> The attached patch fixes that.
+* Jean Delvare <khali@linux-fr.org> [2004-08-11 20:36:51 +0200]:
+> Please use "&&" instead of "and". Also notice that !(A && B) is more
+> efficient than (!A) && (!B), but I admit I am splitting hairs here ;)
 
-I don't get this:
+I hope you meant !(A||B), or you better re-read DeMorgan. ;)
 
-+  if (-d './dev') {
-
-How does the existence of a directory named "dev" in the current
-directory (which can be just anything) demonstrate the use of udev?
-
-And could you please explain how udev is working? I don't know anything
-about it.
-
-Also,
-
-+  if ((!$use_devfs) and (!$use_udev)) {
-
-Please use "&&" instead of "and". Also notice that !(A && B) is more
-efficient than (!A) && (!B), but I admit I am splitting hairs here ;)
-
-Thanks.
+Regards,
 
 -- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+Mark M. Hoffman
+mhoffman@lightlink.com
