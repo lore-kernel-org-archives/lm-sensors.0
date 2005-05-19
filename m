@@ -1,7 +1,7 @@
-From: phil@netroedge.com (phil@netroedge.com)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:23:35 +0000
 Subject: How to activate the SMBus on P4B533E/ICH4?
-Message-Id: <20020621092703.H20935@Stimpy.netroedge.com>
+Message-Id: <3D1359CE.F23F9362@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.31.0206192315370.4147-100000@klaus.dns2go.com>
 In-Reply-To: <Pine.LNX.4.31.0206192315370.4147-100000@klaus.dns2go.com>
@@ -10,16 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-The only way I know of to add 'new' PCI devices is to enable them in
-the Bios.  (sometimes 'enabling' APCI will make some PCI devices to
-show up, for example.)
-
-
-Phil
+now you're back to needing p4b-smbus. That's how it gets into lspci.
+Modify it to change the ICH4 PCI ID's (both the base 24C0 and the
+smbus 24C3), then if nothing changed from ICH3 then it should work.
+To be safe you probably want to compare datasheets but if you're
+brave just give it a shot.
 
 
-On Fri, Jun 21, 2002 at 10:25:42AM +0200, Klaus Woltereck wrote:
+
+Klaus Woltereck wrote:
+> 
 > On Thu, 20 Jun 2002, Mark Studebaker wrote:
 > 
 > > ich4 supported in CVS (assuming it's in lspci and you don't need p4b)
@@ -56,8 +56,3 @@ On Fri, Jun 21, 2002 at 10:25:42AM +0200, Klaus Woltereck wrote:
 > 
 > Bye,
 > Klaus
-
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
