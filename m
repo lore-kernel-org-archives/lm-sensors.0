@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: i2c/kernel i2c-algo-bit.c
-Message-Id: <3FB5A5F1.E3271845@paradyne.com>
+Message-Id: <20031115081655.4980688f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031101170944.386fd941.khali@linux-fr.org>
 In-Reply-To: <20031101170944.386fd941.khali@linux-fr.org>
@@ -10,58 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-correct. cycle time is 3/2 of advertised, frequency is 2/3 of
-advertised,
-clock is not a 50/50 duty cycle.
 
-I'm uneasy with bit_test the default, but if you've identified the
-reason for matroxfb problems and that's the best way to fix it then
-perhaps it's best.
+> correct. cycle time is 3/2 of advertised, frequency is 2/3 of
+> advertised,
+> clock is not a 50/50 duty cycle.
 
-On the TODO, that was for background. I think our goal should be to
-port the most important improvements from i2c-algo-biths back to
-i2c-algo-bit.
-It was unfortunate that Kyosti decided to start a new driver...
+OK, I at least understood at least this well ;)
 
-Jean Delvare wrote:
-> 
-> > Fix #1 looks fine.
-> > Fix #2 (test_bus) I'm sure is an improvement.
-> > If you are really motivated, try fixing the printk's for debug=1.
-> > As I recall from long ago some of them are not correct.
-> 
-> Could be a feature. Maybe the author considered that someone askin for
-> the test shouldn't have to also set i2c_debug in order to see the result
-> of the test.
-> 
-> My opinion is that I would rather do the test as the default (that is,
-> default to bit_test=1) and not show anything about it unless
-> i2c_debug>=1. The reason why I suggest this should be the default is
-> that I plan to write a unified i2c-over-parport driver as a replacement
-> for the 5 different drivers out there. Idealy, that driver would be able
-> to autodetect which kind of parallel port adapter is present. This can't
-> be done without bit_test=1 as far as I can tell. So, unless bit_test is
-> likely to cause trouble (shouldn't since we check the bus isn't busy) I
-> would like it to be the default.
-> 
-> This also solves other problems, such as sensors-detect taking forever
-> to scan i2c-matroxfb busses with non DDC-compliant monitor plugged-in.
-> 
-> > If you want to be truly frightened try debug=9.
-> 
-> I don't want to be frightened. I already live right in front of a
-> graveyard, that's enough ;)
-> 
-> > The actual cycle time is 2/3 of advertised (yes it's 3 states total,
-> > not 2 or 4).
-> 
-> I guess you mean 3/2 of advertised. If I read you (and the code)
-> carefully, this means that SCL isn't a square signal, is it? Does this
-> really comply with the I2C standard?
-> 
-> (Just took a look at TODO... Let me be clear. All this stuff is way
-> beyond me.)
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+> I'm uneasy with bit_test the default, but if you've identified the
+> reason for matroxfb problems and that's the best way to fix it then
+> perhaps it's best.
+
+No, it's something different from the matroxfb issue. The problem I
+suspect with i2c-matroxfb is that the driver doesn't set the bus in idle
+state when loaded (scl and sda high), and this sometimes cause it to
+fail if I use bit_test=1 (because the test checks for the bus being idle
+before going on). I'll contact Petr Vandrovec, the author of the module,
+and see with him how/if that can be changed. Am I correct thinking it
+can never hurt to set the lines high, even if another master would be
+controling the bus at that time? If I correctly understood how the I2C
+bus is working, setting lines low is always winning over setting them
+high - so if that other master wants the line low at this time, our
+command won't do anything. If there is no other master, the bus will
+correctly go in idle state.
+
+The idea of making bit_test the default comes from my plans of writing a
+unified i2c-parport driver. With bit_test set, I can walk through the
+different modes and the good one will be detected (providing it is in
+the list of known ones). Without bit_test, detection seems to be
+impossible and the user will have to specify the mode (which in turn
+cause a problem if there are more than one adapter present on the
+system, of different types). More generally, bit_test sounds like a very
+good idea to improve detection in bus drivers providing these drivers
+are ensuring the bus will be idle after they initialize.
+
+I might need to read some more code, but that's how I basically see the
+things for now.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
