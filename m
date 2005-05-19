@@ -1,28 +1,20 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: lm_sensor's ticket no. 839
-Message-Id: <3CBC78D5.A9425CFB@paradyne.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: 2.8.0 released!
+Message-Id: <3F13484A.9080207@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020414203005.A702@greguric.stud.rz.uni-frankfurt.de>
-In-Reply-To: <20020414203005.A702@greguric.stud.rz.uni-frankfurt.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-dGhhbmtzIGZvciB0aGUgaW5mby4KSWYgYW55b25lIGhhcyBhIDE1MzVEKyBkYXRhc2hlZXQgcGxl
-YXNlIHNlbmQgaXQgdG8gdXMuCm1kcwoKVG9taXNsYXYgR3JlZ3VyaWMgd3JvdGU6Cj4gCj4gSGVs
-bG8gYWxsLAo+IAo+IEkgaGF2ZSBhbiBBc3VzIEE3QTI2Ni1FIG1vdGhlcmJvYXJkLCB0b28sIGFu
-ZCB3b3VsZCBsaWtlIHRvIGFkZCBteSAyCj4gY2VudHMgdG8gdGhlIHByb2JsZW0gZGVzY3JpYmVk
-IGluIHRpY2tldCA4MzkKPiA8aHR0cDovL3d3dzIubG0tc2Vuc29ycy5udS9+bG03OC9yZWFkdGlj
-a2V0LmNnaT90aWNrZXSDOT46Cj4gCj4gMS4gdGhlIEFzdXMgQTdBMjY2LUUgdXNlcyBhbiBBUzk5
-MTI3RiBmb3IgaGFyZHdhcmUgbW9uaXRvcmluZwo+ICAgICg9PiBtb2Rwcm9iZSB3ODM3ODFkIGZv
-cmNlX2FzOTkxMjdmPTAsMHgyZCkKPiAKPiAyLiB0aGUgYm9hcmQgdXNlcyB0aGUgQUxJIE0xNTM1
-RCsgU291dGggQnJpZGdlLiBJIGd1ZXNzIHRoYXQgc29tZQo+ICAgIHJlZ2lzdGVycyBoYXZlIG1v
-dmVkIG9yIHRoZSBpbml0aWFsaXphdGlvbiBjaGFuZ2VkIHNsaWdodGx5Cj4gICAgY29tcGFyZWQg
-dG8gdGhlIHBsYWluIE0xNTM1IGNoaXAsIHNvIHRoaXMgaXMgcHJvYmFibHkgdGhlIHJlYXNvbgo+
-ICAgIGZvciB0aGUgZXJyb3JzIEkgYW5kIG90aGVyIG93bmVycyBvZiB0aGlzIGJvYXJkIGdldDoK
-PiAgICB8IFsuLi5dIGtlcm5lbDogaTJjLWFsaTE1MzUubzogRXJyb3I6IGNvbW1hbmQgbmV2ZXIg
-Y29tcGxldGVkCj4gCj4gRmVlbCBmcmVlIHRvIGNvbnRhY3QgbWUgZm9yIGZ1cnRoZXIgcXVlc3Rp
-b25zIG9yIGlmIEkgY2FuIGhlbHAgeW91IGluCj4gYW55IHdheSEKPiAKPiBTaW5jZXJlbHksCj4g
-VG9taXNsYXYK
+
+
+Could you check the verbage on the download page to see if it still 
+makes sense? (I mean with regards to available patches, kernel 
+conpatibilities, etc.)
+
+Thanks!
+
+
+Phil
