@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: Bug #1807: sensors with kernel 2.4, but not with kernel 2.6
-Message-Id: <ylPxyB2A.1099906264.5671110.khali@gcu.info>
+Message-Id: <20041108231209.GC16197@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1099499003.11618.13.camel@antares.hausnetz>
 In-Reply-To: <1099499003.11618.13.camel@antares.hausnetz>
@@ -10,25 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Sun, Nov 07, 2004 at 10:28:39PM -0500, Mark M. Hoffman wrote:
+> Hi again...
+> 
+> * Mark M. Hoffman <mhoffman@lightlink.com> [2004-11-07 21:47:51 -0500]:
+> > Whatever we agree are legitimate reasons to cancel detection, I would like
+> > to add specific documentation for them.  I think a case can be made that
+> > there's *no* legitimate reason for a driver to halt detection that way...
+> > but I'm sure I'll hear otherwise.  As an interface, this interpretation
+> > of a return value (I failed so badly that you're not allowed to call me
+> > again) isn't my favorite.
+> 
+> After working on a patch for a bit... now I hate it.  Why does i2c_detect()
+> need to work that way?  
+> 
+> Back to where I started: anyone mind if I rewrite i2c_detect()?  A grep
+> said that drivers/i2c/chips/*.c are the only callers.
 
-Hi again Mark,
+Heh, I tried to rewrite it a while ago, and just gave up, it's a mess.
+Please redo it.
 
->After working on a patch for a bit... now I hate it.  Why does i2c_detect()
->need to work that way?
->
->Back to where I started: anyone mind if I rewrite i2c_detect()?  A grep
->said that drivers/i2c/chips/*.c are the only callers.
+Oh, I'm getting rid of all of the "range" variables in the structures
+right now, so that will affect i2c_detect.  I'll have patches in a few
+hours.
 
-Fine with me as long as it is done in a consistent way, and the
-documentation is updated accordingly (both writing- and porting-clients).
+thanks,
 
-As a side note, such a change is not suitable for 2.4/CVS, so fixing the
-drivers you listed in your other post there is still on the to-do list.
-
-As yet another side note, I have noticed that i2c_detect checks all
-addresses from 0 to 0x7f for business before processing them. This
-sounds bad in terms of efficiency. The test should be done before
-actually attempting to detect chips at any given address.
-
-Thanks,
-Jean
+greg k-h
