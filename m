@@ -1,58 +1,70 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:26 +0000
-Subject: Kernel-2.6.0-test10 odd problem
-Message-Id: <3FC4F5AA.4090907@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:30 +0000
+Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
+Message-Id: <20050108103449.345def67.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031126101901.4993a062.zippo752001@comcast.net>
-In-Reply-To: <20031126101901.4993a062.zippo752001@comcast.net>
+References: <200501080150.44653.pioppo@ferrara.linux.it>
+In-Reply-To: <200501080150.44653.pioppo@ferrara.linux.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Simone Piunno <pioppo@ferrara.linux.it>, Jonas Munsin <jmunsin@iki.fi>
+Cc: djg@pdp8.net, greg@kroah.com, sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-and you have sysfs mounted?
+Hi Simone,
 
-
-zippo wrote:
-
-> Agreed, but i don't need it to detect i know what sensors i have, and have a special sensors.conf file from tyan. sensors -s doesn't work. That's all that matters. i2c isn't being placed into the kerenel.
+> Today I've tried 2.6.10-mm2 compiled for x86_64 and found something
+> bad. As soon as I modprobe it87 (one of the i2c sensors drivers) the
+> CPU fan  completely halts and the CPU temperature skyrockets even
+> while idle. For context:
+> I have an Athlon64 3200+ on a Gigabyte K8VT800 motherboard (i2c_viapro
+> module) running Gentoo compiled in x86_64 mode, it87 is controlled
+> through ISA bus,  VT8237 ISA bridge.
 > 
-> On Wed, 26 Nov 2003 11:14:10 -0500
-> "Mark Studebaker" <mds@paradyne.com> wrote:
+> The same setup doesn't show the problem on vanilla 2.6.10 and neither
+> on the  last -mm I tried, which IIRC was 2.6.9-rc4-mm1.
 > 
+> After some tweaking, it looks like ACPI is not the problem (tried to
+> look at  full debug trace, nothing appears when loading it87). 
+> Instead, I've found I  can control the fan speed using
+> /sys/devices/platform/i2c-0/0-0290/pwm1 and initially it is set to
+> 225, but setting it to 0 the fan runs at max speed. Intermediate
+> values works as well: the higher the value, the slower the fan.
 > 
->>sensors-detect doesn't support 2.6 yet
->>(as stated on our home page)
->>
->>zippo wrote:
->>
->>
->>>I am testing lm_sensors on a Tyan k7x-pro, (amd756, w83781d, which are both in the kernel. I got the CVS and installed it. I also built i2c support, (yes CONFIG_I2C_PROC), and ran mkdev.sh (witch worked) but when i run sensors -s, or sensors-detect i get
->>>
->>>[root@zippo01 /home/zippo/sensors/]#sensors
->>>Can't access /proc file
->>>Unable to find i2c bus information;
->>>For 2.6 kernels, make sure you have mounted sysfs!
->>>For older kernels, make sure you have done 'modprobe i2c-proc'!
->>>
->>>
->>>that is the error when i run sensors-detect:
->>>
->>>Couldn't open /proc/bus/i2c?!? at prog/detect/sensors-detect line 4184, <STDIN> line 4.
->>>
->>>and there no i2c in /proc, i was wondering if i am doing something wrong or what.
->>>a copy of my lsmod:
->>>
->>>Module                  Size  Used by
->>>w83781d                30976  0 
->>>i2c_amd756              5504  0 
->>>i2c_algo_bit            9608  0 
->>>i2c_sensor              2944  1 w83781d
->>>i2c_dev                 8960  0 
->>>i2c_core               20612  5 w83781d,i2c_amd756,i2c_algo_bit,i2c_sensor,i2c_dev
->>>nvidia               1532952  12 
->>>
->>
->>
-> 
+> I've google for this sysfs interface and found than everyone expects
+> pwm*  values to have the reverse meaning: 255 should be max speed and
+> 0 should halt  the fan.  So apparently the problem is really in the
+> it87 driver, using the  wrong coefficient for this scale and therefore
+> setting it to the wrong  default value.
 
+Thanks a lot for the detective work. You are right, PWM control was
+added very recently to the it87 driver in 2.6 (but is there for some
+time alredy for 2.4 kernels in the lm_sensors project).
+
+The 0-255 range happens to be in the correct "direction" for at least
+one other board () so the it87 driver isn't plain wrong, more likely it
+is a matter of how the chip was wired and (mis)configured by the
+motherboard manufacturer. In particular, I suspect the fan polarity bit
+not to be properly set on your board.
+
+Could you please provide a dump of your it87 chip before loading the
+it87 driver? "isadump 0x295 0x296" should tell you. I would also be
+interested in a dump right after you load the driver if possible (but
+don't burn your CPU for me).
+
+Do you know what kind of it87 chip you do have? There are three of them,
+IT8705F, IT8712F and a SIS950 clone (mostly similar to the IT8705F).
+
+> Comparing drivers/i2c/chips/it87.c in 2.6.10 vanilla and 2.6.10-mm2,
+> I've  found only -mm tree includes the pwm fan controller.  
+> 
+> I think a quick fix could be the following, but didn't try it.
+
+Although it works for you, it probably breaks the driver for other
+people, so it doesn't look like the correct fix. I'll propose a patch
+after I see your chip dumps.
+
+Thanks,
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
