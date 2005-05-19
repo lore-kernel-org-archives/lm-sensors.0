@@ -1,7 +1,7 @@
 From: liste@jordet.nu (Stian Jordet)
-Date: Thu, 19 May 2005 06:24:35 +0000
+Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: i2c_adapter i2c-0: Bus collision!
-Message-Id: <1074521306.1807.2.camel@chevrolet.hybel>
+Message-Id: <1105461895.8299.2.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1073527236.624.7.camel@buick> <1073707567.621.5.camel@buick>
 	 <1074304828.780.2.camel@chevrolet.hybel>
@@ -12,16 +12,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-l?r, 17.01.2004 kl. 09.48 skrev Jean Delvare:
+Hi,
+
+about a year ago I asked for help with my motherboard, claiming i2c bus
+collisions all the time. Now I found the solution, the sensor uses the
+isa bus, not the i2c. Funny it sometimes worked with i2c-viapro, but
+with i2c-isa it works all the time :)
+
+Sorry for not finding that out earlier.
+
+Best regards,
+Stian
+
+l?r, 17,.01.2004 kl. 09.48 +0100, skrev Jean Delvare:
 > > sorry to bother you again, but this didn't tell you anything about
 > > what's going on?
 > 
 > Sorry for the delay. Too much work, not enough time. You know the story
 > I guess.
-
-I do. Sorry for buggin' you again, I just figured you had forgot me when
-you answered other mails on LKML.
-
+> 
 > > > I forgot to mention it in my last mail, but I sometime has to
 > > > reload the modules before "sensors" finds any sensor.
 > 
@@ -30,9 +39,7 @@ you answered other mails on LKML.
 > few registers and compare the values with what we would expect for this
 > chip. So the same read errors that make your hardware monitoring values
 > jump make the chip identification fail sometimes.
-
-I see.
-
+> 
 > > > Attached three runs. Seems to be some read errors :( On these three
 > > > runs I got first three bus-collisions, then one, and last two.
 > 
@@ -42,22 +49,18 @@ I see.
 > 
 > My conclusion would be: bad hardware design generates noise on the i2c
 > bus, resulting in read errors.
-
-I don't doubt that.
-
+> 
 > > > > Did you have to enable any particular option in MBM?
 > > > 
 > > > Nah, it just worked :)
-> 
+
 > I asked Alex van Kaam (MBM's brilliant author) about his strategy with
 > bus collisions. To make it short, he explained he resets the bus on
 > problems. If you confirm that the smbus MBM detected was Via, Alex will
 > send me his code so that I can compare with ours, just in case. But I
 > doubt it'll change anything (our driver is working, it's just a matter
 > of how errors are - or aren't - handled).
-
-Yes, it's a Via Apollo Pro 133A.
-
+> 
 > Basically we don't handle read errors at all (because it is so rare).
 > Handling them correctly would make all chip drivers (and possibly i2c
 > core and bus drivers as well) more complex. I'm not sure it's worth it.
@@ -75,8 +78,8 @@ Yes, it's a Via Apollo Pro 133A.
 > 
 > I think it is work-around-able, but doubt it's worth it. Anyway, thanks
 > for reporting, as it increased our knowledge of the topic.
-
-Thanks for your help :)
-
-Best regards,
-Stian
+> 
+> > > Thanks for your reply :)
+> 
+> You're welcome. Sorry for the delay again.
+> 
