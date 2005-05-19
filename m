@@ -1,17 +1,16 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:25:07 +0000
-Subject: [4/13] w1: Removed Makefile.* and moved all into one Makefile with
-Message-Id: <1090822006.2876.40.camel@uganda>
+From: nsx@rm-f.net (john)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: as99127f chip
+Message-Id: <20020624203423.A15629@your default hostname>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Skipped content of type multipart/mixed-------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040726/05c85bd5/attachment.bin
+
+Regarding my email earlier, my fan speed calculation was using a different
+driver.  I did not mean to include that.  Only the CPU temperature calculation
+applies.
+
+					-- John
