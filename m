@@ -1,31 +1,41 @@
-From: John.Morris@spirentcom.com (Morris, John)
-Date: Thu, 19 May 2005 06:24:14 +0000
-Subject: MAX 6650 (was: Subcription request)
-Message-Id: <629E717C12A8694A88FAA6BEF9FFCD440224B398@brigadoon.spirentcom.com>
+From: ppokorny@penguincomputing.com (Philip Pokorny)
+Date: Thu, 19 May 2005 06:23:53 +0000
+Subject: Should drivers INIT? Was: Re: success on Asus P4S8X-X
+Message-Id: <3E9A4F92.5090206@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> >>-----Original Message-----
-> >>From: Mark D. Studebaker [mailto:mds@paradyne.com]
-> >>Sent: Saturday, August 23, 2003 1:16 PM
-> >>To: Morris, John
-> >>Cc: 'sensors@stimpy.netroedge.com'
-> >>Subject: Re: Subcription request
-> >>
-> >>
-> >>we'd definitely like the 6550 driver.
-> >>
+You know, perhaps it should be made a new recommendation/rule that drivers 
+*not* initialize limits on chips by default.
 
-I mis-typed: that would be the MAX6650, not the MAX6550, which does
-not seem to exist.
+I had a problem with the LM85 shutting down Margit's motherboard.  Other 
+drivers have an init=0 option.
 
-Do you still want it?
+With the different VRM specs that are now out there it's even harder to set 
+accurate defaults.
 
-The basic functionality is there and tested and ready to check in.
-Still need to do the documentation. 
+And if the BIOS *has* setup the chip, then when the driver "initializes" it, 
+the user looses what are presumably good limits for the given motherboard.
 
-(A MAX6650 driver has been under development according to the 
-new drivers page for a while, but there's no code in CVS.)
+Lastly, it would make the chip drivers smaller by a significant amount which 
+seems to be a current focus of development [grin]...
+
+:v)
+
+
+> "set vrm 9.0" worked. thanks.
+> now I have a better vid value :
+> 
+> VCore 1:   +1.58 V  (min =  +1.44 V, max =  +1.60 V)              
+> [...]
+> vid:      +1.525 V
+> 
+> I just can now ear a very short alarm signal trigered by the motherboard,
+> after the module is loaded, and before "sensors -s" is launched. I can 
+> live with that. I usually don't reboot very often :-)
+
+
+
