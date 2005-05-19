@@ -1,40 +1,136 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:58 +0000
-Subject: ADM1026 patch for CVS
-Message-Id: <3EE24C87.9010100@penguincomputing.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: [PATCH 2.6] sensors chip updates (4 of 4)
+Message-Id: <20031216040439.GE1658@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031216035219.GA1658@earth.solarsys.private>
+In-Reply-To: <20031216035219.GA1658@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@Stimpy.netroedge.com>
 
-Here is the ADM1026 patch for CVS.
 
-This patch also contains code to dynamically generate sensors.h from the .c 
-files in KERNELCHIPS (kernel/chips).  If you apply this patch, you'll need to 
-obsolete? the sensors.h in the repository so it won't get downloaded in a 
-checkout and thus get built automatically.
+This patch is based on the lm_sensors project CVS, from revisions 1.45 and 1.1
+of lm75.c and lm75.h, respectively.
 
-In looking at this, I think sensors.h really should be renamed and moved to 
-/lib though.  Since it's only used by user-space, it ought to be in a 
-user-space directory.  i2c-dev.h also should be moved for the same reason.
+The patch fixes the conversion routines (according to datasheet) and moves
+them into a header file - as these conversions can be used by several drivers
+which emulate LM75s as subclients.  Also, temps are now reported in 1/1000 C
+in sysfs as per documentation.
 
-Lastly, as I looked at this I realized we have another issue to address with 
-the 2.5/sysfs conversion.  If defined constants shared between the kernel and 
-user space are bad, then we have to have a way to export the ALARM information 
-from the drivers without requiring a set of #define constants for the bits. 
-Rather than exporting a single "alarms" value from the driver, we're going to 
-have to create *even more* files, one per sensor, with the "ALARM" strings in 
-them.  Also, be aware that some temperature sensors have two types of "alarm" 
-conditions.  One is a failed sensor (open circuit), the other is an 
-out-of-range condition.  I think both of these could be in the same file (I 
-used 'ALARM' and 'FAULT' in the lm85 sensors printing routine.
+--- linux-2.6.0-test11-mmh/drivers/i2c/chips/lm75.c.old	2003-12-14 18:02:18.000000000 -0500
++++ linux-2.6.0-test11-mmh/drivers/i2c/chips/lm75.c	2003-12-14 19:28:08.000000000 -0500
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-sensor.h>
++#include "lm75.h"
+ 
+ 
+ /* Addresses to scan */
+@@ -44,13 +45,6 @@
+ #define LM75_REG_TEMP_HYST	0x02
+ #define LM75_REG_TEMP_OS	0x03
+ 
+-/* Conversions. Rounding and limit checking is only done on the TO_REG
+-   variants. Note that you should be a bit careful with which arguments
+-   these macros are called: arguments may be evaluated more than once.
+-   Fixing this is just not worth it. */
+-#define TEMP_FROM_REG(val)	((((val & 0x7fff) >> 7) * 5) | ((val & 0x8000)?-256:0))
+-#define TEMP_TO_REG(val)	(SENSORS_LIMIT((val<0?(0x200+((val)/5))<<7:(((val) + 2) / 5) << 7),0,0xffff))
+-
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct semaphore	update_lock;
+@@ -83,15 +77,12 @@
+ static int lm75_id = 0;
+ 
+ #define show(value)	\
+-static ssize_t show_##value(struct device *dev, char *buf)	\
+-{								\
+-	struct i2c_client *client = to_i2c_client(dev);		\
+-	struct lm75_data *data = i2c_get_clientdata(client);	\
+-	int temp;						\
+-								\
+-	lm75_update_client(client);				\
+-	temp = TEMP_FROM_REG(data->value);			\
+-	return sprintf(buf, "%d\n", temp * 100);		\
++static ssize_t show_##value(struct device *dev, char *buf)		\
++{									\
++	struct i2c_client *client = to_i2c_client(dev);			\
++	struct lm75_data *data = i2c_get_clientdata(client);		\
++	lm75_update_client(client);					\
++	return sprintf(buf, "%d\n", LM75_TEMP_FROM_REG(data->value));	\
+ }
+ show(temp_max);
+ show(temp_hyst);
+@@ -102,9 +93,8 @@
+ {								\
+ 	struct i2c_client *client = to_i2c_client(dev);		\
+ 	struct lm75_data *data = i2c_get_clientdata(client);	\
+-	int temp = simple_strtoul(buf, NULL, 10) / 100;		\
+-								\
+-	data->value = TEMP_TO_REG(temp);			\
++	int temp = simple_strtoul(buf, NULL, 10);		\
++	data->value = LM75_TEMP_TO_REG(temp);			\
+ 	lm75_write_value(client, reg, data->value);		\
+ 	return count;						\
+ }
+--- linux-2.6.0-test11-mmh/drivers/i2c/chips/lm75.h.old	2003-12-14 18:05:09.000000000 -0500
++++ linux-2.6.0-test11-mmh/drivers/i2c/chips/lm75.h	2003-12-14 18:32:46.000000000 -0500
+@@ -0,0 +1,49 @@
++/*
++    lm75.h - Part of lm_sensors, Linux kernel modules for hardware
++             monitoring
++    Copyright (c) 2003 Mark M. Hoffman <mhoffman@lightlink.com>
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/
++
++/*
++    This file contains common code for encoding/decoding LM75 type
++    temperature readings, which are emulated by many of the chips
++    we support.  As the user is unlikely to load more than one driver
++    which contains this code, we don't worry about the wasted space.
++*/
++
++#include <linux/i2c-sensor.h>
++
++/* straight from the datasheet */
++#define LM75_TEMP_MIN (-55000)
++#define LM75_TEMP_MAX 125000
++
++/* TEMP: 0.001C/bit (-55C to +125C)
++   REG: (0.5C/bit, two's complement) << 7 */
++static inline u16 LM75_TEMP_TO_REG(int temp)
++{
++	int ntemp = SENSORS_LIMIT(temp, LM75_TEMP_MIN, LM75_TEMP_MAX);
++	ntemp += (ntemp<0 ? -250 : 250);
++	return (u16)((ntemp / 500) << 7);
++}
++
++static inline int LM75_TEMP_FROM_REG(u16 reg)
++{
++	/* use integer division instead of equivalent right shift to
++	   guarantee arithmetic shift and preserve the sign */
++	return ((s16)reg / 128) * 500;
++}
++
 
-:v)
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensors-cvs-adm1026-2.patch.gz
-Type: application/octet-stream
-Size: 24535 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030607/f4b6ed9e/lm_sensors-cvs-adm1026-2.patch.obj
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
