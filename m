@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: failed again; vetctor 300
-Message-Id: <20030806093901.4512.qmail@debian>
+Message-Id: <20030806115722.5e719674.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030805222340.3799d819.zdavatz@ywesee.com>
 In-Reply-To: <20030805222340.3799d819.zdavatz@ywesee.com>
@@ -10,28 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean 
 
-I tried to install lm-sensors 2.8.0 again ( I got my computer back and 
-running on KDE). 
+> I tried to install lm-sensors 2.8.0 again ( I got my computer back and
+> running on KDE). 
+> 
+> While running sensors-detect it hung at checking for IS0... 
 
-While running sensors-detect it hung at checking for IS0... 
+Checking the ISA bus you mean?
 
-No I get the same error message again during start up as I got last time 
-when we had to delete something from /usr/src/linux/.... 
+> No I get the same error message again during start up as I got last
+> time when we had to delete something from /usr/src/linux/.... 
+> 
+> I can't remember anymore what you told me exactly to do. Can you
+> resent me that mail please. 
 
-I can't remember anymore what you told me exactly to do. Can you resent me 
-that mail please. 
+Quoting myself:
 
-My error again is:
-vector 300 at pc = e238c288, lr = e238f080
-msr = 9032, sp = d8667cf0 [d8667c40]
-dar = 24, dsisr = 40000000
-current = d8666000, pid = 879, comm = modprobe
-mon> 
+"(...) try the following:
 
-Then everything hangs while startup. 
+cd /lib/modules/$(uname -r)/kernel/drivers/i2c
 
-Thanks for yor feedback. 
+(make sure this command succeeded before running the rm commands below)
 
-Zeno
+rm *.o
+rm -r busses
+rm -r chips
+
+With no more sensor modules installed, everything should be back to
+normal I guess."
+
+Hope it'll work this time too. Looks like your system really doesn't
+like lm_sensors and I think you should stop trying or you'll end up
+breaking things seriously. I don't know what we can do to solve the
+problem (none of us has a PPC to make tests on). If we even can figure
+something out, we'll let you know.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
