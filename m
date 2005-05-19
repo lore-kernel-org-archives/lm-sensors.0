@@ -1,26 +1,50 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:46 +0000
-Subject: RFC PATCH add set_value locking (0/1)
-Message-Id: <j4j941t5u6u6cfofamalqj25a0da18ls1e@4ax.com>
+From: ghannon@cspi.com (ghannon@cspi.com)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: I2C on Marvell GT-64260
+Message-Id: <85256ED9.004E1304.00@pine.cspi.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 26 Mar 2005 13:26:03 +1100, Grant Coady <grant_nospam@dodo.com.au> wrote:
 
->On Sat, 26 Mar 2005 12:02:58 +1100, Grant Coady <grant_nospam@dodo.com.au> wrote:
->
->>Greetings,
->>
->>This patch adds locking around set operations that access 
->>data->something and go out to the chip.
->>
->Lucky last: it87
+Hi,
 
-it87 needs a small fixup, oops.  This applies over previous patch 
-in this series
+     I'm not on the list so please cc me directly on any
+responses.
 
-Sign-off-by: Grant Coady <gcoady@gmail.com>
+     I'm looking at getting i2c going on our custom board
+that uses a Marvell GT-64260 as the system controller.  It is one of the
+interfaces that uses registers to control the interface so that the
+SDA and SCL lines are not directly accessible.
+
+     I see that the iop3xx driver is very similar and I will be
+starting from that.
+
+     Questions...
+
+     1)  Has anyone already done this work?
+     If so, is it available?
+
+     2)  I see that there are many differences between the
+driver in the linuxppc-2_6 tree and the i2c-2.8.7 tarball, but they appear
+to be mostly cosmetic.   (With the exception of the irq handler returning
+IRQ_HANDLED for 2.6)    Would it be best for me to start from the
+version in 2.6?     Are there other subtle but significant changes
+that would make the driver not work in 2.4,  which is where I will be
+using it at first?
+
+     3)  When and if I get this working, would you be interested in
+it, or should I, at some point, try to get it pushed into the 2.6 kernel
+myself?
+
+Thanks for any responses,
+
+Gary Hannon
+
+
+CSPI
+ghannon at cspi dot com
+(978) 663-7598 x 1509
 
