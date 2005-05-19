@@ -1,56 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:23 +0000
-Subject: i2c-voodoo3 bug fix
-Message-Id: <20041121111213.37f3138f.khali@linux-fr.org>
+From: holger.oehm@holger-oehm.de (Holger Oehm)
+Date: Thu, 19 May 2005 06:25:59 +0000
+Subject: [lm-sensors] Motherboard data collection
+Message-Id: <200505190141.07306.holger.oehm@holger-oehm.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1100995535.27226.29.camel@localhost>
-In-Reply-To: <1100995535.27226.29.camel@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Nat,
+Hi,
 
-This is really a bt869 bug fix, not i2c-voodoo3, isn't it?
+is there by now any kind of database that hosts motherboard data?
 
-> I noticed that the first time the resolution is changed after bootup,
-> the changes do not take effect. This is because the
-> bt869_update_client function gets called twice, almost consecutively
-> (which means on the second time it doesnt run{because of the jiffies
-> check}), another variable, "update_required", has been added to allow
-> the force-running of it (as a test for this has been added to the IF
-> at the start)
+Or asked the other way round: I got a sensors.conf for my
+"Soyo SY-P4I875P Dragon 2 Platinum Edition" working (somehow working,
+I asked Soyo support for data, but didnt recieve an answer yet. So its just
+wild guessing, but at least I have some values that seem to make sense.)
 
-While I agree with the problem, I do not agree with the fix. The bt869
-driver is badly written in that the bt869_update_client function does
-two separated things:
-1* reprogram the BT869 chip;
-2* get the BT869 status info.
+I tried several times searches on the web without success to get some info
+how to treat my motherboard. Now I wonder if I am the first to get it running,
+is there some place I should publish the thing?
 
-Only that second part really belong to the function if it were to follow
-the model of the other drivers. The chip reprogramming should be moved
-to a different function. Each function should be called only when
-needed. I think it would be a much nicer solution than what you propose.
-This also would make the driver much more efficient. The fact that the
-driver will reprogram the chip entirely each time one *asks* for status
-is a sever design flaw.
+I could put it on my own webpages, but nobody would look there, would they?
 
-Note that I don't own a BT869-enabled board myself so I cannot modify or
-test anything, I am just commenting on the driver design.
-
-As a side note, bt869_read_value has an unused parameter which we should
-get rid of as well.
-
-Care to provide a patch that properly fix the driver design?
-
-> please find attached patched code
-
-Please send patches instead, not modified files. We cannot easily review
-modified files.
-
-Thanks.
+Best regards,
+Holger.
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Holger Oehm <holger.oehm@holger-oehm.de>
+Public key <A HREF="http://www.holger-oehm.de/public-key.asc">here</A>,
+KeyID: B50E51A9, Key-Length: 1024 Bit,
+Key fingerprint: E92A 5C2C 497A 44ED 23C0  DB66 1DD9 3EF7 B50E 51A9
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050519/b858d6e9/attachment.bin
