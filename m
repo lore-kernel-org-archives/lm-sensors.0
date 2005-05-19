@@ -1,47 +1,48 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <20041001234115.GA9505@kroah.com>
+From: linux@1g6.biz (Nicolas)
+Date: Thu, 19 May 2005 06:24:05 +0000
+Subject: sis5595
+Message-Id: <200307161427.08403.linux@1g6.biz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org> <20040921154111.GA13028@kroah.com> <41545421.5080408@web.de> <20040924200503.652ccf8e.khali@linux-fr.org> <415481B4.10804@web.de> <20041001065209.GA9561@kroah.com> <1096633365.16121.125.camel@newt>
-In-Reply-To: <1096633365.16121.125.camel@newt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Cox <adrian@humboldt.co.uk>
-Cc: Michael Hunold <hunold-ml@web.de>, linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 01, 2004 at 01:22:45PM +0100, Adrian Cox wrote:
-> On Fri, 2004-10-01 at 07:52, Greg KH wrote:
-> > On Fri, Sep 24, 2004 at 10:21:08PM +0200, Michael Hunold wrote:
-> 
-> > > If we have a PCI card where we exactly know what we are doing, we can 
-> > > use the NO_PROBE flag to effectively block any probing and can use the 
-> > > proposed interface to manually connect the clients.
-> > 
-> > But why?  The .class feature can accomplish this too.  Just create a new
-> > class for this type of adapter and device.  Then only that device will
-> > be able to be connected to that adapter, just like you want to have
-> > happen, right?
-> 
-> Either the i2c devices need to be able to support a list of permitted
-> adapters, or the i2c adapters need a list of permitted clients. A single
-> class isn't adequate. Consider the following scenario:
-> 
-> The FooTV123 has multiplexor MX3R0K3 and frontend XYZZY, the TVMatic3000
-> has frontend XYZZY and multiplexor MX31337, and the FooTV124 has
-> multiplexor MX31337 and frontend FR012. All three cards are installed in
-> the same machine. In the worst case the probe code for MX31337 puts
-> MX3R0K3 into a state that requires a hard reset.
-> 
-> Manual connection of clients makes it easier to develop a driver outside
-> the kernel tree, then merge it when ready, without having to allocate a
-> number from a central authority.
 
-Ok, I now understand better, thanks for putting up with me :)
+Hello,
 
-So, got a patch to do this?
+I am using 2.6.0-test1,
+and I launched "sensors-detect",
+it told me I have an sis5595.
+So I began to port the 2.4.21 sis5595 driver to 2.6 kernel.
+Here are the beginning of my work, but I am stuck here :
+i2c_detect doesn't call sis5595_detect.
 
-thanks,
+I don't know if it is because I haven't the good hardware or
+if I made a mistake. I seems I have something at adress 8008, but I don't
+have enougth experience in developping kernel drivers so I gived up,
+and I send you my work.
 
-greg k-h
+Regards.
+
+Nicolas Parpandet.
+
+You can reply me on linux@1g6.biz
+
+ul 15 23:41:17 hal9003 kernel: sis5595.o: version 2.7.0 (20021208)
+Jul 15 23:41:17 hal9003 kernel: sis5595.o: before imposter
+Jul 15 23:41:17 hal9003 kernel: sis5595.o: after imposter
+Jul 15 23:41:17 hal9003 kernel: sis5595.o: after pci_read_config_word
+Jul 15 23:41:17 hal9003 kernel: sis5595.o: addr 8008 force_addr 0
+Jul 15 23:41:17 hal9003 kernel: sis5595.o: before i2c_add_driver
+Jul 15 23:41:17 hal9003 kernel: sis5595.o: not class 2 1 0
+Jul 15 23:41:17 hal9003 kernel: i2c_detect: is_isa 0
+Jul 15 23:41:17 hal9003 kernel: i2c_detect: begin i2c_detect 0 to 7f
+Jul 15 23:41:17 hal9003 kernel: i2c_detect: for addr 0
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: sis5595.c
+Type: text/x-csrc
+Size: 28747 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030716/beed2bbe/sis5595.bin
