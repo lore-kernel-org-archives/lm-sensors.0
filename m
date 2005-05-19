@@ -1,35 +1,39 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:15 +0000
-Subject: SiS5595 graphics chip driver
-Message-Id: <Pine.LNX.4.58.0409110920290.31786@desitka.sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:38 +0000
+Subject: Memory leak in I2C (ticket #1898)
+Message-Id: <jG6nFvCq.1108465575.6408970.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2542f0f704091021006829b558@mail.gmail.com>
-In-Reply-To: <2542f0f704091021006829b558@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hello,
+Hi James,
 
-First I must say that you havent chosen right place :)
-This project is working on hardware monitoring (temperatures, voltages...)
-So no graphics stuff at all.
+I am moving this to the mailing-list since it is likely to require some
+investigation before we can find out what's going on, and our current
+ticket system is not meant for this. (Philip, Axel, where is the new
+Bugzilla system going?)
 
-I would suggest you to subscribe to debian-user mailing list.
-http://lists.debian.org/debian-user/ and write there.
+Most things in the i2c core in linux 2.4 are static, so I doubt that
+there can be a leak in i2c-core itself. i2c-proc OTOH is likely to
+allocate memory for various things, so this is a candidate. And, as you
+suggested yourself, individual drivers are candidates as well.
 
-If you open the "console" and write lspci command, you will see line
-with  VGA compatible controller and there will be written what chip it
-has. So its good start to include this in that email.
+Please tell us:
 
-You can also try some "live" linux distribution like Knoppix and boot
-directly from CD. They have very good autodetection so you could copy
-the configuration file /etc/X11/XF86Config-4 from there to your system.
+* Which i2c drivers you are using.
 
-I hope this will help.
+* What your test script is. Which modules are you cycling exactly, in
+which order, at which rate? I'd be happy to do the same on my own
+machines (with different bus and chip drivers) and see if I can
+reproduce the problem.
 
-Regards
+Once we know in which kernel module the leak is, it shouldn't be too
+hard to find out where the leak is exactly. There aren't that many
+memory allocations in there.
 
-Rudolf
+BTW, thanks a lot for reporting.
+--
+Jean Delvare
