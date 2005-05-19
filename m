@@ -1,27 +1,37 @@
-From: greg@gkmweb.com (Greg Meyer)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: lm90 driver
-Message-Id: <200310261339.56111.greg@gkmweb.com>
+From: darkeye@tyrell.hu (Akos Maroy)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: Ticket #: 786
+Message-Id: <3C3B8E68.7000403@tyrell.hu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030906000353.40951246.khali@linux-fr.org>
-In-Reply-To: <20030906000353.40951246.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sunday 26 October 2003 11:03 am, you wrote:
-> > No.  I have a Soyo Dragon Ultra (KT400) that has both.
->
-> Oh, OK, this make sense now. The LM90 and the IT87 must be measuring the
-> temperature of two different points of the motherboard. Temperature
-> varies a lot in a computer case, so that's no wonder both sensors return
-> different values.
+> if you modprobe adm1021 as sensors-detect recommends
+> then ?sensors? should give you some results.
+> If not then send us email and reference your ticket number.
 
-The it87 also measures the socket temp with a thermister, as well measuring 
-fan speeds and and voltages.
 
-Thanks again.
--- 
-Regards,
-Greg
+sometimes sensors-detect detects lm75, sometimes lm78. If lm75, sensors 
+reads:
+
+lm75-i2c-1-4e
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Non-I2C SMBus adapter
+temp:       +0.0?C  (limit =  +0.0?C, hysteresis =  +0.0?C)
+
+
+if lm78, sensors reads 4.0 centigrades.
+
+
+Unfortunately there is no useful info returned. OTOH, BIOS displays two 
+different temperature values, and two fan rotation speeds.
+
+
+Any suggestions?
+
+
+Akos
+
+
