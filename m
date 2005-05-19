@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: lm_sensors
-Message-Id: <sovSSBoW.1115884900.2842860.khali@localhost>
+Message-Id: <WbnCzWdb.1115887029.3338190.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
 In-Reply-To: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
@@ -11,36 +11,34 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Dmitri,
+Hi Dmitry,
 
-> I've a problem with setting fan control. After I find your
-> suggestions on http://lkml.org/lkml/2005/1/19/244 I hope you could help
-> me.
+> > Which kernel version are you using?
 >
-> I have:
-> Handle 0x0002
->         DMI type 2, 8 bytes.
->         Base Board Information
->                 Manufacturer: Gigabyte Technology Co., Ltd.
->                 Product Name: 8I845GV
->                 Version: 1.x
->
-> lm_sensors detected:
->
-> # I2C adapter drivers
-> modprobe i2c-i810
-> modprobe i2c-i801
-> modprobe i2c-isa
-> # I2C chip drivers
-> modprobe eeprom
-> modprobe it87
->
-> But there are no pwm registers in /sys/bus/i2c/devices/*/
+> 2.6.11.5
 
-Which kernel version are you using?
+Unfortunately, this kernel version does not have support for fan polarity
+fix yet. You will have to upgrade to 2.6.12-rc2 or more (I would suggest
+-rc4, obviously).
 
-Check your logs when loading the it87 driver. Do you see a complaint
-about bogus fan polarity, or any other warning?
+> it87 3-0290: detected broken BIOS defaults, disabling pwm interface
 
+So this means that your BIOS did not program the PWM settings properly
+(or at least we think it did not). You should first search for a BIOS
+upgrade for your motherboard. If none is available, you should contact
+Gigabyte and tell them about your problem.
+
+Then, if all of the above failed, you may upgrade to 2.6.12-rc2 or later
+and try:
+
+modprobe it87 fix_pwm_polarity=1
+
+Note that this is still experimental, so be very careful that your fans
+don't stop.
+
+You should now see the pwm control files in /sys, and if the workaround
+works for you, you should be able to control the speed of your fans.
+
+Hope that helps,
 --
 Jean Delvare
