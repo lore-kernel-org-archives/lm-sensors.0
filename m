@@ -1,7 +1,7 @@
 From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: New sensors web site (was Re: 2nd mail archive?)
-Message-Id: <41C08207.5040801@edgedesign.us>
+Message-Id: <41C08478.8020807@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41BDF25A.9030509@edgedesign.us>
 In-Reply-To: <41BDF25A.9030509@edgedesign.us>
@@ -10,57 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+(I think I'm answering mails out of order)
 
-Jean Delvare wrote:
+Axel Thimm wrote:
+> OK, I can arrange for lm-sensors.org with
+> 
+> o Web
+> o Mailman
+> o Wiki (which one?)
+> o CVS/subversion with viewcvs (and cvsgraph for cvs)
+> o Bugzilla
+
+That's certainly a great solution set to start with.
+
+BTW- I'm assuming I can get some shell access to play with support 
+scripts, database stuff, and such as needed?
+
+> 
+> Migration of the list: Who has a complete archive? A modern approach
+> in naming/segmenting lists would be lm-sensors-users@lm-sensors.org
+> and lm-sensors-devel@lm-sensors.org. Is that in order?
+
+We talked about splitting the list out not too long in the past, but it 
+was decided then that we didn't have enough traffic to really make it 
+benefitial.  I don't know if everyone is still thinking that this is 
+true, though.
+
+> 
+> Migration CVS to subversion would be quite easy (I need a copy of the
+> CVS repo). It is mainly up to the current developers, whether they'd
+> like to change the versioning system.
+
+OK.  I can provide you with tarballs directly from the CVS server, as 
+you need them.
+
+> 
+> Migration of the ticket system to Bugzilla may be more
+> cumbersome. Someone with good bugzilla database knowledge would have
+> to check the current ticketing system and migrate it.
+> 
+
+I can definitely help tackle this.  I spend a lot of time at my job 
+pushing data between database backends and such.
+
 > [...]
+> Who wants to become
+> o list admin
+> o bugzilla admin
+> o wiki admin
 > 
-> Viewcvs?
-> 
-> (e.g. http://cvs.apache.org/viewcvs.cgi/)
-> 
-> Seems to support Subversion as well.
-> 
+> Phil, I'm sure some of these tasks are reserved for you :)
 
-That's another option, although I couldn't see how to download tarballs. 
-(not critical)
+Sigh... yeah. :')
 
->[...]Searching in it is especially cumbersome, I think.
-> 
-> 
-> That's true but OTOH people are used to bugzilla because several major
-> projects use it (linux kernel, mozilla, xmms and more). I think it can
-> be configured and maybe the overkill features can be disabled in our
-> case. It's certainly worth giving it a try. If someone can think of
-> something as efficient but lighter, I'm listening.
-> 
-
-I'm not opposed to bugzilla if it is the best option.  Especially if we 
-can start with a simplified version and grow into it's more advanced 
-features.
-
-Lots of interesting options on Freshmeat, but of course most solutions 
-are somebody's half-baked weekend project written over a weekend in Ada 
-for their Amiga. ;')
-
-http://freshmeat.net/browse/846/
-
-But, take a look at this:
-
-http://www.edgewall.com/trac/screenshots.html
-
-It happens to cover most of the things we were discussing, and a few 
-more we hadn't thought of (like project time line, changeset summary, 
-etc.)  A few shortfalls, but might be adaptable... just kicking around 
-some thoughts.
-
-> Oh, I would consider it a GREAT benefit if it were possible to import our
-> existing 2500 tickets in the new support system and keep the numbering
-> intact.
-> 
-
-Yes!  If the new system uses a SQL backend (like my favorite 
-PostgreSQL), then it shouldn't be too bad to figure out how to import 
-all the existing tickets in.
+I'm not sure yet if everyone is sold on the solution set yet.  It's an 
+important change that I'd like to make sure everyone is comfortable with 
+before we invest too much time on.
 
 
 Phil
