@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: question (IBM i2c-piix4)
-Message-Id: <Kn8VvbsY.1112963095.2900690.khali@localhost>
+Message-Id: <20050408231129.0771a59d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000101c53bd2$a7dbfbb0$e500a8c0@KRTEK>
 In-Reply-To: <000101c53bd2$a7dbfbb0$e500a8c0@KRTEK>
@@ -10,42 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Tomas,
 
-Hi,
+> Here is my "vpddecode" output:
+> 
+> # vpddecode 2.6
+> BIOS Build ID: NVKT39AGR
+> Product Name: PC 300PL
+> Box Serial Number: 5575C0D
+> Motherboard Serial Number: D7G5UCE0BDE
+> Machine Type/Model: 6862270
 
-> I have this problem:
-> ==
-> i2c-piix4.o: IBM Laptop detected; this module may corrupt your serial
-> eeprom! Refusing to load module!
-> ==
->
-> And I have read this message:
-> ####
-> http://archives.andrew.net.au/lm-sensors/msg01833.html
-> ####
->
-> Is my PC on your "whitelist", please?
+This one DOES have the faulty EEPROM IIRC, and an LM80 hardware
+monitoring driver.
 
-The whitelist was never actually implemented, sorry. Too much work, not
-enough information from IBM.
+> Thanks for your advice how to hack the i2c-piix4 driver.
 
-We have moved to a different strategy since, which was to not use the
-command which possibly corrupts the EEPROMs at all. This was only
-implemented in user-space at the moment though, not in the kernel. One
-more thing I need to do, but hadn't the time to actually tackle yet.
+First of all, you MUST NOT load the eeprom driver on your system. NEVER.
+Make sure you don't even compile it.
 
-If you are compiling your kernel manually, I can tell you how to hack the
-i2c-piix4 driver to bypass the check. You'd have to tell me which model
-you have before though, because the check is there for a good reason and
-you shouldn't remove it before we are certain your system is not at
-risk. The "vpddecode" tool which comes with dmidecode might help you
-identify your IBM system.
+Now if you really want to bypass the security check, edit
+drivers/i2c/busses/i2c-piix4.c. In function piix4_setup, you'lle find:
 
-> PS: What means "serial eeprom" - is it "BIOS chip"?
+	/* Don't access SMBus on IBM systems which get corrupted eeproms */
+	if (dmi_check_system(piix4_dmi_table) &&
+			PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL) {
+		dev_err(&PIIX4_dev->dev, "IBM Laptop detected; this module "
+			"may corrupt your serial eeprom! Refusing to load "
+			"module!\n");
+		return -EPERM;
+	}
 
-It can be about anything, most frequently the ones connected to the SMBus
-are from the memory modules of your system. BIOS chips are much larger
-than that, and never found on the SMBus as far as I know.
+Rip the whole block, recompile and you're done.
 
---
+(And if you break your system we are not reponsible, of course.)
+
+-- 
 Jean Delvare
