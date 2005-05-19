@@ -1,21 +1,18 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:29 +0000
-Subject: [PATCH 2.6] probe fewer addresses for asb100 (sensors) driver
-Message-Id: <20050106215514.GE27899@kroah.com>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: CVS messages out of mail archive
+Message-Id: <3D8DE64F.E4D74344@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050102212501.GA17759@jupiter.solarsys.private>
-In-Reply-To: <20050102212501.GA17759@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 02, 2005 at 04:25:01PM -0500, Mark M. Hoffman wrote:
-> Hi Greg:
-> 
-> This patch limits SMBus scanning for the asb100 sensor chip
-> to just one address - the only one we've ever seen in practice.
+Andrew,
 
-Applied, thanks.
+I think it would be helpful to filter/remove the CVS messages
+(i.e. everything from author) from the mailing list archive.
+It would make it much smaller, and people can browse CVS
+using our web interface if they want to see that information.
 
-greg k-h
+Is this a good idea? Is it possible?
