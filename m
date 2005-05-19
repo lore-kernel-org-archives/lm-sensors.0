@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: lourens@rainbowdesert.net (Lourens Veen)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: Strange values on ASRock K7S8X mainboard with W83697 chip
-Message-Id: <Pine.LNX.4.58.0407232129100.30300@desitka.sh.cvut.cz>
+Message-Id: <200407240015.08951.lourens@rainbowdesert.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200407221213.00965.lourens@rainbowdesert.net>
 In-Reply-To: <200407221213.00965.lourens@rainbowdesert.net>
@@ -10,63 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+> > Theory: the hardware guys at ASRock miswired in5 and in6. The
+> > BIOS software guys programmed the BIOS according to the
+> > datasheet. When testing, they noticed the problem, and disabled
+> > the negative voltage readout. It is a low-budget product after
+> > all, so fixing the hardware might simply have been too
+> > expensive. And negative voltages are hardly used in todays PCs
+> > anyway.
 
-> I've still got version P2.20, but the ASRock changelog doesn't say
-> anything about sensors.
+Looks like I was wrong. I just talked to Khali on IRC, and he gave 
+me some tips which seem to work. So, for future reference, here is 
+what seems to be the right configuration for the ASRock K7S8X:
 
-I tried the fist version and last version. They are the same. (in this
-part of code)
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((30/10)+1)*@  ,  @/((30/10)+1)
+    compute in5 -((30/10)+1)*@  ,  -@/((30/10)+1)
+    compute in6 -((6.8/10)+1)*@ ,  -@/((6.8/10)+1)
 
-> How did you get that BIOS image? Is there a way to extract it? I'd
-> love to have a look. I tried downloading the images from the ASRock
-> website, but they don't even have those strings in them. Or am I
-> missing something?
+Also note the 30 instead of the default 28, that solves the too-low 
+reading and it's been used on other mainboards as well according to 
+Khali.
 
-It is compressed. Just imagine that image like a filesystem.
-There are some tools available.
+I'll still let you know if/when I get more from ASRock.
 
-See my Bios Hacking guide, made for this purpose :)
+Lourens
+-- 
+GPG public key: http://home.student.utwente.nl/l.e.veen/lourens.key
 
-http://assembler.cz/biohack.html
-
-> Hmm, multiply by 160. The LSB of the ADC output is 16mV. So we're
-> working in tenths of millivolts apparently.
-
-Nice.
-
->
-> > The BX value is somewhere hidden or even not included so I cant
-> > tell anything about the formula.
->
-> Well, I worked it out from that disassembly, and we can say
-> something about the formula. If I didn't make any mistakes, it
-> seems to follow the formula in the datasheet, with the mysterious
-> BX being the beta value. The 24h (36) in there is the 3.6V
-> reference voltage. This means that my original estimate is probably
-> somewhere near correct, but it leaves the problem of the resolution
-> being way too small.
->
-> Theory: the hardware guys at ASRock miswired in5 and in6. The BIOS
-> software guys programmed the BIOS according to the datasheet. When
-> testing, they noticed the problem, and disabled the negative
-> voltage readout. It is a low-budget product after all, so fixing
-> the hardware might simply have been too expensive. And negative
-> voltages are hardly used in todays PCs anyway.
-
-very nice catch maybe very close to reality.
-
-> I've emailed ASRock, whose first reaction was to tell me to try the
-> program at http://mbm.livewiredev.com. I took a second try at
-> explaining them that I'm running Linux, and that I would like to
-> know the formulas. I haven't had any response so far, but it's only
-> been half a day. We'll see what happens.
->
-
-Heh looking forward.
-
-If you want to talk about this just go to IRC on irc.freenode.net
-#linux-sensors
-
-Regards
-
-Rudolf
