@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:02 +0000
+Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: lm_sensors2/prog/detect sensors-detect
-Message-Id: <20030628235503.2afc3b96.khali@linux-fr.org>
+Message-Id: <20030704235106.7c14d29a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021107235845.0037e195.khali@linux-fr.org>
 In-Reply-To: <20021107235845.0037e195.khali@linux-fr.org>
@@ -11,23 +11,38 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> With your fix and perl 5.005.02, at the beginning I get:
+> > > Could be... But there is one last thing I would like to try. My
+> > > changes(-k3) don't seem to have had any effect, so I'm trying
+> > > something similar but different. Please get
+> > >   http://www.ensicaen.ismra.fr/~delvare/sensors-detect-k4
+> > > and tell me, again, it it behaves differently with and without an
+> > > UTF-8 locale.
+> > 
+> > That seemed to fix it!!!
 > 
-> Useless use of a constant in void context at
-> prog/detect/sensors-detect line 1345.
-> 
-> which doesn't s top the script, but later on (just after saying YES to
-> ISA bus scan)
-> 
-> Your vendor has not defined Fcntl macro O_BINARY, used at
-> prog/detect/sensors-detect line 1343.
-> 
-> and the script stops. So how do we get this to work on older perls?
+> "Ah ah ah (evil laugh) you nasty little bug, you thought you could
+> lurk forever? Diiiiiiiie!"
 
-We can simply remove the O_BINARY. I let it there just in case, but the
-real fix is binmode() two lines below. Binmode does more than O_BINARY
-does, so it seems safe to remove the later. I was once told that
-O_BINARY was not portable, now I know why ;)
+Jim, still around? Although the UTF-8 fix finally worked, it turned out
+to be incompatible with older versions of Perl MDS is still using. I
+think I know what to do but I'd like to make sure it doesn't make the
+UTF-8 trouble come back again. This is very very unlikely to happen, but
+who knows...
+
+Please edit your local copy of sensors-detect, search for the "sub
+initialize_ioports" and make that function looks like this:
+
+sub initialize_ioports
+{
+  sysopen (IOPORTS, "/dev/port", O_RDWR)
+    or die "/dev/port: $!\n";
+  binmode (IOPORTS);
+}
+
+(If you still have the -k4 script, it will probably mean removing
+O_BINARY and :raw. These are the things older Perl don't know about.)
+
+Then let us know if the UTF-8 test still works, or not. Thanks!
 
 -- 
 Jean Delvare
