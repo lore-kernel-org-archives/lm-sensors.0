@@ -1,73 +1,50 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:34 +0000
-Subject: adding support for new 2.6 chips in (lib)sensors
-Message-Id: <20040111184623.14b71d37.khali@linux-fr.org>
+From: gilbertd@treblig.org (Dr. David Alan Gilbert)
+Date: Thu, 19 May 2005 06:23:26 +0000
+Subject: lm-sensors - hangs on Tyan Tiger S2460 motherboard
+Message-Id: <20011125202705.A612@gallifrey>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031230214411.6eb029e7.khali@linux-fr.org>
-In-Reply-To: <20031230214411.6eb029e7.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-(Sorry for the delay, so busy...)
+Hi,
+  I'd like to report that the lmsensors package 2.6.1-3 (-3 is the
+debian package no.) doesn't like my Tyan Tiger S2460 motherboard. It is
+a dual Athlon.
 
-> > * I think there's a typo at lib/proc.h:438.
-> 
-> ?? you mean proc.c?
-> I assume you fixed it, line numbers moved...
+sensors-detect works and detects the 'SMBus AMD7X6 adapter at 80e0'
+adapter which shows up in /proc/bus/i2c.
 
-Yes I did.
+It detects and tells me to load the w83781d module.  Unfortunatly when
+this loads it hangs the machine solid (no keyboard, nothing).
 
-> > * What's the reason for doing:
-> >   if(sscanf(name, "temp%d_ove%c%c", &num, &last, &check) = 2
-> >      && last ='r')
-> > instead of
-> >   if(sscanf(name, "temp%d_over%c", &num, &check) = 1)
-> > ? I understand that you want to make sure that there's nothing after
-> > "other" with the &check trick, but I don't see why you would also
-> > need the &last trick for this. Anything obvious I'm missing?
-> 
-> In your example you can't tell if the "_over" part matched or not, can
-> you? I know the way I did it is retarded, I just couldn't think of a
-> better way. Anybody have an elegant way that works, speak up.
+At boot time when it tries to load this it gives the:
 
-After a few tests (and reading the man page first) it appears that you
-are right. I must be too used to the power of regular expressions, I
-wouldn't figure that sscanf can fail matching the pattern and still
-return non-zero.
+  'W83782D subclient] reg to adapter [SMBus AMD7x6 adapter' at 80e0
+  (pos. 2)'
 
-I can't think of any other way, so let's stick to your method. It's not
-that bad after all, just a bit harsh to understand at first (for me at
-least).
+(Typed from scrawlings in my note book...) I get a message for pos.0 and
+pos.1 before this. Then it hangs.
 
-> > * I'm seeing a strange behavior with the eeprom module for on my
-> > Vaio(i.e. non-memory) eeprom. Usually sensors will say "Memory type:
-> > Unavailable" (it's obviously not noticing this isn't a regular
-> > memory eeprom). But it sometimes will succeed and print the
-> > expected, vaio-specific data. I didn't investigate any further, but
-> > there must be a bug hiding somewhere.
-> 
-> We're getting good at finding bugs in the bus drivers with eeprom.
-> What bus driver? Any more clues?
+When sensors-detect runs it detects that device with a confidence of 8;
+it also detects (with a confidence of 3 listing as misdetects) LM75's
+at 48 and 49 on the SMBus.
 
-This is i2c-i801, kernek 2.6 (.0 and .1 alike). No problem under
-2.4.whatever.
+/proc/sys/dev/sensors lists three eeprom's :
 
-(a few minutes later)
+dg@gallifrey:/proc/sys/dev/sensors$ cat chips 
+256	eeprom-i2c-0-50
+257	eeprom-i2c-0-51
+258	eeprom-i2c-0-54
 
-Ah ah, this was sooo ridiculously easy. The "eeprom" file has
-permissions 0400, so sensors fails as a regular user and succeeds as
-root. This was once a wanted behavior for the *first* row of the eeprom,
-because it contains the BIOS password (if one was set). Now that the
-whole eeprom is exported as a single file, that's quite different.
+(It gave high confidence in two of those being my two DIMMs - gave lower
+confidence in the last one being a dimm; it isn't - I only have 3).
 
-That said, the solution retained in 2.4 should still apply. We use
-capable() to know if the caller is root, and is this case show the real
-data. If not, show zeroes instead, for the first row only. I'm on it.
+Thanks in advance for any ideas,
 
-And no, i2c-i801 wasn't guilty ;)
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Dave
+ ---------------- Have a happy GNU millennium! ----------------------   
+/ Dr. David Alan Gilbert    | Running GNU/Linux on Alpha,68K| Happy  \ 
+\ gro.gilbert @ treblig.org | MIPS,x86,ARM, SPARC and HP-PA | In Hex /
+ \ _________________________|_____ http://www.treblig.org   |_______/
