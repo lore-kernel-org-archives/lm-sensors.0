@@ -1,33 +1,36 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:02 +0000
-Subject: Fancontrol (perl) patch
-Message-Id: <20040623213614.2c1669de.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: Bugzilla
+Message-Id: <3Xg1uAGB.1110214165.5308430.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <637C4FE1-BEA4-11D8-8C9C-000A95AF6760@hawaii.rr.com>
-In-Reply-To: <637C4FE1-BEA4-11D8-8C9C-000A95AF6760@hawaii.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Well,  Appended to this message is the current version of the
-> fancontrol script that I am happily using.  It uses POSIX::_exit()
-> to avoid the double-call to the END block, plus it logs STDOUT and
-> STDERR to different logfiles.
-> (...)
-> Also appended is an /etc/init.d/fancontrol init script that I'm
-> using on a Fedora Core 1 based system.  It should work on most
-> later-version (IE RedHat 9 through FC2) RedHat-based distros.  It
-> doesn't handle start-when-the-daemon-is-already-running quite
-> correctly but I haven't gotten around to fixing that yet.
 
-OK, I updated our CVS repository with both files.
+Hi Axel, Philip & all,
 
-Please send patches against whatever we happen to have under CVS if you
-have further changes to any script.
+Any news about the new bugzilla installation for lm_sensors support
+management? I'd like it to be in place as soon as possible. Ideally we
+would switch to it before the old system reaches ticket #2000.
+
+Would it be possible to tell Bugzilla to start at ticket #2000? That way
+the new tickets wouldn't overlap with the older ones.
+
+If possible, we could later import older tickets into the new base, but I
+admit I have no idea how to do that and it's not my priority at the
+moment.
+
+We will also need to prevent the creation of new tickets on the old base
+as soon as the switching is done.
 
 Thanks.
 
--- 
+PS: Any objection to me deleting doc/developers/readticket and editticket
+from lm_sensors CVS? Seems to be made obsolete by the new search page on
+the website, and will not work anymore once we have moved to Bugzilla
+anyway. (As a side question, does anyone really still use netscape??)
+
+--
 Jean Delvare
-http://khali.linux-fr.org/
