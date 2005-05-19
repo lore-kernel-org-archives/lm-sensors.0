@@ -1,41 +1,37 @@
-From: linux@brodo.de (Dominik Brodowski)
-Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: [PATCH] p4b_smbus quirk update
-Message-Id: <20030517091921.GA3381@brodo.de>
+From: nicolas.boulay@ifrance.com (Nicolas Boulay)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: Compile problem when EISA support is removed from the .config file
+Message-Id: <200210100836.01d7@th00.opsion.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030202110314.GA1759@brodo.de>
-In-Reply-To: <20030202110314.GA1759@brodo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Feb 16, 2003 at 06:48:08PM -0500, Mark D. Studebaker  wrote:
-> That's a good idea.
-> Did you submit it to the kernel?
-> If it gets in let us know.
-> thanks
+I have a asus SMP board, the a7m266-d. I run mandrake linux 8.2 with
+kernel 2.4.18.
 
-Merged in 2.5.69-bk11.
+I had problem by compiling lm_sensors. They were some strange compiling
+error some about isa bus. 
 
-	Dominik
+My motherboard does have any isa slot, so i had remove the support of
+the isa inside the make menuconfig program but without installing a new
+kernel.
 
-> Dominik Brodowski wrote:
-> >Hi,
-> >
-> >The p4b_smbus.c module located in lm_sensors-2.7.0/prog/hotplug does not
-> >work for 2.5. kernels. Also, the code can be simplified much if enabling 
-> >the
-> >SMBus device is done as a "pci quirk" in drivers/pci/quirks.c in the linux
-> >kernel sources. A patch for linux-kernel 2.5.59 is attached below. 
-> >However, it _might_ be wise to add a check so that only Asus mainboards 
-> >are affected.
-> >
-> >	Dominik
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030517/085ae645/attachment.bin
+To solve the problem, i simply do a "make mrproper" inside the linux
+source and run "make menuconfig" (leave default option like EISA
+support) and then a "make dep". I don't know if "make dep" do really
+something usefull. 
+
+After doing a "make mrproper", the make of lm_sensors complain about the
+miss of the /usr/src/linux/.config file.
+
+So, from my point of view, lm_sensors make didn't like that the EISA
+support is remove from the .config file.
+
+nicO
+
+______________________________________________________________________
+Etudiant: Wanadoo t'offre le Pack eXtense Haut D?bit soit 150,92 euros
+d'?conomies ! Clique ici : http://www.ifrance.com/_reloc/mail.etudiant
+
