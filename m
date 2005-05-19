@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Winbond W83792D driver
-Message-Id: <61DqK9WE.1113204386.6869130.khali@localhost>
+Message-Id: <WNlWKwce.1113206671.9704600.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
@@ -13,33 +13,58 @@ To: lm-sensors@vger.kernel.org
 
 Hi Chunhao,
 
-> > 6* The code does *not* properly handle the case where subclients are
-> > disabled. If subclients addresses are forced, they will be forcibly
-> > enabled (this is OK). If they are not forced, then we might register
-> > clients which do not exist (this is NOT OK).
+> > 3* Your code does *not* free the memory you allocated for subclients
+> > when unloading the driver. Please add the necessary code.
 >
-> Then how should I handle the case where subclients are disabled?
-
-You should skip the call to i2c_attach_client for disabled subclients
-(they will most likely fail anyway).
-
-Note that you will probably face a problem on the client unregistering
-front with your current approach of having a single malloc for both
-subclient structures. You might consider the approach used in the asb100
-and w83781d drivers (in 2.6) instead: have a separate pointer for each
-subclient, and one malloc for each.
-
-> > [I'd have a side question, about the subclients in general...
-> > Why do we register subclients addresses at all? We could instead
-> > forcibly disable them. This is easier and just as efficient (disabling
-> > the addresses doesn't disable the temperature channels themselves).]
+> I added three lines, please refer to the codes below, Am I right?
 >
-> Yes, maybe you are right, but I think your this question is to the other
-> members of lm_sensors group, Am I right? You need a discussion with them,
-> because I'm not very familiar with the subclients.
+> static int
+> w83792d_detach_client(struct i2c_client *client)
+> {
+>        int err;
+>        struct w83792d_data *data = i2c_get_clientdata(client);
+>
+>        if ((err = i2c_detach_client(client))) {
+>                .../* some codes omitted here! */
+>        }
+>
+>        if (i2c_get_clientdata(client)=NULL) {
+>                /* subclients */
+>                i2c_detach_client(&(data->lm75[0])); <-- added!
+>                i2c_detach_client(&(data->lm75[1])); <-- added!
+>                kfree(data->lm75);                   <-- added!
+>                kfree(client);
+>        } else {
+>                /* main client */
+>                kfree(i2c_get_clientdata(client));
+>        }
+>        return 0;
+> }
 
-Absolutely, this should be discussed collectively. We are in no hurry.
-For your driver, just stick to what the other drivers do for now.
+This can't work! By definition if i2c_get_clientdata(client)=NULL, then
+data is NULL, so data->lm75 doesn't exit. Also, you would be detaching
+subclients more than once if it did work, and freeing memory more than
+once too.
+
+You are facing the problem I expected. With your current allocation
+model, only the main client can free the memory allocated for
+subclients. the problem is that you cannot be sure that the subclients
+will be unregistered first, so you can't do that.
+
+I really think you will have to move to a different allocation model. See
+asb100 for a good example of how things should be done.
+
+> I meet a problem when load the 792 module after the modification to
+> 1*-5*: W83792d 0-002f: Subclient 1 registration at address 0x48 failed.
+>
+> The 792 modules does not work, does it have something to do with your
+> item 6*?
+> Do you know how to solve this problem?
+
+This might have been caused by the deregistration problems. If a
+subclient wasn't properly unregistered, then it's marked as used until
+next reboot. I'd suggest that you change the implementation and try
+again. Hopefully the problem will be fixed.
 
 Thanks,
 --
