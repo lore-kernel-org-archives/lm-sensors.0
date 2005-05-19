@@ -1,55 +1,52 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:46 +0000
-Subject: Fw: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <Pine.LNX.4.58.0503261328400.20694@desitka.sh.cvut.cz>
+Subject: FW: Ask for some information about motherboard ASUS NCLV-D
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5496@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hello,
-
-> I have two questions here:
-> (1) As we know, it will be very inconvenient for those users with ASUS
-> NCLV-D motherboard and want to use w83792d driver under linux-2.4, if they
-> have to write the value "0x08" into "0x04b9" by themselves each time.
-
-After talking with Jean we agreed on this:
-
-I'm sorry there is no easy way to fix this. We consider this as BIOS bug
-and it should be fixed by ASUS. If companies  use "enterprise 2.4 linux"
-I hope they will complain about this and ASUS removes such stupid
-restriction. Userspace possibilty is left for such users. Their discomfort
-is ASUS fault.
-
-My offer:
-
-Maybe you should ask ASUS to give you full list of motherboards that are
-hiding your chips (and of course how to unlock them). I'm willing to
-implement quirks.c for 2.6 kernels but thats all I could do for you.
-
-My oppinion, but I think others will agree on this too:
-
-I'm sorry, we strongly belive that this practices are just putting
-obstacles to our work. I know people werent happy with their proprietary
-ASMA software under Linux. Maybe thats the reason you are writing the
-driver for lm_sensors infarstructure.
-
-Moreover more obstacles are set:
-
-1) Chips docs under NDA
-2) Bus chips under NDA
-3) Hide and seek games with ASUS
-4) Motherboard manufactures refusing to tell us what formulas they use.
-   (they want NDA, or simply do not respond)
-
-Please help us to change this practice! I can't get why they are doing
-such things. We are simply working on support of their motherboards for
-free and they dont get it!!!
-
-Regards
-
-Rudolf
+RGVhciBSdWRvbGYKCj4gSSB0aGluayBpdCBzaG91bGQgYXBwbHkgdG8gMi42LjExIGJ1dCBpdCBz
+aG91bGQgd29yayBmb3IgMi42LjEwCj4gd2l0aCBtZXNzYWdlc3MgbGlrZSAiSHVuayAjeCBzdWNj
+ZWVlZCBhdCB3aXRoIG9mZnNldCIKPiAKPiA+IEFuZCBmcm9tIHdoaWNoIGtlcm5lbCB2ZXJzaW9u
+IHdlIG5lZWQgTk9UIHBhdGNoIGl0LCBiZWNhdXNlIHRoYXQKdmVyc2lvbiArCj4gPiBoYXMgY29u
+dGFpbmVkIHlvdXIgY29kZXM/Cj4gCj4gTm90IHlldCBpbiBrZXJuZWwuIFdlIG11c3QgZmlyc3Qg
+a25vdyBpZiBpdCByZWFsbHkgd29ya3MuIFRoZW4gd2UgbXVzdAo+IG1ha2UgYSBwYXRjaCBjbGVh
+bnVwLiBXZSBoYXZlIGFsc28gb3RoZXIgcGVyc29uIHdpdGggeW91ciBjaGlwLCBidXQKYWxzbwo+
+IEFTVVMgYm9hcmQgYW5kIGFsc28gaGlkZGVuLiBUaGlzIHRyaWNrIGRvZXMgbm90IHdvcmsuIChN
+YXliZSB5b3UKbm90aWNlZAo+IHRoZSBtYWlscyB3aXRoIHN1YmplY3QgImFzdXMgbmV3IGhvcGUi
+LiBJIHdpbGwgd3JpdGUgYWJvdXQgdGhpcyBpbgpvdGhlcgo+IGVtYWlsLgo+IAo+IElmIHlvdSB0
+ZWxsIG1lIHRoYXQgaXQgd29ya3MuIEkgY2FuIHByZXBhcmUgcGF0Y2ggZm9yIG1haW5saW5lIGtl
+cm5lbC4KClNpbmNlIHdlIGhhdmUgTk9UIHN0YXJ0ZWQgdGhlIHRlc3Qgb2YgbGludXgtMi42IG9u
+IHRoYXQgbW90aGVyYm9hcmQKQVNVUyBOQ0xWLUQsIEkgY2FuIE5PVCB0ZWxsIHlvdSB3aGV0aGVy
+IHRoZSBwYXRjaCBoaWRlX2FuZF9zZWVrIHdvcmtzCnJpZ2h0IG5vdy4KVGhlIG1vdGhlcmJvYXJk
+IGlzIG5vdCBvbiBteSBoYW5kLCBJIHdpbGwgY29udGFjdCBteSBjb2xsZWFndWUKQ0ZMaShBYXJv
+biBMaSkKdG8gc3RhcnQgdGhlIHRlc3Qgd2hlbiBoZSBoYXMgdGltZSwgYW5kIHRlbGwgeW91IHRo
+ZSByZXN1bHQgYXMgc29vbiBhcwpwb3NzaWJsZS4KCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5o
+YW8KCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHBy
+aXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWls
+IGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQg
+YnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUg
+YWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUg
+Zm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSBy
+ZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29w
+aWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRl
+bHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRo
+YXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdp
+bmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlz
+IGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBX
+aW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBX
+aW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5
+b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdu
+b3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhl
+Jm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKj
+qcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqo
+w6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tI
+pfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu
++LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7V
+ptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5
+caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
