@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: bjorn@mork.no (=?iso-8859-1?q?Bj=F8rn_Mork?=)
 Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: "probe" module param broken for it87 in Linux 2.6.6
-Message-Id: <20040512201421.GC15789@kroah.com>
+Message-Id: <hvy8nwux4a.fsf@rasputin.ws.nextra.no>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <hvk6zhzp6c.fsf@rasputin.ws.nextra.no>
 In-Reply-To: <hvk6zhzp6c.fsf@rasputin.ws.nextra.no>
@@ -10,15 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Becides the issues already brought up...
+Jean Delvare <khali@linux-fr.org> writes:
+> So I'd suggest that you simply use the standard exit sequence in the
+> it87 driver (the second one in your current patch). A patch for the 2.4
+> driver would be appreciated as well.
 
-On Wed, May 12, 2004 at 04:38:03PM +0200, Bj?rn Mork wrote:
-> +	if (!it87_find(&addr)) {
-> +		printk("it87.o: new ISA address: 0x%04x\n", addr);
+OK.  I've attached a new version of the patch against linux-2.6.6.
+I'll send a patch against current lm_sensors CVS removing the extra
+exit command in a separate mail.
 
-That printk is wrong (no KERN_ level, or dev_printk() style use).
-Please fix it in your next revision of this patch.
+Greg KH <greg@kroah.com> writes:
+> On Wed, May 12, 2004 at 04:38:03PM +0200, Bj?rn Mork wrote:
+>> +	if (!it87_find(&addr)) {
+>> +		printk("it87.o: new ISA address: 0x%04x\n", addr);
+>
+> That printk is wrong (no KERN_ level, or dev_printk() style use).
+> Please fix it in your next revision of this patch.
 
-thanks,
+Errh, I just added it to document my sloppyness.  It was never meant
+to be in the patch I sent you.  Sorry.  Removed in the attached patch.
+The style of these drivers seem to be "just working, making no noise"
+so I assume informational printk's are unwanted.
 
-greg k-h
+
+Bj?rn
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: it87-2.6.6.patch
+Type: text/x-patch
+Size: 2366 bytes
+Desc: against linux-2.6.6 adding superIO detection
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040513/a9a2df87/it87-2.6.6.bin
