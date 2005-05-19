@@ -1,49 +1,49 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: Ask for some information about motherboard ASUS NCLV-D
-Message-Id: <NZbSb55r.1113379944.7968710.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE37004D@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE08BE5D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Rudolf, hi Chunhao,
-
-> You see one eeprom dissapeared, your device appeared but 0x55 remained for
-> some reason. But in fact nothing left there. Without information from ASUS
-> I cant tell you what happened there.
-
-Your assumption that the EEPROM at 0x55 might be wrong. The device at
-0x55 might be a different one after the SMBus as been switched. In fact,
-I think it is.
-
-From the early days, we assumed that Asus was merely trying to hide their
-hardware monitoring chip. This is probably true, but nevertheless what
-they are doing is SMBus switching. They might as well be doing that for
-other reasons, such as the need to have different chips at the same I2C
-address. Think of the Tyan S4882 example.
-
-So it sounds like a more proper approach of the problem would be to hack
-the SMBus driver in the same way I did for i2c-amd756, and add proper
-bus multiplexing. (And yes, we would need to integrate the multiplexing
-deeper in i2c-core in Linux 2.6, but I have not yet taken the time to
-look at how this can be done cleanly.)
-
-> I expected this to show up. Again I cant tell what happened in bus because
-> I dont know what the multiplexer really did with the bus.
-
-Chunhao, could you please ask Asus for a complete diagram or description
-of the SMBus on this board? We need to know which devices are on each
-branch of the multiplexer. Looks like memory module EEPROMs are on
-branch 1, and the W83792D is on branch 2, but there seems to be other
-EEPROMs on branch 2 as well. If we could have a picture or detailed
-explanation of the SMBus use on this board, we could modify the kernel
-code accordingly.
-
-Thanks,
---
-Jean Delvare
+RGVhciBKZWFuLCBSdWRvbGYKCj4gQ2h1bmhhbywgY291bGQgeW91IHBsZWFzZSBhc2sgQXN1cyBm
+b3IgYSBjb21wbGV0ZSBkaWFncmFtIG9yCmRlc2NyaXB0aW9uCj4gb2YgdGhlIFNNQnVzIG9uIHRo
+aXMgYm9hcmQ/IFdlIG5lZWQgdG8ga25vdyB3aGljaCBkZXZpY2VzIGFyZSBvbiBlYWNoCj4gYnJh
+bmNoIG9mIHRoZSBtdWx0aXBsZXhlci4gTG9va3MgbGlrZSBtZW1vcnkgbW9kdWxlIEVFUFJPTXMg
+YXJlIG9uCj4gYnJhbmNoIDEsIGFuZCB0aGUgVzgzNzkyRCBpcyBvbiBicmFuY2ggMiwgYnV0IHRo
+ZXJlIHNlZW1zIHRvIGJlIG90aGVyCj4gRUVQUk9NcyBvbiBicmFuY2ggMiBhcyB3ZWxsLiBJZiB3
+ZSBjb3VsZCBoYXZlIGEgcGljdHVyZSBvciBkZXRhaWxlZAo+IGV4cGxhbmF0aW9uIG9mIHRoZSBT
+TUJ1cyB1c2Ugb24gdGhpcyBib2FyZCwgd2UgY291bGQgbW9kaWZ5IHRoZSBrZXJuZWwKPiBjb2Rl
+IGFjY29yZGluZ2x5LgoKSSBmb3J3YXJkZWQgdGhpcyBxdWVzdGlvbiB0byBBU1VTIGp1c3Qgbm93
+LCBJIHdpbGwgZm9yd2FyZCB0aGVpcgpyZXNwb25zZQp0byB5b3UgYXMgc29vbiBhcyBwb3NzaWJs
+ZS4gSSdtIG5vdCBwcm9wZXIgZm9yIG1lIHRvIHB1YmxpY2l6ZSB0aGVpcgptYWlsCmFkZHJlc3Mg
+d2l0aG91dCB0aGVpciBwZXJtaXNzaW9uLCBvdGhlcndpc2Ugd2UgY2FuIGhhdmUgYSBiZXR0ZXIK
+Y29tbXVuaWNhdGlvbgp3aXRoIHRoZW0uIEknbSBzb3JyeSBmb3IgdGhhdCA6LSgKClRoYW5rcwpC
+ZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFp
+bmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNz
+ZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElm
+IHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJl
+IG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29u
+LCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBh
+bmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3Jr
+IHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJ
+dCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwg
+aW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGlu
+Zm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmlj
+aWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4g
+bm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNl
+IGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlh
+bGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp
+0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRI
+qPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaq
+urGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQ
+uvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/
+9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhU
+pO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1
+qc63TqijLgo=
