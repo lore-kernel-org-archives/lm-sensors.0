@@ -1,48 +1,131 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:58 +0000
-Subject: [PATCH 2.6.12-rc4 3/3] (dynamic sysfs callbacks) device_attribute
-Message-Id: <20050511202805.GB2222@kroah.com>
+From: maik.goette@uni-kassel.de (Maik =?iso-8859-1?q?G=F6tte?=)
+Date: Thu, 19 May 2005 06:24:50 +0000
+Subject: installation problems
+Message-Id: <200404021403.13048.maik.goette@uni-kassel.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2538186705051100583c6b1ffb@mail.gmail.com> <20050511170600.GD15398@kroah.com> <25381867050511125761fcfad0@mail.gmail.com>
-In-Reply-To: <25381867050511125761fcfad0@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yani Ioannou <yani.ioannou@gmail.com>
-Cc: LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org, Justin Thiessen <jthiessen@penguincomputing.com>
+To: lm-sensors@vger.kernel.org
 
-On Wed, May 11, 2005 at 03:57:37PM -0400, Yani Ioannou wrote:
-> On 5/11/05, Greg KH <greg@kroah.com> wrote:
-> > On Wed, May 11, 2005 at 03:58:35AM -0400, Yani Ioannou wrote:
-> > Sorry, but I need a real patch in email form so I can apply it.  I can
-> > handle a 300K+ email :)
-> > 
-> > Or you can break it up into smaller pieces, like one per major part of
-> > the kernel.  That is the preferred way.
-> 
-> I'd like to break it up, but I think even broken up by major part of
-> the kernel it one piece will still be too large since the majority of
-> the changes take place in drivers & drivers/i2c and are very
-> asymmetric :-(. I'll send you the patch inline privately for now.
+Hi
 
-No, please break it up.  "too large" is a problem for someone trying to
-review it too.  If the i2c parts are too big, then split them up into
-multiple patches too.
+I am Linux newbie, and am in need of a cpu temperature monitoring tool.
+So I tried to install lm_sensors, as told on your page.
+For I use SuSE 9.0 (2.4.21-199Athlon Kernel), I downloaded Version 2.7.0.
 
-> > We should make a __ATTR macro instead, right?
-> 
-> Well another __ATTR macro (e.g. ATTR_PRIVATE) would make declaring the
-> new DEVICE_ATTR_PRIVATE macro, etc, easier.
+The following occurs and tells me nothing:
 
-Sorry, yes, that's what I ment.
+BCH-PC33:/install/hardmon/i2c-2.7.0 # make all
+Makefile:188: kernel/i2c-core.d: No such file or directory
+Makefile:188: kernel/i2c-dev.d: No such file or directory
+Makefile:188: kernel/i2c-algo-bit.d: No such file or directory
+Makefile:188: kernel/i2c-philips-par.d: No such file or directory
+Makefile:188: kernel/i2c-elv.d: No such file or directory
+Makefile:188: kernel/i2c-velleman.d: No such file or directory
+Makefile:188: kernel/i2c-algo-pcf.d: No such file or directory
+Makefile:188: kernel/i2c-elektor.d: No such file or directory
+Makefile:188: kernel/i2c-proc.d: No such file or directory
+Makefile:188: kernel/i2c-pport.d: No such file or directory
+Makefile:188: kernel/i2c-pcf-epp.d: No such file or directory
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-pcf-epp.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-pcf-epp.d kernel/i2c-pcf-epp.o: Makefile 
+'`dirname kernel/i2c-pcf-epp.d`/Module.mk' @' > kernel/i2c-pcf-epp.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-pport.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-pport.d kernel/i2c-pport.o: Makefile 
+'`dirname kernel/i2c-pport.d`/Module.mk' @' > kernel/i2c-pport.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-proc.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-proc.d kernel/i2c-proc.o: Makefile '`dirname 
+kernel/i2c-proc.d`/Module.mk' @' > kernel/i2c-proc.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-elektor.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-elektor.d kernel/i2c-elektor.o: Makefile 
+'`dirname kernel/i2c-elektor.d`/Module.mk' @' > kernel/i2c-elektor.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-algo-pcf.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-algo-pcf.d kernel/i2c-algo-pcf.o: Makefile 
+'`dirname kernel/i2c-algo-pcf.d`/Module.mk' @' > kernel/i2c-algo-pcf.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-velleman.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-velleman.d kernel/i2c-velleman.o: Makefile 
+'`dirname kernel/i2c-velleman.d`/Module.mk' @' > kernel/i2c-velleman.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-elv.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-elv.d kernel/i2c-elv.o: Makefile '`dirname 
+kernel/i2c-elv.d`/Module.mk' @' > kernel/i2c-elv.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-philips-par.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-philips-par.d kernel/i2c-philips-par.o: 
+Makefile '`dirname kernel/i2c-philips-par.d`/Module.mk' @' > kernel/
+i2c-philips-par.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-algo-bit.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-algo-bit.d kernel/i2c-algo-bit.o: Makefile 
+'`dirname kernel/i2c-algo-bit.d`/Module.mk' @' > kernel/i2c-algo-bit.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-dev.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-dev.d kernel/i2c-dev.o: Makefile '`dirname 
+kernel/i2c-dev.d`/Module.mk' @' > kernel/i2c-dev.d
+gcc -M -MG -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h 
+kernel/i2c-core.c | \
+sed -e 's@^\(.*\)\.o:@kernel/i2c-core.d kernel/i2c-core.o: Makefile '`dirname 
+kernel/i2c-core.d`/Module.mk' @' > kernel/i2c-core.d
+gcc -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h -c 
+kernel/i2c-core.c -o kernel/i2c-core.o
+gcc -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h -c 
+kernel/i2c-dev.c -o kernel/i2c-dev.o
+gcc -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h -c 
+kernel/i2c-algo-bit.c -o kernel/i2c-algo-bit.o
+gcc -I/lib/modules/2.4.21-199-athlon/build/include -O2 -DLM_SENSORS 
+-D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -DMODVERSIONS 
+-include /lib/modules/2.4.21-199-athlon/build/include/linux/modversions.h -c 
+kernel/i2c-philips-par.c -o kernel/i2c-philips-par.o
+kernel/i2c-philips-par.c:163: error: initializer element is not constant
+kernel/i2c-philips-par.c:163: error: (near initialization for 
+`bit_lp_data.timeout')
+kernel/i2c-philips-par.c:172: error: initializer element is not constant
+kernel/i2c-philips-par.c:172: error: (near initialization for 
+`bit_lp_data2.timeout')
+make: *** [kernel/i2c-philips-par.o] Error 1
 
-> The question really is, is it better to just add that new parameter to
-> the DEVICE_ATTR macro, or to declare a new DEVICE_ATTR_PRIVATE macro
-> instead. The former obviously breaks a lot of code although my scripts
-> can generate another large patch for that too...
+Regards
 
-No, use a new macro.
+-- 
+Maik G?tte
+University of Kassel, Germany
+Student, Dipl. Biology
+ 
+Email: maik.goette@uni-kassel.de
+Webpage: http://www.biologie.uni-kassel.de/ 
 
-thanks,
-
-greg k-h
