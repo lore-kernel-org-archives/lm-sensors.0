@@ -1,36 +1,60 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:17 +0000
-Subject: [PATCH 2.6] I2C: Store lm83 and lm90 temperatures in signed
-Message-Id: <20040929202923.GA16608@kroah.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:28 +0000
+Subject: Python bindings to i2c-dev
+Message-Id: <20041229050526.GA5431@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040926113151.298d9349.khali@linux-fr.org>
-In-Reply-To: <20040926113151.298d9349.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Sep 26, 2004 at 11:31:51AM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> Back when I wrote the lm83 and lm90 drivers, I decided to use unsigned
-> variables to store temperature values as mirrored from the chipset
-> registers. I wonder why, since the registers use signed values
-> themselves. The patch below changes the variables back to signed types,
-> so as to simplify the conversions made by the driver, making them faster
-> and easier to understand.
-> 
-> Additionally, the lm90 driver was lacking boundary checkings and proper
-> rounding when writing temperature limits to the chipset, so I added
-> these. I also reworded the comments about internal temperature values
-> representation for all chipsets.
-> 
-> Tested to work fine on my (LM90-compatible) ADM1032 chip. lm83 patch
-> untested, but it is more simple and directly copied from the lm90, so I
-> am confident it works fine too.
-> 
-> Please apply,
+Hi:
 
-Applied, thanks.
+(cc James, who IIRC is a Python guy...)
 
-greg k-h
+After a couple false starts and some hair-pulling, here is a Python module
+which allows SMBus access through the I2C /dev interface.  I would like to
+eventually add this to the lm_sensors project.
+
+	http://members.dca.net/mhoffman/sensors/python/
+
+To build it and use it in place, start with this:
+
+	$ python setup.py build
+
+Then, e.g. (as root):
+
+	# python
+	(...)
+	>>> from smbus import SMBus
+	>>> b = SMBus(0) # 0 indicates /dev/i2c-0
+	>>> b.read_byte_data(0x2f,0x58)
+	114
+
+If there's no device to ack the address, or in case of any other bus
+error, it raises an exception:
+
+	>>> b.write_quick(0x2e)
+	Traceback (most recent call last):
+	  File "<stdin>", line 1, in ?
+	IOError: [Errno 1] Operation not permitted
+
+TODO: the rest of the bus transactions, and the capabilities query.
+
+WARNING: I have managed to lock up my machine's SMBus more than once, so
+the usual caveats apply.  If you lock up your bus (such that write_quick
+commands to known good addresses start to fail) you may need to COMPLETELY
+power off your machine, including physically removing the plug from the
+power supply.  In my case, the machine fails the BIOS POST until I do that.
+Of course, this is no worse than what is possible from i2c-dev directly.
+
+Which reminds me...  Khali: Is i2c-dev safe (ruin-proof) for people with
+IBM laptops?  Or would that check need to be built in to this?
+
+Comments and suggestions are welcome.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
