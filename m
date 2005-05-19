@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: EP-9NDA3+ w/ Winbond W83627THF LPC
-Message-Id: <GqsEfIh3.1103277215.4479040.khali@localhost>
+Message-Id: <FvTSuPID.1103296904.7278680.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <32906.216.9.170.171.1103272080.spork@webmail.necrotec.com>
 In-Reply-To: <32906.216.9.170.171.1103272080.spork@webmail.necrotec.com>
@@ -11,24 +11,22 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> i have a nForce3 250GB Ultra motherboard "EPoX EP-9NDA3+" that has the
-> "Winbond W83627THF LPC" chip...
+> the motherboard manufacturer says it has the chip and sensors-detect says
+> it has 9 confidence on w83627hf (it should be w83627(T)hf)..
 
-How do you know it has this chip? Did sensors-detect tell you?
+w83627hf is both the name of a chip and the name of the driver which
+handles that chip and 3 other ones (including the w83627thf). That might
+have confused you. OTOH, if sensors-detect really told you that you had
+a W83627HF then that's what you have (it cannot be misdetected).
 
-> but some odd reason i can't get it to work..
->
-> localhost erek # modprobe w83627hf
-> FATAL: Error inserting w83627hf
-> (/lib/modules/2.6.8.1/kernel/drivers/i2c/chips/w83627hf.ko): No such
-> device
-> localhost erek #
->
-> i don't understand what's wrong?
+> my dmesg and /var/log/messages don't show anymore details after that
+> error.. i use syslog-ng.. doesn't seem to report much into
+> /var/log/messages.. :(
+> (what is a better logger?)
 
-Look at your logs (/var/log/messages or dmesg) right after the loading
-fails. There should be a more detailed explanation there, maybe the chip
-is there but disabled by the BIOS or something like that.
+Loggers behave the way they are told to, and another logger wouldn't
+tell you more (IMHO). I am really surprised that there is no message in
+the logs. Try enabling debug mode and recompile, maybe?
 
 --
 Jean Delvare
