@@ -1,7 +1,7 @@
-From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: questions on i2c-isa
-Message-Id: <Pine.LNX.4.53.0401042152540.27769@cosmos.private>
+Message-Id: <20040104225459.5122aecf.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040104165323.4a824f59.khali@linux-fr.org>
 In-Reply-To: <20040104165323.4a824f59.khali@linux-fr.org>
@@ -10,23 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 4 Jan 2004, Mark Studebaker wrote:
+> It looks like when i2c-viapro is loaded, then via686a won't register.
+> Maybe a PCI registration conflict?
 
-> > 1* Why is it that i2cdump does not work with i2c-isa? I understand that
-> > i2cdetect cannot work (since i2c-isa isn't a real i2c bus) but i2cdump
-> > does exactly what a chip driver could do if I'm not mistaking.
->
-> For all i2c accesses you need an i2c bus address 0x00 - 0x7f.
-> This concept doesn't work for isa busses.
+Could be. But then why doesn't the conflict happen under 2.4 as well?
+Also, if I load i2c-viapro after via686a, it does not fail (although it
+doesn't work). On a resource conflict, I'd have expected the module not
+to load at all!
 
-Does not work since i2c-isa is an empty algorithm and has neither
-i2c_xfer or smbus_xfer. All low-level access is handled internally in
-chip drivers. I think there is isadump?
+The problem isn't critical anyway, since most users will need either
+modules, not both. The via686a driver doesn't provide any useful
+information to me, it's obviously not wired. But I'd like to help solve
+the problem anyway, if it can be. Unfortunately, I'm low skilled on PCI
+and even ISA stuff, so I don't know what I should do. Any hint please?
 
-The real benefit of i2c-isa was to use i2c-proc. With sysfs only
-i2c_detect (address parameter parser) in i2c-sensors.c is (sometimes)
-used. In addition, user progs may depend on data from /proc/bus/i2c* to
-find the chip.
+Thanks.
 
 -- 
-  Ky?sti M?lkki  <kyosti.malkki@welho.com>
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
