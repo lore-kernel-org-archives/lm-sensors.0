@@ -1,44 +1,35 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: RFC [PATCH 2.6] I2C: w83627ehf: add fan_div no-op store method
-Message-Id: <bgt881pvivku9pn8t1bfki4hi8f243n72p@4ax.com>
+Message-Id: <ZdowSWp7.1115978663.1398280.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <bgt881pvivku9pn8t1bfki4hi8f243n72p@4ax.com>
+In-Reply-To: <bgt881pvivku9pn8t1bfki4hi8f243n72p@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, Jean,
 
-This small patch adds no-op fan_div store method to silence warning 
-from 'sensors -s'.  Compile tested.
+Hi Grant,
 
---Grant.
+> This small patch adds no-op fan_div store method to silence warning
+> from 'sensors -s'.  Compile tested.
 
+No, sorry.
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
+For one thing I do not want 2.6 drivers to be crippled with compatibility
+tricks when we can easily move the tricks to user-space, as I explained
+earlier.
 
----
- w83627ehf.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+For another... The w83627ehf driver does not exist before Linux 2.6. The
+official version which will be included in 2.6.13 is the only one we
+have to support, and it has the auto fan div functionality. So there is
+absolutely no reason why a user would ever try to set the clock divider
+manually. The fanN_div features are clearly tagged read-only in
+libsensors, and the default configuration file doesn't attempt to set
+them, so everything is consistent already. So what exactly were you
+trying to fix in the first place please?
 
---- linux-2.6.12-rc4-mm1/drivers/i2c/chips/w83627ehf.c	2005-05-12 21:33:22.000000000 +1000
-+++ linux-2.6.12-rc4-mm1b/drivers/i2c/chips/w83627ehf.c	2005-05-13 19:39:00.000000000 +1000
-@@ -515,8 +515,15 @@ show_reg_fan##offset##_div(struct device
- { \
- 	return show_fan_div(dev, buf, offset - 1); \
- } \
--static DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
--		   show_reg_fan##offset##_div, NULL);
-+static ssize_t \
-+store_reg_fan##offset##_div(struct device *dev, const char *buf, \
-+			    size_t count) \
-+{ \
-+	return count; \
-+} \
-+static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
-+		   show_reg_fan##offset##_div, \
-+		   store_reg_fan##offset##_div);
- 
- sysfs_fan_offset(1);
- sysfs_fan_min_offset(1);
+--
+Jean Delvare
