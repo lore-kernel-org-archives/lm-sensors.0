@@ -1,52 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:39 +0000
 Subject: two questions about w83792d.c for linux-2.4
-Message-Id: <20050224075811.322ffef3.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245507@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao,
-
-> > ...set the "in" file magnitude to 3 (which means divide by
-> > 1000).
-> 
-> I want to add some comment here, since we use "3" as the magnitude
-> of voltage now instead of the original "2", I think I should modify
-> the program "sensors" 792 part(prog/sensors.chip.c), so that it can
-> show the magnitude 3.
-> 
-> For Example: when we run "sensors"
-> VCoreA:    +1.52 V  (min =  +1.40 V, max =  +1.60 V)
-> Should be:
-> VCoreA:    +1.524 V  (min =  +1.400 V, max =  +1.600 V)
-> because the interface in0 in /proc is "1.400 1.600 1.524"
-> 
-> Do you agree with me?
-
-Technically, you do not *need* to do it. I think we have several drivers
-exporting more decimal places than "sensors" displays, because
-additional places sometimes add little value and makes the output of
-"sensors" a little harder to read.
-
-Now, in the case of the w83792d driver, it is definitely a good idea to
-display 3 decimal places for VCoreA and VCoreB, because these are low
-value, high resolution inputs. For the other voltages it is less
-important but probably still a good idea, except for in7 and in8 because
-they don't have the extra accuracy bits. Same for limits, they don't
-have the extra accuracy bits so I would not display 3 decimal places,
-only 2. That being said you are relatiely free in your choices here and
-if you really want to display 3 decimal places for all voltage values,
-it's fine with me.
-
-What *is* important however is that you use the same magnitude in
-lib/chips.c than the driver uses (here 3 for the voltage inputs). If you
-don't, sensors won't show the correct values.
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbgoKCj4gVGVjaG5pY2FsbHksIHlvdSBkbyBub3QgKm5lZWQqIHRvIGRvIGl0LiBJIHRo
+aW5rIHdlIGhhdmUgc2V2ZXJhbApkcml2ZXJzCj4gZXhwb3J0aW5nIG1vcmUgZGVjaW1hbCBwbGFj
+ZXMgdGhhbiAic2Vuc29ycyIgZGlzcGxheXMsIGJlY2F1c2UKPiBhZGRpdGlvbmFsIHBsYWNlcyBz
+b21ldGltZXMgYWRkIGxpdHRsZSB2YWx1ZSBhbmQgbWFrZXMgdGhlIG91dHB1dCBvZgo+ICJzZW5z
+b3JzIiBhIGxpdHRsZSBoYXJkZXIgdG8gcmVhZC4KPiAKPiBOb3csIGluIHRoZSBjYXNlIG9mIHRo
+ZSB3ODM3OTJkIGRyaXZlciwgaXQgaXMgZGVmaW5pdGVseSBhIGdvb2QgaWRlYQp0bwo+IGRpc3Bs
+YXkgMyBkZWNpbWFsIHBsYWNlcyBmb3IgVkNvcmVBIGFuZCBWQ29yZUIsIGJlY2F1c2UgdGhlc2Ug
+YXJlIGxvdwo+IHZhbHVlLCBoaWdoIHJlc29sdXRpb24gaW5wdXRzLiBGb3IgdGhlIG90aGVyIHZv
+bHRhZ2VzIGl0IGlzIGxlc3MKPiBpbXBvcnRhbnQgYnV0IHByb2JhYmx5IHN0aWxsIGEgZ29vZCBp
+ZGVhLCBleGNlcHQgZm9yIGluNyBhbmQgaW44CmJlY2F1c2UKPiB0aGV5IGRvbid0IGhhdmUgdGhl
+IGV4dHJhIGFjY3VyYWN5IGJpdHMuIFNhbWUgZm9yIGxpbWl0cywgdGhleSBkb24ndAo+IGhhdmUg
+dGhlIGV4dHJhIGFjY3VyYWN5IGJpdHMgc28gSSB3b3VsZCBub3QgZGlzcGxheSAzIGRlY2ltYWwg
+cGxhY2VzLAo+IG9ubHkgMi4gVGhhdCBiZWluZyBzYWlkIHlvdSBhcmUgcmVsYXRpZWx5IGZyZWUg
+aW4geW91ciBjaG9pY2VzIGhlcmUKYW5kCj4gaWYgeW91IHJlYWxseSB3YW50IHRvIGRpc3BsYXkg
+MyBkZWNpbWFsIHBsYWNlcyBmb3IgYWxsIHZvbHRhZ2UgdmFsdWVzLAo+IGl0J3MgZmluZSB3aXRo
+IG1lLgo+IAo+IFdoYXQgKmlzKiBpbXBvcnRhbnQgaG93ZXZlciBpcyB0aGF0IHlvdSB1c2UgdGhl
+IHNhbWUgbWFnbml0dWRlIGluCj4gbGliL2NoaXBzLmMgdGhhbiB0aGUgZHJpdmVyIHVzZXMgKGhl
+cmUgMyBmb3IgdGhlIHZvbHRhZ2UgaW5wdXRzKS4gSWYKeW91Cj4gZG9uJ3QsIHNlbnNvcnMgd29u
+J3Qgc2hvdyB0aGUgY29ycmVjdCB2YWx1ZXMuCgpPSywgSSBzZWUsIHRoZW4gSSB3aWxsIGtlZXAg
+ZGlzcGxheWluZyAyIGRlY2ltYWwgcGxhY2VzIGZvciBhbGwgaW4wLTgsCllvdSBhcmUgZnJlZSB0
+byBtb2RpZnkgaXQgd2hlbiBuZWNlc3NhcnksIGFmdGVyIEkgY29tbWl0IHRoZSA3OTIgZHJpdmVy
+Lgo6LSkKCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlv
+biBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhl
+IGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBl
+bWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFp
+bCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3Vj
+aCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29y
+ZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5k
+IG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVy
+YXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZp
+ZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFu
+ZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0
+aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhl
+ciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2Rl
+IENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkg
+ZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6l
+u6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3
+pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKl
+vLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXz
+sXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIu
+IK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxP
+s1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+Kywtdioublx
+pGykp6Xfs/WpzrdOqKMuCg==
