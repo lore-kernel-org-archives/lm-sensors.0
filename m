@@ -1,81 +1,75 @@
-From: todd.c.davis@intel.com (Davis, Todd C)
-Date: Thu, 19 May 2005 06:24:43 +0000
-Subject: i2c core enhancements
-Message-Id: <F274AE5A8F65A848906BEB9DDFC7674C0E83BF@hdsmsx403.hd.intel.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: Pre-release tests
+Message-Id: <20030707213700.3eef7104.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F274AE5A8F65A848906BEB9DDFC7674C0E83BA@hdsmsx403.hd.intel.com>
-In-Reply-To: <F274AE5A8F65A848906BEB9DDFC7674C0E83BA@hdsmsx403.hd.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-i2c_delay() being implemented in i2c.h as an inline function I thought
-it would be appropriate to add the support flag and corresponding set
-routine in i2c-core.c. It seems like many bus drivers need this change,
-not just the one I have changed to support another ICH chip for SMBus
-bus support. The purpose of this change is to be able to perform SMBus
-transfers when the system is going down for any SMBus driver. The
-"proprietary" configuration define can be deleted. I tend to put defines
-to new code I introduce.
 
-Thanks for the history for of the module count routines. In the i801.c
-driver I just added the 2 routines and called them in the load/unload
-routines of driver I am developing for OpenIPMI. 
+I've finished testing I2C and LM Sensors CVS on three out of my four
+systems (last is left for tomorrow) and here is my report:
 
-Todd C. Davis
-These are my opinions and absolutely not official opinions of Intel
-Corp.
- 
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org] 
-Sent: Saturday, February 21, 2004 12:08 AM
-To: Davis, Todd C
-Cc: sensors@Stimpy.netroedge.com
-Subject: Re: i2c core enhancements
+1* We'll have trouble with i2c bus drivers from outside our package.
+Those who won't load at all aren't the main problem IMHO (we'll just get
+dozens of complaints stating that since the user installed I2C 2.8.0,
+his/her video card doesn't work anymore). The real problem is those who
+still load but crash upon scanning. I have old Matrox video cards in two
+of my machines, and sensors-detect says I should load i2c-matroxfb. The
+module loads properly, but sensors-detect crashes as soon as it tries to
+scan this device. What's more, any subsequent load of a chip driver will
+crash too (because this will scan all I2C busses, including
+i2c-matroxfb).
 
-> 1.	The i2c_delay() inline function needs to spin delay under 2
-> circumstances, 1) when the system is shutting down, all processes are
-> signaled which short circuits the current i2c_delay(). 2) when the
-> kernel panics, the IPMI driver attempts to log a record to the SEL
-> (System Event Log) of the BMC.  In both circumstances the system is
-> going down so the spin delay will not affect system performance. The
-> modification includes a method to set a flag that i2c_delay() tests to
-> see if it should spin-delay.
+So, what can we do? The very least we can do is add a BIG WARNING on our
+news page at the time we release, stating that any other I2C-related
+module (most of which are video-related) should not be loaded anymore
+after I2C 2.8.0 is installed. The message would explain that we plan to
+submit a patch to the Linux kernel so that all devices are back with the
+next Linux version. A second thing I'd suggest is commenting out in
+sensors-detect all such devices. I now it sounds crazy because we'll
+have to reenable them right after the release, but I think that if we
+don't do that, we'll have hundreds of people complaining about system
+crashes. Remember that FB modules, such as i2c-matroxfb, cannot be
+unloaded. So, loading the module from sensors-detect while the user
+never used it before, then crashing the system and finally give him/her
+no other choice but to reboot probably won't make the user happy.
 
-As did Greg, I wonder why you don't define this new function in your
-driver itself, especially since you enclose it into a "proprietary"
-define.
+2* We should warn the user that /etc/sensors.conf never gets
+overwritten. I agree that we shouldn't overwrite it, but the user should
+be told about this, so that he/she can copy and edit the new file if
+he/she wants.
 
-> 2.	Pointers to module use count functions are needed to keep the
-> kernel from panic-ing when modules are unloaded in an improper order.
-> This is an enhancement I picked up from RedHat's implementation of the
-> i2c driver, adapter, and client modules. I have modified the i801 bus
-> driver to include these module count routines.
+3* At the end of sensors-detect, we should tell the user to run the
+commands he/she is told to add to /etc/rc.*. Two reasons for that.
+First, he/she can make sure it works well before editing his/her init
+scripts. Second, he/she can use sensors right away, without having to
+restart the system or run the init scripts by himself/herself. I had
+users complaining that sensors wouldn't work right after sensors-detect
+being ran.
 
-I think you don't get it. The inc_use/dec_use module reference counting
-is how things were done in lm_sensors 2.7.0 and earlier. So, what you
-call "RedHat's implementation" is in fact RedHat being very late in
-upgrading their lm_sensors' packages.
+4* What's that "sleep 3" sensors-detect suggests adding between modules
+load and sensors -s? I have no sleep between these two steps in my own
+scripts, and I never had any problem. I would replace this block:
+  # Next 2 lines are optional
+  sleep 3
+ /usr/local/bin/sensors -s
+with this one:
+  # sleep 2 # optional
+  /usr/local/bin/sensors -s # recommended
+It should work for most people. Waiting for 3 seconds can represent 5 or
+10% of the total boot time! Too much for what it's worth IMHO.
 
-That said, it turned out that the new reference counting mechanism was
-mainly intended for Linux 2.5/2.6, and will not make it into Linux 2.4
-(I mean, as far as the i2c subsystem is concerned). Also, it turned out
-that the new mechanism is less efficient than the old one (for a 2.4
-kernel), which you seem to have noticed since you report that your
-kernel got panics from times to times. This means that we should
-consider reverting that change.
+5* The "you must run ldconfig" message at the end of a lm_sensors2's
+make install still doesn't please me. I'd replace "libsensors.so*" by
+"libsensors.so.2" (well, the file name as it actually is), or I fear the
+users won't understand why we say there were no libsensors ever in
+/usr/local/lib, while there may be.
 
-What did it take to revert the i2c-i801 driver? Simply define
-inc_use/dec_use instead of owner and you were done? I admit I don't know
-which part of the mechanism is explicitely handled by i2c-core/i2c-proc
-and which one is handled by the common kernel mechanisms. If it is as
-easy as this and no i2c-core/i2c-proc hacking is required, I may well
-revert all drivers. For one thing (and not the least) this would get me
-rid of the necessity to write a new kernel patch each time a new 2.4
-kernel is released of a new version of i2c is.
-
-Thanks.
+This five points can be left to me, but I want to hear you about them
+before I do anything.
 
 -- 
 Jean Delvare
