@@ -1,26 +1,25 @@
-From: eharrison@tampabay.rr.com (Ed Harrison)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: No readings on SuSE 9.1
-Message-Id: <200405191900.i4JJ0t4F023330@ms-smtp-05.tampabay.rr.com>
+From: david.goodenough@btconnect.com (David Goodenough)
+Date: Thu, 19 May 2005 06:25:25 +0000
+Subject: SmBus driver for ATI chip 1002:4353
+Message-Id: <200411301252.28267.david.goodenough@btconnect.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200405191735.i4JHZI4F004970@ms-smtp-05.tampabay.rr.com>
-In-Reply-To: <200405191735.i4JHZI4F004970@ms-smtp-05.tampabay.rr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-** Reply to message from Jean Delvare <khali@linux-fr.org> on Wed, 19 May 2004
-19:42:29 +0200
+I have a laptop (a Samsumg P28) which has lots of ATI chips in it.  One of 
+them (according to lspci) is an SmBus controller, and it has a PCI id of
+1002:4353.  Looking at the lmsensors web site there are no bus drivers
+for any ATI chips.  This seems to be one of the functions in the Ati 
+9000 IGP chip, which is also the video driver.  It is marked as being
+the 9100 IGP chip in the linux PCI repository, but I guess they use the
+same silicon in both chips.
 
-> Suse is lying about the kernel version. Your 2.6.4 kernel is actually a
-> 2.6.5-rcX kernel, so you need lm_sensors 2.8.6 user-space tools (or CVS,
-> at your option).
+I could not find any documentation on the chip (technical stuff that is,
+plenty of marketting material), but I am not quite sure where ATI
+publish such things.
 
-Ah so!  That straightened it all out.  Accurate readings with no tweaking.
+Is anyone working on such a chip?
 
-You guys have done a marvelous job.
-
-Ed Harrison
-SuSE 9.1, Kernel 2.6.4
-PolarBar Mailer 1.25a
+David
