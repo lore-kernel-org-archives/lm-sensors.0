@@ -1,125 +1,127 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: New chip driver development plan to Lm_sensors
-Message-Id: <E36E0C5C92D97049B4855B5498A94547F51E2B@weshml02.winbond.com.tw>
+Message-Id: <20041205121647.1cea2433.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 In-Reply-To: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKVGhpcyBpcyBjaHVuaGFvLgpJIG1lZXQgYW5vdGhlciB0cm91Ymxlc29tZSBxdWVz
-dGlvbiB3aGVuIEkgZGV2ZWxvcCB0aGUgVzgzNzkyRApkcml2ZXIsIHdoaWNoIG5lZWQgeW91ciBo
-ZWxwOgoKSSBoYXZlIGZpbmlzaGVkIHNvbWUgb2YgdGhlIGZ1bmN0aW9ucyBpbiB3ODM3OTJkLmMs
-IGFuZCBjYW4gcHJvZHVjZQpzb21lIGRldmljZSBmaWxlcyBpbiBkaXJlY3RvcnkgL3Byb2Mvc3lz
-L2Rldi9zZW5zb3JzL3c4Mzc5MmQtaTJjLTAtMmYvCmZvciBleGFtcGxlIGluMC4KCkJ1dCBlYWNo
-IHRpbWUoZXhjZXB0IHdpdGhpbiB0aGUgaW50ZXJ2YWwgIkhaICsgSFovMiIpIEkgcmVhZCB0aGUg
-aW4wIGZpbGUKYnkgImNhdCIgY29tbWFuZCwgSSBmaW5kIHRoYXQgdGhlIGRlbGF5IGlzIGNvbXBh
-cmF0aXZlbHkgbGFyZ2UsIHdoaWNoIGlzCmFib3V0IDEtMiBzZWNvbmRzLiBUaGF0J3MgdG8gc2F5
-IGl0IHRha2VzIG1lIGFib3V0IDEtMiBzZWNvbmRzIHRvIHNob3cgbWUKdGhlIGNvbnRlbnQgb2Yg
-ImluMCIsIHdoaWNoIGFsc28gbGVhZHMgdG8gdGhlIGRlbGF5IG9mIHRoZSBwcm9ncmFtICJzZW5z
-b3JzIi4KCkkgaGF2ZSBkZWJ1Z2dlZCBhYm91dCBpdCwgZmluZCB0aGF0IHRoZSBmdW5jdGlvbiAi
-dzgzNzkyZF91cGRhdGVfY2xpZW50IgppcyB0aGUgcmVhc29uIG9mIHRoZSBkZWxheS4gQmVjYXVz
-ZSBpbiB0aGUgY291cnNlIG9mIHRoZSBkZWxheSwgdGhpcwpmdW5jdGlvbiBpcyBleGVjdXRpbmcg
-YW5kIHJlYWRpbmcgdGhlIHJlZ2lzdGVycycgdmFsdWUgb25lIGJ5IG9uZS4KCkkgYWxzbyB0ZXN0
-ZWQgYW5vdGhlciBXaW5ib25kIGNoaXAgVzgzNjI3VEhGIHdpdGggdGhlIGRyaXZlciB3ODM2Mjdo
-Zi5jCmZpbmQgdGhhdCB0aGlzIHBoZW5vbWVuYSBkb2VzIE5PVCBleGlzdCBvbiBXODM2MjdUSEYu
-IFRoYXQncyB0byBzYXkgYWxsCnRoZSBkZXZpY2UgZmlsZXMgb2YgVzgzNjI3VEhGIGNhbiBiZSBy
-ZWFkIHZlcnkgcXVpY2tseSBhbG1vc3Qgd2l0aG91dCBhbnkKZGVsYXksIGp1c3QgbGlrZSByZWd1
-bGFyIHRleHQgZmlsZS4KClNvIG15IHF1ZXN0aW9ucyBhcmU6CigxKSBEb2VzIHRoaXMgcGhlbm9t
-ZW5hIGFwcGVhcnMgaW4gb3RoZXIgSTJDIGNoaXAgZHJpdmVycz8gc3VjaCBhcwp3ODM3ODFkLmMu
-IEJlY2F1c2UgVzgzNjI3VEhGIHVzZSBJU0EgYnVzIGluc3RlYWQgb2YgSTJDLgoKKDIpIERvZXMg
-aXQgaGF2ZSBzb21ldGhpbmcgdG8gZG8gd2l0aCB0aGUgcmVnaXN0ZXIgbnVtYmVycyBiZSByZWFk
-IGluCnRoZSBmdW5jdGlvbiAiIHc4Mzc5MmRfdXBkYXRlX2NsaWVudCgpIj8KQmVjYXVzZSB3ODM3
-OTJkX3VwZGF0ZV9jbGllbnQgcmVhZCBtdWNoIG1vcmUgcmVnaXN0ZXJzIHRoYW4gdzgzNjI3aGYu
-CgooMykgT3IgZG9lcyBpdCBoYXZlIHNvbWV0aGluZyB0byBkbyB3aXRoIHRoZSAidzgzNzkyZF9k
-YXRhLT5sYXN0X3VwZGF0ZWQiCmluIHRoZSBsYXN0IG1haWw/IGJ1dCB0aGVyZSBpcyBhbHNvICJ3
-ODM2MjdoZl9kYXRhLT5sYXN0X3VwZGF0ZWQiIGluCnc4MzYyN2hmLmMsIGFuZCB0aGUgaW50ZXJ2
-YWwgaXMgc2FtZTogSFogKyBIWi8yCgooNCkgSSBhbHNvIGhhdmUgdHJpZWQgdG8gc3BsaXQgdGhl
-IGNvZGVzIG9mIHc4Mzc5MmRfdXBkYXRlX2NsaWVudCgpCmludG8gaW5kaXZpYWwgZnVuY3Rpb24s
-IGZvciBleGFtcGxlOiBJIG1vdmUgdGhlIGZvbGxvd2luZyBjb2RlcyBmcm9tCiB3ODM3OTJkX3Vw
-ZGF0ZV9jbGllbnQoKSBpbnRvIHRoZSBmdW5jdGlvbiB3ODM3OTJkX2luKCksIGFuZCBjb21tZW50
-CiBvdXQgdGhlICIgdzgzNzkyZF91cGRhdGVfY2xpZW50KCkiIGluIHc4Mzc5MmRfaW4oKSwgYnV0
-IGl0IHNlZW1zCiB1c2VsZXNzLCBiZWNhdXNlIHRoZSBkZWxheSBiZWNvbWVzIG1vcmUgbGFyZ2Vy
-LjotKAoKICAqKioqKioqKioqKiogY29kZXMgYmUgbW92ZWQgICoqKioqKioqKioqKioqKioqKgog
-IGRhdGEtPmluWzBdID0gdzgzNzkyZF9yZWFkX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU4w
-KTsKICBkYXRhLT5pblsxXSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVH
-X0lOMSk7CiAgZGF0YS0+aW5bMl0gPSB3ODM3OTJkX3JlYWRfdmFsdWUoY2xpZW50LCBXODM3OTJE
-X1JFR19JTjIpOwogIGRhdGEtPmluWzNdID0gdzgzNzkyZF9yZWFkX3ZhbHVlKGNsaWVudCwgVzgz
-NzkyRF9SRUdfSU4zKTsKICBkYXRhLT5pbls0XSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQs
-IFc4Mzc5MkRfUkVHX0lONCk7CiAgZGF0YS0+aW5bNV0gPSB3ODM3OTJkX3JlYWRfdmFsdWUoY2xp
-ZW50LCBXODM3OTJEX1JFR19JTjUpOwogIGRhdGEtPmluWzZdID0gdzgzNzkyZF9yZWFkX3ZhbHVl
-KGNsaWVudCwgVzgzNzkyRF9SRUdfSU42KTsKICBkYXRhLT5pbls3XSA9IHc4Mzc5MmRfcmVhZF92
-YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lONyk7CiAgZGF0YS0+aW5bOF0gPSB3ODM3OTJkX3Jl
-YWRfdmFsdWUoY2xpZW50LCBXODM3OTJEX1JFR19JTjgpOwoKClRoYW5rcwpCZXN0IFJlZ2FyZHMK
-Y2h1bmhhbwoKLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KRnJvbTogSmVhbiBEZWx2YXJlIFtt
-YWlsdG86a2hhbGlAbGludXgtZnIub3JnXSAKU2VudDogMjAwNMTqMTHUwjI0yNUgMTc6MjkKVG86
-IFBJMTQgSFVBTkcwOyBzZW5zb3JzQFN0aW1weS5uZXRyb2VkZ2UuY29tCkNjOiBQSTEwIExISHN1
-OyBQSTE0IERaU0hFTgpTdWJqZWN0OiBSRTogTmV3IGNoaXAgZHJpdmVyIGRldmVsb3BtZW50IHBs
-YW4gdG8gTG1fc2Vuc29ycwoKCkhpIENodW5oYW8sCgo+IEknbSB3cml0aW5nIGEgbmV3IGRyaXZl
-ciBmb3IgdzgzNzkyRCwgd2hpY2ggaXMgdzgzNzkyZC5jLHVzaW5nCj4gdzgzNzgxZC5jIGFzIG15
-IHJlZmVyZW5jZSwgZGVsZXRpbmcgdGhlIGNvZGVzIHJlbGF0ZWQgd2l0aCBJU0EgZXhjZXB0Cj4g
-dHdvIHBsYWNlcywgYmVjYXVzZSA3OTJEIHdpbGwgb25seSBiZSBvbiBJMkMuCgpTb3VuZHMgZ29v
-ZCA6KQoKPiBCdXQgSSBoYXZlIHR3byBxdWVzdGlvbnMgYWJvdXQgdzgzNzkyZCBkcml2ZXIgbm93
-Lgo+ICgxKSBDYW4gSSBkZWxldGUgdGhlIGZvbGxvd2luZyBjb2Rlcz8KPiBzdGF0aWMgdW5zaWdu
-ZWQgaW50IG5vcm1hbF9pc2FbXSA9IHsgMHgwMjkwLCBTRU5TT1JTX0lTQV9FTkQgfTsKPiBzdGF0
-aWMgdW5zaWduZWQgaW50IG5vcm1hbF9pc2FfcmFuZ2VbXSA9IHsgU0VOU09SU19JU0FfRU5EIH07
-Cj4gSSBndWVzcyB0aGUgYWJvdmUgdHdvIHNlbnRlbmNlcyBhcmUgdXNlbGVzcywgYnV0IEknbSBu
-b3QgdmVyeQo+IHN1cmUgYWJvdXQgaXQncyBmdW5jdGlvbiwgY2FuIHlvdSB0ZWxsIG1lIHdoZXRo
-ZXIgSSBjYW4gZGVsZXRlCj4gdGhlbSBvciBub3Q/CgpObyB5b3UgY2FuJ3QuIFRoZSBpMmMtY29y
-ZSBuZWVkcyB0aGVtLiBTaW1wbHkgcmVtb3ZlIHRoZSBhZGRyZXNzIGFuZApsZWF2ZToKCnN0YXRp
-YyB1bnNpZ25lZCBpbnQgbm9ybWFsX2lzYVtdID0geyBTRU5TT1JTX0lTQV9FTkQgfTsKc3RhdGlj
-IHVuc2lnbmVkIGludCBub3JtYWxfaXNhX3JhbmdlW10gPSB7IFNFTlNPUlNfSVNBX0VORCB9OwoK
-VGhpcyB3aWxsIGxldCB0aGUgY29yZSBrbm93IHRoYXQgaXQgc2hvdWxkIG5vdCBhdHRlbXB0IHRv
-IHVzZSB5b3VyIGRyaXZlcgpmb3IgdGhlIElTQSBidXMuIFRoaXMgaXMgd2hhdCdzIGRvbmUgaW4g
-b3RoZXIgaTJjLW9ubHkgZHJpdmVycyAoc3VjaCBhcwpsbTkwLmMgZm9yIGV4YW1wbGUpLgoKPiAo
-MikgV2hlbiB5b3UgYXJlIGZyZWUsIGNhbiB5b3UgZ2l2ZSBtZSBzb21lIGdlbmVyYWwgZXhwbGFu
-YXRpb24KPiBvZiB0aGUgbWVtYmVyICJsYXN0X3VwZGF0ZWQiIG9mIHN0cnVjdCB3ODM3OTJkX2Rh
-dGE/Cj4KPiBXaGF0IEkgbmVlZCB0byBkbyBpcyBqdXN0IGtlZXAgYWxsIHRoZSBjb2RlcyByZWxh
-dGVkIHdpdGgKPiAidzgzNzkyZF9kYXRhLT5sYXN0X3VwZGF0ZWQiIGluIHc4Mzc4MWQuYwo+IElz
-IHRoYXQgcmlnaHQ/CgpZZXMsIGtlZXAgaXQuIFRoaXMgaXMgc29tZXRoaW5nIGNvbW1vbiB0byAo
-YWxtb3N0KSBhbGwgZHJpdmVycy4KClRoZSBpZGVhIGlzIHRvIHJlbWVtYmVyIHdoZW4gdGhlIGNo
-aXAgcmVnaXN0ZXJzIHdoZXJlIGxhc3QgcmVhZCwgYW5kCmZvcmNlIGEgbGl0dGxlIGRlbGF5ICh0
-eXBpY2FsbHkgYmV0d2VlbiAwLjUgYW5kIDIgc2Vjb25kcyBkZXBlbmRpbmcgb24KdGhlIGNoaXAp
-IGJlZm9yZSB0aGUgZHJpdmVyIGlzIGFsbG93ZWQgdG8gcmVhZCB0aGVtIGFsbCBhZ2Fpbi4gVGhp
-cwpsZWF2ZXMgc29tZSB0aW1lIGZvciB0aGUgY2hpcCB0byBzYW1wbGUgdGhlIHZvbHRhZ2VzLCB0
-ZW1wZXJhdHVyZXMgZXRjLgpOb3QgYWxsIGNoaXBzIGRvIG5lZWQgaXQsIGJ1dCBzb21lIGNoaXBz
-IHN0b3Agc2FtcGxpbmcgd2hlbiB0aGVyZSBpcwp0cmFmZmljIG9uIHRoZSBJMkMgaW50ZXJmYWNl
-IHNvIHdlIGhhdmUgdG8gZG8gdGhhdC4gQWxzbywgc2luY2UgcmVndWxhcgp1c2VycyBjYW4gcmVx
-dWVzdCBkYXRhIGZyb20gdGhlIGRyaXZlciwgaXQgaXMgYSBnb29kIHNhZmV0eSB0aGF0IHRoaXMK
-d29uJ3QgZ2VuZXJhdGUgSTJDIHRyYWZmaWMgZWFjaCB0aW1lLiBJZiB3ZSB3ZXJlIHJlYWxseSBy
-ZWFkaW5nIHRoZQpyZWdpc3RlcnMgZWFjaCB0aW1lLCB0aGVuIGFueSB1c2VyIGNvdWxkIG92ZXJm
-bG93IHRoZSBJMkMgYnVzIGFuZApwb3NzaWJseSBjYXVzZSB0cm91YmxlIHRvIHRoZSBzeXN0ZW0g
-KHN1Y2ggYXMgYWxhcm0gY29uZGl0aW9ucyBub3QKdHJpZ2dlcmluZyBhcyBuZWVkZWQpLgoKU28g
-bGFzdF91cGRhdGVkIHN0b3JlcyB0aGUgbGFzdCB0aW1lIHRoZSByZWdpc3RlcnMgd2VyZSB1cGRh
-dGVkLiBJdCBpcwpzZXQgYXQgdGhlIGVuZCBvZiB0aGUgdXBkYXRlIGZ1bmN0aW9uLiBBdCB0aGUg
-YmVnaW5uaW5nIG9mIHRoZSB1cGRhdGUKZnVuY3Rpb24gd2UgY29tcGFyZSB3aXRoIHRoZSBjdXJy
-ZW50IHRpbWUgYW5kIGlmIGxlc3MgdGhhbiB0aGUgZGVmaW5lZApkZWxheSAodXN1YWxseSBleHBy
-ZXNzZWQgYXMgeCAqIEhaIHdoZXJlIEhaIG1lYW5zIDEgc2Vjb25kKSBoYXMgcGFzc2VkCnNpbmNl
-IHRoZSBsYXN0IHVwZGF0ZSwgdGhlbiB3ZSBkbyBub3QgcmVhZCB0aGUgcmVnaXN0ZXJzIGFuZCB1
-c2UgdGhlCnByZXZpb3VzbHkgcmVhZCB2YWx1ZXMgaW5zdGVhZC4KCkplYW4KCgoKPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZp
-ZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBm
-b3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5h
-bCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRp
-Y2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBv
-ZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRl
-ciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9t
-IHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5
-b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhv
-cml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmlj
-dGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRv
-ZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBi
-ZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBp
-cyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93
-aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNo
-IHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwg
-tsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6Snpqyr
-SKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3s
-tW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqm
-WKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRs
-qrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKek
-uq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
+Hi Chunhao,
+
+Sorry for the delay, I have been encountering severe mail problems and
+lost 6 days worth of data, including your latest request for
+information. I finally found it while browsing the mailing-list archive,
+so here are my answers.
+
+> I have finished some of the functions in w83792d.c, and can produce
+> some device files in directory /proc/sys/dev/sensors/w83792d-i2c-0-2f/
+> for example in0.
+
+Great :)
+
+> But each time(except within the interval "HZ + HZ/2") I read the in0 file
+> by "cat" command, I find that the delay is comparatively large, which is
+> about 1-2 seconds. That's to say it takes me about 1-2 seconds to show me
+> the content of "in0", which also leads to the delay of the program "sensors".
+
+This is expected. All reads are grouped in a single function by design,
+so updating one value or the whole chip takes the same time.
+
+> I have debugged about it, find that the function "w83792d_update_client"
+> is the reason of the delay. Because in the course of the delay, this
+> function is executing and reading the registers' value one by one.
+
+True, you got it.
+
+> I also tested another Winbond chip W83627THF with the driver w83627hf.c
+> find that this phenomena does NOT exist on W83627THF. That's to say all
+> the device files of W83627THF can be read very quickly almost without any
+> delay, just like regular text file.
+
+This is due to the speed difference between I2C (SMBus) and ISA. ISA is
+really fast, I2C/SMbus is comparatively very slow.
+
+> So my questions are:
+> (1) Does this phenomena appears in other I2C chip drivers? such as
+> w83781d.c. Because W83627THF use ISA bus instead of I2C.
+
+Yes, that's exactlty it.
+
+> (2) Does it have something to do with the register numbers be read in
+> the function " w83792d_update_client()"?
+> Because w83792d_update_client read much more registers than w83627hf.
+
+Yes, the time required for one update is naturally proportional to the
+number of registers, for a given type of bus (ISA vs I2C). It makes no
+sense to compare a N1-register chip on I2C with a N2-register on ISA
+though.
+
+> (3) Or does it have something to do with the "w83792d_data->last_updated"
+> in the last mail? but there is also "w83627hf_data->last_updated" in
+> w83627hf.c, and the interval is same: HZ + HZ/2
+
+This isn't. HZ + HZ/2 defines the minimal delay between two updates (1.5
+second in this case). However, it makes sense to define a larger delay
+if the chip is slow updating, both for security/stability and user
+experience reasons.
+
+> (4) I also have tried to split the codes of w83792d_update_client()
+> into indivial function, for example: I move the following codes from
+> w83792d_update_client() into the function w83792d_in(), and comment
+> out the " w83792d_update_client()" in w83792d_in(), but it seems
+> useless, because the delay becomes more larger.:-(
+> 
+> ************ codes be moved  ******************
+> data->in[0] = w83792d_read_value(client, W83792D_REG_IN0);
+> data->in[1] = w83792d_read_value(client, W83792D_REG_IN1);
+> data->in[2] = w83792d_read_value(client, W83792D_REG_IN2);
+> data->in[3] = w83792d_read_value(client, W83792D_REG_IN3);
+> data->in[4] = w83792d_read_value(client, W83792D_REG_IN4);
+> data->in[5] = w83792d_read_value(client, W83792D_REG_IN5);
+> data->in[6] = w83792d_read_value(client, W83792D_REG_IN6);
+> data->in[7] = w83792d_read_value(client, W83792D_REG_IN7);
+> data->in[8] = w83792d_read_value(client, W83792D_REG_IN8);
+
+By doing that you remove the effect of caching for these registers. This
+won't speed up the single-register reads, but will significantly slow
+"sensors" down. Also, it breaks our security model. Don't do that. No
+register read should happen outside of the update function (except in
+the init function when loading the driver, granted).
+
+The SMBus is slow, we have to live with it ;)
+
+One possibility is to have two different minimal delays between updates,
+one for measured values and one (longer) for values that supposedly
+don't change (such as limits and config). I think that only the lm85
+driver is doing it this way so far, take a look there. For a chip with a
+very high number of registers, that may make sense.
+
+Another possibility is to use I2C/SMBus block reads. However:
+
+1* The W83792D would need to support it, I don't know if it is the case.
+
+2* Not all SMBus master chips support it, so the w83792d driver would
+still have to support the byte/word read method for those who don't.
+
+3* Block reads have not been much tested so far so it might not be a
+good idea for you to rely on them. You would better get the driver
+working with regular byte/word reads first. Block reads can be added
+later (providing the W83792D supports them, that is).
+
+A third possibility would be to use SMBus direct byte reads instead of
+data byte reads, but this requires that the W83792D has autoincrement
+registers. Without a datasheet I of course cannot tell whether this is
+the case or not.
+
+Please do not hesitate to share your code with us as soon as you get
+something working, so that we can comment on it and users can start
+testing it too.
+
+Thanks,
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
