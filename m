@@ -1,76 +1,63 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: Wrong TEMP anc FAN speed.
-Message-Id: <3EE4DE39.FB2917C2@paradyne.com>
+From: ac9410@bellsouth.net (Albert Cranford)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: lm_sensors and thinkpad
+Message-Id: <3D38A745.6A1F696C@bellsouth.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.GSO.3.95.1030609011547.11222A-100000@razor>
-In-Reply-To: <Pine.GSO.3.95.1030609011547.11222A-100000@razor>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-it's unlikely you have a lm80.
-2.6.3 is very old. Get release 2.7.0 and try again.
+I understand and fully appreciate your comments.
+I'm sure that this is not resolved in our current 2.6.3
+version that I'm currently integrating into linux-2.5.26.
 
-Nejc Buzinel wrote:
+Today we released i2c&lm_sensors 2.6.4 with new IBM drivers
+but this is for PPC and considered Beta testing at the
+moment.
+
+I will make a change in the Config.in to warn 600x laptop
+users to stay away.
+
+Thanks alot,
+Albert
+
+Jerry Cooperstein wrote:
 > 
-> Hello. I'm writing you because i get the wrong values of cputemp and
-> fan speed when running 'sensors'. I have MSI K7T Turbo motherboard
-> with VIA VT8363 Chipset, AMD Thunderbird processor.
-> The lm_sensors is version 2.6.3-5 and i'm running linux 2.4.18.
+> Hi:
 > 
-> I inserted all the modules with help of 'sensors-detect', and when running
-> 'sensors' it comes this out:
+> Having fried one motherboard on my 600x Thinkpad by use of
+> sensor-detect (I'm not blaming anyone but myself for reading
+> documentation a little too late--and I got it replaced on
+> warranty) I'm kind of nervous about whether the lm_sensors
+> patches going into the kernel are sensitive to the Thinkpad
+> issue, either by resolving it, or sensing it is a Thinkpad
+> and staying away from it.
 > 
-> lm80-i2c-0-2d
-> Adapter: SMBus Via Pro adapter at 5000
-> Algorithm: Non-I2C SMBus adapter
-> +5V:       +5.05 V  (min =  +4.74 V, max =  +6.71 V)   ALARM
-> VTT:       +1.52 V  (min =  +1.90 V, max =  +2.10 V)   ALARM
-> +3.3V:     +2.54 V  (min =  +3.13 V, max =  +3.46 V)   ALARM
-> +Vcore:    +0.27 V  (min =  +1.80 V, max =  +1.99 V)   ALARM
-> +12V:     +12.95 V  (min = +11.37 V, max = +12.57 V)   ALARM
-> -12V:     -12.51 V  (min = -12.73 V, max = -11.53 V)
-> -5V:       -4.59 V  (min =  -5.34 V, max =  -4.82 V)
-> fan1:     10546 RPM  (min = 6000 RPM, div = 1)
-> fan2:       -1 RPM  (min = 6000 RPM, div = 1)
-> temp:     -128.00 0C (hot:limit =  +60C,  hysteresis =  +50C) ALARM
->          (os: limit =  +60C,  hysteresis =  +50C) ALARM
-> alarms:   Board temperature input (LM75)               ALARM
+> I haven't been able to find any recent documentation on this,
+> so I'd appreciate it if you could bring me up to date.  Besides
+> my own fears, I have nightmares about distributions using
+> such kernels and frying up laptops on unsuspecting users.  I
+> know from checking things out in the past the blame belonged
+> to IBM and/or Intel, not Linux, but I'm not sure everyone
+> would see it that way :<
 > 
-> eeprom-i2c-0-51
-> Adapter: SMBus Via Pro adapter at 5000
-> Algorithm: Non-I2C SMBus adapter
-> Memory type:            SDRAM DIMM SPD
-> SDRAM Size (MB):        128
+> Thanks,
 > 
-> Here is also an output of 'lspci':
+> coop
 > 
-> 00:00.0 Host bridge: VIA Technologies, Inc. VT8363/8365 [KT133/KM133] (rev
-> 03)
-> 00:01.0 PCI bridge: VIA Technologies, Inc. VT8363/8365 [KT133/KM133 AGP]
-> 00:07.0 ISA bridge: VIA Technologies, Inc. VT82C686 [Apollo Super South]
-> (rev 40)
-> 00:07.1 IDE interface: VIA Technologies, Inc. Bus Master IDE (rev 06)
-> 00:07.2 USB Controller: VIA Technologies, Inc. UHCI USB (rev 16)
-> 00:07.3 USB Controller: VIA Technologies, Inc. UHCI USB (rev 16)
-> 00:07.4 Host bridge: VIA Technologies, Inc. VT82C686 [Apollo Super ACPI]
-> (rev 40)
-> 00:07.5 Multimedia audio controller: VIA Technologies, Inc. AC97 Audio
-> Controller (rev 50)
-> 00:0a.0 Multimedia audio controller: Creative Labs SB Live! EMU10k1 (rev
-> 08)
-> 00:0a.1 Input device controller: Creative Labs SB Live! (rev 08)
-> 00:0e.0 Ethernet controller: 3Com Corporation 3c905B 100BaseTX [Cyclone]
-> (rev 34)
-> 01:00.0 VGA compatible controller: nVidia Corporation NV11 (GeForce2 MX)
-> (rev a1)
-> 
-> If it is possible, i would be really grateful if you can solve my problem.
-> 
-> Thanx for now and keep the good work!
-> 
-> Greetings
-> 
-> Nejc (Nejc.Buzinel@guest.arnes.si)
+> ===================================
+>  Jerry Cooperstein, PhD        <coop@axian.com>
+>  Senior Consultant
+>                                             ____       _
+>  Axian, Inc.   <info@axian.com>              // |_  __(_) ___  _ __
+>  4800 SW Griffith Dr., Ste. 202             //| |\\/ /| |/ _ \| '_ \
+>  Beaverton, OR  97005 USA             _____//_| | / / | | |_| | | | |
+>  Voice: (541)758-8020                ((   //  |_|/_/\\|_|\_/|_|_| |_|
+>                                       ``-''          ``-''
+>  http://www.axian.com/               Software Consulting and Training
+> ===================================
+
+-- 
+Albert Cranford Deerfield Beach FL USA
+ac9410@bellsouth.net
