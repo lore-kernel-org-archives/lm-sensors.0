@@ -1,7 +1,7 @@
-From: christy@attglobal.net (Peter Christy)
-Date: Thu, 19 May 2005 06:23:44 +0000
-Subject: feedback
-Message-Id: <200212141421.50457.christy@attglobal.net>
+From: peterg@infotel.bg (Peter Georgiev)
+Date: Thu, 19 May 2005 06:23:54 +0000
+Subject: Feedback
+Message-Id: <20030422100715.21805087.peterg@ops.airport.pdv>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200203231220.g2NCKQD01021@shire.frodo.local>
 In-Reply-To: <200203231220.g2NCKQD01021@shire.frodo.local>
@@ -10,141 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Feedback regarding lm_sensors.
+Hiya guys,
 
-(pls forgive me if I've sent this to the wrong address, but this one seemed 
-the most appropriate)
+Just dropping you a couple of lines to let you know
+lm_sensors work fine with my motherboard.
 
-I've just installed the latest lm_sensors packages (i2c-2.7.0 and 
-lm_sensors-2.7.0) on three machines (from ancient to modern) and think that 
-the following feedback may be of general interest.
+Detail as follows:
+Motherboard: 	MSI (Micro-Star International) 
+		MS-6580 (v2.1) 845PE Max ATX
+		G52-M6580X4
+Chipset:	Intel 845PE
+LM_Sensors:	v2.6.5
 
-All the machines are running freshly compiled 2.4.20 kernels, and lm_sensors 
-was installed using method (1) (seperate from kernel)
+Detected busses:i2c-i801 / i2c-isa
+Detected chips: w83781d / lm80 (emulated??)
 
-###############################################################################
+SMBus gives buggy output (lame lm80 emulation??):
 
-Starting with the oldest machine first:
-
-Motherboard: 	Asus P5AB
-Chipset:		Ali V
-Processor:	AMD K6-2-350 (overclocked to 400)
-OS:			VectorLinux 3.0 (Slackware-alike)
-Sensor chip:	W83781D
-
-
-Modules loaded:	eeprom
-				W8371D
-				i2c-proc
-				i2c-isa
-				i2c-ali15x3
-				i2c-core
-
-
-temp1 appears to be the SYS temp
-temp2 appears to be the CPU temp (slightly higher than above)
-temp3 appears to be MB/ambient case (?) temp
-
-I had to tweak the suggested w83781d temperature limits to reflect the above 
-order....
-
-fan2 appears to be CPU fan (probably depends on which connector fan is 
-					      connected to...)
-
-The in2 ("3.3v") readings appear slightly anomolous, reading higher than the 
-"VID" voltage, and slightly higher than that reported by the BIOS - enough to 
-trigger the alarm. Assuming the BIOS to be right, I have widened the limits 
-from 5% to 10% as a stop-gap measure. (The machine has functioned perfectly 
-for several years, so I think I can assume its functioning within acceptable 
-limits!)
-
-Installation funnies: VectorLinux is based on Slackware (which uses BSD style 
-init scripts) but has added a SysV init layer to "aid" compatibility. This 
-confused the installation detection which suggested installing a SysV (init.d) 
-script as well as suggesting lines to go in rc.local. You need to choose one 
-or the other, but not both! I went the rc.local route which worked fine.
-
-Note: It's not enough just to put "sensors -s" in rc.local - you have to put 
-the full path, ie /usr/local/bin/sensors -s
-
-###############################################################################
-
-A more recent machine:
-
-Motherboard:	Gigabyte GA-7ZM
-Chipset:		VIA KT-133
-Processor	AMD Duron 1.2GHz
-OS			Slackware 9.0b
-Sensor chip:	Via 686a
-
-Modules loaded:	via686a
-				eeprom
-				i2c-proc
-				i2c-isa
-				i2c-viapro
-				i2c-core
-
-temp1 appears to be CPU temp (highest)
-temp2 appears to be SYS temp
-temp3 appears to be MB/anbient case (?) temp
-
-The suggested in0 min and max voltages seemed incorrect for this 
-mobo/processor combination. I reduced them from 2.0/2.5 to 1.6/2.1 to more 
-accurately reflect the proper values.
-
-Sensors is called from rc.local using the full path (/usr/local/bin/sensors 
--s)
-
-This was the least problematic install of the three.
-
-###############################################################################
-
-The most modern (and probably interesting!) machine:
-
-an FIC A360+ laptop (Locally re-badged as a Tiny MediaBook 1000)
-
-Motherboard:	FIC(?)
-Chipset:		Via 686 (No specs from FIC, or visible on boot, but its definitely 
-			some kind of 686!)
-Processor:	Intel Celeron 1GHz
-OS:			Slackware 8.1
-Sensor chip	686a-isa (?)
-
-Note: To function correctly, this machine *must* have a recent acpi patch 
-applied to the kernel!
-
-Modules loaded:	via686a
-				i2c-proc
-				i2c-isa
-				i2c-core
-
-temp1 and temp2 mostly report identical temperatures, so its difficult to 
-determine which is the cpu and which is the sys!
-
-Both fans sensors read 0, even though (once the acpi patch is applied) the 
-processor fan throttles properly. (There is only one fan)
-
-sensors-detect reported being unable to load the viapro module.
-
-It was necessary to "modprobe via686a force_addr=0xf000" to get the via686 
-module to run correctly.
-
-The full path to sensors -s needs to be added to rc.local
-
-This one was definitely the most fiddly of the lot, not helped by the 
-unavailability of any significant technical info from the FIC website. 
-Although they have a technical specs page for this laptop, it is very sparse 
-and doesn't even specify the chipset used! Its possible that this machine 
-needs one of the "un-probeable" drivers, but I don't know how to determine 
-this. I seem to be getting sensible voltage and temperature readings, but it 
-would be nice to have some fan info as well!
+lm80-i2c-0-2f
+Adapter: SMBus I801 adapter at 0c00
+Algorithm: Non-I2C SMBus adapter
++5V:       +6.71 V  (min =  +6.71 V, max =  +6.71 V)   ALARM
+VTT:       +2.55 V  (min =  +2.55 V, max =  +2.55 V)   ALARM
++3.3V:     +4.43 V  (min =  +4.43 V, max =  +4.43 V)   ALARM
++Vcore:    +3.76 V  (min =  +3.76 V, max =  +3.76 V)   ALARM
++12V:     +16.10 V  (min = +16.10 V, max = +16.10 V)   ALARM
+-12V:     -16.11 V  (min = -16.11 V, max = -16.11 V)   ALARM
+-5V:       -6.70 V  (min =  -6.70 V, max =  -6.70 V)   ALARM
+fan1:        0 RPM  (min =    0 RPM, div = 8)          ALARM
+fan2:        0 RPM  (min =    0 RPM, div = 8)          ALARM
+temp:     -1.00 ?C (hot:limit =  -1?C,  hysteresis =  -1?C) ALARM
+         (os: limit =  -1?C,  hysteresis =  -1?C) ALARM
+alarms:   Board temperature input (LM75)               ALARM
 
 
+ISA adapter data is just fine:
+
+w83627hf-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+VCore 1:   +1.76 V  (min =  +1.80 V, max =  +1.98 V)              
+VCore 2:   +1.80 V  (min =  +1.80 V, max =  +1.98 V)       ALARM  
++3.3V:     +3.18 V  (min =  +3.13 V, max =  +3.45 V)              
++5V:       +4.99 V  (min =  +4.72 V, max =  +5.24 V)              
++12V:     +11.86 V  (min = +10.79 V, max = +13.19 V)              
+-12V:     -11.62 V  (min = -13.21 V, max = -10.90 V)              
+-5V:       -5.01 V  (min =  -5.26 V, max =  -4.76 V)              
+V5SB:      +5.43 V  (min =  +4.72 V, max =  +5.24 V)              
+VBat:      +3.15 V  (min =  +2.40 V, max =  +3.60 V)              
+fan1:     2812 RPM  (min = 3000 RPM, div = 2)                     
+fan2:        0 RPM  (min = 3000 RPM, div = 2)                     
+fan3:        0 RPM  (min = 3000 RPM, div = 2)                     
+temp1:       +27?C  (limit =  +60?C)                       sensor thermistor           temp2:     +38.0?C  (limit =  +60?C, hysteresis = 
++50?C) sensor = PII/Celeron diode           temp3:     +58.0?C  (limit  +60?C, hysteresis =  +50?C) sensor = thermistor           vid:     
++1.900 V alarms:   Chassis intrusion detection                     
+ALARM beep_enable:
+          Sound alarm disabled
 
 
-As I said, forgive me if I've sent this info to the wrong address, but 
-hopefully you (and others) may find it useful.......
+	  
+Well, hope this is of use
+keep up the good work and stay cool
 
---
-Pete Christy
-christy@attglobal.net
+Peter
