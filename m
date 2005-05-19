@@ -1,106 +1,56 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:41 +0000
 Subject: A question when test W83792D driver on another motherboard
-Message-Id: <Pine.LNX.4.58.0503031253360.25688@desitka.sh.cvut.cz>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245AF1@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hello Chunhao,
-
-> I don't, sorry. The information provided by Asus (write an arbitrary
-> value to an arbitrary port) isn't sufficient for us to understand what
-> happens. We would need detailed information on what chip we attept to
-> control at this port and how that chip works, and also details on how
-> the SMBus is wired. Without that information, I just cannot tell why the
-> SMBus works first and then suddenly fails.
-
-Plus this information we will need the base address of that ISA device so
-we can put "request_region" to the quirk.c file. (Also if the base adr is
-not fixed we would need the detection method how to get the base adrress,
-from some PCI config space maybe?)
-
-I'm fully agreeing with Jean. There only a little left you can do.
-
-Now you can only check the logs (syslog, messages, debug) if you can see
-problems from piix4 bus driver. If so maybe it would be possible to modify
-the piix4 bus driver to test if smbus is busy or not before trying to
-write. (This does some asus software too)
-
-I found here some monitoring software from ASUS to this board
- ftp://www.asuscom.de/pub/ASUS/mb/Socket604/NCLV-D/ASMS/
-
-If you would unzip/unrar the files you would find
-aswm_core-2.0-48.8.0rhat.i386.rpm
-(or for other redhat systems)
-
-if you will look into
-you would find
-
-drvsrc.tgz  (source code for binary stuff "glue logic")
-
-and there ghaio.c
-
-With such function:
-
-static int DetectI2CBusy(void)
-{
-        // Detect and avoid I2C bus busy
-        if ( (inb(SMBusBaseAddress + RCC_STATUS_REG) & 0x1D ) != 0 ) {
-                outb(0xFF, SMBusBaseAddress + RCC_STATUS_REG); // Reset status register
-        block_sleep_tick(I2C_SLEEP_TIME);
-                if ( (inb(SMBusBaseAddress + RCC_STATUS_REG) & 0x1D ) != 0
-) {
-                        DBGMSG("(DetectI2CBusy): Killing I2C Command...\n");
-                        outb(0x02, SMBusBaseAddress + RCC_CONTROL_REG); //  kill
-                block_sleep_tick(I2C_SLEEP_TIME);
-                        outb(0xFF, SMBusBaseAddress + RCC_STATUS_REG); // Reset status register
-                block_sleep_tick(I2C_SLEEP_TIME);
-                        if ( (inb(SMBusBaseAddress + RCC_STATUS_REG) & 0x1D ) != 0 )
-                                return 1; //return fail
-                }
-        }
-        return 0;
-}
-
-//======================================// SMBus Send Byte
-//======================================int I2CSendByte_RCC(ULONG SlaveAddress, UCHAR * value)
-{
-        UCHAR status;
-        UCHAR ctrlreg = RCC_CONTROL_REG_START | RCC_CONTROL_REG_CMDBYTE;
-
-        down(&SMBusSemaphore);
-
-        outb(0xFF, SMBusBaseAddress + RCC_STATUS_REG);  // Reset status
-        block_sleep_tick(I2C_SLEEP_TIME);
-
-        if (DetectI2CBusy()) {
-                ERRMSG("(I2CSendByte_RCC): I2C is busy!\n");
-                up(&SMBusSemaphore);
-                return 1;
-        }
-
-        outb(SlaveAddress & 0xFE, SMBusBaseAddress + RCC_SLAVE_ADDR_REG);
-// Slave Address
-        outb(*(UCHAR *)value, SMBusBaseAddress + RCC_COMMAND_REG);      //
-Data
-        outb(ctrlreg, SMBusBaseAddress + RCC_CONTROL_REG);      // I2C
-Format
-
-
-and so on....
-
-I think our driver first writes and then check if it was successful.
-
-Plus could you please provide "lspci -v" output command form that
-motherboard? It seems there is some IMPI host (at least the asus sources
-tells so, maybe that has something to do with it)
-
-regards
-
-Rudolf
+SGkgQ0YKCkNhbiB5b3UgaGVscCB1cyB0byBhc2sgQVNVUyB0aGUgaW5mb3JtYXRpb24gd2UgbmVl
+ZD8gSW5jbHVkaW5nIHRoZQpxdWVzdGlvbnMKZnJvbSBKZWFuIGFuZCBSdWRvbGYKCj4gPiBJIGRv
+bid0LCBzb3JyeS4gVGhlIGluZm9ybWF0aW9uIHByb3ZpZGVkIGJ5IEFzdXMgKHdyaXRlIGFuIGFy
+Yml0cmFyeQo+ID4gdmFsdWUgdG8gYW4gYXJiaXRyYXJ5IHBvcnQpIGlzbid0IHN1ZmZpY2llbnQg
+Zm9yIHVzIHRvIHVuZGVyc3RhbmQKd2hhdAo+ID4gaGFwcGVucy4gV2Ugd291bGQgbmVlZCBkZXRh
+aWxlZCBpbmZvcm1hdGlvbiBvbiB3aGF0IGNoaXAgd2UgYXR0ZXB0CnRvCj4gPiBjb250cm9sIGF0
+IHRoaXMgcG9ydCBhbmQgaG93IHRoYXQgY2hpcCB3b3JrcywgYW5kIGFsc28gZGV0YWlscyBvbgpo
+b3cKPiA+IHRoZSBTTUJ1cyBpcyB3aXJlZC4gV2l0aG91dCB0aGF0IGluZm9ybWF0aW9uLCBJIGp1
+c3QgY2Fubm90IHRlbGwgd2h5CnRoZQo+ID4gU01CdXMgd29ya3MgZmlyc3QgYW5kIHRoZW4gc3Vk
+ZGVubHkgZmFpbHMuCj4gCj4gUGx1cyB0aGlzIGluZm9ybWF0aW9uIHdlIHdpbGwgbmVlZCB0aGUg
+YmFzZSBhZGRyZXNzIG9mIHRoYXQgSVNBIGRldmljZQpzbwo+IHdlIGNhbiBwdXQgInJlcXVlc3Rf
+cmVnaW9uIiB0byB0aGUgcXVpcmsuYyBmaWxlLiAoQWxzbyBpZiB0aGUgYmFzZSBhZHIKaXMKPiBu
+b3QgZml4ZWQgd2Ugd291bGQgbmVlZCB0aGUgZGV0ZWN0aW9uIG1ldGhvZCBob3cgdG8gZ2V0IHRo
+ZSBiYXNlCmFkcnJlc3MsCj4gZnJvbSBzb21lIFBDSSBjb25maWcgc3BhY2UgbWF5YmU/KQoKCgpI
+aSBSdWRvbGYKCj4gSSB0aGluayBvdXIgZHJpdmVyIGZpcnN0IHdyaXRlcyBhbmQgdGhlbiBjaGVj
+ayBpZiBpdCB3YXMgc3VjY2Vzc2Z1bC4KPiAKPiBQbHVzIGNvdWxkIHlvdSBwbGVhc2UgcHJvdmlk
+ZSAibHNwY2kgLXYiIG91dHB1dCBjb21tYW5kIGZvcm0gdGhhdAo+IG1vdGhlcmJvYXJkPyBJdCBz
+ZWVtcyB0aGVyZSBpcyBzb21lIElNUEkgaG9zdCAoYXQgbGVhc3QgdGhlIGFzdXMKc291cmNlcwo+
+IHRlbGxzIHNvLCBtYXliZSB0aGF0IGhhcyBzb21ldGhpbmcgdG8gZG8gd2l0aCBpdCkKCkkgd2ls
+bCBnaXZlIHlvdSB0aGUgcmVwbHkgdG9tb3Jyb3csIGJlY2F1c2UgdGhlIG1vdGhlcmJvYXJkIGlz
+CnVuYXZhaWxhYmxlCnRvIG1lIG5vdy4KCgpUaGFua3MKQmVzdCBSZWdhcmRzCgpDaHVuaGFvCjIw
+MDUtMDMtMDMKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlz
+IGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRp
+Y2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5v
+dCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9u
+c2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtp
+bmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBh
+bGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1t
+ZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNh
+YmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9u
+IG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBp
+biB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVz
+cyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNl
+ZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVh
+c2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEK
+IHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRs
+qrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCw
+sqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaas
+qOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmk
+pKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhn
+scLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7
+ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
