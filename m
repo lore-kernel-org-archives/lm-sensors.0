@@ -1,25 +1,19 @@
-From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: CVS cleanup status
-Message-Id: <Pine.OSF.4.50.0301270032450.13915-100000@kosh.hut.fi>
+From: seppanen@chartermi.net (Brian E. Seppanen)
+Date: Thu, 19 May 2005 06:24:36 +0000
+Subject: Ticket 1546 Resolved
+Message-Id: <4013E297.4080103@chartermi.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.OSF.4.50.0301222332420.19858-100000@kosh.hut.fi>
-In-Reply-To: <Pine.OSF.4.50.0301222332420.19858-100000@kosh.hut.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 26 Jan 2003, Mark Studebaker wrote:
+I opened ticket 1546 waiting in unsorted.   About 15 minutes later I 
+found the solution.
 
-> i2c-voodoo3 is unusable right now, the PCI changes are half done,
-> please let me know if you have more changes pending, if not
-> I will attempt to fix and test, let me know.
->
+I needed to load in this order i2c-isa, lm78, i2c-piix4, lm75.   After 
+doing that I can no monitor both my lm78 and lm75.
 
-No pending changes here. I am hoping of some feedback if the changes
-I made in i2c-core and -proc broke things completely.
+I wanted to close the ticket myself, but it will not allow that.
 
--- 
-  Ky?sti M?lkki
-  kmalkki@cc.hut.fi
+Thanks,
