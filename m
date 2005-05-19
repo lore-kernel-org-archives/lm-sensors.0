@@ -1,18 +1,168 @@
-From: kain3@libero.it (=?iso-8859-1?Q?kain3@libero.it?=)
-Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: =?iso-8859-1?Q?Intel_P4?=
-Message-Id: <HEMU5N$AAF28AF6A85A6B781692C8E6F886B460@libero.it>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] i2c-core.c: make some code static
+Message-Id: <11099685953642@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11099685952869@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: bunk@stusta.de
 
-Hi...i have tested lm_sensor with my p4 2,53 Ghz and the MB QDI PlatiniX 2E-333
-with chipset Intel 845PE but it doesn't run ! why ??? When these support will be
-added ???I know C language...maybe i can help you...but i'have no idea for
-"talking" with the termal sensor ! :)
+ChangeSet 1.2096, 2005/03/02 12:12:54-08:00, bunk@stusta.de
 
-DaRk
+[PATCH] i2c-core.c: make some code static
 
+This patch makes some needlessly global code static.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+
+
+ drivers/i2c/i2c-core.c |   79 ++++++++++++++++++++++++-------------------------
+ include/linux/i2c.h    |    2 -
+ 2 files changed, 39 insertions(+), 42 deletions(-)
+
+
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	2005-03-04 12:24:57 -08:00
++++ b/drivers/i2c/i2c-core.c	2005-03-04 12:24:57 -08:00
+@@ -38,12 +38,43 @@
+ static DECLARE_MUTEX(core_lists);
+ static DEFINE_IDR(i2c_adapter_idr);
+ 
+-int i2c_device_probe(struct device *dev)
++/* match always succeeds, as we want the probe() to tell if we really accept this match */
++static int i2c_device_match(struct device *dev, struct device_driver *drv)
++{
++	return 1;
++}
++
++static int i2c_bus_suspend(struct device * dev, pm_message_t state)
++{
++	int rc = 0;
++
++	if (dev->driver && dev->driver->suspend)
++		rc = dev->driver->suspend(dev,state,0);
++	return rc;
++}
++
++static int i2c_bus_resume(struct device * dev)
++{
++	int rc = 0;
++	
++	if (dev->driver && dev->driver->resume)
++		rc = dev->driver->resume(dev,0);
++	return rc;
++}
++
++static struct bus_type i2c_bus_type = {
++	.name =		"i2c",
++	.match =	i2c_device_match,
++	.suspend =      i2c_bus_suspend,
++	.resume =       i2c_bus_resume,
++};
++
++static int i2c_device_probe(struct device *dev)
+ {
+ 	return -ENODEV;
+ }
+ 
+-int i2c_device_remove(struct device *dev)
++static int i2c_device_remove(struct device *dev)
+ {
+ 	return 0;
+ }
+@@ -523,38 +554,6 @@
+        up(&adap->clist_lock);
+ }
+ 
+-
+-/* match always succeeds, as we want the probe() to tell if we really accept this match */
+-static int i2c_device_match(struct device *dev, struct device_driver *drv)
+-{
+-	return 1;
+-}
+-
+-static int i2c_bus_suspend(struct device * dev, u32 state)
+-{
+-	int rc = 0;
+-
+-	if (dev->driver && dev->driver->suspend)
+-		rc = dev->driver->suspend(dev,state,0);
+-	return rc;
+-}
+-
+-static int i2c_bus_resume(struct device * dev)
+-{
+-	int rc = 0;
+-	
+-	if (dev->driver && dev->driver->resume)
+-		rc = dev->driver->resume(dev,0);
+-	return rc;
+-}
+-
+-struct bus_type i2c_bus_type = {
+-	.name =		"i2c",
+-	.match =	i2c_device_match,
+-	.suspend =      i2c_bus_suspend,
+-	.resume =       i2c_bus_resume,
+-};
+-
+ static int __init i2c_init(void)
+ {
+ 	int retval;
+@@ -860,7 +859,7 @@
+ /* CRC over count bytes in the first array plus the bytes in the rest
+    array if it is non-null. rest[0] is the (length of rest) - 1
+    and is included. */
+-u8 i2c_smbus_partial_pec(u8 crc, int count, u8 *first, u8 *rest)
++static u8 i2c_smbus_partial_pec(u8 crc, int count, u8 *first, u8 *rest)
+ {
+ 	int i;
+ 
+@@ -872,7 +871,7 @@
+ 	return crc;
+ }
+ 
+-u8 i2c_smbus_pec(int count, u8 *first, u8 *rest)
++static u8 i2c_smbus_pec(int count, u8 *first, u8 *rest)
+ {
+ 	return i2c_smbus_partial_pec(0, count, first, rest);
+ }
+@@ -880,8 +879,8 @@
+ /* Returns new "size" (transaction type)
+    Note that we convert byte to byte_data and byte_data to word_data
+    rather than invent new xxx_PEC transactions. */
+-int i2c_smbus_add_pec(u16 addr, u8 command, int size,
+-                      union i2c_smbus_data *data)
++static int i2c_smbus_add_pec(u16 addr, u8 command, int size,
++			     union i2c_smbus_data *data)
+ {
+ 	u8 buf[3];
+ 
+@@ -910,8 +909,8 @@
+ 	return size;	
+ }
+ 
+-int i2c_smbus_check_pec(u16 addr, u8 command, int size, u8 partial,
+-                        union i2c_smbus_data *data)
++static int i2c_smbus_check_pec(u16 addr, u8 command, int size, u8 partial,
++			       union i2c_smbus_data *data)
+ {
+ 	u8 buf[3], rpec, cpec;
+ 
+diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h	2005-03-04 12:24:57 -08:00
++++ b/include/linux/i2c.h	2005-03-04 12:24:57 -08:00
+@@ -134,8 +134,6 @@
+ };
+ #define to_i2c_driver(d) container_of(d, struct i2c_driver, driver)
+ 
+-extern struct bus_type i2c_bus_type;
+-
+ #define I2C_NAME_SIZE	50
+ 
+ /*
 
