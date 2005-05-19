@@ -1,155 +1,279 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: jmunsin@iki.fi (Jonas Munsin)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: 2.6.10-mm2: it87 sensor driver stops CPU fan
-Message-Id: <YN0o4rkI.1105435582.0805630.khali@localhost>
+Message-Id: <20050111202437.GA2914@nemo.sby.abo.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <200501102341.44949.pioppo@ferrara.linux.it>
-References: <20050108103449.345def67.khali@linux-fr.org>
-In-Reply-To: <20050108103449.345def67.khali@linux-fr.org>
+References: <200501102341.44949.pioppo@ferrara.linux.it>
+ <YN0o4rkI.1105435582.0805630.khali@localhost>
+In-Reply-To: <YN0o4rkI.1105435582.0805630.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: pioppo@ferrara.linux.it, sensors@Stimpy.netroedge.com
-Cc: Jonas Munsin <jmunsin@iki.fi>, djg@pdp8.net, Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>, Greg KH <greg@kroah.com>
+Cc: pioppo@ferrara.linux.it, sensors@Stimpy.netroedge.com, Jonas Munsin <jmunsin@iki.fi>, djg@pdp8.net, LKML <linux-kernel@vger.kernel.org>
 
+On Tue, Jan 11, 2005 at 10:26:22AM +0100, Jean Delvare wrote:
+> 1* Jonas, please send a modified version of your original patch to Greg.
+> The only difference would be that you wouldn't force on/off mode to be
+> on at driver load time. Instead, disabling PWM for one fan control
+> output (echo 0 > pwmN_enable) would both set on/off mode to on for that
+> output (new) and turn that output to on/off mode (same as before).
 
-On 2005-01-10, Simone Piunno wrote:
+Ok, thanks for doing the thinking ;), here is the modified patch
+(it87.c_2.6.10-jm3-corrected_manual_pwm_20050111.diff). In addition to
+the above change, it also refreshes fan_main_ctrl in the update routine,
+as suggested by Jean on IRC.
 
-> Before loading it87:
->     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 11 00 00 00 37 ff 00 37 ff 07 00 5b 00 2a ff ff
-> 10: ff ff ff 30 00 00 00 00 00 00 00 00 00 00 00 00
-> (...)
+ - adds manual PWM
+ - removes buggy "reset" module parameter
+ - fixes some whitespaces
 
-The relevant registers are 0x13-0x17, and they are just what I expected.
+Signed-off-by: Jonas Munsin <jmunsin@iki.fi>
 
-The IT87xxF chips have three fan control modes: on/off, manual PWM
-control and automatic (temperature-based) PWM control, the default being
-on/off, all fans off. When switching to PWM mode, the default is manual
-with 0% duty cycle (i.e. all fans off again).
-
-What you have here is this default configuration, i.e. all fans are
-supposedly off. Of course it isn't the case, I assume that your fans
-are running at full speed when you turn your computer on. So how is this
-possible? The IT87xxF chip have a fan polarity bit which defaults to
-"Active low". Providing that your fans are meant to be driven active
-high (and I'd guess all fans work that way without additional
-electronics), they are on when the IT87xxF chip wants to set them off,
-and off when the chip wants them on. This is why the fans apparently
-work OK.
-
-While it's OK at boot time and as long as we don't want to use PWM (the
-fans are on even if the chip pretends they shouldn't be), the illusion
-breaks when we attempt to control the fan speed through the it87 driver:
-
-> After loading it87:
->
->     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->00: 11 03 60 00 37 ff 00 37 ff 07 00 5b 00 ff ff ff
->10: fe fe fe 31 07 7f 00 00 00 00 00 00 00 00 00 00
-
-Here, configuration changed. Fans in on/off mode will now be on. While it
-makes full sense from the driver's point of view, if breaks the fragile
-equilibrium state your board was in.
-
-Additionally, the first fan control output was turned to manual PWM
-control mode, full speed. The driver supposedly doesn't do that, I
-guess you did it yourself through the sysfs interface?
-
-This configuration supposedly sets all fans to full speed, but in your
-"inverted" hardware setup, this means all fans off, unfortunately, as
-you noticed in the first place.
-
-I would like to insist on the fact that the ones to blame here are:
-1* ITE for their poor chip defauls.
-2* Motherboard manufaturers for their poor BIOSes.
-And in no way Jonas, whose code was correct, just not broken-config-proof.
-
-> I've already coded a small fan controller daemon working around the
-> problem and driving the fan to run at the minimum speed sufficient to
-> keep the CPU cool enough.  Anyone interested can look here:
->   http://svn.ferrara.linux.it/view/just4fan
-> or check it out from the subversion repository:
->   svn checkout http://svn.ferrara.linux.it/just4fan
-
-Well, the lm_sensors project has tools to do that already. Look in
-prog/pwm, there is a PWM configuration detection script (pwmconfig) and
-two fan control scripts (original one in shell and a reimplementation in
-perl). It might be more efficient to start from these and possibly
-improve them if needed (and contribute back!) than writing something
-completely new. Do as you prefer though :)
-
-Although note that the ITxxF has an automatic PWM control mode as
-explained above, so it probably can do in hardware what your software
-daemon does. We have plans to add support for this to the it87 driver
-soon (actually I think Jonas is already working on the code) but we
-obviously cannot do that before manual mode is OK, which it isn't for
-now.
-
-> In fact, now I run the system with it87 always loaded... it's soooo
-> quiet! Now that I'm used to this silence I can't live without it:
-> I can't stand the fan screaming anymore!  I think for I won't move away
-> from -mm until this single feature makes it into vanilla :)
-
-Mind you, there is a reason why Jonas implemented this ;)
-
-> > Do you know what kind of it87 chip you do have? There are three of them,
-> > IT8705F, IT8712F and a SIS950 clone (mostly similar to the IT8705F).
->
-> I'm sorry I don't know.  How I could check?
-
-See /sys/bus/i2c/devices/0-0290/name. If it says it8712 it's an IT8712F,
-if it says it87 it is a less featured IT8705F or clone. After looking at
-the datasheets, it doesn't matter much anymore though, as both chips
-have the same default values and have to be configured in the same way.
-
-OK, so now we want to reintroduce manual PWM in the it87 driver, in a way
-that will not cause fans to stop unexpectedly. Here is my proposed plan:
-
-1* Jonas, please send a modified version of your original patch to Greg.
-The only difference would be that you wouldn't force on/off mode to be
-on at driver load time. Instead, disabling PWM for one fan control
-output (echo 0 > pwmN_enable) would both set on/off mode to on for that
-output (new) and turn that output to on/off mode (same as before).
-
-One might argue that it doesn't solve the problem but merely moves it.
-This is true, but this at least ensures that loading the driver will
-*not* change any fan speed. I think it is an important rule for all
-hardware monitoring chips to respect.
-
-One might also argue that this adds some overhead (we end up writing
-several times to the same register, possibly for nothing, at use time
-instead of just once at init time) but frankly it doesn't matter much.
-One doesn't disable PWM that often.
-
-Of course, at this point, trying to play with PWM on a system such as
-Simone's one will still break, but at least not at driver load time.
-
-2* I would then add a check to the it87 driver, which completely disables
-the fan speed control interface if the initial configuration looks weird
-(all fans supposedly stopped and polarity set to "active low"). This
-should protect users of the driver who have a faulty BIOS.
-
-When a bogus configuration is detected, we would of course complain in
-the logs and invite the user to complain to his/her motherboard maker
-too.
-
-At this point, Simone will complain that he likes the PWM feature and
-wants it back ;)
-
-3* Last, we would either add a module parameter allowing chip
-reprogramming with active high polarity, or write a script which does
-the same using i2cset or isaset. Not sure what is best. I don't much
-like adding brokeness-workaround init code in the kernel, but OTOH an
-external script might be harder to integrate into distributions etc...
-
-At this point, Simone will have a prefectly working chip with manual PWM
-and should be happy :)
-
-And then Jonas will be able to go on with the automatic speed control.
-
-Comments on the plan anyone?
-
-Thanks,
---
-Jean Delvare
+--- linux-2.6.10/drivers/i2c/chips/it87.c	2005-01-11 21:48:16.000000000 +0200
++++ linux-2.6.10/drivers/i2c/chips/it87.c_2.6.10-jm2-corrected_manual_pwm_20050111	2005-01-11 21:24:55.000000000 +0200
+@@ -96,9 +96,6 @@ superio_exit(void)
+ /* Update battery voltage after every reading if true */
+ static int update_vbat;
+ 
+-/* Reset the registers on init if true */
+-static int reset;
+-
+ /* Chip Type */
+ 
+ static u16 chip_type;
+@@ -128,6 +125,8 @@ static u16 chip_type;
+ #define IT87_REG_FAN(nr)       (0x0d + (nr))
+ #define IT87_REG_FAN_MIN(nr)   (0x10 + (nr))
+ #define IT87_REG_FAN_MAIN_CTRL 0x13
++#define IT87_REG_FAN_CTL       0x14
++#define IT87_REG_PWM(nr)       (0x15 + (nr))
+ 
+ #define IT87_REG_VIN(nr)       (0x20 + (nr))
+ #define IT87_REG_TEMP(nr)      (0x29 + (nr))
+@@ -164,6 +163,9 @@ static inline u8 FAN_TO_REG(long rpm, in
+ 
+ #define ALARMS_FROM_REG(val) (val)
+ 
++#define PWM_TO_REG(val)   ((val) >> 1)
++#define PWM_FROM_REG(val) (((val)&0x7f) << 1)
++
+ static int DIV_TO_REG(int val)
+ {
+ 	int answer = 0;
+@@ -200,6 +202,8 @@ struct it87_data {
+ 	u8 vid;			/* Register encoding, combined */
+ 	int vrm;
+ 	u32 alarms;		/* Register encoding, combined */
++	u8 fan_main_ctrl;	/* Register value */
++	u8 manual_pwm_ctl[3];   /* manual PWM value set by user */
+ };
+ 
+ 
+@@ -440,18 +444,28 @@ static ssize_t show_fan(struct device *d
+ {
+ 	struct it87_data *data = it87_update_device(dev);
+ 	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan[nr], 
+-				DIV_FROM_REG(data->fan_div[nr])) );
++				DIV_FROM_REG(data->fan_div[nr])));
+ }
+ static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
+ {
+ 	struct it87_data *data = it87_update_device(dev);
+ 	return sprintf(buf,"%d\n",
+-		FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr])) );
++		FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr])));
+ }
+ static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
+ {
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf,"%d\n", DIV_FROM_REG(data->fan_div[nr]) );
++	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]));
++}
++static ssize_t show_pwm_enable(struct device *dev, char *buf, int nr)
++{
++	struct it87_data *data = it87_update_device(dev);
++	return sprintf(buf,"%d\n", (data->fan_main_ctrl & (1 << nr)) ? 1 : 0);
++}
++static ssize_t show_pwm(struct device *dev, char *buf, int nr)
++{
++	struct it87_data *data = it87_update_device(dev);
++	return sprintf(buf,"%d\n", data->manual_pwm_ctl[nr]);
+ }
+ static ssize_t set_fan_min(struct device *dev, const char *buf, 
+ 		size_t count, int nr)
+@@ -499,6 +513,48 @@ static ssize_t set_fan_div(struct device
+ 	}
+ 	return count;
+ }
++static ssize_t set_pwm_enable(struct device *dev, const char *buf,
++		size_t count, int nr)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct it87_data *data = i2c_get_clientdata(client);
++	int val = simple_strtol(buf, NULL, 10);
++
++	if (val = 0) {
++		int tmp;
++		/* make sure the fan is on when in on/off mode */
++		tmp = it87_read_value(client, IT87_REG_FAN_CTL);
++		it87_write_value(client, IT87_REG_FAN_CTL, tmp | (1 << nr));
++		/* set on/off mode */
++		data->fan_main_ctrl &= ~(1 << nr);
++		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
++	} else if (val = 1) {
++		/* set SmartGuardian mode */
++		data->fan_main_ctrl |= (1 << nr);
++		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
++		/* set saved pwm value, clear FAN_CTLX PWM mode bit */
++		it87_write_value(client, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
++	} else
++		return -EINVAL;
++
++	return count;
++}
++static ssize_t set_pwm(struct device *dev, const char *buf,
++		size_t count, int nr)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct it87_data *data = i2c_get_clientdata(client);
++	int val = simple_strtol(buf, NULL, 10);
++
++	if (val < 0 || val > 255)
++		return -EINVAL;
++
++	data->manual_pwm_ctl[nr] = val;
++	if (data->fan_main_ctrl & (1 << nr))
++		it87_write_value(client, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
++
++	return count;
++}
+ 
+ #define show_fan_offset(offset)						\
+ static ssize_t show_fan_##offset (struct device *dev, char *buf)	\
+@@ -533,6 +589,36 @@ show_fan_offset(1);
+ show_fan_offset(2);
+ show_fan_offset(3);
+ 
++#define show_pwm_offset(offset)						\
++static ssize_t show_pwm##offset##_enable (struct device *dev,		\
++	char *buf)							\
++{									\
++	return show_pwm_enable(dev, buf, offset - 1);			\
++}									\
++static ssize_t show_pwm##offset (struct device *dev, char *buf)		\
++{									\
++	return show_pwm(dev, buf, offset - 1);				\
++}									\
++static ssize_t set_pwm##offset##_enable (struct device *dev,		\
++		const char *buf, size_t count)				\
++{									\
++	return set_pwm_enable(dev, buf, count, offset - 1);		\
++}									\
++static ssize_t set_pwm##offset (struct device *dev,			\
++		const char *buf, size_t count)				\
++{									\
++	return set_pwm(dev, buf, count, offset - 1);			\
++}									\
++static DEVICE_ATTR(pwm##offset##_enable, S_IRUGO | S_IWUSR,		\
++		show_pwm##offset##_enable,				\
++		set_pwm##offset##_enable);				\
++static DEVICE_ATTR(pwm##offset, S_IRUGO | S_IWUSR,			\
++		show_pwm##offset , set_pwm##offset );
++
++show_pwm_offset(1);
++show_pwm_offset(2);
++show_pwm_offset(3);
++
+ /* Alarms */
+ static ssize_t show_alarms(struct device *dev, char *buf)
+ {
+@@ -774,6 +860,12 @@ int it87_detect(struct i2c_adapter *adap
+ 	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+ 	device_create_file(&new_client->dev, &dev_attr_fan3_div);
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
++	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
++	device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
++	device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
++	device_create_file(&new_client->dev, &dev_attr_pwm1);
++	device_create_file(&new_client->dev, &dev_attr_pwm2);
++	device_create_file(&new_client->dev, &dev_attr_pwm3);
+ 
+ 	if (data->type = it8712) {
+ 		device_create_file_vrm(new_client);
+@@ -851,12 +943,17 @@ static int it87_write_value(struct i2c_c
+ /* Called when we have found a new IT87. */
+ static void it87_init_client(struct i2c_client *client, struct it87_data *data)
+ {
+-	int tmp;
++	int tmp, i;
+ 
+-	if (reset) {
+-		/* Reset all except Watchdog values and last conversion values
+-		   This sets fan-divs to 2, among others */
+-		it87_write_value(client, IT87_REG_CONFIG, 0x80);
++	/* initialize to sane defaults:
++	 * - if the chip is in manual pwm mode, this will be overwritten with
++	 *   the actual settings on the chip (so in this case, initialization
++	 *   is not needed)
++	 * - if in automatic or on/off mode, we could switch to manual mode,
++	 *   read the registers and set manual_pwm_ctl accordingly, but currently
++	 *   this is not implemented, so we initialize to something sane */
++	for (i = 0; i < 3; i++) {
++		data->manual_pwm_ctl[i] = 0xff;
+ 	}
+ 
+ 	/* Check if temperature channnels are reset manually or by some reason */
+@@ -876,13 +973,31 @@ static void it87_init_client(struct i2c_
+ 	}
+ 
+ 	/* Check if tachometers are reset manually or by some reason */
+-	tmp = it87_read_value(client, IT87_REG_FAN_MAIN_CTRL);
+-	if ((tmp & 0x70) = 0) {
++	data->fan_main_ctrl = it87_read_value(client, IT87_REG_FAN_MAIN_CTRL);
++	if ((data->fan_main_ctrl & 0x70) = 0) {
+ 		/* Enable all fan tachometers */
+-		tmp = (tmp & 0x8f) | 0x70;
+-		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, tmp);
++		data->fan_main_ctrl |= 0x70;
++		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
+ 	}
+ 
++	/* Set current fan mode registers and the default settings for the
++	 * other mode registers */
++	for (i = 0; i < 3; i++) {
++		if (data->fan_main_ctrl & (1 << i)) {
++			/* pwm mode */
++			tmp = it87_read_value(client, IT87_REG_PWM(i));
++			if (tmp & 0x80) {
++				/* automatic pwm - not yet implemented, but
++				 * leave the settings made by the BIOS alone
++				 * until a change is requested via the sysfs
++				 * interface */
++			} else {
++				/* manual pwm */
++				data->manual_pwm_ctl[i] = PWM_FROM_REG(tmp);
++			}
++		}
++ 	}
++
+ 	/* Start monitoring */
+ 	it87_write_value(client, IT87_REG_CONFIG,
+ 			 (it87_read_value(client, IT87_REG_CONFIG) & 0x36)
+@@ -948,6 +1063,7 @@ static struct it87_data *it87_update_dev
+ 			it87_read_value(client, IT87_REG_ALARM1) |
+ 			(it87_read_value(client, IT87_REG_ALARM2) << 8) |
+ 			(it87_read_value(client, IT87_REG_ALARM3) << 16);
++		data->fan_main_ctrl = it87_read_value(client, IT87_REG_FAN_MAIN_CTRL);
+ 
+ 		data->sensor = it87_read_value(client, IT87_REG_TEMP_ENABLE);
+ 		/* The 8705 does not have VID capability */
+@@ -984,8 +1100,6 @@ MODULE_AUTHOR("Chris Gauthron <chrisg@0-
+ MODULE_DESCRIPTION("IT8705F, IT8712F, Sis950 driver");
+ module_param(update_vbat, bool, 0);
+ MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup value");
+-module_param(reset, bool, 0);
+-MODULE_PARM_DESC(reset, "Reset the chip's registers, default no");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(sm_it87_init);
