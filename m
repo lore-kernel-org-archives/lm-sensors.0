@@ -1,37 +1,33 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:26 +0000
-Subject: sensor LM76 and real time clock DS1307
-Message-Id: <3C17D5A8.EBF47103@paradyne.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: Setting vrm with 'sensors -s' is broken (w/ Linux 2.6.x)
+Message-Id: <20040407035157.GD6289@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E7FEE1294B1AD51192490002A50EF31F0134BC@EXCHSERV>
-In-Reply-To: <E7FEE1294B1AD51192490002A50EF31F0134BC@EXCHSERV>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As shown on our 'new drivers' page, we do not support the LM76.
-You may have some luck with the lm75 driver.
+Hi...
 
-We also don't support the ds1307.
+The problem is in the last 8 lines of lib/proc.c:
 
-have you found these on a standard motherboard or is this
-for a different application?
+> /* give up, use old name (probably won't work though...) */
+> /* known to be the same:
+>         "alarms", "beep_enable", "vrm", "fan%d_div"
+> */
+>         strcpy(sysname, name);
+>         *sysmag = (feature->scaling=0?0:3);
+>         return 0;
+> }
 
+Oops, feature->scaling for VRM is 1!  That explains why 'sensors -s'
+tries to write "9000" to vrm instead of "90" under Linux 2.6.x.
 
+Anyone know what that '=0?0:3' qualification is *supposed* to do?
 
-> TJ Fang wrote:
-> 
-> Hi..
-> 
-> Could you please tell me do you support temperature sensor LM76 on the
-> Linux? If you do, could you please point to me where I can find it and
-> plus, do you support the real time clock DS1307 chip on the Linux.
-> Both chips use I2C interface.
-> 
-> Regards
-> T.J.Fang
-> Software Engineer
-> Xyterra Computing Inc.
-> (480)609-5118
-> tjfang@xyterra.com
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
