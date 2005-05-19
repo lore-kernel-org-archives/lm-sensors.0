@@ -1,58 +1,66 @@
-From: morris@wolfman.com (Jim Morris)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: soloution to tickets 1263 & 1223
-Message-Id: <20030609231155.3A3C.MORRIS@wolfman.com>
+From: X.Xiao@motorola.com (Xiao Xianghua-r6aads)
+Date: Thu, 19 May 2005 06:24:22 +0000
+Subject: Motorola I2C driver question
+Message-Id: <BB30349BF3FE18418DC420BDDCAE22AF0267F046@az33exm54.corp.mot.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3EE39074.8020804@wolfman.com>
-In-Reply-To: <3EE39074.8020804@wolfman.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Re-send. Simon's email address in kernel's maintainer list seems invalid.
 
-I stumbled on the actual problem here :)
+As Mark Studebaker sugggested, I will consult this with the PPC mailing list as well and try to find a place to hold the I2C patch against the kernel initially (if needed).
 
-Redhat 9 set the LANG to US_en- UTF8
+Thanks,
 
-Th eoperative word here is UTF8, which means that characters are not
-always one byte. Also I think there is a bug in th eversion of perl they
-ship, so the pack "C", $_[1] is taking an 16 bit character (which should be
-one byte) and compalins of an overflow error.
+Xianghua
 
-Many programs are suffering from this bug it seems.
-
-I'm not sure of the solution to your script, except the work around is
-probably not the patch I sent you, but instead to do an export
-LANG=US_en before running your script.
-
-Probably everything that calls outb should check it is sending a byte
-not a char. Or put a warning about redhat9 in the Readme or FAQ.
-
-I would actually recommend you take out the patch I sent.
-
-
-On Sun, 08 Jun 2003 16:19:59 -0400
-"Mark D. Studebaker " <mds@paradyne.com> wrote:
-
-mds> 
-mds> checked in.
-mds> thank you very much.
-mds> 
-mds> Jim Morris wrote:
-mds> > This seems to happen on newer perl versions. It is fatal in as much as 
-mds> > the sensors are not detected. The solution appears to be to simply add & 
-mds> > 0x7f to the pack statement at line 1138 of sensors_detect...
-mds> > 
-mds> > sub outb
-mds> > {
-mds> >   my $towrite = pack( "C", $_[1] & 0x7f);
-mds> > 
-mds> > 
-mds> > hope this helps
-mds> > 
-mds> 
-
---
-Jim Morris morris@wolfman.com
+>>-----Original Message-----
+>>From: Xiao Xianghua-r6aads 
+>>Sent: Thursday, October 23, 2003 10:10 AM
+>>To: 'simon@tk.uni-linz.ac.at'
+>>Cc: Xiao Xianghua-r6aads
+>>Subject: Motorola I2C driver question
+>>
+>>
+>>Simon,
+>>
+>>I am an engineer from Motorola working in I2C driver. I 
+>>noticed you're the maintainer for Linux kernel's I2C driver 
+>>and I have some questions about submitting I2C drivers to the 
+>>kernel source,hopefully you have time to answer.
+>>
+>>I recently sent an email to the lmsensor mailing list 
+>>regarding consolidating I2C Linux drivers for Motorola chips. 
+>>Basically we only need two I2C drivers for all Motorola 
+>>chips. I have contacted a few other authors(Michael on 8245, 
+>>Adrian,Wolfgang Denx)...we all worked on the same thing and 
+>>it's time to consolidate :)
+>>
+>>My question is about the procedures to get the Motorola I2C 
+>>driver into the kernel. For most PPC related patches, we sent 
+>>to the PPC maintainer directly. However it's my understanding 
+>>that all I2C drivers will be sent to you and the Lmsensor 
+>>team before it can be merged to the kernel source, am I 
+>>correct? If yes, I will send my consolidated patch to you 
+>>directly and hope you can add it into your the I2C package. If 
+>>No, please let me know and I will contact the PPC maintainer instead.
+>>
+>>My second question is that do I need submit 2.6 patch at the 
+>>same time?
+>>
+>>My last question is about the Lmsensor package, I wrote an 
+>>algo driver, an adaptor driver(both should be in i2c package, 
+>>e.g i2c.2.8.1), and used lmsensor package to test this 
+>>driver(i.e. eeprom tests, I modified it a little bit). I will 
+>>only submit these two drivers and will share the utilities in 
+>>lmsensor package, is it acceptable or I have to write 
+>>something specifically for the lmsensor package?
+>>
+>>Thanks a lot,
+>>
+>>Xianghua
+>>
+>>
+>>
