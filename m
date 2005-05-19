@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: lm-sensors-2.70 and chip W83977EF
-Message-Id: <20030404100934.639e240f.khali@linux-fr.org>
+Message-Id: <20030405214152.3c0ced22.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200304040904.02936.jean.ribiere@wanadoo.fr>
 In-Reply-To: <200304040904.02936.jean.ribiere@wanadoo.fr>
@@ -11,41 +11,44 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> The driver loaded is w83781d but with the command sensors
-> the result is not correct :
-> - the value pour -5V is out of limits
-> - the fan speeds are 0
+[PLEASE ALWAYS ANSWER TO THE LIST, NOT TO ME ALONE]
 
-Not necessarily a problem or error. -5V and -12V are almost never used
-nowadays as far as I know. What's more, the fan in your system may not
-report their speed at all.
+(You'd think people would figure out by themselves...)
 
-If you have the possibility to reboot your system, please do so and try
-and see "in the BIOS" wether you can get sensors information from there.
-If they don't show -5V at all, then it means you don't have to worry
-about it and should just have to ignore it (add an ignore statement in
-the config file). Also check wether fans speed is reported there. Fan
-can report their speed if and only if they are three-wired (usually
-black/red/yellow) and plugged onto the motherboard (as opposed to
-powered from the alimentation wires). If you don't have any three-wired
-fan, they don't expect any speed feedback, and add some ignore
-statements in your config file.
+> I have examined the informations in the BIOS setup :
+> - Temperature warning 70?C/158?F
+> - CPU (CON2) Temperature : N/A
+> - System temperature : varies from 31?C to 32?C
+> - CPU Fan : 0 RPM
+> - Chassis Fan : 0 RPM
+> - VCore : varies from 1.63V to 1.64V
+> - 3.3V : varies from 3.36V to 3.37V
+> - +5V : stable  5.16V
+> - +12V : varies from 11.97 to 12.03 V
+> - -12V : stable -12.03 V
+> 
+> I have also installed livewiredev under Windows, withe the same
+> results
+> 
+> So I have modified sensors.conf to ignore fans, in6 and temp1 and the 
+> output is conform to the BIOS information.
 
-If there's nothing to be seen "in the BIOS" and you have another OS
-(say, Windows) on the system, you can also try some sensors software
-there (see for example http://mbm.livewiredev.com/) and see wether they
-report things we don't. Unless this happens, the ignore trick is the
-thing to do.
+So my theory was exact, nothing was wrong, only unused sensors.
 
-And the same applies to temp1, as far as I can see.
+> For information, I had a problem in the installation :
+> the script lm_sensors.init contains a line :
+> . /etc/init.d/functions
+> but in Slackaware I don't have a directory /etc/init.d
+> so I had to modify this script to define echo_failure() and
+> echo_success()
 
-One good trick to know if a sensor is connected is to watch for changes
-(even if the values are utterly wrong). If the value never changes, or
-if it changes in a very erratic way, then you can assume it isn't
-connected to anything. If it seems to match the system activity, then it
-may actually be a scalling issue or a bug in our code.
+This script is intended for Red Hat-like distributions, which Slackware
+isn't. That's why the script isn't installed by default on non Red
+Hat-like systems.
 
-Please let us know how it goes.
+By the was, Slackware users are supposed to be clever enough to tweak
+the initscripts by themselves to make them work for their system
+(Slackware user speaking ;)).
 
 -- 
 Jean Delvare
