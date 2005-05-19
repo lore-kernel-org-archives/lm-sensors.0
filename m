@@ -1,45 +1,56 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: [PATCH] i2c driver changes 2.6.0-test1
-Message-Id: <20030724132746.GD4565@kroah.com>
+From: komoriya@paken.org (Takeru KOMORIYA)
+Date: Thu, 19 May 2005 06:24:43 +0000
+Subject: [PATCH 2.6] it87 Part2(reset option)
+Message-Id: <20040225111219.1c117787.komoriya@paken.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10586300964092@kroah.com> <200307231443.56168.eu@marcelopenna.org>
-In-Reply-To: <200307231443.56168.eu@marcelopenna.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcelo Penna Guerra <eu@marcelopenna.org>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 23, 2003 at 02:43:55PM -0300, Marcelo Penna Guerra wrote:
-> Hi,
-> 
-> This code doesn't work well. I was porting this code to 2.5 myself, so I did 
-> some fixes to the code in 2.6.0-test1-ac3.
-> 
-> On Saturday 19 July 2003 12:54, Greg KH wrote:
-> 
-> > +	smbus->adapter.algo_data = smbus;
-> > +*/
-> 
-> The problem is here. If you leave this line commented out, you'll have 
-> problems when inserting the chip module.
-> 
-> >  	smbus->adapter = nforce2_adapter;
-> 
-> Also, I don't see the point in commenting out all this lines just to introduce 
-> a nforce2_adapter struct. If this is the correct aprouch, just remove the 
-> duplicate code instead of just commenting it out.
-> 
-> Attached is a patch to fix this problems. I can't test it very well as I can 
-> only see the sensors in my board with i2c-isa, but everything loads fine.
-> This patch also moves the PCI ids to the pci_ids.h file.
+Hi,
+Thanks Jean for your works and kind advices.
+I'll go on the next step.
 
-I'd like to see someone who has this hardware test these changes before
-taking them.
+My second proposal for it87 is adding 'reset' option and do not reset
+the registers unless users really want to do. It's the same behavior
+as it87 of kernel2.4.
+If 'smart guardian' was enabled by BIOS, resetting registers makes all
+fans go to full power, very noisy.
+Resetting registers is, I think, not required for normal use.
 
-Anyone want to verify that things still work properly with this patch?
+Here's the small patch.
 
-thanks,
+--- linux/drivers/i2c/chips/it87.c.sensor_type	2004-02-18 11:21:16.000000000 +0900
++++ linux/drivers/i2c/chips/it87.c	2004-02-19 11:25:12.977638078 +0900
+@@ -58,4 +58,7 @@
+ static int update_vbat = 0;
+ 
++/* Reset the registers on init */
++static int reset = 0;
++
+ /* Many IT87 constants specified below */
+ 
+@@ -828,5 +831,7 @@
+ 	/* Reset all except Watchdog values and last conversion values
+ 	   This sets fan-divs to 2, among others */
+-	it87_write_value(client, IT87_REG_CONFIG, 0x80);
++	if ( reset ) {
++		it87_write_value(client, IT87_REG_CONFIG, 0x80);
++	}
+ 	it87_write_value(client, IT87_REG_VIN_MIN(0),
+ 			 IN_TO_REG(IT87_INIT_IN_MIN_0));
+@@ -989,4 +994,6 @@
+ MODULE_PARM(update_vbat, "i");
+ MODULE_PARM_DESC(update_vbat, "Update vbat if set else return powerup
+value");
++MODULE_PARM(reset, "i");
++MODULE_PARM_DESC(reset, "Reset the chip's registers, default no");
+ MODULE_LICENSE("GPL");
+ 
 
-greg k-h
+Thanks in advance.
+-----------------------
+Takeru Komoriya
+ komoriya@paken.org
+ http://www.paken.org/
