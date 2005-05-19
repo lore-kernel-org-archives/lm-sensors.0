@@ -1,26 +1,48 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:40 +0000
-Subject: Linux 2.6.2 i2c debug bug
-Message-Id: <20040205223149.4e8137d1.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: [PATCH 2.6] sensors chip updates (3 of 4)
+Message-Id: <20031216040333.GD1658@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031216035219.GA1658@earth.solarsys.private>
+In-Reply-To: <20031216035219.GA1658@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@Stimpy.netroedge.com>
 
-> Apparently one of the dev_dbg in i2c_master_recv in i2c_core.c in
-> 2.6.2 has a little issue in that it's dereferencing the wrong
-> element (client->dev instead of client->adapter->dev)
-> 
-> Fix is below
 
-Thanks for reporting the problem and providing a fix. However, the
-problem was already reported on the LKML [1] and a similar fix is
-already in Greg's bk tree [2].
+This patch is from the lm_sensors project CVS, from this revision:
 
-[1] http://marc.theaimsgroup.com/?l=linux-kernel&m7573527929342&w=2
-[2] http://marc.theaimsgroup.com/?l=linux-kernel&m7585749612115&w=2
+	1.44 (mds) remove initialization of limits by driver
 
+It is better to set these limits by a combination of /etc/sensors.conf
+and 'sensors -s'; "mechanism not policy." 
+
+--- linux-2.6.0-test11-gkh/drivers/i2c/chips/lm75.c	2003-12-14 13:53:50.000000000 -0500
++++ linux-2.6.0-test11-mmh/drivers/i2c/chips/lm75.c	2003-12-14 17:52:49.000000000 -0500
+@@ -51,10 +51,6 @@
+ #define TEMP_FROM_REG(val)	((((val & 0x7fff) >> 7) * 5) | ((val & 0x8000)?-256:0))
+ #define TEMP_TO_REG(val)	(SENSORS_LIMIT((val<0?(0x200+((val)/5))<<7:(((val) + 2) / 5) << 7),0,0xffff))
+ 
+-/* Initial values */
+-#define LM75_INIT_TEMP_OS	600
+-#define LM75_INIT_TEMP_HYST	500
+-
+ /* Each client has this additional data */
+ struct lm75_data {
+ 	struct semaphore	update_lock;
+@@ -258,10 +254,6 @@
+ static void lm75_init_client(struct i2c_client *client)
+ {
+ 	/* Initialize the LM75 chip */
+-	lm75_write_value(client, LM75_REG_TEMP_OS,
+-			 TEMP_TO_REG(LM75_INIT_TEMP_OS));
+-	lm75_write_value(client, LM75_REG_TEMP_HYST,
+-			 TEMP_TO_REG(LM75_INIT_TEMP_HYST));
+ 	lm75_write_value(client, LM75_REG_CONF, 0);
+ }
+ 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mark M. Hoffman
+mhoffman@lightlink.com
