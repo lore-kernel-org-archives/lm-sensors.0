@@ -1,27 +1,145 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH 2.6] I2C: Fix DS1621 detection
-Message-Id: <20050119232253.GA5909@kroah.com>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: [2.6 patch] drivers/w1/dscore: fix the inline mess
+Message-Id: <20041122155223.GF19419@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050119202749.GA19261@bode.aurel32.net>
-In-Reply-To: <20050119202749.GA19261@bode.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Aur?lien Jarno <aurelien@aurel32.net>, sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-On Wed, Jan 19, 2005 at 09:27:49PM +0100, Aur?lien Jarno wrote:
-> Hi Greg,
-> 
-> Dallas Semiconductors as recently changed the design of their DS1621
-> chips, including the bits that were checked in the kernel driver to 
-> detect it.
-> 
-> The patch below fixes the detection by checking an other bit of the
-> configuration register instead.
-> 
-> Please apply.
+<--  snip  -->
 
-Applied, thanks.
+..
+  CC      drivers/w1/ds_w1_bridge.o
+drivers/w1/ds_w1_bridge.c: In function `ds9490r_touch_bit':
+drivers/w1/dscore.h:154: sorry, unimplemented: inlining failed in call 
+to 'ds_touch_bit': function body not available
+drivers/w1/ds_w1_bridge.c:37: sorry, unimplemented: called from here
+make[2]: *** [drivers/w1/ds_w1_bridge.o] Error 1
 
-greg k-h
+<--  snip  -->
+
+
+The patch below removes inline's in the following cases:
+- inline at the function prototype but not at the actual function
+- EXPORT_SYMBOL'ed inline functions
+
+
+diffstat output:
+ drivers/w1/dscore.c |   40 ++++++++++++++++++++--------------------
+ drivers/w1/dscore.h |   34 +++++++++++++++++-----------------
+ 2 files changed, 37 insertions(+), 37 deletions(-)
+
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+--- linux-2.6.10-rc2-mm3-full/drivers/w1/dscore.h.old	2004-11-22 15:04:42.000000000 +0100
++++ linux-2.6.10-rc2-mm3-full/drivers/w1/dscore.h	2004-11-22 15:08:14.000000000 +0100
+@@ -151,23 +151,23 @@
+ 
+ };
+ 
+-inline int ds_touch_bit(struct ds_device *, u8, u8 *);
+-inline int ds_read_byte(struct ds_device *, u8 *);
+-inline int ds_read_bit(struct ds_device *, u8 *);
+-inline int ds_write_byte(struct ds_device *, u8);
+-inline int ds_write_bit(struct ds_device *, u8);
+-inline int ds_start_pulse(struct ds_device *, int);
+-inline int ds_set_speed(struct ds_device *, int);
+-inline int ds_reset(struct ds_device *, struct ds_status *);
+-inline int ds_detect(struct ds_device *, struct ds_status *);
+-inline int ds_stop_pulse(struct ds_device *, int);
+-inline int ds_send_data(struct ds_device *, unsigned char *, int);
+-inline int ds_recv_data(struct ds_device *, unsigned char *, int);
+-inline int ds_recv_status(struct ds_device *, struct ds_status *);
+-inline struct ds_device * ds_get_device(void);
+-inline void ds_put_device(struct ds_device *);
+-inline int ds_write_block(struct ds_device *, u8 *, int);
+-inline int ds_read_block(struct ds_device *, u8 *, int);
++int ds_touch_bit(struct ds_device *, u8, u8 *);
++int ds_read_byte(struct ds_device *, u8 *);
++int ds_read_bit(struct ds_device *, u8 *);
++int ds_write_byte(struct ds_device *, u8);
++int ds_write_bit(struct ds_device *, u8);
++int ds_start_pulse(struct ds_device *, int);
++int ds_set_speed(struct ds_device *, int);
++int ds_reset(struct ds_device *, struct ds_status *);
++int ds_detect(struct ds_device *, struct ds_status *);
++int ds_stop_pulse(struct ds_device *, int);
++int ds_send_data(struct ds_device *, unsigned char *, int);
++int ds_recv_data(struct ds_device *, unsigned char *, int);
++int ds_recv_status(struct ds_device *, struct ds_status *);
++struct ds_device * ds_get_device(void);
++void ds_put_device(struct ds_device *);
++int ds_write_block(struct ds_device *, u8 *, int);
++int ds_read_block(struct ds_device *, u8 *, int);
+ 
+ #endif /* __DSCORE_H */
+ 
+--- linux-2.6.10-rc2-mm3-full/drivers/w1/dscore.c.old	2004-11-22 15:05:19.000000000 +0100
++++ linux-2.6.10-rc2-mm3-full/drivers/w1/dscore.c	2004-11-22 15:07:50.000000000 +0100
+@@ -35,26 +35,26 @@
+ int ds_probe(struct usb_interface *, const struct usb_device_id *);
+ void ds_disconnect(struct usb_interface *);
+ 
+-inline int ds_touch_bit(struct ds_device *, u8, u8 *);
+-inline int ds_read_byte(struct ds_device *, u8 *);
+-inline int ds_read_bit(struct ds_device *, u8 *);
+-inline int ds_write_byte(struct ds_device *, u8);
+-inline int ds_write_bit(struct ds_device *, u8);
+-inline int ds_start_pulse(struct ds_device *, int);
+-inline int ds_set_speed(struct ds_device *, int);
+-inline int ds_reset(struct ds_device *, struct ds_status *);
+-inline int ds_detect(struct ds_device *, struct ds_status *);
+-inline int ds_stop_pulse(struct ds_device *, int);
+-inline int ds_send_data(struct ds_device *, unsigned char *, int);
+-inline int ds_recv_data(struct ds_device *, unsigned char *, int);
+-inline int ds_recv_status(struct ds_device *, struct ds_status *);
+-inline struct ds_device * ds_get_device(void);
+-inline void ds_put_device(struct ds_device *);
++int ds_touch_bit(struct ds_device *, u8, u8 *);
++int ds_read_byte(struct ds_device *, u8 *);
++int ds_read_bit(struct ds_device *, u8 *);
++int ds_write_byte(struct ds_device *, u8);
++int ds_write_bit(struct ds_device *, u8);
++int ds_start_pulse(struct ds_device *, int);
++int ds_set_speed(struct ds_device *, int);
++int ds_reset(struct ds_device *, struct ds_status *);
++int ds_detect(struct ds_device *, struct ds_status *);
++int ds_stop_pulse(struct ds_device *, int);
++int ds_send_data(struct ds_device *, unsigned char *, int);
++int ds_recv_data(struct ds_device *, unsigned char *, int);
++int ds_recv_status(struct ds_device *, struct ds_status *);
++struct ds_device * ds_get_device(void);
++void ds_put_device(struct ds_device *);
+ 
+ static inline void ds_dump_status(unsigned char *, unsigned char *, int);
+-static inline int ds_send_control(struct ds_device *, u16, u16);
+-static inline int ds_send_control_mode(struct ds_device *, u16, u16);
+-static inline int ds_send_control_cmd(struct ds_device *, u16, u16);
++static int ds_send_control(struct ds_device *, u16, u16);
++static int ds_send_control_mode(struct ds_device *, u16, u16);
++static int ds_send_control_cmd(struct ds_device *, u16, u16);
+ 
+ 
+ static struct usb_driver ds_driver = {
+@@ -503,7 +503,7 @@
+ 	return 0;
+ }
+ 
+-inline int ds_read_block(struct ds_device *dev, u8 *buf, int len)
++int ds_read_block(struct ds_device *dev, u8 *buf, int len)
+ {
+ 	struct ds_status st;
+ 	int err;
+@@ -529,7 +529,7 @@
+ 	return err;
+ }
+ 
+-inline int ds_write_block(struct ds_device *dev, u8 *buf, int len)
++int ds_write_block(struct ds_device *dev, u8 *buf, int len)
+ {
+ 	int err;
+ 	struct ds_status st;
