@@ -1,7 +1,7 @@
-From: andy@supernaturaltools.com (Andrew Poush - SSL)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: FW: ---=== Lm_sensors Support DB Entry ===---
-Message-Id: <031b01c51f75$e2d790e0$c91e0ca9@DiscoStu>
+From: oododa@gmail.com (O. Ododa)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: ---=== Lm_sensors Support DB Entry ===---
+Message-Id: <8f17dc1905050519143790e9b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020324193410.GA7656@chrysler.kbs.twi.tudelft.nl>
 In-Reply-To: <20020324193410.GA7656@chrysler.kbs.twi.tudelft.nl>
@@ -10,30 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Your answer couldn't to my ticket 1922 have been less helpful.  You could at
-least tell me what version of the file to look for and where I could
-download it.  Or even email it to me.
+I'm running SuSE SLES 8. I'm not sure what you mean by "what file
+needs to be included to pick the definition for HZ"; if I need to
+create a file with a define for HZ, any name will be fine. I just
+grabbed sources off the site to compile, and I haven't done anything
+unusual that I know of.
 
-Andrew Poush
-Principal Systems Engineer
-SUPER natural tools, Inc.
-2018 Electric Rd.  #202
-Roanoke, VA 24018
-540-562-0239 (Home Office)
-540-929-9200 (HQ)
-www.supernaturaltools.com
-apoush@supernaturaltools.com
+Thanks for your help!
 
------Original Message-----
-From: Nobody [mailto:nobody@Stimpy.netroedge.com] 
-Sent: Wednesday, March 02, 2005 3:56 PM
-To: agp@supernaturaltools.com
-Subject: ---== Lm_sensors Support DB Entry ==---
+-- From ticket --
+thanks. Looks like HZ is not defined in the includes we have for your
+architecture.
+please let us know what file needs to be included to pick up the
+definition for HZ.
+Also what distro you are running.
+follow up by email, ref. your ticket number.
+MDS 5/4/05
 
-
-Your Lm_sensors support entry has been updated.
-
-Please go to http://secure.netroedge.com/~lm78/support.html to check the
-status of your entry.  
-
-Ticket # 1922
+On 5/4/05, Nobody <nobody@stimpy.netroedge.com> wrote:
+> Your Lm_sensors support entry has been updated.
+> 
+> Please go to http://secure.netroedge.com/~lm78/support.html to check
+> the status of your entry.
+> 
+> Ticket # 1970
+>
