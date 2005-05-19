@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: [gstewart@spamcop.net: Linux kernel / i2c_adapter structure]
-Message-Id: <20031219185740.GA4468@kroah.com>
+Message-Id: <Pine.LNX.4.53.0312192112490.23656@cosmos.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031219120846.GA655@frodo.local>
 In-Reply-To: <20031219120846.GA655@frodo.local>
@@ -10,45 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> ----- Forwarded message from Godwin Stewart <gstewart@spamcop.net> -----
-> 
-> From: Godwin Stewart <gstewart@spamcop.net>
-> To: Frodo Looijaard <frodol@dds.nl>
-> Subject: Linux kernel / i2c_adapter structure
-> Organization: Nope, none here, it's a mess ;o)
-> X-Face: #T;eJks=B[`71qrwp`l6BW8xI&hP8S*4Kd%e?8o"rL02ZYf"rWa41l83a)L,*;S).Ukq$U%
->  II{-z#5%i&X8"%{$)ZWmE7WBDF)?wK1^7]u9T;@jqdZo?IT!d-L`!@&vW)F_1
-> X-Curious: You couldn't resist looking at these headers, could you!
-> X-MS_SUCKS: But we knew that :)
-> X-Operating-System: Slackware 9.0 (2.4.20)
-> X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
-> X-Spam-Level: 
-> 
-> Hi there,
-> 
-> I noticed a change in the definition of the i2c_adapter structure in
-> $SRC/include/linux/i2c.h between the 2.4.x and 2.6.0 kernels. More
-> precisely, the following members are no longer present:
-> 
-> /* --- These may be NULL, but should increase the module use count */
->         void (*inc_use)(struct i2c_adapter *);
->         void (*dec_use)(struct i2c_adapter *);
-> 
->         void *data;     /* private data for the adapter                 */
->                         /* some data fields that are used by all types  */
->                         /* these data fields are readonly to the public */
->                         /* and can be set via the i2c_ioctl call        */
-> 
-> 
-> The problem is that the em8300 drivers for DXR3/Hollywood+ MPEG2 decoder
-> boards (see http://dxr3.sourceforge.net) use these members in their source.
-> 
-> My question is therefore, with what has their functionality been replaced?
+On Fri, 19 Dec 2003, Greg KH wrote:
+>
+> Use the i2c_get_adapdata() and i2c_set_adapdata() functions to get and
+> set a private data pointer.  See the adapter drivers for examples of how
+> to use this properly.
 
-Use the i2c_get_adapdata() and i2c_set_adapdata() functions to get and
-set a private data pointer.  See the adapter drivers for examples of how
-to use this properly.
+Hmm... it goes to adapter.dev.driver_data.
 
-Hope this helps,
+Currently in 2.6 adapter is bound with a "dummy" driver that never
+references dev.driver_data. While it does work it is not very clean as
+for an i2c_adapter device, the device driver is the algorithm.
+Therefore, driver_data should point a structure specific to this
+algorithm. IMO, one should move *algo_data and not *data to
+dev.driver_data using the functions you mention above, right?
+Maybe have i2c_set/get_algodata with current _adapdata function and
+consider if we need a _adapdata variant at all.
 
-greg k-h
+Often, in place of i2c_get_adapdata, one could use either
+container_of() or reference into the algorithm structure which also
+has a void pointer for the use of the adapter code.
+
+Some two weeks ago I posted about simplifying i2c-core and I have
+it compiling and running now. Will post it with comments some day RSN.
+
+-- 
+  Ky?sti M?lkki  <kyosti.malkki@welho.com>
