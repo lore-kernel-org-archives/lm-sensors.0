@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: i2c/sensors patch for 2.4.21 uploaded to my server....
-Message-Id: <3F19F034.60203@paradyne.com>
+Message-Id: <20030720111150.17d73749.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3EFCF67D.9040503@realitydiluted.com>
 In-Reply-To: <3EFCF67D.9040503@realitydiluted.com>
@@ -10,36 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The rule is, "modules aren't supposed to change their own usage count"
-so you shouldn't use MOD_xxx_USE_COUNT.
-All the usage counts are changed in i2c-core now.
-That's what caused all the struct changes.
 
-Jean Delvare wrote:
->>I changed the name, but I also uploaded the corrected patches with the
->>2.4.21 prefix. All of the other 2.4.20 patches could be renamed with
->>the 2.4.21 prefix and new regeneration of the patches are unnecessary.
-> 
-> 
-> It looks like the 2.4.21-i2c-sensors-patch.gz is older than the other
-> patches. You forgot to upload the new one, didn't you?
-> 
-> 
->>I also downloaded the 2.8.0 stuff and tested it out on my dual Athlon
->>machine. I have uploaded the 2.8.0 patches for 2.4.21 to my ftp site
->>as well. There were two modules, scx200_acb.c and scx200_i2c.c that
->>did not compile. These patches have also been uploaded. The link again
->>is:
->>
->>     ftp://ftp.realitydiluted.com/linux/i2c
-> 
-> 
-> I've added this link to our download page. Some things would need to be
-> clarified however:
-> 
-> 1* I saw you added calls to MOD_INC_USE_COUNT and MOD_DEC_USE_COUNT in
-> at least the SCx200 driver.Why that? The compatibility issue raised by
-> this release was caused by the use of these. Mark D. Studebaker told me
-> to get rid of them in all kernel drivers, what I did. So, what are we
-> really supposed to do? Mark, I'd like to hear you on this.
->
+> The rule is, "modules aren't supposed to change their own usage count"
+> so you shouldn't use MOD_xxx_USE_COUNT.
+> All the usage counts are changed in i2c-core now.
+> That's what caused all the struct changes.
+
+Why are these macros still defined if nobody should use them anymore?
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
