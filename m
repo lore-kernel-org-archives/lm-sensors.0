@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: andrew.r.cress@intel.com (Cress, Andrew R)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: Support for Intel BMC chipsets via IPMI
-Message-Id: <3DD3C6A3.F0094962@paradyne.com>
+Message-Id: <A5974D8E5F98D511BB910002A50A66470580D3A0@hdsmsx103.hd.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <A5974D8E5F98D511BB910002A50A66470580D387@hdsmsx103.hd.intel.com>
 In-Reply-To: <A5974D8E5F98D511BB910002A50A66470580D387@hdsmsx103.hd.intel.com>
@@ -9,6 +9,23 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+I'm not sure which came first, but IPMI has been around for years, and BMC
+chips have been on  Intel-designed motherboards ever since IPMI 0.9.  It's
+been 5 years or more.
+
+I'll ask if there are any pre-IPMI (pre-BMC) Xeon boards.  If so, they would
+have to be very old.
+
+Andy
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds@paradyne.com] 
+Sent: Thursday, November 14, 2002 10:52 AM
+To: Cress Andrew R
+Cc: 'sensors@stimpy.netroedge.com'
+Subject: Re: Support for Intel BMC chipsets via IPMI
+
 
 Xeons have been around for years, right?
 IPMI support dates from the same time or there are pre-IPMI Xeon boards?
@@ -18,7 +35,8 @@ IPMI support dates from the same time or there are pre-IPMI Xeon boards?
 > Mark,
 > 
 > I can't speak for boards designed by OEMs or others with Intel Xeon
-> processors, but all Intel-designed Xeon boards will have the sensors exposed
+> processors, but all Intel-designed Xeon boards will have the sensors
+exposed
 > via the BMC (IPMI), so this should cover a lot of ground.
 > 
 > Andy
@@ -56,11 +74,13 @@ IPMI support dates from the same time or there are pre-IPMI Xeon boards?
 > >
 > > I'm currently working on conforming the interface of these utilities
 > > to the saforum.org's Hardware Platform Interface.  So, I'd be interested
-> > in what interface you have now, and if you are planning to move to SA HPI
+> > in what interface you have now, and if you are planning to move to SA
+HPI
 > or
 > > not.
 > >
-> > You had "Intel Xeon" chips listed as not yet supported, but these would be
+> > You had "Intel Xeon" chips listed as not yet supported, but these would
+be
 > > supported by the IPMI interface to Intel BMC chipsets which control the
 > > sensors for Xeon processor systems.  Perhaps my code will help fill that
 > > gap,
@@ -73,5 +93,6 @@ IPMI support dates from the same time or there are pre-IPMI Xeon boards?
 > > Intel Corporation, Columbia Design Center, CBA2
 > > 250 Berryhill Rd., Suite 100, Columbia, SC 29210-6470
 > > BTW, I speak for myself, not for Intel Corp.
-> > "Do not merely look out for your own personal interests, but also for the
+> > "Do not merely look out for your own personal interests, but also for
+the
 > > interests of others." Phil 2:4
