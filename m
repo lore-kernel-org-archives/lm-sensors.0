@@ -1,7 +1,7 @@
 From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:23:38 +0000
 Subject: SIS 645 (was: Re: SIS 630 (ID))
-Message-Id: <20020824151342.B22505@mercury.solarsys.net>
+Message-Id: <20020825143432.C22505@mercury.solarsys.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020823224314.A13520@mercury.solarsys.net>
 In-Reply-To: <20020823224314.A13520@mercury.solarsys.net>
@@ -10,17 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark, list:
+Hi there:
 
-I did look at hotplug also, but gave up for lack of a clear example.
-It wasn't obvious to me that you could "hot add" individual functions
-of an otherwise enabled unit.  Well now I have two examples. :)
-Thanks for the hint.
+A revised SiS645 SMBus driver is now here:
 
-I've seen lspci from a couple different SIS645 based boards, and
-none show the device enabled; so I think I'll break tradition and put
-the hotplug code right in the i2c driver as you mentioned.  Downside
-is that it won't compile vs. 2.2 right?
+http://home.pacbell.net/mh0ffman/sensors/i2c-sis645.c
+
+It uses PCI hotplug; the SMBus device shows up in lspci now.
+I couldn't see any reason to remove the device on module
+unload though.  I am still interested in your comments and
+suggestions.
 
 Regards,
 
