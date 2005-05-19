@@ -1,25 +1,37 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: Question about sensors
-Message-Id: <20031020204735.48eda932.khali@linux-fr.org>
+From: haveblue@us.ibm.com (Dave Hansen)
+Date: Thu, 19 May 2005 06:25:11 +0000
+Subject: [PATCH] i2c-keywest.c: declare probe earlier
+Message-Id: <1092186044.2813.66.camel@nighthawk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-> I still have a very old mainboard in use for a server (Asus 
-> P55T2T4S, Intel chipset 430HX according to ASUS. Do you 
-> have any tips, which modules I should use, because sendors-
-> detect does not detect any sensors.
+This is against 2.6.8-rc4-mm1, and is caused by the bk-pci.patch.
 
-I guess you actually mean T2P4. I don't think there is hardware
-monitoring on this model. I have a similar one (P55T2P4) sleeping in a
-box somewhere, if I ever setup a system on it I'll give it a try - but
-frankly, hardware monitoring became widely available starting with the
-430TX chipset, so I don't expect sensors-detect to find anything on it.
+I got the following errors during a x86->ppc64 allyesconfig
+cross-compile with gcc 3.3.3.  But, it should be a generic error. 
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+drivers/i2c/busses/i2c-keywest.c: In function `__check_probe':
+drivers/i2c/busses/i2c-keywest.c:94: error: `probe' undeclared (first use in this function)
+drivers/i2c/busses/i2c-keywest.c:94: error: (Each undeclared identifier is reported only once
+drivers/i2c/busses/i2c-keywest.c:94: error: for each function it appears in.)
+drivers/i2c/busses/i2c-keywest.c: At top level:
+drivers/i2c/busses/i2c-keywest.c:94: error: `probe' undeclared here (not in a function)
+drivers/i2c/busses/i2c-keywest.c:94: error: initializer element is not constant
+drivers/i2c/busses/i2c-keywest.c:94: error: (near initialization for `__param_probe.arg')
+drivers/i2c/busses/i2c-keywest.c:96: error: `probe' used prior to declaration
+
+Attached patch makes it compile for me.  
+
+-- Dave
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-wrongorder.patch
+Type: text/x-patch
+Size: 595 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040810/2c830c72/i2c-wrongorder.bin
