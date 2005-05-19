@@ -1,100 +1,54 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:55 +0000
-Subject: Problem loading lm85 sensor module
-Message-Id: <3EB0C5D5.3000008@penguincomputing.com>
+From: dolney@astro.physics.upenn.edu (Derek Dolney)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: Problem with "sensors -s"
+Message-Id: <3E7EA3D2.60309@astro.physics.upenn.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001501c30e8d$76045980$5b00a8c0@antero>
-In-Reply-To: <001501c30e8d$76045980$5b00a8c0@antero>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Your log message implies that you have 5 i2c/isa bus drivers loaded.  That 
-doesn't seem right.  Can you send the output of:
+I run sensors -s (as root!) and get this message:
 
-   ls /proc/bus/ /proc/sys/dev/sensors/
-   lsmod
+----------------------snip-------------------------
+it87-isa-0290: Can't access /proc file for writing;
+Run as root?
+----------------------snip-------------------------
 
-Also, the 0xffff values in the auto-detect indicate a failure to read from the 
-chip.
+The i2c-proc IS inserted.
 
-Can you send the output of:
+I am using lm_sensors-2.7.0. I am using a 2.4.20 kernel patched with 
+i2c-2.7.0 support.
 
-    prog/detect/i2cdetect 4
+Mostly my setup seems to work OK, since sensors gives this output:
 
-and
+it87-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+VCore 1:   +1.76 V  (min =  +1.53 V, max =  +1.87 V)
+VCore 2:   +2.48 V  (min =  +2.25 V, max =  +2.75 V)
++3.3V:     +6.52 V  (min =  +2.96 V, max =  +3.60 V)   ALARM
++5V:       +4.99 V  (min =  +4.50 V, max =  +5.48 V)
++12V:     +12.00 V  (min = +11.36 V, max = +13.80 V)
+-12V:      -1.13 V  (min = -15.86 V, max = -13.40 V)   ALARM
+-5V:       -9.22 V  (min = -10.13 V, max =  -9.44 V)   ALARM
+Stdby:     +5.07 V  (min =  +4.50 V, max =  +5.48 V)
+VBat:      +3.40 V
+fan1:     5443 RPM  (min = 3000 RPM, div = 2)
+fan2:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
+fan3:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
+Temp1/MB:    +11?C  (min =  +20?C, max =  +60?C)
+Temp2/CPU:  -108?C  (min =  +20?C, max =  +60?C)
+Temp3:       +45?C  (min =  +20?C, max =  +60?C)
 
-    prog/dump/i2cdump 4 0x2d
+But I seem to be limited not being able to do sensors -s.
 
-Thanks
-:v)
+What should I do? Please help!
 
-Bernardo Sanchez da Motta wrote:
-
-> Hello,
-> 
-> I'm writing you from Lisbon, Portugal.
-> Let me start by thanking you for
-> the fantastic job you are doing!
-> 
-> I have an Intel D845GEBV2 motherboard,
-> and I'm sure the sensor chip is the LM85
-> (but maybe a "strange" variant).
-> 
-> After downloading your 2.7.0 release,
-> I used your "sensor-detect" program
-> without problems, and arrived to the
-> conclusion that I had an SMBus (non I2C),
-> type "i2c-i801", and the LM85 sensor 
-> (but with the warning "unwritten").
-> 
-> Then I found a patch for the LM85 sensor in the 
-> following location:
-> 
-> ftp://ftp.penguincomputing.com/pub/updates/lmsensors/lm_sensors-2.7.0-lm85-8
-> .patch
-> 
-> I applied the patch and everything went well.
-> I compiled it perfectly and ran "depmod -a" 
-> without any complaints.
-> 
-> I started by making "modprobe i2c-i801"...
-> 
-> The bus module i2c-i801 loaded fine,
-> without errors.
-> 
-> Then I tried "modprobe lm85" and it hung...
-> 
-> After a couple of minutes, I recovered
-> control of the prompt and the module seemed
-> loaded, but then, when checking the logs, I
-> found in "messages" the following:
-> 
-> "
-> Message from syslogd@dvs209 at Tue Apr 29 21:09:11 2003 ...
-> dvs209 vmunix: lm85: Detecting device at 4,0x2d with COMPANY: 0xffffffff and
-> VER
-> STEP: 0xffffffff
-> 
-> Message from syslogd@dvs209 at Tue Apr 29 21:09:11 2003 ...
-> dvs209 vmunix: lm85: Autodetecting device at 4,0x2d ...
-> 
-> Message from syslogd@dvs209 at Tue Apr 29 21:09:11 2003 ...
-> dvs209 vmunix: lm85: Autodetection failed
-> "
-> 
-> What can be causing this autodetection failure?
-> Do you need more info from me?
-> I've not tried yet to use the "sensors" program
-> and the "sensors.conf" file, because of this error.
-> 
-> Thank you in advance for your time.
-> 
-> Best regards,
-> 
-> Bernardo Motta
-> 
-> 
-> 
-
+-- 
+-----------------------------------
+Derek M. Dolney
+Department of Physics and Astronomy
+University of Pennsylvania
+dolney@astro.physics.upenn.edu
+-----------------------------------
