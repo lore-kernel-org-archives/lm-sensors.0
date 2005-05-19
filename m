@@ -1,53 +1,41 @@
-From: emil71se@bredband.net (emil71se@bredband.net)
-Date: Thu, 19 May 2005 06:25:12 +0000
-Subject: vt1211.c for 2.6 again
-Message-Id: <Pine.LNX.4.60.0408172043440.16429@ekman10.ekmanhome>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: I2C/SMBus and Linux
+Message-Id: <20050202051941.GA27665@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Guido:
 
-Hello,
+I saw your interesting article [1] about using I2C to talk to an Atmel
+micro.  I haven't looked at your source code yet, but I'm hoping it is
+GPL. ;)
 
-I have put my port of the vt1211 for 2.6 kernels at;
-http://hem.bredband.net/ekmlar/vt1211.html
+You wrote:
+> This I2C bus is unfortunately not available on the outside of the PC
+> (there is no physical connector).
 
-Now it should be fairly complete except for testing. 
-You may take it if you have use for it.
+That is not always true.  Asus boards often have exposed I2C/SMBus pins
+on the board.  At least, both of mine do - it is definitely useful.
 
+Also, I'm surprised that you chose to (re)implement a bus master for
+your project... have you never heard of the lm_sensors project?  [2]
+Among many other things, it has links to hardware which brings I2C out
+of the PC case - usually by parallel port, but a recent schematic for
+serial port just popped up on the mailing list too.  Drivers for the
+parallel port hardware are already included in the Linux kernel.
 
-I found 2 bugs in the old version that you might want to correct
-(i have lm_sensors-2.8.5);
+Anyway, please check it out. You may even want to join us, I hope... ;)
 
-1. In the "/etc/sensors.conf" for vt1211;
+[1] http://linuxfocus.org/English/February2005/article365.shtml
 
-     compute in2 ((@ * 100) - 3) / (0.5952 * 95.8), (@ * 0.5952 * 0.958) + .03
+[2] http://secure.netroedge.com/~lm78/
 
-    should be;
+Regards,
 
-     compute in2 ((@ * 100) - 3) / (1.0 * 95.8), (@ * 1.0 * 0.958) + .03
-
-    since K=1.0 for VCore.
-
-
-2. In the "vt1211.c" file;
-
-       #define ISTEMP(i, ch_config) ((i) = 1 ? 1 : \
- 			      (i) = 3 ? 1 : \
- 			      (i) = 2 ? ((ch_config) >> 1) & 0x01 : \
- 			                 ((ch_config) >> ((i)-1)) & 0x01)
-
-    should be;
-
-       #define ISTEMP(i, ch_config) ((i) = 1 ? 1 : \
- 			      (i) = 3 ? 1 : \
- 			      (i) = 2 ? ((ch_config) >> 2) & 0x01 : \
- 			                 ((ch_config) >> ((i)-1)) & 0x01)
-
-    with this bug "temp2" will never be interpreted as a temp-sensor.
-
-
-Best Regards,
-Lars Ekman
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
