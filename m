@@ -1,58 +1,51 @@
-From: robs@multiplayer.it (Roberto Sebastiano)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:27 +0000
 Subject: as99127f bug?
-Message-Id: <1070210177.1636.43.camel@newdeal>
+Message-Id: <20031130182028.60668193.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031130134504.142f7cde.khali@linux-fr.org>
 In-Reply-To: <20031130134504.142f7cde.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Il dom, 2003-11-30 alle 15:24, Jean Delvare ha scritto:
-> > Also, fan1 is wrong. I use a thermaltake silent boost, it never
-> > reaches 3000 RPM
->=20
-> I'm clueless. What does the BIOS say about it?
-For a7n8x-x fan1_div is surely 4
-But:
+> You're right. Make user_install installed /etc/sensors.conf
+> I reviewed the config file.
+> As stated for the a7n8x-deluxe motherboard, the a7n8x-x needs:
 
-with fan1_div 2 in /etc/sensors.conf
-  newdeal:/home/robs# sensors -s
-  newdeal:/home/robs# sensors
-  ...
-  as99127f-i2c-1-2d
-  ...
-  fan1:     5000 RPM  (min =3D 2657 RPM, div =3D 2)                    =20
+Ha ha, that's funny. I think I'me the one who added this note some
+months ago, and I wouldn't remember that now. I've added the A7N8X-X to
+the list.
 
+> What I don't understand is why you don't make smaller config files
+> based on motherboards instead of one huge config file with all the
+> chipsets configured. As more than one motherboard can use a chipset
+> differently, this only huge config file will be surely wrong for some
+> users
+> 
+> Having a 30 line sensors.asus_a7n8x-x.conf nicely preconfigured is
+> better than a -probably wrong for my motherboard- 400 lines
+> sensors.conf Also, this would incourage users to submit more config
+> files
 
-with fan1_div 4 in /etc/sensors.conf
-  newdeal:/home/robs# sensors -s
-  newdeal:/home/robs# sensors
-  eeprom-i2c-0-51
-  ...
-  as99127f-i2c-1-2d
-  ...
-  fan1:     2463 RPM  (min =3D 1328 RPM, div =3D 4)                    =20
- =20
-  (second run with no pause and no change in sensors.conf)
-  newdeal:/home/robs# sensors
-  ...
-  as99127f-i2c-1-2d
-  ...
-  fan1:     4963 RPM  (min =3D 1328 RPM, div =3D 4)                    =20
+You're perfectly right. Everybody agrees on that. What not everybody
+agrees on is how to solve the problem. Attempts have been made to set a
+database up, where people could submit their configuration files, but
+these projects never got completed.
 
+You must understand that if we were to distribute individual
+configuration files, we would soon be flooded by people sending their
+configuration file or wanting us to update them. There are about 150
+different motherboards available in my country at the moment. What's
+more, the configuration does not only depend on the motherboard name. It
+depends on the motherboard revision, additional thermal sensors, and
+fans. We just can't handle that many configuration files in our main
+package. When we add or modify a feature for a given chipset, we don't
+want to have twenty different files to modify. I think this is why the
+solution of a database was prefered, but that too requires time and
+hardware.
 
-
-
---=20
-Roberto Sebastiano <robs@multiplayer.it>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Questa parte del messaggio =3D?ISO-8859-1?Q?=E8?=3D firmata
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031130=
-/8613d573/attachment.bin
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
