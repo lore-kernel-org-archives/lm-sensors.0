@@ -1,39 +1,46 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:43 +0000
-Subject: IBM NetVista info
-Message-Id: <1077554185.403a2c093f162@imp.gcu.info>
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [PATCH 2.6] I2C: via686a cleanups
+Message-Id: <20050402204447.3d2b7644.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0402231012030.19067@liberty.intra.assembly.state.ny.us>
-In-Reply-To: <Pine.LNX.4.58.0402231012030.19067@liberty.intra.assembly.state.ny.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Zing Zing Shishak <shishz@alum.rpi.edu>:
+Hi Greg,
 
-> Here's my info from a sensors-detect run on a IBM NetVista TYPE
-> 6792-2DU:
-> 
->  BIOS vendor (ACPI): PTLTD
->  System vendor (DMI): IBM
->  BIOS version (DMI): 20KT43AUS
+Here comes a small cleanup patch for the via686a driver. I noticed the
+following two non-fatal problems:
 
-You must be using a slightly old version of sensors-detect, since we
-removed the report request in newer releases of lm_sensors. Anyway,
-thanks for the report.
+1* The device parent is explicitely set, but it's not needed because the
+i2c core will do as the client is registered.
 
-It happens that I am personnaly looking for Netvista owners for tests on
-another project of mine, dmidecode:
-http://www.nongnu.org/dmidecode/
+2* snprintf is used where strlcpy would suffice.
 
-I would appreciate it much if you could get the CVS version of it and
-give a try to the included "vpddecode" tool, and report results
-(directly) to me. I plan to release a new version before the end of the
-month, so testers are welcome.
+Fixing them brings the via686a driver in line with what other similar
+drivers do.
 
-Thanks again.
+Please apply,
+thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.12-rc1-bk5/drivers/i2c/chips/via686a.c.orig	2005-04-02 11:04:19.000000000 +0200
++++ linux-2.6.12-rc1-bk5/drivers/i2c/chips/via686a.c	2005-04-02 11:37:32.000000000 +0200
+@@ -651,10 +651,9 @@
+ 	new_client->adapter = adapter;
+ 	new_client->driver = &via686a_driver;
+ 	new_client->flags = 0;
+-	new_client->dev.parent = &adapter->dev;
+ 
+ 	/* Fill in the remaining client fields and put into the global list */
+-	snprintf(new_client->name, I2C_NAME_SIZE, client_name);
++	strlcpy(new_client->name, client_name, I2C_NAME_SIZE);
+ 
+ 	data->valid = 0;
+ 	init_MUTEX(&data->update_lock);
+
 
 -- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
