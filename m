@@ -1,37 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:39 +0000
 Subject: A question when test W83792D driver on another motherboard
-Message-Id: <dXcliFfn.1109075187.7909120.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190D05@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190C6C@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> We are going to test the 792 driver on another motherboard(AAA)
-> with 792 chip:
-> (...)
-> But we meet a problem, that the the script sensors-detect in
-> lm_sensors-2.9.0 can NOT find the 792 chip.
-
-I'd bet one buck that this "AAA" board was made by Asus. Right?
-
-> I'm sure that the sensors-detect and i2cdetect version is 2.9.0.
-
-We have had a report already with an Asus NCL-DS board. We know it has a
-W83792D chip, but it is somehow hidden. All our attempts to unhide it
-failed.
-http://archives.andrew.net.au/lm-sensors/msg28885.html
-
-If you have a similar case, I am sorry but there's nothing we can do.
-Your only hope is to ask the motherboard manufacturer for additional
-information. Good luck... (that said you might have more chance to get
-something because you work at Winbond...)
-
---
-Jean Delvare
+SGkgSmVhbgoKPiBJJ2QgYmV0IG9uZSBidWNrIHRoYXQgdGhpcyAiQUFBIiBib2FyZCB3YXMgbWFk
+ZSBieSBBc3VzLiBSaWdodD8KClllcywgeW91IGFyZSByaWdodCwgdGhhdCBtb3RoZXJib2FyZCBp
+cyBBU1VTIE5DTFYtRC4KCj4gV2UgaGF2ZSBoYWQgYSByZXBvcnQgYWxyZWFkeSB3aXRoIGFuIEFz
+dXMgTkNMLURTIGJvYXJkLiBXZSBrbm93IGl0IGhhcwphCj4gVzgzNzkyRCBjaGlwLCBidXQgaXQg
+aXMgc29tZWhvdyBoaWRkZW4uIEFsbCBvdXIgYXR0ZW1wdHMgdG8gdW5oaWRlIGl0Cj4gZmFpbGVk
+Lgo+IGh0dHA6Ly9hcmNoaXZlcy5hbmRyZXcubmV0LmF1L2xtLXNlbnNvcnMvbXNnMjg4ODUuaHRt
+bAo+IAo+IElmIHlvdSBoYXZlIGEgc2ltaWxhciBjYXNlLCBJIGFtIHNvcnJ5IGJ1dCB0aGVyZSdz
+IG5vdGhpbmcgd2UgY2FuIGRvLgo+IFlvdXIgb25seSBob3BlIGlzIHRvIGFzayB0aGUgbW90aGVy
+Ym9hcmQgbWFudWZhY3R1cmVyIGZvciBhZGRpdGlvbmFsCj4gaW5mb3JtYXRpb24uCgpXaGF0IGlu
+Zm9ybWF0aW9uIHNob3VsZCB3ZSBhc2sgQVNVUyB0byBwcm92aWRlPyBDb3VsZCB5b3UgdGVsbCB1
+cyBtb3JlCmFib3V0IGl0PwoKSW4geW91ciBvcGluaW9uLCB3aGF0IGlzIHRoZSBleGFjdCByZWFz
+b24gdGhhdCA3OTIgZHJpdmVyIGNhbiBOT1Qgd29yawpvbiB0aGlzIG1vdGhlcmJvYXJkPyBUaGUg
+YnVnIG9mIDc5MiBkcml2ZXI/IHRoZSBidWcgb2YgaTJjIGJ1cyBkcml2ZXI/Cm9yIHRoZSBidWcg
+b2YgdGhlIG1vdGhlcmJvYXJkIGl0c2VsZj8gQ2FuIHdlIG1ha2UgdGhlIDc5MiBkcml2ZXIgd29y
+awppZiB3ZSBtb2RpZnkgdzgzNzkyZC5jIHdoZW4gd2Uga25vdyB0aGUgImhpZGRlbiBpbmZvcm1h
+dGlvbiIgeW91Cm1lbnRpb25lZC4KCgpUaGFua3MKQmVzdCBSZWdhcmRzCgpDaHVuaGFvLgoyMDA1
+LTAyLTIzCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRo
+ZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBl
+bWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNh
+dGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3Qg
+dGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNp
+YmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5k
+bHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxs
+IGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVk
+aWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJs
+ZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
+ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
+dGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mg
+b2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQg
+YnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNl
+IGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0
+IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6
+sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKo
+z7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjs
+pburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSk
+qaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HC
+xXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C1
+2Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
