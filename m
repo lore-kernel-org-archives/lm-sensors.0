@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: lm_sensors2/prog/detect sensors-detect
-Message-Id: <4082883B.8050804@verizon.net>
+Message-Id: <20040418160534.47842739.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021107235845.0037e195.khali@linux-fr.org>
 In-Reply-To: <20021107235845.0037e195.khali@linux-fr.org>
@@ -10,25 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-unless I'm missing something, there are no more accesses to the bus
-at that address in scan_adapter() after the detection function returns,
-so it isn't necessary.
+> unless I'm missing something, there are no more accesses to the bus
+> at that address in scan_adapter() after the detection function
+> returns, so it isn't necessary.
 
-Jean Delvare wrote:
-> Oh, and:
-> 
->   if ($chip = 2) {
-> 	# check for 'shadow' write-protect register at 0x30-37
-> 	i2c_set_slave_addr($file,$addr - 0x20);
-> 	if(i2c_smbus_write_quick($file,$SMBUS_WRITE) >= 0 &&
-> 	   i2c_smbus_read_byte_data($file,0x80) = -1) {
-> 		if($checksum = 0) {
-> 			return (9, $addr - 0x20);
-> 		} else {
-> 			return (2, $addr - 0x20);
-> 		}
-> 	}
->   }
-> 
-> Shouldn't you restore the original slave address before returning?
-> 
+Wrong. There can be more than one possible chip at a given address. For
+example we detect the MAX6900 at 0x50 after the EEPROMs. After your
+change, I suspect that we actually detect it at 0x30 (where it cannot
+be) instead.
+
+Even without that, I think we should never rely on the order of the
+entries in @chips_id, nor on the fact that some addresses are used by a
+limited number of chips. These are thing that can change quickly and
+nobody will remember that part of the detection code depended on a
+condition that isn't true anymore.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
