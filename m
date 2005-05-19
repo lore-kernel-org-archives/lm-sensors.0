@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: yani.ioannou@gmail.com (Yani Ioannou)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: Fwd: Fwd: [PATCH 2.6] bmcsensors
-Message-Id: <424C2066.8020303@mds.gotdns.com>
+Message-Id: <253818670503310843459fc191@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2538186705033012523d671b5f@mail.gmail.com>
 In-Reply-To: <2538186705033012523d671b5f@mail.gmail.com>
@@ -10,8 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+Hi Jean,
+
+Oops, there was a signed off line in the first e-mail to the mailing
+list and I'd just assumed it was still in the forward. I will port the
+patch to the latest mm-series tonight and repost.
+
+We should write all this stuff down somewhere :-) (cc Greg, post
+in-line even over 40k, patch against latest mm etc) for newbies like
+me, unless I'm missing some existing documentation somewhere (I read
+the kernel documentation, Documentation/SubmittingPatches, and the
+lm_sensors porting_clients documentation, etc).
+
+Thanks,
+Yani
+
+
+On Thu, 31 Mar 2005 10:37:48 +0200 (CEST), Jean Delvare
+<khali@linux-fr.org> wrote:
+> 
 > Hi Yani,
+> 
+> > Greg has asked me to send it in-line to the list, so here it is :).
+> > I'd appreciate any comments on the patch, please read the previous
+> > threads on the sysfs callback problem first though.
+> 
+> Please provide your patch against the latest -mm tree. This is where the
+> latest i2c developments are. Your current patch doesn't apply against
+> 2.6.12-rc1-mm3 (fails on drivers/i2c/chips/Makefile).
+> 
+> Note that i2c_client.id is no more, so this won't work:
+> 
+> +struct i2c_client bmc_client = {
+> +       .name = "bmc",
+> +       .id = 1,                /* fake should be 0 */
+> +       .flags = 0,
+> +       .addr = 0,
+> +       .adapter = NULL,        /* adapter */
+> +       .driver = &bmcsensors_driver,
+> +       .usage_count = 0
+> +};
+> 
+> And this won't work either, of course:
+> 
+> +       bmc_client.id = 0;
+> 
+> Why is bmc_client no declared static?
 > 
 > Could you please explain to us what i2c-ipmi does? I understand it acts
 > as an interface between the bmcsensors driver and something else, but I
@@ -23,23 +67,6 @@ Jean Delvare wrote:
 > equally ugly here.
 > 
 > Thanks,
-
-
-Don't pick on Yani too hard, he's just porting what I wrote.
-i2c-ipmi is indeed a bridge between bmcsensors and the IPMI subsystem.
-There's some documentation in doc/busses/i2c-ipmi and you can also
-look at the code in 2.4.
-
-Yes it's a little bit of a hack but I thought this architecture was the best way to get
-IPMI data out through the sensors API. Sure there are other ways  to do  it and
-you could use some full-blown IPMI app but this is  a good way to get people
-the info that gets hidden behind all the IPMI stuff - i.e.  their sensor  info.
-
-I think the  dummy driver approach has value for those who want to present data
-via the sensors  API. As you may recall I did something similar for hard drive
-temperatures (S.M.A.R.T)  a  while  back.
-
-If you have a better way to do dummy  bus drivers let's hear it but
-let's not ban  dummy bus drivers (or new dummy bus drivers anyway) altogether. 
-
-mds
+> --
+> Jean Delvare
+>
