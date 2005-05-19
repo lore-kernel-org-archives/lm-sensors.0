@@ -1,99 +1,107 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:36 +0000
-Subject: i2c-2.6.4 failed on 2.4.x kernel
-Message-Id: <3D40BAEC.808E2EBD@paradyne.com>
+From: lamar@synque.com (Lamar)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: MPX2/LM90 switching discussion
+Message-Id: <40F6F2A2.50503@synque.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020723061809.GA1247@polaroids.dyndns.org>
-In-Reply-To: <20020723061809.GA1247@polaroids.dyndns.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks.
-fix posted on home page.
+Jean Delvare wrote:
 
-JC Wong wrote:
-> 
-> Hi!
-> 
-> Updated i2c-2.6.4 and lm_sensors-2.6.4 patch on 2.4.19-rc3-ac2 kernel.
-> No problem on 'make dep' & 'make bzImage'.
-> 
-> Here is the error during 'make modules';
-> 
-> make -C i2c modules
-> make[2]: Entering directory `/home/catalyst/src/linux/drivers/i2c'
-> make[2]: *** No rule to make target `i2c-algo-8xx.c', needed by
-> `i2c-core.o'.  Stop.
-> make[2]: Leaving directory `/home/catalyst/src/linux/drivers/i2c'
-> make[1]: *** [_modsubdir_i2c] Error 2
-> make[1]: Leaving directory `/home/catalyst/src/linux/drivers'
-> make: *** [_mod_drivers] Error 2
-> 
-> No problem on previous 2.6.3 source.Here I attached my kernel configure
-> setting for i2c and lm_sensors.Using Adapter: ISA adapter
-> 'via686a-isa-6000' here.
-> 
-> ------------------------------
-> 
-> # I2C support
-> #
-> CONFIG_I2C=m
-> CONFIG_I2C_ALGOBIT=m
-> # CONFIG_I2C_BITLP is not set
-> # CONFIG_I2C_BITELV is not set
-> # CONFIG_I2C_BITVELLE is not set
-> # CONFIG_I2C_ALGOPCF is not set
-> CONFIG_I2C_MAINBOARD=y
-> # CONFIG_I2C_ALI1535 is not set
-> # CONFIG_I2C_ALI15X3 is not set
-> # CONFIG_I2C_HYDRA is not set
-> # CONFIG_I2C_AMD756 is not set
-> # CONFIG_I2C_TSUNAMI is not set
-> # CONFIG_I2C_I801 is not set
-> # CONFIG_I2C_I810 is not set
-> # CONFIG_I2C_PIIX4 is not set
-> # CONFIG_I2C_SIS5595 is not set
-> CONFIG_I2C_VIA=m
-> CONFIG_I2C_VIAPRO=m
-> # CONFIG_I2C_VOODOO3 is not set
-> CONFIG_I2C_ISA=m
-> CONFIG_I2C_CHARDEV=m
-> CONFIG_I2C_PROC=m
-> 
-> # Hardware sensors support
-> #
-> CONFIG_SENSORS=y
-> # CONFIG_SENSORS_ADM1021 is not set
-> # CONFIG_SENSORS_ADM1024 is not set
-> # CONFIG_SENSORS_ADM1025 is not set
-> # CONFIG_SENSORS_ADM9240 is not set
-> # CONFIG_SENSORS_DS1621 is not set
-> # CONFIG_SENSORS_FSCPOS is not set
-> # CONFIG_SENSORS_FSCSCY is not set
-> # CONFIG_SENSORS_GL518SM is not set
-> # CONFIG_SENSORS_GL520SM is not set
-> # CONFIG_SENSORS_MAXILIFE is not set
-> # CONFIG_SENSORS_IT87 is not set
-> # CONFIG_SENSORS_MTP008 is not set
-> # CONFIG_SENSORS_LM75 is not set
-> # CONFIG_SENSORS_LM78 is not set
-> # CONFIG_SENSORS_LM80 is not set
-> # CONFIG_SENSORS_LM87 is not set
-> # CONFIG_SENSORS_SIS5595 is not set
-> # CONFIG_SENSORS_THMC50 is not set
-> CONFIG_SENSORS_VIA686A=m
-> # CONFIG_SENSORS_W83781D is not set
-> # CONFIG_SENSORS_OTHER is not set
-> 
-> Further advice needed,Thanks.
-> 
-> CaT.
-> --
-> JC Wong,Singapore   http://polaroids.webhop.org/~catalyst
->   ICQ: 19663610               catalyst@gmx.net
-> ---------------------------------------------------------
-> I must have a prodigious quantity of mind; it takes me as much as a
-> week sometimes to make it up.
->                 -- Mark Twain, "The Innocents Abroad"
+>>Jean,
+>>    Was support for the Iwill MPX2's particular method of switching 
+>>LM90s ever incorporated into lm_sensors? I could not find any
+>>indication that it had been. If not, I am interested in helping
+>>implement that feature.
+>>    
+>>
+>
+>Unfortunately (for you) it was not. Only the method for the Gigabyte
+>board was, because it relies on a more standard (Philips) chip.
+>
+>However, Alex van Kaam provided me with some code explaining how to do
+>it. As I read it, it looks like the board uses a GPIO pin of the
+>Super-I/O chipset. So it's heavily motherboard dependant and as such it
+>doesn't belong to the lm90 driver IMHO. We better do an external tool to
+>handle that specific case.
+>
+>Here's the code (original by Alex, simplified by me):
+>
+>begin
+>    // Enter Super-I/O
+>    WritePortByte($2E,$87);
+>    WritePortByte($2E,$87);
+>
+>    // Select logical device 7
+>    WritePortByte($2E,$07);
+>    WritePortByte($2F,$07);
+>
+>    // now we need to set the GPIO10 to high or low
+>    WritePortByte($2E,$F1);
+>    X:=ReadPortByte($2F);
+>
+>    if (X and $01) then
+>    begin
+>      X:=X and $FE;                // if we want it low
+>    end
+>    else
+>    begin
+>      X:=X or $01;                // if we want it high
+>    end;
+>
+>    WritePortByte($2F,X);
+>
+>    // exit Super-I/O
+>    WritePortByte($2E,$AA);
+>  end;
+>
+>You should be able to easily convert this to user-space C code (see
+>proc/dump/isadump.c for an example). Then running that new tool will
+>switch which CPU is monitored.
+>
+>You could then add functionality to the tool (force one given CPU, show
+>selected CPU, etc...).
+>
+>Once the tool is working we could integrate it into our package.
+>
+>Remember that there really is only one LM90 on the board, and the lm90
+>driver doesn't know about the tweak, so:
+>1* You must ensure that you are not switching while the lm90 driver is
+>updating its data. This excludes the use of any app repeatedly updating
+>the data.
+>2* Since the lm90 caches the data it reads, it may take up to 2 seconds
+>before you will get the data from the CPU you just switched to.
+>
+>Good luck, let us know if you need additional help.
+>
+>  
+>
+Jean,
+    I understand your desire to move the solution out into user-space, 
+but I would think the end goal would be for the utilities that use 
+lm_sensors to work with little or no modifications, such as gkrellm, and 
+the like. That would require the introduction of a virtual LM90 for 
+these programs to detect. Since there are 5 access methods of varying 
+levels, it would seem to me that in order to ensure the widest support, 
+the solution should be implemented in the kernel. I will admit my 
+personal preference is to have gkrellm and sensors to work, and for this 
+user-level is sufficient, assuming gkrellm uses libsensors.
+    Of course, there is the challenge of synchronizing LM90 sensor 
+switching with the driver updating. How could this be enforced from 
+user-land? It seems some support is required in kernel-space to at least 
+signal when updating is in progress, perhaps there already is.  
+Actually, I'm not sure this approach would work, I think that the 
+switching would have to take place within kernel-space to truly avoid a 
+switch during update!
+    At any rate, my goal would be for a second, virtual LM90 to appear 
+via the libsensors APIs. I have only started to investigate this so any 
+comments would be appreciated. Also, I am greatly impressed by the 
+existing body of work, and so my comments are made as humbly and 
+respectfully as possible.
+
+Lamar
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040715/582810fe/attachment.html
