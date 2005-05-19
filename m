@@ -1,25 +1,40 @@
-From: whitney@Math.Berkeley.EDU (Wayne Whitney)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: lm_sensors current CVS on 2.6.0-test10
-Message-Id: <Pine.SOL.4.44.0311291052100.22352-100000@blue1>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:26 +0000
+Subject: i2c versioning
+Message-Id: <3C043305.233767D@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.SOL.4.44.0311261657140.26419-100000@blue1>
-In-Reply-To: <Pine.SOL.4.44.0311261657140.26419-100000@blue1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 29 Nov 2003, Jean Delvare wrote:
+ok gang,
+we now have rudimentary versioning in i2c.
+i2c.h contains:
+	
+	#define I2C_DATE "20011118"
+	#define I2C_VERSION "2.6.2"
 
-> I could reproduce the bug and fix. It was caused by sysfs algorithm
-> labels being filled statically, while the same labels are dynamically
-> allocated with procfs. Calling free on the labels would crash sensors in
-> the first case, of course.
->
-> You can check an up-to-date version from CVS, should work :)
+now how am I supposed to use this in an ifdef?
 
-Yes, that does the trick!
+I want to add block read capability to eeprom,
+but only if it's supported in i2c.
 
-Thanks, Wayne
+So i need
+#if I2C_VERSION > 2.6.2
+i2c_smbus_i2c_block_read_data(...)
+#else
+regular read...
+#endif
 
+but of course that doesn't work because I2C_VERSION is a string.
+
+Do we need something better, like three integers MAJOR, MINOR, whatever
+like the kernel has?
+Or can I do it somehow with strings?
+
+#ifdef I2C_VERSION
+#if I2C_VERSION[0] * 100 + I2C_VERSION[2] * 10 + I2C_VERSION[4] > 262
+...
+#endif
+#endif
