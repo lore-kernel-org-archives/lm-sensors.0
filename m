@@ -1,7 +1,7 @@
-From: william.mcclintock@schriever.af.mil (McClintock William J Contr MCOM)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:24:26 +0000
 Subject: unknown eeprom type (65) [ticket #1449]
-Message-Id: <B8BD20F161298A42A3B513D23A28556701101F3E@fsglenex3.schriever.af.mil>
+Message-Id: <3FC5169D.7060205@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1069703037.8309.4.camel@localhost>
 In-Reply-To: <1069703037.8309.4.camel@localhost>
@@ -10,56 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Output below...?...The WARNING...Should I be concerned?  Reboot?  etc...
-
-[root@workstation1 cvs2]# i2cdump 1 50
-No size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-1, address 0x32, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-[root@workstation1 cvs2]# i2cdump 1 50 c
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-1, address 0x32, mode byte consecutive read
-  You have five seconds to reconsider and press CTRL-C!
-
-Segmentation fault
-[root@workstation1 cvs2]#
-
-
------Original Message-----
-From: Mark Studebaker [mailto:mds@paradyne.com]
-Sent: Wednesday, November 26, 2003 2:10 PM
-To: McClintock William J Contr MCOM
-Cc: 'sensors@Stimpy.netroedge.com'; frdurso@yahoo.com.br
-Subject: Re: unknown eeprom type (65) [ticket #1449]
-
-
 for the i2cdump test please replace '0' with '1' since
 your eeproms are now on bus 1.
 thanks
 
 McClintock William J Contr MCOM wrote:
 
-> Output from todays CVS below...Not sure if I should have expected results
-or
+> Output from todays CVS below...Not sure if I should have expected results or
 > what...Attached from modprobes through partial lsmod.
 > 
 > [root@workstation1 cvs2]# modprobe i2c-isa
