@@ -1,159 +1,123 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:38 +0000
 Subject: two questions about w83792d.c for linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190B0A@weshml03.winbond.com.tw>
+Message-Id: <0JKtpivv.1108980406.7209860.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKCj4gPiAoMSkgVGhlICJzZXQiIGxpbmVzIGluIC9ldGMvc2Vuc29ycy5jb25mIHc4
-Mzc5MmQgcGFydCBmb3Igdm9sdGFnZQo+ID4gZG8gTk9UIHdvcmshIFdoaWxlIGFsbCB0aGUgInNl
-dCIgbGluZXMgZm9yIGZhbiBhbmQgdGVtcGVyYXR1cmUgbGltaXQKPiA+IGNhbiB3b3JrLiBJIGNh
-bid0IGZpbmQgdGhlIHJlYXNvbi4KPiA+Cj4gPiBUaGUgbW9yZSBzdHJhbmdlIHRoaW5nIGlzIHRo
-YXQsIHVuZGVyIGxpbnV4LTIuNiwgdGhlICJzZXQiIGxpbmVzIGZvcgo+ID4gdm9sdGFnZSBDQU4g
-d29yayEKPiA+Cj4gPiBJIGF0dGFjaGVkIHRoZSAvZXRjL3NlbnNvcnMuY29uZiB3ODM3OTJkIHBh
-cnQgaW4gdGhlIGVuZCBvZiB0aGlzCm1haWwsCj4gPiBmb3IgeW91ciByZWZlcmVuY2UuCj4gCj4g
-VGhlIGZpbGUgZG9lc24ndCBsb29rIHRvbyBiYWQsIGV4Y2VwdCBmb3IgdGhlIGZhY3QgdGhhdCBt
-dWx0aXBsaWVycwphcmUKPiBzb21ld2hhdCB1bnVzdWFsLiBUeXBpY2FsbHkgdm9sdGFnZXMgYXJl
-IGJlaW5nIGF0dGVudWF0ZWQgYnkKcmVzaXN0b3JzLAo+IHNvIHRoZSB2YWx1ZSB3ZSB3YW50ICJz
-ZW5zb3JzIiB0byByZXBvcnQgYXJlIGdyZWF0ZXIgdGhhbiB0aG9zZQo+IG1lYXN1cmVkIGJ5IHRo
-ZSBjaGlwLCBhbmQgdGhlIG11bHRpcGxpZXJzIGluIHRoZSBjb25maWd1cmF0aW9uIGZpbGUKYXJl
-Cj4gZ3JlYXRlciB0aGFuIDEuIEhlcmUgeW91IGhhdmUgbXVsdGlwbGllcnMgbGVzcyB0aGFuIDEg
-YWxtb3N0CmV2ZXJ5d2hlcmUuCj4gSSdsbCBoYXZlIHRvIHRha2UgYSBsb29rIGF0IHRoZSBkYXRh
-c2hlZXQgYW5kIGNvZGUgYWdhaW4gdG8gdW5kZXJzdGFuZAo+IHdoeSBpdCBpcy4KCkkgdGhpbmsg
-dGhlIHJlYXNvbiBtb3N0IG9mIG15IG11bHRpcGxpZXJzIGFyZSBsZXNzIHRoYW4gMSBpcyB0aGF0
-OgpUaGUgL3Byb2MvaW4wLWluNiBtZWFzdXJlZCB2YWx1ZSBrZWVwIHN1Y2ggYXMgKENSWzIwXSo0
-ICsgQ1JbM0VdJjB4MDMpCldoaWNoIGFyZSBkaWZmZXJlbnQgZnJvbSB0aGUgdHJhZGl0aW9uYWwg
-b25lLCBiZWNhdXNlIHRoZXkgYXJlIGFib3V0IDQKdGltZXMgb2YgQ1JbMjBdLiBXaGlsZSB0aGUg
-L3Byb2MvaW43LWluOCBvbmx5IGtlZXAgc3VjaCBhcyBDUltCMF0vCkNSW0IxXSwKc28gdGhlaXIg
-bXVsdGlwbGllcnMgYXJlIGdyZWF0ZXIgdGhhbiAxLgpJIGV4cGxhaW5lZCBpdCBpbiBteSBtYWls
-IHNlbnQgb24gMjAwNS0wMi0xOCwgcGxlYXNlIHJlZmVyIGl0LgoKU28gbXkgaW4wLWluNiBtdWx0
-aXBsaWVycyBpbiBzZW5zb3JzLmNvbmYgaXMgdGhlIHF1YXJ0ZXIgb2YgdGhlCnRyYWRpdGlvbmFs
-Cm9uZS4gSWYgeW91IG11bHRpcGx5IG15IG11bHRpcGxpZXJzIG9mIGluMC1pbjYgd2l0aCB0aGUg
-dmFsdWUgNCwgeW91CndpbGwKZmluZCB0aGF0IG1vc3Qgb2YgdGhlbSB3aWxsIGJlIGdyZWF0ZXIg
-dGhhbiAxLCBleGNlcHQgaW4wIGFuZCBpbjEoMC44KQoKVGhlIG11bHRpcGxpZXJzIGluIHNlbnNv
-cnMuY29uZiBpcyBjb3JyZXNwb25kaW5nIHdpdGggdGhlIGRhdGEgc2hlZXQsCllvdSBtYXkgY2hl
-Y2sgaXQuIDotKQoKCj4gSWYgdGhlIDIuNiBkcml2ZXIgd29ya3MgT0sgdGhlbiB0aGUgcHJvYmxl
-bSBoYXMgdG8gYmUgaW4gdGhlIDIuNApkcml2ZXIKPiBpdHNlbGYuIENhbiB5b3UgcGxlYXNlIHNo
-b3cgdGhlIHJlbGV2YW50IGZ1bmN0aW9uIG9mIHRoZSBkcml2ZXIsCj4gdG9nZXRoZXIgd2l0aCB0
-aGUgZnVuY3Rpb25zIGFuZCBtYWNyb3MgaXQgbWlnaHQgY2FsbD8KCk9LLCBwbGVhc2UgcmVmZXIg
-dG8gdGhlIGZvbGxvd2luZyBmdW5jdGlvbiwgSXMgaXQgd2hhdCB5b3UgbmVlZD8Kc3RhdGljIHZv
-aWQgdzgzNzkyZF9pbihzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBpbnQgb3BlcmF0aW9uLCBp
-bnQKY3RsX25hbWUsCgkJCWludCAqbnJlbHNfbWFnLCBsb25nICpyZXN1bHRzKQp7CglzdHJ1Y3Qg
-dzgzNzkyZF9kYXRhICpkYXRhID0gY2xpZW50LT5kYXRhOwoJaW50IG5yID0gY3RsX25hbWUgLSBX
-ODM3OTJEX1NZU0NUTF9JTjA7Cgl1MTYgdm9sX21heF90bXAgPSAwOwoJdTE2IHZvbF9taW5fdG1w
-ID0gMDsKCXUxNiB2b2xfY291bnQgPSAwOwoJdTE2IGxvd19iaXRzID0gMDsKCgkvKiByZXN1bHRb
-MF06IGxvdyBsaW1pdCwgcmVzdWx0WzFdOiBoaWdoIGxpbWl0LAoJICAgcmVzdWx0WzJdOiBjdXJy
-ZW50IHZhbHVlICovCglpZiAob3BlcmF0aW9uID0gU0VOU09SU19QUk9DX1JFQUxfSU5GTykKCQkq
-bnJlbHNfbWFnID0gMjsKCWVsc2UgaWYgKG9wZXJhdGlvbiA9IFNFTlNPUlNfUFJPQ19SRUFMX1JF
-QUQpIHsKCQl3ODM3OTJkX3VwZGF0ZV9jbGllbnQoY2xpZW50KTsKCQkvKiBSZWFkIEhpZ2gvTG93
-IGxpbWl0LiAqLwoJCXZvbF9taW5fdG1wID0gZGF0YS0+aW5fbWluW25yXTsKCQl2b2xfbWF4X3Rt
-cCA9IGRhdGEtPmluX21heFtucl07CgkJaWYobnIgPD0gNil7CgkJCXJlc3VsdHNbMF0gPSAodm9s
-X21pbl90bXAgKiA0KTsKCQkJcmVzdWx0c1sxXSA9ICh2b2xfbWF4X3RtcCAqIDQpOwoJCX1lbHNl
-ewoJCQlyZXN1bHRzWzBdID0gdm9sX21pbl90bXA7CgkJCXJlc3VsdHNbMV0gPSB2b2xfbWF4X3Rt
-cDsKCQl9CgoJCS8qIFJlYWQgdm9sdGFnZSBtZWFzdXJlZCB2YWx1ZS4gKi8KCQl2b2xfY291bnQg
-PSBkYXRhLT5pbltucl07CgkJaWYobnIgPD0gNil7CgkJCXZvbF9jb3VudCA9ICh2b2xfY291bnQg
-PDwgMik7CgkJCXN3aXRjaCAobnIpCgkJCXsKCQkJY2FzZSAwOiAgLyogdmluMCAqLwoJCQkJbG93
-X2JpdHMgPSAoZGF0YS0+bG93X2JpdHNbMF0pICYgMHgwMzsKCQkJCWJyZWFrOwoJCQljYXNlIDE6
-ICAvKiB2aW4xICovCgkJCQlsb3dfYml0cyA9IChkYXRhLT5sb3dfYml0c1swXSkgJiAweDBjOwoJ
-CQkJYnJlYWs7CgkJCWNhc2UgMjogIC8qIHZpbjIgKi8KCQkJCWxvd19iaXRzID0gKGRhdGEtPmxv
-d19iaXRzWzBdKSAmIDB4MzA7CgkJCQlicmVhazsKCQkJY2FzZSAzOiAgLyogdmluMyAqLwoJCQkJ
-bG93X2JpdHMgPSAoZGF0YS0+bG93X2JpdHNbMF0pICYgMHhjMDsKCQkJCWJyZWFrOwoJCQljYXNl
-IDQ6ICAvKiB2aW40ICovCgkJCQlsb3dfYml0cyA9IChkYXRhLT5sb3dfYml0c1sxXSkgJiAweDAz
-OwoJCQkJYnJlYWs7CgkJCWNhc2UgNTogIC8qIHZpbjUgKi8KCQkJCWxvd19iaXRzID0gKGRhdGEt
-Pmxvd19iaXRzWzFdKSAmIDB4MGM7CgkJCQlicmVhazsKCQkJY2FzZSA2OiAgLyogdmluNiAqLwoJ
-CQkJbG93X2JpdHMgPSAoZGF0YS0+bG93X2JpdHNbMV0pICYgMHgzMDsKCQkJCWJyZWFrOwoJCQlk
-ZWZhdWx0OgoJCQkJYnJlYWs7CgkJCX0KCQkJdm9sX2NvdW50ID0gdm9sX2NvdW50IHwgbG93X2Jp
-dHM7CgkJfQoJCXJlc3VsdHNbMl0gPSB2b2xfY291bnQ7CgkJKm5yZWxzX21hZyA9IDM7Cgl9IGVs
-c2UgaWYgKG9wZXJhdGlvbiA9IFNFTlNPUlNfUFJPQ19SRUFMX1dSSVRFKSB7CgkJaWYoICpucmVs
-c19tYWcgPCAzICl7CgkJCXJldHVybjsKCQl9CgoJCS8qIFdyaXRlIEhpZ2gvTG93IGxpbWl0IGlu
-dG8gcmVnaXN0ZXIuICovCgkJaWYobnIgPD0gNil7CgkJCWRhdGEtPmluX21pbltucl0gPSBTRU5T
-T1JTX0xJTUlUKChyZXN1bHRzWzBdLzQpLAowLCAyNTUpOwoJCQlkYXRhLT5pbl9tYXhbbnJdID0g
-U0VOU09SU19MSU1JVCgocmVzdWx0c1sxXS80KSwKMCwgMjU1KTsKCQl9ZWxzZXsKCQkJZGF0YS0+
-aW5fbWluW25yXSA9IFNFTlNPUlNfTElNSVQocmVzdWx0c1swXSwgMCwKMjU1KTsKCQkJZGF0YS0+
-aW5fbWF4W25yXSA9IFNFTlNPUlNfTElNSVQocmVzdWx0c1sxXSwgMCwKMjU1KTsKCQl9CgoJCXN3
-aXRjaCAobnIpCgkJewoJCWNhc2UgMDoKCQkJdzgzNzkyZF93cml0ZV92YWx1ZShjbGllbnQsIFc4
-Mzc5MkRfUkVHX0lOMF9NSU4sCgkJCQkJICAgIGRhdGEtPmluX21pbltucl0pOwoJCQl3ODM3OTJk
-X3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU4wX01BWCwKCQkJCQkgICAgZGF0YS0+
-aW5fbWF4W25yXSk7CgkJCWJyZWFrOwoJCWNhc2UgMToKCQkJdzgzNzkyZF93cml0ZV92YWx1ZShj
-bGllbnQsIFc4Mzc5MkRfUkVHX0lOMV9NSU4sCgkJCQkJICAgIGRhdGEtPmluX21pbltucl0pOwoJ
-CQl3ODM3OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU4xX01BWCwKCQkJCQkg
-ICAgZGF0YS0+aW5fbWF4W25yXSk7CgkJCWJyZWFrOwoJCWNhc2UgMjoKCQkJdzgzNzkyZF93cml0
-ZV92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOMl9NSU4sCgkJCQkJICAgIGRhdGEtPmluX21p
-bltucl0pOwoJCQl3ODM3OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU4yX01B
-WCwKCQkJCQkgICAgZGF0YS0+aW5fbWF4W25yXSk7CgkJCWJyZWFrOwoJCWNhc2UgMzoKCQkJdzgz
-NzkyZF93cml0ZV92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOM19NSU4sCgkJCQkJICAgIGRh
-dGEtPmluX21pbltucl0pOwoJCSAgICAgIAl3ODM3OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgz
-NzkyRF9SRUdfSU4zX01BWCwKCQkJCQkgICAgZGF0YS0+aW5fbWF4W25yXSk7CgkJCWJyZWFrOwoJ
-CWNhc2UgNDoKCSAgICAgIAkJdzgzNzkyZF93cml0ZV92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVH
-X0lONF9NSU4sCgkJCQkJICAgIGRhdGEtPmluX21pbltucl0pOwoJCQl3ODM3OTJkX3dyaXRlX3Zh
-bHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU40X01BWCwKCQkJCQkgICAgZGF0YS0+aW5fbWF4W25y
-XSk7CgkgICAgICAJCWJyZWFrOwoJCWNhc2UgNToKICAgICAgCQkJdzgzNzkyZF93cml0ZV92YWx1
-ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lONV9NSU4sCgkJCQkJICAgIGRhdGEtPmluX21pbltucl0p
-OwoJCSAgICAgIAl3ODM3OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU41X01B
-WCwKCQkJCQkgICAgZGF0YS0+aW5fbWF4W25yXSk7CgkJCWJyZWFrOwoJCWNhc2UgNjoKCSAgICAg
-IAkJdzgzNzkyZF93cml0ZV92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lONl9NSU4sCgkJCQkJ
-ICAgIGRhdGEtPmluX21pbltucl0pOwoJCQl3ODM3OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgz
-NzkyRF9SRUdfSU42X01BWCwKCQkJCQkgICAgZGF0YS0+aW5fbWF4W25yXSk7CgkgICAgICAJCWJy
-ZWFrOwoJCWNhc2UgNzoKICAgICAgCQkJdzgzNzkyZF93cml0ZV92YWx1ZShjbGllbnQsIFc4Mzc5
-MkRfUkVHX0lON19NSU4sCgkJCQkJICAgIGRhdGEtPmluX21pbltucl0pOwoJCSAgICAgIAl3ODM3
-OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU43X01BWCwKCQkJCQkgICAgZGF0
-YS0+aW5fbWF4W25yXSk7CgkJCWJyZWFrOwoJCWNhc2UgODoKCSAgICAgIAkJdzgzNzkyZF93cml0
-ZV92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lOOF9NSU4sCgkJCQkJICAgIGRhdGEtPmluX21p
-bltucl0pOwoJCQl3ODM3OTJkX3dyaXRlX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU44X01B
-WCwKCQkJCQkgICAgZGF0YS0+aW5fbWF4W25yXSk7CgkgICAgICAJCWJyZWFrOwoJCWRlZmF1bHQ6
-CiAgICAgIAkJCWJyZWFrOwoJCX0KCX0KfQoKCj4gT3Igd2UgY2FuIGhhdmUgeW91ciBkcml2ZXIg
-Y29tbWl0ZWQgYXMtaXMgYW5kIGhhdmUgaXQgZml4ZWQKYWZ0ZXJ3YXJkcywKPiBhdCB5b3VyIG9w
-dGlvbi4KCklmIHdlIGNhbiBOT1QgZmluZCB0aGUgZXhhY3QgcmVhc29uIGFib3V0IGl0LCB0aGVu
-IHdlIGhhdmUgdG8gZml4IGl0Cm5leHQKdGltZSBhZnRlciB3ZSBjb21taXQgaXQgaW50byBDVlMu
-IDotKAoKCj4gPiAoMikgVGhlIGZpbGUga2VybmVsL2luY2x1ZGUvc2Vuc29ycy5oIHNob3VsZCBi
-ZSBhdXRvLWdlbmVyYXRlZCwKaW5zdGVhZAo+ID4gb2YgYmVpbmcgZWRpdGVkIG1hbnVhbGx5LiBC
-dXQgSSBkb24ndCBrbm93IGhvdyB0byBhdXRvLWdlbmVyYXRlIHRoZQo3OTIKPiA+IHJlbGF0ZWQg
-Y29kZXMgaW50byB0aGlzIGZpbGUuCj4gPgo+ID4gTm93IEkgaGF2ZSB0byBtYW51YWxseSBjb3B5
-IHRoZSBjb2RlcyBzdWNoIGFzCj4gPiAjZGVmaW5lIFc4Mzc5MkRfU1lTQ1RMX0lOMCAxMDAwCj4g
-PiAjZGVmaW5lIFc4Mzc5MkRfU1lTQ1RMX0lOMSAxMDAxCj4gPiBmcm9tIG15IHc4Mzc5MmQuYywg
-YmVjYXVzZSBpZiBJIGRvbid0IGNvcHkgdGhlc2UgY29kZXMsIHRoZXJlIHdpbGwKYmUKPiA+IGNv
-bXBpbGUgZXJyb3IuCj4gPgo+ID4gQ291bGQgeW91IHRlbGwgbWUgaG93IHRvIGF1dG8tZ2VuZXJh
-dGUgdGhlIGZpbGUKPiA+IGtlcm5lbC9pbmNsdWRlL3NlbnNvcnMuaD8KPiA+IElzIHRoZXJlIGFu
-eSBzY3JpcHQgSSBoYXZlIHRvIHJ1bj8KPiAKPiBObyB0aGVyZSBpcyBubyBzY3JpcHQgdG8gcnVu
-LiBBbGwgeW91IGhhdmUgdG8gZG8gaXMgcHV0IHR3byBjb21tZW50CmxpbmVzCj4gYXJvdW5kIHRo
-ZSBTWVNDVEwgZGVmaW5pdGlvbnMgaW4gdGhlIGRyaXZlciBpdHNlbGYuIE91ciBNYWtlZmlsZQpz
-eXN0ZW0KPiBoYXMgYSBydWxlIHRoYXQgYXV0b21hdGljYWxseSBwYXJzZXMgYWxsIGNoaXAgZHJp
-dmVycyBhbmQgZXh0cmFjdCB0aGUKPiBsaW5lcyBiZXR3ZWVuIHRoZXNlIGNvbW1lbnQgbGluZXMg
-ZnJvbSBhbGwgZHJpdmVyLCBhbmQgYWRkIHRoZW0gdG8KPiBzZW5zb3JzLmguIFRoZXNlIGxpbmVz
-IGFyZToKPiAKPiAvKiAtLSBTRU5TT1JTIFNZU0NUTCBTVEFSVCAtLSAqLwo+IAo+IC8qIC0tIFNF
-TlNPUlMgU1lTQ1RMIEVORCAtLSAqLwo+IAo+IFNlZSBhbGwgb3RoZXIgY2hpcCBkcml2ZXJzLCB0
-aGV5IGhhdmUgdGhlbS4gSXQgaXMgaW1wb3J0YW50IHRoYXQgeW91CmNvcHkKPiBleGFjdGx5IHRo
-ZXNlIGNvbW1lbnRzLCBvciB0aGUgYnVpbGQgcHJvY2VzcyB3b24ndCBkZXRlY3QgdGhlIFNZU0NU
-THMKPiBwcm9wZXJseS4gQWxzbyBub3RlIHRoYXQgdGhlIGRyaXZlciBpdHNlbGYgaGFzIHRvIGJl
-IHBsYWNlZCBpbgo+IGtlcm5lbC9jaGlwcyBhbmQgbWlnaHQgZXZlbiBuZWVkIHRvIGJlIHByb3Bl
-cmx5IGRlY2xhcmVkIGludG8KPiBrZXJuZWwvY2hpcHMvTW9kdWxlLm1rIChpZiAibWFrZSIgYnVp
-bGRzIHRoZSBkcml2ZXIgcHJvcGVybHksIGl0IG11c3QKPiBiZSBPSykuCgpZZXMsIHlvdSBhcmUg
-cmlnaHQuIEl0IHdvcmtzIHdlbGwgbm93LgoKVGhhbmtzCgpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoy
-MDA1LTAyLTIxCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhp
-cyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5k
-aWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBu
-b3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3Bv
-bnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBr
-aW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUg
-YWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGlt
-bWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlz
-YWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlv
-biBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24g
-aW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5l
-c3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3Jz
-ZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxl
-YXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEh
-CiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGk
-bKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4g
-sLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWm
-rKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65
-pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4
-Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXz
-u1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
+
+Hi Chunhao,
+
+> I think the reason most of my multipliers are less than 1 is that:
+> The /proc/in0-in6 measured value keep such as (CR[20]*4 + CR[3E]&0x03)
+> Which are different from the traditional one, because they are about 4
+> times of CR[20]. While the /proc/in7-in8 only keep such as CR[B0]/
+> CR[B1], so their multipliers are greater than 1.
+> I explained it in my mail sent on 2005-02-18, please refer it.
+>
+> So my in0-in6 multipliers in sensors.conf is the quarter of the
+> traditional one. If you multiply my multipliers of in0-in6 with the
+> value 4, you will find that most of them will be greater than 1,
+> except in0 and in1(0.8)
+>
+> The multipliers in sensors.conf is corresponding with the data sheet,
+> You may check it. :-)
+
+Hm, in fact I think the reason is more complex than that. I have read the
+datasheet again. I do not deny that the final computations as shown in
+"sensors" are correct, I think they are. But I think you do some
+computations in sensors.conf that should be done in the driver
+(ironically the exact opposite of the original problem).
+
+What you do for now is export the raw register value (or combined
+registers value for in0-6), with magnitude 2, so the value is divided by
+100. That's what /proc files have: register values, possibly combined,
+divided by 100. This is an arbitrary unit, it's not standard (standard
+is Volts). You had to compensate in sensors.conf (* 0.2 for in0-1
+because they have a resolution of 2mV, * 0.4 for other inputs because
+they have a resolution of 4mV).
+
+The values in /proc should really be Volts. If a /proc file reads 1.12 it
+really must mean 1.12V at that pin of the chip, and not that the
+register was holding value 112. User-space doesn't care about
+implementation details nor register values, it wants standard values
+expressed in Volts.
+
+So what the driver should do is export the following value, e.g.:
+(CR[20]*4 + CR[3E]&0x03) * 2, with magnitude 3
+
+* 2 is because of the 2mV resolution, magnitude 3 (divide by 1000) for
+milliVolts.
+
+For in2-8, this would be * 4 instead of * 2, because LSB is 4mV.
+
+That way you will really export values in Volts through /proc, which is
+the standard. You will find that, after doing that, most compute lines
+in sensors.conf are unnecessary. In fact you should only need such lines
+for inputs which involve resistors (negative voltages, and positive
+voltages greater than 2.04 or 4.08 V).
+
+> OK, please refer to the following function, Is it what you need?
+
+That's it. I could find why it doesn't work (I think). I also found
+another bug:
+
+>		if(nr <= 6){
+>			vol_count = (vol_count << 2);
+>			switch (nr)
+>			{
+>			case 0:  /* vin0 */
+>				low_bits = (data->low_bits[0]) & 0x03;
+>				break;
+>			case 1:  /* vin1 */
+>				low_bits = (data->low_bits[0]) & 0x0c;
+>				break;
+>			case 2:  /* vin2 */
+>				low_bits = (data->low_bits[0]) & 0x30;
+>				break;
+>			case 3:  /* vin3 */
+>				low_bits = (data->low_bits[0]) & 0xc0;
+>				break;
+>			case 4:  /* vin4 */
+>				low_bits = (data->low_bits[1]) & 0x03;
+>				break;
+>			case 5:  /* vin5 */
+>				low_bits = (data->low_bits[1]) & 0x0c;
+>				break;
+>			case 6:  /* vin6 */
+>				low_bits = (data->low_bits[1]) & 0x30;
+>				break;
+>			default:
+>				break;
+>			}
+>			vol_count = vol_count | low_bits;
+>		}
+
+You have a bug here. in0 and in4 will be OK, but in1, in2, in3, in5 and
+in6 will not be. For example, in1 should be:
+
+case 1:  /* vin1 */
+	low_bits = (data->low_bits[0] & 0x0c) >> 2;
+	break;
+
+If you don't properly shift the 2 bits you extract, they won't be
+placed at the right location when you add them ("|") to the main value
+later.
+
+>	} else if (operation = SENSORS_PROC_REAL_WRITE) {
+>		if( *nrels_mag < 3 ){
+>			return;
+>		}
+
+And the reason why you cannot write voltage limits is here, I think. It
+should be "< 2", not "< 3" (or even "!= 2", since you obviously
+expect exactly 2 parameters).
+
+Thanks,
+--
+Jean Delvare
