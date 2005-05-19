@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:37 +0000
 Subject: call for 2.6.5 soon
-Message-Id: <20020807234021.39f339b5.khali@linux-fr.org>
+Message-Id: <3D51BC21.B2DBBC8A@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3D3CBBA1.B4B210B0@paradyne.com>
 In-Reply-To: <3D3CBBA1.B4B210B0@paradyne.com>
@@ -10,32 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+The version at the "official" link below is identical to the
+one I started from that I got from 
+http://www.domsch.com/linux/patches/dmi/ .
 
-> Your patch/merge plan sounds fine to me.
-Great.
+I checked in the base first, then my sensors additions as CVS 1.2, then
+the -Wall
+cleanups as CVS 1.3. So you should be able to use CVS to
+untangle what I did pretty easily.
 
-> Where is the version you refer to as the "official" one in "Alan's
-> files"?
-
-ftp://ftp.linux.org.uk/pub/linux/alan/Software/System/DMI/
-
-> > Depends on the deadline we have, if we have one?
+Jean Delvare wrote:
 > 
-> Well I think we want to release after we have at least 3 of these
-> things done:
+> > Your patch/merge plan sounds fine to me.
+> Great.
 > 
-> - IBM detection in i2c-piix4 (done)
-> - IBM detection in sensors-detect
-> - 24RF08 experiments by Joe in Australia (I pinged him again recently)
-> - 24RF08 experiments by MDS (doubtful I will get samples)
+> > Where is the version you refer to as the "official" one in "Alan's
+> > files"?
 > 
-> Hopefully in a week or two...
-
-Ok. Point 2 is mine. I still don't know wether I will use dmidecode or
-not, but wether I do or not, it shouldn't take too much time (but I
-don't have much, in fact). Having it done within a week seems reasonable
-to me.
-
--- 
-Jean "Khali" Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+> ftp://ftp.linux.org.uk/pub/linux/alan/Software/System/DMI/
+>
