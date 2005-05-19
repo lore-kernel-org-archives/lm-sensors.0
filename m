@@ -1,24 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: 'Use the ddcmon and/or decode-edid.pl scripts' message
-Message-Id: <mU2VWDn4.1114512993.9135740.khali@localhost>
+From: aife@netvisao.pt (=?iso-8859-1?q?Andr=E9_Esteves?=)
+Date: Thu, 19 May 2005 06:24:57 +0000
+Subject: ask us for one! Driver, pleaseeeee ;)
+Message-Id: <200405112318.48023.aife@netvisao.pt>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <a8007ab4050425164642962763@mail.gmail.com>
-In-Reply-To: <a8007ab4050425164642962763@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+#----cut here----
+# I2C adapter drivers
+i2c-sis96x
+# modprobe unknown adapter bt878 #0 [sw] using Algorithm unavailable
+# I2C chip drivers
+# no driver for Asus ASM58 Mozart-2 yet, ask us for one!
+#----cut here----
 
-Quoting myself:
-> BTW, you pointed out a bug in the driver (the min limit being arbitrarily
-> set to 952 RPM, while it was most likely disabled in the first place). I
-> will have to fix that.
+Thx for your great work! 
+Could you work on the above driver?
 
-On second thought, the driver is behaving as it should. The PC8736x chips
-have a dedicated overflow flag for fans, so there is no reason to handle
-the 255 register value any differently than other register values.
+;)
 
---
-Jean Delvare
+Greetings,
+
+Andr? Esteves
+
+-- 
++-- despertar@yahoogroups.com -- + -- http://www.ateismo.net --+
++- siga o nosso diario de uns ateus em www.ateismo.net/diario -+
+
+Curious?! Just have a look at my homepage:
+ http://www.nocturno.org/aife/
+
+-------------------
+"Durante os tempos de propaganda e logro universal,
+dizer a verdade transforma-se num acto revolucion?rio..."
+-- George Orwell
