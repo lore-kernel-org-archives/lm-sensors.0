@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: lm_sensors messages
-Message-Id: <1063784521.3f681049a4d64@imp.gcu.info>
+Message-Id: <20030917230242.6a3a648e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030916214501.3cef3d5c.khali@linux-fr.org>
 In-Reply-To: <20030916214501.3cef3d5c.khali@linux-fr.org>
@@ -11,35 +11,29 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I do work for IBM, but not for the PC company (division that makes the 
-> Thinkpad).  This means that I could have as much trouble as you have and I 
-> can only promise to try. 
-> 
->  Anyway,  I don't fully understand the problem.   You can identify which 
-> machines have the problem chips, isn't that enough?  Do you just want a 
-> complete list for posting?
+> Ok, I'll see what I can do.  Can you tell me the exact part number of
+> the problem chip?
 
-We can't identify which machines have the problem chips. There's no (known) way
-to do that. What we can do is detect which thinkpad we're running on (e.g. TP
-600, TP 770, etc.), which means that with a complete listing of which models
-have the problem chips, we could let our software run of models that are not on
-the list. That's that list we are after and couldn't get our hands on so far.
+I don't think there is any part number.
 
-> BTW.  The message that I sent you was *not* from a thinkpad.  It was from 
-> an IBM Intellistation M Pro.
+After reading our docs again, I have to correct what I said here:
+"Some [Thinkpads] do contain special memory chips that lm_sensors can
+corrupt."
+This isn't the truth. They contain *EEPROMS* we can corrupt. I
+misexpressed myself because EEPROMs are usually found on memory chips,
+but I don't think it is the case here.
 
-We chose to play it safe and blacklisted all IBM systems (we had one report of
-faulty non-Thinkpad IBM, don't remember how reliable it was). As long as we
-don't have a complete list of bad models, we have to use the whitelist approach.
-If you want sensors-detect to run on your system, let us know and we'll send you
-a modified version. If you confirm that your system survived it, we'll add your
-model to our (empty so far) white list. Understand that it is a risky process
-and that we don't endorse any possible nasty consequence. The risk on a
-non-Thinkpad IBM is low, but exist.
+So, I believe there is no part number to be after, but instead the
+reference of the faulty EEPROM. It is the Atmel 24RF08 ("an unusual, 8K
+that contains a RFID (Radio Frequency ID) port for wireless access, and
+elaborate access protection mechanisms", according to our docs).
+
+I understand that it would be easier for you (or anyone) to look for a
+part number, but I'm almost sure that there isn't any here.
+
+Thank you for any help you can provide, and first for trying at least :)
+This is very appreciated.
 
 -- 
 Jean Delvare
 http://www.ensicaen.ismra.fr/~delvare/
-
--------------------------------------------------
-This mail sent through IMP: http://horde.org/imp/
