@@ -1,34 +1,33 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: ASUS P4C800 Deluxe - W83627THF
-Message-Id: <3F523671.1050706@paradyne.com>
+From: donj@asaca.com (Don Jessup)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: Makefile problems
+Message-Id: <20040115164753.98479.qmail@web14522.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1062239759.1074.30.camel@hansi>
-In-Reply-To: <1062239759.1074.30.camel@hansi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks.
-I took your patch as a starting point and then fixed things up some more.
-The THF datasheet wasn't available last time I looked but I have it now and
-that helped a lot as well.
+  I having a problem with lm_sensors2 Makefile.  I run make all or make install
+  It seems to just go into a loop and ends up doing nothing.  I have sent a log
+  of what Makefile outputs.   Please let me know what I'm doing wrong or
+missing.
+  
 
-Johann Glaser wrote:
-> Hi!
-> 
-> 
->>As you saw, we've already added support for the ICH5 in 2.8.0.
->>The w83627hf driver supports the thf as well, and we would
->>rather enhance the support there than in w83781d.c, which is hopelessly cluttered.
->>If you can give us a patch against CVS for that driver that would be most helpful.
-> 
-> 
-> I made a patch agains the current 2.8.0 sources downloaded from the
-> homepage.
-> 
-> Bye
->   Hansi
-> 
-> 
+  Thank You
+  don
+
+==Don Jessup
+Asaca/Shibasoku Corp. of America
+400 Corporate Circle, Unit G
+Golden, CO  80401
+303-278-1111 X232
+donj@asaca.com
+http://www.asaca.com
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors2.log
+Type: application/octet-stream
+Size: 96296 bytes
+Desc: lm_sensors2.log
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040115/f8a5c2a1/lm_sensors2.obj
