@@ -1,30 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: Asus A8V Deluxe
-Message-Id: <yqgip7te.1109320118.7708040.khali@localhost>
+From: jsack@inostor.com (James G. Sack (jim))
+Date: Thu, 19 May 2005 06:25:38 +0000
+Subject: eeprom 2.9.0 problems on SuperMicro P4SCT+II
+Message-Id: <1108507598.2411.28.camel@jgs3>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42120C36.6000107@highlandsun.com>
-In-Reply-To: <42120C36.6000107@highlandsun.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I can report the eeprom.o module from 2.9.0 on a SuperMicro P4SCT+II
+seems to produce the same bus problems reported elsewhere (intel boards,
+I think).
 
-Hi Howard,
+The symptom is repeated log messages like
+  PCI device 8086:25a4 (Intel Corp.): Reset failed! (01)
+  eeprom.o: block read fail at 0x00!
 
-> Still using the w83627thf-* config, but there's no -12V supply and
-> there's no battery since this is a desktop machine, so I commented out
-> label in4 and label in8 and replaced them with "ignore" ...
+The problem does NOT show up on a couple of Tyan boards I have
+available, one a S2707 Trinity GC-SL and another of unknown ID (but it
+has an ServerWorks CNB20LE northbridge and OSB4 southbridge if that's
+any help)
 
-Desktops do have batteries, typically 3V lithium-ion CR2032, which may or
-may not be monitored on any given system. These are small batteries use
-to backup the BIOS/CMOS data and keep the clock running when the system
-is powered off.
+I tried mhoffman's patch in 
+ http://archives.andrew.net.au/lm-sensors/msg29196.html
+and it regularly hits the 'timeout >= MAX_TIMEOUT' branch.
 
-> I hope this helps any other Asus A8V owners out there...
-
-Certainly, thanks for reporting.
-
---
-Jean Delvare
+.jim
