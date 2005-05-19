@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:45 +0000
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: RFC locking and rate limit updates for i2c?
-Message-Id: <Wdb5uxdO.1111740866.9581640.khali@localhost>
+Message-Id: <rap741tlstq7nfd4jmt9lpkpme5hnec83r@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 In-Reply-To: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
@@ -10,50 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-Hi Grant,
-
-> > > Then think of reader locking, can drivers simply return
-> > > -error_update_in_progress_uncertain_data_value_try_again ?
-> >
-> > With what benefit, when we can wait a fraction of second and return a
-> > valid value?
+On Fri, 25 Mar 2005 09:54:27 +0100 (CET), "Jean Delvare" <khali@linux-fr.org> wrote:
+>> How driver wait for that?  If writer taken lock, is reader
+>> blocked?
+>> Not as far as I see.
 >
-> How driver wait for that?  If writer taken lock, is reader
-> blocked?
-> Not as far as I see.
+>It is blocked. It will wait until the lock is released and can be
+>acquired again. This is why forgetting to release a lock leads to a
+>driver lockup.
 
-It is blocked. It will wait until the lock is released and can be
-acquired again. This is why forgetting to release a lock leads to a
-driver lockup.
+readers don't check or take the lock?  only set_something callbacks?
 
-> Perhaps need yet another lock to do this properly, writer takes
-> exclusive lock, reader takes non-exclusive lock that will block
-> update writers but not other readers.
+>
+>I will (try to) provide patches for the following drivers today: lm63,
+>lm80, lm83, lm87, lm90, lm92, pc87360. As a side note, the w83l785ts
+>driver is read-only so it obviously doesn'y need to be updated.
 
-We don't need this. There are no "pure readers" in our model. The
-update function reads from the chip registers and writes to the data
-structure. The sysfs write callbacks write to the data structure and
-write to the chip registers. So everyone is writing to the data
-structure, which means that the lock must be exclusive for everyone.
-It's exactly what the lm85, adm1026 and adm1031 drivers do.
+I have one more sitting here, fscher.c, waiting for feedback on 
+what I post already.  Glad I didn't get to lm?? then :)
 
-> Somewhere I read on lm_sensors to take out 'tickets' so others know
-> what is being developed.
+Then I go check ones didn't appear on survey list because they use 
+different names.  Oh, they are off my list, they're yours? :)  
 
-Don't trust what you read on this page. it's dead old and outdated (and
-hopefully soon gone). This mailing-list is where things are discussed,
-so it's already done.
+my work list list at:
+http://scatter.mine.nu/lmsensors/list-driver-write-locking-check
 
-> I'll repost via686a against -mm2 as new thread.
+will add others to it as I see patches appear, just to scoreboard 
+progress on locking issue.
 
-Ok, will review. Sorry I couldn't test your patch as planned yesterday
-evening, but I had other tests going on the same machine.
+semi-related:
+I need a policy call on adm1026, adm1031 as they don't comply 
+with other drivers data store, saving fan_div other than 0..3 
+value.  It make fan_div update needlessly complex and different 
+to other drivers I've encountered so far.  The conversion of 
+0..3 to 1,2,4,8 is a single '<<' operation, the reverse is more 
+complex if-then-else-if-then-else... statement only needed once 
+in other drivers.
 
-I will (try to) provide patches for the following drivers today: lm63,
-lm80, lm83, lm87, lm90, lm92, pc87360. As a side note, the w83l785ts
-driver is read-only so it obviously doesn'y need to be updated.
-
-Thanks,
---
-Jean Delvare
+Cheers,
+Grant.
