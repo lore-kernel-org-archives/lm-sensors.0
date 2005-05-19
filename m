@@ -1,22 +1,1676 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:57 +0000
-Subject: ESB2 SMBUS - validation request
-Message-Id: <20050509203608.5f19fb25.khali@linux-fr.org>
+From: lopemanc@swbell.net (Chris Lopeman)
+Date: Thu, 19 May 2005 06:25:25 +0000
+Subject: Thanks and setup problem
+Message-Id: <41AE99A2.8050402@swbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <427E318D.7050908@sh.cvut.cz>
-In-Reply-To: <427E318D.7050908@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
+Skipped content of type multipart/alternative-------------- next part --------------
+# Sensors configuration file used by 'libsensors'
+#------------------------------------------------
+#
+##########################################################################
+#                                                                        #
+#    PLEASE READ THIS HELPFUL HINT!!!                                    #
+#                                                                        #
+#       The 'set' lines (generally for min and max values)               #
+#       do not take effect until you run 'sensors -s' as root !!!        #
+#       We suggest you put 'sensors -s' in a /etc/rc.d/... file          #
+#       to be run at boot time after the modules are inserted !!!        #
+#                                                                        #
+##########################################################################
+#
+#
+# OVERVIEW
+# --------
+# This configuration file will be used by all userspace applications
+# linked to libsensors. It is NOT used by the lm_sensors drivers directly.
+#
+# This config file consists of two parts: the heavily commented LM78
+# example, and the real parts. Search for '####' if you want to skip
+# to the real stuff.
+#
+# Hash marks introduce comments, which continue until the end of a line
+#
+# Identifiers consisting of only digits and letters can be used
+# unquoted; other identifiers must be quoted. Escape characters within
+# quotes operate like those in C.
+#
+#
+# CHIP LINES
+# ----------
+# A 'chip' line specifies what the following 'label', 'compute', 'set' and
+# 'ignore' lines refer to. In this case, until the
+# next 'chip' line, everything refers to all lm78, lm78-j and lm79
+# chips. Other examples are *-isa-* for everything on the ISA bus, and
+# lm78-j-i2c-*-4e for all lm78-j chips on address 0x4e of any I2C bus.
+#
+# If more chip statements match a specific chip, they are all considered.
+# Later lines overrule earlier lines, so if you set the in0 label for
+# lm78-* to "This", and later on the in0 label for lm78-isa-* to "That",
+# "That" is used for LM78 chips on the ISA bus, and "This" for LM78
+# chips on a non-ISA bus.
+#
+#       chip "lm78-*" "lm78-j-*" "lm79-*"
+#
+#
+# FEATURE NAMES
+# -------------
+# Feature names are used in 'label', 'compute', 'set', and 'ignore' lines.
+# Example feature names are 'in0', 'temp2', 'in3_min', and 'temp3_over'.
+# These features are defined for each chip in lib/chips.c.
+#
+# Undefined features will be silently ignored in 'label' and 'compute' lines.
+# Undefined features in 'set' lines will result in 'Unknonw feature name'
+# when running 'sensors -s'.
+#
+# Unfortunately, feature names starting with a number must be in
+# double quotes or you get 'parse error, expecting 'NAME''.
+#
+# If you have trouble, verify the features in lib/chips.c!!!
+#
+#
+# LABEL LINES
+# -----------
+# A label line describes what a certain feature stands for on your
+# mainboard. Programs can retrieve these names and display them.
+# If no label is specified for a certain feature, the default name
+# (ie. 'fan1' for fan1) is used.
+#
+# If you specify a label for in1, this label is also used for in1_min and
+# in1_max, unless they have their own labels declared. There are several
+# of these logical groups.
+#
+# These are as advised in the LM78 and LM79 data sheets, and used on most
+# boards we have seen.
+#
+#       label in0 "VCore 1"
+#       label in1 "VCore 2"
+#       label in2 "+3.3V"
+#       label in3 "+5V"
+#       label in4 "+12V"
+#       label in5 "-12V"
+#       label in6 "-5V"
+#
+#
+# COMPUTE LINES
+# -------------
+# A compute line describes how to scale a certain feature. There are
+# two expressions in it: the first describes how the /proc value must
+# be translated to a user value, the second how a user value must be
+# translated to a /proc value. '@' is the value to operate on. You may
+# refer to other readable features (like '2 * vid').
+#
+# The following operators are valid: + - * / ( ) ^ `
+# ^ is e**x and ` is ln(x) (valid in library version 1.4.0 /
+# lm_sensors 2.7.1 or higher)
+#
+# Like for the label statement, there are logical groups here. They are
+# sometimes a bit different, though. For example, fan1_div is in the
+# logical label group of fan1 (it gets the same label if none is declared
+# for it), but it is not in the compute group of fan1 (as it uses a
+# completely different system of values).
+#
+#
+# VOLTAGE COMPUTATION DETAILS
+# ---------------------------
+# Most voltage sensors in sensor chips have a range of 0 to 4.096 Volts.
+# This is generally sufficient for the 3.3 and CPU (2.5V, for example)
+# supply voltages, so the sensor chip reading is the actual voltage.
+#
+# Other supply voltages must be scaled with an external resistor network.
+# The chip driver generally reports the 'raw' value 0 - 4.09 V, and the
+# userspace application must convert this raw value to an actual voltage.
+# The 'compute' lines provide this facility.
+#
+# Unfortunately the resistor values vary among motherboard types.
+# Therefore you may have to adjust the computations in this file
+# to match your motherboard.
+#
+# For positive voltages (in3, in4), two resistors are used, with the following
+# formula (R1,R2: resistor values, Vs: read voltage, Vin: pin voltage)
+#       R1 = R2 * (Vs/Vin - 1)
+# For negative voltages (in5, in6) two resistors are used, with the following
+# formula (Rin,Rf: resistor values, Vs: read voltage, Vin: pin voltage)
+#       Rin = (Vs * Rf) / Vin
+#
+# Note: Some chips use a different formula, see it87 section for example.
+#
+# Here are the official LM78 and LM79 data sheet values.
+#             Vs     R1,Rin   R2,Rf    Vin
+#       in3   +5.0      6.8    10     +2.98
+#       in4  +12.0     30      10     +3.00
+#       in5  -12.0    240      60     +3.00
+#       in6   -5.0    100      60     +3.00
+#
+# These would lead to these declarations:
+#       compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+#       compute in4 ((30/10)+1)*@  ,  @/((30/10)+1)
+#       compute in5 -(240/60)*@    ,  -@/(240/60)
+#       compute in6 -(100/60)*@    ,  -@/(100/60)
+#
+# On almost any mainboard we have seen, the Winbond compute values lead to
+# much better results, though.
+#
+#             Vs     R1,Rin   R2,Rf    Vin
+#       in4  +12.0     28      10     +3.00
+#       in5  -12.0    210      60.4   +3.00
+#       in6   -5.0     90.9    60.4   +3.00
+#
+# These leads to these declarations:
+#       compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+#       compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+#       compute in5 -(210/60.4)*@  ,  -@/(210/60.4)
+#       compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
+#
+#
+# SET LINES
+# ---------
+# Set statements set things like limits. Complete expressions can be
+# used. Not everything can sensibly be set: setting 'in0', for example,
+# is impossible! These settings are put through the compute translations;
+# so if we specify '12.8' for in6, '3.2' will actually be written!
+#
+# Important note: In the 'sensors' program, these only take effect
+# after running 'sensors -s'!!!
+#
+# Here are some examples:
+#
+#       set in0_max vid*1.05
+#       set in0_min vid*0.95
+#       set temp1_over 40
+#       set temp1_hyst 37
+#
+# Think of tempx_over as 'alarm set' and tempx_hyst as 'alarm clear'
+# thresholds. In most cases the 'over' value should be higher than
+# the 'hyst' value by several degrees.
+#
+#
+# IGNORE LINES
+# ------------
+# Ignore statements tell certain features are not wanted. User programs can
+# still read them if they really want, though; this is just an advisory
+# marking. 'in0' would also invalidate 'in0_max' and 'in0_min'.
+# 'ignore' does not disable anything in the actual sensor chip; it
+# simply advises the user program to not access that data.
+#
+#       ignore in0
+#
+#
+# STATEMENT ORDER
+# ---------------
+# Statements can go in any order, EXCEPT that some statements depend
+# on others. Dependencies could be either in the library or the driver.
+# A 'compute' statement must go before a 'set' statement
+# for the same feature or else the 'set' won't be computed correctly.
+# This is a library dependency.
+# A 'set fan1_div' statement must go before a 'set fan1_min' statement,
+# because the driver uses the divisor in calculating the minimum.
+# Also, one should set vrm prior to using vid in any formula.
+#
+#
+# BUS LINES
+# ---------
+# There is one other feature: the 'bus' statement. An example is below.
+#
+#       bus "i2c-0" "SMBus PIIX4 adapter at e800" "Non-I2C SMBus adapter"
+#
+# If we refer from now on to 'i2c-0' in 'chip' lines, this will run-time
+# be matched to this bus. So even if the PIIX4 is called 'i2c-5' at that
+# moment, because five other adapters were detected first, 'i2c-0' in
+# the config file would always only match this physical bus. In the above
+# config file, this feature is not needed; but the next lines would
+# only affect the LM75 chips on the PIIX4 adapter:
+#
+#       chip "lm75-i2c-0-*"
+#
+# You should really use the output of /proc/bus/chips to generate bus lines,
+# because one mistyped characted will inhibit the match. Wildcards are not
+# yet supported; spaces at the end are ignored, though.
+#
+#
+##########################################################################
+#### Here begins the real configuration file
 
-> I'm attaching the patch. I can't apply because I forgot my password it
-> seems :( Jean please apply.
 
-Nahh, I won't apply your patches forever. Either find your password
-back, or ask Phil for a new one.
+chip "lm78-*" "lm78-j-*" "lm79-*" "w83781d-*"
 
--- 
-Jean Delvare
+# These are as advised in the LM78 and LM79 data sheets, and used on almost
+# any mainboard we have seen.
+
+    label in0 "VCore 1"
+    label in1 "VCore 2"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+
+# For positive voltages (in3, in4), two resistors are used, with the following
+# formula (R1,R2: resistor values, Vs: read voltage, Vin: pin voltage)
+#   R1 = R2 * (Vs/Vin - 1)
+# For negative voltages (in5, in6) two resistors are used, with the following
+# formula (Rin,Rf: resistor values, Vs: read voltage, Vin: pin voltage)
+#   Rin = (Vs * Rf) / Vin
+#
+# Here are the official LM78 and LM79 data sheet values.
+#       Vs     R1,Rin   R2,Rf    Vin
+# in3   +5.0      6.8    10     +2.98
+# in4  +12.0     30      10     +3.00
+# in5  -12.0    240      60     +3.00
+# in6   -5.0    100      60     +3.00
+#
+# These would lead to these declarations:
+# compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+# compute in4 ((30/10)+1)*@  ,  @/((30/10)+1)
+# compute in5 -(240/60)*@    ,  -@/(240/60)
+# compute in6 -(100/60)*@    ,  -@/(100/60)
+#
+# On almost any mainboard we have seen, the Winbond compute values lead to
+# much better results, though.
+#
+#       Vs     R1,Rin   R2,Rf    Vin
+# in4  +12.0     28      10     +3.00
+# in5  -12.0    210      60.4   +3.00
+# in6   -5.0     90.9    60.4   +3.00
+#
+# These leads to these declarations:
+
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 -(210/60.4)*@  ,  -@/(210/60.4)
+    compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
+
+# Here, we assume the VID readings are valid, and we use a max. 5% deviation
+
+    set in0_min 2*0.95
+    set in0_max 2*1.05
+    set in1_min vid*0.95
+    set in1_max vid*1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.95
+    set in4_max 12 * 1.05
+    set in5_max -12 * 0.95
+    set in5_min -12 * 1.05
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+
+# Examples for lm78, lm78j, lm79 temperature limits
+#    set temp_over 40
+#    set temp_hyst 37
+
+# Examples for w83781d temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 52
+#    set temp2_hyst 47
+#    set temp3_over 52
+#    set temp3_hyst 47
+
+# Ignore fans you don't actually have
+#    ignore fan1
+#    ignore fan2
+#    ignore fan3
+
+# In case a lm78 is used together with a lm75, the lm78 temp sensor will
+# generally show the M/B temperature while the lm75 temp sensor will show
+# the CPU temperature.
+#    label temp "M/B Temp"
+
+
+chip "lm75-*"
+
+# For the Asus TX97-E. If it doesn't work for you, feel free to complain.
+    compute temp @*2.0, @/2.0
+
+# Examples for temperature limits
+#    set temp_over 70
+#    set temp_hyst 65
+
+# In case a lm75 is used together with a lm78, the lm78 temp sensor will
+# generally show the M/B temperature while the lm75 temp sensor will show
+# the CPU temperature.
+#    label temp "CPU Temp"
+
+
+chip "sis5595-*"
+
+    label in0 "VCore 1"
+    label in1 "VCore 2"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+
+    set in0_min 2.0 * 0.95
+    set in0_max 2.0 * 1.05
+    set in1_min 2.0 * 0.95
+    set in1_max 2.0 * 1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.95
+    set in4_max 12 * 1.05
+
+#
+# SiS5595 temperature calculation
+# The driver currently includes a calculation due to the wide
+# variation in thermistor types on SiS5595 motherboards.
+# The driver currently has a calculation of t = (.83x + 52.12).
+# One user reports the correct formula of t = (.345x - 12).
+# So you want to put a compute line in sensors.conf that has
+# the inverse of the driver formula, and put your formula on top of it.
+# The inverse of the driver formula is x = (1.20t - 62.77)
+# So the final formula is newt = (.345(1.20t - 62.77)) - 12).
+# Put this in the sensors.conf file as
+# compute temp ((.345 * ((1.20 * @) - 62.77)) - 12), ...
+# where ... is the inverse function I leave to you.
+#
+# Look in your 'Vendor.ini' file to see which one is present
+# on your motherboard. Look for the line like:
+#       [Temp1]
+#            ThermistorType     = NTC-10KC15-1608-1P
+# Fix up a 'compute' line to match your thermistor type.
+# Warning. You still don't have enough information to do this.
+#            ThermistorType     = NTC-10KC15-1608-1P (10K at 25C; Beta = 3435)
+#   compute temp ((X * ((1.20 * @) - 62.77)) - Y), ...
+#            ThermistorType     = NTC-103KC15-1608-1P  (??)
+#   compute temp ((X * ((1.20 * @) - 62.77)) - Y), ...
+#            ThermistorType     = NTC-103AT-2 (10K at 25C; Beta = 3435)
+#   compute temp ((X * ((1.20 * @) - 62.77)) - Y), ...
+#            ThermistorType     = NTC-103JT   (10K at 25C; Beta = 3435)
+#   compute temp ((X * ((1.20 * @) - 62.77)) - Y), ...
+
+# examples for sis5595 temperature limits;
+# for sis5595, temp_hyst is really the low limit, not a hysteresis value
+#    set temp_over 40
+#    set temp_hyst 37
+
+chip "w83782d-*" "w83627hf-*"
+
+# Same as above for w83781d except that in5 and in6 are computed differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard positive
+# inputs and the negative voltages are level shifted by a 3.6V reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
+
+    label in0 "VCore 1"
+    label in1 "VCore 2"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+    label in7 "V5SB"
+    label in8 "VBat"
+
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+    compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+# adjust this if your vid is wrong; see doc/vid
+#   set vrm 9.0
+
+# set limits to  5% for the critical voltages
+# set limits to 10% for the non-critical voltages
+# set limits to 20% for the battery voltage
+
+    set in0_min vid*0.95
+    set in0_max vid*1.05
+    set in1_min vid*0.95
+    set in1_max vid*1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.90
+    set in4_max 12 * 1.10
+    set in5_max -12 * 0.90
+    set in5_min -12 * 1.10
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+    set in7_min 5 * 0.95
+    set in7_max 5 * 1.05
+    set in8_min 3.0 * 0.80
+    set in8_max 3.0 * 1.20
+
+# set up sensor types (thermistor is default)
+# 1 = PII/Celeron Diode; 2 = 3904 transistor;
+# 3435 = thermistor with Beta = 3435
+# If temperature changes very little, try 1 or 2.
+#   set sensor1 1
+#   set sensor2 2
+#   set sensor3 3435
+
+# examples for temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 52
+#    set temp2_hyst 47
+#    set temp3_over 52
+#    set temp3_hyst 47
+
+
+chip "w83783s-*"
+
+# Same as above for w83781d except that in5 and in6 are computed differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard positive
+# inputs and the negative voltages are level shifted by a 3.6V reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
+
+    label in0 "VCore 1"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+    compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+
+# adjust this if your vid is wrong; see doc/vid
+#   set vrm 9.0
+
+# set limits to  5% for the critical voltages
+# set limits to 10% for the non-critical voltages
+# set limits to 20% for the battery voltage
+
+    set in0_min vid*0.95
+    set in0_max vid*1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.90
+    set in4_max 12 * 1.10
+    set in5_max -12 * 0.90
+    set in5_min -12 * 1.10
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+
+# set up sensor types (thermistor is default)
+# 1 = PII/Celeron Diode; 2 = 3904 transistor;
+# 3435 = thermistor with Beta = 3435
+# If temperature changes very little, try 1 or 2.
+#   set sensor1 1
+#   set sensor2 2
+
+# examples for temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 52
+#    set temp2_hyst 47
+
+
+chip "w83697hf-*"
+
+# Same as above for w83781d except that in5 and in6 are computed differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard positive
+# inputs and the negative voltages are level shifted by a 3.6V reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values.
+
+# no in1 on this chip.
+
+    label in0 "VCore"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+    label in7 "V5SB"
+    label in8 "VBat"
+
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+    compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+# 697HF does not have VID inputs so you MUST set your core
+# voltage limits below. Currently set for 1.8V core.
+#               vvv
+
+    set in0_min 1.8 * 0.95
+    set in0_max 1.8 * 1.05
+
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.90
+    set in4_max 12 * 1.10
+    set in5_max -12 * 0.90
+    set in5_min -12 * 1.10
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+    set in7_min 5 * 0.95
+    set in7_max 5 * 1.05
+    set in8_min 3.0 * 0.80
+    set in8_max 3.0 * 1.20
+
+# set up sensor types (thermistor is default)
+# 1 = PII/Celeron Diode; 2 = 3904 transistor;
+# 3435 = thermistor with Beta = 3435
+# If temperature changes very little, try 1 or 2.
+#   set sensor1 1
+#   set sensor2 2
+#   set sensor3 3435
+
+# examples for temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 52
+#    set temp2_hyst 47
+#    set temp3_over 52
+#    set temp3_hyst 47
+
+
+chip "as99127f-*"
+
+# Same as above for w83782d except that in5 and in6 negative voltages
+# are computed as in the w83781d.
+# Asus won't release a datasheet so this is guesswork.
+# Thanks to Guntram Blohm, Jack, Ed Harrison, Artur Gawryszczak,
+# Victor G. Marimon and others for their feedback.
+
+# Dual power plane
+    label in0 "VCore 1"
+    label in1 "VCore 2"
+# Single power plane (A7V133, A7M266)
+#   label in0 "VCore"
+#   ignore in1
+
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+# These last two may not make sense on all motherboards.
+    label in5 "-12V"
+    label in6 "-5V"
+
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 -(240/60.4)*@ ,  -@/(240/60.4)
+# AS99127F
+    compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
+# ASB100 Bach (contributed by Alex van Kaam)
+#   compute in6 -(5/3)*@       ,  -@/(5/3)
+
+# Depending on your motherboard, you have to choose between three formulae
+# for temp2. Quoting Artur Gawryszczak:
+# "I guess, that the formula "temp2 (@*30/43)+25, (@-25)*43/30" is correct
+# for those Asus motherboards, which get CPU temperature from internal
+# thermal diode (Pentium Coppermine, and above), and "temp2 @*2.0, @/2.0"
+# is correct for Athlon/Duron boards, which use a thermistor in the
+# socket."
+# The third formula was found and reported by Victor G. Marimon.
+# Asus CUV4X, Asus A7V8X
+#   compute temp2 (@*30/43)+25, (@-25)*43/30
+# Asus A7V133, Asus A7M266
+    compute temp2 @*2.0, @/2.0
+# Asus CUSL2, Asus CUV266-DLS
+#   compute temp2 (@*60/43)+25, (@-25)*43/60
+
+# See comments above if temp3 looks bad. What works for temp2 is likely
+# to work for temp3.
+    compute temp3 @*2.0, @/2.0
+
+# ASB100's temp4 isn't supported yet.
+
+# Most Asus boards have temperatures settled like that:
+    label temp1 "M/B Temp"
+    label temp2 "CPU Temp"
+# However, the A7N8X Deluxe rev.2 at least has them swapped:
+#   label temp1 "CPU Temp"
+#   label temp2 "M/B Temp"
+# If you know other boards where they are swapped, let us know and
+# we'll update the list.
+
+# adjust this if your vid is wrong; see doc/vid
+#   set vrm 9.0
+
+# set limits to  5% for the critical voltages
+# set limits to 10% for the non-critical voltages
+# set limits to 20% for the battery voltage
+
+    set in0_min vid*0.95
+    set in0_max vid*1.05
+    set in1_min vid*0.95
+    set in1_max vid*1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.90
+    set in4_max 12 * 1.10
+    set in5_max -12 * 0.90
+    set in5_min -12 * 1.10
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+
+# examples for temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 52
+#    set temp2_hyst 47
+#    set temp3_over 52
+#    set temp3_hyst 47
+
+
+chip "gl518sm-*"
+
+# IMPORTANT: in0, in1, and in2 values (+5, +3, and +12) CANNOT be read
+#            unless you use the slow 'iterate' method. Limits will still
+#            work even when iterate=0. See ../doc/chips/gl518sm.
+#
+# Factors and labels taken from GL518SM datasheet, they seem to give
+# reasonable values with EISCA connected Fan78
+
+  label vdd "+5V"
+  label vin1 "+3.3V"
+  label vin2 "+12V"
+  label vin3 "Vcore"
+
+# vin2 depends on external resistors (4,7k and 15k assumed here)
+# vin1 and vin3 require no scaling
+
+  compute vin2 (197/47)*@  ,  @/(197/47)
+
+  set vdd_min 4.8
+  set vdd_max 5.2
+  set vin1_min 3.20
+  set vin1_max 3.40
+  set vin2_min 11.0
+  set vin2_max 13.0
+  set vin3_min 2.10
+  set vin3_max 2.30
+  set fan1_off 0
+  set fan2_min 0
+# set iterate 2
+
+
+chip "gl520sm-*"
+
+# Factors and labels taken from GL520SM datasheet
+
+  label vdd "+5V"
+  label vin1 "+3.3V"
+  label vin2 "+12V"
+  label vin3 "Vcore"
+  label vin4 "-12V"
+
+# vin1 and vin3 require no scaling
+# vin2 depends on external resistors (4,7k and 15k assumed)
+
+# vin4 = ((R1+R2)/R2)*@ - (R1/R2)*vdd
+#
+#       -12 --| R1 |---t---| R2 |-- +5
+#                      |
+#                    vin4
+#
+
+  compute vin2 (197/47)*@  ,  @/(197/47)
+  compute vin4 (5*@)-(4*vdd) , (@+4*vdd)/5
+
+  set vdd_min 4.8
+  set vdd_max 5.2
+  set vin1_min 3.20
+  set vin1_max 3.40
+  set vin2_min 11.0
+  set vin2_max 13.0
+  set vin3_min 2.10
+  set vin3_max 2.30
+  set two_temps 1
+
+
+chip "lm80-*"
+
+# The values below should be correct if you own a qdi BX (brilliant1)
+# mainboard. If not, please contact us, so we can figure out better readings.
+# Many thanks go to Peter T. Breuer <ptb@it.uc3m.es> for helping us figure
+# out how to handle the LM80.
+
+# For positive voltages (in0..in4), two resistors are used, with the following
+# formula (R1,R2: resistor values, Vs: read voltage, Vin: pin voltage)
+#   R1 = R2 * (Vs/Vin - 1)
+# For negative voltages (in5, in6) two resistors are used, with the following
+# formula (R3,R4: resistor values, Vs: read voltage, Vin: pin voltage,
+# V5: +5V)
+#   R3 = R4 * (Vs - Vin) / (Vin - V5)
+
+# Here are the official LM78 and LM79 data sheet values.
+#       Vs      R1,R3   R2,R4    Vin
+#       +2.5V    23.7    75     +1.9
+#       +3.3V    22.1    30     +1.9
+#       +5.0     24      14.7   +1.9
+#      +12.0    160      30.1   +1.9
+#      -12.0    160      35.7   +1.9
+#       -5.0     36      16.2   +1.9
+
+# Now curiously enough, VCore is connected with (unknown) resistors, which
+# translate a +2.8V to +1.9V. So we use that in the computations below.
+
+    label in0 "+5V"
+    label in1 "VTT"
+    label in2 "+3.3V"
+    label in3 "+Vcore"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+
+    compute in0 (24/14.7 + 1) * @ ,       @ / (24/14.7 + 1)
+    compute in2 (22.1/30 + 1) * @ ,       @ / (22.1/30 + 1)
+    compute in3 (2.8/1.9) * @,            @ * 1.9/2.8
+    compute in4 (160/30.1 + 1) * @,       @ / (160/30.1 + 1)
+    compute in5 (160/35.7)*(@ - in0) + @, (@ + in0 * 160/35.7)/ (1 + 160/35.7)
+    compute in6 (36/16.2)*(@ - in0) + @,  (@ + in0 * 36/16.2) / (1 + 36/16.2)
+
+    set in0_min 5 * 0.95
+    set in0_max 5 * 0.95
+# What is your VTT? It is probably not this value...
+    set in1_min 2*0.95
+    set in1_max 2*1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+# What is your VCore? It is probably not this value...
+    set in3_min 1.9 * 0.95
+    set in3_max 1.9 * 1.05
+    set in4_min 12 * 0.95
+    set in4_max 12 * 1.05
+    set in5_min -12 * 1.05
+    set in5_max -12 * 0.95
+    set in6_min -5 * 1.05
+    set in6_max -5 * 0.95
+
+# examples for lm80 temperature limits
+# WARNING - nonstandard names and functions for the lm80!!!
+# All 4 of these limits apply to the single temperature sensor.
+# "hot" is like the standard alarm for most chips.
+# "os" is the threshold for the overtemperature shutdown output.
+# "os" may or may not do anything on your motherboard but it should
+#  be set higher than the "hot" thresholds.
+# Note that the /proc file 'temp" also has five entries instead of
+# the usual three.
+#    set temp_hot_hyst 45
+#    set temp_hot_max  52
+#    set temp_os_hyst  57
+#    set temp_os_max   62
+
+
+chip "maxilife-cg-*" "maxilife-co-*" "maxilife-as-*"
+
+   label fan1  "HDD Fan"
+   label fan2  "PCI Fan"
+   label fan3  "CPU Fan"
+   ignore fan4
+
+   label temp2 "PCI Temp"
+   label temp4 "HDD Temp"
+   label temp5 "CPU Temp"
+   ignore temp6
+
+   label vid1  "V+12"
+   ignore vid5
+
+# vid1 need to be scaled by 6.337 other voltages
+# require no scaling
+
+   compute vid1 6.337*@ , @/6.337
+
+
+chip "maxilife-cg-*"
+
+   ignore temp1
+   label temp3  "BX Temp"
+
+   label vid2   "Vcpu1"
+   label vid3   "Vcpu2"
+   ignore vid4
+
+
+chip "maxilife-co-*"
+
+   label temp1  "CPU 1 Temp"
+   label temp3  "CPU 2 Temp"
+
+   label vid2   "Vcpu1"
+   label vid3   "Vcpu2"
+   label vid4   "VcacheL2"
+
+
+chip "maxilife-as-*"
+
+   ignore temp1
+   ignore temp3
+
+   label vid2   "Vcpu"
+   ignore vid3
+   ignore vid4
+
+
+chip "maxilife-nba-*"
+
+   label fan1  "CPU Fan"
+   label fan2  "PCI Fan"
+   label fan3  "HDD Fan"
+   label fan4  "Heat Sink Fan"
+
+   label temp1  "CPU 1 Temp"
+   label temp2  "CPU 2 Temp"
+   label temp3  "PCI/Ambient Temp"
+   label temp4  "HDD Temp"
+   label temp5  "Motherboard Temp"
+   label temp6  "CPU Reference Temp"
+
+   label vid1  "V+12"
+   label vid2  "Vcpu1"
+   label vid3  "Vcpu2"
+   label vid4  "VcacheL2"
+   label vid5  "V-12"
+
+
+chip "via686a-*"
+
+# VIA is very specific about the voltage sensor inputs, and our labels
+# reflect what they say.  Unfortunately, they are not at all specific about
+# how to convert any of the register values to real units.  Fortunately,
+# Jonathan Yew <j.teh@iname.com> and Alex van Kaam <darkside@chello.nl>
+# came through with some data for temp conversion and formulae for voltage
+# conversion. However, the conversions should be regarded as our best guess-
+# YMMV.
+
+# On the Tyan S1598, the 2.5V sensor reads 0 and is not displayed in the BIOS.
+# Linas Vepstas <linas@linas.org> reports that this sensor shows nothing of
+# interest on the Abit KA7 (Athlon), and is also not displayed in the BIOS.
+# Likewise, Johannes Drechsel-Burkhard <jdb@chello.at> reports that this
+# sensor is unavailable in the BIOS of his MSI K7T Pro (Thunderbird).  So,
+# if you have one of these boards you may want to uncomment the 'ignore 2.5V'
+# line below.
+
+    label "2.0V" "CPU core"
+    label "2.5V" "+2.5V"
+    #ignore "2.5V"
+    label "3.3V" "I/O"
+    label "5.0V" "+5V"
+    label "12V" "+12V"
+
+    label fan1  "CPU Fan"
+    label fan2  "P/S Fan"
+
+# VIA suggests that temp3 is an internal temp sensor for the 686a.  However,
+# on the Tyan S1598 as well as the Abit KA7 (Athalon), the absolute values
+# of the readings from that sensor are not valid.  The readings do seem to
+# correlate with temp changes, but the conversion factor may be quite
+# different from temp1 & temp2 (as noted above, VIA has not provided
+# conversion info).  So, you may wish to 'ignore temp3'.
+
+# Johannes Drechsel-Burkhard <jdb@chello.at> notes that on his MSI K7T Pro,
+# temp1 is the CPU temp and temp2 is the SYS temp.
+
+    label temp1 "SYS Temp"
+    label temp2 "CPU Temp"
+    label temp3 "SBr Temp"
+    #ignore temp3
+
+# Set your CPU core limits here.  For the other voltage sensors, the
+# built-in defaults should be fine.
+
+    set in0_min 2.0
+    set in0_max 2.5
+
+# Set your temp limits here.  Remember, 'tempX_over' is the temp at which an
+# alarm is triggered, and 'tempX_hyst' is the temp at which an alarm turns off.
+# Setting tempX_hyst to a few degrees below the corresponding tempX_over
+# prevents an oscillation between alarm on and off states.  This kind of
+# oscillation is known as hyteresis, thus the name.  (You typically get the
+# most serious and troublesome hysteresis when a sensor triggers something to
+# reduce the temp, thus creating a negative feedback loop.  Even without that,
+# we would still get some oscillation when the temp hovers around the limit
+# due to noise.)
+
+    set temp1_hyst 40
+    set temp1_over 45
+    set temp2_hyst 55
+    set temp2_over 60
+    set temp3_hyst 60
+    set temp3_over 65
+
+# You could set your fan limits too, but the defaults should be fine.
+
+    #set fan1_min 5000
+    #set fan2_min 5000
+
+# For at least one Tyan S1598, the following corrections make the sensors
+# readings more in-line with the BIOS readings on boot.  Try these, and
+# adjust as necessary.
+
+  #compute "2.0V" 1.02*@ ,  @/1.02
+  #compute "3.3V" 1.02*@  ,  @/1.02
+  #compute "5.0V" 1.009*@  ,  @/1.009
+  #compute "12V" 1.04*@ ,  @/1.04
+
+
+chip "mtp008-*"
+
+# The values below should be correct if you own a Tyan S1834D motherboard.
+# If not, please contact us, so we can figure out better readings.
+# FOR TYAN S2510 SEE END OF THIS SECTION.
+
+# For positive voltages outside the 0..4.09V range (in2..in4), two resistors
+# are used, with the following formula (R1,R2: resistor values, Vs: read
+# voltage, Vin: pin voltage)
+#   Vin = Vs * (R2 / (R1 + R2))
+# For negative voltages (in5) two resistors are used, with the following
+# formula (R3,R4: resistor values, Vs: read voltage, Vin: pin voltage)
+#   Vin = ((4.096 - Vs) * (R3 / (R3 + R4))) + Vs
+
+# Here are the official MTP008 data sheet values:
+#       Vs      R1,R3   R2,R4    Vin
+#      +12.0    28000   10000   +3.16
+#      -12.0   232000   56000   +0.96
+#       -5.0   120000   56000   +1.20
+
+    label in0 "VCore1"
+    label in1 "+3.3V"
+    label in2 "+12V"
+    label in3 "Vcore2"
+    ignore in4
+    label in5 "-12V"
+    label in6 "Vtt"
+
+    label fan1 "CPU1 Fan"
+    label fan2 "CPU2 Fan"
+    label fan3 "fan3"
+
+    label temp1 "CPU1 Temp"
+    label temp2 "CPU2 Temp"
+    ignore temp3
+
+    compute in2 @ * 38 / 10,            @ * 10 / 38
+    compute in5 (@ * 36 - 118.61) / 7,  (118.61 + 7 * @) / 36
+
+# examples for temperature limits
+#    set temp1_over 40
+#    set temp1_hyst 37
+#    set temp2_over 52
+#    set temp2_hyst 47
+#    set temp3_over 52
+#    set temp3_hyst 47
+
+# End of standard mtp008 configuration
+
+# TYAN S2510 INFORMATION
+# This motherboard has two mtp008's which are hooked up differently,
+# so they must be configured separately.
+# For this motherboard, COMMENT OUT the above mtp008 section and
+# UNCOMMENT the following two sections.
+#
+#chip "mtp008-i2c-*-2c"
+#    label in0 "VCore1"
+#    set in0_min 1.60
+#    set in0_max 1.80
+#    label in1 "+3.3V"
+#    label in2 "+12V"
+#    label in3 "Vcore2"
+#    set in3_min 1.60
+#    set in3_max 1.80
+#    ignore in4
+#    label in5 "-12V"
+#    label in6 "Vtt"
+#    label fan1 "CPU1 Fan"
+#    label fan2 "CPU2 Fan"
+#    label fan3 "fan3"
+#    label temp1 "CPU1 Temp"
+#    label temp2 "CPU2 Temp"
+#    ignore temp3
+#    compute in2 @ * 38 / 10,           @ * 10 / 38
+#    compute in5 (@ * 36 - 118.61) / 7, (118.61 + 7 * @) / 36
+#
+#chip "mtp008-i2c-*-2e"
+#    ignore in0
+#    label in1 "+3.3V"
+#    ignore in2
+#    label in3 "+5V"
+#    set in3_min 4.50
+#    set in3_max 5.50
+#    ignore in4
+#    label in5 "+3.3V"
+#    ignore in6
+#    label fan1 "fan4"
+#    label fan2 "fan5"
+#    label fan3 "fan6"
+#    ignore temp1
+#    label temp2 "MB Temp"
+#    set temp2_over 52
+#    set temp2_hyst 47
+#    ignore temp3
+
+chip "adm1025-*"
+
+# The ADM1025 has integrated scaling resistors, rather
+# than external resistors common to most sensor devices.
+# These apply to the 6 voltage inputs in0-in5 (+2.5V, VCore,
+# +3.3V, +5V, +12V, VCC). As the scaling is fixed inside
+# the chip for these inputs, it is fairly certain that the
+# motherboard connections match these labels, and that the
+# driver computations are correct. Therefore they do not need to
+# be overridden here.
+
+    label in0 "+2.5V"
+    label in1 "VCore"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "VCC"
+
+# Depending on how your chipset is hardwired, you may or may not have
+# +12V readings (will show as 0.0V if you don't have it).
+#   ignore in4
+
+# VCC is the power-supply voltage of the ADM1025 chipset, generally
+# redundant with +3.3V so you may want to hide it.
+#   ignore in5
+
+    label temp1 "CPU Temp"
+    label temp2 "M/B Temp"
+
+# adjust this if your vid is wrong; see doc/vid
+    set vrm 9.0
+
+# Tolerate a 5% deviance for CPU power-supply (default is 10%)
+    set in1_min vid * 0.95
+    set in1_max vid * 1.05
+
+chip "lm87-*"
+#
+# The LM87 has integrated scaling resistors, rather
+# than external resistors common to most sensor devices.
+# These apply to the first 6 voltage inputs in0-in5
+# (+2.5, Vccp1, +3.3, +5, 12, +Vccp2). As the scaling is fixed inside
+# the chip for these inputs, it is fairly certain that the
+# motherboard connections match these labels, and that the
+# driver computations are correct. Therefore they do not need to
+# be overridden here.
+#
+# Note: AIN1 (-12?), AIN2 (-5?) and CPU2_temp require changing
+# #defines in the driver and recompiling!!!
+#
+# This chip has non-standard entries in lib/chips.c so
+# the feature names are quite different from other chips.
+# For this chip, libsensors anticipates the correct labeling.
+# This is great if it's correct but makes it a little more
+# difficult if you want to change it.
+#
+# This may not have been a good idea, so it may be changed in the future.
+# Here is an entry with everything commented out so you can
+# uncomment the appropriate line if you want to change it.
+#
+# Warning - feature names starting with a number must be enclosed
+# with double quotes.
+#
+# It is unlikely you will need to use the following 6 lines (see above)
+#   label "2.5V" "xxx"
+#   label Vccp1 "xxx"
+#   label "3.3V" "xxx"
+#   label "5V" "xxx"
+#   label "12V" "xxx"
+#   label Vccp2 "xxx"
+
+#   label fan1 "xxx"
+#   label fan2 "xxx"
+#   label temp1 "xxx"
+#   label CPU_Temp "xxx"
+#   label CPU2_Temp "xxx"
+#
+#   set AmbTemp_min xxx
+#   set Vccp1_min xxx
+#   set "3.3V_min" xxx
+#   set "5V_min" xxx
+#   set "12V_min" xxx
+#   set Vccp2_min xxx
+#
+#   set AmbTemp_max xxx
+#   set Vccp1_max xxx
+#   set "3.3V_max" xxx
+#   set "5V_max" xxx
+#   set "12V_max" xxx
+#   set Vccp2_max xxx
+#
+#   set fan1_div xxx
+#   set fan2_div xxx
+#   set fan1_min xxx
+#   set fan2_min xxx
+#   set temp1_min xxx
+#   set temp1_max xxx
+#   set temp2_min xxx
+#   set temp2_max xxx
+#   set temp3_min xxx
+#   set temp3_max xxx
+
+# It is unlikely you will need to use the following 6 lines (see above)
+#   compute "2.5V" xxx
+#   compute Vccp1 xxx
+#   compute "3.3V" xxx
+#   compute "5V" xxx
+#   compute "12V" xxx
+#   compute Vccp2 xxx
+
+#   compute temp1 xxx
+#   compute CPU_Temp xxx
+#   compute CPU2_Temp xxx
+
+# LM87 AIN1 and AIN2 Section
+# As described above, the driver must be recompiled to use either or
+# both of these. -12 and -5 may be reversed on your board, this is
+# just a guess, the datasheet gives no guidance.
+#   label AIN1 "-12V"
+#   label AIN2 "-5V"
+#   set AIN1_min -12 * 0.95
+#   set AIN2_min -5 * 0.95
+#   set AIN1_max -12 * 1.05
+#   set AIN2_max -5 * 0.95
+#   compute AIN1 (7.50 * @) - 21.45  ,  (@ + 21.45) / 7.50
+#   compute AIN2 (4.05 * @) - 10.07  ,  (@ + 10.07) / 4.05
+
+chip "adm9240-*" "ds1780-*" "lm81-*"
+#
+# These chips have non-standard entries in lib/chips.c so
+# the feature names are quite different from other chips.
+# For these chips, libsensors anticipates the correct labeling.
+# This is great if it's correct but makes it a little more
+# difficult if you want to change it.
+#
+# This may not have been a good idea, so it may be changed in the future.
+# Here is an entry with everything commented out so you can
+# uncomment the appropriate line if you want to change it.
+#
+# Warning - feature names starting with a number must be enclosed
+# with double quotes.
+#
+#   label "2.5V" "xxx"
+#   label Vccp1 "xxx"
+#   label "3.3V" "xxx"
+#   label "5V" "xxx"
+#   label "12V" "xxx"
+#   label Vccp2 "xxx"
+#   label fan1 "xxx"
+#   label fan2 "xxx"
+#   label temp "xxx"
+#
+#   set Vccp1_min xxx
+#   set "2.5V_min" xxx
+#   set "3.3V_min" xxx
+#   set "5V_min" xxx
+#   set "12V_min" xxx
+#   set Vccp2_min xxx
+#
+#   set Vccp1_max xxx
+#   set "2.5V_max" xxx
+#   set "3.3V_max" xxx
+#   set "5V_max" xxx
+#   set "12V_max" xxx
+#   set Vccp2_max xxx
+#
+#   set fan1_div xxx
+#   set fan2_div xxx
+#   set fan1_min xxx
+#   set fan2_min xxx
+#   set temp1_hyst xxx
+#   set temp1_over xxx
+
+#   compute "2.5V" xxx
+#   compute Vccp1 xxx
+#   compute "3.3V" xxx
+#   compute "5V" xxx
+#   compute "12V" xxx
+#   compute Vccp2 xxx
+#   compute temp xxx
+
+chip "adm1024-*"
+#
+# These settings work for me, adjust for your system
+#
+    label fan1 "CPU1 fan"
+    label fan2 "CPU2 fan"
+    label temp "SYS Temp"
+    label temp1 "CPU2 Temp"
+    label temp2 "CPU1 Temp"
+    ignore "2.5V" # This register is also used for temp2
+    ignore "Vccp1"
+    ignore "Vccp2"
+
+
+chip "it87-*" "it8705-*" "it8712-*"
+
+# The values below have been tested on Asus CUSI, CUM motherboards.
+
+# Voltage monitors as advised in the It8705 data sheet
+
+    label in0 "VCore 1"
+    label in1 "VCore 2"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+    label in7 "Stdby"
+    label in8 "VBat"
+
+    set in0_min 1.5 * 0.95
+    set in0_max 1.5 * 1.05
+    set in1_min 2.4
+    set in1_max 2.6
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.95
+    set in4_max 12 * 1.05
+    set in5_max -12 * 0.95
+    set in5_min -12 * 1.05
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+    set in7_min 5 * 0.95
+    set in7_max 5 * 1.05
+    #the chip does not support in8 min/max
+
+    # vid is not monitored by IT8705F
+    # and is not supported by driver at this time
+    ignore  vid
+
+# If 3.3V reads 2X too high (Soyo Dragon and Asus A7V8X-X, for example),
+# comment out following line.
+    compute in2   2*@ , @/2
+#
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((30/10) +1)*@  , @/((30/10) +1)
+# For this family of chips the negative voltage equation is different from
+# the lm78.  The chip uses two external resistor for scaling but one is
+# tied to a positive reference voltage.  See ITE8705/12 datasheet (SIS950
+# data sheet is wrong)
+# Vs = (1 + Rin/Rf) * Vin - (Rin/Rf) * Vref.
+# Vref = 4.096 volts, Vin is voltage measured, Vs is actual voltage.
+
+# The next two are negative voltages (-12 and -5).
+# The following formulas must be used. Unfortunately the datasheet
+# does not give recommendations for Rin, Rf, but we can back into
+# them based on a nominal +2V input to the chip, together with a 4.096V Vref.
+# Formula:
+#    actual V = (Vmeasured * (1 + Rin/Rf)) - (Vref * (Rin/Rf))
+#    For -12V input use Rin/Rf = 6.68
+#    For -5V input use Rin/Rf = 3.33
+# Then you can convert the forumula to a standard form like:
+    compute in5 (7.67 * @) - 27.36  ,  (@ + 27.36) / 7.67
+    compute in6 (4.33 * @) - 13.64  ,  (@ + 13.64) / 4.33
+#
+# this much simpler version is reported to work for a
+# Eltite Group K7S5A board
+#
+#   compute in5 -(36/10)*@, -@/(36/10)
+#   compute in6 -(56/10)*@, -@/(56/10)
+#
+    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+# Temperature
+#
+# Important - if your temperature readings are completely whacky
+# you probably need to change the sensor type. This must be done
+# with 'modprobe it87 temp_type=0xXX', you can't fix it in this file.
+# See ../doc/chips/it87 for details and valid 'XX' values!!!
+#
+    label temp1       "M/B Temp"
+    set   temp1_over  40
+    set   temp1_hyst  20
+    label temp2       "CPU Temp"
+    set   temp2_over  45
+    set   temp2_hyst  25
+#   ignore temp3
+    label temp3       "Temp3"
+    set   temp3_over  45
+    set   temp3_hyst  25
+
+# The A7V8X-X has temperatures inverted, and needs a conversion for
+# CPU temp. Thanks to Preben Randhol for the formula.
+#   label temp1       "CPU Temp"
+#   label temp2       "M/B Temp"
+#   compute temp1     (-15.096+1.4893*@), (@+15.096)/1.4893
+
+# Fans
+    set fan1_min 0
+    set fan2_min 3000
+#   ignore fan3
+    set fan3_min 3000
+
+# The following is for the Inside Technologies 786LCD which uses either a
+# IT8705F or a SIS950 for monitoring with the SIS630.
+# You will need to load the it87 module as follows to select the correct
+# temperature sensor type.
+# modprobe it87 temp_type=0x31
+# The sensors-detect program reports lm78 and a sis5595 and lists the it87 as
+# a misdetect.  Don't do the modprobe for the lm78 or sis5595 as suggested.
+#
+# delete or comment out above it87 section and uncomment the following.
+#chip "it87-*"
+#    label in0 "VCore 1"
+#    label in1 "VCore 2"
+#    label in2 "+3.3V"
+#    label in3 "+5V"
+#    label in4 "+12V"
+#    label in5 "3.3 Stdby"
+#    label in6 "-12V"
+#    label in7 "Stdby"
+#    label in8 "VBat"
+    # in0 will depend on your processor VID value, set to voltage specified in
+    # bios setup screen
+#    set in0_min 1.7 * 0.95
+#    set in0_max 1.7 * 1.05
+#    set in1_min 2.4
+#    set in1_max 2.6
+#    set in2_min 3.3 * 0.95
+#    set in2_max 3.3 * 1.05
+#    set in3_min 5.0 * 0.95
+#    set in3_max 5.0 * 1.05
+    # +- 12V are very poor tolerance on this board. Verified with voltmeter
+#    set in4_min 12 * 0.90
+#    set in4_max 12 * 1.10
+#    set in5_min 3.3 * 0.95
+#    set in5_max 3.3 * 1.05
+#    set in6_max -12 * 0.90
+#    set in6_min -12 * 1.10
+#    set in7_min 5 * 0.95
+#    set in7_max 5 * 1.05
+    # vid not monitored by IT8705F
+#    ignore  vid
+
+#    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+#    compute in4 ((30/10) +1)*@  , @/((30/10) +1)
+#    compute in6 (1+232/56)*@ - 4.096*232/56, (@ + 4.096*232/56)/(1+232/56)
+#    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    # Temperature
+#    label temp1       "CPU Temp"
+#    ignore temp2
+#    ignore temp3
+    # Fans
+#    set fan1_min 3000
+#    ignore fan2
+#    ignore fan3
+
+chip "fscpos-*"
+
+#
+#    values for the fujitsu siemens poseidon chip
+#
+# Temperature
+
+    label temp1       "Temp1/CPU"
+    label temp2       "Temp2/MB"
+    label temp3       "Temp2/AUX"
+
+# Fans
+
+    label  fan1       "Fan1"
+    ignore  fan2
+    ignore  fan3
+
+# Voltage
+
+    label volt12      "+12V"
+    label volt5       "+5V"
+    label voltbatt    "+3.3V"
+
+chip "fscscy-*"
+
+#
+#    values for the fujitsu siemens Scylla chip
+#
+# Temperature
+
+    label temp1       "Temp1/CPU0"
+    label temp2       "Temp2/CPU1"
+    label temp3       "Temp3/MB"
+    label temp4       "Temp4/AUX"
+
+# Fans
+
+    label  fan1       "Fan1/CPU0"
+    label  fan2       "Fan2/CPU0"
+    label  fan3       "Fan3"
+    label  fan4       "Fan4"
+    label  fan5       "Fan5"
+    label  fan6       "Fan6"
+
+# Voltage
+
+    label volt12      "+12V"
+    label volt5       "+5V"
+    label voltbatt    "+3.3V"
+
+
+chip "pcf8591-*"
+#
+#    values for the Philips PCF8591 chip
+#
+# Analog inputs
+
+   ignore ain_conf
+   set    ain_conf    0
+   label  ch0         "Chan. 0"
+   label  ch1         "Chan. 1"
+   label  ch2         "Chan. 2"
+   label  ch3         "Chan. 3"
+
+# Analog output
+
+   ignore aout_enable
+   set    aout_enable 1
+   label  aout        "Output"
+   set    aout        0
+
+chip "adm1021-*" "adm1023-*" "max1617-*" "max1617a-*" "thmc10-*" "lm84-*" "gl523sm-*" "mc1066-*"
+
+   label temp           "Board"
+   label remote_temp    "CPU"
+#   set temp_low                40
+#   set temp_over               70
+#   set remote_temp_low         40
+#   set remote_temp_over        70
+
+chip "lm83-*"
+
+   label temp1 "M/B Temp"
+   label temp2 "D1 Temp"
+   label temp3 "CPU Temp"
+   label temp4 "D3 Temp"
+
+# ignore D1 and/or D3 readings if not used
+#   ignore temp2
+#   ignore temp4
+
+# change high limits to fit your needs
+#   set temp1_high 55
+#   set temp2_high 60
+#   set temp3_high 65
+#   set temp4_high 60
+
+# change critical limit to fit your needs
+# only one limit for all four temperatures
+# should be higher than each of the high limits above
+#   set tcrit 85
+
+chip "lm90-*"
+
+   label temp1 "M/B Temp"
+   label temp2 "CPU Temp"
+
+# change high and low limits to fit your needs
+#   set temp1_low  10
+#   set temp1_high 55
+#   set temp2_low  10
+#   set temp2_high 66
+
+# change critical limits to fit your needs
+# should be higher than the corresponding high limit above
+#   set tcrit1 75
+#   set tcrit2 85
+
+# change the hysteresis value to fit your needs
+# relative value, applies to both critical thresholds
+#   set hyst 5
+
+chip "vt1211-*" "vt8231-*"
+#
+# temp1 and in6 are not implemented in vt1211 / vt8231
+#
+#                                                       1 for temp, 0 for volt.
+#       Sensor          Voltage Mode    Temp Mode       config bit
+#       --------        ------------    ---------       --------------
+#       Reading 1                       temp3
+#       UCH1/Reading2   in0             temp2           0x04 (4)
+#       UCH2            in1             temp4           0x08 (8)
+#       UCH3            in2             temp5           0x10 (16)
+#       UCH4            in3             temp6           0x20 (32)
+#       UCH5            in4             temp7           0x40 (64)
+#       3.3V            in5
+#
+# set uch1-2 to temp mode, uch3-5 to voltage mode
+#
+    ignore temp1
+    ignore in6
+    set config 12
+    ignore in0
+    ignore in1
+    ignore temp5
+    ignore temp6
+    ignore temp7
+#
+#   label in0 "unused"
+#   label in1 "unused"
+    label in2 "VCore1"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "+3.3V"
+#   label in6 "VCore2"
+
+#   label temp1 "1211 Temp"
+    label temp2 "MB1 Temp"
+    label temp3 "Proc Temp"
+    label temp4 "MB2 Temp"
+#
+#   All voltage calculations have the form
+#       ((@ * 100) - 3) / (K * 95.8), (@ * K * 0.958) + .03
+#   where K = R2 / (R1 + R2).
+#   Use the following K values based on input voltage.
+#   This of course assumes the mobo has the resistors
+#   recommended by Via in the datasheet.
+#       Voltage                 K
+#       VCore                   1.0
+#       2.5                     0.8333
+#       3.3 (in5 internal)      0.6296
+#       3.5 (3.3V ext.)         0.5952
+#       5.0                     0.4167
+#       12.0                    0.1754
+#
+#   compute in0 ((@ * 100) - 3) / (0.5952 * 95.8), (@ * 0.5952 * 0.958) + .03
+#   compute in1 ((@ * 100) - 3) / (0.8333 * 95.8), (@ * 0.8333 * 0.958) + .03
+    compute in2 ((@ * 100) - 3) / (0.5952 * 95.8), (@ * 0.5952 * 0.958) + .03
+    compute in3 ((@ * 100) - 3) / (0.4167 * 95.8), (@ * 0.4167 * 0.958) + .03
+    compute in4 ((@ * 100) - 3) / (0.1754 * 95.8), (@ * 0.1754 * 0.958) + .03
+    compute in5 ((@ * 100) - 3) / (0.6296 * 95.8), (@ * 0.6296 * 0.958) + .03
+#   compute in6 ((@ * 100) - 3) / (0.5952 * 95.8), (@ * 0.5952 * 0.958) + .03
+
+    set vrm 9.1
+#   set in0_min 2.5 * 0.95
+#   set in0_max 2.5 * 1.05
+#   set in1_min 2.5 * 0.95
+#   set in1_max 2.5 * 1.05
+    set in2_min vid * 0.97
+    set in2_max vid * 1.03
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12.0 * 0.90
+    set in4_max 12.0 * 1.10
+    set in5_min 3.3 * 0.95
+    set in5_max 3.3 * 1.05
+#   set in6_min 2.0 * 0.97
+#   set in6_max 2.0 * 1.03
+
+#   compute temp1  (@ - 65) / 0.9686,  (@ * 0.9686) + 65
+    compute temp3  (@ - 65) / 0.9686,  (@ * 0.9686) + 65
+#
+# thermistor calculations.
+# 3435 is the thermistor beta.
+# '^' is the e**x operator; '`' is the ln(x) operator
+# (valid in library version 1.4.0 / lm_sensors 2.7.1 or higher)
+# This assumes that the thermistor forms a resistor divider with a resistor
+# equal to its nominal value @ 25C. If not, the math gets even harder.
+#
+    compute temp2  (1 / (((1 / 3435) * (` ((253 - @) / (@ - 43)))) + (1 / 298.15)))  - 273.15, \
+                   253 - (210 / (1 + (1 / (^ (((3435 * (25 - @)) / ((@ + 273.15) * 298.15)))))))
+    compute temp4  (1 / (((1 / 3435) * (` ((253 - @) / (@ - 43)))) + (1 / 298.15)))  - 273.15, \
+                   253 - (210 / (1 + (1 / (^ (((3435 * (25 - @)) / ((@ + 273.15) * 298.15)))))))
+    compute temp5  (1 / (((1 / 3435) * (` ((253 - @) / (@ - 43)))) + (1 / 298.15)))  - 273.15, \
+                   253 - (210 / (1 + (1 / (^ (((3435 * (25 - @)) / ((@ + 273.15) * 298.15)))))))
+    compute temp6  (1 / (((1 / 3435) * (` ((253 - @) / (@ - 43)))) + (1 / 298.15)))  - 273.15, \
+                   253 - (210 / (1 + (1 / (^ (((3435 * (25 - @)) / ((@ + 273.15) * 298.15)))))))
+    compute temp7  (1 / (((1 / 3435) * (` ((253 - @) / (@ - 43)))) + (1 / 298.15)))  - 273.15, \
+                   253 - (210 / (1 + (1 / (^ (((3435 * (25 - @)) / ((@ + 273.15) * 298.15)))))))
+
+#   set temp1_hyst 40
+#   set temp1_over 45
+    set temp2_hyst 40
+    set temp2_over 45
+    set temp3_hyst 60
+    set temp3_over 65
+    set temp4_hyst 40
+    set temp4_over 45
+
+    set fan1_min 3000
+    set fan2_min 3000
+
+chip "bmc-*"
+#
+# You should not need compute lines here, the driver will
+# do all the conversions.
+# For label lines, copy from syslog/dmesg when the bmcsensors
+# module is inserted.
+#
+# for example:
+# label temp1 "Ambient Temp"
+
+
+
+#
+chip "smsc47m1-*"
+
+    set fan1_min 3000
+    set fan2_min 3000
+
+[root@prod etc]#
+
+# For label lines, copy from syslog/dmesg when the bmcsensors
+# module is inserted.
+#
+# for example:
+# label temp1 "Ambient Temp"
+
+
+
+#
+chip "smsc47m1-*"
+
+    set fan1_min 3000
+    set fan2_min 3000
