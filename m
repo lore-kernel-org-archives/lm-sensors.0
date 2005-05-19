@@ -1,35 +1,70 @@
-From: vojtech@suse.cz (Vojtech Pavlik)
+From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: [PATCH] i2c driver changes for 2.5.64
-Message-Id: <20030315230642.A14115@ucw.cz>
+Message-Id: <3E76739A.3040709@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10476033263399@kroah.com> <10476033262095@kroah.com> <20030315104901.A3923@ucw.cz> <20030315214623.GB13446@kroah.com>
-In-Reply-To: <20030315214623.GB13446@kroah.com>; from greg@kroah.com on Sat, Mar 15, 2003 at 01:46:23PM -0800
+References: <10476033213315@kroah.com>
+In-Reply-To: <10476033213315@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: Vojtech Pavlik <vojtech@suse.cz>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Sat, Mar 15, 2003 at 01:46:23PM -0800, Greg KH wrote:
-> On Sat, Mar 15, 2003 at 10:49:01AM +0100, Vojtech Pavlik wrote:
-> > On Thu, Mar 13, 2003 at 04:55:00PM -0800, Greg KH wrote:
-> > >  static struct pci_driver amd8111_driver = {
-> > > -	.name		= "amd8111 smbus 2.0",
-> > > +	.name		= "amd8111 smbus",
-> > 
-> > The 2.0 was quite intentional in the .name, because the 8111 has *two*
-> > SMBus busses, one SMBus 1.1 and one SMBus 2.0. This driver is only for
-> > the 2.0 SMBus controller.
+Greg,
+
+I'm catching up on my mail. Glad to have you on the job.
+It's good you are taking things from CVS.
+As you may know, Kyosti Malkki did a lot of cleanup and
+pre-2.4.9 compatiblility removal in January.
+He branched i2c CVS (with the HEAD 2.5-compatible).
+Lm_sensors CVS is not branched.
+
+The biggest thing remaining to do in CVS is tackling
+the PCI drivers. Approx. 20 of our 60 drivers are PCI.
+
+I'd like to keep sensors CVS 2.4-compatible, or at least
+delay a branch as long as possible. Kyosti was working
+on getting to the point that we could submit a patch
+to 2.4 (until we do that, CVS is incompatible with stock 2.4
+kernels because of the i2c_driver struct change).
+Any sensors changes/cleanups that are 2.4 compatible,
+it's preferable to check those changes into CVS
+for testing. Ideally we can submit drivers to 2.5 directly
+out of CVS.
+
+mds
+
+
+Greg KH wrote:
+> On Fri, Mar 14, 2003 at 08:21:42AM +0000, Christoph Hellwig wrote:
 > 
-> Ah, I removed the "2.0" portion because it was larger than the 16
-> character limit for pci driver names (it shows up in sysfs garbled if
-> it's bigger).
+>>On Thu, Mar 13, 2003 at 04:55:00PM -0800, Greg KH wrote:
+>>
+>>>ChangeSet 1.1106, 2003/03/13 10:50:41-08:00, greg@kroah.com
+>>>
+>>>i2c: get i2c-ali15x3 driver to actually bind to a PCI device.
+>>
+>>OOPS, should take a look at all patches first before complaining :)
 > 
-> Would "amd8111 smbus 2" be an ok name?
-
-Yes.
-
--- 
-Vojtech Pavlik
-SuSE Labs
+> 
+> Heh :)
+> 
+> Yes, for the first changeset I just took the cvs version of the driver
+> and added it.
+> 
+> Then I went and made the driver work, and started to clean it up.  These
+> drivers still need a lot of cleanup (static, printk, indentation in
+> places, etc.) and I'll be doing it.  This is a work in progress.  I
+> wanted to make baby steps with these things and not just do one
+> changeset with a description that said:
+> 	Took cvs version of driver and cleaned up everything
+> 
+> I'm trying to bridge the gap between the sensor developers and the
+> kernel group.  Hopefully by working this way it will help integrate them
+> more into the kernel community, and get these drivers whipped into
+> shape.
+> 
+> thanks for looking these over.
+> 
+> greg k-h
+> 
