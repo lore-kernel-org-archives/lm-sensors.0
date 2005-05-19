@@ -1,7 +1,7 @@
 From: marc@paracel.com (Marc Rieffel)
 Date: Thu, 19 May 2005 06:24:45 +0000
 Subject: lm_sensors on Itanium
-Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F1@exch01.paracel.com>
+Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E3E29EF@exch01.paracel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F0@exch01.paracel.com>
 In-Reply-To: <9D8C1A43309BAD4A9B46071DAF911D9E4C89F0@exch01.paracel.com>
@@ -10,64 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Probing for PCI bus adapters...
-> > Sorry, no PCI bus adapters found.
-> 
-> Step 1: find if you do have a SMBus PCI device. "/sbin/lspci | grep -i
-> smbus" should help.
+I've attached the output from dmidecode 2.3, in case it's of use.  
 
-Nope:
+I can't load SMSC47m1:
 
-[root@gb0010 lm_sensors-2.8.4]# lspci|grep -i smbus
-[root@gb0010 lm_sensors-2.8.4]# lspci
-00:1d.0 USB Controller: Intel Corp. 82801DB USB (Hub  (rev 02)
-00:1d.1 USB Controller: Intel Corp. 82801DB USB (Hub  (rev 02)
-00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev 82)
-00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
-00:1f.1 IDE interface: Intel Corp. 82801DB IDE U100 (rev 02)
-01:01.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 27)
-02:1c.0 PIC: Intel Corp. 82870P2 P64H2 I/OxAPIC (rev 04)
-02:1d.0 PCI bridge: Intel Corp. 82870P2 P64H2 Hub PCI Bridge (rev 04)
-02:1e.0 PIC: Intel Corp. 82870P2 P64H2 I/OxAPIC (rev 04)
-02:1f.0 PCI bridge: Intel Corp. 82870P2 P64H2 Hub PCI Bridge (rev 04)
-03:01.0 SCSI storage controller: LSI Logic / Symbios Logic (formerly NCR) 53c1030 (rev 08)
-03:01.1 SCSI storage controller: LSI Logic / Symbios Logic (formerly NCR) 53c1030 (rev 08)
-04:01.0 Ethernet controller: Intel Corp. 82546EB Gigabit Ethernet Controller (rev 01)
-04:01.1 Ethernet controller: Intel Corp. 82546EB Gigabit Ethernet Controller (rev 01)
-05:1c.0 PIC: Intel Corp. 82870P2 P64H2 I/OxAPIC (rev 04)
-05:1d.0 PCI bridge: Intel Corp. 82870P2 P64H2 Hub PCI Bridge (rev 04)
-05:1e.0 PIC: Intel Corp. 82870P2 P64H2 I/OxAPIC (rev 04)
-05:1f.0 PCI bridge: Intel Corp. 82870P2 P64H2 Hub PCI Bridge (rev 04)
+[root@gb0010 lm_sensors-2.8.4]# modprobe smsc47m1
+/lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/chips/smsc47m1.o: init_module: No such device
+Hint: insmod errors can be caused by incorrect module parameters, including invalid IO or IRQ parameters
+/lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/chips/smsc47m1.o: insmod /lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/chips/smsc47m1.o failed
+/lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/chips/smsc47m1.o: insmod smsc47m1 failed
 
-> 
-> > modprobe: Can't locate module i2c-dev
-> >  Loading failed, expect problems later on.
-> 
-> Is it built into the kernel? You really need this, either in 
-> the kernel
-> or as a module, for sensors-detect to work properly.
+I can load adm1026, but it doesn't seem to have any effect, perhaps because it's missing a bridge chip or something,
 
-My bad.  It was installing the modules in the wrong location.
+[root@gb0010 lm_sensors-2.8.4]# modprobe adm1026
+[root@gb0010 lm_sensors-2.8.4]# cat /proc/sys/dev/sensors/chips
 
+[root@gb0010 lm_sensors-2.8.4]# lsmod|grep adm
+adm1026                36952   0  (unused)
+i2c-proc               20336   0  [adm1026]
+i2c-core               44048   0  [adm1026 i2c-proc i2c-algo-bit i2c-dev]
 
-> 
-> > Probing for `SMSC 47M10x Super IO Fan Sensors'
-> >   Failed! (0x51)
-> > Probing for `SMSC 47M14x Super IO Fan Sensors'
-> >   Failed! (0x51)
-> 
-> My guess goes to a SMSC 47B27x. It isn't a full hardware monitoring
-> chip, but has Fan control capabilities.
+Also, here's what I get when I try to load non-detectable adapters.  If I let it scan " ELV Parallel port adaptor (Bit-shift algorithm)", it goes into space until I kill it.
 
-You win the prize!  Looking on the board, I saw SMSC LPC47B272, ADM 1026, and ADM 211 chips.  I didn't recognize any others, but that doesn't mean there weren't any.
-
-> I'll add detection support to sensors-detect, if you are 
-> willing to try
-> the updated version for confirmation.
-
-Yes, I'm willing to try the updated version.  What more information do you need?
-
-Here's what I got from sensors-detect after I solved the i2c-dev problem:
 
 [root@gb0010 lm_sensors-2.8.4]# prog/detect/sensors-detect
 
@@ -87,7 +51,21 @@ Probing for PCI bus adapters...
 Sorry, no PCI bus adapters found.
 
  We will now try to load each adapter module in turn.
- Do you now want to be prompted for non-detectable adapters? (yes/NO):
+ Do you now want to be prompted for non-detectable adapters? (yes/NO): yes
+Load `i2c-elektor' (say NO if built into your kernel)? (YES/no):
+modprobe: Can't locate module i2c-elektor
+Loading failed... skipping.
+Load `i2c-elv' (say NO if built into your kernel)? (YES/no):
+Module loaded succesfully.
+Load `i2c-philips-par' (say NO if built into your kernel)? (YES/no):
+modprobe: Can't locate module i2c-philips-par
+Loading failed... skipping.
+Load `i2c-velleman' (say NO if built into your kernel)? (YES/no):
+/lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/i2c-velleman.o: init_module: No such device
+Hint: insmod errors can be caused by incorrect module parameters, including invalid IO or IRQ parameters
+/lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/i2c-velleman.o: insmod /lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/i2c-velleman.o failed
+/lib/modules/2.4.18-e.12MARsmp.mr18k/kernel/drivers/i2c/i2c-velleman.o: insmod i2c-velleman failed
+Loading failed... skipping.
  To continue, we need module `i2c-dev' to be loaded.
  If it is built-in into your kernel, you can safely skip this.
 i2c-dev is already loaded.
@@ -98,6 +76,9 @@ i2c-dev is already loaded.
  If you found that the adapter hung after probing a certain address, you can
  specify that address to remain unprobed. That often
  includes address 0x69 (clock chip).
+
+Next adapter: ELV Parallel port adaptor (Bit-shift algorithm)
+Do you want to scan it? (YES/no/selectively): no
 
  Some chips are also accessible through the ISA bus. ISA probes are
  typically a bit more dangerous, as we have to write to I/O ports to do
@@ -159,3 +140,10 @@ Probing for `Winbond W83697UF Super IO PWM'
  (FAQ #4.24.3) for further information.
  If you find out what chips are on your board, see
  http://secure.netroedge.com/~lm78/newdrivers.html for driver status.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: dmidecode.out
+Type: application/octet-stream
+Size: 14104 bytes
+Desc: dmidecode.out
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040302/8edfcd69/dmidecode.obj
