@@ -1,29 +1,33 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: I2C device driver...
-Message-Id: <42776DC9.3010807@sh.cvut.cz>
+From: ljubo108@vip.hr (Ljubomir Bozic Jr.)
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: fan2 readout on Chaintech MB
+Message-Id: <200308310230.14115.ljubo108@vip.hr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2b8efadf05050305185328d3df@mail.gmail.com>
-In-Reply-To: <2b8efadf05050305185328d3df@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hello!
 
->  Unfortunately, i have an IBM Thinkpad laptop, and as you have
-> recommended I will not download and use the software. Bless you for
-> the tip!
+I have just installed i2c and lm_sensors from CVS because I thought that it 
+might solve thr fan2 problem. I get only fan1 readout and not fan2, fan2 is 0 
+and should be around 2300. BIOS shows fan1 and fan2 reading.
 
-You can use it but never ever load i2c-piix or i2c-i801 and never ever eeprom module.
-So if you delete/do not complile driver for Intel chipset SMBUS host adapater you are safe.
+Fan2 readout is trough:
+it87-isa-0290
+Adapter: ISA adapter
 
-> Can you please direct me to a mailing list where I can post my
-> questions on my i2c driver development?
+Motherboard is:
+CHAINTECH 7VJL Apogee DeLuxe 
+Chipset: VIA KT400
 
-This is correct address. Just write again with subscribe in subject and Phil will add you to a list.
+Would you be so kind and check it out if it might be a bug or maybe it is a 
+mobo issue.
 
-Regards
+Thanks!
 
-Rudolf
+Best regards, Ljubomir Bozic
+
+P.S. lm90 sensor is working great, readings are accurate:-)
+
