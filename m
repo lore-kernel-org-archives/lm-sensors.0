@@ -1,26 +1,29 @@
-From: akpm@osdl.org (Andrew Morton)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: kernel maintainer's HOWTO for quilt and -mm
-Message-Id: <20050428170729.0ee0e15a.akpm@osdl.org>
+From: DarkEmperor@gmx.net (Emperor)
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: flex scanner jammed problem
+Message-Id: <1064332995.5787.33.camel@nils>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050428223414.GA22785@kroah.com>
-	<20050428223622.GC22785@kroah.com>
-	<20050428163121.1343aa6c.akpm@osdl.org>
-	<20050428234708.GA23714@kroah.com>
-In-Reply-To: <20050428234708.GA23714@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Greg KH <greg@kroah.com> wrote:
->
-> > It's a bit of a hassle that your patches aren't based on latest -linus.
-> 
-> I understand.  That will change, once the -git nightly snapshots start
-> up.
+Hi everybody,
 
-It's at http://www.zip.com.au/~akpm/linux/patches/stuff/linus.patch.gz
+I just installed lm_sensors via synaptic. I could set up my sensors. But
+since I did that the KDE process window does not work any more,
+ksysguardd and ksensors
+gave me "flex scanner jammed". 
 
-I'll update that a few times a day.
+I put the output to your ticket system.
+
+And I got another question! is there plan in lm_sensors to support writing to fan values, too? the w83627hf chip I have supports that.
+
+So there could be a tool which controls the fan speed in relation with temperature, cpu load...
+
+Is there any infos about that, another project? or a tool?
+
+thx,
+
+nils
+
