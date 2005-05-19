@@ -1,23 +1,28 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: i2c-sis630 bus driver
-Message-Id: <200209182313.06481.amalysh@web.de>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:28 +0000
+Subject: [BK PATCH] i2c driver fix for 2.6.0-test11
+Message-Id: <20031204222752.GA2541@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-Hi Phil,
+Hi,
 
-i found info for your board and added detection to i2c-sis630.c (Can you 
-please try if it works for you?)
-BTW: Your board is sis730 based ...
-If you are intersted , look at 
-http://www.plasma-online.de/index.html?content=http%3A//www.plasma-online.de/english/identify/picture/sis.html
-and search for [6300.80321043] ASUS_A7S_VM (this should be your board)
+Here is a i2c driver fixes for 2.6.0-test11.  It fixes an problem in the
+i2c-nforce2 driver when it is used to talk to the eeprom i2c driver.
 
-Thanks for you help !
+Please pull from:  bk://linuxusb.bkbits.net/i2c-2.6
 
-Regards,
-Alexander Malysh
+thanks,
+
+greg k-h
+
+ drivers/i2c/busses/i2c-nforce2.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+-----
+
+Jean Delvare:
+  o I2C: fix i2c_smbus_write_byte() for i2c-nforce2
