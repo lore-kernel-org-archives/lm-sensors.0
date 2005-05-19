@@ -1,27 +1,35 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:51 +0000
-Subject: [PATCH 2.6] Enable changing fan_divs in lm80 driver
-Message-Id: <20040409185652.GD17187@kroah.com>
+From: Claus.Rosenberger@rocnet.de (Claus Rosenberger)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: lmsensors ticket #1144
+Message-Id: <37554.10.20.2.100.1046454982.squirrel@deathstar.of.rocnet.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040404230032.3f256372.khali@linux-fr.org>
-In-Reply-To: <20040404230032.3f256372.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Apr 04, 2004 at 11:00:32PM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> For some reason the original lm80 driver in 2.6 cannot set fan_divs
-> (while the 2.4 driver could). This patch brings support back. It was
-> lightly tested by one user.
-> 
-> This patch also suggests some code cleanups (fan code refactoring). I'll
-> send a different patch later for these.
-> 
-> Please apply,
+hello,
 
-Applied, thanks.
+i don't know why sensors reports "no sensors found" because i can get
+following informations out of /proc :
 
-greg k-h
+/proc/bus/i2c:
+i2c-0   dummy           ISA main adapter                        ISA bus
+algorithm
+
+/proc/bus/i2c-0:
+290     IT87 chip                               IT87xx sensor driver
+
+/proc/sys/dev/sensors/chips:
+256     it87-isa-0290
+
+/proc/sys/dev/sensors/it87-isa-0290/fan1:
+3000 3245
+
+there are a lot of files in /proc/sys/dev/sensors/it87-isa-0290 and
+sometimes there are values in. why sensors don't report this values ?
+
+regards
+
+claus rosenberger
+
