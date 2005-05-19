@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:15 +0000
 Subject: 2.4.22 kernel patches available
-Message-Id: <3F523D32.7080304@paradyne.com>
+Message-Id: <20030903234952.GB1578@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030831172730.775fb950.khali@linux-fr.org>
 In-Reply-To: <20030831172730.775fb950.khali@linux-fr.org>
@@ -10,27 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On sybyte and max1617 we should try and find the authors and bring them into the fold.
-
-On you moving on, hopefully you can find 1-2 hours a week for us which would
-still qualify you as "active"! We've appreciated your energy and enthusiasm
-(and new ideas) over the recent months, especially as it came when
-I was running out of all of those...
-
-Any proposal for how to proceed with the 2.4 patch?
-Without you to generate a 2.8.1->2.4.23 patch, what should we do?
-
-
-And if you don't mind, what are you going to be doing for a living?
-
-thanks again
-mds
-
-Jean Delvare wrote:
-> Hi all,
-> 
-> I just finished updating my installation guide to support the new 2.4.22
-> kernel.
+On Sun, Aug 31, 2003 at 05:27:30PM +0200, Jean Delvare wrote:
 > 
 > I noticed that new I2C drivers exist there: i2c-sibyte (plus
 > i2c-algo-sibyte) and i2c-max1617. Why they end up there without us even
@@ -42,19 +22,23 @@ Jean Delvare wrote:
 > 
 > My 2.4.22 patch simply wipe them out. I can't understand how they were
 > accepted into the main kernel tree. I couldn't find anything related to
-> them in the kernel changelog nor in LKML archives. I feel like we should
-> complain about that, but unfortunately I don't have time for that right
-> now. Greg, you have more contact with the kernel people than any of us
-> here, do you have any information we don't have?
-> 
-> I am taking a new (well...) job tomorrow. At last :) I'm more than
-> pleased, but you have to understand that this also means the end of my
-> active participation to the LM Sensors project. Don't worry, I won't
-> leave the project completely and within a few months I hope I'll have
-> some time left again to contribute. But I won't spend 6 hours a day on
-> it as it has been the case for the last few months. BTW, I'd like to
-> thank you all very much for that. I've learned much here, and it also
-> prevented me from falling into the laziness :)
-> 
-> See you later.
-> 
+> them in the kernel changelog nor in LKML archives.
+
+These all came in from the merge with the MIPS maintainer.  Bitkeeper is
+nice :)
+
+> I feel like we should complain about that, but unfortunately I don't
+> have time for that right now. Greg, you have more contact with the
+> kernel people than any of us here, do you have any information we
+> don't have?
+
+Why complain?  What is it hurting?  The cvs code sure isn't in the
+kernel tree so what do we have to base our complaint on?  :)
+
+So I'm guessing that some people with MIPS platforms actually use this
+driver.  Good for them.  I would not recommend that your patches "wipe
+them out" for that reason.
+
+thanks,
+
+greg k-h
