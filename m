@@ -1,123 +1,93 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 22 May 2005 09:39:46 +0000
-Subject: [lm-sensors] [PATCH 2.6] Sensors mailing list has moved
-Message-Id: <20050522093911.04682857.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:47 +0000
+Subject: [PATCH] I2C: Fix some i2c algorithm initialization
+Message-Id: <11123113922117@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11123113924150@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
 
-Hi Greg,
+ChangeSet 1.2335, 2005/03/31 14:09:20-08:00, khali@linux-fr.org
 
-The following patch updates all references to the sensors mailing list,
-so as to reflect the fact that the list recently moved to a new home and
-changed addresses. I'll work out a similar patch for Linux 2.4 soon.
+[PATCH] I2C: Fix some i2c algorithm initialization
 
-Please apply,
-thanks.
+While searching for i2c_algorithm declarations missing their
+.functionality member, I found three of them which were not properly
+initialized. i2c-algo-ite and i2c_sibyte_algo do not use the C99
+initialization syntax, and i2c-ibm_iic.c explicitely initializes NULL
+members. Following patch puts some order in there.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- Documentation/i2c/busses/i2c-sis69x |    2 +-
- Documentation/i2c/porting-clients   |    2 +-
- MAINTAINERS                         |   16 ++++++++--------
- 3 files changed, 10 insertions(+), 10 deletions(-)
 
---- linux-2.6.12-rc4.orig/MAINTAINERS	2005-05-19 19:13:27.000000000 +0200
-+++ linux-2.6.12-rc4/MAINTAINERS	2005-05-22 09:33:45.000000000 +0200
-@@ -194,7 +194,7 @@
- ADM1025 HARDWARE MONITOR DRIVER
- P:	Jean Delvare
- M:	khali@linux-fr.org
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Maintained
- 
- ADT746X FAN DRIVER
-@@ -242,7 +242,7 @@
- ALI1563 I2C DRIVER
- P:	Rudolf Marek
- M:	r.marek@sh.cvut.cz
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Maintained
- 
- ALPHA PORT
-@@ -992,7 +992,7 @@
- M:	greg@kroah.com
- P:	Jean Delvare
- M:	khali@linux-fr.org
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- W:	http://www.lm-sensors.nu/
- S:	Maintained
- 
-@@ -1420,13 +1420,13 @@
- LM83 HARDWARE MONITOR DRIVER
- P:	Jean Delvare
- M:	khali@linux-fr.org
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Maintained
- 
- LM90 HARDWARE MONITOR DRIVER
- P:	Jean Delvare
- M:	khali@linux-fr.org
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Maintained
- 
- LOGICAL DISK MANAGER SUPPORT (LDM, Windows 2000/XP Dynamic Disks)
-@@ -2065,7 +2065,7 @@
- SMSC47M1 HARDWARE MONITOR DRIVER
- P:	Jean Delvare
- M:	khali@linux-fr.org
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Odd Fixes
- 
- SMB FILESYSTEM
-@@ -2604,7 +2604,7 @@
- W1 DALLAS'S 1-WIRE BUS
- P:	Evgeniy Polyakov
- M:	johnpol@2ka.mipt.ru
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Maintained
- 
- W83L51xD SD/MMC CARD INTERFACE DRIVER
-@@ -2617,7 +2617,7 @@
- W83L785TS HARDWARE MONITOR DRIVER
- P:	Jean Delvare
- M:	khali@linux-fr.org
--L:	sensors@stimpy.netroedge.com
-+L:	lm-sensors@lm-sensors.org
- S:	Odd Fixes
- 
- WAN ROUTER & SANGOMA WANPIPE DRIVERS & API (X.25, FRAME RELAY, PPP, CISCO HDLC)
---- linux-2.6.12-rc4.orig/Documentation/i2c/busses/i2c-sis69x	2005-05-19 19:13:27.000000000 +0200
-+++ linux-2.6.12-rc4/Documentation/i2c/busses/i2c-sis69x	2005-05-19 19:13:51.000000000 +0200
-@@ -42,7 +42,7 @@
- chipsets as well: 635, and 635T. If anyone owns a board with those chips
- AND is willing to risk crashing & burning an otherwise well-behaved kernel
- in the name of progress... please contact me at <mhoffman@lightlink.com> or
--via the project's mailing list: <sensors@stimpy.netroedge.com>.  Please
-+via the project's mailing list: <lm-sensors@lm-sensors.org>.  Please
- send bug reports and/or success stories as well.
- 
- 
---- linux-2.6.12-rc4.orig/Documentation/i2c/porting-clients	2005-05-19 19:13:27.000000000 +0200
-+++ linux-2.6.12-rc4/Documentation/i2c/porting-clients	2005-05-19 19:13:51.000000000 +0200
-@@ -57,7 +57,7 @@
-   Documentation/i2c/sysfs-interface for the individual files. Also
-   convert the units these files read and write to the specified ones.
-   If you need to add a new type of file, please discuss it on the
--  sensors mailing list <sensors@stimpy.netroedge.com> by providing a
-+  sensors mailing list <lm-sensors@lm-sensors.org> by providing a
-   patch to the Documentation/i2c/sysfs-interface file.
- 
- * [Attach] For I2C drivers, the attach function should make sure
+ drivers/i2c/algos/i2c-algo-ite.c    |   13 +++++--------
+ drivers/i2c/algos/i2c-algo-sibyte.c |   13 +++++--------
+ drivers/i2c/busses/i2c-ibm_iic.c    |    4 ----
+ 3 files changed, 10 insertions(+), 20 deletions(-)
 
--- 
-Jean Delvare
+
+diff -Nru a/drivers/i2c/algos/i2c-algo-ite.c b/drivers/i2c/algos/i2c-algo-ite.c
+--- a/drivers/i2c/algos/i2c-algo-ite.c	2005-03-31 15:17:46 -08:00
++++ b/drivers/i2c/algos/i2c-algo-ite.c	2005-03-31 15:17:46 -08:00
+@@ -713,14 +713,11 @@
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm iic_algo = {
+-	"ITE IIC algorithm",
+-	I2C_ALGO_IIC,
+-	iic_xfer,		/* master_xfer	*/
+-	NULL,				/* smbus_xfer	*/
+-	NULL,				/* slave_xmit		*/
+-	NULL,				/* slave_recv		*/
+-	algo_control,			/* ioctl		*/
+-	iic_func,			/* functionality	*/
++	.name		= "ITE IIC algorithm",
++	.id		= I2C_ALGO_IIC,
++	.master_xfer	= iic_xfer,
++	.algo_control	= algo_control, /* ioctl */
++	.functionality	= iic_func,
+ };
+ 
+ 
+diff -Nru a/drivers/i2c/algos/i2c-algo-sibyte.c b/drivers/i2c/algos/i2c-algo-sibyte.c
+--- a/drivers/i2c/algos/i2c-algo-sibyte.c	2005-03-31 15:17:46 -08:00
++++ b/drivers/i2c/algos/i2c-algo-sibyte.c	2005-03-31 15:17:46 -08:00
+@@ -136,14 +136,11 @@
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm i2c_sibyte_algo = {
+-	"SiByte algorithm",
+-	I2C_ALGO_SIBYTE,
+-	NULL,                           /* master_xfer          */
+-	smbus_xfer,                   	/* smbus_xfer           */
+-	NULL,				/* slave_xmit		*/
+-	NULL,				/* slave_recv		*/
+-	algo_control,			/* ioctl		*/
+-	bit_func,			/* functionality	*/
++	.name		= "SiByte algorithm",
++	.id		= I2C_ALGO_SIBYTE,
++	.smbus_xfer	= smbus_xfer,
++	.algo_control	= algo_control, /* ioctl */
++	.functionality	= bit_func,
+ };
+ 
+ /* 
+diff -Nru a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
+--- a/drivers/i2c/busses/i2c-ibm_iic.c	2005-03-31 15:17:46 -08:00
++++ b/drivers/i2c/busses/i2c-ibm_iic.c	2005-03-31 15:17:46 -08:00
+@@ -630,10 +630,6 @@
+ 	.name 		= "IBM IIC algorithm",
+ 	.id   		= I2C_ALGO_OCP,
+ 	.master_xfer 	= iic_xfer,
+-	.smbus_xfer	= NULL,
+-	.slave_send	= NULL,
+-	.slave_recv	= NULL,
+-	.algo_control	= NULL,
+ 	.functionality	= iic_func
+ };
+ 
+
