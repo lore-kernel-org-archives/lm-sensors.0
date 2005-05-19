@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: marekm@amelek.gda.pl (Marek Michalkiewicz)
 Date: Thu, 19 May 2005 06:24:01 +0000
 Subject: Matrox G400DH + lm_sensors problem
-Message-Id: <3EF4898A.6030208@paradyne.com>
+Message-Id: <20030621231835.GB528@alf.amelek.gda.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030620001151.GA5184@alf.amelek.gda.pl>
 In-Reply-To: <20030620001151.GA5184@alf.amelek.gda.pl>
@@ -10,42 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-If you have all the chip drivers compiled in,
-each one will scan each i2c bus as it is registered.
-We do not recommend compiling-in all the chip drivers, keep them as modules.
+On Sat, Jun 21, 2003 at 12:36:26PM -0400, Mark D. Studebaker  wrote:
+> If you have all the chip drivers compiled in,
+> each one will scan each i2c bus as it is registered.
+> We do not recommend compiling-in all the chip drivers, keep them as modules.
 
-It may be that the matrox driver timeout values are too long
-which is exacerbating the problem, you may wish to discuss
-with the matrox maintainer.
+I have a completely non-modular kernel (CONFIG_MODULES=n) - I find it
+easier that way (compiling the kernel on the faster box, then copying
+just a single kernel image file to the slower one).  Another advantage
+of this is that the recent ptrace/kmod exploit didn't work here ;)
 
-Things should work fine with unconnected busses like DDC.
-But lots of compiled-in chip drivers and a long bus driver timeout
-makes for a long wait :)
+Anyway, I don't have all the chip drivers compiled in, just the ones
+I have in my machines (W83781D and VIA686A), which don't even have
+to be accessed through I2C (ISA/PCI access works fine).  Perhaps there
+should be a way for an I2C bus driver like i2c-matroxfb to exclude
+itself from these automatic scans for all possible chips?  After all,
+we know exactly what chips are on the Matrox I2C buses.
 
-Marek Michalkiewicz wrote:
-> Hi,
-> 
-> there is some kind of bad interaction between i2c-matroxfb in
-> the kernel (2.4.21) patched with lm_sensors 2.6.5.  I have
-> everything compiled into the kernel (no modules), and when the
-> Matrox I2C devices are registered at boot time, the machine
-> hangs for over 3 minutes.  Also, scanning the Matrox I2C buses
-> (not the motherboard SMBus) with i2cdetect is very slow too.
-> 
-> There is no such hang on boot in the vanilla 2.4.21 kernel
-> (with no lm_sensors patch applied).  In both cases, the kernel
-> I2C code is used, and Matrox devices are detected correctly,
-> it's just that it is sooo much faster without the lm_sensors
-> drivers compiled into the kernel.
-> 
-> Hardware: Biostar M6TBA motherboard (W83781D sensor chip),
-> Matrox G400DH 32MB graphics card.  (BTW, the supplied TV-out
-> cable has the DDC pins SDA and SCL shorted.  Does the kernel
-> I2C code deal correctly such unusable I2C buses?)
-> 
-> Is this a known problem?  If there is anything I should check
-> (I'm not brave enough to try the 2.5.x kernels with the latest
-> lm_sensors just yet...), please tell me.  Thanks!
-> 
-> Marek
-> 
+The good old G400 does not run very hot - but some of the new hot
+(literally) graphics cards could really have temp. and fan sensors ;)
+
+Could at least part of this I2C bus scanning be moved to user space
+in the future?  There could be a config file to determine which
+I2C buses should be scanned for which chips, to avoid conflicts.
+If auto-probing on kernel startup is disabled, there should be no
+problem with even all chip drivers compiled in (RAM is cheap...).
+I imagine that chips could be registered/unregistered with some
+ioctl calls on an open I2C device file descriptor.
+
+One unrelated question - I have MSI MS-6368L v 5.0 motherboards
+(with VIA VT82C686B), and the manual (bottom of page 2-17) says:
+
+"CPU Fan supports the fan control. You can install the PC Alert
+utility that will automatically control the CPU Fan speed according
+to the actual CPU temperature."
+
+This suggests that the VIA chip has a fan PWM output, but I could find
+no mention of this in the lm_sensors docs.  Do you have any more info
+on this?  Or is this the typical "VIA won't release docs" problem?
+
+Thanks,
+Marek
