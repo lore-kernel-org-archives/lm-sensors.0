@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: anthonyp@lantronix.com (Anthony Petillo)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: I am developing a driver for MAX6900 (RTC chip)
-Message-Id: <20040305220059.326439a2.khali@linux-fr.org>
+Message-Id: <603BA0CFF3788E46A0DB0918D9AA95100568E139@sj580004wcom.int.lantronix.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <603BA0CFF3788E46A0DB0918D9AA9510943CFD@sj580004wcom.int.lantronix.com>
 In-Reply-To: <603BA0CFF3788E46A0DB0918D9AA9510943CFD@sj580004wcom.int.lantronix.com>
@@ -9,6 +9,23 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thank you!
+
+just to let you know, its okay to put my name on the new drivers list: Anthony Petillo
+and can you please put me on the mailing list.
+
+I will be developing the driver for Linux kernel version 2.4 only.
+
+Thanks again.
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: Friday, March 05, 2004 4:01 PM
+To: Anthony Petillo
+Cc: sensors@Stimpy.netroedge.com
+Subject: Re: I am developing a driver for MAX6900 (RTC chip)
+
 
 OK, here is your ID:
 
