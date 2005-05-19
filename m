@@ -1,30 +1,53 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:05 +0000
-Subject: i2c-viapro and via686a don't mix with linux-2.6.0-test1
-Message-Id: <20030715223700.GB6409@kroah.com>
+From: dyKa@myezmail.com (dyKa)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: Ticket#916
+Message-Id: <3D11A7DE.5010105@myezmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030715142051.GA14443@h111.hadiko.de>
-In-Reply-To: <20030715142051.GA14443@h111.hadiko.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jul 15, 2003 at 08:42:28PM +0200, Christoph Heine wrote:
-> +	while ((dev = pci_find_device(PCI_VENDOR_ID_VIA, PCI_ANY_ID, dev)) != NULL) {
-> +	id = pci_match_device(vt596_ids, dev);
-> +       		if(id)
-> +        		if(vt596_probe(dev, id) >= 0)
-> +            			return 0;
-> +	}
-> +	return -ENODEV;
 
-Heh, yes this is the "proper" way to do this on 2.5/2.6 to get the code
-to build and run, but it's not the "real" fix.
+Hi again, team!
 
-It still has the same problems that pci_for_each_dev() has (minus a few
-race conditions...)
+Thanks for your fast reply! I still have some troubles on it... he are 
+the results of my tests on the FAQ 3.9:
 
-thanks,
+* nm --extern /lib/modules/2.4.16/misc/m7101.o
 
-greg k-h
+         U __check_region_Rf1d0cdab
+00000060 ? __module_author
+000000e0 ? __module_description
+00000028 ? __module_parm_acpi_io
+00000037 ? __module_parm_smb_io
+00000410 T cleanup_module
+00000240 T init_module
+         U ioport_resource_R865ebccd
+         U kfree_R037a0cba
+         U kmalloc_R93d4cfe6
+         U pci_enable_device_R944b5e42
+         U pci_find_device_R8b4d5816
+ >         U pci_insert_device
+         U pci_read_config_byte_R3bd38f74
+         U pci_read_config_word_R013f4ee4
+ >         U pci_remove_device
+ >         U pci_setup_device
+         U pci_write_config_byte_Rc19e8242
+         U pcibios_present_R520a75b9
+         U printk_R1b7d4074
+
+* grep SYMBOL /proc/ksyms
+
+c01bbec8 pci_setup_device_R__ver_pci_setup_device
+c01bb524 pci_insert_device_R__ver_pci_insert_device
+c01bb590 pci_remove_device_R__ver_pci_remove_device
+
+
+There are no version numbers! What does it mean? I've compiled against 
+the kernel I'm running. I'm thinking about moving to another kernel 
+version, maybe a 2.5.x, but I don't know if that would help... Can you 
+help me...again?
+
+Regards, dyKa.
+
