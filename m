@@ -1,7 +1,7 @@
-From: rnissl@gmx.de (Reinhard Nissl)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:38 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <401EAEB3.8020800@gmx.de>
+Message-Id: <20040202230632.55c82335.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -10,84 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-Jean Delvare wrote:
-
->>You are right. I've attached the fixed drivers and adjusted sample 
->>configuration. Documentation will follow later and explains, how to
->>get the necessary (M)ultiplier, (R)efVoltage and (O)ffset values from
->>dmidecode.
+> It seems, that you've used the latest driver file, I've sent, where
+> all occurances of simple_stroul() put their result into a variable of
+> type 'unsigned long' (instead of int) and where set_fan_div() outputs
+> this message
 > 
-> I have updated the 2.4 driver and sensors.conf. I've slightly changed
-> the way input voltages are exported. I exported them as
-> pseudo-hundredths of Volts (range 0V - 2.55V) instead of an integer
-> value. I know that the value doesn't make much sense per se, but it
-> keeps the value within usual ranges and also saves a few conversions
-> later. I've updated the 2.6 driver accordingly so the same sensors.conf
-> will still work with both.
+> 	dev_info(&client->adapter->dev, "fan_div value %ld not
+> 	supported. Choose one of 2, 4 or 8!\n", v);
 > 
-> As far as the 2.6 driver is concerned, I've included it to a 2.6.2-rc3
-> source tree and made the other required changes (Makefile, Kconfig,
-> i2c-id.h). Full patch attached.
+> when it is called with an unsupported div value.
+
+You mean that I have *not* being using it. Shame on me. I'll reintegrate
+these changes into my version, sorry. Nice catching by the way. I'm glad
+to see you're keeping a serious eye on me.
+
+> > I committed a change to libsensors so that it finds fan_rippleX
+> > files from the 2.6 driver. There are still a few matchings missing
+> > (rev, control and wdog_*) but I don't think sensors uses them, does
+> > it?
 > 
-> I've made a few changes to your original work. Especially I reindented
-> everything according to what kernel folks want. I don't like their
-> standard more than you seem to do, but we have to comply to it or your
-> driver won't be accepted.
+> We've already discussed about that and I'd like to add them, but I
+> still do not know, how to access those values.
 
-Thank you very much for doing that.
+Basically you can refer to them by their item names (see lib/chips.c) in
+sensors.conf and access them with their ID in sensors. The thing is, I
+don't think you want to do that since these are not things you want to
+display in sensors' output nor write to with "sensors -s".
 
-> I've also made several unimportant changes (comments, debug stuff, code
-> "design"). I left the functional stuff unchanged, since I know you know
-> what you're doing and I couldn't possibly test my changes anyway.
+This is the reason I didn't bother supporting them in libsensors for the
+2.6 version. But if you think it's better, I can do.
 
-It seems, that you've used the latest driver file, I've sent, where all 
-occurances of simple_stroul() put their result into a variable of type 
-'unsigned long' (instead of int) and where set_fan_div() outputs this message
+How are you using these files at the moment? How would you want to use
+these values if you can't do that now? My impression is that rev is
+mainly decorative, and that wdog would more likely be accessed directly
+using shell scripts. I don't know about control - what is it for?
 
-	dev_info(&client->adapter->dev, "fan_div value %ld not supported. Choose one 
-of 2, 4 or 8!\n", v);
+> Both drivers work as expected. The conversion formula returns correct
+> values. But sensors gives the following output on 2.6.1:
+> 
+> fscher-i2c-1-73
+> Adapter: SMBus I801 adapter at 2000
+> Temp1/CPU:      failed
+> Temp2/MB:       failed
+> Temp3/AUX:      failed
+> ERROR: Can't get FAN1 data!
+> ERROR: Can't get FAN2 data!
+> ERROR: Can't get FAN3 data!
+> +12V:           +11.79 V
+> +5V:             +5.05 V
+> Battery:         +3.04 V
 
-when it is called with an unsupported div value.
+Is is libsensors from CVS? If if is, then I have not hacked in
+correctly. Will take a look tomorrow.
 
-> I committed a change to libsensors so that it finds fan_rippleX files
-> from the 2.6 driver. There are still a few matchings missing (rev,
-> control and wdog_*) but I don't think sensors uses them, does it?
+> sensors-detect works for both kernels, both times considers fscher as
+> 'todo'.
 
-We've already discussed about that and I'd like to add them, but I still do 
-not know, how to access those values.
+My bad, I forgot to update that by the time you commited the original
+driver. Fixed in CVS.
 
-> I'd like you to get lm_sensors CVS, ensure that the new 2.4 driver works
-> with the updated sensors.conf, lib and sensors. Then try the first
-> candidate 2.6 driver, and report how it is going.
+> How can I set pwm* with 'sensors -s', as it gives me
+> 
+> Error: Line 1589: Unknown feature name
+> Error: Line 1590: Unknown feature name
+> Error: Line 1591: Unknown feature name
+> 
+> when I enable those lines in 'sensors.conf'.
 
-Both drivers work as expected. The conversion formula returns correct values. 
-But sensors gives the following output on 2.6.1:
+This is also a libsensors hacking issue. I must really have missed
+something.
 
-fscher-i2c-1-73
-Adapter: SMBus I801 adapter at 2000
-Temp1/CPU:      failed
-Temp2/MB:       failed
-Temp3/AUX:      failed
-ERROR: Can't get FAN1 data!
-ERROR: Can't get FAN2 data!
-ERROR: Can't get FAN3 data!
-+12V:           +11.79 V
-+5V:             +5.05 V
-Battery:         +3.04 V
+I hope to fix everything by tomorrow.
 
-sensors-detect works for both kernels, both times considers fscher as 'todo'.
+Thanks.
 
-How can I set pwm* with 'sensors -s', as it gives me
-
-Error: Line 1589: Unknown feature name
-Error: Line 1590: Unknown feature name
-Error: Line 1591: Unknown feature name
-
-when I enable those lines in 'sensors.conf'.
-
-Bye.
 -- 
-Dipl.-Inform. (FH) Reinhard Nissl
-mailto:rnissl@gmx.de
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
