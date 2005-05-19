@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: RFC: vid scaling does not belong in kernel?
-Message-Id: <ass451l842mv00krrmpf8cdjr2nb0q8psv@4ax.com>
+Message-Id: <20050405212308.5d705c42.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <14b451tlic7clc0rgn5aquvd4iqa7mre55@4ax.com>
 In-Reply-To: <14b451tlic7clc0rgn5aquvd4iqa7mre55@4ax.com>
@@ -10,31 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 5 Apr 2005 12:09:39 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
+Hi Grant,
 
->
->Hi Philip, Grant,
->
->> But the code that exists in the kernel sensor drivers today, checks the
->> CPU, verifies which VRM standard applies to that rev of CPU and then
->> produces the correct VID to voltage mapping automatically.
->
->I would like to insist on this. The fact that vrm is writable is a legacy
->of the past. There is no more reason to set the vrm value now that
->Rudolf Marek added auto-detection stuff (which BTW should be ported back
->to lm_sensors CVS).
->
->Even exporting the VRM version to user-space makes little sense now. This
->now only serves for debugging, but this would be more efficient to
->simply print the VRM value in the logs at the moment we detect it.
+> So I don't have vrm, therfore I don't need to scale vid, that's the 
+> logical reduction I've been trying to reach.  Why am I scaling a
+> value when nothing can write access vrm?
 
-That's one knocked over then, glad I asked before coding, just need to 
-fix the odd-one-out: adm1026, to match the others then.  Much less work.
+You do have VRM, it is only auto-detected from the CPU model instead of
+being set by the user. You still need to convert {VID, VRM} into a
+voltage value.
 
-So I don't have vrm, therfore I don't need to scale vid, that's the 
-logical reduction I've been trying to reach.  Why am I scaling a value 
-when nothing can write access vrm?
+And again your use of the term "scalling" here is confusing. What you do
+is convert a binary value into a voltage value.
 
-Yeah, I'm missing something, too late, localtime...
-Cheers,
-Grant.
+-- 
+Jean Delvare
