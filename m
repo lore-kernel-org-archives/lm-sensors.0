@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:31 +0000
+Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <1072821970466@kroah.com>
+Message-Id: <10728219702175@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219701447@kroah.com>
+In-Reply-To: <10728219704116@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,33 +11,88 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.20.2, 2003/12/19 10:47:09-08:00, mds@paradyne.com
+ChangeSet 1.1496.8.30, 2003/12/17 15:52:23-08:00, khali@linux-fr.org
 
-[PATCH] I2C: fix amd756 byte writes
+[PATCH] I2C: restore support for AMD8111 in i2c-amd756 driver
 
-This fixes byte writes (used by the eeprom driver) in the i2c-amd756
-driver.  It is similar to recent fixes for the i2c-amd8111 and
-i2c-nforce2 drivers.
+This patch restores support for the AMD8111 in the i2c-amd756 driver.
 
-Tested by me.
+Credits go to Philip Pokorny for the original patch. I tweaked it a bit.
+
+This isn't a bug fix and can be delayed until after 2.6.0 if you want.
 
 
- drivers/i2c/busses/i2c-amd756.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-amd756.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
 
 diff -Nru a/drivers/i2c/busses/i2c-amd756.c b/drivers/i2c/busses/i2c-amd756.c
---- a/drivers/i2c/busses/i2c-amd756.c	Tue Dec 30 12:29:49 2003
-+++ b/drivers/i2c/busses/i2c-amd756.c	Tue Dec 30 12:29:49 2003
-@@ -213,9 +213,8 @@
- 	case I2C_SMBUS_BYTE:
- 		outw_p(((addr & 0x7f) << 1) | (read_write & 0x01),
- 		       SMB_HOST_ADDRESS);
--		/* TODO: Why only during write? */
- 		if (read_write = I2C_SMBUS_WRITE)
--			outb_p(command, SMB_HOST_COMMAND);
-+			outb_p(command, SMB_HOST_DATA);
- 		size = AMD756_BYTE;
- 		break;
- 	case I2C_SMBUS_BYTE_DATA:
+--- a/drivers/i2c/busses/i2c-amd756.c	Tue Dec 30 12:30:50 2003
++++ b/drivers/i2c/busses/i2c-amd756.c	Tue Dec 30 12:30:50 2003
+@@ -28,10 +28,12 @@
+     2002-04-08: Added nForce support. (Csaba Halasz)
+     2002-10-03: Fixed nForce PnP I/O port. (Michael Steil)
+     2002-12-28: Rewritten into something that resembles a Linux driver (hch)
++    2003-11-29: Added back AMD8111 removed by the previous rewrite.
++                (Philip Pokorny)
+ */
+ 
+ /*
+-   Supports AMD756, AMD766, AMD768 and nVidia nForce
++   Supports AMD756, AMD766, AMD768, AMD8111 and nVidia nForce
+    Note: we assume there can only be one device, with one SMBus interface.
+ */
+ 
+@@ -308,12 +310,13 @@
+ 	.name		= "unset",
+ };
+ 
+-enum chiptype { AMD756, AMD766, AMD768, NFORCE };
++enum chiptype { AMD756, AMD766, AMD768, NFORCE, AMD8111 };
+ 
+ static struct pci_device_id amd756_ids[] = {
+ 	{PCI_VENDOR_ID_AMD, 0x740B, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD756 },
+ 	{PCI_VENDOR_ID_AMD, 0x7413, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD766 },
+ 	{PCI_VENDOR_ID_AMD, 0x7443, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD768 },
++	{PCI_VENDOR_ID_AMD, 0x746B, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AMD8111 },
+ 	{PCI_VENDOR_ID_NVIDIA, 0x01B4, PCI_ANY_ID, PCI_ANY_ID, 0, 0, NFORCE },
+ 	{ 0, }
+ };
+@@ -321,7 +324,8 @@
+ static int __devinit amd756_probe(struct pci_dev *pdev,
+ 				  const struct pci_device_id *id)
+ {
+-	int nforce = (id->driver_data = NFORCE), error;
++	int nforce = (id->driver_data = NFORCE);
++	int error;
+ 	u8 temp;
+ 	
+ 	if (amd756_ioport) {
+@@ -368,7 +372,7 @@
+ 	amd756_adapter.dev.parent = &pdev->dev;
+ 
+ 	snprintf(amd756_adapter.name, I2C_NAME_SIZE,
+-		"SMBus AMD75x adapter at %04x", amd756_ioport);
++		"SMBus AMD756 adapter at %04x", amd756_ioport);
+ 
+ 	error = i2c_add_adapter(&amd756_adapter);
+ 	if (error) {
+@@ -391,7 +395,7 @@
+ }
+ 
+ static struct pci_driver amd756_driver = {
+-	.name		= "amd75x smbus",
++	.name		= "amd756 smbus",
+ 	.id_table	= amd756_ids,
+ 	.probe		= amd756_probe,
+ 	.remove		= __devexit_p(amd756_remove),
+@@ -408,7 +412,7 @@
+ }
+ 
+ MODULE_AUTHOR("Merlin Hughes <merlin@merlin.org>");
+-MODULE_DESCRIPTION("AMD756/766/768/nVidia nForce SMBus driver");
++MODULE_DESCRIPTION("AMD756/766/768/8111 and nVidia nForce SMBus driver");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(amd756_init)
 
