@@ -1,43 +1,76 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:26 +0000
-Subject: LM sensors amd 2.6 kernel...
-Message-Id: <20031120064833.GC30286@earth.solarsys.private>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: Query on apparently 'disconnected' sysfs interfaces
+Message-Id: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <holnzh.oeishy@webmail.batcom-it.net>
-In-Reply-To: <holnzh.oeishy@webmail.batcom-it.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* R. Reucher <rene.reucher@batcom-it.net> [2003-11-19 13:57:17 +0100]:
+Greetings,
 
-> Not sure, if I can help your group or not... but I'm highly interested in the
-> sensors package for Linux 2.6. Well, I'm patient, but how is the status of the
-> userland tools f?r 2.6? I'd like to assist you in testing, if you drop me a
-> note, where to get the latest releases (if any).
+For the time being I'm stuck on what was expected to be trivial 
+completion of a driver port simply because there is something 
+confusing me in the source tree.
 
-Good timing.  Mark Studebaker just committed some code to CVS.  Look here
-at the bottom of the page:
+Instead I seek to clarify current practice vs documentation vs my 
+understanding of lm_sensors and l-k drivers.  
 
-http://secure.netroedge.com/~lm78/download.html
+Problem: There are many examples of disconnected code fragments 
+in the sysfs interface area.
 
-mds: please correct me if I'm wrong here...
+Possibilities?  I'm missing an obscure indirection, cruft in code, 
+something else I've not yet thought of.  Also, I'm no preprocessor 
+expert, still picking up what the macros are doing from context. 
 
-Make sure that the appropriate i2c/sensors modules are built into your
-2.6 kernel.  Then (while running that kernel) I think you only need to
-build the lm_sensors2 userspace by doing 'make user' and 'make user_install'.
+Given (## = my thoughts) so few drivers are inconsistent, here's 
+one example:
 
-> Hardware I'm going to test on: Tyan Thunder K7X with 2 Athlon MPs (2200+).
-> 
-> SMP kernel: 2.6.0-test9
-> 
-> Thanks in advance for any info. Let me know, if I can help in any way.
+grant@peetoo:/usr/src/linux-2.6.11-mm4x$ grep -r show_temp_input *
 
-Thanks for testing!
+## attributes defined but not used?
+drivers/i2c/chips/max1619.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+drivers/i2c/chips/max1619.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+drivers/i2c/chips/lm75.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
 
-Regards,
+## cruft, only one reference?
+drivers/i2c/chips/lm77.c:                  show_temp_input, NULL);
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+## seems correct -- one attribute for one use
+drivers/i2c/chips/lm80.c:static ssize_t show_temp_input1(struct device *dev, char *buf)
+drivers/i2c/chips/lm80.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+
+## more attributes defined but not used?
+drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_input3, NULL);
+drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp4_input, S_IRUGO, show_temp_input4, NULL);
+drivers/i2c/chips/lm90.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+drivers/i2c/chips/lm90.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+drivers/i2c/chips/adm1021.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
+drivers/i2c/chips/gl518sm.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+
+## missing attribute?
+drivers/i2c/chips/fscher.c:static ssize_t show_temp_input(struct fscher_data *data, char *buf, int nr)
+drivers/i2c/chips/fscpos.c:static ssize_t show_temp_input(struct fscpos_data *data, char *buf, int nr)
+
+My problem at this point is seeing how the driver interfaces to 
+sysfs -- finding many exceptions to the 'norm', thus now it seems 
+I must find what the non-documented 'norm' actually is, before 
+bothering writing to an indeterminate (in my mind) interface.
+
+Is it worth documenting inconsistencies while I try to fathom 
+current practice vs documentation?
+
+Are there tools written to perform this or similar checking?
+I'd really dislike re-inventing this stuff.  
+
+Another thing I tried was diff'ing -mm4 against -ac4, showed 
+where many obvious improvements have been made in -mm4 tree.
+Then I got side-tracked back into my current problem space, 
+sysfs interface seems not fully documented and/or me confused.  
+
+Cheers,
+Grant.
+
