@@ -1,47 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:04 +0000
-Subject: [W.Braun@HSTee.de: Troubles with i2c-piix4]
-Message-Id: <20030706172405.1c928e95.khali@linux-fr.org>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:29 +0000
+Subject: Matrix Orbital driver
+Message-Id: <3FD91FA1.6020205@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030703124231.GB575@frodo.local>
-In-Reply-To: <20030703124231.GB575@frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Problem:
-> ===> Module "i2c-piix4" does not load like expected, see the following
-> answers to my commands
-> 
-> SRV-LIN-01:/ # modprobe i2c-piix4
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o:
-> init_module: Operation not permitted
-> Hint: insmod errors can be caused by incorrect module parameters,
-> including invalid IO or IRQ parameters.
->       You may find more information in syslog or the output from dmesg
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o: insmod
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o failed
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o: insmod
-> i2c-piix4 failed
-> 
-> SRV-LIN-01:/ # modprobe i2c-piix4 force=1
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o:
-> init_module: Operation not permitted
-> Hint: insmod errors can be caused by incorrect module parameters,
-> including invalid IO or IRQ parameters.
->       You may find more information in syslog or the output from dmesg
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o: insmod
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o failed
-> /lib/modules/2.4.19-4GB-SMP/kernel/drivers/i2c/i2c-piix4.o: insmod
-> i2c-piix4 failed
 
-What make you think you have a PIIX4 onboard? Did sensors-detect found
-it for you?
+I haven't had any experience with a/the keypad.  Doing some quick 
+searching, I noticed some info with using a keypad with a serial port 
+arrangement, but I don't know if it works with I2C.  Communication from 
+a chip to the bus master on a I2C/SMBus is a bit tricky and isn't the 
+norm, and wouldn't be implmented in a client chip driver.
 
-Which version of LM Sensors are you using?
+So to answer your question: e) all of the above   ;')
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+Phil
+
+
+David Cecil wrote:
+
+> Hi Philip,
+>
+> when some hardware arrives, I plan to try out your LCD driver.  In the 
+> meantime, I've been looking at the code.
+>
+> Our hardware is going to have a keypad associated with the LCD.  I've 
+> noticed that there is no provision in your driver for a keypad.  Is 
+> that because:
+> a) It doesn't belong there?
+> b) There's no generic solution given the variable number of keys for 
+> the pad?
+> c) You didn't get around to writing it?
+> d) Something I haven't thought of?
+>
+> Thanks,
+> Dave
+>
