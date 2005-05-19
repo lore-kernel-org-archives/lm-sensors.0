@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: tickets needing help
-Message-Id: <20040105192200.GH22177@kroah.com>
+Message-Id: <20040106050118.GJ30841@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3FF64825.9060808@verizon.net>
 In-Reply-To: <3FF64825.9060808@verizon.net>
@@ -10,36 +10,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 04, 2004 at 02:58:39PM +0100, Jean Delvare wrote:
-> > > We would then need:
-> > > 1* A write access to the system.
+* Jean Delvare <khali@linux-fr.org> [2004-01-04 21:19:33 +0100]:
+> > To really do it properly, it needs to be aware of 2.4 vs. 2.6, due to
+> > the fact that the ridiculous PCI device unhiding happens at driver
+> > load in the former, at bootup in the latter.
 > > 
-> > Create an account and you have it.  Any one can create bugs.
+> > I.e. if we only had 2.6 to worry about, i2c-sis96x would have a single
+> > PCI device entry in the table and detection would be nice and generic
+> > like all the rest.
+> > 
+> > Instead, what I should do is yank all the sis96x and sis5595 entries
+> > (because that misdetects all 96x) out of that table and write a
+> > special- purpose function for detecting them properly.
+> > 
+> > I'm not a perl wizard (in fact I dislike perl) so I'm inclined to just
+> > list both devices and attack the rest later, if ever.
 > 
-> That's not how I meant it (but it wasn't clear I admit).  How do we
-> edit, answer, close tickets?
+> If you provide the data and explain to me what I should do with them, I
+> can do the work for you. I'm not a perl wizard either, but in fact I
+> like perl pretty much ;)
 
-If you have an account, you can do any of the above.  I'll gladly
-re-assign any bugs to you if you want me to, so you can modify them to
-your hearts content :)
+Thanks!
 
-> I don't think any of us will want to create new bug reports.  Whenever
-> we find bugs, we fix them ourselves and send you a patch.
+in pseudo code; indentation matters...
 
-That's fine, I don't mind that at all.  I actually prefer it :)
+if kernel is 2.6.x
+	if 1039:0016 is present
+		use i2c-sis96x
+	else if 1039:0008 is present
+		use i2c-sis5595
+	else
+		(none)
+else if kernel is 2.4.x
+	if 1039:0008 is present
+		if (1039:0645 or 1039:0646 or \
+		1039:648 or 1039:0650 or \
+		1039:651 or 1039:0735 or \
+		1039:745 or 1039:0746) is present
+			use i2c-sis645
+		else
+			use i2c-sis5595
+	else if 1039:0016 is present
+		use i2c-sis645
+	else if 1039:0018 is present
+		use i2c-sis645
+	else
+		(none)
 
-> If we are to direct all 2.6 users to your bugzilla system, it's likely
-> that you'll appreciate some help handling them.
+Also, I think, any SiS device ID which does not appear in the above
+function should stay just as it is in the table... because I can't
+confirm what IDs are on those systems.
 
-Sure, if the load gets too big.
+Regards,
 
-> Sounds reasonable that it default to you since you are the official
-> maintained of the i2c subsystem, but you might need our assistance
-> sometimes.  I guess that it is possible that you "give" us some bugs,
-> providing we have an account that allows you to.
-
-Exactly.
-
-thanks,
-
-greg k-h
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
