@@ -1,33 +1,34 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: ITE8707F (was Re: SiS)
-Message-Id: <3DAC74E1.4D6DD753@paradyne.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:29 +0000
+Subject: 2.8.2 is released!
+Message-Id: <3FD8F67C.9070206@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021014202219.A28202@mercury.solarsys.net>
-In-Reply-To: <20021014202219.A28202@mercury.solarsys.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
+2.8.2 released!  Please review the home page announcement and the 
+download page.  Feel free to make any changes needed.
 
-"Mark M. Hoffman" wrote:
+Mark- I assume you'll continue to do the Freshmeat announcement like 
+last time?  Feel free to do that any time you wish.
+
+
+Phil
+
+Jean Delvare wrote:
+
+>>OK, I'll try to get that taken care of this afternoon or tomorrow at
+>>the latest.  Great work guys!!
+>>    
+>>
 >
-> Also, there was a question in all the quoted text that I am still
-> interested in having answered:
-> 
-> > Right now, our driver is called i2c-sis645... I would like to change the
-> > name to i2c-sis0016 at some point.  I need some guidance from the project
-> > maintainers for how to do that without messing up all our users.
-> 
+>Thanks. Especially Mark and Dany Backx have been doing a great great job
+>having libsensors and sensors work under Linux 2.6. That's quite
+>impressive. Admittedly there's still a long way to go but that first
+>step might have been the more difficult one.
 >
-
-I do not recommend renaming.
-
- - we lose all the CVS history
- - upgrading gets tricky - both old and new modules could be loaded, user confusion
- - names are fairly arbitrary anyway. look at our list of what's supported
-   by the various modules, it's all over the place.
-
-mds
+>  
+>
