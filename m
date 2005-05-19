@@ -1,56 +1,91 @@
-From: greg@kroah.com (Greg KH)
+From: jthiessen@penguincomputing.com (Justin Thiessen)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: [PATCH] 2.6 lm85.c driver update
-Message-Id: <20041105214841.GI1750@kroah.com>
+Message-Id: <20041105222546.GA31538@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041004200943.GE22290@penguincomputing.com> <20041019222920.GJ9521@kroah.com> <20041025203610.GA19053@penguincomputing.com> <20041025225959.6026626f.khali@linux-fr.org> <20041025220526.GC19053@penguincomputing.com>
-In-Reply-To: <20041025220526.GC19053@penguincomputing.com>
+References: <20041004200943.GE22290@penguincomputing.com>
+ <20041019222920.GJ9521@kroah.com>
+ <20041025203610.GA19053@penguincomputing.com>
+ <20041025225959.6026626f.khali@linux-fr.org>
+ <20041025220526.GC19053@penguincomputing.com>
+ <20041105214841.GI1750@kroah.com>
+In-Reply-To: <20041105214841.GI1750@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Justin Thiessen <jthiessen@penguincomputing.com>
+To: Greg KH <greg@kroah.com>
 Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com, phil@netroedge.com
 
-On Mon, Oct 25, 2004 at 03:05:26PM -0700, Justin Thiessen wrote:
-> On Mon, Oct 25, 2004 at 10:59:59PM +0200, Jean Delvare wrote:
-> > > > Hm, there are a number of rejects in this patch.  Care to resync up
-> > > > with the next kernel release and resend this?
-> > > 
-> > > Ok, try this:
-> > > 
-> > > signed off by:  Justin Thiessen  <jthiessen@penguincomputing.com>
-> > > 
-> > > patch for kernel 2.6.X lm85 driver follows:
-> > > ----------------------------------------------------
-> > > 
-> > > --- linux-2.6.9/drivers/i2c/chips/lm85.c.orig	2004-10-18 14:53:46.000000000 -0700
-> > > +++ linux-2.6.9/drivers/i2c/chips/lm85.c	2004-10-24 18:16:04.188509824 -0700
-> > 
-> > Unfortunately this won't be OK either. 2.6.10-rc1 has a lot of i2c
-> > changes, including a number of things your patch attempts to fix (macro
-> > abuse reported by Mark Hoffman). So it won't apply to Greg's tree.
-> 
-> 
-> Aiiiiiiiieeeeeee.
-> 
-> 
-> > Please provide your patch against 2.6.10-rc1. Sorry that you always seem
-> > to provide your patch against the not-really-last tree ;)
-> 
-> It's not your fault I expect kernel releases to be rolled out by punchcards and
-> horse-drawn wagon.
-> 
-> Thanks for the heads-up; see the following patch for a new, "improved" version.
+On Fri, Nov 05, 2004 at 01:48:41PM -0800, Greg KH wrote:
+> On Mon, Oct 25, 2004 at 03:05:26PM -0700, Justin Thiessen wrote:
+> > On Mon, Oct 25, 2004 at 10:59:59PM +0200, Jean Delvare wrote:
+> > > > > Hm, there are a number of rejects in this patch.  Care to resync up
+> > > > > with the next kernel release and resend this?
+> > > > 
+> > > > Ok, try this:
+> > > > 
+> > > > signed off by:  Justin Thiessen  <jthiessen@penguincomputing.com>
+> > > > 
+> > > > patch for kernel 2.6.X lm85 driver follows:
 
-Applied, thanks.
+<snip>
 
-But now I get the following build warnings:
+> Applied, thanks.
+> 
+> But now I get the following build warnings:
+> 
+> drivers/i2c/chips/lm85.c:220: warning: 'SMOOTH_TO_REG' defined but not used
+> drivers/i2c/chips/lm85.c:236: warning: 'SPINUP_TO_REG' defined but not used
+> 
+> Care to send me a patch to fix them up?
 
-drivers/i2c/chips/lm85.c:220: warning: 'SMOOTH_TO_REG' defined but not used
-drivers/i2c/chips/lm85.c:236: warning: 'SPINUP_TO_REG' defined but not used
+Ok.
 
-Care to send me a patch to fix them up?
+Justin Thiessen
 
-thanks,
+Signed off by Justin Thiessen <jthiessen@penguincomputing.com>
 
-greg k-h
+-------
+
+--- linux-2.6.10-rc1/drivers/i2c/chips/lm85.c.orig	2004-11-04 20:30:08.340770952 -0800
++++ linux-2.6.10-rc1/drivers/i2c/chips/lm85.c	2004-11-04 20:25:25.354791360 -0800
+@@ -212,38 +212,6 @@ static int RANGE_TO_REG( int range )
+  *       MSB (bit 3, value 8).  If the enable bit is 0, the encoded value
+  *       is ignored, or set to 0.
+  */
+-static int lm85_smooth_map[] = {  /* .1 sec */
+-		350, 176, 118,  70,  44,   30,   16,    8
+-/*    35.4 *    1/1, 1/2, 1/3, 1/5, 1/8, 1/12, 1/24, 1/48  */
+-	};
+-static int SMOOTH_TO_REG( int smooth )
+-{
+-	int i;
+-
+-	if( smooth <= 0 ) { return 0 ; }  /* Disabled */
+-	for( i = 0 ; i < 7 ; ++i )
+-		if( smooth >= lm85_smooth_map[i] )
+-			break ;
+-	return( (i & 0x07) | 0x08 );
+-}
+-#define SMOOTH_FROM_REG(val) ((val)&0x08?lm85_smooth_map[(val)&0x07]:0)
+-
+-/* These are the fan spinup delay time encodings */
+-static int lm85_spinup_map[] = {  /* .1 sec */
+-		0, 1, 2, 4, 7, 10, 20, 40
+-	};
+-static int SPINUP_TO_REG( int spinup )
+-{
+-	int i;
+-
+-	if( spinup >= lm85_spinup_map[7] ) { return 7 ; }
+-	for( i = 0 ; i < 7 ; ++i )
+-		if( spinup <= lm85_spinup_map[i] )
+-			break ;
+-	return( i & 0x07 );
+-}
+-#define SPINUP_FROM_REG(val) (lm85_spinup_map[(val)&0x07])
+-
+ /* These are the PWM frequency encodings */
+ static int lm85_freq_map[] = { /* .1 Hz */
+ 		100, 150, 230, 300, 380, 470, 620, 940
+
