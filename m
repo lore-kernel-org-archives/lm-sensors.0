@@ -1,36 +1,53 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:45 +0000
-Subject: No sensors found. Ticket: 1939
-Message-Id: <ktn441t4ski8akk55ji09ed94t440vjtop@4ax.com>
+From: bennyc@rtunet.com (Benny Chen)
+Date: Thu, 19 May 2005 06:25:51 +0000
+Subject: Writing new driver for FM3104 on Cirrus 9301 processor
+Message-Id: <200504130348.j3D3mOi0012882@serv0.rtunet.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BAY102-F20217FD8020B37144FE5CCC2400@phx.gbl>
-In-Reply-To: <BAY102-F20217FD8020B37144FE5CCC2400@phx.gbl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Pat,
+Hi Guys,
+I have gone through much of the doco and really need your help. I am about
+to embark on writing a driver for the RTC and Watch Dog timer for our
+system.  I have some questions and hopefully you can help.
+ 
+In our system, the FM3104 chip?s SCL and SDA line are connected to the EECLK
+and EESDA (like GPIO) line on the processor.  Hence, I would need to use
+some bit bang algo to talk to the chip.  But I would want to maximise the
+use of existing code in the i2c directory but don?t know what I should be
+writing.    
+ 
+ 
+1.	For both the RTC and Watch dog drivers, do I need to write both the
+adapter driver and Driver driver  or just a driver like the ds1307.c?
+2.	Which existing src would be a good template for me?
+3.	The DS1307. c code, it do not have an i2c_adapter structure defined,
+Hence, how do it knows what algo it would use to talk to the DS1307 chip? 
+ 
+Thank you so much for your help.
+ 
+Regards,
+ 
+Benny Chen
+R & D Firmware Engineer
+ 
+RTUnet Pty Ltd
+Innovation Centre
+90 Sippy Downs Drive
+Sippy Downs Qld
+4556
+ 
+Phone +61 7 54594560
+Fax +61 7 54594563
+ 
 
-On Wed, 23 Mar 2005 21:59:06 -0800, "Pat Young" <patyoung13@hotmail.com> wrote:
-
->Hi Grant,
->
->Thank you for the response.  To be honest I really just want to be able to 
->run gkrellm and get cpu temp.  If the best way to do so is to patch the 
->kernel source then yes that's what I'd like to do.  Unfortunately as I said 
->before I am new to it.  I'm running Redhat Enterprise 4.  I don't seem to 
->have the directory that you refer to: usr/src/linux-2.6.12-rc1.  In /usr/src 
->I have:
->
->/redhat
->/kernels
->
->I think I may be in over my head....  Is the file that I downloaded going to 
->work or am I out of luck?
-
-Sorry, I'm not running redhat anymore, I don't have your hardware, 
-I don't know.  Keep system up-to-date and you will get it one day.
-
-Cheers,
-Grant.
+-- 
+No virus found in this outgoing message.
+Checked by AVG Anti-Virus.
+Version: 7.0.308 / Virus Database: 266.9.7 - Release Date: 12/04/2005
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050413/6fd5f2d7/attachment.html
