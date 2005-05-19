@@ -1,25 +1,31 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:29 +0000
-Subject: 2.8.2 is released!
-Message-Id: <3FDBAF3D.FC5EFD94@paradyne.com>
+From: rafael.espindola@gmail.com (Rafael =?iso-8859-1?q?=C1vila_de_Esp=EDndola?=)
+Date: Thu, 19 May 2005 06:25:34 +0000
+Subject: emc6d102 support
+Message-Id: <200502011003.40803.rafael.espindola@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3FD8F67C.9070206@edgedesign.us>
-In-Reply-To: <3FD8F67C.9070206@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks Phil.
-Freshmeat updated last night.
+The attached patchs add support for the emc6d102. It already worked as a 
+"generic lm85" so the patchs are mostly cosmetic.
 
-Philip Edelbrock wrote:
-> 
-> 2.8.2 released!  Please review the home page announcement and the
-> download page.  Feel free to make any changes needed.
-> 
-> Mark- I assume you'll continue to do the Freshmeat announcement like
-> last time?  Feel free to do that any time you wish.
-> 
-> Phil
->
+The emc6d102 has a 10bits A/D converter. Do you think that it would be 
+worthwhile to add support to it?
+
+Rafael
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: emc6d102-kernel.patch
+Type: text/x-diff
+Size: 1320 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050201/b0c5d861/emc6d102-kernel.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: emc6d102-sensors.patch
+Type: text/x-diff
+Size: 3047 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050201/b0c5d861/emc6d102-sensors.bin
