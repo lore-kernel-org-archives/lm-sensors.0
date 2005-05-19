@@ -1,7 +1,7 @@
 From: delvare@ensicaen.ismra.fr (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:30 +0000
 Subject: eeprom driver
-Message-Id: <Pine.GSO.4.40.0202172351460.15925-200000@e450.ensicaen.ismra.fr>
+Message-Id: <Pine.GSO.4.40.0202181446200.15292-100000@e450.ensicaen.ismra.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020201105452.C1871@Stimpy.netroedge.com>
 In-Reply-To: <20020201105452.C1871@Stimpy.netroedge.com>
@@ -11,164 +11,26 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-I enhanced my decode-vaio.pl script today. Here is the new version (0.3).
-I give you the whole script instead of a diff because there are so many
-changes that the diff is hardly readable and is bigger that the script
-itself.
+> I made the naming change you suggested in eeprom.c
+> and fixed decode-dimms and decode-xeon, (...)
 
-See the changes list inside the script for details.
+Any reason why decode-xeon.pl was not moved to eeprom/ as I suggested?
+(not that it is really important, I'm just wondering)
+
+I saw that you reversionned decode-dimms and decode-xeon to 2.6.3.  I
+guess we should agree on wether scripts versions are supposed to match
+lm_sensors' ones.  I have a general preference for independant versioning,
+since it lets us change the scripts without regards to how frequent
+lm_sensors itself is released.  Anyway I'd like to know what is expected
+to follow the guidelines.  However, I'd insist that the claimed (printed
+at runtime) version matches the changes history one(s), and that, in the
+case we chose to keep an independant versioning, the required lm_sensors
+version be explicitely mentioned.
+
+Regards.
 
 -- 
        /~~       Jean "Khali" Delvare
   -----\_                        mail: delvare@ensicaen.ismra.fr
  --------\                http://www.ensicaen.ismra.fr/~delvare/
 ---=ISMRA/- ____________________________________________________
--------------- next part --------------
-#!/usr/bin/perl -w
-#
-# Copyright 2002 Jean Delvare <khali@linux-fr.org>
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
-#    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#
-# Version 0.1  2002-02-06  Jean Delvare <khali@linux-fr.org>
-# Version 0.2  2002-02-16  Jean Delvare <khali@linux-fr.org>
-#  Fixed to work with the new, simplified /proc interface names of the eeprom driver
-#  (lm_sensors 2.6.3 and greater.)
-#  Shifted data display by 4 columns left.
-# Version 0.3  2002-02-17  Jean Delvare <khali@linux-fr.org>
-#  Added UUID field at 0x10 (added decode_uuid.)
-#  Merged decode_string and decode_string32.
-#  Added unknown field at 0x20.
-#  Moved header and footer to BEGIN and END, respectivly.
-#  Reformated history to match those of the other decode scripts.
-#  Deleted decode_char (made useless by decode_string.)
-#  Reordered field display, changed some labels.
-#  Added old /proc interface check.
-#
-# EEPROM data decoding for Sony Vaio laptops. 
-#
-# Two assumptions: lm_sensors-2.6.3 or greater installed,
-# and Perl is at /usr/bin/perl
-#
-# Please note that this is a guess-only work.  Sony support refused to help
-# me, so if someone can provide information, please contact me.  I used my
-# PCG-GR214EP as a base, but I can't promise that this script will work with
-# other models.  Any feedback appreciated anyway.
-#
-
-use strict;
-
-sub print_item
-{
-	my ($label,$value) = @_;
-	
-	printf("\%16s : \%s\n",$label,$value);
-}
-
-sub decode_string
-{
-	my ($bus,$addr,$base,$offset,$length) = @_;
-
-	my $line='';
-	my $remains=$length+$offset;
-	while($remains>0)
-	{
-		my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
-		open(FH,$filename) || die "Can't open $filename";
-		$line.=<FH>;
-		close(FH);
-		$remains-;
-		$base+;
-	}
-
-	my @bytes=split(/[ \n]/,$line);
-	@bytes=@bytes[$offset..$offset+$length-1];
-	my $string='';
-	my $item;
-	while(defined($item=shift(@bytes)) && ($item!=0))
-	{
-		$string.=chr($item);
-	}
-	
-	return($string);
-}
-
-sub decode_uuid
-{
-	my ($bus,$addr,$base) = @_;
-
-	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
-	open(FH,$filename) || die "Can't open $filename";
-	my $line=<FH>;
-	close(FH);
-
-	my @bytes=split(/[ \n]/,$line);
-	my $string='';
-	my $item;
-
-	for(my $i=0;$i<16;$i++)
-	{
-		$string.=sprintf('%02x',shift(@bytes));
-		if(($i=3)||($i=5)||($i=7)||($i=9))
-		{
-			$string.='-';
-		}
-	}
-
-	return($string);
-}
-
-sub vaio_decode
-{
-	my ($bus,$addr) = @_;
-	
-	print_item('Machine Name',decode_string($bus,$addr,128,0,32));
-	print_item('Serial Number',decode_string($bus,$addr,192,0,32));
-	print_item('UUID',decode_uuid($bus,$addr,16));
-	print_item('Revision',decode_string($bus,$addr,160,0,10));
-	print_item('Model Number','PCG-'.decode_string($bus,$addr,160,10,4));
-	print_item('?',decode_string($bus,$addr,32,0,16));
-	print_item('?',decode_string($bus,$addr,224,0,32));
-}
-
-BEGIN
-{
-	print("Sony Vaio EEPROM Decoder\n");
-	print("Written by Jean Delvare.  Copyright 2002.\n");
-	print("Version 0.3\n\n");
-}
-
-END
-{
-	print("\n");
-}
-
-if ( -r '/proc/sys/dev/sensors/eeprom-i2c-0-57')
-{
-	if ( -r '/proc/sys/dev/sensors/eeprom-i2c-0-57/data0-15')
-	{
-		print("Deprecated old interface found.  Please upgrade to lm_sensors 2.6.3 or greater.");
-	}
-	else
-	{
-		vaio_decode('0','57');
-	}
-}
-else
-{
-	print("Vaio EEPROM not found.  Please make sure that the eeprom module is loaded.\n");
-	print("If you believe this is an error, please contact me <khali\@linux-fr.org>\n");
-	print("so that we may see how to fix the problem.\n");
-}
