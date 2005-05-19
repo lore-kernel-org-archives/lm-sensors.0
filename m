@@ -1,37 +1,37 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:15 +0000
-Subject: w83l950d
-Message-Id: <20040914151531.M71377@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:28 +0000
+Subject: [PATCH 2.6] more i2c bus drivers (1/2)
+Message-Id: <20031205221443.482486b1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <333A0A4FF2FA7E4D9528E127824C2184DA2A0B@FITMS200MB.tcad.telia.se>
-In-Reply-To: <333A0A4FF2FA7E4D9528E127824C2184DA2A0B@FITMS200MB.tcad.telia.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> sensor compability list says that winbond W83L950D -chipset (aka=20
-> uGuru) is unsupported, and no data sheet available. However I just=20
-> browsed Winbond-page and saw datasheet as PDF.
->=20
-> http://www.winbond.com/e-winbondhtm/partner/PDFResult.asp?Pname=926
->=20
-> I cannot say if this is sufficient documentation for lmsensors to=20
-> build a support, but it has memory maps, bit registers etc.
+This patch fixes i2c_smbus_write_byte() being broken for i2c-amd8111.
+This causes trouble when that module is used together with eeprom (which
+is also in 2.6). We have had no report so far, but the problem is
+similar to the one addressed by a recent patch to i2c-nforce2.
 
-It is unfortunately not sufficent, and this is the problem. The W83L950D is
-basically an empty box (technically, a set of GPIO pins). What it can do and
-how it does it solely depends on what is wired on the pins.
+Credits go to Hans-Frieder Vogt for finding and fixing the problem. Mark
+D. Studebaker found and fixed the original problem in i2c-nforce2.
 
-As I understand it, the uGuru is a set of different chips connected to and
-controlled through the W83L950D. Without details on how all this works from
-Abit, there's nothing we can do.
+This is a serious bug fix, and I believe you shouldn't wait too long
+before applying it.
 
-I admit that the explanations on our New Drivers page are confusing,
-especially since we pretend we don't have a datasheet for the W83L950D. I w=
-ill
-update the page, thanks for pointing this out.
+--- linux-2.6.0-test11/drivers/i2c/busses/i2c-amd8111.c.orig	Sat Oct 25 20:44:33 2003
++++ linux-2.6.0-test11/drivers/i2c/busses/i2c-amd8111.c	Mon Dec  1 21:06:43 2003
+@@ -192,7 +192,7 @@
+ 
+ 		case I2C_SMBUS_BYTE:
+ 			if (read_write = I2C_SMBUS_WRITE)
+-				amd_ec_write(smbus, AMD_SMB_DATA, data->byte);
++				amd_ec_write(smbus, AMD_SMB_CMD, command);
+ 			protocol |= AMD_SMB_PRTCL_BYTE;
+ 			break;
+ 
 
---=20
+
+-- 
 Jean Delvare
-http://khali.linux-fr.org/
+http://www.ensicaen.ismra.fr/~delvare/
