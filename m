@@ -1,19 +1,25 @@
 From: aurelien@aurel32.net (=?iso-8859-15?Q?Aur=E9lien?= Jarno)
 Date: Thu, 19 May 2005 06:25:33 +0000
-Subject: [PATCH]: pwmconfig and fancontrol manpages
-Message-Id: <20050127004833.GA21732@bode.aurel32.net>
+Subject: [PATCH]: pwmconfig and fancontrol manpages (resubmit)
+Message-Id: <20050127010648.GB21732@bode.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050127004833.GA21732@bode.aurel32.net>
+In-Reply-To: <20050127004833.GA21732@bode.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+On Thu, Jan 27, 2005 at 01:48:33AM +0100, Aur?lien Jarno wrote:
+> Hi all,
+> 
+> Please find attached a patch to add pwmconfig(8) and fancontrol(8)
+> manpages. They are based on the doc/fancontrol.txt documentation.
 
-Please find attached a patch to add pwmconfig(8) and fancontrol(8)
-manpages. They are based on the doc/fancontrol.txt documentation.
+As always, my patch was buggy, as make install and make remove won't
+install and remove the manpages. New patch attached.
 
-Cheers,
+Bye,
 Aurelien
 
 -- 
@@ -21,9 +27,8 @@ Aurelien
  : :' :  Debian GNU/Linux developer | Electrical Engineer
  `. `'   aurel32@debian.org         | aurelien@aurel32.net
    `-    people.debian.org/~aurel32 | www.aurel32.net
-
 -------------- next part --------------
-diff -urN lm_sensors2.orig/prog/pwm/fancontrol.8 lm_sensors2/prog/pwm/fancontrol.8
+diff -urNp lm_sensors2.orig/prog/pwm/fancontrol.8 lm_sensors2/prog/pwm/fancontrol.8
 --- lm_sensors2.orig/prog/pwm/fancontrol.8	1970-01-01 01:00:00.000000000 +0100
 +++ lm_sensors2/prog/pwm/fancontrol.8	2005-01-27 01:25:03.000000000 +0100
 @@ -0,0 +1,103 @@
@@ -130,10 +135,10 @@ diff -urN lm_sensors2.orig/prog/pwm/fancontrol.8 lm_sensors2/prog/pwm/fancontrol
 +.SH AUTHOR
 +.PP
 +Marius Reiner <marius.reiner@hdev.de>
-diff -urN lm_sensors2.orig/prog/pwm/Module.mk lm_sensors2/prog/pwm/Module.mk
+diff -urNp lm_sensors2.orig/prog/pwm/Module.mk lm_sensors2/prog/pwm/Module.mk
 --- lm_sensors2.orig/prog/pwm/Module.mk	2005-01-27 01:32:11.000000000 +0100
-+++ lm_sensors2/prog/pwm/Module.mk	2005-01-27 01:40:52.000000000 +0100
-@@ -18,6 +18,9 @@
++++ lm_sensors2/prog/pwm/Module.mk	2005-01-27 01:53:00.000000000 +0100
+@@ -18,17 +18,23 @@
  MODULE_DIR := prog/pwm
  PROGPWMDIR := $(MODULE_DIR)
  
@@ -143,7 +148,22 @@ diff -urN lm_sensors2.orig/prog/pwm/Module.mk lm_sensors2/prog/pwm/Module.mk
  PROGPWMTARGETS := $(MODULE_DIR)/fancontrol \
                    $(MODULE_DIR)/fancontrol.pl \
                    $(MODULE_DIR)/pwmconfig
-diff -urN lm_sensors2.orig/prog/pwm/pwmconfig.8 lm_sensors2/prog/pwm/pwmconfig.8
+ 
+ REMOVEPWMBIN := $(patsubst $(MODULE_DIR)/%,$(DESTDIR)$(SBINDIR)/%,$(PROGPWMTARGETS))
++REMOVEPWMMAN := $(patsubst $(MODULE_DIR)/%,$(DESTDIR)$(PROGPWMMAN8DIR)/%,$(PROGPWMMAN8FILES))
+ 
+ install-prog-pwm: $(PROGPWMTARGETS)
+-	$(MKDIR) $(DESTDIR)$(SBINDIR)
++	$(MKDIR) $(DESTDIR)$(SBINDIR) $(DESTDIR)$(PROGPWMMAN8DIR)
+ 	$(INSTALL) -m 755 $(PROGPWMTARGETS) $(DESTDIR)$(SBINDIR)
++	$(INSTALL) -m 644 $(PROGPWMMAN8FILES) $(DESTDIR)$(PROGPWMMAN8DIR)
+ 
+ user_install :: install-prog-pwm
+ 
+ user_uninstall::
+ 	$(RM) $(REMOVEPWMBIN)
++	$(RM) $(REMOVEPWMMAN)
+diff -urNp lm_sensors2.orig/prog/pwm/pwmconfig.8 lm_sensors2/prog/pwm/pwmconfig.8
 --- lm_sensors2.orig/prog/pwm/pwmconfig.8	1970-01-01 01:00:00.000000000 +0100
 +++ lm_sensors2/prog/pwm/pwmconfig.8	2005-01-27 01:25:03.000000000 +0100
 @@ -0,0 +1,33 @@
