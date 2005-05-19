@@ -1,7 +1,7 @@
-From: sjhill@realitydiluted.com (Steven J. Hill)
-Date: Thu, 19 May 2005 06:24:04 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:05 +0000
 Subject: i2c/sensors patch for 2.4.21 uploaded to my server....
-Message-Id: <3F136E12.8040509@realitydiluted.com>
+Message-Id: <20030715174643.5702961e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3EFCF67D.9040503@realitydiluted.com>
 In-Reply-To: <3EFCF67D.9040503@realitydiluted.com>
@@ -10,38 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+
+> I changed the name, but I also uploaded the corrected patches with the
+> 2.4.21 prefix. All of the other 2.4.20 patches could be renamed with
+> the 2.4.21 prefix and new regeneration of the patches are unnecessary.
+
+It looks like the 2.4.21-i2c-sensors-patch.gz is older than the other
+patches. You forgot to upload the new one, didn't you?
+
+> I also downloaded the 2.8.0 stuff and tested it out on my dual Athlon
+> machine. I have uploaded the 2.8.0 patches for 2.4.21 to my ftp site
+> as well. There were two modules, scx200_acb.c and scx200_i2c.c that
+> did not compile. These patches have also been uploaded. The link again
+> is:
 > 
-> We will generate new patches in a few weeks based on i2c and lm_sensors
-> 2.8.0, actually right after 2.8.0 is released. There has been so much
-> change commited to CVS since 2.7.0 that this will be a hard work.
-> 
-> What would be of interest for us is to know if you encountered
-> difficulties while doing your patch. If yes, we are likely to encounter
-> the same difficulties too.
->
-Yes, the following patches failed with the specific files:
+>      ftp://ftp.realitydiluted.com/linux/i2c
 
-     2.4.20-i2c-1-patch
-       * drivers/i2c/Config.in
-     2.4.20-i2c-2-patch
-       * include/linux/i2c-id.h
-       * include/linux/i2c.h
+I've added this link to our download page. Some things would need to be
+clarified however:
 
-> In the meantime, we could consider putting a link on our news page,
-> pointing to your patch, for interested users, unless someone has an
-> objection against this. My only objection would be on the patch name.
-> I'd better name it "sensors" than "i2c".
-> 
-I changed the name, but I also uploaded the corrected patches with the
-2.4.21 prefix. All of the other 2.4.20 patches could be renamed with
-the 2.4.21 prefix and new regeneration of the patches are unnecessary.
+1* I saw you added calls to MOD_INC_USE_COUNT and MOD_DEC_USE_COUNT in
+at least the SCx200 driver.Why that? The compatibility issue raised by
+this release was caused by the use of these. Mark D. Studebaker told me
+to get rid of them in all kernel drivers, what I did. So, what are we
+really supposed to do? Mark, I'd like to hear you on this.
 
-I also downloaded the 2.8.0 stuff and tested it out on my dual Athlon
-machine. I have uploaded the 2.8.0 patches for 2.4.21 to my ftp site
-as well. There were two modules, scx200_acb.c and scx200_i2c.c that did
-not compile. These patches have also been uploaded. The link again is:
+2* It isn't clear what each of your patch does. I'd appreciate a list
+that says which patch changes which files, and in which way.
 
-     ftp://ftp.realitydiluted.com/linux/i2c
+We now have our own patch set for i2c-2.8.0 (we don't have any for
+lm_sensors-2.8.0 yet though.) I'd like you to take a look at my page
+that explains in detail what the patches do and why they are necessary.
+In a way, I guess we made some common work, and trying to compare what
+you and I did should be interesting:
 
--Steve
+    http://www.ensicaen.ismra.fr/~delvare/devel/i2c/
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
