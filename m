@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:38 +0000
+From: christophe.dr@free.fr (christophe)
+Date: Thu, 19 May 2005 06:25:39 +0000
 Subject: adt7463 on asus w1n laptop
-Message-Id: <NrrGrp6k.1108976823.1208530.khali@localhost>
+Message-Id: <200502211617.18707.christophe.dr@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200502141545.03330.christophe.dr@free.fr>
 In-Reply-To: <200502141545.03330.christophe.dr@free.fr>
@@ -10,144 +10,217 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hi Philip,
+> >It doesn't seem to set fan speed at a low rpm (not less than 3000 rpm,
+> > that's too fast) as i expected, but it might be due to my inappropriate
+> > settings... Actuall i read this document :
+> >http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/lm85
+> >but did not understand a lot of it...
+> I'm sorry.  Is there any particular section that was confusing?  What
+> could I explain better?
 
-> > It is very common that datasheets will document the lowest possible
-> > revision/stepping for a chip, leaving it up to us to decide which range
-> > we want to accept. This is what I proposed (and committed), based on
-> > both the ADM1027 (rev.A) and the ADT7463 (rev.B) datasheets.
->
-> OK.  I haven't seen a range of revisions documented in a datasheet, but
-> I believe that you've read more datasheets than I have.
+Well, "i" am sorry, i read the document about lm85 chip and i may not have 
+enough technical knowledges to understand how to give the right parameters 
+in /etc/sensors.conf
+This is the intersting part of this file (in the lm85 and co section) :
 
-An example of this can be read in the LM90 datasheet:
+set pwm1_zone 123
+set pwm1_min_ctl 0
+set pwm1_min 0
 
-"2.13 DIE REVISION CODE REGISTER
+set temp1_min 20
+set temp1_max 60       # dothan's max temp is actually around 100?C
+set temp2_min 10
+set temp2_max 45
+set temp3_min 10
+set temp3_max 45
 
-(Read Address FFh) Default value 21h. This register will increment by 1
-every time there is a revision to the die by National Semiconductor."
+If i run "sensord -i 1m -l 30m", i read this in /var/log/syslog :
+Error getting sensor data: adt7463/fan1_tach_mode: Can't access procfs/sysfs 
+file
 
-I think I remember reading the same on the LM86, LM89 and LM99 datasheets.
+I get the same message in /var/log/syslog if put this line 
+in /etc/sensors.conf:
 
-On other datasheets, no revision is mentioned at all, so we have little
-choice but to rely on chip dumps or ask the manufacturer directly for
-hints (the LM83 and ADM1032 fall into that category). On yet other
-datasheets, one part (typically the high nibble) of the revision is
-given and the rest isn't (the ADM1025 falls into that category).
+set fan1_tach_mode 0
 
-So there are obviously different cases, which must be dealt with
-appropriately.
+I can't understand that... Actually this may be the reason why the fan doesn't 
+seem to follow the policy i give him in /etc/sensors.conf, as i told before.
 
-> > How exactly is it safer? I obviously don't know the LM85 and compatibles
-> > family as good as you do, but I don't see what risk we have here. The
-> > worst that could happen would be that we think the chip has feature it
-> > doesn't actually have, right? These features will just not work, and
-> > users will report about it.
->
-> Or the register bits could have changed in a non-backward compatible
-> way.  We could end up disabling something or turning something off that
-> causes the system to overheat when we attempt to program the ADT7463
-> specific functions.
+> >In spite of my settings the fan1_pwm is always at a minimum of 127, which
+> >means a little more than 3000 rpm. Quite noisy and "energy-consuming". I
+> > can only set fan to a lower velocity (around 1800 rpm) with this command
+> > : echo 77 > fan1_pwm (for example)
+> >Actually when cpu is very busy, cpu temperature increases and fan speed
+> > also. When cpu is less busy,  cpu temperature decreases and fan speed
+> > also, but never below 3000 rpm which corresponds to fan1_pwm7. Never
+> > less than 127, except if i set it by myself.
+> >In spite of my "set pwm1_zone 123" setting, fan speed does not increase
+> > when zone 3 has an increase in temperature : zone 3 seems to be the gpu,
+> > because it gets very hot when i use opengl with a game or a screensaver.
+> >That's a problem because if gpu temperature gets too high, that doesn't
+> > smell good.
+> Is this a 2.4 or a 2.6 kernel?
 
-Right. I assumed wisdom from Analog Devices in the improvements they
-could do to the chip. I wouldn't have from all companies, but even then
-my assumption might be too high and unsafe, as you underlined.
+The kernel is 2.6.8.1 with a patch for quirks.c to detect the adt7463 chip on 
+my asus w1n laptop.
 
-> Witness the recent changes to the config bits on the LM75 driver.  The
-> operation of the interrupt output function.
+> Can you send the current values of all your current settings by running
+> something like:
+>    head /proc/sys/dev/sensors/adt7463*/*
 
-The recent LM75 case is different, I think. The code was not correct in
-the first place, even for a real, fully documented LM75.
+No sensors directory in /proc/sys/dev/ ! Shall i recompile again with some 
+other options ?
 
-Also not that I have always been advocating minimum initialization steps,
-which are a requirement for the kind of forward compatibility I was
-suggesting here. When the initialization in a given driver does more
-than it should (e.g. chip reset or arbitrary reconfiguration of
-particular features), then my point is void, agreed.
+> which will work on 2.4.  If you're using 2.6, you'll need to do
+> something similar in /sys
 
-> Each member of the lm85 family has it's additional features implemented
-> differently.  Registers above 0x70 are generally completely manufacturer
-> specific.  (Register 0x74 and 0x75 are completely different between the
-> LM85 and the ADM1027/ADT7463)
+Ah ! OK so here is what i get if i run "head /sys/bus/i2c/devices/0-002e" :
 
-Well, as long as it is manufacturer-specific and not model-specific, my
-approach seems to be still valid.
+=> alarms <=
+394
 
-> And between the ADM1027 and the ADT7463, there is the _THERM_Enable bit
-> in Configuration Register 3.  This bit is not defined on the ADM1027 but
-> is on the ADT7463.  This bit controls the Interrupt or
-> "overheat/shutdown" function of the chip and system.  Not something we
-> want to program incorrectly.
->
-> Lastly, the ADT7463 datasheet says "DO NOT WRITE TO THESE REGISTERS" in
-> the description of registers 0x7e and 0x7f.  These registers are named
-> "Test Register 1" and 2.  What other "test registers" might exist in
-> future or compatible chips that shouldn't be written to?  What if they
-> happen to be at the same address as one of the config registers
-> currently implemented in the ADT7463 driver?
+=> detach_state <=
+0
 
-The cases you describe here are not a problem as long as Analog Devices
-take care of backward and forward compatibility among a family of their
-chips. I'd expect it, but of course we can't be sure.
+=> fan1_input <=
+0
 
-> Shouldn't we investigate each revision of the chip to determine if there
-> are new features that should be enabled or bits that have changed rather
-> than just blindly assuming the manufacturer made a backward compatible
-> upgrade?
->
-> I would suggest that the "minimal subset" would be a much better default
-> than the "maximum functionality" that your patch produces.
+=> fan1_min <=
+500
 
-Makes sense. I might be assuming too much.
+=> fan1_pwm <=
+0
 
-> > As a matter of fact, with my code, Christophe's chip would have been
-> > properly detected. With yours it required a driver update.
->
-> The driver should have already detected his chip correctly.  There is an
-> else/if clause that matches for the Analog Devices manufacturer ID and a
-> generic '0x6?' revision ID.  In that case, it should detect the chip and
-> provide the basic functionality along with a message to advise them to
-> look into the driver for better support.
+=> fan1_pwm_enable <=
+1
 
-In Linux 2.6.8.1 the code happens to be slightly different, unknown
-revision IDs of Analog Devices chips do default to ADM1027 and not the
-minimum LM85 subset. This has been fixed since (by Rafael Espindola,
-[1]) to do what you describe (similar in that respect to the Linux 2.4
-driver).
+=> fan2_input <=
+0
 
-Also, when defaulting to the generic case, the message doesn't really
-invite the user to report. If you want him/her to, I'd suggest you be
-more explicit about it.
+=> fan2_min <=
+0
 
-> > So unless there is a real risk I am missing, I do believe that the
-> > change I made is an improvement.
->
-> And we disagree.  But that is the nature of the open source development
-> process.
+=> fan2_pwm <=
+255
 
-"(...) the fundamental strength of open source is exactly the fact that
-people don't have to agree about everything." -- Linus Torvalds,
-2005-01-13 [2]
+=> fan2_pwm_enable <=
+1
 
-You made your point clear and I come to somewhat agree with you.
-Different family of chips require different care. You know that
-particular family better than I do, and it's not exactly a simple one.
-You also know the driver better that I do - you wrote it after all, and
-it differs from the other ones in several respects.
+=> fan3_input <=
+0
 
-Please provide a patch for the Linux 2.6 lm85 driver adding support for
-the 0x6a revision of the ADT7463 the way you like it.
+=> fan3_min <=
+0
 
-I'll apply your patch to CVS this evening. BTW, don't you happen to
-have CVS write access? If you do, you can commit the changes yourself
-(and if you don't, please consider asking for one.)
+=> fan3_pwm <=
+255
 
-Thanks a lot for looking into this, this is much appreciated.
+=> fan3_pwm_enable <=
+1
 
-[1]
-http://linux.bkbits.net:8080/linux-2.5/diffs/drivers/i2c/chips/lm85.c@1.27
-[2] http://lkml.org/lkml/2005/1/12/388
+=> fan4_input <=
+0
 
---
-Jean Delvare
+=> fan4_min <=
+0
+
+=> in0_input <=
+0
+
+=> in0_max <=
+1576
+
+=> in0_min <=
+1419
+
+=> in0_ref <=
+1850
+
+=> in1_input <=
+1207
+
+=> in1_max <=
+1945
+
+=> in1_min <=
+1758
+
+=> in2_input <=
+3369
+
+=> in2_max <=
+3472
+
+=> in2_min <=
+3128
+
+=> in3_input <=
+3281
+
+=> in3_max <=
+5260
+
+=> in3_min <=
+4740
+
+=> in4_input <=
+0
+
+=> in4_max <=
+12625
+
+=> in4_min <=
+11375
+
+=> name <=
+adt7463
+
+=> power <=
+head: Erreur lors de la lecture `power': Is a directory
+
+=> temp1_input <=
+54000
+
+=> temp1_max <=
+60000
+
+=> temp1_min <=
+30000
+
+=> temp2_input <=
+48000
+
+=> temp2_max <=
+50000
+
+=> temp2_min <=
+20000
+
+=> temp3_input <=
+48000
+
+=> temp3_max <=
+50000
+
+=> temp3_min <=
+20000
+
+=> vrm <=
+91
+
+
+
+I thought that the the chip itself could handle fan speed according to 
+temperatures. Shall i use fancontrol instead ?
+
+
+Thank you.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFCGft9oBxdxgioZBIRAgbGAJ9xOH8pb727lRi/6tvyfrVpMrXgsQCePhmi
+4nWN8ZGuQ1gYGAX84QhCqnA=DyR6
+-----END PGP SIGNATURE-----
