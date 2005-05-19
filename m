@@ -1,38 +1,35 @@
-From: jbpn@cambridgebroadband.com (John Naylon)
-Date: Mon, 23 May 2005 14:07:38 +0000
-Subject: [lm-sensors] Memory leak in sensors_get_label()
-Message-Id: <200505231206.j4NC6sU7001682@cambridgebroadband.com>
+From: ch@westend.com (Christian Hammers)
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: Proposal: doc/examples/chips/motherboards/...
+Message-Id: <20011226224523.A4174@westend.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200505191529.j4JFTwG2024009@cambridgebroadband.com>
-In-Reply-To: <200505191529.j4JFTwG2024009@cambridgebroadband.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-khali@linux-fr.org said:
-> > No, we have a home-brew module that exports sensor information via
-> > SNMP.
-> Is there somewhere other users could download this module? We had several
-> users complaining about the lack of SNMP integration in lm_sensors, maybe
-> what you wrote could be of some help to them. 
+Hi
 
-  This specific module is very application-specific, so it's unlikely to be
-of much use to anyone else.  However, I am a member of the Net-SNMP project,
-and sensor-related things are happening there, so watch this space.
+While browsing the bug tracking system I got the idea that providing
+example files for every known motherboard would not be a bad idea. 
+So a directory structure like:
 
-khali@linux-fr.org said:
-> Not really, I have to admit I am surprised, especially since I did not
-> modify that very part of the code. Could you please verify that the patch
-> itself, and not a version change (2.9.1 vs. CVS maybe?) causes the change in
-> the output? I know we did fix a number of low limit vs. hysteresis name
-> issues some times ago, this would more likely be related. 
+	doc/examples/general-example.conf
+	doc/examples/via686a/Epox-KT8A.conf
+	doc/examples/lm75/Asus-XYZ.conf
 
-  You are quite correct -- my mistake.  The patch *does not* cause any 
-changed in output; I was comparing against a much older version.
+would be better. Then, when people are reporting that their motherboard
+swaps CPU and P/S fan speed or does different voltage computations you 
+could easily ask for a file and don't get further complains.
 
-John
+Telling everybudy to figure out the values himself or read ton's of docs
+to do so is suboptimal.
+
+bye,
+
+    -christian-
+
 -- 
-Dr. John Naylon
-Cambridge Broadband Ltd. // www.cambridgebroadband.com
-
+The end of the human race will be that it will eventually die of
+civilization.
+                -- Ralph Waldo Emerson
