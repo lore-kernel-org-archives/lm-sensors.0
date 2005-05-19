@@ -1,42 +1,59 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: APM and beep_enable
-Message-Id: <20030211141617.11c154b3.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:25:19 +0000
+Subject: [PATCH 2.6] I2C: Update Kconfig for AMD bus drivers
+Message-Id: <20041016194127.14c81b9e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.44.0302081319390.4702-100000@linux.local>
-In-Reply-To: <Pine.LNX.4.44.0302081319390.4702-100000@linux.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-> > BTW, is there a way to enable or disable this beeping using sensors?
-> > I just took a look at the documentation and couldn't find anything
-> > related to it.
-> >
-> yes, i can simply do an echo of the following form:
-> 
-> echo "0 65536" > /proc/sys/dev/sensors/w83627hf-isa-0290/beep
-> 
-> and the beeping is disabled, but i must do it manually. it was my hope
-> that the system execute any particular script after the return from a
-> suspend (like the init-scheme during booting the machine, well resume
-> is not a runlevel but...) so that i can do this in an convincing way.
-> is there such a scheme?
+This updates the AMD entries i2c/busses/Kconfig in two ways:
+* Add missing PCI dependancy.
+* Reword the help so that users know exactly what is supported by each
+  driver.
 
-Nice trick, I didn't know this one.
+Please apply,
+thanks.
 
-Well, I think there is a scheme, but as I seldom used APM myself (my
-laptop uses ACPI instead), I can't tell you more. What I am sure of is
-that it aint a lm_sensors related, but apm related, problem, so you
-should have more luck reading the apm documentation or asking on the apm
-mailing-list. All you need to look for is how to have arbitrary commands
-issued when the systems wakes up.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-Hope that helps,
-Good luck.
+--- linux-2.6.9-rc4-bk1/drivers/i2c/busses/Kconfig.orig	2004-10-12 19:44:25.000000000 +0200
++++ linux-2.6.9-rc4-bk1/drivers/i2c/busses/Kconfig	2004-10-16 19:37:33.000000000 +0200
+@@ -40,21 +40,23 @@
+ 	  will be called i2c-ali15x3.
+ 
+ config I2C_AMD756
+-	tristate "AMD 756/766"
+-	depends on I2C && EXPERIMENTAL
++	tristate "AMD 756/766/768/8111 and nVidia nForce"
++	depends on I2C && PCI && EXPERIMENTAL
+ 	help
+ 	  If you say yes to this option, support will be included for the AMD
+-	  756/766/768 mainboard I2C interfaces.
++	  756/766/768 mainboard I2C interfaces.  The driver also includes
++	  support for the first (SMBus 1.0) I2C interface of the AMD 8111 and
++	  the nVidia nForce I2C interface.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-amd756.
+ 
+ config I2C_AMD8111
+ 	tristate "AMD 8111"
+-	depends on I2C && EXPERIMENTAL
++	depends on I2C && PCI && EXPERIMENTAL
+ 	help
+-	  If you say yes to this option, support will be included for the AMD
+-	  8111 mainboard I2C interfaces.
++	  If you say yes to this option, support will be included for the
++	  second (SMBus 2.0) AMD 8111 mainboard I2C interface.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-amd8111.
+
 
 -- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+http://khali.linux-fr.org/
