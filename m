@@ -1,67 +1,91 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: [BK PATCH] I2C fixes for 2.6.10-rc2
-Message-Id: <20041201001245.GA27535@kroah.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:16 +0000
+Subject: [Fwd: [PATCH] video/saa5249.c, video/tuner-3036.c get rid of
+Message-Id: <3F5E5D6D.3000406@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041119215935.GA15956@kroah.com>
-In-Reply-To: <20041119215935.GA15956@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@osdl.org, akpm@osdl.org
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Hi,
 
-Here are some i2c driver fixes and the addition of a new chip driver for
-2.6.10-rc2 (it is self-contained) for 2.6.10-rc2
 
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
+-------- Original Message --------
+From: 	- Tue Sep 9 16:08:05 2003
+X-UIDL: 	5ac8251150262f72
+X-Mozilla-Status: 	0001
+X-Mozilla-Status2: 	00000000
+Return-Path: 	<shemminger@osdl.org>
+Received: 	from mail.osdl.org (fw.osdl.org [65.172.181.6]) by 
+Ren.netroedge.com (8.12.8p1/8.12.8) with ESMTP id h89MwlIP032597 for 
+<phil@netroedge.com>; Tue, 9 Sep 2003 15:58:47 -0700
+Received: 	from dell_ss3.pdx.osdl.net (dell_ss3.pdx.osdl.net 
+[172.20.1.60]) by mail.osdl.org (8.11.6/8.11.6) with SMTP id 
+h89N9ho19941; Tue, 9 Sep 2003 16:09:43 -0700
+Date: 	Tue, 9 Sep 2003 16:09:26 -0700
+From: 	Stephen Hemminger <shemminger@osdl.org>
+To: 	Philip.Blundell@pobox.com, Frodo Looijaard <frodol@dds.nl>, Philip 
+Edelbrock <phil@netroedge.com>, Greg KH <greg@kroah.com>
+Cc: 	linux-kernel@vger.kernel.org
+Subject: 	[PATCH] video/saa5249.c, video/tuner-3036.c get rid of 
+MOD_INC/DEC
+Message-Id: 	<20030909160926.09c5fa69.shemminger@osdl.org>
+Organization: 	Open Source Development Lab
+X-Mailer: 	Sylpheed version 0.9.4claws (GTK+ 1.2.10; i686-pc-linux-gnu)
+X-Face: 	&@E+xe?c%:&e4D{>f1O<&U>2qwRREG5!}7R4; 
+D<"NO^UI2mJ[eEOA2*3>(`Th.yP,VDPo9$ 
+/`~cw![cmj~~jWe?AHY7D1S+\}5brN0k*NE?pPh_'_d>6;XGG[\KDRViCfumZT3@[
+Mime-Version: 	1.0
+Content-Type: 	text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 	7bit
+X-Quarentine-Loop: 	Processed
+X-Spambayes-Classification: 	unsure; 0.42
 
-Individual patches will follow, sent to the sensors and linux-kernel
-lists.
 
-thanks,
 
-greg k-h
+Get rid of MOD_INC/DEC since ref count comes from owner field on I2C
+for these drivers.
 
- drivers/i2c/busses/i2c-elektor.c     |   28 
- drivers/i2c/busses/i2c-ite.c         |   31 
- drivers/i2c/busses/i2c-nforce2.c     |    9 
- drivers/i2c/chips/Kconfig            |    9 
- drivers/i2c/chips/Makefile           |    1 
- drivers/i2c/chips/adm1026.c          | 1781 ++++++++++++++++++++++++++++++++++-
- drivers/i2c/chips/w83l785ts.c        |    9 
- drivers/macintosh/therm_adt746x.c    |   11 
- drivers/macintosh/therm_pm72.c       |    3 
- drivers/macintosh/therm_windtunnel.c |    8 
- drivers/w1/Kconfig                   |    2 
- drivers/w1/dscore.c                  |   40 
- drivers/w1/dscore.h                  |   34 
- drivers/w1/w1_int.c                  |   11 
- drivers/w1/w1_netlink.c              |    3 
- include/linux/pci_ids.h              |    1 
- 16 files changed, 1902 insertions(+), 79 deletions(-)
------
+Not sure who is maintaining these, maybe no one because they haven't been
+purged of MOD stuff  yet.
 
-<jthiessen:penguincomputing.com>:
-  o I2C: add adm1026 chip driver
+diff -Nru a/drivers/media/video/saa5249.c b/drivers/media/video/saa5249.c
+--- a/drivers/media/video/saa5249.c	Tue Sep  9 16:04:52 2003
++++ b/drivers/media/video/saa5249.c	Tue Sep  9 16:04:52 2003
+@@ -214,7 +214,6 @@
+ 	}
+ 	t->client = client;
+ 	i2c_attach_client(client);
+-	MOD_INC_USE_COUNT;
+ 	return 0;
+ }
+ 
+@@ -237,7 +236,6 @@
+ 	kfree(vd->priv);
+ 	kfree(vd);
+ 	kfree(client);
+-	MOD_DEC_USE_COUNT;
+ 	return 0;
+ }
+ 
+diff -Nru a/drivers/media/video/tuner-3036.c b/drivers/media/video/tuner-3036.c
+--- a/drivers/media/video/tuner-3036.c	Tue Sep  9 16:04:52 2003
++++ b/drivers/media/video/tuner-3036.c	Tue Sep  9 16:04:52 2003
+@@ -135,7 +135,6 @@
+ 	printk("tuner: SAB3036 found, status %02x\n", tuner_getstatus(client));
+ 
+         i2c_attach_client(client);
+-	MOD_INC_USE_COUNT;
+ 
+ 	if (i2c_master_send(client, buffer, 2) != 2)
+ 		printk("tuner: i2c i/o error 1\n");
+@@ -149,7 +148,6 @@
+ static int 
+ tuner_detach(struct i2c_client *c)
+ {
+-	MOD_DEC_USE_COUNT;
+ 	return 0;
+ }
+ 
 
-Aristeu Sergio Rozanski Filho:
-  o i2c-ite: get rid of cli()/sti()
-  o [2/2] i2c-elektor: adding missing casts
-  o i2c-elektor: get rid of cli/sti
 
-Evgeniy Polyakov:
-  o W1: check nls in return path
-  o drivers/w1/dscore: fix the inline mess
-  o w1: make W1_DS9490_BRIDGE available
-  o w1: do not stop and oops if netlink socket was not allocated
-
-Greg Kroah-Hartman:
-  o I2C: make fixup_fan_min static in adm1026 driver
-
-Jean Delvare:
-  o I2C: macintoch/therm_* drivers cleanups
-  o I2C: Add support for the nForce2 Ultra 400 to i2c-nforce2
-  o I2C: More verbose w83l785ts driver
