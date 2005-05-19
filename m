@@ -1,21 +1,29 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: [PATCH 2.6] Cleanup adm1021 unused defines
-Message-Id: <20050317064032.GH15075@kroah.com>
+From: prodigy7@t-online.de (prodigy7@t-online.de)
+Date: Thu, 19 May 2005 06:24:42 +0000
+Subject: Help for ThinkPad Problem
+Message-Id: <1AtklJ-09doK80@cmpmail00.bbul.t-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050306085255.1cb6e862.khali@linux-fr.org>
-In-Reply-To: <20050306085255.1cb6e862.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 06, 2005 at 08:52:55AM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> While working on the adm1021 driver, I found that this driver has a
-> number of unused (and useless) defines we could get rid of.
+Hello there,
 
-Applied, thanks.
+i'd read your Post about ThinkPad problems and that you work an method
+to detect the running system - i'd looked today actually on an method to
+detect which mainboard are used on an system and found dmidecode (
+http://www.nongnu.org/dmidecode/ ).
+Specially this package contains an program called vpddecode (prints the
+"vital product data" information that can be found it almost all IBM
+computers)
+which could maybe help you for the detecting process in this special or
+the whole case.
 
-greg k-h
+Greetings
+Manuel Bernhardt
+
+By the way: Sorry for my bad english ;-)
+
+
+
