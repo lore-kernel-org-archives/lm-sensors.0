@@ -1,25 +1,28 @@
-From: greg@kroah.com (Greg KH)
+From: hch@infradead.org (Christoph Hellwig)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: i2c_probe() vs i2c_detect()
-Message-Id: <20030403012307.GA6037@kroah.com>
+Message-Id: <20030404143301.B25147@infradead.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030403012307.GA6037@kroah.com>
+In-Reply-To: <20030403012307.GA6037@kroah.com>; from greg@kroah.com on Wed, Apr 02, 2003 at 05:23:07PM -0800
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-Hi all,
+On Wed, Apr 02, 2003 at 05:23:07PM -0800, Greg KH wrote:
+> Hi all,
+> 
+> Can anyone tell me why both i2c_probe() and i2c_detect() are in the
+> kernel at the same time?  They both almost do the same thing, with the
+> exception being i2c_detect() can handle i2c devices on the isa bus.
+> 
+> It kind of looks like the older i2c code and drivers used the
+> i2c_probe() call, while the lm_sensors code used i2c_detect().
+> 
+> If there are no objections, I'll merge the two of them, cutting about 2k
+> out of the kernel :)
 
-Can anyone tell me why both i2c_probe() and i2c_detect() are in the
-kernel at the same time?  They both almost do the same thing, with the
-exception being i2c_detect() can handle i2c devices on the isa bus.
-
-It kind of looks like the older i2c code and drivers used the
-i2c_probe() call, while the lm_sensors code used i2c_detect().
-
-If there are no objections, I'll merge the two of them, cutting about 2k
-out of the kernel :)
-
-thanks,
-
-greg k-h
+Once ou're at it you could also try to get rid of the check_region abuse
+in there :)
