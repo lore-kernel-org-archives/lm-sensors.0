@@ -1,30 +1,45 @@
-From: jonsmirl@gmail.com (Jon Smirl)
+From: adrian@humboldt.co.uk (Adrian Cox)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <9e47339104092210173e55bcca@mail.gmail.com>
+Message-Id: <1095877951.18365.232.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org> <41506D78.6030106@web.de>
-	 <1095843365.18365.48.camel@localhost>
-	 <20040922102938.M15856@linux-fr.org>
-	 <1095854048.18365.75.camel@localhost>
+References: <414F111C.9030809@linuxtv.org>
+	 <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de>
+	 <41506D78.6030106@web.de> <1095843365.18365.48.camel@localhost>
+	 <20040922102938.M15856@linux-fr.org> <1095854048.18365.75.camel@localhost>
 	 <20040922122848.M14129@linux-fr.org>
-	 <9e47339104092208403d9de6f4@mail.gmail.com>
-	 <1095868579.18365.105.camel@localhost>
-	 <9e4733910409220907727056b4@mail.gmail.com>
-	 <1095871863.18365.129.camel@localhost>
-In-Reply-To: <1095871863.18365.129.camel@localhost>
+In-Reply-To: <20040922122848.M14129@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Cox <adrian@humboldt.co.uk>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@stimpy.netroedge.com, Michael Hunold <hunold-ml@web.de>, Greg KH <greg@kroah.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com
+Cc: Michael Hunold <hunold-ml@web.de>, Jon Smirl <jonsmirl@gmail.com>, Greg KH <greg@kroah.com>
 
-Can this code be implemented in the current framework? Don't I need
-the attach/detach_adapter hook which I can't get to from the algo_bit
-code?
+On Wed, 2004-09-22 at 14:38, Jean Delvare wrote:
 
-http://lkml.org/lkml/2004/9/21/181
+> Aha, this is an interesting point (which was missing from your previous
+> explanation). The base of your proposal would be to have several small i2c
+> "trees" (where a tree is a list of adapters and a list of clients) instead of
+> a larger, unique one. This would indeed solve a number of problems, and I
+> admit that it is somehow equivalent to Michael's classes in that it
+> efficiently prevents the hardware monitoring clients from probing the video
+> stuff. The rest is just details internal to each "tree". As I understand it,
+> each video device would be a tree on itself, while the whole hardware
+> monitoring stuff would constitute one (bigger) tree. Correct?
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+I've been rereading the code, and it could be even simpler. How about
+this:
+
+1) The card driver defines an i2c_adapter structure, but never calls
+i2c_add_adapter(). The only extra thing it needs to do is to initialise
+the semaphores in the structure.
+2) The frontend calls i2c_transfer() directly.
+3) The i2c core never gets involved, and there is never any i2c_client
+structure.
+
+This gives us the required reuse of the I2C algo-bit code, without any
+of the list walking or device probing being required.
+
+- Adrian Cox
+Humboldt Solutions Ltd.
+
