@@ -1,51 +1,95 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.2-rc2
-Message-Id: <10752464532280@kroah.com>
+Message-Id: <1075246453781@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10752464533223@kroah.com>
+In-Reply-To: <10752464532280@kroah.com>
+References: <10752464532280@kroah.com>
+In-Reply-To: <10752464532280@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1474.148.4, 2004/01/26 16:58:46-08:00, khali@linux-fr.org
+ChangeSet 1.1474.148.5, 2004/01/27 14:38:29-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Add ADM1025EB support to i2c-parport
+[PATCH] I2C: Bring lm75 and lm78 in compliance with sysfs naming conventions
 
-The following patch adds support for the ADM1025 evaluation board to the
-i2c-parport (and i2c-parport-light) driver(s). In fact, it happens that
-it was already supported as an ADM1032 evaluation board, so it is just a
-matter of documenting it correctly.
+Here is a patch that brings the lm75 and lm78 drivers in compliance with
+sysfs naming conventions. The drivers as found in existing 2.6 kernels
+do not have a digit appended to the temperature-related files names as
+the sysfs naming conversion recommends (obviously because they each have
+a single temperature channel). As a result, libsensors won't find the
+files.
+
+It was discussed on the list wether a '1' should be appended in this
+case, and our conclusion was that it would be better to do so because it
+helps automatic processing of the sysfs exported files. Please apply if
+you agree with this.
 
 
- drivers/i2c/busses/i2c-parport.h |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/lm75.c |   12 ++++++------
+ drivers/i2c/chips/lm78.c |   12 ++++++------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/i2c-parport.h b/drivers/i2c/busses/i2c-parport.h
---- a/drivers/i2c/busses/i2c-parport.h	Tue Jan 27 15:26:57 2004
-+++ b/drivers/i2c/busses/i2c-parport.h	Tue Jan 27 15:26:57 2004
-@@ -67,12 +67,13 @@
- 		.getsda	= { 0x40, STAT, 1 },
- 		.getscl	= { 0x08, STAT, 1 },
- 	},
--	/* type 4: ADM 1032 evaluation board */
-+	/* type 4: ADM1025 and ADM1032 evaluation boards */
- 	{
- 		.setsda	= { 0x02, DATA, 1 },
- 		.setscl	= { 0x01, DATA, 1 },
- 		.getsda	= { 0x10, STAT, 1 },
--		.init	= { 0xf0, DATA, 0 },
-+		.init	= { 0xf0, DATA, 0 }, /* ADM1025 doesn't need this,
-+						but it doesn't hurt */
- 	},
- };
+diff -Nru a/drivers/i2c/chips/lm75.c b/drivers/i2c/chips/lm75.c
+--- a/drivers/i2c/chips/lm75.c	Tue Jan 27 15:26:46 2004
++++ b/drivers/i2c/chips/lm75.c	Tue Jan 27 15:26:46 2004
+@@ -104,9 +104,9 @@
+ set(temp_max, LM75_REG_TEMP_OS);
+ set(temp_hyst, LM75_REG_TEMP_HYST);
  
-@@ -84,4 +85,4 @@
- 	" 1 = home brew teletext adapter\n"
- 	" 2 = Velleman K8000 adapter\n"
- 	" 3 = ELV adapter\n"
--	" 4 = ADM 1032 evalulation board\n");
-+	" 4 = ADM1025 and ADM1032 evaluation boards\n");
+-static DEVICE_ATTR(temp_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
+-static DEVICE_ATTR(temp_hyst, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
+-static DEVICE_ATTR(temp_input, S_IRUGO, show_temp_input, NULL);
++static DEVICE_ATTR(temp_max1, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
++static DEVICE_ATTR(temp_hyst1, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
++static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp_input, NULL);
+ 
+ static int lm75_attach_adapter(struct i2c_adapter *adapter)
+ {
+@@ -197,9 +197,9 @@
+ 	lm75_init_client(new_client);
+ 	
+ 	/* Register sysfs hooks */
+-	device_create_file(&new_client->dev, &dev_attr_temp_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp_hyst);
+-	device_create_file(&new_client->dev, &dev_attr_temp_input);
++	device_create_file(&new_client->dev, &dev_attr_temp_max1);
++	device_create_file(&new_client->dev, &dev_attr_temp_hyst1);
++	device_create_file(&new_client->dev, &dev_attr_temp_input1);
+ 
+ 	return 0;
+ 
+diff -Nru a/drivers/i2c/chips/lm78.c b/drivers/i2c/chips/lm78.c
+--- a/drivers/i2c/chips/lm78.c	Tue Jan 27 15:26:46 2004
++++ b/drivers/i2c/chips/lm78.c	Tue Jan 27 15:26:46 2004
+@@ -369,10 +369,10 @@
+ 	return count;
+ }
+ 
+-static DEVICE_ATTR(temp_input, S_IRUGO, show_temp, NULL)
+-static DEVICE_ATTR(temp_max, S_IRUGO | S_IWUSR,
++static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp, NULL)
++static DEVICE_ATTR(temp_max1, S_IRUGO | S_IWUSR,
+ 		show_temp_over, set_temp_over)
+-static DEVICE_ATTR(temp_hyst, S_IRUGO | S_IWUSR,
++static DEVICE_ATTR(temp_hyst1, S_IRUGO | S_IWUSR,
+ 		show_temp_hyst, set_temp_hyst)
+ 
+ /* 3 Fans */
+@@ -678,9 +678,9 @@
+ 	device_create_file(&new_client->dev, &dev_attr_in_input6);
+ 	device_create_file(&new_client->dev, &dev_attr_in_min6);
+ 	device_create_file(&new_client->dev, &dev_attr_in_max6);
+-	device_create_file(&new_client->dev, &dev_attr_temp_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp_hyst);
++	device_create_file(&new_client->dev, &dev_attr_temp_input1);
++	device_create_file(&new_client->dev, &dev_attr_temp_max1);
++	device_create_file(&new_client->dev, &dev_attr_temp_hyst1);
+ 	device_create_file(&new_client->dev, &dev_attr_fan_input1);
+ 	device_create_file(&new_client->dev, &dev_attr_fan_min1);
+ 	device_create_file(&new_client->dev, &dev_attr_fan_div1);
 
