@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: LM83 support
-Message-Id: <3F030A23.6070601@penguincomputing.com>
+Message-Id: <20030702191223.5d15db6a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030702090820.2c39fd00.khali@linux-fr.org>
 In-Reply-To: <20030702090820.2c39fd00.khali@linux-fr.org>
@@ -10,57 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I would recommend extending the adm1021 driver.  It's a relatively 
-simple driver and not nearly as complex as the w83781d.  And the 
-supported chips have fewer differences.
 
-You should probably look at modularizing the extended features somewhat. 
-  You can look at my lm85.c driver for an example.
+> I would recommend extending the adm1021 driver.  It's a relatively 
+> simple driver and not nearly as complex as the w83781d.  And the 
+> supported chips have fewer differences.
 
-Also, could you change the adm1023 support a bit?  It puts the 
-temperature offset value in with the min, max and current values.  But 
-this breaks the print routines in sensors.  The temp offset(s) should be 
-in their own sysctl.
+After taking a look at the code, I had come to the opposite conclusion.
+The adm1021 driver handles only 2 temperature sensors while the LM83
+specificity is that it has 4 temperature sensors. If we are to limit the
+LM83 to 2 temperature readings, then it becomes a LM84 that is already
+supported. And changing the adm1021 driver code to support 4 temperature
+sensors probably makes no sense. So I was planing to write a new driver
+for the LM83.
 
-:v)
+Wether or not existing support should then be moved from adm1021 to lm83
+could be discussed later (although my arguments right above make it
+quite obvious that older chipsets should be kept supported by adm1021).
 
-Jean Delvare wrote:
-> Hi everyone,
-> 
-> I will add support to LM83 to lm_sensors, as per request from ZOleg
-> Matrix <zoleg@matrixc.ru>. This is perfectly what I need to start with
-> real driver coding.
-> 
-> My question now. The LM83 could be supported by the ADM1021 module,
-> which already supports ADM1021, ADM1023, MAX1617, MAX1617A, NE1617,
-> NE1617A, TMC10, MC1066 and LM84. The LM84 can easily be seen as a light
-> version of the LM83. However, I think I remember we decided to avoid
-> adding support for new devices to existing drivers. Or is is just true
-> for the w83781d?
-> 
-> I see three possibilities:
-> 
-> 1* A new driver for the LM83.
-> 
-> 2* Support for LM83 added to adm1021
-> 
-> 3* A new driver for the LM83 and move LM84 support to this new driver
-> (or any other support combination that would make as much sense as
-> possible.
-> 
-> I did not take a look at the code yet (just read LM83 and LM84
-> datasheets (very great BTW) and adm1021 and such detection routine in
-> sensors-detect) so I can't say what is technically the best choice.
-> However, I suppose that any solution will be easy, so the choice is
-> mainly a philosophical one, so to say.
-> 
-> So, what should we do?
-> 
+> You should probably look at modularizing the extended features
+> somewhat. 
+>   You can look at my lm85.c driver for an example.
 
+I'll take a look at the code and see if it can change my mind. As said
+in a previous post, I never write a driver myself so my opinion may not
+be the wisest.
 
+One thing that should be taken into account however is the fact that the
+adm1021 driver already supports 8 devices, which is our current max.
+Adding a ninth chipset to this driver would introduce (again)
+incompatibilities.
 
 -- 
-Philip Pokorny, Director of Engineering
-Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-PENGUIN COMPUTING, INC.
-www.penguincomputing.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
