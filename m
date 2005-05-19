@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: RFC adding special interfaces to sysfs?
-Message-Id: <42376271.7000005@mds.gotdns.com>
+Message-Id: <20050316000059.4802896a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <g0l431lg0hrj7msln8smiiah4566i21nhd@4ax.com>
 In-Reply-To: <g0l431lg0hrj7msln8smiiah4566i21nhd@4ax.com>
@@ -10,46 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Grant Coady wrote:
-> Greetings,
-> 
-> Still learning lm_sensors interface, am porting adm9240 to 2.6.
-> 
-> This chip has an analog output which is rare these days, plus 
-> an output to send a reset pulse (open drain I/O) to an external 
-> latch for Chassis Intrusion (CI).  Wrinkle with CI clear function 
-> is there are two register/bit locations for doing the deed.
-> 
-> I really would welcome ideas on how to incorporate these to the 
-> sysfs interface, offering this patch as a starting point.  I may 
-> have missed a miscellaneous control interface somewhere?  In that 
-> case pointers to docs appreciated.
-> 
-> Cheers,
-> Grant.
-> 
-> 
-> --- linux-2.6.11-mm2-p2x/Documentation/i2c/sysfs-interface.orig	2004-12-25 08:34:01.000000000 +1100
-> +++ linux-2.6.11-mm2-p2x/Documentation/i2c/sysfs-interface	2005-03-12 12:48:10.000000000 +1100
-> @@ -272,3 +272,12 @@
->  
->  eeprom		Raw EEPROM data in binary form.
->  		Read only.
-> +
-> +analog_out	mV analog output voltage
-> +		Read/Write.
-> +
-> +clear_ci[1-2]	Tell chip to output a pulse to reset external Chassis 
-> +		Intrusion latch, there are two methods for doing this 
-> +		using a different register.bit
-> +		Write Only.
-> +
-> 
+> adm1026 uses analog_out so that's fine.
 
-adm1026 uses analog_out so that's fine.
+But lm87 uses aout_output and pcf8591 uses out0_output. The later is the
+one which fits best in our current naming scheme, as redundant as it
+might sound.
 
-no other driver bothers with clearing chassis intrusion, so I wouldn't bother.
-If you're motivated, though, do it however  you want. If it were me,
-I'd name it chassis_clear and implement both methods whenever it's written to.
+Also, it might make sense to just name is pwm0 as the suggested use for
+the analog output is to control a fan. That's what we do for the
+W83627THF IIRC. Ideally we would have names the pwm files something like
+"fan_control" in the first place, so as to focus on the function instead
+of the technology, but that's a bit late now.
 
-mds
+-- 
+Jean Delvare
