@@ -1,8 +1,10 @@
 From: frodol@dds.nl (Frodo Looijaard)
 Date: Thu, 19 May 2005 06:23:47 +0000
 Subject: driver `bt869.o' request for support (fwd)
-Message-Id: <200302130653.h1D6rGK09411@morannon.frodo.local>
+Message-Id: <200302130653.h1D6rNW09420@morannon.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200302130653.h1D6rGK09411@morannon.frodo.local>
+In-Reply-To: <200302130653.h1D6rGK09411@morannon.frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -10,26 +12,26 @@ To: lm-sensors@vger.kernel.org
 
 Carlo Gebhardt wrote:
 From carlo.gebhardt@xinux.de Thu Feb 13 01:10:04 2003
-Received: by morannon.frodo.local (8.11.3/8.11.3) id h1D0A4n01978 ; Thu, 13=
+Received: by morannon.frodo.local (8.11.3/8.11.3) id h1D0A3n01975 ; Thu, 13=
  Feb 2003 01:10:04 +0100
 Return-Path: <carlo.gebhardt@xinux.de>
 Received: from pop3.dds.nl [213.196.1.204]
 	by localhost with POP3 (fetchmail-6.2.0)
 	for frodo@localhost (single-drop); Thu, 13 Feb 2003 01:10:04 +0100 (CET)
-Received: (qmail-ldap/ctrl 11570 invoked from network); 13 Feb 2003 00:01:4=
-8 -0000
-Received: from mailout11.sul.t-online.com ([194.25.134.85]) (envelope-sende=
+Received: (qmail-ldap/ctrl 10602 invoked from network); 13 Feb 2003 00:01:0=
+4 -0000
+Received: from mailout01.sul.t-online.com ([194.25.134.80]) (envelope-sende=
 r <carlo.gebhardt@xinux.de>)
           by dds.nl (qmail-ldap-1.03) with SMTP
-          for <frodol@dds.nl>; 13 Feb 2003 00:01:48 -0000
+          for <frodol@dds.nl>; 13 Feb 2003 00:01:04 -0000
 Received: from fwd09.sul.t-online.de=20
-	by mailout11.sul.t-online.com with smtp=20
-	id 18j6p2-0007tr-02; Thu, 13 Feb 2003 01:01:48 +0100
+	by mailout01.sul.t-online.com with smtp=20
+	id 18j6oI-0000gS-04; Thu, 13 Feb 2003 01:01:02 +0100
 Received: from xinux.de (068412214-0001@[80.138.249.116]) by fmrl09.sul.t-o=
 nline.com
-	with esmtp id 18j6p1-1jxcVEC; Thu, 13 Feb 2003 01:01:47 +0100
-Message-ID: <3E4AE0B3.9050905@xinux.de>
-Date: Thu, 13 Feb 2003 01:02:59 +0100
+	with esmtp id 18j6oC-1eY8psC; Thu, 13 Feb 2003 01:00:56 +0100
+Message-ID: <3E4AE082.6020603@xinux.de>
+Date: Thu, 13 Feb 2003 01:02:10 +0100
 From: Carlo Gebhardt <carlo.gebhardt@xinux.de>
 User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.0.0) Gecko/2002062=
 3 Debian/1.0.0-0.woody.1
@@ -111,6 +113,12 @@ i2c-algo-bit bt869 i2c-proc]
 ------------------
 
 
+
+
+
+
+
+
 lspci -vv
 01:00.0 VGA compatible controller: 3Dfx Interactive, Inc. Voodoo 3 (rev=20
 01) (prog-if 00 [VGA])
@@ -132,21 +140,6 @@ Region 1: Memory at d8000000 (32-bit, prefetchable) [size2M]
 PME(D0-,D1-,D2-,D3hot-,D3cold-)
         Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
 
-
-
-
-
-
-
-
-
-thanks for your efforts
-
-
-
-sincerly yours
-
-carlo gebhardt
 
 
 
