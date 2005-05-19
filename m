@@ -1,7 +1,7 @@
 From: icampbell@arcom.com (Ian Campbell)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: [PATCH 2.6] i2c-algo-bit should support I2C_FUNC_I2C
-Message-Id: <1102418342.3215.304.camel@icampbell-debian>
+Message-Id: <1102419281.3215.319.camel@icampbell-debian>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1101807766.3215.103.camel@icampbell-debian>
 In-Reply-To: <1101807766.3215.103.camel@icampbell-debian>
@@ -10,70 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2004-12-07 at 11:42 +0100, Jean Delvare wrote:
-> Hi Ian,
-> 
-> > - printk(KERN_ERR DRIVER ": bus is not idle. status is %#04x\n", state );
-> > + DEB1(KERN_ERR DRIVER ": bus is not idle. status is %#04x\n", state );
-> 
-> Doesn't look OK to me. Either this is an error and it has to be
-> displayed regardless of DEBUG being enabled or not, or it is a debugging
-> info and it should use KERN_DEBUG instead of KERN_ERR. In the latter
-> case, I can already hear Greg suggest you should use pr_debug or even
-> dev_dbg instead of printk.
+On Sun, 2004-12-05 at 13:53 +0100, Jean Delvare wrote:
+> Also, I think that what you do with i2c_transfer is similar to
+> I2C_FUNC_SMBUS_READ_I2C_BLOCK, which is supported by some SMBus
+> (non-I2C) masters.
 
-I think it can be considered a debug statement since I am reasonably
-sure that it is a situation which cannot arise. I've only ever seen the
-error with a pre-release of a slave part on the bus. The slave's i2c
-implementation was fairly buggy, it ignored stop bits and hung the bus
-if you sent it a duff command. The next rev of this particular slave
-device shouldn't have this problem and I certainly wouldn't expect it in
-released silicon.
+I've checked it out and I don't think they are similar enough, however I
+would appreciate your input.
 
-If it turns out that in practise (with production slave devices) we can
-find that we hit this check then it would make sense to loop for a bit
-until the bus becomes idle or we timeout. However I'd rather see it
-happen with a production slave device before doing that. 
+The ds1338 (same i2c interface as ds1307 and I just happen to have the
+data sheet in front of me) expects a write (slave receiving) to look
+like this (I hope my notation makes sense...)
 
-I've changed it to dev_dbg.
+  S <slave addr> W ACK <address(n)> A <data(n)> A <data(n+1)> A <....> A P
 
-Signed-off-by: Ian Campbell <icampbell@arcom.com>
+Where address(n) sets the register address to start writing at. There
+are then as many data bytes as you like, each acknowledged, followed by
+the stop bit.
 
-Index: 2.6/drivers/i2c/algos/i2c-algo-pca.c
-=================================--- 2.6.orig/drivers/i2c/algos/i2c-algo-pca.c	2004-12-06 10:38:41.000000000 +0000
-+++ 2.6/drivers/i2c/algos/i2c-algo-pca.c	2004-12-07 11:14:08.669738602 +0000
-@@ -189,7 +189,7 @@
- 
- 	state = pca_status(adap);
- 	if ( state != 0xF8 ) {
--		printk(KERN_ERR DRIVER ": bus is not idle. status is %#04x\n", state );
-+		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state );
- 		/* FIXME: what to do. Force stop ? */
- 		return -EREMOTEIO;
- 	}
-@@ -328,7 +328,7 @@
- 
- static u32 pca_func(struct i2c_adapter *adap)
- {
--        return I2C_FUNC_SMBUS_EMUL;
-+        return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
- }
- 
- static int pca_init(struct i2c_algo_pca_data *adap)
-Index: 2.6/drivers/i2c/algos/i2c-algo-pcf.c
-=================================--- 2.6.orig/drivers/i2c/algos/i2c-algo-pcf.c	2004-10-20 10:43:57.000000000 +0100
-+++ 2.6/drivers/i2c/algos/i2c-algo-pcf.c	2004-12-07 10:14:58.000000000 +0000
-@@ -414,8 +414,8 @@
- 
- static u32 pcf_func(struct i2c_adapter *adap)
- {
--	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR | 
--	       I2C_FUNC_PROTOCOL_MANGLING; 
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | 
-+	       I2C_FUNC_10BIT_ADDR | I2C_FUNC_PROTOCOL_MANGLING; 
- }
- 
- /* -----exported algorithm data: -------------------------------------	*/
+SMBUS block write is
+
+  S <slave_addr> W A <command> A <count> A <data(1)> A <....> <data(count)> A P
+
+The SMBUS <command> could be considered to be the ds1338 <address(n)>
+but then there is an extra byte in the smbus for the count.
+
+The read commands follow the same basic scheme in both cases.
+
+I can't see another SMBUS transfer that would fit, unless there is some
+sort of 'repeated send byte' that I haven't spotted.
+
+On a separate thread -- I had a thought that perhaps I2C_FUNC_I2C should
+include the SMBUS_EMUL definitions since (I think you said) that any i2c
+device can emulate smbus...
+
+Ian.
 
 -- 
 Ian Campbell, Senior Design Engineer
