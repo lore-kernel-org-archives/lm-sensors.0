@@ -1,43 +1,56 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: no resolution for tickets 846 and 764 (Tyan S2688 & w83781d hard
-Message-Id: <3CB36057.ABD0782C@paradyne.com>
+From: paolo.berva@st.com (Paolo Cesare BERVA)
+Date: Thu, 19 May 2005 06:24:37 +0000
+Subject: Sensors on K7S5A and kernel 2.6.1
+Message-Id: <401526A5.30908@st.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020403192003.S13832@lapsony.mydomain.here>
-In-Reply-To: <20020403192003.S13832@lapsony.mydomain.here>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"init=0" disables almost every call to w83781d_write_value().
-If you put the printk in that function you should be able to find it.
+Hi, lm_sensors v2.8.3 and linux kernel 2.6.1 on mainboard K7S5A v3.1
+(chip type it87), after some trouble, works like a charm.
 
-Less likely - that a read is causing the problem
-(you could use the same technique to debug).
+I encountred a problem listed in the FAQ at section 4.27.
+Looking at the code in progs/sensors/chips.c and putting some debugging lines 
+into it I found that the functions
+sensors_get_feature(*name,SENSORS_IT87_TEMP1_LOW,&min),
+sensors_get_feature(*name,SENSORS_IT87_TEMP2_LOW,&min)
+sensors_get_feature(*name,SENSORS_IT87_TEMP3_LOW,&min)
+  returns SENSORS_ERR_PROC.
+In the sysfs pseudo filesystem I can read the temperature values.
+So I made some modification to lib/chips.c to fix the trouble.
+You can see the diff file at the end of this e-mail.
+I had to change also the lines in sensors.conf
+#    from                    to
+#========================#    set   temp2_hyst  20    set   temp2_min  20
+#    set   temp3_hyst  25    set   temp3_min  25
 
-Or perhaps the module is probing some other device with bad results
-(anything else on i2cdetect besides 2d, 48, 49? esp. in 0x20 - 0x2f?)
+in order to resolve what in FAQ at item 4.25 Sensors says Error: Line xxx: zzzzzzz
 
-And you have verified by looking at the board that it's a w83781d?
+I'm not sure if this is the right way to get it working. May be (I'm sure) you 
+have a better solution.
+
+Thank you for your good work on lm_sensors project.
+Paolo
 
 
-
-
-"Steven A. DuChene" wrote:
-> 
-> Hello all:
-> Martin Kellermann <Kellermann@sk-datentechnik.com> and me have submittedlm-sensors
-> support tickets (846 and 764) regarding a hard hang problem we are seeing with a
-> Tyan S2688 motherboard and the w83781d lm-sensors module. We have both tried the
-> "init=0" suggestion and Martin has tried adding printk's to the code. So far no
-> hints of change in this condition. I have tried a few times ther latest lm-sensors
-> code from cvs but each time I try to load the module or run sensors-detect it causes
-> a hard hang of the system when it goes to try the w83781d module.
-> 
-> Any suggestions or further hints as to where to look or what to try?
-> --
-> Steven A. DuChene      linux-clusters@mindspring.com
->                       sduchene@mindspring.com
-> 
->         http://www.mindspring.com/~sduchene/
+  --- lib/chips.c Sun Jan 25 00:13:49 2004
++++ ../lm_sensors-2.8.3.OK/lib/chips.c  Sat Jan 24 01:23:43 2004
+@@ -3757,13 +3757,13 @@
+                           R, IT87_SYSCTL_TEMP2, VALUE(3), 1 },
+      { SENSORS_IT87_TEMP3, "temp3", NOMAP, NOMAP,
+                           R, IT87_SYSCTL_TEMP3, VALUE(3), 1 },
+-    { SENSORS_IT87_TEMP1_LOW, "temp1_hyst", SENSORS_IT87_TEMP1,
++    { SENSORS_IT87_TEMP1_LOW, "temp1_min", SENSORS_IT87_TEMP1,
+                                SENSORS_IT87_TEMP1, RW,
+                                IT87_SYSCTL_TEMP1, VALUE(2), 1 },
+-    { SENSORS_IT87_TEMP2_LOW, "temp2_hyst", SENSORS_IT87_TEMP2,
++    { SENSORS_IT87_TEMP2_LOW, "temp2_min", SENSORS_IT87_TEMP2,
+                                SENSORS_IT87_TEMP2, RW,
+                                IT87_SYSCTL_TEMP2, VALUE(2), 1 },
+-    { SENSORS_IT87_TEMP3_LOW, "temp3_hyst", SENSORS_IT87_TEMP3,
++    { SENSORS_IT87_TEMP3_LOW, "temp3_min", SENSORS_IT87_TEMP3,
+                                SENSORS_IT87_TEMP3, RW,
+                                IT87_SYSCTL_TEMP3, VALUE(2), 1 },
+      { SENSORS_IT87_TEMP1_HIGH, "temp1_over", SENSORS_IT87_TEMP1,
