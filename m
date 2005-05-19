@@ -1,52 +1,31 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: Proposal: doc/examples/chips/motherboards/...
-Message-Id: <20011228093951.G5856@Stimpy.netroedge.com>
+From: fischerm@informatik.uni-muenchen.de (Mario Fischer)
+Date: Thu, 19 May 2005 06:25:05 +0000
+Subject: SMBus via SDRAMM: Why not refer to SDRAM Pinout
+Message-Id: <40F42C16.30404@informatik.uni-muenchen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20011226224523.A4174@westend.com>
-In-Reply-To: <20011226224523.A4174@westend.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Linux-SMBus-Guys,
 
-Yeah, that's a nobel idea.  We try to support chips (vs. mobos) and
-give flexible configurations, but sometimes a 'hint' doc or starter
-config for the specific mobo would help. 
+i just read your instructions on how to access the SMBus via SDRAM if 
+the mainboard has no SMB-Pins:
 
+http://secure.netroedge.com/~lm78/hardhack.html
 
-Phil
+You said i should refer to the EEPROMS datasheet to find out which pins 
+are SDA/SCL ...
+but why not refer to SDRAMS Pinout, thats much simpler!
 
+http://www.interfacebus.com/HWB_dimmsdram168unbuf.html
 
-On Wed, Dec 26, 2001 at 10:45:23PM +0100, Christian Hammers wrote:
-> Hi
-> 
-> While browsing the bug tracking system I got the idea that providing
-> example files for every known motherboard would not be a bad idea. 
-> So a directory structure like:
-> 
-> 	doc/examples/general-example.conf
-> 	doc/examples/via686a/Epox-KT8A.conf
-> 	doc/examples/lm75/Asus-XYZ.conf
-> 
-> would be better. Then, when people are reporting that their motherboard
-> swaps CPU and P/S fan speed or does different voltage computations you 
-> could easily ask for a file and don't get further complains.
-> 
-> Telling everybudy to figure out the values himself or read ton's of docs
-> to do so is suboptimal.
-> 
-> bye,
-> 
->     -christian-
-> 
-> -- 
-> The end of the human race will be that it will eventually die of
-> civilization.
->                 -- Ralph Waldo Emerson
+I think this is easier and more sure.
+And since the lines on the platine on the right-hand side on SDRAM are 
+not so many you can follow them from SDRAMS's SDS/SCL connection to the 
+EEPROM easyly anyway.
 
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Bye!
+
+   Mario
