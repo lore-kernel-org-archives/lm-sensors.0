@@ -1,45 +1,37 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:36 +0000
-Subject: [PATCH 2.6] restore correct vaio handling in eeprom driver
-Message-Id: <20040121005203.GG5472@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:38 +0000
+Subject: lm_sensors2/kernel/chips lm75.c
+Message-Id: <20050220112406.78febb39.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040111205346.6182c330.khali@linux-fr.org>
-In-Reply-To: <20040111205346.6182c330.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 17, 2004 at 08:31:53AM +0100, Jean Delvare wrote:
-> > One comment: 
-> > > -	if ((jiffies - data->last_updated > 300 * HZ) |
-> > > -	    (jiffies < data->last_updated) || !data->valid) {
-> > > -		dev_dbg(&client->dev, "Starting eeprom update\n");
-> > > +	if (!(data->valid & (1 << slice)) ||
-> > > +	    (jiffies - data->last_updated[slice] > 300 * HZ) ||
-> > > +	    (jiffies < data->last_updated[slice])) {
-> > 
-> > We do these jiffies comparisons a lot, is everyone sure they are
-> > correct?  We should probably be using the proper macros/functions for
-> > this, right?  I think I looked at this a while ago, and think they
-> > look correct, but it would be good if someone else can verify this.
-> 
-> Well, what the code is meant to do looks clear to me (do not refresh
-> more often than every 300 seconds, do not get hosed by jiffies cycling).
-> So I'd expect it to just work, and BTW it wouldn't be much of a problem
-> if it did not (OK, it'll refresh more often, shouldn't harm too much).
-> OTOH, if a macro exists that does this, and maybe handle more corner
-> cases (not that I can think of any, but who knows), sure we should use
-> it. Can you point us to it?
+> Modified Files:
+> 	lm75.c 
+> Log Message:
+> (mds) only initialize CMP/INT bit, and only if necessary
 
-time_after()
-time_before()
-time_after_eq()
-time_before_eq()
+I am not happy with that change.
 
-We should use these instead of our checks to make sure everything is
-always correct.
+For one thing, if the chip was in shutdown mode, you leave it there.
+This means that the temperature will never be updated, making the driver
+useless.
 
-thanks,
+For another, changing the CMP/INT bit is NOT a good idea. It's fine to
+change the mode when it only affects alarm bits. However in this case
+what it affects is the OS output, and you don't know what is wired to
+that output. If the chip was programmed to INT mode, which is not the
+default, there must be a reason, and that reason must be that whatever
+is wired to the OS output expects interrupts and not comparator mode. By
+arbitrarily changing the mode (and with no reason at that) you probably
+screw the hardware overtemperature control mechanism.
 
-greg k-h
+The second point is no worse than what we had before (which obviously
+means that most hardware designs don't use the interrupt mode, or we
+would have had bad feedback), but the first one is a regression.
+
+Thanks,
+-- 
+Jean Delvare
