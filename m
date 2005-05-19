@@ -1,43 +1,33 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:51 +0000
-Subject: sensors-detect in lm_sensors-2.9.1 has one bug in detecting W83792D
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE37013F@weshml03.winbond.com.tw>
+Subject: sensors-detect in lm_sensors-2.9.1 has one bug in detecting
+Message-Id: <20050414194647.3e754a4d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE37013F@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE37013F@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKVGhlIDc5MiBwYXJ0IGluIGxtX3NlbnNvcnMtMi45LjEgbmVlZCB1cGRhdGUuIFNv
-bWUgb2YgdGhlIGRldGVjdCByZXN1bHQKaXM6CgpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3OTJE
-Jy4uLiBTdWNjZXNzIQogICAgKGNvbmZpZGVuY2UgNywgZHJpdmVyIGB0by1iZS13cml0dGVuJyks
-IG90aGVyIGFkZHJlc3NlczogMHg0YiAweDRmCgpEcml2ZXIgYHRvLWJlLXdyaXR0ZW4nIChzaG91
-bGQgYmUgaW5zZXJ0ZWQpOgogIERldGVjdHMgY29ycmVjdGx5OgogICogQnVzIGBTTUJ1cyBBTGkg
-MTU2MyBBZGFwdGVyIEAgNTAwMCcgKE5vbi1pMmMgU01CdXMgYWRhcHRlcikKICAgIEJ1c2RyaXZl
-ciBgaTJjLWFsaTE1NjMnLCBJMkMgYWRkcmVzcyAweDJmIChhbmQgMHg0YiAweDRmKQogICAgQ2hp
-cCBgV2luYm9uZCBXODM3OTJEJyAoY29uZmlkZW5jZTogNykKClNpbmNlIDc5MiBkcml2ZXIgaGFz
-IGJlZW4gZmluaXNoZWQsIHNvIHRoZSBtZXNzYWdlIG5lZWQgbW9kaWZpY2F0aW9uLgoKVGhhbmtz
-CkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250
-YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJl
-c3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4g
-SWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBh
-cmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJz
-b24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5
-IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdv
-cmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24u
-IEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlh
-bCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkg
-aW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2Zm
-aWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZl
-biBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5l
-c2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50
-aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOk
-uqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtI
-pEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLF
-dqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbij
-u1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0
-o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7m
-uFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xf
-s/WpzrdOqKMuCg==
+Hi Chunhao,
+
+> The 792 part in lm_sensors-2.9.1 need update. Some of the detect
+> result is:
+> 
+> Probing for `Winbond W83792D'... Success!
+>     (confidence 7, driver `to-be-written'), other addresses: 0x4b 0x4f
+> 
+> Driver `to-be-written' (should be inserted):
+>   Detects correctly:
+>   * Bus `SMBus ALi 1563 Adapter @ 5000' (Non-i2c SMBus adapter)
+>     Busdriver `i2c-ali1563', I2C address 0x2f (and 0x4b 0x4f)
+>     Chip `Winbond W83792D' (confidence: 7)
+> 
+> Since 792 driver has been finished, so the message need modification.
+
+You're right. I just commited a fix. Thanks for reporting, and sorry
+about this error...
+
+-- 
+Jean Delvare
