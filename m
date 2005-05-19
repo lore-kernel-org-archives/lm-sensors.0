@@ -1,27 +1,28 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:00 +0000
-Subject: [patch] i2c-piix: Don't treat ServerWorks servers as Laptops
-Message-Id: <20040604214332.GA13825@kroah.com>
+Date: Thu, 19 May 2005 06:23:58 +0000
+Subject: i2c/kernel i2c-core.c
+Message-Id: <20030604070130.GA1763@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040529142325.GA14964@ucw.cz>
-In-Reply-To: <20040529142325.GA14964@ucw.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, May 29, 2004 at 04:23:25PM +0200, Vojtech Pavlik wrote:
-> Hi!
+On Tue, Jun 03, 2003 at 10:27:38PM -0700, author@mordac.netroedge.com wrote:
+> Update of /home/cvs/i2c/kernel
+> In directory mordac.netroedge.com:/tmp/cvs-serv6861/kernel
 > 
-> I'm sending you this little obvious patch which should enable i2c-piix
-> to work on IBM servers with ServerWorks chipsets. It still will treat
-> any IBM/Intel machine as a laptop and refuse to work, but it's better
-> than before.
-> 
-> 
-> ChangeSet@1.1815, 2004-03-19 16:01:20+01:00, vojtech@suse.cz
->   i2c: Treat only IBM machines with Intel chipsets as IBM laptops.
+> Modified Files:
+>       Tag: lk2-4
+> 	i2c-core.c 
+> Log Message:
+> (mmh) Fixed a deadlock in i2c_check_addr().
+> (mmh) The fix is harmonized to similar code in kernel 2.5.70.
 
-Applied, thanks.
+So the 2.5 code is correct and doesn't need any changes?
+
+Just trying to keep up :)
+
+thanks,
 
 greg k-h
