@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:47 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.4
-Message-Id: <10793913922333@kroah.com>
+Message-Id: <10793913922046@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <107939139263@kroah.com>
+In-Reply-To: <10793913921004@kroah.com>
 References: <10793913903814@kroah.com>
 In-Reply-To: <10793913903814@kroah.com>
 MIME-Version: 1.0
@@ -11,52 +11,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1557.61.14, 2004/02/23 16:33:50-08:00, khali@linux-fr.org
+ChangeSet 1.1597.1.8, 2004/02/23 17:23:15-08:00, greg@kroah.com
 
-[PATCH] I2C: Remove asb100 support from w83781d
-
-Now that we have a separate asb100 driver, we can remove the (bad)
-support of it from the w83781d driver. Following patch does this. I've
-already cleaned this up in our CVS repository.
+I2C: fix compiler warnings in 2 drivers.
 
 
- drivers/i2c/chips/w83781d.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/i2c/busses/i2c-elv.c      |    2 +-
+ drivers/i2c/busses/i2c-velleman.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Mon Mar 15 14:36:37 2004
-+++ b/drivers/i2c/chips/w83781d.c	Mon Mar 15 14:36:37 2004
-@@ -25,8 +25,7 @@
- 
-     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
-     as99127f	7	3	1?	3	0x31	0x12c3	yes	no
--    as99127f rev.2 (type_name = 1299127f)	0x31	0x5ca3	yes	no
--    asb100 "bach" (type_name = as99127f)	0x31	0x0694	yes	no
-+    as99127f rev.2 (type_name = as99127f)	0x31	0x5ca3	yes	no
-     w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
-     w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
-     w83627thf	9	3	2	3	0x90	0x5ca3	no	yes(LPC)
-@@ -1194,10 +1193,8 @@
- 		val2 = w83781d_read_value(new_client, W83781D_REG_CHIPMAN);
- 		/* Check for Winbond or Asus ID if in bank 0 */
- 		if ((!(val1 & 0x07)) &&
--		    (((!(val1 & 0x80)) && (val2 != 0xa3) && (val2 != 0xc3)
--		      && (val2 != 0x94))
--		     || ((val1 & 0x80) && (val2 != 0x5c) && (val2 != 0x12)
--			 && (val2 != 0x06)))) {
-+		    (((!(val1 & 0x80)) && (val2 != 0xa3) && (val2 != 0xc3))
-+		     || ((val1 & 0x80) && (val2 != 0x5c) && (val2 != 0x12)))) {
- 			err = -ENODEV;
- 			goto ERROR2;
+diff -Nru a/drivers/i2c/busses/i2c-elv.c b/drivers/i2c/busses/i2c-elv.c
+--- a/drivers/i2c/busses/i2c-elv.c	Mon Mar 15 14:35:57 2004
++++ b/drivers/i2c/busses/i2c-elv.c	Mon Mar 15 14:35:57 2004
+@@ -152,7 +152,7 @@
+ 			return -ENODEV;
  		}
-@@ -1226,7 +1223,7 @@
- 		val2 = w83781d_read_value(new_client, W83781D_REG_CHIPMAN);
- 		if (val2 = 0x5c)
- 			vendid = winbond;
--		else if ((val2 = 0x12) || (val2 = 0x06))
-+		else if (val2 = 0x12)
- 			vendid = asus;
- 		else {
- 			err = -ENODEV;
+ 	}
+-	pr_debug("i2c-elv: found device at %#x.\n",base);
++	pr_debug("i2c-elv: found device at %p.\n", (void *)base);
+ 	return 0;
+ }
+ 
+diff -Nru a/drivers/i2c/busses/i2c-velleman.c b/drivers/i2c/busses/i2c-velleman.c
+--- a/drivers/i2c/busses/i2c-velleman.c	Mon Mar 15 14:35:57 2004
++++ b/drivers/i2c/busses/i2c-velleman.c	Mon Mar 15 14:35:57 2004
+@@ -138,7 +138,7 @@
+ 			return -ENODEV;
+ 		}
+ 	}
+-	pr_debug("i2c-velleman: found device at %#x.\n",base);
++	pr_debug("i2c-velleman: found device at %p.\n",(void *)base);
+ 	return 0;
+ }
+ 
 
