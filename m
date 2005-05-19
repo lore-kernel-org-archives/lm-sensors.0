@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: [PATCH] I2C update for 2.6.8-rc1
-Message-Id: <20040715041055.GA18069@kroah.com>
+Message-Id: <200407150733.i6F7XHAE033337@zone3.gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <10898500251206@kroah.com>
 In-Reply-To: <10898500251206@kroah.com>
@@ -10,17 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 14, 2004 at 08:15:12PM -0700, Philip Pokorny wrote:
-> Is this right that we don't want to explicitly initialize the adm1031_id 
-> counter?
-> 
-> Why is that?
 
-Because the compiler/linker does it already for you :)
+>> Is this right that we don't want to explicitly initialize the adm1031_id
+>> counter?
+>>
+>> Why is that?
+>
+>Because the compiler/linker does it already for you :)
+>
+>See the kernel janitor's list for more information about why this is a
+>good thing to change.
 
-See the kernel janitor's list for more information about why this is a
-good thing to change.
+Hm, then I want to update my i2c client porting guide to mention that?
 
-thanks,
-
-greg k-h
+Thanks,
+Jean Delvare
