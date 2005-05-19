@@ -1,37 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: pavel@ucw.cz (Pavel Machek)
 Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: [RFC 2.6] sensor chips sysfs interface change (long)
-Message-Id: <20040221155819.7bc58609.khali@linux-fr.org>
+Message-Id: <20040225181328.GE1214@elf.ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040218220845.361341c9.khali@linux-fr.org>
-	<20040221131318.GA31688@babylon.d2dc.net>
-In-Reply-To: <20040221131318.GA31688@babylon.d2dc.net>
+In-Reply-To: <20040218220845.361341c9.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Zephaniah E. Hull" <warp@mercury.d2dc.net>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com, greg@kroah.com
+To: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
+Cc: Greg KH <greg@kroah.com>
 
-> I would like to further suggest the renaming of 'sensor<n>' to
-> 'temp<n>_sensor' or 'temp<n>_type', in the interest of being
-> consistent.
+Hi!
 
-Correct. I was precisely thinking of something similar :) For the sake
-of completeness, here is the list of renames that I plan to do:
+> 1* Change the base scheme (e.g. temp_min1 -> temp1_min). This is the
+> more important change (in the sense it affects all drivers and the
+> libsensors library) and correspond to the second problem listed above.
 
-temp<n>_hyst  -> temp<n>_max_hyst or temp<n>_crit_hyst
-sensor<n>     -> temp<n>_type
-pwm<n>        -> fan<n>_pwm
-pwm<n>_enable -> fan<n>_pwm_enable
-vid           -> in<n>_ref
+> For those interested, the original thread on the lm_sensors mailing-list
+> is available here:
+>   http://archives.andrew.net.au/lm-sensors/msg06206.html
+> And an older one on the same topic:
+>   http://archives.andrew.net.au/lm-sensors/msg05028.html
+> 
+> Comments welcome (or even requested, according to the subject line).
 
-I think that this should define a self-explanatory and easily extendable
-interface. There are a few "technical" terms remaining (in, pwm, vrm),
-but since these are the words used in the sensors domain, I feel like we
-better keep them as they are.
-
-Thanks a lot for your constructive comment, I appreciate that.
-
+Sounds good, what you probably need is to submit patch doing step #1
+to Andrew and see what happens...
+								Pavel
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
