@@ -1,47 +1,46 @@
-From: ac9410@attbi.com (Albert Cranford)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: Patches for lm-sensors and I2C
-Message-Id: <3D51F826.1451CAF0@attbi.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:08 +0000
+Subject: lm_sensors2/kernel/chips lm93.c Module.mk
+Message-Id: <20040805034923.GB4844@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Aurelien,
-Thank you very much for the corrections.
-My brain led me to believe all the adapters were called
-within the chips/sensors.c module.
-I will add the patch for 2.4.18/19 and 2.5.30 on the 
-web page.
+Hi everyone:
 
-I had to make small adjustments to get the desired results
-from your patch.
-+
-+int __init i2c_mainboard_init_all(void)
-+{
-+#ifdef CONFIG_I2C_ALI1535
-+       i2c_ali1535_init;
-This should be i2c_ali1535_init(); otherwise it is a
-invalid statement.
-Thanks,
-Albert
-Aurelien Jarno wrote:
+> Update of /home/cvs/lm_sensors2/kernel/chips
+> In directory mordac.netroedge.com:/tmp/cvs-serv32026/kernel/chips
 > 
-> Hello
-> 
-> I have downloaded the patches for I2C and lm-sensors for kernel 2.4.18
-> from your website. There is no problem to patch the kernel, but if the
-> modules for mainboards are included directly into the kernel (not in
-> modules), they aren't run on startup. Here is the patch to correct that.
-> 
-> Aurelien
-> 
->   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
->                                    Name: 2.4.18-2.6.4-sensors-6-patch
->    2.4.18-2.6.4-sensors-6-patch    Type: text/x-diff
->                                Encoding: base64
+> Modified Files:
+> 	Module.mk 
+> Added Files:
+> 	lm93.c 
+> Log Message:
+> (mmh) first draft at a driver for LM93
+
+There are several parts of this driver that are unique among the sensors
+drivers.  Any comments are welcome... especially w.r.t. these topics:
+
+1. Use of SMBus block data read transactions, where possible.  This can
+	be overridden by a module param.
+
+2. Two different modes for in7/in8 limits when these channels are wired
+	to vccp1/vccp2 respectively.  I chose to force the user to one
+	mode or the other, again by module param.
+
+3. Absurd complexity of inX calculations in general, due to a plethora
+	of different range limits and (chip internal) scaling factors.
+
+4. More new and unique /proc files...
+
+Of the TODOs in the file, the one that concerns me most is what to do
+about the alarms: there are more than 32 bits worth of them...  I've
+chatted w/ Khali briefly about it but didn't get very far.
+
+Thanks and regards,
 
 -- 
-Albert Cranford Deerfield Beach FL USA
-ac9410@bellsouth.net
+Mark M. Hoffman
+mhoffman@lightlink.com
