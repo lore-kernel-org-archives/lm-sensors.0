@@ -1,36 +1,31 @@
-From: linux@brodo.de (Dominik Brodowski)
+From: andrew.grover@intel.com (Grover, Andrew)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: lm sensors sysfs file structure
-Message-Id: <20030403184342.GB1469@brodo.de>
+Message-Id: <F760B14C9561B941B89469F59BA3A84725A248@orsmsx401.jf.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030326202622.GJ24689@kroah.com> <3E82292E.536D9196@paradyne.com> <20030326225234.GA27436@kroah.com> <3E82D678.9000807@portrix.net> <20030327172516.GA32667@kroah.com> <20030330192312.GB6666@zaurus.ucw.cz> <20030331224439.A7000@kroah.com> <20030401190240.GA6456@suse.de> <20030403002822.GB5130@kroah.com> <20030403104944.GB15633@suse.de>
-In-Reply-To: <20030403104944.GB15633@suse.de>
+References: <20030326225234.GA27436@kroah.com>
+In-Reply-To: <20030326225234.GA27436@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dave Jones <davej@codemonkey.org.uk>, Greg KH <greg@kroah.com>, Pavel Machek <pavel@ucw.cz>, Jan Dittmer <j.dittmer@portrix.net>, Mark Studebaker <mds@paradyne.com>, azarah@gentoo.org, KML <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com, andrew.grover@intel.com
+To: Dominik Brodowski <linux@brodo.de>, Dave Jones <davej@codemonkey.org.uk>, Greg KH <greg@kroah.com>, Pavel Machek <pavel@ucw.cz>, Jan Dittmer <j.dittmer@portrix.net>, Mark Studebaker <mds@paradyne.com>, azarah@gentoo.org, KML <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com
 
-On Thu, Apr 03, 2003 at 11:49:44AM +0100, Dave Jones wrote:
-> On Wed, Apr 02, 2003 at 04:28:22PM -0800, Greg KH wrote:
+> From: Dominik Brodowski [mailto:linux@brodo.de] 
+> > Had occured to me too. There was talk of a libpower or the likes 
+> > mentioned on acpi-devel a year or so back, but afaik nothing really 
+> > came of it.
 > 
->  > > FWIW, I'm taking the same fixed-point millivolt approach with the
->  > > sysfs overrides for cpufreq.  Having similar things in sysfs
->  > > exporting the same units seems to be a good idea.
->  > 
->  > Hm, in looking around the kernel some more, it seems that there are a
->  > number of other places that export voltage and temperature values (ACPI
->  > being one of the most obvious.)  It might be time to start thinking of a
->  > single userspace library to access all of these kinds of values in a
->  > system, instead of having to probe around different parts of the sysfs
->  > tree by hand...
-> 
-> Had occured to me too. There was talk of a libpower or the likes
-> mentioned on acpi-devel a year or so back, but afaik nothing really
-> came of it.
+> Actually, the "ospmd" tool (available at 
+> http://acpi.sourceforge.net ) already seems to > manage APM and 
+> ACPI input. Well, and speaking of ACPI and 
+> sysfs in the same message: IMHO the /proc/acpi/ interface 
+> should be replaced by something in /sysfs/ as well....
 
-Actually, the "ospmd" tool (available at http://acpi.sourceforge.net )
-already seems to manage APM and ACPI input. Well, and speaking of ACPI and 
-sysfs in the same message: IMHO the /proc/acpi/ interface should be replaced
-by something in /sysfs/ as well....
+Agree w.r.t. ACPI /proc switching to sysfs. Just a matter of someone
+sitting down and making the changes.
 
-	Dominik
+It is still not clear to me if libpower should subsume libsensors, or
+vice versa, or keep them separate. There are areas of overlap, as well
+as significant areas of non-overlap.
+
+Regards -- Andy
