@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:03 +0000
+From: Sean.Gilmour@analog.com (Gilmour, Sean)
+Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: ADM1025 eval board
-Message-Id: <20040627220917.64962e9d.khali@linux-fr.org>
+Message-Id: <F7CB408531C5264680C9E37DE4FE71A406D8806D@limkexm2.ad.analog.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1072174424.3fe815583d4bc@imp.gcu.info>
 In-Reply-To: <1072174424.3fe815583d4bc@imp.gcu.info>
@@ -9,6 +9,35 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi Jean,
+
+Glad to see you are making progress. If you need any other evaluation boards just let me know.
+
+The PC power supply is the best one to use to power the eval board as it should be very stable. 
+
+Regards,
+Se?n.
+
+
+Sean Gilmour,
+Temperature and Systems Monitoring Group,
+The Applications Dept,
+Analog Devices,
+Raheen Business Park,
+Limerick,
+Ireland.
+ 
+Web:     www.Analog.Com
+Phone:  353-61-495749
+Fax:      353-61-304094
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: 27 June 2004 21:09
+To: Gilmour, Sean
+Cc: sensors@Stimpy.netroedge.com
+Subject: Re: ADM1025 eval board
 
 Hi Sean,
 
@@ -51,3 +80,5 @@ Thanks again for the eval board, it definitely helps testing our drivers
 -- 
 Jean Delvare
 http://khali.linux-fr.org/
+
+
