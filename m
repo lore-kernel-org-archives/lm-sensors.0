@@ -1,7 +1,7 @@
 From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:24:31 +0000
 Subject: [PATCH 2.4] i2c cleanups
-Message-Id: <Pine.LNX.4.53.0312231506190.23656@cosmos.private>
+Message-Id: <Pine.LNX.4.53.0312231507410.23656@cosmos.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031213191258.2d78a9f7.khali@linux-fr.org>
 In-Reply-To: <20031213191258.2d78a9f7.khali@linux-fr.org>
@@ -10,103 +10,242 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 23 Dec 2003, Jean Delvare wrote:
 
-> > Jean, here is something to start with. Tested to apply cleanly
-> > over 2.4.23 after your set of 4 patches.
-> >
-> > Patch -km-1 :
-> >
-> > Remove code for KERNEL_VERSION tests.
->
-> Great. This was on my TODO list. I think I'll tweak it a bit, to remove
-> version.h includes which aren't necessary anymore (I guess) and merge
-> empty lines where it applies. Also, this patch might conflict with the
-> one I wrote on posted to the list yesterday (which cleans modules
-> init/exit handling). But basically you got it, this is something I
-> wanted to send to Marcelo.
->
-> > Patch -km-2 :
-> >
-> > This has .owner and .inc/dec_use for reference counting. Also, C99
-> > initializers and initcalls are imported from i2c CVS head.
->
-> What are initcalls.
->
-> > No new drivers, SMBus commands or driver ID's.
->
-> Good point.
->
-> > This is about 1/4 of changes needed to bring 2.4.24 in-sync with i2c
-> > 2.8.2.
->
-> Sure this is an important part, this is even the reason why all these
-> started.
->
-> But there's a problem. As discussed on the list the last few days, i2c
-> as of CVS head does not handle module reference counting correctly. So
-> we cannot possibly send this patch to Marcelo before this issue is
-> fixed. Since you seem to know how to fix it, please commit the
-> necessary changes to CVS head (I don't think it is a good idea to
-> branch the CVS, it's just not worth it). I do well understand that,
-> even with the fix, the reference counting will be broken, but at least
-> it won't be worse than in the previous implementation (that is, moving
-> into /proc/.../somechip/ increases the chip use count, but not the bus
-> use count). This is required before we can send any inc/dec-to-owner
-> patch to Marcelo.
->
-> > At least i2c-proc is not yet in sync with 2.8.0, so sensor chips
-> > will not build.
->
-> This was expected. They don't build either as of now anyway ;)
->
-> > I probably forgot some tiny parts elsewhere too but seems
-> > you were working on similar cleanups so maybe this is some
-> > assistance.
->
-> Your help is very appreciated, since there is much much work to do and
-> we are runnign out of time.
->
-> > We cannot get 200kB+ patches through anyway.
->
-> Yes, that's the idea (and I don't consider it a problem, since this
-> ensures that what we are sending is valid and doesn't bring any
-> regression into the kernel tree).
->
-> > I'll prepare some more patches today. Driver ID's, SMBus commands,
-> > and i2c-proc. The in-file revision tag $id has not been in sync with
-> > CVS files for ages and I plan to unexpand them with a separate
-> > patch.
->
-> IDs is an easy and independant patch, I should be able to go with it if
-> you don't.
->
-> New SMBus commands are not to be commited for now, if ever. They are
-> new
-> functionalities, I doubt Marcelo will want them into Linux 2.4.
->
-> The i2c-proc patches (and anything related to the core or spread over
-> all drivers) are what is more important, both because it might need to
-> be done before other minor changes, and because I don't understand it
-> too well, so that's where your help will be really precious.
->
-> Thanks a lot for providing assistance in backporting CVS to Linux 2.4.
-> Keep in mind that all changes have to be as sliced as possible if we
-> want them accepted.
->
-> I will be submitting a new wave of patches to Marcelo rather soon, which
-> should include (list is not definitive):
-> - init/exit cleanups (me)
-> - compatibility cleanups (you)
-> - velleman doc (me)
-> - algo debug stuff removal (me)
->
-> I'll let you know as soon as I'm working on other patches so that we can
-> merge our efforts efficiently.
->
-> Thanks again.
->
->
+This time, with the message ;)
+
+Patch -km-4:
+
+Clean /proc/bus/i2c initialization.
+
+Patch -km-5:
+
+Forgot one use I2C_LOCK earlier in -km-3.
 
 -- 
-  Ky?sti M?lkki  <kyosti.malkki@welho.com>  +358 50 462 8786
+  Ky?sti M?lkki  <kyosti.malkki@welho.com>
+-------------- next part --------------
+diff -ur lk-i2c-km-4/drivers/i2c/i2c-core.c lk-i2c-km-5/drivers/i2c/i2c-core.c
+--- lk-i2c-km-4/drivers/i2c/i2c-core.c	2003-12-23 14:16:38.000000000 +0200
++++ lk-i2c-km-5/drivers/i2c/i2c-core.c	2003-12-23 14:57:49.000000000 +0200
+@@ -1155,20 +1155,22 @@
+ }
+ 
+ 
+-s32 i2c_smbus_xfer(struct i2c_adapter * adapter, u16 addr, unsigned short flags,
++s32 i2c_smbus_xfer(struct i2c_adapter * adap, u16 addr, unsigned short flags,
+                    char read_write, u8 command, int size, 
+                    union i2c_smbus_data * data)
+ {
+ 	s32 res;
+-	flags = flags & I2C_M_TEN;
+-	if (adapter->algo->smbus_xfer) {
+-		I2C_LOCK(adapter);
+-		res = adapter->algo->smbus_xfer(adapter,addr,flags,read_write,
++
++	flags &= I2C_M_TEN;
++	if (adap->algo->smbus_xfer) {
++		down(&adap->bus);
++		res = adap->algo->smbus_xfer(adap,addr,flags,read_write,
+ 		                                command,size,data);
+-		I2C_UNLOCK(adapter);
++		up(&adap->bus);
+ 	} else
+-		res = i2c_smbus_xfer_emulated(adapter,addr,flags,read_write,
++		res = i2c_smbus_xfer_emulated(adap,addr,flags,read_write,
+ 	                                      command,size,data);
++
+ 	return res;
+ }
+ 
+-------------- next part --------------
+diff -ur lk-i2c-km-3/drivers/i2c/i2c-core.c lk-i2c-km-4/drivers/i2c/i2c-core.c
+--- lk-i2c-km-3/drivers/i2c/i2c-core.c	2003-12-23 14:45:22.000000000 +0200
++++ lk-i2c-km-4/drivers/i2c/i2c-core.c	2003-12-23 14:16:38.000000000 +0200
+@@ -52,11 +52,6 @@
+  */
+ 
+ #ifdef CONFIG_PROC_FS
+-
+-static int i2cproc_init(void);
+-static void i2cproc_cleanup(void);
+-
+-
+ static ssize_t i2cproc_bus_read(struct file * file, char * buf,size_t count, 
+                                 loff_t *ppos);
+ static int read_bus_i2c(char *buf, char **start, off_t offset, int len,
+@@ -65,16 +60,11 @@
+ /* To implement the dynamic /proc/bus/i2c-? files, we need our own 
+    implementation of the read hook */
+ static struct file_operations i2cproc_operations = {
+-	read:		i2cproc_bus_read,
++	.read		= i2cproc_bus_read,
+ };
+ 
+-
+-static int i2cproc_initialized = 0;
+-
+-#else /* undef CONFIG_PROC_FS */
+-
+-#define i2cproc_init() 0
+-#define i2cproc_cleanup() 0
++static int i2cproc_register(struct i2c_adapter *adap, int bus);
++static void i2cproc_remove(int bus);
+ 
+ #endif /* CONFIG_PROC_FS */
+ 
+@@ -91,7 +81,7 @@
+  */
+ int i2c_add_adapter(struct i2c_adapter *adap)
+ {
+-	int i,j,res;
++	int i,j,res = 0;
+ 
+ 	down(&core_lists);
+ 	for (i = 0; i < I2C_ADAP_MAX; i++)
+@@ -104,34 +94,18 @@
+ 		res = -ENOMEM;
+ 		goto ERROR0;
+ 	}
++	
++#ifdef CONFIG_PROC_FS
++	res = i2cproc_register(adap, i);
++	if (res<0)
++	    goto ERROR0;
++#endif /* def CONFIG_PROC_FS */
+ 
+ 	adapters[i] = adap;
+ 	
+ 	/* init data types */
+ 	init_MUTEX(&adap->bus);
+ 	init_MUTEX(&adap->list);
+-#ifdef CONFIG_PROC_FS
+-
+-	if (i2cproc_initialized) {
+-		char name[8];
+-		struct proc_dir_entry *proc_entry;
+-
+-		sprintf(name,"i2c-%d", i);
+-
+-		proc_entry = create_proc_entry(name,0,proc_bus);
+-		if (! proc_entry) {
+-			printk("i2c-core.o: Could not create /proc/bus/%s\n",
+-			       name);
+-			res = -ENOENT;
+-			goto ERROR1;
+-		}
+-
+-		proc_entry->proc_fops = &i2cproc_operations;
+-		proc_entry->owner = THIS_MODULE;
+-		adap->inode = proc_entry->low_ino;
+-	}
+-
+-#endif /* def CONFIG_PROC_FS */
+ 
+ 	/* inform drivers of new adapters */
+ 	for (j=0;j<I2C_DRIVER_MAX;j++)
+@@ -194,16 +168,13 @@
+ 				goto ERROR0;
+ 			}
+ 	}
++
+ #ifdef CONFIG_PROC_FS
+-	if (i2cproc_initialized) {
+-		char name[8];
+-		sprintf(name,"i2c-%d", i);
+-		remove_proc_entry(name,proc_bus);
+-	}
++	i2cproc_remove(i);
+ #endif /* def CONFIG_PROC_FS */
+ 
+ 	adapters[i] = NULL;
+-       	DEB(printk(KERN_DEBUG "i2c-core.o: adapter unregistered: %s\n",adap->name));
++	DEB(printk(KERN_DEBUG "i2c-core.o: adapter unregistered: %s\n",adap->name));
+  ERROR0:
+ 	up(&core_lists);
+ 	return res;
+@@ -663,41 +634,52 @@
+ 	return len;
+ }
+ 
+-static int __init i2cproc_init(void)
++static int i2cproc_register(struct i2c_adapter *adap, int bus)
+ {
++	char name[8];
++	struct proc_dir_entry *proc_entry;
+ 
+-	struct proc_dir_entry *proc_bus_i2c;
++	sprintf(name,"i2c-%d", bus);
++	proc_entry = create_proc_entry(name,0,proc_bus);
++	if (! proc_entry) {
++		printk(KERN_ERR "i2c-core.o: Could not create /proc/bus/%s\n",
++		       name);
++		return -ENOENT;
++	}
++	    
++	proc_entry->proc_fops = &i2cproc_operations;
++	proc_entry->owner = adap->owner;
++	adap->inode = proc_entry->low_ino;
++	return 0;
++}
+ 
+-	i2cproc_initialized = 0;
++static void i2cproc_remove(int bus)
++{
++	char name[8];
++	sprintf(name,"i2c-%d", bus);
++	remove_proc_entry(name, proc_bus);
++}
++
++static int __init i2cproc_init(void)
++{
++	struct proc_dir_entry *proc_bus_i2c;
+ 
+-	if (! proc_bus) {
+-		printk("i2c-core.o: /proc/bus/ does not exist");
+-		i2cproc_cleanup();
+-		return -ENOENT;
+- 	} 
+ 	proc_bus_i2c = create_proc_entry("i2c",0,proc_bus);
+ 	if (!proc_bus_i2c) {
+ 		printk(KERN_ERR "i2c-core.o: Could not create /proc/bus/i2c");
+-		i2cproc_cleanup();
+ 		return -ENOENT;
+  	}
++
+ 	proc_bus_i2c->read_proc = &read_bus_i2c;
+ 	proc_bus_i2c->owner = THIS_MODULE;
+-	i2cproc_initialized += 2;
+ 	return 0;
+ }
+ 
+ static void __exit i2cproc_cleanup(void)
+ {
+-
+-	if (i2cproc_initialized >= 1) {
+-		remove_proc_entry("i2c",proc_bus);
+-		i2cproc_initialized -= 2;
+-	}
+-	return 0;
++	remove_proc_entry("i2c",proc_bus);
+ }
+ 
+-
+ #endif /* def CONFIG_PROC_FS */
+ 
+ /* ----------------------------------------------------
+@@ -1214,9 +1196,12 @@
+ 	memset(adapters,0,sizeof(adapters));
+ 	memset(drivers,0,sizeof(drivers));
+ 
+-	i2cproc_init();
+-	
++#ifdef CONFIG_PROC_FS
++	return i2cproc_init();
++#else
+ 	return 0;
++#endif
++
+ }
+ 
+ static void __exit i2c_exit(void) 
+Only in lk-i2c-km-3/drivers/i2c: i2c-core.c.orig
