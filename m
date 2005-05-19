@@ -1,37 +1,28 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:25 +0000
-Subject: testing on kernel 2.6
-Message-Id: <3FBA461A.5070909@paradyne.com>
+From: lists@localguru.de (Marcus Schopen)
+Date: Thu, 19 May 2005 06:25:39 +0000
+Subject: no fan RPM output & low running fan (Copper Silent 2-TC (REV 2))
+Message-Id: <200502221703.59024.lists@localguru.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200311181008.19323.andrex@alumni.utexas.net>
-In-Reply-To: <200311181008.19323.andrex@alumni.utexas.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-you'll need to copy the changes in the w83781d section of lib/chips.c
-to the w83627hf section.
-But I have an idea I'm going to try tonight to make all that unnecessary,
-so check CVS tomorrow too.
+Hi,
 
-Andrew Schulman wrote:
+after replacing my "boxed" CPU fan by a noise reduced "Copper Silent 2-TC (REV 
+2)" the RPM output of sensors is null, if the fan is running with low speed 
+(about 1500 RPM). Sensors will start to give some output at the RPM of 2800. 
+Is there a chance get some output at lower fan speed too?
 
-> Hello.  I just saw your answer to ticket # 1442, http://www2.lm-sensors.nu/
-> ~lm78/readticket.cgi?ticket42.  I didn't file that ticket, but I'd like to 
-> help test lm-sensors on kernel 2.6.
-> 
-> I have an Abit IS7 mobo with Intel 865 chipset.  The i2c hardware bus is Intel 
-> 801 (i2c-801 kernel module), and the monitoring chip is a Winbond W83627HF.  
-> sensors-detect successfully detects and loads i2c-801 and i2c-dev, before 
-> failing with "Couldn't open /proc/bus/i2c?!?".  
-> 
-> I'm running kernel 2.6.0-test9 and using the Debian package lm-sensors.  sysfs 
-> is mounted on /sys.
-> 
-> I'll check out CVS and see if I can get it running.  If there's anything else 
-> I should know for testing, please let me know.
-> 
-> Andrew Schulman.
-> 
+My modules:
 
+# I2C adapter drivers
+i2c-viapro
+i2c-isa
+# I2C chip drivers
+#eeprom
+via686a
+
+Ciao,
+Marcus
