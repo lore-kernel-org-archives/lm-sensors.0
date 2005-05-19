@@ -1,33 +1,38 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:23:38 +0000
-Subject: SIS 645 (was: Re: SIS 630 (ID))
-Message-Id: <200208261202.10783.amalysh@web.de>
+From: bbns.csie91@nctu.edu.tw (Yun-Ta Tsai)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: Not Support Chip
+Message-Id: <20021128092949.GA4637@bbnslab>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020823224314.A13520@mercury.solarsys.net>
-In-Reply-To: <20020823224314.A13520@mercury.solarsys.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+sensor-detect output---
+BIOS vendor (ACPI): ASUS
+System vendor (DMI): System Manufacturer
+BIOS version (DMI): ASUS P4B533-E ACPI BIOS Revision 1004
+We can start with probing for (PCI) I2C or SMBus adapters.
+You do not need any special privileges for this.
+Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Sorry, no PCI bus adapters found.
 
-i have only one comment to our code ...
-at line 292 you do not need to check_region ... you can call request_region 
-and check return value ... if it's failed then return value is NULL ...
+We will now try to load each adapter module in turn.
+end of output---
 
-Regards,
-Alexander
+Chipset(from motherboard manual):
+	Intel 82845E MCH
+	Intel 82801 DB ICH4
 
-Am Sonntag, 25. August 2002 23:34 schrieben Sie:
-> Hi there:
->
-> A revised SiS645 SMBus driver is now here:
->
-> http://home.pacbell.net/mh0ffman/sensors/i2c-sis645.c
->
-> It uses PCI hotplug; the SMBus device shows up in lspci now.
-> I couldn't see any reason to remove the device on module
-> unload though.  I am still interested in your comments and
-> suggestions.
->
+Thanks
+
+Best Regards
+
+Tim
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-keys
+Size: 1552 bytes
+Desc: PGP =?big5?B?xl+wzSAweDM4REQ3OUVDoUM=?Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20021128/321eac12/attachment.bin
