@@ -1,7 +1,7 @@
 From: zdavatz@ywesee.com (Zeno R.R. Davatz)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: failed again
-Message-Id: <20030806171520.67faf0c4.zdavatz@ywesee.com>
+Message-Id: <20030806172108.4d3ce8b3.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030806164234.1a694ea3.zdavatz@ywesee.com>
 In-Reply-To: <20030806164234.1a694ea3.zdavatz@ywesee.com>
@@ -13,13 +13,10 @@ To: lm-sensors@vger.kernel.org
 On Wed, 6 Aug 2003 17:07:49 +0200
 Jean Delvare <khali@linux-fr.org> wrote:
 
-> Same error you had the other time (seems you don't remember much things
-> about it, do you? ;)).
-Yeah, as I said my memory is not to great for such things. Also it is quite hot in Zurich at the moment... (C33?)
-> 
 > The solution was to remove "prog/dump" from SRCDIRS (Makefile, line
 > 165), if I remember correctly.
-Ok thanks. It installed!
+Ok. found some sensors but 'sensors-detect' hung at probing for the ISA-Bus... had restart my computer...
 
-Thanks
+Any hints? Thanks.
+
 Zeno
