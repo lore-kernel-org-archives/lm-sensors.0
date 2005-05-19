@@ -1,83 +1,26 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:35 +0000
 Subject: [PATCH 2.4] i2c cleanups, third wave
-Message-Id: <1074092127.4005585fbe41d@imp.gcu.info>
+Message-Id: <20040114193040.6606813f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040111144214.7a6a4e59.khali@linux-fr.org> <Pine.LNX.4.58L.0401141052590.6737@logos.cnet>
-In-Reply-To: <Pine.LNX.4.58L.0401141052590.6737@logos.cnet>
+References: <20040111144214.7a6a4e59.khali@linux-fr.org>
+	<20040112014840.GE17845@matchmail.com>
+In-Reply-To: <20040112014840.GE17845@matchmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
+To: Mike Fedyk <mfedyk@matchmail.com>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-Hi Marcelo,
+> How about some patches to add some more sensors to the 2.4 kernel,
+> like the ones already in 2.6?
 
-> From what I understand all patches are cleanups except the bus
-> scanning removal (which fixes a problem on ThinkPad?).
-> 
-> I want to merge only bug fixes or practical corrections.
-> 
-> Please correct me if I overlooked the patches and they contain bug
-> fixes.
+The 2.4 kernel has reached a maintainance-only point so there is no way
+lm_sensors could be officially merged into it now, especially since the
+i2c layer itself would have to be significantly reworked before.
 
-Here is a summary of what each patch does (with the focus set on bug
-fix
-vs. cleanups), so that you can decide what you want to merge.
-
-(1/8) One dependency fixed (problem was reported at least once), one
-typo fixed. The rest is about layout and can be ignored.
-
-(2/8) Can't be called a bug fix because the code is commented for now,
-but it would not compile if it were restored. You decide.
-
-(3/8) Bus scanning is known to be possibly harmful, although no problem
-was reported with these specific modules. Long story short, the
-Thinkpad syndrom is that bus scanning PIIX4 busses where 24RF08
-chipsets live (which is the case of many Thinkpads) with our
-sensors-detect script used to break them until we could find a subtle
-fix. As a consequence, our policy and recommendation is that bus
-scanning should be avoided. But there was no problem reported so far
-with these specific modules. So, once again you decide.
-
-(4/8) Two makefile bug fixes and one bad include fix. The part that
-affects i2c-old.h and a large part that affects Makefile are cleanups
-that you can ignore.
-
-(5/8) This one is more about code readability/maintainability, but
-still fixes a bogus error message, and, more importantly, a potential
-buffer overrun. At least the potential buffer overrun should be fixed.
-
-(6/8) Cleanups only, can be discarded.
-
-(7/8) Cleanups only, can be discarded.
-
-(8/8) Missing spaces in an error message. You decide.
-
-Now, a few personal comments:
-
-1* I can submit "light" versions of the patches that only contain the
-parts you want, just tell me what they are.
-
-2* There is nothing in these patches that I would consider dangerous,
-which admitedly wasn't the case with the previous wave. With a bit more
-experience, I wouldn't have submitted patch (3/5) (locks) in the
-previous wave. For this wave, If I were to decide, according to your
-"nothing dangerous" concerns, I'd discard patches 6 and 7, keep only
-the fixes from 4 and 5, and keep 1, 2, 3 and 8. If you really insist so
-that only bugs are fixed, this mean one item in 1, a few in 4 and one
-in 5. Again, you decide.
-
-3* This was obviously the last wave of patches I submitted, since we're
-reaching (or more likely have already reached) the point of
-maintainance only for the 2.4 kernel. I'll of course continue to do my
-job as the i2c subsystem maintainer and provide fixes to any critial
-bug that would be discovered.
-
-Hopefully this will let you decide what you want to be done.
-
-Thanks,
-Jean
+So your options are either to patch your 2.4 tree using the i2c patch
+and additional drivers we provide, or to jump to Linux 2.6.
 
 -- 
 Jean Delvare
