@@ -1,24 +1,143 @@
-From: JGrumbach@attbi.com (James Grumbach)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: ASUS P4T533 Problem Status
-Message-Id: <000901c278d1$bbe5e920$053ba8c0@plap.loc>
+From: ben-linux@fluff.org (Ben Dooks)
+Date: Thu, 19 May 2005 06:25:46 +0000
+Subject: [PATCH] s3c2410 i2c functionality and fixes
+Message-Id: <20050326171358.GA25534@home.fluff.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks.
+This patch, from an request by Jean Delvare, does the following
+updates to the s3c2410 i2c driver:
 
-I didn't notice that the w83781d.o module was the wrong version [1033].
+Properly report the i2c functionality by adding to the
+`.functionality` field of the adapter
 
-I'm suprised that Redhat isn't a standard version [1031].
+Change the dev_err() call on no-ack to an dev_dbg() to make
+it less noisy when the bus is being probed by i2cdetect, etc.
 
-I haven't yet given the sensor value results a close look (I first need to
-figure out how to turn the alarm off. [I'll read the docs...]).
+Add I2C_M_REV_DIR_ADDR to properly implement the
+I2C_FUNC_PROTOCOLO_MANGLING.
 
-I'll keep you informed on the final results.
+Ensure that the adapter owner field is set to THIS_MODULE
 
-Jim
-jgrumbach@attbi.com
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 
+diff -urN -X ../dontdiff linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c
+--- linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c	2005-03-25 11:47:29.000000000 +0000
++++ linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c	2005-03-26 17:02:35.000000000 +0000
+@@ -1,6 +1,6 @@
+ /* linux/drivers/i2c/busses/i2c-s3c2410.c
+  *
+- * Copyright (C) 2004 Simtec Electronics
++ * Copyright (C) 2004,2005 Simtec Electronics
+  *	Ben Dooks <ben@simtec.co.uk>
+  *
+  * S3C2410 I2C Controller
+@@ -188,6 +188,9 @@
+ 	} else
+ 		stat |= S3C2410_IICSTAT_MASTER_TX;
+ 
++	if (msg->flags & I2C_M_REV_DIR_ADDR)
++		addr ^= 1;
++
+ 	// todo - check for wether ack wanted or not
+ 	s3c24xx_i2c_enable_ack(i2c);
+ 
+@@ -287,7 +290,7 @@
+ 		    !(i2c->msg->flags & I2C_M_IGNORE_NAK)) {
+ 			/* ack was not received... */
+ 
+-			dev_err(i2c->dev, "ack was not received\n" );
++			dev_dbg(i2c->dev, "ack was not received\n" );
+ 			s3c24xx_i2c_stop(i2c, -EREMOTEIO);
+ 			goto out_ack;
+ 		}
+@@ -555,11 +558,19 @@
+ 	return -EREMOTEIO;
+ }
+ 
++/* declare our i2c functionality */
++
++static u32 s3c24xx_i2c_func(struct i2c_adapter *adap)
++{
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_PROTOCOL_MANGLING;
++}
++
+ /* i2c bus registration info */
+ 
+ static struct i2c_algorithm s3c24xx_i2c_algorithm = {
+ 	.name			= "S3C2410-I2C-Algorithm",
+ 	.master_xfer		= s3c24xx_i2c_xfer,
++	.functionality		= s3c24xx_i2c_func,
+ };
+ 
+ static struct s3c24xx_i2c s3c24xx_i2c = {
+@@ -567,6 +578,7 @@
+ 	.wait	= __WAIT_QUEUE_HEAD_INITIALIZER(s3c24xx_i2c.wait),
+ 	.adap	= {
+ 		.name			= "s3c2410-i2c",
++		.owner			= THIS_MODULE,
+ 		.algo			= &s3c24xx_i2c_algorithm,
+ 		.retries		= 2,
+ 		.class			= I2C_CLASS_HWMON,
+-------------- next part --------------
+diff -urN -X ../dontdiff linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c
+--- linux-2.6.12-rc1-mm3/drivers/i2c/busses/i2c-s3c2410.c	2005-03-25 11:47:29.000000000 +0000
++++ linux-2.6.12-rc1-mm3-i2cf1/drivers/i2c/busses/i2c-s3c2410.c	2005-03-26 17:02:35.000000000 +0000
+@@ -1,6 +1,6 @@
+ /* linux/drivers/i2c/busses/i2c-s3c2410.c
+  *
+- * Copyright (C) 2004 Simtec Electronics
++ * Copyright (C) 2004,2005 Simtec Electronics
+  *	Ben Dooks <ben@simtec.co.uk>
+  *
+  * S3C2410 I2C Controller
+@@ -188,6 +188,9 @@
+ 	} else
+ 		stat |= S3C2410_IICSTAT_MASTER_TX;
+ 
++	if (msg->flags & I2C_M_REV_DIR_ADDR)
++		addr ^= 1;
++
+ 	// todo - check for wether ack wanted or not
+ 	s3c24xx_i2c_enable_ack(i2c);
+ 
+@@ -287,7 +290,7 @@
+ 		    !(i2c->msg->flags & I2C_M_IGNORE_NAK)) {
+ 			/* ack was not received... */
+ 
+-			dev_err(i2c->dev, "ack was not received\n" );
++			dev_dbg(i2c->dev, "ack was not received\n" );
+ 			s3c24xx_i2c_stop(i2c, -EREMOTEIO);
+ 			goto out_ack;
+ 		}
+@@ -555,11 +558,19 @@
+ 	return -EREMOTEIO;
+ }
+ 
++/* declare our i2c functionality */
++
++static u32 s3c24xx_i2c_func(struct i2c_adapter *adap)
++{
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_PROTOCOL_MANGLING;
++}
++
+ /* i2c bus registration info */
+ 
+ static struct i2c_algorithm s3c24xx_i2c_algorithm = {
+ 	.name			= "S3C2410-I2C-Algorithm",
+ 	.master_xfer		= s3c24xx_i2c_xfer,
++	.functionality		= s3c24xx_i2c_func,
+ };
+ 
+ static struct s3c24xx_i2c s3c24xx_i2c = {
+@@ -567,6 +578,7 @@
+ 	.wait	= __WAIT_QUEUE_HEAD_INITIALIZER(s3c24xx_i2c.wait),
+ 	.adap	= {
+ 		.name			= "s3c2410-i2c",
++		.owner			= THIS_MODULE,
+ 		.algo			= &s3c24xx_i2c_algorithm,
+ 		.retries		= 2,
+ 		.class			= I2C_CLASS_HWMON,
