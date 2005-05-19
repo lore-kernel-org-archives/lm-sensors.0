@@ -1,7 +1,7 @@
-From: benh@kernel.crashing.org (Benjamin Herrenschmidt)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: Keywest detection
-Message-Id: <1060206159.586.30.camel@gaston>
+Message-Id: <20030807000006.4c01841e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030806190950.6326aa8f.khali@linux-fr.org>
 In-Reply-To: <20030806190950.6326aa8f.khali@linux-fr.org>
@@ -10,77 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2003-08-06 at 21:44, Jean Delvare wrote:
-> Hi Benjamin, thanks for the fast reply.
+
+> No. They don't, they show up in /proc/device-tree (one at the root
+> of the tree, the one in the northbridge, and one lower below,
+> within the macio PCI asic)
+
+Interesting. I would need a concrete example to figure that out
+properly. When you say "device-tree", is it the real directory name
+(never seen that in i386) or is it to be replaced by something else,
+depending on the machine?
+
+> > We don't really care for 2.6 for now. However, I think you tell me
+> > the*driver* will be visible in /sys. What we are after is a way to
+> > know when that driver is useful, before it is loaded.
 > 
-> > > I would like to add support for the Keywest to our sensors-detect
-> > > script. I wonder if I should add it to the detectable adapters list
-> > > or to the undetectable adapters list. Is there any way to detect it?
-> > > Usually, we detect the adapters by matching a given PCI
-> > > manufacturer:device ID and function.
-> > 
-> > Hrm... On 2.4, it's not that simple, there can be 2 keywest
-> > controllers, one on the northbridge, one on the southbridge, driving
-> > various parts.
+> The devices will be visible too, not only the driver
+
+It's usable by us then. If I understand you correctly, it already shows
+in 2.4, but will be different (and better) in 2.6?
+
+> > I'm not sure I understand you at all there. What's the problem?
+> > (Please note that I don't know anything about PPC, I'm just trying
+> > to solve some problem our package has on Linux PPC.)
 > 
-> You don't really help me ;) Does it show in lspci or somewhere else?
+> Well... those chips on the i2c bus, like thermal sensors, thermostats,
+> fan controllers, clock generators, etc... are configured precisely by
+> the firmware for a given motherboard, especially the thermal
+> thresholds, for example, or the fan configuration & speed which may
+> depend on the type of fans attached and the way the air flows in the
+> enclosure, is something that I'd rather not touch without proper
+> knowledge of the per-machine model details, which we don't have.
 
-No. They don't, they show up in /proc/device-tree (one at the root
-of the tree, the one in the northbridge, and one lower below,
-within the macio PCI asic)
+Our script only read values, so we are unlikely to break anything.
 
-> > With 2.6, these will be visible in sysfs once i'm done with the
-> > porting of pmac drivers to the new model.
+> The firmware is setting that up in some "sane" way, what else would
+> you want to do?
+
+I don't know about PPC, but in the i386 world, we want to set our own
+temperatures and fan limits. I guess it's a bit different because all
+the hardware for a given PPC system is known, so the fan speeds, normal
+temperature etc. are known and not subject to change. Anyway, drivers
+are still welcome so that you can at least read the temperatures values,
+etc...
+
+> > So, do you have some time for that? It may be easy for you since you
+> > know the PPC world well. Feel free to refuse if you are busy though.
 > 
-> We don't really care for 2.6 for now. However, I think you tell me the
-> *driver* will be visible in /sys. What we are after is a way to know
-> when that driver is useful, before it is loaded.
+> Not much time lately... isadump will not work, I suppose, because it
+> does ioperm and in/out accesses from userland right ? You don't want
+> to do that on most PPCs, beleive me ;) What kind of stuffs do you want
+> that for anyway ?
 
-The devices will be visible too, not only the driver
+Yes, I think it does. What made me wonder is that some comments in the
+code reveal that the code is meant to be run on PPCs. For example,
+__powerpc__ is checked twice. There also is a log entry that mentions
+PPC support support.
 
-> Our scripts tries to identifiy what is present on i2c busses, so we have
-> to load i2c bus drivers, such as i2c-keywest, at first. But we don't
-> want to load all of them "just in case". We prefer being able to detect
-> them, and load only these drivers.
-> 
-> > I'm not sure I like the idea of having drivers tapping things on those
-> > i2c busses if those drivers aren't specially designed for the pmacs. I
-> > hate the idea of something preventing proper cooling of the machine
-> > and thus causing HW damage, or around those lines...
-> 
-> I'm not sure I understand you at all there. What's the problem? (Please
-> note that I don't know anything about PPC, I'm just trying to solve some
-> problem our package has on Linux PPC.)
+On the other hand, I don't know if PPC even have an I2C bus. A PPC user
+reported today that our sensors-detect script locks when it comes to ISA
+chipsets detection. So, what should I know about PPC and the ISA bus?
 
-Well... those chips on the i2c bus, like thermal sensors, thermostats,
-fan controllers, clock generators, etc... are configured precisely by
-the firmware for a given motherboard, especially the thermal thresholds,
-for example, or the fan configuration & speed which may depend on the
-type of fans attached and the way the air flows in the enclosure, is
-something that I'd rather not touch without proper knowledge of the
-per-machine model details, which we don't have.
+My primary goal here is to allow PPC users to compile lm_sensors. For
+now, they can't because at some point isadump fails to compile because
+of a header issue (I think PPC has asm/io.h instead of sys/io.h, is that
+it?) so I was wondering if we should simply disable the compilation of
+this tool on PPC, or try to fix it.
 
-THe firmware is setting that up in some "sane" way, what else would
-you want to do ? For a couple of machines, I do have some experimental
-drivers that will do "smoother" fan management (avoiding them to be
-always full speed on some G4 towers), but those were done after
-reverse engineering the precise thresholds & values used by MacOS
-on these models.
+Thanks for your help and time.
 
-> > > Also, since you seem to have much knowledge about Linux PPC, maybe
-> > > you could help us on another problem. We have some dump tools that
-> > > come with the lm_sensors package, and one of them, isadump, doesn't
-> > > seem to compile on PPC. Could you take a look and tell us if you
-> > > know how to fix it? Or maybe this tool is of no use on PPC systems?
-> 
-> So, do you have some time for that? It may be easy for you since you
-> know the PPC world well. Feel free to refuse if you are busy though.
-
-Not much time lately... isadump will not work, I suppose, because it
-does ioperm and in/out accesses from userland right ? You don't want
-to do that on most PPCs, beleive me ;) What kind of stuffs do you want
-that for anyway ?
-
-
-Ben.
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
