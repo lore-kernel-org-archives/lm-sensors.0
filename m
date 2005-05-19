@@ -1,84 +1,55 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH] I2C: Kill outdated defines in i2c.h
-Message-Id: <11123113921928@kroah.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] I2C: unnecessary #includes in asb100.c
+Message-Id: <11099685953317@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11123113922117@kroah.com>
+In-Reply-To: <11099685951139@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+Cc: mhoffman@lightlink.com
 
-ChangeSet 1.2336, 2005/03/31 14:09:38-08:00, khali@linux-fr.org
+ChangeSet 1.2094, 2005/03/02 12:10:01-08:00, mhoffman@lightlink.com
 
-[PATCH] I2C: Kill outdated defines in i2c.h
+[PATCH] I2C: unnecessary #includes in asb100.c
 
-Some defines in i2c.h (I2C_CLIENT_MODPARM and friends) are now useless.
-They should have been removed when the i2c client parameters were
-converted from MODULE_PARAM to module_parm_array, but where not. This
-patch removes them now.
+* Jean Delvare <khali@linux-fr.org> [2005-01-25 10:14:49 +0100]:
+> Any reson why asb100.c (in linux 2.6.11-rc2) includes linux/ioport.h and
+> asm/io.h? As an i2c-only chip driver, I don't think it needs these.
+>
+> As a side note, I also wonder what the inclusions of linux/config.h,
+> linux/types.h and asm/errno.h are there for.
 
-Additionally, it moves the definition of I2C_CLIENT_MAX_OPTS next to
-where it is used rather than 220 lines before, which is preferable IMHO.
+Because they look pretty?  Here's a patch Greg, please apply...
 
-As a side note, I think that there is a bug in the way these options are
-handled. The i2c code looks for I2C_CLIENT_END as a list terminator, but
-if the maximum number of parameters are actually provided, no terminator
-will be left. It's rather unlikely to happen because nobody will
-probably ever provide that many parameters, but this should probably be
-fixed. I'll address this issue later, since I plan to completely rewrite
-the way these parameters are handled anyway.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- include/linux/i2c.h |   13 +++----------
- 1 files changed, 3 insertions(+), 10 deletions(-)
+ drivers/i2c/chips/asb100.c |    5 -----
+ 1 files changed, 5 deletions(-)
 
 
-diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h	2005-03-31 15:17:39 -08:00
-+++ b/include/linux/i2c.h	2005-03-31 15:17:39 -08:00
-@@ -306,9 +306,6 @@
- #define ANY_I2C_BUS		0xffff
- #define ANY_I2C_ISA_BUS		9191
+diff -Nru a/drivers/i2c/chips/asb100.c b/drivers/i2c/chips/asb100.c
+--- a/drivers/i2c/chips/asb100.c	2005-03-04 12:25:10 -08:00
++++ b/drivers/i2c/chips/asb100.c	2005-03-04 12:25:10 -08:00
+@@ -36,17 +36,12 @@
+     asb100	7	3	1	4	0x31	0x0694	yes	no
+ */
  
--/* The length of the option lists */
--#define I2C_CLIENT_MAX_OPTS 48
--
+-#include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/ioport.h>
+-#include <linux/types.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-sensor.h>
+ #include <linux/i2c-vid.h>
+ #include <linux/init.h>
+-#include <asm/errno.h>
+-#include <asm/io.h>
+ #include "lm75.h"
  
- /* ----- functions exported by i2c.o */
- 
-@@ -526,6 +523,9 @@
- #define I2C_MAJOR	89		/* Device major number		*/
- 
- /* These defines are used for probing i2c client addresses */
-+/* The length of the option lists */
-+#define I2C_CLIENT_MAX_OPTS 48
-+
- /* Default fill of many variables */
- #define I2C_CLIENT_DEFAULTS {I2C_CLIENT_END, I2C_CLIENT_END, I2C_CLIENT_END, \
-                           I2C_CLIENT_END, I2C_CLIENT_END, I2C_CLIENT_END, \
-@@ -544,19 +544,12 @@
-                           I2C_CLIENT_END, I2C_CLIENT_END, I2C_CLIENT_END, \
-                           I2C_CLIENT_END, I2C_CLIENT_END, I2C_CLIENT_END}
- 
--/* This is ugly. We need to evaluate I2C_CLIENT_MAX_OPTS before it is 
--   stringified */
--#define I2C_CLIENT_MODPARM_AUX1(x) "1-" #x "h"
--#define I2C_CLIENT_MODPARM_AUX(x) I2C_CLIENT_MODPARM_AUX1(x)
--#define I2C_CLIENT_MODPARM I2C_CLIENT_MODPARM_AUX(I2C_CLIENT_MAX_OPTS)
--
- /* I2C_CLIENT_MODULE_PARM creates a module parameter, and puts it in the
-    module header */
- 
- #define I2C_CLIENT_MODULE_PARM(var,desc) \
-   static unsigned short var[I2C_CLIENT_MAX_OPTS] = I2C_CLIENT_DEFAULTS; \
-   static unsigned int var##_num; \
--  /*MODULE_PARM(var,I2C_CLIENT_MODPARM);*/ \
-   module_param_array(var, short, &var##_num, 0); \
-   MODULE_PARM_DESC(var,desc)
- 
+ /*
 
