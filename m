@@ -1,7 +1,7 @@
 From: delvare@ensicaen.ismra.fr (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:30 +0000
 Subject: eeprom driver
-Message-Id: <Pine.GSO.4.40.0202162112300.22793-200000@e450.ensicaen.ismra.fr>
+Message-Id: <Pine.GSO.4.40.0202172351460.15925-200000@e450.ensicaen.ismra.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020201105452.C1871@Stimpy.netroedge.com>
 In-Reply-To: <20020201105452.C1871@Stimpy.netroedge.com>
@@ -11,18 +11,12 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I made the naming change you suggested in eeprom.c
-> and fixed decode-dimms and decode-xeon,
-> unfortunately I don't have a Perl book at home
-> so I need your help to fix decode-vaio, if you
-> would please send me a patch that would be great.
+I enhanced my decode-vaio.pl script today. Here is the new version (0.3).
+I give you the whole script instead of a diff because there are so many
+changes that the diff is hardly readable and is bigger that the script
+itself.
 
-Here you are.
-
-I supposed that the new names will be from 00 to f0 (not F0). If I'm
-wrong, just change %02x with %02X in sprintf calls.
-
-Tell me if there's anything wrong.
+See the changes list inside the script for details.
 
 -- 
        /~~       Jean "Khali" Delvare
@@ -30,85 +24,151 @@ Tell me if there's anything wrong.
  --------\                http://www.ensicaen.ismra.fr/~delvare/
 ---=ISMRA/- ____________________________________________________
 -------------- next part --------------
-diff -ruN 0.1/prog/eeprom/decode-vaio.pl 0.2/prog/eeprom/decode-vaio.pl
---- 0.1/prog/eeprom/decode-vaio.pl	Sat Feb 16 21:49:45 2002
-+++ 0.2/prog/eeprom/decode-vaio.pl	Sat Feb 16 22:05:17 2002
-@@ -16,18 +16,26 @@
- #    along with this program; if not, write to the Free Software
- #    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- #
--# Version 0.1  2002-02-06  Jean Delvare <khali@linux-fr.org>
-+# Version 0.2  2002-02-06  Jean Delvare <khali@linux-fr.org>
- #
- # EEPROM data decoding for Sony Vaio laptops. 
- #
- # Two assumptions: lm_sensors-2.x installed,
- # and Perl is at /usr/bin/perl
- #
--# Please note that this is a guess-only work.  I don't expect much help from
--# Sony, so if someone can provide information, please contact me.  I used my
-+# Please note that this is a guess-only work.  Sony support refused to help
-+# me, so if someone can provide information, please contact me.  I used my
- # PCG-GR214EP as a base, but I can't promise that this script will work with
- # other models.  Any feedback appreciated anyway.
- #
-+# History:
-+#
-+# 2002-02-06  0.1   Initial release.
-+#
-+# 2002-02-16  0.2   Fixed to work with the new, simplified /proc interface
-+#                   names of the eeprom driver (lm_sensors 2.6.3 and later.)
-+#                   Shifted data display by 4 columns left.
-+#
- 
- use strict;
- 
-@@ -35,14 +43,14 @@
- {
- 	my ($label,$value) = @_;
- 	
--	printf("\%20s : \%s\n",$label,$value);
-+	printf("\%16s : \%s\n",$label,$value);
- }
- 
- sub decode_char
- {
- 	my ($bus,$addr,$base,$offset,$length) = @_;
- 	
--	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/data$base-".($base+15);
-+	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
- 	open(FH,$filename) || die "Can't open $filename";
- 	my $line=<FH>;
- 	close(FH);
-@@ -63,7 +71,7 @@
- {
- 	my ($bus,$addr,$base,$offset,$length) = @_;
- 
--	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/data$base-".($base+15);
-+	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
- 	open(FH,$filename) || die "Can't open $filename";
- 	my $line=<FH>;
- 	close(FH);
-@@ -84,11 +92,11 @@
- {
- 	my ($bus,$addr,$base) = @_;
- 
--	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/data$base-".($base+15);
-+	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
- 	open(FH,$filename) || die "Can't open $filename";
- 	my $line=<FH>;
- 	close(FH);
--	$filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/data".($base+16).'-'.($base+31);
-+	$filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base+16);
- 	open(FH,$filename) || die "Can't open $filename";
- 	$line.=<FH>;
- 	close(FH);
-@@ -116,7 +124,7 @@
- 
- print("Sony Vaio EEPROM Decoder\n");
- print("Written by Jean Delvare.  Copyright 2002.\n");
--print("Version 0.1\n\n");
-+print("Version 0.2\n\n");
- 
- if ( -r '/proc/sys/dev/sensors/eeprom-i2c-0-57')
- {
+#!/usr/bin/perl -w
+#
+# Copyright 2002 Jean Delvare <khali@linux-fr.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Version 0.1  2002-02-06  Jean Delvare <khali@linux-fr.org>
+# Version 0.2  2002-02-16  Jean Delvare <khali@linux-fr.org>
+#  Fixed to work with the new, simplified /proc interface names of the eeprom driver
+#  (lm_sensors 2.6.3 and greater.)
+#  Shifted data display by 4 columns left.
+# Version 0.3  2002-02-17  Jean Delvare <khali@linux-fr.org>
+#  Added UUID field at 0x10 (added decode_uuid.)
+#  Merged decode_string and decode_string32.
+#  Added unknown field at 0x20.
+#  Moved header and footer to BEGIN and END, respectivly.
+#  Reformated history to match those of the other decode scripts.
+#  Deleted decode_char (made useless by decode_string.)
+#  Reordered field display, changed some labels.
+#  Added old /proc interface check.
+#
+# EEPROM data decoding for Sony Vaio laptops. 
+#
+# Two assumptions: lm_sensors-2.6.3 or greater installed,
+# and Perl is at /usr/bin/perl
+#
+# Please note that this is a guess-only work.  Sony support refused to help
+# me, so if someone can provide information, please contact me.  I used my
+# PCG-GR214EP as a base, but I can't promise that this script will work with
+# other models.  Any feedback appreciated anyway.
+#
+
+use strict;
+
+sub print_item
+{
+	my ($label,$value) = @_;
+	
+	printf("\%16s : \%s\n",$label,$value);
+}
+
+sub decode_string
+{
+	my ($bus,$addr,$base,$offset,$length) = @_;
+
+	my $line='';
+	my $remains=$length+$offset;
+	while($remains>0)
+	{
+		my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
+		open(FH,$filename) || die "Can't open $filename";
+		$line.=<FH>;
+		close(FH);
+		$remains-;
+		$base+;
+	}
+
+	my @bytes=split(/[ \n]/,$line);
+	@bytes=@bytes[$offset..$offset+$length-1];
+	my $string='';
+	my $item;
+	while(defined($item=shift(@bytes)) && ($item!=0))
+	{
+		$string.=chr($item);
+	}
+	
+	return($string);
+}
+
+sub decode_uuid
+{
+	my ($bus,$addr,$base) = @_;
+
+	my $filename="/proc/sys/dev/sensors/eeprom-i2c-$bus-$addr/".sprintf('%02x',$base);
+	open(FH,$filename) || die "Can't open $filename";
+	my $line=<FH>;
+	close(FH);
+
+	my @bytes=split(/[ \n]/,$line);
+	my $string='';
+	my $item;
+
+	for(my $i=0;$i<16;$i++)
+	{
+		$string.=sprintf('%02x',shift(@bytes));
+		if(($i=3)||($i=5)||($i=7)||($i=9))
+		{
+			$string.='-';
+		}
+	}
+
+	return($string);
+}
+
+sub vaio_decode
+{
+	my ($bus,$addr) = @_;
+	
+	print_item('Machine Name',decode_string($bus,$addr,128,0,32));
+	print_item('Serial Number',decode_string($bus,$addr,192,0,32));
+	print_item('UUID',decode_uuid($bus,$addr,16));
+	print_item('Revision',decode_string($bus,$addr,160,0,10));
+	print_item('Model Number','PCG-'.decode_string($bus,$addr,160,10,4));
+	print_item('?',decode_string($bus,$addr,32,0,16));
+	print_item('?',decode_string($bus,$addr,224,0,32));
+}
+
+BEGIN
+{
+	print("Sony Vaio EEPROM Decoder\n");
+	print("Written by Jean Delvare.  Copyright 2002.\n");
+	print("Version 0.3\n\n");
+}
+
+END
+{
+	print("\n");
+}
+
+if ( -r '/proc/sys/dev/sensors/eeprom-i2c-0-57')
+{
+	if ( -r '/proc/sys/dev/sensors/eeprom-i2c-0-57/data0-15')
+	{
+		print("Deprecated old interface found.  Please upgrade to lm_sensors 2.6.3 or greater.");
+	}
+	else
+	{
+		vaio_decode('0','57');
+	}
+}
+else
+{
+	print("Vaio EEPROM not found.  Please make sure that the eeprom module is loaded.\n");
+	print("If you believe this is an error, please contact me <khali\@linux-fr.org>\n");
+	print("so that we may see how to fix the problem.\n");
+}
