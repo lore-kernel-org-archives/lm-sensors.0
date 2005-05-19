@@ -1,34 +1,117 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:40 +0000
-Subject: can't compile i2c-2.8.3 on linux-2.6.2
-Message-Id: <1076058726.40235a6674b56@imp.gcu.info>
+Date: Thu, 19 May 2005 06:24:49 +0000
+Subject: [PATCH 2.6] Prevent misdetections in adm1021 driver
+Message-Id: <20040327160623.1880befc.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040204194802.35A2CACA5@sitemail.everyone.net>
-In-Reply-To: <20040204194802.35A2CACA5@sitemail.everyone.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting synaptical <synaptical@linuxquestions.net>:
+Hi Greg,
 
-> thanks, i don't think i'll ever get the hang of lm_sensors! they work
-> now indeed, apparently increased by a factor of 10 -- but i think i
-> remember seeing something about that in the doc, and it is not a big
-> deal. 
+Yet another patch for the adm1021 chip driver. I refined the detection
+code a bit in order to prevent chip misdetection. Some chips handled by
+the adm1021 driver are hard to detect and identify (LM84 and MAX1617) so
+we tend to accept any chip it the valid I2C address range as one of
+these. It has caused much, much trouble already. See these threads for
+example:
 
-You need lm_sensors CVS or 2.8.4 as soon as we release it. Version 2.8.3
-doesn't work correctly with Linux 2.6.2.
+http://archives.andrew.net.au/lm-sensors/msg04448.html
+http://archives.andrew.net.au/lm-sensors/msg04624.html
+http://archives.andrew.net.au/lm-sensors/msg05560.html
+http://archives.andrew.net.au/lm-sensors/msg05871.html
+http://archives.andrew.net.au/lm-sensors/msg06754.html
+http://archives.andrew.net.au/lm-sensors/msg07181.html
 
-> the only other comment i would make is the readings used to appear
-> next to the CPU and Proc headings in gkrellm, and now they take up
-> their own space, which adds length to gkrellm. again not a big deal,
-> but i thought i would mention it as it is a difference.
+And this ticket:
 
-I don't understand what you mean exactly, maybe because I never used
-gkrellm myself. That said, it is more likely a problem with gkrellm
-itself, so you should probably contact the developers of that program
-instead.
+http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket34
+
+So I thought it would be good to prevent this kind of problems if
+possible, and read the 8 datasheets again in search for ways to refine
+the detection method.
+
+I changed it in sensors-detect already, and had positive feedback from
+one user. I will also backport the changes to the driver to the 2.4
+version we have in CVS.
+
+What the patch does:
+
+* Use unused bits of two more registers (configuration and conversion
+rate) to reduce misdetections.
+
+* Return with -ENODEV if the detection fails.
+
+* Change the order in which we try to identify the chips. We better
+finish with the LM84 and the MAX1617, in this order, because they are
+harder to identify and are more likely to result in false positives.
+
+* Refine LM84 detection. The LM84 has less features than the other chips
+(chip cannot be stopped, conversion rate cannot be set, no low limits)
+so it has extra unused bits.
+
+* Do not intialize the chip if it was detected as an LM84. This one
+cannot be stopped so why would we try to start it again? And as said
+right before, conversion rate isn't changeable either.
+
+Note that I couldn't test the changes on any supported chip since I
+don't own any. Still I believe that they should be applied, since the
+current code already broke one system and seriously harmed several
+others. I believe it's not critical if it turns out that we reject valid
+chips (which shouldn't happen if the datasheets are correct, anyway).
+People will simply let us know and we'll be less restrictive. In the
+meantime they can force the driver. That said, testers are welcome, as
+usual.
+
+Please apply,
+thanks.
+
+--- linux-2.6.5-rc1/drivers/i2c/chips/adm1021.c.orig	Thu Mar 25 19:45:18 2004
++++ linux-2.6.5-rc1/drivers/i2c/chips/adm1021.c	Sat Mar 27 15:14:41 2004
+@@ -246,8 +246,12 @@
+ 
+ 	/* Now, we do the remaining detection. */
+ 	if (kind < 0) {
+-		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00)
++		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00
++		 || (adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x3F) != 0x00
++		 || (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) & 0xF8) != 0x00) {
++		 	err = -ENODEV;
+ 			goto error1;
++		}
+ 	}
+ 
+ 	/* Determine the chip type. */
+@@ -265,11 +269,14 @@
+ 		else if ((i = 0x4d) &&
+ 			 (adm1021_read_value(new_client, ADM1021_REG_DEV_ID) = 0x01))
+ 			kind = max1617a;
+-		/* LM84 Mfr ID in a different place */
+-		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00)
+-			kind = lm84;
+ 		else if (i = 0x54)
+ 			kind = mc1066;
++		/* LM84 Mfr ID in a different place, and it has more unused bits */
++		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00
++		      && (kind = 0 /* skip extra detection */
++		       || ((adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x7F) = 0x00
++			&& (adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0xAB) = 0x00)))
++			kind = lm84;
+ 		else
+ 			kind = max1617;
+ 	}
+@@ -305,7 +312,8 @@
+ 		goto error1;
+ 
+ 	/* Initialize the ADM1021 chip */
+-	adm1021_init_client(new_client);
++	if (kind != lm84)
++		adm1021_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+
 
 -- 
 Jean Delvare
