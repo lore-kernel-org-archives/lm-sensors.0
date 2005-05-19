@@ -1,32 +1,40 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: Ticket #1018
-Message-Id: <3DA764E6.1187E862@paradyne.com>
+From: derek@totalphase.com (Derek Fung)
+Date: Thu, 19 May 2005 06:25:15 +0000
+Subject: Donation of an I2C host adapter to lm_sensors
+Message-Id: <1095095083.3132.28.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E17viwV-0006OX-00@mendel.bio.caltech.edu>
-In-Reply-To: <E17viwV-0006OX-00@mendel.bio.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fan3_div writes were broken in the library in 2.6.4, fixed in 2.6.5.
-Upgrade and it should work.
-good luck.
+Hi everyone on lm_sensors,
 
-Khali wrote:
-> 
-> > lm_sensors 2.6.4, RH 7.3, PS fan not showing up.
-> 
-> > I've narrowed down the problem.  The configuration switch
-> > "set  fan3_div 8"  is ignored even though it is in the
-> > relevant chip section for chip as99127f.  I even tried
-> > setting all 3 fans and it was still ignored.
-> 
-> Didn't you forget to run "sensors -s" once (as root) before running "sensors" again?
-> 
-> --
-> Khali
-> 
-> ___________________________________
-> Webmail Nerim, http://www.nerim.net/
+My company, Total Phase, would like to make a donation to your cause.
+We make the Aardvark I2C/SPI Host Adapter.  It is one of the few
+fully cross-platform I2C host adapters on the market for Linux.  
+
+I know that lm_sensors is geared primarily to access I2C-based
+sensors that are already on motherboards and not the development of
+de novo systems.  But, we are sure that a Linux compatible I2C host
+adapter can help developers hack their hardware and see what's going
+on under the hood.
+
+We have just released a version 3.00 of our product.  Some of the
+features that you guys might be interested in are:
+- I2C Bus Monitor
+- Rosetta Language Bindings for C/C++ and Python 
+- Batch Scripting Capabilities in the GUI
+
+Please let us know where we can send this adapter.  If you guys find
+it useful, we would appreciate a mention or a link on your website.
+
+Looking forward to hearing from you.
+
+Best Regards,
+Derek
+
+-- 
+Derek Fung 
+Total Phase, Inc. 
+http://www.totalphase.com/
