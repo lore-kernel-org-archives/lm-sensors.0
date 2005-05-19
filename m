@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:31 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <10728219701628@kroah.com>
+Message-Id: <10728219702169@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219702175@kroah.com>
+In-Reply-To: <1072821970727@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,71 +11,144 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.8.31, 2003/12/17 16:04:10-08:00, mhoffman@lightlink.com
+ChangeSet 1.1496.6.2, 2003/12/04 00:43:55-08:00, khali@linux-fr.org
 
-[PATCH] I2C: improve chip detection in w83781d.c driver
+[PATCH] I2C: i2c documentation (1 of 2)
 
-This patch improves chip detection.  It was forward ported from the
-lm_sensors project CVS, from these revisions:
-
-	1.104 (Khali) Enhance chip detection (stricter).
-	1.108 (Khali) Fix W83627HF detection.
-
-
- drivers/i2c/chips/w83781d.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+This is the document I wrote (and you reviewed) about porting client
+drivers to Linux 2.6. The retained name is "porting-clients" (in line
+with writing-clients). I won't commit it to i2c/lm_sensors2 CVS, since
+that document is of no use outside of the 2.6 kernel (and I'm bored
+keeping files in sync).
 
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Tue Dec 30 12:30:38 2003
-+++ b/drivers/i2c/chips/w83781d.c	Tue Dec 30 12:30:38 2003
-@@ -24,10 +24,11 @@
-     Supports following chips:
- 
-     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
--    as99127f	7	3	1?	3	0x30	0x12c3	yes	no
--    asb100 "bach" (type_name = as99127f)	0x30	0x0694	yes	no
--    w83781d	7	3	0	3	0x10	0x5ca3	yes	yes
--    w83627hf	9	3	2	3	0x20	0x5ca3	yes	yes(LPC)
-+    as99127f	7	3	1?	3	0x31	0x12c3	yes	no
-+    as99127f rev.2 (type_name = 1299127f)	0x31	0x5ca3	yes	no
-+    asb100 "bach" (type_name = as99127f)	0x31	0x0694	yes	no
-+    w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
-+    w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
-     w83627thf	9	3	2	3	0x90	0x5ca3	no	yes(LPC)
-     w83782d	9	3	2-4	3	0x30	0x5ca3	yes	yes
-     w83783s	5-6	3	2	1-2	0x40	0x5ca3	yes	no
-@@ -1264,7 +1265,7 @@
- 			goto ERROR2;
- 		}
- 		/* If Winbond SMBus, check address at 0x48.
--		   Asus doesn't support */
-+		   Asus doesn't support, except for as99127f rev.2 */
- 		if ((!is_isa) && (((!(val1 & 0x80)) && (val2 = 0xa3)) ||
- 				  ((val1 & 0x80) && (val2 = 0x5c)))) {
- 			if (w83781d_read_value
-@@ -1295,18 +1296,17 @@
- 			goto ERROR2;
- 		}
- 
--		/* mask off lower bit, not reliable */
--		val1 -		    w83781d_read_value(new_client, W83781D_REG_WCHIPID) & 0xfe;
--		if (val1 = 0x10 && vendid = winbond)
-+		val1 = w83781d_read_value(new_client, W83781D_REG_WCHIPID);
-+		if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
- 			kind = w83781d;
- 		else if (val1 = 0x30 && vendid = winbond)
- 			kind = w83782d;
--		else if (val1 = 0x40 && vendid = winbond && !is_isa)
-+		else if (val1 = 0x40 && vendid = winbond && !is_isa
-+				&& address = 0x2d)
- 			kind = w83783s;
--		else if ((val1 = 0x20 || val1 = 0x90) && vendid = winbond)
-+		else if ((val1 = 0x21 || val1 = 0x90) && vendid = winbond)
- 			kind = w83627hf;
--		else if (val1 = 0x30 && vendid = asus && !is_isa)
-+		else if (val1 = 0x31 && !is_isa && address >= 0x28)
- 			kind = as99127f;
- 		else if (val1 = 0x60 && vendid = winbond && is_isa)
- 			kind = w83697hf;
+ Documentation/i2c/porting-clients |  121 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 121 insertions(+)
+
+
+diff -Nru a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
+--- /dev/null	Wed Dec 31 16:00:00 1969
++++ b/Documentation/i2c/porting-clients	Tue Dec 30 12:32:57 2003
+@@ -0,0 +1,121 @@
++Revision 3, 2003-10-04
++Jean Delvare <khali@linux-fr.org>
++Greg KH <greg@kroah.com>
++
++This is a guide on how to convert I2C chip drivers from Linux 2.4 to
++Linux 2.6. I have been using existing drivers (lm75, lm78) as examples.
++Then I converted a driver myself (lm83) and updated this document.
++
++There are two sets of points below. The first set concerns technical
++changes. The second set concerns coding policy. Both are mandatory.
++
++Although reading this guide will help you porting drivers, I suggest
++you keep an eye on an already ported driver while porting your own
++driver. This will help you a lot understanding what this guide
++exactly means. Choose the chip driver that is the more similar to
++yours for best results.
++
++Technical changes:
++
++* [Includes] Get rid of "version.h". Replace <linux/i2c-proc.h> with
++  <linux/i2c-sensor.h>. Includes typically look like that:
++  #include <linux/module.h>
++  #include <linux/init.h>
++  #include <linux/slab.h>
++  #include <linux/i2c.h>
++  #include <linux/i2c-sensor.h>
++  #include <linux/i2c-vid.h>     /* if you need VRM support */
++  #include <asm/io.h>            /* if you have I/O operations */
++  Some extra headers may be required for a given driver.
++
++* [Addresses] SENSORS_I2C_END becomes I2C_CLIENT_END, SENSORS_ISA_END
++  becomes I2C_CLIENT_ISA_END.
++
++* [Client data] Get rid of sysctl_id. Try using standard names for
++  register values (for example, temp_os becomes temp_max). You're
++  still relatively free here, but you *have* to follow the standard
++  names for sysfs files (see the Sysctl section below).
++
++* [Function prototypes] The detect functions loses its flags
++  parameter. Sysctl (e.g. lm75_temp) and miscellaneous (e.g.
++  swap_bytes) functions are off the list of prototypes. This
++  usually leaves five prototypes:
++  static int lm75_attach_adapter(struct i2c_adapter *adapter);
++  static int lm75_detect(struct i2c_adapter *adapter, int address,
++      int kind);
++  static void lm75_init_client(struct i2c_client *client);
++  static int lm75_detach_client(struct i2c_client *client);
++  static void lm75_update_client(struct i2c_client *client);
++
++* [Sysctl] All sysctl stuff is of course gone (defines, ctl_table
++  and functions). Instead, right after the static id definition
++  line, you have to define show and set functions for each sysfs
++  file. Only define set for writable values. Take a look at an
++  existing 2.6 driver for details (lm78 for example). Don't forget
++  to define the attributes for each file (this is that step that
++  links callback functions). Use the file names specified in
++  Documentation/i2c/sysfs-interface for the individual files. Also
++  convert the units these files read and write to the specified ones.
++  If you need to add a new type of file, please discuss it on the
++  sensors mailing list <sensors@stimpy.netroedge.com> by providing a
++  patch to the Documentation/i2c/sysfs-interface file.
++
++* [Attach] For I2C drivers, the attach function should make sure
++  that the adapter's class has I2C_ADAP_CLASS_SMBUS, using the
++  following construct:
++  if (!(adapter->class & I2C_ADAP_CLASS_SMBUS))
++          return 0;
++  ISA-only drivers of course don't need this.
++
++* [Detect] As mentioned earlier, the flags parameter is gone.
++  The type_name and client_name strings are replaced by a single
++  name string, which will be filled with a lowercase, short string
++  (typically the driver name, e.g. "lm75"). The errorN labels are
++  reduced to the number needed. If that number is 2 (i2c-only
++  drivers), it is advised that the labels are named exit and
++  exit_free. For i2c+isa drivers, labels should be named ERROR0,
++  ERROR1 and ERROR2. Don't forget to properly set err before
++  jumping to error labels. By the way, labels should be
++  left-aligned.
++  Use memset to fill the client and data area with 0x00.
++  Use i2c_set_clientdata to set the client data (as opposed to
++  a direct access to client->data).
++  Use strlcpy instead of strcpy to copy the client name.
++  Replace the sysctl directory registration by calls to
++  device_create_file. Move the driver initialization before any
++  sysfs file creation.
++
++* [Detach] Get rid of data, remove the call to
++  i2c_deregister_entry.
++
++* [Update] Don't access client->data directly, use
++  i2c_get_clientdata(client) instead.
++
++* [Interface] Init function should not print anything. Make sure
++  there is a MODULE_LICENSE() line.
++
++Coding policy:
++
++* [Copyright] Use (C), not (c), for copyright.
++
++* [Debug/log] Get rid of #ifdef DEBUG/#endif constructs whenever you
++  can. Calls to printk/pr_debug for debugging purposes are replaced
++  by calls to dev_dbg. Here is an example on how to call it (taken
++  from lm75_detect):
++  dev_dbg(&adapter->dev,
++          "lm75_detect called for an ISA bus adapter?!?\n");
++  Replace other printk calls with the dev_info, dev_err or dev_warn
++  function, as appropriate.
++
++* [Constants] Constants defines (registers, conversions, initial
++  values) should be aligned. This greatly improves readability.
++  Same goes for variables declarations. Alignments are achieved by the
++  means of tabs, not spaces. Remember that tabs are set to 8 in the
++  Linux kernel code.
++
++* [Structure definition] The name field should be standardized. All
++  lowercase and as simple as the driver name itself (e.g. "lm75").
++
++* [Layout] Avoid extra empty lines between comments and what they
++  comment. Respect the coding style (see Documentation/CodingStyle),
++  in particular when it comes to placing curly braces.
 
