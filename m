@@ -1,28 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: xeontemp
-Message-Id: <20031203230440.7b9ceaf8.khali@linux-fr.org>
+From: lm-sensors@fixit.nospammail.net (Lou)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: Via KT600 as I2C controller
+Message-Id: <20031126235249.GA7632@gumby>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031202074706.7aded81e.khali@linux-fr.org>
-In-Reply-To: <20031202074706.7aded81e.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> But we still need to add support to sensors-detect. Since I had been
-> adding extra checks to the MAX1617 (and LM84) detection, I'd expect
-> Xeon sensors not to be misdetected as these, so adding a basic check
-> for xeontemp (without the extra knowledge of the value stored in the
-> "unused regs") with confidence 2 should be sufficent for now.
+I have an A7V600 motherboard, which has a Via 8237 on it.
+It is not supported by current 2.6 kernels (test8, for example).
+I have added support by adding the following lines to vt596_ids[] in
+/usr/src/linux-2.6.0-test8/drivers/i2c/busses/i2c-viapro.c.
 
-Mark,
+    {
+        .vendor     = PCI_VENDOR_ID_VIA,
+        .device     = PCI_DEVICE_ID_VIA_8237,
+        .subvendor  = PCI_ANY_ID,
+        .subdevice  = PCI_ANY_ID,
+        .driver_data    = SMBBA3
+    },
 
-Any reason why you xeontemp driver excludes addresses 0x19, 0x2a and
-0x4d? According to the data sheet they are possible addresses (as for
-the ADM1021 and clones). OTOH doc/chips/xeontemp confirms 6 values
-instead of 9.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+I have not observed any brokenness, having used it for several weeks.
+I could, of course, continue making the change to future kernel
+versions, but this would surely benefit others if in the regular dist.
