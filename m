@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: sensors-reply@reaktor.hadiko.de (Christoph Heine)
 Date: Thu, 19 May 2005 06:24:05 +0000
 Subject: i2c-viapro and via686a don't mix with linux-2.6.0-test1
-Message-Id: <20030715181909.GA4622@kroah.com>
+Message-Id: <20030715184228.GA15889@h111.hadiko.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030715142051.GA14443@h111.hadiko.de>
 In-Reply-To: <20030715142051.GA14443@h111.hadiko.de>
@@ -10,7 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
+
 On Tue, Jul 15, 2003 at 06:14:34PM +0200, Jean Delvare wrote:
+> I think I remember seeing something about that on the mailing list
+> recently:
+> 
+> Modified Files:
+> 	i2c-voodoo3.c i2c-via.c i2c-viapro.c i2c-i810.c i2c-savage4.c 
 > Log Message:
 > (mds) don't use pci_module_init() for video i2c drivers so we don't
 >       conflict with video drivers
@@ -18,25 +25,71 @@ On Tue, Jul 15, 2003 at 06:14:34PM +0200, Jean Delvare wrote:
 > It was for a different conflict (it seems). However, the changes made to
 > i2c-viapro.c may also prevent the conflict you observed. This is a very
 > recent change (occured on July 2nd.). I attached the patch, could you
-> please check wether it is already applied to the 2.6.0 kernel tree? If
-> not, could you try to apply it and tell us if it solves your problem?
-> 
+> please check wether it is already applied to the 2.6.0 kernel tree? 
+
+It is not applied to the 2.6.0 tree.
+
+> If not, could you try to apply it and tell us if it solves your
+> problem?
+
+The patch did not apply to i2c-viapro.c in 2.6 at all and pci_for_each_dev()
+does not exist in the 2.6 kernel. 
+
+I've converted it to "the 2.6 way" of doing this and it works for me. :-) 
+The new patch is in the Attachment. But somehow I feel this is not the
+right solution. 
+
 > I admit I'm a bit confused, because i2c-viapro is a bus driver while
 > via686a is a chip driver. Thus I wonder how they can conflict...
-> However, the driver registering mechanisms of the Linux kernel is beyond
-> me, so it may just be me ;)
 
-No, this isn't a valid solution.  The proper thing would be to put the
-i2c bus functions within the video driver.  
+My guess is:
 
-The issue is that only one pci driver can bind to a device at the same
-time.  You are working around it by grabbing the pci device that is
-already bound to another driver, but that way is racy, and can cause big
-problems (your driver will not be notified if the device goes away, like
-in a hotplug system.)  Because of this, I'll be removing the
-pci_for_each_dev() functions from the kernel once 2.7 opens up, and
-possibly sooner if that takes a while...
+The sources look like that the via686a sensor is accessed directly via
+the isa bus and the module needs the pci configuration registers of the
+VT82C686A to get the base adress. And i2c-viapro needs just the the same
+device for the i2c bus of the VT82C686A.
 
-thanks,
+Maybe some parts of via686a should be merged into i2c-viapro. (but I
+don't know much about the hardware and i2c in general to tell if that
+makes any sense.)
 
-greg k-h
+Bye,
+Christoph
+
+-------------- next part --------------
+--- i2c-viapro.c.orig	2003-07-15 19:37:31.000000000 +0200
++++ i2c-viapro.c	2003-07-15 19:39:52.000000000 +0200
+@@ -454,22 +454,24 @@
+ 	{ 0, }
+ };
+ 
+-static struct pci_driver vt596_driver = {
+-	.name		= "vt596 smbus",
+-	.id_table	= vt596_ids,
+-	.probe		= vt596_probe,
+-	.remove		= __devexit_p(vt596_remove),
+-};
+-
+ static int __init i2c_vt596_init(void)
+ {
+-	return pci_module_init(&vt596_driver);
++	struct pci_dev *dev = NULL;
++	const struct pci_device_id *id;
++	
++	while ((dev = pci_find_device(PCI_VENDOR_ID_VIA, PCI_ANY_ID, dev)) != NULL) {
++	id = pci_match_device(vt596_ids, dev);
++       		if(id)
++        		if(vt596_probe(dev, id) >= 0)
++            			return 0;
++	}
++	return -ENODEV;
+ }
+ 
+ 
+ static void __exit i2c_vt596_exit(void)
+ {
+-	pci_unregister_driver(&vt596_driver);
++	 vt596_remove(NULL);
+ }
+ 
+ MODULE_AUTHOR(
