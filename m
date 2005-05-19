@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:49 +0000
 Subject: Future cooperation needs.
-Message-Id: <42556432.5060304@mds.gotdns.com>
+Message-Id: <Pine.LNX.4.58.0504071826290.21101@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0503282227270.21101@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0503282227270.21101@desitka.sh.cvut.cz>
@@ -10,60 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-LH,
-thanks for the email, sorry we didn't reply sooner.
+Hello LH Hsu
 
-Unfortunately we aren't looking for information on a specific motherboard.
-We're looking for general cooperation from the motherboard manufacturers,
-as Rudolf described.
+We were pleased by your offer and we generally agree with it.
+I will put my personal comments to rest of email. I cant talk as
+"chairman" because we do not have any organization like this :)
 
-One example is Tyan, who publishes lm_sensors configuration data
-here:
-
-http://www.tyan.com/support/html/software_utilities.html#lms
-
-One way to see what chips we are looking for information about
-is to see our New Drivers page:
-
-http://www2.lm-sensors.nu/~lm78/newdrivers.html
-
-When somebody asks us for support for a new chip, we put the
-chip on this page. As you can see there are several Winbond chips
-on the list. For most of these chips we do not have datasheets.
-If you can release datasheets for these chips that would be very helpful.
-
-I'm sure you realize, as a person in the software business,
-that attempting to write a driver without a datasheet is
-not possible. Anything you can do to influence your company and  others
-to release datasheets would be most helpful.
-
-We look forward to continuing work with your company.
-
-mds
-
-
-
-LHHsu@winbond.com.tw wrote:
-> Hello Lm-sensors team :
-> 	I sent the email listed below. Do you have any recommendation? 
-> BR
-> LH Hsu
-> 
-> -----Original Message-----
-> From: PI10 LHHsu 
-> Sent: Wednesday, March 30, 2005 7:13 PM
-> To: Rudolf Marek; PI14 HUANG0
-> Cc: khali@linux-fr.org; PI14 DZSHEN; sensors@Stimpy.netroedge.com
-> Subject: RE: Future cooperation needs.
-> 
+>
 > Hello Lm-sensors team :
 > 	This is LH Hsu, software coordinator of Winbond computer related
 > product. I appreciate you contribution for Linux design and kind help
 > for hardware monitor development of our staff.
+
+For us this project is like a hobby and cooperation with leading company
+as yours is simply great example that Linux developement and "opensource"
+developement model is working.
+
 > 	Chunhao  works in mainland China. Currently I am in business
 > trip in China. Most of time I work at Taiwan. The area of Taiwan is
 > closed to mother board maker I can do my best to have cooperation.
-> 	Your  meaning is you need the data sheet., especially SMBus
+
+Yes that would be nice. For us is nearly impossible to get in contact with
+them.
+
+> 	Your meaning is you need the data sheet., especially SMBus
 > part. Some of mother board maker or chip set maker are not public that.
 > I can not get all of data sheet or mother board information. I suggest
 > you got the mother board and Winbond chip mounted Super IO, 78x or 79x).
@@ -71,147 +41,49 @@ LHHsu@winbond.com.tw wrote:
 > bridge brand , south bridge chipset no and your requirement. I can do my
 > best to collect information. It is impossible for mother board maker to
 > release chipset number of all model. I can consult mother board maker
-> about Winbond product.  
+> about Winbond product.
+
+Yes thank you very much.
+
+Although the best for future of the project would be to persuade chipset
+makers to agree that part of documentation that was requested from
+unavailable datasheet can be shared by linux community. (as a text file
+with documentation for example) This already works, some documentation
+from unavaiable datasheet is now part of i2c/linux kernel documentation
+for SMSC superio chip (the company lawers agreed)
+
+A lot of interfaces like SMBUS for example is in many ways "generic" the
+register implementation differs in very small details. We dont need to
+know fancy inovative stuff that company protects.
+
+Important for us is to share knowledge, because people are changing and
+maintainer will be somebody else. It is simply not possible that every
+single person who wants to correct some bug to sign NDA. Please try to
+explain this to them, we dont need whole datasheets, we want some
+"uninportant parts" form IP point of view. We want to share this
+information as much legal as possible.
+
+Great example is the Ali driver, without a public datasheet nobody could
+spot that register implementation changed, nobody could spot that this
+cannot work that way it is programmed. Now I'm chasing the next bug and
+I'm getting sure this is "new feature of chip revision" or a simple bug
+in design. I cant confirm without latest datasheet.
+
 > 	Some information of mother board maker is confidential. If it is
 > required for your development, you can  let me know, too. I try to do.
+
+It is funny that two resistors on board dividing the voltage are "top
+secret" sometimes. A lot of motherboard companies is not supporting linux
+HW monitoring stuff. If they would just tell us what formulas they use
+they could get whole software for free for their customers. I really dont
+know how to explain this simple sentence to them. Please keep telling them
+that they have chances through our project. Thanks.
+
 > 	DZShen is the coordinator of Linux development. He is familiar
 > with Linux design. Please send your requirement ,too.
->  Best Regards
->  LH Hsu
-> 
-> 
-> -----Original Message-----
-> From: Rudolf Marek [mailto:R.Marek@sh.cvut.cz] 
-> Sent: Tuesday, March 29, 2005 4:29 AM
-> To: PI14 HUANG0
-> Cc: R.Marek@sh.cvut.cz; khali@linux-fr.org; PI10 LHHsu; PI14 DZSHEN;
-> PI13 CFLi; sensors@Stimpy.netroedge.com
-> Subject: Future cooperation needs.
-> 
-> Opps, I missed my subject. Sorry.
-> 
-> Hello,
-> 
-> 
->>I can understand your feelings and complaint absolutely, I'm sorry for
->>the trouble and obstacles brought you. I will discuss with my managers
->>about it and express your meaning, I think we may improve it in our
->>future cooperation.
->>Thank you!
-> 
-> 
-> Thank you too for good coorporation.
-> 
-> I created some paper for your "responsible manager" staff.
-> Please forward it to them.
-> 
-> Needs of opensource software development model
-> on fields of system monitoring
-> -----------------------------------------------
-> 
-> Most of motherboard manufacturers do not support the hardware monitoring
-> capabilities of their products in free operating systems (or simply
-> other than Windows). Thus, open projects were created to build
-> support of the hardware monitoring chips "on their own".
-> 
-> On the Linux platform project lm-sensors created unified infrastructure
-> and
-> framework to support different hardware monitoring chips and busses. In
-> mean
-> time new chips or busses support is handled by members of lm-sensors
-> project.
-> They are working for free, or sometimes someone supports their work by
-> donating the hardware, in many cases not the chip makers but frustrated
-> third parties that are willing to support this project. Cooperation with
-> manufactures was limited to evaluation board donations or datasheet
-> support.
-> 
-> We are glad that Winbond decided to work on support of new chips with
-> us,
-> directly supporting our project with new driver. However to enhance our
-> future cooperation it is essential to understand specific needs of
-> open source development.
-> 
-> * Free access to documentation
-> Our source code is not proprietary, under license conditions anyone can
-> fix
-> or modify the source code. Chip driver maintenance implies access to
-> chip
-> documentation. Without that future maintenance of driver is not
-> possible.
-> 
-> * Free access to SMBus host documentation
-> Our drivers are build upon transport layer provided by other drivers for
-> SMBus (System Management Bus). It is essential that documentation to
-> this SMBus
-> host chip is also accessible. We do not need whole southbridge
-> documentation
-> we just need to know the way how to speak with SMBUS host. Please try to
-> convince some chipset makers about this, specially NVIDIA, SiS and ALI.
-> Most
-> of registers is done same way in all chipset following ACPI standart,
-> but
-> it is essential to know what is done differently.
-> 
-> * Support from motherboard manufacturers
-> This is very crucial and anticipatory point. There is no cooperation
-> these
-> days. When motherboard manufacturers follows recommended values of
-> resistors
-> nets, conversion formulas can be gained from datasheet. End users are
-> happy
-> that our project is supporting their workstations or company servers
-> instead
-> of "no support" from motherboard manufacturer. But from time to time
-> motherboard maker decides to use other components resulting in unknown
-> conversion formulas. Motherboard manufacturers do not want to disclose
-> information about the formulas or simply do not respond. This is very
-> strange behavior, we created our project to support different kind of
-> hardware and indirectly we are supporting motherboard manufacturers
-> products
-> by our work. We can't understand that this simple thing is not
-> understood.
-> 
-> * Additional obstacles set by motherboard manufactures
-> Some created proprietary monitoring interfaces or their own ASIC and
-> they
-> do not want to disclose documentation to this chips. Some are playing
-> hide
-> and seek.
-> 
-> Infamous examples:
-> 
-> Abit created their uGuru (in fact programmed Winbond IC), they do not
-> want to
-> disclose information even to "closed source" companies. Bad luck, we can
-> only tell to growing Linux userbase - avoid them
-> 
-> ASUS created their own proprietary ASIC chips, however their programming
-> interface is very very close to Winbond so our driver was developed on
-> "guesswork". We do not support new chips with no documentation today.
-> Unfortunately we can't drop support for already supported ones even if
-> it's a pain.
-> 
-> ASUS is even more creative, they started to hide SMBUS host, later they
-> start to hide "well known" monitoring chips, result is that we cannot
-> help much with this to end users. Complaints to ASUS do not work.
-> 
-> Summary
-> -------
-> Please try to explain the motherboard companies that they have unique
-> opportunity to have support of their monitoring chips in Linux with no
-> additional cost to them, when they will communicate with us and provide
-> documentation that is essential to support their motherboard.
-> 
-> Please try to explain to chipset makers that we really need parts of
-> documentation of their southbridge to be able to implement SMBUS host
-> driver. We do not need full datasheet only small part of it.
-> 
-> When it is not possible to disclose the chip documentation to public we
-> would like to have a possibility to members of our project to have
-> shared access to the documentation.
-> 
-> Thank you,
-> 
-> Lm-sensors team.
-> 
+
+Yes we will CC as usual :)
+
+Regards
+
+Rudolf
