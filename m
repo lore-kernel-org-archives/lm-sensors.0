@@ -1,300 +1,117 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [RFC/PATCH 9/22] W1: drop custom hotplug over netlink notification
-Message-Id: <200504210216.15392.dtor_core@ameritech.net>
+From: com.ee@estudiants.urv.es (Carlos Olalla Martinez)
+Date: Thu, 19 May 2005 06:23:55 +0000
+Subject: w83781d.c from com.ee (ticket 1207) Patch
+Message-Id: <0HDX00E8S1YGE9@estudiants.urv.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net>
-In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@Stimpy.netroedge.com
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+To: lm-sensors@vger.kernel.org
 
-W1: drop custom-made hotplug over netlink notification
-    from w1 core. Standard hotplug mechanism should work
-    just fine (patch will follow).
+Hi sensorial staff :)
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+I posted ticket no.1207 referring to some mistakes about w83697hf datasheet.
+Im sorry to tell you that the patch had some mistakes too, I have been looking into it, 
+and finally I found the 'final' solution:
+The registers described from section 9.7.50 (FAN1 pre-scale) to section 9.7.65 (Fan Step
+Up time)
+are wrong: winbond datasheet claims those registers are in range [0x00 - 0x0F], but in
+fact they are in range [0x80 - 0x8F]. I have tought it would be good to know what winbond
+says about that, but I don't know if they are very receptive...
 
- drivers/w1/w1_netlink.c  |   66 -----------------------------------------------
- drivers/w1/w1_netlink.h  |   57 ----------------------------------------
- dtor/drivers/w1/Makefile |    2 -
- dtor/drivers/w1/w1.c     |   36 -------------------------
- dtor/drivers/w1/w1.h     |    3 --
- 5 files changed, 1 insertion(+), 163 deletions(-)
+Well, this is the patch for w83781d.c ; please note that the code from w83627hf.c is wrong
+too, so it should be changed before the next lm_sensors release.
 
-Index: dtor/drivers/w1/w1_netlink.h
-=================================--- dtor.orig/drivers/w1/w1_netlink.h
-+++ /dev/null
-@@ -1,57 +0,0 @@
--/*
-- * w1_netlink.h
-- *
-- * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-- *
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- */
--
--#ifndef __W1_NETLINK_H
--#define __W1_NETLINK_H
--
--#include <asm/types.h>
--
--#include "w1.h"
--
--enum w1_netlink_message_types {
--	W1_SLAVE_ADD = 0,
--	W1_SLAVE_REMOVE,
--	W1_MASTER_ADD,
--	W1_MASTER_REMOVE,
--};
--
--struct w1_netlink_msg
--{
--	__u8				type;
--	__u8				reserved[3];
--	union
--	{
--		struct w1_reg_num	id;
--		__u64			w1_id;
--		struct
--		{
--			__u32		id;
--			__u32		pid;
--		} mst;
--	} id;
--};
--
--#ifdef __KERNEL__
--
--void w1_netlink_send(struct w1_master *, struct w1_netlink_msg *);
--
--#endif /* __KERNEL__ */
--#endif /* __W1_NETLINK_H */
-Index: dtor/drivers/w1/w1.c
-=================================--- dtor.orig/drivers/w1/w1.c
-+++ dtor/drivers/w1/w1.c
-@@ -37,7 +37,6 @@
- #include "w1_io.h"
- #include "w1_log.h"
- #include "w1_family.h"
--#include "w1_netlink.h"
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
-@@ -395,7 +394,6 @@ static int w1_attach_slave_device(struct
- 	struct w1_slave *sl;
- 	struct w1_family *f;
- 	int err;
--	struct w1_netlink_msg msg;
- 
- 	sl = kmalloc(sizeof(struct w1_slave), GFP_KERNEL);
- 	if (!sl) {
-@@ -442,17 +440,11 @@ static int w1_attach_slave_device(struct
- 	sl->ttl = dev->slave_ttl;
- 	dev->slave_count++;
- 
--	memcpy(&msg.id.id, rn, sizeof(msg.id.id));
--	msg.type = W1_SLAVE_ADD;
--	w1_netlink_send(dev, &msg);
--
- 	return 0;
- }
- 
- static void w1_slave_detach(struct w1_slave *sl)
- {
--	struct w1_netlink_msg msg;
--
- 	dev_info(&sl->dev, "%s: detaching %s.\n", __func__, sl->name);
- 
- 	while (atomic_read(&sl->refcnt)) {
-@@ -469,10 +461,6 @@ static void w1_slave_detach(struct w1_sl
- 	device_remove_file(&sl->dev, &sl->attr_val);
- 	device_unregister(&sl->dev);
- 	w1_family_put(sl->family);
--
--	memcpy(&msg.id.id, &sl->reg_num, sizeof(msg.id.id));
--	msg.type = W1_SLAVE_REMOVE;
--	w1_netlink_send(sl->master, &msg);
- }
- 
- static void w1_slave_found(struct w1_master *dev, u64 rn)
-@@ -746,29 +734,16 @@ struct w1_master *w1_allocate_master_dev
- static void w1_free_dev(struct w1_master *dev)
- {
- 	device_unregister(&dev->dev);
--	if (dev->nls && dev->nls->sk_socket)
--		sock_release(dev->nls->sk_socket);
--	memset(dev, 0, sizeof(struct w1_master));
- 	kfree(dev);
- }
- 
- int w1_add_master_device(struct w1_master *dev)
- {
- 	int error;
--	struct w1_netlink_msg msg;
--
--	dev->nls = netlink_kernel_create(NETLINK_NFLOG, NULL);
--	if (!dev->nls) {
--		printk(KERN_ERR "Failed to create new netlink socket(%u) for w1 master %s.\n",
--			NETLINK_NFLOG, dev->dev.bus_id);
--		return -1;
--	}
- 
- 	error = device_register(&dev->dev);
- 	if (error) {
- 		printk(KERN_ERR "Failed to register master device. err=%d\n", error);
--		if (dev->nls && dev->nls->sk_socket)
--			sock_release(dev->nls->sk_socket);
- 		return error;
- 	}
- 
-@@ -791,11 +766,6 @@ int w1_add_master_device(struct w1_maste
- 	list_add(&dev->node, &w1_masters);
- 	spin_unlock(&w1_mlock);
- 
--	msg.id.mst.id = dev->id;
--	msg.id.mst.pid = dev->kpid;
--	msg.type = W1_MASTER_ADD;
--	w1_netlink_send(dev, &msg);
--
- 	return 0;
- 
- err_out_kill_thread:
-@@ -815,7 +785,6 @@ err_out_free_dev:
- void w1_remove_master_device(struct w1_master *dev)
- {
- 	int err;
--	struct w1_netlink_msg msg;
- 
- 	dev->need_exit = 1;
- 	err = kill_proc(dev->kpid, SIGTERM, 1);
-@@ -832,11 +801,6 @@ void w1_remove_master_device(struct w1_m
- 			flush_signals(current);
- 	}
- 
--	msg.id.mst.id = dev->id;
--	msg.id.mst.pid = dev->kpid;
--	msg.type = W1_MASTER_REMOVE;
--	w1_netlink_send(dev, &msg);
--
- 	w1_free_dev(dev);
- }
- 
-Index: dtor/drivers/w1/w1_netlink.c
-=================================--- dtor.orig/drivers/w1/w1_netlink.c
-+++ /dev/null
-@@ -1,66 +0,0 @@
--/*
-- * w1_netlink.c
-- *
-- * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-- *
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- */
--
--#include <linux/skbuff.h>
--#include <linux/netlink.h>
--
--#include "w1.h"
--#include "w1_log.h"
--#include "w1_netlink.h"
--
--#ifndef NETLINK_DISABLED
--void w1_netlink_send(struct w1_master *dev, struct w1_netlink_msg *msg)
--{
--	unsigned int size;
--	struct sk_buff *skb;
--	struct w1_netlink_msg *data;
--	struct nlmsghdr *nlh;
--
--	if (!dev->nls)
--		return;
--
--	size = NLMSG_SPACE(sizeof(struct w1_netlink_msg));
--
--	skb = alloc_skb(size, GFP_ATOMIC);
--	if (!skb) {
--		dev_err(&dev->dev, "skb_alloc() failed.\n");
--		return;
--	}
--
--	nlh = NLMSG_PUT(skb, 0, dev->seq++, NLMSG_DONE, size - sizeof(*nlh));
--
--	data = (struct w1_netlink_msg *)NLMSG_DATA(nlh);
--
--	memcpy(data, msg, sizeof(struct w1_netlink_msg));
--
--	NETLINK_CB(skb).dst_groups = dev->groups;
--	netlink_broadcast(dev->nls, skb, 0, dev->groups, GFP_ATOMIC);
--
--nlmsg_failure:
--	return;
--}
--#else
--#warning Netlink support is disabled. Please compile with NET support enabled.
--
--void w1_netlink_send(struct w1_master *dev, struct w1_netlink_msg *msg)
--{
--}
--#endif
-Index: dtor/drivers/w1/w1.h
-=================================--- dtor.orig/drivers/w1/w1.h
-+++ dtor/drivers/w1/w1.h
-@@ -42,8 +42,6 @@ struct w1_reg_num
- #include <linux/completion.h>
- #include <linux/device.h>
- 
--#include <net/sock.h>
--
- #include <asm/semaphore.h>
- 
- #include "w1_family.h"
-@@ -130,7 +128,6 @@ struct w1_master
- 	struct w1_bus_ops	*bus_ops;
- 
- 	u32			seq, groups;
--	struct sock		*nls;
+Im working in an aplication that uses lm_sensors, let me know if I can help you in any
+way, and please, forgive me for my not-very-good english.
+Carlos
+--- w83781d.c	Sun Sep 22 00:11:56 2002
++++ w83781d_2.c	Thu Apr 24 11:47:31 2003
+@@ -141,6 +141,14 @@
+ #define W83781D_REG_PWM4 0x5F
+ #define W83781D_REG_PWMCLK12 0x5C
+ #define W83781D_REG_PWMCLK34 0x45C
++
++//w83697hf FAN SPEED CONTROL FUNCTIONALITY
++#define W83697hf_REG_PWM1 0x81
++#define W83697hf_REG_PWM2 0x83
++#define W83697hf_REG_PWMCLK1 0x80
++#define W83697hf_REG_PWMCLK2 0x82
++#define W83697hf_REG_FANCONF 0x84
++
+ static const u8 regpwm[] = { W83781D_REG_PWM1, W83781D_REG_PWM2,
+ 	W83781D_REG_PWM3, W83781D_REG_PWM4
  };
+@@ -1458,7 +1466,7 @@
+ 			w83781d_write_value(client, W83781D_REG_TEMP3_CONFIG,
+ 					    0x00);
+ 		}
+-		if (type != w83781d) {
++		if ((type != w83781d)&&(type != w83697hf)) {
+ 			/* enable PWM2 control (can't hurt since PWM reg
+ 		           should have been reset to 0xff) */
+ 			w83781d_write_value(client, W83781D_REG_PWMCLK12, 0x19);
+@@ -1466,6 +1474,12 @@
+ 		           alarm indication will work correctly */
+ 			w83781d_write_value(client, W83781D_REG_IRQ, 0x41);
+ 		}
++		if (type = w83697hf) {
++			/* enable PWM Manual Control (Again... cant hurt
++								since PWM reg should be 0xFF) */
++			w83781d_write_value(client, W83697hf_REG_FANCONF, 0x00);
++			w83781d_write_value(client, W83781D_REG_IRQ, 0x41);
++		}
+ 	}
  
- struct w1_master *w1_allocate_master_device(void);
-Index: dtor/drivers/w1/Makefile
-=================================--- dtor.orig/drivers/w1/Makefile
-+++ dtor/drivers/w1/Makefile
-@@ -7,7 +7,7 @@ EXTRA_CFLAGS	+= -DNETLINK_DISABLED
- endif
+ 	/* Start monitoring */
+@@ -1511,7 +1525,7 @@
+ 			    w83781d_read_value(client,
+ 					       W83781D_REG_FAN_MIN(i));
+ 		}
+-		if (data->type != w83781d) {
++		if ((data->type != w83781d)&&(data->type != w83697hf)) {
+ 			for (i = 1; i <= 4; i++) {
+ 				data->pwm[i - 1]  				    w83781d_read_value(client,
+@@ -1519,14 +1533,16 @@
+ 				if (((data->type = w83783s)
+ 				     || (data->type = w83627hf)
+ 				     || (data->type = as99127f)
+-				     || (data->type = w83697hf)
+ 				     || ((data->type = w83782d)
+ 				        && i2c_is_isa_client(client)))
+ 				    && i = 2)
+ 					break;
+ 			}
+ 		}
+-
++		if (data->type = w83697hf) {
++			data->pwm[0] = w83781d_read_value(client, W83697hf_REG_PWM1);
++			data->pwm[1] = w83781d_read_value(client, W83697hf_REG_PWM2);
++		}
+ 		data->temp = w83781d_read_value(client, W83781D_REG_TEMP);
+ 		data->temp_over  		    w83781d_read_value(client, W83781D_REG_TEMP_OVER);
+@@ -1909,8 +1925,15 @@
+ 	} else if (operation = SENSORS_PROC_REAL_WRITE) {
+ 		if (*nrels_mag >= 1) {
+ 			data->pwm[nr - 1] = PWM_TO_REG(results[0]);
+-			w83781d_write_value(client, W83781D_REG_PWM(nr),
++			if (data->type != w83697hf) {
++				w83781d_write_value(client, W83781D_REG_PWM(nr),
+ 					    data->pwm[nr - 1]);
++			}
++			//write to the apropiate PWM1 = 0x01, PWM2 = 0x03 registers
++			else {
++				if (nr = 1) w83781d_write_value(client, W83697hf_REG_PWM1, data->pwm[0]);
++				if (nr = 2) w83781d_write_value(client, W83697hf_REG_PWM2, data->pwm[1]);
++			}
+ 		}
+ 	}
+ }
+
+
+
+
+
+
  
- obj-$(CONFIG_W1)	+= wire.o
--wire-objs		:= w1.o w1_family.o w1_netlink.o w1_io.o
-+wire-objs		:= w1.o w1_family.o w1_io.o
- 
- obj-$(CONFIG_W1_MATROX)		+= matrox_w1.o
- obj-$(CONFIG_W1_THERM)		+= w1_therm.o
+
