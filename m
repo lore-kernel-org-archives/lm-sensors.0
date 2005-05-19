@@ -1,46 +1,32 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: lm sensors problem
-Message-Id: <3C6E872D.C0CA9340@paradyne.com>
+From: hoyt@cavtel.net (Hoyt)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: Winbond W83782D
+Message-Id: <200206151303.12037.hoyt@cavtel.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <NFBBJNBDAKBGJNEDFHLCMEFHCFAA.Krzysztof.Mazurek@expander.pl>
-In-Reply-To: <NFBBJNBDAKBGJNEDFHLCMEFHCFAA.Krzysztof.Mazurek@expander.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-strange.
-Your libsensors was not built correctly.
-Perhaps you don't have a good version of flex/bison.
-mds
+I'm using a Tiger MPX (S2466) http://www.tyan.com/products/html/tigermpx.html
 
-Krzysztof Mazurek wrote:
-> 
-> hi there!!
-> 
-> I installed and compiled kernel version 2.4.17 and I tried to install the
-> 'lm sensors' to monitor the CPU temperature.
-> 
-> But I got:
-> 
-> gcc -o prog/sensors/sensors prog/sensors/main.ro
-> prog/sensors/chips.ro -Llib -lsensors
-> lib/libsensors.so: undefined reference to `sensors_yylex'
-> lib/libsensors.so: undefined reference to `sensors_yyin'
-> lib/libsensors.so: undefined reference to `sensors_lex_error'
-> lib/libsensors.so: undefined reference to `sensors_yylineno'
-> collect2: ld returned 1 exit status
-> 
-> I'm using the RedHat 7.2 Linux with 2.4.17 kernel compiled from the source
-> package from www.kernel.org.
-> 
-> Is there any way to compile and install lm sensors?
-> 
-> Krzysztof (Christopher)
-> 
-> -----------------------------
-> Krzysztof Mazurek
-> System Administrator
-> Krzysztof.Mazurek@expander.pl
-> (+48)608-555-392
+It uses a Winbond W83782D chip.
+
+I haven't had any luck with sensors-detect; the detection would lock up.
+
+But I was able to get some success by following what I found at 
+http://www.uwsg.iu.edu/hypermail/linux/kernel/0111.1/1519.html
+
+I see:
+
+w83627hf-i2c-1-2c
+Adapter: SMBus AMD7X6 adapter at 80e0
+Algorithm: Non-I2C SMBus adapter
+ . . . and the readings . . .
+
+I'm not sure how to set up /etc/modules.conf. Any advice?
+
+
+Thanks,
+
+Hoyt
