@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: zdavatz@ywesee.com (Zeno Davatz)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: Gnome hangs after sensors installation
-Message-Id: <20030731164232.16a36ffa.khali@linux-fr.org>
+Message-Id: <BB4EF86A.6D61%zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BB4EE262.6D4C%zdavatz@ywesee.com>
 In-Reply-To: <BB4EE262.6D4C%zdavatz@ywesee.com>
@@ -10,16 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On 31.7.2003 16:42, "Jean Delvare" <khali@linux-fr.org> wrote:
 
-> So I done: 
-> Grep sensors -ir * /etc/rc2.d/
+> 
+>> So I done: 
+>> Grep sensors -ir * /etc/rc2.d/
+> 
+> Bad command. You want to do:
+> 
+> grep sensors -ir /etc/rc2.d/*
+I have nothing in there. The command returns nothing.
+ 
+> (BTW I'm surprised you are in runlevel 2, it's unusual.)
+What runlevel do you expect me to be in? Xserver starts fine,  as does gdm..
 
-Bad command. You want to do:
+Thanks for Feedback.
 
-grep sensors -ir /etc/rc2.d/*
-
-(BTW I'm surprised you are in runlevel 2, it's unusual.)
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Zeno
