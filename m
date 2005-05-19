@@ -1,30 +1,27 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:27 +0000
-Subject: New sensors web site (was Re: 2nd mail archive?)
-Message-Id: <41C34D1F.6020809@edgedesign.us>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: subclient leak in asb100 driver
+Message-Id: <20040410110533.49ba7483.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41BDF25A.9030509@edgedesign.us>
-In-Reply-To: <41BDF25A.9030509@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Mark,
 
+I think that there is a i2c client and memory leak in your asb100 driver
+(2.4/CVS). In asb100_detach_client, you neither call i2c_detach_client
+on subclients, nor do you kfree their memory.
 
-Axel Thimm wrote:
-> On Fri, Dec 17, 2004 at 12:05:18PM -0800, Philip Edelbrock wrote:
-> 
->>An important one we forgot: Spambayes or Spamassassin (or something 
->>equivelent)
-> 
-> 
-> I have spamassassin/razor/pyzor/DCC and clamav on the mail system in
-> question :)
-> 
-> 
+Could you please take a look?
 
-That'll work. :')  What IP should I have *.lm-sensors.org point to?
+I think that the same problem exists in the 2.6 version of the driver,
+as well as in the w83781d driver there. The 2.4/CVS version of the
+w83781d driver, on the other hand, seems OK.
 
+Thanks.
 
-Phil
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
