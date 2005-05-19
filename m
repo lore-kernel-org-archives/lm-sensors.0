@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:41 +0000
 Subject: sysfs names
-Message-Id: <402911BA.2040507@penguincomputing.com>
+Message-Id: <20040210185341.GA29251@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040126230447.09700886.khali@linux-fr.org>
 In-Reply-To: <20040126230447.09700886.khali@linux-fr.org>
@@ -10,37 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> I propose to divide the changes in three distinct steps:
+On Tue, Feb 10, 2004 at 10:36:45AM +0100, Jean Delvare wrote:
+> > > At the time it was decided to switch to a one-file-per-value logic
+> > > (and I agree it was a good idea), it would have been clever to use
+> > > the library's symbol names as the files names. For one thing, it
+> > > would simplify the libsensors tweaks we do these days. For another,
+> > > it means that the future libsensors would be more simple as well
+> > > (symbols in sensors.conf would point to the similarly-named sysfs
+> > > name).
+> > 
+> > Sorry about this, I wasn't really looking at the libsensors code at
+> > all, to think about if it would be easier or not to do this.
+> > 
+> > If it really makes the userspace code a lot simpler, I can be
+> > persuaded to convert all of the names (persuaded with patches that
+> > is...)
 > 
-> 1* Change the base scheme (temp_min1 -> temp1_min). This is the more
-> important change.
-> 
-> 2* Change the hysteresis names (temp1_hyst -> temp1_max_hyst). Only some
-> drivers are impacted. Changes required to the library as well.
-> 
-> 3* Add the splitted alarm files. This doesn't break the interface, but
-> on the other hand needs that we think about it a bit more so that out
-> choices are extendable and correct for all known drivers.
+> OK, I'll be working on this.
 
-Some temperature sensors have two types of alarms.  An over-limit 
-(max_alarm) alarm and a sensors failed alarm.
+Ok, how about writing up a summary of the proposal, listing the name
+changes you want to make, and why, and post it to lkml so that everyone
+has some advance notice of what will happen.  They can then discuss
+anything that we might not have caught.
 
-We could do this a couple of different ways:
+thanks,
 
-1. Name the alarm file for a sensor: temp1_alarm and have it take one of 
-several values:  "" (null string), "ALARM", "FAIL"
-
-2. Come up with another name for the other alarm: temp1_input_failed? 
-temp1_fail_alarm?
-
-3. Some other idea I haven't thought of?
-
-FYI,
-:v)
-
--- 
-Philip Pokorny, Director of Engineering
-Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-PENGUIN COMPUTING, INC.
-www.penguincomputing.com
+greg k-h
