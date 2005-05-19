@@ -1,48 +1,16 @@
-From: lists@localguru.de (Marcus Schopen)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: lm75-i2c-0-49 output
-Message-Id: <200501302347.08081.lists@localguru.de>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: 2.6.5 problems
+Message-Id: <3D8B5669.F64CE483@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200501301824.18376.lists@localguru.de>
-In-Reply-To: <200501301824.18376.lists@localguru.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sunday 30 January 2005 20:31, Mark Studebaker wrote:
-> unless sensors-detect told you more modules to load,
-> you don't have any more chips that we support.
-> see FAQ for more information.
+dmi_scan.c doesn't compile in-kernel (ticket 1002)
+for at least one person, dmi_scan.c doesn't compile as a module, but it works for me (tkt 1002)
+i2c-elv.c doesn't compile for 2.2 kernels because of __exit (ticket 1005)
 
-aha thanks. i2c-ali15x3 and lm75 sensors-detect told me to load.
-
-Marcus
-
->
-> Marcus Schopen wrote:
-> > On Sunday 30 January 2005 18:34, Mark Studebaker wrote:
-> >>not without loading more modules :)
-> >
-> > hmmm .... interesting ... what modules would that be :)
-> >
-> > Thanks,
-> > Marcus
-> >
-> >>Marcus Schopen wrote:
-> >>>Hi,
-> >>>
-> >>>is there a possibility to get more output:
-> >>>
-> >>>lm75-i2c-0-49
-> >>>Adapter: SMBus ALI15X3 adapter at f140
-> >>>temp:      +43.0?C  (high = +66.0?C, hyst = +63.0?C)
-> >>>
-> >>>lm75-i2c-0-48
-> >>>Adapter: SMBus ALI15X3 adapter at f140
-> >>>temp:      +41.5?C  (high = +60.0?C, hyst = +58.0?C)
-> >>>
-> >>>Kernel 2.6.8, loaded modules: i2c-ali15x3, lm75
-> >>>
-> >>>Thanks,
-> >>>Marcus
+I'd like to look at these more this weekend and put fixes on the home page
+before we do the freshmeat thing.
