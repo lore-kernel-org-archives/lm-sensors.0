@@ -1,7 +1,7 @@
-From: sascha@akv-soft.de (Sascha Volkenandt)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:05 +0000
 Subject: SAA1064 sensors chip driver
-Message-Id: <200307151909.47852.sascha@akv-soft.de>
+Message-Id: <20030715193709.63e85632.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200307131153.24333.sascha@akv-soft.de>
 In-Reply-To: <200307131153.24333.sascha@akv-soft.de>
@@ -10,62 +10,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-At Dienstag, 15. Juli 2003 18:28 you wrote:
-> 1* We do not support old kernels. Thus:
->
-> [...]
->
-> is unnecessary. Did you find such code in one of our drivers?
 
-Like I said, I used lm_sensors-2.7.0 pcf8574.c as a template. There it is 
-still included :-)
 
-> 2* According to the datasheet, the SAA1064 has four possible I2C
-> addresses, ranging from 0x38 to 0x3b. So, you will want to replace:
->
-> [...]
->
+> Like I said, I used lm_sensors-2.7.0 pcf8574.c as a template. There it
+> is still included :-)
 
-Done.
+Just checked and it isn't. You must have been using an old file, as you
+said below.
 
-> 4* Use C99 style struct initializers. The following:
->
-> [...]
+> > 2* According to the datasheet, the SAA1064 has four possible I2C
+> > addresses, ranging from 0x38 to 0x3b. So, you will want to replace:
+> >
+> > [...]
+> >
+> 
+> Done.
 
-Again, bad template :-) Fixed. Does this have to be done in the ctl_table, 
-too, cause I suppose that would look quite ugly for long tables?
+You should modify your "detection" procedure in the same way. Actually,
+I don't think you did it the right way at all. The "kind" parameter is
+set according to the force options that are passed to the module as you
+load it. kind < 0 means no force parameter was set (default). kind = 0
+means force, but no particular chip, kind > 0 means force a given kind
+of chip. Since there is only one chip in your driver, = 0 and > 0 are
+all the same. What's more, you don't have to take the address into
+account. You won't be called for an address you don't like unless the
+force parameter is used. And if it is used, you have to trust it. So you
+should have the following detection procedure:
 
-I've just checked back on your current CVS. Okay my template was too old 
-:-). I see the ctl_table doesn't use C99 struct initializers, and I also 
-see that your SYSCTL defines went into the sources now. Is that part of the 
-API change you spoke about? I've inserted them into my code now, too...
-One bug is fixed: ...SYSCTL_DIGIT0 should really be ...SYSCTL_DISP (as the 
-function and proc names also are "disp"). Tell me if anything needs still 
-be changed, also regarding new APIs, since it's the first time I'm doing 
-things in kernel space (and I'm having a good time *g*).
+kind < 0: set kind to saa1064, try to detect the chip (see below)
+kind >= 0: set kind to saa1064, don't try to detect the chip
 
-> Now, more important: is it working OK, at least for you? :)
+As you noticed, the saa1064 doesn't really want to be detected. However,
+I still think there are things we can check:
+1* The MSB of the control register has to be zero.
+2* Registers 0x05 to 0x07 should be set to 0x00 (unless we can't read
+from them).
+3* Registers should cycle over 8-byte boundaries.
 
-Yup :-) Works very fine, here. On startup, everything lights up (maybe I 
-should put "init" on, instead?), then I disable the testmode, everything 
-gets dark, and I can program the digits...
+Unfortunately, this couldn't be confirmed by i2cdump. I'd like you to
+insist, this would really help. Maybe the chip doesn't like the was
+i2cdump reads it. You still could try adding these checks in your driver
+code (for kind < 0) and see if the module still loads. Another
+possibility is to add detection to sensors-detect (what I could do.)
 
-Another small thing (@all *g*):
-Most of your modules lack the #ifdef MODULE...#endif construct usually 
-embracing init_module and cleanup_module. That prevents most of these to 
-run smoothly compiled into the kernel. Is this a bug or a feature? 
+> it's the first time I'm doing things in kernel space (and I'm having a
+> good time *g*).
 
-Since I am using a highly compact kernel for a thin client, with LIRC, 
-em8300 and even I2C compiled into the kernel, all working fine (after 
-adding the missing #ifdef construct), it can't be principle-caused.
+Same for me a few weeks ago. And it feels great actually, isn't it? :)
 
-Greetings,
-Sascha
+> Yup :-) Works very fine, here. On startup, everything lights up (maybe
+> I should put "init" on, instead?), then I disable the testmode,
+> everything gets dark, and I can program the digits...
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: saa1064.c
-Type: text/x-csrc
-Size: 17700 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030715/5b804f00/saa1064.bin
+No, keep it this way. Setting every led on is a good practice, it lets
+the user check that no led is dead.
+
+> Another small thing (@all *g*):
+> Most of your modules lack the #ifdef MODULE...#endif construct usually
+> embracing init_module and cleanup_module. That prevents most of these
+> to run smoothly compiled into the kernel. Is this a bug or a feature?
+
+Bug, definitely. I noticed this too, because I didn't do so in my own
+driver... I'll check every driver tomorrow. Anyway, drivers that get
+mkpatched must be OK, or I guess someone would have noticed, by the
+time...
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
