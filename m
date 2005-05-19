@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: pwilsmore@asi.com.au (Peter Wilsmore)
 Date: Thu, 19 May 2005 06:25:14 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <413FB6DE.40201@verizon.net>
+Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDBB4@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -9,6 +9,22 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Very low, after the * 2 to correct the for the suspect speeds, 703. I have a suspicion that the selected thresholds are the 'nonrecoverable' thresholds. I am not particularly concerned about the threshold values ATM and need to ship the stuff I am working on by tomorrow. We will be keeping a demo of the system so I will look at it again after that.
+
+Thanks,
+
+Peter Wilsmore
+ 
+ASI SOLUTIONS
+Direct: 1300130 837
+
+-----Original Message-----
+From: Mark Studebaker [mailto:mds4@verizon.net] 
+Sent: Thursday, 9 September 2004 11:50 AM
+To: Peter Wilsmore
+Cc: lm78@Stimpy.netroedge.com
+Subject: Re: bmcsensors and strange sensor values.
 
 a better place to swap the limits is in bmcsensors_select_thresholds()
 (search for the "fixme" note I put in long ago...)
@@ -329,3 +345,4 @@ Peter Wilsmore wrote:
 >>
 > 
 > 
+
