@@ -1,42 +1,32 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:25:23 +0000
-Subject: [2.6 patch] make W1_DS9490_BRIDGE available
-Message-Id: <1101140456.9784.0.camel@uganda>
+From: floeff@arcor.de (Florian Effenberger)
+Date: Thu, 19 May 2005 06:25:28 +0000
+Subject: i2c-ali1535.c:548: warning: initialization from incompatible pointer
+Message-Id: <41D6E143.8030204@arcor.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041122155102.GD19419@stusta.de>
-In-Reply-To: <20041122155102.GD19419@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Bunk <bunk@stusta.de>
-Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, 2004-11-22 at 16:51 +0100, Adrian Bunk wrote:
-> It seems noone noted that due to a typo, the W1_DS9490_BRIDGE option 
-> didn't have any effect.
+Hello list,
 
-hugh, you are right.
-I have applied it to my tree, thank you.
+When compiling lm_sensors 2.9.0 with gcc 2.95.4, I receive the following 
+error:
 
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
-> 
-> --- linux-2.6.10-rc2-mm3-full/drivers/w1/Kconfig.old	2004-11-22 14:34:13.000000000 +0100
-> +++ linux-2.6.10-rc2-mm3-full/drivers/w1/Kconfig	2004-11-22 14:34:21.000000000 +0100
-> @@ -30,7 +30,7 @@
->  	  This support is also available as a module.  If so, the module 
->  	  will be called ds9490r.ko.
->  
-> -config W1_DS9490R_BRIDGE
-> +config W1_DS9490_BRIDGE
->  	tristate "DS9490R USB <-> W1 transport layer for 1-wire"
->  	depends on W1_DS9490
->  	help
--- 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041122/7780d18a/attachment.bin
+gcc  -DMODVERSIONS -include 
+/root/linux-2.4.28/include/linux/modversions.h -D__KERNEL__ -DMODULE 
+-DEXPORT_SYMTAB -fomit-frame-pointer -I. -Ikernel/include 
+-I/usr/local/include  -I/root/linux-2.4.28/include -nostdinc -I 
+/usr/lib/gcc-lib/i386-linux/2.95.4/include  -Wall -O2  -c 
+kernel/busses/i2c-ali1535.c -o kernel/busses/i2c-ali1535.o
+kernel/busses/i2c-ali1535.c:547: unknown field `inc_use' specified in 
+initializer
+kernel/busses/i2c-ali1535.c:548: unknown field `dec_use' specified in 
+initializer
+kernel/busses/i2c-ali1535.c:548: warning: initialization from 
+incompatible pointer type
+make: *** [kernel/busses/i2c-ali1535.o] Fehler 1
+
+Have filed this as ticket 1857.
+
+Florian
