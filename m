@@ -1,58 +1,25 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: Who is working on the 2.6 port of vt1211?
-Message-Id: <40A64030.7070600@verizon.net>
+From: linux-clusters@mindspring.com (Steven A. DuChene)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: no resolution for tickets 846 and 764 (Tyan S2688 & w83781d hard hang)
+Message-Id: <20020403192003.S13832@lapsony.mydomain.here>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <408E44FC.5090203@pstaehli.ch>
-In-Reply-To: <408E44FC.5090203@pstaehli.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-we're getting ready to test the port at the link below.
-If you could test it as well that would be great.
+Hello all:
+Martin Kellermann <Kellermann@sk-datentechnik.com> and me have submittedlm-sensors
+support tickets (846 and 764) regarding a hard hang problem we are seeing with a
+Tyan S2688 motherboard and the w83781d lm-sensors module. We have both tried the
+"init=0" suggestion and Martin has tried adding printk's to the code. So far no
+hints of change in this condition. I have tried a few times ther latest lm-sensors
+code from cvs but each time I try to load the module or run sensors-detect it causes
+a hard hang of the system when it goes to try the w83781d module.
 
+Any suggestions or further hints as to where to look or what to try?
+-- 
+Steven A. DuChene      linux-clusters@mindspring.com
+                      sduchene@mindspring.com
 
-BARRE Francois wrote:
-
-> Hello all,
->
-> This is my own port of the vt1211 for 2.6.x which seems to work pretty well,
-> including extensive insmod/rmmod uses, ...
-> I just have a problem with temp_[hyst|over]2, not solved yet... Working on
-> it !
->
-> I hope it will be of some help...
->
-> By the way, should someone include me in the sensors ml ?
->
-> Thanks in advance.
->
-> -----Message d'origine-----
-> De : Nuno Grilo [mailto:nuno.grilo@netcabo.pt] Envoy? : lundi 26 janvier 2004 00:58
-> ? : Alexander Isacson; Mark Studebaker
-> Cc : BARRE Francois; 'nuno.grilo@netcabo.pt'; LM Sensors
-> Objet : Re: TR : RE : VIA VT1211 Port to 2.6.x in progress
->
-> Hi
->
-> Take a look at my port, I think it should be usable enough for what you
-> want: http://pwp.netcabo.pt/0246517002/vt1211.c
-
-
-Patrik wrote:
-> Hello!
-> 
-> I haven't read anything on the progress of vt1211 support for 2.6.x 
-> lately, so I wondered if I could be of any help.
-> I've seen versions of Nuno Grilo and of Francois Barre, but I couldn't 
-> find out if there is some coordinated development going on...
-> I'm willing to spare some time at testing/developing this driver.
-> 
-> Is there a BK repository for the 2.6 sensors development?
-> 
-> best regards
-> Patrik
-> 
-> 
+        http://www.mindspring.com/~sduchene/
