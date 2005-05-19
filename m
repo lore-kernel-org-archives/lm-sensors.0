@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: TheOneAndOnlySM@hot.rr.com (Sandeep Mehta)
 Date: Thu, 19 May 2005 06:24:55 +0000
 Subject: pc87360 sensor-driver results
-Message-Id: <1083158989.408fb1cd9e6ce@imp.gcu.info>
+Message-Id: <40906895.5040705@hot.rr.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <408B1888.8050802@hot.rr.com>
 In-Reply-To: <408B1888.8050802@hot.rr.com>
@@ -10,180 +10,194 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Here are the isadump outputs:
-> 
-> isadump -f 0xecd0 16 11
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 1f 05 02 0b 81 59 ff 00 ff 00
-> 
-> isadump -f 0xecd0 16 12
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 1f 05 02 0c 81 64 ff 00 ff 00
-> 
-> isadump -f 0xecd0 16 13
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 1f 05 02 0d 81 5d ff 00 ff 00
+first, in relation to yesterday's lm_sensors (04/27 @ 7 pm)
 
-Looks like there is something there (all three channels). However, I
-read the datasheet again and the conversion from register values to
-actual temperatures is somewhat complex, and requires data that only
-the motherboard manufacturer could provide. Basically, the values
-reported are voltages (like the eleven first channels of the VLM
-module). The difference is that one of the two external resistors used
-to divide the voltage is a thermistor, i.e. the resitor value depends
-on the temperature.
+Even the proc entries for fan speed don't get updated after echoing new 
+pwm values; the fan#_status files say "4" and sensors will output an 
+overflow flag, no matter how many times I cat the proc entries, run 
+sensors, or leave the computer idle.
 
-Since I already don't know how to compute the voltages (the wiring
-order and the resistor values are only known to the motherboard
-manufacturer), it get even worse here since I additionally don't know
-the formula of the resistor value depending on the temperature. So,
-unless you can get information from your motherboard manufacturer,
-we're stuck here.
+I re-ran pwmconfig, an this time, no correlation was detected with pwm3; 
+the ouput it gave was:
 
-BTW, did you get a Windows monitoring tool with the motherboard? Maybe
-we can learn something from there, if the manufacturer doesn't help.
+Testing pwm control pc87366-isa-ecc0/pwm3 ...
+  pc87366-isa-ecc0/fan1 ... speed was 3529 now 3529
+    no correlation
+  pc87366-isa-ecc0/fan2 ... speed was 2222 now 2222
+    no correlation
 
-> Also, I did echo "50 -55 50" > temp3 to set the high and critical 
-> temperatures. It reports a temperature of 54 C, but I didn't see an 
-> alarm flag (I assumed there should be one).
+No correlations were detected.
+There is either no fan connected to the output of pc87366-isa-ecc0/pwm3,
+or the connected fan has no rpm-signal connected to one of
+the tested fan sensors. (Note: not all motherboards have
+the pwm outputs connected to the fan connectors,
+check out the hardware database on http://www.almico.com/forumindex.php)
 
-Actually I wasn't reading the correct bits. I was assuming that bits in
-the alert registers were set whenever corresponding limits were
-crossed, but it looks like it does only happen after you explicitly
-enable each channel to act this way.
+So perhaps yesterday's incident was just a rare glitch based on a very 
+specific configuration I had at that very moment I ran pwmconfig (though 
+I don't know what it could be... I have the exact same modules loaded in 
+the same desktop...).
 
-I changed the sensors program so that it reads the flags directly from
-the channel, much like I am doing for the fans. I also refactored
-temperature and voltage code, so sensors should be smaller and work
-better :)
+Onto lm_sensors cvs 04/28/04 @ 7:15 pm EST
 
-> The fans seem to be working with pwmconfig a lot better, though
-> still some quirks exist. It can be run (shutting off the fans) and
-> there are no longer overflow flags and the readings remain
-> accurate (no longer changing to -1).
+The alarms for the temperatures seem to be working fine. From what I 
+gather in the last e-mail is that the alarm flag will be displayed one 
+time after the alarm has gone away, and then get cleared. This is 
+exactly what happened here. (note: doing cat on the temp3_status file 
+produced the same effect as having to run sensors before the flag was 
+cleared).
 
-Yes, yesterday's change fixed that.
+As for the cpu temperature, it seems as though windows programs are also 
+unable to detect it. Here is a link to screenshots of two windows 
+programs I tried (both available online; the first is called speedfans 
+and is freeware, the other is simply called hardware monitor and is 
+shareware)
+http://themastermind3000.tripod.com/index.html
 
-> Here is the pwmconfig output (the main strangeness is in the testing
-> of pwm3, to which I still have not attached a fan):
+The first shot shows that the other temperatures are definitely a 
+problem. It also shows some voltages, so hopefully that will aide in 
+that aspect.
+The second shot calls the only reportable temperature the mainboard 
+temperature, and it reports about 51 degrees...
+So it seems that this cpu temperature problem is common.
 
-I don't see this as a strangeness. pwmconfig doesn't know that you
-don't have any fan here, he can't guess it so it just probes it, and
-sees that there is no working fan. Then it just ignores it. What else
-could be done?
+As for fans, this cvs is reporting 0 pwm to be the highest and 255 to be 
+the lowest. For this reason, immediately after I execute pwmconfig, my 
+fans turn off, and when the program tries to really turn off the fans, 
+it turns them back on.
 
-> Testing pwm control pc87366-isa-ecc0/pwm3 ...
->   pc87366-isa-ecc0/fan2 ... speed was 2162 now 1153
->     It appears that fan pc87366-isa-ecc0/fan2
->     is controlled by pwm pc87366-isa-ecc0/pwm3
-> Would you like to generate a detailed correlation (y)?
-> Would you like to generate a graphical plot using gnuplot (y)?
->     PWM 255 FAN 2162
->     PWM 240 FAN 2162
->     PWM 225 FAN 2162
->     PWM 210 FAN 2162
->     PWM 195 FAN 2162
->     PWM 180 FAN 2162
->     PWM 165 FAN 2162
->     PWM 150 FAN 2162
->     PWM 135 FAN 2162
->     PWM 120 FAN 2162
->     PWM 105 FAN 2162
->     PWM 90 FAN 2162
->     PWM 75 FAN 2162
->     PWM 60 FAN 2162
->     PWM 45 FAN 2162
->     PWM 30 FAN 2162
->     PWM 15 FAN 2162
->     PWM 0 FAN 2162
+Other than that, the fans' pwm altering is in good working order. All 
+the pwm files have the "1" bit.
+However, the speeds will still not get updated. There is an overflow 
+flag if I echo anything above 27 (or 228 if pwm was used normally). I 
+ran sensors several times (giving the computer about a minute of idle 
+time) and cat'ed the fan#_status files several times. When pwm values 
+above 27 were echoed, the status files stated "4". After echoing 27 or 
+lower, the flags would wear off only after I either ran sensors or 
+cat'ed the respective status file and waited at least 4 seconds.
 
-This is admittedly strange. It first sees a correlation, but then the
-fan speed isn't supposed to change. Could it be a bug in pwmconfig?
+Something similar happens with echoing minimum values. After echoing a 
+minimum value higher than the reported speed, an alarm flag comes on 
+normally. Then, after echoing a value lower than the fan speed, only 
+after cat'ing the respective fan#_status file (which stated "3") or 
+running sensors and then waiting 4 seconds will the flags go away.
 
-> However, I did do some pwm changes by echoing values to the pwm files
-> in the proc entry. The fans did successfully change speed (I opened
-> the case to see them slow down), but there was no change in speed
-> reported in "sensors".
+For both temperatures and fans, the flags also are removed if gkrellm is 
+running (I suppose since it is continuously querying the driver and 
+forcing it to update); but even while gkrellm ran, the speeds would not 
+get updated with pwm changes.
 
-Sounds bad. Was it any better when reading from /proc directly?
+(the outputs after doing
+echo 3800 > fan1
+echo 40 > pwm2
+echo 3000 > fan1
+echo 45 > temp3)
 
-> I got overflow flags after echoing a value below a certain 
-> point.
-> For example:
-> echo 200 > pwm2 gives me in sensors
-> fan2:     2181 RPM  (min = 2000 RPM, div = 2)          OVERFLOW
-> which won't go away until I echo at least 228 and run the "sensors" 
-> command at least twice.
+output of sensors:
+pc87366-isa-ecc0
+Adapter: ISA adapter
+in0:       +1.58 V  (min =  +0.00 V, max =   0.00 V)
+in1:       +1.29 V  (min =  +0.00 V, max =   2.97 V)
+in2:       +1.34 V  (min =  +0.00 V, max =   2.97 V)
+in3:       +0.09 V  (min =  +0.00 V, max =   0.00 V)
+in4:       +1.58 V  (min =  +0.00 V, max =   0.00 V)
+in5:       +1.39 V  (min =  +0.00 V, max =   2.97 V)
+in6:       +1.42 V  (min =  +0.00 V, max =   2.97 V)
+in7:       +1.65 V  (min =  +0.00 V, max =   2.97 V)
+in8:       +2.33 V  (min =  +0.00 V, max =   0.00 V)
+in9:       +0.00 V  (min =  +0.05 V, max =   0.00 V)
+in10:      +1.63 V  (min =  +0.00 V, max =   2.97 V)
+fan1:     3404 RPM  (min = 3000 RPM, div = 1)          ALARM
+fan2:     2162 RPM  (min = 2000 RPM, div = 2)          OVERFLOW
+fan3:       -1 RPM  (min =    0 RPM, div = 8)          OVERFLOW
+temp1:      -128 C  (low  =   -55 C, high =  +127 C)  ALARM
+temp1_crit:
+            +127 C
+temp2:      -128 C  (low  =   -55 C, high =  +127 C)  ALARM
+temp2_crit:
+            +127 C
+temp3:       +52 C  (low  =   -55 C, high =   +45 C)  ALARM
+temp3_crit:
+            +127 C
 
-This looks very odd, but actually I think I see what happens. See
-below.
+sensors -u
+pc87366-isa-ecc0
+Adapter: ISA adapter
+alarms_in: 0.00 (alarms_in)
+alarms_temp: 0.00 (alarms_temp)
+fan1: 3692.00 (fan1)
+  fan1_min: 3000.00 (fan1_min)
+  fan1_div: 1.00 (fan1_div)
+  fan1_status: 1.00 (fan1_status)
+fan2: 2162.00 (fan2)
+  fan2_min: 2000.00 (fan2_min)
+  fan2_div: 2.00 (fan2_div)
+  fan2_status: 4.00 (fan2_status)
+fan3: -1.00 (fan3)
+  fan3_min: 0.00 (fan3_min)
+  fan3_div: 8.00 (fan3_div)
+  fan3_status: 4.00 (fan3_status)
+in0: 1.58 (in0)
+  in0_min: 0.00 (in0_min)
+  in0_max: 0.00 (in0_max)
+  in0_status: 0.00 (in0_status)
+in1: 1.28 (in1)
+  in1_min: 0.00 (in1_min)
+  in1_max: 2.97 (in1_max)
+  in1_status: 129.00 (in1_status)
+in2: 1.34 (in2)
+  in2_min: 0.00 (in2_min)
+  in2_max: 2.97 (in2_max)
+  in2_status: 129.00 (in2_status)
+in3: 0.09 (in3)
+  in3_min: 0.00 (in3_min)
+  in3_max: 0.00 (in3_max)
+  in3_status: 0.00 (in3_status)
+in4: 1.58 (in4)
+  in4_min: 0.00 (in4_min)
+  in4_max: 0.00 (in4_max)
+  in4_status: 0.00 (in4_status)
+in5: 1.39 (in5)
+  in5_min: 0.00 (in5_min)
+  in5_max: 2.97 (in5_max)
+  in5_status: 129.00 (in5_status)
+in6: 1.42 (in6)
+  in6_min: 0.00 (in6_min)
+  in6_max: 2.97 (in6_max)
+  in6_status: 129.00 (in6_status)
+in7: 1.65 (in7)
+  in7_min: 0.00 (in7_min)
+  in7_max: 2.97 (in7_max)
+  in7_status: 129.00 (in7_status)
+in8: 2.33 (in8)
+  in8_min: 0.00 (in8_min)
+  in8_max: 0.00 (in8_max)
+  in8_status: 0.00 (in8_status)
+in9: 0.00 (in9)
+  in9_min: 0.05 (in9_min)
+  in9_max: 0.00 (in9_max)
+  in9_status: 0.00 (in9_status)
+in10: 1.64 (in10)
+  in10_min: 0.00 (in10_min)
+  in10_max: 2.97 (in10_max)
+  in10_status: 129.00 (in10_status)
+temp1: -128.00 (temp1)
+  temp1_min: -55.00 (temp1_min)
+  temp1_max: 127.00 (temp1_max)
+  temp1_crit: 127.00 (temp1_crit)
+  temp1_status: 131.00 (temp1_status)
+temp2: -128.00 (temp2)
+  temp2_min: -55.00 (temp2_min)
+  temp2_max: 127.00 (temp2_max)
+  temp2_crit: 127.00 (temp2_crit)
+  temp2_status: 131.00 (temp2_status)
+temp3: 52.00 (temp3)
+  temp3_min: -55.00 (temp3_min)
+  temp3_max: 45.00 (temp3_max)
+  temp3_crit: 127.00 (temp3_crit)
+  temp3_status: 133.00 (temp3_status)
 
-> Hmm, this problem also exists with echoing values lower than 228 to 
-> pwm1. This time, I echo a value above or equal to 228 and I have to
-> run sensors three times before the flag goes away.
-> I am guess this has to do with the the drivers need to refresh
-> itself
+By the way, what are the temp#_status files reporting?
 
-Correct. There are two different phenomenon here. First, the driver
-buffers the readings for 2 seconds. This is meant to protect the chip
-against concurent and continuous accesses. Second, when an alarm
-triggers and a flag bit is set, further reading of the corresponding
-sensor is stopped until you clear it, which the driver does on each
-update. But the driver will still report the *old* value (and alert
-flag) this time. This is done so that you'll never miss an error.
-
-This basically means that you may need up to 4 seconds (2 updates) to
-get valid and up-to-date readings after an error occured.
-
-Now, we can imagine that when you change PWM or otherwise write
-anything
-to the chip, it temporarily fails measuring the fan speeds, and set
-flags, which in turns prevents it from going on. If this is confirmed,
-this means that I should forcibly reset the fan alarm flags when
-writing anything to it, to kill false alarms.
-
-So I'd like you to test (with the latest kernel driver and user-space
-tools) which actions are actually raising errors, and I'll add alarm
-clearers for them in the driver.
-
-> (note: in dmesg I get a lot of "pc87360.o: Data update" messages).
-
-Means that debugging is turned on and working :)
-
-> The flags for the fans get updated (both the overflow and alert
-> flags) only after running "sensors" a few times.
-
-4 seconds? ;)
-
-(PWM files below)
-
-> 255 0
-> 255 0
-> 255 1
-
-This revealed a bug, since PWM is supposed to be enabled for all 3
-fans.
-I was not reading the fan configuration from the proper registers. It's
-hopefully fixed now.
-
-This bug was likely to confuse pwmconfig, please retry and see if it
-helps.
-
-> One question: there is an enormous difference (by sound of fans)
-> going from pwm 255 to 220 (or even 230 to 220), and going from 220
-> to anything lower is sometimes not even noticeable. Is this because
-> there is an exponential relation between pwm and rpm?
-
-This is too low-level for me. I know that PWM itself is linear, but I
-don't know how the fan does physically react to the modulation. I don't
-have any PWM-capable system myself so I have to experience with this.
-
-Please test the updated driver and sensors program. As you load the
-driver, there should be some debugging output about fan configuration.
-Make sure that all bits read 1.
-
-Thanks.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+I will see what I can dig up about those other special channels for this 
+chip, most likely this weekend.
