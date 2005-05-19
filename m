@@ -1,48 +1,59 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:47 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Backport i2c-ali1563.c from linux-2.6 to linux-2.4
-Message-Id: <20050329203948.152a4e01.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE36FBFD@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf, hi Chunhao,
-
-(I agree with all of Rudolf's comments.)
-
-> It depends if others want to leave ENTER and LEAVE macros. I cant tell
-> you. If they do not complain after this email, leave them :)
-
-Nice catch Rudolf, please remove them Chunhao. They might come in handy
-when first writing the driver but then there are less intrusive, more
-useful debug statements for the maintainance times.
-
-> Also I think you can safy remove lines like:
->         /* dev_warn(&a->dev,"ali1563: Trying to reset busy device\n");
->          */
->         /* modified by chunhao */
-> Because functionality is still same, only expressed other way for this
-> 2.4 kernels. Could you always add ali1563 to the logs expect the
-> KERN_DEBUG?
-> 
->    printk(KERN_WARNING "ali1563: <=this helps to locate correct driver
-> that wrote this line to kernel log.
-
-Agreed. Note that it *is* possible to use dev_dbg in lm_sensors 2.9,
-thanks to a compatibility header file named "sensor_compat.h".
-
-#include "sensors_compat.h"
-
-The only difference with 2.6 is that the first parameter is &adapter,
-not &adapter->dev.
-
-You need to include sensors_compat.h anyway, because it contains other
-compatibility macros for old 2.4 kernels.
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbiwgTURTCgpUaGUgYXR0YWNoZWQgZHJpdmVyIGhhcyBmaXhlZCB0aGUgYnVnIHdpdGgg
+dGhlIG1ldGhvZCBSdWRvbGYgcHJvdmlkZWQuCkkgZGlzY3Vzc2VkIHdpdGggUnVkb2xmIGp1c3Qg
+bm93LCBoZSB0b2xkIG1lIHRoaXMgb25lIHNob3VsZCBiZSBmaXhlZC4KU28gcGxlYXNlIGhlbHAg
+dG8gY29tbWl0IGl0IGludG8gQ1ZTIGFmdGVyIGxtX3NlbnNvcnMtMi45LjEgcmVsZWFzZWQuCgpB
+ZnRlciB0aGUgY29tbWl0LCBwbGVhc2UganVzdCBnaXZlIG1lIGEgbm90aWNlLgoKVGhhbmtzCkJl
+c3QgUmVnYXJkcwpDaHVuaGFvCgoKPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206
+IEplYW4gRGVsdmFyZSBbbWFpbHRvOmtoYWxpQGxpbnV4LWZyLm9yZ10KPiBTZW50OiAyMDA1xOo0
+1MI3yNUgMDE6MzMKPiBUbzogUEkxNCBIVUFORzAKPiBDYzogUi5NYXJla0BzaC5jdnV0LmN6OyBt
+ZHNAbWRzLmdvdGRucy5jb207IFBJMTQgRFpTSEVOOyBQSTEwIExISHN1OyBQSTEzIENGTGkKPiBT
+dWJqZWN0OiBSZTogQmFja3BvcnQgaTJjLWFsaTE1NjMuYyBmcm9tIGxpbnV4LTIuNiB0byBsaW51
+eC0yLjQKPiAKPiBIaSBDaHVuaGFvLAo+IAo+ID4gSSBtb2RpZmllZCB0aGUgaTJjLWFsaTE1NjMg
+ZHJpdmVyIGZvciBsaW51eC0yLjQsIHBsZWFzZSBjb21taXQgaXQgaW50bwo+ID4gTG1fc2Vuc29y
+cyBDVlMgZm9yIG1lLiBJIGdlbmVyYXRlZCBhIHBhdGNoIHdpdGgKPiA+IGxtX3NlbnNvcnMtZGFp
+bHkudGFyLmd6LiBQbGVhc2UgY2hlY2sgdGhlIGF0dGFjaG1lbnQuIEFmdGVyIHRoZQo+ID4gY29t
+bWl0LCBwbGVhc2UganVzdCBnaXZlIG1lIGEgcmVzcG9uc2UuCj4gCj4gV2UgYXJlIGFib3V0IHRv
+IHJlbGVhc2UgbG1fc2Vuc29ycyAyLjkuMSwgc28gd2UnbGwgb25seSBiZSBhYmxlIHRvCj4gY29t
+bWl0IHlvdXIgd29yayBhZnRlciB0aGUgcmVsZWFzZS4gV2hhdCdzIG1vcmUsIGl0IGxvb2tzIGxp
+a2UgdGhlCj4gZHJpdmVyIG5lZWRzIHNvbWUgZml4ZXMsIGFzIFJ1ZG9sZiBqdXN0IGZvdW5kIG91
+dC4KPiAKPiBUaGFua3MsCj4gLS0KPiBKZWFuIERlbHZhcmUKCgo9PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGlu
+Zm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25s
+eSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBv
+ZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0
+aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFp
+bCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRp
+bmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21w
+dXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91
+ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ug
+b2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGli
+aXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVs
+YXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBh
+cyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0
+byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2Fn
+ZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYXQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFi
+b3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ik
+SKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863s
+pl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mx
+TqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5
+rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm
+5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC1
+2Ki5uXGkbKSnpd+z9anOt06ooy4KLS0tLS0tLS0tLS0tLS0gbmV4dCBwYXJ0IC0tLS0tLS0tLS0t
+LS0tCkEgbm9uLXRleHQgYXR0YWNobWVudCB3YXMgc2NydWJiZWQuLi4KTmFtZTogaTJjLWFsaTE1
+NjNfbGludXgyLjRfMS4wLjEucGF0Y2gKVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtClNp
+emU6IDEzMzMxIGJ5dGVzCkRlc2M6IGkyYy1hbGkxNTYzX2xpbnV4Mi40XzEuMC4xLnBhdGNoClVy
+bCA6IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy9hdHRh
+Y2htZW50cy8yMDA1MDQwOC8xYzMwMDBhNi9pMmMtYWxpMTU2M19saW51eDIuNF8xLjAuMS5vYmoK
