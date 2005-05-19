@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:47 +0000
+From: thiemel@centrum.cz (=?iso-8859-2?Q?Tom=E1=B9_Thiemel?=)
+Date: Thu, 19 May 2005 06:25:49 +0000
 Subject: No subject
-Message-Id: <Pine.LNX.4.58.0503282217140.21101@desitka.sh.cvut.cz>
+Message-Id: <000001c53bd1$ae167c40$e500a8c0@KRTEK>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
 In-Reply-To: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
@@ -10,105 +10,98 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi. 
+I have this problem:
+==
+i2c-piix4.o: IBM Laptop detected; this module may corrupt your serial
+eeprom! Refusing to load module!
+==
 
-> I can understand your feelings and complaint absolutely, I'm sorry for
-> the trouble and obstacles brought you. I will discuss with my managers
-> about it and express your meaning, I think we may improve it in our
-> future cooperation.
-> Thank you!
+And I have read this message:
+####
+http://archives.andrew.net.au/lm-sensors/msg01833.html
+####
 
-Thank you too for good coorporation.
+Is my PC on your "whitelist", please?
 
-I created some paper for your "responsible manager" staff.
-Please forward it to them.
 
-Needs of opensource software development model
-on fields of system monitoring
------------------------------------------------
+Thanks a lot
 
-Most of motherboard manufacturers do not support the hardware monitoring
-capabilities of their products in free operating systems (or simply
-other than Windows). Thus, open projects were created to build
-support of the hardware monitoring chips "on their own".
+Tomas Thiemel
+ICQ #170438916
+http://www.wifizabreh.net
 
-On the Linux platform project lm-sensors created unified infrastructure and
-framework to support different hardware monitoring chips and busses. In mean
-time new chips or busses support is handled by members of lm-sensors project.
-They are working for free, or sometimes someone supports their work by
-donating the hardware, in many cases not the chip makers but frustrated
-third parties that are willing to support this project. Cooperation with
-manufactures was limited to evaluation board donations or datasheet
-support.
+PS: What means "serial eeprom" - is it "BIOS chip"?
 
-We are glad that Winbond decided to work on support of new chips with us,
-directly supporting our project with new driver. However to enhance our
-future cooperation it is essential to understand specific needs of
-open source development.
+------------------------------
+See information listed below:
 
-* Free access to documentation
-Our source code is not proprietary, under license conditions anyone can fix
-or modify the source code. Chip driver maintenance implies access to chip
-documentation. Without that future maintenance of driver is not possible.
 
-* Free access to SMBus host documentation
-Our drivers are build upon transport layer provided by other drivers for
-SMBus (System Management Bus). It is essential that documentation to this SMBus
-host chip is also accessible. We do not need whole southbridge documentation
-we just need to know the way how to speak with SMBUS host. Please try to
-convince some chipset makers about this, specially NVIDIA, SiS and ALI. Most
-of registers is done same way in all chipset following ACPI standart, but
-it is essential to know what is done differently.
+***lspci -v ***
+..
+00:02.3 Bridge: Intel Corp. 82371AB/EB/MB PIIX4 ACPI (rev 02)
+        Flags: medium devsel, IRQ 9
+..
 
-* Support from motherboard manufacturers
-This is very crucial and anticipatory point. There is no cooperation these
-days. When motherboard manufacturers follows recommended values of resistors
-nets, conversion formulas can be gained from datasheet. End users are happy
-that our project is supporting their workstations or company servers instead
-of "no support" from motherboard manufacturer. But from time to time
-motherboard maker decides to use other components resulting in unknown
-conversion formulas. Motherboard manufacturers do not want to disclose
-information about the formulas or simply do not respond. This is very
-strange behavior, we created our project to support different kind of
-hardware and indirectly we are supporting motherboard manufacturers products
-by our work. We can't understand that this simple thing is not understood.
+***lspci -n***
+00:00.0 Class 0600: 8086:7190 (rev 03)
+00:01.0 Class 0604: 8086:7191 (rev 03)
+00:02.0 Class 0601: 8086:7110 (rev 02)
+00:02.1 Class 0101: 8086:7111 (rev 01)
+00:02.2 Class 0c03: 8086:7112 (rev 01)
+00:02.3 Class 0680: 8086:7113 (rev 02)
+00:03.0 Class 0200: 8086:1229 (rev 05)
+00:12.0 Class 0280: 1260:3873 (rev 01)
+00:14.0 Class 0280: 1260:3873 (rev 01)
+01:01.0 Class 0300: 5333:8904 (rev 01)
 
-* Additional obstacles set by motherboard manufactures
-Some created proprietary monitoring interfaces or their own ASIC and they
-do not want to disclose documentation to this chips. Some are playing hide
-and seek.
+***cat /var/log/dmesg***
+Linux version 2.4.29 (root@wifizabreh2) (gcc version 3.2.2 20030222 (Red
+Hat Linux 3.2.2-5)) #12 22:57:14 CEST 07-04-2005
+127MB LOWMEM available.
+..
+IBM machine detected. Enabling interrupts during APM calls.
+Kernel command line: ro root=/dev/hda1
+No local APIC present or hardware disabled
+Initializing CPU#0
+Detected 398.272 MHz processor.
+Console: colour VGA+ 80x25
+Calibrating delay loop... 794.62 BogoMIPS
+Memory: 126864k/131060k available (1508k kernel code, 3808k reserved,
+541k data, 100k init, 0k highmem)
+..
+CPU: L1 I cache: 16K, L1 D cache: 16K
+CPU: L2 cache: 512K
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU:     After generic, caps: 0183f9ff 00000000 00000000 00000000
+CPU:             Common caps: 0183f9ff 00000000 00000000 00000000
+CPU: Intel Pentium II (Deschutes) stepping 02
+Enabling fast FPU save and restore... done.
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch@atnf.csiro.au)
+mtrr: detected mtrr type: Intel
+PCI: PCI BIOS revision 2.10 entry at 0xfd85c, last bus=1
+PCI: Using configuration type 1
+PCI: Probing PCI hardware
+PCI: Probing PCI hardware (bus 00)
+PCI: Using IRQ router PIIX/ICH [8086/7110] at 00:02.0
+Limiting direct PCI/PCI transfers.
+isapnp: Scanning for PnP cards...
+isapnp: Card 'Crystal Audio'
+isapnp: 1 Plug & Play card detected total
+Linux NET4.0 for Linux 2.4
+..
+Uniform Multi-Platform E-IDE driver Revision: 7.00beta4-2.4
+ide: Assuming 33MHz system bus speed for PIO modes; override with
+idebus=xx
+PIIX4: IDE controller at PCI slot 00:02.1
+PIIX4: chipset revision 1
+PIIX4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0xfff0-0xfff7, BIOS settings: hda:DMA, hdb:pio
+hda: Maxtor 90644D3, ATA DISK drive
+blk: queue c0346500, I/O limit 4095Mb (mask 0xffffffff)
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+..
 
-Infamous examples:
-
-Abit created their uGuru (in fact programmed Winbond IC), they do not want to
-disclose information even to "closed source" companies. Bad luck, we can
-only tell to growing Linux userbase - avoid them
-
-ASUS created their own proprietary ASIC chips, however their programming
-interface is very very close to Winbond so our driver was developed on
-"guesswork". We do not support new chips with no documentation today.
-Unfortunately we can't drop support for already supported ones even if
-it's a pain.
-
-ASUS is even more creative, they started to hide SMBUS host, later they
-start to hide "well known" monitoring chips, result is that we cannot
-help much with this to end users. Complaints to ASUS do not work.
-
-Summary
--------
-Please try to explain the motherboard companies that they have unique
-opportunity to have support of their monitoring chips in Linux with no
-additional cost to them, when they will communicate with us and provide
-documentation that is essential to support their motherboard.
-
-Please try to explain to chipset makers that we really need parts of
-documentation of their southbridge to be able to implement SMBUS host
-driver. We do not need full datasheet only small part of it.
-
-When it is not possible to disclose the chip documentation to public we
-would like to have a possibility to members of our project to have
-shared access to the documentation.
-
-Thank you,
-
-Lm-sensors team.
