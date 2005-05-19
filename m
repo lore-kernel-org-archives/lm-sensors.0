@@ -1,41 +1,29 @@
-From: joden@lee.k12.nc.us (James Olin Oden)
-Date: Thu, 19 May 2005 06:25:01 +0000
-Subject: Intel 6300ESB ICH smbus driver support
-Message-Id: <Pine.LNX.4.58.0406181756460.19803@malachi.lee.k12.nc.us>
+From: kus@free.net (Mikhail Kuzminsky)
+Date: Thu, 19 May 2005 06:25:11 +0000
+Subject: Fwd: sensors -s & adm1027
+Message-Id: <web-86231@free.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0406171117570.23892@malachi.lee.k12.nc.us>
-In-Reply-To: <Pine.LNX.4.58.0406171117570.23892@malachi.lee.k12.nc.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 17 Jun 2004, James Olin Oden wrote:
 
-> Hi All,
-> 
-> I have a board with the Intel 6300ESB ICH which contains an integrated
-> smbus controller (is that the right terminology?).  Sensors does not seem 
-> to detect this smbus controller, but after some groking of code it seems
-> like it should.  The reason I say this, is I downloaded some patches to 
-> the i2c-i801.c bus driver from intel for this ICH and then looked in 
-> the latest sources (v2.8.7 of lm_sensors) and found what looked to be 
-> the equivelant stuff being done in that source as in the patch (I say 
-> equivelant, because Intel had generated their patch against the lm_sensors 
-> that came with the RH 8 distro, so for instance structure initilization 
-> was not done according to C99 in the Intel patch).  Basically, the patch
-> and the source both simply say that the device in question is known by
-> 0x25a4, and then the current source actually attempts to support some
-> of its more advanced features.
-> 
-> Anyway, when I manually try to load the i2c-i801 driver it simply says the 
-> i801 driver is not detected.  What might be wrong or what can I do next?
-> 
-> Many Thanks...james
-> 
-It was my fault.  The driver needed was indeed i2c-i801, but it only 
-works if you compile against the kernel sources used to build the actual
-kernel running on the target.  I knew this, but somehow I oopsed.  So 
-yes 2.8.7 does support the Intel 6300ESB ICH.
+Sorry for 2nd reply w/strace sensors -s output,
+but I'm not sure that using of reply to sensors@stimpy.netroedge.com
+was correct. So I'm sending now to "official" address.
 
-..james
+Copy of previous sending is below.
+
+Yours
+Mikhail
+
+
+   --- the forwarded message follows ---
+-------------- next part --------------
+An embedded message was scrubbed...
+From: "Mikhail Kuzminsky" <kus@free.net>
+Subject: Re: sensors -s & adm1027
+Date: Thu, 05 Aug 2004 23:04:43 +0400
+Size: 8457
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040811/c71c23bb/attachment.mht
