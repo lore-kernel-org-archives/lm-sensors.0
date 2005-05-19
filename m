@@ -1,39 +1,69 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:38 +0000
-Subject: [PATCH][I2C] Marvell mv64xxx i2c driver
-Message-Id: <20050217222540.GE21188@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:07 +0000
+Subject: I2C CVS metamorphosis
+Message-Id: <20030724180413.158e4cb5.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42094ADB.9040403@mvista.com> <58cb370e05020816017431b38@mail.gmail.com> <42095A0B.2080400@mvista.com> <58cb370e05020817241aa42631@mail.gmail.com> <420A81C7.1000108@mvista.com>
-In-Reply-To: <420A81C7.1000108@mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark A. Greer" <mgreer@mvista.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, LM Sensors <sensors@stimpy.netroedge.com>, lkml <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 09, 2005 at 02:33:59PM -0700, Mark A. Greer wrote:
-> 
-> I can't find any definitive policy on this.  I kind of like the explicit 
-> return, I don't know why.  I've had others make the same comment, 
-> though, so I'll remove them since it obviously bothers people.
-> 
-> Attached is a replacement patch.
-> 
-> Thanks again, Bartlomiej.
-> 
-> Mark
-> --
-> Marvell makes a line of host bridge for PPC and MIPS systems.  On those 
-> bridges is an i2c controller.  This patch adds the driver for that i2c 
-> controller.
-> 
-> Please apply.
-> 
-> Depends on patch submitted by Jean Delvare: 
-> http://archives.andrew.net.au/lm-sensors/msg29405.html
-> 
-> Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 
-Applied, thanks.
+Hi all,
 
-greg k-h
+I am about to move all the changes made to the lk2-4 CVS branch to the
+trunk (HEAD). This is quite a heavy process so I'd like to make sure
+everyone agrees about what should be done.
+
+First, I took a quick look at the differencies between two trees. The
+following is in the lk2-4 branch but not in HEAD:
+
+etc/config.c
+
+I think we have to keep it.
+
+The following are in HEAD but not in the lk2-4 branch:
+
+CVS/Entries.Log
+kernel/i2c-iop3xx.c
+prog/ (directory)
+
+I think CVS/Entries.Log is unimportant (although I'm curious on why it
+shows here and not there). The prog/ directory is empty so I think we
+can delete it. What about the i2c-iop3xx.c driver? Do we simply drop it,
+or should it be integrated?
+
+Once we agree on these details, I'll generate the patch and apply it to
+head. This means that:
+
+1* The development will move to HEAD.
+
+2* The lk2-4 will be stopped (I don't know if there is a CVS way to do
+that).
+
+3* Someone wanting details about changes that occured in the lk2-4
+branch won't see them unless he/she specifically checks the repository
+out with -r lk2-4. All that will be present at the merge point is a
+message saying "Replaced with the file from the lk2-4 branch". If we
+want the logs to be added to the trunk as well, we have to use the cvs
+merge command, but on the other hand I'm not sure I understand how to do
+that (if only possible). We would need to cut the trunk back to the
+branching (do we mind losing that?) and then merge. If we don't cut
+before merging, we will merge our changes on top of HEAD's ones and the
+result will be just awful.
+
+The third possibility is to create a new branch (lk2-5) and merge all
+changes from HEAD to this point (that way we don't lose anything). Then
+cut the trunk. Then merge lk2-4's changes into the "empty" trunk. Then
+remove the lk2-4 branch. This is exactly the same as just renaming HEAD
+to lk2-5 and lk2-4 to HEAD. Note that I'm not sure about how to do this
+either, but I was just thinking it was the right thing to do, so I
+better tell everyone about it.
+
+I have been trying to get some help about how to handle the problem with
+CVS but how to do it at best still isn't very clear to me. If anyone can
+help, it'll be welcome.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
