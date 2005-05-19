@@ -1,279 +1,144 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:31 +0000
-Subject: [PATCH] I2C-MPC: Convert to platform_device driver
-Message-Id: <11059983961393@kroah.com>
+From: kl@gjs.cc (GertJan Spoelman)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: Fwd: [PATCH] (1/3) i2c-isa, via686a and w8378x series sensors support for 2.5.58
+Message-Id: <200301170057.05298.kl@gjs.cc>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11059983961556@kroah.com>
-References: <Pine.LNX.4.61.0501132130580.27720@blarg.somerset.sps.mot.com>
-In-Reply-To: <Pine.LNX.4.61.0501132130580.27720@blarg.somerset.sps.mot.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: galak@somerset.sps.mot.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2329.2.11, 2005/01/14 14:45:49-08:00, galak@somerset.sps.mot.com
+Hello,
 
-[PATCH] I2C-MPC: Convert to platform_device driver
+I have ported the i2c-isa driver and the via686a and w83781d driver and sent
+them to Linus for inclusion in the 2.5 kernel, don't know if he will accept them.
+I probably should have mailed you before about this, I hope you don't mind.
+I did these because I use them myself, if you would like it I can try to port some
+others too and sent them to you for testing, I can't test any other sensors
+because I don't have any hardware with other sensors then these 2.
 
-Converted the driver to work as either a OCP or platform_device driver.
-The intent in the future (once we convert all PPC sub-archs from OCP to
-platform_device) is to remove the OCP code.
+Regards,
 
-Signed-off-by: Kumar Gala <kumar.gala@freescale.com>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+	GertJan
 
+----------  Forwarded Message  ----------
 
- drivers/i2c/busses/Kconfig   |    2 
- drivers/i2c/busses/i2c-mpc.c |  135 ++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 123 insertions(+), 14 deletions(-)
+Subject: [PATCH] (1/3) i2c-isa, via686a and w8378x series sensors support for 2.5.58
+Date: Thu, 16 Jan 2003 21:52:01 +0100
+From: GertJan Spoelman <kl@gjs.cc>
+To: Linus Torvalds <torvalds@transmeta.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+Hello Linus,
 
-diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig	2005-01-17 13:19:48 -08:00
-+++ b/drivers/i2c/busses/Kconfig	2005-01-17 13:19:48 -08:00
-@@ -209,7 +209,7 @@
+These 3 patches provide support for the Pseudo ISA adapter (i2c-isa),
+the VIA 686A Integrated Hardware Monitor (via686a) and Winbond W8378x series
+(w83781d) sensors.
+Both sensors depend on i2c-isa.
+The added files are modified versions of the ones found in the lm_sensors-2.7.0
+package and were ported by me with help from Christoph Hellwig to the new driver model.
+
+This patch (1/3) adds /drivers/i2c/busses/i2c-isa.c and adds it to Kconfig and Makefile
+in the same dir.
+Please apply.
+
+Thanks,
+
+        GertJan
+
+diff -Nru linux-2.5.58/drivers/i2c/busses/Kconfig linux-2.5.58-edited/drivers/i2c/busses/Kconfig
+--- linux-2.5.58/drivers/i2c/busses/Kconfig     2003-01-15 20:43:35.000000000 +0100
++++ linux-2.5.58-edited/drivers/i2c/busses/Kconfig      2003-01-12 12:32:03.000000000 +0100
+@@ -39,5 +39,19 @@
+          in the lm_sensors package, which you can download at 
+          http://www.lm-sensors.nu
  
- config I2C_MPC
- 	tristate "MPC107/824x/85xx/52xx"
--	depends on I2C && FSL_OCP
-+	depends on I2C && PPC
- 	help
- 	  If you say yes to this option, support will be included for the
- 	  built-in I2C interface on the MPC107/Tsi107/MPC8240/MPC8245 and
-diff -Nru a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
---- a/drivers/i2c/busses/i2c-mpc.c	2005-01-17 13:19:48 -08:00
-+++ b/drivers/i2c/busses/i2c-mpc.c	2005-01-17 13:19:48 -08:00
-@@ -1,12 +1,12 @@
- /*
-  * (C) Copyright 2003-2004
-  * Humboldt Solutions Ltd, adrian@humboldt.co.uk.
-- 
++config I2C_ISA
++       tristate "  Pseudo ISA adapter (for some hardware sensors)"
++       depends on I2C && ISA
++       help
++         This provide support for accessing some hardware sensors chips over
++         the ISA bus rather than the I2C or SMBus. If you want to do this,
++         say yes here.
 +
-  * This is a combined i2c adapter and algorithm driver for the
-  * MPC107/Tsi107 PowerPC northbridge and processors that include
-- * the same I2C unit (8240, 8245, 85xx). 
-+ * the same I2C unit (8240, 8245, 85xx).
-  *
-- * Release 0.7
-+ * Release 0.8
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-@@ -20,7 +20,13 @@
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <asm/io.h>
-+#ifdef CONFIG_FSL_OCP
- #include <asm/ocp.h>
-+#define FSL_I2C_DEV_SEPARATE_DFSRR FS_I2C_SEPARATE_DFSRR
-+#define FSL_I2C_DEV_CLOCK_5200 FS_I2C_CLOCK_5200
-+#else
-+#include <linux/fsl_devices.h>
-+#endif
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
-@@ -50,10 +56,11 @@
- 
- struct mpc_i2c {
- 	char *base;
--	struct ocp_def *ocpdef;
- 	u32 interrupt;
- 	wait_queue_head_t queue;
- 	struct i2c_adapter adap;
-+	int irq;
-+	u32 flags;
- };
- 
- static __inline__ void writeccr(struct mpc_i2c *i2c, u32 x)
-@@ -79,7 +86,8 @@
- 	u32 x;
- 	int result = 0;
- 
--	if (i2c->ocpdef->irq = OCP_IRQ_NA) {
-+	if (i2c->irq = 0)
-+	{
- 		while (!(readb(i2c->base + MPC_I2C_SR) & CSR_MIF)) {
- 			schedule();
- 			if (time_after(jiffies, orig_jiffies + timeout)) {
-@@ -92,7 +100,7 @@
- 		writeb(0, i2c->base + MPC_I2C_SR);
- 	} else {
- 		/* Interrupt mode */
--		result = wait_event_interruptible_timeout(i2c->queue, 
-+		result = wait_event_interruptible_timeout(i2c->queue,
- 			(i2c->interrupt & CSR_MIF), timeout * HZ);
- 
- 		if (unlikely(result < 0))
-@@ -130,12 +138,11 @@
- 
- static void mpc_i2c_setclock(struct mpc_i2c *i2c)
- {
--	struct ocp_fs_i2c_data *i2c_data = i2c->ocpdef->additions;
- 	/* Set clock and filters */
--	if (i2c_data && (i2c_data->flags & FS_I2C_SEPARATE_DFSRR)) {
-+	if (i2c->flags & FSL_I2C_DEV_SEPARATE_DFSRR) {
- 		writeb(0x31, i2c->base + MPC_I2C_FDR);
- 		writeb(0x10, i2c->base + MPC_I2C_DFSRR);
--	} else if (i2c_data && (i2c_data->flags & FS_I2C_CLOCK_5200))
-+	} else if (i2c->flags & FSL_I2C_DEV_CLOCK_5200)
- 		writeb(0x3f, i2c->base + MPC_I2C_FDR);
- 	else
- 		writel(0x1031, i2c->base + MPC_I2C_FDR);
-@@ -287,6 +294,7 @@
- 	.retries = 1
- };
- 
-+#ifdef CONFIG_FSL_OCP
- static int __devinit mpc_i2c_probe(struct ocp_device *ocp)
- {
- 	int result = 0;
-@@ -296,7 +304,9 @@
- 		return -ENOMEM;
- 	}
- 	memset(i2c, 0, sizeof(*i2c));
--	i2c->ocpdef = ocp->def;
++         This can also be built as a module which can be inserted and removed
++         while the kernel is running.  If you want to compile it as a module,
++         say M here and read <file:Documentation/modules.txt>.
 +
-+	i2c->irq = ocp->def->irq;
-+	i2c->flags = ((struct ocp_fs_i2c_data *)ocp->def->additions)->flags;
- 	init_waitqueue_head(&i2c->queue);
++         The module will be called i2c-isa.ko.
++
+ endmenu
  
- 	if (!request_mem_region(ocp->def->paddr, MPC_I2C_REGION, "i2c-mpc")) {
-@@ -312,16 +322,20 @@
- 		goto fail_map;
- 	}
+diff -Nru linux-2.5.58/drivers/i2c/busses/Makefile linux-2.5.58-edited/drivers/i2c/busses/Makefile
+--- linux-2.5.58/drivers/i2c/busses/Makefile    2003-01-15 20:43:48.000000000 +0100
++++ linux-2.5.58-edited/drivers/i2c/busses/Makefile     2003-01-12 12:32:03.000000000 +0100
+@@ -4,3 +4,4 @@
  
--	if (ocp->def->irq != OCP_IRQ_NA)
-+	if (i2c->irq != OCP_IRQ_NA)
-+	{
- 		if ((result = request_irq(ocp->def->irq, mpc_i2c_isr,
- 					  0, "i2c-mpc", i2c)) < 0) {
- 			printk(KERN_ERR
- 			       "i2c-mpc - failed to attach interrupt\n");
- 			goto fail_irq;
- 		}
-+	} else
-+		i2c->irq = 0;
- 
- 	i2c->adap = mpc_ops;
- 	i2c_set_adapdata(&i2c->adap, i2c);
+ obj-$(CONFIG_I2C_AMD756)       += i2c-amd756.o
+ obj-$(CONFIG_I2C_AMD8111)      += i2c-amd8111.o
++obj-$(CONFIG_I2C_ISA)          += i2c-isa.o
+diff -Nru linux-2.5.58/drivers/i2c/busses/i2c-isa.c linux-2.5.58-edited/drivers/i2c/busses/i2c-isa.c
+--- linux-2.5.58/drivers/i2c/busses/i2c-isa.c   1970-01-01 01:00:00.000000000 +0100
++++ linux-2.5.58-edited/drivers/i2c/busses/i2c-isa.c    2003-01-12 12:32:03.000000000 +0100
+@@ -0,0 +1,61 @@
++/*
++    i2c-isa.c - Part of lm_sensors, Linux kernel modules for hardware
++            monitoring
++    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> 
 +
- 	if ((result = i2c_add_adapter(&i2c->adap)) < 0) {
- 		printk(KERN_ERR "i2c-mpc - failed to add adapter\n");
- 		goto fail_add;
-@@ -348,9 +362,9 @@
- 	i2c_del_adapter(&i2c->adap);
- 
- 	if (ocp->def->irq != OCP_IRQ_NA)
--		free_irq(i2c->ocpdef->irq, i2c);
-+		free_irq(i2c->irq, i2c);
- 	iounmap(i2c->base);
--	release_mem_region(i2c->ocpdef->paddr, MPC_I2C_REGION);
-+	release_mem_region(ocp->def->paddr, MPC_I2C_REGION);
- 	kfree(i2c);
- }
- 
-@@ -380,6 +394,101 @@
- 
- module_init(iic_init);
- module_exit(iic_exit);
-+#else
-+static int fsl_i2c_probe(struct device *device)
-+{
-+	int result = 0;
-+	struct mpc_i2c *i2c;
-+	struct platform_device *pdev = to_platform_device(device);
-+	struct fsl_i2c_platform_data *pdata;
-+	struct resource *r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
 +
-+	pdata = (struct fsl_i2c_platform_data *) pdev->dev.platform_data;
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
 +
-+	if (!(i2c = kmalloc(sizeof(*i2c), GFP_KERNEL))) {
-+		return -ENOMEM;
-+	}
-+	memset(i2c, 0, sizeof(*i2c));
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/
 +
-+	i2c->irq = platform_get_irq(pdev, 0);
-+	i2c->flags = pdata->device_flags;
-+	init_waitqueue_head(&i2c->queue);
++/* This implements an i2c algorithm/adapter for ISA bus. Not that this is
++   on first sight very useful; almost no functionality is preserved.
++   Except that it makes writing drivers for chips which can be on both
++   the SMBus and the ISA bus very much easier. See lm78.c for an example
++   of this. */
 +
-+	i2c->base = ioremap((phys_addr_t)r->start, MPC_I2C_REGION);
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/i2c.h>
 +
-+	if (!i2c->base) {
-+		printk(KERN_ERR "i2c-mpc - failed to map controller\n");
-+		result = -ENOMEM;
-+		goto fail_map;
-+	}
-+
-+	if (i2c->irq != 0)
-+		if ((result = request_irq(i2c->irq, mpc_i2c_isr,
-+					  0, "fsl-i2c", i2c)) < 0) {
-+			printk(KERN_ERR
-+			       "i2c-mpc - failed to attach interrupt\n");
-+			goto fail_irq;
-+		}
-+
-+	i2c->adap = mpc_ops;
-+	i2c_set_adapdata(&i2c->adap, i2c);
-+	i2c->adap.dev.parent = &pdev->dev;
-+	if ((result = i2c_add_adapter(&i2c->adap)) < 0) {
-+		printk(KERN_ERR "i2c-mpc - failed to add adapter\n");
-+		goto fail_add;
-+	}
-+
-+	mpc_i2c_setclock(i2c);
-+	dev_set_drvdata(device, i2c);
-+	return result;
-+
-+      fail_add:
-+	if (i2c->irq != 0)
-+		free_irq(i2c->irq, 0);
-+      fail_irq:
-+	iounmap(i2c->base);
-+      fail_map:
-+	kfree(i2c);
-+	return result;
++/* This is the actual algorithm we define */
++static struct i2c_algorithm isa_algorithm = {
++       .name           = "ISA bus algorithm",
++       .id             = I2C_ALGO_ISA,
 +};
 +
-+static int fsl_i2c_remove(struct device *device)
-+{
-+	struct mpc_i2c *i2c = dev_get_drvdata(device);
-+
-+	dev_set_drvdata(device, NULL);
-+	i2c_del_adapter(&i2c->adap);
-+
-+	if (i2c->irq != 0)
-+		free_irq(i2c->irq, i2c);
-+
-+	iounmap(i2c->base);
-+	kfree(i2c);
-+	return 0;
++/* There can only be one... */
++static struct i2c_adapter isa_adapter = {
++       .owner          = THIS_MODULE,
++       .name           = "ISA main adapter",
++       .id             = I2C_ALGO_ISA | I2C_HW_ISA,
++       .algo           = &isa_algorithm,
 +};
 +
-+/* Structure for a device driver */
-+static struct device_driver fsl_i2c_driver = {
-+	.name = "fsl-i2c",
-+	.bus = &platform_bus_type,
-+	.probe = fsl_i2c_probe,
-+	.remove = fsl_i2c_remove,
-+};
-+
-+static int __init fsl_i2c_init(void)
++static int __init isa_init(void)
 +{
-+	return driver_register(&fsl_i2c_driver);
++       return i2c_add_adapter(&isa_adapter);
 +}
 +
-+static void __exit fsl_i2c_exit(void)
++static void __exit isa_exit(void)
 +{
-+	driver_unregister(&fsl_i2c_driver);
++       i2c_del_adapter(&isa_adapter);
 +}
 +
-+module_init(fsl_i2c_init);
-+module_exit(fsl_i2c_exit);
++MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
++MODULE_DESCRIPTION("ISA bus access through i2c");
++MODULE_LICENSE("GPL");
 +
-+#endif /* CONFIG_FSL_OCP */
- 
- MODULE_AUTHOR("Adrian Cox <adrian@humboldt.co.uk>");
- MODULE_DESCRIPTION
-
++module_init(isa_init)
++module_exit(isa_exit)
