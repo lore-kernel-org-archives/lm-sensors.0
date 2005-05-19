@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: 2.8.1
-Message-Id: <20031026185741.35607757.khali@linux-fr.org>
+Message-Id: <20031026192601.50f00938.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F6484BA.24E78516@paradyne.com>
 In-Reply-To: <3F6484BA.24E78516@paradyne.com>
@@ -11,24 +11,23 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> I wanted to update kernels and userland for 2.8.1 but the install
-> guide contains only i2c-patches for 2.8.0.
-> 
-> Do the 2.8.0 patched out-of-the-tree kernel modules (ivtv, bttv etc.)
-> need any further patching?
+Hi Axel, hi all,
 
-2.8.0 and 2.8.1 are the same WRT structure problems, so yes, modules
-still require patching, using the same patches.
+I just uploaded new i2c patches for the Linux 2.4.22 kernel based on the
+freshly released 2.8.1 i2c. This patchset will be the base of the patch
+I'll post to the LKML for inclusion. It will require some changes to
+apply cleanly to 2.4.23-pre8, but basically that's it. Everyone is
+welcome to test it. I've myself checked that it would at least compile,
+but I can't test everything. Some drivers can only be compiled on
+non-x86 systems, so I can't hardly test them. For the rest of the
+drivers, I'll test them on the hardware I do have, but I of course don't
+have all the required hardware.
 
-You'll find a patch for Linux 2.4.22 on my guide page, it was built
-using I2C CVS right before the 2.8.1 release, so this is almost a 2.8.1
-patch. I'm working on an "official" 2.4.22 patch right now, should be
-ready within an hour (just updating the HTML page now, the patch itself
-is already ready) and maybe another hour for me to update the two
-download sources. I'll let you know as soon as it's ready, since I guess
-you'll be wanting to give it a try (and I want testers ;)).
+So everyone please review, test and comment my patch before I will
+submit it to the kernel folks. I'd really like it to be included to
+Linux 2.4.23.
 
-Thanks for your interest in my work and serious in your releases.
+Thanks.
 
 -- 
 Jean Delvare
