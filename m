@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
+From: mary.burke@analog.com (Burke, Mary)
 Date: Thu, 19 May 2005 06:23:30 +0000
 Subject: [mary.burke@analog.com: ADM1030/31 and Linux]
-Message-Id: <3C6E7E3E.39176BF6@paradyne.com>
+Message-Id: <C49E8F890195D211BD400060B06C3DA405137304@limkexm1b.analog.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20020215092554.E24643@Stimpy.netroedge.com>
 In-Reply-To: <20020215092554.E24643@Stimpy.netroedge.com>
@@ -9,6 +9,25 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi Mark
+
+Thanks for the feedback. The ADM1031 can be found on Intel's D850GB motherboard
+for example (along with the ADM1025). It can also be found in numerous Japanese
+notebooks such as Sony and Fujitsu (Sorry I don't have model numbers).
+
+Thanks again
+Regards
+Mary
+
+
+-----Original Message-----
+From: Mark D. Studebaker [mailto:mds@paradyne.com]
+Sent: Saturday, February 16, 2002 3:44 PM
+To: mary.burke@analog.com
+Cc: sensors@Stimpy.netroedge.com; Despiegler Mike
+Subject: Re: [mary.burke@analog.com: ADM1030/31 and Linux]
+
 
 Mary,
 We've been tracking these and other AD chips on our
