@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:18 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0-test5
-Message-Id: <10642734242958@kroah.com>
+Message-Id: <10642734242947@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1064273423404@kroah.com>
+In-Reply-To: <10642734242958@kroah.com>
 References: <1064273416272@kroah.com>
 In-Reply-To: <1064273416272@kroah.com>
 MIME-Version: 1.0
@@ -11,171 +11,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1315.1.15, 2003/09/22 13:06:04-07:00, greg@kroah.com
+ChangeSet 1.1315.1.16, 2003/09/22 13:10:15-07:00, greg@kroah.com
 
-[PATCH] I2C: clean up i2c-prosavage.c driver
-
-Remove direct memory accesses and link up device in the proper place in the
-sysfs tree.
+[PATCH] I2C: fix up dependancies in the i2c/busses/Kconfig file
 
 
- drivers/i2c/busses/i2c-prosavage.c |   54 ++++++++++++-------------------------
- 1 files changed, 18 insertions(+), 36 deletions(-)
+ drivers/i2c/busses/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/i2c-prosavage.c b/drivers/i2c/busses/i2c-prosavage.c
---- a/drivers/i2c/busses/i2c-prosavage.c	Mon Sep 22 16:13:38 2003
-+++ b/drivers/i2c/busses/i2c-prosavage.c	Mon Sep 22 16:13:38 2003
-@@ -60,21 +60,14 @@
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
+diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig	Mon Sep 22 16:13:27 2003
++++ b/drivers/i2c/busses/Kconfig	Mon Sep 22 16:13:27 2003
+@@ -64,7 +64,7 @@
  
--#include <asm/io.h>
--
+ config I2C_I810
+ 	tristate "Intel 810/815"
+-	depends on I2C && PCI && EXPERIMENTAL
++	depends on I2C_ALGOBIT && PCI && EXPERIMENTAL
+ 	help
+ 	  If you say yes to this option, support will be included for the Intel
+ 	  810/815 family of mainboard I2C interfaces.  Specifically, the 
+@@ -129,7 +129,7 @@
  
- /*
-  * driver configuration
-  */
--#define	DRIVER_ID	"i2c-prosavage"
--#define	DRIVER_VERSION	"20030621"
--
--#define ADAPTER_NAME(x) (x).name
--
- #define MAX_BUSSES	2
+ config I2C_SAVAGE4
+ 	tristate "S3 Savage 4"
+-	depends on I2C && PCI && EXPERIMENTAL
++	depends on I2C_ALGOBIT && PCI && EXPERIMENTAL
+ 	help
+ 	  If you say yes to this option, support will be included for the 
+ 	  S3 Savage 4 I2C interface.
+@@ -176,7 +176,7 @@
  
- struct s_i2c_bus {
--	u8	*mmvga;
-+	void	*mmvga;
- 	int	i2c_reg;
- 	int	adap_ok;
- 	struct i2c_adapter		adap;
-@@ -82,7 +75,7 @@
- };
+ config I2C_VIA
+ 	tristate "VIA 82C58B"
+-	depends on I2C && PCI && EXPERIMENTAL
++	depends on I2C_ALGOBIT && PCI && EXPERIMENTAL
+ 	help
  
- struct s_i2c_chip {
--	u8	*mmio;
-+	void	*mmio;
- 	struct s_i2c_bus	i2c_bus[MAX_BUSSES];
- };
+ 	  If you say yes to this option, support will be included for the VIA
+@@ -205,7 +205,7 @@
  
-@@ -102,9 +95,6 @@
- /* 
-  * S3/VIA 8365/8375 registers
-  */
--#ifndef PCI_VENDOR_ID_S3
--#define PCI_VENDOR_ID_S3		0x5333
--#endif
- #ifndef PCI_DEVICE_ID_S3_SAVAGE4
- #define PCI_DEVICE_ID_S3_SAVAGE4	0x8a25
- #endif
-@@ -126,9 +116,9 @@
- #define I2C_SCL_IN	0x04
- #define I2C_SDA_IN	0x08
+ config I2C_VOODOO3
+ 	tristate "Voodoo 3"
+-	depends on I2C && PCI && EXPERIMENTAL
++	depends on I2C_ALGOBIT && PCI && EXPERIMENTAL
+ 	help
  
--#define SET_CR_IX(p, val)	*((p)->mmvga + VGA_CR_IX) = (u8)(val)
--#define SET_CR_DATA(p, val)	*((p)->mmvga + VGA_CR_DATA) = (u8)(val)
--#define GET_CR_DATA(p)		*((p)->mmvga + VGA_CR_DATA)
-+#define SET_CR_IX(p, val)	writeb((val), (p)->mmvga + VGA_CR_IX)
-+#define SET_CR_DATA(p, val)	writeb((val), (p)->mmvga + VGA_CR_DATA)
-+#define GET_CR_DATA(p)		readb((p)->mmvga + VGA_CR_DATA)
- 
- 
- /*
-@@ -190,12 +180,13 @@
- /*
-  * adapter initialisation
-  */
--static int i2c_register_bus(struct s_i2c_bus *p, u8 *mmvga, u32 i2c_reg)
-+static int i2c_register_bus(struct pci_dev *dev, struct s_i2c_bus *p, u8 *mmvga, u32 i2c_reg)
- {
- 	int ret;
- 	p->adap.owner	  = THIS_MODULE;
- 	p->adap.id	  = I2C_HW_B_S3VIA;
- 	p->adap.algo_data = &p->algo;
-+	p->adap.dev.parent = &dev->dev;
- 	p->algo.setsda	  = bit_s3via_setsda;
- 	p->algo.setscl	  = bit_s3via_setscl;
- 	p->algo.getsda	  = bit_s3via_getsda;
-@@ -236,8 +227,8 @@
- 
- 		ret = i2c_bit_del_bus(&chip->i2c_bus[i].adap);
- 	        if (ret) {
--			printk(DRIVER_ID ": %s not removed\n",
--				ADAPTER_NAME(chip->i2c_bus[i].adap));
-+			dev_err(&dev->dev, ": %s not removed\n",
-+				chip->i2c_bus[i].adap.name);
- 		}
- 	}
- 	if (chip->mmio) {
-@@ -270,7 +261,7 @@
- 	chip->mmio = ioremap_nocache(base, len);
- 
- 	if (chip->mmio = NULL) {
--		printk (DRIVER_ID ": ioremap failed\n");
-+		dev_err(&dev->dev, "ioremap failed\n");
- 		prosavage_remove(dev);
- 		return -ENODEV;
- 	}
-@@ -286,10 +277,10 @@
- 	 * i2c bus registration
- 	 */
- 	bus = &chip->i2c_bus[0];
--	snprintf(ADAPTER_NAME(bus->adap), sizeof(ADAPTER_NAME(bus->adap)),
-+	snprintf(bus->adap.name, sizeof(bus->adap.name),
- 		"ProSavage I2C bus at %02x:%02x.%x",
- 		dev->bus->number, PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
--	ret = i2c_register_bus(bus, chip->mmio + 0x8000, CR_SERIAL1);
-+	ret = i2c_register_bus(dev, bus, chip->mmio + 0x8000, CR_SERIAL1);
- 	if (ret) {
- 		goto err_adap;
- 	}
-@@ -297,16 +288,16 @@
- 	 * ddc bus registration
- 	 */
- 	bus = &chip->i2c_bus[1];
--	snprintf(ADAPTER_NAME(bus->adap), sizeof(ADAPTER_NAME(bus->adap)),
-+	snprintf(bus->adap.name, sizeof(bus->adap.name),
- 		"ProSavage DDC bus at %02x:%02x.%x",
- 		dev->bus->number, PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
--	ret = i2c_register_bus(bus, chip->mmio + 0x8000, CR_SERIAL2);
-+	ret = i2c_register_bus(dev, bus, chip->mmio + 0x8000, CR_SERIAL2);
- 	if (ret) {
- 		goto err_adap;
- 	}
- 	return 0;
- err_adap:
--	printk (DRIVER_ID ": %s failed\n", ADAPTER_NAME(bus->adap));
-+	dev_err(&dev->dev, ": %s failed\n", bus->adap.name);
- 	prosavage_remove(dev);
- 	return ret;
- }
-@@ -316,17 +307,9 @@
-  * Data for PCI driver interface
-  */
- static struct pci_device_id prosavage_pci_tbl[] = {
--   {
--	.vendor		=	PCI_VENDOR_ID_S3,
--	.device		=	PCI_DEVICE_ID_S3_SAVAGE4,
--	.subvendor	=	PCI_ANY_ID,
--	.subdevice	=	PCI_ANY_ID,
--   },{
--	.vendor		=	PCI_VENDOR_ID_S3,
--	.device		=	PCI_DEVICE_ID_S3_PROSAVAGE8,
--	.subvendor	=	PCI_ANY_ID,
--	.subdevice	=	PCI_ANY_ID,
--   },{ 0, }
-+	{ PCI_DEVICE(PCI_VENDOR_ID_S3, PCI_DEVICE_ID_S3_SAVAGE4) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_S3, PCI_DEVICE_ID_S3_PROSAVAGE8) },
-+	{ 0, },
- };
- 
- static struct pci_driver prosavage_driver = {
-@@ -338,7 +321,6 @@
- 
- static int __init i2c_prosavage_init(void)
- {
--	printk(DRIVER_ID " version %s (%s)\n", I2C_VERSION, DRIVER_VERSION);
- 	return pci_module_init(&prosavage_driver);
- }
- 
+ 	  If you say yes to this option, support will be included for the
 
