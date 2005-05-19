@@ -1,78 +1,56 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: (p4s133-vm)  and intel (  D845GVSR) supported?
-Message-Id: <Pine.LNX.4.58.0409072118030.19686@desitka.sh.cvut.cz>
+From: nacc@us.ibm.com (Nishanth Aravamudan)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: [PATCH 12/20] i2c/i2c-ite: remove interruptible_sleep_on_timeout()
+Message-Id: <20050202192900.GO2546@us.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-
+To: kernel-janitors@vger.kernel.org
 
 Hello,
 
-Answer is: "Most likely"
+Please consider applying.
 
+Description: Replace deprecated interruptible_sleep_on_timeout() with direct
+wait-queue usage. Patch is compile-tested, sort of; the driver does not build in
+vanilla kernel either, but I don't seem to add any warnings..
 
-Software way:
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Best way will be just trying to install our lm_sensors package.
-It has "sensors-detect" program for detecting the chips.
-
-Here is some guide of chips identifation
-http://www2.lm-sensors.nu/~lm78/identify.html
-
-Ways to get the package
-
-http://www2.lm-sensors.nu/~lm78/archive/lm_sensors-2.8.7.tar.gz
-
-1) from our web site
-2) from mandrake/debian/etc as instalation package
-
-
-For 2.6.x kernels and our web package:
-
-1) decompress
-2) run: make user_install
-3) run: sensors-detect
-
-
-For 2.4.x Kernels
-0) also install http://www2.lm-sensors.nu/~lm78/archive/i2c-2.8.7.tar.gz
-1) decompress
-1.5) make sure that you have kernel headers installed somewhere(or kernel)
-2) run: make install
-3) run: sensors-detect
-
-
-Generally http://www2.lm-sensors.nu/~lm78/docs.html
-
-You will find "Quickstart" guides etc
-
-I hope this helps.
-
-Hardware way:
-
-If you want hardware way you can try to look at the motherboard
-and compare chips names with http://www2.lm-sensors.nu/~lm78/supported.html
-this list :)
-
-Dont forget to CC the mail to list also.
-
-regards
-
-Rudolf
-
-On Tue, 7 Sep 2004, firase kaled wrote:
-
-
-> hi i have asus motherboard (p4s133-vm)  and intel (  D845GVSR)  I want to know if
-> chip driver and bus driver supported or not
-> thanks
->
-> _________________________________________________
-> See cool party pictures from clubs and restaurants in Jordan, Lebanon, and Dubai. GO to Shuftek Parties now
-> http://www.shuftak.com
->
->
+--- 2.6.11-rc2-kj-v/drivers/i2c/busses/i2c-ite.c	2005-01-24 09:28:30.000000000 -0800
++++ 2.6.11-rc2-kj/drivers/i2c/busses/i2c-ite.c	2005-01-27 11:37:59.000000000 -0800
+@@ -40,6 +40,7 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
++#include <linux/wait.h>
+ #include <asm/irq.h>
+ #include <asm/io.h>
+ 
+@@ -107,7 +108,7 @@ static int iic_ite_getclock(void *data)
+  * IIC controller interrupts.
+  */
+ static void iic_ite_waitforpin(void) {
+-
++   DEFINE_WAIT(wait);
+    int timeout = 2;
+    long flags;
+ 
+@@ -121,13 +122,15 @@ static void iic_ite_waitforpin(void) {
+ 	spin_lock_irqsave(&lock, flags);
+ 	if (iic_pending = 0) {
+ 		spin_unlock_irqrestore(&lock, flags);
+-		if (interruptible_sleep_on_timeout(&iic_wait, timeout*HZ)) {
++		prepare_to_wait(&iic_wait, &wait, TASK_INTERRUPTIBLE);
++		if (schedule_timeout(timeout*HZ)) {
+ 			spin_lock_irqsave(&lock, flags);
+ 			if (iic_pending = 1) {
+ 				iic_pending = 0;
+ 			}
+ 			spin_unlock_irqrestore(&lock, flags);
+ 		}
++		finish_wait(&iic_wait, &wait);
+ 	} else {
+ 		iic_pending = 0;
+ 		spin_unlock_irqrestore(&lock, flags);
