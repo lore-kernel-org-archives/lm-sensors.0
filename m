@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: Follow up for Ticket 1538
-Message-Id: <1075122354.401510b272044@imp.gcu.info>
+Message-Id: <20040127220030.59b356f2.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <LAECJBKLNEJMMONPNMGPGEFPCBAA.pierre.lamon@epfl.ch>
 In-Reply-To: <LAECJBKLNEJMMONPNMGPGEFPCBAA.pierre.lamon@epfl.ch>
@@ -10,37 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Reply from support:
-> > we have just submitted a new parport driver to 2.6 that
-> > consolidates all the previous parallel port drivers.
-> > You may wish to try it.
+> thanks a lot for your answer. I've finally choosen not to use the
+> PCF8584 for interfacing the i2c bus because I was not able to modprobe
+> it whatever the kernel or the i2c-x version (I've been trying for
+> around 3 days). However, I'm still interested to know if it has been
+> tested and if anybody uses it successfully.
 
-Just one thing: the new driver does not replace *all* previous drivers.
-It replaces simple, parallel-port-pins-bashing drivers
-(media/video/i2c-parport, i2c-elv, i2c-velleman and i2c-philips-par),
-but not more complex drivers involving bidirectional parallel ports or
-extra chips (i2c-pport and i2c-pcf-epp). i2c-pport might be integrated
-someday. i2c-pcf-epp will never be, it's too different so it wouldn't
-make sense.
+I'm surprised you couldn't get it to work. As far as I know, the driver
+is precisely made for people who build a board according to Simon Vogl's
+schematics. If you provide details about the failures, we might try to
+help.
 
-> 1) Could I take the latest cvs version of your i2c directory and copy
-> the files into the linux-2.6.1 directory (I'm using 2.6.1)? What is
-> the best way to update the kernel sources?
+> Finally I'm using direct parallel port access and everything works
+> fine with the i2c-pport driver :-)
 
-It won't work. Drivers for linux 2.4 and linux 2.6 are different, you
-can't mix them. If you need a driver that hasn't been ported yet,
-you'll have to port it first.
+Great. Couldn't you do the same with more simple parallel-ports
+adapters, such as i2c-philips-par, i2c-elv or i2c-velleman? These have
+been ported to Linux 2.6 already, and are supported by my unified driver
+too, while i2c-pport hasn't been ported and isn't part of the unified
+driver.
 
-> 2) Should I use i2c-pcf-epp for the following circuit? Is this the
-> right driver to use? Which i2c modules should be insmoded at the same
-> time? http://www.voxel.at/prj/i2c/images/i2c/i2c_adap.gif
-
-I am no electronics guy, but I think that you need i2c-algo-pcf +
-i2c-pcf-epp. The later hasn't been ported to Linux 2.6 yet. I suggest
-that you first try with a 2.4 kernel. If it turns out to be what you
-need, or only needs little change to work, and you really want Linux
-2.6, then you'll have to port the driver. It's one of the latest bus
-drivers still missing so your help will be welcome.
+Actually I wonder if I will port and/or integrate the i2c-pport logic in
+Linux 2.6, because in most cases, the additional complexity shouldn't be
+required. But if you really need it, I'll think of it.
 
 -- 
 Jean Delvare
