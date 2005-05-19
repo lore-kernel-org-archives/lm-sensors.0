@@ -1,50 +1,28 @@
-From: seth@integratedsolutions.org (Seth Bardash)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: I2c and lm sensors 2.7.0 - sensors segmentation fault.
-Message-Id: <000c01c2fbd9$840f5eb0$0300a8c0@dmp1800>
+Message-Id: <20030406091243.3441e14e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <000c01c2fbd9$840f5eb0$0300a8c0@dmp1800>
+In-Reply-To: <000c01c2fbd9$840f5eb0$0300a8c0@dmp1800>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Just tried to install i2c 2.7.0 and lm sensors 2.7.0 on a dual
-AMD MP2600+ machine running RH 8.0 with updates. Drivers load
-but when sensors command is run I get a segmentation fault.
 
-This system: 
-Tyan S2466N-4M, 
-3.5 GB DRAM, 
-80 GB HD, 
-nVidia GeForce 4 MX440 AGP Card with 
-  nVidia driver version NVIDIA-Linux-x86-1.0-4349
-CDROM and Floppy
-Redhat 8.0 with all updates including 2.4.18-27.8.0smp kernel
+[Reply to the list, not to me only.]
 
-Interesting that I then removed 2.7.0 and installed 2.6.5 (both
-i2c and lm) this worked fine. If it would help I can send the
-sensors.conf and the modules.conf files and anything else that
-may be helpful. 
+> Just tried to install i2c 2.7.0 and lm sensors 2.7.0 on a dual
+> AMD MP2600+ machine running RH 8.0 with updates. Drivers load
+> but when sensors command is run I get a segmentation fault.
 
-I do not need an immediate remedy as 2.6.5 works but thought I
-should tell someone.
+Sounds like an old libsensors is lurking somewhere. To catch it, run:
+/sbin/ldconfig -pv | grep libsensors
 
-If we can help testing this we are willing. We have a server
-that can be updated to specific kernel and then have i2c and lm
-sensors installed that is almost identical to the above system.
+New libs are supposed to be in /usr/local/lib, so you should remove any
+older lib in other places (such as /usr/lib).
 
-Thanks
-
-Seth Bardash
-
-Integrated Solutions and Systems
-1510 North Gate Road
-Colorado Springs, CO 80921
-
-http://www.integratedsolutions.org
-
-Phone:   719-495-5866
-Fax:     719-495-5870
-
-Supplier of AMD, Intel and SPARC Servers and Systems
-running Windows, Linux, Solaris and VxWorks.
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
