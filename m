@@ -1,30 +1,38 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:29 +0000
-Subject: [PATCH 2.6] Update IOP3xx I2C bus driver
-Message-Id: <20050106225122.GA17900@kroah.com>
+From: cholbrook@hi-privacy.net (Charles Holbrook)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: configuration question
+Message-Id: <1055285973.16327.61.camel@saint>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050104195023.GA9225@plexity.net>
-In-Reply-To: <20050104195023.GA9225@plexity.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jan 04, 2005 at 11:50:23AM -0800, Deepak Saxena wrote:
-> 
-> Greg,
-> 
-> The following patch is a major cleanup of the IOP3xx I2C bus driver
-> that is found on Intel's IOP and IXP chipsets. The existing driver in
-> the 2.6 tree uses hardcoded I/O addresses based on board configuration 
-> which is just going to get ugly as more chips use this unit. The update
-> switches to using the driver model and passing in the I/O addresses
-> via platform_device resources. The patch also updates the ID name to 
-> more closely match the actual usage of the device.  
+I have written a script that calls sensors parses the data and then
+loads that data into a MIB tree with either ucd or net SNMP.  I have run
+into a small problem with the via686a chipset though.  In all other
+chipset configs you can set an inX even if that chipset doesn't
+monitor(causing either a bad or null value to be returned)  However with
+the via686a chipset I have not been able to figure out for the life of
+me how to do that.  The reason I am trying to create placeholders for
+all values that can be monitored is so that the same MIB structure would
+apply across all systems.
 
-Nice stuff, that's a great usage of the resource stuff.  I've applied
-your second patch to my trees.
+EXAMPLE:
+.1.3.6.1.4.1.2021.5822.20.101.20 is -5V on a system with the
+w83627hf-isa-0290 chipset and even if it wasn't there I could add a line
+for in6 creating that value.
 
-thanks,
+.1.3.6.1.4.1.2021.5822.20.101.20 on a via686a motherboard will return a
+fan RPM speed.
 
-greg k-h
+Because of this difference I cannot actually use this to get any usefull
+data from my server cluster.  Having a mib return different values
+depending on the chipset is a bad bad thing.  Is there a set command I
+can use in the config script to force the via686a configuration to
+insert a line for -12V or for that matter any place holder I want to
+create?
+
+Thanks in advance.
+
+
