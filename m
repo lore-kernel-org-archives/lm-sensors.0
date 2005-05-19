@@ -1,7 +1,7 @@
 From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:42 +0000
-Subject: [PATCH 2.6] Trivial: group Intel on I2C Hardware Bus support menu
-Message-Id: <2fku21535uk4cho33lotltjrrcj2ftacbj@4ax.com>
+Date: Thu, 19 May 2005 06:25:43 +0000
+Subject: [PATCH 2.6] Trivial: group Intel on I2C Hardware Bus support
+Message-Id: <dfeh315ijlak7cv6bp6vhpsf2h3e6icnj5@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <71ss2156tl8s8mb4afff8511nu3gke4qi8@4ax.com>
 In-Reply-To: <71ss2156tl8s8mb4afff8511nu3gke4qi8@4ax.com>
@@ -10,24 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
+Hi Greg, All,
 
-Oops, third time lucky?
-
-From an end-user perspective it is easy to miss the third Intel 
-PIIX4 entry on the menuconfig "I2C Hardware Bus support" screen.
+From an end-user perspective it is easy to miss the third Intel PIIX
+entry on the menuconfig "I2C Hardware Bus support" screen.
 Also the Intel 801 menu item does not mention ICH.
 
 This trivial patch groups three Intel entries together, adds ICH to
-menu item, and ICH5/ICH5R to the help section.  This patch includes 
-changes suggested by Jean Delvare, and also removes EXPERIMENTAL 
-dependency from the PIIX4 item.
+menu item, and ICH5/ICH5R to the help section.  Includes suggestions 
+from Jean Delvare.
+
+Previously submitted against 2.6.11-mm2
 
 Signed-off-by: Grant Coady <gcoady@gmail.com>
 
-
---- linux-2.6.11-mm2/drivers/i2c/busses/Kconfig	2005-03-09 15:12:20.000000000 +1100
-+++ linux-2.6.11-mm2b/drivers/i2c/busses/Kconfig	2005-03-10 05:35:17.000000000 +1100
+diff -Naur linux-2.6.11-mm4/drivers/i2c/busses/Kconfig linux-2.6.11-mm4x/drivers/i2c/busses/Kconfig
+--- linux-2.6.11-mm4/drivers/i2c/busses/Kconfig	2005-03-17 07:56:47.000000000 +1100
++++ linux-2.6.11-mm4x/drivers/i2c/busses/Kconfig	2005-03-17 09:45:14.000000000 +1100
 @@ -108,7 +108,7 @@
  	  will be called i2c-hydra.
  
