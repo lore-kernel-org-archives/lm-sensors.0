@@ -1,38 +1,23 @@
-From: EmreTas@gmail.com (Emre Tas)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: Sensors doesn't find any sensors, just eeproms.
-Message-Id: <b25af0dc04100213587a07e366@mail.gmail.com>
+From: max@semandex.net (Maximilian Ott)
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: Address problems with 'i2cset'
+Message-Id: <200501250306.j0P36PKW029120@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <b25af0dc04100121563c6b6567@mail.gmail.com>
-In-Reply-To: <b25af0dc04100121563c6b6567@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Yes,very well...I think the exact model is Asus A2H/L....Also I didn't
-understodd one thing.According to Slack I have Sis 5513 but according
-to sis web page I have Sis M650.What is the difference between them?!?
+Hi,
 
+I have a I2C chip with address 0xC0 and when I try to issue:
 
-On Sat, 2 Oct 2004 22:43:54 +0200, Jean Delvare <khali@linux-fr.org> wrote:
-> > So you mean there is no way to see rpm's and voltages...Thanks for yr
-> > help abt that subject. Is it a cause of mainboard or another thing?
-> > Again thank you very much for your info..
-> 
-> Yes, lack of support from the motherboard.
-> 
-> I cannot swear this is the case here, I don't know your specific model.
-> But I can say I am not surprised at all.
-> 
-> 
-> 
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/
-> 
+% i2cset 0 0xC0 0x44 0x55
 
+It complaints about "wrong address", or something similar (sorry I don't
+have the system available right now). Is this some safety check to protect
+the clueless (certainly qualify for that).
 
+Thanks,
 
--- 
-Nothing is impossible,just takes some times.
+-max
