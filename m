@@ -1,40 +1,26 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: P4B SMBus hotplugging:
-Message-Id: <3C7C499E.93E59715@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: Please save me from spam
+Message-Id: <20021128232956.17e1415e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.OSF.3.93.1020215131031.14900A-101000@alwa02.physik.uni-siegen.de>
-In-Reply-To: <Pine.OSF.3.93.1020215131031.14900A-101000@alwa02.physik.uni-siegen.de>
+References: <591179634.20021129081627@ukrpack.net>
+In-Reply-To: <591179634.20021129081627@ukrpack.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thank you very much for the contribution.
-It's checked in to CVS.
-mds
 
-Ilja Rauhut wrote:
-> 
-> Dear Sir or Madam,
-> 
-> according to ticket number 755 I am not the only one who has problems
-> with the broken BIOS of the Asus P4B.
-> I have rewritten the m7101 driver in lmsensors. It know activates the
-> SMBus interfaces in boards with Intel i801BA.
-> The files are in the attachment. Could you have a quick view in the code
-> and comment things, if they are not programmed properly?
-> I am not very good in programming, but the module is running fine for me.
-> After correcting the code it would be nice to include it in the hotplug
-> examples of lmsensors.
-> It seems that Asus is disabeling the SMBus device on some boards for
-> purpose - look into Readme.txt for details.
-> 
-> Yours Sincerely
-> Ilja Rauhut
-> 
-> 
->                            Name: p4b_smbus.tar.bz2
->    p4b_smbus.tar.bz2       Type: unspecified type (APPLICATION/octet-stream)
->                        Encoding: BASE64
->                     Description: P4B Hotplug module
+> Please                 modify                 the                 page
+> http://archives.andrew.net.au/lm-sensors/msg00872.html   so  that  the
+> e-mail  would  not be that easy to copy and use for spamming. I wanted
+> to help and thank you and instead I'm getting spam.
+
+Actually, I'd love to see these pages completely removed. The mailing
+list isn't archived there anyway. The ticket system is much more
+efficient for end users. The archive has no use anymore IMHO, except
+being onre more spam source.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
