@@ -1,22 +1,21 @@
-From: floeff@arcor.de (Florian Effenberger)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: cannot compile 2.8.8
-Message-Id: <4184B844.2010902@arcor.de>
+From: future@shiny.co.il (Ilya Konstantinov)
+Date: Thu, 19 May 2005 06:25:46 +0000
+Subject: Follow-up to ticket 1925 (it87: PWM does not work on Gigabyte K8NS)
+Message-Id: <4244724F.7030808@shiny.co.il>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41836672.7030103@arcor.de>
-In-Reply-To: <41836672.7030103@arcor.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Gigabyte answered me, saying:
 
-> I think this is what the patch posted here is supposed to fix:
-> http://archives.andrew.net.au/lm-sensors/msg28153.html
-> 
-> This is also fixed in CVS, if you prefer that solution.
+"About the issue you mentioned, due to the hardware designed, GA-K8NS 
+does not alter the fan speed."
 
-Thanks, that patch helps! ;-)
+On the other hand, here's what I've seen on USENET:
 
-Florian
+http://groups-beta.google.com/group/alt.comp.periphs.mainboard.gigabyte/browse_thread/thread/a1a8597da073a757/6c34313e7f96fb3a?q=k8ns+speedfan&rnum=1#6c34313e7f96fb3a
+(they might be refering to the K8NS-Ultra model :(
+
+I did not research the hardware further yet.
