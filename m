@@ -1,38 +1,45 @@
-From: vda@port.imtp.ilyichevsk.odessa.ua (Denis Vlasenko)
-Date: Thu, 19 May 2005 06:24:46 +0000
-Subject: 2.6.4-rc2-mm1: IPMI_SMB doesnt compile
-Message-Id: <200403102320.20474.vda@port.imtp.ilyichevsk.odessa.ua>
+From: stefan@networksolutions.se (Stefan Andersson)
+Date: Thu, 19 May 2005 06:24:11 +0000
+Subject: Problems.
+Message-Id: <005601c35d84$f18690a0$c44f5e51@cerebro>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F274AE5A8F65A848906BEB9DDFC7674C0E83DD@hdsmsx403.hd.intel.com>
-In-Reply-To: <F274AE5A8F65A848906BEB9DDFC7674C0E83DD@hdsmsx403.hd.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Davis, Todd C" <todd.c.davis@intel.com>, Corey Minyard <minyard@acm.org>, Adrian Bunk <bunk@fs.tum.de>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, greg@kroah.com, sensors@stimpy.netroedge.com, "Simon G. Vogl" <simon@tk.uni-linz.ac.at>
+To: lm-sensors@vger.kernel.org
 
-On Wednesday 10 March 2004 21:50, Davis, Todd C wrote:
-> The problem that is being addressed here is the need to avoid process
-> switching when sending IPMI messages over the SMBus/I2C bus. When the
-> kernel has panic'ed or is shutting down bus transactions need to
-> complete so the i2c bus drivers need to spin rather than calling
-> schedule.
->
-> The i2c_spin_delay is a flag that supports a revised inline function
-> i2c_delay() that was in i2c.h at one time.
->
-> static inline void i2c_delay(signed long timeout)
->  {
-> 	if( i2c_spin_delay ) {
-> 		int i;
-> 		for( i=0 ; i<100 ; i++ )
-> 			udelay(timeout*(1000000/HZ/100));
-> 	} else {
-> 		set_current_state(TASK_INTERRUPTIBLE);
-> 		schedule_timeout(timeout);
-> 	}
->  }
+Hi.. I'm having trouble getting a fair reading ..
+I have a ASUS P4S533-X
 
-too big for inline keyword
---
-vda
+sensors-detect tells me to use the sis-645 , it87 , i2c-isa modules ...
+
+and then i get this reading:
+
+root@chibisuke:~# sensors
+it87-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+VCore 1:   +1.55 V  (min =  +1.42 V, max =  +1.56 V)
+VCore 2:   +1.66 V  (min =  +2.40 V, max =  +2.60 V)   ALARM
++3.3V:     +6.04 V  (min =  +3.12 V, max =  +3.44 V)   ALARM
++5V:       +4.99 V  (min =  +4.72 V, max =  +5.24 V)
++12V:      +0.00 V  (min = +11.36 V, max = +12.60 V)   ALARM
+-12V:     -27.36 V  (min = -12.63 V, max = -11.41 V)   ALARM
+-5V:      -13.64 V  (min =  -5.28 V, max =  -4.81 V)   ALARM
+Stdby:     +0.00 V  (min =  +4.72 V, max =  +5.24 V)   ALARM
+VBat:      +3.23 V
+fan1:     2732 RPM  (min =    0 RPM, div = 2)
+fan2:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
+fan3:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
+Temp1/MB:    +75?C  (min =  +20?C, max =  +40?C)
+Temp2/CPU:   +86?C  (min =  +25?C, max =  +45?C)
+Temp3:      +127?C  (min =  +25?C, max =  +45?C)
+
+
+It's not very accurate =)
+I hope you can make any sense of this.
+If not just ask me ! =)
+Thanks !
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030808/9f426343/attachment.html
