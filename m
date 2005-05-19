@@ -1,170 +1,56 @@
-From: dolney@astro.physics.upenn.edu (Derek Dolney)
-Date: Thu, 19 May 2005 06:23:51 +0000
-Subject: Problem with "sensors -s"
-Message-Id: <3E7FBA77.2060805@astro.physics.upenn.edu>
+From: Eric.Brunet@lps.ens.fr (=?iso-8859-1?Q?=C9ric?= Brunet)
+Date: Thu, 19 May 2005 06:23:58 +0000
+Subject: shuttle and sensors on a 2.5.70
+Message-Id: <20030605181335.GA5044@lps.ens.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E7EA3D2.60309@astro.physics.upenn.edu>
-In-Reply-To: <3E7EA3D2.60309@astro.physics.upenn.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Philip Edelbrock wrote:
+Hi,
 
->
-> I'd like to see:
->
-> ls -dl /proc
-> ls -dl /proc/sys
-> ls -dl /proc/sys/dev
-> ls -dl /proc/sys/dev/sensors 
+I have a shuttle XPC SB51G with only one fan. In the bios, you can set
+this fan to run in ``Autoguardian mode'': it is running at 2000 rpm below
+a certain temperature or at 3000 noisy rpm above. The computer never
+reached this critical temperature so I am always working with the nearly
+silent 2000 rpm mode. However, it is not silent enough, and my plan is to
+shut down completely this fan and set the processor to run at one tenth
+of its frequency. Most of the time (for instance at night), it would be
+enough and extremely silent.
 
-localhost dolney # ls -dl /proc
-dr-xr-xr-x   96 root     root            0 Mar 24 01:00 /proc
-localhost dolney # ls -dl /proc/sys
-dr-xr-xr-x   10 root     root            0 Mar 24 20:47 /proc/sys
-localhost dolney # ls -dl /proc/sys/dev
-dr-xr-xr-x    5 root     root            0 Mar 24 20:47 /proc/sys/dev
-localhost dolney # ls -dl /proc/sys/dev/sensors
-dr-xr-xr-x    3 root     root            0 Mar 24 20:47 
-/proc/sys/dev/sensors
+I have tried to shut down the fan with acpi, but to no avail. Recently,
+I have compiled a 2.5.70 kernel with sensors modules. 
 
->
->
-> Also, try setting some limits the old fashion way (as root):
->
-> cd /proc/sys/dev/sensors/it87-isa-0290
-> echo "0.5 1.0" > in1
+The funny thing is that the mere fact of loading the modules (chip it87,
+bus i2c_i801) set my fan in the noisy mode: it gets immediatly to 3000
+rpm when the modprobe returns.
 
-This seems to work:
+I have looked at the files in the /sys filesystem. I have:
 
-localhost dolney # cd /proc/sys/dev/sensors/it87-isa-0290/
-localhost it87-isa-0290 # ls
-alarms  fan2  fan_div  in1  in3  in5  in7  temp1  temp3
-fan1    fan3  in0      in2  in4  in6  in8  temp2  vid
-localhost it87-isa-0290 # cat in1
-2.25 2.75 2.48
-localhost it87-isa-0290 # echo "0.5 1.0" > in1
-localhost it87-isa-0290 # cat in1
-0.49 1.00 2.48
-localhost it87-isa-0290 #
+fan_div1  2
+fan_div2  2
+fan_div3  2
+fan_input1  0
+fan_input2  0
+fan_input3  3668
+fan_min1  3000
+fan_min2  3000
+fan_min3  3000
 
->
->
-> Anything special logged in syslog/messages? 
+I can set fan_min3 to a lower value, but the fan won't slow down.
+Removing the modules won't do anything either. I was disapointed that no
+pwm[1-3] files (as advertised in <kernel source>/Documentation/i2c/sysfs-interface)  show up in the sysfs.
 
-Nothing. And nothing after "sensors -s".
+So my questions are:
 
->
->
-> Lastly, double check (I know you looked once) that you only have a 
-> single libsensors installed:
->
-> ldconfig -v | grep libsensors
+	is it normal that just loading a module change my fan's behaviour ?
+is it a bug ? Can I prevent it ?
+	once loaded, can I go back to the previous nearly-silent mode at
+2000 rpm ? Right now, the only way seems to reboot...
+	can I more generally set an arbitrary fan speed and eventually
+shut down completely the fan ?
 
-ldconfig:       libsensors.so.1 -> libsensors.so.1.3.0
+Thank you for your help.
 
-I just built a kernel that is identical except that I did not apply the 
-ptrace fix. The problem persists!
-
->
->
-> Phil
->
->
-> Derek Dolney wrote:
->
->> Jean Delvare wrote:
->>
->>> (please reply to the list, not to me only)
->>>
->>>  
->>>
->>>> I run sensors -s (as root!) and get this message:
->>>>
->>>> ----------------------snip-------------------------
->>>> it87-isa-0290: Can't access /proc file for writing;
->>>> Run as root?
->>>> ----------------------snip-------------------------
->>>>
->>>> The i2c-proc IS inserted.
->>>>
->>>> I am using lm_sensors-2.7.0. I am using a 2.4.20 kernel patched 
->>>> with i2c-2.7.0 support.
->>>>   
->>>
->>>
->>>
->>> Could you make sure you have only *one* libsensors on your system and
->>> that it matches the version of sensors you are using?
->>>
->>>
->> There is only one libsensors, the one that came with 
->> lm_sensors-2.7.0. It is libsensors.so.1.3.0.
->>
->>>  
->>>
->>>> But I seem to be limited not being able to do sensors -s.
->>>>
->>>> What should I do? Please help!
->>>>   
->>>
->>>
->>>
->>> If the above doesn't work, please send the output of the following
->>> command:
->>>
->>> ls -lR /proc/sys/dev/sensors/
->>>
->>>  
->>>
->> Here is that output:
->>
->> localhost lib # ls -lR /proc/sys/dev/sensors/
->> /proc/sys/dev/sensors/:
->> total 0
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 chips
->> dr-xr-xr-x    2 root     root            0 Mar 24 11:53 it87-isa-0290
->>
->> /proc/sys/dev/sensors/it87-isa-0290:
->> total 0
->> -r--r--r--    1 root     root            0 Mar 24 11:53 alarms
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 fan1
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 fan2
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 fan3
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 fan_div
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in0
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in1
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in2
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in3
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in4
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in5
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in6
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in7
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 in8
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 temp1
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 temp2
->> -rw-r--r--    1 root     root            0 Mar 24 11:53 temp3
->> -r--r--r--    1 root     root            0 Mar 24 11:53 vid
->>
->>> Just another question: Do you have any other patch added to your
->>> kernel,
->>> such as the ptrace bugfix?
->>
->>
->>
->> I am running gentoo-sources-2.4.20-r2, which is a heavily patched 
->> kernel  based on one of the -ac kernels. Yes, it contains the ptrace 
->> patch.
->>
-
-
--- 
------------------------------------
-Derek M. Dolney
-Department of Physics and Astronomy
-University of Pennsylvania
-dolney@astro.physics.upenn.edu
------------------------------------
-
+	?ric Brunet
