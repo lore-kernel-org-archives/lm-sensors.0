@@ -1,40 +1,64 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: Ticket #1963 solution + further info
-Message-Id: <XeczbLHE.1114516968.5956230.khali@localhost>
+From: john.hearns@clustervision.com (John Hearns)
+Date: Thu, 19 May 2005 06:24:28 +0000
+Subject: Disabling chassis intrusion alarm?
+Message-Id: <Pine.LNX.4.44.0312041256360.18024-100000@druifje.clustervision.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <426DD728.6040200@SoftHome.net>
-In-Reply-To: <426DD728.6040200@SoftHome.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Dear all,
+can I ask for a little help please?
+I am trying to configure lm_sensors for a dual processor
+Supermicro motherboard.
 
-Hi Barton,
+I'm using the Nagios plugin check_sensors,
+which very simply does a grep on the output of sensors,
+and returns an alarm sate if the string ALARM is present.
+On this motherboard, the chassis intrusion alarm is often set,
+and I'd rather not alarm on this.
 
-> The script wants these modules loaded:
->
-> MODULE_0=3Di2c-matroxfb
-> MODULE_1=3Di2c-isa
-> MODULE_2=DDcmon
-> MODULE_3=3Dw83627hf
->
-> i2c-matroxfb is uneeded and creates the problem with the smbus and
-> blanked screens, and the ddcmon module which is non-existent.
+Is there a way of switching off this alarm in sensors.conf please?
 
-The ddcmon driver is a Linux 2.4-only driver, which is now deprecated in
-favor of the more standard eeprom driver with a userspace decoding
-script. More recent versions of the sensors-detect script would suggest
-the eeprom driver in this case.
 
-I would tend to agree with you that loading the i2c-matroxfb driver by
-default is not a good idea, as this will first load the matroxfb driver
-itself, which may cause problems as you experienced. Not everyone wants
-a framebuffer console. Ideally, we would only load i2c-matroxfb if
-matroxfb itself is already loaded. I have no immediate idea how this can
-be done though.
+Here is the sensors output below.
 
-Thanks for the report anyway.
---
-Jean Delvare
+
+
+
+
+max1617-i2c-0-1a
+Adapter: SMBus I801 adapter at 1100
+Algorithm: Non-I2C SMBus adapter
+Board:       +29???C  (min =  +20???C, max =  +60???C)
+CPU:         +32???C  (min =  +20???C, max =  +60???C)
+ 
+w83627hf-i2c-0-2d
+Adapter: SMBus I801 adapter at 1100
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.47 V  (min =  +4.08 V, max =  +4.08 V)
+VCore 2:   +3.32 V  (min =  +4.08 V, max =  +4.08 V)
++3.3V:     +3.31 V  (min =  +2.97 V, max =  +3.63 V)
++5V:       +4.97 V  (min =  +4.50 V, max =  +5.48 V)
++12V:     +11.86 V  (min = +10.79 V, max = +13.11 V)
+-12V:     -11.41 V  (min = -13.21 V, max = -10.90 V)
+-5V:       -2.00 V  (min =  -5.51 V, max =  -4.51 V)
+V5SB:      +5.51 V  (min =  +4.50 V, max =  +5.48 V)
+VBat:      +3.24 V  (min =  +2.70 V, max =  +3.29 V)
+fan1:     4787 RPM  (min = 3000 RPM, div = 2)
+fan2:     4753 RPM  (min = 3000 RPM, div = 2)
+fan3:        0 RPM  (min =  750 RPM, div = 8)
+temp1:       +36???C  (limit =  +60???C)                       sensor = 
+thermistor
+temp2:     +30.0???C  (limit =  +60???C, hysteresis =  +50???C) sensor = 
+thermistor
+temp3:     +30.0???C  (limit =  +60???C, hysteresis =  +50???C) sensor = 
+thermistor
+vid:      +1.400 V
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+          Sound alarm disabled
+
+
+
