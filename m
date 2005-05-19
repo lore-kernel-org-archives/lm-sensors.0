@@ -1,44 +1,50 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: [PATCH 2.6] Setting w83627hf fan_div preserves fan_min
-Message-Id: <20040326215345.GB29797@kroah.com>
+From: dave.antliff@paradise.net.nz (David Antliff)
+Date: Thu, 19 May 2005 06:24:23 +0000
+Subject: Temp Sensor on Asus A7V8X - Ticket 1358
+Message-Id: <Pine.LNX.4.55.0310291645560.11719@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040325205143.6820ae6e.khali@linux-fr.org>
-In-Reply-To: <20040325205143.6820ae6e.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 25, 2004 at 08:51:43PM +0100, Jean Delvare wrote:
-> Hi Greg, hi all,
-> 
-> Here is a patch that updates the w83627hf driver in the exact same way I
-> did recently for the w83781d driver. There were two problems:
-> 1* Fan divisor storing code was ugly, badly ripped from the 2.4 w83627hf
->    driver and/or the 2.6 w83781d driver.
-> 2* Setting fan divisors wouldn't preserve fan mins.
-> 
-> Exactly the same as w83781d:
-> http://archives.andrew.net.au/lm-sensors/msg06952.html
-> http://archives.andrew.net.au/lm-sensors/msg07008.html
-> 
-> No surprise since the w83627hf driver is a fork of the w83781d driver.
-> 
-> Since the two drivers are strongly similar, I took the code directly
-> from the updated w83781d driver. I cannot test the w83627hf driver
-> (testers welcome BTW) but this makes me feel confident that the code is
-> correct.
-> 
-> To make it clear, this single patch is the w83627f equivalent of the
-> three patches I submitted for the w83781d:
-> * Cleanup
-> * Refactoring
-> * Setting fan_div preserves fan_min
-> All in one (much better looking BTW).
-> 
-> Please apply,
 
-Applied, thanks.
+Hello,
 
-greg k-h
+I too have an A7V8X (and no it's not a deluxe or -X variant) and my BIOS
+reports a CPU temp of 22C and a M/B temp of 24C. I have watercooling so
+these temperatures, although very low, are possible. I am unable to check
+them precisely as I write this since I am accessing the machine remotely,
+but I have observed them for the past year so I am confident that the BIOS
+reports the CPU temp as approx 22C.
+
+Anyway, none of those formulae on the readticket site
+(http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket58) get anywhere
+close:
+
+compute temp2 @*2.0, @/2.0  :
+  M/B Temp:    +23?C
+  CPU Temp:  +52.0?C
+
+compute temp2 (@*30/43)+25, (@-25)*43/30  :
+  M/B Temp:    +23?C
+  CPU Temp:  +43.1?C
+
+compute temp2 (@*22/43)+25, (@-25)*43/22  :
+  M/B Temp:    +23?C
+  CPU Temp:  +38.3?C
+
+I'm using:
+as99127f-i2c-0-2d
+dapter: SMBus Via Pro adapter at e800
+Algorithm: Non-I2C SMBus adapter
+lm_sensors-2.8.1
+i2c-2.8.1
+
+Another thing, in the BIOS, the M/B temp is consistently approx. 2C higher
+than the CPU - are these around the wrong way in the BIOS?
+
+
+Thanks,
+David.
+
