@@ -1,29 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:38 +0000
-Subject: Last call for 2.8.4
-Message-Id: <1075886209.4020b881bfe51@imp.gcu.info>
+From: sfendt@octagonsystems.com (Sean S Fendt)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: I2C Bit algorithm question
+Message-Id: <200402101931.i1AJVAY07933@sfendt.octagonsystems.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+To anyone who may be able to help.
 
-Linux 2.6.2 is out, we want to release lm_sensors 2.8.4 ASAP. I propose
-a deadline on Friday 6th of February, 2004.
+I'm writing drivers for custom hardware on Octagon System's line of embedded 
+PCs. ?I'm busy with an I2C bus and chip driver set for our GX1 based products.
 
-My to-do list:
+A simple (I hope) question:
+Why doesn't bit_func() in i2c-algo-bit.c not return with the I2C_FUNC_I2C bit 
+set?
 
-Mandatory:
-1* Temporary w83l785ts sysfs names workaround.
-2* Update CHANGES.
+My chip driver needs to use i2c_master_send() and i2c_master_recv(), and I 
+cant' find any other functionality bit that makes sense. ?If I skip the 
+functionality check, it seems to work. ?Did I miss something in the 
+documentation, that is am I checking for the wrong functionality bit(s)?
 
-Optional:
-3* fscher cleanups (various places).
-
-Please add items if needed, and test CVS.
-
+Thanks in advance for any thoughts or suggestions.
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+-- Sean Fendt
+sfendt@octagonsystems.com
+Ph: 303 430 1500 Ext 3048
