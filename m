@@ -1,37 +1,38 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: no more "applied, thanks" emails from me.
-Message-Id: <20050506062721.GA14953@kroah.com>
+From: bertrik@zonnet.nl (Bertrik Sikken)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: Asus ASB100 chip information
+Message-Id: <3D88B3B2.2050400@zonnet.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050504042033.GB16011@kroah.com>
-In-Reply-To: <20050504042033.GB16011@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, May 05, 2005 at 12:58:05AM -0700, Greg KH wrote:
-> On Wed, May 04, 2005 at 10:33:00PM -0400, Mark M. Hoffman wrote:
-> > Hi Greg:
-> > 
-> > * Greg KH <greg@kroah.com> [2005-05-03 21:20:33 -0700]:
-> > > Just a short note to know that I'll probably not be sending any kind of
-> > > ACK message out to the mailing list anymore when I apply patches to my
-> > > tree.  Instead, the patch submitter will get a message when it gets
-> > > applied, that contains a bunch of info about what patch it was, and
-> > > others that they have pending in my tree.
-> > 
-> > I already received one of these for that little USB patch.  It would be
-> > nice if you could make the ACK email threaded to the original patch email.
-> 
-> Yeah, I tried it, but unfortunatly the In-Reply-To: didn't work out for
-> a variety of reasons (not present in patch due to it being stripped out,
-> script to do raw smtp not handling it, etc.)  But I'll hack on it a bit
-> and see if I can get that working as I too hate breaking threading...
+Hi all,
 
-Ok, I think I have this working now.  If you get a response from me,
-that has broken threading, please let me know.
+I did some experiments with the ASB100 health monitoring chip
+sitting on my Asus A7V333 motherboard.
 
-thanks,
+This chip is currently supported by the w83781d driver in
+lmsensors 2.6.5, but the CPU temperature indicated by sensors
+is different from the one shown in the BIOS (version 1013)
+and the asusprobe utility under windows (v2.18.01).
 
-greg k-h
+I found out that the CPU temperature (as indicated by the
+BIOS and asusprobe) is stored in register 0x17.
+This is in an area undocumented by the w83781d datasheet.
+The lm78 datasheet indicates the area 0x00-0x1F as 'POST RAM'.
+
+Register 0x17 is exactly 0x10 positions away from the normal
+temperature register at 0x27 as shown in the lm78 datasheet.
+So I suspect there will be more interesting registers in this area
+but have not tried them all yet.
+
+I won't mind doing some more experiments and I hope this info
+is useful for improving ASB100 support.
+
+Kind regards,
+Bertrik Sikken
+
+
+
