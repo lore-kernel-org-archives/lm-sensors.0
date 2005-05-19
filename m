@@ -1,38 +1,19 @@
-From: vvenkataramana@yahoo.com (V. R. Venkatramana)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Question on CPU temperature and voltage devices (ADM1025)
-Message-Id: <20020426182810.28830.qmail@web13408.mail.yahoo.com>
+From: moseley@hank.org (Bill Moseley)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: Ticket 1098: viapro not patched?
+Message-Id: <Pine.LNX.4.10.10212292140480.16210-100000@mardy.hank.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Folks, 
+Well, it often seems that posting for help is the thing that helps me
+figure it out:
 
-    How to access CPU temperature & voltage drvices?
-    Sensor chip:   Analog Devices ADM1025 
-    MotherBoard:   Intel D845WN
+ [*] I2C mainboard interfaces 
 
-I am using vxWorks OS.  vxWorks do not support Advanced 
-Configuration and Power Interface (ACPI) and cannot access 
-temperature and voltage devices via ACPI calls in the BIOS.   
-vxWorks do not have support to access SMBus either.
+Sorry for the trouble.
 
-I am wondering how to access temperature an voltage devices
-located on the SMBus in the absesnce of no suppport for i2c
-and SMBus in vxWorks?  I have no problem in accessing fan 
-devices (chassis fan & cpu fan) but cannot access sensor devices.
-
-I am hoping that lm_sensor expert will answer my question and 
-provide me pointers as to how to access sensor devices?
-
-A line in reply will be appreciated.
-Thanks, Venkat
-
-
-
-__________________________________________________
-Do You Yahoo!?
-Yahoo! Games - play chess, backgammon, pool and more
-http://games.yahoo.com/
+-- 
+Bill Moseley moseley@hank.org
