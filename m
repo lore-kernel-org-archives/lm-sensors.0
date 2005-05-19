@@ -1,7 +1,7 @@
-From: rnissl@gmx.de (Reinhard Nissl)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <4016D90C.5050507@gmx.de>
+Message-Id: <20040127230516.48410bf9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -10,54 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+[Don't forget to CC: the mailing list on replies please]
 
-Jean Delvare wrote:
-
->>Well, looking at the conversion formula again, this idea is not 100 %
->>perfect, because it doesn't care to scale the offset value. Currently,
->>the offset is 0 but there is no guarantee, that it will always be 0.
+> >>Basically this means the following conversion table, if I'm not
+> >>mistaking:
+> >>0..2 -> 1 (div=2)
+> >>3..4 -> 2 (div=4)
+> >>5+   -> 3 (div=8)
 > 
-> This isn't a problem. The formulae are applied *after* libsensors (or
-> any other program such as gkrellm) reads the value from sysfs or procfs.
-> For example, if you have a raw reading of 1.8V, in 2.4 it'll be stored
-> internally as 180, and read through procfs as 1.80. In 2.6 it'll be
-> stored internally as 1800 and exported through sysfs as 1800 too. But
-> libsensors knows about magnitudes in both cases and will read the value
-> as 1.80. And any formula in sensors.conf will be applied to *this*
-> value.
+> I don't think, that this a good idea. If you recall an email from me
+> about VERAX fans, which supply 9 times as many pulses per rotation as
+> normal fans do, those fans would require a div of 18. This value would
+> then silently be converted to div = 8 and results in less then one
+> halve of the actual fan rpm.
+> 
+> In my opinion, the driver should complain about any div values it
+> doesn't support, and simply do nothing as it wouldn't be what the user
+> expected, anyway. Therefore, once again the question: How should the
+> driver inform about/react on unsupported div values?
 
-This is the kind of information that I was missing, when I wrote the last email.
+Well, this makes sense, you're right. You get the point.
 
-> So, as you can see, it is safe to have a single formula for both
-> versions.
+In my mind, there was no possibility to return an error code, so you had
+to accomodate the best you could with the input, and keep quiet. By the
+way, what does conretely happen if you try to write a wrong value to the
+sysfs file?
 
-You are right. I've attached the fixed drivers and adjusted sample 
-configuration. Documentation will follow later and explains, how to get the 
-necessary (M)ultiplier, (R)efVoltage and (O)ffset values from dmidecode.
+> >>Should be fast and efficient enough, and keeps the code clear (IMHO
+> >>at least).
+> 
+> I don't see there the need for more efficient coding at that location,
+> as it typically gets executed once per system start. Furthermore, I
+> think that the switch statement is more readable in my simple case.
 
-Bye.
+Agreed, because you treat only three (valid) values. Since my idea was
+to accept them all, I couldn't handle them with a switch, it just
+wouldn't have made sense. But a switch is fine for your method.
+
 -- 
-Dipl.-Inform. (FH) Reinhard Nissl
-mailto:rnissl@gmx.de
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: fscher.c-2.4.22.gz
-Type: application/x-gzip
-Size: 5767 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040127/28ff505d/fscher.c-2.4.22.gz
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: fscher.c-2.6.1.gz
-Type: application/x-gzip
-Size: 4994 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040127/28ff505d/fscher.c-2.6.1.gz
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors.conf.eg.diff.gz
-Type: application/x-gzip
-Size: 517 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040127/28ff505d/sensors.conf.eg.diff.gz
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
