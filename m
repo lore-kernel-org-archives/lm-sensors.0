@@ -1,64 +1,79 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [PATCH: 2.6.11-rc5] i2c chips: add adt7461 support to lm90
-Message-Id: <20050302203721.7cce650d.khali@linux-fr.org>
+From: jchapman@katalix.com (James Chapman)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH: 2.6.11-rc5] i2c chips: add adt7461 support to lm90 driver
+Message-Id: <422744A0.8020506@katalix.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4223513F.4030403@katalix.com>
-	<20050302165532.GB2311@kroah.com>
-In-Reply-To: <20050302165532.GB2311@kroah.com>
+In-Reply-To: <4223513F.4030403@katalix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James Chapman <jchapman@katalix.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>, Greg KH <greg@kroah.com>
+To: lm-sensors@vger.kernel.org
 
-Hi James,
+Hi Jean,
 
-> > Add ADT7461 (temperature sensor) support to LM90 driver.
-> > 
-> > Signed-off-by: James Chapman <jchapman@katalix.com>
-> 
-> Applied, thanks.
+Jean Delvare wrote:
 
-I had Greg drop this patch because it doesn't seem to be correct to me.
-The patch assumes that the ADT7461 is 100% compatible with the ADM1032.
-The datasheets mentions that, but only in the default confiuration of
-the chip. If I read it correctly, the ADT7461 can also be switched to an
-extended temperature range mode, where the register formats are
-different. In this mode, the chip is NOT compatible with the ADM1032 and
-needs specific handling.
+>>>Add ADT7461 (temperature sensor) support to LM90 driver.
 
-I wonder how the limits are affected by the extended mode. The datasheet
-doesn't give much details about this. I would assume that they are
-affected too though, or it wouldn't make much sense.
+Thanks for your good comments. I'll post a revised kernel patch soon.
 
-I also see that the ADT7461 datasheet explicitely says that temperature
-measurements below 0 return 0 and over 127 return 127, in compatibility
-mode. Then we probably should not allow limits to be set outside of this
-range, as it might fool the user into thinking that the device can
-actually measure this. The ADM1032 datasheet isn't as clear on the
-topic, so I'm not sure what should be done for this one.
+ADT7461 will only be supported in lm90-compat mode.
 
-Please modify your patch so that it works properly for both modes. I do
-not request that you implement mode change, nor even that you support
-extended range mode if you don't need it. But I want you to ensure that
-the driver will behave properly on an ADT7461 found in this
-non-compatible range. This might be as easy as to not recognize the chip
-as supported if found in that mode, providing you don't care about the
-extended range.
+> I would also appreciate a patch to lm_sensors' sensors-detect script for
+> the ADT7461, and possibly a patch for libsensors and sensors as well,
+> unless you are not interested in these (in which case you would need to
+> explicitely mention in Kconfig that the ADT7461 has no user-space
+> support at the moment).
 
-I would also like you do update the documentation located on top of the
-lm90 driver source file. I listed all supported chips with links to
-datasheet and some additional per-chip information. The ADT7461
-definitely needs something similar. Then please update Kconfig to
-mention the new chip.
+Patch to add adt7461 support to lmsensors-2.9.0 is attached. I'm new to
+the internals of lmsensors so I may not have done all I need to.
 
-I would also appreciate a patch to lm_sensors' sensors-detect script for
-the ADT7461, and possibly a patch for libsensors and sensors as well,
-unless you are not interested in these (in which case you would need to
-explicitely mention in Kconfig that the ADT7461 has no user-space
-support at the moment).
+I'm unable to test it since I can't run sensors on my target
+which is an embedded ppc board and lmsensors won't cross-compile. I
+don't have enough space to run perl anyway! :)
 
-Thanks,
--- 
-Jean Delvare
+/james
+-------------- next part --------------
+Index: lm_sensors-2.9.0/prog/detect/sensors-detect
+=================================--- lm_sensors-2.9.0.orig/prog/detect/sensors-detect	2004-12-10 20:10:09.000000000 +0000
++++ lm_sensors-2.9.0/prog/detect/sensors-detect	2005-03-03 16:46:08.000000000 +0000
+@@ -1293,7 +1293,7 @@
+      },
+      {
+        name => "Analog Devices ADT7461",
+-       driver => "to-be-written",
++       driver => "lm90",
+        i2c_addrs => [0x4c],
+        i2c_detect => sub { lm90_detect 5, @_ },
+      },
+Index: lm_sensors-2.9.0/lib/chips.c
+=================================--- lm_sensors-2.9.0.orig/lib/chips.c	2004-11-24 04:31:40.000000000 +0000
++++ lm_sensors-2.9.0/lib/chips.c	2005-03-03 16:51:41.000000000 +0000
+@@ -5350,6 +5350,7 @@
+  { SENSORS_LM99_PREFIX, lm90_features },
+  { SENSORS_LM86_PREFIX, lm90_features },
+  { SENSORS_MAX6657_PREFIX, lm90_features },
++ { SENSORS_ADT7461_PREFIX, lm90_features },
+  { SENSORS_LM63_PREFIX, lm63_features },
+  { SENSORS_MAX1619_PREFIX, max1619_features },
+  { SENSORS_XEONTEMP_PREFIX, xeontemp_features },
+Index: lm_sensors-2.9.0/lib/chips.h
+=================================--- lm_sensors-2.9.0.orig/lib/chips.h	2004-11-24 04:31:40.000000000 +0000
++++ lm_sensors-2.9.0/lib/chips.h	2005-03-03 16:50:42.000000000 +0000
+@@ -475,13 +475,14 @@
+ #define SENSORS_LM85_ZONE3_RANGE           100  /* RW -- zone3_range  */
+ #define SENSORS_LM85_ZONE3_SMOOTH          101  /* RW -- zone3_smooth  */
+ 
+-/* LM86/LM89/LM90/LM99/ADM1032/MAX6657 chips */
++/* LM86/LM89/LM90/LM99/ADM1032/MAX6657/ADT7461 chips */
+ 
+ #define SENSORS_LM90_PREFIX "lm90"
+ #define SENSORS_ADM1032_PREFIX "adm1032"
+ #define SENSORS_LM99_PREFIX "lm99"
+ #define SENSORS_LM86_PREFIX "lm86"
+ #define SENSORS_MAX6657_PREFIX "max6657"
++#define SENSORS_ADT7461_PREFIX "adt7461"
+ 
+ #define SENSORS_LM90_LOCAL_TEMP 51 /* R */
+ #define SENSORS_LM90_LOCAL_HIGH 52 /* RW */
