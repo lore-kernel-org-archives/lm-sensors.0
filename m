@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <10728219752634@kroah.com>
+Message-Id: <1072821975626@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219753853@kroah.com>
+In-Reply-To: <10728219742126@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,92 +11,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.9.8, 2003/12/04 14:26:44-08:00, khali@linux-fr.org
+ChangeSet 1.1496.9.6, 2003/12/04 13:53:39-08:00, khali@linux-fr.org
 
-[PATCH] I2C: it87 and via686a alarms
+[PATCH] I2C: add Serverworks CSB6 support to i2c-piix4
 
-> it87 and via686a violate the sysfs standard by having "alarm" instead
-> of "alarms", would you please fix in your next patch?
-
-I'm not the only one allowed to send patches to Greg, you know ;)
-Anyway, here we go. Greg, here is a patch that corrects the standard
-violation reported by Mark. Tested to compile.
-
-(It also removes a useless comment in it87.c.)
+This patch adds support for the Serverworks CSB6 to i2c-piix4 driver. It
+was confirmed to work by lasirona at yahoo dot com in support ticket
+#1424:
+http://secure.netroedge.com/~lm78/readticket.cgi?ticket24
 
 
- drivers/i2c/chips/it87.c    |    9 ++++-----
- drivers/i2c/chips/via686a.c |    8 ++++----
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/i2c/busses/Kconfig     |    3 ++-
+ drivers/i2c/busses/i2c-piix4.c |    9 ++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
---- a/drivers/i2c/chips/it87.c	Tue Dec 30 12:31:15 2003
-+++ b/drivers/i2c/chips/it87.c	Tue Dec 30 12:31:15 2003
-@@ -412,7 +412,6 @@
- show_temp_offset(2);
- show_temp_offset(3);
+diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig	Tue Dec 30 12:31:40 2003
++++ b/drivers/i2c/busses/Kconfig	Tue Dec 30 12:31:40 2003
+@@ -161,11 +161,12 @@
+ 	help
+ 	  If you say yes to this option, support will be included for the Intel
+ 	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
+-	  versions of the chipset is supported:
++	  versions of the chipset are supported:
+ 	    Intel PIIX4
+ 	    Intel 440MX
+ 	    Serverworks OSB4
+ 	    Serverworks CSB5
++	    Serverworks CSB6
+ 	    SMSC Victory66
  
--/* more like overshoot temperature */
- static ssize_t show_sensor(struct device *dev, char *buf, int nr)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -561,15 +560,15 @@
- show_fan_offset(2);
- show_fan_offset(3);
+ 	  This driver can also be built as a module.  If so, the module
+diff -Nru a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c	Tue Dec 30 12:31:40 2003
++++ b/drivers/i2c/busses/i2c-piix4.c	Tue Dec 30 12:31:40 2003
+@@ -22,7 +22,7 @@
+ /*
+    Supports:
+ 	Intel PIIX4, 440MX
+-	Serverworks OSB4, CSB5
++	Serverworks OSB4, CSB5, CSB6
+ 	SMSC Victory66
  
--/* Alarm */
--static ssize_t show_alarm(struct device *dev, char *buf)
-+/* Alarms */
-+static ssize_t show_alarms(struct device *dev, char *buf)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct it87_data *data = i2c_get_clientdata(client);
- 	it87_update_client(client);
- 	return sprintf(buf,"%d\n", ALARMS_FROM_REG(data->alarms));
- }
--static DEVICE_ATTR(alarm, S_IRUGO | S_IWUSR, show_alarm, NULL);
-+static DEVICE_ATTR(alarms, S_IRUGO | S_IWUSR, show_alarms, NULL);
- 
- /* This function is called when:
-      * it87_driver is inserted (when this module is loaded), for each
-@@ -749,7 +748,7 @@
- 	device_create_file(&new_client->dev, &dev_attr_fan_div1);
- 	device_create_file(&new_client->dev, &dev_attr_fan_div2);
- 	device_create_file(&new_client->dev, &dev_attr_fan_div3);
--	device_create_file(&new_client->dev, &dev_attr_alarm);
-+	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	return 0;
- 
-diff -Nru a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
---- a/drivers/i2c/chips/via686a.c	Tue Dec 30 12:31:15 2003
-+++ b/drivers/i2c/chips/via686a.c	Tue Dec 30 12:31:15 2003
-@@ -635,14 +635,14 @@
- show_fan_offset(1);
- show_fan_offset(2);
- 
--/* Alarm */
--static ssize_t show_alarm(struct device *dev, char *buf) {
-+/* Alarms */
-+static ssize_t show_alarms(struct device *dev, char *buf) {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct via686a_data *data = i2c_get_clientdata(client);
- 	via686a_update_client(client);
- 	return sprintf(buf,"%d\n", ALARMS_FROM_REG(data->alarms));
- }
--static DEVICE_ATTR(alarm, S_IRUGO | S_IWUSR, show_alarm, NULL);
-+static DEVICE_ATTR(alarms, S_IRUGO | S_IWUSR, show_alarms, NULL);
- 
- /* The driver. I choose to use type i2c_driver, as at is identical to both
-    smbus_driver and isa_driver, and clients could be of either kind */
-@@ -767,7 +767,7 @@
- 	device_create_file(&new_client->dev, &dev_attr_fan_min2);
- 	device_create_file(&new_client->dev, &dev_attr_fan_div1);
- 	device_create_file(&new_client->dev, &dev_attr_fan_div2);
--	device_create_file(&new_client->dev, &dev_attr_alarm);
-+	device_create_file(&new_client->dev, &dev_attr_alarms);
- 
- 	return 0;
- 
+    Note: we assume there can only be one device, with one SMBus interface.
+@@ -418,6 +418,13 @@
+ 	{
+ 		.vendor =	PCI_VENDOR_ID_SERVERWORKS,
+ 		.device =	PCI_DEVICE_ID_SERVERWORKS_CSB5,
++		.subvendor =	PCI_ANY_ID,
++		.subdevice =	PCI_ANY_ID,
++		.driver_data =	0,
++	},
++	{
++		.vendor =	PCI_VENDOR_ID_SERVERWORKS,
++		.device =	PCI_DEVICE_ID_SERVERWORKS_CSB6,
+ 		.subvendor =	PCI_ANY_ID,
+ 		.subdevice =	PCI_ANY_ID,
+ 		.driver_data =	0,
 
