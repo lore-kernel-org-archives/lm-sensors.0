@@ -1,34 +1,20 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:26 +0000
-Subject: 2nd mail archive?
-Message-Id: <41BE1E87.6010508@edgedesign.us>
+From: Nazmul.Hossain@tafensw.edu.au (Hossain, Nazmul)
+Date: Thu, 19 May 2005 06:23:26 +0000
+Subject: Release date for ver 2.6.3
+Message-Id: <3C0F977A.4090706@tafensw.edu.au>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41B86924.7010108@verizon.net>
-In-Reply-To: <41B86924.7010108@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-OK, I've added the header.  We'll know on the next cvs commit if it 
-works or not. ;')
+I bought a Epox 8KHA+ motherboard, which uses VIA KT266A (VT8233) and a 
+Winbond 83697HF LPC chipset. Are you going to release the ver 2.6.3 as 
+tarball (or RPM ??) soon ?
 
+Thanks.
 
-Phil
-
-
-Mark Studebaker wrote:
-> Hearing no comment, I'm going to sign us up.
-> 
-> Phil, can you add
-> 
->     X-Archive: expiry=0
-> 
-> to the CVS checkin emails to prevent them from being stored in gmane?
-> Further information here:
-> 
->     http://gmane.org/expiry.php
-> 
-> mds
-> 
+Nazmul Hossain.
+Sydney, Australia.
