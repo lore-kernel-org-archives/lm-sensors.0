@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:24 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: ASB100 PWM
-Message-Id: <20031113215343.02d0ab24.khali@linux-fr.org>
+Message-Id: <20031115062211.GE10074@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031111062929.GA30118@earth.solarsys.private>
 In-Reply-To: <20031111062929.GA30118@earth.solarsys.private>
@@ -10,19 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->     if (IOByte($4F,$0,IORead)=$94) or (IOByte($4F,$0,IORead)=$06) then
->     begin
->       ChipType:=ASB100;
->       // etc etc
->     end
+* Vitaly V. Bursov <vitalyb@mail333.com> [2003-11-11 14:48:52 +0200]:
 
-OK, so you don't actually make any difference between both revisions.
-Thanks anyway.
+> $ echo $[ 0x80 ] 1 > pwm1
+> It works for me! Thanks!
 
-> question for you, heard/know of the VIA VT6307 ?
+OK great!  It's committed.
 
-No, never heard of it, sorry.
+> I have an Asus A7V8X mobo rev 1.04, ASB100 chip marking follows
+> 
+> ASB100-A    Bach
+> TPV268981   0240E
+> 
+> i2cdump`s output for banks 0-4 is attached.
+> 
+> And I checked a photo in the manual. It is a mobo rev 1.02
+> ASB100 marking:
+> 
+> ASB100-A    Bach
+> TKF100471AE 0227
+> 
+> Looks differently...
+
+Indeed, mine says this:
+
+ASB100      Bach
+TSR393731AD 0148
+
+I'm therefore assuming that ASB100-A supports pwm1, while
+plain ASB100 does not.  Looking through your attached
+chip dump (quickly, I'll admit) I don't see a way to
+distinguish the two.
+
+Regards,
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mark M. Hoffman
+mhoffman@lightlink.com
