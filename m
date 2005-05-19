@@ -1,113 +1,55 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: FW: Fix for problems with the Intel 82810 driver of lm-sensors
-Message-Id: <3DD7FD64.224AADC@paradyne.com>
+From: killers_soul@hotmail.com (Jason Longland)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: nforce2 i2c module compilation
+Message-Id: <000f01c35b57$0985ec80$0100a8c0@downstairs>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <PFEKKDLGBCAKPFINAMGJEEPHCBAA.michael@5dot1.de>
-In-Reply-To: <PFEKKDLGBCAKPFINAMGJEEPHCBAA.michael@5dot1.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-so it appears that the 810AA pins are not open-drain.
-If you modprobe i2c-algo-bit bit_test=1, does it fail when
-you load i2c-i810 without your changes and pass with your changed
-i2c-i810?
 
-Flipping the pins to inputs should work for all chips. I was
-just trying to save a couple of writes.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-So if your test results are favorable I'll just check in a simple
-change that affects all chips.
+Just wondering how to resolve this error I always get when trying to compile
+the lm sensors package (both from CVS pre- and post- 2.8.0 release and the
+final released 2.8.0) on Redhat 9 or Severn (RH9.0.93).  I am using an ASUS
+A7N8X rev2 and was wanting to use the nforce2 sensor to try and get hardware
+monitoring much like Motherbaord monitor in windows, but for linux, going.
+Any help would be appreciated.
 
-mds
+Jason Longland
 
-Michael Dreher wrote:
-> 
-> Hi!
-> 
-> Some days ago, I sent a patch for the i2c-i810 driver to Frodo Looijaard,
-> because
-> he has written this driver but maybe I used an old address, or he's just
-> busy,
-> so I got no reply from him.
-> 
-> I also sent the mail to some people that had problems with the driver and I
-> got a positive feedback from David Michael <dave@drinkfromthefurrycup.com>.
-> He said, that the patched driver fixes his problems.
-> 
-> Attached, you will find my original mail with the patch included. it would
-> be nice if you could incorporate my changes to one of the next versions
-> of lm-sensors.
-> 
-> In the meanwhile I finished a first version of my fs451 driver. Could you
-> please assign me an official driverid for my driver in i2c/kernel/i2c-id.h?
-> I used the constant named I2C_DRIVERID_FS451 for the driverid. When my
-> driver
-> is ready to be released, I will send that driver to you.
-> 
->   Best Regards
-> 
->      Michael Dreher
->      <michael@5dot1.de>
-> 
-> -----Urspr?ngliche Nachricht-----
-> Von: Michael Dreher [mailto:michael@5dot1.de]
-> Gesendet: Donnerstag, 31. Oktober 2002 00:15
-> An: Frodo Looijaard; alp_chen@hotmail.com;
-> dave@drinkfromthefurrycup.com; ppignon@eprocess.fr
-> Betreff: Fix for problems with the Intel 82810 driver of lm-sensors
-> 
-> Hi Frodo!
-> 
-> I bought a MediaPortal some weeks ago. This is a SetTopBox with a DVB card
-> that
-> can be also used as a WebBrowser. It's based on a standard PC with a Celeron
-> CPU and a Intel 82810 Chipset. To improve the tv-out capabilities a Focus
-> FS450
-> chip is also integrated. This chip has similar functions than the bt869 that
-> is
-> already supported by lm-sensors.
-> 
-> The FS450 chip is connected to the i2c bus of the 82810. My problem was,
-> that
-> the i2c-i810 module detected my 82810 chipset (device ID 0x7121), but
-> i2cdetect and i2cdump never detected any i2c devices, neither on the
-> i2c bus, nor on the ddc bus.
-> 
-> I tried to figure out where the problem and read some parts of the smbus and
-> the
-> Intel 82810 specs. I came to the conclusion, that something is wrong with
-> data
-> direction of the sda and probably the scl lines of the bus. The driver
-> assumes, that when a line is set to high it is the same as setting it to
-> input mode, but this is not correct, at least not for my specific chipset.
-> 
-> Here I send you a diff and my version of the i2c-i810.c file that fixed my
-> problem.
-> In the support forum, I found the support tickets #419, #615 and #728 that
-> may be fixed
-> with the patch, therefore I also send this mail to the originators of that
-> tickets.
-> The base for my patch was lm-sensors 2.6.4 and I'm using kernel 2.4.19 and
-> i2c 2.6.4.
-> 
-> To the originators of the support tickets:
-> Please let me know if this solves your problems. The MediaPortal is my only
-> hardware
-> with a 82810 chipset, so I can't do much testing.
-> 
->   Best Regards
-> 
->     Michael Dreher
->     <michael@5dot1.de>
-> 
-> 
->                     Name: i810_fix.diff
->    i810_fix.diff    Type: unspecified type (application/octet-stream)
->                 Encoding: quoted-printable
-> 
->                  Name: i2c-i810.c
->    i2c-i810.c    Type: unspecified type (application/octet-stream)
->              Encoding: quoted-printable
+
+*********************************************************************
+
+All messages originating from me are digitally signed to
+ensure authenticity.
+
+If any message is not signed it could be due to one of the following to
+reasons:
+
+1.  my email client isn't working and I've had to use the web browser
+2.  it isn't from me and could be a virus
+
+All content contained herein is copyright (or copyleft...) of the sender.
+
+All messages are scanned using the latest virus definitions
+for Norton Antivirus 2003 prior to sending.
+
+*********************************************************************
+-----BEGIN PGP SIGNATURE-----
+Version: PGP 8.0
+
+iQA/AwUBPy+zc09XUfpwf1ScEQJjmQCgrK4kvecUL7HmtHASRysxOR36P/kAoLfa
+Jjt/nprz4Yf8WjQNa6kekFxo
+=5IkO
+-----END PGP SIGNATURE-----
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lmsensors_build.log
+Type: application/octet-stream
+Size: 64670 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030805/ee270889/lmsensors_build.obj
