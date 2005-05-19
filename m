@@ -1,37 +1,33 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:37 +0000
-Subject: Typo (Re: [PATCH] i2c driver fixes for 2.6.2-rc2)
-Message-Id: <20040131005526.GE10860@kroah.com>
+From: alex@openup.com (Alex Duggan)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: How do I get i2c-viapro kernel module
+Message-Id: <1006531457.32098.3.camel@astrolinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10752464532256@kroah.com> <200401291227.15413.ender@debian.org> <20040129194705.GD5681@kroah.com> <200401301058.29324.ender@debian.org>
-In-Reply-To: <200401301058.29324.ender@debian.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David =?iso-8859-1?Q?Mart=EDnez?= Moreno <ender@debian.org>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Fri, Jan 30, 2004 at 10:58:29AM +0100, David Mart?nez Moreno wrote:
-> El Jueves, 29 de Enero de 2004 20:47, Greg KH escribi?:
-> > On Thu, Jan 29, 2004 at 12:27:15PM +0100, David Mart?nez Moreno wrote:
-> > > 	Sure, it's only a small thing in return for all that Linux has given to
-> > > me.
-> > >
-> > > 	Following patch fixes two typos and a missing full stop. Applies cleanly
-> > > against 2.6.2-rc2 + i2c patches you just submitted.
-> >
-> > Hm, your mailer munged the patch (due to the PGP signature), care to
-> > redo it so that it can be applied?
-> 
-> 	I agree. :-)
-> 
-> 	There goes again, without GPG sig.
+Hi Guys
 
-Much nicer.
+I'm having a bit of a problem that I think you can clarify.  I would
+like to use lm_sensors and I need the i2c-viapro kernel module.  I have
+tried kernel 2.4.10 and kernel 2.4.14 (latest stable) and I can't seem
+to find an option to build that module anywhere in 'make xconfig'.  What
+do I need to do to make this module???  I've tried patching with you
+mkpatch.pl script to no avail.  I noticed that the stock redhat
+kernel, which I don't use, has it included in it, what do I need to do
+to build this module into my kernel?
 
-> 	Following patch fixes two typos and a missing full stop. Applies cleanly
-> against 2.6.2-rc2 + i2c patches you just submitted.
+PS If I've sent this to the wrong email, who do I want to be contacting
+about this?
 
-Thanks, I've applied this to my trees.
-
-greg k-h
+Thanks
+Alex
+-- 
+  ___  ____ ____       _____                      _____
+ / _ \|  __|  _ \     
+| /_\ | |_ | | | |     Alex Duggan
+|  _  |  _|| | | |     alex@openup.com/aldug@openup.com
+| | | | |  | |_| |     http://darthvader.astrolinux.com
+|_| |_|_|  |____/      _____                      _____
