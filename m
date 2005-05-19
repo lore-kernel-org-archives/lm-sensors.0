@@ -1,164 +1,135 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:42 +0000
-Subject: w83627hf driver: one pwm value, two fan speeds?
-Message-Id: <20050309223124.66236a82.khali@linux-fr.org>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Thu, 19 May 2005 06:25:21 +0000
+Subject: [2.6 patch] i2c/busses/ : make some code static
+Message-Id: <20041107023333.GB14308@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050306230902.GA17472@nospam.com>
-In-Reply-To: <20050306230902.GA17472@nospam.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: greg@kroah.com, phil@netroedge.com
+Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-Hi Rutger,
+The patch below makes some needlessly global code under i2c/busses/ 
+static.
 
-> > The underlying technology is Winbond's
-> > automatic fan control logic embedded in their Super-I/O chips
-> > (W83627THF in your case, if I'm not mistaken).
-> 
-> Yup, using the w83627hf module, that's what I wrote.
 
-The w83627hf drivers supports more than one chip, namely W83627HF,
-W83627_T_HF, W836_9_7HF and W836_3_7HF. It happens that the 627THF
-variant handles fan control differently from the other chips of the
-family.
+diffstat output:
+ drivers/i2c/busses/i2c-ali1535.c |    4 ++--
+ drivers/i2c/busses/i2c-amd8111.c |   12 ++++++------
+ drivers/i2c/busses/scx200_acb.c  |    4 ++--
+ drivers/i2c/busses/scx200_i2c.c  |    4 ++--
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
-> > Winbond calls that "Cruise Mode".
-> > In fact there are two of these, thermal cruise mode and fan speed
-> > cruise mode. Q-Fan would be thermal cruise mode.
-> 
-> What is the difference? Thermal cruise mode probably adjusts the CPU
-> fan speed according to the CPU temperature, what does 'fan speed
-> cruise mode' do?
 
-Thermal cruise mode adjusts the fan control *outputs* according to the
-temperature (aiming at a given temperature). Fan speed cruise mode
-adjusts the fan control ouputs according to the measured fan speed
-(aiming at a given fan speed).
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-> > From motherboard manual: Q-Fan can be enabled/disabled, and a low
-> > fan speed can be selected: 11/16, 12/16, 13/16, 14/16, 15/16 or
-> > full speed. No temperature to be set.
-
-This means that I am wrong, and what Asus names Q-Fan is not an alias
-for any "cruise mode" but for manual control. As a side note, I wonder
-how they achieve "full speed" since I cannot find a way to disable fan
-control according to the datasheet.
-
-I also would like to add that the fan control is NOT PWM-based as I
-first thought and said. It is DC-based, according to the datasheet.
-That's quite rare these days. The files are still called pwm* for the
-sake of compatibility.
-
-> > OTOH is seems that your qfan.rb script is a *software* fan control
-> > script, so it's quite different. Our driver doesn't support either
-> > cruise mode at the moment.
-> 
-> What do you mean with 'doesn't support'? It does provide the
-> infrastructure (reading CPU temp, settings the pwm), so it does
-> support it in my views.
-
-Automatic modes are not supported. Manual mode is, as you could see.
-
-Fan speed cruise mode has very little interest IMHO, but thermal cruise
-mode is interesting and supporting this would be a good idea. I would
-indeed add support if I has a board with such a chip.
-
-> 0 or 64  + sleep 5 + 128 gives +-1125RPM.
->      80  + sleep 5 + 128 gives +-1125RPM.
->      96  + sleep 5 + 128 gives +-1900RPM.   <- change at 96
->      144 + sleep 5 + 128 gives +-1900RPM.
->      192 + sleep 5 + 128 gives +-1900RPM.
->      240 + sleep 5 + 128 gives +-1900RPM.
-> 
-> 0 or 64  + sleep 5 + 144 gives +-1400RPM.
->      80  + sleep 5 + 144 gives +-1400RPM.
->      96  + sleep 5 + 144 gives +-1400RPM.
->      112 + sleep 5 + 144 gives +-1400RPM.
->      128 + sleep 5 + 144 gives +-2250RPM.   <- change at 128
->      240 + sleep 5 + 144 gives +-2250RPM.
-> 
-> 0        + sleep 5 + 176 gives +-1875RPM.
->      128 + sleep 5 + 176 gives +-1875RPM.
->      192 + sleep 5 + 176 gives +-1875RPM.
->      208 + sleep 5 + 176 gives +-1875RPM.
->      224 + sleep 5 + 176 gives +-2909RPM.   <- change at 224
->      240 + sleep 5 + 176 gives +-2909RPM.
-> 
-> 0 or 64  + sleep 5 + 192 gives +-2136RPM.
->      128 + sleep 5 + 192 gives +-2136RPM.
->      224 + sleep 5 + 192 gives +-2136RPM.
->      240 + sleep 5 + 192 gives +-3308RPM.   <- change at 240
-> 
-> 0        + sleep 5 + 208 gives +-2350RPM.
->      128 + sleep 5 + 208 gives +-2350RPM.
->      192 + sleep 5 + 208 gives +-2350RPM.
->      240 + sleep 5 + 208 gives +-2350RPM.
-> 
-> 0 or 64  + sleep 5 + 240 gives +-2760RPM.
->      128 + sleep 5 + 240 gives +-2760RPM.
->      192 + sleep 5 + 240 gives +-2760RPM.
->      224 + sleep 5 + 240 gives +-2760RPM.
-> 
-> Strange, the point of change increases faster than the final speed
-> does...
-
-Completely strange, I agree. I don't see much logic here. Two comments
-though:
-
-* The ratio between "low" and "high" speeds for a same output value
-seems to be always the same (around 1.5).
-
-* The "high" value seems to exceed the max possible value (3308RPM at
-192 > 2760RPM et 240). I wouldn't leave the fan in this state, possibly
-it's running over its design voltage in this situation.
-
-* The W83627HF outputs less than 5V max for the fans. I doubt you have
-5V fans, most likely you have 12V fans like everyone. This means that
-there must be some electronics (maybe a simple amplifier) between the
-chip and the fan. I start suspecting that this electronics stuff is
-bogus and causing the trouble.
-
-If you have a voltmeter, I invite you to check the fan output voltage
-when you play with the pwm2 file (power the fan from somewhere else in
-the meantime).
-
-> Yes. the granularity appears to be 16, therefore I write values like
-> 128, 144, 192, ...
-
-True, low nibble of the register is unused.
-
-> This granularity corresponds to the BIOS Q-Fan settings: 11/16 is
-> probably 176, etc.
-
-True again.
-
-> > Are you loading the w83627hf driver with init=0?
-> 
-> No, since I want the Q-Fan disabled since I want to do it myself in
-> software. What should I retry with init=0?
-
-Please do if possible, and report if it alters the behavior of pwm2.
-
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 01 ff 01 cf 00 00 00 00 01 01 01 01 3c 3c 0a 0a 
-> 10: 01 ff 00 00 00 01 01 3c 43 00 ff ff 24 32 00 e2 
-> 20: a3 c4 d2 be ff 0a 00 1e 6f 4f ff f0 00 de 57 fe 
-> 30: c2 2c 20 80 24 71 41 dd 4a 49 08 1a 12 0d 00 00 
-> 40: 03 00 00 fe ff 00 00 ff 1f 03 89 c4 58 95 00 a3 
-> 50: ff ff 80 ff ff ff 00 80 90 70 ff ff 11 84 ff 05 
-> 60: a3 c4 d2 be ff 0a 00 1e 6f 4f ff f0 00 de 57 fe 
-> 70: c2 2c 20 80 24 71 41 dd 4a 49 08 1a 12 0d 00 00 
-> 80: 01 ff 01 cf 00 00 00 00 01 01 01 01 3c 3c 0a 0a 
-> 90: 01 ff 00 00 00 01 01 3c 43 00 ff ff 24 32 00 e2 
-> a0: a3 c4 d2 be ff 0a 00 1e 6f 4f ff f0 00 de 57 fe 
-> b0: c2 2c 20 80 24 71 41 dd 4a 49 08 1a 12 0d 00 00 
-> c0: 03 00 00 fe ff 00 00 ff 1f 03 89 c4 58 95 00 a3 
-> d0: ff ff 80 ff ff ff 00 80 90 70 ff ff 11 84 ff 05 
-> e0: a3 c4 d2 be ff 0a 00 1e 6f 4f ff f0 00 de 57 fe 
-> f0: c2 2c 20 80 24 71 41 dd 4a 49 08 1a 12 0d 00 00 
-
-Looks all OK to me. (Yes, really.)
-
--- 
-Jean Delvare
+--- linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/i2c-ali1535.c.old	2004-11-07 02:46:57.000000000 +0100
++++ linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/i2c-ali1535.c	2004-11-07 02:47:15.000000000 +0100
+@@ -137,7 +137,7 @@
+ 
+ 
+ static unsigned short ali1535_smba;
+-DECLARE_MUTEX(i2c_ali1535_sem);
++static DECLARE_MUTEX(i2c_ali1535_sem);
+ 
+ /* Detect whether a ALI1535 can be found, and initialize it, where necessary.
+    Note the differences between kernels with the old PCI BIOS interface and
+@@ -465,7 +465,7 @@
+ }
+ 
+ 
+-u32 ali1535_func(struct i2c_adapter *adapter)
++static u32 ali1535_func(struct i2c_adapter *adapter)
+ {
+ 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+ 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+--- linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/i2c-amd8111.c.old	2004-11-07 02:47:44.000000000 +0100
++++ linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/i2c-amd8111.c	2004-11-07 02:48:34.000000000 +0100
+@@ -67,7 +67,7 @@
+  * ACPI 2.0 chapter 13 access of registers of the EC
+  */
+ 
+-unsigned int amd_ec_wait_write(struct amd_smbus *smbus)
++static unsigned int amd_ec_wait_write(struct amd_smbus *smbus)
+ {
+ 	int timeout = 500;
+ 
+@@ -82,7 +82,7 @@
+ 	return 0;
+ }
+ 
+-unsigned int amd_ec_wait_read(struct amd_smbus *smbus)
++static unsigned int amd_ec_wait_read(struct amd_smbus *smbus)
+ {
+ 	int timeout = 500;
+ 
+@@ -97,7 +97,7 @@
+ 	return 0;
+ }
+ 
+-unsigned int amd_ec_read(struct amd_smbus *smbus, unsigned char address, unsigned char *data)
++static unsigned int amd_ec_read(struct amd_smbus *smbus, unsigned char address, unsigned char *data)
+ {
+ 	if (amd_ec_wait_write(smbus))
+ 		return -1;
+@@ -114,7 +114,7 @@
+ 	return 0;
+ }
+ 
+-unsigned int amd_ec_write(struct amd_smbus *smbus, unsigned char address, unsigned char data)
++static unsigned int amd_ec_write(struct amd_smbus *smbus, unsigned char address, unsigned char data)
+ {
+ 	if (amd_ec_wait_write(smbus))
+ 		return -1;
+@@ -174,7 +174,7 @@
+ #define AMD_SMB_PRTCL_PEC		0x80
+ 
+ 
+-s32 amd8111_access(struct i2c_adapter * adap, u16 addr, unsigned short flags,
++static s32 amd8111_access(struct i2c_adapter * adap, u16 addr, unsigned short flags,
+ 		char read_write, u8 command, int size, union i2c_smbus_data * data)
+ {
+ 	struct amd_smbus *smbus = adap->algo_data;
+@@ -315,7 +315,7 @@
+ }
+ 
+ 
+-u32 amd8111_func(struct i2c_adapter *adapter)
++static u32 amd8111_func(struct i2c_adapter *adapter)
+ {
+ 	return	I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE | I2C_FUNC_SMBUS_BYTE_DATA |
+ 		I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_DATA |
+--- linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/scx200_acb.c.old	2004-11-07 02:48:54.000000000 +0100
++++ linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/scx200_acb.c	2004-11-07 02:49:53.000000000 +0100
+@@ -402,9 +402,9 @@
+ 	.functionality	= scx200_acb_func,
+ };
+ 
+-struct scx200_acb_iface *scx200_acb_list;
++static struct scx200_acb_iface *scx200_acb_list;
+ 
+-int scx200_acb_probe(struct scx200_acb_iface *iface)
++static int scx200_acb_probe(struct scx200_acb_iface *iface)
+ {
+ 	u8 val;
+ 
+--- linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/scx200_i2c.c.old	2004-11-07 02:52:05.000000000 +0100
++++ linux-2.6.10-rc1-mm3-full/drivers/i2c/busses/scx200_i2c.c	2004-11-07 02:50:30.000000000 +0100
+@@ -86,7 +86,7 @@
+ 	.name	= "NatSemi SCx200 I2C",
+ };
+ 
+-int scx200_i2c_init(void)
++static int scx200_i2c_init(void)
+ {
+ 	pr_debug(NAME ": NatSemi SCx200 I2C Driver\n");
+ 
+@@ -115,7 +115,7 @@
+ 	return 0;
+ }
+ 
+-void scx200_i2c_cleanup(void)
++static void scx200_i2c_cleanup(void)
+ {
+ 	i2c_bit_del_bus(&scx200_i2c_ops);
+ }
