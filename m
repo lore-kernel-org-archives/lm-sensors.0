@@ -1,47 +1,35 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: Device Support Questions
-Message-Id: <3D518FED.93DF7A8E@paradyne.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:09 +0000
+Subject: Can I loan you a Westerville board?
+Message-Id: <3F29426E.8030806@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D501788.5000300@skycomputers.com>
-In-Reply-To: <3D501788.5000300@skycomputers.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-To answer your first question (only) we're not aware of any work on those chips.
-If you find anybody please let us know and we'll add it to our 'new drivers' page.
 
-David Spain wrote:
-> 
-> I would like to know if there is any development work under way to
-> support these devices
-> and if so whom I could contact about it:
-> 
-> 1) Marvell GT-64260A (Gallileo System Controller for PowerPC) as I2C Bus
-> Master.
-> 2) Phillips PCA9557 & PCA9557a 8-bit I2C and SMBUS I/O port with interrupt.
-> 3) Phillips PCA9554 & PCA9554a 8-bit I2C and SMBUS I/O port with interrupt.
-> 
-> And a general question I did not see in the FAQ.
-> 
-> In the lm_sensors/kernel/chips/lm87.c module the lm87_attach_adapter
-> function is notably
-> different from other chip's counterparts in that it makes a copy of the
-> static i2c_client_address_data
-> structure and calls the function "i2c_probe" using that copy. It saves
-> the return status of this
-> function call then goes ahead and calls the i2c_detect function (as do
-> all the other modules I have
-> looked at) but then returns not with the status from the i2c_detect
-> call, but the one returned from
-> the i2c_probe call. Why this difference? From examining the code in
-> i2c_detect vs i2c_probe it
-> wasn't obvious what the difference between these two functions are. Can
-> anyone elaborate
-> for me?
-> 
-> Thanks,
-> Dave Spain
-> SkyComputers
+Hi Dave, let's ask the folks on the list to see if anybody wants to 
+tackle this.  I personally don't have the time to do this, but perhaps 
+somebody else might have some time and get some entertainment from helping.
+
+
+Phil
+
+Dave wrote:
+
+>Phil,
+>
+>As you may have seen from Phil Pokorny's forward of my post, I have been
+>trying to get lm_sensors working on an Intel Dual-Xeon SE7502WV2 server
+>motherboard, with little success.  If I were to provide you with either
+>a machine that has that motherboard, or ssh access into the machine (you
+>choice), would there be any possibility of getting someone to try &
+>update the drivers for this board?
+>
+>thanks very much,
+>Dave Strout
+>
+>
+>  
+>
