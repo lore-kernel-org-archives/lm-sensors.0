@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: RFC PATCH add set_value locking
-Message-Id: <b72c41582s4lum584b71dojehattmjhf1n@4ax.com>
+Message-Id: <20050327110109.1d501a12.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1uc941199l784l0uij33lhigg19qm366f3@4ax.com>
 In-Reply-To: <1uc941199l784l0uij33lhigg19qm366f3@4ax.com>
@@ -10,145 +10,87 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
+Hi Grant,
 
-On Sat, 26 Mar 2005 18:31:38 +0100, Jean Delvare <khali@linux-fr.org> wrote:
-
->Mmmm, looks like gl520sm wasn't your best one ;)
-horrible, musta got distracted.
-
->Skipping pcf8574 and pcf8591, they are different chip and might need
->special handling.
-does that mean revert and ignore those two?  skip them for now?
-pcf8591 seems clean, I left it in, the other has a problem, left 
-it out.
-
->>  	for (i = 0; i < count; i++) {
->>  		val = simple_strtoul(buf + count, NULL, 10);
+> > Skipping pcf8574 and pcf8591, they are different chip and might need
+> > special handling.
 >
->BTW, there is a bug here, isn't it? "buf + count" makes no sense? "buf +
->i" would make more, but would still not work as far as I can see. It's
->plain broken to me. This would tend to prove that nobody ever used this
->function... Couldn't we just get rid of that RT thing? I always wondered
->who was using this, and now the answer seems to be "no one".
+> does that mean revert and ignore those two?  skip them for now?
+> pcf8591 seems clean, I left it in, the other has a problem, left 
+> it out.
 
-Alright, I made a separate patch to remove it --> kill #ifdef blocks.
+I discusses these with Aurelien Jarno, which knows the drivers better
+than I do as he actually uses them, and our conclusion are:
 
-on whitespace, line folding:
-I see what you mean, no gratuitous cleanups while patching a particular 
-issue.  Makes sense.
+* pcf8574: no locking is needed AT ALL (nor even in the update function,
+which BTW should be merged into show_read). So forget about this one for
+this patch set. I have a specific patch ready for this one, which I'll
+post separately.
 
->Soooo... that's not so bad (except gl520sm), please fix all points I
->listed here and post new patches.
-Thanks.  No problems.
+* pcf8591: The lock on data->control is actually needed (second part of
+the patch) but the lock on data->aout is not, because nowhere else this
+value is modified.
 
-other post:
->data->sensor is evaluated twice, and could change in the meantime...
->e.g. if value is "thermistor first", and changed to "thermal diode"
->between the calls, we'll return "disabled", which is not correct.
->
->One simple fix if we don't want to lock is to store the value of
->data->sensor in a local variable, and use it afterwards:
+> Alright, I made a separate patch to remove it --> kill #ifdef blocks.
 
-just released lock held during it87_update_device(dev), so we 
-don't take lock again, I put in your suggestion.  Can't hurt.
+Thanks. You only forgot to kill this line:
+#define W83781D_RT                    1
 
 
->I would also appreciate if you could review my own patches now. There is
->no reason you would have made mistakes and I wouldn't, after all. The
->best way to check is to apply the patch and check the new driver code.
->Checking the patches directly doesn't help that much, as you'll miss the
->in-function returns lacking up() and the functions lacking locking
->altogether.
+> for x in /home/public/patch/set-locking/*.diff; do cat $x | patch -p1;
+> done
+> 
+> patching file drivers/i2c/chips/lm87.c
+> Hunk #3 FAILED at 326.
+> Hunk #4 FAILED at 338.
+> 2 out of 8 hunks FAILED -- saving rejects to file
+> drivers/i2c/chips/lm87.c.rej
+> 
+> Let's see if I can work it out...
+> 
+> Fixed it, you get yours rediff'd to -mm3 for free :)
 
-for x in /home/public/patch/set-locking/*.diff; do cat $x | patch -p1; done
+Hmm no that's not correct. My original patch was correct but assumed
+that you apply this preliminary patch before:
+http://khali.linux-fr.org/devel/i2c/linux-2.6/linux-2.6.12-rc1-mm2-i2c-lm87-indent.diff
 
-patching file drivers/i2c/chips/lm87.c
-Hunk #3 FAILED at 326.
-Hunk #4 FAILED at 338.
-2 out of 8 hunks FAILED -- saving rejects to file drivers/i2c/chips/lm87.c.rej
+It was posted on the list already:
+http://archives.andrew.net.au/lm-sensors/msg30209.html
+So I know Greg will pick it before applying our big lock-on-write patch.
+Please restore my original version of the patch.
 
-Let's see if I can work it out...
+> bugfix
+> 
+> pcf8574.c set_write needs something to limit value to byte size, 
+> I added "unsigned long val = simple_strtoul(buf, NULL, 10) & 0xff;"
+> but have left it out of the patchset above.  
 
-Fixed it, you get yours rediff'd to -mm3 for free :)
+I have come to something better and more complete, I think.
+http://jdelvare.net1.nerim.net/sensors/linux-2.6.12-rc1-mm3-i2c-pcf8574-cleanups.diff
+Aurelien Jarno will test it.
 
->
->Remaining drivers:
->ds1337, isp1301_omap, m41t00, rtc8564: Don't use sysfs, so we don't care
->smsc47b397: read-only, so no changes needed.
->
->So we covered all chip driver :) Once cross-review and fixes are done we
->can build the big patch and send it over.
+> fscher.c set_watchdog_status, I had altered the code but put it 
+> back to the way it was for you to check logic:
+> 
+>         down(&data->update_lock);
+>         data->watchdog[1] &= ~v;
+>         fscher_write_value(client, reg, v);
+>         up(&data->update_lock);
+> 
+> safer or different with:
+> 
+> 	fscher_write_value(client, reg, data->watchdog[1]); 
+> 
+> .. instead?  Dunno, thought I better leave it as found.
 
-Okay, I review 28 files, adm1016, adm1031, lm85 moved the 'val =' 
-assignment above lock to match the rest, additional small whitespace 
-fixups in my patches removed to match original, found nothing with 
-your patches, apart from mm2 -> mm3 hiccup noted above.
+The code looks strange to me too, but I wouldn't change it, at least not
+without reading the datasheet twice first.
 
-for x in /home/public/*.diff; do cat $x |patch -p1;done
-patching file drivers/i2c/chips/adm1025.c
-patching file drivers/i2c/chips/adm1026.c
-patching file drivers/i2c/chips/adm1031.c
-patching file drivers/i2c/chips/asb100.c
-patching file drivers/i2c/chips/ds1621.c
-patching file drivers/i2c/chips/fscher.c
-patching file drivers/i2c/chips/fscpos.c
-patching file drivers/i2c/chips/gl518sm.c
-patching file drivers/i2c/chips/gl520sm.c
-patching file drivers/i2c/chips/it87.c
-patching file drivers/i2c/chips/lm63.c
-patching file drivers/i2c/chips/lm75.c
-patching file drivers/i2c/chips/lm77.c
-patching file drivers/i2c/chips/lm78.c
-patching file drivers/i2c/chips/lm80.c
-patching file drivers/i2c/chips/lm83.c
-patching file drivers/i2c/chips/lm85.c
-patching file drivers/i2c/chips/lm87.c
-patching file drivers/i2c/chips/lm90.c
-patching file drivers/i2c/chips/lm92.c
-patching file drivers/i2c/chips/max1619.c
-patching file drivers/i2c/chips/pc87360.c
-patching file drivers/i2c/chips/pcf8591.c
-patching file drivers/i2c/chips/sis5595.c
-patching file drivers/i2c/chips/smsc47m1.c
-patching file drivers/i2c/chips/via686a.c
-patching file drivers/i2c/chips/w83627hf.c
-patching file drivers/i2c/chips/w83781d.c
+> w83781d.c remove W83781D_RT I made a patch to do this, applies 
+> after locking patch.
 
-.config has all sensors as modules + ISA + PIIX4 + algos <m> + debug
+Correct.
 
-Assuming this one compiles okay I'll post one big new patch, for 
-you to review and co-sign if I got my bit right.  I'll replace 
-files in http://scatter.mine.nu/lmsensors/lock-on-set/ to suit, 
-as well provide as an all-lock-on-set.tar.bz2.
-
-bugfix
-
-pcf8574.c set_write needs something to limit value to byte size, 
-I added "unsigned long val = simple_strtoul(buf, NULL, 10) & 0xff;"
-but have left it out of the patchset above.  
-
-fscher.c set_watchdog_status, I had altered the code but put it 
-back to the way it was for you to check logic:
-
-        down(&data->update_lock);
-        data->watchdog[1] &= ~v;
-        fscher_write_value(client, reg, v);
-        up(&data->update_lock);
-
-safer or different with:
-
-	fscher_write_value(client, reg, data->watchdog[1]); 
-
-. instead?  Dunno, thought I better leave it as found.
-
-w83781d.c remove W83781D_RT I made a patch to do this, applies 
-after locking patch.
-
-All drivers compile tested, and again as a unit from which I'll 
-drag out the big patch matching list above.
-
-Also send bugfix as RFC patches again.
-
-Cheers,
-Grant.
+Thanks,
+-- 
+Jean Delvare
