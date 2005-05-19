@@ -1,49 +1,62 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: it87 & Asus A7V8X-X
-Message-Id: <20040417194709.7572c90e.khali@linux-fr.org>
+From: domen@coderock.org (domen@coderock.org)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [patch 2/2] i2c/i2c-ite: remove interruptible_sleep_on_timeout()
+Message-Id: <20050306104150.AB27D1F1F0@trashy.coderock.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200404171549.i3HFnfn00517@SilverHaven.dnsalias.net>
-In-Reply-To: <200404171549.i3HFnfn00517@SilverHaven.dnsalias.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> A suggested Asus A7V8X-X -specific fix to be included in the sample 
-> /etc/sensors.conf file as an MB-specific comment:
-> 
-> The IT87 chip on Asus A7V8X-X seems to report the VCORE voltage
-> approximately 0,05 volts higher as the board's BIOS does. I had the
-> opportunity to check this with two CPUs, and while the amount is not
-> exact, it seems to be a working fix for Athlon XP 1600+ and Athlon XP
-> 2500+ on this motherboard. So I managed to correct this by setting a
-> line
-> 
-> compute in0 -0.05+@ , @+0.05
-> 
-> in /etc/sensors.conf
-> 
-> I have little idea of the meanings of the compute line, and I'm not
-> saying the formula is correct, but this did work for me.
 
-We had a previous report that seems to confirm that:
-http://archives.andrew.net.au/lm-sensors/msg04456.html
 
-I also found this report:
-http://archives.andrew.net.au/lm-sensors/msg02813.html
-but it's less relevant.
+Replace deprecated interruptible_sleep_on_timeout() with direct
+wait-queue usage. Patch is compile-tested, sort of; the driver does not build in
+vanilla kernel either, but I don't seem to add any warnings..
 
-This is very strange however. I can't get the reason why Asus did this.
-And, more importantly, I can't see how they would have done that
-physically. I suspect that Asus is reporting a voluntarily bad value in
-their BIOS setup screen. I already caught them doing this for
-temperatures, so after all, why not voltages...
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Domen Puncer <domen@coderock.org>
+---
 
-I will insert your comment (edited) in our default sensors.conf file.
 
-Thanks for reporting.
+ kj-domen/drivers/i2c/busses/i2c-ite.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+diff -puN drivers/i2c/busses/i2c-ite.c~int_sleep_on-drivers_i2c_busses_i2c-ite drivers/i2c/busses/i2c-ite.c
+--- kj/drivers/i2c/busses/i2c-ite.c~int_sleep_on-drivers_i2c_busses_i2c-ite	2005-03-05 16:12:07.000000000 +0100
++++ kj-domen/drivers/i2c/busses/i2c-ite.c	2005-03-05 16:12:07.000000000 +0100
+@@ -40,6 +40,7 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
++#include <linux/wait.h>
+ #include <asm/irq.h>
+ #include <asm/io.h>
+ 
+@@ -107,7 +108,7 @@ static int iic_ite_getclock(void *data)
+  * IIC controller interrupts.
+  */
+ static void iic_ite_waitforpin(void) {
+-
++   DEFINE_WAIT(wait);
+    int timeout = 2;
+    long flags;
+ 
+@@ -121,13 +122,15 @@ static void iic_ite_waitforpin(void) {
+ 	spin_lock_irqsave(&lock, flags);
+ 	if (iic_pending = 0) {
+ 		spin_unlock_irqrestore(&lock, flags);
+-		if (interruptible_sleep_on_timeout(&iic_wait, timeout*HZ)) {
++		prepare_to_wait(&iic_wait, &wait, TASK_INTERRUPTIBLE);
++		if (schedule_timeout(timeout*HZ)) {
+ 			spin_lock_irqsave(&lock, flags);
+ 			if (iic_pending = 1) {
+ 				iic_pending = 0;
+ 			}
+ 			spin_unlock_irqrestore(&lock, flags);
+ 		}
++		finish_wait(&iic_wait, &wait);
+ 	} else {
+ 		iic_pending = 0;
+ 		spin_unlock_irqrestore(&lock, flags);
+_
