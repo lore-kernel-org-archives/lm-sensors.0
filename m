@@ -1,26 +1,27 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: Interest in helping
-Message-Id: <20030521163652.GA1481@kroah.com>
+From: dsmoker@libero.it (Fabio Salvucci)
+Date: Thu, 19 May 2005 06:23:57 +0000
+Subject: 4 bugs
+Message-Id: <20030531161631.A400@libero.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <8EDE97BDB92BF34D851B329483A661B7E29BEB@mail.edocsd.edocombat.com>
-In-Reply-To: <8EDE97BDB92BF34D851B329483A661B7E29BEB@mail.edocsd.edocombat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 21, 2003 at 12:28:49PM -0400, Rick Devaney wrote:
-> How can I start with porting an existing driver to the 2.5 kernel?
+I have found and correct (I hope) 4 little bug in the lm_sensors-2.7.0
+The correct version works great on my asus p4b533 chips as99127f.
 
-You can start by not replying back only to me :)
+I send to you a copy of lm_sensors-2.7.0-1.
 
-Then, look at the archives, I posted a document on how to do this a
-while ago.  Look for a driver that is in the CVS tree, and not in the
-2.5 kernel that you have the hardware for, so you can test the changes.
+(P.S.) I hope it is correct!!
 
-If you have any specific questions, feel free to ask.
+best regards
 
-Good luck,
-
-greg k-h
+fabio salvucci (italy)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.7.0-1.tar.gz
+Type: application/octet-stream
+Size: 603749 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030531/a5838ef7/lm_sensors-2.7.0-1.tar.obj
