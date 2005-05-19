@@ -1,32 +1,37 @@
-From: greg@kroah.com (Greg KH)
+From: davej@codemonkey.org.uk (Dave Jones)
 Date: Thu, 19 May 2005 06:23:51 +0000
 Subject: [PATCH] More i2c driver changes for 2.5.65
-Message-Id: <20030325012923.GA10879@kroah.com>
+Message-Id: <20030325020418.GB8048@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10482950873871@kroah.com> <10482950921680@kroah.com> <20030325093550.GD1083@zaurus.ucw.cz>
-In-Reply-To: <20030325093550.GD1083@zaurus.ucw.cz>
+References: <10482950873871@kroah.com> <10482950921680@kroah.com> <20030325093550.GD1083@zaurus.ucw.cz> <20030325012923.GA10879@kroah.com>
+In-Reply-To: <20030325012923.GA10879@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@suse.cz>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>
+Cc: Pavel Machek <pavel@suse.cz>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-On Tue, Mar 25, 2003 at 10:35:50AM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > +	.name		= "ADM1021-MAX1617",
-> 
-> Why dash here
-> 
-> > +	.name		= "LM75 sensor",
-> 
-> And space here? Also you should have 
-> either 2x "sensor" or none at all. 
+On Mon, Mar 24, 2003 at 05:29:23PM -0800, Greg KH wrote:
 
-What do you mwan "2x"?  I just shortened that name up to fit within the
-16 characters that we are allowed for driver names.  If you can come up
-with some better ones, please let me know.
+ > > > +	.name		= "ADM1021-MAX1617",
+ > > Why dash here
+ > > > +	.name		= "LM75 sensor",
+ > > And space here? Also you should have 
+ > > either 2x "sensor" or none at all. 
+ > What do you mwan "2x"?
 
-thanks,
+The way I parsed it, either have..
+ .name = "ADM1021-MAX1617 sensor",
+ .name = "LM75 sensor",
 
-greg k-h
+or
+
+ .name = "ADM1021-MAX1617",
+ .name = "LM75",
+
+ie, both, or all. Personally the latter looks better to me.
+Especially given the 16 char limit.  Aren't these going to
+be in a sysfs heirarchy where its obvious they are sensors
+anyway ? like i2c/sensors/lm75 ?
+
+		Dave
