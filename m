@@ -1,37 +1,52 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:20 +0000
-Subject: Adding S4882 support to the i2c-amd756 driver
-Message-Id: <20041022034103.GF9774@jupiter.solarsys.private>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: [Fwd: i2c-proc correction]
+Message-Id: <3D78E1D0.FB57803C@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041017222721.1f12466d.khali@linux-fr.org>
-In-Reply-To: <20041017222721.1f12466d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi:
+Don't know - anybody?
 
-(Replying to self)
-
-* Mark M. Hoffman <mhoffman@lightlink.com> [2004-10-21 23:21:17 -0400]:
-> Yes, I'll want to tackle this in stages.  The sysfs fixups can come later.
-> It brings up a point though: if the MUX client is registered "manually"
-> as we're calling it, what do we do with the sysfs structure?  Maybe it 
-> would be better for i2c_lock_adapter to do this:
+Alexander Viro wrote:
 > 
-> 1) force all existing clients to detach
-> 2) attach the caller client as normal
-> 3) mark the bus as no-probe and allow no further client attachments
+> On Thu, 5 Sep 2002, Mark D. Studebaker wrote:
+> 
+> > removed from i2c-proc.c. As the comments say, the code prevents module
+> > unloading
+> > if the /proc files are in use.
+> 
+> So does setting ->owner on them.
+> 
+> > Why is this a bad thing?
+> 
+> Because module has no business messing with its own reference count.
+> 
+> > Is there a better way to do it?
+> 
+> See above.
 
-To be more clear, what I'm suggesting would be declared like this:
+Does Al mean we already do the right thing in i2c-dev.c:89
+static struct file_operations i2cdev_fops {
+owner:  THIS_MODULE,
 
-	int i2c_attach_client_exclusive(struct i2c_client *client);
+and i2c-dev.c:495 int __init i2c_dev_init
+...
+if (register_chrdev(I2C_MAJOR, "i2c", &i2cdev_fops))
 
-The "unlock" part can be rolled into the normal i2c_detach_client routine.
-
-Regards,
-
+If so, we need to find a method to verify his statement.
+Oh, Linus applied the reverse patch for this to 2.5.34.
+Albert
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Albert Cranford Deerfield Beach FL USA
+ac9410@bellsouth.net
+
+=======================================================-------------- next part --------------
+An embedded message was scrubbed...
+From: "Mark D. Studebaker" <mds@paradyne.com>
+Subject: Re: i2c-proc correction
+Date: Thu, 05 Sep 2002 22:51:55 -0400
+Size: 3956
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020906/5bb14f76/attachment.mht
