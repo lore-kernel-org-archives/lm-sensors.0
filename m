@@ -1,43 +1,36 @@
-From: slade@goembedded.com (slade@goembedded.com)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: Temperature sensor support
-Message-Id: <20040908170832.1669.qmail@webmail-2-5.mesa1.secureserver.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: [PATCH 2.6] i2c bus drivers (2/4)
+Message-Id: <20031129211021.3626bd06.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <04090718250100.01233@localhost.localdomain>
-In-Reply-To: <04090718250100.01233@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The MAX1617A itself is actually supported by our "adm1021" driver for quite a
-> long time now (since version 2.3.0 back in April 1999).
-> 
-I saw that but I was not sure about the SMBbus which you answered below.
+This patch fixes i2c_smbus_write_byte() being broken for i2c-nforce2.
+This causes trouble when that module is used together with eeprom (which
+is also in 2.6). We have had three user reports about the problem.
 
-> What is probably not is the SMBus master itself. Most bus drivers we are
-> support chips found on x86 machines.
-> 
-Understood. That should not be much trouble.
+Credits go to Mark D. Studebaker for finding and fixing the problem. We
+have also been contacting the module author (Hans-Frieder Vogt) but had
+no answer so far.
 
-> Better stick to our model so you integrate with the existing layout and
-> benefit from existing userspace support.
-> 
-That is helpful. I agree and will do.
+This is a serious bug fix, and I believe you shouldn't wait too long
+before applying it.
 
-> What you need to do is to write a driver for your SMBus master chip, which
-> respects the model we use. If your SMBus is bit-banging driven (and then
-> most-likely I2C-compatible), take a look at i2c-voodoo3.c for an example (or
-> any bus driver including i2c-algo-bit). If your SMBus is hardware-driver (and
-> most probably not I2C-compatible) take a look at i2c-amd756.c instead (or any
-> bus driver not including i2c-algo-bit).
-> 
-Very, very helpful. Thank again.
+--- linux-2.6.0-test11/drivers/i2c/busses/i2c-nforce2.c.orig	Sat Oct 25 20:43:02 2003
++++ linux-2.6.0-test11/drivers/i2c/busses/i2c-nforce2.c	Fri Nov 28 21:49:21 2003
+@@ -147,7 +147,7 @@
+ 
+ 		case I2C_SMBUS_BYTE:
+ 			if (read_write = I2C_SMBUS_WRITE)
+-				outb_p(data->byte, NVIDIA_SMB_DATA);
++				outb_p(command, NVIDIA_SMB_CMD);
+ 			protocol |= NVIDIA_SMB_PRTCL_BYTE;
+ 			break;
+ 
 
-> Once your bus driver is working, load it and run "sensors-detect", which
-> should scan it and find the MAX1617A on it.
-> 
-Gotcha.
-
-Thank you for getting back so quickly!!
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
