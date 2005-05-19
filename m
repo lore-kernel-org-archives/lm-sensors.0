@@ -1,7 +1,7 @@
 From: mds4@verizon.net (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:14 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <413FB379.70709@verizon.net>
+Message-Id: <413FB6DE.40201@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -10,18 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-good catch about switching the limits. Hopefully you will get better limits when you switch.
+a better place to swap the limits is in bmcsensors_select_thresholds()
+(search for the "fixme" note I put in long ago...)
 
-it does seem that your fan readings are 2x too high. Yes that should be accounted for with the 'm' value.
-Almost all fans are 2 ticks per rotation.
-So it looks like a mistake in the fan SDRs.
-
-mds
+what fan limit results did you get?
 
 
 
 Peter Wilsmore wrote:
-> Thanks again, I will get rid of the floating point stuff, as to the limits, after reading parts of the IPMI spec I found that I need to use the 'upper' limit (upper and lower limits are flipped because of the 1/x conversion), however to the actual fan speeds still seem a little high (8000+ RPM). I have a suspicion that my fan is reporting 2 ticks per rotation, however from my limited understanding of IPMI the m factor should cater for that sort of thing. Have I misunderstood the spec or is my M/B behaving weirdly?
+> Sorry, I forgot to include the bit to get rid of the warning that nonlinear function 7 is not support.
 > 
 > Thanks,
 > 
@@ -29,6 +26,23 @@ Peter Wilsmore wrote:
 >  
 > ASI SOLUTIONS
 > Direct: 1300130 837
+> 
+> -----Original Message-----
+> From: Peter Wilsmore 
+> Sent: Thursday, 9 September 2004 11:21 AM
+> To: 'Mark Studebaker'
+> Cc: lm78@Stimpy.netroedge.com
+> Subject: RE: bmcsensors and strange sensor values.
+> 
+> OK, I have got rid of the float stuff - it makes it much more elegant. I have also used the 'upper' limit for the lower limit and have some comments in regarding the odd values and * 2 factor that I seem to have on my M/B. Unfortunately I am on a deadline, so I haven't done any limit stuff.
+> 
+> Thanks for all the help.
+> 
+> Peter Wilsmore
+>  
+> ASI SOLUTIONS
+> Direct: 1300130 837
+> 
 > -----Original Message-----
 > From: Mark Studebaker [mailto:mds4@verizon.net] 
 > Sent: Thursday, 9 September 2004 10:22 AM
@@ -308,7 +322,6 @@ Peter Wilsmore wrote:
 >>>Sep  6 03:55:37 compute-0-0 kernel: bmcsensors.o: registered 4 temp, 7 volt, 0 current, 5 fan sensors
 >>>Sep  6 03:55:37 compute-0-0 kernel: bmcsensors.o: bmcsensor thread done
 >>>
->>
 >>
 >>
 >>
