@@ -1,17 +1,21 @@
-From: hch@infradead.org (Christoph Hellwig)
+From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: i2c_probe() vs i2c_detect()
-Message-Id: <20030404143301.B25147@infradead.org>
+Message-Id: <3E937B46.706@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030403012307.GA6037@kroah.com>
-In-Reply-To: <20030403012307.GA6037@kroah.com>; from greg@kroah.com on Wed, Apr 02, 2003 at 05:23:07PM -0800
+In-Reply-To: <20030403012307.GA6037@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 02, 2003 at 05:23:07PM -0800, Greg KH wrote:
+I guess you've identified the difference.
+There's a fair amount of discussion in doc/writing-clients in the i2c tree,
+but that document doesn't really specify the difference either.
+mds
+
+Greg KH wrote:
 > Hi all,
 > 
 > Can anyone tell me why both i2c_probe() and i2c_detect() are in the
@@ -23,6 +27,8 @@ On Wed, Apr 02, 2003 at 05:23:07PM -0800, Greg KH wrote:
 > 
 > If there are no objections, I'll merge the two of them, cutting about 2k
 > out of the kernel :)
-
-Once ou're at it you could also try to get rid of the check_region abuse
-in there :)
+> 
+> thanks,
+> 
+> greg k-h
+> 
