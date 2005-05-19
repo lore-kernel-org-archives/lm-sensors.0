@@ -1,40 +1,29 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:26 +0000
-Subject: Fujitsu-siemens - Out of curiosity
-Message-Id: <3C113A9A.F5FC73C@paradyne.com>
+From: togg@togg.de (Togg)
+Date: Thu, 19 May 2005 06:25:14 +0000
+Subject: AD7418 support
+Message-Id: <E1C5IdT-000803-00@mrelayng.kundenserver.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3C10C555.1279436A@TeraPort.de>
-In-Reply-To: <3C10C555.1279436A@TeraPort.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-They told us it has the FSC Poseidon on it.
+Hi,
 
-phil@netroedge.com wrote:
-> 
-> It's a 'Scenic D, i815E, PM, LAN'.  Basicly a desktop workstation PC.
-> I have connected it up just to make sure it works, but haven't
-> installed Linux on it yet.  Not sure what sensor chips it has yet.
-> 
-> Phil
-> 
-> On Fri, Dec 07, 2001 at 03:32:18PM +0100, Martin Knoblauch wrote:
-> > Hi,
-> >
-> >  out of curiosity, what kind of box did they donate? Any documentation
-> > about the sensor chips included?
-> >
-> > Martin
-> > --
-> > ------------------------------------------------------------------
-> > Martin Knoblauch         |    email:  Martin.Knoblauch@TeraPort.de
-> > TeraPort GmbH            |    Phone:  +49-89-510857-309
-> > C+ITS                    |    Fax:    +49-89-510857-111
-> > http://www.teraport.de   |    Mobile: +49-170-4904759
-> 
-> --
-> Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
->    phil@netroedge.com -- http://www.netroedge.com/~phil
->  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+I have a Gateworks Avila Platform (IXP425 Xscale) with an AD7418
+Voltage/Temperature Sensor (Datasheet:
+http://www.analog.com/UploadedFiles/Data_Sheets/5632736AD7416_7_8_g.pdf)
+
+I didn't found any driver anywhere, so I wonder how difficult it would be to
+implement a driver. On my platform the chip is connected via I2C, base
+address 0x29. Voltages should be multiplied by 23.1 
+
+I don't have any experience on writing I2C drivers. Anyone knows if there
+are good reference drivers which could be used? Best solution for me would
+be if someone would implement this in a free minute :)
+
+Regards,
+Togg
+
+Btw: I am not on this mailinglist, so please CC me directly.
+
