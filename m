@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
 Date: Thu, 19 May 2005 06:24:04 +0000
 Subject: Ticket 1319 - lm_sensors-2.8.0-cvs linux-2.4.20-smp-i386
-Message-Id: <20030710091255.444264b4.khali@linux-fr.org>
+Message-Id: <20030710093133.02134d7d.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030710085158.42e68c95.zdavatz@ywesee.com>
 In-Reply-To: <20030710085158.42e68c95.zdavatz@ywesee.com>
@@ -10,29 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Thu, 10 Jul 2003 09:12:55 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-> I followed your advice and compiled again with the CVS-Version, both
-> i2c and lm-sensors.
+> CVS is known to compile great, so you must have done a mistake
+> somewhere, or your system is special (or broken).
 > 
-> Before I done make I done cvs update -d
-> 
-> i2c goes grest but lm-sensors gives me:
-> 
-> kernel/busses/i2c-nforce2.c: In function `nforce2_access':
-> kernel/busses/i2c-nforce2.c:154: `I2C_CLIENT_PEC' undeclared (first
-> use in this function) kernel/busses/i2c-nforce2.c:154: (Each
-> undeclared identifier is reported only once
-> kernel/busses/i2c-nforce2.c:154: for each function it appears in.)
-> (...)
+> Remember you have to *install* i2c before trying to *compile*
+> lm_sensors2. I would do a fresh CVS checkout and reinstall everything
+> from scratch, just to make sure no file was accidentally modified in
+> your local directories.
+Yes I done that. First make and make install in /usr/src/modules/i2c and then in /usr/src/lm_sensors2
 
-CVS is known to compile great, so you must have done a mistake
-somewhere, or your system is special (or broken).
+I removed all the directories in /usr/src/modules and then done a fresh
+compile. I even done a cvs update -d before I compiled.
 
-Remember you have to *install* i2c before trying to *compile*
-lm_sensors2. I would do a fresh CVS checkout and reinstall everything
-from scratch, just to make sure no file was accidentally modified in
-your local directories.
+Did I forget anything?
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Thanks for your Feedback.
+
+Zeno
