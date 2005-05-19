@@ -1,63 +1,33 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:53 +0000
-Subject: [PATCH] i2c driver changes for 2.5.67
-Message-Id: <10499275003618@kroah.com>
+From: starless@spin.it (Marco De Vitis)
+Date: Thu, 19 May 2005 06:24:33 +0000
+Subject: Ticket 1506: ASB100
+Message-Id: <1338151684.20040108171517@spin.it>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10499274993464@kroah.com>
-References: <10499274993464@kroah.com>
-In-Reply-To: <10499274993464@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.1133.1.4, 2003/04/08 12:31:53-07:00, azarah@gentoo.org
+Hello,
+I've read ticket 1506 on the sensors support page, "asb100 isn?t
+detected on a7v333", and that's why I'm following up via email, as
+suggested in the ticket answer. This address is mentioned as a mailing
+list but uhm, I didn't find a way to actually subcribe...
 
-[PATCH] i2c: remove compiler warning in w83781d sensor driver
+I have the same problem on an Asus P4PE; according to the lm_sensors
+2.8.2 release notes I thought ASB100 was fully supported (is that
+right?), but sensors-detect fails to recognize it on my system
+(Mandrake 9.0, kernel 2.4.19-35mdk).
 
-On Wed, 2003-04-09 at 00:04, Greg KH wrote:
+"i2cdetect -v" returns versions 2.8.2, so I suppose I do not have old
+stuff around.
 
-> Oh, I'm getting the following warning when building the driver, want to
-> look into this?
->
-> drivers/i2c/chips/w83781d.c: In function `store_fan_div_reg':
-> drivers/i2c/chips/w83781d.c:715: warning: `old3' might be used uninitialized in this function
->
+Any clues? Or maybe for P4PE I should still use the fix suggested for
+tickets 1108 and 1124?
+Thanks.
 
-It is because old3 is only referenced if:
+-- 
+Ciao,
+  Marco.
 
- ((data->type != w83781d) && data->type != as99127f)
-
-as those two chips don't have extended divisor bits ...
-
-It is however set in the first occurrence:
-
-       /* w83781d and as99127f don't have extended divisor bits */
-       if ((data->type != w83781d) && data->type != as99127f) {
-               old3 = w83781d_read_value(client, W83781D_REG_VBAT);
-       }
-
-and thus is rather gcc being brain dead for not being able to figure
-old3 is only used within a if block like that.
-
-I was not sure about style policy in a case like this, so I left it as
-is, it should however be possible to 'fix' it with:
-
-
- drivers/i2c/chips/w83781d.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
-
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Wed Apr  9 15:15:55 2003
-+++ b/drivers/i2c/chips/w83781d.c	Wed Apr  9 15:15:55 2003
-@@ -712,7 +712,7 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83781d_data *data = i2c_get_clientdata(client);
--	u32 val, old, old2, old3;
-+	u32 val, old, old2, old3 = 0;
- 
- 	val = simple_strtoul(buf, NULL, 10);
- 	old = w83781d_read_value(client, W83781D_REG_VID_FANDIV);
-
+.."Relayer", Yes 1974
