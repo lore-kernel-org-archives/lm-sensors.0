@@ -1,29 +1,25 @@
-From: jonsmirl@gmail.com (Jon Smirl)
-Date: Thu, 19 May 2005 06:25:16 +0000
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: Adding .class field to struct i2c_client (was Re: [PATCH][2.6]
-Message-Id: <9e473391040921131650943dc7@mail.gmail.com>
+Message-Id: <20040924000202.GO14868@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41500BED.8090607@linuxtv.org> <20040921115442.M18286@linux-fr.org>
-	 <415067CB.1020101@linuxtv.org>
+References: <41500BED.8090607@linuxtv.org> <20040921115442.M18286@linux-fr.org> <415067CB.1020101@linuxtv.org>
 In-Reply-To: <415067CB.1020101@linuxtv.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Michael Hunold <hunold@linuxtv.org>
-Cc: Jean Delvare <khali@linux-fr.org>, sensors@stimpy.netroedge.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>, sensors@Stimpy.netroedge.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-An addition to the class idea would be for clients to have priorities.
-That would let me mark the bus as being for DDC. The highest priority
-client would be the DDC driver. If the DDC driver can't find valid
-EDID it could then fall back to letting the EEPROM driver try to find
-the chip.
+On Tue, Sep 21, 2004 at 07:41:31PM +0200, Michael Hunold wrote:
+> Please have a look and tell me what you think. The big problem will be, 
+> that we cannot test all configurations, so it's possible that some 
+> devices won't be recognized anymore, because the .class entries don't match.
 
-Something like this is important if we get a new EDID standard that
-the DDC driver doesn't recognize. By letting the EEPROM driver load at
-a lower priority you could still easily get to the ROM contents. Or
-does it bother people if we let both EEPROM and DDC load on DDC class
-buses?
+I like the patches.  If you get them in a state you like (and drop the
+printk(), and use dev_dbg() instead), and send them 1 patch per file
+with the Signed-off-by: line, I'll be glad to apply them.
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+thanks,
+
+greg k-h
