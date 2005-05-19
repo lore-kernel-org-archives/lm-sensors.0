@@ -1,80 +1,188 @@
-From: clepple@ghz.cc (Charles Lepple)
-Date: Thu, 19 May 2005 06:24:08 +0000
-Subject: error: "SMBus collision!"/"sending abort" in 2.6.0test2
-Message-Id: <C795CB0D-C30F-11D7-BB43-003065DC6B50@ghz.cc>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:19 +0000
+Subject: [PATCH 2.6] I2C: Clean up i2c-amd756 and i2c-prosavage messages
+Message-Id: <20041016212605.630f6e64.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1D98A118-C22E-11D7-BB43-003065DC6B50@ghz.cc>
-In-Reply-To: <1D98A118-C22E-11D7-BB43-003065DC6B50@ghz.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wednesday, July 30, 2003, at 11:56  PM, Mark M. Hoffman wrote:
+Hi Greg,
 
->> It's an AMD 76x bus controller (i2c-amd76x), and both a W83627HF and a
->> W83782D chip controlled by the w83781d driver.
->
-> Ummm...  Google comes up empty on "i2c-amd76x"... do you mean 
-> i2c-amd756?
+A number of messages in the i2c-amd756 and i2c-prosavage drivers have a
+leading ": " (especially the former). This is a legacy from lm_sensors'
+printks of the 2.4 times. This patch cleans them up. While I was there,
+I dropped a couple useless white spaces and dots as well.
 
-i2c-amd756 (confusion due to excessive hacking on amd76x_pm, which was 
-the motivation for getting lm_sensors working).
+Please apply,
+thanks.
 
-from lsmod:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-$ lsmod
-Module                  Size  Used by
-processor              14888  0
-amd76x_pm               6300  0
-button                  6104  0
-ohci_hcd               19072  0
-usbcore               112988  3 ohci_hcd
-w83781d                35584  0
-i2c_sensor              3200  1 w83781d
-i2c_amd756              5700  0
-i2c_core               24648  3 w83781d,i2c_sensor,i2c_amd756
-eepro100               30796  0
-mii                     5120  1 eepro100
-rtc                    13892  0
+diff -ruN linux-2.6.9-rc4-bk1/drivers/i2c/busses.orig/i2c-amd756.c linux-2.6.9-rc4-bk1/drivers/i2c/busses/i2c-amd756.c
+--- linux-2.6.9-rc4-bk1/drivers/i2c/busses.orig/i2c-amd756.c	2004-10-16 19:53:21.000000000 +0200
++++ linux-2.6.9-rc4-bk1/drivers/i2c/busses/i2c-amd756.c	2004-10-16 21:13:45.000000000 +0200
+@@ -116,14 +116,14 @@
+ 	int result = 0;
+ 	int timeout = 0;
+ 
+-	dev_dbg(&adap->dev, ": Transaction (pre): GS=%04x, GE=%04x, ADD=%04x, "
++	dev_dbg(&adap->dev, "Transaction (pre): GS=%04x, GE=%04x, ADD=%04x, "
+ 		"DAT=%04x\n", inw_p(SMB_GLOBAL_STATUS),
+ 		inw_p(SMB_GLOBAL_ENABLE), inw_p(SMB_HOST_ADDRESS),
+ 		inb_p(SMB_HOST_DATA));
+ 
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	if ((temp = inw_p(SMB_GLOBAL_STATUS)) & (GS_HST_STS | GS_SMB_STS)) {
+-		dev_dbg(&adap->dev, ": SMBus busy (%04x). Waiting... \n", temp);
++		dev_dbg(&adap->dev, "SMBus busy (%04x). Waiting...\n", temp);
+ 		do {
+ 			msleep(1);
+ 			temp = inw_p(SMB_GLOBAL_STATUS);
+@@ -131,7 +131,7 @@
+ 		         (timeout++ < MAX_TIMEOUT));
+ 		/* If the SMBus is still busy, we give up */
+ 		if (timeout >= MAX_TIMEOUT) {
+-			dev_dbg(&adap->dev, ": Busy wait timeout (%04x)\n", temp);
++			dev_dbg(&adap->dev, "Busy wait timeout (%04x)\n", temp);
+ 			goto abort;
+ 		}
+ 		timeout = 0;
+@@ -148,46 +148,46 @@
+ 
+ 	/* If the SMBus is still busy, we give up */
+ 	if (timeout >= MAX_TIMEOUT) {
+-		dev_dbg(&adap->dev, ": Completion timeout!\n");
++		dev_dbg(&adap->dev, "Completion timeout!\n");
+ 		goto abort;
+ 	}
+ 
+ 	if (temp & GS_PRERR_STS) {
+ 		result = -1;
+-		dev_dbg(&adap->dev, ": SMBus Protocol error (no response)!\n");
++		dev_dbg(&adap->dev, "SMBus Protocol error (no response)!\n");
+ 	}
+ 
+ 	if (temp & GS_COL_STS) {
+ 		result = -1;
+-		dev_warn(&adap->dev, " SMBus collision!\n");
++		dev_warn(&adap->dev, "SMBus collision!\n");
+ 	}
+ 
+ 	if (temp & GS_TO_STS) {
+ 		result = -1;
+-		dev_dbg(&adap->dev, ": SMBus protocol timeout!\n");
++		dev_dbg(&adap->dev, "SMBus protocol timeout!\n");
+ 	}
+ 
+ 	if (temp & GS_HCYC_STS)
+-		dev_dbg(&adap->dev, " SMBus protocol success!\n");
++		dev_dbg(&adap->dev, "SMBus protocol success!\n");
+ 
+ 	outw_p(GS_CLEAR_STS, SMB_GLOBAL_STATUS);
+ 
+ #ifdef DEBUG
+ 	if (((temp = inw_p(SMB_GLOBAL_STATUS)) & GS_CLEAR_STS) != 0x00) {
+ 		dev_dbg(&adap->dev,
+-			": Failed reset at end of transaction (%04x)\n", temp);
++			"Failed reset at end of transaction (%04x)\n", temp);
+ 	}
+ #endif
+ 
+ 	dev_dbg(&adap->dev,
+-		": Transaction (post): GS=%04x, GE=%04x, ADD=%04x, DAT=%04x\n",
++		"Transaction (post): GS=%04x, GE=%04x, ADD=%04x, DAT=%04x\n",
+ 		inw_p(SMB_GLOBAL_STATUS), inw_p(SMB_GLOBAL_ENABLE),
+ 		inw_p(SMB_HOST_ADDRESS), inb_p(SMB_HOST_DATA));
+ 
+ 	return result;
+ 
+  abort:
+-	dev_warn(&adap->dev, ": Sending abort.\n");
++	dev_warn(&adap->dev, "Sending abort\n");
+ 	outw_p(inw(SMB_GLOBAL_ENABLE) | GE_ABORT, SMB_GLOBAL_ENABLE);
+ 	msleep(100);
+ 	outw_p(GS_CLEAR_STS, SMB_GLOBAL_STATUS);
+@@ -204,7 +204,7 @@
+ 	/** TODO: Should I supporte the 10-bit transfers? */
+ 	switch (size) {
+ 	case I2C_SMBUS_PROC_CALL:
+-		dev_dbg(&adap->dev, ": I2C_SMBUS_PROC_CALL not supported!\n");
++		dev_dbg(&adap->dev, "I2C_SMBUS_PROC_CALL not supported!\n");
+ 		/* TODO: Well... It is supported, I'm just not sure what to do here... */
+ 		return -1;
+ 	case I2C_SMBUS_QUICK:
+@@ -334,8 +334,8 @@
+ 	u8 temp;
+ 	
+ 	if (amd756_ioport) {
+-		dev_err(&pdev->dev, ": Only one device supported. "
+-		       "(you have a strange motherboard, btw..)\n");
++		dev_err(&pdev->dev, "Only one device supported "
++		       "(you have a strange motherboard, btw)\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -352,7 +352,7 @@
+ 		pci_read_config_byte(pdev, SMBGCFG, &temp);
+ 		if ((temp & 128) = 0) {
+ 			dev_err(&pdev->dev,
+-				": Error: SMBus controller I/O not enabled!\n");
++				"Error: SMBus controller I/O not enabled!\n");
+ 			return -ENODEV;
+ 		}
+ 
+@@ -364,14 +364,14 @@
+ 	}
+ 
+ 	if (!request_region(amd756_ioport, SMB_IOSIZE, "amd756-smbus")) {
+-		dev_err(&pdev->dev, ": SMB region 0x%x already in use!\n",
++		dev_err(&pdev->dev, "SMB region 0x%x already in use!\n",
+ 			amd756_ioport);
+ 		return -ENODEV;
+ 	}
+ 
+ 	pci_read_config_byte(pdev, SMBREV, &temp);
+-	dev_dbg(&pdev->dev, ": SMBREV = 0x%X\n", temp);
+-	dev_dbg(&pdev->dev, ": AMD756_smba = 0x%X\n", amd756_ioport);
++	dev_dbg(&pdev->dev, "SMBREV = 0x%X\n", temp);
++	dev_dbg(&pdev->dev, "AMD756_smba = 0x%X\n", amd756_ioport);
+ 
+ 	/* set up the driverfs linkage to our parent device */
+ 	amd756_adapter.dev.parent = &pdev->dev;
+@@ -382,7 +382,7 @@
+ 	error = i2c_add_adapter(&amd756_adapter);
+ 	if (error) {
+ 		dev_err(&pdev->dev,
+-			": Adapter registration failed, module not inserted.\n");
++			"Adapter registration failed, module not inserted\n");
+ 		goto out_err;
+ 	}
+ 
+diff -ruN linux-2.6.9-rc4-bk1/drivers/i2c/busses.orig/i2c-prosavage.c linux-2.6.9-rc4-bk1/drivers/i2c/busses/i2c-prosavage.c
+--- linux-2.6.9-rc4-bk1/drivers/i2c/busses.orig/i2c-prosavage.c	2004-10-12 19:44:25.000000000 +0200
++++ linux-2.6.9-rc4-bk1/drivers/i2c/busses/i2c-prosavage.c	2004-10-16 21:01:03.000000000 +0200
+@@ -228,7 +228,7 @@
+ 
+ 		ret = i2c_bit_del_bus(&chip->i2c_bus[i].adap);
+ 	        if (ret) {
+-			dev_err(&dev->dev, ": %s not removed\n",
++			dev_err(&dev->dev, "%s not removed\n",
+ 				chip->i2c_bus[i].adap.name);
+ 		}
+ 	}
+@@ -298,7 +298,7 @@
+ 	}
+ 	return 0;
+ err_adap:
+-	dev_err(&dev->dev, ": %s failed\n", bus->adap.name);
++	dev_err(&dev->dev, "%s failed\n", bus->adap.name);
+ 	prosavage_remove(dev);
+ 	return ret;
+ }
 
->> This setup requires the crazy init=0 and force_subclients deal that
->> other 760MP chipset users have reported in the trouble ticket area.
->>
->> Driver version is 2.7.0 (20021208). I haven't gotten around to making
->> 2.8.0 work with the 2.6 kernel.
->
-> Now I'm lost:  How could you be using w83781d.c version 2.7.0 with the
-> 2.6 kernel?  Either you hacked it to pieces (needlessly, since it
-> was already ported to 2.6) or I am totally not understanding you.
-
-sorry about that. I searched back from the "SMBus collision" error 
-message in kern.log, and the first occurrence of "i2c" that I came 
-across turns out to be from the last time I booted 2.4.21 (with 
-lm_sensors/i2c 2.7.0 as provided by Debian). I kind of expected the 
-2.6.0-testX in-kernel drivers to print version numbers as well (or at 
-least, some version/date info).
-
-> Please explain in detail what you did to build this system.
-
-First, I got the i2c.tar.gz and lm-sensors.tar.gz files from Debian, 
-and compiled 2.4.21 (with ACPI patches, FWIW). Then I downloaded 
-2.6.0-test2 and compiled that. I've been flipping back and forth 
-between 2.4.21 and 2.6.0-test2, and that led to my confusion.
-
->>> I would like to try to reproduce this, but not until this weekend.
->>> Would running 2-3 shell scripts simultaneously which cat the /sys
->>> values to /dev/null be good enough?
-
-Now I'm wondering if there needs to be writing involved before things 
-break. I have between 15 and 20 'cat random_sensor_file' commands 
-running at the moment (all within 'while true; do ... done' loops), and 
-things seem to be working. Load average is sitting near 17, but abort 
-messages, and the values seem to be changing normally.
-
-Sorry to bug you folks with such sketchy details... I'll let you all 
-know if things break again.
 
 -- 
-Charles Lepple <clepple@ghz.cc>
-http://www.ghz.cc/charles/
+Jean Delvare
+http://khali.linux-fr.org/
