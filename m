@@ -1,73 +1,55 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:15 +0000
-Subject: Support DB Entry 1770
-Message-Id: <20040915203022.593b22e8.khali@linux-fr.org>
+From: admin@tolien.co.uk ('Mr Admin')
+Date: Thu, 19 May 2005 06:25:11 +0000
+Subject: Ticket 1751
+Message-Id: <200408121858.i7CIw0KW013198@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <007201c49733$ef934970$0a01a8c0@enterprise>
-In-Reply-To: <007201c49733$ef934970$0a01a8c0@enterprise>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > I thought that Asus
-> > started to implement such silly behaviors only recently, but it
-> > seems not. The SMBus locks you were experiencing speak for
-> > themselves.
-> 
-> :-\  Ahh well, I always thought they did a pretty good job in other
-> regards.  Fabrication of the boards was always nice, not sloppy
-> looking like some other boards at the time.
+Problem in detail:
+On installing lm-sensors with apt-get, CPU temp flies up to 85?C, both in
+the
+output of sensors and in /sys/bus/i2c/devices/...
+Removing lm-sensors, and running with just the modules required for i2c, the
+correct values are shown.
+Reply from support:
+You don?t provide much information about your system and exact problem you
+see.
+I  guess that your monitoring chip is a Winbond W83627THF, and you must be
+using
+the w83627hf driver that comes with your (vanilla?) 2.6.7 kernel.
 
-Agreed, I have enjoyed Asus boards too for quite some times, until they
-started shipping their boards with undocumented proprietary monitoring
-chips (AS99127F, ASB100...) and implemented really weird "active"
-hardware monitoring.
+We would need to know what exactly you did to alter the readins. Installing
+lm-sensors doesn?t do anything per se, and running "sensors" without
+additional
+argument doesn?t do much either. On the other hand, running "sensors -s" may
+change values, although normally only limit values, not readings. A call to
+"sensors -s" may be part of your system init steps, so it may have been
+called
+even if you didn?t call it manually.
 
-> I've got a suggestion for "sensors-detect".  Command-line options for
-> the specific tests to perform or skip would be cool, so I could run
-> one command line.  Otherwise, I've got to use an input file with my
-> prompt-answers, run a command to take the file as input, run another
-> command to dump STDOUT and STDERR to a file, and run another command
-> to read the output file.  For example this is what I'd use for this
-> testing:
-> 
-> sensors-detect --pci-no --isa-yes --superio-no --summary-yes
-> --commands-no
+Please contact the mailing-list (sensors at stimpy.netroedge.com) and detail
+your problem:
+ * What are the values when everything is fine.
+ * Which exact action breaks the values.
+ * What are the values when not OK.
+Reference your ticket number.
 
-Not sure it would be that useful for the average user. Usually you only
-run the script once, so you want to detect everything.
+Thanks.
 
-A much more interessant improvement IMHO would be a fully automatic mode
-(non-interactive), simply generating the configuration files without the
-user having to care. Unfortunatelly, sensors-detect is a very old piece
-of code and it'll be hard to accomplish such a miracle, especially since
-it would require motherboard-specific information we don't really have.
-
-> Disabling "Delayed Transaction" seems to fix the problems.  in3 has no
-> persistent ALARM, temp2 is read correctly, temp2_over and temp2_hyst
-> are connect, no chirping.  The cost is a performance hit of 50-60 PCI
-> clocks during ISA access (sensors, maybe modem and sound card).  Funny
-> they don't clearly state that enabling "Delayed Transaction" will
-> break ISA access to the "Health Monitoring".  "sensors" and "sensord"
-> appear to work fine.  No force or force_w83781d required.
-
-This is VERY interesting and surprising too. I wouldn't have imagined
-that such a broken behavior could result in "bad" BIOS settings (one may
-wonder why they propose the option at all if enabling it breaks the
-box.)
+Khali 2004-08-12
 
 
-> The only odd looking thing at this point is the "registering" annd
-> "Detect" lines.  It reports "0-0290", but should it be 9191-0290?
+When everything is fine, CPU and MB temps move up and down with load as
+expected (and as confirmed by the BIOS).
+The only required action to break the values appears to be installing
+lm-sensors by apt-get install (which I'd guess runs sensors-detect) -
+removing lm-sensors, and running only the w83627hf kernel module (ie without
+lm_sensors) provides the "correct" (in the sense of more valid anyway)
+values. When broken, the CPU temp locks itself at 85.0?C, and doesn't shift
+whatsoever.
+Sensors -s doesn't help anything.
 
-Interesting question, I can't really tell why it is this way. The bus
-numbering typically depends on the order in which drivers are inserted.
-For some reasons, the ISA bus has a kind of alias with the "9191" bus
-number. I agree this makes thing more confusing than it helps.
 
-Thanks a lot for the details report, I'll update the ticket.
-
--- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
