@@ -1,124 +1,66 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:24:59 +0000
 Subject: Second auto pwm interface proposal
-Message-Id: <20040522142546.0ddb37c0.khali@linux-fr.org>
+Message-Id: <20040525003305.GB23246@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040522142546.0ddb37c0.khali@linux-fr.org>
+In-Reply-To: <20040522142546.0ddb37c0.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi Jean:
 
-After reviewing the adm1031 and it87 drivers auto pwm interface
-implementations, I think that the auto pwm interface that was debated a
-few weeks ago could be reworked a bit.
+* Jean Delvare <khali@linux-fr.org> [2004-05-22 14:25:46 +0200]:
 
-My main motivation is that I believe that these chips (and this is
-probably true for others with the same function as well) offer complex
-possibilities most people don't care about. When first designing the
-auto pwm interface, I had in mind that it should cover everything the
-chips could do. This resulted in a complex interface with (too) many
-files.
+<big snip>
 
-Now I believe that the interface could be simplified to reflect the
-users needs instead. There are two different things that the user can
-configure: the trip points (pwm value, temperature value couples) and
-the fan channel/temperature channel matching. Both areas could be
-simplified.
+> I wonder if this is really necessary to expose these eight registers to
+> the user. I think that all the user wants to be able to configure is:
+> * Temperature at which the fan starts spinning, associated PWM, and
+>   associated hysteresis temperature.
+> * Critical temperature, at which the fan must run at full speed.
+> All in all it corresponds to what the ADM1031 has.
 
-Temperature channel selection
------------------------------
+The w83627thf "thermal cruise" mode doesn't quite fit this model.  It
+only knows these parameters:
 
-The interface was designed so that more than one channel can be
-associated with one given fan. I proposed that because the ADM1031 can
-do that. Question is: does the user need this? I doubt it.
+1. target temp
+2. tolerance (+/-)
+3. minimum PWM (optional)
 
-The drawback of the current interface is that you never know which
-values are supported by the chip. Reading from the files is fine, it
-reflects the current state in a standard way. But writing is not, which
-makes the interface bad IMHO.
+It's difficult to tell, but there is apparently no direct linear
+relationship between temp and PWM.  Instead, it starts to ramp up
+the PWM when the temp is > target + tolerance... it starts to ramp
+down the PWM when the temp is < target - tolerance (stopping at the
+minimum PWM instead of 0 if that option is enabled.)
 
-Can't we just support one channel per fan? 0 would still mean disabled,
-1-N for the channel number. This is easier to understand for the user,
-and I'd expect it to be enough for almost all users.
+Again, the characteristics of the PWM ramp-[up,down] are not clear
+from the datasheet.  Perhaps it's some kind of PID controller, but
+if so there's no way to tune it.
 
-Trip points
------------
+So, if you wanted to force that square peg into the round hole...
+The difference of start temp and crit temp gets divided by 2 to
+set the tolerance.  The target temp is then start temp + tolerance.
 
-The idea of defining trip points came from the IT87xx hardware
-implementation. The ADM1031 has a completely different approach. Let's
-have some ASCII art :)
+That still leaves no good way to set the H/W min PWM unless you 
+add another parameter.  I do think this is a useful enough feature
+to warrant it.
 
+> Thus, I would propose that we do the same for the it87 driver. Values
+> for non-exposed registers would be computed automatically using weighted
+> averaging.
+> 
+> Does it sound OK, or is the fine grained trip points selection
+> considered useful and shouldn't be dropped?
 
-This is the ADM1031 model:
+Well, I haven't answered this question at all... just reporting what
+a third type of H/W looks like.  Maybe these things are dissimilar
+enough that a standard interface just isn't desirable?
 
-   PWM
-    ^
-100%|                               __________
-    |                             ,'
-    |                           ,'
-    |                         ,'
-    |                       ,'
-    |                     ,'
-    |                   ,'
-min |            ____ ,'
-    |           |    |
-    |           |    |
-  0%|___________|____|
-    |
-    |----------------------------------------->temperature
-                ^    ^              ^
-              off    min            max
-
-(Toff = Tmin - 5, this is an hysteresis so that fan doesn't start/stop
-repeatedly it T is too near from Tmin)
-
-All in all there are only three values that have to be defined: Tmin,
-Tmax and PWMmin. The chip computes the fan speed between Tmin and Tmax
-as a weigthed average between PWMmin and 100%.
-
-Now, this is the IT87xx model:
-
-   PWM
-    ^
-100%|                                   ______
-    |                                  |
-high|                              ____|
-    |                             |
-med |                        _____|
-    |                       |
-    |                       |
-low |            ___________|
-    |           |    |
-    |           |    |
-  0%|___________|____|
-    |
-    |----------------------------------------->temperature
-                ^    ^      ^     ^    ^
-              off   low  medium  high  full
-
-Here, there are predefined PWM values and the chip sticks to these,
-there is no averaging done. A total of 8 values have to be set.
-
-I wonder if this is really necessary to expose these eight registers to
-the user. I think that all the user wants to be able to configure is:
-* Temperature at which the fan starts spinning, associated PWM, and
-  associated hysteresis temperature.
-* Critical temperature, at which the fan must run at full speed.
-All in all it corresponds to what the ADM1031 has.
-
-Thus, I would propose that we do the same for the it87 driver. Values
-for non-exposed registers would be computed automatically using weighted
-averaging.
-
-Does it sound OK, or is the fine grained trip points selection
-considered useful and shouldn't be dropped?
-
-Comments welcome.
-
-Thanks.
+Regards,
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Mark M. Hoffman
+mhoffman@lightlink.com
