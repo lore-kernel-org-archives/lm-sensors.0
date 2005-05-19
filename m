@@ -1,22 +1,29 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
-Date: Thu, 19 May 2005 06:23:26 +0000
-Subject: Patch for the PCF8591
-Message-Id: <E168YNg-0003AY-00@localhost>
+From: wodecki@gmx.de (Wiktor Wodecki)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: i2c sysfs rant
+Message-Id: <20030806191145.GG710@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1637nN-0000Zz-00@localhost>
-In-Reply-To: <E1637nN-0000Zz-00@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello
+Hello folks,
 
-Here is a new patch for the PCF8591.
+I just saw that I2C provides "/sys/bus/i2c/drivers/dev\ driver" in
+2.6.0-test2. It would be nice if you'd consider renaming this to
+dev_driver, to avoid un-neccessary quoting in scripts.
 
-Changes:
-- remove the warning : #warning linux/malloc.h is deprecated, use 
-linux/slab.h instead.
-- my email address
+Thank You :-)
 
-Aur?lien
+-- 
+Regards,
+
+Wiktor Wodecki
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030806/2f71d594/attachment.bin
