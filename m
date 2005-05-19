@@ -1,40 +1,30 @@
 From: zdavatz@ywesee.com (Zeno R.R. Davatz)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: flex scanner jammed
-Message-Id: <20030806172523.6ac44fe9.zdavatz@ywesee.com>
+Message-Id: <20030806174222.36736e15.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030806172523.6ac44fe9.zdavatz@ywesee.com>
+In-Reply-To: <20030806172523.6ac44fe9.zdavatz@ywesee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-After my freeze of ISA-Bus I get now:
+On Wed, 6 Aug 2003 17:38:50 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-Ok, now I get:
+> 
+> > Ok. found some sensors but 'sensors-detect' hung at probing for the
+> > ISA-Bus... had restart my computer...
+> 
+> I don't even know if PPC systems have an ISA bus. I suggest you answer
+> NO each time you're asked about ISA or Super-I/O chips.
+Ok done that.
 
-Next adapter: uni-n 0 (Keywest i2c)
-Do you want to scan it? (YES/no/selectively):
-Client found at address 0x30
-Client at address 0x48 can not be probed - unload all client drivers first!
-Client at address 0x49 can not be probed - unload all client drivers first!
-Client at address 0x50 can not be probed - unload all client drivers first!
+Any idea how I can unload the client drivers?
 
-Next adapter: uni-n 1 (Keywest i2c)
-Do you want to scan it? (YES/no/selectively):
-Client at address 0x48 can not be probed - unload all client drivers first!
-Client at address 0x49 can not be probed - unload all client drivers first!
-Client at address 0x50 can not be probed - unload all client drivers first!
+Also what does flex scanner jammed mean? I get that when I do 'sensors'.
 
-Next adapter: mac-io 0 (Keywest i2c)
-Do you want to scan it? (YES/no/selectively):
-Client at address 0x34 can not be probed - unload all client drivers first!
-Client at address 0x56 can not be probed - unload all client drivers first!
-
-Before lm-sensors successfully found several sensors but jammed at the ISA check...
-
-When I type sensors now I get:
-flex scanner jammed
-
-Thanks for hints and Feedback.
+Thanks for Feedback.
 
 Zeno
