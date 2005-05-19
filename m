@@ -1,70 +1,44 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:52 +0000
-Subject: Winbond W83792D driver
-Message-Id: <42641192.804@mds.gotdns.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:58 +0000
+Subject: RFC [PATCH 2.6] I2C: w83627ehf: add fan_div no-op store method
+Message-Id: <bgt881pvivku9pn8t1bfki4hi8f243n72p@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42461044.3080406@mds.gotdns.com>
-In-Reply-To: <42461044.3080406@mds.gotdns.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-checked in.
-thanks for the contribution.
-mds
+Hi Greg, Jean,
+
+This small patch adds no-op fan_div store method to silence warning 
+from 'sensors -s'.  Compile tested.
+
+--Grant.
 
 
-Huang0@Winbond.com.tw wrote:
-> Dear MDS
->=20
-> Quoting MDS
->=20
->>4) a documentation file for doc/chips would be greatly appreciated :)
->=20
->=20
-> I finished the doc/chips/w83792d yesterday, please check the attachment,
-> If you have time, you may help me to review this document and add some
-> supplement into it, Then please help to commit it into CVS.
-> I will continue to update this document if need.
->=20
->=20
-> Thanks
-> Best Regards
->=20
-> Chunhao
->=20
->=20
->=20
->=20
->>-----Original Message-----
->>From: Mark Studebaker [mailto:mds@mds.gotdns.com]
->>Sent: 2005=C4=EA4=D4=C216=C8=D5 0:20
->>To: LM Sensors
->>Cc: PI14 HUANG0
->>Subject: Re: Winbond W83792D driver
->>
->>I made the same mistake at first,
->>Khali caught it and on rereading the datasheet I agree.
->>It's the same behavior as the w83781d, other than the power-on default.
->>All 3 bits can be modified.
->>mds
->>
->>
->>Rudolf Marek wrote:
->>
->>>Hi all.
->>>
->>>We just tried and all three bits can be used despite the fact datasheet
->>
->>proposes
->>
->>>on page 37 that bit2 should be 0 and bit6 1
->>>
->>>We tried to write 0x76 and subclients moved to 0x4e and 0x4f.
->>>
->>>Maybe the datasheet should be clearified that values on bit2 and bit6
->>>are power on defaults but all three bits can be altered.
->>>
->>>Regards
->>>
+Signed-off-by: Grant Coady <gcoady@gmail.com>
+
+---
+ w83627ehf.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+--- linux-2.6.12-rc4-mm1/drivers/i2c/chips/w83627ehf.c	2005-05-12 21:33:22.000000000 +1000
++++ linux-2.6.12-rc4-mm1b/drivers/i2c/chips/w83627ehf.c	2005-05-13 19:39:00.000000000 +1000
+@@ -515,8 +515,15 @@ show_reg_fan##offset##_div(struct device
+ { \
+ 	return show_fan_div(dev, buf, offset - 1); \
+ } \
+-static DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
+-		   show_reg_fan##offset##_div, NULL);
++static ssize_t \
++store_reg_fan##offset##_div(struct device *dev, const char *buf, \
++			    size_t count) \
++{ \
++	return count; \
++} \
++static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
++		   show_reg_fan##offset##_div, \
++		   store_reg_fan##offset##_div);
+ 
+ sysfs_fan_offset(1);
+ sysfs_fan_min_offset(1);
