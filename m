@@ -1,43 +1,41 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: sensors on Athlon 1000 and Asus A7V VIA KT133
-Message-Id: <3CBC78B6.1E2C8F4D@paradyne.com>
+From: Ville.Steudle@nokia.com (Ville.Steudle@nokia.com)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: lm_sensors on HP Visualize X-Class?
+Message-Id: <264C7DF5751032419C3ED55FF3F546BF04FBC1@saebe007.nmp.nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000c01c1e2ff$a9e96e30$0700a8c0@ibammer>
-In-Reply-To: <000c01c1e2ff$a9e96e30$0700a8c0@ibammer>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Dear lm_sensors team,
+
+I am trying to get the lm_sensors package working on the following hardware:
+
+Name: HP Visualize X-Class (or XL-class if shipped with Linux), HP code is A1280
+Mainboard: proprietary, rumours say it's manufactured by Tyan for HP
+Chipset: Serverworks III WS
+CPU: 2 * Pentium Coppermine (slot 1)
+Busses: AGP, PCI-32, PCI-64
+
+Note that this is not one of the "Kayak" stations but a bit newer.
+
+The system does have a case LCD panel showing some kind of status info (e.g. "CPU temperature" if the CPU is too hot).
+
+sensors-detect can find the i2c-piix4, but no sensor chips.
+
+maxilife can be loaded, but does not seem to find any sensors, the same with lm75. (Or, that's always possible, I am doing something wrong here.)
 
 
-> "Dr. Markus Ammer, Ingenieurb?ro Ammer" wrote:
-> 
-> Hello,
-> 
-> System :Athlon 1000 system (motherboard Asus A7V VIA KT133)
-> Sensor: as99127f
-> OS    SuSE Linux 7.2, Kernel 2.4.16
-> sensors version 2.6.0
-> 
-> 
-> 1) sensors-detect does not work correctly.
+Do you have any idea whether this hardware is supported by lm_sensors?
 
-known problem with Asus boards.
-
-> 
-> 
-> 2) temp2 (CPU) obviously is double the raw value.
-> LVCool-Idle loop   temp2 = 35,5?C (BIOS)  18 (raw) (36?C WinNT)
-> 100% load          temp2 = 50?C   (BIOS)  25 (raw) (50?C  -"- )
-> 
-
-fix in sensors.conf.
+Any hints what I could/should try?
 
 
-> 
-> 3) I do "modprobe w83781d" in a startup script  Is there a devicename /dev/xyz which is connected from sensors ? 
-> 
+HP's end user support was of no help for me (as usual, unfortunately).
 
-no, sorry, there isn't.
+
+Thanks for reading & thinking.  :-)
+
+Regards,
+Ville
