@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:23:48 +0000
 Subject: Updated driver for LM85
-Message-Id: <3E527CE1.7161B18E@paradyne.com>
+Message-Id: <3E5309E7.9020209@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3E51E427.2090903@penguincomputing.com>
 In-Reply-To: <3E51E427.2090903@penguincomputing.com>
@@ -10,457 +10,482 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-you can work with me.
-I didn't realize (or forgot) you were working on a driver.
-Coincidentally, Margit (email above) is also working on a driver 
-and is preparing to submit it to us.
+Mark, thanks for the prompt reply.
 
-Would you two please get together and compare drivers and
-either combine them or decide which one is best,
-(and conforming to our guidelines in doc/developers/new-drivers)
-then let me know and I can get that one checked in.
+I followed the guidelines in developers/new-drivers as closely as possible.
 
-thanks
-mds
+I contacted the list back in November (Nov 13th) and got a reply from 
+Phil Edelbrock who had put me in touch with Richard Berrington.
+
+Margit, was habben sie?  (Unfortunately, that's about the limit of my 
+German...)
+
+I can make my patch available on ftp.penguincomputing.com for you to 
+download.  I will do that when I get home.
+
+:v)
+
+Mark Studebaker wrote:
+> you can work with me.
+> I didn't realize (or forgot) you were working on a driver.
+> Coincidentally, Margit (email above) is also working on a driver 
+> and is preparing to submit it to us.
+> 
+> Would you two please get together and compare drivers and
+> either combine them or decide which one is best,
+> (and conforming to our guidelines in doc/developers/new-drivers)
+> then let me know and I can get that one checked in.
+> 
+> thanks
+> mds
+> 
+> 
+> 
+> Philip Pokorny wrote:
+> 
+>>I've respun my lm85/adm1027/adt7463 driver for the 2.7.0 release.
+>>
+>>We've been using it here at Penguin Computing on the Intel S845WD1-E
+>>motherboard for several months.  I added support for the adm1027 when I found
+>>that chip on a Tyan motherboard we use.  The ADT7463 was added from specs when
+>>Analog Devices Technical support told me that it fixes a bug in the ADM1027
+>>related to the temperature offset registers.  (Documentation says .25 degC
+>>resolution, actual resolution is 1 degC)
+>>
+>>There is complete support in sensors and in the library for all the features.
+>>
+>>I've corresponded with David Barrington who put the original detection code
+>>into sensors-detect, but had not completed a driver.
+>>
+>>I'm attaching the documentation file.
+>>
+>>What else should I do to get this commited to CVS?
+>>
+>>Thanks,
+>>:v)
+>>
+>>  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+>>Kernel driver `lm85.o'
+>>===========
+>>
+>>Status: Complete and somewhat tested
+>>
+>>Supported chips:
+>>  * National Semiconductors LM85 (B and C versions)
+>>    Prefix `lm85'
+>>    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
+>>  * Analog Devices ADM1027
+>>    Prefix `adm1027'
+>>    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
+>>  * Analog Devices ADT7463
+>>    Prefix 'adt7463'
+>>    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
+>>
+>>Authors:
+>>      Philip Pokorny <ppokorny@penguincomputing.com>
+>>      Frodo Looijaard <frodol@dds.nl>
+>>      Richard Barrington <rich_b_nz@clear.net.nz>
+>>
+>>Module Parameters
+>>-----------------
+>>
+>>* init: integer
+>>  Bypass chip initialization if set to 0.  Useful if the BIOS has setup the
+>>  chip already or if you're using the "force_" options.
+>>* force: short array (min = 1, max = 48)
+>>  List of adapter,address pairs to boldly assume to be present
+>>* force_lm85b: short array (min = 1, max = 48)
+>>  List of adapter,address pairs which are unquestionably assumed to contain
+>>  a `lm85-B' chip
+>>* force_lm85c: short array (min = 1, max = 48)
+>>  List of adapter,address pairs which are unquestionably assumed to contain
+>>  a `lm85-B' chip
+>>* force_adm1027: short array (min = 1, max = 48)
+>>  List of adapter,address pairs which are unquestionably assumed to contain
+>>  a `adm1027' chip
+>>* force_adt7463: short array (min = 1, max = 48)
+>>  List of adapter,address pairs which are unquestionably assumed to contain
+>>  a `adt7463' chip
+>>* ignore: short array (min = 1, max = 48)
+>>  List of adapter,address pairs not to scan
+>>* ignore_range: short array (min = 1, max = 48)
+>>  List of adapter,start-addr,end-addr triples not to scan
+>>* probe: short array (min = 1, max = 48)
+>>  List of adapter,address pairs to scan additionally
+>>* probe_range: short array (min = 1, max = 48)
+>>  List of adapter,start-addr,end-addr triples to scan additionally
+>>
+>>Description
+>>-----------
+>>
+>>This driver implements support for the National Semiconductors LM85
+>>and compatible chips including the Analog Devices ADM1027.
+>>
+>>The LM85 uses the 2-wire interface compatible with the SMBUS 2.0
+>>specification.  Using an analog to digital converter it measures three
+>>(3) temperatures and five (5) voltages.  It has four (4) 16-bit
+>>counters for measuring fan speed.  Five (5) digital inputs are
+>>provided for sampling the VID signals from the processor to the VRM.
+>>Lastly, there are three (3) PWM outputs that can be used to control
+>>fan speed.
+>>
+>>The voltage inputs have internal scaling resistors so that the
+>>following voltage can be measured without external resistors:
+>>
+>>   2.5V, 3.3V, 5V, 12V, and CPU core voltage (2.25V)
+>>
+>>The temperatures measured are one internal diode, and two remote
+>>diodes.  Remote 1 is generally the CPU temperature.  These inputs are
+>>designed to measure a thermal diode like the one in a Pentium 4
+>>processor in a socket 423 or socket 478 package.  They can also
+>>measure temperature using a transistor like the 2N3904.
+>>
+>>A sophisticated control system for the PWM outputs is designed into
+>>the LM85 that allows fan speed to be adjusted automatically based on
+>>any of the three temperature sensors.  Each PWM output is individually
+>>adjustable and programmable.  Once configured, the LM85 will adjust
+>>the PWM outputs in response to the measured temperatures without
+>>further host intervention.  This feature can also be disabled for
+>>manual control of the PWM's.
+>>
+>>Each of the measured inputs (voltage, temperature, fan speed) has
+>>corresponding high/low limit values.  The LM85 will signal an ALARM if
+>>any measured value exceeds either limit.
+>>
+>>The LM85 samples all inputs continuously.  The lm85 driver will not
+>>read the lm85 more often than once a second.  Further, configuration
+>>data is only read once each 5 minutes.  There is twice as much config
+>>data as measurements, so this would seem to be a worthwhile
+>>optimization.
+>>
+>>Special Features
+>>
+>>The LM85 has four fan speed monitoring modes.  The ADM1027 has only
+>>two.  Both have special circuitry to compensate for PWM interactions
+>>with the TACH signal from the fans.  The ADM1027 can be configured to
+>>measure the speed of a two wire fan, but the input conditioning
+>>circuitry is different for 3-wire and 2-wire mode.  For this reason,
+>>the 2-wire fan modes are not exposed to user control.  The BIOS should
+>>initialize them to the correct mode.  If you've designed your own
+>>ADM1027, you'll have to modify the init_client function and add an
+>>insmod parameter to set this up.
+>>
+>>To smooth the response of fans to changes in temperature, the LM85 has
+>>an optional filter for smoothing temperatures.  The ADM1027 has the
+>>same config option but uses it to rate limit the changes to fan speed
+>>instead.  In libsensors, we associate the smoothing feature with a
+>>zone in the LM85 and with a PWM in the ADM1027.
+>>
+>>The ADM1027 has a 10-bit ADC and can therefore measure temperatures
+>>with .25 degC resolution.  The ADM1027 also provides an offset
+>>to the temperature readings that is automatically applied during
+>>measurement.  This offset can be used to zero out any errors due to
+>>traces and placement.  The documentation says that the offset is in
+>>0.25 degC steps, but in initial testing it was 1 degC steps.  The
+>>driver currently reports 0.25 degC steps in accordance with the
+>>datasheet.
+>>
+>>See the LM85 and ADM1027 datasheets for more information.  There is
+>>application note from National (AN-1260) with some additional
+>>information about the LM85.  The Analog Devices datasheet is very
+>>detailed and describes a procedure for determining an optimal
+>>configuration for the automatic PWM control.
+>>
+>>Hardware Configurations
+>>-----------------------
+>>
+>>The LM85 can be jumpered for 3 different SMBus addresses.  There are
+>>no other hardware configuration options.
+>>
+>>The lm85 driver detects both LM85B and LM85C revisions of the chip.
+>>See the datasheet for a complete description of the differences.
+>>Other than identifying the chip, the driver behaves no differently
+>>with regard to these two chips.  The LM85C is recommended for new
+>>designs.
+>>
+>>The lm85 driver also detects the ADM1027 chip.  There are several
+>>features which are implemented differently on this chip.  In
+>>particular, the tach_mode, spinup_ctl, and the fan smoothing are
+>>slightly different.  See comments below.
+>>
+>>Configuration Notes
+>>-------------------
+>>
+>>The voltage, temperature and fan inputs are available in libsensors
+>>and the sensors executable.  In addition, the automatic control of the
+>>PWM outputs can also be configured via sensors.conf.  This
+>>configuration is described below:
+>>
+>>* Temperatures and Zones
+>>
+>>Each temperature sensor is associated with a Zone.  There are three
+>>sensors and therefore three zones.  Each zone has the following
+>>temperature configuration points:
+>>
+>>    Limit temp    -- Temperature at which the fan will turn on
+>>                     [ absolute deg C from 0.0 to 127.0 ]
+>>                     [ sensors.conf:   zone#_limit ]
+>>    Hysteresis    -- Degrees below the limit that fan will remain
+>>                     on before turning off.
+>>                     [ relative C from 0.0 to -15.0 ]
+>>                     [ sensors.conf:   zone#_hyst ]
+>>    Range         -- Degrees above the limit over which the fan
+>>                     PWM will be adjusted (from PWM_MIN to 100%)
+>>                     [ relative deg C from 2.0 to 80.0 ]
+>>                     [ sensors.conf:   zone#_range ]
+>>    Critical temp -- Temperature above which other fans will be
+>>                     forced to 100% PWM
+>>                     [ absolute deg C from 0.0 to 127.0 ]
+>>                     [ sensors.conf:   zone#_critical ]
+>>
+>>** Temperature Range for a Zone
+>>
+>>The RANGE value for a given zone can have one of 16 different values
+>>in an approximately logrithmic spacing:
+>>Selecting a RANGE not in this list will cause the next larger range to
+>>be used.
+>>
+>>    Temperature ranges:    2.0, 2.5, 3.3, 4.0, 5.0, 6.6, 8.0, 10.0,
+>>      (in deg C)           13.3, 16.0, 20.0, 26.6, 32.0, 40.0, 53.3,
+>>                           80.0
+>>
+>>* Temperature Smoothing or Acoustic Enhancement
+>>
+>>The LM85 and ADM1027 use this value in different ways.  In the LM85
+>>it's used to filter the temperature input of a zone.  In this way, it
+>>affects all PWM's controlled by that zone temperature.  In the
+>>ADM1027, it limits the rate of change in fan speed.  Thus it is part
+>>of the PWM control algorithm.
+>>
+>>    Smooth filter -- Optional filter constant to smooth the system
+>>                     response to temperature spikes.  It either
+>>                     filters the measured temperatures or limits the
+>>                     rate of change of fan speed.  This improves
+>>                     the system by limiting rapid changes in fan
+>>                     speed.
+>>                     [ seconds from 0.8 to 35.0 or 0.0 for OFF ]
+>>                     [ sensors.conf:   zone#_smooth or pwm#_smooth ]
+>>
+>>The smoothing can be disabled, or enabled and set to one of the values
+>>listed below.  Selecting a filter time constant not on this list will
+>>cause the next smaller value to be used.  Setting the time constant to
+>>0 will disable the filtering.
+>>
+>>    Filter time constant:  35.0, 17.6, 11.8, 7.0, 4.4, 3.0, 1.6, 0.8
+>>      (in seconds)
+>>
+>>* PWM Control
+>>
+>>There are three PWM outputs.  The LM85 datasheet suggests that the
+>>PWM3 output control both FAN3 and FAN4.  Each PWM can be individually
+>>configured and assigned to a zone for it's control value.  Each PWM can be
+>>configured individually according to the following options.
+>>
+>>    Spinup time   -- When turning on a fan that was off, the PWM will
+>>                     temporarily be set to 100% for this length of
+>>                     time to insure the fan starts spinning.
+>>                     [ seconds from 0.0 to 4.0 ]
+>>                     [ sensors.conf:  pwm#_spinup ]
+>>    Minimum PWM   -- This is the PWM value at the limit temp of the
+>>                     referenced zone.
+>>                     [ percent from 0.0 to 100.0 ]
+>>                     [ sensors.conf:  pwm#_min ]
+>>    Frequency     -- This is the base frequency of the PWM output.
+>>                     [ Hz from 10.0 to 98.0 ]
+>>                     [ sensors.conf:  pwm#_freq ]
+>>    Min/Off flag  -- This flag determines if the PWM will be off or
+>>                     "min PWM" below the limit temperature.
+>>                     [ 0.0 means PWM off (0%) below limit ]
+>>                     [ sensors.conf:  pwm#_min_ctl ]
+>>    Invert flag   -- This flag causes the PWM output to be inverted.
+>>                     If inverted, a PWM setting of 0 will be full on
+>>                     and 100 will be off.
+>>                     [ 0.0 means PWM is "normal" ]
+>>                     [ sensors.conf:  pwm#_invert ]
+>>
+>>** Spinup Time
+>>
+>>Spinup time can be one of eight (8) values.  Selecting a spinup time
+>>not on this list will result in the next larger spinup time being
+>>selected.  Note, the value 0.2 actually results in a setting of 0.250
+>>seconds.
+>>
+>>    Spinup Time     0.0, 0.1, 0.2, 0.4, 0.7, 1.0, 2.0, 4.0
+>>      (in seconds)
+>>
+>>** PWM Frequency
+>>
+>>The base frequency of the PWM can be controlled.  The frequency can be
+>>set to one of the following 8 values.  Setting the frequency to a
+>>value not on this list, will result in the next higher frequency being
+>>selected.  The actual device frequency may vary slightly from this
+>>specification as designed by the manufacturer.  Consult the datasheet
+>>for more details.
+>>
+>>    PWM Frequency   10.0, 15.0, 23.0, 30.0, 38.0, 47.0, 62.0, 98.0
+>>      (in Hz)
+>>
+>>** Min/Off Flag
+>>
+>>Below the temperature "Limit - Hysteresis" from the controlling zone,
+>>the PWM can turn off (set to 0) or it can stay at the minimum PWM
+>>value.  Setting this flag to 1 will cause the PWM value to be the
+>>"Minimum PWM" value below this limit.  Setting it to 0 will set the
+>>PWM to 0 (off) below that limit.
+>>
+>>** Invert Flag
+>>
+>>The PWM output can be inverted.  This may be useful if the fan power
+>>circuitry is inverted. (A low output turns on power and a high output
+>>turns off power to the fan).  Alternatively, if a slower fan speed is
+>>needed for higher temperatures, this could be set.
+>>
+>>Setting this flag to 1 will invert the PWM output.  A value of 0
+>>does not invert the PWM output.
+>>
+>>* PWM Controlling Zone selection
+>>
+>>PWM's can be controlled by zones according to the following
+>>configuration choices:
+>>
+>>   Value     Meaning
+>>  ------  ------------------------------------------------
+>>      1    Controlled by Zone 1
+>>      2    Controlled by Zone 2
+>>      3    Controlled by Zone 3
+>>     23    Controlled by higher temp of Zone 2 or 3
+>>    123    Controlled by highest temp of Zone 1, 2 or 3
+>>      0    PWM alwasy 0%  (off)
+>>     -1    PWM always 100%  (full on)
+>>     -2    Manual control (write to 'pwm#' to set)
+>>
+>>These are specified in sensors.conf using 'pwm#_zone'
+>>
+>>* /proc Interface
+>>
+>>These values can also be set using the /proc interface.  The following
+>>files contain the above settings in the order listed below:
+>>
+>>    Name         Values
+>>   ---------- ----------------------------------------------------
+>>    zone#      Limit, Hysteresis, Range, Critical
+>>    pwm#_cfg   Spinup, PWM at low limit, Frequency, Min/Off, Invert
+>>    pwm#_zone  Control Zone choice
+>>    smooth#    Filtering
+>>
+>>The National LM85's have two vendor specific configuration
+>>features.  Tach. mode and Spinup Control.  For more details on these,
+>>see the LM85 datasheet or Application Note AN-1260.
+>>
+>>    Name           Values
+>>   ------------ --------------------------------------------------
+>>    tach_mode    For best fan speed measurement when PWM's are in use,
+>>                 the Tach Mode should be set to 2 for all three (Fan's
+>>                 3 and 4 share a config setting) config values.  If
+>>                 PWM's are not in use or not wired to control fan
+>>                 speed, mode 0 or 1 may be better.
+>>                 [ sensors.conf:   fan#_tach_mode ]
+>>    spinup_ctl   Setting spinup_ctl to 1 will modify the fan spinup
+>>                 algorithm.  Instead of setting the PWM to 100% for
+>>                 the configured period of time, it will be set to 100%
+>>                 until the measured RPM is greater than the RPM limit
+>>                 register or the time period elapses.
+>>                 [ sensors.conf:   pwm#_spinup_ctl ]
+>>
+>>The Analog Devices ADM1027 has several vendor specific enhancements.
+>>The number of pulses-per-rev of the fans can be set, Tach monitoring
+>>can be optimized for PWM operation, and an offset can be applied to
+>>the temperatures to compensate for systemic errors in the
+>>measurements.
+>>
+>>    Name           Values
+>>   ------------ --------------------------------------------------
+>>    tach_mode    For best fan speed measurement when PWM's are in use,
+>>                 the Tach Mode should be set to 0.  If PWM's are not
+>>                 in use or not wired to control fan speed, a mode of 1
+>>                 can be selected.  This will also increase the rate
+>>                 of fan speed measurement from 1 per second to 4 per
+>>                 second.
+>>                 [ sensors.conf:   fan#_tach_mode ]
+>>    fan_ppr      You can set the pulses per rev to 1, 2, 3 or 4 so
+>>                 that fan speeds don't have to be scaled.
+>>                 [ sensors.conf:   fan#_ppr ]
+>>    temp#_offset This is the value to be added or subtracted from the
+>>                 measured temperature before reporting it.  This also
+>>                 affects the PWM control algorithms.
+>>                 [ sensors.conf:   temp#_offset ]
+>>
+>>* Sample sensors.conf Config File
+>>
+>>Here is a sample LM85 chip config for sensors.conf
+>>
+>>--------- cut here ---------
+>>chip "lm85c-*" "adm1027-*" "lm85-*" "lm85b-*"
+>>
+>># Voltage inputs
+>>   label in0   "V1.5"      # AGP on Intel S845WD1-E
+>>   label in1   "VCore"
+>>   label in2   "V3.3"
+>>   label in3   "V5"
+>>   label in4   "V12"
+>>
+>># Temperature inputs
+>>   label temp1  "CPU"
+>>   label temp2  "Board"
+>>   label temp3  "Remote"
+>>
+>># Fan inputs
+>>   label fan1   "CPU_Fan"
+>>   label fan2   "Fan2"
+>>   label fan3   "Fan3"
+>>   label fan4   "Fan4"
+>>
+>># PWM Outputs
+>>   label pwm1   "Fan2"
+>>   label pwm2   "Fan3"
+>>   label pwm3   "Fan4"
+>>
+>># Scale voltages correctly  NOTE: This corresponds to the
+>>#    internal scaling of the chip.  This should not need
+>>#    to be adjusted
+>>   compute in0  @ * 2.5,   @ / 2.5
+>>   compute in1  @ * 2.25,  @ / 2.25
+>>   compute in2  @ * 3.3,   @ / 3.3
+>>   compute in3  @ * 5.0,   @ / 5.0
+>>   compute in4  @ * 12.0,  @ / 12.0
+>>
+>># Adjust fans speeds for actual pulses per rev
+>>   compute fan1  @ * 2,  @ / 2    # 1 pulse per rev
+>>#  set fan1_ppr  1                # ADM1027 only
+>>   compute fan2  @ / 2,  @ * 2    # 4 pulse per rev
+>>#  set fan2_ppr  4                # ADM1027 only
+>>
+>># Set VRM version
+>>   set vrm  9.1   # Pentium 4
+>>
+>># Set voltage limits
+>>   set in0_min  1.5 * 0.95
+>>   set in0_max  1.5 * 1.05
+>>   set in1_min  vid * 0.95
+>>   set in1_max  vid * 1.05
+>>   set in2_min  3.3 * 0.95
+>>   set in2_max  3.3 * 1.05
+>>   set in3_min  5.0 * 0.95
+>>   set in4_max  5.0 * 1.05
+>>   set in4_min   12 * 0.95
+>>   set in3_max   12 * 1.05
+>>
+>># Set Fan limits
+>>   set fan1_min  3000
+>>   set fan2_min  3000
+>>   set fan3_min  3000
+>>   set fan4_min  3000
+> 
 
 
 
-Philip Pokorny wrote:
-> 
-> I've respun my lm85/adm1027/adt7463 driver for the 2.7.0 release.
-> 
-> We've been using it here at Penguin Computing on the Intel S845WD1-E
-> motherboard for several months.  I added support for the adm1027 when I found
-> that chip on a Tyan motherboard we use.  The ADT7463 was added from specs when
-> Analog Devices Technical support told me that it fixes a bug in the ADM1027
-> related to the temperature offset registers.  (Documentation says .25 degC
-> resolution, actual resolution is 1 degC)
-> 
-> There is complete support in sensors and in the library for all the features.
-> 
-> I've corresponded with David Barrington who put the original detection code
-> into sensors-detect, but had not completed a driver.
-> 
-> I'm attaching the documentation file.
-> 
-> What else should I do to get this commited to CVS?
-> 
-> Thanks,
-> :v)
-> 
->   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> Kernel driver `lm85.o'
-> ===========
-> 
-> Status: Complete and somewhat tested
-> 
-> Supported chips:
->   * National Semiconductors LM85 (B and C versions)
->     Prefix `lm85'
->     Addresses scanned: I2C 0x2c, 0x2d, 0x2e
->   * Analog Devices ADM1027
->     Prefix `adm1027'
->     Addresses scanned: I2C 0x2c, 0x2d, 0x2e
->   * Analog Devices ADT7463
->     Prefix 'adt7463'
->     Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-> 
-> Authors:
->       Philip Pokorny <ppokorny@penguincomputing.com>
->       Frodo Looijaard <frodol@dds.nl>
->       Richard Barrington <rich_b_nz@clear.net.nz>
-> 
-> Module Parameters
-> -----------------
-> 
-> * init: integer
->   Bypass chip initialization if set to 0.  Useful if the BIOS has setup the
->   chip already or if you're using the "force_" options.
-> * force: short array (min = 1, max = 48)
->   List of adapter,address pairs to boldly assume to be present
-> * force_lm85b: short array (min = 1, max = 48)
->   List of adapter,address pairs which are unquestionably assumed to contain
->   a `lm85-B' chip
-> * force_lm85c: short array (min = 1, max = 48)
->   List of adapter,address pairs which are unquestionably assumed to contain
->   a `lm85-B' chip
-> * force_adm1027: short array (min = 1, max = 48)
->   List of adapter,address pairs which are unquestionably assumed to contain
->   a `adm1027' chip
-> * force_adt7463: short array (min = 1, max = 48)
->   List of adapter,address pairs which are unquestionably assumed to contain
->   a `adt7463' chip
-> * ignore: short array (min = 1, max = 48)
->   List of adapter,address pairs not to scan
-> * ignore_range: short array (min = 1, max = 48)
->   List of adapter,start-addr,end-addr triples not to scan
-> * probe: short array (min = 1, max = 48)
->   List of adapter,address pairs to scan additionally
-> * probe_range: short array (min = 1, max = 48)
->   List of adapter,start-addr,end-addr triples to scan additionally
-> 
-> Description
-> -----------
-> 
-> This driver implements support for the National Semiconductors LM85
-> and compatible chips including the Analog Devices ADM1027.
-> 
-> The LM85 uses the 2-wire interface compatible with the SMBUS 2.0
-> specification.  Using an analog to digital converter it measures three
-> (3) temperatures and five (5) voltages.  It has four (4) 16-bit
-> counters for measuring fan speed.  Five (5) digital inputs are
-> provided for sampling the VID signals from the processor to the VRM.
-> Lastly, there are three (3) PWM outputs that can be used to control
-> fan speed.
-> 
-> The voltage inputs have internal scaling resistors so that the
-> following voltage can be measured without external resistors:
-> 
->    2.5V, 3.3V, 5V, 12V, and CPU core voltage (2.25V)
-> 
-> The temperatures measured are one internal diode, and two remote
-> diodes.  Remote 1 is generally the CPU temperature.  These inputs are
-> designed to measure a thermal diode like the one in a Pentium 4
-> processor in a socket 423 or socket 478 package.  They can also
-> measure temperature using a transistor like the 2N3904.
-> 
-> A sophisticated control system for the PWM outputs is designed into
-> the LM85 that allows fan speed to be adjusted automatically based on
-> any of the three temperature sensors.  Each PWM output is individually
-> adjustable and programmable.  Once configured, the LM85 will adjust
-> the PWM outputs in response to the measured temperatures without
-> further host intervention.  This feature can also be disabled for
-> manual control of the PWM's.
-> 
-> Each of the measured inputs (voltage, temperature, fan speed) has
-> corresponding high/low limit values.  The LM85 will signal an ALARM if
-> any measured value exceeds either limit.
-> 
-> The LM85 samples all inputs continuously.  The lm85 driver will not
-> read the lm85 more often than once a second.  Further, configuration
-> data is only read once each 5 minutes.  There is twice as much config
-> data as measurements, so this would seem to be a worthwhile
-> optimization.
-> 
-> Special Features
-> 
-> The LM85 has four fan speed monitoring modes.  The ADM1027 has only
-> two.  Both have special circuitry to compensate for PWM interactions
-> with the TACH signal from the fans.  The ADM1027 can be configured to
-> measure the speed of a two wire fan, but the input conditioning
-> circuitry is different for 3-wire and 2-wire mode.  For this reason,
-> the 2-wire fan modes are not exposed to user control.  The BIOS should
-> initialize them to the correct mode.  If you've designed your own
-> ADM1027, you'll have to modify the init_client function and add an
-> insmod parameter to set this up.
-> 
-> To smooth the response of fans to changes in temperature, the LM85 has
-> an optional filter for smoothing temperatures.  The ADM1027 has the
-> same config option but uses it to rate limit the changes to fan speed
-> instead.  In libsensors, we associate the smoothing feature with a
-> zone in the LM85 and with a PWM in the ADM1027.
-> 
-> The ADM1027 has a 10-bit ADC and can therefore measure temperatures
-> with .25 degC resolution.  The ADM1027 also provides an offset
-> to the temperature readings that is automatically applied during
-> measurement.  This offset can be used to zero out any errors due to
-> traces and placement.  The documentation says that the offset is in
-> 0.25 degC steps, but in initial testing it was 1 degC steps.  The
-> driver currently reports 0.25 degC steps in accordance with the
-> datasheet.
-> 
-> See the LM85 and ADM1027 datasheets for more information.  There is
-> application note from National (AN-1260) with some additional
-> information about the LM85.  The Analog Devices datasheet is very
-> detailed and describes a procedure for determining an optimal
-> configuration for the automatic PWM control.
-> 
-> Hardware Configurations
-> -----------------------
-> 
-> The LM85 can be jumpered for 3 different SMBus addresses.  There are
-> no other hardware configuration options.
-> 
-> The lm85 driver detects both LM85B and LM85C revisions of the chip.
-> See the datasheet for a complete description of the differences.
-> Other than identifying the chip, the driver behaves no differently
-> with regard to these two chips.  The LM85C is recommended for new
-> designs.
-> 
-> The lm85 driver also detects the ADM1027 chip.  There are several
-> features which are implemented differently on this chip.  In
-> particular, the tach_mode, spinup_ctl, and the fan smoothing are
-> slightly different.  See comments below.
-> 
-> Configuration Notes
-> -------------------
-> 
-> The voltage, temperature and fan inputs are available in libsensors
-> and the sensors executable.  In addition, the automatic control of the
-> PWM outputs can also be configured via sensors.conf.  This
-> configuration is described below:
-> 
-> * Temperatures and Zones
-> 
-> Each temperature sensor is associated with a Zone.  There are three
-> sensors and therefore three zones.  Each zone has the following
-> temperature configuration points:
-> 
->     Limit temp    -- Temperature at which the fan will turn on
->                      [ absolute deg C from 0.0 to 127.0 ]
->                      [ sensors.conf:   zone#_limit ]
->     Hysteresis    -- Degrees below the limit that fan will remain
->                      on before turning off.
->                      [ relative C from 0.0 to -15.0 ]
->                      [ sensors.conf:   zone#_hyst ]
->     Range         -- Degrees above the limit over which the fan
->                      PWM will be adjusted (from PWM_MIN to 100%)
->                      [ relative deg C from 2.0 to 80.0 ]
->                      [ sensors.conf:   zone#_range ]
->     Critical temp -- Temperature above which other fans will be
->                      forced to 100% PWM
->                      [ absolute deg C from 0.0 to 127.0 ]
->                      [ sensors.conf:   zone#_critical ]
-> 
-> ** Temperature Range for a Zone
-> 
-> The RANGE value for a given zone can have one of 16 different values
-> in an approximately logrithmic spacing:
-> Selecting a RANGE not in this list will cause the next larger range to
-> be used.
-> 
->     Temperature ranges:    2.0, 2.5, 3.3, 4.0, 5.0, 6.6, 8.0, 10.0,
->       (in deg C)           13.3, 16.0, 20.0, 26.6, 32.0, 40.0, 53.3,
->                            80.0
-> 
-> * Temperature Smoothing or Acoustic Enhancement
-> 
-> The LM85 and ADM1027 use this value in different ways.  In the LM85
-> it's used to filter the temperature input of a zone.  In this way, it
-> affects all PWM's controlled by that zone temperature.  In the
-> ADM1027, it limits the rate of change in fan speed.  Thus it is part
-> of the PWM control algorithm.
-> 
->     Smooth filter -- Optional filter constant to smooth the system
->                      response to temperature spikes.  It either
->                      filters the measured temperatures or limits the
->                      rate of change of fan speed.  This improves
->                      the system by limiting rapid changes in fan
->                      speed.
->                      [ seconds from 0.8 to 35.0 or 0.0 for OFF ]
->                      [ sensors.conf:   zone#_smooth or pwm#_smooth ]
-> 
-> The smoothing can be disabled, or enabled and set to one of the values
-> listed below.  Selecting a filter time constant not on this list will
-> cause the next smaller value to be used.  Setting the time constant to
-> 0 will disable the filtering.
-> 
->     Filter time constant:  35.0, 17.6, 11.8, 7.0, 4.4, 3.0, 1.6, 0.8
->       (in seconds)
-> 
-> * PWM Control
-> 
-> There are three PWM outputs.  The LM85 datasheet suggests that the
-> PWM3 output control both FAN3 and FAN4.  Each PWM can be individually
-> configured and assigned to a zone for it's control value.  Each PWM can be
-> configured individually according to the following options.
-> 
->     Spinup time   -- When turning on a fan that was off, the PWM will
->                      temporarily be set to 100% for this length of
->                      time to insure the fan starts spinning.
->                      [ seconds from 0.0 to 4.0 ]
->                      [ sensors.conf:  pwm#_spinup ]
->     Minimum PWM   -- This is the PWM value at the limit temp of the
->                      referenced zone.
->                      [ percent from 0.0 to 100.0 ]
->                      [ sensors.conf:  pwm#_min ]
->     Frequency     -- This is the base frequency of the PWM output.
->                      [ Hz from 10.0 to 98.0 ]
->                      [ sensors.conf:  pwm#_freq ]
->     Min/Off flag  -- This flag determines if the PWM will be off or
->                      "min PWM" below the limit temperature.
->                      [ 0.0 means PWM off (0%) below limit ]
->                      [ sensors.conf:  pwm#_min_ctl ]
->     Invert flag   -- This flag causes the PWM output to be inverted.
->                      If inverted, a PWM setting of 0 will be full on
->                      and 100 will be off.
->                      [ 0.0 means PWM is "normal" ]
->                      [ sensors.conf:  pwm#_invert ]
-> 
-> ** Spinup Time
-> 
-> Spinup time can be one of eight (8) values.  Selecting a spinup time
-> not on this list will result in the next larger spinup time being
-> selected.  Note, the value 0.2 actually results in a setting of 0.250
-> seconds.
-> 
->     Spinup Time     0.0, 0.1, 0.2, 0.4, 0.7, 1.0, 2.0, 4.0
->       (in seconds)
-> 
-> ** PWM Frequency
-> 
-> The base frequency of the PWM can be controlled.  The frequency can be
-> set to one of the following 8 values.  Setting the frequency to a
-> value not on this list, will result in the next higher frequency being
-> selected.  The actual device frequency may vary slightly from this
-> specification as designed by the manufacturer.  Consult the datasheet
-> for more details.
-> 
->     PWM Frequency   10.0, 15.0, 23.0, 30.0, 38.0, 47.0, 62.0, 98.0
->       (in Hz)
-> 
-> ** Min/Off Flag
-> 
-> Below the temperature "Limit - Hysteresis" from the controlling zone,
-> the PWM can turn off (set to 0) or it can stay at the minimum PWM
-> value.  Setting this flag to 1 will cause the PWM value to be the
-> "Minimum PWM" value below this limit.  Setting it to 0 will set the
-> PWM to 0 (off) below that limit.
-> 
-> ** Invert Flag
-> 
-> The PWM output can be inverted.  This may be useful if the fan power
-> circuitry is inverted. (A low output turns on power and a high output
-> turns off power to the fan).  Alternatively, if a slower fan speed is
-> needed for higher temperatures, this could be set.
-> 
-> Setting this flag to 1 will invert the PWM output.  A value of 0
-> does not invert the PWM output.
-> 
-> * PWM Controlling Zone selection
-> 
-> PWM's can be controlled by zones according to the following
-> configuration choices:
-> 
->    Value     Meaning
->   ------  ------------------------------------------------
->       1    Controlled by Zone 1
->       2    Controlled by Zone 2
->       3    Controlled by Zone 3
->      23    Controlled by higher temp of Zone 2 or 3
->     123    Controlled by highest temp of Zone 1, 2 or 3
->       0    PWM alwasy 0%  (off)
->      -1    PWM always 100%  (full on)
->      -2    Manual control (write to 'pwm#' to set)
-> 
-> These are specified in sensors.conf using 'pwm#_zone'
-> 
-> * /proc Interface
-> 
-> These values can also be set using the /proc interface.  The following
-> files contain the above settings in the order listed below:
-> 
->     Name         Values
->    ---------- ----------------------------------------------------
->     zone#      Limit, Hysteresis, Range, Critical
->     pwm#_cfg   Spinup, PWM at low limit, Frequency, Min/Off, Invert
->     pwm#_zone  Control Zone choice
->     smooth#    Filtering
-> 
-> The National LM85's have two vendor specific configuration
-> features.  Tach. mode and Spinup Control.  For more details on these,
-> see the LM85 datasheet or Application Note AN-1260.
-> 
->     Name           Values
->    ------------ --------------------------------------------------
->     tach_mode    For best fan speed measurement when PWM's are in use,
->                  the Tach Mode should be set to 2 for all three (Fan's
->                  3 and 4 share a config setting) config values.  If
->                  PWM's are not in use or not wired to control fan
->                  speed, mode 0 or 1 may be better.
->                  [ sensors.conf:   fan#_tach_mode ]
->     spinup_ctl   Setting spinup_ctl to 1 will modify the fan spinup
->                  algorithm.  Instead of setting the PWM to 100% for
->                  the configured period of time, it will be set to 100%
->                  until the measured RPM is greater than the RPM limit
->                  register or the time period elapses.
->                  [ sensors.conf:   pwm#_spinup_ctl ]
-> 
-> The Analog Devices ADM1027 has several vendor specific enhancements.
-> The number of pulses-per-rev of the fans can be set, Tach monitoring
-> can be optimized for PWM operation, and an offset can be applied to
-> the temperatures to compensate for systemic errors in the
-> measurements.
-> 
->     Name           Values
->    ------------ --------------------------------------------------
->     tach_mode    For best fan speed measurement when PWM's are in use,
->                  the Tach Mode should be set to 0.  If PWM's are not
->                  in use or not wired to control fan speed, a mode of 1
->                  can be selected.  This will also increase the rate
->                  of fan speed measurement from 1 per second to 4 per
->                  second.
->                  [ sensors.conf:   fan#_tach_mode ]
->     fan_ppr      You can set the pulses per rev to 1, 2, 3 or 4 so
->                  that fan speeds don't have to be scaled.
->                  [ sensors.conf:   fan#_ppr ]
->     temp#_offset This is the value to be added or subtracted from the
->                  measured temperature before reporting it.  This also
->                  affects the PWM control algorithms.
->                  [ sensors.conf:   temp#_offset ]
-> 
-> * Sample sensors.conf Config File
-> 
-> Here is a sample LM85 chip config for sensors.conf
-> 
-> --------- cut here ---------
-> chip "lm85c-*" "adm1027-*" "lm85-*" "lm85b-*"
-> 
-> # Voltage inputs
->    label in0   "V1.5"      # AGP on Intel S845WD1-E
->    label in1   "VCore"
->    label in2   "V3.3"
->    label in3   "V5"
->    label in4   "V12"
-> 
-> # Temperature inputs
->    label temp1  "CPU"
->    label temp2  "Board"
->    label temp3  "Remote"
-> 
-> # Fan inputs
->    label fan1   "CPU_Fan"
->    label fan2   "Fan2"
->    label fan3   "Fan3"
->    label fan4   "Fan4"
-> 
-> # PWM Outputs
->    label pwm1   "Fan2"
->    label pwm2   "Fan3"
->    label pwm3   "Fan4"
-> 
-> # Scale voltages correctly  NOTE: This corresponds to the
-> #    internal scaling of the chip.  This should not need
-> #    to be adjusted
->    compute in0  @ * 2.5,   @ / 2.5
->    compute in1  @ * 2.25,  @ / 2.25
->    compute in2  @ * 3.3,   @ / 3.3
->    compute in3  @ * 5.0,   @ / 5.0
->    compute in4  @ * 12.0,  @ / 12.0
-> 
-> # Adjust fans speeds for actual pulses per rev
->    compute fan1  @ * 2,  @ / 2    # 1 pulse per rev
-> #  set fan1_ppr  1                # ADM1027 only
->    compute fan2  @ / 2,  @ * 2    # 4 pulse per rev
-> #  set fan2_ppr  4                # ADM1027 only
-> 
-> # Set VRM version
->    set vrm  9.1   # Pentium 4
-> 
-> # Set voltage limits
->    set in0_min  1.5 * 0.95
->    set in0_max  1.5 * 1.05
->    set in1_min  vid * 0.95
->    set in1_max  vid * 1.05
->    set in2_min  3.3 * 0.95
->    set in2_max  3.3 * 1.05
->    set in3_min  5.0 * 0.95
->    set in4_max  5.0 * 1.05
->    set in4_min   12 * 0.95
->    set in3_max   12 * 1.05
-> 
-> # Set Fan limits
->    set fan1_min  3000
->    set fan2_min  3000
->    set fan3_min  3000
->    set fan4_min  3000
+-- 
+Philip Pokorny, Senior Engineer
+Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
+PENGUIN COMPUTING - Simplifying the Solution Process [tm]
+www.penguincomputing.com
