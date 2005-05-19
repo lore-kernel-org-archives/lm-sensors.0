@@ -1,38 +1,109 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: w83l785ts inserted but no readings right away
-Message-Id: <20040901133953.M10595@linux-fr.org>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: Pre-conference call information regarding lm_sensors
+Message-Id: <3D38CA33.2E86DB9C@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <410E4CA4.6070601@johanneshuebner.com>
-In-Reply-To: <410E4CA4.6070601@johanneshuebner.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 01 Sep 2004 12:17:35 +0200, Johannes H?bner wrote
+Attached is a mail from April 2001 on the issue of the sensors-detect
+script
+from lm_sensors corrupting the eeprom in IBM Thinkpads, which prevents
+them from booting.
 
-> I wrote a while ago because of problems with the w83l785ts. I think the
-> problem is solved since I swapped the order in which  the modules are
-> loaded: First i2c-nforce2, then w83l785ts, and then asb100. I also
-> updated my BIOS from 1007 to 1010 but the problem was gone before that.
+As far as I know this conference call never happened.
+Nor do I have a record of receiving any response to the questions below.
+If any of you at IBM are still involved with Thinkpads we would
+like to  restart the discussion on how to prevent the corruption.
+Please contact us.
 
-Thanks for reporting. I've updated the relevant bug (#2899 [1]) in the kernel
-bugzilla base.
+I will forward a second mail just after this one.
 
-I'm a bit suspicious that changing the order will solve the problem in all
-cases, because you said earlier that you sometimes had to cycle the w83l785ts
-driver more than once to get it to work. And, as a matter of fact, it did not
-solve the problem for the bug submitter. So I think there are two different
-causes of failure, possibly linked.
+thanks
+mds
 
-Please let us know if you experience difficulties again despite the modules
-load order change.
 
-Thanks.
-
-[1] http://bugzilla.kernel.org/show_bug.cgi?id(99
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+"Mark D. Studebaker" wrote:
+> 
+> Keith, it would be very helpful if you could give us
+> the manufacturer and part number of the EEPROM on the PIIX4 bus,
+> and anything else that you think may be pertinent or unique to the
+> Thinkpad PIIX4 bus (SDA and SCK pullup values, SCK clock speed, ...)
+> 
+> thanks
+> mds
+> 
+> Frodo Looijaard wrote:
+> >
+> > Keith Frechette wrote:
+> > >
+> > > 1. ThinkPad thermal sensors are not accessible via the PIIX4 chip set.
+> >
+> > Yes, that much was already clear. That is fine. In a more general case,
+> > many things can potentially be attached to the PIIX4 SMBus adapter,
+> > ranging from temperature sensors to timer chips. The main problem
+> > is to somehow detect what is present.
+> >
+> > > 2. ACPI is the intended way of accessing the ThinkPad's sensors
+> >
+> > I am hardly an ACPI expert, so I may be way off here. The problem
+> > with ACPI as I have always understood it, is that it is BIOS-based,
+> > and that many BIOSes are plain buggy, not SMP safe, not interrupt
+> > safe, and generally hard to interface properly with Linux. Note
+> > that I am not saying that any of these problems are relevant for
+> > Thinkpads (I wouldn't know, as I have never used one), just that
+> > they are common for many systems. Also, non-IBM-compatible
+> > computers (macs, sparcs etc. etc.) generally don't have anything
+> > like the ACPI BIOS, and neither to older IBM-compatible computers.
+> > So in the general case, ACPI just does not cut it, and one has to
+> > use a lm_sensors-like solution anyway.
+> >
+> > In the case of the Thinkpads, life is fortunately simple. We
+> > can't access the H8 bus directly even if we wanted, due to a lack
+> > of documentation; so there is no chance of accidentally accessing
+> > the sensor chips directly, thereby triggering one of the
+> > nightmare scenarios you mentioned. Therefore, ACPI is the only way
+> > to do it (whether the Linux ACPI drivers are already advanced
+> > enough is another question entirely, which you would have to take
+> > up with the ACPI developers).
+> >
+> > As I see it, there remain two questions: why does the device that
+> > is on the PIIX4 bus get upset so easily disrupting your entire
+> > system, and how do we avoid it? I don't know whether you can or
+> > are allowed to answer the first question; still, any insight in
+> > what is happening under the lid may help us resolve any future
+> > problems. If there is any safer way to probe an PIIX4 adapter (or
+> > even better, any i2c or SMBus adapter in the more general case),
+> > I would dearly want to learn of it. But seeing the history of
+> > this bus (as far as I know, it was developed by Philips for embedded
+> > systems and appliances), I think it unlikely there is any failsafe
+> > method. I could argue that nothing a user does with his machine
+> > should have any bearing after a cold reboot and possibly a harddisk
+> > restore, at least not without setting a jumper on his mainboard
+> > (a common precaution against accidental or malicious reprogramming
+> > of your BIOS EEPROM), but that won't help us here. Still, I think
+> > it should be of concern to you that a (Windows) virus could easily
+> > disrupt the system on purpose in this way.
+> >
+> > > 3. lm_sensors can be modified to detect "ThinkPads" and to abort gracefully
+> >
+> > Though I would prefer finding some safe way to scan the PIIX4 bus,
+> > I suspect the best we can do is recognize the Thinkpad (perhaps
+> > through the PCI id of some always-there-but-never-on-anything-else
+> > device?) and simply not allow the PIIX4 driver to attach to it,
+> > or something like that (it may be enough to make certain i2c addresses
+> > unavailable; that is something that will have to be determined during
+> > the call, I think). As you are trying to free this information for
+> > public use, I think we should be able to resolve the symptoms of
+> > this problem without too much problem.
+> >
+> > Thanks,
+> >   Frodo
+> >
+> > --
+> > Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+> > Defenestration n. (formal or joc.):
+> >   The act of removing Windows from your computer in disgust, usually followed
+> >   by the installation of Linux or some other Unix-like operating system.
