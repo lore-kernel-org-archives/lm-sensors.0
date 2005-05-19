@@ -1,7 +1,7 @@
-From: phil@netroedge.com (phil@netroedge.com)
+From: nettings@folkwang-hochschule.de (=?iso-8859-1?Q?J=F6rn?= Nettingsmeier)
 Date: Thu, 19 May 2005 06:23:29 +0000
 Subject: unresolved symbols...
-Message-Id: <20020211112249.P24643@Stimpy.netroedge.com>
+Message-Id: <3C68287F.C9902B08@folkwang-hochschule.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3C665DDE.39D2053C@folkwang-hochschule.de>
 In-Reply-To: <3C665DDE.39D2053C@folkwang-hochschule.de>
@@ -10,78 +10,72 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+phil@netroedge.com wrote:
+> 
+> Make sure that you are building sensors against the kernel source tree
+> which you are running, and be sure you are using the same compiler to
+> build the modules that was used to build the kernel.  One of these is
+> almost certainly the case.
 
 
-Make sure that you are building sensors against the kernel source tree
-which you are running, and be sure you are using the same compiler to
-build the modules that was used to build the kernel.  One of these is
-almost certainly the case.
+i can definitely rule out the compiler issue, and i'm 98% sure the
+kernel tree is the current one.
+i will double-check when i upgrade again in a few days, and keep you
+posted on the results.
+
+meanwhile, thanks for responding, best regards,
+
+j?rn
 
 
-Phil
+> 
+> On Sun, Feb 10, 2002 at 12:47:42PM +0100, J?rn Nettingsmeier wrote:
+> > hello everyone !
+> >
+> > first of all, thanks for the great work you've done with lm_sensors
+> > !
+> > i've been happily using it for over 2 yrs now. like most users, i
+> > only speak up when things go wrong :)
+> >
+> > since kernel 2.4.17, i've had some unresolved symbols on my system:
+> >
+> > depmod -ae
+> > depmod: *** Unresolved symbols in
+> > /lib/modules/2.4.18-pre7/misc/i2c-hydra.o
+> > depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
+> > depmod:         i2c_bit_del_bus_Rsmp_2e7322be
+> > depmod: *** Unresolved symbols in
+> > /lib/modules/2.4.18-pre7/misc/i2c-i810.o
+> > depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
+> > depmod:         i2c_bit_del_bus_Rsmp_2e7322be
+> > depmod: *** Unresolved symbols in
+> > /lib/modules/2.4.18-pre7/misc/i2c-via.o
+> > depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
+> > depmod:         i2c_bit_del_bus_Rsmp_2e7322be
+> > depmod: *** Unresolved symbols in
+> > /lib/modules/2.4.18-pre7/misc/i2c-voodoo3.o
+> > depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
+> > depmod:         i2c_bit_del_bus_Rsmp_2e7322be
+> >
+> > these are not modules i really need, and i don't really care about
+> > them, but i thought you might want to know.
+> > my current kernel is 2.4.18-pre9, patched with ingo's o(1) scheduler
+> > and robert love's kpreempt.
+> > modutils are 2.4.6.
+> >
+> > the system is a dual p3/600, 512 mb ram on an asus p2b-ds with an
+> > intel bx chipset.
+> >
+> > oh, and lm_sensors is v2.6.2.
+> >
+> > let me know if you need more information or want me to check out a
+> > new release.
+> > in that case, please cc: me as i'm not on the list.
 
-On Sun, Feb 10, 2002 at 12:47:42PM +0100, J?rn Nettingsmeier wrote:
-> hello everyone !
-> 
-> first of all, thanks for the great work you've done with lm_sensors
-> !
-> i've been happily using it for over 2 yrs now. like most users, i
-> only speak up when things go wrong :)
-> 
-> since kernel 2.4.17, i've had some unresolved symbols on my system:
-> 
-> depmod -ae
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18-pre7/misc/i2c-hydra.o
-> depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
-> depmod:         i2c_bit_del_bus_Rsmp_2e7322be
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18-pre7/misc/i2c-i810.o
-> depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
-> depmod:         i2c_bit_del_bus_Rsmp_2e7322be
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18-pre7/misc/i2c-via.o
-> depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
-> depmod:         i2c_bit_del_bus_Rsmp_2e7322be
-> depmod: *** Unresolved symbols in
-> /lib/modules/2.4.18-pre7/misc/i2c-voodoo3.o
-> depmod:         i2c_bit_add_bus_Rsmp_d53ef5ba
-> depmod:         i2c_bit_del_bus_Rsmp_2e7322be
-> 
-> these are not modules i really need, and i don't really care about
-> them, but i thought you might want to know.
-> my current kernel is 2.4.18-pre9, patched with ingo's o(1) scheduler
-> and robert love's kpreempt.
-> modutils are 2.4.6.
-> 
-> the system is a dual p3/600, 512 mb ram on an asus p2b-ds with an
-> intel bx chipset.
-> 
-> oh, and lm_sensors is v2.6.2.
-> 
-> let me know if you need more information or want me to check out a
-> new release.
-> in that case, please cc: me as i'm not on the list.
-> 
-> 
-> thanks again for your work,
-> 
-> best regards,
-> 
-> 
-> j?rn
-> 
-> 
-> 
-> 
-> -- 
-> J?rn Nettingsmeier     
-> home://Kurf?rstenstr.49.45138.Essen.Germany      
-> phone://+49.201.491621
-> http://spunk.dnsalias.org
-> http://www.linuxdj.com/audio/lad/
 
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+J?rn Nettingsmeier     
+home://Kurf?rstenstr.49.45138.Essen.Germany      
+phone://+49.201.491621
+http://spunk.dnsalias.org
+http://www.linuxdj.com/audio/lad/
