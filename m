@@ -1,12 +1,26 @@
 From: shejithp@hclinsys.com (Shejith)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: LM sensor for ASM 58 chip
-Message-Id: <000001c28979$be9948c0$cb180897@swsi11>
+Message-Id: <000001c289f9$cb302fb0$cb180897@swsi11>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <000001c28979$be9948c0$cb180897@swsi11>
+In-Reply-To: <000001c28979$be9948c0$cb180897@swsi11>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Dear Support,
+   For writting a driver what are all the information I have to get from ASUS.
+Thanks and regards
+Shejith P.P
+
+
+ -----Original Message-----
+From: 	Shejith [mailto:shejithp@hclinsys.com] 
+Sent:	Monday, November 11, 2002 5:29 PM
+To:	'sensors@stimpy.netroedge.com'
+Subject:	LM sensor for ASM 58 chip
 
 Hi Sensor Support,
     I want to install LM sensor in an asus motherboard.
