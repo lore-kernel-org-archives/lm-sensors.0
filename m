@@ -1,41 +1,99 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: [gerhard@brue.net: Reading from SMBus]
-Message-Id: <20030613160900.GA1725@frodo.local>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: [BK PATCH] i2c driver changes for 2.5.66
+Message-Id: <20030325013531.GA11158@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@transmeta.com
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
------ Forwarded message from Gerhard Strangar <gerhard@brue.net> -----
+Hi,
 
-From: Gerhard Strangar <gerhard@brue.net>
-X-No-Archive: yes
-To: frodol@dds.nl
-Subject: Reading from SMBus
-X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
-X-Spam-Level: 
+Here are some i2c driver changes for 2.5.66.  These include changes that
+I previously sent, but didn't end up in 2.5.65.
 
-High,
+They do the following:
+	- hook up i2c devices with the driver core.
+	- remove some redundant fields from i2c structures now that the
+	  driver and device structures are being used.
+	- fix up i2c drivers outside of the i2c tree.
+	- fix some other minor bugs.
 
-I found your email address in the sources of the lm_sensors project and
-wodered, if you could help me. I want to read the CPU temperature from
-the W83782D on my mainboard, but unfortunately it's not connected to the
-ISA bus, thus I have to use SMBus, but can't figure out how to select
-different registers on the slave. Do I have to write to that slave
-first, telling it which register I want to read from?
-Let's assume I want to read out register 4Fh of slave 2Dh, is it correct
-to write 2Dh to this slave and then read from it?
+The i2c bus, drivers, and devices are now all hooked up to the driver
+core.  On one of my boxes this looks like:
 
--- 
- * Origin: (2:2480/8057.2)
+/sys/bus/i2c/
+|-- devices
+|   `-- i2c_dev_0 -> ../../../devices/pci0/00:1f.3/i2c-0/i2c_dev_0
+`-- drivers
+    `-- LM75 sensor
+        `-- i2c_dev_0 -> ../../../../devices/pci0/00:1f.3/i2c-0/i2c_dev_0
+
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.5
+
+thanks,
+
+greg k-h
+
+ drivers/acorn/char/i2c.c                  |    4 
+ drivers/i2c/busses/i2c-ali15x3.c          |    8 -
+ drivers/i2c/busses/i2c-amd756.c           |    6 -
+ drivers/i2c/busses/i2c-amd8111.c          |    4 
+ drivers/i2c/busses/i2c-i801.c             |    8 -
+ drivers/i2c/busses/i2c-isa.c              |    4 
+ drivers/i2c/busses/i2c-piix4.c            |    8 -
+ drivers/i2c/chips/adm1021.c               |   21 +--
+ drivers/i2c/chips/lm75.c                  |   14 +-
+ drivers/i2c/i2c-algo-bit.c                |   13 +-
+ drivers/i2c/i2c-algo-pcf.c                |   19 +--
+ drivers/i2c/i2c-core.c                    |  108 +++++++++---------
+ drivers/i2c/i2c-dev.c                     |   42 +++----
+ drivers/i2c/i2c-elektor.c                 |   10 +
+ drivers/i2c/i2c-elv.c                     |    6 -
+ drivers/i2c/i2c-philips-par.c             |    4 
+ drivers/i2c/i2c-proc.c                    |  180 +++++++-----------------------
+ drivers/i2c/i2c-velleman.c                |    4 
+ drivers/i2c/scx200_acb.c                  |   34 ++---
+ drivers/ieee1394/pcilynx.c                |    4 
+ drivers/media/video/adv7175.c             |   22 ++-
+ drivers/media/video/bt819.c               |   33 +++--
+ drivers/media/video/bt856.c               |   27 ++--
+ drivers/media/video/bttv-if.c             |   22 ++-
+ drivers/media/video/msp3400.c             |   32 ++---
+ drivers/media/video/saa5249.c             |   13 +-
+ drivers/media/video/saa7110.c             |   19 +--
+ drivers/media/video/saa7111.c             |   21 ++-
+ drivers/media/video/saa7134/saa7134-i2c.c |   10 +
+ drivers/media/video/saa7185.c             |   19 +--
+ drivers/media/video/tda7432.c             |   16 +-
+ drivers/media/video/tda9875.c             |   16 +-
+ drivers/media/video/tda9887.c             |   14 +-
+ drivers/media/video/tuner-3036.c          |    6 -
+ drivers/media/video/tuner.c               |   29 ++--
+ drivers/media/video/tvaudio.c             |   44 +++----
+ drivers/video/matrox/i2c-matroxfb.c       |   11 +
+ include/linux/i2c.h                       |   33 +++--
+ 38 files changed, 444 insertions(+), 444 deletions(-)
+-----
 
 
------ End forwarded message -----
+Greg Kroah-Hartman <greg@kroah.com>:
+  o i2c: set up a "generic" i2c driver to prevent oopses when devices are registering
+  o i2c: fix typo that newer versions of gcc catch
+  o i2c: fix up drivers/video/matrox/i2c-matroxfb.c due to previous i2c changes
+  o i2c: fix up drivers/ieee1394/pcilynx.c due to previous i2c changes
+  o i2c: fix up drivers/acorn/char/i2c.c due to previous i2c changes
+  o i2c: fix up drivers/media/video/* due to previous i2c changes
+  o i2c: ugh, clean up lindent mess in i2c-proc.c::i2c_detect()
+  o i2c: fix up the chip driver names to play nice with sysfs
+  o i2c: actually register the i2c client device with the driver core
+  o i2c: Removed the name variable from i2c_client as the dev one should be used instead
+  o i2c: remove the data field from struct i2c_client
+  o i2c: add struct device to i2c_client structure
+  o i2c: remove *data from i2c_adapter, as dev->data should be used instead
+  o i2c: remove i2c_adapter->name and use dev->name instead
 
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Petr Vandrovec <vandrove@vc.cvut.cz>:
+  o Fix kobject_get oopses triggered by i2c in 2.5.65-bk
