@@ -1,30 +1,35 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: lm-sensors install goes fine, but I only get status of EEPROMs
-Message-Id: <20040508181312.47a8193e.khali@linux-fr.org>
+From: vsu@altlinux.ru (Sergey Vlasov)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: [PATCH] fix typo in isaset manpage
+Message-Id: <20050501154647.GA2589@procyon.home>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <409C6578.2040008@knology.net>
-In-Reply-To: <409C6578.2040008@knology.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The force parameter did the trick.  For whatever reason, the 
-> auto-detection wasn't working.  Here's the dmesg output with
-> debugging on in case you're interested in seeing the auto-detect
-> failure.  Let me know if I can do anything else.  Thanks for your
-> help.
+Hello!
 
-You're welcome.
+The isaset manpage still has "i2cset" in the NAME section; this patch
+fixes it:
 
-After reading the code once again, it's "normal". The code expects the
-force parameter to be passed in order to accept "generic" (i.e.
-non-National, non-Analog) LM85-like chips.
-
-Philip, why is that? Looks like this should be changed (by at least
-accepting SMSC chips without force parameters).
+--- lm_sensors-2.9.1/prog/dump/isaset.8.alt-man	2004-10-16 18:24:55 +0400
++++ lm_sensors-2.9.1/prog/dump/isaset.8	2005-05-01 19:40:32 +0400
+@@ -1,6 +1,6 @@
+ .TH ISASET 8 "August 2004"
+ .SH "NAME"
+-i2cset \- set ISA registers
++isaset \- set ISA registers
+ 
+ .SH SYNOPSIS
+ .B isaset
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Sergey Vlasov
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050501/e816d53f/attachment.bin
