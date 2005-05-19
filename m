@@ -1,52 +1,115 @@
-From: kakadu@gmail.com (Bradley Chapman)
-Date: Thu, 19 May 2005 06:25:52 +0000
-Subject: Need assistance with enabling the SMBus on an Intel 855PM 82801DB
-Message-Id: <e294b46e05041510241a0d6216@mail.gmail.com>
+From: yeupou@coleumes.org (Mathieu Roy)
+Date: Thu, 19 May 2005 06:25:26 +0000
+Subject: No fan values with W83637HF
+Message-Id: <m3ekhyb7b9.fsf@eos.attique.in>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <e294b46e05041407152efe4f8b@mail.gmail.com>
-In-Reply-To: <e294b46e05041407152efe4f8b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mr. Delvare,
+Hello,
 
-On 4/15/05, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Bradley,
-> 
-> > Unfortunately, the only thing sensors-detect found was an SPD EEPROM,
-> > telling me that I have 512MB of memory installed :-((((
-> >
-> > Either there is nothing attached to my SMBus or it wasn't detected by
-> > sensors-detect.
-> 
-> You may try using i2cdetect (after loading the i2c-dev kernel module) on
-> that bus. If there are responsive addresses other than 0x08, 0x44,
-> 0x50-0x57 and 0x69, this might be a hardware monitoring chip, in which
-> case you can send the output of i2cdump for it and we'll investigate.
+I'd like to thank you for the good work being done. But that's not the
+main subject of this mail.
 
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX
-50: XX 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX
+The mail subject is the (light) issue I have with W83637HF
+sensors. Everything seems to be running fine but I have no value for
+the fans. The fans (box and CPU) are correctly identified in the BIOS.
 
-:-(((((
+----------------
 
-I guess I'll have to wait and hope that someone fixes the M375E DSDT
-to uncover any hidden thermal zone functionality...
+Here's what I get running the sensors command (everything was
+configured by sensors-detect)
 
-> 
-> --
-> Jean Delvare
-> 
+w83637hf-isa-0290
+Adapter: ISA adapter
+VCore:     +1.34 V  (min =  +1.40 V, max =  +1.55 V)             
++12V:      +5.84 V  (min = +10.82 V, max = +13.19 V)   
++3.3V:     +3.31 V  (min =  +3.14 V, max =  +3.47 V)              
++5V:       +5.09 V  (min =  +4.75 V, max =  +5.25 V)              
+-12V:     -14.91 V  (min = -10.80 V, max = -13.18 V)              
+V5SB:      +5.08 V  (min =  +4.76 V, max =  +5.24 V)              
+VBat:      +3.41 V  (min =  +2.40 V, max =  +3.60 V)              
+fan1:        0 RPM  (min = 3461 RPM, div = 2)                     
+CPU Fan:     0 RPM  (min = 168750 RPM, div = 2)                     
+fan3:        0 RPM  (min = 6250 RPM, div = 8)                     
+M/B Temp:    +42?C  (high =   -31?C, hyst =  -119?C)   sensor = thermistor           
+CPU Temp:  +41.0?C  (high =   +70?C, hyst =   +65?C)   sensor = diode           
+temp3:     +30.0?C  (high =   +70?C, hyst =   +65?C)   sensor = thermistor           
+vid:      +1.475 V  (VRM Version 9.0)
+alarms:   
+beep_enable:
+          Sound alarm disabled
 
-Brad
+eeprom-i2c-0-50
+Adapter: SMBus I801 adapter at 0500
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
+
+-------------------
+
+I run the kernel linux 2.6.8-1-686-smp as shipped by Debian, along
+with sensors version 2.8.8 with libsensors version 2.8.8, as shipped
+by Debian (sarge) too.
+
+--------------------
+
+Follows the result of lspci, giving you an overview of the
+hardware.
+
+0000:00:00.0 Host bridge: Intel Corp. 82865G/PE/P DRAM Controller/Host-Hub Interface (rev 02)
+0000:00:01.0 PCI bridge: Intel Corp. 82865G/PE/P PCI to AGP Controller (rev 02)
+0000:00:1d.0 USB Controller: Intel Corp. 82801EB/ER (ICH5/ICH5R) USB UHCI #1 (rev 02)
+0000:00:1d.1 USB Controller: Intel Corp. 82801EB/ER (ICH5/ICH5R) USB UHCI #2 (rev 02)
+0000:00:1d.2 USB Controller: Intel Corp. 82801EB/ER (ICH5/ICH5R) USB UHCI #3 (rev 02)
+0000:00:1d.3 USB Controller: Intel Corp. 82801EB/ER (ICH5/ICH5R) USB UHCI #4 (rev 02)
+0000:00:1d.7 USB Controller: Intel Corp. 82801EB/ER (ICH5/ICH5R) USB2 EHCI Controller (rev 02)
+0000:00:1e.0 PCI bridge: Intel Corp. 82801 PCI Bridge (rev c2)
+0000:00:1f.0 ISA bridge: Intel Corp. 82801EB/ER (ICH5/ICH5R) LPC Bridge (rev 02)
+0000:00:1f.1 IDE interface: Intel Corp. 82801EB/ER (ICH5/ICH5R) Ultra ATA 100 Storage Controller (rev 02)
+0000:00:1f.3 SMBus: Intel Corp. 82801EB/ER (ICH5/ICH5R) SMBus Controller (rev 02)
+0000:00:1f.5 Multimedia audio controller: Intel Corp. 82801EB/ER (ICH5/ICH5R) AC'97 Audio Controller (rev 02)
+0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 AP [Radeon 9600]
+0000:01:00.1 Display controller: ATI Technologies Inc RV350 AP [Radeon 9600] (Secondary)
+0000:02:02.0 Multimedia audio controller: Ensoniq 5880 AudioPCI (rev 02)
+0000:02:04.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8139C/8139C+ (rev 10)
+0000:02:09.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8139C/8139C+ (rev 10)
+
+-------------
+ 
+Any clues ? On another computer, with different hardware but working
+with lm-sensors (it87), I notice that fan speed is shown only when it
+reach some value; and I read stuff related to that in the docs. I
+tried to do some checks about that running the CPU at 100% for a while
+(I guess the box fan speed increased since the box temperature was
+going down (5?C decrease) while the CPU temperature was increasing) 
+but I'm not sure the test was really conclusive since I was not able
+to make the CPU getting hotier than 57?C.
+I also search on the web and found mails about the w83637hf support in
+lm-sensors, derived from w83627 stuff: in these mails, apparently,
+people were getting (more or less) accurate values for their fans
+sensors.
+
+Is there any other information I can provide? Is there anything I
+should try? Or is it a known problem (I did not found relevant
+information in
+<http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/w83627hf>
+neither in
+<http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/w83781d>)
+
+
+Thanks,
+Regards,
+
+
+
 -- 
-SCREW THE ADS! http://adblock.mozdev.org/
-Extensions Mod at http://www.extensionsmirror.nl/
+Mathieu Roy
+
+  +---------------------------------------------------------------------+
+  | General Homepage:           http://yeupou.coleumes.org/             |
+  | Computing Homepage:         http://alberich.coleumes.org/           |
+  | Not a native english speaker:                                       |
+  |     http://stock.coleumes.org/doc.php?i=/misc-files/flawed-english  |
+  +---------------------------------------------------------------------+
