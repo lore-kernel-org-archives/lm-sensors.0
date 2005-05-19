@@ -1,49 +1,28 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:25:11 +0000
-Subject: [michaelpiest@gmx.de: Sensors Problem]
-Message-Id: <20040811183407.GB1246@frodo.local>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:06 +0000
+Subject: website author.html
+Message-Id: <20030723100630.123d01b6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Michael Piest <michaelpiest@gmx.de> -----
 
-X-Authenticated: #4930112
-Organization: WWU
-Subject: Sensors Problem
-To: frodol@dds.nl
-From: Michael Piest <michaelpiest@gmx.de>
-X-Virus-Scanned: clamd / ClamAV version 0.75-1, clamav-milter version 0.75c
-	on morannon
-X-Virus-Scanned: by amavisd-new at isd-holland.nl
-X-Virus-Status: Clean
-X-Spam-Checker-Version: SpamAssassin 2.64 (2004-01-11) on morannon.frodo.lo=
-cal
-X-Spam-Status: No, hits=3D-4.9 required=3D5.0 tests=BAYES_00 autolearn=3Dha=
-m=20
-	version=3D2.64
-X-Spam-Level:=20
+I have been updating the authors page. Some additional notes:
 
-Hi,
-i use sensors on my Asus A7V Motherboard.
-Everything works fine, but the Fan3 (Power-Fan) does not show rpm until i
-ran "mbmon" 2 or more times.
-I can't find an answer with google or in any forum/mailinglist.
+1* Phil, what does "Main PR rep." mean?
 
-The divisor is set to 4 and works correct (after running mbmon...).
+2* What should we say about Kyosti Malkki? The original comment was just
+kidding, I removed it. What did Kyosti really do? I think I remember he
+helped porting our code to Linux 2.5, but I'm not too sure.
 
-Hope, you can help me :)
+3* I've added Philip Pokorny, Mark M. Hoffman and Greg KH to the list of
+the active contributors. You guys deserve it! I've not set any comment
+though. Feel free to fill it yourself, or tell me what you want me to
+add and I'll commit the changes myself.
 
-Thx, Michael
 
------ End forwarded message -----
-
---=20
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~fr=
-odol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually follow=
-ed
-  by the installation of Linux or some other Unix-like operating system.
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
