@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: [PATCH 2.6.12-rc1] I2C: Fix breakage in m41t00 i2c rtc driver
-Message-Id: <20050315220727.GB28880@kroah.com>
+Message-Id: <20050317065729.GN15075@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <422E4313.6000004@mvista.com>
 In-Reply-To: <422E4313.6000004@mvista.com>
@@ -10,43 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 15, 2005 at 01:28:59PM -0700, Mark A. Greer wrote:
-> Jean Delvare wrote:
+On Tue, Mar 08, 2005 at 05:28:03PM -0700, Mark A. Greer wrote:
+> Remove setting of deleted i2c_client structure member.
 > 
-> >Hi Mark,
-> >
-> > 
-> >
-> >>Remove setting of deleted i2c_client structure member.
-> >>
-> >>The latest include/linux/i2c.h:i2c_client structure no longer has an
-> >>'id' member.  This patch removes the setting of that no longer existing
-> >>member.
-> >>   
-> >>
-> >
-> >Oops. I tried to catch all new drivers using it because I knew it was
-> >soon to be removed, but obviously missed this driver. Sorry :( I also
-> >tried to compile all drivers to catch potential leftovers, but it was on
-> >a non-PPC system so my test did not include your driver.
-> >
-> >Sorry again, and thanks for the update. Greg, please apply and push to
-> >Linus soon.
-> >
-> >Thanks,
-> >--
-> >Jean Delvare
-> >
+> The latest include/linux/i2c.h:i2c_client structure no longer has an 
+> 'id' member.  This patch removes the setting of that no longer existing 
+> member.
 > 
-> Greg,
+> Please apply.
 > 
-> Can we get this pushed?  It won't build as it is now...
-> 
-> Patch: http://archives.andrew.net.au/lm-sensors/msg29870.html
+> Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 
-It's in my queue, had a lot of "real work" to do these past few days,
-should get to this later tonight.
-
-Sorry for the delay...
+Applied, thanks.
 
 greg k-h
