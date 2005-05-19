@@ -1,7 +1,7 @@
-From: aurelien@aurel32.lan (Aurelien Jarno)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:11 +0000
 Subject: Ticket 1751
-Message-Id: <20040814015818.GA4981@bode.aurel32.lan>
+Message-Id: <20040814222227.670f6b26.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200408121858.i7CIw0KW013198@Stimpy.netroedge.com>
 In-Reply-To: <200408121858.i7CIw0KW013198@Stimpy.netroedge.com>
@@ -10,29 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 12, 2004 at 09:21:23PM +0200, Jean Delvare wrote:
-> > When everything is fine, CPU and MB temps move up and down with load
-> > as expected (and as confirmed by the BIOS).
-> > The only required action to break the values appears to be installing
-> > lm-sensors by apt-get install (which I'd guess runs sensors-detect) -
-> > removing lm-sensors, and running only the w83627hf kernel module (ie
-> > without lm_sensors) provides the "correct" (in the sense of more valid
-> > anyway) values. When broken, the CPU temp locks itself at 85.0?C, and
-> > doesn't shift whatsoever.
-> > Sensors -s doesn't help anything.
-> 
-> Just asked the debian maintainer about it, and he told me that
-> installing the package will actually run "sensors -s", not
-> sensors-detect. So "sensors -s" is somehow messing with your chip. I
-> can't remember of a similar report so far.
-sensors -s is also run during each reboot. To disable that, just run
-'update-rc.d -f lm-sensors remove'
+> sensors -s is also run during each reboot. To disable that, just run
+> 'update-rc.d -f lm-sensors remove'
 
-Cheers,
-Aurelien
+Once done, your chip should be fine after reboots. You should then try
+to write to the various voltage limits (either through /etc/sensors.conf
+and "sensors -s", or through the sysfs interface directly, which should
+be easier). Most likely, one (or a limited number) of these is causing
+the problem. Please test them all and report which are, and which are
+not. Hopefully we'll see some pattern show. I know this represents some
+work but I can't think of another way to find out what triggers the
+problem.
+
+Thanks.
 
 -- 
-  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
- : :' :  Debian GNU/Linux developer | Electrical Engineer
- `. `'   aurel32@debian.org         | aurelien@aurel32.net
-   `-    people.debian.org/~aurel32 | www.aurel32.net
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
