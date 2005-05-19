@@ -1,30 +1,52 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: i2c-proc and kernel 2.6.0-test11 HOWTO
-Message-Id: <20031216203503.2de6cd48.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:26 +0000
+Subject: EEPROM read/write user space program
+Message-Id: <20031122084059.0f9f73fa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1071508087.2621.13.camel@ta3>
-In-Reply-To: <1071508087.2621.13.camel@ta3>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I have not lm80.c! 
-> Is this problem? 
-> How can I continues?
-> Is possible use sensors for my mainboard and chipset with linux
-> 2.6.0-test11?
 
-That driver (as well as a few others, most notably the lm87) have not
-been ported from our CVS (2.4-compatible) repository yet, partly because
-everybody lacks time, partly because code in 2.6.0-test11 is more or
-less frozen until 2.6.0 final is released.
+Hi Stefano,
 
-Without this driver you won't be able to use sensors under 2.6.
+Please contact the mailing-list for general discussion, instead of me
+directly
 
-If you want to help porting that driver, let us know and I'll tell you
-how to do so.
+> I'm writing you because I wrote a Linux program to read and write
+> 24Cxx EEPROMs through the SMBus interface and want to share it with
+> the community (it's free of course).
+> 
+> I wrote it because the 'eeprom' and 'eepromer' programs require a I2C
+> capable chipset (or, at least, this is what I think is the problem :)
+> and mine does not seem capable of I2C_RW (I'm using the viapro
+> driver).
+
+I don't get it. We have prog/eepromer/eepromer.c that is supposed to to
+the very same. In which way is your program different?
+
+I don't know what you mean with "I2C_RW", but all the bus drivers we
+have support sending data to the chips.
+
+> I think (and hope:) that eeprog (oh, it's called eeprog) url could be
+> included into a README in the eeprom dir or somewhere in lm-sensors
+> package so the next more-lucky-then-me can find it if needed.
+> 
+> info link:
+> 	http://codesink.org/eeprog.html
+> 
+> download:
+> 	http://codesink.org/download/eeprog-0.7.3.tar.gz
+
+If your program brings something really new, we will, but for now it
+seems to be just a duplicate of eepromer. It would be preferable to
+merge our efforts, isn't it? Please explain why eepromer did not work
+for you, and/or what eeprog does better.
+
+Mark D. Studebaker and some other persons on the list are much more
+knowledged about writing to eeproms than I am, and might be able to
+discuss it with you.
 
 -- 
 Jean Delvare
