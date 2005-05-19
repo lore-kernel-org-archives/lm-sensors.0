@@ -1,42 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:41 +0000
-Subject: vt8231 and kernel 2.6.2 on RH 9
-Message-Id: <1076668153.402ca6f9ec2a9@imp.gcu.info>
+From: anton@korzh.ru (Anton A. Korzh)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: i2c for 2.6.0-test11
+Message-Id: <1070258710.3218.9.camel@phoebus>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040212140756.48144.qmail@web40104.mail.yahoo.com>
-In-Reply-To: <20040212140756.48144.qmail@web40104.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[Please reply to the list, not to me]
+? ???, 29.11.2003, ? 20:38, Jean Delvare ?????:
+> > sensors gives me segfault:
+> 
+> Should be fixed in current CVS, if you want to give it a try.
+> Thanks for reporting.
 
-Quoting Weijia Tao <taoweijia@yahoo.com>:
+Yes, it gives no more a segfault but i still have no sensors readings.
 
-> sensors-detect says it is vt8231, and according to the
-> main board specs, it is vt8231. 
-> after installing lm_sensor i can't even found vt8231.o
-> anywhere.
-> modprobe i2c-viapro works
-> modprobe i2c-isa works
-> modprobe i2c vt8231 doesn't work.
-> thanks
+sensors-detect gives following positive results:
 
-Sorry I told you wrong. I had just plain forgotten that there were also
-a vt8231 sensor chip driver.
+Driver `lm80' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus Via Pro adapter at 5000' (Algorithm unavailable)
+    Busdriver `i2c-viapro', I2C address 0x2d
+    Chip `National Semiconductor LM80' (confidence: 3)
+ 
+Driver `via686a' (should be inserted):
+  Detects correctly:
+  * ISA bus, undetermined address (Busdriver `i2c-isa')
+    Chip `VIA Technologies VT82C686 Integrated Sensors' (confidence: 9)
 
-If sensors-detect tells you that's what you need, well, that's what you
-need. Unfortunately, this driver hasn't been ported to Linux 2.6 yet,
-as you have noticed.
+sensors gives: 
+[root@pueblo lm_sensors2]# sensors
+eeprom-i2c-1-52
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Unavailable from sysfs
+Memory type: Unavailable
+ 
+eeprom-i2c-1-51
+Adapter: SMBus Via Pro adapter at 5000
+Algorithm: Unavailable from sysfs
+Memory type: Unavailable
 
-You now have two options:
-* You feel fairly comfortable with C and want to port the driver
-yourself. See my guide Documentation/i2c/porting-clients in the Linux
-2.6 tree.
-* You wait until someone else port the driver. Very variable delay, from
-two weeks if you're really lucky to forever if you really aren't.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+What can you recommend me to do?
+I have compiled i2c-dev,i2c-isa,i2c-viapro, all i2c chips(But there are no lm80). Sysfs is mounted to /sys
+
+Thank You for any advance, 
+
+Anton
+
