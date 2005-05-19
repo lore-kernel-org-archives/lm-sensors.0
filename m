@@ -1,28 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:01 +0000
-Subject: Linux 2.6 port of smsc47m1
-Message-Id: <20040619204722.0ee653e2.khali@linux-fr.org>
+From: ed.tman@verizon.net (Ed Harrison)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: Fwd: Error on Compiling latest CVS i2c-Second Request
+Message-Id: <20030201045230.BSNF1680.pop018.verizon.net@linux.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040429023201.89488.qmail@web20802.mail.yahoo.com>
-In-Reply-To: <20040429023201.89488.qmail@web20802.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gabriele,
+** Forwarding message from "Ed Harrison" <ed.tman@verizon.net> on Thu, 30 Jan 2003 11:42:38 -0500
 
-Some times ago you came to us with a Linux 2.6 port of the smsc47m1
-driver. It was in rather good shape as far as I remember, except for a
-few things that were not correct in the original driver. These problems
-have been fixed since, and we would much appreciate if you could
-integrate the changes into your code and provide a complete patch
-against linux-2.6.7. We have had several requests from users interested
-in this port, so it would be great if we could get it integrated soon
-now.
 
-Thanks.
+During "make" in i2c, I get an error in "kernel/i2c/i2c.h"
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+gcc -I/lib/modules/2.4.19-4GB/build/include -O2 -DLM_SENSORS -D__KERNEL__ -DMODULE -fomit-frame-pointer -DEXPORT_SYMTAB -c kernel/i2c-velleman.c -o kernel/i2c-velleman.o
+In file included from kernel/i2c-velleman.c:28:
+kernel/i2c.h: In function `i2c_client_command':
+kernel/i2c.h:327: `EINVAL' undeclared (first use in this function)
+kernel/i2c.h:327: (Each undeclared identifier is reported only once
+kernel/i2c.h:327: for each function it appears in.)
+make: *** [kernel/i2c-velleman.o] Error 1
+
+
+
+I do not use i2c-velleman.o, but I can't compile until I know what this means and how to fix it.
+
+
+Ed Harrison, broadcasting on:
+        L I N U X
+by SuSE (8.1), Kernel 2.4.19-4GB,
+X-server 4.2, PolarBarMailer 1.25rc3
+
+
+Ed Harrison, broadcasting on:
+        L I N U X
+by SuSE (8.1), Kernel 2.4.19-4GB,
+X-server 4.2, PolarBarMailer 1.25rc3
