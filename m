@@ -1,270 +1,343 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [RFC/PATCH 10/22] W1: drop main control thread
-Message-Id: <200504210217.05859.dtor_core@ameritech.net>
+From: Mario.Schubert@physik.uni-muenchen.de (Mario Schubert)
+Date: Thu, 19 May 2005 06:24:14 +0000
+Subject: Ticket # 1373 - i2c-amd756.o: Busy wait timeout
+Message-Id: <200308251056.24336.Mario.Schubert@physik.uni-muenchen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net>
-In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sensors@Stimpy.netroedge.com
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-W1: Drop control thread from w1 core, whatever it does can
-    also be done in the context of w1_remove_master_device.
-    Also, pin the module when registering new master device
-    to make sure that w1 core is not unloaded until last
-    device is gone. This simplifies logic a lot.
+Hello MDS,
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+thanks for your hints, I will try this out. But this will need time, becaus=
+e,=20
+if I reboot our cluster to often, the users go crazy. ;-|
 
- w1.c |  157 +++++++++++++++----------------------------------------------------
- w1.h |    1 
- 2 files changed, 36 insertions(+), 122 deletions(-)
+I have attached the output of ksymoops.
 
-Index: dtor/drivers/w1/w1.c
-=================================--- dtor.orig/drivers/w1/w1.c
-+++ dtor/drivers/w1/w1.c
-@@ -50,14 +50,8 @@ module_param_named(timeout, w1_timeout, 
- module_param_named(max_slave_count, w1_max_slave_count, int, 0);
- module_param_named(slave_ttl, w1_max_slave_ttl, int, 0);
- 
--static DEFINE_SPINLOCK(w1_mlock);
--static LIST_HEAD(w1_masters);
- static u32 w1_ids = 1;
- 
--static pid_t control_thread;
--static int control_needs_exit;
--static DECLARE_COMPLETION(w1_control_complete);
--
- static int w1_master_match(struct device *dev, struct device_driver *drv)
- {
- 	return 1;
-@@ -582,66 +576,6 @@ void w1_search(struct w1_master *dev)
- }
- 
- 
--static int w1_control(void *data)
--{
--	struct w1_slave *slave, *nexts;
--	struct w1_master *master, *nextm;
--	int err, have_to_wait = 0;
--
--	daemonize("w1_control");
--	allow_signal(SIGTERM);
--
--	while (!control_needs_exit || have_to_wait) {
--		have_to_wait = 0;
--
--		try_to_freeze(PF_FREEZE);
--		msleep_interruptible(w1_timeout * 1000);
--
--		if (signal_pending(current))
--			flush_signals(current);
--
--		list_for_each_entry_safe(master, nextm, &w1_masters, node) {
--
--			if (!control_needs_exit && !master->need_exit)
--				continue;
--			/*
--			 * Little race: we can create thread but not set the flag.
--			 * Get a chance for external process to set flag up.
--			 */
--			if (!master->initialized) {
--				have_to_wait = 1;
--				continue;
--			}
--
--			spin_lock(&w1_mlock);
--			list_del(&master->node);
--			spin_unlock(&w1_mlock);
--
--			if (control_needs_exit) {
--				master->need_exit = 1;
--
--				err = kill_proc(master->kpid, SIGTERM, 1);
--				if (err)
--					dev_err(&master->dev,
--						 "Failed to send signal to w1 kernel thread %d.\n",
--						 master->kpid);
--			}
--
--			wait_for_completion(&master->dev_exited);
--
--			list_for_each_entry_safe(slave, nexts, &master->slist, node) {
--				list_del(&slave->node);
--				w1_slave_detach(slave);
--				kfree(slave);
--			}
--			w1_destroy_master_attributes(master);
--			atomic_dec(&master->refcnt);
--		}
--	}
--
--	complete_and_exit(&w1_control_complete, 0);
--}
--
- static int w1_process(void *data)
- {
- 	struct w1_master *dev = (struct w1_master *) data;
-@@ -731,12 +665,22 @@ struct w1_master *w1_allocate_master_dev
- 	return dev;
- }
- 
--static void w1_free_dev(struct w1_master *dev)
-+static void w1_free_master_dev(struct w1_master *dev)
- {
- 	device_unregister(&dev->dev);
- 	kfree(dev);
- }
- 
-+static void w1_stop_master_device(struct w1_master *dev)
-+{
-+	dev->need_exit = 1;
-+	if (kill_proc(dev->kpid, SIGTERM, 1))
-+		dev_err(&dev->dev,
-+			 "Failed to send signal to w1 kernel thread %d.\n",
-+			 dev->kpid);
-+	wait_for_completion(&dev->dev_exited);
-+}
-+
- int w1_add_master_device(struct w1_master *dev)
- {
- 	int error;
-@@ -762,36 +706,32 @@ int w1_add_master_device(struct w1_maste
- 
- 	dev->initialized = 1;
- 
--	spin_lock(&w1_mlock);
--	list_add(&dev->node, &w1_masters);
--	spin_unlock(&w1_mlock);
-+	__module_get(THIS_MODULE);
- 
- 	return 0;
- 
- err_out_kill_thread:
--	dev->need_exit = 1;
--	if (kill_proc(dev->kpid, SIGTERM, 1))
--		dev_err(&dev->dev,
--			 "Failed to send signal to w1 kernel thread %d.\n",
--			 dev->kpid);
--	wait_for_completion(&dev->dev_exited);
-+	w1_stop_master_device(dev);
- 
- err_out_free_dev:
--	w1_free_dev(dev);
-+	w1_free_master_dev(dev);
- 
- 	return error;
- }
- 
- void w1_remove_master_device(struct w1_master *dev)
- {
--	int err;
-+	struct w1_slave *slave, *next;
- 
--	dev->need_exit = 1;
--	err = kill_proc(dev->kpid, SIGTERM, 1);
--	if (err)
--		dev_err(&dev->dev,
--			 "%s: Failed to send signal to w1 kernel thread %d.\n",
--			 __func__, dev->kpid);
-+	w1_stop_master_device(dev);
-+
-+	list_for_each_entry_safe(slave, next, &dev->slist, node) {
-+		list_del(&slave->node);
-+		w1_slave_detach(slave);
-+		kfree(slave);
-+	}
-+
-+	w1_destroy_master_attributes(dev);
- 
- 	while (atomic_read(&dev->refcnt)) {
- 		printk(KERN_INFO "Waiting for %s to become free: refcnt=%d.\n",
-@@ -801,61 +741,36 @@ void w1_remove_master_device(struct w1_m
- 			flush_signals(current);
- 	}
- 
--	w1_free_dev(dev);
-+	w1_free_master_dev(dev);
-+	module_put(THIS_MODULE);
- }
- 
- 
- int w1_init(void)
- {
--	int retval;
-+	int error;
- 
- 	printk(KERN_INFO "Driver for 1-wire Dallas network protocol.\n");
- 
--	retval = bus_register(&w1_bus_type);
--	if (retval) {
--		printk(KERN_ERR "Failed to register bus. err=%d.\n", retval);
--		goto err_out_exit_init;
-+	error = bus_register(&w1_bus_type);
-+	if (error) {
-+		printk(KERN_ERR "Failed to register bus. err=%d.\n", error);
-+		return error;
- 	}
- 
--	retval = driver_register(&w1_driver);
--	if (retval) {
-+	error = driver_register(&w1_driver);
-+	if (error) {
- 		printk(KERN_ERR
--			"Failed to register master driver. err=%d.\n",
--			retval);
--		goto err_out_bus_unregister;
--	}
--
--	control_thread = kernel_thread(&w1_control, NULL, 0);
--	if (control_thread < 0) {
--		printk(KERN_ERR "Failed to create control thread. err=%d\n",
--			control_thread);
--		retval = control_thread;
--		goto err_out_driver_unregister;
-+			"Failed to register master driver. err=%d.\n", error);
-+		bus_unregister(&w1_bus_type);
-+		return error;
- 	}
- 
- 	return 0;
--
--err_out_driver_unregister:
--	driver_unregister(&w1_driver);
--
--err_out_bus_unregister:
--	bus_unregister(&w1_bus_type);
--
--err_out_exit_init:
--	return retval;
- }
- 
- void w1_fini(void)
- {
--	struct w1_master *master, *next;
--
--	list_for_each_entry_safe(master, next, &w1_masters, node)
--		w1_remove_master_device(master);
--
--	control_needs_exit = 1;
--
--	wait_for_completion(&w1_control_complete);
--
- 	driver_unregister(&w1_driver);
- 	bus_unregister(&w1_bus_type);
- }
-Index: dtor/drivers/w1/w1.h
-=================================--- dtor.orig/drivers/w1/w1.h
-+++ dtor/drivers/w1/w1.h
-@@ -103,7 +103,6 @@ struct w1_bus_ops
- 
- struct w1_master
- {
--	struct list_head	node;
- 	unsigned char		name[W1_MAXNAMELEN];
- 	struct list_head	slist;
- 	int			max_slave_count, slave_count;
+[root@node20 root]# find / -name "libsensors*"
+/usr/local/lib/libsensors.a
+/usr/local/lib/libsensors.so.1.3.0
+/usr/local/lib/libsensors.so.1
+/usr/local/lib/libsensors.so
+/usr/local/man/man3/libsensors.3
+
+I hope this helps you a little bit. My last private kernel hacking was in t=
+he=20
+2.0 kernel. Now I am more in userland. Thank you for your work and effort.
+
+Ciao,
+    Mario
+---------------------------------------------
+Maier-Leibnitz-Laboratorium/Beschleunigerlabor der LMU und TU M?nchen
+Dipl. Phys. Mario Schubert
+Email: mario.schubert@physik.uni-muenchen.de
+Phone: (+49 89)289 14283
+FAX:   (+49 89)289 14280
+Am Coulombwall 6, D-85748 Garching, Germany
+-------------- next part --------------
+[root@node20 root]# ksymoops < /var/log/messages
+ksymoops 2.4.4 on i686 2.4.18.  Options used
+     -V (default)
+     -k /proc/ksyms (default)
+     -l /proc/modules (default)
+     -o /lib/modules/2.4.18/ (default)
+     -m /boot/System.map-2.4.18 (default)
+
+Warning: You did not tell me where to find symbol information.  I will
+assume that the log matches the kernel and modules that are running
+right now and I'll use the default options above for symbol resolution.
+If the current kernel and/or modules do not match the log, you can get
+more accurate output by telling me the kernel version and where to find
+map, modules, ksyms etc.  ksymoops -h explains the options.
+
+sh: /usr/bin/nm: No such file or directory
+Error (pclose_local): read_nm_symbols pclose failed 0x7f00
+Warning (read_object): no symbols in /lib/modules/2.4.18/kernel/drivers/sen=
+sors/w83781d.o
+sh: /usr/bin/nm: No such file or directory
+Error (pclose_local): read_nm_symbols pclose failed 0x7f00
+Warning (read_object): no symbols in /lib/modules/2.4.18/kernel/drivers/i2c=
+/i2c-proc.o
+sh: /usr/bin/nm: No such file or directory
+Error (pclose_local): read_nm_symbols pclose failed 0x7f00
+Warning (read_object): no symbols in /lib/modules/2.4.18/kernel/drivers/i2c=
+/i2c-amd756.o
+sh: /usr/bin/nm: No such file or directory
+Error (pclose_local): read_nm_symbols pclose failed 0x7f00
+Warning (read_object): no symbols in /lib/modules/2.4.18/kernel/drivers/i2c=
+/i2c-core.o
+Error (regular_file): read_system_map stat /boot/System.map-2.4.18 failed
+ksymoops: No such file or directory
+Warning (compare_maps): i2c-proc symbol i2c_deregister_entry not found in /=
+lib/modules/2.4.18/kernel/drivers/i2c/i2c-proc.o.  Ignoring /lib/modules/2.=
+4.18/kernel/drivers/i2c/i2c-proc.o entry
+Warning (compare_maps): i2c-proc symbol i2c_detect not found in /lib/module=
+s/2.4.18/kernel/drivers/i2c/i2c-proc.o.  Ignoring /lib/modules/2.4.18/kerne=
+l/drivers/i2c/i2c-proc.o entry
+Warning (compare_maps): i2c-proc symbol i2c_proc_real not found in /lib/mod=
+ules/2.4.18/kernel/drivers/i2c/i2c-proc.o.  Ignoring /lib/modules/2.4.18/ke=
+rnel/drivers/i2c/i2c-proc.o entry
+Warning (compare_maps): i2c-proc symbol i2c_register_entry not found in /li=
+b/modules/2.4.18/kernel/drivers/i2c/i2c-proc.o.  Ignoring /lib/modules/2.4.=
+18/kernel/drivers/i2c/i2c-proc.o entry
+Warning (compare_maps): i2c-proc symbol i2c_sysctl_real not found in /lib/m=
+odules/2.4.18/kernel/drivers/i2c/i2c-proc.o.  Ignoring /lib/modules/2.4.18/=
+kernel/drivers/i2c/i2c-proc.o entry
+Warning (compare_maps): i2c-core symbol i2c_adapter_id not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_add_adapter not found in /lib/m=
+odules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/=
+kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_add_driver not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_attach_client not found in /lib=
+/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.1=
+8/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_check_addr not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_check_functionality not found i=
+n /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules=
+/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_control not found in /lib/modul=
+es/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/kern=
+el/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_dec_use_client not found in /li=
+b/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.=
+18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_del_adapter not found in /lib/m=
+odules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/=
+kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_del_driver not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_detach_client not found in /lib=
+/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.1=
+8/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_get_client not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_get_functionality not found in =
+/lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2=
+.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_inc_use_client not found in /li=
+b/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.=
+18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_master_recv not found in /lib/m=
+odules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/=
+kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_master_send not found in /lib/m=
+odules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/=
+kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_probe not found in /lib/modules=
+/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/kernel=
+/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_release_client not found in /li=
+b/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.=
+18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_process_call not found in=
+ /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/=
+2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_read_block_data not found=
+ in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modul=
+es/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_read_byte not found in /l=
+ib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4=
+.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_read_byte_data not found =
+in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/module=
+s/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_read_i2c_block_data not f=
+ound in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/m=
+odules/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_read_word_data not found =
+in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/module=
+s/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_write_block_data not foun=
+d in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modu=
+les/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_write_byte not found in /=
+lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.=
+4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_write_byte_data not found=
+ in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modul=
+es/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_write_i2c_block_data not =
+found in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/=
+modules/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_write_quick not found in =
+/lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2=
+.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_write_word_data not found=
+ in /lib/modules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modul=
+es/2.4.18/kernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_smbus_xfer not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_transfer not found in /lib/modu=
+les/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/ker=
+nel/drivers/i2c/i2c-core.o entry
+Warning (compare_maps): i2c-core symbol i2c_use_client not found in /lib/mo=
+dules/2.4.18/kernel/drivers/i2c/i2c-core.o.  Ignoring /lib/modules/2.4.18/k=
+ernel/drivers/i2c/i2c-core.o entry
+Apr  1 09:23:44 icnode12 kernel: 1151MB HIGHMEM available.
+Apr  1 09:23:44 icnode12 kernel: cpu: 0, clocks: 2666705, slice: 888901
+Apr  1 09:23:44 icnode12 kernel: cpu: 1, clocks: 2666705, slice: 888901
+Apr  1 09:23:44 icnode12 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 10:02:33 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 10:02:33 icnode13 kernel: cpu: 0, clocks: 2666804, slice: 888934
+Apr  1 10:02:33 icnode13 kernel: cpu: 1, clocks: 2666804, slice: 888934
+Apr  1 10:02:33 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 11:07:17 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 11:07:17 icnode13 kernel: cpu: 0, clocks: 2666705, slice: 888901
+Apr  1 11:07:17 icnode13 kernel: cpu: 1, clocks: 2666705, slice: 888901
+Apr  1 11:07:17 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 11:38:55 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 11:38:55 icnode13 kernel: cpu: 0, clocks: 2666980, slice: 888993
+Apr  1 11:38:55 icnode13 kernel: cpu: 1, clocks: 2666980, slice: 888993
+Apr  1 11:38:55 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 11:51:32 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 11:51:32 icnode13 kernel: cpu: 0, clocks: 2666705, slice: 888901
+Apr  1 11:51:32 icnode13 kernel: cpu: 1, clocks: 2666705, slice: 888901
+Apr  1 11:51:32 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 12:55:57 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 12:55:57 icnode13 kernel: cpu: 0, clocks: 2666804, slice: 888934
+Apr  1 12:55:57 icnode13 kernel: cpu: 1, clocks: 2666804, slice: 888934
+Apr  1 12:55:57 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 15:02:09 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 15:02:09 icnode13 kernel: cpu: 0, clocks: 2666705, slice: 888901
+Apr  1 15:02:09 icnode13 kernel: cpu: 1, clocks: 2666705, slice: 888901
+Apr  1 15:02:09 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 15:07:44 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 15:07:44 icnode13 kernel: cpu: 0, clocks: 2666804, slice: 888934
+Apr  1 15:07:44 icnode13 kernel: cpu: 1, clocks: 2666804, slice: 888934
+Apr  1 15:07:44 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 15:27:12 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 15:27:12 icnode13 kernel: cpu: 0, clocks: 2666705, slice: 888901
+Apr  1 15:27:12 icnode13 kernel: cpu: 1, clocks: 2666705, slice: 888901
+Apr  1 15:27:12 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  1 15:33:24 icnode13 kernel: 1151MB HIGHMEM available.
+Apr  1 15:33:24 icnode13 kernel: cpu: 0, clocks: 2666804, slice: 888934
+Apr  1 15:33:24 icnode13 kernel: cpu: 1, clocks: 2666804, slice: 888934
+Apr  1 15:33:24 icnode13 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  2 11:02:26 icnode20 kernel: 1151MB HIGHMEM available.
+Apr  2 11:02:26 icnode20 kernel: cpu: 0, clocks: 2666800, slice: 888933
+Apr  2 11:02:26 icnode20 kernel: cpu: 1, clocks: 2666800, slice: 888933
+Apr  2 11:02:26 icnode20 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  3 05:17:09 icnode20 kernel: 1151MB HIGHMEM available.
+Apr  3 05:17:09 icnode20 kernel: cpu: 0, clocks: 2666718, slice: 888906
+Apr  3 05:17:09 icnode20 kernel: cpu: 1, clocks: 2666718, slice: 888906
+Apr  3 05:17:09 icnode20 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  7 12:11:30 icnode20 kernel: 1151MB HIGHMEM available.
+Apr  7 12:11:30 icnode20 kernel: cpu: 0, clocks: 2666800, slice: 888933
+Apr  7 12:11:30 icnode20 kernel: cpu: 1, clocks: 2666800, slice: 888933
+Apr  7 12:11:30 icnode20 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  7 16:14:53 icnode20 kernel: 1151MB HIGHMEM available.
+Apr  7 16:14:53 icnode20 kernel: cpu: 0, clocks: 2666718, slice: 888906
+Apr  7 16:14:53 icnode20 kernel: cpu: 1, clocks: 2666718, slice: 888906
+Apr  7 16:14:53 icnode20 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  7 20:15:29 icnode20 kernel: 1151MB HIGHMEM available.
+Apr  7 20:15:29 icnode20 kernel: cpu: 0, clocks: 2666798, slice: 888932
+Apr  7 20:15:29 icnode20 kernel: cpu: 1, clocks: 2666798, slice: 888932
+Apr  7 20:15:29 icnode20 kernel: 3c59x: Donald Becker and others. www.scyld=
+.com/network/vortex.html
+Apr  7 21:22:22 node20 kernel: 1151MB HIGHMEM available.
+Apr  7 21:22:22 node20 kernel: cpu: 0, clocks: 2666718, slice: 888906
+Apr  7 21:22:22 node20 kernel: cpu: 1, clocks: 2666718, slice: 888906
+Apr  7 21:22:23 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+Apr  7 22:32:27 node20 kernel: 1151MB HIGHMEM available.
+Apr  7 22:32:32 node20 kernel: cpu: 0, clocks: 2666800, slice: 888933
+Apr  7 22:32:32 node20 kernel: cpu: 1, clocks: 2666800, slice: 888933
+Apr  7 22:32:35 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+Apr 14 15:05:06 node20 kernel: 1151MB HIGHMEM available.
+Apr 14 15:05:06 node20 kernel: cpu: 0, clocks: 2666718, slice: 888906
+Apr 14 15:05:06 node20 kernel: cpu: 1, clocks: 2666718, slice: 888906
+Apr 14 15:05:06 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+Apr 15 15:42:18 node20 kernel: 1151MB HIGHMEM available.
+Apr 15 15:42:18 node20 kernel: cpu: 0, clocks: 2666798, slice: 888932
+Apr 15 15:42:18 node20 kernel: cpu: 1, clocks: 2666798, slice: 888932
+Apr 15 15:42:20 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+May  5 13:05:33 node20 kernel: 1151MB HIGHMEM available.
+May  5 13:05:33 node20 kernel: cpu: 0, clocks: 2666993, slice: 888997
+May  5 13:05:33 node20 kernel: cpu: 1, clocks: 2666993, slice: 888997
+May  5 13:05:33 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+Jul 14 15:53:47 node20 kernel: 1151MB HIGHMEM available.
+Jul 14 15:53:47 node20 kernel: cpu: 0, clocks: 2666718, slice: 888906
+Jul 14 15:53:47 node20 kernel: cpu: 1, clocks: 2666718, slice: 888906
+Jul 14 15:53:47 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+Jul 14 20:45:52 node20 kernel: 1151MB HIGHMEM available.
+Jul 14 20:45:52 node20 kernel: cpu: 0, clocks: 2666718, slice: 888906
+Jul 14 20:45:52 node20 kernel: cpu: 1, clocks: 2666718, slice: 888906
+Jul 14 20:45:52 node20 kernel: 3c59x: Donald Becker and others. www.scyld.c=
+om/network/vortex.html
+Aug 14 09:24:57 node20 kernel: Unable to handle kernel paging request at vi=
+rtual address f887124a
+Aug 14 09:24:57 node20 kernel: f887124a
+Aug 14 09:24:57 node20 kernel: *pde =3D 37bb2067
+Aug 14 09:24:57 node20 kernel: Oops: 0000
+Aug 14 09:24:57 node20 kernel: CPU:    1
+Aug 14 09:24:57 node20 kernel: EIP:    0010:[<f887124a>]    Not tainted
+Using defaults from ksymoops -t elf32-i386 -a i386
+Aug 14 09:24:57 node20 kernel: EFLAGS: 00010246
+Aug 14 09:24:57 node20 kernel: eax: 00000000   ebx: 00000d00   ecx: f0655c4=
+8   edx: f0655c48
+Aug 14 09:24:57 node20 kernel: esi: 00000124   edi: 00000000   ebp: f0655d1=
+8   esp: f0655c78
+Aug 14 09:24:57 node20 kernel: ds: 0018   es: 0018   ss: 0018
+Aug 14 09:24:57 node20 kernel: Process sensors (pid: 25526, stackpage=F0655=
+000)
+Aug 14 09:24:57 node20 kernel: Stack: 00000001 ffffffff 00000016 00000002 0=
+0000002 000080e0 00000001 f88714cc
+Aug 14 09:24:57 node20 kernel:        f88720e8 f0654000 0000002d f88720e0 0=
+0000002 0000002d 00000000 f886cfeb
+Aug 14 09:24:57 node20 kernel:        f88720a0 0000002d 00000000 00000001 0=
+0000055 00000002 f0655d18 f88720a0
+Aug 14 09:24:57 node20 kernel: Call Trace: [<c0128a34>] [<c012c4fb>] [<c012=
+c529>] [<c01289e5>] [<c0116040>]
+Aug 14 09:24:57 node20 kernel:    [<c012c440>] [<c0128a58>] [<c011f5ab>] [<=
+c0129868>] [<c011f519>] [<c011f315>]
+Aug 14 09:24:57 node20 kernel:    [<c011f3e0>] [<c0116040>] [<c010722b>]
+Aug 14 09:24:57 node20 kernel: Code:  Bad EIP value.
+
+>>EIP; f887124a <[i2c-amd756].text.start+1ea/67f>   <=3D=3DTrace; c0128a34 =
+<vmtruncate+424/cc0>
+Trace; c012c4fb <filemap_nopage+bb/210>
+Trace; c012c529 <filemap_nopage+e9/210>
+Trace; c01289e5 <vmtruncate+3d5/cc0>
+Trace; c0116040 <__verify_write+230/970>
+Trace; c012c440 <filemap_nopage+0/210>
+Trace; c0128a58 <vmtruncate+448/cc0>
+Trace; c011f5ab <__release_region+3bb/490>
+Trace; c0129868 <get_unmapped_area+d8/120>
+Trace; c011f519 <__release_region+329/490>
+Trace; c011f315 <__release_region+125/490>
+Trace; c011f3e0 <__release_region+1f0/490>
+Trace; c0116040 <__verify_write+230/970>
+Trace; c010722b <__read_lock_failed+123f/2754>
+
+
+43 warnings and 5 errors issued.  Results may not be reliable.
