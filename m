@@ -1,36 +1,36 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:58 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc4 3/15] Documentation: update device
-Message-Id: <2538186705051703406a12b66f@mail.gmail.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:01 +0000
+Subject: [BK PATCH] i2c driver changes for 2.5.73
+Message-Id: <20030623234939.GA11901@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: torvalds@transmeta.com
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-The following 11 patches update all the device_attribute callback
-functions in the kernel to reflect the new function signatures. The
-patches were mainly automatically generated with scripts nearly
-identical to the previously submitted ones.
+Hi,
 
-Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
+Here are some i2c driver changes for 2.5.73.  They add two new i2c bus
+controller drivers.
 
----
--------------- next part --------------
- sysfs.txt |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.5
 
+thanks,
 
+greg k-h
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-Documentation.diff
-Type: text/x-patch
-Size: 751 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/aaeaa048/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-update.diff-Documentation.bin
--------------- next part --------------
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+ drivers/i2c/Kconfig              |   20 +
+ drivers/i2c/Makefile             |    1 
+ drivers/i2c/busses/Kconfig       |   16 +
+ drivers/i2c/busses/Makefile      |    1 
+ drivers/i2c/busses/i2c-ali1535.c |  555 +++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/i2c-prosavage.c      |  362 +++++++++++++++++++++++++
+ 6 files changed, 955 insertions(+)
+-----
+
+<henk:god.dyndns.org>:
+  o I2C: add i2c-prosavage driver
+
+Greg Kroah-Hartman:
+  o I2C: add i2c-ali1535 bus driver
