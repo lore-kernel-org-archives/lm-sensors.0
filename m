@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: rkimber@ntlworld.com (rkimber@ntlworld.com)
 Date: Thu, 19 May 2005 06:25:36 +0000
 Subject: fan control question
-Message-Id: <Pine.LNX.4.58.0502051625330.7839@desitka.sh.cvut.cz>
+Message-Id: <20050205155343.7a7fb86e.rkimber@ntlworld.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050205151509.7b26200c.rkimber@ntlworld.com>
 In-Reply-To: <20050205151509.7b26200c.rkimber@ntlworld.com>
@@ -10,17 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+On Sat, 5 Feb 2005 16:26:34 +0100 (CET)
+Rudolf Marek <R.Marek@sh.cvut.cz> wrote:
 
-Please supply your chip name.
+> Hello,
+> 
+> Please supply your chip name.
+> 
+> Simply run:
+> sensors
+> 
+> And this command will print it.
 
-Simply run:
-sensors
+w83627thf-isa-0290
 
-And this command will print it.
+Also, I have 2.6.8.1-4-k7-smp on Ubuntu, with sensors version 2.8.7 with libsensors version 2.8.7, though I am running 2.6.5-7.145-x86_64-smp on Suse with the same version of sensors (I think - I'd have to boot back into Suse to confirm that).
 
-Dont forget to CC to list.
+Thanks,
 
-Thanks
-
-Rudolf
+- Richard Kimber
