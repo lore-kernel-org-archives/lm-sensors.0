@@ -1,1152 +1,237 @@
-From: ac9410@bellsouth.net (Albert Cranford)
+From: quintela@mandrakesoft.com (Juan Quintela)
 Date: Thu, 19 May 2005 06:23:32 +0000
 Subject: [PATCH] 2/4 WIP I2C kernel patches-core
-Message-Id: <3CE20AF5.5F55E3D4@bellsouth.net>
+Message-Id: <m2k7q5bxe4.fsf@demo.mitica>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <3CE20AF5.5F55E3D4@bellsouth.net>
+In-Reply-To: <3CE20AF5.5F55E3D4@bellsouth.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Patch 2 is straight diff from linux-2.5.15 and i2c-2.6.3
-with new CONFIG names for BITLP & BITELV & BITVELLE
-and PCFISA.
---- linux/drivers/i2c/i2c-core.c.orig   2002-05-09 18:22:06.000000000 -0400
-+++ linux/drivers/i2c/i2c-core.c        2002-05-14 17:59:24.000000000 -0400
-@@ -20,7 +20,7 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi>.
-    All SMBus-related things are written by Frodo Looijaard <frodol@dds.nl> */
+>>>>> "albert" = Albert Cranford <ac9410@bellsouth.net> writes:
+
+Hi
+
+Some commets.
+
+
+albert> memset(adapters,0,sizeof(adapters));
+albert> memset(drivers,0,sizeof(drivers));
+albert> adap_count=0;
+albert> @@ -1284,13 +1319,13 @@
+albert> #ifdef CONFIG_I2C_ALGOBIT
+albert> extern int i2c_algo_bit_init(void);
+albert> #endif
+albert> -#ifdef CONFIG_I2C_PHILIPSPAR
+albert> +#ifdef CONFIG_I2C_BITLP
+albert> extern int i2c_bitlp_init(void);
+albert> #endif
+albert> -#ifdef CONFIG_I2C_ELV
+albert> +#ifdef CONFIG_I2C_BITELV
+albert> extern int i2c_bitelv_init(void);
+albert> #endif
+albert> -#ifdef CONFIG_I2C_VELLEMAN
+albert> +#ifdef CONFIG_I2C_BITVELLE
+albert> extern int i2c_bitvelle_init(void);
+albert> #endif
+albert> #ifdef CONFIG_I2C_BITVIA
+albert> @@ -1300,7 +1335,7 @@
+albert> #ifdef CONFIG_I2C_ALGOPCF
+albert> extern int i2c_algo_pcf_init(void);     
+albert> #endif
+albert> -#ifdef CONFIG_I2C_ELEKTOR
+albert> +#ifdef CONFIG_I2C_PCFISA
+albert> extern int i2c_pcfisa_init(void);
+albert> #endif
  
--/* $Id: i2c-core.c,v 1.64 2001/08/13 01:35:56 mds Exp $ */
-+/* $Id: i2c-core.c,v 1.73 2002/03/03 17:37:44 mds Exp $ */
+albert> @@ -1329,13 +1364,13 @@
+albert> #ifdef CONFIG_I2C_ALGOBIT
+albert> i2c_algo_bit_init();
+albert> #endif
+albert> -#ifdef CONFIG_I2C_PHILIPSPAR
+albert> +#ifdef CONFIG_I2C_BITLP
+albert> i2c_bitlp_init();
+albert> #endif
+albert> -#ifdef CONFIG_I2C_ELV
+albert> +#ifdef CONFIG_I2C_BITELV
+albert> i2c_bitelv_init();
+albert> #endif
+albert> -#ifdef CONFIG_I2C_VELLEMAN
+albert> +#ifdef CONFIG_I2C_BITVELLE
+albert> i2c_bitvelle_init();
+albert> #endif
  
- #include <linux/module.h>
- #include <linux/kernel.h>
-@@ -28,7 +28,6 @@
- #include <linux/slab.h>
- #include <linux/proc_fs.h>
- #include <linux/config.h>
--
- #include <linux/i2c.h>
+albert> @@ -1343,7 +1378,7 @@
+albert> #ifdef CONFIG_I2C_ALGOPCF
+albert> i2c_algo_pcf_init();    
+albert> #endif
+albert> -#ifdef CONFIG_I2C_ELEKTOR
+albert> +#ifdef CONFIG_I2C_PCFISA
+albert> i2c_pcfisa_init();
+albert> #endif
+
+Put that changes with the Config.in changes
+
+albert> @@ -1410,7 +1447,9 @@
+albert> MODULE_DESCRIPTION("I2C-Bus main module");
+albert> MODULE_PARM(i2c_debug, "i");
+albert> MODULE_PARM_DESC(i2c_debug,"debug level");
+albert> +#ifdef MODULE_LICENSE
+albert> MODULE_LICENSE("GPL");
+albert> +#endif
  
- /* ----- compatibility stuff ----------------------------------------------- */
-@@ -36,7 +35,7 @@
- #include <linux/version.h>
- #include <linux/init.h>
+That is a nono in the kernel, in 2.4 & 2.5 MODULE_LICENSE() is
+guaranteed to exit.
+
  
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,3,1)
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,2,18)
- #define init_MUTEX(s) do { *(s) = MUTEX; } while(0)
- #endif
- 
-@@ -72,7 +71,7 @@
- static int driver_count;
- 
- /**** debug level */
--static int i2c_debug=1;
-+static int i2c_debug=0;
- 
- /* ---------------------------------------------------
-  * /proc entry declarations
-@@ -158,7 +157,7 @@
- 
-                proc_entry = create_proc_entry(name,0,proc_bus);
-                if (! proc_entry) {
--                       printk("i2c-core.o: Could not create /proc/bus/%s\n",
-+                       printk(KERN_ERR "i2c-core.o: Could not create /proc/bus/%s\n",
-                               name);
-                        res = -ENOENT;
-                        goto ERROR1;
-@@ -188,7 +187,7 @@
-                        drivers[j]->attach_adapter(adap);
-        DRV_UNLOCK();
-        
--       DEB(printk("i2c-core.o: adapter %s registered as adapter %d.\n",
-+       DEB(printk(KERN_DEBUG "i2c-core.o: adapter %s registered as adapter %d.\n",
-                   adap->name,i));
- 
-        return 0;       
-@@ -214,7 +213,7 @@
-                if (adap = adapters[i])
-                        break;
-        if (I2C_ADAP_MAX = i) {
--               printk( "i2c-core.o: unregister_adapter adap [%s] not found.\n",
-+               printk( KERN_WARNING "i2c-core.o: unregister_adapter adap [%s] not found.\n",
-                        adap->name);
-                res = -ENODEV;
-                goto ERROR0;
-@@ -229,7 +228,7 @@
-        for (j = 0; j < I2C_DRIVER_MAX; j++) 
-                if (drivers[j] && (drivers[j]->flags & I2C_DF_DUMMY))
-                        if ((res = drivers[j]->attach_adapter(adap))) {
--                               printk("i2c-core.o: can't detach adapter %s "
-+                               printk(KERN_WARNING "i2c-core.o: can't detach adapter %s "
-                                       "while detaching driver %s: driver not "
-                                       "detached!",adap->name,drivers[j]->name);
-                                goto ERROR1;    
-@@ -247,7 +246,7 @@
-                     * must be deleted, as this would cause invalid states.
-                     */
-                        if ((res=client->driver->detach_client(client))) {
--                               printk("i2c-core.o: adapter %s not "
-+                               printk(KERN_ERR "i2c-core.o: adapter %s not "
-                                        "unregistered, because client at "
-                                        "address %02x can't be detached. ",
-                                        adap->name, client->addr);
-@@ -266,7 +265,7 @@
-        adap_count--;
-        
-        ADAP_UNLOCK();  
--       DEB(printk("i2c-core.o: adapter unregistered: %s\n",adap->name));
-+       DEB(printk(KERN_DEBUG "i2c-core.o: adapter unregistered: %s\n",adap->name));
-        return 0;
- 
- ERROR0:
-@@ -305,7 +304,7 @@
-        
-        DRV_UNLOCK();   /* driver was successfully added */
-        
--       DEB(printk("i2c-core.o: driver %s registered.\n",driver->name));
-+       DEB(printk(KERN_DEBUG "i2c-core.o: driver %s registered.\n",driver->name));
-        
-        ADAP_LOCK();
- 
-@@ -340,7 +339,7 @@
-         * attached. If so, detach them to be able to kill the driver 
-         * afterwards.
-         */
--       DEB2(printk("i2c-core.o: unregister_driver - looking for clients.\n"));
-+       DEB2(printk(KERN_DEBUG "i2c-core.o: unregister_driver - looking for clients.\n"));
-        /* removing clients does not depend on the notify flag, else 
-         * invalid operation might (will!) result, when using stale client
-         * pointers.
-@@ -350,7 +349,7 @@
-                struct i2c_adapter *adap = adapters[k];
-                if (adap = NULL) /* skip empty entries. */
-                        continue;
--               DEB2(printk("i2c-core.o: examining adapter %s:\n",
-+               DEB2(printk(KERN_DEBUG "i2c-core.o: examining adapter %s:\n",
-                            adap->name));
-                if (driver->flags & I2C_DF_DUMMY) {
-                /* DUMMY drivers do not register their clients, so we have to
-@@ -359,7 +358,7 @@
-                 * this or hell will break loose...  
-                 */
-                        if ((res = driver->attach_adapter(adap))) {
--                               printk("i2c-core.o: while unregistering "
-+                               printk(KERN_WARNING "i2c-core.o: while unregistering "
-                                       "dummy driver %s, adapter %s could "
-                                       "not be detached properly; driver "
-                                       "not unloaded!",driver->name,
-@@ -372,19 +371,17 @@
-                                struct i2c_client *client = adap->clients[j];
-                                if (client != NULL && 
-                                    client->driver = driver) {
--                                       DEB2(printk("i2c-core.o: "
-+                                       DEB2(printk(KERN_DEBUG "i2c-core.o: "
-                                                    "detaching client %s:\n",
-                                                    client->name));
-                                        if ((res = driver->
-                                                        detach_client(client)))
-                                        {
--                                               printk("i2c-core.o: while "
-+                                               printk(KERN_ERR "i2c-core.o: while "
-                                                       "unregistering driver "
-                                                       "`%s', the client at "
--                                                      "address %02x of
--                                                      adapter `%s' could not
--                                                      be detached; driver
--                                                      not unloaded!",
-+                                                      "address %02x of adapter `%s' could not be "
-+                                                      "detached; driver not unloaded!",
-                                                       driver->name,
-                                                       client->addr,
-                                                       adap->name);
-@@ -400,7 +397,7 @@
-        driver_count--;
-        DRV_UNLOCK();
-        
--       DEB(printk("i2c-core.o: driver unregistered: %s\n",driver->name));
-+       DEB(printk(KERN_DEBUG "i2c-core.o: driver unregistered: %s\n",driver->name));
-        return 0;
- }
- 
-@@ -436,10 +433,10 @@
-        
-        if (adapter->client_register) 
-                if (adapter->client_register(client)) 
--                       printk("i2c-core.o: warning: client_register seems "
-+                       printk(KERN_DEBUG "i2c-core.o: warning: client_register seems "
-                               "to have failed for client %02x at adapter %s\n",
-                               client->addr,adapter->name);
--       DEB(printk("i2c-core.o: client [%s] registered to adapter [%s](pos. %d).\n",
-+       DEB(printk(KERN_DEBUG "i2c-core.o: client [%s] registered to adapter [%s](pos. %d).\n",
-                client->name, adapter->name,i));
- 
-        if(client->flags & I2C_CLIENT_ALLOW_USE)
-@@ -470,7 +467,7 @@
-        
-        if (adapter->client_unregister != NULL) 
-                if ((res = adapter->client_unregister(client))) {
--                       printk("i2c-core.o: client_unregister [%s] failed, "
-+                       printk(KERN_ERR "i2c-core.o: client_unregister [%s] failed, "
-                               "client not detached",client->name);
-                        return res;
-                }
-@@ -478,7 +475,7 @@
-        adapter->clients[i] = NULL;
-        adapter->client_count--;
- 
--       DEB(printk("i2c-core.o: client [%s] unregistered.\n",client->name));
-+       DEB(printk(KERN_DEBUG "i2c-core.o: client [%s] unregistered.\n",client->name));
-        return 0;
- }
- 
-@@ -659,12 +656,12 @@
-        int i,j,k,order_nr,len=0,len_total;
-        int order[I2C_CLIENT_MAX];
- 
--       if (count > 4000)
-+       if (count > 4096)
-                return -EINVAL; 
-        len_total = file->f_pos + count;
-        /* Too bad if this gets longer (unlikely) */
--       if (len_total > 4000)
--               len_total = 4000;
-+       if (len_total > 4096)
-+               len_total = 4096;
-        for (i = 0; i < I2C_ADAP_MAX; i++)
-                if (adapters[i]->inode = inode->i_ino) {
-                /* We need a bit of slack in the kernel buffer; this makes the
-@@ -720,13 +717,13 @@
-        i2cproc_initialized = 0;
- 
-        if (! proc_bus) {
--               printk("i2c-core.o: /proc/bus/ does not exist");
-+               printk(KERN_ERR "i2c-core.o: /proc/bus/ does not exist");
-                i2cproc_cleanup();
-                return -ENOENT;
-        } 
-        proc_bus_i2c = create_proc_entry("i2c",0,proc_bus);
-        if (!proc_bus_i2c) {
--               printk("i2c-core.o: Could not create /proc/bus/i2c");
-+               printk(KERN_ERR "i2c-core.o: Could not create /proc/bus/i2c");
-                i2cproc_cleanup();
-                return -ENOENT;
-        }
-@@ -763,7 +760,7 @@
-        int ret;
- 
-        if (adap->algo->master_xfer) {
--               DEB2(printk("i2c-core.o: master_xfer: %s with %d msgs.\n",
-+               DEB2(printk(KERN_DEBUG "i2c-core.o: master_xfer: %s with %d msgs.\n",
-                            adap->name,num));
- 
-                I2C_LOCK(adap);
-@@ -772,7 +769,7 @@
- 
-                return ret;
-        } else {
--               printk("i2c-core.o: I2C adapter %04x: I2C level transfers not supported\n",
-+               printk(KERN_ERR "i2c-core.o: I2C adapter %04x: I2C level transfers not supported\n",
-                       adap->id);
-                return -ENOSYS;
-        }
-@@ -790,7 +787,7 @@
-                msg.len = count;
-                (const char *)msg.buf = buf;
-        
--               DEB2(printk("i2c-core.o: master_send: writing %d bytes on %s.\n",
-+               DEB2(printk(KERN_DEBUG "i2c-core.o: master_send: writing %d bytes on %s.\n",
-                        count,client->adapter->name));
-        
-                I2C_LOCK(adap);
-@@ -802,7 +799,7 @@
-                 */
-                return (ret = 1 )? count : ret;
-        } else {
--               printk("i2c-core.o: I2C adapter %04x: I2C level transfers not supported\n",
-+               printk(KERN_ERR "i2c-core.o: I2C adapter %04x: I2C level transfers not supported\n",
-                       client->adapter->id);
-                return -ENOSYS;
-        }
-@@ -820,14 +817,14 @@
-                msg.len = count;
-                msg.buf = buf;
- 
--               DEB2(printk("i2c-core.o: master_recv: reading %d bytes on %s.\n",
-+               DEB2(printk(KERN_DEBUG "i2c-core.o: master_recv: reading %d bytes on %s.\n",
-                        count,client->adapter->name));
-        
-                I2C_LOCK(adap);
-                ret = adap->algo->master_xfer(adap,&msg,1);
-                I2C_UNLOCK(adap);
-        
--               DEB2(printk("i2c-core.o: master_recv: return:%d (count:%d, addr:0x%02x)\n",
-+               DEB2(printk(KERN_DEBUG "i2c-core.o: master_recv: return:%d (count:%d, addr:0x%02x)\n",
-                        ret, count, client->addr));
-        
-                /* if everything went ok (i.e. 1 msg transmitted), return #bytes
-@@ -835,7 +832,7 @@
-                */
-                return (ret = 1 )? count : ret;
-        } else {
--               printk("i2c-core.o: I2C adapter %04x: I2C level transfers not supported\n",
-+               printk(KERN_DEBUG "i2c-core.o: I2C adapter %04x: I2C level transfers not supported\n",
-                       client->adapter->id);
-                return -ENOSYS;
-        }
-@@ -848,7 +845,7 @@
-        int ret = 0;
-        struct i2c_adapter *adap = client->adapter;
- 
--       DEB2(printk("i2c-core.o: i2c ioctl, cmd: 0x%x, arg: %#lx\n", cmd, arg));
-+       DEB2(printk(KERN_DEBUG "i2c-core.o: i2c ioctl, cmd: 0x%x, arg: %#lx\n", cmd, arg));
-        switch ( cmd ) {
-                case I2C_RETRIES:
-                        adap->retries = arg;
-@@ -893,7 +890,7 @@
-                        if (((adap_id = address_data->force[i]) || 
-                             (address_data->force[i] = ANY_I2C_BUS)) &&
-                             (addr = address_data->force[i+1])) {
--                               DEB2(printk("i2c-core.o: found force parameter for adapter %d, addr %04x\n",
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found force parameter for adapter %d, addr %04x\n",
-                                            adap_id,addr));
-                                if ((err = found_proc(adapter,addr,0,0)))
-                                        return err;
-@@ -911,7 +908,7 @@
-                        if (((adap_id = address_data->ignore[i]) || 
-                            ((address_data->ignore[i] = ANY_I2C_BUS))) &&
-                            (addr = address_data->ignore[i+1])) {
--                               DEB2(printk("i2c-core.o: found ignore parameter for adapter %d, "
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found ignore parameter for adapter %d, "
-                                     "addr %04x\n", adap_id ,addr));
-                                found = 1;
-                        }
-@@ -923,7 +920,7 @@
-                            ((address_data->ignore_range[i]=ANY_I2C_BUS))) &&
-                            (addr >= address_data->ignore_range[i+1]) &&
-                            (addr <= address_data->ignore_range[i+2])) {
--                               DEB2(printk("i2c-core.o: found ignore_range parameter for adapter %d, "
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found ignore_range parameter for adapter %d, "
-                                            "addr %04x\n", adap_id,addr));
-                                found = 1;
-                        }
-@@ -938,7 +935,7 @@
-                     i += 1) {
-                        if (addr = address_data->normal_i2c[i]) {
-                                found = 1;
--                               DEB2(printk("i2c-core.o: found normal i2c entry for adapter %d, "
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found normal i2c entry for adapter %d, "
-                                            "addr %02x", adap_id,addr));
-                        }
-                }
-@@ -949,7 +946,7 @@
-                        if ((addr >= address_data->normal_i2c_range[i]) &&
-                            (addr <= address_data->normal_i2c_range[i+1])) {
-                                found = 1;
--                               DEB2(printk("i2c-core.o: found normal i2c_range entry for adapter %d, "
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found normal i2c_range entry for adapter %d, "
-                                            "addr %04x\n", adap_id,addr));
-                        }
-                }
-@@ -961,7 +958,7 @@
-                            ((address_data->probe[i] = ANY_I2C_BUS))) &&
-                            (addr = address_data->probe[i+1])) {
-                                found = 1;
--                               DEB2(printk("i2c-core.o: found probe parameter for adapter %d, "
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found probe parameter for adapter %d, "
-                                            "addr %04x\n", adap_id,addr));
-                        }
-                }
-@@ -973,7 +970,7 @@
-                           (addr >= address_data->probe_range[i+1]) &&
-                           (addr <= address_data->probe_range[i+2])) {
-                                found = 1;
--                               DEB2(printk("i2c-core.o: found probe_range parameter for adapter %d, "
-+                               DEB2(printk(KERN_DEBUG "i2c-core.o: found probe_range parameter for adapter %d, "
-                                            "addr %04x\n", adap_id,addr));
-                        }
-                }
-@@ -1110,6 +1107,23 @@
-                              I2C_SMBUS_BLOCK_DATA,&data);
- }
- 
-+/* Returns the number of read bytes */
-+extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
-+                                         u8 command, u8 *values)
-+{
-+       union i2c_smbus_data data;
-+       int i;
-+       if (i2c_smbus_xfer(client->adapter,client->addr,client->flags,
-+                             I2C_SMBUS_READ,command,
-+                             I2C_SMBUS_I2C_BLOCK_DATA,&data))
-+               return -1;
-+       else {
-+               for (i = 1; i <= data.block[0]; i++)
-+                       values[i-1] = data.block[i];
-+               return data.block[0];
-+       }
-+}
-+
- extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
-                                           u8 command, u8 length, u8 *values)
- {
-@@ -1185,23 +1199,38 @@
-                break;
-        case I2C_SMBUS_BLOCK_DATA:
-                if (read_write = I2C_SMBUS_READ) {
--                       printk("i2c-core.o: Block read not supported under "
-+                       printk(KERN_ERR "i2c-core.o: Block read not supported under "
-                               "I2C emulation!\n");
-                return -1;
-                } else {
-                        msg[0].len = data->block[0] + 2;
-                        if (msg[0].len > 34) {
--                               printk("i2c-core.o: smbus_access called with "
-+                               printk(KERN_ERR "i2c-core.o: smbus_access called with "
-                                       "invalid block write size (%d)\n",
--                                      msg[0].len);
-+                                      data->block[0]);
-                                return -1;
-                        }
-                        for (i = 1; i <= msg[0].len; i++)
-                                msgbuf0[i] = data->block[i-1];
-                }
-                break;
-+       case I2C_SMBUS_I2C_BLOCK_DATA:
-+               if (read_write = I2C_SMBUS_READ) {
-+                       msg[1].len = 32;
-+               } else {
-+                       msg[0].len = data->block[0] + 2;
-+                       if (msg[0].len > 34) {
-+                               printk("i2c-core.o: i2c_smbus_xfer_emulated called with "
-+                                      "invalid block write size (%d)\n",
-+                                      data->block[0]);
-+                               return -1;
-+                       }
-+                       for (i = 0; i < data->block[0]; i++)
-+                               msgbuf0[i] = data->block[i+1];
-+               }
-+               break;
-        default:
--               printk("i2c-core.o: smbus_access called with invalid size (%d)\n",
-+               printk(KERN_ERR "i2c-core.o: smbus_access called with invalid size (%d)\n",
-                       size);
-                return -1;
-        }
-@@ -1221,6 +1250,12 @@
-                        case I2C_SMBUS_PROC_CALL:
-                                data->word = msgbuf1[0] | (msgbuf1[1] << 8);
-                                break;
-+                       case I2C_SMBUS_I2C_BLOCK_DATA:
-+                               /* fixed at 32 for now */
-+                               data->block[0] = 32;
-+                               for (i = 0; i < 32; i++)
-+                                       data->block[i+1] = msgbuf1[i];
-+                               break;
-                }
-        return 0;
- }
-@@ -1263,7 +1298,7 @@
- 
- static int __init i2c_init(void)
- {
--       printk("i2c-core.o: i2c core module\n");
-+       printk(KERN_INFO "i2c-core.o: i2c core module version %s (%s)\n", I2C_VERSION, I2C_DATE);
-        memset(adapters,0,sizeof(adapters));
-        memset(drivers,0,sizeof(drivers));
-        adap_count=0;
-@@ -1284,13 +1319,13 @@
- #ifdef CONFIG_I2C_ALGOBIT
-        extern int i2c_algo_bit_init(void);
- #endif
--#ifdef CONFIG_I2C_PHILIPSPAR
-+#ifdef CONFIG_I2C_BITLP
-        extern int i2c_bitlp_init(void);
- #endif
--#ifdef CONFIG_I2C_ELV
-+#ifdef CONFIG_I2C_BITELV
-        extern int i2c_bitelv_init(void);
- #endif
--#ifdef CONFIG_I2C_VELLEMAN
-+#ifdef CONFIG_I2C_BITVELLE
-        extern int i2c_bitvelle_init(void);
- #endif
- #ifdef CONFIG_I2C_BITVIA
-@@ -1300,7 +1335,7 @@
- #ifdef CONFIG_I2C_ALGOPCF
-        extern int i2c_algo_pcf_init(void);     
- #endif
--#ifdef CONFIG_I2C_ELEKTOR
-+#ifdef CONFIG_I2C_PCFISA
-        extern int i2c_pcfisa_init(void);
- #endif
- 
-@@ -1329,13 +1364,13 @@
- #ifdef CONFIG_I2C_ALGOBIT
-        i2c_algo_bit_init();
- #endif
--#ifdef CONFIG_I2C_PHILIPSPAR
-+#ifdef CONFIG_I2C_BITLP
-        i2c_bitlp_init();
- #endif
--#ifdef CONFIG_I2C_ELV
-+#ifdef CONFIG_I2C_BITELV
-        i2c_bitelv_init();
- #endif
--#ifdef CONFIG_I2C_VELLEMAN
-+#ifdef CONFIG_I2C_BITVELLE
-        i2c_bitvelle_init();
- #endif
- 
-@@ -1343,7 +1378,7 @@
- #ifdef CONFIG_I2C_ALGOPCF
-        i2c_algo_pcf_init();    
- #endif
--#ifdef CONFIG_I2C_ELEKTOR
-+#ifdef CONFIG_I2C_PCFISA
-        i2c_pcfisa_init();
- #endif
- 
-@@ -1401,6 +1436,8 @@
- EXPORT_SYMBOL(i2c_smbus_process_call);
- EXPORT_SYMBOL(i2c_smbus_read_block_data);
- EXPORT_SYMBOL(i2c_smbus_write_block_data);
-+EXPORT_SYMBOL(i2c_smbus_read_i2c_block_data);
-+EXPORT_SYMBOL(i2c_smbus_write_i2c_block_data);
- 
- EXPORT_SYMBOL(i2c_get_functionality);
- EXPORT_SYMBOL(i2c_check_functionality);
-@@ -1410,7 +1447,9 @@
- MODULE_DESCRIPTION("I2C-Bus main module");
- MODULE_PARM(i2c_debug, "i");
- MODULE_PARM_DESC(i2c_debug,"debug level");
-+#ifdef MODULE_LICENSE
- MODULE_LICENSE("GPL");
-+#endif
- 
- int init_module(void) 
- {
---- linux/drivers/i2c/i2c-dev.c.orig    2002-05-09 18:25:27.000000000 -0400
-+++ linux/drivers/i2c/i2c-dev.c 2002-05-14 17:59:52.000000000 -0400
-@@ -28,7 +28,7 @@
- /* The devfs code is contributed by Philipp Matthias Hahn 
-    <pmhahn@titan.lahn.de> */
- 
--/* $Id: i2c-dev.c,v 1.40 2001/08/25 01:28:01 mds Exp $ */
-+/* $Id: i2c-dev.c,v 1.44 2001/11/19 18:45:02 mds Exp $ */
- 
- #include <linux/config.h>
- #include <linux/kernel.h>
-@@ -49,7 +49,6 @@
- 
- #include <linux/init.h>
- #include <asm/uaccess.h>
--
- #include <linux/i2c.h>
- #include <linux/i2c-dev.h>
- 
-@@ -140,7 +139,7 @@
- {
- #ifdef DEBUG
-        struct inode *inode = file->f_dentry->d_inode;
--       printk("i2c-dev.o: i2c-%d lseek to %ld bytes relative to %d.\n",
-+       printk(KERN_DEBUG "i2c-dev.o: i2c-%d lseek to %ld bytes relative to %d.\n",
-               minor(inode->i_rdev),(long) offset,origin);
- #endif /* DEBUG */
-        return -ESPIPE;
-@@ -165,7 +164,7 @@
-                return -ENOMEM;
- 
- #ifdef DEBUG
--       printk("i2c-dev.o: i2c-%d reading %d bytes.\n",minor(inode->i_rdev),
-+       printk(KERN_DEBUG "i2c-dev.o: i2c-%d reading %d bytes.\n",minor(inode->i_rdev),
-               count);
- #endif
- 
-@@ -197,7 +196,7 @@
-        }
- 
- #ifdef DEBUG
--       printk("i2c-dev.o: i2c-%d writing %d bytes.\n",minor(inode->i_rdev),
-+       printk(KERN_DEBUG "i2c-dev.o: i2c-%d writing %d bytes.\n",minor(inode->i_rdev),
-               count);
- #endif
-        ret = i2c_master_send(client,tmp,count);
-@@ -217,7 +216,7 @@
-        unsigned long funcs;
- 
- #ifdef DEBUG
--       printk("i2c-dev.o: i2c-%d ioctl, cmd: 0x%x, arg: %lx.\n", 
-+       printk(KERN_DEBUG "i2c-dev.o: i2c-%d ioctl, cmd: 0x%x, arg: %lx.\n", 
-               minor(inode->i_rdev),cmd, arg);
- #endif /* DEBUG */
- 
-@@ -315,7 +314,7 @@
-                    (data_arg.size != I2C_SMBUS_BLOCK_DATA) &&
-                    (data_arg.size != I2C_SMBUS_I2C_BLOCK_DATA)) {
- #ifdef DEBUG
--                       printk("i2c-dev.o: size out of range (%x) in ioctl I2C_SMBUS.\n",
-+                       printk(KERN_DEBUG "i2c-dev.o: size out of range (%x) in ioctl I2C_SMBUS.\n",
-                               data_arg.size);
- #endif
-                        return -EINVAL;
-@@ -325,7 +324,7 @@
-                if ((data_arg.read_write != I2C_SMBUS_READ) && 
-                    (data_arg.read_write != I2C_SMBUS_WRITE)) {
- #ifdef DEBUG
--                       printk("i2c-dev.o: read_write out of range (%x) in ioctl I2C_SMBUS.\n",
-+                       printk(KERN_DEBUG "i2c-dev.o: read_write out of range (%x) in ioctl I2C_SMBUS.\n",
-                               data_arg.read_write);
- #endif
-                        return -EINVAL;
-@@ -345,7 +344,7 @@
- 
-                if (data_arg.data = NULL) {
- #ifdef DEBUG
--                       printk("i2c-dev.o: data is NULL pointer in ioctl I2C_SMBUS.\n");
-+                       printk(KERN_DEBUG "i2c-dev.o: data is NULL pointer in ioctl I2C_SMBUS.\n");
- #endif
-                        return -EINVAL;
-                }
-@@ -387,7 +386,7 @@
- 
-        if ((minor >= I2CDEV_ADAPS_MAX) || ! (i2cdev_adaps[minor])) {
- #ifdef DEBUG
--               printk("i2c-dev.o: Trying to open unattached adapter i2c-%d\n",
-+               printk(KERN_DEBUG "i2c-dev.o: Trying to open unattached adapter i2c-%d\n",
-                       minor);
- #endif
-                return -ENODEV;
-@@ -408,7 +407,7 @@
- #endif /* LINUX_KERNEL_VERSION < KERNEL_VERSION(2,4,0) */
- 
- #ifdef DEBUG
--       printk("i2c-dev.o: opened i2c-%d\n",minor);
-+       printk(KERN_DEBUG "i2c-dev.o: opened i2c-%d\n",minor);
- #endif
-        return 0;
- }
-@@ -419,13 +418,18 @@
+albert> #ifdef DEBUG
+albert> -       printk("i2c-dev.o: Closed: i2c-%d\n", minor);
+albert> +       printk(KERN_DEBUG "i2c-dev.o: Closed: i2c-%d\n", minor);
+albert> #endif
+albert> #if LINUX_KERNEL_VERSION < KERNEL_VERSION(2,4,0)
+albert> MOD_DEC_USE_COUNT;
+albert> +#else /* LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,4,0) */
+albert> +       lock_kernel();
+albert> #endif /* LINUX_KERNEL_VERSION < KERNEL_VERSION(2,4,0) */
+albert> if (i2cdev_adaps[minor]->dec_use)
+albert> i2cdev_adaps[minor]->dec_use(i2cdev_adaps[minor]);
+albert> +#if LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,4,0)
+albert> +       unlock_kernel();
+albert> +#endif /* LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,4,0) */
+albert> return 0;
+albert> }
+
+That can be rewrite to 
+
         kfree(file->private_data);
         file->private_data=NULL;
  #ifdef DEBUG
 -       printk("i2c-dev.o: Closed: i2c-%d\n", minor);
 +       printk(KERN_DEBUG "i2c-dev.o: Closed: i2c-%d\n", minor);
  #endif
- #if LINUX_KERNEL_VERSION < KERNEL_VERSION(2,4,0)
-        MOD_DEC_USE_COUNT;
-+#else /* LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,4,0) */
-+       lock_kernel();
- #endif /* LINUX_KERNEL_VERSION < KERNEL_VERSION(2,4,0) */
+        lock_kernel();
         if (i2cdev_adaps[minor]->dec_use)
                 i2cdev_adaps[minor]->dec_use(i2cdev_adaps[minor]);
-+#if LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,4,0)
-+       unlock_kernel();
-+#endif /* LINUX_KERNEL_VERSION >= KERNEL_VERSION(2,4,0) */
+        unlock_kernel();
         return 0;
  }
+
+
+I.e. remove the compat code.  Anyways, I am not sure _at_ all that the
+change is right.  without it, they can remove the module while wating
+:(
+
+
  
-@@ -435,11 +439,11 @@
-        char name[8];
+albert> MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl> and Simon G. Vogl <simon@tk.uni-linz.ac.at>");
+albert> MODULE_DESCRIPTION("I2C /dev entries driver");
+albert> +#ifdef MODULE_LICENSE
+albert> MODULE_LICENSE("GPL");
+albert> +#endif
  
-        if ((i = i2c_adapter_id(adap)) < 0) {
--               printk("i2c-dev.o: Unknown adapter ?!?\n");
-+               printk(KERN_DEBUG "i2c-dev.o: Unknown adapter ?!?\n");
-                return -ENODEV;
-        }
-        if (i >= I2CDEV_ADAPS_MAX) {
--               printk("i2c-dev.o: Adapter number too large?!? (%d)\n",i);
-+               printk(KERN_DEBUG "i2c-dev.o: Adapter number too large?!? (%d)\n",i);
-                return -ENODEV;
-        }
+You don't need that.
+
+albert> static int i2c_proc_chips(ctl_table * ctl, int write,
+albert> struct file *filp, void *buffer,
+albert> size_t * lenp);
+albert> +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
+albert> +    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
+albert> +static int i2c_sysctl_chips(ctl_table * table, int *name, unsigned nlen,
+albert> +                               void *oldval, size_t * oldlenp,
+albert> +                               void *newval, size_t newlen,
+albert> +                               void **context);
+albert> +#else
+albert> static int i2c_sysctl_chips(ctl_table * table, int *name, int nlen,
+albert> void *oldval, size_t * oldlenp,
+albert> void *newval, size_t newlen,
+albert> void **context);
+albert> +#endif /* 2.2.19+ */
+
+2.2 code in 2.5 is considered cruft.
  
-@@ -452,7 +456,7 @@
-                        S_IFCHR | S_IRUSR | S_IWUSR,
-                        &i2cdev_fops, NULL);
- #endif
--               printk("i2c-dev.o: Registered '%s' as minor %d\n",adap->name,i);
-+               printk(KERN_DEBUG "i2c-dev.o: Registered '%s' as minor %d\n",adap->name,i);
-        } else {
-                /* This is actually a detach_adapter call! */
- #ifdef CONFIG_DEVFS_FS
-@@ -460,7 +464,7 @@
- #endif
-                i2cdev_adaps[i] = NULL;
- #ifdef DEBUG
--               printk("i2c-dev.o: Adapter unregistered: %s\n",adap->name);
-+               printk(KERN_DEBUG "i2c-dev.o: Adapter unregistered: %s\n",adap->name);
- #endif
-        }
+albert> int __init sensors_init(void);
  
-@@ -482,7 +486,7 @@
- {
-        int res;
+albert> @@ -119,10 +121,6 @@
+albert> sprintf(name_buffer, "%s-i2c-%d-%02x", prefix, id, addr);
+albert> }
+albert> *name = kmalloc(strlen(name_buffer) + 1, GFP_KERNEL);
+albert> -       if (!*name) {
+albert> -               printk (KERN_WARNING "i2c_create_name: not enough memory\n");
+albert> -               return -ENOMEM;
+albert> -       }
+albert> strcpy(*name, name_buffer);
+albert> return 0;
+albert> }
+albert> @@ -180,9 +178,10 @@
+
+You can't take that out, you need to check kmallocs return.
  
--       printk("i2c-dev.o: i2c /dev entries driver module\n");
-+       printk(KERN_INFO "i2c-dev.o: i2c /dev entries driver module version %s (%s)\n", I2C_VERSION, I2C_DATE);
+albert> +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
+albert> +    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
+albert> +int i2c_sysctl_chips(ctl_table * table, int *name, unsigned nlen,
+albert> +                        void *oldval, size_t * oldlenp, void *newval,
+albert> +                        size_t newlen, void **context)
+albert> +#else
+albert> int i2c_sysctl_chips(ctl_table * table, int *name, int nlen,
+albert> void *oldval, size_t * oldlenp, void *newval,
+albert> size_t newlen, void **context)
+albert> +#endif /* 2.2.19+ */
+albert> {
+albert> struct i2c_chips_data data;
+albert> int i, oldlen, nrels, maxels,ret=0;
+albert> @@ -415,9 +421,16 @@
  
-        i2cdev_initialized = 0;
- #ifdef CONFIG_DEVFS_FS
-@@ -490,7 +494,7 @@
- #else
-        if (register_chrdev(I2C_MAJOR,"i2c",&i2cdev_fops)) {
- #endif
--               printk("i2c-dev.o: unable to get major %d for i2c bus\n",
-+               printk(KERN_ERR "i2c-dev.o: unable to get major %d for i2c bus\n",
-                       I2C_MAJOR);
-                return -EIO;
-        }
-@@ -500,7 +504,7 @@
-        i2cdev_initialized ++;
+albert> /* This function is equivalent to i2c_proc_real, only it interacts with
+albert> the sysctl(2) syscall, and returns no reals, but integers */
+albert> +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
+albert> +    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
+albert> +int i2c_sysctl_real(ctl_table * table, int *name, unsigned nlen,
+albert> +                       void *oldval, size_t * oldlenp, void *newval,
+albert> +                       size_t newlen, void **context)
+albert> +#else
+albert> int i2c_sysctl_real(ctl_table * table, int *name, int nlen,
+albert> void *oldval, size_t * oldlenp, void *newval,
+albert> size_t newlen, void **context)
+albert> +#endif /* 2.2.19+ */
+albert> {
+albert> long results[MAX_RESULTS];
+albert> int oldlen, nrels = MAX_RESULTS,ret=0;
+
+Compat code, will not enter there.
+
  
-        if ((res = i2c_add_driver(&i2cdev_driver))) {
--               printk("i2c-dev.o: Driver registration failed, module not inserted.\n");
-+               printk(KERN_ERR "i2c-dev.o: Driver registration failed, module not inserted.\n");
-                i2cdev_cleanup();
-                return res;
-        }
-@@ -514,7 +518,7 @@
+albert> MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
+albert> MODULE_DESCRIPTION("i2c-proc driver");
+albert> +#ifdef MODULE_LICENSE
+albert> MODULE_LICENSE("GPL");
+albert> +#endif
  
-        if (i2cdev_initialized >= 2) {
-                if ((res = i2c_del_driver(&i2cdev_driver))) {
--                       printk("i2c-dev.o: Driver deregistration failed, "
-+                       printk(KERN_ERR "i2c-dev.o: Driver deregistration failed, "
-                               "module not removed.\n");
-                        return res;
-                }
-@@ -528,7 +532,7 @@
- #else
-                if ((res = unregister_chrdev(I2C_MAJOR,"i2c"))) {
- #endif
--                       printk("i2c-dev.o: unable to release major %d for i2c bus\n",
-+                       printk(KERN_ERR "i2c-dev.o: unable to release major %d for i2c bus\n",
-                               I2C_MAJOR);
-                        return res;
-                }
-@@ -543,7 +547,9 @@
- 
- MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl> and Simon G. Vogl <simon@tk.uni-linz.ac.at>");
- MODULE_DESCRIPTION("I2C /dev entries driver");
-+#ifdef MODULE_LICENSE
- MODULE_LICENSE("GPL");
-+#endif
- 
- int init_module(void)
- {
---- linux/include/linux/i2c-dev.h.orig  2002-05-09 18:22:54.000000000 -0400
-+++ linux/include/linux/i2c-dev.h       2002-05-14 17:57:11.000000000 -0400
-@@ -19,7 +19,7 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
- 
--/* $Id: i2c-dev.h,v 1.9 2001/08/15 03:04:58 mds Exp $ */
-+/* $Id: i2c-dev.h,v 1.10 2001/11/19 19:01:46 mds Exp $ */
- 
- #ifndef I2C_DEV_H
- #define I2C_DEV_H
-@@ -162,6 +162,22 @@
-                                I2C_SMBUS_BLOCK_DATA, &data);
- }
- 
-+/* Returns the number of read bytes */
-+static inline __s32 i2c_smbus_read_i2c_block_data(int file, __u8 command,
-+                                                  __u8 *values)
-+{
-+       union i2c_smbus_data data;
-+       int i;
-+       if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
-+                             I2C_SMBUS_I2C_BLOCK_DATA,&data))
-+               return -1;
-+       else {
-+               for (i = 1; i <= data.block[0]; i++)
-+                       values[i-1] = data.block[i];
-+               return data.block[0];
-+       }
-+}
-+
- static inline __s32 i2c_smbus_write_i2c_block_data(int file, __u8 command,
-                                                __u8 length, __u8 *values)
- {
---- linux/include/linux/i2c-id.h.orig   2002-05-09 18:21:45.000000000 -0400
-+++ linux/include/linux/i2c-id.h        2002-03-11 02:18:55.000000000 -0500
-@@ -20,7 +20,7 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               */
- /* ------------------------------------------------------------------------- */
- 
--/* $Id: i2c-id.h,v 1.35 2001/08/12 17:22:20 mds Exp $ */
-+/* $Id: i2c-id.h,v 1.41 2002/03/11 07:18:55 simon Exp $ */
- 
- #ifndef I2C_ID_H
- #define I2C_ID_H
-@@ -90,6 +90,10 @@
- #define I2C_DRIVERID_DRP3510   43     /* ADR decoder (Astra Radio)     */
- #define I2C_DRIVERID_SP5055    44     /* Satellite tuner               */
- #define I2C_DRIVERID_STV0030   45     /* Multipurpose switch           */
-+#define I2C_DRIVERID_SAA7108    46     /* video decoder, image scaler   */
-+
-+
-+
- 
- #define I2C_DRIVERID_EXP0      0xF0    /* experimental use id's        */
- #define I2C_DRIVERID_EXP1      0xF1
-@@ -127,6 +131,9 @@
- #define I2C_DRIVERID_ADM1024 1025
- #define I2C_DRIVERID_IT87 1026
- #define I2C_DRIVERID_CH700X 1027 /* single driver for CH7003-7009 digital pc to tv encoders */
-+#define I2C_DRIVERID_FSCPOS 1028
-+#define I2C_DRIVERID_FSCSCY 1029
-+#define I2C_DRIVERID_PCF8591 1030
- 
- /*
-  * ---- Adapter types ----------------------------------------------------
-@@ -143,7 +150,8 @@
- #define I2C_ALGO_ISA   0x050000        /* lm_sensors ISA pseudo-adapter */
- #define I2C_ALGO_SAA7146 0x060000      /* SAA 7146 video decoder bus   */
- #define I2C_ALGO_ACB   0x070000        /* ACCESS.bus algorithm         */
--
-+#define I2C_ALGO_IIC    0x080000       /* ITE IIC bus */
-+#define I2C_ALGO_SAA7134 0x090000
- #define I2C_ALGO_EC     0x100000        /* ACPI embedded controller     */
- 
- #define I2C_ALGO_MPC8XX 0x110000       /* MPC8xx PowerPC I2C algorithm */
-@@ -189,6 +197,9 @@
- /* --- MPC8xx PowerPC adapters                                         */
- #define I2C_HW_MPC8XX_EPON 0x00        /* Eponymous MPC8xx I2C adapter         */
- 
-+/* --- ITE based algorithms                                            */
-+#define I2C_HW_I_IIC   0x00    /* controller on the ITE */
-+
- /* --- SMBus only adapters                                             */
- #define I2C_HW_SMBUS_PIIX4     0x00
- #define I2C_HW_SMBUS_ALI15X3   0x01
---- linux/drivers/i2c/i2c-proc.c.orig   2002-05-09 18:24:47.000000000 -0400
-+++ linux/drivers/i2c/i2c-proc.c        2002-05-14 18:03:45.000000000 -0400
-@@ -32,16 +32,10 @@
- #include <linux/proc_fs.h>
- #include <linux/ioport.h>
- #include <asm/uaccess.h>
--
- #include <linux/i2c.h>
- #include <linux/i2c-proc.h>
--
- #include <linux/init.h>
- 
--/* FIXME need i2c versioning */
--#define LM_DATE "20010825"
--#define LM_VERSION "2.6.1"
--
- #ifndef THIS_MODULE
- #define THIS_MODULE NULL
- #endif
-@@ -55,10 +49,18 @@
- static int i2c_proc_chips(ctl_table * ctl, int write,
-                              struct file *filp, void *buffer,
-                              size_t * lenp);
-+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
-+    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
-+static int i2c_sysctl_chips(ctl_table * table, int *name, unsigned nlen,
-+                               void *oldval, size_t * oldlenp,
-+                               void *newval, size_t newlen,
-+                               void **context);
-+#else
- static int i2c_sysctl_chips(ctl_table * table, int *name, int nlen,
-                                void *oldval, size_t * oldlenp,
-                                void *newval, size_t newlen,
-                                void **context);
-+#endif /* 2.2.19+ */
- 
- int __init sensors_init(void);
- 
-@@ -119,10 +121,6 @@
-                sprintf(name_buffer, "%s-i2c-%d-%02x", prefix, id, addr);
-        }
-        *name = kmalloc(strlen(name_buffer) + 1, GFP_KERNEL);
--       if (!*name) {
--               printk (KERN_WARNING "i2c_create_name: not enough memory\n");
--               return -ENOMEM;
--       }
-        strcpy(*name, name_buffer);
-        return 0;
- }
-@@ -180,9 +178,10 @@
-                new_table[i].extra2 = client;
- 
-        if (!(new_header = register_sysctl_table(new_table, 0))) {
-+               printk(KERN_ERR "i2c-proc.o: error: sysctl interface not supported by kernel!\n");
-                kfree(new_table);
-                kfree(name);
--               return -ENOMEM;
-+               return -EPERM;
-        }
- 
-        i2c_entries[id - 256] = new_header;
-@@ -194,7 +193,7 @@
-            !new_header->ctl_table->child->child ||
-            !new_header->ctl_table->child->child->de) {
-                printk
--                   ("i2c-proc.o: NULL pointer when trying to install fill_inode fix!\n");
-+                   (KERN_ERR "i2c-proc.o: NULL pointer when trying to install fill_inode fix!\n");
-                return id;
-        }
- #endif                         /* DEBUG */
-@@ -247,7 +246,7 @@
- 
- #ifdef DEBUG
-        if (!inode) {
--               printk("i2c-proc.o: Warning: inode NULL in fill_inode()\n");
-+               printk(KERN_ERR "i2c-proc.o: Warning: inode NULL in fill_inode()\n");
-                return;
-        }
- #endif                         /* def DEBUG */
-@@ -258,7 +257,7 @@
- #ifdef DEBUG
-        if (i = SENSORS_ENTRY_MAX) {
-                printk
--                   ("i2c-proc.o: Warning: inode (%ld) not found in fill_inode()\n",
-+                   (KERN_ERR "i2c-proc.o: Warning: inode (%ld) not found in fill_inode()\n",
-                     inode->i_ino);
-                return;
-        }
-@@ -308,9 +307,16 @@
-        return 0;
- }
- 
-+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
-+    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
-+int i2c_sysctl_chips(ctl_table * table, int *name, unsigned nlen,
-+                        void *oldval, size_t * oldlenp, void *newval,
-+                        size_t newlen, void **context)
-+#else
- int i2c_sysctl_chips(ctl_table * table, int *name, int nlen,
-                         void *oldval, size_t * oldlenp, void *newval,
-                         size_t newlen, void **context)
-+#endif /* 2.2.19+ */
- {
-        struct i2c_chips_data data;
-        int i, oldlen, nrels, maxels,ret=0;
-@@ -415,9 +421,16 @@
- 
- /* This function is equivalent to i2c_proc_real, only it interacts with
-    the sysctl(2) syscall, and returns no reals, but integers */
-+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
-+    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
-+int i2c_sysctl_real(ctl_table * table, int *name, unsigned nlen,
-+                       void *oldval, size_t * oldlenp, void *newval,
-+                       size_t newlen, void **context)
-+#else
- int i2c_sysctl_real(ctl_table * table, int *name, int nlen,
-                        void *oldval, size_t * oldlenp, void *newval,
-                        size_t newlen, void **context)
-+#endif /* 2.2.19+ */
- {
-        long results[MAX_RESULTS];
-        int oldlen, nrels = MAX_RESULTS,ret=0;
-@@ -684,7 +697,7 @@
-                                    && (addr = this_force->force[j + 1])) {
- #ifdef DEBUG
-                                        printk
--                                           ("i2c-proc.o: found force parameter for adapter %d, addr %04x\n",
-+                                           (KERN_DEBUG "i2c-proc.o: found force parameter for adapter %d, addr %04x\n",
-                                             adapter_id, addr);
- #endif
-                                        if (
-@@ -714,7 +727,7 @@
-                            && (addr = address_data->ignore[i + 1])) {
- #ifdef DEBUG
-                                printk
--                                   ("i2c-proc.o: found ignore parameter for adapter %d, "
-+                                   (KERN_DEBUG "i2c-proc.o: found ignore parameter for adapter %d, "
-                                     "addr %04x\n", adapter_id, addr);
- #endif
-                                found = 1;
-@@ -734,7 +747,7 @@
-                            && (addr <= address_data->ignore_range[i + 2])) {
- #ifdef DEBUG
-                                printk
--                                   ("i2c-proc.o: found ignore_range parameter for adapter %d, "
-+                                   (KERN_DEBUG "i2c-proc.o: found ignore_range parameter for adapter %d, "
-                                     "addr %04x\n", adapter_id, addr);
- #endif
-                                found = 1;
-@@ -753,7 +766,7 @@
-                                if (addr = address_data->normal_isa[i]) {
- #ifdef DEBUG
-                                        printk
--                                           ("i2c-proc.o: found normal isa entry for adapter %d, "
-+                                           (KERN_DEBUG "i2c-proc.o: found normal isa entry for adapter %d, "
-                                             "addr %04x\n", adapter_id,
-                                             addr);
- #endif
-@@ -775,7 +788,7 @@
-                                     0)) {
- #ifdef DEBUG
-                                        printk
--                                           ("i2c-proc.o: found normal isa_range entry for adapter %d, "
-+                                           (KERN_DEBUG "i2c-proc.o: found normal isa_range entry for adapter %d, "
-                                             "addr %04x", adapter_id, addr);
- #endif
-                                        found = 1;
-@@ -789,7 +802,7 @@
-                                        found = 1;
- #ifdef DEBUG
-                                        printk
--                                           ("i2c-proc.o: found normal i2c entry for adapter %d, "
-+                                           (KERN_DEBUG "i2c-proc.o: found normal i2c entry for adapter %d, "
-                                             "addr %02x", adapter_id, addr);
- #endif
-                                }
-@@ -805,7 +818,7 @@
-                                {
- #ifdef DEBUG
-                                        printk
--                                           ("i2c-proc.o: found normal i2c_range entry for adapter %d, "
-+                                           (KERN_DEBUG "i2c-proc.o: found normal i2c_range entry for adapter %d, "
-                                             "addr %04x\n", adapter_id, addr);
- #endif
-                                        found = 1;
-@@ -822,7 +835,7 @@
-                            && (addr = address_data->probe[i + 1])) {
- #ifdef DEBUG
-                                printk
--                                   ("i2c-proc.o: found probe parameter for adapter %d, "
-+                                   (KERN_DEBUG "i2c-proc.o: found probe parameter for adapter %d, "
-                                     "addr %04x\n", adapter_id, addr);
- #endif
-                                found = 1;
-@@ -841,7 +854,7 @@
-                                found = 1;
- #ifdef DEBUG
-                                printk
--                                   ("i2c-proc.o: found probe_range parameter for adapter %d, "
-+                                   (KERN_DEBUG "i2c-proc.o: found probe_range parameter for adapter %d, "
-                                     "addr %04x\n", adapter_id, addr);
- #endif
-                        }
-@@ -862,11 +875,14 @@
- 
- int __init sensors_init(void)
- {
--       printk("i2c-proc.o version %s (%s)\n", LM_VERSION, LM_DATE);
-+       printk(KERN_INFO "i2c-proc.o version %s (%s)\n", I2C_VERSION, I2C_DATE);
-        i2c_initialized = 0;
-        if (!
-            (i2c_proc_header -            register_sysctl_table(i2c_proc, 0))) return -ENOMEM;
-+            register_sysctl_table(i2c_proc, 0))) {
-+               printk(KERN_ERR "i2c-proc.o: error: sysctl interface not supported by kernel!\n");
-+               return -EPERM;
-+       }
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,3,1))
-        i2c_proc_header->ctl_table->child->de->owner = THIS_MODULE;
- #else
-@@ -887,7 +903,9 @@
- 
- MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
- MODULE_DESCRIPTION("i2c-proc driver");
-+#ifdef MODULE_LICENSE
- MODULE_LICENSE("GPL");
-+#endif
- 
- int i2c_cleanup(void)
- {
-@@ -907,4 +925,5 @@
- {
-        return i2c_cleanup();
- }
-+
- #endif                         /* MODULE */
---- linux/include/linux/i2c-proc.h.orig 2002-05-09 18:24:59.000000000 -0400
-+++ linux/include/linux/i2c-proc.h      2002-02-09 17:50:06.000000000 -0500
-@@ -1,6 +1,7 @@
- /*
--    sensors.h - Part of lm_sensors, Linux kernel modules for hardware
--                monitoring
-+    i2c-proc.h - Part of the i2c package
-+    was originally sensors.h - Part of lm_sensors, Linux kernel modules
-+                               for hardware monitoring
-     Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
- 
-     This program is free software; you can redistribute it and/or modify
-@@ -55,10 +56,18 @@
-    found.
-    In all cases, client points to the client we wish to interact with,
-    and ctl_name is the SYSCTL id of the file we are accessing. */
-+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
-+    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
-+extern int i2c_sysctl_real(ctl_table * table, int *name, unsigned nlen,
-+                              void *oldval, size_t * oldlenp,
-+                              void *newval, size_t newlen,
-+                              void **context);
-+#else
- extern int i2c_sysctl_real(ctl_table * table, int *name, int nlen,
-                               void *oldval, size_t * oldlenp,
-                               void *newval, size_t newlen,
-                               void **context);
-+#endif /* 2.2.19+ */
- extern int i2c_proc_real(ctl_table * ctl, int write, struct file *filp,
-                             void *buffer, size_t * lenp);
- 
---- linux/include/linux/i2c.h.orig      2002-05-09 18:22:37.000000000 -0400
-+++ linux/include/linux/i2c.h   2002-05-14 17:57:42.000000000 -0400
-@@ -23,13 +23,13 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and
-    Frodo Looijaard <frodol@dds.nl> */
- 
--/* $Id: i2c.h,v 1.46 2001/08/31 00:04:07 phil Exp $ */
-+/* $Id: i2c.h,v 1.50 2002/03/23 00:53:38 phil Exp $ */
- 
- #ifndef I2C_H
- #define I2C_H
- 
--#define I2C_DATE "20010830"
--#define I2C_VERSION "2.6.1"
-+#define I2C_DATE "20020322"
-+#define I2C_VERSION "2.6.3"
- 
- #include <linux/i2c-id.h>      /* id values of adapters et. al.        */
- #include <linux/types.h>
-@@ -123,6 +123,8 @@
- extern s32 i2c_smbus_write_block_data(struct i2c_client * client,
-                                       u8 command, u8 length,
-                                       u8 *values);
-+extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
-+                                         u8 command, u8 *values);
- extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
-                                           u8 command, u8 length,
-                                           u8 *values);
-@@ -406,8 +408,10 @@
- #define I2C_FUNC_SMBUS_PROC_CALL       0x00800000 
- #define I2C_FUNC_SMBUS_READ_BLOCK_DATA 0x01000000 
- #define I2C_FUNC_SMBUS_WRITE_BLOCK_DATA 0x02000000 
--#define I2C_FUNC_SMBUS_READ_I2C_BLOCK  0x04000000 /* New I2C-like block */
--#define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK 0x08000000 /* transfer */
-+#define I2C_FUNC_SMBUS_READ_I2C_BLOCK  0x04000000 /* I2C-like block xfer  */
-+#define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK 0x08000000 /* w/ 1-byte reg. addr. */
-+#define I2C_FUNC_SMBUS_READ_I2C_BLOCK_2         0x10000000 /* I2C-like block xfer  */
-+#define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2 0x20000000 /* w/ 2-byte reg. addr. */
- 
- #define I2C_FUNC_SMBUS_BYTE I2C_FUNC_SMBUS_READ_BYTE | \
-                             I2C_FUNC_SMBUS_WRITE_BYTE
-@@ -419,13 +423,17 @@
-                                   I2C_FUNC_SMBUS_WRITE_BLOCK_DATA
- #define I2C_FUNC_SMBUS_I2C_BLOCK I2C_FUNC_SMBUS_READ_I2C_BLOCK | \
-                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
-+#define I2C_FUNC_SMBUS_I2C_BLOCK_2 I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 | \
-+                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2
- 
- #define I2C_FUNC_SMBUS_EMUL I2C_FUNC_SMBUS_QUICK | \
-                             I2C_FUNC_SMBUS_BYTE | \
-                             I2C_FUNC_SMBUS_BYTE_DATA | \
-                             I2C_FUNC_SMBUS_WORD_DATA | \
-                             I2C_FUNC_SMBUS_PROC_CALL | \
--                            I2C_FUNC_SMBUS_WRITE_BLOCK_DATA
-+                            I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
-+                            I2C_FUNC_SMBUS_I2C_BLOCK | \
-+                            I2C_FUNC_SMBUS_I2C_BLOCK_2
- 
- /* 
-  * Data for SMBus Messages 
+Remove that part.
+
+albert> found.
+albert> In all cases, client points to the client we wish to interact with,
+albert> and ctl_name is the SYSCTL id of the file we are accessing. */
+albert> +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,19)) && \
+albert> +    (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,0))
+albert> +extern int i2c_sysctl_real(ctl_table * table, int *name, unsigned nlen,
+albert> +                              void *oldval, size_t * oldlenp,
+albert> +                              void *newval, size_t newlen,
+albert> +                              void **context);
+albert> +#else
+albert> extern int i2c_sysctl_real(ctl_table * table, int *name, int nlen,
+albert> void *oldval, size_t * oldlenp,
+albert> void *newval, size_t newlen,
+albert> void **context);
+albert> +#endif /* 2.2.19+ */
+
+You are not going to get that code in, this is compat code, and it is
+not needed for 2.5, for 2.5 the only thing that it is needed is the
+one that is there.
+
+
+
 -- 
-Albert Cranford Deerfield Beach FL USA
-ac9410@bellsouth.net
+In theory, practice and theory are the same, but in practice they 
+are different -- Larry McVoy
