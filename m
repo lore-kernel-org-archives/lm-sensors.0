@@ -1,46 +1,21 @@
-From: vgmarimon@terra.es (Victor G. Marimon)
-Date: Thu, 19 May 2005 06:23:55 +0000
-Subject: formula for calculating cpu temp with ASUS cusl2-c
-Message-Id: <200304261205.00380.vgmarimon@terra.es>
+From: azarah@gentoo.org (Martin Schlemmer)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: w83781d i2c driver updated for 2.5.66 (without sysfs support)
+Message-Id: <1048705473.7569.10.camel@nosferatu.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200304252010.06867.vgmarimon@terra.es>
-In-Reply-To: <200304252010.06867.vgmarimon@terra.es>
+References: <1048582394.4774.7.camel@workshop.saharact.lan>
+	 <20030325175603.GG15823@kroah.com>
+In-Reply-To: <20030325175603.GG15823@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: KML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@brodo.de>, sensors@stimpy.netroedge.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-El S?bado, 26 de Abril de 2003 10:19, escribi?:
->
-> Thanks for the formula. Asus has been using many different ones on their
-> different motherboards, which is causing some trouble.
->
-> I think we will use the following line instead:
->
-> compute temp2 (@*60/43)+25,(@-25)*43/60
->
-> Because it looks really like the other known formula, and I doubt it's a
-> coincidence.
->
-> Is your board for an Intel or AMD cpu?
-
-	it's for Intel  socket 370 type with chipset intel 815EP and 866Mhz cpu
-
-> How recent is it?
-
-	2 or 3 years
-
-- -- 
-Victor G. Marimon
-Miembro de Bulma (http://bulmalug.net)
-Usando Gentoo Linux 1.4
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+qlnLmAtZm4z1xakRAtfFAKChNVoxC8aApVwratN6jnENE5PGfACePHnx
-VPylAVASqF55xt/+7JWd3y0=vzHR
------END PGP SIGNATURE-----
-
+Skipped content of type multipart/mixed-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030326/6d1e64b3/attachment.bin
