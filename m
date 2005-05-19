@@ -1,99 +1,102 @@
-From: ladis@linux-mips.org (Ladislav Michl)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: [PATCH] ds1337 4/4
-Message-Id: <20050410195120.GA5422@linux-mips.org>
+Message-Id: <20050410231006.0469a472.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050407231904.GE27226@orphique> <FxPJVIPZ.1112958526.4787880.khali@localhost> <20050408123545.GA4961@orphique> <4256C315.3000902@katalix.com>
-In-Reply-To: <4256C315.3000902@katalix.com>
+References: <20050407231904.GE27226@orphique>
+	<FxPJVIPZ.1112958526.4787880.khali@localhost>
+	<20050408123545.GA4961@orphique>
+	<4256C315.3000902@katalix.com>
+	<20050410195120.GA5422@linux-mips.org>
+In-Reply-To: <20050410195120.GA5422@linux-mips.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James Chapman <jchapman@katalix.com>
-Cc: Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, Greg KH <greg@kroah.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, Greg KH <greg@kroah.com>, James Chapman <jchapman@katalix.com>
 
-On Fri, Apr 08, 2005 at 06:44:53PM +0100, James Chapman wrote:
-> > The only reason I can think
-> >about is when suspending device, so it is likely pm job. /sys entry
-> >might help as well, but I do not see any point making driver more
-> >complicated and bigger just to make someone else happy.
+Hi Ladislav,
+
+> Driver has no chance to know about hardware design.
+
+If you want the driver to somehow interact with the battery charging
+register, it will have to. We just can't let the user write random value
+to this register.
+
+> Based on your and Jean's input, following so far sounds reasonable:
+> Create "charge" sysfs entry for ds1339 when it is detected. Do not
+> write any value to Trickle Charge register, until its value is written
+> to this entry.
+
+While I admit I had this in mind in the first place, the more I think of
+it and the less I like it. It's slightly better than changing the
+charging rate right when loading the driver, but that's still dangerous.
+Users could write a value which doesn't match the hardware design, and
+bad things could happen.
+
+> Agree, but with probability near the certainty I can tell that device
+> works a bit differently than described in datasheet. Anyway, new 100%
+> reliable test is done, so it could be eventually used if ds1339
+> support finds its way into driver.
+
+"100% realiable" here means that it works for you, which isn't enough.
+At least James would have to check how it works with his DS1337, and
+there might be other revisions of both chips which behave differently.
+There might be other mostly-compatible chips in the game too.
+
+> > > Eh? Register is 8bit, that's 256 combinations.
+> > 
+> > Reserved bits have fixed values that you can test for.
 > 
-> Why not add a new /sys entry for it? Is there a generic battery charge 
-> control /sys API?
+> Think about this register as about NVRAM address. It can have any
+> value, but only certain values will enable charge.
 
-I do not know about any and I do not think it would be usefull here. How
-would you convert value passed by API into register value? Driver has no
-chance to know about hardware design.
+Most of which nobody has any interest in writing. Some I2C devices are
+hard to detect and the DS1337/DS1339 are of these. We use the tricks we
+find. Sure, a strict check on this register might miss a DS1339, but
+that's better than detecting a different chip as a DS1339.
 
-> >Golden rule is: implement features as needed :)
-> 
-> But when adding code, try to cover all reasonable cases, otherwise we'll 
-> see patches from people trying to add platform specific ifdefs in here.
+> How are you using this driver? There is non-static function
+> ds1337_do_command which expects id. How do you know which id belongs
+> to which chip?
 
-I'd like to, but simply do not have enough informations to do it. In other
-worlds I still do not know what is reasonable here.
+I second this question, as it stroke me too. This function doesn't sound
+exactly usable to me. Identifying the device by bus and address would
+make more sense than an arbitrary id you have no way to learn about.
 
-> >>Also, arbitrarily picking one of the 6 possible charging modes just
-> >>because it matches your board is a bad idea. It looks like a value which
-> >>should be set on a per-board basis, rather than picked randomly by the
-> >>user, so as to avoid accidental hardware breakage.
-> >
-> >
-> >Well free to provide that way, so far I'm the only user so I did what is
-> >usefull for me [*]. Everyone is welcome to change it to more generic
-> >way.
-> 
-> I agree with Jean. You should provide an API for this. Don't take 
-> shortcuts just because you were the first to support the chip. It'll be 
-> more useful to others if you provide a way to set a value per platform.
+> Do you actually have machine with more than one ds1337?
+> Chip has fixed address, so only one can hang on one bus (am I right?)
 
-That's not about taking any shortcuts, that's about finding sane API. When
-time shows it wrong and it will need change people will complain about
-compatibility. See my questions about API bellow [*].
+You are.
 
-Based on your and Jean's input, following so far sounds reasonable:
-Create "charge" sysfs entry for ds1339 when it is detected. Do not write
-any value to Trickle Charge register, until its value is written to this
-entry.
+> PS. I'm sorry about some formulations I used in earlier mails. I was
+> overworked and tired and that affected my otherwise (hopefully) good
+> decorum :)
 
-> >I was running test overnight and didn't meet any single case when this
-> >happen. Perhaps device also needs to see start condition?
-> 
-> Just because it runs overnight doesn't mean there's no bug.
+I'm really happy to read this :) You are of course forgiven. We all have
+bad days.
 
-Agree, but with probability near the certainty I can tell that device works
-a bit differently than described in datasheet. Anyway, new 100% reliable
-test is done, so it could be eventually used if ds1339 support finds its
-way into driver.
+Back to the issue, some random thoughts summarizing my opinion:
 
-> >>Also, 0x00 is a possible value for both the seconds count and the battery
-> >>register, so you could miss a DS1339 at times.
-> >>
-> >>One possible check to start with would be on the value of the additional
-> >>register itself. It has only 7 possible values. (...) 
-> >
-> >
-> >Eh? Register is 8bit, that's 256 combinations.
-> 
-> Reserved bits have fixed values that you can test for.
+1* Initializing the battery charge register is a firmware/bios issue, as
+you underlined earlier. It would make sense (and would be easier) to
+just ignore it at the driver level.
 
-Think about this register as about NVRAM address. It can have any value,
-but only certain values will enable charge.
+2* If it makes sense to stop the charge, then we should provide a simple
+*switch* to the user, from the default charging register value (as
+previously set by the firmware/bios) to 0 and back. The switch would
+probably be a sysfs file unless a different API already exists.
 
-[*] Now lets forget ds1339, there are few things I'd like to know about
-this driver.
+3* Having the driver write an arbitrary non-0 value to the register
+should not be done unless the system has been identified. I have no idea
+how your system can be identified (DMI?), but if it can't, then I'd
+better see the register ignored altogether.
 
-How are you using this driver? There is non-static function
-ds1337_do_command which expects id. How do you know which id belongs
-to which chip? Do you actually have machine with more than one ds1337?
-Chip has fixed address, so only one can hang on one bus (am I right?)
-Also it is unlikely that machine will have more that one RTC. The only
-exception which comes on mind are NUMA systems which have one RTC per
-node. Anything else? Why date format returned/expected by this driver
-differs from other drivers?
+4* Remember that you can always write a simple C tool relying on the
+i2c-dev interface to do the job. The advantage of this approach is that
+you can put big fat warnings and request user confirmation before any
+action.
 
-Thanks in advance,
-	ladis
-
-PS. I'm sorry about some formulations I used in earlier mails. I was
-overworked and tired and that affected my otherwise (hopefully) good
-decorum :)
+Hope that helps,
+-- 
+Jean Delvare
