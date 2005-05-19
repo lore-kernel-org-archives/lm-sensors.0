@@ -1,25 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:03 +0000
-Subject: lm_sensors2/kernel/chips lm83.c
-Message-Id: <20030704120615.66bdc155.khali@linux-fr.org>
+From: vvenkataramana@yahoo.com (V. R. Venkatramana)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: Question on CPU temperature and voltage devices (ADM1025)
+Message-Id: <20020426182810.28830.qmail@web13408.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Folks, 
 
-> Update of /home/cvs/lm_sensors2/kernel/chips
-> In directory mordac.netroedge.com:/tmp/cvs-serv6865
-> 
-> Modified Files:
-> 	lm83.c 
-> Log Message:
-> (Khali) Add missing include.
+    How to access CPU temperature & voltage drvices?
+    Sensor chip:   Analog Devices ADM1025 
+    MotherBoard:   Intel D845WN
 
-BTW what's the <linux/init.h> include for? The module compiled and
-loaded just fine without it.
+I am using vxWorks OS.  vxWorks do not support Advanced 
+Configuration and Power Interface (ACPI) and cannot access 
+temperature and voltage devices via ACPI calls in the BIOS.   
+vxWorks do not have support to access SMBus either.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+I am wondering how to access temperature an voltage devices
+located on the SMBus in the absesnce of no suppport for i2c
+and SMBus in vxWorks?  I have no problem in accessing fan 
+devices (chassis fan & cpu fan) but cannot access sensor devices.
+
+I am hoping that lm_sensor expert will answer my question and 
+provide me pointers as to how to access sensor devices?
+
+A line in reply will be appreciated.
+Thanks, Venkat
+
+
+
+__________________________________________________
+Do You Yahoo!?
+Yahoo! Games - play chess, backgammon, pool and more
+http://games.yahoo.com/
