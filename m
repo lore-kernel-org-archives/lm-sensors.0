@@ -1,37 +1,38 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:34 +0000
-Subject: Winbond W83782D
-Message-Id: <3D0B75CE.E5FAD65A@paradyne.com>
+From: kw42@gmx.de (Klaus Woltereck)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: W83791 (was: How to activate the SMBus on P4B533E/ICH4?)
+Message-Id: <Pine.LNX.4.31.0206221506270.11389-100000@klaus.dns2go.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200206151303.12037.hoyt@cavtel.net>
-In-Reply-To: <200206151303.12037.hoyt@cavtel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-see the tickets referenced on our home page
+On Fri, 21 Jun 2002, Mark Studebaker wrote:
 
-Hoyt wrote:
-> 
-> I'm using a Tiger MPX (S2466) http://www.tyan.com/products/html/tigermpx.html
-> 
-> It uses a Winbond W83782D chip.
-> 
-> I haven't had any luck with sensors-detect; the detection would lock up.
-> 
-> But I was able to get some success by following what I found at
-> http://www.uwsg.iu.edu/hypermail/linux/kernel/0111.1/1519.html
-> 
-> I see:
-> 
-> w83627hf-i2c-1-2c
-> Adapter: SMBus AMD7X6 adapter at 80e0
-> Algorithm: Non-I2C SMBus adapter
->  . . . and the readings . . .
-> 
-> I'm not sure how to set up /etc/modules.conf. Any advice?
-> 
-> Thanks,
-> 
-> Hoyt
+> I'll look into the 40004 messages.
+
+It was my fault:
+
+> > Jun 21 21:12:08 test kernel: i2c-proc.o version 2.6.1 (20010825)
+Jun 24 11:14:00 test kernel: i2c-core.o: i2c core module version 2.6.4-CVS (2002xxx)
+
+I forgot to run 'make install' in the CVS-i2c directory.
+
+
+W83791:
+
+I just added some rudimentary support for the W83791SD in the w83781d
+module.
+
+Before I go on, I would like to know if anyone already done this?
+
+If so, please me know!
+
+Bye,
+Klaus
+
+
+
+
+
