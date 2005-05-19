@@ -1,32 +1,38 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: velleman doc
-Message-Id: <3FE8CB03.3000300@verizon.net>
+From: maurice@harddata.com (Maurice Hilarius)
+Date: Thu, 19 May 2005 06:23:32 +0000
+Subject: offer of support
+Message-Id: <5.1.0.14.2.20020503011846.0725fde0@mail.harddata.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031222204231.6db9944c.khali@linux-fr.org>
-In-Reply-To: <20031222204231.6db9944c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The driver has said K9000 at the top since the 1.1 revision 1998.
-When we got the documentation contribution in 2002, it was about
-the K8000, and I put in the K9000 reference at the top, since
-I didn't know at the time what was right.
-It does seem like there is no 9000; I couldn't find anything either.
-If you do patch it, don't forget drivers/i2c/Config.in.
+I read the statement on :
+http://www2.lm-sensors.nu/~lm78/
 
-Jean Delvare wrote:
-> Hi all,
-> 
-> The Velleman docs and driver sometimes refer to a K9000 model. Most
-> of the time they refer to the K8000 model. After searching the web and
-> Velleman's web site, it turns out that no K9000 model exists. Thus I
-> suppose that this is a typo and that the driver is really for the K8000.
-> 
-> May I change the docs and driver in that way? (I would like to do
-> so before I send an i2c-velleman patch for inclusion into Linux 2.4.24.)
-> 
-> Thanks.
-> 
+"Help still wanted!  in the following areas: Answering email; answering 
+support tickets; sending i2c patches to Marcelo; sending a big lm_sensors 
+patch to Linus for 2.5; creating a sensors.conf database for individual 
+board configuration; and creating new RPM's. Send us email if you can help!"
+
+We  (Hard Data Ltd.) are very willing to help, especially with Tyan MP and 
+MPX ( 2460,62,66,68) boards.
+We have a substantial business investment in this family of boards.
+
+The need for successful monitoring is great.
+
+We previously offered boards, and had some correspondence on this with one 
+of the team members, but after initial exchange received no further responses.
+
+What can we do?
+
+With our best regards,
+
+Maurice W. Hilarius       Telephone: 01-780-456-9771
+Hard Data Ltd.               FAX:       01-780-456-9772
+11060 - 166 Avenue        mailto:maurice@harddata.com
+Edmonton, AB, Canada      http://www.harddata.com/
+    T5X 1Y3
+
+Ask me about the UP1500 Alpha - Full systems from $3,500!
