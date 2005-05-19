@@ -1,7 +1,7 @@
-From: jeff@jdfiles.org (Jeff Sacksteder)
+From: John.Morris@spirentcom.com (Morris, John)
 Date: Thu, 19 May 2005 06:24:21 +0000
 Subject: i2c for Alpha
-Message-Id: <200310131613.49854.jeff@jdfiles.org>
+Message-Id: <629E717C12A8694A88FAA6BEF9FFCD440224B56B@brigadoon.spirentcom.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200310121707.56799.jeff@jdfiles.org>
 In-Reply-To: <200310121707.56799.jeff@jdfiles.org>
@@ -10,20 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Most (all?) of the code is CPU independant.  You'll need to figure out
-> what the I2C/SMBus host is and see if it is supported
+>  The nice 
+> thing is that once you have a working bus, all the chip 
+> drivers should 
+> automaticly work on it.
+> 
+> 
+> Phil
 
-I suppose I should start by asking has anyone has built it successfully on any 
-64-bit platform- Alpha, Itanium or AMD?
+That was certainly my experience, on a strongARM based embedded system -
+about
+as different to a regular PC as you can get. Once I had the bus interface in
 
-My operating assumption is that I will use the i2c package to patch my kernel, 
-replacing the existing i2c code with the current rev. I can then build the 
-sensors package to create the user programs to manipulate the hardware.
+place and updated to the latest in CVS, everything else just worked.
+Impressive.
 
-This mainboard has an Intel chipset of some sort on it- possibly PIIX4. It 
-says PCIset on it, not AGPset. Not sure what chipset that is. Actually has 
-USB in the chip, though there are no physical bus connections to add devices.
-Does the I2C controller live in there(Intel chipset)?
-
-   
-
+J.
