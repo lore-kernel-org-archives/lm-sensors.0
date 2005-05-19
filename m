@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: stefan@desire.ch (Stefan Ott)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: [patch] fscpos driver
-Message-Id: <20050119232223.GA5880@kroah.com>
+Message-Id: <20050120172941.GK26072@desire.ch>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050104185338.3296d72d.khali@linux-fr.org>
 In-Reply-To: <20050104185338.3296d72d.khali@linux-fr.org>
@@ -10,45 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jan 19, 2005 at 09:21:29PM +0100, Stefan Ott wrote:
-> Hello
-> 
-> This patch against 2.6.11-rc1 contains a driver for fscpos sensors.
+Hello
 
-Applied, but I had to add the following patch to fix up some compiler
-warnings.  Try to be a bit more careful next time :)
+As I was using the old sensor lib I didn't realize my inN_input values were
+using the wrong units. Sorry for this.
 
-thanks,
+Signed-off-by: Stefan Ott <stefan@xxxxxxxxx>
 
-greg k-h
-
-------
-
-# I2C: Fix up some build warnings in the fscpos driver.
-# 
-# Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-diff -Nru a/drivers/i2c/chips/fscpos.c b/drivers/i2c/chips/fscpos.c
---- a/drivers/i2c/chips/fscpos.c	2005-01-19 15:19:14 -08:00
-+++ b/drivers/i2c/chips/fscpos.c	2005-01-19 15:19:14 -08:00
-@@ -51,8 +51,6 @@
-  * The FSCPOS registers
-  */
+--- fscpos.c-orig	2005-01-20 18:21:01.000000000 +0100
++++ fscpos.c	2005-01-20 18:21:33.000000000 +0100
+@@ -239,7 +239,7 @@
+ }
  
--#define DEBUG
--
- /* chip identification */
- #define FSCPOS_REG_IDENT_0		0x00
- #define FSCPOS_REG_IDENT_1		0x01
-@@ -566,10 +564,10 @@
+ /* Volts */
+-#define VOLT_FROM_REG(val, mult)	((val) * (mult) / 255)
++#define VOLT_FROM_REG(val, mult)	(((val) * (mult) / 255) * 10)
  
- 	if ((jiffies - data->last_updated > 2 * HZ) ||
- 			(jiffies < data->last_updated) || !data->valid) {
-+		int i;
- 
- 		dev_dbg(&client->dev, "Starting fscpos update\n");
- 
--		int i;
- 		for (i = 0; i < 3; i++) {
- 			data->temp_act[i] = fscpos_read_value(client,
- 						FSCPOS_REG_TEMP_ACT[i]);
+ static ssize_t show_volt_12(struct device *dev, char *buf)
+ {
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: Digital signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050120/164cd70c/attachment.bin
