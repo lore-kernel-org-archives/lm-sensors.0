@@ -1,61 +1,31 @@
-From: arvidjaar@mail.ru (Andrey Borzenkov)
-Date: Thu, 19 May 2005 06:24:23 +0000
-Subject: 2.6 - sysfs sensor nameing inconsistency
-Message-Id: <200311022150.48638.arvidjaar@mail.ru>
+From: John.Morris@spirentcom.com (Morris, John)
+Date: Thu, 19 May 2005 06:24:13 +0000
+Subject: Adapter driver for opencores I2C fpga
+Message-Id: <629E717C12A8694A88FAA6BEF9FFCD440224B33D@brigadoon.spirentcom.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200307152214.38825.arvidjaar@mail.ru> <200308312025.41472.arvidjaar@mail.ru> <20030922222910.GA306@kroah.com>
-In-Reply-To: <20030922222910.GA306@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Tuesday 23 September 2003 02:29, Greg KH wrote:
->
-> Thanks, I've applied this and will send it off to Linus in a bit.
->
+Hi,
 
-thank you.
+I use the opencores i2c verilog (http://www.opencores.org/projects/i2c/) in
+a small FPGA to implement an I2C interface on an embedded system. 
 
-> > it just arbitrarily (re-)names them. "min" is not hysteresis; name is
-> > badly chosen.
->
-> Do you have a proposed change to the current
-> Documentation/i2c/sysfs-interface document?  If you can think of better
-> names that make more sense, I'd be glad to change things to make it
-> easier.
->
+I've just upgraded to version 2.8 of the I2C code, and have written 
+algorithm/adapter drivers for that interface. The driver does not yet
+support everything that the verilog core is capabale of, but does do 
+enough to support the devices we have on the card (LM83, MAX6550, EEPROM). 
 
-it is probably too late now to change sysfs names when some programs already 
-use it. I'll check sysfs-interface, thank you for pointer.
+Since most of the hard work is done by the verilog the drivers are quite
+simple. I've implemented them following the "bit" model, with an algorithm
+driver to do the transfers and adapter drivers to provide access to the
+registers implemented in the chip (all these do is hide the register 
+addresses and widths), so it should be easily portable to new cards that 
+use the same verilog.
 
-> > > > 4. I do not have the slightest idea how ISA adapters look like in
-> > > > sysfs and where they are located. Anyone can give me example?
-> > >
-> > > They show up on the legacy bus:
-> > >
-> > > $ tree /sys/class/i2c-adapter/i2c-1/
-> > > /sys/class/i2c-adapter/i2c-1/
-> > >
-> > > |-- device -> ../../../devices/legacy/i2c-1
-> >
-> > This does not help much. Libsensors expects as adapter identification
-> > either "i2c-N" or "isa". If I set it to "isa" I do not have any way to
-> > determine sysfs path except by rescanning /sys/class/i2c-adapter every
-> > time. Having /sys/class/i2-adapter/isa/... would be better, apparently it
-> > is assumed that only one such adapter can exist.
->
-> No, we internally do not differentiate between isa and non-isa adapters,
-> so why should we force that on the user?  They work the same as far as
-> users notice, and now we are consistant in our naming.
->
+Is this of interest?
 
-Well, I just tried to match what users get out of libsensors on 2.4. The 
-reason was compatibility with /etc/sensors.conf where "isa" can possibly be 
-used as part of chip name. But I'd like that someone from sensors developers 
-comment on this.
-
-thank you for your comments.
-
--andrey
+John Morris
+john.morris@spirentcom.com
