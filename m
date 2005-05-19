@@ -1,120 +1,54 @@
-From: jonsmirl@gmail.com (Jon Smirl)
+From: adrian@humboldt.co.uk (Adrian Cox)
 Date: Thu, 19 May 2005 06:25:16 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <9e47339104092114025e763da8@mail.gmail.com>
+Message-Id: <1095843365.18365.48.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org> <20040921154111.GA13028@kroah.com>
-	 <41506099.8000307@web.de> <9e4733910409211039273d5a2f@mail.gmail.com>
-	 <20040921223325.66b07f78.khali@linux-fr.org>
-In-Reply-To: <20040921223325.66b07f78.khali@linux-fr.org>
+References: <414F111C.9030809@linuxtv.org>
+	 <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de>
+	 <9e4733910409211039273d5a2f@mail.gmail.com>  <41506D78.6030106@web.de>
+In-Reply-To: <41506D78.6030106@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Michael Hunold <hunold-ml@web.de>, Greg KH <greg@kroah.com>, LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org
+To: Michael Hunold <hunold-ml@web.de>
+Cc: Jon Smirl <jonsmirl@gmail.com>, Greg KH <greg@kroah.com>, Michael Hunold <hunold@linuxtv.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>, sensors@stimpy.netroedge.com
 
-This is the special wake code for older monitors.  ATI supplied it and
-it is in the radeon driver.
+On Tue, 2004-09-21 at 19:05, Michael Hunold wrote:
 
-My understanding that this is a generic problem with old DDC monitors
-so the code should be in a DDC I2C driver instead of being added to
-all of the video drivers. I don't want the DDC driver to decode the
-EDID data, it just needs to handle this problem.
+> With that addition, it's possible for the i2c core to check if the 
+> .class entries of the adapter and the client match. If they don't then 
+> there is no need to probe a driver. This will help to keep non-i2c 
+> drivers to be probed on dvb i2c busses (and screw them up accidently). 
+> Currently it's up to the driver to decide wheter to probe a bus or not.
 
-I can say that even my current monitors don't always return the EDID
-data without being woken up. The only way to see this is to have
-multiple video cards in your PC. The secondary cards won't be reset by
-the kernel. Reseting the card will run the BIOS which wakes the
-monitors up. If you try to get the EDID from the secondary cards
-before they are reset you won't be able to reliably read it.
+I've said it before, but:
+This is all the wrong way round. I2C probing is a solution for the
+problem of finding sensors on a pre-ACPI PC. We'd never have invented it
+if all we had was DVB cards and monitor detection. 
 
-int radeon_probe_i2c_connector(struct radeonfb_info *rinfo, int conn,
-u8 **out_edid)
-{
-	u32 reg = rinfo->i2c[conn-1].ddc_reg;
-	u8 *edid = NULL;
-	int i, j;
+These .class entries are workarounds that shouldn't be required. For DVB
+cards, TV capture cards, monitor detection, and embedded systems the
+required behaviour is normally known in advance. Why should the top
+level driver have to use these workarounds to steer the result of
+probing when it already has all the information?
 
-	OUTREG(reg, INREG(reg) & 
-			~(VGA_DDC_DATA_OUTPUT | VGA_DDC_CLK_OUTPUT));
+My rough proposal would be:
+1) One by one, disable probing on these I2C adapters.
 
-	OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN));
-	(void)INREG(reg);
+2) In the pci probe function of the DVB or capture card, do a sequence
+like this:
+my_dev_priv->i2c_adapter = i2c_adapter_create(...);
+my_dev_priv->tea6415 = tea6415_create(my_dev_priv->i2c_adapter,
+                                      &my_tea6415_parameters);
+my_dev_priv->saa7111 = saa7111_create(my_dev_priv->i2c_adapter);
 
-	for (i = 0; i < 3; i++) {
-		/* For some old monitors we need the
-		 * following process to initialize/stop DDC
-		 */
-		OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUT_EN));
-		(void)INREG(reg);
-		msleep(13);
+3) Then to use the i2c client:
+tea6415_switch(my_dev_priv->tea6415, &vm);
 
-		OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN));
-		(void)INREG(reg);
-		for (j = 0; j < 5; j++) {
-			msleep(10);
-			if (INREG(reg) & VGA_DDC_CLK_INPUT)
-				break;
-		}
-		if (j = 5)
-			continue;
+This is type safe, it allows out of tree DVB and capture drivers, and it
+never ever sends an unexpected event down an I2C bus. It doesn't even
+need to change the I2C core very much.
 
-		OUTREG(reg, INREG(reg) | VGA_DDC_DATA_OUT_EN);
-		(void)INREG(reg);
-		msleep(15);
-		OUTREG(reg, INREG(reg) | VGA_DDC_CLK_OUT_EN);
-		(void)INREG(reg);
-		msleep(15);
-		OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUT_EN));
-		(void)INREG(reg);
-		msleep(15);
+- Adrian Cox
+Humboldt Solutions Ltd.
 
-		/* Do the real work */
-		edid = radeon_do_probe_i2c_edid(&rinfo->i2c[conn-1]);
-
-		OUTREG(reg, INREG(reg) | 
-				(VGA_DDC_DATA_OUT_EN | VGA_DDC_CLK_OUT_EN));
-		(void)INREG(reg);
-		msleep(15);
-		
-		OUTREG(reg, INREG(reg) & ~(VGA_DDC_CLK_OUT_EN));
-		(void)INREG(reg);
-		for (j = 0; j < 10; j++) {
-			msleep(10);
-			if (INREG(reg) & VGA_DDC_CLK_INPUT)
-				break;
-		}
-
-		OUTREG(reg, INREG(reg) & ~(VGA_DDC_DATA_OUT_EN));
-		(void)INREG(reg);
-		msleep(15);
-		OUTREG(reg, INREG(reg) |
-				(VGA_DDC_DATA_OUT_EN | VGA_DDC_CLK_OUT_EN));
-		(void)INREG(reg);
-		if (edid)
-			break;
-	}
-	if (out_edid)
-		*out_edid = edid;
-	if (!edid) {
-		RTRACE("radeonfb: I2C (port %d) ... not found\n", conn);
-		return MT_NONE;
-	}
-	if (edid[0x14] & 0x80) {
-		/* Fix detection using BIOS tables */
-		if (rinfo->is_mobility /*&& conn = ddc_dvi*/ &&
-		    (INREG(LVDS_GEN_CNTL) & LVDS_ON)) {
-			RTRACE("radeonfb: I2C (port %d) ... found LVDS panel\n", conn);
-			return MT_LCD;
-		} else {
-			RTRACE("radeonfb: I2C (port %d) ... found TMDS panel\n", conn);
-			return MT_DFP;
-		}
-	}
-       	RTRACE("radeonfb: I2C (port %d) ... found CRT display\n", conn);
-	return MT_CRT;
-}
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
