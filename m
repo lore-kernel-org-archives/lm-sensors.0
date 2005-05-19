@@ -1,48 +1,29 @@
-From: pgaige@cadesis.com (=?ISO-8859-1?Q?Gaig=E9_Pierre?=)
-Date: Thu, 19 May 2005 06:24:08 +0000
-Subject: beeping issues (solved)
-Message-Id: <3F281B71.1090300@cadesis.com>
+From: client@comtv.ru (igor)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: lm85 patch by ppokorny
+Message-Id: <003a01c318ae$88a66c10$1900570a@moscow.pfr.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030730172101.1a01a380.khali@linux-fr.org>
-In-Reply-To: <20030730172101.1a01a380.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Yes, the step 1 stopped the beeping problem.
-Thanks for your input.
+Hi !
+I am not programmer and it will be difficult for me to compile cvs versions of
+i2c and lm_sensors2 
+I loose two days trying to force working lm_sensors2 with my lm85.
+But when i successfuly compile it in my rh9, it is not working. While loading i2c-i801 
+write me that "cannot initialize ... no such device".
 
-Pierre.
+Only two days later i find ? link to lm85 patch by ppokorny ( ftp://ftp.penguincomputing.com/pub/updates/lmsensors/ )
+and now all working very well.
 
-Jean Delvare wrote:
-> Hi all,
-> 
-> Here is the solution (hopefully) to the beeping problem you encountered
-> using LM Sensors with the AS99127F chip.
-> 
-> It turns out that the beeping is caused by VCore being out of range
-> (Thanks to "The Master" for noticing this.) The reason why it beeps is
-> obscure, and we can't do anything against that since we don't have a
-> data sheet for the AS19927F (Damn Asus. Ask them if you want one.)
-> 
-> So, since we can't turn the beeping off, the solution is to ensure VCore
-> isn't out of range anymore. Most of the time, VCore is indeed OK, but
-> the chip thinks it isn't because the limits are bad. Bad limits are
-> usually caused by a bad VID reading. So here are the things to try, in
-> order:
-> 
-> 1* Edit the vrm option in /etc/sensors.conf, section as99127f-*.
-> Typically, this means uncommenting the "vrm 9.0" line. It should make
-> the VID reading OK. Run "sensors -s", the beeping should stop.
-> 
-> 2* Edit the in0_min and in0_max lines in /etc/sensors/conf, section
-> as99127f-*. Instead of using vid, write down the value you know VCore
-> should have (simply run sensors to see what it is). Run "sensors -s",
-> the beeping should stop.
-> 
-> You can check that the limits are OK by running "sensors".
-> 
-> Please let us know wether it works or not.
-> 
+I think, this usefull link must be placed in more available place at you site.
 
+Lm_sensors - good programm.
+Thank you for your great job.
+
+Igor.
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030512/9ab675ce/attachment.html
