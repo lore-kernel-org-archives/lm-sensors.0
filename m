@@ -1,48 +1,35 @@
 From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: [a.othieno@bluewin.ch: [TRIVIAL 2.6] drivers/i2c/busses/i2c-piix4.c:
-Message-Id: <20040417195011.GB1163@frodo.local>
+Date: Thu, 19 May 2005 06:24:57 +0000
+Subject: [huynhphong0104@yahoo.fr: I2C driver for Linux]
+Message-Id: <20040511165820.GA1273@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Arthur Othieno <a.othieno@bluewin.ch> -----
-
-To: frodol@dds.nl
-Cc: trivial@rustcorp.com.au
-Subject: [TRIVIAL 2.6] drivers/i2c/busses/i2c-piix4.c: kill duplicate #include
-From: Arthur Othieno <a.othieno@bluewin.ch>
-X-Spam-Checker-Version: SpamAssassin 2.63 (2004-01-11) on morannon.frodo.local
-X-Spam-Status: No, hits=0.1 required=5.0 tests=RCVD_IN_SORBS autolearn=no 
-	version=2.63
-X-Spam-Level: 
-
-Hi,
-
-From scripts/checkincludes.pl:
-
-  ./drivers/i2c/busses/i2c-piix4.c: linux/config.h is included more than once.
-
-Against 2.6.5. Thanks.
-
-
---- a/drivers/i2c/busses/i2c-piix4.c	2004-04-11 14:05:35.000000000 +0200
-+++ b/drivers/i2c/busses/i2c-piix4.c	2004-04-16 17:52:16.000000000 +0200
-@@ -31,7 +31,6 @@
- #include <linux/config.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
--#include <linux/config.h>
- #include <linux/pci.h>
- #include <linux/kernel.h>
- #include <linux/stddef.h>
-
------ End forwarded message -----
-
--- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+LS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgZnJvbSBQSEFNIEh1eW5oIFBob25nIDxodXluaHBob25n
+MDEwNEB5YWhvby5mcj4gLS0tLS0KCkZyb206IFBIQU0gSHV5bmggUGhvbmcgPGh1eW5ocGhvbmcw
+MTA0QHlhaG9vLmZyPgpTdWJqZWN0OiBJMkMgZHJpdmVyIGZvciBMaW51eApUbzoga21hbGtraUBj
+Yy5odXQuZmksIGZyb2RvbEBkZHMubmwsIHNpbW9uQHRrLnVuaS1saW56LmFjLmF0ClgtU3BhbS1D
+aGVja2VyLVZlcnNpb246IFNwYW1Bc3Nhc3NpbiAyLjYzICgyMDA0LTAxLTExKSBvbiBtb3Jhbm5v
+bi5mcm9kby5sb2NhbApYLVNwYW0tU3RhdHVzOiBObywgaGl0cz0yLjUgcmVxdWlyZWQ9NS4wIHRl
+c3Rz3kFSX1NPTUVUSElORywKCUZST01fRU5EU19JTl9OVU1TLEhUTUxfMjBfMzAsSFRNTF9NRVNT
+QUdFIGF1dG9sZWFybj1ubyB2ZXJzaW9uPTIuNjMKWC1TcGFtLUxldmVsOiAqKgoKRGVhciBTaXJz
+LAogCk15IGN1cnJlbnQgcHJvamVjdCBpcyAiUEMtYmFzZWQsIExpbnV4IHJvYm90Ii4gSSBuZWVk
+IHRvIHVzZSBJMkMuIEkgbWFkZSBhbiBhZGFwdGVyIHdpdGggNzRMUzA1IGFuZCBJIHRyeSB0byBv
+cGVyYXRlIHdpdGggQyBjb2RlcyBJIGZvdW5kLiBCdXQgSSBjb3VsZCBub3Qgb3BlcmF0ZSB0aGlz
+LgogCkNvdWxkIHlvdSBoZWxwIG1lPyBXb3VsZCBsaWtlIHRvIGtub3cgd2hhdCBkaXN0cmlidXRp
+b24geW91IHVzZWQuIENvdWxkIHlvdSBzaG93IG1lIHN0ZXAgYnkgc3RlcCwgaGFyZCBhbmQgc29m
+dHdhcmUgZm9yIGNvbnRyb2xsaW5nIEkyQyBidXMuIENvdWxkIEkgaGF2ZSB5b3Ugc2FtcGxlIGNv
+ZGVzIG9mIHVzaW5nIEkyQyBidXM/CiAKSG9wZSB5b3UgY291bGQgaGVscCBtZSBzb29uLgogClRo
+YW5rcyBhbmQgUmVnYXJkcywKUEhBTSBIdXluaCBQaG9uZwoKCgoKCQkKLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tCllhaG9vISBNYWlsIDogdm90cmUgZS1tYWlsIHBlcnNvbm5lbCBl
+dCBncmF0dWl0IHF1aSB2b3VzIHN1aXQgcGFydG91dCAhCkNyP2V6IHZvdHJlIFlhaG9vISBNYWls
+CgpEaWFsb2d1ZXogZW4gZGlyZWN0IGF2ZWMgdm9zIGFtaXMgZ3I/Y2UgPyBZYWhvbyEgTWVzc2Vu
+Z2VyICEKLS0tLS0gRW5kIGZvcndhcmRlZCBtZXNzYWdlIC0tLS0tCgotLSAKRnJvZG8gTG9vaWph
+YXJkIDxmcm9kb2xAZGRzLm5sPiAgUEdQIGtleSBhbmQgbW9yZTogaHR0cDovL2h1aXplbi5kZHMu
+bmwvfmZyb2RvbApEZWZlbmVzdHJhdGlvbiBuLiAoZm9ybWFsIG9yIGpvYy4pOgogIFRoZSBhY3Qg
+b2YgcmVtb3ZpbmcgV2luZG93cyBmcm9tIHlvdXIgY29tcHV0ZXIgaW4gZGlzZ3VzdCwgdXN1YWxs
+eSBmb2xsb3dlZAogIGJ5IHRoZSBpbnN0YWxsYXRpb24gb2YgTGludXggb3Igc29tZSBvdGhlciBV
+bml4LWxpa2Ugb3BlcmF0aW5nIHN5c3RlbS4K
