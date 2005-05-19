@@ -1,32 +1,19 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:24:06 +0000
-Subject: Linux Driver for TDS
-Message-Id: <3F1EC430.7010103@edgedesign.us>
+From: mds@paradyne.com (Mark D. Studebaker )
+Date: Thu, 19 May 2005 06:24:00 +0000
+Subject: i2c header installs
+Message-Id: <3EEB8803.6020902@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+(ticket 1289)
+when 'make install' in i2c puts the headers in /usr/local/include,
+i2c.h has "#include "i2c-id.h" instead of
+"#include <linux/i2c-id.h>" so 
+sensors compiles miss the new i2c-id.h in /usr/local/include
+and pick up the old one in the kernel tree.
 
-Hi, I don't know what a TD2024 is, but you can see if we support it on 
-our web site or by downloading and installing our package to test it out:
-
-http://www.lm-sensors.nu
-
-
-Phil
-
-John McNamara wrote:
-
-> Hi Phil,
->  
-> I hunting around for a Linux based driver to control and monitor my 
-> TD2024. I found your website and was interested in finding out more 
-> info about your driver. Has anyone updated it since 1999? I have not 
-> found many, if any, other Linux based driver support. Any info that 
-> you may have will be appreciated.
->  
-> Thanks,
-> John
-
+I'm going to copy the sed script conversion routine from mkpatch
+and use it in 'make install'.
