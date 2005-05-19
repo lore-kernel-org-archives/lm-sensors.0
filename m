@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: marc@paracel.com (Marc Rieffel)
 Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: Issues with lm_sensors on Intel SE7501cw2
-Message-Id: <20031023204331.6a3a5475.khali@linux-fr.org>
+Message-Id: <9D8C1A43309BAD4A9B46071DAF911D9E3E23BC@exch01.paracel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <9D8C1A43309BAD4A9B46071DAF911D9E3E237D@exch01.paracel.com>
 In-Reply-To: <9D8C1A43309BAD4A9B46071DAF911D9E3E237D@exch01.paracel.com>
@@ -9,6 +9,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+How do I do a dump of the chip?
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: Thursday, October 23, 2003 11:44 AM
+To: sensors@Stimpy.netroedge.com; Marc Rieffel
+Subject: Re: Issues with lm_sensors on Intel SE7501cw2
+
 
 
 > agreed. if sensors-detect finds it at 0x290,
