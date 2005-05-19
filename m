@@ -1,95 +1,40 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: [BK PATCH] Some driver changes for 2.6.6 (msleep)
-Message-Id: <20040519002000.GA11409@kroah.com>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:49 +0000
+Subject: [uandersen@MAYAH.com: PWM on a W83697HF]
+Message-Id: <20040322115357.GA672@arda.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@osdl.org, akpm@osdl.org, jgarzik@pobox.com
-Cc: linux-usb-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Hi,
+----- Forwarded message from Uwe Andersen <uandersen@MAYAH.com> -----
 
-Based on the previous USB changes creating a useful sleep function that
-all drivers can use, Jeff Garzik suggested that I make it available to
-all of the kernel.  Doing this enabled me to remove a lot of local
-driver functions that all did the same thing (and some of them did it
-wrong, like the i2c code...)  Anyway, here is the result of this
-cleanup, it's been discussed on lkml as to the name and location of the
-function.
+Subject: PWM on a W83697HF
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+From: Uwe Andersen <uandersen@MAYAH.com>
+To: frodol@dds.nl
+X-MIME-Autoconverted: from quoted-printable to 8bit by morannon.frodo.local id i2M8e5Wn020249
+X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
+X-Spam-Level: 
 
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/usb-2.6
+Hello Frodo,
 
-Patches will be posted to linux-usb-devel as a follow-up thread for
-those who want to see them.
+do you know how to work with the fan control capability (PWM) of a Winbond W83697HF?
+I tried various values in the bank0-registers 0x00, 0x01, 0x02, 0x03, 0x04 with various fans(do PWM need special fans?) but the fan rotation never changed.
 
-thanks,
+If you don't know yourself, maybe you have an internet site where I can have a look at?
 
-greg k-h
+Thank you!
 
- drivers/block/carmel.c              |    6 ------
- drivers/i2c/busses/i2c-ali1535.c    |    5 +++--
- drivers/i2c/busses/i2c-ali1563.c    |    5 +++--
- drivers/i2c/busses/i2c-ali15x3.c    |    5 +++--
- drivers/i2c/busses/i2c-amd756.c     |    7 ++++---
- drivers/i2c/busses/i2c-amd8111.c    |    2 +-
- drivers/i2c/busses/i2c-i801.c       |    7 ++++---
- drivers/i2c/busses/i2c-piix4.c      |    3 ++-
- drivers/i2c/busses/i2c-sis5595.c    |    3 ++-
- drivers/i2c/busses/i2c-sis630.c     |    3 ++-
- drivers/i2c/busses/i2c-sis96x.c     |    3 ++-
- drivers/i2c/busses/i2c-viapro.c     |    3 ++-
- drivers/i2c/chips/w83l785ts.c       |    3 ++-
- drivers/input/gameport/ns558.c      |    5 +++--
- drivers/input/gameport/vortex.c     |    3 ++-
- drivers/input/joystick/adi.c        |    6 +++---
- drivers/input/joystick/analog.c     |    6 +++---
- drivers/input/joystick/gf2k.c       |    4 ++--
- drivers/macintosh/therm_pm72.c      |   17 +++++------------
- drivers/net/irda/stir4200.c         |    5 +++--
- drivers/scsi/libata-core.c          |   17 -----------------
- drivers/usb/core/hub.c              |   14 +++++++-------
- drivers/usb/core/usb.c              |   11 -----------
- drivers/usb/host/ehci-hcd.c         |    6 +++---
- drivers/usb/host/ehci-hub.c         |    2 +-
- drivers/usb/host/ehci.h             |    6 ------
- drivers/usb/host/ohci-hcd.c         |    4 ++--
- drivers/usb/host/ohci-hub.c         |    4 ++--
- drivers/usb/host/ohci-pci.c         |    6 +++---
- drivers/usb/host/ohci.h             |    6 ------
- drivers/usb/input/aiptek.c          |    2 +-
- drivers/usb/misc/usbtest.c          |    2 +-
- drivers/usb/net/usbnet.c            |    2 +-
- drivers/usb/serial/io_ti.c          |    4 ++--
- drivers/usb/storage/datafab.c       |    2 +-
- drivers/usb/storage/isd200.c        |    4 ++--
- drivers/usb/storage/jumpshot.c      |    2 +-
- drivers/usb/storage/shuttle_usbat.c |   14 +++++++-------
- drivers/video/aty/radeon_base.c     |    2 +-
- drivers/video/aty/radeon_i2c.c      |   16 ++++++++--------
- drivers/video/aty/radeonfb.h        |    9 ---------
- include/linux/delay.h               |    2 ++
- include/linux/gameport.h            |    6 ------
- include/linux/i2c.h                 |    7 -------
- include/linux/usb.h                 |   13 -------------
- kernel/timer.c                      |   17 +++++++++++++++++
- sound/oss/dmasound/dac3550a.c       |    5 +++--
- sound/oss/dmasound/dmasound.h       |    6 ------
- sound/oss/dmasound/dmasound_awacs.c |   30 +++++++++++++++---------------
- sound/oss/trident.c                 |    2 +-
- sound/pci/au88x0/au88x0_game.c      |    3 ++-
- 51 files changed, 134 insertions(+), 193 deletions(-)
------
+Cheers,
+Uwe
 
-Greg Kroah-Hartman:
-  o Some more misc wait_ms() conversions to use msleep()
-  o Input: remove wait_ms() in place of using msleep()
-  o I2C: change i2c_delay() to use msleep() instead
-  o USB: remove wait_ms() from usb.h as it's no longer needed
-  o USB: remove ehci and ohci's private sleep function and use msleep() instead
-  o USB: clean up usages of wait_ms() now that we have msleep()
-  o USB: remove usb_uninterruptible_sleep_ms() now that we have msleep()
-  o Remove libata's version of msleep()
-  o Delete block/carmel.c's version of msleep()
-  o Add msleep function to the kernel core to prevent duplication
+----- End forwarded message -----
+
+-- 
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
