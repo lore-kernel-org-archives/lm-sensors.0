@@ -1,112 +1,101 @@
-From: rem@planet-d.net (=?ISO-8859-1?Q?R=E9mi_H=E9rilier?=)
-Date: Thu, 19 May 2005 06:23:48 +0000
-Subject: strange crash
-Message-Id: <3E525BED.8050600@planet-d.net>
+From: abehn@gmx.net (Andreas Behnert)
+Date: Thu, 19 May 2005 06:23:43 +0000
+Subject: Soyo D6IBA2, success, valid sensors.conf, Feedback
+Message-Id: <31501.1039299132@www45.gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello.
+Thank you for your lm-sensors package, I'm using it since some time on
+many boxes and finally found the time to put it on the fileserver:
+Soyo D6IBA2
+(ftp://ftp.soyo.de/support/d6/d6iba2/manuals/md6iba210.pdf),
+Dual Slot1, w83781d, some non-winbond-standard wiring, complete
+and working sensors.conf for this board and lm-sensors 2.6.5 follows:
 
-I wanted to test lm_sensors last day, but 4-5 hours later after reboot, 
-I have had a big problem :
-my system didn't want to allocate memory. But it's better to start with 
-the beginning.
+~~~snip~~~
+# Soyo SY-D6IBA2
+# Intel BX, Dual Slot 1
+#
+# temp1 = system
+# temp2 = CPU1
+# temp3 = CPU2
 
-My system is a Athlon 1500+ on a Matsonic MS8137C (a KT266 mainboard), 
-ie a VT8366
-northbridge (in dmesg's output, bttv modules reports it's a VT8367) and 
-a VT8233 southbridge.
-I have 256 Mo of DDR266 SDRAM and ATA33/66 hard-disks and a cdwriter 
-configured with
-scsi emulation. I have a Pinnacle PCTV Rave (BT848) TV card (which uses 
-i2c too).
+chip "w83781d-*"
 
-I have installed the Slackware 9.0 beta from the 10 January 2003 a week 
-ago. It contains a 2.4.19
-kernel. My linux box was up 14 hours per day without any problems.
+    label in0 "VCoreCPU1"
+    label in1 "VCoreCPU2"
+    label in2 "+3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+    label fan1 "Fan CPU1"
+    label fan2 "Fan CPU2"
+    label temp1 "Temp Syst"
+    label temp2 "Temp CPU1"
+    label temp3 "Temp CPU2"
 
-ACPI is enabled but apm too (to use "use real mode apm bios call to 
-power off").
-then acpi is not used.
+# Winbond default declarations:
 
-Last sunday, I have would to test lm_sensors (2.7.0), I took a 2.4.20 
-kernel from ftp.kernel.org
-and its relative patches from lm_sensors homepage. I applied them with 
-"patch -p1 < xxxxx.patch"
-(it can be my first mistake because I have had hunk warning with 
-2.4.20.i2c-2-patch but there were
-no .rej file, I assumed there was no error).
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 -(210/60.4)*@  ,  -@/(210/60.4)
+    compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
 
-I enabled directly in my kernel :
-    - i2c support
-    - i2c bit banging interfaces (I already need it for my TV card).
-    - i2c device interface (always for my TV card)
-    - i2c /proc interface
+# With a P3-450 Katmai (VCore 2,0V) "sensors" output shows a vid
+# value of "+20.00V" on the SY-D6IBA2. A simple "cat
+# /proc/sys/dev/sensors/w83781d-isa-0290/vid" correctly says "2.000"
+# instead. Hmmm. Unfortunately I have no non-VCore-2.0-Slot1-CPU
+# available for testing and because of this the next line works for me  :)
 
-and as modules:
-    - i2c-viapro (it includes KT266)
-    - i2c-isa ( for IT87)
-    - it87 (sensors-detect returns me "ITE IT8705F / IT8712F / SiS 950")
+    compute vid @/10 , @*10
 
-I personally have others modules (which are loaded in this order) for:
-    - sound card and joystick:
-        - gameport
-        - es1370 (for a SB PCI 64) with as parameter : joystick=1
-        - grip (for a gravis gamepad pro)
-        - analog (for an old joystick)
+# Here, we assume the VID readings are valid, and we use a max. 5%
+# deviation
 
-    - TV card (to set extra parameters)
-        - tuner (with "tuner=3")
-        - tvaudio
-        - bttv (with "card9 tuner=3 radio=0")
+    set in0_min vid*0.95
+    set in0_max vid*1.05
+    set in1_min vid*0.95
+    set in1_max vid*1.05
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.95
+    set in4_max 12 * 1.05
+    set in5_max -12 * 0.95
+    set in5_min -12 * 1.05
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
 
-sensors modules were loaded after them, in this order (I don't think 
-order affects anything but we never know :)
-    - i2c-viapro
-    - i2c-isa
-    - it87
+# examples for w83781d temperature limits
+    set temp1_over 45
+    set temp1_hyst 127
+    set temp2_over 65
+    set temp2_hyst 65
+    set temp3_over 65
+    set temp3_hyst 65
 
-after compilation and reboot (with no warning or such messages), I have 
-compiled and installed
-lm_sensors programs. I launched sensors to see.
+# Fan Limits
+    set fan1_min 2600
+    set fan2_min 2600
 
-it87 "subsystem" reports me a negative temperature for temp2 whereas 
-i2c-isa system report a positive
-(and correct) temperature for temp2 (which seems to be my cpu 
-temperature). after few minutes, temp3
-reports me correct value for cpu temperature (sometimes, it was equal to 
-temp1 for a quick time). Fan
-rotation speed were correct in i2c-isa and 2 times slower in it87 output.
+# Fan3 (system/chassis) connector available but don't need it
+    ignore fan3
+~~~snip~~~
+ 
+Works like a charm, except the mysterious vid value, but it's ok for me :)
 
-I have compiled and ran GKrellM to have these information on my screen 
-and I start again working on my
-programs (it is surely useless, but it's opengl work), maybe 2 or 3 hours.
+Kind regards,
 
-At 20h, i go to eat and come back at 21h. Few time later, i would to 
-open a xterm and nothing happens.
-already launched program starts without any problems but never lanched 
-programs "crash" (because I
-had no error message like segfault). Nothing seems to be freezed.
+Andreas
 
-I quit X and try to do something but always the same problem (and no 
-possibility of calling 'sync'
-on my disks). I could not do a 'su' or log me on other terminal. I 
-decide then to reboot and my system
-stops at "killall stage" and stayed freezed. during halt call, I have 
-had a message saying "can't allocate
-memory". After a hardware reboot, no more hard drive partition table (2 
-hours later I again had them :-)
+-- 
+To err is human; effective mayhem requires the root password :-)
+--
 
-I know it could come from anything else, but it's the only thing I add 
-to my kernel since one week.
-
-I hope there are not too many fault :-/
-You can naturally contact me if there is something you don't understand :-)
-
-see you soon ;-)
-
-Rem
-
++++ GMX - Mail, Messaging & more  http://www.gmx.net +++
+NEU: Mit GMX ins Internet. Rund um die Uhr f?r 1 ct/ Min. surfen!
