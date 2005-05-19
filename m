@@ -1,97 +1,73 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: i2c-ali15x3.c
-Message-Id: <20011221152508.A789@Stimpy.netroedge.com>
+From: stoyan_martinov@btv.bg (stoyan_martinov@btv.bg)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: quirks.c.patch_for_2.6.8rc1 for HP D330L hidden smbus
+Message-Id: <6261FB78A7376A42BB857B6FBD228A8D13E1F2@email.btv.bg>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
+I've made a little mod of drivers/pci/quirks.c to enable hidden smbus device on my HP Compaq D330L :
+After applying the patch:
 
-It's it's reading 0's in the SMBus Base Addr reg, then your Bios
-didn't do it's job intializing it for you.  Sometimes you need to turn
-'on' ACPI or something in the Bios to get the Bios to initialize the
-register for you.  It's possible to initialize it yourself (with a
-force param?) but that's not nessesarily safe nor ideal.
+iotzolin:~/my_lm_sensors_patch # lspci 
+0000:00:00.0 Host bridge: Intel Corp. 82865G/PE/P Processor to I/O Controller (rev 02)
+0000:00:01.0 PCI bridge: Intel Corp. 82865G/PE/P Processor to AGP Controller (rev 02)
+0000:00:1d.0 USB Controller: Intel Corp. 82801EB USB (rev 02)
+0000:00:1d.1 USB Controller: Intel Corp. 82801EB USB (rev 02)
+0000:00:1d.2 USB Controller: Intel Corp. 82801EB USB (rev 02)
+0000:00:1d.7 USB Controller: Intel Corp. 82801EB USB2 (rev 02)
+0000:00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB/EB PCI Bridge (rev c2)
+0000:00:1f.0 ISA bridge: Intel Corp. 82801EB LPC Interface Controller (rev 02)
+0000:00:1f.1 IDE interface: Intel Corp. 82801EB Ultra ATA Storage Controller (rev 02)
+0000:00:1f.2 IDE interface: Intel Corp. 82801EB Ultra ATA Storage Controller (rev 02)
+0000:00:1f.3 SMBus: Intel Corp. 82801EB SMBus Controller (rev 02)
+0000:00:1f.5 Multimedia audio controller: Intel Corp. 82801EB AC'97 Audio Controller (rev 02)
+0000:01:00.0 VGA compatible controller: nVidia Corporation NV15DDR [GeForce2 Ti] (rev a4)
+0000:05:02.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5782 Gigabit Ethernet (rev 03)
+iotzolin:~/my_lm_sensors_patch # lspci -n
+0000:00:00.0 Class 0600: 8086:2570 (rev 02)
+0000:00:01.0 Class 0604: 8086:2571 (rev 02)
+0000:00:1d.0 Class 0c03: 8086:24d2 (rev 02)
+0000:00:1d.1 Class 0c03: 8086:24d4 (rev 02)
+0000:00:1d.2 Class 0c03: 8086:24d7 (rev 02)
+0000:00:1d.7 Class 0c03: 8086:24dd (rev 02)
+0000:00:1e.0 Class 0604: 8086:244e (rev c2)
+0000:00:1f.0 Class 0601: 8086:24d0 (rev 02)
+0000:00:1f.1 Class 0101: 8086:24db (rev 02)
+0000:00:1f.2 Class 0101: 8086:24d1 (rev 02)
+0000:00:1f.3 Class 0c05: 8086:24d3 (rev 02)
+0000:00:1f.5 Class 0401: 8086:24d5 (rev 02)
+0000:01:00.0 Class 0300: 10de:0151 (rev a4)
+0000:05:02.0 Class 0200: 14e4:1696 (rev 03)
+iotzolin:~/my_lm_sensors_patch # uname -a
+Linux iotzolin 2.6.8-rc1 #26 SMP Fri Jul 16 18:20:41 EEST 2004 i686 i686 i386 GNU/Linux
+iotzolin:~/my_lm_sensors_patch # pcitweak -l
+PCI: Probing config type using method 1
+PCI: Config type is 1
+PCI: PCI scan (all values are in hex)
+PCI: 00:00:0: chip 8086,2570 card 103c,12bc rev 02 class 06,00,00 hdr 00
+PCI: 00:01:0: chip 8086,2571 card 0000,0000 rev 02 class 06,04,00 hdr 01
+PCI: 00:1d:0: chip 8086,24d2 card 103c,12bc rev 02 class 0c,03,00 hdr 80
+PCI: 00:1d:1: chip 8086,24d4 card 103c,12bc rev 02 class 0c,03,00 hdr 00
+PCI: 00:1d:2: chip 8086,24d7 card 103c,12bc rev 02 class 0c,03,00 hdr 00
+PCI: 00:1d:7: chip 8086,24dd card 103c,12bc rev 02 class 0c,03,20 hdr 00
+PCI: 00:1e:0: chip 8086,244e card 0000,0000 rev c2 class 06,04,00 hdr 01
+PCI: 00:1f:0: chip 8086,24d0 card 0000,0000 rev 02 class 06,01,00 hdr 80
+PCI: 00:1f:1: chip 8086,24db card 103c,12bc rev 02 class 01,01,8a hdr 00
+PCI: 00:1f:2: chip 8086,24d1 card 103c,12bc rev 02 class 01,01,8f hdr 00
+PCI: 00:1f:3: chip 8086,24d3 card 103c,12bc rev 02 class 0c,05,00 hdr 00
+PCI: 00:1f:5: chip 8086,24d5 card 103c,12bc rev 02 class 04,01,00 hdr 00
+PCI: 01:00:0: chip 10de,0151 card 0000,0000 rev a4 class 03,00,00 hdr 00
+PCI: 05:02:0: chip 14e4,1696 card 103c,12bc rev 03 class 02,00,00 hdr 00
+PCI: End of PCI scan
 
-Try adjusting some Bios settings or perhaps updating the Bios.  You
-could also read the docs for the driver in our package to see if a
-manual initialization can be attempted (at the risk of conflicting
-with other hardware).
-
-
-Phil
-
-On Fri, Dec 21, 2001 at 05:48:39PM -0500, alvin wrote:
-> I have a UP1100 which is an Alpha cpu based Motherboard that has a
-> ali1543 on it. 
-> It looks like the 1543 is set up somewhat correctly. The followin is
-> from /proc/ioports
-> 
-> 03c0-03df : vga+
-> 03f6-03f6 : ide0
-> 03f8-03ff : serial(auto)
-> 4000-403f : Acer Laboratories Inc. [ALi] M7101 PMU
-> 5000-501f : Acer Laboratories Inc. [ALi] M7101 PMU
-> 8000-80ff : PCI device 10b9:5451 (Acer Laboratories Inc. [ALi])
->   8000-80ff : ALi Audio Accelerator
-> 8400-84ff : Adaptec AHA-7850
->   8400-84fe : aic7xxx
-> 8800-887f : 3Com Corporation 3c905B 100BaseTX [Cyclone]
->   8800-887f : 00:0a.0
-> 8880-88ff : Digital Equipment Corporation DECchip 21142/43
->   8880-88ff : tulip
-> 8c00-8c0f : Acer Laboratories Inc. [ALi] M5229 IDE
-> 8c10-8c1f : Acer Laboratories Inc. [ALi] M5229 IDE
-> 8c20-8c2f : Acer Laboratories Inc. [ALi] M5229 IDE
->   8c20-8c27 : ide0
->   8c28-8c2f : ide1
-> 8c30-8c33 : Advanced Micro Devices [AMD] AMD-751 [Irongate] System
-> Controller
-> 8c34-8c37 : Acer Laboratories Inc. [ALi] M5229 IDE
-> 8c38-8c3b : Acer Laboratories Inc. [ALi] M5229 IDE
-> 
-> 
-> from lspci
-> 
-> 00:00.0 Host bridge: Advanced Micro Devices [AMD] AMD-751 [Irongate]
-> System Controller (rev 25)
-> 00:01.0 PCI bridge: Advanced Micro Devices [AMD] AMD-751 [Irongate] AGP
-> Bridge (rev 01)
-> 00:03.0 Communication controller: Acer Laboratories Inc. [ALi]: Unknown
-> device 5453
-> 00:06.0 Multimedia audio controller: Acer Laboratories Inc. [ALi]:
-> Unknown device 5451 (rev 01)
-> 00:07.0 ISA bridge: Acer Laboratories Inc. [ALi] M1533 PCI to ISA Bridge
-> [Aladdin IV]
-> 00:08.0 SCSI storage controller: Adaptec AHA-7850 (rev 03)
-> 00:0a.0 Ethernet controller: 3Com Corporation 3c905B 100BaseTX [Cyclone]
-> (rev 30)
-> 00:0b.0 Ethernet controller: Digital Equipment Corporation DECchip
-> 21142/43 (rev 41)
-> 00:10.0 IDE interface: Acer Laboratories Inc. [ALi] M5229 IDE (rev c3)
-> 00:11.0 Non-VGA unclassified device: Acer Laboratories Inc. [ALi] M7101
-> PMU
-> 00:14.0 USB Controller: Acer Laboratories Inc. [ALi] M5237 USB (rev 03)
-> 01:05.0 VGA compatible controller: nVidia Corporation Riva TnT2 [NV5]
-> (rev 15)
-> 
-> 
-> 
-> ali-15x3.c runs up and when it tries to read the 1543 it seems to get
-> 0's for the values of the SMBBA word seems to return 0 and well things
-> just seem to go down hill from there.
-> 
-> 
-> Any help or suggestions would be greatly appreciated.
-> 
-> -- 
-> Alvin Starr                   ||   voice: (416)785-4051
-> Interlink Connectivity        ||   fax:   (416)785-3668
-> alvin@iplink.net              ||
-
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: quirks.c.patch_for_2.6.8rc1
+Type: application/octet-stream
+Size: 1607 bytes
+Desc: quirks.c.patch_for_2.6.8rc1
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040716/82298362/quirks.c.patch_for_2.6.obj
