@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
+From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:53 +0000
 Subject: Query: using parport to send 24-bit serial clock and data?
-Message-Id: <4266ADB0.1020307@sh.cvut.cz>
+Message-Id: <58md61951tg90pi29oh5fb0853rbrgjmg8@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <hbn5619oiuenbrvpf8sj49fh89kb1fj34s@4ax.com>
 In-Reply-To: <hbn5619oiuenbrvpf8sj49fh89kb1fj34s@4ax.com>
@@ -10,13 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Rudolf,
+On Wed, 20 Apr 2005 21:29:52 +0200, Rudolf Marek <r.marek@sh.cvut.cz> wrote:
+>
+>> So which low-level driver would you suggest as a starting point?
+>
+>I would create very own char device driver and start using portions from i2c-pport.
+>I would rip all i2c specific code...
+>for 2.6.x it can be found at http://assembler.cz/download/i2cpport26.tar.gz
 
-> So which low-level driver would you suggest as a starting point?
+Thank you, on the back burner now 'cos my friend just bought a USB 
+FM radio, has it working on linux.
 
-I would create very own char device driver and start using portions from i2c-pport.
-I would rip all i2c specific code...
-for 2.6.x it can be found at http://assembler.cz/download/i2cpport26.tar.gz
+Friend is happy, and I get to put this project off until after I've 
+fixed hardware monitoring and CPU fan control in my machines under 
+linux.
 
-regards
-
-Rudolf
+Cheers,
+Grant.
