@@ -1,47 +1,45 @@
-From: kyosti.malkki@welho.com (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: testers wanted
-Message-Id: <Pine.LNX.4.53.0312241240360.23656@cosmos.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: 2.4.22 kernel patches available
+Message-Id: <20030831172730.775fb950.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031222231810.53439aaf.khali@linux-fr.org>
-In-Reply-To: <20031222231810.53439aaf.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-On Wed, 24 Dec 2003, Jean Delvare wrote:
+Hi all,
 
-> 4* What's the point in moving the "adapter->clients[i] = NULL" loop from
-> top to bottom of function i2c_detach_client? This too makes much noise
-> for nothing. If there is no special reason for doing so, let's reverse
-> that change. If there is, this doesn't belong to this patch either.
+I just finished updating my installation guide to support the new 2.4.22
+kernel.
 
-Policy; have the list lock while making a change to it, on removal
-the race is not that dangerous but still worth a fix. Note the different
-return paths we should handle otherwise.
+I noticed that new I2C drivers exist there: i2c-sibyte (plus
+i2c-algo-sibyte) and i2c-max1617. Why they end up there without us even
+hearing about it is a complete mystery to me. The max1617 driver is
+crappy (polling + working only with the sibyte bus) and completely
+useless since we already support that chip for years. The bus driver
+probably should have been built into a single module. And none of these
+modules will even compile since they use I2C IDs that are not defined.
 
-Postpone if you wish.
+My 2.4.22 patch simply wipe them out. I can't understand how they were
+accepted into the main kernel tree. I couldn't find anything related to
+them in the kernel changelog nor in LKML archives. I feel like we should
+complain about that, but unfortunately I don't have time for that right
+now. Greg, you have more contact with the kernel people than any of us
+here, do you have any information we don't have?
 
-> > Fix module reference counting to use try_inc_mod_count in place of
-> > __MOD_INC_USE_COUNT, and have i2c_inc_use_client return int. While
-> > this is an API change, the return code is just silently ignored. Fix
-> > i2c_use_client to study the mentioned return code.
->
-> I'm not sure I get you here. Are these things already in CVS and to be
-> ported to Linux 2.4, or the particular points that are broken in CVS
-> which should be fixed before we can submit a clean patch for Linux 2.4?
+I am taking a new (well...) job tomorrow. At last :) I'm more than
+pleased, but you have to understand that this also means the end of my
+active participation to the LM Sensors project. Don't worry, I won't
+leave the project completely and within a few months I hope I'll have
+some time left again to contribute. But I won't spend 6 hours a day on
+it as it has been the case for the last few months. BTW, I'd like to
+thank you all very much for that. I've learned much here, and it also
+prevented me from falling into the laziness :)
 
-This is about fixing the possible race while rmmoding, as the .owner
-field is (sometimes) initialized. The race is not yet fixed in CVS.
-
-I will not import broken things from CVS with my patches.
-
-I'm thinking whether to pass controlling_mod in i2c_register_entry as
-this is client->driver->owner. I would like to make this API change,
-remove it, for the sake of not changing lm_sensors chip drivers.
-Can you find anyone else using it?
+See you later.
 
 -- 
-  Ky?sti M?lkki  <kyosti.malkki@welho.com>
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
