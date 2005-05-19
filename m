@@ -1,50 +1,49 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:40 +0000
-Subject: [steve@wormley.com: Linux 2.6.2 i2c debug bug]
-Message-Id: <20040205201625.GA13885@frodo.local>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:00 +0000
+Subject: Ticket comments
+Message-Id: <20030618044844.GF6532@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------ Forwarded message from Steve Wormley <steve@wormley.com> -----
+Hi:
 
-From: Steve Wormley <steve@wormley.com>
-To: frodol@dds.nl
-Subject: Linux 2.6.2 i2c debug bug
-X-Spam-Status: No, hits=-5.0 required=5.0 tests=UNIFIED_PATCH version=2.20
-X-Spam-Level: 
+So I took a look at the support tickets page and *wow* you guys
+must be swamped.  Is there any way to route tickets to me for
+i2c-sis645 only (for now)?  I have no idea what the backend
+interface can do.
 
-Apparently one of the dev_dbg in i2c_master_recv in i2c_core.c in
-2.6.2 
-has a little issue in that it's dereferencing the wrong element
-(client->dev instead of client->adapter->dev)
+Anyway, here are some comments for tickets that I saw when I
+searched on "sis645", "bach", and "asb100"...
 
-Fix is below
+#1293 - I'm sorry to say I don't believe this user's running
+kernel config matches the one against which sensors were
+built.  The two offending undefined symbols are clearly
+wrapped with #ifdef CONFIG_HOTPLUG in the code.
 
+#1237 - Looks like the same problem to me, at least w.r.t.
+i2c-sis645.  I don't know about the rest though.
 
-diff -u stuff/linux-2.6.2/drivers/i2c/i2c-core.c linux-2.6.2/drivers/i2c/i2c-core.c
---- stuff/linux-2.6.2/drivers/i2c/i2c-core.c    Tue Feb  3 19:43:13 2004
-+++ linux-2.6.2/drivers/i2c/i2c-core.c  Wed Feb  4 22:34:23 2004
-@@ -598,7 +598,7 @@
-                ret = adap->algo->master_xfer(adap,&msg,1);
-                up(&adap->bus_lock);
- 
--               dev_dbg(&client->dev, "master_recv: return:%d (count:%d, addr:0x%02x)\n",
-+               dev_dbg(&client->adapter->dev, "master_recv: return:%d (count:%d, addr:0x%02x)\n",
-                        ret, count, client->addr);
- 
-                /* if everything went ok (i.e. 1 msg transmitted), return #bytes
+#1133, #1161 - I was able to confirm with sajmmiller@yahoo.com
+that his suggested workaround - load i2c-sis645 *before* sis900 -
+does indeed solve the problem.  I suspect that the real solution
+is to move the magic PCI space bit-frobbing into pci/quirks.c
+like I did for 2.5; I can't prove it because I don't have the
+builtin network device and I haven't yet found someone who does
+who is willing to boot 2.5.
 
+#1108, 1124 - The Asus "BACH" chip aka asb100 is I2C bus only.
+These two users either have a currently unsupported I2C bus
+or (in the case of the P4PE user) an Intel chipset for which
+Asus has lovingly hidden the I2C bus PCI device w/ broken BIOS.
+A fix for this was mentioned here:
 
+http://archives.andrew.net.au/lm-sensors/msg02724.html
 
--Steve Wormley
-
------ End forwarded message -----
+Regards,
 
 -- 
-Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
-Defenestration n. (formal or joc.):
-  The act of removing Windows from your computer in disgust, usually followed
-  by the installation of Linux or some other Unix-like operating system.
+Mark M. Hoffman
+mhoffman@lightlink.com
