@@ -1,28 +1,19 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: I2c and lm sensors 2.7.0 - sensors segmentation fault.
-Message-Id: <20030406091243.3441e14e.khali@linux-fr.org>
+From: wim@godden.net (Wim Godden)
+Date: Thu, 19 May 2005 06:23:58 +0000
+Subject: Ticket # 1263
+Message-Id: <3EE3B050.37FBA117@godden.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000c01c2fbd9$840f5eb0$0300a8c0@dmp1800>
-In-Reply-To: <000c01c2fbd9$840f5eb0$0300a8c0@dmp1800>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+The Character C errors are gone, but the chip still isn't detected,
+although it should be supported now.
+It's a Winbond 83791, but I see :
 
-[Reply to the list, not to me only.]
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
 
-> Just tried to install i2c 2.7.0 and lm sensors 2.7.0 on a dual
-> AMD MP2600+ machine running RH 8.0 with updates. Drivers load
-> but when sensors command is run I get a segmentation fault.
+Any suggestions welcome...
 
-Sounds like an old libsensors is lurking somewhere. To catch it, run:
-/sbin/ldconfig -pv | grep libsensors
-
-New libs are supposed to be in /usr/local/lib, so you should remove any
-older lib in other places (such as /usr/lib).
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
