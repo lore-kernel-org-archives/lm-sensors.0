@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:36 +0000
 Subject: [Fwd: [patch 2/9] 2.5.6 lm_sensors]
-Message-Id: <3D3B0871.568FD6EF@paradyne.com>
+Message-Id: <3D3B0BCB.C5440548@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3D39C5C1.CCADBF93@paradyne.com>
 In-Reply-To: <3D39C5C1.CCADBF93@paradyne.com>
@@ -10,18 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Do we know for sure that each of the thinkpads listed below
-has a piix4? Probably not...
+That's a great find.
+(at line 5250).
 
-Alan implied we should be using DMI data.
-I found the attached program by him on the net for dumping
-out the DMI data. Compile and run as root to see what info is
-available. Perhaps we could check that for 'thinkpad'.
-Not clear to me which field would tell us
-'what kind of SM management is present' or
-what we would do with that info.
-Anybody?
+Also note that at line 3158, it checks for PIIX4, and if not there,
+the comment says definitely not a Thinkpad.
 
+I'll put the 3 ID's from line 5250 into piix4 as a 'blacklist'.
+Can somebody do the same in sensors-detect?
+(check for those 3 ID's, if one is present, exit with a message).
+
+We may need an lspci -n output from every thinkpad on the planet.
+Or maybe just reject any board that has any IBM device at all?
 
 phil@netroedge.com wrote:
 > 
@@ -76,10 +76,3 @@ phil@netroedge.com wrote:
 > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
 >    phil@netroedge.com -- http://www.netroedge.com/~phil
 >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: dmidecode.c.bz2
-Type: application/octet-stream
-Size: 4931 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020721/2a00f928/dmidecode.c.obj
