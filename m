@@ -1,46 +1,44 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:08 +0000
-Subject: lm_sensors2/kernel/chips lm93.c Module.mk
-Message-Id: <20040805034923.GB4844@jupiter.solarsys.private>
+From: akuster@mvista.com (Armin Kuster)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: Update to 405 i2c drivers
+Message-Id: <3CA4D78A.342BC9F5@mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi everyone:
 
-> Update of /home/cvs/lm_sensors2/kernel/chips
-> In directory mordac.netroedge.com:/tmp/cvs-serv32026/kernel/chips
-> 
-> Modified Files:
-> 	Module.mk 
-> Added Files:
-> 	lm93.c 
-> Log Message:
-> (mmh) first draft at a driver for LM93
+Here in an update to the 405 i2c drivers,  They have been altered to
+support the on-chip driver standard now being used in the ppc 4xx
+kernel.  So one driver can support the 405gp, np405l , np405H , stb03xxx
+and stb04xxx.
 
-There are several parts of this driver that are unique among the sensors
-drivers.  Any comments are welcome... especially w.r.t. these topics:
 
-1. Use of SMBus block data read transactions, where possible.  This can
-	be overridden by a module param.
+IMPORTANT_CHANGES	<- added note on name change
+doc/summary		<- minor name change
+kernel/i2c-adap-ibm_ocp.c	<- renamed, updated to be able to upport
+multi-i2c ports on any 405 cpu
+kernel/i2c-algo-ibm_ocp.c	<- renamed, updated with some fixes 
+kernel/i2c-algo-ibm_ocp.h	<- renamed
+kernel/i2c-algo-ppc405.c	<- removed
+kernel/i2c-algo-ppc405.h	<- removed
+kernel/i2c-id.h	
+kernel/i2c-ppc405.c	<- removed 
+kernel/i2c-ppc405.h	<- removed 
+kernel/i2c-ppc405adap.h	 <- removed 
+mkpatch/Config.in	<- name change
+mkpatch/FILES	<- added ocp drivers to list so it can be installed
 
-2. Two different modes for in7/in8 limits when these channels are wired
-	to vccp1/vccp2 respectively.  I chose to force the user to one
-	mode or the other, again by module param.
 
-3. Absurd complexity of inX calculations in general, due to a plethora
-	of different range limits and (chip internal) scaling factors.
 
-4. More new and unique /proc files...
+TIA
 
-Of the TODOs in the file, the one that concerns me most is what to do
-about the alarms: there are more than 32 bits worth of them...  I've
-chatted w/ Khali briefly about it but didn't get very far.
-
-Thanks and regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Armin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 405_update.patch.gz
+Type: application/octet-stream
+Size: 22525 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020329/a4b219fb/405_update.patch.obj
