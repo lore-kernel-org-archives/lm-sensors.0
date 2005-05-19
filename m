@@ -1,7 +1,7 @@
 From: Axel.Thimm@physik.fu-berlin.de (Axel Thimm)
-Date: Thu, 19 May 2005 06:24:09 +0000
+Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: i2c & lm_sensors for RH
-Message-Id: <20030802182220.GB10034@puariko.nirvana>
+Message-Id: <20030805152145.GA17020@puariko.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030802172008.GA10034@puariko.nirvana>
 In-Reply-To: <20030802172008.GA10034@puariko.nirvana>
@@ -10,34 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 02, 2003 at 08:11:07PM +0200, Jean Delvare wrote:
-> 
-> > Is anyone working on this? If not, I'd be interested (I have been
-> > maintaining rpms for kernel and userland parts for i2c/lm_sensors
-> > 2.7.0 at atrpms).
-> 
-> We don't build packages anymore, we leave the job to the distribution
-> maitainers.
+Hi,
 
-OK. RH probably will most probably stay with 2.6.5 even with the next
-release (at least current beta says so). So I will try my luck.
+On Sat, Aug 02, 2003 at 08:22:20PM +0200, Axel Thimm wrote:
+> On Sat, Aug 02, 2003 at 08:11:07PM +0200, Jean Delvare wrote:
+> > > Is anyone working on this? If not, I'd be interested (I have
+> > > been maintaining rpms for kernel and userland parts for
+> > > i2c/lm_sensors 2.7.0 at atrpms).
 
-> > I am already trying to patch the i2c core and surrounding patches into
-> > the latest RH errata kernel (based on 2.4.21-pre3). I might have a
-> > question or two, and could use testers, since I am doing it upon
-> > request, and the machines I currently have available aren't that
-> > sensor friendly (one is a Thinkpad ...).
-> 
-> Questions are welcome and will be answered the best we can.
-> 
-> BTW: We would like packagers to report fixes they add to their packages.
-> I have seen many i2c and lm_sensors packages for various distributions
-> (Red Hat and Gentoo come to mind) including bugfixes to our code and not
-> letting us know about it. If you want us to fix the bugs, you have to
-> report, we just can track all packages all the time to see if some bugs
-> have been locally found and fixed.
+I managed to merge and build i2c&lm_sensors into the kernel sources
+for RH 9/8.0/7. The only change to i2c&lm_sensors I had to make were
+prepatches to get the code base patchable for some parts that changed
+up to the 2.4.21 release. So no real patches for i2c/lm_sensors in the
+kernel space. :)
 
-I always report any fixes upstream, I hope Red Hat does, too.
+I have now turned to the userspace. In order to build the lm_sensors
+userland I need to compile against the kernel headers including the
+patched in i2c headers (so I2C_HEADERS and LINUX_HEADERS point to the
+same dir).
+
+Since I am building against kernel headers, does that mean that the
+resulting tools are only applicable to that kernel? Or are they to any
+kernel that has i2c/lm_sensors 2.8.0 patched in?
+
+I wonder if I need LINUX_HEADERS at all, since I am not building
+external modules, and whether I should simply "carry" the i2c tarball
+with the lm_sensors source package and build against the i2c headers
+in that tarball (in order to build independently of the running kernel
+or installed kernel sources). Does that make sense?
 -- 
 Axel.Thimm@physik.fu-berlin.de
 -------------- next part --------------
@@ -46,4 +46,4 @@ Name: not available
 Type: application/pgp-signature
 Size: 189 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030802/e0ef7448/attachment.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030805/8bb0bc44/attachment.bin
