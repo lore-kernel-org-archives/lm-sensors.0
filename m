@@ -1,51 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:05 +0000
-Subject: Info on Epox 8RDA+ motherboard sensors
-Message-Id: <20030717084025.139fd704.khali@linux-fr.org>
+From: sysadm@o2.pl (Marcin Szarek)
+Date: Thu, 19 May 2005 06:25:25 +0000
+Subject: hello, i've got a problem with
+Message-Id: <1101907862.1886.19.camel@mi-msz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200307162235.12732.ep@plicht.de>
-In-Reply-To: <200307162235.12732.ep@plicht.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-> sensors-detect reports a Winbond W83627HF chip.
-> 
-> BIOS has display for
-> Vdd (1.6V)
-> Vcore (1.66V)
-> Vdimm (2.64V)
-> and the other usual power supply voltages, except:
-> 
-> BIOS has NO display for 3.3V. So I don't know if this is really not
-> used or what.
+First of all I'd like to congratulate you your lm_sensors project, and
+thank for your job.
 
-Is this voltage correctly shown by sensors? It is supposed to be used by
-PCI and AGP cards. Some on these can also work at 5V (or even 12V) but
-since not all of them do, I doubt your motherboard don't provide it at
-all. Maybe the BIOS doesn't show it because it is unused on your
-specific system, but would if you were to add a card that needs it (just
-guessing.)
+I've just get a new machine (tuned PC) designed for building network
+monitoring and managing station. Motherboard is Gigabyte GA8 I875 with
+chip IT8712F. OS is Fedora Core 3 with Linux kernel 2.6.9. I've
+succesfully installed lm_sensors.
+But, unfortunately though I try to tune my sensors.conf for couple of
+days, I'm still in place where I haven't a clue what is temp1, temp2 and
+temp3. As far as I have tested "temp3" seems like CPU temperature (the
+value rises when I unplug the CPU fan), but this parameter value still
+doesn't agree with that which one can see in BIOS health monitor (BIOS
+shows ~51C and lm_sensors ~43C). Maybe I need some compute formula? How
+to discover/calculate such formula?
+However temp1 and temp2 still are totally mysterious to me. How can I
+discover what are these all tempX parameters? How to set up proper
+compute formulas?
 
-I suppose that sensors doesn't report Vdimm?
+Please help me guys!
 
-> VID was reported as 3.50V, so I changed the in0_min/max and
-> in1_min/max calculation from using vid to 1.6V, works fine.
+TIA,
+best regards
+--
 
-Did you try changing the vrm? It should help.
-
-> Fan divisors needed to be set to 4 instead of default 2, now working
-> nicely.
-
-This is probably related to your fans, not the motherboard itself.
-
-> That's all. Again, thanks, let me know if you need any other data on
-> this motherboard.
-
-Thanks for the report.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+  .~.       MARCIN SZAREK <sysadm@pomin.ten.fragment.o2.pl>
+  /V\         Bumar-Fablok S.A. IT systems administrator
+ // \\	     Linux Counter Project registered user #263125
+/(   )\  ** There are only 10 types of people in this world; **
+ ^`~'^   ** those who understand binary and those who don't. **
