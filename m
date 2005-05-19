@@ -1,7 +1,7 @@
-From: zoleg@matrixc.ru (ZOleg Matrix)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: LM83 sensor
-Message-Id: <1972054453.20030702174608@matrixc.ru>
+Message-Id: <20030702105239.07ae16f9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43612812.20030701105509@matrixc.ru>
 In-Reply-To: <43612812.20030701105509@matrixc.ru>
@@ -10,19 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
 
-lm_sensors work with ITE 8705 chip, but sensors value incorect (CPU
-temp. is very high, voltages not corespond value shown in BIOS, etc.)
+> lm_sensors work with ITE 8705 chip, but sensors value incorect (CPU
+> temp. is very high, voltages not corespond value shown in BIOS, etc.)
 
-Also send screenshot form Sandra 2003
+This may simply be a configuration issue (especially for the
+temperaturs, did you tried the temp_type module parameter?)
+
+Are you using i2c & lm_sensors 2.7.0 or CVS?
+
+As is, the sensors-detect script should have detected your LM83 as a
+LM84 and asked you to load the adm1021 module. Did it actually happen?
+
 -- 
-Best regards,
- ZOleg                            mailto:zoleg@matrixc.ru
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sisoft1.jpg
-Type: image/jpeg
-Size: 45016 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030702/290e14d6/sisoft1.jpg
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
