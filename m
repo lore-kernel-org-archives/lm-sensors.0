@@ -1,62 +1,52 @@
-From: mbm@livewiredev.com (MBM Support)
-Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: as99127f pwm register
-Message-Id: <FJEPJHGHDGKMMPFFGCLOCEAEEIAA.mbm@livewiredev.com>
+From: debry@cereve.enpc.fr (Edouard Debry)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: bad vid value
+Message-Id: <20040519065553.GA16559@cereve.enpc.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030724225359.2546fa71.khali@linux-fr.org>
-In-Reply-To: <20030724225359.2546fa71.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean
+Hello,
 
-correct on the winbond 1D, 10 and 11, but that is the only one, anyways your
-detection could be simpler I guess
+I currently use sensors2.8.6 with kernel 2.6.6
 
-check the 2 ID's that make the AS99127 the same as the winbond and then
-simply do a check on $58, if it's 31 then it's AS99127 else it's not.
+I use the chip 'W83627HF (ISA)', the module loaded are ( i2c_isa,
+i2c_nforce, w83781d, i2c_sensor, i2c_core)
 
-The mozart should be easy to add :)
+all seems to work well, except that the min and max value of in0 and in1
+are odd, approximately 1.41V for max although the average value for amd
+duron proc is 1.5V
 
-Regards, Alex
+to correct this I changed the vrm value as adviced ( with set vrm 9.0 )
+but it did not change the vid value ( I did of course sensors -s after
+each modification )
 
-- Please always attach all previous mails !
-----------------------------------------------------------------------
-The Motherboard Monitor:
-http://mbm.livewiredev.com/
-----------------------------------------------------------------------
-For long you live and high you fly,
-And smiles you'll give and tears you'll cry,
-And all you touch and all you see,
-Is all your life will ever be.
-----------------------------------------------------------------------
+I did not have this pb before, do you know what is going on ?
 
+I also noticed that there is no /proc/sys/dev/../vid file,
+for me all is located in /sys/bus/i2c/../(all files except vid)
 
+---
 
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org]
-Sent: vrijdag 25 juli 2003 12:06
-To: sensors@Stimpy.netroedge.com
-Cc: mbm@livewiredev.com
-Subject: Re: as99127f pwm register
+I noticed on your web site that the ship 'W83627HF (ISA)' has a specific
+driver that is not the on I use, is this one better ? When running
+'sensors-detect' I was not offered to load W83627HF ,
+
+can I safely replace  w83781d with W83627HF ?=20
 
 
+Best regards
+edouard
 
-> Oh sorry, I forgot to mention one thing. In our detection script, we
-> ignore the LSB of register $58. Thus the AS99127F rev2 ID ($31) and
-> the W83782D ($30) look the same, that's why I got confused. I don't
-> know why we ignore this bit, I couldn't read anything about that in
-> the datasheets. I will take a look at our CVS logs tommorow and see
-> what made us add this in the past.
-
-I finally found it (after almost one hour of searching through the CVS).
-We once saw W83781D's with ID $11 while the datasheet says ID is $10.
-This is the reason why we decided to ignore the LSB for all chips.
-Actually, for most chips it can't hurt, but for the W83782D vs. AS99127F
-rev.2 detection, it matters (and I'll change that).
-
---
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+--=20
+*-----------------------------------------------------------------*
+|                          Edouard DEBRY                          |
+| Ph-D student at E.N.P.C - C.E.R.E.A   http://www.enpc.fr/cerea/ |
+|                                                                 |
+| 21 Rue Nobel, Cit=E9 Descartes        TEL  : 33 1 64 15 21 52     |
+| 77455 CHAMPS SUR MARNE              MAIL : debry@cerea.enpc.fr  |
+|                                                                 |
+| Thesis subject: MODELING OF AN ATMOSPHERIC AEROSOL DISTRIBUTION |
+*-----------------------------------------------------------------*
