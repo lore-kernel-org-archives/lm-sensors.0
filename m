@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: i2c cvs repository status
-Message-Id: <3FE464FC.7060905@verizon.net>
+Message-Id: <20031220173538.6898eb86.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031220120151.27b9db49.khali@linux-fr.org>
 In-Reply-To: <20031220120151.27b9db49.khali@linux-fr.org>
@@ -10,39 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I understand.
-I didn't expect it to be included in the 2.4 patch;
-you're working off of the 2.8.2 release, right?
+> I understand.
+> I didn't expect it to be included in the 2.4 patch;
+> you're working off of the 2.8.2 release, right?
 
-The 'big idea' is to get some testing of the patch
-in the 2.4 world, then submit a 2.6 version of the patch to Greg.
-The patch came in to us against 2.4 so it's much easier
-to do it this way.
+Not really. I am working off of CVS since 2.8.0. It was useful because I
+sometimes need to make a few adjustments to CVS so that the patches I
+send look better. Now I'll have to change the way I work. I'll keep my
+local copy of the CVS apart and won't update it, still I will commit my
+changes to the CVS. Hopefully there won't be too many conflicts, or this
+method will fail badly.
 
-mds
+> The 'big idea' is to get some testing of the patch
+> in the 2.4 world, then submit a 2.6 version of the patch to Greg.
+> The patch came in to us against 2.4 so it's much easier
+> to do it this way.
 
+Isn't it strange to use 2.4 for testing? I wouldn't think people will
+write drivers needing new protocols for the 2.4 kernel. New drivers
+should go to 2.6.
 
-Jean Delvare wrote:
-> Hi Mark,
-> 
-> I can see that you have just been committing important changes to the
-> i2c CVS repository. What's the big idea?
-> 
-> This repository is meant to be Linux-2.4 compatible. I'm having a hard
-> time these days trying to commit older changes into Linux-2.4 itself,
-> before it is too late for such changes to ba accepted. You have to
-> realize that once the Linux-2.4 kernel will have been placed into frozen
-> mode (and this is supposed to happen as 2.4.24 is released), no more
-> changes but bug fixes (and possibly code cleanups) will be accepted. I
-> already doubt I'll be in time to commit all the changes before the
-> deadline. What if you now start adding more new stuff in there?
-> 
-> Let me be clear. Whatever is added to the i2c CVS repository by now
-> (including your recent "emulation patch") is *not* going to go into 2.4.
-> So what's the point in commiting it? New stuff should go into the 2.6
-> kernel. With the release of the 2.6 kernel, 2.4 is no more the place for
-> development. And the i2c CVS repository as it exists today (well, as it
-> existed yesterday) has no other purpose but to be integrated into Linux
-> 2.4. What is not accepted into 2.4 will more likely be lost forever
-> unless it is ported to Linux 2.6.
-> 
+Once Linux 2.7 starts its life, I'll invite you to move any development
+effort there, and keep the 2.4 CVS repository for bugfixes only. Idealy
+the CVS repository would even disappear and the bugfixes committed to
+2.4 itself, but since it's unlikely that all of the CVS will be merged
+into 2.4, I guess we'll have to keep the repository forever.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
