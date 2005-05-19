@@ -1,8 +1,10 @@
 From: rabin@mellanox.co.il (Eitan Rabin)
 Date: Thu, 19 May 2005 06:23:54 +0000
 Subject: I2C CMP on Embedded Planet SBC
-Message-Id: <506C3D7B14CDD411A52C00025558DED6023D0CD9@mtlex01.yok.mtl.com>
+Message-Id: <506C3D7B14CDD411A52C00025558DED6023D0CDB@mtlex01.yok.mtl.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <506C3D7B14CDD411A52C00025558DED6023D0CD9@mtlex01.yok.mtl.com>
+In-Reply-To: <506C3D7B14CDD411A52C00025558DED6023D0CD9@mtlex01.yok.mtl.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -25,6 +27,9 @@ Any assistance will be more than welcomed.
 Thanks in advance.
 
 Eitan.
+
+PS: I hope this message is plain text. I can't convince outlook to attach
+its html garbage.
 -------------- next part --------------
 An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030423/32d92341/attachment.html
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030423/ca2a0966/attachment.html
