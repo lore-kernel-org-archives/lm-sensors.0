@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:37 +0000
 Subject: adt7463 on asus w1n laptop
-Message-Id: <gUSS4z1W.1108395857.6509030.khali@localhost>
+Message-Id: <20050214201756.3877e68d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200502141545.03330.christophe.dr@free.fr>
 In-Reply-To: <200502141545.03330.christophe.dr@free.fr>
@@ -10,41 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
 Hi Christophe,
 
-> I already tried to file this report on the
-> http://www2.lm-sensors.nu/~lm78/support.html
-> page but for some unknown reasons it doesn't seem to register my ticket.
+> > We'd now need the output of "lspci -s 00:00.0 -vn" to add the quirk
+> > your system needs. With that I can write a patch for you to test (if
+> > you can do that).
+>
+> Here you are :
+> lspci -s 00:00.0 -vn
+> 00:00.0 Class 0600: 8086:3340 (rev 21)
+>         Subsystem: 1043:184b
+>         Flags: bus master, fast devsel, latency 0
+>         Memory at e0000000 (32-bit, prefetchable) [size%6M]
+>         Capabilities: [e4] #09 [4104]
+>         Capabilities: [a0] AGP version 2.0
 
-Probably because you hit the arbitrary size limit. We are considering
-moving to bugzilla for this reason and several others.
+OK, attached is a patch for Linux 2.6.10, which should do the trick. It
+should apply cleanly to any 2.6.11-rc version as well. (If you need it
+against an older kernel, just ask.)
 
-> I have googled a lot and searched the database and FAQ(section 5.3) but i
-> found no answer to my problem. The adt7463 on my asus w1n laptop / mandrake
-> 10.1 Official Edition is not detected in spite of all my efforts.
-> (...)
-> Probing for PCI bus adapters...
-> Sorry, no PCI bus adapters found.
-> (...)
-> 00:00.0 Host bridge: Intel Corp. 82855PM Processor to I/O Controller (rev 21)
-> (...)
-> 00:1f.0 ISA bridge: Intel Corp. 82801DBM LPC Interface Controller (rev 03)
-> 00:1f.1 IDE interface: Intel Corp. 82801DBM (ICH4) Ultra ATA Storage Controller (rev 03)
-> 00:1f.5 Multimedia audio controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
-> 00:1f.6 Modem: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Modem Controller (rev 03)
+If you confirm that the SMBus is properly un-hidden with that patch and
+no trouble arise, I'll push it to the PCI folks.
 
-Missing SMBus function (should be 00:1f.3). Quite typical from Asus, they
-tend to hide it for no reason.
+> Merci beaucoup, many thanks.
+> Peut-?tre parlez-vous (parles-tu) fran?ais ? Maybe you speak french ?
 
-You need what is called a PCI quirk to enable it again. Good news is that
-this is a known problem with a known solution. Bad news is that it
-involves a kernel recompilation, which you might not be used to.
+He oui :) Mais ce n'est pas le cas de la majorit? des lecteurs de cette
+liste.
 
-We'd now need the output of "lspci -s 00:00.0 -vn" to add the quirk
-your system needs. With that I can write a patch for you to test (if you
-can do that).
-
-Thanks,
---
+-- 
 Jean Delvare
+-------------- next part --------------
+--- linux-2.6.10/drivers/pci/quirks.c.orig	2004-12-24 22:33:49.000000000 +0100
++++ linux-2.6.10/drivers/pci/quirks.c	2005-02-14 20:10:24.000000000 +0100
+@@ -774,6 +774,7 @@
+ 			}
+ 		if (dev->device = PCI_DEVICE_ID_INTEL_82855PM_HB)
+ 			switch (dev->subsystem_device) {
++			case 0x184b: /* W1N notebook */
+ 			case 0x186a: /* M6Ne notebook */
+ 				asus_hides_smbus = 1;
+ 			}
