@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:43 +0000
 Subject: 2.7.0 testings
-Message-Id: <3DED2739.A6C7C33B@paradyne.com>
+Message-Id: <3DED5B9B.5528E7D8@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021127213903.5b84866d.khali@linux-fr.org>
 In-Reply-To: <20021127213903.5b84866d.khali@linux-fr.org>
@@ -10,8 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-will look at at tonight.
-Can you also try against 2.2.23 (which worked for me and for Vojtech)
+I fixed (hopefully) dmi_scan; I asked Vojtech if he can fix amd8111
+quickly;
+if not I can put back the 2.4-only fix for it into the makefile. Will
+let you know.
 
 Jean Delvare wrote:
 > 
