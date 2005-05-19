@@ -1,42 +1,60 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:35 +0000
-Subject: mail list???
-Message-Id: <JrjvW2xD.1107430650.5606230.khali@localhost>
+From: cgagneraud@anfora.fr (gagneraud christian)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: lm_sensors-2.6.3: Make install failed with Mandrake-8.3
+Message-Id: <1023438608.2692.2.camel@christian>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4201D8AF.4030100@pl.net>
-In-Reply-To: <4201D8AF.4030100@pl.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi, 
 
-Hi Morgan,
+Make install failed with my Mandrake-8.3, the reason is thier 
+kernel's version.h that contain multiple UTS_REALEASE: 
+--------8<-------------------------------------------- 
+#include <linux/rhconfig.h> 
+#if defined(__module__smp) 
+#define UTS_RELEASE "2.4.18-6mdksmp" 
+#elif defined(__module__enterprise) 
+#define UTS_RELEASE "2.4.18-6mdkenterprise" 
+#elif defined(__module__up) 
+#define UTS_RELEASE "2.4.18-6mdk" 
+#else 
+#define UTS_RELEASE "2.4.18-6mdksecure" 
+#endif 
+#define LINUX_VERSION_CODE 132114 
+#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c)) 
+--------8<-------------------------------------------- 
+and in lm's Makefile the: 
+MODDIR := /lib/modules/`grep UTS_RELEASE
+$(LINUX_HEADERS)/linux/version.h|cut -f 2 -d'"'`/misc 
+returns: 
+--------8<-------------------------------------------- 
+2.4.18-6mdksmp 
+2.4.18-6mdkenterprise 
+2.4.18-6mdk 
+2.4.18-6mdksecure 
+--------8<-------------------------------------------- 
 
-> Well, I normally have to sign up to a list...  And give some
-> confirmation that I am who I say I am.  (Avoids junk I presume?)  I
-> guess that means I'm used to closed lists about open software;-)
+I've just replace in the lm's Makefile with: 
+MODDIR := /lib/modules/`uname -r`/misc 
 
-Seems to confuse people, correct. That's strange since e.g. the linux
-kernel mailing-list is open as well, we are not that much of an
-exception.
 
-> I used the link on the home page <http://secure.netroedge.com/~lm78/> at
-> "... please drop us an email."  With out any indication it was the list
-> I assumed "us" to be a colloquial "me" or alternatively "The Lm_sensors
-> Group", rather than the world at large.
+Congratulations for the package 
 
-OK, I will change that link to redirect to the "Authors/Feedback" page
-instead. Hopefully the information present there will help.
+Christian
 
-> Anyway, will this do as a subscribe email?
 
-Hardly, since you answered to me only ;)
 
-Philip, please?
-
-Welcome on board, Morgan :)
-
-Thanks,
---
-Jean Delvare
+-- 
+/**********************************************
+* Christian Gagneraud
+***********************************************
+* cgagneraud@anfora.fr
+***********************************************
+* ANFORA
+* bat Actys, Voie3
+* 31313 Lab?ge Innopole
+* FRANCE
+***********************************************/
