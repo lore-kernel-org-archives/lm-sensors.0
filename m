@@ -1,31 +1,29 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: [PATCH] ds1337 3/4
-Message-Id: <20050502204136.GE32713@kroah.com>
+From: jochen@penguin-breeder.org (Jochen Eisinger)
+Date: Thu, 19 May 2005 06:25:13 +0000
+Subject: request for official I2C_DRIVERID
+Message-Id: <4136DC8D.1090905@penguin-breeder.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050407231848.GD27226@orphique> <u5mZNEX1.1112954918.3200720.khali@localhost> <20050408130639.GC7054@orphique>
-In-Reply-To: <20050408130639.GC7054@orphique>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>
+To: lm-sensors@vger.kernel.org
 
-On Fri, Apr 08, 2005 at 03:06:39PM +0200, Ladislav Michl wrote:
-> On Fri, Apr 08, 2005 at 12:08:38PM +0200, Jean Delvare wrote:
-> > Looks OK to me.
-> 
-> Ok, I have few more fixes for this driver and will send them later
-> when I find time to split them out into smaller chunks. Again, here is
-> patch with signed off line.
-> 
-> 
-> dev_{dbg,err} functions should print client's device name. data->id can
-> be dropped from message, because device is determined by bus it hangs on
-> (it has fixed address).
-> 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Hi,
 
-Applied, thanks.
+I'm maintaining a driver for so called "application buttons", a set of
+buttons, led & lcd used in some fujitsu-siemens notebooks. These buttons
+can be read using the smbus, thus I'm using the i2c system.
 
-greg k-h
+Currently, I'm using a private ID, but since the driver is now in
+existance for about two years, I'd like to step forward and get an
+official ID.
+
+The driver is available from http://apanel.sourceforge.net/ it supports
+various versions of i2c on linux 2.4 and 2.6. I'm currently using
+
+#define I2C_DRIVERID_APANEL 0xF000
+
+Could you please assign me an official ID?
+
+kind regards
+-- jochen
