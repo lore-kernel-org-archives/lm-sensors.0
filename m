@@ -1,36 +1,29 @@
-From: spstarr@sh0n.net (Shawn Starr)
-Date: Thu, 19 May 2005 06:23:45 +0000
-Subject: 2.5.54 lm_sensors stuff
-Message-Id: <200301111757.31401.spstarr@sh0n.net>
+From: lfcorreia@lfcorreia.dyndns.org (Luis Correia)
+Date: Thu, 19 May 2005 06:25:16 +0000
+Subject: Accessing i2c subsystem from within a kernel module
+Message-Id: <414B7664.9000006@lfcorreia.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200301100001.59064.spstarr@sh0n.net>
-In-Reply-To: <200301100001.59064.spstarr@sh0n.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Also, this may not work as a module since im using it compiled in.
+Hi!
 
-On Saturday 11 January 2003 5:55 pm, Shawn Starr wrote:
-> Here it is, but as I said, its a really bad hackup I would apply this on a
-> separate tree not to break anything ;)
->
-> On Friday 10 January 2003 10:18 pm, Mark Studebaker wrote:
-> > great.
-> > please email your diffs to our list
-> > thanks
-> >
-> > Shawn Starr wrote:
-> > > I managed to get my sensors chip
-> > >
-> > > w83782d-i2c-0-2d
-> > > Adapter: SMBus AMD75x adapter at e4e0
-> > >
-> > > Working with 2.5.54 but its very ugly hacking and backports some minor
-> > > changes.
-> > >
-> > > the w83782d driver isn't in 2.5.54 (haven't checked .55 yet) but this
-> > > works with a few minor changes.
-> > >
-> > > Shawn.
+This question may or may not be related to lm_sensors, but you guys
+are the I2C master around here.
+
+I have a small embedded hardware (PcEngines) that I whish to include
+a LCD display to use with lcd4linux.
+
+For that I'm adapting a ppdev emulator driver, but now I need to know
+if I can (and how) access the /dev/i2c-* interface from within a
+kernel driver itself.
+
+This is probably a very dumb question....
+
+
+Thanks!
+
+Luis Correia
+Bering-uClibc Team Member
