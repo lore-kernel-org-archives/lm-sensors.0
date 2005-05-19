@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark D. Studebaker)
 Date: Thu, 19 May 2005 06:23:34 +0000
 Subject: sensors -f gives always temperature  33.8F ??
-Message-Id: <3CF8F3FF.A48ACD76@paradyne.com>
+Message-Id: <3D06AFED.4D1888E1@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3CF4EB8D.50201@iternalinc.com>
 In-Reply-To: <3CF4EB8D.50201@iternalinc.com>
@@ -10,33 +10,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-you probably don't havea lm75.
-See FAQ #4.17G.
+thanks for the offer of help.
+A good way to start is to get on the mailing list
+by asking Phil (phil@netroedge.com).
+If you see an email you feel you can answer, go ahead,
+and copy the mailing list.
+Also get the CVS version and test it periodically.
+After you do this for a while, more ideas of ways to help
+will come to you :)
+
 
 yswamy wrote:
 > 
-> I have Intel 82371AB PIIX4(E), 443MX, ServerWorks OSB4/CSB5, compatable
-> i have addedd this one as built on to the kernel. And also lm75 as built
-> in to the kernel. when i boot the m/c it recognizes the chip.
+> Thanks for ur speedy reply i will investigate and getback to you if i
+> need anything.
 > 
-> I am using linux-2.4.18 kernel using lm_sensors-2.6.3 patch.
-> 
-> But muy sensors -f
-> 
-> output is always like this:-
-> 
-> lm75-i2c-0-4e
-> Adapter: SMBus PIIX4 adapter at 0580
-> Algorithm: Non-I2C SMBus adapter
-> temp:     +33.8?F   (limit = +34?F, hysteresis = +34?F)
-> 
-> Even though i increased the CPU temperature using some assembly
-> programs. By doing this i burnt one of CPU still i could'nt get the
-> temperature of the CPU different than above so can u please give me more
-> info?
-> 
-> I try to compute values in sensors.conf but for lm75 it looks like it
-> does'nt work properly,
+> And also let me know how i can help lm sensor guys as u had asked for
+> help in replying e-mail etcc.
+> Let me know i can help u guys anyway either writing programs or
+>  contributing my time for any of ur usefull work
 > 
 > with Best Regards
 > Yeri Swamy Lalgondar
+> 
+> Mark D. Studebaker wrote:
+> 
+> >you probably don't havea lm75.
+> >See FAQ #4.17G.
+> >
+> >yswamy wrote:
+> >
+> >>I have Intel 82371AB PIIX4(E), 443MX, ServerWorks OSB4/CSB5, compatable
+> >>i have addedd this one as built on to the kernel. And also lm75 as built
+> >>in to the kernel. when i boot the m/c it recognizes the chip.
+> >>
+> >>I am using linux-2.4.18 kernel using lm_sensors-2.6.3 patch.
+> >>
+> >>But muy sensors -f
+> >>
+> >>output is always like this:-
+> >>
+> >>lm75-i2c-0-4e
+> >>Adapter: SMBus PIIX4 adapter at 0580
+> >>Algorithm: Non-I2C SMBus adapter
+> >>temp:     +33.8?F   (limit = +34?F, hysteresis = +34?F)
+> >>
+> >>Even though i increased the CPU temperature using some assembly
+> >>programs. By doing this i burnt one of CPU still i could'nt get the
+> >>temperature of the CPU different than above so can u please give me more
+> >>info?
+> >>
+> >>I try to compute values in sensors.conf but for lm75 it looks like it
+> >>does'nt work properly,
+> >>
+> >>with Best Regards
+> >>Yeri Swamy Lalgondar
+> >>
+> >
