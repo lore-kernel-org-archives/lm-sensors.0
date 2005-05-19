@@ -1,71 +1,57 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE246047@weshml03.winbond.com.tw>
+Message-Id: <Pine.LNX.4.58.0503100933320.25688@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmLCBKZWFuCgoKPiA+IGFsaTE1MzVfc21idXMgMDAwMDowMDowMy4xOiBBTEkxNTM1
-X3NtYiByZWdpb24gdW5pbml0aWFsaXplZCAtCnVwZ3JhZGUKPiA+IEJJT1M/Cj4gPiBhbGkxNTM1
-X3NtYnVzIDAwMDA6MDA6MDMuMTogQUxJMTUzNSBub3QgZGV0ZWN0ZWQsIG1vZHVsZSBub3QKaW5z
-ZXJ0ZWQuCj4gCj4gRGlkIHlvdSB0cnkgdG8gbG9hZCB3cm9uZyBtb2R1bGU/IChvciBtYXliZSBz
-ZW5zb3ItZGV0ZWN0IHRyaWVkPykKVGhlcmUKPiB3YXMgbm8gcmVib290IGJldHdlZW4gdGhpcyBh
-bmQgbmV4dCBsaW5lcz8KClRoaXMgbW9kdWxlIGFsaTE1MzUgd2FzIGRldGVjdGVkIGJ5ICJzZW5z
-b3JzLWRldGVjdCIsIGFuZCBpcyBsb2FkZWQKYXV0b21hdGljYWxseQplYWNoIHRpbWUgd2hlbiBJ
-IHJlYm9vdCBteSBMaW51eC4KSSBkb24ndCBrbm93IHdoaWNoIGNvbmZpZyBmaWxlIEkgc2hvdWxk
-IG1vZGlmeSwgc28gdGhhdCB0aGlzIG1vZHVsZShhbmQKdGhlCm1vZHVsZSBpMmMtYWxpMTU2Mykg
-d2lsbCBOT1QgYmUgbG9hZGVkIGF1dG9tYXRpY2FsbHkgd2hlbiBJIHJlYm9vdC4KRG8geW91IGtu
-b3c/CgoKPiA+IGFsaTE1NjM6IFNNQnVzIGNvbnRyb2wgPSA1MDAzCj4gPiBpMmNfYWRhcHRlciBp
-MmMtMDogcmVnaXN0ZXJlZCBhcyBhZGFwdGVyICMwCj4gPiBhbGkxNTYzX3Byb2JlOiBSZXR1cm5p
-bmcgMAo+ID4KPiAKPiBQZWFzZSBsZXQgbWUga25vdyBob3cgdGhlIGZpcnN0IDE1MzUgZ290IHRo
-ZXJlLgo+IFBsZWFzZSBjYW4geW91IHByb3ZpZGUKPiAKPiBsc3BjaSAteHh4Cj4gYW5kIGNhdCAv
-cHJvYy9pb3BvcnRzIChiZWZvcmUgYW5kIGFmdGVyIGxvYWRpbmcgdGhlIGRyaXZlcikgPwoKVGhl
-IGF0dGFjaG1lbnQgbHNwY2lfbG9nMSBhbmQgaW9wb3J0cyBpcyB0aGUgcmVzdWx0IGJlZm9yZSBJ
-IGxvYWQKdzgzNzkyZCBmb3IgbGludXgtMi42LgoKVGhlIGF0dGFjaG1lbnQgbHNwY2lfbG9nMiBh
-bmQgaW9wb3J0cyBpcyB0aGUgcmVzdWx0IGFmdGVyIEkgbG9hZAp3ODM3OTJkIGZvciBsaW51eC0y
-LjYsIHRoZSBpb3BvcnRzIGhhcyBub3QgYmVlbiBjaGFuZ2VkLgoKV2hlbiBJIGxvYWQgdGhlIG1v
-ZHVsZXMgdzgzNzkyZCwgdGhlIGVycm9yIG1lc3NhZ2Ugc3RpbGwgZXhpc3RzOgpNYXIgMTAgMTE6
-MzE6MDIgcGkxNDAwMDEga2VybmVsOiBpMmNfYWRhcHRlciBpMmMtMDogU01CdXMgRXJyb3I6IFRp
-bWVvdXQKRGV2aWNlIEVycm9yIFRyYW5zYWN0aW9uIE5ldmVyIEZpbmlzaGVkCgpUaGFua3MKQmVz
-dCBSZWdhcmRzCkNodW5oYW8KCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWlu
-ZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3Nl
-ZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYg
-eW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUg
-bm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24s
-IHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFu
-ZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsg
-c2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0
-IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBp
-bmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5m
-b3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNp
-YWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBu
-b3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2Ug
-Zm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFs
-bHkgcmVwZWF0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S1
-2Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5c
-pKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGn
-zqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0
-pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl
-9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6
-LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdO
-qKMuCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0tLS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0
-dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4uCk5hbWU6IGxzcGNpX2xvZzIKVHlwZTogYXBwbGljYXRp
-b24vb2N0ZXQtc3RyZWFtClNpemU6IDIwMTExIGJ5dGVzCkRlc2M6IGxzcGNpX2xvZzIKVXJsIDog
-aHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzL2F0dGFjaG1l
-bnRzLzIwMDUwMzEwL2Q3MDkxODZjL2xzcGNpX2xvZzIub2JqCi0tLS0tLS0tLS0tLS0tIG5leHQg
-cGFydCAtLS0tLS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4u
-Ck5hbWU6IGlvcG9ydHMKVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtClNpemU6IDYzMCBi
-eXRlcwpEZXNjOiBpb3BvcnRzClVybCA6IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBl
-cm1haWwvbG0tc2Vuc29ycy9hdHRhY2htZW50cy8yMDA1MDMxMC9kNzA5MTg2Yy9pb3BvcnRzLm9i
-agotLS0tLS0tLS0tLS0tLSBuZXh0IHBhcnQgLS0tLS0tLS0tLS0tLS0KQSBub24tdGV4dCBhdHRh
-Y2htZW50IHdhcyBzY3J1YmJlZC4uLgpOYW1lOiBsc3BjaV9sb2cxClR5cGU6IGFwcGxpY2F0aW9u
-L29jdGV0LXN0cmVhbQpTaXplOiAyMDExMSBieXRlcwpEZXNjOiBsc3BjaV9sb2cxClVybCA6IGh0
-dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy9hdHRhY2htZW50
-cy8yMDA1MDMxMC9kNzA5MTg2Yy9sc3BjaV9sb2cxLm9iago=
+Hello,
+
+Patrick please can you help with this?
+
+> This module ali1535 was detected by "sensors-detect", and is loaded
+> automatically
+> each time when I reboot my Linux.
+
+Yes it seems that you have M1563 southbridge but also you have PMU PCI
+device that there was former SMBUS device for M1535.
+(and thats the reason for IO to be 0000)
+
+I would suggest you simply delete the i2c-ali1535 module from system
+it is stored in /lib/modules/kernelversion(2.6.10 for
+you)/kernel/drivers/i2c/busses
+
+(i2c-ali1535 is the driver for portable system and this looks like a
+server :)
+
+So correct driver should be i2c-ali1563, which got loaded. But simply do
+not work because there is some timeout on the bus.
+
+Please try to find in logs
+lines similar to these. So we have more information. (Or replace
+dev_dbg with dev_warn in i2c-ali156 when you fail to find correct log
+file and recompile this module)
+
+        dev_dbg(&a->dev, "Transaction (post): STS=%02x, CNTL1=%02x, "
+                "CNTL2=%02x, CMD=%02x, ADD=%02x, DAT0=%02x, DAT1=%02x\n",
+
+You can also delete(move to some other place so it wont get loaded) the
+eeprom module from system, but I dont know if it helps because we still
+dont know what type of transaction is failing.
+
+Please can you provide also a dump of this bus i2cdetect 0
+(when you have loaded i2c-ali1563) Maybe there will be more messages in
+the log.
+
+You can also try increase the ALI1563_MAX_TIMEOUT constant.
+
+Thanks
+
+regards
+
+Rudolf
