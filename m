@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:44 +0000
 Subject: Query on apparently 'disconnected' sysfs interfaces
-Message-Id: <7k6n31lmkvc46g70299f82mic0n3qro55a@4ax.com>
+Message-Id: <20050319095155.068a423b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
 In-Reply-To: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
@@ -10,108 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 18 Mar 2005 22:33:48 +0100, Jean Delvare <khali@linux-fr.org> wrote:
+Hi Philip,
 
->> alarm_mask	< beep_mask?  I'd like to have alarm_mask
->
->Beep mask and alarm mask are different things. Alarm mask lets you
->ignore an alarm completely. Beep mask preserves the alarm but masks the
->associated beeping.
->
->If alarm_mask isn't documented, it should - except that it should be
->alarms_mask.
-Okay, group with alarms_in and alarms_temp
->
->> analog_out
->> aout_output	< analog_out ?
->> out0_output
->
->This is the same thing. If we follow the naming convention for the other
->channels, the correct one would be out0_output. Should be documented,
->and drivers using analog_out and aout_output should be fixed.
-okay, but I prefer analog in name because some drivers have digital 
-out -- GPIO pins. analog0_out?  Any chips out there with multi-channel 
-DAC's?  Currently we have three chips with a single analog_out:
-lm87, adm1026 and adm9240 (so far).
+> Don't forget that there are dual CPU motherboards and some have only
+> one VID while others have two VID's.
 
->> die_code
-Some drivers need it internally, previously Khali suggested 
-printing chip revision value on detection for user.  
->
->Should probably be dropped (useless), but see below.
->
->> in1_ref
->> vid		< cpu0_vid?
->
->Both should cpu0_vid, drivers need to be fixed.
->
->> fan1_auto
->> gpio
->> gpio_mask
->> out0_enable
->> temp1_crit_enable
->> temp1_hyst
->> temp1_min_hyst
->
->I see nothing wrong with these. Remember that sysfs-interface documents
->the names for standard interface files. When a drivers has additional
->needs, it is free to use additional names. These might be standardized
->and documented later if other drivers also need the same.
-They are 'odd ones out', and yes for complicated chips.
+True. In the former case, do you know if it means that both CPUs must
+have the same VID value for the system to work, or that only one of the
+CPUs VID will be known by us? I guess it might depend on the system.
 
->The rule is that undocumented file names can be arbitrarily changed
->afterwards when a standard is established and documented. Documented
->file names should not change.
-Okay
->
->> At this point in time I'm quite happy to document and cross-reference 
->> current practice, but I don't want to duplicate a work-in-progress.
->
->Nobody is working on this at the moment. We'd welcome patches fixing
->drivers that use incorrect file names, and documentation updates.
+> I suppose that's why you're adding cpu0_ to the name, but the
+> existing practice is clear that the vast majority of monitoring chips
+> use the name 'vid'.
 
-And append following to Documentation/i2c/sysfs-interface?
+Do you mean "the vast majority of chip datasheets" or "the vast majority
+of chip drivers"? Most Linux 2.6 drivers do now use cpu0_vid, and that's
+what libsensors defaults to. Only adm1026 still uses vid.
 
-See Also:
-Documentation/filesystems/sysfs.txt
-Documentation/driver-model/device.txt
+> (Which driver uses in1_ref?)
 
- - - - 
-Making more sense the more I read, the first file above explains 
-DEVICE_ATTR() thus creating the missing link to dev_attr...  I 
-was looking for.  Doh!
+adm1025.
 
-The gobbledygook in the middle of the driver I was working on 
-makes a lot more sense now, plus other reply this thread (Mark). 
+> Changing to cpu0_vid or
+> cpu1_vid would seem to be a major change which should not be
+> undertaken lightly since this is likely to be one of the values
+> *most* referenced  by user scripts and applications.
 
-Thanks all for help, I hope you've enjoyed this newbie's bafflement 
-at going beyond applying patches to, and compiling, the kernel  :o)
+That would be changing only two drivers, one of which (adm1026) is new
+and not widely used as far as I know. Also, libsensors is updated
+accordingly so the end users should not notice the change, providing
+they upgrade both the kernel and lm_sensors at the same time. BTW, I do
+not think that adm1026's VID works right now, since the file is named
+"vid" and libsensors will look for either "cpu0_vid" or "in0_ref".
 
-Philip wrote:
->I suppose that's why you're adding cpu0_ to the name, but the existing 
->practice is clear that the vast majority of monitoring chips use the 
->name 'vid'.  (Which driver uses in1_ref?)  Changing to cpu0_vid or 
+The reason why I first changed from vid to inN_ref was that I thought it
+would make things easier for the user. Most people didn't know what
+"vid" was, but would understand what a channel reference voltage is. It
+would also have made it possible to extend the concept to other channels
+for which a reference value is known (for chips with internal voltage
+scaling, we know the reference value for all channels). However, my plan
+was defeated by the fact that motherboard manufacturers tend not to
+follow the guidelines and can use any channel for Vcore, not necessarily
+the one documented by the chip manufacturer.
 
-adm1025.c
-static ssize_t show_vid(struct device *dev, char *buf)
-{
-        struct adm1025_data *data = adm1025_update_device(dev);
-        return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
-}
-static DEVICE_ATTR(in1_ref, S_IRUGO, show_vid, NULL);
+This is the reason why I renamed in0_ref to cpu0_vid [1]. This left room
+for cpu1_vid for dual-CPU systems, and so on.
 
-thus not meet maintainer's guideline for vid public reporting.
+This choice still causes a problem in the case there are TWO hardware
+monitoring chips with one VID each, and two CPUs. We will create two
+"cpu0_vid" files while obviously one of these is really "cpu1_vid". And
+if we attempt to dynamically renumber the file, libsensors will fail to
+find the value, unless we add specific code for this (let alone the fact
+that it would make the drivers somewhat more complex).
 
->cpu1_vid would seem to be a major change which should not be undertaken 
->lightly since this is likely to be one of the values *most* referenced 
->by user scripts and applications.
+So I tend to think that the "ideal" naming scheme would be vidN, which
+is more or less a return to the initial state. It seems that it isn't
+possible to add abstraction levels here, so we have to stick with the
+raw name.
 
-Driver's private data uses vid, I've yet to cross-reference drivers 
-to public sysfs interface, which seems a useful learning exercise in 
-itself for me, as well as producing a list of current usage.
+Note that I have been working on the sysfs interface cleanups almost
+alone since the beginning. I definitely made mistakes in the process,
+but maybe they wouldn't have happened if I had not been on my own. I
+welcome comments but I would have prefered to hear them back when I was
+changing things. Now, the user-base is such that changing things again
+is almost impossible, and I fear that we'll have to stick to cpuN_vid
+for quite some time.
 
-Special exceptions and the misfit fixup list is a judgement call 
-I'll not be making.  Got to leave a little work for the maintainer? :)
+[1] http://archives.andrew.net.au/lm-sensors/msg27799.html
 
-Cheers,
-Grant.
+Thanks,
+-- 
+Jean Delvare
