@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:19 +0000
 Subject: Adding S4882 support to the i2c-amd756 driver
-Message-Id: <417313CE.4050209@penguincomputing.com>
+Message-Id: <2bNTfKEv.1098087500.8785820.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041017222721.1f12466d.khali@linux-fr.org>
 In-Reply-To: <20041017222721.1f12466d.khali@linux-fr.org>
@@ -10,76 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-How does the multiplexing work on the S4882 motherboard?  Is it 
-controlled by GPIO pins or is there an I2C mux chip on the I2C bus?
 
-What devices are on the different branches of the I2C bus?
+Hi Philip,
 
-If we could come up with a "wrapper" model of an i2c bus driver for 
-these mux situations that seems to me to be the ideal.  Such a wrapper 
-would capture the knowledge of how to mux the bus and what branch of the 
-mux is currently selected.  It would register multiple "virtual" i2c 
-busses and mark the "parent" i2c bus as no-probe and in general attempt 
-to prevent anything from accessing the parent bus directly.
+>How does the multiplexing work on the S4882 motherboard?  Is it
+>controlled by GPIO pins or is there an I2C mux chip on the I2C bus?
 
-Then our normal sensor drivers would just operate on the "virtual" 
-busses directly and the wrapper would take care of changing the mux as 
-required in an *atomic* way so that accesses are made to the different 
-busses correctly.
+I2C mux chip (Philips PCA9556) at 0x18. The mux chip controls two Philips
+PCA9516 chips, for a total of 8 additional branches.
 
-:v)
+>What devices are on the different branches of the I2C bus?
 
-Jean Delvare wrote:
+Four branches have one National Semiconductor LM63 monitoring chip (2
+temperatures, 1 fan), four branches have up to 4 memory module SPD
+EEPROMs. In my modified version of the i2c-amd756 driver, I have
+"merged" the branches by pair so that each virtual bus corresponds to
+one CPU. This makes things more straightforward for the user, and also
+reduces the mux operations. It would be great if the solution we come up
+with would preserve that.
 
->Hi all,
->
->As mentioned some days ago, I am in the process of adding support for
->the Tyan S4882 motherboard to lm_sensors.
->
->The support for the LM63 monitoring chip is already in, nothing
->particular to say about that.
->
->The SMBus support is a bit trickier though, since the board uses
->multiplexing. For now, I added support directly into the i2c-amd756
->driver. Since it increases the size of the driver, I made the extra code
->optional (will show as an option when configuring the kernel, or can be
->manually switched on and off when compiling directly in the lm_sensors
->tree; default is to include support).
->
->The size isn't necessarily a problem, since the driver is small to start
->with, and the overhead is small as well (in absolute size, that is).
->However, Mark M. Hoffman objected that in the interest of
->maintainability, separating the S4882-specific code would be better. I'm
->all for that, but my attemps to do so did all fail so far.
->
->* Composite module
->I don't know how this can be done in the lm_sensors tree. Hint anyone?
->
->* Separate module
->My initial attempt to have a separate i2c-amd756-s4882 module works in
->that the code belongs to a different file. However, both modules will be
->loaded in all cases, whether the board is a S4882 or not, because the
->main module has references to functions belonging to the extra module. I
->think it might be a little confusing for the user. The correct approach
->would be to have three modules: 1* main code, 2* pci detection for
->regular boards and 3* pci detection + extra code for the S4882. Having
->three different modules sound overkill. Also, this would probably
->involve renaming files and modules, which will make things even more
->confusing for everyone, and significant changes to the original code.
->I'm not going into that.
->
->So I think I will stick to my original plan to simply include the extra
->code in the main driver. If anyone object, please tell me how I can
->either do a composite module in the lm_sensors tree (one single module
->made of two source files), or any other way to have things done more
->cleanly.
->
->Note: All this is for 2.4/CVS only. For 2.6, Mark M. Hoffman is working
->on a completely different approach for multiplexing support, and I will
->wait for his proposal and build my work on top of that.
->
->Thanks.
->
->  
->
+The board additionaly features an ADM1027 chip and a W83627HF chip.
+Running "sensors" there when all modules are loaded is truly
+impressive :)
 
+>If we could come up with a "wrapper" model of an i2c bus driver for
+>these mux situations that seems to me to be the ideal.  Such a wrapper
+>would capture the knowledge of how to mux the bus and what branch of the
+>mux is currently selected.  It would register multiple "virtual" i2c
+>busses and mark the "parent" i2c bus as no-probe and in general attempt
+>to prevent anything from accessing the parent bus directly.
+
+This pretty much matches what Mark M. Hoffman suggested to me on IRC
+yesterday. Great you seem to agree on the proper way to do it ;) I
+didn't read the original virtual bus implementation proposal in enough
+details to say if it was similar or not.
+
+>Then our normal sensor drivers would just operate on the "virtual"
+>busses directly and the wrapper would take care of changing the mux as
+>required in an *atomic* way so that accesses are made to the different
+>busses correctly.
+
+Agreed. This isn't very different from what my current code does, except
+that I didn't separate the parent bus and the trunk bus. Instead, the
+parent bus is replaced by the trunk+mux bus before it is registered.
+This is slightly more efficient in case i2c clients are already loaded,
+but I don't think this should stop us.
+
+That said, the approach you and Mark propose will probably require some
+changes to the i2c core, so I don't think it belongs to lm_sensors CVS
+but only to linux 2.6, at least for now. For this reason, I plan to
+commit my changes to the i2c-amd756 driver to CVS. I hope to get it in
+the form of a composite module or something similar, so as to address
+Mark's fear for the lack of maintainability. If the solution planed for
+linux 2.6 isn't too intrusive (the minimum requirement is that it
+shouldn't alter any of the i2c_{adapter,algorithm,client,driver}
+structures nor prototypes of existing interface functions) and after it
+has been well tested, I may still consider porting it back to CVS and
+update the i2c-amd756 driver to make use of it.
+
+Thanks,
+Jean
