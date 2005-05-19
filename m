@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: RFC PATCH remove W83781D_RT ???
-Message-Id: <4246E1BF.4040305@mds.gotdns.com>
+Message-Id: <20050327185925.6eea45c2.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <hhec41h8ba5mi0ds5d1ong46amvgm7s3f7@4ax.com>
 In-Reply-To: <hhec41h8ba5mi0ds5d1ong46amvgm7s3f7@4ax.com>
@@ -10,26 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Grant,
+> no objections. RT was an experiment of mine we should have removed
+> long ago.
 > 
-> 
->>Driver w83781d: W83781D_RT appears to have a bug, one suggested 
->>solution is to remove it if there are no users.
->>
->>Anyone use it?  Need a second :)
-> 
-> 
-> As I said elsewhere, I am in favor of this removal. If there were any
-> used, we would have heard of that bug.
-> 
-> Just please redo the patch with the W83781D_RT definition removed as
-> well, and wait for the big lock patch to be sent to Greg before sending
-> this one, and make sure it apply fine on top of it.
-> 
-> Thanks,
+> what was the bug?
 
+In the 2.6 version of the driver:
 
-no objections. RT was an experiment of mine we should have removed long ago.
+static ssize_t
+store_rt_reg(struct device *dev, const char *buf, size_t count, int nr)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct w83781d_data *data = i2c_get_clientdata(client);
+	u32 val, i;
 
-what was the bug?
+	down(&data->update_lock);
+
+	for (i = 0; i < count; i++) {
+		val = simple_strtoul(buf + count, NULL, 10); <-- BUG HERE
+
+		/* fixme: no bounds checking 0-255 */
+		data->rt[nr - 1][i] = val & 0xff;
+		w83781d_write_value(client, W83781D_REG_RT_IDX, i);
+		w83781d_write_value(client, W83781D_REG_RT_VAL,
+				    data->rt[nr - 1][i]);
+	}
+
+	up(&data->update_lock);
+	return count;
+}
+
+"buf" and "count" are provided by sysfs. "buf" points to a buffer of
+length "count". "buf + count", by definition, is outside of the buffer,
+so there no chance simple_strtoul() returns anything useful (if it
+doesn't simply crash).
+
+So this code cannot work, which IMHO is a proof that nobody ever tried
+this so we can remove it.
+
+Thanks,
+-- 
+Jean Delvare
