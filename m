@@ -1,39 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: lm85 and emc6d102
-Message-Id: <fZl9WQiU.1107184348.6006600.khali@localhost>
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [PATCH] Rapid Hance quirk
+Message-Id: <20050421104906.17401.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050131023717.M68048@bielyvlk.sk>
-In-Reply-To: <20050131023717.M68048@bielyvlk.sk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-Hi palo,
+This patch just adds Intel's Hance Rapid south bridge IDs to ICH4 region quirk.
+Patch was successfuly tested by Chunhao Huang from Winbond.
 
-> i now use (test) patch from Rafael Espindola for EMC6D100 and it work OK
->
-> board: intel D865GLC
-> linux: 2.6.10 + (only) "lm85.c" from 2.6.11-rc2
-> lmsensors: 2.9.0
+Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
 
-Great, thanks for the report :) I updated the ticket.
+Please apply.
+Thanks
 
-> ps, will supported "fan speed monitor" in PC87372 with lmsensors ? (is
-> not important)
+Rudolf
 
-You are not the first one to ask for a driver. The PC87372 has fan
-control and monitoring capabilities, although not all boards with this
-chip might actually take benefit of these features.
-
-Unfortunately, none of us developers have a board with such a chip to
-write the driver. It would take the donation of supporting hardware for
-us to be able to do so. We had a proposal some times ago but nothing
-concrete happened since as far as I know:
-http://archives.andrew.net.au/lm-sensors/msg26908.html
-
-Thanks,
---
-Jean Delvare
+diff -Naur a/drivers/pci/quirks.c c/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c	2005-04-04 18:37:51.000000000 +0200
++++ c/drivers/pci/quirks.c	2005-04-20 19:19:53.666568200 +0200
+@@ -328,6 +328,7 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_0,		quirk_ich4_lpc_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_12,	quirk_ich4_lpc_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
+ 
+ /*
+  * VIA ACPI: One IO region pointed to by longword at
