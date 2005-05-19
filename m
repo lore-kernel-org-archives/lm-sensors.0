@@ -1,32 +1,34 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:19 +0000
-Subject: Porting chip drivers to 2.6
-Message-Id: <20030923205018.GB5609@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: Trouble accessing CVS
+Message-Id: <20030812195922.4ff7f670.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030923213039.7ff27e46.khali@linux-fr.org>
-In-Reply-To: <20030923213039.7ff27e46.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 23, 2003 at 09:30:39PM +0200, Jean Delvare wrote:
+
+> Could you perhaps pack the latest CVS release and mail it to me or 
+> something else?
+> I am most likely not allowed to access CVS by my firewall. 
+> I am logged into a machine at work from home so I cant disable the 
+> firewall. 
 > 
-> Hi Greg,
-> 
-> I plan to port my lm83 and lm90 (and possibly adm1025, but later)
-> drivers to linux 2.6. Is there a guide on how to do this yet? If there
-> is one, please point me to it. If not, I'll take another driver as an
-> example (lm75 seems to be a good choice), and write such a guide for
-> later ports.
+> >cvs -d :pserver:anon@cvs.lm-sensors.nu:/home/cvs login
+> (Logging in to anon@cvs.lm-sensors.nu)
+> CVS password: 
+> Unknown host cvs.lm-sensors.nu.
 
-I did write such a guide for i2c adapter drivers, but not for chip
-drivers, sorry.  I might have said something in the sensor mailing list
-archives... Nope can't find anything...
+This is an error I also got sometimes, but it never lasts. I guess our
+DNS isn't the best quality one could imagine.
 
-Oh well, such a guide would be nice to have for others.  Let me know if
-you have any questions about how to do this.
+If you still can't connect, I've made a copy of my repository available
+there:
+http://www.ensicaen.ismra.fr/~delvare/devel/i2c/snapshots/
 
-thanks,
+Thanks for testing.
 
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
