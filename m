@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:14 +0000
-Subject: AW: AD7418 support
-Message-Id: <20040909101939.M46105@linux-fr.org>
+Subject: AD7418 support
+Message-Id: <20040909144801.M48828@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E1C5IdT-000803-00@mrelayng.kundenserver.de>
 In-Reply-To: <E1C5IdT-000803-00@mrelayng.kundenserver.de>
@@ -10,17 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 9 Sep 2004 11:18:30 +0200, Togg wrote
-> I just took my information from the manual:
-> http://www.gateworks.com/manuals/avila_man.pdf
+Hi Togg,
 
-Oh, I see.
+Maybe you could try a visual inspection of the board looking for the hardware
+monitoring chip?
 
-BTW, you will also need a bus driver. I think that there is a driver for some
-Intel IXP series in the latest 2.6 kernels. Care to give it a try? You should
-then be able to scan the bus using i2cdetect. This would confirm the address
-of the monitoring chip. According to the docs you should also find an eeprom
-and a real-time clock on the I2C bus.
+You could also use i2cdetect to confirm whether the address is 0x28 or 0x29
+(or something different). And while you're at it, you could try to i2cdump the
+chip to see what's inside.
+
+Thanks.
 
 -- 
 Jean Delvare
