@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:47 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.4
-Message-Id: <1079391393850@kroah.com>
+Message-Id: <10793913932709@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10793913932709@kroah.com>
+In-Reply-To: <10793913932371@kroah.com>
 References: <10793913903814@kroah.com>
 In-Reply-To: <10793913903814@kroah.com>
 MIME-Version: 1.0
@@ -11,38 +11,99 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1597.1.12, 2004/03/03 10:09:09-08:00, greg@kroah.com
+ChangeSet 1.1597.1.11, 2004/03/03 10:07:50-08:00, dave.jiang@intel.com
 
-[PATCH] I2C: show adapter name in i2c-dev class directory to make it easier for userspace tools.
+[PATCH] I2C: IOP3xx i2c driver update
+
+  Here's a small patch update to the i2c-iop3xx.c in
+drivers/i2c/busses/. It fixes some functions' return value and updated
+the irq handler to be compatible with kernel 2.6. Thanks!
 
 
- drivers/i2c/i2c-dev.c |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ drivers/i2c/busses/i2c-iop3xx.c |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
 
 
-diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
---- a/drivers/i2c/i2c-dev.c	Mon Mar 15 14:35:31 2004
-+++ b/drivers/i2c/i2c-dev.c	Mon Mar 15 14:35:31 2004
-@@ -124,6 +124,13 @@
- }
- static CLASS_DEVICE_ATTR(dev, S_IRUGO, show_dev, NULL);
- 
-+static ssize_t show_adapter_name(struct class_device *class_dev, char *buf)
-+{
-+	struct i2c_dev *i2c_dev = to_i2c_dev(class_dev);
-+	return sprintf(buf, "%s\n", i2c_dev->adap->name);
-+}
-+static CLASS_DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
-+
- static ssize_t i2cdev_read (struct file *file, char __user *buf, size_t count,
-                             loff_t *offset)
+diff -Nru a/drivers/i2c/busses/i2c-iop3xx.c b/drivers/i2c/busses/i2c-iop3xx.c
+--- a/drivers/i2c/busses/i2c-iop3xx.c	Mon Mar 15 14:35:39 2004
++++ b/drivers/i2c/busses/i2c-iop3xx.c	Mon Mar 15 14:35:39 2004
+@@ -129,7 +129,7 @@
+  * NB: the handler has to clear the source of the interrupt! 
+  * Then it passes the SR flags of interest to BH via adap data
+  */
+-static void iop3xx_i2c_handler(int this_irq, 
++static irqreturn_t iop3xx_i2c_handler(int this_irq, 
+ 				void *dev_id, 
+ 				struct pt_regs *regs) 
  {
-@@ -459,6 +466,7 @@
- 	if (retval)
- 		goto error;
- 	class_device_create_file(&i2c_dev->class_dev, &class_device_attr_dev);
-+	class_device_create_file(&i2c_dev->class_dev, &class_device_attr_name);
- 	return 0;
- error:
- 	return_i2c_dev(i2c_dev);
+@@ -142,6 +142,7 @@
+ 		iop3xx_adap->biu->SR_received |= sr;
+ 		wake_up_interruptible(&iop3xx_adap->waitq);
+ 	}
++	return IRQ_HANDLED;
+ }
+ 
+ /* check all error conditions, clear them , report most important */
+@@ -185,7 +186,7 @@
+ 	unsigned sr = 0;
+ 	int interrupted;
+ 	int done;
+-	int rc;
++	int rc = 0;
+ 
+ 	do {
+ 		interrupted = wait_event_interruptible_timeout (
+@@ -198,13 +199,13 @@
+ 			return rc;
+ 		}else if (!interrupted) {
+ 			*status = sr;
+-			return rc = -ETIMEDOUT;
++			return -ETIMEDOUT;
+ 		}
+ 	} while(!done);
+ 
+ 	*status = sr;
+ 
+-	return rc = 0;
++	return 0;
+ }
+ 
+ /*
+@@ -284,7 +285,7 @@
+ {
+ 	unsigned cr = *iop3xx_adap->biu->CR;
+ 	int status;
+-	int rc;
++	int rc = 0;
+ 
+ 	*iop3xx_adap->biu->DBR = byte;
+ 	cr &= ~IOP321_ICR_MSTART;
+@@ -304,7 +305,7 @@
+ {
+ 	unsigned cr = *iop3xx_adap->biu->CR;
+ 	int status;
+-	int rc;
++	int rc = 0;
+ 
+ 	cr &= ~IOP321_ICR_MSTART;
+ 
+@@ -386,13 +387,16 @@
+ 	iop3xx_adap_reset(iop3xx_adap);
+ 	iop3xx_adap_enable(iop3xx_adap);
+ 
+-	for (im = 0; ret = 0 && im != num; ++im) {
++	for (im = 0; ret = 0 && im != num; im++) {
+ 		ret = iop3xx_handle_msg(i2c_adap, &msgs[im]);
+ 	}
+ 
+ 	iop3xx_adap_transaction_cleanup(iop3xx_adap);
++	
++	if(ret)
++		return ret;
+ 
+-	return ret;   
++	return im;   
+ }
+ 
+ static int algo_control(struct i2c_adapter *adapter, unsigned int cmd,
 
