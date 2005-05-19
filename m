@@ -1,33 +1,46 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: errors in W83627THF data sheet
-Message-Id: <1070890875.3fd47f7b67a64@imp.gcu.info>
+From: margitsw@t-online.de (Margit Schubert-While)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: LM85 - To Mark D. Studebaker
+Message-Id: <4.3.2.7.2.20030213173806.00b65a20@mail.dns-host.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
+ > Have you looked at doc/developers/new-drivers?
+ > I would like the /proc names to be standard.
+ > If you plan on continuing to work on it, I can do the initial checkin
+ > and you can request CVS access, or send me patches...
+ > Or if you are making changes soon I can wait.
+ > Which would you prefer?
 
-Hello,
+	Mark - Yep, I used these names so that my grey cells didn't get
+	confused looking at the proc entries :-)
+	I know that they have to be changed :-)
 
-I think I found two errors in your W83627THF data sheet (rev. 0.7), at
-the top of page 32, about the -12V input:
+	I'm still looking at what we can get out of all these registers.
+	Give me another week to get this in some sort of shape.
+	There are a couple of things that Intel seem to have changed :-(
 
-1* The formula should read "VIN2 = ...", not "VIN0 = ...". VIN0 is +12V
-according to the schematic on the previous page.
+	Can you E-Mail your E-address to margitsw@t-online.de
+	and, as soon as I have something that's compatible, I'll
+	send it. I'd prefer to get the driver to 90% complete before we shove it
+	into CVS.
 
-2* The resistor values are swapped. It says R3VK and R4#2K, but I
-believe it has to be R3#2K and R4VK, or the computed value doesn't
-make sense (not within the 0V..+4.096V range).
+	Two things :
+	1)  Can you reserve an I2C device Id (and E me)
+	2)  Do I have to dig through the sensors and related
+	     progs myself or can somebody take that over ?
 
-Could you please confirm?
+	sensors-detect just needs the trivial change from
+		driver => "Unwritten: lm85",
+	to
+		driver => "lm85",
 
-If I'm right, you might also want to update your data sheet. Accurate
-data sheets are very precious to us developpers :)
+	Should have mentioned in my original mail that I'm using 2.7.0
 
-Thanks.
+	Cheers
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+	Margit
