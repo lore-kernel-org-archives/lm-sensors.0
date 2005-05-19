@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:10 +0000
 Subject: flex scanner jammed
-Message-Id: <20030806174222.36736e15.zdavatz@ywesee.com>
+Message-Id: <20030806174533.77b66fdf.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030806172523.6ac44fe9.zdavatz@ywesee.com>
 In-Reply-To: <20030806172523.6ac44fe9.zdavatz@ywesee.com>
@@ -10,21 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Aug 2003 17:38:50 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
 
+> Ok, now I get:
 > 
-> > Ok. found some sensors but 'sensors-detect' hung at probing for the
-> > ISA-Bus... had restart my computer...
+> Next adapter: uni-n 0 (Keywest i2c)
+> Do you want to scan it? (YES/no/selectively):
+> Client found at address 0x30
+> Client at address 0x48 can not be probed - unload all client drivers
+> first! Client at address 0x49 can not be probed - unload all client
+> drivers first! Client at address 0x50 can not be probed - unload all
+> client drivers first!
 > 
-> I don't even know if PPC systems have an ISA bus. I suggest you answer
-> NO each time you're asked about ISA or Super-I/O chips.
-Ok done that.
+> Next adapter: uni-n 1 (Keywest i2c)
+> Do you want to scan it? (YES/no/selectively):
+> Client at address 0x48 can not be probed - unload all client drivers
+> first! Client at address 0x49 can not be probed - unload all client
+> drivers first! Client at address 0x50 can not be probed - unload all
+> client drivers first!
+> 
+> Next adapter: mac-io 0 (Keywest i2c)
+> Do you want to scan it? (YES/no/selectively):
+> Client at address 0x34 can not be probed - unload all client drivers
+> first! Client at address 0x56 can not be probed - unload all client
+> drivers first!
 
-Any idea how I can unload the client drivers?
+This could mean you have some other driver already handling these chips.
+I would expect the dmasound_pmac module to be one of them. Maybe you
+could unload it, then re-run sensors detect. Try lsmod, and if any
+module pretends to use i2c-core, it should be unloaded before running
+sensors-detect.
 
-Also what does flex scanner jammed mean? I get that when I do 'sensors'.
+> When I type sensors now I get:
+> flex scanner jammed
 
-Thanks for Feedback.
+I think this is caused by the "old" (but too recent now) sensors.conf
+file in /etc. Copy etc/sensors.conf.eg from lm_sensors-2.7.0 to
+/etc/sensors.conf, and the message should go.
 
-Zeno
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
