@@ -1,30 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: it87
-Message-Id: <20030729155544.6304403a.khali@linux-fr.org>
+From: prom@berlin.ccc.de (prom@berlin.ccc.de)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: 2.5 integration
+Message-Id: <20020204055303.GA6150@berlin.ccc.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <00d101c355ba$c10cb7a0$c8de11cc@black>
-In-Reply-To: <00d101c355ba$c10cb7a0$c8de11cc@black>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Mike,
+Hi list
 
-> I've added the it87 chip to sensord in prog/sensord/chips.c.  Been
-> working for a few days now. Patches attached.
+i finally got some time to get a closer look at
+your patch generation script and (after having
+*some* problems with my first try to generate
+patches for 2.5) have found that this isn't as
+easy as i believed it would be. I just started
+making patches manually, but this can't be a
+solution for more than a few patches.
 
-Thanks for the patch. Just a quick question. You added a function
-fmtTemps_2 (and don't even use it) which seem to be the very same as the
-fmtTemps_1 function. What's the big idea?
+Although the current build system in 2.5 is
+rather a hack to make life till arrival of
+kbuild/CML2 easier, it would be a good idea
+to rewrite mkpatch.pl to correctly handle
+the new structure.
 
-Also, you display one decimal place for the current temperature while
-the it87 does only report integer values AFAIK.
+Also, i am asking myself how files like
+i2c-ppc405.h should be handled. Did i miss
+anything or are they completely unhandled
+in the current mkpatch.pl configuration?
 
-The rest seems to be OK and will be applied.
+Ingo
+
+PS Please CC me for now. I'll send the second
+subscription request to phil in a few minutes,
+but until he responds...
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Let the people think they govern and they will be governed.
+                -- William Penn, founder of Pennsylvania
