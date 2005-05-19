@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: thenders@math.tamu.edu (Troy Henderson)
 Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: i2c, lm_sensors, and 2.4.22
-Message-Id: <1063985552.3f6b21907b6f0@imp.gcu.info>
+Message-Id: <Pine.LNX.4.44.0309191554260.27245-100000@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030905235839.5e4fe2a9.khali@linux-fr.org>
 In-Reply-To: <20030905235839.5e4fe2a9.khali@linux-fr.org>
@@ -10,82 +10,107 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Jean,
+Jean,
+
+Thanks for the reply.  I'd like to know where to locate your script.  I 
+assume that this script is similar to the mkpatch.pl provided by i2c in 
+that it will generate the appropriate patch for any kernel.  Is this 
+script on
+
+http://www.ensicaen.ismra.fr/~delvare/devel/i2c
+
+or is it somewhere else?
+
+Thanks,
+
+Troy
+
+On Fri, 19 Sep 2003, Jean Delvare wrote:
+
+> > Jean,
+> > 
+> > I successfully used your patch for kernel 2.4.22 to build i2c into
+> > the kernel for lm_sensors.  I noticed, however, that there's a
+> > mkpatch/mkpatch.pl in the i2c CVS tree.  However, when I use this
+> > to generate my patch instead of the one you provided, the patch
+> > works correctly, however I get kernel compilation erros that read
+> > as
+> > (...)
+> > gcc -D__KERNEL__ -I/usr/src/linux-2.4.22/include -Wall
+> > -Wstrict-prototypes 
+> > -Wno- trigraphs -O2 -fno-strict-aliasing -fno-common
+> > -fomit-frame-pointer 
+> > -pipe -mpref erred-stack-boundary=2 -march=athlon -DMODULE
+> > -DMODVERSIONS 
+> > -include /usr/src/li nux-2.4.22/include/linux/modversions.h 
+> > -nostdinc 
+> > -iwithprefix include -DKBUILD_ BASENAME=bttv_if  -DEXPORT_SYMTAB -c 
+> > bttv-if.c
+> > bttv-if.c:244: error: unknown field `inc_use' specified in
+> > initializer
+> > bttv-if.c:244: warning: initialization from incompatible pointer
+> > type
+> > bttv-if.c:245: error: unknown field `dec_use' specified in
+> > initializer
+> > bttv-if.c:245: warning: missing braces around initializer
+> > bttv-if.c:245: warning: (near initialization for 
+> > `bttv_i2c_adap_template.name')
+> > bttv-if.c:245: warning: initialization makes integer from pointer
+> > without 
+> > a cast
+> > bttv-if.c:245: error: initializer element is not computable at load
+> > time
+> > bttv-if.c:245: error: (near initialization for 
+> > `bttv_i2c_adap_template.name[0]')
+> > bttv-if.c:246: error: initializer element is not constant
+> > bttv-if.c:246: error: (near initialization for 
+> > `bttv_i2c_adap_template.name')
+> > make[3]: *** [bttv-if.o] Error 1
+> > make[3]: Leaving directory
+> > `/usr/src/linux-2.4.22/drivers/media/video'
+> > make[2]: *** [_modsubdir_video] Error 2
+> > make[2]: Leaving directory `/usr/src/linux-2.4.22/drivers/media'
+> > make[1]: *** [_modsubdir_media] Error 2
+> > make[1]: Leaving directory `/usr/src/linux-2.4.22/drivers'
+> > make: *** [_mod_drivers] Error 2
+> > (...)
+> > I'm not sure what's causing this.  Do you have any insight.  I did
+> > the following to produce my patched kernel for i2c and lm_sensors
+> > 
+> > cd /usr/src/linux-2.4.22
+> > $I2C_PATH/mkpatch/mkpatch.pl $I2C_PATH . | patch -p1
+> > $LM_SENSORS_PATH/mkpatch/mkpatch.pl $LM_SENSORS_PATH . | patch -p1
+> > 
+> > and both patches went through correctly.  However, something's
+> > obviously wrong becuase bttv fails to compile.
+> > 
+> > Any help on this would be much appreciated.
 > 
-> I successfully used your patch for kernel 2.4.22 to build i2c into
-> the kernel for lm_sensors.  I noticed, however, that there's a
-> mkpatch/mkpatch.pl in the i2c CVS tree.  However, when I use this
-> to generate my patch instead of the one you provided, the patch
-> works correctly, however I get kernel compilation erros that read
-> as
-> (...)
-> gcc -D__KERNEL__ -I/usr/src/linux-2.4.22/include -Wall
-> -Wstrict-prototypes 
-> -Wno- trigraphs -O2 -fno-strict-aliasing -fno-common
-> -fomit-frame-pointer 
-> -pipe -mpref erred-stack-boundary=2 -march=athlon -DMODULE
-> -DMODVERSIONS 
-> -include /usr/src/li nux-2.4.22/include/linux/modversions.h 
-> -nostdinc 
-> -iwithprefix include -DKBUILD_ BASENAME=bttv_if  -DEXPORT_SYMTAB -c 
-> bttv-if.c
-> bttv-if.c:244: error: unknown field `inc_use' specified in
-> initializer
-> bttv-if.c:244: warning: initialization from incompatible pointer
-> type
-> bttv-if.c:245: error: unknown field `dec_use' specified in
-> initializer
-> bttv-if.c:245: warning: missing braces around initializer
-> bttv-if.c:245: warning: (near initialization for 
-> `bttv_i2c_adap_template.name')
-> bttv-if.c:245: warning: initialization makes integer from pointer
-> without 
-> a cast
-> bttv-if.c:245: error: initializer element is not computable at load
-> time
-> bttv-if.c:245: error: (near initialization for 
-> `bttv_i2c_adap_template.name[0]')
-> bttv-if.c:246: error: initializer element is not constant
-> bttv-if.c:246: error: (near initialization for 
-> `bttv_i2c_adap_template.name')
-> make[3]: *** [bttv-if.o] Error 1
-> make[3]: Leaving directory
-> `/usr/src/linux-2.4.22/drivers/media/video'
-> make[2]: *** [_modsubdir_video] Error 2
-> make[2]: Leaving directory `/usr/src/linux-2.4.22/drivers/media'
-> make[1]: *** [_modsubdir_media] Error 2
-> make[1]: Leaving directory `/usr/src/linux-2.4.22/drivers'
-> make: *** [_mod_drivers] Error 2
-> (...)
-> I'm not sure what's causing this.  Do you have any insight.  I did
-> the following to produce my patched kernel for i2c and lm_sensors
+> Hi Troy,
 > 
-> cd /usr/src/linux-2.4.22
-> $I2C_PATH/mkpatch/mkpatch.pl $I2C_PATH . | patch -p1
-> $LM_SENSORS_PATH/mkpatch/mkpatch.pl $LM_SENSORS_PATH . | patch -p1
+> Well, that's easy. My patch is simply the one generated by i2c's
+> mkpatch.pl, plus a set of additional patches that fix compatibility
+> issues. This is the exact reason why I am building my patches - because
+> they are better than what mkpatch.pl does.
 > 
-> and both patches went through correctly.  However, something's
-> obviously wrong becuase bttv fails to compile.
+> So, you are invited to use my script for the i2c part, and mkpatch.pl
+> for the lm_sensors part. This will give you a perfectly working kernel.
+> If not, let me know and I'll fix whatever needs to be.
 > 
-> Any help on this would be much appreciated.
+> We hope to have my patches incorporated into Linux 2.4.23, so that
+> people won't have to get them by themselves anymore.
+> 
+> -- 
+> Jean Delvare
+> http://www.ensicaen.ismra.fr/~delvare/
+> 
+> -------------------------------------------------
+> This mail sent through IMP: http://horde.org/imp/
+> 
 
-Hi Troy,
-
-Well, that's easy. My patch is simply the one generated by i2c's
-mkpatch.pl, plus a set of additional patches that fix compatibility
-issues. This is the exact reason why I am building my patches - because
-they are better than what mkpatch.pl does.
-
-So, you are invited to use my script for the i2c part, and mkpatch.pl
-for the lm_sensors part. This will give you a perfectly working kernel.
-If not, let me know and I'll fix whatever needs to be.
-
-We hope to have my patches incorporated into Linux 2.4.23, so that
-people won't have to get them by themselves anymore.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
-
--------------------------------------------------
-This mail sent through IMP: http://horde.org/imp/
+##########################################################################
+Troy Henderson                  Office: Blocker Building 619
+Department of Mathematics       Phone : (979) 845-7769
+Texas A&M University            E-mail: thenders@math.tamu.edu
+College Station, TX 77845       URL   : http://www.math.tamu.edu/~thenders
+##########################################################################
