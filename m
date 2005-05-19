@@ -1,34 +1,41 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:51 +0000
-Subject: [PATCH 2.6] Refactor swap_bytes in i2c chip drivers
-Message-Id: <20040408172316.GA10734@kroah.com>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:24:53 +0000
+Subject: [PATCH] sensors.conf for an Abit BP6 motherboard
+Message-Id: <20040416192633.GC31563@pc.aurel32.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040329212303.2b47b12d.khali@linux-fr.org>
-In-Reply-To: <20040329212303.2b47b12d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Apr 03, 2004 at 01:04:24PM +0200, Jean Delvare wrote:
-> > > > Ick, no, we should be using the proper kernel call for this,
-> > > > swab16(), right?  Care to redo this patch to just fix the drivers
-> > > > and get rid of our duplicating of this function.
-> > > 
-> > > Oh, I didn't know such a function existed, sorry.
-> > > 
-> > > Here's a new patch, hope you like it. Tested to work on my as99127f,
-> > > btw(w83781d driver).
-> > 
-> > Looks good, applied, thanks.
-> 
-> Hm, it doesn't show in linux-2.6.5-rc3-mm4, although all others patches
-> you accepted the same day do.
+Hi all !
 
-Hm, odd.  You are right, I just went and applied it again.  Sorry about
-that, sometimes bk just doesn't apply the patch...  Or I messed up with
-all of these different ones floating around :)
+I have attached a patch that adds comments to sensors.conf to explain
+how to configure it for an Abit BP6 motherboard. Please feel free to
+apply it or not.
 
-thanks,
+Cheers,
+Aurelien
 
-greg k-h
+-- 
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineering Student 
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+diff -urN lm_sensors2.orig/etc/sensors.conf.eg lm_sensors2/etc/sensors.conf.eg
+--- lm_sensors2.orig/etc/sensors.conf.eg	2004-04-16 20:32:04.000000000 +0200
++++ lm_sensors2/etc/sensors.conf.eg	2004-04-16 20:33:19.000000000 +0200
+@@ -404,6 +404,12 @@
+     label in7 "V5SB"
+     label in8 "VBat"
+ 
++# Abit BP6 motherboard has a few differences. VCore1 and VCore2 are the core
++# voltages of the two processors. Vtt is memory bus termination resistors
++# voltage.
++#    label in1 "Vtt"
++#    label in8 "VCore2"
++
+     compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+     compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+     compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
