@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: 2.8.1
-Message-Id: <20031026192601.50f00938.khali@linux-fr.org>
+Message-Id: <20031026183222.GB2294@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F6484BA.24E78516@paradyne.com>
 In-Reply-To: <3F6484BA.24E78516@paradyne.com>
@@ -10,25 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Sun, Oct 26, 2003 at 07:26:01PM +0100, Jean Delvare wrote:
+> 
+> Hi Axel, hi all,
+> 
+> I just uploaded new i2c patches for the Linux 2.4.22 kernel based on the
+> freshly released 2.8.1 i2c.
 
-Hi Axel, hi all,
+Uploaded where?
 
-I just uploaded new i2c patches for the Linux 2.4.22 kernel based on the
-freshly released 2.8.1 i2c. This patchset will be the base of the patch
-I'll post to the LKML for inclusion. It will require some changes to
-apply cleanly to 2.4.23-pre8, but basically that's it. Everyone is
-welcome to test it. I've myself checked that it would at least compile,
-but I can't test everything. Some drivers can only be compiled on
-non-x86 systems, so I can't hardly test them. For the rest of the
-drivers, I'll test them on the hardware I do have, but I of course don't
-have all the required hardware.
+Care to send it to the list (and cc me, as I'm not keeping up on my
+sensors traffic due to Real Life stuff right now...)?
 
-So everyone please review, test and comment my patch before I will
-submit it to the kernel folks. I'd really like it to be included to
-Linux 2.4.23.
+> This patchset will be the base of the patch I'll post to the LKML for
+> inclusion.
 
-Thanks.
+It needs to be a set of incremental patches, that do not break the API
+for any current drivers.  Hm, it's also a bit late in the 2.4.23-pre
+series to expect to get this in, but we can work on that.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+thanks,
+
+greg k-h
