@@ -1,79 +1,113 @@
-From: phil@edgedesign.us (Philip Edelbrock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: Bugzilla setup for Lm_sensors
-Message-Id: <41E718CA.3070305@edgedesign.us>
+Message-Id: <sflFHE0W.1105691432.8006290.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <41E718CA.3070305@edgedesign.us>
+In-Reply-To: <41E718CA.3070305@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Please see below for our conversation on Bugzilla topics.  Comments wanted!
+Hi Phil, hi Axel,
 
+> Please see below for our conversation on Bugzilla topics.  Comments
+> wanted!
 
-Phil
+First of all, thanks a lot for working on this. I will be very happy when
+we finally move from our old ticket system to bugzilla :) Don't get me
+wrong, the old ticket system isn't all bad and I appreciate the work
+that was made on it, but the limitations it had (no possible follow-up
+by the submitter to name only the major one) made it hard to use
+efficiently.
 
-Axel Thimm wrote:
-> On Mon, Jan 10, 2005 at 03:08:41PM -0800, Philip Edelbrock wrote:
-> 
->>
->>Axel Thimm wrote:
->>
->>
->>>>I'm thinking 'i2c' and 'lm_sensors' for the products. And then breaking 
->>>>out each driver (chip and bus) for the components, each app in 'prog' 
->>>>(e.g. 'i2c-detect','sensors-detect',etc.) and adding either a catchall 
->>>>for the rest of the code or breaking them out further (e.g. 'dev', 
->>>>'proc', 'core', etc.).
->>>>
->>>>What do you think?
->>>
->>>
->>>That sounds sane. The most invariant decision is the products
->>>part. components can be easily added or removed or left unspecified.
->>>
->>>I wished there were a hierachical structure in components, so that one
->>>could use
->>>
->>>|-->chips
->>>|  |-->...
->>>|  |-->...
->>>|-->busses
->>>
->>>but there isn't, it has to be kept flat (or we embed the hierachy in
->>>the components like "chips:lm93").
->>>
->>
->>Yeah.  The nice thing with the project is that all bus drivers start 
->>with 'i2c-', so by the names alone we can tell if it is a chip or bus 
->>driver.  But will that be abvious enough for everyone else? (Especially 
->>users submitting bugs?)  But, it would look add to see all bus drivers 
->>labelled the same "busses:i2c-..."
-> 
-> 
-> I agree, it should be kept as simple as possible, and there aren't
-> miriads of components (Red Hat for instance has > 1000 for each rpm
-> package).
-> 
-> So how about simply using
-> 
-> adm1021 adm1024 adm1025 adm1026 adm1031 adm9240 asb100 bmcsensors
-> bt869 ddcmon dmi_scan ds1307 ds1621 eeprom fscher fscpos fscscy
-> gl518sm gl520sm i2c-adap-ibm_ocp i2c-algo-8xx i2c-algo-bit
-> i2c-algo-biths i2c-algo-ibm_ocp i2c-algo-pcf i2c-ali1535 i2c-ali15x3
-> i2c-amd756 i2c-amd756-s4882 i2c-amd8111 i2c-core i2c-dev i2c-elektor
-> i2c-elv i2c-frodo i2c-hydra i2c-i801 i2c-i810 i2c-iop3xx i2c-ipmb
-> i2c-ipmi i2c-isa i2c-keywest i2c-nforce2 i2c-pcf-epp i2c-philips-par
-> i2c-piix4 i2c-pport i2c-proc i2c-rpx i2c-savage4 i2c-sis5595
-> i2c-sis630 i2c-sis645 i2c-tsunami i2c-velleman i2c-via i2c-viapro
-> i2c-virtual i2c-voodoo3 icspll it87 lm63 lm75 lm78 lm80 lm83 lm85 lm87
-> lm90 lm92 lm93 ltc1710 matorb max1619 max6650 maxilife mtp008 pc87360
-> pca9540 pca954x pcf8574 pcf8591 saa1064 sis5595 smartbatt smbus-arp
-> smsc47m1 thmc50 via686a vt1211 vt8231 w83627hf w83781d w83l785ts
-> xeontemp
-> 
-> for the kernel components?
-> 
+> I'm thinking 'i2c' and 'lm_sensors' for the products. And then breaking
+> out each driver (chip and bus) for the components, each app in 'prog'
+> (e.g. 'i2c-detect','sensors-detect',etc.) and adding either a catchall
+> for the rest of the code or breaking them out further (e.g. 'dev',
+> 'proc', 'core', etc.).
+>
+> What do you think?
+
+What are these "Products"? When looking at the kernel's bugzilla I see
+categories and components within the categories, but no products.
+
+http://bugzilla.kernel.org/query.cgi
+
+I am not sure that formally splitting i2c and lm_sensors as products is
+wise. There are a couple bus drivers in the i2c package while the other
+ones are in lm_sensors. Also, the split between i2c and lm_sensors might
+not be clear to the user so it might confuse them more than help.
+
+> I wished there were a hierachical structure in components, so that one
+> could use
+>
+> |-->chips
+> |  |-->...
+> |  |-->...
+> |-->busses
+>
+> but there isn't, it has to be kept flat (or we embed the hierachy in
+> the components like "chips:lm93").
+
+I would use the Categories for that. I would propose the following
+categories, with non-exhaustive components lists:
+
+i2c core drivers
+    |--> i2c-core
+    |--> i2c-proc
+    |--> i2c-dev
+    |--> i2c-isa
+bus drivers
+    |--> i2c-ali15x3
+    |--> i2c-ali1535
+    |--> i2c-i801
+    |--> i2c-viapro
+    |--> ...
+chip drivers
+    |--> adm1021
+    |--> adm1025
+    |--> adm1031
+    |--> it87
+    |--> lm63
+    |--> lm75
+    |--> lm80
+    |--> lm83
+    |--> lm85
+    |--> lm87
+    |--> lm90
+    |--> lm92
+    |--> lm93
+    |--> via686a
+    |--> vt1211
+    |--> vt8231
+    |--> w83781d
+    |--> w83627hf
+    |--> ...
+userspace tools
+    |--> sensors
+    |--> sensord
+    |--> sensors-detect
+    |--> i2cdetect
+    |--> i2cdump
+    |--> i2cset
+    |--> isadump
+    |--> isaset
+    |--> ddcmon
+    |--> ...
+
+I guess it somehow covers the hierarchical structure you were thinking of.
+
 > The main purpose of components is for developers to be auto-assigned
 > them and to be able to sort easier through the bugs.
+
+Completely agree. It would help much if we could all get an alert when
+one of "our" drivers gets a report, instead of having to watch the
+tickets as they are created and ignore those we don't feel competent
+for.
+
+Thanks again,
+--
+Jean Delvare
