@@ -1,43 +1,58 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:50 +0000
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: [RFC PATCH 2.6.12-rc2-mm2 0/2] i2c: new sysfs class "hwmon"
-Message-Id: <20050411044427.GA4963@jupiter.solarsys.private>
+Message-Id: <20050412215554.GD18710@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050411044427.GA4963@jupiter.solarsys.private>
+In-Reply-To: <20050411044427.GA4963@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali, Greg, et. al:
+On Mon, Apr 11, 2005 at 12:44:27AM -0400, Mark M. Hoffman wrote:
+> Hi Khali, Greg, et. al:
+> 
+> After a brief chat w/ Khali last week (and some reading LDDv3) I did these
+> patches.  The result for me looks like this:
+> 
+> /sys/class/hwmon/1-0290/device/ -> /sys/devices/platform/i2c-1/1-0290
+> 
+> Notes/Questions:
 
-After a brief chat w/ Khali last week (and some reading LDDv3) I did these
-patches.  The result for me looks like this:
+First a question from me, why?  What are you trying to do here?  Who
+will be using the hwmon class?  And what for?  Will all "sensor-like"
+sysfs files move to this new class, or is it just to enable userspace to
+be able to find the hwmon devices easier?
 
-/sys/class/hwmon/1-0290/device/ -> /sys/devices/platform/i2c-1/1-0290
+> 1. I don't like "1-0290" for a class ID, but it was the easiest thing to
+> use at the time.  A better name might be w83627thf-0.
 
-Notes/Questions:
+As long as it's unique, that's the only requirement.
 
-1. I don't like "1-0290" for a class ID, but it was the easiest thing to
-use at the time.  A better name might be w83627thf-0.
+> 2. The kernel complains if I don't provide a class::release function, but
+> I can't really see a need for it in this case.  If I hold a file open through
+> the /sys/class/hwmon/X/device/Y link and then try to rmmod the driver, the 
+> rmmod will sleep until I close the file just as I expect.  Any hints here
+> Greg?
 
-2. The kernel complains if I don't provide a class::release function, but
-I can't really see a need for it in this case.  If I hold a file open through
-the /sys/class/hwmon/X/device/Y link and then try to rmmod the driver, the 
-rmmod will sleep until I close the file just as I expect.  Any hints here
-Greg?
+Ick, yes, you _must_ have a release function.  _Please_ listen to the
+kernel, it isn't saying those things for no reason...  If you add a file
+to the class device, and do not have a release function, then you can
+have a memory leak.  The way that you use the class device owned by a
+different device is not safe, nor a good idea.  I recommend using the
+"class_device_create()" function that has been added to the -mm tree (or
+the class_simple stuff that's in mainline, if you want an idea of what
+it is.  Hm, no that will not quite work, that's why I wrote the
+class_device_create() call...use that.)
 
-3. I added the struct class_device to struct i2c_client.  This makes it
-slightly easier to modify the sensors drivers... but not all i2c_clients
-will need it (bloat).  It could be added to each struct <driver>_data
-(e.g. w83627hf_data) instead.
+> 3. I added the struct class_device to struct i2c_client.  This makes it
+> slightly easier to modify the sensors drivers... but not all i2c_clients
+> will need it (bloat).  It could be added to each struct <driver>_data
+> (e.g. w83627hf_data) instead.
 
-4. I didn't modify all the chips, just w83627hf.c and lm78.c as examples.
-(IIRC Khali experiments a lot on lm78).
+Use a pointer instead, and the class_device_create function.
 
-Comments?
+thanks,
 
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+greg k-h
