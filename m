@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: New subscription request to list lm-sensors from
-Message-Id: <20050516211434.35f8a69b.khali@linux-fr.org>
+Message-Id: <20050516192918.GF14433@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4288E1AD.5080909@edgedesign.us>
 In-Reply-To: <4288E1AD.5080909@edgedesign.us>
@@ -10,48 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Axel,
-
-> > Actually I disabled this for both list, as I don't think we want to
-> > constantly monitor who's joining the list. Anyone who wants to
-> > subscribe can do so.
+On Mon, May 16, 2005 at 09:14:34PM +0200, Jean Delvare wrote:
+> > OK, there is also:
+> > 
+> > 2* import old archives
+> > 
+> > I have all archives until yesterday.
 > 
-> OK. There are two switches to turn off, subscription approval (the
-> mail above) and subscription notification.
+> Correct. And I guess you can pick the few additional ones from your own
+> mbox? Not a big problem if a few posts are missing anyway.
 
-Did both on both list, so that should be OK.
+That's not an option, I want them all ;)
 
-> > I set the lm-sensors list so that non-members can post. I set the
-> > lm-sensors-commit list so that only members can post, except for the
-> > CVS robot.
-> 
-> Why, shouldn't only the CVS robot be able to post? How about setting
-> replies to the discussion list? That's what most projects do, e.g. the
-> -commits list is a read-only list and any discussion started from
-> there is relayed to a -devel list.
+I thought we'll temporarily close this list, have a final sync with
+Andrew's archives and then start on the new list. Is that acceptable?
 
-Mmm yes that's a possibility. My concern wass that people suscribed to
-lm-sensors but not lm-sensors-commit would then lack the original post
-for that thread - but maybe that's better that not seeing the thread at
-all.
+> Oh, while we're at it. The old archive has a whole lot of posts named
+> "Notification d'?tat de la distribution" (with "Undeliverable:" 0 or
+> more times in front). These are crap. Could you possibly delete them
+> before you push the old archive into Mailman? They're all grouped
+> together.
 
-I've changed the lm-sensors-commit to work like that (or so I hope).
-
-> OK, there is also:
-> 
-> 2* import old archives
-> 
-> I have all archives until yesterday.
-
-Correct. And I guess you can pick the few additional ones from your own
-mbox? Not a big problem if a few posts are missing anyway.
-
-Oh, while we're at it. The old archive has a whole lot of posts named
-"Notification d'??tat de la distribution" (with "Undeliverable:" 0 or
-more times in front). These are crap. Could you possibly delete them
-before you push the old archive into Mailman? They're all grouped
-together.
-
-Thanks,
+OK, I'll check on that.
 -- 
-Jean Delvare
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050516/28744b22/attachment.bin
