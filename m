@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: p.koegler@el-me.de (=?iso-8859-1?Q?K=F6gler_Peter?=)
 Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: i2c_smbus_write_* will never work
-Message-Id: <200407120942.i6C9g49u017164@zone3.gcu-squad.org>
+Message-Id: <367ED8C46538D7119DAC000A0D106744520D63@elmegmbh.elmedmn.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <367ED8C46538D7119DAC000A0D106744520D5F@elmegmbh.elmedmn.com>
 In-Reply-To: <367ED8C46538D7119DAC000A0D106744520D5F@elmegmbh.elmedmn.com>
@@ -9,6 +9,39 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+hi jean,
+can you confirm that i2c_smbus_xfer_emulated is called and not smbus_xfer
+when you communicate (see i2c_smbus_xfer) to the chip. 
+
+hi mark,
+until now i didn't have the time to test your fix. i will do it the next
+days.
+
+wbr
+peter
+
+
+
+--------------------------------------------------------------
+Peter K?gler
+EL-ME AG
+Gewerbering 1
+D-84072 Au i. d. Hallertau
+
+Tel.:     +49 / 8752 / 864 - 527
+Fax.:     +49 / 8752 / 864 - 100
+mailto.:  p.koegler@el-me.de         
+Web:      www.el-me.de
+ 
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: Monday, July 12, 2004 11:42 AM
+To: sensors@Stimpy.netroedge.com
+Cc: K?gler Peter
+Subject: Re: i2c_smbus_write_* will never work
+
 
 
 >Correction, i2cset can't be used to reproduce the problem because it uses
@@ -26,5 +59,6 @@ driver.
 I did that several times and can confirm it always worked fine. So,
 whatever the exact problem is, it's more complex than just "emulated
 smbus writes don't work".
+
 
 Jean Delvare
