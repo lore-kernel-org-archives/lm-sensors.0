@@ -1,7 +1,7 @@
-From: jargon@hurg.org (Johannes =?utf-8?B?V2Vpw59s?=)
-Date: Thu, 19 May 2005 06:24:13 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:14 +0000
 Subject: Ticket #1376
-Message-Id: <20030824010645.GA8531@hurg.org>
+Message-Id: <20030824102450.2f562ab3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030817003245.GA12961@hurg.org>
 In-Reply-To: <20030817003245.GA12961@hurg.org>
@@ -10,76 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 2003-08-23 21:23:03, Jean Delvare wrote:
-> > I don't have applied the GRSEC patch to my kernel (I've downloaded
-> > the kernel source from kernel.org).
-> > 
-> > I upgraded to 2.8.0 (after removing ALL 2.7.0 remains), but the error
-> > is still there.
+
+> Yes, sensors-detect has suggested it ... here is my /etc/modules
+> (after running sensors-detect 2.8.0):
 > 
-> OK, so the problem is still there :( I thought it was fixed.
+> --- snip ---
+> # I2C adapter drivers
+> i2c-viapro
+> i2c-isa
 > 
-> Why do you have the adm1021 module loaded? Doesn't seem to be used. Has
-> sensors-detect been suggesting you should load it? Likewise, I don't
-> think i2c-viapro is used (unless you partly hid the output of sensors).
-> Does unloading all (i2c-related) modules and reload only the ones you
-> need solve your problem? (unlikely)
-
-Yes, sensors-detect has suggested it ... here is my /etc/modules
-(after running sensors-detect 2.8.0):
-
---- snip ---
-# I2C adapter drivers
-i2c-viapro
-i2c-isa
-
-# I2C chip drivers
-adm1021
-eeprom
-w83781d
---- snip ---
-
-I don't know if viapro is used, but it's in the "i2c-core" list
-
-# lsmod | grep i2c
-i2c-proc    6644 1 [w83781d eeprom adm1021]
-i2c-isa      724 0 (unused)
-i2c-viapro  3468 0 (unused)
-i2c-core   15556 0 [w83781d eeprom adm1021 i2c-proc i2c-isa i2c-viapro]
-
-> Could you try writing to the files by yourself? For example, move to
-> /proc/sys/dev/sensors/w83697hf-isa-0290 and do:
-> echo "50 60" > temp1
-> Then read back the values from temp1. Does it work?
-
-yes, it works!
-
-# echo "30 40" > temp1
-# cat temp1
-30.0 40.0 32.0
-# echo "50 60" > temp1
-# cat temp1
-50.0 60.0 32.0
-
-> In your original ticket, you wrote:
-> > cd /proc/sys/dev/sensors
-> > cat chips
-> 256     w83697hf-isa-029
+> # I2C chip drivers
+> adm1021
+> eeprom
+> w83781d
+> --- snip ---
 > 
-> Is it really "w83697hf-isa-029" or is the trailing "0" missing in your
-> copy only?
+> I don't know if viapro is used, but it's in the "i2c-core" list
 
-yes, it's "w83697hf-isa-0290", I forgot the trailing "0" ... sorry
+The i2c-viapro module is used by the eeprom module. This is only useful
+to read the SPD EEPROMs found on your memory modules, and I guess you
+can live without it, so feel free to remove i2c-viapro and eeprom from
+the list for faster operations.
 
-# cat /proc/sys/dev/sensors/chips
-256     eeprom-i2c-0-50
-257     w83697hf-isa-0290
+Before you do that, however, I'm interested in the adm1021 problem. You
+don't seem to have such a chip on your system, so I wonder why
+sensors-detect told you to use it. Could you please provide a full log
+of sensors-detect? Please unload all chip drivers (adm1021, eeprom,
+w83781d) before running sensors-detect again.
 
-> I hope we'll find a solution.
+I suspect you have an unsupported chip that has been misdetected as an
+adm1021 clone.
 
-Thank you for your efforts!
-(and sorry for my bad English :-) )
+> > Could you try writing to the files by yourself? For example, move to
+> > /proc/sys/dev/sensors/w83697hf-isa-0290 and do:
+> > echo "50 60" > temp1
+> > Then read back the values from temp1. Does it work?
+> 
+> yes, it works!
+> 
+> # echo "30 40" > temp1
+> # cat temp1
+> 30.0 40.0 32.0
+> # echo "50 60" > temp1
+> # cat temp1
+> 50.0 60.0 32.0
+
+So the /proc interface isn't at fault here.
+
+The two suspects left are: libsensors, and sensors itself. I'm not fully
+qualified to track that kind of bug. I think that Philip Pokorny would
+be much more that I am. In a similar case, he suggested to use "strace
+-o /tmp/sensors.strace sensors -s". Maybe we can start with that.
+
+Maybe the problem is that sensors drops its root priviledges at some
+point. But I don't know why nor how it could do that. All I know is that
+only Debian-system-based (or clones) users have reported the problem,
+which is probably not a simpe coincidence. What's more, I think I
+remember the i2c-isa module was in use each time. That too is probably
+not a coincidence. What do Debian systems have particular, and what does
+the i2c-isa module do that other bus drivers don't?
+
 
 -- 
-cu,
-Johannes Wei?l
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
