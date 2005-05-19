@@ -1,30 +1,57 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: [BK PATCH] More i2c driver fixes for 2.6.0-test2
-Message-Id: <20030811204316.GB18382@kroah.com>
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: [BK PATCH] More i2c driver fixes for 2.6.0-test5
+Message-Id: <20030925214838.GA30072@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030808235501.GA2795@kroah.com>
 In-Reply-To: <20030808235501.GA2795@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-On Sat, Aug 09, 2003 at 09:38:11AM +0200, Jean Delvare wrote:
-> 
-> > Here are some more i2c driver fixes for 2.6.0-test2.  They include a
-> > fix for the driver model code (no release function, so easy oopses
-> > could happen by users), and removing usage of the struct device.name
-> > field as that is about to go away.
-> > 
-> > Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.5
-> 
-> Do any of these apply to our CVS tree?
+Hi,
 
-Nope, in fact it now makes the i2c drivers a bit more compatible with
-the older 2.4 versions now that I had to move the name field back into
-the i2c structures.
+Here are some more i2c driver fixes and additions for 2.6.0-test5.  I've
+fixed up the check_region/request_region logic for isa drivers and moved
+the i2c algorithms into their own subdirectory, both as recommended by
+Christoph, and added the eeprom i2c chip driver (ported from the 2.4
+tree and converted to use the sysfs binary file interface).
+
+There are a also a few other minor i2c cleanups and fixes in here.
+
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
 
 thanks,
 
 greg k-h
+
+ drivers/i2c/i2c-algo-bit.c        |  567 ------------------------
+ drivers/i2c/i2c-algo-ite.c        |  872 --------------------------------------
+ drivers/i2c/i2c-algo-pcf.c        |  479 --------------------
+ drivers/i2c/i2c-ite.h             |  117 -----
+ drivers/i2c/i2c-pcf8584.h         |   78 ---
+ Documentation/i2c/sysfs-interface |    5 
+ drivers/i2c/Kconfig               |   38 -
+ drivers/i2c/Makefile              |    5 
+ drivers/i2c/algos/Kconfig         |   45 +
+ drivers/i2c/algos/Makefile        |    7 
+ drivers/i2c/algos/i2c-algo-bit.c  |  567 ++++++++++++++++++++++++
+ drivers/i2c/algos/i2c-algo-ite.c  |  872 ++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/algos/i2c-algo-ite.h  |  117 +++++
+ drivers/i2c/algos/i2c-algo-pcf.c  |  479 ++++++++++++++++++++
+ drivers/i2c/algos/i2c-algo-pcf.h  |   78 +++
+ drivers/i2c/busses/i2c-elektor.c  |    2 
+ drivers/i2c/chips/Kconfig         |   12 
+ drivers/i2c/chips/Makefile        |    1 
+ drivers/i2c/chips/eeprom.c        |  290 ++++++++++++
+ drivers/i2c/i2c-sensor.c          |    5 
+ 20 files changed, 2469 insertions(+), 2167 deletions(-)
+-----
+
+Greg Kroah-Hartman:
+  o I2C: remove unneeded #defines in the eeprom chip driver
+  o I2C: add eeprom i2c chip driver
+  o I2C: move the i2c algorithm drivers to drivers/i2c/algos
+  o I2C: remove the isa address check alltogether
