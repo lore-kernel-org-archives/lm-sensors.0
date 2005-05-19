@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: joerg@dorchain.net (Joerg Dorchain)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: Installation report/Feedback
-Message-Id: <20031220140851.3ce15a64.khali@linux-fr.org>
+Message-Id: <20031221110032.GG495@GreenHouse.dorchain.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031207183312.GA855@GreenHouse.dorchain.net>
 In-Reply-To: <20031207183312.GA855@GreenHouse.dorchain.net>
@@ -10,42 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The motherboard is Ausus OEM by 4MBO. (...)
+On Sat, Dec 20, 2003 at 02:08:51PM +0100, Jean Delvare wrote:
+> > The motherboard is Ausus OEM by 4MBO. (...)
+> 
+> I suppose you really mean "Asus"?
 
-I suppose you really mean "Asus"?
+Yes. Sorry.
+> 
+> Sure. Provide i2cdumps for these and I'll take a look. That said, you
+> already have two monitoring chips on smbus 1, so I doubt we'll find any
+> more on smbus 0.
 
-> i2cdetect 1
-> (...)
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
-> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d 2e XX
-> 30: XX XX XX XX XX XX XX 37 XX XX XX XX XX XX XX XX
-> 40: XX XX XX XX XX XX XX XX 48 49 XX XX XX XX XX XX
-> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 7f
+i2cdetect 0   WARNING! This program can confuse your I2C bus, cause data
+loss and worse!
+  I will probe file /dev/i2c-0
+  You have five seconds to reconsider and press CTRL-C!
+ 
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+30: XX 31 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
 
-Interesting. 2d+48+49 is the ASB100, 2e is the W83L785TS-S. This leaves
-three addresses: 08, 37 and 7f, which my map present as, respectively
-"SMB host", "Reserved for Access.Bus default address" and "Reserved". I
-don't know much about these things, but that could mean that there is
-some alternate access to the bus, possibly interfering with us accessing
-the W83L785TS-S. That would explain the "XX" (but doesn't help much
-since I don't know what to do to solve the problem).
+0x08 gives only XX, 0x31 only 29. 0x50 and 0x51 are recognizes as SPD
+eeproms and work as such. Does not look too interesting to me.
 
-> i2cdump 1 0x2e c
-> (...)
+Bye,
 
-Doesn't work (returns the first value all the time).
-
-> BTW, on the smbus 0, there are some clients that the sensors package
-> does not regognize. Are you interested in more details?
-
-Sure. Provide i2cdumps for these and I'll take a look. That said, you
-already have two monitoring chips on smbus 1, so I doubt we'll find any
-more on smbus 0.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Joerg
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031221/ee226211/attachment.bin
