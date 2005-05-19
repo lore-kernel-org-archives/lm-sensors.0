@@ -1,62 +1,51 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: KSysGuard and lm_sensors
-Message-Id: <20030921164853.48216b22.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: [PATCH 2.6] i2c bus drivers (1/4)
+Message-Id: <20031129210120.52c33706.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200309211402.58124.ml@secondimpact.de>
-In-Reply-To: <200309211402.58124.ml@secondimpact.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+This patch rehabilitates Alexander Wold as the author of the i2c-savage4
+driver. For some reason, his name was not mentioned anywhere in the
+first place.
 
-> My problem, in short terms:
-> I can't get KDE's KSysGuard to use lm_sensors as data source. I
-> know(!) that there is this /opt/kde/etc/ksysguarddrc config file,
-> which works with every other sensor, but only not with LmSensors.
-> 
-> System:
-> Slackware 9,
-> Kernel 2.4.22
-> KDE 3.1.3 (I know, there is 3.1.4, but the newest instable devel
-> release 3.1.91 (-> 3.2) is not solving this problem!)
-> i2c 2.8.0
-> lm_sensors 2.8.0
-> 
-> "# sensors" gives output, yes.
-> 
-> My question: Is this version of KSysGuard and lm_sensors incompatible
-> to each other?
+The change was requested by Alexander Wold himself.
 
-No incompatibility is known there, but I had never heard of ksysguard so
-far.
+This isn't a bug fix and can be delayed until after 2.6.0 if you want.
 
-> I couldn't install an older version (2.7.0) because
-> the "make" on lm_sensors-2.7.0 refused because of "an to old version
-> of i2c (>= 2.7.0) which I have compiled and installed before.
-
-This is a known bug of lm_sensors-2.7.0, detailed on our news page. From
-news item "May 31st, 2003":
-
-"The lm_sensors compile sees i2c headers in the kernel include directory
-before it sees them in /usr/local/include; try the updated Makefile in
-CVS for a fix. The new file etc/config.c is also required."
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/Makefile
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/etc/config.c
-
-(Not sure that it still works, since the Makefile has been modified many
-times since. You may give it a try though.)
-
-> That's all I've got on my mind, for now, I would be happy about any 
-> suggestions, thanks for replies!
-
-How did you install ksysguard? If "sensors" is working OK, this means
-that the problems comes from ksysguard itself, and we won't be able to
-help you much. I'm not using KDE myself, so I can't test. I think you'll
-get much more help from the ksysguard guys than from us. If they isolate
-the problem as being ours, let us know all the details and we'll fix
-whatever needs to be.
+--- linux-2.6.0-test11/drivers/i2c/busses/i2c-savage4.c.orig	Sat Oct 25 20:43:36 2003
++++ linux-2.6.0-test11/drivers/i2c/busses/i2c-savage4.c	Fri Nov 28 20:40:24 2003
+@@ -1,13 +1,11 @@
+ /*
+     i2c-savage4.c - Part of lm_sensors, Linux kernel modules for hardware
+               monitoring
+-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>,
+-    Philip Edelbrock <phil@netroedge.com>,
+-    Ralph Metzler <rjkm@thp.uni-koeln.de>, and
++    Copyright (C) 1998-2003  The LM Sensors Team
++    Alexander Wold <awold@bigfoot.com>
+     Mark D. Studebaker <mdsxyz123@yahoo.com>
+     
+-    Based on code written by Ralph Metzler <rjkm@thp.uni-koeln.de> and
+-    Simon Vogl
++    Based on i2c-voodoo3.c.
+ 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -195,9 +193,7 @@
+ 	pci_unregister_driver(&savage4_driver);
+ }
+ 
+-MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
+-		"Philip Edelbrock <phil@netroedge.com>, "
+-		"Ralph Metzler <rjkm@thp.uni-koeln.de>, "
++MODULE_AUTHOR("Alexander Wold <awold@bigfoot.com> "
+ 		"and Mark D. Studebaker <mdsxyz123@yahoo.com>");
+ MODULE_DESCRIPTION("Savage4 I2C/SMBus driver");
+ MODULE_LICENSE("GPL");
 
 -- 
 Jean Delvare
