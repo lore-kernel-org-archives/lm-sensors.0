@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:03 +0000
+From: ppokorny@penguincomputing.com (Philip Pokorny)
+Date: Thu, 19 May 2005 06:24:04 +0000
 Subject: Port of lk2-4 branch to HEAD in CVS
-Message-Id: <3F06F482.9020502@paradyne.com>
+Message-Id: <3F08CDD7.4010901@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F065ED3.6000307@penguincomputing.com>
 In-Reply-To: <3F065ED3.6000307@penguincomputing.com>
@@ -10,17 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-let's do this just after the release.
+No problem.
 
-Philip Pokorny wrote:
-> The following patch should migrate the changes from the current lk2-4 
-> branch over to the HEAD.
+I'll regenerate the patch when you've cut the release.  It's easy.
+
+:v)
+
+Mark D. Studebaker wrote:
+
+> let's do this just after the release.
 > 
-> If you checkout the head, then apply this patch and then checkin the 
-> results, it should effect a merge of the lk2-4 branch to the main line.
+> Philip Pokorny wrote:
 > 
-> You may have to apply the patch using -p2 or -p3 since there are several 
-> parent directories in the diff command lines.
+>> The following patch should migrate the changes from the current lk2-4 
+>> branch over to the HEAD.
+>>
+>> If you checkout the head, then apply this patch and then checkin the 
+>> results, it should effect a merge of the lk2-4 branch to the main line.
+>>
+>> You may have to apply the patch using -p2 or -p3 since there are 
+>> several parent directories in the diff command lines.
+>>
+>> :v)
+>>
 > 
-> :v)
-> 
+
