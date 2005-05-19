@@ -1,37 +1,33 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:19 +0000
-Subject: ISA check
-Message-Id: <20030928004923.GG5084@kroah.com>
+From: lt@ncic.ac.cn (Liu Tao)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: [PATCH] <SMBus block read I2C emulation>, <i2c-2.8.1>
+Message-Id: <200311271749.52305.lt@ncic.ac.cn>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030927122942.54c4a7cd.khali@linux-fr.org>
-In-Reply-To: <20030927122942.54c4a7cd.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Sep 27, 2003 at 12:29:42PM +0200, Jean Delvare wrote:
-> 
-> Hi all,
-> 
-> In many (all?) of our i2c-only drivers, we have the following:
-> 
-> #ifdef DEBUG
->    if (i2c_is_isa_adapter(adapter)) {
->        printk
->            ("lm75.o: lm75_detect called for an ISA bus adapter?!?\n");
->        return 0;
->    }
-> #endif
-> 
-> What's the idea? If the ISA addresses list is empty, is there a way we
-> could be called for an ISA adapter anyway? And in that case, shouldn't
-> we consider that the user knows what he/she's doing?
+Hello!
 
-Good point, that should just be removed entirely.
+Here is the patch to support SMBus Block Read and SMBus Block Process Call
+protocols under I2C emulation. It adds the I2C_M_RECV_LEN flag. 
 
-Care to send me a patch? :)
+To support the two protocols, an algorithm driver should handle the 
+I2C_M_RECV_LEN flag in its master_xfer routin, and return
+I2C_FUNC_SMBUS_EMUL | I2C_FUNC_SMBUS_READ_BLOCK_DATA or
+I2C_FUNC_SMBUS_EMUL | I2C_FUNC_SMBUS_BLOCK_PROC_CALL
+in its functionality routin.
 
-thanks,
+Existing algorithm drivers won't be affected by this patch.
 
-greg k-h
+-- 
+Regards,
+Liu Tao
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c_smbus_emul.patch
+Type: text/x-diff
+Size: 3033 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031127/c17a759e/i2c_smbus_emul.bin
