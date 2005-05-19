@@ -1,7 +1,7 @@
-From: andrew@andrew.net.au (Andrew Pollock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: lm_sensors mailing-list archive
-Message-Id: <20031116223330.GB2267@daedalus.andrew.net.au>
+Message-Id: <20031118212015.01d0f314.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031115144243.3bcf04df.khali@linux-fr.org>
 In-Reply-To: <20031115144243.3bcf04df.khali@linux-fr.org>
@@ -10,17 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Nov 16, 2003 at 11:13:10PM +0100, Jean Delvare wrote:
+> I would have thought using Google would have been the best way to go?
 
-> 
-> If you are to split the archive over several pages, please think of a
-> way to search them. With a single index page, one was able to simply use
-> his/her navigator's searching capabilities to search in post subjects.
-> After splitting the index it will become more difficult. Since being
-> able to search the list subjects for a specific word is of great value,
-> it would be preferable to find a way to allow this after splitting the
-> archive.
+Oh yes, of course. I must be stupid, we *already* have set that up on
+our search page. I wonder why I never used it, especially since I
+remember modifying that page myself...
 
-I would have thought using Google would have been the best way to go?
+Still this is a good idea to provide a similar search form on your site
+itself, IMHO.
 
-Andrew
+I'd suggest you configure threads.html to be the directory index for
+http://archives.andrew.net.au/lm-sensors/ ("DirectoryIndex threads.html"
+in .htaccess if you're using Apache) so that people accessing the
+archive using old links don't get frightened by the awful index.
+
+And actually I'd suggest that the default index would be the *last*
+thread page, if that's feasible. That's probably what most visitors will
+want to read first.
+
+Thanks a lot for the good work, the new archive is really good-looking.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
