@@ -1,37 +1,25 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:41 +0000
-Subject: [PATCH] I2C: just delete the id field, let's not delay it any longer
-Message-Id: <11099685944086@kroah.com>
+From: ac9410@bellsouth.net (Albert Cranford)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: Linux-2.5.26 patches uptodate for i2c-2.6.4 and lm_sensors-2.6.4
+Message-Id: <3D39E553.F609F9C3@bellsouth.net>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11099685942488@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: greg@kroah.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2088, 2005/03/02 11:58:47-08:00, greg@kroah.com
+Hello all,
+I have made i2c and lm_sensor patches with the 2.6.4
+release against a clean 2.5.26 kernel for you immediate
+usage.
+In the days to come, I will split these up into pieces
+for easier integration into the main kernel.
 
-[PATCH] I2C: just delete the id field, let's not delay it any longer
+In the next days, I will be working on i2c-2.6.4 for linux-2.4.19-rc3/linux-2.4.20 kernel.
 
-Becides, sparse keeps complaining when it sees this attribute within a structure...
-
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
-
-
- include/linux/i2c.h |    1 -
- 1 files changed, 1 deletion(-)
-
-
-diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h	2005-03-04 12:25:51 -08:00
-+++ b/include/linux/i2c.h	2005-03-04 12:25:51 -08:00
-@@ -144,7 +144,6 @@
-  * function is mainly used for lookup & other admin. functions.
-  */
- struct i2c_client {
--	__attribute__ ((deprecated)) int id;
- 	unsigned int flags;		/* div., see below		*/
- 	unsigned int addr;		/* chip address - NOTE: 7bit 	*/
- 					/* addresses are stored in the	*/
-
+http://personal.atl.bellsouth.net/mia/a/c/ac9410/albert/albert.html
+Enjoy,
+Albert
+-- 
+Albert Cranford Deerfield Beach FL USA
+ac9410@bellsouth.net
