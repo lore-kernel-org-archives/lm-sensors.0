@@ -1,72 +1,37 @@
-From: a.vankaam@chello.nl (Alexander van Kaam)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: Mozart2
-Message-Id: <FJEPJHGHDGKMMPFFGCLOGEKJDMAA.a.vankaam@chello.nl>
+From: svec@nostromo.cz (svec svatopluk)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: lm_sensors mkpatch problem
+Message-Id: <5.0.0.25.2.20011109161639.0229e4b0@jlabs.ti.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FJEPJHGHDGKMMPFFGCLOCEJODMAA.a.vankaam@chello.nl>
-In-Reply-To: <FJEPJHGHDGKMMPFFGCLOCEJODMAA.a.vankaam@chello.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-that is pretty correct, including the $17 register for the cpu (athlon only
-I think, on pentium boards these values are way off)
 
-mozart also appears to be from Attansic, see included image.
+hello lm_sensors guys,
 
-my problem appear to be that I get no smbus dump from it, could be my SiS
-driver (looking into that now)...
+i had experienced problem with making diff file for lm_sensors - drivers
 
-Regards, Alex
+(i2c part just maked diff file & kernel patch OK)
 
-- Please always attach all previous mails !
-----------------------------------------------------------------------
-The Motherboard Monitor:
-http://mbm.livewiredev.com/
-----------------------------------------------------------------------
-To Subscribe to the MBM update list, go to
-http://mbm.livewiredev.com/join.html
-----------------------------------------------------------------------
-For long you live and high you fly,
-And smiles you'll give and tears you'll cry,
-And all you touch and all you see,
-Is all your life will ever be.
-----------------------------------------------------------------------
+it showed me this message :
 
------Original Message-----
-From: Bertrik Sikken [mailto:bertrik@zonnet.nl]
-Sent: Saturday,12 October, 2002 11:22
-To: Alexander van Kaam
-Cc: Sensors
-Subject: Re: Mozart2
+"failed to make Makefile patch, at line 426 , contact authors"
 
 
-Hi Alex,
+my configuration :
 
-Alexander van Kaam wrote:
+redhat linux 7.2 , kernel source version : 2.4.9-13 (fresh copy, no 
+patches, just deleted source tree and rpm-ed 
+file  "kernel-source-2.4.9-13.i386.rpm" )
 
->it appears the Asus P4B533-VM has a so called "Mozart2" sensor chip,
->probably the follow up of the ASB100 (bach).
->
->just wondering if you heard anything about it, am trying to get info from
-my
->asus contact but no luck so far
->
-Do you have any info on the ASB100 chip that you can share?
+- at first, i selected and compilled i2c and sensors from this kernel, but 
+then i decided to download your sensors and build them into the kernel
 
-I figured out some stuff about this chip and put it up here:
-http://home.kabelfoon.nl/~bertrik/asb100/asb100.html
-Apparently Asus uses the range of registers between 0x00 and 0x1F
-(not really specified in the w83781d or lm78 datasheets).
 
-Kind regards,
-Bertrik
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: mozart.jpg
-Type: image/jpeg
-Size: 35534 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20021012/f5fa1f8e/mozart.jpg
+good bye for now
+
+svec svatopluk
+czech republic
