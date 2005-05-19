@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: derek@totalphase.com (Derek Fung)
 Date: Thu, 19 May 2005 06:25:15 +0000
 Subject: Donation of an I2C host adapter to lm_sensors
-Message-Id: <414A279A.9050000@verizon.net>
+Message-Id: <1095380545.2049.82.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1095095083.3132.28.camel@localhost.localdomain>
 In-Reply-To: <1095095083.3132.28.camel@localhost.localdomain>
@@ -10,52 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks for the offer.
-I briefly reviewed the information about the product on your website.
-It is a USB device, correct?
+Hi Mark,
 
-We'd like to know more about the software work required.
-Must an i2c driver talk to the device through the "aardvark dll"
-or will it work directly with the USB device?
-Will the source for the DLL, or the API, be available and GPL'ed?
+Sorry for the confusion.  We don't expect the Aardvark I2C/SPI Host
+Adapter to be incorporated into lm_sensors at all.  As you correctly
+point out, that would not be wise.  We just thought that our adapter
+would make a good debug tool, especially with the I2C bus monitor
+capabilities.  
 
-All our drivers are kernel modules. I'm not sure it's feasible or wise
-to try and interface to a binary userspace library from a kernel driver.
-In fact I'm sure it isn't.
+If you are still interested, let me know.  We'd be happy to send you an
+Aardvark adapter and a split cable to help you hook it up to a
+motherboard.
 
-If you could describe or sketch the SW and the interfaces, and what
-software you'll be providing to us, and what you have in mind, 
-we'll then like to discuss further how best to get involved.
-
-thanks
-mds
+Best Regards,
+-Derek
 
 
 
-Derek Fung wrote:
-> Hi everyone on lm_sensors,
+On Thu, 2004-09-16 at 16:54, Mark Studebaker wrote:
+> thanks for the offer.
+> I briefly reviewed the information about the product on your website.
+> It is a USB device, correct?
 > 
-> My company, Total Phase, would like to make a donation to your cause.
-> We make the Aardvark I2C/SPI Host Adapter.  It is one of the few
-> fully cross-platform I2C host adapters on the market for Linux.  
+> We'd like to know more about the software work required.
+> Must an i2c driver talk to the device through the "aardvark dll"
+> or will it work directly with the USB device?
+> Will the source for the DLL, or the API, be available and GPL'ed?
 > 
-> I know that lm_sensors is geared primarily to access I2C-based
-> sensors that are already on motherboards and not the development of
-> de novo systems.  But, we are sure that a Linux compatible I2C host
-> adapter can help developers hack their hardware and see what's going
-> on under the hood.
+> All our drivers are kernel modules. I'm not sure it's feasible or wise
+> to try and interface to a binary userspace library from a kernel driver.
+> In fact I'm sure it isn't.
 > 
-> We have just released a version 3.00 of our product.  Some of the
-> features that you guys might be interested in are:
-> - I2C Bus Monitor
-> - Rosetta Language Bindings for C/C++ and Python 
-> - Batch Scripting Capabilities in the GUI
+> If you could describe or sketch the SW and the interfaces, and what
+> software you'll be providing to us, and what you have in mind, 
+> we'll then like to discuss further how best to get involved.
 > 
-> Please let us know where we can send this adapter.  If you guys find
-> it useful, we would appreciate a mention or a link on your website.
+> thanks
+> mds
 > 
-> Looking forward to hearing from you.
 > 
-> Best Regards,
-> Derek
 > 
+> Derek Fung wrote:
+> > Hi everyone on lm_sensors,
+> > 
+> > My company, Total Phase, would like to make a donation to your cause.
+> > We make the Aardvark I2C/SPI Host Adapter.  It is one of the few
+> > fully cross-platform I2C host adapters on the market for Linux.  
+> > 
+> > I know that lm_sensors is geared primarily to access I2C-based
+> > sensors that are already on motherboards and not the development of
+> > de novo systems.  But, we are sure that a Linux compatible I2C host
+> > adapter can help developers hack their hardware and see what's going
+> > on under the hood.
+> > 
+> > We have just released a version 3.00 of our product.  Some of the
+> > features that you guys might be interested in are:
+> > - I2C Bus Monitor
+> > - Rosetta Language Bindings for C/C++ and Python 
+> > - Batch Scripting Capabilities in the GUI
+> > 
+> > Please let us know where we can send this adapter.  If you guys find
+> > it useful, we would appreciate a mention or a link on your website.
+> > 
+> > Looking forward to hearing from you.
+> > 
+> > Best Regards,
+> > Derek
+> > 
+-- 
+Derek Fung 
+Total Phase, Inc. 
+http://www.totalphase.com/
