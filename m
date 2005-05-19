@@ -1,236 +1,62 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [RFC/PATCH 11/22] W1: move w1_search to the rest of IO code
-Message-Id: <200504210218.12399.dtor_core@ameritech.net>
+From: ppokorny@penguincomputing.com (Philip Pokorny)
+Date: Thu, 19 May 2005 06:23:57 +0000
+Subject: Opteron VRM spec
+Message-Id: <3ED3EE50.2030502@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net>
-In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@Stimpy.netroedge.com
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+To: lm-sensors@vger.kernel.org
 
-W1: move w1_search function to w1_io.c to be with the rest of IO code.
+The Opteron processors don't use an "Intel spec" VRM encoding.  (Big 
+surprise there...)
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+So this patch adds a "2.4" VRM standard (for the Opteron 24x processors) 
+that allows chips that use the include/sensors_vid.h functions to 
+calculate the VID voltage correctly...
 
- w1.c    |   87 --------------------------------------------------------------
- w1.h    |    1 
- w1_io.c |   89 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 88 insertions(+), 89 deletions(-)
+It's small enough that it should apply to CVS...
 
-Index: dtor/drivers/w1/w1.c
-=================================--- dtor.orig/drivers/w1/w1.c
-+++ dtor/drivers/w1/w1.c
-@@ -488,93 +488,6 @@ static void w1_slave_found(struct w1_mas
- 	atomic_dec(&dev->refcnt);
- }
+:v)
+
+-- 
+Philip Pokorny, Director of Engineering
+Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
+PENGUIN COMPUTING, INC.
+www.penguincomputing.com
+-------------- next part --------------
+diff -ru --new-file ../_relion1x/lm_sensors-2.7.0/kernel/include/sensors_vid.h lm_sensors-2.7.0.adm1026/kernel/include/sensors_vid.h
+--- ../_relion1x/lm_sensors-2.7.0/kernel/include/sensors_vid.h	Fri Apr 19 19:59:12 2002
++++ lm_sensors-2.7.0.adm1026/kernel/include/sensors_vid.h	Wed May 21 21:38:02 2003
+@@ -29,6 +29,21 @@
+ */
  
--void w1_search(struct w1_master *dev)
--{
--	u64 last, rn, tmp;
--	int i, count = 0;
--	int last_family_desc, last_zero, last_device;
--	int search_bit, id_bit, comp_bit, desc_bit;
--
--	search_bit = id_bit = comp_bit = 0;
--	rn = tmp = last = 0;
--	last_device = last_zero = last_family_desc = 0;
--
--	desc_bit = 64;
--
--	while (!(id_bit && comp_bit) && !last_device &&
--	       count++ < dev->max_slave_count) {
--		last = rn;
--		rn = 0;
--
--		last_family_desc = 0;
--
--		/*
--		 * Reset bus and all 1-wire device state machines
--		 * so they can respond to our requests.
--		 *
--		 * Return 0 - device(s) present, 1 - no devices present.
--		 */
--		if (w1_reset_bus(dev)) {
--			dev_info(&dev->dev, "No devices present on the wire.\n");
--			break;
--		}
--
--#if 1
--		w1_write_8(dev, W1_SEARCH);
--		for (i = 0; i < 64; ++i) {
--			/*
--			 * Read 2 bits from bus.
--			 * All who don't sleep must send ID bit and COMPLEMENT ID bit.
--			 * They actually are ANDed between all senders.
--			 */
--			id_bit = w1_touch_bit(dev, 1);
--			comp_bit = w1_touch_bit(dev, 1);
--
--			if (id_bit && comp_bit)
--				break;
--
--			if (id_bit = 0 && comp_bit = 0) {
--				if (i = desc_bit)
--					search_bit = 1;
--				else if (i > desc_bit)
--					search_bit = 0;
--				else
--					search_bit = ((last >> i) & 0x1);
--
--				if (search_bit = 0) {
--					last_zero = i;
--					if (last_zero < 9)
--						last_family_desc = last_zero;
--				}
--
--			} else
--				search_bit = id_bit;
--
--			tmp = search_bit;
--			rn |= (tmp << i);
--
--			/*
--			 * Write 1 bit to bus
--			 * and make all who don't have "search_bit" in "i"'th position
--			 * in it's registration number sleep.
--			 */
--			if (dev->bus_ops->touch_bit)
--				w1_touch_bit(dev, search_bit);
--			else
--				w1_write_bit(dev, search_bit);
--
--		}
--#endif
--
--		if (desc_bit = last_zero)
--			last_device = 1;
--
--		desc_bit = last_zero;
--
--		w1_slave_found(dev, rn);
--	}
--}
--
- 
- static int w1_process(void *data)
+ /*
++    AMD Opteron processors don't follow the Intel VRM spec.
++    I'm going to "make up" 2.4 as the VRM spec for the Opterons.
++    No good reason just a mnemonic for the 24x Opteron processor
++    series
++
++    Opteron VID encoding is:
++
++       00000  =  1.550 V
++       00001  =  1.525 V
++        . . . .
++       11110  =  0.800 V
++       11111  =  0.000 V (off)
++ */
++
++/*
+     Legal val values 00 - 1F.
+     vrm is the Intel VRM document version.
+     Note: vrm version is scaled by 10 and the return value is scaled by 1000
+@@ -43,6 +58,9 @@
  {
-Index: dtor/drivers/w1/w1_io.c
-=================================--- dtor.orig/drivers/w1/w1_io.c
-+++ dtor/drivers/w1/w1_io.c
-@@ -178,13 +178,100 @@ u8 w1_calc_crc8(u8 * data, int len)
- 	return crc;
- }
+ 	switch(vrm) {
  
-+static void w1_search(struct w1_master *dev, w1_slave_found_callback slave_found_cb)
-+{
-+	u64 last, rn, tmp;
-+	int i, count = 0;
-+	int last_family_desc, last_zero, last_device;
-+	int search_bit, id_bit, comp_bit, desc_bit;
++	case 24:		/* Opteron processor */
++		return(val = 0x1f ? 0 : 1550 - val * 25);
 +
-+	search_bit = id_bit = comp_bit = 0;
-+	rn = tmp = last = 0;
-+	last_device = last_zero = last_family_desc = 0;
-+
-+	desc_bit = 64;
-+
-+	while (!(id_bit && comp_bit) && !last_device &&
-+	       count++ < dev->max_slave_count) {
-+		last = rn;
-+		rn = 0;
-+
-+		last_family_desc = 0;
-+
-+		/*
-+		 * Reset bus and all 1-wire device state machines
-+		 * so they can respond to our requests.
-+		 *
-+		 * Return 0 - device(s) present, 1 - no devices present.
-+		 */
-+		if (w1_reset_bus(dev)) {
-+			dev_info(&dev->dev, "No devices present on the wire.\n");
-+			break;
-+		}
-+
-+#if 1
-+		w1_write_8(dev, W1_SEARCH);
-+		for (i = 0; i < 64; ++i) {
-+			/*
-+			 * Read 2 bits from bus.
-+			 * All who don't sleep must send ID bit and COMPLEMENT ID bit.
-+			 * They actually are ANDed between all senders.
-+			 */
-+			id_bit = w1_touch_bit(dev, 1);
-+			comp_bit = w1_touch_bit(dev, 1);
-+
-+			if (id_bit && comp_bit)
-+				break;
-+
-+			if (id_bit = 0 && comp_bit = 0) {
-+				if (i = desc_bit)
-+					search_bit = 1;
-+				else if (i > desc_bit)
-+					search_bit = 0;
-+				else
-+					search_bit = ((last >> i) & 0x1);
-+
-+				if (search_bit = 0) {
-+					last_zero = i;
-+					if (last_zero < 9)
-+						last_family_desc = last_zero;
-+				}
-+
-+			} else
-+				search_bit = id_bit;
-+
-+			tmp = search_bit;
-+			rn |= (tmp << i);
-+
-+			/*
-+			 * Write 1 bit to bus
-+			 * and make all who don't have "search_bit" in "i"'th position
-+			 * in it's registration number sleep.
-+			 */
-+			if (dev->bus_ops->touch_bit)
-+				w1_touch_bit(dev, search_bit);
-+			else
-+				w1_write_bit(dev, search_bit);
-+
-+		}
-+#endif
-+
-+		if (desc_bit = last_zero)
-+			last_device = 1;
-+
-+		desc_bit = last_zero;
-+
-+		slave_found_cb(dev, rn);
-+	}
-+}
-+
- void w1_search_devices(struct w1_master *dev, w1_slave_found_callback cb)
- {
- 	dev->attempts++;
- 	if (dev->bus_ops->search)
- 		dev->bus_ops->search(dev, cb);
- 	else
--		w1_search(dev);
-+		w1_search(dev, cb);
- }
- 
- EXPORT_SYMBOL(w1_write_bit);
-Index: dtor/drivers/w1/w1.h
-=================================--- dtor.orig/drivers/w1/w1.h
-+++ dtor/drivers/w1/w1.h
-@@ -132,7 +132,6 @@ struct w1_master
- struct w1_master *w1_allocate_master_device(void);
- int w1_add_master_device(struct w1_master *);
- void w1_remove_master_device(struct w1_master *);
--void w1_search(struct w1_master *);
- 
- #endif /* __KERNEL__ */
- 
+ 	case 91:		/* VRM 9.1 */
+ 	case 90:		/* VRM 9.0 */
+ 		return(val = 0x1f ? 0 :
