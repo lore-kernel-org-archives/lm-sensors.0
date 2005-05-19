@@ -1,56 +1,68 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:51 +0000
-Subject: Backport i2c-ali1563.c from linux-2.6 to linux-2.4
-Message-Id: <425E8700.9010306@mds.gotdns.com>
+From: pavenis@latnet.lv (Andris Pavenis)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: lm_sensors and gcc-3.0.3
+Message-Id: <200201280848.g0S8mOU03398@hal.astr.lu.lv>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
-In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Y2hlY2tlZCBpbi4KdGhhbmtzIGZvciB0aGUgY29udHJpYnV0aW9uLgptZHMKCkh1YW5nMEBXaW5i
-b25kLmNvbS50dyB3cm90ZToKPiBIaSBKZWFuLCBNRFMKPiAKPiBUaGUgYXR0YWNoZWQgZHJpdmVy
-IGhhcyBmaXhlZCB0aGUgYnVnIHdpdGggdGhlIG1ldGhvZCBSdWRvbGYgcHJvdmlkZWQuCj4gSSBk
-aXNjdXNzZWQgd2l0aCBSdWRvbGYganVzdCBub3csIGhlIHRvbGQgbWUgdGhpcyBvbmUgc2hvdWxk
-IGJlIGZpeGVkLgo+IFNvIHBsZWFzZSBoZWxwIHRvIGNvbW1pdCBpdCBpbnRvIENWUyBhZnRlciBs
-bV9zZW5zb3JzLTIuOS4xIHJlbGVhc2VkLgo+IAo+IEFmdGVyIHRoZSBjb21taXQsIHBsZWFzZSBq
-dXN0IGdpdmUgbWUgYSBub3RpY2UuCj4gCj4gVGhhbmtzCj4gQmVzdCBSZWdhcmRzCj4gQ2h1bmhh
-bwo+IAo+IAo+IAo+Pi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4+RnJvbTogSmVhbiBEZWx2
-YXJlIFttYWlsdG86a2hhbGlAbGludXgtZnIub3JnXQo+PlNlbnQ6IDIwMDXE6jTUwjfI1SAwMToz
-Mwo+PlRvOiBQSTE0IEhVQU5HMAo+PkNjOiBSLk1hcmVrQHNoLmN2dXQuY3o7IG1kc0BtZHMuZ290
-ZG5zLmNvbTsgUEkxNCBEWlNIRU47IFBJMTAgTEhIc3U7IFBJMTMgQ0ZMaQo+PlN1YmplY3Q6IFJl
-OiBCYWNrcG9ydCBpMmMtYWxpMTU2My5jIGZyb20gbGludXgtMi42IHRvIGxpbnV4LTIuNAo+Pgo+
-PkhpIENodW5oYW8sCj4+Cj4+Cj4+PkkgbW9kaWZpZWQgdGhlIGkyYy1hbGkxNTYzIGRyaXZlciBm
-b3IgbGludXgtMi40LCBwbGVhc2UgY29tbWl0IGl0IGludG8KPj4+TG1fc2Vuc29ycyBDVlMgZm9y
-IG1lLiBJIGdlbmVyYXRlZCBhIHBhdGNoIHdpdGgKPj4+bG1fc2Vuc29ycy1kYWlseS50YXIuZ3ou
-IFBsZWFzZSBjaGVjayB0aGUgYXR0YWNobWVudC4gQWZ0ZXIgdGhlCj4+PmNvbW1pdCwgcGxlYXNl
-IGp1c3QgZ2l2ZSBtZSBhIHJlc3BvbnNlLgo+Pgo+PldlIGFyZSBhYm91dCB0byByZWxlYXNlIGxt
-X3NlbnNvcnMgMi45LjEsIHNvIHdlJ2xsIG9ubHkgYmUgYWJsZSB0bwo+PmNvbW1pdCB5b3VyIHdv
-cmsgYWZ0ZXIgdGhlIHJlbGVhc2UuIFdoYXQncyBtb3JlLCBpdCBsb29rcyBsaWtlIHRoZQo+PmRy
-aXZlciBuZWVkcyBzb21lIGZpeGVzLCBhcyBSdWRvbGYganVzdCBmb3VuZCBvdXQuCj4+Cj4+VGhh
-bmtzLAo+Pi0tCj4+SmVhbiBEZWx2YXJlCj4gCj4gCj4gCj4gPT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZv
-cm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkg
-YnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2Yg
-dGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhp
-cyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwg
-dG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5n
-IGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0
-ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIg
-Y29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9m
-IGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0
-ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0
-ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMg
-bmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8g
-ZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2Uu
-IFRoZXkgZXNzZW50aWFsbHkgcmVwZQphdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJv
-dmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRI
-q/ypd6SnpqyrSKRIP75cpKelzi4gsLKoz7F6P6tEs1Gr/Kl3pKemrKtIpEipzqZdpfQ/reymXaZi
-pby4Z7HCxXaqurGhP6SnpFWmrD+lu6tIpfMsIL3QsXqnaaq+rey1b6tIpEg/pd+nWbFOq0il87Fx
-uXG4o7tQuvS49D+qQb65pKSkqaVIrviwoy4gue8/sXqquqZYp0AsIKfarcw/P61QwcIuIK9TP7Sj
-v/QsIKX0P6W8uGexwsV2vtU/qM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk
-7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/Wp
-zrdOqKMuCgo=
+Tried to use lm_sensors-2.6.2 (compiled with gcc-3.0.3 release) with kernel-2.4.18-pre7 
+(also compiled with gcc-3.0.3). It took some minutes to load lm_sensors kernel modules, 
+but sensors semmed to work after that. 
+
+Adding -fno-strict-aliasing to modules compile options fixed that bad 
+behaviour:
+
+--- Makefile~1	Sat Jun  2 06:41:17 2001
++++ Makefile	Mon Jan 28 10:32:01 2002
+@@ -170,7 +170,7 @@
+           -Wcast-align -Wwrite-strings -Wnested-externs -Winline
+ endif
+ 
+-MODCFLAGS := $(CFLAGS) -D__KERNEL__ -DMODULE -fomit-frame-pointer 
++MODCFLAGS := $(CFLAGS) -D__KERNEL__ -DMODULE -fomit-frame-pointer -fno-strict-aliasing
+ MODCFLAGS := $(MODCFLAGS) -DEXPORT_SYMTAB
+ PROGCFLAGS := $(CFLAGS)
+ ARCFLAGS := $(CFLAGS)
+
+Below is what I see in dmesg (simply for info what parts are actually in use)
+
+Andris
+
+
+i2c-i810.o version 2.6.2 (20011118)
+i2c-i810.o: i810/i815 found.
+i2c-dev.o: Registered 'I810/I815 I2C Adapter' as minor 0
+i2c-core.o: adapter I810/I815 I2C Adapter registered as adapter 0.
+i2c-i810.o: I810/I815 I2C bus initialized
+i2c-dev.o: Registered 'I810/I815 DDC Adapter' as minor 1
+i2c-core.o: adapter I810/I815 DDC Adapter registered as adapter 1.
+i2c-i810.o: I810/I815 DDC bus initialized
+i2c-i801.o version 2.6.2 (20011118)
+i2c-dev.o: Registered 'SMBus I801 adapter at e800' as minor 2
+i2c-core.o: adapter SMBus I801 adapter at e800 registered as adapter 2.
+i2c-i801.o: I801 bus detected and initialized
+w83781d.o version 2.6.2 (20011118)
+i2c-core.o: driver W83781D sensor driver registered.
+i2c-core.o: client [AS99127F chip] registered to adapter [SMBus I801 adapter at e800](pos. 0).
+i2c-core.o: client [AS99127F subclient] registered to adapter [SMBus I801 adapter at e800](pos. 1).
+i2c-core.o: client [AS99127F subclient] registered to adapter [SMBus I801 adapter at e800](pos. 2).
+
+
+bash-2.05$ sensors
+as99127f-i2c-2-2d
+Adapter: SMBus I801 adapter at e800
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.64 V  (min =  +1.56 V, max =  +1.72 V)
++3.3V:     +3.45 V  (min =  +3.13 V, max =  +3.45 V)
++5V:       +5.04 V  (min =  +4.72 V, max =  +5.24 V)
++12V:     +11.36 V  (min = +10.79 V, max = +13.19 V)
+-12V:     -11.48 V  (min = -10.73 V, max = -13.19 V)
+-5V:       -4.98 V  (min =  -4.74 V, max =  -5.24 V)
+fan1:     4115 RPM  (min = 1500 RPM, div = 4)
+temp1:       +30?C  (limit =  +60?C, hysteresis =  +50?C)
+temp2:     +35.5?C  (limit =  +67?C, hysteresis =  +60?C)
+vid:      +1.65 V
+alarms:   Chassis intrusion detection
