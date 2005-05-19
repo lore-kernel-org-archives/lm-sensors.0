@@ -1,7 +1,7 @@
-From: kelledin@users.sourceforge.net (Kelledin)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: One-liner fix for i2c-velleman (and problems with i2c-tsunami)
-Message-Id: <200307250340.15012.kelledin@users.sourceforge.net>
+Message-Id: <20030725104409.45a5c677.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200307242129.59862.kelledin@users.sourceforge.net>
 In-Reply-To: <200307242129.59862.kelledin@users.sourceforge.net>
@@ -10,124 +10,84 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday 25 July 2003 03:00 am, you wrote:
-> > i2c-tsunami does not compile, and its fix is more than just
-> > a one-liner.  It requires the <linux/slab.h> include, plus
-> > the <linux/pci.h> include, plus some changes in static
-> > struct initialization to accomodate recent gcc versions.
->
->     Hm... And that's the problem exactly? I'm currently not
-> suscribed to the list, but will try to recompile this code...
 
-Here's a snippet of my current patch to give you an idea:
+> On Thursday 24 July 2003 06:37 am, you wrote:
+> > OK, I'd prefer a slightly different fix. We don't include
+> > <asm/param.h> in any of our drivers. It seems we include
+> > <linux/slab.h> instead, so I think we should do the same for
+> > this one. Could you try and confirm it works for you?
+> 
+> Yes, it works with <linux/slab.h> instead of <asm/param.h>.
 
- static struct i2c_algo_bit_data tsunami_i2c_bit_data = {
--
--       bit_tsunami_setsda,
--       bit_tsunami_setscl,
--       bit_tsunami_getsda,
--       bit_tsunami_getscl,
--       10, 10, HZ/2    /* delays/timeout */
-+       .setsda         = bit_tsunami_setsda,
-+       .setscl         = bit_tsunami_setscl,
-+       .getsda         = bit_tsunami_getsda,
-+       .getscl         = bit_tsunami_getscl,
-+       .udelay         = 10,
-+       .mdelay         = 10,
-+       .timeout        = HZ/2,
- };
+I changed my mind. If it only needs asm/param.h, why would we overload
+it with things it doesn't need? I'll include <asm/param.h> with a
+comment that says it there is for HZ.
 
-Apparently gcc-3.2.3/alpha doesn't grok the original method of 
-static initialization.  It choked on it badly until I switched 
-it.  gcc-2.95.3/x86 seems to like either way just fine.
+> > The i2c-philips-par driver seems to miss it too. Were you
+> > successful building it?
+> 
+> Oddly, yes.  i2c-philips-par does not complain, at least.
 
-Maybe the C standard has changed, or maybe gcc3 is just being a 
-fruitcake.  But as the other static structs use a different form 
-of initialization, I decided to accomodate gcc3 and introduce 
-proper consistency in one fell swoop.
+I checked this, and it happens that this module includes
+<linux/parport.h>, which itself includes <linux/proc_fs.h>, which in
+turn includes <linux/slab.h> (which itself includes <asm/param.h> as we
+now know). I will explicitely add an include <linux/slab.h> since I
+think the module needs it (it uses kmalloc/kfree).
 
-(Other lm_sensors drivers have small problems compiling on alpha, 
-mostly one-liner fixes that I've been able to handle on my end.  
-I was planning to finish it out and send the full patch 
-upstream, but I hit a stumbling block on i2c-tsunami.)
+Thanks for reporting!
 
-> > Its biggest problem, though, is that it's missing a
-> > tsunami_ids struct (list of PCI IDs), and this is REALLY a
-> > problem.  I have no clue what the Tsunami/Typhoon (2127x)
-> > PCI IDs are.  I know that they're the core logic controller
-> > chips on such motherboards as the DP264 and the UP2000
-> > series.  I also looked in the <linux/pci_ids.h> header for
-> > 2.4.2[01], and the closest macro I could find for this PCI
-> > device ID is
-> > PCI_DEVICE_ID_DEC_21285.  I'm fairly certain that won't do
-> > at all.
->
->     Tsunami/Typhoon chips are not PCI devices. They are core
-> logic which is transparent to PCI stuff. The only visible
-> parts on the UP2000/DS20 boards is the "real" hardware stuff:
-> -----------
-> 00:05.0 ISA bridge: Contaq Microsystems 82c693
-> 00:05.1 IDE interface: Contaq Microsystems 82c693
-> 00:05.2 IDE interface: Contaq Microsystems 82c693
-> 00:05.3 USB Controller: Contaq Microsystems 82c693
-> 00:06.0 SCSI storage controller: Adaptec AHA-2940U2/W / 7890
-> (rev 01) ----------
+> Well, every one of those warnings is a possible segfault on 
+> 64-bit platforms, because the upper 32 bits of a pointer get 
+> lost.  Actually, in this case (kernel-land code), it might be
+> rather worse--the driver could conceivably end up playing with 
+> the wrong memory region, and do so with impunity.
 
-Hmmm...well, part of the tsunami_driver struct requires a PCI ID 
-table (tsunami_ids).  I'm not sure what's supposed to go in that 
-table?
+I don't know about your specific warnings, so I just can't tell. If the
+system you see them on is both Alpha and 64-bit, this makes two big
+differences with what i2c and lm_sensors is usually used on, so no
+wonder it doesn't work out of the box. I don't think any of the
+developers here have an Alpha system. We must have one IA-64 system but
+we don't spend too much time testing on it.
 
-Could it be that someone tried to port the driver to the new API, 
-half-finished it, and left it for dead?  lm_sensors-2.7.0 makes 
-no mention of the tsunami_driver struct or the tsunami_ids 
-table.  Maybe that little struct arrangement isn't supposed to 
-be there?
+This is far better if the person who has the warnings can take a look
+and fix them. We can hardly fix warnings we don't even see.
 
-> > CVS, as of 20030724, is no better.  Last entry for this
-> > driver was apparently back in January.
-> >
-> > This is especially annoying, as the Tsunami driver is the
-> > primary driver that makes lm_sensors useful at all on Alpha.
->
->     Just FYI. Tsunami i2c bus provides an access to a SPD
-> chips only. Other stuff (such as lm75, adm9240) are accessed
-> via i2c-elektor module. So, in fact UP2000 has to different
-> i2c buses.
+> i2c-tsunami does not compile, and its fix is more than just a 
+> one-liner.  It requires the <linux/slab.h> include, plus the 
+> <linux/pci.h> include, plus some changes in static struct 
+> initialization to accomodate recent gcc versions.
+> (...)
+> CVS, as of 20030724, is no better.  Last entry for this driver 
+> was apparently back in January.
 
-Ah, I never knew about that.  Good info to have, thanks.
+You're right, and even these were bulk changes that are not specific to
+that driver. The driver must not havee been tested for months if not
+years (due to the lack of hardware on our side).
 
-What Alpha motherboards support sensors like that, btw?
+> This is especially annoying, as the Tsunami driver is the primary 
+> driver that makes lm_sensors useful at all on Alpha.
+> 
+> Unfortunately, I have no such motherboard with this chipset.  I'd 
+> like to make the driver work anyways.
 
-> > Unfortunately, I have no such motherboard with this chipset.
-> >  I'd like to make the driver work anyways.  Can people with
-> > Typhoon/Tsunami motherboards please volunteer the PCI IDs
-> > for these chips?  I'd prefer to merge them with the
-> > <linux/pci_ids.h> file, then add some #ifdefs to
-> > i2c-tsunami.c to make sure the PCI ID macros get defined
-> > even on older kernel versions.
->
->     Wrong way. ;-))
+My experience is that this won't work. Too hard to fix a driver unless
+you have someone that can test it and really wants it to work. Fixing
+things just to make them work almost never led me anywhere.
 
-Eh?  Wrong way how?  I suppose I'm missing something about 
-contributing kernel macros for PCI IDs?
+> Also, the i2c-tsunami driver itself looks...well...unmaintained.  
+> Does anyone maintain it now?
 
-(Wouldn't surprise me if I was.  I'm not all _that_ much of a 
-kernel hacker.)
+Seems so, yes. Oleg?
 
-> > Also, the i2c-tsunami driver itself
-> > looks...well...unmaintained. Does anyone maintain it now? 
-> > If it's been abandoned, I can happily take over maintenance,
-> > assuming someone can loan or donate enough to build a
-> > sufficiently-working Typhoon/Tsunami motherboard setup.
->
->     Yes. It's unmaintained due to the fact we have used
-> kernels 2.2.x on our site, but now we are moving to 2.4
-> series.
+> If it's been abandoned, I can 
+> happily take over maintenance, assuming someone can loan or 
+> donate enough to build a sufficiently-working Typhoon/Tsunami 
+> motherboard setup.
 
-Ah, so that's where you've been. ;)  How's the upgrade going so 
-far?
+We don't have such hardware, or we probably would maintain the driver by
+ourselves.
+
 
 -- 
-Kelledin
-"If a server crashes in a server farm and no one pings it, does 
-it still cost four figures to fix?"
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
