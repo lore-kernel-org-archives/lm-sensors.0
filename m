@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:38 +0000
 Subject: negative voltages
-Message-Id: <401F0150.4070005@verizon.net>
+Message-Id: <1075796532.401f5a3459773@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1075721644.401e35ac8e6fc@imp.gcu.info>
 In-Reply-To: <1075721644.401e35ac8e6fc@imp.gcu.info>
@@ -10,57 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I didn't understand what was going on either, until I saw your fix to lib/chips.c.
-Sorry I was no help.
-You did it right.
+Quoting Mark Studebaker <mds4@verizon.net>:
 
-As you have said, the /sys or /proc values are raw values.
-So min < max. 
-If you don't do it that way, the alarms won't work.
+> As you have said, the /sys or /proc values are raw values.
+> So min < max. 
+> If you don't do it that way, the alarms won't work.
 
-So if (and only if) you have an inverting compute line in userspace, 
-then you MUST flip the limits for userspace.
-Somewhere it has to be done, I think you'll agree.
-That's what was done in lib/chips.c for 2.4.
-So for those sensors, rather than the /proc values being mapped to min/max/reading,
-they are mapped to max/min/reading. This was done by substituting VALUE(1) for VALUE(2), etc.
+Agreed.
 
-Chips that use external resistors for level shifting don't 
-need inverting compute lines and don't need anything swapped
-Think about it. (simplification) If I add 6 volts externally to
-my -5V signal, that doesn't change which is min and which is max.
-But if I multiply the -5V signal externally by -1, then min and max must be swapped.
+> So if (and only if) you have an inverting compute line in
+> userspace, then you MUST flip the limits for userspace.
+> Somewhere it has to be done, I think you'll agree.
+> That's what was done in lib/chips.c for 2.4.
 
-Since 2.6 used the names (in1_max -> in_max1), the lib/chips.c swapping that was
-implemented for 2.4 didn't happen any more.
-Your change today fixes that.
+This is where I don't fully agree. I understand pretty well how things
+have been done and I agree that it works. I also admit that it keeps
+min < max for the user whatever the chip, which can be considered
+nice.
 
-All the chips referred to in Ticket #800 (both "classes")
-had bad compute lines in sensors.conf.eg at the time,
-for example:
-	set in5_min -12 * 0.95
-	set in5_max -12 * 1.05
-which was clearly wrong.
-But also, at the time, there was no swapping in libsensors.
-So as ticket 800 says, it was somewhat confusing at the
-time and it was a 2-part fix.
+But this also introduce more chip-dependant code in the library.
+Remember that the sysfs interface was meant to be self explanatory.
+This should allow one to write a library with no chip-dependant code in
+it. All chip-dependant information would belong to sensors.conf.
 
-mds
+You will object that this won't allow us to keep the "min < max"
+assertion true for all chips. I have a trick in mind to workaround the
+problem (if it is a problem, which I'm still not sure of, BTW). The
+library can test each formula and detect if it is inverting, providing
+the function is monotonic around the current value (simply test the
+sign of f(x+d)-f(x-d) where x is the current value and d a relatively
+small positive delta). Another possibility is to add a new syntax to
+the configuration as MMH proposed, but I would prefer to avoid it if
+possible.
 
+Anyway, I'd still like to know if there are real problems having min >
+max for negative voltages of some chips (i.e. keep the min and max
+semantics in line with the chip internals even if there are inverting
+formulas). I don't really see the problem with sensors, as long as
+sensors.conf matches with that choice. But maybe it would cause
+third-party apps trouble?
 
-Jean Delvare wrote:
-> Hi all,
-> 
-> I've made the necessary fixes to libsensors. This is the way that
-> requires the less changes and it doesn't break 2.4 drivers so I suggest
-> we stick to it for now.
-> 
-> Tested to work with my AS99127F rev.1 (driver w83781d). More testers
-> welcome.
-> 
-> That said and done, the question is still opened how we will handle the
-> negative voltage limits in libsensors2. Since I believe we want a
-> chip-independant library, which means that some chips would have min <
-> max and some others would have the contrary, and userspace apps would
-> have to cope with it. I don't really see major problems doing this.
-> 
+We better think twice before breaking something that works, even if the
+change simplifies the (new) library.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
