@@ -1,70 +1,81 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: w83792d_driver-1.0.1.patch: Winbond W83792D driver for linux-2.4
-Message-Id: <423601CD.8080702@mds.gotdns.com>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2463C2@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE245CA3@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-no, I'm just slow.
-Here are some suggestions. Some of them you may already know about.
-Of course you may have gotten different advice from Jean, (not that unusual), let us know if so and
-we'll talk about it :)
-None of these are critical and of course these are things we can work on ourselves too if you don't have time.
-
-1) alarms
-    The module does not export an 'alarms' entry in /proc, and to generate the ALARM indication in sensors/chips.c
-    it simply does a comparison to min/max values. This is undesirable and not according to our standard.
-    Reading and exporting the bits in the alarms registers (0x41,0x42,0x9b) is much preferred because the chip
-    latches the alarms between reads. See the other winbond drivers and corresponding support in sensors/chips.c for examples.
-
-2) subclient registration
-    The module should register the  'subclients' (the two emulated lm75 chips) so that other drivers do not claim them.
-    You can copy this code from w83781d.c
-
-3) fan speeds in /proc
-     Sometimes the fan speeds in /proc are large negative numbers:
-	w83792d-i2c-1-2d/fan1
-	187 -556712672
-	w83792d-i2c-1-2d/fan2
-	100 0
-	w83792d-i2c-1-2d/fan3
-	1695 3835
-	w83792d-i2c-1-2d/fan4
-	6000 0
-	w83792d-i2c-1-2d/fan5
-	12857 0
-	w83792d-i2c-1-2d/fan6
-	6783 0
-	w83792d-i2c-1-2d/fan7
-	-1 -556712672
-      I think it's because you don't always set a value to results[1] in w83792d_fan(). There are several
-       if-then-else cases where no value is set.
-
-4) a documentation file for doc/chips would be greatly appreciated :)
-
-
-
-Huang0@Winbond.com.tw wrote:
-> Dear MDS
-> 
-> 
->>Reviewed, briefly tested (forcing driver on a w83782d chip) and
-> 
-> checked in to
-> 
->>CVS.
->>I'll have some comments and test results in a follow-up email.
-> 
-> 
-> I have NOT received your test results, Did you send it? I'm afraid of it
-> getting
-> lost.
-> 
-> Thanks
-> Best Regards
-> Chunhao
+SGkgTURTCgpUaGFuayB5b3UgZm9yIHlvdXIgc3VnZ2VzdGlvbi4gVGhlIGZvbGxvd2luZyBpcyBt
+eSByZXBseS4KCj4gMSkgYWxhcm1zCj4gICAgIFRoZSBtb2R1bGUgZG9lcyBub3QgZXhwb3J0IGFu
+ICdhbGFybXMnIGVudHJ5IGluIC9wcm9jLCBhbmQgdG8KZ2VuZXJhdGUgdGhlCj4gQUxBUk0gaW5k
+aWNhdGlvbiBpbiBzZW5zb3JzL2NoaXBzLmMKPiAgICAgaXQgc2ltcGx5IGRvZXMgYSBjb21wYXJp
+c29uIHRvIG1pbi9tYXggdmFsdWVzLiBUaGlzIGlzIHVuZGVzaXJhYmxlCmFuZCBub3QKPiBhY2Nv
+cmRpbmcgdG8gb3VyIHN0YW5kYXJkLgo+ICAgICBSZWFkaW5nIGFuZCBleHBvcnRpbmcgdGhlIGJp
+dHMgaW4gdGhlIGFsYXJtcyByZWdpc3RlcnMKKDB4NDEsMHg0MiwweDliKQo+IGlzIG11Y2ggcHJl
+ZmVycmVkIGJlY2F1c2UgdGhlIGNoaXAKPiAgICAgbGF0Y2hlcyB0aGUgYWxhcm1zIGJldHdlZW4g
+cmVhZHMuIFNlZSB0aGUgb3RoZXIgd2luYm9uZCBkcml2ZXJzCmFuZAo+IGNvcnJlc3BvbmRpbmcg
+c3VwcG9ydCBpbiBzZW5zb3JzL2NoaXBzLmMgZm9yIGV4YW1wbGVzLgoKWWVzLCBJIGNhbiBjYXRj
+aCB5b3VyIG1lYW5pbmcgOi0pClRoZSBtZXRob2QgSSB1c2UgaXMgb2YgInNvZnR3YXJlLWxldmVs
+Iiwgd2hpbGUgdGhlIG90aGVyIGRyaXZlcnMgaW4KbG1fc2Vuc29ycwp1c2UgdGhlICJoYXJkd2Fy
+ZS1sZXZlbCIgbWV0aG9kLiBJIGZpbmlzaCBpdCB3aXRoIHRoZSByZWZlcmVuY2UgdG8gb3VyCldp
+bmRvd3MKZHJpdmVyLCBpdCBkb2VzIE5PVCB1c2UgdGhlIHJlZ2lzdGVycyBDUlsweDQxXSwgQ1Jb
+MHg0Ml0sIENSWzB4OWJdCmVpdGhlciwgYW5kIGNhbiB3b3JrIHdlbGwuCkRvIHlvdSBzdWdnZXN0
+IHRoYXQgSSBjaGFuZ2UgbXkgbWV0aG9kIGludG8geW91cnM/IElmIGRvLCBJIHdpbGwgbW9kaWZ5
+Cml0IHdoZW4KSSdtIGEgbGl0dGxlIGZyZWUsIGJlY2F1c2UgYmVzaWRlcyBwb3J0aW5nIDc5MiBk
+cml2ZXIgaW50byBsaW51eC0yLjYsCkknbSBidXN5CmF0dGVuZGluZyBhbm90aGVyIGpvYiBhYm91
+dCBzbWFydCBjYXJkLiBBbmQgeW91IG1heSBhbHNvIG1vZGlmeSBpdCBmb3IKbWUgaWYKeW91IGhh
+dmUgdGltZS4gOi0pCgoKPiAyKSBzdWJjbGllbnQgcmVnaXN0cmF0aW9uCj4gICAgIFRoZSBtb2R1
+bGUgc2hvdWxkIHJlZ2lzdGVyIHRoZSAgJ3N1YmNsaWVudHMnICh0aGUgdHdvIGVtdWxhdGVkCmxt
+NzUgY2hpcHMpCj4gc28gdGhhdCBvdGhlciBkcml2ZXJzIGRvIG5vdCBjbGFpbSB0aGVtLgo+ICAg
+ICBZb3UgY2FuIGNvcHkgdGhpcyBjb2RlIGZyb20gdzgzNzgxZC5jCgpJIG5vdGljZWQgdGhlIHN1
+YmNsaWVudCByZWdpc3RyYXRpb24gd2hlbiBJIHN0YXJ0ZWQgdG8gd3JpdGUgNzkyIGRyaXZlciwK
+SSdtIG5vdApmYW1pbGlhciB3aXRoIHN1YmNsaWVudCBhbmQgc2VudCBsbV9zZW5zb3JzIGdyb3Vw
+IGEgbWFpbCBmb3IgeW91cgppbnRyb2R1Y3Rpb24KYWJvdXQgaXQgYWJvdXQgc2V2ZXJhbCBtb250
+aCBhZ28sIGJ1dCBkbyBub3QgcmVjZWl2ZSBhbnkgcmVzcG9uc2UuClNpbmNlIEknbSBub3QgZmFt
+aWxpYXIgd2l0aCBpdCwgSSBkaXNjYXJkIGl0IGp1c3QgbGlrZSB0aGUgb3RoZXIgY2hpcApkcml2
+ZXJzOgpsbTkwLmMgYW5kIGxtODMuYywgZmluZGluZyBpdCBjYW4gd29yayB3ZWxsLgoKCj4gMykg
+ZmFuIHNwZWVkcyBpbiAvcHJvYwo+ICAgICAgU29tZXRpbWVzIHRoZSBmYW4gc3BlZWRzIGluIC9w
+cm9jIGFyZSBsYXJnZSBuZWdhdGl2ZSBudW1iZXJzOgo+IAl3ODM3OTJkLWkyYy0xLTJkL2ZhbjEK
+PiAJMTg3IC01NTY3MTI2NzIKPiAJdzgzNzkyZC1pMmMtMS0yZC9mYW4yCj4gCTEwMCAwCj4gCXc4
+Mzc5MmQtaTJjLTEtMmQvZmFuMwo+IAkxNjk1IDM4MzUKPiAJdzgzNzkyZC1pMmMtMS0yZC9mYW40
+Cj4gCTYwMDAgMAo+IAl3ODM3OTJkLWkyYy0xLTJkL2ZhbjUKPiAJMTI4NTcgMAo+IAl3ODM3OTJk
+LWkyYy0xLTJkL2ZhbjYKPiAJNjc4MyAwCj4gCXc4Mzc5MmQtaTJjLTEtMmQvZmFuNwo+IAktMSAt
+NTU2NzEyNjcyCj4gICAgICAgSSB0aGluayBpdCdzIGJlY2F1c2UgeW91IGRvbid0IGFsd2F5cyBz
+ZXQgYSB2YWx1ZSB0byByZXN1bHRzWzFdCmluCj4gdzgzNzkyZF9mYW4oKS4gVGhlcmUgYXJlIHNl
+dmVyYWwKPiAgICAgICAgaWYtdGhlbi1lbHNlIGNhc2VzIHdoZXJlIG5vIHZhbHVlIGlzIHNldC4K
+CkhtLi4uSSB0aGluayB0aGlzIHBoZW5vbWVub24gYXBwZWFyIHdoZW4gdGhlIGZhbiBkaXZpc29y
+IG1vZGlmeWluZwppdHNlbGYKaW4gdGhlICJkby4uLndoaWxlICgwKSIgbG9vcCBpbiB3ODM3OTJk
+X2ZhbigpLCBPbmNlIHRoZSBmYW4gZGl2aXNvcgpyZWFjaGVzCmEgcmVhc29uYWJsZSBhZnRlciBz
+b21lIHRpbWUsIGl0IHdpbGwgZGlzYXBwZWFyLiBNYXliZSB0aGVyZSBpcyBzb21lIGJ1Zwppbgp0
+aGlzIGZ1bmN0aW9uLCBJIHdpbGwgZGVidWcgaXQgaW4gdGhlIG5lYXIgZnV0dXJlLgoKCj4gNCkg
+YSBkb2N1bWVudGF0aW9uIGZpbGUgZm9yIGRvYy9jaGlwcyB3b3VsZCBiZSBncmVhdGx5IGFwcHJl
+Y2lhdGVkIDopCgpZZXMsIHlvdSBhcmUgcmlnaHQsIEkgd2lsbCBzZW5kIHlvdSB0aGUgZG9jdW1l
+bnQgd2hlbiBJIGZpbmlzaCBpdCBpbiB0aGUKZnV0dXJlLgoKCgpUaGFua3MKQmVzdCBSZWdhcmRz
+CkNodW5oYW8KCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlz
+IGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRp
+Y2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5v
+dCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9u
+c2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtp
+bmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBh
+bGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1t
+ZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNh
+YmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9u
+IG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBp
+biB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVz
+cyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNl
+ZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVh
+c2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEK
+IHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRs
+qrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCw
+sqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaas
+qOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmk
+pKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhn
+scLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7
+ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
