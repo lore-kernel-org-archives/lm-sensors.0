@@ -1,72 +1,83 @@
-From: aragorn@tiscali.nl (Frans Pop)
-Date: Thu, 19 May 2005 06:25:16 +0000
-Subject: [patch] Ticket #1782: Enabling SMBus for Toshiba Satellite A40-211
-Message-Id: <200409211812.13479.aragorn@tiscali.nl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:40 +0000
+Subject: lm_sensors problem
+Message-Id: <20050227212318.2878f53a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-(Ticket was answered by Khali 2004-09-21)
-(Please CC me as I'm not a member of the list)
+Hi,
 
-Thanks very much for the information you provided in the ticket.
+(Moving to the LM Sensors mailing list so that it ends up in the archives.)
 
-With that start and a bit of further research, I've managed to enable the 
-SMBus and am now getting readings from lm90 and eeprom sensors :-)
-It's a pity the lm90 does not include FAN-readings, but well...
+> I have a problem with lm_sensors, and I saw you discussing exactly
+> same problem on some forum - but the discussion was not finished. If
+> you have some time could you please try to help me? The problem is:
+> 
+> - I have computer based on intel d865 perl motherboard, with fedora
+> core 3  installed (almost minimal instalation) and with
+> lm_sensors-2.9.0-38.1.rhfc3.at.i386.rpm
+> 
+> - sensors_detect passes ok, and instructs me to do following:
+> 
+> #----cut here----
+> # I2C module options
+> alias char-major-89 i2c-dev
+> #----cut here----
+> 
+> #----cut here----
+> # I2C adapter drivers
+> modprobe i2c-i801
+> modprobe i2c-isa
+> # I2C chip drivers
+> modprobe lm85
+> modprobe smbus-arp
+> # no driver for Nat. Semi. PC87372 Super IO Fan Sensors yet
+> # sleep 2 # optional
+> /usr/bin/sensors -s # recommended
+> #----cut here---
+> 
+>  
+> I did what it asked for, all modules loads, except:
+> 
+> modprobe smbus-arp  prints:
+> FATAL: module smbus_arp not found.
 
-$ lspci
-<snip>
-0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus 
-Controller (rev 03)
-</snip>
+That one was not ported to Linux 2.6 and is not interesting for end
+users anyway. Forget about it.
 
-$ sensors
-eeprom-i2c-0-51
-Adapter: SMBus I801 adapter at d880
-Memory type:            DDR SDRAM DIMM
-Memory size (MB):       256
+> And sensors subsequently displays only following information:
+> eeprom-i2c-0-50
+> Adapter: SMBus I801 adapter at c800
+> Memory type:            DDR SDRAM DIMM
+> Memory size (MB):       512
+>  
+> Absolutely no information about temperature or fan speed. I spent a
+> day searching on interned, I tried to install older version of
+> lm_sensors, tried to install latest i2c package, I even tried to
+> install fedora core 2, but nothing helped. Do you have any idea? 
 
-eeprom-i2c-0-50
-Adapter: SMBus I801 adapter at d880
-Memory type:            DDR SDRAM DIMM
-Memory size (MB):       256
+The lm85 driver should provide hardware monitoring data. If it doesn't,
+it means that the chip detection failed. If sensors-detect found an SMSC
+chip it's a known bug, fixed by now but maybe you don't want to upgrade
+kernels.
 
-adm1032-i2c-0-4c
-Adapter: SMBus I801 adapter at d880
-M/B Temp:    +35?C  (low  =   -65?C, high =  +127?C)
-CPU Temp:  +33.9?C  (low  = +28.0?C, high = +72.0?C)
-M/B Crit:   +127?C  (hyst =  +122?C)
-CPU Crit:    +82?C  (hyst =   +77?C)
-(I guess I'll have to adjust the limits a bit :-)
+Solution:
+modprobe i2c-dev
+i2cdetect 0
 
-I have attached the output of sensors-detect, about which I have one 
-question. The adm1021 is 'misdetected' with confidence 3.
-Should I just ignore this or could it be that sensor is present?
+A chip will show at address 0x2c, 0x2d or 0x2e. Note the address. Then,
+when loading the lm85 driver, add a force parameter:
 
-I've also attached a patch for drivers/pci/quirks.c based on Debian's 2.6.7 
-kernel sources.
-As I needed to check for a different subsystem_vendor (and as I really don't 
-know C), I have just copied the functions that were present. I would guess 
-however that it would be nicer to integrate my test into the 'asus' 
-functions and provide bit more general way to add new cases.
-I hope you can finalize the patch and can get it included in the kernel.
+modprobe lm85 force=0,0x2c # replace with the real address if different
 
-Thanks again,
-Frans Pop
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors-detect.txt.gz
-Type: application/x-gzip
-Size: 2209 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040921/44447a38/sensors-detect.txt.gz
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: quirks.c.patch
-Type: text/x-diff
-Size: 1994 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040921/44447a38/quirks.c.bin
+That should do it. If it works you can add the following line in
+/etc/modprobe.conf:
+option lm85 force=0,0x2c
+So that the trick will still be active after reboot.
+
+Hope that helps,
+-- 
+Jean Delvare
