@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:52 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <10819814504116@kroah.com>
+Message-Id: <10819814502077@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1081981449409@kroah.com>
+In-Reply-To: <10819814502649@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,121 +11,200 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.6, 2004/03/26 13:53:01-08:00, khali@linux-fr.org
+ChangeSet 1.1643.36.9, 2004/03/30 14:26:52-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Setting w83627hf fan_div preserves fan_min
+[PATCH] I2C: i2c documentation update (2/2)
 
-Here is a patch that updates the w83627hf driver in the exact same way I
-did recently for the w83781d driver. There were two problems:
-1* Fan divisor storing code was ugly, badly ripped from the 2.4 w83627hf
-   driver and/or the 2.6 w83781d driver.
-2* Setting fan divisors wouldn't preserve fan mins.
-
-Exactly the same as w83781d:
-http://archives.andrew.net.au/lm-sensors/msg06952.html
-http://archives.andrew.net.au/lm-sensors/msg07008.html
-
-No surprise since the w83627hf driver is a fork of the w83781d driver.
-
-Since the two drivers are strongly similar, I took the code directly
-from the updated w83781d driver. I cannot test the w83627hf driver
-(testers welcome BTW) but this makes me feel confident that the code is
-correct.
-
-To make it clear, this single patch is the w83627f equivalent of the
-three patches I submitted for the w83781d:
-* Cleanup
-* Refactoring
-* Setting fan_div preserves fan_min
-All in one (much better looking BTW).
+Here is a patch to Documentation/i2c/sysfs-interface. This is mostly my
+intent to make the document more readable. There are also a few
+incorrectnesses fixed, and some comments added.
 
 
- drivers/i2c/chips/w83627hf.c |   54 ++++++++++++++++++++++++-------------------
- 1 files changed, 31 insertions(+), 23 deletions(-)
+ Documentation/i2c/sysfs-interface |   78 ++++++++++++++++++--------------------
+ 1 files changed, 37 insertions(+), 41 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83627hf.c b/drivers/i2c/chips/w83627hf.c
---- a/drivers/i2c/chips/w83627hf.c	Wed Apr 14 15:14:33 2004
-+++ b/drivers/i2c/chips/w83627hf.c	Wed Apr 14 15:14:33 2004
-@@ -659,34 +659,37 @@
- 		       (long) DIV_FROM_REG(data->fan_div[nr - 1]));
- }
+diff -Nru a/Documentation/i2c/sysfs-interface b/Documentation/i2c/sysfs-interface
+--- a/Documentation/i2c/sysfs-interface	Wed Apr 14 15:14:16 2004
++++ b/Documentation/i2c/sysfs-interface	Wed Apr 14 15:14:16 2004
+@@ -74,18 +74,15 @@
+ ************
  
-+/* Note: we save and restore the fan minimum here, because its value is
-+   determined in part by the fan divisor.  This follows the principle of
-+   least suprise; the user doesn't expect the fan minimum to change just
-+   because the divisor changed. */
- static ssize_t
- store_fan_div_reg(struct device *dev, const char *buf, size_t count, int nr)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct w83627hf_data *data = i2c_get_clientdata(client);
--	u32 val, old, old2, old3 = 0;
-+	unsigned long min;
-+	u8 reg;
+ in[0-8]_min	Voltage min value.
+-		Fixed point value in form XXXX.  Divide by 1000 to get
+-		Volts.
++		Unit: millivolt
+ 		Read/Write
+ 		
+ in[0-8]_max	Voltage max value.
+-		Fixed point value in form XXXX.  Divide by 1000 to get
+-		Volts.
++		Unit: millivolt
+ 		Read/Write
+ 		
+ in[0-8]_input	Voltage input value.
+-		Fixed point value in form XXXX.  Divide by 1000 to get
+-		Volts.
++		Unit: millivolt
+ 		Read only
+ 		Actual voltage depends on the scaling resistors on the
+ 		motherboard, as recommended in the chip datasheet.
+@@ -95,10 +92,10 @@
+ 		However, some drivers (notably lm87 and via686a)
+ 		do scale, with various degrees of success.
+ 		These drivers will output the actual voltage.
+-		First two values are read/write and third is read only.
++
+ 		Typical usage:
+ 			in0_*	CPU #1 voltage (not scaled)
+-			in1_*	CPU #1 voltage (not scaled)
++			in1_*	CPU #2 voltage (not scaled)
+ 			in2_*	3.3V nominal (not scaled)
+ 			in3_*	5.0V nominal (scaled)
+ 			in4_*	12.0V nominal (scaled)
+@@ -108,17 +105,16 @@
+ 			in8_*	varies
  
--	val = simple_strtoul(buf, NULL, 10);
--	old = w83627hf_read_value(client, W83781D_REG_VID_FANDIV);
--	old3 = w83627hf_read_value(client, W83781D_REG_VBAT);
--	data->fan_div[nr - 1] = DIV_TO_REG(val);
--
--	if (nr >= 3 && data->type != w83697hf) {
--		old2 = w83627hf_read_value(client, W83781D_REG_PIN);
--		old2 = (old2 & 0x3f) | ((data->fan_div[2] & 0x03) << 6);
--		w83627hf_write_value(client, W83781D_REG_PIN, old2);
--		old3 = (old3 & 0x7f) | ((data->fan_div[2] & 0x04) << 5);
--	}
--	if (nr >= 2) {
--		old = (old & 0x3f) | ((data->fan_div[1] & 0x03) << 6);
--		old3 = (old3 & 0xbf) | ((data->fan_div[1] & 0x04) << 4);
--	}
--	if (nr >= 1) {
--		old = (old & 0xcf) | ((data->fan_div[0] & 0x03) << 4);
--		w83627hf_write_value(client, W83781D_REG_VID_FANDIV, old);
--		old3 = (old3 & 0xdf) | ((data->fan_div[0] & 0x04) << 3);
--		w83627hf_write_value(client, W83781D_REG_VBAT, old3);
--	}
-+	/* Save fan_min */
-+	min = FAN_FROM_REG(data->fan_min[nr],
-+			   DIV_FROM_REG(data->fan_div[nr]));
-+
-+	data->fan_div[nr] = DIV_TO_REG(simple_strtoul(buf, NULL, 10));
-+
-+	reg = (w83627hf_read_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV)
-+	       & (nr=0 ? 0xcf : 0x3f))
-+	    | ((data->fan_div[nr] & 0x03) << (nr=0 ? 4 : 6));
-+	w83627hf_write_value(client, nr=2 ? W83781D_REG_PIN : W83781D_REG_VID_FANDIV, reg);
-+
-+	reg = (w83627hf_read_value(client, W83781D_REG_VBAT)
-+	       & ~(1 << (5 + nr)))
-+	    | ((data->fan_div[nr] & 0x04) << (3 + nr));
-+	w83627hf_write_value(client, W83781D_REG_VBAT, reg);
-+
-+	/* Restore fan_min */
-+	data->fan_min[nr] = FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
-+	w83627hf_write_value(client, W83781D_REG_FAN_MIN(nr+1), data->fan_min[nr]);
+ in0_ref		CPU core reference voltage.
++		Unit: millivolt
+ 		Read only.
+-		Fixed point value in form XXXX corresponding to CPU core
+-		voltage as told to the sensor chip.  Divide by 1000 to
+-		get Volts.  Not always correct.
++		Not always correct.
  
- 	return count;
- }
-@@ -700,7 +703,7 @@
- store_regs_fan_div_##offset (struct device *dev, \
- 			    const char *buf, size_t count) \
- { \
--	return store_fan_div_reg(dev, buf, count, offset); \
-+	return store_fan_div_reg(dev, buf, count, offset - 1); \
- } \
- static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
- 		  show_regs_fan_div_##offset, store_regs_fan_div_##offset)
-@@ -981,6 +984,11 @@
+ vrm		Voltage Regulator Module version number. 
+ 		Read only.
+-		Two digit number (XX), first is major version, second is
++		Two digit number, first is major version, second is
+ 		minor version.
+-		Affects the way the driver calculates the core voltage from
+-		the vid pins. See doc/vid for details.
++		Affects the way the driver calculates the CPU core reference
++		voltage from the vid pins.
  
- 	/* Initialize the chip */
- 	w83627hf_init_client(new_client);
-+
-+	/* A few vars need to be filled upon startup */
-+	data->fan_min[0] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(1));
-+	data->fan_min[1] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(2));
-+	data->fan_min[2] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(3));
  
- 	/* Register sysfs hooks */
- 	device_create_file_in(new_client, 0);
+ ********
+@@ -126,23 +122,23 @@
+ ********
+ 
+ fan[1-3]_min	Fan minimum value
+-		Integer value indicating RPM
++		Unit: revolution/min (RPM)
+ 		Read/Write.
+ 
+ fan[1-3]_input	Fan input value.
+-		Integer value indicating RPM
++		Unit: revolution/min (RPM)
+ 		Read only.
+ 
+ fan[1-3]_div	Fan divisor.
+-		Integers in powers of two (1,2,4,8,16,32,64,128).
+-		Some chips only support values 1,2,4,8.
+-		See doc/fan-divisors for details.
++		Integer value in powers of two (1, 2, 4, 8, 16, 32, 64, 128).
++		Some chips only support values 1, 2, 4 and 8.
++		Note that this is actually an internal clock divisor, which
++		affects the measurable speed range, not the read value.
+ 
+ fan[1-3]_pwm	Pulse width modulation fan control.
+-		Integer 0 - 255
++		Integer value in the range 0 to 255
+ 		Read/Write
+ 		255 is max or 100%.
+-		Corresponds to the fans 1-3.
+ 
+ fan[1-3]_pwm_enable
+ 		Switch PWM on and off.
+@@ -157,46 +153,46 @@
+ ****************
+ 
+ temp[1-3]_type	Sensor type selection.
+-		Integers 1,2,3, or thermistor Beta value (3435)
++		Integers 1, 2, 3 or thermistor Beta value (3435)
+ 		Read/Write.
++		1: PII/Celeron Diode
++		2: 3904 transistor
++		3: thermal diode
++		Not all types are supported by all chips
+ 
+ temp[1-4]_max	Temperature max value.
+-		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.
++		Unit: millidegree Celcius
+ 		Read/Write value.
+ 
+ temp[1-3]_min	Temperature min value.
+-		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.
++		Unit: millidegree Celcius
+ 		Read/Write value.
+ 
+ temp[1-3]_max_hyst
+ 		Temperature hysteresis value for max limit.
+-		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.  Must be reported as an
+-		absolute temperature, NOT a delta from the max value.
++		Unit: millidegree Celcius
++		Must be reported as an absolute temperature, NOT a delta
++		from the max value.
+ 		Read/Write value.
+ 
+ temp[1-4]_input Temperature input value.
+-		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.
++		Unit: millidegree Celcius
+ 		Read only value.
+ 
+ temp[1-4]_crit	Temperature critical value, typically greater than
+ 		corresponding temp_max values.
+-		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.
++		Unit: millidegree Celcius
+ 		Read/Write value.
+ 
+ temp[1-2]_crit_hyst
+ 		Temperature hysteresis value for critical limit.
+-		Fixed point value in form XXXXX and should be divided by
+-		1000 to get degrees Celsius.  Must be reported as an
+-		absolute temperature, NOT a delta from the critical value.
++		Unit: millidegree Celcius
++		Must be reported as an absolute temperature, NOT a delta
++		from the critical value.
+ 		Read/Write value.
+ 
+ 		If there are multiple temperature sensors, temp1_* is
+-		generally the sensor inside the chip itself, generally
++		generally the sensor inside the chip itself,
+ 		reported as "motherboard temperature".  temp2_* to
+ 		temp4_* are generally sensors external to the chip
+ 		itself, for example the thermal diode inside the CPU or
+@@ -211,15 +207,15 @@
+ so this part is theoretical, so to say.
+ 
+ curr[1-n]_max	Current max value
+-		Fixed point XXXXX, divide by 1000 to get Amps.
++		Unit: milliampere
+ 		Read/Write.
+ 
+ curr[1-n]_min	Current min value.
+-		Fixed point XXXXX, divide by 1000 to get Amps.
++		Unit: milliampere
+ 		Read/Write.
+ 
+ curr[1-n]_input	Current input value
+-		Fixed point XXXXX, divide by 1000 to get Amps.
++		Unit: milliampere
+ 		Read only.
+ 
+ 
+@@ -246,7 +242,7 @@
+ 
+ beep_mask	Bitmask for beep.
+ 		Same format as 'alarms' with the same bit locations.
+-		Read only.
++		Read/Write
+ 
+ eeprom		Raw EEPROM data in binary form.
+ 		Read only.
 
