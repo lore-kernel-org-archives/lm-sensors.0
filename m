@@ -1,81 +1,29 @@
-From: tretkowski@bzimage.de (Norbert Tretkowski)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: Troble with i2c-viapro and a VT8233A
-Message-Id: <20020427165949.GA2293@rollcage.bzimage.de>
+From: reid@vianet.ca (Reid Sutherland)
+Date: Thu, 19 May 2005 06:23:50 +0000
+Subject: PC97317 support.
+Message-Id: <3E777CC9.6000204@vianet.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.OSF.4.10.10204271913170.25254-100000@kosh.hut.fi>
-In-Reply-To: <Pine.OSF.4.10.10204271913170.25254-100000@kosh.hut.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Ky?sti M?lkki wrote:
-> On Fri, 26 Apr 2002, Norbert Tretkowski wrote:
-> > Hi,
-> > 
-> > I've tried to load the i2c-viapro module.
-> > 
-> > ,----
-> > | Apr 26 11:33:39 rollcage kernel: i2c-core.o: i2c core module version 2.6.3 (20020322)
-> > | Apr 26 11:33:39 rollcage kernel: i2c-viapro.o version 2.6.3 (20020322)
-> > | Apr 26 11:33:39 rollcage kernel: i2c-viapro.o: Can't detect vt82c596 or compatible device, module not inserted.
-> > `----
-> > 
-> > The Mainboard is a Asus A7V266-EX with Via VT8233A Chipset.
-> 
-> VIA may have changed the PCI Device ID for the -A release of the
-> chipset. I think VT8233 support (since 2.6.2) was invented by simpling
-> adding the Device ID on the list of probe device IDs in i2c-viapro.c
-> source, you could try the same with VT8233A.
+Hi,
 
-I've found a solution in the forum in the meanwhile, I forgot to
-inform you about that. Sorry.
+I'm just curious if you plan on adding support for the National Semi. 
+PC97317 and it's family.  These chips are in most modern Dell servers AFAIK.
 
-The VT8233A is supported in the CVS, I've tested it and it works fine.
+I found the datasheet which indicates all the appropriate registers and 
+the like.  Since I'm very timmid when it comes to playing with stuff 
+such as this, I can't offer very much programming help.  But I can offer 
+hardware with this chip for testing (must remain here, remote access only).
 
-> > ,----[ lspci ]
-> > | 00:00.0 Host bridge: VIA Technologies, Inc.: Unknown device 3099
-> > | 00:01.0 PCI bridge: VIA Technologies, Inc.: Unknown device b099
-> > | 00:05.0 Multimedia audio controller: C-Media Electronics Inc CM8738 (rev 10)
-> > | 00:0d.0 Non-VGA unclassified device: Symbios Logic Inc. (formerly NCR) 53c810 (rev 01)
-> > | 00:0f.0 Ethernet controller: Digital Equipment Corporation DECchip 21140 [FasterNet] (rev 22)
-> > | 00:11.0 ISA bridge: VIA Technologies, Inc.: Unknown device 3147
-> > | 00:11.1 IDE interface: VIA Technologies, Inc. VT82C586 IDE [Apollo] (rev 06)
-> > | 00:11.2 USB Controller: VIA Technologies, Inc. VT82C586B USB (rev 23)
-> > | 00:11.3 USB Controller: VIA Technologies, Inc. VT82C586B USB (rev 23)
-> > | 01:00.0 VGA compatible controller: Matrox Graphics, Inc. MGA G400 AGP (rev 85)
-> > `----
-> > 
-> > Is this a hardware problem oder a problem with i2c?
-> 
-> I think an "ACPI" device should appear as 00:11.x in the lspci listing
-> above, try to enable it manually in BIOS.
+Would any of this be of any help?
 
-In my BIOS there's no option for ACPI.
+Datasheet:
+http://www.national.com/ds/PC/PC87317.pdf
 
-> Also, a numerical listing with "lspci -n" might help us forwards. 
+Take care,
 
-Here we go...
+-reid
 
-,----
-| 00:00.0 Class 0600: 1106:3099
-| 00:01.0 Class 0604: 1106:b099
-| 00:05.0 Class 0401: 13f6:0111 (rev 10)
-| 00:0d.0 Class 0000: 1000:0001 (rev 01)
-| 00:0f.0 Class 0200: 1011:0009 (rev 22)
-| 00:11.0 Class 0601: 1106:3147
-| 00:11.1 Class 0101: 1106:0571 (rev 06)
-| 00:11.2 Class 0c03: 1106:3038 (rev 23)
-| 00:11.3 Class 0c03: 1106:3038 (rev 23)
-| 01:00.0 Class 0300: 102b:0525 (rev 85)
-`----
-
-Thanks, Norbert
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 232 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020427/e116efda/attachment.bin
