@@ -1,7 +1,7 @@
 From: timm@fnal.gov (Steven Timm)
 Date: Thu, 19 May 2005 06:25:07 +0000
 Subject: [Fwd: xeontemp vs. adm1021]
-Message-Id: <Pine.LNX.4.58.0407291349470.10290@boxer.fnal.gov>
+Message-Id: <Pine.LNX.4.58.0407291428160.10290@boxer.fnal.gov>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4109462F.1060409@edgedesign.us>
 In-Reply-To: <4109462F.1060409@edgedesign.us>
@@ -9,6 +9,24 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
+
+According to the Intel datasheet for the 533FSB Xeon they say that=20
+they have a sensor diode embedded in the processor with two pins=20
+available to access it.  According to the Supermicro X5DPA-GG=20
+documentation they claim to have a sensor chip that can read that,
+although I don't have the technical documentation to prove that it
+is indeed a max1617 type chip.. it is likely that whatever I'm=20
+reading is hooked up to the internal temperature diode.
+
+Steve
+
+
+------------------------------------------------------------------
+Steven C. Timm, Ph.D  (630) 840-8525  timm@fnal.gov  http://home.fnal.gov/~=
+timm/
+Fermilab Computing Division/Core Support Services Dept.
+Assistant Group Leader, Scientific Computing Support Group
+Lead of Computing Farms Team
 
 On Thu, 29 Jul 2004, Philip Edelbrock wrote:
 
@@ -24,17 +42,6 @@ y).
 > The board temps should rise slowly, but the CPU temps should rise=20
 > quickly.  That should give you a easy and definitive answer in just a=20
 > minute or so.
-
-The cpu temps do rise quickly.. up about 20-25C in 15-20 minutes.
-So they are consistent with being cpu's.
-The whitebox vendor says that the difference in the 2 cpu temps is=20
-due to different fan arrangements in the box.. i.e.=20
-one heatsink has air blowing right along the heatsink grooves,
-the other one has it blowing at a 30 degree angle and is hotter.
-
-Steve
-
-
 >=20
 >=20
 > Phil
