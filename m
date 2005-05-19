@@ -1,49 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: Problems using w83781d (v 2.8.0) on Asus CUV4X
-Message-Id: <20031018162003.171cd86e.khali@linux-fr.org>
+From: baileych@mail.med.upenn.edu (Charles Bailey)
+Date: Thu, 19 May 2005 06:24:01 +0000
+Subject: Ticket 1288
+Message-Id: <2147483647.1056216687@abrmsn288.med.upenn.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1066427722.8562.5.camel@localhost>
-In-Reply-To: <1066427722.8562.5.camel@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Tried CVS i2c lk-24 and lm_sensors2 per your reply.  Both build and install 
+fine.  ./prog/detect/sensors-detect again picks up the AMD768, but fails 
+loading i2c-amd756, apparently because it's now in i2c/busses.  It also 
+fails to locate the 627HF, both before and after the amd756 module is 
+loaded manually (not that that should matter, afaict).  If I load modules 
+manually, yielding
 
-> Hm, now i've found it... installation guide.
-> But i thought: I read it one year before, why should i read it again?
+  Module                  Size  Used by    Not tainted
+  w83627hf               13044   0 (unused)
+  i2c-proc                8116   0 [w83627hf]
+  i2c-amd756              3848   0
+  i2c-dev                 4992   0
+  i2c-core               20164   0 [w83627hf i2c-proc i2c-amd756 i2c-dev]
 
-Mouahhaha :) I already answered one e-mail today, why should I answer
-this one? ;)
+I still have no luck:
 
-> You should tell the user, that so much has changed, he should take a
-> look at the installation guide, if the modules fails loading.
+  [bailey@XXX ~]% /usr/local/bin/sensors
+  No sensors found!
 
-I expect the user to come to the news page if anything goes wrong. If
-the user can't think of that and read 4 lines of English (don't take it
-personal ;)) that's his/her problem, not our.
+If I add the eeprom chip driver, I get little more:
 
-> hm... somebody should tell the package-maintainers from debian that
-> the i2c-source-package is redundant, when using the kernel patch and
-> that those people who've problems with lm-sensors should try this
-> patch. Hm.
+  [bailey@XXX ~]% /usr/local/bin/sensors
+  eeprom-i2c-0-50
+  Adapter: SMBus AMD75x adapter at 06e0
+  Algorithm: Non-I2C SMBus adapter
+  Memory type:            DDR SDRAM DIMM SPD
+  Memory size (MB):       512
 
-Distribution-dependant issue, we are not the ones to blame.
-Unfortunately, the packagers never get it touch with us to discuss and
-solve that kind of issues (except Axel Thimm, must by why his packages
-are appreciated and used by a large number of persons). I estimate they
-have to come to us, not the other way around.
+  eeprom-i2c-0-51
+  Adapter: SMBus AMD75x adapter at 06e0
+  Algorithm: Non-I2C SMBus adapter
 
-> Why is lm-sensors not a part of the kernel? Too young and unstable?
+  [bailey@XXX ~]%
 
-Mostly because it uses procfs a lot, and adding new entries to /proc is,
-well... prohibited. The core and some drivers have been rewritten to use
-sysfs instead, you can get them in Linux 2.6.0. The major problem now is
-that our user-space tools are not aware of the change yet, so you have a
-very limited usability under 2.6.0. But at least you don't have to play
-with patches, everything's already included in the kernel sources.
+I'm happy to test changes or provide additional data if that would help.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+--
+Regards,
+Charles Bailey  < baileych _at_ mail _dot_ med _dot_ upenn _dot_ edu >
+Fellow, Pediatric Hematology/Oncology
+Children's Hospital of Philadelphia/University of Pennsylvania
