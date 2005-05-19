@@ -1,7 +1,7 @@
 From: pwilsmore@asi.com.au (Peter Wilsmore)
-Date: Thu, 19 May 2005 06:25:14 +0000
+Date: Thu, 19 May 2005 06:25:15 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <45A0FF82385BEB4C8670E255530B3385ACDBB4@mssydeb.asi.com.au>
+Message-Id: <45A0FF82385BEB4C8670E255530B3385B23D70@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -9,6 +9,69 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi,
+I'm still having problems with this bmcsensors module, only this time I get the right readings - when it works. I found from MSI whilst my values seemed high they were correct, so I now have conv_val looking like:
+
+static long conv_val(int value, struct sdrdata *sd)
+{
+        u8 k1, k2;
+        long r;
+        long temp;
+
+        r = value * sd->m;
+        k1 = sd->k & 0x0f;
+        k2 = sd->k >> 4;
+        if(k1 < 8)
+                r += sd->b * exps[k1];
+        else
+                r += sd->b / exps[16 - k1];
+        r *= exps[decplaces(sd)];
+        if(k2 < 8)
+                r *= exps[k2];
+        else
+                if(sd->linear != 7)
+                        r /= exps[16 - k2];
+                else
+                {
+                        // 1 / x * 10 ** (-m) = 10 ** m / x
+                        temp = exps[16 - k2] / r;
+                        r = temp;
+                }
+        return r;
+}
+
+However if I have the stuff added for the nonlinear conversion then it will intermittently crash with:
+
+Call Trace: [<ffffffffa009c2f0>]{:bmcsensors:conv_val+112}
+       [<ffffffffa009ea70>]{:bmcsensors:sdrd+720} [<ffffffffa009e640>]{:bmcsensors:bmc_client+0}
+       [<ffffffffa009c41d>]{:bmcsensors:bmcsensors_all+173}
+       [<ffffffffa008f8b7>]{:i2c-proc:i2c_sysctl_real_Rsmp_86c8b883+151}
+       [<ffffffffa009e640>]{:bmcsensors:bmc_client+0} [<ffffffffa009c370>]{:bmcsensors:bmcsensors_all+0}
+       [<ffffffff801e88d6>]{do_con_trol+422} [<ffffffff801e9c65>]{do_con_write+1589}
+       [<ffffffff801ea270>]{con_write+32} [<ffffffff8012b760>]{do_sysctl_strategy+144}
+       [<ffffffff8012b44c>]{do_sysctl+140} [<ffffffff8012b4f3>]{sys_sysctl+90}
+       [<ffffffff80110177>]{system_call+119}
+
+Code:  48 f7 fb 48 89 c3 48 83 c4 08 48 89 d8 5b 5d 41 5d c3
+
+Kernel panic: Fatal exception
+
+The annoying thing is it will not happen every time, and if it works for the first few times after a reboot I can run the sensors command indefinitely without a crash, however if I restart the computer might crash the first time I run it. Anyone have any idea what I have stuffed up? I can send my ksym files if it will help.
+
+Thanks,
+
+Peter Wilsmore
+ 
+ASI SOLUTIONS
+Direct: 1300130 837
+
+-----Original Message-----
+From: Peter Wilsmore 
+Sent: Thursday, 9 September 2004 12:47 PM
+To: 'Mark Studebaker'
+Cc: lm78@Stimpy.netroedge.com
+Subject: RE: bmcsensors and strange sensor values.
 
 Very low, after the * 2 to correct the for the suspect speeds, 703. I have a suspicion that the selected thresholds are the 'nonrecoverable' thresholds. I am not particularly concerned about the threshold values ATM and need to ship the stuff I am working on by tomorrow. We will be keeping a demo of the system so I will look at it again after that.
 
