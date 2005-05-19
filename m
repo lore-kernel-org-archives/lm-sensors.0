@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: alexander.pohl@tu-berlin.de (Alexander Pohl)
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: Intel 82801DA ICH4
-Message-Id: <20030722191127.7b077828.khali@linux-fr.org>
+Message-Id: <32787.62.246.185.231.1058905435.squirrel@mailbox.TU-Berlin.DE>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <32803.62.246.166.13.1058892758.squirrel@mailbox.TU-Berlin.DE>
 In-Reply-To: <32803.62.246.166.13.1058892758.squirrel@mailbox.TU-Berlin.DE>
@@ -10,24 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-> Hello,
-> 
-> I am seeking support for the Intel 82801DA ICH4 Southbridge (Reference
-> to ticket # 1345)
-> 
-> Here comes lspci -v and lspci -n output:
-> (...)
+I have some trouble compiling the module p4b_smbus.o and adding support
+for the i2c-bus. Adding support for pci-hotplug to my kernel was
+successful.
+(reference to ticket # 1345)
 
-I don't see any I2C bus here. Asus is known to hide them. Please follow
-the instructions in prog/hotplug/README.p4b. Note that you need hotplug
-support on your kernel. I think we don't officialy support the 82801DA,
-but if it's close enough to the 82801DB, I suppose it should work (maybe
-we'll have to add a device ID, but I doubt even this will be necessary).
 
-Tell us how it goes, so that we can add support for your bus or simply
-claim we already support it.
+Here the compiler output:
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+cc  -D__SMP__ -DMODVERSIONS -include
+/lib/modules/2.4.20-hotplug/build/include/linux/modversions.h -D__KERNEL__
+-DMODULE -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
+-fno-strict-aliasing -I/lib/modules/2.4.20-hotplug/build/include   -c -o
+p4b_smbus.o p4b_smbus.c
+p4b_smbus.c: In function `cleanup_module':
+p4b_smbus.c:263: incompatible type for argument 1 of `write_lock'
+p4b_smbus.c:268: invalid type argument of `->'
+make: *** [p4b_smbus.o] Error 1
+
+
+Here what setpci said:
+
+setpci -d 24C0:24C3 f2.w
+setpci: Warning: No devices selected for `f2.w'.
+
+
+Thanks for your fast respond,
+Alexander Pohl
+
+
