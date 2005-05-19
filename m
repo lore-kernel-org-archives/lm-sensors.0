@@ -1,32 +1,40 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: [2.6 patch] i2c/busses/ : make some code static
-Message-Id: <20041109004938.GC25651@kroah.com>
+From: t.schorpp@gmx.de (thomas schorpp)
+Date: Thu, 19 May 2005 06:25:38 +0000
+Subject: sensors conf update for asrock k7vt4a+ mainboard, patch attached
+Message-Id: <4216BEAC.70909@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041107023333.GB14308@stusta.de>
-In-Reply-To: <20041107023333.GB14308@stusta.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Bunk <bunk@stusta.de>
-Cc: phil@netroedge.com, sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sun, Nov 07, 2004 at 03:33:33AM +0100, Adrian Bunk wrote:
-> The patch below makes some needlessly global code under i2c/busses/ 
-> static.
-> 
-> 
-> diffstat output:
->  drivers/i2c/busses/i2c-ali1535.c |    4 ++--
->  drivers/i2c/busses/i2c-amd8111.c |   12 ++++++------
->  drivers/i2c/busses/scx200_acb.c  |    4 ++--
->  drivers/i2c/busses/scx200_i2c.c  |    4 ++--
->  4 files changed, 12 insertions(+), 12 deletions(-)
-> 
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: RIPEMD160
 
-Applied, thanks.
+hello,
 
-greg k-h
+new mb ;)
 
+patch attached.
+
+verified with multimeter and bios.
+
+y
+tom
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iQCVAwUBQha+qWqsze5HSzyoAQOb4wP/cOJCATXMLGGOWcoPwWGme4jKX/7e6gfB
+Wax5IV8K7E9Ts9PhFeQXoYdhV0YhAHrZoBhq3lYxp4N1xQ7zpEcshNZ4s3VUPsFW
+QvMTTDlUWPSQHZ5SqQ1yJzoXcvjdj/Z79HUVyfer6LFhvtAMfMTtfSydxlHJLurR
+mxNI0YB1buA=XB7F
+-----END PGP SIGNATURE-----
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: sensors.conf-k7vt4a+.dist.diff
+Type: text/x-patch
+Size: 1163 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050219/f7fd6584/sensors.conf-k7vt4a.dist.bin
