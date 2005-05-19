@@ -1,45 +1,64 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:29 +0000
-Subject: Question
-Message-Id: <20020214113146.O24643@Stimpy.netroedge.com>
+From: paul.aviles@palei.com (Paul Aviles)
+Date: Thu, 19 May 2005 06:25:27 +0000
+Subject: question
+Message-Id: <000301c4ea5a$705e4900$3224050a@avilespaxp>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20020214113146.O24643@Stimpy.netroedge.com>
+In-Reply-To: <20020214113146.O24643@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello all,
 
-Basicly, you insmod the driver, and you should see some files in
-/proc/sys/dev/sensors/bt869*/ .  Then, you put your X-server in a NTSC
-resolution, and then set the appropriate values in the files in the
-directory noted above (e.g. "echo 0 > colorbars", and set ntsc/pal,
-resolution, etc.).  Check the output.  If nessesary, you may need to
-select the appropriate output port if you don't get anything.  Some
-modifications to the driver were recently submitted to CVS (see our
-download page for instruction on CVS), so you might try that.
+Thanks to all for your answers and support. I was finally able to figure out 
+my problems with the .spec file and I am now creating the rpms.
 
-Good luck!
+One question I have is that I have two indentical systems from the same 
+manufacturer, Tyan. One has a Celeron CPU and the other has a P4 with HT, 
+but the motherboards are the same. On one unit I must use a lm85-* in 
+sensors.conf and the the other with a adt7463-* for the chips section or the 
+values don't make sense.
+
+Could the different CPU's be causing lmsensors to get confused? I even ran 
+the detect routines and came with the same results. What else could I do to 
+check this?
+
+Thanks so much!!
+
+Paul
+
+Sample report.
+
+lm85-i2c-0-2e
+Adapter: SMBus I801 adapter at 1480
++2.6V:      +2.62 V  (min =  +2.47 V, max =  +2.73 V)
+CPU Volt: +1.31 V  (min =  +1.25 V, max =  +1.40 V)
++3.3V:      +3.35 V  (min =  +3.13 V, max =  +3.47 V)
++5V:       +5.05 V  (min =  +4.74 V, max =  +5.26 V)
+Fan2:      8424 RPM  (min = 4800 RPM)
+Fan1:      6136 RPM  (min = 4800 RPM)
+Fan3:      9294 RPM  (min = 2200 RPM)
+CPU Temp:    +47?C  (low  =    +5?C, high =   +68?C)
+Loc Temp:     +36?C  (low  =    +5?C, high =   +40?C)
+Sys Temp:      +38?C  (low  =    +5?C, high =   +50?C)
+vid:      +1.325 V  (VRM Version 9.1)
+
+eeprom-i2c-0-52
+Adapter: SMBus I801 adapter at 1480
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
+
+eeprom-i2c-0-53
+Adapter: SMBus I801 adapter at 1480
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
 
-Phil
 
-
-On Thu, Feb 14, 2002 at 02:26:32PM -0500, Hoopez wrote:
-> 
-> Hi,                                                                                                                                                       
-> I have a question about voodoo 3 cards and s-video tv-out in
-> linux that i hope you can answer. I ran through the howto (i'm in america,
-> ntsc) and i'm at the point just before you restart the X server. I'm out of sync (or whatever                                                                                  
-> you call it), and then when i hit ctrl-alt-number_pad_+, i can see the                                                                                    
-> colorbars for one second, until the x server restarts, then it goes back                                                                                  
-> to the out-of-sync display. I was wondering if you had any advice on what                                                                                 
-> to do or where I should look? I'm running Redhat 7.2 on an Athlon K7,                                                                                     
-> Voodoo 3 3000, kernel 2.4.7-10 (i also tried it on 2.4.17)                                                                                                
->                                                                                                                                                           
-> If you can help me, thanks, if not, thanks again!                                                                                                         
-> Matt Hoopes         
 
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
