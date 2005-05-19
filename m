@@ -1,43 +1,54 @@
-From: chronic_tautologist@hotmail.com (Doan Vu)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: i2c and lm_sensors: 2.8.1
-Message-Id: <LAW12-F7WltovgyMok00002b76f@hotmail.com>
+From: haimat@lame.at (Matthias F. Brandstetter)
+Date: Thu, 19 May 2005 06:25:07 +0000
+Subject: how to get temp. stats?
+Message-Id: <200407271626.43650.haimat@lame.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Law12-F59zJUMWO2gcC00006992@hotmail.com>
-In-Reply-To: <Law12-F59zJUMWO2gcC00006992@hotmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ok thanks!
+Hi all,
 
+I successfully installed lm_sensors onto another machine with an i801 chip. 
+No problem, sensors-detect found it and suggested the right kernel 
+modules.
 
->From: Jean Delvare <khali@linux-fr.org>
->Reply-To: sensors@stimpy.netroedge.com
->To: "Doan Vu" <chronic_tautologist@hotmail.com>
->CC: sensors@Stimpy.netroedge.com
->Subject: Re: i2c and lm_sensors: 2.8.1
->Date: Fri, 17 Oct 2003 18:05:26 +0200
->
->
-> > I got errors compiling the new i2c and lm_sensors, so I went to your
-> > site and the installation guide is only for the 2.8.0 version.
->
->I missed time to update the guide so far, but it is for 2.8.1 as well.
->
-> > I have been told that kernel 2.4.22 does not need i2c and
-> > lm_sensors - is this correct?
->
->This is wrong, our changes haven't made it into Linux 2.4 yet. I suggest
->you use the 2.8.0 installation guide and get the i2c patch for kernel
->2.4.22 here. This patch is based on CVS some weeks before we released
->2.8.1, so you'll be able to compile lm_sensors 2.8.1 on top of it.
->
->--
->Jean Delvare
->http://www.ensicaen.ismra.fr/~delvare/
+But after loading all of these modules, I still do not get any temp. 
+statistics. I only get this output:
 
-_________________________________________________________________
-Get less junk mail with ninemsn Premium. Click here  
-http://ninemsn.com.au/premium/landing.asp
+--<snip>--
+root@mx:/usr/src/lm_sensors-2.8.7# sensors
+eeprom-i2c-0-52
+Adapter: SMBus I801 adapter at 5000
+Memory type:            SDR SDRAM DIMM
+Memory size (MB):       512
+--</snip>--
+
+And I have this modules loaded:
+
+--<snip>--
+root@mx:/usr/src/lm_sensors-2.8.7# lsmod
+Module                 Size  Used by    Not tainted
+i2c-isa                 716   0  (unused)
+eeprom                 3860   0  (unused)
+i2c-proc               6548   0  [eeprom]
+i2c-dev                4096   0
+i2c-i801               4760   0
+i2c-core              15044   0  [i2c-isa eeprom i2c-proc i2c-dev i2c-i801]
+uhci                  24444   0  (unused)
+usbcore               59308   1  [uhci]
+ide-scsi               9328   0
+eepro100              19252   1
+mii                    2272   0  [eepro100]
+--</snip>--
+
+Do I need any other module loaded? Any ideas?
+Greetings and TIA, Matthias
+
+-- 
+You see, boy?  The real money's in bootlegging!  Not in your childish
+vandalism.
+
+		-- Homer Simpson
+		   Homer vs. the Eighteenth Amendment
