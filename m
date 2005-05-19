@@ -1,38 +1,29 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:59 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc4 14/15] include/linux/i2c-sysfs.h:
-Message-Id: <2538186705051703463587a54@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: need some information
+Message-Id: <20030811184349.5b66d504.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-This patch creates a new header with a potential standard i2c sensor
-attribute type (which simply includes an int representing the sensor
-number/index) and the associated macros, SENSOR_DEVICE_ATTR to define
-a static attribute and to_sensor_dev_attr to get a
-sensor_device_attribute reference from an embedded device_attribute
-reference.
 
-Please see the next patch to see how these can be used.
 
-Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
+> I want to monitor my cpu temp, so i checked out some dockapps said to
+> do this. they all needed lm_sensors to work, so i went to your site.
+>  
+> But there i read that 2.4 kernels had this function built in.
 
----
--------------- next part --------------
- i2c-sysfs.h |   37 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 37 insertions(+)
+Where the hell did you read that? It's plain wrong. 2.4 kernels do *not*
+have any hardware monitoring device drivers included.
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-i2c.diff
-Type: text/x-patch
-Size: 1767 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050517/89ff6850/patch-linux-2.6.12-rc4-sysfsdyncallback-deviceattr-i2c.bin
--------------- next part --------------
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> Im using 2.4.20 and ask. should i download lm_sensors and I2C? or is
+> it ok to go ahead and download the dockapp?
+
+You will need i2c and lm_sensors (in that order). Also, make sure it
+works OK before using the dockapp.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
