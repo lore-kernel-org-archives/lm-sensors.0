@@ -1,47 +1,178 @@
-From: timm@inbase.com (Wolfgang Timm)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: Compiling Errors
-Message-Id: <5.1.0.14.2.20030207114346.00a258e0@195.245.9.193>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 13/22] W1: cleanup master attributes handling
+Message-Id: <200504210220.12670.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-Hello,
+W1: clean-up master attribute implementation:
+    - drop unnecessary "w1_master" prefix from attribute names;
+    - do not acquire master->mutex when accessing attributes;
+    - move attribute code "closer" to the rest of master code.
 
-i'm trying ls_sensors to watch our Webserver.
-i2c compiles fine.
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-At the compile time for lm_sensors i got this:
-gcc  -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomit-frame-pointer -I. 
--Ikernel/include -I/usr/local/include -I/usr/src/linux/include   -O2   -c 
-kernel/chips/lm92.c -o kernel/chips/lm92.o
-kernel/chips/lm92.c:96: warning: parameter names (without types) in 
-function declaration
-kernel/chips/lm92.c: In function `lm92_temp':
-kernel/chips/lm92.c:180: `mutex' undeclared (first use in this function)
-kernel/chips/lm92.c:180: (Each undeclared identifier is reported only once
-kernel/chips/lm92.c:180: for each function it appears in.)
-kernel/chips/lm92.c: In function `lm92_alarms':
-kernel/chips/lm92.c:207: `mutex' undeclared (first use in this function)
-kernel/chips/lm92.c: In function `lm92_detect':
-kernel/chips/lm92.c:280: `mutex' undeclared (first use in this function)
-kernel/chips/lm92.c:298: `THIS_MODULE' undeclared (first use in this function)
-kernel/chips/lm92.c: At top level:
-kernel/chips/lm92.c:415: warning: parameter names (without types) in 
-function declaration
-kernel/chips/lm92.c:415: warning: data definition has no type or storage class
-kernel/chips/lm92.c:416: warning: parameter names (without types) in 
-function declaration
-kernel/chips/lm92.c:416: warning: data definition has no type or storage class
-make: *** [kernel/chips/lm92.o] Error 1
+ w1.c |  111 +++++++++++++++++++++++++------------------------------------------
+ w1.h |    1 
+ 2 files changed, 44 insertions(+), 68 deletions(-)
 
-Whats this mean??
-Thanks for your answer
-timm
-
----------------------------------;-)
-inbase
-- Wolfgang Timm -
-    3W:  http://www.inbase.de, http://www.mycms.de
+Index: dtor/drivers/w1/w1.c
+=================================--- dtor.orig/drivers/w1/w1.c
++++ dtor/drivers/w1/w1.c
+@@ -95,72 +95,6 @@ struct device w1_device = {
+ 	.release = &w1_master_release
+ };
+ 
+-static ssize_t w1_master_attribute_show_name(struct device *dev, char *buf)
+-{
+-	struct w1_master *md = container_of (dev, struct w1_master, dev);
+-	ssize_t count;
+-
+-	if (down_interruptible (&md->mutex))
+-		return -EBUSY;
+-
+-	count = sprintf(buf, "%s\n", md->name);
+-
+-	up(&md->mutex);
+-
+-	return count;
+-}
+-
+-static ssize_t w1_master_attribute_show_timeout(struct device *dev, char *buf)
+-{
+-	ssize_t count;
+-	count = sprintf(buf, "%d\n", w1_timeout);
+-	return count;
+-}
+-
+-static ssize_t w1_master_attribute_show_max_slave_count(struct device *dev, char *buf)
+-{
+-	struct w1_master *md = container_of(dev, struct w1_master, dev);
+-	ssize_t count;
+-
+-	if (down_interruptible(&md->mutex))
+-		return -EBUSY;
+-
+-	count = sprintf(buf, "%d\n", md->max_slave_count);
+-
+-	up(&md->mutex);
+-	return count;
+-}
+-
+-#define W1_MASTER_ATTR_RO(_name, _mode)				\
+-	struct device_attribute w1_master_attribute_##_name =	\
+-		__ATTR(w1_master_##_name, _mode,		\
+-		       w1_master_attribute_show_##_name, NULL)
+-
+-static W1_MASTER_ATTR_RO(name, S_IRUGO);
+-static W1_MASTER_ATTR_RO(max_slave_count, S_IRUGO);
+-static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
+-
+-static struct attribute *w1_master_default_attrs[] = {
+-	&w1_master_attribute_name.attr,
+-	&w1_master_attribute_max_slave_count.attr,
+-	&w1_master_attribute_timeout.attr,
+-	NULL
+-};
+-
+-static struct attribute_group w1_master_defattr_group = {
+-	.attrs = w1_master_default_attrs,
+-};
+-
+-int w1_create_master_attributes(struct w1_master *master)
+-{
+-	return sysfs_create_group(&master->dev.kobj, &w1_master_defattr_group);
+-}
+-
+-void w1_destroy_master_attributes(struct w1_master *master)
+-{
+-	sysfs_remove_group(&master->dev.kobj, &w1_master_defattr_group);
+-}
+-
+ static ssize_t w1_slave_attribute_show_family(struct device *dev, char *buf)
+ {
+ 	struct w1_slave *slave = to_w1_slave(dev);
+@@ -460,6 +394,47 @@ static int w1_process(void *data)
+ 	return 0;
+ }
+ 
++static ssize_t w1_master_attribute_show_name(struct device *dev, char *buf)
++{
++	struct w1_master *master = to_w1_master(dev);
++
++	return sprintf(buf, "%s\n", master->name);
++}
++
++static ssize_t w1_master_attribute_show_timeout(struct device *dev, char *buf)
++{
++	ssize_t count;
++	count = sprintf(buf, "%d\n", w1_timeout);
++	return count;
++}
++
++static ssize_t w1_master_attribute_show_max_slave_count(struct device *dev, char *buf)
++{
++	struct w1_master *master = to_w1_master(dev);
++
++	return sprintf(buf, "%d\n", master->max_slave_count);
++}
++
++#define W1_MASTER_ATTR_RO(_name, _mode)				\
++	struct device_attribute w1_master_attribute_##_name =	\
++		__ATTR(_name, _mode,				\
++		       w1_master_attribute_show_##_name, NULL)
++
++static W1_MASTER_ATTR_RO(name, S_IRUGO);
++static W1_MASTER_ATTR_RO(max_slave_count, S_IRUGO);
++static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
++
++static struct attribute *w1_master_default_attrs[] = {
++	&w1_master_attribute_name.attr,
++	&w1_master_attribute_max_slave_count.attr,
++	&w1_master_attribute_timeout.attr,
++	NULL
++};
++
++static struct attribute_group w1_master_defattr_group = {
++	.attrs = w1_master_default_attrs,
++};
++
+ struct w1_master *w1_allocate_master_device(void)
+ {
+ 	struct w1_master *dev;
+@@ -535,7 +510,7 @@ int w1_add_master_device(struct w1_maste
+ 		goto err_out_free_dev;
+ 	}
+ 
+-	error = w1_create_master_attributes(dev);
++	error = sysfs_create_group(&dev->dev.kobj, &w1_master_defattr_group);
+ 	if (error)
+ 		goto err_out_kill_thread;
+ 
+@@ -566,7 +541,7 @@ void w1_remove_master_device(struct w1_m
+ 		kfree(slave);
+ 	}
+ 
+-	w1_destroy_master_attributes(dev);
++	sysfs_remove_group(&dev->dev.kobj, &w1_master_defattr_group);
+ 
+ 	while (atomic_read(&dev->refcnt)) {
+ 		printk(KERN_INFO "Waiting for %s to become free: refcnt=%d.\n",
+Index: dtor/drivers/w1/w1.h
+=================================--- dtor.orig/drivers/w1/w1.h
++++ dtor/drivers/w1/w1.h
+@@ -127,6 +127,7 @@ struct w1_master
+ 
+ 	u32			seq, groups;
+ };
++#define to_w1_master(dev)	container_of((dev), struct w1_master, dev)
+ 
+ struct w1_master *w1_allocate_master_device(void);
+ int w1_add_master_device(struct w1_master *);
