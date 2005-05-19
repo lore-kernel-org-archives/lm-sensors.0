@@ -1,28 +1,34 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:26 +0000
-Subject: Ticket 1834 Update
-Message-Id: <KC69qxLV.1102495232.5379810.khali@localhost>
+From: marcansoft@marcansoft.com (Marcansoft)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: as99127f PWM kinda working
+Message-Id: <40A74A47.6010601@marcansoft.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41B1D44F.4090303@vfx.to>
-In-Reply-To: <41B1D44F.4090303@vfx.to>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi! I've been fiddling around with the (in)famous 0x59 register and 
+found out the following values do work as a form of coarse pwm:
 
-> I don't know what the chip at 2f could be; if sensors-detect doesn't
-> identify it then you may be able to look at your board and search for
-> likely candidates with google.
+0x80 - seems to turn fans off after some time(1-2 minutes)... might be 
+some form of auto-fan-control based on temp? hmm (Qfan? this mobo is an 
+old ASUS, it isn't marketed as Qfan. Maybe some beta pre-attemp at Qfan 
+that was dropped at the BIOS)
+0x81 - off
+0x82 - slightly "on-ner" than off, but my fans do not get to move. I can 
+hear the high-pitched PWM sound that motors give off at too-low-pwm.
+0x83 - now they do move. Estimate about 70% speed or so.
+0x84-0x8f - full on
 
-No idea either. All I can say is that it doesn't look like a recent
-hardware monitoring device (no identification register). It also
-doesn't have enough registers to be a full-featured hardware monitoring
-chip, but too many to be a simple I2C multiplexer or I/O expander.
+Changing the high nibble doesn't seem to do much except the high bit 
+(0x80) must be set for PWM to work, else the current pwm doesn't seem to 
+change.
 
-You might dump it again from times to times and see if any value changes.
-If this is a hardware monitoring chip then some values have to slightly
-change between dumps.
+My mobo is an ASUS A7V266-E. This behaviour is similar to what I got 
+with speedfan under Windows, where 0-15% would be off, 15-2x% (can't 
+remember the exact value) would be 70% and higher would be full on.
 
---
-Jean Delvare
+If you need any more information please contact me! By the way, thanks 
+for making temperature readings working under Linux, now fix those 2.6 
+kernel problems! ;)
