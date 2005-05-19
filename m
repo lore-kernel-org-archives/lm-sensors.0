@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: VRM(VRD) detection versus CPUID
-Message-Id: <20040704225759.GA9425@kroah.com>
+Message-Id: <200407050756.i657umS1013162@zone3.gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
@@ -10,36 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jul 04, 2004 at 09:28:47PM +0200, Rudolf Marek wrote:
-> > Tested.
-> 
-> Thanks
-> >
-> > So it's working fine for me, isn't it? :)
-> seems so :)
-> 
-> Any ideas how to implement the which_vrm function to lm_sensors ?
-> 
-> 21:06 < Khali> hmm I don't know exactly
-> 21:06 < Khali> there are several options
-> 21:07 < Khali> inline function in sensor_vid
-> 21:07 < Khali> or regular function in i2c-proc/i2c_sensor
-> 21:07 < ruik> which is better ?
-> 21:07 < Khali> or new module sensor_vid, replacing the header file
-> 21:08 < ruik> its too small to be in module?
-> 21:08 < Khali> yes it's a bit small
-> 21:08 < Khali> sounds a bit overkill
-> 21:08 < Khali> but I'm not sure
-> 21:08 < Khali> maybe we should ask other people what they think
-> 21:08 < Khali> especially Greg
-> 21:09 < Khali> and mds maybe
-> 21:09 < ruik> will you :) ?
-> 21:09 < Khali> no :p
-> 
-> So I'm asking :)
-> 
-> What are your ideas ?
 
-What is your proposal for how to do it?  :)
+Hi Greg,
 
-greg k-h
+>What is your proposal for how to do it?  :)
+
+Summary of the previous episode:
+We recently found that VRM version could be deduced from CPUID info,
+instead of being arbitrarily or manually set. Ruik as been working on
+this and has working code, which he would like to integrate into our
+chip drivers framework.
+
+Summary of amother previous episode:
+The only VID/VRM-related function so far is a (VRM, VID) -> VCore
+converter in i2c-vid.h, in the form of an inline function (vid_from_reg).
+
+The point is that the new CPUID -> VRM converter and vid_from_reg belong
+to the same place, or at least one would naturally look for them in the
+same place. But the new function is a bit too big to be inlined IMHO,
+and I wonder if it is legitimate that vid_from_reg is since it's not
+slim either.
+
+My three proposals:
+
+1* New function placed in i2c-vid.h, inlined. Nothing else needs being
+changed. Each function will only used once in each driver, so we may
+consider that the function size doesn't matter.
+
+2* New function placed in i2c-sensor.c, not inlined, with header in
+i2c-sensor.h. vid_from_reg may (2a) or may not (2b) be moved in here
+too. If it is, then i2c-vid.h is gone and inclusions of it need to be
+deleted.
+
+3* New function goes in new i2c-vid.c module, with vid_from_reg
+(un-inlined). New header file and inclusion need to be reworked.
+
+All options sound feasable (which is why I propose them ;)) with little
+to no additional work. I don't much like inlining stuff, especially
+when there are no performance issues, so my preference would go to 2a.
+But I can certainly change my mind if someone comes in with good
+arguments and evidences I missed a point.
+
+Thanks,
+Jean Delvare
