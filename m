@@ -1,39 +1,41 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Thu, 19 May 2005 06:25:57 +0000
-Subject: bmc and fan speed control
-Message-Id: <25381867050510122948dd2b64@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:45 +0000
+Subject: [PATCH 2.6] I2C: Delete useless instruction in it87
+Message-Id: <20050324222458.658f4660.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <427FF313.7070202@mds.gotdns.com>
-In-Reply-To: <427FF313.7070202@mds.gotdns.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aj,
+Hi Greg,
+
+The IT8705F doesn't support VID, so it's quite pointless to give a value
+to it (and an arbitrary one at that). I think that this instruction was
+there for compatibility reasons some times ago, but the reasons went
+away while the instruction was left in place. We can safely delete it
+now.
+
+Thanks to Rudolf Marek for testing the patch (you never know).
+
+Please apply,
+thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+--- linux-2.6.12-rc1-mm1/drivers/i2c/chips/it87.c.orig	Wed Mar 23 16:21:25 2005
++++ linux-2.6.12-rc1-mm1/drivers/i2c/chips/it87.c	Thu Mar 24 14:06:35 2005
+@@ -1122,9 +1122,6 @@
+ 			    it87_read_value(client, IT87_REG_TEMP_LOW(i));
+ 		}
+ 
+-		/* The 8705 does not have VID capability */
+-		data->vid = 0x1f;
+-
+ 		i = it87_read_value(client, IT87_REG_FAN_DIV);
+ 		data->fan_div[0] = i & 0x07;
+ 		data->fan_div[1] = (i >> 3) & 0x07;
 
 
-Yes the ADM1026 has fan control, but the ADM1026 is mentioned only as
-the chip used by the IPMI BMC on it's private i2c bus. All IPMI BMCs
-use normal hardware monitoring chips (AFAIK)  at a lower level, but
-usually the documentation isn't always so complete as telling you
-which. The BMC is essentially another separate computer running on
-your motherboard along with it's own CPU, memory, firmware and even
-i2c bus. The chip is likely only accessible by the IPMI BMC directly,
-so unless the IPMI BMC has some sort of support itself for a command
-to set the pwm you are out of luck.
-
-The only sensor write commands in IPMI 1.5 are for setting alarm
-limits, enabling/disabling sensors and setting sensor types, so I
-don't see how you could set the fan speed in anyway via IPMI.
-
-I think the only possible way to set the fan speed then would be if
-(like my board) the IPMI BMC shares the same i2c bus as the rest of
-the machine, except the bios blocks access to it, and you somehow
-unblock that and access the ADM1026 directly (which by the way the
-IPMI BMC wouldn't like, and would likely start complaining). In my
-case I can do that by flashing with another vendor's bios, but my
-motherboard is a bit unusual, and I wouldn't recommend trying anything
-like that.
-
-Yani
+-- 
+Jean Delvare
