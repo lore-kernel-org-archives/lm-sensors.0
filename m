@@ -1,97 +1,155 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [RFC/PATCH 2/22] W1: formatting fixes
-Message-Id: <200504210208.44541.dtor_core@ameritech.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: [PATCH 2.4] i2c cleanups, third wave (7/8)
+Message-Id: <20040111162041.27fb51fa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net>
-In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
+References: <20040111144214.7a6a4e59.khali@linux-fr.org>
+In-Reply-To: <20040111144214.7a6a4e59.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@Stimpy.netroedge.com
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
 
-w1: some formatting changes to bring the code in line with
-    CodingStyle guidelines.
+Clean up various i2c algorithms:
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+* Remove empty algo_control function (i2c-algo-bit, i2c-algo-pcf,
+i2c-algo-sibyte).
+* Convert i2c_algorithm init to C99 style (i2c-algo-bit, i2c-algo-ite,
+i2c-algo-pcf, i2c-algo-sibyte).
 
- dscore.c |    4 +---
- w1.c     |   21 +++++++++------------
- 2 files changed, 10 insertions(+), 15 deletions(-)
+Original patch by Ky?sti M?lkki.
 
-Index: dtor/drivers/w1/w1.c
-=================================--- dtor.orig/drivers/w1/w1.c
-+++ dtor/drivers/w1/w1.c
-@@ -513,8 +513,7 @@ void w1_slave_found(unsigned long data, 
- 		    sl->reg_num.crc = tmp->crc) {
- 			set_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
- 			break;
--		}
--		else if (sl->reg_num.family = tmp->family) {
-+		} else if (sl->reg_num.family = tmp->family) {
- 			family_found = 1;
- 			break;
- 		}
-@@ -522,10 +521,10 @@ void w1_slave_found(unsigned long data, 
- 		slave_count++;
- 	}
- 
--		if (slave_count = dev->slave_count && rn ) {
--			tmp = cpu_to_le64(rn);
--			if(((rn >> 56) & 0xff) = w1_calc_crc8((u8 *)&tmp, 7))
--				w1_attach_slave_device(dev, (struct w1_reg_num *) &rn);
-+	if (slave_count = dev->slave_count && rn) {
-+		tmp = cpu_to_le64(rn);
-+		if (((rn >> 56) & 0xff) = w1_calc_crc8((u8 *)&tmp, 7))
-+			w1_attach_slave_device(dev, (struct w1_reg_num *) &rn);
- 	}
- 
- 	atomic_dec(&dev->refcnt);
-@@ -544,8 +543,8 @@ void w1_search(struct w1_master *dev)
- 
- 	desc_bit = 64;
- 
--	while (!(id_bit && comp_bit) && !last_device
--		&& count++ < dev->max_slave_count) {
-+	while (!(id_bit && comp_bit) && !last_device &&
-+	       count++ < dev->max_slave_count) {
- 		last = rn;
- 		rn = 0;
- 
-@@ -590,8 +589,7 @@ void w1_search(struct w1_master *dev)
- 						last_family_desc = last_zero;
- 				}
- 
--			}
--			else
-+			} else
- 				search_bit = id_bit;
- 
- 			tmp = search_bit;
-@@ -760,8 +758,7 @@ int w1_process(void *data)
- 				kfree (sl);
- 
- 				dev->slave_count--;
--			}
--			else if (test_bit(W1_SLAVE_ACTIVE, (unsigned long *)&sl->flags))
-+			} else if (test_bit(W1_SLAVE_ACTIVE, (unsigned long *)&sl->flags))
- 				sl->ttl = dev->slave_ttl;
- 		}
- 		up(&dev->mutex);
-Index: dtor/drivers/w1/dscore.c
-=================================--- dtor.orig/drivers/w1/dscore.c
-+++ dtor/drivers/w1/dscore.c
-@@ -319,10 +319,8 @@ int ds_wait_status(struct ds_device *dev
- 	if (((err > 16) && (buf[0x10] & 0x01)) || count >= 100 || err < 0) {
- 		ds_recv_status(dev, st);
- 		return -1;
--	}
--	else {
-+	} else
- 		return 0;
--	}
+diff -ru linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-bit.c linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-bit.c
+--- linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-bit.c	Sat Jan 10 21:16:02 2004
++++ linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-bit.c	Sun Jan 11 13:02:02 2004
+@@ -494,12 +494,6 @@
+ 	return num;
  }
  
- int ds_reset(struct ds_device *dev, struct ds_status *st)
+-static int algo_control(struct i2c_adapter *adapter, 
+-	unsigned int cmd, unsigned long arg)
+-{
+-	return 0;
+-}
+-
+ static u32 bit_func(struct i2c_adapter *adap)
+ {
+ 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR | 
+@@ -510,14 +504,10 @@
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm i2c_bit_algo = {
+-	"Bit-shift algorithm",
+-	I2C_ALGO_BIT,
+-	bit_xfer,
+-	NULL,
+-	NULL,				/* slave_xmit		*/
+-	NULL,				/* slave_recv		*/
+-	algo_control,			/* ioctl		*/
+-	bit_func,			/* functionality	*/
++	.name		= "Bit-shift algorithm",
++	.id		= I2C_ALGO_BIT,
++	.master_xfer	= bit_xfer,
++	.functionality	= bit_func,
+ };
+ 
+ /* 
+diff -ru linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-ite.c linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-ite.c
+--- linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-ite.c	Sat Jan 10 21:16:02 2004
++++ linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-ite.c	Sun Jan 11 13:01:10 2004
+@@ -727,14 +727,11 @@
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm iic_algo = {
+-	"ITE IIC algorithm",
+-	I2C_ALGO_IIC,
+-	iic_xfer,		/* master_xfer	*/
+-	NULL,				/* smbus_xfer	*/
+-	NULL,				/* slave_xmit		*/
+-	NULL,				/* slave_recv		*/
+-	algo_control,			/* ioctl		*/
+-	iic_func,			/* functionality	*/
++	.name		= "ITE IIC algorithm",
++	.id		= I2C_ALGO_IIC,
++	.master_xfer	= iic_xfer,
++	.algo_control	= algo_control, /* ioctl */
++	.functionality	= iic_func,
+ };
+ 
+ 
+diff -ru linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-pcf.c linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-pcf.c
+--- linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-pcf.c	Sat Jan 10 21:16:02 2004
++++ linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-pcf.c	Sun Jan 11 12:57:49 2004
+@@ -426,12 +426,6 @@
+ 	return (i);
+ }
+ 
+-static int algo_control(struct i2c_adapter *adapter, 
+-	unsigned int cmd, unsigned long arg)
+-{
+-	return 0;
+-}
+-
+ static u32 pcf_func(struct i2c_adapter *adap)
+ {
+ 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR | 
+@@ -441,14 +435,10 @@
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm pcf_algo = {
+-	"PCF8584 algorithm",
+-	I2C_ALGO_PCF,
+-	pcf_xfer,
+-	NULL,
+-	NULL,				/* slave_xmit		*/
+-	NULL,				/* slave_recv		*/
+-	algo_control,			/* ioctl		*/
+-	pcf_func,			/* functionality	*/
++	.name		= "PCF8584 algorithm",
++	.id		= I2C_ALGO_PCF,
++	.master_xfer	= pcf_xfer,
++	.functionality	= pcf_func,
+ };
+ 
+ /* 
+diff -ru linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-sibyte.c linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-sibyte.c
+--- linux-2.4.25-pre4-k6/drivers/i2c/i2c-algo-sibyte.c	Sat Jan 10 21:16:02 2004
++++ linux-2.4.25-pre4-k7/drivers/i2c/i2c-algo-sibyte.c	Sun Jan 11 12:56:49 2004
+@@ -115,12 +115,6 @@
+         return 0;
+ }
+ 
+-static int algo_control(struct i2c_adapter *adapter, 
+-	unsigned int cmd, unsigned long arg)
+-{
+-	return 0;
+-}
+-
+ static u32 bit_func(struct i2c_adapter *adap)
+ {
+ 	return (I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+@@ -131,14 +125,10 @@
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm i2c_sibyte_algo = {
+-	"SiByte algorithm",
+-	I2C_ALGO_SIBYTE,
+-	NULL,                           /* master_xfer          */
+-	smbus_xfer,                   	/* smbus_xfer           */
+-	NULL,				/* slave_xmit		*/
+-	NULL,				/* slave_recv		*/
+-	algo_control,			/* ioctl		*/
+-	bit_func,			/* functionality	*/
++	.name		= "SiByte algorithm",
++	.id		= I2C_ALGO_SIBYTE,
++	.smbus_xfer	= smbus_xfer,
++	.functionality	= bit_func,
+ };
+ 
+ /* 
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
