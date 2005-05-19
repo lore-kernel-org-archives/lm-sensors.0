@@ -1,304 +1,257 @@
 From: cheaterjs@gmx.de (Jan Schiefer)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: False detection of sensors on MSI K7N2 Delta-L (NForce2)!
-Message-Id: <415BD873.8010303@gmx.de>
+Message-Id: <415BE34E.6040109@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <415BD873.8010303@gmx.de>
+In-Reply-To: <415BD873.8010303@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've been trying to get lm_sensors working on my lovely MSI K7N2 Delta-L 
-NForce2 mainboard since I switched to kernel 2.6.x.
-When I choose ISA or SMBUS it makes no difference.
-I tried every version...
-It never worked...
+Jean Delvare schrieb:
 
-Now I discovered the problem: False chip detection by sensors-detect.
-I finally got it working (manually) with kernel 2.6.9-rc2 and lm_sensors 
-CVS.
-Just because I was lucky I tried the right module.
-
-sensors-detect (even in latest CVS) makes following module suggestions: 
-i2c-nforce2, i2c-isa, eeprom, w83627hf
-Only the eeprom reader will be detected then.
-
-The correct modules are: i2c-isa, eeprom, w83781d
-Only these modules make it work. So you don't need i2c-nforce2 (I don't 
-know why on a NForce2-Board...) and w83781d instead of w83627hf.
-
-I'm using Fedora Core 2.
-Here some system information from dmesg:
+>On Thu, 30 Sep 2004 11:57:07 +0200, Jan Schiefer wrote
+>  
+>
+>>I've been trying to get lm_sensors working on my lovely MSI K7N2 
+>>Delta-L NForce2 mainboard since I switched to kernel 2.6.x. When I 
+>>choose ISA or SMBUS it makes no difference. I tried every version... 
+>>It never worked...
+>>
+>>Now I discovered the problem: False chip detection by sensors-detect.
+>>I finally got it working (manually) with kernel 2.6.9-rc2 and lm_sensors
+>>CVS.
+>>Just because I was lucky I tried the right module.
+>>
+>>sensors-detect (even in latest CVS) makes following module suggestions:
+>>i2c-nforce2, i2c-isa, eeprom, w83627hf
+>>Only the eeprom reader will be detected then.
+>>
+>>The correct modules are: i2c-isa, eeprom, w83781d
+>>Only these modules make it work. So you don't need i2c-nforce2 (I don't
+>>know why on a NForce2-Board...) and w83781d instead of w83627hf.
+>>    
+>>
+>
+>It's not exactly a false detection. Your motherboard has a W83627HF chip which
+>happens to be supported by both the w83781d and the w83627hf drivers. The
+>latter is prefered, so sensors-detect does the correct thing.
+>
+>Now, if the w83627hf driver doesn't see your chip, that's the real problem and
+>we have to correct that.
+>
+>We would need:
+>1* The full output of sensors-detect. Make sure to unload all chip drivers
+>(eeprom, w83781d, w83627hf) before running the script.
+>2* A dump of your chip contents. You should obtain it with "isadump 0x295 0x296".
+>
+>Also note that if you only load i2c-isa, eeprom and w83781d, the eeprom module
+>will not actually be used, since it needs i2c-nforce2 (on your system).
+>
+>Thanks.
+>
+>  
+>
+1.
 ---
-20040412 (Red Hat Linux 3.3.3-7)) #1 Thu Sep 30 10:51:12 CEST 2004
-Sep 30 11:28:53 mrsuicide kernel: BIOS-provided physical RAM map:
-Sep 30 11:28:53 mrsuicide kernel:  BIOS-e820: 0000000000000000 - 
-00000000000a0000 (usable)
-Sep 30 11:28:53 mrsuicide kernel:  BIOS-e820: 00000000000f0000 - 
-0000000000100000 (reserved)
-Sep 30 11:28:53 mrsuicide kernel:  BIOS-e820: 0000000000100000 - 
-000000001fff0000 (usable)
-Sep 30 11:28:53 mrsuicide kernel:  BIOS-e820: 000000001fff0000 - 
-000000001fff3000 (ACPI NVS)
-Sep 30 11:28:53 mrsuicide kernel:  BIOS-e820: 000000001fff3000 - 
-0000000020000000 (ACPI data)
-Sep 30 11:28:53 mrsuicide kernel: 511MB LOWMEM available.
-Sep 30 11:28:53 mrsuicide syslog: Starten von klogd succeeded
-Sep 30 11:28:53 mrsuicide kernel: DMI 2.3 present.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: RSDP (v000 
-Nvidia                                    ) @ 0x000f73a0
-Sep 30 11:28:53 mrsuicide kernel: ACPI: RSDT (v001 Nvidia AWRDACPI 
-0x42302e31 AWRD 0x00000000) @ 0x1fff3000
-Sep 30 11:28:53 mrsuicide kernel: ACPI: FADT (v001 Nvidia AWRDACPI 
-0x42302e31 AWRD 0x00000000) @ 0x1fff3040
-Sep 30 11:28:53 mrsuicide kernel: ACPI: MADT (v001 Nvidia AWRDACPI 
-0x42302e31 AWRD 0x00000000) @ 0x1fff7700
-Sep 30 11:28:53 mrsuicide kernel: ACPI: DSDT (v001 NVIDIA AWRDACPI 
-0x00001000 MSFT 0x0100000e) @ 0x00000000
-Sep 30 11:28:53 mrsuicide kernel: ACPI: LAPIC (acpi_id[0x00] 
-lapic_id[0x00] enabled)
-Sep 30 11:28:53 mrsuicide kernel: Processor #0 6:8 APIC version 16
-Sep 30 11:28:53 mrsuicide kernel: ACPI: LAPIC_NMI (acpi_id[0x00] high 
-edge lint[0x1])
-Sep 30 11:28:53 mrsuicide kernel: ACPI: IOAPIC (id[0x02] 
-address[0xfec00000] gsi_base[0])
-Sep 30 11:28:53 mrsuicide kernel: IOAPIC[0]: apic_id 2, version 17, 
-address 0xfec00000, GSI 0-23
-Sep 30 11:28:53 mrsuicide kernel: ACPI: INT_SRC_OVR (bus 0 bus_irq 0 
-global_irq 2 dfl dfl)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: INT_SRC_OVR (bus 0 bus_irq 9 
-global_irq 9 high level)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: INT_SRC_OVR (bus 0 bus_irq 14 
-global_irq 14 high edge)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: INT_SRC_OVR (bus 0 bus_irq 15 
-global_irq 15 high edge)
-Sep 30 11:28:53 mrsuicide kernel: Enabling APIC mode:  Flat.  Using 1 
-I/O APICs
-Sep 30 11:28:53 mrsuicide kernel: Using ACPI (MADT) for SMP 
-configuration information
-Sep 30 11:28:53 mrsuicide kernel: Built 1 zonelists
-Sep 30 11:28:53 mrsuicide kernel: Kernel command line: ro root=/dev/hda4 
-quiet
-Sep 30 11:28:53 mrsuicide kernel: Initializing CPU#0
-Sep 30 11:28:53 mrsuicide kernel: PID hash table entries: 2048 (order: 
-11, 32768 bytes)
-Sep 30 11:28:53 mrsuicide kernel: Detected 2088.202 MHz processor.
-Sep 30 11:28:53 mrsuicide kernel: Using tsc for high-res timesource
-Sep 30 11:28:53 mrsuicide kernel: Console: colour VGA+ 80x25
-Sep 30 11:28:53 mrsuicide kernel: Dentry cache hash table entries: 
-131072 (order: 7, 524288 bytes)
-Sep 30 11:28:53 mrsuicide kernel: Inode-cache hash table entries: 65536 
-(order: 6, 262144 bytes)
-Sep 30 11:28:53 mrsuicide kernel: Memory: 515616k/524224k available 
-(1862k kernel code, 8088k reserved, 742k data, 228k init, 0k highmem)
-Sep 30 11:28:53 mrsuicide kernel: Checking if this processor honours the 
-WP bit even in supervisor mode... Ok.
-Sep 30 11:28:53 mrsuicide kernel: Mount-cache hash table entries: 512 
-(order: 0, 4096 bytes)
-Sep 30 11:28:53 mrsuicide kernel: CPU: L1 I Cache: 64K (64 bytes/line), 
-D cache 64K (64 bytes/line)
-Sep 30 11:28:53 mrsuicide kernel: CPU: L2 Cache: 256K (64 bytes/line)
-Sep 30 11:28:53 mrsuicide kernel: Intel machine check architecture 
-supported.
-Sep 30 11:28:53 mrsuicide kernel: Intel machine check reporting enabled 
-on CPU#0.
-Sep 30 11:28:53 mrsuicide kernel: CPU: AMD Athlon(tm) XP 2600+ stepping 01
-Sep 30 11:28:53 mrsuicide random: Zufallszahlenerzeuger initialisieren:  
-succeeded
-Sep 30 11:28:53 mrsuicide kernel: Enabling fast FPU save and restore... 
-done.
-Sep 30 11:28:53 mrsuicide kernel: Enabling unmasked SIMD FPU exception 
-support... done.
-Sep 30 11:28:53 mrsuicide kernel: Checking 'hlt' instruction... OK.
-Sep 30 11:28:53 mrsuicide kernel: ENABLING IO-APIC IRQs
-Sep 30 11:28:53 mrsuicide kernel: ..TIMER: vector=0x31 pin1=2 pin2=-1
-Sep 30 11:28:53 mrsuicide kernel: ..MP-BIOS bug: 8254 timer not 
-connected to IO-APIC
-Sep 30 11:28:53 mrsuicide kernel: ...trying to set up timer (IRQ0) 
-through the 8259A ...  failed.
-Sep 30 11:28:53 mrsuicide kernel: ...trying to set up timer as Virtual 
-Wire IRQ... failed.
-Sep 30 11:28:53 mrsuicide kernel: ...trying to set up timer as ExtINT 
-IRQ... works.
-Sep 30 11:28:53 mrsuicide kernel: checking if image is initramfs...it 
-isn't (no cpio magic); looks like an initrd
-Sep 30 11:28:53 mrsuicide kernel: Freeing initrd memory: 109k freed
-Sep 30 11:28:53 mrsuicide kernel: NET: Registered protocol family 16
-Sep 30 11:28:53 mrsuicide kernel: EISA bus registered
-Sep 30 11:28:53 mrsuicide kernel: PCI: PCI BIOS revision 2.10 entry at 
-0xfbbd0, last bus=2
-Sep 30 11:28:53 mrsuicide kernel: PCI: Using configuration type 1
-Sep 30 11:28:53 mrsuicide kernel: mtrr: v2.0 (20020519)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Subsystem revision 20040715
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Interpreter enabled
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Using IOAPIC for interrupt routing
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Root Bridge [PCI0] (00:00)
-Sep 30 11:28:53 mrsuicide kernel: PCI: Probing PCI hardware (bus 00)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LNK1] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LNK2] (IRQs 
-3 4 5 6 7 *10 11 12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LNK3] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LNK4] (IRQs 
-3 4 5 6 7 10 11 *12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LNK5] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LUBA] (IRQs 
-3 4 5 6 7 10 11 *12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LUBB] (IRQs 
-3 4 5 6 7 *10 11 12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LMAC] (IRQs 
-3 4 5 6 7 10 *11 12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LAPU] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LACI] (IRQs 
-3 4 *5 6 7 10 11 12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LMCI] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LSMB] (IRQs 
-3 4 *5 6 7 10 11 12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LUB2] (IRQs 
-3 4 5 6 7 10 *11 12 14 15)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LFIR] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [L3CM] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [LIDE] (IRQs 
-3 4 5 6 7 10 11 12 14 15) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC1] (IRQs 
-*16), disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC2] (IRQs 
-*17), disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC3] (IRQs 
-*18), disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC4] (IRQs 
-*19), disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC5] (IRQs 
-*16), disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCF] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCG] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCH] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCI] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCJ] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCK] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCS] (IRQs 
-*23), disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCL] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCM] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [AP3C] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCZ] (IRQs 
-20 21 22) *0, disabled.
-Sep 30 11:28:53 mrsuicide kernel: usbcore: registered new driver usbfs
-Sep 30 11:28:53 mrsuicide kernel: usbcore: registered new driver hub
-Sep 30 11:28:53 mrsuicide kernel: PCI: Using ACPI for IRQ routing
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCS] 
-enabled at IRQ 23
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:00:01.1[A] -> 
-GSI 23 (level, high) -> IRQ 23
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCF] 
-enabled at IRQ 22
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:00:02.0[A] -> 
-GSI 22 (level, high) -> IRQ 22
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCG] 
-enabled at IRQ 21
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:00:02.1[B] -> 
-GSI 21 (level, high) -> IRQ 21
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCL] 
-enabled at IRQ 20
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:00:02.2[C] -> 
-GSI 20 (level, high) -> IRQ 20
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCH] 
-enabled at IRQ 22
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:00:04.0[A] -> 
-GSI 22 (level, high) -> IRQ 22
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APCJ] 
-enabled at IRQ 21
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:00:06.0[A] -> 
-GSI 21 (level, high) -> IRQ 21
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC2] 
-enabled at IRQ 17
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:01:08.0[A] -> 
-GSI 17 (level, high) -> IRQ 17
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI Interrupt Link [APC4] 
-enabled at IRQ 19
-Sep 30 11:28:53 mrsuicide kernel: ACPI: PCI interrupt 0000:02:00.0[A] -> 
-GSI 19 (level, high) -> IRQ 19
-Sep 30 11:28:53 mrsuicide kernel: VFS: Disk quotas dquot_6.5.1
-Sep 30 11:28:53 mrsuicide kernel: Dquot-cache hash table entries: 1024 
-(order 0, 4096 bytes)
-Sep 30 11:28:53 mrsuicide kernel: Initializing Cryptographic API
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Power Button (FF) [PWRF]
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Fan [FAN] (on)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Processor [CPU0] (supports C1)
-Sep 30 11:28:53 mrsuicide kernel: ACPI: Thermal Zone [THRM] (53 C)
-Sep 30 11:28:53 mrsuicide kernel: Using anticipatory io scheduler
-Sep 30 11:28:53 mrsuicide kernel: Floppy drive(s): fd0 is 1.44M
-Sep 30 11:28:53 mrsuicide kernel: FDC 0 is a post-1991 82077
-Sep 30 11:28:53 mrsuicide kernel: RAMDISK driver initialized: 16 RAM 
-disks of 4096K size 1024 blocksize
-Sep 30 11:28:53 mrsuicide kernel: Uniform Multi-Platform E-IDE driver 
-Revision: 7.00alpha2
-Sep 30 11:28:53 mrsuicide kernel: ide: Assuming 33MHz system bus speed 
-for PIO modes; override with idebus=xx
-Sep 30 11:28:53 mrsuicide lm_sensors: Starting up sensors:
-Sep 30 11:28:53 mrsuicide kernel: NFORCE2: IDE controller at PCI slot 
-0000:00:09.0
-Sep 30 11:28:53 mrsuicide kernel: NFORCE2: chipset revision 162
-Sep 30 11:28:53 mrsuicide kernel: NFORCE2: not 100%% native mode: will 
-probe irqs later
-Sep 30 11:28:53 mrsuicide kernel: NFORCE2: BIOS didn't set cable bits 
-correctly. Enabling workaround.
-Sep 30 11:28:53 mrsuicide kernel: NFORCE2: BIOS didn't set cable bits 
-correctly. Enabling workaround.
-Sep 30 11:28:53 mrsuicide kernel: NFORCE2: 0000:00:09.0 (rev a2) UDMA133 
-controller
-Sep 30 11:28:53 mrsuicide kernel:     ide0: BM-DMA at 0xf000-0xf007, 
-BIOS settings: hda:DMA, hdb:DMA
-Sep 30 11:28:53 mrsuicide kernel:     ide1: BM-DMA at 0xf008-0xf00f, 
-BIOS settings: hdc:DMA, hdd:DMA
-Sep 30 11:28:53 mrsuicide kernel: hda: WDC WD600AB-32CZA0, ATA DISK drive
-Sep 30 11:28:53 mrsuicide kernel: ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-Sep 30 11:28:53 mrsuicide kernel: hdc: ExcelStor Technology J340, ATA 
-DISK drive
-Sep 30 11:28:53 mrsuicide kernel: hdd: HL-DT-ST GCE-8320B, ATAPI 
-CD/DVD-ROM drive
-Sep 30 11:28:53 mrsuicide kernel: ide1 at 0x170-0x177,0x376 on irq 15
-Sep 30 11:28:53 mrsuicide kernel: hda: max request size: 128KiB
-Sep 30 11:28:53 mrsuicide kernel: hda: 117231408 sectors (60022 MB) 
-w/2048KiB Cache, CHSe535/16/63, UDMA(100)
-Sep 30 11:28:53 mrsuicide kernel:  hda: hda1 hda2 hda3 hda4
-Sep 30 11:28:53 mrsuicide kernel: hdc: max request size: 1024KiB
-Sep 30 11:28:53 mrsuicide kernel: hdc: 80418240 sectors (41174 MB) 
-w/1821KiB Cache, CHS383/255/63, UDMA(100)
-Sep 30 11:28:53 mrsuicide kernel:  hdc: hdc1 < hdc5 >
-Sep 30 11:28:53 mrsuicide kernel: usbcore: registered new driver hiddev
-Sep 30 11:28:53 mrsuicide kernel: usbcore: registered new driver usbhid
-Sep 30 11:28:53 mrsuicide kernel: drivers/usb/input/hid-core.c: v2.0:USB 
-HID core driver
-Sep 30 11:28:53 mrsuicide kernel: mice: PS/2 mouse device common for all 
-mice
-Sep 30 11:28:53 mrsuicide kernel: serio: i8042 AUX port at 0x60,0x64 irq 12
-Sep 30 11:28:53 mrsuicide kernel: serio: i8042 KBD port at 0x60,0x64 irq 1
-Sep 30 11:28:53 mrsuicide kernel: input: AT Translated Set 2 keyboard on 
-isa0060/serio0
-Sep 30 11:28:53 mrsuicide kernel: EISA: Probing bus 0 at eisa0
-Sep 30 11:28:53 mrsuicide kernel: NET: Registered protocol family 2
-Sep 30 11:28:53 mrsuicide kernel: IP: routing cache hash table of 4096 
-buckets, 32Kbytes
-Sep 30 11:28:53 mrsuicide kernel: TCP: Hash tables configured 
-(established 32768 bind 65536)
-Sep 30 11:28:53 mrsuicide kernel: NET: Registered protocol family 1
-Sep 30 11:28:53 mrsuicide kernel: NET: Registered protocol family 17
-Sep 30 11:28:53 mrsuicide kernel: BIOS EDD facility v0.16 2004-Jun-25, 2 
-devices found
+[root@mrsuicide mrsuicide]# sensors-detect
+
+This program will help you determine which I2C/SMBus modules you need to
+load to use lm_sensors most effectively. You need to have i2c and
+lm_sensors installed before running this program.
+Also, you need to be `root', or at least have access to the /dev/i2c-*
+files, for most things.
+If you have patched your kernel and have some drivers built in, you can
+safely answer NO if asked to load some modules. In this case, things may
+seem a bit confusing, but they will still work.
+ 
+It is generally safe and recommended to accept the default answers to all
+questions, unless you know what you're doing.
+ 
+ IF THIS IS AN IBM THINKPAD, PRESS CTRL-C NOW!
+ IBM Thinkpads have a severely broken i2c/SMBus implementation, just 
+scanning
+ the bus will break your Thinkpad forever!
+ If this is a non-Thinkpad IBM, we still suggest you press CTRL+C. We have
+ had users reporting system breakage on other IBM systems as well.
+ 
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `rivatv' for device 02:00.0: GeForce FX 5600
+Use driver `i2c-nforce2' for device 00:01.1: nVidia Corporation nForce2 
+SMBus (MCP)
+Probe succesfully concluded.
+ 
+We will now try to load each adapter module in turn.
+Load `rivatv' (say NO if built into your kernel)? (YES/no):
+FATAL: Module rivatv not found.
+Loading failed... skipping.
+** Note: rivatv module is available at http://rivatv.sourceforge.net/
+Load `i2c-nforce2' (say NO if built into your kernel)? (YES/no):
+FATAL: Module i2c_nforce2 not found.
+Loading failed... skipping.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
+ 
+ To continue, we need module `i2c-dev' to be loaded.
+ If it is built-in into your kernel, you can safely skip this.
+ i2c-dev is not loaded. Do you want to load it now? (YES/no):
+ Module loaded succesfully.
+ 
+ We are now going to do the adapter probings. Some adapters may hang halfway
+ through; we can't really help that. Also, some chips will be double 
+detected;
+ we choose the one with the highest confidence value in that case.
+ If you found that the adapter hung after probing a certain address, you can
+ specify that address to remain unprobed. That often
+ includes address 0x69 (clock chip).
+ 
+Some chips are also accessible through the ISA bus. ISA probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
+ 
+Do you want to scan the ISA bus? (YES/no):
+Probing for `National Semiconductor LM78'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM78-J'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM79'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83782D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Success!
+    (confidence 8, driver `w83781d')
+Probing for `Winbond W83697HF'
+  Trying address 0x0290... Failed!
+Probing for `Silicon Integrated Systems SIS5595'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT82C686 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT8231 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `ITE IT8705F / IT8712F / SiS 950'
+  Trying address 0x0290... Failed!
+Probing for `IPMI BMC KCS'
+  Trying address 0x0ca0... Failed!
+Probing for `IPMI BMC SMIC'
+  Trying address 0x0ca8... Failed!
+ 
+Some Super I/O chips may also contain sensors. Super I/O probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
+ 
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (skipping family)
+ 
+Do you want to scan for secondary Super I/O sensors? (YES/no):
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (0x52)
+Probing for `Winbond W83627HF Super IO Sensors'
+  Success... found at address 0x0290
+Probing for `Winbond W83627THF Super IO Sensors'
+  Failed! (0x52)
+Probing for `Winbond W83637HF Super IO Sensors'
+  Failed! (0x52)
+Probing for `Winbond W83697HF Super IO Sensors'
+  Failed! (0x52)
+Probing for `Winbond W83697SF/UF Super IO PWM'
+  Failed! (0x52)
+Probing for `Winbond W83L517D Super IO'
+  Failed! (0x52)
+ 
+ Now follows a summary of the probes I have just done.
+ Just press ENTER to continue:
+ 
+Driver `w83781d' (may not be inserted):
+  Misdetects:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83627HF' (confidence: 8)
+ 
+Driver `w83627hf' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+ 
+ 
+ I will now generate the commands needed to load the I2C modules.
+ Sometimes, a chip is available both through the ISA bus and an I2C bus.
+ ISA bus access is faster, but you need to load an additional driver module
+ for it. If you have the choice, do you want to use the ISA bus or the
+ I2C/SMBus (ISA/smbus)?
+ 
+To make the sensors modules behave correctly, add these lines to
+/etc/modules.conf:
+ 
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+ 
+To load everything that is needed, add this to some /etc/rc* file:
+ 
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-isa
+# I2C chip drivers
+modprobe w83627hf
+# sleep 2 # optional
+/usr/local/bin/sensors -s # recommended
+#----cut here----
+ 
+WARNING! If you have some things built into your kernel, the list above
+will contain too many modules. Skip the appropriate ones! You really should
+try these commands right now to make sure everything is working properly.
+Monitoring programs won't work until it's done.
+ 
+Do you want to generate /etc/sysconfig/lm_sensors? (YES/no): no
+
 ---
+
+2.
+---
+
+[root@mrsuicide mrsuicide]# isadump 0x295 0x296
+WARNING! Running this program can cause system crashes, data loss and worse!
+I will probe address register 0x295 and data register 0x296.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+20: 68 6c ce c0 c3 23 32 2b ff ff ff 6c 62 6c 62 d8
+30: c4 c3 b0 d9 b2 31 15 3b 31 00 a2 00 0c 10 00 00
+40: 01 02 00 00 00 00 00 58 2d 02 01 84 50 95 00 a3
+50: ff ff 00 ff ff ff 00 00 21 70 ff ff 11 01 ff 05
+60: 68 6c ce c0 c3 23 32 2b ff ff ff 6c 62 6c 62 d8
+70: c4 c3 b0 d9 b2 31 15 3b 31 00 a2 00 0c 10 00 00
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+a0: 68 6c ce c0 c3 23 32 2b ff ff ff 6c 62 6c 62 d8
+b0: c4 c3 b0 d9 b2 31 15 3b 31 00 a2 00 0c 10 00 00
+c0: 01 00 00 00 00 00 00 58 2d 02 01 84 50 95 00 a3
+d0: ff ff 00 ff ff ff 00 00 21 70 ff ff 11 01 ff 05
+e0: 68 6c ce c0 c3 23 32 2b ff ff ff 6c 62 6c 62 d8
+f0: c4 c3 b0 d9 b2 31 15 3b 31 00 a2 00 0c 10 00 00
+
+---
+
+Have fun!
