@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: kevins@tyan.com (kevin schlichter)
 Date: Thu, 19 May 2005 06:24:40 +0000
 Subject: Ticket# 1566
-Message-Id: <1075998365.40226e9d949b2@imp.gcu.info>
+Message-Id: <1076028170.5373.264.camel@debbi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <02f601c3ebf9$5dacdde0$c8de11cc@black>
 In-Reply-To: <02f601c3ebf9$5dacdde0$c8de11cc@black>
@@ -10,58 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Mike Black <mblack@csi-inc.com>:
+Your readings all look fine to me.  Are your assumptions based on the
+min= and max= settings in the /etc/sensors.conf file?
 
-> Got this after restarting sensord like this: /usr/local/sbin/sensord
-> -d --rrd-file /var/sensor/yeti.rrd w83782d-i2c-0-2d
-> Feb  5 09:32:57 yeti sensord: Error updating RRD file:
-> /var/sensor/yeti.rrd: expected 15 data source readings (got 0) from
-> N:...
+It looks like the tolerances in the sensors.conf file aren't set
+correctly, but I wouldn't pay too much attention to them anyway.  DDR V
+doesn't have anything set at all, 3VSB should actually be 3.3VSB, and
+your battery will be fine all the way down to something like 2.4V before
+you start seeing CMOS errors on boot up.  For the sake of being
+thorough, I'll post a new version of the .conf file on our website in a
+few days.  Until then, I wouldn't worry about any of the readings you've
+posted here (except maybe your CPU temps which seem to be hot).
 
-You point it to a non-existent device. No surprise it doesn't like it.
+On Thu, 2004-02-05 at 07:04, Mike Black wrote:
+<clip>
 
-> Removed the old rrd file and tried: /usr/local/sbin/sensord -d
-> --rrd-file /var/sensor/yeti.rrd
-> Feb  5 09:51:40 yeti sensord: Error getting sensor data: w83782d/#81:
-> Can't access procfs/sysfs file
+    sensors now shows:
+    w83782d-i2c-3-2d
+    Adapter: SMBus AMD756 adapter at 80e0
+    AGP V:     +1.52 V  (min =  +3.14 V, max =  +3.46 V)
+    +5 V:     +4.89 V  (min =  +4.73 V, max =  +5.24 V)
+    DDR V:     +1.23 V  (min =  +2.85 V, max =  +3.47 V)       <<<<<<<< low by more than 2X
+    3 VSB:     +3.33 V  (min =  +2.85 V, max =  +3.15 V)        <<<<<<<< too high?
+    Bat V:     +2.61 V  (min =  +2.64 V, max =  +3.95 V)         <<<<<<<< too low??
+    CPU1 Fan: 3325 RPM  (min =   -1 RPM, div = 2)
+    CPU2 Fan: 5000 RPM  (min =   -1 RPM, div = 2)
+    chs1 Fan:    0 RPM  (min =   -1 RPM, div = 2)
+    VRM2 Temp:   +52?C  (high =  +100?C)                     sensor = 3904 transistor
+    CPU1 Temp: +49.5?C  (high =   +72?C, hyst =   +32?C)   sensor = 3904 transistor   ALARM
+    CPU2 Temp: +50.0?C  (high =   +72?C, hyst =   +32?C)   sensor = 3904 transistor   ALARM
+    alarms:   Chassis intrusion detection                      ALARM
+    beep_enable:
+             Sound alarm disabled
 
-OK, this must be a real problem. Probably sensord tries to scan the
-list
-of devices and fails because it wasn't properly ported to the sysfs
-interface.
+<clip>
 
-The problem is that I don't use sensord, and I don't think any of the
-developers do. Thus it is almost left unmaintained, compared with
-sensors which is very well tested.
-
-> With wildcards still fails: /usr/local/sbin/sensord -d --rrd-file
-> /var/sensor/yeti.rrd w83782d-\*
-> Feb  5 09:53:24 yeti sensord: sensord failed
-
-Can't tell wether this is the same problem as the other one. If you can
-find out where the problem lies, I may take a look.
-
-> Have to start sensord like this: /usr/local/sbin/sensord -d
-> --rrd-file /var/sensor/yeti.rrd w83782d-i2c-3-2d
-
-If at least this works, you can use that :)
-
-> sensors now shows:
-> w83782d-i2c-3-2d
-> Adapter: SMBus AMD756 adapter at 80e0
-> (...)
-> DDR V:     +1.23 V  (min =  +2.85 V, max =  +3.47 V)       <<<<<<<<
-> low by more than 2X
-> 3 VSB:     +3.33 V  (min =  +2.85 V, max =  +3.15 V)        <<<<<<<<
-> too high?
-> Bat V:     +2.61 V  (min =  +2.64 V, max =  +3.95 V)         <<<<<<<<
-> too low??
-
-Well, I'd expect that Tyan provides working configuration files. If not,
-see with them. They know their boards much better than anyone, of
-course, so if there's something broken in the configuration files, they
-should be able to help you and correct.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+    Michael D. Black mblack@csi-inc.com
+    http://www.csi-inc.com/
+    http://www.csi-inc.com/~mike
+    321-676-2923, x203
+    Melbourne FL
+    
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040205/75b9cfbf/attachment.html
