@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: erict@alum.rpi.edu (er0ck)
 Date: Thu, 19 May 2005 06:24:55 +0000
 Subject: Ticket #: 1659   it87: it8712f module stops working
-Message-Id: <20040427225213.2f535d70.khali@linux-fr.org>
+Message-Id: <1083111806.1346.9.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1083021688.1553.27.camel@localhost>
 In-Reply-To: <1083021688.1553.27.camel@localhost>
@@ -10,34 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> i've confirmed that i can reload the module all i want prior to when
-> it craps the bed.  
+it's not after 10 mins afterall...  i've also loaded the hell out of the
+system using stress, and it didn't seem to have any immediate effect.  
 
-OK, that's what I thought.
+i've seen it crap while just using the machine (usually below 1% load),
+or while i'm not on it, and xscreensaver is running (above 50% load).
 
-> i've also been logging sensors output, and time and it appears to
-> always stop working at 10 mins of uptime.   but i've only rebooted
-> twice, which is the only way to get the chip back...
-> 
-> i'm going to rewrite my script now so it logs the number of calls to
-> sensors, finer granularity of time ellapsed, and system state.  i'll
-> also turn on debug in lm-sensors.
+i can't get it to stop working by hand by activating xscreensaver, nor
+by using stress though.  
 
-Yes, good idea. I don't have any idea as to why the problem occurs.
-Nobody else reported the problem so far.
+i thought i had enabled debug in lm_sensors but i guess it didn't work. 
+(silly gentoo).    so i'll get that working, build some small kernel
+with nada and no modules and see what happens...
 
-> any other suggestions?
+i've also recently seen it crap the bed but still return stuff that's
+not 0x08:
+such as +4 for the positive in sensors.  
+also: 
+as you may have noticed i have both an i2c and ISA sensor output, which
+i haven't been able to figure out how to turn one off but i don't really
+care and figure it's simple....
+but what's really strange is that sometimes after the module stops
+working those two produce different results??  weird
 
-You may want to see if there could be a conflict with other
-drivers/devices, especially with those who use the ISA addressing space.
-I invite you to try a light kernel with as few drivers as possible, and
-see if the problem still occurs.
 
-Since I don't have much idea, the more information you can gather, the
-better, of course.
 
-Good luck.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+_____________________________________________
+     /\  ()      /\       erOck
+    /  \    /\  /  \/\    Eric Thompson
+ /\/    \  /  \/      \   www.erict.net
+/        \/            \  
+--------------------------------------------- 
+Ginger snap.
