@@ -1,22 +1,19 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: i2c-isa
-Message-Id: <20030630162818.7af80b04.khali@linux-fr.org>
+From: nithin_kj@yahoo.co.in (Nithin prakash)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: LM93 not getting fan nreading
+Message-Id: <20041119122315.50064.qmail@web8506.mail.in.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000801c33f09$69546520$f265a8c0@gf01>
-In-Reply-To: <000801c33f09$69546520$f265a8c0@gf01>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->             ok thx, now compile fine, but don't install
->             sensors-detect. but is in prog.
-
-Sensors-detect will be installed in /usr/local/sbin/ by make install. By
-the way, you'd be welcome to express yourself in full english sentences.
-Thanks.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+sir im nithin k prakash . im currently working on
+supermicro board.LM93 is used in that board for health
+monitoring.i m getting all 16 voltage and temperature
+values.but im not getting the fan values.i m using 3
+wire fan.i ve been also worked with 4 wire fan but
+just connected to the pins allocated for CPU2 fan(but
+there is no CPU2) at the same time fan1(3 wire) is
+connected to CPU1 .Is it necessory to place the fan on
+the CPU to get the fan reading while using PWM methods
