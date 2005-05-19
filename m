@@ -1,27 +1,17 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: Small fix in the PCF8591 driver
-Message-Id: <20040316204507.7af17374.khali@linux-fr.org>
+From: jd@linuxgod.net (J.D.)
+Date: Thu, 19 May 2005 06:23:27 +0000
+Subject: Links section / Application for lm_sensors CVS 2.6.3
+Message-Id: <200201040010.g040AHDh022188@Ra.linuxgod.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040314194215.GA12324@pc.aurel32.private>
-In-Reply-To: <20040314194215.GA12324@pc.aurel32.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Your patch is bogus. Please check it.
-> Oops, sorry. I am not using a 2.6 kernel anymore, and so I didn't
-> tried to build lm-sensors to test my fix.
+Ive created a dockapp for the CVS package/upcoming 2.6.3 release. Its monitors the
+the 83697HF chipset in /proc. The page is http://www.linuxgod.net/~jd/. The link to download the sensor
+package is on that page via our ftp server. Or link directly to the ftp server ftp://ftp.linuxgod.net/pub/MyJunk/X/
+This is based on other work, found in the package's documentation.
 
-I guess you really mean "2.4 kernel".
-
-> I hope this patch is the good one.
-
-Yes, looks good. Applied.
 
 Thanks.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
