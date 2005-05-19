@@ -1,33 +1,63 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:48 +0000
-Subject: RFC lmsensors sysfs interface documentation
-Message-Id: <1qkq41l7hf1riqmoq53ig4os81gaiogtn8@4ax.com>
+From: destri@mib.infn.it (Claudio Destri)
+Date: Thu, 19 May 2005 06:23:48 +0000
+Subject: help?
+Message-Id: <Pine.LNX.4.44.0302252341500.5703-100000@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9kug41tbmj5kp8bmadk4t7bupgvnl15q0m@4ax.com>
-In-Reply-To: <9kug41tbmj5kp8bmadk4t7bupgvnl15q0m@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 29 Mar 2005 07:53:35 +1000, Grant Coady <grant_nospam@dodo.com.au> wrote:
 
->Hi All,
->
->I've started a little documentation project here:
->
->  http://scatter.mine.nu/lmsensors/sysfs-names/
+I have installed lm_sensors on a dual Athlon MP2200+ Tyan motherboard.
+A Winbond chip is detected and this is the evidently wrong output of 
+sensors:
 
-Now contains two cross-reference lists:
+w83627hf-i2c-0-2c
+Adapter: SMBus AMD7X6 adapter at 80e0
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +1.66 V  (min =  +1.48 V, max =  +1.80 V)              
+VCore 2:   +1.66 V  (min =  +1.48 V, max =  +1.80 V)              
++3.3V:     +3.29 V  (min =  +2.97 V, max =  +3.63 V)              
++5V:       +4.89 V  (min =  +4.50 V, max =  +5.48 V)              
++12V:      +9.42 V  (min = +10.79 V, max = +13.11 V)              
+-12V:     -12.29 V  (min = -13.21 V, max = -10.90 V)              
+-5V:       +0.01 V  (min =  -5.51 V, max =  -4.51 V)              
+V5SB:      +5.38 V  (min =  +4.50 V, max =  +5.48 V)              
+VBat:      +3.28 V  (min =  +2.70 V, max =  +3.29 V)              
+fan1:     2721 RPM  (min = 3000 RPM, div = 2)                     
+fan2:     2848 RPM  (min = 3000 RPM, div = 2)                     
+fan3:        0 RPM  (min = 1500 RPM, div = 4)                     
+temp1:       +67?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 
+PII/Celeron diode           
+temp2:      +1.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 
+PII/Celeron diode           
+temp3:      +3.5?C  (limit =  +60?C, hysteresis =  +50?C) sensor = 
+PII/Celeron diode           
+vid:       +1.65 V
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+          Sound alarm disabled
 
-	drivers -> sysfs names
-	sysfs name -> drivers
 
-The generator script is there, comments on accuracy and usefulness 
-would be appreciated.
+What should I do? Perhaps changing from "PII/Celeron diode" according to 
+the suggestion in /usr/share/doc/lm_sensors-2.6.3/doc/chips/w83781d 
 
-Yes, an X-Y mapping would be better than a pair of denormalised lists, 
-but I start somewhere easy to see what the the data looks like first.
+        sensor[1-3]: (782d/783s only)
+          Controls the sensor type. To change to a different
+          sensor type, for example, do 'echo 2 > sensor1'.
+          Valid values:
+               1: Pentium II / Celeron diode
+               2: 2N3904 Transistor in a diode configuration
+            3435: Thermistor with Beta = 3435. Beta is a measure
+                  of sensitivity to temperature.
+ 
 
-Cheers,
-Grant.
+But I haven't quite understood how.
+
+-- 
+			CLAUDIO DESTRI   Claudio.Destri@mib.infn.it
+                        DIPARTIMENTO DI FISICA G. OCCHIALINI,
+                        UNIVERSITA` MILANO-BICOCCA
+                        PIAZZA DELLA SCIENZA 3, 20126 MILANO
+                        tel: (39)(2)64482539  fax: (39)(2)64482585
