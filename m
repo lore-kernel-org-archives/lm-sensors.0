@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
+From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
 Date: Thu, 19 May 2005 06:23:38 +0000
 Subject: 24rf08 update
-Message-Id: <3D72C90A.5FFB0D57@paradyne.com>
+Message-Id: <Pine.OSF.4.44.0209031620270.31430-100000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3D717733.227ED638@paradyne.com>
 In-Reply-To: <3D717733.227ED638@paradyne.com>
@@ -10,33 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-yes. I get it, makes sense now.
+On Sun, 1 Sep 2002, Mark D. Studebaker wrote:
+> Ky?sti M?lkki wrote:
+>
+> > Two successive Write Quick "0" become Write Byte, only changing the
+> > reference for Read Byte transactions. This is i2cdetect operation and
+> > causes no corruption.
+>
+> > It also means 2 x Write Quick would reset the state machine and prevent
+> > corruption...
+>
+> So if we add a second Write Quick "0" - only in the range 54-57 is
+> necessary - that sounds like a good fix. Agreed?
 
-Ky?sti M?lkki wrote:
-> 
-> On Sun, 1 Sep 2002, Mark D. Studebaker wrote:
-> 
-> > Ky?sti M?lkki wrote:
-> >
-> > > Two successive Write Quick "0" become Write Byte, only changing the
-> > > reference for Read Byte transactions. This is i2cdetect operation and
-> > > causes no corruption.
-> > >
-> > > S 0x54 Wr [A] <P><S> 0x55 Wr [A] P
-> > >
-> > > If this is the case, latter of the two Write Quick commands is always
-> > > acknowledged by 24rf08, and does not reflect a client at that address.
-> > >
-> > If this were the case I would not get a detection at 0x54 and I would
-> > get a detection at 0x58. But I correctly get a detection at 0x54-0x57.
-> > This is true whether I use Write Quick "0" or Write Quick "1".
-> 
-> You would get a detection at 0x54, since at that point 24rf08
-> acknowledges its address. You would not get a detection at 0x58, since
-> there was an even number of Write Quicks.
-> 
-> Scan range 0x57 to 0x58.
-> 
-> --
->   Ky?sti M?lkki
->   kmalkki@cc.hut.fi
+That's good first aid.
+
+To be Really Safe (TM), one must not release adapter lock in between.
+EEPs could still corrupt if you have a sensor module loaded and you run
+i2cdetect.
+
+Also sensor clients' attach_adapter uses Write Quick, often followed by
+Read Byte Data. Currently only eeprom.o is left in the mentioned
+range.  So maybe i2c-core deserves an option of doubling, preventing
+or faking Write Quick's in the range.
+
+I don't know about SMBus, but i2c defines multi-master topology.
+Unless we can force SCL low between the two Quicks, some embedded
+controller can still screw things up for us.
+
+-- 
+  Ky?sti M?lkki
+  kmalkki@cc.hut.fi
+
