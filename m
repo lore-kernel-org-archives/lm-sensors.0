@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: [PATCH] I2C fixes for 2.6.10-rc2
-Message-Id: <11018600183171@kroah.com>
+Message-Id: <11018600181498@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11018600181498@kroah.com>
+In-Reply-To: <20041201001245.GA27535@kroah.com>
 References: <20041119220001.GB15956@kroah.com>
 In-Reply-To: <20041119220001.GB15956@kroah.com>
 MIME-Version: 1.0
@@ -11,60 +11,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.2223.2.2, 2004/11/24 14:24:32-08:00, johnpol@2ka.mipt.ru
+ChangeSet 1.2223.2.1, 2004/11/24 14:24:06-08:00, khali@linux-fr.org
 
-[PATCH] w1: do not stop and oops if netlink socket was not allocated.
+[PATCH] I2C: More verbose w83l785ts driver
 
-Do not panic if netlink socket was not created.
-This will allow only first device to broadcast it's slave updates.
-We need kernel connector here.
+This simple patch increases the verbosity of the w83l785ts hardware
+monitoring driver. I wrote it months ago in the hope it would help solve
+a reported problem [1]. Not sure whether it did (no news from user since
+July), but the extra debug info may help in the future and doesn't hurt
+otherwise, so let's have this in for every user (not that many AFAIK),
+just in case.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+
+[1] http://bugzilla.kernel.org/show_bug.cgi?id(99
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/w1/w1_int.c     |    9 +++------
- drivers/w1/w1_netlink.c |    3 +++
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/i2c/chips/w83l785ts.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
 
-diff -Nru a/drivers/w1/w1_int.c b/drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c	2004-11-30 16:01:21 -08:00
-+++ b/drivers/w1/w1_int.c	2004-11-30 16:01:21 -08:00
-@@ -89,11 +89,8 @@
- 	dev->seq = 1;
- 	dev->nls = netlink_kernel_create(NETLINK_NFLOG, NULL);
- 	if (!dev->nls) {
--		printk(KERN_ERR "Failed to create new netlink socket(%u).\n",
--			NETLINK_NFLOG);
--		memset(dev, 0, sizeof(struct w1_master));
--		kfree(dev);
--		dev = NULL;
-+		printk(KERN_ERR "Failed to create new netlink socket(%u) for w1 master %s.\n",
-+			NETLINK_NFLOG, dev->dev.bus_id);
+diff -Nru a/drivers/i2c/chips/w83l785ts.c b/drivers/i2c/chips/w83l785ts.c
+--- a/drivers/i2c/chips/w83l785ts.c	2004-11-30 16:01:27 -08:00
++++ b/drivers/i2c/chips/w83l785ts.c	2004-11-30 16:01:27 -08:00
+@@ -280,14 +280,17 @@
+ 	 * default value requested by the caller. */
+ 	for (i = 1; i <= MAX_RETRIES; i++) {
+ 		value = i2c_smbus_read_byte_data(client, reg);
+-		if (value >= 0)
++		if (value >= 0) {
++			dev_dbg(&client->dev, "Read 0x%02x from register "
++				"0x%02x.\n", value, reg);
+ 			return value;
++		}
+ 		dev_dbg(&client->dev, "Read failed, will retry in %d.\n", i);
+ 		msleep(i);
  	}
  
- 	err = device_register(&dev->dev);
-@@ -112,7 +109,7 @@
- void w1_free_dev(struct w1_master *dev)
- {
- 	device_unregister(&dev->dev);
--	if (dev->nls->sk_socket)
-+	if (dev->nls && dev->nls->sk_socket)
- 		sock_release(dev->nls->sk_socket);
- 	memset(dev, 0, sizeof(struct w1_master) + sizeof(struct w1_bus_master));
- 	kfree(dev);
-diff -Nru a/drivers/w1/w1_netlink.c b/drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c	2004-11-30 16:01:21 -08:00
-+++ b/drivers/w1/w1_netlink.c	2004-11-30 16:01:21 -08:00
-@@ -34,6 +34,9 @@
- 	struct w1_netlink_msg *data;
- 	struct nlmsghdr *nlh;
+-	dev_err(&client->dev, "Couldn't read value from register. "
+-		"Please report.\n");
++	dev_err(&client->dev, "Couldn't read value from register 0x%02x. "
++		"Please report.\n", reg);
+ 	return defval;
+ }
  
-+	if (!dev->nls)
-+		return;
-+
- 	size = NLMSG_SPACE(sizeof(struct w1_netlink_msg));
- 
- 	skb = alloc_skb(size, GFP_ATOMIC);
 
