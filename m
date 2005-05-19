@@ -1,85 +1,60 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:20 +0000
-Subject: [Fwd: problem with lm_sensors]
-Message-Id: <417E8238.8060109@edgedesign.us>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: [PATCH] I2C: Reduce it87 i2c address range
+Message-Id: <11074523383635@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11074523383338@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
+
+ChangeSet 1.2044, 2005/02/03 00:29:54-08:00, khali@linux-fr.org
+
+[PATCH] I2C: Reduce it87 i2c address range
+
+IT87xxF chips were never seen at any other I2C address than the default
+(0x2d) so I think that we could safely reduce the range of addresses the
+it87 drivers accepts. Currently it accepts 0x20-0x2f, I believe that
+0x28-0x2f would already be more than sufficient.
+
+(In theory, any address is possible, so whatever range we choose is
+arbitrary anyway.)
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
+ drivers/i2c/chips/it87.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
--------- Original Message --------
-Date: Tue, 26 Oct 2004 16:59:54 +0200
-From: Dario Ciriminna <dario@deskservice.com>
-X-Mailer: The Bat! (v2.00.6) Business
-Reply-To: Dario Ciriminna <dario@deskservice.com>
-To: phil@netroedge.com
-CC: mdsxyz123@yahoo.com
-Subject: problem with lm_sensors
 
-Hello boys,
-
-i have installed your package and everything goes OK... including
-sensor detect....
-i've choose option 1 (separately)
-My linuxbox is running with kernel 2.4.27 on an Athlon 2.8ghz 1 gb
-
-well... when i lauch sensors this is the output....
-
-[root@server root]# sensors
-eeprom-i2c-1-50
-Adapter: SMBus Via Pro adapter at 5000
-Memory type:            DDR SDRAM DIMM
-Memory size (MB):       512
-
-eeprom-i2c-1-52
-Adapter: SMBus Via Pro adapter at 5000
-Memory type:            DDR SDRAM DIMM
-Memory size (MB):       512
-
-it87-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.60 V  (min =  +1.42 V, max =  +1.57 V)   ALARM
-VCore 2:   +2.66 V  (min =  +2.40 V, max =  +2.61 V)   ALARM
-+3.3V:     +4.00 V  (min =  +3.14 V, max =  +3.46 V)   ALARM
-+5V:       +2.60 V  (min =  +4.74 V, max =  +5.24 V)   ALARM
-+12V:      +2.76 V  (min = +11.40 V, max = +12.60 V)   ALARM
--12V:     -27.36 V  (min = -12.63 V, max = -11.41 V)   ALARM
--5V:      -13.64 V  (min =  -5.24 V, max =  -4.76 V)   ALARM
-Stdby:     +0.00 V  (min =  +4.74 V, max =  +5.24 V)   ALARM
-VBat:      +3.20 V
-fan1:     4218 RPM  (min =    0 RPM, div = 8)
-fan2:        0 RPM  (min = 3013 RPM, div = 8)          ALARM
-fan3:        0 RPM  (min = 3013 RPM, div = 8)
-M/B Temp:   +127?C  (low  =   +15?C, high =   +40?C)   sensor = thermistor
-CPU Temp:    +33?C  (low  =   +15?C, high =   +45?C)   sensor = diode
-Temp3:      +127?C  (low  =   +15?C, high =   +45?C)   sensor = thermistor
-
-Everything is on alarm...
-
-please don't tell me to check the bios value because the server is not
-phisically here.... it's a little bit strange (My Server is perfect...i've
-checked everything before to leave it in a webfarm, 1 week ago)
-
-Thanks for helping and waiting 4 reply !
-
-Saluti,
-
-Dario Ciriminna
-
-----------------------------------------------------
-
-Desk s.r.l.
-Via G.B.Vaccarini n?36
-90143 Palermo
-Italy
-
-E-Mail : dario@deskservice.com
-Web : http://www.deskservice.com
-ICQ : UIN n? 3986985
-Tel.  +39-091-6262332
-Fax   +39-091-6262424
-----------------------------------------------------
+diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
+--- a/drivers/i2c/chips/it87.c	2005-02-03 09:35:02 -08:00
++++ b/drivers/i2c/chips/it87.c	2005-02-03 09:35:02 -08:00
+@@ -2,8 +2,8 @@
+     it87.c - Part of lm_sensors, Linux kernel modules for hardware
+              monitoring.
+ 
+-    Supports: IT8705F  Super I/O chip w/LPC interface
+-              IT8712F  Super I/O chip w/LPC interface & SMbus
++    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
++              IT8712F  Super I/O chip w/LPC interface & SMBus
+               Sis950   A clone of the IT8705F
+ 
+     Copyright (C) 2001 Chris Gauthron <chrisg@0-in.com> 
+@@ -42,10 +42,8 @@
+ 
+ 
+ /* Addresses to scan */
+-static unsigned short normal_i2c[] = { 0x20, 0x21, 0x22, 0x23, 0x24,
+-					0x25, 0x26, 0x27, 0x28, 0x29,
+-					0x2a, 0x2b, 0x2c, 0x2d, 0x2e,
+-					0x2f, I2C_CLIENT_END };
++static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
++					0x2e, 0x2f, I2C_CLIENT_END };
+ static unsigned int normal_isa[] = { 0x0290, I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
 
