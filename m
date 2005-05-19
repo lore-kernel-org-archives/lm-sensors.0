@@ -1,87 +1,59 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:48 +0000
-Subject: Can't get 2 sensor chips working
-Message-Id: <3E54528B.8070601@paradyne.com>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:47 +0000
+Subject: Fwd: Fwd: [PATCH 2.6] bmcsensors
+Message-Id: <2538186705033012523d671b5f@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200302201051.40585.dpnsw@optusnet.com.au>
-In-Reply-To: <200302201051.40585.dpnsw@optusnet.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've heard of other trouble with the parallel port adapters (i2c-pport and pcf-epp),
-I don't know if it's the driver or the hardware that is the trouble.
-I wouldn't want to debug it without a good 'scope.
-Anything else is going to be quite frustrating.
-Good luck.
+Greg has asked me to send it in-line to the list, so here it is :).
+I'd appreciate any comments on the patch, please read the previous
+threads on the sysfs callback problem first though.
+
+Thanks,
+Yani
+
+---------- Forwarded message ----------
+From: Yani Ioannou <yani.ioannou@gmail.com>
+Date: Tue, 29 Mar 2005 15:39:39 -0500
+Subject: Re: Fwd: [PATCH 2.6] bmcsensors
+To: Greg KH <greg@kroah.com>
 
 
-David wrote:
-> I don't know if I can do that without a storage CRO. I tried altering my 
-> triggering but can't seem to hold the signal still long enough to actually 
-> see it.
-> 
-> Don't know if I can sample using my soundcard. I might be able to record 
-> (dpending on whether the pport bus runs at less than 20Khz in speed.
-> 
-> I then need to find an audio application that will display the waveform in 
-> scope mode.
-> 
-> Am I missing something or is this my next step?
-> 
-> 
-> On Thursday 20 February 2003 12:14, Mark D. Studebaker wrote:
-> 
->>you can try i2cdump 0 0 0x20
->>then look on the scope.
->>If the chip is not responding you will see only the chip address and the
->>register address
->>(2 bytes for each access)
->>If the chip is responding you will see the 3rd byte on the bus (the chip
->>response)
->>
->>David wrote:
->>
->>>Hi,
->>>
->>>I am trying to get a PCF8591 and a PCF8574 working using the i2c-pport
->>>adaptor.
->>>
->>>I have at the moment the i2c-pport and algo-bit modules loaded and am
->>>trying to get access to the PCF chips.
->>>
->>>modprobe pcf8574
->>>modprobe pcf8591
->>>AND
->>>modprobe pcf8574 probe=0,0x20
->>>modprobe pcf8591 probe=0,0x48
->>>
->>>don't actually creaate any files under proc and the modules remain unused
->>>as far as lsmod is concerned.
->>>
->>>I can get the devices up if I
->>>modprobe pcf8574 force_pcf8574=0,0x20
->>>modprobe pcf8591 force_pcf8591=0,0x48
->>>
->>>everything loads, I get the relavent files under
->>>/proc/sys/dev/sensors
->>>
->>>it doesn't look like I am really taking to the chips though.
->>>
->>>Changes I make on the inputs aren't reflected in the values under /proc.
->>>
->>>If I run the i2cdetect 0 I get UU showing in both 0x20 and 0x48
->>>
->>>I have used my scope and know that signals are getting to the chips in
->>>question but it isn't a storage scope so I can't look to see if the
->>>pulses are really valid i2c pulses.
->>>
->>>Any hints on what to do next.
->>>
->>>--
->>>Best Regards,
->>>
->>>David Price
-> 
-> 
+Sorry I was following this section of Documentation/SubmittingPatches,
+the patch uncompressed is ~75K:
+
+-----------------------Documentation/SubmittingPatches-----------------------------
+210 Large changes are not appropriate for mailing lists, and some
+211 maintainers.  If your patch, uncompressed, exceeds 40kb in size,
+212 it is preferred that you store your patch on an Internet-accessible
+213 server, and provide instead a URL (link) pointing to your patch.
+
+I've attached it in line below, sorry for any inconvenience.
+
+Thanks,
+Yani
+
+
+On Tue, 29 Mar 2005 12:31:53 -0800, Greg KH <greg@kroah.com> wrote:
+> On Tue, Mar 29, 2005 at 03:24:21PM -0500, Yani Ioannou wrote:
+> > Sorry Greg, didn't realize I had to CC you :).
+>
+> I need the patch in an email, as per Documentation/SubmittingPatches.
+>
+> You should send the patch to the list too, don't expect people to pull
+> it from a web site.
+>
+> thanks,
+>
+> greg k-h
+>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.11.5-bmcsensors.diff
+Type: text/x-patch
+Size: 76104 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050330/0572e179/patch-linux-2.6.11.5-bmcsensors.bin
