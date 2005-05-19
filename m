@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: [PATCH] More i2c driver changes for 2.5.65
-Message-Id: <10482950852454@kroah.com>
+Message-Id: <10482950873871@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1048295084971@kroah.com>
+In-Reply-To: <10482950874081@kroah.com>
 References: <1048295086481@kroah.com>
 In-Reply-To: <1048295086481@kroah.com>
 MIME-Version: 1.0
@@ -11,81 +11,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1190, 2003/03/21 14:38:21-08:00, greg@kroah.com
+ChangeSet 1.1194, 2003/03/21 16:26:04-08:00, greg@kroah.com
 
-[PATCH] i2c: remove *data from i2c_adapter, as dev->data should be used instead.
+i2c: actually register the i2c client device with the driver core.
+
+We have to initialize the client structure with 0 to keep the
+driver core from oopsing.
+
+Now everything is hooked up enough to start removing the i2c sysctl
+and proc crud.
 
 
- drivers/i2c/i2c-elv.c    |    2 +-
- drivers/i2c/scx200_acb.c |    4 ++--
- include/linux/i2c.h      |   17 +++++++++++------
- 3 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/i2c/chips/adm1021.c |    2 ++
+ drivers/i2c/chips/lm75.c    |    2 ++
+ drivers/i2c/i2c-core.c      |   10 ++++++++++
+ 3 files changed, 14 insertions(+)
 
 
-diff -Nru a/drivers/i2c/i2c-elv.c b/drivers/i2c/i2c-elv.c
---- a/drivers/i2c/i2c-elv.c	Fri Mar 21 16:53:26 2003
-+++ b/drivers/i2c/i2c-elv.c	Fri Mar 21 16:53:26 2003
-@@ -150,7 +150,7 @@
- 			return -ENODEV;
- 		}
- 	} else {
--		bit_elv_ops.data=(void*)base;
-+		i2c_set_adapdata(&bit_elv_ops, (void *)base);
- 		if (bit_elv_init()=0) {
- 			if(i2c_bit_add_bus(&bit_elv_ops) < 0)
- 				return -ENODEV;
-diff -Nru a/drivers/i2c/scx200_acb.c b/drivers/i2c/scx200_acb.c
---- a/drivers/i2c/scx200_acb.c	Fri Mar 21 16:53:26 2003
-+++ b/drivers/i2c/scx200_acb.c	Fri Mar 21 16:53:26 2003
-@@ -289,7 +289,7 @@
- 				char rw, u8 command, int size, 
- 				union i2c_smbus_data *data)
- {
--	struct scx200_acb_iface *iface = adapter->data;
-+	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
- 	int len;
- 	u8 *buffer;
- 	u16 cur_word;
-@@ -455,7 +455,7 @@
+diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
+--- a/drivers/i2c/chips/adm1021.c	Fri Mar 21 16:52:49 2003
++++ b/drivers/i2c/chips/adm1021.c	Fri Mar 21 16:52:49 2003
+@@ -221,6 +221,8 @@
+ 		err = -ENOMEM;
+ 		goto error0;
+ 	}
++	memset(new_client, 0x00, sizeof(struct i2c_client) +
++				 sizeof(struct adm1021_data));
  
- 	memset(iface, 0, sizeof(*iface));
- 	adapter = &iface->adapter;
--	adapter->data = iface;
-+	i2c_set_adapdata(adapter, iface);
- 	snprintf(adapter->dev.name, DEVICE_NAME_SIZE, "SCx200 ACB%d", index);
- 	adapter->owner = THIS_MODULE;
- 	adapter->id = I2C_ALGO_SMBUS;
-diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h	Fri Mar 21 16:53:26 2003
-+++ b/include/linux/i2c.h	Fri Mar 21 16:53:26 2003
-@@ -219,12 +219,7 @@
- 	int (*client_register)(struct i2c_client *);
- 	int (*client_unregister)(struct i2c_client *);
+ 	data = (struct adm1021_data *) (new_client + 1);
+ 	i2c_set_clientdata(new_client, data);
+diff -Nru a/drivers/i2c/chips/lm75.c b/drivers/i2c/chips/lm75.c
+--- a/drivers/i2c/chips/lm75.c	Fri Mar 21 16:52:49 2003
++++ b/drivers/i2c/chips/lm75.c	Fri Mar 21 16:52:49 2003
+@@ -140,6 +140,8 @@
+ 		err = -ENOMEM;
+ 		goto error0;
+ 	}
++	memset(new_client, 0x00, sizeof(struct i2c_client) +
++				 sizeof(struct lm75_data));
  
--	void *data;	/* private data for the adapter			*/
--			/* some data fields that are used by all types	*/
--			/* these data fields are readonly to the public	*/
--			/* and can be set via the i2c_ioctl call	*/
--
--			/* data fields that are valid for all devices	*/
-+	/* data fields that are valid for all devices	*/
- 	struct semaphore bus;
- 	struct semaphore list;  
- 	unsigned int flags;/* flags specifying div. data		*/
-@@ -241,6 +236,16 @@
- #endif /* def CONFIG_PROC_FS */
- };
- #define to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
+ 	data = (struct lm75_data *) (new_client + 1);
+ 	i2c_set_clientdata(new_client, data);
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	Fri Mar 21 16:52:49 2003
++++ b/drivers/i2c/i2c-core.c	Fri Mar 21 16:52:49 2003
+@@ -378,6 +378,15 @@
+ 
+ 	if (client->flags & I2C_CLIENT_ALLOW_USE)
+ 		client->usage_count = 0;
 +
-+static inline void *i2c_get_adapdata (struct i2c_adapter *dev)
-+{
-+	return dev_get_drvdata (&dev->dev);
-+}
-+
-+static inline void i2c_set_adapdata (struct i2c_adapter *dev, void *data)
-+{
-+	return dev_set_drvdata (&dev->dev, data);
-+}
++	client->dev.parent = &client->adapter->dev;
++	client->dev.driver = &client->driver->driver;
++	client->dev.bus = &i2c_bus_type;
++	
++	snprintf(&client->dev.bus_id[0], sizeof(client->dev.bus_id), "i2c_dev_%d", i);
++	printk("registering %s\n", client->dev.bus_id);
++	device_register(&client->dev);
++	
+ 	return 0;
+ }
  
- /*flags for the driver struct: */
- #define I2C_DF_NOTIFY	0x01		/* notify on bus (de/a)ttaches 	*/
+@@ -414,6 +423,7 @@
+ 	res = -ENODEV;
+ 
+  out_unlock:
++	device_unregister(&client->dev);
+ 	up(&adapter->list);
+  out:
+ 	return res;
