@@ -1,86 +1,48 @@
-From: phil@netroedge.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:23:43 +0000
-Subject: 2.7.0 testings
-Message-Id: <3DEE77EF.7040305@netroedge.com>
+From: patrick@dreker.de (Patrick Dreker)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: LM Sensors and Kernel 2.5 (Nvidia Nforce2)
+Message-Id: <200307110439.33500.patrick@dreker.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20021127213903.5b84866d.khali@linux-fr.org>
-In-Reply-To: <20021127213903.5b84866d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Ah OK, it sounds fine then.  As a fallback to the explicit method not 
-being present, it sounds reasonable.
+Hello...
 
-It sounds like we are ready for release!  I'll plan on doing it either 
-tonight or in the next day or so.  If I don't hear any issues crop up, 
-I'll assume I can go ahead with it.  In the mean time, feel free to 
-review documentation or read-me's if you have a minute to make sure they 
-still make sense.
+After a lot of trying and reading I have realised that lm-sensors and Kernel 
+2.5 are not yet usable with the Nvidia Nforce2 Chipset because of a missing 
+module and because libsensors is not ready for sysfs yet. (Using Asus 
+A7V8X-Deluxe Motherboard, so the sensor chip itself (w83781d) is supported 
+and works under 2.4)
 
-Again, great work guys!
+As far as I could understand from the website the following things would have 
+to happen to make the above system work:
+1) port or integrate i2c-nforce2 from LM-Sensors CVS into kernel 2.5
+2) adapt libsensors to use sysfs
+(correct me if I am wrong...)
 
+Question: Is anybody already doing one or both of the above? If not: How can I 
+help? If yes: are there patches to try out, or something else to help with?
 
-Phil
+I know C but I have never got my hands on kernel code (except for some USB 
+Device IDs...). Would it be easy to port the nforce2 bus driver to kernel 
+2.5? If it is just a simple task, how would this have to be done 
+(Documentation)? I already found 
+/usr/src/linux/Documentation/i2c/i2c-old-porting but this seems to not apply 
+to the i2c-nforce2 driver (at least from a quick glance).
 
+I would be willing to help, but I'd definitely need someone to show me where 
+to start and give me some hints on what needs to be done...
 
-Mark Studebaker wrote:
+TNX in advance
+Patrick
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
->I didn't really mean "default to /usr/src/linux", I meant 
->"when you had a kernel 2.2, so you were using /usr/src/linux".
->
->I understand what you are doing now. I was a little confused, sorry.
->
->Phil, the scheme is that if LINUX= is not specified on the make command line,
->we build against the sources for the running kernel
->(as linked to in /lib/modules/`uname -r`) if that link is present.
->If not, we build against /usr/src/linux.
->
->So the running kernel is not 'completely unrelated'.
->
->We made this change a few weeks ago. We think it's better than /usr/src/linux
->because it is much more likely to have the current kernel source in it
->(which is indeed what most people want to build against).
->It also matches current practice in other packages I've seen.
->Redhat, for example, doesn't seem to have the current source in /usr/src/linux.
->
->Khali's ready for release and so am I. Phil, if you are happy, go ahead.
->p.s. I already upped the libsensors library version in preparation for the release.
->
->mds
->
->Jean Delvare wrote:
->  
->
->>>I see. Well, MODPREF controls where the modules get installed.
->>>That should be the same as the kernel that we compiled against,
->>>which is the one defined in LINUX:= .
->>>So don't you think MODPREF should do the "-L" thing?
->>>But I don't know what happens if we default to /usr/src/linux...
->>>      
->>>
->>If we default to /usr/src/linux, it means that we don't use the release
->>of the currently running version of Linux. So, KERNELVERSION is useless.
->>The only way we have to know where the modules should be installed is to
->>look in /usr/src/linux and see where this kernel has installed its
->>modules. This is exactly what is done right now.
->>
->>If we didn't default to /usr/src/linux, it means that we know where to
->>install the modules, and we could use KERNELVERSION. But, on the other
->>hand, we built LINUX from KERNELVERSION (through the build symlink), so
->>the method above will also work.
->>
->>I don't see the point in creating a complex expression that does
->>different things for these two cases when the first one will work for
->>both (and has obviously proven to work well for years).
->>
->>--
->>Jean Delvare
->>http://www.ensicaen.ismra.fr/~delvare/
->>    
->>
->
->  
->
+iD8DBQE/DiNicERm2vzC96cRAmMuAKCTLJxciWYdnUIPVnsz4V8tPKda9ACfaR+B
+cow1kU6u1d7jR2R4p5aEyc0jl5
+-----END PGP SIGNATURE-----
