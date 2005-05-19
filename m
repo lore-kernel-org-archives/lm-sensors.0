@@ -1,45 +1,48 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: CVS patch for lm85 fixes and EMC6D100 support
-Message-Id: <3ED9963D.60702@penguincomputing.com>
+From: frank@vfx.to (Frank Hellmann)
+Date: Thu, 19 May 2005 06:25:25 +0000
+Subject: Ticket 1834 Update
+Message-Id: <41B1D44F.4090303@vfx.to>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3ED78579.9030203@penguincomputing.com>
-In-Reply-To: <3ED78579.9030203@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Certainly makes sense.  See if someone else is interested and motivated to 
-work on it.
+Hi!
 
-:v)
+The chip on the MSI KT8 Neo is actually a Winbond w83697hf and is not 
+detected correctly during sensors-detect.
 
-Mark D. Studebaker wrote:
+I loaded the module with    modprobe w83781d force_w83697hf  , but this 
+didn't change the PWM problem.
 
-> I'd like to solicit volunteers to create a 2.6-compatible libsensors
-> right away. I don't think we can wait until 2.6.0 comes out to get started.
-> Anybody up for it? Can we put a request on our web page?
-> What do you guys think?
-> 
-> 
-> Greg KH wrote:
-> 
->> On Fri, May 30, 2003 at 10:12:08AM -0700, Philip Pokorny wrote:
->>
->>> I'm worried about the libsensors implementation for 2.5/2.6.  The 
->>> switch to sysfs will mean a radical change to the libsensors 
->>> implementation.  This may be a good time to address a number of 
->>> issues (duplicated code in libsensors and prog/sensors, inflexible 
->>> formating, integration of sensord/rrdb, etc) if we have to do a major 
->>> re-write of the libsensors and sensors code.  Has anyone given any 
->>> thought to this?
->>
->>
->>
->> I've looked at this, and agree, a radical change to the libsensors
->> implementation seems to be in order.  I haven't spent any serious time
->> yet on this, but will have the time after 2.6.0 comes out.
->>
-> 
+pwmconfig can't detect a usable a correlation:
 
+Testing pwm control 1-0290/fan1_pwm ...
+  1-0290/fan1_input ... speed was 3229 now 0
+    It appears that fan 1-0290/fan1_input
+    is controlled by pwm 1-0290/fan1_pwm
+Would you like to generate a detailed correlation (y)?
+    PWM 255 FAN 3229
+    PWM 240 FAN 3214
+    PWM 225 FAN 3214
+    PWM 210 FAN 3229
+    PWM 195 FAN 3229
+    PWM 180 FAN 3229
+    PWM 165 FAN 3229
+    PWM 150 FAN 3229
+    PWM 135 FAN 3229
+    PWM 120 FAN 3229
+    PWM 105 FAN 3214
+    PWM 90 FAN 3214
+    PWM 75 FAN 3229
+    PWM 60 FAN 3214
+    PWM 45 FAN 3214
+    PWM 30 FAN 3214
+    PWM 15 FAN 3169
+    PWM 0 FAN 0
+    Fan Stopped at PWM = 0
+
+
+    Thanks,
+                   Frank...
