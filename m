@@ -1,60 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: marius.reiner@hdev.de (Marius Reiner)
 Date: Thu, 19 May 2005 06:24:06 +0000
 Subject: pwmconfig
-Message-Id: <20030721115123.11b859d1.khali@linux-fr.org>
+Message-Id: <20030721143500.16b7195b.marius.reiner@hdev.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030721115123.11b859d1.khali@linux-fr.org>
+In-Reply-To: <20030721115123.11b859d1.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
 
-Hi all,
+thanks for testing and patching pwmconfig.
+Regarding the tempsensor issue, does the same thing happen if you change PWM values manually?
 
-I gave a try to pwmconfig and there are two bugs I'd like to report:
+> Additionally, pwmconfig does not work for me, but maybe that's just my
+> system not supporting it.
 
-1* The script hangs if the config file does not exist. It creates the
-file /etc/fancontrol, and hangs right after, with the message "Loading
-configuration from  ..." (it should display the file name, that is,
-/etc/fancontrol, there). Patch attached, I'll commit it unless someone
-objects.
+You mean your fans don't respond to PWM changes? There's a high chance your mainboard has no support, maybe this page has some info on it: http://www.almico.com/forumindex.php
 
-2* After running pwmconfig, the temperatures reported by sensors are all
-wrong (and not by a few degrees).
+If you're a bit crazy, you could add the fan control circuit yourself, then my homepage may be of use for you: http://www.hdev.de
 
-Before:
-M/B Temp:    +31?C  (limit =  +42?C, hysteresis =  +40?C)
-CPU Temp:  +51.4?C  (limit =  +60?C, hysteresis =  +56?C)
-P/S Temp:  +31.4?C  (limit =  +42?C, hysteresis =  +40?C)
-
-After:
-M/B Temp:    -45?C  (limit =  +42?C, hysteresis =  +40?C)
-CPU Temp: +217.4?C  (limit =  +60?C, hysteresis =  +56?C)
-P/S Temp: +211.4?C  (limit =  +42?C, hysteresis =  +40?C)
-
-Weird, isn't it? Running 'sensors -s' doesn't make them back to normal,
-I have to reboot in order to do so.
-
-My sensor chip is an a99127f.
-
-Additionally, pwmconfig does not work for me, but maybe that's just my
-system not supporting it.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
--------------- next part --------------
-Index: pwmconfig
-=================================RCS file: /home/cvs/lm_sensors2/prog/pwm/pwmconfig,v
-retrieving revision 1.2
-diff -u -r1.2 pwmconfig
---- pwmconfig	5 Jul 2003 16:00:20 -0000	1.2
-+++ pwmconfig	21 Jul 2003 09:54:36 -0000
-@@ -307,6 +307,7 @@
- 			touch $X
- 			chmod 0660 $X
- 			chown root.root $X
-+			FCCONFIG=$X
- 		else
- 			AskPath
- 		fi
+Regards,
+  Marius
