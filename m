@@ -1,73 +1,22 @@
-From: bunk@stusta.de (Adrian Bunk)
-Date: Thu, 19 May 2005 06:25:24 +0000
-Subject: drivers/w1/: why is dscore.c not ds9490r.c ?
-Message-Id: <20041125155614.GD3537@stusta.de>
+From: rkimber@ntlworld.com (rkimber@ntlworld.com)
+Date: Thu, 19 May 2005 06:25:36 +0000
+Subject: fan control question
+Message-Id: <20050205151509.7b26200c.rkimber@ntlworld.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041121220251.GE13254@stusta.de> <1101108672.2843.55.camel@uganda> <20041122133344.GA19419@stusta.de> <1101140745.9784.7.camel@uganda> <20041122165145.GH19419@stusta.de> <1101143109.9784.9.camel@uganda> <20041122171956.GI19419@stusta.de> <1101145020.9784.17.camel@uganda> <20041123002028.GN19419@stusta.de> <1101206052.9784.26.camel@uganda>
-In-Reply-To: <1101206052.9784.26.camel@uganda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, Nov 23, 2004 at 01:34:12PM +0300, Evgeniy Polyakov wrote:
-> On Tue, 2004-11-23 at 01:20 +0100, Adrian Bunk wrote:
-> > On Mon, Nov 22, 2004 at 08:37:00PM +0300, Evgeniy Polyakov wrote:
-> > > 
-> > > that should be follwing:
-> > > 
-> > > Kconfig:
-> > > foo depends on ds9490r
-> > > 
-> > > obj-$() += foo.o
-> > > foo-objs := foo_1.o foo_2.o
-> > > 
-> > > It just happened that ds9490r does not need any other parts but
-> > > dscore.o.
-> > > That is why ds9490r.o have only dscore.o in it's dependency.
-> > 
-> > If foo_1 or foo_2 is dscore, you get exactly the compile breakage I 
-> > described.
-> 
-> foo_1 and foo_2 will not be dscore, since foo depends on ds9490 and thus
-> dscore must be already built.
-> It looks like you were confused by dscore vs. ds9490 names. Probably it
-> was not a good idea to
-> call it in a such way, but it was done and it works.
+I have tried lm_sensors with Suse 9.1, the current Mandrake, and the current Ubuntu.
 
-Is there a reason against simply renaming dscore.c to ds9490r.c ?
+In the bios on my MSI K8T Master2 -FAR, I have the option to set a threshold for the CPU fans so that below a certain temperature they run quietly and not at the full
+'sounds-like-a-jet-engine' speed.  When I switch on they run full for a couple of minutes and then slow down to something like half speed.
 
-> > > > That drivers/w1/ contains many EXPORT_SYMBOL's with no in-kernel users 
-> > > > is a different issue I might send a separate patch for (that besides 
-> > > > proprietary modules there might come some day open source drivers using 
-> > > > them is not a reason).
-> > > 
-> > > Why remove existing non disturbing set of exported functions?
-> > > Are they violate some unknown issues?
-> > 
-> > If an export is currently unused, there's no need to export it.
-> > 
-> > If an export is only used for proprietary modules, that's a reason for 
-> > an immediate removal of this export.
-> 
-> Sigh. It can be used by anyone who want to use it.
+Under Suse 9.1 this all works fine, but if I use Ubuntu or Mandrake, enabling lm_sensors causes the CPU fans to run at full speed without ever going quiet.
 
-That's not the way it's handled in the Linux kernel.
+Why should this be so?  Is Ubuntu lm_sensors doing something to overrride the bios setting? Otherwise, sensors appear to work fine.
 
-Proprietary modules are allowed, but support code only required by them 
-but not used by free software has to be removed.
+I'd appreciate any guidance you can offer.
 
-> I will take more carefull look at it later, thank you.
-
-Thanks.
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+- Richard Kimber.
