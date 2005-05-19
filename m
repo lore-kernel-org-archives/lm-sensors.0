@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:15 +0000
 Subject: Support for DDR2 DRAM??
-Message-Id: <20040913203231.0e4d28f8.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.58.0409140949470.31786@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
 In-Reply-To: <28703505.1094766606690.JavaMail.root@louie.psp.pas.earthlink.net>
@@ -10,34 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ruik,
+> Looks like you did most of the detective work already. Care to propose a
+> patch (which would include my preliminary one)?
 
-> Byte 5 changed in DDR2 spec
-> 
-> DDR: http://www.jedec.org/download/search/4_01_02_04R13.PDF
-> Byte 5: Number of DIMM Banks
-> This field describes the number of physical banks on the SDRAM module.
-> The number of logical banks for the SDRAM device is defined in Byte
-> 17.
-> 
-> DDR2: http://www.jedec.org/download/search/N04-NM2.pdf
-> 
-> Byte 5: Module Attributes - Number of Ranks, Package and Height
-> This field describes the number of ranks (Rank: any DRAMs connected to
-> same physical CS) and package on the SDRAM module, and module height.
-> The number of logical banks for the SDRAM device is defined in Byte
-> 17.
-> 
-> Rank has 2 lowest bits,
-> (...)
-> And in byte 3, and 4 are changed also. I'm sorry I cant provide the
-> patch right now.
+Unfortunately it is not sufficient, now I must figure out how to calculate
+the DRAM size. I will have time for this next week. This week I will go
+hiking to the mountains :)
 
-Looks like you did most of the detective work already. Care to propose a
-patch (which would include my preliminary one)?
+Sorry.
 
-Thanks.
+Regards
 
--- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+Rudolf
