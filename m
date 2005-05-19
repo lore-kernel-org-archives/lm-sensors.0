@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: chb@tzis.net (Christoph Breitler)
 Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: Ticket #: 1533 / Cant use Sensors -s
-Message-Id: <20040125181737.209cf744.khali@linux-fr.org>
+Message-Id: <1075052249.3266.11.camel@Technetium.pse.local>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1074957554.5412.3.camel@Technetium.pse.local>
 In-Reply-To: <1074957554.5412.3.camel@Technetium.pse.local>
@@ -10,45 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Well, that was supposed to work ;) The common (and unsolved so far)
-> > problem is that people can write to the files using "echo" but not
-> > through libsensors (which sensors uses).
+Am Son, den 25.01.2004 schrieb Jean Delvare um 18:17:
+
+> Turns out to be an error in sensors.conf. This file references a third
+> temperature channel that the w83697hf doesn't have. It's commented out
+> by default, but I guess you uncommented the lines (set temp3_over and
+> set temp3_hyst), and this causes the trouble you're in.
 > 
-> I see :)
-
-But this is a different thing here, see below.
-
-> > Yes it does. From what I can see there, you have a second i2c bus (a
-> > real one, as opposed to the isa emulation). Looks like there is much
-> > trouble on this second adapter. It is probably a completely
-> > different problem though. That said, please tell us what that second
-> > i2c bus is and what chips are present here, just in case there is
-> > some kind of interaction between both problems.
+> Delete these lines from your configuration file, and it should be OK.
 > 
-> I really don't know where and what the second i2c bus is, I guess
-> there isn't something like lsi2c ? 
+> I'll do the same in our default configuration file. Strange that nobody
+> reported the problem so far. Maybe people simply don't uncomment lines
+> they don't need.
 
-There is "i2cdetect -l", and lsmod too ;)
+I see, I would never have thought of some config errors in the
+sensors.conf file with such an error message, always thought it had
+something to do with /sys or the modules in general.
 
-> > Back to the initial problem, I'd like you to strace "sensors -s". I
-> > put a trap in there some times ago, maybe it'll confirm my
-> > suspicions.
-> 
-> Here is the output. 
+When uncommenting these lines I just thought to set up the default max
+temp values. 
 
-Turns out to be an error in sensors.conf. This file references a third
-temperature channel that the w83697hf doesn't have. It's commented out
-by default, but I guess you uncommented the lines (set temp3_over and
-set temp3_hyst), and this causes the trouble you're in.
+Maybe there should be something added to the error message that this can
+also be caused by wrong settings in sensors.conf
 
-Delete these lines from your configuration file, and it should be OK.
+> Thanks for the report.
 
-I'll do the same in our default configuration file. Strange that nobody
-reported the problem so far. Maybe people simply don't uncomment lines
-they don't need.
+Thanks for helping me, even the problem was that simple and caused by me
+:) 
 
-Thanks for the report.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
