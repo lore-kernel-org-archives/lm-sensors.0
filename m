@@ -1,41 +1,95 @@
-From: andreas@schutz.se (andreas@schutz.se)
-Date: Thu, 19 May 2005 06:25:52 +0000
-Subject: parport driver
-Message-Id: <33183.83.233.14.177.1113771657.squirrel@webmail1.b-one.nu>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:56 +0000
+Subject: [PATCH 2.6] Fix memory leaks in w83781d and asb100
+Message-Id: <20040502220632.06cefb60.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
-In-Reply-To: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
+References: <20040403191023.08f60ff1.khali@linux-fr.org>
+	<20040403202042.GA3898@sirius.home>
+	<20040409173158.GC15820@kroah.com>
+	<20040410165832.08e0c80d.khali@linux-fr.org>
+	<20040417145309.4831f2b6.khali@linux-fr.org>
+In-Reply-To: <20040417145309.4831f2b6.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
+Cc: greg@kroah.com, vsu@altlinux.ru, "Mark M. Hoffman" <mhoffman@lightlink.com>
 
-Hi
-All modules loads fine. The system log tells me that everything is
-working. I will recheck the chip address and try Rudolf
-"grounding-some-pins" methode. Thanks again, especially for the force
-command on the pcf8574.
+Quoting myself
 
-/Andreas
+> U-ho. I think I've introduced a memory leak with this patch :(
+> 
+> For drivers that handle subclients (asb100 and w83781d on i2c), the
+> sublient memory is never released if I read the code correctly. This
+> is because we now free the private data on unload, assuming that it
+> contains the i2c client data as well. That's true for the main i2c
+> client, but not for the subclients (data = NULL so nothing is freed).
+> 
+> Could someone take a look and confirm?
 
-> Hi Andreas,
->
->> So I tried to load the following modules: i2c_core, i2c_algo_bit,
->> i2c_pport, i2c_dev, i2c_sensor, pcf8574.
->> Should I be able to se my pcf8574 chip that is hooked up on my
->> parallel port now? Cause I can not! Do I have to consider cables
->> (length and others) or have I done anything else wrong? Some hints on
->> trouble shooting would be apreciated.
->
-> First thing to try is to load i2c-algo-bit with bit_test=1. This will
-> test the lines when you load i2c-pport. If it fails, then you have a
-> wiring issue, most probably. The debug message should tell you where.
->
-> If the i2c-pport driver loads, try i2cdetect on the bus. This will give
-> you an idea of whether the bus works as intended or not.
->
-> Hope that helps,
-> --
-> Jean Delvare
->
+I could test and actually saw memory leaking when cycling the w83781d
+driver at a sustained rate (5/s).
 
+> I can see two different fixes:
+> 
+> 1* When freeing the memory, free the data if it's not NULL (main
+> client), else free client (subclients). Cleaner (I suppose?).
+> 
+> 2* When creating subclients, do data = &client instead of data = NULL.
+> Then freeing will work. Less code, faster. Are there side effects? (I
+> don't think so)
+> 
+> My preference would go to 2*.
+
+I ended up implementing 1*. That's cleaner and there's actually almost
+no extra code.
+
+Mark, can you confirm that I'm doing the correct thing? I'll do
+something similar in our CVS repository (for now, the asb100 and w83781d
+drivers had not their memory allocation scheme reworked there).
+
+Greg, please apply if it looks good to you. Sorry for introducing the
+leak in the first place...
+
+Thanks.
+
+--- linux-2.6.6-rc3/drivers/i2c/chips/asb100.c.orig	Sun May  2 13:52:29 2004
++++ linux-2.6.6-rc3/drivers/i2c/chips/asb100.c	Sun May  2 21:51:17 2004
+@@ -855,7 +855,13 @@
+ 		return err;
+ 	}
+ 
+-	kfree(i2c_get_clientdata(client));
++	if (i2c_get_clientdata(client)=NULL) {
++		/* subclients */
++		kfree(client);
++	} else {
++		/* main client */
++		kfree(i2c_get_clientdata(client));
++	}
+ 
+ 	return 0;
+ }
+--- linux-2.6.6-rc3/drivers/i2c/chips/w83781d.c.orig	Sun May  2 15:09:44 2004
++++ linux-2.6.6-rc3/drivers/i2c/chips/w83781d.c	Sun May  2 21:51:11 2004
+@@ -1336,7 +1336,13 @@
+ 		return err;
+ 	}
+ 
+-	kfree(i2c_get_clientdata(client));
++	if (i2c_get_clientdata(client)=NULL) {
++		/* subclients */
++		kfree(client);
++	} else {
++		/* main client */
++		kfree(i2c_get_clientdata(client));
++	}
+ 
+ 	return 0;
+ }
+
+
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
