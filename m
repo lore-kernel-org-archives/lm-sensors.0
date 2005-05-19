@@ -1,7 +1,7 @@
-From: jiipee@lappeenranta.tk (Jani Partanen)
-Date: Thu, 19 May 2005 06:23:57 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: lm_sensors
-Message-Id: <Pine.LNX.4.44.0306010623360.24797-100000@lappeenranta.tk>
+Message-Id: <20030726214540.58e8ddf4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
 In-Reply-To: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
@@ -10,17 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi!
 
-I have problem with lm_sensors 2.7.0
+Some months ago, you reported that you were trying to get lm_sensors
+2.7.0 to work with your Gigabyte GA-8LD533. It looks like we never
+answered, I guess we were busy or something. Please apologize. Did you
+finally got it to work? If not, let us know and we'll try to help.
 
-i2c-piix4.o: Bus collision! SMBus may be locked until next hard
-reset. (sorry!)
-
-I get that a lot. Sometimes it give correct readings and but not allways.
-And once it have run my machine to sleep or standby mode when I did 
-sensors... Ask me more info what you need and I give.
-
-Bye!
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
