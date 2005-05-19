@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:21 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0-test7
-Message-Id: <10658274953710@kroah.com>
+Message-Id: <10658274962859@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1065827494796@kroah.com>
+In-Reply-To: <10658274951920@kroah.com>
 References: <1065827494796@kroah.com>
 In-Reply-To: <1065827494796@kroah.com>
 MIME-Version: 1.0
@@ -11,71 +11,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1337.1.2, 2003/10/09 13:35:09-07:00, khali@linux-fr.org
+ChangeSet 1.1337.1.4, 2003/10/10 14:59:18-07:00, greg@kroah.com
 
-[PATCH] I2C: correct some errors in i2c/chips/Kconfig
+[PATCH] I2C: fix i2c-dev class release function bug.
+
+There was no release function, that was the bug :)
+It caused bad messages to show up in the syslog whenever a i2c driver was removed, and could
+easily oops.
 
 
- drivers/i2c/chips/Kconfig |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/i2c/i2c-dev.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig	Fri Oct 10 16:00:47 2003
-+++ b/drivers/i2c/chips/Kconfig	Fri Oct 10 16:00:47 2003
-@@ -15,7 +15,7 @@
- 	help
- 	  If you say yes here you get support for Analog Devices ADM1021 
- 	  and ADM1023 sensor chips and clones: Maxim MAX1617 and MAX1617A,
--	  Genesys Logic GL523SM, National Semi LM84, TI THMC10,
-+	  Genesys Logic GL523SM, National Semiconductor LM84, TI THMC10,
- 	  and the XEON processor built-in sensor.
+diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c	Fri Oct 10 16:00:34 2003
++++ b/drivers/i2c/i2c-dev.c	Fri Oct 10 16:00:34 2003
+@@ -49,6 +49,7 @@
+ 	int minor;
+ 	struct i2c_adapter *adap;
+ 	struct class_device class_dev;
++	struct completion released;	/* FIXME, we need a class_device_unregister() */
+ };
+ #define to_i2c_dev(d) container_of(d, struct i2c_dev, class_dev)
  
- 	  This driver can also be built as a module.  If so, the module
-@@ -34,30 +34,30 @@
- 	  will be called eeprom.
+@@ -112,7 +113,6 @@
+ 	spin_lock(&i2c_dev_array_lock);
+ 	i2c_dev_array[i2c_dev->minor] = NULL;
+ 	spin_unlock(&i2c_dev_array_lock);
+-	kfree(i2c_dev);
+ }
  
- config SENSORS_IT87
--	tristate "National Semiconductors IT87 and compatibles"
-+	tristate "ITE IT87xx and compatibles"
- 	depends on I2C && EXPERIMENTAL
- 	select I2C_SENSOR
- 	help
--	  If you say yes here you get support for National Semiconductor IT87
--	  sensor chips and clones: IT8705F, IT8712F and SiS960.
-+	  If you say yes here you get support for ITE IT87xx sensor chips
-+	  and clones: SiS960.
+ static ssize_t show_dev(struct class_device *class_dev, char *buf)
+@@ -421,8 +421,15 @@
+ 	.release	= i2cdev_release,
+ };
  
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called it87.
++static void release_i2c_dev(struct class_device *dev)
++{
++	struct i2c_dev *i2c_dev = to_i2c_dev(dev);
++	complete(&i2c_dev->released);
++}
++
+ static struct class i2c_dev_class = {
+-	.name	= "i2c-dev",
++	.name		= "i2c-dev",
++	.release	= &release_i2c_dev,
+ };
  
- config SENSORS_LM75
--	tristate "National Semiconductors LM75 and compatibles"
-+	tristate "National Semiconductor LM75 and compatibles"
- 	depends on I2C && EXPERIMENTAL
- 	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for National Semiconductor LM75
- 	  sensor chips and clones: Dallas Semi DS75 and DS1775, TelCon
--	  TCN75, and National Semi LM77.
-+	  TCN75, and National Semiconductor LM77.
+ static int i2cdev_attach_adapter(struct i2c_adapter *adap)
+@@ -453,6 +460,7 @@
+ 	return 0;
+ error:
+ 	return_i2c_dev(i2c_dev);
++	kfree(i2c_dev);
+ 	return retval;
+ }
  
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm75.
+@@ -464,9 +472,12 @@
+ 	if (!i2c_dev)
+ 		return -ENODEV;
  
- config SENSORS_LM78
--	tristate "National Semiconductors LM78 and compatibles"
-+	tristate "National Semiconductor LM78 and compatibles"
- 	depends on I2C && EXPERIMENTAL
- 	select I2C_SENSOR
- 	help
-@@ -69,7 +69,7 @@
- 	  will be called lm78.
+-	class_device_unregister(&i2c_dev->class_dev);
++	init_completion(&i2c_dev->released);
+ 	devfs_remove("i2c/%d", i2c_dev->minor);
+ 	return_i2c_dev(i2c_dev);
++	class_device_unregister(&i2c_dev->class_dev);
++	wait_for_completion(&i2c_dev->released);
++	kfree(i2c_dev);
  
- config SENSORS_LM85
--	tristate "National Semiconductors LM85 and compatibles"
-+	tristate "National Semiconductor LM85 and compatibles"
- 	depends on I2C && EXPERIMENTAL
- 	select I2C_SENSOR
- 	help
+ 	dev_dbg(&adap->dev, "Adapter unregistered\n");
+ 	return 0;
 
