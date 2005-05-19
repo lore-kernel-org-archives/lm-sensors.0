@@ -1,55 +1,58 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:16 +0000
-Subject: ADM1032 die revision code
-Message-Id: <20030907190902.7e1af21d.khali@linux-fr.org>
+From: linux@brodo.de (Dominik Brodowski)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: [PATCH] p4b_smbus quirk update
+Message-Id: <20030202110314.GA1759@brodo.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030830225705.5f8dea91.khali@linux-fr.org>
-In-Reply-To: <20030830225705.5f8dea91.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Mary,
+The p4b_smbus.c module located in lm_sensors-2.7.0/prog/hotplug does not
+work for 2.5. kernels. Also, the code can be simplified much if enabling the
+SMBus device is done as a "pci quirk" in drivers/pci/quirks.c in the linux
+kernel sources. A patch for linux-kernel 2.5.59 is attached below. However, 
+it _might_ be wise to add a check so that only Asus mainboards are affected.
 
-> The value that register should hold is 
-> ADM1032 = 4xh  (0100 xxxx)
-> 
-> Hope this helps. Let me know if there is anything else I can do
+	Dominik
 
-Thanks a lot for you fast and accurate answer. I'm updating our code
-right now so that we'll detect (and later support) the ADM1032
-correctly.
-
-Regards,
-Jean
-
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org] 
-> Sent: 30 August 2003 21:57
-> To: Mary Burke
-> Cc: sensors@stimpy.netroedge.com
-> Subject: ADM1032 die revision code
-> 
-> 
-> 
-> Hi Mary,
-> 
-> We are planning to add support for the ADM1032 to our hardware
-> monitoring program. In order to do so, we would need to be able to
-> identify the ADM1032. The problem is that the data sheet doesn't give
-> us the die revision code for the ADM1032. It says: "Undefined". I
-> can't believe it is actually undefined. It wouldn't make sense to
-> define a register to hold such a value and not to define that value,
-> isn't it?
-> 
-> I hope you'll be able to get this information back to us so that we
-> have a reliable ADM1032 detection routine, and can then work on fully
-> supporting it.
-> 
-> Thanks a lot.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+diff -ruN linux-original/drivers/pci/quirks.c linux/drivers/pci/quirks.c
+--- linux-original/drivers/pci/quirks.c	2003-02-01 17:33:43.000000000 +0100
++++ linux/drivers/pci/quirks.c	2003-02-02 11:50:12.000000000 +0100
+@@ -535,6 +535,21 @@
+ 	}
+ }
+ 
++static void __devinit quirk_p4b_smbus(struct pci_dev *dev)
++{
++	u16 val;
++	pci_read_config_word(dev, 0xF2, &val);
++	if (val & 0x8) {
++		pci_write_config_word(dev, 0xF2, val & (~0x8));
++		pci_read_config_word(dev, 0xF2, &val);
++		if(val & 0x8) 
++			printk(KERN_INFO "PCI: Fixup to enable i801 SMBus device failed - 0x%x", val);
++		else
++			printk(KERN_INFO "PCI: Fixup to enable i801 SMBus successful! - 0x%x\n", val);
++	}
++	return;
++}
++
+ /*
+  *  The main table of quirks.
+  */
+@@ -604,6 +619,12 @@
+ 
+ 	{ PCI_FIXUP_FINAL,	PCI_VENDOR_ID_CYRIX,	PCI_DEVICE_ID_CYRIX_PCI_MASTER, quirk_mediagx_master },
+ 	
++	/*
++	 * on Asus P4B boards, the i801SMBus device is disabled.
++	 */
++	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801BA_0,	quirk_p4b_smbus },
++	{ PCI_FIXUP_HEADER,	PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801DB_0,	quirk_p4b_smbus },
++
+ 
+ 	{ 0 }
+ };
