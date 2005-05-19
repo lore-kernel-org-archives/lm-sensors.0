@@ -1,19 +1,28 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:32 +0000
-Subject: [patch] fix for fscpos voltage values
-Message-Id: <20050120205814.GA12105@kroah.com>
+From: eagle@unicode.cz (=?ISO-8859-2?Q?Jirka_=27Eagle=27_Nov=E1k?=)
+Date: Thu, 19 May 2005 06:23:53 +0000
+Subject: problem compiling lm_sensors
+Message-Id: <3E9D5C5A.2010302@unicode.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050120181851.GN26072@desire.ch>
-In-Reply-To: <20050120181851.GN26072@desire.ch>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jan 20, 2005 at 08:08:33PM +0100, Stefan Ott wrote:
-> Multiplied the voltage multipliers by 10 in order to comply with the sysfs
-> guidelines.
+Hi!
+I experience some problems when trying to compile lm_sensors on 
+slackware 9.0 (gcc 3.2). I don't want to annoy you with my problems, but 
+I would like to be sure that it is possible to compile it (without 
+hacking source files). :-)
 
-Applied, thanks.
+I try to compile it via step 1 with vanilla kernel 2.4.20, I use i2c 
+2.7.0 as recommended.
 
-greg k-h
+Thank you very much.
+-- 
+Jirka 'Eagle' Nov?k
+registered linux user #173581
+
+E-Mail: eagle@unicode.cz
+ICQ:    46044619
+Jabber: eagle@jabber.cz
+Web:    http://seal.unicode.cz/~eagle/
