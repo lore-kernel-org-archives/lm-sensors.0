@@ -1,31 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: hfvogt@gmx.net (Hans-Frieder Vogt)
 Date: Thu, 19 May 2005 06:25:38 +0000
-Subject: lm75 question
-Message-Id: <20050219190549.22ea4a98.khali@linux-fr.org>
+Subject: [PATCH] doc update for i2c-nforce2 to reflect supported chipsets
+Message-Id: <200502180040.41093.hfvogt@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050219175106.F1FC523CFA@ws5-3.us4.outblaze.com>
-In-Reply-To: <20050219175106.F1FC523CFA@ws5-3.us4.outblaze.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mike,
+Hi Jean,
 
-> I'm emailing because I'm starting to fear my trouble with lm75 is that
-> my computer is getting long in the tooth.  My problem seems to be
-> specifically with lm75 (CPU temp).  I use lm75/78 to get CPU temp/fan
-> speed and mb temp/fan speed.  
-> 
-> I have an Asus a7m266 mb and Athlon 1900+ (both almost five years
-> old).  With kernel 2.4 I'm almost positive I never had trouble with
-> lm75/78.  I moved to 2.6.3 quite awhile back and am fairly sure I also
-> had no/little trouble.  
+attached is the outstanding documentation update (as patch against todays CVS) 
+for the i2c-nforce2 i2c-driver, to reflect all currently supported devices.
 
-You must be kidding me. The A7M266 has an AS99127F chip, which is
-handled by the w83781d driver. Neither lm75 not lm78.
+Signed-off-by: Hans-Frieder Vogt <hfvogt@arcor.de>
 
-Just try it... (and do NOT load via686a).
-
+Cheers,
+Hans-Frieder
 -- 
-Jean Delvare
+--
+Hans-Frieder Vogt                 e-mail: hfvogt <at> arcor .dot. de
+                                          hfvogt <at> gmx .dot. net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-nforce2-doc.diff
+Type: text/x-diff
+Size: 1863 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050218/93c3fa3e/i2c-nforce2-doc.bin
