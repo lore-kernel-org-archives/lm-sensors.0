@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:56 +0000
 Subject: Testing ASUS PU-DLS
-Message-Id: <1052834368.613.35.camel@zrr>
+Message-Id: <20030513160441.3a0765d0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1052831030.613.28.camel@zrr>
 In-Reply-To: <1052831030.613.28.camel@zrr>
@@ -10,39 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2003-05-13 at 15:26, Jean Delvare wrote:
-> > I got 'I20', 'I20 PCI' and 'I20 /proc support' compiled into my
-> > kernel.
-> > 
-> > I did not compile 'I20 Block/LAN/SCSI OSM' into the kernel.
+
+> I downloaded the packages.
+
+Which packages?
+
+> In ../modules I done 'make all'
 > 
-> What you need is I2C, not I2O.
+> and I get:
+> grep: /usr/src/linux/.config: No such file or directory
+> make: *** No rule to make target `linux/modversions.h', needed by
+> `kernel/chips/vt1211.d'.  Stop.
+> 
+> Why would that be?
 
-thanks for the hint.
-
-I downloaded the packages.
-
-In ../modules I done 'make all'
-
-and I get:
-grep: /usr/src/linux/.config: No such file or directory
-make: *** No rule to make target `linux/modversions.h', needed by
-`kernel/chips/vt1211.d'.  Stop.
-
-Why would that be?
-
-Thanks for your time and help.
-
-Zeno
-
-
+Looks like you are missing kernel sources, but I hardly can help more
+unless you explain in details what you have being doing, where you want
+to go and what's in the way.
 
 -- 
-Mit freundlichen Gr?ssen / best regards
-
-Zeno Davatz
-Strategie & Akquisition
-
-+41 1 350 85 86
-
-www.ywesee.com > intellectual capital connected > www.generika.cc
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
