@@ -1,40 +1,36 @@
-From: cst01074@cs.camosun.bc.ca (cst01074@cs.camosun.bc.ca)
-Date: Thu, 19 May 2005 06:24:27 +0000
+From: spreckel@epost.de (spreckel@epost.de)
+Date: Thu, 19 May 2005 06:24:31 +0000
 Subject: No subject
-Message-Id: <32824.204.174.60.72.1070066973.squirrel@hal.cs.camosun.bc.ca>
+Message-Id: <200312261912.hBQJCt1s007867@Stimpy.netroedge.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-h11kL+R4TlFgcf9w+l3c"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
 In-Reply-To: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-To whom it may concern,
+From spreckel@epost.de Mon Dec 15 20:43:23 2003
+Subject: Probs with lm-sensor and IBM TP 20
+From: MatthiasSpreckel <spreckel@epost.de>
+To: sensors@stimpy.netroedge.com
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-h11kL+R4TlFgcf9w+l3c"
+X-Evolution-Format: text/plain
+X-Evolution-Account: epost.de
+X-Evolution-Transport: smtp://spreckel@mail.epost.de
+X-Evolution-Fcc: file:///home/Sent
+Organization: 
+Date: 15 Dec 2003 20:43:23 +0100
+Message-Id: <1071517403.7767.1.camel@xynowahn>
+Mime-Version: 1.0
 
-I am a student at Camosun College in Victoria, B.C.. As a project for a RedHat Linux System Admin
-course that I am currently taking, my partner and I were given the task of installing (or trying
-to install) "lmsensors". Our instructor had made a previous attempt without success, and was not
-really expecting us to succeed, but to gain experience in the process. Our instructor has
-"lmsensors" running  on a few of his own (non-IBM) machines successfully. He was aware of the
-obstacles that we would encounter as well. Although we would have liked to have proven him wrong,
-we too were unsuccessful.We are running an IBM Xseries 305 server, with multiple IBM NetVista Type
-6794-11U subservers all running on Redhat 9 platforms. We encountered the following message during
-our installation attempt, and were forced to resign our attempt. Unfortunately, we will also have
-to make the focus of our oral report on hardware compatibility issues and the effect that they
-have on future purchasing decisions. Are you aware of a patch for IBM machines that can be used
-with "lmsensors" so that future students may be more successful than we were? If so, we would be
-happy to pass this on to our instructor. The Open Source Community has suggested that they would
-be willing to write the patches if the necessary API's were made available.Is that a possibility
-for the future?
 
-Thanks in advance for any assistance that you may be able to provide.
+--=-h11kL+R4TlFgcf9w+l3c
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-This is a printout of the fail message that we encountered.
-
-BIOS vendor (ACPI): PTLTD
+ BIOS vendor (ACPI): PTLTD
  System vendor (DMI): IBM
- BIOS version (DMI): 20KT34AUS
+ BIOS version (DMI): IYET59WW (1.20 )
  Sorry, we won't let you go on. IBM systems are known to have
  serious problems with lm_sensors, resulting in hardware failures.
  For more information, see README.thinkpad or
@@ -50,7 +46,16 @@ BIOS vendor (ACPI): PTLTD
  Thanks!
 
 
+--=-h11kL+R4TlFgcf9w+l3c
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Thanks again,
-Brad and Tim
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
+iD8DBQA/3g7bnGLxet+OP9QRAmNtAJ90v+mcLVXNyG3EX/KXGkBcanlhjACeOISP
+67I8senBi1KQpYAR30kj2z0=
+=+G07
+-----END PGP SIGNATURE-----
+
+--=-h11kL+R4TlFgcf9w+l3c--
