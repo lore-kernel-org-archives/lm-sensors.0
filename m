@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:59 +0000
+Date: Thu, 19 May 2005 06:24:02 +0000
 Subject: Call for 2.8.0 soon
-Message-Id: <3EE92866.1040704@paradyne.com>
+Message-Id: <3EFDE130.8030503@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3EE7C67A.4040703@paradyne.com>
 In-Reply-To: <3EE7C67A.4040703@paradyne.com>
@@ -10,42 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-One reason not to have the version numbers track is that we should
-advance the major number of the library when there is an incompatibility introduced
-within the library.
+OK I think we are getting close.
 
-We generally advance the middle number of the sensors and i2c packages when there
-is support removed for a certain kernel version.
+- I copied over Greg's i2c fix from 2.4.21
+- GCC 3.3 warnings Khali is working?
+- UTF issue fixed for new perls, now we need a fix for old perls
+- libsensors renumbered 2.0.0
+- sensors.h removed from CVS
+- mkpatch fixed, some testing done
+- most docs updated.
 
-In other words the guidelines for the two numbering systems are independent.
+let's try to wrap things up and release in a week?
 
-Philip Pokorny wrote:
-> Jean Delvare wrote:
+
+
+
+Mark D. Studebaker wrote:
 > 
->>>> - libsensors numbering because of binary incompatibility..... go to 
->>>> 1.5.0 or 2.0.0?
->>>
->>>
->>> What about going with 2.8.0...  Then track the lm_sensors version.
->>
->>
->>
->> Why that? There is no reason we number the lib version according to the
->> package version. The lib compatibility is unlikely to change that often.
+> I think things are getting into shape here after a lot of work.
+> Maybe we can do a release in a week or two?
 > 
+> Open issues, please comment or add to list:
 > 
-> Actually, it is.
-> 
-> Anytime a driver is added to the library, the library version needs to 
-> change.  This is because the library has compiled in code for every chip 
-> that it knows about.  And the sensors executable has references to every 
-> chip that is supported by the matching libsensors.
-> 
-> I think the chances are high that at each release of lm_sensors, at 
-> least one new driver will be added...
-> 
-> This is also part of my motivation for trying to remove this coupling in 
->  the "rewrite" of libsensors...
-> 
-> :v)
+> - sensors-detect "UTF" issue
+> - libsensors numbering because of binary incompatibility..... go to 
+> 1.5.0 or 2.0.0?
+> - Delete sensors.h in sensors/include, move files?
+> - Incompatibility w/ 2.4 kernel i2c structs
+> - Need testing against kernel 2.4.9
+> - Mkpatch - abandon, fix, what?
+> - Update README, INSTALL, etc.
 > 
