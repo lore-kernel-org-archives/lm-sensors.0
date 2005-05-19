@@ -1,23 +1,31 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:34 +0000
-Subject: [PATCH 2.6.11-rc2] I2C: lm80 driver improvement - again...
-Message-Id: <20050201081213.GB21861@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: [PATCH 2.6] Fix i2c-core.c with DEBUG
+Message-Id: <20040118123749.5001d609.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050127090358.GC1528@kroah.com> <20050127165646.97935.qmail@web88003.mail.re2.yahoo.com> <20050129232537.GA14798@kroah.com> <200501292108.56248.shawn.starr@rogers.com>
-In-Reply-To: <200501292108.56248.shawn.starr@rogers.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Shawn Starr <shawn.starr@rogers.com>
-Cc: Aurelien Jarno <aurelien@aurel32.net>, linux-kernel@vger.kernel.org, lm78@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 29, 2005 at 09:08:55PM -0500, Shawn Starr wrote:
-> Description: Cleanup some cluttered macros, add error checking for fan divisor value set.
-> 
-> Signed-off-by: Sytse Wielinga <s.b.wielinga@student.utwente.nl>
-> Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-> Signed-off-by: Shawn Starr <shawn.starr@rogers.com>
+Hi Greg,
 
-Applied, thanks.
+At the moment, i2c-core.c fails compiling with DEBUG. Following patch
+should fix that.
 
-greg k-h
+--- linux-2.6.1-k1/drivers/i2c/i2c-core.c	Fri Jan 16 20:10:16 2004
++++ linux-2.6.1-k3/drivers/i2c/i2c-core.c	Sun Jan 18 12:16:46 2004
+@@ -373,7 +373,7 @@
+ 	}
+ 
+ 	DEB(dev_dbg(&adapter->dev, "client [%s] registered to adapter\n",
+-			client->dev.name));
++			client->name));
+ 
+ 	if (client->flags & I2C_CLIENT_ALLOW_USE)
+ 		client->usage_count = 0;
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
