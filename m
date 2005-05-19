@@ -1,50 +1,50 @@
-From: floyd@barrow.com (Floyd L. Davidson)
-Date: Thu, 19 May 2005 06:25:15 +0000
-Subject: tellerstats shell scripts from lm_sensors
-Message-Id: <87llfd3ixc.fld@barrow.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:47 +0000
+Subject: [PATCH] i2c driver fixes for 2.6.4
+Message-Id: <10793913903814@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4140888C.4060806@edgedesign.us>
-In-Reply-To: <4140888C.4060806@edgedesign.us>
+In-Reply-To: <20040315224853.GA18325@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-Jean Delvare <khali@linux-fr.org> wrote:
->
->OK, I added the links on our page.
->
->That said, this doesn't prevent you from submitting your changes sliced
->if you think they belong to our package.
->
->Thanks.
+ChangeSet 1.1557.61.1, 2004/02/17 14:03:35-08:00, perrye@linuxmail.org
 
-Sounds good Jean, thanks.
+[PATCH] I2C:  i2c-voodoo3.c needs I2C_ADAP_CLASS_TV_ANALOG
 
-As for the program to init the W83627HF Super IO chip on Tyan
-motherboards, I don't really think it fits into lm_sensors as
-such, and probably is best that it be something people find on
-your list of links.  I'll probably set up a project on
-freshmeat.org for it too.
+The Voodoo3 i2c bus has either a bt869 tv-out chip, or also a tv tuner,
+decoder and msp3400.  Without I2C_ADAP_CLASS_TV_ANALOG, the i2c clients
+would have to do a strcmp of the adapter name to distiguish between the
+i2c and ddc adapters.  Yes, they should be able to tell if the chip at a
+given address is what they are looking for, but in the case of the v3tv
+module, which is the v4l device, in the 2.4 kerenl I've got it set to
+create a dummy client, and the strcmp is the only way to distinguish the
+i2c from the ddc.  In the 2.6 kernel, class can be defined, simplifying
+things for the v3tv module.
 
-However, I should just donate some time to the cause...  and go
-through the tellerstats scripts again with the intent of
-incremental patches that would result in a more universal script
-than what I'm using now.  I'll give it a try in a few days.
 
-BTW, I'm still working on just the /right/ set of example
-graphs.  As I write this I'm doing a stress test with repeated
-compilation of the Linux kernel using "make -j2 MAKE='make -j2'"
-in a loop that runs for half an hour.  I takes several hours for
-things to stabalize again after running it, and I want the 48
-hour graph to show two of them 24 hours apart.  So tomorrow
-about this time I may have the graphs I want.  It makes for a
-great demo of the potential for using the graphs as a trouble
-shooting tool!  (I'm a nerd, I just love the data.)
+ drivers/i2c/busses/i2c-voodoo3.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-  Have a good day,
-  Floyd
 
--- 
-Floyd L. Davidson           <http://web.newsguy.com/floyd_davidson>
-Ukpeagvik "Place where people hunt snowy owls"     (Barrow, Alaska)
+diff -Nru a/drivers/i2c/busses/i2c-voodoo3.c b/drivers/i2c/busses/i2c-voodoo3.c
+--- a/drivers/i2c/busses/i2c-voodoo3.c	Mon Mar 15 14:37:55 2004
++++ b/drivers/i2c/busses/i2c-voodoo3.c	Mon Mar 15 14:37:55 2004
+@@ -171,6 +171,7 @@
+ 
+ static struct i2c_adapter voodoo3_i2c_adapter = {
+ 	.owner		= THIS_MODULE,
++	.class		= I2C_ADAP_CLASS_TV_ANALOG, 
+ 	.name		= "I2C Voodoo3/Banshee adapter",
+ 	.algo_data	= &voo_i2c_bit_data,
+ };
+@@ -187,6 +188,7 @@
+ 
+ static struct i2c_adapter voodoo3_ddc_adapter = {
+ 	.owner		= THIS_MODULE,
++	.class		= I2C_ADAP_CLASS_DDC, 
+ 	.name		= "DDC Voodoo3/Banshee adapter",
+ 	.algo_data	= &voo_ddc_bit_data,
+ };
+
