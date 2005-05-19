@@ -1,107 +1,106 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE36F357@weshml03.winbond.com.tw>
+Message-Id: <Pine.LNX.4.58.0503311155520.21101@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBSdWRvbGYKCgo+IEknbSBzb3JyeSBJJ20gb3V0IG9mIGlkZWFzIHJpZ2h0IG5vdy4gTWF5
-YmUgeW91IGNhbiBtb2RpZnkgcHJvZ3JhbQo+IGVlcHJvbS5jIGluIGxtc2Vuc29ycyBwYWNrYWdl
-ICh0aGUgcHJvZy8gZGlyZWN0b3J5KSBhbmQgdHJ5IHRvIHJlYWQKPiBmaXJ0cyAxNiBieXRlcyBv
-ZiBFRVBST00gYWdhaW4gYW5kIGFnYWluIGlmIHlvdSBnZXQgc2FtZSByZXN1bHRzLgo+IE9yIGZp
-cnN0IGZvdXIgYnl0ZXMsIEkgdGhpbmsgZmlyc3QgdHdvIHNob3VsZCBub3QgYmUgemVyb3MuCgpN
-eSBkZWJ1ZyBlbnZpcm9ubWVudCBpcyBsaW51eC0yLjYuMTAsIHNvIHRoZSBlZXByb20uYyB5b3Ug
-bWVudGlvbmVkCnNob3VsZCBub3QgYmUgaW4gbG0tc2Vuc29ycyBwYWNrYWdlLCBidXQgaW46Ci91
-c3Ivc3JjL2xpbnV4LTIuNi4xMC9kcml2ZXJzL2kyYy9jaGlwcy9lZXByb20uYwpBbSBJIHJpZ2h0
-PyBCdHcsIGFsbCB0aGUgZHVtcCBhbmQgZGVidWcgbWVzc2FnZXMgYXJlIGZyb20gbGludXgtMi42
-Cmluc3RlYWQgb2YgbGludXgtMi40LgoKSSBkbyBOT1QgbW9kaWZ5IHRoZSBlZXByb20uYywgaW5z
-dGVhZCwgSSBkbyB0aGUgZHVtcHMgYmVsb3csIHBsZWFzZQpyZWZlciB0byBpdC4KCgo+IFBsZWFz
-ZSBjYW4geW91IG9idGFpbiBzZXZlcmFsIGR1bXBzIGZyb20gdGhlIGJ1cz8KPiAKPiBsaWtlOgo+
-ICAgICAgICMhL2Jpbi9iYXNoCj4gICAgICAgd2hpbGUgdHJ1ZSA7IGRvCj4gICAgICAgaTJjZHVt
-cCAteSAwIDB4NTAgPj5lZXByb20KPiAgICAgICBpMmNkdW1wIC15IDAgMHg1MCA+PmVlcHJvbQo+
-ICAgICAgIGkyY2R1bXAgLXkgMCAweDJmID4+d2luYm9uIDw9eW91ciBjaGlwIGFkciBJIHRoaW5r
-IGlzIHRoaXMgb25lCj4gICAgICAgaTJjZHVtcCAteSAwIDB4MmYgPj53aW5ib24gPD15b3VyIGNo
-aXAgYWRyIEkgdGhpbmsgaXMgdGhpcyBvbmUKPiAgICAgICBkb25lCj4gKGN0cmwgYyB0byBzdG9w
-IGFmdGVyIHNldmVyYWwgdGhvdXNlbmRzIGN5Y2xlcyBwbGVhc2UpCgpJIHVzZSBzdWNoIHNjcmlw
-dCB5b3UgZ2F2ZSBtZSB0byBkdW1wIGl0LCB0aGUgYXR0YWNobWVudCBpcyB0aGUgZHVtcApvdXRw
-dXQgaW4gaHVuZHJlZHMgb2YgdGltZXMuIFBsZWFzZSBjaGVjayBpdC4KCiAgICAjIS9iaW4vYmFz
-aAogICAgd2hpbGUgdHJ1ZSA7IGRvCiAgICBpMmNkdW1wIC15IDAgMHg1MAogICAgaTJjZHVtcCAt
-eSAwIDB4NTAKICAgIGkyY2R1bXAgLXkgMCAweDJmCiAgICBpMmNkdW1wIC15IDAgMHgyZgogICAg
-ZG9uZQpJIGhhdmUgc29tZSBxdWVzdGlvbnMgaGVyZSwKKDEpIHdoeSB0aGUgc2NyaXB0IHNob3Vs
-ZCBjb250YWlucyB0d28gbGluZXMgb2YgIiBpMmNkdW1wIC15IDAgMHgyZiI/CigyKSBTaG91bGQg
-SSBtb2RpZnkgdGhlIHNlY29uZCAiaTJjZHVtcCAteSAwIDB4NTAiIGludG8gIiBpMmNkdW1wIC15
-IDAKMHg1MSI/CkJlY2F1c2Ugb24gQWJpdCBtb3RoZXJib2FyZDoKW3Jvb3RAIH5dIyBzZW5zb3Jz
-CmVlcHJvbS1pMmMtMC01MQpBZGFwdGVyOiBTTUJ1cyBBTGkgMTU2MyBBZGFwdGVyIEAgNTAwMApV
-bmtub3duIEVFUFJPTSB0eXBlICgyNTUpLgoKZWVwcm9tLWkyYy0wLTUwCkFkYXB0ZXI6IFNNQnVz
-IEFMaSAxNTYzIEFkYXB0ZXIgQCA1MDAwClVua25vd24gRUVQUk9NIHR5cGUgKDI1NSkuCgoKPiBB
-bHNvIEkgd291bGQgbGlrZSB0byBzZWUgY29ycmVjdCBpMmNkdW1wIG9mIFNBTUUgbWVtb3J5IG1v
-ZHVsZS4KPiBNYXliZSB3ZSBjYW4gZ3Vlc3Mgc29tZXRoaW5nIGZyb20gZGlmZmVyZW50IHZhbHVl
-cy4gU28geW91IG5lZWQgdG8KPiBwdXQgdGhlIG1vZHVsZSB0byBzb21lIG90aGVyIG1vdGhlcmJv
-YXJkIGFuZCBwZXJmb3JtIGkyY2R1bXAgb24gaXQuCgpJIGR1bXAgaXQgYWdhaW4gb24gdGhlIHBs
-YXRmb3JtIHdoZXJlIGNhbiB3b3JrIGNvcnJlY3RseToKUklPV09SS1MgUERQTEEwMjUwMDAwMDA1
-CkludGVsIENvcnAuODI4MDFDQS9DQU0gU01CdXMgQ29udHJvbGxlcgpJbnRlbChSKSBYRU9OKFRN
-KSBDUFUgMi4wMEdIegpQbGVhc2UgY2hlY2sgaXQsIHRoZSBkdW1wIG91dHB1dCBtZXNhc2dlIG9u
-IHRoaXMgcGxhdGZvcm0gaXM6Cltyb290QCB+XSMgaTJjZHVtcCAwIDB4NTAKTm8gc2l6ZSBzcGVj
-aWZpZWQgKHVzaW5nIGJ5dGUtZGF0YSBhY2Nlc3MpCldBUk5JTkchIFRoaXMgcHJvZ3JhbSBjYW4g
-Y29uZnVzZSB5b3VyIEkyQyBidXMsIGNhdXNlIGRhdGEgbG9zcyBhbmQKd29yc2UhCkkgd2lsbCBw
-cm9iZSBmaWxlIC9kZXYvaTJjLTAsIGFkZHJlc3MgMHg1MCwgbW9kZSBieXRlCkNvbnRpbnVlPyBb
-WS9uXQogICAgIDAgIDEgIDIgIDMgIDQgIDUgIDYgIDcgIDggIDkgIGEgIGIgIGMgIGQgIGUgIGYg
-ICAgMDEyMzQ1Njc4OWFiY2RlZgowMDogYWMgMDAgMDcgMGMgMGEgMDEgNDggMDAgMDQgNzUgNzUg
-MDIgODAgMDggMDggMDEgICAgPy4/Pz8/SC4/dXU/Pz8/PwoxMDogMGUgMDQgMGMgMDEgMDIgMjYg
-MDAgYTAgNzUgMDAgMDAgNTAgM2MgNTAgMzAgMjAgICAgPz8/Pz8mLj91Li5QPFAwCjIwOiAwMCAw
-MCA1MCA1MCAwMCAwMCAwMCAwMCAwMCA0MSA0YiAzMCAzMiA3NSAwMCAwMCAgICAuLlBQLi4uLi5B
-SzAydS4uCjMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAx
-YSAgICAuLi4uLi4uLi4uLi4uLi4/CjQwOiBhYyAwMCAwMCAwMCAwMCAwMCAwMCBiYiBmZiAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAgICA/Li4uLi4uPy4uLi4uLi4uCjUwOiAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgICAuLi4uLi4uLi4uLi4uLi4uCjYwOiAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgICAuLi4uLi4u
-Li4uLi4uLi4uCjcwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAgICAuLi4uLi4uLi4uLi4uLi4uCjgwOiBhYyAwMCBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiAgICA/Li4uLi4uLi4uLi4uLi4uCjkwOiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiAgICAuLi4uLi4uLi4uLi4uLi4uCmEw
-OiAwMCAwMCBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiAgICAuLi4u
-Li4uLi4uLi4uLi4uCmIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiAgICAuLi4uLi4uLi4uLi4uLi4uCmMwOiBhYyAwMCBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiAgICA/Li4uLi4uLi4uLi4uLi4uCmQwOiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiAgICAuLi4uLi4uLi4uLi4uLi4u
-CmUwOiAwMCAwMCBhYyBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiAgICAu
-Lj8uLi4uLi4uLi4uLi4uCmYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiAgICAuLi4uLi4uLi4uLi4uLi4uCltyb290QCB+XSMgc2Vuc29ycwplZXByb20t
-aTJjLTAtNTQKQWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDExMDAKTWVtb3J5IHR5cGU6
-ICAgICAgICAgICAgRERSIFNEUkFNIERJTU0KTWVtb3J5IHNpemUgKE1CKTogICAgICAgMTI4Cgpl
-ZXByb20taTJjLTAtNTAKQWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDExMDAKTWVtb3J5
-IHR5cGU6ICAgICAgICAgICAgRERSIFNEUkFNIERJTU0KTWVtb3J5IHNpemUgKE1CKTogICAgICAg
-MTI4CgoKVGhhbmtzCgpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoyMDA1LTMtMzEKCgoKPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZp
-ZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBm
-b3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5h
-bCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRp
-Y2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBv
-ZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRl
-ciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9t
-IHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5
-b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhv
-cml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmlj
-dGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRv
-ZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBi
-ZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBp
-cyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93
-aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWF0IHRoZSZuYnNwOyBFbmdsaXNoIHN0
-YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsix
-wsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRI
-qc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+r
-SKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdA
-LCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+
-97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5l
-LKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAt
-LS0tLS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4uCk5hbWU6
-IGR1bXBfcmVzdWx0LnRhci5negpUeXBlOiBhcHBsaWNhdGlvbi94LWd6aXAKU2l6ZTogNDI4MjUg
-Ynl0ZXMKRGVzYzogZHVtcF9yZXN1bHQudGFyLmd6ClVybCA6IGh0dHA6Ly9saXN0cy5sbS1zZW5z
-b3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy9hdHRhY2htZW50cy8yMDA1MDMzMS85Y2YwOGRh
-Mi9kdW1wX3Jlc3VsdC50YXIuZ3oK
+Hello,
+
+> My debug environment is linux-2.6.10, so the eeprom.c you mentioned
+> should not be in lm-sensors package, but in:
+> /usr/src/linux-2.6.10/drivers/i2c/chips/eeprom.c
+> Am I right? Btw, all the dump and debug messages are from linux-2.6
+> instead of linux-2.4.
+
+Yes but in the package in directory prog/ is different program :)
+But never mind. We do not need this in this stage.
+
+>
+> I do NOT modify the eeprom.c, instead, I do the dumps below, please
+> refer to it.
+>
+>
+> > Please can you obtain several dumps from the bus?
+> >
+> > like:
+> >       #!/bin/bash
+> >       while true ; do
+> >       i2cdump -y 0 0x50 >>eeprom
+> >       i2cdump -y 0 0x50 >>eeprom
+> >       i2cdump -y 0 0x2f >>winbon <=your chip adr I think is this one
+> >       i2cdump -y 0 0x2f >>winbon <=your chip adr I think is this one
+> >       done
+> > (ctrl c to stop after several thousends cycles please)
+>
+> I use such script you gave me to dump it, the attachment is the dump
+> output in hundreds of times. Please check it.
+>
+>     #!/bin/bash
+>     while true ; do
+>     i2cdump -y 0 0x50
+>     i2cdump -y 0 0x50
+>     i2cdump -y 0 0x2f
+>     i2cdump -y 0 0x2f
+>     done
+> I have some questions here,
+> (1) why the script should contains two lines of " i2cdump -y 0 0x2f"?
+> (2) Should I modify the second "i2cdump -y 0 0x50" into " i2cdump -y 0
+> 0x51"?
+
+I think at 0x2f is the monitoring device. But you can add two more lines
+with 0x51 if you want. Lets wait with this a little.
+
+> > put the module to some other motherboard and perform i2cdump on it.
+>
+> I dump it again on the platform where can work correctly:
+> RIOWORKS PDPLA0250000005
+> Intel Corp.82801CA/CAM SMBus Controller
+> Intel(R) XEON(TM) CPU 2.00GHz
+> Please check it, the dump output mesasge on this platform is:
+> [root@ ~]# i2cdump 0 0x50
+> No size specified (using byte-data access)
+> WARNING! This program can confuse your I2C bus, cause data loss and
+> worse!
+> I will probe file /dev/i2c-0, address 0x50, mode byte
+> Continue? [Y/n]
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+> 00: ac 00 07 0c 0a 01 48 00 04 75 75 02 80 08 08 01    ?.????H.?uu?????
+> 10: 0e 04 0c 01 02 26 00 a0 75 00 00 50 3c 50 30 20    ?????&.?u..P<P0
+> 20: 00 00 50 50 00 00 00 00 00 41 4b 30 32 75 00 00    ..PP.....AK02u..
+> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1a    ...............?
+> 40: ac 00 00 00 00 00 00 bb ff 00 00 00 00 00 00 00    ?......?........
+> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> 80: ac 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ?...............
+> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+> a0: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+> c0: ac 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ?...............
+> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+> e0: 00 00 ac ff ff ff ff ff ff ff ff ff ff ff ff ff    ..?.............
+> f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+> [root@ ~]# sensors
+> eeprom-i2c-0-54
+> Adapter: SMBus I801 adapter at 1100
+> Memory type:            DDR SDRAM DIMM
+> Memory size (MB):       128
+>
+
+Hmm it really seems some problem with the SPD chip itself rather than with
+SMBUS. Because in your previous dump was sometimes 00 00 and not ac 00
+as now again. I think I have seen ac 00 in ABIT environment too.
+
+I will check now the dumps. And then I will write what next is needed
+to make us sure what is wrong. And of course good to make a break after
+lunch with this :)
+
+Regards
+
+Rudolf
