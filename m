@@ -1,44 +1,337 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:51 +0000
-Subject: Wrong temperature readings
-Message-Id: <20050414194116.43190f3a.khali@linux-fr.org>
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
+Date: Thu, 19 May 2005 06:25:44 +0000
+Subject: [PATCH] of 1/2 I2C busses documentation update
+Message-Id: <20050320100808.26380.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <425D3645.1030500@algitech.com>
-In-Reply-To: <425D3645.1030500@algitech.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Roger,
+Hello,
 
-> > These messages don't come from our drivers. They are either from
-> > ACPI or from CPU-specific MCE. Search the web for "Running in
-> > modulated clock mode" and you'll find several references to your
-> > problem.
-> 
-> I know, thats why I tried using sensors(1) to get the
-> CPU/MB-temperature.
-> 
-> And there's the problem (if you look at the output from sensors(1)).
-> All three sensors tell me about ~127 degres Celsius (260 Farenheit),
-> and I doubt that thats the case.
+This patch just moves i2c-parport file to busses directory.
+Patch for other busses documentation will follow.
 
-I don't think that there is any thermal sensor connected to the W83627HF
-chip. You must have another hardware monitoring chip for the
-temperatures. Intel has an history of using LM85/ADM1027-compatible
-chips.
+Signed-off-by: Rudolf Marek <r.marek@sh.cvut.cz>
 
-The output of sensors-detect you provided shows that it didn't find any
-PCI SMBus master. The lspci output reveals a 6300ESB, which is too
-recent for lm_sensors 2.8.6. That explains it.
-
-I don't know which kernel you are using, but if it is a recent 2.6
-kernel (>= 2.6.7) you might try modprobing i2c-i801 and run
-sensors-detect again (which should then find that
-LM85/ADM1027-compatible chip - unless it is itself too new).
-
-If you have an older 2.6 kernel, you'll need to upgrade.
-
--- 
-Jean Delvare
+diff -Naur g/Documentation/i2c/busses/i2c-parport h/Documentation/i2c/busses/i2c-parport
+--- g/Documentation/i2c/busses/i2c-parport	1970-01-01 01:00:00.000000000 +0100
++++ h/Documentation/i2c/busses/i2c-parport	2005-02-18 00:29:53.000000000 +0100
+@@ -0,0 +1,156 @@
++=========
++i2c-parport driver
++=========
++
++2004-07-06, Jean Delvare
++
++This is a unified driver for several i2c-over-parallel-port adapters,
++such as the ones made by Philips, Velleman or ELV. This driver is
++meant as a replacement for the older, individual drivers:
++ * i2c-philips-par
++ * i2c-elv
++ * i2c-velleman
++ * video/i2c-parport (NOT the same as this one, dedicated to home brew
++                      teletext adapters)
++
++It currently supports the following devices:
++ * Philips adapter
++ * home brew teletext adapter
++ * Velleman K8000 adapter
++ * ELV adapter
++ * Analog Devices evaluation boards (ADM1025, ADM1030, ADM1031, ADM1032)
++
++These devices use different pinout configurations, so you have to tell
++the driver what you have, using the type module parameter. There is no
++way to autodetect the devices. Support for different pinout configurations
++can be easily added when needed.
++
++
++Building your own adapter
++-------------------------
++
++If you want to build you own i2c-over-parallel-port adapter, here is
++a sample electronics schema (credits go to Sylvain Munaut):
++
++Device                                                      PC
++Side          ___________________Vdd (+)                    Side
++               |    |         |
++              ---  ---       ---
++              | |  | |       | |
++              |R|  |R|       |R|
++              | |  | |       | |
++              ---  ---       ---
++               |    |         |
++               |    |    /|   |
++SCL  ----------x--------o |-----------x-------------------  pin 2
++                    |    \|   |       |
++                    |         |       |
++                    |   |\    |       |
++SDA  ----------x----x---| o---x---------------------------  pin 13
++               |        |/            |
++               |                      |
++               |         /|           |
++               ---------o |----------------x--------------  pin 3
++                         \|           |    |
++                                      |    |
++                                     ---  ---
++                                     | |  | |
++                                     |R|  |R|
++                                     | |  | |
++                                     ---  ---
++                                      |    | 
++                                     ###  ###
++                                     GND  GND
++        
++Remarks:
++ - This is the exact pinout and electronics used on the Analog Devices
++   evaluation boards.
++                   /|
++ - All inverters -o |- must be 74HC05, they must be open collector output.
++                   \|
++ - All resitors are 10k.
++ - Pins 18-25 of the parallel port connected to GND.
++ - Pins 4-9 (D2-D7) could be used as VDD is the driver drives them high.
++   The ADM1032 evaluation board uses D4-D7. Beware that the amount of
++   current you can draw from the parallel port is limited. Also note that
++   all connected lines MUST BE driven at the same state, else you'll short
++   circuit the output buffers! So plugging the I2C adapter after loading
++   the i2c-parport module might be a good safety since data line state
++   prior to init may be unknown. 
++ - This is 5V!
++ - Obviously you cannot read SCL (so it's not really standard-compliant).
++   Pretty easy to add, just copy the SDA part and use another input pin.
++   That would give (ELV compatible pinout):
++
++
++Device                                                      PC
++Side          ______________________________Vdd (+)         Side
++               |    |            |    |
++              ---  ---          ---  ---
++              | |  | |          | |  | |
++              |R|  |R|          |R|  |R|
++              | |  | |          | |  | |
++              ---  ---          ---  ---
++               |    |            |    |
++               |    |      |\    |    |
++SCL  ----------x--------x--| o---x------------------------  pin 15
++                    |   |  |/         | 
++                    |   |             |
++                    |   |   /|        |
++                    |   ---o |-------------x--------------  pin 2
++                    |       \|        |    |
++                    |                 |    |
++                    |                 |    |
++                    |      |\         |    |
++SDA  ---------------x---x--| o--------x-------------------  pin 10
++                        |  |/              |
++                        |                  |
++                        |   /|             |
++                        ---o |------------------x---------  pin 3
++                            \|             |    |
++                                           |    |
++                                          ---  ---
++                                          | |  | |
++                                          |R|  |R|
++                                          | |  | |
++                                          ---  ---
++                                           |    | 
++                                          ###  ###
++                                          GND  GND
++
++
++If possible, you should use the same pinout configuration as existing
++adapters do, so you won't even have to change the code.
++
++
++Similar (but different) drivers
++-------------------------------
++
++This driver is NOT the same as the i2c-pport driver found in the i2c package.
++The i2c-pport driver makes use of modern parallel port features so that
++you don't need additional electronics. It has other restrictions however, and
++was not ported to Linux 2.6 (yet).
++
++This driver is also NOT the same as the i2c-pcf-epp driver found in the
++lm_sensors package. The i2c-pcf-epp driver doesn't use the parallel port
++as an I2C bus directly. Instead, it uses it to control an external I2C bus
++master. That driver was not ported to Linux 2.6 (yet) either.
++
++
++Legacy documentation for Velleman adapter
++-----------------------------------------
++
++Useful links:
++Velleman                http://www.velleman.be/
++Velleman K8000 Howto    http://howto.htlw16.ac.at/k8000-howto.html
++
++The project has lead to new libs for the Velleman K8000 and K8005:
++  LIBK8000 v1.99.1 and LIBK8005 v0.21
++With these libs, you can control the K8000 interface card and the K8005
++stepper motor card with the simple commands which are in the original
++Velleman software, like SetIOchannel, ReadADchannel, SendStepCCWFull and
++many more, using /dev/velleman.
++  http://home.wanadoo.nl/hihihi/libk8000.htm
++  http://home.wanadoo.nl/hihihi/libk8005.htm
++  http://struyve.mine.nu:8080/index.php?block=k8000
++  http://sourceforge.net/projects/libk8005/
+diff -Naur g/Documentation/i2c/i2c-parport h/Documentation/i2c/i2c-parport
+--- g/Documentation/i2c/i2c-parport	2005-02-18 00:29:53.000000000 +0100
++++ h/Documentation/i2c/i2c-parport	1970-01-01 01:00:00.000000000 +0100
+@@ -1,156 +0,0 @@
+-=========
+-i2c-parport driver
+-=========
+-
+-2004-07-06, Jean Delvare
+-
+-This is a unified driver for several i2c-over-parallel-port adapters,
+-such as the ones made by Philips, Velleman or ELV. This driver is
+-meant as a replacement for the older, individual drivers:
+- * i2c-philips-par
+- * i2c-elv
+- * i2c-velleman
+- * video/i2c-parport (NOT the same as this one, dedicated to home brew
+-                      teletext adapters)
+-
+-It currently supports the following devices:
+- * Philips adapter
+- * home brew teletext adapter
+- * Velleman K8000 adapter
+- * ELV adapter
+- * Analog Devices evaluation boards (ADM1025, ADM1030, ADM1031, ADM1032)
+-
+-These devices use different pinout configurations, so you have to tell
+-the driver what you have, using the type module parameter. There is no
+-way to autodetect the devices. Support for different pinout configurations
+-can be easily added when needed.
+-
+-
+-Building your own adapter
+--------------------------
+-
+-If you want to build you own i2c-over-parallel-port adapter, here is
+-a sample electronics schema (credits go to Sylvain Munaut):
+-
+-Device                                                      PC
+-Side          ___________________Vdd (+)                    Side
+-               |    |         |
+-              ---  ---       ---
+-              | |  | |       | |
+-              |R|  |R|       |R|
+-              | |  | |       | |
+-              ---  ---       ---
+-               |    |         |
+-               |    |    /|   |
+-SCL  ----------x--------o |-----------x-------------------  pin 2
+-                    |    \|   |       |
+-                    |         |       |
+-                    |   |\    |       |
+-SDA  ----------x----x---| o---x---------------------------  pin 13
+-               |        |/            |
+-               |                      |
+-               |         /|           |
+-               ---------o |----------------x--------------  pin 3
+-                         \|           |    |
+-                                      |    |
+-                                     ---  ---
+-                                     | |  | |
+-                                     |R|  |R|
+-                                     | |  | |
+-                                     ---  ---
+-                                      |    | 
+-                                     ###  ###
+-                                     GND  GND
+-        
+-Remarks:
+- - This is the exact pinout and electronics used on the Analog Devices
+-   evaluation boards.
+-                   /|
+- - All inverters -o |- must be 74HC05, they must be open collector output.
+-                   \|
+- - All resitors are 10k.
+- - Pins 18-25 of the parallel port connected to GND.
+- - Pins 4-9 (D2-D7) could be used as VDD is the driver drives them high.
+-   The ADM1032 evaluation board uses D4-D7. Beware that the amount of
+-   current you can draw from the parallel port is limited. Also note that
+-   all connected lines MUST BE driven at the same state, else you'll short
+-   circuit the output buffers! So plugging the I2C adapter after loading
+-   the i2c-parport module might be a good safety since data line state
+-   prior to init may be unknown. 
+- - This is 5V!
+- - Obviously you cannot read SCL (so it's not really standard-compliant).
+-   Pretty easy to add, just copy the SDA part and use another input pin.
+-   That would give (ELV compatible pinout):
+-
+-
+-Device                                                      PC
+-Side          ______________________________Vdd (+)         Side
+-               |    |            |    |
+-              ---  ---          ---  ---
+-              | |  | |          | |  | |
+-              |R|  |R|          |R|  |R|
+-              | |  | |          | |  | |
+-              ---  ---          ---  ---
+-               |    |            |    |
+-               |    |      |\    |    |
+-SCL  ----------x--------x--| o---x------------------------  pin 15
+-                    |   |  |/         | 
+-                    |   |             |
+-                    |   |   /|        |
+-                    |   ---o |-------------x--------------  pin 2
+-                    |       \|        |    |
+-                    |                 |    |
+-                    |                 |    |
+-                    |      |\         |    |
+-SDA  ---------------x---x--| o--------x-------------------  pin 10
+-                        |  |/              |
+-                        |                  |
+-                        |   /|             |
+-                        ---o |------------------x---------  pin 3
+-                            \|             |    |
+-                                           |    |
+-                                          ---  ---
+-                                          | |  | |
+-                                          |R|  |R|
+-                                          | |  | |
+-                                          ---  ---
+-                                           |    | 
+-                                          ###  ###
+-                                          GND  GND
+-
+-
+-If possible, you should use the same pinout configuration as existing
+-adapters do, so you won't even have to change the code.
+-
+-
+-Similar (but different) drivers
+--------------------------------
+-
+-This driver is NOT the same as the i2c-pport driver found in the i2c package.
+-The i2c-pport driver makes use of modern parallel port features so that
+-you don't need additional electronics. It has other restrictions however, and
+-was not ported to Linux 2.6 (yet).
+-
+-This driver is also NOT the same as the i2c-pcf-epp driver found in the
+-lm_sensors package. The i2c-pcf-epp driver doesn't use the parallel port
+-as an I2C bus directly. Instead, it uses it to control an external I2C bus
+-master. That driver was not ported to Linux 2.6 (yet) either.
+-
+-
+-Legacy documentation for Velleman adapter
+------------------------------------------
+-
+-Useful links:
+-Velleman                http://www.velleman.be/
+-Velleman K8000 Howto    http://howto.htlw16.ac.at/k8000-howto.html
+-
+-The project has lead to new libs for the Velleman K8000 and K8005:
+-  LIBK8000 v1.99.1 and LIBK8005 v0.21
+-With these libs, you can control the K8000 interface card and the K8005
+-stepper motor card with the simple commands which are in the original
+-Velleman software, like SetIOchannel, ReadADchannel, SendStepCCWFull and
+-many more, using /dev/velleman.
+-  http://home.wanadoo.nl/hihihi/libk8000.htm
+-  http://home.wanadoo.nl/hihihi/libk8005.htm
+-  http://struyve.mine.nu:8080/index.php?block=k8000
+-  http://sourceforge.net/projects/libk8005/
