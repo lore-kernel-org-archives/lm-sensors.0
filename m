@@ -1,7 +1,7 @@
 From: magnus.f@telia.com (=?iso-8859-1?Q?Magnus=20Forsstr=F6m?=)
 Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: New LM83 driver
-Message-Id: <200308121843.h7CIhCW11699@d1o265.telia.com>
+Message-Id: <200308121844.h7CIius12233@d1o265.telia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030809231304.74f73999.khali@linux-fr.org>
 In-Reply-To: <20030809231304.74f73999.khali@linux-fr.org>
