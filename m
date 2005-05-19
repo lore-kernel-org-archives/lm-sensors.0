@@ -1,32 +1,50 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:30 +0000
-Subject: EMC6D100 ([PATCH] for 2.6.X lm85 driver)
-Message-Id: <20050112181953.GA10285@kroah.com>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:57 +0000
+Subject: [PATCH 2.6.12-rc4 1/3] dynamic sysfs callbacks
+Message-Id: <253818670505070621784dbd63@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050112175058.GA16724@penguincomputing.com>
-In-Reply-To: <20050112175058.GA16724@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Dmitry Torokhov <dtor_core@ameritech.net>, Jean Delvare <khali@linux-fr.org>, LM Sensors <sensors@stimpy.netroedge.com>, linux-kernel@vger.kernel.org
 
-On Wed, Jan 12, 2005 at 09:50:58AM -0800, Justin Thiessen wrote:
-> On Wed, Jan 12, 2005 at 07:30:52AM -0200, Rafael ?vila de Esp?ndola wrote:
-> > Attached is a patch to add support for the EMC6D100 in the 2.6.9 kernel. I did 
-> > it by following the changes that were made to the cvs lm_sensors2 to add 
-> > support for the same chip.
-> > 
-> > It works for me on a d865glc.
-> 
-> Hi,
-> 
-> Jean - perhaps you and/or Greg can take a quick look at this.  I pulled it down
-> and successfully patched/compiled the driver under a 2.6.10-bk14 tree.  Since
-> I do not have access to the EMC6D100, it would be nice to get the patch from
-> someone who *does* and can test such.
+Hi,
 
-Looks sane, but I also do not have that hardware :(
+This patch against 2.6.12-rc4 adds a void * field to the base sysfs
+attribute, and updates all the derived attributes (device_attribute,
+etc) to pass the void * to their sysfs callbacks. This facilitates a
+number of things:
 
-thanks,
+- reduce the size of much of the sysfs attribute code significantly by
+allowing the replacement of the large number of macro generated
+virtually identical sysfs callbacks with a single sysfs callback that
+uses the void * parameter to decide what to do. For example, adapting
+adm1026 to take advantage of this patch:
 
-greg k-h
+-------------------2.6.11.7--------------------
+Module                  Size  Used by
+adm1026                44692  0
+--------2.6.12-rc3-devdyncallback-----
+Module                  Size  Used by
+adm1026                33172  0
+
+(see http://archives.andrew.net.au/lm-sensors/msg31310.html)
+
+- allow the creation of a non-predetermined and potentially unlimited
+number of sysfs attributes, this is required by bmcsensors - a driver
+I am porting from lm_sensors 2.4 to 2.6.
+
+(see http://archives.andrew.net.au/lm-sensors/msg31225.html ,
+http://bmcsensors-26.sourceforge.net/)
+
+This first patch changes the core sysfs attribute and derived attributes.
+
+Signed-off-by: Yani Ioannou <yani.ioannou@gmail.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.12-rc4-sysfsdyncallback-core.diff
+Type: text/x-patch
+Size: 17284 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050507/65896876/patch-linux-2.6.12-rc4-sysfsdyncallback-core.bin
