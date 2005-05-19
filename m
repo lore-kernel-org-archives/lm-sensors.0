@@ -1,7 +1,7 @@
 From: hunold-ml@web.de (Michael Hunold)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <41527E1B.4040605@web.de>
+Message-Id: <41527FE3.9000809@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <414F111C.9030809@linuxtv.org>	 <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de>	 <41506D78.6030106@web.de> <1095843365.18365.48.camel@localhost>	 <20040922102938.M15856@linux-fr.org> <1095854048.18365.75.camel@localhost>	 <20040922122848.M14129@linux-fr.org> <1095877951.18365.232.camel@localhost>
 In-Reply-To: <1095877951.18365.232.camel@localhost>
