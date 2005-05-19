@@ -1,37 +1,31 @@
-From: deb32@drexel.edu (deb32@drexel.edu)
-Date: Thu, 19 May 2005 06:24:38 +0000
-Subject: gpg key unavailable
-Message-Id: <3cd5f13cb4d5.3cb4d53cd5f1@drexel.edu>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:13 +0000
+Subject: [PATCH] New driver-id for radeon-i2c
+Message-Id: <20030823173658.GA3278@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <355119357d57.357d57355119@drexel.edu>
-In-Reply-To: <355119357d57.357d57355119@drexel.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks alot.
+On Sat, Aug 23, 2003 at 06:58:47PM +0200, Kronos wrote:
+> Hi Greg,
+> I forgot to cc you when I sent the radeonfb-i2c patch to fbdev. I need a
+> new driver-id:
+> 
+> 
+> --- linux-2.6.vanilla/include/linux/i2c-id.h	Tue Jul 15 14:27:55 2003
+> +++ linux-2.6/include/linux/i2c-id.h	Wed Aug 20 19:22:58 2003
+> @@ -99,6 +99,7 @@
+>  #define I2C_DRIVERID_24LC32A	51	/* Microchip 24LC32A 32k EEPROM	*/
+>  #define I2C_DRIVERID_STM41T00	52	/* real time clock		*/
+>  #define I2C_DRIVERID_UDA1342	53	/* UDA1342 audio codec		*/
+> +#define I2C_DRIVERID_RADEON	54	/* I2C bus on Radeon boards	*/
 
--David Bunch
+You need to coordinate this with the developers on the sensors mailing
+list.  I've cc:ed the message there to get their approval (or suggestion
+for a different number.
 
------ Original Message -----
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tuesday, February 3, 2004 11:34 am
-Subject: Re: gpg key unavailable
+thanks,
 
-> > Signature files *are* available. I get them when I click on the 
-> links.> I suspect a browser misconfiguration. The web server 
-> pretends these
-> > are files of type application/x-tar, in case that matters. Maybe 
-> this> should be fixed. In the meantime, you may want to try wget  
-> or curl to
-> > retrieve the files.
-> 
-> We fixed the file type issue. Let us know if it goes any better.
-> 
-> Thanks.
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
+greg k-h
