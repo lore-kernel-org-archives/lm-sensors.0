@@ -1,76 +1,90 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: Query on apparently 'disconnected' sysfs interfaces
-Message-Id: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
+Message-Id: <20050318052539.GA4767@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
+In-Reply-To: <pa6k311f7c2hhul35cifmso9g54ovrnu8c@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings,
+Hi Grant:
 
-For the time being I'm stuck on what was expected to be trivial 
-completion of a driver port simply because there is something 
-confusing me in the source tree.
+* Grant Coady <grant_nospam@dodo.com.au> [2005-03-18 11:35:40 +1100]:
 
-Instead I seek to clarify current practice vs documentation vs my 
-understanding of lm_sensors and l-k drivers.  
+(...)
 
-Problem: There are many examples of disconnected code fragments 
-in the sysfs interface area.
+> Problem: There are many examples of disconnected code fragments 
+> in the sysfs interface area.
+> 
+> Possibilities?  I'm missing an obscure indirection, cruft in code, 
+> something else I've not yet thought of.  Also, I'm no preprocessor 
+> expert, still picking up what the macros are doing from context. 
 
-Possibilities?  I'm missing an obscure indirection, cruft in code, 
-something else I've not yet thought of.  Also, I'm no preprocessor 
-expert, still picking up what the macros are doing from context. 
+The preprocessor macros are the keys to understanding these drivers.
 
-Given (## = my thoughts) so few drivers are inconsistent, here's 
-one example:
+> Given (## = my thoughts) so few drivers are inconsistent, here's 
+> one example:
 
-grant@peetoo:/usr/src/linux-2.6.11-mm4x$ grep -r show_temp_input *
+That (## = my thoughts) is a little ironic, you will see...
 
-## attributes defined but not used?
-drivers/i2c/chips/max1619.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
-drivers/i2c/chips/max1619.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
-drivers/i2c/chips/lm75.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
+(...)
 
-## cruft, only one reference?
-drivers/i2c/chips/lm77.c:                  show_temp_input, NULL);
+> ## more attributes defined but not used?
+> drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+> drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+> drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_input3, NULL);
+> drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp4_input, S_IRUGO, show_temp_input4, NULL);
 
-## seems correct -- one attribute for one use
-drivers/i2c/chips/lm80.c:static ssize_t show_temp_input1(struct device *dev, char *buf)
-drivers/i2c/chips/lm80.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+E.g. with lm83, take a look at this part (to which I added two comments):
 
-## more attributes defined but not used?
-drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
-drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
-drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_input3, NULL);
-drivers/i2c/chips/lm83.c:static DEVICE_ATTR(temp4_input, S_IRUGO, show_temp_input4, NULL);
-drivers/i2c/chips/lm90.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
-drivers/i2c/chips/lm90.c:static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
-drivers/i2c/chips/adm1021.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL);
-drivers/i2c/chips/gl518sm.c:static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+	#define show_temp(suffix, value) \
+	static ssize_t show_temp_##suffix(struct device *dev, char *buf) \
+	{ \
+        	struct lm83_data *data = lm83_update_device(dev); \
+        	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->value)); \
+	}
+	show_temp(input1, temp_input[0]); /* defines show_temp_input1() */
+	show_temp(input2, temp_input[1]); /* defines show_temp_input2() */
+	/* ... */
 
-## missing attribute?
-drivers/i2c/chips/fscher.c:static ssize_t show_temp_input(struct fscher_data *data, char *buf, int nr)
-drivers/i2c/chips/fscpos.c:static ssize_t show_temp_input(struct fscpos_data *data, char *buf, int nr)
+Each show_temp() defines an entire (small) function.  The preprocessor
+operator ## is used to tack the literal text "input1" onto "show_temp_"
+to form a single token.  See page 90 of K&R/C.
 
-My problem at this point is seeing how the driver interfaces to 
-sysfs -- finding many exceptions to the 'norm', thus now it seems 
-I must find what the non-documented 'norm' actually is, before 
-bothering writing to an indeterminate (in my mind) interface.
+> My problem at this point is seeing how the driver interfaces to 
+> sysfs -- finding many exceptions to the 'norm', thus now it seems 
+> I must find what the non-documented 'norm' actually is, before 
+> bothering writing to an indeterminate (in my mind) interface.
 
-Is it worth documenting inconsistencies while I try to fathom 
-current practice vs documentation?
+Functions like the above show_temp_input1() are registered to sysfs and
+are invoked whenever the sysfs file is read or written.  They are
+registered by calling device_create_file().
 
-Are there tools written to perform this or similar checking?
-I'd really dislike re-inventing this stuff.  
+> Is it worth documenting inconsistencies while I try to fathom 
+> current practice vs documentation?
 
-Another thing I tried was diff'ing -mm4 against -ac4, showed 
-where many obvious improvements have been made in -mm4 tree.
-Then I got side-tracked back into my current problem space, 
-sysfs interface seems not fully documented and/or me confused.  
+The existing documentation is a guideline for how to name the sysfs files;
+it doesn't really specify how to code it.  In practice, the macro-fu just
+reduces the line count for all those little functions.
 
-Cheers,
-Grant.
+> Are there tools written to perform this or similar checking?
+> I'd really dislike re-inventing this stuff.  
 
+I'm not sure what you mean here.  What checking?
+
+> Another thing I tried was diff'ing -mm4 against -ac4, showed 
+> where many obvious improvements have been made in -mm4 tree.
+> Then I got side-tracked back into my current problem space, 
+> sysfs interface seems not fully documented and/or me confused.  
+
+Greg KH's i2c/sensors tree gets picked up by -mm long before those 
+patches hit -ac.  I.e. what you saw is expected.
+
+I hope this helps; regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
