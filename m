@@ -1,86 +1,110 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: CHIPSET: INTEL E7501(PLUMAS 533)/ICH3-S
-Message-Id: <3F512004.50806@paradyne.com>
+From: jgluckca@netscape.net (John)
+Date: Thu, 19 May 2005 06:25:16 +0000
+Subject: Some info for your web site (ASB100)
+Message-Id: <1040CDE9.62A0DF56.009D6C5C@netscape.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030710134458.541c3b53.zdavatz@ywesee.com>
-In-Reply-To: <20030710134458.541c3b53.zdavatz@ywesee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi
+
+I just got lm_sensors 2.8.7 going with a 2.6.7 kernel and an Asusu P4PE motherboard.
+
+I need to change the default config a for the ASB100 a wee bit because the pwr and case fans weren't being reported. Also some of the voltages were just a bit off. With the config below everything is quite close to what AsusProbe reports under windows. Note VCore 1 and 2 report the same voltage. I also noted a fair bit of jitter on the VCore so I set the over voltage alarm a bit higher.
+
+Config follows:
+
+#
+# My config for Asus P4PE
+#
+chip "asb100-*"
+    set vrm 9.0
+
+    label in0 "VCore 1"
+    set in0_min vid * 0.95
+    set in0_max vid * 1.1
+
+    label in1 "VCore 2"
+    #ignore in1
+    set in1_min vid * 0.95
+    set in1_max vid * 1.1
+
+    label in2 "+3.3V"
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+
+    label in3 "+5V"
+    compute in3 1.68 * @ ,  @ / 1.68
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+
+    label in4 "+12V"
+    compute in4 4.0 * @ , @ / 4.0
+    set in4_min 12  * 0.90
+    set in4_max 12  * 1.10
+
+    label in5 "-12V (reserved)"
+    ignore in5
+    compute in5 -@ * 3.97 ,  -@ / 3.97
+    set in5_max -12 * 0.90
+    set in5_min -12 * 1.10
+
+    label in6 "-5V (reserved)"
+    ignore in6
+    compute in6 -@ * 1.666 , -@ / 1.666
+    set in6_max -5  * 0.95
+    set in6_min -5  * 1.05
+
+    label temp1 "M/B Temp"
+    set temp1_over 45
+    set temp1_hyst 40
+
+    label temp2 "CPU Temp (Intel)"
+    #ignore temp2
+    set temp2_over 60
+    set temp2_hyst 50
+
+    # PWRTMP connector on P4S333, for external sensor
+    label temp3 "Power Temp"
+    ignore temp3
+    set temp3_over 45
+    set temp3_hyst 40
 
 
-Zeno R.R. Davatz wrote:
-> On Sat, 19 Jul 2003 20:43:17 -0400
-> "Mark D. Studebaker " <mds@paradyne.com> wrote:
-> 
-> 
->>you don't have the 2483 PCI device present.
->>If you can't activate it in the BIOS 
-> 
-> If I go into my BIOS I get all the values (fan speed, cpu speed, voltage, etc) perfectly fine. Why do you believe it is not activated in my BIOS?
-> 
-> you'll need to modify the
-> 
->>p4b_smbus program in prog/hotplug to add support for the ICH3
->>so it will activate the device.
-> 
-> Can you be a bit more specific?
-> 
-> Thanks for your feedback.
-> 
-> Zeno
+    # Used for Athlon diode, ignore for P4S333
+    label temp4 "CPU Temp (AMD)"
+    set temp4_over 60
+    set temp4_hyst 50
+    ignore temp4
 
-if you look at prog/hotplug/p4b_smbus.c you will see that it searches for certain chips and
-then enables the SMBus feature if it finds one of these chips.
-With a modest amount of C programming experience you may be able to add support
-for the ICH3 to this program. Unfortunately I don't have the time to
-give you step-by-step instructions or to do it myself. Good luck.
+    label fan1 "CPU Fan"
+    set fan1_div 4
+    set fan1_min 2000
+
+    label fan2 "Case Fan"
+    set fan2_div 4
+    set fan2_min 2000
+
+    label fan3 "Pwr Fan"
+    set fan3_div 4
+    set fan3_min 2000
 
 
-> 
->>Zeno R.R. Davatz wrote:
->>
->>>Hi
->>>
->>>Thanks to Jean Delvare I managed to install the CVS version of i2c and lm-sensors.
->>>
->>>When I do sensors-detect I find no senors.
->>>
->>>My chipset is:
->>>CHIPSET: INTEL E7501(PLUMAS 533)/ICH3-S CHIPSET
->>>
->>>of ASUS PU-DLS/533 ACPI BIOS Revision 1003
->>>
->>>Any idea what drivers I need to load or if this chipset is supported?
->>>
->>>lspci gives me:
->>>lspci
->>>00:00.0 Host bridge: Intel Corp.: Unknown device 254c (rev 01)
->>>00:02.0 PCI bridge: Intel Corp.: Unknown device 2543 (rev 01)
->>>00:1d.0 USB Controller: Intel Corp.: Unknown device 2482 (rev 02)
->>>00:1d.1 USB Controller: Intel Corp.: Unknown device 2484 (rev 02)
->>>00:1d.2 USB Controller: Intel Corp.: Unknown device 2487 (rev 02)
->>>00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI (rev 42)
->>>00:1f.0 ISA bridge: Intel Corp.: Unknown device 2480 (rev 02)
->>>00:1f.1 IDE interface: Intel Corp.: Unknown device 248b (rev 02)
->>>01:1c.0 PIC: Intel Corp.: Unknown device 1461 (rev 04)
->>>01:1d.0 PCI bridge: Intel Corp.: Unknown device 1460 (rev 04)
->>>01:1e.0 PIC: Intel Corp.: Unknown device 1461 (rev 04)
->>>01:1f.0 PCI bridge: Intel Corp.: Unknown device 1460 (rev 04)
->>>02:05.0 SCSI storage controller: Adaptec: Unknown device 801f (rev 03)
->>>02:05.1 SCSI storage controller: Adaptec: Unknown device 801f (rev 03)
->>>03:03.0 Ethernet controller: Intel Corp. 82544GC Gigabit Ethernet Controller (rev 02)
->>>04:01.0 Ethernet controller: Intel Corp.: Unknown device 100e (rev 02)
->>>04:02.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 27)
->>>
->>>Thanks for Feedback.
->>>
->>>Zeno
->>>
->>
->>
-> 
-> 
+-- 
+The past is history
+The future is a mystery
+Now is a gift
+That's why it's called the present
+
+
+__________________________________________________________________
+Switch to Netscape Internet Service.
+As low as $9.95 a month -- Sign up today at http://isp.netscape.com/register
+
+Netscape. Just the Net You Need.
+
+New! Netscape Toolbar for Internet Explorer
+Search from anywhere on the Web and block those annoying pop-ups.
+Download now at http://channels.netscape.com/ns/search/install.jsp
