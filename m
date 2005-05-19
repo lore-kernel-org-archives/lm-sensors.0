@@ -1,18 +1,20 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: [PATCH TRIVIAL] Missed ixp42x -> ixp4xx conversion
-Message-Id: <20040514215847.GA16000@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:07 +0000
+Subject: Ticket about sis630
+Message-Id: <20040731162716.042cf6a8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040513071901.GA834@plexity.net>
-In-Reply-To: <20040513071901.GA834@plexity.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, May 13, 2004 at 12:19:01AM -0700, Deepak Saxena wrote:
-> Forgot to include this with my original patch a few weeks ago...
+Hi Alexander & Mark,
 
-Applied, thanks.
+Could you please take a look at this ticket?
+http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket33
 
-greg k-h
+Thanks.
+
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
