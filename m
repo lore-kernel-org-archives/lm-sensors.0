@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:31 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <10728219704116@kroah.com>
+Message-Id: <10728219701628@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10728219702169@kroah.com>
+In-Reply-To: <10728219702175@kroah.com>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
 MIME-Version: 1.0
@@ -11,92 +11,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1496.6.3, 2003/12/04 00:44:29-08:00, khali@linux-fr.org
+ChangeSet 1.1496.8.31, 2003/12/17 16:04:10-08:00, mhoffman@lightlink.com
 
-[PATCH] I2C: i2c documentation (2 of 2)
+[PATCH] I2C: improve chip detection in w83781d.c driver
 
-This is a patch to writing-clients. The current version in Linux 2.6
-still mentions the old module reference counting mechanism. The patch
-brings it to the same version we have in i2c CVS, where that section has
-been updated.
+This patch improves chip detection.  It was forward ported from the
+lm_sensors project CVS, from these revisions:
 
-
- Documentation/i2c/writing-clients |   57 ++++++--------------------------------
- 1 files changed, 10 insertions(+), 47 deletions(-)
+	1.104 (Khali) Enhance chip detection (stricter).
+	1.108 (Khali) Fix W83627HF detection.
 
 
-diff -Nru a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
---- a/Documentation/i2c/writing-clients	Tue Dec 30 12:32:43 2003
-+++ b/Documentation/i2c/writing-clients	Tue Dec 30 12:32:43 2003
-@@ -24,16 +24,14 @@
- routines, a client structure specific information like the actual I2C
- address.
+ drivers/i2c/chips/w83781d.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
+
+
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	Tue Dec 30 12:30:38 2003
++++ b/drivers/i2c/chips/w83781d.c	Tue Dec 30 12:30:38 2003
+@@ -24,10 +24,11 @@
+     Supports following chips:
  
--  struct i2c_driver foo_driver
--  {  
--    /* name           */  "Foo version 2.3 and later driver",
--    /* id             */  I2C_DRIVERID_FOO,
--    /* flags          */  I2C_DF_NOTIFY,
--    /* attach_adapter */  &foo_attach_adapter,
--    /* detach_client  */  &foo_detach_client,
--    /* command        */  &foo_command,   /* May be NULL */
--    /* inc_use        */  &foo_inc_use,   /* May be NULL */
--    /* dec_use        */  &foo_dec_use    /* May be NULL */
-+  static struct i2c_driver foo_driver = {
-+    .owner          = THIS_MODULE,
-+    .name           = "Foo version 2.3 driver",
-+    .id             = I2C_DRIVERID_FOO, /* usually from i2c-id.h */
-+    .flags          = I2C_DF_NOTIFY,
-+    .attach_adapter = &foo_attach_adapter,
-+    .detach_client  = &foo_detach_client,
-+    .command        = &foo_command /* may be NULL */
-   }
-  
- The name can be chosen freely, and may be upto 40 characters long. Please
-@@ -50,43 +48,8 @@
- All other fields are for call-back functions which will be explained 
- below.
+     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
+-    as99127f	7	3	1?	3	0x30	0x12c3	yes	no
+-    asb100 "bach" (type_name = as99127f)	0x30	0x0694	yes	no
+-    w83781d	7	3	0	3	0x10	0x5ca3	yes	yes
+-    w83627hf	9	3	2	3	0x20	0x5ca3	yes	yes(LPC)
++    as99127f	7	3	1?	3	0x31	0x12c3	yes	no
++    as99127f rev.2 (type_name = 1299127f)	0x31	0x5ca3	yes	no
++    asb100 "bach" (type_name = as99127f)	0x31	0x0694	yes	no
++    w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
++    w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
+     w83627thf	9	3	2	3	0x90	0x5ca3	no	yes(LPC)
+     w83782d	9	3	2-4	3	0x30	0x5ca3	yes	yes
+     w83783s	5-6	3	2	1-2	0x40	0x5ca3	yes	no
+@@ -1264,7 +1265,7 @@
+ 			goto ERROR2;
+ 		}
+ 		/* If Winbond SMBus, check address at 0x48.
+-		   Asus doesn't support */
++		   Asus doesn't support, except for as99127f rev.2 */
+ 		if ((!is_isa) && (((!(val1 & 0x80)) && (val2 = 0xa3)) ||
+ 				  ((val1 & 0x80) && (val2 = 0x5c)))) {
+ 			if (w83781d_read_value
+@@ -1295,18 +1296,17 @@
+ 			goto ERROR2;
+ 		}
  
--
--Module usage count
--=========
--
--If your driver can also be compiled as a module, there are moments at 
--which the module can not be removed from memory. For example, when you
--are doing a lengthy transaction, or when you create a /proc directory,
--and some process has entered that directory (this last case is the
--main reason why these call-backs were introduced).
--
--To increase or decrease the module usage count, you can use the
--MOD_{INC,DEC}_USE_COUNT macros. They must be called from the module
--which needs to get its usage count changed; that is why each driver
--module has to implement its own callback.
--
--  void foo_inc_use (struct i2c_client *client)
--  {
--  #ifdef MODULE
--    MOD_INC_USE_COUNT;
--  #endif
--  }
--
--  void foo_dec_use (struct i2c_client *client)
--  {
--  #ifdef MODULE
--    MOD_DEC_USE_COUNT;
--  #endif
--  }
--
--Do not call these call-back functions directly; instead, use one of the
--following functions defined in i2c.h:
--  void i2c_inc_use_client(struct i2c_client *);
--  void i2c_dec_use_client(struct i2c_client *);
--
--You should *not* increase the module count just because a device is
--detected and a client created. This would make it impossible to remove
--an adapter driver! 
-+There use to be two additional fields in this structure, inc_use et dec_use,
-+for module usage count, but these fields were obsoleted and removed.
- 
- 
- Extra client data
+-		/* mask off lower bit, not reliable */
+-		val1 -		    w83781d_read_value(new_client, W83781D_REG_WCHIPID) & 0xfe;
+-		if (val1 = 0x10 && vendid = winbond)
++		val1 = w83781d_read_value(new_client, W83781D_REG_WCHIPID);
++		if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
+ 			kind = w83781d;
+ 		else if (val1 = 0x30 && vendid = winbond)
+ 			kind = w83782d;
+-		else if (val1 = 0x40 && vendid = winbond && !is_isa)
++		else if (val1 = 0x40 && vendid = winbond && !is_isa
++				&& address = 0x2d)
+ 			kind = w83783s;
+-		else if ((val1 = 0x20 || val1 = 0x90) && vendid = winbond)
++		else if ((val1 = 0x21 || val1 = 0x90) && vendid = winbond)
+ 			kind = w83627hf;
+-		else if (val1 = 0x30 && vendid = asus && !is_isa)
++		else if (val1 = 0x31 && !is_isa && address >= 0x28)
+ 			kind = as99127f;
+ 		else if (val1 = 0x60 && vendid = winbond && is_isa)
+ 			kind = w83697hf;
 
