@@ -1,122 +1,104 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:57 +0000
-Subject: [patch 1/1] Remove redundancy from i2c-core.c
-Message-Id: <20050507225846.2c22597d.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:45 +0000
+Subject: [PATCH] sync i2c-dev numbers up with i2c adapter numbers
+Message-Id: <20040303232755.GA1076@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, Andrew, Corey,
+Here's a patch to keep these numbers in sync.
 
-> Andrew, please drop this from your tree.  Jean is working on a better
-> version of this patch, and I'll just wait for him.
+Now I need to figure out a simple way to allocate the i2c adapter
+numbers in "next available" sequence.  I tried using the lib/idr.c code,
+but you don't want to see the numbers that it generated...
 
-Here it is, sorry for the delay (I took a few days off AFK, made be some
-good). "Better" here means that I made some coding style cleanups, which
-were missing from Corey's original patch, nothing more. 
+Oh, we should probably also fix i2c-dev to handle the full range of
+minors, now that we have an increased numberspace with 2.6.  Anyone want
+to try making up that patch?
 
-Thanks.
+Any objections to the patch below?  Combine that with the 'name' file
+for i2c-dev and we should have an easier way to find which i2c dev
+device is assigned to which i2c-adapter, right?
 
----
+Hm, I could always just put a direct symlink in there, to the proper
+/sys/class/i2c-adapater/ directory.  Anyone think that is necessary?
 
-Call i2c_transfer() from i2c_master_send() and i2c_master_recv() to
-avoid the redundant code that was in all three functions.  It also
-removes unnecessary debug statements as suggested by Jean Delvare.
+thanks,
 
-This is important for the non-blocking interfaces because they will
-have to handle a non-blocking interface in this area.  Having it in
-one place greatly simplifies the changes.
+greg k-h
 
-Signed-off-by: Corey Minyard <minyard@acm.org>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- drivers/i2c/i2c-core.c |   64 +++++++++++++++----------------------------------
- 1 files changed, 20 insertions(+), 44 deletions(-)
+# I2C: keep i2c-dev numbers in sync with i2c adapter numbers
+# 
+# This makes userspace tools easier to figure out which i2c-dev device is
+# assigned to which i2c adapter.
+# 
+# Yes, we can overflow the i2c dev array right now, but that would take a
+# lot of i2c adapter modprobe/rmmod cycles.  That will be fixed up soon.
 
---- linux-2.6.12-rc4.orig/drivers/i2c/i2c-core.c	2005-05-07 18:57:00.000000000 +0200
-+++ linux-2.6.12-rc4/drivers/i2c/i2c-core.c	2005-05-07 18:59:10.000000000 +0200
-@@ -611,27 +611,16 @@
- 	struct i2c_adapter *adap=client->adapter;
- 	struct i2c_msg msg;
+diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c	Wed Mar  3 15:24:21 2004
++++ b/drivers/i2c/i2c-dev.c	Wed Mar  3 15:24:21 2004
+@@ -72,24 +72,18 @@
+ struct i2c_dev *i2c_dev_get_by_adapter(struct i2c_adapter *adap)
+ {
+ 	struct i2c_dev *i2c_dev = NULL;
+-	int i;
  
--	if (client->adapter->algo->master_xfer) {
--		msg.addr   = client->addr;
--		msg.flags = client->flags & I2C_M_TEN;
--		msg.len = count;
--		msg.buf = (char *)buf;
-+	msg.addr = client->addr;
-+	msg.flags = client->flags & I2C_M_TEN;
-+	msg.len = count;
-+	msg.buf = (char *)buf;
- 	
--		dev_dbg(&client->adapter->dev, "master_send: writing %d bytes.\n",
--			count);
--	
--		down(&adap->bus_lock);
--		ret = adap->algo->master_xfer(adap,&msg,1);
--		up(&adap->bus_lock);
--
--		/* if everything went ok (i.e. 1 msg transmitted), return #bytes
--		 * transmitted, else error code.
--		 */
--		return (ret = 1 )? count : ret;
--	} else {
--		dev_err(&client->adapter->dev, "I2C level transfers not supported\n");
--		return -ENOSYS;
+ 	spin_lock(&i2c_dev_array_lock);
+-	for (i = 0; i < I2C_MINORS; ++i) {
+-		if ((i2c_dev_array[i]) &&
+-		    (i2c_dev_array[i]->adap = adap)) {
+-			i2c_dev = i2c_dev_array[i];
+-			break;
+-		}
 -	}
-+	ret = i2c_transfer(adap, &msg, 1);
-+
-+	/* If everything went ok (i.e. 1 msg transmitted), return #bytes
-+	   transmitted, else error code. */
-+	return (ret = 1) ? count : ret;
++	if ((i2c_dev_array[adap->nr]) &&
++	    (i2c_dev_array[adap->nr]->adap = adap))
++		i2c_dev = i2c_dev_array[adap->nr];
+ 	spin_unlock(&i2c_dev_array_lock);
+ 	return i2c_dev;
  }
  
- int i2c_master_recv(struct i2c_client *client, char *buf ,int count)
-@@ -639,31 +628,18 @@
- 	struct i2c_adapter *adap=client->adapter;
- 	struct i2c_msg msg;
- 	int ret;
--	if (client->adapter->algo->master_xfer) {
--		msg.addr   = client->addr;
--		msg.flags = client->flags & I2C_M_TEN;
--		msg.flags |= I2C_M_RD;
--		msg.len = count;
--		msg.buf = buf;
+-static struct i2c_dev *get_free_i2c_dev(void)
++static struct i2c_dev *get_free_i2c_dev(struct i2c_adapter *adap)
+ {
+ 	struct i2c_dev *i2c_dev;
+-	unsigned int i;
  
--		dev_dbg(&client->adapter->dev, "master_recv: reading %d bytes.\n",
--			count);
--	
--		down(&adap->bus_lock);
--		ret = adap->algo->master_xfer(adap,&msg,1);
--		up(&adap->bus_lock);
--	
--		dev_dbg(&client->adapter->dev, "master_recv: return:%d (count:%d, addr:0x%02x)\n",
--			ret, count, client->addr);
--	
--		/* if everything went ok (i.e. 1 msg transmitted), return #bytes
--	 	* transmitted, else error code.
--	 	*/
--		return (ret = 1 )? count : ret;
--	} else {
--		dev_err(&client->adapter->dev, "I2C level transfers not supported\n");
--		return -ENOSYS;
--	}
-+	msg.addr = client->addr;
-+	msg.flags = client->flags & I2C_M_TEN;
-+	msg.flags |= I2C_M_RD;
-+	msg.len = count;
-+	msg.buf = buf;
-+
-+	ret = i2c_transfer(adap, &msg, 1);
-+
-+	/* If everything went ok (i.e. 1 msg transmitted), return #bytes
-+	   transmitted, else error code. */
-+	return (ret = 1) ? count : ret;
+ 	i2c_dev = kmalloc(sizeof(*i2c_dev), GFP_KERNEL);
+ 	if (!i2c_dev)
+@@ -97,15 +91,16 @@
+ 	memset(i2c_dev, 0x00, sizeof(*i2c_dev));
+ 
+ 	spin_lock(&i2c_dev_array_lock);
+-	for (i = 0; i < I2C_MINORS; ++i) {
+-		if (i2c_dev_array[i])
+-			continue;
+-		i2c_dev->minor = i;
+-		i2c_dev_array[i] = i2c_dev;
++	if (i2c_dev_array[adap->nr]) {
+ 		spin_unlock(&i2c_dev_array_lock);
+-		return i2c_dev;
++		dev_err(&adap->dev, "i2c-dev already has a device assigned to this adapter\n");
++		goto error;
+ 	}
++	i2c_dev->minor = adap->nr;
++	i2c_dev_array[adap->nr] = i2c_dev;
+ 	spin_unlock(&i2c_dev_array_lock);
++	return i2c_dev;
++error:
+ 	kfree(i2c_dev);
+ 	return ERR_PTR(-ENODEV);
  }
+@@ -446,7 +441,7 @@
+ 	struct i2c_dev *i2c_dev;
+ 	int retval;
  
+-	i2c_dev = get_free_i2c_dev();
++	i2c_dev = get_free_i2c_dev(adap);
+ 	if (IS_ERR(i2c_dev))
+ 		return PTR_ERR(i2c_dev);
  
-
--- 
-Jean Delvare
