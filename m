@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: LM83 sensor
-Message-Id: <20030702112716.74f0978f.khali@linux-fr.org>
+Message-Id: <20030702113808.6421ddc3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43612812.20030701105509@matrixc.ru>
 In-Reply-To: <43612812.20030701105509@matrixc.ru>
@@ -11,20 +11,24 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> lm_sensors work with ITE 8705 chip, but sensors value incorect (CPU
-> temp. is very high, voltages not corespond value shown in BIOS, etc.)
-> 
-> Also send screenshot form Sandra 2003
+> 1. What parameters exist? What they should accept values?
 
-Thanks for the shot. Unfortunately, it doesn't say on which chipset each
-sensor is located :/
+See the complete doc here:
+  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/it87
+(or in your local doc/chips directory)
 
-I've added preliminary LM83 detection to our sensors-detect script.
-Could you please get it from
- 
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
-and give it a try? Preferably unload all sensors modules before doing so
-and send us a whole log of the script run (using script or whatever).
+> 2. I use i2c and lm_sensors 2.7.0
+
+Would you mind switching to CVS to test the new driver once I'll written
+it? I have no LM83 so I won't be able to test it myself, and I'll need
+you to do so ;)
+
+> 3. sensors-detect offers to load adm1021
+
+Interesting. You should try loading it. Since the LM84 is a "light"
+version of the LM83, your LM83 should really behave like a LM84 with the
+adm1021 driver, and you should get 2 temperatures reported (instead of
+the 4 supported by the LM83).
 
 -- 
 Jean Delvare
