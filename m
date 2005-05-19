@@ -1,46 +1,35 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:28 +0000
-Subject: LM_sensors and Toshiba laptops
-Message-Id: <3C3FAEB0.90082975@paradyne.com>
+From: steen@cogweb.net (steen@cogweb.net)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: /dev/i2c missing
+Message-Id: <Pine.LNX.4.44.0205272135260.6704-100000@greenie.frogspace.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0201091514280.610-100000@home.aussec.com>
-In-Reply-To: <Pine.LNX.4.33.0201091514280.610-100000@home.aussec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Sorry to hear about your trouble.
-Yours is the first report we've had about a Toshiba laptop.
-Perhaps if you go into the BIOS to the sensors screen or
-let the battery run down it
-will re-initialize your sensors device?
-But hopefully the trouble is unrelated to any probing
-by our software.
-Good luck.
-mds
 
+Hi guys,
 
-tom burkart wrote:
-> 
-> Hi,
-> I have used the lm_sensors package to try and look at the i2c devices on a
-> Toshiba Tecra 8100 laptop with little success.
-> It now overheats and crashes with extended use.  I do not know wether it
-> was due to probing the i2c bus and changing something or some other
-> unfortunate combination of events that culminated at about the same time.
-> So since I saw the warning messages for IBM laptops I thought I would
-> mention it - just in case.
-> I would be happy to try and trouble-shoot what may have happened if
-> someone could give some guidance what to try...
-> 
-> CPU: Pentium 3/speedstep 750MHz, 128M RAM, 20G HDD,...
-> Kernel: 2.4.17
-> LM_sensors/i2c: 2.6.2
-> 
-> tom.
-> Consultant
-> 
-> AUSSEC    Phone: 61 4 1768 2202
-> 339 Blaxland Rd., Ryde NSW 2112
-> Email: tom@aussec.com
+I just got the cvs of i2c and lm-sensors and it compiled and installed
+fine. When I do i2cdetect x, I get
+
+ Installed I2C busses:
+ i2c-0     smbus  SMBus PIIX4 adapter at 5000    Non-I2C SMBus adapter
+ i2c-1       i2c  I2C Voodoo3/Banshee adapter    Bit-shift algorithm
+ i2c-2       i2c  DDC Voodoo3/Banshee adapter    Bit-shift algorithm
+ i2c-3     dummy  ISA main adapter               ISA bus algorithm
+
+Then I get get Error: Could not open file `/dev/i2c-0', `/dev/i2c0', or
+`/dev/i2c/0': No such file -- and so on for 0-3. In fact, there are no
+/dev/i2c entries. Why don't I have /dev/i2c? What else could I be sensing?
+
+I would like to get CPU speed -- can I? 
+
+On the other hand, I now get the temperature of my CPU and the voltages
+fine, in KgrellM.
+
+Great work!
+
+Cheers,
+David
