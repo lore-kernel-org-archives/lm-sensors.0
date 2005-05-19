@@ -1,38 +1,46 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: header files installed by i2c
-Message-Id: <WzPQcQZ4.1102415683.1379530.khali@localhost>
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: CHIPSET: INTEL E7501(PLUMAS 533)/ICH3-S
+Message-Id: <20030710134458.541c3b53.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041206225703.6b3f48e7.khali@linux-fr.org>
-In-Reply-To: <20041206225703.6b3f48e7.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi
 
-Hi Mark,
+Thanks to Jean Delvare I managed to install the CVS version of i2c and lm-sensors.
 
-> At least i2c-dev.h and maybe parts of i2c.h are needed for userspace access
-> to the i2c /dev interface.  What we probably should do is provide sanitized
-> headers for that.  There might be other files that are legitimate parts of
-> the userspace API too, I haven't looked closely.
+When I do sensors-detect I find no senors.
 
-i2c-dev.h was already sanitized and there are now two different versions
-of that file, the kernel-space one (small) is in i2c and the user-space
-one (large) is in lm_sensors (with no good reason to that IMHO).
-User-space tools in the lm_sensors package only use i2c-dev.h (the
-user-space one), not i2c.h. The user-space version of i2c-dev.h does
-include all constants from i2c.h, so i2c-dev.h looks sufficient for
-user-space programs (despite what our own documentation says).
+My chipset is:
+CHIPSET: INTEL E7501(PLUMAS 533)/ICH3-S CHIPSET
 
-I will remove all kernel header includes from i2c, as it sounds like the
-right thing to do. If someone complains we'll see what needs to be done.
+of ASUS PU-DLS/533 ACPI BIOS Revision 1003
 
-I also believe that the user-space i2c-dev.h should be part of i2c, not
-lm_sensors. Don't know where to move it though, since we don't really
-have a location for user-space header files at the moment.
+Any idea what drivers I need to load or if this chipset is supported?
 
-Thanks,
---
-Jean Delvare
+lspci gives me:
+lspci
+00:00.0 Host bridge: Intel Corp.: Unknown device 254c (rev 01)
+00:02.0 PCI bridge: Intel Corp.: Unknown device 2543 (rev 01)
+00:1d.0 USB Controller: Intel Corp.: Unknown device 2482 (rev 02)
+00:1d.1 USB Controller: Intel Corp.: Unknown device 2484 (rev 02)
+00:1d.2 USB Controller: Intel Corp.: Unknown device 2487 (rev 02)
+00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI (rev 42)
+00:1f.0 ISA bridge: Intel Corp.: Unknown device 2480 (rev 02)
+00:1f.1 IDE interface: Intel Corp.: Unknown device 248b (rev 02)
+01:1c.0 PIC: Intel Corp.: Unknown device 1461 (rev 04)
+01:1d.0 PCI bridge: Intel Corp.: Unknown device 1460 (rev 04)
+01:1e.0 PIC: Intel Corp.: Unknown device 1461 (rev 04)
+01:1f.0 PCI bridge: Intel Corp.: Unknown device 1460 (rev 04)
+02:05.0 SCSI storage controller: Adaptec: Unknown device 801f (rev 03)
+02:05.1 SCSI storage controller: Adaptec: Unknown device 801f (rev 03)
+03:03.0 Ethernet controller: Intel Corp. 82544GC Gigabit Ethernet Controller (rev 02)
+04:01.0 Ethernet controller: Intel Corp.: Unknown device 100e (rev 02)
+04:02.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 27)
+
+Thanks for Feedback.
+
+Zeno
