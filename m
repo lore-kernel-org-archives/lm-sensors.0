@@ -1,34 +1,112 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: sis735 testing
-Message-Id: <20021014192817.B28116@mercury.solarsys.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: [PATCH 2.4] i2c cleanups, third wave (4/8)
+Message-Id: <20040111155027.6e1e2b42.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1034640340.26433.18.camel@Daemon>
-In-Reply-To: <1034640340.26433.18.camel@Daemon>
+References: <20040111144214.7a6a4e59.khali@linux-fr.org>
+In-Reply-To: <20040111144214.7a6a4e59.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
 
-Hello Thomas:
+This patch doesn't really focus on the i2c subsystem, but is still
+i2c-related. It concerns the media/video subsystem, where I discovered a
+few incorrectnesses as I was working on my i2c patches.
 
-* thomas <Thomas.NAGY@eleve.emn.fr> [2002-10-15 02:05:40 +0200]:
-> I saw that help is needed for testing with the sis735 chipset
-> (http://www2.lm-sensors.nu/~lm78/newdrivers.html)
-> 
-> I'd be glad to participate. Feel free to email-me at the above adress.
+* i2c-old.c contains old init stuff, obviously inherted from the times
+of linux 2.2, which should be cleared. The BUZ and LML33 drivers are now
+i2c drivers, not i2c-old ones.
+* The Makefile needs a few adjustements.
+* saa7146.h should include i2c-old.h, not i2c.h.
 
-I've had one tester with a SiS735 already, but more wouldn't hurt.
-Grab the latest i2c and lm_sensors from CVS and try them out.  I
-would appreciate the following info.:  the results of "lspci -v",
-both before and after you try to load the driver for the first time.
-Also, any syslog messages which are produced by i2c-sis645.
+The thin part of this patch that also applies to linux 2.6 has been sent
+to Greg KH.
 
-Let me know if you need any help getting that far.  Don't forget
-to read lm_sensors2/doc/busses/i2c-sis645 too. :)
 
-Regards,
+diff -ruN linux-2.4.24-pre3/drivers/media/video/i2c-old.c linux-2.4.24-pre3-k3/drivers/media/video/i2c-old.c
+--- linux-2.4.24-pre3/drivers/media/video/i2c-old.c	2001-09-30 21:26:06.000000000 +0200
++++ linux-2.4.24-pre3-k3/drivers/media/video/i2c-old.c	2004-01-06 14:01:45.000000000 +0100
+@@ -36,28 +36,11 @@
+ static struct i2c_driver *drivers[I2C_DRIVER_MAX];
+ static int bus_count = 0, driver_count = 0;
+ 
+-#ifdef CONFIG_VIDEO_BUZ
+-extern int saa7111_init(void);
+-extern int saa7185_init(void);
+-#endif
+-#ifdef CONFIG_VIDEO_LML33
+-extern int bt819_init(void);
+-extern int bt856_init(void);
+-#endif
+-
+ int i2c_init(void)
+ {
+ 	printk(KERN_INFO "i2c: initialized%s\n",
+ 		scan ? " (i2c bus scan enabled)" : "");
+-	/* anything to do here ? */
+-#ifdef CONFIG_VIDEO_BUZ
+-	saa7111_init();
+-	saa7185_init();
+-#endif
+-#ifdef CONFIG_VIDEO_LML33
+-	bt819_init();
+-	bt856_init();
+-#endif
++
+ 	return 0;
+ }
+ 
+diff -ruN linux-2.4.24-pre3/drivers/media/video/Makefile linux-2.4.24-pre3-k3/drivers/media/video/Makefile
+--- linux-2.4.24-pre3/drivers/media/video/Makefile	2003-12-31 14:51:01.000000000 +0100
++++ linux-2.4.24-pre3-k3/drivers/media/video/Makefile	2004-01-06 14:01:14.000000000 +0100
+@@ -40,7 +40,7 @@
+ 
+ obj-$(CONFIG_VIDEO_ZR36120) += zoran.o i2c-old.o
+ obj-$(CONFIG_I2C_PARPORT) += i2c-parport.o i2c-old.o
+-obj-$(CONFIG_VIDEO_SAA5249) += saa5249.o i2c-old.o
++obj-$(CONFIG_VIDEO_SAA5249) += saa5249.o
+ obj-$(CONFIG_VIDEO_CQCAM) += c-qcam.o
+ obj-$(CONFIG_VIDEO_BWQCAM) += bw-qcam.o
+ obj-$(CONFIG_VIDEO_W9966) += w9966.o
+@@ -48,11 +48,10 @@
+ obj-$(CONFIG_VIDEO_ZORAN_BUZ) += saa7111.o saa7185.o
+ obj-$(CONFIG_VIDEO_ZORAN_DC10) += saa7110.o adv7175.o
+ obj-$(CONFIG_VIDEO_ZORAN_LML33) += bt819.o bt856.o
+-obj-$(CONFIG_VIDEO_LML33) += bt856.o bt819.o
+ obj-$(CONFIG_VIDEO_PMS) += pms.o
+ obj-$(CONFIG_VIDEO_PLANB) += planb.o
+ obj-$(CONFIG_VIDEO_VINO) += saa7191.o indycam.o vino.o
+-obj-$(CONFIG_VIDEO_STRADIS) += stradis.o
++obj-$(CONFIG_VIDEO_STRADIS) += stradis.o i2c-old.o
+ obj-$(CONFIG_VIDEO_CPIA) += cpia.o
+ obj-$(CONFIG_VIDEO_CPIA_PP) += cpia_pp.o
+ obj-$(CONFIG_VIDEO_CPIA_USB) += cpia_usb.o
+@@ -81,8 +80,8 @@
+ 
+ fastdep:
+ 
+-zoran.o: zr36120.o zr36120_i2c.o zr36120_mem.o
+-	$(LD) $(LD_RFLAG) -r -o $@ zr36120.o zr36120_i2c.o zr36120_mem.o
++zoran.o: $(zoran-objs)
++	$(LD) $(LD_RFLAG) -r -o $@ $(zoran-objs)
+ 
+ bttv.o: $(bttv-objs)
+ 	$(LD) $(LD_RFLAG) -r -o $@ $(bttv-objs)
+diff -ruN linux-2.4.24-pre3/drivers/media/video/saa7146.h linux-2.4.24-pre3-k3/drivers/media/video/saa7146.h
+--- linux-2.4.24-pre3/drivers/media/video/saa7146.h	2000-12-11 22:15:51.000000000 +0100
++++ linux-2.4.24-pre3-k3/drivers/media/video/saa7146.h	2004-01-06 14:02:45.000000000 +0100
+@@ -25,7 +25,7 @@
+ #include <linux/types.h>
+ #include <linux/wait.h>
+ 
+-#include <linux/i2c.h>
++#include <linux/i2c-old.h>
+ #include <linux/videodev.h>
+ 
+ #ifndef O_NONCAP  
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
