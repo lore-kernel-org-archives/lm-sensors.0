@@ -1,42 +1,57 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:24 +0000
-Subject: KT4AV-L mobo with w83697hf
-Message-Id: <41A7FC6D.40105@verizon.net>
+From: jchapman@katalix.com (James Chapman)
+Date: Thu, 19 May 2005 06:25:40 +0000
+Subject: [PATCH: 2.6.11-rc5] i2c chips: add adt7461 support to lm90 driver
+Message-Id: <4223513F.4030403@katalix.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1101512791.2802.13.camel@localhost.localdomain>
-In-Reply-To: <1101512791.2802.13.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: sensors@stimpy.netroedge.com
+Cc: linux-kernel@vger.kernel.org, khali@linux-fr.org
 
-beeps is a bitmask with the same definition as alarms, not a counter.
-this is documented in doc/developer/proc.
+Add ADT7461 (temperature sensor) support to LM90 driver.
 
-koz wrote:
-> I have a KT4AV-L mother board with a w83697hf chip.
-> 
-> 1. I noticed that the V5SB voltage with the default calc' always shows
-> something like +5.5* V where as the BIOS shows +5.0* V. If you set the
-> calc' to "compute in7 ((5.1/10)+1)*@ ,  @/((5.1/10)+1)" the result is
-> more consistent with the BIOS.
-> 
-> 
-> 2. Question - I originally thought that the beep_enable feature wouldn't
-> work since I couldn't get it to beep, but then when I run sensors -u I
-> get a line showing the beep_enable followed by a line showing beeps, and
-> I can set the number of beeps in sensors.conf with something like 
-> 
->     set beep_enable 1
->     set beeps 1
-> 
-> Is this documented anywhere ? how exactly should it work ?
-> 
-> regards, Koz
-> 
-> 
-> 
-> 
-> 
-> 
-> 
+Signed-off-by: James Chapman <jchapman@katalix.com>
+
+
+
+
+
+-------------- next part --------------
+diff -Nru a/drivers/i2c/chips/lm90.c b/drivers/i2c/chips/lm90.c
+--- a/drivers/i2c/chips/lm90.c	2005-02-27 13:24:11 +00:00
++++ b/drivers/i2c/chips/lm90.c	2005-02-27 13:24:11 +00:00
+@@ -85,7 +85,7 @@
+  * Insmod parameters
+  */
+ 
+-SENSORS_INSMOD_5(lm90, adm1032, lm99, lm86, max6657);
++SENSORS_INSMOD_6(lm90, adm1032, lm99, lm86, max6657, adt7461);
+ 
+ /*
+  * The LM90 registers
+@@ -386,7 +386,10 @@
+ 			 && (reg_config1 & 0x3F) = 0x00
+ 			 && reg_convrate <= 0x0A) {
+ 				kind = adm1032;
+-			}
++			} else
++			if (address = 0x4c
++			 && chip_id = 0x51) /* ADT7461 */
++				kind = adt7461;
+ 		} else
+ 		if (man_id = 0x4D) { /* Maxim */
+ 			/*
+@@ -423,6 +426,8 @@
+ 		name = "lm86";
+ 	} else if (kind = max6657) {
+ 		name = "max6657";
++	} else if (kind = adt7461) {
++		name = "adt7461";
+ 	}
+ 
+ 	/* We can fill in the remaining client fields */
+
+
+
+
