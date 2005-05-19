@@ -1,39 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:15 +0000
-Subject: Evaluation boards
-Message-Id: <20040917073013.M32778@linux-fr.org>
+From: tomov@molbio.mgh.harvard.edu (Vesko T. Tomov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: Help getting hardware monitoring on Intel 855PM 82801DBM
+Message-Id: <1114109876.6001.26.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040915153302.M17825@linux-fr.org>
-In-Reply-To: <20040915153302.M17825@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark Studebaker wrote:
-> I got it originally but then sent it to Phil, I'm pretty sure.
+Hello,
 
-Philip Edelbrock wrote:
-> Really?  I can dig around in my pile to see if I've got it.  If I do,
-> I'd be happy to ship it where ever.
+This is a question related to the following thread:
+http://archives.andrew.net.au/lm-sensors/msg30983.html .  I have a
+similar laptop, Clevo M37EW (Sager NP3790) and followed the advice of
+Rudolf Marek and Jean Delvare in an attempt to get temperature
+monitoring working.  (1) I activated the SMBus throught the quirks.c
+file, (2) ran sensors-detect, (3) found SPD EEPROM which told me that I
+have 1024 MB of RAM installed.  I then ran i2cdetect and got a slightly
+different output:
 
-Well, shipping it overseas just to test "my" port of the lm87 driver may be a
-bit overkill. I guess it would be cheaper if you could just get a 2.6 kernel
-to work on it on your side and test my code.
+# /usr/sbin/i2cdetect -a 0
+WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
+I will probe file /dev/i2c-0.
+I will probe address range 0x00-0x7f.
+Continue? [Y/n]
+        0    1    2    3   4    5    6   7   8    9   a    b     c   d
+e    f
+00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX
+50: XX UU XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
 
-But of course, if you don't mind the expense and are short in time for the
-tests, I will gratefully accept the board. You tell me.
+My (ignorant) question is whether the reading at address 0x51 might mean
+that some hardware monitoring functionality could be possible.  My guess
+is NO, but I just wanted to be sure before I gave up all hope!   
 
-In case you decide to ship it to me, note that I have neither a suitable CPU
-(500MHz - 1GHz Pentium III) to put on it, nor suitable memory modules (the
-board requires registered ECC SDRAM according to the manual) so you would have
-to send these together with the board, providing you do have this spare
-hardware as well. I think I could find the ECC memory modules (although
-expensive for the relative size), but I doubt I'd be able to find such an old
-CPU nowadays.
+Thanks!!
 
-Thanks.
+Vesko
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050421/3d6ef99b/attachment.html
