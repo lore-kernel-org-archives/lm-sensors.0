@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:42 +0000
+From: todd.c.davis@intel.com (Davis, Todd C)
+Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: i2c core enhancements
-Message-Id: <20040221060743.735405c3.khali@linux-fr.org>
+Message-Id: <F274AE5A8F65A848906BEB9DDFC7674C0E83BF@hdsmsx403.hd.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F274AE5A8F65A848906BEB9DDFC7674C0E83BA@hdsmsx403.hd.intel.com>
 In-Reply-To: <F274AE5A8F65A848906BEB9DDFC7674C0E83BA@hdsmsx403.hd.intel.com>
@@ -9,6 +9,30 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+i2c_delay() being implemented in i2c.h as an inline function I thought
+it would be appropriate to add the support flag and corresponding set
+routine in i2c-core.c. It seems like many bus drivers need this change,
+not just the one I have changed to support another ICH chip for SMBus
+bus support. The purpose of this change is to be able to perform SMBus
+transfers when the system is going down for any SMBus driver. The
+"proprietary" configuration define can be deleted. I tend to put defines
+to new code I introduce.
+
+Thanks for the history for of the module count routines. In the i801.c
+driver I just added the 2 routines and called them in the load/unload
+routines of driver I am developing for OpenIPMI. 
+
+Todd C. Davis
+These are my opinions and absolutely not official opinions of Intel
+Corp.
+ 
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: Saturday, February 21, 2004 12:08 AM
+To: Davis, Todd C
+Cc: sensors@Stimpy.netroedge.com
+Subject: Re: i2c core enhancements
 
 > 1.	The i2c_delay() inline function needs to spin delay under 2
 > circumstances, 1) when the system is shutting down, all processes are
