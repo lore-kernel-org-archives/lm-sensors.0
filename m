@@ -1,33 +1,19 @@
-From: paolo.berva@st.com (Paolo Cesare BERVA)
-Date: Thu, 19 May 2005 06:24:37 +0000
-Subject: Sensors on K7S5A and kernel 2.6.1
-Message-Id: <401538E7.6000301@st.com>
+From: carlos@boneti.com (Carlos Boneti)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: still ASUS ASB100 Bach
+Message-Id: <3D24823D.40909@boneti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <401526A5.30908@st.com>
-In-Reply-To: <401526A5.30908@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-My aplogize, I thought to have read carfully the documentation...
-Thank you for your prompt answer.
-Paolo
+Hi,
 
-Jean Delvare wrote:
->>Hi, lm_sensors v2.8.3 and linux kernel 2.6.1 on mainboard K7S5A v3.1
->>(chip type it87), after some trouble, works like a charm.
->>(...)
->>In the sysfs pseudo filesystem I can read the temperature values.
->>So I made some modification to lib/chips.c to fix the trouble.
->>You can see the diff file at the end of this e-mail.
->>I had to change also the lines in sensors.conf
->>#    from                    to
->>#========================>>#    set   temp2_hyst  20    set   temp2_min  20
->>#    set   temp3_hyst  25    set   temp3_min  25
-> 
-> 
-> As stated on both our main page and our linux 2.6 specific page, it87
-> users should not use lm_sensors 2.8.3, because of the bug you spotted.
-> It is known and already fixed in CVS. Thanks for the report anyway.
-> 
+As I wrote to you one week earlier, I would like to help you with 
+development.. I have an ASUS a7v333 which has an ASB100 Bach chip.
+You replied to my e-mail telling me to see /doc/developers/new_drivers. 
+As I don't have the specs for this chip, I still trully don't know 
+how/what to do.  I asked datasheets from asus but they said they can't 
+give such info to end users...
+Do you have any clue/help?
