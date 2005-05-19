@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:17 +0000
+Date: Thu, 19 May 2005 06:24:19 +0000
 Subject: A7V8X-X and lm sensors
-Message-Id: <20030920195017.4ad0acbd.khali@linux-fr.org>
+Message-Id: <20030926231542.5fae0d70.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030918153623.GA3679@pvv.org>
 In-Reply-To: <20030918153623.GA3679@pvv.org>
@@ -11,40 +11,30 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Another thing. If the fan drops below 2500-2600 RPMs I only get 0 RPM
-> with lm sensors. Why is that? Is that why my chassie fan (fan2) is
-> constantly 0 RPM? It runs normally at around 1600
+> I got some temperatures from a couple of others. One had a bad case so
+> he actually managed to run the CPU up to 84C (cpuburn). Told him to
+> not do that and see to his computer.
+> Another had a fan running at 4000RPM so his temperature was 48. So my
+> function is now:
+> 
+>        compute temp1 (-15.096+1.4893*@), (@+15.096)/1.4893
 
-This is a FAQ, you need to increase the fan divisor.
+OK, I added the formula to our default configuration file.
 
---- 8< ---
-4.1.1 Fans sometimes/always read 0!!
-------------------------------------
+> I can send you a plot showing how it fits with the data if you want.
 
-   You may not have a three-wire fan, which is required.
+No need for that, I trust you.
 
-   You may need to increase the 'fan divisor'. See `doc/fan-divisors'
-in our package for further information.
---- 8< ---
+> I haven't managed to find a new address of Gary. All traces stop in
+> June. But I think that the 8C in BIOS must have been a typo of 28C.
 
-> I'm trying now to find other people her in scandinavia that uses the
-> same motherboard and are willing to do tests to find the temperatures.
-> have you had any experience that the temperature can be dependant of
-> the CPU? I mean if somebody has a P4 or a AMD 2800+ XP etc would that
-> influence the difference in the BIOS and lm sensors temperature
-> reading?
+That was in sensors, not BIOS. Possible that it was a typo however, and
+we can't confirm that now. Anyway, if your formula doesn't work for
+others, I guess we'll have feedback.
 
-Could be. That's uncommon, but Alex van Kaam (Motherboard Monitor's
-author) wrote to me this morning saying just this:
+> HTH
 
-"I finally have the correct info for the EPIA M10000 temps, which uses
-the VT1211 sensor chip, they use a diffrent calculation per CPUID !!"
-
-So, yes, some chips report different results depending on which CPU is
-plugged in. As a side effect, the differences with LM Sensors could be
-altered (although they do not have to be). I believe that the
-differences (between CPUs) are introduced to match their internal
-temperature sensor at best.
+Sure it did, thanks a lot.
 
 -- 
 Jean Delvare
