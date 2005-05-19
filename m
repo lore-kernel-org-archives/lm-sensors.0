@@ -1,81 +1,63 @@
-From: francois.barre@siemens.com (BARRE Francois)
-Date: Thu, 19 May 2005 06:24:48 +0000
-Subject: TR: [RFC][2.6] Additional i2c adapter flags for i2c client isolat
-Message-Id: <EFEF4C473088B847B64CD953D2A6A10401B8EB71@sdso14a.par.siemens.fr>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:28 +0000
+Subject: need help on lm_sensors
+Message-Id: <20031205080024.464910f1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This topic makes me think of something _interresting_...
-	
-	According to the tests I made on my VIA Nehemiah M10k, the vt1211
-can be handled by i2c-viapro as an smbus device (via the vt596 it says) and
-via-ircc as an irda device, BUT this device can not be binded to both
-drivers at the same time : when one is loaded (and activated), the other
-finds no device (ENODEV I presume). (I wonder how I should use both smbus
-*and* irda device)...
+>  I need some help.I am trying to find the  best version of 
+> lm_sensors/i2c that works with 2.2.16 kernel of Linux.I tried lot of 
+> versions from 2.4 to 2.7 some of them either give compilation errors
+> or depmod -a errors..some successfull.
 
-	Is this totally out of topic ?
-	
-	Could a hack prevent these two drivers to be mutually exclusive ?
-	
-(ps : sorry Jean I messed up with the To: and sent this mail to you only. I
-guess I'm in need of a true holiday sooner or later...).
+The last 2.2-compatible version is 2.7.0, as stated on our download
+page. Please note that you need to download and install i2c-2.7.0 before
+you can get lm_sensors-2.7.0 to compile and work.
 
-> -----Message d'origine-----
-> De : Jean Delvare [mailto:khali@linux-fr.org] 
-> Envoy? : mercredi 17 mars 2004 10:17
-> ? : Greg KH
-> Cc : linux-kernel@vger.kernel.org; 
-> sensors@Stimpy.netroedge.com; Michael Hunold
-> Objet : Re: [RFC][2.6] Additional i2c adapter flags for i2c 
-> client isolation
-> 
-> According to Greg KH <greg@kroah.com>:
-> 
-> > > I guess that chip drivers would be allowed to define only one
-> > > class while adapters could possibly define more than one?
-> > 
-> > Not necessarily.  Just make the class a bit field, showing what kind
-> > of devices each expects to handle.
-> 
-> Of course, this is how I meant it.  The way things are done 
-> for now, the
-> class value is already a bitfield and I'm fine with that.  This makes
-> full sense for adapters.  What I was wondering is whether it would be
-> allowed to set more than one class bit for a chip driver.   
-> Not that is
-> necessarily matters much, I'm just curious.  Have we ever heard of
-> chips that would belong to more than one class as we defined them?
-> 
-> > > We also would want to introduce an I2C_ADAP_CLASS_ANY define,
-> > > which would be what the eeprom driver would use, for example
-> > > (since it can be hosted on any kind of bus). Generic bus drivers
-> > > such as i2c-parport would also use I2C_ADAP_CLASS_ANY, since the
-> > > nature of the hosted chips is unknown.
-> > 
-> > Sure:
-> > 	#define I2C_ADAP_CLASS_ANY	0xffffffff
-> > works for me :)
-> 
-> Exactly what I had in mind ;)
-> 
-> > > Having clients define a class sounds also interesting from a
-> > > user-space's point of view. If we would export this information
-> > > through sysfs for example, programs such as "sensors" could
-> > > limit their work to chips of the correct class
-> > > (I2C_ADAP_CLASS_SMBUS at the moment, but a renaming is planned).
-> > 
-> > That also is a good idea.
-> 
-> How would we export the value though? Numerical, with 
-> user-space headers
-> to be included by user-space applications? Or converted to some
-> explicit text strings so that no headers are needed?
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
+> Everytime i see different kind
+> of results in sensor_detect.some times i see lm78 gets detected on ISA
+> and some time i see it87 getting detected ..different versions bdetect
+> defferent sensors.I am not sure if i am missing some thing.
+
+Detection is a delicate process. I2C devices are not identified by a
+unique number. Instead, we have to guess what each device could be
+reading its contents and compare with a list of known chips. I'm not
+that surprised to read that different runs of sensors-detect return
+different results.
+
+> when lm78 gets detected if i lode the modules with mod probe some
+> times it shows the temparature but if do rmmod and modprobe again..it
+> prints no sensors found.
+
+Unless this is a bug in the version of lm_sensors you are using, it may
+because you did not reload all the required modules. For sensors to
+work, you need to load at least i2c-core, i2c-proc, a bus driver and a
+chip driver (lm78 in your case). If you forgot the bus driver, you get
+that "no sensors found" message.
+
+> when it87 gets detected if i load the modules it shows me negative 
+> temparature allways for temp2(cpu like -58C).
+
+So you more likely have a lm78.
+
+> Can you please help me to get out of this trouble to find the best 
+> version of lmsensors and also if yuo can help me in clues in detecting
+> the right sensor.
+
+Use 2.7.0.
+
+I'd also recommend that you get the latest sensors-detect version from
+CVS:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
+and use it instead of the one that comes with 2.7.0. This detection
+script doesn't strongly depend on a given version of lm_sensors (except
+that newer versions could suggest to load drivers older versions didn't
+have). Since we have been improving our detection routines, it might
+give better results.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
