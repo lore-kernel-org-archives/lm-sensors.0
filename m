@@ -1,31 +1,33 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: gl518sm chip driver for 2.6 kernel
-Message-Id: <1075295349.4017b475e9031@imp.gcu.info>
+Message-Id: <1075297829.4017be25d7699@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1075295349.4017b475e9031@imp.gcu.info>
+In-Reply-To: <1075295349.4017b475e9031@imp.gcu.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I found that the gl518sm driver has not been ported to the 2.6
-> kernel in the latest 2.6.1 release.  If no one has, I have attempted
-> it, and it seems to work fine.  I have attached the file with this
-> email. I hope it can be included into the sensors package.
+> Yes, I did follow the guidelines as well as the sysfs-interface, but
+> since its my first kernel module attempt, it might need improvement.
 
-This is a great piece of news :) We are really looking for driver
-porters.
+Hopefully the code review will be quick then :) I'll let you know my
+impressions.
 
-> What else do I need to do?
+> I can also help with other ports if there's a need, since am familiar
+> with it.
 
-I will review your code this evening or tomorrow. Did you look at and
-follow the porting guidelines (Documentation/i2c/porting-clients) or
-not? If not, please take some time to read it, apply any change needed
-to you code and submit it again for review. Else, your work is probably
-over and all you have to do now is be patient until I can review your
-code and send it to Greg KH for inclusion into Linux 2.6.3.
+This is very welcome, since only 25% of the chip drivers have been
+ported so far. Basically, all drivers that have not been ported yet are
+good candidates. Ports in progress are: adm1025, bt869, fscher and
+vt1211. So you can pick any other. You should focus on drivers you have
+the hardware to test, if possible, since it's much better if the port
+is tested by at least one person before being released. If you start
+another port, just let us know so that we can update our list.
 
-Thanks a lot :)
+Thanks a lot for your work.
 
 -- 
 Jean Delvare
