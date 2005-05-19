@@ -1,30 +1,28 @@
-From: greguric@stud.uni-frankfurt.de (Tomislav Greguric)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:23:31 +0000
 Subject: lm_sensor's ticket no. 839
-Message-Id: <20020414203005.A702@greguric.stud.rz.uni-frankfurt.de>
+Message-Id: <3CBC78D5.A9425CFB@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20020414203005.A702@greguric.stud.rz.uni-frankfurt.de>
+In-Reply-To: <20020414203005.A702@greguric.stud.rz.uni-frankfurt.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hello all,
-
-I have an Asus A7A266-E motherboard, too, and would like to add my 2
-cents to the problem described in ticket 839
-<http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket=839>:
-
-1. the Asus A7A266-E uses an AS99127F for hardware monitoring
-   (=3D> modprobe w83781d force_as99127f=3D0,0x2d)
-
-2. the board uses the ALI M1535D+ South Bridge. I guess that some
-   registers have moved or the initialization changed slightly
-   compared to the plain M1535 chip, so this is probably the reason
-   for the errors I and other owners of this board get:
-   | [...] kernel: i2c-ali1535.o: Error: command never completed
-
-Feel free to contact me for further questions or if I can help you in
-any way!
-
-Sincerely,
-Tomislav
+dGhhbmtzIGZvciB0aGUgaW5mby4KSWYgYW55b25lIGhhcyBhIDE1MzVEKyBkYXRhc2hlZXQgcGxl
+YXNlIHNlbmQgaXQgdG8gdXMuCm1kcwoKVG9taXNsYXYgR3JlZ3VyaWMgd3JvdGU6Cj4gCj4gSGVs
+bG8gYWxsLAo+IAo+IEkgaGF2ZSBhbiBBc3VzIEE3QTI2Ni1FIG1vdGhlcmJvYXJkLCB0b28sIGFu
+ZCB3b3VsZCBsaWtlIHRvIGFkZCBteSAyCj4gY2VudHMgdG8gdGhlIHByb2JsZW0gZGVzY3JpYmVk
+IGluIHRpY2tldCA4MzkKPiA8aHR0cDovL3d3dzIubG0tc2Vuc29ycy5udS9+bG03OC9yZWFkdGlj
+a2V0LmNnaT90aWNrZXSDOT46Cj4gCj4gMS4gdGhlIEFzdXMgQTdBMjY2LUUgdXNlcyBhbiBBUzk5
+MTI3RiBmb3IgaGFyZHdhcmUgbW9uaXRvcmluZwo+ICAgICg9PiBtb2Rwcm9iZSB3ODM3ODFkIGZv
+cmNlX2FzOTkxMjdmPTAsMHgyZCkKPiAKPiAyLiB0aGUgYm9hcmQgdXNlcyB0aGUgQUxJIE0xNTM1
+RCsgU291dGggQnJpZGdlLiBJIGd1ZXNzIHRoYXQgc29tZQo+ICAgIHJlZ2lzdGVycyBoYXZlIG1v
+dmVkIG9yIHRoZSBpbml0aWFsaXphdGlvbiBjaGFuZ2VkIHNsaWdodGx5Cj4gICAgY29tcGFyZWQg
+dG8gdGhlIHBsYWluIE0xNTM1IGNoaXAsIHNvIHRoaXMgaXMgcHJvYmFibHkgdGhlIHJlYXNvbgo+
+ICAgIGZvciB0aGUgZXJyb3JzIEkgYW5kIG90aGVyIG93bmVycyBvZiB0aGlzIGJvYXJkIGdldDoK
+PiAgICB8IFsuLi5dIGtlcm5lbDogaTJjLWFsaTE1MzUubzogRXJyb3I6IGNvbW1hbmQgbmV2ZXIg
+Y29tcGxldGVkCj4gCj4gRmVlbCBmcmVlIHRvIGNvbnRhY3QgbWUgZm9yIGZ1cnRoZXIgcXVlc3Rp
+b25zIG9yIGlmIEkgY2FuIGhlbHAgeW91IGluCj4gYW55IHdheSEKPiAKPiBTaW5jZXJlbHksCj4g
+VG9taXNsYXYK
