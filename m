@@ -1,41 +1,51 @@
-From: goofee79@hotmail.com (tom paris)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: Ticket # 1671
-Message-Id: <BAY18-F114XELHCdnpv0000e0ee@hotmail.com>
+From: rafaled@wanadoo.fr (R.C)
+Date: Thu, 19 May 2005 06:23:52 +0000
+Subject: ICH4 support in 2.7.0.
+Message-Id: <200303291629.59327.rafaled@wanadoo.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello again!
+Hello there,
 
-Sorry, the output i get that is wrong is offcourse like this:
+I am currently using a P4G8X motherboard from Asus. It is using the E7205 
+chipest from intel with the Intel? 82801DB I/O Controller Hub 4 (ICH4). 
 
-asb100-i2c-1-2d
-Adapter: SMBus nForce2 adapter at 5500
-ERROR: Can't get IN data! (0x0001)
-ERROR: Can't get IN data! (0x0002)
-ERROR: Can't get IN data! (0x0003)
-ERROR: Can't get IN data! (0x0004)
-ERROR: Can't get IN data! (0x0005)
-ERROR: Can't get IN data! (0x0006)
-ERROR: Can't get IN data! (0x0007)
-ERROR: Can't get FAN data! (0x0031)
-ERROR: Can't get FAN data! (0x0032)
-ERROR: Can't get FAN data! (0x0033)
-ERROR: Can't get TEMP data! (0x0051)
-ERROR: Can't get TEMP data! (0x0054)
-ERROR: Can't get TEMP data! (0x0057)
-ERROR: Can't get TEMP data! (0x005a)
-ERROR: Can't get VID data!
-alarms:
+According to the documentation, this bus device is supported by the latest 
+2.7.0 but I cannot get it recognized. In the documentation it is said that 
+for ICH0/2/3 I should have a function 3 in device 1f but nothing is said 
+about ICH4 (and I don't have a device 1f).
 
-Thank you!
+Here is what lspci gives me :
 
-Regards,
-Goofee
+00:00.0 Host bridge: Intel Corp.: Unknown device 255d (rev 03)
+00:01.0 PCI bridge: Intel Corp.: Unknown device 2552 (rev 03)
+00:1d.0 USB Controller: Intel Corp. 82801DB USB (Hub #1) (rev 02)
+00:1d.1 USB Controller: Intel Corp. 82801DB USB (Hub #2) (rev 02)
+00:1d.2 USB Controller: Intel Corp. 82801DB USB (Hub #3) (rev 02)
+00:1d.7 USB Controller: Intel Corp. 82801DB USB EHCI Controller (rev 02)
+00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev 82)
+00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
+00:1f.1 IDE interface: Intel Corp. 82801DB ICH4 IDE (rev 02)
 
-_________________________________________________________________
-Help STOP SPAM with the new MSN 8 and get 2 months FREE* =20
-http://join.msn.com/?page=FEatures/junkmail
+There is a clear and quite detailed description of the device on intel's site: 
+here is a link to it if anyone needs it : 
+ftp://download.intel.com/design/chipsets/datashts/29074401.pdf
+
+I am not sure wether it is me doing something wrong or the support of this bus 
+not fully implemented but I guess that since there is a perfect documentation 
+it might be possible to get it supported.
+
+On a side note sensors-detect, does not detect anything and a modprobe 
+i2c-i801 gives me this:
+i2c-i801.o: Error: Can't detect I801, function 3!
+i2c-i801.o: I801 not detected, module not inserted. 
+(logical since there seems not to be any function 3 with ICH4).
+
+I hope you will have time to look into this.
+
+thanks in advance,
+
+               R.C
