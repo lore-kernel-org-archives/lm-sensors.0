@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:24 +0000
 Subject: Ticket no. 1817
-Message-Id: <20041124214339.248df452.khali@linux-fr.org>
+Message-Id: <20041124225453.61d839df.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41A4C939.8050404@jonrkc.com>
 In-Reply-To: <41A4C939.8050404@jonrkc.com>
@@ -10,20 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Try as I may, all I can get by redirecting this command is 
-> the output
-> of the bare "sensors" command.  I get a WHOLE LOT of output
-> in the terminal window, but it's so much I can't select it and
-> copy it here.  Can you tell me a way to provide this 
-> information?
+> I finally figured out how to get the output of strace
+> sensors.  It is attached
+> as a text file to this email.
+> 
+> Thanks for your help so far!
+> 
+> Jon Rutherford
 
-strace sensors > strace.out 2>&1
+The strace looks fine, the configuration file is found, and read as
+usual. I don't get it.
 
-> The rest of your requests worked OK in terms of copying them,
-> and here they are, in each case following your request.
+Could you please:
 
-OK, they confirm that your system is "sane". Version of libsensors
-matches sensors' and there are no obvious library duplicates in the way.
+1* Send the whole configuration file to me, unmodified, for me to try on
+my system.
+
+2* Try installing lm_sensors 2.8.7 or newer from our sources. Download,
+unpack, make user, make user_install and you're done. Be sure you
+actually remove Mandrake's package before you do. And see if it changes
+anything.
+
+3* Provide the source RPM for the Mandrake lm_sensors package, or
+preverably a pointer to that source RPM. I suspect that the Mandrake
+folks included some home made patch that would prevent me from
+understanding what's going on.
 
 Thanks,
 -- 
