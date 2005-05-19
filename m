@@ -1,63 +1,99 @@
-From: william.mcclintock@schriever.af.mil (McClintock William J Contr MCOM)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:24:27 +0000
 Subject: unknown eeprom type (65) [ticket #1449]
-Message-Id: <B8BD20F161298A42A3B513D23A28556701101F40@fsglenex3.schriever.af.mil>
+Message-Id: <3FC55DAA.D0E36822@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1069703037.8309.4.camel@localhost>
 In-Reply-To: <1069703037.8309.4.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-aTJjLWNvcmUubzogaTJjIGNvcmUgbW9kdWxlIHZlcnNpb24gMi44LjEgKDIwMDMxMDA1KQppMmMt
-aXNhLm8gdmVyc2lvbiAyLjguMSAoMjAwMzEwMDUpCmkyYy1wcm9jLm8gdmVyc2lvbiAyLjguMSAo
-MjAwMzEwMDUpCnc4Mzc4MWQubyB2ZXJzaW9uIDIuOC4xICgyMDAzMTAwNSkKZWVwcm9tLm8gdmVy
-c2lvbiAyLjguMSAoMjAwMzEwMDUpCmkyYy1uZm9yY2UyLm8gdmVyc2lvbiAyLjguMSAoMjAwMzEw
-MDUpCmkyYy1uZm9yY2UyLm86IG5Gb3JjZTIgU01CdXMgYWRhcHRlciBhdCAweDUwMDAKaTJjLW5m
-b3JjZTIubzogbkZvcmNlMiBTTUJ1cyBhZGFwdGVyIGF0IDB4NTA0MAppMmMtZGV2Lm86IGkyYyAv
-ZGV2IGVudHJpZXMgZHJpdmVyIG1vZHVsZSB2ZXJzaW9uIDIuOC4xICgyMDAzMTAwNSkKaTJjLWRl
-di5vOiBSZWdpc3RlcmVkICdJU0EgbWFpbiBhZGFwdGVyJyBhcyBtaW5vciAwCmkyYy1kZXYubzog
-UmVnaXN0ZXJlZCAnU01CdXMgbkZvcmNlMiBhZGFwdGVyIGF0IDUwMDAnIGFzIG1pbm9yIDEKaTJj
-LWRldi5vOiBSZWdpc3RlcmVkICdTTUJ1cyBuRm9yY2UyIGFkYXB0ZXIgYXQgNTA0MCcgYXMgbWlu
-b3IgMgpVbmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQg
-dmlydHVhbCBhZGRyZXNzIDAwMDAwMDAwCiBwcmludGluZyBlaXA6CmUwYTVhMjE2CipwZGUgPSAw
-MDAwMDAwMApPb3BzOiAwMDAwCmkyYy1kZXYgaTJjLW5mb3JjZTIgZWVwcm9tIHc4Mzc4MWQgaTJj
-LXByb2MgaTJjLWlzYSBpMmMtY29yZSBudmF1ZGlvCmFjOTdfY29kZWMKc291bmRjb3JlIHBhcnBv
-cnRfcGMgbHAgcGFycG9ydCBpcHRhYmxlX2ZpbHRlciBpcF90YWJsZXMgYXV0b2ZzIG5mcyBsb2Nr
-ZApzdW5yCkNQVTogICAgMApFSVA6ICAgIDAwNjA6WzxlMGE1YTIxNj5dICAgIFRhaW50ZWQ6IFAK
-RUZMQUdTOiAwMDAxMDI0NgoKRUlQIGlzIGF0IG5mb3JjZTJfYWNjZXNzIFtpMmMtbmZvcmNlMl0g
-MHgxYjYgKDIuNC4yMC0xMy45KQplYXg6IDAwMDAwMDAwICAgZWJ4OiAwMDAwNTAwMCAgIGVjeDog
-YzE3YmFhMDAgICBlZHg6IDAwMDAwMDAxCmVzaTogYzE3YmFhMDAgICBlZGk6IDAwMDAwMDAwICAg
-ZWJwOiBjMTdiYWEwMCAgIGVzcDogZDgyYTNlNzgKZHM6IDAwNjggICBlczogMDA2OCAgIHNzOiAw
-MDY4ClByb2Nlc3MgaTJjZHVtcCAocGlkOiAzNTQyLCBzdGFja3BhZ2XYMmEzMDAwKQpTdGFjazog
-ZDgyY2QzNDAgZGZmZDI0MDAgMDAwMDAyOTYgYzI1YTZiYjggZGZmZDI0MDAgMDAzNDYyYjAgMDA1
-MDAwMDAKYzE3YmFhNDAKICAgICAgIDAwMDAwMDAwIDAwMDAwMDAxIGMxN2JhYTA0IGUwYTQwY2M5
-IGMxN2JhYTA0IDAwMDAwMDUwIDAwMDAwMDAwCjAwMDAwMDAwCiAgICAgICAwMDAwMDAwMCAwMDAw
-MDAwMSAwMDAwMDAwMCBlMGE1YWYyMCBkODI3NzQyMCBkODNlYzE4MCA0MjBhYzZhMAowMDAwMDA1
-MApDYWxsIFRyYWNlOiAgIFs8ZTBhNDBjYzk+XSBpMmNfc21idXNfeGZlcl9SOTM1Y2NjYzAgW2ky
-Yy1jb3JlXSAweDg5CigweGQ4MmEzZWE0KQopCls8ZTBhNWFmMjA+XSBzbWJ1c19hbGdvcml0aG0g
-W2kyYy1uZm9yY2UyXSAweDAgKDB4ZDgyYTNlYzQpKQpbPGUwYTVjMTRjPl0gaTJjZGV2X2lvY3Rs
-IFtpMmMtZGV2XSAweDAgKDB4ZDgyYTNlZjApKQpbPGUwYTVjNWFmPl0gaTJjZGV2X2lvY3RsIFtp
-MmMtZGV2XSAweDQ2MyAoMHhkODJhM2VmNCkpCls8YzAxMTg2YzA+XSBzY2hlZHVsZSBba2VybmVs
-XSAweDE3MCAoMHhkODJhM2Y0MCkpCls8YzAxMjU0ZDc+XSBzY2hlZHVsZV90aW1lb3V0IFtrZXJu
-ZWxdIDB4NjcgKDB4ZDgyYTNmNjQpKQpbPGUwYTVjMTRjPl0gaTJjZGV2X2lvY3RsIFtpMmMtZGV2
-XSAweDAgKDB4ZDgyYTNmOTApKQpbPGMwMTUzZDRjPl0gc3lzX2lvY3RsIFtrZXJuZWxdIDB4YmMg
-KDB4ZDgyYTNmOTQpKQpbPGMwMTA5MzlmPl0gc3lzdGVtX2NhbGwgW2tlcm5lbF0gMHgzMyAoMHhk
-ODJhM2ZjMCkpCgoKQ29kZTogOGEgMDcgOGQgNTMgMDQgZWUgZTYgODAgODMgY2UgMDQgZTkgYTMg
-ZmUgZmYgZmYgOGIgOWQgZjAgMDAKCgotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQpGcm9tOiBN
-YXJrIFN0dWRlYmFrZXIgW21haWx0bzptZHNAcGFyYWR5bmUuY29tXQpTZW50OiBXZWRuZXNkYXks
-IE5vdmVtYmVyIDI2LCAyMDAzIDM6NDEgUE0KVG86IHNlbnNvcnNAU3RpbXB5Lm5ldHJvZWRnZS5j
-b20KQ2M6IHdpbGxpYW0ubWNjbGludG9ja0BzY2hyaWV2ZXIuYWYubWlsOyBmcmR1cnNvQHlhaG9v
-LmNvbS5icgpTdWJqZWN0OiBSZTogdW5rbm93biBlZXByb20gdHlwZSAoNjUpIFt0aWNrZXQgIzE0
-NDldCgoKZG9lcyBkbWVzZyBoYXZlIGFueXRoaW5nIGFib3V0IGEgbW9kdWxlIGdvaW5nIG9vcHM/
-CgoKSmVhbiBEZWx2YXJlIHdyb3RlOgoKPj4+W3Jvb3RAd29ya3N0YXRpb24xIGN2czJdIyBpMmNk
-dW1wIDEgNTAgYwo+Pj4gIFdBUk5JTkchIFRoaXMgcHJvZ3JhbSBjYW4gY29uZnVzZSB5b3VyIEky
-QyBidXMsIGNhdXNlIGRhdGEgbG9zcwo+Pj4gIGFuZCB3b3JzZSEgSSB3aWxsIHByb2JlIGZpbGUg
-L2Rldi9pMmMtMSwgYWRkcmVzcyAweDMyLCBtb2RlIGJ5dGUKPj4+ICBjb25zZWN1dGl2ZSByZWFk
-IFlvdSBoYXZlIGZpdmUgc2Vjb25kcyB0byByZWNvbnNpZGVyIGFuZCBwcmVzcwo+Pj4gIENUUkwt
-QyEKPj4+Cj4+PlNlZ21lbnRhdGlvbiBmYXVsdAo+IAo+IAo+IFN0aWxsIHRoaXMgbmVlZHMgZml4
-aW5nLiBNYXJrLCBhbnkgaWRlYSBhYm91dCB0aGF0PyBDb3VsZCBpdCBiZSBjYXVzZWQKPiBieSB0
-aGUgaTJjLW5mb3JjZTIgZHJpdmVyPyBEb2luZyB0aGUgc2FtZSBoZXJlIChpMmMtaTgwMSkgZXhp
-dHMgY2xlYW5seToKPiBFcnJvcjogV3JpdGUgc3RhcnQgYWRkcmVzcyBmYWlsZWQsIHJldHVybiBj
-b2RlIC0xCj4gCg==
+I found and fixed what looked like the problem in i2c-nforce
+that the eeprom module was seeing with byte writes.
+It was writing the wrong data to the wrong place.
+Can't say for sure because I don't have a datasheet.
+Doubt that this was the cause of the oopses so there may be something
+else going on too.
+For those of you testing, if the old i2c-nforce won't rmmod you
+will have to reboot.=20
+
+
+McClintock William J Contr MCOM wrote:
+>=20
+> i2c-core.o: i2c core module version 2.8.1 (20031005)
+> i2c-isa.o version 2.8.1 (20031005)
+> i2c-proc.o version 2.8.1 (20031005)
+> w83781d.o version 2.8.1 (20031005)
+> eeprom.o version 2.8.1 (20031005)
+> i2c-nforce2.o version 2.8.1 (20031005)
+> i2c-nforce2.o: nForce2 SMBus adapter at 0x5000
+> i2c-nforce2.o: nForce2 SMBus adapter at 0x5040
+> i2c-dev.o: i2c /dev entries driver module version 2.8.1 (20031005)
+> i2c-dev.o: Registered 'ISA main adapter' as minor 0
+> i2c-dev.o: Registered 'SMBus nForce2 adapter at 5000' as minor 1
+> i2c-dev.o: Registered 'SMBus nForce2 adapter at 5040' as minor 2
+> Unable to handle kernel NULL pointer dereference at virtual address 00000=
+000
+>  printing eip:
+> e0a5a216
+> *pde =3D 00000000
+> Oops: 0000
+> i2c-dev i2c-nforce2 eeprom w83781d i2c-proc i2c-isa i2c-core nvaudio
+> ac97_codec
+> soundcore parport_pc lp parport iptable_filter ip_tables autofs nfs lockd
+> sunr
+> CPU:    0
+> EIP:    0060:[<e0a5a216>]    Tainted: P
+> EFLAGS: 00010246
+>=20
+> EIP is at nforce2_access [i2c-nforce2] 0x1b6 (2.4.20-13.9)
+> eax: 00000000   ebx: 00005000   ecx: c17baa00   edx: 00000001
+> esi: c17baa00   edi: 00000000   ebp: c17baa00   esp: d82a3e78
+> ds: 0068   es: 0068   ss: 0068
+> Process i2cdump (pid: 3542, stackpage=D82a3000)
+> Stack: d82cd340 dffd2400 00000296 c25a6bb8 dffd2400 003462b0 00500000
+> c17baa40
+>        00000000 00000001 c17baa04 e0a40cc9 c17baa04 00000050 00000000
+> 00000000
+>        00000000 00000001 00000000 e0a5af20 d8277420 d83ec180 420ac6a0
+> 00000050
+> Call Trace:   [<e0a40cc9>] i2c_smbus_xfer_R935cccc0 [i2c-core] 0x89
+> (0xd82a3ea4)
+> )
+> [<e0a5af20>] smbus_algorithm [i2c-nforce2] 0x0 (0xd82a3ec4))
+> [<e0a5c14c>] i2cdev_ioctl [i2c-dev] 0x0 (0xd82a3ef0))
+> [<e0a5c5af>] i2cdev_ioctl [i2c-dev] 0x463 (0xd82a3ef4))
+> [<c01186c0>] schedule [kernel] 0x170 (0xd82a3f40))
+> [<c01254d7>] schedule_timeout [kernel] 0x67 (0xd82a3f64))
+> [<e0a5c14c>] i2cdev_ioctl [i2c-dev] 0x0 (0xd82a3f90))
+> [<c0153d4c>] sys_ioctl [kernel] 0xbc (0xd82a3f94))
+> [<c010939f>] system_call [kernel] 0x33 (0xd82a3fc0))
+>=20
+> Code: 8a 07 8d 53 04 ee e6 80 83 ce 04 e9 a3 fe ff ff 8b 9d f0 00
+>=20
+> -----Original Message-----
+> From: Mark Studebaker [mailto:mds@paradyne.com]
+> Sent: Wednesday, November 26, 2003 3:41 PM
+> To: sensors@Stimpy.netroedge.com
+> Cc: william.mcclintock@schriever.af.mil; frdurso@yahoo.com.br
+> Subject: Re: unknown eeprom type (65) [ticket #1449]
+>=20
+> does dmesg have anything about a module going oops?
+>=20
+> Jean Delvare wrote:
+>=20
+> >>>[root@workstation1 cvs2]# i2cdump 1 50 c
+> >>>  WARNING! This program can confuse your I2C bus, cause data loss
+> >>>  and worse! I will probe file /dev/i2c-1, address 0x32, mode byte
+> >>>  consecutive read You have five seconds to reconsider and press
+> >>>  CTRL-C!
+> >>>
+> >>>Segmentation fault
+> >
+> >
+> > Still this needs fixing. Mark, any idea about that? Could it be caused
+> > by the i2c-nforce2 driver? Doing the same here (i2c-i801) exits cleanly:
+> > Error: Write start address failed, return code -1
+> >
