@@ -1,48 +1,25 @@
-From: phil@edgedesign.us (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:25:08 +0000
-Subject: LM93 driver
-Message-Id: <410FC98E.9060805@edgedesign.us>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:30 +0000
+Subject: velleman doc
+Message-Id: <20031222204231.6db9944c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040802213357.GB2782@jupiter.solarsys.private>
-In-Reply-To: <20040802213357.GB2782@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-Ah, I get it now.  Nice arrangement!
+The Velleman docs and driver sometimes refer to a K9000 model. Most
+of the time they refer to the K8000 model. After searching the web and
+Velleman's web site, it turns out that no K9000 model exists. Thus I
+suppose that this is a typo and that the driver is really for the K8000.
 
+May I change the docs and driver in that way? (I would like to do
+so before I send an i2c-velleman patch for inclusion into Linux 2.4.24.)
 
-Phil
+Thanks.
 
-Mark M. Hoffman wrote:
-> Hi Phil:
-> 
-> * Philip Edelbrock <phil@edgedesign.us> [2004-08-02 17:15:14 -0700]:
-> 
->>What does it mean that they are sponsoring it?  Are they offering 
->>payment for somebody to write/debug/support?
-> 
-> 
-> s/sponsor/commission/
-> 
-> I.e. They have agreed to pay my employer for me to write the driver.
-> 
-> It's already in progress actually... I'll probably commit something
-> to CVS tomorrow or Wed.
-> 
-> 
->>Mark M. Hoffman wrote:
->>
->>>I am pleased to announce that Tekelec (1) has agreed to sponsor
->>>a Linux driver for National Semiconductor's LM93 sensor chip.
->>>Thanks also to my employer, Utilitek Systems (2), for handling
->>>the arrangements.
->>>
->>>(1) http://www.tekelec.com/
->>>(2) http://www.utilitek.com/
-> 
-> 
-> Regards,
-> 
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
