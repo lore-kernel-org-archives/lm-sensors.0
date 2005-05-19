@@ -1,80 +1,48 @@
-From: ovis@thecourtofeden.org (ivo)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: i801 bus problems
-Message-Id: <Pine.LNX.4.58.0409031832230.2000@shi>
+From: thijs@thijsbakx.nl (Thijs Bakx)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: Some very strange problems with lm-sensors
+Message-Id: <000501c32ffe$afb61410$1200a8c0@twit>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
-In-Reply-To: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-WOOOHOOO
-
+As i said in the subject in short the problem is that i can?t find any
 sensors
-lm85-i2c-0-2e
-Adapter: SMBus I801 adapter at d800
-V1.5:       +1.51 V  (min =  +0.00 V, max =  +3.32 V)
-VCore:      +1.30 V  (min =  +0.00 V, max =  +2.99 V)
-V3.3:       +3.28 V  (min =  +0.00 V, max =  +4.38 V)
-V5:        +5.10 V  (min =  +0.00 V, max =  +6.64 V)
-V12:      +12.00 V  (min =  +0.00 V, max = +15.94 V)
-CPU_Fan:   2186 RPM  (min =    0 RPM)
-CPU:         +47 C  (low  =  -127 C, high =  +127 C)
-Board:       +38 C  (low  =  -127 C, high =  +127 C)
-Remote:      +37 C  (low  =  -127 C, high =  +127 C)
-CPU_PWM:    77
-Fan2_PWM:   77
-Fan3_PWM:   77
-vid:      +1.850 V    (VRM Version  9.1)
+on my asus a7v8-x with lm-sensors. I have patched my kernel , 2.4.20, with
+the
+correct patches and compiled the kernel with all lmsensors and i2c support.
+But still no sensors were found, then i tried to compile everything as
+modules
+and now sensors-detect gives us some sensors. Although when I modprobe them
+and then try ?sensors ? again it still says no sensors found. I even tried
+to
+get those sensors to work with the forced undectable sensors method but
+then ./i2cdetect 0 says it can?t open /dev/i2c-0. And I found out
+that /dev/i2c-0 indeed not exists.
+
+I think I have tried just everything i could so thats why I decided to ask
+it
+here. I hope i gave enough info otherwise you can just mail me.
+
+Is there any irc channel or something were a lot of lm-sensors users hang
+out ?
 
 
-i did
+The output of i2cdetect:
 
-modprobe i2c-i801
-modprobe lm85 force=0,0x2e
-
-together with mounting /sys
-All my servers i made with 2.6.x only my workstation was upgraded from
-2.4.x to 2.6.x so i never missed /sys until today ;)
-
-
-this is great many thanks
-
-ovis
-
-
-On Fri, 3 Sep 2004, Jean Delvare wrote:
-
-> > Confirmed  SMSC EMC6D103 !!!!
-> >
-> > on a photo of the mobo on the web there was a
-> > ADM1027
->
-> Since both chips are compatible, I guess intel use whatever they have at hand
-> at the moment.
->
-> Anyway the story is quiet easy to understand now.
->
-> 1* The "no response" errors in the logs are for the other possible addresses
-> of LM85-compatible chips (0x2c and 0x2d). That's not what your chip uses so
-> the bus cannot read from these addresses. Nothing wrong.
->
-> 2* The lm85 driver in Linux 2.6 doesn't support SMSC chips, although the 2.4
-> driver does. Using force=0,0x2e should work in the meantime. The original post
-> suggests you tried and it didn't, but the log right after that says "found
-> normal i2c entry for adapter 0, addr 2e" so I doubt it worked, you must have
-> missed something. Just try again.
->
-> At some time, the SMSC support should be ported from the 2.4 driver, and
-> extended to the 103 and maybe 102 as well if they are compatible (and they
-> seem to be but I don't know the LM85 family that good).
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/
->
->
+fulgor:/home/admin/twit/downloads/lm_sensors-2.7.0/prog/detect# ./i2cdetect
+0
+  WARNING! This program can confuse your I2C bus, cause data loss and worse!
+  I will probe file /dev/i2c-0
+  You have five seconds to reconsider and press CTRL-C!
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+ 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+ 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+ 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+ 30: 30 31 XX XX XX XX XX 37 XX XX XX XX XX XX XX XX
+ 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+ 50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+ 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+ 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
