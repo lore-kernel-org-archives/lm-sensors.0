@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:13 +0000
 Subject: Eeprom driver optimization
-Message-Id: <3F426F77.5040304@paradyne.com>
+Message-Id: <20030823205918.51e747fa.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030816141351.76899190.khali@linux-fr.org>
 In-Reply-To: <20030816141351.76899190.khali@linux-fr.org>
@@ -10,88 +10,122 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The refresh time is 5 minutes now.
 
-As I've said before, I consider the eeprom driver a "demonstration" rather than
-something with a whole lot of value.
-
-Therefore I don't feel that inefficiency is a big concern.
-But if there's some generic method to reduce the number of accesses
-that could be added, that may be interesting.
-
-I'm not in favor of more Vaio- or EDID-specific stuff
-("subsets") in eeprom.c.
-
-mds
-
-
-
-
-
-Philip Pokorny wrote:
-> I would suggest that the chance of eeprom contents changing during 
+> I would suggest that the chance of eeprom contents changing during
 > normal running is *very* small.
 > 
-> Therefore, you could set the refresh time to be *very* long by default 
-> (and make it configurable if the VAIO BIOS is changing the eeprom 
-> underneath us. Gosh I hope not...)  Say 10 minutes or more.  Then read 
+> Therefore, you could set the refresh time to be *very* long by default
+> (and make it configurable if the VAIO BIOS is changing the eeprom
+> underneath us. Gosh I hope not...)  Say 10 minutes or more.  Then read
 > the contents once, and cache the results.
-> 
-> An alternative would be to just divide the eeprom into 16-byte subsets 
-> and assign a refresh timer to each.  This matches the /proc organization 
-> pretty well. (16 bytes per file)
-> 
-> But since sysfs is coming soon and Greg KH's proposal is a single binary 
-> file for eeprom's, I think my first suggestion is better for the future...
-> 
-> :v)
-> 
-> Jean Delvare wrote:
-> 
->> Hi all,
->>
->> As I was working on the eeprom driver, one thing came to my mind. If
->> should be possible to significantly speed the eeprom module up. As it is
->> now, requesting one single byte from the eeprom cause the whole eeprom
->> (256 bytes) to be read. Of course, we don't want to refresh bytes
->> one-by-one, it would be too complex. But maybe we could define subsets
->> of bytes that should be refreshed at once. In a way, this joins a
->> previous discussion about driver design
->> (http://archives.andrew.net.au/lm-sensors/msg03657.html). Philip Pokorny
->> already did something similar in the adm1026 driver, introducing a
->> second refresh frequency for limits, as opposed to measured values.
->> Still there is a single update function in the adm1026 driver, and this
->> too could be discussed. And a general discussion about these policies
->> would be welcome for sensor drivers.
->>
->> But let's stick to the eeprom module for now (my train leaves in less
->> than 3 hours now so I'm a bit short in time).
->>
->> When sensors is called for regular memory eeproms, the rows that will be
->> accessed (to return the memory type and the memory size) are 1 and 2
->> (counting rows from 1 to 16). When called for a Sony Vaio EEPROM, it
->> will read rows 9, 13 and 14. For an EDID it will read rows 1 and 9 (but
->> this could be changed to row 1 only). Likewise, running the
->> decode-eeprom, decode-vaio and decode-edid scripts will only access
->> subsets of the eeprom. At the very least, I believe we should divide the
->> eeprom in two subsets: rows 1-2 and rows 3-16. That would make sensors
->> far faster on memory eeproms. Additionally, I think I remember these
->> eeproms are usually 64-byte or 128-byte long (EDIDs are), only the
->> Vaio's are 256-byte long. So we could define 4 subsets instead: rows
->> 1-2, rows 3-4, rows 5-8 and rows 9-16. I believe that this would speed
->> up sensors and scripts much. This would require to add separated refresh
->> timers, but I think it's worth it.
->>
->> I don't know if it's worth it defining more complex subsets. For example
->> we could define a subset for the 5 bytes used by sensors for memory
->> eeproms. This would make things even faster, but OTOH too many subsets
->> will be difficult to optimize, especially if more and more eeprom types
->> appear (I think I remember see many unknown eeproms in user reports
->> these last months).
->>
->> I'll try this while in the train, but I still would like to hear
->> opinions about this.
->>
->>
-> 
-> 
+
+That solves the further reads, agreed. But that's not my concern here.
+What I'm trying to enhance here is the initial read time. It may sound
+pointless because it's only the first time, but I believe it's important
+because that's how much the users have to wait the first time they run
+sensors. We *know* that it's longer than further calls, but the user
+doesn't. 
+
+> An alternative would be to just divide the eeprom into 16-byte subsets
+> and assign a refresh timer to each.  This matches the /proc
+> organization pretty well. (16 bytes per file)
+
+Great, that's almost the solution I went to. Since I was offline while
+working on the problem, I took some notes. Here they are:
+
+****************
+
+Here are the rows that are accessed by sensors (I start counting with
+row 1):
+sensors::vaio   : 9-10, 13-14
+sensors::*      : 1
+sensors::edid   : 1
+sensors::dimm   : 1-2
+
+Here are the rows that are accessed by our various scripts:
+decode-edid.pl  : 1 (failure) 1-8 (success)
+decode-vaio.pl  : 2-3, 9-11, 13-16
+decode-dimms.pl : 1-4 (failure) 1-8 (success)
+decode-xeon.pl  : 1-6, 8
+
+5 strategies
+------------
+
+1* No partitioning (as it was before).
+   Module size: 3616 bytes (before optimization 1).
+   Sensors time (dimm): 2.58s.
+   Sensors time (vaio): 2.58s.
+
+2* Smart partitioning (2-2-4-8).
+   Per-eeprom memory overhead: 12 bytes.
+   Module size: 3456 bytes (before optimization 2).
+   Sensors time (dimm): 0.34s.
+   Sensors time (vaio): 1.30s.
+
+3* Sensors-oriented partitioning.
+   Zone 1 = row 1
+   Zone 2 = row 2
+   Zone 3 = rows 9-10
+   Zone 4 = rows 13-14
+   Zone 0 = everything
+   Per-eeprom memory overhead: 16 bytes.
+   Not tested.
+
+4* Raw partitioning, 1-row slices.
+   No zones, sub-partitioning of solution #5 (and therefore of #2).
+   Per-eeprom memory overhead: 61 bytes.
+   Doesn't significantly speed sensors up (compared with solution #5).
+   Not tested.
+
+5* Raw partitioning, 2-row slices.
+   No zones, sub-partitioning of solution #2.
+   Per-eeprom memory overhead: 28 bytes.
+   Module size: 3424 bytes.
+   Sensors time (dimm): 0.34s.
+   Sensors time (vaio): 0.67s.
+
+Notes about optimizations:
+Optimization 1 is removing the big switch/case in the callback function,
+and use the sysctl value instead. Faster, cleaner.
+Optimization 2 is seeing valid as a bit vector instead of an array.
+
+****************
+
+The version I'll commit to the CVS repository is solution #5. It seems
+to be the best speed/memory tradeoff, doesn't depend on a specific use
+of eeproms, and is rather straightforward to understand.
+
+The speed improvement is simply amazing, so I guess everyone will like
+the change. It would make it possible to lower the buffering time (5
+minutes for now), which will be interesting if we want to support write
+to eeproms.
+
+(OT: It looks like my I2C bus is working at 2 kHz. Isn't it too slow?
+Most chips I've read the datasheets of don't accept running below 10
+kHz.)
+
+> But since sysfs is coming soon and Greg KH's proposal is a single
+> binary file for eeprom's, I think my first suggestion is better for
+> the future...
+
+This raises two questions:
+
+1* Is a monoblock file the best idea? It prevents any speed
+optimisation. However, it makes handling easier for sure. Also, what
+will be the file size? For now, we don't detect the eeprom size, and I
+don't think we can really detect it. Module parameter?
+
+2* Should eeproms be supported by sensors? Eeproms are not sensors. If
+we opt for a monoblock file, they will be slow displaying (at least the
+first time) as before. And people don't care about them (at least when
+running sensors). So I'd suggest we remove eeprom from sensors, and/or
+remove it from sensors-detect (so that people get it only if they really
+want it). I'd prefer removing eeprom from sensors, so that people can
+still load the modules and use the various scripts to get the values
+from the eeproms in a much better form than when using sensors. We would
+maintain support into libsensors, so that people needing to access the
+eeproms have an easy way to do so.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
