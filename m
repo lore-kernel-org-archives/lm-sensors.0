@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:45 +0000
+Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: Help me with VT82C586B
-Message-Id: <NL4GLoSu.1111745054.5539110.khali@localhost>
+Message-Id: <20050327102550.43139f03.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <14410443364.20050325100723@omskart.ru>
 In-Reply-To: <14410443364.20050325100723@omskart.ru>
@@ -10,55 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
 Hi Alexey,
 
-Please CC: the mailing-list when replying.
+> JD> Not all motherboards have sensors, especially older ones, which
+> JD> seems to be your case.
+> 
+> PCI devices found:
+>   Bus  0, device   0, function  0:
+>     Host bridge: VIA Technologies, Inc. VT82C693A/694x [Apollo
+>     PRO133x] (rev 1).
+>       Master Capable.  Latency.
+>       Prefetchable 32 bit memory at 0xe0000000 [0xe1ffffff].
+>   Bus  0, device   1, function  0:
+>     PCI bridge: VIA Technologies, Inc. VT82C598/694x [Apollo
+>     MVP3/Pro133x AGP] (rev 0).
+>       Master Capable.  No bursts.  Min Gnt.
+>   Bus  0, device   7, function  0:
+>     ISA bridge: VIA Technologies, Inc. VT82C586/A/B PCI-to-ISA [Apollo
+>     VP] (rev 71).
+> 
+> what about this?
 
-> > What is your problem exactly?
->
-> Where Temperature/FAN speed/Volts?
+This is your south bridge, which has an I2C controller which is properly
+handled by our i2c-via driver. This south bridge has no integrated
+sensors, and there are no sensors on the I2C bus. Thus my conclusion:
+there are no sensors on this motherboard.
 
-Not all motherboards have sensors, especially older ones, which seems to
-be your case.
-
-> Why 128, when I have 64Mb?
-
-The value is read in the EEPROM of the memory module. Either the EEPROM
-is bogus, or the module is really 128MB.
-
-> How I can know what motherboard I have?
-
-If even you don't know... ;) People are supposed to know what hardware
-they are! Ask the person you got it from. Or open the case and take a
-look, sometimes motherboards have their manufacturer and model written
-down on them. Or look at what the BIOS displays when the machine boops.
-You can also give a try to a tool named "dmidecode" [1], which might
-tell you, providing your motherboard supports SMBIOS/DMI.
-
-[1] http://www.nongnu.org/dmidecode/
-
-> -----------------------------------------
-> [skip]
-> Do you want to probe now? (YES/no):
-> Probing for PCI bus adapters...
-> Use driver `i2c-via' for device 00:07.3: VIA Technologies VT82C586B Apollo
->    ACPI
-> Probe succesfully concluded.
-> [skip]
-> Next adapter: VIA i2c
-> Do you want to scan it? (YES/no/selectively):
-> Client at address 0x51 can not be probed - unload all client drivers first!
-> Client found at address 0x69
-> [skip]
-> Sorry, no chips were detected.
-> Either your sensors are not supported, or they are
-> connected to an I2C bus adapter that we do not support.
->-----------------------------------------
-
-The bus drivers seems to be working OK, as it found two devices (eeprom
-and clock). But no hardware monitoring chip. Your only hope is with ISA
-chips. You did not include that section. What about it?
-
---
+-- 
 Jean Delvare
