@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:37 +0000
 Subject: [PATCH] 2.6 preparations for documentation update
-Message-Id: <Q6QdLshP.1107873559.9907820.khali@localhost>
+Message-Id: <20050208195055.GA24698@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0502081427510.7839@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0502081427510.7839@desitka.sh.cvut.cz>
@@ -10,19 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Tue, Feb 08, 2005 at 02:34:02PM +0100, Rudolf Marek wrote:
+> Hello,
+> 
+> Please apply following patch.
+> 
+> It is a "style" update for documentation. When done please move this
+> i2c-parport file to new busses/ subdirectory. Patch to fill this directory
+> with documentation will follow.
 
-Hi,
+Why not just send me a patch that does just that?  It would be much
+easier...
 
->Oh yes
->cvs [server aborted]: "commit" requires write access to the repository
->
->But not today :)
+thanks,
 
-Hm, aren't you supposed to have write access now?
-
-Phil, did you grant write access to Ruik to all of the i2c, lm_sensors2
-and website CVS modules?
-
-Thanks,
---
-Jean Delvare
+greg k-h
