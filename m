@@ -1,52 +1,62 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:37 +0000
-Subject: Installation   lm_sensors-2.9.0, sur Suse 9.2 , noyau 2.6
-Message-Id: <20050213142050.7f2b11c0.khali@linux-fr.org>
+From: Johann.Glaser@gmx.at (Johann Glaser)
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: ASUS P4C800 Deluxe - W83627THF
+Message-Id: <1062239759.1074.30.camel@hansi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200502131137.43844.jackie_lola@yahoo.fr>
-In-Reply-To: <200502131137.43844.jackie_lola@yahoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jacqueline,
+Hi!
 
-> Thank you for your answer 
-> 
->  With  "make user" i  got an error...  but  i think i was was not in
->  the good directory... 
+A few weeks ago I bought an ASUS P4C800 Deluxe mainboard. It has a
+W83627THF chip.
 
-You *need* to be in the "root" lm_sensors directory when running that
-command.
+Therefore I added the necessary details in the i2c-i801.c and w83781d.c.
 
-> I don't have any explication about "user", in man make. I dont
-> understand what  it is ?
+Today I wanted to send you a diff but found out, that in the meantime a
+new lm-sensors version is available. So my diff is not accurate now.
 
-The values you pass after "make" are known as "targets". They are a way
-to tell make what we want it to do. When you type only "make", a default
-target is used. Each project is free to name its targets any way it
-wants. Our default target is fine for 2.4 kernels, but not for 2.6
-kernels (the default target makes too many things), so we added a "user"
-target for 2.6 kernel, which only build the user-space tools.
+Additionally you seperated the W83627 chips in another file. Since there
+are some incomplete parts regarding the W83627THF I'll send you my diff
+anyway. Hopefully some of the lines can help you. They have been taken
+agains a 2.7.0 version.
 
-> jackie@ip-10:~> su root
-> Password:
-> ip-10:/home/jackie # make user
-> make: *** Pas de r?gle pour fabriquer la cible ? user ?. Arr?t.
-> ip-10:/home/jackie # make user_install
-> make: *** Pas de r?gle pour fabriquer la cible ? user_install ?.
-> Arr?t. ip-10:/home/jackie #
-> 
-> I hope my system is not bad now.. Is it possible to clean it, before
-> another  try.
+BTW: The W83627THF only has 6 voltage-sensors. The layout is as follows:
+  in0 ... Vcore
+  in1 ... +12V
+  in2 ... -3,3V
+  in3 ... +5V
+  in7 ... V5SB
+  in8 ... VBat
 
-Don't worry about your system, you cannot break anything with these
-errors.
+in2 and in8 can be displayed directly (3,3V). in7 and in3 have to be
+multiplied by 1,68. in1 needs a factor of 3,8. For in0 I don't know the
+factor. in4..in6 are not available.
 
-All you have to do is run "make user" and "make user_install" in the
-correct directory: the lm_sensors root directory.
+Some info on fans:
+  fan2 = CPU
+  fan3 = Power Supply
+It seems that CPU fan has a default divisor of 2. This is too less, when
+the CPU is in idle mode. One has to set this value to 4.
 
-Hope that helps,
+Temperature Sensors:
+  temp1 ... Mainboard
+  temp2 ... CPU
+
+Bye
+  Hansi
+
 -- 
-Jean Delvare
+Johann Glaser   <Johann.Glaser@gmx.at>
+   Vienna University of Technology
+       Electrical Engineering 
+____ http://www.johann-glaser.at/ ____
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm-sensors.ASUS-P4C800.diff
+Type: text/x-patch
+Size: 7315 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030830/b7800c6d/lm-sensors.ASUS-P4C800.bin
