@@ -1,28 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:05 +0000
-Subject: [PATCH] i2c/i2c-dev.c::i2c_dev_init() cleanup
-Message-Id: <20040709204214.20598093.khali@linux-fr.org>
+From: ac9410@attbi.com (Albert Cranford)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: i2c adapter question
+Message-Id: <3D79362B.6A8976C4@attbi.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200407090741.i697f8El055192@zone3.gcu-squad.org>
-In-Reply-To: <200407090741.i697f8El055192@zone3.gcu-squad.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Is it something that should be ported back to CVS and/or 2.4 kernel
-> > tree?
+I'm forwarding you to the i2c/sensors mail list.
+Have you seen the hardware monitor web site?
+http://secure.netroedge.com/~lm78/
+
+Frans Englich wrote:
 > 
-> Only if you really want to, it's just a "being paranoid" check :)
-
-I don't really want more work, thank you ;)
-
-I'll keep an eye to the 2.4 kernel tree. If the author gets this there,
-then I'll do similar changes to our CVS repository. Else I won't do
-anything.
-
-Thanks.
+> Hello Albert,
+> 
+> I've goggle'd the web and searched for an mailinglist suitable for my question
+> but couldn't come up with anything. Thus, I bug you..
+> 
+> Simply, I need a cheap and feature rich i2c adapter with support in the i2c
+> Linux kernel subsystem. It must be external peripheral , parallel/rs-232 or
+> perhaps USB is fine.
+> It's quite alright if that means I have to build it myself(then I 'only' need
+> the circuit design paper)
+> 
+> If you know a source/Documentation relevant to this and which perhaps answers
+> my question I would be glad to recieve it.
+> 
+> Keep up the good work.
+> 
+> cheers,
+> Frans Englich
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Albert Cranford Deerfield Beach FL USA
+ac9410@bellsouth.net
