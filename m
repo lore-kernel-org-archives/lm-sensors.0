@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:18 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0-test5
-Message-Id: <10642734262308@kroah.com>
+Message-Id: <10642734272108@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10642734262057@kroah.com>
+In-Reply-To: <10642734271040@kroah.com>
 References: <1064273416272@kroah.com>
 In-Reply-To: <1064273416272@kroah.com>
 MIME-Version: 1.0
@@ -11,658 +11,1524 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1315.1.21, 2003/09/22 13:57:44-07:00, greg@kroah.com
+ChangeSet 1.1315.1.23, 2003/09/22 14:21:09-07:00, greg@kroah.com
 
-I2C: move i2c-elektor.c driver to drivers/i2c/busses/
+[PATCH] I2C: move the scx200* drivers to drivers/i2c/busses
 
 
- drivers/i2c/i2c-elektor.c        |  286 ---------------------------------------
- drivers/i2c/Kconfig              |   10 -
- drivers/i2c/Makefile             |    1 
- drivers/i2c/busses/Kconfig       |   10 +
- drivers/i2c/busses/Makefile      |    1 
- drivers/i2c/busses/i2c-elektor.c |  286 +++++++++++++++++++++++++++++++++++++++
- 6 files changed, 297 insertions(+), 297 deletions(-)
+ drivers/i2c/scx200_acb.c        |  553 ----------------------------------------
+ drivers/i2c/scx200_i2c.c        |  133 ---------
+ drivers/i2c/Kconfig             |   38 --
+ drivers/i2c/Makefile            |    2 
+ drivers/i2c/busses/Kconfig      |   38 ++
+ drivers/i2c/busses/Makefile     |    2 
+ drivers/i2c/busses/scx200_acb.c |  553 ++++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/busses/scx200_i2c.c |  132 +++++++++
+ 8 files changed, 725 insertions(+), 726 deletions(-)
 
 
 diff -Nru a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
---- a/drivers/i2c/Kconfig	Mon Sep 22 16:12:35 2003
-+++ b/drivers/i2c/Kconfig	Mon Sep 22 16:12:35 2003
-@@ -107,16 +107,6 @@
+--- a/drivers/i2c/Kconfig	Mon Sep 22 16:12:15 2003
++++ b/drivers/i2c/Kconfig	Mon Sep 22 16:12:15 2003
+@@ -48,44 +48,6 @@
  	  This support is also available as a module.  If so, the module 
- 	  will be called i2c-algo-pcf.
+ 	  will be called i2c-algo-bit.
  
--config I2C_ELEKTOR
--	tristate "Elektor ISA card"
--	depends on I2C_ALGOPCF && BROKEN_ON_SMP
+-config SCx200_I2C
+-	tristate "NatSemi SCx200 I2C using GPIO pins"
+-	depends on SCx200 && I2C_ALGOBIT
 -	help
--	  This supports the PCF8584 ISA bus I2C adapter.  Say Y if you own
--	  such an adapter.
+-	  Enable the use of two GPIO pins of a SCx200 processor as an I2C bus.
+-
+-	  If you don't know what to do here, say N.
 -
 -	  This support is also available as a module.  If so, the module 
--	  will be called i2c-elektor.
+-	  will be called scx200_i2c.
 -
- config I2C_KEYWEST
- 	tristate "Powermac Keywest I2C interface"
- 	depends on I2C && PPC_PMAC
+-config SCx200_I2C_SCL
+-	int "GPIO pin used for SCL"
+-	depends on SCx200_I2C
+-	default "12"
+-	help
+-	  Enter the GPIO pin number used for the SCL signal.  This value can
+-	  also be specified with a module parameter.
+-
+-config SCx200_I2C_SDA
+-	int "GPIO pin used for SDA"
+-	depends on SCx200_I2C
+-	default "13"
+-	help
+-	  Enter the GPIO pin number used for the SSA signal.  This value can
+-	  also be specified with a module parameter.
+-
+-config SCx200_ACB
+-	tristate "NatSemi SCx200 ACCESS.bus"
+-	depends on I2C_ALGOBIT!=n && I2C
+-	help
+-	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
+-
+-	  If you don't know what to do here, say N.
+-
+-	  This support is also available as a module.  If so, the module 
+-	  will be called scx200_acb.
+-
+ config I2C_ALGOPCF
+ 	tristate "I2C PCF 8584 interfaces"
+ 	depends on I2C
 diff -Nru a/drivers/i2c/Makefile b/drivers/i2c/Makefile
---- a/drivers/i2c/Makefile	Mon Sep 22 16:12:35 2003
-+++ b/drivers/i2c/Makefile	Mon Sep 22 16:12:35 2003
-@@ -7,7 +7,6 @@
- obj-$(CONFIG_I2C_ALGOBIT)	+= i2c-algo-bit.o
- obj-$(CONFIG_I2C_VELLEMAN)	+= i2c-velleman.o
- obj-$(CONFIG_I2C_ALGOPCF)	+= i2c-algo-pcf.o
--obj-$(CONFIG_I2C_ELEKTOR)	+= i2c-elektor.o
+--- a/drivers/i2c/Makefile	Mon Sep 22 16:12:15 2003
++++ b/drivers/i2c/Makefile	Mon Sep 22 16:12:15 2003
+@@ -9,8 +9,6 @@
  obj-$(CONFIG_I2C_KEYWEST)	+= i2c-keywest.o
  obj-$(CONFIG_ITE_I2C_ALGO)	+= i2c-algo-ite.o
  obj-$(CONFIG_ITE_I2C_ADAP)	+= i2c-adap-ite.o
+-obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
+-obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
+ obj-$(CONFIG_I2C_IBM_IIC)	+= i2c-ibm_iic.o
+ obj-$(CONFIG_I2C_SENSOR)	+= i2c-sensor.o
+ obj-$(CONFIG_I2C_IOP3XX)	+= i2c-iop3xx.o
 diff -Nru a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig	Mon Sep 22 16:12:35 2003
-+++ b/drivers/i2c/busses/Kconfig	Mon Sep 22 16:12:35 2003
-@@ -46,6 +46,16 @@
+--- a/drivers/i2c/busses/Kconfig	Mon Sep 22 16:12:15 2003
++++ b/drivers/i2c/busses/Kconfig	Mon Sep 22 16:12:15 2003
+@@ -166,6 +166,44 @@
  	  This driver can also be built as a module.  If so, the module
- 	  will be called i2c-amd8111.
+ 	  will be called i2c-savage4.
  
-+config I2C_ELEKTOR
-+	tristate "Elektor ISA card"
-+	depends on I2C_ALGOPCF && BROKEN_ON_SMP
++config SCx200_I2C
++	tristate "NatSemi SCx200 I2C using GPIO pins"
++	depends on SCx200 && I2C_ALGOBIT
 +	help
-+	  This supports the PCF8584 ISA bus I2C adapter.  Say Y if you own
-+	  such an adapter.
++	  Enable the use of two GPIO pins of a SCx200 processor as an I2C bus.
++
++	  If you don't know what to do here, say N.
 +
 +	  This support is also available as a module.  If so, the module 
-+	  will be called i2c-elektor.
++	  will be called scx200_i2c.
 +
- config I2C_ELV
- 	tristate "ELV adapter"
- 	depends on I2C_ALGOBIT && ISA
++config SCx200_I2C_SCL
++	int "GPIO pin used for SCL"
++	depends on SCx200_I2C
++	default "12"
++	help
++	  Enter the GPIO pin number used for the SCL signal.  This value can
++	  also be specified with a module parameter.
++
++config SCx200_I2C_SDA
++	int "GPIO pin used for SDA"
++	depends on SCx200_I2C
++	default "13"
++	help
++	  Enter the GPIO pin number used for the SSA signal.  This value can
++	  also be specified with a module parameter.
++
++config SCx200_ACB
++	tristate "NatSemi SCx200 ACCESS.bus"
++	depends on I2C_ALGOBIT!=n && I2C
++	help
++	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
++
++	  If you don't know what to do here, say N.
++
++	  This support is also available as a module.  If so, the module 
++	  will be called scx200_acb.
++
+ config I2C_SIS5595
+ 	tristate "SiS 5595"
+ 	depends on I2C && PCI && EXPERIMENTAL
 diff -Nru a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
---- a/drivers/i2c/busses/Makefile	Mon Sep 22 16:12:35 2003
-+++ b/drivers/i2c/busses/Makefile	Mon Sep 22 16:12:35 2003
-@@ -6,6 +6,7 @@
- obj-$(CONFIG_I2C_ALI15X3)	+= i2c-ali15x3.o
- obj-$(CONFIG_I2C_AMD756)	+= i2c-amd756.o
- obj-$(CONFIG_I2C_AMD8111)	+= i2c-amd8111.o
-+obj-$(CONFIG_I2C_ELEKTOR)	+= i2c-elektor.o
- obj-$(CONFIG_I2C_ELV)		+= i2c-elv.o
- obj-$(CONFIG_I2C_I801)		+= i2c-i801.o
- obj-$(CONFIG_I2C_I810)		+= i2c-i810.o
-diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
+--- a/drivers/i2c/busses/Makefile	Mon Sep 22 16:12:15 2003
++++ b/drivers/i2c/busses/Makefile	Mon Sep 22 16:12:15 2003
+@@ -23,3 +23,5 @@
+ obj-$(CONFIG_I2C_VIA)		+= i2c-via.o
+ obj-$(CONFIG_I2C_VIAPRO)	+= i2c-viapro.o
+ obj-$(CONFIG_I2C_VOODOO3)	+= i2c-voodoo3.o
++obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
++obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
+diff -Nru a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
 --- /dev/null	Wed Dec 31 16:00:00 1969
-+++ b/drivers/i2c/busses/i2c-elektor.c	Mon Sep 22 16:12:35 2003
-@@ -0,0 +1,286 @@
-+/* ------------------------------------------------------------------------- */
-+/* i2c-elektor.c i2c-hw access for PCF8584 style isa bus adaptes             */
-+/* ------------------------------------------------------------------------- */
-+/*   Copyright (C) 1995-97 Simon G. Vogl
-+                   1998-99 Hans Berglund
++++ b/drivers/i2c/busses/scx200_acb.c	Mon Sep 22 16:12:15 2003
+@@ -0,0 +1,553 @@
++/*  linux/drivers/i2c/scx200_acb.c 
 +
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; either version 2 of the License, or
-+    (at your option) any later version.
++    Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
 +
++    National Semiconductor SCx200 ACCESS.bus support
++    
++    Based on i2c-keywest.c which is:
++        Copyright (c) 2001 Benjamin Herrenschmidt <benh@kernel.crashing.org>
++        Copyright (c) 2000 Philip Edelbrock <phil@stimpy.netroedge.com>
++    
++    This program is free software; you can redistribute it and/or
++    modify it under the terms of the GNU General Public License as
++    published by the Free Software Foundation; either version 2 of the
++    License, or (at your option) any later version.
++   
 +    This program is distributed in the hope that it will be useful,
 +    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++    General Public License for more details.
++   
 +    You should have received a copy of the GNU General Public License
 +    along with this program; if not, write to the Free Software
-+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
-+/* ------------------------------------------------------------------------- */
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 +
-+/* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
-+   Frodo Looijaard <frodol@dds.nl> */
++*/
 +
-+/* Partialy rewriten by Oleg I. Vdovikin for mmapped support of 
-+   for Alpha Processor Inc. UP-2000(+) boards */
-+
-+#include <linux/kernel.h>
-+#include <linux/ioport.h>
++#include <linux/config.h>
 +#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
 +#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/pci.h>
-+#include <linux/wait.h>
-+
 +#include <linux/i2c.h>
-+#include <linux/i2c-algo-pcf.h>
-+
++#include <linux/smp_lock.h>
++#include <linux/pci.h>
 +#include <asm/io.h>
-+#include <asm/irq.h>
 +
-+#include "../i2c-pcf8584.h"
++#include <linux/scx200.h>
 +
-+#define DEFAULT_BASE 0x330
++#define NAME "scx200_acb"
 +
-+static int base;
-+static int irq;
-+static int clock  = 0x1c;
-+static int own    = 0x55;
-+static int mmapped;
-+static int i2c_debug;
++MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
++MODULE_DESCRIPTION("NatSemi SCx200 ACCESS.bus Driver");
++MODULE_LICENSE("GPL");
 +
-+/* vdovikin: removed static struct i2c_pcf_isa gpi; code - 
-+  this module in real supports only one device, due to missing arguments
-+  in some functions, called from the algo-pcf module. Sometimes it's
-+  need to be rewriten - but for now just remove this for simpler reading */
++#define MAX_DEVICES 4
++static int base[MAX_DEVICES] = { 0x840 };
++MODULE_PARM(base, "1-4i");
++MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
 +
-+static wait_queue_head_t pcf_wait;
-+static int pcf_pending;
++#define DEBUG 0
 +
-+/* ----- global defines -----------------------------------------------	*/
-+#define DEB(x)	if (i2c_debug>=1) x
-+#define DEB2(x) if (i2c_debug>=2) x
-+#define DEB3(x) if (i2c_debug>=3) x
-+#define DEBE(x)	x	/* error messages 				*/
++#if DEBUG
++#define DBG(x...) printk(KERN_DEBUG NAME ": " x)
++#else
++#define DBG(x...)
++#endif
 +
-+/* ----- local functions ----------------------------------------------	*/
++/* The hardware supports interrupt driven mode too, but I haven't
++   implemented that. */
++#define POLLED_MODE 1
++#define POLL_TIMEOUT (HZ)
 +
-+static void pcf_isa_setbyte(void *data, int ctl, int val)
++enum scx200_acb_state {
++	state_idle,
++	state_address,
++	state_command,
++	state_repeat_start,
++	state_quick,
++	state_read,
++	state_write,
++};
++
++static const char *scx200_acb_state_name[] = {
++	"idle",
++	"address",
++	"command",
++	"repeat_start",
++	"quick",
++	"read",
++	"write",
++};
++
++/* Physical interface */
++struct scx200_acb_iface
 +{
-+	int address = ctl ? (base + 1) : base;
++	struct scx200_acb_iface *next;
++	struct i2c_adapter adapter;
++	unsigned base;
++	struct semaphore sem;
 +
-+	/* enable irq if any specified for serial operation */
-+	if (ctl && irq && (val & I2C_PCF_ESO)) {
-+		val |= I2C_PCF_ENI;
++	/* State machine data */
++	enum scx200_acb_state state;
++	int result;
++	u8 address_byte;
++	u8 command;
++	u8 *ptr;
++	char needs_reset;
++	unsigned len;
++};
++
++/* Register Definitions */
++#define ACBSDA		(iface->base + 0)
++#define ACBST		(iface->base + 1)
++#define    ACBST_SDAST		0x40 /* SDA Status */
++#define    ACBST_BER		0x20 
++#define    ACBST_NEGACK		0x10 /* Negative Acknowledge */
++#define    ACBST_STASTR		0x08 /* Stall After Start */
++#define    ACBST_MASTER		0x02
++#define ACBCST		(iface->base + 2)
++#define    ACBCST_BB		0x02
++#define ACBCTL1		(iface->base + 3)
++#define    ACBCTL1_STASTRE	0x80
++#define    ACBCTL1_NMINTE	0x40
++#define	   ACBCTL1_ACK		0x10
++#define	   ACBCTL1_STOP		0x02
++#define	   ACBCTL1_START	0x01
++#define ACBADDR		(iface->base + 4)
++#define ACBCTL2		(iface->base + 5)
++#define    ACBCTL2_ENABLE	0x01
++
++/************************************************************************/
++
++static void scx200_acb_machine(struct scx200_acb_iface *iface, u8 status)
++{
++	const char *errmsg;
++
++	DBG("state %s, status = 0x%02x\n", 
++	    scx200_acb_state_name[iface->state], status);
++
++	if (status & ACBST_BER) {
++		errmsg = "bus error";
++		goto error;
 +	}
++	if (!(status & ACBST_MASTER)) {
++		errmsg = "not master";
++		goto error;
++	}
++	if (status & ACBST_NEGACK)
++		goto negack;
 +
-+	DEB3(printk(KERN_DEBUG "i2c-elektor.o: Write 0x%X 0x%02X\n", address, val & 255));
-+
-+	switch (mmapped) {
-+	case 0: /* regular I/O */
-+		outb(val, address);
++	switch (iface->state) {
++	case state_idle:
++		dev_warn(&iface->adapter.dev, "interrupt in idle state\n");
 +		break;
-+	case 2: /* double mapped I/O needed for UP2000 board,
-+                   I don't know why this... */
-+		writeb(val, address);
-+		/* fall */
-+	case 1: /* memory mapped I/O */
-+		writeb(val, address);
++
++	case state_address:
++		/* Do a pointer write first */
++		outb(iface->address_byte & ~1, ACBSDA);
++
++		iface->state = state_command;
 +		break;
-+	}
-+}
 +
-+static int pcf_isa_getbyte(void *data, int ctl)
-+{
-+	int address = ctl ? (base + 1) : base;
-+	int val = mmapped ? readb(address) : inb(address);
++	case state_command:
++		outb(iface->command, ACBSDA);
 +
-+	DEB3(printk(KERN_DEBUG "i2c-elektor.o: Read 0x%X 0x%02X\n", address, val));
++		if (iface->address_byte & 1)
++			iface->state = state_repeat_start;
++		else
++			iface->state = state_write;
++		break;
 +
-+	return (val);
-+}
++	case state_repeat_start:
++		outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
++		/* fallthrough */
++		
++	case state_quick:
++		if (iface->address_byte & 1) {
++			if (iface->len = 1) 
++				outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
++			else
++				outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
++			outb(iface->address_byte, ACBSDA);
 +
-+static int pcf_isa_getown(void *data)
-+{
-+	return (own);
-+}
++			iface->state = state_read;
++		} else {
++			outb(iface->address_byte, ACBSDA);
 +
-+
-+static int pcf_isa_getclock(void *data)
-+{
-+	return (clock);
-+}
-+
-+static void pcf_isa_waitforpin(void) {
-+
-+	int timeout = 2;
-+
-+	if (irq > 0) {
-+		cli();
-+		if (pcf_pending = 0) {
-+			interruptible_sleep_on_timeout(&pcf_wait, timeout*HZ );
-+		} else
-+			pcf_pending = 0;
-+		sti();
-+	} else {
-+		udelay(100);
-+	}
-+}
-+
-+
-+static irqreturn_t pcf_isa_handler(int this_irq, void *dev_id, struct pt_regs *regs) {
-+	pcf_pending = 1;
-+	wake_up_interruptible(&pcf_wait);
-+	return IRQ_HANDLED;
-+}
-+
-+
-+static int pcf_isa_init(void)
-+{
-+	if (!mmapped) {
-+		if (!request_region(base, 2, "i2c (isa bus adapter)")) {
-+			printk(KERN_ERR
-+			       "i2c-elektor.o: requested I/O region (0x%X:2) "
-+			       "is in use.\n", base);
-+			return -ENODEV;
++			iface->state = state_write;
 +		}
++		break;
++
++	case state_read:
++		/* Set ACK if receiving the last byte */
++		if (iface->len = 1)
++			outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
++		else
++			outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
++
++		*iface->ptr++ = inb(ACBSDA);
++		--iface->len;
++
++		if (iface->len = 0) {
++			iface->result = 0;
++			iface->state = state_idle;
++			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
++		}
++
++		break;
++
++	case state_write:
++		if (iface->len = 0) {
++			iface->result = 0;
++			iface->state = state_idle;
++			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
++			break;
++		}
++		
++		outb(*iface->ptr++, ACBSDA);
++		--iface->len;
++		
++		break;
 +	}
-+	if (irq > 0) {
-+		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", 0) < 0) {
-+			printk(KERN_ERR "i2c-elektor.o: Request irq%d failed\n", irq);
-+			irq = 0;
-+		} else
-+			enable_irq(irq);
++
++	return;
++
++ negack:
++	DBG("negative acknowledge in state %s\n", 
++	    scx200_acb_state_name[iface->state]);
++
++	iface->state = state_idle;
++	iface->result = -ENXIO;
++
++	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
++	outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
++	return;
++
++ error:
++	dev_err(&iface->adapter.dev, "%s in state %s\n", errmsg,
++		scx200_acb_state_name[iface->state]);
++
++	iface->state = state_idle;
++	iface->result = -EIO;
++	iface->needs_reset = 1;
++}
++
++static void scx200_acb_timeout(struct scx200_acb_iface *iface) 
++{
++	dev_err(&iface->adapter.dev, "timeout in state %s\n",
++		scx200_acb_state_name[iface->state]);
++
++	iface->state = state_idle;
++	iface->result = -EIO;
++	iface->needs_reset = 1;
++}
++
++#ifdef POLLED_MODE
++static void scx200_acb_poll(struct scx200_acb_iface *iface)
++{
++	u8 status = 0;
++	unsigned long timeout;
++
++	timeout = jiffies + POLL_TIMEOUT;
++	while (time_before(jiffies, timeout)) {
++		status = inb(ACBST);
++		if ((status & (ACBST_SDAST|ACBST_BER|ACBST_NEGACK)) != 0) {
++			scx200_acb_machine(iface, status);
++			return;
++		}
++		schedule_timeout(HZ/100+1);
 +	}
++
++	scx200_acb_timeout(iface);
++}
++#endif /* POLLED_MODE */
++
++static void scx200_acb_reset(struct scx200_acb_iface *iface)
++{
++	/* Disable the ACCESS.bus device and Configure the SCL
++           frequency: 16 clock cycles */
++	outb(0x70, ACBCTL2);
++	/* Polling mode */
++	outb(0, ACBCTL1);
++	/* Disable slave address */
++	outb(0, ACBADDR);
++	/* Enable the ACCESS.bus device */
++	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
++	/* Free STALL after START */
++	outb(inb(ACBCTL1) & ~(ACBCTL1_STASTRE | ACBCTL1_NMINTE), ACBCTL1);
++	/* Send a STOP */
++	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
++	/* Clear BER, NEGACK and STASTR bits */
++	outb(ACBST_BER | ACBST_NEGACK | ACBST_STASTR, ACBST);
++	/* Clear BB bit */
++	outb(inb(ACBCST) | ACBCST_BB, ACBCST);
++}
++
++static s32 scx200_acb_smbus_xfer(struct i2c_adapter *adapter,
++				u16 address, unsigned short flags,	
++				char rw, u8 command, int size, 
++				union i2c_smbus_data *data)
++{
++	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
++	int len;
++	u8 *buffer;
++	u16 cur_word;
++	int rc;
++
++	switch (size) {
++	case I2C_SMBUS_QUICK:
++	    	len = 0;
++	    	buffer = NULL;
++	    	break;
++	case I2C_SMBUS_BYTE:
++		if (rw = I2C_SMBUS_READ) {
++			len = 1;
++			buffer = &data->byte;
++		} else {
++			len = 1;
++			buffer = &command;
++		}
++	    	break;
++	case I2C_SMBUS_BYTE_DATA:
++	    	len = 1;
++	    	buffer = &data->byte;
++	    	break;
++	case I2C_SMBUS_WORD_DATA:
++		len = 2;
++	    	cur_word = cpu_to_le16(data->word);
++	    	buffer = (u8 *)&cur_word;
++		break;
++	case I2C_SMBUS_BLOCK_DATA:
++	    	len = data->block[0];
++	    	buffer = &data->block[1];
++		break;
++	default:
++	    	return -EINVAL;
++	}
++
++	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
++	    size, address, command, len, rw = I2C_SMBUS_READ);
++
++	if (!len && rw = I2C_SMBUS_READ) {
++		dev_warn(&adapter->dev, "zero length read\n");
++		return -EINVAL;
++	}
++
++	if (len && !buffer) {
++		dev_warn(&adapter->dev, "nonzero length but no buffer\n");
++		return -EFAULT;
++	}
++
++	down(&iface->sem);
++
++	iface->address_byte = address<<1;
++	if (rw = I2C_SMBUS_READ)
++		iface->address_byte |= 1;
++	iface->command = command;
++	iface->ptr = buffer;
++	iface->len = len;
++	iface->result = -EINVAL;
++	iface->needs_reset = 0;
++
++	outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
++
++	if (size = I2C_SMBUS_QUICK || size = I2C_SMBUS_BYTE)
++		iface->state = state_quick;
++	else
++		iface->state = state_address;
++
++#ifdef POLLED_MODE
++	while (iface->state != state_idle)
++		scx200_acb_poll(iface);
++#else /* POLLED_MODE */
++#error Interrupt driven mode not implemented
++#endif /* POLLED_MODE */	
++
++	if (iface->needs_reset)
++		scx200_acb_reset(iface);
++
++	rc = iface->result;
++
++	up(&iface->sem);
++
++	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
++	    	data->word = le16_to_cpu(cur_word);
++
++#if DEBUG
++	printk(KERN_DEBUG NAME ": transfer done, result: %d", rc);
++	if (buffer) {
++		int i;
++		printk(" data:");
++		for (i = 0; i < len; ++i)
++			printk(" %02x", buffer[i]);
++	}
++	printk("\n");
++#endif
++
++	return rc;
++}
++
++static u32 scx200_acb_func(struct i2c_adapter *adapter)
++{
++	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
++	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
++	       I2C_FUNC_SMBUS_BLOCK_DATA;
++}
++
++/* For now, we only handle combined mode (smbus) */
++static struct i2c_algorithm scx200_acb_algorithm = {
++	.name		= "NatSemi SCx200 ACCESS.bus",
++	.id		= I2C_ALGO_SMBUS,
++	.smbus_xfer	= scx200_acb_smbus_xfer,
++	.functionality	= scx200_acb_func,
++};
++
++struct scx200_acb_iface *scx200_acb_list;
++
++int scx200_acb_probe(struct scx200_acb_iface *iface)
++{
++	u8 val;
++
++	/* Disable the ACCESS.bus device and Configure the SCL
++           frequency: 16 clock cycles */
++	outb(0x70, ACBCTL2);
++
++	if (inb(ACBCTL2) != 0x70) {
++		DBG("ACBCTL2 readback failed\n");
++		return -ENXIO;
++	}
++
++	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
++
++	val = inb(ACBCTL1);
++	if (val) {
++		DBG("disabled, but ACBCTL1=0x%02x\n", val);
++		return -ENXIO;
++	}
++
++	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
++
++	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
++
++	val = inb(ACBCTL1);
++	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
++		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
++		return -ENXIO;
++	}
++
 +	return 0;
++}
++
++static int  __init scx200_acb_create(int base, int index)
++{
++	struct scx200_acb_iface *iface;
++	struct i2c_adapter *adapter;
++	int rc = 0;
++	char description[64];
++
++	iface = kmalloc(sizeof(*iface), GFP_KERNEL);
++	if (!iface) {
++		printk(KERN_ERR NAME ": can't allocate memory\n");
++		rc = -ENOMEM;
++		goto errout;
++	}
++
++	memset(iface, 0, sizeof(*iface));
++	adapter = &iface->adapter;
++	i2c_set_adapdata(adapter, iface);
++	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
++	adapter->owner = THIS_MODULE;
++	adapter->id = I2C_ALGO_SMBUS;
++	adapter->algo = &scx200_acb_algorithm;
++
++	init_MUTEX(&iface->sem);
++
++	snprintf(description, sizeof(description), "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
++	if (request_region(base, 8, description) = 0) {
++		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
++			base, base + 8-1);
++		rc = -EBUSY;
++		goto errout;
++	}
++	iface->base = base;
++
++	rc = scx200_acb_probe(iface);
++	if (rc) {
++		dev_warn(&adapter->dev, "probe failed\n");
++		goto errout;
++	}
++
++	scx200_acb_reset(iface);
++
++	if (i2c_add_adapter(adapter) < 0) {
++		dev_err(&adapter->dev, "failed to register\n");
++		rc = -ENODEV;
++		goto errout;
++	}
++
++	lock_kernel();
++	iface->next = scx200_acb_list;
++	scx200_acb_list = iface;
++	unlock_kernel();
++
++	return 0;
++
++ errout:
++	if (iface) {
++		if (iface->base)
++			release_region(iface->base, 8);
++		kfree(iface);
++	}
++	return rc;
++}
++
++static int __init scx200_acb_init(void)
++{
++	int i;
++	int rc;
++
++	printk(KERN_DEBUG NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
++
++	/* Verify that this really is a SCx200 processor */
++	if (pci_find_device(PCI_VENDOR_ID_NS,
++			    PCI_DEVICE_ID_NS_SCx200_BRIDGE,
++			    NULL) = NULL)
++		return -ENODEV;
++
++	rc = -ENXIO;
++	for (i = 0; i < MAX_DEVICES; ++i) {
++		if (base[i] > 0)
++			rc = scx200_acb_create(base[i], i);
++	}
++	if (scx200_acb_list)
++		return 0;
++	return rc;
++}
++
++static void __exit scx200_acb_cleanup(void)
++{
++	struct scx200_acb_iface *iface;
++	lock_kernel();
++	while ((iface = scx200_acb_list) != NULL) {
++		scx200_acb_list = iface->next;
++		unlock_kernel();
++
++		i2c_del_adapter(&iface->adapter);
++		release_region(iface->base, 8);
++		kfree(iface);
++		lock_kernel();
++	}
++	unlock_kernel();
++}
++
++module_init(scx200_acb_init);
++module_exit(scx200_acb_cleanup);
++
++/*
++    Local variables:
++        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
++        c-basic-offset: 8
++    End:
++*/
++
+diff -Nru a/drivers/i2c/busses/scx200_i2c.c b/drivers/i2c/busses/scx200_i2c.c
+--- /dev/null	Wed Dec 31 16:00:00 1969
++++ b/drivers/i2c/busses/scx200_i2c.c	Mon Sep 22 16:12:15 2003
+@@ -0,0 +1,132 @@
++/* linux/drivers/i2c/scx200_i2c.c 
++
++   Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
++
++   National Semiconductor SCx200 I2C bus on GPIO pins
++
++   Based on i2c-velleman.c Copyright (C) 1995-96, 2000 Simon G. Vogl
++
++   This program is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 2 of the License, or
++   (at your option) any later version.
++   
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++   
++   You should have received a copy of the GNU General Public License
++   along with this program; if not, write to the Free Software
++   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     
++*/
++
++#include <linux/config.h>
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/i2c-algo-bit.h>
++#include <asm/io.h>
++
++#include <linux/scx200_gpio.h>
++
++#define NAME "scx200_i2c"
++
++MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
++MODULE_DESCRIPTION("NatSemi SCx200 I2C Driver");
++MODULE_LICENSE("GPL");
++
++MODULE_PARM(scl, "i");
++MODULE_PARM_DESC(scl, "GPIO line for SCL");
++MODULE_PARM(sda, "i");
++MODULE_PARM_DESC(sda, "GPIO line for SDA");
++
++static int scl = CONFIG_SCx200_I2C_SCL;
++static int sda = CONFIG_SCx200_I2C_SDA;
++
++static void scx200_i2c_setscl(void *data, int state)
++{
++	scx200_gpio_set(scl, state);
++}
++
++static void scx200_i2c_setsda(void *data, int state)
++{
++	scx200_gpio_set(sda, state);
++} 
++
++static int scx200_i2c_getscl(void *data)
++{
++	return scx200_gpio_get(scl);
++}
++
++static int scx200_i2c_getsda(void *data)
++{
++	return scx200_gpio_get(sda);
 +}
 +
 +/* ------------------------------------------------------------------------
 + * Encapsulate the above functions in the correct operations structure.
 + * This is only done when more than one hardware adapter is supported.
 + */
-+static struct i2c_algo_pcf_data pcf_isa_data = {
-+	.setpcf	    = pcf_isa_setbyte,
-+	.getpcf	    = pcf_isa_getbyte,
-+	.getown	    = pcf_isa_getown,
-+	.getclock   = pcf_isa_getclock,
-+	.waitforpin = pcf_isa_waitforpin,
-+	.udelay	    = 10,
-+	.mdelay	    = 10,
-+	.timeout    = 100,
++
++static struct i2c_algo_bit_data scx200_i2c_data = {
++	NULL,
++	scx200_i2c_setsda,
++	scx200_i2c_setscl,
++	scx200_i2c_getsda,
++	scx200_i2c_getscl,
++	10, 10, 100,		/* waits, timeout */
 +};
 +
-+static struct i2c_adapter pcf_isa_ops = {
-+	.owner		= THIS_MODULE,
-+	.id		= I2C_HW_P_ELEK,
-+	.algo_data	= &pcf_isa_data,
-+	.name		= "PCF8584 ISA adapter",
++static struct i2c_adapter scx200_i2c_ops = {
++	.owner		   = THIS_MODULE,
++	.algo_data	   = &scx200_i2c_data,
++	.name	= "NatSemi SCx200 I2C",
 +};
 +
-+static int __init i2c_pcfisa_init(void) 
++int scx200_i2c_init(void)
 +{
-+#ifdef __alpha__
-+	/* check to see we have memory mapped PCF8584 connected to the 
-+	Cypress cy82c693 PCI-ISA bridge as on UP2000 board */
-+	if (base = 0) {
-+		
-+		struct pci_dev *cy693_dev +                    pci_find_device(PCI_VENDOR_ID_CONTAQ, 
-+		                    PCI_DEVICE_ID_CONTAQ_82C693, NULL);
++	printk(KERN_DEBUG NAME ": NatSemi SCx200 I2C Driver\n");
 +
-+		if (cy693_dev) {
-+			char config;
-+			/* yeap, we've found cypress, let's check config */
-+			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
-+				
-+				DEB3(printk(KERN_DEBUG "i2c-elektor.o: found cy82c693, config register 0x47 = 0x%02x.\n", config));
-+
-+				/* UP2000 board has this register set to 0xe1,
-+                                   but the most significant bit as seems can be 
-+				   reset during the proper initialisation
-+                                   sequence if guys from API decides to do that
-+                                   (so, we can even enable Tsunami Pchip
-+                                   window for the upper 1 Gb) */
-+
-+				/* so just check for ROMCS at 0xe0000,
-+                                   ROMCS enabled for writes
-+				   and external XD Bus buffer in use. */
-+				if ((config & 0x7f) = 0x61) {
-+					/* seems to be UP2000 like board */
-+					base = 0xe0000;
-+                                        /* I don't know why we need to
-+                                           write twice */
-+					mmapped = 2;
-+                                        /* UP2000 drives ISA with
-+					   8.25 MHz (PCI/4) clock
-+					   (this can be read from cypress) */
-+					clock = I2C_PCF_CLK | I2C_PCF_TRNS90;
-+					printk(KERN_INFO "i2c-elektor.o: found API UP2000 like board, will probe PCF8584 later.\n");
-+				}
-+			}
-+		}
-+	}
-+#endif
-+
-+	/* sanity checks for mmapped I/O */
-+	if (mmapped && base < 0xc8000) {
-+		printk(KERN_ERR "i2c-elektor.o: incorrect base address (0x%0X) specified for mmapped I/O.\n", base);
++	if (!scx200_gpio_present()) {
++		printk(KERN_ERR NAME ": no SCx200 gpio pins available\n");
 +		return -ENODEV;
 +	}
 +
-+	printk(KERN_INFO "i2c-elektor.o: i2c pcf8584-isa adapter module version %s (%s)\n", I2C_VERSION, I2C_DATE);
++	printk(KERN_DEBUG NAME ": SCL=GPIO%02u, SDA=GPIO%02u\n", 
++	       scl, sda);
 +
-+	if (base = 0) {
-+		base = DEFAULT_BASE;
++	if (scl = -1 || sda = -1 || scl = sda) {
++		printk(KERN_ERR NAME ": scl and sda must be specified\n");
++		return -EINVAL;
 +	}
 +
-+	init_waitqueue_head(&pcf_wait);
-+	if (pcf_isa_init())
++	/* Configure GPIOs as open collector outputs */
++	scx200_gpio_configure(scl, ~2, 5);
++	scx200_gpio_configure(sda, ~2, 5);
++
++	if (i2c_bit_add_bus(&scx200_i2c_ops) < 0) {
++		printk(KERN_ERR NAME ": adapter %s registration failed\n", 
++		       scx200_i2c_ops.name);
 +		return -ENODEV;
-+	if (i2c_pcf_add_bus(&pcf_isa_ops) < 0)
-+		goto fail;
++	}
 +	
-+	printk(KERN_ERR "i2c-elektor.o: found device at %#x.\n", base);
-+
 +	return 0;
-+
-+ fail:
-+	if (irq > 0) {
-+		disable_irq(irq);
-+		free_irq(irq, 0);
-+	}
-+
-+	if (!mmapped)
-+		release_region(base , 2);
-+	return -ENODEV;
 +}
 +
-+static void i2c_pcfisa_exit(void)
++void scx200_i2c_cleanup(void)
 +{
-+	i2c_pcf_del_bus(&pcf_isa_ops);
-+
-+	if (irq > 0) {
-+		disable_irq(irq);
-+		free_irq(irq, 0);
-+	}
-+
-+	if (!mmapped)
-+		release_region(base , 2);
++	i2c_bit_del_bus(&scx200_i2c_ops);
 +}
 +
-+MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
-+MODULE_DESCRIPTION("I2C-Bus adapter routines for PCF8584 ISA bus adapter");
-+MODULE_LICENSE("GPL");
++module_init(scx200_i2c_init);
++module_exit(scx200_i2c_cleanup);
 +
-+MODULE_PARM(base, "i");
-+MODULE_PARM(irq, "i");
-+MODULE_PARM(clock, "i");
-+MODULE_PARM(own, "i");
-+MODULE_PARM(mmapped, "i");
-+MODULE_PARM(i2c_debug, "i");
-+
-+module_init(i2c_pcfisa_init);
-+module_exit(i2c_pcfisa_exit);
-diff -Nru a/drivers/i2c/i2c-elektor.c b/drivers/i2c/i2c-elektor.c
---- a/drivers/i2c/i2c-elektor.c	Mon Sep 22 16:12:35 2003
++/*
++    Local variables:
++        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
++        c-basic-offset: 8
++    End:
++*/
+diff -Nru a/drivers/i2c/scx200_acb.c b/drivers/i2c/scx200_acb.c
+--- a/drivers/i2c/scx200_acb.c	Mon Sep 22 16:12:15 2003
 +++ /dev/null	Wed Dec 31 16:00:00 1969
-@@ -1,286 +0,0 @@
--/* ------------------------------------------------------------------------- */
--/* i2c-elektor.c i2c-hw access for PCF8584 style isa bus adaptes             */
--/* ------------------------------------------------------------------------- */
--/*   Copyright (C) 1995-97 Simon G. Vogl
--                   1998-99 Hans Berglund
+@@ -1,553 +0,0 @@
+-/*  linux/drivers/i2c/scx200_acb.c 
 -
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
+-    Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
 -
+-    National Semiconductor SCx200 ACCESS.bus support
+-    
+-    Based on i2c-keywest.c which is:
+-        Copyright (c) 2001 Benjamin Herrenschmidt <benh@kernel.crashing.org>
+-        Copyright (c) 2000 Philip Edelbrock <phil@stimpy.netroedge.com>
+-    
+-    This program is free software; you can redistribute it and/or
+-    modify it under the terms of the GNU General Public License as
+-    published by the Free Software Foundation; either version 2 of the
+-    License, or (at your option) any later version.
+-   
 -    This program is distributed in the hope that it will be useful,
 -    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-    General Public License for more details.
+-   
 -    You should have received a copy of the GNU General Public License
 -    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     */
--/* ------------------------------------------------------------------------- */
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 -
--/* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
--   Frodo Looijaard <frodol@dds.nl> */
+-*/
 -
--/* Partialy rewriten by Oleg I. Vdovikin for mmapped support of 
--   for Alpha Processor Inc. UP-2000(+) boards */
--
--#include <linux/kernel.h>
--#include <linux/ioport.h>
+-#include <linux/config.h>
 -#include <linux/module.h>
--#include <linux/delay.h>
--#include <linux/slab.h>
+-#include <linux/errno.h>
+-#include <linux/kernel.h>
 -#include <linux/init.h>
--#include <linux/interrupt.h>
--#include <linux/pci.h>
--#include <linux/wait.h>
--
 -#include <linux/i2c.h>
--#include <linux/i2c-algo-pcf.h>
--
+-#include <linux/smp_lock.h>
+-#include <linux/pci.h>
 -#include <asm/io.h>
--#include <asm/irq.h>
 -
--#include "i2c-pcf8584.h"
+-#include <linux/scx200.h>
 -
--#define DEFAULT_BASE 0x330
+-#define NAME "scx200_acb"
 -
--static int base;
--static int irq;
--static int clock  = 0x1c;
--static int own    = 0x55;
--static int mmapped;
--static int i2c_debug;
+-MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
+-MODULE_DESCRIPTION("NatSemi SCx200 ACCESS.bus Driver");
+-MODULE_LICENSE("GPL");
 -
--/* vdovikin: removed static struct i2c_pcf_isa gpi; code - 
--  this module in real supports only one device, due to missing arguments
--  in some functions, called from the algo-pcf module. Sometimes it's
--  need to be rewriten - but for now just remove this for simpler reading */
+-#define MAX_DEVICES 4
+-static int base[MAX_DEVICES] = { 0x840 };
+-MODULE_PARM(base, "1-4i");
+-MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
 -
--static wait_queue_head_t pcf_wait;
--static int pcf_pending;
+-#define DEBUG 0
 -
--/* ----- global defines -----------------------------------------------	*/
--#define DEB(x)	if (i2c_debug>=1) x
--#define DEB2(x) if (i2c_debug>=2) x
--#define DEB3(x) if (i2c_debug>=3) x
--#define DEBE(x)	x	/* error messages 				*/
+-#if DEBUG
+-#define DBG(x...) printk(KERN_DEBUG NAME ": " x)
+-#else
+-#define DBG(x...)
+-#endif
 -
--/* ----- local functions ----------------------------------------------	*/
+-/* The hardware supports interrupt driven mode too, but I haven't
+-   implemented that. */
+-#define POLLED_MODE 1
+-#define POLL_TIMEOUT (HZ)
 -
--static void pcf_isa_setbyte(void *data, int ctl, int val)
+-enum scx200_acb_state {
+-	state_idle,
+-	state_address,
+-	state_command,
+-	state_repeat_start,
+-	state_quick,
+-	state_read,
+-	state_write,
+-};
+-
+-static const char *scx200_acb_state_name[] = {
+-	"idle",
+-	"address",
+-	"command",
+-	"repeat_start",
+-	"quick",
+-	"read",
+-	"write",
+-};
+-
+-/* Physical interface */
+-struct scx200_acb_iface
 -{
--	int address = ctl ? (base + 1) : base;
+-	struct scx200_acb_iface *next;
+-	struct i2c_adapter adapter;
+-	unsigned base;
+-	struct semaphore sem;
 -
--	/* enable irq if any specified for serial operation */
--	if (ctl && irq && (val & I2C_PCF_ESO)) {
--		val |= I2C_PCF_ENI;
+-	/* State machine data */
+-	enum scx200_acb_state state;
+-	int result;
+-	u8 address_byte;
+-	u8 command;
+-	u8 *ptr;
+-	char needs_reset;
+-	unsigned len;
+-};
+-
+-/* Register Definitions */
+-#define ACBSDA		(iface->base + 0)
+-#define ACBST		(iface->base + 1)
+-#define    ACBST_SDAST		0x40 /* SDA Status */
+-#define    ACBST_BER		0x20 
+-#define    ACBST_NEGACK		0x10 /* Negative Acknowledge */
+-#define    ACBST_STASTR		0x08 /* Stall After Start */
+-#define    ACBST_MASTER		0x02
+-#define ACBCST		(iface->base + 2)
+-#define    ACBCST_BB		0x02
+-#define ACBCTL1		(iface->base + 3)
+-#define    ACBCTL1_STASTRE	0x80
+-#define    ACBCTL1_NMINTE	0x40
+-#define	   ACBCTL1_ACK		0x10
+-#define	   ACBCTL1_STOP		0x02
+-#define	   ACBCTL1_START	0x01
+-#define ACBADDR		(iface->base + 4)
+-#define ACBCTL2		(iface->base + 5)
+-#define    ACBCTL2_ENABLE	0x01
+-
+-/************************************************************************/
+-
+-static void scx200_acb_machine(struct scx200_acb_iface *iface, u8 status)
+-{
+-	const char *errmsg;
+-
+-	DBG("state %s, status = 0x%02x\n", 
+-	    scx200_acb_state_name[iface->state], status);
+-
+-	if (status & ACBST_BER) {
+-		errmsg = "bus error";
+-		goto error;
 -	}
+-	if (!(status & ACBST_MASTER)) {
+-		errmsg = "not master";
+-		goto error;
+-	}
+-	if (status & ACBST_NEGACK)
+-		goto negack;
 -
--	DEB3(printk(KERN_DEBUG "i2c-elektor.o: Write 0x%X 0x%02X\n", address, val & 255));
--
--	switch (mmapped) {
--	case 0: /* regular I/O */
--		outb(val, address);
+-	switch (iface->state) {
+-	case state_idle:
+-		dev_warn(&iface->adapter.dev, "interrupt in idle state\n");
 -		break;
--	case 2: /* double mapped I/O needed for UP2000 board,
--                   I don't know why this... */
--		writeb(val, address);
--		/* fall */
--	case 1: /* memory mapped I/O */
--		writeb(val, address);
+-
+-	case state_address:
+-		/* Do a pointer write first */
+-		outb(iface->address_byte & ~1, ACBSDA);
+-
+-		iface->state = state_command;
 -		break;
--	}
--}
 -
--static int pcf_isa_getbyte(void *data, int ctl)
--{
--	int address = ctl ? (base + 1) : base;
--	int val = mmapped ? readb(address) : inb(address);
+-	case state_command:
+-		outb(iface->command, ACBSDA);
 -
--	DEB3(printk(KERN_DEBUG "i2c-elektor.o: Read 0x%X 0x%02X\n", address, val));
+-		if (iface->address_byte & 1)
+-			iface->state = state_repeat_start;
+-		else
+-			iface->state = state_write;
+-		break;
 -
--	return (val);
--}
+-	case state_repeat_start:
+-		outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
+-		/* fallthrough */
+-		
+-	case state_quick:
+-		if (iface->address_byte & 1) {
+-			if (iface->len = 1) 
+-				outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
+-			else
+-				outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
+-			outb(iface->address_byte, ACBSDA);
 -
--static int pcf_isa_getown(void *data)
--{
--	return (own);
--}
+-			iface->state = state_read;
+-		} else {
+-			outb(iface->address_byte, ACBSDA);
 -
--
--static int pcf_isa_getclock(void *data)
--{
--	return (clock);
--}
--
--static void pcf_isa_waitforpin(void) {
--
--	int timeout = 2;
--
--	if (irq > 0) {
--		cli();
--		if (pcf_pending = 0) {
--			interruptible_sleep_on_timeout(&pcf_wait, timeout*HZ );
--		} else
--			pcf_pending = 0;
--		sti();
--	} else {
--		udelay(100);
--	}
--}
--
--
--static irqreturn_t pcf_isa_handler(int this_irq, void *dev_id, struct pt_regs *regs) {
--	pcf_pending = 1;
--	wake_up_interruptible(&pcf_wait);
--	return IRQ_HANDLED;
--}
--
--
--static int pcf_isa_init(void)
--{
--	if (!mmapped) {
--		if (!request_region(base, 2, "i2c (isa bus adapter)")) {
--			printk(KERN_ERR
--			       "i2c-elektor.o: requested I/O region (0x%X:2) "
--			       "is in use.\n", base);
--			return -ENODEV;
+-			iface->state = state_write;
 -		}
+-		break;
+-
+-	case state_read:
+-		/* Set ACK if receiving the last byte */
+-		if (iface->len = 1)
+-			outb(inb(ACBCTL1) | ACBCTL1_ACK, ACBCTL1);
+-		else
+-			outb(inb(ACBCTL1) & ~ACBCTL1_ACK, ACBCTL1);
+-
+-		*iface->ptr++ = inb(ACBSDA);
+-		--iface->len;
+-
+-		if (iface->len = 0) {
+-			iface->result = 0;
+-			iface->state = state_idle;
+-			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
+-		}
+-
+-		break;
+-
+-	case state_write:
+-		if (iface->len = 0) {
+-			iface->result = 0;
+-			iface->state = state_idle;
+-			outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
+-			break;
+-		}
+-		
+-		outb(*iface->ptr++, ACBSDA);
+-		--iface->len;
+-		
+-		break;
 -	}
--	if (irq > 0) {
--		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", 0) < 0) {
--			printk(KERN_ERR "i2c-elektor.o: Request irq%d failed\n", irq);
--			irq = 0;
--		} else
--			enable_irq(irq);
+-
+-	return;
+-
+- negack:
+-	DBG("negative acknowledge in state %s\n", 
+-	    scx200_acb_state_name[iface->state]);
+-
+-	iface->state = state_idle;
+-	iface->result = -ENXIO;
+-
+-	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
+-	outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
+-	return;
+-
+- error:
+-	dev_err(&iface->adapter.dev, "%s in state %s\n", errmsg,
+-		scx200_acb_state_name[iface->state]);
+-
+-	iface->state = state_idle;
+-	iface->result = -EIO;
+-	iface->needs_reset = 1;
+-}
+-
+-static void scx200_acb_timeout(struct scx200_acb_iface *iface) 
+-{
+-	dev_err(&iface->adapter.dev, "timeout in state %s\n",
+-		scx200_acb_state_name[iface->state]);
+-
+-	iface->state = state_idle;
+-	iface->result = -EIO;
+-	iface->needs_reset = 1;
+-}
+-
+-#ifdef POLLED_MODE
+-static void scx200_acb_poll(struct scx200_acb_iface *iface)
+-{
+-	u8 status = 0;
+-	unsigned long timeout;
+-
+-	timeout = jiffies + POLL_TIMEOUT;
+-	while (time_before(jiffies, timeout)) {
+-		status = inb(ACBST);
+-		if ((status & (ACBST_SDAST|ACBST_BER|ACBST_NEGACK)) != 0) {
+-			scx200_acb_machine(iface, status);
+-			return;
+-		}
+-		schedule_timeout(HZ/100+1);
 -	}
+-
+-	scx200_acb_timeout(iface);
+-}
+-#endif /* POLLED_MODE */
+-
+-static void scx200_acb_reset(struct scx200_acb_iface *iface)
+-{
+-	/* Disable the ACCESS.bus device and Configure the SCL
+-           frequency: 16 clock cycles */
+-	outb(0x70, ACBCTL2);
+-	/* Polling mode */
+-	outb(0, ACBCTL1);
+-	/* Disable slave address */
+-	outb(0, ACBADDR);
+-	/* Enable the ACCESS.bus device */
+-	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
+-	/* Free STALL after START */
+-	outb(inb(ACBCTL1) & ~(ACBCTL1_STASTRE | ACBCTL1_NMINTE), ACBCTL1);
+-	/* Send a STOP */
+-	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
+-	/* Clear BER, NEGACK and STASTR bits */
+-	outb(ACBST_BER | ACBST_NEGACK | ACBST_STASTR, ACBST);
+-	/* Clear BB bit */
+-	outb(inb(ACBCST) | ACBCST_BB, ACBCST);
+-}
+-
+-static s32 scx200_acb_smbus_xfer(struct i2c_adapter *adapter,
+-				u16 address, unsigned short flags,	
+-				char rw, u8 command, int size, 
+-				union i2c_smbus_data *data)
+-{
+-	struct scx200_acb_iface *iface = i2c_get_adapdata(adapter);
+-	int len;
+-	u8 *buffer;
+-	u16 cur_word;
+-	int rc;
+-
+-	switch (size) {
+-	case I2C_SMBUS_QUICK:
+-	    	len = 0;
+-	    	buffer = NULL;
+-	    	break;
+-	case I2C_SMBUS_BYTE:
+-		if (rw = I2C_SMBUS_READ) {
+-			len = 1;
+-			buffer = &data->byte;
+-		} else {
+-			len = 1;
+-			buffer = &command;
+-		}
+-	    	break;
+-	case I2C_SMBUS_BYTE_DATA:
+-	    	len = 1;
+-	    	buffer = &data->byte;
+-	    	break;
+-	case I2C_SMBUS_WORD_DATA:
+-		len = 2;
+-	    	cur_word = cpu_to_le16(data->word);
+-	    	buffer = (u8 *)&cur_word;
+-		break;
+-	case I2C_SMBUS_BLOCK_DATA:
+-	    	len = data->block[0];
+-	    	buffer = &data->block[1];
+-		break;
+-	default:
+-	    	return -EINVAL;
+-	}
+-
+-	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
+-	    size, address, command, len, rw = I2C_SMBUS_READ);
+-
+-	if (!len && rw = I2C_SMBUS_READ) {
+-		dev_warn(&adapter->dev, "zero length read\n");
+-		return -EINVAL;
+-	}
+-
+-	if (len && !buffer) {
+-		dev_warn(&adapter->dev, "nonzero length but no buffer\n");
+-		return -EFAULT;
+-	}
+-
+-	down(&iface->sem);
+-
+-	iface->address_byte = address<<1;
+-	if (rw = I2C_SMBUS_READ)
+-		iface->address_byte |= 1;
+-	iface->command = command;
+-	iface->ptr = buffer;
+-	iface->len = len;
+-	iface->result = -EINVAL;
+-	iface->needs_reset = 0;
+-
+-	outb(inb(ACBCTL1) | ACBCTL1_START, ACBCTL1);
+-
+-	if (size = I2C_SMBUS_QUICK || size = I2C_SMBUS_BYTE)
+-		iface->state = state_quick;
+-	else
+-		iface->state = state_address;
+-
+-#ifdef POLLED_MODE
+-	while (iface->state != state_idle)
+-		scx200_acb_poll(iface);
+-#else /* POLLED_MODE */
+-#error Interrupt driven mode not implemented
+-#endif /* POLLED_MODE */	
+-
+-	if (iface->needs_reset)
+-		scx200_acb_reset(iface);
+-
+-	rc = iface->result;
+-
+-	up(&iface->sem);
+-
+-	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
+-	    	data->word = le16_to_cpu(cur_word);
+-
+-#if DEBUG
+-	printk(KERN_DEBUG NAME ": transfer done, result: %d", rc);
+-	if (buffer) {
+-		int i;
+-		printk(" data:");
+-		for (i = 0; i < len; ++i)
+-			printk(" %02x", buffer[i]);
+-	}
+-	printk("\n");
+-#endif
+-
+-	return rc;
+-}
+-
+-static u32 scx200_acb_func(struct i2c_adapter *adapter)
+-{
+-	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+-	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+-	       I2C_FUNC_SMBUS_BLOCK_DATA;
+-}
+-
+-/* For now, we only handle combined mode (smbus) */
+-static struct i2c_algorithm scx200_acb_algorithm = {
+-	.name		= "NatSemi SCx200 ACCESS.bus",
+-	.id		= I2C_ALGO_SMBUS,
+-	.smbus_xfer	= scx200_acb_smbus_xfer,
+-	.functionality	= scx200_acb_func,
+-};
+-
+-struct scx200_acb_iface *scx200_acb_list;
+-
+-int scx200_acb_probe(struct scx200_acb_iface *iface)
+-{
+-	u8 val;
+-
+-	/* Disable the ACCESS.bus device and Configure the SCL
+-           frequency: 16 clock cycles */
+-	outb(0x70, ACBCTL2);
+-
+-	if (inb(ACBCTL2) != 0x70) {
+-		DBG("ACBCTL2 readback failed\n");
+-		return -ENXIO;
+-	}
+-
+-	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
+-
+-	val = inb(ACBCTL1);
+-	if (val) {
+-		DBG("disabled, but ACBCTL1=0x%02x\n", val);
+-		return -ENXIO;
+-	}
+-
+-	outb(inb(ACBCTL2) | ACBCTL2_ENABLE, ACBCTL2);
+-
+-	outb(inb(ACBCTL1) | ACBCTL1_NMINTE, ACBCTL1);
+-
+-	val = inb(ACBCTL1);
+-	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
+-		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
+-		return -ENXIO;
+-	}
+-
 -	return 0;
+-}
+-
+-static int  __init scx200_acb_create(int base, int index)
+-{
+-	struct scx200_acb_iface *iface;
+-	struct i2c_adapter *adapter;
+-	int rc = 0;
+-	char description[64];
+-
+-	iface = kmalloc(sizeof(*iface), GFP_KERNEL);
+-	if (!iface) {
+-		printk(KERN_ERR NAME ": can't allocate memory\n");
+-		rc = -ENOMEM;
+-		goto errout;
+-	}
+-
+-	memset(iface, 0, sizeof(*iface));
+-	adapter = &iface->adapter;
+-	i2c_set_adapdata(adapter, iface);
+-	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
+-	adapter->owner = THIS_MODULE;
+-	adapter->id = I2C_ALGO_SMBUS;
+-	adapter->algo = &scx200_acb_algorithm;
+-
+-	init_MUTEX(&iface->sem);
+-
+-	snprintf(description, sizeof(description), "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
+-	if (request_region(base, 8, description) = 0) {
+-		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
+-			base, base + 8-1);
+-		rc = -EBUSY;
+-		goto errout;
+-	}
+-	iface->base = base;
+-
+-	rc = scx200_acb_probe(iface);
+-	if (rc) {
+-		dev_warn(&adapter->dev, "probe failed\n");
+-		goto errout;
+-	}
+-
+-	scx200_acb_reset(iface);
+-
+-	if (i2c_add_adapter(adapter) < 0) {
+-		dev_err(&adapter->dev, "failed to register\n");
+-		rc = -ENODEV;
+-		goto errout;
+-	}
+-
+-	lock_kernel();
+-	iface->next = scx200_acb_list;
+-	scx200_acb_list = iface;
+-	unlock_kernel();
+-
+-	return 0;
+-
+- errout:
+-	if (iface) {
+-		if (iface->base)
+-			release_region(iface->base, 8);
+-		kfree(iface);
+-	}
+-	return rc;
+-}
+-
+-static int __init scx200_acb_init(void)
+-{
+-	int i;
+-	int rc;
+-
+-	printk(KERN_DEBUG NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
+-
+-	/* Verify that this really is a SCx200 processor */
+-	if (pci_find_device(PCI_VENDOR_ID_NS,
+-			    PCI_DEVICE_ID_NS_SCx200_BRIDGE,
+-			    NULL) = NULL)
+-		return -ENODEV;
+-
+-	rc = -ENXIO;
+-	for (i = 0; i < MAX_DEVICES; ++i) {
+-		if (base[i] > 0)
+-			rc = scx200_acb_create(base[i], i);
+-	}
+-	if (scx200_acb_list)
+-		return 0;
+-	return rc;
+-}
+-
+-static void __exit scx200_acb_cleanup(void)
+-{
+-	struct scx200_acb_iface *iface;
+-	lock_kernel();
+-	while ((iface = scx200_acb_list) != NULL) {
+-		scx200_acb_list = iface->next;
+-		unlock_kernel();
+-
+-		i2c_del_adapter(&iface->adapter);
+-		release_region(iface->base, 8);
+-		kfree(iface);
+-		lock_kernel();
+-	}
+-	unlock_kernel();
+-}
+-
+-module_init(scx200_acb_init);
+-module_exit(scx200_acb_cleanup);
+-
+-/*
+-    Local variables:
+-        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
+-        c-basic-offset: 8
+-    End:
+-*/
+-
+diff -Nru a/drivers/i2c/scx200_i2c.c b/drivers/i2c/scx200_i2c.c
+--- a/drivers/i2c/scx200_i2c.c	Mon Sep 22 16:12:15 2003
++++ /dev/null	Wed Dec 31 16:00:00 1969
+@@ -1,133 +0,0 @@
+-/* linux/drivers/i2c/scx200_i2c.c 
+-
+-   Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
+-
+-   National Semiconductor SCx200 I2C bus on GPIO pins
+-
+-   Based on i2c-velleman.c Copyright (C) 1995-96, 2000 Simon G. Vogl
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published by
+-   the Free Software Foundation; either version 2 of the License, or
+-   (at your option) any later version.
+-   
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-   
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, write to the Free Software
+-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     
+-*/
+-
+-#include <linux/config.h>
+-#include <linux/module.h>
+-#include <linux/errno.h>
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/i2c.h>
+-#include <linux/i2c-algo-bit.h>
+-#include <asm/io.h>
+-
+-#include <linux/scx200_gpio.h>
+-
+-#define NAME "scx200_i2c"
+-
+-MODULE_AUTHOR("Christer Weinigel <wingel@nano-system.com>");
+-MODULE_DESCRIPTION("NatSemi SCx200 I2C Driver");
+-MODULE_LICENSE("GPL");
+-
+-MODULE_PARM(scl, "i");
+-MODULE_PARM_DESC(scl, "GPIO line for SCL");
+-MODULE_PARM(sda, "i");
+-MODULE_PARM_DESC(sda, "GPIO line for SDA");
+-
+-static int scl = CONFIG_SCx200_I2C_SCL;
+-static int sda = CONFIG_SCx200_I2C_SDA;
+-
+-static void scx200_i2c_setscl(void *data, int state)
+-{
+-	scx200_gpio_set(scl, state);
+-}
+-
+-static void scx200_i2c_setsda(void *data, int state)
+-{
+-	scx200_gpio_set(sda, state);
+-} 
+-
+-static int scx200_i2c_getscl(void *data)
+-{
+-	return scx200_gpio_get(scl);
+-}
+-
+-static int scx200_i2c_getsda(void *data)
+-{
+-	return scx200_gpio_get(sda);
 -}
 -
 -/* ------------------------------------------------------------------------
 - * Encapsulate the above functions in the correct operations structure.
 - * This is only done when more than one hardware adapter is supported.
 - */
--static struct i2c_algo_pcf_data pcf_isa_data = {
--	.setpcf	    = pcf_isa_setbyte,
--	.getpcf	    = pcf_isa_getbyte,
--	.getown	    = pcf_isa_getown,
--	.getclock   = pcf_isa_getclock,
--	.waitforpin = pcf_isa_waitforpin,
--	.udelay	    = 10,
--	.mdelay	    = 10,
--	.timeout    = 100,
+-
+-static struct i2c_algo_bit_data scx200_i2c_data = {
+-	NULL,
+-	scx200_i2c_setsda,
+-	scx200_i2c_setscl,
+-	scx200_i2c_getsda,
+-	scx200_i2c_getscl,
+-	10, 10, 100,		/* waits, timeout */
 -};
 -
--static struct i2c_adapter pcf_isa_ops = {
--	.owner		= THIS_MODULE,
--	.id		= I2C_HW_P_ELEK,
--	.algo_data	= &pcf_isa_data,
--	.name		= "PCF8584 ISA adapter",
+-static struct i2c_adapter scx200_i2c_ops = {
+-	.owner		   = THIS_MODULE,
+-	.id		   = I2C_HW_B_VELLE,
+-	.algo_data	   = &scx200_i2c_data,
+-	.name	= "NatSemi SCx200 I2C",
 -};
 -
--static int __init i2c_pcfisa_init(void) 
+-int scx200_i2c_init(void)
 -{
--#ifdef __alpha__
--	/* check to see we have memory mapped PCF8584 connected to the 
--	Cypress cy82c693 PCI-ISA bridge as on UP2000 board */
--	if (base = 0) {
--		
--		struct pci_dev *cy693_dev -                    pci_find_device(PCI_VENDOR_ID_CONTAQ, 
--		                    PCI_DEVICE_ID_CONTAQ_82C693, NULL);
+-	printk(KERN_DEBUG NAME ": NatSemi SCx200 I2C Driver\n");
 -
--		if (cy693_dev) {
--			char config;
--			/* yeap, we've found cypress, let's check config */
--			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
--				
--				DEB3(printk(KERN_DEBUG "i2c-elektor.o: found cy82c693, config register 0x47 = 0x%02x.\n", config));
--
--				/* UP2000 board has this register set to 0xe1,
--                                   but the most significant bit as seems can be 
--				   reset during the proper initialisation
--                                   sequence if guys from API decides to do that
--                                   (so, we can even enable Tsunami Pchip
--                                   window for the upper 1 Gb) */
--
--				/* so just check for ROMCS at 0xe0000,
--                                   ROMCS enabled for writes
--				   and external XD Bus buffer in use. */
--				if ((config & 0x7f) = 0x61) {
--					/* seems to be UP2000 like board */
--					base = 0xe0000;
--                                        /* I don't know why we need to
--                                           write twice */
--					mmapped = 2;
--                                        /* UP2000 drives ISA with
--					   8.25 MHz (PCI/4) clock
--					   (this can be read from cypress) */
--					clock = I2C_PCF_CLK | I2C_PCF_TRNS90;
--					printk(KERN_INFO "i2c-elektor.o: found API UP2000 like board, will probe PCF8584 later.\n");
--				}
--			}
--		}
--	}
--#endif
--
--	/* sanity checks for mmapped I/O */
--	if (mmapped && base < 0xc8000) {
--		printk(KERN_ERR "i2c-elektor.o: incorrect base address (0x%0X) specified for mmapped I/O.\n", base);
+-	if (!scx200_gpio_present()) {
+-		printk(KERN_ERR NAME ": no SCx200 gpio pins available\n");
 -		return -ENODEV;
 -	}
 -
--	printk(KERN_INFO "i2c-elektor.o: i2c pcf8584-isa adapter module version %s (%s)\n", I2C_VERSION, I2C_DATE);
+-	printk(KERN_DEBUG NAME ": SCL=GPIO%02u, SDA=GPIO%02u\n", 
+-	       scl, sda);
 -
--	if (base = 0) {
--		base = DEFAULT_BASE;
+-	if (scl = -1 || sda = -1 || scl = sda) {
+-		printk(KERN_ERR NAME ": scl and sda must be specified\n");
+-		return -EINVAL;
 -	}
 -
--	init_waitqueue_head(&pcf_wait);
--	if (pcf_isa_init())
+-	/* Configure GPIOs as open collector outputs */
+-	scx200_gpio_configure(scl, ~2, 5);
+-	scx200_gpio_configure(sda, ~2, 5);
+-
+-	if (i2c_bit_add_bus(&scx200_i2c_ops) < 0) {
+-		printk(KERN_ERR NAME ": adapter %s registration failed\n", 
+-		       scx200_i2c_ops.name);
 -		return -ENODEV;
--	if (i2c_pcf_add_bus(&pcf_isa_ops) < 0)
--		goto fail;
+-	}
 -	
--	printk(KERN_ERR "i2c-elektor.o: found device at %#x.\n", base);
--
 -	return 0;
--
-- fail:
--	if (irq > 0) {
--		disable_irq(irq);
--		free_irq(irq, 0);
--	}
--
--	if (!mmapped)
--		release_region(base , 2);
--	return -ENODEV;
 -}
 -
--static void i2c_pcfisa_exit(void)
+-void scx200_i2c_cleanup(void)
 -{
--	i2c_pcf_del_bus(&pcf_isa_ops);
--
--	if (irq > 0) {
--		disable_irq(irq);
--		free_irq(irq, 0);
--	}
--
--	if (!mmapped)
--		release_region(base , 2);
+-	i2c_bit_del_bus(&scx200_i2c_ops);
 -}
 -
--MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
--MODULE_DESCRIPTION("I2C-Bus adapter routines for PCF8584 ISA bus adapter");
--MODULE_LICENSE("GPL");
+-module_init(scx200_i2c_init);
+-module_exit(scx200_i2c_cleanup);
 -
--MODULE_PARM(base, "i");
--MODULE_PARM(irq, "i");
--MODULE_PARM(clock, "i");
--MODULE_PARM(own, "i");
--MODULE_PARM(mmapped, "i");
--MODULE_PARM(i2c_debug, "i");
--
--module_init(i2c_pcfisa_init);
--module_exit(i2c_pcfisa_exit);
+-/*
+-    Local variables:
+-        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
+-        c-basic-offset: 8
+-    End:
+-*/
 
