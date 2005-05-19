@@ -1,49 +1,32 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:24 +0000
-Subject: Important CVS changes
-Message-Id: <20041126055355.GG5231@jupiter.solarsys.private>
+From: ac9410@attbi.com (Albert Cranford)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: [Fwd: Re: [PATCH]2.4.20 ARCH=i386 create dmi_scan.h and move decl
+Message-Id: <3D591B61.27865177@attbi.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041125230447.5ccf3f79.khali@linux-fr.org>
-In-Reply-To: <20041125230447.5ccf3f79.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+fyi
+-------- Original Message --------
+Subject: Re: [PATCH]2.4.20 ARCH=i386 create dmi_scan.h and move decl fromdmi_scan.c
+Date: 13 Aug 2002 13:13:04 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Albert Cranford <ac9410@attbi.com>,Linus Torvalds<torvalds@transmeta.com>
+CC: Marcelo Tosatti <marcelo@conectiva.com.br>,Linux Kernel List<linux-kernel@vger.kernel.org>
+References: <3D589E11.6093B119@attbi.com>
 
-* Jean Delvare <khali@linux-fr.org> [2004-11-25 23:04:47 +0100]:
-> Hi all,
-> 
-> I just commited the second wave of CVS changes required to be compatible
-> with Linux 2.4 again. This time this is for i2c_adapter so this is a
-> much more important change.
-> 
-> lm_sensors-CVS obviously needs i2c-CVS now.
-> 
-> Please test as much as possible, the changes are large but very similar
-> from file to file, I have good hope it'll work OK. Works well enough for
-> me at least.
-> 
-> Once this is tested I'll finish the work with the client part (even more
-> changes).
+On Tue, 2002-08-13 at 06:50, Albert Cranford wrote:
+> -
+> -static char *dmi_ident[DMI_STRING_MAX];
+> +char *dmi_ident[DMI_STRING_MAX];
 
-I reviewed the i2c changes and an adapter or two as well - can't see
-anything obviously wrong with it.  I haven't actually compiled it yet
-though... I'll do that Friday.  I'll have to get some 2.4.x kernels fired
-up around here first.  :)  Thanks for doing this!  Here are some comments...
+Be very careful with this change btw. The dmi_ident strings are unmapped
+at the point dmi_table() returns. That means you can only use them in
+the decode callback, and so it seems odd to export them. It certainly
+wants clear documentation if you are doing it that way. 
 
-Are there any users of i2c-core:i2c_use_client()?  I find none in our
-package nor in 2.4.28-rc2.  I ask because that's the only caller of
-i2c_inc_use_client() which you modified.  I see some v4l2 users in 2.6.x
-though; so maybe there are out-of-kernel (2.4.x) drivers that need it?
-
-Also, should we backport this?
-
-http://marc.theaimsgroup.com/?l=linux-kernel&m7867638300901&w=3
-
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+What you probably should do is create some flag bits for i2c/smbus and
+set those then export the flag data (we do the same for APM), rather
+than export them as globals
