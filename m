@@ -1,48 +1,79 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:18 +0000
-Subject: Parsing bug fixed in i2c-proc
-Message-Id: <20041012222850.23dc6c15.khali@linux-fr.org>
+From: amalysh@web.de (Alexander Malysh)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: [Fwd: support for SIS 648 - hint for starting]
+Message-Id: <200301022026.25500.amalysh@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Hi Jakob, List,
 
-Yesterday I spotted an odd bug in i2c-proc. The parsing code for reals
-is broken. It doesn't properly "eat" extra characters after values. The
-part of the code which supposedly does this is:
+I believe , that you chip supported by us. If you willing , then:
+1. try to load i2c-sis630 module with force=1 (pls look in doc directory for 
+details!)
+2. if i2c-sis630 does not work for you , try i2c-sis645 module (pls contact 
+the autor of this module , before you try this. Or you can just hack the 
+module for your PCI_ID).
 
-       /* Skip everything until we hit whitespace */
-       while (bufsize && 
-              !((ret=get_user(nextchar, (char *) buffer))) &&
-              isspace((int) nextchar)) {
-               bufsize--;
-               ((char *) buffer)++;
-       }
+If you have more quastions , pls contact me...
 
-It actually does the exact contrary, i.e. skip everyting until we hit
-*non* whitespace.
 
-You can reproduce the bug by trying to write "70.55" to a procfs
-temperature file with magnitude 1. The first limit (typically max) will
-be set to 70.5, which is fine. The second limit (typically min or hyst)
-will be set to 5, which you certainly wouldn't expect.
-
-I just commited the fix to the CVS repository. It is as simple as:
-
--              isspace((int) nextchar)) {
-+              !isspace((int) nextchar)) {
-
-I am a bit surprised that this bug seems to be there for several years
-and nobody ever hit it. Thus, I would appreciate if someone else could
-verify, test and confirm.
-
-I will send a patch to Marcelo for Linux 2.4.
-
-Thanks.
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Am Samstag, 28. Dezember 2002 18:03 schrieben Sie:
+> >Hi Jakob,
+> >
+> >can you please send lspci -vvv -xxx ?
+> >We will see , if your chip supported ...
+>
+> I enclose /attach the output of lspci. Sorry I did not answer earlier
+> but during the holidays I had no access to the machine.
+>
+> Yours,
+> Jakob Curdes
+>
+> >Am Donnerstag, 19. Dezember 2002 12:40 schrieb Jakob Curdes:
+> >>Hi,
+> >>
+> >>I found that the SiS 648 is not supported yet.
+> >>Although I have some programming skills, I have no experience with
+> >>mainboard sensors. What should I read for a start to determine if I
+> >
+> >can
+> >
+> >>develop a driver for this chip ??
+> >>
+> >>Yours,
+> >>Jakob Curdes
+> >>iS information Systems oHG
+> >>
+> >>
+> >>
+> >> ------------------------------------------------------------------------
+> >>
+> >> Subject:
+> >> Re: support for SIS 648 - hint for starting
+> >> From:
+> >> Alexander Malysh <amalysh@web.de>
+> >> Date:
+> >> Thu, 19 Dec 2002 14:56:16 +0100
+> >> To:
+> >> Jakob Curdes <jc@info-systems.de>, sensors@Stimpy.netroedge.com
+> >>
+> >>
+> >>Hi Jakob,
+> >>
+> >>can you please send lspci -vvv -xxx ?
+> >>We will see , if your chip supported ...
+> >>
+> >>Am Donnerstag, 19. Dezember 2002 12:40 schrieb Jakob Curdes:
+> >>>Hi,
+> >>>
+> >>>I found that the SiS 648 is not supported yet.
+> >>>Although I have some programming skills, I have no experience with
+> >>>mainboard sensors. What should I read for a start to determine if I can
+> >>>develop a driver for this chip ??
+> >>>
+> >>>Yours,
+> >>>Jakob Curdes
+> >>>iS information Systems oHG
