@@ -1,57 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:47 +0000
-Subject: SMBus I801: Can't open /dev/i2c-2
-Message-Id: <1079354589.4055a4ddf1b0d@imp.gcu.info>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: pwmconfig: bug in temporary file creation
+Message-Id: <20050124140712.GA17184@bode.aurel32.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1079342270.1650.182683010@webmail.messagingengine.com>
-In-Reply-To: <1079342270.1650.182683010@webmail.messagingengine.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting James A Hunsaker IV <james-hunsaker@uiowa.edu>:
+Hi all,
 
-> I'm emailing this because the support systems gives *no*
-> acknowledgement that it received it.
+There is a bug in pwmconfig, it uses a fixed file name for the temporary
+files. As it uses /usr/tmp instead of /tmp, it is not really a security
+bug, but I think it should be fixed. Moreover /usr/tmp doesn't exists on
+all distributions, though I haven't checked if it is specified in the
+FHS.
 
-In fact I don't see any ticket from you in our base, so it must have
-failed for some reason (thus the lack of acknowledgement). Not a big
-problem though; this list is a correct place to ask for support too.
+The attached patch, provided by Javier Fern?ndez-Sanguino Pe?a via the
+Debian BTS, fixes that.
 
-> Next adapter: SMBus I801 adapter at 0540 (Non-I2C SMBus adapter)
-> Do you want to scan it? (YES/no/selectively):
-> Can't open /dev/i2c-2
-> 
-> I searched but cannot find why i2c-2 does not exist (despite
-> sensors-detect expecting it to).
-
-I guess that you have i2c-0 and i2c-1, and your distribution assumes it
-should be enough for most people, but it isn't for you.
-
-There is a script coming with lm_sensors that will create these device
-files: prog/mkdev/mkdev.sh.
-
-Or you can just create the missing device file:
-mknod -m 600 /dev/i2c-2 c 89 2
-
-> PS Why does it say "confidence 1, driver `eeprom'" and then not
-> include "modprobe eeprom" in the script?  When I modprobe it, I do
-> get valid entries when running "sensors".
-
-Because the ddcmon is prefered (confidence 8) over the eeprom driver for
-this kind of eeproms (EDID eeproms present in your monitor, providing
-timing information to the video adapter).
-
-It is correct that the eeprom driver can be used too, with the
-prog/eeprom/decode-edid.pl script. But using the ddcmon driver together
-with the sensors program is usually easier and provides information you
-are more likely to be interested in (the eeprom+script combo is meant
-to add extra video modes to your XFree86 configuration file, not to
-provide user-friendly information).
-
-Hope that helps.
+Bye,
+Aur?lien
+ 
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineer
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
+-------------- next part --------------
+Index: prog/pwm/pwmconfig
+=================================RCS file: /home/cvs/lm_sensors2/prog/pwm/pwmconfig,v
+retrieving revision 1.13
+diff -u -1 -b -p -r1.13 pwmconfig
+--- prog/pwm/pwmconfig	20 Dec 2004 22:00:10 -0000	1.13
++++ prog/pwm/pwmconfig	24 Jan 2005 12:54:56 -0000
+@@ -211,4 +211,5 @@ function pwmdetail()
+ 	then
+-		TMP1=/usr/tmp/pwmtest$$.1
+-		TMP2=/usr/tmp/pwmtest$$.2
++		TMP1=`tempfile` || { echo "$0: Cannot create temporary file" >&2; exit 1;  }
++		TMP2=`tempfile` || { echo "$0: Cannot create temporary file" >&2; exit 1;  }
++		trap " /bin/rm -f -- \"$TMP1\" \"$TMP2\" " 0 1 2 3 13 15
+ 		echo "set xlabel \"PWM: $P\"" > $TMP1
