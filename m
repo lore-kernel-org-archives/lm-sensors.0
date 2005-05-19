@@ -1,78 +1,53 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: Patch to allow retrieval of magnitude from user space
-Message-Id: <3E87CC0E.8010109@penguincomputing.com>
+From: ac9410@attbi.com (Albert Cranford)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: [Fwd: Re: [patch 3/3] 2.5.36 i2c new adapter i2c-pport driver]
+Message-Id: <3D892720.74A81A18@attbi.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-So I'm writing my second chip driver and generating 100+ additional entries in 
-lib/chips.c for my new chip (ADM1026)...
+Again,  tried to submit i2c-pport.c but the usage of
+udelay(#) has to change to schedule_timeout(#).
 
-Two things annoy me...
+I think this is going to affect lots of drivers and needs
+converting before we will get sensors included into the
+kernel.
+Albert
+-------- Original Message --------
+Subject: Re: [patch 3/3] 2.5.36 i2c new adapter i2c-pport driver
+Date: Wed, 18 Sep 2002 12:33:46 -0400
+From: Jeff Garzik <jgarzik@mandrakesoft.com>
+Organization: MandrakeSoft
+To: Albert Cranford <ac9410@attbi.com>
+CC: Linus Torvalds <torvalds@transmeta.com>,Kernel mailing list <linux-kernel@vger.kernel.org>
+References: <Pine.LNX.4.44.0209180205270.358-200000@home1>
 
-One, is the VALUE() macro.  I don't see the point.  We never exchange anything 
-but an array of long's.  Why not just have the array index (0, 1, 2, etc.).
-
-The second is the duplicated magnitude entry.  If the magnitude changes in the 
-driver or is variable ?!? we can't handle it.  But if we could make a sysctl 
-call to retrieve the magnitude from user space then we wouldn't need the 
-duplicated data.  So then how to retrieve the magnitude....
-
-I got to looking at the sysctl code and I think I have an idea.  If we take 
-the special case of calling sysctl to read the old values, but don't provide a 
-place to put the values, then we return the (magnitude + 32) to allow for 
-negative values (since oldlen is size_t and unsigned) in the supplied "length" 
-buffer.  I think this will work because the old code would have done nothing 
-in this case.
-
-So here is a patch against the CVS i2c to implement this.  Once this is in 
-place, I can make the more major changes to libsensors if everyone is agreed.
-
-Even if we don't use this in libsensors, I think it's a worthwhile 
-change/addition.
-
-Thanks,
-:v)
-
-PS.  I've got a working ADM1026 driver now and I should have the libsensors 
-and sensors support in a few days.
+Albert Cranford wrote:
+> +static int bit_pport_init(void)
+> +{
+> +	if (!request_region((base+2),1, "i2c (PPORT adapter)")) {
+> +		return -ENODEV;	
+> +	} else {
+> +
+> +		/* test for PPORT adap. 	*/
+> +	
+> +
+> +		PortData=inb(base+2);
+> +		PortData= (PortData SET_SDA) SET_SCL;
+> +		outb(PortData,base+2);				
+> +
+> +		if (!(inb(base+2) | 0x06)) {	/* SDA and SCL will be high	*/
+> +			DEBINIT(printk("i2c-pport.o: SDA and SCL was low.\n"));
+> +			return -ENODEV;
+> +		} else {
+> +		
+> +			/*SCL high and SDA low*/
+> +			PortData = PortData SET_SCL CLR_SDA;
+> +			outb(PortData,base+2);	
+> +			udelay(400);
 
 
-diff -ru i2c-2.7.0/./kernel/i2c-proc.c i2c-2.7.0.adm1026/./kernel/i2c-proc.c
---- i2c-2.7.0/./kernel/i2c-proc.c	Sun Nov 10 11:39:38 2002
-+++ i2c-2.7.0.adm1026/./kernel/i2c-proc.c	Sat Mar 29 12:54:29 2003
-@@ -465,6 +465,19 @@
-  	 
-	return -EFAULT;
-  	}
-
-+ 
-/* Special case to retrieve the magnitude */
-+ 
-if( oldval = NULL && oldlenp && !((ret=get_user(oldlen, oldlenp))) ) {
-+ 
-	callback(client, SENSORS_PROC_REAL_INFO, table->ctl_name, &nrels, results);
-+ 
-	/* NOTE: nrels is an int (signed), but oldlen is
-+ 
-	 *    size_t (aka unsigned) so we offset the value
-+ 
-	 *    by adding 32.
-+ 
-	 */
-+ 
-	oldlen = nrels + 32 ;
-+
-+ 
-	if(put_user(oldlen, oldlenp))
-+ 
-		return -EFAULT;
-+ 
-}
-+
-  	if (newval && newlen) {
-  		/* Note the rounding factor! */
-  		newlen -= newlen % sizeof(long);
+use schedule_timeout() instead of udelay() since you're in process 
+context.  otherwise, looks ok...
