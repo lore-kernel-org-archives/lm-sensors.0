@@ -1,7 +1,7 @@
-From: jmunsin@iki.fi (Jonas Munsin)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:00 +0000
 Subject: it87 pwm patch for 2.6.6
-Message-Id: <20040604185123.GA10682@nemo.sby.abo.fi>
+Message-Id: <20040605102716.037e9af3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040516205100.GA9996@nemo.sby.abo.fi>
 In-Reply-To: <20040516205100.GA9996@nemo.sby.abo.fi>
@@ -10,175 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, May 21, 2004 at 11:20:49PM +0200, Jean Delvare wrote:
-> Sorry for the delay.
+> > You could fix IN_FROM_REG(val) too, while you're at it. It misses a
+> > +5 for correct rounding. It's fixed in 2.4, but was forgotten in
+> > 2.6.
+> 
+> Hmm. Are you sure? I'm a bit confused about the rounding issue here. I
+> think IN_TO_REG(val) should be rounded, but not IN_FROM_REG(val). (I'm
+> looking at the 2.6 version). Just like in the
+> TEMP_TO_REG(val)/TEMP_FROM_REG(val) case (btw, there was a bug in my
+> cleanup patch with TEMP_TO_REG and rounding, fixed it).
 
-No problem. Got a bit delayed myself with this reply.
+It's not a matter of where the value come from, it's a matter of whether
+the conversion includes a division or not. Whenever you divide, you have
+to take care of proper rounding yourself because integer arithmetics
+won't.
 
-> About your code now. I only looked at the cleanup patch for now, sorry.
+IN_FROM_REG(val) was including a division by 10 so far, thus my comment
+about missing rounding. But since you also fixed this converter so as to
+prevent unneeded accuracy loss, no division is used anymore, so there is
+no rounding issue to be discussed.
 
-[...]
+Nice catching for TEMP_TO_REG, I completely missed that one. BTW, now
+that I took a longer look at it, I really wonder how a negative
+temperature limit could ever been set with this. Looks like it'll end up
+with 0. OTOH, asking for a temperature higher than 127.5 degrees will
+most likely lead to "random" negative values. This is probably true for
+both the 2.4 and the 2.6 driver as of now. Could you please test and
+confirm? Most likely nobody cares about setting negative limits, but
+while we're at cleaning up this part of the driver...
 
-> You could fix IN_FROM_REG(val) too, while you're at it. It misses a +5
-> for correct rounding. It's fixed in 2.4, but was forgotten in 2.6.
+> Attached is it87_cleanups_2.6.7-rc2-jm2.patch, same as the earlier one
+> except for these rounding macros. I hope I got them right ;).
 
-Hmm. Are you sure? I'm a bit confused about the rounding issue here. I
-think IN_TO_REG(val) should be rounded, but not IN_FROM_REG(val). (I'm
-looking at the 2.6 version). Just like in the
-TEMP_TO_REG(val)/TEMP_FROM_REG(val) case (btw, there was a bug in my
-cleanup patch with TEMP_TO_REG and rounding, fixed it).
+Yes, looks very good to me (except for my comment above about setting
+negative temperature limits).
 
-Attached is it87_cleanups_2.6.7-rc2-jm2.patch, same as the earlier one
-except for these rounding macros. I hope I got them right ;).
+Thanks.
 
--------------- next part --------------
---- drivers/i2c/chips/it87.c.orig.2.6.7-rc2	2004-06-04 20:35:45.000000000 +0300
-+++ drivers/i2c/chips/it87.c	2004-06-04 21:32:51.000000000 +0300
-@@ -128,7 +128,7 @@
- 
- #define IT87_REG_FAN(nr)       (0x0d + (nr))
- #define IT87_REG_FAN_MIN(nr)   (0x10 + (nr))
--#define IT87_REG_FAN_CTRL      0x13
-+#define IT87_REG_FAN_MAIN_CTRL 0x13
- 
- #define IT87_REG_VIN(nr)       (0x20 + (nr))
- #define IT87_REG_TEMP(nr)      (0x29 + (nr))
-@@ -145,8 +145,8 @@
- 
- #define IT87_REG_CHIPID        0x58
- 
--#define IN_TO_REG(val)  (SENSORS_LIMIT((((val) * 10 + 8)/16),0,255))
--#define IN_FROM_REG(val) (((val) *  16) / 10)
-+#define IN_TO_REG(val)  (SENSORS_LIMIT((((val) + 8)/16),0,255))
-+#define IN_FROM_REG(val) ((val) * 16)
- 
- static inline u8 FAN_TO_REG(long rpm, int div)
- {
-@@ -159,9 +159,9 @@
- 
- #define FAN_FROM_REG(val,div) ((val)=0?-1:(val)=255?0:1350000/((val)*(div)))
- 
--#define TEMP_TO_REG(val) (SENSORS_LIMIT(((val)<0?(((val)-5)/10):\
--					((val)+5)/10),0,255))
--#define TEMP_FROM_REG(val) (((val)>0x80?(val)-0x100:(val))*10)
-+#define TEMP_TO_REG(val) (SENSORS_LIMIT(((val)<0?(((val)-500)/1000):\
-+					((val)+500)/1000),0,255))
-+#define TEMP_FROM_REG(val) (((val)>0x80?(val)-0x100:(val))*1000)
- 
- #define VID_FROM_REG(val) ((val)=0x1f?0:(val)>=0x10?510-(val)*10:\
- 				205-(val)*5)
-@@ -231,19 +231,19 @@
- static ssize_t show_in(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr])*10 );
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr]));
- }
- 
- static ssize_t show_in_min(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr])*10 );
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr]));
- }
- 
- static ssize_t show_in_max(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr])*10 );
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr]));
- }
- 
- static ssize_t set_in_min(struct device *dev, const char *buf, 
-@@ -251,7 +251,7 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct it87_data *data = i2c_get_clientdata(client);
--	unsigned long val = simple_strtoul(buf, NULL, 10)/10;
-+	unsigned long val = simple_strtoul(buf, NULL, 10);
- 	data->in_min[nr] = IN_TO_REG(val);
- 	it87_write_value(client, IT87_REG_VIN_MIN(nr), 
- 			data->in_min[nr]);
-@@ -262,7 +262,7 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct it87_data *data = i2c_get_clientdata(client);
--	unsigned long val = simple_strtoul(buf, NULL, 10)/10;
-+	unsigned long val = simple_strtoul(buf, NULL, 10);
- 	data->in_max[nr] = IN_TO_REG(val);
- 	it87_write_value(client, IT87_REG_VIN_MAX(nr), 
- 			data->in_max[nr]);
-@@ -325,24 +325,24 @@
- static ssize_t show_temp(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr])*100 );
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
- }
- static ssize_t show_temp_max(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[nr])*100);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[nr]));
- }
- static ssize_t show_temp_min(struct device *dev, char *buf, int nr)
- {
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_low[nr])*100);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_low[nr]));
- }
- static ssize_t set_temp_max(struct device *dev, const char *buf, 
- 		size_t count, int nr)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct it87_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10)/100;
-+	int val = simple_strtol(buf, NULL, 10);
- 	data->temp_high[nr] = TEMP_TO_REG(val);
- 	it87_write_value(client, IT87_REG_TEMP_HIGH(nr), data->temp_high[nr]);
- 	return count;
-@@ -352,7 +352,7 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct it87_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10)/100;
-+	int val = simple_strtol(buf, NULL, 10);
- 	data->temp_low[nr] = TEMP_TO_REG(val);
- 	it87_write_value(client, IT87_REG_TEMP_LOW(nr), data->temp_low[nr]);
- 	return count;
-@@ -773,9 +773,7 @@
-    We don't want to lock the whole ISA bus, so we lock each client
-    separately.
-    We ignore the IT87 BUSY flag at this moment - it could lead to deadlocks,
--   would slow down the IT87 access and should not be necessary. 
--   There are some ugly typecasts here, but the good new is - they should
--   nowhere else be necessary! */
-+   would slow down the IT87 access and should not be necessary. */
- static int it87_read_value(struct i2c_client *client, u8 reg)
- {
- 	struct it87_data *data = i2c_get_clientdata(client);
-@@ -795,9 +793,7 @@
-    We don't want to lock the whole ISA bus, so we lock each client
-    separately.
-    We ignore the IT87 BUSY flag at this moment - it could lead to deadlocks,
--   would slow down the IT87 access and should not be necessary. 
--   There are some ugly typecasts here, but the good new is - they should
--   nowhere else be necessary! */
-+   would slow down the IT87 access and should not be necessary. */
- static int it87_write_value(struct i2c_client *client, u8 reg, u8 value)
- {
- 	struct it87_data *data = i2c_get_clientdata(client);
-@@ -840,11 +836,11 @@
- 	}
- 
- 	/* Check if tachometers are reset manually or by some reason */
--	tmp = it87_read_value(client, IT87_REG_FAN_CTRL);
-+	tmp = it87_read_value(client, IT87_REG_FAN_MAIN_CTRL);
- 	if ((tmp & 0x70) = 0) {
- 		/* Enable all fan tachometers */
- 		tmp = (tmp & 0x8f) | 0x70;
--		it87_write_value(client, IT87_REG_FAN_CTRL, tmp);
-+		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, tmp);
- 	}
- 
- 	/* Start monitoring */
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
