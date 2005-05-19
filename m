@@ -1,68 +1,82 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:23 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:24 +0000
 Subject: New chip driver development plan to Lm_sensors
-Message-Id: <t1yspTR6.1101288551.7321530.khali@gcu.info>
+Message-Id: <E36E0C5C92D97049B4855B5498A94547F51967@weshml02.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 In-Reply-To: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> I'm writing a new driver for w83792D, which is w83792d.c,using
-> w83781d.c as my reference, deleting the codes related with ISA except
-> two places, because 792D will only be on I2C.
-
-Sounds good :)
-
-> But I have two questions about w83792d driver now.
-> (1) Can I delete the following codes?
-> static unsigned int normal_isa[] = { 0x0290, SENSORS_ISA_END };
-> static unsigned int normal_isa_range[] = { SENSORS_ISA_END };
-> I guess the above two sentences are useless, but I'm not very
-> sure about it's function, can you tell me whether I can delete
-> them or not?
-
-No you can't. The i2c-core needs them. Simply remove the address and
-leave:
-
-static unsigned int normal_isa[] = { SENSORS_ISA_END };
-static unsigned int normal_isa_range[] = { SENSORS_ISA_END };
-
-This will let the core know that it should not attempt to use your driver
-for the ISA bus. This is what's done in other i2c-only drivers (such as
-lm90.c for example).
-
-> (2) When you are free, can you give me some general explanation
-> of the member "last_updated" of struct w83792d_data?
->
-> What I need to do is just keep all the codes related with
-> "w83792d_data->last_updated" in w83781d.c
-> Is that right?
-
-Yes, keep it. This is something common to (almost) all drivers.
-
-The idea is to remember when the chip registers where last read, and
-force a little delay (typically between 0.5 and 2 seconds depending on
-the chip) before the driver is allowed to read them all again. This
-leaves some time for the chip to sample the voltages, temperatures etc.
-Not all chips do need it, but some chips stop sampling when there is
-traffic on the I2C interface so we have to do that. Also, since regular
-users can request data from the driver, it is a good safety that this
-won't generate I2C traffic each time. If we were really reading the
-registers each time, then any user could overflow the I2C bus and
-possibly cause trouble to the system (such as alarm conditions not
-triggering as needed).
-
-So last_updated stores the last time the registers were updated. It is
-set at the end of the update function. At the beginning of the update
-function we compare with the current time and if less than the defined
-delay (usually expressed as x * HZ where HZ means 1 second) has passed
-since the last update, then we do not read the registers and use the
-previously read values instead.
-
-Jean
+SGkgSmVhbgoKSSBzZWUsIHRoYW5rIHlvdSB2ZXJ5IG11Y2guCgpCZXN0IFJlZ2FyZHMKY2h1bmhh
+bwoKCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCkZyb206IEplYW4gRGVsdmFyZSBbbWFpbHRv
+OmtoYWxpQGxpbnV4LWZyLm9yZ10gClNlbnQ6IDIwMDTE6jEx1MIyNMjVIDE3OjI5ClRvOiBQSTE0
+IEhVQU5HMDsgc2Vuc29yc0BTdGltcHkubmV0cm9lZGdlLmNvbQpDYzogUEkxMCBMSEhzdTsgUEkx
+NCBEWlNIRU4KU3ViamVjdDogUkU6IE5ldyBjaGlwIGRyaXZlciBkZXZlbG9wbWVudCBwbGFuIHRv
+IExtX3NlbnNvcnMKCgpIaSBDaHVuaGFvLAoKPiBJJ20gd3JpdGluZyBhIG5ldyBkcml2ZXIgZm9y
+IHc4Mzc5MkQsIHdoaWNoIGlzIHc4Mzc5MmQuYyx1c2luZwo+IHc4Mzc4MWQuYyBhcyBteSByZWZl
+cmVuY2UsIGRlbGV0aW5nIHRoZSBjb2RlcyByZWxhdGVkIHdpdGggSVNBIGV4Y2VwdAo+IHR3byBw
+bGFjZXMsIGJlY2F1c2UgNzkyRCB3aWxsIG9ubHkgYmUgb24gSTJDLgoKU291bmRzIGdvb2QgOikK
+Cj4gQnV0IEkgaGF2ZSB0d28gcXVlc3Rpb25zIGFib3V0IHc4Mzc5MmQgZHJpdmVyIG5vdy4KPiAo
+MSkgQ2FuIEkgZGVsZXRlIHRoZSBmb2xsb3dpbmcgY29kZXM/Cj4gc3RhdGljIHVuc2lnbmVkIGlu
+dCBub3JtYWxfaXNhW10gPSB7IDB4MDI5MCwgU0VOU09SU19JU0FfRU5EIH07Cj4gc3RhdGljIHVu
+c2lnbmVkIGludCBub3JtYWxfaXNhX3JhbmdlW10gPSB7IFNFTlNPUlNfSVNBX0VORCB9Owo+IEkg
+Z3Vlc3MgdGhlIGFib3ZlIHR3byBzZW50ZW5jZXMgYXJlIHVzZWxlc3MsIGJ1dCBJJ20gbm90IHZl
+cnkKPiBzdXJlIGFib3V0IGl0J3MgZnVuY3Rpb24sIGNhbiB5b3UgdGVsbCBtZSB3aGV0aGVyIEkg
+Y2FuIGRlbGV0ZQo+IHRoZW0gb3Igbm90PwoKTm8geW91IGNhbid0LiBUaGUgaTJjLWNvcmUgbmVl
+ZHMgdGhlbS4gU2ltcGx5IHJlbW92ZSB0aGUgYWRkcmVzcyBhbmQKbGVhdmU6CgpzdGF0aWMgdW5z
+aWduZWQgaW50IG5vcm1hbF9pc2FbXSA9IHsgU0VOU09SU19JU0FfRU5EIH07CnN0YXRpYyB1bnNp
+Z25lZCBpbnQgbm9ybWFsX2lzYV9yYW5nZVtdID0geyBTRU5TT1JTX0lTQV9FTkQgfTsKClRoaXMg
+d2lsbCBsZXQgdGhlIGNvcmUga25vdyB0aGF0IGl0IHNob3VsZCBub3QgYXR0ZW1wdCB0byB1c2Ug
+eW91ciBkcml2ZXIKZm9yIHRoZSBJU0EgYnVzLiBUaGlzIGlzIHdoYXQncyBkb25lIGluIG90aGVy
+IGkyYy1vbmx5IGRyaXZlcnMgKHN1Y2ggYXMKbG05MC5jIGZvciBleGFtcGxlKS4KCj4gKDIpIFdo
+ZW4geW91IGFyZSBmcmVlLCBjYW4geW91IGdpdmUgbWUgc29tZSBnZW5lcmFsIGV4cGxhbmF0aW9u
+Cj4gb2YgdGhlIG1lbWJlciAibGFzdF91cGRhdGVkIiBvZiBzdHJ1Y3QgdzgzNzkyZF9kYXRhPwo+
+Cj4gV2hhdCBJIG5lZWQgdG8gZG8gaXMganVzdCBrZWVwIGFsbCB0aGUgY29kZXMgcmVsYXRlZCB3
+aXRoCj4gInc4Mzc5MmRfZGF0YS0+bGFzdF91cGRhdGVkIiBpbiB3ODM3ODFkLmMKPiBJcyB0aGF0
+IHJpZ2h0PwoKWWVzLCBrZWVwIGl0LiBUaGlzIGlzIHNvbWV0aGluZyBjb21tb24gdG8gKGFsbW9z
+dCkgYWxsIGRyaXZlcnMuCgpUaGUgaWRlYSBpcyB0byByZW1lbWJlciB3aGVuIHRoZSBjaGlwIHJl
+Z2lzdGVycyB3aGVyZSBsYXN0IHJlYWQsIGFuZApmb3JjZSBhIGxpdHRsZSBkZWxheSAodHlwaWNh
+bGx5IGJldHdlZW4gMC41IGFuZCAyIHNlY29uZHMgZGVwZW5kaW5nIG9uCnRoZSBjaGlwKSBiZWZv
+cmUgdGhlIGRyaXZlciBpcyBhbGxvd2VkIHRvIHJlYWQgdGhlbSBhbGwgYWdhaW4uIFRoaXMKbGVh
+dmVzIHNvbWUgdGltZSBmb3IgdGhlIGNoaXAgdG8gc2FtcGxlIHRoZSB2b2x0YWdlcywgdGVtcGVy
+YXR1cmVzIGV0Yy4KTm90IGFsbCBjaGlwcyBkbyBuZWVkIGl0LCBidXQgc29tZSBjaGlwcyBzdG9w
+IHNhbXBsaW5nIHdoZW4gdGhlcmUgaXMKdHJhZmZpYyBvbiB0aGUgSTJDIGludGVyZmFjZSBzbyB3
+ZSBoYXZlIHRvIGRvIHRoYXQuIEFsc28sIHNpbmNlIHJlZ3VsYXIKdXNlcnMgY2FuIHJlcXVlc3Qg
+ZGF0YSBmcm9tIHRoZSBkcml2ZXIsIGl0IGlzIGEgZ29vZCBzYWZldHkgdGhhdCB0aGlzCndvbid0
+IGdlbmVyYXRlIEkyQyB0cmFmZmljIGVhY2ggdGltZS4gSWYgd2Ugd2VyZSByZWFsbHkgcmVhZGlu
+ZyB0aGUKcmVnaXN0ZXJzIGVhY2ggdGltZSwgdGhlbiBhbnkgdXNlciBjb3VsZCBvdmVyZmxvdyB0
+aGUgSTJDIGJ1cyBhbmQKcG9zc2libHkgY2F1c2UgdHJvdWJsZSB0byB0aGUgc3lzdGVtIChzdWNo
+IGFzIGFsYXJtIGNvbmRpdGlvbnMgbm90CnRyaWdnZXJpbmcgYXMgbmVlZGVkKS4KClNvIGxhc3Rf
+dXBkYXRlZCBzdG9yZXMgdGhlIGxhc3QgdGltZSB0aGUgcmVnaXN0ZXJzIHdlcmUgdXBkYXRlZC4g
+SXQgaXMKc2V0IGF0IHRoZSBlbmQgb2YgdGhlIHVwZGF0ZSBmdW5jdGlvbi4gQXQgdGhlIGJlZ2lu
+bmluZyBvZiB0aGUgdXBkYXRlCmZ1bmN0aW9uIHdlIGNvbXBhcmUgd2l0aCB0aGUgY3VycmVudCB0
+aW1lIGFuZCBpZiBsZXNzIHRoYW4gdGhlIGRlZmluZWQKZGVsYXkgKHVzdWFsbHkgZXhwcmVzc2Vk
+IGFzIHggKiBIWiB3aGVyZSBIWiBtZWFucyAxIHNlY29uZCkgaGFzIHBhc3NlZApzaW5jZSB0aGUg
+bGFzdCB1cGRhdGUsIHRoZW4gd2UgZG8gbm90IHJlYWQgdGhlIHJlZ2lzdGVycyBhbmQgdXNlIHRo
+ZQpwcmV2aW91c2x5IHJlYWQgdmFsdWVzIGluc3RlYWQuCgpKZWFuCgoKCj09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRp
+YWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVz
+ZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0
+aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVk
+IGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhl
+IGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5k
+aWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3Vy
+IGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZv
+ciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVk
+IHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBw
+cm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5v
+dCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVl
+bWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5h
+YmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBt
+ZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0
+ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLF
+dq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnO
+pl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ik
+SKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwg
+p9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvex
+S7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyk
+o7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
