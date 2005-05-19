@@ -1,7 +1,7 @@
 From: zdavatz@ywesee.com (Zeno R.R. Davatz)
 Date: Thu, 19 May 2005 06:24:08 +0000
 Subject: ticket #1291
-Message-Id: <20030731131444.5c83a8c2.zdavatz@ywesee.com>
+Message-Id: <20030731143840.16c8cc66.zdavatz@ywesee.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030731110954.43f2f54e.khali@linux-fr.org>
 In-Reply-To: <20030731110954.43f2f54e.khali@linux-fr.org>
@@ -10,131 +10,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 31 Jul 2003 12:48:08 +0200
+On Thu, 31 Jul 2003 14:27:31 +0200
 Jean Delvare <khali@linux-fr.org> wrote:
 
 > 
-> > > Maybe you need an additional header and library to get inb and outb
-> > > on PPC. Could you please run the following commands and report
-> > > outputs?
-> > > 
-> > > grep '^inb ' -r /usr/include/*
-> > this gives me:
-> > grep '^inb ' -r /usr/include/*
-> > grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive
-> > Verzeichnisschleife.
-> >  
-> > grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-> > 
-> > > grep '^outb ' -r /usr/include/*
-> > this gives me:
-> >  grep '^outb ' -r /usr/include/*
-> > grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive
-> > Verzeichnisschleife.
-> >  
-> > grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
+> > > Typo here, I really meant: "ls -l /usr/include/ioport.h".
+> > lrwxrwxrwx    1 root     root            8 2003-06-16 08:23
+> > /usr/include/ioport.h -> ioport.h
 > 
-> First, you really should fix the two warnings that show up. It's about
-> bad symlinks if I understand german right.
+> This is *bad*. Delete this:
 > 
-> Second, the grep commands did not find any inb or outb defs, let's try
-> with a different regexp:
+> rm -f /usr/include/ioport.h
 > 
-> grep ' inb' -r /usr/include/*
-gives me:
- grep '^outb ' -r /usr/include/*
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-zeno@zrr:/usr/src/modules/lm_sensors-2.8.0/prog/dump$ grep ' inb' -r /usr/include/*
-/usr/include/asm/io.h:#define inb(port)         in_8((u8 *)((port)+_IO_BASE))
-/usr/include/asm/io.h:#define inb(port)         in_8((u8 *)((port)+_IO_BASE))
-/usr/include/asm/io.h:#define inb_p(port)               inb((port))
-/usr/include/asm/keyboard.h:#define kbd_read_input() inb(KBD_DATA_REG)
-/usr/include/asm/keyboard.h:#define kbd_read_status() inb(KBD_STATUS_REG)
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-/usr/include/gtkmm-2.0/glibmm/convert.h:   * @param inbuf Bytes to convert.
-/usr/include/gtkmm-2.0/glibmm/convert.h:   * @param inbytes_left In/out parameter, bytes remaining to convert in @a inbuf.
-/usr/include/gtkmm-2.0/glibmm/convert.h:  size_t iconv(char** inbuf, gsize* inbytes_left, char** outbuf, gsize* outbytes_left);
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-/usr/include/linux/atmbr2684.h: * Is there FCS inbound on this VC?  This currently isn't supported.
-/usr/include/linux/gameport.h:          return inb(gameport->io);
-/usr/include/linux/ipsec.h:#define IPSEC_LEVEL_USE              1       /* use outbound, don't require inbound */
-/usr/include/linux/parport_pc.h:        unsigned char val = inb (DATA (p));
-/usr/include/linux/parport_pc.h:        unsigned char ecr = inb (ECONTROL (p));
-/usr/include/linux/parport_pc.h:        unsigned char dcr = inb (CONTROL (p));
-/usr/include/linux/parport_pc.h:        unsigned char dsr = inb (STATUS (p));
-/usr/include/linux/parport_pc.h:                dcr = i ? priv->ctr : inb (CONTROL (p));
-/usr/include/linux/parport_pc.h:        return inb(STATUS(p));
-/usr/include/linux/ppp_defs.h:    __u32 vjs_uncompressedin; /* inbound uncompressed packets */
-/usr/include/linux/ppp_defs.h:    __u32 vjs_compressedin;   /* inbound compressed packets */
-/usr/include/linux/ppp_defs.h:    __u32 vjs_errorin;    /* inbound unknown type packets */
-/usr/include/linux/ppp_defs.h:    __u32 vjs_tossed;     /* inbound packets tossed because of error */
-/usr/include/linux/sdla_ppp.h:  unsigned char   inbd_auth_peerID[1] PACKED; /* 4D: variable length inbound authenticated peer ID */
-/usr/include/net/slcompress.h:  int sls_uncompressedin; /* inbound uncompressed packets */
-/usr/include/net/slcompress.h:  int sls_compressedin;   /* inbound compressed packets */
-/usr/include/net/slcompress.h:  int sls_errorin;        /* inbound unknown type packets */
-/usr/include/net/slcompress.h:  int sls_tossed;         /* inbound packets tossed because of error */
-/usr/include/opencdk.h:                        const void * inbuf, size_t insize,
-/usr/include/X11/Xauth.h:     krb5_data         /* inbuf */,
-/usr/include/X11/extensions/lbximage.h: unsigned char *         /* inbuf */,
-/usr/include/X11/extensions/lbximage.h: unsigned char *         /* inbuf */,
-/usr/include/X11/extensions/lbximage.h: char *                  /* inbuf */,
-/usr/include/X11/extensions/lbximage.h: char *                  /* inbuf */,
-/usr/include/X11/extensions/lbximage.h:char *                   /* inbuf */,
-/usr/include/X11/extensions/lbximage.h:unsigned char *          /* inbuf */,
-/usr/include/X11/extensions/lbximage.h:char *                   /* inbuf */,
-/usr/include/X11/extensions/lbximage.h:unsigned char *          /* inbuf */,
-
-> grep ' outb' -r /usr/include/*
-gives me:
- grep '^outb ' -r /usr/include/*
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-zeno@zrr:/usr/src/modules/lm_sensors-2.8.0/prog/dump$ sudo grep '^outb ' -r /usr/include/*
-Password:
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-zeno@zrr:/usr/src/modules/lm_sensors-2.8.0/prog/dump$ grep '^inb ' -r /usr/include/*
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-zeno@zrr:/usr/src/modules/lm_sensors-2.8.0/prog/dump$ grep '^outb ' -r /usr/include/*
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-zeno@zrr:/usr/src/modules/lm_sensors-2.8.0/prog/dump$ grep ' inb' -r /usr/include/*
-/usr/include/asm/io.h:#define inb(port)         in_8((u8 *)((port)+_IO_BASE))
-/usr/include/asm/io.h:#define inb(port)         in_8((u8 *)((port)+_IO_BASE))
-/usr/include/asm/io.h:#define inb_p(port)               inb((port))
-/usr/include/asm/keyboard.h:#define kbd_read_input() inb(KBD_DATA_REG)
-/usr/include/asm/keyboard.h:#define kbd_read_status() inb(KBD_STATUS_REG)
-grep: Warnung: /usr/include/gnome-xml/libxml: Rekursive Verzeichnisschleife.
- 
-/usr/include/gtkmm-2.0/glibmm/convert.h:   * @param inbuf Bytes to convert.
-/usr/include/gtkmm-2.0/glibmm/convert.h:   * @param inbytes_left In/out parameter, bytes remaining to convert in @a inbuf.
-/usr/include/gtkmm-2.0/glibmm/convert.h:  size_t iconv(char** inbuf, gsize* inbytes_left, char** outbuf, gsize* outbytes_left);
-grep: /usr/include/ioport.h: Zu viele Ebenen aus symbolischen Links
-/usr/include/linux/atmbr2684.h: * Is there FCS inbound on this VC?  This currently isn't supported.
-/usr/include/linux/gameport.h:          return inb(gameport->io);
-/usr/include/linux/ipsec.h:#define IPSEC_LEVEL_USE              1       /* use outbound, don't require inbound */
-/usr/include/linux/parport_pc.h:        unsigned char val = inb (DATA (p));
-/usr/include/linux/parport_pc.h:        unsigned char ecr = inb (ECONTROL (p));
-/usr/include/linux/parport_pc.h:        unsigned char dcr = inb (CONTROL (p));
-/usr/include/linux/parport_pc.h:        unsigned char dsr = inb (STATUS (p));
-/usr/include/linux/parport_pc.h:                dcr = i ? priv->ctr : inb (CONTROL (p));
-/usr/include/linux/parport_pc.h:        return inb(STATUS(p));
-/usr/include/linux/ppp_defs.h:    __u32 vjs_uncompressedin; /* inbound uncompressed packets */
-/usr/include/linux/ppp_defs.h:    __u32 vjs_compressedin;   /* inbound compressed packets */
-/usr/include/linux/ppp_defs.h:    __u32 vjs_errorin;    /* inbound unknown type packets */
-/usr/include/linux/ppp_defs.h:    __u32 vjs_tossed;     /* inbound packets tossed because of error */
-/usr/include/linux/sdla_ppp.h:  unsigned char   inbd_auth_peerID[1] PACKED; /* 4D: variable length inbound authenticated peer ID */
- and a lot more...
-
-How would I be able to fix those symlinks?
+> Back to the mailing list then.
+Ok. Done that, I am just doing make again now ang I get:
+gcc -shared -Wl,-soname,libsensors.so.2 -o lib/libsensors.so.2.0.0 lib/data.lo lib/general.lo lib/error.lo lib/chips.lo lib/proc.lo lib/access.lo lib/init.lo lib/conf-parse.lo lib/conf-lex.lo -lc -lm
+rm -f lib/libsensors.so.2
+ln -sfn libsensors.so.2.0.0 lib/libsensors.so.2
+rm -f lib/libsensors.so
+ln -sfn libsensors.so.2.0.0 lib/libsensors.so
+gcc -I. -Ikernel/include -I/usr/local/include  -Wall -O2   -c prog/sensors/main.c -o prog/sensors/main.ro
+gcc -I. -Ikernel/include -I/usr/local/include  -Wall -O2   -c prog/sensors/chips.c -o prog/sensors/chips.ro
+gcc -o prog/sensors/sensors prog/sensors/main.ro prog/sensors/chips.ro -Llib -lsensors
+gcc -I. -Ikernel/include -I/usr/local/include  -Wall -O2   -c prog/dump/isadump.c -o prog/dump/isadump.ro
+prog/dump/isadump.c: In function `main':
+prog/dump/isadump.c:174: Warnung: implicit declaration of function `outb'
+prog/dump/isadump.c:183: Warnung: implicit declaration of function `inb'
+gcc  -o prog/dump/isadump prog/dump/isadump.ro
+prog/dump/isadump.ro(.text+0x284): In function `main':
+: undefined reference to `outb'
+prog/dump/isadump.ro(.text+0x290): In function `main':
+: undefined reference to `inb'
+prog/dump/isadump.ro(.text+0x308): In function `main':
+: undefined reference to `outb'
+prog/dump/isadump.ro(.text+0x318): In function `main':
+: undefined reference to `outb'
+prog/dump/isadump.ro(.text+0x32c): In function `main':
+: undefined reference to `outb'
+prog/dump/isadump.ro(.text+0x33c): In function `main':
+: undefined reference to `outb'
+collect2: ld returned 1 exit status
+make: *** [prog/dump/isadump] Fehler 1
 
 Thanks for Feedback.
 Zeno
