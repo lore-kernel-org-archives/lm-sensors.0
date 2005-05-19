@@ -1,32 +1,35 @@
 From: frodol@dds.nl (Frodo Looijaard)
 Date: Thu, 19 May 2005 06:23:47 +0000
 Subject: [TRIVIAL] make i2c-core driver_lock static (fwd)
-Message-Id: <200302060641.h166f7h32765@morannon.frodo.local>
+Message-Id: <200302101424.h1AEO9P7000477@shire.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200302060641.h166f7h32765@morannon.frodo.local>
+In-Reply-To: <200302060641.h166f7h32765@morannon.frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rusty Trivial Russell wrote:
-From rusty@rustcorp.com.au Thu Feb  6 07:10:03 2003
-Received: by morannon.frodo.local (8.11.3/8.11.3) id h166A3q32167 ; Thu, 6 Feb 2003 07:10:03 +0100
-Return-Path: <rusty@rustcorp.com.au>
+----- Forwarded message from Rusty Trivial Russell -----
+
+Received: by morannon.frodo.local (8.11.3/8.11.3) id h1A1t9408297 ; Mon, 10 Feb 2003 02:55:09 +0100
+Return-path: <rusty@rustcorp.com.au>
 Received: from pop3.dds.nl [213.196.1.204]
 	by localhost with POP3 (fetchmail-6.2.0)
-	for frodo@localhost (single-drop); Thu, 06 Feb 2003 07:10:03 +0100 (CET)
-Received: (qmail-ldap/ctrl 31865 invoked from network); 6 Feb 2003 05:57:47 -0000
+	for frodo@localhost (single-drop); Mon, 10 Feb 2003 02:55:09 +0100 (CET)
+Received: (qmail-ldap/ctrl 6844 invoked from network); 10 Feb 2003 01:46:42 -0000
 Received: from dp.samba.org (HELO lists.samba.org) ([66.70.73.150]) (envelope-sender <rusty@samba.org>)
-          by dds.nl (qmail-ldap-1.03) with SMTP
-          for <frodol@dds.nl>; 6 Feb 2003 05:57:47 -0000
+	         by dds.nl (qmail-ldap-1.03) with SMTP
+	         for <frodol@dds.nl>; 10 Feb 2003 01:46:42 -0000
 Received: by lists.samba.org (Postfix, from userid 590)
-	id C4ED02C108; Thu,  6 Feb 2003 05:57:46 +0000 (GMT)
+	id 90F282C262; Mon, 10 Feb 2003 01:46:41 +0000 (GMT)
 From: Rusty Trivial Russell <rusty@rustcorp.com.au>
-To: Simon Vogl <simon@tk.uni-linz.ac.at>, Frodo Looijaard <frodol@dds.nl>
+To: Linus Torvalds <torvalds@transmeta.com>
+cc: Simon G. Vogl <simon@tk.uni-linz.ac.at>, Frodo Looijaard <frodol@dds.nl>
 Subject: [TRIVIAL] make i2c-core driver_lock static
-Date: Thu, 06 Feb 2003 16:49:02 +1100
+Date: Mon, 10 Feb 2003 12:36:23 +1100
 Sender: rusty@rustcorp.com.au
-Message-Id: <20030206055746.C4ED02C108@lists.samba.org>
+Message-ID: <20030210014641.90F282C262@lists.samba.org>
 X-Loop-Procmail: PreventLoop
 
 From:  Muli Ben-Yehuda <mulix@mulix.org>
@@ -48,8 +51,8 @@ From:  Muli Ben-Yehuda <mulix@mulix.org>
   # --------------------------------------------
   #
 
---- trivial-2.5-bk/drivers/i2c/i2c-core.c.orig	2003-02-06 16:30:18.000000000 +1100
-+++ trivial-2.5-bk/drivers/i2c/i2c-core.c	2003-02-06 16:30:18.000000000 +1100
+--- trivial-2.5.59-bk3/drivers/i2c/i2c-core.c.orig	2003-02-10 12:29:53.000000000 +1100
++++ trivial-2.5.59-bk3/drivers/i2c/i2c-core.c	2003-02-10 12:29:53.000000000 +1100
 @@ -57,7 +57,7 @@
  
  /**** lock for writing to global variables: the adapter & driver list */
@@ -63,6 +66,7 @@ From:  Muli Ben-Yehuda <mulix@mulix.org>
   Don't blame me: the Monkey is driving
   File: Muli Ben-Yehuda <mulix@mulix.org>: [PATCH] make i2c-core driver_lock static
 
+----- End of forwarded message from Rusty Trivial Russell -----
 
 -- 
 Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
