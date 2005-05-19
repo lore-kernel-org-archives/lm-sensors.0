@@ -1,29 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:56 +0000
-Subject: Port i2c-pcf-epp to 2.6
-Message-Id: <20040508140106.09a29206.khali@linux-fr.org>
+From: fernandez_rj@yahoo.es (Ricardo Fernandez)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: Bug in /etc/sysconfig/lm_sensors
+Message-Id: <3D5A8352.7070108@yahoo.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <409BE99C.6030006@gerhard-bertelsmann.de>
-In-Reply-To: <409BE99C.6030006@gerhard-bertelsmann.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> is there anybody proting the i2c-pcf-epp to 2.6 ?
-> I'm just heating the soldering iron to build the EPP PCF8584
-> interface.
+      Hi, i'm using lm_sensors-2.6.4.tar.gz and i've found a bug in 
+/etc/sysconfig/lm_sensors.
 
-Hmm no, I don't remember anyone working on this yet.
 
-> I've been thinking about to port it - but this would be my first time
-> writing a useful modul for 2.6.
+your  /etc/sysconfig/lm_sensors look like this
 
-Let us know if you give it a go, we'll mention it on our 2.6 kernel and
-new drivers pages.
 
-Thanks.
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+MODULE_1=xxxxxxxx
+MODULE_2=xxxxxxx
+MODULE_3=xxxxxxx
+MODULE_4=xxxxxxx
+
+
+If you have to load 4 modules. The file must be look like this
+
+
+MODULE_0=xxxxxx    <---- look this
+MODULE_1=xxxxxx
+MODULE_2=xxxxxxx
+MODULE_3=xxxxxxx
+
+
+The module secuence must start with 0 because in the init script $i 
+start with that number. Otherwise, the last module _never_ will be loaded.
+
+
+Thanx for your time and excuse my poor english
