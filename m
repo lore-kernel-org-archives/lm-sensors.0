@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:52 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <10819814513668@kroah.com>
+Message-Id: <10819814522824@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10819814511233@kroah.com>
+In-Reply-To: <10819814522020@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,24 +11,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.17, 2004/04/08 14:12:22-07:00, mochel@digitalimplant.org
+ChangeSet 1.1643.36.21, 2004/04/09 12:06:02-07:00, greg@kroah.com
 
-[PATCH] I2C: class fixup for the ali1563 driver
-
-
- drivers/i2c/busses/i2c-ali1563.c |    1 +
- 1 files changed, 1 insertion(+)
+[PATCH] I2C: minor bugfixes for the pcf8591.c driver and formatting cleanups.
 
 
-diff -Nru a/drivers/i2c/busses/i2c-ali1563.c b/drivers/i2c/busses/i2c-ali1563.c
---- a/drivers/i2c/busses/i2c-ali1563.c	Wed Apr 14 15:13:33 2004
-+++ b/drivers/i2c/busses/i2c-ali1563.c	Wed Apr 14 15:13:33 2004
-@@ -357,6 +357,7 @@
+ drivers/i2c/chips/pcf8591.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+
+diff -Nru a/drivers/i2c/chips/pcf8591.c b/drivers/i2c/chips/pcf8591.c
+--- a/drivers/i2c/chips/pcf8591.c	Wed Apr 14 15:13:11 2004
++++ b/drivers/i2c/chips/pcf8591.c	Wed Apr 14 15:13:11 2004
+@@ -125,8 +125,7 @@
+ 	unsigned int value;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct pcf8591_data *data = i2c_get_clientdata(client);
+-	if ((value = (simple_strtoul(buf, NULL, 10) + 5) / 10) <= 255);
+-	{
++	if ((value = (simple_strtoul(buf, NULL, 10) + 5) / 10) <= 255) {
+ 		data->aout = value;
+ 		i2c_smbus_write_byte_data(client, data->control, data->aout);
+ 	}
+@@ -235,9 +234,9 @@
+ 	/* OK, this is not exactly good programming practice, usually. But it is
+ 	   very code-efficient in this case. */
  
- static struct i2c_adapter ali1563_adapter = {
- 	.owner	= THIS_MODULE,
-+	.class	= I2C_ADAP_CLASS_SMBUS,
- 	.algo	= &ali1563_algorithm,
- };
+-      exit_kfree:
++exit_kfree:
+ 	kfree(new_client);
+-      exit:
++exit:
+ 	return err;
+ }
  
+@@ -277,8 +276,7 @@
+ 
+ 	down(&data->update_lock);
+ 
+-	if ((data->control & PCF8591_CONTROL_AICH_MASK) != channel)
+-	{
++	if ((data->control & PCF8591_CONTROL_AICH_MASK) != channel) {
+ 		data->control = (data->control & ~PCF8591_CONTROL_AICH_MASK)
+ 			      | channel;
+ 		i2c_smbus_write_byte(client, data->control);
 
