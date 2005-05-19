@@ -1,262 +1,81 @@
-From: philpi@apu.edu (Phillip Pi)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: Installing i2c and lm_sensors in RH Linux 7.2? (i2c -- one
-Message-Id: <Pine.LNX.4.33.0112121441090.10782-100000@home.apu.edu>
+From: bjorn@mork.no (=?iso-8859-1?q?Bj=F8rn_Mork?=)
+Date: Thu, 19 May 2005 06:24:20 +0000
+Subject: SOLVED: Ticket #1409
+Message-Id: <hvvfr8digc.fsf@rasputin.ws.nextra.no>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0111200151400.1364-100000@home.apu.edu>
-In-Reply-To: <Pine.LNX.4.33.0111200151400.1364-100000@home.apu.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi guys. I eventually got this to work with the help from someone. I
-didn't need to install i2c and lm_sensors stuff. I just needed to run
-sensors command with the stuff from Red Hat Linux 7.2 installation.
+I didn't find any way of updating the ticket, so I'm sending this via
+mail.  After writing the original ticket I downloaded and read the
+IT8712F data sheet, which I of course should have done first...  This
+enabled me to write a small program to retrieve the non-default
+address of the IT8712F on the Asus A7N8X-VM:
 
-I'm sorry if I wasted your guys' time. :( I know if I have to upgrade 
-Kernel, I will have to compile i2c and lm_sensors packages. Hopefully, I 
-won't run into problems again.
 
-I appreciate your help and I did learn something.
---
-          "What I fear most from the stars is not aliens for they have
- intelligence, but I fear social creatures like ants, that can overrun
-     humans, that feel no emotion, and see us as an easy prey source."
-                                                             --unknown
---
-  /\___/\                                             Phillip Pi (Ant)
- / /\ /\ \              E-Mail: philpi@earthlink.net or philpi@apu.edu
-| |.   .| |
-   \ _ /                     The Ant Farm: http://antfarm.home.dhs.org
-    ( )       ICQ UIN: 2223658. Resume: http://ptp-resume.home.dhs.org
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/io.h>=20
+#include <string.h>
 
-On Wed, 12 Dec 2001, Mark D. Studebaker wrote:
+int main(int argc, char **argv) {
+        if (ioperm(0x0, 0x3ff, 1)) {
+                perror("Set i/o permission");
+                exit(0);
+        }
 
-> You don't need to worry unless you need that module.
-> Run 'depmod -a -e' to see actual unresolved symbols.
-> mds
-> 
-> 
-> Phillip Pi wrote:
-> > 
-> > Actually, I forgot to run depmod -a according to the instructions. Do I
-> > need to worry about this error?
-> > 
-> > [root@ANTux-P3 i2c-2.6.2]# /sbin/depmod -a
-> > depmod: *** Unresolved symbols in /lib/modules/2.4.7-10/misc/i2c-elektor.o
-> > 
-> > I will go ahead and fiddle with lm_sensors to see if I can get it to work
-> > while waiting for an answer. :)
-> > 
-> > On Sat, 24 Nov 2001, Phillip Pi wrote:
-> > 
-> > > Thanks, Mark! That appeared to work (no errors). I hope lm_sensors part
-> > > doesn't give me new problems. If I do run into problems, I will post a
-> > > follow-up in this thread/discussion. Thanks again, guys. :)
-> > >
-> > >
-> > > On Sat, 24 Nov 2001, Mark D. Studebaker wrote:
-> > >
-> > > > Sorry I'm not making myself clear.
-> > > > In Makefile, change the line
-> > > >
-> > > >  MODDIR := /lib/modules/`grep UTS_RELEASE
-> > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc
-> > > >
-> > > > to
-> > > >
-> > > >  MODDIR := /lib/modules/2.4.7-10/misc
-> > > >
-> > > >
-> > > > All that stuff inside the `.........` just picks out the right name
-> > > > for the kernel, but it only wants ONE answer and it is getting FIVE
-> > > > answers, and you say the correct name, from 'uname -r',
-> > > > is 2.4.7-10.
-> > > >
-> > > > mds
-> > > >
-> > > >
-> > > >
-> > > > Phillip Pi wrote:
-> > > > >
-> > > > > I hope this is what you wanted (I get more than one):
-> > > > >
-> > > > > [ant@ANTux-P3 linux]$ pwd
-> > > > > /usr/src/linux-2.4.7-10/include/linux
-> > > > >
-> > > > > [ant@ANTux-P3 linux]$ cat version.h |grep UTS_RELEASE
-> > > > > #define UTS_RELEASE "2.4.7-10smp"
-> > > > > #define UTS_RELEASE "2.4.7-10BOOT"
-> > > > > #define UTS_RELEASE "2.4.7-10enterprise"
-> > > > > #define UTS_RELEASE "2.4.7-10debug"
-> > > > > #define UTS_RELEASE "2.4.7-10"
-> > > > >
-> > > > > I edited Makefile's MODDIR to say:
-> > > > > MODDIR := /lib/modules/`grep UTS_RELEASE /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc
-> > > > >
-> > > > > I ran make, and I think it worked (no errors). However, make install
-> > > > > failed:
-> > > > >
-> > > > > [root@ANTux-P3 i2c-2.6.2]# make install
-> > > > > if [ -n " kernel/i2c-core.o kernel/i2c-dev.o kernel/i2c-algo-bit.o
-> > > > > kernel/i2c-philips-par.o kernel/i2c-elv.o kernel/i2c-velleman.o
-> > > > > kernel/i2c-algo-pcf.o kernel/i2c-elektor.o kernel/i2c-proc.o
-> > > > > kernel/i2c-pport.o" ] ; then \
-> > > > >   mkdir -p /lib/modules/`grep UTS_RELEASE
-> > > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
-> > > > >   install -o root -g root -m 644  kernel/i2c-core.o kernel/i2c-dev.o
-> > > > > kernel/i2c-algo-bit.o kernel/i2c-philips-par.o kernel/i2c-elv.o
-> > > > > kernel/i2c-velleman.o kernel/i2c-algo-pcf.o kernel/i2c-elektor.o
-> > > > > kernel/i2c-proc.o kernel/i2c-pport.o /lib/modules/`grep UTS_RELEASE
-> > > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
-> > > > > fi
-> > > > > install: `/lib/modules/2.4.7-10smp' is a directory
-> > > > > install: `2.4.7-10BOOT' is a directory
-> > > > > install: `2.4.7-10enterprise' is a directory
-> > > > > install: `2.4.7-10debug' is a directory
-> > > > > make: *** [install-kernel] Error 1
-> > > > >
-> > > > > I looked at Makefile and couldn't figure out where the change needed to
-> > > > > take place. Thank you in advance for a reply. :)
-> > > > >
-> > > > > On Sat, 24 Nov 2001, Mark D. Studebaker wrote:
-> > > > >
-> > > > > > So are you OK or not, I can't tell from you mail.
-> > > > > > When you 'grep UTS_RELEASE' in version.h do you get more
-> > > > > > than one entry or not?
-> > > > > > If you get more than one, you have to pick the right one
-> > > > > > and then fix the MODDIR := line.
-> > > > > >
-> > > > > >
-> > > > > > Phillip Pi wrote:
-> > > > > > >
-> > > > > > > On Sat, 24 Nov 2001, Mark D. Studebaker wrote:
-> > > > > > >
-> > > > > > > > 'ls /lib/modules'
-> > > > > > >
-> > > > > > > Odd, the directory is valid.  [ant@ANTux-P3 ant]$ ls /lib/modules/
-> > > > > > > 2.4.7-10  2.4.7-10BOOT  2.4.7-10debug  2.4.7-10enterprise  2.4.7-10smp
-> > > > > > >
-> > > > > > > Makefile shows:
-> > > > > > > MODDIR := /lib/modules/`grep UTS_RELEASE $(LINUX_HEADERS)/linux/version.h|cut -f 2 -d'"'`/misc
-> > > > > > > ... and that seems correct to me.
-> > > > > > >
-> > > > > > > > or
-> > > > > > > > do a 'make modules_install' from the source of the kernel
-> > > > > > > > you are compiling against to see where it is going to
-> > > > > > > > put the modules
-> > > > > > > > or
-> > > > > > > > 'uname -r' if you are running that kernel.
-> > > > > > >
-> > > > > > > uname -r shows: 2.4.7-10 which is correct.
-> > > > > > >
-> > > > > > > > Phillip Pi wrote:
-> > > > > > > > >
-> > > > > > > > > I see:
-> > > > > > > > >
-> > > > > > > > > 3.8 'make install' fails on Mandrake kernels
-> > > > > > > > >
-> > > > > > > > > Mandrake uses a non-standard version.h file which confuses our Makefile.
-> > > > > > > > > Edit our Makefile on the 'MODDIR :=' line to hard-code the module
-> > > > > > > > > directory.
-> > > > > > > > >
-> > > > > > > > > Now my question, what do I change the line after MODDIR := to? I don't
-> > > > > > > > > know where my module directory is.
-> > > > > > > > >
-> > > > > > > > > On Sat, 24 Nov 2001, Mark D. Studebaker wrote:
-> > > > > > > > >
-> > > > > > > > > > You have a problem we usually see in Mandrake kernels.
-> > > > > > > > > > See FAQ #3.8 for the fix.
-> > > > > > > > > > mds
-> > > > > > > > > >
-> > > > > > > > > > Phillip Pi wrote:
-> > > > > > > > > > >
-> > > > > > > > > > > Hey guys,
-> > > > > > > > > > >
-> > > > > > > > > > > I got a little farther after running make xconfig and save my settings,
-> > > > > > > > > > > but I ran into another problem (make had no errors AFAIK):
-> > > > > > > > > > >
-> > > > > > > > > > > [root@ANTux-P3 i2c-2.6.2]# make install
-> > > > > > > > > > > if [ -n " kernel/i2c-core.o kernel/i2c-dev.o kernel/i2c-algo-bit.o
-> > > > > > > > > > > kernel/i2c-philips-par.o kernel/i2c-elv.o kernel/i2c-velleman.o
-> > > > > > > > > > > kernel/i2c-algo-pcf.o kernel/i2c-elektor.o kernel/i2c-proc.o
-> > > > > > > > > > > kernel/i2c-pport.o" ] ; then \
-> > > > > > > > > > >   mkdir -p /lib/modules/`grep UTS_RELEASE
-> > > > > > > > > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
-> > > > > > > > > > >   install -o root -g root -m 644  kernel/i2c-core.o kernel/i2c-dev.o
-> > > > > > > > > > > kernel/i2c-algo-bit.o kernel/i2c-philips-par.o kernel/i2c-elv.o
-> > > > > > > > > > > kernel/i2c-velleman.o kernel/i2c-algo-pcf.o kernel/i2c-elektor.o
-> > > > > > > > > > > kernel/i2c-proc.o kernel/i2c-pport.o /lib/modules/`grep UTS_RELEASE
-> > > > > > > > > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
-> > > > > > > > > > > fi
-> > > > > > > > > > > install: `/lib/modules/2.4.7-10smp' is a directory
-> > > > > > > > > > > install: `2.4.7-10BOOT' is a directory
-> > > > > > > > > > > install: `2.4.7-10enterprise' is a directory
-> > > > > > > > > > > install: `2.4.7-10debug' is a directory
-> > > > > > > > > > > make: *** [install-kernel] Error 1
-> > > > > > > > > > >
-> > > > > > > > > > > Does this mean my Kernel source, from Red Hat Linux 7.2 CDs, is bad?
-> > > > > > > > > > > Thank you in advance for a reply. :)
-> > > > > > > > >
-> > > > > > > > > > > On Tue, 20 Nov 2001 phil@netroedge.com wrote:
-> > > > > > > > > > >
-> > > > > > > > > > > > You need to at least configure your kernel.  If it's a redhat kernel,
-> > > > > > > > > > > > then there is probably a reasonable default config.  'cd
-> > > > > > > > > > > > /usr/src/linux-2.4.7-10' and do a 'make xconfig' (or menuconfig, or
-> > > > > > > > > > > > config) and leave the settings as the defaults and save the config.
-> > > > > > > > > > > > It creates the .config file and also creates some symlinks to include
-> > > > > > > > > > > > files which are needed for your specific hardware.  If that kernel
-> > > > > > > > > > > > source isn't the exact which was used to make your running kernel,
-> > > > > > > > > > > > then you'll have troubles getting the modules to work.  In that case,
-> > > > > > > > > > > > you won't be able to get around configuring and building the kernel,
-> > > > > > > > > > > > rebooting, and then building lm-sensors.
-> > > > > > > > > > > >
-> > > > > > > > > > > >
-> > > > > > > > > > > > Phil
-> > > > > > > > > > > >
-> > > > > > > > > > > >
-> > > > > > > > > > > > On Tue, Nov 20, 2001 at 01:59:41AM -0800, Phillip Pi wrote:
-> > > > > > > > > > > > > Hi. I am trying to compile and install i2c-2.6.2 and lm_sensors-2.6.2 on
-> > > > > > > > > > > > > my new Red Hat Linux v7.2 box. I haven't upgraded and tweaked my Kernel
-> > > > > > > > > > > > > v2.4.7-10 yet. Do I still need to download the Kernel source from
-> > > > > > > > > > > > > kernel.org even though I see the source (installed from CD installation)?
-> > > > > > > > > > > > >
-> > > > > > > > > > > > > If not, then I am having problems compiling after make all. When I do make
-> > > > > > > > > > > > > install, I get this:
-> > > > > > > > > > > > >
-> > > > > > > > > > > > > [root@ANTux-P3 i2c-2.6.2]# make install
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > grep: /usr/src/linux-2.4.7-10/.config: No such file or directory
-> > > > > > > > > > > > > if [ -n " kernel/i2c-core.o kernel/i2c-dev.o kernel/i2c-algo-bit.o
-> > > > > > > > > > > > > kernel/i2c-philips-par.o kernel/i2c-elv.o kernel/i2c-velleman.o
-> > > > > > > > > > > > > kernel/i2c-algo-pcf.o kernel/i2c-elektor.o kernel/i2c-proc.o
-> > > > > > > > > > > > > kernel/i2c-pport.o" ] ; then \
-> > > > > > > > > > > > >   mkdir -p /lib/modules/`grep UTS_RELEASE
-> > > > > > > > > > > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
-> > > > > > > > > > > > >   install -o root -g root -m 644  kernel/i2c-core.o kernel/i2c-dev.o
-> > > > > > > > > > > > > kernel/i2c-algo-bit.o kernel/i2c-philips-par.o kernel/i2c-elv.o
-> > > > > > > > > > > > > kernel/i2c-velleman.o kernel/i2c-algo-pcf.o kernel/i2c-elektor.o
-> > > > > > > > > > > > > kernel/i2c-proc.o kernel/i2c-pport.o /lib/modules/`grep UTS_RELEASE
-> > > > > > > > > > > > > /usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
-> > > > > > > > > > > > > fi
-> > > > > > > > > > > > > install: `/lib/modules/2.4.7-10smp' is a directory
-> > > > > > > > > > > > > install: `2.4.7-10BOOT' is a directory
-> > > > > > > > > > > > > install: `2.4.7-10enterprise' is a directory
-> > > > > > > > > > > > > install: `2.4.7-10debug' is a directory
-> > > > > > > > > > > > > make: *** [install-kernel] Error 1
-> > > > > > > > > > > > >
-> > > > > > > > > > > > > Am I doing something wrong? I am still new with Linux so I might be doing
-> > > > > > > > > > > > > something wrong. I hope I don't have to fiddle with the Kernel. Note: I2C
-> > > > > > > > > > > > > is not built in my kernel according to its make xconfig. Also, I did edit
-> > > > > > > > > > > > > Makefile to have it point to /usr/src/linux-2.4.7-10 for source files.
-> 
-> 
+        /* enter MB PnP mode */
+        outb(0x87, 0x2e);
+        outb(0x01, 0x2e);
+        outb(0x55, 0x2e);
+        outb(0x55, 0x2e);
+
+        /* get chip ID */
+        outb(0x20, 0x2e);
+        printf("chip id =3D 0x%02x", inb(0x2f));
+        outb(0x21, 0x2e);
+        printf("%02x\n", inb(0x2f));
+
+        /* select GPIO */
+        outb(0x07, 0x2e);
+        outb(0x04, 0x2f);
+
+        outb(0x60, 0x2e); /* address MSB */
+        printf("LDN 4, reg 0x60 =3D 0x%02x\n", inb(0x2f));  /* default 0x02=
+ */
+        outb(0x61, 0x2e); /* address LSB */
+        printf("LDN 4, reg 0x61 =3D 0x%02x\n", inb(0x2f));  /* default 0x90=
+ */
+        outb(0x30, 0x2e); /* enable */
+        printf("LDN 4, reg 0x30 =3D 0x%02x\n", inb(0x2f));  /* default 0x00=
+, should be >0 */
+
+        /* exit from MB PnP mode */
+        outb(0x02, 0x2e);
+        outb(0x02, 0x2f);
+        return 0;
+}
+
+
+Which gave the following output right after a reboot:
+
+chip id =3D 0x8712
+LDN 4, reg 0x60 =3D 0x0d
+LDN 4, reg 0x61 =3D 0x00
+LDN 4, reg 0x30 =3D 0x01
+
+I.e. Asus have changed the base address from 0x290 to 0xd00.  Using
+this address with it87 worked perfectly:
+
+  modprobe it87 probe=9191,0x0d00
+
+
+I wonder however, would it be possible to include a refined version of
+the address detection code in the module?  I am willing to try to
+write it myself, but I won't do it unless I know it has some remote
+possibility of being included.
+
+
+Bj?rn
