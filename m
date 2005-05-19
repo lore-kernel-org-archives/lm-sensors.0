@@ -1,39 +1,26 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: Bug #1807: sensors with kernel 2.4, but not with kernel 2.6
-Message-Id: <20041108231209.GC16197@kroah.com>
+From: urban@UNIX-Beratung.de (Robert Urban)
+Date: Thu, 19 May 2005 06:25:11 +0000
+Subject: use of iconv() in main.c
+Message-Id: <200408160857.i7G8vTrs027501@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1099499003.11618.13.camel@antares.hausnetz>
-In-Reply-To: <1099499003.11618.13.camel@antares.hausnetz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Nov 07, 2004 at 10:28:39PM -0500, Mark M. Hoffman wrote:
-> Hi again...
-> 
-> * Mark M. Hoffman <mhoffman@lightlink.com> [2004-11-07 21:47:51 -0500]:
-> > Whatever we agree are legitimate reasons to cancel detection, I would like
-> > to add specific documentation for them.  I think a case can be made that
-> > there's *no* legitimate reason for a driver to halt detection that way...
-> > but I'm sure I'll hear otherwise.  As an interface, this interpretation
-> > of a return value (I failed so badly that you're not allowed to call me
-> > again) isn't my favorite.
-> 
-> After working on a patch for a bit... now I hate it.  Why does i2c_detect()
-> need to work that way?  
-> 
-> Back to where I started: anyone mind if I rewrite i2c_detect()?  A grep
-> said that drivers/i2c/chips/*.c are the only callers.
+Hello,
 
-Heh, I tried to rewrite it a while ago, and just gave up, it's a mess.
-Please redo it.
+I'm building an embedded linux system using uClibc, which by default
+does not have locale support.  In order to build lm_sensors-2.8.7
+I had to comment out the code that refers to iconv() in set_degstr() (in
+main.c), as well as the "#include <iconv.h>" line.
 
-Oh, I'm getting rid of all of the "range" variables in the structures
-right now, so that will affect i2c_detect.  I'll have patches in a few
-hours.
+It might save others a bit of trouble if you made the use of locales
+an option...
 
-thanks,
+thanks for lm_sensors, by the way!
 
-greg k-h
+cheers,
+
+Rob Urban
+Munich, Germany
