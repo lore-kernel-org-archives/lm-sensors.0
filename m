@@ -1,24 +1,18 @@
-From: info@kraeMit.de (Hr. Marcus Kraemer)
-Date: Thu, 19 May 2005 06:23:27 +0000
-Subject: Link is wrong
-Message-Id: <001501c190aa$5ed78ff0$1464a8c0@kirk>
+From: minyard@acm.org (Corey Minyard)
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [PATCH] Remove redundancy from i2c-core.c
+Message-Id: <425418AD.6060102@acm.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lkml <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Sensors <sensors@stimpy.netroedge.com>
 
 
-The link to the "Web gateway to sensors (via a simple CGI)"
-results in a 404.
-
-Could you please provide me a functional link?
-
-Kind regards
-
-
-marcus
-
----
-Marcus 'kraeMit' Kraemer
-E-Mail:		info@kraeMit.de
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c_remove_redundant_check.diff
+Type: text/x-patch
+Size: 2866 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050406/e3ce9b0c/i2c_remove_redundant_check.bin
