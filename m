@@ -1,115 +1,35 @@
-From: rmk@arm.linux.org.uk (Russell King)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: [patch 1/9]Four new i2c drivers and __init/__exit cleanup toi2c
-Message-Id: <20020917150649.A29890@flint.arm.linux.org.uk>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:25 +0000
+Subject: libsensors completed for 2.6
+Message-Id: <3FBADC0E.6C375D56@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D872F81.61BC7167@attbi.com>
-In-Reply-To: <3D872F81.61BC7167@attbi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 17, 2002 at 09:34:57AM -0400, Albert Cranford wrote:
-> Jeff, here was the original code which saved flags and
-> interrupted.  The goal was to remove the cli, so the new
-> code that Ingo suggested is:local_irq_save(flags);
-> Redesigning with semaphores is not possible.
-> 
->         /* Chip bug, set enable here */
->         save_flags(flags); cli();
->         i2c->i2c_i2cmr = 0x13;  /* Enable some interupts */
->         i2c->i2c_i2cer = 0xff;
->         i2c->i2c_i2mod = 1;     /* Enable */
->         i2c->i2c_i2com = 0x81;  /* Start master */
-> 
->         /* Wait for IIC transfer */
->         interruptible_sleep_on(&iic_wait);
->         restore_flags(flags);
+except for those drivers with non-standard feature names in lib/chips.c.
 
-Well, shrug.  In 2.5, tests _are_ being put into the scheduler at
-this very moment by Linus to prevent sleeping with interrupts disabled,
-so it will have to be fixed properly sooner or later.
+I wrote a conversion function that converts all standard libsensors
+feature names
+(i.e. those that match the /proc names documented in
+doc/developers/proc) to
+the standard sysfs file names
+(i.e. those that are documented in Documentation/i2c/sysfs_interface),
+and the standard magnitudes documented there.
 
-You simply aren't allowed to sleep with interrupts disabled anymore.
+This saves about as much typing in lib/chips.c as I know how to save.
 
-A possible solution would be _something_ like:
+I know that Khali is working on additional standardization and changes.
+These will have to be reflected in the function getsysname() in
+lib/proc.c.
 
-	int ret = 0;
+What's remaining is typing in the sysfs names for those features using
+non-standard names (e.g. "3.3V").
 
-	interrupt_happened = 0;
+But the majority of chips should just magically work now. Please test.
+I'll announce it on the home page later in the week.
 
-	i2c->i2c_i2cmr = 0x13;
-	i2c->i2c_i2cer = 0xff;
-	i2c->i2c_i2mod = 1;
-	i2c->i2c_i2com = 0x81;
+Thanks to Danny for the great patch which got me started.
 
-	wait_event_interruptible(&iic_wait, interrupt_happened = 1, ret);
-
-	if (ret) {
-		/* I was interrupted while I was sleeping */
-		/* clean up */
-	}
-
-and in your interrupt handler:
-
-	interrupt_happened = 1;
-	wake_up_interruptible(&iic_wait);
-
-If you can guarantee that this function will only be called by thread at
-any one time, you can get the exact same effect with:
-
-	sema_init(&sem, 0);
-
-	i2c->i2c_i2cmr = 0x13;
-	i2c->i2c_i2cer = 0xff;
-	i2c->i2c_i2mod = 1;
-	i2c->i2c_i2com = 0x81;
-
-	ret = down_interruptible(&sem);
-	if (ret) {
-		/* I was interrupted while I was sleeping */
-		/* clean up */
-	}
-
-and in your interrupt handler:
-
-	up(&sem);
-
-Since you're frobbing with the hardware, you should be able to make
-this guarantee.  If not, the driver is buggy, and would need the
-following:
-
-	ret = down_interruptible(&hw_access_sem);
-	if (ret)
-		return ret;
-
-	sema_init(&sem, 0);
-
-	i2c->i2c_i2cmr = 0x13;
-	i2c->i2c_i2cer = 0xff;
-	i2c->i2c_i2mod = 1;
-	i2c->i2c_i2com = 0x81;
-
-	ret = down_interruptible(&sem);
-
-	up(&hw_access_sem);
-
-	if (ret) {
-		/* I was interrupted while I was sleeping */
-		/* clean up */
-	}
-
-The patch you attach is fine as far as making things better than they
-are at present.
-
-> Jeff, the busy-wait works fine, but Russell commented that
-> Athlon cpu's would destroy itself, so cpu_relax was added.
-> I don't think its needed on this chip myself.
-
-Note that I didn't analyse whether they were always in process context
-or not.
-
--- 
-Russell King (rmk@arm.linux.org.uk)                The developer of ARM Linux
-             http://www.arm.linux.org.uk/personal/aboutme.html
+mds
