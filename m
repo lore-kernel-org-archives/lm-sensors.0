@@ -1,67 +1,58 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:19 +0000
-Subject: [feedback] Asus CUV4X correct settings
-Message-Id: <20041016092748.641ff0e4.khali@linux-fr.org>
+From: vdykt@icon.co.za (Tobias van Dyk)
+Date: Thu, 19 May 2005 06:25:59 +0000
+Subject: [lm-sensors] Abit uGuru
+Message-Id: <428A38E8.2000801@icon.co.za>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41703183.1040000@noiraude.net>
-In-Reply-To: <41703183.1040000@noiraude.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Hello,
+I recently tried Olle Sandberg's test code for reading the Winbond 
+W83L950D ports (aka uGuru) on an ABIT AG8-V. Provided his uGuru detect 
+routine is shorted I got satisfactory results on this MB - as shown below
 
-Salut Lea ;)
+How do I go about to help to include a partial implementation into 
+lm_sensors (or alternatively is it more feasible to think of a GKrellM 
+plugin)?
 
-> Here is a feedback regarding proper setting for an Asus CUV4X
-> motherboard.
-> 
-> chip "as99127f-*"
-> 
-> # If you know other boards where they are swapped, let us know and
-> # we'll update the list.
-> 
-> Here it is :)
-> 
-> # Some working settings for Asus CUV4X VIAPro P3 CPU, kernel 2.6.8.1
-> # lm_sensors 2.8.7
-> 
-> # Single power plane (A7V133, A7M266)
->     label in0 "VCore"
->     ignore in1
-> 
-> # However, some A7N8X boards (Deluxe rev.2, -X) have them swapped:
->     label temp1 "CPU Temp"
->     label temp2 "M/B Temp"
-> 
-> You can add CUV4X in this cathegory of single power line and reversed 
-> CPI/M/B Temp
+I must confess that I miss the temperature readings on my PC because the 
+current (windows) speedfan beta now understands uGuru.
 
-Thanks for reporting. I've updated the default configuration file.
+If required I can post the Olle Sandberg ollebull@gmail.com February 
+2005 source.
 
-> CPU Temp:    +34?C  (high =  +105?C, hyst =    +0?C)
-> M/B Temp:  +28.0?C  (high =   +72?C, hyst =   +65?C)
-> (...)
-> With room temperature around 22?C it makes me very happy with the 
-> current setting.
-> 
-> CPU is a Pentiom III (Coppermine) 733EB with 512Mb 133 DDR/SDRAM.
 
-En effet c'est plus que correct. Mon Athlon 1200 est ? 51?C au repos :(
-et le boitier a 35. Par contre j'ai un Pentium III 800EB sur carte ?
-ciel ouvert (comprendre: pas de boitier, tous les ?l?ments du sont pos?s
-directement sur mon bureau) qui dit ?a:
+[root@linux64 uguru]# /root/uguru/openGuru
+uGuru detected!
 
-M/B Temp:    +28 C  (low  =    +0 C, high =   +50 C)   
-CPU0 Temp:   +24 C  (low  =    +0 C, high =   +60 C)   
+Temperatures:
+CPU:            42C
+SYS:            36C
+PWM:            38C
 
-Je trouve que ?a le fait pas mal ;) d'antant que le ventillateur CPU est
-un 80mm ? 1300 tours/minute donc tr?s silencieux Je ne sais pas ce que
-ca va donner quand je lui aurai trouv? une maison cela dit.
+Voltages:
+Vcore:          1.40V
+DDRVdd:         2.67V
+DDRVtt:         1.35V
+NBVdd:          2.89V
+SBVdd:          1.23V
+HTVdd:          1.55V
+AGPVdd:         2.55V
+Vdd5V:          5.05V
+Vdd3V3:         3.30V
+Vdd5VSB:        5.02V
+Vdd3VDual:      0.65V
 
-Merci encore pour les infos en tout cas.
+Fans:
+CPU fan:        1800RPM
+NB fan:         3660RPM
+SYS fan:        1080RPM
+AUX fan1:       0RPM
+AUX fan2:       0RPM
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
