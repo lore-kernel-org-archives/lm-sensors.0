@@ -1,67 +1,29 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:23 +0000
-Subject: smart battery driver
-Message-Id: <419EA3C7.4020004@verizon.net>
+From: olleg@jane.telecom.mipt.ru (Olleg Samoylov)
+Date: Thu, 19 May 2005 06:24:24 +0000
+Subject: Question in sensors.conf: # does anyone know a board for which the
+Message-Id: <Pine.LNX.4.33.0311061924170.5998-100000@jane.telecom.mipt.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <416468FD.6020400@mega.ist.utl.pt>
-In-Reply-To: <416468FD.6020400@mega.ist.utl.pt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-see the extensive documentation on our website.
-download our package and read the documentation.
+# for at least Asus A7V133/133-C
+#    compute temp2 @*2.0, @/2.0
+#    compute temp3 @*2.0, @/2.0
+# does anyone know a board for which the following is correct?
+   compute temp2 (@*30/43)+25, (@-25)*43/30
 
-Pedro Venda wrote:
-> hi,
-> 
-> Mark Studebaker wrote:
-> 
->> we have had a smartbattery driver, smartbatt.c, in our package for 
->> almost two years.
->> please review it and if you have questions or would like to enhance it 
->> please
->> let us know.
-> 
-> 
-> i stopped because i need to learn more about kernel programming, but i 
-> haven't give up. how can i download and use the driver?
-> 
-> the gentoo ebuild doesn't contain it. do i need to access CVS to get it?
-> 
-> regards,
-> pedro venda.
-> 
->>
->> Pedro Venda wrote:
->>
->> hello everyone.
->>
->> i am willing to write a smart battery driver. reason? i have one.
->>
->> in the acpi-devel ml, people advised me to start from drivers/i2c. later
->> i saw that your lmsensors website refers to the smart battery, but with
->> no driver name and no status associated.
->>
->> i have also contacted the sbs-forum people to help me out.
->>
->> i would like to hear oppinions from you...
->>
->> 1. can i ask questions in this mailing list? about i2c and chip access
->> in general, i mean, is this on-topic?
->> 2. where should i start? i have some experience in C but have never
->> programmed in the kernel before, although i have been reading the
->> sources for some time now.
->> 3. where else can i get help/datasheets/whatever i need?
->> 4. is anyone else doing/trying to do the same as me?
->> 5. if not, is anyone willing to help?
->>
->> thanks for your time people.
->> regards,
->> pedro venda.
->>
->>>
->>>
-> 
-> 
+May be Asus P3B-F
+
+On Celeron 400
+
+compute temp2 @*2.0, @/2.0
+CPU Temp:  +33.4?C  (limit = +120?C, hysteresis = +100?C)
+
+compute temp2 (@*30/43)+25, (@-25)*43/30
+CPU Temp:  +36.7?C  (limit =  +67?C, hysteresis =  +60?C)
+
+-- 
+Olleg
+
