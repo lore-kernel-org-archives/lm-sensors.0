@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker)
+From: andrew@andrew.net.au (Andrew Pollock)
 Date: Thu, 19 May 2005 06:23:42 +0000
 Subject: CVS messages out of mail archive
-Message-Id: <3DE7F12B.A5914FE4@paradyne.com>
+Message-Id: <20021130040355.GC30126@daedalus.andrew.net.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3D8DE64F.E4D74344@paradyne.com>
 In-Reply-To: <3D8DE64F.E4D74344@paradyne.com>
@@ -10,84 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-great. thanks alot for getting it going again, and for taking out the
-CVS messages.
-I think some folks saw a while ago that things were hosed but didn't
-know
-who to contact. I'm coping our mail list so everybody has your address.
+On Fri, Nov 29, 2002 at 05:58:51PM -0500, Mark D. Studebaker wrote:
+> great. thanks alot for getting it going again, and for taking out the
+> CVS messages.
+> I think some folks saw a while ago that things were hosed but didn't
+> know
+> who to contact. I'm coping our mail list so everybody has your address.
+> 
+> The archive - together with the form for a google search of the archive
+> that we
+> put up on our site a couple of months ago - definitely helps people help
+> themselves,
+> which cuts down on tickets, email, etc. that we have to answer.
+> So we really appreciate having it.
 
-The archive - together with the form for a google search of the archive
-that we
-put up on our site a couple of months ago - definitely helps people help
-themselves,
-which cuts down on tickets, email, etc. that we have to answer.
-So we really appreciate having it.
-Thanks again.
-mds
+Cool. Glad to be of assistance. One problem that is created when I go
+removing messages and regenerating the whole archive, is the message
+numbers change, and so the actual URLs of individual posts changes, which
+is really going to bugger up out of date search engines, i.e., you search
+for something, and Google says it's on page x, but after a regen, it's
+actually on page y, you'll either get a 404 or a completely different post
+than what you expected. I'd expect that the problem would resolve itself
+as soon as the particular search engine reindexes the archive, but it's
+something to bear in mind.
 
-Andrew Pollock wrote:
-> 
-> Hi,
-> 
-> I'm really sorry about the delay in getting back to you about this.
-> 
-> I've removed all the old author messages out of the mail file, the mail
-> file that the archive is built from is still receiving messages, and I've
-> just discovered a stale lockfile floating around for the archiving
-> software, which I've removed, and I've kicked off a manual run of it now.
-> 
-> When I next get some time, I'll look at rejigging the archive a bit, so
-> that it splits out by month or something, instead of making an
-> ever-lengthening page.
-> 
-> Andrew
-> 
-> On Thu, Nov 28, 2002 at 08:19:00PM -0500, Mark D. Studebaker wrote:
-> > any luck fixing?
-> >
-> > Andrew Pollock wrote:
-> > >
-> > > On Thu, Nov 21, 2002 at 02:24:50PM -0500, Mark D. Studebaker wrote:
-> > > > is the archive working at all? it seems the last message is early
-> > > > august?
-> > >
-> > > Eeek, that's decidedly ungood. I'll investigate this weekend.
-> > >
-> > > > Andrew Pollock wrote:
-> > > > >
-> > > > > On Mon, Nov 18, 2002 at 03:44:22PM -0500, Mark D. Studebaker wrote:
-> > > > > > nag. :)
-> > > > >
-> > > > > Thanks, I needed that :-)
-> > > > >
-> > > > > > Andrew Pollock wrote:
-> > > > > > >
-> > > > > > > On Sun, Oct 13, 2002 at 12:02:11PM -0400, Mark Studebaker wrote:
-> > > > > > > > BTW can you take the existing "author" messages out of the archive
-> > > > > > > > easily or is that too difficult?
-> > > > > > >
-> > > > > > > I'll see what I can do, might take me a while to get around to it. Feel
-> > > > > > > free to nag me.
-> > > > > > >
-> > > > > > > > Andrew Pollock wrote:
-> > > > > > > > >On Sun, Sep 22, 2002 at 11:48:31AM -0400, Mark D. Studebaker wrote:
-> > > > > > > > >
-> > > > > > > > >>Andrew,
-> > > > > > > > >>
-> > > > > > > > >>I think it would be helpful to filter/remove the CVS messages
-> > > > > > > > >>(i.e. everything from author) from the mailing list archive.
-> > > > > > > > >>It would make it much smaller, and people can browse CVS
-> > > > > > > > >>using our web interface if they want to see that information.
-> > > > > > > > >>
-> > > > > > > > >>Is this a good idea? Is it possible?
-> > > > > > > > >
-> > > > > > > > >
-> > > > > > > > >Sounds like a reasonable idea to me. It should be possible. Is it
-> > > > > > > > >accurate to say that all mail from author@mordac.eli.netroedge.com is
-> > > > > > > > >CVS related and can be excluded from the archive?
-> > > > > > > > >
-> > > > > > > > >Sorry for the lateness of my reply.
-> > > > > > > > >
-> > > > > > > > >Andrew
-> > > > > > > >
-> > > > > > > >
+As I said, I'm trying to work towards the point where the archive gets
+broken out by month, and has multiple pages etc, it's just a matter of
+time on my behalf.
+
+Andrew
