@@ -1,7 +1,7 @@
-From: ljubo108@vip.hr (Ljubomir Bozic Jr.)
-Date: Thu, 19 May 2005 06:24:16 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: fan2 readout on Chaintech MB
-Message-Id: <200309082156.49887.ljubo108@vip.hr>
+Message-Id: <20030913224007.1d03a650.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200308310230.14115.ljubo108@vip.hr>
 In-Reply-To: <200308310230.14115.ljubo108@vip.hr>
@@ -10,37 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Could be because both MBM and our code think its is a LM90 while it is
-> something else. If you can provide the output of "i2cdump 0 0x4c", I
-> could see if that's what's happening or not.
->
-I'm sending you output in attachment. I have also tried it87 sensors but I'm 
-getting weird values, and I have also tried various temp_type values but I 
-could not find the right value to get "normal" results, I will try it again 
-and every combination.
 
-I will see if my friend, that has EPOX nForce2 motherboard, has lm90 so that 
-he can do some testing for you.
+> I'm sending you output in attachment. I have also tried it87 sensors
+> but I'm getting weird values, and I have also tried various temp_type
+> values but I could not find the right value to get "normal" results, I
+> will try it again and every combination.
+> 
+> I will see if my friend, that has EPOX nForce2 motherboard, has lm90
+> so that he can do some testing for you.
 
-Thank you very, very much for your help. I have been thinking to RMA my board 
-but now I will wait to see your results.
+Took a look at the output, this doubtlessly is a LM90.
 
-Best regards, Ljubo
--------------- next part --------------
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 22 2e 00 40 05 46 05 46 05 00 00 00 00 00 00 00    "..@?F?F?.......
-10: 60 00 00 00 00 00 00 00 00 55 00 00 00 00 00 00    `........U......
-20: 55 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00    U?..............
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 66 20 43 b4 ad 00 05 00 00 4b 4b 00 00 00 00 00    f C??.?..KK.....
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 21    ..............?!
+(Reading through the datasheet, through the driver code, datasheet
+again, driver again.)
+
+Hm. How can I say that...
+
+My driver init code explicitely *stops* the chipset. No wonder you don't
+see the values changing... Stupid me. That's fixed in CVS, if you were
+kind enough to give it a try and tell me if it now works OK for you.
+
+> Thank you very, very much for your help. I have been thinking to RMA
+> my board but now I will wait to see your results.
+
+You're welcome.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
