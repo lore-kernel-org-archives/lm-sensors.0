@@ -1,33 +1,28 @@
-From: zoleg@matrixc.ru (ZOleg Matrix)
-Date: Thu, 19 May 2005 06:24:03 +0000
-Subject: LM83 sensor
-Message-Id: <835828609.20030702184846@matrixc.ru>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: DB of sensor configuration
+Message-Id: <20020123094934.G14748@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43612812.20030701105509@matrixc.ru>
-In-Reply-To: <43612812.20030701105509@matrixc.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
 
-Wednesday, July 2, 2003, 6:27:16 PM, you wrote:
+If you'd like to tackle that, I don't see why not.  Do you have some
+web space we can link to from our site?  We can also add you to the
+mailing list.
 
-JD> Thanks for the shot. Unfortunately, it doesn't say on which chipset each
-JD> sensor is located :/
 
-JD> I've added preliminary LM83 detection to our sensors-detect script.
-JD> Could you please get it from
- 
-JD> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
-JD> and give it a try? Preferably unload all sensors modules before doing so
-JD> and send us a whole log of the script run (using script or whatever).
+Phil
 
-Many thanks for the help. I necessarily shall try new sensors-detect,
-but only tomorrow, as at us evening.
-Tomorrow I send you log.
+On Wed, Jan 23, 2002 at 07:37:04AM -0500, nick@snowman.net wrote:
+> Hi, I'm intrested in helping maintain a database of sensor configs if help
+> with that is still required.  I've got about 5 systems I can test on
+> myself, and can collect and sanity-check reports from other users.
+> 	Nick
 
 -- 
-Best regards,
- ZOleg                            mailto:zoleg@matrixc.ru
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
