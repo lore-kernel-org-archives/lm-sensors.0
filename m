@@ -1,54 +1,51 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:09 +0000
-Subject: i2c-sis630 driver (fixed?)
-Message-Id: <20030802022453.GA15700@earth.solarsys.private>
+From: frodol@dds.nl (frodol@dds.nl)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: 2.5.x Conversion from i2c-old.h --> i2c.h (fwd)
+Message-Id: <200206071745.g57Hj5R02846@shire.frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030801230134.6fdf60dc.khali@linux-fr.org>
-In-Reply-To: <20030801230134.6fdf60dc.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Alexander Malysh <amalysh@web.de> [2003-08-01 23:21:59 +0200]:
-> Hi Jean, Mark,
+Forwarded message:
+> From fdavis@si.rr.com Fri Jun  7 19:40:06 2002
+> Message-ID: <3D00EE91.5010309@si.rr.com>
+> Date: Fri, 07 Jun 2002 13:34:09 -0400
+> From: Frank Davis <fdavis@si.rr.com>
+> Reply-To: fdavis@si.rr.com
+> User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.0rc2) Gecko/20020512 Netscape/7.0b1
+> X-Accept-Language: en-us, en
+> MIME-Version: 1.0
+> To: simon@tk.uni-linz.ac.at
+> CC: frodol@dds.nl
+> Subject: 2.5.x Conversion from i2c-old.h --> i2c.h
+> Content-Type: text/plain; charset=us-ascii; format=flowed
+> Content-Transfer-Encoding: 7bit
+> X-Loop-Procmail: PreventLoop
 > 
-> i do not know what is to do here :(
-> i2c-sis630 is not a pci driver and should not claim any pci devices. 
-> i2c-sis630 use only io ports and pci device look up used only in order to 
-> determine if it a right sis chip et all. I want to revert pci changes and 
-> commit it, if nobody has any objections.
+> Hello,
+>     I'm in the process of converting the drivers located in 
+> drivers/media/video/ from the old i2c interface (reference to i2c-old.h 
+> which no longer exists in 2.5.x) to the current i2c interface. I believe 
+> to have everything in place for the current i2c interface, expect fixing 
+> up the (driver)_read() and (driver)_write_block() and (driver)_write() 
+> functions. I'm hoping you could provide guidance on how to convert those 
+> functions over. I was thinking about removing those completely and using 
+> 
+> i2c_smbus_read_*() functions instead. Thoughts?
+> 
+> I'm currently looking at drivers/media/video/saa7110.c (kernel version 
+> 2.5.20). Thanks.
+> 
+> Regards,
+> Frank
+> 
+> 
 
-On one hand it should be a PCI driver.  After all it does read (and
-potentially write) in the PCI config space of the bridge device - 
-even if that's only at device init.
-
-But then again, if there are other functions hidden there that some
-other driver might use, we're back to the same problem.
-
-> Mark, what do you think about it? Why should be such detect method not 
-> accepted in 2.4.X ?
-
-Well maybe it's not forbidden, but discouraged.  Again, I'm not sure
-what is the right thing.  If we don't hear fresh advice in a few
-days I'll ask on LKML.
-
-> On Friday 01 August 2003 23:01, Jean Delvare wrote:
-> > Mark, Alexander,
-> >
-> > Is the i2c-sis630 driver considered fixed or not? Shall I close the
-> > tickets 1350 and 1351?
-> >
-> > (My reading of the thread makes me think there still is a discussion
-> > about what should be done, but I don't know what I am supposed to do
-> > with the tickets.)
-
-The code in CVS should work just fine.  I would say the tickets can be
-closed because (unless we're very sloppy) that bug won't happen again.
-What we discuss above is related but more subtle.
-
-Regards,
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
