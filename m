@@ -1,127 +1,143 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: New chip driver development plan to Lm_sensors
-Message-Id: <20041205121647.1cea2433.khali@linux-fr.org>
+Message-Id: <E36E0C5C92D97049B4855B5498A94547FDF01E@weshml02.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 In-Reply-To: <E36E0C5C92D97049B4855B5498A94547F5124B@weshml02.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao,
-
-Sorry for the delay, I have been encountering severe mail problems and
-lost 6 days worth of data, including your latest request for
-information. I finally found it while browsing the mailing-list archive,
-so here are my answers.
-
-> I have finished some of the functions in w83792d.c, and can produce
-> some device files in directory /proc/sys/dev/sensors/w83792d-i2c-0-2f/
-> for example in0.
-
-Great :)
-
-> But each time(except within the interval "HZ + HZ/2") I read the in0 file
-> by "cat" command, I find that the delay is comparatively large, which is
-> about 1-2 seconds. That's to say it takes me about 1-2 seconds to show me
-> the content of "in0", which also leads to the delay of the program "sensors".
-
-This is expected. All reads are grouped in a single function by design,
-so updating one value or the whole chip takes the same time.
-
-> I have debugged about it, find that the function "w83792d_update_client"
-> is the reason of the delay. Because in the course of the delay, this
-> function is executing and reading the registers' value one by one.
-
-True, you got it.
-
-> I also tested another Winbond chip W83627THF with the driver w83627hf.c
-> find that this phenomena does NOT exist on W83627THF. That's to say all
-> the device files of W83627THF can be read very quickly almost without any
-> delay, just like regular text file.
-
-This is due to the speed difference between I2C (SMBus) and ISA. ISA is
-really fast, I2C/SMbus is comparatively very slow.
-
-> So my questions are:
-> (1) Does this phenomena appears in other I2C chip drivers? such as
-> w83781d.c. Because W83627THF use ISA bus instead of I2C.
-
-Yes, that's exactlty it.
-
-> (2) Does it have something to do with the register numbers be read in
-> the function " w83792d_update_client()"?
-> Because w83792d_update_client read much more registers than w83627hf.
-
-Yes, the time required for one update is naturally proportional to the
-number of registers, for a given type of bus (ISA vs I2C). It makes no
-sense to compare a N1-register chip on I2C with a N2-register on ISA
-though.
-
-> (3) Or does it have something to do with the "w83792d_data->last_updated"
-> in the last mail? but there is also "w83627hf_data->last_updated" in
-> w83627hf.c, and the interval is same: HZ + HZ/2
-
-This isn't. HZ + HZ/2 defines the minimal delay between two updates (1.5
-second in this case). However, it makes sense to define a larger delay
-if the chip is slow updating, both for security/stability and user
-experience reasons.
-
-> (4) I also have tried to split the codes of w83792d_update_client()
-> into indivial function, for example: I move the following codes from
-> w83792d_update_client() into the function w83792d_in(), and comment
-> out the " w83792d_update_client()" in w83792d_in(), but it seems
-> useless, because the delay becomes more larger.:-(
-> 
-> ************ codes be moved  ******************
-> data->in[0] = w83792d_read_value(client, W83792D_REG_IN0);
-> data->in[1] = w83792d_read_value(client, W83792D_REG_IN1);
-> data->in[2] = w83792d_read_value(client, W83792D_REG_IN2);
-> data->in[3] = w83792d_read_value(client, W83792D_REG_IN3);
-> data->in[4] = w83792d_read_value(client, W83792D_REG_IN4);
-> data->in[5] = w83792d_read_value(client, W83792D_REG_IN5);
-> data->in[6] = w83792d_read_value(client, W83792D_REG_IN6);
-> data->in[7] = w83792d_read_value(client, W83792D_REG_IN7);
-> data->in[8] = w83792d_read_value(client, W83792D_REG_IN8);
-
-By doing that you remove the effect of caching for these registers. This
-won't speed up the single-register reads, but will significantly slow
-"sensors" down. Also, it breaks our security model. Don't do that. No
-register read should happen outside of the update function (except in
-the init function when loading the driver, granted).
-
-The SMBus is slow, we have to live with it ;)
-
-One possibility is to have two different minimal delays between updates,
-one for measured values and one (longer) for values that supposedly
-don't change (such as limits and config). I think that only the lm85
-driver is doing it this way so far, take a look there. For a chip with a
-very high number of registers, that may make sense.
-
-Another possibility is to use I2C/SMBus block reads. However:
-
-1* The W83792D would need to support it, I don't know if it is the case.
-
-2* Not all SMBus master chips support it, so the w83792d driver would
-still have to support the byte/word read method for those who don't.
-
-3* Block reads have not been much tested so far so it might not be a
-good idea for you to rely on them. You would better get the driver
-working with regular byte/word reads first. Block reads can be added
-later (providing the W83792D supports them, that is).
-
-A third possibility would be to use SMBus direct byte reads instead of
-data byte reads, but this requires that the W83792D has autoincrement
-registers. Without a datasheet I of course cannot tell whether this is
-the case or not.
-
-Please do not hesitate to share your code with us as soon as you get
-something working, so that we can comment on it and users can start
-testing it too.
-
-Thanks,
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+SGkgSmVhbgoKVGhpcyBpcyBjaHVuaGFvLgoKVGhhbmsgeW91IGZvciB5b3VyIGRldGFpbGVkIGV4
+cGxhbmF0aW9uIGFuZCBncmVhdCBoZWxwLCBpdCdzIGltcG9ydGFudAp0byBtZS4gSSBjYXRjaCB5
+b3VyIG1lYW5pbmcgbm93LgoKVGhlcmUgaXMgYWJvdXQgMTA1IHJlZ2lzdGVyIHJlYWQgb3BlcmF0
+aW9ucyBpbiB0aGUgZnVuY3Rpb24gb2YKdzgzNzkyZF91cGRhdGVfY2xpZW50KCksIHdoaWNoIGlz
+IGEgbGFyZ2UgbnVtYmVyLCBtYXliZSB0aGUgbWluaW1hbApkZWxheShIWiArIEhaLzIpIHNob3Vs
+ZCBiZSBtb2RpZmllZCBpbnRvIGEgbGFyZ2VyIG9uZS4gOi0pCgo+IFBsZWFzZSBkbyBub3QgaGVz
+aXRhdGUgdG8gc2hhcmUgeW91ciBjb2RlIHdpdGggdXMgYXMgc29vbiBhcyB5b3UgZ2V0Cj4gc29t
+ZXRoaW5nIHdvcmtpbmcsIHNvIHRoYXQgd2UgY2FuIGNvbW1lbnQgb24gaXQgYW5kIHVzZXJzIGNh
+biBzdGFydAo+IHRlc3RpbmcgaXQgdG9vLgpBcyB0byBteSBjb2RlcywgSSB3aWxsIHJlbGVhc2Ug
+YSByb3VnaCB2ZXJzaW9uIHRvIHlvdSB3aGVuIEkgZ2V0IHNvbWUKb3RoZXIgdGhpbmdzIHdvcmtp
+bmcuIEFuZCBteSBtYW5hZ2VyIHdpbGwgdGVsbCBtZSB3aGVuIHRoZSBuZXcgZGF0YXNoZWV0J3MK
+dXBkYXRlIHdpbGwgYmUgZmluaXNoZWQgdG9kYXkuIEkgdGhpbmsgSSB3aWxsIHNlbmQgeW91IHRo
+ZSBuZXcgZGF0YSBzaGVldAphbmQgbXkgY29kZXMgdG9nZXRoZXIuIEkgd2lsbCBzZW5kIHRoZW0g
+dG8geW91IGFzIHNvb24gYXMgcG9zc2libGUuOi0pCgpUaGFua3MKQmVzdCBSZWdhcmRzCgpjaHVu
+aGFvCgotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQpGcm9tOiBKZWFuIERlbHZhcmUgW21haWx0
+bzpraGFsaUBsaW51eC1mci5vcmddIApTZW50OiAyMDA0xOoxMtTCNcjVIDE5OjE3ClRvOiBQSTE0
+IEhVQU5HMApDYzogTE0gU2Vuc29ycwpTdWJqZWN0OiBSRTogTmV3IGNoaXAgZHJpdmVyIGRldmVs
+b3BtZW50IHBsYW4gdG8gTG1fc2Vuc29ycwoKSGkgQ2h1bmhhbywKClNvcnJ5IGZvciB0aGUgZGVs
+YXksIEkgaGF2ZSBiZWVuIGVuY291bnRlcmluZyBzZXZlcmUgbWFpbCBwcm9ibGVtcyBhbmQKbG9z
+dCA2IGRheXMgd29ydGggb2YgZGF0YSwgaW5jbHVkaW5nIHlvdXIgbGF0ZXN0IHJlcXVlc3QgZm9y
+CmluZm9ybWF0aW9uLiBJIGZpbmFsbHkgZm91bmQgaXQgd2hpbGUgYnJvd3NpbmcgdGhlIG1haWxp
+bmctbGlzdCBhcmNoaXZlLApzbyBoZXJlIGFyZSBteSBhbnN3ZXJzLgoKPiBJIGhhdmUgZmluaXNo
+ZWQgc29tZSBvZiB0aGUgZnVuY3Rpb25zIGluIHc4Mzc5MmQuYywgYW5kIGNhbiBwcm9kdWNlCj4g
+c29tZSBkZXZpY2UgZmlsZXMgaW4gZGlyZWN0b3J5IC9wcm9jL3N5cy9kZXYvc2Vuc29ycy93ODM3
+OTJkLWkyYy0wLTJmLwo+IGZvciBleGFtcGxlIGluMC4KCkdyZWF0IDopCgo+IEJ1dCBlYWNoIHRp
+bWUoZXhjZXB0IHdpdGhpbiB0aGUgaW50ZXJ2YWwgIkhaICsgSFovMiIpIEkgcmVhZCB0aGUgaW4w
+IGZpbGUKPiBieSAiY2F0IiBjb21tYW5kLCBJIGZpbmQgdGhhdCB0aGUgZGVsYXkgaXMgY29tcGFy
+YXRpdmVseSBsYXJnZSwgd2hpY2ggaXMKPiBhYm91dCAxLTIgc2Vjb25kcy4gVGhhdCdzIHRvIHNh
+eSBpdCB0YWtlcyBtZSBhYm91dCAxLTIgc2Vjb25kcyB0byBzaG93IG1lCj4gdGhlIGNvbnRlbnQg
+b2YgImluMCIsIHdoaWNoIGFsc28gbGVhZHMgdG8gdGhlIGRlbGF5IG9mIHRoZSBwcm9ncmFtICJz
+ZW5zb3JzIi4KClRoaXMgaXMgZXhwZWN0ZWQuIEFsbCByZWFkcyBhcmUgZ3JvdXBlZCBpbiBhIHNp
+bmdsZSBmdW5jdGlvbiBieSBkZXNpZ24sCnNvIHVwZGF0aW5nIG9uZSB2YWx1ZSBvciB0aGUgd2hv
+bGUgY2hpcCB0YWtlcyB0aGUgc2FtZSB0aW1lLgoKPiBJIGhhdmUgZGVidWdnZWQgYWJvdXQgaXQs
+IGZpbmQgdGhhdCB0aGUgZnVuY3Rpb24gInc4Mzc5MmRfdXBkYXRlX2NsaWVudCIKPiBpcyB0aGUg
+cmVhc29uIG9mIHRoZSBkZWxheS4gQmVjYXVzZSBpbiB0aGUgY291cnNlIG9mIHRoZSBkZWxheSwg
+dGhpcwo+IGZ1bmN0aW9uIGlzIGV4ZWN1dGluZyBhbmQgcmVhZGluZyB0aGUgcmVnaXN0ZXJzJyB2
+YWx1ZSBvbmUgYnkgb25lLgoKVHJ1ZSwgeW91IGdvdCBpdC4KCj4gSSBhbHNvIHRlc3RlZCBhbm90
+aGVyIFdpbmJvbmQgY2hpcCBXODM2MjdUSEYgd2l0aCB0aGUgZHJpdmVyIHc4MzYyN2hmLmMKPiBm
+aW5kIHRoYXQgdGhpcyBwaGVub21lbmEgZG9lcyBOT1QgZXhpc3Qgb24gVzgzNjI3VEhGLiBUaGF0
+J3MgdG8gc2F5IGFsbAo+IHRoZSBkZXZpY2UgZmlsZXMgb2YgVzgzNjI3VEhGIGNhbiBiZSByZWFk
+IHZlcnkgcXVpY2tseSBhbG1vc3Qgd2l0aG91dCBhbnkKPiBkZWxheSwganVzdCBsaWtlIHJlZ3Vs
+YXIgdGV4dCBmaWxlLgoKVGhpcyBpcyBkdWUgdG8gdGhlIHNwZWVkIGRpZmZlcmVuY2UgYmV0d2Vl
+biBJMkMgKFNNQnVzKSBhbmQgSVNBLiBJU0EgaXMKcmVhbGx5IGZhc3QsIEkyQy9TTWJ1cyBpcyBj
+b21wYXJhdGl2ZWx5IHZlcnkgc2xvdy4KCj4gU28gbXkgcXVlc3Rpb25zIGFyZToKPiAoMSkgRG9l
+cyB0aGlzIHBoZW5vbWVuYSBhcHBlYXJzIGluIG90aGVyIEkyQyBjaGlwIGRyaXZlcnM/IHN1Y2gg
+YXMKPiB3ODM3ODFkLmMuIEJlY2F1c2UgVzgzNjI3VEhGIHVzZSBJU0EgYnVzIGluc3RlYWQgb2Yg
+STJDLgoKWWVzLCB0aGF0J3MgZXhhY3RsdHkgaXQuCgo+ICgyKSBEb2VzIGl0IGhhdmUgc29tZXRo
+aW5nIHRvIGRvIHdpdGggdGhlIHJlZ2lzdGVyIG51bWJlcnMgYmUgcmVhZCBpbgo+IHRoZSBmdW5j
+dGlvbiAiIHc4Mzc5MmRfdXBkYXRlX2NsaWVudCgpIj8KPiBCZWNhdXNlIHc4Mzc5MmRfdXBkYXRl
+X2NsaWVudCByZWFkIG11Y2ggbW9yZSByZWdpc3RlcnMgdGhhbiB3ODM2MjdoZi4KClllcywgdGhl
+IHRpbWUgcmVxdWlyZWQgZm9yIG9uZSB1cGRhdGUgaXMgbmF0dXJhbGx5IHByb3BvcnRpb25hbCB0
+byB0aGUKbnVtYmVyIG9mIHJlZ2lzdGVycywgZm9yIGEgZ2l2ZW4gdHlwZSBvZiBidXMgKElTQSB2
+cyBJMkMpLiBJdCBtYWtlcyBubwpzZW5zZSB0byBjb21wYXJlIGEgTjEtcmVnaXN0ZXIgY2hpcCBv
+biBJMkMgd2l0aCBhIE4yLXJlZ2lzdGVyIG9uIElTQQp0aG91Z2guCgo+ICgzKSBPciBkb2VzIGl0
+IGhhdmUgc29tZXRoaW5nIHRvIGRvIHdpdGggdGhlICJ3ODM3OTJkX2RhdGEtPmxhc3RfdXBkYXRl
+ZCIKPiBpbiB0aGUgbGFzdCBtYWlsPyBidXQgdGhlcmUgaXMgYWxzbyAidzgzNjI3aGZfZGF0YS0+
+bGFzdF91cGRhdGVkIiBpbgo+IHc4MzYyN2hmLmMsIGFuZCB0aGUgaW50ZXJ2YWwgaXMgc2FtZTog
+SFogKyBIWi8yCgpUaGlzIGlzbid0LiBIWiArIEhaLzIgZGVmaW5lcyB0aGUgbWluaW1hbCBkZWxh
+eSBiZXR3ZWVuIHR3byB1cGRhdGVzICgxLjUKc2Vjb25kIGluIHRoaXMgY2FzZSkuIEhvd2V2ZXIs
+IGl0IG1ha2VzIHNlbnNlIHRvIGRlZmluZSBhIGxhcmdlciBkZWxheQppZiB0aGUgY2hpcCBpcyBz
+bG93IHVwZGF0aW5nLCBib3RoIGZvciBzZWN1cml0eS9zdGFiaWxpdHkgYW5kIHVzZXIKZXhwZXJp
+ZW5jZSByZWFzb25zLgoKPiAoNCkgSSBhbHNvIGhhdmUgdHJpZWQgdG8gc3BsaXQgdGhlIGNvZGVz
+IG9mIHc4Mzc5MmRfdXBkYXRlX2NsaWVudCgpCj4gaW50byBpbmRpdmlhbCBmdW5jdGlvbiwgZm9y
+IGV4YW1wbGU6IEkgbW92ZSB0aGUgZm9sbG93aW5nIGNvZGVzIGZyb20KPiB3ODM3OTJkX3VwZGF0
+ZV9jbGllbnQoKSBpbnRvIHRoZSBmdW5jdGlvbiB3ODM3OTJkX2luKCksIGFuZCBjb21tZW50Cj4g
+b3V0IHRoZSAiIHc4Mzc5MmRfdXBkYXRlX2NsaWVudCgpIiBpbiB3ODM3OTJkX2luKCksIGJ1dCBp
+dCBzZWVtcwo+IHVzZWxlc3MsIGJlY2F1c2UgdGhlIGRlbGF5IGJlY29tZXMgbW9yZSBsYXJnZXIu
+Oi0oCj4gCj4gKioqKioqKioqKioqIGNvZGVzIGJlIG1vdmVkICAqKioqKioqKioqKioqKioqKioK
+PiBkYXRhLT5pblswXSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lO
+MCk7Cj4gZGF0YS0+aW5bMV0gPSB3ODM3OTJkX3JlYWRfdmFsdWUoY2xpZW50LCBXODM3OTJEX1JF
+R19JTjEpOwo+IGRhdGEtPmluWzJdID0gdzgzNzkyZF9yZWFkX3ZhbHVlKGNsaWVudCwgVzgzNzky
+RF9SRUdfSU4yKTsKPiBkYXRhLT5pblszXSA9IHc4Mzc5MmRfcmVhZF92YWx1ZShjbGllbnQsIFc4
+Mzc5MkRfUkVHX0lOMyk7Cj4gZGF0YS0+aW5bNF0gPSB3ODM3OTJkX3JlYWRfdmFsdWUoY2xpZW50
+LCBXODM3OTJEX1JFR19JTjQpOwo+IGRhdGEtPmluWzVdID0gdzgzNzkyZF9yZWFkX3ZhbHVlKGNs
+aWVudCwgVzgzNzkyRF9SRUdfSU41KTsKPiBkYXRhLT5pbls2XSA9IHc4Mzc5MmRfcmVhZF92YWx1
+ZShjbGllbnQsIFc4Mzc5MkRfUkVHX0lONik7Cj4gZGF0YS0+aW5bN10gPSB3ODM3OTJkX3JlYWRf
+dmFsdWUoY2xpZW50LCBXODM3OTJEX1JFR19JTjcpOwo+IGRhdGEtPmluWzhdID0gdzgzNzkyZF9y
+ZWFkX3ZhbHVlKGNsaWVudCwgVzgzNzkyRF9SRUdfSU44KTsKCkJ5IGRvaW5nIHRoYXQgeW91IHJl
+bW92ZSB0aGUgZWZmZWN0IG9mIGNhY2hpbmcgZm9yIHRoZXNlIHJlZ2lzdGVycy4gVGhpcwp3b24n
+dCBzcGVlZCB1cCB0aGUgc2luZ2xlLXJlZ2lzdGVyIHJlYWRzLCBidXQgd2lsbCBzaWduaWZpY2Fu
+dGx5IHNsb3cKInNlbnNvcnMiIGRvd24uIEFsc28sIGl0IGJyZWFrcyBvdXIgc2VjdXJpdHkgbW9k
+ZWwuIERvbid0IGRvIHRoYXQuIE5vCnJlZ2lzdGVyIHJlYWQgc2hvdWxkIGhhcHBlbiBvdXRzaWRl
+IG9mIHRoZSB1cGRhdGUgZnVuY3Rpb24gKGV4Y2VwdCBpbgp0aGUgaW5pdCBmdW5jdGlvbiB3aGVu
+IGxvYWRpbmcgdGhlIGRyaXZlciwgZ3JhbnRlZCkuCgpUaGUgU01CdXMgaXMgc2xvdywgd2UgaGF2
+ZSB0byBsaXZlIHdpdGggaXQgOykKCk9uZSBwb3NzaWJpbGl0eSBpcyB0byBoYXZlIHR3byBkaWZm
+ZXJlbnQgbWluaW1hbCBkZWxheXMgYmV0d2VlbiB1cGRhdGVzLApvbmUgZm9yIG1lYXN1cmVkIHZh
+bHVlcyBhbmQgb25lIChsb25nZXIpIGZvciB2YWx1ZXMgdGhhdCBzdXBwb3NlZGx5CmRvbid0IGNo
+YW5nZSAoc3VjaCBhcyBsaW1pdHMgYW5kIGNvbmZpZykuIEkgdGhpbmsgdGhhdCBvbmx5IHRoZSBs
+bTg1CmRyaXZlciBpcyBkb2luZyBpdCB0aGlzIHdheSBzbyBmYXIsIHRha2UgYSBsb29rIHRoZXJl
+LiBGb3IgYSBjaGlwIHdpdGggYQp2ZXJ5IGhpZ2ggbnVtYmVyIG9mIHJlZ2lzdGVycywgdGhhdCBt
+YXkgbWFrZSBzZW5zZS4KCkFub3RoZXIgcG9zc2liaWxpdHkgaXMgdG8gdXNlIEkyQy9TTUJ1cyBi
+bG9jayByZWFkcy4gSG93ZXZlcjoKCjEqIFRoZSBXODM3OTJEIHdvdWxkIG5lZWQgdG8gc3VwcG9y
+dCBpdCwgSSBkb24ndCBrbm93IGlmIGl0IGlzIHRoZSBjYXNlLgoKMiogTm90IGFsbCBTTUJ1cyBt
+YXN0ZXIgY2hpcHMgc3VwcG9ydCBpdCwgc28gdGhlIHc4Mzc5MmQgZHJpdmVyIHdvdWxkCnN0aWxs
+IGhhdmUgdG8gc3VwcG9ydCB0aGUgYnl0ZS93b3JkIHJlYWQgbWV0aG9kIGZvciB0aG9zZSB3aG8g
+ZG9uJ3QuCgozKiBCbG9jayByZWFkcyBoYXZlIG5vdCBiZWVuIG11Y2ggdGVzdGVkIHNvIGZhciBz
+byBpdCBtaWdodCBub3QgYmUgYQpnb29kIGlkZWEgZm9yIHlvdSB0byByZWx5IG9uIHRoZW0uIFlv
+dSB3b3VsZCBiZXR0ZXIgZ2V0IHRoZSBkcml2ZXIKd29ya2luZyB3aXRoIHJlZ3VsYXIgYnl0ZS93
+b3JkIHJlYWRzIGZpcnN0LiBCbG9jayByZWFkcyBjYW4gYmUgYWRkZWQKbGF0ZXIgKHByb3ZpZGlu
+ZyB0aGUgVzgzNzkyRCBzdXBwb3J0cyB0aGVtLCB0aGF0IGlzKS4KCkEgdGhpcmQgcG9zc2liaWxp
+dHkgd291bGQgYmUgdG8gdXNlIFNNQnVzIGRpcmVjdCBieXRlIHJlYWRzIGluc3RlYWQgb2YKZGF0
+YSBieXRlIHJlYWRzLCBidXQgdGhpcyByZXF1aXJlcyB0aGF0IHRoZSBXODM3OTJEIGhhcyBhdXRv
+aW5jcmVtZW50CnJlZ2lzdGVycy4gV2l0aG91dCBhIGRhdGFzaGVldCBJIG9mIGNvdXJzZSBjYW5u
+b3QgdGVsbCB3aGV0aGVyIHRoaXMgaXMKdGhlIGNhc2Ugb3Igbm90LgoKUGxlYXNlIGRvIG5vdCBo
+ZXNpdGF0ZSB0byBzaGFyZSB5b3VyIGNvZGUgd2l0aCB1cyBhcyBzb29uIGFzIHlvdSBnZXQKc29t
+ZXRoaW5nIHdvcmtpbmcsIHNvIHRoYXQgd2UgY2FuIGNvbW1lbnQgb24gaXQgYW5kIHVzZXJzIGNh
+biBzdGFydAp0ZXN0aW5nIGl0IHRvby4KClRoYW5rcywKLS0gCkplYW4gRGVsdmFyZQpodHRwOi8v
+a2hhbGkubGludXgtZnIub3JnLwoKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRh
+aW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVz
+c2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJ
+ZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFy
+ZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNv
+biwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkg
+YW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29y
+ayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4g
+SXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFs
+IGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBp
+bmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZp
+Y2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVu
+IG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVz
+ZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRp
+YWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6
+qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ik
+SKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2
+qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7
+ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSj
+v/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4
+VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z
+9anOt06ooy4K
