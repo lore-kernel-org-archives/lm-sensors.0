@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: adding support for new 2.6 chips in (lib)sensors
-Message-Id: <20031231184732.1abc1f39.khali@linux-fr.org>
+Message-Id: <20031231190049.0c2a741f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031230214411.6eb029e7.khali@linux-fr.org>
 In-Reply-To: <20031230214411.6eb029e7.khali@linux-fr.org>
@@ -10,16 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting myself...
+> strace?
+> 
+> temp_critx is NOT standard, or at least not converted by getsysname();
+> so if 'sensors' is looking for it as tempx_crit it won't find it.
 
-> * What's the reason for doing:
->   if(sscanf(name, "temp%d_ove%c%c", &num, &last, &check) = 2
->      && last ='r')
-> instead of
->   if(sscanf(name, "temp%d_over%c", &num, &check) = 2)
-> ?
+I figured it out. The 2.4 driver uses tempX_high and tempX_low instead
+of _max and _min, respectively. I added the conversion rules for those
+in lib/proc.c, and for tcritX -> temp_critX as well.
 
-I of course meant "= 1" in the second case.
+Now I need to work the hysteresis problem out. This is a single,
+relative value in 2.4, and has to be two absolute values in 2.6. This
+cannot possibly be done in libsensors as far as I can see, so I think
+I'll have to tweak sensors itself. Is there a way sensors could know
+wether we are running under 2.4 or 2.6? Or would I simply try the
+alternate method if and only if the first one failed?
 
 -- 
 Jean Delvare
