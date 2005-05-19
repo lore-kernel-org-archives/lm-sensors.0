@@ -1,60 +1,37 @@
-From: goofee79@hotmail.com (tom paris)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: Ticket 1671
-Message-Id: <BAY18-F91CN6s1hC7Up0000d77f@hotmail.com>
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: rpms for lm_sensors 2.8.7
+Message-Id: <20040614153745.GB18234@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BAY18-F35Ejb0zNqBRH0000e079@hotmail.com>
-In-Reply-To: <BAY18-F35Ejb0zNqBRH0000e079@hotmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ahh crap!
+Hi,
 
-Installed 2.8.6 and can confirm it works now.
+I have upgraded the userland and kernel modules rpms for FC1, RH9,
+RH8.0 and RH7.3 to lm_sensors 2.8.7. Note that the kernel module rpms
+only work against the ATrpms' kernels which have i2c 2.8.x patched in.
 
-Technically it's SuSE's fault, uname -a gives me:
-Linux scrooge 2.6.4-52-default #1 Wed Apr 7 02:08:30 UTC 2004 i686 athlon
-i386 GNU/Linux
+I also added FC2/i386 and FC2/x86_64 userland support to ATrpms (FC2
+is based on 2.6.5 upwards).
 
-But i didn't know this was 2.6.5rc1 or higher. :)
+:)
 
-Thank you for your help!
+P.S. Jean, if you touch the website contents, could you cange URLs to
 
-Regards,
-Goofee
+http://ATrpms.net/name/lm_sensors/
+and 
+http://ATrpms.net/name/kernel/
 
->From: Jean Delvare <khali@linux-fr.org>
->Reply-To: sensors@stimpy.netroedge.com
->To: "tom paris" <goofee79@hotmail.com>
->CC: sensors@Stimpy.netroedge.com
->Subject: Re: Ticket 1671
->Date: Sat, 8 May 2004 20:31:16 +0200
->
-> > Ok, here goes:
-> >
-> > 1-002d:
-> > alarms           fan3_div    in2_input  in5_max         temp2_input
-> > detach_state     fan3_input  in2_max    in5_min         temp2_max
-> > fan1_div         fan3_min    in2_min    in6_input       temp2_max_hyst
-> > fan1_input       in0_input   in3_input  in6_max         temp3_input
-> > fan1_min         in0_max     in3_max    in6_min         temp3_max
-> > fan1_pwm         in0_min     in3_min    name            temp3_max_hyst
-> > fan1_pwm_enable  in0_ref     in4_input  power           temp4_input
-> > fan2_div         in1_input   in4_max    temp1_input     temp4_max
-> > fan2_input       in1_max     in4_min    temp1_max       temp4_max_hyst
-> > fan2_min         in1_min     in5_input  temp1_max_hyst  vrm
->
->OK, you have been lying to us. This is not Linux 2.6.4. These files
->follow the new naming scheme, which was introduced with Linux 2.6.5-rc1.
->
->Anyway, just go with lm_sensors 2.8.6 then and it should work fine.
->
->--
->Jean Delvare
->http://khali.linux-fr.org/
-
-_________________________________________________________________
-STOP MORE SPAM with the new MSN 8 and get 2 months FREE*=20
-http://join.msn.com/?page=FEatures/junkmail
+Thanks!
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040614/9d9bee53/attachment.bin
