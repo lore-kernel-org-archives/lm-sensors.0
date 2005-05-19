@@ -1,8 +1,10 @@
 From: Martin.Knoblauch@TeraPort.de (Martin Knoblauch)
 Date: Thu, 19 May 2005 06:23:26 +0000
 Subject: Fujitsu-siemens - Out of curiosity
-Message-Id: <3C10C555.1279436A@TeraPort.de>
+Message-Id: <3C10D2F2.ECA50AB7@TeraPort.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <3C10C555.1279436A@TeraPort.de>
+In-Reply-To: <3C10C555.1279436A@TeraPort.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
