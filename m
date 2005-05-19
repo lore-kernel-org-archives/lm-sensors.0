@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: dave.antliff@paradise.net.nz (David Antliff)
 Date: Thu, 19 May 2005 06:24:23 +0000
 Subject: Temp Sensor on Asus A7V8X - Ticket 1358
-Message-Id: <20031029053411.GC7394@earth.solarsys.private>
+Message-Id: <Pine.LNX.4.55.0310292207260.13390@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.55.0310291645560.11719@localhost>
 In-Reply-To: <Pine.LNX.4.55.0310291645560.11719@localhost>
@@ -10,43 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello again...
 
-* Mark M. Hoffman <mhoffman@lightlink.com> [2003-10-28 23:36:38 -0500]:
-> 
-> * David Antliff <dave.antliff@paradise.net.nz> [2003-10-29 16:53:28 +1300]:
-> 
-> > I'm using:
-> > as99127f-i2c-0-2d
-> > dapter: SMBus Via Pro adapter at e800
-> > Algorithm: Non-I2C SMBus adapter
-> > lm_sensors-2.8.1
-> > i2c-2.8.1
-> 
-> Does your board (A7V8X) have the ASB100 "Bach" chip?  I can't tell from
-> Asus' website.  If it does, then I know what the problem is and I'm working
-> on it...
+> David: If you want to try this, you'll need to add a section "asb100-*" to
+> your /etc/sensors.conf.  Copying the existing "as99127f-*" section would be
+> a good start.
 
-So I finally committed an independent driver for asb100 to CVS.  The most
-important feature of this driver for Athlon people is the addition of "temp4"
-which should read the Athlon thermal diode directly (so I'm told, I don't
-have one myself).
+Hi Mark, thanks for your work on this.
 
-Until now, I was breaking the first half of the "release early, release
-often" rule...  There are *many* TODOs in this driver - temp sensor types,
-beep and alarm masks, ugh.  Much of this is just tedious reverse engineering.
-A lot of people have helped in this process by posting their findings to this
-list.
+I got the cvs version of lm_sensors2 and i2c, built it, and installed the
+asb100 driver. I cut and pasted the as99127f-* section as you suggested. I
+now have these readings:
 
-Libsensors support is there, but the output of sensors itself is still
-ugly, sorry.
+M/B Temp: 24.00 (temp1)
+  temp1_over: 60.00 (temp1_over)
+  temp1_hyst: 127.00 (temp1_hyst)
+CPU Temp: 48.00 (temp2)
+  temp2_over: 120.00 (temp2_over)
+  temp2_hyst: 100.00 (temp2_hyst)
+temp3: 24.00 (temp3)
+  temp3_over: 240.00 (temp3_over)
+  temp3_hyst: 200.00 (temp3_hyst)
+temp4: 25.00 (temp4)
+  temp4_over: 80.00 (temp4_over)
+  temp4_hyst: 75.00 (temp4_hyst)
 
-David: If you want to try this, you'll need to add a section "asb100-*" to
-your /etc/sensors.conf.  Copying the existing "as99127f-*" section would be
-a good start.
+Note temp3 and temp4 - these correlate with the Asus Probe (Asus
+diagnostics software for Windows) readings I get in windows on the same
+m/b - CPU 25C and M/B 24C. I therefore conclude that temp3 is the M/B and
+temp4 is the CPU. Temp2 could do with some work, but I'm not too bothered
+about that at the moment.
 
-Regards,
+However, there's the strange bit - I just noticed that neither these
+temp3/4 readings nor the Asus Probe readings in Windows match the BIOS!
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+For example, with Asus Probe and lm_sensors/asb100 readings of:
+
+Asus Probe M/B = temp3 = 24
+Asus Probe CPU = temp4 = 26
+
+The BIOS displays the readings as:
+
+M/B = 24
+CPU = 23
+
+I rebooted several times to confirm this. It seems the BIOS readings are
+not only swapped, but different from the software readings.
+
+Can you explain this somehow?
+
+However with that driver and temp3 and 4, I now have readings that match
+Asus Probe. Thank you very much!
+
+Cheers,
+David.
