@@ -1,7 +1,7 @@
 From: killers_soul@hotmail.com (Jason Longland)
-Date: Thu, 19 May 2005 06:24:10 +0000
+Date: Thu, 19 May 2005 06:24:11 +0000
 Subject: nforce2 i2c module compilation
-Message-Id: <000b01c35c1b$393c2060$0100a8c0@downstairs>
+Message-Id: <000201c35d42$d6a66680$0100a8c0@downstairs>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000f01c35b57$0985ec80$0100a8c0@downstairs>
 In-Reply-To: <000f01c35b57$0985ec80$0100a8c0@downstairs>
@@ -14,21 +14,21 @@ To: lm-sensors@vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-the /lib/modules thingo wasn't a symlink anymore after 8 to my notice... i
-checked it when i installed 9 and thought it very odd when it wasn't... i
-know that all my other kernels except arjan's 2.6 test ones use the symlink
-method
+got a new build log for you, again i don't have shrike installed but
+severn...
 
-as to gcc3.3 it is the standard compiler with severn, although gcc3.2 is
-provided as a fallback in a gcc32-3.2.3-something-or-other.rpm (i think it
-is but it could still be 3.2.2 but i'm not sure...)
-
-i'll give your steps a check through and let you know although i will admit
-i did try patching the kernel with the nvidia nforce agpgart driver in rh9,
-severn comes with it already included thankfully so a "vanilla" redhat
-kernel config should be easy...
+I commented out the line for the nforce2 in the
+lm_sensors-2.8.0/kernel/busses/Modules.mk file and this build file is the
+result.  I also followed your steps you sent last time to produce that.  I
+have to admit I don't like the default kernel Redhat provided as it
+shutsdown my USB ports for whatever reason which makes connecting to the
+internet via my 56k modem impossible along with the mouse so all my emails
+come from Windows until I can build things for the
+2.4.21-20.1.2024.2.1.nptlcustom kernel.  S'pose that's what I get for
+jumping on and using a beta.
 
 Jason
+
 
 *********************************************************************
 
@@ -136,8 +136,14 @@ i'm
 -----BEGIN PGP SIGNATURE-----
 Version: PGP 8.0
 
-iQA/AwUBPzD8uU9XUfpwf1ScEQIYcgCdFIyG0wv9gPNDhys+YgUhEcpH8TkAn0j3
-Myh3N14meao50HghRqNBvR/k
-=g3zE
+iQA/AwUBPzLf0k9XUfpwf1ScEQLq8wCeNtdcyhJLAemz9V1FkAxmWJYP7ooAn1Ua
+72xPAP4ic6sHJI3CJPRh6nvR
+=AtF7
 -----END PGP SIGNATURE-----
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lmsensors-build2.log
+Type: application/octet-stream
+Size: 52216 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030808/5a707f20/lmsensors-build2.obj
