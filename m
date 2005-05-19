@@ -1,67 +1,63 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:26 +0000
-Subject: i2c versioning
-Message-Id: <20011128103058.Q5595@Stimpy.netroedge.com>
+From: armenb@cs.umass.edu (Armen Babikyan)
+Date: Thu, 19 May 2005 06:25:30 +0000
+Subject: Hardware sensors problem with 2.4.21 on IBM eServer 335/345
+Message-Id: <9BC242DA-65D6-11D9-9300-003065F94C4C@cs.umass.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3C043305.233767D@paradyne.com>
-In-Reply-To: <3C043305.233767D@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-I think it's going to have to be converted in the Makefile and then
-passed in as major, minor, etc. via -D's.  Not real pretty, but it's
-effectively the same thing.  You can still do your #if's, but not
-directly on the string constant.  It's surprising that strings can't
-be compared by cpp... 
+I am trying to get hardware sensors (i.e. cpu temp, fan speed, and 
+voltage sensors) working on an IBM eServer 335 system that is running 
+RedHat (Enterprise edition) with kernel 2.4.21 (2.4.21-27 actually - it 
+has lm sensors 2.6.5).
 
+The driver for the sensors chip on this particular mainboard is found 
+using sensors-detect:
 
-Phil
+Use driver `i2c-piix4' for device 00:0f.0: ServerWorks CSB5 South Bridge
 
-On Wed, Nov 28, 2001 at 09:03:55AM -0500, Mark Studebaker wrote:
-> So we're back to my original question.
-> Write me a #if statement that decides if one string is greater than another.
-> Good luck.
-> 
-> phil@netroedge.com wrote:
-> > 
-> > How about this, let's use the #ifdefs to make life a little easier for
-> > users in the short term.  But, work on recombing the two projects now
-> > that we have a chance with 2.5.x.  When 2.6.0 comes out, we can take
-> > the #ifdefs out and have a unified project again.  If we get lucky,
-> > maybe Alan might let a combined lm-sensors/i2c update into 2.4.x so we
-> > can start a little earlier. :')
-> > 
-> > Phil
-> > 
-> > On Tue, Nov 27, 2001 at 10:14:04PM -0500, Mark D. Studebaker wrote:
-> > > But I'm so happy to not require people to download and install
-> > > a new i2c right now. It really will cut down on tickets, etc,
-> > > if we can hold that line for a while.
-> > > As soon as I put in a i2c_smbus_i2c_read_block_data() call
-> > > without an #ifdef, we're right back where we started.
-> > >
-> > > phil@netroedge.com wrote:
-> > > >
-> > > > On Tue, Nov 27, 2001 at 08:14:45PM -0500, Mark D. Studebaker wrote:
-> > > > > You can do anything in code but I'm trying to call a function
-> > > > > that doesn't exist in 2.6.2 or earlier so I need
-> > > > > to do the comparison in the preprocessor in a #if statement
-> > > > > so I don't get an undefined symbol.
-> > > >
-> > > > I'd tend to lean towards being stubburn and not compiling than
-> > > > littering the code with more #ifdef's if they are using an old I2C.
-> > > > We've been updating I2C a lot for a while, but maybe we won't need to
-> > > > as much in the future?
-> > 
-> > --
-> > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-> >    phil@netroedge.com -- http://www.netroedge.com/~phil
-> >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+However, the driver failed to load with the following error:
 
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+i2c-core.o: i2c core module
+i2c-dev.o: i2c /dev entries driver module
+i2c-core.o: driver i2c-dev dummy driver registered.
+i2c-piix4.o version 2.6.5 (20020915)
+i2c-piix4.o: Found CSB5 device
+dmi_scan.o version 2.6.5 (20020915)
+dmi_scan.o: SM BIOS found
+i2c-piix4.o: IBM Laptop detected; this module may corrupt
+              your serial eeprom! Refusing to load module!
+i2c-piix4.o: Module insertion failed.
+
+Obviously this machine is not an IBM Laptop!  It is, in fact, a 
+rackmount server.  My question is: is this machine still at risk of 
+this EEPROM corruption bug that is present in (what looks like 
+exclusively) certain models of IBM Thinkpads?  I can easily comment out 
+this logic and recompile, but I really don't want to break my EEPROM!  
+Can anyone tell me with reasonable certainty that I won't break my 
+machine by forcibly installing this module?  It looks like the new lm 
+sensors logic (like before) just doesn't like this machine because the 
+DMI vendor is IBM and the PCI Vendor ID is Intel:
+
+if(dmi_ident[DMI_SYS_VENDOR] != NULL
+         && strncmp(dmi_ident[DMI_SYS_VENDOR], "IBM", 3) = 0)
+                 is_unsafe_smbus = 1;
+
+together with:
+
+if(ibm_dmi_probe() && PIIX4_dev->vendor = PCI_VENDOR_ID_INTEL)
+
+I'd upgrade to a newer version of the linux kernel (with a newer 
+version of i2c), but other users of the machine have requested the 
+kernel version be kept for support reasons, if at all possible.  RedHat 
+doesn't support the i2c-piix4.o module.
+
+Any and all insight is greatly appreciated!
+
+Thanks!
+
+   - Armen
