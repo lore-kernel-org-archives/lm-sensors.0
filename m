@@ -1,327 +1,100 @@
-From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
-Date: Thu, 26 May 2005 14:44:22 +0000
-Subject: [lm-sensors] [PATCH 1/3] I2C documentation update
-Message-Id: <20050526124211.13906.qmail@desitka.sh.cvut.cz>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [PATCH] I2C: Move functionality handling from i2c-core to i2c.h
+Message-Id: <11123858552208@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11123858541382@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
 
-Hello,
+ChangeSet 1.2340, 2005/04/01 11:49:04-08:00, khali@linux-fr.org
 
-This patch just changes the extension of Documentation/i2c/chips/smsc47b397.txt
-to none - to conform with naming in i2c subsystem directory.
+[PATCH] I2C: Move functionality handling from i2c-core to i2c.h
 
-Next patch needs to applied on top of this one.
+So far, the functionality handling of i2c adapters was done in i2c-core
+by two exported functions: i2c_get_functionality and
+i2c_check_functionality. I found that both functions could be reduced to
+one line each, and propose that we turn them into inline function in the
+i2c.h header file, much like other i2c helper functions (e.g.
+i2c_get_clientdata, i2c_set_clientdata and i2c_clientname).
 
-Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
+The conversion of i2c_get_functionality suppresses a legacy check which
+shouldn't be needed anymore. Only one driver (s3c2410) was still relying
+on it, and was fixed some days ago.
 
-Please apply. It should apply against 2.6.12-rc5 or -mm-.
+The conversion lets us get rid of two exports. Not only i2c-core gets
+smaller (by 458 bytes), but the client drivers using these functions get
+smaller too (typically by 48 bytes). And of course the new way is likely
+to be faster too, even if it wasn't my primary objective.
 
-Thanks,
-Regards
-
-Rudolf
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
-diff -Naur a/Documentation/i2c/chips/smsc47b397 b/Documentation/i2c/chips/smsc47b397
---- a/Documentation/i2c/chips/smsc47b397	1970-01-01 01:00:00.000000000 +0100
-+++ b/Documentation/i2c/chips/smsc47b397	2005-05-25 05:31:20.000000000 +0200
-@@ -0,0 +1,146 @@
-+November 23, 2004
-+
-+The following specification describes the SMSC LPC47B397-NC sensor chip
-+(for which there is no public datasheet available).  This document was
-+provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
-+by Mark M. Hoffman <mhoffman@lightlink.com>.
-+
-+* * * * *
-+
-+Methods for detecting the HP SIO and reading the thermal data on a dc7100.
-+
-+The thermal information on the dc7100 is contained in the SIO Hardware Monitor
-+(HWM).  The information is accessed through an index/data pair.  The index/data
-+pair is located at the HWM Base Address + 0 and the HWM Base Address + 1.  The
-+HWM Base address can be obtained from Logical Device 8, registers 0x60 (MSB)
-+and 0x61 (LSB).  Currently we are using 0x480 for the HWM Base Address and
-+0x480 and 0x481 for the index/data pair.
-+
-+Reading temperature information.
-+The temperature information is located in the following registers:
-+Temp1		0x25	(Currently, this reflects the CPU temp on all systems).
-+Temp2		0x26
-+Temp3		0x27
-+Temp4		0x80
-+
-+Programming Example
-+The following is an example of how to read the HWM temperature registers:
-+MOV	DX,480H
-+MOV	AX,25H
-+OUT	DX,AL
-+MOV	DX,481H
-+IN	AL,DX
-+
-+AL contains the data in hex, the temperature in Celsius is the decimal
-+equivalent.
-+
-+Ex: If AL contains 0x2A, the temperature is 42 degrees C.
-+
-+Reading tach information.
-+The fan speed information is located in the following registers:
-+		LSB	MSB
-+Tach1		0x28	0x29	(Currently, this reflects the CPU
-+				fan speed on all systems).
-+Tach2		0x2A	0x2B
-+Tach3		0x2C	0x2D
-+Tach4		0x2E	0x2F
-+
-+Important!!!
-+Reading the tach LSB locks the tach MSB.
-+The LSB Must be read first.
-+
-+How to convert the tach reading to RPM.
-+The tach reading (TCount) is given by:  (Tach MSB * 256) + (Tach LSB)
-+The SIO counts the number of 90kHz (11.111us) pulses per revolution.
-+RPM = 60/(TCount * 11.111us)
-+
-+Example:
-+Reg 0x28 = 0x9B
-+Reg 0x29 = 0x08
-+
-+TCount = 0x89B = 2203
-+
-+RPM = 60 / (2203 * 11.11111 E-6) = 2451 RPM
-+
-+Obtaining the SIO version.
-+
-+CONFIGURATION SEQUENCE
-+To program the configuration registers, the following sequence must be followed:
-+1. Enter Configuration Mode
-+2. Configure the Configuration Registers
-+3. Exit Configuration Mode.
-+
-+Enter Configuration Mode
-+To place the chip into the Configuration State The config key (0x55) is written
-+to the CONFIG PORT (0x2E). 
-+
-+Configuration Mode
-+In configuration mode, the INDEX PORT is located at the CONFIG PORT address and
-+the DATA PORT is at INDEX PORT address + 1.
-+
-+The desired configuration registers are accessed in two steps: 
-+a.	Write the index of the Logical Device Number Configuration Register
-+	(i.e., 0x07) to the INDEX PORT and then write the number of the
-+	desired logical device to the DATA PORT.
-+
-+b.	Write the address of the desired configuration register within the
-+	logical device to the INDEX PORT and then write or read the config-
-+	uration register through the DATA PORT.  
-+
-+Note: If accessing the Global Configuration Registers, step (a) is not required.
-+
-+Exit Configuration Mode
-+To exit the Configuration State the write 0xAA to the CONFIG PORT (0x2E).
-+The chip returns to the RUN State.  (This is important).
-+
-+Programming Example
-+The following is an example of how to read the SIO Device ID located at 0x20
-+
-+; ENTER CONFIGURATION MODE   
-+MOV	DX,02EH
-+MOV	AX,055H
-+OUT	DX,AL
-+; GLOBAL CONFIGURATION  REGISTER 
-+MOV	DX,02EH
-+MOV	AL,20H
-+OUT	DX,AL 
-+; READ THE DATA
-+MOV	DX,02FH
-+IN	AL,DX
-+; EXIT CONFIGURATION MODE     
-+MOV	DX,02EH
-+MOV	AX,0AAH
-+OUT	DX,AL
-+
-+The registers of interest for identifying the SIO on the dc7100 are Device ID
-+(0x20) and Device Rev  (0x21).
-+
-+The Device ID will read 0X6F
-+The Device Rev currently reads 0x01
-+
-+Obtaining the HWM Base Address.
-+The following is an example of how to read the HWM Base Address located in
-+Logical Device 8.
-+
-+; ENTER CONFIGURATION MODE   
-+MOV	DX,02EH
-+MOV	AX,055H
-+OUT	DX,AL
-+; CONFIGURE REGISTER CRE0,   
-+; LOGICAL DEVICE 8           
-+MOV	DX,02EH
-+MOV	AL,07H
-+OUT	DX,AL ;Point to LD# Config Reg
-+MOV	DX,02FH
-+MOV	AL, 08H
-+OUT	DX,AL;Point to Logical Device 8
-+;
-+MOV	DX,02EH 
-+MOV	AL,60H
-+OUT	DX,AL	; Point to HWM Base Addr MSB
-+MOV	DX,02FH
-+IN	AL,DX	; Get MSB of HWM Base Addr
-+; EXIT CONFIGURATION MODE     
-+MOV	DX,02EH
-+MOV	AX,0AAH
-+OUT	DX,AL
-diff -Naur a/Documentation/i2c/chips/smsc47b397.txt b/Documentation/i2c/chips/smsc47b397.txt
---- a/Documentation/i2c/chips/smsc47b397.txt	2005-05-25 05:31:20.000000000 +0200
-+++ b/Documentation/i2c/chips/smsc47b397.txt	1970-01-01 01:00:00.000000000 +0100
-@@ -1,146 +0,0 @@
--November 23, 2004
+ drivers/i2c/i2c-core.c |   19 -------------------
+ include/linux/i2c.h    |   10 ++++++++--
+ 2 files changed, 8 insertions(+), 21 deletions(-)
+
+
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	2005-04-01 11:53:08 -08:00
++++ b/drivers/i2c/i2c-core.c	2005-04-01 11:53:08 -08:00
+@@ -1236,22 +1236,6 @@
+ }
+ 
+ 
+-/* You should always define `functionality'; the 'else' is just for
+-   backward compatibility. */ 
+-u32 i2c_get_functionality (struct i2c_adapter *adap)
+-{
+-	if (adap->algo->functionality)
+-		return adap->algo->functionality(adap);
+-	else
+-		return 0xffffffff;
+-}
 -
--The following specification describes the SMSC LPC47B397-NC sensor chip
--(for which there is no public datasheet available).  This document was
--provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
--by Mark M. Hoffman <mhoffman@lightlink.com>.
+-int i2c_check_functionality (struct i2c_adapter *adap, u32 func)
+-{
+-	u32 adap_func = i2c_get_functionality (adap);
+-	return (func & adap_func) = func;
+-}
 -
--* * * * *
+ EXPORT_SYMBOL(i2c_add_adapter);
+ EXPORT_SYMBOL(i2c_del_adapter);
+ EXPORT_SYMBOL(i2c_add_driver);
+@@ -1282,9 +1266,6 @@
+ EXPORT_SYMBOL(i2c_smbus_write_word_data);
+ EXPORT_SYMBOL(i2c_smbus_write_block_data);
+ EXPORT_SYMBOL(i2c_smbus_read_i2c_block_data);
 -
--Methods for detecting the HP SIO and reading the thermal data on a dc7100.
--
--The thermal information on the dc7100 is contained in the SIO Hardware Monitor
--(HWM).  The information is accessed through an index/data pair.  The index/data
--pair is located at the HWM Base Address + 0 and the HWM Base Address + 1.  The
--HWM Base address can be obtained from Logical Device 8, registers 0x60 (MSB)
--and 0x61 (LSB).  Currently we are using 0x480 for the HWM Base Address and
--0x480 and 0x481 for the index/data pair.
--
--Reading temperature information.
--The temperature information is located in the following registers:
--Temp1		0x25	(Currently, this reflects the CPU temp on all systems).
--Temp2		0x26
--Temp3		0x27
--Temp4		0x80
--
--Programming Example
--The following is an example of how to read the HWM temperature registers:
--MOV	DX,480H
--MOV	AX,25H
--OUT	DX,AL
--MOV	DX,481H
--IN	AL,DX
--
--AL contains the data in hex, the temperature in Celsius is the decimal
--equivalent.
--
--Ex: If AL contains 0x2A, the temperature is 42 degrees C.
--
--Reading tach information.
--The fan speed information is located in the following registers:
--		LSB	MSB
--Tach1		0x28	0x29	(Currently, this reflects the CPU
--				fan speed on all systems).
--Tach2		0x2A	0x2B
--Tach3		0x2C	0x2D
--Tach4		0x2E	0x2F
--
--Important!!!
--Reading the tach LSB locks the tach MSB.
--The LSB Must be read first.
--
--How to convert the tach reading to RPM.
--The tach reading (TCount) is given by:  (Tach MSB * 256) + (Tach LSB)
--The SIO counts the number of 90kHz (11.111us) pulses per revolution.
--RPM = 60/(TCount * 11.111us)
--
--Example:
--Reg 0x28 = 0x9B
--Reg 0x29 = 0x08
--
--TCount = 0x89B = 2203
--
--RPM = 60 / (2203 * 11.11111 E-6) = 2451 RPM
--
--Obtaining the SIO version.
--
--CONFIGURATION SEQUENCE
--To program the configuration registers, the following sequence must be followed:
--1. Enter Configuration Mode
--2. Configure the Configuration Registers
--3. Exit Configuration Mode.
--
--Enter Configuration Mode
--To place the chip into the Configuration State The config key (0x55) is written
--to the CONFIG PORT (0x2E). 
--
--Configuration Mode
--In configuration mode, the INDEX PORT is located at the CONFIG PORT address and
--the DATA PORT is at INDEX PORT address + 1.
--
--The desired configuration registers are accessed in two steps: 
--a.	Write the index of the Logical Device Number Configuration Register
--	(i.e., 0x07) to the INDEX PORT and then write the number of the
--	desired logical device to the DATA PORT.
--
--b.	Write the address of the desired configuration register within the
--	logical device to the INDEX PORT and then write or read the config-
--	uration register through the DATA PORT.  
--
--Note: If accessing the Global Configuration Registers, step (a) is not required.
--
--Exit Configuration Mode
--To exit the Configuration State the write 0xAA to the CONFIG PORT (0x2E).
--The chip returns to the RUN State.  (This is important).
--
--Programming Example
--The following is an example of how to read the SIO Device ID located at 0x20
--
--; ENTER CONFIGURATION MODE   
--MOV	DX,02EH
--MOV	AX,055H
--OUT	DX,AL
--; GLOBAL CONFIGURATION  REGISTER 
--MOV	DX,02EH
--MOV	AL,20H
--OUT	DX,AL 
--; READ THE DATA
--MOV	DX,02FH
--IN	AL,DX
--; EXIT CONFIGURATION MODE     
--MOV	DX,02EH
--MOV	AX,0AAH
--OUT	DX,AL
--
--The registers of interest for identifying the SIO on the dc7100 are Device ID
--(0x20) and Device Rev  (0x21).
--
--The Device ID will read 0X6F
--The Device Rev currently reads 0x01
--
--Obtaining the HWM Base Address.
--The following is an example of how to read the HWM Base Address located in
--Logical Device 8.
--
--; ENTER CONFIGURATION MODE   
--MOV	DX,02EH
--MOV	AX,055H
--OUT	DX,AL
--; CONFIGURE REGISTER CRE0,   
--; LOGICAL DEVICE 8           
--MOV	DX,02EH
--MOV	AL,07H
--OUT	DX,AL ;Point to LD# Config Reg
--MOV	DX,02FH
--MOV	AL, 08H
--OUT	DX,AL;Point to Logical Device 8
--;
--MOV	DX,02EH 
--MOV	AL,60H
--OUT	DX,AL	; Point to HWM Base Addr MSB
--MOV	DX,02FH
--IN	AL,DX	; Get MSB of HWM Base Addr
--; EXIT CONFIGURATION MODE     
--MOV	DX,02EH
--MOV	AX,0AAH
--OUT	DX,AL
+-EXPORT_SYMBOL(i2c_get_functionality);
+-EXPORT_SYMBOL(i2c_check_functionality);
+ 
+ MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
+ MODULE_DESCRIPTION("I2C-Bus main module");
+diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h	2005-04-01 11:53:08 -08:00
++++ b/include/linux/i2c.h	2005-04-01 11:53:08 -08:00
+@@ -368,10 +368,16 @@
+ 
+ 
+ /* Return the functionality mask */
+-extern u32 i2c_get_functionality (struct i2c_adapter *adap);
++static inline u32 i2c_get_functionality(struct i2c_adapter *adap)
++{
++	return adap->algo->functionality(adap);
++}
+ 
+ /* Return 1 if adapter supports everything we need, 0 if not. */
+-extern int i2c_check_functionality (struct i2c_adapter *adap, u32 func);
++static inline int i2c_check_functionality(struct i2c_adapter *adap, u32 func)
++{
++	return (func & i2c_get_functionality(adap)) = func;
++}
+ 
+ /*
+  * I2C Message - used for pure i2c transaction, also from /dev interface
+
