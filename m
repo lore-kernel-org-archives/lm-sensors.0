@@ -1,25 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:16 +0000
-Subject: em8300
-Message-Id: <20030907191536.59598028.khali@linux-fr.org>
+From: sacah@sacah.com (SACAH)
+Date: Thu, 19 May 2005 06:23:26 +0000
+Subject: No subject
+Message-Id: <001a01c17f0e$4e3d6280$20fefea9@sacah>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F53EE22.6010004@dialisdn.com>
-In-Reply-To: <3F53EE22.6010004@dialisdn.com>
+References: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
+In-Reply-To: <Pine.LNX.4.33.0111200151170.1364-100000@home.apu.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Giday, I am tring to write a little program is Assembly, that will get my CPU's temperature, I have read a lot of documents about SMBus, and how to access it, the address etc, but I can get my programs to work, I have an Asus A7V, running SMBProbe reveals my chip set being VIA VT82C686A.  I would like to later expand my program to do my motherboard temp too, and fan speed etc, so if you know of any urls that would help me find those things that would also be greatly apprechiated.  I dont understand C at all, and I dont have Linux to be able to play with your source and work it out from that, 
 
-> Yes I am using the em8300 (dxr3) driver
-> which the new i2c seems to have broken....
-> I really would like a pach for it...if you guys could do it...
-> if you need anymore information let me know
 
-Just tell me where I can get the files, and I'll provide a patch as soon
-as possible (beware, this "as soon as possible" may take some time due
-to overbusiness on my end).
+Any help you may have would be greatly apprechiated.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Thanks
+?ACAH
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20011207/54c6eb50/attachment.html
