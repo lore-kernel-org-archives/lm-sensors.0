@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:15 +0000
 Subject: I2C_ALGO_MAX
-Message-Id: <20030827031106.GA1325@kroah.com>
+Message-Id: <20030829182339.243aa828.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030806164123.5f88f7b8.khali@linux-fr.org>
 In-Reply-To: <20030806164123.5f88f7b8.khali@linux-fr.org>
@@ -10,37 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 23, 2003 at 04:51:04PM -0400, Mark D. Studebaker  wrote:
+> > I think that's what Greg was advocating...
 > 
+> I was?  Hm, don't remember that, I was trying to fix a real problem
+> that some users had, which was solved by the link order change.
 > 
-> Jean Delvare wrote:
-> >>>I2C_ALGO_MAX, defined in i2c.h, doesn't seem to be used anywhere.
-> >>>Same for I2C_DUMMY_MAX. Should we simply remove them?
-> >>
-> >>agreed. apparently these aren't registered in a static table like
-> >>drivers are.
-> >
-> >
-> >Done.
-> > 
-> >
-> >>BTW if we want to make things better for the foolish people that want
-> >>to compile-in every driver we should increase the other xxx_MAX
-> >>defines.
-> >
-> >
-> >Compiling all sensor chip drivers into the kernel is BAD. Do we want to
-> >help people doing a BAD thing?
-> >
-> 
-> I think that's what Greg was advocating...
+> But how about removing the static arrays all together.  That's what
+> 2.6 has :)
 
-I was?  Hm, don't remember that, I was trying to fix a real problem that
-some users had, which was solved by the link order change.
+And that's why 2.6 will be used by everyone someday, while 2.4 will be
+forgotten. That's too much change for 2.4/CVS IMHO.
 
-But how about removing the static arrays all together.  That's what 2.6
-has :)
-
-thanks,
-
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
