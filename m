@@ -1,75 +1,28 @@
-From: quintela@mandrakesoft.com (Juan Quintela)
-Date: Thu, 19 May 2005 06:23:34 +0000
-Subject: lm_sensors-2.6.3: Make install failed with Mandrake-8.3
-Message-Id: <m2lm9no4ao.fsf@demo.mitica>
+From: lcampagn@mines.edu (Luke Q Campagnola)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: module not found?
+Message-Id: <20020319152506.62cfadfe.lcampagn@mines.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1023438608.2692.2.camel@christian>
-In-Reply-To: <1023438608.2692.2.camel@christian>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->>>>> "gagneraud" = gagneraud christian <cgagneraud@anfora.fr> writes:
+I am running Debian/Woody, kernel 2.4.17 .. I'm having a problem finding a module I need. Here's some of my sensors-detect output: 
 
-gagneraud> Hi, 
-gagneraud> Make install failed with my Mandrake-8.3, the reason is thier 
-gagneraud> kernel's version.h that contain multiple UTS_REALEASE: 
-gagneraud> --------8<-------------------------------------------- 
-gagneraud> #include <linux/rhconfig.h> 
-gagneraud> #if defined(__module__smp) 
-gagneraud> #define UTS_RELEASE "2.4.18-6mdksmp" 
-gagneraud> #elif defined(__module__enterprise) 
-gagneraud> #define UTS_RELEASE "2.4.18-6mdkenterprise" 
-gagneraud> #elif defined(__module__up) 
-gagneraud> #define UTS_RELEASE "2.4.18-6mdk" 
-gagneraud> #else 
-gagneraud> #define UTS_RELEASE "2.4.18-6mdksecure" 
-gagneraud> #endif 
-gagneraud> #define LINUX_VERSION_CODE 132114 
-gagneraud> #define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c)) 
-gagneraud> --------8<-------------------------------------------- 
-gagneraud> and in lm's Makefile the: 
-gagneraud> MODDIR := /lib/modules/`grep UTS_RELEASE
-gagneraud> $(LINUX_HEADERS)/linux/version.h|cut -f 2 -d'"'`/misc 
-gagneraud> returns: 
-gagneraud> --------8<-------------------------------------------- 
-gagneraud> 2.4.18-6mdksmp 
-gagneraud> 2.4.18-6mdkenterprise 
-gagneraud> 2.4.18-6mdk 
-gagneraud> 2.4.18-6mdksecure 
-gagneraud> --------8<-------------------------------------------- 
+Probing for PCI bus adapters...
+Use driver `i2c-i801' for device 00:1f.3: Intel 82801BA ICH2
+Probe succesfully concluded.
 
-gagneraud> I've just replace in the lm's Makefile with: 
-gagneraud> MODDIR := /lib/modules/`uname -r`/misc 
-
-Hi
-
-I haven't had any problem compiling lm_sensors on Mandrake kernels
-(and I compile it each time that I release a Mandarke kernel).  Notice
-that When you included /usr/src/linux/include/version.h
-
-#include <linux/rhconfig.h>
-#if defined(__module__smp)
-#define UTS_RELEASE "2.4.18-14mdksmp"
-#elif defined(__module__enterprise)
-#define UTS_RELEASE "2.4.18-14mdkenterprise"
-#elif defined(__module__up)
-#define UTS_RELEASE "2.4.18-14mdk"
-#else
-#define UTS_RELEASE "2.4.18-14mdksecure"
-#endif
-#define LINUX_VERSION_CODE 132114
-#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
+ We will now try to load each adapter module in turn.
+Load `i2c-i801' (say NO if built into your kernel)? (YES/no): 
+modprobe: Can't locate module i2c-i801
+Loading failed ()... skipping.
 
 
-and linux/rhconfig.h includes /boot/kernel.h, which has defined the
-real __module_* thing for the kernel that you are running.
-
-Later, Juan.
+Despite much effort, I can not seem to locate this module anywhere. I have tried installing the most recent source, which didn't help. I was unable to find anything that would tell me the location of the driver in your FAQ or install docs, as well as the kernel documentation. I did find i2c-i801 on your drivers page, but again, that does not tell me where to get the driver. Does this driver come with the kernel, and if so, where is it located in the configuration? Does it come with your software? 
 
 
+Very Confused, 
 
--- 
-In theory, practice and theory are the same, but in practice they 
-are different -- Larry McVoy
+Luke 
