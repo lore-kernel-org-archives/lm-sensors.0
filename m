@@ -1,60 +1,62 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:29 +0000
-Subject: Ticket #780, i2c-core sends output to console at reboot
-Message-Id: <20020122133602.A14748@Stimpy.netroedge.com>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:05 +0000
+Subject: [Fwd: i850 && lm_sensors]
+Message-Id: <3F16EFDB.4040504@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.33.0201221623404.29636-100000@flow.fuw.edu.pl>
-In-Reply-To: <Pine.LNX.4.33.0201221623404.29636-100000@flow.fuw.edu.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-FYI- Read the man pages for 'syslog'.  I think much of what you are
-asking is addressed there.
+
+-------- Original Message --------
+From: 	- Thu Jul 17 11:49:14 2003
+X-UIDL: 	268d4981861e28c5
+X-Mozilla-Status: 	0001
+X-Mozilla-Status2: 	00000000
+Return-Path: 	<ondrej.cecak@centrum.cz>
+Received: 	from smtp-out2.iol.cz (smtp-out2.iol.cz [194.228.2.87]) by 
+Ren.netroedge.com (8.12.8p1/8.9.1) with ESMTP id h6HHv8vL015207 for 
+<phil@netroedge.com>; Thu, 17 Jul 2003 10:57:08 -0700
+Received: 	from a182-160.dialup.iol.cz (a182-160.dialup.iol.cz 
+[194.228.160.182])5130C345A1 for <phil@netroedge.com>; Thu, 17 Jul 2003 
+20:05:56 +0200 (CEST)
+From: 	Ondrej Cecak <ondrej.cecak@centrum.cz>
+Reply-To: 	ondrej.cecak@centrum.cz
+To: 	Philip Edelbrock <phil@netroedge.com>
+Subject: 	i850 && lm_sensors
+Date: 	Thu, 17 Jul 2003 20:03:19 +0200
+User-Agent: 	KMail/1.5
+MIME-Version: 	1.0
+Content-Type: 	text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 	7bit
+Content-Disposition: 	inline
+Message-Id: 	<200307172003.19644.ondrej.cecak@centrum.cz>
+X-SpamBouncer: 	1.5 (8/16/02)
+X-SBClass: 	OK
+X-Spambayes-Classification: 	ham; 0.10
 
 
-Phil
 
-On Tue, Jan 22, 2002 at 09:36:19AM -0800, phil@netroedge.com wrote:
-> 
-> I'm pretty sure that we only use 'printk' to output messages.  You
-> kernel/system should know how to handle those.  On many systems, any
-> printk's get echoed to the console, but this may be kernel/distro
-> dependant. 
-> 
-> 
-> Phil
-> 
-> On Tue, Jan 22, 2002 at 04:25:10PM +0100, Jakub Narebski wrote:
-> > I have the following problem with the sensors service I send you. The
-> > lm_sensors modules sends information about registered and unregistered
-> > drivers to somewhere. At startup (kernel/system loggers start _after_
-> > sensors service) and during normal work the output is not send to
-> > console. It can be seen via dmesg.
-> > 
-> > At reboot however i2c-core sends information about unregistered drivers to
-> > the (only) console (sensors chip and bus drivers are removed using
-> > modprobe -r -q). Kernel/system loggers are stopped at the time of stopping
-> > sensors service.
-> > 
-> > It is a bug or did I make something wrong?
-> > 
-> > P.S. it should be rather prog/initscripts/sensors
-> > 
-> > -- 
-> > Jakub Narebski
-> >     Poland
-> > 
-> > 
-> 
-> -- 
-> Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
->    phil@netroedge.com -- http://www.netroedge.com/~phil
->  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+hi,
+I tried to set lm_sensors on my board intel D850(EMV2), but I failed - 
+sensors-detect found and load two modules: i2c-philips-par.o is not for my 
+motherboard and i2c-i801 didn't work. 
 
+I looked to Support section, google, local czech conference - but without 
+solution of this problem.
+
+now, on release 2.8 version I tried the same and again failed. 
+
+I looked to section "New Drivers" and Intel (D)850 isn't contained. Do you 
+know this problem? On internet is a few quiestions with this problem with 
+none solution. 
+
+btw: excuse my horrible english
+
+Best Regards
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Ondrej Cecak
+
+
