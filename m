@@ -1,7 +1,7 @@
 From: philpi@apu.edu (Phillip Pi)
 Date: Thu, 19 May 2005 06:23:25 +0000
-Subject: Installing i2c and lm_sensors in RH Linux 7.2?
-Message-Id: <Pine.LNX.4.33.0111200946210.1364-100000@home.apu.edu>
+Subject: Installing i2c and lm_sensors in RH Linux 7.2? (New problem)
+Message-Id: <Pine.LNX.4.33.0111210233120.1364-100000@home.apu.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.33.0111200151400.1364-100000@home.apu.edu>
 In-Reply-To: <Pine.LNX.4.33.0111200151400.1364-100000@home.apu.edu>
@@ -10,17 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ok. I assume you want me to run 'make xconfig' in the Kernel source
-directory and then save (don't change any settings). Then, I can go fiddle
-with i2c and lm_sensors. I hope I don't have to recompile and/or upgrade
-Kernel.
+Hey guys,
 
-Thank you in advance.
- 
+I got a little farther after running make xconfig and save my settings,
+but I ran into another problem (make had no errors AFAIK):
+
+[root@ANTux-P3 i2c-2.6.2]# make install
+if [ -n " kernel/i2c-core.o kernel/i2c-dev.o kernel/i2c-algo-bit.o 
+kernel/i2c-philips-par.o kernel/i2c-elv.o kernel/i2c-velleman.o 
+kernel/i2c-algo-pcf.o kernel/i2c-elektor.o kernel/i2c-proc.o 
+kernel/i2c-pport.o" ] ; then \
+  mkdir -p /lib/modules/`grep UTS_RELEASE 
+/usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
+  install -o root -g root -m 644  kernel/i2c-core.o kernel/i2c-dev.o 
+kernel/i2c-algo-bit.o kernel/i2c-philips-par.o kernel/i2c-elv.o 
+kernel/i2c-velleman.o kernel/i2c-algo-pcf.o kernel/i2c-elektor.o 
+kernel/i2c-proc.o kernel/i2c-pport.o /lib/modules/`grep UTS_RELEASE 
+/usr/src/linux-2.4.7-10/include/linux/version.h|cut -f 2 -d'"'`/misc ; \
+fi
+install: `/lib/modules/2.4.7-10smp' is a directory
+install: `2.4.7-10BOOT' is a directory
+install: `2.4.7-10enterprise' is a directory
+install: `2.4.7-10debug' is a directory
+make: *** [install-kernel] Error 1
+
+Does this mean my Kernel source, from Red Hat Linux 7.2 CDs, is bad?
+Thank you in advance for a reply. :)
+--
+"Thanks for giving me the courage to eat all those ants." --unknown
+--
+  /\___/\                               Phillip Pi (Ant) from apu.edu.
+ / /\ /\ \              E-Mail: philpi@earthlink.net or philpi@apu.edu
+| |.   .| |
+   \ _ /                     The Ant Farm: http://antfarm.home.dhs.org
+    ( )       ICQ UIN: 2223658. Resume: http://ptp-resume.home.dhs.org
 
 On Tue, 20 Nov 2001 phil@netroedge.com wrote:
 
-> 
 > You need to at least configure your kernel.  If it's a redhat kernel,
 > then there is probably a reasonable default config.  'cd
 > /usr/src/linux-2.4.7-10' and do a 'make xconfig' (or menuconfig, or
