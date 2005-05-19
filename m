@@ -1,7 +1,7 @@
-From: benoit.plessis@univ-lemans.fr (Benoit Plessis)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:24:16 +0000
 Subject: lm_sensors && Asus ASB100
-Message-Id: <1063050239.1801.15.camel@osiris>
+Message-Id: <20030910043644.GA14675@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.44.0307161343280.790-100000@anubis.univ-lemans.fr>
 In-Reply-To: <Pine.LNX.4.44.0307161343280.790-100000@anubis.univ-lemans.fr>
@@ -10,33 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le dim 07/09/2003 ? 19:26, Jean Delvare a ?crit :
-> > I have an as99127f too, and i've found a little pb with the temp,
-> > on the as99127f i have the hyst and limit temp need an extra scale by
-> > two so i have scaled every one (in the following patch) and you need
-> > a compute line to restore the correct temp for the temp itself.
-> 
-> I'm not sure you're doing the right thing there. It is known that there
-> are different versions of the AS99127F, with different temp conversion
-> formulae. See this snippet of our default configuration file.
+* Jean Delvare <khali@linux-fr.org> [2003-09-07 17:17:29 +0200]:
 
-Actually by doing this i restored the original way of working of the
-as99127f part of w83781d, in my first patch where too specific to
-the ASB100.
-and yes i read that files before
+> I do have an AS99127F for testing, if none of you do. However, note that
+> I'm rather busy these days (well, weeks), so it will take some time
+> before I can test anything seriously. (The more problematic thing being
+> that I have *no* Internet access at all for now. This mail was composed
+> off-line. I hope I'll have at least a 56kpbs line within a week, to
+> start with.)
 
-> > I've some weird pb with the in0, in1 in5 and in6 min and max value,
-> > too but the old w83781d driver gives the same results (ie 0.00)
-for in0/in1 it do solved that (it may have been a personal reply to mark
-hoffman) but i still have the beep (need to unplug the buzzer) and 
-the in5/in6 hyst/max are still at 0.00.
+Ah good, I was wondering who else has this chip for testing - I don't.
 
-> We have had many reports about beeping issues with the AS99127F, and it
-> turned out that a bad VRM setting and/or bad in0 limits were the cause.
-> Make sure it's all OK for you.
-Actually the sensors program said it's a CPU temp failure (but at 33.4
-.).
+* Benoit Plessis <benoit.plessis@tuxfamily.org> [2003-09-08 21:31:33 +0200]:
+
+> Actually as i said to mhoffman i do have an as99127f for testing and
+
+OK.
+
+> what i did works quite well (at least it didn't exactly like the
+> way of w83781d :p). But i do have some pb with my as99127f (beeping ..;
+
+Common enough I guess.  Eventually we intend to remove the init code from
+the drivers (equivalent to module param. "init=0") which should solve this
+once and for all.  My independent asb100 module is written that way.
+
+> quite strange thing). I was waiting for news from hoffman but i did
+> forget to subscribe to the list :( so i'll do this now :)
+
+Sorry for the delay... but I'm also preparing to move again.  Not cross
+continent like my previous move, although it still takes time.
+
+Maybe someone else with CVS access can review/commit your changes more
+quickly than I can at the moment?
+
+Regards,
+
 -- 
-Benoit Plessis					+33 6 77 42 78 32
-<benoit.plessis@tuxfamily.org>
-1024D/B4D74B76 B9A7 3697 661D 25FB A609  E69E 92CA FFAB B4D7 4B76
+Mark M. Hoffman
+mhoffman@lightlink.com
