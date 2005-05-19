@@ -1,67 +1,87 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: Trying to drive some LEDs through I2C
-Message-Id: <20050102214920.GD17759@jupiter.solarsys.private>
+From: tobias.edler@stud.uni-goettingen.de (Tobias Edler)
+Date: Thu, 19 May 2005 06:23:34 +0000
+Subject: asb100 Bach
+Message-Id: <3D09D5C4.7070200@stud.uni-goettingen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200412280317.iBS3HGKW026839@Stimpy.netroedge.com>
-In-Reply-To: <200412280317.iBS3HGKW026839@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Max:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-* Maximilian Ott <max@semandex.net> [2004-12-30 11:07:07 -0500]:
-> Thanks, I'll check it out. BTW, what 2.6 kernel should I use? Should I go
-> for the latest?
+Hi !
+I have a Asus A7v333 mainboard, and cant get all the information, the
+sensor should deliver. The chip is labeld ASB100 Bach, the manual calls
+it "ASUS Asic with thermal controller".  Here's the result from
+sensors-detect :
 
-Sure, (unless you have a specific reason not too) try Linus' 2.6.10.  All
-I2C and sensors patches go through Greg K-H, then to the -mm kernel, and
-from there to Linus' tree.  But the pace is pretty quick; the difference
-between the -mm and Linus' trees (wrt I2C/sensors) always seems small.
+Driver `eeprom' (should be inserted):
+  Detects correctly:
+  * Bus `bt848 #0' (Bit-shift algorithm)
+    Busdriver `UNKNOWN', I2C address 0x50
+    Chip `Serial EEPROM (PC-100 DIMM)' (confidence: 1)
 
-> > Hi Max:
-> > 
-> > * Maximilian Ott <max@semandex.net> [2004-12-27 22:08:19 -0500]:
-> > > I'm prototyping an appliance type box based on the EPIA-TC board
-> > > 
-> > (http://www.viaembedded.com/product/epia_tc_spec.jsp?motherboa
-> > rdId 1).
-> > > This board supposedly has a I2C bus accessible on a connector.
-> > > 
-> > > I also built a small board with a few LEDs driven by a TI TPIC2810
-> > > (8-BIT LED DRIVER WITH I2C INTERFACE) which I would like to 
-> > hook up to the
-> > > motherboard and control from a user-space process. The 
-> > whole thing will run
-> > > a 2.6 linux kernel.
-> > > 
-> > > Could somebody please give me a few pointers to get started.
-> > 
-> > It sounds like you already know about I2C and probably SMBus as well.
-> > 
-> > On Linux, you'll need a bus driver for your board.  Some VIA chipsets
-> > are already supported... you could grab the freshly released 2.9.0 of
-> > the lm_sensors2 package and build the userspace parts (kernel 
-> > 2.6 already
-> > has the most up-to-date kernel parts).  Then try 'sensors-detect'.
-> > 
-> > Assuming you have a working bus driver, the easiest way to access it
-> > for prototyping would be the i2c /dev interface.  This requires the
-> > module i2c-dev (if you ran 'sensors-detect' OK, you already have it).
-> > 
-> > Take a look at i2c-dev.h in the kernel headers if you want to 
-> > program in
-> > in C.  For prototyping, it would be much easier to re-use the Perl 
-> > bindings which can be found in sensors-detect.  Or if you 
-> > prefer Python,
-> > lucky you: I just now published a module for that.  The announcement
-> > hasn't appeared in the mail archive yet, but you will eventually see
-> > it near the bottom of this page (which is good to browse anyway):
-> > 
-> > 	http://archives.andrew.net.au/lm-sensors/
+Driver `pcf8591' (should be inserted but causes problems):
+  Detects correctly:
+  * Bus `SMBus Via Pro adapter at e800' (Non-I2C SMBus adapter)
+    Busdriver `i2c-viapro', I2C address 0x48
+    Chip `Philips Semiconductors PCF8591' (confidence: 1)
+  Misdetects:
+  * Bus `SMBus Via Pro adapter at e800' (Non-I2C SMBus adapter)
+    Busdriver `i2c-viapro', I2C address 0x49
+    Chip `Philips Semiconductors PCF8591' (confidence: 1)
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Driver `lm75' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus Via Pro adapter at e800' (Non-I2C SMBus adapter)
+    Busdriver `i2c-viapro', I2C address 0x49
+    Chip `National Semiconductor LM75' (confidence: 3)
+
+Driver `ds1621' (may not be inserted):
+  Misdetects:
+  * Bus `SMBus Via Pro adapter at e800' (Non-I2C SMBus adapter)
+    Busdriver `i2c-viapro', I2C address 0x49
+    Chip `Dallas Semiconductor DS1621' (confidence: 3)
+#----cut here----
+# I2C adapter drivers
+# modprobe unknown adapter bt848 #0 using Bit-shift algorithm
+# modprobe unknown adapter bt848 #0 using Bit-shift algorithm
+modprobe i2c-viapro
+# I2C chip drivers
+modprobe eeprom
+modprobe pcf8591
+modprobe lm75
+#----cut here----
+
+To make the sensors modules behave correctly, add these lines to either
+/etc/modules.conf or /etc/conf.modules:
+
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+options pcf8591 ignore=1,0x49
+#----cut here----
+
+What exactly does "may not be inserted" mean ? Won't work ? might cause
+problems ? will blow up my computer ?
+
+with lm75, the temperature is disoplayed correctly, but not voltages,
+fan speeds, MB temp.
+
+Can any of you give me a hint ?
+
+Regards
+- --
+________
+\  |      GPG (PGP) Key: www.stud.uni-goettingen.de/~s242275/pgpkey.pub
+ \ |--    Jabber-ID at a-message.de: te_linuxguru
+  \|____  ICQ: 124557012
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+
+iD8DBQE9CdXCKpMiVYRJv9YRAt+IAJ9/bINclYVvLiGcUoTwIZZj36b3VgCfRl7Q
+hh06l1CK+xZ+9OS+qig8ds4=Wdo2
+-----END PGP SIGNATURE-----
