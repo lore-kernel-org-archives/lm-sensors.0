@@ -1,66 +1,77 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:08 +0000
-Subject: [PATCH] automatic VRM detection part2
-Message-Id: <20040805042341.GC4844@jupiter.solarsys.private>
+From: andi@rhlx01.fht-esslingen.de (Andreas Mohr)
+Date: Thu, 19 May 2005 06:23:37 +0000
+Subject: 2.6.4: strange (?) include path order
+Message-Id: <20020807205413.A23077@rhlx01.fht-esslingen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0407221043150.6769@desitka.sh.cvut.cz>
-In-Reply-To: <Pine.LNX.4.58.0407221043150.6769@desitka.sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-08-04 10:36:23 +0200]:
-> > One small comment:
-> > 
-> > > @@ -959,7 +956,7 @@
-> > > 
-> > >  	vid = asb100_read_value(client, ASB100_REG_VID_FANDIV) & 0x0f;
-> > >  	vid |= (asb100_read_value(client, ASB100_REG_CHIPID) & 0x01) << 4;
-> > > -	data->vrm = ASB100_DEFAULT_VRM;
-> > > +	data->vrm = i2c_which_vrm();
-> > >  	vid = vid_from_reg(vid, data->vrm);
-> > > 
-> > >  	/* Start monitoring */
-> > 
-> > Why not this instead?  E.g.
-> > 
-> > 	if (!(data->vrm = i2c_which_vrm()))
-> > 		data->vrm = ASB100_DEFAULT_VRM;
-> > 
-> > That way, non x86 or some x86 that isn't recognized might fall back
-> > and still get it right, or at least work the same as it used to.
-> 
-> Unsupported CPUs are rather unlikely to use VRM 9.0
+Hi all,
 
-.. assuming we have a complete list, yes.
+I just tried compiling lm_sensors-2.6.4.
+This didn't quite work:
 
-> (ASB100_DEFAULT_VRM), so in most cases it won't help. If we want to
-> default to something, we would certainly default to the same VRM version
-> for all drivers, and set this default version to the latest known
-> version (10.0 as of now). But even then the chances that it'll work out
-> of the box are slim.
+gcc  -DMODVERSIONS -include /usr/src/linux/include/linux/modversions.h -D__=
+KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomit-frame-pointer -I. -Ikernel/include=
+ -I/usr/local/include -I/usr/src/linux/include   -O2   -c kernel/busses/i2c=
+-ali1535.c -o kernel/busses/i2c-ali1535.o
+kernel/busses/i2c-ali1535.c:183: `I2C_HW_SMBUS_ALI1535' undeclared here (no=
+t in
+a function)
+kernel/busses/i2c-ali1535.c:183: initializer element is not constant
+kernel/busses/i2c-ali1535.c:183: (near initialization for `ali1535_adapter.=
+id')
+make: *** [kernel/busses/i2c-ali1535.o] Fehler 1
+root@andi:/usr/src/system/lm_sensors-2.6.4#
 
-True and true.
+This is because I have an old i2c.h header in /usr/local/include.
 
-> So I think it makes more sense to clearly show that we do not support a
-> given CPU yet, so that:
-> 1* People can report to us.
-> 2* Userspace knows it shouldn't trust the (zero) VID value.
-> 
-> At any rate, if we decide we want to default to something in this case,
-> then let's default to the same VRM version for all drivers, being the
-> VRM we consider is the more likely to be correct for unknown (i.e.
-> recent) CPUs, and have the mechanism placed in i2c_which_vrm() itself
-> rather than ranging all over the various drivers.
-> 
-> But I like it the way Ruik proposed.
+Why do you specify /usr/local/include before /usr/src/linux/include ??
+In this case it was fatal.
 
-OK, I have no strong objection to the patch as-is... just thought
-I'd ask though.
+I guess you can safely assume that /usr/src/linux is the most recent tree.
 
-Regards,
+BTW:
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+  Bus  0, device   0, function  1:
+    IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE] (rev 208).
+      IRQ 14.
+      Master Capable.  Latencyd.
+      I/O at 0x4000 [0x400f].
+  Bus  0, device   1, function  0:
+    ISA bridge: Silicon Integrated Systems [SiS] 85C503/5513 (rev 1).
+
+And on another system:
+  Bus  0, device   2, function  0:
+    ISA bridge: Silicon Integrated Systems [SiS] 85C503/5513 (rev 0).
+  Bus  0, device   2, function  3:
+    USB Controller: Silicon Integrated Systems [SiS] 7001 (#2) (rev 7).
+      IRQ 11.
+      Master Capable.  Latencyd.  Max Lat=80.
+      Non-prefetchable 32 bit memory at 0xcffff000 [0xcfffffff].
+  Bus  0, device   2, function  2:
+    USB Controller: Silicon Integrated Systems [SiS] 7001 (rev 7).
+      IRQ 5.
+      Master Capable.  Latencyd.  Max Lat=80.
+      Non-prefetchable 32 bit memory at 0xcfffe000 [0xcfffefff].
+  Bus  0, device   2, function  5:
+    IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE] (rev 208).
+      Master Capable.  Latency=16.
+      I/O at 0xff00 [0xff0f].
+
+See ? I'm an "SiS only" house (well, not quite). :-)
+(this is a GA586SGX and K7S5A, respectively)
+
+BTW, I've even got 5595 chipset specs !!!
+
+Needless to say I'll try to have a go about the 5511/12/13 misdetection iss=
+ue.
+
+Have fun !
+
+--=20
+Andreas Mohr                        Stauferstr. 6, D-71272 Renningen, Germa=
+ny
+Tel. +49 7159 800604                http://mohr.de.tt
