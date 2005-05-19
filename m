@@ -1,7 +1,7 @@
-From: zoleg@matrixc.ru (ZOleg Matrix)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: LM83 sensor
-Message-Id: <1892977656.20030701180048@matrixc.ru>
+Message-Id: <20030701111717.379d8e44.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43612812.20030701105509@matrixc.ru>
 In-Reply-To: <43612812.20030701105509@matrixc.ru>
@@ -10,12 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
 
-Thank you for answer!
+> I use Gigabyte GA-7VAX motherboard.
 
-I use Gigabyte GA-7VAX motherboard.
+What makes you think there is a LM83 on it? From the specs, I would say
+that the sensors chipset is an ITE8705F, supported by our it87 driver.
 
 -- 
-Best regards,
- ZOleg                            mailto:zoleg@matrixc.ru
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
