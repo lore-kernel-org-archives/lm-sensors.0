@@ -1,25 +1,24 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: i2c/kernel i2c-dev.c
-Message-Id: <20030612031128.GA28664@kroah.com>
+From: mlists-lmsensors@FutureQuest.net (mlists-lmsensors@FutureQuest.net)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: Intel SE7500WV2 and ADM1026
+Message-Id: <5.2.0.9.2.20030212010524.02bbd820@vpn.terra.tek>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 11, 2003 at 07:36:06PM -0700, author@mordac.netroedge.com wrote:
-> Update of /home/cvs/i2c/kernel
-> In directory mordac.netroedge.com:/tmp/cvs-serv24391/kernel
-> 
-> Modified Files:
->       Tag: lk2-4
-> 	i2c-dev.c 
-> Log Message:
-> (mds) Greg's fixes from kernel 2.4.21-rc7
+Greetings,
 
-What about i2c-dev.h changes?
+I see that the ADM1026 is currently under development by Vojtech Pavlik...
 
-thanks,
+We have several of these Intel SE7500WV2 boards now and would like to get them under sensory control...
 
-greg k-h
+Can anyone answer as to the progress of this driver?
+
+Also, is there a remote possibility of anyone getting the ADM1025 driver working on the ADM1026 through minor tweaks?
+
+TIA!
+
+--
+Terra
