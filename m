@@ -1,22 +1,55 @@
 From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: parport driver
-Message-Id: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
+Message-Id: <Pine.LNX.4.58.0503101150400.25688@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
+In-Reply-To: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hello,
+On Thu, 10 Mar 2005 andreas@schutz.se wrote:
 
-What kernel is in your SuSE please?
-Just run command
+> Hi again!
+>
+> WOW! Impressed, you sure gave me a fast answer!
+> My kernel is 2.6.8-24.11-default.
+> Does the possibility to use the pport driver depend on the kernel version?
+> And.. sorry for my novice attitude (i'm not at native english) but what do
+> you mean with the CC thing to the list?
+>
 
-uname -a
+Just look who is second recepient of this email :) And when replaying
+add it recepicent list too.
 
-And tell us. (dot forget to CC the list)
+If you want parport driver with no additional hardware and  you are
+willing to use 2.6.x kernel version you need my 2.6 port of this driver
+
+http://www.assembler.cz/download/i2cpport26.tar.gz
+
+(i2c-pport)
+
+You need your kernel sources to be installed and your kernel needs to be
+partially configured. Then you will be able to compile it on your own.
+
+Hardware: just connect three wires
+
+SDA - connect to pin 14 (Auto Linefeed)
+SCL - connect to pin 16 (Initialize Printer)
+GND - connect to one of pin 18-25
+
+You need to put your parallel port to "Standart" or "SPP" mode in bios.
+(be sure it is set to 0x378 address)
+
+About the module compilation, there is some short INSTALL file. I dont
+know how you are skilled for kernel compile. We have IRC channel on
+Freenode #linux-sensors  unfortunatelly I will be away starting from today
+until start of next next week. So I cant help you with your kernel
+compilation. You can try to ask other people there. Or wait for me to come
+back.
 
 Regards
 
