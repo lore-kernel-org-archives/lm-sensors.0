@@ -1,33 +1,36 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:57 +0000
-Subject: [OOPS] w83781d during rmmod (2.5.69-bk17)
-Message-Id: <3ED8067E.1050503@paradyne.com>
+From: john@scl.co.uk (John Sutton)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: Linux on GA-8LD533(-P)
+Message-Id: <03080518254600.09450@diva.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030524183748.GA3097@earth.solarsys.private>
-In-Reply-To: <20030524183748.GA3097@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Good catch.
-Greg, this needs to be fixed.
-Winbond chips take up 3 addresses on the i2c bus.
-In the original code we registered two "subclients" with the i2c layer.
-Somehow the 3-address chips need to be handled.
+To: Gigabyte Technology
+-----------------------
 
-Mark M. Hoffman wrote:
-> This applies to all kernel versions since w83781d was brought in from 
-> the lm_sensors project.
-> 
-> The subclients of w83781d are never registered with i2c_attach_client().
-> But, w83781d_detach_client() tries to i2c_detach_client() them anyway.
-> This was harmless, until i2c-core was "listified"... because the old
-> array method silently ignored the attempt to detach a non-existent client.
-> 
-> The latest lm_sensors CVS of w83781d has the necessary i2c_attach_client()
-> calls - not sure why they were removed during conversion to 2.5.x.  Do we
-> intend to attach these subclients or not?
-> 
-> Regards,
-> 
+Hi there
+
+Does the GA-8LD533(-P) m/b support hardware monitoring (temperatures,
+voltages, fanspeeds) when running under linux?
+
+On the lm_sensors web site http://www2.lm-sensors.nu/~lm78/index.html
+support for the particular SMBus controller (implemented in the 82801DB
+chip) is mentioned but the sensor chip itself (implemented in the IT8702F)
+is not mentioned - only the IT8705 and IT8712.  And the IT8707 and IT8708
+are mentioned as being definitely NOT supported at present.  So is the 8702
+in this m/b like the 8705/8712 (i.e., supported) or like the 8707/8708
+(unsupported)?
+
+Any ideas?
+
+TIA
+
+***************************************************
+John Sutton
+SCL Internet
+URL http://www.scl.co.uk/
+Tel. +44 (0) 1239 711 888
+***************************************************
