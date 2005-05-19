@@ -1,14 +1,18 @@
 From: joakim.tjernlund@lumentis.se (Joakim Tjernlund)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: 8xx i2c refers to unspecified chip errata
-Message-Id: <IGEFJKJNHJDCBKALBJLLEEEIFHAA.joakim.tjernlund@lumentis.se>
+Message-Id: <IGEFJKJNHJDCBKALBJLLKEEJFHAA.joakim.tjernlund@lumentis.se>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20021015165731.GG695@opus.bloom.county>
+References: <IGEFJKJNHJDCBKALBJLLEEEIFHAA.joakim.tjernlund@lumentis.se>
+In-Reply-To: <IGEFJKJNHJDCBKALBJLLEEEIFHAA.joakim.tjernlund@lumentis.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tom Rini <trini@kernel.crashing.org>
-Cc: linuxppc-embedded@lists.linuxppc.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
+
+Hmm, seems like this didn't make it to the embbedded list. Resending
+
+ Jocke
 
 > 
 > On Fri, Oct 11, 2002 at 11:12:02AM +0200, Joakim Tjernlund wrote:
