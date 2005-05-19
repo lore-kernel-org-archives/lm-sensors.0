@@ -1,29 +1,46 @@
-From: DarkEmperor@gmx.net (Emperor)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:19 +0000
 Subject: flex scanner jammed problem
-Message-Id: <1064332995.5787.33.camel@nils>
+Message-Id: <20030923211403.04761487.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1064332995.5787.33.camel@nils>
+In-Reply-To: <1064332995.5787.33.camel@nils>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi everybody,
 
-I just installed lm_sensors via synaptic. I could set up my sensors. But
-since I did that the KDE process window does not work any more,
-ksysguardd and ksensors
-gave me "flex scanner jammed". 
+> I just installed lm_sensors via synaptic.
 
-I put the output to your ticket system.
+What is synaptic?
 
-And I got another question! is there plan in lm_sensors to support writing to fan values, too? the w83627hf chip I have supports that.
+> I could set up my sensors.
+> But since I did that the KDE process window does not work any more,
+> ksysguardd and ksensors gave me "flex scanner jammed".
 
-So there could be a tool which controls the fan speed in relation with temperature, cpu load...
+Which means that sensors itself doesn't work. Am I right?
 
-Is there any infos about that, another project? or a tool?
+This is a known problem, which has two possible solutions:
 
-thx,
+1* Fix your /etc/sensors.conf file. Copy the default etc/sensors.conf.eg
+file that match the version you're using, and it should be OK.
 
-nils
+2* If it doesn't work, update to 2.8.0 or CVS, we fixed a bug in the
+parser some weeks ago.
 
+
+> And I got another question! is there plan in lm_sensors to support
+> writing to fan values, too? the w83627hf chip I have supports that.
+
+"Writing to fan values" makes no sense ;) You already should be able to
+write to the min settings. As for the speed control, it is known as PWM.
+It *is* supported by our w83781d and w83627hf drivers (one of which you
+must be using), although it is known not to work properly for everyone.
+See the prog/pwm in our package, where you'll find the fancontrol and
+pwmprogram. These are the ones you need in order to have PWM working.
+Give it a try and let us know how it works for you.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
