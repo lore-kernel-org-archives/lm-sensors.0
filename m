@@ -1,29 +1,58 @@
-From: phil@ren.netroedge.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: dead URL on download page (fwd)
-Message-Id: <Pine.LNX.3.96.1021020155031.25309A-100000@Ren.netroedge.com>
+From: peterm@remware.demon.co.uk (Peter Milne)
+Date: Thu, 19 May 2005 06:23:56 +0000
+Subject: [Fwd: New bus driver: XSCALE iop3xx]
+Message-Id: <3EC9E7B2.6000300@remware.demon.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Dear Phil et al
 
-I guess Albert is done making patches?  If so, should we remove the link? 
+I've recently implemented a combined algo/adapter driver for the Intel 
+Xscale IOP321 (IOP3xx family) processor.
+
+The IOP321 features a two channel i2c controller, so this is an "on chip 
+peripheral" in the sense of
+
+I2C_ALGO_OCP/I2C_HW_OCP.
+
+There are other IOP3xx chips that should share the same algorithm, but 
+have different adaptors.
+I would like you please to allocate me an algorithm and an adapter number:
+
+suggest:
+
+#define I2C_ALGO_OCP_IOP3XX  0x140000 /* XSCALE IOP3XX On-chip I2C alg */
+
+and
+
+/* --- XSCALE on-chip adapters                          */
+#define I2C_HW_IOP321 0x00
+
+If that's ok, should I submit a patch for i2c-id.h with the right values 
+and appropriate comments.
+
+The driver comprises two files drivers/i2c/i2c-iop3xx.[ch]
+
+Although they are only of use to someone building for this specific processor arch,
+would it be appropriate for me to submit the files to you for inclusion in the
+i2c package?.
 
 
-Phil
+
+Thanks!.
+
+ps: hooking up to your framework was a snap, now I'm looking forward to 
+leveraging some of those chip drivers,
+and maybe even contributing a couple back.
+
+Best regards
+
+Peter
 
 
----------- Forwarded message ----------
-Date: Sun, 20 Oct 2002 12:07:13 -0600
-From: Steve Sutphen <steve@cs.ualberta.ca>
-To: webmaster@lm-sensors.nu
-Subject: dead URL on download page
 
-The link to the "2.4 and 2.5 kernel patches available" (i.e. 
-http://personal.atl.bellsouth.net/a/c/ac9410/albert/albert.html) does 
-not exist
-any more.
-    steve.
+
 
