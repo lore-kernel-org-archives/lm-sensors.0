@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:28 +0000
 Subject: lm_sensors2/prog/detect sensors-detect
-Message-Id: <20031202225911.1c96e1af.khali@linux-fr.org>
+Message-Id: <20031202230910.5f32e776.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20021107235845.0037e195.khali@linux-fr.org>
 In-Reply-To: <20021107235845.0037e195.khali@linux-fr.org>
@@ -10,38 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > One additional note. In sensors-detect we scan all addresses from
-> > 0x00 to 0x7F. I don't think it's correct. According to what I know,
-> > 0x00, 0x02-0x03, 0x0C and 0x7C-0x7F should not be scanned, being
-> > respectively the general call address, a reserved range, the alert
-> > response address and another reserved range. I propose to exclude
-> > these addresses from the scan. Then, all we need to do is add four
-> > addresses to the exclusion list if an IBM system is detected. This
-> > also opens a path for more addresses exclusions if this is needed
-> > later.
+> Agreed that we are being exceptionally conservative.
+> I recommend that we proceed in baby steps, a little bit more in each
+> release, so that we get some testing and confidence.
+
+Agreed. I'd even propose not to change anything before the next release.
+The detection method change is enough.
+
+> Some way of separating Thinkpads from servers would be a good first
+> step. We could blacklist all Thinkpads but go a little farther with
+> the servers.
+
+That's not necessarily easy. This means adding the list of known
+Thinkpad IDs to sensors-detect. As I explained, this is a list we would
+then have to maitain, with or without the help of IBM. You can imagine
+that someone with a brand new Thinkpad, not listed yet, would give a try
+to lm_sensors and have his/her laptop seen as a desktop IBM system.
+
+And, since we don't have a list of desktop IDs, we can't build a
+white-list either.
+
+This is how I came to my simple "IBM detected, block 24RF08 addresses"
+strategy. It is both safe and almost-non-intrusive, as far as I can see.
+
+> > I first feared that the ddcmon would cause trouble because it
+> > declares 0x51-0x57 as subaddresses, but reading the driver code, it
+> > seems that it doesn't use them (and doesn't even "register" them).
 > 
-> agreed. this used to be on my to-do list.
-> i2c-core scans all addressess too which is even worse
-> than having userspace do it.
+> This is because some monitors use the exceptionally stupid 24C00 or
+> 24C01 (NOT 24C01A) eeproms that respond to ALL addresses 0x50-57 with
+> the same data. The subaddress declaration keeps sensors-detect from
+> recommending the driver getting loaded 8 times, or ddcmon once and
+> eeprom 7 times.
 
-Does i2c-core scan anything? I thought the chip drivers were (and not
-all addresses of course, only those specified in the driver).
-
-> Actually it's not that bad to scan all the adresses, 
-> it's just bad to probe them all with each of the driver tests.
-
-What distinction do you make here between scan and probe? Not sure I get
-you.
-
-> the worst one is 0x00. The others shouldn't really be a problem, I
-> don't think.
-
-Agreed, but I don't see the point in scanning addresses that cannot be
-used by valid chips.
-
-My fear with 0x00 is that, if it really works as a broadcast address, a
-quick write on it could reach a 24RF08 chip, and break it (since the
-workaround is only enabled on addresses 0x54-0x57).
+I think all my monitors do that. But since I read in the DDC specs that
+there could be more than one 256-byte block of data, I thought it was
+just normal. I clearly remember my monitors answering on all 8
+addresses, but I don't remember if all addresses were returning the same
+data. I'll take a look next time.
 
 -- 
 Jean Delvare
