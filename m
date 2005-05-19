@@ -1,29 +1,22 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:52 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:53 +0000
 Subject: Query: using parport to send 24-bit serial clock and data?
-Message-Id: <hbn5619oiuenbrvpf8sj49fh89kb1fj34s@4ax.com>
+Message-Id: <4266ADB0.1020307@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <hbn5619oiuenbrvpf8sj49fh89kb1fj34s@4ax.com>
+In-Reply-To: <hbn5619oiuenbrvpf8sj49fh89kb1fj34s@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi there,
 
-I'd like to make an Aztech radio card work outside of the PC, to 
-improve the reception, as the card is unshielded.  Interface would 
-be parallel port for controlling channel select.
+> So which low-level driver would you suggest as a starting point?
 
-Need to send a 24-bit control word to LM7001 PLL chip.
+I would create very own char device driver and start using portions from i2c-pport.
+I would rip all i2c specific code...
+for 2.6.x it can be found at http://assembler.cz/download/i2cpport26.tar.gz
 
-The format is chip_enable + serial_clock + data.  Bit-bangimg like 
-i2c but not the same as there is no serial address decoder, just one 
-long control word.
+regards
 
-I need to take ownership of parport, then bit-bang the serial control 
-word as well as tickle other signals.
-
-So which low-level driver would you suggest as a starting point?
-
-Thanks,
-Grant.
+Rudolf
