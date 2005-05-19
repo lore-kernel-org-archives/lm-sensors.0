@@ -1,30 +1,57 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: bus scan removal
-Message-Id: <20031223220939.GD15946@kroah.com>
+From: contact@haloscan.com (Jeevan)
+Date: Thu, 19 May 2005 06:23:50 +0000
+Subject: Sis 645DX problem
+Message-Id: <200303161357.19874.contact@haloscan.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031221100543.28eaf2ff.khali@linux-fr.org>
-In-Reply-To: <20031221100543.28eaf2ff.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 23, 2003 at 10:58:45PM +0100, Jean Delvare wrote:
-> > For systems that have a 64bit kernel, and a 32bit userspace, all
-> > ioctls in the kernel need a "thunking" layer in order to pass the data
-> > between the kernel and userspace properly.  Last I looked that layer
-> > did not contain any i2c ioctls, so i2c-dev will not work on those
-> > kinds of systems (ppc64, sparc64, mips64, amd64, ia64, etc...)
-> 
-> Take a look at 2.6.0-mm1's changelog. Didn't look at the code but it
-> looks like someone just implemented this. Greg, do you confirm it's the
-> same as what you're talking about?
+I'm running lm_sensors version 2.7.0 in Gentoo linux with kernel version 
+2.4.20-gentoo-r1.
 
-You are correct, I forgot about Ben's patch.  Yes, this is exactly what
-I was talking about.  So, if any people using kernels on the above
-platform want to use i2c-detect, they should use the -mm tree.
+sensors-detect detects that I have the SIS645DX (which is correct--I have a 
+sis645DX chip on an ASUS P4S533-E motherboard) but it fails to load the 
+module. Here is the output from running sensors-detect:
 
-thanks,
+---
+root@halo halo # sensors-detect
+<Startup info truncated>
 
-greg k-h
+ BIOS vendor (ACPI): ASUS
+ System vendor (DMI): System Manufacturer
+ BIOS version (DMI): ASUS P4S533-E ACPI BIOS Revision 1007
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no):
+Probing for PCI bus adapters...
+Use driver `i2c-sis645' for device 00:00.0: Silicon Integrated Systems 
+SIS645DX
+Use driver `i2c-riva' for device 01:00.0: GeForce2 MX
+Probe succesfully concluded.
+
+ We will now try to load each adapter module in turn.
+Load `i2c-sis645' (say NO if built into your kernel)? (YES/no):
+/lib/modules/2.4.20-gentoo-r1/misc/i2c-sis645.o: init_module: No such device
+Hint: insmod errors can be caused by incorrect module parameters, including 
+invalid IO or IRQ parameters.
+      You may find more information in syslog or the output from dmesg
+/lib/modules/2.4.20-gentoo-r1/misc/i2c-sis645.o: insmod 
+/lib/modules/2.4.20-gentoo-r1/misc/i2c-sis645.o failed
+/lib/modules/2.4.20-gentoo-r1/misc/i2c-sis645.o: insmod i2c-sis645 failed
+Loading failed... skipping.
+---
+
+This is the output from dmesg:
+i2c-sis645.o: version 2.7.0 (20021208)
+i2c-sis645.o: Error: Can't find suitable south bridge!
+i2c-sis645.o: SiS645 not detected, module not inserted.
+
+Any help would be greatly appreciated. Please email me if you need more 
+information too.
+
+Thanks.
+-- 
+-Jeevan
+ haloscan@bellsouth.net
