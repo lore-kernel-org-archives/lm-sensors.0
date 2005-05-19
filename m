@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: RFC: complete rewrite of i2c-i801 for 2.6.x
-Message-Id: <41ABC84F.4010109@verizon.net>
+Message-Id: <20041130033904.GA32741@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041128193640.GB5855@jupiter.solarsys.private>
 In-Reply-To: <20041128193640.GB5855@jupiter.solarsys.private>
@@ -10,79 +10,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks for asking for comments.
+Hi Zwane:
 
-No objections to a cleanup, or to using interrupts (#4).
+Thanks for the reply!
 
-Not sure what BIOS stuff you took out (#2), but I don't think it would be very clean
-to have two different drivers supporting the same chips, so that doesn't sound good.
+* Zwane Mwaikambo <zwane@linuxpower.ca> [2004-11-29 15:52:12 -0700]:
+> Looking at the driver, algo_data->lock only protects status, which can 
+> easily be overwritten if the reader doesn't read it before the next 
+> interrupt.
 
-Removing block transactions and PEC (#1 and 3) isn't wise, and not just because
-I did most of that code and it was a lot of work :) 
-The 801 driver covers a large number of popular chips,
-and has possibly the highest "market share" of all the bus drivers.
-It's essentially our "reference design" for block and PEC transactions
-and is the driver I've often used to test the i2c-core and i2cdump implementations for these transactions.
-Just because most bus drivers don't have block and SMBUS 2.0 transactions doesn't mean
-we should take it out of the 801. 
+For this driver at least: after one interrupt sets the status, the
+next interrupt will either be 1) caused by an asynchronous event
+(wrt normal bus transfers) like SMBAlert that we silently ignore, or
+2) caused by the next transfer, which cannot have been started until
+the status from the first one is consumed.
 
-And I wouldn't give up on SMBus 2.0 yet. The W83791D sensor chip supports it;
-if the W83792D does as well (awaiting datasheet from Winbond), we can enable it
-in the forthcoming driver from Winbond and have end-to-end hardware error checking for
-i2c transactions on a system with a 792 and a 801, should such a system appear.
+> In which case it seems like overkill using a lock, why not just 
+> do an atomic xchg?
 
-mds
+I.e. the way I wrote it was correct but non-optimal?  How about this?
+It compiles & runs at least, and it looks correct to me.
 
+--- i2c-i801.c.orig	2004-11-29 22:08:48.000000000 -0500
++++ i2c-i801.c	2004-11-29 22:17:32.000000000 -0500
+@@ -64,7 +64,6 @@
+ #include "i2c-i801.h"
+ 
+ struct i2c_i801_algo_data {
+-	spinlock_t lock;
+ 	wait_queue_head_t waitq;
+ 	int status; /* copy of h/w register */
+ };
+@@ -94,15 +93,7 @@ static void i801_abort(struct i2c_adapte
+ /* fetch & consume host status out of algo_data */
+ static inline int i801_get_status(struct i2c_i801_algo_data *algo_data)
+ {
+-	unsigned long flags;
+-        int status;
+-
+-	spin_lock_irqsave(&algo_data->lock, flags);
+-	status = algo_data->status;
+-	algo_data->status = 0;
+-	spin_unlock_irqrestore(&algo_data->lock, flags);
+-
+-	return status;
++	return xchg(&algo_data->status,0);
+ }
+ 
+ static int i801_transaction(struct i2c_adapter *adap, int smbcmd)
+@@ -246,11 +237,8 @@ static irqreturn_t i801_isr(int irq, voi
+ 	if (likely(status & I801_HST_STS_MASK_NORM)) {
+ 		struct i2c_adapter *adap = dev_id;
+ 		struct i2c_i801_algo_data *algo_data = adap->algo_data;
+-		unsigned long flags;
+ 
+-		spin_lock_irqsave(&algo_data->lock, flags);
+ 		algo_data->status = status;
+-		spin_unlock_irqrestore(&algo_data->lock, flags);
+ 		wake_up_interruptible(&algo_data->waitq);
+ 	}
+ 
+@@ -317,7 +305,6 @@ static int __devinit i801_probe(struct p
+ 	}
+ 
+ 	init_waitqueue_head(&algo_data->waitq);
+-	spin_lock_init(&algo_data->lock);
+ 
+ 	/* grab interrupt */
+ 	if ((ret = request_irq(pcidev->irq, i801_isr, SA_SHIRQ,
 
+Regards,
 
-Mark M. Hoffman wrote:
-> Hello all:
-> 
-> I've started a complete re-write of the i2c-i801 SMBus driver.  As
-> compared to the old one, this one:
-> 
-> 1) Supports fewer transaction types... still TODO
-> 
-> 2) Does not have any BIOS workaround nastiness.  I am hoping that
-> I can leave that out and that people who need that can be directed
-> to just use the old driver.
-> 
-> 3) Does not support PEC (not sure who uses it... can also be TODO
-> if there's interest).
-> 
-> And the primary difference 4) uses interrupts instead of polling.
-> 
-> I'm not exactly a stranger to interrupt-handling, having designed
-> whole interrupt handling mechanisms for (non-Linux) embedded systems.
-> *But*, as this is my first shot at it with a Linux driver...  I would
-> appreciate a close look at those parts.  The design is similar to 
-> i2c-iop3xx, except where it's different. :)
-> 
-> My test target / dev host shares an IRQ between sound and SMBus;
-> almost all of my testing was performed with xmms blasting away.
-> 
-> Re performance: this driver does not improve CPU utilization, because
-> the polling loop on the old one sleeps a lot anyway.  Elapsed time
-> per transaction did improve by varying degrees, depending on the
-> transaction type:
-> 
-> OLD:
-> I2C_SMBUS_QUICK(nodev) 0.00202
-> I2C_SMBUS_QUICK 0.00203
-> I2C_SMBUS_BYTE 0.00203
-> I2C_SMBUS_BYTE_DATA 0.00402
-> I2C_SMBUS_WORD_DATA 0.00602
-> 
-> NEW:
-> I2C_SMBUS_QUICK(nodev) 0.00108
-> I2C_SMBUS_QUICK 0.00107
-> I2C_SMBUS_BYTE 0.00190
-> I2C_SMBUS_BYTE_DATA 0.00365
-> I2C_SMBUS_WORD_DATA 0.00449
-> 
-> (Script for above: http://members.dca.net/mhoffman/sensors/temp/test.pl)
-> 
-> The diff is harder to read than the complete files which are attached...
-> 
-> Thanks and regards,
-> 
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
