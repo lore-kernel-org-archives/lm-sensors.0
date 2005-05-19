@@ -1,33 +1,33 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:21 +0000
-Subject: [PATCH 2.6] I2C: New LM63 chip driver
-Message-Id: <20041105214754.GG1750@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:22 +0000
+Subject: MOD_*_USE_COUNT
+Message-Id: <20031026220525.70e5e62e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041026212545.13a8c9d5.khali@linux-fr.org>
-In-Reply-To: <20041026212545.13a8c9d5.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 26, 2004 at 09:25:45PM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This is a new I2C chip driver named lm63, which supports National
-> Semiconductor's LM63 hardware monitoring chip. The LM63 is similar to
-> the LM86 (which we do support through our lm90 driver) with additional
-> monitoring and control of a single fan. It is obviously aimed at the CPU
-> and high-end graphics adapters markets. This new driver is very similar
-> in nature to the lm83 and lm90 driver so I don't have much to add.
-> 
-> I developed the driver on a request from Hard Data Ltd. which are using
-> Tyan S4882 boards where four LM63 chips are used (one for each CPU).
-> Tyan provided remote access to a test system so that I could test my
-> driver on real LM63 chips.
-> 
-> Please apply,
-> thanks.
 
-Applied, thanks.
+Hi all,
 
-greg k-h
+While writing the i2c-2.8.1 patch I plan to send to the kernel people
+for inclusion into Linux 2.4, I made sure not to leave any
+MOD_*_USE_COUNT call in, since in my understanding, the owner structure
+member in i2c_algorithm, i2c_adapter and i2c_driver was precisely
+introduced to get rid of them.
+
+Now, taking a look at what was done in the 2.6 kernel tree, it happens
+that a few drivers still have these macros used. For example, they are
+still used in bt832.c, bttv-if.c and tuner-3036.c. Does it mean that I
+should *not* have been removing them there? Should I have been removing
+these calls only if they were explicitely linked to our structures
+through inc_use and dec_use structure members? Or is it simply that they
+should have been removed in 2.6, but have been forgotten?
+
+Explanations would be welcome.
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
