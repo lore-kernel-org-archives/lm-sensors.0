@@ -1,27 +1,33 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:04 +0000
-Subject: SAA1064 driver
-Message-Id: <3F0C1EBC.1A3B701A@paradyne.com>
+From: mds4@verizon.net (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:48 +0000
+Subject: 8rdavcore GPL issue
+Message-Id: <405C821F.4050003@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200307082233.13758.sascha@akv-soft.de>
-In-Reply-To: <200307082233.13758.sascha@akv-soft.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-sure, why not.
-See doc/developers/new-drivers.
+Your project referenced here
 
-Sascha Volkenandt wrote:
-> 
-> Hello,
-> 
-> the SAA1064 is an I2C-driver to drive LED-Displays (4-digit with dots). I
-> have written a user-space program to access it through i2c-dev
-> (http://www.magoa.net/linux/index.php?view=kathrein) but I'm thinking about
-> writing an lmsensors chip-driver for it. I'd like to know if that driver
-> would be of any use to you if it's finished?
-> 
-> Greetings,
-> Sascha Volkenandt
+http://freshmeat.net/projects/8rdavcore/
+
+in the following package:
+
+http://freshmeat.net/redir/8rdavcore/40216/url_bz2/8rdavcore-0.5.5.tar.bz2
+
+appears to include GPL code copied from our lm-sensors project,
+licensed under the GPL,
+in particular, code in the file i2c-linux.c appears to be copied
+from our file i2cdetect.c.
+
+Your package is not licensed under the GPL. 
+Would you please correct this by licensing
+your package under the GPL and please let our mailing list know when you
+have done so.
+
+Thank you.
+
+Mark Studebaker
+for the lm-sensors project
+http://secure.netroedge.com/~lm78/
