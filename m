@@ -1,7 +1,7 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: Fwd: Fwd: [PATCH 2.6] bmcsensors
-Message-Id: <253818670503311925427640ea@mail.gmail.com>
+Message-Id: <Mx7D029e.1112346644.1939470.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2538186705033012523d671b5f@mail.gmail.com>
 In-Reply-To: <2538186705033012523d671b5f@mail.gmail.com>
@@ -10,89 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-Actually trying to port i2c_ipmi over to 2.6.12-rc1-mm3 is not trivial
-- the removal of i2c_client.id has broken it a lot and it looks like
-I'll have to add code to maintain a separate list of bmcsensors
-clients with ids (it was using the i2c_adapter.clients list along with
-the client ids to identify clients) if we want to keep i2c-ipmi in its
-present form.
+Hi Yani,
 
-Was client.id removed just because none of the ported drivers in the
-kernel was using it? A cursory glance at the 2.4 code (which includes
-i2c-ipmi) might have shown this isn't necessarily true for drivers
-that are in the process of being ported. Do any of the other
-sensors/busses yet to be ported to 2.6, or in the process, have a
-reliance on it?
+> Was client.id removed just because none of the ported drivers in the
+> kernel was using it? A cursory glance at the 2.4 code (which includes
+> i2c-ipmi) might have shown this isn't necessarily true for drivers
+> that are in the process of being ported. Do any of the other
+> sensors/busses yet to be ported to 2.6, or in the process, have a
+> reliance on it?
 
-MDS: i2c-ipmi seems to maintain the client list to allow the
-possibility of more than one bmcsensors driver to use the interface,
-however since bmcsensors doesn't support more than one bmc anyway
-should this functionality be removed instead of patched?
+The i2c_client.id was removed because most of the existing drivers in 2.6
+were not using it. The few of those which did were using it uniquely
+identify the client in log messages, but the various dev_* loggers
+already identify the device uniquely so it was redundant.
 
-Thanks,
-Yani
+The reason why removing i2c_client.id was considered is because the i2c
+core doesn't use it. This means that, if a driver ever needs to keep a
+unique identifier on every client, it has to store it withing the client
+private data (i2c_client.data.id or whatever. This doesn't change much
+from this driver's point of view, but at least avoids including a
+mostly useless id field in all i2c clients in the kernel. The
+i2c_client.id removal killed dozens of (useless) lines of code and saved
+4 bytes of memory per client. I'd do it again.
 
+The problem you face here is possibly caused by the fact that i2c-ipmi
+and bmcsensors are not an i2c adapter driver and an i2c chip driver.
+They were hacked into the i2c subsystem because it sounded easy back
+then. I am continuously cleaning up the i2c subsystem in 2.6, step by
+step, and drivers which do not belong to this subsystem and are using
+hacks might break. I am not going to stop the cleanup process for them.
+Instead, they will have to be rewritten not to use random hacks.
 
-On Thu, 31 Mar 2005 12:02:27 -0500, Yani Ioannou <yani.ioannou@gmail.com> wrote:
-> Thanks Mark :),
-> 
-> In fact i2c-ipmi is virtually unchanged from 2.4 compared to the
-> changes in bmcsensors (it should probably still have Mark as module
-> author but I didn't want him having to answer questions from people on
-> my code).
-> 
-> I know it seems like a hack - it is, but I think with reason. I agree
-> with mds that it is nice to have a centralized system in Linux for
-> accessing sensor information (regardless of it being on i2c or ipmi)
-> through the lm_sensors sysfs interface, rather than use something like
-> ipmitool to read BMC sensors and lm_sensors to read others, especially
-> considering the amount of software out there already using the
-> lm_sensors interface.
-> 
-> Certainly many people I've been in contact with seem to think this is
-> true too (hence the demand for bmcsensors), and I'm all for giving
-> people the choice. i2c-ipmi is in my opinion just an (unfortunate) way
-> of fitting into the current lm_sensors driver model, there are other
-> places in the patch that bmc_sensors differs from all the other i2c
-> based drivers too and had to do its own thing for the same reason.
-> 
-> Yani
-> 
-> On Thu, 31 Mar 2005 11:08:06 -0500, Mark Studebaker <mds@mds.gotdns.com> wrote:
-> > Jean Delvare wrote:
-> > > Hi Yani,
-> > >
-> > > Could you please explain to us what i2c-ipmi does? I understand it acts
-> > > as an interface between the bmcsensors driver and something else, but I
-> > > yet have to learn what that other thing is, and why an interface is
-> > > needed at all. As I understand it, i2c-ipmi is no I2C or SMBus master
-> > > driver, but a kind of hack much like the i2c-isa driver is. I don't
-> > > exactly enjoy the way i2c-isa works, and I plan to get rid of it at some
-> > > point in time (hopefully in a near future), so let's not do something
-> > > equally ugly here.
-> > >
-> > > Thanks,
-> >
-> > Don't pick on Yani too hard, he's just porting what I wrote.
-> > i2c-ipmi is indeed a bridge between bmcsensors and the IPMI subsystem.
-> > There's some documentation in doc/busses/i2c-ipmi and you can also
-> > look at the code in 2.4.
-> >
-> > Yes it's a little bit of a hack but I thought this architecture was the best way to get
-> > IPMI data out through the sensors API. Sure there are other ways  to do  it and
-> > you could use some full-blown IPMI app but this is  a good way to get people
-> > the info that gets hidden behind all the IPMI stuff - i.e.  their sensor  info.
-> >
-> > I think the  dummy driver approach has value for those who want to present data
-> > via the sensors  API. As you may recall I did something similar for hard drive
-> > temperatures (S.M.A.R.T)  a  while  back.
-> >
-> > If you have a better way to do dummy  bus drivers let's hear it but
-> > let's not ban  dummy bus drivers (or new dummy bus drivers anyway) altogether.
-> >
-> > mds
-> >
-> >
->
+The first candidate is i2c-isa. It is in no way an i2c adapter. The i2c
+core has various hacks to handle it because it is such a special case.
+As a result, even people using ISA-only hardware monitoring chips (most
+recent Super-I/O chip with integrated sensors fall into this category)
+still need to load the whole i2c subsystem. This doesn't make any
+sense, and I want to clean this up. This will make the i2c core much
+cleaner, will speed up the registration of i2c clients, and will open
+the path to even more cleanups and optimizations.
+
+Now I understand that it doesn't exactly help you in your process of
+porting bmcsensors to Linux 2.6, and I am sorry about that. I also
+understand that you are not the author of the original
+i2c-ipmi+bmcsensors design, so I am not blaming you in any way for it.
+All I mean is that I want less hacks in the i2c subsystem, not more. I
+will work on the i2c-isa case and, if I can solve it, it should also
+provide hints on how the bmcsensors case can be solved. I will most
+probably need your assistance for this though, as I have next to zero
+knowledge on IPMI.
+
+--
+Jean Delvare
