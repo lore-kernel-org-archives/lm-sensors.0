@@ -1,145 +1,43 @@
-From: quintela@mandrakesoft.com (Juan Quintela)
-Date: Thu, 19 May 2005 06:23:32 +0000
-Subject: [PATCH] 3/4 WIP I2C kernel patches-drivers
-Message-Id: <m2elgdbwv4.fsf@demo.mitica>
+From: david-b@pacbell.net (David Brownell)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: [patch 2.6.12-rc3+] i2c driver for TPS6501x
+Message-Id: <200505051618.34980.david-b@pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3CE20B24.EF974F90@bellsouth.net>
-In-Reply-To: <3CE20B24.EF974F90@bellsouth.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->>>>> "albert" = Albert Cranford <ac9410@bellsouth.net> writes:
+Attached is a patch against a GIT snapshot from yesterday, adding
+support for Texas Instruments TPS6501x power management chips(*).
 
-More commets
+These chips are used with a variety of OMAP boards including cell
+phones, cameras, and more.  I don't think anyone's submitted drivers
+for any similar chip yet; like the ones from FreeScale (for working
+with Motorola based phones) or Dialog (for Intel PXA based ones).
 
-albert> @@ -49,8 +48,8 @@
-albert> /* respectively. This makes sure that the algorithm works. Some chips   */
-albert> /* might not like this, as they have an internal timeout of some mils  */
-albert> /*
-albert> -#define SLO_IO      jif=jiffies;while(time_before_eq(jiffies, jif+i2c_table[minor].veryslow))\
-albert> -                        cond_resched();
-albert> +#define SLO_IO      jif=jiffies;while(jiffies<=jif+i2c_table[minor].veryslow)\
-albert> +                        if (need_resched) schedule();
-albert> */
- 
- 
-albert> @@ -117,12 +116,13 @@
-albert> * while they are processing data internally. 
-albert> */
-albert> setscl(adap,1);
-albert> -               if (time_after_eq(jiffies, start+adap->timeout)) {
-albert> +               if (start+adap->timeout <= jiffies) {
-albert> return -ETIMEDOUT;
-albert> }
-albert> -               cond_resched();
-albert> +               if (current->need_resched)
-albert> +                       schedule();
+This particular driver has been used in the Linux-OMAP tree for most
+of the last year, accumulating updates as needed to support various
+boards, and it seems now might be a good time to push it upstream.
+(The current kernel already includes a header file with part of the
+API exposed by this driver, FWIW.)
 
-this three changes are bogus, the good changes are the ones in the kernel.
+So -- please let me know about any problems you notice which you
+think may need to be fixed before this merges.  (And I'm not on
+the "sensors" list, so please CC me.)  I already know some boards
+will need a hook to the report VBUS IRQ to non-OTG USB transceiver
+drivers, but that can wait for a while.  :)
 
-albert> @@ -620,7 +620,9 @@
-albert> #ifdef MODULE
-albert> MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
-albert> MODULE_DESCRIPTION("I2C-Bus bit-banging algorithm");
-albert> +#ifdef MODULE_LICENSE
-albert> MODULE_LICENSE("GPL");
-albert> +#endif
+- Dave
 
-Again, compat cruft.
- 
-albert> /* check to see S1 now used as R/W ctrl -
-albert> PCF8584 does that when ESO is zero */
-albert> -       /* PCF also resets PIN bit */
-albert> -       if ((temp = get_pcf(adap, 1)) != (0)) {
-albert> -               DEB2(printk("i2c-algo-pcf.o: PCF detection failed -- can't select S0 (0x%02x).\n", temp));
-albert> +       if (((temp = get_pcf(adap, 1)) & 0x7f) != (0)) {
-albert> +               DEB2(printk(KERN_ERR "i2c-algo-pcf.o: PCF detection failed -- can't select S0 (0x%02x).\n", temp));
-albert> return -ENXIO; /* definetly not PCF8584 */
-albert> }
+(*) http://focus.ti.com/docs/prod/folders/print/tps65010.html
+for more info.  Hmm, where did that tps65014 thing come from? 
+It wasn't there last week, I swear!
 
-If someone knows why this needs to be & with 0x7f will be nice,
-i.e. one place where a commet will be on order.
- 
-albert> @@ -535,7 +533,9 @@
-albert> #ifdef MODULE
-albert> MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
-albert> MODULE_DESCRIPTION("I2C-Bus PCF8584 algorithm");
-albert> +#ifdef MODULE_LICENSE
-albert> MODULE_LICENSE("GPL");
-albert> +#endif
-
-Again not needed.
- 
- 
-albert> -static void __exit pcf_isa_exit(void)
-albert> +static void pcf_isa_exit(void)
-albert> {
-albert> if (irq > 0) {
-albert> disable_irq(irq);
-
-Wrong change, that is an exit function.
-
-albert> @@ -300,7 +302,9 @@
-albert> #ifdef MODULE
-albert> MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
-albert> MODULE_DESCRIPTION("I2C-Bus adapter routines for PCF8584 ISA bus adapter");
-albert> +#ifdef MODULE_LICENSE
-albert> MODULE_LICENSE("GPL");
-albert> +#endif
-
-not needed again.
- 
-albert> -static void __exit bit_elv_exit(void)
-albert> +static void bit_elv_exit(void)
-albert> {
-albert> release_region( base , (base = 0x3bc)? 3 : 8 );
-albert> }
-
-also exit function.
-
- 
-albert> @@ -200,7 +198,9 @@
-albert> #ifdef MODULE
-albert> MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
-albert> MODULE_DESCRIPTION("I2C-Bus adapter routines for ELV parallel port adapter");
-albert> +#ifdef MODULE_LICENSE
-albert> MODULE_LICENSE("GPL");
-albert> +#endif
-
-Not needed again. 
- 
-albert> --- linux/drivers/i2c/i2c-philips-par.c.orig    2002-05-09 18:21:56.000000000 -0400
-albert> +++ linux/drivers/i2c/i2c-philips-par.c 2002-05-14 18:02:15.000000000 -0400
-albert> +#ifdef MODULE_LICENSE
-albert> MODULE_LICENSE("GPL");
-albert> +#endif
-
-Not needed again. 
-
- 
-albert> -static void __exit bit_velle_exit(void)
-albert> +static void bit_velle_exit(void)
-albert> {      
-albert> release_region( base , (base = 0x3bc)? 3 : 8 );
-albert> }
-
-
-it is really an exit function.
- 
-albert> #ifdef MODULE
-albert> MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
-albert> MODULE_DESCRIPTION("I2C-Bus adapter routines for Velleman K8000 adapter");
-albert> +#ifdef MODULE_LICENSE
-albert> MODULE_LICENSE("GPL");
-albert> +#endif
- 
-Not needed.
-
-Later, Juan.
-
-
--- 
-In theory, practice and theory are the same, but in practice they 
-are different -- Larry McVoy
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: tps65010.patch
+Type: text/x-diff
+Size: 34681 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050505/53cba30d/tps65010.bin
