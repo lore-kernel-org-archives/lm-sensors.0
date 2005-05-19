@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:06 +0000
+From: alexander.pohl@tu-berlin.de (Alexander Pohl)
+Date: Thu, 19 May 2005 06:24:07 +0000
 Subject: Intel 82801DA ICH4
-Message-Id: <20030722234206.4645b4ab.khali@linux-fr.org>
+Message-Id: <32780.62.246.165.72.1058995255.squirrel@mailbox.TU-Berlin.DE>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <32803.62.246.166.13.1058892758.squirrel@mailbox.TU-Berlin.DE>
 In-Reply-To: <32803.62.246.166.13.1058892758.squirrel@mailbox.TU-Berlin.DE>
@@ -10,42 +10,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
 
-> I have some trouble compiling the module p4b_smbus.o and adding
-> support for the i2c-bus. Adding support for pci-hotplug to my kernel
-> was successful.
-> (reference to ticket # 1345)
-> 
-> Here the compiler output:
-> 
-> cc  -D__SMP__ -DMODVERSIONS -include
-> /lib/modules/2.4.20-hotplug/build/include/linux/modversions.h
-> -D__KERNEL__-DMODULE -Wall -Wstrict-prototypes -O2
-> -fomit-frame-pointer-fno-strict-aliasing
-> -I/lib/modules/2.4.20-hotplug/build/include   -c -o p4b_smbus.o
-> p4b_smbus.c p4b_smbus.c: In function `cleanup_module':
-> p4b_smbus.c:263: incompatible type for argument 1 of `write_lock'
-> p4b_smbus.c:268: invalid type argument of `->'
-> make: *** [p4b_smbus.o] Error 1
+I finally got it running, but your p4b_smbus.o code is not SMP compliant.
+I compiled it successfully under a single processor kernel. Here comes
+what the module said, when inserting it under the SMP kernel again:
 
-Strange. I can compile it. I suspect the code isn't SMP-compliant. Try
-forcing SMP=0 in Makefile.p4b, just to make sure this is the cause of
-the failure. Once confirmed, Mark D. Studebaker will take a look at it.
+# insmod p4b_smbus.o
+p4b_smbus.o: unresolved symbol pci_insert_device_R3341a12e
+p4b_smbus.o: unresolved symbol pci_read_config_word_R923654cb
+p4b_smbus.o: unresolved symbol pci_remove_device_R2d6c74a6
+p4b_smbus.o: unresolved symbol kmalloc_R93d4cfe6
+p4b_smbus.o: unresolved symbol pcibios_present_R520a75b9
+p4b_smbus.o: unresolved symbol pci_find_device_Rc584f4e3
+p4b_smbus.o: unresolved symbol pci_enable_device_R1bc741d2
+p4b_smbus.o: unresolved symbol pci_write_config_word_Rf23d8795
+p4b_smbus.o: unresolved symbol kfree_R037a0cba
+p4b_smbus.o: unresolved symbol printk_R1b7d4074
+p4b_smbus.o: unresolved symbol pci_setup_device_R863ed348
 
-> Here what setpci said:
-> 
-> setpci -d 24C0:24C3 f2.w
-> setpci: Warning: No devices selected for `f2.w'.
 
-That's normal. The README.p4b file may not be really clear about this,
-but the -d parameter for ICH4 is 8086:24C0. 8086 is Intel's vendor ID,
-24C0 is the PCI bus main ID, and 24C3 is the I2C bus (which we are
-trying to activate) ID.
+When activating the SMBus I really didn't know what I was doing. I got the
+hex value 0049 and then changed it to 0040, like described in the
+README.p4b. The output of pcitweak was as followed:
 
-> Thanks for your fast respond,
+# setpci -d 8086:24c0 f2.w@
+# pcitweak -l
+PCI: Probing config type using method 1
+PCI: Config type is 1
+PCI: PCI scan (all values are in hex)
+PCI: 00:00:0: chip 8086,2560 card 1043,80b2 rev 02 class 06,00,00 hdr 00
+PCI: 00:01:0: chip 8086,2561 card 0000,0000 rev 02 class 06,04,00 hdr 01
+PCI: 00:1d:0: chip 8086,24c2 card 1043,8089 rev 02 class 0c,03,00 hdr 80
+PCI: 00:1d:1: chip 8086,24c4 card 1043,8089 rev 02 class 0c,03,00 hdr 00
+PCI: 00:1d:2: chip 8086,24c7 card 1043,8089 rev 02 class 0c,03,00 hdr 00
+PCI: 00:1d:7: chip 8086,24cd card 1043,8089 rev 02 class 0c,03,20 hdr 00
+PCI: 00:1e:0: chip 8086,244e card 0000,0000 rev 82 class 06,04,00 hdr 01
+PCI: 00:1f:0: chip 8086,24c0 card 0000,0000 rev 02 class 06,01,00 hdr 80
+PCI: 00:1f:1: chip 8086,24cb card 1043,8089 rev 02 class 01,01,8a hdr 00
+PCI: 00:1f:3: chip 8086,24c3 card 1043,8089 rev 02 class 0c,05,00 hdr 00
+PCI: 00:1f:5: chip 8086,24c5 card 1043,80b0 rev 02 class 04,01,00 hdr 00
+PCI: 01:00:0: chip 10de,0253 card 1043,803f rev a3 class 03,00,00 hdr 00
+PCI: 02:03:0: chip 1106,3044 card 1043,808a rev 80 class 0c,00,10 hdr 00
+PCI: 02:05:0: chip 14e4,4401 card 1043,80a8 rev 01 class 02,00,00 hdr 00
+PCI: End of PCI scan
 
-You're welcome.
+I hope you have all information to change the module code. Anyway, sensors
+works now under the single processor kernel.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Best regards,
+Alexander Pohl
+
+
