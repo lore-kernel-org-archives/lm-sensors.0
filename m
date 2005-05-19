@@ -1,27 +1,44 @@
-From: nsx@rm-f.net (john)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: as99127f chipset calculations
-Message-Id: <20020624165647.A11309@your default hostname>
+From: Axel.Thimm@ATrpms.net (Axel Thimm)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: dmi_scan patching (was: 2.8.6 rpms at ATrpms)
+Message-Id: <20040407104320.GB13977@neu.nirvana>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Wed, Apr 07, 2004 at 11:35:08AM +0200, Jean Delvare wrote:
+> > AFAICT these patches need to be simultaneously applied to kernel
+> > and lm_sensors (which will make their inclusion in 2.8.7 more
+> > difficult...)
+> 
+> I don't see why it would be more difficult. Remember that the fact that
+> I sent you three different patches is not relevant. The lm_sensors
+> dmi_scan patch will be integrated to our source tree, so you won't have
+> to care about it. Ditto for the mkpatch change. And the kernel patch
+> will be integrated into mkpatch, so you won't have to apply it
+> manually. This means that you won't have to take any different action.
+> You will just use mkpatch to generate the patch, and apply it to the
+> kernel tree.
+> 
+> Remember that the issue doesn't affect the compilation outside of the
+> kernel tree.
 
-On the computer I've tested the lm_sensors package on, I have an asus a7a266
-motherboard which has the as99127f hardware sensor chip.  Many of the
-calculations in the example sensors.conf file provided are obviously
-inaccurate.  The two which I have seemingly been able to improve are the cpu
-temperature and cpu fan speed.  As simple as these calculations are, they
-definitely coincide with the bios's readings, throughout a broader range
-of temperatures and fan rpms.
+Ah, OK, that was the part I was missing. I thought the patch to the
+kernel's dmi_scan would be neccessary in the case of external
+compilation also.
 
-compute fan1 @ - 3000 , @ + 3000
-compute temp2 @ + 30 , @ - 30
+> So it looks quite easy and straightforward, providing I update the
+> lm_sensors files as planned. Or did I miss a thing?
 
-Once again, just as you state in the example conf, it's guess work, but this
-sure does seem to be a lot more accurate than the computations that were
-thrown in there.  Hope this helps.
-
-					-- John
+No, I did ;)
+-- 
+Axel.Thimm at ATrpms.net
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040407/790a336a/attachment.bin
