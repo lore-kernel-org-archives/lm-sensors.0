@@ -1,37 +1,39 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: MAX6650 driver
-Message-Id: <20030829185148.6d0e2319.khali@linux-fr.org>
+Subject: lm90 driver
+Message-Id: <20030906000353.40951246.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030827130911.2931281e.khali@linux-fr.org>
-In-Reply-To: <20030827130911.2931281e.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> ok, I'll submit mine to CVS.
+> I see on the new drivers page that an lm90 driver is written.  I have
+> a Soyo KT400 Dragon Ultra Black edition with that chip on it and would
+> be glad to assist in testing if you still need help.  I am not a
+> programmer byu any stretch of the imagination, but I would classify
+> myself as a power user and can install software from source.  Let me
+> know if there are any tasks that need to be done.
 
-Yes please :)
+Yes, testers are still wanted. In order to test the driver, you'll have
+to install the CVS version of both I2C and LM Sensors. If you don't use
+other I2C-related devices (frame grabbers and TV tuners are, among
+others), simply follow the instructions here:
+http://secure.netroedge.com/~lm78/download.html#cvs
+It's as easy as "make && make install" for i2c and "make && make install
+&& ldconfig" for LM Sensors. Then, run "sensors-detect" and it should
+detect your LM90.
 
-> Let's start working through the new_drivers check list...
-> 
-> It's ok to put my name on the "New Drivers" page.
+If you do use other I2C-related devices, follow the more detailed
+installation guide here:
+http://www.ensicaen.ismra.fr/~delvare/devel/i2c/
 
-Done.
+(If you don't know, try method 1 first, since it's easiest; if you
+encounter problems, move to method 2.)
 
-> I need an ID reserved in i2c-id.h. I suggest:
-> 
-> --- kernel/i2c-id.h     23 Aug 2003 20:32:57 -0000      1.77
-> +++ kernel/i2c-id.h     29 Aug 2003 13:35:39 -0000
-> @@ -157,6 +157,7 @@
->  #define I2C_DRIVERID_SAA1064 1041
->  #define I2C_DRIVERID_LM90 1042
->  #define I2C_DRIVERID_ASB100 1043
-> +#define I2C_DRIVERID_MAX6650 1044
-
-This ID is now yours ;)
+Let us know how the driver works for you!
+Thanks.
 
 -- 
 Jean Delvare
