@@ -1,65 +1,29 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:12 +0000
-Subject: [PC87366] A bit different design for it's SuperIO.
-Message-Id: <20040826073018.GA22852@kroah.com>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: website newdrivers.html supported.html
+Message-Id: <25381867040721144521a46dd5@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1092648290.12729.471.camel@uganda>
-In-Reply-To: <1092648290.12729.471.camel@uganda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Aug 23, 2004 at 03:08:29PM +0400, Evgeniy Polyakov wrote:
-> On Sun, 2004-08-22 at 12:48, Jean Delvare wrote:
-> > > > > #define SIO_LDN_GPIO		0x07	/* General-Purpose I/O (GPIO) Ports */
-> > > > 
-> > > > This is PC87366-specific and doesn't belong to that driver.
-> > > 
-> > > No, I think it just should be extended and include any other
-> > > defines(for temperature, voltage and others). Although they may live
-> > > in drivers for those logical devices. Driver for PC87366 may use it...
-> > > I will move it there after it will be created (actually separated to
-> > > support several main SuperIO chips at once).
-> > 
-> > I'm not sure I get everything you mean here (especially the last
-> > sentence). At any rate, the logical device usage is
-> > manufacturer-dependant and, in most cases, chip dependant. And when two
-> > different chips each have a logical device for, say, temperature
-> > monitoring, the way it is organized "inside" each logical device will be
-> > different. So there's no benefit in adding labels or classes to each
-> > logical device of each chip, since we will never be able to use them.
-> > 
-> > I insist that the superio driver should be mostly chip-independant. The
-> > only part which will not be is the Super-I/O enter sequence. Since the
-> > PC8736x chips don't need any, you may not be familiar with it. Most
-> > Super-I/O chips need a special sequence to be written to them before
-> > they activate. Since the superio driver won't know what it is looking
-> > for before it finds it, it'll probably have to test all known keys, then
-> > the client driver will ask not only for a given chip ID but for a key +
-> > chip ID pair. This also means that you will have to store the (variable
-> > length) key in the superio structure.
+While things are being updated could you add the status for the bmcsensors
+ port to 2.6 (I submitted an early patch in march and a working patch
+(which could do with more testing by others) this month)?
+
+Thanks,
+Yani
+
+On Wed, 21 Jul 2004 14:07:31 -0700, author@mordac.netroedge.com
+<author@mordac.netroedge.com> wrote:
+> Update of /home/cvs/website
+> In directory mordac.netroedge.com:/tmp/cvs-serv14482
 > 
-> I'm absolutely agree here.
-> I mean above that when I will split sc.c into generic part and pc8736*
-> part I will move those definitions into the header for pc8736* driver.
-
-That sounds fine.
-
-> As I described above we will not have code duplication and will have
-> ability to add/remove logical devices in run-time.
-
-Which is a good thing.
-
-> > Greg, I much would like to hear you about this.
+> Modified Files:
+>         newdrivers.html supported.html
+> Log Message:
+> (Khali) Adm1025, adm1031 and lm86 are now part of the 2.6 kernel.
+>         Call for testers of the smsc47m1 2.6 port.
 > 
-> I think we will come to logical conclusion when he will back from
-> vocation.
-> Or not.
-
-Heh, it looks good to me.  Oh, and I suggest putting this in
-drivers/superio for a location.
-
-thanks,
-
-greg k-h
+>
