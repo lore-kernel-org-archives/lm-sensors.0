@@ -1,48 +1,48 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: [PATCH 2.6] sensors chip updates (3 of 4)
-Message-Id: <20031216040333.GD1658@earth.solarsys.private>
+From: nacc@us.ibm.com (Nishanth Aravamudan)
+Date: Thu, 19 May 2005 06:25:35 +0000
+Subject: [PATCH 11/20] i2c/i2c-elektor: remove
+Message-Id: <20050202192407.GN2546@us.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031216035219.GA1658@earth.solarsys.private>
-In-Reply-To: <20031216035219.GA1658@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@Stimpy.netroedge.com>
+To: kernel-janitors@vger.kernel.org
 
+Hello,
 
-This patch is from the lm_sensors project CVS, from this revision:
+Please consider applying.
 
-	1.44 (mds) remove initialization of limits by driver
+Description: Replace deprecated interruptible_sleep_on_timeout() with direct
+wait-queue usage. Patch is compile-tested.
 
-It is better to set these limits by a combination of /etc/sensors.conf
-and 'sensors -s'; "mechanism not policy." 
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 
---- linux-2.6.0-test11-gkh/drivers/i2c/chips/lm75.c	2003-12-14 13:53:50.000000000 -0500
-+++ linux-2.6.0-test11-mmh/drivers/i2c/chips/lm75.c	2003-12-14 17:52:49.000000000 -0500
-@@ -51,10 +51,6 @@
- #define TEMP_FROM_REG(val)	((((val & 0x7fff) >> 7) * 5) | ((val & 0x8000)?-256:0))
- #define TEMP_TO_REG(val)	(SENSORS_LIMIT((val<0?(0x200+((val)/5))<<7:(((val) + 2) / 5) << 7),0,0xffff))
- 
--/* Initial values */
--#define LM75_INIT_TEMP_OS	600
--#define LM75_INIT_TEMP_HYST	500
--
- /* Each client has this additional data */
- struct lm75_data {
- 	struct semaphore	update_lock;
-@@ -258,10 +254,6 @@
- static void lm75_init_client(struct i2c_client *client)
- {
- 	/* Initialize the LM75 chip */
--	lm75_write_value(client, LM75_REG_TEMP_OS,
--			 TEMP_TO_REG(LM75_INIT_TEMP_OS));
--	lm75_write_value(client, LM75_REG_TEMP_HYST,
--			 TEMP_TO_REG(LM75_INIT_TEMP_HYST));
- 	lm75_write_value(client, LM75_REG_CONF, 0);
+--- 2.6.11-rc2-kj-v/drivers/i2c/busses/i2c-elektor.c	2005-01-24 09:28:30.000000000 -0800
++++ 2.6.11-rc2-kj/drivers/i2c/busses/i2c-elektor.c	2005-01-27 11:34:43.000000000 -0800
+@@ -110,7 +110,7 @@ static int pcf_isa_getclock(void *data)
  }
  
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+ static void pcf_isa_waitforpin(void) {
+-
++	DEFINE_WAIT(wait);
+ 	int timeout = 2;
+ 	long flags;
+ 
+@@ -118,14 +118,15 @@ static void pcf_isa_waitforpin(void) {
+ 		spin_lock_irqsave(&lock, flags);
+ 		if (pcf_pending = 0) {
+ 			spin_unlock_irqrestore(&lock, flags);
+-			if (interruptible_sleep_on_timeout(&pcf_wait,
+-								timeout*HZ)) {
++			prepare_to_wait(&pcf_wait, &wait, TASK_INTERRUPTIBLE);
++			if (schedule_timeout(timeout*HZ)) {
+ 				spin_lock_irqsave(&lock, flags);
+ 				if (pcf_pending = 1) {
+ 					pcf_pending = 0;
+ 				}
+ 				spin_unlock_irqrestore(&lock, flags);
+ 			}
++			finish_wait(&pcf_wait, &wait);
+ 		} else {
+ 			pcf_pending = 0;
+ 			spin_unlock_irqrestore(&lock, flags);
