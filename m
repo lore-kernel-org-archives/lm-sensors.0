@@ -1,40 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:37 +0000
-Subject: Sensors On VIA Motherboard
-Message-Id: <20050213115647.272c7ee3.khali@linux-fr.org>
+From: dhiggs@rocket.com (Dale Higgs)
+Date: Thu, 19 May 2005 06:23:48 +0000
+Subject: NSC PC87366
+Message-Id: <200302190155.RAA03079@cougar.rocket.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42090B06.2040209@knology.net>
-In-Reply-To: <42090B06.2040209@knology.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi John,
+Hello,
 
-> I just installed lm_sensors on a VIA EPIA-V motherboard and had 
-> everything working great. That is, until I started mucking with the 
-> calculations. Now everything still seems to work as expected, but I
-> have  an alarm on the CPU temp that won't clear.
-> 
-> I created alarms on the voltages, but they cleared normally
-> after the values came back into their expected ranges.  I tried
-> everything to clear the CPU alarm, but nothing helped.  Even tried
-> writing zeros to the alarm register and the magic Windoze trick of
-> powering down the machine.  No help.
+   I see that you have the National Semiconductor PC87366 listed as
+'not planned'.  If this is due to a lack of a developer and a test
+article, I may be of help.  I have several Tyan S2080GN (Tomcat i815T)
+boards which have the PC87366 chip.  While I cannot part with any of
+them (one is in my office as a development machine, the rest are
+deployed in the lab as test controllers), I might be able to find the
+time to work on driver development.
 
-If the chip is VSB-powered, you'd not only need to power down the
-machine, but additionally unplug it from the wall outlet for a minute or
-so. VSB is still active when the system is turned off, as long as the
-system is not properly unplugged.
+   So... Why is support for this chip 'not planned', and may I be of
+assistance?  Thanks.
 
-> If you know the trick to clearing it, I'll trade you some new constant 
-> (K) values that make the sensors output agree with the bios readings. 
-> And I'll even toss in the VIA data sheet on the VT8231.
 
-I'd hope the unplug trick would do it. If not, and you have a datasheet
-I can take a look at, there might be a reset bit you can write to that
-would put the things back in order. Most chips have one.
+Dale
 
--- 
-Jean Delvare
+______________________________________________________________________
+| Dale E. Higgs                                   dhiggs@rocket.com  |
+| Principal Software Engineer            Voice (425)-885-5000 x5592  |
+| Aerojet                                  Fax (425)-882-5757        |
+| Test Operations                                                    |
+| Redmond, Washington                                                |
+|                                                                    |
+|   Prospectus is Latin for "Close your eyes and open your mouth"    |
+|                                                     - Dogbert      |
+----------------------------------------------------------------------
