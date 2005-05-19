@@ -1,7 +1,7 @@
 From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:52 +0000
 Subject: RFC: test results for adm9240 auto fan clock divider
-Message-Id: <u268611m57h3l72gq4rjf7nmqs26m2g2if@4ax.com>
+Message-Id: <pea8615m7fc0afhobd82frv1be2vspnh36@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <u2l6615hof5r7s4u44gslcaseabv44kbmn@4ax.com>
 In-Reply-To: <u2l6615hof5r7s4u44gslcaseabv44kbmn@4ax.com>
@@ -10,7 +10,6 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
 On Mon, 18 Apr 2005 22:16:18 +0200, Jean Delvare <khali@linux-fr.org> wrote:
 
 >Hi Grant,
@@ -28,40 +27,57 @@ On Mon, 18 Apr 2005 22:16:18 +0200, Jean Delvare <khali@linux-fr.org> wrote:
 >>       - auto fan clock adjuster disabled
 >
 >Why would we want to disable the auto fan clock adjuster in this case?
-Oops, I just posted new driver...  Bad timing -- I'll need to check, 
-this implies enabling bidirectional fan adjustment to do it right? 
 
-I literally followed your advice not to change fan divider and focussed 
-on correct operation _everywhere else_ :o)
+We don't, here are some test results after fixing above:
 
->You also missed one case, which is the main reason why the whole thing
->is (IMHO) needed:
->
->     * User doesn't set any limit
->       - auto fan clock adjuster enabled
+first, full display after installing new adm9240:
 
-Again, this implies bidirectional adjustment -- its only one 
-small block of code, can I patch a patch?  Or post yet another 
-driver?
+peetoo:0-002d$ wy_set_limits
+peetoo:0-002d$ ww_adm9240
+
+ volt      min     inp     max  alarm
+ Vtt      1367    1510    1628    --
+ 3.3V     3145    3352    3455    --
+ 5V       4766    5182    5234    --
+ 12V     11438   12250   12563    --
+-5V      -4484   -5124   -5491    --
+-12V    -10868  -11593  -13145    --
+
+ temp      inp     max    hyst  alarm
+  1       29.5    55.0    50.0    --
+
+ fan       rpm     min    div   alarm
+  1       1467    1197     8      --
+  2          0       0     4      --
+
+ cpu0_vid:      2000
+ analog_out:    1235
+ alarms:        0x0000
+ ci_alarm:      --
+
+Turn up full speed (it has a variable resistor in series with 
+thermisor to calibrate operating point)
+
+Fan clock divider adjusted down one:
+ fan       rpm     min    div   alarm
+  1       4018       0     4      --
+  2          0       0     8      --
+
+Hysteresis, fan clock divider stays at 4:
+ fan       rpm     min    div   alarm
+  1       1474       0     4      --
+  2          0       0     8      --
+
+Fan clock adjusted downwards (stuck my finger into the fan :o)
+ fan       rpm     min    div   alarm
+  1        861       0     8      --
+  2          0       0     8      --
+
+ fan       rpm     min    div   alarm
+  1          0       0     8      --
+  2          0       0     8      --
+
+All fixed?
 
 Cheers,
-Grant.
-
->But all in all it looks like we finally agree on what the best strategy
->is :)
-
-The point of the argument was to reach understanding, and improve 
-each other's work -- that we've done :)
-
-I found a nasty div/0 yesterday, driver segfaulted and locked terminal, 
-another terminal locked on trying to rmmod -f adm9240, but I was able 
-to open anothr ssh root terminal and reboot the machine.  So it didn't 
-take down the system, just the driver and anything accessing it.
-
-So we make sure fan_min > 0.
-
-At least I know where I'll be playing today.  I'll patch the patch, it 
-is only a few lines of code.
-
-Cheers,
-Grant.
+Grant
