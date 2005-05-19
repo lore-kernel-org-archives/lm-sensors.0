@@ -1,29 +1,42 @@
-From: dodo@kanoistika.sk (Dodo Ivanecky)
-Date: Thu, 19 May 2005 06:23:42 +0000
-Subject: SIS 735
-Message-Id: <200212011704.07922.dodo@kanoistika.sk>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] I2C: S3C2410 missing I2C_CLASS_HWMON
+Message-Id: <11099685971397@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11099685961021@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: ben-linux@fluff.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+ChangeSet 1.2109, 2005/03/02 15:02:43-08:00, ben-linux@fluff.org
 
-Hi,
+[PATCH] I2C: S3C2410 missing I2C_CLASS_HWMON
 
-I would like to assist you with testing or creating - if it is not done yet - 
-of driver for SiS 735 chipset.
+None of the standard sensor drivers currently recognise the s3c24xx
+I2C controller as it does not have I2C_CLASS_HWMON set in the
+adapter class field.
 
-best regards
+The attached patch initialises the adapter class to I2C_CLASS_HWMON
 
-Jozef
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.0 (GNU/Linux)
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-iQCVAwUBPeoy9kSNhHOqN0hUAQJagQP7BNGol5GdtcuAF6Wdc7pNSdWiaEmC1+fk
-aXFXu+7Ww3HjU/w8yaM0E3+ajMBsu6eqRmvExpil8olKH0895Bz+mlyu9IupwvQw
-GZ3yOxMAHAahfHiQrQS0ntdlZb2aCrDX6lytzVm4bxDV7b8gkGQonNLlVBkFus8c
-9nW++43GKPE=LcWY
------END PGP SIGNATURE-----
+
+ drivers/i2c/busses/i2c-s3c2410.c |    1 +
+ 1 files changed, 1 insertion(+)
+
+
+diff -Nru a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
+--- a/drivers/i2c/busses/i2c-s3c2410.c	2005-03-04 12:23:28 -08:00
++++ b/drivers/i2c/busses/i2c-s3c2410.c	2005-03-04 12:23:28 -08:00
+@@ -569,6 +569,7 @@
+ 		.name			= "s3c2410-i2c",
+ 		.algo			= &s3c24xx_i2c_algorithm,
+ 		.retries		= 2,
++		.class			= I2C_CLASS_HWMON,
+ 	},
+ };
+ 
+
