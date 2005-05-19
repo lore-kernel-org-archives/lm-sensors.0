@@ -1,40 +1,68 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH 2.6] I2C: Fix a common race condition in hardware
-Message-Id: <20050328221116.GB4495@kroah.com>
+From: francois.barre@siemens.com (BARRE Francois)
+Date: Thu, 19 May 2005 06:24:48 +0000
+Subject: One chip, two uses, two drivers [was: [RFC][2.6] Additional i2c a
+Message-Id: <EFEF4C473088B847B64CD953D2A6A10401B8F0AC@sdso14a.par.siemens.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050328131326.4eb2973d.khali@linux-fr.org>
-In-Reply-To: <20050328131326.4eb2973d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 28, 2005 at 01:13:26PM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> Grant Coady noticed that most hardware monitoring drivers are exposed to
-> a race condition when one writes to the sysfs files they create. While
-> the read calls properly request a lock on the internal data, write calls
-> manipulate the internal data without proper locking. This big patch
-> fixes that by adding locking wherever needed.
-> 
-> Affected drivers: adm1021, adm1025, asb100, ds1621, fscher, fscpos,
-> gl518sm, gl520sm, it87, lm63, lm75, lm77, lm78, lm80, lm83, lm87, lm90,
-> lm92, max1619, pc87360, pcf8591, sis5595, smsc47m1, via686a, w83627hf
-> and w83781d
-> 
-> The adm1026, adm1031 and lm85 were already locking on write calls, but
-> held the lock for code that did not require it, so they have been
-> modified too.
-> 
-> The smsc47b397 and w83l785ts drivers were not affected, because they are
-> read-only.
-> 
-> The patch should apply just fine on top of your stack, provided that you
-> applied all previous patches in order (in particular, there is one lm87
-> indentation patch which is needed).
+Well, it was off-topic, let's make it another topic ;-p
 
-Applied, thanks.
+In fact no, i2c-viapro and vt1211 are not in conflict. As far as I
+understand it, vt1211 (I mean the lm_sensors module which deals with the i2c
+bus dedicated to temps, fans, etc. on the via nehemiah) is connected to the
+(fake ?) isa bus, whereas the i2c-viapro and via-ircc are both connected to
+a pci bus. 
 
-greg k-h
+I don't think it would be aethetic (and even possible) to integrate both
+fonctionnalities in the same driver, and I don't know yet how to make two
+drivers share the same device, but I guess that's the way to do it. Or maybe
+to push "shared" code in a kind of (fake) bus driver and specific code in a
+chip. If Mark has some idea/any kind of experience dealing with it, I shall
+be interrested. I didn't manage to find any example implemented in the
+kernel yet.
+
+Anyway I didn't dig into the i2c-viapro code yet, but I shall do it in order
+to plug an PCF8591 in it (the smbus shall be handled by i2c-viapro, am I
+right ?), together with an irda transceiver (with the help of via-ircc)...
+
+> -----Message d'origine-----
+> De : Jean Delvare [mailto:khali@linux-fr.org] 
+> Envoy? : mercredi 17 mars 2004 22:21
+> ? : BARRE Francois
+> Cc : sensors@Stimpy.netroedge.com
+> Objet : Re: [RFC][2.6] Additional i2c adapter flags for i2c 
+> client isolation
+> 
+> > This topic makes me think of something _interresting_...
+> > 	
+> > According to the tests I made on my VIA Nehemiah M10k, the vt1211
+> > can be handled by i2c-viapro as an smbus device (via the vt596 it
+> > says) and via-ircc as an irda device, BUT this device can not be
+> > binded to both drivers at the same time : when one is loaded (and
+> > activated), the other finds no device (ENODEV I presume). (I wonder
+> > how I should use both smbus*and* irda device)...
+> > 
+> > Is this totally out of topic ?
+> 
+> "Off-topic" even, yes ;)
+> 
+> > Could a hack prevent these two drivers to be mutually exclusive?
+> 
+> We knew of a similar problem between i2c-viapro and via686a. I didn't
+> know that i2c-viapro and via-ircc had the same problem. And I 
+> guess that
+> i2c-viapro and vt1211 would conflict too?
+> 
+> Mark D. Studebaker is working on a solution for i2c-viapro 
+> and via686a.
+> I don't know if the same solution will apply in the other cases. Since
+> i2c-viapro is involved in all three conflicts, it promises to be damn
+> complex...
+> 
+> -- 
+> Jean Delvare
+> http://www.ensicaen.ismra.fr/~delvare/
+> 
