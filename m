@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: Temps on S755MAX IT8705F
-Message-Id: <200407150822.i6F8MRQS034614@zone3.gcu-squad.org>
+Message-Id: <20040715214017.657536ea.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40F5A42D.9070301@verizon.net>
 In-Reply-To: <40F5A42D.9070301@verizon.net>
@@ -10,52 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+> I tried 1, 2, 3, and 2345, or something like that out of
+> rustration.:-) here's what I get trying the diodes (3).
+> 
+> Temp1:       +70?C  (low  =   +20?C, high =   +70?C)   sensor = invalid
+> Temp/MB:     +29?C  (low  =   +25?C, high =   +45?C)   sensor = invalid
+> Temp/CPU:    +21?C  (low  =   +15?C, high =   +60?C)   sensor = invalid
 
-Hi Wes,
+The "sensor = invalid" is exactly what was fixed in 2.8.5's "sensors".
 
->I've got a Jetway S755MAX (SIS755 chipset) with an AMD 64 3000+. The
->board uses an IT8705F and I've got the it87 driver loaded. LM_Sensors
->version 2.8.4 (MDK10.0). Everything works fine except I can't get the
->CPU temp working. Of the 3 temp sensors on the chip the only thing I've
->figured out is that temp2 is the MB temp. I've located the thermistor
->for this and everything is fine with it. I have no clue what temp1 is
->for. It stays at 70C most of the time. the only way I can get it to
->change is to run a a few  sessions of glxgears. It will then go up to
->72C max. Now temp3 is wild. It flucuates from 13C to about 54C and
->anyplace in between. I've gone as far to to disconnect my cpu fan to try
->and see a rise on these sensors, but I see none. Temp1 stayed at 70C,
->and temp3 acted the same and actually went from 54C to 13C once during
->this test. For the record, the bios cpu temps are stable around 41C, and
->using Smartguardian in win works fine. I've contacted Jetway, but I
->don't think they understand english very well, as I can't get a an
->answer as to which sensor is for the CPU. Anyway, with the sensors set
->to anything but thermistor, I get an invalid with sensirs output. Here's
->what I'm getting now using no temp computes.
+That's just a matter of displaying the correct string however; it has
+obviously no effect on the values.
 
-We're quite used to motherboard manufacturers "support" not to know
-anything about hardware monitoring chips they use (except at Tyan, it
-seems).
+The driver itself had some changes though. As said earlier, I doubt
+it'll change anything, but that may still be wyrth trying.
 
-Various hints, questions and pointers in no particular order:
+You don't use the reset_it87 module parameter, do you?
 
-* What do you mean with "with the sensors set to anything but
-thermistor, I get an invalid with sensors output"? Which values did you
-try? The it87 driver (and chip) only supports types 2 (thermistor) and 3
-(diode). What are you getting exactly with diodes?
+If you run Windows, I'd be interested in you trying Motherboad Monitor
+as a replacement for the ITE's tool, and tell me how it works. If Alex
+managed to handle your case, he will probably help us.
 
-* CPU temp could come from a secondary chip. Doesn't sensors-detect find
-any or at least find something it fails to identify?
+> It finds a sis5595 I think, and at one time I think I had it installed
+> too, but I can't find a sis5595 module to install now. I installed
+> i2c-sis5595 but got no more sensors. Is there a plain sis5595 module
+> for the 2.6.3 kernel? I'll look into this. But in win, the program
+> that displays the temps is Smartguardian, and it's from ITE, not sis.
 
-* A conversion formula may be needed. You should find some in the default
-sensors.conf file. Your board may need a different one. BIOS disassembly
-may reveal it.
+The SiS5595 is both an i2c bus (i2c-sis5595 driver) and a hardware
+monitoring chip (sis5595). Beware however that it tends to be easily
+misdetected, especially in not-so-recent versions of sensors-detect. You
+could try sensors-detect from 2.8.7 and see if it changed its mind.
 
-* You may want to upgrade to 2.8.7. The it87 driver has had several fixes
-since 2.8.4. The "sensors" program has a fix as well, precisely about
-temperature sensor types in it87 (since 2.8.5). Testing a recent
-verstion of sensors would be easy (you don't even need to install it),
-you should look into that.
+However, if the "Smartguardian" Windows tool does it all alone, you're
+correct that it's most likely getting the value from the it87 itself and
+not a secondary chip.
 
-That's about it for now.
-
-Jean Delvare
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
