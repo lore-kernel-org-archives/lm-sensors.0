@@ -1,33 +1,67 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: Patch for AMD8111 support in 2.8.x
-Message-Id: <20031130092346.169a1d6a.khali@linux-fr.org>
+From: jthiessen@penguincomputing.com (Justin Thiessen)
+Date: Thu, 19 May 2005 06:25:30 +0000
+Subject: PATCH (take 3) for adm1026.c, kernel 2.6.10-bk14
+Message-Id: <20050112185055.GB16724@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3FC98E59.2050302@penguincomputing.com>
-In-Reply-To: <3FC98E59.2050302@penguincomputing.com>
+References: <41D5D075.4000200@paradyne.com>
+ <20050101001205.6b2a44d3.khali@linux-fr.org>
+ <20050103194355.GA11979@penguincomputing.com>
+ <20050103201056.3c55e330.khali@linux-fr.org>
+ <20050103213707.GA12765@penguincomputing.com>
+ <20050103205231.GK9923@schnapps.adilger.int>
+ <20050103221249.GB12765@penguincomputing.com>
+In-Reply-To: <20050103221249.GB12765@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LM Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, khali@linux-fr.org
 
-> Here is a long promised patch to add the support for the AMD8111 back 
-> into the i2c-amd756 driver.  This is a patch against CVS.
-> 
-> The AMD8111 chip has two lm_sensors bus interfaces.  A "classic" i2c 
-> interface that matches the amd756 register model to which most 
-> motherboards connect the interesting peripherals and a new SMBus 2.x? 
-> compliant interface supported by the i2c-amd8111 driver which rarely
-> has any devices on it.
-> 
-> This compiles and loads on my system at home which is a dual Athlon 
-> system with a AMD768, but I don't have an Opteron desktop yet to test
-> it on...
+Ok, take 3 on the adm1026 patch.
 
-Will apply.
+In this patch:
 
-This would apply to Linux 2.6.0-test11 as well. Do you want me to port
-the patch and send it to Greg?
+(1) Code has been added which ensures that the fan divisor registers are 
+    properly read into the data structure before fan minimum speeds are 
+    determined.  This prevents a possible divide by zero error.  The line 
+    which reads the hardware default fan divisor values has been reformatted 
+    as suggested by Andreas Dilger to make the intent of the statement clearer.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+(2) In a similar spirit, an unecessary carriage return from a "dev_dbg" 
+    statement in the adm1026_print_gpio() function has been elminated,
+    shortening the statement to a single line and making the code easier
+    to read.
+
+Signed-off-by: Justin Thiessen <jthiessen@penguincomputing.com
+
+---------------------------------------
+
+--- linux-2.6.10/drivers/i2c/chips/adm1026.c.orig	2005-01-12 10:28:15.000000000 -0800
++++ linux-2.6.10/drivers/i2c/chips/adm1026.c	2005-01-12 10:30:02.000000000 -0800
+@@ -452,6 +452,14 @@ void adm1026_init_client(struct i2c_clie
+ 		client->id, value);
+ 	data->config1 = value;
+ 	adm1026_write_value(client, ADM1026_REG_CONFIG1, value);
++
++	/* initialize fan_div[] to hardware defaults */
++	value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3) |
++		(adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7) << 8);
++	for (i = 0;i <= 7;++i) {
++		data->fan_div[i] = DIV_FROM_REG(value & 0x03);
++		value >>= 2;
++	}
+ }
+ 
+ void adm1026_print_gpio(struct i2c_client *client)
+@@ -459,8 +467,7 @@ void adm1026_print_gpio(struct i2c_clien
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int  i;
+ 
+-	dev_dbg(&client->dev, "(%d): GPIO config is:",
+-			    client->id);
++	dev_dbg(&client->dev, "(%d): GPIO config is:", client->id);
+ 	for (i = 0;i <= 7;++i) {
+ 		if (data->config2 & (1 << i)) {
+ 			dev_dbg(&client->dev, "\t(%d): %sGP%s%d\n", client->id,
+
+
+
