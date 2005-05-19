@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: [PATCH] I2C fixes for 2.6.10-rc2
-Message-Id: <11018600181498@kroah.com>
+Message-Id: <11018600191194@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20041201001245.GA27535@kroah.com>
+In-Reply-To: <11018600193088@kroah.com>
 References: <20041119220001.GB15956@kroah.com>
 In-Reply-To: <20041119220001.GB15956@kroah.com>
 MIME-Version: 1.0
@@ -11,50 +11,84 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.2223.2.1, 2004/11/24 14:24:06-08:00, khali@linux-fr.org
+ChangeSet 1.2223.2.5, 2004/11/24 14:25:49-08:00, aris@cathedrallabs.org
 
-[PATCH] I2C: More verbose w83l785ts driver
+[PATCH] i2c-elektor: get rid of cli/sti
 
-This simple patch increases the verbosity of the w83l785ts hardware
-monitoring driver. I wrote it months ago in the hope it would help solve
-a reported problem [1]. Not sure whether it did (no news from user since
-July), but the extra debug info may help in the future and doesn't hurt
-otherwise, so let's have this in for every user (not that many AFAIK),
-just in case.
+this patch get rid of cli()/sti(). while correcting this I found
+that when a process wakes by an interrupt, pcf_pending doesn't
+come back to 0 and next caller will return imediately. also,
+there are other drivers with the exact same problem. if you
+don't have any comments on this, I'll do the same for other
+drivers.
 
 
-[1] http://bugzilla.kernel.org/show_bug.cgi?id(99
+[I2C] i2c-elektor: getting rid of cli()/sti() usage
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Aristeu Sergio Rozanski Filho <aris@cathedrallabs.org>
 Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/chips/w83l785ts.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-elektor.c |   22 ++++++++++++++++++----
+ 1 files changed, 18 insertions(+), 4 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/w83l785ts.c b/drivers/i2c/chips/w83l785ts.c
---- a/drivers/i2c/chips/w83l785ts.c	2004-11-30 16:01:27 -08:00
-+++ b/drivers/i2c/chips/w83l785ts.c	2004-11-30 16:01:27 -08:00
-@@ -280,14 +280,17 @@
- 	 * default value requested by the caller. */
- 	for (i = 1; i <= MAX_RETRIES; i++) {
- 		value = i2c_smbus_read_byte_data(client, reg);
--		if (value >= 0)
-+		if (value >= 0) {
-+			dev_dbg(&client->dev, "Read 0x%02x from register "
-+				"0x%02x.\n", value, reg);
- 			return value;
+diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
+--- a/drivers/i2c/busses/i2c-elektor.c	2004-11-30 16:01:05 -08:00
++++ b/drivers/i2c/busses/i2c-elektor.c	2004-11-30 16:01:05 -08:00
+@@ -59,6 +59,7 @@
+ 
+ static wait_queue_head_t pcf_wait;
+ static int pcf_pending;
++static spinlock_t lock;
+ 
+ /* ----- local functions ----------------------------------------------	*/
+ 
+@@ -111,14 +112,24 @@
+ static void pcf_isa_waitforpin(void) {
+ 
+ 	int timeout = 2;
++	long flags;
+ 
+ 	if (irq > 0) {
+-		cli();
++		spin_lock_irqsave(&lock, flags);
+ 		if (pcf_pending = 0) {
+-			interruptible_sleep_on_timeout(&pcf_wait, timeout*HZ );
+-		} else
++			spin_unlock_irqrestore(&lock, flags);
++			if (interruptible_sleep_on_timeout(&pcf_wait,
++								timeout*HZ)) {
++				spin_lock_irqsave(&lock, flags);
++				if (pcf_pending = 1) {
++					pcf_pending = 0;
++				}
++				spin_unlock_irqrestore(&lock, flags);
++			}
++		} else {
+ 			pcf_pending = 0;
+-		sti();
++			spin_unlock_irqrestore(&lock, flags);
 +		}
- 		dev_dbg(&client->dev, "Read failed, will retry in %d.\n", i);
- 		msleep(i);
+ 	} else {
+ 		udelay(100);
  	}
+@@ -126,7 +137,9 @@
  
--	dev_err(&client->dev, "Couldn't read value from register. "
--		"Please report.\n");
-+	dev_err(&client->dev, "Couldn't read value from register 0x%02x. "
-+		"Please report.\n", reg);
- 	return defval;
+ 
+ static irqreturn_t pcf_isa_handler(int this_irq, void *dev_id, struct pt_regs *regs) {
++	spin_lock(&lock);
+ 	pcf_pending = 1;
++	spin_unlock(&lock);
+ 	wake_up_interruptible(&pcf_wait);
+ 	return IRQ_HANDLED;
  }
+@@ -134,6 +147,7 @@
  
+ static int pcf_isa_init(void)
+ {
++	spin_lock_init(&lock);
+ 	if (!mmapped) {
+ 		if (!request_region(base, 2, "i2c (isa bus adapter)")) {
+ 			printk(KERN_ERR
 
