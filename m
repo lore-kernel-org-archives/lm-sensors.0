@@ -1,40 +1,30 @@
-From: a.othieno@bluewin.ch (Arthur Othieno)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:02 +0000
 Subject: [PATCH 2.6] drivers/media/video/bt832.c: ACK return on
-Message-Id: <20040622151603.GA1473@mars>
+Message-Id: <200406221552.i5MFqX1l016959@zone3.gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040622151603.GA1473@mars>
+In-Reply-To: <20040622151603.GA1473@mars>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-i2c_add_driver() may actually fail, but this driver returns 0
-regardless. Against 2.6.7. Thanks.
+Hi Arthur,
 
-Signed-off-by: Arthur Othieno <a.othieno@bluewin.ch>
+>i2c_add_driver() may actually fail, but this driver returns 0
+>regardless. Against 2.6.7. Thanks.
 
+Your patches look good, but we do not have the possibility to apply them
+ourselves. You should direct your requests to the drivers maintainers
+(as you did for some of the patches). If you can't find who this is,
+please try the media/video subsystem maintainer (if there is one). Else
+I guess you can fallback to Greg KH since this is i2c stuff.
 
- bt832.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+At any rate, please realize that any of these patches, sent only to the
+lm_sensors mailing list, will be lost unless you redirect them to the
+correct person.
 
---- a/drivers/media/video/bt832.c	2004-06-17 17:29:45.000000000 +0200
-+++ b/drivers/media/video/bt832.c	2004-06-17 17:31:21.000000000 +0200
-@@ -255,13 +255,12 @@ static struct i2c_client client_template
- };
- 
- 
--int bt832_init_module(void)
-+static int __init bt832_init_module(void)
- {
--	i2c_add_driver(&driver);
--	return 0;
-+	return i2c_add_driver(&driver);
- }
- 
--static void bt832_cleanup_module(void)
-+static void __exit bt832_cleanup_module(void)
- {
- 	i2c_del_driver(&driver);
- }
+Thanks,
+Jean Delvare
