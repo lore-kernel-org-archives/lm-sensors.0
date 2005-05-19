@@ -1,46 +1,93 @@
-From: geert@linux-m68k.org (Geert Uytterhoeven)
+From: vsu@altlinux.ru (Sergey Vlasov)
 Date: Thu, 19 May 2005 06:24:50 +0000
 Subject: [RFC 2.6] Rework memory allocation in i2c chip drivers
-Message-Id: <Pine.GSO.4.58.0404032106220.23280@waterleaf.sonytel.be>
+Message-Id: <20040403202042.GA3898@sirius.home>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20040403191023.08f60ff1.khali@linux-fr.org>
 References: <20040403191023.08f60ff1.khali@linux-fr.org>
 In-Reply-To: <20040403191023.08f60ff1.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@stimpy.netroedge.com>
-Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Sat, 3 Apr 2004, Jean Delvare wrote:
+Hello!
+
 > Some times ago, Ralf Roesch reported that the memory allocation scheme
 > used in the i2c eeprom driver was causing trouble on MIPS architecture:
->
+> 
 > http://archives.andrew.net.au/lm-sensors/msg07233.html
->
+> 
 > The cause of the problems is that we do allocate two structures with a
 > single kmalloc, which breaks alignment. This doesn't seem to be a
 > problem on x86, but is on mips and probably on other architectures as
 > well. It happens that all other chip drivers work the same way too, so
 > they all would need to be fixed.
->
-> Here comes my proposal to fix the problem. A few notes:
 
-Alternatively, define a new struct containing the two structs
+Instead of splitting one kmalloc in two, it would also be possible to
+add a "struct i2c_client client" field to each of the *_data
+structures - the compiler should align all fields appropriately.
+Probably this way will result in less changes to the code (and also
+less labels and less error paths).
 
-    struct combined {
-	struct part1 part1;
-	struct part2 part2;
-    };
+Example patch for lm75 (untested):
 
-and allocate a struct combined, and the C compiler will take care of alignment.
+--- linux/drivers/i2c/chips/lm75.c.sensors-kmalloc	2004-02-18 06:57:11 +0300
++++ linux/drivers/i2c/chips/lm75.c	2004-04-04 00:11:41 +0400
+@@ -50,6 +50,7 @@
+ 
+ /* Each client has this additional data */
+ struct lm75_data {
++	struct i2c_client	client;
+ 	struct semaphore	update_lock;
+ 	char			valid;		/* !=0 if following fields are valid */
+ 	unsigned long		last_updated;	/* In jiffies */
+@@ -141,16 +142,13 @@
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access lm75_{read,write}_value. */
+-	if (!(new_client = kmalloc(sizeof(struct i2c_client) +
+-				   sizeof(struct lm75_data),
+-				   GFP_KERNEL))) {
++	if (!(data = kmalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(new_client, 0x00, sizeof(struct i2c_client) +
+-				 sizeof(struct lm75_data));
++	memset(data, 0x00, sizeof(struct lm75_data));
+ 
+-	data = (struct lm75_data *) (new_client + 1);
++	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+@@ -204,7 +202,7 @@
+ 	return 0;
+ 
+ exit_free:
+-	kfree(new_client);
++	kfree(data);
+ exit:
+ 	return err;
+ }
+@@ -212,7 +210,7 @@
+ static int lm75_detach_client(struct i2c_client *client)
+ {
+ 	i2c_detach_client(client);
+-	kfree(client);
++	kfree(i2c_get_clientdata(client));
+ 	return 0;
+ }
+ 
 
-Gr{oetje,eeting}s,
-
-						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+-- 
+Sergey Vlasov
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040404/e3cd9e60/attachment.bin
