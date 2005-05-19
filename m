@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:35 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.0
-Message-Id: <20040114190315.GA6107@kroah.com>
+Message-Id: <20040114190334.GB6107@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <10728219692713@kroah.com>
 In-Reply-To: <10728219692713@kroah.com>
@@ -10,21 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 05, 2004 at 09:34:41AM -0700, Tom Rini wrote:
-> On Sun, Jan 04, 2004 at 05:08:49PM +1100, Rusty Russell wrote:
-> 
-> > In message <1072821970727@kroah.com> you write:
-> > > +/* If fix_hstcfg is set to anything different from 0, we reset one of the
-> > > +   registers to be a valid value. */
-> > > +static int fix_hstcfg = 0;
-> > > +MODULE_PARM(fix_hstcfg, "i");
-> > > +MODULE_PARM_DESC(fix_hstcfg,
-> > > +		"Fix config register. Needed on some boards (Force CPCI735).");
-> > > +
+On Sun, Jan 11, 2004 at 09:50:54PM +0100, Jean Delvare wrote:
+> > > They should be converted.  From module.h:
+> > > 	/* DEPRECATED: Do not use. */
+> > > 	#define MODULE_PARM(var,type) 	\
+> > > 	...
 > > 
-> > BTW, it'd be nice if someone converted these to module_param, too...
+> > Note that realistically, it's not going away in 2.6, so mass migration
+> > doesn't really win anything.  However, I never implemented mixing old
+> > and new style in the same module, so if you're adding a parameter, it
+> > makes sense to convert them all.
 > 
-> Done.
+> OK, I don't have much time for a mass conversion anyway. Greg, could you
+> please apply the following patch to the "porting-clients" document so
+> that at least the new drivers don't need to be converted afterwards?
 
 Applied, thanks.
 
