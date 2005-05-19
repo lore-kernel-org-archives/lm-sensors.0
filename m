@@ -1,7 +1,7 @@
-From: paul.aviles@palei.com (Paul Aviles)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:18 +0000
 Subject: gs10
-Message-Id: <20041004133119.M16427@palei.com>
+Message-Id: <20041004134221.M81210@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041003231641.M43741@palei.com>
 In-Reply-To: <20041003231641.M43741@palei.com>
@@ -10,48 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Supposely I enabled ssh on my home firewall but..... no  luck. Will need to 
-wait for tonight...Arggggg.
+On Mon, 4 Oct 2004 09:31:19 -0400, Paul Aviles wrote
+> I read that there is a way to programatically control the speed of 
+> the fans with some type of command if the temperature for example is 
+> lower than x, is that so?
 
-I read that there is a way to programatically control the speed of the fans 
-with some type of command if the temperature for example is lower than x, is 
-that so?
-
-I'll let you know and thanks so much!!!
-
-Paul
-
-On Mon, 4 Oct 2004 13:57:16 +0100, Jean Delvare wrote
-> On Mon, 4 Oct 2004 07:45:21 -0400, Paul Aviles wrote
-> > yes, the detection is done on the secondary super io. So, patch 
-> > pc87360.c, recompile and try again correct?
-> 
-> Yes, that's it. From within the kernel/chips subdirectory,
-> patch -p0 < pc87360.c.diff
-> 
-> Note that I could not verify it even compiles yet, will do this 
-> evening. The changes are relatively simple though, so I have good hope.
-> 
-> The pc87360 driver is quite new, so please let me know how it works 
-> for you.
-> 
-> Thanks.
-> 
-> -- 
-> Jean Delvare
-> http://khali.linux-fr.org/
-> 
-> -- 
-> This message has been scanned for viruses and
-> dangerous content by MailScanner, and is
-> believed to be clean.
-
-
-
---
-Paul Anthony Aviles
+Some chips can be programmed to automatically adjust the fan speed according
+to the value of one or more temperature measurements. The PC87360 family
+doesn't, as far as I remember. It does however allow manual speed control over
+the fans, providing that your motherboard is adequately wired. This is done
+through the files /proc/sys/dev/sensors/pc87366-isa-*/pwm* (which you should
+get once the pc87360 driver loads succesfully). See in our prog/pwm directory,
+there are a couple scripts if you are interested in fan speed control.
 
 -- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+Jean Delvare
+http://khali.linux-fr.org/
