@@ -1,68 +1,59 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:22 +0000
 Subject: [PATCH] I2C update for 2.6.10-rc1
-Message-Id: <10999778574012@kroah.com>
+Message-Id: <zxUdaK3b.1099995467.6672570.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1099977857196@kroah.com>
+In-Reply-To: <10999778553443@kroah.com>
 References: <10999778552595@kroah.com>
 In-Reply-To: <10999778552595@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
-
-ChangeSet 1.2014.1.20, 2004/11/08 16:45:03-08:00, jthiessen@penguincomputing.com
-
-[PATCH] I2C: fix lm85.c build warnings
-
-Signed-off-by: Justin Thiessen <jthiessen@penguincomputing.com>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+To: greg@kroah.com, arjan@infradead.org, torvalds@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
 
- drivers/i2c/chips/lm85.c |   32 --------------------------------
- 1 files changed, 32 deletions(-)
+Hi,
 
+>ChangeSet 1.2014.1.8, 2004/11/05 13:42:18-08:00, arjan@infradead.org
+>
+>[PATCH] I2C: remove dead code from i2c
+>
+>i2c-core.c has a few never used functions, patch below removes these dead
+>functions.
+>(...)
+>@@ -1322,11 +1266,7 @@
+> EXPORT_SYMBOL(i2c_smbus_write_byte_data);
+> EXPORT_SYMBOL(i2c_smbus_read_word_data);
+> EXPORT_SYMBOL(i2c_smbus_write_word_data);
+>-EXPORT_SYMBOL(i2c_smbus_process_call);
+>-EXPORT_SYMBOL(i2c_smbus_read_block_data);
+>-EXPORT_SYMBOL(i2c_smbus_write_block_data);
+> EXPORT_SYMBOL(i2c_smbus_read_i2c_block_data);
+>-EXPORT_SYMBOL(i2c_smbus_write_i2c_block_data);
+>
+> EXPORT_SYMBOL(i2c_get_functionality);
+> EXPORT_SYMBOL(i2c_check_functionality);
 
-diff -Nru a/drivers/i2c/chips/lm85.c b/drivers/i2c/chips/lm85.c
---- a/drivers/i2c/chips/lm85.c	2004-11-08 18:54:44 -08:00
-+++ b/drivers/i2c/chips/lm85.c	2004-11-08 18:54:44 -08:00
-@@ -210,38 +210,6 @@
-  *       MSB (bit 3, value 8).  If the enable bit is 0, the encoded value
-  *       is ignored, or set to 0.
-  */
--static int lm85_smooth_map[] = {  /* .1 sec */
--		350, 176, 118,  70,  44,   30,   16,    8
--/*    35.4 *    1/1, 1/2, 1/3, 1/5, 1/8, 1/12, 1/24, 1/48  */
--	};
--static int SMOOTH_TO_REG( int smooth )
--{
--	int i;
--
--	if( smooth <= 0 ) { return 0 ; }  /* Disabled */
--	for( i = 0 ; i < 7 ; ++i )
--		if( smooth >= lm85_smooth_map[i] )
--			break ;
--	return( (i & 0x07) | 0x08 );
--}
--#define SMOOTH_FROM_REG(val) ((val)&0x08?lm85_smooth_map[(val)&0x07]:0)
--
--/* These are the fan spinup delay time encodings */
--static int lm85_spinup_map[] = {  /* .1 sec */
--		0, 1, 2, 4, 7, 10, 20, 40
--	};
--static int SPINUP_TO_REG( int spinup )
--{
--	int i;
--
--	if( spinup >= lm85_spinup_map[7] ) { return 7 ; }
--	for( i = 0 ; i < 7 ; ++i )
--		if( spinup <= lm85_spinup_map[i] )
--			break ;
--	return( i & 0x07 );
--}
--#define SPINUP_FROM_REG(val) (lm85_spinup_map[(val)&0x07])
--
- /* These are the PWM frequency encodings */
- static int lm85_freq_map[] = { /* .1 Hz */
- 		100, 150, 230, 300, 380, 470, 620, 940
+U-ho. At least i2c_smbus_read_block_data will have a user soon (the lm93
+driver written by Mark M. Hoffman will certainly be ported to Linux 2.6
+at some point). Also, removing these functions without dropping relevant
+defines, updating the definition of I2C_FUNC_SMBUS_EMUL and removing the
+extern declarations in linux/i2c.h is inconsistent and possibly
+dangerous.
 
+These functions are part of the SMBus specs. The fact that no client uses
+them for now doesn't mean that they will never be used. In particular,
+we see that newer chips such as the LM93, which have a high number of
+registers, tend to use these as a way to lower the pressure of the
+SMBus. It would come to no surprise if newer chips would make use of
+block writes or process calls. Removing these functions at this point
+doesn't sound like a clever move.
+
+This kind of change to the i2c core should really have been discussed on
+the lm_sensors mailing list before hitting the main kernel tree. This
+one in particular wasn't as trivial at it seemed (left apart the
+question of whether the functions should be removed at all).
+
+Thanks,
+Jean
