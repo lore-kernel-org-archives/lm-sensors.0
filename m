@@ -1,124 +1,120 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:15 +0000
 Subject: Ported driver for PC87360 for 2.6 Kernel
-Message-Id: <20040911203309.20ea9d34.khali@linux-fr.org>
+Message-Id: <20040912113606.3697b542.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5F0794098965D51199B700508B69580905449CB2@exchange1.chalfont.kingstoninmedia.com>
 In-Reply-To: <5F0794098965D51199B700508B69580905449CB2@exchange1.chalfont.kingstoninmedia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I have ported the PC87360 driver to the 2.6 kernel.  It is required
-> for, and only tested on, a Tyan GS10, running SuSE 9.1.  I have also
-> made some modifications.  It will be used with Nagios.  It would be
-> advisable if someone can check the code over, I haven't ported a
-> driver to 2.6 before, and I'm not familiar with these drivers.  I can
-> easily arrange testing.
+Hi Robert,
 
-Nice. I am the original author of the driver but have no hardware to
-test it. It's always better when the developers can test their code
-themselves.
+> A quick reply.
 
-Did you have a chance to test the 2.4 driver?
+Please reply to the list instead of to me only. People here may help as
+well.
 
-> Modifications include:-
->=20
-> A parameter to select the secondary device.  This was done prior to
-> porting.
+> I can if you require arrange ssh access through a public IP address.
 
-I don't get you. What do you mean?
+I have no convenient Internat access these days, so I have to decline
+the offer. At any rate, you seem to have the skills to test your code
+yourself, so I don't think I would be of much help.
 
-> Voltages changed to give mV.
+> > Did you have a chance to test the 2.4 driver?
+> 
+> Yes I did, but the Tyan GS10 uses the secondary addresses 0x4e /
+> 0x4f, hence the first modification to give this selection as a
+> parameter.  When running sensors detect it should up, so I guess this
+> could be automated.  I followed the keep it simple approach.
 
-Yes, this is a requirement to comply with i2c/sysfs-interface.
+I don't think it's that simple. The user shouldn't have to know where
+the chip is to get it to work, since we can easily detect it
+automatically. Please update your code so that both 0x2e/0x2f and
+0x4e/0x4f are tested and used automatically. A similar patch for the 2.4
+driver would be appreciated as well.
 
-> The ability to set the voltage
-> multiplier, which is divided by 1000 to allow for non-integer values,
-> and is in line with the use of mV.
+BTW, what do you have at 0x2e/0x2f? Nothing? Or a different Super-I/O
+chip?
 
-I am not sure I get you. What is this multiplier you are talking about?
+I think it is acceptable to stop searching after we found a first
+supported device (i.e. not scan 0x4e/0x4f if a PC8736x was found at
+0x2e/0x2f). It means that we don't support dual-PC8736x configurations
+but I wonder if we will ever see something like that. And this should
+make the code easier.
 
-> The setting of an off-set to allow for negative voltages.
+> > > The ability to set the voltage
+> > > multiplier, which is divided by 1000 to allow for non-integer
+> > > values, and is in line with the use of mV.
+> >
+> > I am not sure I get you. What is this multiplier you are talking
+> > about?
+> 
+> This is an addition I made, so that i2c/sysfs-interface gives the
+> correct reading.  For example the multiplier is set to 8000 ie x8 for
+> the 12V input, which measures as 1.5V with the input potential
+> divider.  If no external entry is made it defaults to x1, so that it
+> will be compliant with libsensors.
 
-This does not belong to the driver. The chip does not monitor negative
-voltages. All required conversions belong to libsensors.
+Like negative voltages right below, this does not belong to the driver
+but to userspace.
 
-> The FSCM registers can be set as a parameter, to overcome
-> inappropriate BIOS settings.
+> > > The setting of an off-set to allow for negative voltages.
+> > 
+> > This does not belong to the driver. The chip does not monitor negative
+> > voltages. All required conversions belong to libsensors.
+> 
+> I wasn't sure what the best way was to handle this.  It defaults to
+> 0, for compatability with libsensors.  In our particular application
+> the drivers will be used with Nagios.  There is a Nagios plugin in the
+> form of a shell script wrapper for the sensors program.  I quickly
+> tried the sensors program, quickly pasting in the section for the
+> pc87360 from the 2.4 kernel version, but it didn't work.  I didn't
+> investigate it any further, as it was potentially an unnecessary
+> additional layer.  We would just use a shell script to access the
+> i2c/sysfs-interface directly.
 
-This would better be done from userspace using isaset IMHO. Or, even
-better, fixed in the faulty BIOS. Fixing problems where they are not is
-asking for even more problems later.
+The fact that it defaults to 0 and is thus "libsensors-compatible" is
+not relevant. Conversions do not belong to kernel space. Your port will
+not be accepted into the 2.6 kernel tree as long as it contains such
+code, even if its use is optional. Please get rid of it.
 
-> The fan divisors can be set.
+If you really don't want to use libsensors, you should be able to achive
+the same operations in your shell script, using the bash built-in
+arithmetics capabilities, or expr. However, I wonder why you don't want
+to use libsensors and sensors.
 
-Why do you need this? The driver already dynamically choose the best
-clock divider for you.
+> > > The fan divisors can be set.
+> >
+> > Why do you need this? The driver already dynamically choose the best
+> > clock divider for you.
+> 
+> It appeared in the original driver that the 960000 had been divided
+> by 2 in a couple of the macros to give 480000, which would correspond
+> to two pulses per revolution.  To allow for different number of pulses
+> per revolution I have included an additional divisor to set the number
+> of pulses per revolution.  For example on the Tyan, the front fans are
+> 2 pulses per rev, whilst the rear is 4.
 
-> In the Kconfig file, /usr/src/linux/drivers/i2c/chips/Kconfig, the
-> following lines should be added:-
->=20
-> config SENSORS_PC87360
-> 	tristate "PC87360"
-> 	depends on I2C && EXPERIMENTAL
-> 	select I2C_SENSOR
-> 	help
-> 	  If you say yes here you get support for the Nat Semi PC8736X
-> series
-> 	  of sensor chips: the PC87360, PC87363, PC87364, PC87365,
-> 	  PC87366
->=20
-> 	  This driver can also be built as a module.  If so, the module
-> 	  will be called pc87360.
->=20
->=20
-> In the Makefile, /usr/src/linux/drivers/i2c/chips/Makefile, the
-> following line should be added after the
-> obj-$(CONFIG_SENSORS_W83L785TS)	+=3D w83l785ts.o line:-
-> 	obj-$(CONFIG_SENSORS_PC87360)	+=3D pc87360.o
+Again, you are duplicating libsensors goals. The driver assumes 2
+ticks/revolution because this is the most common value. If it doesn't
+work for you, you have to divide/multiply in user-space to get the
+correct readings. And if you don't want to use libsensors, do the
+arithmetics from your shell script.
 
-Well, better provide a patch including these changes (together with the
-new driver itself). This is the easiest way for testers to test your
-contribution.
+> > What does "fanspeedcandm" stand for?
+> 
+> See earlier
 
-> In the file /etc/sysconfig/lm_sensors
->=20
-> MODULE_0=3Di2c-i801
-> MODULE_1=3Di2c-isa
-> MODULE_2=EEprom
-> MODULE_3=3D"pc87360 secondary=3D1 fanspeedcandm=3D0x036c"
+This doesn't quite answer my question. What does "candm" stand for?
 
-This is motherboard/distro dependant and does not belong to the kernel.
-
-What does "fanspeedcandm" stand for?
-
-> When testing I found that the status bits changed correctly, however
-> these do not seem to be reflected in the alarm indication.  I suspect
-> that it may be that some settings in some other registers require
-> setting.  I started to do this, however this could lead to unexpected
-> results if some of the output pins are connected and as a consequence
-> of changing the values in a register there could be unintended system
-> resets.  A similar effect can be achieved in the bash script if
-> required.  I had a quick look at the Watch dog Timer, however the
-> address registers have not been set by the BIOS.
-
-Which status bits are you talking about? The driver uses register TEVSTS
-for temperatures, VEVSTS0/1 for voltages/temperatures(thermistor-based)
-and FMCSR0/1/2 for fans. These bits should match the limits comparisons
-and the alarm indications should be a direct representation of these
-bits. If this isn't the case then this is a bug in the driver. Please
-give details if you think this is the case.
-
-I don't get the idea of your bash script. It seems to duplicate what
-libsensors/sensors do.
-
-I will get a look at your ported code after you answer my questions and
-as time permits.
+Please fix your port according to my comments and provide a new version
+in the form of a patch against linux 2.6.9-rc1.
 
 Thanks.
 
---=20
+-- 
 Jean "Khali" Delvare
 http://khali.linux-fr.org/
