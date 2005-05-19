@@ -1,24 +1,15 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:45 +0000
-Subject: [PATCH] of 2/2 I2C busses documentation update
-Message-Id: <20050324002435.GB7328@kroah.com>
+From: jeffreydm@sbcglobal.net (Jeffrey Mitchell)
+Date: Thu, 19 May 2005 06:25:17 +0000
+Subject: portability issue?
+Message-Id: <20040926153810.85135.qmail@web80314.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050320100825.20795.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20050320100825.20795.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 20, 2005 at 10:08:25AM -0000, R.Marek@sh.cvut.cz wrote:
-> Hello,
-> 
-> Patch contains promised documentation update for i2c bus drivers.
-> I would like to thank Jean Delvare and Aurelien Jarno for their
-> comments.
-> 
-> Please apply.
-
-Applied, thanks.
-
-greg k-h
+is there any chance you will be developing a Windows version of the sensors package?
+Motherboard monitor is no longer being developed and I am hoping for something as reliable in windows. I use your package in my liux box. But my windows based system is in need of something. Please consider the possibility. If not, can you refer me to some other product or site that will help me?
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040926/1d300f5a/attachment.html
