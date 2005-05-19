@@ -1,102 +1,52 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:29 +0000
-Subject: ServerWorks and Analog Device adm1024
-Message-Id: <3C5D84C5.A12764E1@paradyne.com>
+From: shawn.starr@datawire.net (Shawn Starr)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: False IBM Laptop detection - PIIX4 (440BX) - IBM 300PL 6892-N2U Tower desktop - lm_sensors 2.7.0 /w
+Message-Id: <200302071048.27227.shawn.starr@datawire.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <0084727E3D0ED611AA1400104B3FFD5A2ADC8D@cdserv.meridian-data.com>
-In-Reply-To: <0084727E3D0ED611AA1400104B3FFD5A2ADC8D@cdserv.meridian-data.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Not sure why an interrupt would stop the chip from monitoring.
 
-The adm1024 section in etc/sensors.conf.eg is a little sparse
-but there is extensive documentation at the top of the file
-which should tell you what you need to know to add to the section.
+I have an IBM 300PL 6892-N2U just picked it up yesterday but lm_sensors 2.7.0 
+refuses to load anything!
 
-If you think that the config. register needs to be rewritten
-to restart monitoring, that sounds like a driver bug or
-something that needs to be improved.
+I am using a Tower desktop not a laptop unless this is a defunked bios?
 
-You can start with the ADM1024 datasheet from the Analog Devices
-website, together with the i2cdump and i2cset tools in prog/dump.
-If you come up with a patch for the driver let us know.
+Let me know what info you need from me.
 
-mds
+Shawn.
 
+--------------------------
 
-"Lasirona, Robert" wrote:
-> 
-> Hi Mark,
-> 
-> I think I found the problem with the adm1024. It looks like an interrupt
-> occurred. During the power up init, the fans must be still spinning up and
-> the adm1024 is setting an interrupt. I want to change some of the
-> configuration settings. How do I read and write to control and configuration
-> registers? I only see definitions for getting sensor data.
-> 
-> To be more specific, I want to be able to change the temperature thresholds.
-> The fan RPM thresholds. And, to write to the configuration register to tell
-> the adm1024 to re-start monitoring. Can you point me in the right direction?
-> 
-> Thanks!
-> 
-> Robert Lasirona
-> Linux Software Engineer
-> Quantum Inc.
-> 2001 Logic Drive
-> San Jose, Ca 95124-3452
-> (408)879-8772
-> 
-> -----Original Message-----
-> From: Mark D. Studebaker [mailto:mds@paradyne.com]
-> Sent: Thursday, January 24, 2002 4:38 PM
-> To: Lasirona, Robert
-> Cc: 'lm78@stimpy.netroedge.com'
-> Subject: Re: ServerWorks and Analog Device adm1024
-> 
-> sorry, haven't heard of this problem before.
-> You can use 'prog/dump/i2cdump 0 0x2c' to bypass the adm1024
-> driver and look at the chip registers directly to try and
-> see if the chip is indeed returning -127 or if the
-> problem appears to be in the driver.
-> mds
-> 
-> "Lasirona, Robert" wrote:
-> >
-> > Greetings,
-> >
-> > First of all I wanted to thank you guys for creating this package. I've
-> used
-> > it for the last year and it's been great. Up until now, I've been able to
-> > use it without issues on other hardware.
-> >
-> > I'm currently using lm_sensors2 v2.6.1 with kernel version 2.4.16. The
-> > hardware I'm using is a ServerWorks 30LE OSB4 bus with an Analog Devices
-> > adm1024 System Monitor.
-> >
-> > We're only monitoring the system temperature, so the other values are
-> extra.
-> > What I'm currently experiencing is the value returned form temp1 is ~34
-> for
-> > the first couple of hours . Then the temperature returned will change to
-> > -127. The only way I've been able to recover the reading is to power down
-> > the system. A soft reboot of the system doesn't recover the temperture
-> > value.
-> >
-> > From /proc/sys/dev/sensors/adm1024-i2c-0-2c I get returned: 60.0 50.0
-> > -127.0.
-> >
-> > I'm hoping that is has already been resolved and all I need a patch (It's
-> > nice to hope).
-> >
-> > Thanks!
-> >
-> > Robert Lasirona
-> > Linux Software Engineer
-> > Quantum Inc.
-> > 2001 Logic Drive
-> > San Jose, Ca 95124-3452
-> > (408)879-8772
+from sensors-detect:
+
+ BIOS vendor (ACPI): IBM
+ System vendor (DMI): IBM
+ BIOS version (DMI): NVKT48AUS
+ Sorry, we won't let you go on. IBM systems are known to have
+ serious problems with lm_sensors, resulting in hardware failures.
+ For more information, see README.thinkpad or
+ http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad.
+
+---
+
+from dmesg:
+
+i2c-piix4.o version 2.7.0 (20021208)
+i2c-piix4.o: Found PIIX4 device
+dmi_scan.o version 2.7.0 (20021208)
+dmi_scan.o: SM BIOS found
+i2c-piix4.o: IBM Laptop detected; this module may corrupt
+             your serial eeprom! Refusing to load module!
+i2c-piix4.o: Module insertion failed.
+-- 
+Shawn Starr
+UNIX Systems Administrator, Operations
+Datawire Communication Networks Inc.
+10 Carlson Court, Suite 300
+Toronto, ON, M9W 6L2
+T: 416-213-2001 ext 179  F: 416-213-2008
+shawn.starr@datawire.net
+"The power to Transact" - http://www.datawire.net
