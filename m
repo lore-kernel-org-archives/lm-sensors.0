@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:38 +0000
 Subject: i2c-2.6.4 in kernel 2.5.32
-Message-Id: <3D6E989E.2C68E179@paradyne.com>
+Message-Id: <20020830005251.2b25d3d8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3D6D80CA.4373486@paradyne.com>
 In-Reply-To: <3D6D80CA.4373486@paradyne.com>
@@ -10,37 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-will buy surfboards tomorrow and play w/ the chip this 3-day wkend.
-DMI detection is done. If Linus will take my dmi_scan kernel patch
-then I can fix the #ifdefs in i2c-piix4 so that it will work
-both pre- and post-patch.
 
-phil@netroedge.com wrote:
-> 
-> For a second there, I thought it was lm-sensors which was included.
-> Nice to get the I2C update in there in any case.
-> 
-> BTW- Mark, have you had a chance to play with a sample of that chip
+> BTW- Mark, have you had a chance to play with a sample of that chip 
 > yet?  Also, it sounded like DMI detection was nearly complete?
-> 
-> Phil
-> 
-> On Thu, Aug 29, 2002 at 01:51:32PM -0700, phil@netroedge.com wrote:
-> >
-> > Wow.  Very, very cool. :')
-> >
-> >
-> > Phil
-> >
-> > On Wed, Aug 28, 2002 at 10:02:50PM -0400, Mark D. Studebaker wrote:
-> > > Great job Albert!
-> >
-> > --
-> > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-> >    phil@netroedge.com -- http://www.netroedge.com/~phil
-> >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
-> 
-> --
-> Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
->    phil@netroedge.com -- http://www.netroedge.com/~phil
->  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+
+I did the work for sensors-detect, and it is supposed to work. Testers
+welcome.
+
+Anyway, I may have an even better way of detecting IBMs. There is a
+memory zone near dmi anchor called "RSD PTR". It contains a 6-char
+string representing the system vendor, "IBM   " in case this is an IBM
+system. This is really easy to detect. Thus, I would not need to call
+dmidecode from sensors-detect, which means we wouldn't need to
+support/distribute dmidecode anymore (but we still need to be root to do
+the test). I'll work an a perl test script and let you know when it's
+ready. Maybe asking people on the thinkpad to test it then would be a
+clever idea.
+
+-- 
+Jean "Khali" Delvare
+http://www.ensicaen.ismra.fr/~delvare/
