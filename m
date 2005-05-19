@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:58 +0000
-Subject: [PATCH 2.6] I2C: sysfs names: rename to cpu0_vid
-Message-Id: <20050511170059.GB15398@kroah.com>
+Subject: [PATCH 2.6] I2C: sysfs names: rename to cpu0_vid, take 2
+Message-Id: <20050511195429.3db78804.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <hi6m71d93atlu1pci6jmqmt5ob58t6n0i8@4ax.com>
 In-Reply-To: <hi6m71d93atlu1pci6jmqmt5ob58t6n0i8@4ax.com>
@@ -10,22 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 11, 2005 at 09:50:18AM +0200, Jean Delvare wrote:
-> 
-> Hi Greg,
-> 
-> > > Hmm, 6 months after the original change maybe?
-> >
-> > Just be sure to document it in
-> > Documentation/feature-removal-schedule.txt and everyone will be happy :)
-> 
-> I didn't know such a file even existed, but it sounds like a good idea.
-> This shouldn't prevent us from tagging the lines in the driver itself,
-> as I believe people (including us) are more likely to read it there.
+Hi Grant,
 
-We will notice it there.  But the "public" will not.  That is why we
-created that file :)
+> This small patch changes two drivers, adm1025 and adm1026, to 
+> report vid as cpu0_vid sysfs name as used by the other drivers.
+> 
+> Added duplicated names and six month warning for old names to 
+> be removed as requested.  Compile tested.
 
-thanks,
+The patch is fine but doesn't apply to my tree. Could you possibly
+regenerate it against 2.6.12-rc4?
 
-greg k-h
+Thanks,
+-- 
+Jean Delvare
