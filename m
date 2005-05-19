@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:16 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: [PATCH][2.6] New PPC4xx I2C driver
-Message-Id: <20030912233501.GA2584@kroah.com>
+Message-Id: <20030914000624.6a29d60b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030912155233.A9590@home.com>
 In-Reply-To: <20030912155233.A9590@home.com>
@@ -10,16 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Sep 12, 2003 at 04:30:10PM -0700, Matt Porter wrote:
-> On Fri, Sep 12, 2003 at 04:01:31PM -0700, Greg KH wrote:
-> > Can you please send me a plain-text patch that I can apply to any bk
-> > repository?
-> > 
-> > bk sendpatch is not nice :)
-> 
-> No problem. :)
 
-Much nicer, thanks.  I'll apply this next week and send it off with some
-other 2.6 i2c updates that I have in my tree.
+> This updates the current 2.6 PPC 4xx driver to the rewritten version
+> we have in the PPC development tree.  It is cleaner, has less bugs,
+> and has more features.  Please apply.
 
-greg k-h
+Hm, we also have a copy of that driver in our I2C CVS repository
+(intended to be used with 2.4 kernels). If you want us to update is as
+well, please provide a patch against current CVS.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
