@@ -1,49 +1,42 @@
-From: rddunlap@osdl.org (Randy.Dunlap)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:46 +0000
 Subject: [PATCH] i2c-prosavage.c section usage
-Message-Id: <20040307194701.0cf1ec47.rddunlap@osdl.org>
+Message-Id: <1078758148.404c8b040939f@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040307194701.0cf1ec47.rddunlap@osdl.org>
+In-Reply-To: <20040307194701.0cf1ec47.rddunlap@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Quoting "Randy.Dunlap" <rddunlap@osdl.org>:
 
-Hi,
+> prosavage_remove() is called during init, so it shouldn't be
+> marked as exit code.  (It matters when CONFIG_HOTPLUG=n.)
+> (...)
+> // Linux 2.6.4-rc2
+> // prosavage_remove() shouldn't be marked as __devexit;
 
-prosavage_remove() is called during init, so it shouldn't be
-marked as exit code.  (It matters when CONFIG_HOTPLUG=n.)
+Wouldn't a more correct fix be that prosavage_remove would not be called
+during init? Looks to me like this function will do almost nothing when
+called at this point (because the driver hasn't fully intialized yet).
 
---
-~Randy
+I took a look at the other drivers and no other one does handle this
+particular point the way i2c-prosavage does. This makes me think that
+it isn't the prefered way to do it. For example, i2c-savage4 could be
+used as a template to modify i2c-prosavage.
 
+On the opposite side, i2c-ixp42x and i2c-keywest do not use __devexit_p
+for their .remove callback functions, while I would tend to think that
+they should do so, since their aren't called explicitely like it is
+done in i2c-prosavage.
 
-// Linux 2.6.4-rc2
-// prosavage_remove() shouldn't be marked as __devexit;
+(BTW, I don't much see how this is related to CONFIG_HOTPLUG, if you
+could explain this to me...)
 
+Thanks.
 
-diffstat: drivers/i2c/busses/i2c-prosavage.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-
-diff -Naurp ./drivers/i2c/busses/i2c-prosavage.c~i2cpro_init ./drivers/i2c/busses/i2c-prosavage.c
---- ./drivers/i2c/busses/i2c-prosavage.c~i2cpro_init	2004-02-17 19:57:22.000000000 -0800
-+++ ./drivers/i2c/busses/i2c-prosavage.c	2004-03-07 16:10:16.000000000 -0800
-@@ -216,7 +216,7 @@ static int i2c_register_bus(struct pci_d
- /*
-  * Cleanup stuff
-  */
--static void __devexit prosavage_remove(struct pci_dev *dev)
-+static void prosavage_remove(struct pci_dev *dev)
- {
- 	struct s_i2c_chip *chip;
- 	int i, ret;
-@@ -321,7 +321,7 @@ static struct pci_driver prosavage_drive
- 	.name		=	"prosavage-smbus",
- 	.id_table	=	prosavage_pci_tbl,
- 	.probe		=	prosavage_probe,
--	.remove		=	__devexit_p(prosavage_remove),
-+	.remove		=	prosavage_remove,
- };
- 
- static int __init i2c_prosavage_init(void)
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
