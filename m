@@ -1,54 +1,32 @@
-From: haimat@lame.at (Matthias F. Brandstetter)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:07 +0000
 Subject: how to get temp. stats?
-Message-Id: <200407271626.43650.haimat@lame.at>
+Message-Id: <Pine.LNX.4.58.0407271633130.30300@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200407271626.43650.haimat@lame.at>
+In-Reply-To: <200407271626.43650.haimat@lame.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-I successfully installed lm_sensors onto another machine with an i801 chip. 
-No problem, sensors-detect found it and suggested the right kernel 
-modules.
+Hello,
 
-But after loading all of these modules, I still do not get any temp. 
-statistics. I only get this output:
+are you sure that sensors-detect didnt proposed some superIO chip?
+Like it87 or winbond "HF" chip?
 
---<snip>--
-root@mx:/usr/src/lm_sensors-2.8.7# sensors
-eeprom-i2c-0-52
-Adapter: SMBus I801 adapter at 5000
-Memory type:            SDR SDRAM DIMM
-Memory size (MB):       512
---</snip>--
+Please could you provide the motherboard name?
 
-And I have this modules loaded:
+and screen output just after this message
 
---<snip>--
-root@mx:/usr/src/lm_sensors-2.8.7# lsmod
-Module                 Size  Used by    Not tainted
-i2c-isa                 716   0  (unused)
-eeprom                 3860   0  (unused)
-i2c-proc               6548   0  [eeprom]
-i2c-dev                4096   0
-i2c-i801               4760   0
-i2c-core              15044   0  [i2c-isa eeprom i2c-proc i2c-dev i2c-i801]
-uhci                  24444   0  (unused)
-usbcore               59308   1  [uhci]
-ide-scsi               9328   0
-eepro100              19252   1
-mii                    2272   0  [eepro100]
---</snip>--
+Now follows a summary of the probes I have just done.
+ Just press ENTER to continue:
 
-Do I need any other module loaded? Any ideas?
-Greetings and TIA, Matthias
+of sensors-detect program.
 
--- 
-You see, boy?  The real money's in bootlegging!  Not in your childish
-vandalism.
+Thanks and dont forget to CC the list :)
 
-		-- Homer Simpson
-		   Homer vs. the Eighteenth Amendment
+regards
+
+Rudolf
