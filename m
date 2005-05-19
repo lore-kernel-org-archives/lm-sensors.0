@@ -1,97 +1,71 @@
-From: moseley@hank.org (Bill Moseley)
-Date: Thu, 19 May 2005 06:23:53 +0000
-Subject: Lm-sensors docs
-Message-Id: <Pine.LNX.4.10.10304172040220.19216-100000@mardy.hank.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH] I2C i2c-nforce2: add support for nForce4 (patch against
+Message-Id: <11099685963905@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11099685961094@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: hfvogt@gmx.net
 
-Hi,
+ChangeSet 1.2105, 2005/03/02 12:18:53-08:00, hfvogt@gmx.net
 
-Here's a few comments about the docs.
+[PATCH] I2C i2c-nforce2: add support for nForce4 (patch against 2.6.11-rc4)
 
-I've installed lm_sensors twice.  First time a few months ago on a MSI
-K7T266 board, and today on an Asus P4PE.  Works great on the MSI board,
-but faild to detect sensors on the Asue :-(.
+can you please apply the attached patch (against 2.6.11-rc4, but works
+as well for 2.6.11-rc3-mm2),  that adds support for the two SMBusses of
+the nForce4 to the i2c-nforce2 i2c bus driver.  The patch is reported to
+work on the standard nForce4 (i.e. non-Ultra, non-SLI), but I expect
+that it works as well for the other nForce4 chipsets, that seem to have
+the same PCI-id for the SMBus-device.
 
-I had notes from my first install.  I had noted some confusion on how to
-install.  Again today I had the same confusion, so I wanted to pass that
-on.
+This patch was proposed by Chuck <chunkeey@web.de>, thanks to him for the
+information, testing and his patch.
 
-My method of installation was patch the kernel.
-
-First bit of confusion was that the INSTALL docs say:
-
- 2. Patching of the kernel
-    This will patch your kernel source tree. You must recompile your kernel
-    to take advantage of this. But it makes it possible to compile drivers
-    into the kernel itself, instead of having to add them as modules.
-    ** AFTER YOU COMPILED AND INSTALLED YOUR KERNEL, YOU WILL STILL HAVE TO
-    ** COMPILE THIS PACKAGE TO GET THE USERLAND UTILITIES!
-    ** NOT ALL MODULES ARE PATCHED INTO THE KERNEL. SEE BELOW.
-
-It's not clear what that "SEE BELOW" is refering to.  From what I can tell
-it refers to the section:
-
-  Makefile configuration variables (compilation option 1)
-
-where it says:
-
-COMPILE_KERNEL
-  [...]
-  You may want to set this to 0 if you have just patched and compiled 
-  your kernel using the same version of this package, and just want to
-  compile the user-space tools.
-
-The confusing part is that section is marked "(compilation option 1)" so
-it's easy to miss that when not using that option.  It's possible to think
-that section does not apply.
-
-The other part that was confusing was this:
-
-Installing the i2c package
-=============
-
-"Note: as of kernel 2.3.34, the i2c code is integrated into the
-mainstream kernels. Unfortunately, this lm_sensors release REQUIRES
-i2c-2.7.0 or later, which is not in kernels through 2.4.19.
-Therefore, you must download and install the i2c package with
-the same version number or higher as this lm_sensors package."
-
-I'm using kernel 2.4.20 so that implies that I don't need to patch the
-kernel with i2c-2.7.0.  My fisrt install I did patch, but had notes that I
-didn't really need to.  This time I didn't and when I went to build
-lm_sensors tools it said I didn't have 2.7.0.
-
-Minor points, but maybe it can help someone else.
-
-I'm still not 100% clear I installed correctly.  I basically did:
-
-  - unpack fresh kernel
-  - download lm_sensors and i2c and ran for both:
-     mkpatch/mkpatch.pl . /usr/src/linux | patch -p1 -E -d /usr/src/linux
-  - build and installed kernel
-
-  - went back to lm_sensors direcory and ran
-     make all; su -c 'make install'
-
-  Then ran sensors detect, which failed.
-
-[...]
-
-Probing for `Winbond W83781D'  ( listed for ASUS at http://secure.netroedge.com/~lm78/newdrivers.html)
-  Trying address 0x0290... Failed!
-[...]
-
-I noticed one person not able to get the same P4PE board to work, but they
-were using an older version of lm_sensors.
-
-I guess I'll just have to wait.
-
-Thank you all very much for lm_sensors.
+Signed-off-by: Hans-Frieder Vogt <hfvogt@arcor.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
--- 
-Bill Moseley moseley@hank.org
+ drivers/i2c/busses/i2c-nforce2.c |    6 ++++--
+ include/linux/pci_ids.h          |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+
+diff -Nru a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
+--- a/drivers/i2c/busses/i2c-nforce2.c	2005-03-04 12:23:55 -08:00
++++ b/drivers/i2c/busses/i2c-nforce2.c	2005-03-04 12:23:55 -08:00
+@@ -29,9 +29,10 @@
+     nForce2 Ultra 400 MCP	0084
+     nForce3 Pro150 MCP		00D4
+     nForce3 250Gb MCP		00E4
++    nForce4 MCP			0052
+ 
+-    This driver supports the 2 SMBuses that are included in the MCP2 of the
+-    nForce2 chipset.
++    This driver supports the 2 SMBuses that are included in the MCP of the
++    nForce2/3/4 chipsets.
+ */
+ 
+ /* Note: we assume there can only be one nForce2, with two SMBus interfaces */
+@@ -295,6 +296,7 @@
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE2S_SMBUS) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3_SMBUS) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3S_SMBUS) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE4_SMBUS) },
+ 	{ 0 }
+ };
+ 
+diff -Nru a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h	2005-03-04 12:23:55 -08:00
++++ b/include/linux/pci_ids.h	2005-03-04 12:23:55 -08:00
+@@ -1098,6 +1098,7 @@
+ #define PCI_DEVICE_ID_NVIDIA_NVENET_10		0x0037
+ #define PCI_DEVICE_ID_NVIDIA_NVENET_11		0x0038
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SATA2	0x003e
++#define PCI_DEVICE_ID_NVIDIA_NFORCE4_SMBUS	0x0052
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_CK804_IDE	0x0053
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_CK804_SATA	0x0054
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_CK804_SATA2	0x0055
+
