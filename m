@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: LM83 driver
-Message-Id: <20030704105109.77a0d0f5.khali@linux-fr.org>
+Message-Id: <20030705195746.6565ea15.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030703194558.60bc8955.khali@linux-fr.org>
 In-Reply-To: <20030703194558.60bc8955.khali@linux-fr.org>
@@ -11,30 +11,21 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> > I will, but I prefer to make sure the driver works OK before that.
-> > And also, it is a minimalistic driver for now (doesn't handle
-> > alarms, alarms mask and so on) so maybe it would be better to
-> > enhance it on the 2.4 side and port it later to 2.5 than the
-> > contrary.
-> 
-> Why?  2.5 can have minimal drivers :)
+If anyone could take a look at my code for the LM83, I'd appreciate it.
+This is my first driver, as you must know. I followed the guidelines in
+doc/developers/new_drivers, tried to follow the coding standards, but I
+may have missed a few things.
 
-OK, I agree. I can port my driver to 2.5 before adding new features,
-you're right.
+I propose the following changes to new_drivers file:
 
-> And it will get better coverage than the sensors cvs tree I bet...
+- Change the recommended driver to use as a template. The writer should
+use the driver that is the more similar to the chip he is writing a
+driver for. I personally used much more the lm75 and adm1021 drivers
+than the recommended lm78. And actually, using two different drivers as
+templates was great.
 
-Well, the CVS tree is to become release 2.8.0 soon, so the driver should
-have a chance to get tested. Second, I don't have a working 2.5 kernel
-here, so I wouldn't be able to make sure my driver even compiles (not to
-say loads). I'll try to build a 2.5 kernel on one of my machines. Is
-there anything special required (gcc, binutils, modutils?) Last time I
-tried 2.5 I couldn't even compile it (I even wonder if I managed
-configuring it at all.)
-
-What I really would like right now is a preliminary test of my driver.
-Zoleg, do you read us? After all, you're the one who asked for the
-driver, so it would be only fair that you would test it now :)
+- Don't ask for testing with 2.2 kernels! Maybe we should add a line
+about sending a 2.5 version (if possible) to Greg KH instead?
 
 -- 
 Jean Delvare
