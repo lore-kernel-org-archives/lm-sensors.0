@@ -1,91 +1,291 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:28 +0000
-Subject: sensors stop working after some hours/days
-Message-Id: <20020111143311.R31003@Stimpy.netroedge.com>
+From: mgreer@mvista.com (Mark A. Greer)
+Date: Thu, 19 May 2005 06:25:34 +0000
+Subject: [PATCH][I2C] ST M41T00 I2C RTC chip driver
+Message-Id: <41FE7368.1000307@mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020108220123.CAPS1238.viefep16-int.chello.at@there>
-In-Reply-To: <20020108220123.CAPS1238.viefep16-int.chello.at@there>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: LM Sensors <sensors@stimpy.netroedge.com>, lkml <linux-kernel@vger.kernel.org>
 
+This patch adds support for the ST M41T00 RTC chip.
 
-Please upgrade!
+You will likely notice that it implements a PPC-specific interface 
+(/dev/rtc->drivers/char/genrtc.h->include/asm-ppc/rtc.h->this file).  
+This was necessary to support a subset of ppc platforms that need to 
+hook up the rtc support at runtime.  If I implemented /dev/rtc directly 
+or interfaced to genrtc.c directly, those platforms couldn't use this 
+driver.  Eventually, I hope to work on more uniform rtc support across 
+all the processor architectures.
 
-http://www.netroedge.com/~lm78/download.html
+Also, on ppc at least, the hw clock can be set from a timer interrupt if 
+STA_UNSYNC is not set (e.g., ntpd is running).  To handle this, a 
+tasklet is used to set the clock if in_interrupt() is true.
 
-We have 2.6.2 out, or better yet get the current CVS.  Make sure you
-get both i2c and lm_sensors2.  We can't help debug old versions since
-such issues might long since have been fixed.
+I'd appreciate an comments or to have it pushed into the kernel.org tree 
+if its acceptable.
 
+Thanks,
 
-Phil
+Mark
 
-On Fri, Jan 11, 2002 at 11:18:48PM +0100, Matthias Meyer wrote:
-> Hello
-> 
-> I have an lm_sensors 2.5.5 directory-tree on my harddisk.
-> 
-> I try modprobe i2c-dev and than your ideas.
-> In the attachement you can find the outputs:
-> 
-> 
-
-> w83782d-i2c-0-2d
-> Adapter: SMBus AMD7X6 adapter at 50e0
-> Algorithm: Non-I2C SMBus adapter
-> VCore 1:   +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
-> VCore 2:   +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
-> +3.3V:     +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
-> +5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
-> +12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
-> -12V:     -14.91 V  (min = -14.91 V, max = -14.91 V)              
-> -5V:       -7.71 V  (min =  -7.71 V, max =  -7.71 V)              
-> V5SB:      +0.13 V  (min =  +0.13 V, max =  +0.13 V)              
-> VBat:      +0.08 V  (min =  +0.08 V, max =  +0.08 V)              
-> fan1:       -1 RPM  (min =   -1 RPM, div = 1)                     
-> fan2:       -1 RPM  (min =   -1 RPM, div = 1)                     
-> fan3:       -1 RPM  (min =   -1 RPM, div = 1)                     
-> temp1:      +0.0?C  (limit =   +0?C, hysteresis =   +0?C) sensor = thermistor           
-> temp2:        +0?C  (limit =   +0?C, hysteresis =   +0?C) sensor = thermistor           
-> temp3:        +0?C  (limit =   +0?C, hysteresis =   +0?C) sensor = PII/Celeron diode           
-> vid:      +2.05 V
-> alarms:   Chassis intrusion detection                             
-> beep_enable:
->           Sound alarm disabled
-> 
-
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 
-> 10: 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 
-> 20: 20 21 22 23 24 25 26 27 28 29 2a 2b 2c UU 2e 2f 
-> 30: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f 
-> 40: 40 41 42 43 44 45 46 47 UU UU 4a 4b 4c 4d 4e 4f 
-> 50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 
-> 60: 60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 
-> 70: 70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f 
-
-
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+--
+-------------- next part --------------
+diff -Nru a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
+--- a/drivers/i2c/chips/Kconfig	2005-01-31 10:33:34 -07:00
++++ b/drivers/i2c/chips/Kconfig	2005-01-31 10:33:34 -07:00
+@@ -371,4 +371,13 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called isp1301_omap.
+ 
++config SENSORS_M41T00
++	tristate "ST M41T00 RTC chip"
++	depends on I2C && PPC32
++	help
++	  If you say yes here you get support for the ST M41T00 RTC chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-m41t00.
++
+ endmenu
+diff -Nru a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
+--- a/drivers/i2c/chips/Makefile	2005-01-31 10:33:34 -07:00
++++ b/drivers/i2c/chips/Makefile	2005-01-31 10:33:34 -07:00
+@@ -26,6 +26,7 @@
+ obj-$(CONFIG_SENSORS_LM87)	+= lm87.o
+ obj-$(CONFIG_SENSORS_LM90)	+= lm90.o
+ obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
++obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
+ obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+ obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+diff -Nru a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
+--- /dev/null	Wed Dec 31 16:00:00 196900
++++ b/drivers/i2c/chips/m41t00.c	2005-01-31 10:33:34 -07:00
+@@ -0,0 +1,224 @@
++/*
++ * drivers/i2c/chips/m41t00.c
++ *
++ * I2C client/driver for the ST M41T00 Real-Time Clock chip.
++ *
++ * Author: Mark A. Greer <mgreer@mvista.com>
++ *
++ * 2005 (c) MontaVista Software, Inc. This file is licensed under
++ * the terms of the GNU General Public License version 2. This program
++ * is licensed "as is" without any warranty of any kind, whether express
++ * or implied.
++ */
++/*
++ * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
++ * interface and the SMBus interface of the i2c subsystem.
++ * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
++ * recommened in .../Documentation/i2c/writing-clients section
++ * "Sending and receiving", using SMBus level communication is preferred.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/i2c.h>
++#include <linux/rtc.h>
++#include <linux/bcd.h>
++
++#include <asm/time.h>
++#include <asm/rtc.h>
++
++static DECLARE_MUTEX(m41t00_mutex);
++
++struct m41t00_data {
++	struct i2c_client client;
++};
++
++static struct i2c_driver m41t00_driver;
++static struct i2c_client *save_client;
++
++static unsigned short ignore[] = { I2C_CLIENT_END };
++static unsigned short normal_addr[] = { 0x68, I2C_CLIENT_END };
++
++static struct i2c_client_address_data addr_data = {
++	.normal_i2c		= normal_addr,
++	.normal_i2c_range	= ignore,
++	.probe			= ignore,
++	.probe_range		= ignore,
++	.ignore			= ignore,
++	.ignore_range		= ignore,
++	.force			= ignore,
++};
++
++ulong
++m41t00_get_rtc_time(void)
++{
++	s32	sec, min, hour, day, mon, year;
++
++	down(&m41t00_mutex);
++	if (((sec = i2c_smbus_read_byte_data(save_client, 0)) < 0)
++		|| ((min  = i2c_smbus_read_byte_data(save_client, 1)) < 0)
++		|| ((hour = i2c_smbus_read_byte_data(save_client, 2)) < 0)
++		|| ((day  = i2c_smbus_read_byte_data(save_client, 4)) < 0)
++		|| ((mon  = i2c_smbus_read_byte_data(save_client, 5)) < 0)
++		|| ((year = i2c_smbus_read_byte_data(save_client, 6)) < 0)) {
++
++		dev_warn(&save_client->dev, "m41t00: can't read rtc chip\n");
++		sec = min = hour = day = mon = year = 0;
++	}
++	up(&m41t00_mutex);
++	
++	sec &= 0x7f;
++	min &= 0x7f;
++	hour &= 0x3f;
++	day &= 0x3f;
++	mon &= 0x1f;
++	year &= 0xff;
++
++	BCD_TO_BIN(sec);
++	BCD_TO_BIN(min);
++	BCD_TO_BIN(hour);
++	BCD_TO_BIN(day);
++	BCD_TO_BIN(mon);
++	BCD_TO_BIN(year);
++
++	year += 1900;
++	if (year < 1970)
++		year += 100;
++
++	return mktime(year, mon, day, hour, min, sec);
++}
++
++static void
++m41t00_set_tlet(ulong arg)
++{
++	struct rtc_time	tm;
++	ulong	nowtime = *(ulong *)arg;
++
++	to_tm(nowtime, &tm);
++	tm.tm_year = (tm.tm_year - 1900) % 100;
++
++	BIN_TO_BCD(tm.tm_sec);
++	BIN_TO_BCD(tm.tm_min);
++	BIN_TO_BCD(tm.tm_hour);
++	BIN_TO_BCD(tm.tm_mon);
++	BIN_TO_BCD(tm.tm_mday);
++	BIN_TO_BCD(tm.tm_year);
++
++	down(&m41t00_mutex);
++	if ((i2c_smbus_write_byte_data(save_client, 0, tm.tm_sec & 0x7f) < 0)
++		|| (i2c_smbus_write_byte_data(save_client, 1, tm.tm_min & 0x7f)
++			< 0)
++		|| (i2c_smbus_write_byte_data(save_client, 2, tm.tm_hour & 0x7f)
++			< 0)
++		|| (i2c_smbus_write_byte_data(save_client, 4, tm.tm_mday & 0x7f)
++			< 0)
++		|| (i2c_smbus_write_byte_data(save_client, 5, tm.tm_mon & 0x7f)
++			< 0)
++		|| (i2c_smbus_write_byte_data(save_client, 6, tm.tm_year & 0x7f)
++			< 0))
++
++		dev_warn(&save_client->dev,"m41t00: can't write to rtc chip\n");
++
++	up(&m41t00_mutex);
++	return;
++}
++
++ulong	new_time;
++
++DECLARE_TASKLET_DISABLED(m41t00_tasklet, m41t00_set_tlet, (ulong)&new_time);
++
++int
++m41t00_set_rtc_time(ulong nowtime)
++{
++	new_time = nowtime;
++
++	if (in_interrupt())
++		tasklet_schedule(&m41t00_tasklet);
++	else
++		m41t00_set_tlet((ulong)&new_time);
++
++	return 0;
++}
++
++/*
++ *****************************************************************************
++ *
++ *	Driver Interface
++ *
++ *****************************************************************************
++ */
++static int __devinit
++m41t00_probe(struct i2c_adapter *adap, int addr, int kind)
++{
++	struct i2c_client *new_client;
++	struct m41t00_data *drv_data;
++	int rc;
++
++	drv_data = kmalloc(sizeof(struct m41t00_data), GFP_KERNEL);
++	if (!drv_data)
++		return -ENOMEM;
++
++	memset(drv_data, 0, sizeof(struct m41t00_data));
++	new_client = &drv_data->client;
++
++	strncpy(new_client->name, "m41t00", I2C_NAME_SIZE);
++	i2c_set_clientdata(new_client, drv_data);
++	new_client->id = m41t00_driver.id;
++	new_client->flags = I2C_DF_NOTIFY;
++	new_client->addr = addr;
++	new_client->adapter = adap;
++	new_client->driver = &m41t00_driver;
++
++	if ((rc = i2c_attach_client(new_client)) != 0) {
++		kfree(drv_data);
++		return rc;
++	}
++
++	save_client = new_client;
++	return 0;
++}
++
++static int __devinit
++m41t00_attach(struct i2c_adapter *adap)
++{
++	return i2c_probe(adap, &addr_data, m41t00_probe);
++}
++
++static int __devexit
++m41t00_detach(struct i2c_client *client)
++{
++	i2c_detach_client(client);
++	kfree(i2c_get_clientdata(client));
++	tasklet_kill(&m41t00_tasklet);
++	return 0;
++}
++
++static struct i2c_driver m41t00_driver = {
++	.owner		= THIS_MODULE,
++	.name		= "M41T00",
++	.id		= I2C_DRIVERID_STM41T00,
++	.flags		= I2C_DF_NOTIFY,
++	.attach_adapter	= m41t00_attach,
++	.detach_client	= m41t00_detach,
++};
++
++static int __devinit
++m41t00_init(void)
++{
++	return i2c_add_driver(&m41t00_driver);
++}
++
++static void __devexit
++m41t00_exit(void)
++{
++	i2c_del_driver(&m41t00_driver);
++	return;
++}
++
++module_init(m41t00_init);
++module_exit(m41t00_exit);
++
++MODULE_AUTHOR("Mark A. Greer <mgreer@mvista.com>");
++MODULE_DESCRIPTION("ST Microelectronics M41T00 RTC I2C Client Driver");
++MODULE_LICENSE("GPL");
