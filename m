@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: Trouble with i2c and bttv
-Message-Id: <3F06F7CF.5040005@paradyne.com>
+Message-Id: <20030705182425.4249bd27.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200307042024.55272.tim.boneko@web.de>
 In-Reply-To: <200307042024.55272.tim.boneko@web.de>
@@ -10,21 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-no, I think we need to send it all at once, it's a stable kernel
 
-Jean Delvare wrote:
->>that would be great.
->>See CHANGES in i2c.
->>For bus drivers, take out the inc_use and dec_use entries in struct
->>i2c_adapter, remove the associated functions, and add an owner
->>=THIS_MODULE in struct i2c_adapter. Make sure everything is C99
->>initializers. Make the same changes in struct i2c_driver (chip
->>drivers) Remove an argument in i2c_register_entry().
-> 
-> 
-> I will try this next week for the zoran driver.
-> 
-> I guess that we should send a patch with the new I2C layer to Marcelo
-> for the 2.4 kernel and wait for it to be applied before sending patches
-> for non-kernel drivers such as this zoran driver?
-> 
+> no, I think we need to send it all at once, it's a stable kernel
+
+I misexpressed myself. I mean we need to first have our patch (I2C layer
++ kernel drivers modifs) to be accepted before even having to help
+non-kernel modules (such as the zoran one which I'm using) convert their
+modules so that they will work with the new kernel.
+
+BTW, I need a new-I2C-layer patch for the kernel before I can change the
+zoran driver and test it. I guess that using our mkpatch script with
+I2C-cvs should do it?
+
+(This actually means that beginning with the zoran driver isn't the more
+logical thing to do, but since this is the only module I'll be able to
+test, better that way.)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
