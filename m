@@ -1,56 +1,29 @@
-From: manish@Zambeel.com (Manish Lachwani)
-Date: Thu, 19 May 2005 06:23:44 +0000
-Subject: ADM1021 on Xeon ...
-Message-Id: <233C89823A37714D95B1A891DE3BCE5202AB1B2B@xch-a.win.zambeel.com>
+From: maurice@harddata.com (Maurice Hilarius)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: lmsensors support offer
+Message-Id: <5.1.0.14.2.20020223110910.042526b0@mail.harddata.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3DCAA055.3070908@netroedge.com>
-In-Reply-To: <3DCAA055.3070908@netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
- 
-I have fixed this problem and everything is working fine. Thanks for the
-response ...
+I do not know what would be most helpful, but I am willing to work to help 
+where needed..
+Let me know what I can do..
 
-Manish
+BTW, I am trying to get this working on Tyan S2466 boards (AMD768MPX)
 
------Original Message-----
-From: David_Papasan@Dell.com
-To: manish@Zambeel.com; mds@paradyne.com; sensors@Stimpy.netroedge.com
-Sent: 12/12/02 6:22 AM
-Subject: RE: ADM1021 on Xeon ...
+I will lend/donate a motherboard (and CPU) is this is useful..
 
-*found in my outbox.. Not sure if this is a duplicate..*
-The actual chip is a Max 1617, I used the ADM1021 module with no errors
-other than having to reset the default temps . The Defaults are/were too
-low
-and it would cause false thermal failures due to it resetting the chip
-setting.
+Thanks!
 
-As a note Dell doesn't read the on chip diode we read all the temps thru
-the
-SMBus. -----Original Message-----
-From: Manish Lachwani [mailto:manish@Zambeel.com] 
-Sent: Wednesday, November 06, 2002 3:17 PM
-To: Papasan, David; 'mds@paradyne.com'; 'sensors@Stimpy.netroedge.com'
-Cc: Manish Lachwani
-Subject: ADM1021 on Xeon ...
+With our best regards,
 
-Hello,
+Maurice W. Hilarius       Telephone: 01-780-456-9771
+Hard Data Ltd.               FAX:       01-780-456-9772
+11060 - 166 Avenue        mailto:maurice@harddata.com
+Edmonton, AB, Canada      http://www.harddata.com/
+    T5X 1Y3
 
-I am making use of 2.4 GHZ Xeon CPUs. Do they have a adm1021 chip on it?
-I
-am using a adm1021.c driver and it cannot detect the adm1021 chip on the
-processor. How do I use force_adm1021 when using the adm1021.c compiled
-in
-the kernel? 
-
-Any help is appreciated ...
-
-Thanks
-manish
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20021217/d0adc380/attachment.html
+Ask me about the UP1500 Alpha - Full systems from $3,500!
