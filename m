@@ -1,33 +1,34 @@
-From: jgarzik@mandrakesoft.com (Jeff Garzik)
-Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: [patch 2/9]Four new i2c drivers and __init/__exit cleanup toi2c
-Message-Id: <3D8777AC.7000000@mandrakesoft.com>
+From: andrew.greig@mezzonet.net (Andrew Greig)
+Date: Thu, 19 May 2005 06:23:31 +0000
+Subject: PC87366 support
+Message-Id: <20020409180707.GK1677@irn-bru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D85E7E8.5EEC1499@attbi.com>
-In-Reply-To: <3D85E7E8.5EEC1499@attbi.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Albert Cranford wrote:
-> Hi Jeff,
-> I think I noted that compatibility stuff will not be
-> checked in, but noted here for linux-2.5.xx.  This is
-> something that I have to manually ignore when diffing 
-> CVS and kernel.  And yes EXPORT_NO_SYMBOLS is explicitly
-> defined now in 2.5.xx, but no harm in redundency, so I'll
-> leave it in the code.
-> 
-> I repaired the call to request_region and also removed an
-> unneeded call to request_region from the else path.
-> 
-> Now I need someone to test it in the different versions.
-> 
-> New change set.
-> Albert
-> --- i2c-pport.c 2002-09-12 02:55:47.000000000 -0400
-> +++ /usr/src/linux/drivers/i2c/i2c-pport.c      2002-09-17 08:39:20.000000000 -0400
+Greetings,
 
+Firstly, you guys are doing a great job with the development of i2c and 
+lm_sensors, this project really seems to be progressing.  It sure make 
+life easier for the rest of us that you've already done so much work in 
+this area.
 
-Yes, this patch looks fine to me...
+Anyway, I've been trying to get sensor data from a system known as a 
+Quanta, with a CP810E-FL motherboard, that features a (you guessed it) 
+Intel 810E chipset.  According to the motherboard manual, it has a 
+National Semiconductor PC87366 Super I/O controller that among other 
+things does temperature and voltage monitoring.  The lm_sensors new 
+drivers page lists this chip as having no planned driver.  I don't think I 
+have the skills to volunteer to write one, but I am curious about how 
+difficult it would be for this chip to be supported.  Is it greatly 
+different to any of the other chips you have drivers for?
+
+Thanks for your time.
+-- 
+Andrew Greig - Technical Support
+Internet Business Services Ltd.
+Beta Centre - Stirling Innovation Park - STIRLING - FK9 4NF - United 
+Kingdom
+(tel) +44 (0)1786 451600  (fax) +44 (0)1786 451274  (web) www.mezzonet.net
