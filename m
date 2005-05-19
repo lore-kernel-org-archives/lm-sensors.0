@@ -1,62 +1,48 @@
-From: zdavatz@ywesee.com (Zeno R.R. Davatz)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: lm-sensors Debian ppc 2.4.20-ben10
-Message-Id: <20030613124118.3be0cab0.zdavatz@ywesee.com>
+From: joelb@lanl.gov (Joel R. Berendzen)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: new scan script and cgi-bin history plot
+Message-Id: <32362.128.165.0.81.1115422400.squirrel@webmail.lanl.gov>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi
+Hi, Developers,
 
-I am running a PPC with 2.4.20-ben10 Kernel.
+I have a cluster that tends to get unreliable in the summers, so I wanted
+to use lm_sensors to keep tabs on it.  Although there are many packages
+out there to provide current conditions, I found only a few that log
+conditions so that one can spot trends.  The trends that I'm most worried
+about tend to build up over a matter of months as the weather heats up and
+the cooling system clogs with dust.
 
-I installed the packages lm-sensors-sources and i2c-source
+Tellerstats was the closest thing I found, but it wasn't really very
+close.  I really wanted the following features:
+1. A time history showing the whole history of the node, with more detail for
+   more recent history.  A log plot would be perfect.
+2. Rather than plotting absolute voltages and temperatures, I really
+wanted to
+   see how close things are to limits.
+3. I wanted a script to send warnings by e-mail or do shutdowns.
+4. I wanted to use the configuration work in sensors.conf and not have to
+   re-do the information in that file all over again for a script.
 
-in /usr/src/linux I done make-kpkg modules_image. This gave me two files:
-i2c-2.4.20-ben10_2.7.0-4+zeno.1_powerpc.deb  
-lm-sensors-2.4.20-ben10_2.7.0-5+zeno.1_powerpc.deb
+So, I wrote a couple of shell scripts.  Since I think they might be
+generally useful, I wanted to pass them along.  I'm not subscribed to this
+mailing list, and I'm not sure if attachments are stripped out, but I'm
+including the scripts and an example of the output as an attachment. 
+Please let me know if I need to send things another way.  I would
+appreciate it, if you agree these scripts are generally useful,  if you
+include these scripts in the downloadable scripts at the lm_sensors web
+site.
 
-Now when I do detect-sensors as root, I get: command not found.
-So I cd to /usr/src/modules/lm-sensors/prog/detect/sensors-detect and run the skript form there.
-
-All my sensors detect fine:
-#----cut here----
-# I2C adapter drivers
-# modprobe unknown adapter uni-n 0 using Keywest i2c
-# modprobe unknown adapter uni-n 1 using Keywest i2c
-# modprobe unknown adapter mac-io 0 using Keywest i2c
-# modprobe unknown adapter uni-n 0 using Keywest i2c
-# modprobe unknown adapter uni-n 1 using Keywest i2c
-# modprobe unknown adapter mac-io 0 using Keywest i2c
-# modprobe unknown adapter uni-n 0 using Keywest i2c
-# modprobe unknown adapter uni-n 1 using Keywest i2c
-# modprobe unknown adapter mac-io 0 using Keywest i2c
-# I2C chip drivers
-lm75
-eeprom
-#----cut here----
- 
-Then, run /etc/init.d/modutils
- 
- 
-To make the sensors modules behave correctly, add these lines to
-/etc/modutils/local and run update-modules:
- 
-#----cut here----
-# I2C module options
-alias char-major-89 i2c-dev
-#----cut here----
-
-But now when I try to run sensors, I get: command not found!
-
-Has sensors not been installed with my dpkg -i lm-sensors-2.4.20-ben10_2.7.0-5+zeno.1_powerpc.deb ?
-
-sudo find / -name sensors gives me:
-/usr/src/modules/lm-sensors/prog/init/sensors
-/usr/src/modules/lm-sensors/prog/sensors
-
-Thanks for your time and feedback.
-
-Zeno
+Cheers,
+  Joel Berendzen
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: scan_sensors.tgz
+Type: application/x-compressed-tar
+Size: 25603 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050506/a5293ed0/scan_sensors.bin
