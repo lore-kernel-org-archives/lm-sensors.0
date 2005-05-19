@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:37 +0000
 Subject: [PATCH] 2.6 preparations for documentation update
-Message-Id: <Pine.LNX.4.58.0502081530500.7839@desitka.sh.cvut.cz>
+Message-Id: <Q6QdLshP.1107873559.9907820.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0502081427510.7839@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0502081427510.7839@desitka.sh.cvut.cz>
@@ -10,17 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi again,
 
-> NB2: I think I remember you wanted to fix something on the "Supported
-> Devices" web page?
+Hi,
 
-Oh yes
-cvs [server aborted]: "commit" requires write access to the repository
+>Oh yes
+>cvs [server aborted]: "commit" requires write access to the repository
+>
+>But not today :)
 
-But not today :)
-I can give you fixed file this evening.
+Hm, aren't you supposed to have write access now?
 
-regards
+Phil, did you grant write access to Ruik to all of the i2c, lm_sensors2
+and website CVS modules?
 
-Rudolf
+Thanks,
+--
+Jean Delvare
