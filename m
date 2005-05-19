@@ -1,23 +1,23 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: [PATCH 2.6] bus scan removal
-Message-Id: <20031230200538.GA3163@kroah.com>
+Date: Thu, 19 May 2005 06:25:21 +0000
+Subject: i2c_force_data
+Message-Id: <20041109005252.GA26855@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031224171931.22744f11.khali@linux-fr.org>
-In-Reply-To: <20031224171931.22744f11.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Dec 24, 2003 at 05:19:31PM +0100, Jean Delvare wrote:
-> > Unless anyone objects, I'll be writing patches for both linux 2.4.23
-> > and 2.6.0, and submit them to Marcelo and Greg, respectively.
-> 
-> Here we go for 2.6.0. Greg, this patch drops bus scan from i2c-algo-ite
-> and i2c-ibm_iic. It also removes the incomplete and broken SLO_IO stuff
-> from i2c-algo-ite.
+Ick, does anyone still use i2c_force_data?
 
-Applied, thanks.
+Does the lm_sensors tools create force data that users use on the
+modprobe command line?
+
+I'd really like to get rid of that structure (hint, it's the last thing
+standing between the current code probe mess, and automatic chip driver
+loading when adapters are loaded, like the pci and usb and ieee1394 and
+pnp subsystems...)
+
+thanks,
 
 greg k-h
