@@ -1,32 +1,40 @@
-From: floeff@arcor.de (Florian Effenberger)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: i2c-ali1535.c:548: warning: initialization from incompatible pointer
-Message-Id: <41D6E143.8030204@arcor.de>
+Subject: i2c-ali1535.c:548: warning: initialization from incompatible
+Message-Id: <wtxEmei2.1104618591.6709780.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <41D6E143.8030204@arcor.de>
+In-Reply-To: <41D6E143.8030204@arcor.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello list,
 
-When compiling lm_sensors 2.9.0 with gcc 2.95.4, I receive the following 
-error:
+Hi Florian,
 
-gcc  -DMODVERSIONS -include 
-/root/linux-2.4.28/include/linux/modversions.h -D__KERNEL__ -DMODULE 
--DEXPORT_SYMTAB -fomit-frame-pointer -I. -Ikernel/include 
--I/usr/local/include  -I/root/linux-2.4.28/include -nostdinc -I 
-/usr/lib/gcc-lib/i386-linux/2.95.4/include  -Wall -O2  -c 
-kernel/busses/i2c-ali1535.c -o kernel/busses/i2c-ali1535.o
-kernel/busses/i2c-ali1535.c:547: unknown field `inc_use' specified in 
-initializer
-kernel/busses/i2c-ali1535.c:548: unknown field `dec_use' specified in 
-initializer
-kernel/busses/i2c-ali1535.c:548: warning: initialization from 
-incompatible pointer type
-make: *** [kernel/busses/i2c-ali1535.o] Fehler 1
+>When compiling lm_sensors 2.9.0 with gcc 2.95.4, I receive the following
+>error:
+>
+>gcc  -DMODVERSIONS -include
+>/root/linux-2.4.28/include/linux/modversions.h -D__KERNEL__ -DMODULE
+>-DEXPORT_SYMTAB -fomit-frame-pointer -I. -Ikernel/include
+>-I/usr/local/include  -I/root/linux-2.4.28/include -nostdinc -I
+>/usr/lib/gcc-lib/i386-linux/2.95.4/include  -Wall -O2  -c
+>kernel/busses/i2c-ali1535.c -o kernel/busses/i2c-ali1535.o
+>kernel/busses/i2c-ali1535.c:547: unknown field `inc_use' specified in
+>initializer
+>kernel/busses/i2c-ali1535.c:548: unknown field `dec_use' specified in
+>initializer
+>kernel/busses/i2c-ali1535.c:548: warning: initialization from
+>incompatible pointer type
+>make: *** [kernel/busses/i2c-ali1535.o] Fehler 1
 
-Have filed this as ticket 1857.
+Did you install i2c 2.9.0? lm_sensors 2.9.0 needs it.
 
-Florian
+If you did, please try to manually copy kernel/i2c.h from i2c 2.9.0 to
+/usr/local/include and see if it helps.
+
+Thanks,
+--
+Jean Delvare
