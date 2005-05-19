@@ -1,20 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:58 +0000
-Subject: website download.html
-Message-Id: <20030606093251.4772fb87.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: [PATCH] More i2c driver fixes for 2.6.0-test5
+Message-Id: <1064526609700@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020823210408.1d4a8289.khali@linux-fr.org>
-In-Reply-To: <20020823210408.1d4a8289.khali@linux-fr.org>
+In-Reply-To: <1064526609144@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+
+ChangeSet 1.1325.5.2, 2003/09/24 15:01:39-07:00, greg@kroah.com
+
+[PATCH] I2C: remove unneeded #defines in the eeprom chip driver.
 
 
-> Unless there's objections let's put this off until after the release.
+ drivers/i2c/chips/eeprom.c |    7 -------
+ 1 files changed, 7 deletions(-)
 
-Definitely. The last thing we'd need right now is screwing the CVS up.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+diff -Nru a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
+--- a/drivers/i2c/chips/eeprom.c	Thu Sep 25 14:49:30 2003
++++ b/drivers/i2c/chips/eeprom.c	Thu Sep 25 14:49:30 2003
+@@ -47,13 +47,6 @@
+ /* EEPROM registers */
+ #define EEPROM_REG_CHECKSUM	0x3f
+ 
+-/* EEPROM memory types: */
+-#define ONE_K			1
+-#define TWO_K			2
+-#define FOUR_K			3
+-#define EIGHT_K			4
+-#define SIXTEEN_K		5
+-
+ /* Size of EEPROM in bytes */
+ #define EEPROM_SIZE		256
+ 
+
