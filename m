@@ -1,12 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mlaue@us.ibm.com (Matthew Laue)
 Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: lm_sensors messages
-Message-Id: <20030916214501.3cef3d5c.khali@linux-fr.org>
+Message-Id: <OF6B4ECCDB.D2FEA1A7-ON87256DA3.007461B1-88256DA3.00749267@us.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030916214501.3cef3d5c.khali@linux-fr.org>
+In-Reply-To: <20030916214501.3cef3d5c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+I do work for IBM, but not for the PC company (division that makes the 
+Thinkpad).  This means that I could have as much trouble as you have and I 
+can only promise to try. 
+
+ Anyway,  I don't fully understand the problem.   You can identify which 
+machines have the problem chips, isn't that enough?  Do you just want a 
+complete list for posting?
+
+BTW.  The message that I sent you was *not* from a thinkpad.  It was from 
+an IBM Intellistation M Pro.
+
+Matt
+Please respond to sensors@Stimpy.netroedge.com 
+To:     Matthew Laue/Lexington/IBM@IBMUS
+cc:     sensors@Stimpy.netroedge.com 
+Subject:        Re: lm_sensors messages
+
+
 
 
 > As requested.
@@ -33,6 +54,9 @@ Do you think you could provide some assistance?
 
 Thanks.
 
--- 
+--
 Jean Delvare
 http://www.ensicaen.ismra.fr/~delvare/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030916/2a852eff/attachment.html
