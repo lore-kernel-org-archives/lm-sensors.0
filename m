@@ -1,47 +1,60 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:42 +0000
-Subject: [PATCH] 5V voltage incorrect on lm93
-Message-Id: <20050310033517.GF4472@jupiter.solarsys.private>
+From: lskwsk@wszib.edu.pl (=?Windows-1250?B?TWljaGGzIExhc2tvd3NraQ==?=)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: SMBus on WinNT READING problem. Can u help me?
+Message-Id: <57041875.20030203013908@wszib.edu.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <421E125A.7020300@earthlink.net>
-In-Reply-To: <421E125A.7020300@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David:
+hi !
 
-Sorry it took me so long to get to this, I've been swamped...
+  My name is Michal Laskowski and im from poland. Firs i want to say
+  sorry for my english, and for that email if u will get angry :).
+  I just want to ask u for a little bit help.
+  I use Win XP and DriverLinx Kernel Driver for Port I/O operations.
+  And i want to make some soft but i have a problem with getting a
+  information from SMBus. So  :
+  I Have ABit ST6, with Intel 815EP (ICH2) 82801BA, and a WinBond
+  W83627HF. I did a function for scaning a pci and my SMB adress is
+  0x5000 (Dev 0x1f, Fun 0x03) and here i have a problem for getting
+  any information from SMB.
+  I know that if SMB is bussy in his Base address (port) 1st bit will
+  be set for 1. so i can wait for the moment when smb will be free
 
-* David Knierim <david_knierim@earthlink.net> [2005-02-24 12:43:54 -0500]:
-> Hi,
->    I have been hunting down an issue related to the IN10 input of the 
-> LM93.   I have observed that there is a rather large error between the 
-> actual voltage and the voltage level displayed by sensors(1)  (~ .12V).
-> 
-> Please find attached a small patch that fixes this problem.   The data 
-> sheet is very ambiguous and I and another engineer made the same mistake 
-> calculating the voltage per DAC step the first time we read the spec sheet.
-> 
-> The confusion stems from an entry in the "maximum voltage" column that 
-> is higher than the value in the "absolute maximum range" column.  For 5V 
-> only, the value in the "register reading at maximum voltage" is for the 
-> voltage in the "absolute maximum range", NOT the "maximum voltage".  Whew!
+  After i wait i write to base_address +5 and to base_address +6 (this
+  will be my Index and Data registers) a "paramets" for function what
+  i want to call. for eg. i write 80h.
+  
+  Now to base_address +3 i write a command (for eg. 4Eh - Bank Select Register)
 
-Right.  I seem to remember wondering: "why would just that one channel
-have a non-linear scale?"  I should have asked you to test that one 
-specifically back when I first wrote the driver.  You might also be
-able to get clarification directly from NatSemi.
+  to base_address + 2 (Host Control Register) i write 48h for Byte
+  Data protocol and for generaiting an interaption afte completion of
+  the command.
 
-> I have tested this patch and it fixes the problem I just outlined. 
-> This patch is against lm_sensors 2.9.0.
+  im waiting for SMB
 
-Thanks, I've committed it to CVS.
+  now i read a data from base_address +6 and base_address +5
 
-Regards,
+  now i can read a vendor id high byte
+
+  so i do that
+  base_address + 5 = 0
+  base_address + 6 = 0
+  base_address + 3 = 4Fh
+  base_address + 2 = 48h
+  wait for SMB
+  and read base_address + 6 and base_address + 5
+
+  and that ports are empty no data are there
+  what i am making wrong maby i did something wrong but i dont know
+  what.
+
+  If u can help me it would be very nice.
+  Thanks a LOT
 
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Michal Laskowski
+                         mailto:lskwsk@wszib.edu.pl
