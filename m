@@ -1,66 +1,83 @@
-From: phil@netroedge.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:23:45 +0000
-Subject: [Fwd: Weird behaviour of adm1021 with max1617-i2c-0-4c]
-Message-Id: <3E1F2316.1040405@netroedge.com>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: bmcsensors on kernel 2.6.11
+Message-Id: <253818670503090737be7a38d@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+(I've forwarded this to the lm_sensors mailing list as I think this
+should be discussed on there)
 
+I hope it will get into the mainstream kernel relatively soon, I
+haven't asked for it to be included in the mainstream kernel yet,
+mainly because I wanted enough testing to ensure that it was of some
+reasonable stability. The patch has been out for a year now however,
+and the only reports of instability I had would seem to be problems
+that were fixed in the 2.4 version.
 
--------- Original Message --------
+Now that I've updated the patch to include the fixes applied to the
+2.4 version since the initial port the only thing that perhaps might
+restrict it from being included in the kernel is the method that one
+has to declare the sysfs callback - there is no way (I should say
+there was no way at the time of the initial port - I haven't looked
+into it since then) to dynamically create a number of sysfs callbacks
+decided at run-time. Hence if you look at the 2.6 bmcsensors I have
+the kludge of having to declare a set number of callbacks at
+compile-time which, apart from looking very ugly, limits the number of
+sensors.
 
-To: frodol@dds.nl, phil@netroedge.com
-Subject: Weird behaviour of adm1021 with max1617-i2c-0-4c
-Date: Fri, 10 Jan 2003 20:37:18 +0100
+The reasons for this limitation are simply that none of the other
+sensors in the lm_sensors project have the ability to address a
+virtually unlimited number of sensors, rather most can only address a
+few (after all most of the 'chip' drivers are for relatively simple
+hardware chips :-) ).
 
+Unless anybody knows of a nice way to avoid this, what is a reasonable
+maximum number of sensors for an IPMI BMC? And how would I go about
+getting the driver included in the kernel?
 
+Yani
 
-Hi there,
-
-I own a new Gigabyte GA-7VAXP motherboard with a Via KT400 chipset.
-
-This card seems to have a max1617-i2c-0-4c that is driven by the adm1021 
-module.
-
-Here are my settings in sensors.conf for it:
-
-chip "max1617-*"
-    ignore "temp"
-    label "remote_temp" "Athlon CPU T?"
-    set remote_temp_low 10
-    set remote_temp_over 70
-
-I was suprised to see that a temperature sensor has a "low" and an "over" 
-setting, rather than an "over" and an "hysteresis" setting...
-
-When using it, I get a display that looks correct:
-
-[root@totor etc]# sensors
-[... ]
-max1617-i2c-0-4c
-Adapter: SMBus Via Pro adapter at 5000
-Algorithm: Non-I2C SMBus adapter
-Athlon CPU T?:
-             +54?C  (min =  +10?C, max =  +70?C)
-
-...but the sensorsd daemon logs in my /var/log/messages the limits as follows:
-
-Jan 10 20:17:36 totor sensord: Chip: max1617-i2c-0-4c
-Jan 10 20:17:36 totor sensord: Adapter: SMBus Via Pro adapter at 5000
-Jan 10 20:17:36 totor sensord: Algorithm: Non-I2C SMBus adapter
-Jan 10 20:17:36 totor sensord:   Athlon CPU T?: 54 C (limit = 70 C, hysteresis 
-= 10 C)
-
-...which incorrectly reports the lower limit as being an "hysteresis"...
-
-Hope this report can be of some help.
-
-Best regards.
-
--- 
-Michel Bouissou <michel@bouissou.net> OpenPGP ID 0xDDE8AC6E
-
-
+On Wed, 09 Mar 2005 08:25:06 -0600, Corey Minyard <minyard@acm.org> wrote:
+> Bene Martin wrote:
+> 
+> >Hi Yani,
+> >
+> >
+> >
+> >>Just to let you know, I've updated the patch for kernel 2.6.11.1,
+> >>incorporating all the changes made to the 2.4 version and your
+> >>suggested change for ipmi_request->ipmi_request_settime (which was
+> >>surprisingly easy - most of the 2.4 cvs diffs applied fine).
+> >>
+> >>
+> >
+> >Thanks!
+> >
+> >
+> >
+> >>Interestingly enough the ipmi_request_settime still has a comment in
+> >>the header "Don't use this unless you *really* have to.", making me
+> >>wonder if there is a reason not to be using it instead of ipmi_request
+> >>if its re-incorporated into the kernel.
+> >>
+> >>
+> >
+> >I guess the only one qualified to answer that one would be corey.
+> >
+> >Bye, Martin
+> >
+> >
+> You wouldn't generally use it because it sets the timeouts and for most
+> purposes the timeouts are defined by the spec (sort of).
+> 
+> Do you have any feeling when the BMC sensors package will go into the
+> mainstream kernel?  That would be the time to coordinate adding the
+> normal function back in so I'm not constantly fighting the unused
+> function police.
+> 
+> -Corey
+>
