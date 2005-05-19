@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:52 +0000
 Subject: [PATCH] I2C update for 2.6.5
-Message-Id: <10819814503946@kroah.com>
+Message-Id: <10819814502649@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10819814504116@kroah.com>
+In-Reply-To: <10819814503946@kroah.com>
 References: <10819814492866@kroah.com>
 In-Reply-To: <10819814492866@kroah.com>
 MIME-Version: 1.0
@@ -11,112 +11,116 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1643.36.7, 2004/03/30 14:26:19-08:00, khali@linux-fr.org
+ChangeSet 1.1643.36.8, 2004/03/30 14:26:38-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Prevent misdetections in adm1021 driver
+[PATCH] I2C: i2c documentation update (1/2)
 
-Yet another patch for the adm1021 chip driver. I refined the detection
-code a bit in order to prevent chip misdetection. Some chips handled
-by the adm1021 driver are hard to detect and identify (LM84 and
-MAX1617) so we tend to accept any chip it the valid I2C address range
-as one of these. It has caused much, much trouble already. See these
-threads for example:
-
-http://archives.andrew.net.au/lm-sensors/msg04448.html
-http://archives.andrew.net.au/lm-sensors/msg04624.html
-http://archives.andrew.net.au/lm-sensors/msg05560.html
-http://archives.andrew.net.au/lm-sensors/msg05871.html
-http://archives.andrew.net.au/lm-sensors/msg06754.html
-http://archives.andrew.net.au/lm-sensors/msg07181.html
-
-And this ticket:
-
-http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket34
-
-So I thought it would be good to prevent this kind of problems if
-possible, and read the 8 datasheets again in search for ways to refine
-the detection method.
-
-I changed it in sensors-detect already, and had positive feedback from
-one user. I will also backport the changes to the driver to the 2.4
-version we have in CVS.
-
-What the patch does:
-
-* Use unused bits of two more registers (configuration and conversion
-rate) to reduce misdetections.
-
-* Return with -ENODEV if the detection fails.
-
-* Change the order in which we try to identify the chips. We better
-finish with the LM84 and the MAX1617, in this order, because they are
-harder to identify and are more likely to result in false positives.
-
-* Refine LM84 detection. The LM84 has less features than the other
-chips(chip cannot be stopped, conversion rate cannot be set, no low
-limits) so it has extra unused bits.
-
-* Do not intialize the chip if it was detected as an LM84. This one
-cannot be stopped so why would we try to start it again? And as said
-right before, conversion rate isn't changeable either.
-
-Note that I couldn't test the changes on any supported chip since I
-don't own any. Still I believe that they should be applied, since the
-current code already broke one system and seriously harmed several
-others. I believe it's not critical if it turns out that we reject
-valid chips (which shouldn't happen if the datasheets are correct,
-anyway). People will simply let us know and we'll be less restrictive.
-In the meantime they can force the driver. That said, testers are
-welcome, as usual.
+Here is an update to my 2.4 to 2.6 i2c client porting guide. The changes
+were inspired by the feedback I got with the drivers that have been
+ported so far.
 
 
- drivers/i2c/chips/adm1021.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+ Documentation/i2c/porting-clients |   46 +++++++++++++++++++++++---------------
+ 1 files changed, 29 insertions(+), 17 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/adm1021.c b/drivers/i2c/chips/adm1021.c
---- a/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:28 2004
-+++ b/drivers/i2c/chips/adm1021.c	Wed Apr 14 15:14:28 2004
-@@ -246,8 +246,12 @@
+diff -Nru a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
+--- a/Documentation/i2c/porting-clients	Wed Apr 14 15:14:22 2004
++++ b/Documentation/i2c/porting-clients	Wed Apr 14 15:14:22 2004
+@@ -1,4 +1,4 @@
+-Revision 3, 2003-10-04
++Revision 4, 2004-03-30
+ Jean Delvare <khali@linux-fr.org>
+ Greg KH <greg@kroah.com>
  
- 	/* Now, we do the remaining detection. */
- 	if (kind < 0) {
--		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00)
-+		if ((adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0x03) != 0x00
-+		 || (adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x3F) != 0x00
-+		 || (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) & 0xF8) != 0x00) {
-+			err = -ENODEV;
- 			goto error1;
-+		}
- 	}
+@@ -24,9 +24,10 @@
+   #include <linux/slab.h>
+   #include <linux/i2c.h>
+   #include <linux/i2c-sensor.h>
+-  #include <linux/i2c-vid.h>     /* if you need VRM support */
+-  #include <asm/io.h>            /* if you have I/O operations */
+-  Some extra headers may be required for a given driver.
++  #include <linux/i2c-vid.h>	/* if you need VRM support */
++  #include <asm/io.h>		/* if you have I/O operations */
++  Please respect this inclusion order. Some extra headers may be
++  required for a given driver (e.g. "lm75.h").
  
- 	/* Determine the chip type. */
-@@ -265,11 +269,14 @@
- 		else if ((i = 0x4d) &&
- 			 (adm1021_read_value(new_client, ADM1021_REG_DEV_ID) = 0x01))
- 			kind = max1617a;
--		/* LM84 Mfr ID in a different place */
--		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00)
--			kind = lm84;
- 		else if (i = 0x54)
- 			kind = mc1066;
-+		/* LM84 Mfr ID in a different place, and it has more unused bits */
-+		else if (adm1021_read_value(new_client, ADM1021_REG_CONV_RATE_R) = 0x00
-+		      && (kind = 0 /* skip extra detection */
-+		       || ((adm1021_read_value(new_client, ADM1021_REG_CONFIG_R) & 0x7F) = 0x00
-+			&& (adm1021_read_value(new_client, ADM1021_REG_STATUS) & 0xAB) = 0x00)))
-+			kind = lm84;
- 		else
- 			kind = max1617;
- 	}
-@@ -305,7 +312,8 @@
- 		goto error1;
+ * [Addresses] SENSORS_I2C_END becomes I2C_CLIENT_END, SENSORS_ISA_END
+   becomes I2C_CLIENT_ISA_END.
+@@ -37,9 +38,9 @@
+   names for sysfs files (see the Sysctl section below).
  
- 	/* Initialize the ADM1021 chip */
--	adm1021_init_client(new_client);
-+	if (kind != lm84)
-+		adm1021_init_client(new_client);
+ * [Function prototypes] The detect functions loses its flags
+-  parameter. Sysctl (e.g. lm75_temp) and miscellaneous (e.g.
+-  swap_bytes) functions are off the list of prototypes. This
+-  usually leaves five prototypes:
++  parameter. Sysctl (e.g. lm75_temp) and miscellaneous functions
++  are off the list of prototypes. This usually leaves five
++  prototypes:
+   static int lm75_attach_adapter(struct i2c_adapter *adapter);
+   static int lm75_detect(struct i2c_adapter *adapter, int address,
+       int kind);
+@@ -70,13 +71,14 @@
+ * [Detect] As mentioned earlier, the flags parameter is gone.
+   The type_name and client_name strings are replaced by a single
+   name string, which will be filled with a lowercase, short string
+-  (typically the driver name, e.g. "lm75"). The errorN labels are
+-  reduced to the number needed. If that number is 2 (i2c-only
+-  drivers), it is advised that the labels are named exit and
+-  exit_free. For i2c+isa drivers, labels should be named ERROR0,
+-  ERROR1 and ERROR2. Don't forget to properly set err before
+-  jumping to error labels. By the way, labels should be
+-  left-aligned.
++  (typically the driver name, e.g. "lm75").
++  In i2c-only drivers, drop the i2c_is_isa_adapter check, it's
++  useless.
++  The errorN labels are reduced to the number needed. If that number
++  is 2 (i2c-only drivers), it is advised that the labels are named
++  exit and exit_free. For i2c+isa drivers, labels should be named
++  ERROR0, ERROR1 and ERROR2. Don't forget to properly set err before
++  jumping to error labels. By the way, labels should be left-aligned.
+   Use memset to fill the client and data area with 0x00.
+   Use i2c_set_clientdata to set the client data (as opposed to
+   a direct access to client->data).
+@@ -85,6 +87,11 @@
+   device_create_file. Move the driver initialization before any
+   sysfs file creation.
  
- 	/* Register sysfs hooks */
- 	device_create_file(&new_client->dev, &dev_attr_temp1_max);
++* [Init] Limits must not be set by the driver (can be done later in
++  user-space). Chip should not be reset default (although a module
++  parameter may be used to force is), and initialization should be
++  limited to the strictly necessary steps.
++
+ * [Detach] Get rid of data, remove the call to
+   i2c_deregister_entry.
+ 
+@@ -92,7 +99,8 @@
+   i2c_get_clientdata(client) instead.
+ 
+ * [Interface] Init function should not print anything. Make sure
+-  there is a MODULE_LICENSE() line.
++  there is a MODULE_LICENSE() line, at the bottom of the file
++  (after MODULE_AUTHOR() and MODULE_DESCRIPTION(), in this order).
+ 
+ Coding policy:
+ 
+@@ -102,8 +110,7 @@
+   can. Calls to printk/pr_debug for debugging purposes are replaced
+   by calls to dev_dbg. Here is an example on how to call it (taken
+   from lm75_detect):
+-  dev_dbg(&adapter->dev,
+-          "lm75_detect called for an ISA bus adapter?!?\n");
++  dev_dbg(&client->dev, "Starting lm75 update\n");
+   Replace other printk calls with the dev_info, dev_err or dev_warn
+   function, as appropriate.
+ 
+@@ -119,3 +126,8 @@
+ * [Layout] Avoid extra empty lines between comments and what they
+   comment. Respect the coding style (see Documentation/CodingStyle),
+   in particular when it comes to placing curly braces.
++
++* [Comments] Make sure that no comment refers to a file that isn't
++  part of the Linux source tree (typically doc/chips/<chip name>),
++  and that remaining comments still match the code. Merging comment
++  lines when possible is encouraged.
 
