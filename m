@@ -1,83 +1,68 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: lm_sensors problem
-Message-Id: <20050227212318.2878f53a.khali@linux-fr.org>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:31 +0000
+Subject: [PATCH] I2C: adm1026.c fixes
+Message-Id: <11059983953842@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11059983952608@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: jthiessen@penguincomputing.com
 
-Hi,
+ChangeSet 1.2329.2.4, 2005/01/14 14:42:28-08:00, jthiessen@penguincomputing.com
 
-(Moving to the LM Sensors mailing list so that it ends up in the archives.)
+[PATCH] I2C: adm1026.c fixes
 
-> I have a problem with lm_sensors, and I saw you discussing exactly
-> same problem on some forum - but the discussion was not finished. If
-> you have some time could you please try to help me? The problem is:
-> 
-> - I have computer based on intel d865 perl motherboard, with fedora
-> core 3  installed (almost minimal instalation) and with
-> lm_sensors-2.9.0-38.1.rhfc3.at.i386.rpm
-> 
-> - sensors_detect passes ok, and instructs me to do following:
-> 
-> #----cut here----
-> # I2C module options
-> alias char-major-89 i2c-dev
-> #----cut here----
-> 
-> #----cut here----
-> # I2C adapter drivers
-> modprobe i2c-i801
-> modprobe i2c-isa
-> # I2C chip drivers
-> modprobe lm85
-> modprobe smbus-arp
-> # no driver for Nat. Semi. PC87372 Super IO Fan Sensors yet
-> # sleep 2 # optional
-> /usr/bin/sensors -s # recommended
-> #----cut here---
-> 
->  
-> I did what it asked for, all modules loads, except:
-> 
-> modprobe smbus-arp  prints:
-> FATAL: module smbus_arp not found.
+Ok, take 3 on the adm1026 patch.
 
-That one was not ported to Linux 2.6 and is not interesting for end
-users anyway. Forget about it.
+In this patch:
 
-> And sensors subsequently displays only following information:
-> eeprom-i2c-0-50
-> Adapter: SMBus I801 adapter at c800
-> Memory type:            DDR SDRAM DIMM
-> Memory size (MB):       512
->  
-> Absolutely no information about temperature or fan speed. I spent a
-> day searching on interned, I tried to install older version of
-> lm_sensors, tried to install latest i2c package, I even tried to
-> install fedora core 2, but nothing helped. Do you have any idea? 
+(1) Code has been added which ensures that the fan divisor registers are
+    properly read into the data structure before fan minimum speeds are
+    determined.  This prevents a possible divide by zero error.  The line
+    which reads the hardware default fan divisor values has been reformatted
+    as suggested by Andreas Dilger to make the intent of the statement clearer.
 
-The lm85 driver should provide hardware monitoring data. If it doesn't,
-it means that the chip detection failed. If sensors-detect found an SMSC
-chip it's a known bug, fixed by now but maybe you don't want to upgrade
-kernels.
+(2) In a similar spirit, an unecessary carriage return from a "dev_dbg"
+    statement in the adm1026_print_gpio() function has been elminated,
+    shortening the statement to a single line and making the code easier
+    to read.
 
-Solution:
-modprobe i2c-dev
-i2cdetect 0
+Signed-off-by: Justin Thiessen <jthiessen@penguincomputing.com
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
-A chip will show at address 0x2c, 0x2d or 0x2e. Note the address. Then,
-when loading the lm85 driver, add a force parameter:
 
-modprobe lm85 force=0,0x2c # replace with the real address if different
+ drivers/i2c/chips/adm1026.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-That should do it. If it works you can add the following line in
-/etc/modprobe.conf:
-option lm85 force=0,0x2c
-So that the trick will still be active after reboot.
 
-Hope that helps,
--- 
-Jean Delvare
+diff -Nru a/drivers/i2c/chips/adm1026.c b/drivers/i2c/chips/adm1026.c
+--- a/drivers/i2c/chips/adm1026.c	2005-01-17 13:20:53 -08:00
++++ b/drivers/i2c/chips/adm1026.c	2005-01-17 13:20:53 -08:00
+@@ -452,6 +452,14 @@
+ 		client->id, value);
+ 	data->config1 = value;
+ 	adm1026_write_value(client, ADM1026_REG_CONFIG1, value);
++
++	/* initialize fan_div[] to hardware defaults */
++	value = adm1026_read_value(client, ADM1026_REG_FAN_DIV_0_3) |
++		(adm1026_read_value(client, ADM1026_REG_FAN_DIV_4_7) << 8);
++	for (i = 0;i <= 7;++i) {
++		data->fan_div[i] = DIV_FROM_REG(value & 0x03);
++		value >>= 2;
++	}
+ }
+ 
+ void adm1026_print_gpio(struct i2c_client *client)
+@@ -459,8 +467,7 @@
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int  i;
+ 
+-	dev_dbg(&client->dev, "(%d): GPIO config is:",
+-			    client->id);
++	dev_dbg(&client->dev, "(%d): GPIO config is:", client->id);
+ 	for (i = 0;i <= 7;++i) {
+ 		if (data->config2 & (1 << i)) {
+ 			dev_dbg(&client->dev, "\t(%d): %sGP%s%d\n", client->id,
+
