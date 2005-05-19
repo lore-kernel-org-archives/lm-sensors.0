@@ -1,25 +1,25 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: [PATCH 2.6] it87 and via686a alarms
-Message-Id: <20031204222419.GA2511@kroah.com>
+From: romain.goyet@polytechnique.org (Romain Goyet)
+Date: Thu, 19 May 2005 06:24:43 +0000
+Subject: Linux 2.6.3 i2c it87 sensor support
+Message-Id: <CBF4B814-67DF-11D8-89D2-000393034272@polytechnique.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031121220837.0084cb1d.khali@linux-fr.org>
-In-Reply-To: <20031121220837.0084cb1d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 21, 2003 at 10:08:37PM +0100, Jean Delvare wrote:
-> > it87 and via686a violate the sysfs standard by having "alarm" instead
-> > of "alarms", would you please fix in your next patch?
-> 
-> I'm not the only one allowed to send patches to Greg, you know ;)
-> Anyway, here we go. Greg, here is a patch that corrects the standard
-> violation reported by Mark. Tested to compile.
-> 
-> (It also removes a useless comment in it87.c.)
+Hi I have a motherboard wich uses an it87. My problem is that the 
+latest linux kernel (2.6.3) includes a driver for this chip, but that 
+driver is older than the one included in latest lm_sensors : in effect, 
+it lacks support for it87_reset, which is implemented in latest 
+lm_sensors and which is really usefull. It also lacks FanGuardian (aka 
+SmartFan), which is also really usefull, and already implemented in 
+lm_sensors 2.8.4.
 
-applied, thanks.
+I ABSOLUTELY needed to be able to boot without reseting the it87, so I 
+manually patched the vanilla kernel (I simply removed the corresponding 
+line), but the SmartGuardian feature still isn't there.
 
-greg k-h
+Anyway; thanks for such an awesome project
+
+Romain Goyet
