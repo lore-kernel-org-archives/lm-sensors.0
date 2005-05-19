@@ -1,40 +1,49 @@
-From: frank.beesley@aeroflex.com (Frank Beesley)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:42 +0000
 Subject: Clean up of i2c-elektor.c build for 2.6.11
-Message-Id: <422E2417.7020707@aeroflex.com>
+Message-Id: <boNvYi7m.1110356888.9708990.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <422E2417.7020707@aeroflex.com>
+In-Reply-To: <422E2417.7020707@aeroflex.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greg,
 
-I am trying to fix some problems I am having with my 2.6.9 and trying 
-some stuff with 2.6.11. I see a lot of differences with the I2C and 
-almost everything I have tested works. (applause). One of the messages I 
-noticed during the kernel module build of 2.6.11 was i2c-elektor.c 
-complaining:
+Hi Frank,
 
-drivers/i2c/busses/i2c-elektor.c:120: warning: comparison of distinct 
-pointer types lacks a cast
-drivers/i2c/busses/i2c-elektor.c:127: warning: comparison of distinct 
-pointer types lacks a cast
-drivers/i2c/busses/i2c-elektor.c:131: warning: comparison of distinct 
-pointer types lacks a cast
+> drivers/i2c/busses/i2c-elektor.c:120: warning: comparison of distinct
+> pointer types lacks a cast
+> drivers/i2c/busses/i2c-elektor.c:127: warning: comparison of distinct
+> pointer types lacks a cast
+> drivers/i2c/busses/i2c-elektor.c:131: warning: comparison of distinct
+> pointer types lacks a cast
+>
+> I traced it down to the flags type on line 115.
+> (...)
+> --- diff ---
+> i2c-elektor.c
+> 115c115
+> <       long flags;
+> ---
+> >       unsigned long flags;
 
-I traced it down to the flags type on line 115. Now it builds cleanly. I 
-have tested this and it appears to have no impact on my stuff. This 
-should a low priority patch item but makes it easier to spot real bugs 
-when the build occurs without these messages.
+Hey, that's great. I have been wanting to get rid of these warnings for
+quite some time, and even took a look at some point, but couldn't
+figure out what was wrong. Turns out to be very simple to fix, so I'm
+kind of ashamed that I didn't find the reason and fix back then ;)
 
-Thanks
-Frank
+When submitting patches, please make them "unified" (diff -u). Also,
+please include complete paths so that patches can be applied with patch
+-p1. The command would be something like:
+  diff -u linux-2.6.11/drivers/i2c/busses/i2c-elektor.c.orig \
+          linux-2.6.11/drivers/i2c/busses/i2c-elektor.c > ~/some-file.diff
 
+Please post the patch again in this format, with a short description of
+what the patch does and the standard "Signed-Off-By" line, so that
+Greg can accept it in its bk-i2c tree.
 
---- diff ---
-i2c-elektor.c
-115c115
-<       long flags;
----
- >       unsigned long flags;
+Thanks,
+--
+Jean Delvare
