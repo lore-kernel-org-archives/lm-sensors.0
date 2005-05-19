@@ -1,23 +1,24 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:25 +0000
-Subject: I2C parallel port adapters drivers
-Message-Id: <20031114011154.GJ16352@kroah.com>
+From: holler@ahsoftware.de (Alexander Holler)
+Date: Thu, 19 May 2005 06:23:40 +0000
+Subject: lm_sensors_db
+Message-Id: <302500000.1034704467@krabat.ahsoftware>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031102132342.79920c6f.khali@linux-fr.org>
-In-Reply-To: <20031102132342.79920c6f.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@stimpy.netroedge.com, linux-kernel@vger.kernel.org
-Cc: Simon Vogl <simon@voxel.at>, Daniel Smolik <marvin@sitour.cz>
+To: lm-sensors@vger.kernel.org
 
-On Sun, Nov 02, 2003 at 01:23:42PM +0100, Jean Delvare wrote:
-> 
-> I think we should merge the four drivers into a single one, or at least
-> (if there is one good reason to access the parallel port using two
-> different methods) the last three drivers into a single one. I volunteer
-> to do so, but I want to ear opinions about the idea before going on.
+Hi,
 
-Sounds like a good idea.
+the project is now online. I think it would be a good idea if someone of 
+you would register at berliOS 
+(http://developer.berlios.de/account/register.php) so I could add at least 
+another project admin. Just send me your username at berliOS and I will 
+give you administration rights for the project.
 
-greg k-h
+I think the database will be online in the next few hours. Then I need some 
+feedback about what I'm doing. ;)
+
+Regards,
+
+Alexander
