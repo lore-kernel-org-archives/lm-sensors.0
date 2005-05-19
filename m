@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: zdavatz@ywesee.com (Zeno R.R. Davatz)
 Date: Thu, 19 May 2005 06:23:56 +0000
 Subject: Testing ASUS PU-DLS
-Message-Id: <20030513153916.3992d9f1.khali@linux-fr.org>
+Message-Id: <1052834368.613.35.camel@zrr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1052831030.613.28.camel@zrr>
 In-Reply-To: <1052831030.613.28.camel@zrr>
@@ -10,24 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-> > What you need is I2C, not I2O.
+On Tue, 2003-05-13 at 15:26, Jean Delvare wrote:
+> > I got 'I20', 'I20 PCI' and 'I20 /proc support' compiled into my
+> > kernel.
+> > 
+> > I did not compile 'I20 Block/LAN/SCSI OSM' into the kernel.
 > 
-> Where can I find that in the kernel?
+> What you need is I2C, not I2O.
 
-Character Devices > I2C Support
+thanks for the hint.
 
-Anyway, you need some additional drivers. I suggest you take a look at
-the following packages:
+I downloaded the packages.
 
-lm-sensors (2.7.0-3)
-lm-sensors-source (2.7.0-3)
-i2c-source (2.7.0-3)
+In ../modules I done 'make all'
 
-I guess you already have the first one since you were able to run
-sensors-detect, but you may need to download, install and compile the
-two others.
+and I get:
+grep: /usr/src/linux/.config: No such file or directory
+make: *** No rule to make target `linux/modversions.h', needed by
+`kernel/chips/vt1211.d'.  Stop.
+
+Why would that be?
+
+Thanks for your time and help.
+
+Zeno
+
+
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mit freundlichen Gr?ssen / best regards
+
+Zeno Davatz
+Strategie & Akquisition
+
++41 1 350 85 86
+
+www.ywesee.com > intellectual capital connected > www.generika.cc
