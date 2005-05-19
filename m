@@ -1,18 +1,92 @@
-From: minyard@acm.org (Corey Minyard)
-Date: Thu, 19 May 2005 06:25:48 +0000
-Subject: [PATCH] Remove redundancy from i2c-core.c
-Message-Id: <425418AD.6060102@acm.org>
+From: Manfred.Knick@T-Online.de (Manfred Knick)
+Date: Thu, 19 May 2005 06:24:56 +0000
+Subject: I2C and lm-sensors : gentoo-sources 2.4.25 and your patches
+Message-Id: <200405030319.31256.Manfred.Knick@T-Online.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lkml <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Sensors <sensors@stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
+
+Kind regards from Munich. Germany !
 
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: i2c_remove_redundant_check.diff
-Type: text/x-patch
-Size: 2866 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050406/e3ce9b0c/i2c_remove_redundant_check.bin
+Using Gentoo, I tried to follow Jean Delvare's instructions:
+
+emerged a fresh clean actual production kernel (gentoo-sources-2.4.25-r2)
+and renamed the tree to gentoo-sources-2.4.25-r2-sensors -
+
+modifying Makefile -> EXTRAVERSION = -gentoo-r2-sensors accordingly.
+
+Then I applied the provided patch for 2.4.25.
+
+But unfortunately, after quite hopeful compilation efforts, depmod fails:
+
+if [ -r System.map ]; then /sbin/depmod -ae -F System.map  
+2.4.25-gentoo-r2-sensors; fi
+
+with
+	*** Unresolved symbols
+in 
+	/lib/modules/kernel/drivers/mgavideo/ks0127.o
+	/lib/modules/kernel/drivers/mgavideo/mga_core.o
+	/lib/modules/kernel/drivers/mgavideo/maven.o
+	/lib/modules/kernel/drivers/mgavideo/msp3400.o
+	/lib/modules/kernel/drivers/mgavideo/tuner.o
+
+missing
+		i2c_add_adapter
+		i2c_del_adapter
+		i2c_add_driver
+		i2c_del_driver
+		i2c_attach_client
+		i2c_detach_client
+		i2c_get_client
+		i2c_master_send
+		i2c_master_recv
+		i2c_transfer
+		i2c_probe
+
+_all_ of these being defined via  EXPORT_SYMBOL in
+
+	linux/drivers/i2c/i2c-core.c
+But :
+	> grep I2C .config
+results in :
+
+# I2C support
+CONFIG_I2C=m
+CONFIG_I2C_ALGOBIT=m
+# CONFIG_I2C_PHILIPSPAR is not set
+# CONFIG_I2C_ELV is not set
+# CONFIG_I2C_VELLEMAN is not set
+# CONFIG_SCx200_I2C is not set
+# CONFIG_I2C_ALGOPCF is not set
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_PROC=m
+CONFIG_FB_MATROX_I2C=m
+
+And:
+	> find /lib/modules/2.4.25-gentoo-r2-sensors/ -name i2c*.o -print
+results in :
+
+/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-core.o
+/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-algo-bit.o
+/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-proc.o
+/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-dev.o
+/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/video/matrox/i2c-matroxfb.o
+
+so it seems "i2c-core" _has_ been built.
+
+Applying "emerge --ask  /usr/portage/sys-apps/lm-sensors/i2c-2.8.4.ebuild"
+and trying it again led to identical results.
+
+
+??? Do I have tomatoes on my eyes ???
+(Yes, I do realize it's 03:16 early in the morning over here ;-)
+
+??? Can you help me and spot it ???
+
+Greetings and thanks in advance
+
+- Manfred
