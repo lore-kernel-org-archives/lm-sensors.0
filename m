@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:54 +0000
 Subject: [PATCH] i2c driver changes for 2.5.68
-Message-Id: <10512287463226@kroah.com>
+Message-Id: <1051228746305@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10512287462983@kroah.com>
+In-Reply-To: <10512287461640@kroah.com>
 References: <10512287461373@kroah.com>
 In-Reply-To: <10512287461373@kroah.com>
 MIME-Version: 1.0
@@ -11,37 +11,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1179.3.3, 2003/04/23 11:33:28-07:00, hch@lst.de
+ChangeSet 1.1179.3.7, 2003/04/24 11:13:08-07:00, greg@kroah.com
 
-[PATCH] i2c: remove dead init code from i2c-sensors.c
-
-
- drivers/i2c/i2c-sensor.c |   12 ------------
- 1 files changed, 12 deletions(-)
+[PATCH] i2c: removed unused flags paramater in found_proc callback.
 
 
-diff -Nru a/drivers/i2c/i2c-sensor.c b/drivers/i2c/i2c-sensor.c
---- a/drivers/i2c/i2c-sensor.c	Thu Apr 24 16:47:26 2003
-+++ b/drivers/i2c/i2c-sensor.c	Thu Apr 24 16:47:26 2003
-@@ -163,20 +163,8 @@
+ drivers/i2c/i2c-core.c |    8 ++++----
+ include/linux/i2c.h    |    5 +----
+ 2 files changed, 5 insertions(+), 8 deletions(-)
+
+
+diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c	Thu Apr 24 16:46:44 2003
++++ b/drivers/i2c/i2c-core.c	Thu Apr 24 16:46:44 2003
+@@ -618,8 +618,8 @@
+  * ----------------------------------------------------
+  */
+ int i2c_probe(struct i2c_adapter *adapter,
+-                   struct i2c_client_address_data *address_data,
+-                   i2c_client_found_addr_proc *found_proc)
++	      struct i2c_client_address_data *address_data,
++	      int (*found_proc) (struct i2c_adapter *, int, int))
+ {
+ 	int addr,i,found,err;
+ 	int adap_id = i2c_adapter_id(adapter);
+@@ -644,7 +644,7 @@
+ 			     (addr = address_data->force[i+1])) {
+ 				DEB2(printk(KERN_DEBUG "i2c-core.o: found force parameter for adapter %d, addr %04x\n",
+ 				            adap_id,addr));
+-				if ((err = found_proc(adapter,addr,0,0)))
++				if ((err = found_proc(adapter,addr,0)))
+ 					return err;
+ 				found = 1;
+ 			}
+@@ -732,7 +732,7 @@
+ 		/* OK, so we really should examine this address. First check
+ 		   whether there is some client here at all! */
+ 		if (i2c_smbus_xfer(adapter,addr,0,0,0,I2C_SMBUS_QUICK,NULL) >= 0)
+-			if ((err = found_proc(adapter,addr,0,-1)))
++			if ((err = found_proc(adapter,addr,-1)))
+ 				return err;
+ 	}
  	return 0;
- }
+diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h	Thu Apr 24 16:46:44 2003
++++ b/include/linux/i2c.h	Thu Apr 24 16:46:44 2003
+@@ -338,12 +338,9 @@
+  * It will only call found_proc if some client is connected at the
+  * specific address (unless a 'force' matched);
+  */
+-typedef int i2c_client_found_addr_proc (struct i2c_adapter *adapter,
+-                                     int addr, unsigned short flags,int kind);
+-
+ extern int i2c_probe(struct i2c_adapter *adapter, 
+ 		struct i2c_client_address_data *address_data,
+-		i2c_client_found_addr_proc *found_proc);
++		int (*found_proc) (struct i2c_adapter *, int, int));
  
--static int __init i2c_sensor_init(void)
--{
--	return 0;
--}
--
--static void __exit i2c_sensor_exit(void)
--{
--}
--
- EXPORT_SYMBOL(i2c_detect);
- 
- MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
- MODULE_DESCRIPTION("i2c-sensor driver");
- MODULE_LICENSE("GPL");
--
--module_init(i2c_sensor_init);
--module_exit(i2c_sensor_exit);
+ /* An ioctl like call to set div. parameters of the adapter.
+  */
 
