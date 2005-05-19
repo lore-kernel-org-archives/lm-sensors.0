@@ -1,7 +1,7 @@
 From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
 Date: Thu, 19 May 2005 06:25:12 +0000
 Subject: [PC87366] A bit different design for it's SuperIO.
-Message-Id: <1092738716.12729.606.camel@uganda>
+Message-Id: <1092738781.12729.608.camel@uganda>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1092648290.12729.471.camel@uganda>
 In-Reply-To: <1092648290.12729.471.camel@uganda>
@@ -61,4 +61,4 @@ Name: not available
 Type: application/pgp-signature
 Size: 189 bytes
 Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040817/20b0b936/attachment.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040817/ad14f396/attachment.bin
