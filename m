@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.2-rc2
-Message-Id: <1075246453781@kroah.com>
+Message-Id: <1075246453858@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10752464532280@kroah.com>
+In-Reply-To: <1075246453680@kroah.com>
 References: <10752464532280@kroah.com>
 In-Reply-To: <10752464532280@kroah.com>
 MIME-Version: 1.0
@@ -11,85 +11,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1474.148.5, 2004/01/27 14:38:29-08:00, khali@linux-fr.org
+ChangeSet 1.1474.148.2, 2004/01/23 17:14:38-08:00, khali@linux-fr.org
 
-[PATCH] I2C: Bring lm75 and lm78 in compliance with sysfs naming conventions
+[PATCH] I2C: undo documentation change
 
-Here is a patch that brings the lm75 and lm78 drivers in compliance with
-sysfs naming conventions. The drivers as found in existing 2.6 kernels
-do not have a digit appended to the temperature-related files names as
-the sysfs naming conversion recommends (obviously because they each have
-a single temperature channel). As a result, libsensors won't find the
-files.
-
-It was discussed on the list wether a '1' should be appended in this
-case, and our conclusion was that it would be better to do so because it
-helps automatic processing of the sysfs exported files. Please apply if
-you agree with this.
+Undo a recent change to the i2c documentation. The change belongs to
+2.7.
 
 
- drivers/i2c/chips/lm75.c |   12 ++++++------
- drivers/i2c/chips/lm78.c |   12 ++++++------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ Documentation/i2c/porting-clients |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/lm75.c b/drivers/i2c/chips/lm75.c
---- a/drivers/i2c/chips/lm75.c	Tue Jan 27 15:26:46 2004
-+++ b/drivers/i2c/chips/lm75.c	Tue Jan 27 15:26:46 2004
-@@ -104,9 +104,9 @@
- set(temp_max, LM75_REG_TEMP_OS);
- set(temp_hyst, LM75_REG_TEMP_HYST);
+diff -Nru a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
+--- a/Documentation/i2c/porting-clients	Tue Jan 27 15:27:19 2004
++++ b/Documentation/i2c/porting-clients	Tue Jan 27 15:27:19 2004
+@@ -92,10 +92,7 @@
+   i2c_get_clientdata(client) instead.
  
--static DEVICE_ATTR(temp_max, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
--static DEVICE_ATTR(temp_hyst, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
--static DEVICE_ATTR(temp_input, S_IRUGO, show_temp_input, NULL);
-+static DEVICE_ATTR(temp_max1, S_IWUSR | S_IRUGO, show_temp_max, set_temp_max);
-+static DEVICE_ATTR(temp_hyst1, S_IWUSR | S_IRUGO, show_temp_hyst, set_temp_hyst);
-+static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp_input, NULL);
+ * [Interface] Init function should not print anything. Make sure
+-  there is a MODULE_LICENSE() line. MODULE_PARM() is replaced
+-  by module_param(). Note that module_param has a third parameter,
+-  that you should set to 0 by default. See include/linux/moduleparam.h
+-  for details.
++  there is a MODULE_LICENSE() line.
  
- static int lm75_attach_adapter(struct i2c_adapter *adapter)
- {
-@@ -197,9 +197,9 @@
- 	lm75_init_client(new_client);
- 	
- 	/* Register sysfs hooks */
--	device_create_file(&new_client->dev, &dev_attr_temp_max);
--	device_create_file(&new_client->dev, &dev_attr_temp_hyst);
--	device_create_file(&new_client->dev, &dev_attr_temp_input);
-+	device_create_file(&new_client->dev, &dev_attr_temp_max1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_hyst1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_input1);
+ Coding policy:
  
- 	return 0;
- 
-diff -Nru a/drivers/i2c/chips/lm78.c b/drivers/i2c/chips/lm78.c
---- a/drivers/i2c/chips/lm78.c	Tue Jan 27 15:26:46 2004
-+++ b/drivers/i2c/chips/lm78.c	Tue Jan 27 15:26:46 2004
-@@ -369,10 +369,10 @@
- 	return count;
- }
- 
--static DEVICE_ATTR(temp_input, S_IRUGO, show_temp, NULL)
--static DEVICE_ATTR(temp_max, S_IRUGO | S_IWUSR,
-+static DEVICE_ATTR(temp_input1, S_IRUGO, show_temp, NULL)
-+static DEVICE_ATTR(temp_max1, S_IRUGO | S_IWUSR,
- 		show_temp_over, set_temp_over)
--static DEVICE_ATTR(temp_hyst, S_IRUGO | S_IWUSR,
-+static DEVICE_ATTR(temp_hyst1, S_IRUGO | S_IWUSR,
- 		show_temp_hyst, set_temp_hyst)
- 
- /* 3 Fans */
-@@ -678,9 +678,9 @@
- 	device_create_file(&new_client->dev, &dev_attr_in_input6);
- 	device_create_file(&new_client->dev, &dev_attr_in_min6);
- 	device_create_file(&new_client->dev, &dev_attr_in_max6);
--	device_create_file(&new_client->dev, &dev_attr_temp_input);
--	device_create_file(&new_client->dev, &dev_attr_temp_max);
--	device_create_file(&new_client->dev, &dev_attr_temp_hyst);
-+	device_create_file(&new_client->dev, &dev_attr_temp_input1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_max1);
-+	device_create_file(&new_client->dev, &dev_attr_temp_hyst1);
- 	device_create_file(&new_client->dev, &dev_attr_fan_input1);
- 	device_create_file(&new_client->dev, &dev_attr_fan_min1);
- 	device_create_file(&new_client->dev, &dev_attr_fan_div1);
 
