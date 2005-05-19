@@ -1,7 +1,7 @@
 From: null@uucpssh.org (junk scanner)
-Date: Thu, 19 May 2005 06:25:31 +0000
+Date: Thu, 19 May 2005 06:25:32 +0000
 Subject: **Message you sent blocked by our SPAM filter**
-Message-Id: <SS14452-02@main>
+Message-Id: <SS29601-06@main>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <SS09815-04@main>
 In-Reply-To: <SS09815-04@main>
@@ -38,6 +38,6 @@ Skipped content of type message/delivery-status-------------- next part --------
 A non-text attachment was scrubbed...
 Name: not available
 Type: text/rfc822-headers
-Size: 2129 bytes
+Size: 1936 bytes
 Desc: Undelivered-message headers
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050119/297cef4c/attachment.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050120/f97054e7/attachment.bin
