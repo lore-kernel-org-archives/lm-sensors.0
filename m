@@ -1,60 +1,47 @@
-From: greg@kroah.com (Greg KH)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:24:00 +0000
 Subject: [PATCH] i2c driver changes for 2.5.72
-Message-Id: <10559607091816@kroah.com>
+Message-Id: <20030619022557.GA32374@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10559607092693@kroah.com>
 References: <10559607053930@kroah.com>
 In-Reply-To: <10559607053930@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.1318.3.8, 2003/06/17 15:37:40-07:00, greg@kroah.com
+* Greg KH <greg@kroah.com> [2003-06-18 11:25:07 -0700]:
+> ChangeSet 1.1318.3.2, 2003/06/16 11:31:43-07:00, margitsw@t-online.de
+> 
+> [PATCH] I2C: lm85 fixups
+> 
+> OK Here's the patch which :
+> 1) Fixes the race conditions
 
-I2C: fix resource leak in i2c-ali15x3.c
+<cut>
 
+> @@ -437,10 +434,13 @@
+>  {
+>  	struct i2c_client *client = to_i2c_client(dev);
+>  	struct lm85_data *data = i2c_get_clientdata(client);
+> +	int	val;
+>  
+> -	int val = simple_strtol(buf, NULL, 10);
+> +	down(&data->update_lock);
+> +	val = simple_strtol(buf, NULL, 10);
+>  	data->fan_min[nr] = FAN_TO_REG(val);
+>  	lm85_write_value(client, LM85_REG_FAN_MIN(nr), data->fan_min[nr]);
+> +	up(&data->update_lock);
+>  	return count;
+>  }
 
- drivers/i2c/busses/i2c-ali15x3.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
+Ugh.  Looks like this sort of fix is needed in every single chip
+driver in 2.5.  And the CVS chip drivers have the same problem.
 
+So... are we going to tackle this for the sensors 2.8.0 release?
 
-diff -Nru a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
---- a/drivers/i2c/busses/i2c-ali15x3.c	Wed Jun 18 11:19:16 2003
-+++ b/drivers/i2c/busses/i2c-ali15x3.c	Wed Jun 18 11:19:16 2003
-@@ -177,17 +177,18 @@
- 	if(force_addr) {
- 		dev_info(&ALI15X3_dev->dev, "forcing ISA address 0x%04X\n",
- 			ali15x3_smba);
--		if (PCIBIOS_SUCCESSFUL !-		    pci_write_config_word(ALI15X3_dev, SMBBA, ali15x3_smba))
--			return -ENODEV;
--		if (PCIBIOS_SUCCESSFUL !-		    pci_read_config_word(ALI15X3_dev, SMBBA, &a))
--			return -ENODEV;
-+		if (PCIBIOS_SUCCESSFUL != pci_write_config_word(ALI15X3_dev,
-+								SMBBA,
-+								ali15x3_smba))
-+			goto error;
-+		if (PCIBIOS_SUCCESSFUL != pci_read_config_word(ALI15X3_dev,
-+								SMBBA, &a))
-+			goto error;
- 		if ((a & ~(ALI15X3_SMB_IOSIZE - 1)) != ali15x3_smba) {
- 			/* make sure it works */
- 			dev_err(&ALI15X3_dev->dev,
- 				"force address failed - not supported?\n");
--			return -ENODEV;
-+			goto error;
- 		}
- 	}
- 	/* check if whole device is enabled */
-@@ -219,6 +220,9 @@
- 	dev_dbg(&ALI15X3_dev->dev, "iALI15X3_smba = 0x%X\n", ali15x3_smba);
- 
- 	return 0;
-+error:
-+	release_region(ali15x3_smba, ALI15X3_SMB_IOSIZE);
-+	return -ENODEV;
- }
- 
- /* Internally used pause function */
+Regards,
 
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
