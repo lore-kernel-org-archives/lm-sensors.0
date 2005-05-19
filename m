@@ -1,56 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:27 +0000
-Subject: Linux  2.6.10-rc3 for 8xx with I2C config enabled  fails ...
-Message-Id: <20041219191141.51fd17ce.khali@linux-fr.org>
+From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+Date: Thu, 19 May 2005 06:23:46 +0000
+Subject: i2c and sensors for 2.4/2.5
+Message-Id: <Pine.OSF.4.50.0301171830420.22376-101000@kosh.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041219150053.GB10771@jupiter.solarsys.private>
-In-Reply-To: <20041219150053.GB10771@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: LM_Sensors Development Group <sensors@stimpy.netroedge.com>
 
-> (I hope I will be excused - at least I was not soliciting anything but
-> just info and advise, for which in my idealistic judgement there is no
-> money equivalent, since those are ... priceless.
-> Of course, this is just my private view and other people might have
-> different opinion on this subject ).
 
-Not sure what you mean here, but we welcome hardware donations ;)
+Finally, i2c CVS is synced with 2.5.58 tree.
 
-> In http://www2.lm-sensors.nu/~lm78/cvs/i2c/doc/summary I see:
-> ..
-> Adapter drivers
-> ---------------
-> ..
-> i2c-rpx:         RPX board Motorola 8xx I2C device (uses i2c-algo-8xx)
-> (NOT BUILT BY DEFAULT)
-> ..
-> 
-> Does above comment relates to 2.4 or 2.6 or both ?
+I believe we are ready to submit patches to both 2.4 and 2.5 trees
+in a week or so. In the mean time, please hold any non-critical i2c
+patches. Most of the 2.4 cleanup done in CVS already applies these.
+And some of the header file cleanups applied in 2.5.53+ evidently
+break i2c-proc and userland compiles for /dev/i2c-x ...
 
-The "NOT BUILD BY DEFAULT" relates to 2.4 only (or more precisely to the
-version of i2c which is Linux 2.4 compatible). Non-x86 driver receive
-very little testing (and are not maintained) because none of us has
-non-x86 hardware to test on. In the facts, i2c and lm_sensors are very
-x86-centric.
+You can checkout i2c with "-r lk2-4" to get i2c code for 2.4 tree.
+Attached is non-CVS i2c code ported back from 2.5 to 2.4.21-pre3
+for the impatient, to use .owner refcounting.
 
-> As it was discovered, 2.6 distribution lacks (as far as ppc 8xx is
-> concerned)
->  both: i2c-algo-8xx.h and i2c-algo-8xx.c files, which are present in
->  2.4 .
-> 
-> Tom Rini suggested to me to bring both files into Linux 2.6 and to
-> merge i2c-rpx.c with i2c-algo-8xx.c
-> into one file (placing it it under the busses subdirectory ? - AP ) -
-> any opinion on that ?
+As for lm_sensors, CVS head will work for both 2.5 and 2.4 after i2c
+patches. Currently CVS compiles but all of PCI probing takes time to
+convert. Post to LKML with a list of i2c busses you volunteer to fix.
 
-We usually have separate algorithms when one algorithm is shared by
-several bus drivers. Since it seems that i2c-rpx is the only user of
-this one, I have no objection to merging i2c-algo-8xx and i2c-rpx. In
-fact, we don't really care here, the PPC folks can do what they want
-with their drivers.
+Also, assistance on how to fix module refcounting is welcome.
+To my understanding, it does not handle client->adapter->owner
+correctly now, and it is possible to rmmod adapter while one of its
+clients is in use.
+
+HTH.
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+  Ky?sti M?lkki
+  kmalkki@cc.hut.fi
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-2.4.21-pre3-pre4-i2c-1.gz
+Type: application/octet-stream
+Size: 3436 bytes
+Desc: 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030117/2d84fe3b/patch-2.4.21-pre3-pre4-i2c-1.obj
