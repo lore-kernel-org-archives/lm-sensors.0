@@ -1,26 +1,35 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:20 +0000
-Subject: LM93 vccp_limit_type "relative" does not work
-Message-Id: <20041022040447.GG9774@jupiter.solarsys.private>
+From: macro@linux-mips.org (Maciej W. Rozycki)
+Date: Thu, 19 May 2005 06:25:37 +0000
+Subject: [PATCH] Enable I2C_PIIX4 for 64-bit platforms
+Message-Id: <Pine.LNX.4.61L.0502120502580.30117@blysk.ds.pg.gda.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <416EDF3D.7090307@earthlink.net>
-In-Reply-To: <416EDF3D.7090307@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David:
+Hello,
 
-* Mark M. Hoffman <mhoffman@lightlink.com> [2004-10-18 23:21:29 -0400]:
-> Your patch looks good, but won't apply for some reason.  As Khali mentioned
-> in another message... please try to fix that and resend.  Thanks!
+ Is there any specific reason for the PIIX4 SMBus driver to be disabled on 
+64-bit platforms?  If not, then please apply the following change.  The 
+MIPS Technologies Malta development board has the 82371EB chip and 
+supports 64-bit configurations.  I've verified the driver to work 
+correctly using 64-bit kernels for both endiannesses.
 
-Nevermind, I just applied it using "-l" to ignore whitespace damage. Please
-try to fix that for any future patches.
+  Maciej
 
-Regards,
+Signed-off-by: Maciej W. Rozycki <macro@mips.com>
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+patch-mips-2.6.10-rc3-20041216-i2c-piix64-0
+diff -up --recursive --new-file linux-mips-2.6.10-rc3-20041216.macro/drivers/i2c/busses/Kconfig linux-mips-2.6.10-rc3-20041216/drivers/i2c/busses/Kconfig
+--- linux-mips-2.6.10-rc3-20041216.macro/drivers/i2c/busses/Kconfig	2004-12-09 20:07:39.000000000 +0000
++++ linux-mips-2.6.10-rc3-20041216/drivers/i2c/busses/Kconfig	2005-01-26 19:48:36.000000000 +0000
+@@ -270,7 +270,7 @@ config I2C_PARPORT_LIGHT
+ 
+ config I2C_PIIX4
+ 	tristate "Intel PIIX4"
+-	depends on I2C && PCI && EXPERIMENTAL && !64BIT
++	depends on I2C && PCI && EXPERIMENTAL
+ 	help
+ 	  If you say yes to this option, support will be included for the Intel
+ 	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
