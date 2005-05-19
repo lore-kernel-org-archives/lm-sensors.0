@@ -1,109 +1,137 @@
-From: alex@alexdalton.org (Alexandre d'Alton)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: ADM1030 Driver (+auto fan speed interface proposal)
-Message-Id: <1082017704.407e47a878472@imp5-q.free.fr>
+From: ladis@linux-mips.org (Ladislav Michl)
+Date: Thu, 19 May 2005 06:25:49 +0000
+Subject: [PATCH] ds1337 4/4
+Message-Id: <20050407231904.GE27226@orphique>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1081942629.407d22659307f@imp.gcu.info>
-In-Reply-To: <1081942629.407d22659307f@imp.gcu.info>
+References: <20050407111631.GA21190@orphique> <hOrXV5wl.1112879260.3338120.khali@localhost> <20050407142804.GA11284@orphique> <20050407211839.GA5357@kroah.com>
+In-Reply-To: <20050407211839.GA5357@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>, James Chapman <jchapman@katalix.com>
 
-Quoting Jean Delvare <khali@linux-fr.org>:
+Add support for DS1339. The only difference against DS1337 is Trickle
+Charge register at address 10h, which is used to enable battery or gold
+cap charging. Please note that value may vary for different batteries,
+so it should be made module parameter. 0xaa is sane default and also
+matches my board ;-)
 
-> > > In the LM85/ADM1027 driver it's called pwm1_zone.
-> > > 
-> > > It has the values:
-> > >    -1:  PWM disabled, fan at 100%
-> > >    -2:  PWM under manual control ('pwm1' or 'pwm1_value' is
-> > >         writable)
-> > >     1:  PWM is controlled by temp1_input
-> > >     2:  PWM is controlled by temp2_input
-> > >   123:  PWM is controlled by max value of all three
-> > >     0:  PWM disabled, fan at 0%
-> > > 
-> > > The other parameters have equivalents in the lm85 driver as well.
-> > > 
-> > >    zone#_limit   (fan "turn on" temperature  (1*))
-> > >    zone#_hyst   (range below limit fan remains on.  Fixed at 5 deg
-> > in 
-> > > this chip?)
-> > >    zone#_range  (temperature range (2*))
-> > >    pwm#_min  (PWM value at low limit.  (4*))
-> > > 
-> > > :v)
-> > 
-> > Seems to be a good approach, and it has the advantage of already
-> > beeing implemented on some drivers.
-> 
-> I think that the lm85 driver is actually the only one to do that. Since
-> it isn't standardized yet, I have to say I do not consider much benefit
-> in following what was done. Not that I denigrate Philip's work, nor
-> does it mean that I dislike his approach. All I mean is that if it
-> happens that this doesn't cover the other chips correctly, or doesn't
-> fit in the "file names are self-descriptive" rule, we better change
-> what exists in the name of uniformity.
-> 
-> > Jean, what do you think about that ?
-> 
-> First of all I have to say that I completely ignored that one driver
-> already has auto fan speed support. Thanks Philip for joining the
-> conversation and providing some insight about how you did implement it
-> on your side.
-> 
-> Here are the drawbacks I see at first sight:
-> 
-> 1* pwm1_zone = -1 is what other drivers implement with pwm1_enable =
-> 0. I would like to avoid having two ways to express the same thing if
-> possible. OTOH, one will wonder what happens if a user sets pwm1_enable
-> = 0 and pwm1_auto at the same time. I don't really know and think that
-> it'll probably depend on chip's implementation (depends if there are
-> two separate bits in the chip, or one three-state value).
-> 
-> Likewise, pwm1_zone = 0 is (more or less) pwm_enable = 1 && pwm1 =
-> 0,
-> and pwm1_zone = -1 is pwm_enable = 1.
-> 
-> I think we better stick to the one file - one value (i.e. one meaning)
-> philosophy. Philip, I guess that the idea of setting these different
-> things in a single value were inspired by the way the LM85 implements
-> it?
-> 
-> 2* About the range: the same way we decided that hysteresis values
-> should be expressed as absolute temperatures and not a difference
-> relative to another limits, I think we should express the max temp (for
-> auto fan control) as an absolute value and not a range from the min
-> temp. The fact that some (most?) chips use a range is obviously made so
-> as to spare a few bits in the registers. The userspace doesn't care
-> about these implementation details.
-> 
-> 3* I was thinking that what is named pwm1_zone in lm85 could be a
-> bitfield. Each bit links the corresponding temperature channel to this
-> PWM. That way we are sure we can extend the values in a consistent way
-> if a later chip has more than 3 temperature channels, and if it allows
-> to link more than one, but less than all, channels to a given PWM.
-> 
-> Anyway, this proves that we *really* need to discuss a bit more about a
-> common interface to this functionality. I will try to read as much as
-> possible about the various implementations (IT87, LM85, ADM1030 and
-> W836x7) before the end of the week so as to make sure that I understand
-> how things do work. I invite each of you to do the same so that our
-> discussion is as constructive as possible.
-
-I'll do the same.
-
-> 
-> Thanks a lot.
-> 
-> -- 
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
-> 
-> 
-
-
--- 
--------------------------------------------------
-Alexandre d'ALTON
-                              alex@alexdalton.org
+--- linux-omap/drivers/i2c/chips/ds1337.c.orig	2005-04-08 00:47:15.655878832 +0200
++++ linux-omap/drivers/i2c/chips/ds1337.c	2005-04-08 01:10:41.662133392 +0200
+@@ -31,6 +31,7 @@
+ #define DS1337_REG_MONTH	5
+ #define DS1337_REG_CONTROL	14
+ #define DS1337_REG_STATUS	15
++#define DS1339_REG_CHARGE	16
+ 
+ /* FIXME - how do we export these interface constants? */
+ #define DS1337_GET_DATE		0
+@@ -42,7 +43,7 @@
+ static unsigned short normal_i2c[] = { 0x68, I2C_CLIENT_END };
+ static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+-SENSORS_INSMOD_1(ds1337);
++SENSORS_INSMOD_2(ds1337, ds1339);
+ 
+ static int ds1337_attach_adapter(struct i2c_adapter *adapter);
+ static int ds1337_detect(struct i2c_adapter *adapter, int address, int kind);
+@@ -78,6 +79,8 @@ struct ds1337_data {
+ static int ds1337_id;
+ static LIST_HEAD(ds1337_clients);
+ 
++static int ds1339_charge = 0xaa;
++
+ static inline int ds1337_read(struct i2c_client *client, u8 reg, u8 *value)
+ {
+ 	s32 tmp = i2c_smbus_read_byte_data(client, reg);
+@@ -90,6 +93,37 @@ static inline int ds1337_read(struct i2c
+ 	return 0;
+ }
+ 
++/* 
++ * DS1339 has Trickle Charge register at address 10h. During a multibyte
++ * access, when the address pointer reaches the end of the register space,
++ * it wraps around to location 00h.
++ * We read 17 bytes from device and compare first and last one. If they are
++ * same it is most likely DS1337 chip.
++ */
++static int ds1337_is_ds1339(struct i2c_client *client)
++{
++	char buf[17], addr = 0;
++	struct i2c_msg msg[2];
++	int result;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 1;
++	msg[0].buf = &addr;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = sizeof(buf);
++	msg[1].buf = buf;
++
++	result = i2c_transfer(client->adapter, msg, 2);
++	if (result < 0) {
++		dev_err(&client->dev, "error reading data! %d\n", result);
++		return 0;
++	} else
++		return (buf[0] = buf[16]) ? 0 : 1;
++}
++
+ /*
+  * Chip access functions
+  */
+@@ -246,7 +280,7 @@ static int ds1337_detect(struct i2c_adap
+ 	struct i2c_client *new_client;
+ 	struct ds1337_data *data;
+ 	int err = 0;
+-	const char *name = "";
++	const char *name;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+ 				     I2C_FUNC_I2C))
+@@ -318,11 +352,24 @@ static int ds1337_detect(struct i2c_adap
+ 		    (data & 0x60))
+ 			goto exit_free;
+ 
+-		kind = ds1337;
++		/* Check whenever we have DS1339 */
++		if (ds1337_is_ds1339(new_client))
++			kind = ds1339;
++		else
++			kind = ds1337;
++
+ 	}
+ 
+-	if (kind = ds1337)
++	switch (kind) {
++	case ds1337:
+ 		name = "ds1337";
++		break;
++	case ds1339:
++		name = "ds1339";
++		break;
++	default:
++		name = "";
++	}
+ 
+ 	/* We can fill in the remaining client fields */
+ 	strlcpy(new_client->name, name, I2C_NAME_SIZE);
+@@ -334,6 +381,15 @@ static int ds1337_detect(struct i2c_adap
+ 	/* Initialize the DS1337 chip */
+ 	ds1337_init_client(new_client);
+ 
++	/* Be nice to battery */
++	if (kind = ds1339 && ds1339_charge) {
++		char buf[] = { DS1339_REG_CHARGE, ds1339_charge };
++
++		if (i2c_master_send(new_client, buf, 2) != 2)
++			dev_err(&new_client->dev,
++				"failed to enable trickle charge.\n");
++	}
++
+ 	/* Add client to local list */
+ 	data->id = ds1337_id++;
+ 	list_add(&data->list, &ds1337_clients);
