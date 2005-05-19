@@ -1,66 +1,35 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: lm_sensors.org? (was: sensors.conf repository)
-Message-Id: <20040908085312.GH5960@neu.physik.fu-berlin.de>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: [daniel@braindead.ma.cx: gl520sm bug]
+Message-Id: <20040111234920.GA642@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 08, 2004 at 10:32:01AM +0100, Jean Delvare wrote:
-> > Ruik and Jean were thinking about this sensors.conf repository for a 
-> > while and i picked up on that on #linux-sensors.
-> > 
-> > What can i offer:
-> > 
-> > 1 A 100Mbit Student connection on the internet
-> > 2 A Database Mysql
-> > 3 A PHP enabled web space were a acpi dsdt like program runs for the
-> > sensors.conf
-> > 
-> > let me know if i can be of any help
-> 
-> It has been discussed many times, and I even think someone started something
-> but I can't remember the URL :( Does anyone remember? It was maybe two or
-> three months ago?
+----- Forwarded message from Daniel <daniel@braindead.ma.cx> -----
 
-On a related note is there interest in reshaping and extending
-lm_sensors' infrastructure to something like lm_sensors.org?
+From: Daniel <daniel@braindead.ma.cx>
+To: frodol@dds.nl
+Subject: gl520sm bug
+X-Spam-Status: No, hits=3.1 required=5.0 tests=MAY_BE_FORGED,NO_MX_FOR_FROM version=2.20
+X-Spam-Level: ***
 
-I am in the process of shaping up atrpms.net for going
-multi-developer, and web/mail(mailman,spamassassin)/bugzilla/
-subversion/wikis are partially in place. The same resources could be
-shared for lm_sensors under its own domain.
+hi
+i think theres a big bug in your driver
+when i load it and run sensors my cpu fan stops
+and it doesn't start again (tested up to 66 degree)
 
-The used hardware/location is a Dual-Opteron on a 1GBit connection on
-the German research network (DFN) sponsored by a German university
-(Freie Universit?t Berlin), e.g. all non-for-profit institutions
-supporting open source activities.
+or am i just too stupid to set it up correctly ?
 
-Adminstrative access would be given to people chosen by the lm_sensors
-team (hopefully the same set of people currently involved in
-maintaining the services).
+bye..
+daniel krueger
 
-Anyway, just an idea. :)
-
-> I do not have the time to code anything (especially not now) but if something
-> is setup I will provide configuration files for my own systems and advertise
-> the existence of the system so that more people do contribute their
-> configuration files.
-> 
-> Let us know as soon as you get something up and working so that we can take a
-> look and comment.
-> 
-> Thanks.
-> 
+----- End forwarded message -----
 
 -- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040908/ab520c87/attachment.bin
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
