@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:49 +0000
 Subject: PWM on a W83697HF
-Message-Id: <1080211915.4062b9cb54b2a@imp.gcu.info>
+Message-Id: <1080218350.4062d2eebbe15@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1079973316.405f15c4abd09@imp.gcu.info>
 In-Reply-To: <1079973316.405f15c4abd09@imp.gcu.info>
@@ -12,27 +12,27 @@ To: lm-sensors@vger.kernel.org
 
 Quoting Uwe Andersen <uandersen@MAYAH.com>:
 
-> In the meantime I have an answer from Epox: "We didn't know if the
-> mainboard has a fan control or not."
+> More or less historical reasons.
+> I started five years ago with a W83781D and just integrated it with
+> no probs.
+> As a Delphi unit. On a OS that's mor or less WinAPI compatible.
+> So it made sense to integrate the following chip in the same manner.
+> And so on.
+> Now I have a collection of chipset drivers that are all based on
+> Pascal code.
+> When I want to integrate lm_sensors I have to solve some problems:
+> a) Throw away running code  ..*sigh*..
+> b) Make lm_sensors compatible (e.g. the "out" command has its
+> parameters "address" and "value" just the other way round.)
+> c) I have to make all the linux header files included compatible
 
-What I would have expected.
+Mhmmm, for which project is this?
 
-> Seems to be that I contacted a person who might be better for
-> answering questions like "My battery is low. What should I do?"
+IANAL, but if you use our code as a base, and even if in the end the
+code differs because it's not the same language, I think you must
+release your project as GPL, or you are infringing the GPL.
 
-Unfortunately, experience shows that you hardly get any valuable
-information from hardware (or software) manufacturer's support service.
-I sometimes wonder why they pretend having such a service at all.
-
-> Thank you for the time you spent with my problem!
-> It was nice to have somebody to talk with who is (or has been)
-> working on the same stuff!
-
-No problem, and sorry for the number of broken info again.
-
-BTW, why is it that you cannot use lm_sensors? It doesn't seem to be
-that big. The whole i2c stack shouldn't exceed 64k. Or maybe 64k *is*
-big for your embedded system?
+Thanks.
 
 -- 
 Jean Delvare
