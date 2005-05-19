@@ -1,37 +1,31 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:45 +0000
-Subject: [PATCH 2.6] I2C: Kill outdated defines in i2c.h
-Message-Id: <20050324000441.GE7189@kroah.com>
+From: rjmx@rjmx.net (Ron Murray)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: lm-sensors bug report filed??
+Message-Id: <15420.60548.41937.165100@khufu.rjmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050320185846.0b3bde3b.khali@linux-fr.org>
-In-Reply-To: <20050320185846.0b3bde3b.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 20, 2005 at 06:58:46PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> Some defines in i2c.h (I2C_CLIENT_MODPARM and friends) are now useless.
-> They should have been removed when the i2c client parameters were
-> converted from MODULE_PARAM to module_parm_array, but where not. This
-> patch removes them now.
-> 
-> Additionally, it moves the definition of I2C_CLIENT_MAX_OPTS next to
-> where it is used rather than 220 lines before, which is preferable IMHO.
-> 
-> As a side note, I think that there is a bug in the way these options are
-> handled. The i2c code looks for I2C_CLIENT_END as a list terminator, but
-> if the maximum number of parameters are actually provided, no terminator
-> will be left. It's rather unlikely to happen because nobody will
-> probably ever provide that many parameters, but this should probably be
-> fixed. I'll address this issue later, since I plan to completely rewrite
-> the way these parameters are handled anyway.
-> 
-> Please apply,
+Hi.
 
+   I filed a bug report on your website a couple of weeks ago, but
+haven't heard anything yet. Did I post it successfully, or should I
+try again?
 
-Applied, thanks.
+   To recap, the problem occurs on my Compaq 7000US machine with 1.2G AMDAthlon
+processor. lm-sensors doesn't load; system claims there's a "VIA
+Technologies VT82C686 Apollo ACPI" on board, but the module fails to
+load, claiming that there's no such device.
 
-greg k-h
+   Let me know if I need to re-file the report.
+
+Thanks for your work!
+
+ .....Ron
+
+-- 
+Ron Murray   (rjmx@rjmx.net)
+https://www.rjmx.net/~ron
+GPG Public Key Fingerprint: F2C1 FC47 5EF7 0317 133C  D66B 8ADA A3C4 D86C 74DE
