@@ -1,43 +1,85 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:49 +0000
-Subject: double file name in "/proc/sys/dev/sensors/"
-Message-Id: <20030227100307.3d01b4b3.khali@linux-fr.org>
+From: johng@bach.as.arizona.edu (John Gruenenfelder)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: Question about it87 on an ECS K7S5A
+Message-Id: <20021119025118.GA3510@bach.as.arizona.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E5CA690.5060608@mytrix.ru>
-In-Reply-To: <3E5CA690.5060608@mytrix.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello.  I have an ECS K7S5A v3.0 motherboard.  Using the information in the
+K7S5A-HOWTO, I have the sensors mostly set up correctly.  This board uses an
+it87 chip (loaded as 'modprobe it87 temp_type=0x31').
 
-[Please answer to the list instead of just me.]
+Anyway, I have the fan and temperature settings just fine, but am still having
+trouble with the voltage settings.
 
-> > > I am use "linux-2.4.20-suse1/2" from Hubert Mante. (SuSE).
-> >
-> > It is Mantel, isn't it?
->
-> yes
+The HOWTO suggests:
 
-> > > How can be two files with the identical name?
-> >
-> > This can happen because the /proc filesystem is virtual. It
-> > shouldn't happen though. Could you please check you don't have two
-> > different versions of libsensors installed in two different places
-> > (usually/usr/lib and /usr/local/lib)?
-> 
-> no, only one version library.
-> dpkg -l |grep sensors
-> ii  libsensors-dev 2.6.3-5        Lm-sensors development kit
-> ii  libsensors1    2.6.3-5        Library to read
-> temperature/voltage/fan sens
+label in0 "VCore"
+label in1 "Vcc2.5v"
+label in2 "Vcc5v"
+label in3 "+5V"
+label in4 "+12V"
+label in5 "-12V"
+label in6 "-5V"
+label in7 "SB 5V"
+label in8 "V battery"
 
-You could have an old file installed from the sources, not from a debian
-package.
 
-On the other hand, 2.6.3 is a bit old and the bug has possibly been
-fixed since. Trying 2.6.5 wouldn't hurt.
+The mobo BIOS, however, lists the voltages as (I assume in the same order):
+
+Vcore
+Vcc2.5V
+Vcc3.3V
+Vcc5V
++12V
+SB3.3V
+-12V
+SB5V
+VBat
+
+The odd this about this arrangement is that there is only one negative
+voltage.  There is no -5V sensor.  Considering that one must be wrong in some
+way, I have settled on the follow list:
+
+    label in0 "VCore 1"
+    label in1 "Vcc2.5V"
+    label in2 "Vcc3.3V"
+    label in3 "+5V"
+    label in4 "+12V"
+    label in5 "-12V"
+    label in6 "-5V"
+    label in7 "5V SB"
+    label in8 "VBat"
+
+The lm_sensors supplied sensors.conf has a section:
+
+# this much simpler version is reported to work for a
+# Eltite Group K7S5A board
+#
+   compute in5 -(36/10)*@, -@/(36/10)
+   compute in6 -(56/10)*@, -@/(56/10)
+
+This works well to give me a -12V reading, but for the -5V reading (in6) my
+value is always around -5.60V.  Since I can't check this in the BIOS, I don't
+really know what the problem is.  Maybe it's simply a slightly wrong formula?
+
+Finally, the -12V value reads at -12.02V on nearly every reading, yet
+'sensors' shows an ALARM for it.  The min/max ranges are set properly (and set
+with sensors) and I've never seen the value stray outside the limits.  I
+suppose it's possible it varies a lot between readings, but shouldn't I see
+something eventually?  Even if the value just moves slightly from -12.02V?
+
+If you can help me at all with these issues, I would be grateful.  I would
+also like to get the K7S5A-HOWTO updated if I can resolve these issues (and if
+the author is still around).  Many thanks.
+
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+--John Gruenenfelder    Research Assistant, Steward Observatory, U of Arizona
+johng@as.arizona.edu
+"This is the most fun I've had without being drenched in the blood
+of my enemies!"
+        --Sam of Sam & Max
