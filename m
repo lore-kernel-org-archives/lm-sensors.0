@@ -1,65 +1,81 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: cat /proc/dev/i2c-0 gives cat: read: Invalid argument
-Message-Id: <3D4C4AAB.B0363759@paradyne.com>
+From: siegert@sfu.ca (Martin Siegert)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: Tyan 2462 (ticket #813)
+Message-Id: <20020215152003.A26195@stikine.ucs.sfu.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <OFB2390071.3272C603-ONC1256BF3.003B12AD@uk.marconicomms.com>
-In-Reply-To: <OFB2390071.3272C603-ONC1256BF3.003B12AD@uk.marconicomms.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Thank you very much for the patch.
-Applied in CVS.
-mds
-
-Thomas Viehweger wrote:
-> 
-> Hi,
-> 
-> I patched the kernel (linux-2.4.4-2002-03-21) from denx.de with the actual
-> i2c-2.6.3 sources.
-> 
-> When executing
-> 
-> cat /proc/bus/i2c-0
-> 
-> On my ppc8xx board I got the error "cat: read: Invalid argument".
-> 
-> In i2c-core.c the function i2cproc_bus_read() will be called with a count
-> of 8192.
-> After modifying "if (count > 4096)" to "if (count > 8192)" the cat
-> succeeds.
-> Here is a more general patch:
-> 
-> Regards,
-> Thomas Viehweger
-> 
-> --- drivers/i2c/i2c-core.c    9 Jul 2002 13:26:33 -0000      1.3
-> +++ drivers/i2c/i2c-core.c    11 Jul 2002 14:48:39 -0000
-> @@ -655,18 +655,19 @@ ssize_t i2cproc_bus_read(struct file * f
->      struct i2c_client *client;
->      int i,j,k,order_nr,len=0,len_total;
->      int order[I2C_CLIENT_MAX];
-> +#define OUTPUT_LENGTH_PER_LINE 70
-> 
-> -    if (count > 4096)
-> -         return -EINVAL;
->      len_total = file->f_pos + count;
-> -    /* Too bad if this gets longer (unlikely) */
-> -    if (len_total > 4096)
-> -         len_total = 4096;
-> +    if (len_total > (I2C_CLIENT_MAX * OUTPUT_LENGTH_PER_LINE) )
-> +         /* adjust to maximum file size */
-> +         len_total = (I2C_CLIENT_MAX * OUTPUT_LENGTH_PER_LINE);
->      for (i = 0; i < I2C_ADAP_MAX; i++)
->           if (adapters[i]->inode = inode->i_ino) {
->           /* We need a bit of slack in the kernel buffer; this makes the
->              sprintf safe. */
-> -              if (! (kbuf = kmalloc(count + 80,GFP_KERNEL)))
-> +              if (! (kbuf = kmalloc(len_total + OUTPUT_LENGTH_PER_LINE,
-> +                                    GFP_KERNEL)))
->                     return -ENOMEM;
->                /* Order will hold the indexes of the clients
->                   sorted by address */
+SGksCgpGWUk6CgpJIGp1c3QgdHJpZWQgd2hhdCB5b3UgZGVzY3JpYmVkIGF0Cmh0dHA6Ly93d3cy
+LmxtLXNlbnNvcnMubnUvfmxtNzgvcmVhZHRpY2tldC5jZ2k/dGlja2V0gTMKaS5lLiwgSSBnb3Qg
+dGhlIENWUyB2ZXJzaW9uIG9mIHc4Mzc4MWQKYW5kIGNvbXBpbGVkIGl0LiBPbiB0aGUgVHlhbiAy
+NDYyIChUaHVuZGVyIEs3KSB0aGVyZSBpcyBubyBCSU9TIG9wdGlvbgp0byBpbml0aWFsaXplIHRo
+ZSBoYXJkd2FyZSBzZW5zb3JzIC0gdGhleSBzZWVtIHRvIGJlIG9uIGFsd2F5cy4KCkFueXdheToK
+CiMgbW9kcHJvYmUgaTJjLWFtZDc1NgojIG1vZHByb2JlIGkyYy1wcm9jCiMgbW9kcHJvYmUgaTJj
+LWRldgojIG1vZHByb2JlIHc4Mzc4MWQgaW5pdD0wIGZvcmNlX3N1YmNsaWVudHM9MCwweDJjLDB4
+NGEsMHg0YgoKd29ya3Mgc3VjY2Vzc2Z1bGx5OgoKIyBzZW5zb3JzIC1zCiMgc2Vuc29ycwp3ODM2
+MjdoZi1pMmMtMC0yYwpBZGFwdGVyOiBTTUJ1cyBBTUQ3WDYgYWRhcHRlciBhdCA4MGUwCkFsZ29y
+aXRobTogTm9uLUkyQyBTTUJ1cyBhZGFwdGVyClZDb3JlIDE6ICAgKzEuNzQgViAgKG1pbiA9ICAr
+MS43NCBWLCBtYXggPSAgKzEuOTMgVikgICAgICAgQUxBUk0gIApWQ29yZSAyOiAgICsxLjc0IFYg
+IChtaW4gPSAgKzEuNzQgViwgbWF4ID0gICsxLjkzIFYpICAgICAgIEFMQVJNICAKKzMuM1Y6ICAg
+ICArMy4zNyBWICAobWluID0gICszLjEzIFYsIG1heCA9ICArMy40NSBWKSAgICAgICAgICAgICAg
+Cis1VjogICAgICAgKzQuOTkgViAgKG1pbiA9ICArNC43MiBWLCBtYXggPSAgKzUuMjQgVikgICAg
+ICAgICAgICAgIAorMTJWOiAgICAgKzExLjE3IFYgIChtaW4gPSArMTAuNzkgViwgbWF4ID0gKzEz
+LjE5IFYpICAgICAgICAgICAgICAKLTEyVjogICAgIC0xMS44OCBWICAobWluID0gLTEwLjkwIFYs
+IG1heCA9IC0xMy4yMSBWKSAgICAgICAgICAgICAgCi01VjogICAgICAgLTUuNjEgViAgKG1pbiA9
+ICAtNC43NiBWLCBtYXggPSAgLTUuMjYgVikgICAgICAgICAgICAgIApWNVNCOiAgICAgICs1LjQ0
+IFYgIChtaW4gPSAgKzQuNzIgViwgbWF4ID0gICs1LjI0IFYpICAgICAgICAgICAgICAKVkJhdDog
+ICAgICArMi44OCBWICAobWluID0gICsyLjQwIFYsIG1heCA9ICArMy42MCBWKSAgICAgICAgICAg
+ICAgCmZhbjE6ICAgICAgICAwIFJQTSAgKG1pbiA9IDMwMDAgUlBNLCBkaXYgPSAyKSAgICAgICAg
+ICAgICAgICAgICAgIApmYW4yOiAgICAgICAgMCBSUE0gIChtaW4gPSAzMDAwIFJQTSwgZGl2ID0g
+MikgICAgICAgICAgICAgICAgICAgICAKZmFuMzogICAgICAgIDAgUlBNICAobWluID0gIDc1MCBS
+UE0sIGRpdiA9IDgpICAgICAgICAgICAgICAgICAgICAgCnRlbXAxOiAgICAgKzQ0LjA/QyAgKGxp
+bWl0ID0gICs2MD9DLCBoeXN0ZXJlc2lzID0gICs1MD9DKSBzZW5zb3IgPSAzOTA0IHRyYW5zaXN0
+b3IgICAgICAgICAgIAp0ZW1wMjogICAgICAgKzM2P0MgIChsaW1pdCA9ICArNzI/QywgaHlzdGVy
+ZXNpcyA9ICArMzI/Qykgc2Vuc29yID0gMzkwNCB0cmFuc2lzdG9yICAgICAgICAgICAKdGVtcDM6
+ICAgICAgICszND9DICAobGltaXQgPSAgKzcyP0MsIGh5c3RlcmVzaXMgPSAgKzMyP0MpIHNlbnNv
+ciA9IDM5MDQgdHJhbnNpc3RvciAgICAgICAgICAgCnZpZDogICAgICArMS44NSBWCmFsYXJtczog
+ICBDaGFzc2lzIGludHJ1c2lvbiBkZXRlY3Rpb24gICAgICAgICAgICAgICAgICAgICAgQUxBUk0g
+IApiZWVwX2VuYWJsZToKICAgICAgICAgIFNvdW5kIGFsYXJtIGRpc2FibGVkCgp3ODM3ODJkLWky
+Yy0wLTJkCkFkYXB0ZXI6IFNNQnVzIEFNRDdYNiBhZGFwdGVyIGF0IDgwZTAKQWxnb3JpdGhtOiBO
+b24tSTJDIFNNQnVzIGFkYXB0ZXIKVkNvcmUgMTogICArMS43NiBWICAobWluID0gICsxLjc0IFYs
+IG1heCA9ICArMS45MyBWKSAgICAgICAgICAgICAgClZDb3JlIDI6ICAgKzIuODQgViAgKG1pbiA9
+ICArMS43NCBWLCBtYXggPSAgKzEuOTMgVikgICAgICAgICAgICAgIAorMy4zVjogICAgICszLjQw
+IFYgIChtaW4gPSAgKzMuMTMgViwgbWF4ID0gICszLjQ1IFYpICAgICAgICAgICAgICAKKzVWOiAg
+ICAgICArNC44OSBWICAobWluID0gICs0LjcyIFYsIG1heCA9ICArNS4yNCBWKSAgICAgICAgICAg
+ICAgCisxMlY6ICAgICAgKzQuNzEgViAgKG1pbiA9ICsxMC43OSBWLCBtYXggPSArMTMuMTkgVikg
+ICAgICAgICAgICAgIAotMTJWOiAgICAgIC0yLjExIFYgIChtaW4gPSAtMTAuOTAgViwgbWF4ID0g
+LTEzLjIxIFYpICAgICAgICAgICAgICAKLTVWOiAgICAgICArMi43OCBWICAobWluID0gIC00Ljc2
+IFYsIG1heCA9ICAtNS4yNiBWKSAgICAgICAgICAgICAgClY1U0I6ICAgICAgKzQuMjMgViAgKG1p
+biA9ICArNC43MiBWLCBtYXggPSAgKzUuMjQgVikgICAgICAgICAgICAgIApWQmF0OiAgICAgICsy
+LjkxIFYgIChtaW4gPSAgKzIuNDAgViwgbWF4ID0gICszLjYwIFYpICAgICAgICAgICAgICAKZmFu
+MTogICAgIDUyNzMgUlBNICAobWluID0gMzAwMCBSUE0sIGRpdiA9IDIpICAgICAgICAgICAgICAg
+ICAgICAgCmZhbjI6ICAgICA1MTkyIFJQTSAgKG1pbiA9IDMwMDAgUlBNLCBkaXYgPSAyKSAgICAg
+ICAgICAgICAgICAgICAgIApmYW4zOiAgICAgICAgMCBSUE0gIChtaW4gPSAxNTAwIFJQTSwgZGl2
+ID0gNCkgICAgICAgICAgICAgICAgICAgICAKdGVtcDE6ICAgICArNDAuMD9DICAobGltaXQgPSAr
+MTAwP0MsIGh5c3RlcmVzaXMgPSArMTI3P0MpIHNlbnNvciA9IDM5MDQgdHJhbnNpc3RvciAgICAg
+ICAgICAgCnRlbXAyOiAgICAgICArMzk/QyAgKGxpbWl0ID0gICs3Mj9DLCBoeXN0ZXJlc2lzID0g
+ICszMj9DKSBzZW5zb3IgPSAzOTA0IHRyYW5zaXN0b3IgICAgICAgICAgIAp0ZW1wMzogICAgICAg
+KzM5P0MgIChsaW1pdCA9ICArNzI/QywgaHlzdGVyZXNpcyA9ICArMzI/Qykgc2Vuc29yID0gMzkw
+NCB0cmFuc2lzdG9yICAgICAgICAgICAKdmlkOiAgICAgICsxLjg1IFYKYWxhcm1zOiAgIENoYXNz
+aXMgaW50cnVzaW9uIGRldGVjdGlvbiAgICAgICAgICAgICAgICAgICAgICBBTEFSTSAgCmJlZXBf
+ZW5hYmxlOgogICAgICAgICAgU291bmQgYWxhcm0gZW5hYmxlZAoKVGh1cywgaXQgbG9va3MgYXMg
+aWYgSSBjYW4gdXNlIHRoZSBmaXJzdCBwYXJ0ICh3ODM2MjdoZi1pMmMtMC0yYykgZm9yIHZvbHRh
+Z2VzCmFuZCB0ZW1wZXJhdHVyZXMgYW5kIHRoZSBzZWNvbmQgcGFydCAodzgzNzgyZC1pMmMtMC0y
+ZCkgZm9yIGZhbiBzcGVlZHMuCgpUaGFua3MgYSBsb3QhCgpPbmUgbWlub3IgcGVjdWxpYXJpdHk6
+IHdoZW4gSSBzZXQgCgogICAgc2V0IGZhbjFfZGl2IDEKICAgIHNldCBmYW4yX2RpdiAxCgppbiAv
+ZXRjL3NlbnNvcnMuY29uZiAodGhlIDUyMDAgcnBtIHNob3duIGFib3ZlIGFyZSB0aGUgYWN0dWFs
+IHJwbXMsIHRodXMKZmFuX2RpdiBzaG91bGQgYmUgMSkgdGhlbiBmYW4xIHNob3dzIHNvZW10aGlu
+ZyBhcm91bmQgNTIwMCBSUE0gYWJvdXQKaGFsZiB0aGUgdGltZSwgdGhlIG90aGVyIGhhbGYgaXQg
+c2hvd3MgMCwgd2hlcmVhcyBmYW4yIGlzIDAgYWxsIHRoZSB0aW1lCih0aGlzIGFwcGxpZXMgdG8g
+dGhlIHc4Mzc4MmQtaTJjLTAtMmQgc2VjdGlvbikuIFRodXMsIEkgbXVzdCBzZXQKCiAgICBzZXQg
+ZmFuMV9kaXYgMgogICAgc2V0IGZhbjJfZGl2IDIKCnRvIGdldCBzZW5zaWJsZSBvdXRwdXQgKGln
+bm9yaW5nIHRoZSBkaXYgc2V0dGluZykuCgpDaGVlcnMsCk1hcnRpbgoKPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09Ck1hcnRpbiBTaWVnZXJ0CkFjYWRlbWljIENvbXB1dGluZyBT
+ZXJ2aWNlcyAgICAgICAgICAgICAgICAgICAgICAgIHBob25lOiAoNjA0KSAyOTEtNDY5MQpTaW1v
+biBGcmFzZXIgVW5pdmVyc2l0eSAgICAgICAgICAgICAgICAgICAgICAgICAgICBmYXg6ICAgKDYw
+NCkgMjkxLTQyNDIKQnVybmFieSwgQnJpdGlzaCBDb2x1bWJpYSAgICAgICAgICAgICAgICAgICAg
+ICAgICAgZW1haWw6IHNpZWdlcnRAc2Z1LmNhCkNhbmFkYSAgVjVBIDFTNgo9PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT0K
