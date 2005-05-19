@@ -1,132 +1,171 @@
-From: tim.boneko@web.de (Tim Boneko)
+From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: Trouble with i2c and bttv
-Message-Id: <200307042024.55272.tim.boneko@web.de>
+Message-Id: <3F05E2BC.9050607@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200307042024.55272.tim.boneko@web.de>
+In-Reply-To: <200307042024.55272.tim.boneko@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8hCkknbSBydW5uaW5nIGxpbnV4IGZvciB5ZWFycyBub3csIGJ1dCB0aGlzIGlzIG15IHZl
-cnkgZmlyc3QgYnVnIHJlcG9ydCwgCmFuZCBpIGhvcGUgaXQncyBoZWxwZnVsLiBJZiBub3QsIHNv
-cnJ5IGZvciB0aGUgYm90aGVyLi4uCgpPbiBKdW5lIDI5LCBpIHB1bGxlZCB0aGUgbGF0ZXN0IGky
-YyBhbmQgbG1fc2Vuc29ycyBkcml2ZXJzIHZpYSBDVlMgYW5kIApnb3QgdGhlbSB3b3JraW5nIG9u
-IG15IFBDIChNQjogQXN1cyBBN044WCB3aXRoIG5mb3JjZTIgY2hpcHNldCwgCktlcm5lbDogMi40
-LjIxLXZhbmlsbGEsIGEgSGF1cHBhdWdlIFRWIGNhcmQgKHNlZSBsb2cgZXhjZXJwdCBiZWxvdyku
-IApJIGRpZCBfbm90XyBwYXRjaCB0aGUga2VybmVsIGJ1dCByZXBsYWNlZCB0aGUga2VybmVsIGky
-YyBtb2R1bGVzIHdpdGggCnRoZSBkb3dubG9hZGVkK2NvbXBpbGVkIG9uZXMuKQpXb3JrZWQgZmlu
-ZSBzbyBmYXIsIG1heWJlIGV4Y2VwdCBmb3IgdGhlIDQuMDggdm9sdCByZWFkaW5nIGFwcGVhcmlu
-ZyAKZnJvbSB0aW1lIHRvIHRpbWUgb24gdmFyaW91cyB2b2x0YWdlIG1lYXN1cmVzLCBldmVuICJW
-Q29yZTEiLgpBZnRlciBzdWNoIGEgc3VjY2Vzc2Z1bCBpbnN0YWxsYXRpb24gaSBuZWVkZWQgc29t
-ZSByZWxheGluZyBhbmQgd2FudGVkIAp0byB3YXRjaCBUVi4gIm1vZHByb2JlIGJ0dHYiIG1hZGUg
-bXkga2VybmVsIGdvICJPb3BzIi4KVGhpcyBtb2R1bGUgZGVwZW5kcyBvbiBpMmMtYWxnby1iaXQg
-YW5kIGkyYy1jb3JlIHdoaWNoIHdlcmUgcmVwbGFjZWQgCmJ5IHRoZSBpMmMtZHJpdmVycywgc28g
-aSBndWVzcyB0aGVyZSdzIGEgcHJvYmxlbSBoZXJlLiAKQmVsb3cgaXMgdGhlIG91dHB1dCBvZiAi
-bHNtb2QiIChiZWZvcmUgbG9hZGluZyBidHR2Lm8pIGFuZCBhbiBleGNlcnB0IApmcm9tIG15IC92
-YXIvbG9nL2tlcm4ubG9nIGFmdGVyIHRoYXQuCgpHcmVldGluZ3MsCgoJdGltCgpsc21vZDoKTW9k
-dWxlICAgICAgICAgICAgICAgICAgU2l6ZSAgVXNlZCBieSAgICBOb3QgdGFpbnRlZApzbmQtbWl4
-ZXItb3NzICAgICAgICAgIDEzNTI4ICAgMCAgKGF1dG9jbGVhbikKdzgzNzgxZCAgICAgICAgICAg
-ICAgICAyMjMyMCAgIDAgICh1bnVzZWQpCmVlcHJvbSAgICAgICAgICAgICAgICAgIDM0NDAgICAw
-ICAodW51c2VkKQppMmMtcHJvYyAgICAgICAgICAgICAgICA2MjYwICAgMCAgW3c4Mzc4MWQgZWVw
-cm9tXQppMmMtbmZvcmNlMiAgICAgICAgICAgICAzMTc2ICAgMCAgKHVudXNlZCkKaTJjLWNvcmUg
-ICAgICAgICAgICAgICAxMzkyNCAgIDAgIFt3ODM3ODFkIGVlcHJvbSBpMmMtcHJvYyAKaTJjLW5m
-b3JjZTJdCnNlcmlhbCAgICAgICAgICAgICAgICAgNDY2NjAgICAwICAoYXV0b2NsZWFuKQpzbmQt
-aW50ZWw4eDAgICAgICAgICAgIDE4MDUyICAgMgpzbmQtYWM5Ny1jb2RlYyAgICAgICAgIDQwMjAw
-ICAgMCAgW3NuZC1pbnRlbDh4MF0Kc25kLXBjbSAgICAgICAgICAgICAgICA2MjAxNiAgIDIgIFtz
-bmQtaW50ZWw4eDBdCnNuZC10aW1lciAgICAgICAgICAgICAgMTQ4MjAgICAwICBbc25kLXBjbV0K
-c25kLXBhZ2UtYWxsb2MgICAgICAgICAgNTI0NCAgIDAgIFtzbmQtaW50ZWw4eDAgc25kLXBjbV0K
-c25kLW1wdTQwMS11YXJ0ICAgICAgICAgMzQ0MCAgIDAgIFtzbmQtaW50ZWw4eDBdCnNuZC1yYXdt
-aWRpICAgICAgICAgICAgMTQwMTYgICAwICBbc25kLW1wdTQwMS11YXJ0XQpzbmQtc2VxLWRldmlj
-ZSAgICAgICAgICA0MzA0ICAgMCAgW3NuZC1yYXdtaWRpXQpzbmQgICAgICAgICAgICAgICAgICAg
-IDMwNTMyICAgMCAgW3NuZC1taXhlci1vc3Mgc25kLWludGVsOHgwIApzbmQtYWM5Ny1jb2RlYyBz
-bmQtcGNtIHNuZC10aW1lciBzbmQtbXB1NDAxLXVhcnQgc25kLXJhd21pZGkgCnNuZC1zZXEtZGV2
-aWNlXQpzb3VuZGNvcmUgICAgICAgICAgICAgICAzODQ0ICAgMSAgW3NuZF0KbmxzX2NwNDM3ICAg
-ICAgICAgICAgICAgNDM4MCAgIDEgIChhdXRvY2xlYW4pCnZmYXQgICAgICAgICAgICAgICAgICAg
-MTA2MzYgICAxICAoYXV0b2NsZWFuKQpmYXQgICAgICAgICAgICAgICAgICAgIDMyNDcyICAgMCAg
-KGF1dG9jbGVhbikgW3ZmYXRdCmFwbSAgICAgICAgICAgICAgICAgICAgMTAyNDggICAxCm5sc19p
-c284ODU5LTE1ICAgICAgICAgIDMzODggICAxCm5sc19jcDg1MCAgICAgICAgICAgICAgIDM2MTIg
-ICAwICAodW51c2VkKQpwcmludGVyICAgICAgICAgICAgICAgICA3MzkyICAgMAp1c2Itc3RvcmFn
-ZSAgICAgICAgICAgIDI1MTA0ICAgMCAgKHVudXNlZCkKdXNiLW9oY2kgICAgICAgICAgICAgICAx
-OTAxNiAgIDAgICh1bnVzZWQpCnVzYmNvcmUgICAgICAgICAgICAgICAgNjI1MjggICAwICBbcHJp
-bnRlciB1c2Itc3RvcmFnZSB1c2Itb2hjaV0KdW5peCAgICAgICAgICAgICAgICAgICAxNTc1MiAg
-OTkgIChhdXRvY2xlYW4pCgovdmFyL2xvZy9rZXJuLmxvZzoKCkp1bCAgNCAxNDoyNTowNCB0aW1i
-byBrZXJuZWw6IGJ0dHY6IGRyaXZlciB2ZXJzaW9uIDAuNy4xMDQgbG9hZGVkCkp1bCAgNCAxNDoy
-NTowNCB0aW1ibyBrZXJuZWw6IGJ0dHY6IHVzaW5nIDQgYnVmZmVycyB3aXRoIDIwODBrICg4MzIw
-ayAKdG90YWwpIGZvciBjYXB0dXJlCkp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6IGJ0dHY6
-IEhvc3QgYnJpZGdlIGlzIFBDSSBkZXZpY2UgCjEwZGU6MDFlMCAoblZpZGlhIENvcnBvcmF0aW9u
-KQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiBidHR2OiBCdDh4eCBjYXJkIGZvdW5kICgw
-KS4KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogYnR0djA6IEJ0ODc4IChyZXYgMikgYXQg
-MDE6MGEuMCwgaXJxOiAKMTEsIGxhdGVuY3k6IDMyLCBtbWlvOiAweGU4MDAwMDAwCkp1bCAgNCAx
-NDoyNTowNCB0aW1ibyBrZXJuZWw6IGJ0dHYwOiBkZXRlY3RlZDogSGF1cHBhdWdlIFdpblRWIApb
-Y2FyZBBdLCBQQ0kgc3Vic3lzdGVtIElEIGlzIDAwNzA6MTNlYgpKdWwgIDQgMTQ6MjU6MDQgdGlt
-Ym8ga2VybmVsOiBidHR2MDogdXNpbmc6IEJUODc4KEhhdXBwYXVnZSAoYnQ4NzgpKSAKW2NhcmQQ
-LGluc21vZCBvcHRpb25dCkp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6IGJ0dHYwOiBIYXVw
-cGF1Z2UvVm9vZG9vIG1zcDM0eHg6IHJlc2V0IApsaW5lIGluaXQgWzVdCkp1bCAgNCAxNDoyNTow
-NCB0aW1ibyBrZXJuZWw6IFVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBhZ2luZyByZXF1ZXN0IAph
-dCB2aXJ0dWFsIGFkZHJlc3MgMGQ4M2UxNGUKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDog
-IHByaW50aW5nIGVpcDoKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogMGQ4M2UxNGUKSnVs
-ICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogKnBkZSA9IDAwMDAwMDAwCkp1bCAgNCAxNDoyNTow
-NCB0aW1ibyBrZXJuZWw6IE9vcHM6IDAwMDAKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDog
-Q1BVOiAgICAwCkp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6IEVJUDogICAgMDAxMDpbPDBk
-ODNlMTRlPl0gICAgTm90IHRhaW50ZWQKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogRUZM
-QUdTOiAwMDAxMDI5MgpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiBlYXg6IGUxNGYxMmUw
-ICAgZWJ4OiBlMTRmMTJlMCAgIGVjeDogCmUxNGY5NzY0ICAgZWR4OiAwMDAwMDAwMApKdWwgIDQg
-MTQ6MjU6MDQgdGltYm8ga2VybmVsOiBlc2k6IGUxNGY5NzI4ICAgZWRpOiAwMDAwMDAwMSAgIGVi
-cDogCjAwMDAwMDAwICAgZXNwOiBkNDY4ZGJlMApKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVs
-OiBkczogMDAxOCAgIGVzOiAwMDE4ICAgc3M6IDAwMTgKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtl
-cm5lbDogUHJvY2VzcyBtb2Rwcm9iZSAocGlkOiAxNDQzLCAKc3RhY2twYWdl1DY4ZDAwMCkKSnVs
-ICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogU3RhY2s6IGUxNDlkMDdiIDgwMTAwNWZmIDAwMDAw
-MDAwIApjMDIzNzA0OCAwMDAwMDI5MiAwMDAwMDI5MiBjMDIzNzA0OCBlMTRmOTc2NCAKSnVsICA0
-IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICAgICAgIGUxNDlkYmQ0IGUxNGYxMmUwIGMwMjM3MDQ4
-IApjMDIzNzA0OCBjMDIzNzA0OCAwMDAwMDAwMCBjMDI3OWRjMCBlMTRmMTJlMCAKSnVsICA0IDE0
-OjI1OjA0IHRpbWJvIGtlcm5lbDogICAgICAgIGUxNGY5NzY0IGUxNGY5NzI4IDAwMDAwMDAxIAow
-MDAwMDAwMCBlMTQ2YWM1MSBlMTRmOTcyOCBkNDY4ZGM4NCAwMDAwMDAwMSAKSnVsICA0IDE0OjI1
-OjA0IHRpbWJvIGtlcm5lbDogQ2FsbCBUcmFjZTogICAgCltpcHRfTUFTUVVFUkFERTpfX2luc21v
-ZF9pcHRfTUFTUVVFUkFERV9PL2xpYi9tb2R1bGVzLzIuNC4yMS9rZXJuZWwvbmV0L2lwdistMjk4
-ODg1LzEyOF0gCls8ZTE0Zjk3NjQ+XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNR
-VUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky0yOTU5ODAvMTI4XSAK
-WzxlMTRmMTJlMD5dIFs8ZTE0ZjEyZTA+XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAg
-IFs8ZTE0Zjk3NjQ+XSBbPGUxNGY5NzI4Pl0gCltpcHRfTUFTUVVFUkFERTpfX2luc21vZF9pcHRf
-TUFTUVVFUkFERV9PL2xpYi9tb2R1bGVzLzIuNC4yMS9rZXJuZWwvbmV0L2lwdistNTA0NzUxLzEy
-OF0gCls8ZTE0Zjk3Mjg+XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNRVUVSQURF
-X08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky0yOTYwMDQvMTI4XSAKW2lwdF9N
-QVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNRVUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tl
-cm5lbC9uZXQvaXB2Ky01MDEyMjYvMTI4XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAg
-IFs8ZTE0Zjk3Mjg+XSBbZmJjb25fc2Nyb2xsKzE5NjIvMzIxNl0gCltpcHRfTUFTUVVFUkFERTpf
-X2luc21vZF9pcHRfTUFTUVVFUkFERV9PL2xpYi9tb2R1bGVzLzIuNC4yMS9rZXJuZWwvbmV0L2lw
-distNTAwMzA3LzEyOF0gCls8ZTE0Zjk3Mjg+XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lw
-dF9NQVNRVUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky0yOTE2NDgv
-MTI4XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNRVUVSQURFX08vbGliL21vZHVs
-ZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky00NjQ0MTYvMTI4XQpKdWwgIDQgMTQ6MjU6MDQgdGlt
-Ym8ga2VybmVsOiAgIApbaXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9s
-aWIvbW9kdWxlcy8yLjQuMjEva2VybmVsL25ldC9pcHYrLTQ2NDgxNi8xMjhdIApbaXB0X01BU1FV
-RVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVs
-L25ldC9pcHYrLTQ3NTIyMS8xMjhdIApbPGUxNGY5NzI4Pl0gWzxlMTRmOTcyOD5dIApbaXB0X01B
-U1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2Vy
-bmVsL25ldC9pcHYrLTQ5NDIwOC8xMjhdIApbaXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01B
-U1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVsL25ldC9pcHYrLTQ2NjgyNi8xMjhd
-Ckp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6ICAgWzxlMTRmOTcyOD5dIApbaXB0X01BU1FV
-RVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVs
-L25ldC9pcHYrLTQ2NDQxNi8xMjhdIApbaXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FV
-RVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVsL25ldC9pcHYrLTQ2NjgyMC8xMjhdIApb
-aXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQu
-MjEva2VybmVsL25ldC9pcHYrLTUwNzU4MS8xMjhdIApbPGUxNGY5NzI4Pl0gW3ZzbnByaW50Zis1
-NDUvMTEwNF0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICBbPGUxNGY5NzJmPl0gWzxl
-MTRmOTU4MD5dIFs8ZTE0Zjk3Mjg+XSAKWzxlMTRmOTgwYz5dIFs8ZTE0Zjk3MmU+XSBbPGUxNGY5
-NzI4Pl0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICAKW2lwdF9NQVNRVUVSQURFOl9f
-aW5zbW9kX2lwdF9NQVNRVUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2
-Ky0yOTU2MjMvMTI4XSAKWzxlMTRmOTcyOD5dIFs8ZTE0ZjRjZDc+XSBbc3ByaW50ZiszMS80OF0g
-WzxlMTRmOTcyZD5dIFs8ZTE0ZjRjZDM+XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAg
-IFs8ZTE0Zjk1ODA+XSBbPGUxNGYxNzI0Pl0gWzxlMTRmOTcyOD5dIApbPGUxNGY5NTgwPl0gWzxl
-MTRlZDA2YT5dIFs8ZTE0Zjk1ODA+XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAgIFtw
-Y2lfc2V0X21hc3Rlcis1Mi85Nl0gWzxlMTRmOTU4MD5dIApbPGUxNGVkY2Y2Pl0gWzxlMTRmOTU4
-MD5dIFs8ZTE0ZWQxMTA+XSBbPGUxNGYzZTljPl0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5l
-bDogICBbPGUxNGY5NTgwPl0gW3ByaW50aysyNzkvMzM2XSAKWzxlMTRmNTQzOD5dIFs8ZTE0ZjU0
-YTA+XSBbcGNpX2Fubm91bmNlX2RldmljZSs1My8xMTJdIFs8ZTE0ZjU0Mzg+XQpKdWwgIDQgMTQ6
-MjU6MDQgdGltYm8ga2VybmVsOiAgIFs8ZTE0ZjU0YTA+XSAKW3BjaV9yZWdpc3Rlcl9kcml2ZXIr
-OTIvOTZdIFs8ZTE0ZjU0YTA+XSBbPGUxNGVkZTYxPl0gWzxlMTRmNTRhMD5dIApbc3lzX2luaXRf
-bW9kdWxlKzEyMDEvMTU4NF0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICBbPGUxNGU4
-MDYwPl0gWzxlMTRmNGYzYz5dIFs8ZTE0ZTgwNjA+XSAKW3N5c3RlbV9jYWxsKzUxLzU2XQpKdWwg
-IDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDog
-Q29kZTogIEJhZCBFSVAgdmFsdWUuCg==
+i2c-2.8.0 isn't compatible with existing i2c drivers in the kernel due
+to struct changes.
+
+Tim Boneko wrote:
+> Hello!
+> I'm running linux for years now, but this is my very first bug report,=20
+> and i hope it's helpful. If not, sorry for the bother...
+>=20
+> On June 29, i pulled the latest i2c and lm_sensors drivers via CVS and=20
+> got them working on my PC (MB: Asus A7N8X with nforce2 chipset,=20
+> Kernel: 2.4.21-vanilla, a Hauppauge TV card (see log excerpt below).=20
+> I did _not_ patch the kernel but replaced the kernel i2c modules with=20
+> the downloaded+compiled ones.)
+> Worked fine so far, maybe except for the 4.08 volt reading appearing=20
+> from time to time on various voltage measures, even "VCore1".
+> After such a successful installation i needed some relaxing and wanted=20
+> to watch TV. "modprobe bttv" made my kernel go "Oops".
+> This module depends on i2c-algo-bit and i2c-core which were replaced=20
+> by the i2c-drivers, so i guess there's a problem here.=20
+> Below is the output of "lsmod" (before loading bttv.o) and an excerpt=20
+> from my /var/log/kern.log after that.
+>=20
+> Greetings,
+>=20
+> 	tim
+>=20
+> lsmod:
+> Module                  Size  Used by    Not tainted
+> snd-mixer-oss          13528   0  (autoclean)
+> w83781d                22320   0  (unused)
+> eeprom                  3440   0  (unused)
+> i2c-proc                6260   0  [w83781d eeprom]
+> i2c-nforce2             3176   0  (unused)
+> i2c-core               13924   0  [w83781d eeprom i2c-proc=20
+> i2c-nforce2]
+> serial                 46660   0  (autoclean)
+> snd-intel8x0           18052   2
+> snd-ac97-codec         40200   0  [snd-intel8x0]
+> snd-pcm                62016   2  [snd-intel8x0]
+> snd-timer              14820   0  [snd-pcm]
+> snd-page-alloc          5244   0  [snd-intel8x0 snd-pcm]
+> snd-mpu401-uart         3440   0  [snd-intel8x0]
+> snd-rawmidi            14016   0  [snd-mpu401-uart]
+> snd-seq-device          4304   0  [snd-rawmidi]
+> snd                    30532   0  [snd-mixer-oss snd-intel8x0=20
+> snd-ac97-codec snd-pcm snd-timer snd-mpu401-uart snd-rawmidi=20
+> snd-seq-device]
+> soundcore               3844   1  [snd]
+> nls_cp437               4380   1  (autoclean)
+> vfat                   10636   1  (autoclean)
+> fat                    32472   0  (autoclean) [vfat]
+> apm                    10248   1
+> nls_iso8859-15          3388   1
+> nls_cp850               3612   0  (unused)
+> printer                 7392   0
+> usb-storage            25104   0  (unused)
+> usb-ohci               19016   0  (unused)
+> usbcore                62528   0  [printer usb-storage usb-ohci]
+> unix                   15752  99  (autoclean)
+>=20
+> /var/log/kern.log:
+>=20
+> Jul  4 14:25:04 timbo kernel: bttv: driver version 0.7.104 loaded
+> Jul  4 14:25:04 timbo kernel: bttv: using 4 buffers with 2080k (8320k=20
+> total) for capture
+> Jul  4 14:25:04 timbo kernel: bttv: Host bridge is PCI device=20
+> 10de:01e0 (nVidia Corporation)
+> Jul  4 14:25:04 timbo kernel: bttv: Bt8xx card found (0).
+> Jul  4 14:25:04 timbo kernel: bttv0: Bt878 (rev 2) at 01:0a.0, irq:=20
+> 11, latency: 32, mmio: 0xe8000000
+> Jul  4 14:25:04 timbo kernel: bttv0: detected: Hauppauge WinTV=20
+> [card=10], PCI subsystem ID is 0070:13eb
+> Jul  4 14:25:04 timbo kernel: bttv0: using: BT878(Hauppauge (bt878))=20
+> [card=10,insmod option]
+> Jul  4 14:25:04 timbo kernel: bttv0: Hauppauge/Voodoo msp34xx: reset=20
+> line init [5]
+> Jul  4 14:25:04 timbo kernel: Unable to handle kernel paging request=20
+> at virtual address 0d83e14e
+> Jul  4 14:25:04 timbo kernel:  printing eip:
+> Jul  4 14:25:04 timbo kernel: 0d83e14e
+> Jul  4 14:25:04 timbo kernel: *pde =3D 00000000
+> Jul  4 14:25:04 timbo kernel: Oops: 0000
+> Jul  4 14:25:04 timbo kernel: CPU:    0
+> Jul  4 14:25:04 timbo kernel: EIP:    0010:[<0d83e14e>]    Not tainted
+> Jul  4 14:25:04 timbo kernel: EFLAGS: 00010292
+> Jul  4 14:25:04 timbo kernel: eax: e14f12e0   ebx: e14f12e0   ecx:=20
+> e14f9764   edx: 00000000
+> Jul  4 14:25:04 timbo kernel: esi: e14f9728   edi: 00000001   ebp:=20
+> 00000000   esp: d468dbe0
+> Jul  4 14:25:04 timbo kernel: ds: 0018   es: 0018   ss: 0018
+> Jul  4 14:25:04 timbo kernel: Process modprobe (pid: 1443,=20
+> stackpage=D468d000)
+> Jul  4 14:25:04 timbo kernel: Stack: e149d07b 801005ff 00000000=20
+> c0237048 00000292 00000292 c0237048 e14f9764=20
+> Jul  4 14:25:04 timbo kernel:        e149dbd4 e14f12e0 c0237048=20
+> c0237048 c0237048 00000000 c0279dc0 e14f12e0=20
+> Jul  4 14:25:04 timbo kernel:        e14f9764 e14f9728 00000001=20
+> 00000000 e146ac51 e14f9728 d468dc84 00000001=20
+> Jul  4 14:25:04 timbo kernel: Call Trace:   =20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-298885/128]=20
+> [<e14f9764>]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-295980/128]=20
+> [<e14f12e0>] [<e14f12e0>]
+> Jul  4 14:25:04 timbo kernel:   [<e14f9764>] [<e14f9728>]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-504751/128]=20
+> [<e14f9728>]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-296004/128]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-501226/128]
+> Jul  4 14:25:04 timbo kernel:   [<e14f9728>] [fbcon_scroll+1962/3216]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-500307/128]=20
+> [<e14f9728>]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-291648/128]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-464416/128]
+> Jul  4 14:25:04 timbo kernel:  =20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-464816/128]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-475221/128]=20
+> [<e14f9728>] [<e14f9728>]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-494208/128]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-466826/128]
+> Jul  4 14:25:04 timbo kernel:   [<e14f9728>]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-464416/128]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-466820/128]=20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-507581/128]=20
+> [<e14f9728>] [vsnprintf+545/1104]
+> Jul  4 14:25:04 timbo kernel:   [<e14f972f>] [<e14f9580>] [<e14f9728>]=20
+> [<e14f980c>] [<e14f972e>] [<e14f9728>]
+> Jul  4 14:25:04 timbo kernel:  =20
+> [ipt_MASQUERADE:__insmod_ipt_MASQUERADE_O/lib/modules/2.4.21/kernel/net/i=
+pv+-295623/128]=20
+> [<e14f9728>] [<e14f4cd7>] [sprintf+31/48] [<e14f972d>] [<e14f4cd3>]
+> Jul  4 14:25:04 timbo kernel:   [<e14f9580>] [<e14f1724>] [<e14f9728>]=20
+> [<e14f9580>] [<e14ed06a>] [<e14f9580>]
+> Jul  4 14:25:04 timbo kernel:   [pci_set_master+52/96] [<e14f9580>]=20
+> [<e14edcf6>] [<e14f9580>] [<e14ed110>] [<e14f3e9c>]
+> Jul  4 14:25:04 timbo kernel:   [<e14f9580>] [printk+279/336]=20
+> [<e14f5438>] [<e14f54a0>] [pci_announce_device+53/112] [<e14f5438>]
+> Jul  4 14:25:04 timbo kernel:   [<e14f54a0>]=20
+> [pci_register_driver+92/96] [<e14f54a0>] [<e14ede61>] [<e14f54a0>]=20
+> [sys_init_module+1201/1584]
+> Jul  4 14:25:04 timbo kernel:   [<e14e8060>] [<e14f4f3c>] [<e14e8060>]=20
+> [system_call+51/56]
+> Jul  4 14:25:04 timbo kernel:=20
+> Jul  4 14:25:04 timbo kernel: Code:  Bad EIP value.
+>=20
