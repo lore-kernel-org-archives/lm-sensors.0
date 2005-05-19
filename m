@@ -1,67 +1,24 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: Fwd: Problems with stability of i2c-ali1535.c
-Message-Id: <41ABBF79.8090908@verizon.net>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:10 +0000
+Subject: Linux kernel I2C stuff
+Message-Id: <20030805171951.GB4004@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-thanks. Many others have also had problems with the 1535 driver.
+On Mon, Aug 04, 2003 at 06:42:00PM -0600, Mike Bourgeous wrote:
+> Hello,
+> 
+> I was told you were maintaining the I2C subsystem in 2.6.  Would you happen to 
+> know who I need to contact to get a new I2C bit algorithm driver ID assigned 
+> to my driver (http://myhd.sourceforge.net/) in kernel 2.4 (i.e. #define 
+> I2C_HW_B_* in include/linux/i2c-id.h)?
 
-Your changes (adding a delay loop composed of 30 outb() calls to many many places) is interesting...
-is there any way you could get clearance to give us the ALI document?
-Or can you explain what you are trying to accomplish, or what problems you've fixed
-and what still remain?
+Doling out the numbers is not up to me.  I'd suggest you ask the
+sensor's mailing list (which I've CC:).
 
-For the w83781d changes to ignore bad readings, we have similar changes in other drivers,
-perhaps we should port those to the winbond driver.
+thanks,
 
-mds
-
-
-
-
-> Subject:
-> Problems with stability of i2c-ali1535.c
-> From:
-> "Ubel Walter" <ubel@heidenhain.de>
-> Date:
-> Thu, 25 Nov 2004 15:01:48 +0100
-> To:
-> <frodol@dds.nl>, <phil@netroedge.com>, <mdsxyz123@yahoo.com>
-> 
-> 
-> Hallo,
-> 
-> I had a lot of problems with the stability of the i2c-ali1535.c
-> therfore I've made some changes which I got from a confidential
-> document from ali.
-> 
-> Maybe it helps you to improve your work.
-> 
-> This is still not stable but much better, I've also made some changes
-> to the w83781d.c so that it takes care if the i2c-ali1535.c
-> does report an error. So the aplication get only valid values.
-> 
-> <<i2c-ali1535.c>> <<w83781d.c>>
-> 
-> 
->       Mit freundlichen Gruessen / Best Regards 
->       Dr. JOHANNES HEIDENHAIN GmbH
-> 
->       Walter Ubel
-> 
-> 
->       __________________________
->       ___mailto:_ubel_____@heidenhain.de___ <mailto:ubel@heidenhain.de>__
->       tel     +49 / 8669 / 31-1791
->       ________________________
-> 
->       DR. JOHANNES HEIDENHAIN GmbH
->       Dr.-Johannes-Heidenhain-Str. 5
->       D-83301 Traunreut
-> 
->       _http:\\www.heidenhain.de_**
-> 
+greg k-h
