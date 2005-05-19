@@ -1,96 +1,38 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: [PATCH 2.4] i2c cleanups, second wave (4/5)
-Message-Id: <20031225000352.4eea6856.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:11 +0000
+Subject: unknown chip
+Message-Id: <20030807194331.5621dc58.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031224225707.749707e5.khali@linux-fr.org>
-In-Reply-To: <20031224225707.749707e5.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
 
-This patch doesn't really focus on the i2c subsystem, but one part of it
-belongs to this subsystem. It fixes the dependancies between the various
-SCx200 drivers, which happen to be incorrect at the time being. This is
-a modified version of a patch I had previously submitted on the LKML,
-but wasn't quite correct.
 
-The patch also fixes Configure.help a bit for these drivers.
+Hi all,
 
-I've sent a similar (but smaller) patch to Greg KH for Linux 2.6, which
-also has a few incorrectnesses in SCx200 driver dependancies.
+Alex van Kaam (MBM) sent me a chip dump this morning:
 
-Merry Christmas everyone :)
+  0000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0020  FF FF FF FF FF FF FF FF 7F 0B FF FF 7F 06 FF FF
+  0030  FF FF FF 00 00 00 00 00 00 00 00 00 00 00 5C 60
+  0040  04 00 00 00 00 FF 00 FF 00 FF 00 FF 00 FF 81 7F
+  0050  81 7F 81 7F FF FF FF FF FF FF FF FF 62 62 62 C3 
+  0060  C3 C3 00 00 80 80 80 5A 5A 5A 64 64 64 44 40 00
+  0070  FF FF FF 00 FF 00 FF 00 FF 00 11 00 E0 00 EC 10
+  0080  5E A4 FF 62 03 80 FF FF FF 03 4D 4D 0E 0E 00 00
+  0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
-diff -ru linux-2.4.24-pre2/Documentation/Configure.help linux-2.4.24-pre2-k4/Documentation/Configure.help
---- linux-2.4.24-pre2/Documentation/Configure.help	Tue Dec 23 22:19:41 2003
-+++ linux-2.4.24-pre2-k4/Documentation/Configure.help	Tue Dec 23 22:58:53 2003
-@@ -28276,6 +28276,14 @@
-   This support is also available as a module.  If compiled as a
-   module, it will be called scx200.o.
- 
-+NatSemi SCx200 GPIO support
-+CONFIG_SCx200_GPIO
-+  Give userspace access to the GPIO pins on the National
-+  Semiconductor SCx200 processors.
-+
-+  This support is also available as a module.  If compiled as a
-+  module, it will be called scx200_gpio.o.
-+
- NatSemi SCx200 Watchdog
- CONFIG_SCx200_WDT
-   Enable the built-in watchdog timer support on the National 
-@@ -28427,7 +28435,7 @@
-   If compiled as a module, it will be called uclinux.o.
- 
- NatSemi SCx200 I2C using GPIO pins
--CONFIG_SCx200_GPIO
-+CONFIG_SCx200_I2C
-   Enable the use of two GPIO pins of a SCx200 processor as an I2C bus.
- 
-   If you don't know what to do here, say N.
-diff -ru linux-2.4.24-pre2/drivers/char/Config.in linux-2.4.24-pre2-k4/drivers/char/Config.in
---- linux-2.4.24-pre2/drivers/char/Config.in	Tue Dec 23 22:19:41 2003
-+++ linux-2.4.24-pre2-k4/drivers/char/Config.in	Tue Dec 23 22:58:53 2003
-@@ -285,7 +285,8 @@
-    fi
-    tristate 'NetWinder flash support' CONFIG_NWFLASH
- fi
--dep_tristate 'NatSemi SCx200 GPIO Support' CONFIG_SCx200_GPIO $CONFIG_SCx200
-+tristate 'NatSemi SCx200 Support' CONFIG_SCx200
-+dep_tristate '  NatSemi SCx200 GPIO Support' CONFIG_SCx200_GPIO $CONFIG_SCx200
- 
- if [ "$CONFIG_IA64_GENERIC" = "y" -o "$CONFIG_IA64_SGI_SN2" = "y" ] ; then
-    bool 'SGI SN2 fetchop support' CONFIG_FETCHOP
-diff -ru linux-2.4.24-pre2/drivers/char/Makefile linux-2.4.24-pre2-k4/drivers/char/Makefile
---- linux-2.4.24-pre2/drivers/char/Makefile	Tue Dec 23 22:19:41 2003
-+++ linux-2.4.24-pre2-k4/drivers/char/Makefile	Tue Dec 23 22:58:53 2003
-@@ -288,7 +288,8 @@
- obj-$(CONFIG_DZ) += dz.o
- obj-$(CONFIG_NWBUTTON) += nwbutton.o
- obj-$(CONFIG_NWFLASH) += nwflash.o
--obj-$(CONFIG_SCx200_GPIO) += scx200_gpio.o scx200.o
-+obj-$(CONFIG_SCx200) += scx200.o
-+obj-$(CONFIG_SCx200_GPIO) += scx200_gpio.o
- 
- # Only one watchdog can succeed. We probe the hardware watchdog
- # drivers first, then the softdog driver.  This means if your hardware
-diff -ru linux-2.4.24-pre2/drivers/i2c/Config.in linux-2.4.24-pre2-k4/drivers/i2c/Config.in
---- linux-2.4.24-pre2/drivers/i2c/Config.in	Tue Dec 23 22:19:41 2003
-+++ linux-2.4.24-pre2-k4/drivers/i2c/Config.in	Tue Dec 23 22:58:53 2003
-@@ -18,8 +18,9 @@
-          int  '    GPIO pin used for SCL' CONFIG_SCx200_I2C_SCL 12
-          int  '    GPIO pin used for SDA' CONFIG_SCx200_I2C_SDA 13
-       fi
--      dep_tristate '  NatSemi SCx200 ACCESS.bus' CONFIG_SCx200_ACB $CONFIG_I2C
-    fi
-+
-+   dep_tristate 'NatSemi SCx200 ACCESS.bus' CONFIG_SCx200_ACB $CONFIG_I2C
- 
-    dep_tristate 'I2C PCF 8584 interfaces' CONFIG_I2C_ALGOPCF $CONFIG_I2C
-    if [ "$CONFIG_I2C_ALGOPCF" != "n" ]; then
+This is on a MSI MS-9126 at address 0x2c. We are trying to figure out
+what kind of chip it can be. Any idea anyone? (I don't tell you what I
+do think it is, so that it won't influence you in any way.)
 
 -- 
 Jean Delvare
