@@ -1,60 +1,28 @@
-From: ggoldberg@vytek.com (Geoff Goldberg)
-Date: Thu, 19 May 2005 06:24:20 +0000
-Subject: Driving non-smbus i2c chip given I2C_FUNC_SMBUS_EMUL adapter
-Message-Id: <D01E65D91799784A816D515B4201AB82030B3A@pluto3.stellcom.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:06 +0000
+Subject: smart HDD
+Message-Id: <20030721154832.43dd6564.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D01E65D91799784A816D515B4201AB82030B32@pluto3.stellcom.com>
-In-Reply-To: <D01E65D91799784A816D515B4201AB82030B32@pluto3.stellcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks for the info Mark
 
-- geoff
+Hi all,
 
------Original Message-----
-From: Mark Studebaker [mailto:mds@paradyne.com]
-Sent: Thursday, October 02, 2003 4:33 PM
-To: Geoff Goldberg
-Cc: 'lm78@stimpy.netroedge.com'
-Subject: Re: Driving non-smbus i2c chip given I2C_FUNC_SMBUS_EMUL
-adapter driver
+On our new drivers page, there is an entry for SMART HDD temperature,
+that read:
+A program could be written to present the temperature using i2c-proc and
+'sensors'.
+
+I'm interested in that, since I think one of my hdd would support it.
+What's the idea however? The sensor is not found on an I2C bus AFAIK,
+there are specialized tools to retrive SMART data
+(http://www.linux-ide.org/smart.html). So what's the link with our
+project?
 
 
-Geoff Goldberg wrote:
-> 
-> Greetings,
-> 
-> I read through the docs and FAQ and some driver code but could not
-determine
-> how to communicate with my i2c chip from my chip driver.
-> 
-> I'm working with an embedded system that has the following:
-> 
-> *       i2c adapter
-> *       i2c device (not indicated to be smbus-compatible in the data
-sheet)
-> *       i2c-algo-<arch>.o
-> *       i2c-adap-<arch>.o
-> 
-> and I need to create chip drivers for the non-smbus i2c device.
-> 
-> Also given:
-> 
-> *       the existing bus driver functionality doesn't include I2C_FUNC_I2C
-> (only I2C_FUNC_SMBUS_EMUL and a couple of other flags)
-> *       In the adapter algo driver, master_xfer is implemented, smbus_xfer
-> is NULL
-> 
-> My question is this:
-> 
-> Can my chip driver reliably use i2c calls (i2c_master_send,
-> i2c_master_receive, etc)? 
-
-no
-
-> Can it reliably use i2c_smbus_xxx() calls?
-
-yes, subject to the capabilities of the i2c device.
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
