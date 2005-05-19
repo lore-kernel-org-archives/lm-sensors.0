@@ -1,7 +1,7 @@
-From: phil@netroedge.com (Philip Edelbrock)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: OT: Please. Can someone lock the mailing list to only accept
-Message-Id: <3EC04321.7090304@netroedge.com>
+Subject: OT: Please. Can someone lock the mailing list to only accept mail from registered users
+Message-Id: <20030513032802.GA5834@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200305131012.25719.dpnsw@optusnet.com.au>
 In-Reply-To: <200305131012.25719.dpnsw@optusnet.com.au>
@@ -10,37 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Mon, May 12, 2003 at 05:58:09PM -0700, Philip Edelbrock wrote:
+> What I might do is split the lists:
+> 
+> sensors-devel@
+> sensors-users@
 
-Yeah, I agree.  But, I don't want to limit the emails we get from 
-non-registered users (e.g. Alan Cox, Linus, etc. ;').  I also think it 
-is important to have a user-support element still in place.
+Is that really needed?  The traffic here is quite low, splitting the
+lists doesn't seem to make much sense.
 
-What I might do is split the lists:
+> What do you guys think?  Spam sucks, and I really resent being forced to 
+> add an extra degree of seperation from us and the rest of the world but 
+> there may not be another reasonable alternative....
 
-sensors-devel@
-sensors-users@
+Banning HTML mail takes care of 99% of the spam that tries to get
+through to the linux-usb-* mailing lists.  Sure, some of it slips
+through, but I never notice it, as my local spam filters pick them up
+usually :)
 
-I could make both of these addresses unadvertised on the web site (which 
-seems to be the primary means that our current address is harvested?), 
-but have an autoresponse to the current sensors@ which gives info 
-regarding the above two addresses.
+You might want to try that, it's a good first step, which also keeps the
+lists open for non-subscribers to post to (which is a good thing,
+considering that you have to ask someone before being able to join this
+list, which I think is a bit strange...)
 
-What do you guys think?  Spam sucks, and I really resent being forced to 
-add an extra degree of seperation from us and the rest of the world but 
-there may not be another reasonable alternative....
+thanks,
 
-
-Phil
-
-David wrote:
-
->The sensors mailing list is one of my biggest contributor to spam.
->
->By making the list post only from registered users alot of this would go away.
->
->I know this because for most of the spam I get I go throught the headers and 
->then use spamcop to report open relays, spam websites, .... etc
->
->The extra effort may make a difference.
->  
->
+greg k-h
