@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: National PC87372 chip driver wanted
-Message-Id: <20040518020338.GA11012@earth.solarsys.private>
+Message-Id: <20040520094245.06ed7799.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40A9074A.5060604@acetechgroup.com>
 In-Reply-To: <40A9074A.5060604@acetechgroup.com>
@@ -10,44 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mitchell:
-
-* Mitchell Perilstein <mitch@acetechgroup.com> [2004-05-17 14:41:14 -0400]:
-> Hi Sensor Folks,
+> I haven't had much time to work on sensors stuff lately, but your
+> offer is interesting... not least because I recognize your company
+> from a couple messages to the Philly LUG and because I live relatively
+> close to Exton myself.
 > 
-> The Intel 865 series motherboards has this chip, "Nat. Semi. PC87372 
-> Super IO Fan Sensors", listed as "no plan" on the site.  Is anyone 
-> working on it?
-> 
-> We're thinking about encouraging development of the chip driver for it, 
-> in the form of either a some funding/donation or maybe the donation or 
-> loan of one of these 865 boards.
-> 
-> Please write if interested.
->
-> Thanks!
-> -- 
-> Mitchell Perilstein
-> ACE Technology Group, LLC
-> http://www.acetechgroup.com
-> (484) 713-0075
+> I took a quick look at the PC87372 datasheet - that combined with Jean
+> Delvare's recent work on similar NatSemi chips should make for a
+> pretty straightforward driver.
 
-I haven't had much time to work on sensors stuff lately, but your
-offer is interesting... not least because I recognize your company
-from a couple messages to the Philly LUG and because I live relatively
-close to Exton myself.
+Agreed. Left apart the fact that the PC87370 family chips uses 16-bit
+values for fan speed measurement, which is something new (and a good
+thing IMHO since it solves clock divider issues), they look rather
+similar to the PC87360 family (up to 364).
 
-I took a quick look at the PC87372 datasheet - that combined with Jean
-Delvare's recent work on similar NatSemi chips should make for a pretty
-straightforward driver.
+There is another chip in this family: the PC87373. Looks like an
+improved 372, and compatible. It has one more fan monitoring channel (3
+instead of 2) and 3 PWM outputs, which means that it is functionally
+equivalent to the PC87364 (as far as fan speed control and monitoring is
+concerned). We would probably want to have a single driver for the
+PC7370 family, much like we did for the PC87360 family.
 
-As for donations, the sensors project is not set up to accept money
-right now.  Of course it is useful (but not strictly necessary) to
-have a hardware sample for writing a driver.  Please contact me off-
-list to make arrangements.
+I just added support for the PC87373 to sensors-detect, and have been
+updating our "New Drivers" page as well.
 
-Thanks and regards,
+One important point would be to know for which kernel Mitchell is
+interested in a driver. We will probably end up in having a driver for
+both the 2.4 and the 2.6 kernel, but we will have to start with either.
+For information, my PC87360 family driver is for 2.4 only at the moment.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://khali.linux-fr.org/
