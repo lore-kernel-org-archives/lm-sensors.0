@@ -1,35 +1,31 @@
-From: adrian@humboldt.co.uk (Adrian Cox)
-Date: Thu, 19 May 2005 06:23:47 +0000
-Subject: irq, tasklet and i2c
-Message-Id: <1044356362.20631.16.camel@newt>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: lm_sensors2/prog/sensors chips.c
+Message-Id: <20021128172256.1841b834.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E3F94BE.CD95B34A@plain.de>
-In-Reply-To: <3E3F94BE.CD95B34A@plain.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2003-02-04 at 10:23, Markus Schorer wrote:
+> Update of /home/cvs/lm_sensors2/prog/sensors
+> In directory
+> mordac.netroedge.com:/tmp/cvs-serv11026/lm_sensors2/prog/sensors
+> 
+> Modified Files:
+> 	chips.c 
+> Log Message:
+> (Khali) Fix Vaio EEPROM misdetection
 
-> 2) i assign a buffer for a single piece of data. reading from the
-> device,
-> i wait in a wait queue.
-> an interrupt schedules a tasklet. the tasklet read the data over i2c, 
-> stores it in the buffer and does a wakeup.
-> then the read process reads the data out of the buffer.
-> works.
+The changes I had first made to support Vaio eeproms was assuming that
+everything that isn't a memory chip eeprom was a Vaio eeprom. This is
+now fixed (should avoid problems with dccmon and maybe Xeons) by
+ensuring that we have a real Vaio eeprom. If it doesn't pass the test,
+no information is displayed.
 
-In general, it's wrong to sleep in a tasklet. As I understand it,
-i2c_master_recv is allowed to sleep (I'm writing my driver on that
-assumption, somebody correct me if I'm wrong). I think your first
-version is superior, though if you're targeting 2.4 and 2.5 kernels then
-a completion is easier than a wait queue.
+BTW, what is ddcmon supposed to do? I have a video card supporting this,
+the driver loads, but doesn't create any entry in /proc.
 
-If you want to do a ringbuffer, consider creating a worker thread and
-using semaphores for producer / consumer scheduling.
-
-- Adrian Cox
-http://www.humboldt.co.uk/
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
