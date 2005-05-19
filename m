@@ -1,60 +1,54 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:35 +0000
-Subject: [PATCH] I2C: Reduce it87 i2c address range
-Message-Id: <11074523383635@kroah.com>
+From: frodol@dds.nl (Frodo Looijaard)
+Date: Thu, 19 May 2005 06:24:43 +0000
+Subject: [dma_k@mail.ru: Compilation question.]
+Message-Id: <20040222160116.GA1032@frodo.local>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11074523383338@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2044, 2005/02/03 00:29:54-08:00, khali@linux-fr.org
+----- Forwarded message from Dmitry Katsubo <dma_k@mail.ru> -----
 
-[PATCH] I2C: Reduce it87 i2c address range
+From: Dmitry Katsubo <dma_k@mail.ru>
+To: Frodo Looijaard <frodol@dds.nl>
+Subject: Compilation question.
+X-Enigmail-Version: 0.76.1.0
+X-Enigmail-Supports: pgp-inline, pgp-mime
+X-Spam-Status: No, hits=0.0 required=5.0 tests= version=2.20
+X-Spam-Level: 
 
-IT87xxF chips were never seen at any other I2C address than the default
-(0x2d) so I think that we could safely reduce the range of addresses the
-it87 drivers accepts. Currently it accepts 0x20-0x2f, I believe that
-0x28-0x2f would already be more than sufficient.
+Hello, Frodo Looijaard!
 
-(In theory, any address is possible, so whatever range we choose is
-arbitrary anyway.)
+I am writing to you, as to the contributor of I2C project.
+I am not sure you can answer my question (if not, just tell me
+whom I can ask).
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
+The question is:
 
+After applying i2c-2.8.4.tar.gz to linux-2.4.25 the following options are no 
+longer compilable
+(as they do not correspond to the new I2C interface?):
 
- drivers/i2c/chips/it87.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+    Character devices -> I2C support -> NatSemi SCx200 I2C GPIO pins 
+    (CONFIG_SCx200_I2C)
+    Character devices -> I2C support -> NatSemi SCx200 ACCESS.bus 
+    (CONFIG_SCx200_ACB)
+    Multimedia devices -> Video For Linux -> SAA5249 Teletext processor 
+    (CONFIG_VIDEO_SAA5249)
+    Multimedia devices -> Video For Linux -> SAB3036 tuner 
+    (CONFIG_TUNER_3036)
 
+(files: scx200_i2c.c, scx200_acb.c, saa5249.c, tuner-3036.c).
 
-diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
---- a/drivers/i2c/chips/it87.c	2005-02-03 09:35:02 -08:00
-+++ b/drivers/i2c/chips/it87.c	2005-02-03 09:35:02 -08:00
-@@ -2,8 +2,8 @@
-     it87.c - Part of lm_sensors, Linux kernel modules for hardware
-              monitoring.
- 
--    Supports: IT8705F  Super I/O chip w/LPC interface
--              IT8712F  Super I/O chip w/LPC interface & SMbus
-+    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
-+              IT8712F  Super I/O chip w/LPC interface & SMBus
-               Sis950   A clone of the IT8705F
- 
-     Copyright (C) 2001 Chris Gauthron <chrisg@0-in.com> 
-@@ -42,10 +42,8 @@
- 
- 
- /* Addresses to scan */
--static unsigned short normal_i2c[] = { 0x20, 0x21, 0x22, 0x23, 0x24,
--					0x25, 0x26, 0x27, 0x28, 0x29,
--					0x2a, 0x2b, 0x2c, 0x2d, 0x2e,
--					0x2f, I2C_CLIENT_END };
-+static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
-+					0x2e, 0x2f, I2C_CLIENT_END };
- static unsigned int normal_isa[] = { 0x0290, I2C_CLIENT_ISA_END };
- 
- /* Insmod parameters */
+What can be done to make them back again? Are they supported anymore?
 
+Thanks.
+
+----- End forwarded message -----
+
+-- 
+Frodo Looijaard <frodol@dds.nl>  PGP key and more: http://huizen.dds.nl/~frodol
+Defenestration n. (formal or joc.):
+  The act of removing Windows from your computer in disgust, usually followed
+  by the installation of Linux or some other Unix-like operating system.
