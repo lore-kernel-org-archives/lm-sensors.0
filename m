@@ -1,15 +1,18 @@
 From: phil@netroedge.com (phil@netroedge.com)
 Date: Thu, 19 May 2005 06:23:36 +0000
 Subject: [tpx20@ja.olm.net: RE: TP EEPROM corruption in Linux]
-Message-Id: <20020722095740.A16805@Stimpy.netroedge.com>
+Message-Id: <20020722102655.A28532@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20020722095740.A16805@Stimpy.netroedge.com>
+In-Reply-To: <20020722095740.A16805@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Some good info from Joe!
+A continuation of Joe's response.
+
 
 ----- Forwarded message from Joe in Australia <tpx20@ja.olm.net> -----
 
@@ -17,7 +20,7 @@ Reply-To: <tpx20@ja.olm.net>
 From: "Joe in Australia" <tpx20@ja.olm.net>
 To: <phil@netroedge.com>
 Subject: RE: TP EEPROM corruption in Linux
-Date: Mon, 22 Jul 2002 14:10:44 +1000
+Date: Mon, 22 Jul 2002 14:45:14 +1000
 X-Priority: 3 (Normal)
 X-MSMail-Priority: Normal
 X-Mailer: Microsoft Outlook IMO, Build 9.0.2416 (9.0.2911.0)
@@ -29,49 +32,23 @@ X-SBClass: OK
 
 Hi Phil,
 
-In my early experience with this TP saga back in December Last year, I did
-see lots of posting as described by you below.
+Further to my earlier response,
 
-AT one stage I managed to get the same problem with the first TP I was
-trying to unlock, { I did have the entire eeprom backed up before I started]
+I will go through all my earlier stuff,
 
-As I recall the CRC error was not fatal [The POST did not freeze the TP
-although it looked like it at first], from memory, I searched the IBM web
-site and found a reference to the problem.
+And given a couple of days, I will come back to you with an example of how
+the 24RF08 is corrupted when treated as a 24CXX.
 
-The solution was to press the ESC key when the error was displayed [when it
-looks as if the TP is stuck, gone to lunch], then boot to the OS, Windows
-2000 in my case, do a restart [ not a cold boot] then do a normal shutdown,
-problem went away.
+I know it doesn't seem possible, but it is, I have confirmed this myself,
+but I just can't remember the exact circumstances.
 
-Dealing specifically with your enquiry, I can see how it may be possible to
-corrupt the eeprom.
+I just had a look at the 24RF08, 24C01, 24C08 data sheets and I can't see
+the problem [it doesn't jump out at you!], I know it's there and I have
+confirmed it in the past, I just have to revisit the subject.
 
-Examine the 24RF08 data sheet carefully, and you will see that [designed to
-be this way on purpose I believe to thwart attempt to read it as 24C08] the
-sequence is very different to ordinary 24CXX and in fact that leads to the
-eeprom being corrupted when being read [not being written to] as a 24Cxx.
-
-"- Does the 24RF08 respond unfavourably to I2C 'quick' commands?  I.e.,
-commands which stop after the first I2C byte (the address with r/w bit)."
-
-My reply is YES, and I am certain about that.
-
-Reason, I cannot remember exactly, have to revise the data sheets, but it
-has to do with how 24RF08 sees the first TWO bytes as being the command and
-address combined, so if you only send one byte, it is still expecting the
-next byte that comes along as the second half of the address. Later when the
-second byte arrives FROM ANYWHERE it is seen as the second byte of the
-address to write to, and the next byte [the third byte] is the data to write
-to that address.
-
-It should be possible to come up with a sequence of 2 bytes and a STOP
-command that would work on 24RF08 and other MORE NORMAL I2C devices.
-
-All the models that have RFID use a 24RF08, other models use a 24C01 or
-93C46 which do not support RFID.
-
-All the models listed by you below use the 24RF08 [not sure about the 240].
+I do receive a lot of email from people who have corrupted their eeproms [TP
+hangs CRC error, dead as a door nail] after having read the eeprom using IC
+Prog or PonyProg and selected 24CXX as the eeprom type.
 
 Cheers
 Joe
