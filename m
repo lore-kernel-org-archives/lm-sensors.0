@@ -1,32 +1,60 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: i2c_slave_send & recv?
-Message-Id: <20030612163555.GA32407@kroah.com>
+From: nickols_k@mail.ru (Nick Kurshev)
+Date: Thu, 19 May 2005 06:23:41 +0000
+Subject: [PATCH] SPD report slightly improved
+Message-Id: <20021108103703.03c46fbc.nickols_k@mail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E923014.50504@mbari.org>
-In-Reply-To: <3E923014.50504@mbari.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 11, 2003 at 11:43:37PM -0700, Brent Roman wrote:
-> 
-> I don't know the details of the 2.5 "driver model".
-> Would it allow for two independent processes to respond to
-> I2C messages from different slaves?
+Hello!
 
-Yes.
+This patch improves HTML form of SPD information report by
+locating info about every chip in independed table.
+IMHO it improves readability of report!
+Please apply this patch into the next release of lm_sensors.
 
-> Can you give me any pointers to the relevant 2.5 kernel docs?
+Best regards! Nick
 
-The only thing that has changed in 2.5, from a user's point of view, is
-how to access the sensor data.  That is documented in
-Documentation/i2c/sysfs-interface.
 
-The kernel driver model only affects how the driver itself is written.
-For examples of that, see the many 2.5 i2c drivers.
+--- prog/eeprom/decode-dimms.pl.old	Sat Feb 16 19:41:54 2002
++++ prog/eeprom/decode-dimms.pl	Fri Nov  8 10:33:04 2002
+@@ -100,10 +100,9 @@
+ PC DIMM Serial Presence Detect Tester/Decoder
+ Written by Philip Edelbrock.  Copyright 1998, 1999.
+ Modified by Christian Zuckschwerdt <zany@triq.net>
+-Version 2.6.3
++Version 2.6.3.1
+ ';
+ 
+-print "<table border=1>\n" if $opt_html;
+ 
+ $dimm_count=0;
+ $_=`ls /proc/sys/dev/sensors/`;
+@@ -115,7 +114,10 @@
+ 		$dimm_checksum=0;
+ 		$dimm_count=$dimm_count + 1;
+ 		
+-		printl "Decoding EEPROM", "/proc/sys/dev/sensors/$dimm_list[$i]";
++		print "<B><U><BR><BR>" if $opt_html;
++		printl "Decoding EEPROM" , " /proc/sys/dev/sensors/$dimm_list[$i]";
++		print "</B></U>" if $opt_html;
++		print "<table border=1>\n" if $opt_html;
+ 		if (/^[^-]+-[^-]+-[^-]+-([^-]+)$/) {
+ 			$dimm_num=$1 - 49;
+ 			printl "Guessing DIMM is in", "bank $dimm_num";
+@@ -472,10 +474,10 @@
+ 		printl $l, $temp;
+ 		
+ 		
++print "</table>\n" if $opt_html;
+ 	}
+ }
+-printl "Number of SDRAM DIMMs detected and decoded", $dimm_count;
++printl "Number of SDRAM DIMMs detected and decoded ", $dimm_count;
+ 
+-print "</table>\n" if $opt_html;
+ print "</body></html>\n" if $opt_body;
+ print "\nTry '$0 --format' for html output.\n" unless $opt_html;
 
-Hope this helps,
-
-greg k-h
