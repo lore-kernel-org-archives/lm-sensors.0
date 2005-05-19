@@ -1,25 +1,42 @@
-From: david.goodenough@btconnect.com (David Goodenough)
+From: mhoffman@lightlink.com (Mark M. Hoffman)
 Date: Thu, 19 May 2005 06:25:25 +0000
 Subject: SmBus driver for ATI chip 1002:4353
-Message-Id: <200411301252.28267.david.goodenough@btconnect.com>
+Message-Id: <20041204021916.GI7903@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200411301252.28267.david.goodenough@btconnect.com>
+In-Reply-To: <200411301252.28267.david.goodenough@btconnect.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have a laptop (a Samsumg P28) which has lots of ATI chips in it.  One of 
-them (according to lspci) is an SmBus controller, and it has a PCI id of
-1002:4353.  Looking at the lmsensors web site there are no bus drivers
-for any ATI chips.  This seems to be one of the functions in the Ati 
-9000 IGP chip, which is also the video driver.  It is marked as being
-the 9100 IGP chip in the linux PCI repository, but I guess they use the
-same silicon in both chips.
+Hi David:
 
-I could not find any documentation on the chip (technical stuff that is,
-plenty of marketting material), but I am not quite sure where ATI
-publish such things.
+* David Goodenough <david.goodenough@btconnect.com> [2004-11-30 12:52:28 +0000]:
+> I have a laptop (a Samsumg P28) which has lots of ATI chips in it.  One of 
+> them (according to lspci) is an SmBus controller, and it has a PCI id of
+> 1002:4353.  Looking at the lmsensors web site there are no bus drivers
+> for any ATI chips.  This seems to be one of the functions in the Ati 
+> 9000 IGP chip, which is also the video driver.  It is marked as being
+> the 9100 IGP chip in the linux PCI repository, but I guess they use the
+> same silicon in both chips.
 
-Is anyone working on such a chip?
+If you're looking for temp sensor info, you might be able to get it from ACPI.
+That's not uncommon for a laptop.
 
-David
+> I could not find any documentation on the chip (technical stuff that is,
+> plenty of marketting material), but I am not quite sure where ATI
+> publish such things.
+
+They probably don't publish it at all.  Seems the video card co's are very bad
+about that.
+
+> Is anyone working on such a chip?
+
+Not that I know, sorry.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
