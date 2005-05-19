@@ -1,34 +1,51 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: [PATCH] I2C: Support for sparc64
-Message-Id: <20050103182150.GA28535@bode.aurel32.lan>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: [PATCH 2.6] asb100 bug
+Message-Id: <20040411040439.GA17920@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050103002237.GA7554@bode.aurel32.lan>
-In-Reply-To: <20050103002237.GA7554@bode.aurel32.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 03, 2005 at 06:33:45PM +0100, Jean Delvare wrote:
-> Is there actually any supported device on Sparc?
-The person who send me that patch use i2c on sparc to get an em8300 card
-working (MPEG-1 and MPEG-2 decoding card). Some chips on the card have
-to be accessed via i2c, and thus the i2c modules are needed.
+Hi nymisi, Greg:
 
-That also explain why he also send me the patch only for i2c and not for
-lm-sensors, however I think the patch could also be applied to 
-lm-sensors.
+* Nyeste Mih?ly <nymisi@freemail.hu> [2004-01-27 16:02:04 +0100]:
+> Hi!
+> 
+> I reported a bug of asb100 chip at: 
+> http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket39
+> 
+> The reply was the follow:
+> 
+> "Is there a BIOS option you can disable, e.g. Asus "COP",
+> "QFAN", or some such?  My guess is that the BIOS is
+> somehow interfering with the asb100 driver.  Otherwise
+> I don?t know how this could happen.
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-> (I happen to have a Sun Blade 100 at work and have always wondered if
-> there were any hardware monitoring device inside.)
-I don't think so, anyway you can add sensors by yourself, and access
-them via i2c-parport :) (if your Sparc has a parallel port, some as mine
-have one).
+Yeah, I wrote that.
+
+"You do that, you go to the box, you know.  Two minutes by
+yourself, and you feel shame, you know." - Denis the goalie
+
+Greg, please apply this fix (vs. 2.6.5):
+
+
+--- linux-2.6.5/drivers/i2c/chips/asb100.c.orig	2004-04-10 23:58:36.005741695 -0400
++++ linux-2.6.5/drivers/i2c/chips/asb100.c	2004-04-10 23:58:15.000000000 -0400
+@@ -467,7 +467,7 @@
+ 		data->reg[nr] = TEMP_TO_REG(val); \
+ 		break; \
+ 	} \
+-	asb100_write_value(client, ASB100_REG_TEMP_##REG(nr), \
++	asb100_write_value(client, ASB100_REG_TEMP_##REG(nr+1), \
+ 			data->reg[nr]); \
+ 	return count; \
+ }
+
 
 
 -- 
-  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
- : :' :  Debian GNU/Linux developer | Electrical Engineer
- `. `'   aurel32@debian.org         | aurelien@aurel32.net
-   `-    people.debian.org/~aurel32 | www.aurel32.net
+Mark M. Hoffman
+mhoffman@lightlink.com
