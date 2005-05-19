@@ -1,555 +1,93 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: W83L785 for 2.6 is written
-Message-Id: <Pine.LNX.4.58.0409271458531.28948@desitka.sh.cvut.cz>
+Message-Id: <20040927142440.M24694@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0409032110560.19686@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0409032110560.19686@desitka.sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+On Mon, 27 Sep 2004 15:19:56 +0200 (CEST), Rudolf Marek wrote
+> Anyone knows anyone with same chip ?
+> Please and who has W83L785TS ?
 
-I have a report from user that my driver works :)
-(he has this one on NVIDIA graph card)
+I don't own one myself but the TS-S is known to be found on several popular
+Asus motherboards, as a companion to the ASB100.
 
-Anyone knows anyone with same chip ?
-Please and who has W83L785TS ?
+> The TS chip can be included in this driver (TS is subset of this 
+> chip) what will be the procedure? First include this one and merge later?
 
-The TS chip can be included in this driver (TS is subset of this chip)
-what will be the procedure? First include this one and merge later?
+Please note that you will need to implement the retry-on-failure method that
+the w83l785ts driver has if you want to include TS-S support into your driver.
 
-I guess I can start preparing the driver to inclusion in main kernel.
-I attached to the end of this email userspace part. I think it looks quite
-OK. Jean please could you review? (and apply maybe :)?
+Merging is probably a good idea. You indeed need to include support first,
+then the old driver gets deprecated and after some times it gets deleted. You
+will need to port your driver to Linux 2.4 before the two latter steps occur
+though, since we do not want to have to point people to one driver under 2.4
+and another under 2.6 (this is technically possible but has proven to confuse
+the users).
 
-I will review my kernel part this week.
+> I guess I can start preparing the driver to inclusion in main kernel.
+> I attached to the end of this email userspace part. I think it looks 
+> quite OK. Jean please could you review? (and apply maybe :)?
 
-Just in case here are original urls:
-http://www.assembler.cz/download/patch-userspace-w83l785-rc1
-http://www.assembler.cz/download/w83l785.tar.gz
+I cannot apply anything now as we are in feature freeze mode until the
+upcoming 2.8.8 release.
 
-Thanks
+> +/* W83L785R chips */
+> +
+> +#define SENSORS_W83L785R_PREFIX "w83l785r"
+> +
+> +#define SENSORS_W83L785R_TEMP1		51 /* R */
+> +#define SENSORS_W83L785R_TEMP1_MAX	52 /* RW */
+> +#define SENSORS_W83L785R_TEMP1_CRIT	53 /* RW */
+> +#define SENSORS_W83L785R_TEMP1_HYST_MIN	54 /* RW */
+> +#define SENSORS_W83L785R_TEMP1_SENS	55 /* RW */
 
-Regards
+What is HYST_MIN? The name is non-standard, and I can't imagine what it is
+for. Please explain.
+> +++ lm_sensors2_my/prog/sensors/chips.c	2004-09-23 
+> 17:28:51.000000000 +0200 @@ -4852,10 +4852,10 @@   } }
+> 
+> -/* print_asb100_in()
+> +/* print_in()
+>   *   where in, in_min, and in_max are sensors feature IDs
+>   */
+> -static void print_asb100_in(const sensors_chip_name *name, int alarm,
+> +static void print_in(const sensors_chip_name *name, int alarm,
 
-Rudolf
+This change belongs to a separate (and obviously preliminary) patch.
 
+> +#define PRINT_W83L785R_IN(num, name, alarms) \
+> +	print_in((name), (alarms), \
+> +		(SENSORS_W83L785R_IN##num), \
+> +		(SENSORS_W83L785R_IN##num##_MIN), \
+> +		(SENSORS_W83L785R_IN##num##_MAX))
+> +
+> +#define PRINT_W83L785R_FAN(num, name, alarms) \
+> +	print_fan((name), (alarms), \
+> +		(SENSORS_W83L785R_FAN##num), \
+> +		(SENSORS_W83L785R_FAN##num##_DIV), \
+> +		(SENSORS_W83L785R_FAN##num##_MIN))
+> +
+> +#define PRINT_W83L785R_TEMP(num, name, alarms) \
+> +	w83l785r_print_temp((name), (alarms), \
+> +		(SENSORS_W83L785R_TEMP##num), \
+> +		(SENSORS_W83L785R_TEMP##num##_MAX), \
+> +		(SENSORS_W83L785R_TEMP##num##_HYST_MIN), \
+> +		(SENSORS_W83L785R_TEMP##num##_CRIT), \
+> +		(SENSORS_W83L785R_TEMP##num##_SENS))
 
----------- Forwarded message ----------
-Date: Sun, 26 Sep 2004 20:21:01 -0300
-From: Colin O'Flynn <coflynn@newae.com>
-To: Rudolf Marek <R.Marek@sh.cvut.cz>
-Subject: Re: W83L785 for 2.6 is written
+This sucks. Just pick the numbers for SENSORS_W83L785R_* in such a way that
+you then can use for() loops to handle them and avoid code duplication.
 
-Hello,
+Rest looks OK, at a quick glance at least.
 
-It works! I found out the problem - I had foolheartily ignored
-the warnings that it was unstable with the nvidia close-source
-driver, assuming that it would still work but just might
-crash...
+Thanks.
 
-
-When I rmmod'ed the nvidia driver then inserted the rivatv module
-it started to work, I could see the bus on i2cdetect -l.
-
-At any rate - your driver works :D Thank you very much for your
-help here, I've also attached the useful data. This is both the
-getSYS command and the output of the sensors user-space program.
-
-Warm Regards,
-
- -Colin
-
-On September 24, 2004 12:56 pm, you wrote:
-> https://sourceforge.net/tracker/download.php?group_id=9564&ati
->d09564&file_id=91385&aid=976894
-
-
-diff -Naur lm_sensors2/etc/sensors.conf.eg lm_sensors2_my/etc/sensors.conf.=
-eg
---- lm_sensors2/etc/sensors.conf.eg	2004-09-22 22:50:43.000000000 +0200
-+++ lm_sensors2_my/etc/sensors.conf.eg	2004-09-23 17:18:39.000000000 +0200
-@@ -2203,3 +2203,17 @@
-
-    set fan1_min 2000
-    set fan2_min 2000
-+
-+chip "w83l785r-*"
-+
-+   label temp1 "Temp1"
-+   label temp2 "Temp2"
-+   label in0   "VCore"
-+   label in1   "V2.5"
-+   label in2   "V1.5"
-+   label in3   "Vcc"
-+   label fan1   "Fan1"
-+   label fan2   "Fan2"
-+
-+   #in3 has internal divisor 3
-+   compute in3   3*@ , @/3
-diff -Naur lm_sensors2/kernel/chips/twosixdrv.c lm_sensors2_my/kernel/chips=
-/twosixdrv.c
---- lm_sensors2/kernel/chips/twosixdrv.c	1970-01-01 01:00:00.000000000 +0100
-+++ lm_sensors2_my/kernel/chips/twosixdrv.c	2004-09-23 17:18:39.000000000 +=
-0200
-@@ -0,0 +1,39 @@
-+/*
-+    twosixdrv - Part of lm_sensors, Linux kernel modules
-+                for hardware monitoring
-+
-+    Copyright (c) 2004 Rudolf Marek <r.marek@sh.cvut.cz>
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; either version 2 of the License, or
-+    (at your option) any later version.
-+
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+
-+    You should have received a copy of the GNU General Public License
-+    along with this program; if not, write to the Free Software
-+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+*/
-+
-+/* Fake file for sysctl entries for non-2.4 drivers */
-+
-+/* The /proc/sys entries */
-+
-+/* -- SENSORS SYSCTL START -- */
-+#define W83L785R_SYSCTL_IN0 1000
-+#define W83L785R_SYSCTL_IN1 1001
-+#define W83L785R_SYSCTL_IN2 1002
-+#define W83L785R_SYSCTL_IN3 1003
-+#define W83L785R_SYSCTL_IN4 1004
-+#define W83L785R_SYSCTL_FAN1 1101
-+#define W83L785R_SYSCTL_FAN2 1102
-+#define W83L785R_SYSCTL_TEMP1 1200
-+#define W83L785R_SYSCTL_TEMP2 1201
-+#define W83L785R_SYSCTL_FAN_DIV 2000
-+
-+/* -- SENSORS SYSCTL END -- */
-+
-diff -Naur lm_sensors2/kernel/include/sensors.h.template lm_sensors2_my/ker=
-nel/include/sensors.h.template
---- lm_sensors2/kernel/include/sensors.h.template	2004-09-22 22:52:26.00000=
-0000 +0200
-+++ lm_sensors2_my/kernel/include/sensors.h.template	2004-09-23 17:24:31.00=
-0000000 +0200
-@@ -18,6 +18,10 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-     --- THIS FILE IS AUTOGENERATED DO NOT EDIT --
-+
-+    Put your legacy SYCTLs lines in kernel/chips/twosixdrv.c
-+
-+    Thank you
- */
-
- #ifndef LIB_SENSORS_H
-diff -Naur lm_sensors2/lib/chips.c lm_sensors2_my/lib/chips.c
---- lm_sensors2/lib/chips.c	2004-09-08 17:04:59.000000000 +0200
-+++ lm_sensors2_my/lib/chips.c	2004-09-23 17:18:39.000000000 +0200
-@@ -1662,6 +1662,76 @@
-     { 0 }
-   };
-
-+static sensors_chip_feature w83l785r_features[] +  {
-+    { SENSORS_W83L785R_TEMP1, "temp1", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_TEMP1, VALUE(4), 3 },
-+    { SENSORS_W83L785R_TEMP1_MAX, "temp1_max", SENSORS_W83L785R_TEMP1,
-+                        SENSORS_W83L785R_TEMP1,
-+			RW, W83L785R_SYSCTL_TEMP1, VALUE(3), 3 },
-+    { SENSORS_W83L785R_TEMP1_CRIT, "temp1_crit", SENSORS_W83L785R_TEMP1,
-+                        SENSORS_W83L785R_TEMP1,
-+			RW, W83L785R_SYSCTL_TEMP1, VALUE(2), 3 },
-+    { SENSORS_W83L785R_TEMP1_HYST_MIN, "temp1_hyst_min", SENSORS_W83L785R_=
-TEMP1,
-+                        SENSORS_W83L785R_TEMP1,
-+			RW, W83L785R_SYSCTL_TEMP1, VALUE(1), 3 },
-+    { SENSORS_W83L785R_TEMP1_SENS, "temp1_type", SENSORS_W83L785R_TEMP1,
-+                        SENSORS_W83L785R_TEMP1,
-+			RW, W83L785R_SYSCTL_TEMP1, VALUE(1), 0 },
-+    { SENSORS_W83L785R_TEMP2, "temp2", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_TEMP2, VALUE(4), 3 },
-+    { SENSORS_W83L785R_TEMP2_MAX, "temp2_max", SENSORS_W83L785R_TEMP2,
-+                        SENSORS_W83L785R_TEMP2,
-+			RW, W83L785R_SYSCTL_TEMP2, VALUE(3), 3 },
-+    { SENSORS_W83L785R_TEMP2_CRIT, "temp2_crit", SENSORS_W83L785R_TEMP2,
-+                        SENSORS_W83L785R_TEMP2,
-+			RW, W83L785R_SYSCTL_TEMP2, VALUE(2), 3 },
-+    { SENSORS_W83L785R_TEMP2_HYST_MIN, "temp2_hyst_min", SENSORS_W83L785R_=
-TEMP2,
-+                        SENSORS_W83L785R_TEMP2,
-+			RW, W83L785R_SYSCTL_TEMP2, VALUE(1), 3 },
-+    { SENSORS_W83L785R_TEMP2_SENS, "temp2_type", SENSORS_W83L785R_TEMP2,
-+                        SENSORS_W83L785R_TEMP2,
-+			RW, W83L785R_SYSCTL_TEMP2, VALUE(1), 0 },
-+    { SENSORS_W83L785R_FAN1, "fan1", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_FAN1, VALUE(2), 0 },
-+    { SENSORS_W83L785R_FAN1_MIN, "fan1_min", SENSORS_W83L785R_FAN1, SENSOR=
-S_W83L785R_FAN1,
-+                        RW, W83L785R_SYSCTL_FAN1, VALUE(1), 0 },
-+    { SENSORS_W83L785R_FAN1_DIV, "fan1_div", SENSORS_W83L785R_FAN1, SENSOR=
-S_W83L785R_FAN1,
-+                        RW, W83L785R_SYSCTL_FAN1, VALUE(1), 0 },
-+    { SENSORS_W83L785R_FAN2, "fan2", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_FAN2, VALUE(2), 0 },
-+    { SENSORS_W83L785R_FAN2_MIN, "fan2_min", SENSORS_W83L785R_FAN2, SENSOR=
-S_W83L785R_FAN2,
-+                        RW, W83L785R_SYSCTL_FAN2, VALUE(2), 0 },
-+    { SENSORS_W83L785R_FAN2_DIV, "fan2_div", SENSORS_W83L785R_FAN2, SENSOR=
-S_W83L785R_FAN2,
-+                        RW, W83L785R_SYSCTL_FAN2, VALUE(2), 0 },
-+    { SENSORS_W83L785R_IN0, "in0", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_IN0, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN1, "in1", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_IN1, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN2, "in2", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_IN2, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN3, "in3", NOMAP, NOMAP,
-+                        R, W83L785R_SYSCTL_IN3, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN0_MIN, "in0_min", SENSORS_W83L785R_IN0, SENSORS_W=
-83L785R_IN0,
-+                        RW, W83L785R_SYSCTL_IN0, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN1_MIN, "in1_min", SENSORS_W83L785R_IN1, SENSORS_W=
-83L785R_IN1,
-+                        RW, W83L785R_SYSCTL_IN1, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN2_MIN, "in2_min", SENSORS_W83L785R_IN2, SENSORS_W=
-83L785R_IN2,
-+                        RW, W83L785R_SYSCTL_IN2, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN3_MIN, "in3_min", SENSORS_W83L785R_IN3, SENSORS_W=
-83L785R_IN3,
-+                        RW, W83L785R_SYSCTL_IN3, VALUE(3), 3 },
-+    { SENSORS_W83L785R_IN0_MAX, "in0_max", SENSORS_W83L785R_IN0, SENSORS_W=
-83L785R_IN0,
-+                        RW, W83L785R_SYSCTL_IN0, VALUE(2), 3 },
-+    { SENSORS_W83L785R_IN1_MAX, "in1_max", SENSORS_W83L785R_IN1, SENSORS_W=
-83L785R_IN1,
-+                        RW, W83L785R_SYSCTL_IN1, VALUE(2), 3 },
-+    { SENSORS_W83L785R_IN2_MAX, "in2_max", SENSORS_W83L785R_IN2, SENSORS_W=
-83L785R_IN2,
-+                        RW, W83L785R_SYSCTL_IN2, VALUE(2), 3 },
-+    { SENSORS_W83L785R_IN3_MAX, "in3_max", SENSORS_W83L785R_IN3, SENSORS_W=
-83L785R_IN3,
-+                        RW, W83L785R_SYSCTL_IN3, VALUE(2), 3 },
-+
-+    { 0 }
-+  };
-+
- static sensors_chip_feature adm9240_features[]    {
-     { SENSORS_ADM9240_IN0, "2.5V", NOMAP, NOMAP,
-@@ -5224,6 +5294,7 @@
-  { SENSORS_W83637HF_PREFIX, w83782d_features },
-  { SENSORS_W83791D_PREFIX, w83791d_features },
-  { SENSORS_W83L785TS_PREFIX, w83l785ts_features },
-+ { SENSORS_W83L785R_PREFIX, w83l785r_features },
-  { SENSORS_AS99127F_PREFIX, as99127f_features },
-  { SENSORS_ASB100_PREFIX, asb100_features },
-  { SENSORS_ADM9240_PREFIX, adm9240_features },
-diff -Naur lm_sensors2/lib/chips.h lm_sensors2_my/lib/chips.h
---- lm_sensors2/lib/chips.h	2004-09-08 17:04:58.000000000 +0200
-+++ lm_sensors2_my/lib/chips.h	2004-09-23 17:18:39.000000000 +0200
-@@ -748,6 +748,43 @@
- #define SENSORS_W83L785TS_TEMP		51 /* R */
- #define SENSORS_W83L785TS_TEMP_OVER	52 /* R for now */
-
-+/* W83L785R chips */
-+
-+#define SENSORS_W83L785R_PREFIX "w83l785r"
-+
-+#define SENSORS_W83L785R_TEMP1		51 /* R */
-+#define SENSORS_W83L785R_TEMP1_MAX	52 /* RW */
-+#define SENSORS_W83L785R_TEMP1_CRIT	53 /* RW */
-+#define SENSORS_W83L785R_TEMP1_HYST_MIN	54 /* RW */
-+#define SENSORS_W83L785R_TEMP1_SENS	55 /* RW */
-+
-+#define SENSORS_W83L785R_TEMP2		56 /* R */
-+#define SENSORS_W83L785R_TEMP2_MAX	57 /* RW */
-+#define SENSORS_W83L785R_TEMP2_CRIT	58 /* RW */
-+#define SENSORS_W83L785R_TEMP2_HYST_MIN	59 /* RW */
-+#define SENSORS_W83L785R_TEMP2_SENS	60 /* RW */
-+
-+#define SENSORS_W83L785R_FAN1 31 /* R */
-+#define SENSORS_W83L785R_FAN2 32 /* R */
-+#define SENSORS_W83L785R_FAN1_DIV 33 /* R */
-+#define SENSORS_W83L785R_FAN2_DIV 34 /* R */
-+#define SENSORS_W83L785R_FAN1_MIN 35 /* R */
-+#define SENSORS_W83L785R_FAN2_MIN 36 /* R */
-+
-+#define SENSORS_W83L785R_IN0 1 /* R */
-+#define SENSORS_W83L785R_IN1 2 /* R */
-+#define SENSORS_W83L785R_IN2 3 /* R */
-+#define SENSORS_W83L785R_IN3 4 /* R */
-+
-+#define SENSORS_W83L785R_IN0_MIN 11 /* RW */
-+#define SENSORS_W83L785R_IN1_MIN 12 /* RW */
-+#define SENSORS_W83L785R_IN2_MIN 13 /* RW */
-+#define SENSORS_W83L785R_IN3_MIN 14 /* RW */
-+
-+#define SENSORS_W83L785R_IN0_MAX 21 /* RW */
-+#define SENSORS_W83L785R_IN1_MAX 22 /* RW */
-+#define SENSORS_W83L785R_IN2_MAX 23 /* RW */
-+#define SENSORS_W83L785R_IN3_MAX 24 /* RW */
-
- /* Analog Devices ADM9240 chips */
-
-diff -Naur lm_sensors2/prog/sensors/chips.c lm_sensors2_my/prog/sensors/chi=
-ps.c
---- lm_sensors2/prog/sensors/chips.c	2004-09-19 19:09:59.000000000 +0200
-+++ lm_sensors2_my/prog/sensors/chips.c	2004-09-23 17:28:51.000000000 +0200
-@@ -4852,10 +4852,10 @@
-   }
- }
-
--/* print_asb100_in()
-+/* print_in()
-  *   where in, in_min, and in_max are sensors feature IDs
-  */
--static void print_asb100_in(const sensors_chip_name *name, int alarm,
-+static void print_in(const sensors_chip_name *name, int alarm,
- 	int in, int in_min, int in_max)
- {
-   char *label =3D NULL;
-@@ -4877,15 +4877,15 @@
- }
-
- #define PRINT_ASB100_IN(num, name, alarms) \
--	print_asb100_in((name), ((alarms) & ASB100_ALARM_IN##num), \
-+	print_in((name), ((alarms) & ASB100_ALARM_IN##num), \
- 		(SENSORS_ASB100_IN##num), \
- 		(SENSORS_ASB100_IN##num##_MIN), \
- 		(SENSORS_ASB100_IN##num##_MAX))
-
--/* print_asb100_fan()
-+/* print_fan()
-  *   where fan, fan_div, and fan_min are sensors feature IDs
-  */
--static void print_asb100_fan(const sensors_chip_name *name, int alarm,
-+static void print_fan(const sensors_chip_name *name, int alarm,
- 	int fan, int fan_div, int fan_min)
- {
-   char *label =3D NULL;
-@@ -4907,7 +4907,7 @@
- }
-
- #define PRINT_ASB100_FAN(num, name, alarms) \
--	print_asb100_fan((name), ((alarms) & ASB100_ALARM_FAN##num), \
-+	print_fan((name), ((alarms) & ASB100_ALARM_FAN##num), \
- 		(SENSORS_ASB100_FAN##num), \
- 		(SENSORS_ASB100_FAN##num##_DIV), \
- 		(SENSORS_ASB100_FAN##num##_MIN))
-@@ -4995,7 +4995,7 @@
-
- /* happens to be similar to asb100*/
- #define PRINT_LM93_IN(num, name, alarms) \
--	print_asb100_in((name), ((alarms) & LM93_ALARM_IN##num), \
-+	print_in((name), ((alarms) & LM93_ALARM_IN##num), \
- 		(SENSORS_LM93_IN##num), \
- 		(SENSORS_LM93_IN##num##_MIN), \
- 		(SENSORS_LM93_IN##num##_MAX))
-@@ -5120,6 +5120,102 @@
-   print_lm93_vid(name, SENSORS_LM93_VID2);
- }
-
-+#define PRINT_W83L785R_IN(num, name, alarms) \
-+	print_in((name), (alarms), \
-+		(SENSORS_W83L785R_IN##num), \
-+		(SENSORS_W83L785R_IN##num##_MIN), \
-+		(SENSORS_W83L785R_IN##num##_MAX))
-+
-+#define PRINT_W83L785R_FAN(num, name, alarms) \
-+	print_fan((name), (alarms), \
-+		(SENSORS_W83L785R_FAN##num), \
-+		(SENSORS_W83L785R_FAN##num##_DIV), \
-+		(SENSORS_W83L785R_FAN##num##_MIN))
-+
-+#define PRINT_W83L785R_TEMP(num, name, alarms) \
-+	w83l785r_print_temp((name), (alarms), \
-+		(SENSORS_W83L785R_TEMP##num), \
-+		(SENSORS_W83L785R_TEMP##num##_MAX), \
-+		(SENSORS_W83L785R_TEMP##num##_HYST_MIN), \
-+		(SENSORS_W83L785R_TEMP##num##_CRIT), \
-+		(SENSORS_W83L785R_TEMP##num##_SENS))
-+
-+static void w83l785r_print_all_temp (float n_cur,float n_high,float n_crit=
-,float n_hyst, int sens)
-+{
-+	if (fahrenheit) {
-+		n_cur =3D deg_ctof (n_cur);
-+		n_high =3D deg_ctof (n_high);
-+		n_crit =3D deg_ctof (n_crit);
-+		n_hyst =3D deg_ctof (n_hyst);
-+	}
-+
-+	printf ("%+2.0f%s high =3D %+2.0f%s, crit =3D %+2.0f%s, hyst =3D %+2.0f%s=
- "
-+	        "sensor =3D %s", n_cur, degstr, n_high, degstr,
-+		n_crit, degstr, n_hyst, degstr,
-+		((((int)sens)=3D1)?"PII/Celeron diode":(((int)sens)=3D2)?
-+                "3904 transistor":"thermistor"));
-+}
-+
-+/* print_w83l785r_temp()
-+ * where temp, temp_max, temp_hyst,  are sensors feature IDs
-+ */
-+
-+static void w83l785r_print_temp(const sensors_chip_name *name, int alarm,
-+	int temp, int temp_max, int temp_hyst, int temp_crit, int sensort)
-+{
-+  char *label =3D NULL;
-+  double cur, max, hyst, crit, sens;
-+  int valid;
-+
-+  if (!sensors_get_label_and_valid(*name,temp,&label,&valid) &&
-+      !sensors_get_feature(*name,temp,&cur) &&
-+      !sensors_get_feature(*name,temp_max,&max) &&
-+      !sensors_get_feature(*name,temp_crit,&crit) &&
-+      !sensors_get_feature(*name,sensort,&sens) &&
-+      !sensors_get_feature(*name,temp_hyst,&hyst)) {
-+
-+    if (valid) {
-+      print_label(label,10);
-+      w83l785r_print_all_temp(cur,max,crit,hyst,sens);
-+      printf(" %s\n", alarm ? "ALARM" : "");
-+    }
-+  } else
-+    printf("ERROR: Can't get TEMP data! (0x%04x)\n", temp);
-+
-+  free_the_label(&label);
-+}
-+
-+
-+void print_w83l785r(const sensors_chip_name *name)
-+{
-+  /*
-+
-+  Ready to implement ALARM part of userspace
-+
-+  char *label =3D NULL;
-+  double cur;
-+  int valid, alarms =3D 0;
-+
-+  if (!sensors_get_feature(*name,SENSORS_W83L785R_ALARMS,&cur))
-+	alarms =3D cur + 0.5;
-+  else
-+  printf("ERROR: Can't get alarm data!\n");
-+
-+  */
-+
-+  PRINT_W83L785R_IN(0, name, 0);
-+  PRINT_W83L785R_IN(1, name, 0);
-+  PRINT_W83L785R_IN(2, name, 0);
-+  PRINT_W83L785R_IN(3, name, 0);
-+
-+  PRINT_W83L785R_FAN(1, name, 0);
-+  PRINT_W83L785R_FAN(2, name, 0);
-+
-+  PRINT_W83L785R_TEMP(1, name, 0);
-+  PRINT_W83L785R_TEMP(2, name, 0);
-+
-+}
-+
- void print_unknown_chip(const sensors_chip_name *name)
- {
-   int a,b,valid;
-diff -Naur lm_sensors2/prog/sensors/chips.h lm_sensors2_my/prog/sensors/chi=
-ps.h
---- lm_sensors2/prog/sensors/chips.h	2004-09-08 18:21:44.000000000 +0200
-+++ lm_sensors2_my/prog/sensors/chips.h	2004-09-23 17:18:39.000000000 +0200
-@@ -40,6 +40,7 @@
- extern void print_lm80(const sensors_chip_name *name);
- extern void print_lm85(const sensors_chip_name *name);
- extern void print_w83781d(const sensors_chip_name *name);
-+extern void print_w83l785r(const sensors_chip_name *name);
- extern void print_w83l785ts(const sensors_chip_name *name);
- extern void print_maxilife(const sensors_chip_name *name);
- extern void print_ddcmon(const sensors_chip_name *name);
-diff -Naur lm_sensors2/prog/sensors/main.c lm_sensors2_my/prog/sensors/main=
-.c
---- lm_sensors2/prog/sensors/main.c	2004-09-19 19:37:18.000000000 +0200
-+++ lm_sensors2_my/prog/sensors/main.c	2004-09-23 17:18:39.000000000 +0200
-@@ -398,6 +398,7 @@
- 	{ "w83637hf", print_w83781d },
- 	{ "w83697hf", print_w83781d },
- 	{ "w83791d", print_w83781d },
-+	{ "w83l785r", print_w83l785r },
- 	{ "w83l785ts", print_w83l785ts },
- 	{ "as99127f", print_w83781d },
- 	{ "maxilife", print_maxilife },
--------------- next part --------------
-/sys/bus/i2c/devices/2-002d/detach_state: 0
-/sys/bus/i2c/devices/2-002d/fan1_div: 2
-/sys/bus/i2c/devices/2-002d/fan1_input: 3245
-/sys/bus/i2c/devices/2-002d/fan1_min: 0
-/sys/bus/i2c/devices/2-002d/fan2_div: 2
-/sys/bus/i2c/devices/2-002d/fan2_input: 0
-/sys/bus/i2c/devices/2-002d/fan2_min: 0
-/sys/bus/i2c/devices/2-002d/in0_input: 864
-/sys/bus/i2c/devices/2-002d/in0_max: 2040
-/sys/bus/i2c/devices/2-002d/in0_min: 0
-/sys/bus/i2c/devices/2-002d/in1_input: 856
-/sys/bus/i2c/devices/2-002d/in1_max: 2040
-/sys/bus/i2c/devices/2-002d/in1_min: 0
-/sys/bus/i2c/devices/2-002d/in2_input: 1680
-/sys/bus/i2c/devices/2-002d/in2_max: 2040
-/sys/bus/i2c/devices/2-002d/in2_min: 0
-/sys/bus/i2c/devices/2-002d/in3_input: 1096
-/sys/bus/i2c/devices/2-002d/in3_max: 2040
-/sys/bus/i2c/devices/2-002d/in3_min: 0
-/sys/bus/i2c/devices/2-002d/name: w83l785r
-/sys/bus/i2c/devices/2-002d/power:=20
-/sys/bus/i2c/devices/2-002d/temp1_crit: 127000
-/sys/bus/i2c/devices/2-002d/temp1_hyst_min: 75000
-/sys/bus/i2c/devices/2-002d/temp1_input: 46000
-/sys/bus/i2c/devices/2-002d/temp1_max: 80000
-/sys/bus/i2c/devices/2-002d/temp1_type: 3435
-/sys/bus/i2c/devices/2-002d/temp2_crit: 127000
-/sys/bus/i2c/devices/2-002d/temp2_hyst_min: 75000
-/sys/bus/i2c/devices/2-002d/temp2_input: 45000
-/sys/bus/i2c/devices/2-002d/temp2_max: 80000
-/sys/bus/i2c/devices/2-002d/temp2_type: 3435
--------------- next part --------------
-Philips SAA7108E-i2c-2-21
-Adapter: NVIDIA display adapter bus 2
-
-w83l785r-i2c-2-2d
-Adapter: NVIDIA display adapter bus 2
-VCore:     +0.86 V  (min =3D  +0.00 V, max =3D  +2.04 V)      =20
-V2.5:      +0.86 V  (min =3D  +0.00 V, max =3D  +2.04 V)      =20
-V1.5:      +1.67 V  (min =3D  +0.00 V, max =3D  +2.04 V)      =20
-Vcc:       +3.29 V  (min =3D  +0.00 V, max =3D  +6.12 V)      =20
-Fan1:     3214 RPM  (min =3D    0 RPM, div =3D 2)             =20
-Fan2:        0 RPM  (min =3D    0 RPM, div =3D 2)             =20
-Temp1:    +46?C high =3D +80?C, crit =3D +127?C, hyst =3D +75?C sensor =3D =
-thermistor=20
-Temp2:    +45?C high =3D +80?C, crit =3D +127?C, hyst =3D +75?C sensor =3D =
-thermistor=20
-
-w83627thf-isa-0290
-Adapter: ISA adapter
-VCore:     +2.91 V  (min =3D  +0.00 V, max =3D  +0.00 V)             =20
-+12V:     +11.86 V  (min =3D +10.82 V, max =3D +13.19 V)             =20
-+3.3V:     +3.31 V  (min =3D  +3.14 V, max =3D  +3.46 V)             =20
-+5V:       +4.99 V  (min =3D  +4.75 V, max =3D  +5.25 V)             =20
--12V:      +0.39 V  (min =3D -10.88 V, max =3D -13.18 V)             =20
-V5SB:      +4.97 V  (min =3D  +4.73 V, max =3D  +5.24 V)             =20
-VBat:      +0.78 V  (min =3D  +2.40 V, max =3D  +3.60 V)             =20
-fan1:        0 RPM  (min =3D  342 RPM, div =3D 32)                    =20
-CPU Fan:  3229 RPM  (min =3D 2657 RPM, div =3D 2)                    =20
-fan3:      907 RPM  (min =3D 1506 RPM, div =3D 8)                    =20
-M/B Temp:    +30?C  (high =3D   +40?C, hyst =3D   +28?C)   sensor =3D therm=
-istor          =20
-CPU Temp:  +33.0?C  (high =3D   +80?C, hyst =3D   +75?C)   sensor =3D diode=
-          =20
-temp3:     -48.0?C  (high =3D   +80?C, hyst =3D   +75?C)   sensor =3D therm=
-istor          =20
-vid:      +0.000 V  (VRM Version 8.2)
-alarms:  =20
-beep_enable:
-          Sound alarm disabled
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
