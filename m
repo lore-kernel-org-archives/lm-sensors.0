@@ -1,61 +1,114 @@
-From: jpiszcz@lucidpixels.com (Justin Piszcz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:21 +0000
 Subject: Kernel 2.6.9 & adm1021 & i2c_piix4 temperature monitoring
-Message-Id: <Pine.LNX.4.61.0411080907500.10502@p500>
+Message-Id: <UfARNKk2.1099926156.4923140.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.61.0411080907500.10502@p500>
+References: <Pine.LNX.4.61.0411080907500.10502@p500>
+In-Reply-To: <Pine.LNX.4.61.0411080907500.10502@p500>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sensors@stimpy.netroedge.com
+To: jpiszcz@lucidpixels.com, linux-kernel@vger.kernel.org
+Cc: sensors@Stimpy.netroedge.com
 
-Anyone know why this happens?
 
-I am monitoring the temperature sensors on my Dell GX1 box, and I get the 
-following in dmesg:
+Hi Justin,
 
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed reset at end of transaction (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed reset at end of transaction (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
-i2c_adapter i2c-0: Failed! (01)
+>I am monitoring the temperature sensors on my Dell GX1 box, and I get the
+>following in dmesg:
+>
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed reset at end of transaction (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed reset at end of transaction (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
+>i2c_adapter i2c-0: Failed! (01)
 
-I am using lm-sensors 2.8.7.
+First note that Dell systems are well known for their improperly
+configured SMBus devices.
 
-Relevant modules include:
+>Of course the ``secret'' to getting the temperature sensors to work on a
+>Dell is two options when loading the i2c driver and the adm1024 driver.
 
-$ lsmod
-Module                  Size  Used by
-adm1021                12092  0
-i2c_piix4               5648  0
-i2c_sensor              2912  1 adm1021
-i2c_dev                 7776  0
-i2c_core               19312  4 adm1021,i2c_piix4,i2c_sensor,i2c_dev
+I guess you really mean adm1021 here?
 
-Of course the ``secret'' to getting the temperature sensors to work on a 
-Dell is two options when loading the i2c driver and the adm1024 driver.
+>   TYPE="/sbin/modprobe"
+>
+>   $TYPE i2c_piix4 force=1
+>   $TYPE adm1021 read_only=1
+>
+>The force is required to enable it, otherwise I do not believe it even
+>loads.
 
-   TYPE="/sbin/modprobe"
+True, because Dell's BIOS won't configure it.
 
-   $TYPE i2c_piix4 force=1
-   $TYPE adm1021 read_only=1
+As noted in lm_sensors' documentation here:
+  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/busses/i2c-piix4
+you should be careful when using this option.
 
-The force is required to enable it, otherwise I do not believe it even 
-loads.
+One possible cause for the trouble you experience would be that the
+piix4's address happens to conflict with another device address on your
+system. The driver should have complained if it were the case, but only
+if the other device has a Linux driver. If, say, this is an I/O address
+range the BIOS uses on its own, the i2c-piix4 driver may not know about
+this. You can use "i2cdetect -l" (or browse /sys) to find out the
+address the PIIX4 is using, as it shows in the I2C bus name.
 
-The read_only=1 is so it does not change the temperature range in the 
-monitoring chip, if read_only=1 is not set and the machine gets hot, say 
-from compiling the kernel, the machine shuts itself off.
+One thing you could try would be to use the force_addr parameter of the
+i2c-piix4 driver. As noted in the documentation, this is DANGEROUS so
+you better be extremely careful if you do. Basically, you would force
+the address to a supposedly unused address (check /proc/ioports for
+ranges to NOT use). Address must be a multiple of 16.
 
-My question is, why all the failed transactions?
-I graph the temperature without any issues (system and CPU) but I still 
-get some of these in dmesg, any ideas?
+Maybe you'll have better results when using this, maybe not. Please let
+us know. Be warned that using an improper address may cause SEVERE
+DAMAGE, and that there is unfortunately no way to know which addresses
+are suitable.
 
+See this thread:
+  http://archives.andrew.net.au/lm-sensors/msg21973.html
+Now, what you want to risk is left to you.
+
+This post:
+  https://bugzilla.redhat.com/bugzilla/long_list.cgi?buglists730
+suggests that 0x6000 MIGHT be a good candidate.
+
+BTW, you really should first try:
+1* Upgrading BIOSes if possible.
+2* Contacting Dell about the problem. This is really a BIOS issue, we may
+try to work around it in the kernel but this is not where the original
+problem lies.
+
+>The read_only=1 is so it does not change the temperature range in the
+>monitoring chip, if read_only=1 is not set and the machine gets hot, say
+>from compiling the kernel, the machine shuts itself off.
+
+This is theoretically not necessary anymore since Linux kernel 2.6.6
+(where adm1021 chip init was reworked). Could you please try without it
+and let us know how it goes?
+
+As a side note, I think that we should get rid of that "read_only"
+module parameter. It makes the code more complex with no obvious benefit
+(assuming you'll confirm that you don't need it anymore). No other
+hardware monitoring chip driver has this.
+
+>My question is, why all the failed transactions?
+>I graph the temperature without any issues (system and CPU) but I still
+>get some of these in dmesg, any ideas?
+
+I doubt that you really have no issue. Reads fail when you have a
+"Failed! (01)" error. Since the adm1021 driver doesn't handle that
+kind of error, this should result in bogus temperature readings
+(typically -1).
+
+Thanks,
+--
+Jean Delvare
