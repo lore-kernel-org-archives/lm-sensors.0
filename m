@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
 Date: Thu, 19 May 2005 06:25:41 +0000
 Subject: [PATCH] I2C busses documentation update
-Message-Id: <Pine.LNX.4.58.0503061256220.25688@desitka.sh.cvut.cz>
+Message-Id: <20050306133644.30141.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0503042257570.25688@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0503042257570.25688@desitka.sh.cvut.cz>
@@ -10,13 +10,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-
-> Doesn't apply for me. The patch assumes that i2c/i2c-parport was moved
-> to i2c/busses/i2c-parport before, but this isn't the case neither in
-> linux-2.6.11-mm1 nor linux-2.6.11-bk1.
-
-Yep true. I misunderstood the situation about moving the files last time.
+Uff something has eaten trailing spaces from patch. This version should
+work. I'm very sorry about this.
 
 Please apply following patch before the busses documentation update.
 This patch just moves the i2c-parport documentation to busses/ directory.
@@ -87,10 +82,10 @@ diff -Naur g/Documentation/i2c/busses/i2c-parport h/Documentation/i2c/busses/i2c
 +                                     |R|  |R|
 +                                     | |  | |
 +                                     ---  ---
-+                                      |    |
++                                      |    | 
 +                                     ###  ###
 +                                     GND  GND
-+
++        
 +Remarks:
 + - This is the exact pinout and electronics used on the Analog Devices
 +   evaluation boards.
@@ -105,7 +100,7 @@ diff -Naur g/Documentation/i2c/busses/i2c-parport h/Documentation/i2c/busses/i2c
 +   all connected lines MUST BE driven at the same state, else you'll short
 +   circuit the output buffers! So plugging the I2C adapter after loading
 +   the i2c-parport module might be a good safety since data line state
-+   prior to init may be unknown.
++   prior to init may be unknown. 
 + - This is 5V!
 + - Obviously you cannot read SCL (so it's not really standard-compliant).
 +   Pretty easy to add, just copy the SDA part and use another input pin.
@@ -123,7 +118,7 @@ diff -Naur g/Documentation/i2c/busses/i2c-parport h/Documentation/i2c/busses/i2c
 +               |    |            |    |
 +               |    |      |\    |    |
 +SCL  ----------x--------x--| o---x------------------------  pin 15
-+                    |   |  |/         |
++                    |   |  |/         | 
 +                    |   |             |
 +                    |   |   /|        |
 +                    |   ---o |-------------x--------------  pin 2
@@ -143,7 +138,7 @@ diff -Naur g/Documentation/i2c/busses/i2c-parport h/Documentation/i2c/busses/i2c
 +                                          |R|  |R|
 +                                          | |  | |
 +                                          ---  ---
-+                                           |    |
++                                           |    | 
 +                                          ###  ###
 +                                          GND  GND
 +
@@ -247,10 +242,10 @@ diff -Naur g/Documentation/i2c/i2c-parport h/Documentation/i2c/i2c-parport
 -                                     |R|  |R|
 -                                     | |  | |
 -                                     ---  ---
--                                      |    |
+-                                      |    | 
 -                                     ###  ###
 -                                     GND  GND
--
+-        
 -Remarks:
 - - This is the exact pinout and electronics used on the Analog Devices
 -   evaluation boards.
@@ -265,7 +260,7 @@ diff -Naur g/Documentation/i2c/i2c-parport h/Documentation/i2c/i2c-parport
 -   all connected lines MUST BE driven at the same state, else you'll short
 -   circuit the output buffers! So plugging the I2C adapter after loading
 -   the i2c-parport module might be a good safety since data line state
--   prior to init may be unknown.
+-   prior to init may be unknown. 
 - - This is 5V!
 - - Obviously you cannot read SCL (so it's not really standard-compliant).
 -   Pretty easy to add, just copy the SDA part and use another input pin.
@@ -283,7 +278,7 @@ diff -Naur g/Documentation/i2c/i2c-parport h/Documentation/i2c/i2c-parport
 -               |    |            |    |
 -               |    |      |\    |    |
 -SCL  ----------x--------x--| o---x------------------------  pin 15
--                    |   |  |/         |
+-                    |   |  |/         | 
 -                    |   |             |
 -                    |   |   /|        |
 -                    |   ---o |-------------x--------------  pin 2
@@ -303,7 +298,7 @@ diff -Naur g/Documentation/i2c/i2c-parport h/Documentation/i2c/i2c-parport
 -                                          |R|  |R|
 -                                          | |  | |
 -                                          ---  ---
--                                           |    |
+-                                           |    | 
 -                                          ###  ###
 -                                          GND  GND
 -
