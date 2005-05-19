@@ -1,38 +1,84 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: Via KT600 as I2C controller
-Message-Id: <3FC94ACC.B8A88308@paradyne.com>
+From: laytonjb@bellsouth.net (Jeffrey B. Layton)
+Date: Thu, 19 May 2005 06:23:49 +0000
+Subject: Problem with SiS950 on ECS MB
+Message-Id: <3E6265CB.6030005@bellsouth.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031126235249.GA7632@gumby>
-In-Reply-To: <20031126235249.GA7632@gumby>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-right, c mode won't work except on eeproms.
-s mode won't generally work on most chips, I was wrong in saying it
-would.
-But it shouldn't panic.
-Block transactions aren't well-tested in general.
-Glanced at i2c-viapro.c, nothing jumped out at me.
+Hello,
 
-Jean Delvare wrote:
-> 
-> > thanks. would you please download the latest lm_sensors CVS
-> > and compile the userspace tools with 2.6 support
-> > (make user and make user_install)
-> > and use i2cdetect and i2cdump to test the driver.
-> > use all modes of i2cdump that work (b,w,c,s)
-> > On a DIMM eeprom, for example, all modes should return the
-> > same data.
-> 
-> I don't have DIMM eeproms on my i2c-viapro bus, so I tried on an
-> as99127f. b produces a good dump, c doesn't. The byte at 0x00 (value
-> 0xbd) is repeated everywhere. I guess this is expected because the chip
-> doesn't have autoincrement? s gave me a kernel panic (stack trashed with
-> 0xbd). w is OK (each byte is repeated twice to form a word).
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+   I'm trying to get sensors running on an ECS P6SSTP-FN
+motherboard (OK, I got them cheap :) The motherboard
+uses a SiS 630 chipset and looking at the board I see a SiS950
+chip, which I gather is a it87 clone.
+   The sensors-detect script seems to have some trouble
+since it keeps finding the sis5595 instead of the it87
+(well, the it87 has a lower confidence).
+   OK, no problem, so I load the it87 module. /etc/rc.d/rc.local
+looks like:
+
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-isa
+modprobe i2c-proc
+modprobe i2c-dev
+# I2C chip drivers
+modprobe it87
+#----cut here----
+
+and /etc/modules.conf looks like:
+
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+
+Then I run /usr/bin/sensors and the output looks like:
+
+it87-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+ERROR: Can't get fan alarm data!
+ERROR: Can't get vin alarm data!
+ERROR: Can't get temp alarm data!
+VCore 1:   +1.96 V  (min =  +1.53 V, max =  +1.87 V)
+VCore 2:   +2.46 V  (min =  +2.25 V, max =  +2.75 V)
++3.3V:     +6.80 V  (min =  +2.96 V, max =  +3.60 V)
++5V:       +5.07 V  (min =  +4.50 V, max =  +5.48 V)
++12V:     +12.28 V  (min = +11.36 V, max = +13.80 V)
+-12V:     -24.41 V  (min = -10.80 V, max = -13.10 V)
+-5V:       -5.99 V  (min =  -4.54 V, max =  -5.43 V)
+Stdby:     +4.89 V  (min =  +4.50 V, max =  +5.48 V)
+in8:       +3.34 V
+fan1:     4753 RPM  (min = 3000 RPM, div = 2)
+fan2:        0 RPM  (min = 3000 RPM, div = 2)
+Temp1/MB:    -55?C  (min =  +20?C, max =  +60?C)
+Temp2/CPU:  -125?C  (min =  +20?C, max =  +60?C)
+
+
+   I would guess the temperatures are off by a bit. Does
+anyone have any suggestions?
+   Oh, BTW, this is a RH 7.3 install and I'm running a
+2.4.21pre3 kernel with patches from JAM
+(http://giga.cps.unizar.es/~magallon/linux/kernel/) that
+contain lm-sensors from the 2.7.0 cvs tree on 1/23/03.
+I built the kernel and modules using gcc 3.2.2. I'm also
+attaching a gzipped file containing the output from
+sensors-detect (if it makes it past the email filters).
+
+TIA!
+
+Jeff
+
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: sensors-detect.out.gz
+Type: application/x-gzip
+Size: 2284 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030302/36675a7b/sensors-detect.out.gz
