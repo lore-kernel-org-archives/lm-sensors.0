@@ -1,25 +1,35 @@
-From: james.oden@gmail.com (James Olin Oden)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: 64 bit
-Message-Id: <ac921f990505051024bbe8862@mail.gmail.com>
+From: dave@nobodynet.net (Dave Smith)
+Date: Thu, 19 May 2005 06:23:57 +0000
+Subject: sensors only as root?
+Message-Id: <200305301509.00292.dave@nobodynet.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050501150050.3337.qmail@web30814.mail.mud.yahoo.com>
-In-Reply-To: <20050501150050.3337.qmail@web30814.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 5/4/05, Mark Studebaker <mds@mds.gotdns.com> wrote:
-> we don't have many reports about 64 bit
-> best thing is to try it and let us know what doesn't work.
-> You could start by sending us  the i2c-proc warning.
-> thanks
-> mds
->
-Been running sensors on 2.4 based kernels for about a month now and have not 
-seen any problems.  Initially, I had to remove the bit bangers from
-the build, but the latest 2.9.1 release converted some bad assembler
-to C and that fixed that.
 
-Cheers...james
+Hi,
+
+I've had a look through the docs / FAQ, but can't find the answer to my 
+question.
+
+I've just set up lmsensors-2.7.0 on my machine, but I can only run sensors as 
+root.  I'm using the it87 module, and have also loaded i2c-proc, -dev and 
+-isa.  I have chmod'ed /dev/i2c0 and /dev/i2c-0 to be read/writable as my 
+non-root users, but I still only get "No sensors found!" when I run sensors 
+as a user other than root.
+
+Can you tell me what permissions I may have to change in order to run sensors 
+as non-root users.  My other machine can do this with no problems, although 
+that uses different drivers, etc., plus I set it up 2 years ago and can't 
+remember if I needed to change any permissions on it to get it to work 
+properly.
+
+Cheers,
+--Dave
+
+
+-- 
+Dave Smith
+dave@nobodynet.net
