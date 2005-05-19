@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: me@andrew.net.au (Andrew Pollock)
 Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: Email loop, bounced mails
-Message-Id: <20040706212857.3e1a9232.khali@linux-fr.org>
+Message-Id: <20040706214246.GL15005@daedalus.andrew.net.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40EAD851.6090902@edgedesign.us>
 In-Reply-To: <40EAD851.6090902@edgedesign.us>
@@ -10,12 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> sensors and lm78 are aliases for each other.
+On Tue, Jul 06, 2004 at 07:06:08PM +0200, Jean Delvare wrote:
+> 
+> Andrew, can you please delete all the offending mails from the list
+> archive? These are the ones who read "# [no subject] LM_Sensors
+> Development Group". These are adding noise to the list and are also
+> wasting your disk space with no benefit.
 
-BTW I still believe that we should drop "lm78" once and for all and keep
-a single address for the list. This would certainly limit a number of
-bounce and spam problems, and user confusion too.
+Done.
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/
+Regards
+
+Andrew
