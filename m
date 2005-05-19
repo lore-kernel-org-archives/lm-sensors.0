@@ -1,49 +1,39 @@
-From: hps@intermeta.de (Henning Schmiedehausen)
-Date: Thu, 19 May 2005 06:25:02 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: p4b_smbus driver reworked
-Message-Id: <1088267921.8247.3.camel@localhost>
+Message-Id: <20040718225756.7a4cc6bf.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1088267921.8247.3.camel@localhost>
+In-Reply-To: <1088267921.8247.3.camel@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Henning,
 
-this is a reworked and extended version of the prog/hotplug/p4b_smbus
-driver. I needed to add support for the ICH3-M (as found in my Toshiba
-Satellite 5200 Laptop) and did some work on the program logic. I didn't
-want to kill the p4b code so I renamed the source, README and Makefile,
-but basically this is the same as p4b.
+> this is a reworked and extended version of the prog/hotplug/p4b_smbus
+> driver. I needed to add support for the ICH3-M (as found in my Toshiba
+> Satellite 5200 Laptop) and did some work on the program logic. I
+> didn't want to kill the p4b code so I renamed the source, README and
+> Makefile, but basically this is the same as p4b.
 
-Simply unpack into the lm_sensors tree, build it and enjoy. Feel free to
-add it to the next releases of the lm_sensors package.
+This doesn't make much sense to me. As you noticed, the p4b_smbus module
+is reaching the end of its life since all 2.6 kernels and newer 2.4
+kernels don't need it anymore. So let's not have an additional driver
+doing the same now.
 
-(I did read the notice about 2.4.23. However, Fedora is still on 2.4.22
-so I feel that this is valuable to many non-p4b Fedora users).
+We would take a patch against p4b_smbus that adds the support you need.
+As for the "work on the program logic", unless this significantly
+shorten or clarifies the code, or otherwise adds real value, I see
+little to no benefit. What exactly do you intend to do?
 
-	Regards
-		Henning
+Please send unitary patches against lm_sensors 2.8.7 with details of
+what they add if you want us to apply them. And remember that major
+changes without a solid reason are unlikely to be accepted.
+
+Thanks,
 
 -- 
-Dipl.-Inf. (Univ.) Henning P. Schmiedehausen          INTERMETA GmbH
-hps@intermeta.de        +49 9131 50 654 0   http://www.intermeta.de/
-
-Java, perl, Solaris, Linux, xSP Consulting, Web Services 
-RHCE - Consultant - Jakarta Turbine Development  - hero for hire
-
-"Fighting for one's political stand is an honourable action, but re-
- fusing to acknowledge that there might be weaknesses in one's
- position - in order to identify them so that they can be remedied -
- is a large enough problem with the Open Source movement that it
- deserves to be on this list of the top five problems." 
-                       --Michelle Levesque, "Fundamental Issues with
-                                    Open Source Software Development"
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: i801smbus.tar.gz
-Type: application/x-compressed-tar
-Size: 5269 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040626/89935721/i801smbus.tar.bin
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
