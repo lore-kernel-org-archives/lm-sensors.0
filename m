@@ -1,36 +1,50 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:25:24 +0000
-Subject: v4l driver for PCRadio Spase-003
-Message-Id: <41A7F385.3030603@verizon.net>
+From: debry@cereve.enpc.fr (Edouard Debry)
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: lecture fan ?
+Message-Id: <20040209160821.GA409@cereve.enpc.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <opshyu09vcbj4yoq@mailhost.ics.ele.tue.nl>
-In-Reply-To: <opshyu09vcbj4yoq@mailhost.ics.ele.tue.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-sure, why not, send the driver, maybe you will get comments,
-and it will be in the archives in case somebody else wants it.
+bonjour,
 
-Szymon Bieganski wrote:
-> 
-> Hello
-> 
-> Perhaps it is very specific request, but still I thought I would get 
-> some  help from You.
-> The card I am using to listen some broadcast radio at the moment is 
-> quite  neat Spase PCRadio-003 I bought for 40eurocents at the fair. The  
-> specification and picture can be found on bttv gallery page  
-> (http://www.bttv-gallery.de/). Based on the sources code of v4l driver
-> (http://www.elis.rug.ac.be/~ronsse/mr/radio-spase.c) and fmio driver  
-> (http://www.jumbo.narod.ru/fmio.html) I have written i2c driver for it,  
-> and then v4l driver using i2c stack as the  intermediate driver. Perhaps 
-> I  could learn some more about i2c from your remarks to my code. If you 
-> are  willing to help I could send source code of my both modules 
-> directly. It  would be quite "dry" because one would have to use this 
-> specific hardware  to actually see how it works. In my case it works OK, 
-> without any crash  for a couple of weeks now.
-> 
-> Regards
-> Szymon
+je viens d'installer lm_sensors 2.8.2, sur un noyau 2.4.22 ( patch=E9
+comme conseill=E9 sur votre site ), ca marche, les temperatures ont l'air
+corrects, seule la lecture des RPM des fans me donne une inqui=E9tude :
+
+pour l'un d'eux ( fan2 ) j'obtiens 0 ou une valeur completement
+fausse ( ce sont souvent les 4 derniers chiffres du min ),=20
+
+j'ai suivi le conseil du FAQ, et j'ai regl=E9 le fan2_div
+mais m=EAme en le r=E9glant =E0 8 voire 16, la valeur min indiqu=E9 par
+'sensors' est incroyablement grande ( ~ 10000 RPM ) et je n'arrive
+pas a la faire descendre plus bas
+
+sur le premier fan ( fan1 ) j'obtiens une valeur correcte en ajustant=20
+egalement le fan1_div, mais le min reste invariablement fixe a -1 RPM !!
+
+lorsque je regarde les valeurs du bios, celui-ci ne me donne des valeurs
+differentes de 0 que si la valeur en RPM est >=1500, mais a part ca les
+valeurs du bios ont l'air correctes
+
+donc je ne sais pas trop comment regler ce pb=20
+je n'ai pas vu d'autre conseils dans votre FAQ, aussi me tourne vers
+vous
+
+cordialement
+edouard
+
+PS : ma CM est une MSI-K7N2 delta-l,=20
+j'utilise les pilotes i2c-nforce2 i2c-isa eeprom w83627hf ( ou ..fh )
+--=20
+*-----------------------------------------------------------------*
+|                          Edouard DEBRY                          |
+| Ph-D student at E.N.P.C - C.E.R.E.A   http://www.enpc.fr/cerea/ |
+|                                                                 |
+| 21 Rue Nobel, Cit=E9 Descartes        TEL  : 33 1 64 15 21 52     |
+| 77455 CHAMPS SUR MARNE              MAIL : debry@cerea.enpc.fr  |
+|                                                                 |
+| Thesis subject: MODELING OF AN ATMOSPHERIC AEROSOL DISTRIBUTION |
+*-----------------------------------------------------------------*
