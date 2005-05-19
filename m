@@ -1,81 +1,80 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: lm_sensors2/kernel/chips w83792d.c
-Message-Id: <CwuiAcl4.1112086903.5823600.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E57DC@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050329011601.GA14733@jupiter.solarsys.private>
 In-Reply-To: <20050329011601.GA14733@jupiter.solarsys.private>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao, hi Mark,
-
-> > > We use that huge 'do {...} while(0)' to substitute the "goto"
-> > > sentence, because the "goto" sentence is NOT welcome in most cases,
-> > > we want to avoid it. :-)
-> >
-> > If that was your intention, I would prefer if you just used goto.
-> > To use 'do {...} while(0)' as a "stealth" goto is even worse.
-
-I second Mark on this, using a loop block when you have no itention to
-actually loop is error-prone.
-
-It looks quite obvious to me that this block should be made a seperate
-function, as it's quite big and accomplishes a specific task. Breaks
-will become returns, so you would need neither the
-loop-which-is-not-a-loop nor gotos. This is exactly how things are
-supposed to be done in C.
-
-> > > Although the idea of changing "while (0)" into "while (1)" is
-> > > feasible, We can NOT do that, it's dangerous to use such endless
-> > > loop. We have tested it, the "while (1)" leads to bad result, while
-> > > "while (0)" works well.
-
-Of course. It's not supposed to be a loop in the first place, so (I
-guess) it lacks a proper exit condition.
-
-> > Well, the purpose of this part of the code was not immediately clear
-> > to me.  Now I've read it more closely.  It seems you are trying to
-> > settle on an appropriate fan divisor - one which is appropriate for
-> > the measured fan speed.  But... the loop obviously isn't a loop at
-> > all, so you're only incrementing or decrementing fan_div[nr] by 1.
-> > That means the user would have to read the fan multiple times before
-> > the fan_div arrives at a useful value.  Is that what you wanted?
-
-That's quite logical. I do the same in my pc87360 driver. When the fan
-clock divider is too low and the register overflows, you have no idea
-what the "ideal" divider would be, so you have to increase it step by
-step until you get a valid reading.
-
-A different approach would be to jump to the highest divider, and go down
-from there until the register value fits in the ideal range. This would
-be optimum for missing fans and better for very slow fans, but in the
-common case (fan is present and not too slow), the simple algorithm of
-increasing the divider step by step seems to work better, as the correct
-divider will be reached after only one or two tries.
-
-A yet different approach, which I took in the new w83627ehf driver, is to
-mainly set the divider according to the fan min limit and not to the fan
-reading. This works because by definition the fan reading should always
-be more that the limit. That way, users who know which speed they expect
-will set the limit just below that, which will in turn set the correct
-divider, which will then never change (unless the fan speed actually
-drops below that limit). Or course I always make sure that there is a
-significant room below the limit before a divider change is required. If
-you think about it, you'll see that it's exactly how voltage channels
-work. Not all voltage values can be measured, only some range around the
-expected value, typically a 0-133% range of nominal value. Same I do
-with fans in the w83627ehf case.
-
-These methods are still at the experimental stage, granted, but I really
-believe that once we have found the best algorithm and implement it in
-more drivers, the end user will enjoy the improvement. Just see how many
-tickets and posts we have about fan_div problems and you'll see what I
-mean.
-
-Thanks,
---
-Jean Delvare
+RGVhciBKZWFuLCBEZWFyIE1hcmssCgo+IEkgc2Vjb25kIE1hcmsgb24gdGhpcywgdXNpbmcgYSBs
+b29wIGJsb2NrIHdoZW4geW91IGhhdmUgbm8gaXRlbnRpb24gdG8KPiBhY3R1YWxseSBsb29wIGlz
+IGVycm9yLXByb25lLgo+IAo+IEl0IGxvb2tzIHF1aXRlIG9idmlvdXMgdG8gbWUgdGhhdCB0aGlz
+IGJsb2NrIHNob3VsZCBiZSBtYWRlIGEgc2VwZXJhdGUKPiBmdW5jdGlvbiwgYXMgaXQncyBxdWl0
+ZSBiaWcgYW5kIGFjY29tcGxpc2hlcyBhIHNwZWNpZmljIHRhc2suIEJyZWFrcwo+IHdpbGwgYmVj
+b21lIHJldHVybnMsIHNvIHlvdSB3b3VsZCBuZWVkIG5laXRoZXIgdGhlCj4gbG9vcC13aGljaC1p
+cy1ub3QtYS1sb29wIG5vciBnb3Rvcy4gVGhpcyBpcyBleGFjdGx5IGhvdyB0aGluZ3MgYXJlCj4g
+c3VwcG9zZWQgdG8gYmUgZG9uZSBpbiBDLgoKWW91ciBzdWdnZXN0aW9uIGlzIGdvb2QsIEkgd2ls
+bCBhZG9wdCBpdCwgOi0pCkkgd2lsbCBzZW5kIHlvdSBhIG5ldyBwYXRjaCBhZnRlciBteSBtb2Rp
+ZmljYXRpb24gYW5kIHRlc3QuCgo+IFRoYXQncyBxdWl0ZSBsb2dpY2FsLiBJIGRvIHRoZSBzYW1l
+IGluIG15IHBjODczNjAgZHJpdmVyLiBXaGVuIHRoZSBmYW4KPiBjbG9jayBkaXZpZGVyIGlzIHRv
+byBsb3cgYW5kIHRoZSByZWdpc3RlciBvdmVyZmxvd3MsIHlvdSBoYXZlIG5vIGlkZWEKPiB3aGF0
+IHRoZSAiaWRlYWwiIGRpdmlkZXIgd291bGQgYmUsIHNvIHlvdSBoYXZlIHRvIGluY3JlYXNlIGl0
+IHN0ZXAgYnkKPiBzdGVwIHVudGlsIHlvdSBnZXQgYSB2YWxpZCByZWFkaW5nLgo+IAo+IEEgZGlm
+ZmVyZW50IGFwcHJvYWNoIHdvdWxkIGJlIHRvIGp1bXAgdG8gdGhlIGhpZ2hlc3QgZGl2aWRlciwg
+YW5kIGdvCmRvd24KPiBmcm9tIHRoZXJlIHVudGlsIHRoZSByZWdpc3RlciB2YWx1ZSBmaXRzIGlu
+IHRoZSBpZGVhbCByYW5nZS4gVGhpcwp3b3VsZAo+IGJlIG9wdGltdW0gZm9yIG1pc3NpbmcgZmFu
+cyBhbmQgYmV0dGVyIGZvciB2ZXJ5IHNsb3cgZmFucywgYnV0IGluIHRoZQo+IGNvbW1vbiBjYXNl
+IChmYW4gaXMgcHJlc2VudCBhbmQgbm90IHRvbyBzbG93KSwgdGhlIHNpbXBsZSBhbGdvcml0aG0g
+b2YKPiBpbmNyZWFzaW5nIHRoZSBkaXZpZGVyIHN0ZXAgYnkgc3RlcCBzZWVtcyB0byB3b3JrIGJl
+dHRlciwgYXMgdGhlCmNvcnJlY3QKPiBkaXZpZGVyIHdpbGwgYmUgcmVhY2hlZCBhZnRlciBvbmx5
+IG9uZSBvciB0d28gdHJpZXMuCj4gCj4gQSB5ZXQgZGlmZmVyZW50IGFwcHJvYWNoLCB3aGljaCBJ
+IHRvb2sgaW4gdGhlIG5ldyB3ODM2MjdlaGYgZHJpdmVyLCBpcwp0bwo+IG1haW5seSBzZXQgdGhl
+IGRpdmlkZXIgYWNjb3JkaW5nIHRvIHRoZSBmYW4gbWluIGxpbWl0IGFuZCBub3QgdG8gdGhlCmZh
+bgo+IHJlYWRpbmcuIFRoaXMgd29ya3MgYmVjYXVzZSBieSBkZWZpbml0aW9uIHRoZSBmYW4gcmVh
+ZGluZyBzaG91bGQKYWx3YXlzCj4gYmUgbW9yZSB0aGF0IHRoZSBsaW1pdC4gVGhhdCB3YXksIHVz
+ZXJzIHdobyBrbm93IHdoaWNoIHNwZWVkIHRoZXkKZXhwZWN0Cj4gd2lsbCBzZXQgdGhlIGxpbWl0
+IGp1c3QgYmVsb3cgdGhhdCwgd2hpY2ggd2lsbCBpbiB0dXJuIHNldCB0aGUgY29ycmVjdAo+IGRp
+dmlkZXIsIHdoaWNoIHdpbGwgdGhlbiBuZXZlciBjaGFuZ2UgKHVubGVzcyB0aGUgZmFuIHNwZWVk
+IGFjdHVhbGx5Cj4gZHJvcHMgYmVsb3cgdGhhdCBsaW1pdCkuIE9yIGNvdXJzZSBJIGFsd2F5cyBt
+YWtlIHN1cmUgdGhhdCB0aGVyZSBpcyBhCj4gc2lnbmlmaWNhbnQgcm9vbSBiZWxvdyB0aGUgbGlt
+aXQgYmVmb3JlIGEgZGl2aWRlciBjaGFuZ2UgaXMgcmVxdWlyZWQuCklmCj4geW91IHRoaW5rIGFi
+b3V0IGl0LCB5b3UnbGwgc2VlIHRoYXQgaXQncyBleGFjdGx5IGhvdyB2b2x0YWdlIGNoYW5uZWxz
+Cj4gd29yay4gTm90IGFsbCB2b2x0YWdlIHZhbHVlcyBjYW4gYmUgbWVhc3VyZWQsIG9ubHkgc29t
+ZSByYW5nZSBhcm91bmQKdGhlCj4gZXhwZWN0ZWQgdmFsdWUsIHR5cGljYWxseSBhIDAtMTMzJSBy
+YW5nZSBvZiBub21pbmFsIHZhbHVlLiBTYW1lIEkgZG8KPiB3aXRoIGZhbnMgaW4gdGhlIHc4MzYy
+N2VoZiBjYXNlLgo+IAo+IFRoZXNlIG1ldGhvZHMgYXJlIHN0aWxsIGF0IHRoZSBleHBlcmltZW50
+YWwgc3RhZ2UsIGdyYW50ZWQsIGJ1dCBJCnJlYWxseQo+IGJlbGlldmUgdGhhdCBvbmNlIHdlIGhh
+dmUgZm91bmQgdGhlIGJlc3QgYWxnb3JpdGhtIGFuZCBpbXBsZW1lbnQgaXQgaW4KPiBtb3JlIGRy
+aXZlcnMsIHRoZSBlbmQgdXNlciB3aWxsIGVuam95IHRoZSBpbXByb3ZlbWVudC4gSnVzdCBzZWUg
+aG93Cm1hbnkKPiB0aWNrZXRzIGFuZCBwb3N0cyB3ZSBoYXZlIGFib3V0IGZhbl9kaXYgcHJvYmxl
+bXMgYW5kIHlvdSdsbCBzZWUgd2hhdCBJCj4gbWVhbi4KCllvdXIgZXhwbGFuYXRpb24gaXMgYXMg
+ZGV0YWlsZWQgYXMgdXN1YWwsIEkgY2FuIGNhdGNoIGl0IDotKQpJIHdpbGwga2VlcCBteSBvcmln
+aW5hbCBtZXRob2QgKGluY3JlYXNlL2RlY3JlYXNlIHN0ZXAgYnkgc3RlcCkgYmVmb3JlCndlCmZp
+bmQgb25lIGJldHRlciBtZXRob2QuCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8KCgo9PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQg
+Y29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVu
+ZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9y
+aWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2Vl
+IGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2
+ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUg
+c2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0
+IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRo
+YW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVu
+YXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMg
+c3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRo
+YXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNo
+YWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1
+dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBm
+b2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVu
+Z2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq4
+6rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3
+pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqn
+aaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nz
+sXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdio
+ublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVM
+w/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
