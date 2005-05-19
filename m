@@ -1,7 +1,7 @@
-From: sascha@akv-soft.de (Sascha Volkenandt)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:05 +0000
 Subject: SAA1064 sensors chip driver
-Message-Id: <200307172114.02097.sascha@akv-soft.de>
+Message-Id: <20030718083122.4249864a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200307131153.24333.sascha@akv-soft.de>
 In-Reply-To: <200307131153.24333.sascha@akv-soft.de>
@@ -10,60 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-At Donnerstag, 17. Juli 2003 20:56 Jean Delvare wrote:
-> I read the datasheet again and finally understood what I first got
-> wrong. I thought that the saa1064 had 8 R/W registers. Actually it has 8
-> (5 in use) write only registers, and one read only register. This means
-> that you can't read back values you wrote in registers (not really
-> practical, but you can still read the driver's values). What's more, the
-> readable register doesn't seem to have an address. So whatever address
-> you try to read, you read this register. Since only one bit in this
-> register can be set, and it usually isn't, this explains why the i2cdump
-> command I asked you to try returned only 00 values.
 
-That's what I tried to explain - there's only one read register, and only 
-one bit matters there :-)
+> That's what I tried to explain - there's only one read register, and
+> only one bit matters there :-)
 
-> I think that if you power-off the saa1064, power it on again and run the
-> i2cdump command once at this time, you will have all 00 bytes again,
-> *except* the first one which will be 80. Could you try that? It would
-> confirm my understanding is correct.
+Yeah but you know, I'm kinda stupid, so you have to repeat the things
+over and over again before I finally catch it ;)
 
-Exactly - on first readout (_before_ loading the driver the first time, 
-that's why I didn't notice) it says 0x80 in the first byte.
+> Exactly - on first readout (_before_ loading the driver the first
+> time, that's why I didn't notice) it says 0x80 in the first byte.
 
-> So, the way to detect it now seems clearer:
->
-> 1* The most basic way is to read the whole range and say it is a saa1064
-> if all bytes are 0x00 or 0x80 (that is, (a & 0x7F)=0).
+I guess it's a matter of powering the device up, not of loading the
+driver.
 
-Well - why all bytes? Only the very first read ever returns 0x80.
+> > So, the way to detect it now seems clearer:
+> >
+> > 1* The most basic way is to read the whole range and say it is a
+> > saa1064 if all bytes are 0x00 or 0x80 (that is, (a & 0x7F)=0).
+> 
+> Well - why all bytes? Only the very first read ever returns 0x80.
 
-> 2* We can give it a greater confidence if the first read returns 0x80
-> and the later ones return 0x00. I do something similar for the lm75
+I was writing about the detection in sensors-detect. The detection
+method in the driver and in sensors-detect are of different natures. In
+your driver, you just want to know if whan you have *can be* what your
+driver supports. So reading, say, 4 times, and expect either "0x80 0x00
+0x00 0x00" or "0x00 0x00 0x00 0x00" is just fine. In sensors-detect, we
+want to know if what we have is more likely to be one chip that any
+other that can possibly exist at the same address. So the fact that the
+saa1064 ignores the read address is very interesting. No other chip is
+likely to do the same (or at least none that I know of) so either if
+reading all bytes makes no sense for the saa1064, it would make sense
+for other chips, and these other chips are unlilely to have 0x00 bytes
+everywhere. So the saa1064 detection should be rather good.
+> 
+> > 2* We can give it a greater confidence if the first read returns
+> > 0x80 and the later ones return 0x00. I do something similar for the
+> > lm75
+> 
+> Yup that's what I thought, too - 0x80 followed by 0x00
 
-Yup that's what I thought, too - 0x80 followed by 0x00
+Again, this is for sensors-detect. You don't have any confidence idea in
+the drivers.
 
-> 3* Instead of 2*, we can re-read the same address if it returns 0x80
-> once. It should return 0x00 next time, if it is a saa1064.
+> The PCF8574A uses the range 0x38 to 0x3f, and detects a saa1064 as a 
+> pcf8574a when loaded first.
 
-As I said - it only returns 0x80 in case of a power loss (which is the case 
-after powering up the device). You'd have to force a hardware power-off of 
-the chip before it would return 0x80 ever again.
+I didn't know that. I just checked sensors-detect and the pcf8574a isn't
+supported. I think I will take a look at the datasheet and add detection
+to sensors-detect. I'll also see if I can enhance the detection for the
+pcf8591. The more devices we detect in sensors-detect, the better, even
+if they are not sensors, and even if we wouldn't have drivers for them.
+It lowers the risk of misdetection for the other chips.
 
-> I like the ideas, but in fact 2* and 3* may not even be necessary. As
-> far as I know, there are no other chips in our package at the adresses
-> the saa1064 can use, so we don't need something bulletproof. Let's go
-> for 1* with maybe a bit of 2*. I'll do it or you can do it if you want.
-> If you do it, first checkout the latest version of sensors-detect and
-> send back a patch, not the whole file.
+> I'll put the two-byte-sequence (0x80 followed by 0x00) into the
+> module.
 
-The PCF8574A uses the range 0x38 to 0x3f, and detects a saa1064 as a 
-pcf8574a when loaded first. I'll put the two-byte-sequence (0x80 followed 
-by 0x00) into the module. Maybe you'll do something for sensors-detect?
+No, don't do that. You have to load the module even if the device wasn't
+freshly powered up. The method I suggest is reading four times, and
+accept to load if the first read returns either 0x80 or 0x00 (that is,
+(a & 0x7f)=0), and the three other reads return 0x00. As said earlier,
+you don't have to load if and only if it is a saa1064. You have to load
+if it *behaves like* a saa1064.
 
-I hope this weekend I'll find time to finish "the rest" (in-module 
-detection, doc, and finally a complete patchset).
+Of course, if the force parameter is used (kind>=0), you have to skip
+the detection.
 
-Greetings,
-Sascha
+> Maybe you'll do something for sensors-detect?
+
+Yeah, no problem. I'll let you know when it's done.
+
+> I hope this weekend I'll find time to finish "the rest" (in-module 
+> detection, doc, and finally a complete patchset).
+
+OK.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
