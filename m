@@ -1,32 +1,38 @@
 From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:49 +0000
+Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: [RFC] driver core support for i2c bus and drivers
-Message-Id: <20030310221248.GD13145@kroah.com>
+Message-Id: <20030318012718.GB4904@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030310072337.GJ6512@kroah.com> <3E6D0D25.26B5584F@attbi.com>
-In-Reply-To: <3E6D0D25.26B5584F@attbi.com>
+References: <20030310072337.GJ6512@kroah.com> <3E6D0D25.26B5584F@attbi.com> <3E7676F7.40209@paradyne.com>
+In-Reply-To: <3E7676F7.40209@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Albert Cranford <ac9410@attbi.com>
+To: "Mark D. Studebaker " <mds@paradyne.com>
 Cc: sensors@Stimpy.netroedge.com, linux-kernel@vger.kernel.org
 
-On Mon, Mar 10, 2003 at 05:09:41PM -0500, Albert Cranford wrote:
-> I like.  The proc/bus directory was geting cluttered.
+On Mon, Mar 17, 2003 at 08:31:35PM -0500, Mark D. Studebaker  wrote:
+> 
+> our userspace tools use the /proc/bus/i2c file and (of course) the entire
+> tree of exported sysctl info under /proc/sys/dev/sensors
+> (as implemented in i2c-proc.c).
 
-Heh, that's an understatement :)
+Right now, the /proc and sysctl code is not changed at all.
 
-> I think the driver model would be a good for i2c/sensors.
+However, the end goal will be to remove the /proc and sysctl code
+entirely, and just use sysfs, as this is exactly what sysfs is for.  I
+know, in order to do this properly the userspace library will need to be
+changed, and I'm willing to do this work too.  I do not want to break
+userspace compatibility needlessly.
 
-It seems to fit quite nicely, and should clean up a lot of the sysctl
-madness that you have been forced to live with for 2.0, 2.2, and 2.4.
+I'll not remove anything until the same functionality can be achieved,
+is this ok?  I will, of course, provide patches that for people to
+evaluate, when it's working...
 
-> Do you have any input for isa already in your bag of
-> goodies?
+> Does your proposal or Cristoph's recent changes affect these?
 
-Yes, the i2c-isa driver should add itself to the sys/devices/legacy
-tree, I just hadn't added that patch yet, still bickering with Pat about
-the interface to register devices there :)
+Christoph's changes preserve the existing code, but make it work without
+oopses :)
 
 thanks,
 
