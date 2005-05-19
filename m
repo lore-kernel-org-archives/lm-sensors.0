@@ -1,55 +1,78 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: it87 enhancements
-Message-Id: <3F9DFB3D.5060406@penguincomputing.com>
+From: toth_andras@chello.hu (=?ISO-8859-1?Q?T=F3th_Andr=E1s?=)
+Date: Thu, 19 May 2005 06:24:08 +0000
+Subject: #1353 still error!!
+Message-Id: <3F28DE38.70801@chello.hu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3F9C7DFF.28141250@paradyne.com>
-In-Reply-To: <3F9C7DFF.28141250@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I might have a test board.  ASUS 845GVE?
 
-It's got an IT87xx I/O chip on it.  I haven't tried poking it with the 
-latest lm_sensors code yet.  I'll let you know what 2.8.0 or 2.8.1 does 
-on it.
+Dear Support,
 
-:v)
+I've swapped the 2 lines (6th and 7th) but nothing happened, exactly the 
+same error!
+It prints a lot more things, I just copy some of them here and the 
+dmi_scan error:
 
-Mark Studebaker wrote:
-> will do. thanks, I'd forgotten about that thread and patch.
-> 
-> 
-> Jean Delvare wrote:
-> 
->>>I was thinking of adding pwm support to it87.
->>>Also exporting sensor type to /proc a la w83781d so that you don't
->>>need the temp_type= setting at modprobe time.
->>>Anybody working on this already?
->>
->>Not exactly that, but we have a patch pending for the it87. See the
->>whole (long) thread here:
->>http://archives.andrew.net.au/lm-sensors/msg04549.html
->>The patch was never applied. Could you take care of that before adding
->>your own changes?
->>
->>
->>>Anybody have a board to test on if I come up with something?
->>
->>No, I don't.
->>
->>--
->>Jean Delvare
->>http://www.ensicaen.ismra.fr/~delvare/
-> 
-> 
+--
+gcc  -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomit-frame-pointer -I. 
+-Ikernel/include -I/usr/include -I/lib/modules/2.4.18-4GB/build/include  
+-nostdinc -I /usr/lib/gcc-lib/i686-pc-linux-gnu/3.3/include  -Wall -O2   
+-c kernel/busses/i2c-piix4.c -o kernel/busses/i2c-piix4.o
+In file included from /usr/include/asm/semaphore.h:39,
+                 from /usr/include/linux/fs.h:198,
+                 from /usr/include/linux/capability.h:17,
+                 from /usr/include/linux/binfmts.h:5,
+                 from /usr/include/linux/sched.h:8,
+                 from /usr/include/linux/mm.h:4,
+                 from /usr/include/linux/slab.h:14,
+                 from /usr/include/asm/pci.h:32,
+                 from /usr/include/linux/pci.h:610,
+                 from kernel/busses/i2c-piix4.c:34:
+/usr/include/asm/system.h: In function `__set_64bit_var':
+/usr/include/asm/system.h:184: warning: dereferencing type-punned 
+pointer will break strict-aliasing rules
+/usr/include/asm/system.h:184: warning: dereferencing type-punned 
+pointer will break strict-aliasing rules
+gcc  -D__KERNEL__ -DMODULE -DEXPORT_SYMTAB -fomit-frame-pointer -I. 
+-Ikernel/include -I/usr/include -I/lib/modules/2.4.18-4GB/build/include  
+-nostdinc -I /usr/lib/gcc-lib/i686-pc-linux-gnu/3.3/include  -Wall -O2   
+-c kernel/busses/dmi_scan.c -o kernel/busses/dmi_scan.o
+In file included from /usr/include/asm/semaphore.h:39,
+                 from /usr/include/linux/fs.h:198,
+                 from /usr/include/linux/capability.h:17,
+                 from /usr/include/linux/binfmts.h:5,
+                 from /usr/include/linux/sched.h:8,
+                 from /usr/include/linux/mm.h:4,
+                 from /usr/include/linux/slab.h:14,
+                 from kernel/busses/dmi_scan.c:13:
+/usr/include/asm/system.h: In function `__set_64bit_var':
+/usr/include/asm/system.h:184: warning: dereferencing type-punned 
+pointer will break strict-aliasing rules
+/usr/include/asm/system.h:184: warning: dereferencing type-punned 
+pointer will break strict-aliasing rules
+kernel/busses/dmi_scan.c: At top level:
+kernel/busses/dmi_scan.c:232: error: parse error before 
+"config_must_be_included_before_module"
+kernel/busses/dmi_scan.c:232: warning: type defaults to `int' in 
+declaration of `config_must_be_included_before_module'
+kernel/busses/dmi_scan.c:232: warning: data definition has no type or 
+storage class
+kernel/busses/dmi_scan.c:233: error: parse error before 
+"config_must_be_included_before_module"
+kernel/busses/dmi_scan.c:233: warning: type defaults to `int' in 
+declaration of `config_must_be_included_before_module'
+kernel/busses/dmi_scan.c:233: warning: data definition has no type or 
+storage class
+make: *** [kernel/busses/dmi_scan.o] Error 1
+--
 
+What else should I do?
 
+Thank you for your kind help,
+best regards,
+Toth Andras
+toth_andras@chello.hu
 
--- 
-Philip Pokorny, Director of Engineering
-Tel: 415-358-2635   Fax: 415-358-2646   Toll Free: 888-PENGUIN
-PENGUIN COMPUTING, INC.
-www.penguincomputing.com
