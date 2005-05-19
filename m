@@ -1,126 +1,32 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:01 +0000
-Subject: lm_sensors ticket #1287
-Message-Id: <3EF48D76.7010604@paradyne.com>
+From: marcus.roeckrath@gmx.de (Marcus Roeckrath)
+Date: Thu, 19 May 2005 06:23:43 +0000
+Subject: lmsensors 2.7.0 kann auf SuSE 7.2 nicht kompiliert werden
+Message-Id: <02121221483700.10542@lighthouse>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <001001c33432$c6e54830$6501a8c0@RICHARD>
-In-Reply-To: <001001c33432$c6e54830$6501a8c0@RICHARD>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As far as I know there is no SMIC driver in Open IPMI yet.
-You may wish to ask Corey Minyard if there is one coming soon.
-Without it you are stuck.
+Hallo,
 
-Tum Au wrote:
-> Hi Mark,
-> 
-> I noticed that when running sensors-detect, I get a message detecting IPMI
-> BMC SMIC:
-> 
-> Probing for `IPMI BMC KCS'
->   Trying address 0x0ca0... Success!
-> Probing for `IPMI BMC SMIC'
->   Trying address 0x0ca8... Success!
-> 
-> I found out that the firmware I have for the Winbond BMC may not fully
-> support KCS, and the preferred means of accessing the BMC are via SMIC.  Is
-> this a possible workaround to my problem below (previous emails attached)?
-> If so, how can I go about testing it?
-> 
-> Thank you!
-> 
-> Regards,
-> Richard Au
-> 
-> 
-> ----- Original Message ----- 
-> From: "Mark D. Studebaker " <mds@paradyne.com>
-> To: "Richard Au" <rau@pantasys.com>
-> Cc: <lm78@Stimpy.netroedge.com>
-> Sent: Monday, June 16, 2003 7:05 PM
-> Subject: Re: lm_sensors ticket #1287
-> 
-> 
-> 
->>that's not good.
->>I'm stumped.
->>I'll email Corey Minyard and ask if he knows anything about the Winbond
-> 
-> BMC.
-> 
->>
->>Richard Au wrote:
->>
->>>Hi,
->>>
->>>As you requested, I changed "0xca" to "0xc9" at line 668 in bmcsensors.c
->>>(while leaving in #define DEBUG 1).  The relevant output of dmesg is
-> 
-> now:
-> 
->>>###############################################################
->>>i2c-core.o: i2c core module version 2.7.0 (20021208)
->>>i2c-i801.o version 2.7.0 (20021208)
->>>i2c-i801.o: I801 bus detected and initialized
->>>i2c-dev.o: i2c /dev entries driver module version 2.7.0 (20021208)
->>>i2c-dev.o: Registered 'SMBus I801 adapter at 1100' as minor 0
->>>i2c-proc.o version 2.7.0 (20021208)
->>>ipmi: message handler initialized
->>>ipmi_kcs: Acquiring BMC @ port=0xca2
->>>i2c-isa.o version 2.7.0 (20021208)
->>>i2c-dev.o: Registered 'ISA main adapter' as minor 1
->>>i2c-isa.o: ISA bus access for i2c modules initialized.
->>>i2c-proc.o version 2.7.0 (20021208)
->>>eeprom.o version 2.7.0 (20021208)
->>>i2c-ipmi.o version 2.7.0 (20021208)
->>>i2c-dev.o: Registered 'IPMI adapter' as minor 2
->>>i2c-ipmi.o: Registered IPMI interface 0 with version 1.0
->>>i2c-ipmi.o: BMC access for i2c modules initialized.
->>>bmcsensors.o version 2.7.0 (20021208)
->>>bmcsensors.o: Registered client, scanning for sensors...
->>>bmcsensors.o: Send BMC msg, cmd: 0x22
->>>bmcsensors.o: Got first resid 0x0001
->>>bmcsensors.o: Get SDR 0x0 0x0 0x0
->>>bmcsensors.o: Send BMC msg, cmd: 0x23
->>>bmcsensors.o: Reducing SDR request size to 33
->>>bmcsensors.o: Get SDR 0x0 0x0 0x0
->>>bmcsensors.o: Send BMC msg, cmd: 0x23
->>>bmcsensors.o: Reducing SDR request size to 16
->>>bmcsensors.o: Get SDR 0x0 0x0 0x0
->>>bmcsensors.o: Send BMC msg, cmd: 0x23
->>>bmcsensors.o: Reducing SDR request size to 8
->>>bmcsensors.o: Get SDR 0x0 0x0 0x0
->>>bmcsensors.o: Send BMC msg, cmd: 0x23
->>>bmcsensors.o: IPMI buffers too small, giving up
->>>###############################################################
->>>
->>>Four your reference, here is the original dmesg output:
->>>
->>>###############################################################
->>>ipmi: message handler initialized
->>>ipmi_kcs: Acquiring BMC @ port=0xca2
->>>i2c-isa.o version 2.6.5 (20020915)
->>>i2c-dev.o: Registered ?ISA main adapter? as minor 1
->>>i2c-isa.o: ISA bus access for i2c modules initialized.
->>>i2c-proc.o version 2.7.0 (20021208)
->>>eeprom.o version 2.6.5 (20020915)
->>>i2c-ipmi.o version 2.7.0 (20021208)
->>>i2c-dev.o: Registered ?IPMI adapter? as minor 2
->>>i2c-ipmi.o: Registered IPMI interface 0 with version 1.0
->>>i2c-ipmi.o: BMC access for i2c modules initialized.
->>>bmcsensors.o version 2.7.0 (20021208)
->>>bmcsensors.o: Registered client, scanning for sensors...
->>>bmcsensors.o: Send BMC msg, cmd: 0x22
->>>bmcsensors.o: Got first resid 0x0001
->>>bmcsensors.o: Get SDR 0x0 0x0 0x0
->>>bmcsensors.o: Send BMC msg, cmd: 0x23
->>>bmcsensors.o: Error 0xc9 on cmd 0xa/0x23; state = 2; probably fatal.
->>>###############################################################
->>>
->>>Regards,
->>>Richard
->>
->>
+nachdem ich i2c 2.7.0 erfolgreich kompiliert und installiert hatte, brach die 
+Kompilierung von lmsensors mit einem Fehler in i2c-amd8111.c ab.
+
+Dabei ging es um die Variable u8, die nicht konstant sei, wenn ich die 
+Fehlermeldung richtig verstanden habe.
+
+Bin wieder zur?ck auf die 2.6.5, die wie alle Vorversionen immer problemlos 
+installierbar war.
+
+Eine Idee?
+
+-- 
+
+Gruss Marcus
+
+Marcus Roeckrath -- Vikarsbusch 8 -- D-48308 Senden -- Germany
+Phone  : +49-2536-9944 -- Mailer/BBS/Fax : +49-2536-9943 (V34, X75)
+FidoNet: 2:2449/523
+E-Mail : marcus.roeckrath@gmx.de
+WWW    : http://home.foni.net/~marcusroeckrath/
