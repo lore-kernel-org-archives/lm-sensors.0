@@ -1,57 +1,25 @@
-From: obi@saftware.de (Andreas Oberritter)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [PATCH] possible bug in i2c-algo-bit's inb function
-Message-Id: <1109541347.4948.7.camel@localhost.localdomain>
+From: jap@iki.fi (Jaakko Ala-Paavola)
+Date: Thu, 19 May 2005 06:25:32 +0000
+Subject: new bus driver
+Message-Id: <Pine.LNX.4.61.0501251912150.26717@zebra.tky.hut.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1D5GN2-0000Bi-KG@localhost.localdomain>
-	 <20050227103538.218fa1b0.khali@linux-fr.org>
-	 <1109528034.4564.16.camel@localhost.localdomain>
-	 <20050227195226.23aa5a51.khali@linux-fr.org>
-In-Reply-To: <20050227195226.23aa5a51.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
-Cc: Greg KH <greg@kroah.com>
+To: lm-sensors@vger.kernel.org
 
-On Sun, 2005-02-27 at 19:52 +0100, Jean Delvare wrote:
-> > Here's my I2C code:
-> > (...)
-> 
-> Looks sane.
-> 
-> > The bus master is a so called Pluto2 by SCM (part of a DVB-T card sold
-> > by Satelco). If this is a hardware bug, is it possible to add a flag
-> > to struct i2c_algo_bit_data to workaround this bug?
-> 
-> I would try to find out whether the culprit is setscl or getsda
-> (assuming I am correct and either of these actually is the problem).
-> Once you know which it is, you could modifiy that function to restore
-> the SDA line, that should do the trick.
-> 
-> Hope that helps,
+Hi, 
+I'm planning to implement a bus driver for a simple homebrew 
+serial port I2C-adapter:
 
-Thank you, using the workaround below makes it possible to use the
-bitbanging code without modifications. It tries to detect i2c_inb() and
-resets SDA to high after SCL has been set to high and then to low.
+http://vodka.tky.hut.fi/~jap/Electronics/I2C/SerialAdapter/index.html
 
-static void pluto_setscl(void *data, int state)
-{
-        struct pluto *pluto = data;
+The original design is mine, but I just got confirmation from a hacker in 
+Italy that the device actually does work. Unfortunately the guy wrote 
+the driver for Windows only. Thus I decided to implement one for linux.
 
-        if (state)
-                pluto_rw(pluto, REG_SLCS, SLCS_SCL, SLCS_SCL);
-        else
-                pluto_rw(pluto, REG_SLCS, SLCS_SCL, 0);
+I checked the list of supported bus drivers and didn't found anything 
+related to serial port. Do you feel that kind of project usefull?
 
-        if ((state) && (pluto->i2cbug = 0)) {
-                pluto->i2cbug = 1;
-        } else {
-                if ((!state) && (pluto->i2cbug = 1))
-                        pluto_setsda(pluto, 1);
-                pluto->i2cbug = 0;
-        }
-}
-
-Regards,
-Andreas
+BR
+Jaakko Ala-Paavola
