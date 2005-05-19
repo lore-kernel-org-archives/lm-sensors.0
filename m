@@ -1,46 +1,92 @@
-From: rtjohnso@eecs.berkeley.edu (Robert T. Johnson)
-Date: Thu, 19 May 2005 06:24:15 +0000
-Subject: [PATCH 2.4] i2c-dev user/kernel bug and mem leak
-Message-Id: <1062178250.2321.20.camel@dooby.cs.berkeley.edu>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:23:51 +0000
+Subject: How to convert i2c adapter drivers into good kernel code
+Message-Id: <20030325072511.GD12590@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030803192312.68762d3c.khali@linux-fr.org>
-	<20030804193212.11786d06.vsu@altlinux.ru>
-	<20030805103240.02221bed.khali@linux-fr.org>
-	<20030805210704.GA5452@kroah.com>
-	<20030806100702.78298ffe.khali@linux-fr.org>
-	<1060886657.1006.7121.camel@dooby.cs.berkeley.edu>
-	<20030814190954.GA2492@kroah.com>
-	<1060912895.1006.7160.camel@dooby.cs.berkeley.edu>
-	<20030815211329.GB4920@kroah.com>
-	<1062033440.16799.22.camel@dooby.cs.berkeley.edu> 
-	<20030829182132.29c3ac55.khali@linux-fr.org>
-In-Reply-To: <20030829182132.29c3ac55.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: greg@kroah.com, linux-kernel@vger.kernel.org, marcelo@conectiva.com.br, sensors@Stimpy.netroedge.com, vsu@altlinux.ru
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
-On Fri, 2003-08-29 at 09:21, Jean Delvare wrote:
-> > Here's the patch against 2.6.0-test4.  Just to remind everyone, this
-> > patch doesn't fix any bugs (they're already fixed in 2.6.0-test3), it
-> > just makes the code pass our static analysis tool, cqual, without
-> > generating a warning.  Since finding and fixing these bugs is so
-> > tricky, it seems worthwhile to have code which can be automatically
-> > verified to be bug-free (at least w.r.t. user/kernel pointers). 
-> > That's what this patch is about.  Let me know if you have any
-> > questions or comments. Thanks for everyone's help.
-> 
-> If I read the patch correctly, this is basically a kind of reversal to
-> your original patch, before Sergey and I changed it?
 
-You're absolutely right.  The patch is purely "aesthetic", in the sense
-that it gets the code to pass cqual without generating any warnings.  I
-understand the code may seem slightly odd, but it can be _automatically_
-verified to have no user/kernel bugs.  That's its real advantage.
+Ok, enough people have been asking me for this over the past week, so
+here's a rough cut:
 
-Thanks for looking at the patch so carefully, and for your comments.
+How to convert the i2c CVS adapter drivers to the new i2c changes
+(or, how do I get that driver that I'm using into the main kernel tree)
 
-Best,
-Rob
+Please only do this if you have the hardware for the driver you want to
+port.  Or if not, be prepared to handle lots of user email :)
 
+Here's the steps to do this work:
+
+ - Resync with the lm_sensors CVS tree (instructions for how to do this
+   is at: http://secure.netroedge.com/~lm78/download.html).  Go into the
+   kernel/busses/ directory and copy the i2c-*.c file that you want to
+   convert to your up to date kernel tree's drivers/i2c/busses/
+   directory.
+
+ - Add the proper drivers/i2c/busses/Makefile and
+   drivers/i2c/busses/Kconfig entries for the driver.  Remember to add a
+   help section for the configuration entry, and try to keep the
+   Makefile in alphabetical order.
+
+ - Test that the Makefile and Kconfig changes work.  Yes, the driver
+   will probably blow up on compile time into a lot of little pieces,
+   but at least you have added it to the build process properly :)
+
+ - remove the
+ 	#include "version.h"
+   line in the driver, and replace the LM_VERSION and LM_DATE entries
+   with I2C_VERSION and I2C_DATE to fix that compile time error.
+
+ - If this is a pci driver:
+ 	- fill in the pci_device_id table with the proper device ids.
+	  These can usually be found in the probe function (or in the
+	  function that the probe function calls).
+	- add a struct pci_dev * parameter to the probe function if it
+	  doesn't have it, and fix up any other pci probe logic errors.
+   Examples of this kind of change can be seen here:
+  	http://linux.bkbits.net:8080/linux-2.5/patch@1.889.334.6
+		
+ - If the driver calls check_region(), replace that with the test to
+   request_region.
+ 
+ - Fix all oddly formatted code (comments at the left side of the line,
+   no tabs, etc.)
+
+ - Make all functions and variables static.
+
+ - Change all printk() calls to dev_* calls.  In doing this, all
+ 	#ifdef DEBUG
+   lines can be removed.  Delete all instances of the driver's name in
+   the printk() calls, as it is redundant with the dev_* calls.
+ 
+ - Change the .name of the driver to use the .dev.name field.
+
+ - When copying the name of the driver into .dev.name, use snprintf()
+   and DEVICE_NAME_SIZE.
+ 
+ - Right before calling i2c_add_adapter(), set up the
+   i2c_adapter.dev.parent pointer to be the pci device.  This can be
+   seen in the following patch:
+	http://linux.bkbits.net:8080/linux-2.5/patch@1.889.334.10
+   If this is not a pci driver, do not worry about this step, just make
+   sure the parent pointer is NULL, and the driver will get placed onto
+   the legacy bus in sysfs.
+
+And that should be about it.  If all of the above works out, the driver
+should build, and when loaded, it should show up in the sysfs directory
+/sys/bus/pci/drivers.  Go into the device that driver binds to, and you
+should see a i2c? directory, which is the start of the i2c bus bound to
+that adapter.
+
+Then, make up a patch (read Documentation/SubmittingPatches) and send
+it off to me, copying the list.
+
+If there are any questions about any of this, or I forgot any steps,
+please let me know.
+
+thanks,
+
+greg k-h
