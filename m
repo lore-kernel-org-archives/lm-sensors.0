@@ -1,12 +1,42 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:07 +0000
-Subject: ADM1025 documentation
-Message-Id: <20030728175341.456aa888.khali@linux-fr.org>
+Subject: Fw: RE: ADM1025 documentation
+Message-Id: <20030729142821.37e453b4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20030728175341.456aa888.khali@linux-fr.org>
+In-Reply-To: <20030728175341.456aa888.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+These guys (and lady, for that matter) have a real support service!
+That's really great :)
+
+Begin forwarded message:
+
+Date: Tue, 29 Jul 2003 12:53:17 +0100
+From: "Burke, Mary" <Mary.Burke@analog.com>
+To: <khali@linux-fr.org>
+Subject: RE: ADM1025 documentation
+
+
+Hi Jean
+
+Thanks for the feedback. I will include those edits in the next revision
+
+Thanks and Regards
+Mary
+
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: 28 July 2003 16:54
+To: Burke, Mary
+Cc: LM Sensors
+Subject: ADM1025 documentation
+
 
 
 Hi Mary,
@@ -30,6 +60,12 @@ I think it should be more explicit.
 "the".
 
 Thanks for your support! :)
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
+
+
 
 -- 
 Jean Delvare
