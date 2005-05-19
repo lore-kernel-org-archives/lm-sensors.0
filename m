@@ -1,42 +1,36 @@
-From: greg@kroah.com (Greg KH)
+From: vojtech@suse.cz (Vojtech Pavlik)
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: [PATCH] i2c driver changes for 2.5.64
-Message-Id: <20030314085618.GD3084@kroah.com>
+Message-Id: <20030315104901.A3923@ucw.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030314005027.GA1923@kroah.com> <10476033153504@kroah.com> <20030314081904.A11701@infradead.org>
-In-Reply-To: <20030314081904.A11701@infradead.org>
+References: <10476033263399@kroah.com> <10476033262095@kroah.com>
+In-Reply-To: <10476033262095@kroah.com>; from greg@kroah.com on Thu, Mar 13, 2003 at 04:55:00PM -0800
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-On Fri, Mar 14, 2003 at 08:19:04AM +0000, Christoph Hellwig wrote:
-> > +/* Internally used pause function */
-> > +void ali15x3_do_pause(unsigned int amount)
-> > +{
-> > +	current->state = TASK_INTERRUPTIBLE;
-> > +	schedule_timeout(amount);
-> > +}
-> 
-> I think this should be moved to linux/kernel.h as delay() - I've seen
-> it duplicated in so much code (including XFS)
+On Thu, Mar 13, 2003 at 04:55:00PM -0800, Greg KH wrote:
 
-I'll move this.  I think I have this in the usb.h header file too :)
+> diff -Nru a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
+> --- a/drivers/i2c/busses/i2c-amd8111.c	Thu Mar 13 16:56:52 2003
+> +++ b/drivers/i2c/busses/i2c-amd8111.c	Thu Mar 13 16:56:52 2003
+ 		goto out_release_region;
+> @@ -389,7 +392,7 @@
+>  }
+>  
+>  static struct pci_driver amd8111_driver = {
+> -	.name		= "amd8111 smbus 2.0",
+> +	.name		= "amd8111 smbus",
+>  	.id_table	= amd8111_ids,
+>  	.probe		= amd8111_probe,
+>  	.remove		= __devexit_p(amd8111_remove),
 
-> > +#ifdef DEBUG
-> > +	printk
-> > +	    ("i2c-ali15x3.o: Transaction (pre): STS=%02x, CNT=%02x, CMD=%02x, ADD=%02x, DAT0=%02x, "
-> > +	     "DAT1=%02x\n", inb_p(SMBHSTSTS), inb_p(SMBHSTCNT),
-> > +	     inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
-> > +	     inb_p(SMBHSTDAT1));
-> > +#endif
-> 
-> use pr_debug() here.
+The 2.0 was quite intentional in the .name, because the 8111 has *two*
+SMBus busses, one SMBus 1.1 and one SMBus 2.0. This driver is only for
+the 2.0 SMBus controller.
 
-In the next round of patches I'm using dev_dbg() and other dev_*
-functions for the printk calls, now that we have device support for the
-adapters.
-
-thanks,
-
-greg k-h
+-- 
+Vojtech Pavlik
+SuSE Labs
