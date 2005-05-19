@@ -1,49 +1,16 @@
-From: robs@multiplayer.it (Roberto Sebastiano)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: nvndia nforce2 bug
-Message-Id: <1070192398.553.1.camel@newdeal>
+From: ctzff@comp.leeds.ac.uk (Frankie)
+Date: Thu, 19 May 2005 06:23:42 +0000
+Subject: re testing support for sis 650 host bridge chipset
+Message-Id: <3DDCF1D6.8060405@comp.leeds.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-newdeal:/usr/src/sensors/lm_sensors2# sensors
-eeprom-i2c-0-51
-Adapter: SMBus nForce2 adapter at 5000
-Algorithm: Unavailable from sysfs
-Memory type: Unavailable
+hi,
+I have a motherboard with sis650 chipset (lspci://00:00.0 Host bridge: 
+Silicon Integrated Systems [SiS]: Unknown device 0650 (rev 01)).
+I am willing to help test support for this if required.
 
-as99127f-i2c-1-2d
-Adapter: SMBus nForce2 adapter at 5500
-Algorithm: Unavailable from sysfs
-VCore 1:   +1.70 V  (min =3D  +1.49 V, max =3D  +1.81 V)             =20
-VCore 2:   +1.70 V  (min =3D  +1.49 V, max =3D  +1.81 V)             =20
-+3.3V:     +3.39 V  (min =3D  +2.98 V, max =3D  +3.63 V)             =20
-+5V:       +4.95 V  (min =3D  +4.52 V, max =3D  +5.48 V)             =20
-+12V:     +11.55 V  (min =3D +10.82 V, max =3D +13.13 V)             =20
--12V:     -12.14 V  (min =3D  -0.00 V, max =3D  -0.00 V)             =20
--5V:       -4.60 V  (min =3D  -0.00 V, max =3D  -0.00 V)             =20
-fan1:     4927 RPM  (min =3D 3000 RPM, div =3D 2)              ALARM =20
-fan2:        0 RPM  (min =3D 3000 RPM, div =3D 2)              ALARM =20
-fan3:        0 RPM  (min =3D 3000 RPM, div =3D 2)              ALARM =20
-M/B Temp:    +39?C  (high =3D  +127?C, hyst =3D   +60?C)         =20
-CPU Temp:  +28.0?C  (high =3D  +120?C, hyst =3D  +100?C)         =20
-temp3:    +255.4?C  (high =3D  +100?C, hyst =3D  +100?C)         =20
-vid:      +1.650 V
-alarms:  =20
-beep_enable:
-          Sound alarm enabled
-
-M/B and CPU temp are swapped. CPU is 39 and MB 28
-
---=20
-Roberto Sebastiano <robs@multiplayer.it>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: Questa parte del messaggio =3D?ISO-8859-1?Q?=E8?=3D firmata
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031130=
-/de1a3d10/attachment.bin
+frankie fisher
