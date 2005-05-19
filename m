@@ -1,75 +1,37 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: i want to help
-Message-Id: <3EFCD928.6030404@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:49 +0000
+Subject: [PATCH 2.6] Incorrect memset in eeprom.c
+Message-Id: <20040330203502.350fc28b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.VMS.3.91-2 (vms).1030217122257.20709A-100000@cs.felk.cvut.cz>
-In-Reply-To: <Pine.VMS.3.91-2 (vms).1030217122257.20709A-100000@cs.felk.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-OK, I put your name on the new drivers page.
+Quoting Ralf Roesch:
 
-Rudolf Marek wrote:
-> Ok that name will be w83784.c 
-> 
-> Unforunatelly I dont have PWM pins connected to fans. (yet haha)
-> I will implement what I can.
-> 
-> Rudolf
-> 
-> On Thu, 26 Jun 2003, Mark M. Hoffman wrote:
-> 
-> 
->>* Philip Pokorny <ppokorny@penguincomputing.com> [2003-06-25 19:33:25 -0700]:
->>
->>>Is it another variant of the 83781?
->>
->>Looks that way... datasheets are here: 
->>
->>http://www.winbond.com/e-winbondhtm/partner/b_2_d_4.htm
->>
->>And I agree with earlier sentiments on the list that no more chip
->>variants should be added to w83781d.  Rudolf, I suggest w83784.c
->>because (according to the datasheet) the 785 is a cut down 784;
->>that might be added later.
->>
->>
->>>:v)
->>>
->>>Mark M. Hoffman wrote:
->>>
->>>
->>>>Hi Rudolf:
->>>>
->>>>* Rudolf Marek <R.Marek@sh.cvut.cz> [2003-06-19 16:43:00 +0200]:
->>>>
->>>>
->>>>
->>>>>I have W83L785R on my MB and I'm willing to write a driver.
->>>>>Is this "job" still free ?
->>>>>
->>>>
->>>>I think so, according to this page:
->>>>
->>>>http://secure.netroedge.com/~lm78/newdrivers.html
->>>>
->>>>To get started, use this checklist:
->>>>
->>>>http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/developers/new_drivers
->>>>
->>>>When you're sure you definitely want to write the driver, let
->>>>us know and we'll put your name on the status page.
->>>>
->>
->>Regards,
->>
->>-- 
->>Mark M. Hoffman
->>mhoffman@lightlink.com
->>
->>
-> 
-> 
+> currently I'm only working with Linux MIPS 2.4 kernel, 
+> so it would be nice if you could forward the patch for 2.6.
+
+OK, so here we are. Greg, this is the port to 2.6 of Ralf patch that
+fixes an incorrect memset while initializing the eeprom driver. Please
+apply.
+
+Thanks.
+
+--- linux-2.6.5-rc2/drivers/i2c/chips/eeprom.c.orig	Mon Mar 29 20:46:02 2004
++++ linux-2.6.5-rc2/drivers/i2c/chips/eeprom.c	Tue Mar 30 20:29:34 2004
+@@ -197,7 +197,7 @@
+ 				 sizeof(struct eeprom_data));
+ 
+ 	data = (struct eeprom_data *) (new_client + 1);
+-	memset(data, 0xff, EEPROM_SIZE);
++	memset(data->data, 0xff, EEPROM_SIZE);
+ 	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+ 	new_client->adapter = adapter;
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
