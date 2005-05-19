@@ -1,95 +1,117 @@
-From: g.liakhovetski@gmx.de (Guennadi Liakhovetski)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:24 +0000
 Subject: [sensors] system slow since ~ 2.6.7
-Message-Id: <Pine.LNX.4.60.0411242139090.2319@poirot.grange>
+Message-Id: <20041125211941.27eac8f0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.60.0411180115490.941@poirot.grange>
- <1101186291.20008.247.camel@d845pe>
-In-Reply-To: <1101186291.20008.247.camel@d845pe>
+	<1101186291.20008.247.camel@d845pe>
+	<Pine.LNX.4.60.0411242139090.2319@poirot.grange>
+In-Reply-To: <Pine.LNX.4.60.0411242139090.2319-J+lI668vivfmY97RW1zN3Q@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Len Brown <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>, sensors@stimpy.netroedge.com, Andrew Morton <akpm@osdl.org>
+To: Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, sensors-8Q/ZecXQGFUZMC/lefXSXFaTQe2KTcn/@public.gmane.org, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 
-(added Andrew to CC as he also answered my original email. Don't know if 
-sensors@stimpy.netroedge.com allows non-subscribers)
+> (added Andrew to CC as he also answered my original email. Don't know
+> if sensors@stimpy.netroedge.com allows non-subscribers)
 
-On Tue, 23 Nov 2004, Len Brown wrote:
+Yes it does :) Now I hope acpi-devel does too.
 
-> On Wed, 2004-11-17 at 19:25, Guennadi Liakhovetski wrote:
-> > "Slow" means just running top alone in a vt it takes 1.6% CPU. Under
-> > 2.6.3 it takes 0.2% (Duron 900MHz). Another peculiarity with 2.6.7 and
-> > 2.6.9 is that the power LED is blinking with about 1Hz frequency. It's
-> > an ASUS A7VI-VM motherboard. In the manual there's nothing about
+> This reminds me: about a year ago my CPU fan burnt down. Then too,
+> shortly after booting the PC, it slowed down. Then by accident I
+> noticed in BIOS CPU temperature 98 deg C. With a new fan problem
+> disappeared.
+
+Wow, 98, no less. You're lucky it didn't catch on fire, you know.
+
+> So, can it be, that the BIOS automatically slows down (throttles) the
+> CPU at high temperature.
+
+Yes this is certainly what happens. Blinking power led usually means
+that some kinf of thermal or power management is in effect.
+
+> And after ~ 2.6.7 sensors program the sensor 
+> interface with some (wrong) coefficient, and then it throttles the CPU
+> wrongly?
+
+There were some significant changes to the via686a driver in 2.6.6 and
+2.6.7.
+
+2.6.6: Limit initialization was removed from the driver. The same was
+done for most other drivers. The limits have to be set by either the
+BIOS or user-space, not kernel drivers. Also, chip initialization is now
+less agressive (previous version would possibly arbitrarily overwrite
+BIOS settings).
+
+2.6.7: Conversion formulas were reworked for a better accuracy. Errors
+were previously introduced by incorrect rounding.
+
+I think that the changes in 2.6.6 are the ones affecting you.
+
+> Yes, some coefficients are definitely wrong. Here are a
+> couple of snapshots:
 > 
-> PCI: Disabling Via external APIC routing
+> via686a-isa-e200
+> Adapter: ISA adapter
+> CPU core:  +1.09 V  (min =  +2.00 V, max =  +2.50 V)   ALARM
+> +2.5V:     +1.16 V  (min =  +3.10 V, max =  +1.57 V)   ALARM
+> I/O:       +3.40 V  (min =  +4.13 V, max =  +4.13 V)   ALARM
+> +5V:       +5.55 V  (min =  +6.44 V, max =  +6.44 V)   ALARM
+> +12V:      +4.81 V  (min = +15.60 V, max = +15.60 V)   ALARM
+> CPU Fan:  5443 RPM  (min =    0 RPM, div = 2)          
+> P/S Fan:     0 RPM  (min =    0 RPM, div = 2)          
+> SYS Temp:  +45.4 C  (high =   +45 C, hyst =   +40 C)   ALARM
+> CPU Temp:  +34.5 C  (high =   +60 C, hyst =   +55 C)   
+> SBr Temp:  +28.4 C  (high =   +65 C, hyst =   +60 C)   
+
+Blame your BIOS! It did not properly configure voltage limits, among
+others. BTW, Vcore, +2.5V and +12V look awfully wrong anyway. I/O and
++5V are acceptable but even +5V is a bit too high IMHO. Never heard of
+your motherboard model before, seems to be a rare one. Maybe Asus didn't
+put much support on it. 
+
+Notice the ALARM in SYS Temp, which is probably causing the system to
+throttle.
+
+> via686a-isa-e200
+> Adapter: ISA adapter
+> CPU core:  +1.09 V  (min =  +2.00 V, max =  +2.50 V)   ALARM
+> +2.5V:     +1.16 V  (min =  +3.10 V, max =  +1.57 V)   ALARM
+> I/O:       +3.40 V  (min =  +4.13 V, max =  +4.13 V)   ALARM
+> +5V:       +5.55 V  (min =  +6.44 V, max =  +6.44 V)   ALARM
+> +12V:      +4.81 V  (min = +15.60 V, max = +15.60 V)   ALARM
+> CPU Fan:  5487 RPM  (min =    0 RPM, div = 2)          
+> P/S Fan:     0 RPM  (min =    0 RPM, div = 2)          
+> SYS Temp:  +45.2 C  (high =   +91 C, hyst =   +40 C)   ALARM
+> CPU Temp:  +34.4 C  (high =   +60 C, hyst =   +55 C)   
+> SBr Temp:  +28.4 C  (high =   +65 C, hyst =   +60 C)   
 > 
-> Curiously, this line appears in 2.6.3, but not in 2.6.7 or 2.6.9 dmesg
-> -- even though all the configs build in IOAPIC support.
-> 
-> Can you forward the /proc/interrupts from 2.6.3, and from 2.6.9 with and
-> without acpi=off?  do you see a significant change in /proc/interrupts
-> before and after the sensor-provoked slowness starts?
-> 
-> if you build 2.6.9 w/o the CONFIG_ACPI_PROCESSOR and boot w/o cmdline
-> params, do you still see slowness?
-> 
-> if you boot 2.6.9 with these parameters, do you see any additional dmesg
-> lines?
-> 
-> acpi_dbg_level=0xF acpi_dbg_layer=0xFFFF3FFF
+> Notice how SYS Temp high changed...
 
-Ok, I started debugging the problem closely, and after booting into 2.6.9 
-with acpi=off I still could reproduce the problem by starting sensors... 
-So, I guess, there's no need to do all the acpi debugging you are 
-suggesting above, right? As for /proc/interrupts with / without acpi and 
-before / after sensors I don't see any difference. Notice also, that the 
-slowness doesn't necessarily start immediately after starting sensors, it 
-can start later, and it can spontaneously stop later. Just now while 
-typing this email I saw the power LED stopped blinking and the speed went 
-back to normal.
+Did it change *on its own*? Weird. Note that 91 = 45 << 1 + 1. I wonder
+if it could be some kind of read error. Will the value change 
 
-This reminds me: about a year ago my CPU fan burnt down. Then too, shortly 
-after booting the PC, it slowed down. Then by accident I noticed in BIOS 
-CPU temperature 98 deg C. With a new fan problem disappeared.
+> Can my guesses be correct and how can the situation be fixed?
 
-So, can it be, that the BIOS automatically slows down (throttles) the CPU 
-at high temperature. And after ~ 2.6.7 sensors program the sensor 
-interface with some (wrong) coefficient, and then it throttles the CPU 
-wrongly? Yes, some coefficients are definitely wrong. Here are a couple of 
-snapshots:
+Pick the latest default configuration file for sensors here:
+http://www2.lm-sensors.nu/%7Elm78/cvs/lm_sensors2/etc/sensors.conf.eg
+Save as /etc/sensors.conf, edit the via686a-* section, especially the
+"set temp1_high" and set temp1_hyst" values. I'd suggest:
 
-via686a-isa-e200
-Adapter: ISA adapter
-CPU core:  +1.09 V  (min =  +2.00 V, max =  +2.50 V)   ALARM
-+2.5V:     +1.16 V  (min =  +3.10 V, max =  +1.57 V)   ALARM
-I/O:       +3.40 V  (min =  +4.13 V, max =  +4.13 V)   ALARM
-+5V:       +5.55 V  (min =  +6.44 V, max =  +6.44 V)   ALARM
-+12V:      +4.81 V  (min = +15.60 V, max = +15.60 V)   ALARM
-CPU Fan:  5443 RPM  (min =    0 RPM, div = 2)          
-P/S Fan:     0 RPM  (min =    0 RPM, div = 2)          
-SYS Temp:  +45.4 C  (high =   +45 C, hyst =   +40 C)   ALARM
-CPU Temp:  +34.5 C  (high =   +60 C, hyst =   +55 C)   
-SBr Temp:  +28.4 C  (high =   +65 C, hyst =   +60 C)   
+    set temp1_hyst 55
+    set temp1_over 60
 
-via686a-isa-e200
-Adapter: ISA adapter
-CPU core:  +1.09 V  (min =  +2.00 V, max =  +2.50 V)   ALARM
-+2.5V:     +1.16 V  (min =  +3.10 V, max =  +1.57 V)   ALARM
-I/O:       +3.40 V  (min =  +4.13 V, max =  +4.13 V)   ALARM
-+5V:       +5.55 V  (min =  +6.44 V, max =  +6.44 V)   ALARM
-+12V:      +4.81 V  (min = +15.60 V, max = +15.60 V)   ALARM
-CPU Fan:  5487 RPM  (min =    0 RPM, div = 2)          
-P/S Fan:     0 RPM  (min =    0 RPM, div = 2)          
-SYS Temp:  +45.2 C  (high =   +91 C, hyst =   +40 C)   ALARM
-CPU Temp:  +34.4 C  (high =   +60 C, hyst =   +55 C)   
-SBr Temp:  +28.4 C  (high =   +65 C, hyst =   +60 C)   
+Save the changes and run "sensors -s". Your system should hopefully be
+back to full speed right after that. So all you have to do is make sure
+that "sensors -s" is called after you load the via686a driver at boot
+time.
 
-Notice how SYS Temp high changed... Can my guesses be correct and how 
-can the situation be fixed? Again - no problems with 2.6.3.
+You should take a look at the hardware monitoring options in your BIOS
+setup screen if it has any. Maybe you can configure the boot value of
+temp1_high directly there, and it may provide hints about voltages as
+well.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
