@@ -1,44 +1,34 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Sat, 28 May 2005 00:36:18 +0000
-Subject: [lm-sensors] Query: libsensors, adm9240 driver and user feedback
-Message-Id: <oi7f9110p5t7k1p3f8sqjvb9h8k39mkg4g@4ax.com>
+From: chozasoft@yahoo.com (=?iso-8859-1?q?chozas?=)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: info on reading in an ASUS A7V333-X
+Message-Id: <20030709161601.95589.qmail@web10303.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gang,
+Hello, i have an asus as i say en the subject and for
+taking the reading uses the chip as99127f-i2c-0-2d and
+at the beggining didn't take a correct reading for the
+cpu but correct for the motherboard, i think.
 
-I put up a patch for adm9240 port for 2.6.11.10 on my website:
-  http://scatter.mine.nu/hwmon/adm9240/
-and scored me a live tester :)
+For taking a reading that i believe is correct for
+what i remember of seing in windows with the asus
+program i have to read the temperature i had to put
+the line you have in the file sensors.conf asking if
+anyone know if is correct 
 
-quote:
->When I run 'sensors' I get 
->
->ds1780-i2c-0-2d
->Adapter: SMBus I801 adapter at ccd0
->ERROR: Can't get IN0 data!
->ERROR: Can't get IN1 data!
->ERROR: Can't get IN2 data!
->ERROR: Can't get IN3 data!
->ERROR: Can't get IN4 data!
->ERROR: Can't get IN5 data!
->F1:          0 RPM  (min =    0 RPM, div = 8)          
->F2:          0 RPM  (min =    0 RPM, div = 8)          
->T1:        +37.0?C  (high =  +127?C, hyst =   +13?C)   
->vid:       +1.95 V
->alarms:   Chassis intrusion detection                  ALARM
+compute temp2 (@*30/43)+25, (@-25)*43/30
 
-Seems to me I need add alternate in0..in5 naming to libsensors?
+As i told you i think that for my case this reading is
+correct but i'm not 100% sure but is really close to
+what i went if i run windows and i use the program
+supply by the motherboard to read the temperature
 
-At the moment libsensors uses the chip defined pin labels and is 
-documented as "this may change", am I on right track?
+i hope i being helpful to you. Thank you very much for
+your work 
 
-Might there be something else I should look for?  Also, the user 
-wants to use sensord, anything else I should check?
-
-Thanks,
---Grant.
-
+________________________________________________________________________
+Want to chat instantly with your online friends?  Get the FREE Yahoo!
+Messenger http://uk.messenger.yahoo.com/
