@@ -1,7 +1,7 @@
 From: Claus.Rosenberger@rocnet.de (Claus Rosenberger)
 Date: Thu, 19 May 2005 06:23:48 +0000
 Subject: sensors with K7S5A
-Message-Id: <4014.10.20.10.15.1045656611.squirrel@deathstar.of.rocnet.de>
+Message-Id: <4759.10.20.10.15.1045744469.squirrel@deathstar.of.rocnet.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <34986.10.20.2.100.1045593851.squirrel@deathstar.of.rocnet.de>
 In-Reply-To: <34986.10.20.2.100.1045593851.squirrel@deathstar.of.rocnet.de>
@@ -9,6 +9,165 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+some additional infos :
+
+**** isadump 0x295 0x296
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 11 06 64 00 00 00 00 00 00 00 00 09 00 cf ff ff
+10: e1 e1 e1 70 00 00 00 00 00 00 00 00 00 00 00 00
+20: 6e 9c cc bc c1 ce 45 b6 ce 10 23 2d 00 00 00 00
+30: 75 60 ac 8d 71 5d cc a8 d8 b2 72 5e 3d 33 cc a8
+40: 3c 14 3c 14 3c 14 00 00 2d 00 00 00 00 00 00 00
+50: ff 38 7f 7f 7f 00 00 00 90 56 00 00 00 00 00 00
+60: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
+70: 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00 00
+80: 11 00 00 00 00 00 00 00 00 00 00 09 00 cf ff ff
+90: e1 e1 e1 70 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 6e 9c cc bc c1 ce 45 b6 ce 10 23 2d 00 00 00 00
+b0: 75 60 ac 8d 71 5d cc a8 d8 b2 72 5e 3d 33 cc a8
+c0: 3c 14 3c 14 3c 14 00 00 2d 00 00 00 00 00 00 00
+d0: ff 38 7f 7f 7f 00 00 00 90 56 00 00 00 00 00 00
+e0: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
+f0: 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00 00
+
+
+**** installation procedure
+- downloading kernel 2.4.20
+- patching kernel with
+http://home.attbi.com/~ac9410/albert/patches/2.4.20-i2c_sensors.tar.gz
+first i2c patches then sensors patches
+- compiling kernel (configuration appended later)
+- installing kernel and modules, rebooting
+- changing Makefile in lm_sensors_package
+  COMPILE_KERNEL := 0
+- make lm_sensors without errors
+- make install lm_sensors without errors
+- loading modules without errors
+  i2c-proc, i2c-isa, it87
+- running sensors
+
+
+**** Kernel config
+CONFIG_X86=y
+CONFIG_UID16=y
+CONFIG_EXPERIMENTAL=y
+CONFIG_MODULES=y
+CONFIG_MODVERSIONS=y
+CONFIG_KMOD=y
+CONFIG_MK7=y
+CONFIG_X86_WP_WORKS_OK=y
+CONFIG_X86_INVLPG=y
+CONFIG_X86_CMPXCHG=y
+CONFIG_X86_XADD=y
+CONFIG_X86_BSWAP=y
+CONFIG_X86_POPAD_OK=y
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_X86_L1_CACHE_SHIFT=6
+CONFIG_X86_HAS_TSC=y
+CONFIG_X86_GOOD_APIC=y
+CONFIG_X86_USE_3DNOW=y
+CONFIG_X86_PGE=y
+CONFIG_X86_USE_PPRO_CHECKSUM=y
+CONFIG_X86_F00F_WORKS_OK=y
+CONFIG_X86_MCE=y
+CONFIG_NOHIGHMEM=y
+CONFIG_MTRR=y
+CONFIG_X86_TSC=y
+CONFIG_NET=y
+CONFIG_PCI=y
+CONFIG_PCI_GOANY=y
+CONFIG_PCI_BIOS=y
+CONFIG_PCI_DIRECT=y
+CONFIG_ISA=y
+CONFIG_PCI_NAMES=y
+CONFIG_HOTPLUG=y
+CONFIG_SYSVIPC=y
+CONFIG_BSD_PROCESS_ACCT=y
+CONFIG_SYSCTL=y
+CONFIG_KCORE_ELF=y
+CONFIG_BINFMT_ELF=y
+CONFIG_PNP=y
+CONFIG_ISAPNP=y
+CONFIG_BLK_DEV_FD=m
+CONFIG_BLK_DEV_LOOP=m
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_FILTER=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_SD_EXTRA_DEVS@
+CONFIG_CHR_DEV_ST=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_BLK_DEV_SR_VENDOR=y
+CONFIG_SR_EXTRA_DEVS=2
+CONFIG_CHR_DEV_SG=y
+CONFIG_SCSI_DEBUG_QUEUES=y
+CONFIG_SCSI_MULTI_LUN=y
+CONFIG_SCSI_CONSTANTS=y
+CONFIG_BLK_DEV_3W_XXXX_RAID=y
+CONFIG_SCSI_AIC7XXX=y
+CONFIG_AIC7XXX_CMDS_PER_DEVICE%3
+CONFIG_AIC7XXX_RESET_DELAY_MS000
+CONFIG_SCSI_NCR53C8XX=y
+CONFIG_SCSI_NCR53C8XX_DEFAULT_TAGS=4
+CONFIG_SCSI_NCR53C8XX_MAX_TAGS2
+CONFIG_SCSI_NCR53C8XX_SYNC 
+CONFIG_NETDEVICES=y
+CONFIG_DUMMY=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_VENDOR_3COM=y
+CONFIG_VORTEX=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_I2C=m
+CONFIG_I2C_ALGOBIT=m
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_PROC=m
+CONFIG_I2C_MAINBOARD=y
+CONFIG_I2C_ISA=m
+CONFIG_SENSORS=y
+CONFIG_SENSORS_IT87=m
+CONFIG_RTC=y
+CONFIG_QUOTA=y
+CONFIG_EXT3_FS=y
+CONFIG_JBD=y
+CONFIG_FAT_FS=m
+CONFIG_MSDOS_FS=m
+CONFIG_VFAT_FS=m
+CONFIG_RAMFS=y
+CONFIG_ISO9660_FS=m
+CONFIG_JOLIET=y
+CONFIG_PROC_FS=y
+CONFIG_DEVFS_FS=y
+CONFIG_EXT2_FS=y
+CONFIG_NFS_FS=m
+CONFIG_NFS_V3=y
+CONFIG_NFSD=m
+CONFIG_NFSD_V3=y
+CONFIG_SUNRPC=m
+CONFIG_LOCKD=m
+CONFIG_LOCKD_V4=y
+CONFIG_MSDOS_PARTITION=y
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-15"
+CONFIG_NLS_CODEPAGE_850=m
+CONFIG_NLS_ISO8859_15=m
+CONFIG_VGA_CONSOLE=y
+CONFIG_VIDEO_SELECT=y
+
+
+
+
+hope you can help me with this problem
+
+thanks
+
+claus
+
+
 
 ok. i changed something but without result. here are some infos :
 
@@ -96,9 +255,9 @@ Any ideas ?
 >>
 >> sensors-detect reports following result :
 >>
->> Use driver `i2c-sis645' for device 00:00.0: Silicon Integrated Systems
->> SIS735 Use driver `i2c-sis5595' for device 00:02.0: Silicon Integrated
->> Systems SIS5595
+>> Use driver `i2c-sis645' for device 00:00.0: Silicon Integrated
+>> Systems SIS735 Use driver `i2c-sis5595' for device 00:02.0: Silicon
+>> Integrated Systems SIS5595
 >> Use driver `i2c-matroxfb' for device 01:00.0: MGA G200 AGP
 >>
 >> While loading this drivers i get failures because no devices deteced.
@@ -112,7 +271,5 @@ Any ideas ?
 >>
 >> Thanks,
 >>    Claus
->>
->>
 
 
