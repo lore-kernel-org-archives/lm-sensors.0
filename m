@@ -1,7 +1,7 @@
 From: baileych@mail.med.upenn.edu (Charles Bailey)
-Date: Thu, 19 May 2005 06:24:12 +0000
+Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: Ticket 1288
-Message-Id: <4220000.1060894732@abrmsn274.med.upenn.edu>
+Message-Id: <2147483647.1063731359@abrmsn288.med.upenn.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2147483647.1056216687@abrmsn288.med.upenn.edu>
 In-Reply-To: <2147483647.1056216687@abrmsn288.med.upenn.edu>
@@ -10,43 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---On Thursday, August 14, 2003 09:42:15 PM +0200 Jean Delvare 
-<khali@linux-fr.org> wrote:
-
->> (snip)
->> temp1:       +25C  (limit =  +60C)                       sensor >> thermistor temp2:     +58.5C  (limit =  +60C, hysteresis =  +50C)
->> sensor = PII/Celeron diode   ALARM
->> temp3:     +60.0C  (limit =  +60C, hysteresis =  +50C) sensor >> PII/Celeron diode   ALARM
+> Thanks.  Changing the settings seems to help:
 >
-> I can see in the configuration file that the sensor types can be
-> changed. Maybe the default configuration doesn't match your hardware.
-> Did you try changing these values in the config file (section
-> w83627hf-*, uncomment the lines), maybe it would give interesting
-> results?
-
-Thanks.  Changing the settings seems to help:
-
-w83627hf-isa-0290
-Adapter: ISA adapter
-Algorithm: ISA algorithm
-[snip]
-fan1:        0 RPM  (min = 3000 RPM, div = 2)
-fan2:     4530 RPM  (min = 3000 RPM, div = 2)
-fan3:     5443 RPM  (min = 3000 RPM, div = 2)
-temp1:      +127C  (limit =  +60C)                       sensor = 
-PII/Celeron diode   ALARM
-temp2:     +36.5C  (limit =  +60C, hysteresis =  +50C) sensor = 3904 
-transistor
-temp3:     +42.0C  (limit =  +60C, hysteresis =  +50C) sensor = 3904 
-transistor
-
-temp2 and temp3 look like they're in the range of the values the BIOS 
-reported.  (I can't shut the machine down again until tomorrow to check the 
-BIOS directly, but I'll let you know if there's a difference.) 
-Interestingly, when sensor2 and sensor3 are set, sensor1 reports the high 
-temperature above (+127) regardless of its setting.
+> w83627hf-isa-0290
+> Adapter: ISA adapter
+> Algorithm: ISA algorithm
+> [snip]
+> fan1:        0 RPM  (min = 3000 RPM, div = 2)
+> fan2:     4530 RPM  (min = 3000 RPM, div = 2)
+> fan3:     5443 RPM  (min = 3000 RPM, div = 2)
+> temp1:      +127C  (limit =  +60C)                       sensor > PII/Celeron diode   ALARM temp2:     +36.5C  (limit =  +60C, hysteresis > +50C) sensor = 3904 transistor temp3:     +42.0C  (limit =  +60C,
+> hysteresis =  +50C) sensor = 3904 transistor
 
 
+A bit of final followup:  Setting the temperature sensor types to
+  temp1 = thermistor (3435 in sensors.conf)
+  temp2 = 3904 transistor (2 in sensors.conf)
+  temp3 = 3904 transistor (2 in sensors.conf)
+yields temperature readings which appear to track, respectively, the BIOS's 
+values for "System Temp", "CPU1 temp", and "CPU2 temp".  (I haven't seen 
+"System Temp" vary from 25, so I don't know whether it's real or a dud.
+
+The values for fan1, fan2, and fan3 also seem to track the BIOS's values 
+for "SysFan speed" (always 0), "CPU1 fan speed", and "CPU2 fan speed".  I 
+haven't looked carefully at the voltage sensors.
+
+Once again, this is for a MicroStar K7D Master motherboard with dual 
+Athlons and the BIOS on the board.
+
+I hope this helps.
 
 --
 Regards,
