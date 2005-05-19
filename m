@@ -1,92 +1,63 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: w83782d question
-Message-Id: <20020628120415.I9322@Stimpy.netroedge.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:31 +0000
+Subject: [BK PATCH] I2C fixes for 2.6.11-rc1
+Message-Id: <20050117214543.GB28400@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.21.0206281611570.1247-100000@xeon12.aei-potsdam.mpg.de>
-In-Reply-To: <Pine.LNX.4.21.0206281611570.1247-100000@xeon12.aei-potsdam.mpg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@osdl.org, akpm@osdl.org
+Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+
+Hi,
+
+Here are some i2c driver fixes and updates for 2.6.11-rc1.  There is a
+new chip and a new bus driver, as well as a bunch of minor fixes.  All
+of these patches have been in the past few -mm releases.
+
+Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
+
+Individual patches will follow, sent to the sensors and linux-kernel
+lists.
+
+thanks,
+
+greg k-h
+
+ drivers/i2c/busses/Kconfig    |    6 -
+ drivers/i2c/busses/i2c-i801.c |    2 
+ drivers/i2c/busses/i2c-mpc.c  |  171 +++++++++++++++++++++++++------
+ drivers/i2c/chips/adm1026.c   |   11 +-
+ drivers/i2c/chips/eeprom.c    |   47 ++++----
+ drivers/i2c/chips/it87.c      |  230 +++++++++++++++++++++++++++++++++---------
+ drivers/i2c/chips/lm63.c      |    4 
+ drivers/i2c/chips/lm85.c      |   76 +++++++++++--
+ drivers/i2c/chips/via686a.c   |    9 -
+ 9 files changed, 427 insertions(+), 129 deletions(-)
+-----
 
 
-Hi, the best documentation is probably the code and the datasheet.
-The alarms are read like this (kernel/chips/w83781d.c):
+<jason.d.gaston:intel.com>:
+  o I2C support for Intel ICH7 - 2.6.10 - resubmit
 
-                data->alarms                     w83781d_read_value(client,
-                                       W83781D_REG_ALARM1) +
-                    (w83781d_read_value(client, W83781D_REG_ALARM2) << 8);
-                if ((data->type = w83782d) || (data->type = w83627hf)) {
-                        data->alarms |                            w83781d_read_value(client,
-                                               W83781D_REG_ALARM3) << 16;
-                }
+<rafael.espindola:gmail.com>:
+  o I2C: add EMC6D100 support in lm85 driver
 
-Here are some constants from the top of the file:
+Greg Kroah-Hartman:
+  o I2C: add MODULE_DEVICE_TABLE to via686a.c driver
 
-#define W83781D_REG_ALARM1 0x41
-#define W83781D_REG_ALARM2 0x42
-#define W83781D_REG_ALARM3 0x450        /* not on W83781D */
+Jean Delvare:
+  o I2C: Improve it87 super-i/o detection
+  o I2C: Cleanups to the eeprom driver
+  o I2C: Fix bogus bitmask in lm63 debug message
 
-The datasheet should break out what the bits mean.  From
-kernel/include/sensors.h, we have them as meaning: 
+Jonas Munsin:
+  o I2C: fix it87 sensor driver stops CPU fan
+  o I2C: it87 fan update
 
-#define W83781D_ALARM_IN0 0x0001
-#define W83781D_ALARM_IN1 0x0002
-#define W83781D_ALARM_IN2 0x0004
-#define W83781D_ALARM_IN3 0x0008
-#define W83781D_ALARM_IN4 0x0100
-#define W83781D_ALARM_IN5 0x0200
-#define W83781D_ALARM_IN6 0x0400
-#define W83782D_ALARM_IN7 0x10000
-#define W83782D_ALARM_IN8 0x20000
-#define W83781D_ALARM_FAN1 0x0040
-#define W83781D_ALARM_FAN2 0x0080
-#define W83781D_ALARM_FAN3 0x0800
-#define W83781D_ALARM_TEMP1 0x0010
-#define W83781D_ALARM_TEMP23 0x0020     /* 781D only */
-#define W83781D_ALARM_TEMP2 0x0020      /* 782D/783S */
-#define W83781D_ALARM_TEMP3 0x2000      /* 782D only */
-#define W83781D_ALARM_CHAS 0x1000
+Justin Thiessen:
+  o I2C: adm1026.c fixes
 
-To see an example of how these are applied, look at the function:
-
-void print_w83781d(const sensors_chip_name *name)
-
-in prog/sensors/chips.c
-
-
-
-Phil
-
-
-On Fri, Jun 28, 2002 at 04:20:40PM +0200, Nana Sadowsky wrote:
-> 
-> 
-> Dear support,
-> 
-> could you explain to (stupid) me what the number in
-> /proc/sys/dev/sensors/alarms is about ?
-> 
-> >From reading the w83782d datasheet, I suppose it's a bitmask representing
-> the bits set in the 3 hardware status registers, but I couldn't find any
-> proof of this assumption anywhere in the documentation. 
-> If so, in what order are they represented ?
-> 
-> (Better still, where is this stuff documented ?)
-> Thanks in advance for any hints.
-> 
-> Best,
-> Nana
-> 
-> =================================
-> 
-> sadowsky@aei-potsdam.mpg.de	(work)	++49 30 48496689 (home)
-> nana.sadowsky@kiez.net		(home)	0179 7840245 (mobile)
-> 
-> =================================
-
--- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Kumar Gala:
+  o I2C-MPC: Convert to platform_device driver
+  o I2C-MPC: use wait_event_interruptible_timeout between transactions
