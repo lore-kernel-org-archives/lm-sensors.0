@@ -1,51 +1,37 @@
-From: amalysh@web.de (Alexander Malysh)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: ECS-k7s5a sensors
-Message-Id: <200306191228.25314.amalysh@web.de>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: [PATCH 2.6] Fix debug bug in lm83 driver
+Message-Id: <20040111175123.54cdeb9f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200306161757.32702.Joseph@McQuade.info>
-In-Reply-To: <200306161757.32702.Joseph@McQuade.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Joseph,
+Hi Greg,
 
-pls try not to load any i2c modules at boot time. Then run sensors-detect und 
-give us pls output from: 1) syslog (/var/log/syslog or /var/log/messages , 
-this depths on ur distribution); 2) output from sensors-detect; 3) lspci -vvv
+The following patch fixes lm83 failing to compile if DEBUG is set.
 
-We need these informations in order to help u running lm_sensors.
+BTW, how does one enable DEBUG? I tried to add "-DDEBUG" in the main
+Makefile with no success, then I tried to add "#define DEBUG" in the
+driver itself but it didn't work either. I had to run the correct
+compilation command directly by myself with -DDEBUG to get it to work. I
+just can't understand why the two other ways (especially the second)
+fails to work. Does Voodoo magic surround us? Help! ;)
 
-Thanks in advance...
+--- linux-2.6.1/drivers/i2c/chips/lm83.c.orig	Sun Jan 11 17:40:55 2004
++++ linux-2.6.1/drivers/i2c/chips/lm83.c	Sun Jan 11 17:16:59 2004
+@@ -270,7 +270,7 @@
+ 		    & 0x48) != 0x00) ||
+ 		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_CONFIG)
+ 		    & 0x41) != 0x00)) {
+-			dev_dbg(&client->dev,
++			dev_dbg(&adapter->dev,
+ 			    "LM83 detection failed at 0x%02x.\n", address);
+ 			goto exit_free;
+ 		}
 
-Am Donnerstag, 19. Juni 2003 10:02 schrieb Joseph McQuade:
-> If I knew how to bring up the log i'd send it along.. as I said I am quite
-> new to this.. When I ran the sensors-detect It said I had no sensors. Even
-> on boot it tells me to run modprobe i2c and that is all it says. I downlaod
-> i2c-sis630. When I ran that as modprobe i2c-sis630 It said no sensors
-> detected. Maybe I am doing something wrong... I don't truly know.. I'm
-> sending the information that it gives me. Maybe I am doing something wrong,
-> and Its not giving me the information needed casue Im not telling it the
-> right thing..
->
-> On Thursday 19 June 2003 03:37 am, you wrote:
-> > > After rebooting linux brought to my attention on boot, that lm_sensors
-> > > has a error and stats i need to run modprobe even then it still says
-> > > the same thing..
-> > >
-> > > Just wanted to give you a head ups on what has happened so far.
-> >
-> > We'd need more details if you want us to help you. Tell us what the
-> > warnings were, what you tried, what happened then. Show us what
-> > sensors-detect reported (full log), and what sensors displays.
-> >
-> > "It doesn't work" alone is not something we can work on.
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: smime.p7s
-Type: application/pkcs7-signature
-Size: 2500 bytes
-Desc: signature
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030619/d06936d6/smime.bin
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
