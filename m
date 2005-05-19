@@ -1,7 +1,7 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Thu, 19 May 2005 06:25:57 +0000
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: RFC parameter based voltage scaling
-Message-Id: <0dn381l7s6fcq1kdvkaokn235437a29mbj@4ax.com>
+Message-Id: <42821576.5050208@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
 In-Reply-To: <rl8u711rq5bc1e1jtt91s76fed180ctoav@4ax.com>
@@ -10,50 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
-On Tue, 10 May 2005 14:35:31 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
+Grant Coady wrote:
+> Hi Khali,
+> On Tue, 10 May 2005 14:35:31 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
+> 
+> 
+>>Hi Grant,
+>>
 
-Sorry for mixing the thread up.  Just got a working set of computes 
-for w83697hf chip using sensors.conf.
+> 
+> Future resistor values come in E96 series which is a noisy calculation, 
+> the other option is resnet's where you might get 10/20 ratio or 10/30 
+> ratio which is also covered in E24 series.  
+> 
+> I've already demonstrated that E24 resistor ratios are below the basic 
+> error of the sensor chip.  E24 series over two decades gives ratios to 
+> much better than 1/2%, point 2: is that mobo makers are likely to use 
+> cheap 5% resistors, 
+> 
 
-Its the comments up the top of file wrong, down further they mention 
-the 3.6 volt offset but unfortunately comment:
-"
-# The math is convoluted, so we hope that your motherboard
-# uses the recommended resistor values.
-"
-I'd have to agree with convoluted math :)
+Maybe, maybe not... IIRC 1% 0603 resistors are about $20.00 for a reel
+of 5000, where I used to work we used only 1% to minimize inventory,
+of course we weren't in Taiwan. But using 5% resistors in front of
+a sensor is just bad design. The Winbond datasheets  I've looked at
+have 1% resistors in the schematics. What's the basis for
+your 5% assumption?
 
->and motherboards have a long history of not following the
->recommendations anyway.
 
-This is the issue what I'm trying to redress by exposing resistor 
-values in the computes, and providing (planning?) a user-space 
-program for those with non-standard values on their mobo's.
+> Sort of, datasheets can be poorly expressed, poorly understood when 
+> one doesn't have the hardware, sure.  The errors I'm finding are way 
+> beyond that.  You're trying to tell a former electronics design 
+> engineer who was working with 50000 count A/D converters 20 years 
+> ago how to read datasheets and where error terms come from?  
+> 
 
-I've changed Winbond datasheet values to E24 values as I suspect 
-that is what's on my mobo.  These work for me, CVS lm_sensors 
-(so I did compile that other patch, later :)
+You aren't the only EE around here, please don't give us a bad name by being
+snippy.
 
-ignore in1
-compute in3 @ * (50 + 34) / 50,         @ * 50 / (50 + 34)
-compute in4 @ * (56 + 20) / 20,         @ * 20 / (56 + 20)
-compute in5 ((@ - 3.6) * 100 / 24) + @, 3.6 - ((3.6 - @) * 24 / (100 + 24))
-compute in6 ((@ - 3.6) * 120 / 56) + @, 3.6 - ((3.6 - @) * 56 / (120 + 56))
-compute in7 @ * (33 + 17) / 33,         @ * 33 / (33 + 17)
-
-These can be simplified back, but then we lose traceability?  
-
-From a documentation point of view the verbose example may be 
-better?
-
-At least I've learned a bit more about libsensors + sensors.conf 
-today, not quite as bad as first look :o)
-
-This is using 2.6.12-rc3-mm3 standard driver (lsmod):
-
-w83627hf               29480  0
-i2c_sensor              2944  1 w83627hf
-i2c_isa                 1856  0
-
---Grant.
+mds
