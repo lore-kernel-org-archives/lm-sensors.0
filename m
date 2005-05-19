@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: arpi@thot.banki.hu (Arpi)
 Date: Thu, 19 May 2005 06:23:58 +0000
 Subject: Fwd: ls_sensors, fscscy.o & watchdog
-Message-Id: <20030603200318.GA12437@earth.solarsys.private>
+Message-Id: <200306032116.h53LGjdh012847@mail.mplayerhq.hu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030603170000.78ca4d75.khali@linux-fr.org>
 In-Reply-To: <20030603170000.78ca4d75.khali@linux-fr.org>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2003-06-03 20:20:32 +0200]:
+Hi,
 
 > > > Do you mean that the 6th bit has no effect, or that setting it to 1
 > > > disables the watchdog?
@@ -21,17 +21,32 @@ To: lm-sensors@vger.kernel.org
 > exist). Or maybe is it just me? Let's call it the bit accounting for 32
 > :)
 
-A pedantic note: this is still ambiguous, depending on convention.  E.g.
-Motorola's MPC500 RCPU manual labels the MSb as 0, instead of the more
-common LSb 0 (of Intel, and even other Motorola like 68k).  I think
-I've heard MSb 0 called "IBM ordering".
+lol
 
-Also, this difference is unrelated to endianness.  To change bit-numbering
-schemes has no effect on the code you write... it only affects the comments.
-It's more likely to screw up hardware designers though. :)
+> > Seems it disables the watchdog, at least when i set it, bit 4 has no
+> > effect. So only 'working' values for me were 16 and 144 (8+16), for
+> > other values it does nothing when the counter reach 0.
+> > (at least i see nothing happening)
+> 
+> Any idea what the 5 other bits are meant for?
 
-Regards,
+nope
+actually the question is what are the other 7 bits for...
+the only we know is the one with value 16 (0x10), the rest is mistic...
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+> > i hope it helps somebody... before i started to experiment on a live
+> > production server i searched through the net for this info
+> > but found nothing :(
+> 
+> How does it feel to be a pioneer? ;)
+
+Ask that ~700 users asking me 'what the hell is with our server now?
+i can't read my emails!' while i'm keep resetting the system :)
+(probably i should have answer them: i'm reverse engineering a watch-dog,
+please be patient :))
+
+
+A'rpi / Astral & ESP-team
+
+--
+Developer of MPlayer G2, the Movie Framework for all - http://www.MPlayerHQ.hu
