@@ -1,26 +1,28 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:38 +0000
-Subject: Problems with Gigabyte GA-7VTXE
-Message-Id: <3D6BDB1A.7DA4D70@paradyne.com>
+From: office@ulisoft.net (Ulrich Moshammer)
+Date: Thu, 19 May 2005 06:23:53 +0000
+Subject: I-Buttons
+Message-Id: <000001c30458$e77ce120$0201000a@ulisoft.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1030131854.1696.6.camel@saturn.sol>
-In-Reply-To: <1030131854.1696.6.camel@saturn.sol>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I already answered your ticket with the same thing.
+I have also implemented the I-Buttons but I will not implement the
+I-Buttons I will implement the one wire bus. For the one wire bus there
+are temperature sensors in TO92 package or SOT package available. This
+is my main reason to build a kernel driver.
 
-Jean Delvare wrote:
-> 
-> > I am running RedHat linux version 7.3, with the stock 2.4.18 kernel
-> > that is shipped.  I upgraded the rpm from 2.6.0 to 2.6.1.
-> 
-> Way too old IMHO. Try at least 2.6.3, 2.6.4 would be even better. Still
-> not working, try CVS version. If still nothing works, we'll see what we
-> can do for you.
-> 
-> --
-> Jean "Khali" Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+ 
+
+__________________________________________________________________
+Ulrich Moshammer
+ICQ#: 65902973
+
+__________________________________________________________________
+
+ 
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030416/2c2686ba/attachment.html
