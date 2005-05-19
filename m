@@ -1,23 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:03 +0000
-Subject: lm_sensors2 Makefile
-Message-Id: <20030703091338.5a7a03d0.khali@linux-fr.org>
+From: resfilter@onedimensional.org (resfilter)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: support for W83977EF-AW
+Message-Id: <000801c44d97$cf4df650$8d52b440@sketchy>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1033131073.3d945441d6d95@imp.free.fr>
-In-Reply-To: <1033131073.3d945441d6d95@imp.free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+the winbond chip physically labeled W83977EF-AW, was present on many intel BX series boards.  it would be great if there was some sort of support for it.. and i'm suprised there isn't yet, as it seems a common chip (two completely different boards that i own have it).  let me know if there are plans to write a driver for it, or if i can help in any way.  
 
-> Modified Files:
-> 	Makefile 
-> Log Message:
-> (mmh) use tab instead of spaces before depmod command
+unfortunately these servers are holding my cluster together, and i cannot spare one for donation at the moment, but i'm looking for a board i can exchange for one of these with the W83977EF-AW chip on it, so that board would be available.
 
-My fault, sorry. Damn these X cut'n'paste side effects.
+let me know if there's anything else i can do to get this chip supported
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+--------
+steve haslin (aka resfilter)
+http://resfilter.net/
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040608/e685843c/attachment.html
