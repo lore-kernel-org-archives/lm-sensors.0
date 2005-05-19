@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: clepple@ghz.cc (Charles Lepple)
 Date: Thu, 19 May 2005 06:24:09 +0000
 Subject: porting libsensors to the 2.6 kernel's /sys interface
-Message-Id: <3F2DA779.6000008@paradyne.com>
+Message-Id: <E6EF7896-C62E-11D7-BB43-003065DC6B50@ghz.cc>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CBF7F1A2-C175-11D7-BB43-003065DC6B50@ghz.cc>
 In-Reply-To: <CBF7F1A2-C175-11D7-BB43-003065DC6B50@ghz.cc>
@@ -10,53 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I think you are the first who has actually said he is working on it.
+On Sunday, August 3, 2003, at 08:23  PM, Mark D. Studebaker wrote:
 
-If you plan do get far enough to contribute something,
-we do not want to branch CVS.
+> I think you are the first who has actually said he is working on it.
 
-First choice would be a single libsensors that works with both kernels.
-Second choice would be to copy the lib/ directory (or parts of it) to
-a new directory (lib2?) and do the mods there.
+don't get your hopes up yet :-)
 
-Greg is correct that we shouldn't be including kernel headers for the userspace stuff.
+> First choice would be a single libsensors that works with both kernels.
 
-Charles Lepple wrote:
-> I took a look at porting libsensors to work with the new /sys interface 
-> to the sensor readings, and I have a few questions.
-> 
-> First, let me explain the scope of this attempt: I already have the 
-> 2.6.0test2 i2c and sensor kernel drivers working, so I just want to make 
-> the userspace tools (libsensors, basically) work with the new paths. 
-> That means that I'm setting COMPILE_KERNEL to 0 in the lm_sensors 
-> makefile. Compiling the lm_sensors kernel/ directory is going to be 
-> different than in 2.4, I'm afraid-- the out-of-kernel build process 
-> changed for the ThinkPad driver modules, and I think it'll be different 
-> here too.
-> 
-> So is there any need to include the kernel headers when compiling other 
-> parts of lm_sensors? In particular, I ran into trouble with the 2.6 
-> version of linux/sysctl.h, and disabling $(LINUX_HEADERS) in the 
-> makefile (by setting it to '.') picked up /usr/include/linux/sysctl.h, 
-> which resulted in a much happier compiler.
-> 
-> Also, I noticed the use of the numerical sysctl interface. Is that 
-> required for some 2.4 kernels? I would imagine that most people who are 
-> running 2.4 also have /proc mounted, so it might make sense to combine 
-> some code and just check for /proc or /sys files. In 2.6, using sysctl() 
-> yields this in the logs at every invocation of the program:
-> 
->   sensors: numerical sysctl 7 2 1 is obsolete.
-> 
-> so for short-lived polling programs, it might make sense to check for 
-> /proc or /sys before attempting the system call.
-> 
-> At the moment, I'm dabbling in my own CVS repository. After I get things 
-> working, this might be a good candidate for a branch in the project CVS 
-> (or SVN, or BK... wasn't sure what the most up-to-date one was, from the 
-> web page).
-> 
-> Thoughts? Any other considerations?
-> 
-> later,
-> 
+I think this is feasible...
+
+The thing is that I was expecting a simple mapping of old names to the 
+new ones (i.e. splitting the 3-value /proc files into the separate /sys 
+files). Greg was proposing a change in the libsensors API, however, 
+which I'm pretty sure I wouldn't have time to do. (Or am I mistaken?)
+
+Greg, what sort of API changes are you thinking of?
+
+Am I not grasping the full depth of the change to the /sys interface? I 
+have not really messed with the /proc nodes directly (as sensord took 
+care of stuffing values into an RRD file for me), but it wasn't 
+terribly hard to suck the /sys values into a Perl script.
+
+> Greg is correct that we shouldn't be including kernel headers for the 
+> userspace stuff.
+
+I think Jean Delvare's patch will fix this up nicely. I just got back 
+into town this evening, so I haven't had a chance to make sure that it 
+works, though.
+
+-- 
+Charles Lepple <clepple@ghz.cc>
+http://www.ghz.cc/charles/
