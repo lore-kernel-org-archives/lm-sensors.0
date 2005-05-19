@@ -1,33 +1,30 @@
-From: adrian@humboldt.co.uk (Adrian Cox)
-Date: Thu, 19 May 2005 06:25:08 +0000
-Subject: i2c multi-master mode
-Message-Id: <1091808938.2279.39.camel@localhost>
+From: barry.fisher@seranoa.com (barry.fisher)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: lm75
+Message-Id: <001901c1a061$8b6553b0$7d0110ac@Seranoa.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200407300939.54751.bjanz@mac.com>
-In-Reply-To: <200407300939.54751.bjanz@mac.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2004-08-05 at 12:06, Burt Janz wrote:
-> Precisely.  I don't expect to be operating in both modes simultaneously on the 
-> same port... but, since the MPC5200 does have 2 I2C ports, it is quite 
-> possible that one might be in "slave" and the other in "master" at the same 
-> time.
-
-Just so you know, I2C on the MPC5200 has been discussed a few times on
-the linuxppc-embedded list recently. My driver for MPC107/824x/85xx/52xx
-is in Greg KH's queue and should go to Linus sometime after 2.6.8 comes
-out. The MPC5200 requires further patches to add the correct OCP
-entries; Sylvain Munaut is preparing these. The driver does have some
-problems with interrupts on MPC5200, but I'm told it works correctly in
-polled mode.
-
-See the archive:
-http://lists.linuxppc.org/linuxppc-embedded/200407/msg00388.html
-and mail me if you want to see the tidied version.
-
-- Adrian Cox
-Humboldt Solutions Ltd.
-
+Hello:
+I have been looking at you lm-sensors site, have download the
+lm_sensors-2.6.2.tar.gz file and untarred everything and now I have a
+question. I am tring to develop a very simple device driver for the lm75
+device that we have as part of our product running on the 8260 ppc. I
+was looking at your source as a place to get some ideas and have tried
+to follow how the reads and writes work. It seems that everything boils
+down to a i2c_master_send and i2c_master_recv. In these routines a call
+is made to the
+adap->algo->master_xfer routine. Now the stupid question..where does
+this routine get set up. Is this something I have to supply? I just
+don't seem to be seeing the forest for the trees and would appreciate
+any hints whatsoever. Thanks!
+Regards,
+Barry O. Fisher
+Seranoa Networks
+Email: barry.fisher@seranoa.com
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020118/94959579/attachment.html
