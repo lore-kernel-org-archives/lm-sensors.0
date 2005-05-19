@@ -1,7 +1,7 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: Mail filtering
-Message-Id: <20020930140014.Q20006@Stimpy.netroedge.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:24 +0000
+Subject: ADM1030 (Was: Trying to find device chrontel 7009)
+Message-Id: <20031108115532.3cd1021d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,23 +9,18 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-BTW- For those who want a little help wading through the spam, I'm
-running the mail through a set of procmail filters from the
-'spambouncer' package.  Look for lines in the header like this:
+> This is an Analog Devices ADM1030, revision 3. That's a hardware
+> monitoring chip. Unfortunately, we don't support it yet. We might add
+> support for it later though.
 
-    X-SBClass: Blocked
+Oliver,
 
-It means that it is 90% likely that it is spam, although it could
-still be legit.  You should be able to sort your mail using this line
-to make life a little easier.
+I just added support for that chip to sensors-detect. Would you be kind
+enough to give it a try? It's here:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
 
-Other mail (like 99% match to spam, known virii, and bounces) should 
-automaticly be screened now.
-
-
-Phil
+Thanks.
 
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
