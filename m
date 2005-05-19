@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: tickets needing help
-Message-Id: <20040104210140.GF30841@earth.solarsys.private>
+Message-Id: <20040105192200.GH22177@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3FF64825.9060808@verizon.net>
 In-Reply-To: <3FF64825.9060808@verizon.net>
@@ -10,31 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Mark M. Hoffman <mhoffman@lightlink.com> [2004-01-04 14:08:45 -0500]:
-> * Mark D. Studebaker <mds4@verizon.net> [2004-01-02 23:42:13 -0500]:
-> > > 1506 - asb100 detection - Mark?
+On Sun, Jan 04, 2004 at 02:58:39PM +0100, Jean Delvare wrote:
+> > > We would then need:
+> > > 1* A write access to the system.
+> > 
+> > Create an account and you have it.  Any one can create bugs.
 > 
-> OK.  I'll look at this one today.
+> That's not how I meant it (but it wasn't clear I admit).  How do we
+> edit, answer, close tickets?
 
-Here's the key error message:
+If you have an account, you can do any of the above.  I'll gladly
+re-assign any bugs to you if you want me to, so you can modify them to
+your hearts content :)
 
->Error: First argument not a number!
->Syntax: i2cdetect I2CBUS
->  I2CBUS is an integer
->  Installed I2C busses:
->    i2c-0       smbus           SMBus Via Pro adapter at e800           Non-I2C
+> I don't think any of us will want to create new bug reports.  Whenever
+> we find bugs, we fix them ourselves and send you a patch.
 
-That error message must be from an old i2cdetect.  The one in 2.8.2
-accepts 'i2cdetect -l'.  The user must somehow have a new version
-of sensors-detect but an old version of i2cdetect.
+That's fine, I don't mind that at all.  I actually prefer it :)
 
-I discovered this while building 2.8.2, but I confirmed anyway that 2.8.2
-detects asb100 on a 2.4 kernel.
+> If we are to direct all 2.6 users to your bugzilla system, it's likely
+> that you'll appreciate some help handling them.
 
-I'll close the ticket.
+Sure, if the load gets too big.
 
-Regards,
+> Sounds reasonable that it default to you since you are the official
+> maintained of the i2c subsystem, but you might need our assistance
+> sometimes.  I guess that it is possible that you "give" us some bugs,
+> providing we have an account that allows you to.
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Exactly.
+
+thanks,
+
+greg k-h
