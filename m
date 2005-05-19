@@ -1,24 +1,24 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:53 +0000
-Subject: [BK PATCH] i2c driver changes for 2.5.67 - take 2
-Message-Id: <20030411234621.GH4539@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:22 +0000
+Subject: lm_sensors2/prog/pwm Module.mk
+Message-Id: <20031027215221.78a0fd6a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030411234018.GF4539@kroah.com>
-In-Reply-To: <20030411234018.GF4539@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Fri, Apr 11, 2003 at 04:40:18PM -0700, Greg KH wrote:
-> Hi,
+
+> Update of /home/cvs/lm_sensors2/prog/pwm
+> In directory mordac.netroedge.com:/tmp/cvs-serv31752/prog/pwm
 > 
-> Here are some i2c driver changes for 2.5.67, again.  These include a
-> number of compile fixes, and a build fix due to my previous patches.
-> Also a patch to help out the i2c based video drivers is in here, and two
-> new i2c drivers have been added.
+> Added Files:
+> 	Module.mk 
+> Log Message:
+> (mds) add more programs installed in /usr/local/sbin
 
-These have all been posted here in the past, so I'm not going to do it
-again.
+Make install now fails on prog/pwm/burntest. What's that supposed to be?
 
-greg k-h
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
