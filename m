@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: Call for 2.9.1 soon
-Message-Id: <20050330194154.4cb40e19.khali@linux-fr.org>
+Message-Id: <Pine.LNX.4.58.0503310051510.21101@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42374C41.8000401@mds.gotdns.com>
 In-Reply-To: <42374C41.8000401@mds.gotdns.com>
@@ -10,22 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+> As the change isn't exactly trivial, I'd like to give it one more week
+> of test. Can we schedule the release for March 6th or so?
 
-> > Khali mentioned i2c_adapter incompatibilities to be fixed.
-> 
-> On second thought this requires discussion (and not an easy one) so it
-> should be left for later. This is not a major issue (this is about
-> binary compatibility, not source copatibility).
+As for ali1563.c backport. I still dont know why I cant read eeprom
+correctly. Hardware really returns 00 for every 16 and 17th byte
+(sometimes other values) I will think about it morning. But I'm afraid
+there is not much left I can do.
 
-On third thought we took our chance and it seemed to be doable with not
-too much difficulties. I just committe the changes.
+Any ideas welcome. (in last email with backport subject is log file)
 
-As the change isn't exactly trivial, I'd like to give it one more week
-of test. Can we schedule the release for March 6th or so?
+Thanks
 
-I commited all my other changes already.
+Regards
 
-Thanks,
--- 
-Jean Delvare
+Rudolf
