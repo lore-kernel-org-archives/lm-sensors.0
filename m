@@ -1,7 +1,7 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:55 +0000
 Subject: [RFC PATCH 2.6.12-rc3] dynamic driver sysfs callbacks and RFC on
-Message-Id: <20050428162650.GC17658@kroah.com>
+Message-Id: <20050428162737.GD17658@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2538186705042422366584aff4@mail.gmail.com>
 In-Reply-To: <2538186705042422366584aff4@mail.gmail.com>
@@ -10,22 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Apr 28, 2005 at 05:53:51PM +1000, Grant Coady wrote:
-> Hi Greg,
-> On Wed, 27 Apr 2005 23:57:41 -0700, Greg KH <greg@kroah.com> wrote:
+On Thu, Apr 28, 2005 at 09:45:38AM -0400, Yani Ioannou wrote:
+> Actually I was running a kernel with only bmcsensors changed to use
+> the void * - it should work transparently for all the other drivers
+> (except for a compilation warning about invalid show/store pointer
+> types being passed - and I have a perl script we can run against the
+> source tree to update drivers and get rid of those warnings).
 > 
-> >
-> >And how would it work with the 99% of the kernel that doesn't create
-> >attributes dynamically on the fly?
-> 
-> Create an index attribute: write index value, read/write attribute 
-> data?  Nothing else need know, just the driver needing unbounded 
-> indexed attributes.
+> The void * is completely optional of course, its up to the driver to
+> use it or not (unless I'm missing your question here?).
 
-Sorry, I don't see the patch you must have forgotten to apply to the
-email, showing how you would do this...
-
-:)
+My question is, please show me how you propagate this out to the driver
+core code, so that the drivers that use the DEVICE_ATTRIBUTE() stuff can
+take advantage of this.
 
 thanks,
 
