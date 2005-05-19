@@ -1,158 +1,292 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
+From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
 Date: Thu, 19 May 2005 06:25:53 +0000
 Subject: [RFC/PATCH 0/22] W1: sysfs, lifetime and other fixes
-Message-Id: <200504210207.02421.dtor_core@ameritech.net>
+Message-Id: <1114089504.29655.93.camel@uganda>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@Stimpy.netroedge.com, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+To: Dmitry Torokhov <dtor_core@ameritech.net>
+Cc: sensors@Stimpy.netroedge.com, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-Hi,
+On Thu, 2005-04-21 at 02:07 -0500, Dmitry Torokhov wrote:
+> Hi,
 
-I happened to take a look into drivers/w1 and found there bunch of thigs
-that IMO should be changed:
+Hello, Dmitry.
 
-- custom-made refcounting is racy
-- lifetime rules need to be better enforced
-- family framework is insufficient for many advanced w1 devices
-- custom-made hotplug notification over netlink should be removed in favor
-  of standard hotplug notification
-- sysfs attributes have unnecessary prefixes (like w1_master) or not needed
-  at all (w1_master_pointer)
+> I happened to take a look into drivers/w1 and found there bunch of thigs
+> that IMO should be changed:
+> 
+> - custom-made refcounting is racy
 
-Please consider series of patches below. Unfortunately I do not have any W1
-equipment so it was only compile-tested. Please also note that lifetime and
-locking rules were changed on object-by-object base so mid-series some stuff
-may appear broken but as far as I can see the end result shoudl work pretty
-well.
+Why do you think so?
+Did you find exactly the place which races against something?
 
-w1-whitespace.patch
-   Whitespace fixes.
+> - lifetime rules need to be better enforced
 
-w1-formatting.patch
-   Some formatting changes to bring the code in line with CodingStyle
-   guidelines.
+Hmm, I misunderstand you.
 
-w1-master-attr-group.patch
-   Use attribute_group to create master device attributes to guarantee
-   proper cleanup in case of failure. Also, hide most of attribute define
-   ugliness in macros.
+> - family framework is insufficient for many advanced w1 devices
 
-w1-slave-attr-group.patc
-   Add 2 default attributes "family" and "serial" to slave devices, every
-   1-Wire slave has them. Use attribute_group to handle. The rest of slave
-   attributes are left as is - will be dealt with later.
-   
-w1-lists-cleanup.patch
-   List handling cleanup. Most of the list_for_each_safe users don't need
-   *_safe variant, *_entry variant is better suited in most places. Also,
-   checking retrieved list element for null is a bit pointless...
+No, family framework is just indication which family is used.
+Feel free to implement additional methods for various devices
+and store them in driver's private areas like ipaq does.
 
-w1-drop-owner.patch
-   Drop owner field from w1_master and w1_slave structures. Just having it
-   there does not magically fixes lifetime rules.
+> - custom-made hotplug notification over netlink should be removed in favor
+>   of standard hotplug notification
 
-w1-bus-ops.patch
-   Cleanup bus operations code:
-   - have bus operatiions accept w1_master instead of unsigned long and
-     drop data field from w1_bus_master so the structure can be statically
-     allocated by driver implementing it;
-   - rename w1_bus_master to w1_bus_ops to avoid confusion with w1_master;
-   - separate master registering and allocation so drivers can setup proper
-     link between private data and master and set useable master's name.
+It is not hotplug, and your changes broke it completely.
+I'm waiting for connector to be included or discarded, so I can move
+w1 on top of it's interface or move connector's bits into the w1
+subsystem.
 
-w1-fold-w1-int.patch
-   Fold w1_int.c into w1.c - there is no point in artificially separating
-   code for master devices between 2 files.
+> - sysfs attributes have unnecessary prefixes (like w1_master) or not needed
+>   at all (w1_master_pointer)
 
-w1-drop-netlink.patch
-   Drop custom-made hotplug over netlink notification from w1 core.
-   Standard hotplug mechanism should work just fine (patch will follow).
+Yep, some of them can be suspicious from the first point of view.
 
-w1-drop-control-thread.patch
-   Drop control thread from w1 core, whatever it does can also be done in
-   the context of w1_remove_master_device. Also, pin the module when
-   registering new master device to make sure that w1 core is not unloaded
-   until last device is gone. This simplifies logic a lot.
+> Please consider series of patches below. Unfortunately I do not have any W1
+> equipment so it was only compile-tested. Please also note that lifetime and
+> locking rules were changed on object-by-object base so mid-series some stuff
+> may appear broken but as far as I can see the end result shoudl work pretty
+> well.
 
-w1-move-search-to-io.patch
-   Move w1_search function to w1_io.c to be with the rest of IO code.
 
-w1-master-drop-attrs.patch
-   Get rid of unneeded master device attributes:
-   - 'pointer' and 'attempts' are meaningless for userspace;
-   - information provided by 'slaves' and 'slave_count' can be gathered
-     from other sysfs bits;
-   - w1_slave_found has to be rearranged now that slave_count field is gone.
+I can test your changes next week, but I already have too many
+objections
+to apply the whole patch set.
 
-w1-master-attr-cleanup.patch
-   Clean-up master attribute implementation:
-   - drop unnecessary "w1_master" prefix from attribute names;
-   - do not acquire master->mutex when accessing attributes;
-   - move attribute code "closer" to the rest of master code.
+> w1-whitespace.patch
+>    Whitespace fixes.
+> 
+> w1-formatting.patch
+>    Some formatting changes to bring the code in line with CodingStyle
+>    guidelines.
 
-w1-master-scan-interval.patch
-   More master attributes changes:
-   - rename timeout parameter/attribute to scan_interval to better
-     reflect its purpose;
-   - make scan_timeout be a per-device attribute and allow changing
-     it from userspace via sysfs;
-   - allow changing max_slave_count it from userspace as well.
+Both above look ok, although they will not apply after patches
+already sent to Greg but not yet in the tree are applied.
 
-w1-master-add-ttl-attr.patch
-   Add slave_ttl attribute to w1 masters.
+> w1-master-attr-group.patch
+>    Use attribute_group to create master device attributes to guarantee
+>    proper cleanup in case of failure. Also, hide most of attribute define
+>    ugliness in macros.
 
-w1-master-cleanup.patch
-   Clean-up master device implementation:
-   - get rid of separate refcount, rely on driver model to enforce
-     lifetime rules;
-   - use atomic to generate unique master IDs;
-   - drop unused fields.
+Yep, I like it.
 
-w1-slave-cleanup.patch
-   Clean-up slave device implementation:
-   - get rid of separate refcount, rely on driver model to enforce
-     lifetime rules;
-   - pin w1 module until slave device is registered with sysfs to make
-     sure W1 core stays loaded.
-   - drop 'name' attribute as we already have it in bus_id.
+> w1-slave-attr-group.patc
+>    Add 2 default attributes "family" and "serial" to slave devices, every
+>    1-Wire slave has them. Use attribute_group to handle. The rest of slave
+>    attributes are left as is - will be dealt with later.
 
-w1-family-cleanup.patch
-   Clean-up family implementation:
-   - get rid of w1_family_ops and template attributes in w1_slave
-     structure and have family drivers create necessary attributes
-     themselves. There are too many different devices using 1-Wire
-     interface and it is impossible to fit them all into single
-     attribute model. If interface unification is needed it can be
-     done by building cross-bus class hierarchy.
-   - rename w1_smem to w1_sernum because devices are called Silicon
-     serial numbers, they have address (ID) but don't have memory
-     in regular sense.
-   - rename w1_therm to w1_thermal.
+Serial number is already there in bus_id, family is there too.
+Why do you need separate files?
 
-w1-family-is-driver.patch
-   Convert family into proper device-model drivers:
-   - embed driver structure into w1_family and register with the
-     driver core;
-   - do not try to manually bind slaves to familes, leave it to
-     the driver core;
-   - fold w1_family.c into w1.c
+> w1-lists-cleanup.patch
+>    List handling cleanup. Most of the list_for_each_safe users don't need
+>    *_safe variant, *_entry variant is better suited in most places. Also,
+>    checking retrieved list element for null is a bit pointless...
 
-w1-device-id.patch
-   Support for automatic family drivers loading via hotplug:
-   - allow family drivers support list of families;
-   - export supported families through MODULE_DEVICE_TABLE.
+Yep, it is correct.
 
-w1-hotplug.patch
-   Implement W1 bus hotplug handler. Slave devices will define
-   FID=%02x (family ID) end SN=%024llX environment variables.
+> w1-drop-owner.patch
+>    Drop owner field from w1_master and w1_slave structures. Just having it
+>    there does not magically fixes lifetime rules.
 
-w1-module-attrs.patch
-   Allow changing w1 module parameters through sysfs, add parameter
-   descriptions and document them in Documentation/kernel-parameters.txt
+They do not even pretend, I still do not understand what is "lifetime
+rules"?
 
-Thanks!
+> w1-bus-ops.patch
+>    Cleanup bus operations code:
+>    - have bus operatiions accept w1_master instead of unsigned long and
+>      drop data field from w1_bus_master so the structure can be statically
+>      allocated by driver implementing it;
+>    - rename w1_bus_master to w1_bus_ops to avoid confusion with w1_master;
+>    - separate master registering and allocation so drivers can setup proper
+>      link between private data and master and set useable master's name.
+
+I strongly object against such changes.
+1. w1 was designed in the way that w1 bus master drivers do not
+know about other w1 world. It is very simple and very low-level
+abstraction,
+that only understands how to do low-level functions. It is not needed
+do know about w1_master structure and even about it's existence.
+2. All renaming are superfluous, I'm not against it, but completely do
+not
+understand it's merits.
+3. You broke netlink allocation routing - it may fail and it is not
+fatal.
+
+> w1-fold-w1-int.patch
+>    Fold w1_int.c into w1.c - there is no point in artificially separating
+>    code for master devices between 2 files.
+
+w1_int.c was created to store external interface implementation, 
+why do you want to move it into w1 core code?
+It will only soil the code...
+
+> w1-drop-netlink.patch
+>    Drop custom-made hotplug over netlink notification from w1 core.
+>    Standard hotplug mechanism should work just fine (patch will follow).
+
+netlink notification was not created for hotplug.
+Also I'm against w1 hotplug support, since hotplug is quite rarely used
+in embedded platforms where the majority of w1 devices live.
+I mean not to completely forget this idea, 
+but implement it in the way it will not hurt existing model.
+
+> w1-drop-control-thread.patch
+>    Drop control thread from w1 core, whatever it does can also be done in
+>    the context of w1_remove_master_device. Also, pin the module when
+>    registering new master device to make sure that w1 core is not unloaded
+>    until last device is gone. This simplifies logic a lot.
+
+Why do you think master can be removed in safe context only?
+I have feature requests for both adding/removing and exporting
+master devices and slaves to the external world.
+Control thread is also the place in which we kick all devices
+when we need it, but not only when we need to remove w1 core module.
+
+> w1-move-search-to-io.patch
+>    Move w1_search function to w1_io.c to be with the rest of IO code.
+
+w1_search() is high-level protocol method, w1_io.c only contains
+calls for low-level methods like bite/byte banging, reset, HW search and
+so on.
+
+> w1-master-drop-attrs.patch
+>    Get rid of unneeded master device attributes:
+>    - 'pointer' and 'attempts' are meaningless for userspace;
+>    - information provided by 'slaves' and 'slave_count' can be gathered
+>      from other sysfs bits;
+>    - w1_slave_found has to be rearranged now that slave_count field is gone.
+
+attempts is usefull for broken lines.
+pointer was definitely for debug, it can be removed now.
+
+> w1-master-attr-cleanup.patch
+>    Clean-up master attribute implementation:
+>    - drop unnecessary "w1_master" prefix from attribute names;
+>    - do not acquire master->mutex when accessing attributes;
+>    - move attribute code "closer" to the rest of master code.
+
+Ok, but slave count and slaves attributes itself requires that mutex.
+
+> w1-master-scan-interval.patch
+>    More master attributes changes:
+>    - rename timeout parameter/attribute to scan_interval to better
+>      reflect its purpose;
+>    - make scan_timeout be a per-device attribute and allow changing
+>      it from userspace via sysfs;
+>    - allow changing max_slave_count it from userspace as well.
+
+I like that change, but why do you ned to change the name?
+
+> w1-master-add-ttl-attr.patch
+>    Add slave_ttl attribute to w1 masters.
+
+Ok.
+
+> w1-master-cleanup.patch
+>    Clean-up master device implementation:
+>    - get rid of separate refcount, rely on driver model to enforce
+>      lifetime rules;
+>    - use atomic to generate unique master IDs;
+>    - drop unused fields.
+
+That patch is very broken.
+I completely against it:
+1. it breaks process logic - searching can be interrupted and stopped,
+thread will exit on signals.
+2. Your changes will break master/slave structure exporting.
+
+> w1-slave-cleanup.patch
+>    Clean-up slave device implementation:
+>    - get rid of separate refcount, rely on driver model to enforce
+>      lifetime rules;
+>    - pin w1 module until slave device is registered with sysfs to make
+>      sure W1 core stays loaded.
+>    - drop 'name' attribute as we already have it in bus_id.
+
+The same and even worse.
+
+> w1-family-cleanup.patch
+>    Clean-up family implementation:
+>    - get rid of w1_family_ops and template attributes in w1_slave
+>      structure and have family drivers create necessary attributes
+>      themselves. There are too many different devices using 1-Wire
+>      interface and it is impossible to fit them all into single
+>      attribute model. If interface unification is needed it can be
+>      done by building cross-bus class hierarchy.
+>    - rename w1_smem to w1_sernum because devices are called Silicon
+>      serial numbers, they have address (ID) but don't have memory
+>      in regular sense.
+>    - rename w1_therm to w1_thermal.
+
+smem = simple memory id, it is official name AFAIR.
+Renames are superfluous, family_ops contains a "must have" operations, 
+driver writer can easily add it's own if it is needed.
+
+> w1-family-is-driver.patch
+>    Convert family into proper device-model drivers:
+>    - embed driver structure into w1_family and register with the
+>      driver core;
+>    - do not try to manually bind slaves to familes, leave it to
+>      the driver core;
+>    - fold w1_family.c into w1.c
+
+Why do you break it?
+They were separated intentionally - it simplifies code review, 
+it is completely different logical models, family processing
+is not hte same as slave.
+
+> w1-device-id.patch
+>    Support for automatic family drivers loading via hotplug:
+>    - allow family drivers support list of families;
+>    - export supported families through MODULE_DEVICE_TABLE.
+> 
+> w1-hotplug.patch
+>    Implement W1 bus hotplug handler. Slave devices will define
+>    FID=%02x (family ID) end SN=%024llX environment variables.
+
+I'm against hotplug since it is too embedded world unfriendly :)
+Actually it can be added, but as option, but not rely
+the whole logic on it.
+
+> w1-module-attrs.patch
+>    Allow changing w1 module parameters through sysfs, add parameter
+>    descriptions and document them in Documentation/kernel-parameters.txt
+>
+> Thanks!
+
+Thank you very much for your changes and ideas, 
+but as you can see I'm against several of it.
+The main reason is why dig into the driver model in a such way? 
+It will complicate strucutre exporting too much.
+Existing locking/refcnt schema is very flexible and allows device 
+manipulation while it "holds" the reference counter, 
+and it will not be possible if one just blindly gets/puts module's
+refcnt.
+Object has reference counter which is incremented and decremented when 
+object is in use, not the whole module reference counter, 
+one may remove and add separate objects without knowledge of
+what family or bus master driver handles that.
+Your changes mix low-level driver logic with w1 core.
+You have removed netlink notification and replace it with hotplug,
+but it can not be used for systems without shell userspace support.
+
+I will manually apply safe changes after Adrians changes 
+when Greg ACKs current pending patches.
 
 -- 
-Dmitry
+        Evgeniy Polyakov
+
+Crash is better than data corruption -- Arthur Grabowski
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050421/4441172b/attachment.bin
