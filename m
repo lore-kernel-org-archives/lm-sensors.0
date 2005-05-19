@@ -1,23 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:41 +0000
-Subject: device matching
-Message-Id: <20021028091529.53736232.khali@linux-fr.org>
+From: fred@lateral.net (Fredrick Backman)
+Date: Thu, 19 May 2005 06:23:59 +0000
+Subject: lm-sensors and thinkpad
+Message-Id: <3EE88450.5050905@lateral.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <011f01c27b57$49a53450$5100a8c0@office>
-In-Reply-To: <011f01c27b57$49a53450$5100a8c0@office>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I received some papers from Gigabyte this morning.
-> This papers is maybe helpful to you.
-> I attached that.
+Hi,
 
-Looks really interesting indeed. I am not able to do anything with it
-personally, but I am sure that Phil and Mark will enjoy it :)
-Thanks a lot!
+I tried to install lm_sensors-2.7.0 and after running sensors-detect I 
+got the advice to email you with the following details, so here goes:
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Machine: IBM Thinkpad T22 type 2647.
+Kernel: 2.4.20
+
+  BIOS vendor (ACPI): PTLTD
+  System vendor (DMI): IBM
+  BIOS version (DMI): 16ET20WW (1.00b)
+
+Hope this helps!
+
+Thanks,
+Fred
