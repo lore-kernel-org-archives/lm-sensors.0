@@ -1,74 +1,45 @@
-From: Jester01@freemail.hu (Csaba Halasz)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: [PATCH] 2.6 kernel
-Message-Id: <9B4E9DA25A3DD41189B000508B5C0CEE21429C@BOMBA>
+From: mds@paradyne.com (Mark D. Studebaker)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: Fwd: lm_sensors and Tyan Tiger
+Message-Id: <3C3BA680.DC266AA9@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ok, here you go. I have attached my patch.
+I haven't found any reference to the -AM or -WM versions
+in the datasheet or the Winbond web site
+and so don't have any more information for you.
+Sorry.
+You can try changing the sensor type to see if that
+fixes the temperatures.
+mds
 
-Some comments:
-I have introduced a new abstraction, namely
-sensors_kernel_if:
-
-typedef struct sensors_kernel_if
-{
-  int (*init) (void);
-  void (*cleanup) (void);
-  int (*read_feature) (sensors_chip_name name, int feature, double *value);
-  int (*write_feature) (sensors_chip_name name, int feature, double value);
-} sensors_kernel_if;
-
-This is private to the library, and contains the function
-pointers for accessing the kernel drivers. For now, there 
-are two implementations, one for procfs and one for sysfs.
-
-The new source file kernel.c handles initialization and
-cleanup. It will use the first implementation that
-it can successfully initialize.
-
-The only changes to the library are:
-  * replaced sensors_{read|write}_proc w/ kernel_if->{read|write}_feature
-    in access.c (1 each)
-  * slightly modified the startup/cleanup code in init.c
-  * updated proc.c to fit the new scheme
-  * added sysfs.c to handle sysfs :)
-  * updated feature names for _as99127f only_ in chips.c
-
-sensors_proc_chips and sensors_bus should be generalized 
-to include only the members used by the library plus a 
-private opaque member used by the kernel interface. 
-This would be used to store the sysctl id for example. 
-However we would need a cleanup hook for it. 
-I have not done it yet.
-
-I have tested my patch with 2.4.20 and 2.6.0-test8.
-Note that due to changes in naming and value scaling,
-the sensors.conf is not the same, it must match the 
-running kernel. "sensors" and "sensors -s" both seem
-to work. However, under 2.6 "sensors" shows all i2c 
-devices, not just hardware sensors. (See my previous mail)
-
-I have not bothered to find out the sysfs mount point,
-just assumed /sys. We can take the code from Danny's
-patch for mount point lookup if necessary. Also the
-case sensitivity problem he has encountered should
-be looked into.
-
-Finally, the build system should be changed so that
-it doesn't try to compile the kernel drivers only
-the library. Or maybe I have overlooked something,
-and this is already possible?
-
-Regards,
-	Csaba
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: lm_sensors2-kernel2.6.diff.gz
-Type: application/octet-stream
-Size: 6014 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20031027/448516bf/lm_sensors2-kernel2.6.diff.obj
+> Subject: lm_sensors and Tyan Tiger
+> Date: Thu, 3 Jan 2002 17:44:07 +0100
+> From: mewis@sun1.kww.bauing.tu-darmstadt.de (Peter Mewis)
+> To: mdsxyz123@yahoo.com
+> 
+> Hi,
+> 
+> are there any plans to support the W83627HF-AM chip?
+> 
+> I have a Tyan Tiger S2460 MP board. My system
+> hung when I modprobed the w83781d module. In the
+> tickets I found two things right:
+> 1. I could load the module without hanging up by:
+>    modprobe w83781d init=0
+> 2. The reading where a bit more realistic, when
+>    I refreshed the senor-data in the BIOS before
+>    booting.
+> Nevertheless the temperatures are wrong.
+> On the mainboard I found a W83627HF-AM chip. It seems
+> that sehh@altered.com in ticket 730 is right, that the
+> chip is to be initialized in a different way.
+> He suggested to contact qnx@telia.com for more information.
+> (Maybe also the readings differ for the MP-board?)
+> 
+> Thanks for your help
+> Best regards
+> Peter
