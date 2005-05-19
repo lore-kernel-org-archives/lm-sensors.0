@@ -1,7 +1,7 @@
 From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:24:56 +0000
+Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: [RESEND] Re: Dallas 1-wire protocol implementation.
-Message-Id: <20040508131448.7f7c26bb.johnpol@2ka.mipt.ru>
+Message-Id: <20040508164718.68aa6484.johnpol@2ka.mipt.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1083915447.10524.39.camel@uganda>
 In-Reply-To: <1083915447.10524.39.camel@uganda>
@@ -10,64 +10,61 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 7 May 2004 14:54:41 -0700
-Greg KH <greg@kroah.com> wrote:
+This patchset is in -p1 form with minor cleanup.
+Please apply instead of previous.
 
-> On Fri, May 07, 2004 at 11:37:27AM +0400, Evgeniy Polyakov wrote:
-> > Hello.
-> > 
-> > This patchset against 2.6 linux kernel implements Dallas's 1-wire
-> > protocol. All technical issues discussed before are successfully
-> > resolved.
-> 
-> But the non-technical ones aren't :)
-> 
-> 	- you still have the incorrect style for your "if" statement
-> 	  brace placement, please fix it.
-
-Hmm. _Personally_ I strongly disagree with it.
-But I suppose You strongly disagree with my disagreement :)
-
-Although I prefer previous brace placement attached patch contains
-"CodingStyle" placement.
-
-> 	- I thought you were going to get rid of the #ifdef stuff for
-> 	  your reading and writing to memory locations?
-
-Done.
-
-> 	- you are createing static struct device variables.  Are you
-> 	  _sure_ this is ok (think holding a reference to the device
-> 	  through sysfs and removing the module from the kernel...)
-
-Module _may_not_ be unloaded until reference counter is not zero.
-module_exit() and friends will reschedule task until reference counter
-hits zero in every place where it is needed.
-
-> 	- your patches contain no way to add your code to the kernel
-> 	  build system or the configuration system.
-
-Done.
-
-> thanks,
-> 
-> greg k-h
-
-Thank you Greg.
-I also want to thank Mark Studebaker <mds4@verizon.net> for technical
-discussion, 
-Petr Vandrovec <VANDROVE@vc.cvut.cz> for discussion about matrox's
-gpio bits and 
-Alexander Yurchenko <grange@openbsd.org> for initial idea and cause.
-
+Thank you.
 
 	Evgeniy Polyakov ( s0mbre )
 
 Only failure makes us experts. -- Theo de Raadt
+
 -------------- next part --------------
-diff -Nru /tmp/w1/Kconfig drivers/w1/Kconfig
+--- ./MAINTAINERS.orig	Wed Apr 21 12:40:20 2004
++++ ./MAINTAINERS	Sat May  8 16:44:28 2004
+@@ -2321,6 +2321,12 @@
+ M:	kraxel@bytesex.org
+ S:	Maintained
+ 
++W1 DALLAS'S 1-WIRE BUS
++P:	Evgeniy Polyakov
++M:	johnpol@2ka.mipt.ru
++L:	sensors@stimpy.netroedge.com
++S:	Maintained
++
+ WAN ROUTER & SANGOMA WANPIPE DRIVERS & API (X.25, FRAME RELAY, PPP, CISCO HDLC)
+ P:	Nenad Corbic
+ M:	ncorbic@sangoma.com
+
+-------------- next part --------------
+--- ./drivers/Kconfig~	Sat Mar 13 03:39:12 2004
++++ ./drivers/Kconfig	Sat May  8 12:05:33 2004
+@@ -42,6 +42,8 @@
+ 
+ source "drivers/i2c/Kconfig"
+ 
++source "drivers/w1/Kconfig"
++
+ source "drivers/misc/Kconfig"
+ 
+ source "drivers/media/Kconfig"
+
+-------------- next part --------------
+--- ./drivers/Makefile~	Sun Apr  4 13:20:57 2004
++++ ./drivers/Makefile	Sat May  8 12:15:37 2004
+@@ -42,6 +42,7 @@
+ obj-$(CONFIG_SERIO)		+= input/serio/
+ obj-$(CONFIG_I2O)		+= message/
+ obj-$(CONFIG_I2C)		+= i2c/
++obj-$(CONFIG_W1)		+= w1/
+ obj-$(CONFIG_PHONE)		+= telephony/
+ obj-$(CONFIG_MD)		+= md/
+ obj-$(CONFIG_BT)		+= bluetooth/
+
+-------------- next part --------------
+diff -Nru /tmp/w1/Kconfig ./drivers/w1/Kconfig
 --- /tmp/w1/Kconfig	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/Kconfig	Sat May  8 12:06:21 2004
++++ ./drivers/w1/Kconfig	Sat May  8 12:06:21 2004
 @@ -0,0 +1,31 @@
 +menu "Dallas's 1-wire bus"
 +
@@ -100,9 +97,9 @@ diff -Nru /tmp/w1/Kconfig drivers/w1/Kconfig
 +	  wire.
 +
 +endmenu
-diff -Nru /tmp/w1/Makefile drivers/w1/Makefile
+diff -Nru /tmp/w1/Makefile ./drivers/w1/Makefile
 --- /tmp/w1/Makefile	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/Makefile	Sat May  8 12:14:12 2004
++++ ./drivers/w1/Makefile	Sat May  8 12:14:12 2004
 @@ -0,0 +1,15 @@
 +#
 +# Makefile for the Dallas's 1-wire bus.
@@ -119,9 +116,9 @@ diff -Nru /tmp/w1/Makefile drivers/w1/Makefile
 +
 +obj-$(CONFIG_W1_MATROX)		+= matrox_w1.o
 +obj-$(CONFIG_W1_THERM)		+= w1_therm.o
-diff -Nru /tmp/w1/matrox_w1.c drivers/w1/matrox_w1.c
+diff -Nru /tmp/w1/matrox_w1.c ./drivers/w1/matrox_w1.c
 --- /tmp/w1/matrox_w1.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/matrox_w1.c	Sat May  8 12:31:20 2004
++++ ./drivers/w1/matrox_w1.c	Sat May  8 12:31:20 2004
 @@ -0,0 +1,257 @@
 +/*
 + * 	matrox_w1.c
@@ -379,9 +376,9 @@ diff -Nru /tmp/w1/matrox_w1.c drivers/w1/matrox_w1.c
 +module_init(matrox_w1_init);
 +module_exit(matrox_w1_fini);
 +
-diff -Nru /tmp/w1/w1.c drivers/w1/w1.c
+diff -Nru /tmp/w1/w1.c ./drivers/w1/w1.c
 --- /tmp/w1/w1.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1.c	Sat May  8 12:34:40 2004
++++ ./drivers/w1/w1.c	Sat May  8 16:41:27 2004
 @@ -0,0 +1,610 @@
 +/*
 + * 	w1.c
@@ -933,8 +930,6 @@ diff -Nru /tmp/w1/w1.c drivers/w1/w1.c
 +{
 +	int retval;
 +
-+	printk(KERN_INFO "Driver for 1-wire Dallas network protocol.\n");
-+
 +	retval = bus_register(&w1_bus_type);
 +	if (retval) {
 +		printk(KERN_ERR "Failed to register bus. err=%d.\n", retval);
@@ -953,6 +948,8 @@ diff -Nru /tmp/w1/w1.c drivers/w1/w1.c
 +		retval = control_thread;
 +		goto err_out_driver_unregister;
 +	}
++	
++	printk(KERN_INFO "Driver for 1-wire Dallas network protocol.\n");
 +	
 +	return 0;
 +
@@ -989,9 +986,9 @@ diff -Nru /tmp/w1/w1.c drivers/w1/w1.c
 +
 +module_init(w1_init);
 +module_exit(w1_fini);
-diff -Nru /tmp/w1/w1.h drivers/w1/w1.h
+diff -Nru /tmp/w1/w1.h ./drivers/w1/w1.h
 --- /tmp/w1/w1.h	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1.h	Mon Apr 12 17:24:34 2004
++++ ./drivers/w1/w1.h	Mon Apr 12 17:24:34 2004
 @@ -0,0 +1,112 @@
 +/*
 + * 	w1.h
@@ -1105,9 +1102,9 @@ diff -Nru /tmp/w1/w1.h drivers/w1/w1.h
 +#endif /* __KERNEL__ */
 +
 +#endif /* __W1_H */
-diff -Nru /tmp/w1/w1_family.c drivers/w1/w1_family.c
+diff -Nru /tmp/w1/w1_family.c ./drivers/w1/w1_family.c
 --- /tmp/w1/w1_family.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_family.c	Sat May  8 12:35:12 2004
++++ ./drivers/w1/w1_family.c	Sat May  8 12:35:12 2004
 @@ -0,0 +1,134 @@
 +/*
 + * 	w1_family.c
@@ -1243,9 +1240,9 @@ diff -Nru /tmp/w1/w1_family.c drivers/w1/w1_family.c
 +EXPORT_SYMBOL(w1_family_registered);
 +EXPORT_SYMBOL(w1_unregister_family);
 +EXPORT_SYMBOL(w1_register_family);
-diff -Nru /tmp/w1/w1_family.h drivers/w1/w1_family.h
+diff -Nru /tmp/w1/w1_family.h ./drivers/w1/w1_family.h
 --- /tmp/w1/w1_family.h	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_family.h	Mon Apr 12 17:24:34 2004
++++ ./drivers/w1/w1_family.h	Sat May  8 16:42:19 2004
 @@ -0,0 +1,65 @@
 +/*
 + * 	w1_family.h
@@ -1276,7 +1273,7 @@ diff -Nru /tmp/w1/w1_family.h drivers/w1/w1_family.h
 +#include <asm/atomic.h>
 +
 +#define W1_FAMILY_DEFAULT	0
-+#define W1_FAMILY_TERM		0x10
++#define W1_FAMILY_THERM		0x10
 +#define W1_FAMILY_IBUT		0xff /* ? */
 +
 +#define MAXNAMELEN		32
@@ -1312,9 +1309,9 @@ diff -Nru /tmp/w1/w1_family.h drivers/w1/w1_family.h
 +int w1_register_family(struct w1_family *);
 +
 +#endif /* __W1_FAMILY_H */
-diff -Nru /tmp/w1/w1_int.c drivers/w1/w1_int.c
+diff -Nru /tmp/w1/w1_int.c ./drivers/w1/w1_int.c
 --- /tmp/w1/w1_int.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_int.c	Sat May  8 12:35:58 2004
++++ ./drivers/w1/w1_int.c	Sat May  8 12:35:58 2004
 @@ -0,0 +1,202 @@
 +/*
 + * 	w1_int.c
@@ -1518,9 +1515,9 @@ diff -Nru /tmp/w1/w1_int.c drivers/w1/w1_int.c
 +EXPORT_SYMBOL(w1_add_master_device);
 +EXPORT_SYMBOL(w1_remove_master_device);
 +EXPORT_SYMBOL(__w1_remove_master_device);
-diff -Nru /tmp/w1/w1_int.h drivers/w1/w1_int.h
+diff -Nru /tmp/w1/w1_int.h ./drivers/w1/w1_int.h
 --- /tmp/w1/w1_int.h	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_int.h	Mon Apr 12 17:24:34 2004
++++ ./drivers/w1/w1_int.h	Mon Apr 12 17:24:34 2004
 @@ -0,0 +1,36 @@
 +/*
 + * 	w1_int.h
@@ -1558,9 +1555,9 @@ diff -Nru /tmp/w1/w1_int.h drivers/w1/w1_int.h
 +void __w1_remove_master_device(struct w1_master *);
 +
 +#endif /* __W1_INT_H */
-diff -Nru /tmp/w1/w1_io.c drivers/w1/w1_io.c
+diff -Nru /tmp/w1/w1_io.c ./drivers/w1/w1_io.c
 --- /tmp/w1/w1_io.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_io.c	Sat May  8 12:36:11 2004
++++ ./drivers/w1/w1_io.c	Sat May  8 12:36:11 2004
 @@ -0,0 +1,139 @@
 +/*
 + * 	w1_io.c
@@ -1701,9 +1698,9 @@ diff -Nru /tmp/w1/w1_io.c drivers/w1/w1_io.c
 +EXPORT_SYMBOL(w1_reset_bus);
 +EXPORT_SYMBOL(w1_calc_crc8);
 +EXPORT_SYMBOL(w1_delay);
-diff -Nru /tmp/w1/w1_io.h drivers/w1/w1_io.h
+diff -Nru /tmp/w1/w1_io.h ./drivers/w1/w1_io.h
 --- /tmp/w1/w1_io.h	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_io.h	Mon Apr 12 17:24:34 2004
++++ ./drivers/w1/w1_io.h	Mon Apr 12 17:24:34 2004
 @@ -0,0 +1,35 @@
 +/*
 + * 	w1_io.h
@@ -1740,9 +1737,9 @@ diff -Nru /tmp/w1/w1_io.h drivers/w1/w1_io.h
 +u8 w1_calc_crc8(u8 *, int);
 +
 +#endif /* __W1_IO_H */
-diff -Nru /tmp/w1/w1_log.h drivers/w1/w1_log.h
+diff -Nru /tmp/w1/w1_log.h ./drivers/w1/w1_log.h
 --- /tmp/w1/w1_log.h	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_log.h	Mon Apr 12 17:24:34 2004
++++ ./drivers/w1/w1_log.h	Mon Apr 12 17:24:34 2004
 @@ -0,0 +1,38 @@
 +/*
 + * 	w1_log.h
@@ -1782,9 +1779,9 @@ diff -Nru /tmp/w1/w1_log.h drivers/w1/w1_log.h
 +
 +#endif /* __W1_LOG_H */
 +
-diff -Nru /tmp/w1/w1_netlink.c drivers/w1/w1_netlink.c
+diff -Nru /tmp/w1/w1_netlink.c ./drivers/w1/w1_netlink.c
 --- /tmp/w1/w1_netlink.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_netlink.c	Sat May  8 12:36:21 2004
++++ ./drivers/w1/w1_netlink.c	Sat May  8 12:36:21 2004
 @@ -0,0 +1,57 @@
 +/*
 + * w1_netlink.c
@@ -1843,9 +1840,9 @@ diff -Nru /tmp/w1/w1_netlink.c drivers/w1/w1_netlink.c
 +}
 +
 +
-diff -Nru /tmp/w1/w1_netlink.h drivers/w1/w1_netlink.h
+diff -Nru /tmp/w1/w1_netlink.h ./drivers/w1/w1_netlink.h
 --- /tmp/w1/w1_netlink.h	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_netlink.h	Mon Apr 12 17:24:34 2004
++++ ./drivers/w1/w1_netlink.h	Mon Apr 12 17:24:34 2004
 @@ -0,0 +1,44 @@
 +/*
 + * w1_netlink.h
@@ -1891,9 +1888,9 @@ diff -Nru /tmp/w1/w1_netlink.h drivers/w1/w1_netlink.h
 +
 +#endif /* __KERNEL__ */
 +#endif /* __W1_NETLINK_H */
-diff -Nru /tmp/w1/w1_therm.c drivers/w1/w1_therm.c
+diff -Nru /tmp/w1/w1_therm.c ./drivers/w1/w1_therm.c
 --- /tmp/w1/w1_therm.c	Thu Jan  1 03:00:00 1970
-+++ drivers/w1/w1_therm.c	Sat May  8 12:36:42 2004
++++ ./drivers/w1/w1_therm.c	Sat May  8 16:41:53 2004
 @@ -0,0 +1,176 @@
 +/*
 + * 	w1_therm.c
@@ -2053,7 +2050,7 @@ diff -Nru /tmp/w1/w1_therm.c drivers/w1/w1_therm.c
 +}
 +
 +static struct w1_family w1_therm_family +{
-+	.fid		= W1_FAMILY_TERM,
++	.fid		= W1_FAMILY_THERM,
 +	.fops		= &w1_therm_fops,
 +};
 +
@@ -2069,42 +2066,3 @@ diff -Nru /tmp/w1/w1_therm.c drivers/w1/w1_therm.c
 +
 +module_init(w1_therm_init);
 +module_exit(w1_therm_fini);
--------------- next part --------------
---- MAINTAINERS.orig	Wed Apr 21 12:40:20 2004
-+++ MAINTAINERS	Sat May  8 13:02:08 2004
-@@ -2321,6 +2321,12 @@
- M:	kraxel@bytesex.org
- S:	Maintained
- 
-+W1 DALLAS'S 1-WIRE BUS
-+P:	Evgeniy Polyakov
-+M:	johnpol@2ka.mipt.ru
-+L:	sensors@stimpy.netroedge.com
-+S:	Supported
-+
- WAN ROUTER & SANGOMA WANPIPE DRIVERS & API (X.25, FRAME RELAY, PPP, CISCO HDLC)
- P:	Nenad Corbic
- M:	ncorbic@sangoma.com
--------------- next part --------------
---- drivers/Makefile~	Sun Apr  4 13:20:57 2004
-+++ drivers/Makefile	Sat May  8 12:15:37 2004
-@@ -42,6 +42,7 @@
- obj-$(CONFIG_SERIO)		+= input/serio/
- obj-$(CONFIG_I2O)		+= message/
- obj-$(CONFIG_I2C)		+= i2c/
-+obj-$(CONFIG_W1)		+= w1/
- obj-$(CONFIG_PHONE)		+= telephony/
- obj-$(CONFIG_MD)		+= md/
- obj-$(CONFIG_BT)		+= bluetooth/
--------------- next part --------------
---- drivers/Kconfig~	Sat Mar 13 03:39:12 2004
-+++ drivers/Kconfig	Sat May  8 12:05:33 2004
-@@ -42,6 +42,8 @@
- 
- source "drivers/i2c/Kconfig"
- 
-+source "drivers/w1/Kconfig"
-+
- source "drivers/misc/Kconfig"
- 
- source "drivers/media/Kconfig"
