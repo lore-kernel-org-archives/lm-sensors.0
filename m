@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:23 +0000
+From: rnissl@gmx.de (Reinhard Nissl)
+Date: Thu, 19 May 2005 06:24:32 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <20031029192737.36bc7084.khali@linux-fr.org>
+Message-Id: <3FF9F572.7090704@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -10,17 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> 
-> > Khali you forgot to check in fscher.c.
-> 
-> Hu-oh, really? :*)
-> 
-> Sorry, that was a new file and I forgot the cvs add before committing
-> everything. This is done now.
+Hi,
 
-And I had also forgotten the documentation file, shame on me. This is
-done too now.
+I didn't find fscher on the supported devices web page. I'm you've been just 
+to busy to add it ;-)
 
+Bye.
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Dipl.-Inform. (FH) Reinhard Nissl
+mailto:rnissl@gmx.de
+
