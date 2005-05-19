@@ -1,7 +1,7 @@
-From: jarturoar@gmx.net (JA)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:43 +0000
 Subject: ref 1501
-Message-Id: <403B1FB4.30696.DF575@localhost>
+Message-Id: <20040224205640.0a01408d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <19808.1073178613@www49.gmx.net>
 In-Reply-To: <19808.1073178613@www49.gmx.net>
@@ -10,79 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Did as you say, the values are changing so i guess the ali bus if 
-fine, i don't know how to force the w83781d using i2cdetec :P 
+> Did as you say, the values are changing so i guess the ali bus if 
+> fine, i don't know how to force the w83781d using i2cdetec :P 
+
+I think I found the problem. Here is a patch against Linux 2.6.3 that
+should make it work.
+
+Sorry it took me so long to get to it, it was very basic and lying under
+my eyes, but for some reasons it was so evident that I did not see it.
 
 
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
 -------------- next part --------------
- i2cdump 0 0x2d
-No size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x2d, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: b9 bf cf d2 c0 d5 00 cd a7 f8 a5 ac 8c 68 54 f8    ??????.??????hT?
-10: a5 f8 a5 30 04 00 00 00 00 00 00 00 00 00 00 00    ???0?...........
-20: 6f 6e cf b7 d2 0f 2a 20 72 ff ff 80 67 80 67 e3    on????* r..?g?g?
-30: b9 cd a7 ed 9d 40 05 49 22 18 00 02 40 00 00 00    ?????@?I"?.?@...
-40: 01 90 00 00 00 ff 00 54 2d 22 01 40 01 00 80 5c    ??.....T-"?@?.?\
-50: ff ff 00 ff ff ff ff ff 31 8f 8f 00 e0 48 e2 3f    ........1??.?H??
-60: 70 6f cf b7 d1 10 2a 20 72 ff ff 80 67 80 67 e3    po????* r..?g?g?
-70: b9 cd a7 ed 9d 40 05 49 22 18 00 02 40 00 00 00    ?????@?I"?.?@...
-80: b9 c0 d0 d4 bf d4 00 cd a7 f8 a5 ac 8c 68 54 f8    ??????.??????hT?
-90: a5 f8 a5 30 04 00 00 00 00 00 00 00 00 00 00 00    ???0?...........
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-Tebas:/home/burbu# i2cdump 0 0x2d
-No size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x2d, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: b8 c0 d0 d3 bf d4 00 cd a7 f8 a5 ac 8c 68 54 f8    ??????.??????hT?
-10: a5 f8 a5 30 04 00 00 00 00 00 00 00 00 00 00 00    ???0?...........
-20: 70 70 d0 b8 d1 10 2b 20 72 ff ff 80 67 80 67 e3    pp????+ r..?g?g?
-30: b9 cd a7 ed 9d 40 05 49 22 18 00 02 40 00 00 00    ?????@?I"?.?@...
-40: 01 00 00 00 00 ff 00 54 2d 22 01 40 01 00 80 5c    ?......T-"?@?.?\
-50: ff ff 00 ff ff ff ff ff 31 8f 8f 00 e0 48 e2 3f    ........1??.?H??
-60: 6e 6f d1 b7 d1 10 2a 20 73 ff ff 80 67 80 67 e3    no????* s..?g?g?
-70: b9 cd a7 ed 9d 40 05 49 22 18 00 02 40 00 00 00    ?????@?I"?.?@...
-80: b9 bf d0 d3 c0 d5 00 cd a7 f8 a5 ac 8c 68 54 f8    ??????.??????hT?
-90: a5 f8 a5 30 04 00 00 00 00 00 00 00 00 00 00 00    ???0?...........
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-Tebas:/home/burbu# i2cdump 0 0x2d
-No size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x2d, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: b9 bf cf d0 bf d4 00 cd a7 f8 a5 ac 8c 68 54 f8    ??????.??????hT?
-10: a5 f8 a5 30 04 00 00 00 00 00 00 00 00 00 00 00    ???0?...........
-20: 6f 6f cf b5 d2 10 2a 20 72 ff ff 80 67 80 67 e3    oo????* r..?g?g?
-30: b9 cd a7 ed 9d 40 05 49 22 18 00 02 40 00 00 00    ?????@?I"?.?@...
-40: 01 00 00 00 00 ff 00 54 2d 22 01 40 01 00 80 5c    ?......T-"?@?.?\
-50: ff ff 00 ff ff ff ff ff 31 8f 8f 00 e0 48 e2 3f    ........1??.?H??
-60: 70 6f cf b8 d1 10 2a 20 72 ff ff 80 67 80 67 e3    po????* r..?g?g?
-70: b9 cd a7 ed 9d 40 05 49 22 18 00 02 40 00 00 00    ?????@?I"?.?@...
-80: b9 c0 ce cf bf d4 00 cd a7 f8 a5 ac 8c 68 54 f8    ??????.??????hT?
-90: a5 f8 a5 30 04 00 00 00 00 00 00 00 00 00 00 00    ???0?...........
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+--- linux-2.6.3/drivers/i2c/busses/i2c-ali1535.c.orig	Thu Feb  5 22:24:55 2004
++++ linux-2.6.3/drivers/i2c/busses/i2c-ali1535.c	Tue Feb 24 20:54:30 2004
+@@ -484,6 +484,7 @@
+ 
+ static struct i2c_adapter ali1535_adapter = {
+ 	.owner		= THIS_MODULE,
++	.class          = I2C_ADAP_CLASS_SMBUS,
+ 	.algo		= &smbus_algorithm,
+ 	.name		= "unset",
+ };
