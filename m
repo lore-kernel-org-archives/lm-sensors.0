@@ -1,172 +1,156 @@
-From: ishikawa@yk.rim.or.jp (Ishikawa)
-Date: Thu, 19 May 2005 06:24:02 +0000
-Subject: Compiling lm_sensors module with gcc 3.3. (A problem and
-Message-Id: <3F009FE5.DA7241F3@yk.rim.or.jp>
+From: karl@unfiw.com (Karl Kopper)
+Date: Thu, 19 May 2005 06:23:35 +0000
+Subject: Newbie questions about sensors-detect and sensors output.
+Message-Id: <OJEKLLDJMPFGONMBIJEFMEHACEAA.karl@unfiw.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3EF4DD25.6000802@yk.rim.or.jp>
-In-Reply-To: <3EF4DD25.6000802@yk.rim.or.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-Jean Delvare wrote:
 
-> Same for me. I don't expect the users to read the docs. I usually don't
-> read them first, and look at them only when I really have to. Solution
-> #2 is much more elegant IMHO.
+The faq says to post at: http://www.netroedge.com/~lm78/support.html but
+this link is broken so I hope good old-fashioned E-mail is okay.
 
-Agreed for now.
+When I run sensors-detect
 
-> > 2. We may rewrite the above Makefile snippet to
-> >    use env LC_ALL=C LANG=C $(CC) ...   as follows.
-> >
-> >    kbuild_2_4_nostdinc := -nostdinc $(shell env LC_ALL=C LANG=C $(CC)
-> >    -print-search-dirs | sed -ne 's/install: \(.*\)/-I \1include/gp')
-> >
-> >   I just checked the operation and this indeed solved strange problem
-> >   observed locally here under Japanese locale setting.
-> >
-> >   Since this may be bullet-proof as far as I can tell, this is
-> >   the preferred solution.
-> >   (UNLESS, of course, the GCC maintainer in their infinite wisdom
-> >    change the output format of -print-search-dirs. However, this is
-> >    unlikely. Many embedded programming folks, who use GCC under
-> >    cross compiler setting,
-> >    depend on this feature very much. I am sure that
-> >    many scripts depending on the output have been written. But who
-> >    knows?! Come to think of it, in the unlikey case that the output
-> >    format changes, the current makefile will break anyway under the
-> >    default locale, though. )
-> 
-> OK for that. It's rather easy. Another user reported the problem to me
-> this morning, 
+The output looks like this...
 
-Glad to hear that it was not only me.
-I wrote to GCC mailing list and ended up on promising to create a patch
-to print the directory info WITHOUT I18N/L10N alteration.
-(I don't know how many will use it, but let us see.) 
+<snip>
+Client found at address 0x61
+Probing for `National Semiconductor LM78'... Failed!
+Probing for `National Semiconductor LM78-J'... Failed!
+Probing for `National Semiconductor LM79'... Failed!
+Probing for `Winbond W83781D'... Failed!
+Probing for `Winbond W83782D'... Failed!
+Probing for `Winbond W83783S'... Failed!
+Probing for `Winbond W83627HF'... Failed!
+Probing for `Asus AS99127F'... Failed!
+Probing for `Winbond W83L784R/AR'... Failed!
+Use of uninitialized value in concatenation (.) or string at
+/usr/local/sbin/sen
+sors-detect line 1617, <STDIN> line 4.
+Probing for `SMBus 2.0 ARP-Capable Device??'... Success!
+    (confidence 1, driver `')
+Use of uninitialized value in string eq at /usr/local/sbin/sensors-detect
+line 1
+393, <STDIN> line 4.
 
->and the fix worked. I'll commit it to CVS (for both i2c
-> and lm_sensors). One question however. It seemed to me that setting
-> LC_ALL=C was sufficent. In which case do you believe LANG also has to be
-> set? I'm not a locale expert (never used them for myself), so I may be
-> missing something obvious. Also should we use =C or =POSIX? Is there a
-> difference?
+ Some chips are also accessible through the ISA bus. ISA probes are
+ typically a bit more dangerous, as we have to write to I/O ports to do
+ this.  Do you want to scan the ISA bus? (YES/no):
+<snip>
 
-I am not locale expert myself, but
-setting both LC_ALL=C and LANG=C on this particular CC invocation should
-not
-hurt.
-(It was mentioned in the GCC mailing list that setting
-LC_MESSAGES=C alone  should suffice, but I simply decided to
-go to the extreme of setting both LANG=C and LC_ALL=C.
+Notice the success "driver" appears to be blank.
 
-As for C and POSIX, I am not sure if there is an official POSIX locale,
-but
-"C" locale seems to be the default choice.
+This is the output near the end of the script:
 
-I18N/L10N means that the program is supposed to be friendly in terms
-of modifiability 
-to potential users across the world (I18N), and
-then the programmers of each region/language are supposed
-to localize the software to fit the need of local users (L10N).
+<snip>
+ Now follows a summary of the probes I have just done.
+ Just press ENTER to continue:
 
-So actually, I am only familiar with the locale setting of
-C or NONE (LANG="", LC_ALL="") , and Japanese setting.
+Driver `thmc50' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus PIIX4 adapter at fc00' (Non-I2C SMBus adapter)
+    Busdriver `i2c-piix4', I2C address 0x2c
+    Chip `Analog Devices ADM1022' (confidence: 8)
+Use of uninitialized value in concatenation (.) or string at
+/usr/local/sbin/sen
+sors-detect line 2781, <STDIN> line 6.
 
-BTW, usually, if LC_MESSAGES is not set, then LC_ALL setting is used for
-it.
+Driver `' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus PIIX4 adapter at fc00' (Non-I2C SMBus adapter)
+    Busdriver `i2c-piix4', I2C address 0x61
+    Chip `SMBus 2.0 ARP-Capable Device??' (confidence: 1)
+<snip>
 
-> > 3. I am going to write to GCC maintainers that
-> >    at least THIS PARTICULAR OUTPUT from GCC should be saved from the
-> >    mangling done by I18N/L10N  translation scheme
-> >    since some program depends on the particular format of output (!).
-> >   (Actually I don't like the translated output of other parts of GCC
-> >    since it may break other programs/scripts...)
-> >
-> >    Now, as to why Linux kernel doesn't seem to suffer from this
-> >    LANG/LC_ALL problem,  I am not sure...
-> >    Maybe they don't grep the output from GCC? (Or probably resets
-> >    LC_ALL somewhere in the chain of commands before the particular
-> >    $(CC) -print-search-dirs is invoked.
-> >
-> >    At least, it is known that the timestamp string buried in
-> >    Linux's "uname -a" output follows the LC_ALL/LANG setting at the
-> >    time of kernel compilation. So under my linux setting,
-> >    "uname -a" contains Japanese date/time string and
-> >    this causes a problem when I try to report some kernel/application
-> >    bugs to maintainers : not all editors are equipped to handle
-> >    Japanese characters well. So I have to remove the Japanese strings
-> >    from uname output.
-> 
-> I agree. I don't like translations anyway. Never used french
-> translations when I could avoid them, since I hardly can understand what
-> the translations mean. I believe english is the natural language of
-> computer science, and it will stay that way for a long time (my
-> opinion).
+Notice again the blank driver. Now the modprobe lines I'm supposed to
+insert:
 
-Well, said. But given the
-eager people who translate syntax error messages of GCC, for example,
-I am not sure if your and my opinion is in the minority.
+<snip>
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-piix4
+# I2C chip drivers
+modprobe thmc50
+modprobe
+#----cut here----
 
-In any case, I think the output of --print-search-dirs is meant
-for OTHER PROGRAMS to handle, and not meant for humans to
-read, it seems to be silly to try to change the tag
-field depending on locale setting. But some would disagree...
+To make the sensors modules behave correctly, add these lines to either
+/etc/modules.conf or /etc/conf.modules:
 
-> > Anyway, I hope the remedy suggested by [2] above
-> > is included in Makefile somehow.
-> 
-> Work in progress (waiting for your answer actually).
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+<snip>
 
-As I mentioned above, we can safely put both LC_ALL=C and
-LANG=C although the latter maybe redudant *IF* you have not
-set LANG yourself.
-  
-> There is a fourth solution we could think of. If the "install" list is
-> always the first one returned by gcc -print-search-dirs (and I guess it
-> is) then we don't need to match the label. The following does the job:
->   gcc -print-search-dirs | head -1 | sed -ne 's/[^:]*: \(.*\)/-I
-> \1include/gp'
-> Now, is it more or less robust than solution #2? That I can't say. Both
-> solutions work on systems I tested them on, but that doesn't mean
-> anything for the million systems out there.
+Looks like a blank modprobe line?? Is this right?
 
-Problem with the above script is that *WE HAVE NO GURANTEE* that,
-no one in his/her right, in any locale of the
-world, would put a ":" in the locale-dependent tag.
-Sure such translation is bogus/buggy, but there is nothing to
-stop such suicidal translation. This is I don't like about the
-the current state of the translation done by  I18N/L10N.
-E.g. Someone not realizing the nature of the output *MIGHT* put
-GCC:[[Install] instead of simple `install'. Oh well.
+bash-2.05a#lsmod
+Module                  Size  Used by    Not tainted
+i2c-dev                 4704   0
+eeprom                  4736   0  (unused)
+thmc50                  5600   0  (unused)
+i2c-proc                8128   0  [eeprom thmc50]
+i2c-piix4               4772   0
+i2c-core               19264   0  [i2c-dev eeprom thmc50 i2c-proc i2c-piix4]
 
-I shudder to recall  that Sun Microsystems solaris 2.4 (or possibly
-earlier)
-release contained I18N/L10N *TRANSLATION* of certain Bourne Shell output
-and this broke myriads of scripts, and I believe it was fixed in the
-next
-minor upgrade. Such is the peril of I18N/L10N translation.
-Human readable text is OK to alter, but under UNIX, there are many
-output forms from various programs, 
-the format of which are now hard-coded into OTHER programs for
-further processing and so we are in a really difficult position.
-We can't simply change the output of one program without affecting
-others.
+Is this output correct? I'm trying to find temperature information??
 
-> Thanks a lot for your help!
+bash-2.05a# sensors -f
+eeprom-i2c-0-50
+Adapter: SMBus PIIX4 adapter at fc00
+Algorithm: Non-I2C SMBus adapter
+Memory type:            SDRAM DIMM SPD
+SDRAM Size (MB):        128
 
-You are very welcome and
-thank you for the great package.
+eeprom-i2c-0-51
+Adapter: SMBus PIIX4 adapter at fc00
+Algorithm: Non-I2C SMBus adapter
+Memory type:            SDRAM DIMM SPD
+SDRAM Size (MB):        256
 
-Happy Hacking!
+eeprom-i2c-0-52
+Adapter: SMBus PIIX4 adapter at fc00
+Algorithm: Non-I2C SMBus adapter
+Memory type:            SDRAM DIMM SPD
+SDRAM Size (MB):        128
+
+Here's dmesg output:
+<snip>
+i2c-core.o: i2c core module
+i2c-piix4.o version 2.6.3 (20020322)
+i2c-piix4.o: Found OSB4 device
+i2c-core.o: adapter SMBus PIIX4 adapter at fc00 registered as adapter 0.
+i2c-piix4.o: SMBus detected and initialized
+i2c-proc.o version 2.6.1 (20010825)
+thmc50.o version 2.6.3 (20020322)
+i2c-core.o: driver THMC50 sensor chip driver registered.
+eeprom.o version 2.6.3 (20020322)
+i2c-core.o: driver EEPROM READER registered.
+i2c-core.o: client [EEPROM chip] registered to adapter [SMBus PIIX4 adapter
+at f
+c00](pos. 0).
+i2c-core.o: client [EEPROM chip] registered to adapter [SMBus PIIX4 adapter
+at f
+c00](pos. 1).
+i2c-core.o: client [EEPROM chip] registered to adapter [SMBus PIIX4 adapter
+at f
+c00](pos. 2).
+send_arp uses obsolete (PF_INET,SOCK_PACKET)
+i2c-isa.o version 2.6.3 (20020322)
+i2c-core.o: adapter ISA main adapter registered as adapter 1.
+i2c-isa.o: ISA bus access for i2c modules initialized.
+i2c-core.o: adapter unregistered: ISA main adapter
+i2c-dev.o: i2c /dev entries driver module
+i2c-core.o: driver i2c-dev dummy driver registered.
+i2c-dev.o: Registered 'SMBus PIIX4 adapter at fc00' as minor 0
+
+Not knowing what I was doing I stuck i2c-isa in then removed it. ??
+
+Thanks for your help.
+
+--Karl
 
 
--- 
-int main(void){int j 03;/*(c)2003 cishikawa. */
-char t[] ="<CI> @abcdefghijklmnopqrstuvwxyz.,\n\"";
-char *i ="g>qtCIuqivb,gCwe\np@.ietCIuqi\"tqkvv is>dnamz";
-while(*i)((j+=strchr(t,*i++)-(int)t),(j%=sizeof t-1),
-(putchar(t[j])));return 0;}/* under GPL */
