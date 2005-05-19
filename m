@@ -1,26 +1,26 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: CVS tests report
-Message-Id: <3EE7DBE6.6030100@paradyne.com>
+From: ivan@cacad.com (Ivan Kalvachev)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: 2.4.30 kernel panic with bttv and i2c-2.9.1
+Message-Id: <20050422152915.046eb733@me>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030606183514.2e884183.khali@linux-fr.org>
-In-Reply-To: <20030606183514.2e884183.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
+From few days I'm having an bt878 based capture card.
+I was able to make it work with bttv driver in the 2.4.30 kernel.
+Then I installed latest i2c and lm-sensors (2.9.1) and jumped into
+problems.
 
-Greg KH wrote:
+I have attached /proc/ksym copied after the oops, 
+the /var/log/ksymoops/ directory,
+the original nonprocesses kernel message,
+and ksymoops-ed message using modprobe logs as kops1.txt.
+ (probably ksym would be  better - attached as kops2.txt)
 
->>Would anybody like to work on a patch for 2.4 for submission to Marcelo?
-> 
-> 
-> If someone makes it up, I'd be glad to review it and send it off to him.
-> 
-
-any volunteers?
-It's 2 parts -
-- Patching and testing kernel with i2c mkpatch
-- Fixing up all the other i2c "bus" and "chip" drivers in the kernel (mostly video stuff)
+Best Regards
+   Ivan Kalvachev
+  iive
