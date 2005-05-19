@@ -1,43 +1,50 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: fan speed for it87?? chips added
-Message-Id: <3F9DCCD2.8FAD376C@paradyne.com>
+From: M.Meyer@maxonline.at (Matthias Meyer)
+Date: Thu, 19 May 2005 06:23:28 +0000
+Subject: sensors stop working after some hours/days
+Message-Id: <20020108220123.CAPS1238.viefep16-int.chello.at@there>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200309232035.29480.michael.hufer@freenet.de>
-In-Reply-To: <200309232035.29480.michael.hufer@freenet.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-checked in.
-thanks.
-mds
 
-Michael Hufer wrote:
-> 
-> On Friday 26 September 2003 22:40, Jean Delvare wrote:
-> > > I found and fixed the little problem I had with the original chip
-> > > initialization. I can now load the module with reset_it87=0 and
-> > > init=1 without messing up the settings of the power supply fan
-> > > from the BIOS. It was quite simple after all.
-> >
-> > I'm interested in details, can you tell us what it was?
-> 
-> Sure, it actually was something I introduced myself :-(. I initialized the
-> fan_ctl register with  (read_value & 0x8f | 0x77) to enable the smart
-> guardian feature for all 3 fans. But the power supply fan does not support
-> pwm. It can only be operated in on/off mode, i.e. bit 0 must be clear. I
-> switched it back to the original  (rv & 0x8f | 0x70 ) and everything is back
-> to working.
-> 
-> > > Do you want me to send the latest diff?
-> >
-> > Sure I want.
-> 
->  Here it comes.
-> 
-> 
->                         Name: it87_pwm-cvs.diff
->    it87_pwm-cvs.diff    Type: text/x-diff
->                     Encoding: 7bit
+Hello
+
+I've a Motherboard Gigabyte GA-7IXE with
+CHIPSET 
+?AMD? 751 (Irongate) North Bridge
+?AMD? 756 (Viper) South Bridge
+?Winbond W83977 I/O set
+?Winbond W83782 health chip
+?
+I use Mandrake 8.1 and so I have linux 2.4.8 with buildin sensors version 
+2.6.1.
+All works fine for a lot of hours.
+But after some time sensors stops reporting possible values. Instead it 
+reports 0 for the temperatures and -1 for the fan speed.
+
+Anybody have a idea ?
+-------------- next part --------------
+w83782d-i2c-0-2d
+Adapter: SMBus AMD7X6 adapter at 50e0
+Algorithm: Non-I2C SMBus adapter
+VCore 1:   +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
+VCore 2:   +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
++3.3V:     +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
++5V:       +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
++12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)              
+-12V:     -14.91 V  (min = -14.91 V, max = -14.91 V)              
+-5V:       -7.71 V  (min =  -7.71 V, max =  -7.71 V)              
+V5SB:      +0.13 V  (min =  +0.13 V, max =  +0.13 V)              
+VBat:      +0.08 V  (min =  +0.08 V, max =  +0.08 V)              
+fan1:       -1 RPM  (min =   -1 RPM, div = 1)                     
+fan2:       -1 RPM  (min =   -1 RPM, div = 1)                     
+fan3:       -1 RPM  (min =   -1 RPM, div = 1)                     
+temp1:      +0.0?C  (limit =   +0?C, hysteresis =   +0?C) sensor = thermistor           
+temp2:        +0?C  (limit =   +0?C, hysteresis =   +0?C) sensor = thermistor           
+temp3:        +0?C  (limit =   +0?C, hysteresis =   +0?C) sensor = PII/Celeron diode           
+vid:      +2.05 V
+alarms:   Chassis intrusion detection                             
+beep_enable:
+          Sound alarm disabled
