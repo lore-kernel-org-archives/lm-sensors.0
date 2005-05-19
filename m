@@ -1,59 +1,101 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: [PATCH] i2c/i2c-elektor: remove interruptible_sleep_on_timeout()
-Message-Id: <11123113893610@kroah.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:25:31 +0000
+Subject: [PATCH] I2C: fix it87 sensor driver stops CPU fan
+Message-Id: <11059983961494@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11123113891852@kroah.com>
+In-Reply-To: <1105998395257@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: domen@coderock.org
+Cc: jmunsin@iki.fi
 
-ChangeSet 1.2323, 2005/03/31 14:05:31-08:00, domen@coderock.org
+ChangeSet 1.2329.2.7, 2005/01/14 14:43:30-08:00, jmunsin@iki.fi
 
-[PATCH] i2c/i2c-elektor: remove interruptible_sleep_on_timeout() usage
+[PATCH] I2C: fix it87 sensor driver stops CPU fan
 
-Replace deprecated interruptible_sleep_on_timeout() with direct
-wait-queue usage. Patch is compile-tested.
+> 2* I would then add a check to the it87 driver, which completely disables
+> the fan speed control interface if the initial configuration looks weird
+> (all fans supposedly stopped and polarity set to "active low"). This
+> should protect users of the driver who have a faulty BIOS.
+>
+> When a bogus configuration is detected, we would of course complain in
+> the logs and invite the user to complain to his/her motherboard maker
+> too.
 
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Domen Puncer <domen@coderock.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Here is it87.c_2.6.10-jm4-detect_broken_bios_20050112.diff implementing
+this. It goes on top of the previous patch.
+
+- detects broken bioses, disables the pwm for them and prints a message
+- fixes an unrelated minor bug in set_fan_div()
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Jonas Munsin <jmunsin@iki.fi>
+Signed-off-by: Greg Kroah-Hartman <greg@kroah.com>
 
 
- drivers/i2c/busses/i2c-elektor.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/it87.c |   29 ++++++++++++++++++++++-------
+ 1 files changed, 22 insertions(+), 7 deletions(-)
 
 
-diff -Nru a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
---- a/drivers/i2c/busses/i2c-elektor.c	2005-03-31 15:19:14 -08:00
-+++ b/drivers/i2c/busses/i2c-elektor.c	2005-03-31 15:19:14 -08:00
-@@ -110,7 +110,7 @@
- }
+diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
+--- a/drivers/i2c/chips/it87.c	2005-01-17 13:20:25 -08:00
++++ b/drivers/i2c/chips/it87.c	2005-01-17 13:20:25 -08:00
+@@ -500,7 +500,7 @@
+ 		else
+ 			data->fan_div[nr] = 3;
+ 	}
+-	val = old & 0x100;
++	val = old & 0x80;
+ 	val |= (data->fan_div[0] & 0x07);
+ 	val |= (data->fan_div[1] & 0x07) << 3;
+ 	if (data->fan_div[2] = 3)
+@@ -703,6 +703,8 @@
+ 	int err = 0;
+ 	const char *name = "";
+ 	int is_isa = i2c_is_isa_adapter(adapter);
++	int enable_pwm_interface;
++	int tmp;
  
- static void pcf_isa_waitforpin(void) {
--
-+	DEFINE_WAIT(wait);
- 	int timeout = 2;
- 	long flags;
+ 	if (!is_isa && 
+ 	    !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -812,6 +814,17 @@
+ 	/* Initialize the IT87 chip */
+ 	it87_init_client(new_client, data);
  
-@@ -118,14 +118,15 @@
- 		spin_lock_irqsave(&lock, flags);
- 		if (pcf_pending = 0) {
- 			spin_unlock_irqrestore(&lock, flags);
--			if (interruptible_sleep_on_timeout(&pcf_wait,
--								timeout*HZ)) {
-+			prepare_to_wait(&pcf_wait, &wait, TASK_INTERRUPTIBLE);
-+			if (schedule_timeout(timeout*HZ)) {
- 				spin_lock_irqsave(&lock, flags);
- 				if (pcf_pending = 1) {
- 					pcf_pending = 0;
- 				}
- 				spin_unlock_irqrestore(&lock, flags);
- 			}
-+			finish_wait(&pcf_wait, &wait);
- 		} else {
- 			pcf_pending = 0;
- 			spin_unlock_irqrestore(&lock, flags);
++	/* Some BIOSes fail to correctly configure the IT87 fans. All fans off
++	 * and polarity set to active low is sign that this is the case so we
++	 * disable pwm control to protect the user. */
++	enable_pwm_interface = 1;
++	tmp = it87_read_value(new_client, IT87_REG_FAN_CTL);
++	if ((tmp & 0x87) = 0) {
++		enable_pwm_interface = 0;
++		dev_info(&new_client->dev,
++			"detected broken BIOS defaults, disabling pwm interface");
++	}
++
+ 	/* Register sysfs hooks */
+ 	device_create_file(&new_client->dev, &dev_attr_in0_input);
+ 	device_create_file(&new_client->dev, &dev_attr_in1_input);
+@@ -860,12 +873,14 @@
+ 	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+ 	device_create_file(&new_client->dev, &dev_attr_fan3_div);
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+-	device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
+-	device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
+-	device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
+-	device_create_file(&new_client->dev, &dev_attr_pwm1);
+-	device_create_file(&new_client->dev, &dev_attr_pwm2);
+-	device_create_file(&new_client->dev, &dev_attr_pwm3);
++	if (enable_pwm_interface) {
++		device_create_file(&new_client->dev, &dev_attr_pwm1_enable);
++		device_create_file(&new_client->dev, &dev_attr_pwm2_enable);
++		device_create_file(&new_client->dev, &dev_attr_pwm3_enable);
++		device_create_file(&new_client->dev, &dev_attr_pwm1);
++		device_create_file(&new_client->dev, &dev_attr_pwm2);
++		device_create_file(&new_client->dev, &dev_attr_pwm3);
++	}
+ 
+ 	if (data->type = it8712) {
+ 		device_create_file_vrm(new_client);
 
