@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:08 +0000
 Subject: bug report?!
-Message-Id: <L0BXzZKE.1091789362.2184150.khali@gcu.info>
+Message-Id: <n2Mj0gJI.1091796136.5931870.khali@gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E1Bt0wR-0002TF-00@intern.SerNet.DE>
 In-Reply-To: <E1Bt0wR-0002TF-00@intern.SerNet.DE>
@@ -11,23 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
->I tried to compile i2c and lm_sensors on this machine:
+>The other problem i spotted is that your tar.gz archive of i2c-2.8.7 is not
+>a gzip archive.
 >
->Linux dhcp230 2.4.21-99-athlon #1 Wed Sep 24 13:34:32 UTC 2003 i686 athlon i386
-> GNU/Linux).
->gcc version 3.3.1 (SuSE Linux)
+>dhcp230:~ # file i2c-2.8.7.tar.gz
+>i2c-2.8.7.tar.gz: POSIX tar archive
 >
->While compilation i get on both i2c and lm_sensors the following error:
->
->kernel/i2c-pport.c:154: error: initializer element is not constant
->kernel/i2c-pport.c:154: error: (near initialization for `bit_pport_data.timeout'
+>A not that much confidant user could be very confused if he is downloading a
+>tar.gz from you website which is a tar.
 
-Suse hacked their kernel tree in a way which makes it incompatible with
-our sources. Several users already reported about that.
+I just checked, the file is really a tar.gz file, sent by the HTTP server
+with type application/x-tar. This seems to be reasonably standard
+(Savannah does the same for example).
 
-We do not support that. Either complain to Suse, or use their packages
-for lm_sensors (if such packages exist) or use a vanilla kernel instead
-of a Suse one. Our packages are tested to work perfectly with vanilla
-kernels.
+So I suspect that your web browser gunzip'ed the file on the fly. You
+most probably can configure it not to do so. Else you can still use an
+external download tool such as wget.
 
+At any rate, a web browser gunzip'ing files on the fly without removing
+the .gz suffix is obviously not doing the right thing and needs fixing.
+
+Thanks for reporting.
 Jean Delvare
