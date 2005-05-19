@@ -1,35 +1,37 @@
-From: cgfreita@netsite.com.br (cgfreita)
-Date: Thu, 19 May 2005 06:24:31 +0000
-Subject: Ticket #1495 - Errata
-Message-Id: <20031224153107.5e61ebbf.cgfreita@netsite.com.br>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: intel ESB rapid quirk fix
+Message-Id: <4266914C.6040101@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031221215452.1983769b.cgfreita@netsite.com.br>
-In-Reply-To: <20031221215452.1983769b.cgfreita@netsite.com.br>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, (Jean Delvare <khali@linux-fr.org>)
+Hello,
 
-> > 	 I forgot to say "using kernel 2.4.23".
-> > 	I was stupid. I know. Sorry.
-> 
-> OMG this is soooooo **horrible** ;)
-> 
-> > I didn't find a way to edit the ticket and I decided to not <cut>
-> 
-> Sure you did :) I edited the ticket for you so you don't have to be
-> ashamed anymore.
-> 
-> That said, I answered the ticket and the only solution is to wait
-<cut>
+This patch only binds ACPI and GPIO IO space regions to southbridge.
+Please can you test on that ASUS board this patch?
 
-	Really thank you for your attention.
-	Believe me, If I could, it would be a pleasure to write some code.
-	I will keep waiting and watching lm_sensors site.
-	Once again, thank you.
+You can try before you apply:
+cat /proc/ioports
+after you reboot with the patch
+cat /proc/ioports
+2 new regions should be there. (round 0x400)
 
-Cheers,
+Thanks,
+regards
 
-Freitas
+Rudolf
+
+diff -Naur a/drivers/pci/quirks.c c/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c	2005-04-04 18:37:51.000000000 +0200
++++ c/drivers/pci/quirks.c	2005-04-20 19:19:53.666568200 +0200
+@@ -328,6 +328,7 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_0,		quirk_ich4_lpc_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801DB_12,	quirk_ich4_lpc_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
+
+ /*
+  * VIA ACPI: One IO region pointed to by longword at
