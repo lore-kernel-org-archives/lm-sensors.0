@@ -1,7 +1,7 @@
-From: gbg@exacube.co.kr (Byounggwon)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: device matching
-Message-Id: <004701c27c91$c20a9210$5100a8c0@office>
+Message-Id: <20021028091529.53736232.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <011f01c27b57$49a53450$5100a8c0@office>
 In-Reply-To: <011f01c27b57$49a53450$5100a8c0@office>
@@ -10,19 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Jean.
+> I received some papers from Gigabyte this morning.
+> This papers is maybe helpful to you.
+> I attached that.
 
-Thank you for your reply.
-Your reply is very helpful for me
+Looks really interesting indeed. I am not able to do anything with it
+personally, but I am sure that Phil and Mark will enjoy it :)
+Thanks a lot!
 
-> If you get such information, please share it with us :)
-> Thanks.
-
-Of course!
-I send a mail to Peter Chang who is a technical supporter
-in Gigabyte. In the mail, I requested some information how the chipset is
-implemented in the M/B. When I receive the information, I will
-send it you too.
-
-Sincerely
-Byounggwon(gbg@exacube.co.kr)
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
