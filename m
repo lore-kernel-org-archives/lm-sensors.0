@@ -1,40 +1,27 @@
-From: pasik@iki.fi (Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:40 +0000
 Subject: [RFT] Preliminary w83627ehf hardware monitoring driver
-Message-Id: <20050227131027.GM25818@edu.joroinen.fi>
+Message-Id: <20050227184837.2563a454.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050226191142.6288b2ef.khali@linux-fr.org>
-In-Reply-To: <20050226191142.6288b2ef.khali@linux-fr.org>
+	<20050227131027.GM25818@edu.joroinen.fi>
+In-Reply-To: <20050227131027.GM25818@edu.joroinen.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LM Sensors <sensors@stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>
-Cc: David Hoffman <dhoffman_98@yahoo.com>
+To: Pasi =?ISO-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
 
-On Sat, Feb 26, 2005 at 07:11:42PM +0100, Jean Delvare wrote:
-> Hi all,
-> 
-> I have been working on a w83627ehf hardware monitoring driver. The
-> W83627EHF is a Super-I/O chip made by Winbond. Like other chips of the
-> family (W83627HF, W83697HF, W83627THF...), it integrates hardware
-> monitoring functions. Of these, my preliminary driver only handles
-> temperature and fan inputs at the moment. I lack time and do not have
-> hardware to test it, so I will not improve it significantly in a near
-> future.
-> 
+Hi Pasi,
 
-Hi!
+> Do you know about driver for W83627THF watchdog? I'm using Supermicro
+> P8SCI motherboard, and I haven't found working driver for it..
 
-Do you know about driver for W83627THF watchdog? I'm using Supermicro P8SCI
-motherboard, and I haven't found working driver for it..
+Have you tried w83627hf_wdt? I took a quick look at the W83627HF and
+W83627THF datasheets and watchdog timer seems to work identically. Since
+the driver doesn't seem to identify the chip (it probably should, BTW),
+I'd expect it to work.
 
-Thanks!
-
--- Pasi K?rkk?inen
-       
-                                   ^
-                                .     .
-                                 Linux
-                              /    -    \
-                             Choice.of.the
-                           .Next.Generation.
+Hope that helps,
+-- 
+Jean Delvare
