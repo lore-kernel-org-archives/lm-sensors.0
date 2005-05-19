@@ -1,39 +1,24 @@
-From: BargainsDepot@h.ew01.com (Bargains Depot Newsletter)
-Date: Thu, 19 May 2005 06:23:56 +0000
-Subject: Subscription confirmation...
-Message-Id: <200305200326.XAA78553@h.ew01.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:12 +0000
+Subject: subscribe request
+Message-Id: <20030815124408.7dff0466.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200305190939.CAA67530@z.ew01.com>
-In-Reply-To: <200305190939.CAA67530@z.ew01.com>
+References: <200208241326.10944.amalysh@web.de>
+In-Reply-To: <200208241326.10944.amalysh@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Welcome to our Bargains Depot newsletter!  We just received a request to
-add lm78@stimpy.netroedge.com to our mailing list. 
+> I'd like to join the ML, thanks. :)
 
-Each day we hunt up a great offer from an online merchant, from leading
-retailers to unique niche shops, and deliver it to your inbox. Don't
-miss an exciting issue.
+Why do you want to join? Please note you don't need to be
+subscribed to post here. And non-subscribers always get TO: or CC: on
+replies. So subscribing is generally useless for simple users.
 
-Each Bargains Depot newsletter includes easy to use unsubscribe
-instructions. If you no longer want our newsletter, it's a breeze to let
-us know.
+Now, if you are a developper, it's a completely different problem and
+we'll subscribe you ASAPHSTL.
 
-Sincerely,
-The Bargains Depot Team
-
-
-
-
-
-To unsubscribe, go to:
-http://h.ew01.com/remove?r.BargainsDepot.12-1837ea2-4525.stimpy.netroedge.com.-lm78?r
-
-or, send a blank message to:
-mailto:r.BargainsDepot.12-1837ea2-4525.stimpy.netroedge.com.-lm78@h.ew01.com
-
-yia9y
-
-
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
