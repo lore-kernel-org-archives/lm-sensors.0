@@ -1,144 +1,166 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
-Date: Thu, 19 May 2005 06:25:53 +0000
-Subject: [RFC/PATCH 14/22] W1: rename timeout to scan_interval
-Message-Id: <200504210221.16881.dtor_core@ameritech.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:03 +0000
+Subject: Gigabyte GA7-VRXP
+Message-Id: <20030704231948.056d10a8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net>
-In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@Stimpy.netroedge.com
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+To: lm-sensors@vger.kernel.org
 
-W1: more master attributes changes:
-    - rename timeout parameter/attribute to scan_interval to better
-      reflect its purpose;
-    - make scan_timeout be a per-device attribute and allow changing
-      it from userspace via sysfs;
-    - allow changing max_slave_count it from userspace as well.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
+First, thank you for your fast and complete answer! I hadn't expected so
+much :)
 
- w1.c |   60 +++++++++++++++++++++++++++++++++++++++++++++++++-----------
- w1.h |    1 +
- 2 files changed, 50 insertions(+), 11 deletions(-)
+> > What is the revision of your motherboard?
+> 
+> 2.0
 
-Index: dtor/drivers/w1/w1.c
-=================================--- dtor.orig/drivers/w1/w1.c
-+++ dtor/drivers/w1/w1.c
-@@ -42,11 +42,11 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol.");
- 
--static int w1_timeout = 10;
-+static int w1_scan_interval = 10;
- static int w1_max_slave_count = 10;
- static int w1_max_slave_ttl = 10;
- 
--module_param_named(timeout, w1_timeout, int, 0);
-+module_param_named(scan_interval, w1_scan_interval, int, 0);
- module_param_named(max_slave_count, w1_max_slave_count, int, 0);
- module_param_named(slave_ttl, w1_max_slave_ttl, int, 0);
- 
-@@ -357,7 +357,7 @@ static int w1_process(void *data)
- 
- 	while (!dev->need_exit) {
- 		try_to_freeze(PF_FREEZE);
--		msleep_interruptible(w1_timeout * 1000);
-+		msleep_interruptible(dev->scan_interval * 1000);
- 
- 		if (signal_pending(current))
- 			flush_signals(current);
-@@ -401,33 +401,71 @@ static ssize_t w1_master_attribute_show_
- 	return sprintf(buf, "%s\n", master->name);
- }
- 
--static ssize_t w1_master_attribute_show_timeout(struct device *dev, char *buf)
-+static ssize_t
-+w1_master_attribute_show_scan_interval(struct device *dev, char *buf)
- {
--	ssize_t count;
--	count = sprintf(buf, "%d\n", w1_timeout);
--	return count;
-+	struct w1_master *master = to_w1_master(dev);
-+
-+	return sprintf(buf, "%d\n", master->scan_interval);
-+}
-+
-+static ssize_t
-+w1_master_attribute_set_scan_interval(struct device *dev, const char *buf,
-+				      size_t n)
-+{
-+	struct w1_master *master = to_w1_master(dev);
-+	int interval;
-+
-+	interval = simple_strtoul(buf, NULL, 10);
-+	if (!interval)
-+		return -EINVAL;
-+
-+	master->scan_interval = interval;
-+	return 0;
- }
- 
--static ssize_t w1_master_attribute_show_max_slave_count(struct device *dev, char *buf)
-+static ssize_t
-+w1_master_attribute_show_max_slave_count(struct device *dev, char *buf)
- {
- 	struct w1_master *master = to_w1_master(dev);
- 
- 	return sprintf(buf, "%d\n", master->max_slave_count);
- }
- 
-+static ssize_t
-+w1_master_attribute_set_max_slave_count(struct device *dev, const char *buf,
-+					size_t n)
-+{
-+	struct w1_master *master = to_w1_master(dev);
-+	int max_count;
-+
-+	max_count = simple_strtoul(buf, NULL, 10);
-+	if (!max_count)
-+		return -EINVAL;
-+
-+	master->max_slave_count = max_count;
-+	return 0;
-+}
-+
- #define W1_MASTER_ATTR_RO(_name, _mode)				\
- 	struct device_attribute w1_master_attribute_##_name =	\
- 		__ATTR(_name, _mode,				\
- 		       w1_master_attribute_show_##_name, NULL)
- 
-+#define W1_MASTER_ATTR_RW(_name, _mode)				\
-+	struct device_attribute w1_master_attribute_##_name =	\
-+		__ATTR(_name, _mode,				\
-+		       w1_master_attribute_show_##_name,	\
-+		       w1_master_attribute_set_##_name)
-+
- static W1_MASTER_ATTR_RO(name, S_IRUGO);
--static W1_MASTER_ATTR_RO(max_slave_count, S_IRUGO);
--static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
-+static W1_MASTER_ATTR_RW(max_slave_count, S_IWUSR | S_IRUGO);
-+static W1_MASTER_ATTR_RW(scan_interval, S_IWUSR | S_IRUGO);
- 
- static struct attribute *w1_master_default_attrs[] = {
- 	&w1_master_attribute_name.attr,
- 	&w1_master_attribute_max_slave_count.attr,
--	&w1_master_attribute_timeout.attr,
-+	&w1_master_attribute_scan_interval.attr,
- 	NULL
- };
- 
-Index: dtor/drivers/w1/w1.h
-=================================--- dtor.orig/drivers/w1/w1.h
-+++ dtor/drivers/w1/w1.h
-@@ -107,6 +107,7 @@ struct w1_master
- 	struct list_head	slist;
- 	int			max_slave_count;
- 	int			slave_ttl;
-+	int			scan_interval;
- 	int			initialized;
- 	u32			id;
- 
+Great, this is the one that is supposed to have a LM83 on it, as seen on
+this page:
+http://mbm.livewiredev.com/comp/gigabyte.html
+
+> > Did you ever installed LM Sensors on one of your systems?
+> 
+> I have, and some of the outputs are valid, while others are not.
+> 
+> $ sensors -v
+> sensors version 2.7.0
+
+Great that you're already used to LM Sensors. We'll probably have to
+tweak a pair of files to make everything work, so it's better that you
+know the basics of our package.
+
+> $ sensors   
+> lm78-isa-0290
+> Adapter: ISA adapter
+> Algorithm: ISA algorithm
+> VCore 1:   +1.74 V  (min =  +0.00 V, max =  +1.32 V)   ALARM
+> VCore 2:   +1.24 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+> +3.3V:     +3.31 V  (min =  +2.97 V, max =  +0.00 V)   ALARM
+> +5V:       +4.84 V  (min =  +4.50 V, max =  +5.48 V)   ALARM
+> +12V:     +12.16 V  (min = +10.79 V, max = +13.11 V)   ALARM
+> -12V:      -5.32 V  (min = -13.18 V, max = -10.78 V)   ALARM
+> -5V:       -1.38 V  (min =  -5.48 V, max =  -4.50 V)   ALARM
+> fan1:       -1 RPM  (min = 6000 RPM, div = 1)          ALARM
+> fan2:     25471 RPM  (min = 6000 RPM, div = 1)          
+> fan3:     3358 RPM  (min = 3000 RPM, div = 2)          ALARM
+> temp:      -68.0?C  (limit =  +60?C, hysteresis =  +50?C) ALARM
+> vid:       +3.50 V
+> alarms:   Board temperature input (LM75)               ALARM
+> alarms:   Chassis intrusion detection                  ALARM
+> 
+> As you can see the sensors for the temperature, -5V and -12 are "less
+> optimal" wrt their output.
+
+What I see here is that you don't have a LM78. I think the chip has been
+misdetected. You are supposed to have an IT87 as your main sensor chip
+(actually, a SiS950 which is compatible with the IT87) using the it87
+driver.
+
+> > Would you accept to test my driver?
+> 
+> It would be a pleasure.
+
+Really glad to read that :)
+
+> Ok, much better now:
+> $ sensors -v
+> sensors version 2.8.0-CVS
+
+Hey, you have been doing much much more than I'd have expected :)
+
+> # lsmod
+> Module                  Size  Used by    Tainted: PF 
+> it87                    6636   0  (unused)
+> eeprom                  3572   0  (unused)
+> lm83                    3296   0  (unused)
+> i2c-isa                  748   0  (unused)
+> i2c-dev                 4128   0 
+> i2c-viapro              3468   0 
+> lm78                    7000   0  (unused)
+> i2c-proc                6708   0  [it87 eeprom lm83 lm78]
+> i2c-core               14820   0  [it87 eeprom lm83 i2c-isa i2c-dev
+>                                    i2c-viapro lm78 i2c-proc]
+
+I think you can unload the lm78 module, it won't be used anyway. The
+rest of the modules look OK. Did the new sensors-detect tell you to
+still use the lm78 module? This would need to be fixed.
+
+BTW, the complete output (using script for example) of sensors-detect
+would be very welcome. I'd like to see if it behaves as it should.
+
+> $ sensors
+> eeprom-i2c-0-50
+> Adapter: SMBus Via Pro adapter at 0400
+> Algorithm: Non-I2C SMBus adapter
+> Memory type:            DDR SDRAM DIMM SPD
+> Memory size (MB):       512
+
+Do you have a single memory chip on the system, or is the second one not
+detected?
+
+> it87-isa-0290
+> Adapter: ISA adapter
+> Algorithm: ISA algorithm
+> VCore 1:   +1.72 V  (min =  +1.42 V, max =  +1.56 V)   ALARM
+> VCore 2:   +1.24 V  (min =  +2.40 V, max =  +2.60 V)   ALARM
+> +3.3V:     +6.62 V  (min =  +3.12 V, max =  +3.44 V)   ALARM
+> +5V:       +4.80 V  (min =  +4.72 V, max =  +5.24 V)   
+> +12V:     +12.84 V  (min = +11.36 V, max = +12.60 V)   ALARM
+> -12V:     -14.24 V  (min = -12.63 V, max = -11.41 V)   ALARM
+> -5V:       -7.15 V  (min =  -5.28 V, max =  -4.81 V)   ALARM
+> Stdby:     +5.04 V  (min =  +4.72 V, max =  +5.24 V)   
+> VBat:      +0.00 V
+> fan1:     2848 RPM  (min =    0 RPM, div = 2)          
+> fan2:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
+> fan3:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
+> Temp1/MB:    +54?C  (min =  +20?C, max =  +40?C) 
+> Temp2/CPU:   +87?C  (min =  +25?C, max =  +45?C) 
+> Temp3:       -55?C  (min =  +25?C, max =  +45?C)
+
+This is far better than with lm78, isn't it? :) Some things would need
+tweaking though. +3.3V needs to be correcting as described in the
+/etc/sensors.conf file (this is a known problem). Fans 2 and 3 are
+probably not present and should be ignored. Temp3 is probably not used
+(-55 is a common value to mean "no diode connected") and should be
+ignored too (add ignore statements in config file). BTW, please note
+that the config file is *not* overwritten by lm_sensors installations,
+which in a way is great since it will keep your own changes, but on the
+other hand could make you miss updates we do on the default config file.
+
+> The CPU temp can't be right, I use a XP2100+ with a Spire WhisperRock
+> III cooler, which seems very adaquate.
+> In the BIOS the monitor tells me both CPU and MB reach about 54
+> deg. C.
+
+The it87 module has a temp_type parameter that should help. Try
+temp_type=0x38 and see if it's any better. If not (it could say -55 as
+temp3) it may mean that these sensors are not used, and this would make
+sense because the LM83 that is supposed to be present on your
+motherboard is a 4-temperature sensor.
+
+> No problems making and installing Jean, so thanks for mentioning this
+> update and your work on the driver of course.
+
+You're welcome. Actually I need you more than you need me.
+
+The problem now is that the lm83 data doesn't show at all, while it is
+supposed to. Could you please:
+1* Tell me what you see in /proc/bus/i2c* (file names and contents)?
+2* Tell me what you see in /proc/dev/sensors/ (file names and contents)?
+3* Recompile the whole lm_sensors2 package using the DEBUG option (see
+the main Makefile)? I added some debug prints that should show in you
+system logs. This would be more than useful for debugging.
+
+If you encounter any problem compiling/installing the CVS checkouts,
+please let me know. We plan to release 2.8.0 soon now.
+
+If you are used to IRC, you may meet me on #sensorstuff on Freenode
+(nick Khali). This may make the driver debugging faster :)
+
+Thanks a lot again.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
