@@ -1,122 +1,132 @@
-From: shutdown@brend.org (shutdown)
-Date: Thu, 19 May 2005 06:25:00 +0000
-Subject: Maxim MAX6657 Support in lm_sensors
-Message-Id: <40C1ED06.9000207@brend.org>
+From: tim.boneko@web.de (Tim Boneko)
+Date: Thu, 19 May 2005 06:24:03 +0000
+Subject: Trouble with i2c and bttv
+Message-Id: <200307042024.55272.tim.boneko@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <40C04A4A.2010208@brend.org>
-In-Reply-To: <40C04A4A.2010208@brend.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-you are giving a much better "support" than any company ever gave me!
-Thank you for detailed answer, now I know what I am going to do;
-I will call a Maxim Hotline on Monday, and ask how I can get such a 
-chip. If they do not want to give me a chip, I will try to get a ADM1032.
-Today I have soldered some wires to the back of my CPU socket, so I will 
-surely finish my "project", because my mainboard is still functional ;)
-You will hear from me again when I have bought a chip, so you will know 
-if adding support for this chip is really neccessary.
-Thank you again,
-
-Peter "shutdown" Ganzhorn
-
-
-Jean Delvare wrote:
-
->>At the moment I am not owning a mainboard with this chip on it (and
->>do not even know about one using it by "default"), but because I am
->>an overclocker I am doing a little modification on my Abit NF7-S
->>which allows me to read the data of the AMD Athlon XP internal
->>thermal diode. I am going to solder a self-made circuit using the
->>MAX6657 to the back of my CPU socket on the mainboard, but before I
->>am going to do this I wanted to know if it is possible to read the
->>data of it with linux, which will be the only OS used on my computer.
->>(So this is why I want to see this chip supported)
->>    
->>
->
->OK. So I confirm that the chip isn't supported at the moment but could
->be very easily.
->
->  
->
->>It would be great if you would agree to add support for the MAX6657. 
->>Because I still have my Winbond W83627HF in an full operational state 
->>and I am not finished with my work yet, there is no need to have this 
->>feature imediately availiable. So take your time to do a good job ;)
->>    
->>
->
->OK.
->
->  
->
->>I do not know any system or motherboard using the MAX6658, so support 
->>for this chip is not necessary I think. And I do not know any 
->>overclocker using this chip for such work - but I know at least
->>around 10 people using the MAX6657. Most of them are not using Linux
->>or only use it as a secondary OS...expecting me :)
->>    
->>
->
->I just checked and there is no way to differenciate between a MAX6657
->and a MAX6658 anyway (nor a MAX6659, BTW), at least not according to the
->datasheet. So if we support one we have the others for free.
->
->  
->
->>If you do NOT want to include support for this chip (maybe because it 
->>may cause misdetection problems or something like that) just tell me -
->>    
->>
->
->No, there's no problem adding support. The "misdetection problems" are
->inherent to I2C and if it justifies (IMHO) that we don't support chips
->that are not used, it is definitely not a reason for not supporting a
->chip once someone requests such support.
->
->  
->
->>I did not buy the chip until now. But if you are going to support it,
->>I will buy it, because it is said to be very precise.
->>    
->>
->
->FWIW, Analog Devices ADM1032 is as precise as the MAX6657, at least from
->comparing the datasheets. The National Semiconductor LM90 has a lower
->accuracy. So if you can get you hands on an ADM1032, you could go with
->that as well. But if you end up with a Maxim chip, I promise I'll add
->support for it.
->
->  
->
->>I wanted to buy the chip yesterday somewhere on the internet, but I
->>did not find any site where it is sold...do you know a store on the
->>internet where I may buy it? (I just thought so because you are "in
->>touch with this scene" ;) )
->>    
->>
->
->Usually, either we have the chip in a piece of hardware we happen to
->own, or the manufacturers send evaluation boards for free. We do not buy
->anything.
->
->If you just need one chip, you can take you chance on the manufacturer's
->site itself. They usually send free samples for people to experiment on
->(or so I heard). They are used to sell them by 1000 to manufacturers, so
->I guess they don't really care about one or two samples.
->
->  
->
->>Thanks again for your efforts!
->>    
->>
->
->You're welcome :)
->
->  
->
+SGVsbG8hCkknbSBydW5uaW5nIGxpbnV4IGZvciB5ZWFycyBub3csIGJ1dCB0aGlzIGlzIG15IHZl
+cnkgZmlyc3QgYnVnIHJlcG9ydCwgCmFuZCBpIGhvcGUgaXQncyBoZWxwZnVsLiBJZiBub3QsIHNv
+cnJ5IGZvciB0aGUgYm90aGVyLi4uCgpPbiBKdW5lIDI5LCBpIHB1bGxlZCB0aGUgbGF0ZXN0IGky
+YyBhbmQgbG1fc2Vuc29ycyBkcml2ZXJzIHZpYSBDVlMgYW5kIApnb3QgdGhlbSB3b3JraW5nIG9u
+IG15IFBDIChNQjogQXN1cyBBN044WCB3aXRoIG5mb3JjZTIgY2hpcHNldCwgCktlcm5lbDogMi40
+LjIxLXZhbmlsbGEsIGEgSGF1cHBhdWdlIFRWIGNhcmQgKHNlZSBsb2cgZXhjZXJwdCBiZWxvdyku
+IApJIGRpZCBfbm90XyBwYXRjaCB0aGUga2VybmVsIGJ1dCByZXBsYWNlZCB0aGUga2VybmVsIGky
+YyBtb2R1bGVzIHdpdGggCnRoZSBkb3dubG9hZGVkK2NvbXBpbGVkIG9uZXMuKQpXb3JrZWQgZmlu
+ZSBzbyBmYXIsIG1heWJlIGV4Y2VwdCBmb3IgdGhlIDQuMDggdm9sdCByZWFkaW5nIGFwcGVhcmlu
+ZyAKZnJvbSB0aW1lIHRvIHRpbWUgb24gdmFyaW91cyB2b2x0YWdlIG1lYXN1cmVzLCBldmVuICJW
+Q29yZTEiLgpBZnRlciBzdWNoIGEgc3VjY2Vzc2Z1bCBpbnN0YWxsYXRpb24gaSBuZWVkZWQgc29t
+ZSByZWxheGluZyBhbmQgd2FudGVkIAp0byB3YXRjaCBUVi4gIm1vZHByb2JlIGJ0dHYiIG1hZGUg
+bXkga2VybmVsIGdvICJPb3BzIi4KVGhpcyBtb2R1bGUgZGVwZW5kcyBvbiBpMmMtYWxnby1iaXQg
+YW5kIGkyYy1jb3JlIHdoaWNoIHdlcmUgcmVwbGFjZWQgCmJ5IHRoZSBpMmMtZHJpdmVycywgc28g
+aSBndWVzcyB0aGVyZSdzIGEgcHJvYmxlbSBoZXJlLiAKQmVsb3cgaXMgdGhlIG91dHB1dCBvZiAi
+bHNtb2QiIChiZWZvcmUgbG9hZGluZyBidHR2Lm8pIGFuZCBhbiBleGNlcnB0IApmcm9tIG15IC92
+YXIvbG9nL2tlcm4ubG9nIGFmdGVyIHRoYXQuCgpHcmVldGluZ3MsCgoJdGltCgpsc21vZDoKTW9k
+dWxlICAgICAgICAgICAgICAgICAgU2l6ZSAgVXNlZCBieSAgICBOb3QgdGFpbnRlZApzbmQtbWl4
+ZXItb3NzICAgICAgICAgIDEzNTI4ICAgMCAgKGF1dG9jbGVhbikKdzgzNzgxZCAgICAgICAgICAg
+ICAgICAyMjMyMCAgIDAgICh1bnVzZWQpCmVlcHJvbSAgICAgICAgICAgICAgICAgIDM0NDAgICAw
+ICAodW51c2VkKQppMmMtcHJvYyAgICAgICAgICAgICAgICA2MjYwICAgMCAgW3c4Mzc4MWQgZWVw
+cm9tXQppMmMtbmZvcmNlMiAgICAgICAgICAgICAzMTc2ICAgMCAgKHVudXNlZCkKaTJjLWNvcmUg
+ICAgICAgICAgICAgICAxMzkyNCAgIDAgIFt3ODM3ODFkIGVlcHJvbSBpMmMtcHJvYyAKaTJjLW5m
+b3JjZTJdCnNlcmlhbCAgICAgICAgICAgICAgICAgNDY2NjAgICAwICAoYXV0b2NsZWFuKQpzbmQt
+aW50ZWw4eDAgICAgICAgICAgIDE4MDUyICAgMgpzbmQtYWM5Ny1jb2RlYyAgICAgICAgIDQwMjAw
+ICAgMCAgW3NuZC1pbnRlbDh4MF0Kc25kLXBjbSAgICAgICAgICAgICAgICA2MjAxNiAgIDIgIFtz
+bmQtaW50ZWw4eDBdCnNuZC10aW1lciAgICAgICAgICAgICAgMTQ4MjAgICAwICBbc25kLXBjbV0K
+c25kLXBhZ2UtYWxsb2MgICAgICAgICAgNTI0NCAgIDAgIFtzbmQtaW50ZWw4eDAgc25kLXBjbV0K
+c25kLW1wdTQwMS11YXJ0ICAgICAgICAgMzQ0MCAgIDAgIFtzbmQtaW50ZWw4eDBdCnNuZC1yYXdt
+aWRpICAgICAgICAgICAgMTQwMTYgICAwICBbc25kLW1wdTQwMS11YXJ0XQpzbmQtc2VxLWRldmlj
+ZSAgICAgICAgICA0MzA0ICAgMCAgW3NuZC1yYXdtaWRpXQpzbmQgICAgICAgICAgICAgICAgICAg
+IDMwNTMyICAgMCAgW3NuZC1taXhlci1vc3Mgc25kLWludGVsOHgwIApzbmQtYWM5Ny1jb2RlYyBz
+bmQtcGNtIHNuZC10aW1lciBzbmQtbXB1NDAxLXVhcnQgc25kLXJhd21pZGkgCnNuZC1zZXEtZGV2
+aWNlXQpzb3VuZGNvcmUgICAgICAgICAgICAgICAzODQ0ICAgMSAgW3NuZF0KbmxzX2NwNDM3ICAg
+ICAgICAgICAgICAgNDM4MCAgIDEgIChhdXRvY2xlYW4pCnZmYXQgICAgICAgICAgICAgICAgICAg
+MTA2MzYgICAxICAoYXV0b2NsZWFuKQpmYXQgICAgICAgICAgICAgICAgICAgIDMyNDcyICAgMCAg
+KGF1dG9jbGVhbikgW3ZmYXRdCmFwbSAgICAgICAgICAgICAgICAgICAgMTAyNDggICAxCm5sc19p
+c284ODU5LTE1ICAgICAgICAgIDMzODggICAxCm5sc19jcDg1MCAgICAgICAgICAgICAgIDM2MTIg
+ICAwICAodW51c2VkKQpwcmludGVyICAgICAgICAgICAgICAgICA3MzkyICAgMAp1c2Itc3RvcmFn
+ZSAgICAgICAgICAgIDI1MTA0ICAgMCAgKHVudXNlZCkKdXNiLW9oY2kgICAgICAgICAgICAgICAx
+OTAxNiAgIDAgICh1bnVzZWQpCnVzYmNvcmUgICAgICAgICAgICAgICAgNjI1MjggICAwICBbcHJp
+bnRlciB1c2Itc3RvcmFnZSB1c2Itb2hjaV0KdW5peCAgICAgICAgICAgICAgICAgICAxNTc1MiAg
+OTkgIChhdXRvY2xlYW4pCgovdmFyL2xvZy9rZXJuLmxvZzoKCkp1bCAgNCAxNDoyNTowNCB0aW1i
+byBrZXJuZWw6IGJ0dHY6IGRyaXZlciB2ZXJzaW9uIDAuNy4xMDQgbG9hZGVkCkp1bCAgNCAxNDoy
+NTowNCB0aW1ibyBrZXJuZWw6IGJ0dHY6IHVzaW5nIDQgYnVmZmVycyB3aXRoIDIwODBrICg4MzIw
+ayAKdG90YWwpIGZvciBjYXB0dXJlCkp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6IGJ0dHY6
+IEhvc3QgYnJpZGdlIGlzIFBDSSBkZXZpY2UgCjEwZGU6MDFlMCAoblZpZGlhIENvcnBvcmF0aW9u
+KQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiBidHR2OiBCdDh4eCBjYXJkIGZvdW5kICgw
+KS4KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogYnR0djA6IEJ0ODc4IChyZXYgMikgYXQg
+MDE6MGEuMCwgaXJxOiAKMTEsIGxhdGVuY3k6IDMyLCBtbWlvOiAweGU4MDAwMDAwCkp1bCAgNCAx
+NDoyNTowNCB0aW1ibyBrZXJuZWw6IGJ0dHYwOiBkZXRlY3RlZDogSGF1cHBhdWdlIFdpblRWIApb
+Y2FyZBBdLCBQQ0kgc3Vic3lzdGVtIElEIGlzIDAwNzA6MTNlYgpKdWwgIDQgMTQ6MjU6MDQgdGlt
+Ym8ga2VybmVsOiBidHR2MDogdXNpbmc6IEJUODc4KEhhdXBwYXVnZSAoYnQ4NzgpKSAKW2NhcmQQ
+LGluc21vZCBvcHRpb25dCkp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6IGJ0dHYwOiBIYXVw
+cGF1Z2UvVm9vZG9vIG1zcDM0eHg6IHJlc2V0IApsaW5lIGluaXQgWzVdCkp1bCAgNCAxNDoyNTow
+NCB0aW1ibyBrZXJuZWw6IFVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBhZ2luZyByZXF1ZXN0IAph
+dCB2aXJ0dWFsIGFkZHJlc3MgMGQ4M2UxNGUKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDog
+IHByaW50aW5nIGVpcDoKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogMGQ4M2UxNGUKSnVs
+ICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogKnBkZSA9IDAwMDAwMDAwCkp1bCAgNCAxNDoyNTow
+NCB0aW1ibyBrZXJuZWw6IE9vcHM6IDAwMDAKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDog
+Q1BVOiAgICAwCkp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6IEVJUDogICAgMDAxMDpbPDBk
+ODNlMTRlPl0gICAgTm90IHRhaW50ZWQKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogRUZM
+QUdTOiAwMDAxMDI5MgpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiBlYXg6IGUxNGYxMmUw
+ICAgZWJ4OiBlMTRmMTJlMCAgIGVjeDogCmUxNGY5NzY0ICAgZWR4OiAwMDAwMDAwMApKdWwgIDQg
+MTQ6MjU6MDQgdGltYm8ga2VybmVsOiBlc2k6IGUxNGY5NzI4ICAgZWRpOiAwMDAwMDAwMSAgIGVi
+cDogCjAwMDAwMDAwICAgZXNwOiBkNDY4ZGJlMApKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVs
+OiBkczogMDAxOCAgIGVzOiAwMDE4ICAgc3M6IDAwMTgKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtl
+cm5lbDogUHJvY2VzcyBtb2Rwcm9iZSAocGlkOiAxNDQzLCAKc3RhY2twYWdl1DY4ZDAwMCkKSnVs
+ICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogU3RhY2s6IGUxNDlkMDdiIDgwMTAwNWZmIDAwMDAw
+MDAwIApjMDIzNzA0OCAwMDAwMDI5MiAwMDAwMDI5MiBjMDIzNzA0OCBlMTRmOTc2NCAKSnVsICA0
+IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICAgICAgIGUxNDlkYmQ0IGUxNGYxMmUwIGMwMjM3MDQ4
+IApjMDIzNzA0OCBjMDIzNzA0OCAwMDAwMDAwMCBjMDI3OWRjMCBlMTRmMTJlMCAKSnVsICA0IDE0
+OjI1OjA0IHRpbWJvIGtlcm5lbDogICAgICAgIGUxNGY5NzY0IGUxNGY5NzI4IDAwMDAwMDAxIAow
+MDAwMDAwMCBlMTQ2YWM1MSBlMTRmOTcyOCBkNDY4ZGM4NCAwMDAwMDAwMSAKSnVsICA0IDE0OjI1
+OjA0IHRpbWJvIGtlcm5lbDogQ2FsbCBUcmFjZTogICAgCltpcHRfTUFTUVVFUkFERTpfX2luc21v
+ZF9pcHRfTUFTUVVFUkFERV9PL2xpYi9tb2R1bGVzLzIuNC4yMS9rZXJuZWwvbmV0L2lwdistMjk4
+ODg1LzEyOF0gCls8ZTE0Zjk3NjQ+XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNR
+VUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky0yOTU5ODAvMTI4XSAK
+WzxlMTRmMTJlMD5dIFs8ZTE0ZjEyZTA+XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAg
+IFs8ZTE0Zjk3NjQ+XSBbPGUxNGY5NzI4Pl0gCltpcHRfTUFTUVVFUkFERTpfX2luc21vZF9pcHRf
+TUFTUVVFUkFERV9PL2xpYi9tb2R1bGVzLzIuNC4yMS9rZXJuZWwvbmV0L2lwdistNTA0NzUxLzEy
+OF0gCls8ZTE0Zjk3Mjg+XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNRVUVSQURF
+X08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky0yOTYwMDQvMTI4XSAKW2lwdF9N
+QVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNRVUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tl
+cm5lbC9uZXQvaXB2Ky01MDEyMjYvMTI4XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAg
+IFs8ZTE0Zjk3Mjg+XSBbZmJjb25fc2Nyb2xsKzE5NjIvMzIxNl0gCltpcHRfTUFTUVVFUkFERTpf
+X2luc21vZF9pcHRfTUFTUVVFUkFERV9PL2xpYi9tb2R1bGVzLzIuNC4yMS9rZXJuZWwvbmV0L2lw
+distNTAwMzA3LzEyOF0gCls8ZTE0Zjk3Mjg+XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lw
+dF9NQVNRVUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky0yOTE2NDgv
+MTI4XSAKW2lwdF9NQVNRVUVSQURFOl9faW5zbW9kX2lwdF9NQVNRVUVSQURFX08vbGliL21vZHVs
+ZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2Ky00NjQ0MTYvMTI4XQpKdWwgIDQgMTQ6MjU6MDQgdGlt
+Ym8ga2VybmVsOiAgIApbaXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9s
+aWIvbW9kdWxlcy8yLjQuMjEva2VybmVsL25ldC9pcHYrLTQ2NDgxNi8xMjhdIApbaXB0X01BU1FV
+RVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVs
+L25ldC9pcHYrLTQ3NTIyMS8xMjhdIApbPGUxNGY5NzI4Pl0gWzxlMTRmOTcyOD5dIApbaXB0X01B
+U1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2Vy
+bmVsL25ldC9pcHYrLTQ5NDIwOC8xMjhdIApbaXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01B
+U1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVsL25ldC9pcHYrLTQ2NjgyNi8xMjhd
+Ckp1bCAgNCAxNDoyNTowNCB0aW1ibyBrZXJuZWw6ICAgWzxlMTRmOTcyOD5dIApbaXB0X01BU1FV
+RVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVs
+L25ldC9pcHYrLTQ2NDQxNi8xMjhdIApbaXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FV
+RVJBREVfTy9saWIvbW9kdWxlcy8yLjQuMjEva2VybmVsL25ldC9pcHYrLTQ2NjgyMC8xMjhdIApb
+aXB0X01BU1FVRVJBREU6X19pbnNtb2RfaXB0X01BU1FVRVJBREVfTy9saWIvbW9kdWxlcy8yLjQu
+MjEva2VybmVsL25ldC9pcHYrLTUwNzU4MS8xMjhdIApbPGUxNGY5NzI4Pl0gW3ZzbnByaW50Zis1
+NDUvMTEwNF0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICBbPGUxNGY5NzJmPl0gWzxl
+MTRmOTU4MD5dIFs8ZTE0Zjk3Mjg+XSAKWzxlMTRmOTgwYz5dIFs8ZTE0Zjk3MmU+XSBbPGUxNGY5
+NzI4Pl0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICAKW2lwdF9NQVNRVUVSQURFOl9f
+aW5zbW9kX2lwdF9NQVNRVUVSQURFX08vbGliL21vZHVsZXMvMi40LjIxL2tlcm5lbC9uZXQvaXB2
+Ky0yOTU2MjMvMTI4XSAKWzxlMTRmOTcyOD5dIFs8ZTE0ZjRjZDc+XSBbc3ByaW50ZiszMS80OF0g
+WzxlMTRmOTcyZD5dIFs8ZTE0ZjRjZDM+XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAg
+IFs8ZTE0Zjk1ODA+XSBbPGUxNGYxNzI0Pl0gWzxlMTRmOTcyOD5dIApbPGUxNGY5NTgwPl0gWzxl
+MTRlZDA2YT5dIFs8ZTE0Zjk1ODA+XQpKdWwgIDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAgIFtw
+Y2lfc2V0X21hc3Rlcis1Mi85Nl0gWzxlMTRmOTU4MD5dIApbPGUxNGVkY2Y2Pl0gWzxlMTRmOTU4
+MD5dIFs8ZTE0ZWQxMTA+XSBbPGUxNGYzZTljPl0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5l
+bDogICBbPGUxNGY5NTgwPl0gW3ByaW50aysyNzkvMzM2XSAKWzxlMTRmNTQzOD5dIFs8ZTE0ZjU0
+YTA+XSBbcGNpX2Fubm91bmNlX2RldmljZSs1My8xMTJdIFs8ZTE0ZjU0Mzg+XQpKdWwgIDQgMTQ6
+MjU6MDQgdGltYm8ga2VybmVsOiAgIFs8ZTE0ZjU0YTA+XSAKW3BjaV9yZWdpc3Rlcl9kcml2ZXIr
+OTIvOTZdIFs8ZTE0ZjU0YTA+XSBbPGUxNGVkZTYxPl0gWzxlMTRmNTRhMD5dIApbc3lzX2luaXRf
+bW9kdWxlKzEyMDEvMTU4NF0KSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDogICBbPGUxNGU4
+MDYwPl0gWzxlMTRmNGYzYz5dIFs8ZTE0ZTgwNjA+XSAKW3N5c3RlbV9jYWxsKzUxLzU2XQpKdWwg
+IDQgMTQ6MjU6MDQgdGltYm8ga2VybmVsOiAKSnVsICA0IDE0OjI1OjA0IHRpbWJvIGtlcm5lbDog
+Q29kZTogIEJhZCBFSVAgdmFsdWUuCg==
