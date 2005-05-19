@@ -1,38 +1,37 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: [PATCH 2.4] I2C updates for 2.4.31-pre1 (3/3)
-Message-Id: <20050501200340.51c339f2.khali@linux-fr.org>
+From: yyz001@euroseek.com (Virgil)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: HP ze4145
+Message-Id: <web-2276317@euroseek.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050501185236.2f76a5ba.khali@linux-fr.org>
-In-Reply-To: <20050501185236.2f76a5ba.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
 
-Fix an iteration bug in the handling of i2c client module parameters.
-The "force" module parameter is a list of adapter, address pairs, not
-triplets. The current code would only handle the first, fourth, seventh
-etc. pairs properly. I guess that nobody ever needed more than one pair,
-or the bug would have been noticed way earlier. This bug was originally
-fixed by myself in Linux 2.6.
+Hello,
 
-http://marc.theaimsgroup.com/?l=linux-kernel&m1231616107325
-http://linux.bkbits.net:8080/linux-2.5/diffs/drivers/i2c/i2c-core.c@1.66
+I own an HP Pavilion ze4145 which uses the ALi M7101 PMU 
+(i2c-ali1535). Since this driver is still in beta stage, I 
+was wondering if you guys know about the omnibook module 
+written by Soos Peter (sp@osb.hu) and available at 
+http://sourceforge.net/projects/omke. By using this module 
+I can read (among other things) the CPU's temperature 
+using /proc/omnibook/temperature.
 
---- linux-2.4.30-rc1/drivers/i2c/i2c-core.c.orig	2005-03-10 19:57:34.000000000 +0100
-+++ linux-2.4.30-rc1/drivers/i2c/i2c-core.c	2005-03-27 19:09:46.000000000 +0200
-@@ -851,7 +851,7 @@
- 		   at all */
- 		found = 0;
- 
--		for (i = 0; !found && (address_data->force[i] != I2C_CLIENT_END); i += 3) {
-+		for (i = 0; !found && (address_data->force[i] != I2C_CLIENT_END); i += 2) {
- 			if (((adap_id = address_data->force[i]) || 
- 			     (address_data->force[i] = ANY_I2C_BUS)) &&
- 			     (addr = address_data->force[i+1])) {
+If you need information about this notebook do not 
+hesitate to ask me.
+
+kernel 2.4.20
+lm-sensors-2.7.0
+omnibook-2003-01-27
 
 
--- 
-Jean Delvare
+Best regards,
+Virgil
+-------------------------------------------------
+Search for pictures with Euroseek Image Search
+http://euroseek.com/image_search/
+
+Euroseek Translation
+http://www.euroseek.com/translator/
+
