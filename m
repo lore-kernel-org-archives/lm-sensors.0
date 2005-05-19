@@ -1,47 +1,29 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:36 +0000
-Subject: Call for 2.6.4 soon
-Message-Id: <3D36F5AD.5108BD4@paradyne.com>
+From: tk0624c@yahoo.com.tw (=?big5?q?joce?=)
+Date: Thu, 19 May 2005 06:23:50 +0000
+Subject: some problem with insall hotappet.
+Message-Id: <20030319192915.99582.qmail@web16610.mail.tpe.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3D23A01C.3AED3F70@paradyne.com>
-In-Reply-To: <3D23A01C.3AED3F70@paradyne.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Phil,
-
-We are ready.
-Please release 2.6.4 at your convenience.
-
-Everybody else, please refrain from checking anything in until the release is done.
-
-thanks
-mds
-
-
-"Mark D. Studebaker" wrote:
-> 
-> Last call for 2.6.4.
-> 
-> Please refrain from checking in any new drivers.
-> Please check in remaining fixes this weekend, or by Tuesday July 16th.
-> Abraham please get prog/sensors/chips.c compiling again.
-> If anybody needs any help let us know.
-> 
-> thanks
-> mds
-> 
-> "Mark D. Studebaker" wrote:
-> >
-> > If there's no objections,
-> > I'd like to release 2.6.4 in mid-July.
-> > I have one more rewrite of the SMBus 2.0 stuff in i2c-core.c to do in
-> > the next few days.
-> >
-> > If anybody has anything else
-> > to submit please do so or let us know it's coming.
-> >
-> > thanks
-> > mds
+aGVsbG86CgoxLgpjYW4gaSBpbnN0YWxsIGl0KGhvdGFwcGxldCkgb24gbm90ZWJvb2soSUJNIFRo
+aW5rUGFkClIzMik/CgoyLgpteSBzeXN0ZW0gaXMgcmVkaGF0IGxpbnV4IDguMC4KaSBpbnN0YWxs
+ZWQgImxpYmdub21ldWkiICJsaWJwYW5lbC1hcHBsZXQiICJsaWJnbGFkZSIgCiAgIHBhY2thZ2Uu
+CmJ1dCx3aGVuIGkgY29uZmlnIGl0IHBvc3QgZXJyb3IgbWVzc2FnZSA6CioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqCmNoZWNraW5nIGZvciBs
+aWJnbm9tZXVpLTIuMCBsaWJwYW5lbGFwcGxldC0yLjAKbGliZ2xhZGUtMi4wLi4uIFBhY2thZ2Ug
+bGliZ25vbWUtMi4wIHdhcyBub3QgZm91bmQgaW4KdGhlIHBrZy1jb25maWcgc2VhcmNoIHBhdGgu
+ClBlcmhhcHMgeW91IHNob3VsZCBhZGQgdGhlIGRpcmVjdG9yeSBjb250YWluaW5nCmBsaWJnbm9t
+ZS0yLjAucGMnCnRvIHRoZSBQS0dfQ09ORklHX1BBVEggZW52aXJvbm1lbnQgdmFyaWFibGUKUGFj
+a2FnZSAnbGliZ25vbWUtMi4wJywgcmVxdWlyZWQgYnkgJ2xpYmdub21ldWknLCBub3QKZm91bmQK
+CmNvbmZpZ3VyZTogZXJyb3I6IExpYnJhcnkgcmVxdWlyZW1lbnRzIChsaWJnbm9tZXVpLTIuMAps
+aWJwYW5lbGFwcGxldC0yLjAgbGliZ2xhZGUtMi4wKSBub3QgbWV0OyBjb25zaWRlcgphZGp1c3Rp
+bmcgdGhlIFBLR19DT05GSUdfUEFUSCBlbnZpcm9ubWVudCB2YXJpYWJsZSBpZgp5b3VyIGxpYnJh
+cmllcyBhcmUgaW4gYSBub25zdGFuZGFyZCBwcmVmaXggc28KcGtnLWNvbmZpZyBjYW4gZmluZCB0
+aGVtLgoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKgpjYW4geW91IHRlYWNoIG1lIGhvdyB0byBmaXggaXQ/Cgp0aGFuayB5b3WhSaFJCgoKLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KqEOk0bOjIFlhaG9vIalfvK8KuNO0q6R1p0CkRrbcPyAtIMCwp0G64qVYs8ymWL5Bqrqo
+RMK+pOimVgpodHRwOi8vZmF0ZS55YWhvby5jb20udHcvCg==
