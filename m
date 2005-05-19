@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:46 +0000
+Date: Thu, 19 May 2005 06:24:47 +0000
 Subject: DS1621 support for kernel 2.6 (new patch)
-Message-Id: <20040310232748.0dc9dbea.khali@linux-fr.org>
+Message-Id: <20040313234834.3624030c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040306213810.GA14805@pc.aurel32.private>
 In-Reply-To: <20040306213810.GA14805@pc.aurel32.private>
@@ -10,89 +10,211 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aurelien,
+> > +#define ALARMS_FROM_REG(val) (!(!((val) & \
+> > +                              (DS1621_ALARM_TEMP_HIGH |
+> > DS1621_ALARM_TEMP_LOW))))
+> > 
+> > The double negation makes this macro hardly readble. Care to
+> > reformulate?
+> 
+> The double negation is used to convert a number equal to zero or
+> different to zero to a number equal to 0 or 1.
+> 
+> I don't have a lot of idea to reformulate it, I used:
+> 
+> #define ALARMS_FROM_REG(val) (((val) & \
+> 			      (DS1621_ALARM_TEMP_HIGH |
+> 			       DS621_ALARM_TEMP_LOW)) & \
+> 			       1)
+> 
+> Maybe you have a better idea.
 
-Sorry for the delay. See my comments inline.
+The problem is, I don't see what you are trying to do. The original
+driver has:
 
+#define ALARMS_FROM_REG(val) ((val) & \
+                              (DS1621_ALARM_TEMP_HIGH | DS1621_ALARM_TEMP_LOW))
 
-+/* Supports DS1621. See doc/chips/ds1621 for details */
+And this is exactly what you are supposed to have. Why did you want to
+change it in the first place?
 
-That comment doesn't make sense here, since doc/chips/ds1621 is not part
-of the Linux 2.6 tree.
+> In fact making the chip to work in non continous mode (starting
+> conversion explicitly), give the possibility to get high resolution
+> temperature (resolution of 0.01?C) instead of standard resolution
+> (0.5?C). In the driver there was a start of 1 shot conversion support,
+> but no routines to get high resolution temperatures.
+> 
+> I removed all routines concerning the continous parameter.
 
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-sensor.h>
-+#include <linux/init.h>
+I prefer it that way. That "extra resolution" feature sounded bloated to
+me. Who needs such a resolution after all?
 
-See lm83.c (for example) for the prefered include order). Also, standard
-debugging stuff is missing here (see lm83.c too).
+> > Polarity
+> > should be left unchanged. 
+> I not really agree with that. The polarity parameter doesn't control
+> the polarity of the alarms, but rather the polarity of the output pin.
+> On my circuit, this pin activates a relay, and the polarity would be
+> different if you want to connect an heater or an air conditionner!
 
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { I2C_CLIENT_END };
-+static unsigned short normal_i2c_range[] = { 0x48, 0x4f, I2C_CLIENT_END };
-+static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
-+static unsigned int normal_isa_range[] = { I2C_CLIENT_ISA_END };
-+
-+/* Insmod parameters */
-+SENSORS_INSMOD_1(ds1621);
-+
-+/* Many DS1621 constants specified below */
-+
-+/* Config register used for detection         */
-+/*  7    6    5    4    3    2    1    0      */
-+/* |Done|THF |TLF |NVB | 1  | 0  |POL |1SHOT| */
+I usually object that BIOSes are supposed to set things up for you, but
+it of course doesn't apply in this case.
 
-Please merge these comments into a single one.
+Don't you think it should be a module parameter instead? I don't think
+that's the kind of setting you want to change at runtime. I'd suggest
+that you leave the polarity unchanged by default, and force it to 0 or 1
+on user request.
 
-+#define DS1621_REG_CONFIG_MASK 		0x0C
-+#define DS1621_REG_CONFIG_VAL 		0x08
-+#define DS1621_REG_CONFIG_POLARITY 	0x02
-+#define DS1621_REG_CONFIG_1SHOT 	0x01
-+#define DS1621_REG_CONFIG_DONE 		0x80
+If you don't like the idea, then we have to find a correct name for the
+sysfs file. Whenever possible, sysfs names should express precisely what
+they represent.
 
-Please use tabs and *only* tabs for alignements. In your patch, all
-constants seem to have a trailing white space before aligning tabs.
+On the patch itself:
 
-+#define TEMP_FROM_REG(val) ((((val & 0x7fff) >> 7) * 500) | \
-+                            ((val & 0x8000)?-256:0))
-+#define TEMP_TO_REG(val)   (SENSORS_LIMIT((val<0 ? (0x200+((val)/500))<<7 : \
-+                                          (((val) + 2) / 5) << 7),0,0xffff))
+> /* The DS1621 registers */
+> #define DS1621_REG_TEMP			0xAA /* word, RO */
+> #define DS1621_REG_TEMP_OVER		0xA1 /* word, RW */
+> #define DS1621_REG_TEMP_HYST		0xA2 /* word, RW -- it's a low temp trigger */
+> #define DS1621_REG_CONF			0xAC /* byte, RW */
+> #define DS1621_REG_TEMP_COUNTER		0xA8 /* byte, RO */
+> #define DS1621_REG_TEMP_SLOPE		0xA9 /* byte, RO */
+> #define DS1621_COM_START		0xEE /* no data */
+> #define DS1621_COM_STOP			0x22 /* no data */
 
-I think that the defines in lm75.h would do the same, more cleanly.
+DS1621_REG_TEMP_COUNTER, DS1621_REG_TEMP_SLOPE and DS1621_COM_STOP are
+unused. Removing them completely would simplify ds1621_read_value and
+ds1621_write_value much.
 
-+#define ALARMS_FROM_REG(val) (!(!((val) & \
-+                              (DS1621_ALARM_TEMP_HIGH | DS1621_ALARM_TEMP_LOW))))
+> static u16 swap_bytes(u16 val)
+> {
+> 	return (val >> 8) | (val << 8);
+> }
 
-The double negation makes this macro hardly readble. Care to
-reformulate?
+This should be inlined in lm75.h IMHO, but let's leave this for later.
 
-+#define ITEMP_FROM_REG(val) (((((val & 0x7fff) >> 8)) | \
-+                            ((val & 0x8000)?-256:0)) * 100)
+> 
+> /* All registers are word-sized, except for the configuration register.
+>    DS1621 uses a high-byte first convention, which is exactly opposite to
+>    the usual practice. */
+> static int ds1621_read_value(struct i2c_client *client, u8 reg)
+> {
+> 	if ((reg = DS1621_REG_CONF) || (reg = DS1621_REG_TEMP_COUNTER)
+> 	    || (reg = DS1621_REG_TEMP_SLOPE))
+> 		return i2c_smbus_read_byte_data(client, reg);
+> 	else
+> 		return swap_bytes(i2c_smbus_read_word_data(client, reg));
+> }
+> 
+> /* All registers are word-sized, except for the configuration register.
+>    DS1621 uses a high-byte first convention, which is exactly opposite to
+>    the usual practice. */
+> static int ds1621_write_value(struct i2c_client *client, u8 reg, u16 value)
+> {
+> 	if ( (reg = DS1621_COM_START) || (reg = DS1621_COM_STOP) )
+> 		return i2c_smbus_write_byte(client, reg);
+> 	else
+> 	if ((reg = DS1621_REG_CONF) || (reg = DS1621_REG_TEMP_COUNTER)
+> 	    || (reg = DS1621_REG_TEMP_SLOPE))
+> 		return i2c_smbus_write_byte_data(client, reg, value);
+> 	else
+> 		return i2c_smbus_write_word_data(client, reg,
+> 						 swap_bytes(value));
+> }
 
-This one looks wrong. I'd say *1000, not *100. Anyway, this macro is
-used only to feed data->temp_int, which is never used as far as I can
-see. Looks like all this stuff is useless...Same for temp_counter and
-temp_slope?
+The comments don't match the code, but it doesn't matter much if you get
+rid of DS1621_REG_TEMP_COUNTER and DS1621_REG_TEMP_SLOPE completely.
 
-As a more general advice, I'd suggest that you simplify the driver as
-much as possible. The DS1621 seems to be a really simple chip and I can
-hardly believe that the driver would be so big.
+I don't think I would include DS1621_COM_START in ds1621_write_value,
+since it's used only once and isn't a real write. But maybe that's just
+me.
 
-For example, I wonder why the "continuous" parameter should be
-configurable. All drivers work in continuous mode by default. Polarity
-should be left unchanged. Chip should not need to be restarted. The "I
-screw up the chip once" comment is a developper issue. Regular users
-have no way (hopefully) to screw up anything, so this parameter is
-likely to be useless.
+> static DEVICE_ATTR(temp_hyst1, S_IWUSR | S_IRUGO , show_temp_hyst, set_temp_hyst);
+> static DEVICE_ATTR(temp_max1, S_IWUSR | S_IRUGO, show_temp_over, set_temp_over);
 
-I'll have to read the DS1621 (and possibly DS1625) datasheet to make
-sure I understand correctly how the chip(s) work, but I expect us to be
-able to simplify the driver much.
+BTW, is it an hysteresis or a min limit? After a quick look at the
+DS1621 datasheet, I'm not absolutely sure. It looks like an hysteresis
+for the output but a min for the alarm flags. Doesn't make much sense to
+me. Any chance you can clarify the situation?
 
-Thanks for you work. Please tell me how you do feel about my comments
-and suggestion, so that we can go on with this port.
+Also, we just changed the sysfs naming conversions. Please see
+Documentation/i2c/sysfs-interface in 2.6.4-mm1 or after applying this
+page on top of 2.6.4:
+http://delvare.nerim.net/i2c/linux-2.6/linux-2.6.4-i2c.patch.gz
+
+Baically, the idea is that temp_max1 becomes temp1_max, etc...
+
+> 	/* Make sure we aren't probing the ISA bus!! This is just a safety check
+> 	   at this moment; i2c_detect really won't call us. */
+> 	if (i2c_is_isa_adapter(adapter)) {
+> 		dev_dbg(&adapter->dev, 
+> 		        "ds1621.o: ds1621_detect called for an ISA bus adapter?!?\n");
+> 		return 0;
+> 	}
+
+This block isn't needed. The functionality check below it does the same
+as a side effect.
+
+>         memset(new_client, 0, sizeof(struct i2c_client) +
+> 	       sizeof(struct ds1621_data));
+
+Bad indentation.
+
+> 	/* Now, we do the remaining detection. It is lousy. */
+> 	if (kind < 0) {
+> 		conf = i2c_smbus_read_byte_data(new_client,
+> 						DS1621_REG_CONF);
+
+Don't you use ds1621_read_value here? (This is a true question, I don't
+know if this was not done on purpose in the first place.)
+
+> 		if ((conf & DS1621_REG_CONFIG_MASK)
+> 		    != DS1621_REG_CONFIG_VAL)
+> 			goto ERROR2;
+> 	}
+
+The detection could be improved by reading temperatures (the three of
+them) and check that the 7 lower bits are clear. This is how things are
+done in sensors-detect.
+
+> 	if (kind = ds1621) {
+> 		client_name = "ds1621";
+> 	} else {
+> 		dev_dbg(&adapter->dev,
+> 		        "ds1621.o: Internal error: unknown kind (%d)?!?",
+> 		        kind);
+> 		goto ERROR2;
+> 	}
+
+The "else" block is useless. Several drivers used to do that, but I've
+just submitted a patch that fixes this.
+
+> 	/* Fill in remaining client fields and put it into the global list */
+> 	strlcpy(new_client->name, client_name, I2C_NAME_SIZE);
+
+You could even hardcode "ds1621" here and save some bytes. It's unlikely
+that such on old driver will be extended to support an additional chip.
+
+> /* OK, this is not exactly good programming practice, usually. But it is
+>    very code-efficient in this case. */
+>       ERROR2:
+> 	kfree(new_client);
+>       ERROR1:
+>       ERROR0:
+> 	return err;
+
+Merge ERROR0 and ERROR1, and rename labels to exit_free and exit.
+
+A few more things:
+
+1* Don't hesitate to credit yourself for porting the driver.
+
+2* Please provide a patch against 2.6.4-mm1 (or 2.6.4 + the patch
+mentioned above). There were changes made to Makefile and Kconfig, your
+previous patch wouldn't have applied cleanly.
+
+3* Do you know if there are differences between the DS1621 and the
+DS1625? The driver is supposed to support both.
+
+Thanks.
 
 -- 
 Jean Delvare
