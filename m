@@ -1,40 +1,42 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: [PATCH] i2c driver changes for 2.5.64
-Message-Id: <20030314085305.GB3084@kroah.com>
+Message-Id: <20030314085618.GD3084@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <10476033153504@kroah.com> <1047603318248@kroah.com> <20030314082142.B11701@infradead.org>
-In-Reply-To: <20030314082142.B11701@infradead.org>
+References: <20030314005027.GA1923@kroah.com> <10476033153504@kroah.com> <20030314081904.A11701@infradead.org>
+In-Reply-To: <20030314081904.A11701@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Christoph Hellwig <hch@infradead.org>, linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-On Fri, Mar 14, 2003 at 08:21:42AM +0000, Christoph Hellwig wrote:
-> On Thu, Mar 13, 2003 at 04:55:00PM -0800, Greg KH wrote:
-> > ChangeSet 1.1106, 2003/03/13 10:50:41-08:00, greg@kroah.com
-> > 
-> > i2c: get i2c-ali15x3 driver to actually bind to a PCI device.
+On Fri, Mar 14, 2003 at 08:19:04AM +0000, Christoph Hellwig wrote:
+> > +/* Internally used pause function */
+> > +void ali15x3_do_pause(unsigned int amount)
+> > +{
+> > +	current->state = TASK_INTERRUPTIBLE;
+> > +	schedule_timeout(amount);
+> > +}
 > 
-> OOPS, should take a look at all patches first before complaining :)
+> I think this should be moved to linux/kernel.h as delay() - I've seen
+> it duplicated in so much code (including XFS)
 
-Heh :)
+I'll move this.  I think I have this in the usb.h header file too :)
 
-Yes, for the first changeset I just took the cvs version of the driver
-and added it.
+> > +#ifdef DEBUG
+> > +	printk
+> > +	    ("i2c-ali15x3.o: Transaction (pre): STS=%02x, CNT=%02x, CMD=%02x, ADD=%02x, DAT0=%02x, "
+> > +	     "DAT1=%02x\n", inb_p(SMBHSTSTS), inb_p(SMBHSTCNT),
+> > +	     inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
+> > +	     inb_p(SMBHSTDAT1));
+> > +#endif
+> 
+> use pr_debug() here.
 
-Then I went and made the driver work, and started to clean it up.  These
-drivers still need a lot of cleanup (static, printk, indentation in
-places, etc.) and I'll be doing it.  This is a work in progress.  I
-wanted to make baby steps with these things and not just do one
-changeset with a description that said:
-	Took cvs version of driver and cleaned up everything
+In the next round of patches I'm using dev_dbg() and other dev_*
+functions for the printk calls, now that we have device support for the
+adapters.
 
-I'm trying to bridge the gap between the sensor developers and the
-kernel group.  Hopefully by working this way it will help integrate them
-more into the kernel community, and get these drivers whipped into
-shape.
-
-thanks for looking these over.
+thanks,
 
 greg k-h
