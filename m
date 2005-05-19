@@ -1,20 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:57 +0000
-Subject: lm_sensors2/kernel/chips asb100.c
-Message-Id: <200405111534.i4BFYJJK089106@zone3.gcu-squad.org>
+From: mds4@verizon.net (Mark Studebaker)
+Date: Thu, 19 May 2005 06:24:41 +0000
+Subject: lm_sensors on freshmeat
+Message-Id: <402FE285.1000607@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040508154719.4d486f2f.khali@linux-fr.org>
-In-Reply-To: <20040508154719.4d486f2f.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I didn't do either of the last 2 announcements.
+Anybody can do it.
+Anybody on this list do them?
 
->Looks right... although now I understand the comment about it being
->odd code ;) Works OK here too.
-
-Well, as I told to Greg previously, anyone with a less odd solution is
-welcome to speak up. I would qualify my code as odd. Unusual, for sure ;)
-
-Jean
+Jean Delvare wrote:
+> Hi Mark,
+> 
+> Just noticed a few issues with the latest annouce you made on Freshmeat:
+> 
+> 1* This is w83_L_785ts, not 1.
+> 
+> 2* You don't mention the fact that this release was mainly meant for
+> Linux 2.6.2 users.
+> 
+> I don't know if you have the possibility to change the release text
+> afterwards...
+> 
+> Also, a more general comment: searching "sensors" on Freshmeat returns
+> the lm_sensors entry at position 25 only. Maybe some rewording in the
+> short and/or long descriptions of the project could help?
+> 
+> Thanks.
+> 
