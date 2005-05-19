@@ -1,7 +1,7 @@
-From: bradley@greystate.com (Bradley Schatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: Single fan sensor not detected
-Message-Id: <1084367766.4429.19.camel@angel>
+Message-Id: <20040512214143.3e8a02fc.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <40A042B0.6060907@greystate.com>
 In-Reply-To: <40A042B0.6060907@greystate.com>
@@ -10,40 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean.
+> All is working now. Thanks again. Do the it87 series of chips ever
+> support pwm?
 
-> Aha, it wasn't meant to be a smiley. I just missed the opening
-> parenthesis. Glad it helped anyway. However this means that your fan is
-> really, really slow. Maybe this explains why your system is so hot?
-> 
-> >> As hot has hell! Hardly believable. Maybe you need to change the sensor
-> >> type?
-> >
-> >Changing the sensor type starts to give negative temperatures.
-> 
-> Hm OK, so they had to be correct in the first place.
-> 
+Yes, the chip supports and even has automatic fan speed control. The 2.4
+driver has support for both. Takeru was working on adding support to the
+2.6 driver but suddenly vanished. I hope he's OK...
 
-Could it be that the fan is not being driven fast enough by bios/io chip
-settings? Or maybe the CPU fan is just a little flaky. Any ideas?
- 
-It is a Gigabyte GA-7VKML motherboard. VIA KM266 & VT8233A + IT8705F.
+Recently, Jonas Munsin started from Takeru's preliminary patch and
+completed the work. You can see his patch here:
+  http://people.debian.org/~jmunsin/it87.patch2
 
-> > The it87 & lm90  M/B temp are starting to agree.
-> 
-> It's both encouraging (means we are probably measuring the temperature
-> correctly) and frightening (would your system need additional fans?)
-> 
-> > However the it87 CPU temp looks almost 2X the lm90 one.
-> 
-> This is odd. Do you have any conversion formula set in the configuration
-> file?
-> 
+Hopefully this will be integrated into the main driver soon. Testing is
+welcome!
 
-I checked and this was a part of the problem. It looks like it still may
-need some tweaking.
+> Driver `it87' (should be inserted but causes problems):
+>   Detects correctly:
+>   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+>     Chip `ITE 8705F Super IO Sensors' (confidence: 9)
+>   Misdetects:
+>   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+>     Chip `ITE IT8705F / IT8712F / SiS 950' (confidence: 8)
 
-Cheers,
+BTW I have fixed this horrible bug in CVS. Sensors-detect should now be
+more clever and see that this is the same driver for the same chip and
+display only one. Care to test?
 
-bradley
+Thanks.
 
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
