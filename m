@@ -1,12 +1,30 @@
-From: cshx@adelphia.net (c.s.h.)
-Date: Thu, 19 May 2005 06:23:37 +0000
+From: ville.jutvik@home.se (Ville Jutvik)
+Date: Thu, 19 May 2005 06:23:38 +0000
 Subject: can you help me fix my screw up?
-Message-Id: <200208240035.41511.cshx@adelphia.net>
+Message-Id: <1030182319.4a609ae0ville.jutvik@home.se>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200208240035.41511.cshx@adelphia.net>
+In-Reply-To: <200208240035.41511.cshx@adelphia.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi 
+
+It seem like your kernel source isn't installed in the right directory. It should be located in /usr/src/linux, please make sure it is so.
+
+I hope you enjoy lm_sensors as much as we do.
+
+Best regards,
+Ville Jutvik
+ville.jutvik@home.se
+
+-----Original Message-----
+From: "c.s.h." <cshx@adelphia.net>
+To: lm78@stimpy.netroedge.com
+Date: Sat, 24 Aug 2002 00:35:41 -0400
+Subject: can you help me fix my screw up?
 
 Hi,
 
@@ -383,6 +401,9 @@ kernel/i2c-core.c:1621: parse error before
 kernel/i2c-core.c:1621: warning: data definition has no type or storage class
 make: *** [kernel/i2c-core.o] Error 1
 [csh@me-bangor2c-186 i2c-2.6.4]$
+
+
+
 
 
 
