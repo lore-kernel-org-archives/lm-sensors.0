@@ -1,68 +1,53 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
+From: gregkh@suse.de (Greg KH)
 Date: Thu, 19 May 2005 06:25:54 +0000
 Subject: [RFC/PATCH 0/22] W1: sysfs, lifetime and other fixes
-Message-Id: <200504260150.00948.dtor_core@ameritech.net>
+Message-Id: <20050426065839.GD5889@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200504210207.02421.dtor_core@ameritech.net> <d120d500050425132250916bcb@mail.gmail.com> <1114497816.8527.66.camel@uganda>
-In-Reply-To: <1114497816.8527.66.camel@uganda>
+References: <200504210207.02421.dtor_core@ameritech.net> <1114089504.29655.93.camel@uganda> <d120d50005042107314cbacdea@mail.gmail.com> <1114420131.8527.52.camel@uganda> <d120d50005042509326241a302@mail.gmail.com>
+In-Reply-To: <d120d50005042509326241a302@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: johnpol@2ka.mipt.ru
-Cc: sensors@stimpy.netroedge.com, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: dtor_core@ameritech.net
+Cc: johnpol@2ka.mipt.ru, sensors@stimpy.netroedge.com, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday 26 April 2005 01:43, Evgeniy Polyakov wrote:
-> On Mon, 2005-04-25 at 15:22 -0500, Dmitry Torokhov wrote:
-> > On 4/25/05, Evgeniy Polyakov <johnpol@2ka.mipt.ru> wrote:
-> > > While thinking about locking schema
-> > > with respect to sysfs files I recalled,
-> > > why I implemented such a logic -
-> > > now one can _always_ remove _any_ module
-> > > [corresponding object is removed from accessible
-> > > pathes and waits untill all exsting users are gone],
-> > > which is very good - I really like it in networking model,
-> > > while with whole device driver model
-> > > if we will read device's file very quickly
-> > > in several threads we may end up not unloading it at all.
+On Mon, Apr 25, 2005 at 11:32:14AM -0500, Dmitry Torokhov wrote:
+> On 4/25/05, Evgeniy Polyakov <johnpol@2ka.mipt.ru> wrote:
+> > On Thu, 2005-04-21 at 09:31 -0500, Dmitry Torokhov wrote:
+> > >
+> > > OK, that is what I am aying. But why do you need that attribute with
+> > > variable name and a bin attribute that is not really bin but just a
+> > > dump for all kind of data (looks like debug one).
 > > 
-> > I am sorrry, that is complete bull*. sysfs also allows removing
-> > modules at an arbitrary time (and usually without annoying "waiting
-> > for refcount" at that)... You just seem to not understand how driver
-> > code works, thus the need of inventing your own schema.
+> > bin attribute was created for lm_sensors scripts format - it only caches
+> > read value.
+> > I think there might be only 2 "must have" methods - read and write.
+> > I plan to implement them using connector, so probably they will go away
+> > completely.
+> ...
+> > > You will not be able to cram all 1-wire devices into unified
+> > > interface. You will need to build classes on top of it and you might
+> > > use connector (I am not sure) bit not on w1 bus level.
+> > > ...
+> > 
+> > connector allows to have different objects inside one netlink group,
+> > so it will use it in that way.
+> > I think only two w1 methods must exist - read and write,
+> > and they must follow protocol, defined in family driver.
 > 
-> Ok, let's try again - now with explanation, 
-> since it looks like you did not even try to understand what I said.
-> If you will remove objects from ->remove() callback
-> you may end up with rmmod being stuck.
-> Explanation: each read still gets reference counter, 
-> while in rmmod path there is a wait until it is zero.
-> If there are too many simultaneous reads - even
-> if each will put reference counter at the end, we still can have
-> non zero refcnt each time we check it in rmmod path.
-> That is why object must be removed from accessible pathes
-> first, and only freed in ->remove() callback.
+> No, I think there should not be any "must have" methods on w1_bus
+> level. What you really need (and this needs to be coordinated with
+> other sensors people) is a "sensors" class hierarchy that will define
+> classes like "temperature sensor", "fan", "vid", etc. Then your w1
+> family drivers, when bound to a slave, will create needed class
+> devices. i2c drivers will do the same, and your superio, and I'll be
+> able to change i8k driver just for kicks. Then your usespace would not
+> care what _bus_ a particular sensor is sittign on and will be
+> presented with a unified interface.
 
-Please try to read the code. device_unregister and kobject_unregister
-do not require caller to wait for the last reference to drop, they rely
-on availability of release method to clean up the object when last user
-is gone. driver_unregister is blocking (like your family code) but
-teardown takes no time. If driver is in use (attributes are open) then
-module refcount is non-zero and instead of (possibly endless) "waiting for
-refcount to drop" message you will get nice -EBUSY.
+Yes, that is the way to go, and is what a number of people are currently
+working on implementing.
 
-If you program so that you wait in module_exit for object release - you
-get what you deserve. 
+thanks,
 
-> > BTW, I am looking at the connector code ATM and I am just amazed at
-> > all wied refounting stuff that is going on there. what a single
-> > actomic_dec_and_test() call without checkng reurn vaue is supposed to
-> > do again?
-> 
-> It has explicit barrieres, which guarantees that
-> there will not be atomic operation vs. non atomic
-> reordering. 
-
-And you can't use explicit barriers - why exactly?
-
--- 
-Dmitry
+greg k-h
