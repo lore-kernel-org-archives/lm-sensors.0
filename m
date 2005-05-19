@@ -1,7 +1,7 @@
-From: kelledin@users.sourceforge.net (Kelledin)
+From: mathog@mendel.bio.caltech.edu (David Mathog)
 Date: Thu, 19 May 2005 06:23:39 +0000
-Subject: Mondo: problem with as99127f-i2c-2d
-Message-Id: <200209101943.33371.kelledin@users.sourceforge.net>
+Subject: Fw: Re: Mondo: problem with as99127f-i2c-2d
+Message-Id: <E17pE06-0003bu-00@mendel.bio.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <E17oqJG-00031L-00@mendel.bio.caltech.edu>
 In-Reply-To: <E17oqJG-00031L-00@mendel.bio.caltech.edu>
@@ -9,6 +9,19 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Kelledin asked me to forward this to you folks.  He says he sent it
+but its stuck in some mail queue.
+
+Regards,
+
+David Mathog
+mathog@caltech.edu
+Manager, Sequence Analysis Facility, Biology Division, Caltech
+
+------------- Forwarded message follows -------------
+
+
 
 On Tuesday 10 September 2002 04:24 pm, you wrote:
 > In any case, this indicates that the problem I'm seeing is not
@@ -62,10 +75,11 @@ developer with appropriate hardware to test on.
 Kelledin
 "If a server crashes in a server farm and no one pings it, does 
 it still cost four figures to fix?"
+
 -------------- next part --------------
 A non-text attachment was scrubbed...
 Name: lm_sensors-2.6.4-asus.patch
 Type: text/x-diff
-Size: 1546 bytes
+Size: 1547 bytes
 Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020910/2008d328/lm_sensors-2.6.4-asus.bin
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020911/ccd44407/lm_sensors-2.6.4-asus.bin
