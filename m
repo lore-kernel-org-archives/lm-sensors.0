@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:55 +0000
 Subject: [RFC PATCH 2.6.12-rc3] dynamic driver sysfs callbacks and RFC on
-Message-Id: <20050428065741.GA12086@kroah.com>
+Message-Id: <nn417158cje74mms51tad9rj2uq7br47kd@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2538186705042422366584aff4@mail.gmail.com>
 In-Reply-To: <2538186705042422366584aff4@mail.gmail.com>
@@ -10,28 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Apr 28, 2005 at 02:44:36AM -0400, Yani Ioannou wrote:
-> On 4/26/05, Greg KH <greg@kroah.com> wrote:
-> > Care to show how a driver would use this change?
-> >
-> > And the void * shouldn't be called ptr, use what other structures call
-> > their void pointers, "data", "private", etc.
-> 
-> Attached is an updated patch (yes ptr is rather redundant...) and also
-> a quickly coded diff between my bmcsensors driver with and without
-> this patch. Note that a real bmcsensors update would also change the
-> sdrd[] array into a linked list and allow a potentially unlimited
-> number of sensors to be seen, since this patch also allows an
-> unlimited number of sysfs entries to be created at runtime, not
-> feasible with static callbacks.
+Hi Greg,
+On Wed, 27 Apr 2005 23:57:41 -0700, Greg KH <greg@kroah.com> wrote:
 
-Ok, you are showing how this works with raw sysfs attributes, that's
-simple.  But you should be using device attributes, how would this patch
-work with them?
+>
+>And how would it work with the 99% of the kernel that doesn't create
+>attributes dynamically on the fly?
 
-And how would it work with the 99% of the kernel that doesn't create
-attributes dynamically on the fly?
+Create an index attribute: write index value, read/write attribute 
+data?  Nothing else need know, just the driver needing unbounded 
+indexed attributes.
 
-thanks,
-
-greg k-h
+--Grant.
