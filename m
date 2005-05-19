@@ -1,34 +1,34 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:30 +0000
-Subject: PATCH (take 3) for adm1026.c, kernel 2.6.10-bk14
-Message-Id: <20050112185513.GB10687@kroah.com>
+From: debry@cereve.enpc.fr (Edouard Debry)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: get CVS ?
+Message-Id: <20040519141143.GA20145@cereve.enpc.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41D5D075.4000200@paradyne.com> <20050101001205.6b2a44d3.khali@linux-fr.org> <20050103194355.GA11979@penguincomputing.com> <20050103201056.3c55e330.khali@linux-fr.org> <20050103213707.GA12765@penguincomputing.com> <20050103205231.GK9923@schnapps.adilger.int> <20050103221249.GB12765@penguincomputing.com> <20050112185055.GB16724@penguincomputing.com>
-In-Reply-To: <20050112185055.GB16724@penguincomputing.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Justin Thiessen <jthiessen@penguincomputing.com>
-Cc: LM Sensors <sensors@Stimpy.netroedge.com>, LKML <linux-kernel@vger.kernel.org>, khali@linux-fr.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Wed, Jan 12, 2005 at 10:50:55AM -0800, Justin Thiessen wrote:
-> Ok, take 3 on the adm1026 patch.
-> 
-> In this patch:
-> 
-> (1) Code has been added which ensures that the fan divisor registers are 
->     properly read into the data structure before fan minimum speeds are 
->     determined.  This prevents a possible divide by zero error.  The line 
->     which reads the hardware default fan divisor values has been reformatted 
->     as suggested by Andreas Dilger to make the intent of the statement clearer.
-> 
-> (2) In a similar spirit, an unecessary carriage return from a "dev_dbg" 
->     statement in the adm1026_print_gpio() function has been elminated,
->     shortening the statement to a single line and making the code easier
->     to read.
-> 
-> Signed-off-by: Justin Thiessen <jthiessen@penguincomputing.com
+Hello,
 
-Applied, thanks.
+I have linux 2.6.6 and I would like to install lm_sensors CVS version
+because of vid pb with 2.8.6 version
 
-greg k-h
+is there an "easy" way to retrieve the CVS version=20
+as a gzipped tar file ?
+
+on the web site it is adviced to use CVS i2c with the CVS lm_sensors, but
+I have already heard that all i2c stuff was already included in 2.6.x
+kernels, so what to do ? do I have to patch the kernel ?
+
+thanks in advance for a few light on these points=20
+
+--=20
+*-----------------------------------------------------------------*
+|                          Edouard DEBRY                          |
+| Ph-D student at E.N.P.C - C.E.R.E.A   http://www.enpc.fr/cerea/ |
+|                                                                 |
+| 21 Rue Nobel, Cit=E9 Descartes        TEL  : 33 1 64 15 21 52     |
+| 77455 CHAMPS SUR MARNE              MAIL : debry@cerea.enpc.fr  |
+|                                                                 |
+| Thesis subject: MODELING OF AN ATMOSPHERIC AEROSOL DISTRIBUTION |
+*-----------------------------------------------------------------*
