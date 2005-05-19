@@ -1,7 +1,7 @@
-From: David.Shue@rl.af.mil (Shue David R Contr AFRL/IFTC)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: lm_sensors
-Message-Id: <2D19F91CE3BEE84884C8004BBC9298DC066202C3@FSJREZ03.adm.rl.af.mil>
+Message-Id: <sovSSBoW.1115884900.2842860.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
 In-Reply-To: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
@@ -10,18 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have a question please...
 
-I run lm_sensor on my machines and some do not seem to be changing ever,
-even with a significant change in room temperature.  If I perform a reboot,
-the temperature does change and to what I believe is a more accurate
-(believable) temperature.  I am beginning to think my temperature sensor
-readings are not updating.  Is there a way to update, restart, stop/start
-the sensors software information providing the data?
+Hi Dmitri,
 
-Thanks in advance.
+> I've a problem with setting fan control. After I find your
+> suggestions on http://lkml.org/lkml/2005/1/19/244 I hope you could help
+> me.
+>
+> I have:
+> Handle 0x0002
+>         DMI type 2, 8 bytes.
+>         Base Board Information
+>                 Manufacturer: Gigabyte Technology Co., Ltd.
+>                 Product Name: 8I845GV
+>                 Version: 1.x
+>
+> lm_sensors detected:
+>
+> # I2C adapter drivers
+> modprobe i2c-i810
+> modprobe i2c-i801
+> modprobe i2c-isa
+> # I2C chip drivers
+> modprobe eeprom
+> modprobe it87
+>
+> But there are no pwm registers in /sys/bus/i2c/devices/*/
 
-Dave
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050511/afb8a37b/attachment.html
+Which kernel version are you using?
+
+Check your logs when loading the it87 driver. Do you see a complaint
+about bogus fan polarity, or any other warning?
+
+--
+Jean Delvare
