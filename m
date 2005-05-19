@@ -1,101 +1,92 @@
-From: andrei@srr.ro (Andrei Boros)
-Date: Thu, 19 May 2005 06:24:45 +0000
-Subject: lm-sensors-2.7.0 on kernel 2.2.17 problems
-Message-Id: <4047004D.82C2C16@srr.ro>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: [PATCH 2.4] i2c cleanups, third wave (2/8)
+Message-Id: <20040111145917.0f29a79f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040111144214.7a6a4e59.khali@linux-fr.org>
+In-Reply-To: <20040111144214.7a6a4e59.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@Stimpy.netroedge.com>
+
+Remove old debugging stuff ("SLO_IO") from two algorithms
+(i2c-algo-bit and i2c-algo-ite). This is unused and wouldn't even
+compile if commented out.
+
+A similar patch was sent to Greg KH for linux 2.6 and was applied in
+2.6.1-rc1.
+
+Note that this patch was voluntarily generated using diff -U2, because
+it contains only removals, so much context isn't required.
 
 
- Hi!
-
-I was trying to compile lm-sensors-2.7.0 on a kernel-2.2.17 system and
-got boggled down with multiple compilation errors. Here's a summary :
-(note : i2c-2.7.0 already compiled and installed, no problems)
-(note : kernel source is a clean tree from www.kernel.org, also
-currently running kernel, headers  are symlinked to the source tree.
-Kernel has a few unrelated enhancement patches. (routing and traffic
-control)).
-
-For both i2c and lm-sensors I used method 1 : separate build.
-
------------------------------------------------------------------
-
-kernel/chips/lm92.c : line 180 : undeclared identifier mutex
-solved by taking the following definition from kernel/buses/ali1535.c
-
-#ifndef DECLARE_MUTEX
-#define DECLARE_MUTEX(name)  struct semaphore name = MUTEX
-#endif /* def DECLARE_MUTEX */
-
------------------------------------------------------------------
-
-Observation : kernel/chips/ds1307 doesn't seem to be activated in the
-makefile.
-
------------------------------------------------------------------
-
-kernel/chips/lm92.c : line 302 : undeclared identifier THIS_MODULE
-solved by adding definition from adm1021.c
-
-#ifndef THIS_MODULE
-#define THIS_MODULE NULL
-#endif
-
------------------------------------------------------------------
-
-kernel/busses/i2c-amd8111.c: In function `amd8111_probe':
-kernel/busses/i2c-amd8111.c:400: `IORESOURCE_IO' undeclared (first use
-in this function)
-kernel/busses/i2c-amd8111.c:400: (Each undeclared identifier is reported
-only once
-kernel/busses/i2c-amd8111.c:400: for each function it appears in.)
-
-Couldn't find a similar identifier in another lm-sensors module, so I
-commented this one in Module.mk
-
------------------------------------------------------------------
-
-Finally, after install, I get this : 
-/lib/modules/2.2.17/misc/smbus-arp.o: unresolved symbol(s)
-Ignored, since I read about it being something for test purposes.
-
-
-Below is a log of the runtime failures (couldn't get anything to work)
------------------------------------------------------------------
-output of lspci
-dingo:~/2/lm_sensors-2.7.0# lspci
-00:00.0 Host bridge: Intel Corporation 440BX/ZX - 82443BX/ZX Host bridge
-(rev 03)
-00:01.0 PCI bridge: Intel Corporation 440BX/ZX - 82443BX/ZX AGP bridge
-(rev 03)
-00:07.0 ISA bridge: Intel Corporation 82371AB PIIX4 ISA (rev 02)
-00:07.1 IDE interface: Intel Corporation 82371AB PIIX4 IDE (rev 01)
-00:07.2 USB Controller: Intel Corporation 82371AB PIIX4 USB (rev 01)
-00:07.3 Bridge: Intel Corporation 82371AB PIIX4 ACPI (rev 02)
-00:09.0 Ethernet controller: Intel Corporation 82557 (rev 08)
-00:0b.0 Multimedia audio controller: Creative Labs SB Live! (rev 07)
-00:0b.1 Input device controller: Creative Labs SB Live! Daughterboard
-(rev 07)
-01:00.0 VGA compatible controller: ATI Technologies Inc: Unknown device
-475a (rev 7a)
-
-sensors-detect : 
-Probing for PCI bus adapters...
-Use driver `i2c-piix4' for device 00:07.3: Intel 82371AB PIIX4 ACPI
-Probe succesfully concluded.
-
-dmesg:
-i2c-piix4.o version 2.7.0 (20021208)
-i2c-piix4.o: Found PIIX4 device
-
-Attempting to load the driver -> insmod hangs.
-(can't be killed)
+diff -U2 -rN linux-2.4.24-pre3/drivers/i2c/i2c-algo-bit.c linux-2.4.24-pre3-k1/drivers/i2c/i2c-algo-bit.c
+--- linux-2.4.24-pre3/drivers/i2c/i2c-algo-bit.c	2003-12-31 14:50:59.000000000 +0100
++++ linux-2.4.24-pre3-k1/drivers/i2c/i2c-algo-bit.c	2004-01-05 09:44:26.000000000 +0100
+@@ -44,20 +44,7 @@
+  	/* debug the protocol by showing transferred bits */
+ 
+-/* debugging - slow down transfer to have a look at the data .. 	*/
+-/* I use this with two leds&resistors, each one connected to sda,scl 	*/
+-/* respectively. This makes sure that the algorithm works. Some chips   */
+-/* might not like this, as they have an internal timeout of some mils	*/
+-/*
+-#define SLO_IO      jif=jiffies;while(time_before_eq(jiffies, jif+i2c_table[minor].veryslow))\
+-                        if (need_resched) schedule();
+-*/
+-
+ 
+ /* ----- global variables ---------------------------------------------	*/
+ 
+-#ifdef SLO_IO
+-	int jif;
+-#endif
+-
+ /* module parameters:
+  */
+@@ -89,7 +76,4 @@
+ 	setscl(adap,0);
+ 	udelay(adap->udelay);
+-#ifdef SLO_IO
+-	SLO_IO
+-#endif
+ }
+ 
+@@ -124,7 +108,4 @@
+ 	}
+ 	DEBSTAT(printk(KERN_DEBUG "needed %ld jiffies\n", jiffies-start));
+-#ifdef SLO_IO
+-	SLO_IO
+-#endif
+ 	return 0;
+ } 
+diff -U2 -rN linux-2.4.24-pre3/drivers/i2c/i2c-algo-ite.c linux-2.4.24-pre3-k1/drivers/i2c/i2c-algo-ite.c
+--- linux-2.4.24-pre3/drivers/i2c/i2c-algo-ite.c	2003-12-31 14:50:59.000000000 +0100
++++ linux-2.4.24-pre3-k1/drivers/i2c/i2c-algo-ite.c	2004-01-05 09:43:53.000000000 +0100
+@@ -61,20 +61,7 @@
+ #define DEF_TIMEOUT 16
+ 
+-/* debugging - slow down transfer to have a look at the data .. 	*/
+-/* I use this with two leds&resistors, each one connected to sda,scl 	*/
+-/* respectively. This makes sure that the algorithm works. Some chips   */
+-/* might not like this, as they have an internal timeout of some mils	*/
+-/*
+-#define SLO_IO      jif=jiffies;while(jiffies<=jif+i2c_table[minor].veryslow)\
+-                        if (need_resched) schedule();
+-*/
+-
+ 
+ /* ----- global variables ---------------------------------------------	*/
+ 
+-#ifdef SLO_IO
+-	int jif;
+-#endif
+-
+ /* module parameters:
+  */
 
 -- 
-ing. Andrei Boros
-mailto:andrei@srr.ro / +40-21-303-1870
-Centrul pt. Tehnologia Informatiei
-Societatea Romana de Radiodifuziune
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
