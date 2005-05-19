@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:46 +0000
 Subject: Ticket #1941: nforce4 support in sensors-detect
-Message-Id: <4246174D.40402@mds.gotdns.com>
+Message-Id: <20050327111035.1b7ab9c6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050325220626.4fdc613c.khali@linux-fr.org>
 In-Reply-To: <20050325220626.4fdc613c.khali@linux-fr.org>
@@ -10,36 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Michael P wrote:
-> Hello,
-> Thank you for a prompt peply.
-> I have not been able to test the patch since the patching process is
-> taking longer than it should for me. I originally used gentoo's
-> portage to install lm_sensors, and I don't know how to patch the
-> ebuild (package) yet. On the other hand, I have yet to successfully
-> compile lm_sensors from source 'manually'.
-> 
-> In the mean time, I decided to give you my lspci info anyways.
-> 
-> Thank you for your time.
-> 
-> 
-> On Fri, 25 Mar 2005 22:06:26 +0100, Jean Delvare <khali@linux-fr.org> wrote:
-> 
->>Hi,
->>
->>Here is a patch to sensors-detect which should add detection for your
->>nForce4 SMBus. Can you please try and report? If it doesn't work, please
->>provide the output of lspci -v and lspci -n.
->>
->>Thanks,
->>--
->>Jean Delvare
->>
->>
->>
+Hi all,
 
-thanks.
-from the lspci outputs it looks like Khali got it right,
-so  Khali please check in your change.
-mds
+[Mark D. Studebaker]
+> from the lspci outputs it looks like Khali got it right,
+> so  Khali please check in your change.
+
+OK, done.
+
+Michael, this means that you can pick the latest CVS version of
+sensors-detect here:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
+
+and give it a try. That should be easier than patching an original
+source tree (this script is in Perl so it doesn't need to be compiled
+anyway).
+
+That being said, it's quite clear that your hardware monitoring chip is
+an IT8712F on the ISA bus, so I don't think sensors-detect will find
+much on the SMBus - if the i2c-nforce2 module you have does support the
+nforce4 at all.
+
+The real problem in your case is that the it87 driver fails to control
+your IT8712F chip. As I said in the support ticket, you should check in
+/proc/ioports if someone else already requested that region.
+
+Thanks,
+-- 
+Jean Delvare
