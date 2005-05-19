@@ -1,99 +1,67 @@
-From: gene.heskett@verizon.net (Gene Heskett)
-Date: Thu, 19 May 2005 06:25:42 +0000
-Subject: 2.6.11-mm2 vs audio for kino and tvtime
-Message-Id: <200503101802.34407.gene.heskett@verizon.net>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:32 +0000
+Subject: Asus P4B266-C
+Message-Id: <20020503123913.C10198@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200503082326.28737.gene.heskett@verizon.net>
- <20050308224441.2e29f895.akpm@osdl.org>
-In-Reply-To: <20050308224441.2e29f895.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@osdl.org>, video4linux-list@redhat.com, linux1394-devel@lists.sourceforge.net, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-On Wednesday 09 March 2005 01:44, Andrew Morton wrote:
->Gene Heskett <gene.heskett@verizon.net> wrote:
->> Greetings Andrew;
->
->g'day.
->
->> 2.6.11-mm2 seems to work, mostly.
->>
->> First, the ieee1394 stuff seems to have fixed up that driver, and
->> kino can access my movie cameras video over the firewire very
->> nicely without applying the bk-ieee1394-patch.  The camera has
->> builtin stereo mics in it, but nary a peep can be heard from it
->> thru the firewire.  Am I supposed to be able to hear that?
->
->Was it working with 2.6.11+bk-ieee1394.patch?  Or with anything
-> else?
 
-Yes, as long as that patch was applied.
+I'm suspecting that the wrong chip driver is being used.  Operation
+(beeping) isn't correct, you are forcing the use of the module w/
+options, and readings are whacked.  Can you confirm the chip on your
+mobo by physically looking?
 
->Cc'ed linux1394-devel@lists.sourceforge.net
->
->> Second, I have a pdHDTV-3000 card, and up till now I've been
->> overwriting the bttv stuffs with the drivers in pcHDTV-1.6.tar.gz
->> by doing a make clean;make;make install.  But now thats broken,
->> and the error message doesn't seem to make sense to this old K&R C
->> guy.
->>
->> The error exit:
->> make[1]: Entering directory `/usr/src/linux-2.6.11-mm2'
->>   CC
->> [M] 
->> /usr/pcHDTV3000/linux/pcHDTV-1.6/kernel-2.6.x/driver/bttv-i2c.o
->> /usr/pcHDTV3000/linux/pcHDTV-1.6/kernel-2.6.x/driver/bttv-i2c.c:36
->>2: error: unknown field `id' specified in initializer
->> /usr/pcHDTV3000/linux/pcHDTV-1.6/kernel-2.6.x/driver/bttv-i2c.c:36
->>2: warning: missing braces around initializer
->> /usr/pcHDTV3000/linux/pcHDTV-1.6/kernel-2.6.x/driver/bttv-i2c.c:36
->>2: warning: (near initialization for
->> `bttv_i2c_client_template.released')
->> make[2]: ***
->> [/usr/pcHDTV3000/linux/pcHDTV-1.6/kernel-2.6.x/driver/bttv-i2c.o]
->> Error 1
->> make[1]: ***
->> [_module_/usr/pcHDTV3000/linux/pcHDTV-1.6/kernel-2.6.x/driver]
->> Error 2
->> make[1]: Leaving directory `/usr/src/linux-2.6.11-mm2'
->> make: *** [modules] Error 2
->>
->> The braces are indeed there.
->
->What's pcHDTV-1.6.tar.gz?  If it was merged up then these things
-> wouldn't happen.
->
->CC'ed video4linux-list@redhat.com
->
->> Third, somewhere between 2.6.11-rc5-RT-V0.39-02 and 2.6.11, I've
->> lost my sensors except for one on the motherboard called THRM by
->> gkrellm-2.28.  Nothing seems to be able to bring the w83627hf back
->> to life.
->
->CC'ed sensors@Stimpy.netroedge.com
 
-That I got, somewhere in trying to build a working kernel without the 
-config_broken, i2c-isa got lost.  Restored that and all is well in 
-that dept.
+Phil
 
-I've got 3 patches that remove the '&& EXPERIMENTAL' from the Kconfigs 
-for the nforce2 stuffs, and even posted one here, but got .000zip 
-response, so I don't know if they are welcome or not...
->
->--
->video4linux-list mailing list
->Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+On Fri, May 03, 2002 at 04:37:13PM -0400, Eric P. McCoy wrote:
+> Hi, I'm trying to get the sensors to work correctly on my ASUS P4B266-C
+> motherboard.  I have read all the relevant information on the lm-sensors
+> web site, in particular the tweaks I need to make on the PCI bus and so
+> on.  Plus the option I need to pass to the w83781d module to get it to
+> recognize my chip.
+> 
+> So anyway, all that works mostly fine and produces useful output on the
+> temperature and so on.  The problem here is that it also enables the
+> goddamn beep-alarm and I _cannot_ get it to shut off without rebooting. 
+> It comes on the second I load the module and will not go off, even if I
+> unload the module.  I suspect the alarm is coming on because temp3 is
+> out of range, but that's because it isn't connected to anything - it
+> just displays 127C.  I edited sensors.conf to tell it to ignore temp3,
+> and that doesn't work: it omits display of that sensor, but doesn't stop
+> the beeping.  I turned off "beep_enable" and now sensors doesn't say
+> it's on any more, but that doesn't stop the beeping either.
+> 
+> The fan display is broken, and the fix detailed in the problem ticket
+> doesn't solve it, but I suspect that's a BIOS issue: according to ASUS,
+> versions 1001 and 1002 of this board's BIOS don't report the fan
+> correctly.  That may just be the BIOS display, though; I'm mentioning it
+> just in case it's relevant.  In any event, the only thing that displays
+> an "alarm" message is temp3.
+> 
+> I would unplug the speaker from the motherboard, but the beeping would
+> actually be a really useful feature if it worked correctly.  So I'd
+> rather get the problem fixed.
+> 
+> So is there anything I can do?  Or is this the limit of the
+> functionality I can expect for the time being?  I really would like
+> lm-sensors to work, because I hope to overclock this CPU and need to
+> watch the temperature to keep from overclocking it too far.  (It's not
+> overclocked ATM.)
+> 
+> Thanks, and kudos on the great work you've already done: everything
+> works flawlessly on my other two systems.
+> 
+> -- 
+> Eric McCoy (reverse "ten.xoc@mpe", mail to "ctr2sprt" is filtered)
+> 
+> "Last I checked, it wasn't the power cord for the Clue Generator that
+> was sticking up your ass."	- John Novak, rasfwrj
 
 -- 
-Cheers, Gene
-"There are four boxes to be used in defense of liberty:
- soap, ballot, jury, and ammo. Please use in that order."
--Ed Howdershelt (Author)
-99.34% setiathome rank, not too shabby for a WV hillbilly
-Yahoo.com attorneys please note, additions to this message
-by Gene Heskett are:
-Copyright 2005 by Maurice Eugene Heskett, all rights reserved.
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
