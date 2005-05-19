@@ -1,39 +1,31 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: lm_sensors messages
-Message-Id: <20030917230242.6a3a648e.khali@linux-fr.org>
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Thu, 19 May 2005 06:24:19 +0000
+Subject: nist.gov bounces?
+Message-Id: <3F708028.5000104@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030916214501.3cef3d5c.khali@linux-fr.org>
-In-Reply-To: <20030916214501.3cef3d5c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Ok, I'll see what I can do.  Can you tell me the exact part number of
-> the problem chip?
+I noticed that too.  I added a rule a few minutes ago to trap those.
 
-I don't think there is any part number.
 
-After reading our docs again, I have to correct what I said here:
-"Some [Thinkpads] do contain special memory chips that lm_sensors can
-corrupt."
-This isn't the truth. They contain *EEPROMS* we can corrupt. I
-misexpressed myself because EEPROMs are usually found on memory chips,
-but I don't think it is the case here.
+Phil
 
-So, I believe there is no part number to be after, but instead the
-reference of the faulty EEPROM. It is the Atmel 24RF08 ("an unusual, 8K
-that contains a RFID (Radio Frequency ID) port for wireless access, and
-elaborate access protection mechanisms", according to our docs).
 
-I understand that it would be easier for you (or anyone) to look for a
-part number, but I'm almost sure that there isn't any here.
+Deepak Saxena wrote:
 
-Thank you for any help you can provide, and first for trying at least :)
-This is very appreciated.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+>Is anyone else getting flooded with bounce messages from nist.gov?
+>It looks like any messages sent to this list from Greg KH in the
+>last couple of hours are being trapped by their idiotic firewall. 
+>
+>Attached is a sample message. I've gotten over 10 of these in the 
+>last hour.  I'm also contacting the postmaster@nist, but wanted to 
+>see if anyone else is also getting these.
+>
+>~Deepak
+>
+>  
+>
