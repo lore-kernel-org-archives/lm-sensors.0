@@ -1,60 +1,136 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Thu, 19 May 2005 06:25:28 +0000
-Subject: question
-Message-Id: <41D186B8.9090503@penguincomputing.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:55 +0000
+Subject: [PATCH 2.6] Rewrite temperature conversions in via686a driver
+Message-Id: <20040502164851.18195edf.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020214113146.O24643@Stimpy.netroedge.com>
-In-Reply-To: <20020214113146.O24643@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I think the chips are even pin compatible which means that Tyan could 
-concievably switch from vendor to vendor for each lot of boards.
+Hi Greg,
 
-Reading the lm85 docs, I see that there are a couple of documented 
-"enchancements" in the ADT7463 over the LM85, so it's probably a better 
-chip anyway.
+The following patch rewrites the temperature conversion macros and
+functions found in the via686a chip driver. Contrary to the voltage
+conversions a few weeks ago, temperature conversions were numerically
+correct, but artificially complex. The new ones are cleaner. It also
+fixes a highly improbable array overflow (would take one of the measured
+temperatures to be over 145 degrees C).
 
-:v)
+Successfully tested by Mark D. Studebaker and I, and already applied to
+our CVS repository.
 
-Jean Delvare wrote:
+Please apply,
+thanks.
 
->Hi Paul,
->
->  
->
->>One question I have is that I have two indentical systems from the
->>same  manufacturer, Tyan. One has a Celeron CPU and the other has a P4
->>with HT,  but the motherboards are the same. On one unit I must use a
->>lm85-* in  sensors.conf and the the other with a adt7463-* for the
->>chips section or the  values don't make sense.
->>
->>Could the different CPU's be causing lmsensors to get confused? I even
->>ran  the detect routines and came with the same results. What else
->>could I do to  check this?
->>    
->>
->
->There's nothing wrong with that. Both chips are mostly compatible, so
->Tyan may simply have switched at some point in time for some reason
->(price or availabilty for example). You can notice that both chips are
->supported by the same driver (lm85).
->
->You can share a section of sensors.conf among several chips by simply
->giving it more than just one chip name. If you take a look at the
->default configuration file, that's exactly what we do for the lm85
->driver:
->
->chip "lm85c-*" "adm1027-*" "adt7463-*" "lm85-*" "lm85b-*"
->
->   set temp1_max 50
->
->(...)
->
->Just do that for your own file and you will have a single file to
->maintain for both boards.
->
->  
->
+--- linux-2.6.6-rc3/drivers/i2c/chips/via686a.c.orig	Sat May  1 16:49:31 2004
++++ linux-2.6.6-rc3/drivers/i2c/chips/via686a.c	Sat May  1 17:26:35 2004
+@@ -268,52 +268,31 @@
+ 	    239, 240
+ };
+ 
+-/* Converting temps to (8-bit) hyst and over registers 
+- No interpolation here.  Just check the limits and go.
+- The +5 effectively rounds off properly and the +50 is because 
+- the temps start at -50 */
++/* Converting temps to (8-bit) hyst and over registers
++   No interpolation here.
++   The +50 is because the temps start at -50 */
+ static inline u8 TEMP_TO_REG(long val)
+ {
+-	return (u8)
+-	    SENSORS_LIMIT(viaLUT[((val <= -500) ? 0 : (val >= 1100) ? 160 : 
+-				  ((val + 5) / 10 + 50))], 0, 255);
++	return viaLUT[val <= -50000 ? 0 : val >= 110000 ? 160 : 
++		      (val < 0 ? val - 500 : val + 500) / 1000 + 50];
+ }
+ 
+-/* for 8-bit temperature hyst and over registers 
+- The temp values are already *10, so we don't need to do that.
+- But we _will_ round these off to the nearest degree with (...*10+5)/10 */
+-#define TEMP_FROM_REG(val) ((tempLUT[(val)]*10+5)/10)
+-
+-/* for 10-bit temperature readings 
+- You might _think_ this is too long to inline, but's it's really only
+- called once... */
++/* for 8-bit temperature hyst and over registers */
++#define TEMP_FROM_REG(val) (tempLUT[(val)] * 100)
++
++/* for 10-bit temperature readings */
+ static inline long TEMP_FROM_REG10(u16 val)
+ {
+-	/* the temp values are already *10, so we don't need to do that. */
+-	long temp;
+ 	u16 eightBits = val >> 2;
+ 	u16 twoBits = val & 3;
+ 
+-	/* handle the extremes first (they won't interpolate well! ;-) */
+-	if (val = 0)
+-		return (long) tempLUT[0];
+-	if (val = 1023)
+-		return (long) tempLUT[255];
+-
+-	if (twoBits = 0)
+-		return (long) tempLUT[eightBits];
+-	else {
+-		/* do some interpolation by multipying the lower and upper
+-		 bounds by 25, 50 or 75, then /100. */
+-		temp = ((25 * (4 - twoBits)) * tempLUT[eightBits]
+-			+ (25 * twoBits) * tempLUT[eightBits + 1]);
+-		/* increase the magnitude by 50 to achieve rounding. */
+-		if (temp > 0)
+-			temp += 50;
+-		else
+-			temp -= 50;
+-		return (temp / 100);
+-	}
++	/* no interpolation for these */
++	if (twoBits = 0 || eightBits = 255)
++		return TEMP_FROM_REG(eightBits);
++
++	/* do some linear interpolation */
++	return (tempLUT[eightBits] * (4 - twoBits) +
++	        tempLUT[eightBits + 1] * twoBits) * 25;
+ }
+ 
+ #define ALARMS_FROM_REG(val) (val)
+@@ -441,21 +420,21 @@
+ /* 3 temperatures */
+ static ssize_t show_temp(struct device *dev, char *buf, int nr) {
+ 	struct via686a_data *data = via686a_update_device(dev);
+-	return sprintf(buf, "%ld\n", TEMP_FROM_REG10(data->temp[nr])*100 );
++	return sprintf(buf, "%ld\n", TEMP_FROM_REG10(data->temp[nr]));
+ }
+ static ssize_t show_temp_over(struct device *dev, char *buf, int nr) {
+ 	struct via686a_data *data = via686a_update_device(dev);
+-	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_over[nr])*100);
++	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_over[nr]));
+ }
+ static ssize_t show_temp_hyst(struct device *dev, char *buf, int nr) {
+ 	struct via686a_data *data = via686a_update_device(dev);
+-	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_hyst[nr])*100);
++	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_hyst[nr]));
+ }
+ static ssize_t set_temp_over(struct device *dev, const char *buf, 
+ 		size_t count, int nr) {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct via686a_data *data = i2c_get_clientdata(client);
+-	int val = simple_strtol(buf, NULL, 10)/100;
++	int val = simple_strtol(buf, NULL, 10);
+ 	data->temp_over[nr] = TEMP_TO_REG(val);
+ 	via686a_write_value(client, VIA686A_REG_TEMP_OVER(nr), data->temp_over[nr]);
+ 	return count;
+@@ -464,7 +443,7 @@
+ 		size_t count, int nr) {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct via686a_data *data = i2c_get_clientdata(client);
+-	int val = simple_strtol(buf, NULL, 10)/100;
++	int val = simple_strtol(buf, NULL, 10);
+ 	data->temp_hyst[nr] = TEMP_TO_REG(val);
+ 	via686a_write_value(client, VIA686A_REG_TEMP_HYST(nr), data->temp_hyst[nr]);
+ 	return count;
+
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
