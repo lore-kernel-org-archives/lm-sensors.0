@@ -1,17 +1,24 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 19 May 2005 06:25:07 +0000
-Subject: [2/13] w1: matrox_w1 depends on pci.
-Message-Id: <1090821834.2876.34.camel@uganda>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:27 +0000
+Subject: [PATCH 2.6] i2c bus drivers
+Message-Id: <20031129205252.1faf3c1d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Skipped content of type multipart/mixed-------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040726/81958e2e/attachment.bin
+Hi Greg,
+
+I will be sending 4 patches to you, based on linux-2.6.0-test11. They
+concern bus drivers. These fixes and improvements were already made to
+our CVS repository, and should go to Linux 2.6 too.
+
+Details about what the patch do, credits and more will be found with
+each patch.
+
+Thanks.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
