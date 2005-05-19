@@ -1,8 +1,10 @@
 From: jui_cell@yahoo.com (Jui Cell)
 Date: Thu, 19 May 2005 06:23:50 +0000
 Subject: Embedded computer card
-Message-Id: <200303200636.h2K6a7ii023554@fembeddeed.mulik.com>
+Message-Id: <200303200636.h2K6a8lH023559@fembeddeed.mulik.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200303200636.h2K6a7ii023554@fembeddeed.mulik.com>
+In-Reply-To: <200303200636.h2K6a7ii023554@fembeddeed.mulik.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
