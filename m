@@ -1,47 +1,32 @@
-From: greg@kroah.com (Greg KH)
+From: jamagallon@able.es (J.A. Magallon)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: [BK PATCH] i2c driver fixes for 2.6.2-rc2
-Message-Id: <20040127233242.GA28891@kroah.com>
+Message-Id: <20040129004402.GC5830@werewolf.able.es>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040127233242.GA28891@kroah.com>
+In-Reply-To: <20040127233242.GA28891@kroah.com> (from greg@kroah.com on Wed, Jan 28, 2004 at 00:32:42 +0100)
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@osdl.org, akpm@osdl.org
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-
-Hi,
-
-Here are some i2c driver fixes for 2.6.2-rc2.  It's all a bit of small
-bugfixes and documentation updates.
-
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
-
-Individual patches will follow, sent to the sensors and linux-kernel
-lists.
-
-thanks,
-
-greg k-h
-
- Documentation/i2c/porting-clients    |    5 --
- drivers/i2c/busses/i2c-parport.h     |    7 ++-
- drivers/i2c/busses/i2c-philips-par.c |    4 +-
- drivers/i2c/busses/i2c-piix4.c       |   48 +++++++++++++-----------
- drivers/i2c/chips/lm75.c             |   12 +++---
- drivers/i2c/chips/lm78.c             |   12 +++---
- drivers/i2c/chips/lm85.c             |   69 ++++++++++-------------------------
- 7 files changed, 67 insertions(+), 90 deletions(-)
------
+To: Greg KH <greg@kroah.com>
+Cc: akpm@osdl.org, linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
 
 
-Greg Kroah-Hartman:
-  o I2C: remove printk() calls in lm85, and clean up debug logic
+On 2004.01.28, Greg KH wrote:
+> Hi,
+> 
+> Here are some i2c driver fixes for 2.6.2-rc2.  It's all a bit of small
+> bugfixes and documentation updates.
+> 
 
-Jean Delvare:
-  o I2C: Bring lm75 and lm78 in compliance with sysfs naming conventions
-  o I2C: Add ADM1025EB support to i2c-parport
-  o I2C: Fix bus reset in i2c-philips-par
-  o I2C: undo documentation change
+After upgrading to sensors 2.8.3 (first I compiled it, then installed the
+Makdrake package when appeared), my temperatures are still mutiplied by 10.
+I use 2.6.2-rc2-mm1.
 
-Mark M. Hoffman:
-  o I2C: i2c-piix4.c bugfix
+Any ideas ?
+
+-- 
+J.A. Magallon <jamagallon()able!es>     \                 Software is like sex:
+werewolf!able!es                         \           It's better when it's free
+Mandrake Linux release 10.0 (Cooker) for i586
+Linux 2.6.2-rc2-jam1 (gcc 3.3.2 (Mandrake Linux 10.0 3.3.2-4mdk))
