@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: jarturoar@gmx.net (Juan)
 Date: Thu, 19 May 2005 06:24:42 +0000
 Subject: ref 1501
-Message-Id: <20040217211945.00b43251.khali@linux-fr.org>
+Message-Id: <1077064263.2075.1.camel@Tebas>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <19808.1073178613@www49.gmx.net>
 In-Reply-To: <19808.1073178613@www49.gmx.net>
@@ -10,13 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Ok, there it's kernel 2.6.2 lm_sensors 2.8.4 and all debugging options
-> on
-
-Stupid me. There is a bug in i2c-core debugging in Linux 2.6.2 (causing
-the segmentation fault). Please disable debugging of i2c-core, recompile
-and try again.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Skipped content of type multipart/mixed-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040217/e67ca4d5/attachment.bin
