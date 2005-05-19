@@ -1,58 +1,65 @@
-From: davidsen@tmr.com (Bill Davidsen)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:20 +0000
 Subject: [PATCH] I2C update for 2.6.9
-Message-Id: <417D4621.5010604@tmr.com>
+Message-Id: <20041025225459.5ffc37ba.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1098231506642@kroah.com> <10982315063481@kroah.com>
-In-Reply-To: <10982315063481@kroah.com>
+References: <1098231506642@kroah.com>
+	<10982315063481@kroah.com>
+	<417D4621.5010604@tmr.com>
+In-Reply-To: <417D4621.5010604@tmr.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: Bill Davidsen <davidsen@tmr.com>
+Cc: Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
 
-Greg KH wrote:
+Hi Bill,
 
-> Trip points
-> =====> 
-> Trip points are now numbered (point1, point2, etc...) instead of named
-> (_off, _min, _max, _full...). This solves the problem of various chips
-> having a different number of trip points. The interface is still chip
-> independent in that it doesn't require chip-specific knowledge to be
-> used by user-space apps.
+> Greg KH wrote:
 
-It would seem that all chips would have off, max, full, etc, but mapping 
-nondescript names into functionality may require some chip info anyway. 
-As you note, with some chips these are not nice linear points on a line, 
-  so it would seem to tell if the top points were "max norm" and "max 
-safe" vs. "critical" and "shutdown NOW" is still going to need some 
-information on the chip, both points and operating range.
+I actually wrote this.
 
-That's an observation, not a complaint, not even a question unless you 
-feel the urge to enlighten me.
+> > Trip points
+> > =====> > 
+> > Trip points are now numbered (point1, point2, etc...) instead of
+> > named(_off, _min, _max, _full...). This solves the problem of
+> > various chips having a different number of trip points. The
+> > interface is still chip independent in that it doesn't require
+> > chip-specific knowledge to be used by user-space apps.
 > 
-> The reason for this change is that newer chips tend to have more trip
-> points. the LM63 has 8, the LM93 has no less than 12. Also, I read in
-> the LM63 datasheet that ideal pwm vs temperature curve were parabolic in
-> shape. Seems hard to achieve this if we arbitrarily lock the number of
-> trip points to 3 ;)
-> 
-> I also introduced an optional hysteresis temperature for trip points.
-> The LM63 has this. Since it makes full sense I'd expect other chips to
-> propose this as well.
-> 
-> As before, there are two sets of files, each chip driver picks the one
-> matching its internal model: trip points are either temperature
-> channel-dependent (ADM1031...) or pwm channel-dependent (IT87xx...). If
-> we ever come accross fan speed-driven pwm outputs where trip points are
-> fan channel-dependent we may have to offer a third set of files. We'll
-> see when/if this happens.
-> 
-> I hope I have taken everyone's comments and advice into account and we
-> can make this interface proposal part of the sysfs interface standard
-> now. I'm sorry it took so long. Comments welcome.
+> It would seem that all chips would have off, max, full, etc, but
+> mapping nondescript names into functionality may require some chip
+> info anyway. As you note, with some chips these are not nice linear
+> points on a line, 
+>   so it would seem to tell if the top points were "max norm" and "max 
+> safe" vs. "critical" and "shutdown NOW" is still going to need some 
+> information on the chip, both points and operating range.
+
+The interface is actually (almost) self-sufficient. A point is the union
+of a temperature and a fan speed. Most often, point1 will have a speed
+of 0, which means it really is _off. point1 will be fan_min. point(P-1)
+will be _max, point(P) will have a speed of 100% and will be _full. The
+advantage of the numbered approach is that you can have has many points
+as the chip provides. It will also help user-space applications, since
+all points can be handled the exact same way, without having to
+interpret the names, know that some names have predefined fan speeds,
+etc.
+
+The only thing the interface doesn't tell is the shape of the curve
+resulting from the various trip points. This is admittedly chip
+dependent. I think it would be next to impossible to export this through
+sysfs, and I'm not sure it would be worth the pain anyway. The exact
+shape of the curve isn't that important IMHO.
+
+Your objection about "critical", "shutdown NOW" etc if out of the scope
+of this interface. The critical limits are defined by tempN_crit files.
+Actions taken by the chip when the limit is crossed is admittedly
+chip-dependent. Not a big deal either, since in most cases this is
+either not configurable or motherboard-dependent and set by the BIOS for
+us anyway.
+
+I hope I answered your question-which-was-not-really-one. :)
 
 -- 
-    -bill davidsen (davidsen@tmr.com)
-"The secret to procrastination is to put things off until the
-  last possible moment - but no longer"  -me
+Jean Delvare
+http://khali.linux-fr.org/
