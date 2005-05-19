@@ -1,61 +1,59 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: i2c for 2.6.0-test11
-Message-Id: <20031201222104.1c36d298.khali@linux-fr.org>
+From: zhangjun@nanjing-fnst.com (Zhang Jun)
+Date: Thu, 19 May 2005 06:24:31 +0000
+Subject: Linux device number bug report
+Message-Id: <00b901c3cc2b$05eeec30$6f01a8c0@zj>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1070258710.3218.9.camel@phoebus>
-In-Reply-To: <1070258710.3218.9.camel@phoebus>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-9"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-> > Well, the lm80 driver hasn't been ported to Linux 2.6 yet, so you'll
-> > have to wait. If you are brave, you can port it yourself. I wrote a
-> > guide on how to do this, which should be part of Linux 2.6
-> > Documentation/i2c directory someday (but isn't yet either). I can
-> > send it to you if you want.
-> 
-> thanks i ll consider about doing it
+Hello,
 
-You can get the documentation there:
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/linux-2.6.0-test9-i2c-doc-porting-clients.diff
-Additionally, you should get these two patches:
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/linux-2.6.0-test9-i2c-doc-sysfs-interface.diff
-http://www.ensicaen.ismra.fr/~delvare/devel/i2c/linux-2.6/linux-2.6.0-test9-i2c-doc-writing-clients.diff
+I have some questions about device number extension.
 
-These are patches for the latest 2.6.0-test kernels. Apply them and
-you'll have up-to-date docs to work with.
+In Linux kernel 2.6, device number will be extended from 16-bit to 32-bit. =
+All utilities and libraries should make corresponding extension for this ne=
+w feature in kernel 2.6.=20
 
-Porting drivers isn't really hard, although it helps a lot if you have
-already written such a driver. Feel free to ask questions here.
+I find that =A1=B0lm_sensors-2.8.1-2.4.23=A1=B1 considers and operates devi=
+ce number as 16-bit in following places:
+In file kernel/chips/smbus-arp.c: 99
+    u16 dev_int;=20
+"u16" is defined as unsigned short type. It seems not to correspond to devi=
+ce number extension.
 
-> > As for the via686a, it has been reported that it has to be loaded
-> > before other i2c drivers, or it fails detecting devices. I've
-> > experienced this myself. I've not yet investigated why it behaves
-> > that way (mainly because the via686a chipset I have isn't wired for
-> > proper input measurements). Again, feel free to help if you can, or
-> > you'll have to wait until we find a solution.
-> 
-> Do i understand correctly that i need to compile all that i2c stuff in
-> modules and load via686a module first - that will help?
+In file kernel/chips/smbus-arp.c: 376=20
+    data->dev[newdev].dev_int =3D (blk[6] << 8) | blk[7];=20
+As following, "major" should be 12-bit, and "minor" should be 20-bit.=20
+    mmmm mmmm mmmm MMMM MMMM MMMM mmmm mmmm
+"M" means major device number.
+"m" means minor device number.
+But this expression considers both major number and minor number as 8-bit. =
+It seems not to correspond to device number extension.
 
-Yes, this is what I suggested.
+In file kernel/busses/i2c-piix4.c: 49
+    const unsigned short dev;
+This definition seems not to correspond to device number extension.
 
-> And is that true that i need either lm80 working either via686a? I
-> need either ISA either SMbus sensors, or there will be some
-> difference.
+Since I didn=A1=AFt find any information about this aspect in homepage of t=
+his package, I wonder whether the latest version has completed the device n=
+umber extension? If not, will it be completed in the future? And when?
 
-You probably need only one of them, but having both drivers installed at
-the same time won't hurt at all. If I were you, I'd first try to have
-the via686a driver to work. If it doesn't provide useful values, this
-means that it isn't used, and you'll need the lm80 driver.
+Looking forward to answering.
 
-Final note, the LM80 chipset is rather hard to detect, so it is possible
-that your second chipset isn't a LM80 after all. If you can try Linux
-2.4 + i2c patch 2.8.1 + lm_sensors CVS on the same machine, you'd at
-least know which driver you really need.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+Regards,
+Zhang Jun
+
+--------------------------------------------------
+Zhang Jun
+Dept. of Technology and Development=20
+Nanjing Fujitsu Nanda Software Tech. Co., Ltd.(FNST)
+No. 16-5, Guanzhou Rd., Nanjing, P.R.China=20
+PHONE: +86+25-6630523-652=20
+FUJITSU INTERNAL: 79955-652=20
+FAX: +86+25-3317685 =20
+Mail: zhangjun@nanjing-fnst.com=20
+--------------------------------------------------
