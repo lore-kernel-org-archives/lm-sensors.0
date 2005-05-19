@@ -1,31 +1,83 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:10 +0000
-Subject: [rivatv-devel] Deadlock in console
-Message-Id: <20030806222911.2ad9505b.khali@linux-fr.org>
+From: keizerflipje@home.nl (Pascal de Bruijn)
+Date: Thu, 19 May 2005 06:25:25 +0000
+Subject: ASRock K7VM2 _ sensors.conf
+Message-Id: <41AB8A0C.7040901@home.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I've fiddled with lm_sensors and my ASRock K7VM2 motherboard, 
+it works great using this (see below) configuration.
 
-> > I noticed that the rivatv module is slow loading when the monitor
-> > plugged on my videocard does not support DDC/I2C. Why that? Are you
-> > sending I2C commands at module init?
+Good luck,
+Pascal de Bruijn
 
-> Both sensor chips and decoder chips are located on the I2C bus of
-> nVidia cards. So yes, we're driver the I2C bus and sending stuff to
-> it. If your card does not support I2C, you don't need rivatv at all.
+------------------------------------------------------------------------------------
 
-My card supports I2C, this is my test monitor not supporting it (my real
-display does). But I think the slow loading can be solved using the
-bit_test=1 parameter for i2c-algo-bit. I did not tested yet, but it
-works for i2c-matroxfb, so I'd expect it to work for rivatv too.
+chip "w83697hf-*"
 
-BTW I'd like to report a bug. If I load rivatv or any related module
-while in the console, my system deadlocks. I have to reboot it the hard
-way. The same operations made under X work OK. Any clue?
+# Same as above for w83781d except that in5 and in6 are computed differently.
+# Rather than an internal inverting op amp, the 82d/83s use standard positive
+# inputs and the negative voltages are level shifted by a 3.6V reference.
+# The math is convoluted, so we hope that your motherboard
+# uses the recommended resistor values. no in1 on this chip.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+# All values are adjusted for use with a ASRock K7VM2 motherboard!
+
+    label in0   "   Vcore"
+    label in2   "  + 3.3V"
+    label in3   "  + 5.0V"
+    label in4   "  +12.0V"
+    label fan1  " CPU fan"
+    label fan2  "Case fan"
+    label temp1 "CPU temp"
+    label temp2 " MB temp"
+ 
+    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
+    compute in5 (5.14 * @) - 14.91  ,  (@ + 14.91) / 5.14
+    compute in6 (3.14 * @) -  7.71  ,  (@ +  7.71) / 3.14
+    compute in7 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
+
+# 697HF does not have VID inputs so you MUST set your core
+# voltage limits below. Currently set for 1.6V core.
+#               vvv
+
+    set in0_min 1.6 * 0.95
+    set in0_max 1.6 * 1.05
+
+    set in2_min 3.3 * 0.95
+    set in2_max 3.3 * 1.05
+    set in3_min 5.0 * 0.95
+    set in3_max 5.0 * 1.05
+    set in4_min 12 * 0.90
+    set in4_max 12 * 1.10
+    set in5_max -12 * 0.90
+    set in5_min -12 * 1.10
+    set in6_max -5 * 0.95
+    set in6_min -5 * 1.05
+    set in7_min 5 * 0.95
+    set in7_max 5 * 1.05
+    set in8_min 3.0 * 0.80
+    set in8_max 3.0 * 1.20
+
+    set sensor1 3435 
+    set sensor2 3435
+
+    set temp1_over 80
+    set temp1_hyst 75
+    set temp2_over 80
+    set temp2_hyst 75
+
+    set fan1_div 4
+    set fan2_div 4
+
+    set fan1_min 1328
+    set fan2_min 1328
+
+    ignore in5
+    ignore in6
+    ignore in7
+    ignore in8
