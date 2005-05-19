@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: pwilsmore@asi.com.au (Peter Wilsmore)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: bmcsensors and strange sensor values.
-Message-Id: <413E4662.2040800@verizon.net>
+Message-Id: <45A0FF82385BEB4C8670E255530B338527B4CF@mssydeb.asi.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
 In-Reply-To: <45A0FF82385BEB4C8670E255530B338527B4CE@mssydeb.asi.com.au>
@@ -9,6 +9,70 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thanks for the suggestions. I am trying to hack the changes into bmcsensors as you suggested:
+ 
+ 
+static long conv_val(int value, struct sdrdata *sd)
+{
+        u8 k1, k2;
+        long r;
+        float temp;
+        r = value * sd->m;
+        k1 = sd->k & 0x0f;
+        k2 = sd->k >> 4;
+        if(k1 < 8)
+                r += sd->b * exps[k1];
+        else
+                r += sd->b / exps[16 - k1];
+        r *= exps[decplaces(sd)];
+        if(k2 < 8)
+                r *= exps[k2];
+        else
+                r /= exps[16 - k2];
+        if(sd->linear = 7) {
+                temp = value * sd->m;
+                k1 = sd->k & 0x0f;
+                k2 = sd->k >> 4;
+                if(k1 < 8)
+                        temp += sd->b * exps[k1];
+                else
+                        temp += sd->b / exps[16 - k1];
+                temp *= exps[decplaces(sd)];
+                if(k2 < 8)
+                        temp *= exps[k2];
+                else
+                        temp /= exps[16 - k2];
+                r = 1 / temp;
+        }
+        return r;
+}
+ 
+The temp variable probibly isn't necessary but I didn't want to have any acuracy loss from using float and coverting to int on the other sensors. After these changes though, I still seem to be getting odd results on the fan speed (at least I am getting something now though)
+ 
+output from sensors (the rest is irrelivent - its all working properly from the looks of it.):
+ 
+fan1:     9852 RPM  (min = 344827 RPM)
+fan2:     11494 RPM  (min = 344827 RPM)
+fan3:     6896 RPM  (min = 344827 RPM)
+fan4:     11494 RPM  (min = 344827 RPM)
+fan5:     11123 RPM  (min = 344827 RPM)
+ 
+Slap me with a wet fish and call me stupid, but I don't think 344627 RPM is the minumium speed for the fans ;P, the chassis would take off if they were running at that speed. Not to mention the actual reading seem a little high (half that maybe?). Am I missing something here? From what I have been able to understand of my reading of the APMI spec fans do sometimes use an upper and lower threshold but the bmcsensors code seems to ingore that. Could that be what is going wrong?
+ 
+thanks,
+  Peter
+
+ 
+________________________________
+
+From: Mark Studebaker [mailto:mds4@verizon.net]
+Sent: Wed 8/09/2004 9:38 AM
+To: Peter Wilsmore
+Cc: lm78@Stimpy.netroedge.com
+Subject: Re: bmcsensors and strange sensor values.
+
+
 
 your modules are fine.
 
@@ -21,7 +85,7 @@ may just be the way the BMC is programmed. Perhaps the 'non-critical thresholds'
 That would take a bmcsensors.c mod.
 
 The temp. hysteresis value isn't present, I don't think (the module looks for this first), so the module is using the lower temperature limit,
-but the 'sensors' program is reporting it as a hysteresis (it assumes the vaule will be a hysteresis value). 
+but the 'sensors' program is reporting it as a hysteresis (it assumes the vaule will be a hysteresis value).
 You'll have to change 'sensors' to report it correctly.
 
 mds
@@ -29,16 +93,16 @@ mds
 
 Peter Wilsmore wrote:
 > Hi,
->  
+> 
 > I have been struggling with patching RHEL kernel 2.4.21 with lm-sensors so I can read the temperature/fan/voltage readings from a MSI-9549 M/B which according to a spec sheet from MSI uses IPMI1.5 with a bmc chip with all the standard values. I have finnally managed to get lm-sensors to compile against 2.4.21-EL. I have loaded all the drivers that are recommended from sensors-detect and a few others that I have read are required for the bmcsensors module to work:-
->  
-> The relivent bits from sensors-detect are: 
->  
+> 
+> The relivent bits from sensors-detect are:
+> 
 > Driver `bmcsensors' (should be inserted):
 >   Detects correctly:
 >   * ISA bus address 0x0ca0 (Busdriver `i2c-isa')
 >     Chip `IPMI BMC KCS' (confidence: 4)
->  
+> 
 > #----cut here----
 > # I2C adapter drivers
 > modprobe i2c-amd756
@@ -48,9 +112,9 @@ Peter Wilsmore wrote:
 > modprobe bmcsensors
 > # sleep 2 # optional
 > /usr/local/bin/sensors -s # recommended
->  
+> 
 > So I have loaded the following modules:
->  
+> 
 > bmcsensors
 > i2c-proc
 > ipmi_kcs_drv
@@ -60,12 +124,12 @@ Peter Wilsmore wrote:
 > i2c-dev
 > i2c-amd756
 > i2c-core
->  
+> 
 > but /var/log/messages reports:
 > Sep  6 03:55:37 compute-0-0 kernel: bmcsensors.o: sensor 14: nonlinear function 0x07 unsupported, expect bad results
->  
+> 
 > for all the fan sensors, and comes back with strange results for most of the rest of the values:
->  
+> 
 > bmc-ipmi-0000
 > Adapter: Dummy adapter
 > in1:       +8.00 V  (min =  +2.02 V, max = +14.11 V)
@@ -84,20 +148,20 @@ Peter Wilsmore wrote:
 > temp2:     +20.0?C  (high =   +48?C, hyst =    +5?C)
 > temp3:     +46.0?C  (high =   +97?C, hyst =    +5?C)
 > temp4:     +49.0?C  (high =   +97?C, hyst =    +5?C)
-> 
+>
 > I have tried both lm-sensors 2.8.7 and the cvs version from the web site.
-> 
+>
 > I am wondering if anyone can suggest how I can get lm-sensors to properly detect the values. Is there a module I am missing or some way of reading the values using the i2c-ipmb module? The sensors.conf file says that I don't need compute lines for bmcsensors, but do I need to add them? Can I include support for nonlinear functions on the bmcsensors modules easily? I have a pdf called MSI9549_IPMI_Spec from MSI if that might help, but it doesn't seem to have any details about the sensor values and it's 78 pages and a few meg so I haven't attached it..
->  
+> 
 > Any suggestions would be greatly appreciated.
->  
+> 
 > thanks,
->  
+> 
 > Peter
-> 
-> 
+>
+>
 > ------------------------------------------------------------------------
-> 
+>
 > Sep  6 03:51:43 compute-0-0 kernel: i2c-amd756.o version 2.8.7 (20040611)
 > Sep  6 03:51:43 compute-0-0 kernel: bmcsensors.o: attach_adapter...
 > Sep  6 03:51:43 compute-0-0 kernel: bmcsensors.o: attach_adapter, expected 0xb0000, got 0x40000
@@ -190,4 +254,7 @@ Peter Wilsmore wrote:
 > Sep  6 03:55:37 compute-0-0 kernel: bmcsensors.o: 0 reservations cancelled
 > Sep  6 03:55:37 compute-0-0 kernel: bmcsensors.o: registered 4 temp, 7 volt, 0 current, 5 fan sensors
 > Sep  6 03:55:37 compute-0-0 kernel: bmcsensors.o: bmcsensor thread done
-> 
+>
+
+
+
