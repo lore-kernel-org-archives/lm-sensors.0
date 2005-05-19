@@ -1,327 +1,67 @@
 From: kakadu@gmail.com (Bradley Chapman)
 Date: Thu, 19 May 2005 06:25:51 +0000
 Subject: Need assistance with enabling the SMBus on an Intel 855PM 82801DB
-Message-Id: <e294b46e0504141456b921bd8@mail.gmail.com>
+Message-Id: <e294b46e050414151246410bc9@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <e294b46e05041407152efe4f8b@mail.gmail.com>
 In-Reply-To: <e294b46e05041407152efe4f8b@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Mr. Marek,
 
 On 4/14/05, Rudolf Marek <r.marek@sh.cvut.cz> wrote:
 > Hello,
->=20
+> 
 > Hmm I cant see subsystem ID in host bridge, please can you do
 > lspci -v -v -v
-
-0000:00:00.0 Host bridge: Intel Corp. 82855PM Processor to I/O
-Controller (rev 21)
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort-
-<TAbort- <MAbort+ >SERR- <PERR-
-        Latency: 0
-        Region 0: Memory at a0000000 (32-bit, prefetchable) [sizedM]
-        Capabilities: [e4] #09 [4104]
-        Capabilities: [a0] AGP version 2.0
-                Status: RQ2 Iso- ArqSz=3D0 Cal=3D0 SBA+ ITACoh- GART64-
-HTrans- 64bit- FW+ AGP3- Rate=3Dx1,x2,x4
-                Command: RQ=3D1 ArqSz=3D0 Cal=3D0 SBA+ AGP+ GART64- 64bit- =
-FW+ Rate=3Dx4
-
-0000:00:01.0 PCI bridge: Intel Corp. 82855PM Processor to AGP
-Controller (rev 21) (prog-if 00 [Normal decode])
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap- 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-        Latency: 128
-        Bus: primary=00, secondary=01, subordinate=01, sec-latency2
-        I/O behind bridge: 0000c000-0000dfff
-        Memory behind bridge: e0000000-efffffff
-        Prefetchable memory behind bridge: 90000000-9fffffff
-        BridgeCtl: Parity- SERR+ NoISA- VGA+ MAbort- >Reset- FastB2B-
-
-0000:00:1d.0 USB Controller: Intel Corp. 82801DB/DBL/DBM
-(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 03) (prog-if 00
-[UHCI])
-        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin A routed to IRQ 10
-        Region 4: I/O ports at e000 [size2]
-
-0000:00:1d.1 USB Controller: Intel Corp. 82801DB/DBL/DBM
-(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 03) (prog-if 00
-[UHCI])
-        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin B routed to IRQ 11
-        Region 4: I/O ports at e120 [size2]
-
-0000:00:1d.2 USB Controller: Intel Corp. 82801DB/DBL/DBM
-(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 (rev 03) (prog-if 00
-[UHCI])
-        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin C routed to IRQ 10
-        Region 4: I/O ports at e240 [size2]
-
-0000:00:1d.7 USB Controller: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB
-2.0 EHCI Controller (rev 03) (prog-if 20 [EHCI])
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin D routed to IRQ 11
-        Region 0: Memory at f0000000 (32-bit, non-prefetchable) [size=3D1K]
-        Capabilities: [50] Power Management version 2
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent75mA
-PME(D0+,D1-,D2-,D3hot+,D3cold+)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-        Capabilities: [58] #0a [2080]
-
-0000:00:1e.0 PCI bridge: Intel Corp. 82801 PCI Bridge (rev 83)
-(prog-if 00 [Normal decode])
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort-
-<TAbort- <MAbort- >SERR- <PERR+
-        Latency: 0
-        Bus: primary=00, secondary=02, subordinate=02, sec-latency2
-        I/O behind bridge: 0000a000-0000bfff
-        Memory behind bridge: d0000000-dfffffff
-        Prefetchable memory behind bridge: 80000000-8fffffff
-        BridgeCtl: Parity- SERR+ NoISA- VGA- MAbort- >Reset- FastB2B-
-
-0000:00:1f.0 ISA bridge: Intel Corp. 82801DBM LPC Interface Controller (rev=
- 03)
-        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-
-0000:00:1f.1 IDE interface: Intel Corp. 82801DBM (ICH4) Ultra ATA
-Storage Controller (rev 03) (prog-if 8a [Master SecP PriP])
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin A routed to IRQ 10
-        Region 0: I/O ports at <unassigned>
-        Region 1: I/O ports at <unassigned>
-        Region 2: I/O ports at <unassigned>
-        Region 3: I/O ports at <unassigned>
-        Region 4: I/O ports at 1100 [size=16]
-        Region 5: Memory at 20000000 (32-bit, non-prefetchable) [size=3D1K]
-
-0000:00:1f.5 Multimedia audio controller: Intel Corp. 82801DB/DBL/DBM
-(ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin B routed to IRQ 11
-        Region 0: I/O ports at e400 [size%6]
-        Region 1: I/O ports at e600 [sized]
-        Region 2: Memory at f0000400 (32-bit, non-prefetchable) [sizeQ2]
-        Region 3: Memory at f0000600 (32-bit, non-prefetchable) [size%6]
-        Capabilities: [50] Power Management version 2
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent75mA
-PME(D0+,D1-,D2-,D3hot+,D3cold+)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-
-0000:00:1f.6 Modem: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-AC'97 Modem Controller (rev 03) (prog-if 00 [Generic])
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin B routed to IRQ 11
-        Region 0: I/O ports at e800 [size%6]
-        Region 1: I/O ports at ea00 [size=128]
-        Capabilities: [50] Power Management version 2
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent75mA
-PME(D0+,D1-,D2-,D3hot+,D3cold+)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-
-0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350
-[Mobility Radeon 9600 M10] (prog-if 00 [VGA])
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 255 (2000ns min), Cache Line Size: 0x04 (16 bytes)
-        Interrupt: pin A routed to IRQ 10
-        Region 0: Memory at 90000000 (32-bit, prefetchable) [size=128M]
-        Region 1: I/O ports at c000 [size%6]
-        Region 2: Memory at e0000000 (32-bit, non-prefetchable) [sizedK]
-        Capabilities: [58] AGP version 2.0
-                Status: RQ=80 Iso- ArqSz=3D0 Cal=3D0 SBA+ ITACoh- GART64-
-HTrans- 64bit- FW+ AGP3- Rate=3Dx1,x2,x4
-                Command: RQ2 ArqSz=3D0 Cal=3D0 SBA+ AGP+ GART64- 64bit-
-FW+ Rate=3Dx4
-        Capabilities: [50] Power Management version 2
-                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-
-0000:02:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
-RTL-8169 Gigabit Ethernet (rev 10)
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 128 (8000ns min, 16000ns max), Cache Line Size: 0x04 (16 b=
-ytes)
-        Interrupt: pin A routed to IRQ 10
-        Region 0: I/O ports at a200 [size%6]
-        Region 1: Memory at d0008000 (32-bit, non-prefetchable) [size%6]
-        Capabilities: [dc] Power Management version 2
-                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent75mA
-PME(D0-,D1+,D2+,D3hot+,D3cold+)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-
-0000:02:02.0 FireWire (IEEE 1394): Texas Instruments TSB43AB21
-IEEE-1394a-2000 Controller (PHY/Link) (prog-if 10 [OHCI])
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 128 (500ns min, 1000ns max), Cache Line Size: 0x04 (16 byt=
-es)
-        Interrupt: pin A routed to IRQ 11
-        Region 0: Memory at d0001000 (32-bit, non-prefetchable) [size=3D2K]
-        Region 1: Memory at d0004000 (32-bit, non-prefetchable) [size=16K]
-        Capabilities: [44] Power Management version 2
-                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA
-PME(D0+,D1+,D2+,D3hot+,D3cold-)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME+
-
-0000:02:03.0 Network controller: Intel Corp. PRO/Wireless 2200BG (rev 05)
-        Subsystem: Intel Corp.: Unknown device 2701
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 128 (750ns min, 6000ns max)
-        Interrupt: pin A routed to IRQ 10
-        Region 0: Memory at d0000000 (32-bit, non-prefetchable) [size=3D4K]
-        Capabilities: [dc] Power Management version 2
-                Flags: PMEClk- DSI+ D1- D2- AuxCurrent=3D0mA
-PME(D0+,D1-,D2-,D3hot+,D3cold+)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D1 PME-
-
-0000:02:09.0 CardBus bridge: Texas Instruments: Unknown device ac54 (rev 01)
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 168, Cache Line Size: 0x10 (64 bytes)
-        Interrupt: pin A routed to IRQ 10
-        Region 0: Memory at 20001000 (32-bit, non-prefetchable) [size=3D4K]
-        Bus: primary=02, secondary=03, subordinate=06, sec-latency=176
-        Memory window 0: 20400000-207ff000 (prefetchable)
-        Memory window 1: 20800000-20bff000
-        I/O window 0: 00004000-000040ff
-        I/O window 1: 00004400-000044ff
-        BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset+ 16bInt+ PostWrit=
-e+
-        16-bit legacy interface ports at 0001
-
-0000:02:09.1 CardBus bridge: Texas Instruments: Unknown device ac54 (rev 01)
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 168, Cache Line Size: 0x10 (64 bytes)
-        Interrupt: pin B routed to IRQ 11
-        Region 0: Memory at 20002000 (32-bit, non-prefetchable) [size=3D4K]
-        Bus: primary=02, secondary=07, subordinate
-, sec-latency=176
-        Memory window 0: 20c00000-20fff000 (prefetchable)
-        Memory window 1: 21000000-213ff000
-        I/O window 0: 00004800-000048ff
-        I/O window 1: 00004c00-00004cff
-        BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset+ 16bInt+ PostWrit=
-e+
-        16-bit legacy interface ports at 0001
-
-0000:02:09.2 System peripheral: Texas Instruments: Unknown device 8201 (rev=
- 01)
-        Subsystem: CLEVO/KAPOK Computer: Unknown device 0470
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium
->TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 128 (1750ns min, 1000ns max), Cache Line Size: 0x04 (16 by=
-tes)
-        Region 0: I/O ports at a000 [sized]
-        Capabilities: [44] Power Management version 2
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
-
->=20
+> 
 > You might try to edit quirks.c
->=20
-> Find this in the file:
->=20
-> static void __init asus_hides_smbus_hostbridge(struct pci_dev *dev)
-> {
->         if (unlikely(dev->subsystem_vendor =3D PCI_VENDOR_ID_ASUSTEK)) {
->                 if (dev->device =3D PCI_DEVICE_ID_INTEL_82845_HB)
->                         switch(dev->subsystem_device) {
->=20
-> And add one line there like this:
->=20
-> static void __init asus_hides_smbus_hostbridge(struct pci_dev *dev)
-> {
-> asus_hides_smbus =3D 1;
->         if (unlikely(dev->subsystem_vendor =3D PCI_VENDOR_ID_ASUSTEK)) {
->                 if (dev->device =3D PCI_DEVICE_ID_INTEL_82845_HB)
->                         switch(dev->subsystem_device) {
->=20
+
+<snip>
+
 > Build kernel and reboot. You should now have the smbus enabled.
+
+0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
+SMBus Controller (rev 03)
+        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+>TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Interrupt: pin B routed to IRQ 0
+        Region 4: I/O ports at 1400 [size2]
+
+0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
+SMBus Controller (rev 03)
+00: 86 80 c3 24 01 00 80 02 03 00 05 0c 00 00 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 01 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 02 00 00
+
+That was what I got after enabling asus_hides_smbus.
+
 > Run sensors-detect to see if there is something useful.
->=20
-> If so please tell us so, and we will fix the quirk. If there is nothing w=
-e are sorry.
 
-OK. I will try this and report back.
+Unfortunately, the only thing sensors-detect found was an SPD EEPROM,
+telling me that I have 512MB of memory installed :-((((
 
->=20
->=20
+Either there is nothing attached to my SMBus or it wasn't detected by
+sensors-detect.
+
+> 
+> If so please tell us so, and we will fix the quirk. If there is nothing we are sorry.
+
+Thanks for your assistance.
+
+> 
+> 
 > Regards
->=20
+> 
 > Rudolf
 
 Brad
---=20
+-- 
 SCREW THE ADS! http://adblock.mozdev.org/
 Extensions Mod at http://www.extensionsmirror.nl/
