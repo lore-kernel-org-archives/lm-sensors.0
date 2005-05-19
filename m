@@ -1,7 +1,7 @@
 From: mgreer@mvista.com (Mark A. Greer)
-Date: Thu, 19 May 2005 06:25:42 +0000
+Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: [PATCH 2.6.12-rc1] I2C: Fix breakage in m41t00 i2c rtc driver
-Message-Id: <422F2AC7.4010001@mvista.com>
+Message-Id: <4237458B.5030100@mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <422E4313.6000004@mvista.com>
 In-Reply-To: <422E4313.6000004@mvista.com>
@@ -31,11 +31,18 @@ Jean Delvare wrote:
 >
 >Sorry again, and thanks for the update. Greg, please apply and push to
 >Linus soon.
->  
+>
+>Thanks,
+>--
+>Jean Delvare
 >
 
-Hey, no problem, Jean.  It wasn't a big deal.
+Greg,
 
-Take it easy,
+Can we get this pushed?  It won't build as it is now...
+
+Patch: http://archives.andrew.net.au/lm-sensors/msg29870.html
+
+Thanks,
 
 Mark
