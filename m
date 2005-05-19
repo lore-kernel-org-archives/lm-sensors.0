@@ -1,7 +1,7 @@
-From: grant_nospam@dodo.com.au (Grant Coady)
+From: ppokorny@penguincomputing.com (Philip Pokorny)
 Date: Thu, 19 May 2005 06:25:45 +0000
 Subject: RFC locking and rate limit updates for i2c?
-Message-Id: <5382411n7nd09as98rp9ehr41h3fkmcqkm@4ax.com>
+Message-Id: <4241277C.1080401@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
 In-Reply-To: <ic4141hum54km9pokicdinq82tndrig443@4ax.com>
@@ -10,30 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Grant Coady wrote:
 
-On Wed, 23 Mar 2005 01:35:14 -0500, "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
-
->> Thinking about the fan_div setting, it is a read/modify/write 
->> (RMW) operation to a chip register, should we take action to 
->> prevent another process accessing the chip on i2c during this 
->> RMW action?
+>Hi Mark,
 >
->Looks like Philip addressed this one.
-
-Not at all.
-
->> preventing DoS, updating i2c bus chips
->> 
->> Another query, we take care not to read chip too frequently, 
->> what stops user-space DoS'ing the i2c bus with continuous 
->> writes by constant update requests?  
+>On Wed, 23 Mar 2005 01:35:14 -0500, "Mark M. Hoffman" <mhoffman@lightlink.com> wrote:
+>  
 >
->Nothing prevents it, except that you need root to do those writes/updates.
->Considering all the other damage you can do as root... there's not much
->point in any further protection for the I2C bus.
+>>>Thinking about the fan_div setting, it is a read/modify/write 
+>>>(RMW) operation to a chip register, should we take action to 
+>>>prevent another process accessing the chip on i2c during this 
+>>>RMW action?
+>>>      
+>>>
+>>Looks like Philip addressed this one.
+>>    
+>>
+>
+>Not at all.
+>  
+>
 
-Your answer tells me it is not an issue.  "Don't do that"
+I'm sorry, I didn't mean to offend.
 
-Cheers,
-Grant.
+In addition to the way I know my drivers worked, I believe that all 
+other drivers have an update_lock semaphore that could be used to 
+protect read-modify-write's in the same way.
+
+:v)
