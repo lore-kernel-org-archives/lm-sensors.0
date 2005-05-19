@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:25 +0000
 Subject: Some thoughts about the sysfs interface (repost)
-Message-Id: <20031116162516.0d202025.khali@linux-fr.org>
+Message-Id: <20031116164500.490652e9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20031109125157.51f9d552.khali@linux-fr.org>
 In-Reply-To: <20031109125157.51f9d552.khali@linux-fr.org>
@@ -10,68 +10,76 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> A fixed point number is not "just" an integer.  It has a whole part
-> and/or a fractional part.  The location of the split is "fixed" as a
-> matter of interpretation, nothing more.  E.g. the LM75 temperature
-> reading is in 9 bits, with the LSB representing 0.5 degrees C.
 
-Thanks for the clarification. I had never seen fixed point arithmerics
-that way before. I must have been troubled by the fact there was no
-(visible) dot, so it couldn't be anything but an integer.
-
-This doesn't make the "in form XXXXX" clearer. Wouldn't something like
-"with a 3 digit fractional part" be better?
-
-The fact that fixed point binary representation cannot easily be
-converted to and from fixed point decimal representation adds to (my)
-confusion. What motivated the choice of fixed point decimals? Fixed
-point binaries would have been faster since this is how chipsets do
-work. But I agree it would have been less easily readable from sysfs.
-That said, users are not supposed to browse sysfs to get the hardware
-monitoring information for their system.
-
-> > informational value of "in form XXXXX". Wouldn't it be much clearer
-> > to write "Integer value, thousandth of degrees Celsius"?
+> > 1* Most entries are described using sentences like "Fixed point
+> > value in form XXXXX and should be divided by 1000 to get degrees
+> > Celsius". I don't understand the "fixed point" thing, nor do I
+> > understand the informational value of "in form XXXXX". Wouldn't it
+> > be much clearer to write "Integer value, thousandth of degrees
+> > Celsius"?
 > 
-> I like to document fixed point representations this way, e.g.:
+> They are pretty much the same thing, right?  Either way is fine with
+> me.
+
+Yes, that means the same (or I wouldn't propose it as a replacement).
+But it sound more understandable to me. I might not be a genius, but it
+took me some time before I understood what it was supposed to me - and I
+am in the sensors business for quite some time now. So I suppose that a
+newcomer would feel as confused as I first was. Especially, the "in form
+XXXXX" part has no particular sense I can think of. I'd go for either
+"fixed point value, 3 digit fractional part, in degrees Celsius", or
+"integer value, in thousandth of degrees Celsius", the one you like
+better.
+
+> > 2* temp_min[1-3] reads: "Temperature min or hysteresis value.". This
+> > is a Bad Idea (TM) IMHO. One very interesting point in the sysfs
+> > interface over the procfs one is that it could be easily be made
+> > chip-independant(libsensors and sensors could then be drastically
+> > simplified). If the file is named temp_minN, it has to be a min
+> > temp. Be it a hysteresis one, let's call the file temp_hystN
+> > instead. It's in no way harder to do it that way, and it will be way
+> > easier for the interface users(includind ourselves) if we stick to
+> > the one name, one use philosophy.
 > 
-> /* temp: 0.5C/bit (-55C to +125C) */
+> Ah, I like this proposal, it makes a lot more sense.  Care to also fix
+> up the drivers that are in the current 2.6 tree to follow this rule?
 
-Do you suggest we could say something like "temp1_input: 1mC/bit"? Using
-"bits" here isn't really natural since we are in fixed point decimals.
-This is why speaking of integers in a given unit (millidegree Celcius
-here) makes more sense to me. But it might be just me.
+Greg, Greg... You are soooo predictable ;) OK, will do.
 
-> So, just make two absolute hyst values which are linked... a change in
-> one forces a change in the other.  Userland s/w should not assume any
-> sensors sysfs file to be static anyway.  It might be a little
-> suprising to the user - just document it as the hardware limitation
-> that it is and move on.
-
-I would prefer it that way too, or at least I do think so at the moment.
-
-> (1) I like this.  It greatly simplifies the userland side. 
-> Ultimately, we should be able to add a chip driver and have immediate
-> library support for free, just by sticking to these conventions.
-
-This is precisely what I am after (and what I believe the sysfs
-interface was intended for from the very begnining).
-
-> > The drawbacks of the second
-> > method are: we break the one-one link between sysfs and the hardware
-> > (which helps a lot to understand how a chip works, IMHO), we create
-> > more
+> As you stated, this has some problems.  I think we should probably not
+> do this for now, and if we have some real compilcated chips in the
+> future, that we need these changes for, we can revisit it.
 > 
-> Yes, but it's either that or make userland more complicated.
+> Sound ok?
 
-You got it, there's a choice to make. I believe that a simplified (and
-over-standardized) interface with user-land would be great enough to
-allow for some sacrifices.
+Not really. I'd prefer if we could decide ourselves for an interface we
+could stick to for the next 10 years or so (yes, I'm a dreamer). If such
+a chip exist someday, we'll have to fix *all* the existing drivers to
+match the new interface. Or at least the ones that use either critical,
+either hysteresis - and that's most of them.
 
-That said, it would obvisouly require some changes to existing drivers.
-At least my lm83, not taken a look at the others yet.
+I would tend to think that Mark Hoffman's point of view should be
+considered. It matches one of my proposal, and guarantees that what a
+sysfs file does is all in its name. This is a requirement if we want
+libsensors to be simplified and free of chipset-dependant code. The only
+thing it breaks is the one-one link between sysfs file and hardware
+register, but that's not a high price to pay if you consider what we get
+in exchange.
 
-Thanks a lot for your insights and opinions.
+> > --- linux-2.6.0-test9/Documentation/i2c/sysfs-interface
+> > +++ linux-2.6.0-test9/Documentation/i2c/sysfs-interface.lm83
+> 
+> Should I still apply this patch?
+
+Yes, that's a different problem. The LM83 has 4 temperature channels
+while the maximum specified in the docs is 3. The patch mostly fixes
+that. Since it was already applied to our CVS docs, you can apply it on
+your side too. That said, it doesn't really make sense before you also
+apply the lm83 driver patch, which is delayed if I remember correctly.
+
+If you prefer that I integrate this patch into the one I'll do for the
+min vs. hyst thing, I can do that too. But I heard you prefer many small
+patches over one big ;) (OMG am I really so evil?)
 
 -- 
 Jean Delvare
