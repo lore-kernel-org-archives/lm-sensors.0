@@ -1,8 +1,10 @@
 From: rtos@vsnl.net (Jeff)
 Date: Thu, 19 May 2005 06:23:31 +0000
 Subject: Development Services on RTOS and Drivers
-Message-Id: <200203180626.g2I6QlX09813@Stimpy.netroedge.com>
+Message-Id: <200203201150.g2KBo5X31990@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200203180626.g2I6QlX09813@Stimpy.netroedge.com>
+In-Reply-To: <200203180626.g2I6QlX09813@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
