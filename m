@@ -1,35 +1,154 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:14 +0000
-Subject: [PATCH 2.6] I2C/SMBus stub for driver testing
-Message-Id: <20040909235433.GB31855@kroah.com>
+From: ishikawa@yk.rim.or.jp (Chiaki)
+Date: Thu, 19 May 2005 06:24:01 +0000
+Subject: Compiling lm_sensors module with gcc 3.3. (A problem and workaround.)
+Message-Id: <3EF4DD25.6000802@yk.rim.or.jp>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040827031943.GJ3056@jupiter.solarsys.private>
-In-Reply-To: <20040827031943.GJ3056@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 08, 2004 at 10:31:14PM -0400, Mark M. Hoffman wrote:
-> Hi Greg:
-> 
-> > On Thu, Aug 26, 2004 at 11:19:43PM -0400, Mark M. Hoffman wrote:
-> > > Well here it is, one day later because I really didn't want to do this
-> > > with printk.  I spent some time looking around and relayfs seems like
-> > > a good fit.  Do you think relayfs will ever get merged?  Meanwhile...
-> 
-> * Greg KH <greg@kroah.com> [2004-09-08 12:37:49 -0700]:
-> > No, I don't think relayfs will ever get merged, although it is a nice
-> > solution searching for a problem :)
-> 
-> I.e. I should use netlink for this?  But isn't netlink unreliable, at
-> least in theory?  Or do you have some other mechanism in mind?  I would
-> appreciate some advice...
+Compiling lm_sensors module with gcc 3.3.
 
-Nah, I don't think netlink would work all too well either.
+Hi,
 
-I need to do something like this for usb, and I was starting to look
-into a plain socket-like interface, much like the ethernet tap tools
-use.  But I haven't gotten very far yet, sorry.
+Thank you for the great software packages (LM_SENSORS and I2C.)
 
-greg k-h
+This is a short bug report and workaround caused by
+the latest GCC 3.3.
+
+Background.
+
+Recently, I upgraded GCC on my Debian GNU/Linux PC to GCC 3.3.
+After that I upgraded linux kernel to 2.4.21.
+
+Obviously, GCC 3.3 broke some assumptions that the earlier
+gcc 2.9.x kept, and so
+lm_sensors 2.7.0 could not be compiled right away.
+
+PROBLEM:
+
+Basically the problem is this.
+
+GCC 3.3 no longer honors the user's wish to
+use -I/usr/local/include/ FIRST prior to system header directories.
+(It seems that many people were bitten with mixup
+verson of system headers in such directories , and it seems that
+GCC 3.3 now has an internal list of so called "system header
+directory" which had been the standard places for such
+quasi-system headers for temporary tool development, etc.
+GCC now refuses to honor the inclusion of -Isuch_header_directory
+on the command line. (It prints out that it is ignoring
+such directory  due to this. So far, so good.
+
+Problem is that
+/usr/local/include is such an ignored header directory!
+
+This poses a problem for lm_sensors compilation since
+the compilation needs to look at the latest i2c headers
+in the /usr/local/include/linux/l2c.h and other files
+under the directory instead of the outdated i2c header files under
+kernel header directory.
+
+WORKAROUND:
+
+After scratching my head for a while and many false starts,
+I finally decided to the following and
+the compilation now succeeds.
+
+You might want to put a comment regarding this in
+your INSTALL file.
+
+1. Create a new directory to store i2c header files.
+   I chose
+
+      /usr/local/tool-include
+
+  This must not collide with the gcc's blacklisted system header
+  directory and the above choice is OK.
+
+2. Change i2c top-level Make file so tthat the latest
+   i2c headers are stored in the directory created above.
+
+
+*** Makefile~	2002-12-05 00:44:32.000000000 +0900
+--- Makefile	2003-06-22 07:08:39.000000000 +0900
+***************
+*** 73,79 ****
+  # This is the directory into which the header files will be installed.
+  # If you want to make sure your current kernel tree is not overwritten,
+  # the default should work. This is ignored for the i2c build system.
+! LINUX_INCLUDE_DIR := /usr/local/include/linux
+  #LINUX_INCLUDE_DIR := $(LINUX_HEADERS)/linux
+
+  # If you want to isntall everything at some other place then at which
+--- 73,79 ----
+  # This is the directory into which the header files will be installed.
+  # If you want to make sure your current kernel tree is not overwritten,
+  # the default should work. This is ignored for the i2c build system.
+! LINUX_INCLUDE_DIR := /usr/local/tool-include/linux
+  #LINUX_INCLUDE_DIR := $(LINUX_HEADERS)/linux
+
+  # If you want to isntall everything at some other place then at which
+
+
+  run make install to install the headers into the directory.
+
+
+3. Change lm_sensors top level makefile so that it will look
+   for the i2c headers thus stored.
+
+
+*** Makefile~	2002-12-05 00:44:32.000000000 +0900
+--- Makefile	2003-06-22 07:22:38.000000000 +0900
+***************
+*** 49,55 ****
+  # may be used mistakenly. Note: This should point to the directory
+  # *above* the linux/ subdirectory, so to /usr/local/include in the
+  # above example.
+! I2C_HEADERS=/usr/local/include
+  #I2C_HEADERS=$(LINUX_HEADERS)
+
+  # Uncomment the third line on SMP systems if the magic invocation
+fails. It
+--- 49,55 ----
+  # may be used mistakenly. Note: This should point to the directory
+  # *above* the linux/ subdirectory, so to /usr/local/include in the
+  # above example.
+! I2C_HEADERS=/usr/local/tool-include
+  #I2C_HEADERS=$(LINUX_HEADERS)
+
+  # Uncomment the third line on SMP systems if the magic invocation
+fails. It
+
+
+4. With the above change, the compilation of lm_sensors succeeds
+and I could install lm_sensors modules with gcc 3.3.
+
+
+Thank you again for the great piece of software.
+
+Happy Hacking
+
+Ishikawa, Chiaki
+
+
+PS: The ignoring of "system header" directory used as part of -I
+parameter by the latest gcc is a blessing to some obviously [
+I can certainly think of some scenarios of long debug sessions
+of a bug caused by the mixup of different version header files ]
+but to
+those who knew what we were doing by the sleight of hands (so to
+speak),
+this GCC  change causes an initial pain until all the tool chains are
+modified.
+We can't win always, it seems.
+
+
+
+-- 
+int main(void){int j 03;/*(c)2003 cishikawa. */
+char t[] ="<CI> @abcdefghijklmnopqrstuvwxyz.,\n\"";
+char *i ="g>qtCIuqivb,gCwe\np@.ietCIuqi\"tqkvv is>dnamz";
+while(*i)((j+=strchr(t,*i++)-(int)t),(j%=sizeof t-1),
+(putchar(t[j])));return 0;}/* under GPL */
