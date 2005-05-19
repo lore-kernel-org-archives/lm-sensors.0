@@ -1,40 +1,39 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:59 +0000
-Subject: status of i2c in 2.5.70 kernel
-Message-Id: <20030609170036.GA7023@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:41 +0000
+Subject: [PATCH 2.6] Fix adm1021 alarms mask
+Message-Id: <20050306083758.2f97cf9d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030609114202.19c1002e.b.stolk@chello.nl>
-In-Reply-To: <20030609114202.19c1002e.b.stolk@chello.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jun 09, 2003 at 06:42:37PM +0200, Bram Stolk wrote:
-> Greg,
-> 
-> 
-> Thanks for the info!
-> 
-> There is indeed info in the /sys/class directory.
-> 
-> amoras:/sys/bus/i2c# cat /sys/class/i2c-adapter/i2c-0/device/name 
-> SMBus Via Pro adapter at 5000
-> 
-> Yet, the /sys/bus/i2c dir contains no files, dirs only:
-> 
-> amoras:/sys/bus/i2c# find /sys/bus/i2c -type f -print
-> amoras:/sys/bus/i2c# 
-> 
-> When I open i2c-0, and try reading from all addresses, I can see
-> that there are 3 slaves on the bus that respond to read-requests.
+Hi Greg,
 
-Then you need to figure out which chip drivers corrispond to those
-slaves.  The majority of the chip drivers have not been ported from the
-sensor's cvs tree to the 2.5 kernel due to people not having the
-hardware.  If you could help out in this, it would be greatly
-appreciated.
+This patch fixes an incorrect bitmasking on the status register in the
+adm1021 driver, which was causing high alarm on remote temperature to be
+hidden.
+This bug was found and reported by Jayakrishnan:
+  http://bugzilla.kernel.org/show_bug.cgi?idB85
 
-thanks,
+Please apply,
+thanks.
 
-greg k-h
+Signed-off-by: Jean Delvare
+
+--- linux-2.6.11-mm1/drivers/i2c/chips/adm1021.c.orig	Fri Dec 24 22:33:49 2004
++++ linux-2.6.11-mm1/drivers/i2c/chips/adm1021.c	Fri Mar  4 13:03:33 2005
+@@ -380,7 +380,7 @@
+ 		data->remote_temp_input = adm1021_read_value(client, ADM1021_REG_REMOTE_TEMP);
+ 		data->remote_temp_max = adm1021_read_value(client, ADM1021_REG_REMOTE_TOS_R);
+ 		data->remote_temp_hyst = adm1021_read_value(client, ADM1021_REG_REMOTE_THYST_R);
+-		data->alarms = adm1021_read_value(client, ADM1021_REG_STATUS) & 0xec;
++		data->alarms = adm1021_read_value(client, ADM1021_REG_STATUS) & 0x7c;
+ 		if (data->type = adm1021)
+ 			data->die_code = adm1021_read_value(client, ADM1021_REG_DIE_CODE);
+ 		if (data->type = adm1023) {
+
+
+
+-- 
+Jean Delvare
