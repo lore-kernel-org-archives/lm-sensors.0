@@ -1,7 +1,7 @@
-From: JHTseng@via.com.tw (JH Tseng)
+From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:23:33 +0000
 Subject: Supporting Hardware monitor for VIA chipsets
-Message-Id: <369B0912E1F5D511ACA5003048222B7555BC01@EXCHANGE2>
+Message-Id: <3CEE4735.D5134772@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <369B0912E1F5D511ACA5003048222B7555BBFE@EXCHANGE2>
 In-Reply-To: <369B0912E1F5D511ACA5003048222B7555BBFE@EXCHANGE2>
@@ -10,114 +10,117 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Mr. Tseng,
+Thank you very much for the datasheets,
+and thank you for the offer of a motherboard.
+We will let you know the address soon.
 
-Hi,
+To answer your question, if the sensor chip is an I/O device
+(what we call an "ISA" device), then the i2c bus driver for the via does not need to
+be loaded. However a "dummy" i2c driver called i2c-isa must be loaded.
 
-Attached file is the 686B/8231/8233/8233A datasheet. Basically, it should be
-the same as 686A. For i2c bus/SMBus, the register set for 8233(A) and 8231
-are the same except that the IO Base address location. I will prepare the
-motherboards based on 8231 first for your need.  Could you tell me about
-your address ??
-Here is a question about your package. If the sensor chip is a I/O device,
-then in order to get the hardware monitor component's infor, the i2c bus
-driver need to be loaded ??
-If you need any support, please feel free to contact me! thanks!
+mds
 
 
-JH
-
------Original Message-----
-From: Mark Studebaker [mailto:mds@paradyne.com]
-Sent: Thursday, May 23, 2002 2:06 AM
-To: JH Tseng
-Cc: 'sensors@stimpy.netroedge.com'
-Subject: Re: Supporting Hardware monitor for VIA chipsets
-
-
-Oops, I misspoke.
-We do _not_ support the 8231 i2c bus.
-We do support 8233 and 8233A i2c busses.
-
-Mark Studebaker wrote:
+JH Tseng wrote:
 > 
-> Latest datasheets would be _greatly_ appreciated.
-> As many chips are quite similar, there often is not much programming,
-> we just need the datasheets.
-> We also need a 686B datasheet.
-> Of course if you are willing to donate motherboards please let us know,
-> that will help us quite a bit.
+> Hi,
 > 
-> We do support the 8231, 8233, and 8233A i2c drivers,
-> but not their integrated sensors (if any).
-> The latest information on driver support is here
+> Attached file is the 686B/8231/8233/8233A datasheet. Basically, it should be
+> the same as 686A. For i2c bus/SMBus, the register set for 8233(A) and 8231
+> are the same except that the IO Base address location. I will prepare the
+> motherboards based on 8231 first for your need.  Could you tell me about
+> your address ??
+> Here is a question about your package. If the sensor chip is a I/O device,
+> then in order to get the hardware monitor component's infor, the i2c bus
+> driver need to be loaded ??
+> If you need any support, please feel free to contact me! thanks!
 > 
-> http://www2.lm-sensors.nu/~lm78/newdrivers.html
+> JH
 > 
-> thanks very much for your interest.
-> mds
+> -----Original Message-----
+> From: Mark Studebaker [mailto:mds@paradyne.com]
+> Sent: Thursday, May 23, 2002 2:06 AM
+> To: JH Tseng
+> Cc: 'sensors@stimpy.netroedge.com'
+> Subject: Re: Supporting Hardware monitor for VIA chipsets
 > 
-> phil@netroedge.com wrote:
+> Oops, I misspoke.
+> We do _not_ support the 8231 i2c bus.
+> We do support 8233 and 8233A i2c busses.
+> 
+> Mark Studebaker wrote:
 > >
-> > Hi, thanks for the email.  Right now, I think we support the
-> > VT8233(A), but not yet the VT8231 nor the VT8235.  We could use your
-> > help to get drivers written.  If you can, we'd appreciate you
-> > submitting bus drivers (see kernel/busses/i2c-* for examples) to
-> > integrate into the project.  We might also be able to find a developer
-> > to help out, but we seem to be a bit thin with programmers right now.
+> > Latest datasheets would be _greatly_ appreciated.
+> > As many chips are quite similar, there often is not much programming,
+> > we just need the datasheets.
+> > We also need a 686B datasheet.
+> > Of course if you are willing to donate motherboards please let us know,
+> > that will help us quite a bit.
 > >
-> > Thanks!
+> > We do support the 8231, 8233, and 8233A i2c drivers,
+> > but not their integrated sensors (if any).
+> > The latest information on driver support is here
 > >
-> > Phil
+> > http://www2.lm-sensors.nu/~lm78/newdrivers.html
 > >
-> > On Tue, May 21, 2002 at 05:50:03PM +0800, JH Tseng wrote:
+> > thanks very much for your interest.
+> > mds
+> >
+> > phil@netroedge.com wrote:
 > > >
-> > > Hi Sir,
+> > > Hi, thanks for the email.  Right now, I think we support the
+> > > VT8233(A), but not yet the VT8231 nor the VT8235.  We could use your
+> > > help to get drivers written.  If you can, we'd appreciate you
+> > > submitting bus drivers (see kernel/busses/i2c-* for examples) to
+> > > integrate into the project.  We might also be able to find a developer
+> > > to help out, but we seem to be a bit thin with programmers right now.
 > > >
-> > > I am a software engineer in VIA Tech Inc. According to the status
-report in
-> > > your web site, we find that there are not the sensor chip drivers for
-latest
-> > > VIA south bridges such as the VT8231, VT8233(A) and VT8235. Therefore,
-I
-> > > need your help or I can provide some HWs and information to you to
-> > > co-develope/co-test the hardware monitor based on the VIA platform. I
-deeply
-> > > appreciate you very much if you have any input.
+> > > Thanks!
 > > >
-> > > Best regards
+> > > Phil
 > > >
-> > > JH
-> >
-> > --
-> > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-> >    phil@netroedge.com -- http://www.netroedge.com/~phil
-> >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: DS686B224.pdf
-Type: application/octet-stream
-Size: 911128 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS686B224.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: DS8231185.pdf
-Type: application/octet-stream
-Size: 1008462 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS8231185.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: DS8233A121.pdf
-Type: application/octet-stream
-Size: 773865 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS8233A121.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: DS8233CE2711.pdf
-Type: application/octet-stream
-Size: 898421 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020524/c44e5295/DS8233CE2711.obj
+> > > On Tue, May 21, 2002 at 05:50:03PM +0800, JH Tseng wrote:
+> > > >
+> > > > Hi Sir,
+> > > >
+> > > > I am a software engineer in VIA Tech Inc. According to the status
+> report in
+> > > > your web site, we find that there are not the sensor chip drivers for
+> latest
+> > > > VIA south bridges such as the VT8231, VT8233(A) and VT8235. Therefore,
+> I
+> > > > need your help or I can provide some HWs and information to you to
+> > > > co-develope/co-test the hardware monitor based on the VIA platform. I
+> deeply
+> > > > appreciate you very much if you have any input.
+> > > >
+> > > > Best regards
+> > > >
+> > > > JH
+> > >
+> > > --
+> > > Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+> > >    phil@netroedge.com -- http://www.netroedge.com/~phil
+> > >  PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+> 
+>   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+>                            Name: DS686B224.pdf
+>    DS686B224.pdf           Type: Portable Document Format (application/pdf)
+>                        Encoding: base64
+>                 Download Status: Not downloaded with message
+> 
+>                            Name: DS8231185.pdf
+>    DS8231185.pdf           Type: Portable Document Format (application/pdf)
+>                        Encoding: base64
+>                 Download Status: Not downloaded with message
+> 
+>                             Name: DS8233A121.pdf
+>    DS8233A121.pdf           Type: Portable Document Format (application/pdf)
+>                         Encoding: base64
+>                  Download Status: Not downloaded with message
+> 
+>                               Name: DS8233CE2711.pdf
+>    DS8233CE2711.pdf           Type: Portable Document Format (application/pdf)
+>                           Encoding: base64
+>                    Download Status: Not downloaded with message
