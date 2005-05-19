@@ -1,34 +1,35 @@
-From: phil@netroedge.com (Philip Edelbrock)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: lm_sensors on ThinkPads
-Message-Id: <3E2C87AA.4080602@netroedge.com>
+From: weisz@vcpc.univie.ac.at (Willy Weisz)
+Date: Thu, 19 May 2005 06:24:36 +0000
+Subject: Ticket # 1523
+Message-Id: <400FCFDF.5090704@vcpc.univie.ac.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020927134750.B20006@Stimpy.netroedge.com>
-In-Reply-To: <20020927134750.B20006@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-So, there are lots of manufacturers of RFID chips, but none which have 
-the functionality like the Atmel chip in question which we must blacklist.
+Please withdraw ticket number 1523 for the following reasons:
 
-I.e., I'm wondering if we can blacklist specific machines (e.g. older 
-Thinkpads), or need to blacklist anything (including possible future 
-machines) with this sort of RFID capability. (Sounds like the later, 
-which is unfortunate.)
+1. p4b_smbus isn't needed anymore for kernels 2.6.x, so there is
+   no need to compile it.
+2. p4b_smbus.o wouldn't even be loaded as the new kernel objects
+   need an extension of .ko not .o
+3. I looked at the wrong file, when making my changes to the
+   Makefile. Your comment in the ticket entry shouldn't
+   be a question, but bluntly state that my suggestion is wrong.
 
-Just trying to wrap my head around this.  Thanks!
+Sorry for my opening that ticket, I only found out later that
+kernels 2.6.x don't need p4b_smbus anymore.
 
+Best regards
 
-Phil
+Willy Weisz
+-----------------------------------------------------------
+Willy Weisz
 
+European Centre for Parallel Computing at Vienna (VCPC)
+                 Liechtensteinstrasse 22
+                 A-1090 Wien
+Tel: (+43 1) 4277 - 38824          Fax: (+43 1) 4277 - 9388
+                e-mail: weisz@vcpc.univie.ac.at
 
-Mark Studebaker wrote:
-
->The AT24RF08 _is_ the RFID chip.
->It's really one of a kind.
->See datasheet link in README.thinkpad.
->
->  
->
