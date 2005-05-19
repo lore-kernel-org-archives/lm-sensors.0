@@ -1,29 +1,28 @@
-From: virusmaster@qip-net.de (Thomas Gruber)
+From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:05 +0000
 Subject: problem with 2.6?
-Message-Id: <Pine.LNX.4.56.0307152345480.29705@draco.qip-net.lan>
+Message-Id: <20030715223418.GA6409@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.56.0307152345480.29705@draco.qip-net.lan>
+In-Reply-To: <Pine.LNX.4.56.0307152345480.29705@draco.qip-net.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi people of lm-sensors (what a start) =)
+On Tue, Jul 15, 2003 at 11:51:48PM +0200, Thomas Gruber wrote:
+> Hi people of lm-sensors (what a start) =)
+> 
+> 3 days ago i compiled the 2.6.0-test1 kernel on my system (which runs very
+> smoothly, i must say) however: if i try to compile lm-sensors, all fails.
 
-3 days ago i compiled the 2.6.0-test1 kernel on my system (which runs very
-smoothly, i must say) however: if i try to compile lm-sensors, all fails.
+The lm-sensors userspace library doesn't work with the 2.6 kernel,
+sorry.
 
-In README you tell to use the lm-sensors drivers inside the kernel...
-well, they are compiled, insmod'ed and i see the i2c devices in /dev/i2c
-(devfs) but here is the problem itself:
+For now you can read the settings by hand from sysfs.
 
-i installed lm-sensors of the debian distrib which delivers me sensors and
-detect-sensors. when i run detect-sensors, all runs fine till a point,
-when it tries to open /proc/bus/i2c/chips or /proc/sys/dev/i2c..... these
-two thingies dont exist... quite logical, since i2c-proc doesnt exist
-anymore since kernel 2.5.6X ...
+Help on working on the 2.6 port of lmsensors would be appreciated.
 
-now my question: how do i get it running? =)
+thanks,
 
-MFG
-Thomas Gruber
+greg k-h
