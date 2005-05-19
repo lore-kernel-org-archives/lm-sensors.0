@@ -1,61 +1,46 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Winbond W83792D driver
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE36FCE7@weshml03.winbond.com.tw>
+Message-Id: <61DqK9WE.1113204386.6869130.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKCj4gMyogWW91ciBjb2RlIGRvZXMgKm5vdCogZnJlZSB0aGUgbWVtb3J5IHlvdSBh
-bGxvY2F0ZWQgZm9yIHN1YmNsaWVudHMKPiB3aGVuIHVubG9hZGluZyB0aGUgZHJpdmVyLiBQbGVh
-c2UgYWRkIHRoZSBuZWNlc3NhcnkgY29kZS4KCkkgYWRkZWQgdGhyZWUgbGluZXMsIHBsZWFzZSBy
-ZWZlciB0byB0aGUgY29kZXMgYmVsb3csIEFtIEkgcmlnaHQ/CgpzdGF0aWMgaW50Cnc4Mzc5MmRf
-ZGV0YWNoX2NsaWVudChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50KQp7CiAgICAgICAgaW50IGVy
-cjsKICAgICAgICBzdHJ1Y3QgdzgzNzkyZF9kYXRhICpkYXRhID0gaTJjX2dldF9jbGllbnRkYXRh
-KGNsaWVudCk7CgogICAgICAgIGlmICgoZXJyID0gaTJjX2RldGFjaF9jbGllbnQoY2xpZW50KSkp
-IHsKICAgICAgICAgICAgICAgIC4uLi8qIHNvbWUgY29kZXMgb21pdHRlZCBoZXJlISAqLwogICAg
-ICAgIH0KCiAgICAgICAgaWYgKGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpPU5VTEwpIHsKICAg
-ICAgICAgICAgICAgIC8qIHN1YmNsaWVudHMgKi8KICAgICAgICAgICAgICAgIGkyY19kZXRhY2hf
-Y2xpZW50KCYoZGF0YS0+bG03NVswXSkpOyA8LS0gYWRkZWQhCiAgICAgICAgICAgICAgICBpMmNf
-ZGV0YWNoX2NsaWVudCgmKGRhdGEtPmxtNzVbMV0pKTsgPC0tIGFkZGVkIQogICAgICAgICAgICAg
-ICAga2ZyZWUoZGF0YS0+bG03NSk7ICAgICAgICAgICAgICAgICAgIDwtLSBhZGRlZCEKICAgICAg
-ICAgICAgICAgIGtmcmVlKGNsaWVudCk7CiAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAg
-IC8qIG1haW4gY2xpZW50ICovCiAgICAgICAgICAgICAgICBrZnJlZShpMmNfZ2V0X2NsaWVudGRh
-dGEoY2xpZW50KSk7CiAgICAgICAgfQogICAgICAgIHJldHVybiAwOwp9CgoKPiA2KiBUaGUgY29k
-ZSBkb2VzICpub3QqIHByb3Blcmx5IGhhbmRsZSB0aGUgY2FzZSB3aGVyZSBzdWJjbGllbnRzIGFy
-ZQo+IGRpc2FibGVkLiBJZiBzdWJjbGllbnRzIGFkZHJlc3NlcyBhcmUgZm9yY2VkLCB0aGV5IHdp
-bGwgYmUgZm9yY2libHkKPiBlbmFibGVkICh0aGlzIGlzIE9LKS4gSWYgdGhleSBhcmUgbm90IGZv
-cmNlZCwgdGhlbiB3ZSBtaWdodCByZWdpc3Rlcgo+IGNsaWVudHMgd2hpY2ggZG8gbm90IGV4aXN0
-ICh0aGlzIGlzIE5PVCBPSykuCgpJIG1lZXQgYSBwcm9ibGVtIHdoZW4gbG9hZCB0aGUgNzkyIG1v
-ZHVsZSBhZnRlciB0aGUgbW9kaWZpY2F0aW9uIHRvCjEqLTUqOgpXODM3OTJkIDAtMDAyZjogU3Vi
-Y2xpZW50IDEgcmVnaXN0cmF0aW9uIGF0IGFkZHJlc3MgMHg0OCBmYWlsZWQuCgpUaGUgNzkyIG1v
-ZHVsZXMgZG9lcyBub3Qgd29yaywgZG9lcyBpdCBoYXZlIHNvbWV0aGluZyB0byBkbyB3aXRoIHlv
-dXIKaXRlbSA2Kj8KRG8geW91IGtub3cgaG93IHRvIHNvbHZlIHRoaXMgcHJvYmxlbT8KClRoYW5r
-cwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29u
-dGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRy
-ZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwu
-IElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3Ig
-YXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVy
-c29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmds
-eSBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3
-b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9u
-LiBJdCBpcyBhZHZpc2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRp
-YWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55
-IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9m
-ZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2
-ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGlu
-ZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2Vu
-dGlhbGx5IHJlcGVhIQogdCB0aGUmbmJzcDsgRW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXz
-pLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6Snpqyr
-SKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HC
-xXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4
-o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5
-tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu
-5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel
-37P1qc63TqijLgo=
+
+Hi Chunhao,
+
+> > 6* The code does *not* properly handle the case where subclients are
+> > disabled. If subclients addresses are forced, they will be forcibly
+> > enabled (this is OK). If they are not forced, then we might register
+> > clients which do not exist (this is NOT OK).
+>
+> Then how should I handle the case where subclients are disabled?
+
+You should skip the call to i2c_attach_client for disabled subclients
+(they will most likely fail anyway).
+
+Note that you will probably face a problem on the client unregistering
+front with your current approach of having a single malloc for both
+subclient structures. You might consider the approach used in the asb100
+and w83781d drivers (in 2.6) instead: have a separate pointer for each
+subclient, and one malloc for each.
+
+> > [I'd have a side question, about the subclients in general...
+> > Why do we register subclients addresses at all? We could instead
+> > forcibly disable them. This is easier and just as efficient (disabling
+> > the addresses doesn't disable the temperature channels themselves).]
+>
+> Yes, maybe you are right, but I think your this question is to the other
+> members of lm_sensors group, Am I right? You need a discussion with them,
+> because I'm not very familiar with the subclients.
+
+Absolutely, this should be discussed collectively. We are in no hurry.
+For your driver, just stick to what the other drivers do for now.
+
+Thanks,
+--
+Jean Delvare
