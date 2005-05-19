@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: andrei@mart.ck.ua (Andrei N.Sobchuck)
 Date: Thu, 19 May 2005 06:24:41 +0000
 Subject: W83637HF support in lm_sensors
-Message-Id: <20040214155413.4e06aa1f.khali@linux-fr.org>
+Message-Id: <402E4CAA.40907@mart.ck.ua>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040213201852.79ee2bcf.khali@linux-fr.org>
 In-Reply-To: <20040213201852.79ee2bcf.khali@linux-fr.org>
@@ -10,29 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Please check it out and tell me how it is working for you.
-> I've downloaded lm_sensors-2.8.4. I can't compile it:
-
-Please note that the W83637HF support is in CVS, not 2.8.4. Instructions
-for getting the CVS version of lm_sensors are here:
-http://secure.netroedge.com/~lm78/download.html#cvs
-
-> kernel/chips/w83l785ts.c:89: `I2C_DRIVERID_W83L785TS' undeclared here 
-> (not in a function)
-> kernel/chips/w83l785ts.c:89: initializer element is not constant
-> kernel/chips/w83l785ts.c:89: (near initialization for
-> `w83l785ts_driver.id') make: *** [kernel/chips/w83l785ts.o] Error 1
+Jean Delvare ?????:
+>>>Please check it out and tell me how it is working for you.
+>>
+>>I've downloaded lm_sensors-2.8.4. I can't compile it:
 > 
-> The same is for I2C_DRIVERID_ADM1026
+> 
+> Please note that the W83637HF support is in CVS, not 2.8.4. Instructions
+> for getting the CVS version of lm_sensors are here:
+> http://secure.netroedge.com/~lm78/download.html#cvs
 
-Because you'd need i2c-2.8.4 too. If you already have a recent (>2.8.0) i2c, you can either ignore the errors (make -k), or edit i2c-id.h
-(wherever it is on your system) and add the following lines (around line
-170):
-#define I2C_DRIVERID_W83L785TS 1047
-#define I2C_DRIVERID_ADM1026 1048
+It works. But I've got "in0 in1 in2 in3 in4 in7 in8"
+instead of "VCore 1 VCore 2 +5V +12V -12V -5V"
 
-Hope that helps.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Andrei N.Sobchuck
+JabberID: andreis@jabber.ru. ICQ UIN: 46466235.
