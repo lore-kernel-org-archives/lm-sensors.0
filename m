@@ -1,7 +1,7 @@
-From: lamar@synque.com (Lamar)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:06 +0000
 Subject: Iwill MPX2 - LM83/LM90 confusion
-Message-Id: <40F6D152.4070400@synque.com>
+Message-Id: <20040715220613.2dccf18a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
 In-Reply-To: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
@@ -10,116 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean,
-    Was support for the Iwill MPX2's particular method of switching 
-LM90s ever incorporated into lm_sensors? I could not find any indication 
-that it had been. If not, I am interested in helping implement that feature.
+> Jean,
+>     Was support for the Iwill MPX2's particular method of switching 
+> LM90s ever incorporated into lm_sensors? I could not find any
+> indication that it had been. If not, I am interested in helping
+> implement that feature.
 
-Lamar
+Unfortunately (for you) it was not. Only the method for the Gigabyte
+board was, because it relies on a more standard (Philips) chip.
 
->the LM90 only allows 1 smbus adress and thus there can not be 2
->
->Iwill switches the input from the 2 cpu's, put a certain pin high and you
->get cpu0, put it low and you get cpu1 on the SAME LM90
->
->Jean has the code and it is based on info gotten from IWill
->
->Regards, Alex
->
->- Please always attach all previous mails !
->----------------------------------------------------------------------
->The Motherboard Monitor:
->http://mbm.livewiredev.com/
->----------------------------------------------------------------------
->For long you live and high you fly,
->And smiles you'll give and tears you'll cry,
->And all you touch and all you see,
->Is all your life will ever be.
->----------------------------------------------------------------------
->
->
->
->-----Original Message-----
->From: Jean Delvare [mailto:khali@linux-fr.org]
->Sent: dinsdag 7 oktober 2003 17:20
->To: lamar@synque.com
->Cc: sensors@stimpy.netroedge.com; mbm@livewiredev.com
->Subject: Re: Iwill MPX2 - LM83/LM90 confusion
->
->
->
->
->  
->
->>One more item, I hope this isn't noise, but there may be two(!)
->>LM90s/LM83s on the MPX2.
->>    
->>
->
->Maybe, maybe not. Running 2.8.1's sensors-detect will tell you that (and
->possibly more).
->
->  
->
->>At any rate, I had seen the 2.8.1 but was loathe to install it
->>because:
->>1) I'd just installed 2.8.0
->>    
->>
->
->This means you'd have installed 2.8.1 easily, since the procedure hasn't
->changed ;)
->
->  
->
->>2) 2.8.1 was beta
->>    
->>
->
->In now way it is. What made you think it could be?
->
->  
->
->>But if you invested the time to write it the least I can do is
->>install and test it.
->>    
->>
->
->If you wan't LM90 support, you want 2.8.1. It's that simple ;)
->
->  
->
->>Question: why does the i2c version always have to increase
->>to support lm_sensors?
->>    
->>
->
->Because most sensor chips are located on the I2C bus (aka SMBus).
->
->  
->
->>Are you upgrading i2c to handle devices that lm_sensors will use?
->>    
->>
->
->Yes, sort of. We add utility functions, remove unused ones, adapt
->internal structures to reflect kernel policy changes, and so on. You do
->not always need the exact same version of i2c and lm_sensors, but since
->we also fix bugs it i2c, you always want to update i2c to match the
->version of lm_sensors you plan to install.
->
->Let us know how 2.8.1 does work for you :)
->Thanks.
->
->--
->Jean Delvare
->http://www.ensicaen.ismra.fr/~delvare/
->
->-------------------------------------------------
->This mail sent through IMP: http://horde.org/imp/
->  
->
+However, Alex van Kaam provided me with some code explaining how to do
+it. As I read it, it looks like the board uses a GPIO pin of the
+Super-I/O chipset. So it's heavily motherboard dependant and as such it
+doesn't belong to the lm90 driver IMHO. We better do an external tool to
+handle that specific case.
 
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040715/7e7029a7/attachment.html
+Here's the code (original by Alex, simplified by me):
+
+begin
+    // Enter Super-I/O
+    WritePortByte($2E,$87);
+    WritePortByte($2E,$87);
+
+    // Select logical device 7
+    WritePortByte($2E,$07);
+    WritePortByte($2F,$07);
+
+    // now we need to set the GPIO10 to high or low
+    WritePortByte($2E,$F1);
+    X:=ReadPortByte($2F);
+
+    if (X and $01) then
+    begin
+      X:=X and $FE;                // if we want it low
+    end
+    else
+    begin
+      X:=X or $01;                // if we want it high
+    end;
+
+    WritePortByte($2F,X);
+
+    // exit Super-I/O
+    WritePortByte($2E,$AA);
+  end;
+
+You should be able to easily convert this to user-space C code (see
+proc/dump/isadump.c for an example). Then running that new tool will
+switch which CPU is monitored.
+
+You could then add functionality to the tool (force one given CPU, show
+selected CPU, etc...).
+
+Once the tool is working we could integrate it into our package.
+
+Remember that there really is only one LM90 on the board, and the lm90
+driver doesn't know about the tweak, so:
+1* You must ensure that you are not switching while the lm90 driver is
+updating its data. This excludes the use of any app repeatedly updating
+the data.
+2* Since the lm90 caches the data it reads, it may take up to 2 seconds
+before you will get the data from the CPU you just switched to.
+
+Good luck, let us know if you need additional help.
+
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
