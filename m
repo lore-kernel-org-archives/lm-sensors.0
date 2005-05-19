@@ -1,7 +1,7 @@
 From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:31 +0000
 Subject: A probelm of loading module i2c-ali1563.o
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0EA2CF@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0EA317@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <265EC8B67800A345A8FB8CA013220F0119E39D@wehqml01>
 In-Reply-To: <265EC8B67800A345A8FB8CA013220F0119E39D@wehqml01>
@@ -10,20 +10,15 @@ Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Dear Jean
+Hi Jean & Mochel
 
-This is Chunhao.
+I backported the i2c-ali1563.c from 2.6 to 2.4. It can be compiled on my
+Linux now. After I get a motherboard with ALI M1563(tomorrow or the day aft=
+er
+tomorrow), I will test it to see whether lm_sensors(w83792D) works well.
 
-I download the i2c-ali1563.c from linux-2.6.11-rc1 and read some
-of the codes.
-
-I wonder whether there is a plan for LM_Sensors Group to backport
-it from 2.6 to 2.4? Because I have little knowledge and experience
-about bus drivers. And I think there should be many guys in LM_Sensors
-Group who have experience about it.
-
-It will be good if lm_sensors group will backport it. :-)
-Btw, Is there anyone who already began to do this job?
+If i2c-ali1563.c for linux 2.4 can work well, I'd like to send it to you.
+Would you please review the codes or test(if you have ALI M1563) it for me?
 
 
 Thanks
@@ -33,143 +28,182 @@ Chunhao
 
 
 > -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: 2005=E5=B9=B41=E6=9C=8814=E6=97=A5 16:59
-> To: PI14 HUANG0
+> From: PI14 HUANG0
+> Sent: 2005=E5=B9=B41=E6=9C=8819=E6=97=A5 15:35
+> To: 'Jean Delvare'
 > Cc: mochel@digitalimplant.org; PI10 LHHsu; PI14 DZSHEN; LM Sensors; PI13 =
 CFLi
 > Subject: RE: A probelm of loading module i2c-ali1563.o
 >=20
+> Dear Jean
 >=20
-> Hi Chunhao,
+> This is Chunhao.
 >=20
-> > We found the source of i2c-ali1563.c on the internet:
-> > http://www.kernel-websource.com/linux266/source-i2c-ali1563.htm
-> > Could you confirm it when you are free?
+> I download the i2c-ali1563.c from linux-2.6.11-rc1 and read some
+> of the codes.
 >=20
-> Picking the sources from some random website doesn't sound really good
-> ;) I would use this one:
+> I wonder whether there is a plan for LM_Sensors Group to backport
+> it from 2.6 to 2.4? Because I have little knowledge and experience
+> about bus drivers. And I think there should be many guys in LM_Sensors
+> Group who have experience about it.
+>=20
+> It will be good if lm_sensors group will backport it. :-)
+> Btw, Is there anyone who already began to do this job?
+>=20
+>=20
+> Thanks
+>=20
+> Best Regards
+> Chunhao
+>=20
+>=20
+> > -----Original Message-----
+> > From: Jean Delvare [mailto:khali@linux-fr.org]
+> > Sent: 2005=E5=B9=B41=E6=9C=8814=E6=97=A5 16:59
+> > To: PI14 HUANG0
+> > Cc: mochel@digitalimplant.org; PI10 LHHsu; PI14 DZSHEN; LM Sensors; PI1=
+3 CFLi
+> > Subject: RE: A probelm of loading module i2c-ali1563.o
+> >
+> >
+> > Hi Chunhao,
+> >
+> > > We found the source of i2c-ali1563.c on the internet:
+> > > http://www.kernel-websource.com/linux266/source-i2c-ali1563.htm
+> > > Could you confirm it when you are free?
+> >
+> > Picking the sources from some random website doesn't sound really good
+> > ;) I would use this one:
+> >
 > http://linux.bkbits.net:8080/linux-2.5/anno/drivers/i2c/busses/i2c-ali1563
-> .c@1.12
->=20
-> At least you'll be sure the file is correct and up-to-date. If you want
-> the file itself, which I think you can't download from bitkeeper's web
-> interface, then you should simply download linux-2.6.11-rc1.
->=20
-> > I tried to get the source
-> > from LM-Sensors CVS, but failed to login for several times:
->=20
-> I did not experience any problem recently. Try again later, if it still
-> doesn't work you may contact Philip Edelbrock but since it works for me
-> the problem might be on your side and not on the server side.
->=20
-> > If we have to backport i2c-ali1563 to Linux 2.4 by myself,
-> > Could you give me some guides about it?
->=20
-> I am not an expert in bus drivers, so say the least. All I can tell is
-> that the Linux 2.6 i2c-ali1563 driver is based on the Linux 2.6
-> i2c-ali15x3, i2c-ali1535, and i2c-i801 drivers. This means that if you
-> compare these drivers with their lm_sensors CVS counterparts and report
-> the differences to the i2c-ali1563 driver, you should get a driver that
-> works with lm_sensors CVS. If you have more technical questions, I guess
-> that the various folks who wrote and ported these bus drivers will be of
-> more help to you than I can be myself.
->=20
-> --
-> Jean Delvare
->=20
->=20
->=20
+> > .c@1.12
+> >
+> > At least you'll be sure the file is correct and up-to-date. If you want
+> > the file itself, which I think you can't download from bitkeeper's web
+> > interface, then you should simply download linux-2.6.11-rc1.
+> >
+> > > I tried to get the source
+> > > from LM-Sensors CVS, but failed to login for several times:
+> >
+> > I did not experience any problem recently. Try again later, if it still
+> > doesn't work you may contact Philip Edelbrock but since it works for me
+> > the problem might be on your side and not on the server side.
+> >
+> > > If we have to backport i2c-ali1563 to Linux 2.4 by myself,
+> > > Could you give me some guides about it?
+> >
+> > I am not an expert in bus drivers, so say the least. All I can tell is
+> > that the Linux 2.6 i2c-ali1563 driver is based on the Linux 2.6
+> > i2c-ali15x3, i2c-ali1535, and i2c-i801 drivers. This means that if you
+> > compare these drivers with their lm_sensors CVS counterparts and report
+> > the differences to the i2c-ali1563 driver, you should get a driver that
+> > works with lm_sensors CVS. If you have more technical questions, I guess
+> > that the various folks who wrote and ported these bus drivers will be of
+> > more help to you than I can be myself.
+> >
+> > --
+> > Jean Delvare
 > >
 > >
-> >Best Regards
-> >Chunhao
 > >
-> >
-> >> -----Original Message-----
-> >> From: Jean Delvare [mailto:khali@linux-fr.org]
-> >> Sent: 2005=C3=84=C3=AA1=C3=94=C3=8213=C3=88=C3=95 20:07
-> >> To: PI13 CFLi; sensors@Stimpy.netroedge.com
-> >> Cc: Patrick Mochel; PI10 LHHsu; PI14 DZSHEN; PI14 HUANG0
-> >> Subject: Re: A probelm of loading module i2c-ali1563.o
-> >>
-> >>
-> >> Hi,
-> >>
-> >> > While I'm trying to load the module of the south bridge chip (ULI M1=
-563
-> >> > B1), it shows
-> >> >[root@localhost busses]# insmod ./i2c-ali15x3.o
-> >> >./i2c-ali15x3.o: init_module: No such device
-> >>
-> >> Expected, since the M1563 is not supported by this driver.
-> >>
-> >> > Is there any module named "i2c-ali1563"? I only found "i2c-ali15x3".
-> >> >
-> >> > Does i2c-2.8.8 support this chipset of ULi?
-> >>
-> >> There is an i2c-ali1563 driver specifically written by Patrick Mochel =
-for
-> >> the M1563, but only available for Linux 2.6 at the moment:
-> >> http://archives.andrew.net.au/lm-sensors/msg26537.html
-> >>
-> >> You would need to port it back to 2.4 (i.e. to lm_sensors CVS). Patrick
-> >> seems to think this would be easy.
-> >>
-> >> --
-> >> Jean Delvare
+> > >
+> > >
+> > >Best Regards
+> > >Chunhao
+> > >
+> > >
+> > >> -----Original Message-----
+> > >> From: Jean Delvare [mailto:khali@linux-fr.org]
+> > >> Sent: 2005=C3=84=C3=AA1=C3=94=C3=8213=C3=88=C3=95 20:07
+> > >> To: PI13 CFLi; sensors@Stimpy.netroedge.com
+> > >> Cc: Patrick Mochel; PI10 LHHsu; PI14 DZSHEN; PI14 HUANG0
+> > >> Subject: Re: A probelm of loading module i2c-ali1563.o
+> > >>
+> > >>
+> > >> Hi,
+> > >>
+> > >> > While I'm trying to load the module of the south bridge chip (ULI =
+M1563
+> > >> > B1), it shows
+> > >> >[root@localhost busses]# insmod ./i2c-ali15x3.o
+> > >> >./i2c-ali15x3.o: init_module: No such device
+> > >>
+> > >> Expected, since the M1563 is not supported by this driver.
+> > >>
+> > >> > Is there any module named "i2c-ali1563"? I only found "i2c-ali15x3=
+".
+> > >> >
+> > >> > Does i2c-2.8.8 support this chipset of ULi?
+> > >>
+> > >> There is an i2c-ali1563 driver specifically written by Patrick Moche=
+l for
+> > >> the M1563, but only available for Linux 2.6 at the moment:
+> > >> http://archives.andrew.net.au/lm-sensors/msg26537.html
+> > >>
+> > >> You would need to port it back to 2.4 (i.e. to lm_sensors CVS). Patr=
+ick
+> > >> seems to think this would be easy.
+> > >>
+> > >> --
+> > >> Jean Delvare
+> > >
 > >
 > >=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> =3D=3D=3D=3D=3D=3D=3D=3D=3DThe privil=
-eged confidential information contained in this
-> email is intended for use only by the addressees as indicated by the orig=
-inal
-> author of this email. If you are not the addressee indicated in this emai=
-l or
-> are not responsible for delivery of the email to such person, please kind=
-ly
-> reply the sender indicating accordingly and delete all copies of it from =
-your
-> computer and network server immediately. We thank you for your cooperatio=
-n.
-> It is advisable that any unauthorized use of confidential information of
-> Winbond is strictly prohibited; and any information in this email that do=
-es
-> not relate to the official business of Winbond shall be deemed as neither=
- given
-> nor endorsed by
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> > =3D=3D=3D=3D=3D=3D=3D=3D=3DThe priv=
+ileged confidential information contained in this
+> > email is intended for use only by the addressees as indicated by the or=
+iginal
+> > author of this email. If you are not the addressee indicated in this em=
+ail
+> or
+> > are not responsible for delivery of the email to such person, please ki=
+ndly
+> > reply the sender indicating accordingly and delete all copies of it fro=
+m your
+> > computer and network server immediately. We thank you for your cooperat=
+ion.
+> > It is advisable that any unauthorized use of confidential information of
+> > Winbond is strictly prohibited; and any information in this email that =
+does
+> > not relate to the official business of Winbond shall be deemed as neith=
+er
+> given
+> > nor endorsed by
+> >
 > Winbond.=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DIf your computer is unable to deco=
-de Chinese font,
-> please ignore the following message. They essentially repeat the  English
-> statement above.=C2=A5=C2=BB=C2=ABH=C2=A5=C3=B3=C2=A4=C2=BA=C2=A9=C3=92=
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DIf your computer is unable to de=
+code Chinese font,
+> > please ignore the following message. They essentially repeat the  Engli=
+sh
+> > statement above.=C2=A5=C2=BB=C2=ABH=C2=A5=C3=B3=C2=A4=C2=BA=C2=A9=C3=92=
 =C2=A7t=C2=B5=C3=98=C2=A8=C2=B9=C2=B9q=C2=A4l=C2=AA=C2=BA=C2=B0]=C2=B2=C2=
 =A3=C2=A9=C3=8A=C2=BE=C3=B7=C2=B1K=C2=A9=C3=8A=C2=B8=C3=AA=C2=B0T,
-> =C2=B6=C3=88=C2=B1=C3=82=C3=85v=C2=AD=C3=AC=C2=B5o=C2=ABH=C2=A4H=C2=AB=C3=
-=BC=C2=A9w=C2=A4=C2=A7=C2=A6=C2=AC=C2=ABH=C2=A4H=C2=A8=C3=BA=C2=BE\=C2=A4=
-=C2=A7=C2=A5=C3=8E.
+> > =C2=B6=C3=88=C2=B1=C3=82=C3=85v=C2=AD=C3=AC=C2=B5o=C2=ABH=C2=A4H=C2=AB=
+=C3=BC=C2=A9w=C2=A4=C2=A7=C2=A6=C2=AC=C2=ABH=C2=A4H=C2=A8=C3=BA=C2=BE\=C2=
+=A4=C2=A7=C2=A5=C3=8E.
+> >
 > =C2=B0=C2=B2=C2=A8=C3=8F=C2=B1z=C2=A8=C3=83=C2=ABD=C2=B3Q=C2=AB=C3=BC=C2=
 =A9w=C2=A4=C2=A7=C2=A6=C2=AC=C2=ABH=C2=A4H=C2=A9=C3=8E=C2=A6]=C2=A5=C3=B4=
 =C2=A6=C3=B3=C2=AD=C3=AC=C2=A6]=C2=A6b=C2=A5=C2=BC=C2=B8g=C2=B1=C3=82=C3=85=
 v=C2=AA=C2=BA=C2=B1=C2=A1=C2=A7=C3=8E=C2=A4=C2=A7=C2=A4U=C2=A6=C2=AC=C2=A8=
 =C3=AC=C2=A5=C2=BB=C2=AB
-> H=C2=A5=C3=B3, =C2=BD=C3=90=C2=B1z=C2=A7i=C2=AA=C2=BE=C2=AD=C3=AC=C2=B5o=
-=C2=ABH=C2=A4H=C2=A8=C3=83=C2=A5=C3=9F=C2=A7Y=C2=B1N=C2=ABH=C2=A5=C3=B3=C2=
+> > H=C2=A5=C3=B3, =C2=BD=C3=90=C2=B1z=C2=A7i=C2=AA=C2=BE=C2=AD=C3=AC=C2=B5=
+o=C2=ABH=C2=A4H=C2=A8=C3=83=C2=A5=C3=9F=C2=A7Y=C2=B1N=C2=ABH=C2=A5=C3=B3=C2=
 =B1q=C2=B9q=C2=B8=C2=A3=C2=BBP=C2=BA=C3=B4=C2=B8=C3=B4=C2=A6=C3=B8=C2=AAA=
 =C2=BE=C2=B9=C2=A4=C2=A4=C2=A4=C2=A9=C2=A5H=C2=AE=C3=B8=C2=B0=C2=A3.
-> =C2=B9=C3=AF=C2=A9=C3=B3=C2=B1z=C2=AA=C2=BA=C2=A6X=C2=A7@, =C2=A7=C3=9A=
+> > =C2=B9=C3=AF=C2=A9=C3=B3=C2=B1z=C2=AA=C2=BA=C2=A6X=C2=A7@, =C2=A7=C3=9A=
 =C2=AD=C3=8C=C2=A5=C3=BD=C2=A6=C2=B9=C2=ADP=C3=81=C3=82. =C2=AFS=C2=A6=C2=
 =B9=C2=B4=C2=A3=C2=BF=C3=B4, =C2=A5=C3=B4=C2=A6=C3=B3=C2=A5=C2=BC=C2=B8g=C2=
 =B1=C3=82=C3=85v=C2=BE=C3=95=C2=A6=C3=9B=C2=A8=C3=8F=C2=A5=C3=8E=C2=B5=C3=
 =98=C2=A8=C2=B9=C2=B9
-> q=C2=A4l=C2=AA=C2=BA=C2=BE=C3=B7=C2=B1K=C2=B8=C3=AA=C2=B0T=C2=AA=C2=BA=C2=
-=A6=C3=A6=C2=AC=C2=B0=C2=ACO=C2=B3Q=C3=84Y=C2=AE=C3=A6=C2=B8T=C2=A4=C3=AE=
-=C2=AA=C2=BA.
-> =C2=ABH=C2=A5=C3=B3=C2=BBP=C2=B5=C3=98=C2=A8=C2=B9=C2=B9q=C2=A4l=C3=80=C3=
-=A7=C2=B7~=C2=B5L=C3=83=C3=B6=C2=A4=C2=A7=C2=A4=C2=BA=C2=AEe,=C2=A4=C2=A3=
-=C2=B1o=C2=B5=C3=B8=C2=AC=C2=B0=C2=B5=C3=98=C2=A8=C2=B9=C2=B9q=C2=A4l=C2=A4=
-=C2=A7=C2=A5=C3=9F=C2=B3=C3=B5=C2=A9=C3=8E=C2=B7N=C2=A8=C2=A3.
+> > q=C2=A4l=C2=AA=C2=BA=C2=BE=C3=B7=C2=B1K=C2=B8=C3=AA=C2=B0T=C2=AA=C2=BA=
+=C2=A6=C3=A6=C2=AC=C2=B0=C2=ACO=C2=B3Q=C3=84Y=C2=AE=C3=A6=C2=B8T=C2=A4=C3=
+=AE=C2=AA=C2=BA.
+> > =C2=ABH=C2=A5=C3=B3=C2=BBP=C2=B5=C3=98=C2=A8=C2=B9=C2=B9q=C2=A4l=C3=80=
+=C3=A7=C2=B7~=C2=B5L=C3=83=C3=B6=C2=A4=C2=A7=C2=A4=C2=BA=C2=AEe,=C2=A4=C2=
+=A3=C2=B1o=C2=B5=C3=B8=C2=AC=C2=B0=C2=B5=C3=98=C2=A8=C2=B9=C2=B9q=C2=A4l=C2=
+=A4=C2=A7=C2=A5=C3=9F=C2=B3=C3=B5=C2=A9=C3=8E=C2=B7N=C2=A8=C2=A3.
 
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DThe privileg=
