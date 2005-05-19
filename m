@@ -1,29 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: get CVS ?
-Message-Id: <200405191431.i4JEV2lk074244@zone3.gcu-squad.org>
+From: grant_nospam@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:47 +0000
+Subject: RFC lmsensors sysfs interface documentation
+Message-Id: <9kug41tbmj5kp8bmadk4t7bupgvnl15q0m@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040519141143.GA20145@cereve.enpc.fr>
-In-Reply-To: <20040519141143.GA20145@cereve.enpc.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi All,
 
->I have linux 2.6.6 and I would like to install lm_sensors CVS version
->because of vid pb with 2.8.6 version
->
->is there an "easy" way to retrieve the CVS version
->as a gzipped tar file ?
+I've started a little documentation project here:
 
-No, you have to access the CVS server yourself.
+  http://scatter.mine.nu/lmsensors/sysfs-names/
 
->on the web site it is adviced to use CVS i2c with the CVS lm_sensors, but
->I have already heard that all i2c stuff was already included in 2.6.x
->kernels, so what to do ? do I have to patch the kernel ?
+So far I generated list of sysfs interface names, culled the 
+documented ones and produced a second list.
 
-No, you're right. You don't need i2c, and you don't need to patch your
-kernel either. Just checkout the lm_sensors2 repository, compile it with
-"make user" and install it with "make user_install". There are no
-differences with installing, say, lm_sensors-2.8.6.
+I don't know if anyone has a cross-reference which driver uses 
+what name but I'm thinking of producing one, perhaps a table, 
+X = drivers, Y = sysfs names, * marks the spot?  This been done?
+
+Worth doing?
+
+Comments, suggestions welcome.  
+
+Cheers,
+Grant.
