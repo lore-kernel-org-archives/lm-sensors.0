@@ -1,21 +1,17 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:51 +0000
-Subject: changing pwm does not change fan speed
-Message-Id: <20040409225221.2827cbf6.khali@linux-fr.org>
+From: pth@suse.de (Philipp Thomas)
+Date: Thu, 19 May 2005 06:24:46 +0000
+Subject: Fix for type punning in lm_sensors2
+Message-Id: <20040305164220.GG28985@paradies.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <40756AB1.60005@laposte.net>
-In-Reply-To: <40756AB1.60005@laposte.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> So basically we should just discard PWM support from as99127f since we
-> mostly don't know how it works.
-
-OK, I've done that. I've also added some documentation on what we know
-about PWM on the AS99127F.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Skipped content of type multipart/mixed-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040305/4221e071/attachment.bin
