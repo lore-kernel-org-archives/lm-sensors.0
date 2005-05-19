@@ -1,69 +1,74 @@
-From: max@semandex.net (Maximilian Ott)
-Date: Thu, 19 May 2005 06:25:32 +0000
-Subject: Address problems with 'i2cset'
-Message-Id: <200501251911.j0PJBtKW019784@Stimpy.netroedge.com>
+From: jasonofhoulton@hotmail.com (Jason Anderson)
+Date: Thu, 19 May 2005 06:24:15 +0000
+Subject: Ticket #: 1365 w83627hf fan3_div
+Message-Id: <Law10-F1207IDkrBuOk0004d1a0@hotmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200501250306.j0P36PKW029120@Stimpy.netroedge.com>
-In-Reply-To: <200501250306.j0P36PKW029120@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi!  I tried isadump, but I guess I don't know how to use it.  Please 
+enlighten me.
+
+Update: My Windows motherboard utility reports 0 for fan3 now, too.
+
 Thanks,
+Jason
 
-Yes, the last bit is the R/W bit and I wasn't aware that I don't need to
-include that. I guess that's what the "set" in "i2cset" does :)
+[root@chickadee w83627hf-isa-0290]# isadump 0x290 0x5d
+  WARNING! Running this program can cause system crashes, data loss and 
+worse!
+  I will probe address register 0x0290 and data register 0x005d.
+  You have five seconds to reconsider and press CTRL-C!
 
-Will try tonight.
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[root@chickadee w83627hf-isa-0290]#
+[root@chickadee w83627hf-isa-0290]# cat fan_div
+4 2 1
+[root@chickadee w83627hf-isa-0290]# echo 4 2 2 > fan_div
+[root@chickadee w83627hf-isa-0290]# cat fan_div
+4 2 2
+[root@chickadee w83627hf-isa-0290]# isadump 0x290 0x5d
+  WARNING! Running this program can cause system crashes, data loss and 
+worse!
+  I will probe address register 0x0290 and data register 0x005d.
+  You have five seconds to reconsider and press CTRL-C!
 
-Thanks again,
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 
--max
- 
-
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org] 
-> Sent: Tuesday, January 25, 2005 3:22 AM
-> To: max@semandex.net; sensors@Stimpy.netroedge.com
-> Subject: Re: Address problems with 'i2cset'
-> 
-> 
-> Hi Maxililian,
-> 
-> > I have a I2C chip with address 0xC0 and when I try to issue:
-> >
-> > % i2cset 0 0xC0 0x44 0x55
-> >
-> > It complaints about "wrong address", or something similar 
-> (sorry I don't
-> > have the system available right now). Is this some safety 
-> check to protect
-> > the clueless (certainly qualify for that).
-> 
-> 0xC0 doesn't fit on 7 bits, and I2C addresses supposedly are 
-> 7 bit wide
-> (let alone the 10-bit addressing expansion we do not 
-> currently support).
-> 
-> I suspect that 0xC0 isn't exactly the chip address but the 
-> first byte of
-> an I2C or SMBus transaction. The first byte is made of the 7 
-> bits of the
-> address + 1 bit for read or write, so the address of the chip would be
-> 0xC0 >> 1 = 0x60.
-> 
-> You could try to confirm this with the following command:
-> 
-> % i2cdetect 0
-> 
-> If I am correct it will reveal a chip at address 0x60. If it does, you
-> can then try:
-> 
-> % i2cset 0 0x60 0x44 0x55
-> 
-> Which should do just what you wanted to do.
-> 
-> --
-> Jean Delvare
-> 
+_________________________________________________________________
+Enter for your chance to IM with Bon Jovi, Seal, Bow Wow, or Mary J Blige 
+using MSN Messenger http://entertainment.msn.com/imastar
