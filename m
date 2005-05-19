@@ -1,531 +1,474 @@
-From: johnp@marine-boy.nu (John Post)
-Date: Thu, 19 May 2005 06:23:26 +0000
-Subject: loading module w83781d hangs system
-Message-Id: <Pine.LNX.4.33.0111272015260.31923-100000@sid>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:31 +0000
+Subject: [PATCH 2.4] i2c cleanups, second wave (3/5)
+Message-Id: <20031224234242.4f3f0084.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20031224225707.749707e5.khali@linux-fr.org>
+In-Reply-To: <20031224225707.749707e5.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-
-
-Hi there,  I have just obtained and installed the lm_sensors-2.6.2 package.
-I ran the sensors-detect program and have added the recommended  lines
-to my /etc/modules.conf file.
-
-I have a tyan thunder K7 motherboard with a Winbond w837812D.
-
-When I perform a modprobe of the w83781d module,  my system hangs/crashes.
-
-
-The Requested information
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2/prog/detect$ ./sensors-detect
- This program will help you to determine which I2C/SMBus modules you need to
- load to use lm_sensors most effectively.
- You need to have done a `make install', issued a `depmod -a' and made sure
- `/etc/conf.modules' (or `/etc/modules.conf') contains the appropriate
- module path before you can use some functions of this utility. Read
- doc/modules for more information.
- Also, you need to be `root', or at least have access to the /dev/i2c[-/]* files for some things. You can use prog/mkdev/mkdev.sh to create these /dev files
- if you do not have them already.
- If you have patched your kernel and have some drivers built-in you can
- safely answer NO if asked to load some modules. In this case, things may
- seem a bit confusing, but they will still work.
-
- IF THIS IS AN IBM THINKPAD, PRESS CTRL-C NOW!
- IBM Thinkpads have a severely broken i2c/SMBus implementation,  just scanning
- the bus will break your thinkpad forever!
-
- We can start with probing for (PCI) I2C or SMBus adapters.
- You do not need any special privileges for this.
- Do you want to probe now? (YES/no):
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2/prog/detect$ sudo sh
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2/prog/detect# ./sensors-detect
- This program will help you to determine which I2C/SMBus modules you need to
- load to use lm_sensors most effectively.
- You need to have done a `make install', issued a `depmod -a' and made sure
- `/etc/conf.modules' (or `/etc/modules.conf') contains the appropriate
- module path before you can use some functions of this utility. Read
- doc/modules for more information.
- Also, you need to be `root', or at least have access to the /dev/i2c[-/]* files for some things. You can use prog/mkdev/mkdev.sh to create these /dev files
- if you do not have them already.
- If you have patched your kernel and have some drivers built-in you can
- safely answer NO if asked to load some modules. In this case, things may
- seem a bit confusing, but they will still work.
-
- IF THIS IS AN IBM THINKPAD, PRESS CTRL-C NOW!
- IBM Thinkpads have a severely broken i2c/SMBus implementation,  just scanning
- the bus will break your thinkpad forever!
-
- We can start with probing for (PCI) I2C or SMBus adapters.
- You do not need any special privileges for this.
- Do you want to probe now? (YES/no):
-Probing for PCI bus adapters...
-Use driver `i2c-amd756' for device 00:07.3: AMD-766 Athlon ACPI
-Use driver `i2c-riva' for device 01:05.0: GeForce GTS
-Probe succesfully concluded.
-
- We will now try to load each adapter module in turn.
-Load `i2c-amd756' (say NO if built into your kernel)? (YES/no):
-Module loaded succesfully.
-Load `i2c-riva' (say NO if built into your kernel)? (YES/no):
-modprobe: Can't locate module i2c-riva
-Loading failed ()... skipping.
-** Note: i2c-riva module is available at
-** http://drama.obuda.kando.hu/~fero/cgi-bin/rivatv.shtml
- Do you now want to be prompted for non-detectable adapters? (yes/NO):
- To continue, we need module `i2c-dev' to be loaded.
- If it is built-in into your kernel, you can safely skip this.
- i2c-dev is not loaded. Do you want to load it now? (YES/no):
- Module loaded succesfully.
-
- We are now going to do the adapter probings. Some adapters may hang halfway
- through; we can't really help that. Also, some chips will be double detected;
- we choose the one with the highest confidence value in that case.
- If you found that the adapter hung after probing a certain address, you can
- specify that address to remain unprobed. That often
- includes address 0x69 (clock chip).
-
-Next adapter: SMBus AMD7X6 adapter at 80e0 (Non-I2C SMBus adapter)
-Do you want to scan it? (YES/no/selectively):
-Client found at address 0x08
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Client found at address 0x2d
-Probing for `Myson MTP008'... Failed!
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `National Semiconductor LM80'... Failed!
-Probing for `National Semiconductor LM87'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Success!
-    (confidence 8, driver `w83781d'), other addresses: 0x48 0x49
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Probing for `Genesys Logic GL518SM Revision 0x00'... Failed!
-Probing for `Genesys Logic GL518SM Revision 0x80'... Failed!
-Probing for `Genesys Logic GL520SM'... Failed!
-Probing for `Genesys Logic GL525SM'... Failed!
-Probing for `Analog Devices ADM9240'... Failed!
-Probing for `Dallas Semiconductor DS1780'... Failed!
-Probing for `National Semiconductor LM81'... Failed!
-Probing for `Analog Devices ADM1025'... Failed!
-Probing for `Analog Devices ADM1024'... Failed!
-Probing for `Analog Devices ADM1022'... Failed!
-Probing for `Texas Instruments THMC50'... Failed!
-Probing for `ITE IT8705F / IT8712F / SiS 950'... Failed!
-Client found at address 0x30
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Client found at address 0x31
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Client found at address 0x48
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `National Semiconductor LM75'... Success!
-    (confidence 3, driver `lm75')
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Probing for `Dallas Semiconductor DS1621'... Failed!
-Client found at address 0x49
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `National Semiconductor LM75'... Success!
-    (confidence 3, driver `lm75')
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Probing for `Dallas Semiconductor DS1621'... Failed!
-Client found at address 0x50
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Probing for `Serial EEPROM (PC-100 DIMM)'... Success!
-    (confidence 8, driver `eeprom')
-Probing for `DDC monitor'... Failed!
-Client found at address 0x51
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-Probing for `Serial EEPROM (PC-100 DIMM)'... Success!
-    (confidence 8, driver `eeprom')
-Client found at address 0x63
-Probing for `National Semiconductor LM78'... Failed!
-Probing for `National Semiconductor LM78-J'... Failed!
-Probing for `National Semiconductor LM79'... Failed!
-Probing for `Winbond W83781D'... Failed!
-Probing for `Winbond W83782D'... Failed!
-Probing for `Winbond W83783S'... Failed!
-Probing for `Winbond W83627HF'... Failed!
-Probing for `Asus AS99127F'... Failed!
-
- Some chips are also accessible through the ISA bus. ISA probes are
- typically a bit more dangerous, as we have to write to I/O ports to do
- this.  Do you want to scan the ISA bus? (YES/no):
-Probing for `National Semiconductor LM78'
-  Trying address 0x0290... Failed!
-Probing for `National Semiconductor LM78-J'
-  Trying address 0x0290... Failed!
-Probing for `National Semiconductor LM79'
-  Trying address 0x0290... Failed!
-Probing for `Winbond W83781D'
-  Trying address 0x0290... Failed!
-Probing for `Winbond W83782D'
-  Trying address 0x0290... Failed!
-Probing for `Winbond W83627HF'
-  Trying address 0x0290... Failed!
-Probing for `Winbond W83697HF'
-  Trying address 0x0290... Failed!
-Probing for `Silicon Integrated Systems SIS5595'
-  Trying general detect... Failed!
-Probing for `VIA Technologies VT 82C686 Integrated Sensors'
-  Trying general detect... Failed!
-Probing for `ITE IT8705F / IT8712F / SiS 950'
-  Trying address 0x0290... Failed!
-
- Now follows a summary of the probes I have just done.
- Just press ENTER to continue:
-
-Driver `w83781d' (should be inserted):
-  Detects correctly:
-  * Bus `SMBus AMD7X6 adapter at 80e0' (Non-I2C SMBus adapter)
-    Busdriver `i2c-amd756', I2C address 0x2d (and 0x48 0x49)
-    Chip `Winbond W83782D' (confidence: 8)
-
-Driver `lm75' (may not be inserted):
-  Misdetects:
-  * Bus `SMBus AMD7X6 adapter at 80e0' (Non-I2C SMBus adapter)
-    Busdriver `i2c-amd756', I2C address 0x48
-    Chip `National Semiconductor LM75' (confidence: 3)
-  * Bus `SMBus AMD7X6 adapter at 80e0' (Non-I2C SMBus adapter)
-    Busdriver `i2c-amd756', I2C address 0x49
-    Chip `National Semiconductor LM75' (confidence: 3)
-
-Driver `eeprom' (should be inserted):
-  Detects correctly:
-  * Bus `SMBus AMD7X6 adapter at 80e0' (Non-I2C SMBus adapter)
-    Busdriver `i2c-amd756', I2C address 0x50
-    Chip `Serial EEPROM (PC-100 DIMM)' (confidence: 8)
-  * Bus `SMBus AMD7X6 adapter at 80e0' (Non-I2C SMBus adapter)
-    Busdriver `i2c-amd756', I2C address 0x51
-    Chip `Serial EEPROM (PC-100 DIMM)' (confidence: 8)
-
-
- I will now generate the commands needed to load the I2C modules.
- Sometimes, a chip is available both through the ISA bus and an I2C bus.
- ISA bus access is faster, but you need to load an additional driver module
- for it. If you have the choice, do you want to use the ISA bus or the
- I2C/SMBus (ISA/smbus)? smbus
-
-WARNING! If you have some things built into your kernel, the
-below list will contain too many modules. Skip the appropriate ones!
-To load everything that is needed, add this to some /etc/rc* file:
-
-#----cut here----
-# I2C adapter drivers
-modprobe i2c-amd756
-# I2C chip drivers
-modprobe w83781d
-modprobe eeprom
-#----cut here----
-
-To make the sensors modules behave correctly, add these lines to either
-/etc/modules.conf or /etc/conf.modules:
-
-#----cut here----
-# I2C module options
-alias char-major-89 i2c-dev
-#----cut here----
-/dev/vmnet: open called by PID 709 (vmnet-netifup)
-/dev/vmnet: port on hub 8 successfully opened
-/dev/vmnet: open called by PID 720 (vmnet-dhcpd)
-/dev/vmnet: port on hub 8 successfully opened
-i2c-core.o: i2c core module
-i2c-amd756.o version 2.6.2 (20011118)
-i2c-core.o: adapter SMBus AMD7X6 adapter at 80e0 registered as adapter 0.
-i2c-amd756.o: AMD756/766 bus detected and initialized
-i2c-dev.o: i2c /dev entries driver module
-i2c-core.o: driver i2c-dev dummy driver registered.
-i2c-dev.o: Registered 'SMBus AMD7X6 adapter at 80e0' as minor 0
-i2c-amd756.o: SMBus collision!
-i2c-amd756.o: SMBus collision!
-i2c-amd756.o: SMBus collision!
-i2c-amd756.o: SMBus collision!
-
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2/prog/detect# lsmod
-Module                  Size  Used by
-i2c-dev                 3744   0
-i2c-amd756              3236   0
-i2c-core               13280   0  [i2c-dev i2c-amd756]
-usb-ohci               17088   0  (unused)
-visor                   9888   0  (unused)
-usbserial              17184   0  [visor]
-usbcore                55712   0  [usb-ohci visor usbserial]
-vmnet                  18304   4
-vmmon                  18804   0  (unused)
-lp                      5376   0  (autoclean)
-
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/detect/i2cdetect 0
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX 08 XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d XX XX
-30: 30 31 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX 48 49 XX XX XX XX XX XX
-50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX 63 XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 8
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x8, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 26
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x1a, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 48
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x30, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 49
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x31, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 50
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x32, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 51
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x33, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-
-sid:/disk1/usr2/tmp/compile_tmp/lm_sensors-2.6.2# prog/dump/i2cdump 0 63
-Warning: no size specified (using byte-data access)
-  WARNING! This program can confuse your I2C bus, cause data loss and worse!
-  I will probe file /dev/i2c-0, address 0x3f, mode byte
-  You have five seconds to reconsider and press CTRL-C!
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-
-From the motherboard documentation, the W83782D chip is my PC health
-monitoring chip.
-
-My motherboard is a thunder K7 (S2462).
-
-The lm_sensors package I am trying is lm_sensors-2.6.2
-
-The i2c package version is also 2.6.2
-
-Kernel version is 2.4.14
-Linux sid 2.4.14 #21 SMP Sat Nov 17 19:38:37 MST 2001 i686 unknown
-
-
-
-Thanks for having a look at my problem.
-
-
-
-John Post             | Email: johnp@marine-boy.nu
+To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>
+
+This patch updates the i2c-core locking mechanism.
+
+Most of the work was done by Ky?sti M?lkki. Original comment follows:
+***
+Replace use of ADAP_LOCK and DRV_LOCK with down(&core_lists).
+In many cases we need both, some return path forgot UNLOCK, and locks
+were claimed in varying order and sometimes not at all.
+
+Replace use of I2C_LOCK with down(&adapter->bus).
+
+Remove unused adapter, driver and client counts.
+***
+
+From Ky?sti's original patch, I removed a few things that did not
+stricly belong to it. A few locks are still missing, even after applying
+this patch. All these changes will be merged into a more generic
+i2c-core code cleanup patch, to be submitted later. 
+
+diff -ru linux-2.4.24-pre2-k2/drivers/i2c/i2c-core.c linux-2.4.24-pre2-k3/drivers/i2c/i2c-core.c
+--- linux-2.4.24-pre2-k2/drivers/i2c/i2c-core.c	Tue Dec 23 19:02:05 2003
++++ linux-2.4.24-pre2-k3/drivers/i2c/i2c-core.c	Wed Dec 24 19:04:55 2003
+@@ -39,32 +39,14 @@
+ 
+ /* ----- global defines ---------------------------------------------------- */
+ 
+-/* exclusive access to the bus */
+-#define I2C_LOCK(adap) down(&adap->lock)
+-#define I2C_UNLOCK(adap) up(&adap->lock) 
+-
+-#define ADAP_LOCK()	down(&adap_lock)
+-#define ADAP_UNLOCK()	up(&adap_lock)
+-
+-#define DRV_LOCK()	down(&driver_lock)
+-#define DRV_UNLOCK()	up(&driver_lock)
+-
+ #define DEB(x) if (i2c_debug>=1) x;
+ #define DEB2(x) if (i2c_debug>=2) x;
+ 
+ /* ----- global variables -------------------------------------------------- */
+ 
+-/**** lock for writing to global variables: the adapter & driver list */
+-struct semaphore adap_lock;
+-struct semaphore driver_lock;
+-
+-/**** adapter list */
++DECLARE_MUTEX(core_lists);
+ static struct i2c_adapter *adapters[I2C_ADAP_MAX];
+-static int adap_count;
+-
+-/**** drivers list */
+ static struct i2c_driver *drivers[I2C_DRIVER_MAX];
+-static int driver_count;
+ 
+ /**** debug level */
+ static int i2c_debug=1;
+@@ -112,9 +94,9 @@
+  */
+ int i2c_add_adapter(struct i2c_adapter *adap)
+ {
+-	int i,j,res;
++	int i,j,res = 0;
+ 
+-	ADAP_LOCK();
++	down(&core_lists);
+ 	for (i = 0; i < I2C_ADAP_MAX; i++)
+ 		if (NULL = adapters[i])
+ 			break;
+@@ -127,11 +109,10 @@
+ 	}
+ 
+ 	adapters[i] = adap;
+-	adap_count++;
+-	ADAP_UNLOCK();
+ 	
+ 	/* init data types */
+-	init_MUTEX(&adap->lock);
++	init_MUTEX(&adap->bus);
++	init_MUTEX(&adap->list);
+ 
+ #ifdef CONFIG_PROC_FS
+ 
+@@ -146,7 +127,7 @@
+ 			printk("i2c-core.o: Could not create /proc/bus/%s\n",
+ 			       name);
+ 			res = -ENOENT;
+-			goto ERROR1;
++			goto ERROR0;
+ 		}
+ 
+ 		proc_entry->proc_fops = &i2cproc_operations;
+@@ -157,36 +138,25 @@
+ #endif /* def CONFIG_PROC_FS */
+ 
+ 	/* inform drivers of new adapters */
+-	DRV_LOCK();	
+ 	for (j=0;j<I2C_DRIVER_MAX;j++)
+ 		if (drivers[j]!=NULL && 
+ 		    (drivers[j]->flags&(I2C_DF_NOTIFY|I2C_DF_DUMMY)))
+ 			/* We ignore the return code; if it fails, too bad */
+ 			drivers[j]->attach_adapter(adap);
+-	DRV_UNLOCK();
+ 	
+ 	DEB(printk(KERN_DEBUG "i2c-core.o: adapter %s registered as adapter %d.\n",
+ 	           adap->name,i));
+-
+-	return 0;	
+-
+-
+-ERROR1:
+-	ADAP_LOCK();
+-	adapters[i] = NULL;
+-	adap_count--;
+ ERROR0:
+-	ADAP_UNLOCK();
++	up(&core_lists);
+ 	return res;
+ }
+ 
+ 
+ int i2c_del_adapter(struct i2c_adapter *adap)
+ {
+-	int i,j,res;
+-
+-	ADAP_LOCK();
++	int i,j,res = 0;
+ 
++	down(&core_lists);
+ 	for (i = 0; i < I2C_ADAP_MAX; i++)
+ 		if (adap = adapters[i])
+ 			break;
+@@ -202,17 +172,14 @@
+ 	 * *detach* it! Of course, each dummy driver should know about
+ 	 * this or hell will break loose...
+ 	 */
+-	DRV_LOCK();
+ 	for (j = 0; j < I2C_DRIVER_MAX; j++) 
+ 		if (drivers[j] && (drivers[j]->flags & I2C_DF_DUMMY))
+ 			if ((res = drivers[j]->attach_adapter(adap))) {
+ 				printk(KERN_WARNING "i2c-core.o: can't detach adapter %s "
+ 				       "while detaching driver %s: driver not "
+ 				       "detached!",adap->name,drivers[j]->name);
+-				goto ERROR1;	
++				goto ERROR0;
+ 			}
+-	DRV_UNLOCK();
+-
+ 
+ 	/* detach any active clients. This must be done first, because
+ 	 * it can fail; in which case we give upp. */
+@@ -240,17 +207,9 @@
+ #endif /* def CONFIG_PROC_FS */
+ 
+ 	adapters[i] = NULL;
+-	adap_count--;
+-	
+-	ADAP_UNLOCK();	
+ 	DEB(printk(KERN_DEBUG "i2c-core.o: adapter unregistered: %s\n",adap->name));
+-	return 0;
+-
+ ERROR0:
+-	ADAP_UNLOCK();
+-	return res;
+-ERROR1:
+-	DRV_UNLOCK();
++	up(&core_lists);
+ 	return res;
+ }
+ 
+@@ -264,7 +223,8 @@
+ int i2c_add_driver(struct i2c_driver *driver)
+ {
+ 	int i;
+-	DRV_LOCK();
++
++	down(&core_lists);
+ 	for (i = 0; i < I2C_DRIVER_MAX; i++)
+ 		if (NULL = drivers[i])
+ 			break;
+@@ -273,19 +233,12 @@
+ 		       " i2c-core.o: register_driver(%s) "
+ 		       "- enlarge I2C_DRIVER_MAX.\n",
+ 			driver->name);
+-		DRV_UNLOCK();
++		up(&core_lists);
+ 		return -ENOMEM;
+ 	}
+-
+ 	drivers[i] = driver;
+-	driver_count++;
+-	
+-	DRV_UNLOCK();	/* driver was successfully added */
+-	
+ 	DEB(printk(KERN_DEBUG "i2c-core.o: driver %s registered.\n",driver->name));
+ 	
+-	ADAP_LOCK();
+-
+ 	/* now look for instances of driver on our adapters
+ 	 */
+ 	if (driver->flags& (I2C_DF_NOTIFY|I2C_DF_DUMMY)) {
+@@ -294,15 +247,15 @@
+ 				/* Ignore errors */
+ 				driver->attach_adapter(adapters[i]);
+ 	}
+-	ADAP_UNLOCK();
++	up(&core_lists);
+ 	return 0;
+ }
+ 
+ int i2c_del_driver(struct i2c_driver *driver)
+ {
+-	int i,j,k,res;
++	int i,j,k,res = 0;
+ 
+-	DRV_LOCK();
++	down(&core_lists);
+ 	for (i = 0; i < I2C_DRIVER_MAX; i++)
+ 		if (driver = drivers[i])
+ 			break;
+@@ -310,7 +263,7 @@
+ 		printk(KERN_WARNING " i2c-core.o: unregister_driver: "
+ 				    "[%s] not found\n",
+ 			driver->name);
+-		DRV_UNLOCK();
++		up(&core_lists);
+ 		return -ENODEV;
+ 	}
+ 	/* Have a look at each adapter, if clients of this driver are still
+@@ -322,7 +275,6 @@
+ 	 * invalid operation might (will!) result, when using stale client
+ 	 * pointers.
+ 	 */
+-	ADAP_LOCK(); /* should be moved inside the if statement... */
+ 	for (k=0;k<I2C_ADAP_MAX;k++) {
+ 		struct i2c_adapter *adap = adapters[k];
+ 		if (adap = NULL) /* skip empty entries. */
+@@ -341,8 +293,7 @@
+ 				       "not be detached properly; driver "
+ 				       "not unloaded!",driver->name,
+ 				       adap->name);
+-				ADAP_UNLOCK();
+-				return res;
++				goto ERROR0;
+ 			}
+ 		} else {
+ 			for (j=0;j<I2C_CLIENT_MAX;j++) { 
+@@ -365,31 +316,41 @@
+ 						       driver->name,
+ 						       client->addr,
+ 						       adap->name);
+-						ADAP_UNLOCK();
+-						return res;
++						goto ERROR0;
+ 					}
+ 				}
+ 			}
+ 		}
+ 	}
+-	ADAP_UNLOCK();
+ 	drivers[i] = NULL;
+-	driver_count--;
+-	DRV_UNLOCK();
+-	
+ 	DEB(printk(KERN_DEBUG "i2c-core.o: driver unregistered: %s\n",driver->name));
+-	return 0;
++
++ERROR0:
++	up(&core_lists);
++	return res;
+ }
+ 
+-int i2c_check_addr (struct i2c_adapter *adapter, int addr)
++static int __i2c_check_addr (struct i2c_adapter *adapter, int addr)
+ {
+ 	int i;
+ 	for (i = 0; i < I2C_CLIENT_MAX ; i++) 
+ 		if (adapter->clients[i] && (adapter->clients[i]->addr = addr))
+ 			return -EBUSY;
++
+ 	return 0;
+ }
+ 
++int i2c_check_addr (struct i2c_adapter *adapter, int addr)
++{
++	int rval;
++
++	down(&adapter->list);
++	rval = __i2c_check_addr(adapter, addr);
++	up(&adapter->list);
++
++	return rval;
++}
++
+ int i2c_attach_client(struct i2c_client *client)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+@@ -398,6 +359,7 @@
+ 	if (i2c_check_addr(client->adapter,client->addr))
+ 		return -EBUSY;
+ 
++	down(&adapter->list);
+ 	for (i = 0; i < I2C_CLIENT_MAX; i++)
+ 		if (NULL = adapter->clients[i])
+ 			break;
+@@ -405,11 +367,11 @@
+ 		printk(KERN_WARNING 
+ 		       " i2c-core.o: attach_client(%s) - enlarge I2C_CLIENT_MAX.\n",
+ 			client->name);
++		up(&adapter->list);
+ 		return -ENOMEM;
+ 	}
+-
+ 	adapter->clients[i] = client;
+-	adapter->client_count++;
++	up(&adapter->list);
+ 	
+ 	if (adapter->client_register) 
+ 		if (adapter->client_register(client)) 
+@@ -431,6 +393,7 @@
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	int i,res;
+ 
++	down(&adapter->list);
+ 	for (i = 0; i < I2C_CLIENT_MAX; i++)
+ 		if (client = adapter->clients[i])
+ 			break;
+@@ -438,6 +401,7 @@
+ 		printk(KERN_WARNING " i2c-core.o: unregister_client "
+ 				    "[%s] not found\n",
+ 			client->name);
++		up(&adapter->list);
+ 		return -ENODEV;
+ 	}
+ 	
+@@ -453,7 +417,7 @@
+ 		}
+ 
+ 	adapter->clients[i] = NULL;
+-	adapter->client_count--;
++	up(&adapter->list);
+ 
+ 	DEB(printk(KERN_DEBUG "i2c-core.o: client [%s] unregistered.\n",client->name));
+ 	return 0;
+@@ -595,6 +559,7 @@
+ 	int i;
+ 	int nr = 0;
+ 	/* Note that it is safe to write a `little' beyond len. Yes, really. */
++	down(&core_lists);
+ 	for (i = 0; (i < I2C_ADAP_MAX) && (nr < len); i++)
+ 		if (adapters[i]) {
+ 			nr += sprintf(buf+nr, "i2c-%d\t", i);
+@@ -611,6 +576,7 @@
+ 			              adapters[i]->name,
+ 			              adapters[i]->algo->name);
+ 		}
++	up(&core_lists);
+ 	return nr;
+ }
+ 
+@@ -728,9 +694,9 @@
+  	 	DEB2(printk(KERN_DEBUG "i2c-core.o: master_xfer: %s with %d msgs.\n",
+ 		            adap->name,num));
+ 
+-		I2C_LOCK(adap);
++		down(&adap->bus);
+ 		ret = adap->algo->master_xfer(adap,msgs,num);
+-		I2C_UNLOCK(adap);
++		up(&adap->bus);
+ 
+ 		return ret;
+ 	} else {
+@@ -755,9 +721,9 @@
+ 		DEB2(printk(KERN_DEBUG "i2c-core.o: master_send: writing %d bytes on %s.\n",
+ 			count,client->adapter->name));
+ 	
+-		I2C_LOCK(adap);
++		down(&adap->bus);
+ 		ret = adap->algo->master_xfer(adap,&msg,1);
+-		I2C_UNLOCK(adap);
++		up(&adap->bus);
+ 
+ 		/* if everything went ok (i.e. 1 msg transmitted), return #bytes
+ 		 * transmitted, else error code.
+@@ -785,9 +751,9 @@
+ 		DEB2(printk(KERN_DEBUG "i2c-core.o: master_recv: reading %d bytes on %s.\n",
+ 			count,client->adapter->name));
+ 	
+-		I2C_LOCK(adap);
++		down(&adap->bus);
+ 		ret = adap->algo->master_xfer(adap,&msg,1);
+-		I2C_UNLOCK(adap);
++		up(&adap->bus);
+ 	
+ 		DEB2(printk(KERN_DEBUG "i2c-core.o: master_recv: return:%d (count:%d, addr:0x%02x)\n",
+ 			ret, count, client->addr));
+@@ -1195,10 +1161,10 @@
+ 	s32 res;
+ 	flags = flags & I2C_M_TEN;
+ 	if (adapter->algo->smbus_xfer) {
+-		I2C_LOCK(adapter);
++		down(&adapter->bus);
+ 		res = adapter->algo->smbus_xfer(adapter,addr,flags,read_write,
+ 		                                command,size,data);
+-		I2C_UNLOCK(adapter);
++		up(&adapter->bus);
+ 	} else
+ 		res = i2c_smbus_xfer_emulated(adapter,addr,flags,read_write,
+ 	                                      command,size,data);
+@@ -1228,12 +1194,7 @@
+ 	printk(KERN_INFO "i2c-core.o: i2c core module version %s (%s)\n", I2C_VERSION, I2C_DATE);
+ 	memset(adapters,0,sizeof(adapters));
+ 	memset(drivers,0,sizeof(drivers));
+-	adap_count=0;
+-	driver_count=0;
+ 
+-	init_MUTEX(&adap_lock);
+-	init_MUTEX(&driver_lock);
+-	
+ #ifdef CONFIG_PROC_FS
+ 	return i2cproc_init();
+ #else
+diff -ru linux-2.4.24-pre2-k2/drivers/i2c/i2c-sibyte.c linux-2.4.24-pre2-k3/drivers/i2c/i2c-sibyte.c
+--- linux-2.4.24-pre2-k2/drivers/i2c/i2c-sibyte.c	Mon Dec 22 22:04:00 2003
++++ linux-2.4.24-pre2-k3/drivers/i2c/i2c-sibyte.c	Wed Dec 24 19:04:55 2003
+@@ -67,7 +67,6 @@
+                 dec_use:           sibyte_dec_use,
+                 client_register:   sibyte_reg,
+                 client_unregister: sibyte_unreg,
+-		client_count:      0
+         } , 
+         {
+                 name:              "SiByte SMBus 1",
+@@ -78,7 +77,6 @@
+                 dec_use:           sibyte_dec_use,
+                 client_register:   sibyte_reg,
+                 client_unregister: sibyte_unreg,
+-		client_count:      0
+         }
+ };
+ 
+diff -ru linux-2.4.24-pre2-k2/include/linux/i2c.h linux-2.4.24-pre2-k3/include/linux/i2c.h
+--- linux-2.4.24-pre2-k2/include/linux/i2c.h	Tue Dec 23 20:05:40 2003
++++ linux-2.4.24-pre2-k3/include/linux/i2c.h	Wed Dec 24 20:12:52 2003
+@@ -241,11 +241,11 @@
+ 			/* and can be set via the i2c_ioctl call	*/
+ 
+ 			/* data fields that are valid for all devices	*/
+-	struct semaphore lock;  
++	struct semaphore bus;
++	struct semaphore list;  
+ 	unsigned int flags;/* flags specifying div. data		*/
+ 
+ 	struct i2c_client *clients[I2C_CLIENT_MAX];
+-	int client_count;
+ 
+ 	int timeout;
+ 	int retries;
+
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
