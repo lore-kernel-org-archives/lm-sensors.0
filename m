@@ -1,14 +1,15 @@
 From: Nicolas.Mailhot@laPoste.net (Nicolas Mailhot)
 Date: Thu, 19 May 2005 06:24:16 +0000
 Subject: Sensors and linux 2.6.0-test4-bk8 question
-Message-Id: <1062952588.8801.17.camel@rousalka.dyndns.org>
+Message-Id: <1062952680.9123.0.camel@rousalka.dyndns.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1062934034.7923.2.camel@rousalka.dyndns.org>
 In-Reply-To: <1062934034.7923.2.camel@rousalka.dyndns.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+To: Ton Hospel <linux-kernel@ton.iguana.be>
+Cc: linux-kernel@vger.kernel.org, lm78@stimpy.netroedge.com
 
 Ton Hospel replied to me
 |> I know libsensors is not yet 2.6 aware, but I thought sensed values
@@ -55,5 +56,5 @@ Type: application/pgp-signature
 Size: 189 bytes
 Desc: Ceci est une partie de message
 	=3D?ISO-8859-1?Q?num=E9riquement?=3D =3D?ISO-8859-1?Q?_sign=E9e?Url : http=
-://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030907/729e67e5/=
+://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030907/7edabeeb/=
 attachment.bin
