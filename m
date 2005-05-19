@@ -1,73 +1,56 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:42 +0000
-Subject: i2c-801 (fwd)
-Message-Id: <3DE2B1D3.A4E33440@paradyne.com>
+From: wtarreau@free.fr (Willy Tarreau)
+Date: Thu, 19 May 2005 06:23:29 +0000
+Subject: [PATCH] AMD760MPX support
+Message-Id: <200202020858.g128w7h03063@ns.home.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200211192101.gAJL1Vj03615@shire.frodo.local>
-In-Reply-To: <200211192101.gAJL1Vj03615@shire.frodo.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-If the function 3 device is in lspci then you can add it to the table
-in the driver. If not, see prog/hotplug/README.p4b.
-If it works, or you need more help, let us know, and include
-output of 'lspci -n'.
+Hi !
 
-mds
+I bought an ASUS dual-Athlon motherboard which comes with an AMD760MPX
+chipset (761 + 768). I just added the PCI IDs of this chipset to the
+existing driver and it works (using wb87381). Here is the patch against
+lmsensors-2.6.2.
+
+Regards,
+Willy
 
 
-Jean Delvare wrote:
-> 
-> Mark, Phil, any idea?
-> Is it supposed to be fixed in the CVS?
-> 
-> Begin forwarded message:
-> 
-> Date: Sun, 24 Nov 2002 14:21:00 +0000
-> From: Szabolcs Barsony <bvelvet@freemail.hu>
-> To: Jean Delvare <khali@linux-fr.org>
-> Subject: Re: i2c-801
-> 
-> Hi,
-> 
-> I have run sensors-detect and it did not find anything. I have read the
-> Docs as well.
-> According the "SUPPORTED I2C BUS DEVICES - STATUS" table i2c-i801 driver
-> 
-> supports 82801AA, BA, CA, CAM, DB chips. When i do "modprobe i2c-i801" I
-> got the following error message:
-> Nov 24 14:16:00 localhost kernel: i2c-core.o: i2c core module
-> Nov 24 14:16:00 localhost kernel: i2c-i801.o version 2.6.5 (20020915)
-> Nov 24 14:16:00 localhost kernel: i2c-i801.o: Error: Can't detect I801,
-> function 3!
-> Nov 24 14:16:00 localhost kernel: i2c-i801.o: I801 not detected, module
-> not inserted.
-> 
-> I have checked i2c-i801.c and it does not recognise PCI ID of my
-> chipset.
-> Will it help if I add my PCI ID to the list?
-> 
-> Regards,
-> Szabolcs
-> 
-> On Friday 22 November 2002 22:09, you wrote:
-> > > I have a notebook with the following devices. Is it supported by the
-> > > lm_sensors package? If not is there any chance to be supported?
-> >
-> > Please run sensors-detect before asking this kind of question. Read
-> > the docs, too. We can't help you if you don't help yourself first.
-> 
-> --
->       .-.
->      /v\    L   I   N   U   X
->     // \\  >Phear the Penguin<
->    /(   )\
->     ^^-^^
-> ___________________________________
-> Linux is like a wigwam. No gates, no windows just an apache inside.
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+--- linux-2.4.16/drivers/i2c/i2c-amd756.c	Tue Jan  8 23:15:11 2002
++++ linux/drivers/i2c/i2c-amd756.c	Sat Jan 26 23:42:54 2002
+@@ -52,9 +52,13 @@
+ #ifndef PCI_DEVICE_ID_AMD_766
+ #define PCI_DEVICE_ID_AMD_766 0x7413
+ #endif
++#ifndef PCI_DEVICE_ID_AMD_768
++#define PCI_DEVICE_ID_AMD_768 0x7443
++#endif
+ 
+ static int supported[] = {PCI_DEVICE_ID_AMD_756,
+                           PCI_DEVICE_ID_AMD_766,
++                          PCI_DEVICE_ID_AMD_768,
+                           0 };
+ 
+ /* AMD756 SMBus address offsets */
+@@ -452,7 +456,7 @@
+ 	amd756_initialized = 0;
+ 	if ((res = amd756_setup())) {
+ 		printk
+-		    ("i2c-amd756.o: AMD756/766 not detected, module not inserted.\n");
++		    ("i2c-amd756.o: AMD756/766/768 not detected, module not inserted.\n");
+ 		amd756_cleanup();
+ 		return res;
+ 	}
+@@ -466,7 +470,7 @@
+ 		return res;
+ 	}
+ 	amd756_initialized++;
+-	printk("i2c-amd756.o: AMD756/766 bus detected and initialized\n");
++	printk("i2c-amd756.o: AMD756/766/768 bus detected and initialized\n");
+ 	return 0;
+ }
+ 
+
