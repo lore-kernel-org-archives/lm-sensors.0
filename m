@@ -1,36 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:20 +0000
-Subject: lm_sensors 2.8.1 test - LM75
-Message-Id: <20031007221943.7fb37987.khali@linux-fr.org>
+From: thearni@online.no (Arne Vidar Sj=?ISO-8859-1?Q?=F8n=F8st?=)
+Date: Thu, 19 May 2005 06:23:32 +0000
+Subject: Ticket 892: No sensors found!
+Message-Id: <3CE21B56@epostleser.online.no>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200310071335.53958.lamar@synque.com>
-In-Reply-To: <200310071335.53958.lamar@synque.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Ref: Ticket 892
 
-> I also seem to have a useless LM75:
-> 
-> lm75-i2c-1-4e
-> Adapter: SMBus AMD75x adapter at 06e0
-> Algorithm: Non-I2C SMBus adapter
-> temp:       +0.0?C  (limit =  +0.0?C, hysteresis =  +0.0?C)
+The kernel dont support modules, thats why I have patched this into the 
+kernel. Everything built in, no modules. Its running Slackware 7.
 
-Most likely it isn't a LM75. That old chip is hard to detect, and
-"empty" I2C devices (value 0 in all registers) will be detected as
-LM75s, providing they are at an acceptable address. So I think you can
-safely ignore it.
+Kernelsetup:
+[Y] I2C support
+[Y] I2C mainboard interfaces       
+[Y]   VIA Technologies, Inc. VT596A/B, 686A/B, 8233 (NEW)
+[Y] I2C device interface
+[Y] I2C /proc interface (required for hardware sensors)
 
-If you are curious, you can try dumping the chips content using the
-following command: "i2cdump 1 0x4e", and try again later to see if
-something has changed. However, I'd expect it to be full of 0s forever.
+[Y] Hardware sensors support
+[Y]   Winbond W83781D, W83782D, W83783S, W83627HF, Asus AS99127F
 
-I could change our detection code in sensors-detect to lower confidence
-to minimum in that case. BTW, which confidence level did sensors-detect
-claimed for you?
+dmesg:
+i2c-core.o: i2c core module version 2.6.3 (20020322)
+i2c-dev.o: i2c /dev entries driver module version 2.6.3 (20020322)
+i2c-proc.o version 2.6.3 (20020322)
+No other things regarding sensors
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+sensors:
+No sensors found!
+
+sensors-detect:
+Can't access /proc/modules! at /usr/local/sbin/sensors-detect line 991.
+
+lsmod:
+Module                  Size  Used by
+lsmod: QM_MODULES: Function not implemented
