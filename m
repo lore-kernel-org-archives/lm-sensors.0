@@ -1,43 +1,105 @@
-From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: PC87366 support
-Message-Id: <3CB34C1F.62A1207E@paradyne.com>
+From: thiemel@centrum.cz (=?iso-8859-2?Q?Tom=E1=B9_Thiemel?=)
+Date: Thu, 19 May 2005 06:25:49 +0000
+Subject: question (IBM i2c-piix4)
+Message-Id: <000101c53bd2$a7dbfbb0$e500a8c0@KRTEK>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020409180707.GK1677@irn-bru>
-In-Reply-To: <20020409180707.GK1677@irn-bru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We haven't looked at the datasheet closely and so we can't really say.
-Generally the coding and testing is straightforward after
-we get a board to work with.
-mds
+Hi. 
+I have this problem:
+==
+i2c-piix4.o: IBM Laptop detected; this module may corrupt your serial
+eeprom! Refusing to load module!
+==
 
-Andrew Greig wrote:
-> 
-> Greetings,
-> 
-> Firstly, you guys are doing a great job with the development of i2c and
-> lm_sensors, this project really seems to be progressing.  It sure make
-> life easier for the rest of us that you've already done so much work in
-> this area.
-> 
-> Anyway, I've been trying to get sensor data from a system known as a
-> Quanta, with a CP810E-FL motherboard, that features a (you guessed it)
-> Intel 810E chipset.  According to the motherboard manual, it has a
-> National Semiconductor PC87366 Super I/O controller that among other
-> things does temperature and voltage monitoring.  The lm_sensors new
-> drivers page lists this chip as having no planned driver.  I don't think I
-> have the skills to volunteer to write one, but I am curious about how
-> difficult it would be for this chip to be supported.  Is it greatly
-> different to any of the other chips you have drivers for?
-> 
-> Thanks for your time.
-> --
-> Andrew Greig - Technical Support
-> Internet Business Services Ltd.
-> Beta Centre - Stirling Innovation Park - STIRLING - FK9 4NF - United
-> Kingdom
-> (tel) +44 (0)1786 451600  (fax) +44 (0)1786 451274  (web) www.mezzonet.net
+And I have read this message:
+####
+http://archives.andrew.net.au/lm-sensors/msg01833.html
+####
+
+Is my PC on your "whitelist", please?
+
+
+Thanks a lot
+
+Tomas Thiemel
+ICQ #170438916
+http://www.wifizabreh.net
+
+PS: What means "serial eeprom" - is it "BIOS chip"?
+
+------------------------------
+See information listed below:
+
+
+***lspci -v ***
+..
+00:02.3 Bridge: Intel Corp. 82371AB/EB/MB PIIX4 ACPI (rev 02)
+        Flags: medium devsel, IRQ 9
+..
+
+***lspci -n***
+00:00.0 Class 0600: 8086:7190 (rev 03)
+00:01.0 Class 0604: 8086:7191 (rev 03)
+00:02.0 Class 0601: 8086:7110 (rev 02)
+00:02.1 Class 0101: 8086:7111 (rev 01)
+00:02.2 Class 0c03: 8086:7112 (rev 01)
+00:02.3 Class 0680: 8086:7113 (rev 02)
+00:03.0 Class 0200: 8086:1229 (rev 05)
+00:12.0 Class 0280: 1260:3873 (rev 01)
+00:14.0 Class 0280: 1260:3873 (rev 01)
+01:01.0 Class 0300: 5333:8904 (rev 01)
+
+***cat /var/log/dmesg***
+Linux version 2.4.29 (root@wifizabreh2) (gcc version 3.2.2 20030222 (Red
+Hat Linux 3.2.2-5)) #12 22:57:14 CEST 07-04-2005
+127MB LOWMEM available.
+..
+IBM machine detected. Enabling interrupts during APM calls.
+Kernel command line: ro root=/dev/hda1
+No local APIC present or hardware disabled
+Initializing CPU#0
+Detected 398.272 MHz processor.
+Console: colour VGA+ 80x25
+Calibrating delay loop... 794.62 BogoMIPS
+Memory: 126864k/131060k available (1508k kernel code, 3808k reserved,
+541k data, 100k init, 0k highmem)
+..
+CPU: L1 I cache: 16K, L1 D cache: 16K
+CPU: L2 cache: 512K
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU:     After generic, caps: 0183f9ff 00000000 00000000 00000000
+CPU:             Common caps: 0183f9ff 00000000 00000000 00000000
+CPU: Intel Pentium II (Deschutes) stepping 02
+Enabling fast FPU save and restore... done.
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch@atnf.csiro.au)
+mtrr: detected mtrr type: Intel
+PCI: PCI BIOS revision 2.10 entry at 0xfd85c, last bus=1
+PCI: Using configuration type 1
+PCI: Probing PCI hardware
+PCI: Probing PCI hardware (bus 00)
+PCI: Using IRQ router PIIX/ICH [8086/7110] at 00:02.0
+Limiting direct PCI/PCI transfers.
+isapnp: Scanning for PnP cards...
+isapnp: Card 'Crystal Audio'
+isapnp: 1 Plug & Play card detected total
+Linux NET4.0 for Linux 2.4
+..
+Uniform Multi-Platform E-IDE driver Revision: 7.00beta4-2.4
+ide: Assuming 33MHz system bus speed for PIO modes; override with
+idebus=xx
+PIIX4: IDE controller at PCI slot 00:02.1
+PIIX4: chipset revision 1
+PIIX4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0xfff0-0xfff7, BIOS settings: hda:DMA, hdb:pio
+hda: Maxtor 90644D3, ATA DISK drive
+blk: queue c0346500, I/O limit 4095Mb (mask 0xffffffff)
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+..
+
