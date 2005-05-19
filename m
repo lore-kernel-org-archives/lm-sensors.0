@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:11 +0000
 Subject: [PATCH] More i2c driver changes 2.6.0-test2
-Message-Id: <106038693850@kroah.com>
+Message-Id: <10603869391598@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10603869373490@kroah.com>
+In-Reply-To: <106038693850@kroah.com>
 References: <10603869373490@kroah.com>
 In-Reply-To: <10603869373490@kroah.com>
 MIME-Version: 1.0
@@ -11,126 +11,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1125, 2003/08/08 16:24:32-07:00, greg@kroah.com
+ChangeSet 1.1126, 2003/08/08 16:33:00-07:00, wodecki@gmx.de
 
-I2C: fix up driver model programming error.
+[PATCH] I2C: i2c sysfs rant
 
-There was no release function for the objects.
-bad greg, no biscuit...
+On Wed, Aug 06, 2003 at 04:22:44PM -0700, Greg KH wrote:
+> On Wed, Aug 06, 2003 at 09:11:45PM +0200, Wiktor Wodecki wrote:
+> > Hello folks,
+> >
+> > I just saw that I2C provides "/sys/bus/i2c/drivers/dev\ driver" in
+> > 2.6.0-test2. It would be nice if you'd consider renaming this to
+> > dev_driver, to avoid un-neccessary quoting in scripts.
+> >
+> > Thank You :-)
+>
+> Patches are always gladly accepted :)
+
+here you go
 
 
- drivers/i2c/i2c-core.c |   31 ++++++++++++++++++++++++++++++-
- include/linux/i2c.h    |    6 +++++-
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ drivers/i2c/i2c-dev.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
 
-diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c	Fri Aug  8 16:47:25 2003
-+++ b/drivers/i2c/i2c-core.c	Fri Aug  8 16:47:25 2003
-@@ -55,6 +55,12 @@
- 	return 0;
- }
+diff -Nru a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+--- a/drivers/i2c/i2c-dev.c	Fri Aug  8 16:47:15 2003
++++ b/drivers/i2c/i2c-dev.c	Fri Aug  8 16:47:15 2003
+@@ -474,7 +474,7 @@
  
-+static void i2c_adapter_dev_release(struct device *dev)
-+{
-+	struct i2c_adapter *adap = dev_to_i2c_adapter(dev);
-+	complete(&adap->dev_released);
-+}
-+
- static struct device_driver i2c_adapter_driver = {
- 	.name =	"i2c_adapter",
- 	.bus = &i2c_bus_type,
-@@ -62,10 +68,23 @@
- 	.remove = i2c_device_remove,
- };
- 
-+static void i2c_adapter_class_dev_release(struct class_device *dev)
-+{
-+	struct i2c_adapter *adap = class_dev_to_i2c_adapter(dev);
-+	complete(&adap->class_dev_released);
-+}
-+
- static struct class i2c_adapter_class = {
--	.name =		"i2c-adapter"
-+	.name =		"i2c-adapter",
-+	.release =	&i2c_adapter_class_dev_release,
- };
- 
-+static void i2c_client_release(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	complete(&client->released);
-+}
-+
- 
- /* ---------------------------------------------------
-  * registering functions 
-@@ -99,6 +118,7 @@
- 		adap->dev.parent = &legacy_bus;
- 	sprintf(adap->dev.bus_id, "i2c-%d", adap->nr);
- 	adap->dev.driver = &i2c_adapter_driver;
-+	adap->dev.release = &i2c_adapter_dev_release;
- 	device_register(&adap->dev);
- 
- 	/* Add this adapter to the i2c_adapter class */
-@@ -161,10 +181,16 @@
- 	}
- 
- 	/* clean up the sysfs representation */
-+	init_completion(&adap->dev_released);
-+	init_completion(&adap->class_dev_released);
- 	class_device_unregister(&adap->class_dev);
- 	device_unregister(&adap->dev);
- 	list_del(&adap->list);
- 
-+	/* wait for sysfs to drop all references */
-+	wait_for_completion(&adap->dev_released);
-+	wait_for_completion(&adap->class_dev_released);
-+
- 	DEB(dev_dbg(&adap->dev, "adapter unregistered\n"));
- 
-  out_unlock:
-@@ -329,6 +355,7 @@
- 	client->dev.parent = &client->adapter->dev;
- 	client->dev.driver = &client->driver->driver;
- 	client->dev.bus = &i2c_bus_type;
-+	client->dev.release = &i2c_client_release;
- 	
- 	snprintf(&client->dev.bus_id[0], sizeof(client->dev.bus_id),
- 		"%d-%04x", i2c_adapter_id(adapter), client->addr);
-@@ -359,8 +386,10 @@
- 
- 	down(&adapter->clist_lock);
- 	list_del(&client->list);
-+	init_completion(&client->released);
- 	device_unregister(&client->dev);
- 	up(&adapter->clist_lock);
-+	wait_for_completion(&client->released);
- 
-  out:
- 	return res;
-diff -Nru a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h	Fri Aug  8 16:47:25 2003
-+++ b/include/linux/i2c.h	Fri Aug  8 16:47:25 2003
-@@ -167,6 +167,7 @@
- 	struct device dev;		/* the device structure		*/
- 	struct list_head list;
- 	char name[DEVICE_NAME_SIZE];
-+	struct completion released;
- };
- #define to_i2c_client(d) container_of(d, struct i2c_client, dev)
- 
-@@ -253,8 +254,11 @@
- 	struct list_head clients;
- 	struct list_head list;
- 	char name[DEVICE_NAME_SIZE];
-+	struct completion dev_released;
-+	struct completion class_dev_released;
- };
--#define to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
-+#define dev_to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
-+#define class_dev_to_i2c_adapter(d) container_of(d, struct i2c_adapter, class_dev)
- 
- static inline void *i2c_get_adapdata (struct i2c_adapter *dev)
- {
+ static struct i2c_driver i2cdev_driver = {
+ 	.owner		= THIS_MODULE,
+-	.name		= "dev driver",
++	.name		= "dev_driver",
+ 	.id		= I2C_DRIVERID_I2CDEV,
+ 	.flags		= I2C_DF_NOTIFY,
+ 	.attach_adapter	= i2cdev_attach_adapter,
 
