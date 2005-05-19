@@ -1,45 +1,62 @@
-From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:23:46 +0000
-Subject: Request to fix mkpatch
-Message-Id: <Pine.OSF.4.50.0301211031150.28783-100000@kosh.hut.fi>
+From: mds@paradyne.com (Mark Studebaker)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: sensors in 2.5.54!!!
+Message-Id: <3E17A4B8.8060706@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.OSF.4.50.0301171937460.6850-100000@kosh.hut.fi>
-In-Reply-To: <Pine.OSF.4.50.0301171937460.6850-100000@kosh.hut.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 20 Jan 2003, Mark Studebaker wrote:
+great news.
 
-> Is i2c mkpatch working for 2.4 kernels now?
-> We need that to work and not break from 2.5 fixes.
+The patch for i2c-amd756, i2c-amd8111, adm1021, and lm75,
+submitted by Pavel Machek, has been included,
+with modifications, in kernel 2.5.54 by Cristoph Hellwig.
+As you can see from the patch notes below, there were
+several modifications to the drivers and to the i2c core.
 
-Most of mkpatch is <2.4 makefile stuff and i2c conversion.
-I have removed some of these for the 2.5, and limited patching
-outside the build system files to get something done.
+Any volunteers to work with Cristoph to feed more drivers in?
+Pavel?
 
-For 2.4 I have not verified if patching build/config files
-actually produces nice result.
+Note that we'll have to go through the changes he made,
+figure them out, backport them into CVS, and apply
+to the other drivers.
 
-> Can we still compile i2c outside of the kernel or do we
-> need to patch the kernel?
+This will be somewhat easier after we remove 2.2 support.
+But there are still several 2.4<->2.5 differences which
+we will have to keep out of CVS, or at least #ifdef,
+and the patcher will have to deal with those.
 
-Yes for 2.4. For 2.5 some includes to asm/ are arch dependent
-and fail (pcf-epp, elektor, rpx, 8xx).
+Also note that the drivers went into i2c/busses and i2c/chips,
+so I think that solves that debate. I'll update our
+makefiles and mkpatch to put them there and remove
+old modules in i2c/ and sensors/ .
 
-> Obviously you can't mix old and new modules because of
-> refcount changes. But if you remove all your old i2c
-> modules and then load new ones it should work, right?
+mds
 
-It should, yes. Problems are only expected if one compiles
-video4linux modules from unpatched tree without modversions
-and then compiles i2c out of kernel and mixes those.
+----------------
 
-So support of next i2c release would be 2.4.9+ if no video4linux i2c
-drivers are needed, 2.4.20+patching otherwise. V4L in 2.4.20 needs
-patches anyway.
-
--- 
-  Ky?sti M?lkki
-  kmalkki@cc.hut.fi
+Christoph Hellwig <hch@lst.de>:
+  o remove CONFIG_X86_NUMA
+  o nommu systems can't support /proc/<pid>/maps
+  o rewrite i2c-amd756 to resemble a linux driver
+  o check_region remove for drivers/i2c/
+  o make i2c use initcalls everywhere
+  o more deprectation bits
+  o avoid deprecated module functions in core code
+  o clean up subarchitecture selection
+  o remove superflous module use count handling in jbd
+  o more module warning fixes
+  o get rid of TRUE/FALSE abuse in the scsi midlayer
+  o fix i2c module handling
+  o i2c updates
+  o remove obsolete i2c headers
+  o more obsolete module API fixes
+  o rename CONFIG_VOYAGER to CONFIG_X86_VOYAGER
+  o Missed one 'try_inc_mod_count()'
+  o fix fs/dquot.c compilation
+  o more i2c cruft removal
+  o include <linux/vfs.h> only in files actually needing it
+  o devfs creptomancy
+  o some ppp/usecount bug
