@@ -1,7 +1,7 @@
-From: yann.savenye@wanadoo.fr (Yann SAVENYE)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: Cannot have lm-sensors work with my NV7m ABIT motherboard
-Message-Id: <1049477297.16079.3.camel@Ordiyann.maison>
+Message-Id: <20030404194949.1db2d7e3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1048326224.4015.63.camel@Ordiyann>
 In-Reply-To: <1048326224.4015.63.camel@Ordiyann>
@@ -10,23 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le mar 25/03/2003 ? 09:36, Jean Delvare a ?crit :
-> Mark, I call upon you. Come to our help! :))
 
-(my part)
-
-> > So? Do you have any idea, or did I put my finger on something
-> > completly crazy???
+> I come to you to see if you did it to contact Mark, and if you had
+> some time to study my problem...
 > 
-> Well, sort of. Since it seems we can't blame any other driver, must be
-> our fault. I don't know what to do next, except wait for Mark to have
-> some time for us.
+> Please, let me know...
 
-I come to you to see if you did it to contact Mark, and if you had some
-time to study my problem...
+Well, Mark is supposed to read the list the same way I do. I don't feel
+like bothering him if he doesn't want to answer. Actually, it looks like
+both Mark and Phil are really busy these days, and there's nothing I can
+do about it.
 
-Please, let me know...
+What's more, there is a lot of development on I2C and LM Sensors right
+know (moving into the 2.5 kernel series), so it may not be the best
+chosen moment for individual support requests. I'd suggest you try to
+live without a perfectly working sensor system for now, and take a
+chance in a few months when the code is stabilized and people are more
+available.
 
-Thanks
+Thanks for your patience.
 
-Yann
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
