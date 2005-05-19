@@ -1,139 +1,96 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 23 May 2005 09:45:55 +0000
-Subject: [lm-sensors] report of sensor inaccuracy for hardware
-Message-Id: <2oJiCVq7.1116833861.6636470.khali@localhost>
+From: Bram_Havers@nl.ibm.com (Bram Havers)
+Date: Thu, 19 May 2005 06:24:13 +0000
+Subject: sensors-detect segmentation fault.
+Message-Id: <OF2A643F2F.52CE6915-ONC1256D86.0058E32A-C1256D86.005966AD@nl.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050523035157.47128.qmail@web30911.mail.mud.yahoo.com>
-In-Reply-To: <20050523035157.47128.qmail@web30911.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Stewart,
-
-> Hardware is Asus A7V8X-X (with AMD Athlon XP 1700 cpu)
-> (...)
-> # sensors
-> it8712-isa-0290
-> Adapter: ISA adapter
-> VCore 1:   +1.79 V  (min =  +1.42 V, max =  +1.57 V)  ALARM
-> VCore 2:   +0.00 V  (min =  +2.40 V, max =  +2.61 V)  ALARM
-> +3.3V:     +6.72 V  (min =  +3.14 V, max =  +3.46 V)  ALARM
-> +5V:       +4.92 V  (min =  +4.74 V, max =  +5.24 V)
-> +12V:     +12.16 V  (min = +11.40 V, max = +12.60 V)
-> -12V:     -27.36 V  (min = -12.63 V, max = -11.41 V)  ALARM
-> -5V:      -13.64 V  (min =  -5.24 V, max =  -4.76 V)  ALARM
-> Stdby:     +4.89 V  (min =  +4.74 V, max =  +5.24 V)
-> VBat:      +4.08 V
-> fan1:     4192 RPM  (min =     RPM, div = 2)
-> fan2:         RPM  (min = 3000 RPM, div = 2)          ALARM
-> fan3:         RPM  (min = 3000 RPM, div = 2)          ALARM
-> M/B Temp:    +36 C  (low  =   +15 C, high =   +40 C) sensor = thermistor
-> CPU Temp:    +30 C  (low  =   +15 C, high =   +45 C) sensor = thermistor
-> Temp3:        -1 C  (low  =   +15 C, high =   +45 C) sensor = disabled
->
-> Fan2 is missing (does show in Bios/Setup)
-
-FAQ 4.1.1
-
-"Q: Fans sometimes/always read 0!!
-(...)
-A: You may need to increase the 'fan divisor'. See doc/fan-divisors in
-our package for further information."
-
-In other words, adding:
-   set fan2_div 4
-   set fan3_div 4
-to the it8712-* section of your /etc/sensors.conf file should solve the
-problem.
-
-> M/B Temp and CPU Temp are reversed.
-
-From the default sensors.conf, it8712-* section:
-
-"
-# The A7V8X-X has temperatures inverted, and needs a conversion for
-# CPU temp. Thanks to Preben Randhol for the formula.
-#   label temp1       "CPU Temp"
-#   label temp2       "M/B Temp"
-#   compute temp1     (-15.096+1.4893*@), (@+15.096)/1.4893
-"
-
-The compute line may or may not work for you, BTW.
-
-> voltages are ... interesting.
-
-And can easily be tinkered with:
-
-> VCore 1:   +1.79 V  (min =  +1.42 V, max =  +1.57 V)  ALARM
-
-If VID works for you, comment out "ignore vid" and use:
-   set in0_min vid*0.95
-   set in0_max vid*1.05
-If VID isn't correct, hardcode the nominal Vcore value for you CPU:
-   set in0_min 1.75*0.95
-   set in0_max 1.75*1.05
-
-> VCore 2:   +0.00 V  (min =  +2.40 V, max =  +2.61 V)  ALARM
-
-Seems to be wired to ground, so you would comment out these lines:
-#   set in1_min 2.4
-#   set in1_max 2.6
-and add:
-   ignore in1
-
-> +3.3V:     +6.72 V  (min =  +3.14 V, max =  +3.46 V)  ALARM
-
-From the default sensors.conf, it8712-* section:
-
-"
-# If 3.3V reads 2X too high (Soyo Dragon and Asus A7V8X-X, for example),
-# comment out following line.
-    compute in2   2*@ , @/2
-"
-
-So just comment out this compute line. (I think it should be the default
-BTW.)
-
-> +5V:       +4.92 V  (min =  +4.74 V, max =  +5.24 V)
-> +12V:     +12.16 V  (min = +11.40 V, max = +12.60 V)
-
-These ones are OK.
-
-> -12V:     -27.36 V  (min = -12.63 V, max = -11.41 V)  ALARM
-> -5V:      -13.64 V  (min =  -5.24 V, max =  -4.76 V)  ALARM
-
-Most probably not connected, as per FAQ 4.6.1:
-
-"Q: -5V and -12V readings are way out of range!
-
-A: It's very frequent that negative voltage lines are not wired because
-motherboard manufacturers don't think they're worth monitoring (they
-are mostly unused these days). You can just add ignore inN lines to
-/etc/sensors.conf to hide them."
-
-Additionally, I'd invite you to comment out set in{5,6}_(min,max} lines
-so as to prevent irrelevant alarms and speed up "sensors -s".
-
-> Stdby:     +4.89 V  (min =  +4.74 V, max =  +5.24 V)
-
-This one is OK.
-
-> VBat:      +4.08 V
-
-Overflow here, no idea what Asus made with this one.
-
-> The only module I didn't load is eeprom, as I can't
-> find it in kernel-config.
-
-You should find it at:
-Hardware sensors support > Other I2C devices > EEprom (DIMM) reader
-
-But this is unrelated with your sensors readings, which will be improved
-only by tweaking the it7812-* section of /etc/sensors.conf as described
-earlier.
-
---
-Jean Delvare
+SGksCkkndmUgaW5zdGFsbGVkIGxtX3NlbnNvcnMgYW5kIGkyYyBvbiBteSBWaWEgRXBpYSBNRTYw
+MDAgd2l0aCBSZWQgSGF0IDkuCldoZW4gaSBydW4gc2Vuc29ycy1kZXRlY3QgaXQgZW5kcyB3aXRo
+IGEgc2VnbWVudGF0aW9uIGZhdWx0IGFmdGVyIHdoaWNoIApvbmx5IGEgcmVib290IGhlbHBzIHRv
+IGtpbGwgdGhlIHByb2Nlc3NlcwpCZWxvdyBpJ3ZlIHBvc3RlZCB3aGF0IGFwcGVhcnMgb24gdGhl
+IGNvbnNvbGUsIGRtc2VnIGFuZCBsc21vZC4KSG9wZSB5b3UgY2FuIGhlbHAuIFRoYW5rcy4KCgot
+LS0tLS0tLS0tLS0tICBvbiBjb25zb2xlICAtLS0tLS0KIEJJT1MgdmVuZG9yIChBQ1BJKTogVlQ5
+MTc0CiBTeXN0ZW0gdmVuZG9yIChETUkpOiBWSUEgVGVjaG5vbG9naWVzLCBJbmMuCiBCSU9TIHZl
+cnNpb24gKERNSSk6IDYuMDAgUEcKIFdlIGNhbiBzdGFydCB3aXRoIHByb2JpbmcgZm9yIChQQ0kp
+IEkyQyBvciBTTUJ1cyBhZGFwdGVycy4KIFlvdSBkbyBub3QgbmVlZCBhbnkgc3BlY2lhbCBwcml2
+aWxlZ2VzIGZvciB0aGlzLgogRG8geW91IHdhbnQgdG8gcHJvYmUgbm93PyAoWUVTL25vKToKUHJv
+YmluZyBmb3IgUENJIGJ1cyBhZGFwdGVycy4uLgpVc2UgZHJpdmVyIGBpMmMtdmlhcHJvJyBmb3Ig
+ZGV2aWNlIDAwOjExLjA6IFZJQSBUZWNobm9sb2dpZXMgVlQ4MjMzQS84MjM1IApTb3V0aCBCcmlk
+Z2UKUHJvYmUgc3VjY2VzZnVsbHkgY29uY2x1ZGVkLgoKIFdlIHdpbGwgbm93IHRyeSB0byBsb2Fk
+IGVhY2ggYWRhcHRlciBtb2R1bGUgaW4gdHVybi4KTG9hZCBgaTJjLXZpYXBybycgKHNheSBOTyBp
+ZiBidWlsdCBpbnRvIHlvdXIga2VybmVsKT8gKFlFUy9ubyk6Ck1vZHVsZSBsb2FkZWQgc3VjY2Vz
+ZnVsbHkuCiBEbyB5b3Ugbm93IHdhbnQgdG8gYmUgcHJvbXB0ZWQgZm9yIG5vbi1kZXRlY3RhYmxl
+IGFkYXB0ZXJzPyAoeWVzL05PKToKIFRvIGNvbnRpbnVlLCB3ZSBuZWVkIG1vZHVsZSBgaTJjLWRl
+dicgdG8gYmUgbG9hZGVkLgogSWYgaXQgaXMgYnVpbHQtaW4gaW50byB5b3VyIGtlcm5lbCwgeW91
+IGNhbiBzYWZlbHkgc2tpcCB0aGlzLgogaTJjLWRldiBpcyBub3QgbG9hZGVkLiBEbyB5b3Ugd2Fu
+dCB0byBsb2FkIGl0IG5vdz8gKFlFUy9ubyk6CiBNb2R1bGUgbG9hZGVkIHN1Y2Nlc2Z1bGx5LgoK
+IFdlIGFyZSBub3cgZ29pbmcgdG8gZG8gdGhlIGFkYXB0ZXIgcHJvYmluZ3MuIFNvbWUgYWRhcHRl
+cnMgbWF5IGhhbmcgCmhhbGZ3YXkKIHRocm91Z2g7IHdlIGNhbid0IHJlYWxseSBoZWxwIHRoYXQu
+IEFsc28sIHNvbWUgY2hpcHMgd2lsbCBiZSBkb3VibGUgCmRldGVjdGVkOwogd2UgY2hvb3NlIHRo
+ZSBvbmUgd2l0aCB0aGUgaGlnaGVzdCBjb25maWRlbmNlIHZhbHVlIGluIHRoYXQgY2FzZS4KIElm
+IHlvdSBmb3VuZCB0aGF0IHRoZSBhZGFwdGVyIGh1bmcgYWZ0ZXIgcHJvYmluZyBhIGNlcnRhaW4g
+YWRkcmVzcywgeW91IApjYW4KIHNwZWNpZnkgdGhhdCBhZGRyZXNzIHRvIHJlbWFpbiB1bnByb2Jl
+ZC4gVGhhdCBvZnRlbgogaW5jbHVkZXMgYWRkcmVzcyAweDY5IChjbG9jayBjaGlwKS4KU2VnbWVu
+dGF0aW9uIGZhdWx0Ci0tLS0tLS0tLS0gZW5kIC0tLS0KCi0tLS0tLS0tLS1kbWVzZyAtLS0tCnZp
+YTgyY3h4eDogYm9hcmQgIzEgYXQgMHhFNDAwLCBJUlEgMTAKaTJjLWNvcmUubzogaTJjIGNvcmUg
+bW9kdWxlIHZlcnNpb24gMi44LjAgKDIwMDMwNzE0KQppMmMtdmlhcHJvLm8gdmVyc2lvbiAyLjYu
+NSAoMjAwMjA5MTUpCmkyYy12aWFwcm8ubzogRm91bmQgVmlhIFZUODIzM0EvODIzNSBkZXZpY2UK
+aTJjLXZpYXByby5vOiBWaWEgUHJvIFNNQnVzIGRldGVjdGVkIGFuZCBpbml0aWFsaXplZAppMmMt
+ZGV2Lm86IGkyYyAvZGV2IGVudHJpZXMgZHJpdmVyIG1vZHVsZSB2ZXJzaW9uIDIuOC4wICgyMDAz
+MDcxNCkKaTJjLWRldi5vOiBSZWdpc3RlcmVkICdzIFZpYSBQcm8gYWRhcHRlciBhdCAwNTAwJyBh
+cyBtaW5vciAwClVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5j
+ZSBhdCB2aXJ0dWFsIGFkZHJlc3MgCjAwMDAwMDJjCiBwcmludGluZyBlaXA6CmNlOTUxODYwCipw
+ZGUgPSAwMDAwMDAwMApPb3BzOiAwMDAwCmkyYy1kZXYgaTJjLXZpYXBybyBpMmMtY29yZSB2aWE4
+MmN4eHhfYXVkaW8gdWFydDQwMSBhYzk3X2NvZGVjIHNvdW5kIApzb3VuZGNvcmUgcGFycG9ydF9w
+YyBscCBwYXJwbwpydCBpcHNlYyBhdXRvZnMgdmlhLXJoaW5lIG1paSBpcHRfUkVKRUNUIGlwdGFi
+bGVfZmlsdGVyIGlwX3QKQ1BVOiAgICAwCkVJUDogICAgMDA2MDpbPGNlOTUxODYwPl0gICAgTm90
+IHRhaW50ZWQKRUZMQUdTOiAwMDAxMDIwNgoKRUlQIGlzIGF0IHJlYWRfYnVzX2kyYyBbaTJjLWNv
+cmVdIDB4NzQgKDIuNC4yMC0xOS45KQplYXg6IDAwMDAwMDAwICAgZWJ4OiAwMDAwMDAwMCAgIGVj
+eDogYzBhMTUwMDAgICBlZHg6IGZmZmZmZmZmCmVzaTogMDAwMDAwMDYgICBlZGk6IGMwYTE1MDAw
+ICAgZWJwOiAwMDAwMGMwMCAgIGVzcDogYzAzYjNmMzAKZHM6IDAwNjggICBlczogMDA2OCAgIHNz
+OiAwMDY4ClByb2Nlc3Mgc2Vuc29ycy1kZXRlY3QgKHBpZDogNDg2NSwgc3RhY2twYWdlwDNiMzAw
+MCkKU3RhY2s6IGMwYTE1MDAwIGNlOTUzZTMwIDAwMDAwMDAwIGNlOTU1YjYwIDAwMDAwMDAwIDAw
+MDAxMDAwIDA4MmE1MDAwIApjODhkMzljMAogICAgICAgMDAwMDBjMDAgYzBhMTUwMDAgMDAwMDEw
+MDAgYzAxNjBmNjYgYzBhMTUwMDAgYzAzYjNmODggMDAwMDAwMDAgCjAwMDAwYzAwCiAgICAgICBj
+MDNiM2Y4NCAwMDAwMDAwMCBjMDNiMjAwMCBjODhkMzljMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
+MDAwMCAKMDgyYTQyODAKQ2FsbCBUcmFjZTogICBbPGNlOTUzZTMwPl0gLnJvZGF0YS5zdHIxLjEg
+W2kyYy1jb3JlXSAweDAgKDB4YzAzYjNmMzQpKQpbPGNlOTU1YjYwPl0gY29yZV9saXN0cyBbaTJj
+LWNvcmVdIDB4MCAoMHhjMDNiM2YzYykpCls8YzAxNjBmNjY+XSBwcm9jX2ZpbGVfcmVhZCBba2Vy
+bmVsXSAweGI2ICgweGMwM2IzZjVjKSkKWzxjMDEzZmY2NT5dIHN5c19yZWFkIFtrZXJuZWxdIDB4
+ODUgKDB4YzAzYjNmOWMpKQpbPGMwMTA5MTAzPl0gc3lzdGVtX2NhbGwgW2tlcm5lbF0gMHgzMyAo
+MHhjMDNiM2ZjMCkpCgoKQ29kZTogOGIgNTAgMmMgODMgYzQgMTAgODUgZDIgNzQgNTIgOGIgNDAg
+MjggODUgYzAgNzQgNDAgODMgZWMgMDgKLS0tLS0tLS0tLSBlbmQgLS0tLQoKLS0tLS0tLS0gbHNt
+b2QgLS0tLS0KTW9kdWxlICAgICAgICAgICAgICAgICAgU2l6ZSAgVXNlZCBieSAgICBOb3QgdGFp
+bnRlZAppMmMtZGV2ICAgICAgICAgICAgICAgICA0OTkyICAgMCAgKHVudXNlZCkKaTJjLXZpYXBy
+byAgICAgICAgICAgICAgNDgxNiAgIDAgICh1bnVzZWQpCmkyYy1jb3JlICAgICAgICAgICAgICAg
+MTk1NTYgICAxICBbaTJjLWRldiBpMmMtdmlhcHJvXQp2aWE4MmN4eHhfYXVkaW8gICAgICAgIDIy
+MzI4ICAgMCAgKGF1dG9jbGVhbikKdWFydDQwMSAgICAgICAgICAgICAgICAgODAzNiAgIDAgIChh
+dXRvY2xlYW4pIFt2aWE4MmN4eHhfYXVkaW9dCmFjOTdfY29kZWMgICAgICAgICAgICAgMTMxNjAg
+ICAwICAoYXV0b2NsZWFuKSBbdmlhODJjeHh4X2F1ZGlvXQpzb3VuZCAgICAgICAgICAgICAgICAg
+IDcwMTMyICAgMCAgKGF1dG9jbGVhbikgW3ZpYTgyY3h4eF9hdWRpbyB1YXJ0NDAxXQpzb3VuZGNv
+cmUgICAgICAgICAgICAgICA2MTE2ICAgNCAgKGF1dG9jbGVhbikgW3ZpYTgyY3h4eF9hdWRpbyBz
+b3VuZF0KcGFycG9ydF9wYyAgICAgICAgICAgICAxNzUwOCAgIDEgIChhdXRvY2xlYW4pCmxwICAg
+ICAgICAgICAgICAgICAgICAgIDg1ODAgICAwICAoYXV0b2NsZWFuKQpwYXJwb3J0ICAgICAgICAg
+ICAgICAgIDMzOTUyICAgMSAgKGF1dG9jbGVhbikgW3BhcnBvcnRfcGMgbHBdCmlwc2VjICAgICAg
+ICAgICAgICAgICAyNjMyNjQgICAyCmF1dG9mcyAgICAgICAgICAgICAgICAgMTIxNDggICAwICAo
+YXV0b2NsZWFuKSAodW51c2VkKQp2aWEtcmhpbmUgICAgICAgICAgICAgIDE1MzQ0ICAgMQptaWkg
+ICAgICAgICAgICAgICAgICAgICAzNzIwICAgMCAgW3ZpYS1yaGluZV0KaXB0X1JFSkVDVCAgICAg
+ICAgICAgICAgMzczNiAgIDIgIChhdXRvY2xlYW4pCmlwdGFibGVfZmlsdGVyICAgICAgICAgIDIz
+MTYgICAxICAoYXV0b2NsZWFuKQppcF90YWJsZXMgICAgICAgICAgICAgIDE0NDg4ICAgMiAgW2lw
+dF9SRUpFQ1QgaXB0YWJsZV9maWx0ZXJdCm9oY2kxMzk0ICAgICAgICAgICAgICAgMTg2MDAgICAw
+ICAodW51c2VkKQppZWVlMTM5NCAgICAgICAgICAgICAgIDQ1Mzg4ICAgMCAgW29oY2kxMzk0XQpr
+ZXliZGV2ICAgICAgICAgICAgICAgICAyNzUyICAgMCAgKHVudXNlZCkKbW91c2VkZXYgICAgICAg
+ICAgICAgICAgNTIzNiAgIDAKaGlkICAgICAgICAgICAgICAgICAgICAyMDg2OCAgIDAgICh1bnVz
+ZWQpCmlucHV0ICAgICAgICAgICAgICAgICAgIDU2MzIgICAwICBba2V5YmRldiBtb3VzZWRldiBo
+aWRdCnVzYi11aGNpICAgICAgICAgICAgICAgMjQ2ODQgICAwICAodW51c2VkKQplaGNpLWhjZCAg
+ICAgICAgICAgICAgIDE4NTY4ICAgMCAgKHVudXNlZCkKdXNiY29yZSAgICAgICAgICAgICAgICA3
+MzI4MCAgIDEgIFtoaWQgdXNiLXVoY2kgZWhjaS1oY2RdCmV4dDMgICAgICAgICAgICAgICAgICAg
+NjQ3MDQgICAyCmpiZCAgICAgICAgICAgICAgICAgICAgNDc4NjAgICAyICBbZXh0M10KLS0tLS0t
+LS0tLS0tLS0gZW5kIC0tLQoKCkJyYW0gSGF2ZXJzCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAt
+LS0tLS0tLS0tLS0tLQpBbiBIVE1MIGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4uClVSTDogaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzL2F0dGFjaG1lbnRz
+LzIwMDMwODE4L2M2MjlkODExL2F0dGFjaG1lbnQuaHRtbAo=
