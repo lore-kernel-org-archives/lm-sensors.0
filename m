@@ -1,44 +1,50 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: i2c-i810.c bus driver
-Message-Id: <20030921064245.GA13860@kroah.com>
+From: marcin_ml@sekretarka.no-ip.org (Marcin =?iso-8859-2?q?Ka=B3u=BFa?=)
+Date: Thu, 19 May 2005 06:24:58 +0000
+Subject: NForce2 ATXP1 clockchip - progress
+Message-Id: <200405181234.44847.marcin_ml@sekretarka.no-ip.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030915183026.GA11108@kroah.com>
-In-Reply-To: <20030915183026.GA11108@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Sep 20, 2003 at 05:07:54PM -0400, Mark M. Hoffman wrote:
-> * Greg KH <greg@kroah.com> [2003-09-15 11:30:26 -0700]:
-> > Ugh, in looking over the bus drivers that are currently in the cvs tree,
-> > but not in the kernel tree, I ran accross this horrible bit of code in
-> > the i2c-i810.c driver:
-> > 
-> > static unsigned char *mem;
-> > 
-> > static inline void outlong(unsigned int dat, int off)
-> > {
-> > 	*((unsigned int *) (mem + off)) = dat;
-> > }
-> > 
-> > static inline unsigned int readlong(int off)
-> > {
-> > 	return *((unsigned int *) (mem + off));
-> > }
-> > 
-> > Will someone please fix this up properly to not directly access memory!
-> > That is not portable at all, and will do bad things on non-i386 based
-> > hardware platforms.
-> > 
-> > After that's done, I'll worry about porting it to 2.6, but not before...
-> 
-> Is this what you want?  If so I'll update it (and the other two).
-> Er, I'll get rid of the outlong/readlong indirection too...
+Hi
+About that  driver - so far I've moved the funcionality of the 8dravcore into 
+the module, which I'll send you probably tomorrow when I'll do the cosmetics.
+But now there's the hard part: Since I don't have any clues how to talk to the 
+chip about clocks, I did it the hard way
+Here is what I got:
+The program is using in/out commands to write dwords into CF8 and CFC 
+addresses and my question is - how to translate what I got into linux 
+i2c_smbus... commands? Since it writes dwords instead of bytes I'm not sure 
+what they do... And I don't know why it is using CF8 as base address instead 
+of 5000 as it is in linux (can this be configured or is it using a different 
+bus??)
+The 'conversation' to read the clocks from MB is as follows (I don't know what 
+is happening before except that it's scanning the bus (I think so at 
+least...) and it produces a lot of trash in debugs)
+data			register
+80000000	<- CF8	check status?
+800000A0	-> CF8	some command? (does 80 in the beginning mean PEC?) what does 
+A0 mean? register address or a command?
+00000000	-> CFC	writting data?
+80000000	<- CF8     check the status once again?
 
-Yes, this is the proper way to do things.
+80000000	<- CF8	check status?
+800000A4	-> CF8	some command? (does 80 in the beginning mean PEC?)
+004AF71F	<- CFC	these are FSB settings and I know how to encode/decode them 
+80000000	-> CF8    don't know...
 
-Thanks for looking into this and making the changes.
+80000000	<- CF8	check status?
+80000378	-> CF8	some command? (does 80 in the beginning mean PEC?)
+2001500F	<- CFC	PCI/AGP settings
+80000000	<- CF8     check the status once again?
 
-greg k-h
+This is what I got after sniffing all actions after pressing "get clocks" 
+button and it does read them, but I don't know how to reproduce it using 
+linux functions because I know little about i2c/smbus protocol. Does anybody 
+have any idea? Or do you need more info - I know this isn't everything 
+because there's nothing with the 0x37 chip address so probably it's 
+initialized somewhere earlier.
+Thanks
+Martin
