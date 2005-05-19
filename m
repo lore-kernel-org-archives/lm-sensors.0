@@ -1,39 +1,24 @@
-From: blues@ds6.pg.gda.pl (Blues)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: fixes to instalation process
-Message-Id: <Pine.LNX.4.44L.0208042257110.29630-100000@piorun.ds.pg.gda.pl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:36 +0000
+Subject: lm_sensors2/lib chips.c
+Message-Id: <20040121200144.7379410a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.44L.0207232057370.30478-200000@piorun.ds.pg.gda.pl>
-In-Reply-To: <Pine.LNX.4.44L.0207232057370.30478-200000@piorun.ds.pg.gda.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 3 Aug 2002, Mark D. Studebaker wrote:
-> thank you for the patch.
-> I note that it simply adds "||true" to all the install lines.
-> This will prevent 'make' from stopping on a real install failure.
+> (mmh) Undo earlier temp. magnitude workarounds for w83781d vs. kernel
+> 2.6. The workarounds were obviated by Khali's patch which was merged
+> into Linus' tree at 2.6.1-bk6.  Tested here on w83781d - would
+> appreciate testing on the other w83's...
 
-yes, it's true.
-And yes, this is very dirty patch :]
+He he, I had the patch ready and was waiting for the the change to be
+applied to Linus' tree to commit it... You beat me ;)
 
-> Is there better way to allow non-root users to install without
-> ignoring failures for root users?
-
-well... maybe this:
-- remove setting user and group from install command. put it in separate 
-line as "chown ... || true". This will be good solution, I think.
-
-> > This patch helps to make instalation in some DESTDIR on non-root user.
-> > For example: when making rpm-package from non-privileged user. Options `-o
-> > root` in install causes build to fail.
-> > After all - there is some inconsequence in instalation process.
-> > install-kernel uses MODDIR, install-kernel-busses and install-kernel-chips
-> > uses MODPREF. This should be unified.
+I tested on my as99127f and it worked OK (except the negative
+temperatures limits problem, but that's a different thing).
 
 -- 
----------------------------------
-pozdr.  Pawe? Go?aszewski        
----------------------------------
-CPU not found - software emulation...
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
