@@ -1,130 +1,99 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:21 +0000
-Subject: [patch] sensors/w83781d.c creates useless sysfs entries
-Message-Id: <20031014202415.GA17026@kroah.com>
+From: shawn.starr@rogers.com (shawn.starr@rogers.com)
+Date: Thu, 19 May 2005 06:24:55 +0000
+Subject: Linux 2.6.x i2c problems
+Message-Id: <20040430023412.TBNM286496.fep04-mail.bloor.is.net.cable.rogers.com@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 14, 2003 at 05:27:45PM +0200, Kronos wrote:
-> Il Mon, Oct 13, 2003 at 12:31:14PM -0700, Greg KH ha scritto: 
-> > On Sat, Oct 11, 2003 at 06:32:44PM +0200, Kronos wrote:
-> > > Jindrich Makovicka <makovick@kmlinux.fjfi.cvut.cz> ha scritto:
-> > > > Hello,
-> > > > 
-> > > > here is a trivial fix for Winbond sensor driver, which currently creates 
-> > > > useless entries in sys/bus/i2c due to missing braces after if statements 
-> > > > - author probably forgot about the macro expansion.
-> > > 
-> > > IMHO it's better to fix the macro:
-> > 
-> > Thanks, I've applied this version.
-> 
-> I've reviewed the patch, there was a trailing ";" that wasn't supposed
-> to be there:
+I have been experiencing problems with the PIIX4 i2c driver. I have an IBM =
+system that works with lm-sensors fine - Thanks to Jean Delvare!
 
-Good catch.  Actually there were some other issues with those macros.
-I've applied the patch below to the tree.
+The machine has an lm80 sensor chip (as shown below)
 
-thanks,
-
-greg k-h
+lm80-i2c-0-28
+Adapter: SMBus PIIX4 adapter at fe00
++5V:       +4.90 V  (min =3D  +4.74 V, max =3D  +5.25 V)  =20
+VTT:       +1.72 V  (min =3D  +1.70 V, max =3D  +2.10 V)  =20
++3.3V:     +3.35 V  (min =3D  +3.14 V, max =3D  +3.47 V)  =20
++Vcore:    +1.98 V  (min =3D  +1.90 V, max =3D  +2.10 V)  =20
++12V:     +11.24 V  (min =3D +11.18 V, max =3D +12.63 V)  =20
+-12V:     -11.88 V  (min =3D -12.60 V, max =3D -11.39 V)  =20
+-5V:       -4.92 V  (min =3D  -5.25 V, max =3D  -4.76 V)  =20
+fan1:     1804 RPM  (min =3D 1527 RPM, div =3D 4)         =20
+temp:     +35.50 C (hot: limit =3D +60 C, hyst =3D +65 C)=20
+:                  (os:  limit =3D +54 C, hyst =3D +56 C)=20
 
 
-# I2C: fix more define problems in w83781d driver
+The problem is if you query the i2c/SMBus too many times over a period of t=
+ime the bus will just fail as below:
 
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Tue Oct 14 13:22:22 2003
-+++ b/drivers/i2c/chips/w83781d.c	Tue Oct 14 13:22:22 2003
-@@ -426,7 +426,7 @@
- device_create_file(&client->dev, &dev_attr_in_input##offset); \
- device_create_file(&client->dev, &dev_attr_in_min##offset); \
- device_create_file(&client->dev, &dev_attr_in_max##offset); \
--} while (0);
-+} while (0)
- 
- #define show_fan_reg(reg) \
- static ssize_t show_##reg (struct device *dev, char *buf, int nr) \
-@@ -484,8 +484,10 @@
- sysfs_fan_min_offset(3);
- 
- #define device_create_file_fan(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_fan_input##offset); \
- device_create_file(&client->dev, &dev_attr_fan_min##offset); \
-+} while (0)
- 
- #define show_temp_reg(reg) \
- static ssize_t show_##reg (struct device *dev, char *buf, int nr) \
-@@ -568,9 +570,11 @@
- sysfs_temp_offsets(3);
- 
- #define device_create_file_temp(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_temp_input##offset); \
- device_create_file(&client->dev, &dev_attr_temp_max##offset); \
--device_create_file(&client->dev, &dev_attr_temp_min##offset);
-+device_create_file(&client->dev, &dev_attr_temp_min##offset); \
-+} while (0)
- 
- static ssize_t
- show_vid_reg(struct device *dev, char *buf)
-@@ -693,8 +697,10 @@
- sysfs_beep(MASK, mask);
- 
- #define device_create_file_beep(client) \
-+do { \
- device_create_file(&client->dev, &dev_attr_beep_enable); \
--device_create_file(&client->dev, &dev_attr_beep_mask);
-+device_create_file(&client->dev, &dev_attr_beep_mask); \
-+} while (0)
- 
- /* w83697hf only has two fans */
- static ssize_t
-@@ -771,7 +777,9 @@
- sysfs_fan_div(3);
- 
- #define device_create_file_fan_div(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_fan_div##offset); \
-+} while (0)
- 
- /* w83697hf only has two fans */
- static ssize_t
-@@ -883,10 +891,14 @@
- sysfs_pwm(4);
- 
- #define device_create_file_pwm(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_pwm##offset); \
-+} while (0)
- 
- #define device_create_file_pwmenable(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_pwm_enable##offset); \
-+} while (0)
- 
- static ssize_t
- show_sensor_reg(struct device *dev, char *buf, int nr)
-@@ -959,7 +971,9 @@
- sysfs_sensor(3);
- 
- #define device_create_file_sensor(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_sensor##offset); \
-+} while (0)
- 
- #ifdef W83781D_RT
- static ssize_t
-@@ -1018,7 +1032,9 @@
- sysfs_rt(3);
- 
- #define device_create_file_rt(client, offset) \
-+do { \
- device_create_file(&client->dev, &dev_attr_rt##offset); \
-+} while (0)
- 
- #endif				/* ifdef W83781D_RT */
- 
+I modified the i2c-piix4 driver to attempt to kill transactions on the SMBu=
+s if its stuck. It succeeds but the bus fails for some reason, did I forgot=
+ to set any other bits?=20
+
+If I adjust the query period ie in the lm80.c driver from 2 seconds to 5 se=
+conds, the SMbus wont fail as quickly.
+
+If I run watch -n2 sensors over a few minutes the bus will suddenly fail. A=
+lso oddly is when the bus fails and I reboot, the system fails to reset com=
+pletely, BIOS doesn't even appear, if the SMBus does not fail I can reboot =
+Linux without issue.=20
+
+I'm stuck and there seems to be odd conditions I've experienced including t=
+he onboard nic failing with the i2c driver loaded sometimes.
+
+Apr 29 22:22:25 coredump kernel: IBM machine detected. Disabling SMBus acce=
+sses.
+
+Why is this disabled? Can someone enlighten me (is this why im getting bus =
+failures? is the SMBus on this IBM badly designed?)
+
+
+Thanks for any help anyone can provide. I'd like to fix the driver for othe=
+r IBM people so they can also have sensor support.
+
+
+i2c_adapter i2c-0: Transaction (pre): CNT=08, CMD/, ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: Transaction (post): CNT=08, CMD/, ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: Transaction (pre): CNT=08, CMD., ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: SMBus busy (01). waiting...
+i2c_adapter i2c-0: SMBus Busy: Wait State: HEX: 1, DEC: 1
+i2c_adapter i2c-0: Killing SMBus Transactions!
+i2c_adapter i2c-0: SMBus KILL STATUS BIT =3D 1
+i2c_adapter i2c-0: SMBUS FAILED BIT =3D 0
+i2c_adapter i2c-0: Error: Failed bus transaction
+i2c_adapter i2c-0: Transaction (post): CNT
+, CMD., ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: Transaction (pre): CNT=08, CMD#, ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: SMBus busy (10). waiting...
+i2c_adapter i2c-0: SMBus KILL STATUS BIT =3D 0
+i2c_adapter i2c-0: SMBUS FAILED BIT =3D 0
+i2c_adapter i2c-0: SMBus Timeout!
+i2c_adapter i2c-0: Failed reset at end of transaction (01)
+i2c_adapter i2c-0: Transaction (post): CNT=08, CMD#, ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: Transaction (pre): CNT=08, CMD1, ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: SMBus busy (01). waiting...
+i2c_adapter i2c-0: SMBus Busy: Wait State: HEX: 1, DEC: 1
+i2c_adapter i2c-0: Killing SMBus Transactions!
+i2c_adapter i2c-0: SMBus KILL STATUS BIT =3D 1
+i2c_adapter i2c-0: SMBUS FAILED BIT =3D 1
+i2c_adapter i2c-0: SMBus KILL Successful!!
+i2c_adapter i2c-0: RESULT: (10): Successfull!
+i2c_adapter i2c-0: SMBHSTCNT Status
+i2c_adapter i2c-0: Status Bits: KILLED=3D1
+i2c_adapter i2c-0: Status Bits: INTERRUPT=3D0
+i2c_adapter i2c-0: Status Bits: BUSY=3D0
+i2c_adapter i2c-0: SMBHSTCNT Status - DOUBLE_CHECK
+i2c_adapter i2c-0: Status KILLED=3D1
+i2c_adapter i2c-0: Status INTERRUPT=3D0
+i2c_adapter i2c-0: Status BUSY=3D0
+i2c_adapter i2c-0: Error: Failed bus transaction
+i2c_adapter i2c-0: Transaction (post): CNT
+, CMD1, ADDQ, DAT0=C2, DAT1=00
+i2c_adapter i2c-0: Transaction (pre): CNT=08, CMD0, ADDQ, DAT0=C2, DAT1=00
+
+
+1
