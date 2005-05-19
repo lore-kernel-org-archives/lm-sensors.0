@@ -1,65 +1,75 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:38 +0000
 Subject: two questions about w83792d.c for linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
+Message-Id: <l4hMHkYD.1108728747.4308840.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBKZWFuLCBNRFMKCkkgaGF2ZSB0d28gcXVlc3Rpb25zIGFib3V0IFc4Mzc5M0QgZHJpdmVy
-IGZvciBsaW51eC0yLjQKKDEpIFRoZSAic2V0IiBsaW5lcyBpbiAvZXRjL3NlbnNvcnMuY29uZiB3
-ODM3OTJkIHBhcnQgZm9yIHZvbHRhZ2UKZG8gTk9UIHdvcmshIFdoaWxlIGFsbCB0aGUgInNldCIg
-bGluZXMgZm9yIGZhbiBhbmQgdGVtcGVyYXR1cmUgbGltaXQKY2FuIHdvcmsuIEkgY2FuJ3QgZmlu
-ZCB0aGUgcmVhc29uLgoKVGhlIG1vcmUgc3RyYW5nZSB0aGluZyBpcyB0aGF0LCB1bmRlciBsaW51
-eC0yLjYsIHRoZSAic2V0IiBsaW5lcyBmb3IKdm9sdGFnZSBDQU4gd29yayEKCkkgYXR0YWNoZWQg
-dGhlIC9ldGMvc2Vuc29ycy5jb25mIHc4Mzc5MmQgcGFydCBpbiB0aGUgZW5kIG9mIHRoaXMgbWFp
-bCwKZm9yIHlvdXIgcmVmZXJlbmNlLgoKKDIpIFRoZSBmaWxlIGtlcm5lbC9pbmNsdWRlL3NlbnNv
-cnMuaCBzaG91bGQgYmUgYXV0by1nZW5lcmF0ZWQsIGluc3RlYWQKb2YgYmVpbmcgZWRpdGVkIG1h
-bnVhbGx5LiBCdXQgSSBkb24ndCBrbm93IGhvdyB0byBhdXRvLWdlbmVyYXRlIHRoZSA3OTIKcmVs
-YXRlZCBjb2RlcyBpbnRvIHRoaXMgZmlsZS4KCk5vdyBJIGhhdmUgdG8gbWFudWFsbHkgY29weSB0
-aGUgY29kZXMgc3VjaCBhcwojZGVmaW5lIFc4Mzc5MkRfU1lTQ1RMX0lOMCAxMDAwCiNkZWZpbmUg
-VzgzNzkyRF9TWVNDVExfSU4xIDEwMDEKZnJvbSBteSB3ODM3OTJkLmMsIGJlY2F1c2UgaWYgSSBk
-b24ndCBjb3B5IHRoZXNlIGNvZGVzLCB0aGVyZSB3aWxsIGJlCmNvbXBpbGUgZXJyb3IuCgpDb3Vs
-ZCB5b3UgdGVsbCBtZSBob3cgdG8gYXV0by1nZW5lcmF0ZSB0aGUgZmlsZQprZXJuZWwvaW5jbHVk
-ZS9zZW5zb3JzLmg/CklzIHRoZXJlIGFueSBzY3JpcHQgSSBoYXZlIHRvIHJ1bj8KClRoYW5rcwoK
-PT09PT09IC9ldGMvc2Vuc29ycy5jb25mICB3ODM3OTJkIHBhcnQgPT09PT09PT09PT0gICAgY29t
-cHV0ZSBpbjAgMC4yKkAgLCAgQC8wLjIKICAgIGNvbXB1dGUgaW4xIDAuMipAICwgIEAvMC4yCiAg
-ICBjb21wdXRlIGluMiAwLjQqQCAsICBALzAuNAogICAgY29tcHV0ZSBpbjMgMC40KkAgLCAgQC8w
-LjQKICAgIGNvbXB1dGUgaW40IDAuNCpAICwgIEAvMC40CiAgICBjb21wdXRlIGluNSAwLjQqQCAs
-ICBALzAuNAogICAgIyBXODM3OTJEIEMgVmVyc2lvbgogICAgY29tcHV0ZSBpbjYgMC42KkAgLCAg
-QC8wLjYKICAgIGNvbXB1dGUgaW43IDIuNCpAICwgQC8yLjQKICAgICMgVzgzNzkyRCBCIFZlcnNp
-b24KICAgICNjb21wdXRlIGluNiAwLjY2NypAICwgIEAvMC42NjcKICAgICNjb21wdXRlIGluNyAy
-LjY3KkAgLCAgQC8yLjY3CiAgICBjb21wdXRlIGluOCAxLjYqQCAsIEAvMS42CgogICAgc2V0IGlu
-MF9taW4gMS4zCiAgICBzZXQgaW4wX21heCAxLjYKICAgIHNldCBpbjFfbWluIDEuNAogICAgc2V0
-IGluMV9tYXggMS42CiAgICBzZXQgaW4yX21pbiAzLjIKICAgIHNldCBpbjJfbWF4IDMuNAogICAg
-c2V0IGluM19taW4gMy42CiAgICBzZXQgaW4zX21heCA0LjAKICAgIHNldCBpbjRfbWluIDEuNAog
-ICAgc2V0IGluNF9tYXggMS41CiAgICBzZXQgaW41X21pbiAyLjYKICAgIHNldCBpbjVfbWF4IDIu
-NjUKICAgIHNldCBpbjZfbWluIDUgKiAwLjk1CiAgICBzZXQgaW42X21heCA1ICogMS4wNQogICAg
-c2V0IGluN19taW4gNSAqIDAuOTUKICAgIHNldCBpbjdfbWF4IDUgKiAxLjA1CiAgICBzZXQgaW44
-X21pbiAzICogMC45NQogICAgc2V0IGluOF9tYXggMyAqIDEuMDUKLi4uCgpCZXN0IFJlZ2FyZHMK
-Q2h1bmhhbwoyMDA1LTAyLTE4CgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWlu
-ZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3Nl
-ZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYg
-eW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUg
-bm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24s
-IHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFu
-ZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsg
-c2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0
-IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBp
-bmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5m
-b3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNp
-YWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBu
-b3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2Ug
-Zm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFs
-bHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnS
-p3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio
-+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6
-saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C6
-9Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0
-LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk
-7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/Wp
-zrdOqKMuCg==
+
+Hi Chunhao,
+
+> I have two questions about W83793D driver for linux-2.4
+> (1) The "set" lines in /etc/sensors.conf w83792d part for voltage
+> do NOT work! While all the "set" lines for fan and temperature limit
+> can work. I can't find the reason.
+>
+> The more strange thing is that, under linux-2.6, the "set" lines for
+> voltage CAN work!
+>
+> I attached the /etc/sensors.conf w83792d part in the end of this mail,
+> for your reference.
+
+The file doesn't look too bad, except for the fact that multipliers are
+somewhat unusual. Typically voltages are being attenuated by resistors,
+so the value we want "sensors" to report are greater than those
+measured by the chip, and the multipliers in the configuration file are
+greater than 1. Here you have multipliers less than 1 almost everywhere.
+I'll have to take a look at the datasheet and code again to understand
+why it is.
+
+If the 2.6 driver works OK then the problem has to be in the 2.4 driver
+itself. Can you please show the relevant function of the driver,
+together with the functions and macros it might call?
+
+Or we can have your driver commited as-is and have it fixed afterwards,
+at your option.
+
+> (2) The file kernel/include/sensors.h should be auto-generated, instead
+> of being edited manually. But I don't know how to auto-generate the 792
+> related codes into this file.
+>
+> Now I have to manually copy the codes such as
+> #define W83792D_SYSCTL_IN0 1000
+> #define W83792D_SYSCTL_IN1 1001
+> from my w83792d.c, because if I don't copy these codes, there will be
+> compile error.
+>
+> Could you tell me how to auto-generate the file
+> kernel/include/sensors.h?
+> Is there any script I have to run?
+
+No there is no script to run. All you have to do is put two comment lines
+around the SYSCTL definitions in the driver itself. Our Makefile system
+has a rule that automatically parses all chip drivers and extract the
+lines between these comment lines from all driver, and add them to
+sensors.h. These lines are:
+
+/* -- SENSORS SYSCTL START -- */
+
+/* -- SENSORS SYSCTL END -- */
+
+See all other chip drivers, they have them. It is important that you copy
+exactly these comments, or the build process won't detect the SYSCTLs
+properly. Also note that the driver itself has to be placed in
+kernel/chips and might even need to be properly declared into
+kernel/chips/Module.mk (if "make" builds the driver properly, it must
+be OK).
+
+Hope that helps,
+--
+Jean Delvare
