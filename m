@@ -1,47 +1,59 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:35 +0000
 Subject: We will port w83792d.c to linux-2.6
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
+Message-Id: <8jwXkGvz.1107425843.3406760.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190650@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBKZWFuLCBNRFMKClRoaXMgaXMgY2h1bmhhby4KCldlIGFyZSBnb2luZyB0byBwb3J0IHc4
-Mzc5MmQuYyBmcm9tIDIuNCB0byAyLjYKQW5kIGFmdGVyIHRoZSBmaW5hbCB0ZXN0IHRvIHRoZW0s
-IHdlIHdpbGwgY29tbWl0IGJvdGggdzgzNzkyZC5jLgpmb3IgbGludXgtMi40IGFuZCBmb3IgbGlu
-dXgtMi42LgoKSSdtIHJlYWRpbmcgRG9jdW1lbnRhdGlvbi9pMmMvcG9ydGluZy1jbGllbnRzLgpB
-bmQgSSBoYXZlIG9uZSBxdWVzdGlvbiB3aGljaCBuZWVkIHlvdXIgc3VnZ2VzdGlvbjoKCk5vdyBJ
-IGhhdmUgYSBGZWRvcmEgQ29yZSAzIHJlbGVhc2UsIHdpdGggdGhlIGtlcm5lbCAyLjYuOS4KSWYg
-SSB3YW50IHRvIHBvcnQgb24gdGhpcyBzeXN0ZW0sIE5lZWQgSSBkb3dubG9hZCBhbmQgY29tcGls
-ZQp0aGUgdXAtdG8tZGF0ZSBsaW51eCBrZXJuZWwgc3VjaCBhcyBsaW51eC0yLjYuMTEtcmMzLnRh
-ci5iejIsCnRoZW4gdXNlIGl0IGFzIG15IGRldmVsb3BtZW50IGVudmlyb25tZW50PwoKQmVjYXVz
-ZSBpbiBsaW51eC0yLjQsIEkgb25seSBuZWVkIHRvIGRvd25sb2FkIGFuZCBpbnN0YWxsCmkyYy14
-LngueC50YXIuZ3ogYW5kIGxtX3NlbnNvcnMteC54LngudGFyLmd6LCB0aGVuIEkgd2lsbCBnZXQg
-dGhlCmRldmVsb3BtZW50IGVudmlyb25tZW50LgpCdXQgaW4gbGludXgtMi42LCBpdCBzZWVtcyB0
-byBiZSBxdWl0ZSBkaWZmZXJlbnQsIEhvdyBzaG91bGQgSQpidWlsZCB0aGUgZGV2ZWxvcG1lbnQg
-ZW52aXJvbm1lbnQ/CgoKVGhhbmtzCgpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoyMDA1LTAyLTAzCgoK
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxl
-Z2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBp
-bnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRo
-ZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJl
-c3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBk
-ZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkg
-dGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBv
-ZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBX
-ZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFu
-eSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25k
-IGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFp
-bCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9u
-ZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9u
-ZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBj
-b21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0
-aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNw
-OyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvex
-S6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNR
-q/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC9
-0LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4g
-ue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+l
-zrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDn
-t361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
+
+Hi Chunhao,
+
+> We are going to port w83792d.c from 2.4 to 2.6
+> And after the final test to them, we will commit both w83792d.c.
+> for linux-2.4 and for linux-2.6.
+
+This is good news. That said, we don't really have to wait for you to
+finish porting to 2.6 before we commit your 2.4 driver to lm_sensors
+CVS. Both sides are mostly independent. I guess we can commit the 2.4
+driver as soon as MDS is happy with your code (I admit I don't have
+much time to review it myself).
+
+> I'm reading Documentation/i2c/porting-clients.
+> And I have one question which need your suggestion:
+>
+> Now I have a Fedora Core 3 release, with the kernel 2.6.9.
+> If I want to port on this system, Need I download and compile
+> the up-to-date linux kernel such as linux-2.6.11-rc3.tar.bz2,
+> then use it as my development environment?
+
+Yes, you should always stick to whatever the latest 2.6 tree is. That way
+you are certain that your code with comply with the latest evolution of
+the 2.6 i2c core.
+
+When the driver is ready, you will have to send it to Greg KH, in the
+form of a patch against the latest linux 2.6-mm version. Hopefully,
+changes won't be too big between the latest standard 2.6 tree and the
+2.6-mm version, so you won't have much to change at this point. You may
+work directly with the latest -mm version if you want, but these are
+typically less stable that the regular versions, so I wouldn't
+recommend them as a development environment.
+
+I tried to make Documentation/i2c/porting-clients as accurate as
+possible, but I may have missed recent changes done to the i2c subsystem
+in 2.6. If you find errors or missing information, please let me know so
+that I can update the document.
+
+Also note that the sysfs interface to hardware monitoring chips in 2.6 is
+more standardized than the procfs one in 2.4 was, and you really have to
+stick to that standard. See Documentation/i2c/sysfs-interface for
+details. If you have questions about this or find an error in this
+document, let us know as well.
+
+Thanks,
+--
+Jean Delvare
