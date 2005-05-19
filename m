@@ -1,32 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:00 +0000
-Subject: Problmem report
-Message-Id: <20030616215320.14e6f658.khali@linux-fr.org>
+From: pascal.ronecker@centrale-lille.net (Pascal Ronecker)
+Date: Thu, 19 May 2005 06:24:24 +0000
+Subject: sensors on asus p4p800
+Message-Id: <1068583832.1658.8.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3EEB9F68.4040308@yahoo.fr>
-In-Reply-To: <3EEB9F68.4040308@yahoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-> > The bad point is that it now reminds me of another user report we
-> > had some weeks ago. He had an Abit NV7m (nForce chipset) motherboad.
-> > Do you by any chance have the same (or similar) motherboard? (or at
-> > least chipset)
-> > 
-> yes :-(
-> 
-> my card is MSI K7N420 pro with nforce chipset.
+I just apgraded my PC, and installed kernel 2.4.22, with i2c patch, and
+lm_sensors 2.8.1.
 
-http://archives.andrew.net.au/lm-sensors/msg02219.html
+eveything works wonderfully ... except one strange thing.
 
-I guess you'll confirm it's exactly the same problem (and chipset).
-Sadly, we couldn't solve the problem for that user... I hope that
-someone else on the list will have more (or, at least, better) ideas
-than I had back then.
+The motherboard P4P800 has the ability to slow down the cpu fan when its
+temperature is  cold enough. (as many other cards do).
+At boot time, it starts at full speed and then quickly slow down during
+the POST stage.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Then ...
+the modules used by lm_sensors loads, and the fan speeds up.
+In fact at the very moment w83627hf.o loads, it speeds up.
+
+I tried manually : no module at boot time, then modprobe w83627hf :
+jackpot, fan speeding up.
+
+Have anyone ever noticed such a thing ?
+Is the module itself over-heating the CPU ?? (don't ask me how or why ..
+have never seem a flamethrower inside my PC ... )
+
+It's too bad, cause there's no interest in monitoring something if the
+simple fact to monitorit makes it have a constant (and noisy) value ...
+
+thanks for your help,
+
+as I really need a silent room to get my sleep back :-)
+
