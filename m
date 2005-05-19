@@ -1,29 +1,24 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Sat, 28 May 2005 11:57:50 +0000
-Subject: [lm-sensors] PATCH libsensors: ds1780 fix
-Message-Id: <82fg91lkkhcs3h0k3evll898c42dtpnf0p@4ax.com>
+From: DavidB@mail.interclean.com (David Brodbeck)
+Date: Thu, 19 May 2005 06:23:46 +0000
+Subject: lm_sensors 2.7.0 and bmcsensors.o
+Message-Id: <C823AC1DB499D511BB7C00B0D0F0574C1DF89B@serverdell2200.interclean.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2ebf911gp0e3p9u82e78a758o7v4o623hr@4ax.com>
-In-Reply-To: <2ebf911gp0e3p9u82e78a758o7v4o623hr@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Khali,
-On Sat, 28 May 2005 11:38:42 +0200, Jean Delvare <khali@linux-fr.org> wrote:
+I'm having an odd problem with lm_sensors 2.7.0.  I can't get the bmcsensors
+module to compile.  'make' simply doesn't generate a .o file from
+bmcsensors.c.  I'm sure there's some silly piece of configuration I'm
+missing, but I can't figure it out.  According to sensors_detect I need to
+load this module.
 
->> This patch removes separate ds1780 defines and links them instead 
->> to adm9240 as is done for LM81 register compatible.  Compile tested
->
->Looks sane, applied, thanks. You forgot to remove all the defines in
->chips.h, I did it. I also edited the comments, the library really
->doesn't care that the chips are register compatible. What matters here
->is that the chips expose the same feature set.
+----------
 
-Thank you, that's great.  I look again tomorrow at sensord issue...
-
-On bright side, user base for driver just doubled :)
-
---Grant.
+David Brodbeck, System Administrator
+InterClean Equipment, Inc.
+Ypsilanti, Michigan
+davidb@mail.interclean.com
+(734) 975-2967 x221
 
