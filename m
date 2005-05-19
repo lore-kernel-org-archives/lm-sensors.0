@@ -1,57 +1,44 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:39 +0000
-Subject: two questions about w83792d.c for linux-2.4
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245507@weshml03.winbond.com.tw>
+From: chris_honschu@gmx.de (honschu)
+Date: Thu, 19 May 2005 06:24:21 +0000
+Subject: Userquestion: A/D-Converter on Parport
+Message-Id: <200310182049.38529.chris_honschu@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
-In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE190A90@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbgoKCj4gVGVjaG5pY2FsbHksIHlvdSBkbyBub3QgKm5lZWQqIHRvIGRvIGl0LiBJIHRo
-aW5rIHdlIGhhdmUgc2V2ZXJhbApkcml2ZXJzCj4gZXhwb3J0aW5nIG1vcmUgZGVjaW1hbCBwbGFj
-ZXMgdGhhbiAic2Vuc29ycyIgZGlzcGxheXMsIGJlY2F1c2UKPiBhZGRpdGlvbmFsIHBsYWNlcyBz
-b21ldGltZXMgYWRkIGxpdHRsZSB2YWx1ZSBhbmQgbWFrZXMgdGhlIG91dHB1dCBvZgo+ICJzZW5z
-b3JzIiBhIGxpdHRsZSBoYXJkZXIgdG8gcmVhZC4KPiAKPiBOb3csIGluIHRoZSBjYXNlIG9mIHRo
-ZSB3ODM3OTJkIGRyaXZlciwgaXQgaXMgZGVmaW5pdGVseSBhIGdvb2QgaWRlYQp0bwo+IGRpc3Bs
-YXkgMyBkZWNpbWFsIHBsYWNlcyBmb3IgVkNvcmVBIGFuZCBWQ29yZUIsIGJlY2F1c2UgdGhlc2Ug
-YXJlIGxvdwo+IHZhbHVlLCBoaWdoIHJlc29sdXRpb24gaW5wdXRzLiBGb3IgdGhlIG90aGVyIHZv
-bHRhZ2VzIGl0IGlzIGxlc3MKPiBpbXBvcnRhbnQgYnV0IHByb2JhYmx5IHN0aWxsIGEgZ29vZCBp
-ZGVhLCBleGNlcHQgZm9yIGluNyBhbmQgaW44CmJlY2F1c2UKPiB0aGV5IGRvbid0IGhhdmUgdGhl
-IGV4dHJhIGFjY3VyYWN5IGJpdHMuIFNhbWUgZm9yIGxpbWl0cywgdGhleSBkb24ndAo+IGhhdmUg
-dGhlIGV4dHJhIGFjY3VyYWN5IGJpdHMgc28gSSB3b3VsZCBub3QgZGlzcGxheSAzIGRlY2ltYWwg
-cGxhY2VzLAo+IG9ubHkgMi4gVGhhdCBiZWluZyBzYWlkIHlvdSBhcmUgcmVsYXRpZWx5IGZyZWUg
-aW4geW91ciBjaG9pY2VzIGhlcmUKYW5kCj4gaWYgeW91IHJlYWxseSB3YW50IHRvIGRpc3BsYXkg
-MyBkZWNpbWFsIHBsYWNlcyBmb3IgYWxsIHZvbHRhZ2UgdmFsdWVzLAo+IGl0J3MgZmluZSB3aXRo
-IG1lLgo+IAo+IFdoYXQgKmlzKiBpbXBvcnRhbnQgaG93ZXZlciBpcyB0aGF0IHlvdSB1c2UgdGhl
-IHNhbWUgbWFnbml0dWRlIGluCj4gbGliL2NoaXBzLmMgdGhhbiB0aGUgZHJpdmVyIHVzZXMgKGhl
-cmUgMyBmb3IgdGhlIHZvbHRhZ2UgaW5wdXRzKS4gSWYKeW91Cj4gZG9uJ3QsIHNlbnNvcnMgd29u
-J3Qgc2hvdyB0aGUgY29ycmVjdCB2YWx1ZXMuCgpPSywgSSBzZWUsIHRoZW4gSSB3aWxsIGtlZXAg
-ZGlzcGxheWluZyAyIGRlY2ltYWwgcGxhY2VzIGZvciBhbGwgaW4wLTgsCllvdSBhcmUgZnJlZSB0
-byBtb2RpZnkgaXQgd2hlbiBuZWNlc3NhcnksIGFmdGVyIEkgY29tbWl0IHRoZSA3OTIgZHJpdmVy
-Lgo6LSkKCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlv
-biBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhl
-IGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBl
-bWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFp
-bCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3Vj
-aCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29y
-ZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5k
-IG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVy
-YXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZp
-ZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFu
-ZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0
-aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhl
-ciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2Rl
-IENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkg
-ZXNzZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6l
-u6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3
-pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKl
-vLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXz
-sXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIu
-IK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxP
-s1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+Kywtdioublx
-pGykp6Xfs/WpzrdOqKMuCg==
+Hi
+
+First of all: I am a Newbie and since three days I am trying to read and learn 
+as much as I can, because I have to do a study-project. I tried to 
+understand: the i2c-Documentation in my 2.4.22 Kernel, some general 
+I2C-Docus/FAQs and a Linux-Hardware-Control book. I also red the new_drivers 
+file and didn't undertand mutch of all ;)
+
+The goal of this study-project is to attach a A/D-Converter (Analog-Voltage to 
+Digital-Signal) to a PC. It is a learn-project where other students (and I) 
+should learn principles about electronics and computer-measurement. Voltage 
+over a  pt100 (resistor variegating Ohm by tempreature) should be transfeard 
+by a 16-Bit A/D-Converter into a PC. It would be great to have/make a program 
+that reads more than 3 times a secound the measured voltage-value. So that I 
+can display it for example with gnu-plot or at realtimie.
+
+So I bought a I2C 7Bit-Adress ADS1110 (ADS1110A0IDBVT by TexasInstruments) 
+16-Bit and would like to mount it to a i2c-philips-par wireing.
+The Datasheet of the ADS1110 can be found at: 
+http://www-s.ti.com/sc/ds/ads1110.pdf
+
+But howto talk to the ADS1110 ? Is there a simple C Program/Example?  Is it 
+hard to write sutch a driver? Do I have to be root to read out the values? 
+Are there other known similar projects to mine?
+
+I found the Hadware Hacking Site and supposed that my project should be 
+possible.
+
+Is there someone who could help me, is interested in contribution? 
+
+regards
+Honschu
+
+PS: I would like to subscribe to the mailinglist to learn more.
