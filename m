@@ -1,52 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:47 +0000
 Subject: Backport i2c-ali1563.c from linux-2.6 to linux-2.4
-Message-Id: <faxLAJ1u.1112088328.7489650.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E57DA@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE2E5499@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Chunhao,
-
-> And I have one question about this driver for linux-2.4:
-> In the i2c-ali1563 driver for linux-2.4, it need "PCI_DEVICE_ID_AL_M1563"
-> in the following codes:
-> static struct pci_device_id ali1563_ids[] __devinitdata = {
->        {
->        .vendor =       PCI_VENDOR_ID_AL,
->        .device =       PCI_DEVICE_ID_AL_M1563,
->        .subvendor =    PCI_ANY_ID,
->        .subdevice =    PCI_ANY_ID,
->        },
->        { 0, }
-> };
->
-> So I have to insert:
-> #define PCI_DEVICE_ID_AL_M1563          0x1563
-> into /usr/src/linux-2.4.22/include/linux/pci_ids.h
-> manually by myself, otherwise the compile will failed.
->
-> But I know that the file /usr/src/linux-2.4.22/include/linux/pci_ids.h
-> Should NOT be modified by me, who are in charge of this modification?
-
-This file is part of the Linux kernel, not the lm_sensors project. We do
-not modify it. The correct thing to do is to define the value in the
-driver file itself, near the top. If you look at other drivers such as
-i2c-i801, that's what they do.
-
-So you'd simply add something like:
-
-#ifndef PCI_DEVICE_ID_AL_M1563
-#define PCI_DEVICE_ID_AL_M1563      0x1563
-#endif
-
-near the top of i2c-ali1563.c, and leave pci_ids.h unchanged.
-
-Thanks,
---
-Jean Delvare
+SGkgSmVhbgoKCj4gVGhpcyBmaWxlIGlzIHBhcnQgb2YgdGhlIExpbnV4IGtlcm5lbCwgbm90IHRo
+ZSBsbV9zZW5zb3JzIHByb2plY3QuIFdlCmRvCj4gbm90IG1vZGlmeSBpdC4gVGhlIGNvcnJlY3Qg
+dGhpbmcgdG8gZG8gaXMgdG8gZGVmaW5lIHRoZSB2YWx1ZSBpbiB0aGUKPiBkcml2ZXIgZmlsZSBp
+dHNlbGYsIG5lYXIgdGhlIHRvcC4gSWYgeW91IGxvb2sgYXQgb3RoZXIgZHJpdmVycyBzdWNoIGFz
+Cj4gaTJjLWk4MDEsIHRoYXQncyB3aGF0IHRoZXkgZG8uCj4gCj4gU28geW91J2Qgc2ltcGx5IGFk
+ZCBzb21ldGhpbmcgbGlrZToKPiAKPiAjaWZuZGVmIFBDSV9ERVZJQ0VfSURfQUxfTTE1NjMKPiAj
+ZGVmaW5lIFBDSV9ERVZJQ0VfSURfQUxfTTE1NjMgICAgICAweDE1NjMKPiAjZW5kaWYKPiAKPiBu
+ZWFyIHRoZSB0b3Agb2YgaTJjLWFsaTE1NjMuYywgYW5kIGxlYXZlIHBjaV9pZHMuaCB1bmNoYW5n
+ZWQuCgpZZXMsIHlvdSBhcmUgcmlnaHQsIHRoYW5rcwoKQmVzdCBSZWdhcmRzCkNodW5oYW8KCgo9
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVn
+ZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGlu
+dGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhl
+IG9yaWdpbmFsIGF1dGhvciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVz
+c2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRl
+bGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0
+aGUgc2VuZGVyIGluZGljYXRpbmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9m
+IGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdl
+IHRoYW5rIHlvdSBmb3IgeW91ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55
+IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQg
+aXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWls
+IHRoYXQgZG9lcyBub3QgcmVsYXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
+IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
+Lj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNv
+bXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRo
+ZSBmb2xsb3dpbmcgbWVzc2FnZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7
+IEVuZ2xpc2ggc3RhdGVtZW50IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FL
+qcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr
+/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3Q
+sXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC5
+76nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XO
+tdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3
+frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
