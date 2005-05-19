@@ -1,26 +1,67 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: New LM90 driver
-Message-Id: <20030815000446.37c114de.khali@linux-fr.org>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 15/22] W1: add slave_ttl master attribute
+Message-Id: <200504210222.06866.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
+W1: add slave_ttl attribute to w1 masters.
 
-Hi folks,
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-I just commited my new LM90 driver to our CVS repository. Could you
-please check it out and give it a try? You'll need a fresh i2c-CVS
-checkout too. Download instructions can be found here:
-http://secure.netroedge.com/~lm78/download.html#cvs
+ w1.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+)
 
-Let me know how it works for you. The driver is untested so far, so
-expect if to have some bugs, but it should overall work.
-
-Thanks!
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Index: dtor/drivers/w1/w1.c
+=================================--- dtor.orig/drivers/w1/w1.c
++++ dtor/drivers/w1/w1.c
+@@ -447,6 +447,28 @@ w1_master_attribute_set_max_slave_count(
+ 	return 0;
+ }
+ 
++static ssize_t w1_master_attribute_show_slave_ttl(struct device *dev, char *buf)
++{
++	struct w1_master *master = to_w1_master(dev);
++
++	return sprintf(buf, "%d\n", master->slave_ttl);
++}
++
++static ssize_t
++w1_master_attribute_set_slave_ttl(struct device *dev, const char *buf, size_t n)
++{
++	struct w1_master *master = to_w1_master(dev);
++	int slave_ttl;
++
++	slave_ttl = simple_strtoul(buf, NULL, 10);
++	if (!slave_ttl)
++		return -EINVAL;
++
++	master->slave_ttl = slave_ttl;
++	return 0;
++}
++
++
+ #define W1_MASTER_ATTR_RO(_name, _mode)				\
+ 	struct device_attribute w1_master_attribute_##_name =	\
+ 		__ATTR(_name, _mode,				\
+@@ -461,11 +483,13 @@ w1_master_attribute_set_max_slave_count(
+ static W1_MASTER_ATTR_RO(name, S_IRUGO);
+ static W1_MASTER_ATTR_RW(max_slave_count, S_IWUSR | S_IRUGO);
+ static W1_MASTER_ATTR_RW(scan_interval, S_IWUSR | S_IRUGO);
++static W1_MASTER_ATTR_RW(slave_ttl, S_IWUSR | S_IRUGO);
+ 
+ static struct attribute *w1_master_default_attrs[] = {
+ 	&w1_master_attribute_name.attr,
+ 	&w1_master_attribute_max_slave_count.attr,
+ 	&w1_master_attribute_scan_interval.attr,
++	&w1_master_attribute_slave_ttl.attr,
+ 	NULL
+ };
+ 
