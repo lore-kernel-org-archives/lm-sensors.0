@@ -1,42 +1,39 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:25 +0000
-Subject: SmBus driver for ATI chip 1002:4353
-Message-Id: <20041204021916.GI7903@jupiter.solarsys.private>
+From: crotariu@vega.it.nuigalway.ie (Cosmin Rotariu)
+Date: Thu, 19 May 2005 06:24:56 +0000
+Subject: please help me with my project
+Message-Id: <200405042111.24488.crotariu@vega.it.nuigalway.ie>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200411301252.28267.david.goodenough@btconnect.com>
-In-Reply-To: <200411301252.28267.david.goodenough@btconnect.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David:
 
-* David Goodenough <david.goodenough@btconnect.com> [2004-11-30 12:52:28 +0000]:
-> I have a laptop (a Samsumg P28) which has lots of ATI chips in it.  One of 
-> them (according to lspci) is an SmBus controller, and it has a PCI id of
-> 1002:4353.  Looking at the lmsensors web site there are no bus drivers
-> for any ATI chips.  This seems to be one of the functions in the Ati 
-> 9000 IGP chip, which is also the video driver.  It is marked as being
-> the 9100 IGP chip in the linux PCI repository, but I guess they use the
-> same silicon in both chips.
+Hi, 
+I'm Cosmin Rotariu, I'm a student in electonic engineering and i need some 
+help with my project
 
-If you're looking for temp sensor info, you might be able to get it from ACPI.
-That's not uncommon for a laptop.
+i made a batery charger , a separate board with LTC1759 , I soldered some 
+wires on SDRAM card to have acces to I2c from my PC and i connected that 2 
+wires SCL and SDA to LTC1759 chip
 
-> I could not find any documentation on the chip (technical stuff that is,
-> plenty of marketting material), but I am not quite sure where ATI
-> publish such things.
+i need to read an write to this chip from my computer. 
+i have i801 smbus controller inside of my PC
 
-They probably don't publish it at all.  Seems the video card co's are very bad
-about that.
+can you tell me the steps that i should follw from now on to write a program 
+to "talk " with this chip or wit some chip like this?
 
-> Is anyone working on such a chip?
+i think i have to use this chip i801 as a master i2c controler to send to 
+ltc1759 some data.
 
-Not that I know, sorry.
+i need to write some functions read an write to an smb adress
 
-Regards,
+read(slave_chip_addr,registry_addr)  
+write(slave_chip_addr,command,data)
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+data is 2 bytes 
+and read() should return 2 bytes 
+
+can you tell me how can i do that? 
+
+thank you for your time
