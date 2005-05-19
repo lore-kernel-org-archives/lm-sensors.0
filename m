@@ -1,25 +1,42 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: [PATCH 2.6] sensors chip updates
-Message-Id: <20031218000433.GE6258@kroah.com>
+From: robots@twincar.sk (Michal Demin)
+Date: Thu, 19 May 2005 06:24:40 +0000
+Subject: Problem with SMbus
+Message-Id: <1075981068.15216.14.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031216035219.GA1658@earth.solarsys.private>
-In-Reply-To: <20031216035219.GA1658@earth.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Sensors <sensors@stimpy.netroedge.com>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 15, 2003 at 10:52:19PM -0500, Mark M. Hoffman wrote:
-> Hi Greg:
-> 
-> The following are four patchsets for 2.6 which were either direct
-> from or inspired by recent updates in the lm_sensors CVS.
-> 
-> These patches should be applied, in order, on top of your -test11
-> megapatch [1].  Please queue these up for inclusion after 2.6.0.
+Hi
 
-Thanks, I've applied all 4 of these to my "after 2.6.0" i2c tree.
+So i've been using lm_sensors wihtout any problem (isa)
+But i'm having problems with SMBus.
+I have MB : qdi SinactiX 5EP (82801EP), this seems to be supported
+But i can't make the module working (i2c-i801) 
 
-greg k-h
+[root@localhost busses]# /sbin/insmod ./i2c-i801.o
+./i2c-i801.o: init_module: No such device
+Hint: insmod errors can be caused by incorrect module parameters,
+including invalid IO or IRQ parameters.
+      You may find more information in syslog or the output from dmesg
+
+Here is also lspci
+00:00.0 Class 0600: 8086:1130 (rev 04)
+00:01.0 Class 0604: 8086:1131 (rev 04)
+00:1e.0 Class 0604: 8086:244e (rev 05)
+00:1f.0 Class 0601: 8086:2440 (rev 05)
+00:1f.1 Class 0101: 8086:244b (rev 05)
+00:1f.2 Class 0c03: 8086:2442 (rev 05)
+00:1f.4 Class 0c03: 8086:2444 (rev 05)
+00:1f.5 Class 0401: 8086:2445 (rev 05)
+01:00.0 Class 0300: 10de:0110 (rev b2)
+02:0e.0 Class 0200: 10ec:8139 (rev 10)
+
+There is something missing between 2442 and 2444 ..
+
+I have SpeedFan under W2k and it recognizes my SMBus well ...
+Is there way how could i make it working ?? 
+Many thanks ..
+Michal
+
