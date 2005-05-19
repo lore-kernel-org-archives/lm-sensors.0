@@ -1,38 +1,48 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:55 +0000
-Subject: LIRC and Mandrake 10.1
-Message-Id: <20050426205136.151526d9.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:44 +0000
+Subject: Super-IO
+Message-Id: <20040229094305.202636c1.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.58.0504261818510.2812@myl-uhtb.qbzn>
-In-Reply-To: <Pine.LNX.4.58.0504261818510.2812@myl-uhtb.qbzn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Karel,
+> khali,
+> this worked fine for me on my vt1211 board.
+> mds
 
-> I have problem with lm_sensors (Ver: 2.8.7 Release: 4mdk) in my new
-> Mandrake 10.1 (kernel 2.6.8.1-24mdk). HW: QDI KinetiZ 7EA (via
-> kt133a/686b), Duron 866, DIMM 128 + DIMM 64
-> 
-> On my Mandrake 9.2 (kernel 2.4.22) was everything OK. DIMM modules
-> were identified, via686 sensors too and all was accesable via
-> /proc/sys/dev/sensors too.
-> 
-> Now:
-> 1. there is no interface in /proc ?! (module i2c-proc (like in
-> lm_sensors for 2.4 kernel ?))
-> 2. eeprom module gives no information
+Great.
 
-In 2.6 the sensors data is found under /sys/bus/i2c/. i2c-proc was (more
-or less) renamed to i2c-sensor.
+Looks to me like the "code doesn't handle multiple devid regs yet"
+comment is out-of-date and should be removed.
 
-Up to 2.6.10, i2c-viapro and via686a conflict with each other, so only
-the first one loaded will work, as you could see. You need i2c-viapro to
-access the EEPROMs, and via686a for the sensors, which is why you can't
-get both at the same time. This was fixed in 2.6.11.
+Also, why is the IT8705 entry disabled? A few fixes and it could work.
+According to the docs I have, enter sequence is "0x87, 0x01, 0x55, 0x55"
+(same as IT8712), and the exit sequence would be the same too, contrary
+to what the comment suggests (the datasheet says "Set bit 1 (...) to 1"
+which means writing 0x02, not 0x01, if I'm not mistaking.
 
-Hope that helps,
+BTW, why are we prepending "0x2e, 0xaa" to the IT87xx exit sequence?
+Looks like some compatibility measure with Winbond chips, but since we
+overwrite the value right after, I don't much see the point. Shouldn't
+we instead *append* it to the exit sequence?
+
+Actually I wonder if we shouldn't have two different exit sequences. One
+if the chip has been detected, and one if the chip hasn't. The way
+things are done for now, we'll always write a value to register 0x02
+during the IT87xx detection, even if the detection failed so we know we
+probably do *not* have an IT chip. It would sound safer to me to issue
+the "usual" exit sequence in that case (which doesn't write to any
+register). OK, things go a bit more complex if we want to handle both
+the IT8712 and the IT8705 because a "failure between both (ie trying to
+detect the 8712 and it actually is a 8705, or the contrary) would not
+issue the correct exit sequence. However it seems less intrusive to not
+reset a chip than to arbitrarily try to write to a register.
+
+Comments welcome (I'm not quite used to Super-IO, although still much
+more than two days ago ;))
+
 -- 
 Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
