@@ -1,26 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:58 +0000
-Subject: max1617a
-Message-Id: <20040516110758.3a14178d.khali@linux-fr.org>
+From: tsawyer@sandburst.com (Travis B. Sawyer)
+Date: Thu, 19 May 2005 06:24:48 +0000
+Subject: lm_sensors:  PCA9549, MAX6653
+Message-Id: <1079465318.4136.52.camel@pavement.sandburst.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040509133827.04734a7e.khali@linux-fr.org>
-In-Reply-To: <20040509133827.04734a7e.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> JD> If you want to write the driver yourself, the datasheet is here:
-> JD> http://pdfserv.maxim-ic.com/en/ds/MAX1619.pdf
-> JD> I'd suggest you start from a similar driver such as the lm90.
-> 
-> I gona try to writ a driver. I newer did it before but "lerning by
-> doing" ...
+Greetings!
 
-Great! I've added your name to our new drivers page.
+I'm working on an embedded linux project that includes use of the i2c
+busses on a ppc440gx.
 
-Thanks.
+I've download/patched my kernel source with the I2C 2.8.4 and LM Sensors
+2.8.5.
+
+However, our project includes the use of several PCA9548 (8 port i2c
+mux), and MAX6653 (fan controller & temp sensor)
+
+I found the patch from Brian Kuschak for subordinate busses and patched
+that in (with some hand patching).  I'm hoping that'll work for the
+pca9548, but I don't have high hopes.
+
+For the 6653 I plan on basing code on the 6650 driver that currently
+exists.
+
+Is this a feasible attempt?  Is someone already developing the drivers I
+need?
+
+Thanx for the 2 packages, some of the devices we're using are already
+support, makes my life much easier!
+
+-travis
 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/
+Travis B. Sawyer
+Sandburst Corporation  http://www.sandburst.com
+(978) 689-1620
+
