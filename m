@@ -1,40 +1,27 @@
-From: mds@paradyne.com (Mark D. Studebaker )
-Date: Thu, 19 May 2005 06:24:01 +0000
-Subject: PCI module init problems
-Message-Id: <3EF5EF37.3080803@paradyne.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Thu, 19 May 2005 06:25:54 +0000
+Subject: Query: fscpos and fscher fan speed reading
+Message-Id: <92po61ptt5abdve2vmos6ikfkpr9nuqmup@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-No, still no idea what's wrong...
+Greetings,
 
-* Mark D. Studebaker <mds@paradyne.com> [2003-06-14 14:35:55 -0400]:
-> i2c-voodoo3 doesn't load for me on a system with a Banshee.
-> I triple-checked the pci_device_id table.
-> voodoo3_probe() is never called and pci_module_init returns -ENODEV.
-> 
-> i2c-viapro works for me on a 8233 system (ID 1106:3074).
-> But on a 686a system (ID 1106:3057)
-> it doesn't load. Again I rechecked the ID.
-> 
-> 
-> 
-> CVS sensors-detect still finds these devices but the
-> CVS modules won't load.
-> These both worked in 2.7.0.
-> 
-> What's not right with the pci_device_id table or with
-> pci_module_init???
-> 
-> modultils version 2.4.22.
+As part of sorting sysfs naming and documentation I would like 
+somebody with either these chips to confirm changing fanX_div 
+(fscher) or fanX_ripple (fscpos) has little effect on fan speed 
+reading or does the change double/halve fan speed reading?
 
-Did you ever figure this out?  I looked (but quickly) and didn't
-see anything.
+The datasheet is not clear, but one of these drivers is wrong 
+and should be fixed -- which? :)
 
-Regards,
+One driver has fanX_ripple, the other fanX_div...
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Ripple is described as pulses (ripples) per revolution of the 
+fan, being 2, 4 or 8.
+
+Thanks,
+--Grant.
