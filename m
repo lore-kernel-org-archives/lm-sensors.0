@@ -1,44 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:35 +0000
-Subject: To release or not to release
-Message-Id: <1074076436.40051b1473646@imp.gcu.info>
+From: mathog@mendel.bio.caltech.edu (David Mathog)
+Date: Thu, 19 May 2005 06:25:16 +0000
+Subject: ticket 1775
+Message-Id: <E1C9PtS-000754-00@mendel.bio.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040109231508.349f206a.khali@linux-fr.org>
-In-Reply-To: <20040109231508.349f206a.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I know we haven't done it in the past, but why not do a RC release,
-> freeze for a week or so, then put on the final tag?
+(Sorry, couldn't figure out how to amend a ticket through
+the web interface.)
 
-This would be more work for Phil with no apparent benefit. Our project
-is admitedly popular, but I don't think we would have enough feedback
-between RC and final releases to justify the existence of a RC.
+In reply to ticket 1775 the response was:
 
-What's more, I think we'll need to follow a 1:1 release policy with
-Linux 2.6 for some times (at least we need a release to support 2.6.1
-correctly, and another one will be needed for 2.6.2 if it has the temp
-magnitudes fixes; my guess is that similar situations will occur a few
-more times after that).
+> try changing sensor type to 3435 in sensors.conf
 
-So I think that we need to release more often than we used to do, and
-more particularly be more reactive when releases are needed to follow
-Linux 2.6 releases.
+The sensors.conf from Tyan (and every other one I've
+found on the web for this mobo) says to do this:
 
-Special note to Phil:
-Please release 2.8.3 as soon as possible.
+ # thermal sensor types (do not adjust)
+   set sensor1 2
+   set sensor2 2
+   set sensor3 2
 
-If you are too busy to do so and/or more generaly prefer that we do not
-depend on you to do releases, I can handle them for you, if this is
-technically possible. I know that we have a document which summaries
-the various checkpoints for releases, but I don't know if all of them
-can be done with just a developer CVS access or if more than that (such
-as a SSH access) is required.
+Moreover, those settings worked on the same machine when
+it ran RH 7.3 and an older version of lm_sensors.  However,
+now they do not work (kernel 2.8.6.1 and sensors 2.8.7).
+Since the hardware type of the sensor on the mobo clearly has
+not changed (only the OS) why would the sensor type change now
+from 2 to 3435 with a different version of the kernel or
+lm_sensors???
 
-Thanks.
+Thanks,
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+David Mathog
+mathog@caltech.edu
+Manager, Sequence Analysis Facility, Biology Division, Caltech
