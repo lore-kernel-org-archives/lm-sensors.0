@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: mbm@livewiredev.com (MBM Support)
 Date: Thu, 19 May 2005 06:24:20 +0000
 Subject: Iwill MPX2 - LM83/LM90 confusion
-Message-Id: <1065540024.3f82d9b86ef5c@imp.gcu.info>
+Message-Id: <FJEPJHGHDGKMMPFFGCLOOEONEJAA.mbm@livewiredev.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
 In-Reply-To: <1065536622.3f82cc6ee9ab5@imp.gcu.info>
@@ -9,6 +9,37 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+the LM90 only allows 1 smbus adress and thus there can not be 2
+
+Iwill switches the input from the 2 cpu's, put a certain pin high and you
+get cpu0, put it low and you get cpu1 on the SAME LM90
+
+Jean has the code and it is based on info gotten from IWill
+
+Regards, Alex
+
+- Please always attach all previous mails !
+----------------------------------------------------------------------
+The Motherboard Monitor:
+http://mbm.livewiredev.com/
+----------------------------------------------------------------------
+For long you live and high you fly,
+And smiles you'll give and tears you'll cry,
+And all you touch and all you see,
+Is all your life will ever be.
+----------------------------------------------------------------------
+
+
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org]
+Sent: dinsdag 7 oktober 2003 17:20
+To: lamar@synque.com
+Cc: sensors@stimpy.netroedge.com; mbm@livewiredev.com
+Subject: Re: Iwill MPX2 - LM83/LM90 confusion
+
+
 
 
 > One more item, I hope this isn't noise, but there may be two(!)
@@ -49,7 +80,7 @@ version of lm_sensors you plan to install.
 Let us know how 2.8.1 does work for you :)
 Thanks.
 
--- 
+--
 Jean Delvare
 http://www.ensicaen.ismra.fr/~delvare/
 
