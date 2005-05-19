@@ -1,43 +1,71 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: enrico_tux@yahoo.it (Cataldi Enrico)
 Date: Thu, 19 May 2005 06:24:30 +0000
 Subject: sensors on Acer TM427LC
-Message-Id: <20031217230016.1d2f7636.khali@linux-fr.org>
+Message-Id: <200312180413.34171.enrico_tux@yahoo.it>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200312170127.30400.enrico_tux@yahoo.it>
 In-Reply-To: <200312170127.30400.enrico_tux@yahoo.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-> I've an Acer TravelMate 427LC, my acpi can't get thermal state and 
-> sensors-detect recognize just an eeprom... i contacted Acer, but they
-> wont tell me sensors on my pc...
-
-What would you expect from a hardware manufacturer support? ;)
-
-> they just told me that it implements
-> acpi v1.0b... I know, it's not much pleasuring... Well, i would like
-> to know if there is a way to try to detect my sensors and write driver
-> for them...
-
-Which version of lm_sensors have you been trying? If a recent version of
-sensors-detect did find unknown chips, we might help. If not, there's
-probably nothing we can do. If in doubt, please provide the output of
-"i2cdetect 0".
-
-On my own laptop there's no sensor chip lm_sensors can deal with. All I
-have is one temperature sensors those temperature is reported by ACPI.
-If you did not try this already, enable ACPI and Thermal Zone in ACPI.
-If your laptop supports it, you should be able to get the temperature
-from /proc/acpi/thermal_zone/XXXX/temperature (XXXX depends on the
-system).
-
-> The chipset identification from Intel says it's a i845MP/MZ...
-
-This is the chipset that handle the bus, not the sensor chip. I too have
-support for the bus, but alas nothing on it except eeproms.
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEExCgpPbiBXZWRuZXNk
+YXkgMTcgRGVjZW1iZXIgMjAwMyAyMzowMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgoKPiBXaGF0IHdv
+dWxkIHlvdSBleHBlY3QgZnJvbSBhIGhhcmR3YXJlIG1hbnVmYWN0dXJlciBzdXBwb3J0PyA7KQoK
+QXQgbGVhc3QgZm9yIDIuNDAwIGV1cm9zLCBpIHdvdWxkIGxpa2UgdG8ga25vdyB0aGUgbW9kZWwg
+b2YgbWluZSB3aW5ib25kIApTRC9NTUMgTWVtb3J5IFN0aWNrLi4uIGJ1dCBuZWl0aGVyIHRoaXMu
+Li4gTXkgbGFzdCB0aW1lIHdpdGggQWNlci4uLiA6LS8KCj4gV2hpY2ggdmVyc2lvbiBvZiBsbV9z
+ZW5zb3JzIGhhdmUgeW91IGJlZW4gdHJ5aW5nPyBJZiBhIHJlY2VudCB2ZXJzaW9uIG9mCj4gc2Vu
+c29ycy1kZXRlY3QgZGlkIGZpbmQgdW5rbm93biBjaGlwcywgd2UgbWlnaHQgaGVscC4gSWYgbm90
+LCB0aGVyZSdzCj4gcHJvYmFibHkgbm90aGluZyB3ZSBjYW4gZG8uIElmIGluIGRvdWJ0LCBwbGVh
+c2UgcHJvdmlkZSB0aGUgb3V0cHV0IG9mCj4gImkyY2RldGVjdCAwIi4KCkkgZ290IHRoZSBsYXRl
+c3QgKDIuOC4yIG9mIGkyYyAmIG9mIGxtLXNlbnNvcnMuLi4pLi4uCgpNeSBpMmNkZXRlY3QgMDoK
+CiAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAgZCAgZSAgZgowMDog
+WFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFgKMTA6IFhYIFhY
+IFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYCjIwOiBYWCBYWCBYWCBY
+WCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWCBYWAozMDogMzAgWFggWFggWFggWFgg
+WFggWFggWFggWFggWFggWFggWFggWFggWFggWFggWFgKNDA6IFhYIFhYIFhYIFhYIFhYIFhYIFhY
+IFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYCjUwOiBVVSBYWCBYWCBYWCBYWCBYWCBYWCBYWCBY
+WCBYWCBYWCBYWCBYWCBYWCBYWCBYWAo2MDogWFggWFggWFggWFggWFggWFggWFggWFggWFggNjkg
+WFggWFggWFggWFggWFggWFgKNzA6IFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhYIFhY
+IFhYIFhYIFhYIFhYCgpJIGdvdHRhIGp1c3QgdGhpcyBieSBzZW5zb3JzLWRldGVjdCAmIHNlbnNv
+cnM6CgplZXByb20taTJjLTAtNTAKQWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDE4NDAK
+QWxnb3JpdGhtOiBOb24tSTJDIFNNQnVzIGFkYXB0ZXIKTWVtb3J5IHR5cGU6ICAgICAgICAgICAg
+RERSIFNEUkFNIERJTU0KTWVtb3J5IHNpemUgKE1CKTogICAgICAgNTEyCgpBbmQgaSd2ZSB0aGVz
+ZSBtb2R1bGVzIGxvYWRlZDoKaTJjLWRldiA8LSBpIGxvYWRlZCBpdCBtYW51YWxseSB0byBnZXQg
+aTJjZGV0ZWN0IHJ1bm5pbmcuLi4KaTJjLWk4MDEKaTJjLXByb2MKaTJjLWNvcmUKCj4gT24gbXkg
+b3duIGxhcHRvcCB0aGVyZSdzIG5vIHNlbnNvciBjaGlwIGxtX3NlbnNvcnMgY2FuIGRlYWwgd2l0
+aC4gQWxsIEkKPiBoYXZlIGlzIG9uZSB0ZW1wZXJhdHVyZSBzZW5zb3JzIHRob3NlIHRlbXBlcmF0
+dXJlIGlzIHJlcG9ydGVkIGJ5IEFDUEkuCj4gSWYgeW91IGRpZCBub3QgdHJ5IHRoaXMgYWxyZWFk
+eSwgZW5hYmxlIEFDUEkgYW5kIFRoZXJtYWwgWm9uZSBpbiBBQ1BJLgo+IElmIHlvdXIgbGFwdG9w
+IHN1cHBvcnRzIGl0LCB5b3Ugc2hvdWxkIGJlIGFibGUgdG8gZ2V0IHRoZSB0ZW1wZXJhdHVyZQo+
+IGZyb20gL3Byb2MvYWNwaS90aGVybWFsX3pvbmUvWFhYWC90ZW1wZXJhdHVyZSAoWFhYWCBkZXBl
+bmRzIG9uIHRoZQo+IHN5c3RlbSkuCgpBdCBsZWFzdCB1IGdvdHRhIGl0IGJ5IGFjcGkuLiBJIGNh
+bid0Li4gaGVoZWgsIGknbSBub3Qgc28gbHVja3kuLi4gCgpJIHdvdWxkIGxpa2UgdG8gYmUgdXNl
+ZnVsbCBmb3IgdGhlIHByb2plY3QgYW5kIGZvciB0aGUgcGVvcGxlIHdobyBoYXMgdGhpcyAKbGFw
+dG9wLi4uIHNvIGlmIGkgY2FuIGRvIHNvbWV0aGluZywganVzdCB0ZWxsIG1lLCBvaz8KCkkgbWVh
+biwgaWYgdGhlcmUgYXJlIGd1aWRlcywgdHV0b3JpYWwgb3Igc29tZXRoaW5nIHRoYXQgaSBjYW4g
+cmVhZCB0byBpbXByb3ZlIAp1ciBwcm9qZWN0LCB1IGp1c3QgdGVsbCBpdCB0byBtZS4uLiA7KQoK
+SSBob3BlIHRoYXQgd2l0aCAyLjQwMCBldXJvcywgdGhleSBoYWQgcHV0IGF0IGxlYXN0IDEgc2Vu
+c29yLi4uCgotIC0tIAp+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fgpDYXRhbGRpIEVucmljbwpVbmRlcmdyYWR1YXRlIHN0dWRlbnQgQCBDb21wdXRlciBTY2ll
+bmNlClVuaXZlcnNpdHkgb2YgQm9sb2duYSAtIEl0YWx5IC0KSG9tZXBhZ2U6IGh0dHA6Ly9lY2F0
+YWxkaS53ZWIuY3MudW5pYm8uaXQvCm1haWwgdG86IGVucmljb190dXhAeWFob28uaXQgZWNhdGFs
+ZGlAY3MudW5pYm8uaXQKTXkgUHVibGljIGtleSBpcyBhdmFpYmxlIG9uIG15IGhvbWUgcGFnZS4K
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KLS0tLS1CRUdJ
+TiBQR1AgU0lHTkFUVVJFLS0tLS0KVmVyc2lvbjogR251UEcgdjEuMi4zIChHTlUvTGludXgpCgpp
+UUlWQXdVQlArRWJXZ2lnQ05VNm9BTWdBUUlwV0JBQWdDaVZCdjNQR3hyV0MrVjdubEV6aEFOU0pr
+UUxlOHU3ClFicnZOVUppYW1qZE5tZDd5eWFkYjhYS3BWMUMxNGxPY1ZEMXFNL2dXUVJjTE9RVVhW
+dXJzdEYxNHJDT3c3bHgKK2R3OUlVM2N5Q3phRUQ1a3ErbFBpTSttQklhT0RsZVN1Uk5kL2E0TWVt
+aysyOVY2WkZaTEFNL3Z2TytpR2diRQp6TFh3Z00yZmpPWjlzdlY2dVA0NnR6RkxRUGZ1RUcvRFhG
+ZnB1R28wVzZURUVXcE5Td0N6NjdBNTM1NzZTUWFLCnVTWVB4SEZmR0VEK0JQSVFXOUlWRVJVa2FQ
+K1VRemdQUVk2MDRuaThxL0ZKL1lOdFM2bjcvc0svUUZEN05TVjYKWmI1Nk9PTWtkTVBBSE9EWVVR
+R3Bzd0tjR0RuQ3hTMTBHTWZkQjYxUFV5TDRYRC9Wd3huWllJSGVqQm5aWjBpMwpOUk84bnJNMmhI
+MjQ2RWcySzJhVEhoVmp3cTlNd3U2UmY4Yy94ZGdwSXEzUU9ZaWlPMW44RktRaEk0Y3N4N1dyCjZM
+Nk9yZnhWOFRwS1p4V3hZVWxnUHBkOGhneWZ1UERDYXFLK0R4UDc3OGl2RlovRkhGWFo4OWdtK0FL
+Q3BrVW4KQmNIbjRPaHdBdVkwdjRBc1F5Q0R5eG5BMVorMklVWXNLLy9CcUdjMFhIQzVyYUlGdjZO
+NkFXemsvWnJQbTl0cwpzZURXWGEwbzNFSWFSY0hXREpvbjIyOWU2ZndQMmxuTmtUOXRvdUxMaUhK
+cmRCcEo0WlM3TStYQUd3aS9ZaEJ6CjVDcmJ3czFycm1hem5SMFpwZ2U0UDR1ZSt1Z3FMcW1zRGdW
+RHZwSVhnWDdyZGxIMVdOSFlUZXJkU1lWMlNicjEKWjJQWUprVFgrQlmQNFYKLS0tLS1FTkQgUEdQ
+IFNJR05BVFVSRS0tLS0tCgo=
