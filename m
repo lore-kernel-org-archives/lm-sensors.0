@@ -1,7 +1,7 @@
-From: bkuschak@yahoo.com (Brian Kuschak)
-Date: Thu, 19 May 2005 06:24:44 +0000
+From: tvann@extremenetworks.com (Timothy Vann)
+Date: Thu, 19 May 2005 06:24:45 +0000
 Subject: Any work done on subordinate buses?
-Message-Id: <20040226082644.92856.qmail@web40901.mail.yahoo.com>
+Message-Id: <CEA6A588893A0A47915874C1E8FF2307A4CC4A@rtp-msexch-01.rtp.extremenetworks.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CEA6A588893A0A47915874C1E8FF2307A4CC39@rtp-msexch-01.rtp.extremenetworks.com>
 In-Reply-To: <CEA6A588893A0A47915874C1E8FF2307A4CC39@rtp-msexch-01.rtp.extremenetworks.com>
@@ -9,6 +9,21 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thanks for the response.  Is this code in the CVS tree or do I need to pull
+it from somewhere else?  I see you mention the list archive but I'm not sure
+how to get at that.
+
+Regards,
+Tim
+
+-----Original Message-----
+From: Brian Kuschak [mailto:bkuschak@yahoo.com]
+Sent: Thursday, February 26, 2004 3:27 AM
+To: Mark Studebaker; Timothy Vann
+Cc: 'lm78@stimpy.netroedge.com'; bkuschak@yahoo.com
+Subject: Re: Any work done on subordinate buses?
+
 
 
 Yes, my driver was written to support any arbitrary
