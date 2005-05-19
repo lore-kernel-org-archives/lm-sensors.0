@@ -1,38 +1,38 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:23 +0000
-Subject: [PATCH] libsensors (chips.c, chips.h) update for 2.6.X lm85 fan
-Message-Id: <20041120103843.2c86faf9.khali@linux-fr.org>
+From: jbucata@earthlink.net (Jason Bucata)
+Date: Thu, 19 May 2005 06:23:47 +0000
+Subject: Documentation Bug (Re: Ticket #1126)
+Message-Id: <20030209084710.GA1470@earthlink.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20041004201808.GF22290@penguincomputing.com>
-In-Reply-To: <20041004201808.GF22290@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Justin,
+This is regarding ticket #1126.
 
-Sorry for the delay...
+The suggestion to turn on CONFIG_I2C_ALGOBIT worked; thanks.  So it
+appears to be a documentation bug instead of a code/config file bug.
 
-> Here is a patch for lm_sensors/lib/chips.h and lm_sensors/lib/chips.c
-> to update the lm85 entries and keep them in step with the patch for
-> lm85 fan control in the 2.6.X lm85 driver.
-> 
-> Again, feedback appreciated.
+It makes sense to have to turn something on like that before you can see
+the option, but IMHO it's very important to tell the users that they
+need to!
 
-Hm, now that your kernel patch is in 2.6, I guess we want to apply this?
+None of the following sources of information say anything about having
+to enable bit-banging devices when compiling the kernel to use this
+driver:
+	http://secure.netroedge.com/~lm78/supported.html
+	http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/busses/i2c-via
+	sensors-detect
 
-I don't think that the patch is quite correct though.
+Maybe that should be stated directly on the Supported Chips and Drivers
+page, but I think ideally it should go on the per-driver doc page, and
+have the Supported Chips and Drivers page hyperlink to those, so that we
+know there's more info available.  (I didn't even know about the
+driver-specific pages until just now.)
 
-First, I think that your changes break the compatibility with the 2.4
-driver. You have to extend, not replace, the existing entries. See the
-head of chips.c for hints, or other driver entries in the same file.
+Jason B.
 
-Second, I'd prefer a path to chips.h which doesn't realign things. I
-understand you did if for the beauty of it all, but it makes my
-reviewing work harder. This isn't a problem if all values aren't exactly
-aligned.
-
-Thanks.
-
-Jean
+-- 
+You only need to stay 15 minutes ahead of the others for them to think that
+you are a genius.
+	-- Slashdot post (http://tinyurl.com/5cv5)
