@@ -1,28 +1,46 @@
-From: erik@oldconomy.com (Erik Slagter)
-Date: Thu, 19 May 2005 06:24:27 +0000
-Subject: sensors support for tyan S2466 (Tiger MPX) motherboard 2.8.0
-Message-Id: <1070134716.21570.12.camel@skylla.oldconomy.com>
+From: bartonbosch@SoftHome.net (Barton Bosch)
+Date: Thu, 19 May 2005 06:25:54 +0000
+Subject: Ticket #1963 solution + further info
+Message-Id: <426DD728.6040200@SoftHome.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1069949632.14539.9.camel@skylla.oldconomy.com>
-In-Reply-To: <1069949632.14539.9.camel@skylla.oldconomy.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-> > I've found out how to use lm_sensors (2.8.0) to obtain all information
-> > from the motherboard. There is a starting point from Tyan for 2.7.0
-> > but it needs a little tweaking for 2.8.0 or you won't get the fan
-> > rates.
-> 
-> Thanks for the report. Maybe you could contact Tyan about this, so that
-> they can update their files?
+Thanks for the tip re: resetting the smbus after a hang, it did the=20
+trick.
 
-Don't you think it will suffice to place this information on the
-lm_sensors website?
+In the time after I posted ticket #1963 I continued working on=20
+installing and configuring lm_sensors for 2.6.10-1.771_FC2 & matrox=20
+g450 dual head.  As it turns out the big prob is that while=20
+sensors-detect does find the sensors chips, it's way off on its=20
+config suggestions.
 
-> > I saw there is a support request ticket regarding this.
-> If you give me the ticket number, I'll update it with the information
-> you provided.
+The script wants these modules loaded:
 
-There where quite a pile ;-)
+MODULE_0=3Di2c-matroxfb
+MODULE_1=3Di2c-isa
+MODULE_2=DDcmon
+MODULE_3=3Dw83627hf
+
+
+i2c-matroxfb is uneeded and creates the problem with the smbus and=20
+blanked screens, and the ddcmon module which is non-existent.
+
+The correct configuration for lm_sensors with matrox/2.6.10/FC2 is=20
+to modprobe the i2c-isa (which autoloads i2c-sensor and i2c-core)=20
+and w83627hf and then running sensors -s;  all of this can be placed=20
+in /etc/rc.local, and that's it.
+
+Now figuring out how to get sensors-detect to correctly report that=20
+is another matter altogether but that's not my place, <g>.
+
+
+HTH,
+
+Barton
+--=20
+Food brings benefit for some hours, clothes for some months but=20
+wisdom lasts as long as the mind itself.  It is the foundation of a=20
+better society.       -- Anonymous Tibetan source
