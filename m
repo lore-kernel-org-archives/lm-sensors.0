@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:20 +0000
+Date: Thu, 19 May 2005 06:24:22 +0000
 Subject: fan speed for it87?? chips added
-Message-Id: <3F7D59AF.9CA3243C@paradyne.com>
+Message-Id: <3F9DCCD2.8FAD376C@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200309232035.29480.michael.hufer@freenet.de>
 In-Reply-To: <200309232035.29480.michael.hufer@freenet.de>
@@ -10,24 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-agreed
+checked in.
+thanks.
+mds
 
-Greg KH wrote:
+Michael Hufer wrote:
 > 
-> On Wed, Sep 24, 2003 at 11:10:30PM +0200, Jean Delvare wrote:
+> On Friday 26 September 2003 22:40, Jean Delvare wrote:
+> > > I found and fixed the little problem I had with the original chip
+> > > initialization. I can now load the module with reset_it87=0 and
+> > > init=1 without messing up the settings of the power supply fan
+> > > from the BIOS. It was quite simple after all.
 > >
-> > My position is that the driver should change as few things as possible.
-> > Hardware monitoring chips are a sensible realm. Enabling or disabling an
-> > interrupt line or the like can cause the hardware to react (fan to full
-> > speed or even shutdown) and we have had many reports that this happened.
-> > So I think that the chip drivers should, by default, consider that the
-> > chip is well configured for the hardware/bios settings, and initialize
-> > very few things. My drivers work that way (not for the limits yet, but
-> > for the rest).
+> > I'm interested in details, can you tell us what it was?
 > 
-> I agree, this should be our policy.  Any current 2.6 drivers that
-> violate this?
+> Sure, it actually was something I introduced myself :-(. I initialized the
+> fan_ctl register with  (read_value & 0x8f | 0x77) to enable the smart
+> guardian feature for all 3 fans. But the power supply fan does not support
+> pwm. It can only be operated in on/off mode, i.e. bit 0 must be clear. I
+> switched it back to the original  (rv & 0x8f | 0x70 ) and everything is back
+> to working.
 > 
-> thanks,
+> > > Do you want me to send the latest diff?
+> >
+> > Sure I want.
 > 
-> greg k-h
+>  Here it comes.
+> 
+> 
+>                         Name: it87_pwm-cvs.diff
+>    it87_pwm-cvs.diff    Type: text/x-diff
+>                     Encoding: 7bit
