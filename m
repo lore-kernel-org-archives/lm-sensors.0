@@ -1,7 +1,7 @@
-From: akpm@osdl.org (Andrew Morton)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:45 +0000
 Subject: i2c patch out of 2.6.4-rc1-mm1
-Message-Id: <20040301122207.0bebef9a.akpm@osdl.org>
+Message-Id: <20040301213351.77966351.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1078150396.404344fc41690@imp.gcu.info>
 In-Reply-To: <1078150396.404344fc41690@imp.gcu.info>
@@ -10,21 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare <khali@linux-fr.org> wrote:
->
->  I just saw that the i2c stuff from Greg's tree have been backed out
->  from 2.6.4-rc1-mm1. Quoting the release notes:
-> 
->  "bk-i2c.patch was dropped pending it getting its lmsensors act
->  together."
-> 
->  I don't quite understand what I am (well, what we are...) supposed to
->  do (actually, I do not even get the meaning of the sentence itself).
+> Ok, how about doing this:
+> 	- make a lmsensors release now.  I'm not going to send any i2c
+> 	  patches to Linus until after 2.6.4 is out, so you can cut a
+> 	  release today if you want to.
 
-It's no big deal.  The current misfit between i2c and the rest of Linus's
-tree means that -mm users have non-working sensors code.  I don't want -mm
-users to have to deal with (and report) problems like that, so I leave out
-the i2c changes until things have sorted themselves out.
+Aha. This sounds good indeed. You always end up with a fine solution
+even when I feel like everything's bloated, don't you? :)
 
-I don't think there's any rush on fixing this up - whenever you guys are
-ready.
+Yes, if 2.6.3 and 2.6.4 are compatible i2c-wise, releasing now makes
+sense, and solves problems.
+
+> 	- add your fixes to the lmsensors cvs tree, so that users of the
+> 	  -mm kernel can get them if they want to.  Idealy you could
+> 	  also make another lmsensors release, as these patches will go
+> 	  into Linus's tree after 2.6.4 is out.
+> 
+> Sound good?  That way the i2c patches can go back into the -mm kernel,
+> and users can test them and the lmsenors changes out.
+
+I don't think we would make two releases. But pointing -mm people to the
+CVS makes sense.
+
+The next release would occur as Linux 2.6.5 will be released, providing
+that the i2c changes have been successful in their -mm series life and
+have made it into Linus' tree.
+
+Thanks again.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
