@@ -1,7 +1,7 @@
 From: magnus.f@telia.com (=?iso-8859-1?Q?Magnus=20Forsstr=F6m?=)
 Date: Thu, 19 May 2005 06:24:12 +0000
 Subject: New LM83 driver
-Message-Id: <200308121847.h7CIl8J12595@d1o265.telia.com>
+Message-Id: <200308121854.h7CIsV814994@d1o265.telia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030809231304.74f73999.khali@linux-fr.org>
 In-Reply-To: <20030809231304.74f73999.khali@linux-fr.org>
@@ -18,6 +18,9 @@ temp1:       +36=B0C  (limit =3D +100=B0C, critical =3D +120=B0C)  =20
 temp2:       +35=B0C  (limit =3D +100=B0C, critical =3D +120=B0C)  =20
 temp3:       +42=B0C  (limit =3D +100=B0C, critical =3D +120=B0C)  =20
 temp4:       +44=B0C  (limit =3D +100=B0C, critical =3D +120=B0C)  =20
+
+I tried the IP address but it timed out, so I still think the firewall=20
+blocks the port or protocol CVS uses.
 
 Here is the output from dmidecode:
 # dmidecode  =20
