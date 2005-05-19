@@ -1,25 +1,47 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:17 +0000
-Subject: [PATCH][2.6] New PPC4xx I2C driver
-Message-Id: <20030915235350.GA19664@kroah.com>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 19 May 2005 06:25:42 +0000
+Subject: I found you made a driver for w83792d
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE245F0D@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030912155233.A9590@home.com>
-In-Reply-To: <20030912155233.A9590@home.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Fri, Sep 12, 2003 at 04:30:10PM -0700, Matt Porter wrote:
-> On Fri, Sep 12, 2003 at 04:01:31PM -0700, Greg KH wrote:
-> > Can you please send me a plain-text patch that I can apply to any bk
-> > repository?
-> > 
-> > bk sendpatch is not nice :)
-> 
-> No problem. :)
-
-Thanks, I've applied this to my trees and will send it off to Linus when
-he gets back.
-
-greg k-h
+SGkgTGVlCgpZZXMsIHdlIGhhdmUgZmluaXNoZWQgdGhlIDc5MiBkcml2ZXIgZm9yIGxpbnV4LTIu
+NCwgd2UgaGF2ZSBzZW50IGl0IHRvCkxtX3NlbnNvcnMgZ3JvdXAsIEkgdGhpbmsgdGhleSB3aWxs
+IGNvbW1pdCBpdCBpbnRvIHRoZSBDVlMgaW4gbmVhciBmdXR1cmUuCllvdSBtYXkgY29udGFjdCB0
+aGVtIGFib3V0IGl0LgoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPiAtLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IFNhbmdiYWVrIExlZSBbbWFpbHRvOnNibGVlQG5ldGVu
+Z2luZTEuY29tXQo+IFNlbnQ6IDIwMDXE6jPUwjnI1SAxMDowNAo+IFRvOiBQSTE0IEhVQU5HMAo+
+IFN1YmplY3Q6IEkgZm91bmQgeW91IG1hZGUgYSBkcml2ZXIgZm9yIHc4Mzc5MmQKPiAKPiBHcmVl
+dGluZ3MsCj4gCj4gSSBzYXcgeW91IG1hZGUgdGhlIGRyaXZlciBmb3IgdzgzNzkyZCBiYXNlZCBv
+biBMaW51eCAyLjQga2VybmVsLgo+IEkgY291bGRuJ3Qgc2VlIHRoZXJlIHdlcmUgdzgzNzkyZCBz
+dXBwb3J0IG9uIGxtLXNlbnNvcnMgMi45LjAgY3ZzLgo+IElzIHRoaXMgc3RpbGwgaW4gcHJvZ3Jl
+c3M/IEV2ZW4gaWYgdGhpcyBpcyBzdGlsbCBpbiBwcm9ncmVzcywgSSB3b3VsZAo+IGxpa2UgdG8g
+dGVzdCB0aGUgZHJpdmVyLgo+IENhbiBJIGhhdmUgYWNjZXNzIHRvIHRoYXQgZGV2aWNlIGRyaXZl
+ciBjb2RlPwo+IAo+IFRoYW5rcyEKPiAKPiAtLQo+IFJlZ2FyZHMsCj4gCj4gU2FuZ2JhZWsgTGVl
+Cj4gTmV0RW5naW5lLCBJbmMuCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWlu
+ZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3Nl
+ZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFpbC4gSWYg
+eW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUg
+bm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBwZXJzb24s
+IHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGluZ2x5IGFu
+ZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsg
+c2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRpb24uIEl0
+IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBp
+bmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5m
+b3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUgb2ZmaWNp
+YWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBu
+b3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2Ug
+Zm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNzZW50aWFs
+bHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tIpfOkuqnS
+p3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio
++r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6
+saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C6
+9Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0
+LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk
+7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/Wp
+zrdOqKMuCg==
