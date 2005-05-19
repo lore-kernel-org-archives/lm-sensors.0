@@ -1,7 +1,7 @@
 From: mds@paradyne.com (Mark Studebaker)
 Date: Thu, 19 May 2005 06:24:26 +0000
 Subject: unknown eeprom type (65) [ticket #1449]
-Message-Id: <3FC41260.A3116257@paradyne.com>
+Message-Id: <3FC41BC2.933F17C9@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1069703037.8309.4.camel@localhost>
 In-Reply-To: <1069703037.8309.4.camel@localhost>
@@ -10,117 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-don't rule out a bus driver problem. They're both using nforce2.
-Note that i2cdump uses read_byte_data
-while eeprom.c writes the address then uses read_byte.
-There's also a couple of failure paths in eeprom that don't have
-printks.
-I'll add them to CVS now.
-
-We have had previous reports (months ago) that the ddcmon driver
-was reading off-by-one, we never figured that out.
-This looks different though (off-by-slices).
-
-mds
+I've added a 'c' mode to i2cdump in CVS.
+If 'i2cdump 0 0x50 c' returns different data than 'i2cdump 0 0x50' then
+the problem is in the nforce2 driver. Otherwise it's in eeprom.c.
 
 
-McClintock William J Contr MCOM wrote:
+Mark Studebaker wrote:
 > 
-> > Then, unload the old eeprom module, load the new one, and do "cat
-> > /proc/sys/dev/sensors/eeprom-i2c-0-50/*" again. Then take a look at
-> > dmesg (or whichever log the debug stuff will have gone into), and tell
-> > me what you see there, from the moment the module was loaded. Hopefully,
-> > this will help me locate where the bug could hide.
+> don't rule out a bus driver problem. They're both using nforce2.
+> Note that i2cdump uses read_byte_data
+> while eeprom.c writes the address then uses read_byte.
+> There's also a couple of failure paths in eeprom that don't have
+> printks.
+> I'll add them to CVS now.
 > 
-> Hope this is it...
+> We have had previous reports (months ago) that the ddcmon driver
+> was reading off-by-one, we never figured that out.
+> This looks different though (off-by-slices).
 > 
-> Starting eeprom update, slice 0
-> eeprom.o: 0x50 EEPROM contents (row 1): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 2): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 1
-> eeprom.o: 0x50 EEPROM contents (row 3): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 4): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 2
-> eeprom.o: 0x50 EEPROM contents (row 5): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 6): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 3
-> eeprom.o: 0x50 EEPROM contents (row 7): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 8): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 4
-> eeprom.o: 0x50 EEPROM contents (row 9): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 10): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 5
-> eeprom.o: 0x50 EEPROM contents (row 11): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 12): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 6
-> eeprom.o: 0x50 EEPROM contents (row 13): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 14): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-> Starting eeprom update, slice 7
-> eeprom.o: 0x50 EEPROM contents (row 15): 0x7F 0x7F 0x9E 0x00 0x00 0x00 0x00
-> 0x00 0x01 0x43 0x4D 0x58 0x32 0x35 0x36 0x41
-> eeprom.o: 0x50 EEPROM contents (row 16): 0x2D 0x33 0x32 0x30 0x30 0x4C 0x4C
-> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+> mds
 > 
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: Tuesday, November 25, 2003 2:12 PM
-> To: McClintock William J Contr MCOM
-> Cc: sensors@Stimpy.netroedge.com; frdurso@yahoo.com.br
-> Subject: Re: unknown eeprom type (65) [ticket #1449]
-> 
-> > > Please provide the output of "ls -l
-> > > /proc/sys/dev/sensors/eeprom-i2c-0-50".
+> McClintock William J Contr MCOM wrote:
 > >
-> > [root@workstation1 root]# ls -l /proc/sys/dev/sensors/eeprom-i2c-0-50
-> > total 0
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 00
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 10
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 20
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 30
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 40
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 50
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 60
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 70
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 80
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 90
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 a0
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 b0
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 c0
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 d0
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 e0
-> > -r--r--r--    1 root     root            0 Nov 25 14:36 f0
-> 
-> This is correct, so I would say the procfs interface is working OK. So
-> this is the driver been broken.
-> 
-> Fernando, your problem is exactly the same, as you'll have noticed.
-> 
-> Could you please enable DEBUG in lm_sensors2, recompile and reinstall
-> it? (All I really want is DEBUG enabled on the eeprom module.) You just
-> have to edit the Makefile file and uncomment the right line.
-> 
-> Then, unload the old eeprom module, load the new one, and do "cat
-> /proc/sys/dev/sensors/eeprom-i2c-0-50/*" again. Then take a look at
-> dmesg (or whichever log the debug stuff will have gone into), and tell
-> me what you see there, from the moment the module was loaded. Hopefully,
-> this will help me locate where the bug could hide.
-> 
-> Thanks a lot.
-> 
-> --
-> Jean Delvare
-> http://www.ensicaen.ismra.fr/~delvare/
+> > > Then, unload the old eeprom module, load the new one, and do "cat
+> > > /proc/sys/dev/sensors/eeprom-i2c-0-50/*" again. Then take a look at
+> > > dmesg (or whichever log the debug stuff will have gone into), and tell
+> > > me what you see there, from the moment the module was loaded. Hopefully,
+> > > this will help me locate where the bug could hide.
+> >
+> > Hope this is it...
+>
