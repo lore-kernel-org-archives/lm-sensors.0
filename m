@@ -1,7 +1,7 @@
 From: mds4@verizon.net (Mark Studebaker)
 Date: Thu, 19 May 2005 06:25:04 +0000
 Subject: VRM(VRD) detection versus CPUID
-Message-Id: <40E98134.50205@verizon.net>
+Message-Id: <40E98944.7010000@verizon.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
@@ -10,71 +10,110 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-First of all great job Rudolf for the research and the code.
+what's the easiest way to build this to test on 2.6?
 
-I vote option #1 for 2.4.
-Option #2 would force sensors users to upgrade to latest i2c.
-Option #3 isn't worth the trouble, unless that's what we do for 2.6, then maybe.
-
-I vote option #1 for 2.6, unless we get objections, then we do #3.
-I don't see much in common with the code in i2c-sensor (#2).
-
-Small comments on the code:
-comment spelling familly -> family
-return values 00 -> 0
-coding style fixes (tabs)
-
-Also, by returning 0, we require each module to pick its own
-default: if(! vrm = which_vrm()) vrm = DEFAULT_VRM;
-this is what we want, right, since different drivers may have different
-ideas about what is the best default?
-
-
-
-Jean Delvare wrote:
-> Hi Greg,
+Rudolf Marek wrote:
+>>Yes, use 100. That's already what MDS did if I'm not mistaking.
 > 
 > 
->>What is your proposal for how to do it?  :)
+> done
 > 
 > 
-> Summary of the previous episode:
-> We recently found that VRM version could be deduced from CPUID info,
-> instead of being arbitrarily or manually set. Ruik as been working on
-> this and has working code, which he would like to integrate into our
-> chip drivers framework.
-> 
-> Summary of amother previous episode:
-> The only VID/VRM-related function so far is a (VRM, VID) -> VCore
-> converter in i2c-vid.h, in the form of an inline function (vid_from_reg).
-> 
-> The point is that the new CPUID -> VRM converter and vid_from_reg belong
-> to the same place, or at least one would naturally look for them in the
-> same place. But the new function is a bit too big to be inlined IMHO,
-> and I wonder if it is legitimate that vid_from_reg is since it's not
-> slim either.
-> 
-> My three proposals:
-> 
-> 1* New function placed in i2c-vid.h, inlined. Nothing else needs being
-> changed. Each function will only used once in each driver, so we may
-> consider that the function size doesn't matter.
-> 
-> 2* New function placed in i2c-sensor.c, not inlined, with header in
-> i2c-sensor.h. vid_from_reg may (2a) or may not (2b) be moved in here
-> too. If it is, then i2c-vid.h is gone and inclusions of it need to be
-> deleted.
-> 
-> 3* New function goes in new i2c-vid.c module, with vid_from_reg
-> (un-inlined). New header file and inclusion need to be reworked.
-> 
-> All options sound feasable (which is why I propose them ;)) with little
-> to no additional work. I don't much like inlining stuff, especially
-> when there are no performance issues, so my preference would go to 2a.
-> But I can certainly change my mind if someone comes in with good
-> arguments and evidences I missed a point.
-> 
-> Thanks,
-> Jean Delvare
+>>Yes, it's definitely compile-time stuff. You compile for a given
+>>architecture anyway! So what you did is fine.
 > 
 > 
+> Ok in attach, version that can be used for testing. It is using the
+> numerical VRM, "while" instead of "for" in lookup func and other changes
+> proposed by you. I think this is the end of email storm :)
+> 
+> 
+> Regards
+> 
+> Rudolf
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> #include <linux/init.h>
+> #include <linux/module.h>
+> #include <linux/kernel.h>
+> 
+> typedef struct {
+> u8 vendor;
+> u8 eff_family;
+> u8 eff_model;
+> int vrm_type;
+> } vrm_models_t;
+> #define ANY 0xFF
+> 
+> #ifdef CONFIG_X86
+> 
+> vrm_models_t vrm_models[] = {
+> 		{X86_VENDOR_AMD,0x6,ANY,90}, /*athlon duron etc*/
+> 		{X86_VENDOR_AMD,0xF,0x4,90}, /*Athlon 64*/
+> 		{X86_VENDOR_AMD,0xF,0x5,24}, /* Opteron*/
+> 		{X86_VENDOR_INTEL,0x6,0x9,85},  /* 0.13um too */
+> 		{X86_VENDOR_INTEL,0x6,0xB,85},  /* 0xB Tualatin */
+> 		{X86_VENDOR_INTEL,0x6,ANY,82},  /* any P6 */
+> 		{X86_VENDOR_INTEL,0x7,ANY,00},   /* Itanium */
+> 		{X86_VENDOR_INTEL,0xF,0x3,100}, /* P4 Prescott */
+> 		{X86_VENDOR_INTEL,0xF,ANY,90},  /* P4 before Prescott */
+> 		{X86_VENDOR_INTEL,0x10,ANY,00}, /*Itanium 2*/
+> 		{X86_VENDOR_UNKNOWN,ANY,ANY,00} /* stop here */
+> 		};
+> 
+> static int find_vrm(u8 eff_family,u8 eff_model,u8 vendor) {
+> int i=0;
+> 
+> while (vrm_models[i].vendor!=X86_VENDOR_UNKNOWN) {
+>     if (vrm_models[i].vendor=vendor)
+>        if ((vrm_models[i].eff_family=eff_family)&& \
+>           ((vrm_models[i].eff_model=eff_model)|| \
+> 	   (vrm_models[i].eff_model=ANY))) return vrm_models[i].vrm_type;
+>     i++;
+> }    
+> 
+> return 00;
+> }
+> 
+> 
+> int which_vrm(void) {
+> struct cpuinfo_x86 *c = cpu_data;
+> u32 eax;
+> u8 eff_family,eff_model;
+> 
+> if (c->x86 < 6) return 00; /* any CPU with familly lower than 6
+> 				     dont have VID and/or CPUID*/
+> 
+>     eax = cpuid_eax(1);
+>     eff_family = ((eax & 0x00000F00)>>8);
+>     eff_model  = ((eax & 0x000000F0)>>4);
+>     if (eff_family = 0xF) {	 /* use extended model & familly */
+>     eff_family+=((eax & 0x00F00000)>>20);   /*compute effective family */
+>     eff_model+= ((eax & 0x000F0000)>>16)<<4; /*compute effective model */
+>     }
+> return find_vrm(eff_family,eff_model,c->x86_vendor);
+> 
+> }
+> /* and now something completely different for Non-x86 world*/
+> #else 
+> int which_vrm(void) {
+> return 00;
+> }
+> #endif
+> 
+>     static int hello_init(void)
+>     {
+>         printk(KERN_ALERT "Hello, world %d\n",which_vrm());
+>         return 0;
+>     }
+> 
+>     static void hello_exit(void)
+>     {
+>         printk(KERN_ALERT "Goodbye, cruel world\n");
+>     }
+> 
+>     module_init(hello_init);
+>     module_exit(hello_exit);
+>    MODULE_LICENSE("GPL");    
