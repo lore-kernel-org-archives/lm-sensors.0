@@ -1,7 +1,7 @@
-From: zdavatz@ywesee.com (Zeno Davatz)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:41 +0000
 Subject: Why this output?
-Message-Id: <B9F9364E.4419%zdavatz@ywesee.com>
+Message-Id: <20021114114206.534e3424.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <B9F92C49.4411%zdavatz@ywesee.com>
 In-Reply-To: <B9F92C49.4411%zdavatz@ywesee.com>
@@ -10,29 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 14.11.2002 11:11 Uhr, "Jean Delvare" <khali@linux-fr.org> wrote:
 
-> My first guess is that you forgot to run "depmod -a" after installing
-> lm_sensors. So, try to run (as root) "depmod -a" and see what happens.
-> If nothing happens, it's alright and you should be able to run
-> sensors-detect.
+> Thanks for the hint. Something does happen:
+> depmod: *** Unresolved symbols in
+> /lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/dmi_scan.o
+> depmod: *** Unresolved symbols in
+> /lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/i2c-algo-bit.o
+> depmod: *** Unresolved symbols in
+> /lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/i2c-algo-pcf.o
+> depmod: *** Unresolved symbols in
+> /lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/i2c-ali1535.o
+> 
+> And a lot more messages like this one.
 
-Thanks for the hint. Something does happen:
-depmod: *** Unresolved symbols in
-/lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/dmi_scan.o
-depmod: *** Unresolved symbols in
-/lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/i2c-algo-bit.o
-depmod: *** Unresolved symbols in
-/lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/i2c-algo-pcf.o
-depmod: *** Unresolved symbols in
-/lib/modules/2.4.18-bf2.4/kernel/drivers/i2c/i2c-ali1535.o
+Ok, so the problem is real. You may try "depmod -ae" to display which
+symbols are unresoled, it may be an interesting clue.
 
-And a lot more messages like this one.
+> Do you know where to get the Kernel-Source of Debian 2.4.18-bf2.4
 
-Do you know where to get the Kernel-Source of Debian 2.4.18-bf2.4
+I do not use Debian, sorry.
 
-I think I need that source and then I will get one step further.
+> I think I need that source and then I will get one step further.
 
-Thanks for your help and hints.
+One important thing to notice is that i2c and lm_sensors will use
+information found un /usr/src/linux to compile well and choose where to
+install the modules. If the kernel you are running doesn't match the
+sources in /usr/src/linux, then it explains why you're having trouble.
+The next release (2.6.6) of i2c and lm_sensors should be easier to
+install because it will install for the running kernel regardless of
+what /usr/src/linux contains or points to (which has other drawbacks
+IMHO, but would probably help more that hurt).
 
-Zeno
+> Thanks for your help and hints.
+You're welcome.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
