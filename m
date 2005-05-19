@@ -1,26 +1,20 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:23:52 +0000
-Subject: sysfs support in lm_sensors
-Message-Id: <20030409022824.GA8421@kroah.com>
+From: sascha@akv-soft.de (Sascha Volkenandt)
+Date: Thu, 19 May 2005 06:24:04 +0000
+Subject: SAA1064 driver
+Message-Id: <200307082233.13758.sascha@akv-soft.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E8B7D42.4030300@penguincomputing.com>
-In-Reply-To: <3E8B7D42.4030300@penguincomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 08, 2003 at 10:00:35PM -0400, Mark D. Studebaker  wrote:
-> Greg,
-> Thank you very much for starting from my /proc document and
-> for posting the sensors-sysfs document for comments.
-> Do you have an updated version to send out?
-> I see you posted it on 3/27 but got a lot of comments after that.
-> I would like to comment but seems like I should start from the latest.
+Hello,
 
-The latest is in the 2.5.67 kernel tree.  I'd be glad to take comments
-and preferably patches based on that one.
+the SAA1064 is an I2C-driver to drive LED-Displays (4-digit with dots). I 
+have written a user-space program to access it through i2c-dev 
+(http://www.magoa.net/linux/index.php?view=kathrein) but I'm thinking about 
+writing an lmsensors chip-driver for it. I'd like to know if that driver 
+would be of any use to you if it's finished?
 
-thanks,
-
-greg k-h
+Greetings,
+Sascha Volkenandt
