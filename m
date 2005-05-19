@@ -1,40 +1,55 @@
-From: bertrik@zonnet.nl (Bertrik Sikken)
-Date: Thu, 19 May 2005 06:23:44 +0000
-Subject: ASUS A7V333, ASB100(bach) must not be an as99127f
-Message-Id: <3E022F96.4080005@zonnet.nl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:35 +0000
+Subject: [PATCH 2.6] Fix i2c busses warnings with DEBUG
+Message-Id: <20040118124027.00622b74.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1040258701.6614.45.camel@linux.local>
-In-Reply-To: <1040258701.6614.45.camel@linux.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Mark M. Hoffman wrote:
+Hi again Greg,
 
-> * Ed Harrison <ed.tman@verizon.net> [2002-12-18 19:45:01 -0500]:
->
->> I was going to try to hack w83781d.c into something useable, but alas I
->>
->> am too dumb. I offer what I know about this chip in hopes one of you
->> can do it, maybe as a force_asb100=0,0x2d option to w83781d.
->>
->
-> <cut, as99127f vs asb100>
->
->> Temp sensor 4: $17 on ASB100 [AMD diode only it seems]
->>
->
-> Yes, another a7v333 user mentioned this previously. I thought he might
-> eventually submit a patch? In the meantime, let's try to get everything
-> else working for you. To start with, make sure you have at least the
-> 2.6.5 i2c & sensors packages.
->
-That might have been me. I put some info about the ASB100 chip at
-http://home.kabelfoon.nl/~bertrik/asb100/asb100.html
-but I had not planned to create a patch, but perhaps now is
-a good time to start with it.
+Two bus drivers (i2c-via and scx200_acb.c) generate warnings when the
+whole i2c subsystem is compiled with -DDEBUG. Suggested changes follow.
 
-Regards,
-Bertrik
+diff -ru linux-2.6.1-k1/drivers/i2c/busses/i2c-via.c linux-2.6.1-k3/drivers/i2c/busses/i2c-via.c
+--- linux-2.6.1-k1/drivers/i2c/busses/i2c-via.c	Thu Dec 18 03:58:56 2003
++++ linux-2.6.1-k3/drivers/i2c/busses/i2c-via.c	Sun Jan 18 12:22:37 2004
+@@ -21,7 +21,7 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+ 
+-#define DEBUG
++/* #define DEBUG */
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff -ru linux-2.6.1-k1/drivers/i2c/busses/scx200_acb.c linux-2.6.1-k3/drivers/i2c/busses/scx200_acb.c
+--- linux-2.6.1-k1/drivers/i2c/busses/scx200_acb.c	Thu Dec 18 03:58:49 2003
++++ linux-2.6.1-k3/drivers/i2c/busses/scx200_acb.c	Sun Jan 18 12:20:32 2004
+@@ -47,9 +47,7 @@
+ MODULE_PARM(base, "1-4i");
+ MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
+ 
+-#define DEBUG 0
+-
+-#if DEBUG
++#ifdef DEBUG
+ #define DBG(x...) printk(KERN_DEBUG NAME ": " x)
+ #else
+ #define DBG(x...)
+@@ -374,7 +372,7 @@
+ 	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
+ 	    	data->word = le16_to_cpu(cur_word);
+ 
+-#if DEBUG
++#ifdef DEBUG
+ 	printk(KERN_DEBUG NAME ": transfer done, result: %d", rc);
+ 	if (buffer) {
+ 		int i;
 
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
