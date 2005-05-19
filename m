@@ -1,7 +1,7 @@
-From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:23:44 +0000
 Subject: piix4 fails to reset? (ticket #1078)
-Message-Id: <Pine.OSF.4.50.0212200742310.140539-200000@lyta.hut.fi>
+Message-Id: <20021220095710.364de069.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1040328325.1738.165.camel@albatross.yyz.somanetworks.com>
 In-Reply-To: <1040328325.1738.165.camel@albatross.yyz.somanetworks.com>
@@ -10,82 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 19 Dec 2002, Mark D. Studebaker wrote:
 
+> people have been complaining about piix4 bus hangs forever.
 > If you have an idea about fixing it then if you post or check
 > in a patch there's lots of folks with piix4's that could test it,
 > at lest to see that it didn't break anything...
+> I have a piix4 board, I think Phil does too
 
-Attached. At least it compiles...
-So it retries host busy condition 5 times with 10 ms delay before
-it goes for Start. On a transaction timeout, it tries to release host
-using the KILL flag.
+I got one too. I never had to complain about bus hangs, but I may give
+the patch a try.
 
 -- 
-  Ky?sti M?lkki
-  kmalkki@cc.hut.fi
--------------- next part --------------
---- i2c-piix4.c.orig	Sat Oct 12 15:43:13 2002
-+++ i2c-piix4.c	Fri Dec 20 07:38:29 2002
-@@ -353,28 +353,29 @@
- #endif
- 
- 	/* Make sure the SMBus host is ready to start transmitting */
--	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
-+	while ( ((temp = inb_p(SMBHSTSTS)) != 0x00) && (timeout++ < 5)) {
- #ifdef DEBUG
--		printk(KERN_DEBUG "i2c-piix4.o: SMBus busy (%02x). Resetting... \n",
-+		printk(KERN_DEBUG "i2c-piix4.o: SMBus busy (%02x). Waiting... \n",
- 		       temp);
- #endif
--		outb_p(temp, SMBHSTSTS);
--		if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
-+		piix4_do_pause(HZ/100);
-+	}
-+	if (timeout >= 5) {
- #ifdef DEBUG
--			printk(KERN_ERR "i2c-piix4.o: Failed! (%02x)\n", temp);
-+		printk(KERN_ERR "i2c-piix4.o: SMBus busy timeout! (%02x)\n", temp);
- #endif
--			return -1;
--		} else {
-+		return -1;
-+	} else if (timeout) {
- #ifdef DEBUG
--			printk(KERN_DEBUG "i2c-piix4.o: Successfull!\n");
-+		printk(KERN_DEBUG "i2c-piix4.o: SMBus released after %d attempts\n", timeout);
- #endif
--		}
- 	}
- 
- 	/* start the transaction by setting bit 6 */
- 	outb_p(inb(SMBHSTCNT) | 0x040, SMBHSTCNT);
- 
- 	/* We will always wait for a fraction of a second! (See PIIX4 docs errata) */
-+	timeout=0;
- 	do {
- 		piix4_do_pause(1);
- 		temp = inb_p(SMBHSTSTS);
-@@ -413,6 +414,22 @@
- 	if (inb_p(SMBHSTSTS) != 0x00)
- 		outb_p(inb(SMBHSTSTS), SMBHSTSTS);
- 
-+	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
-+#ifdef DEBUG
-+		printk
-+		    (KERN_ERR "i2c-piix4.o: Trying KILL at end of transaction (%02x)\n",
-+		     temp);
-+#endif
-+		/* KILL */
-+		outb_p(inb(SMBHSTCNT) | 0x02, SMBHSTCNT);
-+		outb_p(temp = inb_p(SMBHSTSTS), SMBHSTSTS);
-+#ifdef DEBUG
-+		if (temp & ~0x10)
-+		    printk(KERN_ERR "i2c-piix4.o: KILL failed (%02x)\n", temp);
-+#endif
-+		/* UNKILL */
-+		outb_p(inb(SMBHSTCNT) &~ 0x02, SMBHSTCNT);
-+	}
- #ifdef DEBUG
- 	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
- 		printk
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
