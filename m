@@ -1,124 +1,46 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:29 +0000
-Subject: [BK PATCH] I2C patches for 2.6.10
-Message-Id: <20050108053849.GA8065@kroah.com>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:47 +0000
+Subject: [PATCH] I2C: Fix Vaio EEPROM detection
+Message-Id: <1112311393634@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <111231139374@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@osdl.org, akpm@osdl.org
-Cc: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
 
-Hi,
+ChangeSet 1.2339, 2005/03/31 14:29:23-08:00, khali@linux-fr.org
 
-Here are some i2c driver fixes and updates for 2.6.10.  There are a few
-new i2c drivers in here, and a number of bugfixes.  Almost all of these
-patches have been in the past few -mm releases.
+[PATCH] I2C: Fix Vaio EEPROM detection
 
-Please pull from:  bk://kernel.bkbits.net/gregkh/linux/i2c-2.6
+This fixes a bug in the eeprom driver, which made all EEPROMs at
+location 0x57 be erroneously treated as Vaio EEPROMs. I have to say I'm
+quite ashamed that I introduced the bug in the first place, as this was
+a really stupid one.
 
-Individual patches will follow, sent to the sensors and linux-kernel
-lists.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-thanks,
 
-greg k-h
+ drivers/i2c/chips/eeprom.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
- Documentation/i2c/i2c-old-porting      |  626 ---------------------------------
- Documentation/i2c/chips/smsc47b397.txt |  146 +++++++
- Documentation/i2c/i2c-stub             |    9 
- Documentation/w1/w1.generic            |   19 +
- drivers/i2c/algos/Kconfig              |   15 
- drivers/i2c/algos/Makefile             |    2 
- drivers/i2c/algos/i2c-algo-bit.c       |    4 
- drivers/i2c/algos/i2c-algo-pca.c       |    4 
- drivers/i2c/algos/i2c-algo-pcf.c       |    4 
- drivers/i2c/algos/i2c-algo-sgi.c       |  189 +++++++++
- drivers/i2c/algos/i2c-algo-sibyte.c    |  231 ++++++++++++
- drivers/i2c/busses/Kconfig             |   16 
- drivers/i2c/busses/Makefile            |    1 
- drivers/i2c/busses/i2c-ali1535.c       |    7 
- drivers/i2c/busses/i2c-ali1563.c       |   15 
- drivers/i2c/busses/i2c-ali15x3.c       |    7 
- drivers/i2c/busses/i2c-amd756.c        |   15 
- drivers/i2c/busses/i2c-amd8111.c       |    2 
- drivers/i2c/busses/i2c-hydra.c         |    7 
- drivers/i2c/busses/i2c-i801.c          |   56 --
- drivers/i2c/busses/i2c-iop3xx.c        |  545 ++++++++++++++--------------
- drivers/i2c/busses/i2c-iop3xx.h        |  111 ++---
- drivers/i2c/busses/i2c-nforce2.c       |   15 
- drivers/i2c/busses/i2c-piix4.c         |   54 --
- drivers/i2c/busses/i2c-prosavage.c     |    7 
- drivers/i2c/busses/i2c-sibyte.c        |   71 +++
- drivers/i2c/busses/i2c-sis96x.c        |   12 
- drivers/i2c/busses/i2c-stub.c          |   22 +
- drivers/i2c/busses/i2c-viapro.c        |   72 ---
- drivers/i2c/chips/Kconfig              |   12 
- drivers/i2c/chips/Makefile             |    1 
- drivers/i2c/chips/asb100.c             |    3 
- drivers/i2c/chips/eeprom.c             |   19 -
- drivers/i2c/chips/fscher.c             |   11 
- drivers/i2c/chips/isp1301_omap.c       |    9 
- drivers/i2c/chips/it87.c               |  149 ++++++-
- drivers/i2c/chips/lm78.c               |    2 
- drivers/i2c/chips/lm90.c               |   28 +
- drivers/i2c/chips/pc87360.c            |    3 
- drivers/i2c/chips/smsc47b397.c         |  353 ++++++++++++++++++
- drivers/i2c/chips/smsc47m1.c           |    2 
- drivers/i2c/chips/via686a.c            |    2 
- drivers/i2c/chips/w83627hf.c           |   45 +-
- drivers/i2c/chips/w83781d.c            |    3 
- drivers/i2c/i2c-sensor-vid.c           |    5 
- include/linux/i2c-algo-sgi.h           |   27 +
- include/linux/i2c-algo-sibyte.h        |   33 +
- include/linux/i2c-id.h                 |   16 
- include/linux/pci_ids.h                |   16 
- 49 files changed, 1772 insertions(+), 1251 deletions(-)
------
 
-<sjhill:realitydiluted.com>:
-  o I2C patch from MIPS tree
+diff -Nru a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
+--- a/drivers/i2c/chips/eeprom.c	2005-03-31 15:17:18 -08:00
++++ b/drivers/i2c/chips/eeprom.c	2005-03-31 15:17:18 -08:00
+@@ -210,10 +210,11 @@
+ 		if (i2c_smbus_read_byte_data(new_client, 0x80) = 'P'
+ 		 && i2c_smbus_read_byte(new_client) = 'C'
+ 		 && i2c_smbus_read_byte(new_client) = 'G'
+-		 && i2c_smbus_read_byte(new_client) = '-')
++		 && i2c_smbus_read_byte(new_client) = '-') {
+ 			dev_info(&new_client->dev, "Vaio EEPROM detected, "
+ 				"enabling password protection\n");
+ 			data->nature = VAIO;
++		}
+ 	}
+ 
+ 	/* create the sysfs eeprom file */
 
-David Brownell:
-  o I2C: minor isp1301_omap tweaks
-
-Deepak Saxena:
-  o Update IOP3xx I2C bus driver
-
-Domen Puncer:
-  o it87: /proc/ioports fix
-
-Evgeniy Polyakov:
-  o w1: Documentation bits for generic w1 behaviour
-
-Ian Campbell:
-  o I2C: i2c-algo-bit should support I2C_FUNC_I2C
-
-Jean Delvare:
-  o I2C: Update fscher pwm functionality
-  o I2C: Add byte commands to i2c-stub
-  o I2C: Fix MAX6657/8/9 detection in lm90
-  o I2C: Improve VID code for the W83627THF
-  o I2C: Add secondary Super-I/O address support to
-  o I2C: Remove checksum code in eeprom driver
-  o I2C: Use PCI_DEVICE in bus drivers
-  o I2C: Discard old driver porting documentation
-  o I2C: i2c-nforce2 supports the nForce3 250Gb
-  o I2C: i2c-algo-bit should support I2C_FUNC_I2C
-  o I2C: use chip driver name to request regions
-
-Jonas Munsin:
-  o I2C: it87.c update
-
-Ladislav Michl:
-  o I2C: let I2C_ALGO_SGI depend on MIPS
-
-Mark M. Hoffman:
-  o I2C: add new sensors driver: SMSC LPC47B397-NC
-  o I2C: probe fewer addresses for asb100 (sensors) driver
-
-Randy Dunlap:
-  o i2c-ali1563: fix init & exit section usage
-
-Rudolf Marek:
-  o I2C: vid version detection fix
