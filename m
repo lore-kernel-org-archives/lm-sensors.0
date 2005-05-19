@@ -1,63 +1,47 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:51 +0000
-Subject: Another A7N8X User Waiting Patiently
-Message-Id: <20030325094107.23575b5b.khali@linux-fr.org>
+From: ralf.roesch@rw-gmbh.de (=?iso-8859-1?Q?Ralf_R=F6sch?=)
+Date: Thu, 19 May 2005 06:25:23 +0000
+Subject: New max6626.c driver for linux 2.6
+Message-Id: <NHBBLBCCGMJFJIKAMKLHMEHECCAA.ralf.roesch@rw-gmbh.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200303242147.59747.rob.blomquist@verizon.net>
-In-Reply-To: <200303242147.59747.rob.blomquist@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi at all,
 
-> Running Mandrake 9.0 stock out of the box (at least with respect to 
-> this issue), so my kernel is 2.4.19-16mdk, i2c is built into it, and 
-> I have the lm_sensors-2.6.4-5.1mdk.
+i would like to provide a new chip driver for the max6626 temp. sensor.
+Could you please review and check in?
 
-A7N8X is recent, 2.6.4 is somehow old. I wouldn't expect it to work.
+The provided patch is against linux-mips 2.6.10-rc2.
 
-> I modprobed everything in /i2c and the /sensors directories, and got 
-> this:
-> [root@timmy2 robbo]# lsmod
-> Module                  Size  Used by    Tainted: P
-> i2c-isa                 1224   0  (unused)
-> i2c-algo-pcf            5212   0
-> lm78                    7124   0  (unused)
-> lm75                    3232   0  (unused)
-> it87                    6852   0  (unused)
-> gl520sm                 6824   0  (unused)
-> gl518sm                 7888   0  (unused)
-> fscscy                  8368   0  (unused)
-> fscpos                  6120   0  (unused)
-> eeprom                  3476   0  (unused)
-> ds1621                  4240   0  (unused)
-> ddcmon                  3024   0  (unused)
-> bt869                   5368   0  (unused)
-> adm9240                 6024   0  (unused)
-> adm1025                 5200   0  (unused)
-> adm1024                 6592   0  (unused)
-> adm1021                 5496   0  (unused)
-> i2c-philips-par         2364   0  (unused)
-> i2c-algo-bit            7432   0  [i2c-philips-par]
-> i2c-dev                 4420   0  (unused)
-> i2c-proc                7088   0  [lm78 lm75 it87 gl520sm gl518sm 
-> fscscy fscpos eeprom ds1621 ddcmon bt869 adm9240 adm1025 adm1024 
-> adm1021]
-> i2c-core               15332   0  [i2c-isa i2c-algo-pcf lm78 lm75 it87
-> 
-> gl520sm gl518sm fscscy fscpos eeprom ds1621 ddcmon bt869 adm9240 
-> adm1025 adm1024 adm1021 i2c-algo-bit i2c-dev i2c-proc]
-> parport_pc             21672   1
-> parport                23936   1  [i2c-philips-par lp parport_pc]
+Is there any chance that this driver will be adopted from the official
+kernel tree?
 
-Definitely not the thing to do. You have to load only the module you
-need, or the other modules will get in the way and you won't go
-anywhere. You are supposed to run sensors-detect in order to know which
-modules you need.
+Thanks and regards
+Ralf R?sch
 
-BTW, what's your problem exactly?
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Roesch & Walter___________________________________________
+Industrie-Elektronik GmbH * Tel.: +49-7824 / 6628-0
+Im Heidenwinkel 5         * Fax:  +49-7824 / 6628-29
+D-77963 Schwanau          * mailto:ralf.roesch@rw-gmbh.de
+Germany                   * WWW: http://www.rw-gmbh.de
+
+P.S. i had been in contact with Greg and Jean in 2004-04.
+There had been issue with the eeprom.c on MIPS platform.
+Just to confirm: the eeprom.c is also working under MIPS linux 2.6.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: max6626.c
+Type: application/octet-stream
+Size: 8264 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041118/42d88f42/max6626.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-rnw-2004-11-18.patch
+Type: application/octet-stream
+Size: 1477 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041118/42d88f42/i2c-rnw-2004-11-18.obj
