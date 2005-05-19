@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:36 +0000
 Subject: [PATCH] i2c driver fixes for 2.6.1
-Message-Id: <10745567633048@kroah.com>
+Message-Id: <1074556763176@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1074556763161@kroah.com>
+In-Reply-To: <10745567623125@kroah.com>
 References: <1074556757661@kroah.com>
 In-Reply-To: <1074556757661@kroah.com>
 MIME-Version: 1.0
@@ -11,38 +11,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1474.98.14, 2004/01/15 10:34:52-08:00, greg@kroah.com
+ChangeSet 1.1474.98.12, 2004/01/14 11:44:33-08:00, khali@linux-fr.org
 
-[PATCH] I2C: move the Kconfig "source..." out of the drivers/char/ location
+[PATCH] I2C: Fix debug bug in lm83 driver
 
-
- drivers/Kconfig      |    2 ++
- drivers/char/Kconfig |    2 --
- 2 files changed, 2 insertions(+), 2 deletions(-)
+The following patch fixes lm83 failing to compile if DEBUG is set.
 
 
-diff -Nru a/drivers/Kconfig b/drivers/Kconfig
---- a/drivers/Kconfig	Mon Jan 19 15:30:43 2004
-+++ b/drivers/Kconfig	Mon Jan 19 15:30:43 2004
-@@ -38,6 +38,8 @@
- 
- source "drivers/char/Kconfig"
- 
-+source "drivers/i2c/Kconfig"
-+
- # source "drivers/misc/Kconfig"
- 
- source "drivers/media/Kconfig"
-diff -Nru a/drivers/char/Kconfig b/drivers/char/Kconfig
---- a/drivers/char/Kconfig	Mon Jan 19 15:30:43 2004
-+++ b/drivers/char/Kconfig	Mon Jan 19 15:30:43 2004
-@@ -588,8 +588,6 @@
- 	bool "Support for console on line printer"
- 	depends on PC9800_OLDLP
- 
--source "drivers/i2c/Kconfig"
--
- 
- menu "Mice"
- 
+ drivers/i2c/chips/lm83.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+
+diff -Nru a/drivers/i2c/chips/lm83.c b/drivers/i2c/chips/lm83.c
+--- a/drivers/i2c/chips/lm83.c	Mon Jan 19 15:31:08 2004
++++ b/drivers/i2c/chips/lm83.c	Mon Jan 19 15:31:08 2004
+@@ -270,7 +270,7 @@
+ 		    & 0x48) != 0x00) ||
+ 		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_CONFIG)
+ 		    & 0x41) != 0x00)) {
+-			dev_dbg(&client->dev,
++			dev_dbg(&adapter->dev,
+ 			    "LM83 detection failed at 0x%02x.\n", address);
+ 			goto exit_free;
+ 		}
 
