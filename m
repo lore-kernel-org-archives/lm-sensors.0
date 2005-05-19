@@ -1,69 +1,30 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:30 +0000
-Subject: lmsensors on Tyan S2466 motherboard
-Message-Id: <3C7C525C.94EFC788@paradyne.com>
+From: joden@lee.k12.nc.us (James Olin Oden)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: Intel 6300ESB ICH smbus driver support...
+Message-Id: <Pine.LNX.4.58.0406170935340.17548@malachi.lee.k12.nc.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5.1.0.14.2.20020223105744.0427c230@mail.harddata.com>
-In-Reply-To: <5.1.0.14.2.20020223105744.0427c230@mail.harddata.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-See the tickets referenced at the top of our
-home page for assistance on the Tyan SMP boards.
-mds
+Hi All,
 
-Maurice Hilarius wrote:
-> 
-> I am interested in getting lmsensors working on the Tyan S2466 motherboard
-> (AMD 768MPX)
-> I asked Tyan's people if they could share some info on their
-> implementation, and the following is what I got.
-> I do not know of this is useful or not, but I thought it could not hurt to
-> send..
-> 
-> On this subject, I wonder if anyone is working on this?
-> 
-> Thanks!
-> 
-> ======================> Winbond83627HF SuperI/O & Hardware Monitor chip
-> and
-> Winbond83782D Hardware Monitor chip.
-> 
-> W83627HF SMBus slave address is 0x2C
-> Sensor                pin#            address
-> CPU1 FAN              113                0x28
-> CPU2 FAN              112                0x29
-> CPU1 Core Voltage     100                0x20
-> CPU2 Core Voltage      99                0x21
-> System Voltage 3.3V    98                0x22
-> System Voltage 12V     96                0x24
-> System Voltage -12V    95                0x25
-> VRM1 Temperature      104                0x27
-> DDR Temperature       102                0x50(bank2)
-> AGP Temperature       103                0x50(bank1)
-> 
-> W83782D SMBus slave address is 0x2D
-> Sensor                pin#             address
-> Chassis Fan 1          20                0x28
-> Chassis Fan 2          19                0x29
-> Chassis Fan 3          18                0x2A
-> System Voltage 5V      33                0x23
-> AGP Voltage            34                0x22
-> DDR Voltage            32                0x24
-> Battery Voltage        30                0x51(bank5)
-> Standby 3.3V           28                0x26
-> CPU1 Temperature       39                0x50(bank1)
-> CPU2 Temperature       38                0x50(bank2)
-> VRM2 Temperature       40                0x27
-> 
-> With our best regards,
-> 
-> Maurice W. Hilarius       Telephone: 01-780-456-9771
-> Hard Data Ltd.               FAX:       01-780-456-9772
-> 11060 - 166 Avenue        mailto:maurice@harddata.com
-> Edmonton, AB, Canada      http://www.harddata.com/
->     T5X 1Y3
-> 
-> Ask me about the UP1500 Alpha - Full systems from $3,500!
+I have a board with the Intel 6300ESB ICH which contains an integrated
+smbus controller (is that the right terminology?).  Sensors does not seem 
+to detect this smbus controller, but after some groking of code it seems
+like it should.  The reason I say this, is I downloaded some patches to 
+the i2c-i801.c bus driver from intel for this ICH and then looked in 
+the latest sources (v2.8.7 of lm_sensors) and found what looked to be 
+the equivelant stuff being done in that source as in the patch (I say 
+equivelant, because Intel had generated their patch against the lm_sensors 
+that came with the RH 8 distro, so for instance structure initilization 
+was not done according to C99 in the Intel patch).  Basically, the patch
+and the source both simply say that the device in question is known by
+0x25a4, and then the current source actually attempts to support some
+of its more advanced features.
+
+Anyway, when I manually try to load the i2c-i801 driver it simply says the 
+i801 driver is not detected.  What might be wrong or what can I do next?
+
+Many Thanks...james
