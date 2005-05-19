@@ -1,35 +1,160 @@
-From: kmalkki@cc.hut.fi (=?ISO-8859-1?Q?Ky=F6sti_M=E4lkki?=)
-Date: Thu, 19 May 2005 06:23:45 +0000
-Subject: robustified adm1021
-Message-Id: <Pine.OSF.4.50.0301110634230.16971-100000@kosh.hut.fi>
+From: jthiessen@penguincomputing.com (Justin Thiessen)
+Date: Thu, 19 May 2005 06:25:02 +0000
+Subject: lm85 driver and a standardized pwm fancontrol interface
+Message-Id: <20040623221136.GE27870@penguincomputing.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E173681.3050806@paradyne.com>
-In-Reply-To: <3E173681.3050806@paradyne.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 10 Jan 2003, Mark Studebaker wrote:
+Hi,
 
-> actually I meant alarms = chip | fail.
-> So the 'sensors' program would say "ALARM" if the read failed -
-> no changes to 'sensors' required.
+I'm working on adding the automated fancontrol features back into the 2.6.X
+kernel lm85 driver.  So far I've been working from the 2.4.X driver and the
+respective chip spec sheets, using the 2.6.X kernel adm1030/1031 driver 
+and mailing list discussion as a guideline to structure and interface.
 
-Cannot think of anything to argue there, for a single reader case.
-Maybe add retry in the i2c read part, in case chip inserts wait
-states the host does not accept. A retry from /proc is not effective for
-some seconds.
+The model proposed looks something like:
 
-Is there a reason why limits are read from chip in update? Seems to be
-the case with most drivers.
 
-If a measurement goes out of limits and returns chip's ALARM status is
-set and cleared on /proc update. With two or more unsynchronised
-readers, a reader may miss this update and transient failures.
-Maybe I could write a reader daemon to handle chip access and have
-libsensors talk with it.
 
--- 
-  Ky?sti M?lkki
-  kmalkki@cc.hut.fi
+       Off     Min          Max     Crit
+________|_______|____________|________|_______
+
+                 Temperature -->
+
+Where Off, Min, Max, and Critical temperatures are set independently, 
+except for assuming that:
+
+Off <= Min <= Max <= Crit
+
+
+The lm85 and compatible chips use a model like:
+
+
+ 
+               Min                  Crit
+________________|_____________________|_______
+        |       |____________|
+        |_______|      |
+            |        Range
+        Hysteresis
+
+
+
+                 Temperature -->
+
+
+Where the Min and Crit temperatures are set indpendently, except that 
+
+Min <= Crit
+
+And 
+
+Hystersis is a negative offset from Min,
+
+While
+
+Range is a positive offset from Min.
+
+
+Now the obvious translation between the 2 models is:
+
+
+Off = Min - Hysteresis
+Max = Min + Range
+Min = Min
+Crit = Crit
+
+but there are a couple of snags.
+
+(1) Hystersis and Range only have 4 bits of resolution.
+    - the 4 bits of range cover an enumerated set of possible degree ranges:
+
+    2, 2.5, 3.3, 4, 5, 6.6, 8, 10, 13.3, 16, 20, 26.6, 32, 40, 53.3, 80
+
+    - the 4 bits of hysteresis covers the range of 0-15 degrees.
+
+Both of these are ok in actual use, AFAIK.  But they set limits on the
+relationships of Off, Min, and Max temperatures defining the behavior of
+the automated fan control.  The nature of these limits are not entirely
+transparent in the new model, and may lead to different behavior of the 
+driver than a casual user expects.
+
+Unless the user knows the actual set of allowed values for the range, it
+is likely he will see a different value for Max than he sets in the 
+sensors.conf file or via the sysfs interface.  This will undoubtedly cause
+a fair amount of confusion for new users.  Moreover, the code now MUST
+keep track of the last value requested for Max, in addition to the value
+actually set, because every time the value of Min is changed, Max and range
+must be recalculated.  If the actual requested value is not preserved and
+used for these calculations, it is possible for the value of Max to "drift".
+As an example, consider:
+
+------------------------
+Min:               :  40
+desired Max        :  51
+
+Resultant Range    :  13.3
+Resultant Max      :  53.3
+
+Now let
+
+Min => 42
+
+If we now use 53.3 as the desired Max, then we have
+
+Max - Min = 11.3
+
+The 2 closest elements in the allowable Range values table are 10 and 13.3.
+
+10 < 11.3 < 13.3  --> Range => 13.3.
+
+And so Max => 55.3.
+
+But if we had kept track of desired Max and used that value:
+
+desired Max - Min = 9
+
+Again using the 2 closest elements from the allowable Range values table.
+
+8 < 9 < 10  --> range => 10
+
+and so Max => 52
+
+an entirely different number.
+
+-----------------------------
+
+A similar situation exists with Off, should 
+
+Min - desired Off
+
+vary from < 15 to > 15,
+
+the value for Off will by necessity rise, since  
+
+0 <= Range <= 15,
+
+and therefore
+
+Min - Off <
+
+Which again means that the driver needs to keep track of the desired value
+for Off as well as the actual value.
+
+This makes me somewhat unhappy about forcing the lm85 fancontrol interface to
+fit the Off->Min->Max->Critical model.  I have made the 2 models fit as
+best I see able, but it still feels like a kludge.
+
+I would appreciate any suggestions people have for resolving these issues.
+
+Thanks,
+
+Justin Thiessen
+-----------------
+jthiessen@penguincompuging.com
+http://www.penguincomputing.com
+
+
