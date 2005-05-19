@@ -1,46 +1,53 @@
-From: quintela@mandrakesoft.com (Juan Quintela)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: [PATCH]: sensord  man page should belong to section 8
-Message-Id: <m28z3m3dq7.fsf@demo.mitica>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:24:57 +0000
+Subject: asb100 and asus P4T533 mobo
+Message-Id: <20040511034251.GC20204@earth.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+(forgot to CC sensors list...)
 
-Hi
-        what do you think about this change?  All the other system
-        daemons man pages are in the section 8, section 1 is for user
-        programs.
+----- Forwarded message from "Mark M. Hoffman" <mhoffman@lightlink.com> -----
 
-Later, Juan.
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+To: messmate <messmate@free.fr>
+Date: Mon, 10 May 2004 23:40:02 -0400
+Subject: Re: asb100 and asus P4T533 mobo
 
-diff -up lm_sensors-2.6.4/prog/sensord/Module.mk.orig lm_sensors-2.6.4/prog/sensord/Module.mk
---- lm_sensors-2.6.4/prog/sensord/Module.mk.orig	2002-08-04 16:17:47.000000000 +0200
-+++ lm_sensors-2.6.4/prog/sensord/Module.mk	2002-08-04 16:20:06.000000000 +0200
-@@ -25,8 +25,8 @@
- MODULE_DIR := prog/sensord
- PROGSENSORDDIR := $(MODULE_DIR)
- 
--PROGSENSORDMAN1DIR := $(MANDIR)/man8
--PROGSENSORDMAN1FILES := $(MODULE_DIR)/sensord.8
-+PROGSENSORDMAN8DIR := $(MANDIR)/man8
-+PROGSENSORDMAN8FILES := $(MODULE_DIR)/sensord.8
- 
- # Regrettably, even 'simply expanded variables' will not put their currently
- # defined value verbatim into the command-list of rules...
-@@ -46,7 +46,7 @@ all :: all-prog-sensord
- install-prog-sensord: all-prog-sensord
- 	$(MKDIR) $(DESTDIR)$(SBINDIR) $(DESTDIR)$(PROGSENSORDMAN1DIR)
- 	$(INSTALL) -m 755 $(PROGSENSORDTARGETS) $(DESTDIR)$(SBINDIR)
--	$(INSTALL) -m 644 $(PROGSENSORDMAN1FILES) $(DESTDIR)$(PROGSENSORDMAN1DIR)
-+	$(INSTALL) -m 644 $(PROGSENSORDMAN8FILES) $(DESTDIR)$(PROGSENSORDMAN8DIR)
- install :: install-prog-sensord
- 
- clean-prog-sensord:
+Hello...
 
+* messmate <messmate@free.fr> [2004-05-07 18:53:58 +0200]:
+> Hello,
+> I'm searching to work lm-sensors on my ASUS P4T533 motherboard.
+> The driver must be a BACH100 i think.
+
+Probably correct.
+
+> Is there a driver available ?
+
+It's called asb100, yes.
+
+> Checked everything i found to get it working without succes.
+> Thanks for your advice in advance.
+> mess-mate
+
+It's hard to help with so little information.  Did you run sensors-detect?
+Did you look at the FAQ? 
+
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html
+
+Also, please send help requests to the mailing list - where many people
+can help you instead of just me - as I've been letting my email pile up
+lately.
+
+Regards,
 
 -- 
-In theory, practice and theory are the same, but in practice they 
-are different -- Larry McVoy
+Mark M. Hoffman
+mhoffman@lightlink.com
+
+
+----- End forwarded message -----
