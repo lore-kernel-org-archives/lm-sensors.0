@@ -1,44 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:43 +0000
-Subject: via686a on I2C
-Message-Id: <1077546551.403a0e37a215a@imp.gcu.info>
+From: j.snyers@cherokee.be (Jehan Snyers d'Attenhoven)
+Date: Thu, 19 May 2005 06:23:55 +0000
+Subject: Error in SMBUs protocol document
+Message-Id: <HIEHIBLPFMGOIENAGCDKKEJDCCAA.j.snyers@cherokee.be>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040217230608.31c66662.khali@linux-fr.org>
-In-Reply-To: <20040217230608.31c66662.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Mark Studebaker <mds4@verizon.net>:
+Greetings,
 
-> one problem with adding i2c support to via686a in 2.6 is that it's a
-> PCI module so you'd still have the driver conflict problem.
->
-> You'd have to delay PCI module registration, or else do a separate
-> driver.
+I spotted an important (typo) error in the SMBus protocol document located
+at:
+http://www2.lm-sensors.nu/~lm78/cvs/i2c/doc/smbus-protocol
 
-You're right, but don't we want to solve that conflict anyway? It was
-working with Linux 2.4, so I can't get why it couldn't work with 2.6.
-Isn't it as simple as only reserving the region we need instead of
-registering the device? 
+In the SMBus block process call section:
 
-> Where is the i2c address for the via686a set?
-> couldn't find it in the docs.
+SMBus Block Process Call
+============
 
-Correct, that's not in the docs, but I suspect that it is at 0x48. I
-could verify that with two users (value 0x2d, which was the i2c address
-for them). On my via686a (unused and not on i2c) the value in register
-0x48 is 0x00, so this makes sense.
+SMBus Block Process Call was introduced in Revision 2.0 of the
+specification.
 
-Strangely however, when accessing the chip through i2c, the value at
-0x48 is *not* the same (contrary to winbond Chips for example). It was
-0xad for both user reports, if I remember correctly.
+This command selects a device register (through the Comm byte), sends
+1 to 31 bytes of data to it, and reads 1 to 31 bytes of data in return.
 
-I plan to update sensors-detect soon so that it can detect the i2c
-via686a. That said, it doesn't look like something really easy to
-detect (no chip nor manufacturer IDs).
+S Addr Wr [A] Comm [A] Count [A] Data [A] ...
+                             S Addr Rd [A] [Count] A [Data] ... A P
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+
+It should be a NACK ending the communication, NOT an ack. I checked with the
+SMBus specs v2.0, p33 fig 5.21.
+S Addr Wr [A] Comm [A] Count [A] Data [A] ...
+                             S Addr Rd [A] [Count] A [Data] ... NA P
+
+This error can lead some to error, like it did for me 
+
+Thank you and best regards.
+--
+Jehan Snyers d'Attenhoven
+Project Leader
+Cherokee Europe
+http://www.cherokee.be/ <http://www.cherokee.be/>
+Phone: +32.10.438.394
+Mobile: +32.478.457.490
+
+*** This message is printed on 100% recyclable electrons. ***
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030507/b3301d0c/attachment.html
