@@ -1,7 +1,7 @@
 From: rnissl@gmx.de (Reinhard Nissl)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: Fujitsu Siemens sensor HERMES
-Message-Id: <401578E3.2000509@gmx.de>
+Message-Id: <40158040.9010906@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3F70765D.5060209@gmx.de>
 In-Reply-To: <3F70765D.5060209@gmx.de>
@@ -14,43 +14,36 @@ Hi,
 
 Jean Delvare wrote:
 
->>Is there a guide for writing chip documentation, as I don't know what
->>to do with "Chip Features" in doc/chips/fscher?
-> 
-> No chip-specific documentation has been commited to Linux so far,
-> although I planned to do so too. Basically I think that "Chip Features"
-> should become "Sysfs Interface" and be a simple list of all files with
-> permissions (R-, -W or RW) and comments if they are needed.
+>>Is there a guide, how to port the sensors program?
+>>
+>>Without changes, sensors just gives me the following:
+>>
+>>fscher-i2c-0-73
+>>Adapter: SMBus I801 adapter at 2000
+>>+12V:           +11.86 V
+>>+5V:             +5.05 V
+>>Battery:         +3.05 V
 
-So I'll make the necessary changes soon.
+The above is for kernel 2.6.1 and below for kernel 2.4.22:
 
-> Here are the steps that need to be taken now:
-> 1* Fix libsensors so that it handles fscher correctly.
-> 2* Update the 2.4 version of the driver so that it handles voltages the
->    same way the 2.6 driver does.
-> 3* Apply your patch to sensors.conf.eg.
-> 4* Review your 2.6 driver and send it to Greg KH for inclusion into
->    Linux 2.6.3.
-> 5* Fix sensors so that it shows errors for FSC chips.
-> 
-> You must understand that step 3 doesn't make sense unless step 2 is also
-> achieved. The 2.4 and 2.6 drivers have to be as compatible as possible
-> so that users can switch from one to the other and back.
+fscher-i2c-0-73
+Adapter: SMBus I801 adapter at 2000
+Temp1/CPU:      +50.00 C
+Temp2/MB:       +41.00 C
+Temp3/AUX:      +32.00 C
+Fan1/CPU:          960 RPM
+Fan2/AUX:          960 RPM
+Fan3/PS:          1680 RPM
++12V:           +118.58 V
++5V:            +50.47 V
+Battery:        +30.54 V
 
-I think, I can achieve this already later today.
+The problem is, that the voltage values still need to get devided by 10.
 
-> I will work on 1* (and possibly 5*) right now. Please work on 2*
-> meanwhile. Once done I'll do 3*, and you'll test that both the old and
-> the new driver work OK.
-> 
-> Then, and only then, I'll review your 2.6 driver (with changes if you
-> have done any) and submit it to Greg.
-
-Please have a look at set_pwm(). What shall I do with an unsupported value? Is 
-it ok to return -1?
+Shall I scale the values by 1000 for kernel 2.6.1 and by 100 for kernel 2.4.22 
+and remove the factor 1000 from sensors.conf?
 
 Bye.
 -- 
 Dipl.-Inform. (FH) Reinhard Nissl
 mailto:rnissl@gmx.de
-
