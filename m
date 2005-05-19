@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:49 +0000
 Subject: update_lock
-Message-Id: <20040331033659.GD29782@earth.solarsys.private>
+Message-Id: <1080722747.406a853b2ca2f@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040320184909.4c7d8d80.khali@linux-fr.org>
 In-Reply-To: <20040320184909.4c7d8d80.khali@linux-fr.org>
@@ -10,107 +10,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-03-30 11:22:39 +0200]:
-> According to Mark M. Hoffman:
+According to Mark M. Hoffman:
 
-> > For the above case, you could do this:
-> > 
-> > 259:         unsigned long val = simple_strtoul(buf, NULL, 10);
-> > 260:         /* deleted */
-> > 261:         lm78_write_value(client, LM78_REG_IN_MIN(nr),
-> > IN_TO_REG(val));
-> > 261.5:       data->valid = 0;
-> > 262:         return count;
+> In my opinion, the "cached update" scheme serves only one purpose,
+> and it's not speed.  Internally, some of these sensor chips actually
+> pause the sampling and conversion in order to answer an i2c/smbus
+> request.
 
-First let me point out there's still a race in my suggestion above... but
-the worst that can happen is that you would read an old value once. In the
-existing implementation, a write could get lost.
+You're correct, that's something I tend to forget.
 
-> I don't like this much. This breaks our caching scheme. Basically, you
-> invalidate all values just because of one value. Seems too high a price
-> to pay, especially since you mostly *know* the missing value, you just
-> wrote it. Why don't we just swap lines 260 and 261? I.e. basically don't
-> trust data->in_min[nr] (because it can be changed by _update_device())
-> and use our own, local temporary variable (var). Write to the chip
-> first, then update data->in_min[nr]. It could still be trashed by
-> _update_device() after that, unless we also lock on writes. See below.
-
-I understand about the caching, but it's much more simple this way.
-Especially it would be very easy for someone to review one or all
-of our drivers and see a common idiom...
-
-	down(&data->update_lock);
-	lm78_write_value(foo);
-	/* or maybe read/write multiple registers */
-	data->valid = 0;
-	up(&data->update_lock);
-
-and *know* that there are no races there... at a glance.
-
-> > However, there are still cases where you need to write two different
-> > locations atomically, where an intervening _update_device() would be
-> > bad. Those need to use update_lock.  An example is the
-> > fan_div/fan_min store.
+> If we didn't have this scheme in place and some user did this:
 > 
-> What do we have to fear exactly. Please give the details of a
-> troublesome scneario.
-
-Actually, it doesn't even need to be two seperate locations.  E.g.
-from asb100.c set_fan_div()...
-
-        case 2: /* fan 3 */
-                reg = asb100_read_value(client, ASB100_REG_PIN);
-                reg = (reg & 0x3f) | (data->fan_div[2] << 6);
-                asb100_write_value(client, ASB100_REG_PIN, reg);
-                break;
-
-This is a classic read-modify-write race.  It's literally impossible
-to get rid of that race if you have something like the BIOS fiddling
-with the chip behind our backs.  But at least our own update_device()
-calls shouldn't get in the way.
-
-> What about using my method described above for 9+-bit temperature
-> values? I don't see anything bad happening if we write a value, then
-> update the whole thing, then write the second value.
+> 	while [ true ]; do
+> 		cat /sys/bus/i2c/devices/xyz/temp1_in > /dev/null
+> 	done
 > 
-> I think that the more elegant solution would be to:
-> 1* Keep locking in _update_device().
+> ... the value would in fact never change.  But worse, it could also
+> halt the alarms, QFAN, smartfan, or whatever - i.e. a DOS attack
+> against the hardware.  Keep in mind that the proc/sysfs files are
+> world readable.
 
-No dispute there, see my other message. [1]
+That's right. BTW, Aurelien Jarno and I decided to get rid of the
+caching mechanism in the pcf8574 and pcf8591 drivers as we ported them
+to 2.6. It seemed to be a problem not being able to get the values in
+real-time for such devices, since they are used in very particular
+conditions. I don't think it is a problem because such devices are not
+present on motherboards and I don't expect many people to use these
+drivers. And these devices don't seem to stop when you read from them
+(actually it's the contrary, they sample the inputs as you read them.
 
-> 2* Lock in _write_value(). Drivers that don't have such a function
-> (which includes mines) will need one.
+Aurelien, can you confirm this?
 
-At least in asb100.c, the entire write_value function runs holding a
-different lock because of the bank switching.  Holding the update_lock
-here would accomplish nothing AFAICT.
+That said there's still a problem. The pcf* drivers accept all chips
+within their address ranges, because the chips are plain undetectable.
+So if someone was to load them and they actually try to drive a
+hardware monitoring chip instead, continuous readings from the sysfs
+files could prevent the chip from working (left apart the fact that the
+driver is likely to confuse the chip even without continuously reading,
+but there's nothing we can do there).
 
-> 3* Never use data->x as a temporary step between scanning user input
-> (from sysfs) and writing the value to the chip. The correct order is
-> scan to a temporary value, write it to the chip, and then write it to
-> data->x, if I understood it properly.
+Maybe we could add a security warning in the kernel configuration help
+text for these two drivers? (something like "This driver is potentially
+dangerous if used on inappropriate hardware.  Including it into the
+kernel is discouraged, module is prefered.  Do not load this module
+unless you know you need it.")
 
-This is still not sufficient in case you need to do a read-modify-write
-like above.  That applies to all registers whose bits map to more than
-one sysfs file.
+> All that said, I think that any further optimization of the update
+> routine for speed is just added complexity for little or no gain.
+> The data being reported by these drivers are not real-time critical
+> w.r.t. their present application as PC hardware monitors. And in my
+> experience, the precision of PC hardware sensors is questionable at
+> best anyway.
 
-So, I think we should grab the lock, do the work, clear data->valid, and
-then let go of the lock.  Are there any objections other than forcing a full
-update_device on the next read?  I don't see that update as a problem.
-(Again, see [1])
+I have to agree here too (this becomes anoying, can't you stop being
+right? ;)). I like simple things too, especially since "our" code is
+likely to be maintained by others in the future. But I have one
+objection though.
 
-I'll try to send an example patch later this week.
+Philip Pokorny's approach of splitting the registers in two sets doesn't
+add much complexity IMHO. One more jiffies-value member in the data
+structure, and two ifs instead of one in the update function, that's
+not a high price to pay. OTOH it tends to clarify the different nature
+of these registers. Not only it speeds up the update, but it also
+limits the race conditions we are discussing these days, and, more
+importantly, it reduces the usage of the i2c bus (this obviously
+doesn't matter for ISA-only chips). I am much more sensible to this
+problem since I wrote the w83l785ts driver, since in various cases,
+reading from its registers collides with the BIOS doing the same. I had
+to implement some tweaks in this driver to workaround the problem. We
+are lucky that this chip only has two registers, and read-only. For
+this chip driver at least, I want to limit accesses to the i2c bus (so
+I plan to apply Philip Pokorny's method).
 
-> This also assumes that no sysfs callback function is actually allowed to
-> read from the chip directly (unless the read value is not part of
-> update_device() realm, but I don't think we have such cases).
-
-Yes, this is relatively clean and we should keep it that way.
-
-[1] http://archives.andrew.net.au/lm-sensors/msg07255.html
-
-Regards,
+More on that in another answer.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
