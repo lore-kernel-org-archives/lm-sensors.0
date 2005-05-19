@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: mds@paradyne.com (Mark D. Studebaker )
 Date: Thu, 19 May 2005 06:24:15 +0000
 Subject: 'virtual I2c adapter' driver
-Message-Id: <20030828222025.GA13415@kroah.com>
+Message-Id: <3F50DA64.2080307@paradyne.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030828201955.74757.qmail@web40902.mail.yahoo.com>
 In-Reply-To: <20030828201955.74757.qmail@web40902.mail.yahoo.com>
@@ -10,7 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 28, 2003 at 01:19:55PM -0700, Brian Kuschak wrote:
+Yes this does sound good. We have heard of this type of multiplexing before.
+As Greg said, if you have a 2.6-compatible patch it can go into the kernel;
+If you have a 2.4-compatible patch see doc/developers/new_drivers in
+the sensors package and send it to this mailing list.
+
+thanks
+mds
+
+
+
+Brian Kuschak wrote:
 > Hello,
 > 
 > I work for an networking storage company, supporting
@@ -44,20 +54,21 @@ On Thu, Aug 28, 2003 at 01:19:55PM -0700, Brian Kuschak wrote:
 > and sensor drivers work with this multiplexed hardware
 > without any changes, just by scanning the additional
 > buses.
-
-That sounds sane.
-
+> 
 > If anyone from this your group is interested in
 > reviewing or integrating this code into the official
 > sources, please let me know and I'll send a patch.
-
-I would be.  Please send a patch against the latest 2.6 kernel and I'll
-work on getting it into the main kernel tree.
-
+> 
 > BTW, do you have a mailing list?  I couldn't find one.
-
-You just sent your message to it :)
-
-thanks,
-
-greg k-h
+> 
+> Best regards,
+> 
+> Brian Kuschak
+> Brocade Communications Sys.
+> 
+> 
+> __________________________________
+> Do you Yahoo!?
+> Yahoo! SiteBuilder - Free, easy-to-use web site design software
+> http://sitebuilder.yahoo.com
+> 
