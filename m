@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: phil@edgedesign.us (Philip Edelbrock)
 Date: Thu, 19 May 2005 06:25:26 +0000
 Subject: 2nd mail archive?
-Message-Id: <SsKrtjpv.1102936125.8978670.khali@localhost>
+Message-Id: <41BE1E87.6010508@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41B86924.7010108@verizon.net>
 In-Reply-To: <41B86924.7010108@verizon.net>
@@ -11,21 +11,24 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> Does lm_sensors.org sound good? It is not yet taken (sensors.org is).
+OK, I've added the header.  We'll know on the next cvs commit if it 
+works or not. ;')
 
-Random thoughts:
 
-As far as I know, underscores are not allowed in domain names, so it
-would more likely be a dash (I never liked that underscore anyway).
+Phil
 
-Phil already has the domain lm-sensors.nu, can't we go on using it if we
-decide to accept your joint-forces offer?
 
-Another approach is that we might not need a domain name for it at all.
-Most project hosting systems have a subdirectory for each project,
-possibly with a subdomain, but not a domain per project, and it looks
-fine to me.
-
-Thanks,
---
-Jean Delvare
+Mark Studebaker wrote:
+> Hearing no comment, I'm going to sign us up.
+> 
+> Phil, can you add
+> 
+>     X-Archive: expiry=0
+> 
+> to the CVS checkin emails to prevent them from being stored in gmane?
+> Further information here:
+> 
+>     http://gmane.org/expiry.php
+> 
+> mds
+> 
