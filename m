@@ -1,38 +1,21 @@
-From: pascal.ronecker@centrale-lille.net (Pascal Ronecker)
-Date: Thu, 19 May 2005 06:24:22 +0000
-Subject: sensors, kernel 2.4.19, bttv ...
-Message-Id: <1067189085.11454.10.camel@lenny.homelinux.net>
+From: dtor_core@ameritech.net (Dmitry Torokhov)
+Date: Thu, 19 May 2005 06:25:53 +0000
+Subject: [RFC/PATCH 22/22] W1: expose module parameters in sysfs
+Message-Id: <200504210238.39307.dtor_core@ameritech.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200504210207.02421.dtor_core@ameritech.net>
+In-Reply-To: <200504210207.02421.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Hi,
-
-I must say i'm a bit confused with lm_sensors.
-I'd like to have it work, i'm running a 2.4.19 kernel. (an old fellow,
-but still working that's what sounts eh :-) )
-I *need* bttv modules, and i read is the i2c package documentation that
-the latest i2c drivers you provide instead of the native kernel modules
-conflitcs with the bttv (or is it the other way round ? doesn't matter).
-
-what should I do ?
-
-What is more, i am running a Redhat 9 based system, so I fetched a
-lm_sensors version 2.6.5-5, as a rpm package. This version is not listed
-on your web site ?? what is this package ?? [great confusion :-) ]
-
-Thanks for some help and explanations ...
+To: sensors@Stimpy.netroedge.com
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
 
-A last word on your "RPM README" and spec files ... they seem slightly
-buggy (Requires : kernel v 2.4.19, Conflicts : kernel v >= 2.3.33, for
-example, but worst : looking for file in /lib/modules/{vmodules}/misc
-instead of /lib......./kernel and /lib..../kernel/drivers and so on). I
-must admit i'm not a rpm-champion, so excuse me if I just wrote stupid
-things, anyway this rpm story is not that important.
-
-regards
-
-Pascal
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: w1-module-attrs.patch
+Type: text/x-diff
+Size: 2757 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050421/1b0e2aba/w1-module-attrs.bin
