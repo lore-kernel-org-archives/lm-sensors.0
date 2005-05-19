@@ -1,24 +1,23 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:20 +0000
-Subject: insmod of the i2c-amd756 failed.
-Message-Id: <20031007215451.23bca095.khali@linux-fr.org>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: DMI detection
+Message-Id: <20020724162451.F8689@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <99F2150714F93F448942F9A9F112634CC35ACA@txexmtae.amd.com>
-In-Reply-To: <99F2150714F93F448942F9A9F112634CC35ACA@txexmtae.amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-> The PCI device ID of the SMB 1.x? interface has changed on the
-> AMD8111. The new PCI ID needs to be added to the PCI table in
-> the amd756 driver.
+Oh, incidently, I thought I read that Alan's DMI stuff writes stuff to 
+.config?  It might be much easier to use DMI if we can read his 
+results instead of doing the horrible copy-and-paste stuff which was 
+done in drivers/char/i8k.c.
 
-I'm not sure to understand what you mean precisely. Could you explain it
-more in details and/or commit the required change to CVS?
-Thanks.
+
+Phil
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
