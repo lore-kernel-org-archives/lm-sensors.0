@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:47 +0000
+Date: Thu, 19 May 2005 06:24:55 +0000
 Subject: [Patch 2.6] it87 part3(pwm)
-Message-Id: <20040314113823.3755a718.khali@linux-fr.org>
+Message-Id: <20040501191001.62b9c7ee.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040313143512.571098a9.komoriya@paken.org>
 In-Reply-To: <20040313143512.571098a9.komoriya@paken.org>
@@ -10,22 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting myself:
+Hi Takeru,
 
-> I invite you to use 2.6.4-mm1 as the base for your patch. It aleady
-> has your two previous patches.
+Some times ago you were working on adding PWM support to the 2.6 it87
+driver. I commented on your candidate patch, but never heard from you
+since. What's up? Are you OK?
 
-Just realized I'm wrong here. MMH's refactoring patch is *not* in
-2.6.4-mm1, so I invite you to base your patch on 2.6.4-mm1 + this patch:
-http://delvare.nerim.net/i2c/linux-2.6/linux-2.6.4-i2c-chips-refactoring.diff
+We just had a request for this feature:
+  http://secure.netroedge.com/~lm78/readticket.cgi?ticket63
+which reminded me of your work. It would be great if we could go on with
+this and have PWM operational in 2.6 someday.
 
-Just take a look at it87.c after patching and you should understand
-easily how to adapt your own work. BTW, sorry that our recent changes
-will require a bit more work from you, but we believe that these changes
-were the right thing to do, so the sooner, the better.
 
-Sorry for the wrong information too.
+Thanks.
 
 -- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+http://khali.linux-fr.org/
