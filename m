@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:43 +0000
 Subject: Ticket #1936
-Message-Id: <vORPAMDJ.1111077099.2508460.khali@localhost>
+Message-Id: <QiCQgCSk.1111077532.4810130.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4239AC59.8050804@q-leap.de>
 In-Reply-To: <4239AC59.8050804@q-leap.de>
@@ -13,19 +13,12 @@ To: lm-sensors@vger.kernel.org
 
 Hi Sascha,
 
-> Sorry, it's late. I send you the lspci-output from the wrong workstation
-> ;-( Here are the correct ones.
-> (...)
-> 0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-> SMBus Controller (rev 02)
->        Subsystem: AOPEN Inc.: Unknown device 02c8
->        Flags: medium devsel, IRQ 201
->        I/O ports at 5000 [size2]
+> Probing for `Winbond W83627HF Super IO Sensors'
+>   Success... found at address 0x0290
 
-SMBus device isn't hidden on this one either.
+Looks all OK to me, your board has a W83627HF Super-I/O chip with
+integrated sensors. Just load the i2c-isa and w83627hf drivers, and you
+should get proper sensors readings!
 
-Output of sensors-detect please?
-
-Thanks,
 --
 Jean Delvare
