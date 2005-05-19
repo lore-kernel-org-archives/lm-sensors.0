@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: fishor@gmx.net (Alexey Fisher)
 Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: max1617a
-Message-Id: <20040515135327.10fef10c.khali@linux-fr.org>
+Message-Id: <1609559805.20040516103625@gmx.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040509133827.04734a7e.khali@linux-fr.org>
 In-Reply-To: <20040509133827.04734a7e.khali@linux-fr.org>
@@ -10,26 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->  I provide you dump of 0x4d and 0x1f.
-> in a moment I try to fix sach a bagy DSDT for ACPI ... ACPI can't
-> finde thermo-sensor too. 
->  Sanky werymatch , what you traing to help me :-)
+Hi  Jean,
 
-What you have is not a MAX1617A, which is why sensors-detect wouldn't
-detect is as such. It is a MAX1619.
-http://www.maxim-ic.com/quick_view2.cfm?qv_pk 21
+JD> If you want to write the driver yourself, the datasheet is here:
+JD> http://pdfserv.maxim-ic.com/en/ds/MAX1619.pdf
+JD> I'd suggest you start from a similar driver such as the lm90.
 
-We don't have a driver for it yet. You may try to force the adm1021
-driver, there are common registers between the MAX1617A and the MAX1619
-so you may have some results (in particular temperature readings should
-work).
+I gona try to writ a driver. I newer did it before but "lerning by doing" ...
 
-I added support for the MAX1619 to sensors-detect, and would appreciate
-if you could give it a try. It's available from our CVS repository.
-
-If you want to write the driver yourself, the datasheet is here:
-http://pdfserv.maxim-ic.com/en/ds/MAX1619.pdf
-I'd suggest you start from a similar driver such as the lm90.
 
 -- 
-Jean Delvare http://khali.linux-fr.org/
+Best regards,
+ Alexey                            mailto:fishor@gmx.net
