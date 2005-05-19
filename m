@@ -1,34 +1,46 @@
-From: tnuro@yahoo.com.au (TN)
-Date: Thu, 19 May 2005 06:24:23 +0000
-Subject: ticket 1415 - some ambiguities solved
-Message-Id: <3FA59819.7050605@yahoo.com.au>
+From: gregkh@suse.de (Greg KH)
+Date: Thu, 19 May 2005 06:25:48 +0000
+Subject: [PATCH] I2C: Delete useless instruction in it87
+Message-Id: <11123113941998@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11123113943693@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
+Cc: khali@linux-fr.org
 
-Hi Mark,
+ChangeSet 1.2344, 2005/03/31 14:31:02-08:00, khali@linux-fr.org
 
-I've had a bit of a play with the chip, and here's the results:
+[PATCH] I2C: Delete useless instruction in it87
+
+The IT8705F doesn't support VID, so it's quite pointless to give a value
+to it (and an arbitrary one at that). I think that this instruction was
+there for compatibility reasons some times ago, but the reasons went
+away while the instruction was left in place. We can safely delete it
+now.
+
+Thanks to Rudolf Marek for testing the patch (you never know).
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 
+ drivers/i2c/chips/it87.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-1) the offset temperatures register values ARE indeed added to the 
-actual temperature readings by the chip itself, so the winbond docs are 
-correct in the way you were reading them.
-2) the offset temperature register values are in celsius increments as I 
-guessed.
-3) the offset temperature registers are 2's complement, so the 0xfe was 
-indeed indicating an adjustment of -2C as discussed in the last email.
 
-I verified this by writing values into the offset registers, and 
-observed what the effect was on the temperature readings.
-
-So we've cleared those abiguities up. Now we need to do some research in 
-what values are supposed to be going into the offsets.
-
-cheers
--Trevor.
-
+diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
+--- a/drivers/i2c/chips/it87.c	2005-03-31 15:16:38 -08:00
++++ b/drivers/i2c/chips/it87.c	2005-03-31 15:16:38 -08:00
+@@ -1122,9 +1122,6 @@
+ 			    it87_read_value(client, IT87_REG_TEMP_LOW(i));
+ 		}
+ 
+-		/* The 8705 does not have VID capability */
+-		data->vid = 0x1f;
+-
+ 		i = it87_read_value(client, IT87_REG_FAN_DIV);
+ 		data->fan_div[0] = i & 0x07;
+ 		data->fan_div[1] = (i >> 3) & 0x07;
 
