@@ -1,29 +1,22 @@
-From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:59 +0000
 Subject: [PATCH] i2c/CHANGES
-Message-Id: <200405231420.AA00975@k7.kit.hi-ho.ne.jp>
+Message-Id: <20040523163554.241c2d02.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200405231420.AA00975@k7.kit.hi-ho.ne.jp>
+In-Reply-To: <200405231420.AA00975@k7.kit.hi-ho.ne.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Index: CHANGES
-=================================RCS file: /home/cvs/i2c/CHANGES,v
-retrieving revision 1.110
-diff -u -r1.110 CHANGES
---- CHANGES	23 May 2004 07:27:49 -0000	1.110
-+++ CHANGES	23 May 2004 14:23:34 -0000
-@@ -19,7 +19,7 @@
- 
- 2.8.5 (2004xxxx)
-   Makefile: Do not run depmod on staged installs (Peter Breitenlohner)
--  i2c-core.c: Fail to compile is kernel lacks sysctl support
-+  i2c-proc.c: Fail to compile is kernel lacks sysctl support
- 
- 2.8.4 (20040207)
-   i2c-id.h: Add IDs for the OV511 project
+> -  i2c-core.c: Fail to compile is kernel lacks sysctl support
+> +  i2c-proc.c: Fail to compile is kernel lacks sysctl support
 
+Oops, correct. Nice catching!
 
-----
-Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
+Applied, thanks.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
