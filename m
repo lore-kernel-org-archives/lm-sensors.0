@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: clepple@ghz.cc (Charles Lepple)
 Date: Thu, 19 May 2005 06:24:08 +0000
 Subject: error: "SMBus collision!"/"sending abort" in 2.6.0test2
-Message-Id: <20030731035635.GC5625@earth.solarsys.private>
+Message-Id: <C795CB0D-C30F-11D7-BB43-003065DC6B50@ghz.cc>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1D98A118-C22E-11D7-BB43-003065DC6B50@ghz.cc>
 In-Reply-To: <1D98A118-C22E-11D7-BB43-003065DC6B50@ghz.cc>
@@ -10,67 +10,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Charles Lepple <clepple@ghz.cc> [2003-07-30 23:21:10 -0400]:
-> On Wednesday, July 30, 2003, at 11:04  PM, Mark M. Hoffman wrote:
-> 
-> >* Charles Lepple <clepple@ghz.cc> [2003-07-29 21:35:35 -0400]:
-> >>I accidentally started up two copies of a sensord-for-2.6 kludge (just
-> >>cats a bunch of /sys nodes, and jams the results into rrdtool). A
-> >>little while after I started the second copy, I started seeing this in
-> >>my kern.log:
-> >>
-> >>Jul 29 21:19:45 vole kernel: i2c_adapter i2c-0:  SMBus collision!
-> >>Jul 29 21:19:46 vole kernel: i2c_adapter i2c-0: : Sending abort.
-> >>Jul 29 21:20:17 vole last message repeated 52 times
-> >
-> >What I2C bus driver?
-> >
-> >What sensors chip driver?
-> 
-> my fault, that was an embarrassingly poor bug report.
-> 
-> It's an AMD 76x bus controller (i2c-amd76x), and both a W83627HF and a 
-> W83782D chip controlled by the w83781d driver.
+On Wednesday, July 30, 2003, at 11:56  PM, Mark M. Hoffman wrote:
 
-Ummm...  Google comes up empty on "i2c-amd76x"... do you mean i2c-amd756?
+>> It's an AMD 76x bus controller (i2c-amd76x), and both a W83627HF and a
+>> W83782D chip controlled by the w83781d driver.
+>
+> Ummm...  Google comes up empty on "i2c-amd76x"... do you mean 
+> i2c-amd756?
 
-> This setup requires the crazy init=0 and force_subclients deal that 
-> other 760MP chipset users have reported in the trouble ticket area.
-> 
-> Driver version is 2.7.0 (20021208). I haven't gotten around to making 
-> 2.8.0 work with the 2.6 kernel.
+i2c-amd756 (confusion due to excessive hacking on amd76x_pm, which was 
+the motivation for getting lm_sensors working).
 
-Now I'm lost:  How could you be using w83781d.c version 2.7.0 with the
-2.6 kernel?  Either you hacked it to pieces (needlessly, since it
-was already ported to 2.6) or I am totally not understanding you.
+from lsmod:
 
-Please explain in detail what you did to build this system.
+$ lsmod
+Module                  Size  Used by
+processor              14888  0
+amd76x_pm               6300  0
+button                  6104  0
+ohci_hcd               19072  0
+usbcore               112988  3 ohci_hcd
+w83781d                35584  0
+i2c_sensor              3200  1 w83781d
+i2c_amd756              5700  0
+i2c_core               24648  3 w83781d,i2c_sensor,i2c_amd756
+eepro100               30796  0
+mii                     5120  1 eepro100
+rtc                    13892  0
 
-> >>removing the modules didn't help-- nothing showed up in
-> >>/sys/bus/i2c/devices afterwards.
-> >>
-> >>ideas?
-> >
-> >I would like to try to reproduce this, but not until this weekend.
-> >Would running 2-3 shell scripts simultaneously which cat the /sys
-> >values to /dev/null be good enough?
-> 
-> I would assume so. It'll probably take some random time skew between 
-> the scripts to trigger the problem, because I think there was a delay 
-> between the beginning of the script, and the beginning of the error 
-> messages.
-> 
-> I was trying to figure out some power management and ntp interaction 
-> problems that required some extended uptime, so I didn't try and 
-> reproduce the problem after rebooting.
-> 
-> Afterwards I happened to see some reports on LKML of interactions 
-> between ACPI and the sensor chips, but the ACPI implementation is so 
-> weak on this board (a Tyan S2460) that I doubt the ACPI portion of the 
-> BIOS even knows about the I2C bus.
+>> This setup requires the crazy init=0 and force_subclients deal that
+>> other 760MP chipset users have reported in the trouble ticket area.
+>>
+>> Driver version is 2.7.0 (20021208). I haven't gotten around to making
+>> 2.8.0 work with the 2.6 kernel.
+>
+> Now I'm lost:  How could you be using w83781d.c version 2.7.0 with the
+> 2.6 kernel?  Either you hacked it to pieces (needlessly, since it
+> was already ported to 2.6) or I am totally not understanding you.
 
-Regards,
+sorry about that. I searched back from the "SMBus collision" error 
+message in kern.log, and the first occurrence of "i2c" that I came 
+across turns out to be from the last time I booted 2.4.21 (with 
+lm_sensors/i2c 2.7.0 as provided by Debian). I kind of expected the 
+2.6.0-testX in-kernel drivers to print version numbers as well (or at 
+least, some version/date info).
+
+> Please explain in detail what you did to build this system.
+
+First, I got the i2c.tar.gz and lm-sensors.tar.gz files from Debian, 
+and compiled 2.4.21 (with ACPI patches, FWIW). Then I downloaded 
+2.6.0-test2 and compiled that. I've been flipping back and forth 
+between 2.4.21 and 2.6.0-test2, and that led to my confusion.
+
+>>> I would like to try to reproduce this, but not until this weekend.
+>>> Would running 2-3 shell scripts simultaneously which cat the /sys
+>>> values to /dev/null be good enough?
+
+Now I'm wondering if there needs to be writing involved before things 
+break. I have between 15 and 20 'cat random_sensor_file' commands 
+running at the moment (all within 'while true; do ... done' loops), and 
+things seem to be working. Load average is sitting near 17, but abort 
+messages, and the values seem to be changing normally.
+
+Sorry to bug you folks with such sketchy details... I'll let you all 
+know if things break again.
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Charles Lepple <clepple@ghz.cc>
+http://www.ghz.cc/charles/
