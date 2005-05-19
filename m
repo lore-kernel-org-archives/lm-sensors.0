@@ -1,87 +1,49 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:25:00 +0000
 Subject: [PATCH] I2C update for 2.6.7-rc1
-Message-Id: <1085781643100@kroah.com>
+Message-Id: <10857816431296@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20040528215908.GA13626@kroah.com>
+In-Reply-To: <10857816431154@kroah.com>
+References: <1085781643100@kroah.com>
+In-Reply-To: <1085781643100@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1717.6.23, 2004/05/19 00:24:54-07:00, faikuygur@tnn.net
+ChangeSet 1.1717.6.28, 2004/05/19 00:26:34-07:00, ebs@ebshome.net
 
-[PATCH] I2C: use idr_get_new to allocate a bus id in drivers/i2c/i2c-core.c
+[PATCH] I2C PPC4xx IIC driver: 0-length transaction temporary fix
+
+this patch adds temporary fix for 0-length requests (e.g. SMBUS_QUICK) to PPC4xx
+IIC driver. This i2c controller doesn't support such transactions and this patch
+just restores previous driver version behavior making SMBUS_QUICK-based bus scan
+at least partially usable. This is temporary kludge until correct bit-banging
+emulation is implemented.
 
 
- drivers/i2c/i2c-core.c |   21 +++++++++++++++++----
- 1 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-ibm_iic.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
 
-diff -Nru a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c	Fri May 28 14:52:36 2004
-+++ b/drivers/i2c/i2c-core.c	Fri May 28 14:52:36 2004
-@@ -28,6 +28,7 @@
- #include <linux/slab.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/idr.h>
- #include <linux/seq_file.h>
- #include <asm/uaccess.h>
- 
-@@ -35,6 +36,7 @@
- static LIST_HEAD(adapters);
- static LIST_HEAD(drivers);
- static DECLARE_MUTEX(core_lists);
-+static DEFINE_IDR(i2c_adapter_idr);
- 
- int i2c_device_probe(struct device *dev)
- {
-@@ -113,13 +115,19 @@
-  */
- int i2c_add_adapter(struct i2c_adapter *adap)
- {
--	static int nr = 0;
-+	int id, res = 0;
- 	struct list_head   *item;
- 	struct i2c_driver  *driver;
- 
- 	down(&core_lists);
- 
--	adap->nr = nr++;
-+	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) = 0) {
-+		res = -ENOMEM;
-+		goto out_unlock;
-+	}
-+
-+	id = idr_get_new(&i2c_adapter_idr, NULL);
-+	adap->nr =  id & MAX_ID_MASK;
- 	init_MUTEX(&adap->bus_lock);
- 	init_MUTEX(&adap->clist_lock);
- 	list_add_tail(&adap->list,&adapters);
-@@ -151,10 +159,12 @@
- 			/* We ignore the return code; if it fails, too bad */
- 			driver->attach_adapter(adap);
- 	}
--	up(&core_lists);
- 
- 	dev_dbg(&adap->dev, "registered as adapter #%d\n", adap->nr);
--	return 0;
-+
-+ out_unlock:
-+	up(&core_lists);
-+	return res;
- }
- 
- 
-@@ -207,6 +217,9 @@
- 	/* wait for sysfs to drop all references */
- 	wait_for_completion(&adap->dev_released);
- 	wait_for_completion(&adap->class_dev_released);
-+
-+	/* free dynamically allocated bus id */
-+	idr_remove(&i2c_adapter_idr, adap->nr);
- 
- 	dev_dbg(&adap->dev, "adapter unregistered\n");
- 
+diff -Nru a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
+--- a/drivers/i2c/busses/i2c-ibm_iic.c	Fri May 28 14:52:12 2004
++++ b/drivers/i2c/busses/i2c-ibm_iic.c	Fri May 28 14:52:12 2004
+@@ -455,6 +455,16 @@
+ 	}		
+ 	for (i = 0; i < num; ++i){
+ 		if (unlikely(msgs[i].len <= 0)){
++			if (num = 1 && !msgs[0].len){
++				/* Special case for I2C_SMBUS_QUICK emulation.
++				 * Although this logic is FAR FROM PERFECT, this 
++				 * is what previous driver version did.
++				 * IBM IIC doesn't support 0-length transactions
++				 * (except bit-banging through IICx_DIRECTCNTL).
++				 */
++				DBG("%d: zero-length msg kludge\n", dev->idx); 
++				return 0;
++			}
+ 			DBG("%d: invalid len %d in msg[%d]\n", dev->idx, 
+ 				msgs[i].len, i);
+ 			return -EINVAL;
 
