@@ -1,7 +1,7 @@
 From: jmunsin@iki.fi (Jonas Munsin)
-Date: Thu, 19 May 2005 06:25:26 +0000
+Date: Thu, 19 May 2005 06:25:27 +0000
 Subject: pwm fan control with IT8705F I/O chip it87 module
-Message-Id: <20041208215302.GA5665@nemo.sby.abo.fi>
+Message-Id: <20041217192600.GA5216@nemo.sby.abo.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20041128203714.40067.qmail@web13425.mail.yahoo.com>
 In-Reply-To: <20041128203714.40067.qmail@web13425.mail.yahoo.com>
@@ -10,35 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Dec 08, 2004 at 06:44:17PM +0200, Jonas Munsin wrote:
-> kernel to appear (still running 2.6.7).
+On Wed, Dec 08, 2004 at 11:53:02PM +0200, Jonas Munsin wrote:
+> Bellow is an updated version of my manual pwm patch, originally
 
-Ok, I upgraded to 2.6.10-rc3.
+Here is an updated version of that patch. The pwm values are now stored
+internally as 8 bit instead of throwing away the lowest bit as it did
+earlier (the chip's pwm registers are 7 bit).
 
-Bellow is an updated version of my manual pwm patch, originally
-submitted as http://archives.andrew.net.au/lm-sensors/msg27510.html .
-I updated it to the last pwm spec. (It contains reset removal,
-minor whitespace fixes and manual pwm support).
-
-I added a comment about the initialization stuff you remarked on at
-http://archives.andrew.net.au/lm-sensors/msg27570.html (i.e., it can be
-removed with some additional work - I might need to look at this again
-later).
-
-This was a quick conversation to 2.6.10-rc3, hopefully I didn't make any
-copy/paste mistakes.
-
-I'll do the auto pwm part later, I need to sleep.
-
-Note to myself:
-this is it87.c_2.6.10-rc3-jm1-fixes_and_manual_pwm_20041208, combining
-it87.c_2.6.10-rc3-jm-10-removed_reset_20041208
-it87.c_2.6.10-rc3-jm-20-whitespace_fixes_20041208
-it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
+it87.c_2.6.10-rc3-jm2-fixes_and_manual_pwm_20041217.diff
 
 
 --- drivers/i2c/chips/it87.c_2.6.10-rc3	2004-12-08 22:30:51.000000000 +0200
-+++ drivers/i2c/chips/it87.c	2004-12-08 23:34:27.000000000 +0200
++++ drivers/i2c/chips/it87.c_2.6.10-rc3-jm-40-pwm_shift_fixed_20041217	2004-12-17 21:20:21.000000000 +0200
 @@ -96,9 +96,6 @@ superio_exit(void)
  /* Update battery voltage after every reading if true */
  static int update_vbat;
@@ -73,7 +56,7 @@ it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
  	int vrm;
  	u32 alarms;		/* Register encoding, combined */
 +	u8 fan_main_ctrl;	/* Register value */
-+	u8 manual_pwm_ctl[3];   /* Register encoding */
++	u8 manual_pwm_ctl[3];   /* Register encoding, shifted left */
  };
  
  
@@ -105,7 +88,7 @@ it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
 +static ssize_t show_pwm(struct device *dev, char *buf, int nr)
 +{
 +	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf,"%d\n", PWM_FROM_REG(data->manual_pwm_ctl[nr]));
++	return sprintf(buf,"%d\n", data->manual_pwm_ctl[nr]);
  }
  static ssize_t set_fan_min(struct device *dev, const char *buf, 
  		size_t count, int nr)
@@ -133,7 +116,7 @@ it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
 +		data->fan_main_ctrl |= (1 << nr);
 +		it87_write_value(client, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
 +		/* set saved pwm value and FAN_CTLX PWM mode bit */
-+		it87_write_value(client, IT87_REG_PWM(nr), data->manual_pwm_ctl[nr] & 0x7f);
++		it87_write_value(client, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
 +	} else
 +		return -EINVAL;
 +
@@ -149,9 +132,9 @@ it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
 +	if (val < 0 || val > 255)
 +		return -EINVAL;
 +
-+	data->manual_pwm_ctl[nr] = PWM_TO_REG(val);
++	data->manual_pwm_ctl[nr] = val;
 +	if (data->fan_main_ctrl & (1 << nr))
-+		it87_write_value(client, IT87_REG_PWM(nr), data->manual_pwm_ctl[nr]);
++		it87_write_value(client, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
 +
 +	return count;
 +}
@@ -227,7 +210,7 @@ it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
 +	 *   read the registers and set manual_pwm_ctl accordingly, but currently
 +	 *   this is not implemented, so we initialize to something sane */
 +	for (i = 0; i < 3; i++) {
-+		data->manual_pwm_ctl[i] = 0x7f;
++		data->manual_pwm_ctl[i] = 0xff;
  	}
  
  	/* Check if temperature channnels are reset manually or by some reason */
@@ -259,7 +242,7 @@ it87.c_2.6.10-rc3-jm-30-manual_pwm_20041208
 +				 * interface */
 +			} else {
 +				/* manual pwm */
-+				data->manual_pwm_ctl[i] = tmp & 0x7f;
++				data->manual_pwm_ctl[i] = PWM_FROM_REG(tmp);
 +			}
 +		} else {
 +			/* on/off mode, make sure the fan is on */
