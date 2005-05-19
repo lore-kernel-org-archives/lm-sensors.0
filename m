@@ -1,53 +1,35 @@
-From: app@mail.writecode.org (app@mail.writecode.org)
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
 Date: Thu, 19 May 2005 06:25:00 +0000
 Subject: lm_sensors on kernel 2.6.6
-Message-Id: <20040530155539.5BF6218FD9B@mail.writecode.org>
+Message-Id: <Pine.LNX.4.58.0405301812590.1458@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040530155539.5BF6218FD9B@mail.writecode.org>
+In-Reply-To: <20040530155539.5BF6218FD9B@mail.writecode.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hey,
-I've been trying to install lm_sensors on kernel 2.6.6. 
-All the modules were compiled and loaded from the kernel and in lm_sensors I ran make user && make user_install
 
-now, when I try to run the sensors binary it seems to be trying to get data from the wrong files.
+Hello,
 
-open("/sys/bus/i2c/devices/0-002d/in_input6", O_RDONLY) = -1 ENOENT (No such file or directory)
+> This is one example of many. while on my machine the file:
+> /sys/bus/i2c/devices/0-002d/in6_input exists
 
-This is one example of many. while on my machine the file:
-/sys/bus/i2c/devices/0-002d/in6_input exists
+Yes you have wrong version of userspace utilities. Please
+use latest CVS version.
 
-The output I get not under strace:
-root@writecode:~# sensors -s
-as99127f-i2c-0-2d: Can't access procfs/sysfs file for writing;
-Run as root?
-root@writecode:~#
+http://secure.netroedge.com/~lm78/archive/lm_sensors-daily.tar.gz
 
-root@writecode:~# sensors
-as99127f-i2c-0-2d
-Adapter: SMBus Via Pro adapter at e800
-Algorithm: Unavailable from sysfs
-ERROR: Can't get IN0 data!
-ERROR: Can't get IN1 data!
-ERROR: Can't get IN2 data!
-ERROR: Can't get IN3 data!
-ERROR: Can't get IN4 data!
-ERROR: Can't get IN5 data!
-ERROR: Can't get IN6 data!
-ERROR: Can't get FAN1 data!
-ERROR: Can't get FAN2 data!
-ERROR: Can't get FAN3 data!
-ERROR: Can't get TEMP1 data!
-ERROR: Can't get TEMP2 data!
-ERROR: Can't get TEMP3 data!
-ERROR: Can't get VID data!
-alarms:
-beep_enable:
-          Sound alarm enabled
+Don't forget to wipe out all libraries in /usr/lib/libsens*
+and /usr/local/lib/libsens*
 
-root@writecode:~#
+After install check if your /etc/ld.so.conf if it has
+/usr/local/lib entry. If not add it. Then run ldconfig
 
-Yours,
-Eli Shmer.
+I hope this helps. You can ask at IRC Freenode network #linux-sensors
+If any futher questions. (Or via this email)
+
+Regards
+
+Rudolf
