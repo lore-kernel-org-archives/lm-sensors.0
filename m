@@ -1,82 +1,108 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
 Date: Thu, 19 May 2005 06:25:50 +0000
 Subject: Winbond W83792D driver
-Message-Id: <20050410115252.7430099e.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE36FC96@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42461044.3080406@mds.gotdns.com>
 In-Reply-To: <42461044.3080406@mds.gotdns.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao, hi Mark,
-
-> I'm sorry I'm not really familiar  with how subclients were done in
-> 2.6, or 2.6 drivers in general. I did a diff  between your w83792d.c
-> and w83781d.c in the 2.6.11 kernel.  I saw some differences in
-> xxx_detect_subclients(). These may or may not make a difference. Be
-> sure you don't have any compile warnings about wrong pointer types.
-> One of the other guys on the list may be able to help you better. good
-> luck. mds
-
-I've read Chunhao's code and found the problem:
-
-/* memset(data->lm75[0], 0x00, sizeof (struct i2c_client)); */
-
-This is commented out in your code. The memset is NOT optional, it is a
-requirement. The correct memset would be:
-  memset(data->lm75, 0x00, 2 * sizeof(struct i2c_client));
-Add this and this will solve your problem (at least it did for me).
-
-Additional notes:
-
-1* You have put a comment:
-       struct i2c_client *lm75;     /* for secondary I2C addresses */
-       /* array of 2 pointers to subclients */
-
-This is *not* an array of 2 pointers to subclient, this is a pointer to
-an array of 2 subclients, which is quite different.
-
-2* You include "lm75.h" but never use it. This header file contains
-temperature converters for LM75-like chips. This doesn't seem to be the
-case of the W83792D (according to your code at least).
-
-3* Your code does *not* free the memory you allocated for subclients
-when unloading the driver. Please add the necessary code.
-
-4* You do *not* need to do casts like this one:
-  ((struct w83792d_data *) data)
-It was needed in linux 2.4 but in 2.6 things are cleaner so the casts
-are not needed.
-
-5* In the case we do *not* force the subclient addresses, the code is:
-
-               val1 = w83792d_read_value(new_client,
-                                         W83792D_REG_I2C_SUBADDR);
-               data->lm75[0].addr = 0x48 + (val1 & 0x03);
-               data->lm75[1].addr = 0x4c + ((val1 >> 4) & 0x03);
-
-This is *not* correct IMHO, because it assumes that the first subclient
-is in 0x48-0x4b and the second it in 0x4c-0x4f. While this is true at
-power-up for the W83792D, the BIOS may have changed this. So we should
-not assume anything and simply do:
-
-               data->lm75[0].addr = 0x48 + (val1 & 0x07);
-               data->lm75[1].addr = 0x48 + ((val1 >> 4) & 0x07);
-
-This should be fixed in the 2.4 driver as well.
-
-6* The code does *not* properly handle the case where subclients are
-disabled. If subclients addresses are forced, they will be forcibly
-enabled (this is OK). If they are not forced, then we might register
-clients which do not exist (this is NOT OK).
-
-[I'd have a side question, about the subclients in general...
-Why do we register subclients addresses at all? We could instead
-forcibly disable them. This is easier and just as efficient (disabling
-the addresses doesn't disable the temperature channels themselves).]
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbiwgTURTCgpUaGFuayB5b3UgZm9yIHlvdXIgc3VnZ2VzdGlvbiwgSSB3aWxsIG1vZGlm
+eSB0aGUgc291cmNlIHdpdGggeW91ciBoZWxwLgoKPiA2KiBUaGUgY29kZSBkb2VzICpub3QqIHBy
+b3Blcmx5IGhhbmRsZSB0aGUgY2FzZSB3aGVyZSBzdWJjbGllbnRzIGFyZQo+IGRpc2FibGVkLiBJ
+ZiBzdWJjbGllbnRzIGFkZHJlc3NlcyBhcmUgZm9yY2VkLCB0aGV5IHdpbGwgYmUgZm9yY2libHkK
+PiBlbmFibGVkICh0aGlzIGlzIE9LKS4gSWYgdGhleSBhcmUgbm90IGZvcmNlZCwgdGhlbiB3ZSBt
+aWdodCByZWdpc3Rlcgo+IGNsaWVudHMgd2hpY2ggZG8gbm90IGV4aXN0ICh0aGlzIGlzIE5PVCBP
+SykuCgpUaGVuIGhvdyBzaG91bGQgSSBoYW5kbGUgdGhlIGNhc2Ugd2hlcmUgc3ViY2xpZW50cyBh
+cmUgZGlzYWJsZWQ/Cgo+IFtJJ2QgaGF2ZSBhIHNpZGUgcXVlc3Rpb24sIGFib3V0IHRoZSBzdWJj
+bGllbnRzIGluIGdlbmVyYWwuLi4KPiBXaHkgZG8gd2UgcmVnaXN0ZXIgc3ViY2xpZW50cyBhZGRy
+ZXNzZXMgYXQgYWxsPyBXZSBjb3VsZCBpbnN0ZWFkCj4gZm9yY2libHkgZGlzYWJsZSB0aGVtLiBU
+aGlzIGlzIGVhc2llciBhbmQganVzdCBhcyBlZmZpY2llbnQgKGRpc2FibGluZwo+IHRoZSBhZGRy
+ZXNzZXMgZG9lc24ndCBkaXNhYmxlIHRoZSB0ZW1wZXJhdHVyZSBjaGFubmVscyB0aGVtc2VsdmVz
+KS5dCgpZZXMsIG1heWJlIHlvdSBhcmUgcmlnaHQsIGJ1dCBJIHRoaW5rIHlvdXIgdGhpcyBxdWVz
+dGlvbiBpcyB0byB0aGUgb3RoZXIKbWVtYmVycyBvZiBsbV9zZW5zb3JzIGdyb3VwLCBBbSBJIHJp
+Z2h0PyBZb3UgbmVlZCBhIGRpc2N1c3Npb24gd2l0aCB0aGVtLApiZWNhdXNlIEknbSBub3QgdmVy
+eSBmYW1pbGlhciB3aXRoIHRoZSBzdWJjbGllbnRzLgoKClRoYW5rcwpCZXN0IFJlZ2FyZHMKQ2h1
+bmhhbwoKCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBKZWFuIERlbHZhcmUg
+W21haWx0bzpraGFsaUBsaW51eC1mci5vcmddCj4gU2VudDogMjAwNcTqNNTCMTDI1SAxNzo1Mwo+
+IFRvOiBNYXJrIFN0dWRlYmFrZXI7IFBJMTQgSFVBTkcwCj4gQ2M6IExNIFNlbnNvcnMKPiBTdWJq
+ZWN0OiBSZTogV2luYm9uZCBXODM3OTJEIGRyaXZlcgo+IAo+IEhpIENodW5oYW8sIGhpIE1hcmss
+Cj4gCj4gPiBJJ20gc29ycnkgSSdtIG5vdCByZWFsbHkgZmFtaWxpYXIgIHdpdGggaG93IHN1YmNs
+aWVudHMgd2VyZSBkb25lIGluCj4gPiAyLjYsIG9yIDIuNiBkcml2ZXJzIGluIGdlbmVyYWwuIEkg
+ZGlkIGEgZGlmZiAgYmV0d2VlbiB5b3VyIHc4Mzc5MmQuYwo+ID4gYW5kIHc4Mzc4MWQuYyBpbiB0
+aGUgMi42LjExIGtlcm5lbC4gIEkgc2F3IHNvbWUgZGlmZmVyZW5jZXMgaW4KPiA+IHh4eF9kZXRl
+Y3Rfc3ViY2xpZW50cygpLiBUaGVzZSBtYXkgb3IgbWF5IG5vdCBtYWtlIGEgZGlmZmVyZW5jZS4g
+QmUKPiA+IHN1cmUgeW91IGRvbid0IGhhdmUgYW55IGNvbXBpbGUgd2FybmluZ3MgYWJvdXQgd3Jv
+bmcgcG9pbnRlciB0eXBlcy4KPiA+IE9uZSBvZiB0aGUgb3RoZXIgZ3V5cyBvbiB0aGUgbGlzdCBt
+YXkgYmUgYWJsZSB0byBoZWxwIHlvdSBiZXR0ZXIuIGdvb2QKPiA+IGx1Y2suIG1kcwo+IAo+IEkn
+dmUgcmVhZCBDaHVuaGFvJ3MgY29kZSBhbmQgZm91bmQgdGhlIHByb2JsZW06Cj4gCj4gLyogbWVt
+c2V0KGRhdGEtPmxtNzVbMF0sIDB4MDAsIHNpemVvZiAoc3RydWN0IGkyY19jbGllbnQpKTsgKi8K
+PiAKPiBUaGlzIGlzIGNvbW1lbnRlZCBvdXQgaW4geW91ciBjb2RlLiBUaGUgbWVtc2V0IGlzIE5P
+VCBvcHRpb25hbCwgaXQgaXMgYQo+IHJlcXVpcmVtZW50LiBUaGUgY29ycmVjdCBtZW1zZXQgd291
+bGQgYmU6Cj4gICBtZW1zZXQoZGF0YS0+bG03NSwgMHgwMCwgMiAqIHNpemVvZihzdHJ1Y3QgaTJj
+X2NsaWVudCkpOwo+IEFkZCB0aGlzIGFuZCB0aGlzIHdpbGwgc29sdmUgeW91ciBwcm9ibGVtIChh
+dCBsZWFzdCBpdCBkaWQgZm9yIG1lKS4KPiAKPiBBZGRpdGlvbmFsIG5vdGVzOgo+IAo+IDEqIFlv
+dSBoYXZlIHB1dCBhIGNvbW1lbnQ6Cj4gICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICpsbTc1OyAg
+ICAgLyogZm9yIHNlY29uZGFyeSBJMkMgYWRkcmVzc2VzICovCj4gICAgICAgIC8qIGFycmF5IG9m
+IDIgcG9pbnRlcnMgdG8gc3ViY2xpZW50cyAqLwo+IAo+IFRoaXMgaXMgKm5vdCogYW4gYXJyYXkg
+b2YgMiBwb2ludGVycyB0byBzdWJjbGllbnQsIHRoaXMgaXMgYSBwb2ludGVyIHRvCj4gYW4gYXJy
+YXkgb2YgMiBzdWJjbGllbnRzLCB3aGljaCBpcyBxdWl0ZSBkaWZmZXJlbnQuCj4gCj4gMiogWW91
+IGluY2x1ZGUgImxtNzUuaCIgYnV0IG5ldmVyIHVzZSBpdC4gVGhpcyBoZWFkZXIgZmlsZSBjb250
+YWlucwo+IHRlbXBlcmF0dXJlIGNvbnZlcnRlcnMgZm9yIExNNzUtbGlrZSBjaGlwcy4gVGhpcyBk
+b2Vzbid0IHNlZW0gdG8gYmUgdGhlCj4gY2FzZSBvZiB0aGUgVzgzNzkyRCAoYWNjb3JkaW5nIHRv
+IHlvdXIgY29kZSBhdCBsZWFzdCkuCj4gCj4gMyogWW91ciBjb2RlIGRvZXMgKm5vdCogZnJlZSB0
+aGUgbWVtb3J5IHlvdSBhbGxvY2F0ZWQgZm9yIHN1YmNsaWVudHMKPiB3aGVuIHVubG9hZGluZyB0
+aGUgZHJpdmVyLiBQbGVhc2UgYWRkIHRoZSBuZWNlc3NhcnkgY29kZS4KPiAKPiA0KiBZb3UgZG8g
+Km5vdCogbmVlZCB0byBkbyBjYXN0cyBsaWtlIHRoaXMgb25lOgo+ICAgKChzdHJ1Y3QgdzgzNzky
+ZF9kYXRhICopIGRhdGEpCj4gSXQgd2FzIG5lZWRlZCBpbiBsaW51eCAyLjQgYnV0IGluIDIuNiB0
+aGluZ3MgYXJlIGNsZWFuZXIgc28gdGhlIGNhc3RzCj4gYXJlIG5vdCBuZWVkZWQuCj4gCj4gNSog
+SW4gdGhlIGNhc2Ugd2UgZG8gKm5vdCogZm9yY2UgdGhlIHN1YmNsaWVudCBhZGRyZXNzZXMsIHRo
+ZSBjb2RlIGlzOgo+IAo+ICAgICAgICAgICAgICAgIHZhbDEgPSB3ODM3OTJkX3JlYWRfdmFsdWUo
+bmV3X2NsaWVudCwKPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFc4
+Mzc5MkRfUkVHX0kyQ19TVUJBRERSKTsKPiAgICAgICAgICAgICAgICBkYXRhLT5sbTc1WzBdLmFk
+ZHIgPSAweDQ4ICsgKHZhbDEgJiAweDAzKTsKPiAgICAgICAgICAgICAgICBkYXRhLT5sbTc1WzFd
+LmFkZHIgPSAweDRjICsgKCh2YWwxID4+IDQpICYgMHgwMyk7Cj4gCj4gVGhpcyBpcyAqbm90KiBj
+b3JyZWN0IElNSE8sIGJlY2F1c2UgaXQgYXNzdW1lcyB0aGF0IHRoZSBmaXJzdCBzdWJjbGllbnQK
+PiBpcyBpbiAweDQ4LTB4NGIgYW5kIHRoZSBzZWNvbmQgaXQgaW4gMHg0Yy0weDRmLiBXaGlsZSB0
+aGlzIGlzIHRydWUgYXQKPiBwb3dlci11cCBmb3IgdGhlIFc4Mzc5MkQsIHRoZSBCSU9TIG1heSBo
+YXZlIGNoYW5nZWQgdGhpcy4gU28gd2Ugc2hvdWxkCj4gbm90IGFzc3VtZSBhbnl0aGluZyBhbmQg
+c2ltcGx5IGRvOgo+IAo+ICAgICAgICAgICAgICAgIGRhdGEtPmxtNzVbMF0uYWRkciA9IDB4NDgg
+KyAodmFsMSAmIDB4MDcpOwo+ICAgICAgICAgICAgICAgIGRhdGEtPmxtNzVbMV0uYWRkciA9IDB4
+NDggKyAoKHZhbDEgPj4gNCkgJiAweDA3KTsKPiAKPiBUaGlzIHNob3VsZCBiZSBmaXhlZCBpbiB0
+aGUgMi40IGRyaXZlciBhcyB3ZWxsLgo+IAo+IDYqIFRoZSBjb2RlIGRvZXMgKm5vdCogcHJvcGVy
+bHkgaGFuZGxlIHRoZSBjYXNlIHdoZXJlIHN1YmNsaWVudHMgYXJlCj4gZGlzYWJsZWQuIElmIHN1
+YmNsaWVudHMgYWRkcmVzc2VzIGFyZSBmb3JjZWQsIHRoZXkgd2lsbCBiZSBmb3JjaWJseQo+IGVu
+YWJsZWQgKHRoaXMgaXMgT0spLiBJZiB0aGV5IGFyZSBub3QgZm9yY2VkLCB0aGVuIHdlIG1pZ2h0
+IHJlZ2lzdGVyCj4gY2xpZW50cyB3aGljaCBkbyBub3QgZXhpc3QgKHRoaXMgaXMgTk9UIE9LKS4K
+PiAKPiBbSSdkIGhhdmUgYSBzaWRlIHF1ZXN0aW9uLCBhYm91dCB0aGUgc3ViY2xpZW50cyBpbiBn
+ZW5lcmFsLi4uCj4gV2h5IGRvIHdlIHJlZ2lzdGVyIHN1YmNsaWVudHMgYWRkcmVzc2VzIGF0IGFs
+bD8gV2UgY291bGQgaW5zdGVhZAo+IGZvcmNpYmx5IGRpc2FibGUgdGhlbS4gVGhpcyBpcyBlYXNp
+ZXIgYW5kIGp1c3QgYXMgZWZmaWNpZW50IChkaXNhYmxpbmcKPiB0aGUgYWRkcmVzc2VzIGRvZXNu
+J3QgZGlzYWJsZSB0aGUgdGVtcGVyYXR1cmUgY2hhbm5lbHMgdGhlbXNlbHZlcykuXQo+IAo+IFRo
+YW5rcywKPiAtLQo+IEplYW4gRGVsdmFyZQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBj
+b250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFk
+ZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhpcyBlbWFp
+bC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBv
+ciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCBw
+ZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0aW5nIGFjY29yZGlu
+Z2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5l
+dHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlvdXIgY29vcGVyYXRp
+b24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVu
+dGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBh
+bnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJlbGF0ZSB0byB0aGUg
+b2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBn
+aXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENo
+aW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuIFRoZXkgZXNz
+ZW50aWFsbHkgcmVwZWEhCiB0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBhYm92ZS6lu6tI
+pfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKem
+rKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhn
+scLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5
+cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9T
+prm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HE
+Wa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGyk
+p6Xfs/WpzrdOqKMuCg==
