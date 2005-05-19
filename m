@@ -1,7 +1,7 @@
-From: mds@paradyne.com (Mark D. Studebaker )
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:13 +0000
 Subject: I2C_ALGO_MAX
-Message-Id: <3F47D3B8.8090002@paradyne.com>
+Message-Id: <20030823230524.7989eb50.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20030806164123.5f88f7b8.khali@linux-fr.org>
 In-Reply-To: <20030806164123.5f88f7b8.khali@linux-fr.org>
@@ -11,25 +11,22 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
+> > Compiling all sensor chip drivers into the kernel is BAD. Do we want
+> > to help people doing a BAD thing?
+> > 
+> 
+> I think that's what Greg was advocating...
 
-Jean Delvare wrote:
->>>I2C_ALGO_MAX, defined in i2c.h, doesn't seem to be used anywhere.
->>>Same for I2C_DUMMY_MAX. Should we simply remove them?
->>
->>agreed. apparently these aren't registered in a static table like
->>drivers are.
-> 
-> 
-> Done.
->  
-> 
->>BTW if we want to make things better for the foolish people that want
->>to compile-in every driver we should increase the other xxx_MAX
->>defines.
-> 
-> 
-> Compiling all sensor chip drivers into the kernel is BAD. Do we want to
-> help people doing a BAD thing?
-> 
+Yes, I understood that... Still I don't think people will do that.
+Either they know which chipset that have, and compile only this driver
+in, or they don't know and want to have all modules handy for
+sensors-detect to work correctly.
 
-I think that's what Greg was advocating...
+It's great that one can build many drivers into the kernel at once, but
+since the tables we are talking about are static, increasing the limits
+is likely to be a waste of memory space for 99% of the users, and can
+(and should) be easily avoided for the 1% left.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
