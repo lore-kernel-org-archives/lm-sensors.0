@@ -1,25 +1,32 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:43 +0000
-Subject: lm_sensors for ASUS P4PE motherboard
-Message-Id: <20021212094050.511a86f6.khali@linux-fr.org>
+From: dkirk@physics.syr.edu (Dan Kirkpatrick)
+Date: Thu, 19 May 2005 06:23:25 +0000
+Subject: lm_sensors-2.5.1
+Message-Id: <5.1.0.14.2.20011114130438.01c562c8@phy.syr.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <15863.62053.716766.112907@consult.pretender>
-In-Reply-To: <15863.62053.716766.112907@consult.pretender>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Trying to install the rpms for RedHat 6.2 and I get:
 
-> I can't seem to get lm_sensors to work on my new Asus P4PE
-> motherboard. According to the schematics this intel 845PE
-> chipset-based board uses an "Asus ASIC with Hardware Monitor".
-> 
-> I am running RH8.0/linux 2.4.8 with the Redhat rpm lm_sensors-2.6.3-2.
+>[root@weasel lmsensors]# rpm -ivh kernel-i2c-2.5.1smp-1rh62.i386.rpm
+>error: failed dependencies:
+>         kernel-smp = 2.2.14-5.0 is needed by kernel-i2c-2.5.1smp-1rh62
+>[root@weasel lmsensors]# rpm -q kernel-smp
+>kernel-smp-2.2.16-3
+>[root@weasel lmsensors]#
 
-Please update to at least 2.6.5, or even 2.7.0 if you can (better), and
-retry.
+The update to vanilla RH 6.2 has updated kernel-smp to a newer version.
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Suggestions?
+
+Thanks
+
+
+===========================Dan Kirkpatrick                   dkirk@physics.syr.edu
+Computer Systems Manager
+Department of Physics
+Syracuse University, Syracuse, NY
+http://www.physics.syr.edu/help/    Fax:(315) 443-9103
+===========================
