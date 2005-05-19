@@ -1,29 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:11 +0000
-Subject: Ticket 1751
-Message-Id: <20040814222227.670f6b26.khali@linux-fr.org>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: PATCH: bmcsensors port to 2.6.7, associated patch for
+Message-Id: <2538186704071412096450d7e0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200408121858.i7CIw0KW013198@Stimpy.netroedge.com>
-In-Reply-To: <200408121858.i7CIw0KW013198@Stimpy.netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> sensors -s is also run during each reboot. To disable that, just run
-> 'update-rc.d -f lm-sensors remove'
+Hi,
 
-Once done, your chip should be fine after reboots. You should then try
-to write to the various voltage limits (either through /etc/sensors.conf
-and "sensors -s", or through the sysfs interface directly, which should
-be easier). Most likely, one (or a limited number) of these is causing
-the problem. Please test them all and report which are, and which are
-not. Hopefully we'll see some pattern show. I know this represents some
-work but I can't think of another way to find out what triggers the
-problem.
+Attached is my port of the ipmi bmcsensors driver (along with
+associated i2c-ipmi dummy driver) from 2.4 to 2.6.7. Also attached you
+will find a patch allowing the lm_sensors 2.8.7 userspace utilities to
+work with the driver.
 
-Thanks.
+The patches have been tested and works on my machine (HP x4000
+Workstation w/ early IPMI 1.0 implementation) and could do with some
+more testing on other ipmi implementations. Obviously ipmi is not
+widespread yet, so any testing help and feedback is very much
+appreciated.
 
--- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+Thanks,
+Yani
+
+P.S. Could someone add me to this mailing list? :-)
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-lm_sensors-2.8.7-bmcsensors.diff.gz
+Type: application/gzip
+Size: 1820 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040714/0d5cdc38/patch-lm_sensors-2.8.7-bmcsensors.diff.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch-linux-2.6.7-bmcsensors.diff.gz
+Type: application/gzip
+Size: 14175 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040714/0d5cdc38/patch-linux-2.6.7-bmcsensors.diff.bin
