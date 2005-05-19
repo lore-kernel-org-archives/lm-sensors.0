@@ -1,60 +1,90 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:30 +0000
 Subject: A probelm of loading module i2c-ali1563.o
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE0E9F23@weshml03.winbond.com.tw>
+Message-Id: <ETcELAuP.1105693114.0305750.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <265EC8B67800A345A8FB8CA013220F0119E39D@wehqml01>
 In-Reply-To: <265EC8B67800A345A8FB8CA013220F0119E39D@wehqml01>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwgTW9jaGVsCgpUaGlzIGlzIENodW5oYW8KCldlIGZvdW5kIHRoZSBzb3VyY2Ugb2Yg
-aTJjLWFsaTE1NjMuYyBvbiB0aGUgaW50ZXJuZXQ6Cmh0dHA6Ly93d3cua2VybmVsLXdlYnNvdXJj
-ZS5jb20vbGludXgyNjYvc291cmNlLWkyYy1hbGkxNTYzLmh0bQpDb3VsZCB5b3UgY29uZmlybSBp
-dCB3aGVuIHlvdSBhcmUgZnJlZT8gSSB0cmllZCB0byBnZXQgdGhlIHNvdXJjZQpmcm9tIExNLVNl
-bnNvcnMgQ1ZTLCBidXQgZmFpbGVkIHRvIGxvZ2luIGZvciBzZXZlcmFsIHRpbWVzOgoKSWYgd2Ug
-aGF2ZSB0byBiYWNrcG9ydCBpMmMtYWxpMTU2MyB0byBMaW51eCAyLjQgYnkgbXlzZWxmLApDb3Vs
-ZCB5b3UgZ2l2ZSBtZSBzb21lIGd1aWRlcyBhYm91dCBpdD8KCgpCZXN0IFJlZ2FyZHMKQ2h1bmhh
-bwoKCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBKZWFuIERlbHZhcmUgW21h
-aWx0bzpraGFsaUBsaW51eC1mci5vcmddCj4gU2VudDogMjAwNcTqMdTCMTPI1SAyMDowNwo+IFRv
-OiBQSTEzIENGTGk7IHNlbnNvcnNAU3RpbXB5Lm5ldHJvZWRnZS5jb20KPiBDYzogUGF0cmljayBN
-b2NoZWw7IFBJMTAgTEhIc3U7IFBJMTQgRFpTSEVOOyBQSTE0IEhVQU5HMAo+IFN1YmplY3Q6IFJl
-OiBBIHByb2JlbG0gb2YgbG9hZGluZyBtb2R1bGUgaTJjLWFsaTE1NjMubwo+IAo+IAo+IEhpLAo+
-IAo+ID4gV2hpbGUgSSdtIHRyeWluZyB0byBsb2FkIHRoZSBtb2R1bGUgb2YgdGhlIHNvdXRoIGJy
-aWRnZSBjaGlwIChVTEkgTTE1NjMKPiA+IEIxKSwgaXQgc2hvd3MKPiA+W3Jvb3RAbG9jYWxob3N0
-IGJ1c3Nlc10jIGluc21vZCAuL2kyYy1hbGkxNXgzLm8KPiA+Li9pMmMtYWxpMTV4My5vOiBpbml0
-X21vZHVsZTogTm8gc3VjaCBkZXZpY2UKPiAKPiBFeHBlY3RlZCwgc2luY2UgdGhlIE0xNTYzIGlz
-IG5vdCBzdXBwb3J0ZWQgYnkgdGhpcyBkcml2ZXIuCj4gCj4gPiBJcyB0aGVyZSBhbnkgbW9kdWxl
-IG5hbWVkICJpMmMtYWxpMTU2MyI/IEkgb25seSBmb3VuZCAiaTJjLWFsaTE1eDMiLgo+ID4KPiA+
-IERvZXMgaTJjLTIuOC44IHN1cHBvcnQgdGhpcyBjaGlwc2V0IG9mIFVMaT8KPiAKPiBUaGVyZSBp
-cyBhbiBpMmMtYWxpMTU2MyBkcml2ZXIgc3BlY2lmaWNhbGx5IHdyaXR0ZW4gYnkgUGF0cmljayBN
-b2NoZWwgZm9yCj4gdGhlIE0xNTYzLCBidXQgb25seSBhdmFpbGFibGUgZm9yIExpbnV4IDIuNiBh
-dCB0aGUgbW9tZW50Ogo+IGh0dHA6Ly9hcmNoaXZlcy5hbmRyZXcubmV0LmF1L2xtLXNlbnNvcnMv
-bXNnMjY1MzcuaHRtbAo+IAo+IFlvdSB3b3VsZCBuZWVkIHRvIHBvcnQgaXQgYmFjayB0byAyLjQg
-KGkuZS4gdG8gbG1fc2Vuc29ycyBDVlMpLiBQYXRyaWNrCj4gc2VlbXMgdG8gdGhpbmsgdGhpcyB3
-b3VsZCBiZSBlYXN5Lgo+IAo+IC0tCj4gSmVhbiBEZWx2YXJlCgo9PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGlu
-Zm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25s
-eSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIGF1dGhvciBv
-ZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0
-aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFp
-bCB0byBzdWNoIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0aGUgc2VuZGVyIGluZGljYXRp
-bmcgYWNjb3JkaW5nbHkgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21w
-dXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFdlIHRoYW5rIHlvdSBmb3IgeW91
-ciBjb29wZXJhdGlvbi4gSXQgaXMgYWR2aXNhYmxlIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ug
-b2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGli
-aXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIHRoYXQgZG9lcyBub3QgcmVs
-YXRlIHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBh
-cyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLj09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0
-byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2Fn
-ZS4gVGhleSBlc3NlbnRpYWxseSByZXBlYSEKIHQgdGhlJm5ic3A7IEVuZ2xpc2ggc3RhdGVtZW50
-IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVv
-q0ikSKv8qXekp6asq0ikSKj6vlykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm
-863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xf
-p1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl
-/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBU
-qrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4
-rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+
+Hi Chunhao,
+
+> We found the source of i2c-ali1563.c on the internet:
+> http://www.kernel-websource.com/linux266/source-i2c-ali1563.htm
+> Could you confirm it when you are free?
+
+Picking the sources from some random website doesn't sound really good
+;) I would use this one:
+http://linux.bkbits.net:8080/linux-2.5/anno/drivers/i2c/busses/i2c-ali1563.c@1.12
+
+At least you'll be sure the file is correct and up-to-date. If you want
+the file itself, which I think you can't download from bitkeeper's web
+interface, then you should simply download linux-2.6.11-rc1.
+
+> I tried to get the source
+> from LM-Sensors CVS, but failed to login for several times:
+
+I did not experience any problem recently. Try again later, if it still
+doesn't work you may contact Philip Edelbrock but since it works for me
+the problem might be on your side and not on the server side.
+
+> If we have to backport i2c-ali1563 to Linux 2.4 by myself,
+> Could you give me some guides about it?
+
+I am not an expert in bus drivers, so say the least. All I can tell is
+that the Linux 2.6 i2c-ali1563 driver is based on the Linux 2.6
+i2c-ali15x3, i2c-ali1535, and i2c-i801 drivers. This means that if you
+compare these drivers with their lm_sensors CVS counterparts and report
+the differences to the i2c-ali1563 driver, you should get a driver that
+works with lm_sensors CVS. If you have more technical questions, I guess
+that the various folks who wrote and ported these bus drivers will be of
+more help to you than I can be myself.
+
+--
+Jean Delvare
+
+
+
+>
+>
+>Best Regards
+>Chunhao
+>
+>
+>> -----Original Message-----
+>> From: Jean Delvare [mailto:khali@linux-fr.org]
+>> Sent: 2005??1??13?? 20:07
+>> To: PI13 CFLi; sensors@Stimpy.netroedge.com
+>> Cc: Patrick Mochel; PI10 LHHsu; PI14 DZSHEN; PI14 HUANG0
+>> Subject: Re: A probelm of loading module i2c-ali1563.o
+>>
+>>
+>> Hi,
+>>
+>> > While I'm trying to load the module of the south bridge chip (ULI M1563
+>> > B1), it shows
+>> >[root@localhost busses]# insmod ./i2c-ali15x3.o
+>> >./i2c-ali15x3.o: init_module: No such device
+>>
+>> Expected, since the M1563 is not supported by this driver.
+>>
+>> > Is there any module named "i2c-ali1563"? I only found "i2c-ali15x3".
+>> >
+>> > Does i2c-2.8.8 support this chipset of ULi?
+>>
+>> There is an i2c-ali1563 driver specifically written by Patrick Mochel for
+>> the M1563, but only available for Linux 2.6 at the moment:
+>> http://archives.andrew.net.au/lm-sensors/msg26537.html
+>>
+>> You would need to port it back to 2.4 (i.e. to lm_sensors CVS). Patrick
+>> seems to think this would be easy.
+>>
+>> --
+>> Jean Delvare
+>
+>==============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original author of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such person, please kindly reply the sender indicating accordingly and delete all copies of it from your computer and network server immediately. We thank you for your cooperation. It is advisable that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email that does not relate to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.==============================================If your computer is unable to decode Chinese font, please ignore the following message. They essentially repe!
+ at the  English statement above.???H???????t?????q?l???]???????K?????T, ?????v???o?H?H???w?????H?H???\????. ?????z???D?Q???w?????H?H???]???????]?b???g???v?????????U???????H??, ???z?i?????o?H?H?????Y?N?H???q?q???P???????A???????H????. ?????z???X?@, ?????????P??. ?S??????, ???????g???v?????????????q?l?????K???T???????O?Q?Y???T????. ?H???P?????q?l???~?L???????e,???o?????????q?l?????????N??.
