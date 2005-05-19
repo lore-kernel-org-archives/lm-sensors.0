@@ -1,24 +1,30 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:43 +0000
-Subject: [PATCH 2.6] Fix adm1021 alarms mask
-Message-Id: <20050317064041.GI15075@kroah.com>
+From: thomas@plx.com (Thomas Leibold)
+Date: Thu, 19 May 2005 06:25:22 +0000
+Subject: [PATCH] i2c-nforce2.c add support for nForce3 Pro 150 MCP
+Message-Id: <36129.192.168.0.19.1100598647.squirrel@192.168.0.12>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050306083758.2f97cf9d.khali@linux-fr.org>
-In-Reply-To: <20050306083758.2f97cf9d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 06, 2005 at 08:37:58AM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This patch fixes an incorrect bitmasking on the status register in the
-> adm1021 driver, which was causing high alarm on remote temperature to be
-> hidden.
-> This bug was found and reported by Jayakrishnan:
->   http://bugzilla.kernel.org/show_bug.cgi?idB85
+Hi,
 
-Applied, thanks.
+This patch adds recognition of the PCI-Id for the nForce3 Pro 150 MCP
+to the i2c-nforce2.c bus driver. I have tested this simple patch on
+ASUS A7N8X-deluxe (nforce2, i386) and ASUS SK8N (nforce3, x86-64).
 
-greg k-h
+On the ASUS SK8N the hardware monitoring is done with a IT8712F-A chip
+on the ISA bus, so the only use for accessing the 2 SMBUS interfaces
+in the nForce3 MCP is to read the SPD eeprom in the memory modules.
+
+I don't know if this works for other chips in the nForce3 family.
+
+Thomas Leibold
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: nforce3_patch
+Type: text/x-diff
+Size: 886 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20041116/8435d05e/nforce3_patch.bin
