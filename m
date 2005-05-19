@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: zoleg@matrixc.ru (ZOleg Matrix)
 Date: Thu, 19 May 2005 06:24:03 +0000
 Subject: LM83 sensor
-Message-Id: <20030702113808.6421ddc3.khali@linux-fr.org>
+Message-Id: <835828609.20030702184846@matrixc.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43612812.20030701105509@matrixc.ru>
 In-Reply-To: <43612812.20030701105509@matrixc.ru>
@@ -10,26 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello Jean,
 
-> 1. What parameters exist? What they should accept values?
+Wednesday, July 2, 2003, 6:27:16 PM, you wrote:
 
-See the complete doc here:
-  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/it87
-(or in your local doc/chips directory)
+JD> Thanks for the shot. Unfortunately, it doesn't say on which chipset each
+JD> sensor is located :/
 
-> 2. I use i2c and lm_sensors 2.7.0
+JD> I've added preliminary LM83 detection to our sensors-detect script.
+JD> Could you please get it from
+ 
+JD> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/detect/sensors-detect
+JD> and give it a try? Preferably unload all sensors modules before doing so
+JD> and send us a whole log of the script run (using script or whatever).
 
-Would you mind switching to CVS to test the new driver once I'll written
-it? I have no LM83 so I won't be able to test it myself, and I'll need
-you to do so ;)
-
-> 3. sensors-detect offers to load adm1021
-
-Interesting. You should try loading it. Since the LM84 is a "light"
-version of the LM83, your LM83 should really behave like a LM84 with the
-adm1021 driver, and you should get 2 temperatures reported (instead of
-the 4 supported by the LM83).
+Many thanks for the help. I necessarily shall try new sensors-detect,
+but only tomorrow, as at us evening.
+Tomorrow I send you log.
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Best regards,
+ ZOleg                            mailto:zoleg@matrixc.ru
