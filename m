@@ -1,50 +1,174 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:26 +0000
-Subject: lm78 needs vrm 9.0
-Message-Id: <20031124215343.3038234c.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 19 May 2005 06:25:12 +0000
+Subject: stub for driver testing (was Re: lm87 ported to Linux 2.6)
+Message-Id: <20040824034244.GA23169@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1069701990.540.3.camel@agaliaretph>
-In-Reply-To: <1069701990.540.3.camel@agaliaretph>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jean:
 
-> Yes, it told me to use it87.
-> 
-> This is the output I get from sensors:
-> 
-> eeprom-i2c-0-50
-> Adapter: SMBus Via Pro adapter at 0500
-> Algorithm: Non-I2C SMBus adapter
->  
-> it87-isa-0290
-> Adapter: ISA adapter
-> Algorithm: ISA algorithm
-> VCore 1:   +1.47 V  (min =  +1.53 V, max =  +1.87 V)   ALARM
-> VCore 2:   +3.10 V  (min =  +2.25 V, max =  +2.75 V)   ALARM
-> +3.3V:     +6.24 V  (min =  +2.96 V, max =  +3.60 V)   ALARM
-> +5V:       +5.51 V  (min =  +4.50 V, max =  +5.48 V)   ALARM
-> +12V:      +5.92 V  (min = +11.36 V, max = +13.80 V)   ALARM
-> -12V:      -2.82 V  (min = -15.86 V, max = -13.40 V)   ALARM
-> -5V:       -9.44 V  (min = -10.13 V, max =  -9.44 V)   ALARM
-> Stdby:     +0.00 V  (min =  +4.50 V, max =  +5.48 V)   ALARM
-> VBat:      +3.20 V
-> fan1:     4856 RPM  (min = 3000 RPM, div = 2)
-> fan2:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
-> fan3:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
-> Temp1/MB:    +34?C  (min =  +20?C, max =  +60?C)
-> Temp2/CPU:   -78?C  (min =  +20?C, max =  +60?C)
-> Temp3:       +49?C  (min =  +20?C, max =  +60?C)
-> 
-> I'll take a look at sensors.conf to see if I can get something better.
+(CCs trimmed on purpose)
 
-Didn't you simply forgot to run "sensors -s" after loading the module?
+* Jean Delvare <khali@linux-fr.org> [2004-08-23 21:52:06 +0200]:
+> This first patch is untested beyond compilation, as I don't own a LM87
+> myself. This is why I rely on you for testing. The more testers there
 
-Also, you might consider using a newer version. 2.6.5 is old and we have
-been improving almost everything in newer versions.
+Attached is a quick hack that makes this (testing a driver for h/w you
+don't own) a little easier.  It would be even more useful if it wrote to
+a file instead of spamming all those printks - I'll do that if people
+want it.
+
+You'll probably need to pass force_foo parameters to the chip driver to
+get it to attach. Also be warned: if the driver has any polling loops
+which wait for some byte/data to change, this bus stub could lock it up.
+
+Stuff like this probably isn't appropriate for kernel.org (Greg?)
+Maybe it belongs in a new directory in the sensors CVS?
+
+Regards,
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Mark M. Hoffman
+mhoffman@lightlink.com
+
+-------------- next part --------------
+# Handy out-of-kernel Makefile by Gerd Knorr / LWN.net
+#
+ifneq ($(KERNELRELEASE),)
+	obj-m := i2c-stub.o
+else
+	KDIR := /lib/modules/$(shell uname -r)/build
+	PWD  := $(shell pwd)
+
+default:
+	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
+endif
+
+-------------- next part --------------
+/*
+    i2c-stub.c - Part of lm_sensors, Linux kernel modules for hardware
+              monitoring
+
+    Copyright (c) 2004 Mark M. Hoffman <mhoffman@lightlink.com>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+
+#define DEBUG 1
+
+#include <linux/config.h>
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/errno.h>
+#include <linux/i2c.h>
+
+static u8  stub_bytes[256];
+static u16 stub_words[256];
+
+/* Return -1 on error. */
+static s32 stub_xfer(struct i2c_adapter * adap, u16 addr, unsigned short flags,
+	char read_write, u8 command, int size, union i2c_smbus_data * data)
+{
+	s32 ret;
+
+	switch (size) {
+
+	case I2C_SMBUS_QUICK:
+		dev_dbg(&adap->dev, "smbus quick - addr 0x%02x\n", addr);
+		ret = 0;
+		break;
+
+	case I2C_SMBUS_BYTE_DATA:
+		if (read_write = I2C_SMBUS_WRITE) {
+			stub_bytes[command] = data->byte;
+			dev_dbg(&adap->dev, "smbus byte data - addr 0x%02x, "
+					"wrote 0x%02x at 0x%02x.\n",
+					addr, data->byte, command);
+		} else {
+			data->byte = stub_bytes[command];
+			dev_dbg(&adap->dev, "smbus byte data - addr 0x%02x, "
+					"read  0x%02x at 0x%02x.\n",
+					addr, data->byte, command);
+		}
+
+		ret = 0;
+		break;
+
+	case I2C_SMBUS_WORD_DATA:
+		if (read_write = I2C_SMBUS_WRITE) {
+			stub_words[command] = data->word;
+			dev_dbg(&adap->dev, "smbus word data - addr 0x%02x, "
+					"wrote 0x%04x at 0x%02x.\n",
+					addr, data->word, command);
+		} else {
+			data->word = stub_words[command];
+			dev_dbg(&adap->dev, "smbus word data - addr 0x%02x, "
+					"read  0x%04x at 0x%02x.\n",
+					addr, data->word, command);
+		}
+
+		ret = 0;
+		break;
+
+	default:
+		dev_dbg(&adap->dev, "Unsupported I2C/SMBus command\n");
+		ret = -1;
+		break;
+	} /* switch (size) */
+
+	return ret;
+}
+
+static u32 stub_func(struct i2c_adapter *adapter)
+{
+	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE_DATA |
+		I2C_FUNC_SMBUS_WORD_DATA;
+}
+
+static struct i2c_algorithm smbus_algorithm = {
+	.name		= "Non-I2C SMBus adapter",
+	.id		= I2C_ALGO_SMBUS,
+	.functionality	= stub_func,
+	.smbus_xfer	= stub_xfer,
+};
+
+static struct i2c_adapter stub_adapter = {
+	.owner		= THIS_MODULE,
+	.class		= I2C_CLASS_HWMON,
+	.algo		= &smbus_algorithm,
+	.name		= "SMBus stub driver",
+};
+
+static int __init i2c_stub_init(void)
+{
+	printk(KERN_INFO "i2c-stub loaded\n");
+	return i2c_add_adapter(&stub_adapter);
+}
+
+static void __exit i2c_stub_exit(void)
+{
+	i2c_del_adapter(&stub_adapter);
+}
+
+MODULE_AUTHOR("Mark M. Hoffman <mhoffman@lightlink.com>");
+MODULE_DESCRIPTION("I2C stub driver");
+MODULE_LICENSE("GPL");
+
+module_init(i2c_stub_init);
+module_exit(i2c_stub_exit);
