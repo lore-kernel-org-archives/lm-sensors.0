@@ -1,92 +1,67 @@
-From: Manfred.Knick@T-Online.de (Manfred Knick)
-Date: Thu, 19 May 2005 06:24:56 +0000
-Subject: I2C and lm-sensors : gentoo-sources 2.4.25 and your patches
-Message-Id: <200405030319.31256.Manfred.Knick@T-Online.de>
+From: oldbomber@hotmail.com (Thomas Swan)
+Date: Thu, 19 May 2005 06:25:29 +0000
+Subject: w83627hf triggers high fan speed, Re: Ticket 1722
+Message-Id: <BAY16-F41605B467AC3A4F1B5C036BD940@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Kind regards from Munich. Germany !
+I just wanted to let you know I had the exact same problem on a ASUS k8v se=
+=20
+deluxe mobo with Q-Fan Control enabled in Bios, as Ticket 1722.
+
+Fedora Core 2 i386    kernel  2.6.9-1.11_FC2
+
+and
+
+Fedora Core 3 X86_64  kernel  2.6.9-1.724_FC3
 
 
-Using Gentoo, I tried to follow Jean Delvare's instructions:
+As soon as all the modprobes were completed
 
-emerged a fresh clean actual production kernel (gentoo-sources-2.4.25-r2)
-and renamed the tree to gentoo-sources-2.4.25-r2-sensors -
+modprobe i2c-viapro
+modprobe i2c-isa
+modprobe lm75
+modprobe eeprom
+modprobe w83627hf
+/usr/bin/sensors -s # recommended
 
-modifying Makefile -> EXTRAVERSION = -gentoo-r2-sensors accordingly.
+the CPU fan went to maximum RPM.
 
-Then I applied the provided patch for 2.4.25.
+w83697hf-isa-0290
+Adapter: ISA adapter
+VCore:     +1.57 V  (min =3D  +1.71 V, max =3D  +1.89 V)
++3.3V:     +3.33 V  (min =3D  +3.14 V, max =3D  +3.47 V)
++5V:       +5.21 V  (min =3D  +4.76 V, max =3D  +5.24 V)
++12V:     +11.55 V  (min =3D +10.82 V, max =3D +13.19 V)
+-12V:      +1.04 V  (min =3D -13.18 V, max =3D -10.80 V)
+-5V:       +5.10 V  (min =3D  -5.25 V, max =3D  -4.75 V)
+V5SB:      +5.62 V  (min =3D  +4.76 V, max =3D  +5.24 V)
+VBat:      +0.40 V  (min =3D  +2.40 V, max =3D  +3.60 V)
+fan1:     0 RPM  (min =3D   -1 RPM, div =3D 4)
+fan2:      5000 RPM  (min =3D 3341 RPM, div =3D 2)
+temp1:       +43=B0C  (high =3D    +4=B0C, hyst =3D   +56=B0C)   sensor =3D=
+ thermistor  =20
+ALARM
+temp2:     +50.0=B0C  (high =3D   +80=B0C, hyst =3D   +75=B0C)   sensor =3D=
+ thermistor
+alarms:   Chassis intrusion detection                      ALARM
+beep_enable:
+          Sound alarm enabled
 
-But unfortunately, after quite hopeful compilation efforts, depmod fails:
+I used:
 
-if [ -r System.map ]; then /sbin/depmod -ae -F System.map  
-2.4.25-gentoo-r2-sensors; fi
+w83626hf init=3D0
 
-with
-	*** Unresolved symbols
-in 
-	/lib/modules/kernel/drivers/mgavideo/ks0127.o
-	/lib/modules/kernel/drivers/mgavideo/mga_core.o
-	/lib/modules/kernel/drivers/mgavideo/maven.o
-	/lib/modules/kernel/drivers/mgavideo/msp3400.o
-	/lib/modules/kernel/drivers/mgavideo/tuner.o
+as suggested by Khali and it all worked fine and the CPU fan acted as it=20
+should do.  It also then picked up fan1 speed.
 
-missing
-		i2c_add_adapter
-		i2c_del_adapter
-		i2c_add_driver
-		i2c_del_driver
-		i2c_attach_client
-		i2c_detach_client
-		i2c_get_client
-		i2c_master_send
-		i2c_master_recv
-		i2c_transfer
-		i2c_probe
+Thank you very much for the tip.
 
-_all_ of these being defined via  EXPORT_SYMBOL in
+Cheers Tony.
 
-	linux/drivers/i2c/i2c-core.c
-But :
-	> grep I2C .config
-results in :
-
-# I2C support
-CONFIG_I2C=m
-CONFIG_I2C_ALGOBIT=m
-# CONFIG_I2C_PHILIPSPAR is not set
-# CONFIG_I2C_ELV is not set
-# CONFIG_I2C_VELLEMAN is not set
-# CONFIG_SCx200_I2C is not set
-# CONFIG_I2C_ALGOPCF is not set
-CONFIG_I2C_CHARDEV=m
-CONFIG_I2C_PROC=m
-CONFIG_FB_MATROX_I2C=m
-
-And:
-	> find /lib/modules/2.4.25-gentoo-r2-sensors/ -name i2c*.o -print
-results in :
-
-/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-core.o
-/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-algo-bit.o
-/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-proc.o
-/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/i2c/i2c-dev.o
-/lib/modules/2.4.25-gentoo-r2-sensors/kernel/drivers/video/matrox/i2c-matroxfb.o
-
-so it seems "i2c-core" _has_ been built.
-
-Applying "emerge --ask  /usr/portage/sys-apps/lm-sensors/i2c-2.8.4.ebuild"
-and trying it again led to identical results.
-
-
-??? Do I have tomatoes on my eyes ???
-(Yes, I do realize it's 03:16 early in the morning over here ;-)
-
-??? Can you help me and spot it ???
-
-Greetings and thanks in advance
-
-- Manfred
+_________________________________________________________________
+Click here for the latest chart ringtones: =20
+http://ringtones.com.au/ninemsn/control?page=3D/ninemsn/main.jsp
