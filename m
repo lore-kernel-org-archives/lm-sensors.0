@@ -1,71 +1,55 @@
-From: seth@integratedsolutions.org (Seth Bardash)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: Ticket 854 - Cancel
-Message-Id: <DAEMKKFFGJCEMKANCFOEOEPOCIAA.seth@integratedsolutions.org>
+From: aurelien@aurel32.net (Aurelien Jarno)
+Date: Thu, 19 May 2005 06:24:45 +0000
+Subject: DS1621 support for kernel 2.6 (+question about PCF8591)
+Message-Id: <20040304224220.GB8606@pc.aurel32.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-To the developers and maintainers,
+On Wed, Mar 03, 2004 at 11:16:19PM +0100, Jean Delvare wrote:
+> Hi Aurelien :)
+> 
+> > I have ported the ds1621 driver from lm-sensors 2.8.4 to kernel 2.6.3.
+> 
+> Good news :)
+> 
+> Have you been following the porting-chips and sysfs-interface documents?
+Yes, I have read these documents and tried to follow them. For this
+driver, there is two more file type than described in sysfs-interface,
+continous and enable. However, as they doesn't need to be accessed
+through lm-sensors I think it should not be a problem. They are mostly
+there if you screwed up the device.
+ 
+> > I also plan to port the pcf8574 and pcf8591 drivers over the
+> > week-end.
+> 
+> Probably not the most wanted chips ;) but it you have a particular
+> interest for these, do not hesitate.
+Yes I know they are not very common however I sometimes use them. Since
+I switched to a 2.6 kernel, I can't use them anymore, that's why I am 
+interested by ported them.
 
-With the help of Kelsey Hudson from ticket 840 I got this working.
+BTW, I don't know really how to follow the sysfs-interface document with
+the PCF8591. The current driver in lm-sensors creates the following
+files under /proc:
+ain_conf:    used to configure the 4 inputs (single ended, differential,
+             etc.)
+ch[0-3]:     the 4 input channels, representing a voltage
+aout:        the output channel, representing a voltage
+aout_enable: enable/disable the output channel
 
-Attached are the files and modifications needed. It was not clear
-exactly how to set these up. Once I spoke to Kelsey he got me going
-in the right direction and I now have this working. The biggest
-mistake was putting spaces after the commas in the options
-command in modules.conf. The ticket and my printer had me
-going in the wrong direction. (sucks syntax!)
+I think I can map ch[0-3] to in[0-3] but for the others I don't know
+what to do. If you have an idea, let me know.
 
-For those of us not on the up to date edge of your wonderful
-work, we need a little more explicit instructions.
+> I'll review your code over the week-end if nodoby has done so before.
+Thanks !
 
-Attached are the files that need to be added/modified to get
-i2c and lm sensors working on the S2466.
+Aurelien
 
-Thanks for all the work you put in and for the site. It was
-a learning experience. We use your code almost every day and
-for new system testing its indispensable!
-
-Sincerely,
-
-Seth Bardash - KI?PE
-
-Integrated Solutions & Systems L.L.C.
-http://www.integratedsolutions.org
-
-1510 North Gate Road
-Colorado Springs, CO 80921
-
-Phone:   719-495-5866
-Fax:     719-495-5870
-Cell:    719-460-4368
-
-seth@integratedsolutions.org
-
-Supplier of AMD, Intel and SPARC Servers and Systems
-running Windows, Linux, Solaris and VxWorks.
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: modules.conf
-Type: application/octet-stream
-Size: 174 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020328/8d523c08/modules.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: rc.local
-Type: application/octet-stream
-Size: 497 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020328/8d523c08/rc.obj
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: sensors.conf
-Type: application/octet-stream
-Size: 3428 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20020328/8d523c08/sensors.obj
+-- 
+  .''`.  Aurelien Jarno	              GPG: 1024D/F1BCDB73
+ : :' :  Debian GNU/Linux developer | Electrical Engineering Student 
+ `. `'   aurel32@debian.org         | aurelien@aurel32.net
+   `-    people.debian.org/~aurel32 | www.aurel32.net
