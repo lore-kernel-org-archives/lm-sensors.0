@@ -1,26 +1,36 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:56 +0000
-Subject: [PATCH 2.6] I2C: Add support for the LPC47M15x and LPC47M192
-Message-Id: <20050502205304.GA9058@kroah.com>
+From: johannes@johanneshuebner.com (=?ISO-8859-1?Q?Johannes_H=FCbner?=)
+Date: Thu, 19 May 2005 06:25:08 +0000
+Subject: w83l785ts inserted but no readings right away
+Message-Id: <410E4CA4.6070601@johanneshuebner.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050426220943.1cabf69d.khali@linux-fr.org>
-In-Reply-To: <20050426220943.1cabf69d.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 26, 2005 at 10:09:43PM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> This simple patch adds support for the SMSC LPC47M15x and LPC47M192
-> chips to the smsc47m1 hardware monitoring driver. These chips are
-> compatible with the other ones already supported by the driver, so I see
-> no reason not to support them, especially when the Linux 2.4 version of
-> the driver does already.
-> 
-> I also modified the info printks to name the chips by their real name.
-
-Applied, thanks.
-
-greg k-h
+SGksCgpJIGhhdmUgYW4gQXN1cyBBN044WC1YIG1haW5ib2FyZCB3aXRoIHRoZSBhc2IxMDAgKGJh
+Y2gpIGFuZCB0aGUgCnc4M2w3ODV0cyBjaGlwLiBMYXR0ZXIgb25lIHJlYWRzIHRoZSBpbnRlcm5h
+bCBDUFUtdGVtcC1kaW9kZS4gV2hlbiBhbGwgCm5lZWRlZCBtb2R1bGVzIGFyZSBsb2FkZWQgaXQg
+d29ya3MgcmVhbGx5IHdlbGwgaW5jbHVkaW5nIGZhbmNvbnRyb2wuIEJ1dCAKdGhlIHc4M2w3ODV0
+cyBkb2Vzbid0IGFsd2F5cyB3b3JrLiBXaGVuIHRoZSBtb2R1bGUgaXMgaW5zZXJ0ZWQgdHJvdWdo
+IAp0aGUgbG1fc2Vuc29ycyBzdGFydC1zY3JpcHQgaXQgaXMgbGlzdGVkIHdoZW4gZG9pbmcgbHNt
+b2QgYnV0IHRoZXJlIGlzIApubyAvc3lzL2J1cy9pMmMvZGV2aWNlcy8xLTAwMmUvIGRpcmVjdG9y
+eS4gQWZ0ZXIgSSBybW1vZCBhbmQgbW9kcHJvYmUgCnRoZSBtb2R1bGUgKHNvbWV0aW1lcyBzZXZl
+cmFsIHRpbWVzKSBldmVyeXRoaW5nIHdvcmtzLiBXaGVuIHVzaW5nIApXaW5kb3dzIEkgcmVhbGl6
+ZWQgdGhhdCBTcGVlZCBGYW4gYWxzbyBzb21ldGltZXMgZmFpbGVzIHRvIGRldGVjdCB0aGUgCnc4
+M2w3ODV0cy1jaGlwLiBJcyB0aGlzIGEga25vd24gcHJvYmxlbSBhbmQgZG8geW91IGtub3cgYSB3
+b3JrYXJvdW5kPwpUaGVyZSBhcmUgbm8gZXJyb3ItbWVzc2FnZXMgZnJvbSBtb2Rwcm9iZSwgZG1l
+c2cgb3IgYW55Ym9keSBlbHNlLgoKSGVyZSBpcyBteSBjb25maWd1cmF0aW9uClN5c3RlbTogRmVk
+b3JhIENvcmUgMgp1bmFtZSAtciA6IDIuNi42LTEuNDM1LjIuMwpzZW5zb3JzIC0tdmVyc2lvbiA6
+ICAyLjguNgpjYXQgL2V0Yy9zeXNjb25maWcvbG1fc2Vuc29yczoKLS0tLS0KTU9EVUxFXzA9aTJj
+LW5mb3JjZTIKTU9EVUxFXzHucHJvbQpNT0RVTEVfMj1hc2IxMDAKTU9EVUxFXzM9dzgzbDc4NXRz
+Ci0tLS0tCmNhdCAvZXRjL2ZhbmNvbnRyb2wgOgotLS0tLQpJTlRFUlZBTBAKRkNURU1QUz0gMS0w
+MDJkL2ZhbjFfcHdtPTEtMDAyZS90ZW1wMV9pbnB1dApGQ0ZBTlM9IDEtMDAyZC9mYW4xX3B3bT0x
+LTAwMmQvZmFuMV9pbnB1dApNSU5URU1QPSAxLTAwMmQvZmFuMV9wd20lCk1BWFRFTVA9IDEtMDAy
+ZC9mYW4xX3B3bWAKTUlOU1RBUlQ9IDEtMDAyZC9mYW4xX3B3bRMwCk1JTlNUT1A9IDEtMDAyZC9m
+YW4xX3B3bZAKLS0tLS0KCkkgaG9wZSB0aGlzIGlzIGFsbCBpbmZvcm1hdGlvbiB5b3UgbmVlZApU
+aGFua3MgZm9yIHlvdXIgaGVscCBpbiBhZHZhbmNlIGFuZCB0aGFuayB5b3UgZm9yIGxtX3NlbnNv
+cnMhCgpKb2hhbm5lcyBIP2JuZXIKCkJUVzogSSBoYWQgdG8gY2hhbmdlIHB3bWNvbmZpZyBhIGJp
+dCBmb3IgaXQgdG8gZGV0ZWN0IHRoZSBmYW5YX3B3bSBsaW5lcyAKb2YgdGhlIGFzYjEwMC4gSW4g
+aXQgcyBjdXJyZW50IHN0YXRlIGl0IG9ubHkgZmluZHMgcHdtWCAuIEkgY2FuIHNlbmQgaXQgCnRv
+IHlvdSBpZiB5b3UgZG9uJ3Qga25vdyB3aGF0IEkgbWVhbi4K
