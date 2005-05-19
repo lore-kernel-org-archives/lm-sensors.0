@@ -1,16 +1,61 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
+From: Alexander.Povolotsky@marconi.com (Povolotsky, Alexander)
 Date: Thu, 19 May 2005 06:25:27 +0000
 Subject: Linux  2.6.10-rc3 for 8xx with I2C config enabled  fails ...
-Message-Id: <20041219150053.GB10771@jupiter.solarsys.private>
+Message-Id: <313680C9A886D511A06000204840E1CF0A6473BE@whq-msgusr-02.pit.comms.marconi.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20041219150053.GB10771@jupiter.solarsys.private>
+In-Reply-To: <20041219150053.GB10771@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+>Not sure why you're writing me privately...
+Sorry - didn't know about existance of this particular list ... I am new in
+the area ... - my sincere apologies !
+(I hope I will be excused - at least I was not soliciting anything but just
+info and advise,
+ for which in my idealistic judgement there is no money equivalent, since
+those are ... priceless.
+Of course, this is just my private view and other people might have
+different opinion on this subject ).
+
+In http://www2.lm-sensors.nu/~lm78/cvs/i2c/doc/summary I see:
+..
+Adapter drivers
+---------------
+..
+i2c-rpx:         RPX board Motorola 8xx I2C device (uses i2c-algo-8xx) (NOT
+BUILT BY DEFAULT)
+..
+
+Does above comment relates to 2.4 or 2.6 or both ?
+
+As it was discovered, 2.6 distribution lacks (as far as ppc 8xx is
+concerned)
+ both: i2c-algo-8xx.h and i2c-algo-8xx.c files, which are present in 2.4 .
+
+Tom Rini suggested to me to bring both files into Linux 2.6 and to merge
+i2c-rpx.c with i2c-algo-8xx.c
+into one file (placing it it under the busses subdirectory ? - AP ) - any
+opinion on that ?
+
+Thanks,
+Best Regards,
+Alex
+
+-----Original Message-----
+From: Mark M. Hoffman [mailto:mhoffman@lightlink.com]
+Sent: Sunday, December 19, 2004 10:01 AM
+To: Povolotsky, Alexander
+Cc: Sensors
+Subject: Re: Linux 2.6.10-rc3 for 8xx with I2C config enabled fails ...
+
+
 Hello Alexander:
 
-* Povolotsky, Alexander <Alexander.Povolotsky@marconi.com> [2004-12-18 10:57:38 -0500]:
+* Povolotsky, Alexander <Alexander.Povolotsky@marconi.com> [2004-12-18
+10:57:38 -0500]:
 > Hi Mark,
 
 Not sure why you're writing me privately...
@@ -18,7 +63,8 @@ Not sure why you're writing me privately...
 > I have FreeScale (Motorola) 8xx custom board with single 24C02 I2C EEPROM,
 > connected to the I2C bus.
 > 
-> Building Linux (latest and greatest ;-) ) 2.6.10-rc3 FAILS for 8xx with I2C
+> Building Linux (latest and greatest ;-) ) 2.6.10-rc3 FAILS for 8xx with
+I2C
 > config enabled  - see attached below - 
 > but it works in Linux 2.4 .
 > 
@@ -34,19 +80,22 @@ Not sure why you're writing me privately...
 > Is there any documentation (or may be you could kindly explain to me)
 > what was the idea behind reorganizing drivers sub-directories between 2.4
 > and 2.6 ?
-> It looks like those changes are beyond simply 'cosmetic' improvements ? - am
+> It looks like those changes are beyond simply 'cosmetic' improvements ? -
+am
 > I correct ?
 
 AFAIK, the directory org was just cosmetic.
 
->  - I would highly appreciate this answer, since it would help me to attempt
+>  - I would highly appreciate this answer, since it would help me to
+attempt
 > to try make it work in 2.6 !
 
 If you haven't already, take a look here for documentation:
 
 http://secure.netroedge.com/~lm78/docs.html
 
-And if you have any more questions, please send them to the sensors mailing list
+And if you have any more questions, please send them to the sensors mailing
+list
 which I've CC'ed.  BTW: there's no need to subscribe, the list is open.
 
 > -----Original Message-----
@@ -66,7 +115,8 @@ which I've CC'ed.  BTW: there's no need to subscribe, the list is open.
 > > 
 > > Originally I was getting error:
 > >  CC      drivers/i2c/busses/i2c-rpx.o
-> > drivers/i2c/busses/i2c-rpx.c:20:32: linux/i2c-algo-8xx.h: No such file or
+> > drivers/i2c/busses/i2c-rpx.c:20:32: linux/i2c-algo-8xx.h: No such file
+or
 > > directory - why I am missing it - any hint ?
 > 
 > Hm, looks like the 8xx i2c algorithm was never ported to Linux 2.6. Greg,
