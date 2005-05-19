@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:49 +0000
 Subject: PWM on a W83697HF
-Message-Id: <1079973515.405f168b101c5@imp.gcu.info>
+Message-Id: <1080052293.40604a45852f3@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1079973316.405f15c4abd09@imp.gcu.info>
 In-Reply-To: <1079973316.405f15c4abd09@imp.gcu.info>
@@ -10,46 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[Iiiirk, I misspelled Uwe's address, resending... Sorry for the noise.]
+Quoting Uwe Andersen <uandersen@MAYAH.com>:
 
-Quoting Uwe Andersen:
-                                                                        
-                                                    
-> do you know how to work with the fan control capability (PWM) of a
-> Winbond W83697HF?
-> I tried various values in the bank0-registers 0x00, 0x01, 0x02, 0x03,
-> 0x04 with various fans(do PWM need special fans?) but the fan
-> rotation never changed.
-                                                                        
-                                                    
-PWM doesn't need special fans AFAIK (unlike fan speed reporting).
-                                                                        
-                                                    
-The W83697HF has two PWM channels (registers 0x01 and 0x03) which are
-handled by our drivers (w83781d and w83627hf). You should not have to
-play with registers directly, simply use the the pwm1 and pwm2 files
-exported through procfs (2.4 kernels) or sysfs (2.6 kernels). The value
-to write to/read from the file is between 0 and 255 (these are the
-values of the registers, unchanged).
-                                                                        
-                                                    
-For gory details, see the W83697HF datasheet, but it should not be
-needed (unless you suspect there is some bug in our drivers).
-                                                                        
-                                                    
-You may want to take a look at the tools under prog/pwm and
-doc/fancontrol.txt in our package.
-                                                                        
-                                                    
-Note that for PWM to work, your motherboard manufacturer must have
-wired
-the chip and fans correctly. If you cannot get it to work, this may
-simply mean that this wasn't done. Which motherboard is it after all?
-                                                                        
-                                                    
---
+> I should have be more concrete:
+> 
+> I'm not using lm_sensors...
+> I'm working on a real time OS called RTOS-32 and doing the hardware
+> monitoring software on my own.
+> The last thing missing was PWM and I read that lm_sensors is using
+> that feature on the W83697HF.
+> So I thought of an answer like "Did you enabled PWM in register xy
+> with bit n?"
+> I have written several values into register 0x01 and register 0x03
+> but the fan speed didn't change.
+> If there is nothing else to do it looks like that my motherboard
+> (Epox 8KMM3I) is the problem.
+> 
+> Sorry for being so unprecise.
+
+No problem. We don't do anything but read/write registers 0x01 and 0x03
+in our drivers, and this is supposed to work, so there's nothing more I
+can tell you, sorry. There is no bit that is supposed to be set to
+enable it AFAIK.
+
+Maybe you could contact Epox and ask them if PWM is supposed to be
+supported on this motherboard?
+
+-- 
 Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/                                  
-                                                                       
-                  
-
+http://www.ensicaen.ismra.fr/~delvare/
