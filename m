@@ -1,43 +1,23 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 May 2005 06:25:05 +0000
-Subject: LM75 detection reworked
-Message-Id: <20040712234035.GA16654@jupiter.solarsys.private>
+From: yanii@utsc.utoronto.ca (Yani Ioannou)
+Date: Thu, 19 May 2005 06:24:48 +0000
+Subject: [Fwd: PATCH: bmcsensors and i2c-ipmi port to 2.6]
+Message-Id: <4056FCE9.2020904@utsc.utoronto.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040703105636.6ba726d6.khali@linux-fr.org>
-In-Reply-To: <20040703105636.6ba726d6.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2004-07-08 21:06:15 +0200]:
-> > Bad news: I up'd to 1.334 of sensors-detect and 1.48 of lm75.c... now
-> > my two lm75s are not detected by the script nor by the driver.
-> > 
-> > Here's what I guess happened: earlier, when you asked me to test, I
-> > unloaded all the i2c/sensors drivers, rebuilt and tested; you saw
-> > the results.  Now when I tested again tonight, it's the first try
-> > since a reboot.
-> > 
-> > Certainly, I can't believe that the changes between 1.332 and 1.334 of
-> > sensors-detect should affect me w.r.t. the lm75s.
-> > 
-> > I apologize for the mixup; from now on I'll be sure to test following
-> > a fresh reboot as well as re-inserting the modules.  Here are the
-> > dumps immediately following a reboot for two lm75s.  Let me know if
-> > there's anything else I can provide.
-> 
-> OK, simply looks like we cannot assume anything about the lower
-> temperature bits. I removed the check for them. I *guess* that they are
-> either all 1's or all 0's but since we are not certain...
-> 
-> Please test lm75.c and sensors-detect from CVS. If it fixed the problem
-> for you I'll send an update to Greg for 2.6.
+Hi, attached is my e-mail to the author of the bmcsensors and i2c-ipmi 
+driver (*Mark D. Studebaker*), I realized I probably should have CCed 
+the original message to the lm-sensors development team as a whole.
 
-OK, works now... following fresh reboot and also after modprobe/rmmod cycle.
-
-Thanks and regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
+Thanks :-),
+Yani
+-------------- next part --------------
+An embedded message was scrubbed...
+From: Yani Ioannou <yanii@utsc.utoronto.ca>
+Subject: PATCH: bmcsensors and i2c-ipmi port to 2.6
+Date: Mon, 15 Mar 2004 11:36:32 -0500
+Size: 22254
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040316/fd7de55f/bmcsensorsandi2c-ipmiportto2.mht
