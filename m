@@ -1,7 +1,7 @@
 From: andreas@schutz.se (andreas@schutz.se)
 Date: Thu, 19 May 2005 06:25:48 +0000
 Subject: parport driver
-Message-Id: <34147.83.233.14.177.1112650710.squirrel@webmail1.b-one.nu>
+Message-Id: <2259.193.180.228.194.1112682343.squirrel@webmail1.b-one.nu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0503101052200.25688@desitka.sh.cvut.cz>
