@@ -1,39 +1,41 @@
-From: phil@netroedge.com (phil@netroedge.com)
-Date: Thu, 19 May 2005 06:23:31 +0000
-Subject: I2C displays
-Message-Id: <20020411184453.N31673@Stimpy.netroedge.com>
+From: rentnerschreck@ecraft.org (Marius =?ISO-8859-1?Q?Dr=E4ger?=)
+Date: Thu, 19 May 2005 06:24:00 +0000
+Subject: 1283 ticket datasheet
+Message-Id: <1055798868.13976.2.camel@rentnerschreck.mine.nu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <005e01c1e1be$cbcf7090$23fb3491@aangel>
-In-Reply-To: <005e01c1e1be$cbcf7090$23fb3491@aangel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/W86L785TS-S.pdf
 
-Hi, thanks for the note.  As a matter of fact, there is some basic
-support for the Matrix Orbital displays.  I wrote a basic driver which
-lets you do some simple stuff through a /proc file.  It might be
-more flexible to access the device more directly by using the /dev
-interface to the I2C bus, though, if you want more control.
+some flaws i and somebody found out 
+..
+Don't worry about the different partnumber in the link, they made a
+mistake in the document name. You'll see the correct partnumber in the
+document itself. There are other mistakes too: 
+Page 8 says "The 8-bit temperature data can be obtained by reading the
+register." without telling you which one (it's CR27). 
+In the tables on page 10,13 and 20 the values for R1 are wrong in the
+row 85?C/30?C (should be 9.1K instead of 91K) and in the row 85?C/32?C
+(should be 6.8K instead of 68K). Of course now that I understand the
+purpose of those resistors I realize that they don't matter for a device
+driver. 
+Most important is the mistake on page 10 where the sentence reads: "When
+monitoring CPUT1 (Pin 2) temperature exceeds temperature fault limit
+(ex: 90 o C) in CR26, or CR27, pin6 TEMP_FAULT# will be asserted.". This
+should really read: "When monitoring CPUT1 (Pin 2) temperature in CR27
+exceeds the temperature fault limit in CR26 (ex: 90?C) pin6 TEMP_FAULT#
+will be asserted.". 
+On page 13 the document declares CR26 to be reserved, but I checked on
+my board and it does indeed contain the temperature fault limit value. 
 
-Anyways, yes, the support is there.  btw-I think using the I2C bus is
-a little cleaner than using a serial interface for the displays, imho. 
-
-
-Phil
-
-On Fri, Apr 12, 2002 at 03:10:06AM +0200, PE1SBH wrote:
-> Hi there, I admire your programming skills and I'm heavily busy remoddeling mobo's (now my dual abit bp6 board). I saw the I2C architecture in it, and thought.. what?? Why not using that?? So I have some thought about adressing a LCD module via I2C bus.
- Can you support I2C displays as Matroxorb? And just plain displays which are connected (4bits/8bits) to the I2C bus with an I2C->par converter such as (for example) philips PCF8576? I2C adressing is a much improvement above parallel, speed and int load a
-re just superior to par/ser adressing. When more people starting to realize that (perhaps you can support/mention it on your page?), much people will do it that (I2C) way because they want to save cpu cycles :-)
-> 
-> Thanks for all, you're a great motivator to get me back on developing more (computer based) hardware.
-> 
-> Sencerely,
-> Alex.
-
+Another thing to note is that the 7-bit i?c address is 0101110. Normally
+the lowest bit indicates reading from or writing to the chip. This would
+make 0x5C the read and 0x5D the write address. However the chip is
+clearly accessible at the address 0x2E on the A7N8X (same 7-bit address
+just shifted to the right).
+hope i can help
 -- 
-Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
-   phil@netroedge.com -- http://www.netroedge.com/~phil
- PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
+Marius Dr?ger <rentnerschreck@ecraft.org>
