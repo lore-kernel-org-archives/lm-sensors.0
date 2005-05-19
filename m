@@ -1,26 +1,53 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:40 +0000
-Subject: [PATCH 2.6] Make i2c list terminators explicitely unsigned
-Message-Id: <20050225200737.GB25915@kroah.com>
+From: app@mail.writecode.org (app@mail.writecode.org)
+Date: Thu, 19 May 2005 06:25:00 +0000
+Subject: lm_sensors on kernel 2.6.6
+Message-Id: <20040530155539.5BF6218FD9B@mail.writecode.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050224222935.5524648c.khali@linux-fr.org>
-In-Reply-To: <20050224222935.5524648c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Feb 24, 2005 at 10:29:35PM +0100, Jean Delvare wrote:
-> Hi Greg,
-> 
-> Shouldn't the i2c list terminators be explicitely declared as unsigned?
-> I'd hope it to help code analysis tools and possibly avoid false
-> positives. Coverity's SWAT pointed my attention to these constants.
-> 
-> Thanks.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+hey,
+I've been trying to install lm_sensors on kernel 2.6.6. 
+All the modules were compiled and loaded from the kernel and in lm_sensors I ran make user && make user_install
 
-Applied, thanks.
+now, when I try to run the sensors binary it seems to be trying to get data from the wrong files.
 
-greg k-h
+open("/sys/bus/i2c/devices/0-002d/in_input6", O_RDONLY) = -1 ENOENT (No such file or directory)
+
+This is one example of many. while on my machine the file:
+/sys/bus/i2c/devices/0-002d/in6_input exists
+
+The output I get not under strace:
+root@writecode:~# sensors -s
+as99127f-i2c-0-2d: Can't access procfs/sysfs file for writing;
+Run as root?
+root@writecode:~#
+
+root@writecode:~# sensors
+as99127f-i2c-0-2d
+Adapter: SMBus Via Pro adapter at e800
+Algorithm: Unavailable from sysfs
+ERROR: Can't get IN0 data!
+ERROR: Can't get IN1 data!
+ERROR: Can't get IN2 data!
+ERROR: Can't get IN3 data!
+ERROR: Can't get IN4 data!
+ERROR: Can't get IN5 data!
+ERROR: Can't get IN6 data!
+ERROR: Can't get FAN1 data!
+ERROR: Can't get FAN2 data!
+ERROR: Can't get FAN3 data!
+ERROR: Can't get TEMP1 data!
+ERROR: Can't get TEMP2 data!
+ERROR: Can't get TEMP3 data!
+ERROR: Can't get VID data!
+alarms:
+beep_enable:
+          Sound alarm enabled
+
+root@writecode:~#
+
+Yours,
+Eli Shmer.
