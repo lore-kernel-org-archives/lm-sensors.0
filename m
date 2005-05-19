@@ -1,37 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: New driver for W83L785TS-S
-Message-Id: <20031215220548.5946ff22.khali@linux-fr.org>
+From: phil@netroedge.com (phil@netroedge.com)
+Date: Thu, 19 May 2005 06:23:39 +0000
+Subject: i2c/kernel i2c-pcf-epp.c
+Message-Id: <20020912092000.P32227@Stimpy.netroedge.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-Just wanted to let you know that we at last have prelimilary support for
-the W83L785TS-S chipset, which is found on the Asus A7N8X motherboards.
+Just a reminder to put your name in parenthesis before the CVS commit 
+comments just to make it easier to track edits.
 
-Feel free to check it out from our lm_sensors2 CVS repository. Note that
-you'll need i2c-id.h from CVS as well:
-http://www2.lm-sensors.nu/~lm78/cvs/i2c/kernel/i2c-id.h
-(Copy it to /usr/local/include/linux or wherever it needs to be on your
-system).
+Thanks!
 
-You need at least i2c-2.8.1 (or a kernel patch based on it) for the
-driver to work. Alsa, lm_sensors2 CVS is meant for 2.4 kernels, not 2.6
-ones. I'll port the driver later.
 
-There is the driver and support in sensors-detect, libsensors and
-sensors. Still missing are support in sensors.conf and some
-documentation.
+Phil
 
-Over temperature writing is disabled for now, until I have more
-information on that particular point. For now, I'm not even sure which
-register it is, nor if it is allowed to write to it. Feedback and
-information will be welcome.
+On Wed, Sep 11, 2002 at 11:53:27PM -0700, author@mordac.netroedge.com wrote:
+> Update of /home/cvs/i2c/kernel
+> In directory mordac.netroedge.com:/tmp/cvs-serv26450/i2c/kernel
+> 
+> Modified Files:
+> 	i2c-pcf-epp.c 
+> Log Message:
+> Added __exit to static void pcf_epp_exit(void)
+> ACC 12 Sep 02
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Philip Edelbrock -- IS Manager -- Edge Design, Corvallis, OR
+   phil@netroedge.com -- http://www.netroedge.com/~phil
+ PGP F16: 01 D2 FD 01 B5 46 F4 F0  3A 8B 9D 7E 14 7F FB 7A
