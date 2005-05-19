@@ -1,23 +1,164 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:52 +0000
-Subject: [PATCH 2.6] Error paths in it87 and via686a drivers
-Message-Id: <20040412232228.GB26817@kroah.com>
+From: blues@ds6.pg.gda.pl (Blues)
+Date: Thu, 19 May 2005 06:23:36 +0000
+Subject: fixes to instalation process
+Message-Id: <Pine.LNX.4.44L.0207232057370.30478-200000@piorun.ds.pg.gda.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20040410172219.06b2ee65.khali@linux-fr.org>
-In-Reply-To: <20040410172219.06b2ee65.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Apr 10, 2004 at 05:22:19PM +0200, Jean Delvare wrote:
-> Hi Greg,
-> 
-> Here comes the patch that fixes error paths in the it87 and via686a
-> detection functions. The it87 part also adds missing error values.
-> 
-> Please apply (on top of the big kmalloc patch),
+This patch helps to make instalation in some DESTDIR on non-root user.
+For example: when making rpm-package from non-privileged user. Options `-o 
+root` in install causes build to fail.
 
-Applied, thanks.
+After all - there is some inconsequence in instalation process. 
+install-kernel uses MODDIR, install-kernel-busses and install-kernel-chips 
+uses MODPREF. This should be unified.
 
-greg k-h
+It's used now in PLD Linux Distribution (http://www.pld.org.pl)
+
+-- 
+---------------------------------
+pozdr.  Pawe? Go?aszewski        
+---------------------------------
+CPU not found - software emulation...
+-------------- next part --------------
+--- ./etc/Module.mk.org	Fri Dec 24 20:52:27 1999
++++ ./etc/Module.mk	Tue Jul 23 16:55:28 2002
+@@ -29,7 +29,7 @@
+ install-etc:
+ 	$(MKDIR) $(DESTDIR)$(ETCDIR)
+ 	if [ ! -e $(DESTDIR)$(ETCINSTALL) ] ; then \
+-	  $(INSTALL) -o  root -g root -m 644 $(ETCTARGET) $(DESTDIR)$(ETCINSTALL); \
++	  $(INSTALL) -o  root -g root -m 644 $(ETCTARGET) $(DESTDIR)$(ETCINSTALL) || true; \
+ 	fi
+ install :: install-etc
+ 
+--- ./kernel/busses/Module.mk.org	Sat Jul  6 02:49:13 2002
++++ ./kernel/busses/Module.mk	Tue Jul 23 16:22:15 2002
+@@ -89,13 +89,13 @@
+ 	if [ -n "$(KERNELBUSSESTARGETS)" ] ; then \
+ 	  if [ -d "$(DESTDIR)$(MODPREF)/kernel" ] ; then \
+ 	    $(MKDIR) $(DESTDIR)$(MODPREF)/kernel/drivers/i2c ; \
+-	    $(INSTALL) -o root -g root -m 644 $(KERNELBUSSESTARGETS) $(DESTDIR)$(MODPREF)/kernel/drivers/i2c ; \
++	    $(INSTALL) -o root -g root -m 644 $(KERNELBUSSESTARGETS) $(DESTDIR)$(MODPREF)/kernel/drivers/i2c || true; \
+ 	    for i in $(KERNELBUSSESTARGETS) ; do \
+ 	      $(RM) $(DESTDIR)$(MODPREF)/misc/`basename $$i` ; \
+ 	    done \
+ 	  else \
+ 	    $(MKDIR) $(DESTDIR)$(MODPREF)/misc ; \
+-	    $(INSTALL) -o root -g root -m 644 $(KERNELBUSSESTARGETS) $(DESTDIR)$(MODPREF)/misc ; \
++	    $(INSTALL) -o root -g root -m 644 $(KERNELBUSSESTARGETS) $(DESTDIR)$(MODPREF)/misc || true; \
+ 	  fi \
+ 	fi
+ 
+--- ./kernel/chips/Module.mk.org	Sat Jul  6 02:49:13 2002
++++ ./kernel/chips/Module.mk	Tue Jul 23 16:22:58 2002
+@@ -136,13 +136,13 @@
+ 	if [ -n "$(KERNELCHIPSTARGETS)" ] ; then \
+ 	  if [ -d "$(DESTDIR)$(MODPREF)/kernel" ] ; then \
+ 	    $(MKDIR) $(DESTDIR)$(MODPREF)/kernel/drivers/sensors ; \
+-	    $(INSTALL) -o root -g root -m 644 $(KERNELCHIPSTARGETS) $(DESTDIR)$(MODPREF)/kernel/drivers/sensors ; \
++	    $(INSTALL) -o root -g root -m 644 $(KERNELCHIPSTARGETS) $(DESTDIR)$(MODPREF)/kernel/drivers/sensors || true; \
+ 	    for i in $(KERNELCHIPSTARGETS) ; do \
+ 	      $(RM) $(DESTDIR)$(MODPREF)/misc/`basename $$i` ; \
+ 	    done \
+ 	  else \
+ 	    $(MKDIR) $(DESTDIR)$(MODPREF)/misc ; \
+-	    $(INSTALL) -o root -g root -m 644 $(KERNELCHIPSTARGETS) $(DESTDIR)$(MODPREF)/misc ; \
++	    $(INSTALL) -o root -g root -m 644 $(KERNELCHIPSTARGETS) $(DESTDIR)$(MODPREF)/misc || true; \
+ 	  fi \
+ 	fi
+ 
+--- ./kernel/include/Module.mk.org	Tue Feb  6 03:53:46 2001
++++ ./kernel/include/Module.mk	Tue Jul 23 16:24:16 2002
+@@ -33,7 +33,7 @@
+ install-all-kernel-include:
+ 	if [ -n "$(KERNELINCLUDEFILES)" ] ; then \
+ 	  $(MKDIR) $(DESTDIR)$(SYSINCLUDEDIR) ; \
+-	  $(INSTALL) -o root -g root -m 644 $(KERNELINCLUDEFILES) $(DESTDIR)$(SYSINCLUDEDIR) ; \
++	  $(INSTALL) -o root -g root -m 644 $(KERNELINCLUDEFILES) $(DESTDIR)$(SYSINCLUDEDIR) || true; \
+ 	fi
+ 
+ install :: install-all-kernel-include
+--- ./kernel/Module.mk.org	Tue Feb  6 03:53:46 2001
++++ ./kernel/Module.mk	Tue Jul 23 16:21:08 2002
+@@ -39,7 +39,7 @@
+ install-kernel: all-kernel
+ 	if [ -n "$(KERNELTARGETS)" ] ; then \
+ 	  $(MKDIR) $(DESTDIR)$(MODDIR) ; \
+-	  $(INSTALL) -o root -g root -m 644 $(KERNELTARGETS) $(DESTDIR)$(MODDIR) ;\
++	  $(INSTALL) -o root -g root -m 644 $(KERNELTARGETS) $(DESTDIR)$(MODDIR) || true ;\
+ 	fi
+ 	$(RM) $(DESTDIR)$(MODDIR)/sensors.o
+ 
+--- ./lib/Module.mk.org	Sat Mar 23 01:53:08 2002
++++ ./lib/Module.mk	Tue Jul 23 16:46:24 2002
+@@ -87,12 +87,12 @@
+ 
+ install-lib: all-lib
+ 	$(MKDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(LIBINCLUDEDIR) $(DESTDIR)$(LIBMAN3DIR) $(DESTDIR)$(LIBMAN5DIR)
+-	$(INSTALL) -o root -g root -m 644 $(LIBTARGETS) $(DESTDIR)$(LIBDIR)
++	$(INSTALL) -o root -g root -m 644 $(LIBTARGETS) $(DESTDIR)$(LIBDIR) || true
+ 	$(LN) $(LIBSHLIBNAME) $(DESTDIR)$(LIBDIR)/$(LIBSHSONAME)
+ 	$(LN) $(LIBSHSONAME) $(DESTDIR)$(LIBDIR)/$(LIBSHBASENAME)
+-	$(INSTALL) -o root -g root -m 644 $(LIBHEADERFILES) $(DESTDIR)$(LIBINCLUDEDIR)
+-	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(LIBMAN3FILES) $(DESTDIR)$(LIBMAN3DIR)
+-	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(LIBMAN5FILES) $(DESTDIR)$(LIBMAN5DIR)
++	$(INSTALL) -o root -g root -m 644 $(LIBHEADERFILES) $(DESTDIR)$(LIBINCLUDEDIR) ||true
++	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(LIBMAN3FILES) $(DESTDIR)$(LIBMAN3DIR) || true
++	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(LIBMAN5FILES) $(DESTDIR)$(LIBMAN5DIR) || true
+ 
+ install :: install-lib
+ 
+--- ./prog/detect/Module.mk.org	Fri Dec 24 20:52:27 1999
++++ ./prog/detect/Module.mk	Tue Jul 23 16:49:07 2002
+@@ -36,7 +36,7 @@
+ 
+ install-prog-detect: all-prog-detect
+ 	mkdir -p $(DESTDIR)$(SBINDIR)
+-	$(INSTALL) -o root -g root -m 755 $(PROGDETECTSBININSTALL) $(DESTDIR)$(SBINDIR)
++	$(INSTALL) -o root -g root -m 755 $(PROGDETECTSBININSTALL) $(DESTDIR)$(SBINDIR) || true
+ install :: install-prog-detect
+ 
+ clean-prog-detect:
+--- ./prog/sensord/Module.mk.org	Sun Apr 28 16:26:07 2002
++++ ./prog/sensord/Module.mk	Tue Jul 23 16:49:49 2002
+@@ -45,8 +45,8 @@
+ 
+ install-prog-sensord: all-prog-sensord
+ 	$(MKDIR) $(DESTDIR)$(SBINDIR) $(DESTDIR)$(PROGSENSORDMAN1DIR)
+-	$(INSTALL) -o root -g root -m 755 $(PROGSENSORDTARGETS) $(DESTDIR)$(SBINDIR)
+-	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(PROGSENSORDMAN1FILES) $(DESTDIR)$(PROGSENSORDMAN1DIR)
++	$(INSTALL) -o root -g root -m 755 $(PROGSENSORDTARGETS) $(DESTDIR)$(SBINDIR) || true
++	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(PROGSENSORDMAN1FILES) $(DESTDIR)$(PROGSENSORDMAN1DIR) || true
+ install :: install-prog-sensord
+ 
+ clean-prog-sensord:
+--- ./prog/sensors/Module.mk.org	Fri Dec 24 20:52:28 1999
++++ ./prog/sensors/Module.mk	Tue Jul 23 16:50:43 2002
+@@ -41,8 +41,8 @@
+ 
+ install-prog-sensors: all-prog-sensors
+ 	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(PROGSENSORSMAN1DIR)
+-	$(INSTALL) -o root -g root -m 755 $(PROGSENSORSTARGETS) $(DESTDIR)$(BINDIR)
+-	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(PROGSENSORSMAN1FILES) $(DESTDIR)$(PROGSENSORSMAN1DIR)
++	$(INSTALL) -o root -g root -m 755 $(PROGSENSORSTARGETS) $(DESTDIR)$(BINDIR) || true
++	$(INSTALL) -o $(MANOWN) -g $(MANGRP) -m 644 $(PROGSENSORSMAN1FILES) $(DESTDIR)$(PROGSENSORSMAN1DIR) || true
+ install :: install-prog-sensors
+ 
+ clean-prog-sensors:
+--- ./Makefile.org	Mon Apr 29 03:37:07 2002
++++ ./Makefile	Tue Jul 23 16:19:17 2002
+@@ -170,8 +170,9 @@
+ # PROGCPPFLAGS/PROGCFLAGS is to create non-kernel object files (which are linked into executables).
+ # ARCPPFLAGS/ARCFLAGS are used to create archive object files (static libraries).
+ # LIBCPPFLAGS/LIBCFLAGS are for shared library objects.
++OPTS=-O2
+ ALL_CPPFLAGS := -I. -Ikernel/include -I$(I2C_HEADERS) -I$(LINUX_HEADERS)
+-ALL_CFLAGS := -O2 
++ALL_CFLAGS := $(OPTS)
+ 
+ ifeq ($(DEBUG),1)
+ ALL_CPPFLAGS += -DDEBUG
