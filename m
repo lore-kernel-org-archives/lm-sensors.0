@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: i801 bus problems
-Message-Id: <20040903131120.M20779@linux-fr.org>
+Message-Id: <20040903135207.M14212@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
@@ -10,31 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> i2cdump 0 0x2e
-> (...)
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 20: 74 6f bf c4 c0 2f 26 25 ab 09 ff ff ff ff df 23    to???/&%??....?#
-> 30: 4d 4d 4d 00 00 00 00 00 00 00 00 00 00 00 5c 68    MMM...........\h
-> 40: 05 83 01 00 00 ff 00 ff 00 ff 00 ff 00 ff 81 7f    ???...........??
-> 50: 81 7f 81 7f ff ff ff ff ff ff ff ff 02 22 22 7a    ????........?""z
-> 60: 80 80 e8 88 4d 4d 4d 38 2d 2d 45 41 41 24 40 00    ????MMM8--EAA$@.
-> 70: 4d 4d 4d 09 09 09 09 09 09 00 30 00 40 00 ec 18    MMM??????.0.@.??
-> 80: 1e a4 0e 00 00 76 c6 cf d1 00 40 40 09 09 0b 00    ???..v???.@@???.
-> 90: 04 04 04 04 0c 0c 0c 5a f1 00 00 00 23 00 00 00    ???????Z?...#...
-> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+> Confirmed  SMSC EMC6D103 !!!!
+> 
+> on a photo of the mobo on the web there was a
+> ADM1027
 
-Did sensors-detect pretend this was an ADM1027? It's not. I would think it's
-an SMSC EMC6D103. This is probably mostly compatible with the LM85 (or maybe
-even the brand new LM96000) and the earlier EMC6C10x. The lm85 driver should
-detect it as a "generic" LM85-compatible chip. This may be improved later by
-checking the datasheet and seeing what features the chip exactly has.
+Since both chips are compatible, I guess intel use whatever they have at hand
+at the moment.
+
+Anyway the story is quiet easy to understand now.
+
+1* The "no response" errors in the logs are for the other possible addresses
+of LM85-compatible chips (0x2c and 0x2d). That's not what your chip uses so
+the bus cannot read from these addresses. Nothing wrong.
+
+2* The lm85 driver in Linux 2.6 doesn't support SMSC chips, although the 2.4
+driver does. Using force=0,0x2e should work in the meantime. The original post
+suggests you tried and it didn't, but the log right after that says "found
+normal i2c entry for adapter 0, addr 2e" so I doubt it worked, you must have
+missed something. Just try again.
+
+At some time, the SMSC support should be ported from the 2.4 driver, and
+extended to the 103 and maybe 102 as well if they are compatible (and they
+seem to be but I don't know the LM85 family that good).
 
 -- 
 Jean Delvare
