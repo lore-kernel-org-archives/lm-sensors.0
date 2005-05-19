@@ -1,40 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: PWM on a W83697HF
-Message-Id: <1080222282.4062e24ad7cd2@imp.gcu.info>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 19 May 2005 06:24:13 +0000
+Subject: 2.6 - sysfs sensor nameing inconsistency
+Message-Id: <20030818213112.GB3478@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1079973316.405f15c4abd09@imp.gcu.info>
-In-Reply-To: <1079973316.405f15c4abd09@imp.gcu.info>
+References: <200307152214.38825.arvidjaar@mail.ru> <200308161938.47935.arvidjaar@mail.ru> <20030816165016.GE9735@kroah.com> <200308182049.57093.arvidjaar@mail.ru>
+In-Reply-To: <200308182049.57093.arvidjaar@mail.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-Quoting Uwe Andersen <uandersen@MAYAH.com>:
+On Mon, Aug 18, 2003 at 08:49:57PM +0400, Andrey Borzenkov wrote:
+> On Saturday 16 August 2003 20:50, Greg KH wrote:
+> > > > I like this idea, but now that the name logic has changed in the i2c
+> > > > code, care to re-do this patch?  Just set the name field instead of
+> > > > creating a new file in sysfs.
+> > >
+> > > something like attached patch? I like it as well :)
+> >
+> > Why rename local variables?  Your patch would be a lot smaller if you
+> > just keep the same local name variable, and fix up the name strings.
+> >
+> 
+> To make it clear for anyone porting other drivers that we are using type_name 
+> and not client_name or whatever. In 2.4 every driver have both; mixing name, 
+> type_name and client_name will just add to confusion.
 
-> I didn't use your code as a base. 
-> (...)
-> If you like I can send you my source so that you can convince
-> yourself that I don't sponge on your code.
+No, we don't need both a "type_name" and a "client_name" anymore, right?
+So it's just a simple "name" for the i2c client device.  "type_name" is
+handled by the name of the client driver now.
 
-This won't be necessary. I just misread your previous mail, sorry for
-the trouble:
+> I will redo patch if you insist but I really prefer having things consistent 
+> if possible.
 
-> When I want to integrate lm_sensors I have to solve some problems:
-> a) Throw away running code  ..*sigh*..
-> b) Make lm_sensors compatible (e.g. the "out" command has its
->    parameters "address" and "value" just the other way round.)
-> c) I have to make all the linux header files included compatible
+I prefer having things make sense :)
+So yes, I'd prefer if you change your patch.
 
-I guess this should have read "IF I WOULD want to", not "When I want". I
-thought you described what you did, while you were explaining why you
-precisely don't want to... Whatever, I read it wrong. Sorry again.
+I've cced the sensors mailing list to get any feedback from them.
 
-> BTW, what means "IANAL"?
+thanks,
 
-"I'm not a lawyer"
-http://www.catb.org/~esr/jargon/html/I/IANAL.html
-
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+greg k-h
