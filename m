@@ -1,38 +1,76 @@
-From: greg@kroah.com (Greg KH)
+From: hunold@convergence.de (Michael Hunold)
 Date: Thu, 19 May 2005 06:24:48 +0000
 Subject: [RFC][2.6] Additional i2c adapter flags for i2c client isolation
-Message-Id: <20040317231135.GA4970@kroah.com>
+Message-Id: <4059C6AE.7010102@convergence.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4056C805.8090004@convergence.de> <20040316154454.GA13854@kroah.com> <20040316201426.1d01f1d3.khali@linux-fr.org> <20040316195325.GA22473@kroah.com> <1079515049.405817a9a3da0@imp.gcu.info> <20040317174255.GE19060@kroah.com> <20040317210504.34eb192f.khali@linux-fr.org>
-In-Reply-To: <20040317210504.34eb192f.khali@linux-fr.org>
+References: <4056C805.8090004@convergence.de> <20040316154454.GA13854@kroah.com>
+In-Reply-To: <20040316154454.GA13854@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sensors@stimpy.netroedge.com
-Cc: linux-kernel@vger.kernel.org, hunold@convergence.de
+To: Greg KH <greg@kroah.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@stimpy.netroedge.com
 
-On Wed, Mar 17, 2004 at 09:05:04PM +0100, Jean Delvare wrote:
-> > > How would we export the value though? Numerical, with user-space
-> > > headers to be included by user-space applications? Or converted to
-> > > some explicit text strings so that no headers are needed?
-> > 
-> > A text string would be simple enough to use.
+Hello,
+
+On 16.03.2004 16:44, Greg KH wrote:
+> On Tue, Mar 16, 2004 at 10:25:25AM +0100, Michael Hunold wrote:
 > 
-> I'm not sure.  What about a chip driver that would belong to more than
-> one class?  What about the eeprom driver which will belong to all
-> classes?  With a numeric value, a simple binary operation handles all
-> the cases.  With text strings we would end having to parse a possibly
-> multi-valued string, and do string comparisons, with at least one
-> exception to handle.  This is likely to require much more resources,
-> don't you think?
+>>Here, all client drivers are unconditionally told to try and attach to
+>>the adapter. There is no way that an i2c adapter can keep an i2c driver
+>>away from the bus.
+> 
+> 
+> Yes, but the different i2c chip drivers all check for the class setting
+> to be correct before they really do anything, right?
 
-Ok, I wasn't really awake when writing that, you are correct.  Other
-devices export "values" that have to be looked up in tables in userspace
-(think device ids).  We can just export a hex number that matches the
-ones in i2c.h
+As you've already noticed below, it's completely up to the driver -- and 
+I don't trust i2c drivers I haven't written... ;-)
 
-Anyone want to write a patch?  :)
+>>Currently, adapters can already specify a class, for DVB
+>>I2C_ADAP_CLASS_TV_DIGITAL matches perfectly.
 
-thanks,
+> Yes, and that is what you should check for.  It's a bug if any of the
+> non-DVB i2c drivers probe devices with the .class set to
+> I2C_ADAP_CLASS_TV_DIGITAL.  Fix that and you should be fine, right?
 
-greg k-h
+In theory this should be sufficient, but doesn't help if you have some 
+"I don't care which bus this is and I'll probe it anyway" device.
+
+Just think of all the i2c client drivers that are not part of the 
+official kernel. I don't want to fix all these, just keep them away from 
+"my" i2c busses...
+
+>>What I'd like to have is that client can specify some sort of "class",
+>>too, and that i2c adapters can tell the core that only clients where the
+>>class is matching are allowed to probe their existence.
+
+> Yeah, right now it's up to the chip drivers to be honest.  If you want
+> to implement a change to do this instead, I'll be glad to apply it.
+
+Ok, thanks. I'm heading for the small solution that doesn't break any 
+existing "functionality" (if it's desired or not) and that doesn't 
+require to touch every i2c driver in the kernel.
+
+Here is the agenda:
+
+- add a "class" field to the i2c client driver struct (ie. let the 
+driver specify "I'm a DVB device" for example)
+- add a flag to the adapter struct telling the i2c core "I only want 
+drivers with a matching class to probe on this bus"
+- make the i2c core actually check if an adapter has set the flag 
+mentioned above and only let any i2c clientprobe on the bus if it has 
+the matching class field
+
+This won't break existing functionality (because all "old" i2c client 
+drivers don't have the "class" field set and all "old" i2c adapters 
+don't have the new flag specified) and will keep all i2c client drivers 
+away from my DVB i2c busses.
+
+The DVB i2c drivers, however, will be able to probe on the DVB i2c bus.
+
+> thanks,
+> greg k-h
+
+CU
+Michael.
