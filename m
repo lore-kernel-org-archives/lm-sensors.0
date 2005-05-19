@@ -1,7 +1,7 @@
 From: grant_lkml@dodo.com.au (Grant Coady)
 Date: Thu, 19 May 2005 06:25:58 +0000
 Subject: [PATCH 2.6] I2C: sysfs names: rename to cpu0_vid, take 3
-Message-Id: <vs85815vqsd8o40h9atobv7sosidrdrtol@4ax.com>
+Message-Id: <p1e581lnv6oftmknftuj2ess28fuida1d8@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <hi6m71d93atlu1pci6jmqmt5ob58t6n0i8@4ax.com>
 In-Reply-To: <hi6m71d93atlu1pci6jmqmt5ob58t6n0i8@4ax.com>
