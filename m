@@ -1,7 +1,7 @@
-From: kraxel@bytesex.org (Gerd Knorr)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:53 +0000
 Subject: i2c address probing and AT24RF08 corruption
-Message-Id: <20040419141307.GD10649@bytesex.org>
+Message-Id: <1082389839.4083f54f22309@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1082123259.407fe3fb3d41c@imp.gcu.info>
 In-Reply-To: <1082123259.407fe3fb3d41c@imp.gcu.info>
@@ -10,37 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I have been testing with the following ranges in sensors-detect:
-> 0x30-0x37, 0x3C-0x3F, 0x50-0x57 and 0x5C-0x5F on my two systems (which
-> include EEPROMs on-board and over DDC, and other chips) and it worked
-> OK. This set of ranges is only a proposal, I have no strong objection
-> against a more extended range set (0x30-0x3F and 0x50-0x5F for example)
-> or a shorter one (as long as at least all five addresses of the AT24RF08
-> are included).
-> 
-> Objections, comments, anyone?
+> Just a side note as you are talking about address ranges and the
+> like here:  Please keep in mind that there is a world outside smbus
+> which also uses i2c and where your assumtions are not nessesarely
+> correct even if they are for smbus.
 
-Just a side note as you are talking about address ranges and the like
-here:  Please keep in mind that there is a world outside smbus which
-also uses i2c and where your assumtions are not nessesarely correct even
-if they are for smbus.
+I do know that and keep it in mind. However, I obviously don't know the
+audio and video side of I2C as good as you do. The non-smbus chips I
+thought about are the ones which are part of the lm_sensors project
+(A/D and D/A converters, multiplexers, lcd displays, switches).
 
-I've added the .class bitfield during 2.5 to help avoid probing problems.
-The basic idea is to classify the busses be able to limit probing to
-busses where it makes sense to do that.  The tuner.o module for example
-will simply ignore any i2c adapter which hasn't the
-I2C_ADAP_CLASS_TV_ANALOG bit set in .class because it doesn't make much
-sense to look for a tv card tuner somewhere else.  It also doesn't make
-much sense to check for sensor chips on a TV card ;)
+Do you know of any chip on you side using an address in the 0x30-0x3F or
+0x50-0x5F ranges? If there are, I would need to know what they are and
+how much they like quick writes and byte reads, so that I can refine my
+changes.
 
-Don't know how widely this new .class bitfield is used outsite the v4l
-world, but it is a good idea to use it.  Reportly some DVB card
-frontends are reacting very sensitive to the lm_sensor probes.  Right
-now dvb uses a separate i2c system so it isn't a big issue right now,
-but very likely the dvb will switch over to the kernel's i2c subsystem
-soon.
+As a side node, I don't expect people to run sensors-detect on
+video-dedicated i2c busses...
 
-  Gerd
+> Reportly some DVB card frontends are reacting very sensitive to the
+> lm_sensor probes.
+
+.but I am obviously wrong ;) Any chance you could provide more details
+about how bad it goes? Maybe the change I am planning to do could
+improve this too.
+
+Thanks.
 
 -- 
-http://bigendian.bytesex.org
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
