@@ -1,44 +1,84 @@
-From: stefano@codesink.org (Stefano Barbato)
-Date: Thu, 19 May 2005 06:24:28 +0000
-Subject: EEPROM read/write user space program
-Message-Id: <200312022150.49769.stefano@codesink.org>
+From: m@sorvankyla.yok.utu.fi (Mikko Tuumanen)
+Date: Thu, 19 May 2005 06:24:16 +0000
+Subject: I did ask VIA to release a better datasheet
+Message-Id: <Pine.LNX.4.21.0309090632380.8446-101000@sorvankyla.yok.utu.fi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20031122084059.0f9f73fa.khali@linux-fr.org>
-In-Reply-To: <20031122084059.0f9f73fa.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've modified eeprog so that -8 and -16 can be selected. 8bit mode is now the 
-default (thanks to Jean for the suggestion). It's definitely safer.
+Hello. 
 
-download link:
-	http://codesink.org/download/eeprog-0.7.5.tar.gz
+A couple of weeks ago I tried lm_sensors and none of few of the values
+made any sense.
 
-please update, thanks.
+Then I read the FAQ and did as it said: I asked Via to release a better
+datasheet. First they asked me to sign a NDA, but when I refused, they
+sent me a datasheet.
 
-stefano
+Being a little sceptic, I doubt the datasheet will help very much.
+If I could get it by simply sending a couple of emails, you probably
+have gotten it the same way too.
+
+But here it is anyway.
+
+You should add this incident to the faq, so that you don't get the same
+pdf mailed to you again and again :-)
 
 
 
-On Friday 28 November 2003 19:23, Jean Delvare wrote:
-> > __________________________________WARNING____________________________
-> > ___ Erroneously writing to a system EEPROM (like DIMM SPD modules) can
-> > brake your system.  It will NOT boot any more so you'll not be able to
-> > fix it.
->
-> It's "break", not "brake" (also in some way I agree it does too ;)).
-> And "any more" is "anymore".
->
-> > Reading from 8bit EEPROMs (like that in your DIMM) without using the
-> > -8 switch can also UNEXPECTEDLY write to them, so be sure to use the
-> > -8 command param when required.
->
-> Wouldn't it be safer to default to 8-bit and have a switch to use
-> 16-bit addressing? From what you said, "reading from an 8bit eeprom
-> using 16bit addressing can actually *write* to the eeprom", but what
-> would reading a 16-bit eeprom using 8-bit addressing do? If it isn't
-> dangerous, I believe you should default to 8-bit addressing.
->
-> BTW, isn't it possible to detect the addressing mode?
+---------- Forwarded message ----------
+Date: Tue, 09 Sep 2003 12:19:45 +1000
+From: Fiona Gatt <fiona.gatt@viaarena.com>
+To: 'Mikko Tuumanen' <m@sorvankyla.yok.utu.fi>
+Subject: RE: Bad readings from the VIA 686A!
+
+Hi Mikko,
+
+It is just company policy. But I have received permission to provide it
+to you without any NDA. Please find the datasheet attached.
+
+Regards
+
+Fiona Gatt
+VIA Arena Team
+Web Media Liaison
+VIA Technologies, Inc.
+www.viaarena.com
+www.viatech.com
+
+
+-----Original Message-----
+From: Mikko Tuumanen [mailto:m@sorvankyla.yok.utu.fi] 
+Sent: Monday, September 08, 2003 4:10 PM
+To: Fiona Gatt
+Subject: RE: Bad readings from the VIA 686A!
+
+> Could you please complete the attached NDA and email a scanned copy of
+
+You obviously didn't get it.
+
+Please read the page
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html#
+Section%204.17
+again.
+
+lm_sensors is Free Software (sometimes referred to as Open Source). If
+one
+does sign a NDA, then how is he or she supposed to be able to release
+the
+source, when the NDA probably forbids it?
+
+Please release the datasheet without the NDA.
+
+Your competitors are not going to reverse engineer the HDL code of your
+chip from the datasheet :-) What are you afraid of anyway?
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: VT82C686A SB datasheet rev 1.8.pdf
+Type: application/pdf
+Size: 1206922 bytes
+Desc: 
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20030909/caa68d47/VT82C686ASBdatasheetrev1.8.pdf
