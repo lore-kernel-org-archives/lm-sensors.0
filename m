@@ -1,50 +1,65 @@
-From: jchapman@katalix.com (James Chapman)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:41 +0000
 Subject: [PATCH: 2.6.11-rc5] i2c chips: ds1337 RTC driver
-Message-Id: <42274D78.8020608@katalix.com>
+Message-Id: <20050303204934.69620667.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42235171.80500@katalix.com>
-In-Reply-To: <42235171.80500@katalix.com>
+References: <cIyC5ZN2.1109756623.5808030.khali@localhost>
+	<422747FB.9020004@katalix.com>
+In-Reply-To: <422747FB.9020004@katalix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: James Chapman <jchapman@katalix.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <sensors@stimpy.netroedge.com>, Greg KH <greg@kroah.com>
 
-I just posted a revised version. I forgot to include i2c-ids.h in
-my original patch. The new patch should also fix the reference to
-client->id.
+Hi James,
 
-/james
+> A revised ds1337 patch addressing all of Jean's comments is attached.
 
-Andrew Morton wrote:
+Fine with me except for:
 
-> James Chapman <jchapman@katalix.com> wrote:
-> 
->>Add DS1337 RTC chip driver.
->>
-> 
-> 
-> drivers/i2c/chips/ds1337.c:60: `I2C_DRIVERID_DS1337' undeclared here (not in a function)
-> 
-> 
-> Also, there are changes in Greg's i2c tree which break your new driver:
-> 
-> drivers/i2c/chips/ds1337.c:60: initializer element is not constant
-> drivers/i2c/chips/ds1337.c:60: (near initialization for `ds1337_driver.id')
-> drivers/i2c/chips/ds1337.c: In function `ds1337_get_datetime':
-> drivers/i2c/chips/ds1337.c:155: structure has no member named `id'
-> drivers/i2c/chips/ds1337.c: In function `ds1337_set_datetime':
-> drivers/i2c/chips/ds1337.c:206: structure has no member named `id'
-> drivers/i2c/chips/ds1337.c: In function `ds1337_detect':
-> drivers/i2c/chips/ds1337.c:333: structure has no member named `id'
-> drivers/i2c/chips/ds1337.c:343: structure has no member named `id'
-> 
-> 
-> 
-> 
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+> +				     I2C_FUNC_SMBUS_I2C_BLOCK))
 
+I don't this it is correct. You are using master_xfer, not
+i2c_smbus_{read,write}_i2c_block_data. Adapter which declare themselves
+I2C_FUNC_SMBUS_I2C_BLOCK-capable may not implement master_xfer. You
+really need to check for I2C_FUNC_I2C.
 
+Now I agree that the transfers you do ARE i2c block transfers, and I
+find it highly questionable that our implementation of
+i2c_smbus_read_i2c_block_data will always read 32 bytes of data from the
+chip. It would be much more convenient to allow I2C block reads of
+arbitrary length, (just like we do with I2C block writes) so that
+clients can use this function instead of master_xfer.
+
+It should be a quite simple fix if I correctly remember the i2c-core
+code, with the only drawback that it alters the API. That being said,
+the only kernel user (in kernel) of this function that I could find is
+the eeprom driver (this can be easily explained by the fact that this
+function, as it is now, is essentially useless), so I wouldn't mind the
+risk. The net benefit would be that i2c chip drivers could start using
+this function instead of master_xfer, so they would possibly work with
+more than just the fully I2C-capable adapters (not that many of them,
+see list right below).
+
+i2c-dev might be a problem if we go that way, because we will silently
+change the way I2C block reads requested from userspace are handled. Not
+sure it is a big issue though, because as underlined before, the
+function as it is now is rather useless. I doubt that anything but
+i2cdump uses it in userspace.
+
+Then we would need to fix bus drivers that implement the call by
+themselves (as opposed to emulation), but in fact only a few of them do
+(i2c-amd8111 and i2c-nforce2) so that should be quickly done.
+[Reading the two bus drivers code...]
+
+And it turns out that both bus drivers ALREADY honor the length
+requested by the caller, which is not consistent with the emulated
+variant of the call. Something definitely must be done.
+
+Any thoughts anyone?
+
+Thanks,
 -- 
-James Chapman
-E-mail  : jchapman@katalix.com
-PGP key : http://www.katalix.com/~jchapman/pgpkey.txt
+Jean Delvare
