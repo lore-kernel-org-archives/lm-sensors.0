@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:37 +0000
 Subject: I have information on Winbond W83627EHF Chip
-Message-Id: <vjsJjNPg.1107938587.6808420.khali@localhost>
+Message-Id: <sz29PYWM.1107939234.2507990.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050208060234.44864.qmail@web50702.mail.yahoo.com>
 In-Reply-To: <20050208060234.44864.qmail@web50702.mail.yahoo.com>
@@ -13,18 +13,23 @@ To: lm-sensors@vger.kernel.org
 
 Hi David,
 
-> SUCCESS! Here is the latest output:
-> (...)
-> Probing for `Winbond W83627EHF Super IO Sensors'
->   Success... found at address 0x0290
+> Oops, I forgot to get you some of the other information you asked for:
+>
+> Output from lspci:
+> 00:1f.0 ISA bridge: Intel Corp. 82801EB/ER (ICH5/ICH5R) LPC Interface
+> Bridge (rev 02)
+> 00:1f.1 IDE interface: Intel Corp. 82801EB/ER (ICH5/ICH5R) IDE
+> Controller (rev 02)
+> 00:1f.5 Multimedia audio controller: Intel Corp. 82801EB/ER
+> (ICH5/ICH5R) AC'97 Audio Controller (rev 02)
 
-Great. This is half a success only though, since it confirms the address
-0x290, where the ISA device was *not* properly detected.
+OK, 00:1f.3 is missing, I guess that the SMBus was disabled by the BIOS.
+This explains why sensors-detect missed it.
 
-Can you please provide the output of "isadump 0x295 0x296"? Maybe there
-is yet another inaccuracy in the datasheet.
-
-Are you 100% sure that this is a W83627EHF chip you have? ;)
+If we were absolutely wanting to access something on the SMBus we could
+try and reenable it, but since we supposedly have a different, faster
+way (ISA) to access the hardware monitoring chip, it's just not worth
+it.
 
 Thanks,
 --
