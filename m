@@ -1,32 +1,25 @@
-From: phil@edgedesign.us (Philip Edelbrock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:17 +0000
 Subject: away for two weeks
-Message-Id: <3F64EC4E.4020509@edgedesign.us>
+Message-Id: <20030915195106.7b51bfeb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <3F64EC4E.4020509@edgedesign.us>
+In-Reply-To: <3F64EC4E.4020509@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm ready whenever everybody else is.  Let me know when (any) last 
-pending issues are resolved.
 
+> I'm ready whenever everybody else is.  Let me know when (any) last 
+> pending issues are resolved.
 
-Phil
+I think everybody's ready. The 2.8.1 release doesn't have to be a
+"everything's working perfectly" release. What matters is that we have a
+i2c-2.8.1 release we can propose for inclusion into Linux 2.4. I don't
+even care about lm_sensors for this release, as long as it compiles and
+runs mostly OK.
 
-Jean Delvare wrote:
-
->>I'll be mostly away from the net for 3 weeks
->>Monday 9/15 - Friday 10/2.
->>I'll try and do some stuff this weekend before I go.
->>    
->>
->
->I guess that the project will be somehow idling with three of us partly
->or fully away... Apart from the Linux 2.4 integration plan, that
->shouldn't be a problem anyway. Have a good break Mark and Mark :)
->
->Phil, when do you think you'll have some time to release 2.8.1?
->
->  
->
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
