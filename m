@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:37 +0000
 Subject: gl518sm chip driver for 2.6 kernel
-Message-Id: <1075456058.401a283ab7fbf@imp.gcu.info>
+Message-Id: <1075468680.401a59888a1a1@imp.gcu.info>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1075295349.4017b475e9031@imp.gcu.info>
 In-Reply-To: <1075295349.4017b475e9031@imp.gcu.info>
@@ -12,36 +12,42 @@ To: lm-sensors@vger.kernel.org
 
 Quoting Chew Hong Gunn <hgchew@gunnet.org>:
 
-> > * Your new driver defines two different names for the two
-> > different releases of the chip. This breaks compatibility with
-> > libsensors, and would better be fixed (I will do too).
+> On Fri, Jan 30, 2004 at 10:47:38AM +0100, Jean Delvare wrote:
 >
-> Ok.  It was there to differentiate the two revisions.
+> > Looks like we are not that far from a "final" version? Maybe some
+> > changes to bring comments, authorship and copyrights in line with
+> > the other drivers, and we should have something good for
+> > inclusion.
+> 
+> If you can point me to one to use as a template, I could work on it.
 
-The intention was good, but libsensors won't like it, sorry.
+In fact I misexpressed myself. I don't think there is an "absolute"
+template to start from. It was more about random thoughts that came to
+me, such as:
 
-> I have tested rc2 and there are no problems with it.  I did however
-> make two minor changes to it:
-> * added swap_bytes function declaration (unless you deleted it
-> intentionally)
+1* I wouldn't use tabs in the heading comment.
 
-Yes, deletion was intentional. This is a utility function and doesn't
-belong to the interface, so to say.
+2* I wouldn't mention "internal" revisions into the history.
 
-> * removed voltage_in[0-2] = 0 for rev00 chips
->   these are initialised to 0 on init, so there should be no need
->   to set them at each update.
+3* I think we should mention the important changes we just made
+(removal
+of the ugly iteration stuff).
 
-I couldn't find where it had been initialized so decided to play it
-safe, but you're right, there's a memset at the very beginning, so this
-part can get away.
+4* I wonder who should be listed in MODULE_AUTHOR(). This is really a
+general question. I just don't know wether it should be seen as a kind
+of hall of fame, in which case all names should appear, or a pointer to
+one or more contacts, in which case only people still in activity
+should be listed. The names of the original authors are still in the
+sources, whatever.
 
-Looks like we are not that far from a "final" version? Maybe some
-changes to bring comments, authorship and copyrights in line with the
-other drivers, and we should have something good for inclusion.
+Also, in the case of a driver being ported, I don't know wether the
+names and contacts of the porters are to be mentioned there. I used to
+think no, but when people port the driver for hardware they have and
+use, they are probably the right people to contact for help and
+feedback (together with the list, of course). So I don't really know
+what should be done.
 
-Greg, we're listening to your comments if you have any. And thanks a lot
-for your initial review which was obviously needed ;)
+Greg, any advice as of good practices with respect to this topic?
 
 -- 
 Jean Delvare
