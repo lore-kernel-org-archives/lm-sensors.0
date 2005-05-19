@@ -1,213 +1,187 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:52 +0000
 Subject: [PATCH 2.6.12-rc2-mm3] i2c: modify lm87 to use auto fan_div
-Message-Id: <t4uv511i3ntqtdblptvsko6tfvcm27k7hf@4ax.com>
+Message-Id: <20050416112616.5b0ade16.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <t4uv511i3ntqtdblptvsko6tfvcm27k7hf@4ax.com>
+In-Reply-To: <t4uv511i3ntqtdblptvsko6tfvcm27k7hf@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-A common problem for end users is setting the fan clock divider for 
-correct operation.  This patch removes fan_div sysfs write accessor 
-and implements an automatic fan clock divider selection strategy.
+Hi Grant,
 
-Two states are possible: if the user specifies a valid minimum low 
-speed alarm limit that will set an appropriate fan clock divider, 
-otherwise the driver will seek to a fan clock divider that gives 
-best resolution for current fan speed.
+> A common problem for end users is setting the fan clock divider for 
+> correct operation.  This patch removes fan_div sysfs write accessor 
+> and implements an automatic fan clock divider selection strategy.
+> 
+> Two states are possible: if the user specifies a valid minimum low 
+> speed alarm limit that will set an appropriate fan clock divider, 
+> otherwise the driver will seek to a fan clock divider that gives 
+> best resolution for current fan speed.
 
-The auto fan clock divider algorithm received extensive testing 
-in the adm9240 driver port, this patch is compile tested but needs 
-hardware test.
+While I like the idea of an automatic selection of the fan clock divider
+by the driver, I don't think that your implementation is correct.
 
-Testing: something like this script can be used to verify operation:
+If there is a low limit set, you do not take the actual speed
+measurement into account for divider selection. What if the limit has
+been set significantly higher than the actual fan speed? This speed
+cannot be measured, and the driver won't adapt the divider. Since the
+BIOS typically sets an arbitrary low speed limit (or the chip itself has
+a power-up default), you have the very same problem as with the original
+model where the user needs to change the divider manually before he/she
+can get a reading. In other words, your driver modification fails to
+address the problem.
 
-#!/bin/bash
-#
-minpath="/sys/bus/i2c/devices/0-002d/fan1_min"
-fanpath="/sys/bus/i2c/devices/0-002d/fan1_input"
-read fan < $fanpath
-lower00
-upper500000
-fan_min3
-step0
-#
-function test_cycle ()
-{
-	fan_min=$lower
-	while test $fan_min -lt $upper; do
-		echo "$fan_min" > "$minpath"
-		sleep 2
-		read fan < $fanpath
-		(( fan_min=($fan_min * $step + 50) / 100 ))
-		(( fan_min=(($fan_min + 50) / 100) * 100 ))
-	done
-	fan_min=$upper
-	while test $fan_min -gt $lower; do
-		echo "$fan_min" > "$minpath"
-		sleep 2
-		read fan < $fanpath
-		(( fan_min=($fan_min * 100 + $step / 2) / $step ))
-		(( fan_min=(($fan_min + 50) / 100) * 100 ))
-	done
-}
-test_cycle
+The fan clock divider increase upon unreadable fan speed (lower than the
+current divider allows) must happen regardless of the low limit being
+set or not. If not, then the driver modification isn't worth the effort.
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
+I also believe that the measured fan speed should not possibly lead to a
+divider decrease. Decreasing the divider will require a min limit
+register change in the general case, which will result in rounding at
+best, plain loss of limit at worst.
 
----
+The model I am using for the upcoming w83627ehf driver is as follow:
 
+1* When the fan speed register reads 255 (overflow), try increasing the
+divider if possible.
 
- lm87.c |  107 ++++++++++++++++++++++++++++++++++++-----------------------------
- 1 files changed, 60 insertions(+), 47 deletions(-)
+2* When the user sets a low limit, pick the best divider for this speed,
+where best is defined by "register value between 96 and 191". This
+ensures that all speeds over the limit can be read with a reasonable
+accuracy, and speeds down to 75% of the low limit as well.
 
---- linux-2.6.12-rc2-mm3/drivers/i2c/chips/lm87.c	2005-04-11 20:54:56.000000000 +1000
-+++ linux-2.6.12-rc2-mm3h/drivers/i2c/chips/lm87.c	2005-04-15 23:29:37.000000000 +1000
-@@ -405,63 +405,62 @@ static DEVICE_ATTR(fan##offset##_input, 
- show_fan(1);
- show_fan(2);
- 
--static void set_fan_min(struct device *dev, const char *buf, int nr)
-+/* write new fan_div: callers must hold data->update_lock */
-+static void lm87_write_fan_div(struct i2c_client *client, int nr, u8 fan_div)
- {
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	u8 reg, old, shf = (nr + 2) << 1;
- 
--	down(&data->update_lock);
--	data->fan_min[nr] = FAN_TO_REG(val,
--			    FAN_DIV_FROM_REG(data->fan_div[nr]));
--	lm87_write_value(client, LM87_REG_FAN_MIN(nr), data->fan_min[nr]);
--	up(&data->update_lock);
-+	reg = lm87_read_value(client, LM87_REG_VID_FAN_DIV);
-+	old = (reg >> shf) & 3;
-+	reg &= ~(3 << shf);
-+	reg |= fan_div << shf;
-+	lm87_write_value(client, LM87_REG_VID_FAN_DIV, reg);
-+	dev_dbg(&client->dev, "autoX fan%u old %u new %u   fan_div changed\n",
-+			nr + 1, 1 << old, 1 << fan_div);
- }
- 
--/* Note: we save and restore the fan minimum here, because its value is
--   determined in part by the fan clock divider.  This follows the principle
--   of least suprise; the user doesn't expect the fan minimum to change just
--   because the divider changed. */
--static ssize_t set_fan_div(struct device *dev, const char *buf,
--		size_t count, int nr)
-+/* automatic fan clock divider selection when user sets fan_min */
-+static void set_fan_min(struct device *dev, const char *buf, int nr)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
- 	long val = simple_strtol(buf, NULL, 10);
--	unsigned long min;
--	u8 reg;
- 
- 	down(&data->update_lock);
--	min = FAN_FROM_REG(data->fan_min[nr],
--			   FAN_DIV_FROM_REG(data->fan_div[nr]));
- 
--	switch (val) {
--	case 1: data->fan_div[nr] = 0; break;
--	case 2: data->fan_div[nr] = 1; break;
--	case 4: data->fan_div[nr] = 2; break;
--	case 8: data->fan_div[nr] = 3; break;
--	default:
--		up(&data->update_lock);
--		return -EINVAL;
--	}
-+	dev_dbg(&client->dev, "auto? fan%u div %u min %3u val %5ld spd %u\n",
-+			nr + 1, 1 << data->fan_div[nr],
-+			data->fan_min[nr],val,data->fan[nr]);
-+
-+	if (val <= 1350000 / (8 * 254)) {
-+		data->fan_min[nr] = 255; /* too low, disable alarm */
-+		dev_dbg(&client->dev, "auto! fan%u div %u min %3u too low\n",
-+				nr + 1, 1 << data->fan_div[nr],
-+				data->fan_min[nr]);
-+	} else {
-+		/* calculate optimum fan clock divider to suit fan_min */
-+		unsigned int new_min = 1350000U / val;
-+		u8 new_div = 0;
-+
-+		while (new_min > 192 && new_div < 3) {
-+			new_div++;
-+			new_min++;
-+			new_min >>= 1;
-+		}
-+		dev_dbg(&client->dev, "auto- fan%u div %u min %3u\n",
-+				nr + 1, 1 << new_div, new_min);
- 
--	reg = lm87_read_value(client, LM87_REG_VID_FAN_DIV);
--	switch (nr) {
--	case 0:
--	    reg = (reg & 0xCF) | (data->fan_div[0] << 4);
--	    break;
--	case 1:
--	    reg = (reg & 0x3F) | (data->fan_div[1] << 6);
--	    break;
-+		data->fan_min[nr] = new_min;
-+
-+		if (new_div != data->fan_div[nr]) {
-+			data->fan_div[nr] = new_div;
-+			lm87_write_fan_div(client, nr, new_div);
-+		}
- 	}
--	lm87_write_value(client, LM87_REG_VID_FAN_DIV, reg);
- 
--	data->fan_min[nr] = FAN_TO_REG(min, val);
- 	lm87_write_value(client, LM87_REG_FAN_MIN(nr),
- 			 data->fan_min[nr]);
- 	up(&data->update_lock);
--
--	return count;
- }
- 
- #define set_fan(offset) \
-@@ -471,15 +470,10 @@ static ssize_t set_fan##offset##_min(str
- 	set_fan_min(dev, buf, offset-1); \
- 	return count; \
- } \
--static ssize_t set_fan##offset##_div(struct device *dev, const char *buf, \
--		size_t count) \
--{ \
--	return set_fan_div(dev, buf, count, offset-1); \
--} \
- static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, \
- 		show_fan##offset##_min, set_fan##offset##_min); \
--static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
--		show_fan##offset##_div, set_fan##offset##_div);
-+static DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
-+		show_fan##offset##_div, NULL);
- set_fan(1);
- set_fan(2);
- 
-@@ -767,6 +761,25 @@ static struct lm87_data *lm87_update_dev
- 			} else {
- 				data->fan[i] = lm87_read_value(client,
- 					       LM87_REG_FAN(i));
-+
-+				/* if fan_min off: auto fan clock divider */
-+				if (data->fan_min[i] = 255) {
-+					int x = 0;
-+
-+					if (data->fan[i] > 192 &&
-+						data->fan_div[i] < 3) {
-+						x++;
-+					}
-+					if (data->fan[i] < 96 &&
-+						data->fan_div[i] > 0) {
-+						x--;
-+					}
-+					if (x != 0) {
-+						data->fan_div[i] += x;
-+						lm87_write_fan_div(client, i,
-+							data->fan_div[i]);
-+					}
-+				}
- 				data->fan_min[i] = lm87_read_value(client,
- 						   LM87_REG_FAN_MIN(i));
- 			}
+The advantages are:
+
+1* If the user doesn't configure the chip, he/she will still get valid
+readings (providing that there is a fan connected, of course) after a
+limited number of tries.
+
+2* If the user does configure the chip, he/she will set the low limit,
+and get the best divider (providing that he/she picks a reasonable
+limit, of course).
+
+3* It is guaranteed by design that the fan clock divider can only change
+a limited (and low) number of times after it has been loaded or the fan
+low limit has been changed.
+
+Your implementation fails to provide points 1 and 3.
+
+Some comments on your coding style now, although the patch is quite hard
+to read (not sure there's anything you can do about this though).
+
+> +	u8 reg, old, shf = (nr + 2) << 1;
+
+Please use explicit variable names. "shf" is a poor name. A comment
+would also be very welcome, as the value you set it to isn't exactly
+obvious.
+
+> +	reg = lm87_read_value(client, LM87_REG_VID_FAN_DIV);
+> +	old = (reg >> shf) & 3;
+> +	reg &= ~(3 << shf);
+> +	reg |= fan_div << shf;
+> +	lm87_write_value(client, LM87_REG_VID_FAN_DIV, reg);
+> +	dev_dbg(&client->dev, "autoX fan%u old %u new %u   fan_div changed\n",
+> +			nr + 1, 1 << old, 1 << fan_div);
+
+"old" is only used for debug, so it should not be defined at all in
+non-debug mode.
+
+I don't much like your debug message. What about something like "fan%u
+clock divider changed from %u to %u\n"?
+
+> +	dev_dbg(&client->dev, "auto? fan%u div %u min %3u val %5ld spd %u\n",
+> +			nr + 1, 1 << data->fan_div[nr],
+> +			data->fan_min[nr],val,data->fan[nr]);
+
+Not sure that this debug message really helps. It's somewhat redundant
+with the more specialized ones below.
+
+> +	if (val <= 1350000 / (8 * 254)) {
+
+Wouldn't it be < instead of <=? By definition, if val = 1350000 / (8 *
+254) then a solution exists (divider = 8, register = 254, obviously).
+
+Also, 1350000 would be 1350000U, for consistency with the code below.
+
+> +		data->fan_min[nr] = 255; /* too low, disable alarm */
+> +		dev_dbg(&client->dev, "auto! fan%u div %u min %3u too low\n",
+> +				nr + 1, 1 << data->fan_div[nr],
+> +				data->fan_min[nr]);
+
+Your debug messages are really cryptic. What about simply "fan%u low
+limit disabled"?
+
+> +	} else {
+> +		/* calculate optimum fan clock divider to suit fan_min */
+> +		unsigned int new_min = 1350000U / val;
+> +		u8 new_div = 0;
+> +
+> +		while (new_min > 192 && new_div < 3) {
+> +			new_div++;
+> +			new_min++;
+> +			new_min >>= 1;
+> +		}
+
+I understand that new_min++ is for rounding purposes, but it doesn't
+sound good to me, because of cumulated errors.
+
+Consider the case where the user asked for a low limit of 2630. new_min
+will be computed as 513, new_div as 0. First iteration of the loop,
+new_div becomes 1, new_min becomes 257. Second iteration of the loop,
+new_div becomes 2, new_min becomes 129. We're happy and leave the loop.
+The effective min limit is now (1350000 + (2 * 129)) / (4 * 129) = 2616
+RPM.
+
+Without the rounding now. First iteration of the loop, new_div becomes
+1, new_min becomes 256. Second iteration of the loop, new_div becomes 2,
+new_min becomes 128. We're happy and leave the loop. The effective min
+limit is now (1350000 + (2 * 128)) / (4 * 128) = 2637 RPM, which is
+nearer from 2630 than 2616 was.
+
+So I would drop the rounding effort altogether, as it makes code
+slightly slower and harder to understand with at best no benefit.
+
+> +		dev_dbg(&client->dev, "auto- fan%u div %u min %3u\n",
+> +				nr + 1, 1 << new_div, new_min);
+
+"fan%u min register set to %u"?
+
+If this results in a divider change, the debug message in the other
+function will tell.
+
+> +				/* if fan_min off: auto fan clock divider */
+> +				if (data->fan_min[i] = 255) {
+> +					int x = 0;
+
+x is a *really* *poor* variable name. How are we supposed to guess what
+it represents?
+
+As explained earlier, I think you should do it even if data->fan_min[i]
+!= 255. Beware that it also means that fan low speed limit will need to
+be preserved.
+
+> +					if (data->fan[i] > 192 &&
+> +						data->fan_div[i] < 3) {
+> +						x++;
+> +					}
+> +					if (data->fan[i] < 96 &&
+> +						data->fan_div[i] > 0) {
+> +						x--;
+> +					}
+
+And as explained earlier, I don't think you should do that (decrease the
+divider). Increasing is needed, but decreasing isn't.
+
+> +					if (x != 0) {
+> +						data->fan_div[i] += x;
+> +						lm87_write_fan_div(client, i,
+> +							data->fan_div[i]);
+> +					}
+> +				}
+
+Thanks,
+-- 
+Jean Delvare
