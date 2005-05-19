@@ -1,44 +1,24 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:30 +0000
-Subject: EMC6D100
-Message-Id: <20050112223448.071b5d0f.khali@linux-fr.org>
+From: hpfaasen@compuserve.de (hpfaasen@compuserve.de)
+Date: Thu, 19 May 2005 06:24:34 +0000
+Subject: lm_sensors (missing modules)
+Message-Id: <200401120909.i0C99HQ00763@mailgate5.cinetic.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200501120730.58623.rafael.espindola@gmail.com>
-In-Reply-To: <200501120730.58623.rafael.espindola@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rafael,
+Hi,
 
-> Attached is a patch to add support for the EMC6D100 in the 2.6.9
-> kernel. I did  it by following the changes that were made to the cvs
-> lm_sensors2 to add  support for the same chip.
-> 
-> It works for me on a d865glc.
+after some datalosses, caused by overheated components, I searched for a monitoring-tool and found lm_sensors. The installation went fine, eccept one:
+sensors-detect found a sensor on my graphic-accellerator (gForce 2MX), but it could not load the module, cause it?s not in the package. So I tried to get it from the given downlaud-page (http://drama.obuda.kando.hu/~fero/cgi-bin/rivatv.shtml), but that didn't work, because I had no permission for accessing.
+Would you please show me another way to get the module and could you give me some tips, how to install it? (I need it, because some problems on the display seem to be caused by an overheated graphicchip and I would like to verify this before I start with hardware-changes like build-in a fan or change the case.) 
+Wouldn't it be so much easier to integrat it into the package?
 
-I don't have an EMC6D10x chip to test on but the code looks correct to
-me. I would have the following suggestions to improve the patch though
-(some of which are admittedly nit-picking):
+Thanks for your help and the great job you`ve already done!
 
-1* Don't define constants you don't use.
+Heinz-Peter
+______________________________________________________________________________
+Nachrichten, Musik und Spiele schnell und einfach per Quickstart im 
+WEB.DE Screensaver - Gratis downloaden: http://screensaver.web.de/?mc1110
 
-2* I don't think that the introduction of LM85_VERSTEP_VMASK increases
-the code readability, and in fact I even think it decreases it.
-
-3* Preserve that extra white line before the "/* Conversions. (...)"
-comment. It looks innocent and doesn't deserve to get inadvertently
-killed! ;)
-
-4* Don't "indent" the body of the '100 vs. '101 comment.
-
-I'm fine with the rest. Please update what you agree with, then resubmit
-your patch to Greg KH (with CC to the list) with a "Signed-off-by: Your
-Name <email@address>" line before the inlined patch and your patch will
-be included into Greg's tree.
-
-Thanks for the good work!
--- 
-Jean Delvare
-http://khali.linux-fr.org/
