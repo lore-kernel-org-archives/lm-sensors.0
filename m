@@ -1,39 +1,77 @@
-From: lourens@rainbowdesert.net (Lourens Veen)
-Date: Thu, 19 May 2005 06:25:06 +0000
-Subject: Strange values on ASRock K7S8X mainboard with W83697 chip
-Message-Id: <200407240015.08951.lourens@rainbowdesert.net>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:01 +0000
+Subject: [PATCH 2.6] Drop out-of-date code in w83781d and w83627hf
+Message-Id: <20040619193753.52b353dd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200407221213.00965.lourens@rainbowdesert.net>
-In-Reply-To: <200407221213.00965.lourens@rainbowdesert.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> > Theory: the hardware guys at ASRock miswired in5 and in6. The
-> > BIOS software guys programmed the BIOS according to the
-> > datasheet. When testing, they noticed the problem, and disabled
-> > the negative voltage readout. It is a low-budget product after
-> > all, so fixing the hardware might simply have been too
-> > expensive. And negative voltages are hardly used in todays PCs
-> > anyway.
+Hi Greg,
 
-Looks like I was wrong. I just talked to Khali on IRC, and he gave 
-me some tips which seem to work. So, for future reference, here is 
-what seems to be the right configuration for the ASRock K7S8X:
+Here is a simple patch which drops some out-of-date code in the w83781d
+and w83627hf i2c chip drivers. These bits are left over from the times
+when chip drivers were setting default limits at init.
 
-    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-    compute in4 ((30/10)+1)*@  ,  @/((30/10)+1)
-    compute in5 -((30/10)+1)*@  ,  -@/((30/10)+1)
-    compute in6 -((6.8/10)+1)*@ ,  -@/((6.8/10)+1)
+Should apply cleanly against your current tree.
 
-Also note the 30 instead of the default 28, that solves the too-low 
-reading and it's been used on other mainboards as well according to 
-Khali.
+Please apply,
+Thanks.
 
-I'll still let you know if/when I get more from ASRock.
+Signed-off-by: Jean Delvare <khali at linux-fr dot org>
 
-Lourens
+diff -ruN linux-2.6.7/drivers/i2c/chips.orig/w83627hf.c linux-2.6.7/drivers/i2c/chips/w83627hf.c
+--- linux-2.6.7/drivers/i2c/chips.orig/w83627hf.c	Sat Jun 19 11:44:43 2004
++++ linux-2.6.7/drivers/i2c/chips/w83627hf.c	Sat Jun 19 18:21:06 2004
+@@ -1240,7 +1240,7 @@
+ static void w83627hf_init_client(struct i2c_client *client)
+ {
+ 	struct w83627hf_data *data = i2c_get_clientdata(client);
+-	int vid = 0, i;
++	int i;
+ 	int type = data->type;
+ 	u8 tmp;
+ 
+@@ -1283,9 +1283,6 @@
+ 		/* Convert VID to voltage based on default VRM */
+ 		data->vrm = DEFAULT_VRM;
+ 	}
+-
+-	if (type != w83697hf)
+-		vid = vid_from_reg(vid, data->vrm);
+ 
+ 	tmp = w83627hf_read_value(client, W83781D_REG_SCFG1);
+ 	for (i = 1; i <= 3; i++) {
+diff -ruN linux-2.6.7/drivers/i2c/chips.orig/w83781d.c linux-2.6.7/drivers/i2c/chips/w83781d.c
+--- linux-2.6.7/drivers/i2c/chips.orig/w83781d.c	Sat Jun 19 11:42:05 2004
++++ linux-2.6.7/drivers/i2c/chips/w83781d.c	Sat Jun 19 18:22:05 2004
+@@ -1491,7 +1491,7 @@
+ w83781d_init_client(struct i2c_client *client)
+ {
+ 	struct w83781d_data *data = i2c_get_clientdata(client);
+-	int vid = 0, i, p;
++	int i, p;
+ 	int type = data->type;
+ 	u8 tmp;
+ 
+@@ -1513,14 +1513,7 @@
+ 		w83781d_write_value(client, W83781D_REG_BEEP_INTS2, 0);
+ 	}
+ 
+-	if (type != w83697hf) {
+-		vid = w83781d_read_value(client, W83781D_REG_VID_FANDIV) & 0x0f;
+-		vid |-		    (w83781d_read_value(client, W83781D_REG_CHIPID) & 0x01) <<
+-		    4;
+-		data->vrm = DEFAULT_VRM;
+-		vid = vid_from_reg(vid, data->vrm);
+-	}
++	data->vrm = 82;
+ 
+ 	if ((type != w83781d) && (type != as99127f)) {
+ 		tmp = w83781d_read_value(client, W83781D_REG_SCFG1);
+
+
 -- 
-GPG public key: http://home.student.utwente.nl/l.e.veen/lourens.key
-
+Jean Delvare
+http://khali.linux-fr.org/
