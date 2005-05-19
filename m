@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:57 +0000
 Subject: [PATCH] I2C update for 2.6.6
-Message-Id: <10845773573553@kroah.com>
+Message-Id: <1084577357958@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1084577357958@kroah.com>
+In-Reply-To: <1084577357292@kroah.com>
 References: <10845773562431@kroah.com>
 In-Reply-To: <10845773562431@kroah.com>
 MIME-Version: 1.0
@@ -11,130 +11,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1587.15.9, 2004/05/05 15:34:20-07:00, khali@linux-fr.org
+ChangeSet 1.1587.15.8, 2004/05/05 15:34:00-07:00, khali@linux-fr.org
 
-[PATCH] I2C: Rewrite temperature conversions in via686a driver
+[PATCH] I2C: Invert as99127f beep bits in kernel space
 
-The following patch rewrites the temperature conversion macros and
-functions found in the via686a chip driver. Contrary to the voltage
-conversions a few weeks ago, temperature conversions were numerically
-correct, but artificially complex. The new ones are cleaner. It also
-fixes a highly improbable array overflow (would take one of the measured
-temperatures to be over 145 degrees C).
+The following patch changes the way we invert beep bits for the AS99127F
+sensor chip. This chip behaves differently from the other chips in that
+a disabled bit is 1, not 0. So far we didn't handle that specificity in
+the w83781d driver, so it was left to user-space applications to handle
+it. For the sake of uniformity, it's obviously better if it's done in
+the driver instead (although the meaning of each bit is still
+chip-dependant).
 
-Successfully tested by Mark D. Studebaker and I, and already applied to
-our CVS repository.
+I already did a similar change to the 2.4 driver and the sensors
+program. I don't think that many user-space application will be
+affected, since most of them don't handle the beep mask as far as I can
+tell.
+
+This also close Debian bug #209299:
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug 9299
+
+Successfully tested on my AS99127F rev.1 chip. Aurelien Jarno also
+checked that there were no regression on non-Asus chips.
 
 
- drivers/i2c/chips/via686a.c |   63 ++++++++++++++------------------------------
- 1 files changed, 21 insertions(+), 42 deletions(-)
+ drivers/i2c/chips/w83781d.c |   26 ++++++++++++++++----------
+ 1 files changed, 16 insertions(+), 10 deletions(-)
 
 
-diff -Nru a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
---- a/drivers/i2c/chips/via686a.c	Fri May 14 16:20:12 2004
-+++ b/drivers/i2c/chips/via686a.c	Fri May 14 16:20:12 2004
-@@ -268,52 +268,31 @@
- 	    239, 240
- };
+diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
+--- a/drivers/i2c/chips/w83781d.c	Fri May 14 16:20:26 2004
++++ b/drivers/i2c/chips/w83781d.c	Fri May 14 16:20:26 2004
+@@ -183,8 +183,10 @@
+ #define ALARMS_FROM_REG(val)		(val)
+ #define PWM_FROM_REG(val)		(val)
+ #define PWM_TO_REG(val)			(SENSORS_LIMIT((val),0,255))
+-#define BEEP_MASK_FROM_REG(val)		(val)
+-#define BEEP_MASK_TO_REG(val)		((val) & 0xffffff)
++#define BEEP_MASK_FROM_REG(val,type)	((type) = as99127f ? \
++					 (val) ^ 0x7fff : (val))
++#define BEEP_MASK_TO_REG(val,type)	((type) = as99127f ? \
++					 (~(val)) & 0x7fff : (val) & 0xffffff)
  
--/* Converting temps to (8-bit) hyst and over registers 
-- No interpolation here.  Just check the limits and go.
-- The +5 effectively rounds off properly and the +50 is because 
-- the temps start at -50 */
-+/* Converting temps to (8-bit) hyst and over registers
-+   No interpolation here.
-+   The +50 is because the temps start at -50 */
- static inline u8 TEMP_TO_REG(long val)
- {
--	return (u8)
--	    SENSORS_LIMIT(viaLUT[((val <= -500) ? 0 : (val >= 1100) ? 160 : 
--				  ((val + 5) / 10 + 50))], 0, 255);
-+	return viaLUT[val <= -50000 ? 0 : val >= 110000 ? 160 : 
-+		      (val < 0 ? val - 500 : val + 500) / 1000 + 50];
+ #define BEEP_ENABLE_TO_REG(val)		((val) ? 1 : 0)
+ #define BEEP_ENABLE_FROM_REG(val)	((val) ? 1 : 0)
+@@ -539,14 +541,18 @@
+ DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL)
+ #define device_create_file_alarms(client) \
+ device_create_file(&client->dev, &dev_attr_alarms);
+-#define show_beep_reg(REG, reg) \
+-static ssize_t show_beep_##reg (struct device *dev, char *buf) \
+-{ \
+-	struct w83781d_data *data = w83781d_update_device(dev); \
+-	return sprintf(buf,"%ld\n", (long)BEEP_##REG##_FROM_REG(data->beep_##reg)); \
++static ssize_t show_beep_mask (struct device *dev, char *buf)
++{
++	struct w83781d_data *data = w83781d_update_device(dev);
++	return sprintf(buf, "%ld\n",
++		       (long)BEEP_MASK_FROM_REG(data->beep_mask, data->type));
++}
++static ssize_t show_beep_enable (struct device *dev, char *buf)
++{
++	struct w83781d_data *data = w83781d_update_device(dev);
++	return sprintf(buf, "%ld\n",
++		       (long)BEEP_ENABLE_FROM_REG(data->beep_enable));
  }
+-show_beep_reg(ENABLE, enable);
+-show_beep_reg(MASK, mask);
  
--/* for 8-bit temperature hyst and over registers 
-- The temp values are already *10, so we don't need to do that.
-- But we _will_ round these off to the nearest degree with (...*10+5)/10 */
--#define TEMP_FROM_REG(val) ((tempLUT[(val)]*10+5)/10)
--
--/* for 10-bit temperature readings 
-- You might _think_ this is too long to inline, but's it's really only
-- called once... */
-+/* for 8-bit temperature hyst and over registers */
-+#define TEMP_FROM_REG(val) (tempLUT[(val)] * 100)
-+
-+/* for 10-bit temperature readings */
- static inline long TEMP_FROM_REG10(u16 val)
- {
--	/* the temp values are already *10, so we don't need to do that. */
--	long temp;
- 	u16 eightBits = val >> 2;
- 	u16 twoBits = val & 3;
+ #define BEEP_ENABLE			0	/* Store beep_enable */
+ #define BEEP_MASK			1	/* Store beep_mask */
+@@ -562,7 +568,7 @@
+ 	val = simple_strtoul(buf, NULL, 10);
  
--	/* handle the extremes first (they won't interpolate well! ;-) */
--	if (val = 0)
--		return (long) tempLUT[0];
--	if (val = 1023)
--		return (long) tempLUT[255];
--
--	if (twoBits = 0)
--		return (long) tempLUT[eightBits];
--	else {
--		/* do some interpolation by multipying the lower and upper
--		 bounds by 25, 50 or 75, then /100. */
--		temp = ((25 * (4 - twoBits)) * tempLUT[eightBits]
--			+ (25 * twoBits) * tempLUT[eightBits + 1]);
--		/* increase the magnitude by 50 to achieve rounding. */
--		if (temp > 0)
--			temp += 50;
--		else
--			temp -= 50;
--		return (temp / 100);
--	}
-+	/* no interpolation for these */
-+	if (twoBits = 0 || eightBits = 255)
-+		return TEMP_FROM_REG(eightBits);
-+
-+	/* do some linear interpolation */
-+	return (tempLUT[eightBits] * (4 - twoBits) +
-+	        tempLUT[eightBits + 1] * twoBits) * 25;
- }
+ 	if (update_mask = BEEP_MASK) {	/* We are storing beep_mask */
+-		data->beep_mask = BEEP_MASK_TO_REG(val);
++		data->beep_mask = BEEP_MASK_TO_REG(val, data->type);
+ 		w83781d_write_value(client, W83781D_REG_BEEP_INTS1,
+ 				    data->beep_mask & 0xff);
  
- #define ALARMS_FROM_REG(val) (val)
-@@ -441,21 +420,21 @@
- /* 3 temperatures */
- static ssize_t show_temp(struct device *dev, char *buf, int nr) {
- 	struct via686a_data *data = via686a_update_device(dev);
--	return sprintf(buf, "%ld\n", TEMP_FROM_REG10(data->temp[nr])*100 );
-+	return sprintf(buf, "%ld\n", TEMP_FROM_REG10(data->temp[nr]));
- }
- static ssize_t show_temp_over(struct device *dev, char *buf, int nr) {
- 	struct via686a_data *data = via686a_update_device(dev);
--	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_over[nr])*100);
-+	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_over[nr]));
- }
- static ssize_t show_temp_hyst(struct device *dev, char *buf, int nr) {
- 	struct via686a_data *data = via686a_update_device(dev);
--	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_hyst[nr])*100);
-+	return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp_hyst[nr]));
- }
- static ssize_t set_temp_over(struct device *dev, const char *buf, 
- 		size_t count, int nr) {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct via686a_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10)/100;
-+	int val = simple_strtol(buf, NULL, 10);
- 	data->temp_over[nr] = TEMP_TO_REG(val);
- 	via686a_write_value(client, VIA686A_REG_TEMP_OVER(nr), data->temp_over[nr]);
- 	return count;
-@@ -464,7 +443,7 @@
- 		size_t count, int nr) {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct via686a_data *data = i2c_get_clientdata(client);
--	int val = simple_strtol(buf, NULL, 10)/100;
-+	int val = simple_strtol(buf, NULL, 10);
- 	data->temp_hyst[nr] = TEMP_TO_REG(val);
- 	via686a_write_value(client, VIA686A_REG_TEMP_HYST(nr), data->temp_hyst[nr]);
- 	return count;
 
