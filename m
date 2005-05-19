@@ -1,7 +1,7 @@
-From: linux-os@analogic.com (linux-os)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:34 +0000
 Subject: [PATCH][I2C] ST M41T00 I2C RTC chip driver
-Message-Id: <Pine.LNX.4.61.0501311325570.4988@chaos.analogic.com>
+Message-Id: <20050131210319.44a69d49.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <41FE7368.1000307@mvista.com>
 In-Reply-To: <41FE7368.1000307@mvista.com>
@@ -9,76 +9,64 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "Mark A. Greer" <mgreer@mvista.com>
-Cc: Greg KH <greg@kroah.com>, LM Sensors <sensors@stimpy.netroedge.com>, lkml <linux-kernel@vger.kernel.org>
+Cc: Greg KH <greg@kroah.com>, LM Sensors <sensors@Stimpy.netroedge.com>, lkml <linux-kernel@vger.kernel.org>
 
-
-On ix86 machines, it is appropriate to read the RTC clock
-several times in a row until nothing changes. This protects
-against getting bad readings when some values wrap (like
-seconds). You can't stop the clock when you read it
-or you will lose time. I don't see anything like 
-this in your code. Also, when setting the clock it
-is necessary to stop the clock so its settings don't
-change while you are writing a new time. I also don't
-see anything like this in your code either.
-
-Also ix86 machines have a spin-lock, rtc_lock, so that
-other procedures, even interrupts can access its registers.
-I see you using a semaphore that can't be used in interrupt
-context.
-
-Notice: the RTC clock is used for high-precision timing
-via interrupt in some ix86 drivers. If you modify the
-RTC code on all platforms as you propose, you cannot
-"keep" the RTC all to your self. Its interrupt must
-be available to drivers and access to the hardware needs
-to be locked with the existing spin-lock.
-
-I note that on 2.6.9 on somebody broke it so that, the interrupt is
-used for something only ONCE during startup and ONCE during shut-down.
-
-            CPU0
-   0:    6225448    IO-APIC-edge  timer
-   1:      14002    IO-APIC-edge  i8042
-   8:          1    IO-APIC-edge  rtc	<--- bingo
-   9:          0   IO-APIC-level  acpi
-   [snipped...]
-
-I don't have a clue why anybody would grab that interrupt. Fortunately,
-the interrupt-grabbing code can be loaded as a module and then
-unloaded so that other drivers can use that device and its interrupt.
-Any changes to the RTC code need to consider these things.
-
-On Mon, 31 Jan 2005, Mark A. Greer wrote:
+Hi Mark,
 
 > This patch adds support for the ST M41T00 RTC chip.
->
-> You will likely notice that it implements a PPC-specific interface 
-> (/dev/rtc->drivers/char/genrtc.h->include/asm-ppc/rtc.h->this file).  This 
-> was necessary to support a subset of ppc platforms that need to hook up the 
-> rtc support at runtime.  If I implemented /dev/rtc directly or interfaced to 
-> genrtc.c directly, those platforms couldn't use this driver.  Eventually, I 
-> hope to work on more uniform rtc support across all the processor 
-> architectures.
->
-> Also, on ppc at least, the hw clock can be set from a timer interrupt if 
-> STA_UNSYNC is not set (e.g., ntpd is running).  To handle this, a tasklet is 
-> used to set the clock if in_interrupt() is true.
->
-> I'd appreciate an comments or to have it pushed into the kernel.org tree if 
-> its acceptable.
->
-> Thanks,
->
-> Mark
->
-> Signed-off-by: Mark A. Greer <mgreer@mvista.com>
-> --
->
->
 
-Cheers,
-Dick Johnson
-Penguin : Linux version 2.6.9 on an i686 machine (5537.79 BogoMips).
-  Notice : All mail here is now cached for review by Dictator Bush.
-                  98.36% of all statistics are fiction.
+As for your other driver, I lack the device-specific knowledge to
+comment on the functionality, but still have some technical comments on
+the code itself:
+
+> +	  This driver can also be built as a module.  If so, the module
+> +	  will be called i2c-m41t00.
+
+It'll actually be called m41t00, according to the Makefile.
+
+> +struct m41t00_data {
+> +	struct i2c_client client;
+> +};
+
+You don't have to do that. Including the i2c_client stucture in the data
+structure is a trick which let us get both allocated with a single
+kmalloc (and freed with a single kfree) while still respecting the
+arch-dependent alignment requirements. If you have no private data to
+carry around, you can do the kmalloc on the i2c_client structure
+directly, and have client->data point to NULL (which it actually already
+does thanks to memset). This will save some code in both the detection
+and the detach functions.
+
+However, if you know that, in a future update of this driver, you *will*
+have to store client-private data, then I guess you can keep it this way.
+
+> +	i2c_detach_client(client);
+
+This one supposedly can fail.
+
+> +	.name		= "M41T00",
+
+No caps in name please (will be used in sysfs).
+
+> +static int __devinit
+> +m41t00_init(void)
+> +{
+> +	return i2c_add_driver(&m41t00_driver);
+> +}
+> 
+> +static void __devexit
+> +m41t00_exit(void)
+> +{
+> +	i2c_del_driver(&m41t00_driver);
+> +	return;
+> +}
+
+Should be __init and __exit, respectively, unless I am mistaken. And the
+last return is usless.
+
+I'm also suspicious about the other __devexit and __devinit you used. No
+other i2c chip drivers has them.
+
+Thanks,
+-- 
+Jean Delvare
