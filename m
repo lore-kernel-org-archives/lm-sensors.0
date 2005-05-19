@@ -1,7 +1,7 @@
-From: mds4@verizon.net (Mark Studebaker)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:00 +0000
 Subject: [RFC] Dynamic fan clock divider changes (long)
-Message-Id: <40BA5360.20103@verizon.net>
+Message-Id: <20040531112719.10b7d64c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040516222809.2c3d1ea2.khali@linux-fr.org>
 In-Reply-To: <20040516222809.2c3d1ea2.khali@linux-fr.org>
@@ -10,101 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I like the idea of dynamic divisor changes (I'll call it auto fan divisors or A.F.D.).
-Whether it belongs in the driver or in userspace is a tougher call.
-There may be more information available to a driver on clock rate and 
-possible divisors, but it would be more work to propagate the code
-to all the drivers rather than do it once in 'sensors'.
+> I like the idea of dynamic divisor changes (I'll call it auto fan
+> divisors or A.F.D.). Whether it belongs in the driver or in userspace
+> is a tougher call. There may be more information available to a driver
+> on clock rate and possible divisors, but it would be more work to
+> propagate the code to all the drivers rather than do it once in
+> 'sensors'.
+> 
+> I'm all for AFD in pc87360 as a demonstration / proof of concept.
+> However let's think about what it would take to do the same thing in
+> 'sensors' and whether that offers some advantages.
 
-I'm all for AFD in pc87360 as a demonstration / proof of concept.
-However let's think about what it would take to do the same thing in
-'sensors' and whether that offers some advantages.
+We discussed this a bit with MMH already, and as you pointed out, the
+problem is that the userspace would then need to know the possible
+dividers and clock frequency. This is likely to represent more code than
+the AFD algorithm itself, which is why I'm not it favor of this.
 
-mds
+One thing MMH and I are in favor of (if we agree that it's more simple
+to put that stuff in the drivers) would be to have a generic function in
+i2c-sensor instead of one in all chip drivers. Almost all chips work on
+the same model, the function would have to know the possible dividers
+and that's about all. Most chips accept a divider "range", typically
+from 1 to 8 or 1 to 128. Only the IT87 fan 3 is different AFAIK (only
+accept 2 and 8) so this one would probably have its own function.
 
+I will try to improve the pc87360 implementation so that everything is
+centralized in a single function. Then, if no problems are reported with
+this implementation, we'll modify the prototype so that the funtion has
+enough parameters to be chip-independant, and move it to i2c-sensor. All
+this won't happen before I (or anyone else) have ported the pc87360
+driver to Linux 2.6, so this leaves enough time for testing and feedback
+if any problem arises.
 
+Thanks.
 
-
-Jean Delvare wrote:
->>>I think I'll stick to #2 for now. The extra code is reasonable, and
->>>I don't really see the low accuracy at high speed as a problem. What
->>>matters much to me is that the user shouldn't have to worry about
->>>selecting dividers himself, and #2 does this.
->>>
->>>Part of the extra code may be moved to i2c_sensor if several drivers
->>>use it. Also, remember that the new policy will remove some code
->>>from the drivers (reading and setting dividers manually) so this
->>>gives us some margin anyway.
->>
->>The keyword in your conclusion is "policy", which reminds me of the
->>phrase "mechanism, not policy".
-> 
-> 
-> I don't quite see how appropriate this phrase is in the context, and, to
-> say the truth, I'm not even sure I understand what you imply by saying
-> that. Could you please explain in great details why you seem to think
-> that my proposal is no good idea?
-> 
-> If the use of the word "policy" is incorrect, maybe I should have used
-> another. What I meant was that, if we start implementing that kind of
-> stuff in several drivers, we better discuss it together before, and
-> implement it the same, optimal way, so that we don't have to change it
-> afterwards, and it can be documented, and the user doesn't observe
-> different behaviors on different drivers. I'm trying to spare the user
-> some trouble, so let's not replace it with different trouble.
-> 
-> 
->>The driver should behave exactly as commanded, nothing more.
-> 
-> 
-> Well, most hardware monitoring chip drivers do more than that, and I
-> don't think this should be changed. For example, drivers enable
-> monitoring on load and configure what needs to be. We have limited their
-> action to the least possible, and I think it was a clever move, but some
-> things definitely need to be done. Drivers may also need to reset alarm
-> flags after they read them. This belongs to the driver's job to do that!
-> Likewise, I believe that the fact that a clock divider has to be chosen
-> is a hardware implementation detail the user-space shouldn't even be
-> aware about.
-> 
-> 
->>The solution to the fan divisor madness can and should be done in
->>userspace.
-> 
-> 
-> I agree it could (the whole hardware monitoring chip drivers could).
-> However, the current interface doesn't allow that. The user-space would
-> need to know which dividers are available for each driver, and would
-> need to know the base clock frequency for each driver as well (or,
-> alternatively, we would have to export raw register readings for fan
-> tachometers). The amount of driver code required to do this would
-> probably be equal to, or even greater than, what I am proposing.
-> 
-> For information, my current implementation of the in-driver dynamic
-> clock adjustement is about 15 lines of code at update time, if you omit
-> comments and debugging, and 7 lines of code at low limit change time.
-> The current interface code to fan_div alone has about as much (about 22
-> lines)! If we are to export everything we need to do the same in
-> user-space, it will make the drivers even bigger, and add overhead at
-> the user-space/kernel-space interface. So why would we want to do that?
-> 
-> If you have a reason to believe that what I propose is not correct,
-> please explain why you do, with as much details as needed. I would also
-> want to read a concrete proposal of how we would do it your way. Simply
-> pretending that "it's not the correct way to do it" without additional
-> explanation nor proposal doesn't help me much, unfortunately.
-> 
-> I'm definitely surprised that you don't seem to like my proposal at all,
-> while I thought you were suggesting we could do something similar a few
-> months ago [1]. Quoting you back in January:
-> 
-> "(...) we'd auto-increment the fan_div until we got a non-zero reading
-> or we hit the max.  Then the first set to a fan_div turns the feature
-> off; that would allow sensors.conf/sensors -s to override."
-> 
-> Or do I misread you somehow?
-> 
-> Thanks.
-> 
-> [1] http://archives.andrew.net.au/lm-sensors/msg05815.html
-> 
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
