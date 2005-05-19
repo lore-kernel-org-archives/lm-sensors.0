@@ -1,30 +1,26 @@
-From: khali@linux-fr.org (Khali)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: Compile problem when EISA support is removed from the .config file
-Message-Id: <20021010085018.2E41240F0F@kraid.nerim.net>
+From: rainer.lay@informatik.uni-erlangen.de (Rainer Lay)
+Date: Thu, 19 May 2005 06:24:06 +0000
+Subject: solved ticket 1344
+Message-Id: <3F1C12F2.3080402@informatik.uni-erlangen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200210100836.01d7@th00.opsion.fr>
-In-Reply-To: <200210100836.01d7@th00.opsion.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> My motherboard does have any isa slot, so i had remove the support of
-> the isa inside the make menuconfig program but without installing a new
-> kernel.
+Hi,
 
-You have no ISA slot, but it means in no way that you don't have an ISA *bus*. Indeed, all motherboards I know still have an ISA bus, and lm_sensors makes use of it.
+finally I found the answer to my question at
+http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket44 .
+I switched module compilation of, since I already compiled them with the
+kernel. Your Makefile is not creating sensors.h, since it is not included in
+the SRCDIRS variable.
 
-> After doing a "make mrproper", the make of lm_sensors complain about the
-> miss of the /usr/src/linux/.config file.
+After switching on kernel module compilation, the header file is 
+created. This
+solution is not really nice, since it would overwrite the already created
+modules.
 
-We need to know what is supported by your kernel and what isn't, and this information is found in this file. Note that this supposes that this config file matches the kernel you are running, which is not your case if I read you carefully.
+kind regards,
 
--- 
-Khali
-
-
-___________________________________
-Webmail Nerim, http://www.nerim.net/
-
+Rainer
