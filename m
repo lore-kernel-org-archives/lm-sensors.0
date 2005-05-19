@@ -1,22 +1,27 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: Vaio eeprom security issue
-Message-Id: <20030816135220.4e6a5e98.khali@linux-fr.org>
+From: naeem_jarral@yahoo.com (Naeem Afzal)
+Date: Thu, 19 May 2005 06:23:30 +0000
+Subject: ADM1031 and ADuC812 controller
+Message-Id: <20020225200035.33231.qmail@web12901.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030806233617.5a83d0b6.khali@linux-fr.org>
-In-Reply-To: <20030806233617.5a83d0b6.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-> > > Why?  Just check for CAP_SYS_ADMIN if the Vaio is detected.  If
-> > > that succeeds, then give access, otherwise deny it.
+We are planning to use ADuC812 to control ADM1031
+device on our board. We will be runnig Linux on it.
+How could we use lm_sensors drivers for this, or what
+sort of effort is needed to port this funcitonality.
+Seems like you guys dont use controller and program
+the devices directly.
 
-OK, that's done and tested OK (for me). Feel free to take a look if you
-want (it's straightforward anyway).
+thanks
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+naeem
+
+__________________________________________________
+Do You Yahoo!?
+Yahoo! Sports - Coverage of the 2002 Olympic Games
+http://sports.yahoo.com
