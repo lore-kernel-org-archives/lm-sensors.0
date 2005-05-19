@@ -1,7 +1,7 @@
-From: ovis@thecourtofeden.org (ivo)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:13 +0000
 Subject: i801 bus problems
-Message-Id: <Pine.LNX.4.58.0409031428360.642@shi>
+Message-Id: <20040903114750.M79098@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0409022207200.19686@desitka.sh.cvut.cz>
@@ -10,34 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+> > Does the eeprom driver works?
+> 
+> it seems to load
 
+But does "sensors" then display the corresponding memory information?
 
-On Fri, 3 Sep 2004, Jean Delvare wrote:
+> > What does i2cdump on 0,0x2e or 0,0x50 returns?
+> 
+> i2cdump 0,0x2e
+> Error: First argument not a number!
 
-> > > But does "sensors" then display the corresponding memory information?
-> >
-> > How to determine, i am a rooky ;)
->
-> Just run the "sensors" program. It should display something like:
->
-> i2c-0-50:
-> Memory Type: xxxxx
-> Memory Size: xxxMB
+My bad, the syntax is "i2cdump 0 0x2e" (i.e. space, not comma). "0,0x2e" was
+really only a way to refer to the chip, not what had to be typed on the
+command line. Sorry.
 
-sensors
-Can't access procfs/sysfs file
-Unable to find i2c bus information;
-For 2.6 kernels, make sure you have mounted sysfs and done
-'modprobe i2c_sensor'!
-For older kernels, make sure you have done 'modprobe i2c-proc'!
-
-sysfs is mounted for sure
-
-modules loaded:
-
-eeprom                  6920  0
-lm85                   21380  0
-i2c_sensor              4096  2 eeprom,lm85
-i2c_i801                9744  0
-
-gr ovis
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
