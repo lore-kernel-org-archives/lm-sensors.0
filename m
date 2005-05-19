@@ -1,7 +1,7 @@
-From: R.Marek@sh.cvut.cz (Rudolf Marek)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:03 +0000
 Subject: VRM(VRD) detection versus CPUID
-Message-Id: <Pine.LNX.4.58.0407021001220.26054@desitka.sh.cvut.cz>
+Message-Id: <200407020822.i628MuVK047377@zone3.gcu-squad.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
 In-Reply-To: <Pine.LNX.4.58.0406301920320.26054@desitka.sh.cvut.cz>
@@ -11,98 +11,48 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-
-On Fri, 2 Jul 2004, Jean Delvare wrote:
-
+>> What is 0xFF is ever a valid value for eff_model?
 >
-> >typedef struct {
-> >u8 vendor;
-> >u8 eff_family;
-> >u8 eff_model;
-> >vrm_t vrm_type;
-> >} vrm_models_t;
-> >#define ANY 0xFF
->
-> What is 0xFF is ever a valid value for eff_model?
+>No, model is 4 bit :)
 
-No, model is 4 bit :)
+That's not what your code below suggests:
 
->
-> >vrm_models_t vrm_models[] = {
-> >                {X86_VENDOR_AMD,0x6,ANY,VRM_INTEL_9x}, //athlon duron etc
-> >                {X86_VENDOR_AMD,0xF,4,VRM_INTEL_9x}, //Athlon 64
-> >                {X86_VENDOR_AMD,0xF,5,VRM_AMD_OPTERON},
-> >                {X86_VENDOR_INTEL,0x6,0x9,VRM_INTEL_85},  /* 0.13um too */
-> >                {X86_VENDOR_INTEL,0x6,0xB,VRM_INTEL_85},  /* 0xB Tualatin */
-> >                {X86_VENDOR_INTEL,0x6,ANY,VRM_INTEL_8x},  /* any P6 */
-> >                {X86_VENDOR_INTEL,0x7,ANY,VRM_UNKNOWN},   /* Itanium */
-> >                {X86_VENDOR_INTEL,0xF,0x3,VRM_INTEL_10x}, /* P4 Prescott */
-> >                {X86_VENDOR_INTEL,0xF,ANY,VRM_INTEL_9x},  /* P4 before
-> >Prescott*/
-> >                {X86_VENDOR_INTEL,0x10,ANY,VRM_INTEL_ITANIUM2} /*Itanium 2*/
-> >                };
-> >#define num_models (sizeof(vrm_models) / sizeof(vrm_models_t) )
->
-> I think that the usual practice for this kind of lookup tables is to have
-> an "empty" final line and rely on it to detect the end of the table.
-> Your method looks OK too, but maybe there's a reason why kernel folks
-> seem to prefer the empty last line?
+    m = ((eax & 0x000000F0)>>4);
+    m+=((eax & 0x000F0000)>>16)<<4;
 
-I will take a look to kernel code.
+That's 8-bit to me.
 
+>> >    f+=((eax & 0x00F00000)>>20);
+>>
+>> No <<4 here?
 >
-> >vrm_t find_vrm(u8 ef,u8 em,u8 vendor) {
-> >int i;
-> >
-> >for (i=0;i<num_models;i++) {
-> >    if (vrm_models[i].vendor=vendor)
-> >       if
-> >((vrm_models[i].eff_family=ef)&&((vrm_models[i].eff_model=ef)|| \
 >
->                                                              ^^
->                                                              em
->
-oops :)  I tested only the ANY case for this PII Thanks.
+>No according to AMD paper is family "additive", model is "concat" so
+>thatswhy it is shifted by 4;
 
-> >       ((vrm_models[i].eff_model=ANY)))) return vrm_models[i].vrm_type;
-> >    }
-> >return VRM_UNKNOWN;
-> >}
->
-> >static vrm_t whichVRM(void) {
-> >struct cpuinfo_x86 *c = cpu_data;
-> >
-> >u32 eax;
-> >u8 f,m;
->
-> Please use longer variable names in the final code. Short varible names
-> make the code harder to read.
+Do Intel agree with that?
 
-I will do.
->
-> >    eax = cpuid_eax(1);
-> >    f = ((eax & 0x00000F00)>>8);
-> >    m = ((eax & 0x000000F0)>>4);
-> >    if (f = 0xF) {
-> >    f+=((eax & 0x00F00000)>>20);
->
-> No <<4 here?
+I don't think it's safe to follow AMD here. It means that we cannot
+differenciate between, say, (m=0xf, xm=0) and (m=0xe, xm=1). What if
+these end up having different DRM? Using "concat" for the family
+doesn't cost much as far as I can see, maybe additional lines in the
+table by frankly I doubt it.
 
+>I'm not sure if we can leave 0x000F0000 such things there...
 
-No according to AMD paper is family "additive", model is "concat" so
-thatswhy it is shifted by 4;
+That's fine with me. Just do some defines for these so as to make the
+code more readable (but I don't expect the values to change, ever).
 
-> >    m+=((eax & 0x000F0000)>>16)<<4;
-> >    }
-> >return find_vrm(f,m,c->x86_vendor);
->
-> Looks overwise really good,
+Oh, BTW, maybe you could start implementing the architecture dispatcher?
+Your code is valid only for X86, isn't it? So you'd need to detect
+that and provide a default callback function for other architectures.
 
-I'm not sure if we can leave 0x000F0000 such things there...
+Another remark: you've defined an enum for VRM values. Interesting but
+we don't use it in our i2c_vid code so far. We use numerical values. I
+see no benefit in using symbolic values first and having to convert
+these to our numbers right after. I'd suggest you use the numerical
+values directly (they are rather explicit anyway). Alternatively I think
+you can force values to match in your enum directly.
 
->I'll test this on as many systems as
-> possible soon.
->
-Ok thank you.
-
-Rudolf
+Thanks,
+Jean Delvare
