@@ -1,41 +1,101 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:23:50 +0000
-Subject: Ticket 1159 update
-Message-Id: <20030322102158.53b016e6.khali@linux-fr.org>
+From: metalhen@metalhen.de (Benjamin Henne)
+Date: Thu, 19 May 2005 06:23:45 +0000
+Subject: Asus A7A266 and lm_sensors
+Message-Id: <3E21D96A.2080201@metalhen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <NCBBIHMBGFFKDDGNDMLKIEOGDMAA.merky_1@yahoo.com>
-In-Reply-To: <NCBBIHMBGFFKDDGNDMLKIEOGDMAA.merky_1@yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Added #define DEBUG 1 to kernel/chips/bmcsensors.c.
-> 
-> Now I am getting a compile error:
-> 
-> gcc  -D__SMP__ -DMODVERSIONS -include
-> /lib/modules/2.4.20/build/include/linux/modversions.h -D__KERNEL__
-> -DMODULE -DEXPORT_SYMTAB -fomit-frame-pointer -I. -Ikernel/include
-> -I/usr/local/inclu de -I/lib/modules/2.4.20/build/include   -O2   -c
-> kernel/chips/bmcsensors.c -o kernel/chips/bmcsensors.o
-> kernel/chips/bmcsensors.c: In function `bmcsensors_rcv_sdr_msg':
-> kernel/chips/bmcsensors.c:575: parse error before `else'
-> make: *** [kernel/chips/bmcsensors.o] Error 1
+Hi.
+I tried to install and use lm_sensors for my server at home.
+It has an Asus A7A266-Board.
 
-Right, there was a bracket missing. It's now fixed in the CVS. I
-wouldn't recommend to get the whole CVS tree right now since it's a bit
-unstable AFAIK. Just replace the line 569 of kernel/chips/bmcsensors.c
-as follows:
+The detect and the infos at
+http://www.cs.utexas.edu/users/bdbryant/howtos/hardware/asus-a7a266/lm_sensors/
+said
+to use the module w83781d. But I can't use it?
+I tried something...
 
-		else if(type = 0x11) {
+modprobe i2c-ali1535    is OK
 
-becomes
+modprobe w83781d
+(and lm75)
 
-		} else if(type = 0x11) {
+make my PC do a never ending high tone beep. I only can shut down then 
+(system hangs at umount)
 
-And it should compile right.
+and: I alwys had "no sensors found"
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+do you have some Ideas/Hints for me??
+
+
+
+my
+/var/log/messages:
+
+
+Jan 12 21:32:23 server kernel: i2c-core.o: i2c core module version 2.7.0 
+(20021208)
+Jan 12 21:32:23 server kernel: i2c-ali15x3.o version 2.7.0 (20021208)
+Jan 12 21:32:23 server kernel: i2c-ali15x3.o: ALI15X3_smb region 
+uninitialized - upgrade BIOS or use force_addr=0xaddr
+Jan 12 21:32:23 server kernel: i2c-ali15x3.o: ALI15X3 not detected, 
+module not inserted.
+Jan 12 21:32:27 server kernel: i2c-core.o: i2c core module version 2.7.0 
+(20021208)
+Jan 12 21:32:27 server kernel: i2c-ali1535.o version 2.7.0 (20021208)
+Jan 12 21:32:27 server kernel: i2c-ali1535.o: ALI1535 SMBus Controller 
+detected and initialized
+Jan 12 21:32:29 server kernel: i2c-algo-bit.o: i2c bit algorithm module 
+version 2.7.0 (20021208)
+Jan 12 21:32:29 server kernel: i2c-voodoo3.o version 2.7.0 (20021208)
+Jan 12 21:32:29 server kernel: i2c-voodoo3: Using Banshee/Voodoo3 at 
+0xd0921000
+Jan 12 21:32:29 server kernel: i2c-voodoo3: 1 Banshee/Voodoo3 found.
+Jan 12 21:32:29 server kernel: i2c-voodoo3.o: I2C bus initialized
+Jan 12 21:32:29 server kernel: i2c-voodoo3.o: DDC bus initialized
+Jan 12 21:32:33 server kernel: i2c-algo-pcf.o: i2c pcf8584 algorithm 
+module version 2.7.0 (20021208)
+Jan 12 21:32:33 server kernel: i2c-elektor.o: i2c pcf8584-isa adapter 
+module version 2.7.0 (20021208)
+Jan 12 21:32:35 server kernel: i2c-elv.o: i2c ELV parallel port adapter 
+module version 2.7.0 (20021208)
+Jan 12 21:32:36 server kernel: i2c-philips-par.o: i2c Philips parallel 
+port adapter module version 2.7.0 (20021208)
+Jan 12 21:32:36 server insmod: 
+/lib/modules/2.4.18-14/kernel/drivers/parport/parport_pc.o: init_module: 
+Device or resource bus
+y
+Jan 12 21:32:36 server insmod: Hint: insmod errors can be caused by 
+incorrect module parameters, including invalid IO or IRQ p
+arameters.       You may find more information in syslog or the output 
+from dmesg
+Jan 12 21:32:36 server insmod: 
+/lib/modules/2.4.18-14/kernel/drivers/parport/parport_pc.o: insmod 
+parport_lowlevel failed
+Jan 12 21:32:38 server kernel: i2c-velleman.o: i2c Velleman K8000 
+adapter module version 2.7.0 (20021208)
+Jan 12 21:32:42 server kernel: i2c-dev.o: i2c /dev entries driver module 
+version 2.7.0 (20021208)
+Jan 12 21:32:45 server kernel: i2c-ali1535.o: Error: command never completed
+Jan 12 21:32:46 server last message repeated 123 times
+Jan 12 21:33:56 server kernel: i2c-ali15x3.o version 2.7.0 (20021208)
+Jan 12 21:33:56 server kernel: i2c-ali15x3.o: ALI15X3_smb region 
+uninitialized - upgrade BIOS or use force_addr=0xaddr
+Jan 12 21:33:56 server kernel: i2c-ali15x3.o: ALI15X3 not detected, 
+module not inserted.
+Jan 12 21:33:59 server kernel: i2c-algo-pcf.o: i2c pcf8584 algorithm 
+module version 2.7.0 (20021208)
+Jan 12 21:33:59 server kernel: i2c-elektor.o: i2c pcf8584-isa adapter 
+module version 2.7.0 (20021208)
+Jan 12 21:34:02 server kernel: i2c-velleman.o: i2c Velleman K8000 
+adapter module version 2.7.0 (20021208)
+Jan 12 21:34:03 server kernel: i2c-ali1535.o: Error: command never completed
+Jan 12 21:34:04 server last message repeated 123 times
+Jan 12 21:36:23 server kernel: i2c-proc.o version 2.7.0 (20021208)
+Jan 12 21:36:23 server kernel: w83781d.o version 2.7.0 (20021208)
+Jan 12 21:36:23 server kernel: i2c-ali1535.o: Error: command never completed
+Jan 12 21:36:23 server last message repeated 14 times
+
