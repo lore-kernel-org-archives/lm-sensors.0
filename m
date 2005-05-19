@@ -1,38 +1,56 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:57 +0000
-Subject: [RFC PATCH 2.6.12-rc3] dynamic driver sysfs callbacks and RFC on
-Message-Id: <20050510000334.GA24769@kroah.com>
+From: oleg@cs.msu.su (Oleg I. Vdovikin)
+Date: Thu, 19 May 2005 06:25:12 +0000
+Subject: [CONTRIBUTION] DDC/CI tool for lm_sensors package
+Message-Id: <1093114999.11260.22.camel@proxima>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2538186705042422366584aff4@mail.gmail.com>
-In-Reply-To: <2538186705042422366584aff4@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, May 09, 2005 at 06:34:24PM -0400, Yani Ioannou wrote:
-> Hi Jean,
-> 
-> On 5/9/05, Jean Delvare <khali@linux-fr.org> wrote:
-> > Hi Yani,
-> > 
-> > You could always define a static array of pointers, and use the passed
-> > int as an index to that array, thus converting the int into a pointer.
-> > It's not very different from defining a static array of ints and passing
-> > the int addresses as the void*, but for some reason I tend to prefer the
-> > int -> pointer conversion (most certainly because my view if awfully
-> > biased by my misknowledge of the kernel except for the i2c and hardware
-> > monitoring code).
-> 
-> Yes, so it is possible just very ugly :-). I'm not sure what I think
-> of the int->pointer conversion, I guess its a necessary evil. I can't
-> help feel like I'm doing something wrong when I do it though..
+Hi,
 
-Storing an int or a long in a pointer is just fine, don't feel dirty,
-it's a natural thing :)
+	I've recently finished writing a tool which is suitable for
+communication with DDC/CI (DDC2Bi) enabled monitors (Samsung,
+NEC/Mitsubishi are known to support it) and allows querying monitor
+capabilities, reading and writing monitor controls, such as contrast,
+brightness, geometry, etc...
 
-More comments on your main patch in a bit...
+	I'm believe, that there is some interest on this, at least googling
+shows that. ;-) The reason for contributing is simple - I've spent some
+time on this, and do not want to just this into the wastebasket. ;-)
 
-thanks,
+	I've tested it with Samsung SyncMaster 173T with radeonfb and 
+Nicolas Boichat, which has independently started digging on the same
+thing and now working with GUI version, has tested it with Mitsubishi
+Diamond Pro 2060u with rivafb. Mitsubishi Diamond Pro 2060u does not
+support capabilities request.
 
-greg k-h
+	This program is based on info sniffed on wire, published in USB Monitor
+Control Class 1.0 specification for control codes available at
+http://www.usb.org/developers/devclass_docs/usbmon10.pdf
+and ACCESS.bus (tm) Specifications Version 3.0 available at
+http://www.semtech.com/pdf/abusv30.pdf. In fact, up to date information
+about DDC/CI standard (Display Data Channel Command Interface (DDC/CI)
+Standard (formerly DDC2Bi), Version 1) is available from VESA
+(http://www.vesa.org) and the summary is freely available at
+http://www.vesa.org/summary/sumddcci.htm
+
+	Attached please find a patch against lm_sensors-2.8.7. I would like if
+someone will review this stuff and commit it to the CVS.
+
+	I'm not in the list, so please CC me in your answers.
+
+	Also, I've made a web page available at this address:
+http://jaffar.cs.msu.su/oleg/ddcci/
+
+Thanks,
+	Oleg.
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.8.7-ddcci.diff
+Type: text/x-patch
+Size: 22602 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20040821/6ef67f91/lm_sensors-2.8.7-ddcci.bin
