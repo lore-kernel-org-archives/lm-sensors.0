@@ -1,30 +1,31 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:24:11 +0000
-Subject: i2c sysfs rant
-Message-Id: <20030808233403.GA2564@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:42 +0000
+Subject: via686a on I2C
+Message-Id: <20040217230608.31c66662.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030806191145.GG710@gmx.de>
-In-Reply-To: <20030806191145.GG710@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 07, 2003 at 11:09:03AM +0200, Wiktor Wodecki wrote:
-> On Wed, Aug 06, 2003 at 04:22:44PM -0700, Greg KH wrote:
-> > On Wed, Aug 06, 2003 at 09:11:45PM +0200, Wiktor Wodecki wrote:
-> > > Hello folks,
-> > > 
-> > > I just saw that I2C provides "/sys/bus/i2c/drivers/dev\ driver" in
-> > > 2.6.0-test2. It would be nice if you'd consider renaming this to
-> > > dev_driver, to avoid un-neccessary quoting in scripts.
-> > > 
-> > > Thank You :-)
-> > 
-> > Patches are always gladly accepted :)
-> 
-> here you go
+Hi all,
 
-Applied to my trees, thanks.
+FYI, I just solved the mystery of lm80 being misdetected on systems
+where the via686a driver is used and works. It happens that the via686a
+chip can *also* be accessed on the I2C bus. Alex van Kaam just told me
+about that, he was aware of that for some times already.
 
-greg k-h
+We might consider adding some code in sensors-detect to say we detected
+something there. That said, the via686a as an i2c chip isn't necessarily
+very easy to detect. I'll take a look and do what I can.
+
+Do we want to add i2c support to the existing via686a driver? Doesn't
+seem to be necessary since I can't imagine that the chip would be seen
+on i2c and not available on isa. Still something to consider is someone
+doesn't want to use i2c-isa for some reason. Also, since via686a and
+i2c-viapro are not compatible in Linux 2.6, having a way to access the
+via686a through i2c-viapro may have an interest.
+
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
