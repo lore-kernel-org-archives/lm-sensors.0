@@ -1,31 +1,47 @@
-From: eyal@eyal.emu.id.au (Eyal Lebedinsky)
-Date: Thu, 19 May 2005 06:25:07 +0000
-Subject: Ticket #: 1729 - more info (sort of)
-Message-Id: <41076BA8.2030600@eyal.emu.id.au>
+From: galak@freescale.com (Kumar Gala)
+Date: Thu, 19 May 2005 06:25:56 +0000
+Subject: [PATCH] I2C-MPC: Allow for sharing of the interrupt line
+Message-Id: <Pine.LNX.4.61.0505031849120.19691@nylon.am.freescale.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Greg KH <greg@kroah.com>
+Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com, linuxppc-embedded <linuxppc-embedded@ozlabs.org>
 
-Gigabyte added another reply to
-	http://ggts.gigabyte.com.tw/gtsemail.asp?UserEmail=3Dga@eyal.emu.id.au&Ema=
-ilID=84916&EmailPreviousID=84916&OpenEmail=3DY&LanguageID=3D1#
-basically saying:
-	After discussed with our BIOS engineers, and they said
-	at this moment, we do not supprot H/W monitoring feature
-	under Linux. Sorry for the late reply and inconvenience.
-So there you have it.
+I2C-MPC: Allow for sharing of the interrupt line
 
-BTW, I use the following ratios:
-	compute in2     @ , @
-	compute in3   2*@,  @/2
-	compute in4 3.8*@,  @/3.8
-	compute in5  -8*@, -@/8
-	compute in6  -4*@, -@/4
-in7 varies randomly...
+On the MPC8548 devices we have multiple I2C-MPC buses however they are on the
+same interrupt line.  Made request_irq pass SA_SHIRQ now so the second bus can
+register for the same IRQ.
 
-I do not know if in5/6 are actually connected.
+Signed-off-by: Kumar Gala <kumar.gala@freescale.com>
 
---=20
-Eyal Lebedinsky	 (eyal@eyal.emu.id.au) <http://samba.org/eyal/>
+---
+commit cc75b79f8142eb8a50432cf612bb1ab189136cd0
+tree 79fd2184cd5cfee440f3ca2952f7c9f834ece443
+parent 52292c9b8c16aa9024a65aaeeca434bb8fec7d24
+author Kumar K. Gala <kumar.gala@freescale.com> 1115164017 -0500
+committer Kumar K. Gala <kumar.gala@freescale.com> 1115164017 -0500
+
+Index: drivers/i2c/busses/i2c-mpc.c
+=================================--- 59c7aae8cab7c4e1e557dd3a4fff6afbffab38e2/drivers/i2c/busses/i2c-mpc.c  (mode:100644 sha1:6f33496d31c31e6c57d3d2479db4afb4dad23617)
++++ 79fd2184cd5cfee440f3ca2952f7c9f834ece443/drivers/i2c/busses/i2c-mpc.c  (mode:100644 sha1:c8a8703dcbcb16fdd5ccd5fddf8f322d2509d5dd)
+@@ -325,7 +325,7 @@
+ 	if (i2c->irq != OCP_IRQ_NA)
+ 	{
+ 		if ((result = request_irq(ocp->def->irq, mpc_i2c_isr,
+-					  0, "i2c-mpc", i2c)) < 0) {
++					  SA_SHIRQ, "i2c-mpc", i2c)) < 0) {
+ 			printk(KERN_ERR
+ 			       "i2c-mpc - failed to attach interrupt\n");
+ 			goto fail_irq;
+@@ -424,7 +424,7 @@
+ 
+ 	if (i2c->irq != 0)
+ 		if ((result = request_irq(i2c->irq, mpc_i2c_isr,
+-					  0, "fsl-i2c", i2c)) < 0) {
++					  SA_SHIRQ, "i2c-mpc", i2c)) < 0) {
+ 			printk(KERN_ERR
+ 			       "i2c-mpc - failed to attach interrupt\n");
+ 			goto fail_irq;
