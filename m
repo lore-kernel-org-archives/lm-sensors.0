@@ -1,14 +1,22 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: [PATCH 2.6] Voltage conversions in via686a
-Message-Id: <20040420192208.3c830b3c.khali@linux-fr.org>
+Date: Thu, 19 May 2005 06:24:55 +0000
+Subject: [PATCH 2.6] Voltage conversions in via686a (second try)
+Message-Id: <20040425224310.24061e5e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20040420192208.3c830b3c.khali@linux-fr.org>
+In-Reply-To: <20040420192208.3c830b3c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Greg,
+
+My previous patch was actually not correct, reading from the chip's
+registers was fixed but writing limits to it wasn't. This new version of
+the patch should be better. Sorry for the trouble.
+
+---
 
 I noticed that the voltage conversions in via686a have severe rounding
 issues. And all in all they are artificially complex, and wrong.
@@ -17,16 +25,23 @@ One comment in the code itself confirm my suspicions:
 // These get us close, but they don't completely agree with what my BIOS
 // says- they are all a bit low.  But, it all we have to go on...
 
-The following patch, slightly tested by me (my VIA686A chip is not used
-for hardware monitoring), and then by Lennard Klein on a working chip,
-fixes that. It should apply cleanly on top of 2.6.6-rc1.
+The following patch, tested by Lennard Klein and me, fixes that. It
+should apply cleanly on top of your current tree.
 
 Please apply,
 thanks.
 
-
---- linux-2.6.5-mm3/drivers/i2c/chips/via686a.c.init	Mon Apr 12 11:02:54 2004
-+++ linux-2.6.5-mm3/drivers/i2c/chips/via686a.c	Mon Apr 12 11:55:19 2004
+--- linux-2.6.6-rc2/drivers/i2c/chips/via686a.c.orig	Thu Apr 22 19:39:07 2004
++++ linux-2.6.6-rc2/drivers/i2c/chips/via686a.c	Sun Apr 25 21:51:00 2004
+@@ -108,7 +108,7 @@
+ #define VIA686A_TEMP_MODE_MASK 0x3F
+ #define VIA686A_TEMP_MODE_CONTINUOUS (0x00)
+ 
+-/* Conversions. Rounding and limit checking is only done on the TO_REG
++/* Conversions. Limit checking is only done on the TO_REG
+    variants. 
+ 
+ ********* VOLTAGE CONVERSIONS (Bob Dougherty) ********
 @@ -123,49 +123,41 @@
   volts = (25*regVal+133)*factor
   regVal = (volts/factor-133)/25
@@ -53,22 +68,22 @@ thanks.
  		return (u8)
 -		    SENSORS_LIMIT(((val * 210240 - 13300) / 250 + 5) / 1000, 
 -				  0, 255);
-+		    SENSORS_LIMIT((val * 21024 - 120500) / 250000, 0, 255);
++		    SENSORS_LIMIT((val * 21024 - 1205000) / 250000, 0, 255);
  	else if (inNum = 2)
  		return (u8)
 -		    SENSORS_LIMIT(((val * 157370 - 13300) / 250 + 5) / 1000, 
 -				  0, 255);
-+		    SENSORS_LIMIT((val * 15737 - 120500) / 250000, 0, 255);
++		    SENSORS_LIMIT((val * 15737 - 1205000) / 250000, 0, 255);
  	else if (inNum = 3)
  		return (u8)
 -		    SENSORS_LIMIT(((val * 101080 - 13300) / 250 + 5) / 1000, 
 -				  0, 255);
-+		    SENSORS_LIMIT((val * 10108 - 120500) / 250000, 0, 255);
++		    SENSORS_LIMIT((val * 10108 - 1205000) / 250000, 0, 255);
  	else
 -		return (u8) SENSORS_LIMIT(((val * 41714 - 13300) / 250 + 5)
 -					  / 1000, 0, 255);
 +		return (u8)
-+		    SENSORS_LIMIT((val * 41714 - 1205000) / 2500000, 0, 255);
++		    SENSORS_LIMIT((val * 41714 - 12050000) / 2500000, 0, 255);
  }
  
  static inline long IN_FROM_REG(u8 val, int inNum)
@@ -133,6 +148,7 @@ thanks.
  	data->in_max[nr] = IN_TO_REG(val,nr);
  	via686a_write_value(client, VIA686A_REG_IN_MAX(nr), 
  			data->in_max[nr]);
+
 
 -- 
 Jean Delvare
