@@ -1,22 +1,85 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:11 +0000
-Subject: Fwd: sensors -s & adm1027
-Message-Id: <20040811211632.45235242.khali@linux-fr.org>
+From: R.Marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 19 May 2005 06:25:00 +0000
+Subject: arima computations updated
+Message-Id: <Pine.LNX.4.58.0405271646320.1458@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <web-86231@free.net>
-In-Reply-To: <web-86231@free.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Sorry for 2nd reply w/strace sensors -s output,
-> but I'm not sure that using of reply to sensors@stimpy.netroedge.com
-> was correct. So I'm sending now to "official" address.
+Hello,
 
-It was correct. Just give me some time to read it and understand what's
-going on. It's not that easy, mind you.
+ARIMA board update follows.
 
--- 
-Jean "Khali" Delvare
-http://khali.linux-fr.org/
+Regards
+
+Rudolf
+
+---------------------------
+
+(in0+1)*231/10000
+
+print(quotient);
+reminder is handled this way:
+
+newrem=reminder*10
+
+if newrem<10000 then
+print("0%d",reminder);
+else
+print(reminder);
+end if
+
+(in1+1)*231/10000
+same as above.
+
+in6*231/10000
+same as above.
+
+in2*296/10000
+
+print(quotient);
+reminder is handled this way:
+
+newrem=reminder*10
+
+if newrem<10000 then
+print("0%d",reminder);
+else
+print( (reminder+600) );
+end if
+
+in5*296/10000
+same as above
+
+in3*23/1000
+
+print(quotient);
+reminder is handled this way:
+
+do reminder/10 ;change from *
+
+and now what I dont understand much.
+
+print((reminderofthis*256+quotientofthis)+400)
+
+
+in4*23/1000
+
+print(quotient);
+reminder is handled this way:
+
+do reminder/10 ;change from *
+
+and now what I dont understand much.
+
+print((reminderofthis*256+quotientofthis)+3700)
+
+
+0000AC66  58                pop ax        ;ax holds reminder
+0000AC67  B30A              mov bl,0xa
+0000AC69  F6F3              div bl  	  ;do reminder /10, AH reminder
+0000AC6B  660FB7C0          movzx eax,ax  ;extend to 32bit
+0000AC6F  6605740E0000      add eax,0xe74 ;add 3700
+0000AC75  E84DCE            call 0x7ac5   ;call print
