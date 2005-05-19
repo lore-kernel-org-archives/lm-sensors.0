@@ -1,7 +1,7 @@
 From: yann.savenye@wanadoo.fr (Yann SAVENYE)
 Date: Thu, 19 May 2005 06:23:52 +0000
 Subject: Cannot have lm-sensors work with my NV7m ABIT motherboard
-Message-Id: <1048960907.21953.1.camel@localhost>
+Message-Id: <1049477297.16079.3.camel@Ordiyann.maison>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1048326224.4015.63.camel@Ordiyann>
 In-Reply-To: <1048326224.4015.63.camel@Ordiyann>
