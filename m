@@ -1,45 +1,65 @@
-From: reg@dwf.com (Reg Clemens)
-Date: Thu, 19 May 2005 06:23:35 +0000
-Subject: 2.6.3 looks OK on this hardware.
-Message-Id: <200206250631.g5P6Vq6G001972@orion.dwf.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:24:51 +0000
+Subject: [PATCH 2.6] I2C chip drivers return -EINVAL on error
+Message-Id: <20040410222630.22d70d38.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+> > Well make it a real error, like -EINVAL or something, so userspace
+> > has a chance to report it properly.  Not just -1.
+> 
+> Oh, I guess we want to correct it87.c and fscher.c in that way too
+> then.
+> 
+> I had this to my todo list.
 
-This is a partial report for the code in 2.6.3 on kernel 2.4.18
+(I meant: I *add* this...)
 
-The Motherboard here is a Asus P3V4X, with a 733 MHz PIII on it.
-The chipset is a Via VT82C694X
-	  and  a Via VT82C596B 
-The Hardware monitor chip is a Asus As99127F
+OK, here is the patch. Should apply cleanly on top of all the other
+patches I sent you today (kmalloc, error paths, w83781d pwm).
 
-Sensors-detect recommends
-	i2c-viapro
-   and  w83781d
+Thanks.
 
-I will assume that the latter is somehow equivalent to the 99127.
+--- linux-2.6.5-mm3/drivers/i2c/chips/fscher.c.orig	Sat Apr 10 10:33:18 2004
++++ linux-2.6.5-mm3/drivers/i2c/chips/fscher.c	Sat Apr 10 22:19:22 2004
+@@ -512,7 +512,7 @@
+ 	default:
+ 		dev_err(&client->dev, "fan_div value %ld not "
+ 			 "supported. Choose one of 2, 4 or 8!\n", v);
+-		return -1;
++		return -EINVAL;
+ 	}
+ 
+ 	/* bits 2..7 reserved => mask with 0x03 */
+--- linux-2.6.5-mm3/drivers/i2c/chips/it87.c.orig	Sat Apr 10 16:19:46 2004
++++ linux-2.6.5-mm3/drivers/i2c/chips/it87.c	Sat Apr 10 22:17:17 2004
+@@ -367,7 +367,7 @@
+ 	else if (val = 2)
+ 	    data->sensor |= 8 << nr;
+ 	else if (val != 0)
+-		return -1;
++		return -EINVAL;
+ 	it87_write_value(client, IT87_REG_TEMP_ENABLE, data->sensor);
+ 	return count;
+ }
+--- linux-2.6.5-mm3/drivers/i2c/chips/pcf8591.c.orig	Sat Apr 10 08:51:58 2004
++++ linux-2.6.5-mm3/drivers/i2c/chips/pcf8591.c	Sat Apr 10 21:56:37 2004
+@@ -130,8 +130,9 @@
+ 	{
+ 		data->aout = value;
+ 		i2c_smbus_write_byte_data(client, data->control, data->aout);
++		return count;
+ 	}
+-	return count;
++	return -EINVAL;
+ }
+ 
+ static DEVICE_ATTR(out0_output, S_IWUSR | S_IRUGO, 
 
-These along with i2c-proc give me 'output' in /proc/sys/dev/sensors/w83782d-i2c-0-2d
 
-The two temperatures seem 'reasonable' being close to what the BIOS sees.
-Considering the problems Ive seen, I would have expected the CPU temperature
-to 'run up' when I loaded the machine down with a kernel compile, but this
-didnt happen.  They fluctuate a degree or so, but no runup.  [ then again
-the compile didnt segfault...]
-
-The Fan speed is definately WRONG, I cant identify anything else...
-
-*** when the w83781d module is modloaded, a TONE appears on the CPU speaker.
-VERY ANNOYING.  after a number of minutes (or a reboot) it stops.  I assume
-this means that something is being set incorrectly by this driver.
-
-Also, I have been forced to do fsck's after each reboot where I was previously
-using these modules,- looks like something ELSE is getting set incorrectly.
-
-Will try on different hardware tomorrow.
-
-					Reg.Clemens
-					reg@dwf.com
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
