@@ -1,51 +1,94 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:40 +0000
-Subject: Ticket #: 997
-Message-Id: <3D8D08CC.BDF5555C@paradyne.com>
+From: bintut@yahoo.com (Marvin Pascual)
+Date: Thu, 19 May 2005 06:23:52 +0000
+Subject: Acer Veriton 5500G
+Message-Id: <20030406164617.10845.qmail@web40612.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20020913114208.4b96e4d8.klaus@sconk.dk>
-In-Reply-To: <20020913114208.4b96e4d8.klaus@sconk.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-please send us the output of sensors-detect and the output of
-dmesg/syslog
-containing the messages from the sensors modules.
+Hello,
 
-"Klaus Rene Hansen [Sconk]" wrote:
-> 
-> I did read the faq from the start. now i try agen.. ;-)
-> 
-> From FAQ:
-> >4.21 Sensors says 'No sensors found!'
-> >
-> >    Did sensors-detect find sensors? (If not see 4.24C)
-> >    Did you do what sensors-detect said?
-> Yes.
-> >    Did you 'modprobe' your sensor modules?
-> yes
-> >    Did you 'modprobe' your I2C adapter modules?
-> yes
-> >    Did you 'modprobe i2c-isa' if you have ISA sensor chips?
-> yes
-> >    Check 'lsmod'.
-> 
-> Module                  Size  Used by    Not tainted
-> eeprom                  3456   0  (unused)
-> lm80                    5120   0  (unused)
-> via686a                 7748   0  (unused)
-> i2c-viapro              3848   0
-> w83781d                18656   0  (unused)
-> i2c-isa                 1220   0  (unused)
-> i2o_core               33280   0  (unused)
-> i2o_config              7336   0  (unused)
-> i2o_proc               41440   0  (unused)
-> i2c-algo-bit            7340   0  (unused)
-> i2c-dev                 3872   0
-> i2c-algo-pcf            5088   0  (unused)
-> i2c-proc                6336   0  [eeprom lm80 via686a w83781d]
-> i2c-core               15072   0  [eeprom lm80 via686a i2c-viapro w83781d i2c-isa i2c-algo-bit i2c-dev i2c-algo-pcf i2c-proc]
-> 
-> Some default Signature
+I installed lm_sensors-2.7.0-2mdk and it's related
+packages on an [1]Acer Veriton 5500G PC running on
+[2]Mandrake Linux 9.1.  I run "sensors-detect" and
+answers the right information on what I believe are
+the right values but I wasn't able to make my
+lm_sensors work right.
+
+I hope you can help me isolate this problem so that I
+could monitor the temperature of my PC.  I'll be using
+phpSysInfo then.
+
+Please see below some of the output of the modules
+that are currently installed in my system.
+
+Thank you very much in advance.
+
+Marvin
+
+[1]
+http://www.acer.com.sg/products/veriton5500G/psp_veriton5500G.asp
+
+[2] http://www.linux-mandrake.com/en/
+
+- - - < s n i p > - - -
+# lspcidrake
+agpgart         : Intel Corporation|82845 845 Chipset
+Host Bridge (MCH)
+Card:Intel 845  : Intel Corporation|82845 CGC [Chipset
+Graphics Controller]
+usb-uhci        : Intel Corporation|82801DB USB
+Controller
+usb-uhci        : Intel Corporation|82801DB USB
+Controller
+usb-uhci        : Intel Corporation|82801DB USB
+Controller
+ehci-hcd        : Intel Corporation|82801DB USB
+Enhanced Controller
+i810_rng        : Intel Corporation|82820 815e (Camino
+2) Chipset PCI
+i810-tco        : Intel Corporation|82801DB 845G/GL
+Chipset ISA Bridge (ICH4)
+unknown         : Intel Corporation|82801DB 845G/GL
+Chipset IDE Controller
+unknown         : Intel Corporation|82801DB SMBus
+Controller
+i810_audio      : Intel Corporation|ICH4 845G/GL
+Chipset AC'97 Audio Controller
+3c59x           : 3Com Corporation|3c905B 100BaseTX
+[Cyclone]
+eepro100        : Intel Corporation|EtherExpress
+PRO/100
+unknown         : Linux 2.4.21-0.13mdk ehci-hcd|Intel
+Corp. 82801DB USB EHCI Controller [Hub|Root Hub]
+unknown         : Unknown|USB UHCI Root Hub [Hub|Root
+Hub]
+unknown         : Unknown|USB UHCI Root Hub [Hub|Root
+Hub]
+Mouse:USB|Wheel : Logitech Inc.|N48 / M-BB48
+[FirstMouse Plus] [Human Interface Devices|Boot
+Interface Subclass|Mouse]
+unknown         : NOVATEK|USB MULTIMEDIA KEYBOARD
+[Human Interface Devices|Boot Interface
+Subclass|Keyboard]
+unknown         : Unknown|USB UHCI Root Hub [Hub|Root
+Hub]
+- - - < s n i p > - - -
+
+- - - < s n i p > - - -
+# lsmod | grep i2c | lsmod | grep epro
+eeprom          4820   0  (unused)
+i2c-proc        9072   0  [eeprom]
+i2c-i801        5780   0  (unused)
+i2c-core       21192   0  [eeprom i2c-proc i2c-i801]
+eepro100       21844   1  (autoclean)
+mii             3832   0  (autoclean) [eepro100]
+- - - < s n i p > - - -
+
+
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Tax Center - File online, calculators, forms, and more
+http://tax.yahoo.com
