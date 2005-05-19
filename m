@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
+From: gawrysz@camk.edu.pl (Artur Gawryszczak)
 Date: Thu, 19 May 2005 06:23:48 +0000
-Subject: [as99127f] - a note about measuring CPU temperature on Asus
-Message-Id: <20030221100331.6d47a8bf.khali@linux-fr.org>
+Subject: [as99127f] - a note about measuring CPU temperature on Asus CUV4X - continued ...
+Message-Id: <200302240127.54189@phoenix.camk.edu.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200302112308.19507@phoenix.camk.edu.pl>
 In-Reply-To: <200302112308.19507@phoenix.camk.edu.pl>
@@ -10,73 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-Again, thanks a lot for the precious information you gave us. I'm going
-to add one more quotation to the config file.
+Some days ago, I've stated, that the formula "temp2 (@*30/43)+25, 
+(@-25)*43/30" works better than "temp2 @*2, @/2". Today I continued 
+experiments with my machine, and I found that still there are 
+systematical discrepancies between CPU temperature measured from the 
+Celeron diode, and temperature of thermistor probe put near the CPU 
+core, under the heatsink - especially for idle state (temperatures 
+around 30?C). To maximize temperature changes between idle and 
+full-load states I overclocked my iCII 600 to 900 MHz, and raised 
+V_core to 2.0 Volts (well, I know ... but these CPU's are quite cheap 
+nowadays :-) ). The chassis was closed and the temperature inside was 
+about 29?C. Full load was done by using burnP6 from CPUburn suite, 
+half-load was done with same tool, but with the help of the following 
+script:
 
-Maybe Phil or Mark will want to tweak the driver to handle negative
-values correctly, or maybe not, I leave it to them.
+delP000
+while [ true ] ; do 
+	kill -SIGSTOP `pidof burnP6` ; usleep $del
+	kill -SIGCONT `pidof burnP6` ; usleep $del
+done 2> /dev/null
 
-> On Thursday 20 February 2003 09:46, Jean Delvare wrote:
-> > > Yes, temp3 @*2.0 was good. It gaves me ~+2?C for a water-snow
-> > > mixture, and ~+35?C for my fingers. I did not measure the
-> > > temperature of a boiling water, but I plan to do so :-)
-> > Right, sounds good
-> 
-> I put the probe into boiling water, and I got 97,4?C - quite good
-> value. Here are temperatures plotted against time:
-> 
-> http://www.camk.edu.pl/~gawrysz/boil.png (14kB, 1302?681)
-> 
-> Solid lines are something like "average in near history".
-> 
-> > > It seems that temperatures slightly below 0?C produce measurements
-> > > about 255?C. I guess, that something what should be signed is
-> > > unsigned. I think it may be interesting to check it with
-> > > water-salt-ice solution or ethyl alcohol cooled well below 0?C. I
-> > > think I'll try to do it someday :-)
-> > Well, let us know, but actually I don't think it is an important
-> > issue to have correct values below 0?C, since any system will hardly
-> > be working there.
-> 
-> Of course It's hard to cool CPU below 0?C, but the probe can be used
-> for many other purposes :-) For melting salted water I got on average 
-> -18.8?C (measurements were in the range from -22?C to -16.6?C). It's 
-> good, when compared to -21.2?C - a critical tempreature for such 
-> solution. My formula was 
-> temp3 @*2.0 (in sensors.conf)
-> if (temp3>"4.4) temp3-%6 (in a script, that logged the data)
-> Here you can see a graph:
-> 
-> http://www.camk.edu.pl/~gawrysz/salt-ice.png (18kB, 1302?681)
-> 
-> The value of 224.4 is the readout with probe unplugged (checked for 
-> CUV4X, A7V and A7V133).
-> 
-> > > I guess, that the formula "temp2 (@*30/43)+25, (@-25)*43/30" is
-> > > correct for those Asus motherboards, which get CPU temperature
-> > > from internal thermal diode (Pentium Coppermine, and above), and
-> > > "temp2@*2.0, @/2.0" is correct for Athlon/Duron boards, which use
-> > > a thermistor in the socket.
-> > Very valuable information, thanks a lot. I am going to add this in
-> > our configuration file, with your permission. It's better than
-> > listing the known boards names, since the list will be incomplete by
-> > nature. I guess that people always know wether they have an Intel or
-> > AMD system.
-> 
-> Things may be a bit more complicated, since newer AMD CPU's (AFAIK 
-> Athlon XP models 6 and 8) have internal thermal probe (a diode). I 
-> don't know which boards takes care about it, but on some of newer ones
-> 
-> it may be possible to obtain thermal data from both the Athlon CPU 
-> diode and the thermistor in socket.
-> 
-> -- 
-> Greetings,
->         Artur
-> 
+I found, that the best formula for temp3, which makes agreement between 
+it and temp3 is "temp2 @+19, @-19". Here you can see the results:
+http://www.camk.edu.pl/~gawrysz/cuv4x.png
 
+Disclaimer ;-), and some comments
+I tried to put the thermistor as close to the CPU die as possible, but 
+I'm not sure how close it is. It can introduce errors proportional to 
+(T_CPU-T_ambient), so It's still possible that proper temp2 scaling 
+needs a multiplier slightly greater than 1, but I'm sure, that offset 
+as large as 25?C isn't good, but the "round" value of 20?C is very 
+probable. 
+The readouts from the CPU diode are very noisy. I observed them in BIOS 
+- they were noisy too (up to 7?C). This is strange; I haven't seen such 
+behavior on my mother's machine build of Soyo SY 6BA+III (BX, w83782d) 
+and iCII 566@810MHz. But the voltage readouts are very noisy too, and 
+I've checked this power supply powering another computer, and got much 
+cleaner picture, so I suppose that the noise comes from as99127f and 
+its interface.
+Validity of the formula "temp2 @+19, @-19" can be supported by some 
+(rather "hardcore") tests witch CPU fan slowed down or even unplugged, 
+but this needs to find FSB and V_core at which this CPU can run stable 
+at equilibrium temperature about 70?C or a little bit more but 
+currently I don't have time for such educational games ;-) I'd better 
+check validity of temperature measurements for some another machines 
+I'm administrating (A900 on Asus A7V, A1333 on A7V133, and Athlons MP 
+on Tyan Tiger MP and MPX (fortunately Tyan uses Winbond's sensor 
+chips)), and ensure that daemons can shutdown them quick enough in case 
+of CPU fan failure ...
 
 -- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+Regards,
+Artur Gawryszczak
