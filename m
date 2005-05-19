@@ -1,9 +1,9 @@
 From: greg@kroah.com (Greg KH)
 Date: Thu, 19 May 2005 06:24:58 +0000
 Subject: [PATCH] I2C update for 2.6.6
-Message-Id: <10845773571232@kroah.com>
+Message-Id: <10845773583910@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <10845773573553@kroah.com>
+In-Reply-To: <1084577358220@kroah.com>
 References: <10845773562431@kroah.com>
 In-Reply-To: <10845773562431@kroah.com>
 MIME-Version: 1.0
@@ -11,83 +11,144 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
 
-ChangeSet 1.1587.15.10, 2004/05/05 15:34:40-07:00, khali@linux-fr.org
+ChangeSet 1.1587.15.17, 2004/05/14 14:59:26-07:00, bjorn@mork.no
 
-[PATCH] I2C: Fix memory leaks in w83781d and asb100
+[PATCH] I2C: "probe" module param broken for it87 in Linux 2.6.6
 
-Quoting myself
+Jean Delvare <khali@linux-fr.org> writes:
+> So I'd suggest that you simply use the standard exit sequence in the
+> it87 driver (the second one in your current patch). A patch for the 2.4
+> driver would be appreciated as well.
 
-> U-ho. I think I've introduced a memory leak with this patch :(
+OK.  I've attached a new version of the patch against linux-2.6.6.
+I'll send a patch against current lm_sensors CVS removing the extra
+exit command in a separate mail.
+
+Greg KH <greg@kroah.com> writes:
+> On Wed, May 12, 2004 at 04:38:03PM +0200, Bj?rn Mork wrote:
+>> +	if (!it87_find(&addr)) {
+>> +		printk("it87.o: new ISA address: 0x%04x\n", addr);
 >
-> For drivers that handle subclients (asb100 and w83781d on i2c), the
-> sublient memory is never released if I read the code correctly. This
-> is because we now free the private data on unload, assuming that it
-> contains the i2c client data as well. That's true for the main i2c
-> client, but not for the subclients (data = NULL so nothing is freed).
->
-> Could someone take a look and confirm?
+> That printk is wrong (no KERN_ level, or dev_printk() style use).
+> Please fix it in your next revision of this patch.
 
-I could test and actually saw memory leaking when cycling the w83781d
-driver at a sustained rate (5/s).
-
-> I can see two different fixes:
->
-> 1* When freeing the memory, free the data if it's not NULL (main
-> client), else free client (subclients). Cleaner (I suppose?).
->
-> 2* When creating subclients, do data = &client instead of data = NULL.
-> Then freeing will work. Less code, faster. Are there side effects? (I
-> don't think so)
->
-> My preference would go to 2*.
-
-I ended up implementing 1*. That's cleaner and there's actually almost
-no extra code.
-
-Mark, can you confirm that I'm doing the correct thing? I'll do
-something similar in our CVS repository (for now, the asb100 and w83781d
-drivers had not their memory allocation scheme reworked there).
+Errh, I just added it to document my sloppyness.  It was never meant
+to be in the patch I sent you.  Sorry.  Removed in the attached patch.
+The style of these drivers seem to be "just working, making no noise"
+so I assume informational printk's are unwanted.
 
 
- drivers/i2c/chips/asb100.c  |    8 +++++++-
- drivers/i2c/chips/w83781d.c |    8 +++++++-
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/i2c/chips/it87.c |   78 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 78 insertions(+)
 
 
-diff -Nru a/drivers/i2c/chips/asb100.c b/drivers/i2c/chips/asb100.c
---- a/drivers/i2c/chips/asb100.c	Fri May 14 16:19:58 2004
-+++ b/drivers/i2c/chips/asb100.c	Fri May 14 16:19:58 2004
-@@ -855,7 +855,13 @@
- 		return err;
- 	}
+diff -Nru a/drivers/i2c/chips/it87.c b/drivers/i2c/chips/it87.c
+--- a/drivers/i2c/chips/it87.c	Fri May 14 16:18:36 2004
++++ b/drivers/i2c/chips/it87.c	Fri May 14 16:18:36 2004
+@@ -49,6 +49,54 @@
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(it87);
  
--	kfree(i2c_get_clientdata(client));
-+	if (i2c_get_clientdata(client)=NULL) {
-+		/* subclients */
-+		kfree(client);
-+	} else {
-+		/* main client */
-+		kfree(i2c_get_clientdata(client));
-+	}
++#define	REG	0x2e	/* The register to read/write */
++#define	DEV	0x07	/* Register: Logical device select */
++#define	VAL	0x2f	/* The value to read/write */
++#define PME	0x04	/* The device with the fan registers in it */
++#define	DEVID	0x20	/* Register: Device ID */
++
++static inline void
++superio_outb(int reg, int val)
++{
++	outb(reg, REG);
++	outb(val, VAL);
++}
++
++static inline int
++superio_inb(int reg)
++{
++	outb(reg, REG);
++	return inb(VAL);
++}
++
++static inline void
++superio_select(void)
++{
++	outb(DEV, REG);
++	outb(PME, VAL);
++}
++
++static inline void
++superio_enter(void)
++{
++	outb(0x87, REG);
++	outb(0x01, REG);
++	outb(0x55, REG);
++	outb(0x55, REG);
++}
++
++static inline void
++superio_exit(void)
++{
++	outb(0x02, REG);
++	outb(0x02, VAL);
++}
++
++/* just IT8712F for now - this should be extended to support the other
++   chips as well */
++#define IT8712F_DEVID 0x8712
++#define IT87_ACT_REG  0x30
++#define IT87_BASE_REG 0x60
  
- 	return 0;
+ /* Update battery voltage after every reading if true */
+ static int update_vbat;
+@@ -158,6 +206,7 @@
+ 
+ 
+ static int it87_attach_adapter(struct i2c_adapter *adapter);
++static int it87_find(int *address);
+ static int it87_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int it87_detach_client(struct i2c_client *client);
+ 
+@@ -505,6 +554,30 @@
+ 	return i2c_detect(adapter, &addr_data, it87_detect);
  }
-diff -Nru a/drivers/i2c/chips/w83781d.c b/drivers/i2c/chips/w83781d.c
---- a/drivers/i2c/chips/w83781d.c	Fri May 14 16:19:58 2004
-+++ b/drivers/i2c/chips/w83781d.c	Fri May 14 16:19:58 2004
-@@ -1336,7 +1336,13 @@
- 		return err;
- 	}
  
--	kfree(i2c_get_clientdata(client));
-+	if (i2c_get_clientdata(client)=NULL) {
-+		/* subclients */
-+		kfree(client);
-+	} else {
-+		/* main client */
-+		kfree(i2c_get_clientdata(client));
++/* SuperIO detection - will change normal_isa[0] if a chip is found */
++static int it87_find(int *address)
++{
++	u16 val;
++
++	superio_enter();
++	val = (superio_inb(DEVID) << 8) |
++	       superio_inb(DEVID + 1);
++	if (val != IT8712F_DEVID) {
++		superio_exit();
++		return -ENODEV;
 +	}
++
++	superio_select();
++	val = (superio_inb(IT87_BASE_REG) << 8) |
++	       superio_inb(IT87_BASE_REG + 1);
++	superio_exit();
++	*address = val & ~(IT87_EXTENT - 1);
++	if (*address = 0) {
++		return -ENODEV;
++	}
++	return 0;
++}
++
+ /* This function is called by i2c_detect */
+ int it87_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+@@ -853,6 +926,11 @@
  
- 	return 0;
+ static int __init sm_it87_init(void)
+ {
++	int addr;
++
++	if (!it87_find(&addr)) {
++		normal_isa[0] = addr;
++	}
+ 	return i2c_add_driver(&it87_driver);
  }
+ 
 
