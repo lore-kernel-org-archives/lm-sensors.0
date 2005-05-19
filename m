@@ -1,74 +1,93 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:25:13 +0000
-Subject: Sensor support for IBM PC300GL
-Message-Id: <20040908083647.M6204@linux-fr.org>
+Date: Thu, 19 May 2005 06:25:47 +0000
+Subject: [PATCH 2.6] I2C: Move functionality handling from i2c-core to i2c.h
+Message-Id: <20050328203853.4bf25f79.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <NEEELJAJHCPEEENILLCFEECMCGAA.jim@hartslag.com>
-In-Reply-To: <NEEELJAJHCPEEENILLCFEECMCGAA.jim@hartslag.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 7 Sep 2004 21:57:09 +0200, Jim Deij wrote
+Hi Greg,
 
-> I have an IBM PC300GL (6275-500) machine running with Debian unstable
-> (kernel 2.4.26-1-686). I installed your sensor package via apt, but
-> whenever I start the sensors-detect script it tells me:
-> [code]
->  System vendor: IBM
->  BIOS version: PDKT31AUS
-> Sorry, we won't let you go on. IBM systems are known to have
-> serious problems with lm_sensors, resulting in hardware failures.
-> For more information, see README.thinkpad or
-> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad.
-> [/code]
+So far, the functionality handling of i2c adapters was done in i2c-core
+by two exported functions: i2c_get_functionality and
+i2c_check_functionality. I found that both functions could be reduced to
+one line each, and propose that we turn them into inline function in the
+i2c.h header file, much like other i2c helper functions (e.g.
+i2c_get_clientdata, i2c_set_clientdata and i2c_clientname).
 
-True, we have a detection mechanism in sensors-detect.
+The conversion of i2c_get_functionality suppresses a legacy check which
+shouldn't be needed anymore. Only one driver (s3c2410) was still relying
+on it, and was fixed some days ago.
 
-> I see in the release files on your site that you are working on the IBM
-> problem, but is there any possibility for you to add in the support for my
-> PC300GL machine? This motherboard is (as far as I know) also used in old
-> Netfinity 3000 systems, although they had different BIOS'es. So that would
-> help users with those systems aswell.
+The conversion lets us get rid of two exports. Not only i2c-core gets
+smaller (by 458 bytes), but the client drivers using these functions get
+smaller too (typically by 48 bytes). And of course the new way is likely
+to be faster too, even if it wasn't my primary objective.
 
-True, I am working on this for quite some time now. The plan is to
-transparently workaround the Thinkpad issue (which really is an Atmel AT24RF08
-issue) in the userspace tools (already done) and the 2.6 kernel drivers (not
-done yet). We do *not* plan to do it on the 2.4 kernel drivers because mixing
-an old i2c subsystem with new lm_sensors drivers would then be more dangerous
-than ever (there is no such problem with 2.6 because all drivers are part of
-the main tree so we know for sure that versions won't be mixed. Anyway, you
-can still do the change manually on your 2.4 kernel if you don't want to move
-to 2.6.
+Please apply,
+thanks.
 
-I'm somewhat busy with real life these days, but still I'd like to help you to
-get lm_sensors working on your system. We only had one person trying this
-before (on a PC300PL). If it works for you as well I'll be able to go on with
-removing the detection in sensors-detect and updating the 2.6 kernel drivers.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-First step is to make sure that you are using lm_sensors 2.8.7 or CVS. Do NOT
-use any earlier version since the hack suggested below would most likely BREAK
-your system. 2.8.7 is the first version including my changes that supposedly
-safely works around the problem. The IBM detection was left in place just to
-make sure the new method had no side effect. I guess it doesn't have any since
-we had no complaint so far.
+--- linux-2.6.12-rc1-mm3/drivers/i2c/i2c-core.c.orig	2005-03-27 18:53:02.000000000 +0200
++++ linux-2.6.12-rc1-mm3/drivers/i2c/i2c-core.c	2005-03-28 20:23:03.000000000 +0200
+@@ -1236,22 +1236,6 @@
+ }
+ 
+ 
+-/* You should always define `functionality'; the 'else' is just for
+-   backward compatibility. */ 
+-u32 i2c_get_functionality (struct i2c_adapter *adap)
+-{
+-	if (adap->algo->functionality)
+-		return adap->algo->functionality(adap);
+-	else
+-		return 0xffffffff;
+-}
+-
+-int i2c_check_functionality (struct i2c_adapter *adap, u32 func)
+-{
+-	u32 adap_func = i2c_get_functionality (adap);
+-	return (func & adap_func) = func;
+-}
+-
+ EXPORT_SYMBOL(i2c_add_adapter);
+ EXPORT_SYMBOL(i2c_del_adapter);
+ EXPORT_SYMBOL(i2c_add_driver);
+@@ -1283,9 +1267,6 @@
+ EXPORT_SYMBOL(i2c_smbus_write_block_data);
+ EXPORT_SYMBOL(i2c_smbus_read_i2c_block_data);
+ 
+-EXPORT_SYMBOL(i2c_get_functionality);
+-EXPORT_SYMBOL(i2c_check_functionality);
+-
+ MODULE_AUTHOR("Simon G. Vogl <simon@tk.uni-linz.ac.at>");
+ MODULE_DESCRIPTION("I2C-Bus main module");
+ MODULE_LICENSE("GPL");
+--- linux-2.6.12-rc1-mm3/include/linux/i2c.h.orig	2005-03-26 07:00:21.000000000 +0100
++++ linux-2.6.12-rc1-mm3/include/linux/i2c.h	2005-03-28 20:23:03.000000000 +0200
+@@ -368,10 +368,16 @@
+ 
+ 
+ /* Return the functionality mask */
+-extern u32 i2c_get_functionality (struct i2c_adapter *adap);
++static inline u32 i2c_get_functionality(struct i2c_adapter *adap)
++{
++	return adap->algo->functionality(adap);
++}
+ 
+ /* Return 1 if adapter supports everything we need, 0 if not. */
+-extern int i2c_check_functionality (struct i2c_adapter *adap, u32 func);
++static inline int i2c_check_functionality(struct i2c_adapter *adap, u32 func)
++{
++	return (func & i2c_get_functionality(adap)) = func;
++}
+ 
+ /*
+  * I2C Message - used for pure i2c transaction, also from /dev interface
 
-Let me insist. DO NOT DO THE FOLLOWING IF YOUR ARE USING AN LM_SENSORS VERSION
-EARLIER THAN 2.8.7.
-
-Once you know for sure you are using at least lm_sensors 2.8.7, you can
-manually disable the IBM check in sensors-detect. Add "return 1;" as the first
-line of sub safe_system_vendor and you should be done. Then run sensors-detect
-and report the full result. We'll see what your system holds and what can be
-done with it.
-
-If you confirm that your system reboots fine after doing all this, then this
-means that my changes really work as intended and I'll plain drop the IBM
-detection from the sensors-detect script. It already lasted too long.
-
-Thanks.
 
 -- 
-Jean Delvare 
-http://khali.linux-fr.org/
+Jean Delvare
