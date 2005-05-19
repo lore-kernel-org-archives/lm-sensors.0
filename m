@@ -1,39 +1,29 @@
-From: mds@paradyne.com (Mark D. Studebaker)
-Date: Thu, 19 May 2005 06:23:37 +0000
-Subject: quick question regarding access of LM75 via /dev file system
-Message-Id: <3D51D548.4F5E1E52@paradyne.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 19 May 2005 06:25:06 +0000
+Subject: bugus anti-spam mechanism
+Message-Id: <20040714212340.372a033a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <8A098FDFC6EED94B872CA2033711F86F0EC404@orion.ariodata.com>
-In-Reply-To: <8A098FDFC6EED94B872CA2033711F86F0EC404@orion.ariodata.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-prog/dump/i2cdump.c in our package is a good example
+Hi Phil,
 
+Looks like one of the lm_sensors mailing list users has a bugus spam
+filter triggering on most messages as of today (three times already...):
 
-Sanjay Kumar wrote:
-> 
-> Hi,
-> 
-> Sorry for posting this mail!!!!!
-> 
-> How can i access the different register of LM75 using /dev file system
-> interface. I do the following steps:
-> 
->         1. open (/dev.......................)
->         2. ioctl(fd, I2C_SLAVE, i2c-addr); i2c-addr : slave address for
-> LM75.
->         3. read/write
-> 
-> Now using read command how do i access the different register of LM75
-> (Ex. conf register, temp register, hyst register etc)
-> Again , how do I write it in these register?
->         if i do  read(fd, buf, 1) : which register's data it will return
-> to me.
-> 
-> Will somebody help me here pls.???
-> 
-> Thankx in advance,
-> Sanjay
+From: Auto.Reply@lee.k12.nc.us
+To: lm78@Stimpy.netroedge.com
+Subject: Your e-mail message has been rejected
+
+Can you please try to either
+- locate the user responsible for this, and remove him/her from the list
+or
+- filter these messages out so that they never reach the list?
+
+Thanks.
+
+-- 
+Jean "Khali" Delvare
+http://khali.linux-fr.org/
