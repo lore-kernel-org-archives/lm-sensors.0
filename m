@@ -1,7 +1,7 @@
-From: phil@edgedesign.us (Philip Edelbrock)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:24:21 +0000
 Subject: Donation.
-Message-Id: <3F871D56.6080303@edgedesign.us>
+Message-Id: <20031011135850.0855c0f6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F7CB408531C5264680C9E37DE4FE71A4088FDF@limkexm2.ad.analog.com>
 In-Reply-To: <F7CB408531C5264680C9E37DE4FE71A4088FDF@limkexm2.ad.analog.com>
@@ -11,33 +11,19 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Jean, you might want an evaluation board?
+> Jean, you might want an evaluation board?
 
+Possible, I don't know how it usually works. What are these evalutation
+boards? Minimalistic PC mainboards? Specific PCI cards? External devices
+you can plug on an existing system using the parallel, serial or USB
+port?
 
-Phil
+I'm kind of new to this. So far, I've only been working on devices found
+on my own PC hardware - or ones I didn't even owned. So, any insight
+will be welcome.
 
-Jean Delvare wrote:
+Thanks.
 
->>I like your website. I am involved in development of Temperature and
->>Systems Monitoring Devices for Analog Devices. 
->>
->>If you need evaluation systems for any of our temperature and systems
->>monitoring products let me know and I'll send you them free.
->>    
->>
->
->Thanks a lot for the kind proposal. We always have been receiving a
->great cooperation from Analog Devices, you're probably the sensor
->company with the best support :)
->
->I plan to add support for the ADM1032 (BTW, do you know of a motherboard
->that has an ADM1032 on it?), so I sure would be happy if you could
->provide one sample for me to work on. That said, I don't know how I
->could interface such a sample with my computer. I suppose that I would
->need some special test bench that plugs on the parallel port or similar?
->Is it something you can provide too, or that I can buy somewhere?
->
->Thanks a lot for your nice words and great support.
->
->  
->
+-- 
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
