@@ -1,78 +1,47 @@
-From: hunold-ml@web.de (Michael Hunold)
+From: adrian@humboldt.co.uk (Adrian Cox)
 Date: Thu, 19 May 2005 06:25:17 +0000
 Subject: [PATCH][2.6] Add command function to struct i2c_adapter
-Message-Id: <41527FE3.9000809@web.de>
+Message-Id: <1095970724.1683.232.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <414F111C.9030809@linuxtv.org>	 <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de>	 <41506D78.6030106@web.de> <1095843365.18365.48.camel@localhost>	 <20040922102938.M15856@linux-fr.org> <1095854048.18365.75.camel@localhost>	 <20040922122848.M14129@linux-fr.org> <1095877951.18365.232.camel@localhost>
-In-Reply-To: <1095877951.18365.232.camel@localhost>
+References: <414F111C.9030809@linuxtv.org>
+	 <20040921154111.GA13028@kroah.com>	 <41506099.8000307@web.de>
+	 <41506D78.6030106@web.de> <1095843365.18365.48.camel@localhost>
+	 <20040922102938.M15856@linux-fr.org> <1095854048.18365.75.camel@localhost>
+	 <41527696.5060002@linuxtv.org>
+In-Reply-To: <41527696.5060002@linuxtv.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Adrian Cox <adrian@humboldt.co.uk>
+To: Michael Hunold <hunold@linuxtv.org>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sensors@Stimpy.netroedge.com, Jon Smirl <jonsmirl@gmail.com>, Greg KH <greg@kroah.com>
 
-Hi,
-
-On 22.09.2004 20:32, Adrian Cox wrote:
->>Aha, this is an interesting point (which was missing from your previous
->>explanation). The base of your proposal would be to have several small i2c
->>"trees" (where a tree is a list of adapters and a list of clients) instead of
->>a larger, unique one. This would indeed solve a number of problems, and I
->>admit that it is somehow equivalent to Michael's classes in that it
->>efficiently prevents the hardware monitoring clients from probing the video
->>stuff. The rest is just details internal to each "tree". As I understand it,
->>each video device would be a tree on itself, while the whole hardware
->>monitoring stuff would constitute one (bigger) tree. Correct?
-
-> I've been rereading the code, and it could be even simpler. How about
-> this:
+On Thu, 2004-09-23 at 08:09, Michael Hunold wrote:
+> We need to keep in mind, that the adapter interface must be a per-client 
+> interface. On PCI devices it's simple: you have a i2c bus bound to a dvb 
+> card and know which chipsets can be there. The bus is dvb specific.
 > 
-> 1) The card driver defines an i2c_adapter structure, but never calls
-> i2c_add_adapter(). The only extra thing it needs to do is to initialise
-> the semaphores in the structure.
-> 2) The frontend calls i2c_transfer() directly.
-> 3) The i2c core never gets involved, and there is never any i2c_client
-> structure.
+> On embedded platforms, however, you usually have one one i2c bus, where 
+> everything is present: dvb frontends, audio/video multiplexers, 
+> digital/analog audio converters, stuff like that.
 > 
-> This gives us the required reuse of the I2C algo-bit code, without any
-> of the list walking or device probing being required.
+> So if you create *the* i2c bus and invite i2c client to participate at 
+> the party, you need to provide different interfaces to the different 
+> chipsets.
 
-This is the way the linux-dvb guys are currently favouring.
+I may have to solve a similar problem when connecting an image sensor
+directly to an embedded processor. My current idea looks a bit like
+this:
 
-In some cases there should be an adapter that has been registered with 
-i2c_add_adapter() because there can always be other drivers (audio/video 
-multiplexes and the like) that you cannot get your hands on because they 
-are provided by the manufacturer of some embedded platform.
+1) The I2C bus is a platform device, created at boot time, independent
+of my video capture module.
+2) My module contains a dummy I2C driver, which exists solely to grab an
+i2c_adapter pointer for the platform I2C device.
 
-For some cards (mostly bt8x8 based, ie. the core parts are driven by the 
-"bttv" driver) and hybrid cards (ie. dvb cards that have a separate 
-analog video input) the common i2c bus cannot go away, but it should be 
-protected by proper .class entries in both the clients and adapters.
+My underlying libraries don't have to worry whether the i2c_adapter came
+from a parent PCI device or a platform device. My only worry is that
+power management may still provide us with a headache, as we'll have to
+cope with platform devices being suspended in any order.
 
-We think about splitting the frontend drivers into library parts, ie. 
-library functions for demodulators (the current frontend drivers) and 
-h/w dependent plls (or tuners).
+- Adrian Cox
+Humboldt Solutions Ltd.
 
-Because of the fact the pci device knows which devices are present on 
-the bus, it can register and configure the demod, pll and other specific 
-dvb devices with direct i2c_transfer()s directly. If there are multiple 
-combinations possible, it can use the library to probe as well.
-
-The question we are currently facing is: are the frontend or demod i2c 
-drivers real and independent i2c clients like thermal sensors or are 
-they part of a h/w dependent design that should better be configured on 
-a library basis?
-
-If they are independend, then we need i2c bus types and type-safe 
-client<=>adapter communication to exchange configuration and control 
-informations, because the ioctl interface currently works from the 
-adapter to the client and is not type safe.
-Another question is, if this is probably too bloated. Think of simple 
-matrix switch chipsets: the only "interface" they have is "set input a 
-to output b".
-
-> - Adrian Cox
-> Humboldt Solutions Ltd.
-
-CU
-Michael.
