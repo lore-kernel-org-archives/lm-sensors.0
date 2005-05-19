@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
+From: khali@linux-fr.org (Jean Delvare)
 Date: Thu, 19 May 2005 06:25:05 +0000
 Subject: [PATCH 2.6] Documentation for i2c-parport
-Message-Id: <20040708230633.GB20431@kroah.com>
+Message-Id: <20040709195438.7d3cd8f3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20040707081936.5f48db6a.khali@linux-fr.org>
 In-Reply-To: <20040707081936.5f48db6a.khali@linux-fr.org>
@@ -10,23 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jul 07, 2004 at 08:19:36AM +0200, Jean Delvare wrote:
-> Hi Greg,
+> > This also raises a question about Documentation/i2c/i2c-pport.
+> > Should we keep a document about a driver which is not in the kernel
+> > tree (and hasn't even been ported to 2.6 yet)?
 > 
-> At least, the i2c-parport gets some documentation. I heard several
-> persons complaining that there was no sample electronics schema for
-> building their own i2c-over-parallel-port, so I did just that, with the
-> help of Sylvain Munaut. The documentation also includes the list of
-> supported adapters, and a short comparison with other drivers using the
-> parallel port to drive an i2c bus. At the end of the document I included
-> an updated version of the i2c-velleman doc file (which I then deleted).
+> No we should not.  Care to send a patch to delete it?
 
-Applied, thanks.
+I'm not sure, I think this job is beyond me ;)
 
-> This also raises a question about Documentation/i2c/i2c-pport. Should we
-> keep a document about a driver which is not in the kernel tree (and
-> hasn't even been ported to 2.6 yet)?
+Signed-off-by: Jean Delvare <khali at linux-fr dot org>
 
-No we should not.  Care to send a patch to delete it?
+Erm, do I really have so sign-off a patch which does not add any line?
+:)
 
-greg k-h
+diff -ruN linux-2.6.7-mm5/Documentation/i2c.orig/i2c-pport linux-2.6.7-mm5/Documentation/i2c/i2c-pport
+--- linux-2.6.7-mm5/Documentation/i2c.orig/i2c-pport	Sun Apr  4 05:36:54 2004
++++ linux-2.6.7-mm5/Documentation/i2c/i2c-pport	Thu Jan  1 01:00:00 1970
+@@ -1,45 +0,0 @@
+-Primitive parallel port is driver for i2c bus, which exploits 
+-features of modern bidirectional parallel ports. 
+-
+-Bidirectional ports have particular bits connected in following way:
+-   
+-                        |
+-            /-----|     R
+-         --o|     |-----|
+-      read  \-----|     /------- Out pin
+-                      |/
+-                   - -|\
+-                write   V
+-                        |
+-                       ---  
+-
+-
+-It means when output is set to 1 we can read the port. Therefore 
+-we can use 2 pins of parallel port as SDA and SCL for i2c bus. It 
+-is not necessary to add any external - additional parts, we can 
+-read and write the same port simultaneously.
+-	I only use register base+2 so it is possible to use all 
+-8 data bits of parallel port for other applications (I have 
+-connected EEPROM and LCD display). I do not use bit Enable Bi-directional
+- Port. The only disadvantage is we can only support 5V chips.
+-
+-Layout:
+-
+-Cannon 25 pin
+-
+-SDA - connect to pin 14 (Auto Linefeed)
+-SCL - connect to pin 16 (Initialize Printer)
+-GND - connect to pin 18-25
+-+5V - use external supply (I use 5V from 3.5" floppy connector)
+-      
+-no pullups  requied
+-
+-Module parameters:
+-
+-base = 0xXXX
+-XXX - 278 or 378
+-
+-That's all.
+-
+-Daniel Smolik
+-marvin@sitour.cz
+
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/
