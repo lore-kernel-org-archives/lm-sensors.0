@@ -1,7 +1,7 @@
-From: holger.oehm@holger-oehm.de (Holger Oehm)
-Date: Fri, 20 May 2005 02:39:02 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 20 May 2005 10:27:02 +0000
 Subject: [lm-sensors] Motherboard data collection
-Message-Id: <200505200238.09273.holger.oehm@holger-oehm.de>
+Message-Id: <0DCLQpJL.1116577130.9944310.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200505190141.07306.holger.oehm@holger-oehm.de>
 In-Reply-To: <200505190141.07306.holger.oehm@holger-oehm.de>
@@ -10,48 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thursday 19 May 2005 12:08, Jean Delvare wrote:
-> [...]
-> > is there by now any kind of database that hosts motherboard data?
-> Unfortunately not, although the need exists and some tries were made.
 
-Hmm, they failed? Why? Is it just that collecting the data would mean
-a *lot* of work? Or would you say it simply cant be done?
-What if someone would volunteer to give it a try? (Probably one of my
-worst ideas lately ;-)
+Hallo Holger,
 
-> > [...]. Now I wonder if I am the first to get
-> > it running, is there some place I should publish the thing?
-> 
-> There is no formal place, but you could simply send it to this
-> mailing-list. It'll get archived and eventually indexed by Google.
-> Providing you give it a relevant name, people searching for the data
-> should find it there.
+> > Unfortunately not, although the need exists and some tries were made.
+>
+> Hmm, they failed? Why? Is it just that collecting the data would mean
+> a *lot* of work? Or would you say it simply cant be done?
+> What if someone would volunteer to give it a try? (Probably one of my
+> worst ideas lately ;-)
 
-Well, creating some formal place for board-sorted sensors.conf files
-(for example somewhere on the lm_sensors page or just a folder structure 
-in CVS) would not be the problem, I assume?
+It can be done. The point was to build a system which would require next
+to zero maintenance time: a web interface, where users could easily add
+their own configuration files (wiki-like, in a way). But setting this up
+requires a time and energy investment, which just didn't happen.
 
-> > I could put it on my own webpages, but nobody would look there, would
-> > they?
-> 
-> If your page happens to be indexed by search engines, they will. I put my
-> own configuration file on my website a few days ago for that reason.
+> Well, creating some formal place for board-sorted sensors.conf files
+> (for example somewhere on the lm_sensors page or just a folder structure 
+> in CVS) would not be the problem, I assume?
 
-Ok, I have done that, here is a link:
-http://www.holger-oehm.de/lm_sensors/sensors.conf-sy-p4i875p-dragon-2-platinum
+It would, and is what I had in mind in the first place too. Although much
+more simple to set up, it would require work from us for every added or
+modified configuration file, we can't really afford that.
 
-Holger.
-
--- 
-Holger Oehm <holger.oehm@holger-oehm.de>
-Public key <A HREF="http://www.holger-oehm.de/public-key.asc">here</A>,
-KeyID: B50E51A9, Key-Length: 1024 Bit,
-Key fingerprint: E92A 5C2C 497A 44ED 23C0  DB66 1DD9 3EF7 B50E 51A9
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.atrpms.net/pipermail/lm-sensors/attachments/20050520/43c5a642/attachment.bin
+Thanks,
+--
+Jean Delvare
