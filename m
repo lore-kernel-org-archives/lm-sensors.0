@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 12:16:01 +0000
+From: holger.oehm@holger-oehm.de (Holger Oehm)
+Date: Fri, 20 May 2005 02:39:02 +0000
 Subject: [lm-sensors] Motherboard data collection
-Message-Id: <dJqPsnTB.1116497283.0441440.khali@localhost>
+Message-Id: <200505200238.09273.holger.oehm@holger-oehm.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200505190141.07306.holger.oehm@holger-oehm.de>
 In-Reply-To: <200505190141.07306.holger.oehm@holger-oehm.de>
@@ -10,33 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Thursday 19 May 2005 12:08, Jean Delvare wrote:
+> [...]
+> > is there by now any kind of database that hosts motherboard data?
+> Unfortunately not, although the need exists and some tries were made.
 
-Hi Holger,
+Hmm, they failed? Why? Is it just that collecting the data would mean
+a *lot* of work? Or would you say it simply cant be done?
+What if someone would volunteer to give it a try? (Probably one of my
+worst ideas lately ;-)
 
-> is there by now any kind of database that hosts motherboard data?
+> > [...]. Now I wonder if I am the first to get
+> > it running, is there some place I should publish the thing?
+> 
+> There is no formal place, but you could simply send it to this
+> mailing-list. It'll get archived and eventually indexed by Google.
+> Providing you give it a relevant name, people searching for the data
+> should find it there.
 
-Unfortunately not, although the need exists and some tries were made.
+Well, creating some formal place for board-sorted sensors.conf files
+(for example somewhere on the lm_sensors page or just a folder structure 
+in CVS) would not be the problem, I assume?
 
-> Or asked the other way round: I got a sensors.conf for my
-> "Soyo SY-P4I875P Dragon 2 Platinum Edition" working (somehow working,
-> I asked Soyo support for data, but didnt recieve an answer yet. So its
-> just wild guessing, but at least I have some values that seem to make
-> sense.)
->
-> I tried several times searches on the web without success to get some
-> info how to treat my motherboard. Now I wonder if I am the first to get
-> it running, is there some place I should publish the thing?
+> > I could put it on my own webpages, but nobody would look there, would
+> > they?
+> 
+> If your page happens to be indexed by search engines, they will. I put my
+> own configuration file on my website a few days ago for that reason.
 
-There is no formal place, but you could simply send it to this
-mailing-list. It'll get archived and eventually indexed by Google.
-Providing you give it a relevant name, people searching for the data
-should find it there.
+Ok, I have done that, here is a link:
+http://www.holger-oehm.de/lm_sensors/sensors.conf-sy-p4i875p-dragon-2-platinum
 
-> I could put it on my own webpages, but nobody would look there, would
-> they?
+Holger.
 
-If your page happens to be indexed by search engines, they will. I put my
-own configuration file on my website a few days ago for that reason.
-
---
-Jean Delvare
+-- 
+Holger Oehm <holger.oehm@holger-oehm.de>
+Public key <A HREF="http://www.holger-oehm.de/public-key.asc">here</A>,
+KeyID: B50E51A9, Key-Length: 1024 Bit,
+Key fingerprint: E92A 5C2C 497A 44ED 23C0  DB66 1DD9 3EF7 B50E 51A9
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.atrpms.net/pipermail/lm-sensors/attachments/20050520/43c5a642/attachment.bin
