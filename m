@@ -1,17 +1,27 @@
-From: dimitrios@michelinakis.gr (Dimitrios 'sehh' Michelinakis)
-Date: Thu, 19 May 2005 06:24:53 +0000
-Subject: ticket# 1650 - ERROR: =?ISO-8859-7?B?Q2FuX190?= get TEMP1 data!
-Message-Id: <20040415151932.42b144bc@ekolaptis.>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 22 May 2005 09:53:18 +0000
+Subject: [lm-sensors] Outdated FAQ
+Message-Id: <20050522095244.4cf54054.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I've tested intermediate versions and the problems
-seem to start from 2.8.3 onwards.
+Hi Philip,
 
+I have noticed that our support web pages:
+  http://www2.lm-sensors.nu/~lm78/support.html
+  http://www2.lm-sensors.nu/~lm78/support2.html
+link to a 3 year old FAQ:
+  http://www2.lm-sensors.nu/~lm78/FAQ.txt
 
+Could you please fix the links so that they point to our up-to-date,
+HTML FAQ instead?
+  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/lm_sensors-FAQ.html
+
+Then delete the old FAQ file.
+
+Thanks,
 -- 
-Dimitrios Michelinakis
-www.ionos.gr Web Services
+Jean Delvare
