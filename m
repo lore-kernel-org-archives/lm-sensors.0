@@ -1,138 +1,123 @@
-From: frodol@dds.nl (Frodo Looijaard)
-Date: Thu, 19 May 2005 06:24:49 +0000
-Subject: [alexander@all-2.com: i2c-piix4 oops]
-Message-Id: <20040325121102.GA704@arda.frodo.local>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 22 May 2005 09:39:46 +0000
+Subject: [lm-sensors] [PATCH 2.6] Sensors mailing list has moved
+Message-Id: <20050522093911.04682857.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-LS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgZnJvbSBBbGV4YW5kZXIgT2x0dSA8YWxleGFuZGVyQGFs
-bC0yLmNvbT4gLS0tLS0KCkZyb206IEFsZXhhbmRlciBPbHR1IDxhbGV4YW5kZXJAYWxsLTIuY29t
-PgpUbzogZnJvZG9sQGRkcy5ubApTdWJqZWN0OiBpMmMtcGlpeDQgb29wcwpYLVNwYW0tU3RhdHVz
-OiBObywgaGl0cz0wLjAgcmVxdWlyZWQ9NS4wIHRlc3RzPSB2ZXJzaW9uPTIuMjAKWC1TcGFtLUxl
-dmVsOiAKCkhlbGxvLApTb3JyeSBpZiBJJ20gd3Jvbmcgd3JpdGluZyB5b3UuCkkgaGF2ZSBGdWpp
-dHN1IExpZmVib29rIGJhc2VkIG9uIEk0NDBNWCwgdGhlbiBJJ20gdHJ5aW5nIHRvIHVzZSBpMmMt
-cGlpeDQgb24gCmtlcm5lbCAyLjYuNCwgaXQgbG9hZHMgc3VjY2Vzc2Z1bGx5LCBidXQgdGhlbiBJ
-J20gdGVzdGluZyBpdCB3aXRoIGZvciBleGFtcGxlIAppMmNkZXRlY3QgZnJvbSBsbV9zZW5zb3Jz
-IHBhY2thZ2UgaXQgZ29lcyBpbiBvb3BzIGxpa2U6Ck1hciAyNSAwODozOTo0NCBsaWZlYm9vayBr
-ZXJuZWw6IFVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciAKZGVyZWZlcmVuY2Ug
-YXQgdmlydHVhbCBhZGRyZXNzIDAwMDAwMDAwCk1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJu
-ZWw6ICBwcmludGluZyBlaXA6Ck1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6IGNjYTMx
-M2M2Ck1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6ICpwZGUgPSAwMDAwMDAwMApNYXIg
-MjUgMDg6Mzk6NDQgbGlmZWJvb2sga2VybmVsOiBPb3BzOiAwMDAwIFsjMV0KTWFyIDI1IDA4OjM5
-OjQ0IGxpZmVib29rIGtlcm5lbDogUFJFRU1QVApNYXIgMjUgMDg6Mzk6NDQgbGlmZWJvb2sga2Vy
-bmVsOiBDUFU6ICAgIDAKTWFyIDI1IDA4OjM5OjQ0IGxpZmVib29rIGtlcm5lbDogRUlQOiAgICAK
-MDA2MDpbX19jcmNfc2hyaW5rX2RjYWNoZV9zYisxODIyODAxLzU2MzY1NzldICAgIE5vdCB0YWlu
-dGVkCk1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6IEVJUDogICAgMDA2MDpbPGNjYTMx
-M2M2Pl0gICAgTm90IHRhaW50ZWQKTWFyIDI1IDA4OjM5OjQ0IGxpZmVib29rIGtlcm5lbDogRUZM
-QUdTOiAwMDAxMDI0NgpNYXIgMjUgMDg6Mzk6NDQgbGlmZWJvb2sga2VybmVsOiBFSVAgaXMgYXQg
-aTJjZGV2X2lvY3RsKzB4NTYvMHg3YzAgW2kyY19kZXZdCk1hciAyNSAwODozOTo0NCBsaWZlYm9v
-ayBrZXJuZWw6IGVheDogMDAwMDAwMDAgICBlYng6IGJmZmZmOTE4ICAgZWN4OiAwMDAwMDAwMCAg
-IAplZHg6IGM3OGU0NDAwCk1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6IGVzaTogMDAw
-MDA3MDUgICBlZGk6IDAwMDAwNzA1ICAgZWJwOiBjNzhlNDQ3MCAgIAplc3A6IGM1ZTkzZWYwCgpB
-ZnRlcndvcmRzIGlmIEkgdHJ5IHRvIHJlc2NhbiBidXNzIGl0IHdyaXRlczoKRXJyb3I6IENvdWxk
-IG5vdCBnZXQgdGhlIGFkYXB0ZXIgZnVuY3Rpb25hbGl0eSBtYXh0cml4OiBJbmFwcHJvcHJpYXRl
-IGlvY3RsIApmb3IgZGV2aWNlCgpJJ3ZlIHRyaWVkIHRvIGxvYWQgd2l0aCBmaXhfaHN0Y2ZnPTEs
-IGl0IGRvZXNuJ3QgaGVscCBtZS4KCkkgdGVzdGVkIHRoaXMgb24ga2VybmVsIDIuNC4yMiBhbmQg
-YWxsIGdvZXMgb2sgKG5vIG9vcHMsIGFuZCBidXNzIGZ1bmN0aW9uIApwcm9wZXJseSkKCkkgaGF2
-ZSBtb3JlIG1lc3NhZ2VzIGluIGF0dGFjaG1lbnQuCgpQUy4gSWYgSSdtIHdyb25nLCBvciAgc2hv
-dWxkbid0IHdyaXRlIHRvIHlvdSBhbmQgc2hvdWxkIHdyaXRlIHRvIHNvbWVib2R5IApvdGhlciBw
-bGVhc2Ugc2F5IG1lLiAKVGhhbmsgeW91Ci0tIApBbGV4YW5kZXIgT2x0dS4KCk1hciAyNSAwODoz
-OToxNiBsaWZlYm9vayBrZXJuZWw6IGkyYyAvZGV2IGVudHJpZXMgZHJpdmVyCk1hciAyNSAwODoz
-OTozMyBsaWZlYm9vayBrZXJuZWw6IHBpaXg0LXNtYnVzIDAwMDA6MDA6MDcuMzogRm91bmQgMDAw
-MDowMDowNy4zIGRldmljZQpNYXIgMjUgMDg6Mzk6NDQgbGlmZWJvb2sga2VybmVsOiBVbmFibGUg
-dG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgdmlydHVhbCBhZGRy
-ZXNzIDAwMDAwMDAwCk1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6ICBwcmludGluZyBl
-aXA6Ck1hciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6IGNjYTMxM2M2Ck1hciAyNSAwODoz
-OTo0NCBsaWZlYm9vayBrZXJuZWw6ICpwZGUgPSAwMDAwMDAwMApNYXIgMjUgMDg6Mzk6NDQgbGlm
-ZWJvb2sga2VybmVsOiBPb3BzOiAwMDAwIFsjMV0KTWFyIDI1IDA4OjM5OjQ0IGxpZmVib29rIGtl
-cm5lbDogUFJFRU1QVApNYXIgMjUgMDg6Mzk6NDQgbGlmZWJvb2sga2VybmVsOiBDUFU6ICAgIDAK
-TWFyIDI1IDA4OjM5OjQ0IGxpZmVib29rIGtlcm5lbDogRUlQOiAgICAwMDYwOltfX2NyY19zaHJp
-bmtfZGNhY2hlX3NiKzE4MjI4MDEvNTYzNjU3OV0gICAgTm90IHRhaW50ZWQKTWFyIDI1IDA4OjM5
-OjQ0IGxpZmVib29rIGtlcm5lbDogRUlQOiAgICAwMDYwOls8Y2NhMzEzYzY+XSAgICBOb3QgdGFp
-bnRlZApNYXIgMjUgMDg6Mzk6NDQgbGlmZWJvb2sga2VybmVsOiBFRkxBR1M6IDAwMDEwMjQ2Ck1h
-ciAyNSAwODozOTo0NCBsaWZlYm9vayBrZXJuZWw6IEVJUCBpcyBhdCBpMmNkZXZfaW9jdGwrMHg1
-Ni8weDdjMCBbaTJjX2Rldl0KTWFyIDI1IDA4OjM5OjQ0IGxpZmVib29rIGtlcm5lbDogZWF4OiAw
-MDAwMDAwMCAgIGVieDogYmZmZmY5MTggICBlY3g6IDAwMDAwMDAwICAgZWR4OiBjNzhlNDQwMApN
-YXIgMjUgMDg6Mzk6NDQgbGlmZWJvb2sga2VybmVsOiBlc2k6IDAwMDAwNzA1ICAgZWRpOiAwMDAw
-MDcwNSAgIGVicDogYzc4ZTQ0NzAgICBlc3A6IGM1ZTkzZWYwCk1hciAyNSAwODozOTo0NiBsaWZl
-Ym9vayBrZXJuZWw6IGRzOiAwMDdiICAgZXM6IDAwN2IgICBzczogMDA2OApNYXIgMjUgMDg6Mzk6
-NDYgbGlmZWJvb2sga2VybmVsOiBQcm9jZXNzIGkyY2RldGVjdCAocGlkOiAyMjczLCB0aHJlYWRp
-bmZvxWU5MjAwMCB0YXNrxWViYWJjMCkKTWFyIDI1IDA4OjM5OjQ2IGxpZmVib29rIGtlcm5lbDog
-U3RhY2s6IGMzNGQ5Mzk0IGMzMTk2NDAwIGM3OGU0NDcwIDAwMDAwMDAwIDAwMDAwNzA1IGJmZmZm
-OTE4IGM1ZWJhYmMwIGMwMTFiZjVjCk1hciAyNSAwODozOTo0NiBsaWZlYm9vayBrZXJuZWw6ICAg
-ICAgICBjNWViMmIwMCBjNjNiM2E4MCA0MDBlNWRjMCAwMDAwMDAwMCAwMDAwMDAwMCA0MDBlNWRj
-MCAwMDAwMDAwMCBjNWUyMzA4MApNYXIgMjUgMDg6Mzk6NDYgbGlmZWJvb2sga2VybmVsOiAgICAg
-ICAgMDAwMzAwMDIgMDAwMDAwMDEgYzc4ZTQ0MDAgYzAxNWJjYzAgYzM1OGVlMzggYzVlMjMwODAg
-YzVlYjJiMDAgMDAwMDAwMDIKTWFyIDI1IDA4OjM5OjQ2IGxpZmVib29rIGtlcm5lbDogQ2FsbCBU
-cmFjZToKTWFyIDI1IDA4OjM5OjQ2IGxpZmVib29rIGtlcm5lbDogIFtkb19wYWdlX2ZhdWx0Kzgy
-OC8xMzI2XSBkb19wYWdlX2ZhdWx0KzB4MzNjLzB4NTJlCk1hciAyNSAwODozOTo0NiBsaWZlYm9v
-ayBrZXJuZWw6ICBbPGMwMTFiZjVjPl0gZG9fcGFnZV9mYXVsdCsweDMzYy8weDUyZQpNYXIgMjUg
-MDg6Mzk6NDYgbGlmZWJvb2sga2VybmVsOiAgW2RlbnRyeV9vcGVuKzMzNi81MjhdIGRlbnRyeV9v
-cGVuKzB4MTUwLzB4MjEwCk1hciAyNSAwODozOTo0NiBsaWZlYm9vayBrZXJuZWw6ICBbPGMwMTVi
-Y2MwPl0gZGVudHJ5X29wZW4rMHgxNTAvMHgyMTAKTWFyIDI1IDA4OjM5OjQ2IGxpZmVib29rIGtl
-cm5lbDogIFtmaWxwX29wZW4rMTA0LzExMl0gZmlscF9vcGVuKzB4NjgvMHg3MApNYXIgMjUgMDg6
-Mzk6NDYgbGlmZWJvb2sga2VybmVsOiAgWzxjMDE1YmI2OD5dIGZpbHBfb3BlbisweDY4LzB4NzAK
-TWFyIDI1IDA4OjM5OjQ2IGxpZmVib29rIGtlcm5lbDogIFtzeXNfaW9jdGwrMjg0LzY3Ml0gc3lz
-X2lvY3RsKzB4MTFjLzB4MmEwCk1hciAyNSAwODozOTo0NiBsaWZlYm9vayBrZXJuZWw6ICBbPGMw
-MTcwMWJjPl0gc3lzX2lvY3RsKzB4MTFjLzB4MmEwCk1hciAyNSAwODozOTo0NiBsaWZlYm9vayBr
-ZXJuZWw6ICBbc3lzY2FsbF9jYWxsKzcvMTFdIHN5c2NhbGxfY2FsbCsweDcvMHhiCk1hciAyNSAw
-ODozOTo0NiBsaWZlYm9vayBrZXJuZWw6ICBbPGMwMTBiMzViPl0gc3lzY2FsbF9jYWxsKzB4Ny8w
-eGIKTWFyIDI1IDA4OjM5OjQ2IGxpZmVib29rIGtlcm5lbDoKTWFyIDI1IDA4OjM5OjQ2IGxpZmVi
-b29rIGtlcm5lbDogQ29kZTogOGIgMDAgYzcgMDQgMjQgZTggMWUgYTMgY2MgODkgNDQgMjQgMDQg
-ZTggOTggMTQgNmYgZjMgOGQgODYKCgpbcm9vdEBsaWZlYm9vayByb290XSMgaTJjZGV0ZWN0CkVy
-cm9yOiBObyBpMmMtYnVzIHNwZWNpZmllZCEKU3ludGF4OiBpMmNkZXRlY3QgSTJDQlVTCiAgSTJD
-QlVTIGlzIGFuIGludGVnZXIKICBpMmNkZXRlY3QgLWwgbGlzdHMgaW5zdGFsbGVkIGJ1c3NlcyBv
-bmx5CiAgSW5zdGFsbGVkIEkyQyBidXNzZXM6CiAgICBpMmMtMCAgICAgICB1bmtub3duICAgICAg
-ICAgU01CdXMgUElJWDQgYWRhcHRlciBhdCBmZjgwICAgICAgICAgICAgIEFsZ29yaXRobSB1bmF2
-YWlsYWJsZQpbcm9vdEBsaWZlYm9vayByb290XSMgaTJjZGV0ZWN0IDAKU2VnbWVudGF0aW9uIGZh
-dWx0Cgpbcm9vdEBsaWZlYm9vayByb290XSMgbHNtb2QKTW9kdWxlICAgICAgICAgICAgICAgICAg
-U2l6ZSAgVXNlZCBieQppMmNfcGlpeDQgICAgICAgICAgICAgICA5MjMyICAxCmkyY19kZXYgICAg
-ICAgICAgICAgICAgMTEyNjQgIDIKaTJjX2NvcmUgICAgICAgICAgICAgICAyNTg2MCAgMiBpMmNf
-cGlpeDQsaTJjX2RldgpiaW5mbXRfbWlzYyAgICAgICAgICAgIDEwODg4ICAxCnBhcnBvcnRfcGMg
-ICAgICAgICAgICAgMzg0NjQgIDEKbHAgICAgICAgICAgICAgICAgICAgICAxMTQzMiAgMApwYXJw
-b3J0ICAgICAgICAgICAgICAgIDQyNDQwICAyIHBhcnBvcnRfcGMsbHAKYXV0b2ZzNCAgICAgICAg
-ICAgICAgICAxNjM4NCAgMQpzbmRfcGNtX29zcyAgICAgICAgICAgIDU0ODIwICAwCnNuZF9zZXFf
-b3NzICAgICAgICAgICAgMzQ5NDQgIDAKc25kX3NlcV9taWRpX2V2ZW50ICAgICAgNzkzNiAgMSBz
-bmRfc2VxX29zcwpzbmRfc2VxICAgICAgICAgICAgICAgIDU1Njk2ICA0IHNuZF9zZXFfb3NzLHNu
-ZF9zZXFfbWlkaV9ldmVudApzbmRfbWl4ZXJfb3NzICAgICAgICAgIDIwMzUyICAyIHNuZF9wY21f
-b3NzCnNuZF9pbnRlbDh4MCAgICAgICAgICAgMzQzNDQgIDEKc25kX2FjOTdfY29kZWMgICAgICAg
-ICA2MzIzNiAgMSBzbmRfaW50ZWw4eDAKc25kX3BjbSAgICAgICAgICAgICAgIDEwMTY0MCAgMiBz
-bmRfcGNtX29zcyxzbmRfaW50ZWw4eDAKc25kX3RpbWVyICAgICAgICAgICAgICAyNjI0NCAgMiBz
-bmRfc2VxLHNuZF9wY20KZ2FtZXBvcnQgICAgICAgICAgICAgICAgNDk5MiAgMSBzbmRfaW50ZWw4
-eDAKc25kX3BhZ2VfYWxsb2MgICAgICAgICAxMjQyMCAgMiBzbmRfaW50ZWw4eDAsc25kX3BjbQpz
-bmRfbXB1NDAxX3VhcnQgICAgICAgICA4MDY0ICAxIHNuZF9pbnRlbDh4MApzbmRfcmF3bWlkaSAg
-ICAgICAgICAgIDI1MTIwICAxIHNuZF9tcHU0MDFfdWFydApzbmRfc2VxX2RldmljZSAgICAgICAg
-ICA4MzI4ICAzIHNuZF9zZXFfb3NzLHNuZF9zZXEsc25kX3Jhd21pZGkKc25kICAgICAgICAgICAg
-ICAgICAgICA1NDc1NiAgMTIgc25kX3BjbV9vc3Msc25kX3NlcV9vc3Msc25kX3NlcV9taWRpX2V2
-ZW50LHNuZF9zZXEsc25kX21peGVyX29zcyxzbmRfaW50ZWw4eDAsc25kX2FjOTdfY29kZWMsc25k
-X3BjbSxzbmRfdGltZXIsc25kX21wdTQwMV91YXJ0LHNuZF9yYXdtaWRpLHNuZF9zZXFfZGV2aWNl
-CnNvdW5kY29yZSAgICAgICAgICAgICAgMTAwODAgIDIgc25kCmlybGFuICAgICAgICAgICAgICAg
-ICAgMzE3NjAgIDAKaXJkYSAgICAgICAgICAgICAgICAgIDEzODA0NCAgMSBpcmxhbgplZXBybzEw
-MCAgICAgICAgICAgICAgIDI5ODM2ICAwCm1paSAgICAgICAgICAgICAgICAgICAgIDUzNzYgIDEg
-ZWVwcm8xMDAKaGlkICAgICAgICAgICAgICAgICAgICAzNDA0OCAgMAp1c2Jtb3VzZSAgICAgICAg
-ICAgICAgICA1ODg4ICAwCnVoY2lfaGNkICAgICAgICAgICAgICAgMzI2NTYgIDAKb2hjaV9oY2Qg
-ICAgICAgICAgICAgICAxOTcxNiAgMAplaGNpX2hjZCAgICAgICAgICAgICAgIDI3MTQwICAwCnVz
-YmNvcmUgICAgICAgICAgICAgICAxMDQ5MjQgIDcgaGlkLHVzYm1vdXNlLHVoY2lfaGNkLG9oY2lf
-aGNkLGVoY2lfaGNkCmpveWRldiAgICAgICAgICAgICAgICAgMTA0MzIgIDAKZXZkZXYgICAgICAg
-ICAgICAgICAgICAgOTYwMCAgMQp0c2RldiAgICAgICAgICAgICAgICAgICA3Mjk2ICAwCmxidG91
-Y2ggICAgICAgICAgICAgICAgIDc5NDAgIDAKdGhlcm1hbCAgICAgICAgICAgICAgICAxMzIwMCAg
-MApwcm9jZXNzb3IgICAgICAgICAgICAgIDE3NTg0ICAxIHRoZXJtYWwKYnV0dG9uICAgICAgICAg
-ICAgICAgICAgNjI5NiAgMApiYXR0ZXJ5ICAgICAgICAgICAgICAgICA5MTAwICAwCmFjICAgICAg
-ICAgICAgICAgICAgICAgIDUwMDQgIDAKcnRjICAgICAgICAgICAgICAgICAgICAxMjk4NCAgMApy
-ZWlzZXJmcyAgICAgICAgICAgICAgMjM5NDc2ICAxCgoKW3Jvb3RAbGlmZWJvb2sgZXRjXSMgaTJj
-ZGV0ZWN0CkVycm9yOiBObyBpMmMtYnVzIHNwZWNpZmllZCEKU3ludGF4OiBpMmNkZXRlY3QgSTJD
-QlVTCiAgSTJDQlVTIGlzIGFuIGludGVnZXIKICBpMmNkZXRlY3QgLWwgbGlzdHMgaW5zdGFsbGVk
-IGJ1c3NlcyBvbmx5CiAgSW5zdGFsbGVkIEkyQyBidXNzZXM6CiAgICBpMmMtMCAgICAgICB1bmtu
-b3duICAgICAgICAgU01CdXMgUElJWDQgYWRhcHRlciBhdCBmZjgwICAgICAgICAgICAgIEFsZ29y
-aXRobSB1bmF2YWlsYWJsZQpbcm9vdEBsaWZlYm9vayBldGNdIyBpMmNkZXRlY3QgMApFcnJvcjog
-Q291bGQgbm90IGdldCB0aGUgYWRhcHRlciBmdW5jdGlvbmFsaXR5IG1heHRyaXg6IEluYXBwcm9w
-cmlhdGUgaW9jdGwgZm9yIGRldmljZQoKW3Jvb3RAbGlmZWJvb2sgYnVzc2VzXSMgaTJjZGV0ZWN0
-IC12CmkyY2RldGVjdCB2ZXJzaW9uIDIuOC41CgoKCi0tLS0tIEVuZCBmb3J3YXJkZWQgbWVzc2Fn
-ZSAtLS0tLQoKLS0gCkZyb2RvIExvb2lqYWFyZCA8ZnJvZG9sQGRkcy5ubD4gIFBHUCBrZXkgYW5k
-IG1vcmU6IGh0dHA6Ly9odWl6ZW4uZGRzLm5sL35mcm9kb2wKRGVmZW5lc3RyYXRpb24gbi4gKGZv
-cm1hbCBvciBqb2MuKToKICBUaGUgYWN0IG9mIHJlbW92aW5nIFdpbmRvd3MgZnJvbSB5b3VyIGNv
-bXB1dGVyIGluIGRpc2d1c3QsIHVzdWFsbHkgZm9sbG93ZWQKICBieSB0aGUgaW5zdGFsbGF0aW9u
-IG9mIExpbnV4IG9yIHNvbWUgb3RoZXIgVW5peC1saWtlIG9wZXJhdGluZyBzeXN0ZW0uCg==
+Hi Greg,
+
+The following patch updates all references to the sensors mailing list,
+so as to reflect the fact that the list recently moved to a new home and
+changed addresses. I'll work out a similar patch for Linux 2.4 soon.
+
+Please apply,
+thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+ Documentation/i2c/busses/i2c-sis69x |    2 +-
+ Documentation/i2c/porting-clients   |    2 +-
+ MAINTAINERS                         |   16 ++++++++--------
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+--- linux-2.6.12-rc4.orig/MAINTAINERS	2005-05-19 19:13:27.000000000 +0200
++++ linux-2.6.12-rc4/MAINTAINERS	2005-05-22 09:33:45.000000000 +0200
+@@ -194,7 +194,7 @@
+ ADM1025 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ 
+ ADT746X FAN DRIVER
+@@ -242,7 +242,7 @@
+ ALI1563 I2C DRIVER
+ P:	Rudolf Marek
+ M:	r.marek@sh.cvut.cz
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ 
+ ALPHA PORT
+@@ -992,7 +992,7 @@
+ M:	greg@kroah.com
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.nu/
+ S:	Maintained
+ 
+@@ -1420,13 +1420,13 @@
+ LM83 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ 
+ LM90 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ 
+ LOGICAL DISK MANAGER SUPPORT (LDM, Windows 2000/XP Dynamic Disks)
+@@ -2065,7 +2065,7 @@
+ SMSC47M1 HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Odd Fixes
+ 
+ SMB FILESYSTEM
+@@ -2604,7 +2604,7 @@
+ W1 DALLAS'S 1-WIRE BUS
+ P:	Evgeniy Polyakov
+ M:	johnpol@2ka.mipt.ru
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ 
+ W83L51xD SD/MMC CARD INTERFACE DRIVER
+@@ -2617,7 +2617,7 @@
+ W83L785TS HARDWARE MONITOR DRIVER
+ P:	Jean Delvare
+ M:	khali@linux-fr.org
+-L:	sensors@stimpy.netroedge.com
++L:	lm-sensors@lm-sensors.org
+ S:	Odd Fixes
+ 
+ WAN ROUTER & SANGOMA WANPIPE DRIVERS & API (X.25, FRAME RELAY, PPP, CISCO HDLC)
+--- linux-2.6.12-rc4.orig/Documentation/i2c/busses/i2c-sis69x	2005-05-19 19:13:27.000000000 +0200
++++ linux-2.6.12-rc4/Documentation/i2c/busses/i2c-sis69x	2005-05-19 19:13:51.000000000 +0200
+@@ -42,7 +42,7 @@
+ chipsets as well: 635, and 635T. If anyone owns a board with those chips
+ AND is willing to risk crashing & burning an otherwise well-behaved kernel
+ in the name of progress... please contact me at <mhoffman@lightlink.com> or
+-via the project's mailing list: <sensors@stimpy.netroedge.com>.  Please
++via the project's mailing list: <lm-sensors@lm-sensors.org>.  Please
+ send bug reports and/or success stories as well.
+ 
+ 
+--- linux-2.6.12-rc4.orig/Documentation/i2c/porting-clients	2005-05-19 19:13:27.000000000 +0200
++++ linux-2.6.12-rc4/Documentation/i2c/porting-clients	2005-05-19 19:13:51.000000000 +0200
+@@ -57,7 +57,7 @@
+   Documentation/i2c/sysfs-interface for the individual files. Also
+   convert the units these files read and write to the specified ones.
+   If you need to add a new type of file, please discuss it on the
+-  sensors mailing list <sensors@stimpy.netroedge.com> by providing a
++  sensors mailing list <lm-sensors@lm-sensors.org> by providing a
+   patch to the Documentation/i2c/sysfs-interface file.
+ 
+ * [Attach] For I2C drivers, the attach function should make sure
+
+-- 
+Jean Delvare
