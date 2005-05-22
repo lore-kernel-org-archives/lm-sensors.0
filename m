@@ -1,43 +1,39 @@
-From: dtor_core@ameritech.net (Dmitry Torokhov)
-Date: Sun, 22 May 2005 03:59:09 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 22 May 2005 08:51:16 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc4 15/15]
-Message-Id: <200505212058.14851.dtor_core@ameritech.net>
+Message-Id: <20050522085026.40e73d49.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050519213551.GA806@kroah.com> <v0eBIb5C.1116575188.8501740.khali@localhost> <25381867050520015339f02e9b@mail.gmail.com>
-In-Reply-To: <25381867050520015339f02e9b@mail.gmail.com>
+References: <20050519213551.GA806@kroah.com>
+	<v0eBIb5C.1116575188.8501740.khali@localhost>
+	<25381867050520015339f02e9b@mail.gmail.com>
+	<200505212058.14851.dtor_core@ameritech.net>
+In-Reply-To: <200505212058.14851.dtor_core@ameritech.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, Yani Ioannou <yani.ioannou@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, greg@kroah.com, LKML <linux-kernel@vger.kernel.org>
+To: Dmitry Torokhov <dtor_core@ameritech.net>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, Greg KH <greg@kroah.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Friday 20 May 2005 03:53, Yani Ioannou wrote:
-> On 5/20/05, Jean Delvare <khali@linux-fr.org> wrote:
-> > 
-> > Hi Greg,
-> > disabled. While this feature was almost not used so far, I think we
-> > should have the driver not create interface files for disabled inputs.
-> > In the case of temperature channels which can be dynamically enabled and
-> > disabled. it would even make sense to dynamically create and delete
-> > related sysfs files. Doing so would allow for memory savings and would
-> > also be less error-prone for the user (presenting an interface for
-> > disabled features is quite confusing IMHO).
-> 
-> If you think more than a few hwmon/chip drivers will benefit from
-> dynamically creating the attributes, then maybe we can create some
-> standard method for doing so, bmcsensors of course needs to
-> dynamically allocate things, so I'd be using them too.
-> 
-> An earlier idea was to create a standard sysfs function(s) for
-> dynamically creating device_attributes (and others), but now we will
-> have custom structures with an embedded device_attribute, it looks to
-> me like each attribute type would require it's own function.
->
+Hi Dmitry,
 
-I really think that as far as I2C subsystem goes instead of creating
-arrays of attributes we should move in direction of drivers registering
-individual sensor class devices. So for example it87 would register
-3 fans, 3 temp, sensors and 8 voltage sensors...
- 
+> I really think that as far as I2C subsystem goes instead of creating
+> arrays of attributes we should move in direction of drivers
+> registering individual sensor class devices. So for example it87 would
+> register 3 fans, 3 temp, sensors and 8 voltage sensors...
+
+First, it's a matter of hardware monitoring drivers, not i2c subsystem
+(both are tightly binded at the moment but I'd like this to change).
+
+Second, not all devices have the same attributes for a temperature, fan
+or voltage channel. Sure there are commonly found feature sets, but some
+channels will lack some feature (e.g. it87's in8 has no min and max
+limits), other chips will provide additional features (extra limits or
+enhanced configurability). So I don't think you can have all devices
+(and thus all drivers) fit into a single sensor class.
+
+But of course I can be convinced your approach is better, with patches.
+I don't know classes that well myself.
+
+Thanks,
 -- 
-Dmitry
+Jean Delvare
