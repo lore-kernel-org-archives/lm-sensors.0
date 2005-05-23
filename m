@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 21 May 2005 19:26:48 +0000
-Subject: [lm-sensors] Re: lm_sensors
-Message-Id: <20050521192611.0c6874ab.khali@linux-fr.org>
+Date: Mon, 23 May 2005 15:14:14 +0000
+Subject: [lm-sensors] RE: lm_sensors
+Message-Id: <vABIcmYM.1116853558.8001580.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
 In-Reply-To: <OF0351D9C0.5474FFE2-ON87256C2B.005D8AC8@boulder.ibm.com>
@@ -10,27 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+
 Hi Dave,
 
-Sorry for the delay...
+> Kernel 2.4.20
+>
+> lm_sensor-2.6.5
 
-> I have a question please...
-> 
-> I run lm_sensor on my machines and some do not seem to be changing
-> ever, even with a significant change in room temperature.  If I
-> perform a reboot, the temperature does change and to what I believe is
-> a more accurate (believable) temperature.  I am beginning to think my
-> temperature sensor readings are not updating.  Is there a way to
-> update, restart, stop/start the sensors software information providing
-> the data?
+Iik. These are old (over 2.5 year old!). If there's a bug in there,
+chances are good that they have been fixed since. You should consider
+trying a more recent version of i2c & lm_sensors.
 
-I think this problem isn't unheard of, but I don't think we ever found
-what the problem was. Nevertheless, can you tell us:
-* the version of the Linux kernel you use,
-* the version of lm_sensors you use,
-* which hardware and driver you are having the problem with?
+> Was not exactly sure what you meant by what driver/hardware I am having
+> problems with?
 
-Thanks,
+Motherboard manufacturer and model, and hardware monitoring chip name.
+See the first line of the "sensors" output for the latter. Actually
+the full output of "sensors" would be even more helpful. But, as I
+said right above, your best chance is to try a more recent version of
+our code.
 
--- 
+--
 Jean Delvare
