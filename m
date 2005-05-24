@@ -1,77 +1,53 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Tue, 24 May 2005 04:12:22 +0000
+From: sensors@xanthein.net (Jon Still)
+Date: Tue, 24 May 2005 14:07:47 +0000
 Subject: [lm-sensors] No temperature/fan values with 83627THF chip
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE4B3C00@weshml03.winbond.com.tw>
+Message-Id: <Pine.LNX.4.56.0505241253460.4962@io.tertial.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.56.0505201624000.1858@io.tertial.org>
 In-Reply-To: <Pine.LNX.4.56.0505201624000.1858@io.tertial.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSm9uLCBUaG9tYXMsIFJ1ZG9sZiwgSmVhbgoKVGhpcyBpcyBDaHVuaGFvLgoKVGhlIGF0dGFj
-aG1lbnQgaXMgdGhlIHc4Mzc5MmQgZHJpdmVyIGZvciBsaW51eC0yLjYsIHBsZWFzZSB0ZXN0IGl0
-IGZvciBtZQppZiB5b3UgaGF2ZSB0aW1lLgoKVGhlcmUgYXJlIHNvbWUgc21hbGwgYnVncyBpbiBp
-dCBhcyBmb2xsb3dpbmc6CigxKSBXZSBtaXN1bmRlcnN0YW5kIHRoZSBtZWFuaW5nIG9mIHRlbXBl
-cmF0dXJlIGxvdyBsaW1pdCwgdGhpcyBidWcgYWxzbwpleGlzdHMgaW4gdGhlIDc5MiBkcml2ZXIg
-Zm9yIGxpbnV4LTIuNCBhbmQgb3VyIDc5MiBXaW5kb3dzIGRyaXZlci4KKDIpIEkgaGF2ZSBub3Qg
-aW1wbGVtZW50ZWQgdGhlIDAuNSBkZWdyZWUgdG8gdGVtcGVyYXR1cmUyIGFuZCB0ZW1wZXJhdHVy
-ZTMsCndoaWxlIHRoZSBkcml2ZXIgZm9yIGxpbnV4LTIuNCBpbXBsZW1lbnRlZCB0aGlzLgooMykg
-VGhlIDc5MiBkcml2ZXIgZm9yIGxpbnV4LTIuNCBjYW4gYWRqdXN0IHRoZSBmYW4gZGl2aXNvciBh
-dXRvbWF0aWNhbGx5LAp3aGlsZSBJIGhhdmUgbm90IGltcGxlbWVudGVkIGl0IGluIHRoaXMgMi42
-IG9uZS4KClRoZXNlIGJ1Z3MgYXJlIGtlcHQgaW4gbXkgb3duIGJ1Zy1saXN0LCBJIHdpbGwgZml4
-IHRoZW0gd2hlbiBJJ20gYSBsaXR0bGUgZnJlZSwKYmVjYXVzZSBJJ20gdmVyeSBidXN5IGluIGFu
-b3RoZXIgbXkgcHJvamVjdCwgSSBjYW4gTk9UIGZpeCB0aGVtIG5vdy4KSWYgeW91IGZpbmQgYW55
-IG90aGVyIGJ1Z3MsIHBsZWFzZSBkb24ndCBoZXNpdGF0ZSB0byB0ZWxsIHVzLiBZb3UgbWF5IGFs
-c28KaGVscCB1cyB0byBmaXggdGhlbSBpZiB5b3UgaGF2ZSB0aW1lLCBidXQgcGxlYXNlIHRlbGwg
-dXMgYmVmb3JlIHlvdXIgZml4IDotKQoKClF1b3RpbmcgVGhvbWFzCj4gTXkgY29tcGFueSBpcyBl
-dmFsdWF0aW5nIGEgU3VwZXJNaWNybyBQOFNDVCBtb3RoZXJib2FyZCB3aGljaCB1c2VzCj4gdGhl
-IFdpbmJvbmQgVzgzNzkyRCBjaGlwIGZvciBoZWFsdGggbW9uaXRvcmluZy4gT3VyIHNvZnR3YXJl
-IHJ1bnMgdW5kZXIKPiBMaW51eCB1c2luZyB0aGUgU3VzZSA5LjEgZGlzdHJpYnV0aW9uIGFuZCBh
-IGtlcm5lbCBiYXNlZCBvbiBMaW51eCAyLjYuNi4KPiBGcm9tIHNlYXJjaGluZyBvbiB0aGUgbmV0
-IEkgc2VlIHlvdSBhcmUgaW4gdGhlIHByb2Nlc3Mgb2Ygd3JpdGluZyBhIGRyaXZlcgo+IGZvciB0
-aGlzIGNoaXAgdG8gd29yayB3aXRoIHRoZSBsbV9zZW5zb3JzIHBhY2thZ2UuIFdvdWxkIGl0IGJl
-IHBvc3NpYmxlIHRvCj4gaGVscCB0ZXN0IHRoaXMgZHJpdmVyPwoKSSdtIHNvcnJ5IHRoYXQgSSBz
-aG91bGQgaGF2ZSBzZW50IHRoZSA3OTIgZHJpdmVyIGZvciBsaW51eC0yLjYgdG8geW91CmVhcmxp
-ZXIuCgoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKCj4gLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0KPiBGcm9tOiBKb24gU3RpbGwgW21haWx0bzpqb25AdGVydGlhbC5vcmddIE9uIEJl
-aGFsZiBPZiBKb24gU3RpbGwKPiBTZW50OiAyMDA1xOo11MIyM8jVIDE1OjIzCj4gVG86IFBJMTQg
-SFVBTkcwCj4gQ2M6IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiBTdWJqZWN0OiBSRTogW2xt
-LXNlbnNvcnNdIE5vIHRlbXBlcmF0dXJlL2ZhbiB2YWx1ZXMgd2l0aCA4MzYyN1RIRiBjaGlwCj4g
-Cj4gSGksCj4gCj4gPiBJIGhhdmUgdGVzdGVkIGl0IGhlcmUgb24gdHdvIG1vdGhlcmJvYXJkcyB3
-aXRoIDc5MiBjaGlwLCBpdCB3b3JrcyB3ZWxsLgo+ID4gV291bGQgeW91IGxpa2UgaGVscCB1cyB0
-byByZXZpZXcgbXkgY29kZXM/IEFmdGVyIHlvdXIgcmV2aWV3LCB5b3UgbWF5IHNlbmQKPiA+IGl0
-IHRvIHRoZSBrZXJuZWwgZ3JvdXAsIEkgdGhpbmsuCj4gCj4gSSdtIHF1aXRlIGhhcHB5IHRvIGdp
-dmUgaXQgYSB0ZXN0IG9uIG15IGJveCwgc28gbG9uZyBhcyB0aGUgd29yc3QgaXQgd2lsbAo+IGRv
-IGlzIHBhbmljIG9yIGZyZWV6ZSB0aGUgc3lzdGVtLiAgSSdtIHByZXN1bWluZyB0aGlzIHdpbGwg
-aGF2ZSB0byBiZQo+IGNvbXBpbGVkIG91dHNpZGUgb2YgdGhlIGtlcm5lbCB0cmVlIHNvIGlmIHlv
-dSBjb3VsZCBwcm92aWRlIHRoZQo+IGFwcHJvcHJpYXRlIGNvbW1hbmQgbGluZSBmb3IgdGhhdCBJ
-J2QgYmUgZ3JhdGVmdWwuCj4gCj4gQ2hlZXJzIQo+IEpvbi4KCgoKPT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBp
-bmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9u
-bHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBhdXRob3Ig
-b2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4g
-dGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1h
-aWwgdG8gc3VjaCBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdGhlIHNlbmRlciBpbmRpY2F0
-aW5nIGFjY29yZGluZ2x5IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29t
-cHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBXZSB0aGFuayB5b3UgZm9yIHlv
-dXIgY29vcGVyYXRpb24uIEl0IGlzIGFkdmlzYWJsZSB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNl
-IG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hp
-Yml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCB0aGF0IGRvZXMgbm90IHJl
-bGF0ZSB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQg
-YXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC49PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUg
-dG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3Nh
-Z2UuIFRoZXkgZXNzZW50aWFsbHkgcmVwZWF0IHRoZSZuYnNwOyBFbmdsaXNoIHN0YXRlbWVudCBh
-Ym92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tI
-pEir/Kl3pKemrKtIpEio+r5cpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt
-7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZ
-sU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2m
-ua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6
-puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+Kyw
-tdioublxpGykp6Xfs/WpzrdOqKMuCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0tLS0tLS0t
-LS0tLQpBIG5vbi10ZXh0IGF0dGFjaG1lbnQgd2FzIHNjcnViYmVkLi4uCk5hbWU6IHc4Mzc5MmQu
-YwpUeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0KU2l6ZTogNTIwMDUgYnl0ZXMKRGVzYzog
-dzgzNzkyZC5jClVybCA6IGh0dHA6Ly9saXN0cy5hdHJwbXMubmV0L3BpcGVybWFpbC9sbS1zZW5z
-b3JzL2F0dGFjaG1lbnRzLzIwMDUwNTI0L2E0NDg1YjllL3c4Mzc5MmQtMDAwMS5vYmoK
+Hi Chunhao & Rudolf,
+
+The w83792d 2.6 driver is working great on my box now.
+
+w83792d-i2c-0-2f
+Adapter: SMBus I801 adapter at 0500
+VCoreA:    +1.33 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
+VCoreB:    +1.34 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
+VIN0:      +3.34 V  (min =  +3.20 V, max =  +3.39 V)       
+VIN1:      +3.02 V  (min =  +3.09 V, max =  +3.30 V)       ALARM
+VIN2:      +0.52 V  (min =  +1.39 V, max =  +1.49 V)       ALARM
+VIN3:      +3.12 V  (min =  +2.59 V, max =  +2.64 V)       ALARM
+5VCC:      +5.03 V  (min =  +4.73 V, max =  +5.23 V)       
+5VSB:      +4.92 V  (min =  +4.73 V, max =  +5.23 V)       
+VBAT:      +3.10 V  (min =  +2.85 V, max =  +3.14 V)       
+Fan2:     4687 RPM  (min = 1500 RPM, div = 4)              
+Fan3:     4560 RPM  (min = 1500 RPM, div = 4)              
+CPU Temp:  +24.0 C  (high = +42.0 C, hyst = +37.0 C)   ALARM
+M/B Temp:  +30.0 C  (high = +43.0 C, hyst = +38.0 C)   ALARM
+chassis:  Chassis is normal.
+
+The voltages seem to be a little wonky, but I've no idea what Supermicro 
+are doing with them!  Also is there any convention with the w83792d as to 
+which thermistor is connected to which VTIN pin, or is it purely up to the 
+board's manufacturer?
+
+Having said that, so long as I can get the information I'm not really 
+worried - I just want to make sure the box is relatively OK as I can't get 
+physical access so readily.
+
+Thanks to all for your help with this one!  I'll keep the drivers loaded 
+and let you know if I see anything odd over the next week or so.
+
+Thanks again!
+
+Jon.
+
+-- 
+Jon Still                               E-mail: jon@tertial.org
+tertial.org                             Web:    http://www.tertial.org/
+GPG Key: http://xanthein.net/key.asc    Key ID: 0x00493D2B
