@@ -1,53 +1,84 @@
-From: sensors@xanthein.net (Jon Still)
-Date: Tue, 24 May 2005 14:07:47 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Wed, 25 May 2005 03:25:48 +0000
 Subject: [lm-sensors] No temperature/fan values with 83627THF chip
-Message-Id: <Pine.LNX.4.56.0505241253460.4962@io.tertial.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE4B3D41@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <Pine.LNX.4.56.0505201624000.1858@io.tertial.org>
 In-Reply-To: <Pine.LNX.4.56.0505201624000.1858@io.tertial.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao & Rudolf,
-
-The w83792d 2.6 driver is working great on my box now.
-
-w83792d-i2c-0-2f
-Adapter: SMBus I801 adapter at 0500
-VCoreA:    +1.33 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
-VCoreB:    +1.34 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
-VIN0:      +3.34 V  (min =  +3.20 V, max =  +3.39 V)       
-VIN1:      +3.02 V  (min =  +3.09 V, max =  +3.30 V)       ALARM
-VIN2:      +0.52 V  (min =  +1.39 V, max =  +1.49 V)       ALARM
-VIN3:      +3.12 V  (min =  +2.59 V, max =  +2.64 V)       ALARM
-5VCC:      +5.03 V  (min =  +4.73 V, max =  +5.23 V)       
-5VSB:      +4.92 V  (min =  +4.73 V, max =  +5.23 V)       
-VBAT:      +3.10 V  (min =  +2.85 V, max =  +3.14 V)       
-Fan2:     4687 RPM  (min = 1500 RPM, div = 4)              
-Fan3:     4560 RPM  (min = 1500 RPM, div = 4)              
-CPU Temp:  +24.0 C  (high = +42.0 C, hyst = +37.0 C)   ALARM
-M/B Temp:  +30.0 C  (high = +43.0 C, hyst = +38.0 C)   ALARM
-chassis:  Chassis is normal.
-
-The voltages seem to be a little wonky, but I've no idea what Supermicro 
-are doing with them!  Also is there any convention with the w83792d as to 
-which thermistor is connected to which VTIN pin, or is it purely up to the 
-board's manufacturer?
-
-Having said that, so long as I can get the information I'm not really 
-worried - I just want to make sure the box is relatively OK as I can't get 
-physical access so readily.
-
-Thanks to all for your help with this one!  I'll keep the drivers loaded 
-and let you know if I see anything odd over the next week or so.
-
-Thanks again!
-
-Jon.
-
--- 
-Jon Still                               E-mail: jon@tertial.org
-tertial.org                             Web:    http://www.tertial.org/
-GPG Key: http://xanthein.net/key.asc    Key ID: 0x00493D2B
+SGkgSm9uCgpJdCBzZWVtcyB0aGF0IHRoZSA3OTIgZHJpdmVyIGZvciBsaW51eC0yLjYgY2FuIHdv
+cmsgb24geW91ciBtb3RoZXJib2FyZCwKV2UgaGF2ZSB0aHJlZSBtb3RoZXJib2FyZHMgd2hpY2gg
+Y29udGFpbiA3OTIgY2hpcCBoZXJlLCBhbGwgb2YgdGhlbSBoYXZlCmJlZW4gdGVzdGVkIGJyaWVm
+bHkgYnkgbWUsIHRoZWlyIG1lYXN1cmVkIHZhbHVlIGRpZmZlciBmcm9tIGVhY2ggb3RoZXIgZ3Jl
+YXRseSwKYW5kIEknbSBub3QgdmVyeSBzdXJlIHdoZXRoZXIgdGhlIG1lYXN1cmVkIHZhbHVlIGlz
+IHJlYWxseSByaWdodCBvciBub3QuCkkgdGhpbmsgdGhlIG1lYXN1cmVkIHZhbHVlIGlzIHVwIHRv
+IHRoZSBib2FyZCdzIG1hbnVmYWN0dXJlci4KCllvdSBtYXkgY2hlY2sgeW91ciBCSU9TIGlmIHRo
+ZXJlIGlzIGEgIkhhcmR3YXJlIE1vbml0b3IiIG9yICJIYXJkd2FyZSBIZWFsdGgiCm9wdGlvbiB0
+aGVyZSwgaWYgZG8sIGNvbXBhcmUgdGhlbSB3aXRoIHRoZSBtZWFzdXJlZCB2YWx1ZSBieSA3OTIg
+ZHJpdmVyLgpJIHRoaW5rIG1vc3Qgb2YgdGhlbSBzaG91bGQgYmUgdmVyeSBjbG9zZSwgYmVjYXVz
+ZSBJIGNvbXBhcmVkIHRoZW0gaGVyZQpvbiBvdXIgdHdvIG1vdGhlcmJvYXJkcy4KCgpCZXN0IFJl
+Z2FyZHMKQ2h1bmhhbwoKCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBKb24g
+U3RpbGwgW21haWx0bzpqb25AdGVydGlhbC5vcmddIE9uIEJlaGFsZiBPZiBKb24gU3RpbGwKPiBT
+ZW50OiAyMDA1xOo11MIyNMjVIDIwOjA3Cj4gVG86IFBJMTQgSFVBTkcwCj4gQ2M6IHRqdEBpbnRl
+bGxpdmlkLmNvbTsga2hhbGlAbGludXgtZnIub3JnOyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
+Cj4gU3ViamVjdDogUkU6IFtsbS1zZW5zb3JzXSBObyB0ZW1wZXJhdHVyZS9mYW4gdmFsdWVzIHdp
+dGggODM2MjdUSEYgY2hpcAo+IAo+IEhpIENodW5oYW8gJiBSdWRvbGYsCj4gCj4gVGhlIHc4Mzc5
+MmQgMi42IGRyaXZlciBpcyB3b3JraW5nIGdyZWF0IG9uIG15IGJveCBub3cuCj4gCj4gdzgzNzky
+ZC1pMmMtMC0yZgo+IEFkYXB0ZXI6IFNNQnVzIEk4MDEgYWRhcHRlciBhdCAwNTAwCj4gVkNvcmVB
+OiAgICArMS4zMyBWICAobWluID0gICsxLjQwIFYsIG1heCA9ICArMS42MCBWKSAgICAgICBBTEFS
+TQo+IFZDb3JlQjogICAgKzEuMzQgViAgKG1pbiA9ICArMS40MCBWLCBtYXggPSAgKzEuNjAgVikg
+ICAgICAgQUxBUk0KPiBWSU4wOiAgICAgICszLjM0IFYgIChtaW4gPSAgKzMuMjAgViwgbWF4ID0g
+ICszLjM5IFYpCj4gVklOMTogICAgICArMy4wMiBWICAobWluID0gICszLjA5IFYsIG1heCA9ICAr
+My4zMCBWKSAgICAgICBBTEFSTQo+IFZJTjI6ICAgICAgKzAuNTIgViAgKG1pbiA9ICArMS4zOSBW
+LCBtYXggPSAgKzEuNDkgVikgICAgICAgQUxBUk0KPiBWSU4zOiAgICAgICszLjEyIFYgIChtaW4g
+PSAgKzIuNTkgViwgbWF4ID0gICsyLjY0IFYpICAgICAgIEFMQVJNCj4gNVZDQzogICAgICArNS4w
+MyBWICAobWluID0gICs0LjczIFYsIG1heCA9ICArNS4yMyBWKQo+IDVWU0I6ICAgICAgKzQuOTIg
+ViAgKG1pbiA9ICArNC43MyBWLCBtYXggPSAgKzUuMjMgVikKPiBWQkFUOiAgICAgICszLjEwIFYg
+IChtaW4gPSAgKzIuODUgViwgbWF4ID0gICszLjE0IFYpCj4gRmFuMjogICAgIDQ2ODcgUlBNICAo
+bWluID0gMTUwMCBSUE0sIGRpdiA9IDQpCj4gRmFuMzogICAgIDQ1NjAgUlBNICAobWluID0gMTUw
+MCBSUE0sIGRpdiA9IDQpCj4gQ1BVIFRlbXA6ICArMjQuMCBDICAoaGlnaCA9ICs0Mi4wIEMsIGh5
+c3QgPSArMzcuMCBDKSAgIEFMQVJNCj4gTS9CIFRlbXA6ICArMzAuMCBDICAoaGlnaCA9ICs0My4w
+IEMsIGh5c3QgPSArMzguMCBDKSAgIEFMQVJNCj4gY2hhc3NpczogIENoYXNzaXMgaXMgbm9ybWFs
+Lgo+IAo+IFRoZSB2b2x0YWdlcyBzZWVtIHRvIGJlIGEgbGl0dGxlIHdvbmt5LCBidXQgSSd2ZSBu
+byBpZGVhIHdoYXQgU3VwZXJtaWNybwo+IGFyZSBkb2luZyB3aXRoIHRoZW0hICBBbHNvIGlzIHRo
+ZXJlIGFueSBjb252ZW50aW9uIHdpdGggdGhlIHc4Mzc5MmQgYXMgdG8KPiB3aGljaCB0aGVybWlz
+dG9yIGlzIGNvbm5lY3RlZCB0byB3aGljaCBWVElOIHBpbiwgb3IgaXMgaXQgcHVyZWx5IHVwIHRv
+IHRoZQo+IGJvYXJkJ3MgbWFudWZhY3R1cmVyPwo+IAo+IEhhdmluZyBzYWlkIHRoYXQsIHNvIGxv
+bmcgYXMgSSBjYW4gZ2V0IHRoZSBpbmZvcm1hdGlvbiBJJ20gbm90IHJlYWxseQo+IHdvcnJpZWQg
+LSBJIGp1c3Qgd2FudCB0byBtYWtlIHN1cmUgdGhlIGJveCBpcyByZWxhdGl2ZWx5IE9LIGFzIEkg
+Y2FuJ3QgZ2V0Cj4gcGh5c2ljYWwgYWNjZXNzIHNvIHJlYWRpbHkuCj4gCj4gVGhhbmtzIHRvIGFs
+bCBmb3IgeW91ciBoZWxwIHdpdGggdGhpcyBvbmUhICBJJ2xsIGtlZXAgdGhlIGRyaXZlcnMgbG9h
+ZGVkCj4gYW5kIGxldCB5b3Uga25vdyBpZiBJIHNlZSBhbnl0aGluZyBvZGQgb3ZlciB0aGUgbmV4
+dCB3ZWVrIG9yIHNvLgo+IAo+IFRoYW5rcyBhZ2FpbiEKPiAKPiBKb24uCj4gCj4gLS0KPiBKb24g
+U3RpbGwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRS1tYWlsOiBqb25AdGVydGlhbC5v
+cmcKPiB0ZXJ0aWFsLm9yZyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgV2ViOiAgICBodHRw
+Oi8vd3d3LnRlcnRpYWwub3JnLwo+IEdQRyBLZXk6IGh0dHA6Ly94YW50aGVpbi5uZXQva2V5LmFz
+YyAgICBLZXkgSUQ6IDB4MDA0OTNEMkIKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRo
+aXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGlu
+ZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUg
+bm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNw
+b25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggcGVyc29uLCBwbGVhc2Ug
+a2luZGx5IHJlcGx5IHRoZSBzZW5kZXIgaW5kaWNhdGluZyBhY2NvcmRpbmdseSBhbmQgZGVsZXRl
+IGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBp
+bW1lZGlhdGVseS4gV2UgdGhhbmsgeW91IGZvciB5b3VyIGNvb3BlcmF0aW9uLiBJdCBpcyBhZHZp
+c2FibGUgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRp
+b24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9u
+IGluIHRoaXMgZW1haWwgdGhhdCBkb2VzIG5vdCByZWxhdGUgdG8gdGhlIG9mZmljaWFsIGJ1c2lu
+ZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9y
+c2VkIGJ5IFdpbmJvbmQuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIg
+Y29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUg
+dGhlIGZvbGxvd2luZyBtZXNzYWdlLiBUaGV5IGVzc2VudGlhbGx5IHJlcGVhdCB0aGUmbmJzcDsg
+RW5nbGlzaCBzdGF0ZW1lbnQgYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUup
+yrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XKSnpc4uILCyqM+xeqjDq0SzUav8
+qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCx
+eqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnv
+qfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc61
+2Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+
+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLg0K
