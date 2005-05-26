@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 26 May 2005 09:05:27 +0000
+From: miles.lane@gmail.com (Miles Lane)
+Date: Thu, 26 May 2005 09:05:28 +0000
 Subject: [lm-sensors] Re: Who should I write to about this OOPS in 2, 6,
-Message-Id: <20050525231814.GB27039@kroah.com>
+Message-Id: <a44ae5cd0505252249765dbcaf@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050315050746.GB13009@kroah.com>
 In-Reply-To: <20050315050746.GB13009@kroah.com>
@@ -10,23 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 25, 2005 at 03:59:40PM -0700, Andrew Morton wrote:
-> Miles Lane <miles.lane@gmail.com> wrote:
-> >
-> > I tried building nvidiafb into the kernel and using nvidiafb in the
-> > "append" arguments.  I set "CONFIG_I2C_CHARDEV=m" to get around the
-> > immediate crash.  When I booted, the nvidiafb driver worked, but the
-> > crash still occurred when the DS1621 sensor driver came into
-> > operation.  The Code: listing is identical to the previous scenario.
-> 
-> Holy cow, this was a huge email thread.
-> 
-> Are there still any outstanding bugs related to this which we need to fix
-> in 2.6.12-rc5?
+Yes, this is all fixed in the recent mm series trees.
+I haven't checked 2.6.12-rc5 and 2.6.12-rc5-mm1 
+gave me a build error, which I have reported to 
+Andrew. I will test within the next couple of days
+on 2.6.12-rc5, but I am pretty certain that all is
+working well now that nvidiafb defaults to using
+64MB at boot time. Also, the problems with the i2c
+stuff getting mucked up when the nvidiafb driver
+was automatically unloaded, due to vesafb being
+used instead, is fixed.
 
-I think it was all handled.  Miles?
-
-thanks,
-
-greg k-h
-
+Miles
