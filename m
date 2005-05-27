@@ -1,292 +1,171 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 26 May 2005 21:05:58 +0000
-Subject: [lm-sensors] Asus bus multiplexing driver - take1
-Message-Id: <42961E01.5080705@sh.cvut.cz>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Fri, 27 May 2005 03:57:25 +0000
+Subject: [lm-sensors] RE: Asus bus multiplexing driver - take1
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE4B3F40@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <42961E01.5080705@sh.cvut.cz>
+In-Reply-To: <42961E01.5080705@sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hello,
-
-I worked a bit on the Asus multiplexing driver.
-I cannot continue any further it must be tested.
-
-But before I would like to ask others here to check it and catch some stupid mistakes first :)
-
-Thanks.
-
-I'm attaching build environment too.
-
-regards
-
-Rudolf
-
-/*
- * (C) 2005 Rudolf Marek <r.marek@sh.cvut.cz>
- *
- * Heavily based on i2c-amd756-s4882.c
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/slab.h>
-#include <linux/init.h>
-#include <linux/i2c.h>
-#include <asm/io.h>
-#include <linux/pci.h>
-
-extern struct i2c_adapter i801_smbus;
-
-/* dont forget to put EXPORT_SYMBOL_GPL(i801_smbus) into i2c-i801.c */
-
-#define GPIO_OUTPUT2_REG_HIGH 0x39
-
-static struct i2c_adapter *asus_adapter;
-static struct i2c_algorithm *asus_algo;
-
-static int muxbase;
-
-/* Wrapper access functions for multiplexed SMBus */
-static struct semaphore asus_lock;
-
-void mux_switch(u8 what) {
-u8 val;
-		
-val = inb(muxbase+GPIO_OUTPUT2_REG_HIGH);
-
-/*write to bits 2 and 3
-
-This needs to be checked if it works as expected
-*/
-
-outb((val & ~0xC) | ((what & 2) << 2), muxbase + GPIO_OUTPUT2_REG_HIGH );
-
-}
-/* We remember the last used channels combination so as to only switch
-   channels when it is really needed. This greatly reduces the SMBus
-   overhead, but also assumes that nobody will be writing to the PCA9556
-   in our back. */
-static u8 last_channels;
-
-static inline s32 i801_access_channel(struct i2c_adapter * adap, u16 addr,
-					unsigned short flags, char read_write,
-					u8 command, int size,
-					union i2c_smbus_data * data,
-					u8 channels)
-{
-	int error;
-
-	down(&asus_lock);
-
-	if (last_channels != channels) {
-		mux_switch(channels);
-		last_channels = channels;
-	}
-	error = i801_smbus.algo->smbus_xfer(adap, addr, flags, read_write,
-					      command, size, data);
-	up(&asus_lock);
-	return error;
-}
-
-static s32 i801_access_virt1(struct i2c_adapter * adap, u16 addr,
-			       unsigned short flags, char read_write,
-			       u8 command, int size,
-			       union i2c_smbus_data * data)
-{
-	return i801_access_channel(adap, addr, flags, read_write, command,
-				     size, data, 0x2);
-}
-
-
-static s32 i801_access_virt0(struct i2c_adapter * adap, u16 addr,
-			       unsigned short flags, char read_write,
-			       u8 command, int size,
-			       union i2c_smbus_data * data)
-{
-
-	return i801_access_channel(adap, addr, flags, read_write, command,
-				     size, data, 0x00);
-}
-
-
-static int __devinit asus_sb_probe(struct pci_dev *dev, const struct pci_device_id *id)
-{
-	int i;
-	int error;
-	int asus_server_board_hides_smbus_devices = 0;
-
-        struct pci_dev *smbdev = NULL;
-	
-	/* we are here because INTEL ISA Brigde is present */
-	
-	while (smbdev = pci_get_device(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB_4, smbdev)) {
-
-		if (unlikely(smbdev->subsystem_vendor = PCI_VENDOR_ID_ASUSTEK)) {
-			switch(smbdev->subsystem_device) {
-				case 0x8117:
-				asus_server_board_hides_smbus_devices = 1;
-				break;
-                       }
-       		}
-    	}
-	 /* we know this is our board */
-
-	error = -ENODEV;
-
-	if (!asus_server_board_hides_smbus_devices)
-		return error;
-
-	pci_read_config_dword(dev, 0x58, &muxbase);
-	
-	if (muxbase=0) { // error
-		dev_err(&dev->dev, "Base adr is not set\n");
-		return error;
-	}
-	
-
-	if (!request_region(muxbase, 64, "GPIOs")) {
-  		dev_err(&dev->dev, "Could not allocate I/O space\n");
-		return error;
-	}
-	
-
-	/* Unregister physical bus */
-	error = i2c_del_adapter(&i801_smbus);
-	if (error) {
-		if (error = -EINVAL)
-			error = -ENODEV;
-		else
-			dev_err(&i801_smbus.dev, "Physical bus removal "
-				"failed\n");
-		goto ERROR0;
-	}
-
-	dev_info(&dev->dev, "Enabling SMBus multiplexing for ASUS server motherboard\n");
-	init_MUTEX(&asus_lock);
-
-	/* Define the 2 virtual adapters and algorithms structures */
-	if (!(asus_adapter = kmalloc(2 * sizeof(struct i2c_adapter),
-				      GFP_KERNEL))) {
-		error = -ENOMEM;
-		goto ERROR1;
-	}
-	if (!(asus_algo = kmalloc(2 * sizeof(struct i2c_algorithm),
-				   GFP_KERNEL))) {
-		error = -ENOMEM;
-		goto ERROR2;
-	}
-
-	/* Fill in the new structures */
-	asus_algo[0] = *(i801_smbus.algo);
-	asus_algo[1] = *(i801_smbus.algo);
-
-	asus_algo[0].smbus_xfer = i801_access_virt0;
-	asus_algo[1].smbus_xfer = i801_access_virt1;
-
-	asus_adapter[0] = i801_smbus;
-	asus_adapter[1] = i801_smbus;
-	asus_adapter[0].algo = asus_algo;
-	asus_adapter[1].algo = asus_algo+1;
-		
-	for (i=0;i<2;i++) {
-		error = i2c_add_adapter(asus_adapter+i);
-		if (error) {
-			dev_err(&i801_smbus.dev,
-			       "Virtual adapter %d registration "
-			       "failed, module not inserted\n", i);
-			for (i--; i >= 0; i--)
-				i2c_del_adapter(asus_adapter+i);
-			goto ERROR3;
-		}
-	}
-	return 0;
-
-ERROR3:
-	kfree(asus_algo);
-	asus_algo = NULL;
-ERROR2:
-	kfree(asus_adapter);
-	asus_adapter = NULL;
-ERROR1:
-	i2c_add_adapter(&i801_smbus);
-ERROR0:
-	return error;
-}
-
-static void __devexit asus_sb_remove(struct pci_dev *dev)
-{
-
-	if (asus_adapter) {
-		int i;
-
-		for (i = 0; i < 2; i++)
-		i2c_del_adapter(asus_adapter+i);
-		kfree(asus_adapter);
-		asus_adapter = NULL;
-	}
-	if (asus_algo) {
-		kfree(asus_algo);
-		asus_algo = NULL;
-	}
-
-	/* Restore physical bus */
-	if (i2c_add_adapter(&i801_smbus))
-		dev_err(&i801_smbus.dev, "Physical bus restoration "
-			"failed\n");
-	release_region(muxbase, 64);
-}
-
-
-static struct pci_device_id asus_sb_ids[] = {
-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB_1) },
-	{ 0, }
-};
-
-MODULE_DEVICE_TABLE (pci, asus_sb_ids);
-
-
-static struct pci_driver asus_sb_driver = {
-	.name		= "asus_sb_smbus",
-	.id_table	= asus_sb_ids,
-	.probe		= asus_sb_probe,
-	.remove		= __devexit_p(asus_sb_remove),
-};
-
-static int __init i2c_asus_sb_init(void)
-{
-	return pci_register_driver(&asus_sb_driver);
-}
-
-static void __exit i2c_asus_sb_exit(void)
-{
-	pci_unregister_driver(&asus_sb_driver);
-}
-
-MODULE_AUTHOR ("Rudolf Marek <r.marek@sh.cvut.cz>");
-MODULE_LICENSE("GPL");
-
-module_init(i2c_asus_sb_init);
-module_exit(i2c_asus_sb_exit);
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hideandseek_mux.tar.gz
-Type: application/x-gzip
-Size: 2773 bytes
-Desc: not available
-Url : http://lists.atrpms.net/pipermail/lm-sensors/attachments/20050526/83b6108c/hideandseek_mux.tar.gz
+SGkgUnVkb2xmCgpJIHdpbGwgdGVzdCB5b3VyIGRyaXZlciB3aGVuIHRoZSB0ZXN0IGVudmlyb25t
+ZW50IGlzIGJ1aWx0IGFnYWluLCBiZWNhdXNlCnRoZSBtb3RoZXJib2FyZCBpcyBub3QgYXQgbXkg
+aGFuZCBub3csIEkgd2lsbCBhc2sgZm9yIG15IGNvbGxlYWd1ZSBDRiBmb3IKaGlzIGhlbHAuIFRo
+YW5rIHlvdSBmb3IgeW91ciBlZmZvcnQuCgpXaGVuIEkgc3RhcnQgdGhlIHRlc3QsIGFueSB0ZXN0
+IHJlc3VsdCB3aWxsIGJlIHNlbnQgdG8geW91IEFTQVAuCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNo
+dW5oYW8KCgo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gRnJvbTogUnVkb2xmIE1hcmVr
+IFttYWlsdG86ci5tYXJla0BzaC5jdnV0LmN6XQo+IFNlbnQ6IDIwMDXE6jXUwjI3yNUgMzowNgo+
+IFRvOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gQ2M6IFBJMTQgSFVBTkcwCj4gU3ViamVj
+dDogQXN1cyBidXMgbXVsdGlwbGV4aW5nIGRyaXZlciAtIHRha2UxCj4gCj4gSGVsbG8sCj4gCj4g
+SSB3b3JrZWQgYSBiaXQgb24gdGhlIEFzdXMgbXVsdGlwbGV4aW5nIGRyaXZlci4KPiBJIGNhbm5v
+dCBjb250aW51ZSBhbnkgZnVydGhlciBpdCBtdXN0IGJlIHRlc3RlZC4KPiAKPiBCdXQgYmVmb3Jl
+IEkgd291bGQgbGlrZSB0byBhc2sgb3RoZXJzIGhlcmUgdG8gY2hlY2sgaXQgYW5kIGNhdGNoIHNv
+bWUgc3R1cGlkCj4gbWlzdGFrZXMgZmlyc3QgOikKPiAKPiBUaGFua3MuCj4gCj4gSSdtIGF0dGFj
+aGluZyBidWlsZCBlbnZpcm9ubWVudCB0b28uCj4gCj4gcmVnYXJkcwo+IAo+IFJ1ZG9sZgo+IAo+
+IC8qCj4gICogKEMpIDIwMDUgUnVkb2xmIE1hcmVrIDxyLm1hcmVrQHNoLmN2dXQuY3o+Cj4gICoK
+PiAgKiBIZWF2aWx5IGJhc2VkIG9uIGkyYy1hbWQ3NTYtczQ4ODIuYwo+ICAqCj4gICogVGhpcyBw
+cm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBt
+b2RpZnkKPiAgKiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBM
+aWNlbnNlIGFzIHB1Ymxpc2hlZCBieQo+ICAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247
+IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCj4gICogKGF0IHlvdXIgb3B0aW9u
+KSBhbnkgbGF0ZXIgdmVyc2lvbi4KPiAgKgo+ICAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRl
+ZCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLAo+ICAqIGJ1dCBXSVRIT1VUIEFO
+WSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCj4gICogTUVS
+Q0hBTlRBQklMSVRZIG9yIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRo
+ZQo+ICAqIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCj4gICoK
+PiAgKiBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQ
+dWJsaWMgTGljZW5zZQo+ICAqIGFsb25nIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRl
+IHRvIHRoZSBGcmVlIFNvZnR3YXJlCj4gICogRm91bmRhdGlvbiwgSW5jLiwgNjc1IE1hc3MgQXZl
+LCBDYW1icmlkZ2UsIE1BIDAyMTM5LCBVU0EuCj4gICovCj4gCj4gI2luY2x1ZGUgPGxpbnV4L21v
+ZHVsZS5oPgo+ICNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KPiAjaW5jbHVkZSA8bGludXgvc2xh
+Yi5oPgo+ICNpbmNsdWRlIDxsaW51eC9pbml0Lmg+Cj4gI2luY2x1ZGUgPGxpbnV4L2kyYy5oPgo+
+ICNpbmNsdWRlIDxhc20vaW8uaD4KPiAjaW5jbHVkZSA8bGludXgvcGNpLmg+Cj4gCj4gZXh0ZXJu
+IHN0cnVjdCBpMmNfYWRhcHRlciBpODAxX3NtYnVzOwo+IAo+IC8qIGRvbnQgZm9yZ2V0IHRvIHB1
+dCBFWFBPUlRfU1lNQk9MX0dQTChpODAxX3NtYnVzKSBpbnRvIGkyYy1pODAxLmMgKi8KPiAKPiAj
+ZGVmaW5lIEdQSU9fT1VUUFVUMl9SRUdfSElHSCAweDM5Cj4gCj4gc3RhdGljIHN0cnVjdCBpMmNf
+YWRhcHRlciAqYXN1c19hZGFwdGVyOwo+IHN0YXRpYyBzdHJ1Y3QgaTJjX2FsZ29yaXRobSAqYXN1
+c19hbGdvOwo+IAo+IHN0YXRpYyBpbnQgbXV4YmFzZTsKPiAKPiAvKiBXcmFwcGVyIGFjY2VzcyBm
+dW5jdGlvbnMgZm9yIG11bHRpcGxleGVkIFNNQnVzICovCj4gc3RhdGljIHN0cnVjdCBzZW1hcGhv
+cmUgYXN1c19sb2NrOwo+IAo+IHZvaWQgbXV4X3N3aXRjaCh1OCB3aGF0KSB7Cj4gdTggdmFsOwo+
+IAo+IHZhbCA9IGluYihtdXhiYXNlK0dQSU9fT1VUUFVUMl9SRUdfSElHSCk7Cj4gCj4gLyp3cml0
+ZSB0byBiaXRzIDIgYW5kIDMKPiAKPiBUaGlzIG5lZWRzIHRvIGJlIGNoZWNrZWQgaWYgaXQgd29y
+a3MgYXMgZXhwZWN0ZWQKPiAqLwo+IAo+IG91dGIoKHZhbCAmIH4weEMpIHwgKCh3aGF0ICYgMikg
+PDwgMiksIG11eGJhc2UgKyBHUElPX09VVFBVVDJfUkVHX0hJR0ggKTsKPiAKPiB9Cj4gLyogV2Ug
+cmVtZW1iZXIgdGhlIGxhc3QgdXNlZCBjaGFubmVscyBjb21iaW5hdGlvbiBzbyBhcyB0byBvbmx5
+IHN3aXRjaAo+ICAgIGNoYW5uZWxzIHdoZW4gaXQgaXMgcmVhbGx5IG5lZWRlZC4gVGhpcyBncmVh
+dGx5IHJlZHVjZXMgdGhlIFNNQnVzCj4gICAgb3ZlcmhlYWQsIGJ1dCBhbHNvIGFzc3VtZXMgdGhh
+dCBub2JvZHkgd2lsbCBiZSB3cml0aW5nIHRvIHRoZSBQQ0E5NTU2Cj4gICAgaW4gb3VyIGJhY2su
+ICovCj4gc3RhdGljIHU4IGxhc3RfY2hhbm5lbHM7Cj4gCj4gc3RhdGljIGlubGluZSBzMzIgaTgw
+MV9hY2Nlc3NfY2hhbm5lbChzdHJ1Y3QgaTJjX2FkYXB0ZXIgKiBhZGFwLCB1MTYgYWRkciwKPiAJ
+CQkJCXVuc2lnbmVkIHNob3J0IGZsYWdzLCBjaGFyIHJlYWRfd3JpdGUsCj4gCQkJCQl1OCBjb21t
+YW5kLCBpbnQgc2l6ZSwKPiAJCQkJCXVuaW9uIGkyY19zbWJ1c19kYXRhICogZGF0YSwKPiAJCQkJ
+CXU4IGNoYW5uZWxzKQo+IHsKPiAJaW50IGVycm9yOwo+IAo+IAlkb3duKCZhc3VzX2xvY2spOwo+
+IAo+IAlpZiAobGFzdF9jaGFubmVscyAhPSBjaGFubmVscykgewo+IAkJbXV4X3N3aXRjaChjaGFu
+bmVscyk7Cj4gCQlsYXN0X2NoYW5uZWxzID0gY2hhbm5lbHM7Cj4gCX0KPiAJZXJyb3IgPSBpODAx
+X3NtYnVzLmFsZ28tPnNtYnVzX3hmZXIoYWRhcCwgYWRkciwgZmxhZ3MsIHJlYWRfd3JpdGUsCj4g
+CQkJCQkgICAgICBjb21tYW5kLCBzaXplLCBkYXRhKTsKPiAJdXAoJmFzdXNfbG9jayk7Cj4gCXJl
+dHVybiBlcnJvcjsKPiB9Cj4gCj4gc3RhdGljIHMzMiBpODAxX2FjY2Vzc192aXJ0MShzdHJ1Y3Qg
+aTJjX2FkYXB0ZXIgKiBhZGFwLCB1MTYgYWRkciwKPiAJCQkgICAgICAgdW5zaWduZWQgc2hvcnQg
+ZmxhZ3MsIGNoYXIgcmVhZF93cml0ZSwKPiAJCQkgICAgICAgdTggY29tbWFuZCwgaW50IHNpemUs
+Cj4gCQkJICAgICAgIHVuaW9uIGkyY19zbWJ1c19kYXRhICogZGF0YSkKPiB7Cj4gCXJldHVybiBp
+ODAxX2FjY2Vzc19jaGFubmVsKGFkYXAsIGFkZHIsIGZsYWdzLCByZWFkX3dyaXRlLCBjb21tYW5k
+LAo+IAkJCQkgICAgIHNpemUsIGRhdGEsIDB4Mik7Cj4gfQo+IAo+IAo+IHN0YXRpYyBzMzIgaTgw
+MV9hY2Nlc3NfdmlydDAoc3RydWN0IGkyY19hZGFwdGVyICogYWRhcCwgdTE2IGFkZHIsCj4gCQkJ
+ICAgICAgIHVuc2lnbmVkIHNob3J0IGZsYWdzLCBjaGFyIHJlYWRfd3JpdGUsCj4gCQkJICAgICAg
+IHU4IGNvbW1hbmQsIGludCBzaXplLAo+IAkJCSAgICAgICB1bmlvbiBpMmNfc21idXNfZGF0YSAq
+IGRhdGEpCj4gewo+IAo+IAlyZXR1cm4gaTgwMV9hY2Nlc3NfY2hhbm5lbChhZGFwLCBhZGRyLCBm
+bGFncywgcmVhZF93cml0ZSwgY29tbWFuZCwKPiAJCQkJICAgICBzaXplLCBkYXRhLCAweDAwKTsK
+PiB9Cj4gCj4gCj4gc3RhdGljIGludCBfX2RldmluaXQgYXN1c19zYl9wcm9iZShzdHJ1Y3QgcGNp
+X2RldiAqZGV2LCBjb25zdCBzdHJ1Y3QKPiBwY2lfZGV2aWNlX2lkICppZCkKPiB7Cj4gCWludCBp
+Owo+IAlpbnQgZXJyb3I7Cj4gCWludCBhc3VzX3NlcnZlcl9ib2FyZF9oaWRlc19zbWJ1c19kZXZp
+Y2VzID0gMDsKPiAKPiAgICAgICAgIHN0cnVjdCBwY2lfZGV2ICpzbWJkZXYgPSBOVUxMOwo+IAo+
+IAkvKiB3ZSBhcmUgaGVyZSBiZWNhdXNlIElOVEVMIElTQSBCcmlnZGUgaXMgcHJlc2VudCAqLwo+
+IAo+IAl3aGlsZSAoc21iZGV2ID0gcGNpX2dldF9kZXZpY2UoUENJX1ZFTkRPUl9JRF9JTlRFTCwK
+PiBQQ0lfREVWSUNFX0lEX0lOVEVMX0VTQl80LCBzbWJkZXYpKSB7Cj4gCj4gCQlpZiAodW5saWtl
+bHkoc21iZGV2LT5zdWJzeXN0ZW1fdmVuZG9yID09IFBDSV9WRU5ET1JfSURfQVNVU1RFSykpIHsK
+PiAJCQlzd2l0Y2goc21iZGV2LT5zdWJzeXN0ZW1fZGV2aWNlKSB7Cj4gCQkJCWNhc2UgMHg4MTE3
+Ogo+IAkJCQlhc3VzX3NlcnZlcl9ib2FyZF9oaWRlc19zbWJ1c19kZXZpY2VzID0gMTsKPiAJCQkJ
+YnJlYWs7Cj4gICAgICAgICAgICAgICAgICAgICAgICB9Cj4gICAgICAgIAkJfQo+ICAgICAJfQo+
+IAkgLyogd2Uga25vdyB0aGlzIGlzIG91ciBib2FyZCAqLwo+IAo+IAllcnJvciA9IC1FTk9ERVY7
+Cj4gCj4gCWlmICghYXN1c19zZXJ2ZXJfYm9hcmRfaGlkZXNfc21idXNfZGV2aWNlcykKPiAJCXJl
+dHVybiBlcnJvcjsKPiAKPiAJcGNpX3JlYWRfY29uZmlnX2R3b3JkKGRldiwgMHg1OCwgJm11eGJh
+c2UpOwo+IAo+IAlpZiAobXV4YmFzZT09MCkgeyAvLyBlcnJvcgo+IAkJZGV2X2VycigmZGV2LT5k
+ZXYsICJCYXNlIGFkciBpcyBub3Qgc2V0XG4iKTsKPiAJCXJldHVybiBlcnJvcjsKPiAJfQo+IAo+
+IAo+IAlpZiAoIXJlcXVlc3RfcmVnaW9uKG11eGJhc2UsIDY0LCAiR1BJT3MiKSkgewo+ICAgCQlk
+ZXZfZXJyKCZkZXYtPmRldiwgIkNvdWxkIG5vdCBhbGxvY2F0ZSBJL08gc3BhY2VcbiIpOwo+IAkJ
+cmV0dXJuIGVycm9yOwo+IAl9Cj4gCj4gCj4gCS8qIFVucmVnaXN0ZXIgcGh5c2ljYWwgYnVzICov
+Cj4gCWVycm9yID0gaTJjX2RlbF9hZGFwdGVyKCZpODAxX3NtYnVzKTsKPiAJaWYgKGVycm9yKSB7
+Cj4gCQlpZiAoZXJyb3IgPT0gLUVJTlZBTCkKPiAJCQllcnJvciA9IC1FTk9ERVY7Cj4gCQllbHNl
+Cj4gCQkJZGV2X2VycigmaTgwMV9zbWJ1cy5kZXYsICJQaHlzaWNhbCBidXMgcmVtb3ZhbCAiCj4g
+CQkJCSJmYWlsZWRcbiIpOwo+IAkJZ290byBFUlJPUjA7Cj4gCX0KPiAKPiAJZGV2X2luZm8oJmRl
+di0+ZGV2LCAiRW5hYmxpbmcgU01CdXMgbXVsdGlwbGV4aW5nIGZvciBBU1VTIHNlcnZlcgo+IG1v
+dGhlcmJvYXJkXG4iKTsKPiAJaW5pdF9NVVRFWCgmYXN1c19sb2NrKTsKPiAKPiAJLyogRGVmaW5l
+IHRoZSAyIHZpcnR1YWwgYWRhcHRlcnMgYW5kIGFsZ29yaXRobXMgc3RydWN0dXJlcyAqLwo+IAlp
+ZiAoIShhc3VzX2FkYXB0ZXIgPSBrbWFsbG9jKDIgKiBzaXplb2Yoc3RydWN0IGkyY19hZGFwdGVy
+KSwKPiAJCQkJICAgICAgR0ZQX0tFUk5FTCkpKSB7Cj4gCQllcnJvciA9IC1FTk9NRU07Cj4gCQln
+b3RvIEVSUk9SMTsKPiAJfQo+IAlpZiAoIShhc3VzX2FsZ28gPSBrbWFsbG9jKDIgKiBzaXplb2Yo
+c3RydWN0IGkyY19hbGdvcml0aG0pLAo+IAkJCQkgICBHRlBfS0VSTkVMKSkpIHsKPiAJCWVycm9y
+ID0gLUVOT01FTTsKPiAJCWdvdG8gRVJST1IyOwo+IAl9Cj4gCj4gCS8qIEZpbGwgaW4gdGhlIG5l
+dyBzdHJ1Y3R1cmVzICovCj4gCWFzdXNfYWxnb1swXSA9ICooaTgwMV9zbWJ1cy5hbGdvKTsKPiAJ
+YXN1c19hbGdvWzFdID0gKihpODAxX3NtYnVzLmFsZ28pOwo+IAo+IAlhc3VzX2FsZ29bMF0uc21i
+dXNfeGZlciA9IGk4MDFfYWNjZXNzX3ZpcnQwOwo+IAlhc3VzX2FsZ29bMV0uc21idXNfeGZlciA9
+IGk4MDFfYWNjZXNzX3ZpcnQxOwo+IAo+IAlhc3VzX2FkYXB0ZXJbMF0gPSBpODAxX3NtYnVzOwo+
+IAlhc3VzX2FkYXB0ZXJbMV0gPSBpODAxX3NtYnVzOwo+IAlhc3VzX2FkYXB0ZXJbMF0uYWxnbyA9
+IGFzdXNfYWxnbzsKPiAJYXN1c19hZGFwdGVyWzFdLmFsZ28gPSBhc3VzX2FsZ28rMTsKPiAKPiAJ
+Zm9yIChpPTA7aTwyO2krKykgewo+IAkJZXJyb3IgPSBpMmNfYWRkX2FkYXB0ZXIoYXN1c19hZGFw
+dGVyK2kpOwo+IAkJaWYgKGVycm9yKSB7Cj4gCQkJZGV2X2VycigmaTgwMV9zbWJ1cy5kZXYsCj4g
+CQkJICAgICAgICJWaXJ0dWFsIGFkYXB0ZXIgJWQgcmVnaXN0cmF0aW9uICIKPiAJCQkgICAgICAg
+ImZhaWxlZCwgbW9kdWxlIG5vdCBpbnNlcnRlZFxuIiwgaSk7Cj4gCQkJZm9yIChpLS07IGkgPj0g
+MDsgaS0tKQo+IAkJCQlpMmNfZGVsX2FkYXB0ZXIoYXN1c19hZGFwdGVyK2kpOwo+IAkJCWdvdG8g
+RVJST1IzOwo+IAkJfQo+IAl9Cj4gCXJldHVybiAwOwo+IAo+IEVSUk9SMzoKPiAJa2ZyZWUoYXN1
+c19hbGdvKTsKPiAJYXN1c19hbGdvID0gTlVMTDsKPiBFUlJPUjI6Cj4gCWtmcmVlKGFzdXNfYWRh
+cHRlcik7Cj4gCWFzdXNfYWRhcHRlciA9IE5VTEw7Cj4gRVJST1IxOgo+IAlpMmNfYWRkX2FkYXB0
+ZXIoJmk4MDFfc21idXMpOwo+IEVSUk9SMDoKPiAJcmV0dXJuIGVycm9yOwo+IH0KPiAKPiBzdGF0
+aWMgdm9pZCBfX2RldmV4aXQgYXN1c19zYl9yZW1vdmUoc3RydWN0IHBjaV9kZXYgKmRldikKPiB7
+Cj4gCj4gCWlmIChhc3VzX2FkYXB0ZXIpIHsKPiAJCWludCBpOwo+IAo+IAkJZm9yIChpID0gMDsg
+aSA8IDI7IGkrKykKPiAJCWkyY19kZWxfYWRhcHRlcihhc3VzX2FkYXB0ZXIraSk7Cj4gCQlrZnJl
+ZShhc3VzX2FkYXB0ZXIpOwo+IAkJYXN1c19hZGFwdGVyID0gTlVMTDsKPiAJfQo+IAlpZiAoYXN1
+c19hbGdvKSB7Cj4gCQlrZnJlZShhc3VzX2FsZ28pOwo+IAkJYXN1c19hbGdvID0gTlVMTDsKPiAJ
+fQo+IAo+IAkvKiBSZXN0b3JlIHBoeXNpY2FsIGJ1cyAqLwo+IAlpZiAoaTJjX2FkZF9hZGFwdGVy
+KCZpODAxX3NtYnVzKSkKPiAJCWRldl9lcnIoJmk4MDFfc21idXMuZGV2LCAiUGh5c2ljYWwgYnVz
+IHJlc3RvcmF0aW9uICIKPiAJCQkiZmFpbGVkXG4iKTsKPiAJcmVsZWFzZV9yZWdpb24obXV4YmFz
+ZSwgNjQpOwo+IH0KPiAKPiAKPiBzdGF0aWMgc3RydWN0IHBjaV9kZXZpY2VfaWQgYXN1c19zYl9p
+ZHNbXSA9IHsKPiAJeyBQQ0lfREVWSUNFKFBDSV9WRU5ET1JfSURfSU5URUwsIFBDSV9ERVZJQ0Vf
+SURfSU5URUxfRVNCXzEpIH0sCj4gCXsgMCwgfQo+IH07Cj4gCj4gTU9EVUxFX0RFVklDRV9UQUJM
+RSAocGNpLCBhc3VzX3NiX2lkcyk7Cj4gCj4gCj4gc3RhdGljIHN0cnVjdCBwY2lfZHJpdmVyIGFz
+dXNfc2JfZHJpdmVyID0gewo+IAkubmFtZQkJPSAiYXN1c19zYl9zbWJ1cyIsCj4gCS5pZF90YWJs
+ZQk9IGFzdXNfc2JfaWRzLAo+IAkucHJvYmUJCT0gYXN1c19zYl9wcm9iZSwKPiAJLnJlbW92ZQkJ
+PSBfX2RldmV4aXRfcChhc3VzX3NiX3JlbW92ZSksCj4gfTsKPiAKPiBzdGF0aWMgaW50IF9faW5p
+dCBpMmNfYXN1c19zYl9pbml0KHZvaWQpCj4gewo+IAlyZXR1cm4gcGNpX3JlZ2lzdGVyX2RyaXZl
+cigmYXN1c19zYl9kcml2ZXIpOwo+IH0KPiAKPiBzdGF0aWMgdm9pZCBfX2V4aXQgaTJjX2FzdXNf
+c2JfZXhpdCh2b2lkKQo+IHsKPiAJcGNpX3VucmVnaXN0ZXJfZHJpdmVyKCZhc3VzX3NiX2RyaXZl
+cik7Cj4gfQo+IAo+IE1PRFVMRV9BVVRIT1IgKCJSdWRvbGYgTWFyZWsgPHIubWFyZWtAc2guY3Z1
+dC5jej4iKTsKPiBNT0RVTEVfTElDRU5TRSgiR1BMIik7Cj4gCj4gbW9kdWxlX2luaXQoaTJjX2Fz
+dXNfc2JfaW5pdCk7Cj4gbW9kdWxlX2V4aXQoaTJjX2FzdXNfc2JfZXhpdCk7Cgo9PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9y
+bWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBi
+eSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0
+aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlz
+IGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0
+byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGlj
+YXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29t
+cHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlz
+IGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQg
+dXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHBy
+b2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRv
+IHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0
+aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLg0KPT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNl
+IGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0IGVzc2VudGlhbGx5
+IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3ZlLqW7q0il86S6qdKn
+dLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6
+vlxcXFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2
+qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7
+ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSj
+v/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4
+VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z
+9anOt06ooy4NCg==
