@@ -1,81 +1,86 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 19 May 2005 06:25:47 +0000
-Subject: Some questions about Winbond W83637HF
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE2E5939@weshml03.winbond.com.tw>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Sat, 28 May 2005 10:17:35 +0000
+Subject: [lm-sensors] Help diagnose ds1780 (adm9240) problem with sensord
+Message-Id: <o5ag91pllev4i0aagmp4vg6raus0raal74@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Jean, Rudolf and MDS
+Hi there,
 
-This is Chunhao.
+Story so far, test user with a pair of ds1780 chips, patch posted 
+early today fixed main issue, (user patched/install 2.9.1) another 
+issue:
 
-I'm busy with another project about Winbond W83637HF Smart IO these days
-http://www.winbond.com/e-winbondhtm/partner/PDFresult.asp?Pname=886
-As you know, besides the Hardware monitor function, Winbond W83637HF
-also
-contains the function of Smart Cards. What I need to implement is the
-Smart
-Cards function.
+>sensors -u gives:
+>ERROR: Can't get feature `vid' data!
+>alarms: 4096.00 (alarms)
+>ERROR: Can't get feature `analog_out' data!
 
-I'm using MUSCLE project (http://www.linuxnet.com/) and towitoko-2.0.7
-Smart Card driver(http://www.geocities.com/cprados/) as my reference
-now.
-Generally, the smart card readers connect PC by Serial interface or usb.
-But W83637HF does NOT use serial nor usb, it is embedded on
-motherboard(PC client)
-using LPC interface for communication.
+is already fixed in CVS lm_sensors2, referred user to that download,
 
-So in traditional smart card readers driver such as towitoko, it just
-has to
-talk to a UART via a regular serial port interface. but in my driver, I
-will have
-to deal with all the Input/Output, control registers, etc.
+o o o
 
-So my question is:
-Do you know any source code on Linux(or Smart Card drivers) which can be
-a
-good reference to me when I implementing my low level function?
-Is there any bus or chip driver contains such function in lm_sensors?
+third issue is with sensord, and I'm lost -- where to start?:
 
-You know, I have few experience in Smart Card driver, this is the first
-time
-for me to write Smart Card driver.:-)
+quoting from test user:
 
-Thanks
-Best Regards
+   I edited chips.c  in the lmsensors lib, and rebuilt.
+   Cleaned out the distro (Mandrake 10.1) libsensors and sensors stuff.
+   Installed the rebuilt 2.9.1
+   
+    sensors ds1780-* produces
 
-Chunhao
-2005-03-30
+    ds1780-i2c-0-2d
+Adapter: SMBus I801 adapter at ccd0
+2.5v:      +0.99 V  (min =  +0.00 V, max =  +2.00 V)   
+V1:        +1.48 V  (min =  +1.41 V, max =  +1.60 V)   
+3.3v:      +3.30 V  (min =  +3.08 V, max =  +3.52 V)   
+5v:        +3.33 V  (min =  +3.10 V, max =  +3.52 V)   
+12v:      +11.94 V  (min = +10.25 V, max = +13.75 V)   
+V2:        +1.79 V  (min =  +1.69 V, max =  +1.91 V)   
+F1:          0 RPM  (min =    0 RPM, div = 8)          
+F2:          0 RPM  (min =    0 RPM, div = 8)          
+T1:        +38.0?C  (high =  +127?C, hyst =   +13?C)   
+alarms:   Chassis intrusion detection                  ALARM
 
+ds1780-i2c-0-2c
+Adapter: SMBus I801 adapter at ccd0
+2.5v:      +2.51 V  (min =  +2.33 V, max =  +2.67 V)   
+V1:        +1.67 V  (min =  +1.57 V, max =  +1.80 V)   
+3.3v:      +1.50 V  (min =  +1.39 V, max =  +1.60 V)   
+5v:        +5.00 V  (min =  +4.66 V, max =  +5.34 V)   
+12v:      +11.88 V  (min = +10.25 V, max = +13.75 V)   
+V2:        +1.98 V  (min =  +0.00 V, max =  +3.59 V)   
+F1:       1940 RPM  (min =  703 RPM, div = 8)          
+F2:       1896 RPM  (min =  703 RPM, div = 8)          
+T1:        +43.0?C  (high =  +127?C, hyst =   +10?C)   
+alarms:   Chassis intrusion detection                  ALARM
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3DThe privileg=
-ed confidential information contained in this email is intended for use onl=
-y by the addressees as indicated by the original author of this email. If y=
-ou are not the addressee indicated in this email or are not responsible for=
- delivery of the email to such person, please kindly reply the sender indic=
-ating accordingly and delete all copies of it from your computer and networ=
-k server immediately. We thank you for your cooperation. It is advisable th=
-at any unauthorized use of confidential information of Winbond is strictly =
-prohibited; and any information in this email that does not relate to the o=
-fficial business of Winbond shall be deemed as neither given nor endorsed b=
-y Winbond.=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-If your computer is unable to decode Chinese font, please ignore the follow=
-ing message. They essentially repea!
- t the&nbsp; English statement above.=A5=BB=ABH=A5=F3=A4=BA=A9=D2=A7t=B5=D8=
-=A8=B9=B9q=A4l=AA=BA=B0]=B2=A3=A9=CA=BE=F7=B1K=A9=CA=B8=EA=B0T, =B6=C8=B1=
-=C2=C5v=AD=EC=B5o=ABH=A4H=AB=FC=A9w=A4=A7=A6=AC=ABH=A4H=A8=FA=BE\=A4=A7=A5=
-=CE. =B0=B2=A8=CF=B1z=A8=C3=ABD=B3Q=AB=FC=A9w=A4=A7=A6=AC=ABH=A4H=A9=CE=A6]=
-=A5=F4=A6=F3=AD=EC=A6]=A6b=A5=BC=B8g=B1=C2=C5v=AA=BA=B1=A1=A7=CE=A4=A7=A4U=
-=A6=AC=A8=EC=A5=BB=ABH=A5=F3, =BD=D0=B1z=A7i=AA=BE=AD=EC=B5o=ABH=A4H=A8=C3=
-=A5=DF=A7Y=B1N=ABH=A5=F3=B1q=B9q=B8=A3=BBP=BA=F4=B8=F4=A6=F8=AAA=BE=B9=A4=
-=A4=A4=A9=A5H=AE=F8=B0=A3. =B9=EF=A9=F3=B1z=AA=BA=A6X=A7@, =A7=DA=AD=CC=A5=
-=FD=A6=B9=ADP=C1=C2. =AFS=A6=B9=B4=A3=BF=F4, =A5=F4=A6=F3=A5=BC=B8g=B1=C2=
-=C5v=BE=D5=A6=DB=A8=CF=A5=CE=B5=D8=A8=B9=B9q=A4l=AA=BA=BE=F7=B1K=B8=EA=B0T=
-=AA=BA=A6=E6=AC=B0=ACO=B3Q=C4Y=AE=E6=B8T=A4=EE=AA=BA. =ABH=A5=F3=BBP=B5=D8=
-=A8=B9=B9q=A4l=C0=E7=B7~=B5L=C3=F6=A4=A7=A4=BA=AEe,=A4=A3=B1o=B5=F8=AC=B0=
-=B5=D8=A8=B9=B9q=A4l=A4=A7=A5=DF=B3=F5=A9=CE=B7N=A8=A3.
+  Much better.
+
+sensord stll fails with:
+
+May 27 20:01:54 harpo sensord: Chip: ds1780-i2c-0-2d
+May 27 20:01:54 harpo sensord: Adapter: SMBus I801 adapter at ccd0
+May 27 20:01:54 harpo sensord: Algorithm: Unavailable from sysfs
+May 27 20:01:54 harpo sensord:   2.5v: +1.00 V (min = +0.00 V, max = +2.00 V)
+May 27 20:01:54 harpo sensord:   V1: +1.48 V (min = +1.41 V, max = +1.60 V)
+May 27 20:01:54 harpo sensord:   3.3v: +3.30 V (min = +3.08 V, max = +3.52 V)
+May 27 20:01:54 harpo sensord:   5v: +3.33 V (min = +3.10 V, max = +3.52 V)
+May 27 20:01:54 harpo sensord:   12v: +11.94 V (min = +10.25 V, max = +13.75 V)
+May 27 20:01:54 harpo sensord:   V2: +1.79 V (min = +1.69 V, max = +1.91 V)
+May 27 20:01:54 harpo sensord:   F1: 0 RPM (min = 0 RPM, div = 8)
+May 27 20:01:54 harpo sensord:   F2: 0 RPM (min = 0 RPM, div = 8)
+May 27 20:01:54 harpo sensord:   T1: 38.0 C (limit = 127 C, hysteresis = 13 C)
+May 27 20:01:54 harpo sensord: Error getting sensor data: ds1780/#61: Can't access procfs/sysfs file
+May 27 20:01:54 harpo sensord: sensord failed
+unquote
+
+I'm stuck on this one at the moment.  Any clues?
+
+Thanks,
+--Grant.
+
