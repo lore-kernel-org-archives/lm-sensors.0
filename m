@@ -1,7 +1,7 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Sat, 28 May 2005 00:25:48 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 28 May 2005 08:03:10 +0000
 Subject: [lm-sensors] RFC PATCH I2C: w83781d: remove redundant w83697hf,
-Message-Id: <t97f915d9bkld14kcg2qvq6tjilq4qhfga@4ax.com>
+Message-Id: <20050528080300.635e88db.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <eq4d91hhldf7u9jjp8s03hc7qrv0e9jo1k@4ax.com>
 In-Reply-To: <eq4d91hhldf7u9jjp8s03hc7qrv0e9jo1k@4ax.com>
@@ -10,21 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 27 May 2005 22:47:15 +0200, Jean Delvare <khali@linux-fr.org> wrote:
+Hi Grant,
 
->Hi Grant,
->
->> This patch replaces previous one posted this day, removing redundant 
->> drivers w83697hf, w83627hf, w83627thf from w83781d as they are
->> handled by the w83627hf driver.  Compile tested.
->
->Please do not remove the w83627hf support for now. The W83627HF chip has
->an I2C/SMBus interface, which the w83627hf driver doesn't support (and
->we don't want to add I2C/SMBus support to the w83627hf driver).
+> > Please do not remove the w83627hf support for now. The W83627HF chip
+> > has an I2C/SMBus interface, which the w83627hf driver doesn't support
+> > (and we don't want to add I2C/SMBus support to the w83627hf driver).
+> 
+> Okay, that would be true for lm_sensors2 as well?
 
-Okay, that would be true for lm_sensors2 as well?  Will do, gets easier 
-each time I go in :)  Perhaps I'll wait for okay on this before going to 
-lm_sensors2 again?
+Obviously.
 
---Grant.
+> Will do, gets
+> easier  each time I go in :)  Perhaps I'll wait for okay on this
+> before going to  lm_sensors2 again?
 
+I think so. In fact I would much like others to comment on this. In the
+first place I had not planned to do the chip support removal on
+lm_sensors2, only 2.6, but you did it, and maybe it's not a bad I idea.
+I have no strong opinion on this, but we have to remember that the
+lm_sensors2 branch is supposed to be stable (whatever it exactly means).
+
+-- 
+Jean Delvare
