@@ -1,37 +1,54 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 28 May 2005 15:55:30 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Sun, 29 May 2005 05:22:47 +0000
 Subject: [lm-sensors] RE: W83792 review
-Message-Id: <20050528155514.4c21ea60.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE54FB5D@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <429605CE.5060009@sh.cvut.cz>
 In-Reply-To: <429605CE.5060009@sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao,
-
-> I wish some other guys can give me more suggestion to my codes, as
-> well as to your comments. Where is Jean? It seems that he is busy
-> these days? He gave me many good suggestions to the 792 driver for
-> linux-2.4
-
-I'm actually busy, working on various other stuff, plus day job and real
-life. I'm doing as much as I can. Anyway, it is great that others start
-reviewing the patches that are submitted to the sensors list. I have
-been doing the job almost all by myself for too long. Having different
-points of view is always better.
-
-I did review Rudolf's review, hopefully this will be of some help to
-both of you. 
-
-BTW: In the interest of all the readers of this list, I would appreciate
-if everyone could avoid including all of the post they are replying to.
-Please only include the relevant part. For example, your answer here was
-66.7K in size, while the useful part of it was really only a dozen
-lines.
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbiwgUnVkb2xmCgo+IEknbSBhY3R1YWxseSBidXN5LCB3b3JraW5nIG9uIHZhcmlvdXMg
+b3RoZXIgc3R1ZmYsIHBsdXMgZGF5IGpvYiBhbmQKcmVhbAo+IGxpZmUuIEknbSBkb2luZyBhcyBt
+dWNoIGFzIEkgY2FuLiBBbnl3YXksIGl0IGlzIGdyZWF0IHRoYXQgb3RoZXJzCnN0YXJ0Cj4gcmV2
+aWV3aW5nIHRoZSBwYXRjaGVzIHRoYXQgYXJlIHN1Ym1pdHRlZCB0byB0aGUgc2Vuc29ycyBsaXN0
+LiBJIGhhdmUKPiBiZWVuIGRvaW5nIHRoZSBqb2IgYWxtb3N0IGFsbCBieSBteXNlbGYgZm9yIHRv
+byBsb25nLiBIYXZpbmcgZGlmZmVyZW50Cj4gcG9pbnRzIG9mIHZpZXcgaXMgYWx3YXlzIGJldHRl
+ci4KPiAKPiBJIGRpZCByZXZpZXcgUnVkb2xmJ3MgcmV2aWV3LCBob3BlZnVsbHkgdGhpcyB3aWxs
+IGJlIG9mIHNvbWUgaGVscCB0bwo+IGJvdGggb2YgeW91LgoKWWVzLCBJIHNlZS4gSSBkaWQgZ2V0
+IHlvdXIgY29tbWVudHMgYW5kIFJ1ZG9sZidzLCBJIHdpbGwgc3RhcnQgdGhlCm1vZGlmaWNhdGlv
+biBmcm9tIG5vdyBvbiwgSSB3aWxsIGNoZWNrIHlvdXIgY29tbWVudCBvbmUgYnkgb25lIGNhcmVm
+dWxseQphZnRlciBhIHdoaWxlLCBJZiBJIGhhdmUgc29tZSBxdWVzdGlvbnMgb3IgZGlzYWdyZWVt
+ZW50LCBJIHdpbGwgc2VuZAp5b3UuCgo+IEJUVzogSW4gdGhlIGludGVyZXN0IG9mIGFsbCB0aGUg
+cmVhZGVycyBvZiB0aGlzIGxpc3QsIEkgd291bGQKYXBwcmVjaWF0ZQo+IGlmIGV2ZXJ5b25lIGNv
+dWxkIGF2b2lkIGluY2x1ZGluZyBhbGwgb2YgdGhlIHBvc3QgdGhleSBhcmUgcmVwbHlpbmcKdG8u
+Cj4gUGxlYXNlIG9ubHkgaW5jbHVkZSB0aGUgcmVsZXZhbnQgcGFydC4gRm9yIGV4YW1wbGUsIHlv
+dXIgYW5zd2VyIGhlcmUKd2FzCj4gNjYuN0sgaW4gc2l6ZSwgd2hpbGUgdGhlIHVzZWZ1bCBwYXJ0
+IG9mIGl0IHdhcyByZWFsbHkgb25seSBhIGRvemVuCj4gbGluZXMuCgpPaywgSSBzZWUsIHNvcnJ5
+IGZvciB0aGF0LCBJIHdpbGwgZGVsZXRlIHRoZSB1c2VsZXNzIGxpbmVzIG5leHQgdGltZS4KClRo
+YW5rcwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24g
+Y29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBh
+ZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMgZW1h
+aWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwg
+b3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2gg
+IGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGluZyB0
+aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBh
+bmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGlnaGx5
+IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2Yg
+Y29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRl
+ZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhlIG9m
+ZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2
+ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hp
+bmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3NlbnRp
+YWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tIpfOk
+uqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtI
+pEio+r5cXFxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhn
+scLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5
+cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9T
+prm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HE
+Wa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGyk
+p6Xfs/WpzrdOqKMuCg==
