@@ -1,26 +1,33 @@
-From: greg@kroah.com (Greg KH)
-Date: Thu, 19 May 2005 06:25:32 +0000
-Subject: [PATCH 2.6] I2C: Use standard temperature converters for as99127f
-Message-Id: <20050125062732.GB2361@kroah.com>
+From: kensai@tassie.net.au (John WICKS)
+Date: Sun, 29 May 2005 14:39:17 +0000
+Subject: [lm-sensors] (no subject)
+Message-Id: <4299B850.6000901@tassie.net.au>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050122112337.7fceb7bc.khali@linux-fr.org>
-In-Reply-To: <20050122112337.7fceb7bc.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 22, 2005 at 11:23:37AM +0100, Jean Delvare wrote:
-> 
-> The following patch drops the additional code and treats temp2 and temp3
-> the same way for all chips supported by the w83781d driver. A similar
-> change will be made to the 2.4 version of this driver, and the default
-> sensors.conf will be updated accordingly. Users will have to update
-> their configuration file, or their readings will of course read twice as
-> high as they should due to the old conversion formulae.
-> 
-> Please apply,
+G'day gentlemen/women,
 
-Applied, thanks.
+please excuse any fumbling questions as I am new to Linux
 
-greg k-h
+sensors-detect failed to see my SMbus, I have a Dell Inspiron 8500 
+laptop with an Intel 82801 DBM SMbus controller (ICH4-M)
+
+my question is do I use/will the i801 driver work? and what is the best 
+way to get it to work?
+
+would Ilja Rauhut's p4b hack do the trick?
+
+any lead would be greatfully appreciated
+
+regards
+
+kensai
+
+-- 
+*
+John Wicks
+kensai@tassie.net.au
+Ph: +61 3 6343 4358*
