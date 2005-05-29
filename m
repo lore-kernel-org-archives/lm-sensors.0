@@ -1,24 +1,25 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 19 May 2005 06:24:12 +0000
-Subject: [PATCH] Fix for i2c-piix4 with on some boards
-Message-Id: <20030815105807.7ce910ec.khali@linux-fr.org>
+From: keenanpepper@gmail.com (Keenan Pepper)
+Date: Sun, 29 May 2005 21:34:51 +0000
+Subject: [lm-sensors] SMSC LPC47M192 - "Device is disabled, will not use"
+Message-Id: <429A1930.6040409@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20030811181001.GE807@ip68-0-152-218.tc.ph.cox.net>
-In-Reply-To: <20030811181001.GE807@ip68-0-152-218.tc.ph.cox.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
+I have a chip on my motherboard which says "SMsC LPC47M192-NC", but the kernel 
+module for it (kernel 2.6.12-rc5-mm1) doesn't work:
 
-> OK, patch commited. I took the liberty to change "temp = temp & 0xfd"
-> into "temp &= 0xfd".
-> 
-> I'll test it on my piix4 chipsets tomorrow (no time left tonight).
+keenan@localhost:~$ sudo modprobe smsc47m1
+FATAL: Error inserting smsc47m1 
+(/lib/modules/2.6.12-rc5-mm1/kernel/drivers/i2c/chips/smsc47m1.ko): No such device
 
-OK, tested on three different machines, which were not needing the patch
-(so no wonder they worked and still do).
+In the dmesg output it says:
 
--- 
-Jean Delvare
-http://www.ensicaen.ismra.fr/~delvare/
+smsc47m1: Found SMSC LPC47M15x/LPC47M192
+smsc47m1: Device is disabled, will not use
+
+What does this mean? How do I get this chip to tell me fan speed and CPU 
+temperature (if that's even what it does?)?
