@@ -1,110 +1,61 @@
-From: gregkh@suse.de (Greg KH)
-Date: Thu, 19 May 2005 06:25:48 +0000
-Subject: [PATCH] I2C: pcf8574 doesn't need a lock
-Message-Id: <11123858541382@kroah.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Sun, 29 May 2005 12:07:52 +0000
+Subject: [lm-sensors] Information: Winbond internal 5V scaling resistor
+Message-Id: <ih1j919eh5slk7naabuh8ig3e7u72seat3@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20050401200324.GA12854@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sensors@Stimpy.netroedge.com
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-ChangeSet 1.2339, 2005/04/01 11:48:28-08:00, khali@linux-fr.org
+Greetings,
 
-[PATCH] I2C: pcf8574 doesn't need a lock
+Not sure what to do with this info yet, so I'll get it off a scrap 
+of paper and into the archives for future reference.
 
-While investigating the i2c chips drivers that were not properly
-locking, we found that the pcf8574 driver does the exact contrary. It
-uses a lock where it's not needed.
+Winbond internally scale 5V readings in terms of resistor values.
+Some chips monitor 5V, others monitor 5VSB too, I've assumed one 
+chip (w83781d) does same as later chips in same family as no 
+datasheet spec.
 
-While we were there, we did some additional cleanups to the driver:
-1* Merge pcf8574_update_client() in show_read(), as it was the only user
-and the function became trivial once the locking was removed.
-2* Add a validity check on values provided by user-space.
+Sensor drivers do not scale these values so user-space need choose 
+correct compute lines depending on chip and which 5V being measured.
 
-Aurelien Jarno tested the modified code for confirmation and it worked
-just fine.
+Datasheet summary
+-----------------
+First set operate from 5V and have 16mV/lsb A/D --> 4096mV fullscale.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+   chip        5V      5VSB
+ W83781D     34/50      -
+ W83782D     34/50      -
+ W83783S     34/50      -
+ W83L784R    34/50      -
+ W83627HF    34/50    17/33
+ W83697HF    34/50    17/33
+ W83627THF   34/51    34/51
+ W83637HF    34/51    34/51
+
+Next one operates from 3.3V and has 8mV/lsb A/D --> 2048mV fullscale
+
+   chip       3.3V    3.3VSB
+ W83627EHF   34/34    34/34
+
+This chip supplies Vref = 2.048V and the reccomended external divider 
+values have changed, _not_ to same ratios as before.  The reference to 
+"8-bit ADC with 16mV LSB" on block in circuit diagram appears a typo, 
+as many other places refer to new 2.048V fullscale.  No mention of 5V.
 
 
- drivers/i2c/chips/pcf8574.c |   27 +++++++++------------------
- 1 files changed, 9 insertions(+), 18 deletions(-)
+example compute lines
+---------------------
+divider 
+ 34/50  compute in3 (42 / 25) * @, @ / (42 / 25)
+ 17/33  compute in? (50 / 33) * @, @ / (50 / 33)
+ 34/51 	compute in? (85 / 51) * @, @ / (85 / 51)
+ 34/34  compute in?         2 * @, @ / 2
 
 
-diff -Nru a/drivers/i2c/chips/pcf8574.c b/drivers/i2c/chips/pcf8574.c
---- a/drivers/i2c/chips/pcf8574.c	2005-04-01 11:53:38 -08:00
-+++ b/drivers/i2c/chips/pcf8574.c	2005-04-01 11:53:38 -08:00
-@@ -56,7 +56,6 @@
- /* Each client has this additional data */
- struct pcf8574_data {
- 	struct i2c_client client;
--	struct semaphore update_lock;
- 
- 	u8 read, write;			/* Register values */
- };
-@@ -65,7 +64,6 @@
- static int pcf8574_detect(struct i2c_adapter *adapter, int address, int kind);
- static int pcf8574_detach_client(struct i2c_client *client);
- static void pcf8574_init_client(struct i2c_client *client);
--static struct pcf8574_data *pcf8574_update_client(struct device *dev);
- 
- /* This is the driver that will be inserted */
- static struct i2c_driver pcf8574_driver = {
-@@ -80,7 +78,9 @@
- /* following are the sysfs callback functions */
- static ssize_t show_read(struct device *dev, char *buf)
- {
--	struct pcf8574_data *data = pcf8574_update_client(dev);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pcf8574_data *data = i2c_get_clientdata(client);
-+	data->read = i2c_smbus_read_byte(client); 
- 	return sprintf(buf, "%u\n", data->read);
- }
- 
-@@ -97,7 +97,12 @@
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct pcf8574_data *data = i2c_get_clientdata(client);
--	data->write = simple_strtoul(buf, NULL, 10);
-+	unsigned long val = simple_strtoul(buf, NULL, 10);
-+
-+	if (val > 0xff)
-+		return -EINVAL;
-+
-+	data->write = val;
- 	i2c_smbus_write_byte(client, data->write);
- 	return count;
- }
-@@ -157,7 +162,6 @@
- 
- 	/* Fill in the remaining client fields and put it into the global list */
- 	strlcpy(new_client->name, client_name, I2C_NAME_SIZE);
--	init_MUTEX(&data->update_lock);
- 
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(new_client)))
-@@ -200,19 +204,6 @@
- 	struct pcf8574_data *data = i2c_get_clientdata(client);
- 	data->write = PCF8574_INIT;
- 	i2c_smbus_write_byte(client, data->write);
--}
--
--static struct pcf8574_data *pcf8574_update_client(struct device *dev)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct pcf8574_data *data = i2c_get_clientdata(client);
--
--	down(&data->update_lock);
--	dev_dbg(&client->dev, "Starting pcf8574 update\n");
--	data->read = i2c_smbus_read_byte(client); 
--	up(&data->update_lock);
--	
--	return data;
- }
- 
- static int __init pcf8574_init(void)
+If i made boo-boo, no doubt I'll be corrected :p
+
+--Grant.
 
