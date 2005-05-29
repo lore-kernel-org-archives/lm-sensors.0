@@ -1,19 +1,29 @@
-From: mds4@verizon.net (Mark Studebaker)
-Date: Thu, 19 May 2005 06:24:30 +0000
-Subject: new address
-Message-Id: <3FDF9F8A.3C51E025@verizon.net>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Sun, 29 May 2005 23:09:29 +0000
+Subject: [lm-sensors] two queries to lm-sensors list managers: subject line,
+Message-Id: <63bk91hoekevc3a4erejapjim72sojhvqs@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Phil, please change my email address in the mailing list to the above
-(don't forget the "4").
+Hi there,
 
-My old address is still good but I prefer to receive sensors-related
-mail
-at the new address.
+1. Do we really need the "[lm-sensors] " prepended to subject line? 
+There is enough information in the headers to sort list into different 
+directories on receipt.  Dunno about others but I'm running out of 
+visible subject line :)
 
-thanks
-mds
+2. Archives: I cannot successfully import archives as they not in unix 
+mail spool or mbox format, the headers been lost.  Most important loss 
+is the date ordering, importing over 4200 messages since July last year 
+becomes a mess.  I have threading, but no obvious date order as that is 
+now 'import to MUA' date/time order :(
+
+While the web search interface is useful, one cannot easily pull 
+patches from it.  Did I miss something?
+
+Thanks,
+--Grant.
+
