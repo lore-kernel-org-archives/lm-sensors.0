@@ -1,39 +1,57 @@
-From: me@andrew.net.au (Andrew Pollock)
-Date: Thu, 19 May 2005 06:25:51 +0000
-Subject: Mailing-list garbage
-Message-Id: <20050413102158.GW20370@daedalus.andrew.net.au>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Mon, 30 May 2005 13:32:35 +0000
+Subject: [lm-sensors] Fix one bug of w83792d under linux-2.4
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE54FCB2@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <uB7Gk4h4.1113293860.2927470.khali@localhost>
-In-Reply-To: <uB7Gk4h4.1113293860.2927470.khali@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 13, 2005 at 10:23:20AM +0200, Jean Delvare wrote:
-> 
-> Hi Axel, Andrew,
-> 
-> > > When are you planning to cut over? (Don't subscribe my archive email
-> > > address, and you won't get duplicates).
-> 
-> What is going to happen to the current archive after the switch? We have
-> used it to point people to posts in various places (support ticket area,
-> mailing-list posts, LKML and even BK commit comments), so it would be
-> convenient if it could stay up for some more time. Also, having an
-> additional archive can't hurt, so maybe we can keep it growing? Unless
-> this is going to be a problem for Andrew, of course.
-
-I'm happy to retain the existing archive for an indefinite period of time
-for URL consistency purposes, however I don't really see the value in having
-two sets of archives. If the new mailing list is Mailman and is
-self-archiving, it's probably going to be sufficient?
- 
-> > How about this weekend? Is that OK with everybody?
-> 
-> Fine with me (but in fact anytime is fine with me).
-> 
-> Thanks,
-> --
-> Jean Delvare
-> 
+SGkgTURTLCBSdWRvbGYsIEplYW4KClF1b3RpbmcgTURTCj4gSSByZXZpZXdlZCB0aGUgZGF0YXNo
+ZWV0IGFib3V0IGNvbXBhcmF0b3IvaW50ZXJydXB0IG1vZGVzLgo+IFVuZm9ydHVuYXRlbHksIG9u
+bHkgdGhlIHRlbXBzIHN1cHBvcnQgY29tcGFyYXRvciBtb2RlOyB2b2x0YWdlcyBhbmQgCj4gZmFu
+cyBzdXBwb3J0IG9ubHkgaW50ZXJydXB0ICBtb2RlIChkYXRhc2hlZXQgc2VjdGlvbnMgNy43LjUt
+Ny43LjcpCgo+IE15IHJlY29tbWVuZGF0aW9uIGlzIHRoYXQgd2Ugc2V0IHRoZSB0ZW1wZXJhdHVy
+ZSBzZW5zb3JzIHRvIGNvbXBhcmF0b3IKbW9kZS4KPiBUaGUgY29kZSBhdCBsaW5lIDcyOSBzaG91
+bGQgcHV0IGJpdHMgNyBhbmQgNiBvZiByZWcuIDB4NEMgdG8gMDAKKGNvbXBhcmF0b3IKPiBtb2Rl
+KSwKPiB3aGljaCBpcyB3aGF0IHRoZSBjb21tZW50IHNheXMsIGJ1dCBpdCBzZXRzIGl0IHRvIDAx
+ICgyIHRpbWVzCmludGVycnVwdCBtb2RlKS4KPiBUaGlzIGlzIHByb2JhYmx5IGxlZnQgb3ZlciBm
+cm9tIHdoYXRldmVyIGRyaXZlciB5b3UgY29waWVkIGZyb20uCj4gU28gbXkgcmVjb21tZW5kYXRp
+b24gaXMgdG8gc2V0ICB0aGUgYml0cyB0byAwMC4KCkkgdXNlIHRoZSAiY29tcGFyYXRvciBtb2Rl
+IiB0byB0ZW1wZXJhdHVyZSBzZW5zb3JzIGluc3RlYWQgb2YgdGhlCm9yaWdpbmFsCm1ldGhvZCwg
+d291bGQgeW91IHBsZWFzZSBjb21taXQgbXkgbW9kaWZpY2F0aW9uIGZvciBtZT8gVGhlIGF0dGFj
+aG1lbnQKaXMKdGhlIHBhdGNoIHRvIGxtX3NlbnNvcnMtMi45LjEuCgpJIGhhdmUgdGVzdGVkIGl0
+IGhlcmUgb24gbXkgdHdvIG1vdGhlcmJvYXJkcywgaXQgd29ya3Mgd2VsbC4gVGhlCm1vZGlmaWVk
+CmZpbGVzIGFyZToKa2VybmVsL2NoaXBzL3c4Mzc5MmQuYwpsaWIvY2hpcHMuaApsaWIvY2hpcHMu
+Ywpwcm9nL3NlbnNvcnMvY2hpcHMuYwoKCkFmdGVyIHlvdSBjb21taXQgaXQgZm9yIG1lLCBwbGVh
+c2UganVzdCBnaXZlIG1lIGEgcmVzcG9uc2UuCgoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFv
+CgoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJp
+dmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwg
+aXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBi
+eSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBh
+ZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBm
+b3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5
+IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwg
+Y29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRp
+YXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZp
+c2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9u
+IG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBp
+biB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJv
+bmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJv
+bmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3Vy
+IGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3Jl
+IHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3NlbnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1l
+bnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvex
+S6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cXFxcpKelzi4gsLKoz7F6qMOr
+RLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXz
+LCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviw
+oy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abb
+qM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGk
+bMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCi0tLS0tLS0tLS0t
+LS0tIG5leHQgcGFydCAtLS0tLS0tLS0tLS0tLQpBIG5vbi10ZXh0IGF0dGFjaG1lbnQgd2FzIHNj
+cnViYmVkLi4uCk5hbWU6IHc4Mzc5MmRfZHJpdmVyLTEuMC40LnBhdGNoClR5cGU6IGFwcGxpY2F0
+aW9uL29jdGV0LXN0cmVhbQpTaXplOiA4ODI2IGJ5dGVzCkRlc2M6IHc4Mzc5MmRfZHJpdmVyLTEu
+MC40LnBhdGNoClVybCA6IGh0dHA6Ly9saXN0cy5hdHJwbXMubmV0L3BpcGVybWFpbC9sbS1zZW5z
+b3JzL2F0dGFjaG1lbnRzLzIwMDUwNTMwLzg2MzBiNWU5L3c4Mzc5MmRfZHJpdmVyLTEuMC40Lm9i
+ago=
