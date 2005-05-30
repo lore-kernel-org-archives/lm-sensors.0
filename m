@@ -1,7 +1,7 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Mon, 30 May 2005 01:59:53 +0000
+From: keenanpepper@gmail.com (Keenan Pepper)
+Date: Mon, 30 May 2005 02:19:20 +0000
 Subject: [lm-sensors] SMSC LPC47M192 - "Device is disabled, will not use"
-Message-Id: <ujlk91hvj36q33jju81p73uc60t1q1rqak@4ax.com>
+Message-Id: <429A5BE3.8060008@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <429A1930.6040409@gmail.com>
 In-Reply-To: <429A1930.6040409@gmail.com>
@@ -10,13 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 29 May 2005 19:03:10 -0400, Keenan Pepper <keenanpepper@gmail.com> wrote:
->
->Kernel 2.6.12-rc5-mm1, lm_sensors version 2.9.1.
+Grant Coady wrote:
+> Have you compiled all i2c sensor device drivers as modules to get a 
+> successful probe?  Seems only the EEPROM detected?  Does BIOS screen 
+> show 'hardware health' or similar summary indicating you have h/w 
+> monitoring available?
 
-Have you compiled all i2c sensor device drivers as modules to get a 
-successful probe?  Seems only the EEPROM detected?  Does BIOS screen 
-show 'hardware health' or similar summary indicating you have h/w 
-monitoring available?
+Yes, I compiled all the drivers as modules as recommended here: 
+http://secure.netroedge.com/~lm78/kernel26.html
 
---Grant.
+sensors-detect says "Success... but not activated", which confuses me.
+
+My BIOS displays the fan speed and CPU temperature, so I know the sensors are 
+actually there, I just can't access them from linux.
