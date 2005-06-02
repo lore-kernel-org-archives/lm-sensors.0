@@ -1,7 +1,7 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Thu, 02 Jun 2005 22:02:29 +0000
+From: BGardner@Wabtec.com (BGardner@Wabtec.com)
+Date: Thu, 02 Jun 2005 23:46:20 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2] w1 search cleanup
-Message-Id: <20050603000313.360fd6a6@zanzibar.2ka.mipt.ru>
+Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C388@WCSEXCMBS1.ad.wabtec.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C1EA@WCSEXCMBS1.ad.wabtec.com>
 In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C1EA@WCSEXCMBS1.ad.wabtec.com>
@@ -9,6 +9,33 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Evgeniy, 
+
+Thank you for your response. 
+
+I will split this patch into a few separate patches:
+
+ 1) Touch/read/write changes only
+
+ 2) Triplet/w1_search() changes only
+
+ 3) Search timing change with your suggested sysfs modification
+    Should it default to continual or on-demand scan?
+
+ 4) Default family change
+
+How does that sound?
+
+Thanks,
+Ben
+
+-----Original Message-----
+From: Evgeniy Polyakov [mailto:johnpol@2ka.mipt.ru] 
+Sent: Thursday, June 02, 2005 3:03 PM
+To: Gardner, Ben
+Cc: lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] [PATCH 2.6.12-rc5-mm2] w1 search cleanup
 
 On Thu, 2 Jun 2005 13:09:52 -0400
 <BGardner@Wabtec.com> wrote:
@@ -52,10 +79,12 @@ This changes are quite good.
 This one is very usefull, but we do want a mode, when w1 core
 repeatedly scans for devices - concider ibuttons which can only
 "exists" and be found for a couple of seconds, and it is 
-not always possible and sensible to have some userspace writing to the sysfs
+not always possible and sensible to have some userspace writing to the
+sysfs
 file.
 I would like to have 2 search modes - writing "1" to sysfs turns default
-always-scan mode into write-on-request mode, and writing "2" turns it back.
+always-scan mode into write-on-request mode, and writing "2" turns it
+back.
 Or something similar...
 
 > 4.
@@ -64,7 +93,8 @@ Or something similar...
 > 
 > Signed-off-by: Ben Gardner <bgardner@wabtec.com>
 
-Besides some whitespace and some brackets places [ugh, Greg will kill me 
+Besides some whitespace and some brackets places [ugh, Greg will kill me
+
 for such patches] and my above comment I do not have objections,
 but I would like to test your changes first and see them presented
 in a splitted series of patches. I see almost 10 major changes
@@ -75,3 +105,5 @@ Thank you.
 	Evgeniy Polyakov
 
 Only failure makes us experts. -- Theo de Raadt
+
+
