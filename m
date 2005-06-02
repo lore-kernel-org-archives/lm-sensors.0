@@ -1,48 +1,54 @@
-From: ericb@aspsys.com (Eric J. Bowersox)
-Date: Thu, 30 Jun 2005 23:51:07 +0000
-Subject: [lm-sensors] W83792D & Overtemperature LED on Supermicro
-Message-Id: <1120168212.32695.33.camel@wiz.dev.aspsys.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Thu, 02 Jun 2005 14:50:45 +0000
+Subject: [lm-sensors] [Fwd: Linux kernel - i2c - eeprom module]
+Message-Id: <429F0092.5000202@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
-In-Reply-To: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
+References: <429C9BCD.1040605@edgedesign.us>
+In-Reply-To: <429C9BCD.1040605@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-(Sorry about the blank message, let's try it again...)
+Hello,
 
-Greetings to all.
+Correct place to ask is this mailing list.
 
-We've got some compute nodes here that are using Supermicro X6DHR
-motherboards (for the Intel Nocona processors), which use the Winbond
-W83792D hardware monitor chip.  Since the OS installed on these is SuSE
-Linux Enterprise Server 9 (kernel 2.6.5), I had to upgrade lm_sensors to
-2.9.1 and apply a kernel patch (the one recently posted to this list) to
-get the right chip driver into the system.  I'm able to get temperature,
-fan, and voltage readings out of the chip, so it's all good there.
+> 
+> Lately I've been playing a lot with the kernel i2c modules. I want to
+> use the
+> eeprom module to read/write eeproms. However, it only has read support,
+> and it
+> supports only one size (256 bytes). I'm interested in adding new
+> features to
+> this module. I could code them myself, but I don't know who to ask about
+> details...
 
-However, another strange issue has cropped up: during the system boot
-process, as soon as the "sensors" service loads, the "overtemperature"
-LED on the front panel begins flashing.  I've tried mucking around with
-the "set tempN_over" and "set tempN_hyst" lines in sensors.conf, but to
-no avail; the last settings I tried were 70 for over and 30 for hyst,
-and the light still blinks.  Naturally, if we ship the nodes like this,
-the customer might get worried, seeing all those blinking red lights.
+Well this is quite dangenourous. Athough SPD eeproms do have sometimes writeprotect lock
+this is not always true imho.
 
-So, anybody have any ideas, short of taking a pair of diagonal cutters
-to the leads for the temperature light?  Is that light somehow connected
-to one of the outputs of the W83792D, and if so, is there some kind of
-"magic poke" I can make to the chip registers to get it to quit
-flashing?  (Maybe this is a driver issue?)  Or have I just not been
-aggressive enough in how I changed the temperature bounds in
-sensors.conf?
+Now digging through JEDEC standards to see how it is about write protection:
 
-Thanks in advance.
+This is aprooved:
 
--- 
-Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
-<ericb@aspsys.com>                      3900 Youngfield Street
-Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
-Fax: +01 303 431 7196                   <http://www.aspsys.com>
+"The contents of the lower 128 bytes (bytes 0-127) of the SPD EEPROM must
+be software write protected by the DIMM vendor, using one of the two
+methods defined by ballot JC-42.4-03-103 (item 1435.01,) either the
+permanent software write protect method, or the reversible software write
+protect method. This requirement is to be phased in by the end of the first
+quarter of 2004."
+
+But I failed to find ballot JC-42.4-03-103 (item 1435.01,) I will try again.
+
+My question is why you need kernel support for this and why you cannot use the userspace utils in
+lm_sensors packages for that?
+
+Also when implemented I am for [ ] compile time feature that will clearly state that it is EXTREMLY DANGEROUS
+
+> My question is: who is the current eeprom maintainer?
+Most of stuff goes through this list.
+
+Regards
+
+Rudolf
 
