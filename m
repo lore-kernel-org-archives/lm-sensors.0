@@ -1,122 +1,44 @@
-From: dpervushin@gmail.com (dmitry pervushin)
-Date: Thu, 02 Jun 2005 12:13:52 +0000
+From: rui.sousa@laposte.net (Rui Sousa)
+Date: Thu, 02 Jun 2005 15:04:05 +0000
 Subject: [lm-sensors] Re: [RFC] SPI core
-Message-Id: <1117706999.4715.54.camel@diimka.dev.rtsoft.ru>
+Message-Id: <1117717356.5794.9.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1117555756.4715.17.camel@diimka.dev.rtsoft.ru>
 	 <20050531233215.GB23881@kroah.com>
-In-Reply-To: <20050531233215.GB23881@kroah.com>
+	 <20050602040655.GE4906@jupiter.solarsys.private>
+	 <20050602045145.GA7838@kroah.com>
+In-Reply-To: <20050602045145.GA7838@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Greg KH <greg@kroah.com>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, dmitry pervushin <dpervushin@ru.mvista.com>, linux-kernel@vger.kernel.org, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Tue, 2005-05-31 at 16:32 -0700, Greg KH wrote:
+Hi Greg,
 
-Thanks for you comments; my answers follow. This patch will be reworked
-in short time.
+On Wed, 2005-06-01 at 21:51 -0700, Greg KH wrote:
+> On Thu, Jun 02, 2005 at 12:06:55AM -0400, Mark M. Hoffman wrote:
+> > * Greg KH <greg@kroah.com> [2005-05-31 16:32:15 -0700]:
+> > > This code is _very_ close to just a copy of the i2c core code.  Why
+> > > duplicate it and not work with the i2c people instead?
+> > 
+> > It was discussed briefly on the lm-sensors mailing list [1].  I didn't 
+> > reply at the time, but I do agree that SPI and I2C/SMBus are different
+> > enough to warrant independent subsystems.
+> 
+> Independant is fine.  But direct copies, including making the same
+> mistakes (i2c dev interface, i2c driver model mess) isn't :)
 
-> Is this code intergrated into the driver model?
-It will be.
-> What does the /sys/ tree look like?
-> Why are you using a char device node?
-Because it's not a block device :) I assume that's common practice to
-access low-level devices, isn't it ?
-> 
-> > +/**
-> > + * spi_add_adapter - register a new SPI bus adapter
-> > + * @adap: spi_adapter structure for the registering adapter
-> > + *
-> > + * Make the adapter available for use by clients using name adap->name.
-> > + * The adap->adapters list is initialised by this function.
-> > + *
-> > + * Returns 0;
-> 
-> You have this a lot.  If the function can not fail, just make it a void
-> type :)
-I'd like to keep this of type int because of possible future
-enhancements
-> > +	list_for_each(l, &driver_list) {
-> 
-> list_for_each_entry() please.
-Looks reasonable, thank you 
-> 
-> > +/**
-> > + * spi_get_adapter - get a reference to an adapter
-> > + * @id: driver id
-> > + *
-> > + * Obtain a spi_adapter structure for the specified adapter.  If the adapter
-> > + * is not currently load, then load it.  The adapter will be locked in core
-> > + * until all references are released via spi_put_adapter.
-> > + */
-> 
-> Hm, that comment is not correct.  Please fix it as nothing is "loaded".
-OK
-> > +void spi_put_adapter(struct spi_adapter *adap)
-> > +{
-> > +	if (adap && adap->owner)
-> > +		module_put(adap->owner);
-> > +}
-> 
-> Then why not use the traditional kref style of reference counting?  That
-> ensures that if you try to use the reference, bad things will happen?
-> Right now all you are doing is relying on module references, and you
-> aren't cleaning up the memory.
-I'll consider this during rework
-> > +EXPORT_SYMBOL(spi_transfer);
-> > +EXPORT_SYMBOL(spi_write);
-> > +EXPORT_SYMBOL(spi_read);
-> 
-> EXPORT_SYMBOL_GPL() perhaps?
-Yup.
-> Please use dev_dbg() and friends instead of your own debugging macros.
-> The error log people will thank you (along with your users...)
-I'd rather use pr_debug
-> > +#include <linux/spi/spi.h>
-> 
-> Why a separate subdir for spi.h?
-Due to historical reasons :) And functional drivers can pput their
-public headers to separate directory.
-> 
-> > +static int spidev_ioctl(struct inode *inode, struct file *file,
-> > +			unsigned int cmd, unsigned long arg)
-This function will be removed, because its functionality is duplicated by spidev_read/spidev_write.
+I have also worked on a(nother) SPI layer implementation. Like Dmitry, I
+ended up following closely the i2c implementation, so, I'm curious to
+know more details on what you call "i2c driver model mess".
 
-
-> > +static int spidev_attach_adapter(struct spi_adapter *adap)
-> > +{
-> > +	struct spi_dev *spi_dev;
-> > +	int retval;
-> > +
-> > +	spi_dev = get_free_spi_dev(adap);
-> > +	if (IS_ERR(spi_dev))
-> > +		return PTR_ERR(spi_dev);
-> > +
-> > +#if defined( CONFIG_DEVFS_FS )
-> > +	devfs_mk_cdev(MKDEV(SPI_MAJOR, spi_dev->minor),
-> > +		      S_IFCHR | S_IRUSR | S_IWUSR, "spi/%d", spi_dev->minor);
-> > +#endif
+> thanks,
 > 
-> No #if needed.  You do this a lot.
+> greg k-h
 
-As devfs is going to become obsolete, maybe just drop all the
-devfs-related code?
+Thanks,
 
-> > +/*
-> > + * spi_adapter is the structure used to identify a physical SPI bus along
-> > + * with the access algorithms necessary to access it.
-> > + */
-> > +struct spi_adapter {
-> 
-> <snip>  Ick, don't copy the mess I did in the i2c core for i2c adapter
-> structures please.  It was a hack then, and I regret it still.  Please
-> fix it up properly.
-> 
-> This code is _very_ close to just a copy of the i2c core code.  Why
-> duplicate it and not work with the i2c people instead?
-
-Well, those two are both simple serial interfaces, so their similarity
-is just reflected in driver structures.
+Rui
 
 
