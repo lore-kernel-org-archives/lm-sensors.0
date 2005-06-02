@@ -1,68 +1,76 @@
-From: atis@mikrotik.com (Atis Elsts)
-Date: Mon, 20 Jun 2005 16:33:32 +0000
-Subject: [lm-sensors] Ticket 2005
-Message-Id: <200506201735.55466.atis@mikrotik.com>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 02 Jun 2005 05:29:37 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm1 0/3] i2c: new sysfs class "hwmon"
+Message-Id: <20050602032840.GA4906@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200506161659.57761.atis@mikrotik.com>
-In-Reply-To: <200506161659.57761.atis@mikrotik.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Monday 20 June 2005 16:53, Jean Delvare wrote:
-> Hi Atis,
->
-> Atis Elsts wrote:
-> > Uhm. I'm confused here, because i2cdump and i2cdetect says:
-> > "Error: Could not open file `/dev/i2c-1': No such device"
->
-> You need to modprobe i2c-dev, sorry for not telling you before.
->
-# i2cdump 0 0x2e b
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0, address 0x2e, mode byte
-Continue? [Y/n] y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-20: 72 6b c8 c8 c5 2c 24 24 89 08 ff ff ff ff ff ff    rk???,$$??......
-30: 4d 4d 4d 00 00 00 00 00 00 00 00 00 00 00 5c 68    MMM...........\h
-40: 05 00 00 00 00 ff 00 ff 00 ff 00 ff 00 ff 81 7f    ?.............??
-50: 81 7f 81 7f ff ff ff ff ff ff ff ff 02 22 22 7a    ????........?""z
-60: 80 80 e8 88 4d 4d 4d 38 2d 2d 45 41 41 24 40 00    ????MMM8--EAA$@.
-70: 4d 4d 4d 09 09 09 09 09 09 00 00 00 40 00 ec 18    MMM??????...@.??
-80: 1e a4 0e 00 00 6a 37 00 06 00 40 40 09 09 0b 00    ???..j7.?.@@???.
-90: 04 04 04 04 0c 0c 0c 5a f1 00 00 00 23 00 00 00    ???????Z?...#...
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-                                                                         
-Related information from syslog:
+Hi Greg:
 
-Jun 20 17:14:25 localhost syslog.info klogd: i2c-core.o: i2c core module 
-version 2.9.1 (20050412)
-Jun 20 17:14:26 localhost syslog.info klogd: i2c-proc.o version 2.9.1 
-(20050412)
-Jun 20 17:14:26 localhost syslog.info klogd: i2c-i801 version 2.7.0 (20021208)
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: Version 2.7.0 (20021208)
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: See 
-http://www.penguincomputing.com/lm_sensors for more info.
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: Detecting device at 0,0x2e 
-with COMPANY: 0x5c and VERSTEP: 0x68
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: Autodetecting device at 
-0,0x2e ...
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: Detected SMSC chip
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: Unrecognized 
-version/stepping 0x68 Defaulting to Generic LM85.
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85: Assigning ID 0 to Generic 
-LM85 at 0,0x2e
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85(0): Initializing device
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85(0): LM85_REG_CONFIG is: 0x05
-Jun 20 17:14:26 localhost syslog.warn klogd: lm85(0): Setting CONFIG to: 0x05
-Jun 20 17:14:27 localhost syslog.warn klogd: lm85(0): Reading config values
+Here's the hwmon patchset again; this time I would like you to consider
+applying it.  The device class ID string is now chosen by the (chip) driver.
+That required a small change to the driver/core class code, which is the
+first patch.  The third patch modifies all hwmon-type drivers, instead of
+just a couple.  Also, thanks for your comments re: my previous patchset -
+I've addressed those here.
 
-Thanks.
+With these patches applied, 'tree -d /sys/class/hwmon' looks like this:
+
+/sys/class/hwmon
+`-- w83627thf-0
+    `-- device -> ../../../devices/platform/i2c-1/1-0290
+
+Here is the diffstat:
+
+ drivers/Kconfig                |    2 +
+ drivers/Makefile               |    1 
+ drivers/base/class.c           |   25 ++++++++++++-
+ drivers/hwmon/Kconfig          |   15 +++++++
+ drivers/hwmon/Makefile         |    5 ++
+ drivers/hwmon/hwmon.c          |   77 +++++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/chips/adm1021.c    |   15 +++++++
+ drivers/i2c/chips/adm1025.c    |   15 +++++++
+ drivers/i2c/chips/adm1026.c    |   14 +++++++
+ drivers/i2c/chips/adm1031.c    |   15 +++++++
+ drivers/i2c/chips/adm9240.c    |   16 ++++++++
+ drivers/i2c/chips/asb100.c     |   17 +++++++++
+ drivers/i2c/chips/ds1621.c     |   15 +++++++
+ drivers/i2c/chips/fscher.c     |   15 +++++++
+ drivers/i2c/chips/fscpos.c     |   15 +++++++
+ drivers/i2c/chips/gl518sm.c    |   15 +++++++
+ drivers/i2c/chips/gl520sm.c    |   15 +++++++
+ drivers/i2c/chips/it87.c       |   16 +++++++-
+ drivers/i2c/chips/lm63.c       |   15 +++++++
+ drivers/i2c/chips/lm75.c       |   14 +++++++
+ drivers/i2c/chips/lm77.c       |   15 +++++++
+ drivers/i2c/chips/lm78.c       |   15 +++++++
+ drivers/i2c/chips/lm80.c       |   15 +++++++
+ drivers/i2c/chips/lm83.c       |   15 +++++++
+ drivers/i2c/chips/lm85.c       |   14 +++++++
+ drivers/i2c/chips/lm87.c       |   15 +++++++
+ drivers/i2c/chips/lm90.c       |   15 +++++++
+ drivers/i2c/chips/lm92.c       |   16 +++++++-
+ drivers/i2c/chips/max1619.c    |   16 +++++++-
+ drivers/i2c/chips/pc87360.c    |   15 +++++++
+ drivers/i2c/chips/sis5595.c    |   17 ++++++++-
+ drivers/i2c/chips/smsc47b397.c |   15 +++++++
+ drivers/i2c/chips/smsc47m1.c   |   16 ++++++++
+ drivers/i2c/chips/via686a.c    |   23 ++++++++++--
+ drivers/i2c/chips/w83627ehf.c  |   15 +++++++
+ drivers/i2c/chips/w83627hf.c   |   15 +++++++
+ drivers/i2c/chips/w83781d.c    |   23 ++++++++++++
+ drivers/i2c/chips/w83l785ts.c  |   15 +++++++
+ include/linux/device.h         |    7 +++
+ include/linux/hwmon.h          |   24 ++++++++++++
+ include/linux/i2c.h            |    1 
+ 41 files changed, 647 insertions(+), 12 deletions(-)
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
