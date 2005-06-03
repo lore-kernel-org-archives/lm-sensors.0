@@ -1,52 +1,55 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Thu, 02 Jun 2005 08:31:37 +0000
+From: Huang0@winbond.com.tw (Huang0@winbond.com.tw)
+Date: Fri, 03 Jun 2005 03:51:12 +0000
 Subject: [lm-sensors] W83792 review and testing
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE550075@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE550143@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <429D7565.4090203@sh.cvut.cz>
 In-Reply-To: <429D7565.4090203@sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmCgoKPiBSZXN0IG9mIHBlb3BsZSBoZXJlIHBsZWFzZSBoZWxwIG1lIHdpdGggZG9j
-dW1lbnRhdGlvbiByZXZpZXcuCgpGaXJzdCBvZiBhbGwsIHRoYW5rIHlvdSBmb3IgeW91ciBoZWxw
-IG9uIGZpbmlzaGluZyB0aGlzIDc5Mgpkb2N1bWVudGF0aW9uLApJIGV4YW1pbmVkIGl0IGNhcmVm
-dWxseSBqdXN0IG5vdywgaXQgc2VlbXMgdmVyeSBnb29kIHRvIG1lLCBJIG9ubHkKY29ycmVjdApz
-ZXZlcmFsIHNtYWxsIHNwZWxsaW5nIG1pc3Rha2VzLCBwbGVhc2UgcmVmZXIgdG8gdGhlbSBiZWxv
-dy4KCgo+IERlc2NyaXB0aW9uCj4gLS0tLS0tLS0tLS0KPiAKPiBUaGlzIGRyaXZlciBpbXBsZW1l
-bnRzIHN1cHBvcnQgZm9yIHRoZSBXaW5ib25kIFc4Mzc5MkFEL0QuCj4gCj4gRGV0ZWN0aW9uIG9m
-IHRoZSBjaGlwIGNhbiBzb21ldGltZXMgYmUgZm9pbGVkIGJlY2F1c2UgaXQgY2FuIGJlIGluIGFu
-CgoiZm9pbGVkIiBzaG91bGQgYmUgImZhaWxlZCIKCj4gVGVtcGVyYXR1cmVzIGFyZSBtZWFzdXJl
-ZCBpbiBkZWdyZWVzIENlbGNpdXMgYW5kIG1lYXN1cmVtZW50CnJlc29sdXRpb24gaXMKPiAwLjUg
-ZGVnQy4gVGhlcmUgaXMgb25lIG1haW4gdGVtcGVyYXR1cmUgc2Vuc29yLCBhbmQgdHdvIG90aGVy
-IHNlbnNvcnMuCkFuCj4gYWxhcm0gaXMgdHJpZ2dlcmVkIHdoZW4gdGhlIHRlbXBlcmF0dXJlIGdl
-dHMgaGlnaGVyIHRoZW4gdGhlCk92ZXJ0ZW1wZXJhdHVyZQoKInRoZW4iIHNob3VsZCBiZSAidGhh
-biIKCj4gVm9sdGFnZSBzZW5zb3JzIChhbHNvIGtub3duIGFzIElOIHNlbnNvcnMpIHJlcG9ydCB0
-aGVpciB2YWx1ZXMgaW4KbWlsaXZvbHRzLgoKIm1pbGl2b2x0cyIgc2hvdWxkIGJlICJtaWxsaXZv
-bHRzIgoKCkJ0dywgSSB0aGluayB5b3UgZXhwbGFpbmVkIHRoZSAiRmFuIGNvbnRyb2wiIG1lY2hh
-bmlzbSBjbGVhcmx5IHRoYW4gbWUuCjotKQoKCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8K
-Cgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZp
-bGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlz
-IGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkg
-dGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRk
-cmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9y
-IGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSBy
-ZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNv
-cGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0
-ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNl
-ZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
-ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
-dGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
-IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
-Lgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBj
-b21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0
-aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50
-IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUup
-yrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFxcXKSnpc4uILCyqM+xeqjDq0Sz
-Uav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywg
-vdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMu
-ILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jP
-pc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA
-57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
+Hi Rudolf
+
+
+> Thermal cruise
+> --------------
+> 
+> At this mode, W83792D provides the Smart Fan system to automatically
+control
+> fan speed to keep the temperatures of CPU and the system within
+specific
+> range. At first a wanted temperature and interval must be set. This is
+done
+> via thermal_cruise# file. The tolerance# file serves to create T +-
+tolerance
+> interval. The fan speed will be lowered as long as the current
+temperature
+> remains below the thermal_cruise# +- tolerance# value. Once the
+temperature
+> exceeds the high limit (T+tolernace), the fan will be turned on with a
+> specific speed set by pwm# and automatically controlled its PWM duty
+cycle
+> with the temperature varying. Three conditions may occur:
+
+Your comprehension is correct, I test it just now on your suggestion:
+If I set pwm2_enable into thermal cruise mode first,
+then set the thermal_cruise2 into a low value such as 25(degree), the
+pwm2
+will decrease automatically step by step.
+
+On the other hand, if I set the thermal_cruise2 into a large value such
+as
+42(degree) under thermal cruise mode, the pwm2 will increase step by
+step,
+If the set thermal_cruise2 is very larger such as 80(degree), the
+increase
+of pwm2 may be very quickly, for example, from 9 into 15(full) in ONE
+step.
+
+
+Thanks
+Best Regards
+Chunhao
+
