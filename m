@@ -1,230 +1,205 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Wed, 22 Jun 2005 20:13:49 +0000
-Subject: [lm-sensors] Re: Qs on chips/pc87360
-Message-Id: <42B9AA2F.9070103@divsol.com>
+From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
+Date: Fri, 03 Jun 2005 23:33:14 +0000
+Subject: [lm-sensors] [1/6] w1: Cleans up usage of
+Message-Id: <20050604012146.2a89ec0a@zanzibar.2ka.mipt.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42B97A75.3060503@divsol.com>
-In-Reply-To: <42B97A75.3060503@divsol.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+Cleans up usage of touch_bit/w1_read_bit/w1_write_bit.
 
-> <I wrote, snipped>
->
->The real problem here is that this driver should NOT belong to the i2c
->subsystem at all. It drives Super-I/O chips, not I2C chips. The problem
->is that the current kernel code doesn't allow for hardware monitoring
->drivers not to rely on the i2c subsystem. There are plans to change that
->soon, but it promises to take some time.
->  
->
-more background later ?
+Signed-off-by: Ben Gardner <bgardner@wabtec.com>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
->That being said, you will notice that the pc87360 driver only accesses
->the Super-I/O space when you load it. The semaphores protect the
->hardware monitoring I/O ranges, NOT the Super-I/O space, this is
->different. The Super-I/O space is not protected (which is not exactly
->fine, but happens to work as long as the only accesses are from the init
->section of the driver).
->
->  
->
-ok - thats clearer.
-
-in sc200_gpio, reconfiguring the pins is done by writing to the 
-device-files, so
-is exposed to user-space, and can be done anytime.  Presuming I keep the 
-same
-interface (I planned to do so), pc87366_gpio would also.  Not that this 
-changes
-anything.
-
-
->So you could add and export a semaphore protecting the Super-I/O range,
->but this would make it impossible for anyone to use your GPIO driver
->without loading the hardware monitoring driver. Better would be to have
->a common driver for the Super-I/O access, which both the GPIO and the
->hardware monitoring drivers would rely on. 
->
-hmm.  Ive already worked up a patch which moved your locks into a 
-sio-lock module,
-which EXPORT_SYMBOL'd  them, and extern'd them in your module, and mine. 
-Im not sending it, cuz as you pointed out, your locks arent protecting 
-what I thought they were.
-
-BTW - why semaphores, and not read-write locks ? (parrotting a question 
-asked
-of me on kernelnewbies, where I posted the patch for comments)
-
-this approach seems a good middle ground - not too complex, not too distant
-from what Ive already done.  So, let me outline a 1st-look approach,
-please shoot it if hideous:
-
-struct semaphore*  sio_chip_present ( unsigned command_addr,
-                                        unsigned dev_id_addr,
-                                        unsigned dev_id_value )
-
-returns 0 if using command-addr & command_addr +1,
-    the device-id value is not found at the device id address.
-otherwize  
-    kallocs a lock for that command-addr
-    or returns existing one if already created
-    ( locks can be allocated on heap, yes ? )
-
-thereafter, users try each combo of 3 args they might expect
-    ( 2 combos for pc87366: [2e,4e] and e9,
-      10 combos for pc87360:  [2e,4e ] X [ e1, e8, e4, e5, e9 ] )
-
-If they get a non-null addr returned, they should lock each access with it.
-ie, they should lock, use, unlock.
-
-pls substitute $lock for semaphore as appropriate.
-
-Well - I went and tried that - it seemed worth a strawman at least.
-(which is what it is, attached).  In particular, it doesnt attempt to:
-
-1. test for previously fetched locks.  In perl Id use a hash for this, 
-are there
-hash functions in the kernel I should use ?  A hash is arguably overkill,
-its realistic to think that there are < 10 sio devices in any system, which
-is easy to test linearly.  Still, I dont like arbitrary limits like that.
-
-2. have any drop_lock to match the  get-lock done by sio_chip_present.
-I need new/better names for these..
-
-Im starting to work on a hopefully-working version, but am sending this
-in case now to see if its soo blooody ugly that it needs to die now.
- 
-
->Yet another approach would be
->to have a generic Super-I/O subsystem which would take care of the
->problem for all Super-I/O chips. 
->
-I gather from the '66 pdf that sio cmd&data are either at 2e&2f or 4e&4F.
-the sc-1100 has its own sio, at either 2e&2f or 15c&15d.  My board,
-which has both chips, uses 2e for the '66, so (I presume) must use 15c 
-for the sc-1100.
-
->Evgeniy Polyakov is working on this
->(although in a much more complex way I would have suggested). I don't
->know the current status though.
->
->  
->
-the kernel-connector stuff right ?  It made it into 12-rcX-mmY,
-but I only know what I read on LWN.
-
-Have you outlined your simpler counter-proposal ?
-I didnt find it at gmane.org, searching for
-'superio' by 'delvare'
-
--------------- next part --------------
-diff -ruN -X exclude-diffs linux-2.6.12-soekris/drivers/char/Makefile i2c/drivers/char/Makefile
---- linux-2.6.12-soekris/drivers/char/Makefile	2005-06-18 07:04:14.000000000 -0600
-+++ i2c/drivers/char/Makefile	2005-06-21 12:04:41.000000000 -0600
-@@ -12,6 +12,8 @@
- obj-$(CONFIG_LEGACY_PTYS)	+= pty.o
- obj-$(CONFIG_UNIX98_PTYS)	+= pty.o
- obj-y				+= misc.o
-+obj-m				+= sio_lock.o
-+
- obj-$(CONFIG_VT)		+= vt_ioctl.o vc_screen.o consolemap.o \
- 				   consolemap_deftbl.o selection.o keyboard.o
- obj-$(CONFIG_HW_CONSOLE)	+= vt.o defkeymap.o
-diff -ruN -X exclude-diffs linux-2.6.12-soekris/drivers/char/sio_lock.c i2c/drivers/char/sio_lock.c
---- linux-2.6.12-soekris/drivers/char/sio_lock.c	1969-12-31 17:00:00.000000000 -0700
-+++ i2c/drivers/char/sio_lock.c	2005-06-22 11:19:59.000000000 -0600
-@@ -0,0 +1,60 @@
-+
-+
-+#include <linux/config.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+
-+#include <asm-i386/semaphore.h>
-+
-+MODULE_AUTHOR("Jim Cromie");
-+MODULE_LICENSE("Dual BSD/GPL");
-+
-+/** 
-+    struct semaphore* sio_chip_present() uses the command-addr given,
-+    and tests for the presence of the device-id word (typically byte)
-+    at that location.
-+
-+    returns 0 if using command-addr & command_addr +1,
-+    the device-id value is not found at the device id address.
-+otherwize  
-+    kallocs a lock for that command-addr
-+    or returns existing one if already created
-+    ( locks can be allocated on heap, yes ? )
-+
-+    
-+*/
-+
-+//static DEFINE_SPINLOCK(sio_lock);
-+
-+struct semaphore* sio_chip_present ( unsigned command_addr,
-+				     unsigned dev_id_addr,
-+				     unsigned dev_id_value )
-+{
-+  // for moment, just test that kmalloc of a lock works.
-+  struct semaphore* lockaddy;
-+  lockaddy = (struct semaphore*) kmalloc(sizeof(struct semaphore),
-+					 GFP_KERNEL);
-+
-+  return lockaddy;
-+}
-+
-+
-+int sio_lock_init_module(void)
-+{
-+  printk(KERN_NOTICE "sio_lock_init_module\n");
-+  return 0;
-+}
-+
-+void sio_lock_cleanup_module(void)
-+{
-+  printk(KERN_NOTICE "sio_lock_cleanup_module\n");
-+}
-+
-+EXPORT_SYMBOL(sio_chip_present);
-+
-+module_init(sio_lock_init_module);
-+module_exit(sio_lock_cleanup_module);
-+
-+
-+
-diff -ruN -X exclude-diffs linux-2.6.12-soekris/drivers/i2c/chips/pc87360.c i2c/drivers/i2c/chips/pc87360.c
---- linux-2.6.12-soekris/drivers/i2c/chips/pc87360.c	2005-06-18 07:04:21.000000000 -0600
-+++ i2c/drivers/i2c/chips/pc87360.c	2005-06-22 11:29:53.000000000 -0600
-@@ -1307,10 +1307,26 @@
- 	return data;
+--- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1_io.h	2005-06-01 14:29:28.00000=
+0000 -0500
++++ linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_io.h	2005-06-02 16:25:29.10=
+1021377 -0500
+@@ -26,13 +26,11 @@
+=20
+ void w1_delay(unsigned long);
+ u8 w1_touch_bit(struct w1_master *, int);
+-void w1_write_bit(struct w1_master *, int);
+ void w1_write_8(struct w1_master *, u8);
+-u8 w1_read_bit(struct w1_master *);
+ u8 w1_read_8(struct w1_master *);
+ int w1_reset_bus(struct w1_master *);
+ u8 w1_calc_crc8(u8 *, int);
+-void w1_write_block(struct w1_master *, u8 *, int);
++void w1_write_block(struct w1_master *, const u8 *, int);
+ u8 w1_read_block(struct w1_master *, u8 *, int);
+ void w1_search_devices(struct w1_master *dev, w1_slave_found_callback cb);
+=20
+--- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1_io.c	2005-06-01 14:29:28.00000=
+0000 -0500
++++ linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_io.c	2005-06-02 16:29:55.10=
+0033591 -0500
+@@ -55,15 +55,29 @@
+ 	udelay(tm * w1_delay_parm);
  }
- 
-+extern struct semaphore* sio_chip_present(unsigned, unsigned, unsigned);
+=20
++static void w1_write_bit(struct w1_master *dev, int bit);
++static u8 w1_read_bit(struct w1_master *dev);
 +
- static int __init pc87360_init(void)
++/**
++ * Generates a write-0 or write-1 cycle and samples the level.
++ */
+ u8 w1_touch_bit(struct w1_master *dev, int bit)
+ {
+ 	if (dev->bus_master->touch_bit)
+ 		return dev->bus_master->touch_bit(dev->bus_master->data, bit);
+-	else
++	else if (bit)
+ 		return w1_read_bit(dev);
++	else {
++		w1_write_bit(dev, 0);
++		return(0);
++	}
+ }
+=20
+-void w1_write_bit(struct w1_master *dev, int bit)
++/**
++ * Generates a write-0 or write-1 cycle.
++ * Only call if dev->bus_master->touch_bit is NULL
++ */
++static void w1_write_bit(struct w1_master *dev, int bit)
+ {
+ 	if (bit) {
+ 		dev->bus_master->write_bit(dev->bus_master->data, 0);
+@@ -78,6 +92,12 @@
+ 	}
+ }
+=20
++/**
++ * Writes 8 bits.
++ *=20
++ * @param dev     the master device
++ * @param byte    the byte to write
++ */
+ void w1_write_8(struct w1_master *dev, u8 byte)
  {
  	int i;
- 
+@@ -86,10 +106,15 @@
+ 		dev->bus_master->write_byte(dev->bus_master->data, byte);
+ 	else
+ 		for (i =3D 0; i < 8; ++i)
+-			w1_write_bit(dev, (byte >> i) & 0x1);
++			w1_touch_bit(dev, (byte >> i) & 0x1);
+ }
+=20
+-u8 w1_read_bit(struct w1_master *dev)
 +
-+	struct semaphore* sio_lock;
++/**
++ * Generates a write-1 cycle and samples the level.
++ * Only call if dev->bus_master->touch_bit is NULL
++ */
++static u8 w1_read_bit(struct w1_master *dev)
+ {
+ 	int result;
+=20
+@@ -104,6 +129,12 @@
+ 	return result & 0x1;
+ }
+=20
++/**
++ * Reads 8 bits.
++ *=20
++ * @param dev     the master device
++ * @return        the byte read
++ */
+ u8 w1_read_8(struct w1_master * dev)
+ {
+ 	int i;
+@@ -113,12 +144,20 @@
+ 		res =3D dev->bus_master->read_byte(dev->bus_master->data);
+ 	else
+ 		for (i =3D 0; i < 8; ++i)
+-			res |=3D (w1_read_bit(dev) << i);
++			res |=3D (w1_touch_bit(dev,1) << i);
+=20
+ 	return res;
+ }
+=20
+-void w1_write_block(struct w1_master *dev, u8 *buf, int len)
++/**
++ * Writes a series of bytes.
++ *=20
++ * @param dev     the master device
++ * @param buf     pointer to the data to write
++ * @param len     the number of bytes to write
++ * @return        the byte read
++ */
++void w1_write_block(struct w1_master *dev, const u8 *buf, int len)
+ {
+ 	int i;
+=20
+@@ -129,6 +168,14 @@
+ 			w1_write_8(dev, buf[i]);
+ }
+=20
++/**
++ * Reads a series of bytes.
++ *=20
++ * @param dev     the master device
++ * @param buf     pointer to the buffer to fill
++ * @param len     the number of bytes to read
++ * @return        the number of bytes read
++ */
+ u8 w1_read_block(struct w1_master *dev, u8 *buf, int len)
+ {
+ 	int i;
+@@ -145,9 +192,15 @@
+ 	return ret;
+ }
+=20
++/**
++ * Issues a reset bus sequence.
++ *=20
++ * @param  dev The bus master pointer
++ * @return     0=DEvice present, 1=3DNo device present or error
++ */
+ int w1_reset_bus(struct w1_master *dev)
+ {
+-	int result =3D 0;
++	int result;
+=20
+ 	if (dev->bus_master->reset_bus)
+ 		result =3D dev->bus_master->reset_bus(dev->bus_master->data) & 0x1;
+@@ -183,9 +236,8 @@
+ 		w1_search(dev);
+ }
+=20
+-EXPORT_SYMBOL(w1_write_bit);
++EXPORT_SYMBOL(w1_touch_bit);
+ EXPORT_SYMBOL(w1_write_8);
+-EXPORT_SYMBOL(w1_read_bit);
+ EXPORT_SYMBOL(w1_read_8);
+ EXPORT_SYMBOL(w1_reset_bus);
+ EXPORT_SYMBOL(w1_calc_crc8);
+--- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1_int.c	2005-06-01 14:29:28.0000=
+00000 -0500
++++ linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_int.c	2005-06-03 08:37:30.0=
+54892042 -0500
+@@ -121,6 +121,14 @@
+ 	int retval =3D 0;
+ 	struct w1_netlink_msg msg;
+=20
++        /* validate minimum functionality */
++        if (!(master->touch_bit && master->reset_bus) &&
++            !(master->write_bit && master->read_bit))
++        {
++           printk(KERN_ERR "w1_add_master_device: invalid function set\n");
++           return(-EINVAL);
++        }
 +
-+	sio_lock = sio_chip_present(0x2e, DEVID, 0xE9);
-+
-+	if (!sio_lock) {
-+	  printk(KERN_WARNING "pc87360: PC8736x sio not detected, "
-+		       "module not inserted.\n");
-+		return -ENODEV;
-+	} else {
-+	  printk(KERN_WARNING "pc87360: PC87366 found, "
-+		       "be sure to lock and unlock sio access.\n");
-+	}
-+
- 	if (pc87360_find(0x2e, &devid, extra_isa)
- 	 && pc87360_find(0x4e, &devid, extra_isa)) {
- 		printk(KERN_WARNING "pc87360: PC8736x not detected, "
+ 	dev =3D w1_alloc_dev(w1_ids++, w1_max_slave_count, w1_max_slave_ttl, &w1_=
+driver, &w1_device);
+ 	if (!dev)
+ 		return -ENOMEM;
+
+
+	Evgeniy Polyakov
+
+Only failure makes us experts. -- Theo de Raadt
