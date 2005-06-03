@@ -1,7 +1,7 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Fri, 03 Jun 2005 19:18:03 +0000
+From: BGardner@Wabtec.com (BGardner@Wabtec.com)
+Date: Fri, 03 Jun 2005 19:34:51 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2 1/5] w1 enhancements
-Message-Id: <np31a1ldfhakb0psl54sd9446gibbklgm0@4ax.com>
+Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C69A@WCSEXCMBS1.ad.wabtec.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5E9@WCSEXCMBS1.ad.wabtec.com>
 In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5E9@WCSEXCMBS1.ad.wabtec.com>
@@ -10,12 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+
+I have to use MS Outlook at work and haven't had much success sending
+patches plain-text without them getting mangled.
+
+I will resend in plain text and hope for the best. =)
+
+Ben
+
+-----Original Message-----
+From: grant_lkml@dodo.com.au [mailto:grant_lkml@dodo.com.au] 
+Sent: Friday, June 03, 2005 12:18 PM
+To: Gardner, Ben
+Cc: johnpol@2ka.mipt.ru; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] [PATCH 2.6.12-rc5-mm2 1/5] w1 enhancements
+
 On Fri, 3 Jun 2005 11:57:44 -0400, <BGardner@Wabtec.com> wrote:
 
 >X-MimeOLE: Produced By Microsoft Exchange V6.5.7226.0
 >Content-class: urn:content-classes:message
 >MIME-Version: 1.0
->Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C56854.FAF1AB2E"
+>Content-Type: multipart/mixed;
+boundary="----_=_NextPart_001_01C56854.FAF1AB2E"
 >Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2 1/5] w1 enhancements
 
 Documentation/SubmittingPatches:
@@ -23,4 +39,6 @@ Documentation/SubmittingPatches:
 
 Thanks,
 Grant.
+
+
 
