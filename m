@@ -1,8 +1,10 @@
 From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Fri, 03 Jun 2005 17:59:11 +0000
+Date: Fri, 03 Jun 2005 19:36:34 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2 2/5] w1 enhancements
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EA@WCSEXCMBS1.ad.wabtec.com>
+Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C6A6@WCSEXCMBS1.ad.wabtec.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EA@WCSEXCMBS1.ad.wabtec.com>
+In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EA@WCSEXCMBS1.ad.wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -12,11 +14,11 @@ To: lm-sensors@vger.kernel.org
 Adds the triplet w1 master method and changes w1_search() to use it.
 
 Signed-off-by: Ben Gardner <bgardner@wabtec.com>
--------------- next part --------------
---- linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_io.c	2005-06-02 16:29:55.00=
-0000000 -0500
-+++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1_io.c	2005-06-03 08:26:03.083=
-429351 -0500
+
+--- linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_io.c	2005-06-02
+16:29:55.000000000 -0500
++++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1_io.c	2005-06-03
+08:26:03.083429351 -0500
 @@ -129,6 +129,47 @@
  	return result & 0x1;
  }
@@ -36,7 +38,8 @@ Signed-off-by: Ben Gardner <bgardner@wabtec.com>
 +u8 w1_triplet(struct w1_master *dev, int bdir)
 +{
 +	if ( dev->bus_master->triplet )
-+		return(dev->bus_master->triplet(dev->bus_master->data, bdir));
++		return(dev->bus_master->triplet(dev->bus_master->data,
+bdir));
 +	else {
 +		u8 id_bit   =3D w1_touch_bit(dev, 1);
 +		u8 comp_bit =3D w1_touch_bit(dev, 1);
@@ -46,7 +49,8 @@ Signed-off-by: Ben Gardner <bgardner@wabtec.com>
 +			return(0x03);  /* error */
 +
 +		if ( !id_bit && !comp_bit ) {
-+			/* Both bits are valid, take the direction given */
++			/* Both bits are valid, take the direction given
+*/
 +			retval =3D bdir ? 0x04 : 0;
 +		} else {
 +			/* Only one bit is valid, take that direction */
@@ -74,10 +78,10 @@ Signed-off-by: Ben Gardner <bgardner@wabtec.com>
  }
 =20
  EXPORT_SYMBOL(w1_touch_bit);
---- linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_io.h	2005-06-02 16:25:29.00=
-0000000 -0500
-+++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1_io.h	2005-06-03 08:25:36.278=
-883938 -0500
+--- linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_io.h	2005-06-02
+16:25:29.000000000 -0500
++++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1_io.h	2005-06-03
+08:25:36.278883938 -0500
 @@ -26,6 +26,7 @@
 =20
  void w1_delay(unsigned long);
@@ -86,10 +90,10 @@ Signed-off-by: Ben Gardner <bgardner@wabtec.com>
  void w1_write_8(struct w1_master *, u8);
  u8 w1_read_8(struct w1_master *);
  int w1_reset_bus(struct w1_master *);
---- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1.h	2005-06-01 14:29:28.00000000=
-0 -0500
-+++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1.h	2005-06-03 08:34:48.982651=
-133 -0500
+--- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1.h	2005-06-01
+14:29:28.000000000 -0500
++++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1.h	2005-06-03
+08:34:48.982651133 -0500
 @@ -25,9 +25,9 @@
  struct w1_reg_num
  {
@@ -109,12 +113,12 @@ Signed-off-by: Ben Gardner <bgardner@wabtec.com>
 =20
 +
 +/**
-+ * Note: read_bit and write_bit are very low level functions and should on=
-ly
++ * Note: read_bit and write_bit are very low level functions and should
+only
 + * be used with hardware that doesn't really support 1-wire operations,
 + * like a parallel/serial port.
-+ * Either define read_bit and write_bit OR define, at minimum, touch_bit a=
-nd=20
++ * Either define read_bit and write_bit OR define, at minimum,
+touch_bit and=20
 + * reset_bus.
 + */
  struct w1_bus_master
@@ -128,7 +132,8 @@ nd=20
 -	void			(*write_byte)(unsigned long, u8);
 -
 -	u8			(*read_block)(unsigned long, u8 *, int);
--	void			(*write_block)(unsigned long, u8 *, int);
+-	void			(*write_block)(unsigned long, u8 *,
+int);
 -
 -	u8			(*touch_bit)(unsigned long, u8);
 +	/** the first parameter in all the functions below */
@@ -145,7 +150,8 @@ nd=20
 +	void		(*write_bit)(unsigned long, u8);
 +
 +	/**
-+	 * touch_bit is the lowest-level function for devices that really=20
++	 * touch_bit is the lowest-level function for devices that
+really=20
 +	 * support the 1-wire protocol.
 +	 * touch_bit(0) =3D write-0 cycle
 +	 * touch_bit(1) =3D write-1 / read cycle
@@ -185,9 +191,11 @@ nd=20
 +	 */
 +	u8		(*reset_bus)(unsigned long);
 =20
--	void			(*search)(unsigned long, w1_slave_found_callback);
+-	void			(*search)(unsigned long,
+w1_slave_found_callback);
 +	/** Really nice hardware can handles the ROM searches */
-+	void		(*search)(unsigned long, w1_slave_found_callback);
++	void		(*search)(unsigned long,
+w1_slave_found_callback);
  };
 =20
  struct w1_master
@@ -200,16 +208,17 @@ nd=20
 =20
  #endif /* __KERNEL__ */
 =20
---- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1.c	2005-06-01 14:29:28.00000000=
-0 -0500
-+++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1.c	2005-06-03 08:33:13.254988=
-573 -0500
+--- linux-2.6.12-rc5-mm2-clean/drivers/w1/w1.c	2005-06-01
+14:29:28.000000000 -0500
++++ linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1.c	2005-06-03
+08:33:13.254988573 -0500
 @@ -135,7 +135,7 @@
 =20
- static ssize_t w1_master_attribute_show_name(struct device *dev, struct de=
-vice_attribute *attr, char *buf)
+ static ssize_t w1_master_attribute_show_name(struct device *dev, struct
+device_attribute *attr, char *buf)
  {
--	struct w1_master *md =3D container_of (dev, struct w1_master, dev);
+-	struct w1_master *md =3D container_of (dev, struct w1_master,
+dev);
 +	struct w1_master *md =3D container_of(dev, struct w1_master, dev);
  	ssize_t count;
 =20
@@ -217,8 +226,8 @@ vice_attribute *attr, char *buf)
 @@ -212,7 +212,6 @@
  }
 =20
- static ssize_t w1_master_attribute_show_slaves(struct device *dev, struct =
-device_attribute *attr, char *buf)
+ static ssize_t w1_master_attribute_show_slaves(struct device *dev,
+struct device_attribute *attr, char *buf)
 -
  {
  	struct w1_master *md =3D container_of(dev, struct w1_master, dev);
@@ -259,7 +268,8 @@ device_attribute *attr, char *buf)
  	err =3D device_create_file(&sl->dev, &sl->attr_name);
  	if (err < 0) {
  		dev_err(&sl->dev,
--			 "sysfs file creation for [%s] failed. err=3D%d\n",
+-			 "sysfs file creation for [%s] failed.
+err=3D%d\n",
 -			 sl->dev.bus_id, err);
 +			"sysfs file creation for [%s] failed. err=3D%d\n",
 +			sl->dev.bus_id, err);
@@ -270,7 +280,8 @@ device_attribute *attr, char *buf)
  	err =3D sysfs_create_bin_file(&sl->dev.kobj, &sl->attr_bin);
  	if (err < 0) {
  		dev_err(&sl->dev,
--			 "sysfs file creation for [%s] failed. err=3D%d\n",
+-			 "sysfs file creation for [%s] failed.
+err=3D%d\n",
 -			 sl->dev.bus_id, err);
 +			"sysfs file creation for [%s] failed. err=3D%d\n",
 +			sl->dev.bus_id, err);
@@ -295,13 +306,15 @@ device_attribute *attr, char *buf)
 + * Performs a ROM Search & registers any devices found.
 + * The 1-wire search is a simple binary tree search.
 + * For each bit of the address, we read two bits and write one bit.
-+ * The bit written will put to sleep all devies that don't match that bit.
++ * The bit written will put to sleep all devies that don't match that
+bit.
 + * When the two reads differ, the direction choice is obvious.
 + * When both bits are 0, we must choose a path to take.
-+ * When we can scan all 64 bits without having to choose a path, we are do=
-ne.
++ * When we can scan all 64 bits without having to choose a path, we are
+done.
 + *=20
-+ * See "Application note 187 1-wire search algorithm" at www.maxim-ic.com
++ * See "Application note 187 1-wire search algorithm" at
+www.maxim-ic.com
 + *=20
 + * @dev        The master device to search
 + * @cb         Function to call when a device is found
@@ -324,7 +337,8 @@ ne.
 -	while (!(id_bit && comp_bit) && !last_device &&
 -	       count++ < dev->max_slave_count) {
 -		last =3D rn;
-+	while ( !last_device && (slave_count++ < dev->max_slave_count) ) {
++	while ( !last_device && (slave_count++ < dev->max_slave_count) )
+{
 +		last_rn =3D rn;
  		rn =3D 0;
 =20
@@ -343,7 +357,8 @@ ne.
  		for (i =3D 0; i < 64; ++i) {
 -			/*
 -			 * Read 2 bits from bus.
--			 * All who don't sleep must send ID bit and COMPLEMENT ID bit.
+-			 * All who don't sleep must send ID bit and
+COMPLEMENT ID bit.
 -			 * They actually are ANDed between all senders.
 -			 */
 -			id_bit =3D w1_touch_bit(dev, 1);
@@ -358,12 +373,13 @@ ne.
 -				else if (i > desc_bit)
 -					search_bit =3D 0;
 -				else
--					search_bit =3D ((last >> i) & 0x1);
+-					search_bit =3D ((last >> i) &
+0x1);
 -
 -				if (search_bit =3D 0) {
 -					last_zero =3D i;
 -					if (last_zero < 9)
--						last_family_desc =3D last_zero;
+-						last_family_desc last_zero;
 -				}
 -
 -			} else
@@ -374,16 +390,19 @@ ne.
 -
 -			/*
 -			 * Write 1 bit to bus
--			 * and make all who don't have "search_bit" in "i"'th position
+-			 * and make all who don't have "search_bit" in
+"i"'th position
 -			 * in it's registration number sleep.
 -			 */
 -			if (dev->bus_master->touch_bit)
 -				w1_touch_bit(dev, search_bit);
 +			/* Determine the direction/search bit */
 +			if (i =3D desc_bit)
-+				search_bit =3D 1;	  /* took the 0 path last time, so take the 1 path */
++				search_bit =3D 1;	  /* took the 0 path
+last time, so take the 1 path */
 +			else if (i > desc_bit)
-+				search_bit =3D 0;	  /* take the 0 path on the next branch */
++				search_bit =3D 0;	  /* take the 0 path on
+the next branch */
  			else
 -				w1_write_bit(dev, search_bit);
 +				search_bit =3D ((last_rn >> i) & 0x1);
@@ -400,11 +419,13 @@ ne.
 +				break;
 =20
 -		desc_bit =3D last_zero;
-+			/* If both directions were valid, and we took the 0 path... */
++			/* If both directions were valid, and we took
+the 0 path... */
 +			if (triplet_ret =3D 0)
 +				last_zero =3D i;
 +
-+			/* extract the direction taken & update the device number */
++			/* extract the direction taken & update the
+device number */
 +			tmp64 =3D (triplet_ret >> 2);
 +			rn |=3D (tmp64 << i);
 +		}
@@ -419,3 +440,4 @@ ne.
  	}
  }
 =20
+
