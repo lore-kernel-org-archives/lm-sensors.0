@@ -1,13 +1,18 @@
 From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Fri, 03 Jun 2005 22:25:13 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2] pca9539: new i2c drvier
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
+Date: Fri, 03 Jun 2005 22:30:05 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2] pca9539: new i2c drvier (retry)
+Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7E1@WCSEXCMBS1.ad.wabtec.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
+In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+
+Please ignore the previous patch -- I had left out the Makefile and
+Kconfig changes.
 
 This is a driver for the PCA9539, a 16 bit digital I/O chip.
 It uses the new i2c-sysfs interfaces.
@@ -224,4 +229,35 @@ detached.\n");
 +module_init(pca9539_init);
 +module_exit(pca9539_exit);
 +
+--- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Makefile
+2005-06-01 14:29:17.000000000 -0500
++++ linux-2.6.12-rc5-mm2-pca9539/drivers/i2c/chips/Makefile
+2005-06-03 12:09:41.000000000 -0500
+@@ -34,6 +34,7 @@
+ obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
+ obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
+ obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
++obj-$(CONFIG_SENSORS_PCA9539)	+= pca9539.o
+ obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+ obj-$(CONFIG_SENSORS_RTC8564)	+= rtc8564.o
+--- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Kconfig
+2005-06-01 14:29:17.000000000 -0500
++++ linux-2.6.12-rc5-mm2-pca9539/drivers/i2c/chips/Kconfig
+2005-06-03 12:09:22.000000000 -0500
+@@ -498,4 +498,14 @@
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called m41t00.
+ 
++config SENSORS_PCA9539
++	tristate "PCA9539 16-bit digital IO"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the PCA9539
++	  low power digital I/O with 16 bit.
++          
++	  This driver can also be built as a module.  If so, the module
++	  will be called pca9539.
++
+ endmenu
 
