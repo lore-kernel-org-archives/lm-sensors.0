@@ -1,46 +1,60 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 04 Jun 2005 13:36:41 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Sat, 04 Jun 2005 17:30:36 +0000
 Subject: [lm-sensors] RE: Fix one bug of w83792d under linux-2.4
-Message-Id: <20050604133715.5accdff3.khali@linux-fr.org>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE08BE8F@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE54FCB2@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE54FCB2@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Chunhao,
-
-> I use the "comparator mode" to temperature sensors instead of the
-> original method, would you please commit my modification for me?
-> The attachment is the patch to lm_sensors-2.9.1.
-
-I finally took the time to review the changes that were made to the
-Linux 2.4 w83792d driver. I can see you added alarm support for the
-temperatures. This is a good thing to have, but I don't like your
-implementation.
-
-You use the Interrupt Status 1 register (41h) to find out the alarm
-condition for the temperatures. For this to work, you have to set the
-temperature interrupts to comparator mode. This changes the output of
-the SMI#/IRQ pin, which may cause problem depending on the way the
-W83792D chip was wired. Also, this method only works for the
-temperatures.
-
-OTOH, there are true alarm registers at registers 49h, 4Ah and 4Bh.
-These show the realtime comparison result for all channels, not only the
-temperatures. And these do not require to reconfigure the interrupt
-mode for the temperatures.
-
-So I would like you to modify your w83792d driver to use the 49h, 4Ah
-and 4Bh registers for the alarms, and remove the interrupt mode change
-as it won't be needed anymore. You will then have to modify the library
-and the sensors program to use the new alarm bits.
-
-Once this works for Linux 2.4, we'll of course want to do the same for
-the Linux 2.6 driver.
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbgoKPiBZb3UgdXNlIHRoZSBJbnRlcnJ1cHQgU3RhdHVzIDEgcmVnaXN0ZXIgKDQxaCkg
+dG8gZmluZCBvdXQgdGhlIGFsYXJtCj4gY29uZGl0aW9uIGZvciB0aGUgdGVtcGVyYXR1cmVzLiBG
+b3IgdGhpcyB0byB3b3JrLCB5b3UgaGF2ZSB0byBzZXQgdGhlCj4gdGVtcGVyYXR1cmUgaW50ZXJy
+dXB0cyB0byBjb21wYXJhdG9yIG1vZGUuIFRoaXMgY2hhbmdlcyB0aGUgb3V0cHV0IG9mCj4gdGhl
+IFNNSSMvSVJRIHBpbiwgd2hpY2ggbWF5IGNhdXNlIHByb2JsZW0gZGVwZW5kaW5nIG9uIHRoZSB3
+YXkgdGhlCj4gVzgzNzkyRCBjaGlwIHdhcyB3aXJlZC4gQWxzbywgdGhpcyBtZXRob2Qgb25seSB3
+b3JrcyBmb3IgdGhlCj4gdGVtcGVyYXR1cmVzLgoKWW91ciBzdWdnZXN0aW9uIGlzIGdvb2QhIEkg
+aW1wbGVtZW50ZWQgdGhlIGNvbXBhcmF0b3IgbW9kZSBhbGFybSB0bwp0ZW1wcyB3aXRoIHRoZSBy
+ZWZlcmVuY2UgdG8gdzgzNzgxZCBkcml2ZXIsIHdpdGhvdXQgYW55IGNvbnNpZGVyYXRpb24KdG8g
+dGhlIHJlYWx0aW1lIGFsYXJtIHJlZ2lzdGVycy4gSSB3aWxsIHRyeSB5b3VyIHN1Z2dlc3Rpb24g
+d2hlbiBJJ20gYmFjawp0byBvZmZpY2UgbmV4dCBNb25kYXkuCiAKCj4gT1RPSCwgdGhlcmUgYXJl
+IHRydWUgYWxhcm0gcmVnaXN0ZXJzIGF0IHJlZ2lzdGVycyA0OWgsIDRBaCBhbmQgNEJoLgo+IFRo
+ZXNlIHNob3cgdGhlIHJlYWx0aW1lIGNvbXBhcmlzb24gcmVzdWx0IGZvciBhbGwgY2hhbm5lbHMs
+IG5vdCBvbmx5IHRoZQo+IHRlbXBlcmF0dXJlcy4gQW5kIHRoZXNlIGRvIG5vdCByZXF1aXJlIHRv
+IHJlY29uZmlndXJlIHRoZSBpbnRlcnJ1cHQKPiBtb2RlIGZvciB0aGUgdGVtcGVyYXR1cmVzLgoK
+SSB0aGluayB5b3UgYXJlIG1lYW5pbmcgQTloLCBBQWggYW5kIEFCaCwgaW5zdGVhZCBvZiA0OWgt
+NEJoLgogCgo+IFNvIEkgd291bGQgbGlrZSB5b3UgdG8gbW9kaWZ5IHlvdXIgdzgzNzkyZCBkcml2
+ZXIgdG8gdXNlIHRoZSA0OWgsIDRBaAo+IGFuZCA0QmggcmVnaXN0ZXJzIGZvciB0aGUgYWxhcm1z
+LCBhbmQgcmVtb3ZlIHRoZSBpbnRlcnJ1cHQgbW9kZSBjaGFuZ2UKPiBhcyBpdCB3b24ndCBiZSBu
+ZWVkZWQgYW55bW9yZS4gWW91IHdpbGwgdGhlbiBoYXZlIHRvIG1vZGlmeSB0aGUgbGlicmFyeQo+
+IGFuZCB0aGUgc2Vuc29ycyBwcm9ncmFtIHRvIHVzZSB0aGUgbmV3IGFsYXJtIGJpdHMuCgpJZiB0
+aGlzIG1ldGhvZCBjYW4gd29yayB1bmRlciBsaW51eC0yLjQsIEkgd2lsbCB1c2UgaXQgaW4gNzky
+IGRyaXZlciBmb3IgbGludXgtMi42CjotKQogClRoYW5rcwpCZXN0IFJlZ2FyZHMKQ2h1bmhhbwog
+Cgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlk
+ZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZv
+ciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFs
+IHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGlj
+YXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9m
+IHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUg
+c2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBm
+cm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNv
+b3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1
+bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlz
+IHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBp
+cnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRl
+ZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLg0KPT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRl
+Y29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0
+IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3Zl
+LqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8
+qXekp6asq0ikSKj6vlxcXFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863s
+pl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mx
+TqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5
+rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm
+5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC1
+2Ki5uXGkbKSnpd+z9anOt06ooy4NCg==
