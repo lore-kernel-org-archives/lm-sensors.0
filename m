@@ -1,45 +1,44 @@
-From: ebs@ebshome.net (Eugene Surovegin)
+From: rvinson@mvista.com (Randy Vinson)
 Date: Sat, 04 Jun 2005 07:59:29 +0000
 Subject: [lm-sensors] Re: [PATCH 1/2] Add support for Maxim/Dallas DS1374
-Message-Id: <20050603214653.GA15314@gate.ebshome.net>
+Message-Id: <42A0D41E.6000608@mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42A0CD46.60300@mvista.com>
-In-Reply-To: <42A0CD46.60300@mvista.com>
+	<5e2620f079e946d884175372dbf7e37e@freescale.com>
+In-Reply-To: <5e2620f079e946d884175372dbf7e37e@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Randy Vinson <rvinson@mvista.com>
+To: Kumar Gala <kumar.gala@freescale.com>
 Cc: Greg KH <greg@kroah.com>, sensors@stimpy.netroedge.com, linuxppc-embedded@ozlabs.org
 
-On Fri, Jun 03, 2005 at 02:36:06PM -0700, Randy Vinson wrote:
-> Greetings,
->  I've put together a small I2C client for the Maxim/Dallas DS1374 RTC
-> chip and tested it on a Freescale MPC8349ADS board that uses the chip.
-> The attached patch adds support for the chip itself and a follow-up patch
-> will add support to the Freescale board.
+Kumar Gala wrote:
+> Randy,
+> 
+> I was planning on cloning the DS1337 driver once all of the latest  
+> patches for it got into Linus's tree. 
 
-[snip]
+I haven't seen any patches for the DS1337, but I admit that I wasn't 
+looking very hard.
 
-> +	down(&ds1374_mutex);
-> +
-> +	/*
-> +	 * Since the reads are being performed one byte at a time using
-> +	 * the SMBus vs a 4-byte i2c transfer, there is a chance that a
-> +	 * carry will occur during the read. To detect this, 2 reads are
-> +	 * performed and compared.
-> +	 */
-> +	do {
-> +		t1 = ds1374_read_rtc();
-> +		t2 = ds1374_read_rtc();
-> +	} while (t1 != t2 && limit--);
+  Not sure if you looked at it,
+> but when I was looking at RTC on 8349 the DS1337 seemed similar.  Not  
+> sure if we can unify the DS1337 driver such that can also support the  
+> DS1374.
 
-I wonder, why you chose to use those 1-byte SMBus transfers instead of 
-i2c transfer.
+I looked at the DS1337 driver, but that chip uses individual registers 
+for the various time bits, whereas the DS1374 uses a 32-bit seconds 
+count spread across 4 registers. I wasn't convinced that I could find a 
+reliable way to differenciate between the 2 types at run time since they 
+use the same I2C address (0x68). So, I choose to create a new driver to 
+keep it simple. If there is a reliable way to handle both types in the 
+same driver, I'll drop my DS1374-specific driver.
 
-I wrote similar DS1374 driver some time ago which used those transfers 
-and they worked just fine.
+> 
+> (Also, I'll wait on acceptance of the driver before pushing the board  
+> code).
 
--- 
-Eugene
+Agreed.
 
+		Randy Vinson
 
