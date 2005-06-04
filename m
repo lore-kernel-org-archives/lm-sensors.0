@@ -1,257 +1,71 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 16 Jun 2005 19:25:51 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: w83781d: remove non-i2c sensor chips
-Message-Id: <20050616192414.3e526733.khali@linux-fr.org>
+From: rvinson@mvista.com (Randy Vinson)
+Date: Sat, 04 Jun 2005 07:59:28 +0000
+Subject: [lm-sensors] [PATCH 2/2] Add support for Maxim/Dallas DS1374
+Message-Id: <42A0CF1C.6000900@mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <42A0CD46.60300@mvista.com>
+In-Reply-To: <42A0CD46.60300@mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Kumar Gala <kumar.gala@freescale.com>
+Cc: Greg KH <greg@kroah.com>, sensors@stimpy.netroedge.com, linuxppc-embedded@ozlabs.org
 
-Hi Greg,
+Greetings,
+  This is part 2 of the patch to add support for the DS1374 I2C RTC chip
+from Maxim/Dallas.
 
-This patch removes the support for the W83697HF and W83627THF chips from
-the w83781d driver. These chips have no I2C/SMBus interface and are
-better supported by the Super-I/O-based w83627hf driver. Documentation
-was updated to reflect the support drop.
 
-Please apply,
-thanks.
+		Randy Vinson
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- Documentation/i2c/chips/w83781d |   16 +-------
- drivers/i2c/chips/w83781d.c     |   72 +++++++++++-----------------------------
- 2 files changed, 24 insertions(+), 64 deletions(-)
 
---- linux-2.6.12-rc6.orig/Documentation/i2c/chips/w83781d	2005-06-07 20:31:25.000000000 +0200
-+++ linux-2.6.12-rc6/Documentation/i2c/chips/w83781d	2005-06-16 19:20:49.000000000 +0200
-@@ -18,14 +18,6 @@
-     Prefix: 'w83627hf'
-     Addresses scanned: I2C 0x20 - 0x2f, ISA 0x290 (8 I/O ports)
-     Datasheet: http://www.winbond.com/PDF/sheet/w83627hf.pdf
--  * Winbond W83627THF
--    Prefix: 'w83627thf'
--    Addresses scanned: ISA address 0x290 (8 I/O ports)
--    Datasheet: http://www.winbond.com/PDF/sheet/w83627thf.pdf
--  * Winbond W83697HF
--    Prefix: 'w83697hf'
--    Addresses scanned: ISA 0x290 (8 I/O ports)
--    Datasheet: http://www.winbond-usa.com/products/winbond_products/pdfs/PCIC/w83697hf.pdf
-   * Asus AS99127F
-     Prefix: 'as99127f'
-     Addresses scanned: I2C 0x28 - 0x2f
-@@ -53,9 +45,9 @@
- Description
- -----------
- 
--This driver implements support for the Winbond W83627HF, W83627THF, W83781D,
--W83782D, W83783S, W83697HF chips, and the Asus AS99127F chips. We will refer
--to them collectively as W8378* chips.
-+This driver implements support for the Winbond W83781D, W83782D, W83783S,
-+W83627HF chips, and the Asus AS99127F chips. We will refer to them
-+collectively as W8378* chips.
- 
- There is quite some difference between these chips, but they are similar
- enough that it was sensible to put them together in one driver.
-@@ -67,10 +59,8 @@
- as99127f rev.2 (type_name = as99127f)       0x31    0x5ca3  yes     no
- w83781d     7       3       0       3       0x10-1  0x5ca3  yes     yes
- w83627hf    9       3       2       3       0x21    0x5ca3  yes     yes(LPC)
--w83627thf   9       3       2       3       0x90    0x5ca3  no      yes(LPC)
- w83782d     9       3       2-4     3       0x30    0x5ca3  yes     yes
- w83783s     5-6     3       2       1-2     0x40    0x5ca3  yes     no
--w83697hf    8       2       2       2       0x60    0x5ca3  no      yes(LPC)
- 
- Detection of these chips can sometimes be foiled because they can be in
- an internal state that allows no clean access. If you know the address
---- linux-2.6.12-rc6.orig/drivers/i2c/chips/w83781d.c	2005-06-07 20:12:54.000000000 +0200
-+++ linux-2.6.12-rc6/drivers/i2c/chips/w83781d.c	2005-06-16 19:08:27.000000000 +0200
-@@ -28,10 +28,8 @@
-     as99127f rev.2 (type_name = as99127f)	0x31	0x5ca3	yes	no
-     w83781d	7	3	0	3	0x10-1	0x5ca3	yes	yes
-     w83627hf	9	3	2	3	0x21	0x5ca3	yes	yes(LPC)
--    w83627thf	9	3	2	3	0x90	0x5ca3	no	yes(LPC)
-     w83782d	9	3	2-4	3	0x30	0x5ca3	yes	yes
-     w83783s	5-6	3	2	1-2	0x40	0x5ca3	yes	no
--    w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
- 
- */
- 
-@@ -52,7 +50,7 @@
- static unsigned int normal_isa[] = { 0x0290, I2C_CLIENT_ISA_END };
- 
- /* Insmod parameters */
--SENSORS_INSMOD_6(w83781d, w83782d, w83783s, w83627hf, as99127f, w83697hf);
-+SENSORS_INSMOD_5(w83781d, w83782d, w83783s, w83627hf, as99127f);
- I2C_CLIENT_MODULE_PARM(force_subclients, "List of subclient addresses: "
- 		    "{bus, clientaddr, subclientaddr1, subclientaddr2}");
- 
-@@ -998,13 +996,6 @@
- 		err = -EINVAL;
- 		goto ERROR0;
- 	}
--	if (!is_isa && kind = w83697hf) {
--		dev_err(&adapter->dev,
--			"Cannot force ISA-only chip for I2C address 0x%02x.\n",
--			address);
--		err = -EINVAL;
--		goto ERROR0;
--	}
- 	
- 	if (is_isa)
- 		if (!request_region(address, W83781D_EXTENT,
-@@ -1137,12 +1128,10 @@
- 		else if (val1 = 0x40 && vendid = winbond && !is_isa
- 				&& address = 0x2d)
- 			kind = w83783s;
--		else if ((val1 = 0x21 || val1 = 0x90) && vendid = winbond)
-+		else if (val1 = 0x21 && vendid = winbond)
- 			kind = w83627hf;
- 		else if (val1 = 0x31 && !is_isa && address >= 0x28)
- 			kind = as99127f;
--		else if (val1 = 0x60 && vendid = winbond && is_isa)
--			kind = w83697hf;
- 		else {
- 			if (kind = 0)
- 				dev_warn(&new_client->dev, "Ignoring 'force' "
-@@ -1161,14 +1150,9 @@
- 	} else if (kind = w83783s) {
- 		client_name = "w83783s";
- 	} else if (kind = w83627hf) {
--		if (val1 = 0x90)
--			client_name = "w83627thf";
--		else
--			client_name = "w83627hf";
-+		client_name = "w83627hf";
- 	} else if (kind = as99127f) {
- 		client_name = "as99127f";
--	} else if (kind = w83697hf) {
--		client_name = "w83697hf";
- 	}
- 
- 	/* Fill in the remaining client fields and put into the global list */
-@@ -1206,7 +1190,7 @@
- 
- 	/* Register sysfs hooks */
- 	device_create_file_in(new_client, 0);
--	if (kind != w83783s && kind != w83697hf)
-+	if (kind != w83783s)
- 		device_create_file_in(new_client, 1);
- 	device_create_file_in(new_client, 2);
- 	device_create_file_in(new_client, 3);
-@@ -1220,24 +1204,19 @@
- 
- 	device_create_file_fan(new_client, 1);
- 	device_create_file_fan(new_client, 2);
--	if (kind != w83697hf)
--		device_create_file_fan(new_client, 3);
-+	device_create_file_fan(new_client, 3);
- 
- 	device_create_file_temp(new_client, 1);
- 	device_create_file_temp(new_client, 2);
--	if (kind != w83783s && kind != w83697hf)
-+	if (kind != w83783s)
- 		device_create_file_temp(new_client, 3);
- 
--	if (kind != w83697hf)
--		device_create_file_vid(new_client);
--
--	if (kind != w83697hf)
--		device_create_file_vrm(new_client);
-+	device_create_file_vid(new_client);
-+	device_create_file_vrm(new_client);
- 
- 	device_create_file_fan_div(new_client, 1);
- 	device_create_file_fan_div(new_client, 2);
--	if (kind != w83697hf)
--		device_create_file_fan_div(new_client, 3);
-+	device_create_file_fan_div(new_client, 3);
- 
- 	device_create_file_alarms(new_client);
- 
-@@ -1256,7 +1235,7 @@
- 	if (kind != as99127f && kind != w83781d) {
- 		device_create_file_sensor(new_client, 1);
- 		device_create_file_sensor(new_client, 2);
--		if (kind != w83783s && kind != w83697hf)
-+		if (kind != w83783s)
- 			device_create_file_sensor(new_client, 3);
- 	}
- 
-@@ -1479,7 +1458,7 @@
- 				else
- 					data->sens[i - 1] = 2;
- 			}
--			if ((type = w83783s || type = w83697hf) && (i = 2))
-+			if (type = w83783s && i = 2)
- 				break;
- 		}
- 	}
-@@ -1495,7 +1474,7 @@
- 		}
- 
- 		/* Enable temp3 */
--		if (type != w83783s && type != w83697hf) {
-+		if (type != w83783s) {
- 			tmp = w83781d_read_value(client,
- 				W83781D_REG_TEMP3_CONFIG);
- 			if (tmp & 0x01) {
-@@ -1536,8 +1515,7 @@
- 		dev_dbg(dev, "Starting device update\n");
- 
- 		for (i = 0; i <= 8; i++) {
--			if ((data->type = w83783s || data->type = w83697hf)
--			    && (i = 1))
-+			if (data->type = w83783s && i = 1)
- 				continue;	/* 783S has no in1 */
- 			data->in[i]  			    w83781d_read_value(client, W83781D_REG_IN(i));
-@@ -1545,7 +1523,7 @@
- 			    w83781d_read_value(client, W83781D_REG_IN_MIN(i));
- 			data->in_max[i]  			    w83781d_read_value(client, W83781D_REG_IN_MAX(i));
--			if ((data->type != w83782d) && (data->type != w83697hf)
-+			if ((data->type != w83782d)
- 			    && (data->type != w83627hf) && (i = 6))
- 				break;
- 		}
-@@ -1581,7 +1559,7 @@
- 		    w83781d_read_value(client, W83781D_REG_TEMP_OVER(2));
- 		data->temp_max_hyst_add[0]  		    w83781d_read_value(client, W83781D_REG_TEMP_HYST(2));
--		if (data->type != w83783s && data->type != w83697hf) {
-+		if (data->type != w83783s) {
- 			data->temp_add[1]  			    w83781d_read_value(client, W83781D_REG_TEMP(3));
- 			data->temp_max_add[1] @@ -1592,26 +1570,18 @@
- 					       W83781D_REG_TEMP_HYST(3));
- 		}
- 		i = w83781d_read_value(client, W83781D_REG_VID_FANDIV);
--		if (data->type != w83697hf) {
--			data->vid = i & 0x0f;
--			data->vid |-			    (w83781d_read_value(client, W83781D_REG_CHIPID) &
--			     0x01)
--			    << 4;
--		}
-+		data->vid = i & 0x0f;
-+		data->vid |= (w83781d_read_value(client,
-+					W83781D_REG_CHIPID) & 0x01) << 4;
- 		data->fan_div[0] = (i >> 4) & 0x03;
- 		data->fan_div[1] = (i >> 6) & 0x03;
--		if (data->type != w83697hf) {
--			data->fan_div[2] = (w83781d_read_value(client,
--							       W83781D_REG_PIN)
--					    >> 6) & 0x03;
--		}
-+		data->fan_div[2] = (w83781d_read_value(client,
-+					W83781D_REG_PIN) >> 6) & 0x03;
- 		if ((data->type != w83781d) && (data->type != as99127f)) {
- 			i = w83781d_read_value(client, W83781D_REG_VBAT);
- 			data->fan_div[0] |= (i >> 3) & 0x04;
- 			data->fan_div[1] |= (i >> 4) & 0x04;
--			if (data->type != w83697hf)
--				data->fan_div[2] |= (i >> 5) & 0x04;
-+			data->fan_div[2] |= (i >> 5) & 0x04;
- 		}
- 		data->alarms  		    w83781d_read_value(client,
+Add support for the I2C Real-Time Clock on the MPC8349ADS board.
 
--- 
-Jean Delvare
+This change provides support for the DS1374 Real-Time Clock chip present
+on the MPC8349ADS board. It depends on a previous patch which adds I2C
+support for the DS1374.
+
+Signed-off-by: Randy Vinson <rvinson@mvista.com>
+
+---
+commit 07fb1bd27347f7f0df1309c40d09a2f1a9a98731
+tree b3ac3ac93679372aa5111268b623c5dda4a5039e
+parent f95cc4d276cc332225bd823a2ae3be553c119990
+author Randy Vinson <rvinson@linuxbox.(none)> Fri, 03 Jun 2005 13:57:46 -0700
+committer Randy Vinson <rvinson@linuxbox.(none)> Fri, 03 Jun 2005 13:57:46 -0700
+
+ arch/ppc/platforms/83xx/mpc834x_sys.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
+
+diff --git a/arch/ppc/platforms/83xx/mpc834x_sys.c b/arch/ppc/platforms/83xx/mpc834x_sys.c
+--- a/arch/ppc/platforms/83xx/mpc834x_sys.c
++++ b/arch/ppc/platforms/83xx/mpc834x_sys.c
+@@ -227,6 +227,26 @@ mpc834x_sys_init_IRQ(void)
+ 	ipic_set_default_priority();
+ }
+ 
++#if defined(CONFIG_I2C_MPC) && defined(CONFIG_SENSORS_DS1374)
++extern ulong	ds1374_get_rtc_time(void);
++extern int	ds1374_set_rtc_time(ulong);
++
++static int __init
++mpc834x_rtc_hookup(void)
++{
++	struct timespec	tv;
++
++	ppc_md.get_rtc_time = ds1374_get_rtc_time;
++	ppc_md.set_rtc_time = ds1374_set_rtc_time;
++
++	tv.tv_nsec = 0;
++	tv.tv_sec = (ppc_md.get_rtc_time)();
++	do_settimeofday(&tv);
++
++	return 0;
++}
++late_initcall(mpc834x_rtc_hookup);
++#endif
+ static __inline__ void
+ mpc834x_sys_set_bat(void)
+ {
+
