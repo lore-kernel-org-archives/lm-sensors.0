@@ -1,73 +1,49 @@
-From: Eric.Pascal@itesoft.com (Eric Pascal)
-Date: Thu, 16 Jun 2005 09:47:57 +0000
-Subject: [lm-sensors] Patch for w83627hf chipset
-Message-Id: <4A9A21CEA07B1F4A973CFCD89B9446C9011182C3@sermaila.itesoft.local>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 05 Jun 2005 20:08:35 +0000
+Subject: [lm-sensors] More hardware monitoring drivers ported to the new
+Message-Id: <20050605200901.41592fe9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4A9A21CEA07B1F4A973CFCD89B9446C9011182C1@sermaila.itesoft.local>
-In-Reply-To: <4A9A21CEA07B1F4A973CFCD89B9446C9011182C1@sermaila.itesoft.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: Yani Ioannou <yani.ioannou@gmail.com>, Greg KH <greg@kroah.com>
 
-Here is a more standard patch file.
-Hope someone would be able to help me on the content.
+Hi all,
 
------Message d'origine-----
-De : BGardner@Wabtec.com [mailto:BGardner@Wabtec.com]
-Envoy? : mercredi 15 juin 2005 23:59
-? : Eric Pascal
-Objet : RE: [lm-sensors] Patch for w83627hf chipset
+I have been modifying three additional hardware monitoring drivers to
+take benefit of Yani Ioannou's new, extended sysfs callbacks. These
+drivers are lm63, lm83 and lm90. All of these are relatively small when
+compared to the first two modified drivers (adm1026 and it87). My goal
+was to demonstrate that the new callbacks can also be used in small
+drivers, with significant benefits. The result is even smaller drivers
+(less memory used when loaded), relying far less on macros, which makes
+the code easier to read (and the drivers presumably faster to distribute
+using distcc).
 
+Module                Before   After
+lm63                   10128    9424 ( -704/ -6%)
+lm83                    8784    6864 (-1920/-21%)
+lm90                   12420   10628 (-1792/-14%)
 
-Hi Eric,
+Individual patches will follow. Comments welcome. Greg, can you add
+these to one of your trees?
 
-I took a quick look at your patch out of pure curiosity...
+Before I go on with driver conversion, there are two points I'd like to
+discuss:
 
-There are two problems with the patch format:
+First, I don't much like the name of the new header file,
+linux/i2c-sysfs.h. It isn't related with i2c at all! It's all about
+sensors (or hardware monitoring if you prefer). I think the header file
+should be named linux/hwmon-sysfs.h or something similar.
 
-1. The diff format looks weird. 
-Try this from just above the root of your build tree(s):
-$ diff -Naur orig/drivers/i2c/chips/w83627hf.c
-new/drivers/i2c/chips/w83627hf.c
+Second, is there a reason why the SENSOR_DEVICE_ATTR macro creates a
+stucture named sensor_dev_attr_##_name rather than simply
+dev_attr_##_name? As it seems unlikely that SENSOR_DEVICE_ATTR and
+DEVICE_ATTR will both be called for the same file, going for the short
+form shouldn't cause any problem. This would make the calling code more
+readable IMHO.
 
-2. A bunch of 0x0D characters were added to the patch.
-You may be able to use your editor to convert to UNIX line endings or
-you can clean it up using tr:
-$ cat w83627hf.c | tr -d "\r" > w83627hf.c
-
-I'm not familiar with that part, so I can't comment on the content of
-the patch. =)
-
-Ben
-
------Original Message-----
-From: lm-sensors-bounces@lm-sensors.org
-[mailto:lm-sensors-bounces@lm-sensors.org] On Behalf Of Eric Pascal
-Sent: Wednesday, June 15, 2005 4:28 PM
-To: lm-sensors@lm-sensors.org
-Subject: [lm-sensors] Patch for w83627hf chipset
-
-Hello,
- 
-I have a patch for the i2c driver of chipset w83627hf that is included
-in my Asus P4P800 that enable the Q-fan functionality to autoregulate
-fan speed depending on temperature. I have to apply the patch on every
-version a the 2.6 kernel I compile, would it be possible to integrate
-the patch definately. I'm not the author of the patch but it's very
-useful for me. I made a patch fon the 2.6.12-rc6 kernel, it's attached
-to this e-mail.
- 
-Thank you.
- 
-Eric PASCAL
-
- 
-
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: patch_w83627hf
-Type: application/octet-stream
-Size: 15615 bytes
-Desc: patch_w83627hf
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050616/f7efbfe5/patch_w83627hf-0001.obj
+Thanks,
+-- 
+Jean Delvare
