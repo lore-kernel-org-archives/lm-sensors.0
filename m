@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 06 Jun 2005 21:37:09 +0000
+From: BGardner@Wabtec.com (BGardner@Wabtec.com)
+Date: Mon, 06 Jun 2005 22:28:44 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2] pca9539: new i2c drvier
-Message-Id: <20050606213713.2e42fde3.khali@linux-fr.org>
+Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C907FD67D@WCSEXCMBS1.ad.wabtec.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
 In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
@@ -10,16 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Jean,
+
+Thanks for taking the time to review.
+I made the changes you suggested and will repost as retry 5.
+For the description, I went with the wording in the datasheet: "16-bit
+I/O port" 
+
+Ben
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: Monday, June 06, 2005 2:37 PM
+To: Gardner, Ben
+Cc: Greg KH; LM Sensors
+Subject: Re: [lm-sensors] [PATCH 2.6.12-rc5-mm2] pca9539: new i2c drvier
+(retry 4 - attachment)
+
 Hi Ben,
 
 > Attached (due to email line-wrapping problems) is an updated patch for
+
 > the PCA9539.
 > I think this one is now ready for inclusion.
 
 I'm very sorry but it looks like I still have a few objections ;)
 
-> --- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Kconfig	2005-06-01 14:29:17.000000000 -0500
-> +++ linux-2.6.12-rc5-mm2-pca9539/drivers/i2c/chips/Kconfig	2005-06-06 09:22:05.904153486 -0500
+> --- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Kconfig
+2005-06-01 14:29:17.000000000 -0500
+> +++ linux-2.6.12-rc5-mm2-pca9539/drivers/i2c/chips/Kconfig
+2005-06-06 09:22:05.904153486 -0500
 > @@ -440,6 +440,16 @@
 >  	  This driver can also be built as a module.  If so, the module
 >  	  will be called pcf8574.
@@ -42,8 +62,10 @@ Philips PCA9539
 "with 16 bit" sounds really weird. "16-bit digital I/O" here again
 maybe?
 
-> --- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/pca9539.c	1969-12-31 18:00:00.000000000 -0600
-> +++ linux-2.6.12-rc5-mm2-pca9539/drivers/i2c/chips/pca9539.c	2005-06-06 09:21:15.000000000 -0500
+> --- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/pca9539.c
+1969-12-31 18:00:00.000000000 -0600
+> +++ linux-2.6.12-rc5-mm2-pca9539/drivers/i2c/chips/pca9539.c
+2005-06-06 09:21:15.000000000 -0500
 > @@ -0,0 +1,192 @@
 > +/*
 > +    pca9539.c - 16 port digital I/O with interrupt and reset
@@ -73,7 +95,8 @@ considered good practice to leave a comma on the last line, so as to
 minimize possible further patches.
 
 > +	return sprintf(buf, "%d\n", i2c_smbus_read_byte_data(client, 
-> +							     (u8)psa->index));
+> +
+(u8)psa->index));
 > (...)
 > +	i2c_smbus_write_byte_data(client, (u8)psa->index, (u8)val);
 
@@ -91,8 +114,10 @@ s/pcs/pca/
 Shouldn't this be || rather than &&? Either condition is sufficient to
 discard the chip.
 
-> --- linux-2.6.12-rc5-mm2-clean/Documentation/i2c/chips/pca9539	1969-12-31 18:00:00.000000000 -0600
-> +++ linux-2.6.12-rc5-mm2/Documentation/i2c/chips/pca9539	2005-06-06 09:36:49.167804115 -0500
+> --- linux-2.6.12-rc5-mm2-clean/Documentation/i2c/chips/pca9539
+1969-12-31 18:00:00.000000000 -0600
+> +++ linux-2.6.12-rc5-mm2/Documentation/i2c/chips/pca9539
+2005-06-06 09:36:49.167804115 -0500
 > @@ -0,0 +1,54 @@
 > +Kernel driver pca9539
 > +==========> +
@@ -141,5 +166,7 @@ Thanks for your collaboration, I know how much work it is to go through
 these review & update cycles, but this is how we manage to get the best
 code and documentation into the kernel tree.
 
--- 
+--
 Jean Delvare
+
+
