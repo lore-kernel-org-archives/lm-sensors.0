@@ -1,55 +1,62 @@
-From: Huang0@winbond.com.tw (Huang0@winbond.com.tw)
-Date: Fri, 03 Jun 2005 03:51:12 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Mon, 06 Jun 2005 05:27:51 +0000
 Subject: [lm-sensors] W83792 review and testing
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE550143@weshml03.winbond.com.tw>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5502F0@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <429D7565.4090203@sh.cvut.cz>
 In-Reply-To: <429D7565.4090203@sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf
-
-
-> Thermal cruise
-> --------------
-> 
-> At this mode, W83792D provides the Smart Fan system to automatically
-control
-> fan speed to keep the temperatures of CPU and the system within
-specific
-> range. At first a wanted temperature and interval must be set. This is
-done
-> via thermal_cruise# file. The tolerance# file serves to create T +-
-tolerance
-> interval. The fan speed will be lowered as long as the current
-temperature
-> remains below the thermal_cruise# +- tolerance# value. Once the
-temperature
-> exceeds the high limit (T+tolernace), the fan will be turned on with a
-> specific speed set by pwm# and automatically controlled its PWM duty
-cycle
-> with the temperature varying. Three conditions may occur:
-
-Your comprehension is correct, I test it just now on your suggestion:
-If I set pwm2_enable into thermal cruise mode first,
-then set the thermal_cruise2 into a low value such as 25(degree), the
-pwm2
-will decrease automatically step by step.
-
-On the other hand, if I set the thermal_cruise2 into a large value such
-as
-42(degree) under thermal cruise mode, the pwm2 will increase step by
-step,
-If the set thermal_cruise2 is very larger such as 80(degree), the
-increase
-of pwm2 may be very quickly, for example, from 9 into 15(full) in ONE
-step.
-
-
-Thanks
-Best Regards
-Chunhao
-
+SGkgUnVkb2xmLCBKZWFuCgpRdW90aW5nIEplYW46Cj4gT1RPSCwgdGhlcmUgYXJlIHRydWUgYWxh
+cm0gcmVnaXN0ZXJzIGF0IHJlZ2lzdGVycyBBOWgsIEFBaCBhbmQgQUJoLgo+IFRoZXNlIHNob3cg
+dGhlIHJlYWx0aW1lIGNvbXBhcmlzb24gcmVzdWx0IGZvciBhbGwgY2hhbm5lbHMsIG5vdCBvbmx5
+CnRoZQo+IHRlbXBlcmF0dXJlcy4gQW5kIHRoZXNlIGRvIG5vdCByZXF1aXJlIHRvIHJlY29uZmln
+dXJlIHRoZSBpbnRlcnJ1cHQKPiBtb2RlIGZvciB0aGUgdGVtcGVyYXR1cmVzLgo+IAo+IFNvIEkg
+d291bGQgbGlrZSB5b3UgdG8gbW9kaWZ5IHlvdXIgdzgzNzkyZCBkcml2ZXIgdG8gdXNlIHRoZSBB
+OWgsIEFBaAo+IGFuZCBBQmggcmVnaXN0ZXJzIGZvciB0aGUgYWxhcm1zLCBhbmQgcmVtb3ZlIHRo
+ZSBpbnRlcnJ1cHQgbW9kZSBjaGFuZ2UKPiBhcyBpdCB3b24ndCBiZSBuZWVkZWQgYW55bW9yZS4g
+WW91IHdpbGwgdGhlbiBoYXZlIHRvIG1vZGlmeSB0aGUKbGlicmFyeQo+IGFuZCB0aGUgc2Vuc29y
+cyBwcm9ncmFtIHRvIHVzZSB0aGUgbmV3IGFsYXJtIGJpdHMuCj4gCj4gT25jZSB0aGlzIHdvcmtz
+IGZvciBMaW51eCAyLjQsIHdlJ2xsIG9mIGNvdXJzZSB3YW50IHRvIGRvIHRoZSBzYW1lIGZvcgo+
+IHRoZSBMaW51eCAyLjYgZHJpdmVyLgoKSSBhZG9wdGVkIHRoZSBzdWdnZXN0aW9uIEplYW4gcHJv
+dmlkZWQsIGZpbmlzaGVkIHRoZSBtb2RpZmljYXRpb24gYW5kCnRlc3QsCmFuZCBmaW5kIGl0IGFs
+c28gd29ya3Mgd2VsbCB1bmRlciBsaW51eC0yLjYuIFRoZSBhdHRhY2htZW50IGlzIG15IGxhdGVz
+dAo3OTIgZHJpdmVyIGZvciBsaW51eC0yLjYsIHBsZWFzZSBjb21taXQgaXQgZm9yIG1lIHRvIHRo
+ZSBrZXJuZWwgZ3JvdXAuCgoKUXVvdGluZyBteXNlbGY6Cj4gSGVyZSBpcyBteSBvbmUgcXVlc3Rp
+b246Cj4gQWZ0ZXIgdGhlIG1vZGlmaWNhdGlvbiBhbmQgdGVzdCwgbmVlZCBJIHNlbmQgeW91IGEg
+bmV3IHc4Mzc5MmQuYwp2ZXJzaW9uCj4gZm9yIGxpbnV4LTIuNiBvciBqdXN0IGEgcGF0Y2ggZm9y
+IHRoZSBvcmlnaW5hbCB3ODM3OTJkLmMgZm9yIGxpbnV4LTIuNgo/CgpJIGRvIE5PVCBuZWVkIHlv
+dXIgYW5zd2VyLCBiZWNhdXNlIGl0J3Mgbm90IGltcG9ydGFudCwgSSdkIGxpa2UgdG8gc2VuZAp0
+aGUKbGF0ZXN0IDc5MiBkcml2ZXIgZm9yIGxpbnV4LTIuNiBoZXJlLCBpZiB5b3UgbmVlZCBwYXRj
+aCwgcGxlYXNlIGdlbmVyYXRlCml0CmZvciBtZS4KCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5o
+YW8KCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBw
+cml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFp
+bCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVk
+IGJ5IHRoZSBvcmlnaW5hbCBzZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhl
+IGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxl
+IGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5k
+bHkgcmVwbHkgdG8gdGhlIHNlbmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFs
+bCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1l
+ZGlhdGVseS4gWW91ciBjb29wZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFk
+dmlzZWQgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRp
+b24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9u
+IGluIHRoaXMgZW1haWwgaXJyZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2lu
+Ym9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2lu
+Ym9uZC4KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlv
+dXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25v
+cmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRl
+bWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+
+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcXFykp6XOLiCwsqjPsXqo
+w6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tI
+pfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu
++LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7V
+ptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5
+caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4KLS0tLS0tLS0t
+LS0tLS0gbmV4dCBwYXJ0IC0tLS0tLS0tLS0tLS0tCkEgbm9uLXRleHQgYXR0YWNobWVudCB3YXMg
+c2NydWJiZWQuLi4KTmFtZTogdzgzNzkyZC5jClR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVh
+bQpTaXplOiA1NDE1MSBieXRlcwpEZXNjOiB3ODM3OTJkLmMKVXJsIDogaHR0cDovL2xpc3RzLmF0
+cnBtcy5uZXQvcGlwZXJtYWlsL2xtLXNlbnNvcnMvYXR0YWNobWVudHMvMjAwNTA2MDYvMmQxZTI4
+ZWEvdzgzNzkyZC0wMDAxLm9iago=
