@@ -1,7 +1,7 @@
-From: atomic.devterium@gmail.com (devterium)
-Date: Tue, 07 Jun 2005 13:28:43 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 07 Jun 2005 18:31:09 +0000
 Subject: [lm-sensors] Cannot compile
-Message-Id: <op.srzzgyogcb5z0o@linux.site>
+Message-Id: <42A5CBBF.9020403@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <op.srzv3bltcb5z0o@linux.site>
 In-Reply-To: <op.srzv3bltcb5z0o@linux.site>
@@ -10,28 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I tried, but I get the same error!
-Maybe I didn't fully understood what you mean.
-I entered in console exactly what you've said:
-#make userspace_install
+devterium wrote:
+> I tried, but I get the same error!
+> Maybe I didn't fully understood what you mean.
+> I entered in console exactly what you've said:
+> #make userspace_install
+> 
+> Is this correct?
 
-Is this correct?
+No, sorry. I should have been paing more attention to RTFM questions :)
 
-On Tue, 07 Jun 2005 12:19:18 +0200, Rudolf Marek <r.marek@sh.cvut.cz>  
-wrote:
+make user
+make user_install
 
-> Hello,
-> for 2.6.x kernels you need just userspace utils.
->
-> make userspace_install
->
-> should do the trick
->
-> regards
->
-> Rudolf
+I hope this time I am correct.
 
+Regards
 
-
--- 
-Using Opera's revolutionary e-mail client: http://www.opera.com/mail/
+Rudolf
