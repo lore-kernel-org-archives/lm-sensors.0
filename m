@@ -1,36 +1,18 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 17 Jun 2005 09:56:27 +0000
-Subject: [lm-sensors] fixing ticket #1944
-Message-Id: <RY1xvwY3.1118994353.8411050.khali@localhost>
+From: rogerio.araujo@gmail.com (Rogerio Pereira)
+Date: Wed, 08 Jun 2005 20:47:00 +0000
+Subject: [lm-sensors] Configuring ali1535 to show cpu temperature
+Message-Id: <41e8ec0c05060811462b536e91@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
-In-Reply-To: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Hugo,
+I have an HP nx9010 notebook and this laptop has a ali1535 BUS driver,
+how can i configure my system to show the cpu temperature?
 
-On 2005-06-1, Hugo Vanwoerkom wrote:
-> I obviously owe you one. If I can be of help anytime,
-> give a holler.
+Thanks for any help/answer/evertyhing,
 
-Once we have a datasheet for that chip, we'll need a tester. We'll let
-you know :)
-
-> Output of sensors is below. Looks right, might need be
-> tweaked. Temp1 23 degrees? The room temp here is 29
-> degrees.
-
-Yup, doesn't look too bad except for a few values (+3.3V, temp1... +12V
-seems not to exist). We'll have to wait for a datasheet before we can
-adapt the code though.
-
-> Thanks again!
-
-You're welcome.
-
---
-Jean Delvare
+Rog?rio
