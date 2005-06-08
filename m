@@ -1,133 +1,58 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Fri, 03 Jun 2005 23:32:52 +0000
-Subject: [lm-sensors] [5/6] w1: Updates the w1 documentation (w1.generic)
-Message-Id: <20050604013147.246166ab@zanzibar.2ka.mipt.ru>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Wed, 08 Jun 2005 04:23:28 +0000
+Subject: [lm-sensors] (fwd) Re: 2.6.12-rc6-mm1
+Message-Id: <8ilca11skni4v3pop6br8ea9o8imnfes16@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Updates the w1 documentation (w1.generic)
+On Tue, 7 Jun 2005 22:59:52 -0300, S?ren Lott <soren3@gmail.com> wrote:
 
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+>On Tuesday 07 June 2005 08:29, Andrew Morton wrote:
+>> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.12-rc6/2.
+>>6.12-rc6-mm1/
+>
+>[snip]
+>
+>> +gregkh-i2c-i2c-Kconfig-update.patch
+>> +gregkh-i2c-i2c-pcf8574-cleanup.patch
+>> +gregkh-i2c-i2c-adm9240-docs.patch
+>> +gregkh-i2c-i2c-device-attr-lm90.patch
+>> +gregkh-i2c-i2c-device-attr-lm83.patch
+>> +gregkh-i2c-i2c-device-attr-lm63.patch
+>> +gregkh-i2c-i2c-device-attr-it87.patch
+>> +gregkh-i2c-hwmon-01.patch
+>> +gregkh-i2c-hwmon-02.patch
+>> +gregkh-i2c-hwmon-03.patch
+>>
+>>  i2c tree updates
+>>
+>> +i2c-chips-need-hwmon.patch
+>> +gregkh-i2c-hwmon-02-sparc64-fix.patch
+>>
+>>  Fix a few things in the i2c tree
+>
+>[snip]
+>
+>after those changes i don't get entries in /sys for my W83627THF chip. 
+>(p4c800-D, i875,ICH5)
+>
+>relevant config parts:
+>
+>CONFIG_HWMON=y
+>CONFIG_I2C=y
+>CONFIG_I2C_ISA=y
+>CONFIG_I2C_SENSOR=y
+>CONFIG_SENSORS_W83627HF=y
+>
+>thanks.
+>
+>-SL
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Please read the FAQ at  http://www.tux.org/lkml/
 
---- linux-2.6.12-rc5-mm2-clean/Documentation/w1/w1.generic	2005-03-02 01:38:19.000000000 -0600
-+++ linux-2.6.12-rc5-mm2/Documentation/w1/w1.generic	2005-06-03 10:22:39.451162409 -0500
-@@ -1,19 +1,92 @@
--Any w1 device must be connected to w1 bus master device - for example
--ds9490 usb device or w1-over-GPIO or RS232 converter.
--Driver for w1 bus master must provide several functions(you can find
--them in struct w1_bus_master definition in w1.h) which then will be
--called by w1 core to send various commands over w1 bus(by default it is
--reset and search commands). When some device is found on the bus, w1 core
--checks if driver for it's family is loaded.
--If driver is loaded w1 core creates new w1_slave object and registers it
--in the system(creates some generic sysfs files(struct w1_family_ops in
--w1_family.h), notifies any registered listener and so on...).
--It is device driver's business to provide any communication method
--upstream.
--For example w1_therm driver(ds18?20 thermal sensor family driver)
--provides temperature reading function which is bound to ->rbin() method
--of the above w1_family_ops structure.
--w1_smem - driver for simple 64bit memory cell provides ID reading
--method.
-+The 1-wire (w1) subsystem 
-+------------------------------------------------------------------
-+The 1-wire bus is a simple master-slave bus that communicates via a single
-+signal wire (plus ground, so two wires).
-+
-+Devices communicate on the bus by pulling the signal to ground via an open 
-+drain output and by sampling the logic level of the signal line.
-+
-+The w1 subsystem provides the framework for managing w1 masters and 
-+communication with slaves.
-+
-+All w1 slave devices must be connected to a w1 bus master device.
-+
-+Example w1 master devices:
-+    DS9490 usb device 
-+    W1-over-GPIO
-+    DS2482 (i2c to w1 bridge)
-+    Emulated devices, such as a RS232 converter, parallel port adapter, etc
-+
-+
-+What does the w1 subsystem do?
-+------------------------------------------------------------------
-+When a w1 master driver registers with the w1 subsystem, the following occurs:
-+
-+ - sysfs entries for that w1 master are created
-+ - the w1 bus is periodically searched for new slave devices
-+ 
-+When a device is found on the bus, w1 core checks if driver for it's family is 
-+loaded. If so, the family driver is attached to the slave.
-+If there is no driver for the family, a simple sysfs entry is created
-+for the slave device.
-+
-+
-+W1 device families
-+------------------------------------------------------------------
-+Slave devices are handled by a driver written for a family of w1 devices.
-+
-+A family driver populates a struct w1_family_ops (see w1_family.h) and 
-+registers with the w1 subsystem.
-+
-+Current family drivers:
-+w1_therm - (ds18?20 thermal sensor family driver) 
-+    provides temperature reading function which is bound to ->rbin() method 
-+    of the above w1_family_ops structure.
-+    
-+w1_smem - driver for simple 64bit memory cell provides ID reading method.
- 
- You can call above methods by reading appropriate sysfs files.
-+
-+
-+What does a w1 master driver need to implement?
-+------------------------------------------------------------------
-+  
-+The driver for w1 bus master must provide at minimum two functions.
-+
-+Emulated devices must provide the ability to set the output signal level 
-+(write_bit) and sample the signal level (read_bit).
-+
-+Devices that support the 1-wire natively must provide the ability to write and
-+sample a bit (touch_bit) and reset the bus (reset_bus).
-+
-+Most hardware provides higher-level functions that offload w1 handling.
-+See struct w1_bus_master definition in w1.h for details.
-+
-+
-+w1 master sysfs interface
-+------------------------------------------------------------------
-+<xx-xxxxxxxxxxxxx> - a directory for a found device. The format is family-serial
-+bus                - (standard) symlink to the w1 bus
-+driver             - (standard) symlink to the w1 driver
-+w1_master_attempts - the number of times a search was attempted
-+w1_master_max_slave_count
-+                   - the maximum slaves that may be attached to a master
-+w1_master_name     - the name of the device (w1_bus_masterX)
-+w1_master_search   - the number of searches left to do, -1=continual (default)
-+w1_master_slave_count
-+                   - the number of slaves found
-+w1_master_slaves   - the names of the slaves, one per line
-+w1_master_timeout  - the delay in seconds between searches
-+
-+If you have a w1 bus that never changes (you don't add or remove devices), 
-+you can set w1_master_search to a positive value to disable searches.
-+
-+
-+w1 slave sysfs interface
-+------------------------------------------------------------------
-+bus                - (standard) symlink to the w1 bus
-+driver             - (standard) symlink to the w1 driver
-+name               - the device name, usually the same as the directory name
-+w1_slave           - (optional) a binary file whose meaning depends on the 
-+                     family driver
-+
-
-
-
-	Evgeniy Polyakov
-
-Only failure makes us experts. -- Theo de Raadt
