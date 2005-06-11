@@ -1,8 +1,10 @@
 From: clock@twibright.com (Karel Kulhavy)
-Date: Sat, 11 Jun 2005 13:09:15 +0000
+Date: Sat, 11 Jun 2005 16:12:32 +0000
 Subject: [lm-sensors] Patch to check return values in i2c-algo-bit.c
-Message-Id: <20050611110823.GA21311@kestrel>
+Message-Id: <20050611141135.GA25547@kestrel>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050611110823.GA21311@kestrel>
+In-Reply-To: <20050611110823.GA21311@kestrel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
