@@ -1,35 +1,26 @@
-From: greg@kroah.com (Greg KH)
-Date: Fri, 10 Jun 2005 06:40:41 +0000
-Subject: [lm-sensors] Re: More archs need to include hwmon/Kconfig
-Message-Id: <20050610043642.GB15061@kroah.com>
+From: atomic.devterium@gmail.com (devterium)
+Date: Sat, 11 Jun 2005 14:44:29 +0000
+Subject: [lm-sensors] Sensor readings
+Message-Id: <op.sr7hnt2fcb5z0o@linux.site>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050609185703.78784b2f.khali@linux-fr.org>
-In-Reply-To: <20050609185703.78784b2f.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jun 09, 2005 at 09:32:39PM -0400, Mark M. Hoffman wrote:
-> Hi Greg, Jean, ...:
-> 
-> * Greg KH <greg@kroah.com> [2005-06-09 10:00:45 -0700]:
-> > Hm, this is getting quite messy.
-> 
-> It was just my subtle way of getting the error paths tested... ;)
+I compiled and installed lm_sensors, but I'm unable to get the CPU temp.  
+All I can get is amount of RAM. Output:
 
-Hey, we've all done it before :)
+linux:/home/kriko # sensors
+eeprom-i2c-0-51
+Adapter: SMBus nForce2 adapter at 1c00
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-> > Mark, how about I just drop the hwmon patches from my tree right now,
-> > until you respin them, fixing these issues up?
-> 
-> Fair enough, though, I'm not sure on what tree to base my next set of
-> patches.  I guess: 2.6.12-rc6-mm1 *minus* the three hwmon patches.
+eeprom-i2c-0-50
+Adapter: SMBus nForce2 adapter at 1c00
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
 
-That sounds good.
-
-Or 2.6.12-rc6 (no -mm)  I can figure it out from there.
-
-thanks,
-
-greg k-h
+-- 
+Using Opera's revolutionary e-mail client: http://www.opera.com/mail/
