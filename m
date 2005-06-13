@@ -1,36 +1,28 @@
-From: greg@kroah.com (Greg KH)
-Date: Mon, 06 Jun 2005 09:17:23 +0000
-Subject: [lm-sensors] [PATCH 2.6] drivers/i2c/chips/it87.c: use dynamic
-Message-Id: <20050606062623.GA6455@kroah.com>
+From: sukhdeep@gmail.com (Sukhdeep Johar)
+Date: Mon, 13 Jun 2005 11:17:45 +0000
+Subject: [lm-sensors] w83781d.o: Subclient 0 registration at address 0x49
+Message-Id: <2ef564dc05061302175b8427fd@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050605115325.27cd4429.khali@linux-fr.org>
-In-Reply-To: <20050605115325.27cd4429.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jun 05, 2005 at 11:53:25AM +0200, Jean Delvare wrote:
-> Hi Yani, Greg, all,
-> 
-> > Here is a patch against it87, since it seems to have many more device
-> > attributes than lm90. The size difference:
-> > 
-> > before:
-> > Module                  Size  Used by
-> > it87                   28832  0
-> > after:
-> > Module                  Size  Used by
-> > it87                   22432  0
-> 
-> It seems that this patch never made it to Greg's tree. I have been
-> testing it for two weeks now, and no problem arose, so I'd like it to be
-> applied. Let's not lose the work that was done. Just like the adm1026
-> patch, the original it87 patch had some coding style error, which I
-> fixed. New patch attached. Please apply, thanks.
+Hi, 
 
-Oops, that one slipped through, good catch.  Applied now.
+I am using the chip W83697F chip. 
 
-thanks,
+I am getting this error when loading the w83781d driver.
+w83781d.o: Subclient 0 registration at address 0x49 failed
 
-greg k-h
+I have tried  modprobe w83781d init=0 force_subclients=0,0x2c,0x4a,0x4b 
+without any succes.. 
+
+I am not getting the temp2 and temp3 values correctly, and suspect that the
+above error may be the culprit.
+
+Can you please provide some insights.. I have run out of options :( 
+
+regards,
+Sukhdeep
+
