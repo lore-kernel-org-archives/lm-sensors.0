@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 13 Jun 2005 11:44:56 +0000
+Date: Mon, 13 Jun 2005 12:25:13 +0000
 Subject: [lm-sensors] w83781d.o: Subclient 0 registration at address 0x49
-Message-Id: <ar2DskX7.1118655290.4415460.khali@localhost>
+Message-Id: <UA4A0pQj.1118657716.3969220.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2ef564dc05061302175b8427fd@mail.gmail.com>
 In-Reply-To: <2ef564dc05061302175b8427fd@mail.gmail.com>
@@ -13,27 +13,26 @@ To: lm-sensors@vger.kernel.org
 
 Hi Sukhdeep,
 
-> I am using the chip W83697F chip.
+> The chip is W83697F - that's what written on the chip.
 
-I assume W83697_H_F?
+This chip doesn't have hardware monitoring capabilities. So the values
+you get may be from a different chip.
 
-> I am getting this error when loading the w83781d driver.
-> w83781d.o: Subclient 0 registration at address 0x49 failed
+> I think it's the W83697_T_H_F chip..
 
-This is quite strange, the W83697HF is an ISA-only chip, so it isn't
-supposed to have subclients. Which version of lm_sensors are you using?
-On which kernel?
+I don't think so. The only THF chip is the the W836_2_7THF, as least as
+far as I know.
 
-> I have tried  modprobe w83781d init=0 force_subclients=0,0x2c,0x4a,0x4b
-> without any succes..
+> Is W83697_THF also ISA-only ?
 
-Which isn't surprising, as force_subclients only works for I2C chips,
-not ISA ones.
+All W826x7 chips are Super-I/O chips, so they do at least have ISA
+access, which is better anyway. I think only the older W83627HF chip has
+I2C access in addition.
 
-> Can you please provide some insights.. I have run out of options :(
+What motherboard is it?
 
-Please try the w83627hf driver instead. The support of ISA-only chips in
-the w83781d driver is deprecated and will be removed soon.
+Please provide the full output of sensors-detect. Don't forget to unload
+the w83781d driver beforehand (or any other i2c chip driver).
 
 --
 Jean Delvare
