@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 14 Jun 2005 10:20:24 +0000
+Date: Tue, 14 Jun 2005 15:18:46 +0000
 Subject: [lm-sensors] w83781d.o: Subclient 0 registration at address 0x49
-Message-Id: <V39aOfsf.1118736491.7657320.khali@localhost>
+Message-Id: <pr6PyFKP.1118754459.8623930.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2ef564dc05061302175b8427fd@mail.gmail.com>
 In-Reply-To: <2ef564dc05061302175b8427fd@mail.gmail.com>
@@ -11,44 +11,50 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Yani,
+Hi Sukhdeep,
 
-> Ok, here it is after a cold reboot, looks a bit different:
+> Our motherboard is a custom one (used for our(Symbol) wireless switches )
+> They are similar to the kt400 is what i know.
+>
+> Here is the i2cdump :
 
-Looks very similar to me, except that the W83627HF ISA detection fails,
-right? Not really surprising, as part of this detection is experimental
-and known to be broken for recent Super-I/O chips.
+This looks like two distinct Winbond W83782D chips to me, one at 0x29 and
+one at 0x2d.
 
-> > 2.6 kernel with CONFIG_PNPACPI? Check /proc/ioports, see if there's
-> > something conflicting at 0x290-0x297.
-> Running 2.6.11.12 with CONFIG_PNPACPI=y and in /proc/ioports:
-> -----------------------------------
-> ...
-> 0295-0296 : pnp 00:07
-> ..
-> -----------------------------------
+> The warning went after loading with :
+>        #modprobe w83781d init=0 force_subclients=0,0x29,0x4a,0x4b
 
-Known problem then. The ISA interface of the W83627HF won't work until
-you disable PNPACPI.
-  http://bugzilla.kernel.org/show_bug.cgi?id@14
+Yes, the two chips previously had their subclients colliding (BIOS
+didn't intialize them properly). The force_sublients option let you fix
+that.
 
-I think that it means that your ACPI tables are broken and Tyan should
-fix them (they advertise 0x295-0x296 as the W83627HF hardware monitoring
-address range, instead of 0x290-0x297).
+> But, I now see that the sensors command gives _TWO_ results :
 
-> modprobe w83781d force_subclients=1,0x28,0x4a,0x4b seems to fail with
-> the same message again even though the w83627hf driver hasn't been
-> loaded.
+Well, there are two chips, what did you expect?
 
-I took a look at the w83781d driver and it doesn't play nicely when
-subclients are disabled. However, using force_subclients should not only
-change the addresses but also reenable the subclients, so I'm surprised
-it didn't work.
+> The second output seems quite vague.
 
-Could you please provide a dump of your chip? The register I am
-interested in is 0x4A. You may try to write 0x01 to it and see if the
-subclients show and it it helps the w83781d driver loading.
+Looks like the voltage inputs are not wired. Fans and temperatures may be
+though.
 
-Thanks,
+> I also see two directories created in the /proc -
+>
+> WS5K #cat /proc/sys/dev/sensors/
+> chips             w83782d-i2c-0-29  w83782d-i2c-0-2d
+
+One directory per chip. What's the problem?
+
+> Can you make out what's going wrong ?
+
+Nothing is going wrong (anymore). Once the subclient addresses are fixed
+not to collide, you get two working chips. You said it was a custom
+board, if you are the one building it, you *should* know which chips are
+on it and how they are wired. Don't expect us to tell you, that's not
+something we can guess.
+
+As for strange temperature values, you may try changing the sensor types
+(/proc/sys/dev/sensors/w83782d-i2c-0-*/sensor* or /etc/sensors.conf).
+Maybe your board uses thermal diodes rather than thermistors.
+
 --
 Jean Delvare
