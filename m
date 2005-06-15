@@ -1,150 +1,66 @@
-From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Fri, 03 Jun 2005 19:41:54 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2 5/5] w1 enhancements
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C6AF@WCSEXCMBS1.ad.wabtec.com>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Wed, 15 Jun 2005 03:34:36 +0000
+Subject: [lm-sensors] RE: w83792d.c with linux kernel 2.6.11 on asus ncch-dl
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E722A@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EE@WCSEXCMBS1.ad.wabtec.com>
-In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EE@WCSEXCMBS1.ad.wabtec.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Updates the w1 documentation (w1.generic)
-
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
-
---- linux-2.6.12-rc5-mm2-clean/Documentation/w1/w1.generic
-2005-03-02 01:38:19.000000000 -0600
-+++ linux-2.6.12-rc5-mm2/Documentation/w1/w1.generic	2005-06-03
-10:22:39.451162409 -0500
-@@ -1,19 +1,92 @@
--Any w1 device must be connected to w1 bus master device - for example
--ds9490 usb device or w1-over-GPIO or RS232 converter.
--Driver for w1 bus master must provide several functions(you can find
--them in struct w1_bus_master definition in w1.h) which then will be
--called by w1 core to send various commands over w1 bus(by default it is
--reset and search commands). When some device is found on the bus, w1
-core
--checks if driver for it's family is loaded.
--If driver is loaded w1 core creates new w1_slave object and registers
-it
--in the system(creates some generic sysfs files(struct w1_family_ops in
--w1_family.h), notifies any registered listener and so on...).
--It is device driver's business to provide any communication method
--upstream.
--For example w1_therm driver(ds18?20 thermal sensor family driver)
--provides temperature reading function which is bound to ->rbin() method
--of the above w1_family_ops structure.
--w1_smem - driver for simple 64bit memory cell provides ID reading
--method.
-+The 1-wire (w1) subsystem 
-+------------------------------------------------------------------
-+The 1-wire bus is a simple master-slave bus that communicates via a
-single
-+signal wire (plus ground, so two wires).
-+
-+Devices communicate on the bus by pulling the signal to ground via an
-open 
-+drain output and by sampling the logic level of the signal line.
-+
-+The w1 subsystem provides the framework for managing w1 masters and 
-+communication with slaves.
-+
-+All w1 slave devices must be connected to a w1 bus master device.
-+
-+Example w1 master devices:
-+    DS9490 usb device 
-+    W1-over-GPIO
-+    DS2482 (i2c to w1 bridge)
-+    Emulated devices, such as a RS232 converter, parallel port adapter,
-etc
-+
-+
-+What does the w1 subsystem do?
-+------------------------------------------------------------------
-+When a w1 master driver registers with the w1 subsystem, the following
-occurs:
-+
-+ - sysfs entries for that w1 master are created
-+ - the w1 bus is periodically searched for new slave devices
-+ 
-+When a device is found on the bus, w1 core checks if driver for it's
-family is 
-+loaded. If so, the family driver is attached to the slave.
-+If there is no driver for the family, a simple sysfs entry is created
-+for the slave device.
-+
-+
-+W1 device families
-+------------------------------------------------------------------
-+Slave devices are handled by a driver written for a family of w1
-devices.
-+
-+A family driver populates a struct w1_family_ops (see w1_family.h) and 
-+registers with the w1 subsystem.
-+
-+Current family drivers:
-+w1_therm - (ds18?20 thermal sensor family driver) 
-+    provides temperature reading function which is bound to ->rbin()
-method 
-+    of the above w1_family_ops structure.
-+    
-+w1_smem - driver for simple 64bit memory cell provides ID reading
-method.
- 
- You can call above methods by reading appropriate sysfs files.
-+
-+
-+What does a w1 master driver need to implement?
-+------------------------------------------------------------------
-+  
-+The driver for w1 bus master must provide at minimum two functions.
-+
-+Emulated devices must provide the ability to set the output signal
-level 
-+(write_bit) and sample the signal level (read_bit).
-+
-+Devices that support the 1-wire natively must provide the ability to
-write and
-+sample a bit (touch_bit) and reset the bus (reset_bus).
-+
-+Most hardware provides higher-level functions that offload w1 handling.
-+See struct w1_bus_master definition in w1.h for details.
-+
-+
-+w1 master sysfs interface
-+------------------------------------------------------------------
-+<xx-xxxxxxxxxxxxx> - a directory for a found device. The format is
-family-serial
-+bus                - (standard) symlink to the w1 bus
-+driver             - (standard) symlink to the w1 driver
-+w1_master_attempts - the number of times a search was attempted
-+w1_master_max_slave_count
-+                   - the maximum slaves that may be attached to a
-master
-+w1_master_name     - the name of the device (w1_bus_masterX)
-+w1_master_search   - the number of searches left to do, -1=continual
-(default)
-+w1_master_slave_count
-+                   - the number of slaves found
-+w1_master_slaves   - the names of the slaves, one per line
-+w1_master_timeout  - the delay in seconds between searches
-+
-+If you have a w1 bus that never changes (you don't add or remove
-devices), 
-+you can set w1_master_search to a positive value to disable searches.
-+
-+
-+w1 slave sysfs interface
-+------------------------------------------------------------------
-+bus                - (standard) symlink to the w1 bus
-+driver             - (standard) symlink to the w1 driver
-+name               - the device name, usually the same as the directory
-name
-+w1_slave           - (optional) a binary file whose meaning depends on
-the 
-+                     family driver
-+
-
+SGkgQ2hyaXN0aWFuLCBSdWRvbGYsIEplYW4KClRoaXMgaXMgQ2h1bmhhby4KCkknbSBzb3JyeSB0
+aGF0IEkgY2FuIE5PVCB0ZWxsIHRoZSBleGFjdCByZWFzb24gd2h5IHRoZSA3OTIgZHJpdmVyIGRv
+ZXMgbm90Cndvcmsgb24geW91ciBzeXN0ZW0gYXQgdGhpcyBtb21lbnQsIG1heWJlIGl0IGFsc28g
+aGFzIHNvbWV0aGluZyB0byBkbyB3aXRoCnRoZSBBU1VTIG11bHRpcGxleGVyLCBqdXN0IGxpa2Ug
+dGhlIHByb2JsZW0gd2UgbWV0IG9uIG1vdGhlcmJvYXJkIE5DTFYtRC4KClNpbmNlIHlvdSBoYXZl
+IHRyaWVkIHRoZSB0cmljayAiaXNhc2V0IC15IC1mIDB4NGI5IDB4MDgiIGJlZm9yZSBsb2FkaW5n
+CnRoZSBpMmMgcmVsYXRlZCBtb2R1bGVzLCBidXQgaW4gdmFpbiwgbWF5YmUgd2UgbmVlZCB0aGUg
+aGVscCBmcm9tIEFTVVMuIEkKcmVtZW1iZXIgdGhhdCBBU1VTIHRvbGQgdXMsIGlmIHdlIG1lZXQg
+dGhlIHByb2JsZW0gc2ltaWxhciB0byBtb3RoZXJib2FyZCBOQ0xWLUQsCnRoZSB0cmljayBhYm92
+ZSB3aWxsIHdvcmsgaW4gbW9zdCBjYXNlcy4KCkplYW4sIFJ1ZG9sZiwKRG8geW91IGhhdmUgYW55
+IHN1Z2dlc3Rpb24/CgpCdHcsIHRoZSA3OTIgZHJpdmVyIGhhcyBub3QgYmVlbiBmdWxseSB0ZXN0
+ZWQgYnkgbWUgdW5kZXIgeDg2XzY0IHBsYXRmb3JtLApidXQgSSBkbyBOT1QgdGhpbmsgdGhpcyBp
+cyB0aGUgcmVhc29uLgoKVGhhbmtzCkJlc3QgUmVnYXJkcwoKQ2h1bmhhbwoKCj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBDaHJpc3RpYW4gU3R1a2UgW21haWx0bzpjaHN0dWtl
+QGV4aW5mZXJpcy5kZV0KPiBTZW50OiAyMDA1xOo21MIxNMjVIDE3OjEwCj4gVG86IFBJMTQgSFVB
+TkcwCj4gU3ViamVjdDogdzgzNzkyZC5jIHdpdGggbGludXgga2VybmVsIDIuNi4xMSBvbiBhc3Vz
+IG5jY2gtZGwKPiAKPiBEZWFyIFNpciwKPiAKPiBGaXJzdCBpIGhhdmUgdG8gdGhhbmsgeW91IGZv
+ciB0YWtpbmcgdGhlIHRpbWUgdG8gZGV2ZWxvcCBhIGRyaXZlciBmb3IKPiB0aGlzIGNoaXAhCj4g
+VmVuZG9yIHN1cHBvcnQgaW4gdGhpcyBhcmVhIGlzIHNvbWV0aGluZyBpIHJlYWxseSBhcHByZWNp
+YXRlISBUaGFua3MhCj4gCj4gRm9sbG93aW5nIHlvdXIgZGlzY3Vzc2lvbiBvbiBsaW51eC5kcml2
+ZXJzLnNlbnNvcnMgaSB0cmllZCB0aGUganVuIDYgdmVyc2lvbgo+IG9mIHRoZSB3ODM3OTJkLmMg
+Zm9yIGtlcm5lbCAyLjYuCj4gCj4gSSBwYXRjaGVkIGl0IGludG8ga2VybmVsIDIuNi4xMSBidXQg
+YWZ0ZXIgY29tcGlsaW5nIGl0IGp1c3Qgd29uJ3Qgc2hvdwo+IGFueSBkYXRhLgo+IAo+IFRoZSBt
+b3RoZXJib2FyZCBpcyBhbiBBc3VzIE5DQ0gtREwgd2l0aCBEdWFsIFhlb24gMjgwMCBydW5uaW5n
+IDY0IGJpdCBtb2RlLgo+IFRoZSBPUyBpcyBDZW50T1MgNCB4ODZfNjQuCj4gCj4gV2hlbiBpIGlu
+c2VydCBpMmMtaXNhIGFuZCB3ODM2Mjd0aGYgaSBnZXQgc29tZSByZWFkaW5ncwo+IChqdXN0IHNv
+bWUgdm9sdGFnZXMsIDBycG0gZmFucyBhbmQgLTQ4diB0ZW1wZXJhdHVyZXMpCj4gYnV0IGkga25v
+dyB0aGUgYm9hcmQgYWxzbyBoYXMgYSB3ODM3OTJkIGZvciBzZW5zb3JzIQo+IAo+IEkgdXNlZCBs
+bV9zZW5zb3JzLTIuOS4xLWN2cyBmcm9tIEp1bmUgNyAyMDA2Lgo+IAo+IEFsc28gSSB0cmllZCB0
+aGUgaXNhc2V0IHRoaW5nIGFscmVhZHkgYnV0IHRoZXJlIGlzIG5vdGhpbmcgYXQgdGhhdAo+IGFk
+cmVzcyBsb29raW5nIGF0IGlvcG9ydHMuCj4gCj4gQW55IHN1Z2dlc3Rpb25zPwo+IAo+IFRoYW5r
+IFlvdSwKPiBEb2MKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZp
+bGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlz
+IGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkg
+dGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRk
+cmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9y
+IGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSBy
+ZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNv
+cGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0
+ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNl
+ZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
+ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
+dGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
+IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
+Lg0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMg
+dW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2lu
+ZyBtZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNo
+IGdpdmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHC
+xXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRI
+qc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+r
+SKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdA
+LCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+
+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5l
+LKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuDQo=
