@@ -1,46 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 16 Jun 2005 10:31:09 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 16 Jun 2005 10:44:53 +0000
 Subject: [lm-sensors] fixing ticket #1944
-Message-Id: <gjXT3Pml.1118910008.3723750.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E7414@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
 In-Reply-To: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Hugo,
-
-On 2005-06-15, Hugo Vanwoerkom:
-> I have an Epox EP-8VTAI mobo and my situation is
-> exactly that of ticket 1944, except I run kernel
-> 2.6.10.
->
-> I would like to remedy the situation, can someone
-> suggest the steps to take? Given that I have kernel
-> programming experience, but no hardware monitoring
-> equipment.
->
-> Am I way off base?
-
-Looks so. The W83687THF is a rare chip, not listed on Winbond's site, we
-have no datasheet for it, this explains why we don't support it.
-
-We may add experimental detection support to sensors-detect if you
-provide the output of the following command:
-
-isadump -k 0x87,0x87 0x2e 0x2f 0x0b
-
-You'll need a recent version of isadump (lm_sensors 2.9.1 or CVS). If it
-doesn't seem to provide any useful information, try 0x4e 0x4f instead
-of 0x2e 0x2f.
-
-Chunhao, do you have information about the W83687THF chip? Could Winbond
-release a datasheet for that chip? There's not much we can do without
-that.
-
-Thanks,
---
-Jean Delvare
+SGkgSmVhbgoKPiBDaHVuaGFvLCBkbyB5b3UgaGF2ZSBpbmZvcm1hdGlvbiBhYm91dCB0aGUgVzgz
+Njg3VEhGIGNoaXA/IENvdWxkCldpbmJvbmQKPiByZWxlYXNlIGEgZGF0YXNoZWV0IGZvciB0aGF0
+IGNoaXA/IFRoZXJlJ3Mgbm90IG11Y2ggd2UgY2FuIGRvIHdpdGhvdXQKPiB0aGF0LgoKSSBoYXZl
+IG5vIGluZm9ybWF0aW9uIGFib3V0IFc4MzY4N1RIRiBjaGlwLCBJIG5lZWQgdGhlIGhlbHAgb2Yg
+bXkKbWFuYWdlciwKSWYgSSBjYW4gZ2V0IHRoZSBkYXRhIHNoZWV0LCBJIHdpbGwgc2VuZCBpdCB0
+byB5b3UgYXMgc29vbiBhcyBwb3NzaWJsZS4KCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8K
+Cgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZp
+bGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlz
+IGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkg
+dGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRk
+cmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9y
+IGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSBy
+ZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNv
+cGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0
+ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNl
+ZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
+ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
+dGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
+IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
+Lgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBj
+b21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0
+aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50
+IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUup
+yrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr
+/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3Q
+sXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC5
+76nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XO
+tdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3
+frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
