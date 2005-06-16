@@ -1,59 +1,30 @@
-From: x0nishan@ti.com (Menon, Nishanth)
-Date: Tue, 21 Jun 2005 21:31:27 +0000
-Subject: [lm-sensors] I2C 2.9.1 driver support for High Speed I2C (draft
-Message-Id: <520AB2AD990DC04082102F77CA1726385B8AA0@dlee03.ent.ti.com>
+From: webmaster@bollchen.de (Burkart Lingner)
+Date: Thu, 16 Jun 2005 00:28:47 +0000
+Subject: [lm-sensors] Added sysfs support for decode-dimms.pl
+Message-Id: <000201c571f9$ac2fb410$4d01a8c0@BURKART>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <520AB2AD990DC04082102F77CA1726385B8994@dlee03.ent.ti.com>
-In-Reply-To: <520AB2AD990DC04082102F77CA1726385B8994@dlee03.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hello everyone!
 
-Thanks for pointing it out. I understand and accept your comment. I had
-used the lmsensor 2.9.1 as a readily available reference point. In fact,
-if we look at the functions and structures that would be affected by the
-suggested change in the 2.6 kernel i2c driver, I see that there is no
-functional change (in the said functions and structures) between the 2.4
-and the 2.6 versions that would affect HSI2C implementation. In short,
-the suggested implementation is valid even for 2.6 kernel. This was one
-of the design criteria I had placed while looking out for a solution.
-So, if any custom kernel base wanted to extend the Linux2.4 i2c driver,
-it could do so, at the same time, the feature set could be readily
-available for the 2.6 kernel too. 
+I needed to take a closer look at my RAM's SPD-EEPROMs today. Too bad the
+sysfs of Kernel 2.6 wasn't supported by decode-dimms.pl, so I had to add
+support for that myself. Since there probably are more people out there
+who'd like to use this tool on a Kernel 2.6 system, it might be a good idea
+to include the patched file in the next release of lm_sensors. The new
+version can be found at http://www.bollchen.de/decode-dimms.pl. Of course
+the "ADDED" comments should be removed then, I just left them in for now and
+I can strip them later on demand. The new version does work with Kernel 2.6
+and it should as well work with older Kernels and their proc-fs. Since I
+only have a system running 2.6, could anyone with an older Kernel please do
+a test run? That would be greatly appreciated, to make sure I didn't mess
+anything up.
 
-I would love to hear comments for the over all plan (of-course, keeping
-the 2.6 kernel in picture) before I even think about sending out a patch
-for the same.
+I tested the script on a Fedora Core 3 system with Kernel 2.6.11 and
+lm_sensors 2.8.7.
 
-Regards,
-Nishanth Menon
+Bye, Burkart 
 
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: Tuesday, June 21, 2005 2:07 PM
-> To: Menon, Nishanth
-> Cc: Woodruff, Richard; LM Sensors
-> Subject: Re: [lm-sensors] I2C 2.9.1 driver support for High Speed I2C
-> (draft design)
-> 
-> Hi Nishanth,
-> 
-> > In continuance of the discussion about HSI2C support
-> > (http://archives.andrew.net.au/lm-sensors/msg31155.html ), I would
-> > like to present for discussion a strategy to incorporate HSI2C
-support
-> > to the current I2C driver (ver 2.9.1).
-> > (...)
-> > 5.       Should be simple enough to carry forward into various
-kernel
-> > versions.
-> 
-> No. Whatever you plan, this must be based on the Linux 2.6 i2c
-> subsystem. i2c-CVS (for Linux 2.4) is in maintenance state, we are not
-> adding any new feature in there.
-> 
-> --
-> Jean Delvare
