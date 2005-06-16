@@ -1,41 +1,45 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 15 Jun 2005 18:24:15 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Thu, 16 Jun 2005 04:54:57 +0000
 Subject: [lm-sensors] RE: w83792d.c with linux kernel 2.6.11 on asus
-Message-Id: <42B055A4.8010501@sh.cvut.cz>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E737B@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE5E722A@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE5E722A@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-> 
-> Jean, Rudolf,
-> Do you have any suggestion?
-
-We can try to scan the bus again.
-
-Please can you modprobe your  i2c bus driver i2c-i801 (most likely)
-and run i2cdetect 0 and send the output to us?
-After running the command please run the isaset command
-and repeat i2cdetect 0
-
-Then reboot the machine because the isaset trick is blind shot to some GPIOs.
-
-> Btw, the 792 driver has not been fully tested by me under x86_64 platform,
-> but I do NOT think this is the reason.
-
-Yes I think that ASUS have it switched.
-
->>When i insert i2c-isa and w83627thf i get some readings
->>(just some voltages, 0rpm fans and -48v temperatures)
->>but i know the board also has a w83792d for sensors!
-
-ASUS usualy "forks" the bus so we must now contact Asus and ask them. This will take some time so please be patient.
-In meanwhile please try what I suggested.
-
-Regards
-
-Rudolf
+SGkgUnVkb2xmLCBDaHJpc3RpYW4sIEplYW4KCj4gQVNVUyB1c3VhbHkgImZvcmtzIiB0aGUgYnVz
+IHNvIHdlIG11c3Qgbm93IGNvbnRhY3QgQXN1cyBhbmQgYXNrIHRoZW0uClRoaXMgd2lsbAo+IHRh
+a2Ugc29tZSB0aW1lIHNvIHBsZWFzZSBiZSBwYXRpZW50Lgo+IEluIG1lYW53aGlsZSBwbGVhc2Ug
+dHJ5IHdoYXQgSSBzdWdnZXN0ZWQuCgpJIGNvbnRhY3QgQVNVUyBhYm91dCB0aGlzIHByb2JsZW0g
+d2UgbWVldCwgYXMgd2VsbCBhcyB0aGUgcmVxdWVzdCBmcm9tClJ1ZG9sZgpvbiBhYm91dCAyMDA1
+LTA1LTI0LCBoZXJlIGlzIHRoZSByZXNwb25zZSBmcm9tIEFTVVMuCgpRdW90aW5nIEFTVVM6Cj4g
+PiAgRG8geW91IG1lYW4gdGhlIGxtLXNlbnNvciBpc3N1ZSBpbiBMaW51eCBFbnZpcm9ubWVudD8K
+PiA+ICAgSWYgc28sIHdlIHBsYW4gdG8gbW9kaWZ5IEJJT1MgdG8gZml4IHRoaXMgaXNzdWUgdGhl
+biB5b3UgZG9uJ3QKbmVlZCB0bwo+ID4gZG8gYW55dGhpbmcuCgpJIHdpbGwgY29udGludWUgdG8g
+YXNrIEFTVVMgYWJvdXQgaXQuCgoKVGhhbmtzCkJlc3QgUmVnYXJkcwoKQ2h1bmhhbwoKCj09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBj
+b25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5k
+ZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3Jp
+Z2luYWwgc2VuZGVyIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUg
+aW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZl
+cnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRv
+IHRoZSBzZW5kZXIgaW5kaWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9m
+IGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlv
+dXIgY29vcGVyYXRpb24gaXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQg
+YW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJv
+bmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVt
+YWlsIGlycmVsZXZhbnQgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwg
+YmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVy
+IGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xs
+b3dpbmcgbWVzc2FnZS5JdCBlc3NlbnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5n
+bGlzaCBnaXZlbiBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwg
+tsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6as
+q0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t
+7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6
+plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGk
+bKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSn
+pLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
