@@ -1,41 +1,64 @@
-From: david-b@pacbell.net (david-b@pacbell.net)
-Date: Wed, 29 Jun 2005 16:14:57 +0000
-Subject: [lm-sensors] [PATCH 2.6.13-rc1] minor I2C doc cleanups
-Message-Id: <20050629141406.1947DC894D@blackbox.site>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 16 Jun 2005 19:56:30 +0000
+Subject: [lm-sensors] bogus data from W83627HF on an ASRock K7S41
+Message-Id: <20050616195541.2ffca10a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The I2C stack has long had "id" fields, of rather dubious utility, in
-many data structures.  This removes mention of one of them from the
-documentation about how to write an I2C driver, so that only drivers
-that really need to use them (probably old/legacy code) will have any
-reason to use this field.
+Hi David,
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Sorry for the delay.
 
---- o26.orig/Documentation/i2c/writing-clients	2005-05-24 21:35:49.000000000 -0700
-+++ o26/Documentation/i2c/writing-clients	2005-05-31 16:34:57.000000000 -0700
-@@ -27,7 +27,6 @@ address.
- static struct i2c_driver foo_driver = {
- 	.owner		= THIS_MODULE,
- 	.name		= "Foo version 2.3 driver",
--	.id		= I2C_DRIVERID_FOO, /* from i2c-id.h, optional */
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= &foo_attach_adapter,
- 	.detach_client	= &foo_detach_client,
-@@ -37,12 +36,6 @@ static struct i2c_driver foo_driver = {
- The name can be chosen freely, and may be upto 40 characters long. Please
- use something descriptive here.
- 
--If used, the id should be a unique ID. The range 0xf000 to 0xffff is
--reserved for local use, and you can use one of those until you start
--distributing the driver, at which time you should contact the i2c authors
--to get your own ID(s). Note that most of the time you don't need an ID
--at all so you can just omit it.
--
- Don't worry about the flags field; just put I2C_DF_NOTIFY into it. This
- means that your driver will be notified when new adapters are found.
- This is almost always what you want.
+> I've just started to play with lm-sensors, and have almost got it
+> working... however, I'm getting some bogus values, and some others are
+> missing:
+> - -12V is bogus
+
+FAQ 4.6.1
+
+"-5V and -12V readings are way out of range!
+
+It's very frequent that negative voltage lines are not wired because
+motherboard manufacturers don't think they're worth monitoring (they are
+mostly unused these days). You can just add ignore inN lines to
+/etc/sensors.conf to hide them."
+
+Another possibility is that these lines are used to monitor different
+voltages. If this is the case, only the motherboard manufacturer can
+tell, or maybe you can have a look at what voltage values your BIOS
+displays, if any.
+
+> - Vbat looks bogus
+
+Maybe it's simply not wired. Same rules apply as for negative voltages.
+
+> - fan1 and fan2 both zero (even though 1 fan is installed and turning)
+
+FAQ 4.1.1
+
+"Fans sometimes/always read 0!!
+
+You may not have a three-wire fan, which is required.
+
+You may need to increase the 'fan divisor'. See doc/fan-divisors in our
+package for further information."
+
+> My motherboard is an ASRock K7S41, and the sensor appears to be a
+> S83627HF
+
+In fact it appears to be a W83697HF. All these chips have very similar
+names but slightly different feature sets, so you should be careful when
+announcing the name of your chip.
+
+> ????? Why is the algorithm unavailable
+
+Because the Linux 2.6 i2c layer doesn't provide an access to it. I tend
+to think we should stop displaying it, as more people are now using 2.6
+kernels and it is confusing. Nobody really cares about the algorithm,
+it's an internal implementation detail.
+
+-- 
+Jean Delvare
