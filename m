@@ -1,34 +1,45 @@
-From: gregkh@suse.de (Greg KH)
-Date: Wed, 01 Jun 2005 11:43:51 +0000
-Subject: [lm-sensors] [GIT PATCH] I2C bugfix for 2.6.12-rc5
-Message-Id: <20050601050942.GA26994@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 16 Jun 2005 19:47:09 +0000
+Subject: [lm-sensors] smbus RTC as misc device
+Message-Id: <20050616194558.402b7253.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, sensors@stimpy.netroedge.com
+To: lm-sensors@vger.kernel.org
 
-Here is a single i2c patch for the 2.6.12-rc5 tree that fixes a bug.
-This patch has been in the -mm tree for quite some time.
+Hi Olav,
 
-Please pull from:
-	rsync://rsync.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+Sorry for the delay.
 
-The full patch will be sent to the linux-kernel and sensors mailing
-list, if anyone wants to see them.
+> I hope this is the right list for my question. If not, 
+> please point me to a better list.
+> 
+> Sometime at 2.6.8-2.6.9 kernel I needed a driver for the 
+> m41t11 RTC smbus chip. As there was none in the kernel at 
+> that time, I wrote it myself and made it available for user 
+> space as a misc device /dev/rtc (character dev 10 135). This 
+> way unmodified hwclock could access it. 
+> 
+> Now I noticed that latest kernels already contain the 
+> m41t00.c, which may well be able to drive my m41t11 RTC 
+> unmodified. However, it does not make the device available 
+> through /dev/rtc. Neither do that other few i2c RTCs 
+> currently in the kernel. They all seem to define their own 
+> ioctls each.
+> 
+> What about making i2c RTCs available through /dev/rtc 
+> supporting its ioctls? If this would be OK then I can 
+> propose a patch for m41t00.c.
 
-thanks,
+You are probably right. There have been quite a few discussions lately
+about how to standardize the kernel interface to RTC drivers, the same
+question may hold for the user-space interface.
 
-greg k-h
+However, this is neither related to hardware monitoring, nor to i2c, so
+there's not much advice we can give to you - it's something we don't
+know anything about ourselves. Better try to contact the various authors
+of RTC drivers and/or the LKML, and see what they think about the idea.
 
- MAINTAINERS                      |    6 +++++
- drivers/i2c/busses/i2c-ali1563.c |   46 ++++++++++++++++++++++++++-------------
- 2 files changed, 37 insertions(+), 15 deletions(-)
-
-------------
-
-Rudolf Marek:
-  o I2C: ALI1563 SMBus driver fix
-
-
+-- 
+Jean Delvare
