@@ -1,55 +1,89 @@
-From: hvw59601@yahoo.com (Hugo Vanwoerkom)
-Date: Thu, 16 Jun 2005 21:36:36 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 16 Jun 2005 21:55:49 +0000
 Subject: [lm-sensors] fixing ticket #1944
-Message-Id: <20050616193513.89815.qmail@web31002.mail.mud.yahoo.com>
+Message-Id: <20050616215454.3e4d7e5a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
 In-Reply-To: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbjoKCi0tLSBKZWFuIERlbHZhcmUgPGtoYWxpQGxpbnV4LWZyLm9yZz4gd3JvdGU6Cgo+
-IEdvb2QgZXZlbmluZyBIdWdvLAo+IAo+IEF0dGFjaGVkIGFyZToKPiAKPiAxKiBBIHBhdGNoIHRv
-IHNlbnNvcnMtZGV0ZWN0LCB3aGljaCBzaG91bGQgYWRkCj4gc3VwcG9ydCBmb3IgdGhlIFdpbmJv
-bmQKPiBXODM2ODdUSEYgY2hpcC4KPiAKPiAyKiBBIHBhdGNoIHRvIGxpbnV4LTIuNi4xMS4xMiwg
-d2hpY2ggYWRkcwo+IGV4cGVyaW1lbnRhbCBzdXBwb3J0IGZvciB0aGUKPiBXaW5ib25kIFc4MzY4
-N1RIRiBjaGlwIHRvIHRoZSB3ODM2MjdoZiBkcml2ZXIuIEkKPiBhc3N1bWVkIHRoYXQgdGhlIGNo
-aXAKPiB3b3VsZCBiZSBtb3N0bHkgaWRlbnRpY2FsIHRvIHRoZSBXODM2MjdUSEYgYmVjYXVzZQo+
-IHRoZXkgaGF2ZSB0aGUgc2FtZSBJRAo+IHJlZ2lzdGVyIGFuZCB3ZXJlIHN1cHBvc2VkbHkgcmVs
-ZWFzZWQgYnkgV2luYm9uZCBhdAo+IHRoZSBzYW1lIHRpbWUuIFRoaXMKPiBhc3N1bXB0aW9uIG1h
-eSBvciBtYXkgbm90IGJlIGNvcnJlY3QsIHVzZSBhdCB5b3VyCj4gb3duIHJpc2suIFlvdQo+IHNo
-b3VsZG4ndCB0cnkgdW5sZXNzIHlvdSBoYXZlIGEgcGh5c2ljYWwgYWNjZXNzIHRvCj4gdGhlIG1h
-Y2hpbmUgYW5kIGNhbgo+IG5vdGljZSBpZiBzb21ldGhpbmcgZ29lcyB3cm9uZyAoc3VjaCBhcyBh
-IGZhbgo+IHN0b3BwaW5nLi4uKSBJZiB3ZSBjYW4gZ2V0Cj4gYSBkYXRhc2hlZXQgYXQgYSBsYXRl
-ciB0aW1lIEkgd2lsbCBiZSBhYmxlIHRvCj4gdmVyaWZ5Lgo+IAo+ICJzZW5zb3JzIiB3b24ndCB3
-b3JrIG91dCBvZiB0aGUgYm94LCBidXQgeW91IHNob3VsZAo+IGJlIGFibGUgdG8gZ2V0IHRoZQo+
-IHJlYWRpbmdzIGZyb20gL3N5cy9idXMvaTJjLiBMZXQgdXMga25vdyBob3cgaXQgd29ya3MKPiA6
-KQo+IAo+IAoKRmFzdCB3b3JrIEplYW4sIGFuZCBpdCBpcyBzdGlsbCBhZnRlcm5vb24gaGVyZQoo
-T2F4YWNhLCBNZXhpY28pIQpJIGFwcGxpZWQgdGhlIGtlcm5lbCBwYXRjaCB0byAyLjYuMTAsIHdo
-aWNoIGlzIHdoYXQgSQpydW4uIFVwZ3JhZGluZyB0byAyLjYuMTEuMTIgSSBhbSBpbiB0aGUgcHJv
-Y2VzcyBvZiwKYnV0IEkgcnVuIFJ1Ynkgd2l0aCAyIG1vbml0b3JzL2tiZHMvbWljZSBvbiBvbmUg
-UEMsIHNvCkkgaGF2ZSB0byBwYXRjaCB0aGluZ3MgZmlyc3QuCgpUaGUgcGF0Y2ggcmFuIGNsZWFu
-LCBhbmQgdGhlc2UgYXJlIHRoZSByZXN1bHRzIGluCi9zeXMvYnVzL2kyYzoKClNjcmlwdCBzdGFy
-dGVkIG9uIFRodSAxNiBKdW4gMjAwNSAwMjoyMjoxNSBQTSBDRFQKL1RodSBKdW4gMTYtMTQ6MjI6
-MTVIREIxIyBkb19zZW5zb3JzCmFsYXJtcyAWCmJlZXBfZW5hYmxlID0wCmJlZXBfbWFzayA9MApj
-cHUwX3ZpZCA9MApkZXRhY2hfc3RhdGUgPTAKZmFuMV9kaXYgPTIKZmFuMV9pbnB1dCA9MApmYW4x
-X21pbiCFNDQKZmFuMl9kaXYgPTIKZmFuMl9pbnB1dCA4MTMKZmFuMl9taW4gKDI0CmZhbjNfZGl2
-ID0yCmZhbjNfaW5wdXQgPTAKZmFuM19taW4gKDcyCmluMF9pbnB1dCAWNzYKaW4wX21heCAYNzEK
-aW4wX21pbiBwMAppbjFfaW5wdXQgMzI4CmluMV9tYXggMzc2CmluMV9taW4gFzc2CmluMl9pbnB1
-dCAnMjAKaW4yX21heCA1MzYKaW4yX21pbiA3MjgKaW4zX2lucHV0ICk2MAppbjNfbWF4IDMxMgpp
-bjNfbWluIIQ4CmluNF9pbnB1dCA9MAppbjRfbWF4ID0wCmluNF9taW4gPTAKaW43X2lucHV0IDAw
-OAppbjdfbWF4IDI4MAppbjdfbWluIDc2MAppbjhfaW5wdXQgMDg4CmluOF9tYXggQDE2CmluOF9t
-aW4gGTUyCm5hbWUgPXc4MzY4N3RoZgpwd20xIBc2CnB3bTIgFzYKdGVtcDFfaW5wdXQgIjAwMAp0
-ZW1wMV9tYXggPS04NDAwMAp0ZW1wMV9tYXhfaHlzdCARODAwMAp0ZW1wMV90eXBlIDQzNQp0ZW1w
-Ml9pbnB1dCBQMDAwCnRlbXAyX21heCB2MDAwCnRlbXAyX21heF9oeXN0IHEwMDAKdGVtcDJfdHlw
-ZSA9MQp0ZW1wM19pbnB1dCBFNTAwCnRlbXAzX21heCB2MDAwCnRlbXAzX21heF9oeXN0IHEwMDAK
-dGVtcDNfdHlwZSA0MzUKdnJtIJAKL1RodSBKdW4gMTYtMTQ6MjI6MTdIREIxIyBleGl0CgpTY3Jp
-cHQgZG9uZSBvbiBUaHUgMTYgSnVuIDIwMDUgMDI6MjI6MjEgUE0gQ0RUCgpJdCBsb29rcyByaWdo
-dC4gSSBub3JtYWxseSBydW4gbXkgb3duIHByb2dyYW1zIHRoYXQKYXJlIGxpa2Ugc2Vuc29ycywg
-dXNpbmcgbGlic2Vuc29ycy4gV2hhdCBkbyBJIGhhdmUgdG8KZG8gdG8gZ2V0IHRob3NlIHRvIHdv
-cms/IEkgd2lsbCB0YWtlIGEgbG9vayBhdCB0aGUKc2Vuc29ycyBjb2RlLgoKVGhhbmtzIGFnYWlu
-IQoKSHVnbwoKCgoKCgoKCgkJCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18gCkRp
-c2NvdmVyIFlhaG9vISAKVXNlIFlhaG9vISB0byBwbGFuIGEgd2Vla2VuZCwgaGF2ZSBmdW4gb25s
-aW5lIGFuZCBtb3JlLiBDaGVjayBpdCBvdXQhIApodHRwOi8vZGlzY292ZXIueWFob28uY29tLwo=
+Hi Hugo,
+
+> It looks right. I normally run my own programs that
+> are like sensors, using libsensors. What do I have to
+> do to get those to work? I will take a look at the
+> sensors code.
+
+Patch attached. It was quite easy as you can see. Of course, after we
+have a datasheet and know the differences between the W83627THF and the
+W83687THF chips, there will probably be some adjustments needed.
+
+-- 
+Jean Delvare
+-------------- next part --------------
+Index: lib/chips.h
+=================================RCS file: /home/cvs/lm_sensors2/lib/chips.h,v
+retrieving revision 1.108
+diff -u -r1.108 chips.h
+--- lib/chips.h	1 Jun 2005 10:49:04 -0000	1.108
++++ lib/chips.h	16 Jun 2005 20:17:33 -0000
+@@ -575,6 +575,7 @@
+ #define SENSORS_W83627HF_PREFIX "w83627hf"
+ #define SENSORS_W83627THF_PREFIX "w83627thf"
+ #define SENSORS_W83637HF_PREFIX "w83637hf"
++#define SENSORS_W83687THF_PREFIX "w83687thf"
+ 
+ #define SENSORS_W83791D_PREFIX "w83791d"
+ 
+Index: lib/chips.c
+=================================RCS file: /home/cvs/lm_sensors2/lib/chips.c,v
+retrieving revision 1.168
+diff -u -r1.168 chips.c
+--- lib/chips.c	1 Jun 2005 10:49:04 -0000	1.168
++++ lib/chips.c	16 Jun 2005 20:17:35 -0000
+@@ -5436,6 +5436,7 @@
+  { SENSORS_W83627THF_PREFIX, w83782d_features },
+ 		/* Cheat on 83637HF for now - no separate #defines */
+  { SENSORS_W83637HF_PREFIX, w83782d_features },
++ { SENSORS_W83687THF_PREFIX, w83782d_features }, /* Same as W83687THF */
+  { SENSORS_W83791D_PREFIX, w83791d_features },
+  { SENSORS_W83792D_PREFIX, w83792d_features },
+  { SENSORS_W83L785TS_PREFIX, w83l785ts_features },
+Index: prog/sensors/chips.c
+=================================RCS file: /home/cvs/lm_sensors2/prog/sensors/chips.c,v
+retrieving revision 1.161
+diff -u -r1.161 chips.c
+--- prog/sensors/chips.c	6 Jun 2005 19:22:52 -0000	1.161
++++ prog/sensors/chips.c	16 Jun 2005 20:17:36 -0000
+@@ -2201,10 +2201,12 @@
+   is82d = (!strcmp(name->prefix,"w83782d")) ||
+           (!strcmp(name->prefix,"w83627hf")) ||
+           (!strcmp(name->prefix,"w83637hf")) ||
+-          (!strcmp(name->prefix,"w83627thf"));
++          (!strcmp(name->prefix,"w83627thf")) ||
++          (!strcmp(name->prefix,"w83687thf"));
+   is83s = !strcmp(name->prefix,"w83783s");
+   is627thf = (!strcmp(name->prefix,"w83627thf")) ||
+-             (!strcmp(name->prefix,"w83637hf"));
++             (!strcmp(name->prefix,"w83637hf")) ||
++	     (!strcmp(name->prefix,"w83687thf"));
+   is697hf  = !strcmp(name->prefix,"w83697hf");
+ 
+   if (!sensors_get_feature(*name,SENSORS_W83781D_ALARMS,&cur)) 
+Index: prog/sensors/main.c
+=================================RCS file: /home/cvs/lm_sensors2/prog/sensors/main.c,v
+retrieving revision 1.111
+diff -u -r1.111 main.c
+--- prog/sensors/main.c	27 Mar 2005 15:44:53 -0000	1.111
++++ prog/sensors/main.c	16 Jun 2005 20:17:36 -0000
+@@ -361,6 +361,7 @@
+ 	{ "w83627thf", print_w83781d },
+ 	{ "w83637hf", print_w83781d },
+ 	{ "w83697hf", print_w83781d },
++	{ "w83687thf", print_w83781d },
+ 	{ "w83627ehf", print_w83627ehf },
+ 	{ "w83791d", print_w83781d },
+         { "w83792d", print_w83792d },
