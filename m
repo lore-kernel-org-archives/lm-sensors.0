@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 16 Jun 2005 21:55:49 +0000
+From: hvw59601@yahoo.com (Hugo Vanwoerkom)
+Date: Fri, 17 Jun 2005 00:14:20 +0000
 Subject: [lm-sensors] fixing ticket #1944
-Message-Id: <20050616215454.3e4d7e5a.khali@linux-fr.org>
+Message-Id: <20050616221404.37371.qmail@web31002.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
 In-Reply-To: <20050615222035.91224.qmail@web31003.mail.mud.yahoo.com>
@@ -10,80 +10,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hugo,
+Hi Jean,
 
-> It looks right. I normally run my own programs that
-> are like sensors, using libsensors. What do I have to
-> do to get those to work? I will take a look at the
-> sensors code.
+I obviously owe you one. If I can be of help anytime,
+give a holler.
+Output of sensors is below. Looks right, might need be
+tweaked. Temp1 23 degrees? The room temp here is 29
+degrees.
+Thanks again!
 
-Patch attached. It was quite easy as you can see. Of course, after we
-have a datasheet and know the differences between the W83627THF and the
-W83687THF chips, there will probably be some adjustments needed.
 
--- 
-Jean Delvare
--------------- next part --------------
-Index: lib/chips.h
-=================================RCS file: /home/cvs/lm_sensors2/lib/chips.h,v
-retrieving revision 1.108
-diff -u -r1.108 chips.h
---- lib/chips.h	1 Jun 2005 10:49:04 -0000	1.108
-+++ lib/chips.h	16 Jun 2005 20:17:33 -0000
-@@ -575,6 +575,7 @@
- #define SENSORS_W83627HF_PREFIX "w83627hf"
- #define SENSORS_W83627THF_PREFIX "w83627thf"
- #define SENSORS_W83637HF_PREFIX "w83637hf"
-+#define SENSORS_W83687THF_PREFIX "w83687thf"
- 
- #define SENSORS_W83791D_PREFIX "w83791d"
- 
-Index: lib/chips.c
-=================================RCS file: /home/cvs/lm_sensors2/lib/chips.c,v
-retrieving revision 1.168
-diff -u -r1.168 chips.c
---- lib/chips.c	1 Jun 2005 10:49:04 -0000	1.168
-+++ lib/chips.c	16 Jun 2005 20:17:35 -0000
-@@ -5436,6 +5436,7 @@
-  { SENSORS_W83627THF_PREFIX, w83782d_features },
- 		/* Cheat on 83637HF for now - no separate #defines */
-  { SENSORS_W83637HF_PREFIX, w83782d_features },
-+ { SENSORS_W83687THF_PREFIX, w83782d_features }, /* Same as W83687THF */
-  { SENSORS_W83791D_PREFIX, w83791d_features },
-  { SENSORS_W83792D_PREFIX, w83792d_features },
-  { SENSORS_W83L785TS_PREFIX, w83l785ts_features },
-Index: prog/sensors/chips.c
-=================================RCS file: /home/cvs/lm_sensors2/prog/sensors/chips.c,v
-retrieving revision 1.161
-diff -u -r1.161 chips.c
---- prog/sensors/chips.c	6 Jun 2005 19:22:52 -0000	1.161
-+++ prog/sensors/chips.c	16 Jun 2005 20:17:36 -0000
-@@ -2201,10 +2201,12 @@
-   is82d = (!strcmp(name->prefix,"w83782d")) ||
-           (!strcmp(name->prefix,"w83627hf")) ||
-           (!strcmp(name->prefix,"w83637hf")) ||
--          (!strcmp(name->prefix,"w83627thf"));
-+          (!strcmp(name->prefix,"w83627thf")) ||
-+          (!strcmp(name->prefix,"w83687thf"));
-   is83s = !strcmp(name->prefix,"w83783s");
-   is627thf = (!strcmp(name->prefix,"w83627thf")) ||
--             (!strcmp(name->prefix,"w83637hf"));
-+             (!strcmp(name->prefix,"w83637hf")) ||
-+	     (!strcmp(name->prefix,"w83687thf"));
-   is697hf  = !strcmp(name->prefix,"w83697hf");
- 
-   if (!sensors_get_feature(*name,SENSORS_W83781D_ALARMS,&cur)) 
-Index: prog/sensors/main.c
-=================================RCS file: /home/cvs/lm_sensors2/prog/sensors/main.c,v
-retrieving revision 1.111
-diff -u -r1.111 main.c
---- prog/sensors/main.c	27 Mar 2005 15:44:53 -0000	1.111
-+++ prog/sensors/main.c	16 Jun 2005 20:17:36 -0000
-@@ -361,6 +361,7 @@
- 	{ "w83627thf", print_w83781d },
- 	{ "w83637hf", print_w83781d },
- 	{ "w83697hf", print_w83781d },
-+	{ "w83687thf", print_w83781d },
- 	{ "w83627ehf", print_w83627ehf },
- 	{ "w83791d", print_w83781d },
-         { "w83792d", print_w83792d },
+--- Jean Delvare <khali@linux-fr.org> wrote:
+
+> Hi Hugo,
+> 
+> 
+> 
+> Patch attached. It was quite easy as you can see. Of
+> course, after we
+> have a datasheet and know the differences between
+> the W83627THF and the
+> W83687THF chips, there will probably be some
+> adjustments needed.
+> 
+
+
+Script started on Thu 16 Jun 2005 05:03:52 PM CDT
+/Thu Jun 16-17:03:52HDB1# sensors
+w83687thf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.68 V  (min =  +0.70 V, max =  +1.87 V)  
+           
+VCore 2:   +3.33 V  (min =  +1.78 V, max =  +3.38 V)  
+           
++3.3V:     +2.72 V  (min =  +3.73 V, max =  +3.54 V)  
+           
++5V:       +4.97 V  (min =  +1.42 V, max =  +5.56 V)  
+           
++12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)  
+           
+V5SB:      +5.05 V  (min =  +6.32 V, max =  +5.51 V)  
+           
+VBat:      +3.09 V  (min =  +1.95 V, max =  +4.02 V)  
+           
+fan1:        0 RPM  (min = 8544 RPM, div = 2)         
+           
+fan2:     3813 RPM  (min = 2824 RPM, div = 2)         
+           
+fan3:        0 RPM  (min = 2872 RPM, div = 2)         
+           
+temp1:       +23?C  (high =   -84?C, hyst =  +118?C)  
+sensor = thermistor   ALARM   
+temp2:     +50.5?C  (high =   +76?C, hyst =   +71?C)  
+sensor = diode           
+temp3:     +44.5?C  (high =   +76?C, hyst =   +71?C)  
+sensor = thermistor           
+vid:      +0.000 V  (VRM Version 9.0)
+alarms:   
+beep_enable:
+          Sound alarm disabled
+
+/Thu Jun 16-17:04:00HDB1# exit
+
+Script done on Thu 16 Jun 2005 05:04:05 PM CDT
+
+
+		
+__________________________________ 
+Discover Yahoo! 
+Get on-the-go sports scores, stock quotes, news and more. Check it out! 
+http://discover.yahoo.com/mobile.html
