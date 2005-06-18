@@ -1,93 +1,116 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 27 Jun 2005 23:30:49 +0000
-Subject: [lm-sensors] Moving hardware monitoring drivers to drivers/hwmon
-Message-Id: <20050627233029.59b226d9.khali@linux-fr.org>
+From: linux_user98765@yahoo.com (linux_user98765@yahoo.com)
+Date: Sat, 18 Jun 2005 08:35:38 +0000
+Subject: [lm-sensors] Asus A8000 (SMBus 2Eh) Inquiry/Request
+Message-Id: <20050618063459.94021.qmail@web60417.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050627224003.4b1ce717.khali@linux-fr.org>
-In-Reply-To: <20050627224003.4b1ce717.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
-Cc: Greg KH <greg@kroah.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi all,
+Debian Packages:
+lm-sensors-2.9.1_2
+kernel-image-2.6.11-1-686
 
-Finally this third patch moves the hardware monitoring drivers
-documentation files from Documentation/i2c/chips to Documentation/hwmon,
-as well the sysfs-interface and userspace-tools documentation files from
-Documentation/i2c to Documentation/hwmon.
+HP Pavilion A1020N Desktop PC
+ASUS PTGD-LA (Goldfish3) OEM Motherboard
+http://h20000.www2.hp.com/bizsupport/TechSupport/Document.jsp?objectID=C003=
+61570&prodTypeId=12169&prodSeriesIdC3919&locale=3Den_US
 
-Again, this patch being large (267 kB) and uninteresting, I'm not
-including it, you can get it here:
+ASUS A8000 Sensor Chip
+http://vip.asus.com/forum/bbs.aspx?board_id=3D1&SLanguage=3Den-us
 
-http://jdelvare.net1.nerim.net/sensors/linux-2.6.12-git5-hwmon-move-all-drivers-3-doc.diff.gz
+# lspci -n
 
- Documentation/hwmon/adm1021         |  111 +++++++++
- Documentation/hwmon/adm1025         |   51 ++++
- Documentation/hwmon/adm1026         |   93 ++++++++
- Documentation/hwmon/adm1031         |   35 +++
- Documentation/hwmon/adm9240         |  177 +++++++++++++++
- Documentation/hwmon/asb100          |   72 ++++++
- Documentation/hwmon/ds1621          |  108 +++++++++
- Documentation/hwmon/fscher          |  169 +++++++++++++++
- Documentation/hwmon/gl518sm         |   74 ++++++
- Documentation/hwmon/it87            |   96 ++++++++
- Documentation/hwmon/lm63            |   57 +++++
- Documentation/hwmon/lm75            |   65 +++++
- Documentation/hwmon/lm77            |   22 +
- Documentation/hwmon/lm78            |   82 +++++++
- Documentation/hwmon/lm80            |   56 +++++
- Documentation/hwmon/lm83            |   76 ++++++
- Documentation/hwmon/lm85            |  221 +++++++++++++++++++
- Documentation/hwmon/lm87            |   73 ++++++
- Documentation/hwmon/lm90            |  121 ++++++++++
- Documentation/hwmon/lm92            |   37 +++
- Documentation/hwmon/max1619         |   29 ++
- Documentation/hwmon/pc87360         |  189 ++++++++++++++++
- Documentation/hwmon/sis5595         |  106 +++++++++
- Documentation/hwmon/smsc47b397      |  158 ++++++++++++++
- Documentation/hwmon/smsc47m1        |   52 ++++
- Documentation/hwmon/sysfs-interface |  274 ++++++++++++++++++++++++
- Documentation/hwmon/userspace-tools |   39 +++
- Documentation/hwmon/via686a         |   65 +++++
- Documentation/hwmon/w83627hf        |   66 +++++
- Documentation/hwmon/w83781d         |  402 ++++++++++++++++++++++++++++++++++++
- Documentation/hwmon/w83l785ts       |   39 +++
- Documentation/i2c/chips/adm1021     |  111 ---------
- Documentation/i2c/chips/adm1025     |   51 ----
- Documentation/i2c/chips/adm1026     |   93 --------
- Documentation/i2c/chips/adm1031     |   35 ---
- Documentation/i2c/chips/adm9240     |  177 ---------------
- Documentation/i2c/chips/asb100      |   72 ------
- Documentation/i2c/chips/ds1621      |  108 ---------
- Documentation/i2c/chips/fscher      |  169 ---------------
- Documentation/i2c/chips/gl518sm     |   74 ------
- Documentation/i2c/chips/it87        |   96 --------
- Documentation/i2c/chips/lm63        |   57 -----
- Documentation/i2c/chips/lm75        |   65 -----
- Documentation/i2c/chips/lm77        |   22 -
- Documentation/i2c/chips/lm78        |   82 -------
- Documentation/i2c/chips/lm80        |   56 -----
- Documentation/i2c/chips/lm83        |   76 ------
- Documentation/i2c/chips/lm85        |  221 -------------------
- Documentation/i2c/chips/lm87        |   73 ------
- Documentation/i2c/chips/lm90        |  121 ----------
- Documentation/i2c/chips/lm92        |   37 ---
- Documentation/i2c/chips/max1619     |   29 --
- Documentation/i2c/chips/pc87360     |  189 ----------------
- Documentation/i2c/chips/sis5595     |  106 ---------
- Documentation/i2c/chips/smsc47b397  |  158 --------------
- Documentation/i2c/chips/smsc47m1    |   52 ----
- Documentation/i2c/chips/via686a     |   65 -----
- Documentation/i2c/chips/w83627hf    |   66 -----
- Documentation/i2c/chips/w83781d     |  402 ------------------------------------
- Documentation/i2c/chips/w83l785ts   |   39 ---
- Documentation/i2c/sysfs-interface   |  274 ------------------------
- Documentation/i2c/userspace-tools   |   39 ---
- 62 files changed, 3215 insertions(+), 3215 deletions(-)
+0000:00:00.0 0600: 8086:2580 (rev 04)
+0000:00:02.0 0300: 8086:2582 (rev 04)
+0000:00:1b.0 0403: 8086:2668 (rev 03)
+0000:00:1c.0 0604: 8086:2660 (rev 03)
+0000:00:1d.0 0c03: 8086:2658 (rev 03)
+0000:00:1d.1 0c03: 8086:2659 (rev 03)
+0000:00:1d.2 0c03: 8086:265a (rev 03)
+0000:00:1d.3 0c03: 8086:265b (rev 03)
+0000:00:1d.7 0c03: 8086:265c (rev 03)
+0000:00:1e.0 0604: 8086:244e (rev d3)
+0000:00:1f.0 0601: 8086:2640 (rev 03)
+0000:00:1f.1 0101: 8086:266f (rev 03)
+0000:00:1f.2 0101: 8086:2651 (rev 03)
+0000:00:1f.3 0c05: 8086:266a (rev 03)
+0000:02:01.0 0c00: 1106:3044 (rev 80)
+0000:02:02.0 0200: 10ec:8139 (rev 10)
+0000:02:05.0 0780: 11c1:048c (rev 03)
+
+# i2c-detect 0
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX 2e XX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX
+50: UU XX UU XX XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+70: XX XX XX XX XX XX XX XX
+
+(`i2cdump 0 0xXX` for above attached)
 
 
-Thanks,
--- 
-Jean Delvare
+Lastly, Everest Home Edition
+(http://www.lavalys.com/products/overview.php?pid=3D1&lang=3Den) detects
+the following:
+
+
+Sensor
+* Asus A8000 (SMBus 2Eh)
+
+Temperature
+* Motherboard
+* CPU
+* /dev/hda
+* /dev/sda
+
+Fans
+* CPU
+* Chasis (Case)
+
+Voltages
+* CPU Core
+* +2.5 V
+* +3.3 V
+* +5 V
+* +12 V
+* VTR
+
+
+TIA!
+
+
+	=09
+____________________________________________________=20
+Yahoo! Sports=20
+Rekindle the Rivalries. Sign up for Fantasy Football=20
+http://football.fantasysports.yahoo.com
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2cdump_log
+Type: application/octet-stream
+Size: 6209 bytes
+Desc: pat1069775445
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050617=
+/f9d8fc97/i2cdump_log-0001.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: sensors-detect_log
+Type: application/octet-stream
+Size: 8057 bytes
+Desc: pat1210933812
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050617=
+/f9d8fc97/sensors-detect_log-0001.obj
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lsmod
+Type: application/octet-stream
+Size: 3726 bytes
+Desc: pat95937310
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050617=
+/f9d8fc97/lsmod-0001.obj
