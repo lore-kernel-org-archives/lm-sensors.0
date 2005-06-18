@@ -1,7 +1,7 @@
 From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 18 Jun 2005 21:51:23 +0000
+Date: Sat, 18 Jun 2005 23:11:51 +0000
 Subject: [lm-sensors] Asus A8000 (SMBus 2Eh) Inquiry/Request
-Message-Id: <42B47B29.2070208@sh.cvut.cz>
+Message-Id: <42B48E09.3040106@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050618063459.94021.qmail@web60417.mail.yahoo.com>
 In-Reply-To: <20050618063459.94021.qmail@web60417.mail.yahoo.com>
@@ -10,45 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi thank you for a report.
-> Sensor
-> * Asus A8000 (SMBus 2Eh)
-> 
-> Temperature
-> * Motherboard
-> * CPU
-> * /dev/hda
-> * /dev/sda
-> 
-> Fans
-> * CPU
-> * Chasis (Case)
-> 
-> Voltages
-> * CPU Core
-> * +2.5 V
-> * +3.3 V
-> * +5 V
-> * +12 V
-> * VTR
+Hello
 
-This chip may be compatible with lm85
+Jean  thinks it could be also Winbond chip. We can try with:
 
-you need to load your bus driver
-modprobe i2c-i801
-(most likely)
-modprobe lm85 force=0,0x2e
+1) reboot the computer
+2) i2cdump 0 0x2e
+3) i2cset 0 0x2e 0x4e 0x00
+4) i2cdump 0 0x2e
 
-Then you can run:
- sensors
+Send us please that two dumps too.
 
-To see some results. Please send them back to us. Above is a bit dangerous. Be sure that your fans will spin when the system is under load
-or reboot the notebook after you obtained the results. As far I could see from the dump the temperatures should be reported OK.
-
-If "no chips found" please look to log what has gone wrong.
-
-Good luck.
-
+Thanks
 Regards
 
 Rudolf
+
