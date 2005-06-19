@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 19 Jun 2005 19:51:35 +0000
+From: chris@ripptech.com (Chris Ripp)
+Date: Sun, 19 Jun 2005 22:15:30 +0000
 Subject: [lm-sensors] Req for sensors help w/ Asus PC-DL
-Message-Id: <42B5B08D.2010407@sh.cvut.cz>
+Message-Id: <42B5D24A.7010704@ripptech.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42B4EC0B.1020603@ripptech.com>
 In-Reply-To: <42B4EC0B.1020603@ripptech.com>
@@ -10,56 +10,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> ha! That figures.  Not sure when that pnpacpi option was added or when I
-> turned it on, but that was the cure.  Brilliant!
+[snip]
 
-The 0x290 IO port was reserved by ACPI and our driver failed to register it.
-You turned off the ACPI PNP feature with that option.
+>We just sent a query about THF chip to winbond we think it might have some additional features. (more fans)
+>
+>The CPUs itself might have build in sensor. I think it resides on address 0x48 and 0x49
+>
+>Please can you do:
+>
+>modprobe i2c-i801
+>modprobe i2c-dev
+>i2cdump 0 0x48
+>i2cdump 0 0x49
+>
+>  
+>
+able ~ # i2cdump 0 0x48
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x48, mode byte
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+10: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+20: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+30: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+40: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+50: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+60: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+70: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+80: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+90: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+a0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+b0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+c0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+d0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+e0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+f0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+able ~ # i2cdump 0 0x49
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x49, mode byte
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+10: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+20: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+30: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+40: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+50: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+60: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+70: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+80: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+90: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+a0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+b0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+c0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+d0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+e0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
+f0: 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50 7c 00 4b 50    |.KP|.KP|.KP|.KP
 
-> w83627thf-isa-0290
-> Adapter: ISA adapter
-> VCore:     +1.47 V  (min =  +0.70 V, max =  +1.87 V)
-> +12V:     +11.92 V  (min =  +3.16 V, max =  +3.89 V)       ALARM
-> +3.3V:     +3.26 V  (min =  +0.13 V, max =  +0.03 V)       ALARM
-> +5V:       +4.91 V  (min =  +3.63 V, max =  +3.44 V)       ALARM
-> -12V:     -14.91 V  (min = -14.91 V, max = -14.91 V)       ALARM
-> V5SB:      +5.05 V  (min =  +0.11 V, max =  +0.03 V)       ALARM
-> VBat:      +3.10 V  (min =  +2.83 V, max =  +0.26 V)       ALARM
-> fan1:     3750 RPM  (min = 3125 RPM, div = 2)
-> CPU Fan:  5487 RPM  (min =   -1 RPM, div = 2)              ALARM
-> fan3:     5532 RPM  (min = 10546 RPM, div = 2)              ALARM
-> M/B Temp:    +46 C  (high =    +0 C, hyst =    +0 C)   sensor > thermistor   ALARM
-> CPU Temp:  +41.5 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
-> temp3:     +39.0 C  (high =   +80 C, hyst =   +75 C)   sensor = thermistor
-> vid:      +0.275 V  (VRM Version 9.0)
-> alarms:   Chassis intrusion detection                      ALARM
-> beep_enable:
->           Sound alarm disabled
-> 
-> I think I can figure out the labels etc. from here, unless you're
-> talking about something else w/ the CPU temps?
+I will have to recompile for this, and can't do it right now, when I get
+there I'll reply about this section...
 
-We just sent a query about THF chip to winbond we think it might have some additional features. (more fans)
 
-The CPUs itself might have build in sensor. I think it resides on address 0x48 and 0x49
-
-Please can you do:
-
-modprobe i2c-i801
-modprobe i2c-dev
-i2cdump 0 0x48
-i2cdump 0 0x49
-
-In meanwhile you can try:
-
-modprobe adm1021 force_adm1021=0,0x48
-Or better (i'm not sure about delimiter)
-modprobe adm1021 force_adm1021=0,0x48,0,0x49
-sensors
-
-More on this on monday after my exam.
-
-Regards
-Rudolf
-
+>In meanwhile you can try:
+>
+>modprobe adm1021 force_adm1021=0,0x48
+>Or better (i'm not sure about delimiter)
+>modprobe adm1021 force_adm1021=0,0x48,0,0x49
+>sensors
+>
+>More on this on monday after my exam.
+>
+>Regards
+>Rudolf
+>
+>
+>  
+>
 
