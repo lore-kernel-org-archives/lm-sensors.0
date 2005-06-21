@@ -1,39 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 20 Jun 2005 15:26:46 +0000
-Subject: [lm-sensors] Req for sensors help w/ Asus PC-DL
-Message-Id: <Gzi6ikmi.1119273728.9166630.khali@localhost>
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Tue, 21 Jun 2005 03:42:21 +0000
+Subject: [lm-sensors] RE: w83792d driver for the 2.6 kernel
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42B4EC0B.1020603@ripptech.com>
-In-Reply-To: <42B4EC0B.1020603@ripptech.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi all,
-
-Rudolf Marek wrote:
-> We just sent a query about THF chip to winbond we think it might have
-> some additional features. (more fans)
-
-You're mixing two different things here. The datasheet I queried Winbond
-for is for the W826_8_7THF chip, not for the W836_2_7THF chip. I do not
-think there is any (important) feature in the W83627THF that we don't
-support.
-
-> In meanwhile you can try:
->
-> modprobe adm1021 force_adm1021=0,0x48
-> Or better (i'm not sure about delimiter)
-> modprobe adm1021 force_adm1021=0,0x48,0,0x49
-> sensors
-
-I wouldn't do that. Seeing the dumps, these chips are clearly not
-ADM1021-like, and forcing the adm1021 driver may cause trouble. At the
-very least, use the read_only parameter of the adm1021 driver. But I'm
-pretty sure it won't help anyway. The chips are more likely LM75 or
-LM77 compatible. Maybe the Xeon docs from Intel mention it?
-
---
-Jean Delvare
+SGkgRmFiaWVuLCBSdWRvbGYKCj4gSSBzYXcgdGhhdCB5b3Ugd2VyZSBwb3J0aW5nIHRoZSB3ODM3
+OTJkIGRyaXZlciB0byB0aGUgMi42IGtlcm5lbC4gSQpuZWVkIGl0Cj4gdG8KPiBtb25pdG9yIHRo
+ZSB0ZW1wZXJhdHVyZSBvbiB0aGUgU3VwZXJNaWNybyBQOFNDVCBtb3RoZXJib2FyZCB0aGF0IG15
+CnRlYW0gaXMKPiBldmFsdWF0aW5nLgoKSSBoYXZlIGZpbmlzaGVkIHRoZSBwb3J0aW5nIG9mIHc4
+Mzc5MmQgZHJpdmVyIHRvIHRoZSAyLjYga2VybmVsLCBhbmQKc3VibWl0dGVkCml0IHRvIHRoZSBs
+bV9zZW5zb3JzIGdyb3VwLiBSdWRvbGYsIHRoZSBtZW1iZXIgb2YgbG1fc2Vuc29ycyBncm91cApo
+ZWxwZWQgbWUKdG8gZmluaXNoIHRoZSBkb2N1bWVudHMgYW5kIHdpbGwgc3VibWl0IGl0IHRvIHRo
+ZSBrZXJuZWwgdGVybSBmb3IgbWUgaW4KdGhlCm5lYXIgZnV0dXJlLCBJIHRoaW5rLgoKCj4gQ291
+bGQgeW91IHRlbGwgbWUgd2hlcmUgSSBjYW4gZ2V0IHRoZSBzb3VyY2UgY29kZSBmb3IgdGhlIDIu
+NiBrZXJuZWwgPwpBbHNvLAo+IHdoZW4gZG8geW91IHBsYW4gdG8gc3VibWl0IGl0IHRvIHRoZSBL
+ZXJuZWwgdGVhbSA/CgpIaSBSdWRvbGYKV291bGQgeW91IHBsZWFzZSBnaXZlIHVzIHRoZSBhbnN3
+ZXIgdG8gdGhlIGFib3ZlIHF1ZXN0aW9ucz8KCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8K
+Cgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZp
+bGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlz
+IGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkg
+dGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRk
+cmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9y
+IGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSBy
+ZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNv
+cGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0
+ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNl
+ZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
+ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
+dGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
+IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
+Lgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBj
+b21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0
+aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50
+IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUup
+yrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr
+/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3Q
+sXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC5
+76nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XO
+tdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3
+frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
