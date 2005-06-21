@@ -1,45 +1,48 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Tue, 21 Jun 2005 03:42:21 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 21 Jun 2005 08:49:05 +0000
 Subject: [lm-sensors] RE: w83792d driver for the 2.6 kernel
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
+Message-Id: <42B7B838.9010802@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgRmFiaWVuLCBSdWRvbGYKCj4gSSBzYXcgdGhhdCB5b3Ugd2VyZSBwb3J0aW5nIHRoZSB3ODM3
-OTJkIGRyaXZlciB0byB0aGUgMi42IGtlcm5lbC4gSQpuZWVkIGl0Cj4gdG8KPiBtb25pdG9yIHRo
-ZSB0ZW1wZXJhdHVyZSBvbiB0aGUgU3VwZXJNaWNybyBQOFNDVCBtb3RoZXJib2FyZCB0aGF0IG15
-CnRlYW0gaXMKPiBldmFsdWF0aW5nLgoKSSBoYXZlIGZpbmlzaGVkIHRoZSBwb3J0aW5nIG9mIHc4
-Mzc5MmQgZHJpdmVyIHRvIHRoZSAyLjYga2VybmVsLCBhbmQKc3VibWl0dGVkCml0IHRvIHRoZSBs
-bV9zZW5zb3JzIGdyb3VwLiBSdWRvbGYsIHRoZSBtZW1iZXIgb2YgbG1fc2Vuc29ycyBncm91cApo
-ZWxwZWQgbWUKdG8gZmluaXNoIHRoZSBkb2N1bWVudHMgYW5kIHdpbGwgc3VibWl0IGl0IHRvIHRo
-ZSBrZXJuZWwgdGVybSBmb3IgbWUgaW4KdGhlCm5lYXIgZnV0dXJlLCBJIHRoaW5rLgoKCj4gQ291
-bGQgeW91IHRlbGwgbWUgd2hlcmUgSSBjYW4gZ2V0IHRoZSBzb3VyY2UgY29kZSBmb3IgdGhlIDIu
-NiBrZXJuZWwgPwpBbHNvLAo+IHdoZW4gZG8geW91IHBsYW4gdG8gc3VibWl0IGl0IHRvIHRoZSBL
-ZXJuZWwgdGVhbSA/CgpIaSBSdWRvbGYKV291bGQgeW91IHBsZWFzZSBnaXZlIHVzIHRoZSBhbnN3
-ZXIgdG8gdGhlIGFib3ZlIHF1ZXN0aW9ucz8KCgpUaGFua3MKQmVzdCBSZWdhcmRzCkNodW5oYW8K
-Cgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZp
-bGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlz
-IGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkg
-dGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRk
-cmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9y
-IGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSBy
-ZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNv
-cGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0
-ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNl
-ZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBv
-ZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4g
-dGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25k
-IHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25k
-Lgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBj
-b21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0
-aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50
-IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUup
-yrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr
-/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3Q
-sXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC5
-76nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XO
-tdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3
-frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+Hi all,
+>>to
+>>monitor the temperature on the SuperMicro P8SCT motherboard that my
+> 
+> team is
+> 
+>>evaluating.
+
+I have ready a patch for 2.6.x kernels (2.6.11, 2.6.12 older might work too) please see the attachment.
+And also you need to use CVS version of lm_sensors.Download from here:
+http://secure.netroedge.com/~lm78/archive/lm_sensors-daily.tar.gz
+and compile with:
+make user; make user_install
+
+Please let us know how it works.
+
+> I have finished the porting of w83792d driver to the 2.6 kernel, and
+> submitted
+> it to the lm_sensors group. Rudolf, the member of lm_sensors group
+> helped me
+> to finish the documents and will submit it to the kernel term for me in
+> the
+> near future, I think.
+
+Yes I will work on it today. It is nearly ready and soon it will go to -mm- series of kernels.
+There were some sysfs callbacks changes in -mm- and this needs to be incorporated to the driver.
+
+Regards
+Rudolf
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: patch_w83792d-2.6.12.gz
+Type: application/x-gzip
+Size: 14396 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050621/8dfe2e28/patch_w83792d-2.6.12-0001.gz
