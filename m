@@ -1,7 +1,7 @@
-From: pierre-olivier.gaillard@fr.thalesgroup.com (P.O. Gaillard)
-Date: Wed, 22 Jun 2005 10:15:20 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 22 Jun 2005 10:34:08 +0000
 Subject: [lm-sensors] RE: w83792d driver for the 2.6 kernel
-Message-Id: <42B91DBE.40505@fr.thalesgroup.com>
+Message-Id: <42B92270.30403@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
@@ -10,32 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Huang0@Winbond.com.tw wrote:
+Hi all
 
-> Hi Fabien
->
-> I check the motherboard SuperMicro P8SCT
-> http://www.supermicro.com/products/motherboard/P4/E7221/P8SCT.cfm
-> and it's user manual:
-> http://www.supermicro.com/manuals/motherboard/E7221/MNL-0776.pdf
-> and do NOT find w83792d chip but w83627hf chip, Are you sure that your
-> motherboard
-> contains the 792 chip?
-> 
-Indeed, Ken Wo from Supermicro Nederland was kind enough to tell us about it and 
-we saw that :
-  - we can load the w83792d module on the P8SCT
-  - doing sensors -u shows results from both chips and the ones from the w83792d 
-are the ones that seem right (i.e. 40 Celsius instead of -1 Celsius)
+Please can you modprobe the bus driver
 
-So, it's pretty clear the there is a w83792d somewhere on the motherboard and 
-that the temperature sensors and fans are connected to it.
+modprobe i2c-i801
+modprobe i2c-dev
+i2cdetect 0
 
-	thank you for writing the driver which allows us to choose this motherboard for 
-our project.
+And send us output of i2cdetect command?
 
-	sincerely,
+Somewhere in region 0x20 - 0x2f should be one number. Use it in next command
 
-	P.O. Gaillard
+i2cdump 0 0x2f
 
+0x2f is an example. Most likely it will be 0x2f or 0x2d or 0x2e
 
+Are you sure you ran  /usr/local/sbin/sensors-detect
+
+and not /usr/sbin/sensors-detect
+
+Thanks,
+regards
+
+Rudolf.
