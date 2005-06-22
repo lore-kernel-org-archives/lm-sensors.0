@@ -1,45 +1,41 @@
-From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
-Date: Wed, 22 Jun 2005 04:08:21 +0000
+From: pierre-olivier.gaillard@fr.thalesgroup.com (P.O. Gaillard)
+Date: Wed, 22 Jun 2005 10:15:20 +0000
 Subject: [lm-sensors] RE: w83792d driver for the 2.6 kernel
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E78A6@weshml03.winbond.com.tw>
+Message-Id: <42B91DBE.40505@fr.thalesgroup.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgRmFiaWVuCgoKPiBJIGFsc28gcmVtb3ZlZCB0aGUgRmVkb3JhIHZlcnNpb24gYnV0IHRoZSBz
-ZW5zb3JzLWRldGVjdCBzY3JpcHQgc3RpbGwKZmFpbGVkCj4gdG8gZGV0ZWN0IHRoZSA4Mzc5MmQu
-IENvdWxkIGl0IGJlIGJlY2F1c2UgaXQgaXMgbm90IHByb3Blcmx5IGluc3RhbGxlZAo/IFdoYXQK
-PiBjb21tYW5kcyBzaG91bGQgSSBpc3N1ZSBpbiBhZGRpdGlvbiB0byAibWFrZSB1c2VyOyBtYWtl
-IHVzZXJfaW5zdGFsbCIKPwoKSSBjaGVjayB0aGUgbW90aGVyYm9hcmQgU3VwZXJNaWNybyBQOFND
-VApodHRwOi8vd3d3LnN1cGVybWljcm8uY29tL3Byb2R1Y3RzL21vdGhlcmJvYXJkL1A0L0U3MjIx
-L1A4U0NULmNmbQphbmQgaXQncyB1c2VyIG1hbnVhbDoKaHR0cDovL3d3dy5zdXBlcm1pY3JvLmNv
-bS9tYW51YWxzL21vdGhlcmJvYXJkL0U3MjIxL01OTC0wNzc2LnBkZgphbmQgZG8gTk9UIGZpbmQg
-dzgzNzkyZCBjaGlwIGJ1dCB3ODM2MjdoZiBjaGlwLCBBcmUgeW91IHN1cmUgdGhhdCB5b3VyCm1v
-dGhlcmJvYXJkCmNvbnRhaW5zIHRoZSA3OTIgY2hpcD8KClRoYW5rcwpCZXN0IFJlZ2FyZHMKCkNo
-dW5oYW8KCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhl
-IHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVt
-YWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0
-ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0
-aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2li
-bGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtp
-bmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUg
-YWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGlt
-bWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMg
-YWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1h
-dGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRp
-b24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBX
-aW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBX
-aW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYg
-eW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGln
-bm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3Rh
-dGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOp
-yr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqo
-w6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tI
-pfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu
-+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7V
-ptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5
-caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+Huang0@Winbond.com.tw wrote:
+
+> Hi Fabien
+>
+> I check the motherboard SuperMicro P8SCT
+> http://www.supermicro.com/products/motherboard/P4/E7221/P8SCT.cfm
+> and it's user manual:
+> http://www.supermicro.com/manuals/motherboard/E7221/MNL-0776.pdf
+> and do NOT find w83792d chip but w83627hf chip, Are you sure that your
+> motherboard
+> contains the 792 chip?
+> 
+Indeed, Ken Wo from Supermicro Nederland was kind enough to tell us about it and 
+we saw that :
+  - we can load the w83792d module on the P8SCT
+  - doing sensors -u shows results from both chips and the ones from the w83792d 
+are the ones that seem right (i.e. 40 Celsius instead of -1 Celsius)
+
+So, it's pretty clear the there is a w83792d somewhere on the motherboard and 
+that the temperature sensors and fans are connected to it.
+
+	thank you for writing the driver which allows us to choose this motherboard for 
+our project.
+
+	sincerely,
+
+	P.O. Gaillard
+
+
