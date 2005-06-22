@@ -1,49 +1,67 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 21 Jun 2005 11:43:47 +0000
+From: Huang0@Winbond.com.tw (Huang0@Winbond.com.tw)
+Date: Wed, 22 Jun 2005 03:45:02 +0000
 Subject: [lm-sensors] RE: w83792d driver for the 2.6 kernel
-Message-Id: <1VymmRpH.1119346742.1945350.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECE5E7865@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECE5E7741@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Hi Fabien,
-
-> I used the daily snapshot as recommanded by Rudolf and had to :
->  - copy the etc/sensors.conf.eg to /etc/sensors.conf
-
-This is true.
-
->  - run the sensors-detect from the lm_sensors distribution (the make
-> user_install command did not install it)
-
-This would be very surprising, please double-check. Remember that
-everything is installed under /usr/local by default, and sensors-detect
-is only usable by root so it's installed in /usr/local/sbin.
-
->  - run /usr/local/bin/sensors to make sure I did not run the Fedora
-> version of sensors.
-
-You should even uninstall the Fedora package entierly, else the new
-sensors command may pick the old library and you won't get correct
-results.
-
-> I also removed the Fedora version but the sensors-detect script still
-> failed to detect the 83792d. Could it be because it is not properly
-> installed ? What commands should I issue in addition to "make user; make
-> user_install" ?
-
-These commands should be sufficient. Make sure that your kernel supports
-the I2C Device Interface (i2c-dev driver), sensors-detect needs it (and
-should have complained if it's not present). Also note that
-sensors-detect cannot detect I2C chips for which you have a driver
-currently loaded (because the probe would possibly confuse the driver).
-If you can't figure it out, please send the complete output of
-sensors-detect after unloading all i2c chip drivers.
-
---
-Jean Delvare
+SGkgRmFiaWVuLCBKZWFuCgo+ID4gIC0gcnVuIHRoZSBzZW5zb3JzLWRldGVjdCBmcm9tIHRoZSBs
+bV9zZW5zb3JzIGRpc3RyaWJ1dGlvbiAodGhlIG1ha2UKPiA+IHVzZXJfaW5zdGFsbCBjb21tYW5k
+IGRpZCBub3QgaW5zdGFsbCBpdCkKPiAKPiBUaGlzIHdvdWxkIGJlIHZlcnkgc3VycHJpc2luZywg
+cGxlYXNlIGRvdWJsZS1jaGVjay4gUmVtZW1iZXIgdGhhdAo+IGV2ZXJ5dGhpbmcgaXMgaW5zdGFs
+bGVkIHVuZGVyIC91c3IvbG9jYWwgYnkgZGVmYXVsdCwgYW5kCnNlbnNvcnMtZGV0ZWN0Cj4gaXMg
+b25seSB1c2FibGUgYnkgcm9vdCBzbyBpdCdzIGluc3RhbGxlZCBpbiAvdXNyL2xvY2FsL3NiaW4u
+Cj4gCj4gPiAgLSBydW4gL3Vzci9sb2NhbC9iaW4vc2Vuc29ycyB0byBtYWtlIHN1cmUgSSBkaWQg
+bm90IHJ1biB0aGUgRmVkb3JhCj4gPiB2ZXJzaW9uIG9mIHNlbnNvcnMuCj4gCj4gWW91IHNob3Vs
+ZCBldmVuIHVuaW5zdGFsbCB0aGUgRmVkb3JhIHBhY2thZ2UgZW50aWVybHksIGVsc2UgdGhlIG5l
+dwo+IHNlbnNvcnMgY29tbWFuZCBtYXkgcGljayB0aGUgb2xkIGxpYnJhcnkgYW5kIHlvdSB3b24n
+dCBnZXQgY29ycmVjdAo+IHJlc3VsdHMuCj4gCj4gPiBJIGFsc28gcmVtb3ZlZCB0aGUgRmVkb3Jh
+IHZlcnNpb24gYnV0IHRoZSBzZW5zb3JzLWRldGVjdCBzY3JpcHQKc3RpbGwKPiA+IGZhaWxlZCB0
+byBkZXRlY3QgdGhlIDgzNzkyZC4gQ291bGQgaXQgYmUgYmVjYXVzZSBpdCBpcyBub3QgcHJvcGVy
+bHkKPiA+IGluc3RhbGxlZCA/IFdoYXQgY29tbWFuZHMgc2hvdWxkIEkgaXNzdWUgaW4gYWRkaXRp
+b24gdG8gIm1ha2UgdXNlcjsKbWFrZQo+ID4gdXNlcl9pbnN0YWxsIiA/CgpUaGlzIGlzIENodW5o
+YW8sIApJJ20gYWx3YXlzIHVzaW5nIHRoZSBSZWRoYXQvRmVkb3JhIENvcmUgdG8gZGV2ZWxvcCA3
+OTIgZHJpdmVyLCBJJ2QgbGlrZQp0bwppbnRyb2R1Y2UgdGhlIHByb2JsZW0gSSBtZXQgYmVmb3Jl
+OgpBZnRlciBJIGluc3RhbGwgUmVkaGF0L0ZlZG9yYSwgdGhlcmUgd2lsbCBiZSB0aGUgbG1fc2Vu
+c29ycyByZWxhdGVkCnByb2dyYW1zCmluIHRoZSAvdXNyL3NiaW4vIGRpcmVjdG9yeSwgc3VjaCBh
+czoKL3Vzci9zYmluL3NlbnNvcnMKL3Vzci9zYmluL3NlbnNvcnMtZGV0ZWN0Ci91c3Ivc2Jpbi9p
+MmNzZXQKL3Vzci9zYmluL2lzYXNldAoKQW5kIGFmdGVyIEkgaW5zdGFsbCB0aGUgbGF0ZXN0IGxt
+X3NlbnNvcnMgdmVyc2lvbihDVlMgdmVyc2lvbiksCnRoZSBsYXRlc3QgbG1fc2Vuc29ycyBwcm9n
+cmFtcyB3aWxsIGJlIGluc3RhbGxlZCBpbnRvIC91c3IvbG9jYWwvc2Jpbi8KZGlyZWN0b3J5LCBp
+ZiBJIHVzZSAjc2Vuc29ycyBvciAjc2Vuc29ycy1kZXRlY3QgYXQgdGhpcyB0aW1lLCB0aGUKcHJv
+Z3JhbXMKd2lsbCBiZSB0aGUgb2xkIG9uZSBpbiAvdXNyL3NiaW4vIGFuZCBjYW4gTk9UIGZpbmQg
+dGhlIDc5MiBjaGlwLgoKU28sIHVzdWFsbHkgSSB3aWxsIHJlbW92ZSB0aGUgYWJvdmUgNCBwcm9n
+cmFtcyBpbiAvdXNyL3NiaW4vIGRpcmVjdG9yeQphbmQgbWFrZSBzb2Z0IGxpbmtzIGZyb20gL3Vz
+ci9sb2NhbC9zYmluL19wcm9ncmFtXyB0byAvdXNyL3NiaW4vICh0aGlzCnNvZnQgbGluayBzdGVw
+IG1heSBiZSBvbWl0dGVkLCB5b3Ugb25seSBuZWVkIHJlbW92ZSkgdGhlbiBpdCB3aWxsIHdvcmsu
+CgpJZiBpdCBzdGlsbCBjYW4gTk9UIHdvcmssIHRoZW4gbWF5YmUgdGhlcmUgaXMgc29tZSBvdGhl
+ciByZWFzb24sIHdlIG5lZWQKbW9yZSBoZWxwIG9mIGxtX3NlbnNvcnMgOi0oCgoKClRoYW5rcwpC
+ZXN0IFJlZ2FyZHMKQ2h1bmhhbwoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFp
+bmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNz
+ZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMgZW1haWwuIElm
+IHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJl
+IG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggIGEgcGVy
+c29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGluZyB0aGlzIGZh
+Y3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0
+d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGlnaGx5IGFwcHJl
+Y2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlk
+ZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5k
+IGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhlIG9mZmljaWFs
+IGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9y
+IGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBm
+b250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3NlbnRpYWxseSBy
+ZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tIpfOkuqnSp3S1
+2Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5c
+XKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGh
+p86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS4
+9Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9Cwg
+pfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6q
+ui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63
+TqijLgo=
