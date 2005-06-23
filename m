@@ -1,580 +1,216 @@
-From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Fri, 03 Jun 2005 19:04:13 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 23 Jun 2005 23:31:12 +0000
 Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2] max6875: new i2c device driver
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C659@WCSEXCMBS1.ad.wabtec.com>
+Message-Id: <20050623233040.249f4131.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C659@WCSEXCMBS1.ad.wabtec.com>
+In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C659@WCSEXCMBS1.ad.wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Ben,
 
-This patch adds support for the MAX6875/MAX6874 chips.
+> This patch adds support for the MAX6875/MAX6874 chips.
 
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
--------------- next part --------------
-diff -Nuar linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Kconfig linux-2.6.12-rc5-mm2-max6875/drivers/i2c/chips/Kconfig
---- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Kconfig	2005-06-01 14:29:17.000000000 -0500
-+++ linux-2.6.12-rc5-mm2-max6875/drivers/i2c/chips/Kconfig	2005-06-03 11:30:48.275655806 -0500
-@@ -498,4 +498,16 @@
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called m41t00.
- 
-+config SENSORS_MAX6875
-+	tristate "MAXIM MAX6875 Power supply supervisor"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the MAX6875
-+	  EEPROM-Programmable, Hex/Quad, Power-Suppy Sequencers/Supervisors.
-+	  
-+          This provides a interface to program the EEPROM and reset the chip.
-+	  
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called max6875.
-+
- endmenu
-diff -Nuar linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Makefile linux-2.6.12-rc5-mm2-max6875/drivers/i2c/chips/Makefile
---- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/Makefile	2005-06-01 14:29:17.000000000 -0500
-+++ linux-2.6.12-rc5-mm2-max6875/drivers/i2c/chips/Makefile	2005-06-03 11:29:23.548704311 -0500
-@@ -32,6 +32,7 @@
- obj-$(CONFIG_SENSORS_LM90)	+= lm90.o
- obj-$(CONFIG_SENSORS_LM92)	+= lm92.o
- obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
-+obj-$(CONFIG_SENSORS_MAX6875)	+= max6875.o
- obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
- obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
- obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574.o
-diff -Nuar linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/max6875.c linux-2.6.12-rc5-mm2-max6875/drivers/i2c/chips/max6875.c
---- linux-2.6.12-rc5-mm2-clean/drivers/i2c/chips/max6875.c	1969-12-31 18:00:00.000000000 -0600
-+++ linux-2.6.12-rc5-mm2-max6875/drivers/i2c/chips/max6875.c	2005-06-03 11:25:51.000000000 -0500
-@@ -0,0 +1,473 @@
-+/*
-+    max6875.c - driver for MAX6874/MAX6875
-+    
-+    Copyright (C) 2005 Ben Gardner <bgardner@wabtec.com>
-+    
-+    Based on i2c/chips/eeprom.c
-+    
-+    The MAX6875 has two EEPROM sections: config and user.
-+    At reset, the config EEPROM is read into the registers.
-+    
-+    This driver make 3 binary files available in sysfs: 
-+      reg_config    - direct access to the registers
-+      eeprom_config - acesses configuration eeprom space
-+      eeprom_user   - free for application use
-+      
-+    In our application, we put device serial & model numbers in user eeprom.
-+    
-+    Notes:
-+      1) The datasheet says that register 0x44 / EEPROM 0x8044 should NOT
-+         be overwritten, so the driver explicitly prevents that.
-+      2) It's a good idea to keep the config (0x45) locked in config EEPROM.
-+         You can temporarily enable config writes by changing register 0x45.
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; version 2 of the License.
-+*/
-+
-+#include <linux/config.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/sched.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-sensor.h>
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = {0x50, 0x52, I2C_CLIENT_END};
-+static unsigned int normal_isa[] = {I2C_CLIENT_ISA_END};
-+
-+/* Insmod parameters */
-+SENSORS_INSMOD_1(max6875);
-+
-+/* this param will prevent 'accidental' writes to the eeprom */
-+static int allow_write = 0;
-+module_param(allow_write, int, 0);
-+MODULE_PARM_DESC(allow_write,
-+		 "Enable write access:\n"
-+		 "*0: Read only\n"
-+		 " 1: Read/Write access");
-+
-+/* The MAX6875 can only read/write 16 bytes at a time */
-+#define SLICE_SIZE			16
-+#define SLICE_BITS			4
-+
-+/* CONFIG EEPROM is at addresses 0x8000 - 0x8045, registers are at 0 - 0x45 */
-+#define CONFIG_EEPROM_BASE		0x8000
-+#define CONFIG_EEPROM_SIZE		0x0046
-+#define CONFIG_EEPROM_SLICES		5
-+
-+/* USER EEPROM is at addresses 0x8100 - 0x82FF */
-+#define USER_EEPROM_BASE		0x8100
-+#define USER_EEPROM_SIZE		0x0200
-+#define USER_EEPROM_SLICES		32
-+
-+/* MAX6875 commands */
-+#define MAX6875_CMD_BLOCK_WRITE		0x83
-+#define MAX6875_CMD_BLOCK_READ		0x84
-+#define MAX6875_CMD_REBOOT		0x88
-+
-+enum max6875_area_type {
-+	max6875_register_config=0,
-+	max6875_eeprom_config,
-+	max6875_eeprom_user,
-+	max6857_max
-+};
-+
-+struct eeprom_block {
-+	enum max6875_area_type	type;
-+	u8			slices;
-+	u32			size;
-+	u32			valid;
-+	u32			base;
-+	unsigned long		*updated;
-+	u8			*data;
-+};
-+
-+/* Each client has this additional data */
-+struct max6875_data {
-+	struct i2c_client	client;
-+	struct semaphore	update_lock;
-+	struct eeprom_block	blocks[max6857_max];
-+	/* the above structs point into the arrays below */
-+	u8 data[USER_EEPROM_SIZE + (CONFIG_EEPROM_SIZE*2)];
-+	unsigned long last_updated[USER_EEPROM_SLICES + (CONFIG_EEPROM_SLICES*2)];
-+};
-+
-+static int max6875_attach_adapter(struct i2c_adapter *adapter);
-+static int max6875_detect(struct i2c_adapter *adapter, int address, int kind);
-+static int max6875_detach_client(struct i2c_client *client);
-+
-+/* This is the driver that will be inserted */
-+static struct i2c_driver max6875_driver = {
-+	.owner		= THIS_MODULE,
-+	.name		= "max6875",
-+	.flags		= I2C_DF_NOTIFY,
-+	.attach_adapter	= max6875_attach_adapter,
-+	.detach_client	= max6875_detach_client,
-+};
-+
-+static int max6875_update_slice(struct i2c_client *client, 
-+				struct eeprom_block *blk,
-+				int slice)
-+{
-+	struct max6875_data *data = i2c_get_clientdata(client);
-+	int i, j, addr, count;
-+	u8 rdbuf[SLICE_SIZE];
-+	int retval = 0;
-+
-+	if (slice >= blk->slices)
-+		return -1;
-+
-+	down(&data->update_lock);
-+
-+	if (!(blk->valid & (1 << slice)) ||
-+	    (jiffies - blk->updated[slice] > 300 * HZ) ||
-+	    (jiffies < blk->updated[slice])) {
-+		dev_dbg(&client->dev, "Starting eeprom update, slice %u, base %u\n", 
-+			slice, blk->base);
-+
-+		addr = blk->base + (slice << SLICE_BITS);
-+		count = blk->size - (slice << SLICE_BITS);
-+		if (count > SLICE_SIZE) {
-+			count = SLICE_SIZE;
-+		}
-+
-+		/* Preset the read address */
-+		if (addr < 0x100) {
-+			/* select the register */
-+			if (i2c_smbus_write_byte(client, addr & 0xFF)) {
-+				dev_dbg(&client->dev, "max6875 register select has failed!\n");
-+				retval = -1;
-+				goto exit;
-+			}
-+		} else {
-+			/* select the eeprom */
-+			if (i2c_smbus_write_byte_data(client, addr >> 8, addr & 0xFF)) {
-+				dev_dbg(&client->dev, "max6875 address set has failed!\n");
-+				retval = -1;
-+				goto exit;
-+			}
-+		}
-+
-+		if (i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_READ_I2C_BLOCK)) {
-+			if (i2c_smbus_read_i2c_block_data(client, MAX6875_CMD_BLOCK_READ, 
-+							  rdbuf) != SLICE_SIZE)
-+			{
-+				retval = -1;
-+				goto exit;
-+			}
-+
-+			memcpy(&blk->data[slice << SLICE_BITS], rdbuf, count);
-+		} else {
-+			for (i = 0; i < count; i++) {
-+				j = i2c_smbus_read_byte(client);
-+				if (j < 0)
-+				{
-+					retval = -1;
-+					goto exit;
-+				}
-+				blk->data[(slice << SLICE_BITS) + i] = (u8) j;
-+			}
-+		}
-+		blk->updated[slice] = jiffies;
-+		blk->valid |= (1 << slice);
-+	}
-+	exit:
-+	up(&data->update_lock);
-+	return retval;
-+}
-+
-+static ssize_t max6875_read(struct kobject *kobj, char *buf, loff_t off, size_t count, 
-+			    enum max6875_area_type area_type)
-+{
-+	struct i2c_client *client = to_i2c_client(container_of(kobj, struct device, kobj));
-+	struct max6875_data *data = i2c_get_clientdata(client);
-+	struct eeprom_block *blk;
-+	int slice;
-+
-+	blk = &data->blocks[area_type];
-+
-+	if (off > blk->size)
-+		return 0;
-+	if (off + count > blk->size)
-+		count = blk->size - off;
-+
-+	/* Only refresh slices which contain requested bytes */
-+	for (slice = (off >> SLICE_BITS); slice <= ((off + count - 1) >> SLICE_BITS); slice++)
-+		max6875_update_slice(client, blk, slice);
-+
-+	memcpy(buf, &blk->data[off], count);
-+
-+	return count;
-+}
-+
-+static ssize_t max6875_user_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+{
-+	return max6875_read(kobj, buf, off, count, max6875_eeprom_user);
-+}
-+
-+static ssize_t max6875_config_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+{
-+	return max6875_read(kobj, buf, off, count, max6875_eeprom_config);
-+}
-+
-+static ssize_t max6875_cfgreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+{
-+	return max6875_read(kobj, buf, off, count, max6875_register_config);
-+}
-+
-+
-+static ssize_t max6875_write(struct kobject *kobj, char *buf, loff_t off, size_t count, 
-+			     enum max6875_area_type area_type)
-+{
-+	struct i2c_client *client = to_i2c_client(container_of(kobj, struct device, kobj));
-+	struct max6875_data *data = i2c_get_clientdata(client);
-+	struct eeprom_block *blk;
-+	int slice, addr, retval;
-+	ssize_t sent = 0;
-+
-+	blk = &data->blocks[area_type];
-+
-+	if (off > blk->size)
-+		return 0;
-+	if ((off + count) > blk->size)
-+		count = blk->size - off;
-+
-+	if (down_interruptible(&data->update_lock))
-+		return -EAGAIN;
-+
-+	/* writing to a register is done with i2c_smbus_write_byte_data() */
-+	if (blk->type = max6875_register_config) {
-+		for (sent = 0; sent < count; sent++) {
-+			addr = off + sent;
-+			if (addr = 0x44)
-+				continue;
-+
-+			retval = i2c_smbus_write_byte_data(client, addr, buf[sent]);
-+		}
-+	} else {
-+		int cmd, val;
-+
-+		/* We are writing to EEPROM */
-+		for (sent = 0; sent < count; sent++) {
-+			addr = blk->base + off + sent;
-+			cmd = addr >> 8;
-+			val = (addr & 0xff) | (buf[sent] << 8);	// reversed
-+
-+			if (addr = 0x8044)
-+				continue;
-+
-+			retval = i2c_smbus_write_word_data(client, cmd, val);
-+
-+			if (retval) {
-+				goto error_exit;
-+			}
-+
-+			/* A write takes up to 11 ms */
-+			msleep(11);
-+		}
-+	}
-+
-+	/* Invalidate the scratch buffer */
-+	for (slice = (off >> SLICE_BITS); slice <= ((off + count - 1) >> SLICE_BITS); slice++)
-+		blk->valid &= ~(1 << slice);
-+
-+	error_exit:
-+	up(&data->update_lock);
-+
-+	return sent;
-+}
-+
-+static ssize_t max6875_user_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+{
-+	return max6875_write(kobj, buf, off, count, max6875_eeprom_user);
-+}
-+
-+static ssize_t max6875_config_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+{
-+	return max6875_write(kobj, buf, off, count, max6875_eeprom_config);
-+}
-+
-+static ssize_t max6875_cfgreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+{
-+	return max6875_write(kobj, buf, off, count, max6875_register_config);
-+}
-+
-+static struct bin_attribute user_eeprom_attr = {
-+	.attr = {
-+		.name = "eeprom_user",
-+		.mode = S_IRUGO | S_IWUSR | S_IWGRP,
-+		.owner = THIS_MODULE,
-+	},
-+	.size  = USER_EEPROM_SIZE,
-+	.read  = max6875_user_read,
-+	.write = max6875_user_write,
-+};
-+
-+static struct bin_attribute config_eeprom_attr = {
-+	.attr = {
-+		.name = "eeprom_config",
-+		.mode = S_IRUGO | S_IWUSR,
-+		.owner = THIS_MODULE,
-+	},
-+	.size  = CONFIG_EEPROM_SIZE,
-+	.read  = max6875_config_read,
-+	.write = max6875_config_write,
-+};
-+
-+static struct bin_attribute config_register_attr = {
-+	.attr = {
-+		.name = "reg_config",
-+		.mode = S_IRUGO | S_IWUSR,
-+		.owner = THIS_MODULE,
-+	},
-+	.size  = CONFIG_EEPROM_SIZE,
-+	.read  = max6875_cfgreg_read,
-+	.write = max6875_cfgreg_write,
-+};
-+
-+static int max6875_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	return i2c_detect(adapter, &addr_data, max6875_detect);
-+}
-+
-+/* This function is called by i2c_detect */
-+static int max6875_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *new_client;
-+	struct max6875_data *data;
-+	int err = 0;
-+
-+	/* There are three ways we can read the EEPROM data:
-+	   (1) I2C block reads (faster, but unsupported by most adapters)
-+	   (2) Consecutive byte reads (100% overhead)
-+	   (3) Regular byte data reads (200% overhead)
-+	   The third method is not implemented by this driver because all
-+	   known adapters support at least the second. */
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA | 
-+				     I2C_FUNC_SMBUS_BYTE |
-+				     I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
-+		goto exit;
-+
-+	/* OK. For now, we presume we have a valid client. We now create the
-+	   client structure, even though we cannot fill it completely yet.
-+	   But it allows us to access eeprom_{read,write}_value. */
-+	if (!(data = kmalloc(sizeof(struct max6875_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+	memset(data, 0, sizeof(struct max6875_data));
-+
-+	new_client = &data->client;
-+	i2c_set_clientdata(new_client, data);
-+	new_client->addr = address;
-+	new_client->adapter = adapter;
-+	new_client->driver = &max6875_driver;
-+	new_client->flags = 0;
-+
-+	/* Setup the user section */
-+	data->blocks[max6875_eeprom_user].type    = max6875_eeprom_user;
-+	data->blocks[max6875_eeprom_user].slices  = USER_EEPROM_SLICES;
-+	data->blocks[max6875_eeprom_user].size    = USER_EEPROM_SIZE;
-+	data->blocks[max6875_eeprom_user].base    = USER_EEPROM_BASE;
-+	data->blocks[max6875_eeprom_user].data    = data->data;
-+	data->blocks[max6875_eeprom_user].updated = data->last_updated;
-+
-+	/* Setup the config section */
-+	data->blocks[max6875_eeprom_config].type    = max6875_eeprom_config;
-+	data->blocks[max6875_eeprom_config].slices  = CONFIG_EEPROM_SLICES;
-+	data->blocks[max6875_eeprom_config].size    = CONFIG_EEPROM_SIZE;
-+	data->blocks[max6875_eeprom_config].base    = CONFIG_EEPROM_BASE;
-+	data->blocks[max6875_eeprom_config].data    = &data->data[USER_EEPROM_SIZE];
-+	data->blocks[max6875_eeprom_config].updated = &data->last_updated[USER_EEPROM_SLICES];
-+
-+	/* Setup the register section */
-+	data->blocks[max6875_register_config].type    = max6875_register_config;
-+	data->blocks[max6875_register_config].slices  = CONFIG_EEPROM_SLICES;
-+	data->blocks[max6875_register_config].size    = CONFIG_EEPROM_SIZE;
-+	data->blocks[max6875_register_config].base    = 0;
-+	data->blocks[max6875_register_config].data    = &data->data[USER_EEPROM_SIZE+CONFIG_EEPROM_SIZE];
-+	data->blocks[max6875_register_config].updated = &data->last_updated[USER_EEPROM_SLICES+CONFIG_EEPROM_SLICES];
-+
-+	/* Init the data */
-+	memset(data->data, 0xff, sizeof(data->data));
-+
-+	/* Fill in the remaining client fields */
-+	strlcpy(new_client->name, "max6875", I2C_NAME_SIZE);
-+	init_MUTEX(&data->update_lock);
-+
-+	/* Verify that the chip is really what we think it is */
-+	if ((max6875_update_slice(new_client, &data->blocks[max6875_eeprom_config], 4) < 0) ||
-+	    (max6875_update_slice(new_client, &data->blocks[max6875_register_config], 4) < 0))
-+		goto exit_kfree;
-+
-+	/* 0x41,0x42 must be zero and 0x40 must match in eeprom and registers */ 
-+	if ((data->blocks[max6875_eeprom_config].data[0x41] != 0) ||
-+	    (data->blocks[max6875_eeprom_config].data[0x42] != 0) ||
-+	    (data->blocks[max6875_register_config].data[0x41] != 0) ||
-+	    (data->blocks[max6875_register_config].data[0x42] != 0) ||
-+	    (data->blocks[max6875_eeprom_config].data[0x40] != 
-+	     data->blocks[max6875_register_config].data[0x40]))
-+		goto exit_kfree;
-+
-+	/* Tell the I2C layer a new client has arrived */
-+	if ((err = i2c_attach_client(new_client)))
-+		goto exit_kfree;
-+
-+	/* create the sysfs eeprom files with the correct permissions */
-+	if (allow_write = 0) {
-+		user_eeprom_attr.attr.mode &= ~S_IWUGO;
-+		user_eeprom_attr.write = NULL;
-+		config_eeprom_attr.attr.mode &= ~S_IWUGO;
-+		config_eeprom_attr.write = NULL;
-+		config_register_attr.attr.mode &= ~S_IWUGO;
-+		config_register_attr.write = NULL;
-+	}
-+	sysfs_create_bin_file(&new_client->dev.kobj, &user_eeprom_attr);
-+	sysfs_create_bin_file(&new_client->dev.kobj, &config_eeprom_attr);
-+	sysfs_create_bin_file(&new_client->dev.kobj, &config_register_attr);
-+
-+	return 0;
-+
-+exit_kfree:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static int max6875_detach_client(struct i2c_client *client)
-+{
-+	int err;
-+
-+	err = i2c_detach_client(client);
-+	if (err) {
-+		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
-+		return err;
-+	}
-+
-+	kfree(i2c_get_clientdata(client));
-+
-+	return 0;
-+}
-+
-+static int __init max6875_init(void)
-+{
-+	return i2c_add_driver(&max6875_driver);
-+}
-+
-+static void __exit max6875_exit(void)
-+{
-+	i2c_del_driver(&max6875_driver);
-+}
-+
-+
-+MODULE_AUTHOR("Ben Gardner <bgardner@wabtec.com>");
-+MODULE_DESCRIPTION("MAX6875 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(max6875_init);
-+module_exit(max6875_exit);
-diff -Nuar linux-2.6.12-rc5-mm2-clean/Documentation/i2c/chips/max6875 linux-2.6.12-rc5-mm2-max6875/Documentation/i2c/chips/max6875
---- linux-2.6.12-rc5-mm2-clean/Documentation/i2c/chips/max6875	1969-12-31 18:00:00.000000000 -0600
-+++ linux-2.6.12-rc5-mm2-max6875/Documentation/i2c/chips/max6875	2005-06-03 12:00:44.465826043 -0500
-@@ -0,0 +1,54 @@
-+Kernel driver max6875
-+==========+
-+Supported chips:
-+  * Maxim max6874, max6875
-+    Prefixes: 'max6875'
-+    Addresses scanned: 0x50, 0x52
-+    Datasheets:
-+        http://pdfserv.maxim-ic.com/en/ds/MAX6874-MAX6875.pdf
-+
-+Author: Ben Gardner <bgardner@wabtec.com>
-+
-+
-+Module Parameters
-+-----------------
-+
-+* allow_write int
-+  Set to non-zero to enable write permission:
-+  *0: Read only
-+   1: Read and write
-+
-+
-+Description
-+-----------
-+
-+The MAXIM max6875 is a EEPROM-programmable power-supply sequencer/supervisor.
-+It provides timed outputs that can be used as a watchdog, if properly wired.
-+It also provides 512 bytes of user EEPROM.
-+
-+At reset, the max6875 reads the configuration eeprom into its configuration
-+registers.  The chip then begins to operate according to the values in the
-+registers.
-+
-+See the datasheet for details on how to program the EEPROM.
-+
-+
-+Sysfs entries
-+-------------
-+
-+eeprom_user   - 512 bytes of user-defined EEPROM space. Only writable if
-+                allow_write was set and register 0x43 is 0.
-+
-+eeprom_config - 70 bytes of config EEPROM. Note that changes will not get
-+                loaded into register space until a power cycle or device reset.
-+
-+reg_config    - 70 bytes of register space. Any changes take affect immediately.
-+
-+
-+General Remarks
-+---------------
-+
-+A typical application will require that the EEPROMs be programmed once and
-+never altered afterwards.
-+
+Sorry for the long delay. I finally took some time this afternoon to
+review your driver. It's a bit late as Greg already pushed it to Linus,
+but nevertheless, I'd appreciate it if you could provide an incremental
+patch addressing the issues I found.
+
+I also have suggestions for the documentation and the Kconfig help text,
+I'll submit patches for that right after.
+
+> #include <linux/sched.h>
+
+I don't think you need this one. eeprom.c has it for capable() but you
+don't use it here.
+
+> static int allow_write = 0;
+
+Do not explicitely initialize static variables to 0.
+
+> /* CONFIG EEPROM is at addresses 0x8000 - 0x8045, registers are at 0 - 0x45 */
+> #define CONFIG_EEPROM_BASE		0x8000
+> #define CONFIG_EEPROM_SIZE		0x0046
+> #define CONFIG_EEPROM_SLICES		5
+
+These could conflict with future Linux configuration (Kconfig) settings.
+You shouldn't prefix your own defines with CONFIG_.
+
+As a side note, I am not convinced that you have any benefit in using
+the slice approach here. It was convenient for the eeprom driver due to
+the various use it has and the overall simplicity of the driver, but in
+your case it makes the code significantly more complex and the detection
+step significantly slower as well. What are the typical accesses to the
+interface files in your case?
+
+> #define MAX6875_CMD_BLOCK_WRITE		0x83
+> (...)
+> #define MAX6875_CMD_REBOOT		0x88
+
+Why define these since you don't use them anywhere?
+
+> 	u8 rdbuf[SLICE_SIZE];
+
+Why do you need this temporary buffer?
+
+> 	    (jiffies - blk->updated[slice] > 300 * HZ) ||
+> 	    (jiffies < blk->updated[slice])) {
+
+Please use time_after() like all the other i2c chip drivers now do.
+
+> 				dev_dbg(&client->dev, "max6875 register select has failed!\n");
+> (...)
+> 				dev_dbg(&client->dev, "max6875 address set has failed!\n");
+
+This should probably be error messages rather than a debug messages.
+
+> 		if (i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_READ_I2C_BLOCK)) {
+> 			if (i2c_smbus_read_i2c_block_data(client, MAX6875_CMD_BLOCK_READ,
+> 							  rdbuf) != SLICE_SIZE)
+> 			{
+> 				retval = -1;
+> 				goto exit;
+> 			}
+
+Misplaced parentheses.
+
+> 				if (j < 0)
+> 				{
+> 					retval = -1;
+> 					goto exit;
+> 				}
+
+Misplaced parentheses.
+
+> 				blk->data[(slice << SLICE_BITS) + i] = (u8) j;
+
+The cast is not needed.
+
+>	exit:
+
+Labels should be left aligned.
+
+> static ssize_t max6875_user_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+> {
+> 	return max6875_read(kobj, buf, off, count, max6875_eeprom_user);
+> }
+> 
+> static ssize_t max6875_config_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+> {
+> 	return max6875_read(kobj, buf, off, count, max6875_eeprom_config);
+> }
+> 
+> static ssize_t max6875_cfgreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+> {
+> 	return max6875_read(kobj, buf, off, count, max6875_register_config);
+> }
+
+Please look into the new callback capabilities introduced recently by
+Yani Ioannou. Examples can be found in the adm1026, it87, lm63, lm83 and
+lm90 drivers. Basically, this would ley you get rid of these multiple
+callback functions, all three files would have the same callback with an
+additional argument. Same for the write callbacks, of course. Maybe
+you'll have to add some code by yourself if the binary file case isn't
+handled yet.
+
+> 	if (down_interruptible(&data->update_lock))
+> 		return -EAGAIN;
+
+Aren't you supposed to include <asm/semaphore.h> for this one?
+
+> 		for (sent = 0; sent < count; sent++) {
+> 			addr = off + sent;
+> 			if (addr = 0x44)
+> 				continue;
+> 
+> 			retval = i2c_smbus_write_byte_data(client, addr, buf[sent]);
+> 		}
+
+You should interrupt the loop if retval < 0. With the current code, errors
+could easily go unnoticed.
+
+> 			val = (addr & 0xff) | (buf[sent] << 8);	// reversed
+
+No C++-like comments please.
+
+> 			if (addr = 0x8044)
+> 				continue;
+
+You could check this earlier.
+
+> 	/* Invalidate the scratch buffer */
+> 	for (slice = (off >> SLICE_BITS); slice <= ((off + count - 1) >> SLICE_BITS); slice++)
+>		blk->valid &= ~(1 << slice);
+
+Why don't you rather copy the freshly written data to the cache?
+
+> 	error_exit:
+
+Align to left.
+
+> 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA |
+> 				     I2C_FUNC_SMBUS_BYTE |
+>				     I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+
+The check isnt't complete, as you use i2c_smbus_write_word_data later.
+OTOH you don't actually seem to use i2c_smbus_read_byte_data, so why
+check for its availability?
+
+I also notice that you didn't implement block write although the chip
+appears to support it. This would probably improve the write speed quite
+significantly, and I2C_FUNC_SMBUS_WRITE_BLOCK is much more widely
+available on bus masters than I2C_FUNC_SMBUS_READ_I2C_BLOCK.
+
+> 	/* OK. For now, we presume we have a valid client. We now create the
+> 	   client structure, even though we cannot fill it completely yet.
+> 	   But it allows us to access eeprom_{read,write}_value. */
+
+Bogus comment, there is no such functions. BTW the comment is bogus in
+the eeprom driver as well, I'll fix it there.
+
+Please add the 24RF08 corruption preventer quirk in your driver (see the
+eeprom driver). Every I2C driver in the 0x50-0x5f range should include
+it (until I finally rewrite the whole thing).
+
+> 	/* create the sysfs eeprom files with the correct permissions */
+> 	if (allow_write = 0) {
+> 		user_eeprom_attr.attr.mode &= ~S_IWUGO;
+> 		user_eeprom_attr.write = NULL;
+> 		config_eeprom_attr.attr.mode &= ~S_IWUGO;
+> 		config_eeprom_attr.write = NULL;
+> 		config_register_attr.attr.mode &= ~S_IWUGO;
+> 		config_register_attr.write = NULL;
+> 	}
+
+Sounds like an unsafe approach to me. Why not define the files without
+the write permission at first, and add it if and only if allow_write is
+non-zero?
+
+> 		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
+
+Line too long, please split.
+
+That's all as far as the code itself is concerned.
+
+But in fact I am also wondering what the point of this driver is. I'm
+not happy with a binary file containing the full set of registers, this
+is awfully not convenient to use. Imagine the mess it would be if all
+i2c drivers would do the same... Binary files in sysfs are supposed to
+be an exception, not the rule.
+
+If this is done this way because you simply flush a blob into the eeprom
+once as startup, then a userspace tool relying on i2c-dev would have
+been just as efficient, and more flexible.
+
+If OTOH writing individual values to registers happens, then a real
+interface to the chip would be much better, with individual files mapping
+to individual registers. See how hardware monitoring drivers do. BTW, the
+MAX6875 has voltage sensing inputs, so it would somewhat fit in the
+hardware monitoring interface layer.
+
+Thanks,
+-- 
+Jean Delvare
