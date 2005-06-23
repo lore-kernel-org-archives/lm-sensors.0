@@ -1,44 +1,68 @@
-From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Fri, 03 Jun 2005 17:59:07 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2 0/5] w1 enhancements
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5E7@WCSEXCMBS1.ad.wabtec.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 23 Jun 2005 23:38:24 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: max6875 documentation update
+Message-Id: <20050623233753.5c65bf0b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-I made a few improvements to the w1 subsystem.
-These are the patches that will follow.
+Here is a proposed documentation update for the new max6875 i2c chip
+driver.
 
-1 - w1_touchbit.diff.txt
-Cleans up usage of touch_bit/w1_read_bit/w1_write_bit.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-2 - w1_triplet.diff.txt
-Adds the triplet w1 master method and changes w1_search() to use it.
+ Documentation/i2c/chips/max6875 |   22 +++++++++++++++++-----
+ 1 files changed, 17 insertions(+), 5 deletions(-)
 
-3 - w1_searchtiming.diff.txt
-Adds a sysfs entry (w1_master_search) that allows you to disable/enable
-periodic searches.
+--- linux-2.6.12-git5.orig/Documentation/i2c/chips/max6875	2005-06-23 21:32:00.000000000 +0200
++++ linux-2.6.12-git5/Documentation/i2c/chips/max6875	2005-06-23 23:25:59.000000000 +0200
+@@ -2,10 +2,10 @@
+ ========== 
+ Supported chips:
+-  * Maxim max6874, max6875
+-    Prefixes: 'max6875'
++  * Maxim MAX6874, MAX6875
++    Prefix: 'max6875'
+     Addresses scanned: 0x50, 0x52
+-    Datasheets:
++    Datasheet:
+         http://pdfserv.maxim-ic.com/en/ds/MAX6874-MAX6875.pdf
+ 
+ Author: Ben Gardner <bgardner@wabtec.com>
+@@ -23,14 +23,26 @@
+ Description
+ -----------
+ 
+-The MAXIM max6875 is a EEPROM-programmable power-supply sequencer/supervisor.
++The Maxim MAX6875 is an EEPROM-programmable power-supply sequencer/supervisor.
+ It provides timed outputs that can be used as a watchdog, if properly wired.
+ It also provides 512 bytes of user EEPROM.
+ 
+-At reset, the max6875 reads the configuration eeprom into its configuration
++At reset, the MAX6875 reads the configuration EEPROM into its configuration
+ registers.  The chip then begins to operate according to the values in the
+ registers.
+ 
++The Maxim MAX6874 is a similar, mostly compatible device, with more intputs
++and outputs:
++
++             vin     gpi    vout
++MAX6874        6       4       8
++MAX6875        4       3       5
++
++MAX6874 chips can have four different addresses (as opposed to only two for
++the MAX6875). The additional addresses (0x54 and 0x56) are not probed by
++this driver by default, but the probe module parameter can be used if
++needed.
++
+ See the datasheet for details on how to program the EEPROM.
+ 
+ 
 
-4 - w1_defaultfamily.diff.txt
-Adds a default family so that new slave families will show up in sysfs.
 
-5 - w1_doc.diff.txt
-Updates the w1 documentation (w1.generic)
-
-The order is important for the first 3 patches.
-
-Overall diffstat:
- Documentation/w1/w1.generic |  107 ++++++++++++++++----
- drivers/w1/w1.c             |  233
-+++++++++++++++++++++++++++-----------------
- drivers/w1/w1.h             |   84 ++++++++++++---
- drivers/w1/w1_int.c         |    9 +
- drivers/w1/w1_io.c          |  113 +++++++++++++++++++--
- drivers/w1/w1_io.h          |    5 
- 6 files changed, 414 insertions(+), 137 deletions(-)
-
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
-
+-- 
+Jean Delvare
