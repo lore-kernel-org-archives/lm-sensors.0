@@ -1,93 +1,51 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Fri, 03 Jun 2005 23:32:49 +0000
-Subject: [lm-sensors] [4/6] w1: Adds a default family so that new slave
-Message-Id: <20050604013126.1298c78f@zanzibar.2ka.mipt.ru>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 25 Jun 2005 11:38:05 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: Clarify the usage of i2c-dev.h
+Message-Id: <20050625113740.29b08918.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Adds a default family so that new slave families will show up in sysfs.
+Hi Greg,
 
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Upon suggestion by Nils Roeder, here is an update to the i2c
+documentation to clarify which header files user-space applications
+relying on the i2c-dev interface should include.
 
---- linux-2.6.12-rc5-mm2-triplet/drivers/w1/w1.c	2005-06-03 08:33:13.254988573 -0500
-+++ linux-2.6.12-rc5-mm2-w1defaultfam/drivers/w1/w1.c	2005-06-03 08:50:02.943448247 -0500
-@@ -59,6 +59,19 @@
- static int control_needs_exit;
- static DECLARE_COMPLETION(w1_control_complete);
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+ Documentation/i2c/dev-interface |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
+
+--- linux-2.6.12-git5.orig/Documentation/i2c/dev-interface	2004-12-24 22:34:00.000000000 +0100
++++ linux-2.6.12-git5/Documentation/i2c/dev-interface	2005-06-25 11:19:19.000000000 +0200
+@@ -14,9 +14,12 @@
+ ==== 
+ So let's say you want to access an i2c adapter from a C program. The
+-first thing to do is `#include <linux/i2c.h>" and "#include <linux/i2c-dev.h>. 
+-Yes, I know, you should never include kernel header files, but until glibc 
+-knows about i2c, there is not much choice.
++first thing to do is "#include <linux/i2c-dev.h>". Please note that
++there are two files named "i2c-dev.h" out there, one is distributed
++with the Linux kernel and is meant to be included from kernel
++driver code, the other one is distributed with lm_sensors and is
++meant to be included from user-space programs. You obviously want
++the second one here.
  
-+/* stuff for the default family */
-+static ssize_t w1_famdefault_read_name(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-+	return(sprintf(buf, "%s\n", sl->name));
-+}
-+static struct w1_family_ops w1_default_fops = {
-+	.rname = &w1_famdefault_read_name,
-+};
-+static struct w1_family w1_default_family = {
-+	.fops = &w1_default_fops,
-+};
-+
- static int w1_master_match(struct device *dev, struct device_driver *drv)
- {
- 	return 1;
-@@ -319,14 +332,16 @@
- 		return err;
- 	}
+ Now, you have to decide which adapter you want to access. You should
+ inspect /sys/class/i2c-dev/ to decide this. Adapter numbers are assigned
+@@ -78,7 +81,7 @@
+ =============
  
--	err = sysfs_create_bin_file(&sl->dev.kobj, &sl->attr_bin);
--	if (err < 0) {
--		dev_err(&sl->dev,
--			"sysfs file creation for [%s] failed. err=%d\n",
--			sl->dev.bus_id, err);
--		device_remove_file(&sl->dev, &sl->attr_name);
--		device_unregister(&sl->dev);
--		return err;
-+	if ( sl->attr_bin.read ) {
-+		err = sysfs_create_bin_file(&sl->dev.kobj, &sl->attr_bin);
-+		if (err < 0) {
-+			dev_err(&sl->dev,
-+				"sysfs file creation for [%s] failed. err=%d\n",
-+				sl->dev.bus_id, err);
-+			device_remove_file(&sl->dev, &sl->attr_name);
-+			device_unregister(&sl->dev);
-+			return err;
-+		}
- 	}
+ The following IOCTLs are defined and fully supported 
+-(see also i2c-dev.h and i2c.h):
++(see also i2c-dev.h):
  
- 	list_add_tail(&sl->w1_slave_entry, &sl->master->slist);
-@@ -362,12 +377,10 @@
- 	spin_lock(&w1_flock);
- 	f = w1_family_registered(rn->family);
- 	if (!f) {
--		spin_unlock(&w1_flock);
-+		f= &w1_default_family;
- 		dev_info(&dev->dev, "Family %x for %02x.%012llx.%02x is not registered.\n",
- 			  rn->family, rn->family,
- 			  (unsigned long long)rn->id, rn->crc);
--		kfree(sl);
--		return -ENODEV;
- 	}
- 	__w1_family_get(f);
- 	spin_unlock(&w1_flock);
-@@ -408,7 +421,9 @@
- 			flush_signals(current);
- 	}
- 
--	sysfs_remove_bin_file (&sl->dev.kobj, &sl->attr_bin);
-+	if ( sl->attr_bin.read ) {
-+		sysfs_remove_bin_file (&sl->dev.kobj, &sl->attr_bin);
-+	}
- 	device_remove_file(&sl->dev, &sl->attr_name);
- 	device_unregister(&sl->dev);
- 	w1_family_put(sl->family);
+ ioctl(file,I2C_SLAVE,long addr)
+   Change slave address. The address is passed in the 7 lower bits of the
 
 
-
-	Evgeniy Polyakov
-
-Only failure makes us experts. -- Theo de Raadt
+-- 
+Jean Delvare
