@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 27 Jun 2005 23:25:50 +0000
+Date: Mon, 27 Jun 2005 23:30:49 +0000
 Subject: [lm-sensors] Moving hardware monitoring drivers to drivers/hwmon
-Message-Id: <20050627232506.084d4fc0.khali@linux-fr.org>
+Message-Id: <20050627233029.59b226d9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050627224003.4b1ce717.khali@linux-fr.org>
 In-Reply-To: <20050627224003.4b1ce717.khali@linux-fr.org>
@@ -13,86 +13,81 @@ Cc: Greg KH <greg@kroah.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>
 
 Hi all,
 
-This second patch moves the hardware monitoring drivers themselves from
-drivers/i2c/chips to drivers/hwmon.
+Finally this third patch moves the hardware monitoring drivers
+documentation files from Documentation/i2c/chips to Documentation/hwmon,
+as well the sysfs-interface and userspace-tools documentation files from
+Documentation/i2c to Documentation/hwmon.
 
-The patch being very large (1.6 MB) and rather uninteresting (it's
-really only moving files), I am not including it here. You can get it
-from:
+Again, this patch being large (267 kB) and uninteresting, I'm not
+including it, you can get it here:
 
-http://jdelvare.net1.nerim.net/sensors/linux-2.6.12-git5-hwmon-move-all-drivers-2-drv.diff.gz
+http://jdelvare.net1.nerim.net/sensors/linux-2.6.12-git5-hwmon-move-all-drivers-3-doc.diff.gz
 
- drivers/hwmon/adm1021.c        |  402 +++++++++
- drivers/hwmon/adm1025.c        |  577 +++++++++++++
- drivers/hwmon/adm1026.c        | 1714 +++++++++++++++++++++++++++++++++++++++++
- drivers/hwmon/adm1031.c        |  977 +++++++++++++++++++++++
- drivers/hwmon/adm9240.c        |  791 ++++++++++++++++++
- drivers/hwmon/asb100.c         | 1065 +++++++++++++++++++++++++
- drivers/hwmon/atxp1.c          |  361 ++++++++
- drivers/hwmon/ds1621.c         |  341 ++++++++
- drivers/hwmon/fscher.c         |  691 ++++++++++++++++
- drivers/hwmon/fscpos.c         |  641 +++++++++++++++
- drivers/hwmon/gl518sm.c        |  604 ++++++++++++++
- drivers/hwmon/gl520sm.c        |  769 ++++++++++++++++++
- drivers/hwmon/it87.c           | 1184 ++++++++++++++++++++++++++++
- drivers/hwmon/lm63.c           |  597 ++++++++++++++
- drivers/hwmon/lm75.c           |  296 +++++++
- drivers/hwmon/lm75.h           |   49 +
- drivers/hwmon/lm77.c           |  420 ++++++++++
- drivers/hwmon/lm78.c           |  795 +++++++++++++++++++
- drivers/hwmon/lm80.c           |  601 ++++++++++++++
- drivers/hwmon/lm83.c           |  408 +++++++++
- drivers/hwmon/lm85.c           | 1575 +++++++++++++++++++++++++++++++++++++
- drivers/hwmon/lm87.c           |  828 +++++++++++++++++++
- drivers/hwmon/lm90.c           |  655 +++++++++++++++
- drivers/hwmon/lm92.c           |  429 ++++++++++
- drivers/hwmon/max1619.c        |  372 ++++++++
- drivers/hwmon/pc87360.c        | 1348 ++++++++++++++++++++++++++++++++
- drivers/hwmon/sis5595.c        |  817 +++++++++++++++++++
- drivers/hwmon/smsc47b397.c     |  352 ++++++++
- drivers/hwmon/smsc47m1.c       |  593 ++++++++++++++
- drivers/hwmon/via686a.c        |  875 ++++++++++++++++++++
- drivers/hwmon/w83627ehf.c      |  846 ++++++++++++++++++++
- drivers/hwmon/w83627hf.c       | 1511 ++++++++++++++++++++++++++++++++++++
- drivers/hwmon/w83781d.c        | 1632 +++++++++++++++++++++++++++++++++++++++
- drivers/hwmon/w83l785ts.c      |  328 +++++++
- drivers/i2c/chips/adm1021.c    |  402 ---------
- drivers/i2c/chips/adm1025.c    |  577 -------------
- drivers/i2c/chips/adm1026.c    | 1714 -----------------------------------------
- drivers/i2c/chips/adm1031.c    |  977 -----------------------
- drivers/i2c/chips/adm9240.c    |  791 ------------------
- drivers/i2c/chips/asb100.c     | 1065 -------------------------
- drivers/i2c/chips/atxp1.c      |  361 --------
- drivers/i2c/chips/ds1621.c     |  341 --------
- drivers/i2c/chips/fscher.c     |  691 ----------------
- drivers/i2c/chips/fscpos.c     |  641 ---------------
- drivers/i2c/chips/gl518sm.c    |  604 --------------
- drivers/i2c/chips/gl520sm.c    |  769 ------------------
- drivers/i2c/chips/it87.c       | 1184 ----------------------------
- drivers/i2c/chips/lm63.c       |  597 --------------
- drivers/i2c/chips/lm75.c       |  296 -------
- drivers/i2c/chips/lm75.h       |   49 -
- drivers/i2c/chips/lm77.c       |  420 ----------
- drivers/i2c/chips/lm78.c       |  795 -------------------
- drivers/i2c/chips/lm80.c       |  601 --------------
- drivers/i2c/chips/lm83.c       |  408 ---------
- drivers/i2c/chips/lm85.c       | 1575 -------------------------------------
- drivers/i2c/chips/lm87.c       |  828 -------------------
- drivers/i2c/chips/lm90.c       |  655 ---------------
- drivers/i2c/chips/lm92.c       |  429 ----------
- drivers/i2c/chips/max1619.c    |  372 --------
- drivers/i2c/chips/pc87360.c    | 1348 --------------------------------
- drivers/i2c/chips/sis5595.c    |  817 -------------------
- drivers/i2c/chips/smsc47b397.c |  352 --------
- drivers/i2c/chips/smsc47m1.c   |  593 --------------
- drivers/i2c/chips/via686a.c    |  875 --------------------
- drivers/i2c/chips/w83627ehf.c  |  846 --------------------
- drivers/i2c/chips/w83627hf.c   | 1511 ------------------------------------
- drivers/i2c/chips/w83781d.c    | 1632 ---------------------------------------
- drivers/i2c/chips/w83l785ts.c  |  328 -------
- 68 files changed, 25444 insertions(+), 25444 deletions(-)
+ Documentation/hwmon/adm1021         |  111 +++++++++
+ Documentation/hwmon/adm1025         |   51 ++++
+ Documentation/hwmon/adm1026         |   93 ++++++++
+ Documentation/hwmon/adm1031         |   35 +++
+ Documentation/hwmon/adm9240         |  177 +++++++++++++++
+ Documentation/hwmon/asb100          |   72 ++++++
+ Documentation/hwmon/ds1621          |  108 +++++++++
+ Documentation/hwmon/fscher          |  169 +++++++++++++++
+ Documentation/hwmon/gl518sm         |   74 ++++++
+ Documentation/hwmon/it87            |   96 ++++++++
+ Documentation/hwmon/lm63            |   57 +++++
+ Documentation/hwmon/lm75            |   65 +++++
+ Documentation/hwmon/lm77            |   22 +
+ Documentation/hwmon/lm78            |   82 +++++++
+ Documentation/hwmon/lm80            |   56 +++++
+ Documentation/hwmon/lm83            |   76 ++++++
+ Documentation/hwmon/lm85            |  221 +++++++++++++++++++
+ Documentation/hwmon/lm87            |   73 ++++++
+ Documentation/hwmon/lm90            |  121 ++++++++++
+ Documentation/hwmon/lm92            |   37 +++
+ Documentation/hwmon/max1619         |   29 ++
+ Documentation/hwmon/pc87360         |  189 ++++++++++++++++
+ Documentation/hwmon/sis5595         |  106 +++++++++
+ Documentation/hwmon/smsc47b397      |  158 ++++++++++++++
+ Documentation/hwmon/smsc47m1        |   52 ++++
+ Documentation/hwmon/sysfs-interface |  274 ++++++++++++++++++++++++
+ Documentation/hwmon/userspace-tools |   39 +++
+ Documentation/hwmon/via686a         |   65 +++++
+ Documentation/hwmon/w83627hf        |   66 +++++
+ Documentation/hwmon/w83781d         |  402 ++++++++++++++++++++++++++++++++++++
+ Documentation/hwmon/w83l785ts       |   39 +++
+ Documentation/i2c/chips/adm1021     |  111 ---------
+ Documentation/i2c/chips/adm1025     |   51 ----
+ Documentation/i2c/chips/adm1026     |   93 --------
+ Documentation/i2c/chips/adm1031     |   35 ---
+ Documentation/i2c/chips/adm9240     |  177 ---------------
+ Documentation/i2c/chips/asb100      |   72 ------
+ Documentation/i2c/chips/ds1621      |  108 ---------
+ Documentation/i2c/chips/fscher      |  169 ---------------
+ Documentation/i2c/chips/gl518sm     |   74 ------
+ Documentation/i2c/chips/it87        |   96 --------
+ Documentation/i2c/chips/lm63        |   57 -----
+ Documentation/i2c/chips/lm75        |   65 -----
+ Documentation/i2c/chips/lm77        |   22 -
+ Documentation/i2c/chips/lm78        |   82 -------
+ Documentation/i2c/chips/lm80        |   56 -----
+ Documentation/i2c/chips/lm83        |   76 ------
+ Documentation/i2c/chips/lm85        |  221 -------------------
+ Documentation/i2c/chips/lm87        |   73 ------
+ Documentation/i2c/chips/lm90        |  121 ----------
+ Documentation/i2c/chips/lm92        |   37 ---
+ Documentation/i2c/chips/max1619     |   29 --
+ Documentation/i2c/chips/pc87360     |  189 ----------------
+ Documentation/i2c/chips/sis5595     |  106 ---------
+ Documentation/i2c/chips/smsc47b397  |  158 --------------
+ Documentation/i2c/chips/smsc47m1    |   52 ----
+ Documentation/i2c/chips/via686a     |   65 -----
+ Documentation/i2c/chips/w83627hf    |   66 -----
+ Documentation/i2c/chips/w83781d     |  402 ------------------------------------
+ Documentation/i2c/chips/w83l785ts   |   39 ---
+ Documentation/i2c/sysfs-interface   |  274 ------------------------
+ Documentation/i2c/userspace-tools   |   39 ---
+ 62 files changed, 3215 insertions(+), 3215 deletions(-)
 
 
-
+Thanks,
 -- 
 Jean Delvare
