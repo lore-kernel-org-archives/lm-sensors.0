@@ -1,45 +1,58 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 16 Jun 2005 19:47:09 +0000
-Subject: [lm-sensors] smbus RTC as misc device
-Message-Id: <20050616194558.402b7253.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Tue, 28 Jun 2005 06:21:46 +0000
+Subject: [lm-sensors] [PATCH 2.6.12-git5] i2c: make better use of IDR in
+Message-Id: <20050628042130.GB32087@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Olav,
+This patch uses the already existing IDR mechanism to simplify and
+improve the i2c_get_adapter function in i2c-core.
 
-Sorry for the delay.
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-> I hope this is the right list for my question. If not, 
-> please point me to a better list.
-> 
-> Sometime at 2.6.8-2.6.9 kernel I needed a driver for the 
-> m41t11 RTC smbus chip. As there was none in the kernel at 
-> that time, I wrote it myself and made it available for user 
-> space as a misc device /dev/rtc (character dev 10 135). This 
-> way unmodified hwclock could access it. 
-> 
-> Now I noticed that latest kernels already contain the 
-> m41t00.c, which may well be able to drive my m41t11 RTC 
-> unmodified. However, it does not make the device available 
-> through /dev/rtc. Neither do that other few i2c RTCs 
-> currently in the kernel. They all seem to define their own 
-> ioctls each.
-> 
-> What about making i2c RTCs available through /dev/rtc 
-> supporting its ioctls? If this would be OK then I can 
-> propose a patch for m41t00.c.
-
-You are probably right. There have been quite a few discussions lately
-about how to standardize the kernel interface to RTC drivers, the same
-question may hold for the user-space interface.
-
-However, this is neither related to hardware monitoring, nor to i2c, so
-there's not much advice we can give to you - it's something we don't
-know anything about ourselves. Better try to contact the various authors
-of RTC drivers and/or the LKML, and see what they think about the idea.
+Index: linux-2.6.12-git5/drivers/i2c/i2c-core.c
+=================================--- linux-2.6.12-git5.orig/drivers/i2c/i2c-core.c
++++ linux-2.6.12-git5/drivers/i2c/i2c-core.c
+@@ -156,7 +156,7 @@ int i2c_add_adapter(struct i2c_adapter *
+ 		goto out_unlock;
+ 	}
+ 
+-	res = idr_get_new(&i2c_adapter_idr, NULL, &id);
++	res = idr_get_new(&i2c_adapter_idr, adap, &id);
+ 	if (res < 0) {
+ 		if (res = -EAGAIN)
+ 			res = -ENOMEM;
+@@ -765,20 +765,15 @@ int i2c_adapter_id(struct i2c_adapter *a
+ 
+ struct i2c_adapter* i2c_get_adapter(int id)
+ {
+-	struct list_head   *item;
+ 	struct i2c_adapter *adapter;
+ 	
+ 	down(&core_lists);
+-	list_for_each(item,&adapters) {
+-		adapter = list_entry(item, struct i2c_adapter, list);
+-		if (id = adapter->nr &&
+-		    try_module_get(adapter->owner)) {
+-			up(&core_lists);
+-			return adapter;
+-		}
+-	}
++	adapter = (struct i2c_adapter *)idr_find(&i2c_adapter_idr, id);
++	if (adapter && !try_module_get(adapter->owner))
++		adapter = NULL;
++
+ 	up(&core_lists);
+-	return NULL;
++	return adapter;
+ }
+ 
+ void i2c_put_adapter(struct i2c_adapter *adap)
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
