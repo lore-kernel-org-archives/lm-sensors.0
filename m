@@ -1,21 +1,28 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 07 Jun 2005 21:31:40 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2] pca9539: new i2c driver
-Message-Id: <20050607213216.1862d920.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Tue, 28 Jun 2005 06:14:47 +0000
+Subject: [lm-sensors] [RFC PATCH] hwmon sysfs class, again
+Message-Id: <20050628041414.GA32087@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
-In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C7D9@WCSEXCMBS1.ad.wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I (finally) figured out how to send an attachment that is NOT Base64
-> encoded. Patch should be happy with this email. 
-> Thanks for your patience. =)
+Hi all:
 
-This one is fine with me, and applies just fine on top of my tree as
-well :)
+Here are the "new and improved" hwmon sysfs class patches:
+
+http://members.dca.net/mhoffman/sensors/temp/20050627/
+
+Jean Delvare's recent patches[1] must be applied first.  I plan to submit
+the hwmon/sysfs patches for inclusion into -mm shortly after Jean's are
+submitted.
+
+[1] http://lists.lm-sensors.org/pipermail/lm-sensors/2005-June/012850.html
+
+Regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
