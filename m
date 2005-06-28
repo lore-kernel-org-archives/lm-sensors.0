@@ -1,25 +1,37 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 11 Jun 2005 00:25:25 +0000
-Subject: [lm-sensors] Configuring ali1535 to show cpu temperature
-Message-Id: <42AA1341.8060102@sh.cvut.cz>
+From: epialinux@yahoo.com (Kino Davis)
+Date: Tue, 28 Jun 2005 05:34:27 +0000
+Subject: [lm-sensors] EPIA sensors (vt1211)
+Message-Id: <20050628033338.90656.qmail@web31206.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <41e8ec0c05060811462b536e91@mail.gmail.com>
-In-Reply-To: <41e8ec0c05060811462b536e91@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Gentlemen,
 
-Please install lm_sensors on your computer
-and run sensors-detect to see if there are any chips that are known.
+My name is Kino Davis and I have taken over the EPIA
+Linux HOWTO from Andrew Howlett -- I am in the process
+of updating and rewriting everything.
 
-Instructions how to do it are in lm_sensors package or web page.
-If you have any more questions just ask.
+I am trying to find out the status of support for
+lm_sensors on the EPIA boards, the vt1211 chip? I have
+sent an email to Lars Ekman, but I wonder if you could
+give me any information... can you please comment on
+the status of the patch incorperation into the kernel
+tree.
 
-Are you sure that acpi -V command do not show temperature?
-Also  I know this notebooks as buggy acpi so you need DSDT fix to get fans working. Is it your case?
+Thanks in advance, I look forward to hearing from you.
+The HOWTO now lives at epialinux.org if you are
+interested.
 
-Regards
-Rudolf
+Best Regards,
+Kino
+
+
+	
+		
+__________________________________ 
+Do you Yahoo!? 
+Yahoo! Mail - You care about security. So do we. 
+http://promotions.yahoo.com/new_mail
