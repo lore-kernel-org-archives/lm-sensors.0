@@ -1,84 +1,318 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 24 Jun 2005 21:14:47 +0000
-Subject: [lm-sensors] New max6875 driver may corrupt EEPROMs
-Message-Id: <20050624211416.7330b4d5.khali@linux-fr.org>
+From: david-b@pacbell.net (david-b@pacbell.net)
+Date: Wed, 29 Jun 2005 16:14:06 +0000
+Subject: [lm-sensors] [PATCH 2.6.13-rc1] minor TPS6501x cleanups
+Message-Id: <20050629141300.2BC83C894D@blackbox.site>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ben Gardner <BGardner@Wabtec.com>, Greg KH <greg@kroah.com>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-Hi all,
+This includes various small cleanups and fixes to the TPS 6501x driver that
+came mostly from review feedback by Jean Delvare; thanks Jean!  Also some
+goofy whitespace gets fixed.
 
-After a careful code analysis on the new max6875 driver
-(drivers/i2c/chips/max6875.c), I have come to the conclusion that this
-driver may cause EEPROM corruptions if used on random systems.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-The EEPROM part of the MAX6875 chip is accessed using rather uncommon
-I2C sequences. What is seen by the MAX6875 as reads can be seen by a
-standard EEPROM (24C02) as writes. If you check the detection method
-used by the driver, you'll find that the first SMBus command it will
-send on the bus is i2c_smbus_write_byte_data(client, 0x80, 0x40). For
-the MAX6875 it makes an internal pointer point to a specific offset of
-the EEPROM waiting for a subsequent read command, so it's not an actual
-data write operation, but for a standard EEPROM, this instead means
-writing value 0x40 to offset 0x80. Blame Philips and Intel for the
-obscure protocol.
 
-Since the MAX6875 and the standard, common 24C02 EEPROMs share two I2C
-addresses (0x50 and 0x52), loading the max6875 driver on a system with
-standard EEPROMs at either address will trigger a write on these
-EEPROMs, which will lead to their corruption if they happen not to be
-write protected. This kind of EEPROMs can be found on memory modules
-(SPD), ethernet adapters (MAC address), laptops (proprietary data) and
-displays (EDID/DDC). Most of these are hopefully write-protected, but
-not all of them.
-
-For this reason, I would recommend that the max6875 driver be
-neutralized, in a way that nobody can corrupt his/her EEPROMs by just
-loading the driver. This means either deleting the driver completely, or
-not listing any default address for it. I'd like this to be done before
-2.6.13-rc1 is released.
-
-Additionally, the max6875 driver lacks the 24RF08 corruption preventer
-present in the eeprom driver, which means that loading this driver in a
-system with such a chip would corrupt it as well.
-
-Here is a proposed quick patch addressing the issue, although I wouldn't
-mind a complete removal if it makes everyone feel safer. I think Ben
-has plans to replace this driver by a much simplified one anyway.
-
-Thanks.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-
- drivers/i2c/chips/max6875.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
-
---- linux-2.6.12-git5.orig/drivers/i2c/chips/max6875.c	2005-06-23 21:32:01.000000000 +0200
-+++ linux-2.6.12-git5/drivers/i2c/chips/max6875.c	2005-06-24 21:05:37.000000000 +0200
-@@ -37,7 +37,8 @@
- #include <linux/i2c-sensor.h>
+--- g26.orig/drivers/i2c/chips/Kconfig	2005-06-23 11:39:52.000000000 -0700
++++ g26/drivers/i2c/chips/Kconfig	2005-06-23 17:19:25.000000000 -0700
+@@ -509,7 +509,6 @@ config TPS65010
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called tps65010.
  
- /* Addresses to scan */
--static unsigned short normal_i2c[] = {0x50, 0x52, I2C_CLIENT_END};
-+/* No address scanned by default, as this could corrupt standard EEPROMS. */
-+static unsigned short normal_i2c[] = {I2C_CLIENT_END};
- static unsigned int normal_isa[] = {I2C_CLIENT_ISA_END};
+-
+ config SENSORS_M41T00
+ 	tristate "ST M41T00 RTC chip"
+ 	depends on I2C && PPC32
+--- g26.orig/include/asm-arm/arch-omap/tps65010.h	2005-06-23 11:40:05.000000000 -0700
++++ g26/include/asm-arm/arch-omap/tps65010.h	2005-06-23 17:20:23.000000000 -0700
+@@ -30,7 +30,7 @@
  
- /* Insmod parameters */
-@@ -369,6 +370,9 @@
- 	new_client->driver = &max6875_driver;
- 	new_client->flags = 0;
+ /*
+  * ----------------------------------------------------------------------------
+- * Registers, all 8 bits
++ * Registers, all 8 bits 
+  * ----------------------------------------------------------------------------
+  */
  
-+	/* Prevent 24RF08 corruption */
-+	i2c_smbus_write_quick(new_client, 0);
+--- g26.orig/drivers/i2c/chips/tps65010.c	2005-06-23 11:39:55.000000000 -0700
++++ g26/drivers/i2c/chips/tps65010.c	2005-06-23 17:20:04.000000000 -0700
+@@ -18,7 +18,6 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+-#undef	DEBUG
+ 
+ #include <linux/config.h>
+ #include <linux/kernel.h>
+@@ -49,11 +48,7 @@
+ MODULE_DESCRIPTION("TPS6501x Power Management Driver");
+ MODULE_LICENSE("GPL");
+ 
+-/* only two addresses possible */
+-#define	TPS_BASE	0x48
+-static unsigned short normal_i2c[] = {
+-	TPS_BASE,
+-	I2C_CLIENT_END };
++static unsigned short normal_i2c[] = { 0x48, /* 0x49, */ I2C_CLIENT_END };
+ static unsigned short normal_i2c_range[] = { I2C_CLIENT_END };
+ 
+ I2C_CLIENT_INSMOD;
+@@ -102,7 +97,7 @@ struct tps65010 {
+ 	u8			chgstatus, regstatus, chgconf;
+ 	u8			nmask1, nmask2;
+ 
+-	/* plus four GPIOs, probably used to switch power */
++	/* not currently tracking GPIO state */
+ };
+ 
+ #define	POWER_POLL_DELAY	msecs_to_jiffies(800)
+@@ -135,7 +130,7 @@ static void dbg_regstat(char *buf, size_
+ 		(regstatus & TPS_REG_COVER) ? " uncover" : "",
+ 		(regstatus & TPS_REG_UVLO) ? " UVLO" : "",
+ 		(regstatus & TPS_REG_NO_CHG) ? " NO_CHG" : "",
+-		(regstatus & TPS_REG_PG_LD02) ? " ld01_bad" : "",
++		(regstatus & TPS_REG_PG_LD02) ? " ld02_bad" : "",
+ 		(regstatus & TPS_REG_PG_LD01) ? " ld01_bad" : "",
+ 		(regstatus & TPS_REG_PG_MAIN) ? " main_bad" : "",
+ 		(regstatus & TPS_REG_PG_CORE) ? " core_bad" : "");
+@@ -143,7 +138,7 @@ static void dbg_regstat(char *buf, size_
+ 
+ static void dbg_chgconf(int por, char *buf, size_t len, u8 chgconfig)
+ {
+-	char *hibit;
++	const char *hibit;
+ 
+ 	if (por)
+ 		hibit = (chgconfig & TPS_CHARGE_POR)
+@@ -295,7 +290,7 @@ static int dbg_show(struct seq_file *s, 
+ 	seq_printf(s, "defgpio %02x mask3 %02x\n", value, v2);
+ 
+ 	for (i = 0; i < 4; i++) {
+-		if (value & (1 << (4 +i)))
++		if (value & (1 << (4 + i)))
+ 			seq_printf(s, "  gpio%d-out %s\n", i + 1,
+ 				(value & (1 << i)) ? "low" : "hi ");
+ 		else
+@@ -481,7 +476,7 @@ static int __exit tps65010_detach_client
+ 	debugfs_remove(tps->file);
+ 	if (i2c_detach_client(client) = 0)
+ 		kfree(tps);
+-	the_tps = 0;
++	the_tps = NULL;
+ 	return 0;
+ }
+ 
+@@ -514,7 +509,6 @@ tps65010_probe(struct i2c_adapter *bus, 
+ 	INIT_WORK(&tps->work, tps65010_work, tps);
+ 	tps->irq = -1;
+ 	tps->client.addr = address;
+-	i2c_set_clientdata(&tps->client, tps);
+ 	tps->client.adapter = bus;
+ 	tps->client.driver = &tps65010_driver;
+ 	strlcpy(tps->client.name, DRIVER_NAME, I2C_NAME_SIZE);
+@@ -523,9 +517,7 @@ tps65010_probe(struct i2c_adapter *bus, 
+ 	if (status < 0) {
+ 		dev_dbg(&bus->dev, "can't attach %s to device %d, err %d\n",
+ 				DRIVER_NAME, address, status);
+-fail1:
+-		kfree(tps);
+-		return 0;
++		goto fail1;
+ 	}
+ 
+ #ifdef	CONFIG_ARM
+@@ -535,7 +527,7 @@ fail1:
+ 		tps->irq = OMAP_GPIO_IRQ(58);
+ 		omap_request_gpio(58);
+ 		omap_set_gpio_direction(58, 1);
+-		omap_set_gpio_edge_ctrl(58, OMAP_GPIO_FALLING_EDGE);
++		set_irq_type(tps->irq, IRQT_FALLING);
+ 	}
+ 	if (machine_is_omap_osk()) {
+ 		tps->model = TPS65010;
+@@ -543,7 +535,7 @@ fail1:
+ 		tps->irq = OMAP_GPIO_IRQ(OMAP_MPUIO(1));
+ 		omap_request_gpio(OMAP_MPUIO(1));
+ 		omap_set_gpio_direction(OMAP_MPUIO(1), 1);
+-		omap_set_gpio_edge_ctrl(OMAP_MPUIO(1), OMAP_GPIO_FALLING_EDGE);
++		set_irq_type(tps->irq, IRQT_FALLING);
+ 	}
+ 	if (machine_is_omap_h3()) {
+ 		tps->model = TPS65013;
+@@ -633,6 +625,9 @@ fail1:
+ 	tps->file = debugfs_create_file(DRIVER_NAME, S_IRUGO, NULL,
+ 				tps, DEBUG_FOPS);
+ 	return 0;
++fail1:
++	kfree(tps);
++	return 0;
+ }
+ 
+ static int __init tps65010_scan_bus(struct i2c_adapter *bus)
+@@ -645,7 +640,6 @@ static int __init tps65010_scan_bus(stru
+ static struct i2c_driver tps65010_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "tps65010",
+-	.id		= 888,		/* FIXME assign "official" value */
+ 	.flags		= I2C_DF_NOTIFY,
+ 	.attach_adapter	= tps65010_scan_bus,
+ 	.detach_client	= __exit_p(tps65010_detach_client),
+@@ -700,14 +694,14 @@ int tps65010_set_gpio_out_value(unsigned
+ 		return -ENODEV;
+ 	if ((gpio < GPIO1) || (gpio > GPIO4))
+ 		return -EINVAL;
+-
++	
+ 	down(&the_tps->lock);
+ 
+ 	defgpio = i2c_smbus_read_byte_data(&the_tps->client, TPS_DEFGPIO);
+ 
+ 	/* Configure GPIO for output */
+ 	defgpio |= 1 << (gpio + 3);
+-
++	
+ 	/* Writing 1 forces a logic 0 on that GPIO and vice versa */
+ 	switch (value) {
+ 	case LOW:
+@@ -718,14 +712,14 @@ int tps65010_set_gpio_out_value(unsigned
+ 		defgpio &= ~(1 << (gpio - 1)); /* set GPIO high by writing 0 */
+ 		break;
+ 	}
+-
++	
+ 	status = i2c_smbus_write_byte_data(&the_tps->client,
+ 		TPS_DEFGPIO, defgpio);
+ 
+ 	pr_debug("%s: gpio%dout = %s, defgpio 0x%02x\n", DRIVER_NAME,
+ 		gpio, value ? "high" : "low",
+ 		i2c_smbus_read_byte_data(&the_tps->client, TPS_DEFGPIO));
+-
++	
+ 	up(&the_tps->lock);
+ 	return status;
+ }
+@@ -744,7 +738,7 @@ int tps65010_set_led(unsigned led, unsig
+ 	if (!the_tps)
+ 		return -ENODEV;
+ 
+-	if(led = LED1)
++	if (led = LED1)
+ 		offs = 0;
+ 	else {
+ 		offs = 2;
+@@ -753,12 +747,14 @@ int tps65010_set_led(unsigned led, unsig
+ 
+ 	down(&the_tps->lock);
+ 
+-	dev_dbg (&the_tps->client.dev, "led%i_on   0x%02x\n", led,
+-		i2c_smbus_read_byte_data(&the_tps->client, TPS_LED1_ON + offs));
+-
+-	dev_dbg (&the_tps->client.dev, "led%i_per  0x%02x\n", led,
+-		i2c_smbus_read_byte_data(&the_tps->client, TPS_LED1_PER + offs));
+-
++	pr_debug("%s: led%i_on   0x%02x\n", DRIVER_NAME, led,
++		i2c_smbus_read_byte_data(&the_tps->client,
++				TPS_LED1_ON + offs));
 +
- 	/* Setup the user section */
- 	data->blocks[max6875_eeprom_user].type    = max6875_eeprom_user;
- 	data->blocks[max6875_eeprom_user].slices  = USER_EEPROM_SLICES;
-
-
--- 
-Jean Delvare
++	pr_debug("%s: led%i_per  0x%02x\n", DRIVER_NAME, led,
++		i2c_smbus_read_byte_data(&the_tps->client,
++				TPS_LED1_PER + offs));
++	
+ 	switch (mode) {
+ 	case OFF:
+ 		led_on  = 1 << 7;
+@@ -773,7 +769,7 @@ int tps65010_set_led(unsigned led, unsig
+ 		led_per = 0x08 | (1 << 7);
+ 		break;
+ 	default:
+-		printk(KERN_ERR "%s: Wrong mode parameter for tps65010_set_led()\n",
++		printk(KERN_ERR "%s: Wrong mode parameter for set_led()\n", 
+ 		       DRIVER_NAME);
+ 		up(&the_tps->lock);
+ 		return -EINVAL;
+@@ -783,27 +779,28 @@ int tps65010_set_led(unsigned led, unsig
+ 			TPS_LED1_ON + offs, led_on);
+ 
+ 	if (status != 0) {
+-		printk(KERN_ERR "%s: Failed to write led%i_on register\n",
++		printk(KERN_ERR "%s: Failed to write led%i_on register\n", 
+ 		       DRIVER_NAME, led);
+ 		up(&the_tps->lock);
+ 		return status;
+-	}
++	} 
+ 
+-	dev_dbg (&the_tps->client.dev, "led%i_on   0x%02x\n", led,
++	pr_debug("%s: led%i_on   0x%02x\n", DRIVER_NAME, led,
+ 		i2c_smbus_read_byte_data(&the_tps->client, TPS_LED1_ON + offs));
+ 
+ 	status = i2c_smbus_write_byte_data(&the_tps->client,
+ 			TPS_LED1_PER + offs, led_per);
+ 
+ 	if (status != 0) {
+-		printk(KERN_ERR "%s: Failed to write led%i_per register\n",
++		printk(KERN_ERR "%s: Failed to write led%i_per register\n", 
+ 		       DRIVER_NAME, led);
+ 		up(&the_tps->lock);
+ 		return status;
+ 	}
+ 
+-	dev_dbg (&the_tps->client.dev, "led%i_per  0x%02x\n", led,
+-		i2c_smbus_read_byte_data(&the_tps->client, TPS_LED1_PER + offs));
++	pr_debug("%s: led%i_per  0x%02x\n", DRIVER_NAME, led,
++		i2c_smbus_read_byte_data(&the_tps->client,
++				TPS_LED1_PER + offs));
+ 
+ 	up(&the_tps->lock);
+ 
+@@ -858,7 +855,7 @@ int tps65010_set_low_pwr(unsigned mode)
+ 		i2c_smbus_read_byte_data(&the_tps->client, TPS_VDCDC1));
+ 
+ 	vdcdc1 = i2c_smbus_read_byte_data(&the_tps->client, TPS_VDCDC1);
+-
++	
+ 	switch (mode) {
+ 	case OFF:
+ 		vdcdc1 &= ~TPS_ENABLE_LP; /* disable ENABLE_LP bit */
+@@ -873,8 +870,8 @@ int tps65010_set_low_pwr(unsigned mode)
+ 			TPS_VDCDC1, vdcdc1);
+ 
+ 	if (status != 0)
+-		printk(KERN_ERR "%s: Failed to write vdcdc1 register\n",
+-		       DRIVER_NAME);
++		printk(KERN_ERR "%s: Failed to write vdcdc1 register\n", 
++			DRIVER_NAME);
+ 	else
+ 		pr_debug("%s: vdcdc1 0x%02x\n", DRIVER_NAME,
+ 			i2c_smbus_read_byte_data(&the_tps->client, TPS_VDCDC1));
+@@ -899,15 +896,15 @@ int tps65010_config_vregs1(unsigned valu
+ 
+ 	down(&the_tps->lock);
+ 
+-	pr_debug("%s: vregs1 0x%02x\n", DRIVER_NAME,
+-		        i2c_smbus_read_byte_data(&the_tps->client, TPS_VREGS1));
++	pr_debug("%s: vregs1 0x%02x\n", DRIVER_NAME, 
++			i2c_smbus_read_byte_data(&the_tps->client, TPS_VREGS1));
+ 
+ 	status = i2c_smbus_write_byte_data(&the_tps->client,
+ 			TPS_VREGS1, value);
+ 
+ 	if (status != 0)
+-		printk(KERN_ERR "%s: Failed to write vregs1 register\n",
+-		        DRIVER_NAME);
++		printk(KERN_ERR "%s: Failed to write vregs1 register\n", 
++			DRIVER_NAME);
+ 	else
+ 		pr_debug("%s: vregs1 0x%02x\n", DRIVER_NAME,
+ 			i2c_smbus_read_byte_data(&the_tps->client, TPS_VREGS1));
+@@ -1009,7 +1006,7 @@ static int __init tps_init(void)
+ 		msleep(10);
+ 	}
+ 
+-#if defined(CONFIG_ARM)
++#ifdef	CONFIG_ARM
+ 	if (machine_is_omap_osk()) {
+ 
+ 		// FIXME: More should be placed in the initialization code
