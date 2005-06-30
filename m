@@ -1,12 +1,16 @@
 From: ericb@aspsys.com (Eric J. Bowersox)
-Date: Thu, 30 Jun 2005 23:37:53 +0000
+Date: Thu, 30 Jun 2005 23:51:07 +0000
 Subject: [lm-sensors] W83792D & Overtemperature LED on Supermicro
-Message-Id: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
+Message-Id: <1120168212.32695.33.camel@wiz.dev.aspsys.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
+In-Reply-To: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+(Sorry about the blank message, let's try it again...)
 
 Greetings to all.
 
@@ -41,10 +45,4 @@ Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
 <ericb@aspsys.com>                      3900 Youngfield Street
 Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
 Fax: +01 303 431 7196                   <http://www.aspsys.com>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050630/c7ff3157/attachment.bin
+
