@@ -1,61 +1,50 @@
-From: CYChen16@winbond.com.tw (CYChen16@winbond.com.tw)
-Date: Wed, 01 Jun 2005 10:05:02 +0000
-Subject: [lm-sensors] RE: future feature request - detection issue
-Message-Id: <D0C7357F91C1114382BE1A26140309F001156631@wehqml01>
+From: blofeldus@yahoo.com (roger blofeld)
+Date: Thu, 30 Jun 2005 17:48:27 +0000
+Subject: [lm-sensors] [RESEND][PATCH] fix w1 for big-endian
+Message-Id: <20050630154751.82729.qmail@web53501.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42999BFA.9010700@sh.cvut.cz>
-In-Reply-To: <42999BFA.9010700@sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RGVhciBSdWRvbGYsCiAgVGhhdCdzIGEgZ29vZCBpZGVhLiBXZSB3aWxsIGltcGxlbWVudCBpdCBp
-biBuZXh0IGdlbmVyYXRpb24gY2hpcHMuCgpDWQoKLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0K
-RnJvbTogUEkxNCBIVUFORzAgClNlbnQ6IFdlZG5lc2RheSwgSnVuZSAwMSwgMjAwNSAzOjM5IFBN
-ClRvOiBQSTMyIENZQ2hlbjE2CkNjOiBSdWRvbGYgTWFyZWs7IGxtLXNlbnNvcnNAbG0tc2Vuc29y
-cy5vcmcKU3ViamVjdDogUkU6IGZ1dHVyZSBmZWF0dXJlIHJlcXVlc3QgLSBkZXRlY3Rpb24gaXNz
-dWUKCkhpIENZCgpUaGlzIENodW5oYW8gaW4gUEkxNCwgaW4gY2hhcmdlIG9mIHRoZSBsaW51eCBk
-cml2ZXIgZm9yIDc5MiBjaGlwLgoKV291bGQgeW91IHBsZWFzZSBnaXZlIHVzIHNvbWUgZ3VpZGFu
-Y2Ugd2hlbiB5b3UgaGF2ZSB0aW1lPyBJIHRoaW5rCm1heWJlIHdlIGNhbiBpbXByb3ZlIG91ciBk
-ZXNpZ24gaWYgcG9zc2libGUuCgoKVGhhbmtzCkJlc3QgUmVnYXJkcwpDaHVuaGFvCgoKPiAtLS0t
-LU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IFJ1ZG9sZiBNYXJlayBbbWFpbHRvOnIubWFy
-ZWtAc2guY3Z1dC5jel0KPiBTZW50OiAyMDA1pn41pOsyOaTpIDE4OjQwCj4gVG86IFBJMzIgQ1lD
-aGVuMTYKPiBDYzogUEkxNCBIVUFORzA7IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiBTdWJq
-ZWN0OiBmdXR1cmUgZmVhdHVyZSByZXF1ZXN0IC0gZGV0ZWN0aW9uIGlzc3VlCj4gCj4gSGVsbG8s
-Cj4gCj4gV2UgYXJlIGxtX3NlbnNvcnMgZ3JvdXAgdGhhdCBkZXZlbG9wcyBkcml2ZXJzIGZvciBX
-aW5ib25kIGNoaXAgaW4gTGludXgKPiBlbnZpcm9ubWVudC4KPiBPdXIgZHJpdmVycyBhcmUgIm1v
-dGhlcmJvYXJkIGluZGVwZW50IiBzbyB3ZSBoYXZlIHRvIGltcGxlbWVudCB2ZXJ5Cj4gc29waGlz
-dGljYXRlZCBjaGlwIGRldGVjdGlvbiBtZXRob2RzLgo+IAo+IFlvdXIgY2hpcHMgbGlrZSB3ODM3
-ODFkIGFuZCBjb21wYXRpYmxlIGFuZCBhbHNvIHlvdXIgbmV3IG9uZSB3ODM3OTJkIGhhdmUgY2hp
-cAo+IElEIGFuZCBtYW51ZmFjdHVyZXIgSUQgaW4gYmFuazAgcmVnaXN0ZXIuCj4gV2hhdCBpZiBi
-aW9zIGxlZnQgdGhlIGJhbmsgc3dpdGNoZWQgdG8gb3RoZXIgb25lPyBUaGVuIGl0IGlzIG5vdCBw
-b3NzaWJsZSB0bwo+IGRldGVjdCB5b3VyIGNoaXBzLgo+IAo+IFBsZWFzZSBjYW4geW91IGNvbnNp
-ZGVyIHRvIHBsYWNlIHRoZSBJRCByZWdpc3RlcnMgb3V0c2lkZSB0aGUgQkFOS2VkIHJlZ2lzdGVy
-Cj4gc3BhY2U/IEl0IHdpbGwgYXNzdXJlIHRoYXQgdGhlIGRldGVjdGlvbiBvZgo+IGNoaXBzIHdp
-bGwgYmUgZmluZS4KPiAKPiBUaGFuayB5b3UsCj4gCj4gUmVnYXJkcwo+IAo+IFJ1ZG9sZgoKCj09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRp
-YWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVz
-ZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2Vu
-ZGVyIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVk
-IGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhl
-IGVtYWlsIHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5k
-ZXIgaW5kaWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20g
-eW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVy
-YXRpb24gaXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0
-aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3Ry
-aWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVs
-ZXZhbnQgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVk
-IGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuDQo9PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2Rl
-IENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNz
-ZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupbur
-SKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6Sn
-pqyrSKRIqPq+XFxcXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZi
-pby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il
-87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHC
-LiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCs
-T7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5
-caRspKel37P1qc63TqijLg0K
+Hi
+ In the 2.6.13-rc1 code the "rn" structure is in the wrong-endianness
+when
+passed to w1_attach_slave_device(). This causes problems like the
+family and crc being swapped around. The following patch fixes the
+problem for me.
+
+ I sent this earlier to greg k-h & lkml, but he said I should send it
+here first.
+
+Signed-off-by: Roger Blofeld <blofeldus@yahoo.com>
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+-------------- next part --------------
+diff --git a/drivers/w1/w1.c b/drivers/w1/w1.c
+--- a/drivers/w1/w1.c
++++ b/drivers/w1/w1.c
+@@ -493,6 +493,7 @@ void w1_slave_found(unsigned long data, 
+ 	struct w1_reg_num *tmp;
+ 	int family_found = 0;
+ 	struct w1_master *dev;
++	u64 rn_le = cpu_to_le64(rn);
+ 
+ 	dev = w1_search_master(data);
+ 	if (!dev) {
+@@ -522,10 +523,8 @@ void w1_slave_found(unsigned long data, 
+ 		slave_count++;
+ 	}
+ 
+-	rn = cpu_to_le64(rn);
+-
+ 	if (slave_count = dev->slave_count &&
+-		rn && ((le64_to_cpu(rn) >> 56) & 0xff) = w1_calc_crc8((u8 *)&rn, 7)) {
++		rn && ((rn >> 56) & 0xff) = w1_calc_crc8((u8 *)&rn_le, 7)) {
+ 		w1_attach_slave_device(dev, tmp);
+ 	}
+ 			
