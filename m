@@ -1,47 +1,47 @@
-From: salahx@yahoo.com (Salah Coronya)
-Date: Thu, 30 Jun 2005 23:40:01 +0000
-Subject: [lm-sensors] PnP and W83627HF/W83781D IO port conflict at
-Message-Id: <42C46675.4050105@yahoo.com>
+From: david.knierim@gmail.com (David Knierim)
+Date: Thu, 30 Jun 2005 16:38:47 +0000
+Subject: [lm-sensors] LM93 PWM polarity bit "flips" state
+Message-Id: <84ab3f2e05063007382e7e8f86@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42C3900F.9090108@coronya.com>
-In-Reply-To: <42C3900F.9090108@coronya.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Salah,
-> 
-> 
->>My motherboard, an ASUS P4B-LX has a W83627HF chip on it (as detected
->>by sensors-detect) that has the sensor reading on it,and more
->>importantly, allow control of the fan via PWM.
->>
->>However, the W83781D module does not work - it loads, but nothing
->>happens. When i2c debugging message are enabled, it print the error
->>message "Request of region 0x290-0x297 for w83781d failed", although
->>it still loads. In
->>/proc/ioports it shows "pnp 00:0d" at port 0x0295-0x0296 both with and
->>without the module loaded.
->>
->>Forcing it gives the same error and results. Passing
->>pnp_reserve_io=0x0290,8 in the command line has no effect, and no
->>error message or acknowlegement about the parameter either, even with
->>PNP Debug output.
->>
->>If PNP is disabled in the kernel, I can access the sensor, get the
->>sensors readings, and control the fan.
-> 
-> 
-> The culprit isn't PNP itself but PNPACPI. The problem is known, see:
->   http://bugzilla.kernel.org/show_bug.cgi?id@14
-> 
-> Feel free to add a "me too" there so that the person responsible for it
-> knows that it does annoy people. Not sure there is anything we can do
-> though, as this is a BIOS bug. Ideally the motherboard manufacturer
-> should release an updated BIOS.
-> 
+We have a bunch of servers based on the Intel 7520 chipset with
+ESB6300 south bridge (which is capable of block transfers).   The
+server uses an LM93 and an LM87 for sensors.
 
-Ok, will do. For now, I've disabled PNPACPI and switched to PNPBIOS to
-workaround the problem in the meantime. Thanks!
+The servers are all running the sernsors and i2c version 2.9.1.  The
+OS is CentOS 3.4, which is basically Red Hat Enterprise Linux 3,
+update 4.
+
+We have a diagnostic suite based on CTCS
+(http://sourceforge.net/projects/va-ctcs/) with some additional tests
+for sensors added.  One of these tests changes the PWM settings of the
+LM93 and verifies that the fan speeds change.
+
+When running this test, occationally the PWM polarity bit "flips"
+state.  Once this happens, the fans change speed, but not in the
+direction that is intended.   If the test is run long enough, the
+polarity bit that is wrong will usually flip back to the correct
+value.  The changing of the polarity bit status seems to be random. 
+However, it does not seem to occur if the server is not heavily loaded
+(or it takes much longer to occur).
+
+Changing the bit using i2cset works and will cause the test to work
+correctly again.
+
+The lm93 driver is loaded using the disable_block=1 option.  I can
+retest using block mode if it is felt that this may help isolate the
+issue.
+
+I am concerned that this issue is a symptopm of a larger problem.
+
+This problem has been observed on at least 6 different servers, so
+it's not just a hardware issue with a single server.
+
+I'm also unsure how to proceed.   Any suggestions??
+
+Thanks,
+   David
