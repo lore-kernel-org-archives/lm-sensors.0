@@ -1,150 +1,50 @@
-From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Fri, 03 Jun 2005 19:38:08 +0000
-Subject: [lm-sensors] [PATCH 2.6.12-rc5-mm2 3/5] w1 enhancements
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C9076C6A9@WCSEXCMBS1.ad.wabtec.com>
+From: ericb@aspsys.com (Eric J. Bowersox)
+Date: Thu, 30 Jun 2005 23:37:53 +0000
+Subject: [lm-sensors] W83792D & Overtemperature LED on Supermicro
+Message-Id: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EB@WCSEXCMBS1.ad.wabtec.com>
-In-Reply-To: <F06EB2894F3F0D45AD9BEA7246DE9C9076C5EB@WCSEXCMBS1.ad.wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Greetings to all.
 
-Adds a sysfs entry (w1_master_search) that allows you to disable/enable
-periodic searches.
+We've got some compute nodes here that are using Supermicro X6DHR
+motherboards (for the Intel Nocona processors), which use the Winbond
+W83792D hardware monitor chip.  Since the OS installed on these is SuSE
+Linux Enterprise Server 9 (kernel 2.6.5), I had to upgrade lm_sensors to
+2.9.1 and apply a kernel patch (the one recently posted to this list) to
+get the right chip driver into the system.  I'm able to get temperature,
+fan, and voltage readings out of the chip, so it's all good there.
 
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
+However, another strange issue has cropped up: during the system boot
+process, as soon as the "sensors" service loads, the "overtemperature"
+LED on the front panel begins flashing.  I've tried mucking around with
+the "set tempN_over" and "set tempN_hyst" lines in sensors.conf, but to
+no avail; the last settings I tried were 70 for over and 30 for hyst,
+and the light still blinks.  Naturally, if we ship the nodes like this,
+the customer might get worried, seeing all those blinking red lights.
 
---- linux-2.6.12-rc5-mm2-w1defaultfam/drivers/w1/w1.c	2005-06-03
-08:50:02.000000000 -0500
-+++ linux-2.6.12-rc5-mm2/drivers/w1/w1.c	2005-06-03
-10:26:11.812696760 -0500
-@@ -161,6 +161,39 @@
- 	return count;
- }
- 
-+static ssize_t w1_master_attribute_store_search(struct device * dev, 
-+						struct device_attribute
-*attr,
-+						const char * buf, size_t
-count)
-+{
-+	struct w1_master *md = container_of(dev, struct w1_master, dev);
-+
-+	if (down_interruptible (&md->mutex))
-+		return -EBUSY;
-+
-+	md->search_count = simple_strtol(buf, NULL, 0);
-+
-+	up(&md->mutex);
-+
-+	return count;
-+}
-+
-+static ssize_t w1_master_attribute_show_search(struct device *dev, 
-+					       struct device_attribute
-*attr, 
-+					       char *buf)
-+{
-+	struct w1_master *md = container_of(dev, struct w1_master, dev);
-+	ssize_t count;
-+
-+	if (down_interruptible (&md->mutex))
-+		return -EBUSY;
-+
-+	count = sprintf(buf, "%d\n", md->search_count);
-+
-+	up(&md->mutex);
-+
-+	return count;
-+}
-+
- static ssize_t w1_master_attribute_show_pointer(struct device *dev,
-struct device_attribute *attr, char *buf)
- {
- 	struct w1_master *md = container_of(dev, struct w1_master, dev);
-@@ -255,6 +288,12 @@
- 		__ATTR(w1_master_##_name, _mode,		\
- 		       w1_master_attribute_show_##_name, NULL)
- 
-+#define W1_MASTER_ATTR_RW(_name, _mode)
-\
-+	struct device_attribute w1_master_attribute_##_name =	\
-+		__ATTR(w1_master_##_name, _mode,		\
-+		       w1_master_attribute_show_##_name,	\
-+		       w1_master_attribute_store_##_name)
-+
- static W1_MASTER_ATTR_RO(name, S_IRUGO);
- static W1_MASTER_ATTR_RO(slaves, S_IRUGO);
- static W1_MASTER_ATTR_RO(slave_count, S_IRUGO);
-@@ -262,6 +301,7 @@
- static W1_MASTER_ATTR_RO(attempts, S_IRUGO);
- static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
- static W1_MASTER_ATTR_RO(pointer, S_IRUGO);
-+static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUGO);
- 
- static struct attribute *w1_master_default_attrs[] = {
- 	&w1_master_attribute_name.attr,
-@@ -271,6 +311,7 @@
- 	&w1_master_attribute_attempts.attr,
- 	&w1_master_attribute_timeout.attr,
- 	&w1_master_attribute_pointer.attr,
-+	&w1_master_attribute_search.attr,
- 	NULL
- };
- 
-@@ -658,11 +699,14 @@
- 		if (!dev->initialized)
- 			continue;
- 
-+		if (dev->search_count = 0)
-+			continue;
-+
- 		if (down_interruptible(&dev->mutex))
- 			continue;
- 
- 		list_for_each_entry(sl, &dev->slist, w1_slave_entry)
--				clear_bit(W1_SLAVE_ACTIVE, (long
-*)&sl->flags);
-+			clear_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
- 
- 		w1_search_devices(dev, w1_slave_found);
- 
-@@ -677,6 +721,10 @@
- 			} else if (test_bit(W1_SLAVE_ACTIVE, (unsigned
-long *)&sl->flags))
- 				sl->ttl = dev->slave_ttl;
- 		}
-+
-+		if (dev->search_count > 0)
-+			dev->search_count--;
-+
- 		up(&dev->mutex);
- 	}
- 
---- linux-2.6.12-rc5-mm2-w1defaultfam/drivers/w1/w1.h	2005-06-03
-10:23:52.648695064 -0500
-+++ linux-2.6.12-rc5-mm2/drivers/w1/w1.h	2005-06-03
-09:06:50.110814756 -0500
-@@ -162,6 +162,7 @@
- 	int			slave_ttl;
- 	int			initialized;
- 	u32			id;
-+	int			search_count;
- 
- 	atomic_t		refcnt;
- 
---- linux-2.6.12-rc5-mm2-touchbit/drivers/w1/w1_int.c	2005-06-03
-08:37:30.000000000 -0500
-+++ linux-2.6.12-rc5-mm2/drivers/w1/w1_int.c	2005-06-03
-09:19:31.000000000 -0500
-@@ -69,6 +69,7 @@
- 	dev->initialized	= 0;
- 	dev->id			= id;
- 	dev->slave_ttl		= slave_ttl;
-+        dev->search_count	= -1; /* continual scan */
- 
- 	atomic_set(&dev->refcnt, 2);
- 
+So, anybody have any ideas, short of taking a pair of diagonal cutters
+to the leads for the temperature light?  Is that light somehow connected
+to one of the outputs of the W83792D, and if so, is there some kind of
+"magic poke" I can make to the chip registers to get it to quit
+flashing?  (Maybe this is a driver issue?)  Or have I just not been
+aggressive enough in how I changed the temperature bounds in
+sensors.conf?
 
+Thanks in advance.
+
+-- 
+Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
+<ericb@aspsys.com>                      3900 Youngfield Street
+Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
+Fax: +01 303 431 7196                   <http://www.aspsys.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050630/c7ff3157/attachment.bin
