@@ -1,40 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 14 Jun 2005 20:46:21 +0000
-Subject: [lm-sensors] w83781d.o: Subclient 0 registration at address
-Message-Id: <20050614204521.461ca2ba.khali@linux-fr.org>
+From: salahx@coronya.com (Salah Coronya)
+Date: Thu, 30 Jun 2005 08:25:11 +0000
+Subject: [lm-sensors] PnP and W83627HF/W83781D IO port conflict at
+Message-Id: <42C3900F.9090108@coronya.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2ef564dc05061302175b8427fd@mail.gmail.com>
-In-Reply-To: <2ef564dc05061302175b8427fd@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Sukhdeep,
+My motherboard, an ASUS P4B-LX has a W83627HF chip on it (as detected by
+sensors-detect) that has the sensor reading on it,and more importantly,
+allow control of the fan via PWM.
 
-> I booted the device using Win 2K HDD and ran SpeedFan over it. And the
-> results were the same.
-> At least the second chip is reading the fan speeds correctly. There
-> are 4 external fans, and 2nd chip is reading out the fan speeds for
-> the 3 of them.
+However, the W83781D module does not work - it loads, but nothing
+happens. When i2c debugging message are enabled, it print the error
+message "Request of region 0x290-0x297 for w83781d failed", although it
+still loads. In
+/proc/ioports it shows "pnp 00:0d" at port 0x0295-0x0296 both with and
+without the module loaded.
 
-You may need to change the clock dividers to get proper reading.
+Forcing it gives the same error and results. Passing
+pnp_reserve_io=0x0290,8 in the command line has no effect, and no error
+message or acknowlegement about the parameter either, even with PNP
+Debug output.
 
-> And one more question ... Is it possible to configure the fan1,
-> fan2... settings in sensors.conf for the two chips separately ?
+If PNP is disabled in the kernel, I can access the sensor, get the
+sensors readings, and control the fan.
 
-It is under Linux 2.4, but unfortunately no more under Linux 2.6. Just
-create sections with the full chip name:
-
-chip "w83782d-i2c-0-29"
-
-   label fan1 "Foo Fan"
-   (...)
-
-chip "w83782d-i2c-0-2d"
-
-   label fan1 "Bar Fan"
-   (...)
-
--- 
-Jean Delvare
