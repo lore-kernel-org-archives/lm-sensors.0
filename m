@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Fri, 01 Jul 2005 04:59:20 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 01 Jul 2005 20:46:40 +0000
 Subject: [lm-sensors] lm87 alarm threshold changed mysteriously
-Message-Id: <42C4B15A.7080306@mds.gotdns.com>
+Message-Id: <20050701204554.0612d115.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <84ab3f2e05063006542885c7e6@mail.gmail.com>
 In-Reply-To: <84ab3f2e05063006542885c7e6@mail.gmail.com>
@@ -10,16 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I don't see anything in CHANGES or the CVS log that sounds like it would fix this.
-Strange since I assume there are no writes happening to any registers in normal operation, just reads for monitoring.
-Could be noise on the I2C bus or even cosmic rays that flipped a bit in the LM87.
-The server wasn't in Denver, was it (high altitude)?
-Sorry no great ideas on how to answer 2-4.
-Hope it doesn't happen again...
-mds
+Hi David,
 
+Trying to complement Mark's answer:
 
-David Knierim wrote:
 > We have a product based on the Intel E7501 chipset which uses two LM87
 > sensor chips and the i2c-i801 bus driver.  We have fielded several
 > hundred of these boxes over the past two years.  They are all running
@@ -38,18 +32,29 @@ David Knierim wrote:
 > So I have a bunch of questions:
 > 1 - is it likely that this problem would be fixed in a newer release
 > of lm_sensors?
-> 2 - if it's not fixed, how would one track down the problem so we could fix it?
+
+Probably not, for the simple reason that I don't think this is a
+lm_sensors bug in the first place. I'd rather suspect a hardware defect.
+
+> 2 - if it's not fixed, how would one track down the problem so we
+> could fix it?
+
+If the problem happens frequently enough, you could enable debugging in
+i2c-i801 so that all bus writes are logged. This would tell you whether
+the faulty limit was actually set through the linux drivers, or if the
+chip changed the value on its own. In the latter case, there's nothing
+we can do, obviously.
+
 > 3 - is it possible this is a hardware problem?
+
+Note that 3.32V is no random register value, it's 0xff. So my theory is
+that this was a hardware problem in the LM87 itself, which lost a
+register value.
+
 > 4 - Any thoughs on recovering from problem in a more automated fashion
 > until a fix is found?
-> 
-> Any thoughts are welcome.
-> 
-> David
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
+Not without voiding the whole point of hardware monitoring.
 
+-- 
+Jean Delvare
