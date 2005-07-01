@@ -1,47 +1,49 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Jul 2005 18:02:11 +0000
-Subject: [lm-sensors] [patch]  KERNELVERSION=2.6.12-something make
-Message-Id: <20050724180208.1515133e.khali@linux-fr.org>
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Fri, 01 Jul 2005 02:33:55 +0000
+Subject: [lm-sensors] W83792D & Overtemperature LED on Supermicro
+Message-Id: <42C48F47.5030503@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42E04664.3020001@divsol.com>
-In-Reply-To: <42E04664.3020001@divsol.com>
+References: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
+In-Reply-To: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+you want hyst (hysteresis) to be high, like 68.
+The alarm isn't cleared until the temperature goes below the hysteresis value.
 
-> I was poking around to see if could grok the sysfs api support
-> that would allow replacing the long lists of
->                 device_create_file(&new_client->dev,
->                 &dev_attr_inX_input);
+
+Eric J. Bowersox wrote:
+> (Sorry about the blank message, let's try it again...)
 > 
-> with something like:
->     for(i=0; i<vpoints_max; i++) {
->                 device_create_file(&new_client->dev,
->                 &dev_attr_in[i].in);
->                 device_create_file(&new_client->dev,
->                 &dev_attr_in[i].max);
->                 device_create_file(&new_client->dev,
->                 &dev_attr_in[i].min);
->     }
+> Greetings to all.
 > 
-> looking at it again now, it appears to hinge upon doing something
-> clever with DEVICE_ATTR, and unwinding some of the large-ish macros.
-> ... and a bunch of stuff I havent yet understood.
+> We've got some compute nodes here that are using Supermicro X6DHR
+> motherboards (for the Intel Nocona processors), which use the Winbond
+> W83792D hardware monitor chip.  Since the OS installed on these is SuSE
+> Linux Enterprise Server 9 (kernel 2.6.5), I had to upgrade lm_sensors to
+> 2.9.1 and apply a kernel patch (the one recently posted to this list) to
+> get the right chip driver into the system.  I'm able to get temperature,
+> fan, and voltage readings out of the chip, so it's all good there.
+> 
+> However, another strange issue has cropped up: during the system boot
+> process, as soon as the "sensors" service loads, the "overtemperature"
+> LED on the front panel begins flashing.  I've tried mucking around with
+> the "set tempN_over" and "set tempN_hyst" lines in sensors.conf, but to
+> no avail; the last settings I tried were 70 for over and 30 for hyst,
+> and the light still blinks.  Naturally, if we ship the nodes like this,
+> the customer might get worried, seeing all those blinking red lights.
+> 
+> So, anybody have any ideas, short of taking a pair of diagonal cutters
+> to the leads for the temperature light?  Is that light somehow connected
+> to one of the outputs of the W83792D, and if so, is there some kind of
+> "magic poke" I can make to the chip registers to get it to quit
+> flashing?  (Maybe this is a driver issue?)  Or have I just not been
+> aggressive enough in how I changed the temperature bounds in
+> sensors.conf?
+> 
+> Thanks in advance.
+> 
 
-You're correct, things could be done in a more efficient way. There is a
-sysfs attribute group API which could be used, or we could use for()
-loops like you proposed (and I proposed before you [1]). But you also
-have to remember that some drivers will not create all sysfs files
-depending on which chip they detected and what features these chips may
-have disabled.
 
-So it's a tricky point, and decisions should be taken on a by-driver
-basis. And you better know that driver pretty well before you do.
-
-[1] http://lkml.org/lkml/2005/5/19/140
-
--- 
-Jean Delvare
