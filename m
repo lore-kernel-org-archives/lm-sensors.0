@@ -1,38 +1,52 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 31 Jul 2005 18:22:57 +0000
-Subject: [lm-sensors] Re: [PATCH] i2c-algo-pca -- gracefully handle a busy
-Message-Id: <20050731182218.11e80156.khali@linux-fr.org>
+From: BGardner@Wabtec.com (BGardner@Wabtec.com)
+Date: Fri, 01 Jul 2005 16:00:19 +0000
+Subject: [lm-sensors] [Patch 4/5] w1: sysfs, select-slave, ds2433
+Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C90AB5BB5@WCSEXCMBS1.ad.wabtec.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1122633085.19718.106.camel@icampbell-debian>
-In-Reply-To: <1122633085.19718.106.camel@icampbell-debian>
+References: <200506300918.17966.bgardner@wabtec.com>
+In-Reply-To: <200506300918.17966.bgardner@wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ian,
+Jean,
 
-> I've been running with this patch for a while now, and while I've
-> never seen it trigger except with buggy hardware I think it is a
-> cleaner way to handle a busy bus. I had -EBUSY until about 10 minutes
-> ago but -EIO seems to be what most of the existing algo drivers will
-> return in the same circumstances.
+Is there a preferred format?
 
-Fine with me, except for the few coding style issues below.
+"23 6c dc 1c 00 00 00 43"
+or
+"236cdc1c00000043"
+or
+"0x23 0x6c 0xdc 0x1c 0x00 0x00 0x00 0x43"
+Or, since it can be thought of as a 64 bit number
+"0x236cdc1c00000043"
 
-> --- 2.6.orig/drivers/i2c/algos/i2c-algo-pca.c	2005-07-29 08:38:10.000000000 +0100
-> +++ 2.6/drivers/i2c/algos/i2c-algo-pca.c	2005-07-29 11:25:44.000000000 +0100
-> (...)
-> +	while((state = pca_status(adap)) != 0xf8 && timeout--) {
+I prefer the last one.
 
-Space after "while".
+Thanks,
+Ben
 
-> +		msleep(10);
-> +	}
-> +	if ( state != 0xf8 ) {
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: Thursday, June 30, 2005 4:09 PM
+To: Gardner, Ben
+Cc: Evgeniy Polyakov; LM Sensors
+Subject: Re: [lm-sensors] [Patch 4/5] w1: sysfs, select-slave, ds2433
 
-No space on the inner side of parentheses.
+Hi Ben,
+
+> w1-slave-sysfs.diff
+> Every slave now has at least two sysfs files:
+>  - id : an 8 byte binary file that holds the 64 bit id
+>    example: [23 6c dc 1c 00 00 00 43]
+
+I see no reason why this should be a binary file. Please make it a text
+file. Binary files in sysfs are supposed to be an exception, not the
+rule.
 
 Thanks,
 -- 
 Jean Delvare
+
+
