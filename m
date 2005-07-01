@@ -1,36 +1,84 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Tue, 26 Jul 2005 16:35:56 +0000
-Subject: [lm-sensors] Re: yani-script
-Message-Id: <2538186705072607354f7eb60f@mail.gmail.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 01 Jul 2005 23:20:23 +0000
+Subject: [lm-sensors] Asus A8000 (SMBus 2Eh) Inquiry/Request
+Message-Id: <42C5B34D.8050907@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <42E64292.6060609@divsol.com>
-In-Reply-To: <42E64292.6060609@divsol.com>
+References: <20050618063459.94021.qmail@web60417.mail.yahoo.com>
+In-Reply-To: <20050618063459.94021.qmail@web60417.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+hi,
 
-There are a few newer (and fixed/updated in some manner or another)
-scripts in the lkml/lm-sensors archives you might want to look at,
-they are essentially the same idea, but the last revision worked with
-some other rare cases and added a device_attribute parameter rather
-than a void * as the second argument to the callbacks.
+linux_user98765@yahoo.com wrote:
+> Sorry it took me a few days to get back to you, but the following seems
+> to have worked:
 
-On 7/26/05, Jim Cromie <jcromie@divsol.com> wrote:
-> In order to understand the regexs in it, I reformatted one of them
-> to use perls x regex modifier, which allows regex code to be
-> reformatted for readability.  Then I added comments to the regex.
+Good. I had a holiday too :)
+
+> lm85b-i2c-0-2e
+> Adapter: SMBus I801 adapter at 0400
+> V1.5:       +2.54 V  (min =  +0.00 V, max =  +3.32 V)
+> VCore:      +2.20 V  (min =  +0.00 V, max =  +2.99 V)
+> V3.3:       +3.33 V  (min =  +0.00 V, max =  +4.38 V)
+> V5:        +5.03 V  (min =  +0.00 V, max =  +6.64 V)
+> V12:      +11.75 V  (min =  +0.00 V, max = +15.94 V)
+
+Hmm Voltage limits seems not to work
+
+> CPU_Fan:   1080 RPM  (min =    0 RPM)
+> fan2:      1144 RPM  (min =    0 RPM)
+> fan3:         0 RPM  (min =    0 RPM)
+> fan4:         0 RPM  (min =    0 RPM)
+
+Also no fan limits
+
+> CPU:         +46?C  (low  =  -127?C, high =   +60?C)
+> Board:       +44?C  (low  =  -127?C, high =  +127?C)
+
+High limits seems OK
+
+> Remote:       +0?C  (low  =  -127?C, high =  +127?C)
+
+> CPU_PWM:    96
+> Fan2_PWM:   89
+> Fan3_PWM:  255
+> vid:      +1.850 V  (VRM Version 9.0)
 > 
-> here it is, in hopes it will be useful.
+> I do have a few last questions however:
+> 
+> While I presume I can merely add this to my /etc/modules -- would you
+> need anything else to be able to auto-detect the A8000?
 
-This looks useful, my only complaint is that I think you used an older
-revision than the one that actually did the massive code change that
-was accepted into the mainline kernel. I do at some point intend on
-changing the other sysfs attribute callbacks, so its useful for myself
-even to have a well documented script to look back at in a few months
-:-).
+This chip is completly new to us and  I guessed from binary dump it could be lm85 compatible somehow. Maybe it is
+more compatible with some other LMxx family chip. I must check. The values you are observing may be simply misinterpretation
+of some register value that happens to have one meaning for lm85 compatible chip, but for a8000 might have another meaning.
 
-Thanks,
-Yani
+
+> There seems to be a few discrepancies between the sensors detected by
+> lm-sensors and Everest (http://www.lavalys.com/):
+> > 
+> EVEREST
+> 
+> Temperature
+> * /dev/hda
+> * /dev/sda
+
+This is from S.M.A.R.T. use smartctl or hddtemp
+
+ > Which may overlap my last question:
+> 
+> So now that I have all these sensors -- what's the significance of
+> their readings?  Or for that matter what is PWM, vid, etc?
+>
+
+PWM could be used to regulate fan speeds but I doubt it will work with his chip. VID is voltage of CPU but the value seems also bogus.
+I cant tell you much info to rest of voltages - they might reflect real voltages or it can be misinterpretation too.
+
+I will ask you to run some commands when I will think out some :)
+
+Regards
+
+Rudolf
