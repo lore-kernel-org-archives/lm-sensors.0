@@ -1,69 +1,55 @@
-From: ericb@aspsys.com (Eric J. Bowersox)
-Date: Fri, 08 Jul 2005 18:19:12 +0000
-Subject: [lm-sensors] W83792D & Overtemperature LED on Supermicro
-Message-Id: <1120839491.6794.12.camel@wiz.dev.aspsys.com>
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Fri, 01 Jul 2005 04:59:20 +0000
+Subject: [lm-sensors] lm87 alarm threshold changed mysteriously
+Message-Id: <42C4B15A.7080306@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
-In-Reply-To: <1120167411.32695.31.camel@wiz.dev.aspsys.com>
+References: <84ab3f2e05063006542885c7e6@mail.gmail.com>
+In-Reply-To: <84ab3f2e05063006542885c7e6@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2005-07-08 at 04:27, Rudolf Marek wrote:
-> Both subclients are disabled.
-> It seems our driver
+I don't see anything in CHANGES or the CVS log that sounds like it would fix this.
+Strange since I assume there are no writes happening to any registers in normal operation, just reads for monitoring.
+Could be noise on the I2C bus or even cosmic rays that flipped a bit in the LM87.
+The server wasn't in Denver, was it (high altitude)?
+Sorry no great ideas on how to answer 2-4.
+Hope it doesn't happen again...
+mds
+
+
+David Knierim wrote:
+> We have a product based on the Intel E7501 chipset which uses two LM87
+> sensor chips and the i2c-i801 bus driver.  We have fielded several
+> hundred of these boxes over the past two years.  They are all running
+> Red Hat 9 with the version of sensors that came with it (the rpm
+> version is 2.6.5-5).  Yes, I know this an ancient release...
 > 
->           val = w83792d_read_value(new_client, W83792D_REG_I2C_SUBADDR);
->                 data->lm75[0]->addr = 0x48 + (val & 0x07);
->                 data->lm75[1]->addr = 0x48 + ((val >> 4) & 0x07);
->         }
+> I got a call yesterday that one of the boxes had started getting
+> voltage alarms.  After some investigation, I determined the problem
+> was that the low voltage alarm threshold for the +V2.5 power plane had
+> changed to 3.32V (from the normal value of 2.37V.   The high voltage
+> threshold had not changed for the normal setting of  2.61V.   The
+> measured voltage of 2.48V looked fine, too.
 > 
-> Does not expect this.  You must be using force_subclients parameter to get around this?!
-> Maybe setting the subclients reset the chip.
+> After running sensors -s, the problem went away (as I expected it to).
 > 
->   if (data->lm75[0]->addr = data->lm75[1]->addr) {
->                 dev_err(&new_client->dev, "duplicate addresses 0x%x "
->                                 "for subclients\n", data->lm75[0]->addr);
->                 err = -ENODEV;
->                 goto ERROR_SC_2;
->         }
+> So I have a bunch of questions:
+> 1 - is it likely that this problem would be fixed in a newer release
+> of lm_sensors?
+> 2 - if it's not fixed, how would one track down the problem so we could fix it?
+> 3 - is it possible this is a hardware problem?
+> 4 - Any thoughs on recovering from problem in a more automated fashion
+> until a fix is found?
 > 
+> Any thoughts are welcome.
 > 
-> Please make sure you are not using force_subclients param,
-> To allow driver load comment out calling of w83792d_detect_subclients.
+> David
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
-Rudolf, it seems you were right about the use of an extra parameter
-causing the problem...but it wasn't force_subclients.  One of the
-configuration files had an extra "init=1" parameter setting which must
-have been causing the reset.  Removing that parameter, while leaving the
-force_subclients parameter and the subclient initialization code intact,
-caused the driver to load *without* starting the overtemperature light
-blinking!
-
-(Incidentally, just commenting out the call to w83792d_detect_subclients
-caused the module to utterly fail to load, emitting an error saying that
-the module "falsely claims to have parameter force_subclients."  I tried
-commenting out bits of the w83792d_detect_subclients function code
-instead; that worked better.  But I removed those comment delimiters,
-leaving the code as it was before, before I tried again without the
-init=1 parameter.)
-
-And you were right that I *did* have to use force_subclients to get the
-driver to load in the first place.  I also had to use "ignore=0,0x2d"
-because there appears to be another chip (possibly a W83627HF?) at
-address 0x2d that was causing the w83792d driver to stop there, try to
-load, and fail.  The chip at address 0x2d does load with the w83781d
-driver, but its sensor inputs don't appear to be connected to anything.
-
-Looks like we've found a solution.  Thanks for being patient with me and
-for all your assistance.
-
-					Eric
-
--- 
-Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
-<ericb@aspsys.com>                      3900 Youngfield Street
-Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
-Fax: +01 303 431 7196                   <http://www.aspsys.com>
 
