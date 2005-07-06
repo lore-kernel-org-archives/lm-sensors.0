@@ -1,38 +1,87 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Jul 2005 20:09:18 +0000
-Subject: [lm-sensors] I2C support oddities
-Message-Id: <20050724200911.5b733de7.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Wed, 06 Jul 2005 17:40:56 +0000
+Subject: [lm-sensors] Re: [RFC PATCH] hwmon sysfs class, again
+Message-Id: <20050703145207.GA15875@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <PFEDLPHCOBHEOIOMGBIECEKGCAAA.david.vanhoose@comcast.net>
-In-Reply-To: <PFEDLPHCOBHEOIOMGBIECEKGCAAA.david.vanhoose@comcast.net>
+References: <20050628041414.GA32087@jupiter.solarsys.private>
+In-Reply-To: <20050628041414.GA32087@jupiter.solarsys.private>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Hi Jean:
 
-> I stumbled across what looks to be a couple of bugs and flaws in the
-> I2C code. The biggest issue being swapped parameter values in the
-> smbus_xfer functions. You might look at it and check to see if I'm
-> right.
+Thanks for the review.
 
-No, it doesn't work that way. If you think you found bugs, please point
-us to them and explain in detail why you think these are bugs, and if
-possible propose a patch fixing them. Don't just claim you found bugs
-and let us blindly search for them, it's inefficient.
+* Jean Delvare <khali@linux-fr.org> [2005-06-28 12:44:07 +0200]:
+> 
+> Hi Mark,
+> 
+> > Here are the "new and improved" hwmon sysfs class patches:
+> >
+> > http://members.dca.net/mhoffman/sensors/temp/20050627/
+> 
+> Looks all OK to me, except for:
+> 
+> > --- linux-2.6.12-git5.orig/drivers/hwmon/adm1026.c
+> > +++ linux-2.6.12-git5/drivers/hwmon/adm1026.c
+> > (...)
+> > @@ -1690,8 +1701,10 @@ int adm1026_detect(struct i2c_adapter *a
+> > (...)
+> >  exitfree:
+> > -	kfree(new_client);
+> > +	kfree(data);
+> 
+> Although this fix is correct, it would belong to
+> hwmon-chips-kfree-fix.patch, not hwmon-class-chips.patch.
+> 
+> Also, it looks to me like adm9240, smsc47m1 and smsc47b397 need the same
+> fix.
 
-> Also, I believe that the write functions need to have their
-> data parameter be constant. I get some warnings about using
-> decoder_init::data with smbus_write_block_data. None of the write
-> functions employ constant data pointers. Do you think that the
-> non-constant pointers should be changed to constant pointers?
+right - fixed all of that
 
-"write functions" is a bit vague. "some warnings" is a bit vague.
-"decoder_init::data" is something we don't know about. If you really
-need help, please describe your problem precisely, show us some code,
-tell us the exact warnings you get. I'm sorry but we can't help you if
-you don't provide the information we need to do so.
+> > --- linux-2.6.12-git5.orig/drivers/hwmon/asb100.c
+> > +++ linux-2.6.12-git5/drivers/hwmon/asb100.c
+> > (..)
+> > +        data->class_dev = hwmon_device_register(&new_client->dev);
+> > +        if (IS_ERR(data->class_dev)) {
+> > +                err = PTR_ERR(data->class_dev);
+> > +                goto ERROR3;
+> > +        }
+> 
+> Beware you are using spaces instead of tabulations here.
+
+oops - fixed
+
+> > --- linux-2.6.12-git5.orig/drivers/hwmon/w83781d.c
+> > +++ linux-2.6.12-git5/drivers/hwmon/w83781d.c
+> > (...)
+> > +ERROR4:
+> > +	if (NULL != data->lm75[1]) {
+> > +		i2c_detach_client(data->lm75[1]);
+> > +		kfree(data->lm75[1]);
+> > +	}
+> > +	if (NULL != data->lm75[0]) {
+> > +		i2c_detach_client(data->lm75[0]);
+> > +		kfree(data->lm75[0]);
+> > +	}
+> 
+> Please express the comparisons the other way around. I can guess why you
+> did it this way, but the usual style in the kernel is different and gcc
+> would warn you anyway.
+
+Actually, there were two of those already in the file (probably by me though).
+I prefer 'if (p)' myself, but the day job code style is stamped on my brain,
+heh.  Anyway, they're fixed.
+
+New patches here:
+
+http://members.dca.net/mhoffman/sensors/temp/20050703/
+
+Regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
