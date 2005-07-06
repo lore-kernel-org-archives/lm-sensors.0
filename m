@@ -1,7 +1,7 @@
 From: greanie@yahoo.com (Michael Greenish)
-Date: Wed, 06 Jul 2005 17:56:35 +0000
+Date: Wed, 06 Jul 2005 17:56:37 +0000
 Subject: [lm-sensors] Re: asus P5GD2 Premium
-Message-Id: <20050706024402.96529.qmail@web60419.mail.yahoo.com>
+Message-Id: <20050706030452.58113.qmail@web60418.mail.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42C6BFB0.7090900@sh.cvut.cz>
 In-Reply-To: <42C6BFB0.7090900@sh.cvut.cz>
@@ -10,18 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
+Hello Rudolf, 
 
-Thank you very much for your response.  I did not get
-around to this tonight but hope to before the end of
-the week, if not certainly before the weekend is over.
+I have managed to look at the board.  The link you
+forwarded is for a Pro version of the board, I have a
+Premium.  I'm sure the boards are fairly similar.  The
+only differences I could not were that I have
+aiProactive black anodized heat sinke instead of a red
+heat sink and one chip is populated that isn't in the
+picture.  It is a Silicon Image SATA Link so probably
+just the sata controller.  The only Winbond I found is
+a: W83627EHF - A.  It is located in a corner of the
+board, next to the RAM slots.
 
-Thank you again for the reply.  I appreciate your help
-very much.
+My linux skills aren't extensive but I do have some
+experience and I can follow explicite directions.  You
+may have noticed from my first email, that I
+downloaded the lmsensors 2.9.1 gz, unpacked it and
+tried "make user; etc..." and I also included the
+output.  
 
-Sincerely,
+Also, in regards to removing SuSE versions of
+lm-sensor, I looked for an rpm of lm-sensors on Yast
+but did not find one.  All I found is the sensors
+package, sensors-2.8.7-2.i586.rpm.  Would you suggest
+I uninstall that?  If not, how would I go about
+uninstalling all the lm-sensors suse packages
+otherwise?
 
-Mike
+Thanks again for your help.
+
+Sincerely, 
+
+Michael Greenish
 
 --- Rudolf Marek <r.marek@sh.cvut.cz> wrote:
 
@@ -169,8 +190,7 @@ http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050621/8dfe2e28/p
 > 
 
 
-
-		
-____________________________________________________
-Sell on Yahoo! Auctions ? no fees. Bid on great items.  
-http://auctions.yahoo.com/
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
