@@ -1,54 +1,52 @@
-From: gregkh@suse.de (Greg KH)
-Date: Tue, 12 Jul 2005 00:03:44 +0000
-Subject: [lm-sensors] [PATCH] I2C: max6875 Kconfig update
-Message-Id: <11211193763938@kroah.com>
+From: gabriel.euzet@gmail.com (Gabe)
+Date: Sat, 09 Jul 2005 20:24:12 +0000
+Subject: [lm-sensors] VT8231 - epia 800
+Message-Id: <d5dcbca205070911232ea979f4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11211193761992@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: max6875 Kconfig update
+Hi,
 
-Here is a proposed Kconfig update for the new max6875 i2c chip driver.
+I get the module from http://www.stanford.edu/~amarsh/vt8231/ and compile 
+it. All seems to work. But I can get correct values from command "sensors" 
+(I've tried th config file from the web site too) :
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+vt8231-isa-6000
+Adapter: ISA adapter
+VCore1: +0.30 V (min = +0.13 V, max = +0.14 V) ALARM
++5V: +0.34 V (min = +0.41 V, max = +0.46 V) ALARM
++12V: +1.10 V (min = +0.92 V, max = +1.15 V)
++3.3V: +0.29 V (min = +0.27 V, max = +0.30 V)
+fan1: 0 RPM (min = 3006 RPM, div = 2)
+fan2: 6182 RPM (min = 3006 RPM, div = 2)
+ERROR: Can't get TEMP2 data!
+Proc Temp: -0.8?C (high = -1?C, hyst = -1?C)
+ERROR: Can't get TEMP4 data!
+ERROR: Can't get TEMP5 data!
+ERROR: Can't get TEMP6 data!
+ERROR: Can't get TEMP7 data!
+vid: +1.850 V (VRM Version 9.1)
 
----
-commit 2146fec20c38d926f0d88413977f941f42a14588
-tree daaf87a4ec6e6c70c9e1be8b2bd09257b3be092f
-parent 089bd86632769051f15cd7387eebe126d18f151f
-author Jean Delvare <khali@linux-fr.org> Thu, 23 Jun 2005 23:41:39 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
+although, the bios says :
 
- drivers/i2c/chips/Kconfig |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+FAN1 : 6241 - 6301 RPM
+FAN2 : 0 RPM
+12V : 12.13 - 12.19 V
+5V : 5.06 - 5.08 V
+2.5V : 2.48 V
+Vcore : 1.65 V
+Internal Vcc : 3.28 V
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -519,13 +519,16 @@ config SENSORS_M41T00
- 	  will be called m41t00.
- 
- config SENSORS_MAX6875
--	tristate "MAXIM MAX6875 Power supply supervisor"
-+	tristate "Maxim MAX6875 Power supply supervisor"
- 	depends on I2C && EXPERIMENTAL
- 	help
--	  If you say yes here you get support for the MAX6875
--	  EEPROM-Programmable, Hex/Quad, Power-Suppy Sequencers/Supervisors.
-+	  If you say yes here you get support for the Maxim MAX6875
-+	  EEPROM-programmable, quad power-supply sequencer/supervisor.
- 
--          This provides a interface to program the EEPROM and reset the chip.
-+	  This provides an interface to program the EEPROM and reset the chip.
-+
-+	  This driver also supports the Maxim MAX6874 hex power-supply
-+	  sequencer/supervisor if found at a compatible address.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called max6875.
+only fan1 semms correct.
 
+Does somebody have the same card and a correct sensors.conf ?
+An other idea to help me ?
+
+Thanks.
+Gabe
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050709/213c807e/attachment.html
