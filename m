@@ -1,48 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 27 Jul 2005 21:33:27 +0000
-Subject: [lm-sensors] [PATCH 2.6] hwmon: Document on the W83627EHG chip
-Message-Id: <20050727213315.6ca005ea.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Tue, 12 Jul 2005 00:04:36 +0000
+Subject: [lm-sensors] [PATCH] I2C: m41t00: fix incorrect kfree
+Message-Id: <1121119376361@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11211193763732@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: khali@linux-fr.org
 
-Hi Greg, all,
+[PATCH] I2C: m41t00: fix incorrect kfree
 
-Document the fact that the W83627EHG is compatible with the W83627EHF.
+Here is a simple path fixing an incorrect kfree in the m41t00 i2c chip
+driver. The current code happens to work by accident, but the freed
+pointer isn't the one which was allocated in the first place, which
+could cause problems later.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/hwmon/Kconfig     |    3 +++
- drivers/hwmon/w83627ehf.c |    3 +++
- 2 files changed, 6 insertions(+)
+---
+commit 5da69ba42aa42a479c0f5d8cb8351ebb6b51c12e
+tree 3a0f32c3fbc961bb5f6b39c22c573fa8acd7c443
+parent 2146fec20c38d926f0d88413977f941f42a14588
+author Jean Delvare <khali@linux-fr.org> Fri, 01 Jul 2005 14:28:15 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
 
---- linux-2.6.13-rc3.orig/drivers/hwmon/Kconfig	2005-07-24 13:13:41.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/Kconfig	2005-07-24 20:26:24.000000000 +0200
-@@ -412,6 +412,9 @@
- 	  Only fan and temperature inputs are supported at the moment, while
- 	  the chip does much more than that.
+ drivers/i2c/chips/m41t00.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
+--- a/drivers/i2c/chips/m41t00.c
++++ b/drivers/i2c/chips/m41t00.c
+@@ -207,7 +207,7 @@ m41t00_detach(struct i2c_client *client)
+ 	int	rc;
  
-+	  This driver also supports the W83627EHG, which is the lead-free
-+	  version of the W83627EHF.
-+
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called w83627ehf.
- 
---- linux-2.6.13-rc3.orig/drivers/hwmon/w83627ehf.c	2005-07-24 13:13:41.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/w83627ehf.c	2005-07-24 20:29:57.000000000 +0200
-@@ -9,6 +9,9 @@
-     Thanks to Leon Moonen, Steve Cliffe and Grant Coady for their help
-     in testing and debugging this driver.
- 
-+    This driver also supports the W83627EHG, which is the lead-free
-+    version of the W83627EHF.
-+
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
+ 	if ((rc = i2c_detach_client(client)) = 0) {
+-		kfree(i2c_get_clientdata(client));
++		kfree(client);
+ 		tasklet_kill(&m41t00_tasklet);
+ 	}
+ 	return rc;
 
-
--- 
-Jean Delvare
