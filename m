@@ -1,62 +1,59 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Thu, 28 Jul 2005 14:52:42 +0000
-Subject: [lm-sensors] [patch] refactor SENSORS_DEV_ATTR: was pc87360
-Message-Id: <42E8D509.9020801@divsol.com>
+From: gregkh@suse.de (Greg KH)
+Date: Tue, 12 Jul 2005 00:04:43 +0000
+Subject: [lm-sensors] [PATCH] I2C: Clarify the usage of i2c-dev.h
+Message-Id: <1121119377583@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11211193771329@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: khali@linux-fr.org
 
-Jean Delvare wrote:
+[PATCH] I2C: Clarify the usage of i2c-dev.h
 
->Hi Jim,
->
->On 2005-07-28, Jim Cromie wrote:
->  
->
->>attached is a patch which:
->>
->>1. adds an __ATTR_N macro to device.h,
->>which takes an extra _index arg, and initializes device_attibute's new
->>.index member.
->>    
->>
->
->This seems to be duplicating the SENSOR_DEVICE_ATTR macro as defined in
->include/linux/hwmon-sysfs.h.
->
->  
->
-its almost the same - and was heavily inspired by it.
-The difference is that __ATTR_N is a smaller building block,
-it has only the RHS of the initialization, it does not have the
-variable declaration or the assignment/initialization itself.
+Upon suggestion by Nils Roeder, here is an update to the i2c
+documentation to clarify which header files user-space applications
+relying on the i2c-dev interface should include.
 
-So attached patch refactors SENSOR_DEV_ATTR
-into a declaration and an initialization expression,
-allowing latter to be used in array initializations.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+---
+commit 1d772e2587da3c8b0fb8610fcc1c91fd82f87e52
+tree 816702c0b2b1a37f772b8884ce2177b88af4ab73
+parent a68e2f4895070f3a449bfe5ae1174b73cc900642
+author Jean Delvare <khali@linux-fr.org> Sat, 25 Jun 2005 11:37:40 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:37 -0700
 
--------------- next part --------------
-diff -ruN -X exclude-diffs ../linux-2.6.13-rc3-mm1/include/linux/hwmon-sysfs.h linux/include/linux/hwmon-sysfs.h
---- ../linux-2.6.13-rc3-mm1/include/linux/hwmon-sysfs.h	2005-07-18 12:36:48.000000000 -0600
-+++ linux/include/linux/hwmon-sysfs.h	2005-07-28 06:38:08.000000000 -0600
-@@ -27,10 +27,13 @@
- #define to_sensor_dev_attr(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+ Documentation/i2c/dev-interface |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/i2c/dev-interface b/Documentation/i2c/dev-interface
+--- a/Documentation/i2c/dev-interface
++++ b/Documentation/i2c/dev-interface
+@@ -14,9 +14,12 @@ C example
+ ==== 
+ So let's say you want to access an i2c adapter from a C program. The
+-first thing to do is `#include <linux/i2c.h>" and "#include <linux/i2c-dev.h>. 
+-Yes, I know, you should never include kernel header files, but until glibc 
+-knows about i2c, there is not much choice.
++first thing to do is "#include <linux/i2c-dev.h>". Please note that
++there are two files named "i2c-dev.h" out there, one is distributed
++with the Linux kernel and is meant to be included from kernel
++driver code, the other one is distributed with lm_sensors and is
++meant to be included from user-space programs. You obviously want
++the second one here.
  
--#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
--struct sensor_device_attribute sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
--	.index =	_index,					\
-+#define __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
-+	{ .dev_attr =	__ATTR(_name,_mode,_show,_store),	\
-+	  .index =	_index,					\
- }
+ Now, you have to decide which adapter you want to access. You should
+ inspect /sys/class/i2c-dev/ to decide this. Adapter numbers are assigned
+@@ -78,7 +81,7 @@ Full interface description
+ =============
  
-+#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
-+struct sensor_device_attribute sensor_dev_attr_##_name		\
-+	= __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
-+
- #endif /* _LINUX_HWMON_SYSFS_H */
+ The following IOCTLs are defined and fully supported 
+-(see also i2c-dev.h and i2c.h):
++(see also i2c-dev.h):
+ 
+ ioctl(file,I2C_SLAVE,long addr)
+   Change slave address. The address is passed in the 7 lower bits of the
+
