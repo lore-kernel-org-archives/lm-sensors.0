@@ -1,34 +1,46 @@
-From: per@computer.org (Per Jessen)
-Date: Wed, 06 Jul 2005 17:41:00 +0000
-Subject: [lm-sensors] My 333 DIMMs are only being recognised as 266 by
-Message-Id: <20050703081733.856156CC43@mail.local.net>
+From: marcelo@feitoza.com.br (Marcelo Feitoza Parisi)
+Date: Tue, 12 Jul 2005 01:20:53 +0000
+Subject: [lm-sensors] Patches Doubt
+Message-Id: <42D2FDEF.6020504@feitoza.com.br>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <d8jidr$7rp$1@saturn.local.net>
-In-Reply-To: <d8jidr$7rp$1@saturn.local.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 02 Jul 2005 17:47:20 +0200, Rudolf Marek wrote:
+Hi there, I did not signed the list. Actually I am developing some
+patches do kernel-janitors, and I run into a doubt.
+I used only time_after() macro, but I was looking better to my patches
+and I've found that maybe it would introduce bugs. I was thinking if it
+is necessary to use time_after and time_before together, or something
+like time_between.
 
->I have time now after exams and yes now I know where to look. :)
-
-Hehe :-)
-Thanks for getting back to me.
-
->Cycle Time (SDRAM) highest CAS latency	6ns
->6ns -> 166MHz * 2 = DDR333 * 8B -> PC2666 (2700)
->So the DIMM is capable of running at "333MHz".
-
-Ah, very good.  I thought it should be ok.  
-
->Did you tried to upgrade the BIOS?
-
-Yeah, I have already the latest version.  I have opened a support
-case with AOpen. 
-
-
-/Per
-
-
+Thank You
+-- 
+Marcelo Feitoza Parisi
+marcelo@feitoza.com.br
+http://marcelo.feitoza.com.br/
+Key ID: 0x42A42C9A / Signed on: 25-04-2005 18:59
+Key fingerprint: ADDE EEE7 57D9 FB45 2605 5A03 54DA 3079 42A4 2C9A
+Key: http://marcelo.feitoza.com.br/GnuPG/chave_publica.asc
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: atxp1.patch
+Type: text/x-patch
+Size: 762 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050711/384b0dc4/atxp1.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: fscpos.patch
+Type: text/x-patch
+Size: 662 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050711/384b0dc4/fscpos.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: gl520sm.patch
+Type: text/x-patch
+Size: 710 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050711/384b0dc4/gl520sm.bin
