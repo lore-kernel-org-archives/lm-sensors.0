@@ -1,177 +1,120 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 31 Jul 2005 21:00:22 +0000
-Subject: [lm-sensors] [PATCH 2.6] (0/11) hwmon vs i2c, second round
-Message-Id: <20050731205933.2e2a957f.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Tue, 12 Jul 2005 00:04:47 +0000
+Subject: [lm-sensors] [PATCH] I2C: Strip trailing whitespace from strings
+Message-Id: <11211193763732@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11211193762160@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
-Cc: Greg KH <greg@kroah.com>
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: khali@linux-fr.org
 
-Hi all,
+[PATCH] I2C: Strip trailing whitespace from strings
 
-Following my first hwmon vs. i2c series of patches, which was mostly
-aiming at moving non-i2c hardware monitoring drivers away from the
-i2c-core, here comes a second series which goes one step further in the
-direction of a clean separation of the hmwon-specific code from the i2c
-subsystem. It is made up of 11 cumulative patches, which I will now
-post.
+Here is a simple patch originally from Denis Vlasenko, which strips a
+useless trailing whitespace from 8 strings in 4 i2c drivers. Please
+apply, thanks.
 
-This time, I am attempting to fix two different design errors that were
-made in the early days of the sensors drivers and never fixed since: i2c
-code being duplicated for the sensors drivers, and non i2c-related code
-used by sensors drivers being attached to the i2c subsystem.
+From: Denis Vlasenko <vda@ilport.com.ua>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-This results in a significant code shrink, both at source (-333 lines)
-and binary (-2777 bytes) levels, and in large chunks of code being moved
-from drivers/i2c to drivers/hwmon (and include/linux/i2c-*.h to
-include/linux/hwmon-*.h.)
+---
+commit 541e6a02768404efb06bd1ea5f33d614732f41fc
+tree 933f4e7b38580c69e61b8a0002d4e5c129c5abaa
+parent 65fc50e50ff9f8b82c3756eccd7e7db6a267ffe9
+author Jean Delvare <khali@linux-fr.org> Thu, 23 Jun 2005 22:18:08 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
 
-There are still a few cleanups I want to do on top of that, most notably
-a rewrite of i2c_probe and a better handling of address lists, but this
-series is certainly the most important (and intrusive) part of the
-cleanup process.
+ drivers/i2c/algos/i2c-algo-ite.c |    8 ++++----
+ drivers/i2c/busses/i2c-i801.c    |    4 ++--
+ drivers/i2c/busses/i2c-piix4.c   |    2 +-
+ drivers/i2c/busses/i2c-sis5595.c |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-I've tried to keep the documentation up-to-date with each patch, but it
-seems that this documentation would still need a full review and update,
-as it contains pretty inaccurate information at places. I'll tackle that
-when I'm done with the code changes.
+diff --git a/drivers/i2c/algos/i2c-algo-ite.c b/drivers/i2c/algos/i2c-algo-ite.c
+--- a/drivers/i2c/algos/i2c-algo-ite.c
++++ b/drivers/i2c/algos/i2c-algo-ite.c
+@@ -208,7 +208,7 @@ static int test_bus(struct i2c_algo_iic_
+ 		goto bailout;
+ 	}
+ 	sdalo(adap);
+-	printk("test_bus:1 scl: %d  sda: %d \n",getscl(adap),
++	printk("test_bus:1 scl: %d  sda: %d\n", getscl(adap),
+ 	       getsda(adap));
+ 	if ( 0 != getsda(adap) ) {
+ 		printk("test_bus: %s SDA stuck high!\n",name);
+@@ -221,7 +221,7 @@ static int test_bus(struct i2c_algo_iic_
+ 		goto bailout;
+ 	}		
+ 	sdahi(adap);
+-	printk("test_bus:2 scl: %d  sda: %d \n",getscl(adap),
++	printk("test_bus:2 scl: %d  sda: %d\n", getscl(adap),
+ 	       getsda(adap));
+ 	if ( 0 = getsda(adap) ) {
+ 		printk("test_bus: %s SDA stuck low!\n",name);
+@@ -234,7 +234,7 @@ static int test_bus(struct i2c_algo_iic_
+ 	goto bailout;
+ 	}
+ 	scllo(adap);
+-	printk("test_bus:3 scl: %d  sda: %d \n",getscl(adap),
++	printk("test_bus:3 scl: %d  sda: %d\n", getscl(adap),
+ 	       getsda(adap));
+ 	if ( 0 != getscl(adap) ) {
+ 
+@@ -247,7 +247,7 @@ static int test_bus(struct i2c_algo_iic_
+ 		goto bailout;
+ 	}
+ 	sclhi(adap);
+-	printk("test_bus:4 scl: %d  sda: %d \n",getscl(adap),
++	printk("test_bus:4 scl: %d  sda: %d\n", getscl(adap),
+ 	       getsda(adap));
+ 	if ( 0 = getscl(adap) ) {
+ 		printk("test_bus: %s SCL stuck low!\n",name);
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -194,7 +194,7 @@ static int i801_transaction(void)
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	/* 0x1f = Failed, Bus_Err, Dev_Err, Intr, Host_Busy */
+ 	if ((temp = (0x1f & inb_p(SMBHSTSTS))) != 0x00) {
+-		dev_dbg(&I801_dev->dev, "SMBus busy (%02x). Resetting... \n",
++		dev_dbg(&I801_dev->dev, "SMBus busy (%02x). Resetting...\n",
+ 			temp);
+ 		outb_p(temp, SMBHSTSTS);
+ 		if ((temp = (0x1f & inb_p(SMBHSTSTS))) != 0x00) {
+@@ -315,7 +315,7 @@ static int i801_block_transaction(union 
+ 		}
+ 		if (temp & errmask) {
+ 			dev_dbg(&I801_dev->dev, "SMBus busy (%02x). "
+-				"Resetting... \n", temp);
++				"Resetting...\n", temp);
+ 			outb_p(temp, SMBHSTSTS);
+ 			if (((temp = inb_p(SMBHSTSTS)) & errmask) != 0x00) {
+ 				dev_err(&I801_dev->dev,
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -243,7 +243,7 @@ static int piix4_transaction(void)
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
+ 		dev_dbg(&piix4_adapter.dev, "SMBus busy (%02x). "
+-			"Resetting... \n", temp);
++			"Resetting...\n", temp);
+ 		outb_p(temp, SMBHSTSTS);
+ 		if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
+ 			dev_err(&piix4_adapter.dev, "Failed! (%02x)\n", temp);
+diff --git a/drivers/i2c/busses/i2c-sis5595.c b/drivers/i2c/busses/i2c-sis5595.c
+--- a/drivers/i2c/busses/i2c-sis5595.c
++++ b/drivers/i2c/busses/i2c-sis5595.c
+@@ -228,7 +228,7 @@ static int sis5595_transaction(struct i2
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	temp = sis5595_read(SMB_STS_LO) + (sis5595_read(SMB_STS_HI) << 8);
+ 	if (temp != 0x00) {
+-		dev_dbg(&adap->dev, "SMBus busy (%04x). Resetting... \n", temp);
++		dev_dbg(&adap->dev, "SMBus busy (%04x). Resetting...\n", temp);
+ 		sis5595_write(SMB_STS_LO, temp & 0xff);
+ 		sis5595_write(SMB_STS_HI, temp >> 8);
+ 		if ((temp = sis5595_read(SMB_STS_LO) + (sis5595_read(SMB_STS_HI) << 8)) != 0x00) {
 
-Thanks.
-
- Documentation/i2c/porting-clients |   13 +-
- Documentation/i2c/writing-clients |   87 +++----------
- drivers/hwmon/Kconfig             |   51 ++-----
- drivers/hwmon/Makefile            |    1 
- drivers/hwmon/adm1021.c           |    5 
- drivers/hwmon/adm1025.c           |    9 -
- drivers/hwmon/adm1026.c           |   11 -
- drivers/hwmon/adm1031.c           |    7 -
- drivers/hwmon/adm9240.c           |    9 -
- drivers/hwmon/asb100.c            |    9 -
- drivers/hwmon/atxp1.c             |    9 -
- drivers/hwmon/ds1621.c            |    7 -
- drivers/hwmon/fscher.c            |    5 
- drivers/hwmon/fscpos.c            |    5 
- drivers/hwmon/gl518sm.c           |    5 
- drivers/hwmon/gl520sm.c           |    9 -
- drivers/hwmon/hwmon-vid.c         |  203 +++++++++++++++++++++++++++++++
- drivers/hwmon/it87.c              |   13 --
- drivers/hwmon/lm63.c              |    5 
- drivers/hwmon/lm75.c              |    7 -
- drivers/hwmon/lm77.c              |    7 -
- drivers/hwmon/lm78.c              |   17 --
- drivers/hwmon/lm80.c              |    5 
- drivers/hwmon/lm83.c              |    5 
- drivers/hwmon/lm85.c              |    9 -
- drivers/hwmon/lm87.c              |    9 -
- drivers/hwmon/lm90.c              |    5 
- drivers/hwmon/lm92.c              |    5 
- drivers/hwmon/max1619.c           |    5 
- drivers/hwmon/pc87360.c           |    2 
- drivers/hwmon/sis5595.c           |    1 
- drivers/hwmon/smsc47m1.c          |    1 
- drivers/hwmon/via686a.c           |    1 
- drivers/hwmon/w83627hf.c          |    5 
- drivers/hwmon/w83781d.c           |    9 -
- drivers/hwmon/w83792d.c           |    6 
- drivers/hwmon/w83l785ts.c         |    5 
- drivers/i2c/Makefile              |    4 
- drivers/i2c/chips/Kconfig         |   10 -
- drivers/i2c/chips/ds1337.c        |    5 
- drivers/i2c/chips/ds1374.c        |    1 
- drivers/i2c/chips/eeprom.c        |    7 -
- drivers/i2c/chips/m41t00.c        |    1 
- drivers/i2c/chips/max6875.c       |    7 -
- drivers/i2c/chips/pca9539.c       |    7 -
- drivers/i2c/chips/pcf8574.c       |    7 -
- drivers/i2c/chips/pcf8591.c       |    7 -
- drivers/i2c/chips/rtc8564.c       |    1 
- drivers/i2c/i2c-core.c            |   38 ++++-
- drivers/i2c/i2c-sensor-detect.c   |  126 -------------------
- drivers/i2c/i2c-sensor-vid.c      |   98 ---------------
- drivers/media/video/adv7170.c     |    1 
- drivers/media/video/adv7175.c     |    1 
- drivers/media/video/bt819.c       |    1 
- drivers/media/video/bt856.c       |    1 
- drivers/media/video/saa7110.c     |    1 
- drivers/media/video/saa7111.c     |    1 
- drivers/media/video/saa7114.c     |    1 
- drivers/media/video/saa7185.c     |    1 
- drivers/media/video/tuner-3036.c  |    1 
- drivers/media/video/vpx3220.c     |    1 
- include/linux/hwmon-vid.h         |   30 ++++
- include/linux/i2c-sensor.h        |  245 --------------------------------------
- include/linux/i2c-vid.h           |  111 -----------------
- include/linux/i2c.h               |  153 +++++++++++++++++++++--
- 65 files changed, 551 insertions(+), 884 deletions(-)
-
-                                                before     after      diff
-drivers/hwmon/adm1021.ko                         16408     16343       -65
-drivers/hwmon/adm1025.ko                         21005     20721      -284
-drivers/hwmon/adm1026.ko                         40572     40352      -220
-drivers/hwmon/adm1031.ko                         22799     22798        -1
-drivers/hwmon/adm9240.ko                         20842     20558      -284
-drivers/hwmon/asb100.ko                          26873     26725      -148
-drivers/hwmon/atxp1.ko                           10242      9993      -249
-drivers/hwmon/ds1621.ko                           9603      9602        -1
-drivers/hwmon/fscher.ko                          18725     18724        -1
-drivers/hwmon/fscpos.ko                          18896     18895        -1
-drivers/hwmon/gl518sm.ko                         20420     20355       -65
-drivers/hwmon/gl520sm.ko                         22904     22684      -220
-drivers/hwmon/hwmon-vid.ko                           0      3417     +3417
-drivers/hwmon/it87.ko                            26031     25747      -284
-drivers/hwmon/lm63.ko                            12077     12076        -1
-drivers/hwmon/lm75.ko                             9294      9293        -1
-drivers/hwmon/lm77.ko                            11498     11433       -65
-drivers/hwmon/lm78.ko                            21124     21096       -28
-drivers/hwmon/lm80.ko                            22096     22095        -1
-drivers/hwmon/lm83.ko                             9850      9849        -1
-drivers/hwmon/lm85.ko                            40438     40218      -220
-drivers/hwmon/lm87.ko                            25077     24857      -220
-drivers/hwmon/lm90.ko                            15213     15148       -65
-drivers/hwmon/lm92.ko                            11912     11847       -65
-drivers/hwmon/max1619.ko                         10643     10642        -1
-drivers/hwmon/pc87360.ko                         47225     47006      -219
-drivers/hwmon/w83627hf.ko                        30422     30203      -219
-drivers/hwmon/w83781d.ko                         39165     38945      -220
-drivers/hwmon/w83792d.ko                         32767     32766        -1
-drivers/hwmon/w83l785ts.ko                        8289      8288        -1
-drivers/i2c/chips/ds1337.ko                       8677      8612       -65
-drivers/i2c/chips/ds1374.ko                       6075      6067        -8
-drivers/i2c/chips/eeprom.ko                       8132      8131        -1
-drivers/i2c/chips/max6875.ko                      7822      7821        -1
-drivers/i2c/chips/pca9539.ko                      7763      7762        -1
-drivers/i2c/chips/pcf8574.ko                      8042      7977       -65
-drivers/i2c/chips/pcf8591.ko                      9630      9565       -65
-drivers/i2c/chips/rtc8564.ko                      6947      6939        -8
-drivers/i2c/i2c-core.ko                          21451     21579      +128
-drivers/i2c/i2c-sensor.ko                         3856         0     -3856
-drivers/media/video/adv7170.ko                    7333      7325        -8
-drivers/media/video/adv7175.ko                    7613      7605        -8
-drivers/media/video/bt819.ko                      9027      9019        -8
-drivers/media/video/bt856.ko                      7058      7050        -8
-drivers/media/video/msp3400.ko                   31404     31499       +95
-drivers/media/video/saa5246a.ko                  11254     11349       +95
-drivers/media/video/saa5249.ko                   13054     13149       +95
-drivers/media/video/saa7110.ko                    9512      9504        -8
-drivers/media/video/saa7111.ko                    7177      7169        -8
-drivers/media/video/saa7114.ko                   12048     12040        -8
-drivers/media/video/saa7134/saa6752hs.ko         10489     10584       +95
-drivers/media/video/saa7185.ko                    6323      6315        -8
-drivers/media/video/tda7432.ko                    9373      9404       +31
-drivers/media/video/tda9840.ko                    8938      9033       +95
-drivers/media/video/tda9875.ko                    9234      9329       +95
-drivers/media/video/tda9887.ko                   16949     17044       +95
-drivers/media/video/tea6415c.ko                   7765      7860       +95
-drivers/media/video/tea6420.ko                    7635      7730       +95
-drivers/media/video/tuner-3036.ko                 5940      5932        -8
-drivers/media/video/tuner.ko                     45355     45386       +31
-drivers/media/video/tvaudio.ko                   25796     25827       +31
-drivers/media/video/tveeprom.ko                  15175     15206       +31
-drivers/media/video/vpx3220.ko                   10083     10075        -8
-                                                           total     -2777
-
--- 
-Jean Delvare
