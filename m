@@ -1,57 +1,81 @@
 From: gregkh@suse.de (Greg KH)
-Date: Tue, 12 Jul 2005 00:04:42 +0000
-Subject: [lm-sensors] [PATCH] I2C: SENSORS_ATXP1 must select I2C_SENSOR
-Message-Id: <11211193781619@kroah.com>
+Date: Tue, 12 Jul 2005 00:04:35 +0000
+Subject: [lm-sensors] [PATCH] I2C: Coding style cleanups to via686a
+Message-Id: <11211193762794@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11211193771521@kroah.com>
+In-Reply-To: <1121119376361@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: bunk@stusta.de
+Cc: vda@ilport.com.ua
 
-[PATCH] I2C: SENSORS_ATXP1 must select I2C_SENSOR
+[PATCH] I2C: Coding style cleanups to via686a
 
-On Thu, Jun 30, 2005 at 11:47:09PM +0200, Sebastian Pigulak wrote:
-> I've tried patching linux-2.6.13-RC1 with patch-2.6.13-rc1-git2 and
-> building atxp1(it allows Vcore voltage changing) into the kernel.
-> Unfortunately, the kernel compilation stops with:
+On Wednesday 22 June 2005 08:17, Greg KH wrote:
+> [PATCH] I2C: Coding style cleanups to via686a
 >
-> LD      init/built-in.o
-> LD      vmlinux
-> drivers/built-in.o(.text+0x92298): In function `atxp1_detect':
-> : undefined reference to `i2c_which_vrm'
-> drivers/built-in.o(.text+0x921ae): In function `atxp1_attach_adapter':
-> : undefined reference to `i2c_detect'
-> make: *** [vmlinux] B??d 1
-> => ERROR: Build Failed.  Aborting...
+> The via686a hardware monitoring driver has infamous coding style at the
+> moment. I'd like to clean up the mess before I start working on other
+> changes to this driver. Is the following patch acceptable? No code
+> change, only coding style (indentation, alignments, trailing white
+> space, a few parentheses and a typo).
 >
-> Could someone have a look at the module and possibly fix it up?
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-SENSORS_ATXP1 must select I2C_SENSOR.
+Nice.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+You missed some. This one is on top of your patch:
+
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 80efa8c72006a1c04004f8fb07b22073348e4bf2
-tree 48b0d3a256790004ea5383c878f86e05f162ce31
-parent 1d772e2587da3c8b0fb8610fcc1c91fd82f87e52
-author Adrian Bunk <bunk@stusta.de> Fri, 01 Jul 2005 00:17:27 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:37 -0700
+commit 6328c0e163abfce679b1beffb166f72900bf0a22
+tree d5fa7087c5d18b12bd1b93797de2277bddcb6300
+parent 200d481f28be4522464bb849dd0eb5f8cb6be781
+author Denis Vlasenko <vda@ilport.com.ua> Wed, 22 Jun 2005 10:25:13 +0300
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
 
- drivers/i2c/chips/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/i2c/chips/via686a.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -80,6 +80,7 @@ config SENSORS_ASB100
- config SENSORS_ATXP1
- 	tristate "Attansic ATXP1 VID controller"
- 	depends on I2C && EXPERIMENTAL
-+	select I2C_SENSOR
- 	help
- 	  If you say yes here you get support for the Attansic ATXP1 VID
- 	  controller.
+diff --git a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
+--- a/drivers/i2c/chips/via686a.c
++++ b/drivers/i2c/chips/via686a.c
+@@ -1,9 +1,9 @@
+ /*
+     via686a.c - Part of lm_sensors, Linux kernel modules
+-                for hardware monitoring
++		for hardware monitoring
+ 
+     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
+-                        Ky?sti M?lkki <kmalkki@cc.hut.fi>,
++			Ky?sti M?lkki <kmalkki@cc.hut.fi>,
+ 			Mark Studebaker <mdsxyz123@yahoo.com>,
+ 			and Bob Dougherty <bobd@stanford.edu>
+     (Some conversion-factor data were contributed by Jonathan Teh Soon Yew
+@@ -171,18 +171,18 @@ static inline u8 FAN_TO_REG(long rpm, in
+ /******** TEMP CONVERSIONS (Bob Dougherty) *********/
+ /* linear fits from HWMon.cpp (Copyright 1998-2000 Jonathan Teh Soon Yew)
+       if(temp<169)
+-              return double(temp)*0.427-32.08;
++	      return double(temp)*0.427-32.08;
+       else if(temp>9 && temp< 2)
+-              return double(temp)*0.582-58.16;
++	      return double(temp)*0.582-58.16;
+       else
+-              return double(temp)*0.924-127.33;
++	      return double(temp)*0.924-127.33;
+ 
+  A fifth-order polynomial fits the unofficial data (provided by Alex van
+  Kaam <darkside@chello.nl>) a bit better.  It also give more reasonable
+  numbers on my machine (ie. they agree with what my BIOS tells me).
+  Here's the fifth-order fit to the 8-bit data:
+  temp = 1.625093e-10*val^5 - 1.001632e-07*val^4 + 2.457653e-05*val^3 -
+-        2.967619e-03*val^2 + 2.175144e-01*val - 7.090067e+0.
++	2.967619e-03*val^2 + 2.175144e-01*val - 7.090067e+0.
+ 
+  (2000-10-25- RFD: thanks to Uwe Andersen <uandersen@mayah.com> for
+  finding my typos in this formula!)
 
