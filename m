@@ -1,88 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 28 Jul 2005 23:09:35 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: inline i2c_adapter_id
-Message-Id: <20050728230940.1b0aa91e.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Tue, 12 Jul 2005 00:04:34 +0000
+Subject: [lm-sensors] [PATCH] I2C: drop bogus eeprom comment
+Message-Id: <11211193762160@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <11211193763938@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: khali@linux-fr.org
 
-Hi Greg, all,
+[PATCH] I2C: drop bogus eeprom comment
 
-We could inline i2c_adapter_id, as it is really, really short. Doing
-so saves a few bytes both in i2c-core and in the drivers using this
-function.
-
-                                            before     after      diff
-drivers/hwmon/adm1026.ko                     41344     41305       -39
-drivers/hwmon/asb100.ko                      27325     27246       -79
-drivers/hwmon/gl518sm.ko                     20824     20785       -39
-drivers/hwmon/it87.ko                        26419     26380       -39
-drivers/hwmon/lm78.ko                        21424     21385       -39
-drivers/hwmon/lm85.ko                        41034     40939       -95
-drivers/hwmon/w83781d.ko                     39561     39514       -47
-drivers/hwmon/w83792d.ko                     32979     32932       -47
-drivers/i2c/i2c-core.ko                      24708     24531      -177
+This simple patch drops an out-of-date comment in the eeprom i2c chip
+driver.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/i2c/i2c-core.c |    9 ---------
- include/linux/i2c.h    |   10 ++++++----
- 2 files changed, 6 insertions(+), 13 deletions(-)
+---
+commit 2db32767874fe53faff4f80de878ca19927efc1f
+tree 4ac3024bd4e29e7770f96244b386429d991c58f7
+parent a0920e10438e9fe8b22aba607083347c84458ed8
+author Jean Delvare <khali@linux-fr.org> Thu, 23 Jun 2005 23:43:00 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
 
---- linux-2.6.13-rc3.orig/drivers/i2c/i2c-core.c	2005-07-28 18:55:03.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/i2c/i2c-core.c	2005-07-28 19:35:57.000000000 +0200
-@@ -759,14 +759,6 @@
- 	return 0;
- }
- 
--/*
-- * return id number for a specific adapter
-- */
--int i2c_adapter_id(struct i2c_adapter *adap)
--{
--	return adap->nr;
--}
--
- struct i2c_adapter* i2c_get_adapter(int id)
- {
- 	struct i2c_adapter *adapter;
-@@ -1196,7 +1188,6 @@
- EXPORT_SYMBOL(i2c_master_recv);
- EXPORT_SYMBOL(i2c_control);
- EXPORT_SYMBOL(i2c_transfer);
--EXPORT_SYMBOL(i2c_adapter_id);
- EXPORT_SYMBOL(i2c_get_adapter);
- EXPORT_SYMBOL(i2c_put_adapter);
- EXPORT_SYMBOL(i2c_probe);
---- linux-2.6.13-rc3.orig/include/linux/i2c.h	2005-07-28 18:55:03.000000000 +0200
-+++ linux-2.6.13-rc3/include/linux/i2c.h	2005-07-28 19:37:09.000000000 +0200
-@@ -364,10 +364,6 @@
-  */
- extern int i2c_control(struct i2c_client *,unsigned int, unsigned long);
- 
--/* This call returns a unique low identifier for each registered adapter,
-- * or -1 if the adapter was not registered. 
-- */
--extern int i2c_adapter_id(struct i2c_adapter *adap);
- extern struct i2c_adapter* i2c_get_adapter(int id);
- extern void i2c_put_adapter(struct i2c_adapter *adap);
- 
-@@ -384,6 +380,12 @@
- 	return (func & i2c_get_functionality(adap)) = func;
- }
- 
-+/* Return id number for a specific adapter */
-+static inline int i2c_adapter_id(struct i2c_adapter *adap)
-+{
-+	return adap->nr;
-+}
-+
- /*
-  * I2C Message - used for pure i2c transaction, also from /dev interface
-  */
+ drivers/i2c/chips/eeprom.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
+--- a/drivers/i2c/chips/eeprom.c
++++ b/drivers/i2c/chips/eeprom.c
+@@ -173,9 +173,6 @@ int eeprom_detect(struct i2c_adapter *ad
+ 					    | I2C_FUNC_SMBUS_BYTE))
+ 		goto exit;
+ 
+-	/* OK. For now, we presume we have a valid client. We now create the
+-	   client structure, even though we cannot fill it completely yet.
+-	   But it allows us to access eeprom_{read,write}_value. */
+ 	if (!(data = kmalloc(sizeof(struct eeprom_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
 
--- 
-Jean Delvare
