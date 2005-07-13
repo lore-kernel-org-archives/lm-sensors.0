@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 13 Jul 2005 13:17:29 +0000
+From: david-b@pacbell.net (david-b@pacbell.net)
+Date: Wed, 13 Jul 2005 19:25:31 +0000
 Subject: [lm-sensors] at24c i2c EEPROM driver
-Message-Id: <9vXyAyc1.1121253126.1841930.khali@localhost>
+Message-Id: <20050713163839.1B5FCBF40A@adsl-69-107-32-110.dsl.pltn13.pacbell.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200507111737.11097.david-b@pacbell.net>
 In-Reply-To: <200507111737.11097.david-b@pacbell.net>
@@ -10,330 +10,678 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-Hi David,
-
-A few comments on top of your comments to my comments ;)
-
-> This does _not_ look very amenable to probing, and from what you
-> wrote I suspect that other folk have confirmed that in practice.
-
-There are several levels of problems. First, the quick writes used for
-I2C probing aren't 24RF08-safe. This could be worked around (I have
-plans). Second, you can really only probe for the existence of an EEPROM
-at a given address. You can't reliably detect the size of the EEPROM,
-as you found yourself. Third, there are a few chips living in the
-0x50-0x57 range which are NOT EEPROMs. Hopefully we can do some positive
-discrimination for these, but that's tricky.
-
-Overall I agree that doing as much as possible based on the platform
-makes full sense, especially for all these systems heavily relying on
-large EEPROMs.
-
-> > I have no strong opinion on what naming scheme we should use,
-> > but I sure would like us to pick one and stick to it.
->
-> Me too.  Though another option is to have no prefix at all.
-
-"No prefix at all" is one possible naming scheme ;)
-
-> I hadn't realized CONFIG_I2C_ was "claimed" in any sense; in
-> USB-land, the CONFIG_USB_ prefix is used for most everything,
-> both host side and peripheral side.
-
-I didn't say it was claimed, not officially anyway. It just happens to
-be that way at the moment. I am fine with changing this, but then we'd
-do it consistently. Now that the hardware mnonitoring drivers have gone
-away, there are really only a few chip drivers remaining.
-
-> I did decide to NOT use the CONFIG_SENSORS_* stuff though.  :)
-
-And quite rightly so, thanks :) I will have to fix the few ones using it
-improperly (which is why I insist on agreeing on a naming scheme now
-rather sooner than later).
-
-> How would for example SPI sensors fit in?  I recently noticed
-> that chips like the TSC2101 and ADS7846 aren't just used for
-> touchscreen X/Y/presure sensors ... they also have temperature
-> and battery voltage sensors.  SENSOR should not imply I2C...
-
-This is the very reason why we just moved all the hardware monitoring
-stuff (AKA sensors) to a different place. Drivers for W1 or SPI hardware
-monitoring decices will be welcome there. There are many articicial
-links between the hardware monitoring drivers and the i2c subsystem,
-mostly for historical reasons. These prevent us from doing a number of
-cleanups. I will work on separating both sides as clearly as possible in
-the next few weeks. Hopefully this will open the doors to better
-integration and lower footprint as well.
-
-> I'm still not used to the way the I2C parameters are done.  The
-> notion of pre-allocating several large arrays, pre-initialized
-> with "end" tags, still feels odd to me.
-
-True. Historical. On my list of things to cleanup.
-
-> There should also be per-chip "is it readonly?" flag.
-
-Yup, either as a module parameter or a second sysfs file.
-
-> And maybe a non-I2C parameter limiting bus utilization.
-
-I would make it mandatory, like the original eeprom does. Reading from or
-writing to an EEPROM isn't time-critical enough that anyone wouldn't
-possibly cope with a limit.
-
-> > Also, why do you use "force" rather than "probe" here?
->
-> That's the model:  the driver will do NOTHING unless it's explicitly
-> told to.  Initializing "probe" (like "eeprom" does) would mean the
-> driver will mis-detect some chips.
-
-The only difference between probe and force at the i2c-core level is that
-force won't even try to check whether there is anything responsive at
-the given address. Then the driver itself may or may not want to make a
-difference between both (using the kind parameter of the detect
-function), but your driver doesn't.
-
-> And wasn't that 24RF08 problem a consequence of using probing?
-
-True, although a weak workaround exist.
-
-I am fine with you using force for now, but once I have come up with a
-real, safe workaround, you may consider switching to probe, as it offers
-an additional check of the EEPROM presence.
-
-> > What you call "generic" are perfectly standard at24c02-like EEPROMs, so
-> > I see no point in making them a particular case.  If it's just to make
-> > them read-only and all the other ones read-write, this looks a bad idea
-> > to merge the writability with the size in a single parameter.
->
-> The issue was how to handle backward compat with "eeprom"...
-> and the plan was to treat all uninitialized sizes as "generic".
->
-> Which is _exactly_ what "eeprom" does.  If it's good enough
-> for that driver, it should be good enough here ...
-
-This ain't compatible, as you still need to provide the addresses while
-they are built-in for the "eeprom" driver. A really backward
-compatible driver would need to behave like the old driver did when no
-module parameter are provided.
-
-> though as I commented, "eeprom" mis-handles at least double byte
-> address cases, also chips of size != 2 Kbits, so maybe it's not really
-> "good enough" there.  ;)
-
-I think we really only need to be backward compatible with "eeprom" for
-the 24C02. This is the most popular EEPROM in consumer PCs. It's
-probably not a problem to break comaptibility for larger EEPROMs, as
-there are less users and these users (hopefully) knew better support
-could come later, which would imply incompatibility.
-
-> There must be a lot of code you count as "not exactly nice" then!!
-
-You have no idea. People hate me for that. It's not really important and
-you might as well ignore my pointless rants.
-
-> > > +static int at24c_ee_address(
-> > > +	unsigned	chiptype,
-> > > +	struct i2c_msg	*msg,
-> > > +	unsigned	*offset,
-> > > +	u32		*next_addr
-> > > +)
-> > > +{
-> >
-> > Eek. What's this coding style?
->
-> You mean, "wrap lines at 80 characters"?  Or are you maybe
-> feeling religious about where the right paren goes?  :)
-
-I mean that, among the various coding styles that exist for function
-declarations, I had never seen this one, neither in the kernel code nor
-even elsewhere. And this isn't exactly easy to read, as it ressembles a
-structure declaration.
-
-> > Point (b): You could as well implement a generic function in i2c-core.
-> > I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 is already reserved for that in i2c.h,
-> > which suggests that SMBus 2.0 defines it (although I can't remember of
-> > any hardware implementimg it).
->
-> If no SMBUS hardware implements it, I'm not sure what the point of
-> such a function would be!  For now, this version is portable enough.
-
-If nothing else, this could avoid code duplication (the max6875 driver
-needs something similar, for example). And hardware support might be
-added later, and we get immediate benefit.
-
-> > Points (d) and (e) suggest that the i2c-core API is not adapted to the
-> > needs. You are not the first one to complain about the i2c block
-> > transfers API, yet everyone always go coding its own implementation on
-> > its side. I'd like someone to properly analyze the situation and make
-> > concrete proposals for a change.
->
-> Hmm?  I thought I _was_ using the I2C block transfer API.  The
-> limitations I'm thinking of are SMBUS policy (32 byte niblets)
-> or from its API.  (Note that this driver doesn't escape copying
-> things written to EEPROM -- but that's relatively rare, and not
-> a case where zerocopy arguments should apply.)
-
-Yup, I misexpressed myself. The API offered by i2c-core is really the
-SMBus one, as I2C doesn't exactly have an API. It happens that most I2C
-devices do work with I2C commands that have a name in the SMBus API, so
-we easily mix both.
-
-Still, what I meant is that this SMBus API doesn't seem to make everyone
-happy, especially the block transfer functions. I am wondering if
-something better could be done so that people actually use that API
-rather than implementing their own.
-
-> All the Linux systems I do I2C on seem to have full I2C controllers,
-> and don't need SMBUS limits.  They'll have no problem with this driver;
-> after all, it's for "I2C EEPROMs" not "SMBUS EEPROMs".  :)
-
-There is no such thing as SMBus EEPROMS, all EEPROMs I know of are I2C
-chips, and it happens that EEPROMs up to 24C16 can be accessed using
-standard SMBus commands, and manufacturers are relying on this. All x86
-motherboards have an SMBus master and most use it to give access to some
-24C02 EEPROMs, be it SPD on memory modules, laptop proprietary ones or
-ones on network adapters. Most EEPROMs I have access to myself are on
-SMBus (except for EDID/DDC).
-
-> Maybe there should be drivers that in Kconfig depend on SMBUS, and
-> others that depend on Real I2C(tm).  Configs that don't enable a
-> real I2C controller wouldn't be able to configure I2C-only drivers.
-
-This is handled by i2c capabilities, which are more flexible. There is no
-such thing as a SMBus master, each physical device (and each driver on
-top of that) may implement a subset of the SMBus commands. Even Real
-I2C(tm) masters can differ, some can do protocol mangling, some can't.
-
-What you propose would prevent some I2C/SMBus interactions which exist
-now and we are perfectly happy with. Additionally, a given system can
-have both an SMBus and an I2C master, with different devices on them.
-Your approach wouldn't play well with this.
-
-Now, I agree that mixing I2C and SMBus led us to a rather complex
-situation in the Linux kernel. Blame it to Philips and Intel, as we only
-reproduced the mess that physically exist.
-
-> > > 	/* some chips take two or more addresses ... register using the
-> > > 	 * first one, and hope no other driver claims the others!
-> > > 	 */
-> >
-> > No, don't just hope. Properly register the other addresses as
-> > subclients. See the asb100 driver for an example of how to do that.
->
-> For now, this suffices.  Especially if the model is that all the
-> addresses in that range are statically configured.  It may be
-> worth cleaning that up at some point though, yes.
-
-Sorry but no, it doesn't suffice, not even for now.
-
-If you don't request all addresses for a given device, it means that
-anyone else may do. This includes: the eeprom driver, and user-space
-through i2c-dev, for example the sensors-detect driver.
-
-If both your driver and a third party access the chip at the same time,
-the internal address register of the EEPROM will be overwritten and/or
-reads will be interlaced and the read/written data will be corrupted in
-no time. You don't want this to happen.
-
-> > > 	address |= 0x50;
-> >
-> > As said earlier, this is dangerous and shouldn't be done at all.
->
-> Dangerous how?  More dangerous than any other user error?
-> It's not as if an at24c08 has flexibility about the addresses
-> it will be using.
-
-Dangerous in that someone asking for address 0x30 will end up with 0x70,
-which is irrational, and someone asking for 0x5C (which happens to be
-the page protection address of the 24RF08) will get it. As much as I'd
-like to agree with you that people are responsible for the module
-parameter they pass, I see no point in not checking strictly for the
-parameter value. These checks are cheap, and can prevent huge damage.
-
-> > This is interesting. In all other drivers we are checking for the
-> > functionality inside the *_probe (or *_detect) function rather than in
-> > the *_attach_adapter function. Now that I think of it, this sounds
-> > sub-optimal, your approach should be more efficient. Unless I'm missing
-> > something, we should probably change all other drivers to match this one.
->
-> Well, tps65010 and isp1301_omap do it in attach(), so maybe not
-> quite all drivers!  :)
->
-> But yes, I obviously agree this is a more natural place to
-> do this particular checking.  Luckily those changes will
-> be simple.
-> 
-> Maybe an even better place for it would be in the I2C core,
-> by having the I2C drivers declare what level of functionality
-> it needs from the adapter?  One word of data in each driver
-> (taken from struct padding?) replacing several instructions
-> and fault paths ... moving to one fault path in the core.
-
-Exactly the conclusion I had come to. Just like adapter drivers can say
-what they can do, device drivers would say what they require for proper
-operation (but are still free to use more later for improved speed or
-whatever). I need to think about it some more. but that sounds promising
-for sure.
-
-(But I want to kill i2c-isa first, as it's in the way somehow.)
-
-> > You should use i2c_get_clientdata() (just like you should have used
-> > i2c_set_clientdata() earlier.)
->
-> I don't see why.  It's not incorrect; it's just a simpler style.
-
-For maintainability I suppose. I'd guess there is a reason why Greg
-introduced i2c_get/set_clientdata in the first place. I admit I don't
-exactly know myself.
-
-> In this case it's less expensive; the compiler will generate
-> less code since it will notice that the two pointer values are
-> always the same.
-
-I don't think we really care, speed is not really important here. You
-don't unload kernel modules every now and then.
-
-> > No MODULE_AUTHOR?
->
-> Redundant given the copyright statement; unless there's something
-> special about showing up in "modinfo" output?
-
-Not every user reads the source code, while simple users may want to get
-in touch with a driver author for some reason. If not, MODULE_AUTHOR
-wouldn't even exist, as all drivers do have their author name in the
-source.
-
-> > Note that your driver does not cache the reads to the EEPROM. While it
-> > may be on purpose, it raises concerns because you gave read access to
-> > everyone through sysfs, which means that any random user could saturate
-> > the I2C bus the EEPROM is on. If there are other critical chips on the
-> > bus (think battery controller, hardware monitor...) then we are in
-> > trouble.
->
-> I'll remove group and "other" read access then; good point.
-
-If you do, you will never be compatible with the legacy eeprom driver.
-
-> I don't want to maintain any caches for data that's not
-> performance-critical.
-
-The cache isn't about performance, although it incidentally helps on
-that front. It's about preventing local DoS through bus saturation.
-
-> However, the REALLY nice way to do this would be if the I2C bus
-> framework had a clean way to handle static device configuration
-> (like "platform_bus" does).  Then such a flag could be just one
-> of several bits of information provided to driver using driver
-> model infrastructure like platform_data.
-
-Where are the patches? ;)
-
-You might want to wait for the i2c-isa cleanup to happen first, as the
-i2c subsystem will be much cleaner and somewhat less sensors-centric
-after I am done.
-
-Thanks,
---
-Jean Delvare
+Here's a refreshed version of the patch ... addressing much of
+your feedback and replacing those nasty switch statements with
+some more reasonable table driven logic.  It's more generic.
+
+It now has working chip configuration, using probing as you
+suggested (simpler etc) including that AT28RF04 workaround.
+
+Modulo the need for more testing, probably the biggest potential
+problem with this version is that it still doesn't claim all the
+addresses some chips use.  Safe in controlled environments...
+
+This is a better version for anyone else to hack on.  :)
+
+- Dave
+
+
+Add a simple driver for most I2C EEPROMs, giving sysfs read/write
+access to their contents.
+
+Tested only with AT24C04 so far, but support for many others is
+coded and ready for you.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+
+--- osk.orig/drivers/i2c/chips/Kconfig	2005-07-11 10:37:39.000000000 -0700
++++ osk/drivers/i2c/chips/Kconfig	2005-07-13 09:09:27.000000000 -0700
+@@ -406,6 +406,25 @@
+ menu "Other I2C Chip support"
+ 	depends on I2C
+ 
++config I2C_AT24C
++	tristate "Atmel AT24C series EEPROMs (and compatibles)"
++	depends on I2C && EXPERIMENTAL
++	help
++	  This driver should handle most I2C EEPROMS, including the AT24C
++	  series and compatible ones like those from Microchip and other
++	  vendors.  For example, most memory DIMMS have 24c02 EEPROMs.
++
++	     24c00, 24c01, 24c02, 24c04, 24c08, 24c16,
++	     24c32, 24c64, 24c128, 24c256, 24c512, 24c1024
++
++	  If you say yes here you get support for most Atmel AT24C series
++	  serial EEPROMS.  The driver provides read and write access to the
++	  EEPROM data through sysfs, once you've configured it to know about
++	  the particular chips on your target board.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called at24c.
++
+ config SENSORS_DS1337
+ 	tristate "Dallas Semiconductor DS1337 and DS1339 Real Time Clock"
+ 	depends on I2C && EXPERIMENTAL
+--- osk.orig/drivers/i2c/chips/Makefile	2005-07-11 10:37:39.000000000 -0700
++++ osk/drivers/i2c/chips/Makefile	2005-07-11 10:51:01.000000000 -0700
+@@ -47,6 +47,7 @@
+ obj-$(CONFIG_SENSORS_W83627EHF)	+= w83627ehf.o
+ obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
+ 
++obj-$(CONFIG_I2C_AT24C)		+= at24c.o
+ obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
+ obj-$(CONFIG_TPS65010)		+= tps65010.o
+ obj-$(CONFIG_SENSORS_TLV320AIC23) += tlv320aic23.o
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ osk/drivers/i2c/chips/at24c.c	2005-07-13 09:24:00.000000000 -0700
+@@ -0,0 +1,610 @@
++/*
++ * at24c.c -- support many I2C EEPROMs
++ *
++ * Copyright (C) 2005 David Brownell
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++// #define DEBUG
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++
++#ifdef CONFIG_ARM
++#include <asm/mach-types.h>
++#endif
++
++
++/* If all the bus drivers are statically linked, I2C drivers often won't
++ * need hotplug support.  Iff that's true in your config, you can #define
++ * NO_I2C_DYNAMIC_BUSSES and shrink this driver's runtime footprint.
++ */
++//#define NO_I2C_DYNAMIC_BUSSES
++
++
++/* I2C EEPROMs from most vendors are reasonably interchangeable; vendors
++ * have their own parts (like Atmel AT24C, MicroChip 24LC, etc) but the
++ * I2C behavior is normally the same.
++ *
++ * Dynamic typing of these chips isn't really possible; there's no way to
++ * reliably distingush the chips.  And guessing wrong can be dangerous.
++ * If you issue the request to set a 16-bit address, and the chip that
++ * receves that is one using only 8-bit addresses, that request writes
++ * a byte to the EEPROM instead.   Address size is only one of several
++ * chip characteristics that the driver needs to be told.
++ *
++ * So the best way to configure I2C EEPROMS uses static configuration
++ * descriptions.  Right now /etc/modprobe.conf can hold this easily.
++ *
++ *   modprobe at24c chip_names$c02,24c64 probe=0,50,1,50
++ *
++ * CONFIGURATION MECHANISM IS SUBJECT TO CHANGE!!
++ */
++static unsigned short ignore[] = { I2C_CLIENT_END };
++I2C_CLIENT_MODULE_PARM(probe,
++		"List of adapter,address pairs for I2C eeproms");
++static struct i2c_client_address_data addr_data = {
++	.normal_i2c	= ignore,
++	.probe		= probe,
++	.ignore		= ignore,
++	.force		= ignore,
++};
++
++static char *chip_names[I2C_CLIENT_MAX_OPTS / 2];
++static unsigned n_chip_names;
++module_param_array(chip_names, charp, &n_chip_names, 0);
++MODULE_PARM_DESC(chip_names,
++		"Type of chip; one chip name per probe pair");
++
++static int readonly[I2C_CLIENT_MAX_OPTS / 2];
++static unsigned n_readonly;
++module_param_array(readonly, bool, &n_readonly, 0);
++MODULE_PARM_DESC(chip_names, "Readonly flags, one per probe pair");
++
++
++#ifdef	NO_I2C_DYNAMIC_BUSSES
++#undef	__devinit
++#undef	__devinitdata
++#undef	__devexit
++#undef	__devexit_p
++/* no I2C devices will be hotplugging, so modules can shrink */
++#define	__devinit	__init
++#define	__devinitdata	__initdata
++#define	__devexit	__exit
++#define	__devexit_p	__exit_p
++#endif
++
++
++/* As seen through Linux I2C, differences between the most common types
++ * of I2C memory include:
++ *	- How many I2C addresses the chip consumes: 1, 2, 4, or 8?
++ *	- Memory address space for one I2C address:  256 bytes, or 64 KB?
++ *	- How full that memory space is:  16 bytes, 256, 32Kb, etc?
++ *	- What write page size does it support?
++ */
++struct chip_desc {
++	u32		byte_len;		/* of 1..8 i2c addrs, total */
++	char		name[10];
++	u16		page_size;		/* for writes */
++	u8		i2c_addr_mask;		/* for multi-addr chips */
++	u8		flags;
++#define	EE_ADDR2	0x0002			/* 16 bit addrs; <= 64 KB */
++};
++
++struct at24c_data {
++	struct i2c_client	client;
++	struct semaphore	lock;
++	struct bin_attribute	bin;
++
++	struct chip_desc	chip;
++
++	/* each chip has an internal "memory address" pointer;
++	 * we remember it for faster read access.
++	 */
++	u32			next_addr;
++};
++
++/*-------------------------------------------------------------------------*/
++
++static const struct chip_desc __devinitdata chips[] = {
++
++/* this first block of EEPROMS uses 8 bit memory addressing
++ * and can be accessed using standard SMBUS requests.
++ */
++{
++	/* 128 bit chip */
++	.name		= "24c00",
++	.byte_len	= 128 / 8,
++	.i2c_addr_mask	= 0x07,			/* A0-A2 ignored */
++	.page_size	= 1,
++}, {
++	/* 1 Kbit chip */
++	.name		= "24c01",
++	.byte_len	= 1024 / 8,
++	/* some have 16 byte pages: */
++	.page_size	= 8,
++}, {
++	/* 2 Kbit chip */
++	.name		= "24c02",		/* common in memory DIMMs etc */
++	.byte_len	= 2048 / 8,
++	/* some have 16 byte pages: */
++	.page_size	= 8,
++}, {
++	/* 4 Kbit chip */
++	.name		= "24c04",
++	.byte_len	= 4096 / 8,
++	.page_size	= 16,
++	.i2c_addr_mask	= 0x01,			/* I2C A0 is MEM A8 */
++}, {
++	/* 8 Kbit chip */
++	.name		= "24c08",
++	.byte_len	= 8192 / 8,
++	.page_size	= 16,
++	.i2c_addr_mask	= 0x03, 		/* I2C A1-A0 is MEM A9-A8 */
++}, {
++	/* 16 Kbit chip */
++	.name		= "24c16",
++	.byte_len	= 16384 / 8,
++	.page_size	= 16,
++	.i2c_addr_mask	= 0x07,			/* I2C A2-A0 is MEM A10-A8 */
++},
++
++/* this second block of EEPROMS uses 16 bit memory addressing
++ * and can't be accessed using standard SMBUS requests.
++ * REVISIT maybe SMBUS 2.0 requests would work ...
++ */
++{
++	/* 32 Kbits */
++	.name		= "24c32",
++	.byte_len	= 32768 / 8,
++	.flags		= EE_ADDR2,
++	.page_size	= 32,
++}, {
++	/* 64 Kbits */
++	.name		= "24c64",
++	.byte_len	= 65536 / 8,
++	.flags		= EE_ADDR2,
++	.page_size	= 32,
++}, {
++	/* 128 Kbits */
++	.name		= "24c128",
++	.byte_len	= 131072 / 8,
++	.flags		= EE_ADDR2,
++	.page_size	= 64,
++}, {
++	/* 256 Kbits */
++	.name		= "24c256",
++	.byte_len	= 262144 / 8,
++	.flags		= EE_ADDR2,
++	.page_size	= 64,
++}, {
++	/* 512 Kbits */
++	.name		= "24c512",
++	.byte_len	= 524288 / 8,
++	.flags		= EE_ADDR2,
++	.page_size	= 128,
++}, {
++	/* 1 Mbits */
++	.name		= "24c1024",
++	.byte_len	= 1048576 / 8,
++	.flags		= EE_ADDR2,
++	.page_size	= 256,
++	.i2c_addr_mask	= 0x01,			/* I2C A0 is MEM A16 */
++}
++
++};
++#define	NUM_EEPROM_CHIPS	ARRAY_SIZE(chips)
++
++static inline const struct chip_desc *__devinit
++find_chip(const char *s)
++{
++	unsigned i;
++
++	for (i = 0; i < NUM_EEPROM_CHIPS; i++)
++		if (strnicmp(s, chips[i].name, 16) = 0)
++			return &chips[i];
++	return NULL;
++}
++
++static inline const struct chip_desc *__devinit
++which_chip(struct i2c_adapter *adapter, int address, int *writable)
++{
++	unsigned		i;
++
++	for (i = 0; i < I2C_CLIENT_MAX_OPTS; i++) {
++		const struct chip_desc	*chip;
++		char			*name;
++
++		if (probe[i++] != adapter->id)
++			continue;
++		if (probe[i] != address)
++			continue;
++
++		i >>= 1;
++		if ((name = chip_names[i]) = NULL) {
++			dev_err(&adapter->dev, "no chipname for addr %d\n",
++				address);
++			return NULL;
++
++		}
++		chip = find_chip(name);
++		if (chip = NULL)
++			dev_err(&adapter->dev, "unknown chipname %s\n", name);
++		/* default to writable */
++		*writable = !readonly[i];
++		return chip;
++	}
++
++	/* "can't happen" */
++	dev_dbg(&adapter->dev, "addr %d not in probe[]\n", address);
++	return NULL;
++}
++
++/*-------------------------------------------------------------------------*/
++
++static inline int at24c_ee_address(
++	const struct chip_desc	*chip,
++	struct i2c_msg		*msg,
++	unsigned		*offset,
++	u32			*next_addr
++)
++{
++	unsigned	per_address = 256;
++
++	if (*offset >= chip->byte_len)
++		return -EINVAL;
++
++	/* Nothing to do unless accessing that memory would go to some
++	 * later I2C address.  In that case, modify the output params.
++	 * Yes, it can loop more than once on 24c08 and 24c16.
++	 */
++	if (chip->flags & EE_ADDR2)
++		per_address = 64 * 1024;
++	while (*offset >= per_address) {
++		msg->addr++;
++		*offset -= per_address;
++		*next_addr -= per_address;
++	}
++	return 0;
++}
++
++/* This parameter is to help this driver avoid blocking other drivers
++ * out of I2C for potentially troublesome amounts of time.  With a
++ * 100 KHz I2C clock, one 256 byte read takes about 1/43 second.
++ */
++static unsigned io_limit = 128;
++module_param(io_limit, uint, 0);
++MODULE_PARM_DESC(io_limit, "maximum bytes per i/o (default 128)");
++
++static ssize_t
++at24c_ee_read(struct at24c_data *at24c, char *buf, unsigned offset, size_t count)
++{
++	struct i2c_msg	msg;
++	ssize_t		status;
++	u32		next_addr;
++
++	down(&at24c->lock);
++	msg.addr = at24c->client.addr;
++	msg.flags = 0;
++
++	next_addr = at24c->next_addr;
++	status = at24c_ee_address(&at24c->chip, &msg, &offset, &next_addr);
++	if (status < 0)
++		goto done;
++
++	/* FIXME switching to the next i2c address confuses the
++	 * record keeping for the next memory address ...
++	 */
++	next_addr = at24c->bin.size;
++
++	/* advantages of not using i2c_smbus_read_i2c_block_data() here
++	 * include both functionality and performance:
++	 *  (a) uses i2c addresses other than at24c->client.addr, as needed;
++	 *  (b) handles two-byte "register" addresses;
++	 *  (c) this can often rely on the chip's internal address pointer,
++	 *      and omit the initial dummy write;
++	 *  (d) bigger reads than 32-byte niblets;
++	 *  (e) less data copying.
++	 */
++
++	/* Maybe change the current on-chip address with a dummy write */
++	if (next_addr != offset) {
++		u8	tmp[2];
++
++		msg.buf = tmp;
++		tmp[1] = (u8) offset;
++		tmp[0] = (u8) (offset >> 8);
++		if (at24c->chip.flags & EE_ADDR2) {
++			msg.len = 2;
++		} else {
++			msg.len = 1;
++			msg.buf++;
++		}
++		dev_dbg(&at24c->client.dev, "addr %02x, set current to %d\n",
++				msg.addr, offset);
++		status = i2c_transfer(at24c->client.adapter, &msg, 1);
++		if (status < 0)
++			goto done;
++	}
++
++	/* issue sequential read for the data bytes, knowing that read
++	 * page rollover will go to the next page and/or memory block.
++	 */
++	if (count > io_limit)
++		count = io_limit;
++
++	msg.len = count;
++	msg.buf = buf;
++	msg.flags = I2C_M_RD;
++	status = i2c_transfer(at24c->client.adapter, &msg, 1);
++done:
++	dev_dbg(&at24c->client.dev, "read %d bytes --> %d\n", count, status);
++	if (status < 0)
++		at24c->next_addr = at24c->bin.size;
++	else
++		at24c->next_addr = offset + count;
++	up(&at24c->lock);
++	return status < 0 ? status : count;
++}
++
++static ssize_t
++at24c_bin_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
++{
++	struct i2c_client	*client;
++	struct at24c_data	*at24c;
++
++	client = to_i2c_client(container_of(kobj, struct device, kobj));
++	at24c = container_of(client, struct at24c_data, client);
++
++	if (unlikely(off > at24c->bin.size))
++		return 0;
++	if ((off + count) > at24c->bin.size)
++		count = at24c->bin.size - off;
++	if (unlikely(!count))
++		return count;
++
++	/* we don't maintain caches for any data:  simpler, cheaper */
++	return at24c_ee_read(at24c, buf, off, count);
++
++}
++
++/* Note that if the hardware write-protect pin is pulled high, the whole
++ * chip is normally write protected.
++ */
++static ssize_t
++at24c_bin_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
++{
++	struct i2c_client	*client;
++	struct at24c_data	*at24c;
++	struct i2c_msg		msg;
++	ssize_t			status = 0;
++	unsigned		written = 0;
++	u32			scratch;
++	unsigned		buf_size;
++
++	client = to_i2c_client(container_of(kobj, struct device, kobj));
++	at24c = container_of(client, struct at24c_data, client);
++
++	if (unlikely(off > at24c->bin.size))
++		return 0;
++	if ((off + count) > at24c->bin.size)
++		count = at24c->bin.size - off;
++
++	/* temp buffer lets us stick the address at the beginning */
++	buf_size = at24c->chip.page_size;
++	if (buf_size > io_limit)
++		buf_size = io_limit;
++	msg.buf = kmalloc(buf_size + 2, GFP_KERNEL);
++	if (!msg.buf)
++		return -ENOMEM;
++	msg.flags = 0;
++
++	/* FIXME split this write logic out separately, so it's easier to
++	 * call from non-sysfs contexts... the read side code does this,
++	 * but "struct at24c *" isn't really better than a kobject.
++	 */
++
++	/* for write, rollover is within the page ... so we must write
++	 * at most one page at a time, and manually roll over to the
++	 * next page and/or block.
++	 */
++	down(&at24c->lock);
++	while (count > 0) {
++		unsigned	segment;
++		unsigned	offset = (unsigned) off;
++
++		msg.addr = at24c->client.addr;
++		status = at24c_ee_address(&at24c->chip, &msg, &offset, &scratch);
++		if (status < 0)
++			break;
++
++		/* write as much of a page as we can */
++		segment = buf_size - (offset % buf_size);
++		if (segment > count)
++			segment = count;
++		msg.len = segment + 1;
++		if (at24c->chip.flags & EE_ADDR2) {
++			msg.len++;
++			msg.buf[1] = (u8) offset;
++			msg.buf[0] = (u8) (offset >> 8);
++			memcpy(&msg.buf[2], buf, segment);
++		} else {
++			msg.buf[0] = offset;
++			memcpy(&msg.buf[1], buf, segment);
++		}
++		status = i2c_transfer(at24c->client.adapter, &msg, 1);
++		dev_dbg(&at24c->client.dev,
++			"write %d bytes to %02x at %d --> %d\n",
++			segment, msg.addr, offset, status);
++
++		/* REVISIT while we're advancing, the chip is finishing up its
++		 * write.  We should wait for that; chips often spec a max of
++		 * 5 msec (sometimes 20 msec).
++		 */
++		off += segment;
++		buf += segment;
++		count -= segment;
++		written += segment;
++		if (status < 0 || count = 0) {
++			if (written != 0)
++				status = written;
++			break;
++		}
++	}
++	at24c->next_addr = at24c->bin.size;
++	up(&at24c->lock);
++
++	kfree(msg.buf);
++	return status;
++}
++
++/*-------------------------------------------------------------------------*/
++
++static struct i2c_driver at24c_driver;
++
++static int __devinit at24c_probe(struct i2c_adapter *adapter, int address, int kind)
++{
++	struct at24c_data	*at24c;
++	int			err = 0;
++	int			writable;
++	const struct chip_desc	*chip;
++
++	if (!(at24c = kcalloc(1, sizeof(struct at24c_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto done;
++	}
++	init_MUTEX(&at24c->lock);
++
++	/* if there's no param saying what kind of chip this is,
++	 * don't guess!  just ignore it.
++	 */
++	chip = which_chip(adapter, address, &writable);
++	if (!chip) {
++		err = -ENOENT;
++		goto done;
++	}
++	at24c->chip = *chip;
++	snprintf(at24c->client.name, I2C_NAME_SIZE,
++			"%s I2C EEPROM", at24c->chip.name);
++
++	/* Export the EEPROM bytes through sysfs, since that's convenient */
++	at24c->bin.attr.name = "eeprom";
++	at24c->bin.attr.mode = S_IRUGO;
++	at24c->bin.attr.owner = THIS_MODULE;
++	at24c->bin.read = at24c_bin_read;
++
++	at24c->bin.size = at24c->chip.byte_len;
++	at24c->next_addr = at24c->bin.size;
++	if (writable) {
++		at24c->bin.write = at24c_bin_write;
++		at24c->bin.attr.mode |= S_IWUSR;
++	}
++
++	/* some chips use several addresses ... register the first one.
++	 *
++	 * FIXME register the others, to prevent various misbehaviors.
++	 */
++	address &= ~at24c->chip.i2c_addr_mask;
++
++	at24c->client.addr = address;
++	at24c->client.adapter = adapter;
++	at24c->client.driver = &at24c_driver;
++	at24c->client.flags = 0;
++
++	/* prevent AT24RF08 corruption, a possible consequence of the
++	 * probe done by the i2c core (verifying a chip is present).
++	 */
++	i2c_smbus_write_quick(&at24c->client, 0);
++
++	/* connect to I2C layer */
++	if ((err = i2c_attach_client(&at24c->client)))
++		goto done;
++
++	sysfs_create_bin_file(&at24c->client.dev.kobj, &at24c->bin);
++
++	dev_info(&at24c->client.dev, "%d byte %s%s\n",
++		at24c->bin.size, at24c->client.name,
++		writable ? " (writable)" : "");
++	dev_dbg(&at24c->client.dev, "page_size %d, i2c_addr_mask %d\n",
++		at24c->chip.page_size, at24c->chip.i2c_addr_mask);
++done:
++	if (err) {
++		dev_dbg(&adapter->dev, "%s probe, err %d\n",
++			at24c_driver.name, err);
++		kfree(at24c);
++	}
++	return 0;
++}
++
++static int __devinit at24c_attach_adapter(struct i2c_adapter *adapter)
++{
++	/* REVISIT: using SMBUS calls would improve portability, though
++	 * maybe at the cost of support for 16 bit memory addressing...
++	 */
++	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
++		dev_dbg(&adapter->dev, "%s probe, no I2C\n",
++			at24c_driver.name);
++		return 0;
++	}
++	return i2c_probe(adapter, &addr_data, at24c_probe);
++}
++
++static int __devexit at24c_detach_client(struct i2c_client *client)
++{
++	int err;
++
++	err = i2c_detach_client(client);
++	if (err) {
++		dev_err(&client->dev, "deregistration failed, %d\n", err);
++		return err;
++	}
++
++	kfree(container_of(client, struct at24c_data, client));
++	return 0;
++}
++
++/*-------------------------------------------------------------------------*/
++
++static struct i2c_driver at24c_driver = {
++	.owner		= THIS_MODULE,
++	.name		= "at24c",
++	.flags		= I2C_DF_NOTIFY,
++	.attach_adapter	= at24c_attach_adapter,
++	.detach_client	= __devexit_p(at24c_detach_client),
++};
++
++static int __init at24c_init(void)
++{
++#ifdef CONFIG_OMAP_OSK_MISTRAL
++	/* REVISIT This is a bit hackish.  But until we have a cleaner way
++	 * to provide compile-time descriptions of the I2C devices on a
++	 * given system (platform_data for something?), it suffices.
++	 */
++	if (machine_is_omap_osk()) {
++		n_chip_names = 1;
++
++		probe[0] = 0;
++		probe[1] = 0x50;
++		chip_names[0] = "24c04";
++	}
++#endif
++	return i2c_add_driver(&at24c_driver);
++}
++module_init(at24c_init);
++
++static void __exit at24c_exit(void)
++{
++	i2c_del_driver(&at24c_driver);
++}
++module_exit(at24c_exit);
++
++MODULE_DESCRIPTION("Driver for AT24C series (and compatible) I2C EEPROMs");
++MODULE_AUTHOR("David Brownell");
++MODULE_LICENSE("GPL");
++
