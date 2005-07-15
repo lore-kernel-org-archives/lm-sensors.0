@@ -1,84 +1,37 @@
-From: csyllac@gmail.com (Craig Sylla)
-Date: Fri, 15 Jul 2005 20:16:25 +0000
-Subject: [lm-sensors] Adding ICH6 support to the i2c-i801 module,
-Message-Id: <1fbc035c050715111537f5dd7b@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 15 Jul 2005 19:35:57 +0000
+Subject: [lm-sensors] Added sysfs support for decode-dimms.pl
+Message-Id: <20050715193525.27a18349.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1fbc035c05071509545b7501b5@mail.gmail.com>
-In-Reply-To: <1fbc035c05071509545b7501b5@mail.gmail.com>
+References: <000201c571f9$ac2fb410$4d01a8c0@BURKART>
+In-Reply-To: <000201c571f9$ac2fb410$4d01a8c0@BURKART>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thank you for your reply -
+Hallo Burkart,
 
-On 7/15/05, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Craig,
+> I modified the code for decode-dimms.pl as you suggested. Now only the
+> first 128 bytes of the SPD EEPROM are read, moreover this is done in
+> a central sub routine rather than at 8 different places in the code.
+> The bank number guessing is now also working with the sysfs.
 > 
-> > I have a system with an ICH6M chipset (915GM) which has to run kernel
-> > 2.6.5.  There are a couple devices on the SMBus which I would like to
-> > get to, an LM63 and a TC655 (fan controller).
+> The new version can be found at http://www.bollchen.de/decode-dimms.pl
+> and the output of diff -u is located at
+> http://www.bollchen.de/diff.out
 > 
-> Not to disappoint you, but LM63 supports was added much later, in
-> 2.6.10. And I don't think there is a driver for the TC655.
-> 
+> Let me know what you think.
 
-Yes - 2.6.10 is right.  I've backported that driver as well.  It
-loads, but the bus locks up too fast to tell if it works or not.  I
-did the backport by comparing the LM83 from 2.6.5 to 2.6.10, and
-applying equivalent changes.
-If I can get everything working, I'm hoping to write the TC655 driver
-as part of this.  It's a pretty simple device, so basic support
-doesn't seem to be an incredibly difficult task.  I've done SMBus
-stuff for DIMM SPD's before.
+I finally took some time to commit your changes. Sorry for the delay. I
+additionally refactored the code as I had previously suggested, and
+fixed a few other things. The new version of the script is in lm_sensors
+CVS now, so the upcoming 2.9.2 release will have it. Feel tree to test
+that it still works OK for you:
 
-> > The i2c-i801 module supports this in 2.6.7, so I back-ported the
-> > changes (basically the PCI Id) and sensors-detect now finds the bus.
-> > Here is the output of i2cdetect:
-> >
-> >   Installed I2C busses:
-> >     i2c-1       unknown         SMBus I801 adapter at 0400
-> >  Algorithm unavailable
-> >     i2c-0       dummy           ISA main adapter
-> >  ISA bus algorithm
-> >
-> > I have 2 questions/issues -
-> >
-> > First, is the 'unknown' and 'Algorithm unavailable' normal, or did I
-> > miss something in my backport?
-> 
-> It's normal, the 2.6 kernel exports less information than the 2.4 kernel
-> did, so user-space utilities can't report the missing information. I
-> plan to modify the user-space utilities to stop displaying the
-> information (or lack thereof), so as to not confuse the user.
-> 
+  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/eeprom/decode-dimms.pl
 
-Ok that makes sense - thanks.
+Vielen Dank f?r deine gute Arbeit :)
 
-> > Second, if I try to access any of the devices on the SMBus, I will
-> > quickly get a collision/buslock.  I did not change the i2c_delay()
-> > code to match the msleep() in the backport, could this be affecting
-> > it?  The bus does scan, and I see devices where I'd expect them, so
-> > it's -really- close to working...
-> 
-> Most probably unrelated.
-> 
-> Asus board?
-> 
-> If some device on the bus misbehaves, there's not much you can do,
-> unfortunately, unless you can get control over this device. This would
-> require a full knowledge of the bus topology, which manufacturers
-> usually don't disclose easily.
-> 
-> --
-> Jean Delvare
-> 
-
-Ok - I'll need to track down more info.  The board is a specialized
-industrial module, so I can probably get details on the bus layout. 
-There are a half-dozen or so devices on the bus I'll have to track
-down as well to see who's causing the trouble.
-
-Thanks again for your help.
-
-Craig
+-- 
+Jean Delvare
