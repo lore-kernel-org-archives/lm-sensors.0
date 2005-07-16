@@ -1,31 +1,63 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Thu, 07 Jul 2005 20:50:24 +0000
-Subject: [lm-sensors] W83627thf
-Message-Id: <42CD795A.7060805@sh.cvut.cz>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Sat, 16 Jul 2005 03:35:55 +0000
+Subject: [lm-sensors] [PATCH 2.6.13-rc3 0/3] hwmon: hwmon sysfs class
+Message-Id: <20050716013537.GA4265@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050707070237.63441.qmail@web60124.mail.yahoo.com>
-In-Reply-To: <20050707070237.63441.qmail@web60124.mail.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg:
 
- Hi Mehran,
+Here is the patchset that adds the hwmon sysfs class.  It is refreshed
+against 2.6.13-rc3, which required no changes since my last RFC.  Please
+apply.
 
-I think it has also W83792D on it. This chip is supported in 2.4 and for 2.6 some patches exists too. (not yet in mainline)
-I belive you will need latest beta bios for k8n
+ drivers/hwmon/Kconfig      |    7 ++-
+ drivers/hwmon/Makefile     |    2 
+ drivers/hwmon/adm1021.c    |   16 ++++++-
+ drivers/hwmon/adm1025.c    |   16 ++++++-
+ drivers/hwmon/adm1026.c    |   19 +++++++-
+ drivers/hwmon/adm1031.c    |   20 +++++++--
+ drivers/hwmon/adm9240.c    |   19 +++++++-
+ drivers/hwmon/asb100.c     |   31 +++++++++++---
+ drivers/hwmon/atxp1.c      |   16 ++++++-
+ drivers/hwmon/ds1621.c     |   16 ++++++-
+ drivers/hwmon/fscher.c     |   16 ++++++-
+ drivers/hwmon/fscpos.c     |   16 ++++++-
+ drivers/hwmon/gl518sm.c    |   17 ++++++-
+ drivers/hwmon/gl520sm.c    |   16 ++++++-
+ drivers/hwmon/hwmon.c      |   98 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/it87.c       |   16 ++++++-
+ drivers/hwmon/lm63.c       |   16 ++++++-
+ drivers/hwmon/lm75.c       |   15 ++++++
+ drivers/hwmon/lm77.c       |   16 ++++++-
+ drivers/hwmon/lm78.c       |   16 ++++++-
+ drivers/hwmon/lm80.c       |   16 ++++++-
+ drivers/hwmon/lm83.c       |   16 ++++++-
+ drivers/hwmon/lm85.c       |   15 ++++++
+ drivers/hwmon/lm87.c       |   16 ++++++-
+ drivers/hwmon/lm90.c       |   16 ++++++-
+ drivers/hwmon/lm92.c       |   17 ++++++-
+ drivers/hwmon/max1619.c    |   17 ++++++-
+ drivers/hwmon/pc87360.c    |   13 +++++
+ drivers/hwmon/sis5595.c    |   18 +++++++-
+ drivers/hwmon/smsc47b397.c |   18 +++++++-
+ drivers/hwmon/smsc47m1.c   |   19 +++++++-
+ drivers/hwmon/via686a.c    |   24 ++++++++---
+ drivers/hwmon/w83627ehf.c  |   16 ++++++-
+ drivers/hwmon/w83627hf.c   |   16 ++++++-
+ drivers/hwmon/w83781d.c    |   39 ++++++++++++++---
+ drivers/hwmon/w83l785ts.c  |   16 ++++++-
+ include/linux/hwmon.h      |   24 +++++++++++
+ 37 files changed, 659 insertions(+), 61 deletions(-)
 
-	K8N 	1007.009 	K8N Beta BIOS 1007.009
+I dedicate this patchset to Celia.
 
-http://support.asus.com/download/download_item.aspx?product=1&model=K8N&SLanguage=en-us
+Regards,
 
-Then you will be able to "see" this chip on Linux.
-If you have 2.4.x kernels go ahead with lm_sensors 2.9.1
-If you have 2.6.x kernels you can try this http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050621/8dfe2e28/patch_w83792d-2.6.12-0001.gz
-And this http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050706/3a674472/w83792d-driver-QUIET-2.6.x.patch-0001.gz
-You will need lm_sensors CVS userspace utillites for this (make user; make user_install;)
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-Regards
-
-Rudolf
