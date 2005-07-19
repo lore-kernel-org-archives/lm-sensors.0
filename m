@@ -1,24 +1,24 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 24 Jul 2005 18:11:03 +0000
-Subject: [lm-sensors] at24c i2c EEPROM driver
-Message-Id: <20050724181056.5abcb63b.khali@linux-fr.org>
+From: david.vanhoose@comcast.net (David van Hoose)
+Date: Tue, 19 Jul 2005 22:03:09 +0000
+Subject: [lm-sensors] I2C support oddities
+Message-Id: <PFEDLPHCOBHEOIOMGBIECEKGCAAA.david.vanhoose@comcast.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200507111737.11097.david-b@pacbell.net>
-In-Reply-To: <200507111737.11097.david-b@pacbell.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Hi Greg,
 
-> And here's what will be the last update for a while.  The main
-> patch I'd like to see someone contribute is SMBUS support so
-> this can run in PC type hardware too.
+I stumbled across what looks to be a couple of bugs and flaws in the I2C
+code. The biggest issue being swapped parameter values in the smbus_xfer
+functions. You might look at it and check to see if I'm right. Also, I
+believe that the write functions need to have their data parameter be
+constant. I get some warnings about using decoder_init::data with
+smbus_write_block_data. None of the write functions employ constant data
+pointers. Do you think that the non-constant pointers should be changed to
+constant pointers?
 
-I've linked from our "new drivers" page to this post in the archive so
-that people looking for 2-byte addressed eeprom support will hopefully
-find it.
+Thanks,
+David van Hoose
 
--- 
-Jean Delvare
