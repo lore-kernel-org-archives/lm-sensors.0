@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 19 Jul 2005 23:51:50 +0000
+Date: Tue, 19 Jul 2005 23:53:48 +0000
 Subject: [lm-sensors] [PATCH 2.6] I2C: Separate non-i2c hwmon drivers from
-Message-Id: <20050719235107.56ab70d2.khali@linux-fr.org>
+Message-Id: <20050719235307.61e2f6cf.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050719233902.40282559.khali@linux-fr.org>
 In-Reply-To: <20050719233902.40282559.khali@linux-fr.org>
@@ -11,423 +11,63 @@ Content-Transfer-Encoding: 7bit
 To: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 Cc: Greg KH <greg@kroah.com>
 
-Convert the 10 ISA hardware monitoring drivers (it87, lm78, pc87360,
-sis5595, smsc47b397, smsc47m1, via686a, w83627hf, w83627ehf, w83781d) to
-explicitely register with i2c-isa. For hybrid drivers (it87, lm78,
-w83781d), we now have two separate instances of i2c_driver, one for the
-I2C interface of the chip, and one for ISA interface. In the long run,
-the one for ISA will be replaced with a different driver type.
+All ISA hardware monitoring drivers (including hybrid drivers) now have
+a hard dependency on i2c-isa, so they must select I2C_ISA. As a result,
+CONFIG_I2C_ISA doesn't need to be left visible to the user. The good
+thing here is that users will stop complaining that some driver doesn't
+work just because they forgot to compile or load i2c-isa.
 
-At this point, all drivers are working again, except for missing
-dependencies in Kconfig.
+At this point, all drivers are working again and the cleanup phase can
+begin.
 
- drivers/hwmon/it87.c       |   29 +++++++++++++++++++++++++----
- drivers/hwmon/lm78.c       |   29 ++++++++++++++++++++++++++---
- drivers/hwmon/pc87360.c    |    5 +++--
- drivers/hwmon/sis5595.c    |    5 +++--
- drivers/hwmon/smsc47b397.c |    5 +++--
- drivers/hwmon/smsc47m1.c   |    5 +++--
- drivers/hwmon/via686a.c    |    5 +++--
- drivers/hwmon/w83627ehf.c  |    5 +++--
- drivers/hwmon/w83627hf.c   |    5 +++--
- drivers/hwmon/w83781d.c    |   28 +++++++++++++++++++++++++---
- 10 files changed, 97 insertions(+), 24 deletions(-)
+ drivers/hwmon/Kconfig      |    3 +++
+ drivers/i2c/busses/Kconfig |    8 +-------
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
---- linux-2.6.13-rc3.orig/drivers/hwmon/it87.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/it87.c	2005-07-16 20:15:39.000000000 +0200
-@@ -36,6 +36,7 @@
- #include <linux/slab.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
- #include <linux/hwmon-sysfs.h>
-@@ -242,6 +243,14 @@
- 	.detach_client	= it87_detach_client,
- };
+--- linux-2.6.13-rc3.orig/drivers/hwmon/Kconfig	2005-07-16 09:53:08.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/Kconfig	2005-07-16 20:33:50.000000000 +0200
+@@ -160,6 +160,7 @@
+ 	tristate "ITE IT87xx and compatibles"
+ 	depends on HWMON && I2C
+ 	select I2C_SENSOR
++	select I2C_ISA
+ 	help
+ 	  If you say yes here you get support for ITE IT87xx sensor chips
+ 	  and clones: SiS960.
+@@ -211,6 +212,7 @@
+ 	tristate "National Semiconductor LM78 and compatibles"
+ 	depends on HWMON && I2C && EXPERIMENTAL
+ 	select I2C_SENSOR
++	select I2C_ISA
+ 	help
+ 	  If you say yes here you get support for National Semiconductor LM78,
+ 	  LM78-J and LM79.
+@@ -366,6 +368,7 @@
+ 	tristate "Winbond W83781D, W83782D, W83783S, W83627HF, Asus AS99127F"
+ 	depends on HWMON && I2C
+ 	select I2C_SENSOR
++	select I2C_ISA
+ 	help
+ 	  If you say yes here you get support for the Winbond W8378x series
+ 	  of sensor chips: the W83781D, W83782D, W83783S and W83627HF,
+--- linux-2.6.13-rc3.orig/drivers/i2c/busses/Kconfig	2005-07-13 23:34:12.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/busses/Kconfig	2005-07-16 20:34:31.000000000 +0200
+@@ -182,14 +182,8 @@
+ 	  will be called i2c-iop3xx.
  
-+static struct i2c_driver it87_isa_driver = {
-+	.owner		= THIS_MODULE,
-+	.name		= "it87-isa",
-+	.attach_adapter	= it87_attach_adapter,
-+	.detach_client	= it87_detach_client,
-+};
-+
-+
- static ssize_t show_in(struct device *dev, struct device_attribute *attr,
- 		char *buf)
- {
-@@ -741,7 +750,7 @@
+ config I2C_ISA
+-	tristate "ISA Bus support"
++	tristate
+ 	depends on I2C
+-	help
+-	  If you say yes to this option, support will be included for i2c
+-	  interfaces that are on the ISA bus.
+-
+-	  This driver can also be built as a module.  If so, the module
+-	  will be called i2c-isa.
  
- 	/* Reserve the ISA region */
- 	if (is_isa)
--		if (!request_region(address, IT87_EXTENT, it87_driver.name))
-+		if (!request_region(address, IT87_EXTENT, it87_isa_driver.name))
- 			goto ERROR0;
- 
- 	/* Probe whether there is anything available on this address. Already
-@@ -787,7 +796,7 @@
- 	i2c_set_clientdata(new_client, data);
- 	new_client->addr = address;
- 	new_client->adapter = adapter;
--	new_client->driver = &it87_driver;
-+	new_client->driver = is_isa ? &it87_isa_driver : &it87_driver;
- 	new_client->flags = 0;
- 
- 	/* Now, we do the remaining detection. */
-@@ -1172,16 +1181,28 @@
- 
- static int __init sm_it87_init(void)
- {
--	int addr;
-+	int addr, res;
- 
- 	if (!it87_find(&addr)) {
- 		normal_isa[0] = addr;
- 	}
--	return i2c_add_driver(&it87_driver);
-+
-+	res = i2c_add_driver(&it87_driver);
-+	if (res)
-+		return res;
-+
-+	res = i2c_isa_add_driver(&it87_isa_driver);
-+	if (res) {
-+		i2c_del_driver(&it87_driver);
-+		return res;
-+	}
-+
-+	return 0;
- }
- 
- static void __exit sm_it87_exit(void)
- {
-+	i2c_isa_del_driver(&it87_isa_driver);
- 	i2c_del_driver(&it87_driver);
- }
- 
---- linux-2.6.13-rc3.orig/drivers/hwmon/lm78.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/lm78.c	2005-07-16 20:17:04.000000000 +0200
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
-@@ -177,6 +178,14 @@
- 	.detach_client	= lm78_detach_client,
- };
- 
-+static struct i2c_driver lm78_isa_driver = {
-+	.owner		= THIS_MODULE,
-+	.name		= "lm78-isa",
-+	.attach_adapter	= lm78_attach_adapter,
-+	.detach_client	= lm78_detach_client,
-+};
-+
-+
- /* 7 Voltages */
- static ssize_t show_in(struct device *dev, char *buf, int nr)
- {
-@@ -488,7 +497,8 @@
- 
- 	/* Reserve the ISA region */
- 	if (is_isa)
--		if (!request_region(address, LM78_EXTENT, lm78_driver.name)) {
-+		if (!request_region(address, LM78_EXTENT,
-+				    lm78_isa_driver.name)) {
- 			err = -EBUSY;
- 			goto ERROR0;
- 		}
-@@ -543,7 +553,7 @@
- 	i2c_set_clientdata(new_client, data);
- 	new_client->addr = address;
- 	new_client->adapter = adapter;
--	new_client->driver = &lm78_driver;
-+	new_client->driver = is_isa ? &lm78_isa_driver : &lm78_driver;
- 	new_client->flags = 0;
- 
- 	/* Now, we do the remaining detection. */
-@@ -791,11 +801,24 @@
- 
- static int __init sm_lm78_init(void)
- {
--	return i2c_add_driver(&lm78_driver);
-+	int res;
-+
-+	res = i2c_add_driver(&lm78_driver);
-+	if (res)
-+		return res;
-+
-+	res = i2c_isa_add_driver(&lm78_isa_driver);
-+	if (res) {
-+		i2c_del_driver(&lm78_driver);
-+		return res;
-+	}
-+
-+	return 0;
- }
- 
- static void __exit sm_lm78_exit(void)
- {
-+	i2c_isa_del_driver(&lm78_isa_driver);
- 	i2c_del_driver(&lm78_driver);
- }
- 
---- linux-2.6.13-rc3.orig/drivers/hwmon/pc87360.c	2005-07-16 09:53:15.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/pc87360.c	2005-07-16 20:11:59.000000000 +0200
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
- #include <linux/hwmon.h>
-@@ -1344,12 +1345,12 @@
- 		return -ENODEV;
- 	}
- 
--	return i2c_add_driver(&pc87360_driver);
-+	return i2c_isa_add_driver(&pc87360_driver);
- }
- 
- static void __exit pc87360_exit(void)
- {
--	i2c_del_driver(&pc87360_driver);
-+	i2c_isa_del_driver(&pc87360_driver);
- }
- 
- 
---- linux-2.6.13-rc3.orig/drivers/hwmon/sis5595.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/sis5595.c	2005-07-16 20:11:59.000000000 +0200
-@@ -55,6 +55,7 @@
- #include <linux/ioport.h>
- #include <linux/pci.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
-@@ -790,7 +791,7 @@
- 	normal_isa[0] = addr;
- 
- 	s_bridge = pci_dev_get(dev);
--	if (i2c_add_driver(&sis5595_driver)) {
-+	if (i2c_isa_add_driver(&sis5595_driver)) {
- 		pci_dev_put(s_bridge);
- 		s_bridge = NULL;
- 	}
-@@ -817,7 +818,7 @@
- {
- 	pci_unregister_driver(&sis5595_pci_driver);
- 	if (s_bridge != NULL) {
--		i2c_del_driver(&sis5595_driver);
-+		i2c_isa_del_driver(&sis5595_driver);
- 		pci_dev_put(s_bridge);
- 		s_bridge = NULL;
- 	}
---- linux-2.6.13-rc3.orig/drivers/hwmon/smsc47b397.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/smsc47b397.c	2005-07-16 20:11:59.000000000 +0200
-@@ -31,6 +31,7 @@
- #include <linux/ioport.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
-@@ -350,12 +351,12 @@
- 	if ((ret = smsc47b397_find(normal_isa)))
- 		return ret;
- 
--	return i2c_add_driver(&smsc47b397_driver);
-+	return i2c_isa_add_driver(&smsc47b397_driver);
- }
- 
- static void __exit smsc47b397_exit(void)
- {
--	i2c_del_driver(&smsc47b397_driver);
-+	i2c_isa_del_driver(&smsc47b397_driver);
- }
- 
- MODULE_AUTHOR("Mark M. Hoffman <mhoffman@lightlink.com>");
---- linux-2.6.13-rc3.orig/drivers/hwmon/smsc47m1.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/smsc47m1.c	2005-07-16 20:11:59.000000000 +0200
-@@ -30,6 +30,7 @@
- #include <linux/ioport.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
-@@ -592,12 +593,12 @@
- 		return -ENODEV;
- 	}
- 
--	return i2c_add_driver(&smsc47m1_driver);
-+	return i2c_isa_add_driver(&smsc47m1_driver);
- }
- 
- static void __exit sm_smsc47m1_exit(void)
- {
--	i2c_del_driver(&smsc47m1_driver);
-+	i2c_isa_del_driver(&smsc47m1_driver);
- }
- 
- MODULE_AUTHOR("Mark D. Studebaker <mdsxyz123@yahoo.com>");
---- linux-2.6.13-rc3.orig/drivers/hwmon/via686a.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/via686a.c	2005-07-16 20:11:59.000000000 +0200
-@@ -35,6 +35,7 @@
- #include <linux/pci.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
-@@ -846,7 +847,7 @@
- 	normal_isa[0] = addr;
- 
- 	s_bridge = pci_dev_get(dev);
--	if (i2c_add_driver(&via686a_driver)) {
-+	if (i2c_isa_add_driver(&via686a_driver)) {
- 		pci_dev_put(s_bridge);
- 		s_bridge = NULL;
- 	}
-@@ -873,7 +874,7 @@
- {
- 	pci_unregister_driver(&via686a_pci_driver);
- 	if (s_bridge != NULL) {
--		i2c_del_driver(&via686a_driver);
-+		i2c_isa_del_driver(&via686a_driver);
- 		pci_dev_put(s_bridge);
- 		s_bridge = NULL;
- 	}
---- linux-2.6.13-rc3.orig/drivers/hwmon/w83627hf.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/w83627hf.c	2005-07-16 20:11:59.000000000 +0200
-@@ -42,6 +42,7 @@
- #include <linux/slab.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
- #include <linux/hwmon.h>
-@@ -1507,12 +1508,12 @@
- 	}
- 	normal_isa[0] = addr;
- 
--	return i2c_add_driver(&w83627hf_driver);
-+	return i2c_isa_add_driver(&w83627hf_driver);
- }
- 
- static void __exit sensors_w83627hf_exit(void)
- {
--	i2c_del_driver(&w83627hf_driver);
-+	i2c_isa_del_driver(&w83627hf_driver);
- }
- 
- MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
---- linux-2.6.13-rc3.orig/drivers/hwmon/w83781d.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/w83781d.c	2005-07-16 20:17:22.000000000 +0200
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
- #include <linux/hwmon.h>
-@@ -276,6 +277,14 @@
- 	.detach_client = w83781d_detach_client,
- };
- 
-+static struct i2c_driver w83781d_isa_driver = {
-+	.owner = THIS_MODULE,
-+	.name = "w83781d-isa",
-+	.attach_adapter = w83781d_attach_adapter,
-+	.detach_client = w83781d_detach_client,
-+};
-+
-+
- /* following are the sysfs callback functions */
- #define show_in_reg(reg) \
- static ssize_t show_##reg (struct device *dev, char *buf, int nr) \
-@@ -1002,7 +1011,7 @@
- 	
- 	if (is_isa)
- 		if (!request_region(address, W83781D_EXTENT,
--				    w83781d_driver.name)) {
-+				    w83781d_isa_driver.name)) {
- 			dev_dbg(&adapter->dev, "Request of region "
- 				"0x%x-0x%x for w83781d failed\n", address,
- 				address + W83781D_EXTENT - 1);
-@@ -1060,7 +1069,7 @@
- 	new_client->addr = address;
- 	init_MUTEX(&data->lock);
- 	new_client->adapter = adapter;
--	new_client->driver = &w83781d_driver;
-+	new_client->driver = is_isa ? &w83781d_isa_driver : &w83781d_driver;
- 	new_client->flags = 0;
- 
- 	/* Now, we do the remaining detection. */
-@@ -1636,12 +1645,25 @@
- static int __init
- sensors_w83781d_init(void)
- {
--	return i2c_add_driver(&w83781d_driver);
-+	int res;
-+
-+	res = i2c_add_driver(&w83781d_driver);
-+	if (res)
-+		return res;
-+
-+	res = i2c_isa_add_driver(&w83781d_isa_driver);
-+	if (res) {
-+		i2c_del_driver(&w83781d_driver);
-+		return res;
-+	}
-+
-+	return 0;
- }
- 
- static void __exit
- sensors_w83781d_exit(void)
- {
-+	i2c_isa_del_driver(&w83781d_isa_driver);
- 	i2c_del_driver(&w83781d_driver);
- }
- 
---- linux-2.6.13-rc3.orig/drivers/hwmon/w83627ehf.c	2005-07-16 09:53:09.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/w83627ehf.c	2005-07-16 20:14:00.000000000 +0200
-@@ -37,6 +37,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon.h>
- #include <linux/err.h>
-@@ -844,12 +845,12 @@
- 	 && w83627ehf_find(0x4e, &normal_isa[0]))
- 		return -ENODEV;
- 
--	return i2c_add_driver(&w83627ehf_driver);
-+	return i2c_isa_add_driver(&w83627ehf_driver);
- }
- 
- static void __exit sensors_w83627ehf_exit(void)
- {
--	i2c_del_driver(&w83627ehf_driver);
-+	i2c_isa_del_driver(&w83627ehf_driver);
- }
- 
- MODULE_AUTHOR("Jean Delvare <khali@linux-fr.org>");
+ config I2C_ITE
+ 	tristate "ITE I2C Adapter"
 
 
 -- 
