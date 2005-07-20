@@ -1,51 +1,108 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 20 Jul 2005 00:09:48 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: Separate non-i2c hwmon drivers from
-Message-Id: <20050720000903.2f2cf8e3.khali@linux-fr.org>
+Date: Wed, 20 Jul 2005 23:04:27 +0000
+Subject: [lm-sensors] Re: [PATCH 2.6] I2C: Separate non-i2c hwmon drivers
+Message-Id: <20050720230350.6ba51474.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050719233902.40282559.khali@linux-fr.org>
-In-Reply-To: <20050719233902.40282559.khali@linux-fr.org>
+	<20050719234540.78a3f8ea.khali@linux-fr.org>
+	<20050720042622.GC26552@kroah.com>
+In-Reply-To: <20050720042622.GC26552@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
-Cc: Greg KH <greg@kroah.com>
+To: Greg KH <greg@kroah.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Move the definitions of i2c_is_isa_client and i2c_is_isa_adapter from
-i2c.h to i2c-isa.h. Only hybrid drivers still need them.
+Hi Greg,
 
- include/linux/i2c-isa.h |    7 +++++++
- include/linux/i2c.h     |    7 -------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+> > +/* Next four are needed by i2c-isa */
+> > +EXPORT_SYMBOL(i2c_adapter_dev_release);
+> > +EXPORT_SYMBOL(i2c_adapter_driver);
+> > +EXPORT_SYMBOL(i2c_adapter_class);
+> > +EXPORT_SYMBOL(i2c_bus_type);
+> 
+> EXPORT_SYMBOL_GPL() instead?  As these were, core, GPL only symbols
+> before you exported them.
 
---- linux-2.6.13-rc3.orig/include/linux/i2c-isa.h	2005-07-16 18:46:37.000000000 +0200
-+++ linux-2.6.13-rc3/include/linux/i2c-isa.h	2005-07-17 16:45:22.000000000 +0200
-@@ -26,4 +26,11 @@
- extern int i2c_isa_add_driver(struct i2c_driver *driver);
- extern int i2c_isa_del_driver(struct i2c_driver *driver);
+Sure, no problem. I would even use EXPORT_SYMBOL_I2C_ISA_ONLY() if it
+happened to exist ;)
+
+Updated patch follows, thanks.
+
+Temporarily export a few structures and functions from i2c-core, because we
+will soon need them in i2c-isa.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+ drivers/i2c/i2c-core.c |   14 ++++++++++----
+ include/linux/i2c.h    |    7 +++++++
+ 2 files changed, 17 insertions(+), 4 deletions(-)
+
+--- linux-2.6.13-rc3.orig/drivers/i2c/i2c-core.c	2005-07-17 20:15:52.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/i2c-core.c	2005-07-20 18:19:46.000000000 +0200
+@@ -61,7 +61,7 @@
+ 	return rc;
+ }
  
-+/* Detect whether we are on the isa bus. This is only useful to hybrid
-+   (i2c+isa) drivers. */
-+#define i2c_is_isa_client(clientptr) \
-+        ((clientptr)->adapter->algo->id = I2C_ALGO_ISA)
-+#define i2c_is_isa_adapter(adapptr) \
-+        ((adapptr)->algo->id = I2C_ALGO_ISA)
+-static struct bus_type i2c_bus_type = {
++struct bus_type i2c_bus_type = {
+ 	.name =		"i2c",
+ 	.match =	i2c_device_match,
+ 	.suspend =      i2c_bus_suspend,
+@@ -78,13 +78,13 @@
+ 	return 0;
+ }
+ 
+-static void i2c_adapter_dev_release(struct device *dev)
++void i2c_adapter_dev_release(struct device *dev)
+ {
+ 	struct i2c_adapter *adap = dev_to_i2c_adapter(dev);
+ 	complete(&adap->dev_released);
+ }
+ 
+-static struct device_driver i2c_adapter_driver = {
++struct device_driver i2c_adapter_driver = {
+ 	.name =	"i2c_adapter",
+ 	.bus = &i2c_bus_type,
+ 	.probe = i2c_device_probe,
+@@ -97,7 +97,7 @@
+ 	complete(&adap->class_dev_released);
+ }
+ 
+-static struct class i2c_adapter_class = {
++struct class i2c_adapter_class = {
+ 	.name =		"i2c-adapter",
+ 	.release =	&i2c_adapter_class_dev_release,
+ };
+@@ -1171,6 +1171,12 @@
+ }
+ 
+ 
++/* Next four are needed by i2c-isa */
++EXPORT_SYMBOL_GPL(i2c_adapter_dev_release);
++EXPORT_SYMBOL_GPL(i2c_adapter_driver);
++EXPORT_SYMBOL_GPL(i2c_adapter_class);
++EXPORT_SYMBOL_GPL(i2c_bus_type);
 +
- #endif /* _LINUX_I2C_ISA_H */
---- linux-2.6.13-rc3.orig/include/linux/i2c.h	2005-07-17 15:26:30.000000000 +0200
-+++ linux-2.6.13-rc3/include/linux/i2c.h	2005-07-17 16:44:40.000000000 +0200
-@@ -575,11 +575,4 @@
- 			.force =		force,			\
- 		}
+ EXPORT_SYMBOL(i2c_add_adapter);
+ EXPORT_SYMBOL(i2c_del_adapter);
+ EXPORT_SYMBOL(i2c_add_driver);
+--- linux-2.6.13-rc3.orig/include/linux/i2c.h	2005-07-17 20:15:52.000000000 +0200
++++ linux-2.6.13-rc3/include/linux/i2c.h	2005-07-20 18:19:01.000000000 +0200
+@@ -34,6 +34,13 @@
+ #include <linux/device.h>	/* for struct device */
+ #include <asm/semaphore.h>
  
--/* Detect whether we are on the isa bus. If this returns true, all i2c
--   access will fail! */
--#define i2c_is_isa_client(clientptr) \
--        ((clientptr)->adapter->algo->id = I2C_ALGO_ISA)
--#define i2c_is_isa_adapter(adapptr) \
--        ((adapptr)->algo->id = I2C_ALGO_ISA)
--
- #endif /* _LINUX_I2C_H */
++/* --- For i2c-isa ---------------------------------------------------- */
++
++extern void i2c_adapter_dev_release(struct device *dev);
++extern struct device_driver i2c_adapter_driver;
++extern struct class i2c_adapter_class;
++extern struct bus_type i2c_bus_type;
++
+ /* --- General options ------------------------------------------------	*/
+ 
+ struct i2c_msg;
 
 
 -- 
