@@ -1,7 +1,7 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Fri, 22 Jul 2005 02:47:32 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 22 Jul 2005 11:59:41 +0000
 Subject: [lm-sensors] Re: [PATCH 2.6.13-rc3 0/3] hwmon: hwmon sysfs class
-Message-Id: <253818670507211745688a4a05@mail.gmail.com>
+Message-Id: <Q9cq7HHM.1122026013.2522630.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050716013537.GA4265@jupiter.solarsys.private>
 In-Reply-To: <20050716013537.GA4265@jupiter.solarsys.private>
@@ -10,42 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, Mark,
 
-I'm a bit confused on the current state of hwmon, was the latest patch
-accepted anywhere? Aside from ipmisensors (which is blocked on other
-work anyway) I'm looking into adding a sysfs/hwmon interface to the
-new hdaps driver (see http://hdaps.sourceforge.net/), any opinions?
+Hi Yani,
 
-It would probably mean adding two new classes of sensor types,
-acceleration and 'variation' types. The hdaps driver is not the only
-driver out there that could use these though, I believe some
-powerbooks and other notebooks have a similair system (see
-http://www.kernelthread.com/software/ams/).
+On 2005-07-22, Yani Ioannou wrote:
+> I'm a bit confused on the current state of hwmon, was the latest patch
+> accepted anywhere?
 
-Thanks,
-Yani
+It was accepted by me, for what it's worth. I'd expect Greg KH to ack
+it when he gets around, but he is currently busy with the various Linux
+summer summits.
 
-On 7/16/05, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Greg,
-> 
-> Quoting Mark M. Hoffman:
-> > Here is the patchset that adds the hwmon sysfs class.  It is refreshed
-> > against 2.6.13-rc3, which required no changes since my last RFC.
-> 
-> I did review these three patches and do support them. Feel free to add:
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> 
-> before your own. Maybe we can even have a "Dedicated-to: Celia" line for
-> these ones? :)
-> 
-> Thanks,
-> --
-> Jean Delvare
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+> Aside from ipmisensors (which is blocked on other
+> work anyway) I'm looking into adding a sysfs/hwmon interface to the
+> new hdaps driver (see http://hdaps.sourceforge.net/), any opinions?
+
+The site lacks documentation. Care to explain to us what exactly the
+project does, and why you do think it is related with hardware
+monitoring? Any precise example of what sysfs files would be created?
+
+> It would probably mean adding two new classes of sensor types,
+> acceleration and 'variation' types. The hdaps driver is not the only
+> driver out there that could use these though, I believe some
+> powerbooks and other notebooks have a similair system (see
+> http://www.kernelthread.com/software/ams/).
+
+I think I can imagine whan an acceleration sensor is about. Not too sure
+what "variations" would be though. What unit are these variations
+expressed in? Sensors are typically about measuring a current state
+rather than expressing variations between states.
+
+--
+Jean Delvare
