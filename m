@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 22 Jul 2005 11:46:05 +0000
+Date: Fri, 22 Jul 2005 16:45:32 +0000
 Subject: [lm-sensors] [patch]  KERNELVERSION=2.6.12-something make
-Message-Id: <Ip6FeyJQ.1122025197.4927440.khali@localhost>
+Message-Id: <b3U94Vj1.1122043116.4034360.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42E04664.3020001@divsol.com>
 In-Reply-To: <42E04664.3020001@divsol.com>
@@ -11,26 +11,19 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Jim,
+Hi again Jim,
 
 On 2005-07-22, Jim Cromie wrote:
+> attached patches allow making with setting in environment.
 
-> Separately, Ive been trying to hack around my lack of
-> include/linux/modversions.h,  which is not present in the 2.6.12, 13-rc
-> trees that Ive built
->
-> Ive tried turning off CONFIG_MODVERSIONS,
-> despite some ifdefs in some of the code that suggest it shoul help,
-> I get almost nowhere doing so.
->
-> is modversions.h a synthesized file (written based upon config) ?
-> is it a holdover from earlier kernel releases ?
+Oh, BTW, I don't think this is needed. If you want to compile i2c or
+lm_sensors for a different kernel than the running one, use:
+make LINUX=/path/to/linux
 
-I suspect that you are trying to build the kernel modules of lm_sensors
-with a 2.6 kernel. No surprise it doesn't work, it is not supposed to.
-With a 2.6 kernel, the only part of lm_sensors you are interested in is
-the user-space tools, which are built with "make user" and installed
-with "make user_install". Don't use "make" nor "make install".
+Works fine for me.
+
+Note that this is only needed for Linux 2.4 kernels anyway, which
+doesn't seem to be your case.
 
 --
 Jean Delvare
