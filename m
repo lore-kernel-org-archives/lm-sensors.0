@@ -1,7 +1,7 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Mon, 25 Jul 2005 13:44:53 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 26 Jul 2005 09:45:49 +0000
 Subject: [lm-sensors] Fancontrol
-Message-Id: <42E4D09F.7060000@divsol.com>
+Message-Id: <42E5EA17.4050904@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1122217880.3578.8.camel@localhost.localdomain>
 In-Reply-To: <1122217880.3578.8.camel@localhost.localdomain>
@@ -10,21 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Henry wrote:
+Hello,
 
->Hi I'm using Lm sensors and fancontrol
->I have not found a way to set constant CPU fan speed.
->
->every time when the outside temperature drops the cpu fan stops then
->starts and then stops.
->this is very annoying I have to change the settings in
->the /etc/fancontrol file when the weather changes
->
->  
->
-many fan-controller circuits are PWM, pulse width modulated.
-these usually give a power knob with 256 steps, from 0 to full power.
-Since you seem to not know whats on your board, guessing would be pointless.
+Perhaps what you want is to disable the automatic speed mamagement and force manual fixed speed.
+Correct?
 
-have you tried compiling *all* the sensor modules, and seeing which ones 
-are sensors-detect'd ?
+If so I would like to know what modules are you using - what chip you have.
+
+Regards
+Rudolf
