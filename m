@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 26 Jul 2005 09:45:49 +0000
+From: henryvician@gmail.com (Henry)
+Date: Tue, 26 Jul 2005 18:13:40 +0000
 Subject: [lm-sensors] Fancontrol
-Message-Id: <42E5EA17.4050904@sh.cvut.cz>
+Message-Id: <1122394123.31517.3.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1122217880.3578.8.camel@localhost.localdomain>
 In-Reply-To: <1122217880.3578.8.camel@localhost.localdomain>
@@ -10,12 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+yes that's correct
 
-Perhaps what you want is to disable the automatic speed mamagement and force manual fixed speed.
-Correct?
+My motherboard is:
+MSI 865PE Neo2-F1S2R
 
-If so I would like to know what modules are you using - what chip you have.
+Please let me know what aditional info do you need
 
-Regards
-Rudolf
+Henry
+
+
+On Tue, 2005-07-26 at 09:45 +0200, Rudolf Marek wrote:
+> Hello,
+> 
+> Perhaps what you want is to disable the automatic speed mamagement and force manual fixed speed.
+> Correct?
+> 
+> If so I would like to know what modules are you using - what chip you have.
+> 
+> Regards
+> Rudolf
+
