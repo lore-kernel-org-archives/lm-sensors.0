@@ -1,167 +1,177 @@
 From: gregkh@suse.de (gregkh@suse.de)
-Date: Wed, 27 Jul 2005 00:33:23 +0000
-Subject: [lm-sensors] patch i2c-hwmon-split-08.patch added to gregkh-2.6 tree
-Message-Id: <1DxXzC-0ZH-00@press.kroah.org>
+Date: Tue, 26 Jul 2005 23:48:58 +0000
+Subject: [lm-sensors] patch i2c-max6875-documentation-update.patch added to
+Message-Id: <1DxXI7-2ff-00@press.kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20050720000533.57ad4953.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org, greg@kroah.com, gregkh@suse.de, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
 
 This is a note to let you know that I've just added the patch titled
 
-     Subject: I2C: Separate non-i2c hwmon drivers from i2c-core (8/9)
+     Subject: I2C: I2C: update max6875 documentation
 
 to my gregkh-2.6 tree.  Its filename is
 
-     i2c-hwmon-split-08.patch
+     i2c-max6875-documentation-update.patch
 
 This tree can be found at 
     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
 Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
 
-i2c/i2c-max6875-documentation-update.patch
-i2c/i2c-max6875-simplify.patch
-i2c/i2c-hwmon-class-01.patch
-i2c/i2c-hwmon-class-02.patch
-i2c/i2c-hwmon-class-03.patch
-i2c/i2c-missing-space.patch
-i2c/i2c-nforce2-cleanup.patch
-i2c/i2c-hwmon-split-01.patch
-i2c/i2c-hwmon-split-02.patch
-i2c/i2c-hwmon-split-03.patch
-i2c/i2c-hwmon-split-04.patch
-i2c/i2c-hwmon-split-05.patch
-i2c/i2c-hwmon-split-06.patch
-i2c/i2c-hwmon-split-07.patch
-i2c/i2c-hwmon-split-08.patch
-i2c/i2c-hwmon-split-09.patch
+i2c-max6875-simplify.patch
+i2c-max6875-documentation-update.patch
 
 
-From khali@linux-fr.org Tue Jul 19 18:06:45 2005
-Date: Wed, 20 Jul 2005 00:05:33 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LKML <linux-kernel@vger.kernel.org>, LM Sensors
- <lm-sensors@lm-sensors.org>
-Cc: Greg KH <greg@kroah.com>
-Subject: I2C: Separate non-i2c hwmon drivers from i2c-core (8/9)
-Message-Id: <20050720000533.57ad4953.khali@linux-fr.org>
+From BGardner@Wabtec.com Tue Jul 12 11:24:10 2005
+From: bgardner@wabtec.com
+To: Jean Delvare <khali@linux-fr.org>
+Subject: I2C: I2C: update max6875 documentation
+Date: Tue, 12 Jul 2005 13:21:50 -0500
+Cc: "lm-sensors" <lm-sensors@lm-sensors.org>,
+ greg@kroah.com
+Message-Id: <200507121321.50547.bgardner@wabtec.com>
 
-Kill all uses of i2c_is_isa_adapter except for the hybrid drivers (it87,
-lm78, w83781d). The i2c-isa adapter not being registered with the i2c
-core anymore, drivers don't have to fear being erroneously attached to
-it.
+[PATCH] I2C: update max6875 documentation
 
+Updates to the max6875 driver documentation.
+This brings the documentation in sync with the code, which was recently 
+simplified.
 
+This patch is based off 2.6.13-rc2-mm2.
+
+Signed-off-by: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+--- linux-2.6.13-rc2-mm2.orig/Documentation/i2c/chips/max6875
++++ linux-2.6.13-rc2-mm2/Documentation/i2c/chips/max6875
+@@ -4,22 +4,13 @@ Kernel driver max6875
+ Supported chips:
+   * Maxim MAX6874, MAX6875
+     Prefix: 'max6875'
+-    Addresses scanned: 0x50, 0x52
++    Addresses scanned: None (see below)
+     Datasheet:
+         http://pdfserv.maxim-ic.com/en/ds/MAX6874-MAX6875.pdf
+ 
+ Author: Ben Gardner <bgardner@wabtec.com>
+ 
+ 
+-Module Parameters
+------------------
+-
+-* allow_write int
+-  Set to non-zero to enable write permission:
+-  *0: Read only
+-   1: Read and write
+-
+-
+ Description
+ -----------
+ 
+@@ -33,34 +24,85 @@ registers.
+ 
+ The Maxim MAX6874 is a similar, mostly compatible device, with more intputs
+ and outputs:
+-
+              vin     gpi    vout
+ MAX6874        6       4       8
+ MAX6875        4       3       5
+ 
+-MAX6874 chips can have four different addresses (as opposed to only two for
+-the MAX6875). The additional addresses (0x54 and 0x56) are not probed by
+-this driver by default, but the probe module parameter can be used if
+-needed.
+-
+-See the datasheet for details on how to program the EEPROM.
++See the datasheet for more information.
+ 
+ 
+ Sysfs entries
+ -------------
+ 
+-eeprom_user   - 512 bytes of user-defined EEPROM space. Only writable if
+-                allow_write was set and register 0x43 is 0.
+-
+-eeprom_config - 70 bytes of config EEPROM. Note that changes will not get
+-                loaded into register space until a power cycle or device reset.
+-
+-reg_config    - 70 bytes of register space. Any changes take affect immediately.
++eeprom        - 512 bytes of user-defined EEPROM space.
+ 
+ 
+ General Remarks
+ ---------------
+ 
+-A typical application will require that the EEPROMs be programmed once and
+-never altered afterwards.
++Valid addresses for the MAX6875 are 0x50 and 0x52.
++Valid addresses for the MAX6874 are 0x50, 0x52, 0x54 and 0x56.
++The driver does not probe any address, so you must force the address.
++
++Example:
++$ modprobe max6875 force=0,0x50
++
++The MAX6874/MAX6875 ignores address bit 0, so this driver attaches to multiple
++addresses.  For example, for address 0x50, it also reserves 0x51.
++The even-address instance is called 'max6875', the odd one is 'max6875-dummy'.
++
++
++Programming the chip using i2c-dev
++----------------------------------
++
++Use the i2c-dev interface to access and program the chips.
++Reads and write are performed differently depending on the address range.
++
++The configuration registers are at addresses 0x00 - 0x45.
++Use i2c_smbus_write_byte_data() to write a register and
++i2c_smbus_read_byte_data() to read a register.
++The command is the register number.
++
++Examples:
++To write a 1 to register 0x45:
++  i2c_smbus_write_byte_data(fd, 0x45, 1);
++
++To read register 0x45:
++  value = i2c_smbus_read_byte_data(fd, 0x45);
++
++
++The configuration EEPROM is at addresses 0x8000 - 0x8045.
++The user EEPROM is at addresses 0x8100 - 0x82ff.
++
++Use i2c_smbus_write_word_data() to write a byte to EEPROM.
++
++The command is the upper byte of the address: 0x80, 0x81, or 0x82.
++The data word is the lower part of the address or'd with data << 8.
++  cmd = address >> 8;
++  val = (address & 0xff) | (data << 8);
++
++Example:
++To write 0x5a to address 0x8003:
++  i2c_smbus_write_word_data(fd, 0x80, 0x5a03);
++
++
++Reading data from the EEPROM is a little more complicated.
++Use i2c_smbus_write_byte_data() to set the read address and then
++i2c_smbus_read_byte() or i2c_smbus_read_i2c_block_data() to read the data.
++
++Example:
++To read data starting at offset 0x8100, first set the address:
++  i2c_smbus_write_byte_data(fd, 0x81, 0x00);
++
++And then read the data
++  value = i2c_smbus_read_byte(fd);
++
++  or
++
++  count = i2c_smbus_read_i2c_block_data(fd, 0x84, buffer);
++
++The block read should read 16 bytes.
++0x84 is the block read command.
++
++See the datasheet for more details.
+ 
 
----
- Documentation/i2c/writing-clients |   11 +++++------
- drivers/hwmon/adm1021.c           |    9 ---------
- drivers/hwmon/asb100.c            |    8 --------
- drivers/hwmon/lm75.c              |   10 ----------
- drivers/hwmon/lm85.c              |    5 -----
- 5 files changed, 5 insertions(+), 38 deletions(-)
-
---- gregkh-2.6.orig/Documentation/i2c/writing-clients	2005-07-26 15:16:45.000000000 -0700
-+++ gregkh-2.6/Documentation/i2c/writing-clients	2005-07-26 15:16:46.000000000 -0700
-@@ -315,11 +315,10 @@
-     const char *type_name = "";
-     int is_isa = i2c_is_isa_adapter(adapter);
- 
--    if (is_isa) {
-+    /* Do this only if the chip can additionally be found on the ISA bus
-+       (hybrid chip). */
- 
--      /* If this client can't be on the ISA bus at all, we can stop now
--         (call `goto ERROR0'). But for kicks, we will assume it is all
--         right. */
-+    if (is_isa) {
- 
-       /* Discard immediately if this ISA range is already used */
-       if (check_region(address,FOO_EXTENT))
-@@ -495,10 +494,10 @@
-       return err;
-     }
- 
--    /* SENSORS ONLY START */
-+    /* HYBRID SENSORS CHIP ONLY START */
-     if i2c_is_isa_client(client)
-       release_region(client->addr,LM78_EXTENT);
--    /* SENSORS ONLY END */
-+    /* HYBRID SENSORS CHIP ONLY END */
- 
-     kfree(client); /* Frees client data too, if allocated at the same time */
-     return 0;
---- gregkh-2.6.orig/drivers/hwmon/adm1021.c	2005-07-26 15:16:45.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/adm1021.c	2005-07-26 15:16:46.000000000 -0700
-@@ -198,15 +198,6 @@
- 	int err = 0;
- 	const char *type_name = "";
- 
--	/* Make sure we aren't probing the ISA bus!! This is just a safety check
--	   at this moment; i2c_detect really won't call us. */
--#ifdef DEBUG
--	if (i2c_is_isa_adapter(adapter)) {
--		dev_dbg(&adapter->dev, "adm1021_detect called for an ISA bus adapter?!?\n");
--		return 0;
--	}
--#endif
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		goto error0;
- 
---- gregkh-2.6.orig/drivers/hwmon/asb100.c	2005-07-26 15:16:45.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/asb100.c	2005-07-26 15:16:46.000000000 -0700
-@@ -714,14 +714,6 @@
- 	struct i2c_client *new_client;
- 	struct asb100_data *data;
- 
--	/* asb100 is SMBus only */
--	if (i2c_is_isa_adapter(adapter)) {
--		pr_debug("asb100.o: detect failed, "
--				"cannot attach to legacy adapter!\n");
--		err = -ENODEV;
--		goto ERROR0;
--	}
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		pr_debug("asb100.o: detect failed, "
- 				"smbus byte data not supported!\n");
---- gregkh-2.6.orig/drivers/hwmon/lm75.c	2005-07-26 15:16:45.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/lm75.c	2005-07-26 15:16:46.000000000 -0700
-@@ -121,16 +121,6 @@
- 	int err = 0;
- 	const char *name = "";
- 
--	/* Make sure we aren't probing the ISA bus!! This is just a safety check
--	   at this moment; i2c_detect really won't call us. */
--#ifdef DEBUG
--	if (i2c_is_isa_adapter(adapter)) {
--		dev_dbg(&adapter->dev,
--			"lm75_detect called for an ISA bus adapter?!?\n");
--		goto exit;
--	}
--#endif
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
- 				     I2C_FUNC_SMBUS_WORD_DATA))
- 		goto exit;
---- gregkh-2.6.orig/drivers/hwmon/lm85.c	2005-07-26 15:16:45.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/lm85.c	2005-07-26 15:16:46.000000000 -0700
-@@ -1033,11 +1033,6 @@
- 	int err = 0;
- 	const char *type_name = "";
- 
--	if (i2c_is_isa_adapter(adapter)) {
--		/* This chip has no ISA interface */
--		goto ERROR0 ;
--	};
--
- 	if (!i2c_check_functionality(adapter,
- 					I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		/* We need to be able to do byte I/O */
