@@ -1,37 +1,85 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 15 Jul 2005 19:35:57 +0000
-Subject: [lm-sensors] Added sysfs support for decode-dimms.pl
-Message-Id: <20050715193525.27a18349.khali@linux-fr.org>
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
+Date: Wed, 27 Jul 2005 12:00:58 +0000
+Subject: [lm-sensors] [PATCH] I2C W83792D add hwmon class register 2/3
+Message-Id: <20050727092507.28687.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000201c571f9$ac2fb410$4d01a8c0@BURKART>
-In-Reply-To: <000201c571f9$ac2fb410$4d01a8c0@BURKART>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Burkart,
+Hello,
 
-> I modified the code for decode-dimms.pl as you suggested. Now only the
-> first 128 bytes of the SPD EEPROM are read, moreover this is done in
-> a central sub routine rather than at 8 different places in the code.
-> The bank number guessing is now also working with the sysfs.
-> 
-> The new version can be found at http://www.bollchen.de/decode-dimms.pl
-> and the output of diff -u is located at
-> http://www.bollchen.de/diff.out
-> 
-> Let me know what you think.
+This patch adds registration of hwmon class. Tested with help of i2c-stub.
+Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
 
-I finally took some time to commit your changes. Sorry for the delay. I
-additionally refactored the code as I had previously suggested, and
-fixed a few other things. The new version of the script is in lm_sensors
-CVS now, so the upcoming 2.9.2 release will have it. Feel tree to test
-that it still works OK for you:
+Please apply.
 
-  http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/prog/eeprom/decode-dimms.pl
+Regards
+Rudolf
 
-Vielen Dank f?r deine gute Arbeit :)
-
--- 
-Jean Delvare
+diff -Naur b/drivers/hwmon/w83792d.c c/drivers/hwmon/w83792d.c
+--- b/drivers/hwmon/w83792d.c	2005-07-27 10:30:03.212372250 +0200
++++ c/drivers/hwmon/w83792d.c	2005-07-27 10:51:21.180240250 +0200
+@@ -42,7 +42,9 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c-sensor.h>
+ #include <linux/i2c-vid.h>
++#include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2f, I2C_CLIENT_END };
+@@ -267,6 +269,7 @@
+ 
+ struct w83792d_data {
+ 	struct i2c_client client;
++	struct class_device *class_dev;
+ 	struct semaphore lock;
+ 	enum chips type;
+ 
+@@ -1289,6 +1292,11 @@
+ 	}
+ 
+ 	/* Register sysfs hooks */
++	data->class_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->class_dev)) {
++		err = PTR_ERR(data->class_dev);
++		goto ERROR2;
++	}
+ 	device_create_file_in(new_client, 0);
+ 	device_create_file_in(new_client, 1);
+ 	device_create_file_in(new_client, 2);
+@@ -1372,21 +1380,25 @@
+ static int
+ w83792d_detach_client(struct i2c_client *client)
+ {
++	struct w83792d_data *data = i2c_get_clientdata(client);
+ 	int err;
+ 
++	/* main client */
++	if (data)
++		hwmon_device_unregister(data->class_dev);
++
+ 	if ((err = i2c_detach_client(client))) {
+ 		dev_err(&client->dev,
+ 			"Client deregistration failed, client not detached.\n");
+ 		return err;
+ 	}
+ 
+-	if (i2c_get_clientdata(client)=NULL) {
+-		/* subclients */
++	/* main client */
++	if (data)
++		kfree(data);
++	/* subclient */
++	else
+ 		kfree(client);
+-	} else {
+-		/* main client */
+-		kfree(i2c_get_clientdata(client));
+-	}
+ 
+ 	return 0;
+ }
