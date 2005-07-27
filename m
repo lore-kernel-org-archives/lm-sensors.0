@@ -1,58 +1,117 @@
-From: gregkh@suse.de (Greg KH)
-Date: Tue, 12 Jul 2005 00:04:44 +0000
-Subject: [lm-sensors] [PATCH] I2C: minor I2C doc cleanups
-Message-Id: <11211193771521@kroah.com>
+From: gregkh@suse.de (gregkh@suse.de)
+Date: Wed, 27 Jul 2005 00:00:56 +0000
+Subject: [lm-sensors] patch i2c-missing-space.patch added to gregkh-2.6 tree
+Message-Id: <1DxXTO-4Jy-00@press.kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1121119377583@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: david-b@pacbell.net
+To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: minor I2C doc cleanups
 
-The I2C stack has long had "id" fields, of rather dubious utility, in
-many data structures.  This removes mention of one of them from the
-documentation about how to write an I2C driver, so that only drivers
-that really need to use them (probably old/legacy code) will have any
-reason to use this field.
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+     Subject: I2C: Missing space in split strings
+
+to my gregkh-2.6 tree.  Its filename is
+
+     i2c-missing-space.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
+
+i2c/i2c-max6875-documentation-update.patch
+i2c/i2c-max6875-simplify.patch
+i2c/i2c-hwmon-class-01.patch
+i2c/i2c-hwmon-class-02.patch
+i2c/i2c-hwmon-class-03.patch
+i2c/i2c-missing-space.patch
+
+
+From khali@linux-fr.org Fri Jul 15 00:18:04 2005
+Date: Fri, 15 Jul 2005 08:53:05 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Greg KH <greg@kroah.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>
+Subject: I2C: Missing space in split strings
+Message-Id: <20050715085305.4dc8c732.khali@linux-fr.org>
+
+A few split string in i2c (and now hwmon) drivers lack a joining space,
+causing them to display incorrectly. This trivial patch fixes that up.
+Please apply, thanks.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+
 ---
-commit 61f5809d3ebce9d5433b8696048e91405b681023
-tree bcb41c29d36b3b6f84d34c7bac05b38855e90742
-parent 2db32767874fe53faff4f80de878ca19927efc1f
-author david-b@pacbell.net <david-b@pacbell.net> Wed, 29 Jun 2005 07:14:06 -0700
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:37 -0700
+ drivers/hwmon/adm1026.c       |    2 +-
+ drivers/hwmon/max1619.c       |    2 +-
+ drivers/hwmon/pc87360.c       |    2 +-
+ drivers/i2c/busses/i2c-i801.c |    6 +++---
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
- Documentation/i2c/writing-clients |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
---- a/Documentation/i2c/writing-clients
-+++ b/Documentation/i2c/writing-clients
-@@ -27,7 +27,6 @@ address.
- static struct i2c_driver foo_driver = {
- 	.owner		= THIS_MODULE,
- 	.name		= "Foo version 2.3 driver",
--	.id		= I2C_DRIVERID_FOO, /* from i2c-id.h, optional */
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= &foo_attach_adapter,
- 	.detach_client	= &foo_detach_client,
-@@ -37,12 +36,6 @@ static struct i2c_driver foo_driver = {
- The name can be chosen freely, and may be upto 40 characters long. Please
- use something descriptive here.
+--- gregkh-2.6.orig/drivers/hwmon/pc87360.c	2005-07-13 09:45:05.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/pc87360.c	2005-07-26 14:53:45.000000000 -0700
+@@ -1043,7 +1043,7 @@
+ 	if (init >= 2 && data->innr) {
+ 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
+ 					 PC87365_REG_IN_CONVRATE);
+-		dev_info(&client->dev, "VLM conversion set to"
++		dev_info(&client->dev, "VLM conversion set to "
+ 			 "1s period, 160us delay\n");
+ 		pc87360_write_value(data, LD_IN, NO_BANK,
+ 				    PC87365_REG_IN_CONVRATE,
+--- gregkh-2.6.orig/drivers/i2c/busses/i2c-i801.c	2005-07-13 09:45:05.000000000 -0700
++++ gregkh-2.6/drivers/i2c/busses/i2c-i801.c	2005-07-26 14:53:45.000000000 -0700
+@@ -137,7 +137,7 @@
+ 		pci_read_config_word(I801_dev, SMBBA, &i801_smba);
+ 		i801_smba &= 0xfff0;
+ 		if(i801_smba = 0) {
+-			dev_err(&dev->dev, "SMB base address uninitialized"
++			dev_err(&dev->dev, "SMB base address uninitialized "
+ 				"- upgrade BIOS or use force_addr=0xaddr\n");
+ 			return -ENODEV;
+ 		}
+@@ -186,7 +186,7 @@
+ 	int result = 0;
+ 	int timeout = 0;
  
--If used, the id should be a unique ID. The range 0xf000 to 0xffff is
--reserved for local use, and you can use one of those until you start
--distributing the driver, at which time you should contact the i2c authors
--to get your own ID(s). Note that most of the time you don't need an ID
--at all so you can just omit it.
--
- Don't worry about the flags field; just put I2C_DF_NOTIFY into it. This
- means that your driver will be notified when new adapters are found.
- This is almost always what you want.
-
+-	dev_dbg(&I801_dev->dev, "Transaction (pre): CNT=%02x, CMD=%02x,"
++	dev_dbg(&I801_dev->dev, "Transaction (pre): CNT=%02x, CMD=%02x, "
+ 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
+ 		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
+ 		inb_p(SMBHSTDAT1));
+@@ -240,7 +240,7 @@
+ 		outb_p(inb(SMBHSTSTS), SMBHSTSTS);
+ 
+ 	if ((temp = (0x1f & inb_p(SMBHSTSTS))) != 0x00) {
+-		dev_dbg(&I801_dev->dev, "Failed reset at end of transaction"
++		dev_dbg(&I801_dev->dev, "Failed reset at end of transaction "
+ 			"(%02x)\n", temp);
+ 	}
+ 	dev_dbg(&I801_dev->dev, "Transaction (post): CNT=%02x, CMD=%02x, "
+--- gregkh-2.6.orig/drivers/hwmon/adm1026.c	2005-07-13 09:45:05.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/adm1026.c	2005-07-26 14:53:45.000000000 -0700
+@@ -393,7 +393,7 @@
+ 
+ 	value = data->config3;
+ 	if (data->config3 & CFG3_GPIO16_ENABLE) {
+-		dev_dbg(&client->dev, "GPIO16 enabled.  THERM"
++		dev_dbg(&client->dev, "GPIO16 enabled.  THERM "
+ 			"pin disabled.\n");
+ 	} else {
+ 		dev_dbg(&client->dev, "THERM pin enabled.  "
+--- gregkh-2.6.orig/drivers/hwmon/max1619.c	2005-07-13 09:45:05.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/max1619.c	2005-07-26 14:53:45.000000000 -0700
+@@ -363,7 +363,7 @@
+ 	i2c_del_driver(&max1619_driver);
+ }
+ 
+-MODULE_AUTHOR("Alexey Fisher <fishor@mail.ru> and"
++MODULE_AUTHOR("Alexey Fisher <fishor@mail.ru> and "
+ 	"Jean Delvare <khali@linux-fr.org>");
+ MODULE_DESCRIPTION("MAX1619 sensor driver");
+ MODULE_LICENSE("GPL");
