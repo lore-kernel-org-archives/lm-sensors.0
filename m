@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 27 Jul 2005 12:48:12 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 27 Jul 2005 12:57:40 +0000
 Subject: [lm-sensors] [PATCH] I2C W83792D driver 1/3
-Message-Id: <42E7665B.5090002@sh.cvut.cz>
+Message-Id: <L0DMuJPu.1122461474.7585580.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050727092431.10185.qmail@desitka.sh.cvut.cz>
 In-Reply-To: <20050727092431.10185.qmail@desitka.sh.cvut.cz>
@@ -10,32 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
 
-Uff my bad I did not check this. On the other hand the address can be changed to virtually any address via CR48, with condition
-that two lowest bits cant be changed.
+Hi Rduolf,
 
-CR48:
-Serial Bus Address <7:1> for general index registers. The
-address bit 0 and bit 1 are trapped by the pin 10 and pin 11,
-respectively.
+On 2005-07-27, Rudolf Marek wrote:
+> Uff my bad I did not check this. On the other hand the address can be
+> changed to virtually any address via CR48, with condition that two lowest
+> bits cant be changed.
 
-Should we go for range 0x20 - 0x2f ?
+I think the two lowest bits can be changed. Their initial value is set at
+power-up time depending on two pin levels, just like is the case for
+subclients, but I do believe this can be changed afterwards, just like
+is the case for subclients too. Not that it really matters...
 
-So like this?
+> Should we go for range 0x20 - 0x2f ?
 
-/* Addresses to scan */
-static unsigned short normal_i2c[] = { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
-                                        0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b,
-                                        0x2c, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+No. That's what we did for it87, result is that since the driver was
+written, only default address 0x2d was seen. I can't think of any
+reason why someone would use a different address than the four possible
+power-up default ones, especially since this chip has no other interface
+IIRC, so the power-up address would have to be used at least once to
+change the address at CR48. If the power-up address works to do that,
+there is no reason not to use it afterwards as well.
 
-> Also, it seems to me that the end of the patch file is missing?
+So please stick to 0x2c - 0x2f. If anyone ever needs more, that's
+exactly what the probe parameter is for (but I'm quite certain it will
+never happen).
 
-My bad again. I messed with CC people so I bounced the mail to list and to CC. I belive Greg has good one.
-But I guess I must resend anyway.
-
-Thanks
-regards
-
-Rudolf
-
+Thanks,
+--
+Jean Delvare
