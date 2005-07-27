@@ -1,120 +1,614 @@
-From: gregkh@suse.de (Greg KH)
-Date: Tue, 12 Jul 2005 00:04:47 +0000
-Subject: [lm-sensors] [PATCH] I2C: Strip trailing whitespace from strings
-Message-Id: <11211193763732@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 27 Jul 2005 22:15:31 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: refactor message in
+Message-Id: <20050727221449.0488c7b6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11211193762160@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Strip trailing whitespace from strings
+Oops, sorry, original patch is broken. Once more, *with* the missing
+semi-colon this time... :/
 
-Here is a simple patch originally from Denis Vlasenko, which strips a
-useless trailing whitespace from 8 strings in 4 i2c drivers. Please
-apply, thanks.
+We could refactor the error message 34 different i2c drivers print if
+i2c_detach_client() fails in this function itself. Saves quite a few
+lines of code. Documentation is updated to reflect that change.
 
-From: Denis Vlasenko <vda@ilport.com.ua>
+Note that this patch should be applied after Rudolf Marek's w83792d
+patches.
+
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
-commit 541e6a02768404efb06bd1ea5f33d614732f41fc
-tree 933f4e7b38580c69e61b8a0002d4e5c129c5abaa
-parent 65fc50e50ff9f8b82c3756eccd7e7db6a267ffe9
-author Jean Delvare <khali@linux-fr.org> Thu, 23 Jun 2005 22:18:08 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
+ Documentation/i2c/porting-clients |    3 ++-
+ Documentation/i2c/writing-clients |    4 +---
+ drivers/hwmon/adm1021.c           |    4 +---
+ drivers/hwmon/adm1025.c           |    5 +----
+ drivers/hwmon/adm9240.c           |    5 +----
+ drivers/hwmon/asb100.c            |    5 +----
+ drivers/hwmon/ds1621.c            |    5 +----
+ drivers/hwmon/fscher.c            |    5 +----
+ drivers/hwmon/fscpos.c            |    5 +----
+ drivers/hwmon/gl518sm.c           |    5 +----
+ drivers/hwmon/gl520sm.c           |    5 +----
+ drivers/hwmon/it87.c              |    5 +----
+ drivers/hwmon/lm63.c              |    5 +----
+ drivers/hwmon/lm78.c              |    5 +----
+ drivers/hwmon/lm80.c              |    5 +----
+ drivers/hwmon/lm83.c              |    5 +----
+ drivers/hwmon/lm87.c              |    5 +----
+ drivers/hwmon/lm90.c              |    5 +----
+ drivers/hwmon/lm92.c              |    5 +----
+ drivers/hwmon/max1619.c           |    5 +----
+ drivers/hwmon/pc87360.c           |    5 +----
+ drivers/hwmon/sis5595.c           |    5 +----
+ drivers/hwmon/smsc47b397.c        |    5 +----
+ drivers/hwmon/smsc47m1.c          |    5 +----
+ drivers/hwmon/via686a.c           |    5 +----
+ drivers/hwmon/w83627ehf.c         |    5 +----
+ drivers/hwmon/w83627hf.c          |    5 +----
+ drivers/hwmon/w83781d.c           |    5 +----
+ drivers/hwmon/w83792d.c           |    5 +----
+ drivers/hwmon/w83l785ts.c         |    5 +----
+ drivers/i2c/chips/ds1337.c        |    5 +----
+ drivers/i2c/chips/eeprom.c        |    4 +---
+ drivers/i2c/chips/max6875.c       |    4 +---
+ drivers/i2c/chips/pca9539.c       |    4 +---
+ drivers/i2c/chips/pcf8574.c       |    5 +----
+ drivers/i2c/chips/pcf8591.c       |    5 +----
+ drivers/i2c/i2c-core.c            |    6 +++++-
+ 37 files changed, 42 insertions(+), 137 deletions(-)
 
- drivers/i2c/algos/i2c-algo-ite.c |    8 ++++----
- drivers/i2c/busses/i2c-i801.c    |    4 ++--
- drivers/i2c/busses/i2c-piix4.c   |    2 +-
- drivers/i2c/busses/i2c-sis5595.c |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/i2c/algos/i2c-algo-ite.c b/drivers/i2c/algos/i2c-algo-ite.c
---- a/drivers/i2c/algos/i2c-algo-ite.c
-+++ b/drivers/i2c/algos/i2c-algo-ite.c
-@@ -208,7 +208,7 @@ static int test_bus(struct i2c_algo_iic_
- 		goto bailout;
- 	}
- 	sdalo(adap);
--	printk("test_bus:1 scl: %d  sda: %d \n",getscl(adap),
-+	printk("test_bus:1 scl: %d  sda: %d\n", getscl(adap),
- 	       getsda(adap));
- 	if ( 0 != getsda(adap) ) {
- 		printk("test_bus: %s SDA stuck high!\n",name);
-@@ -221,7 +221,7 @@ static int test_bus(struct i2c_algo_iic_
- 		goto bailout;
- 	}		
- 	sdahi(adap);
--	printk("test_bus:2 scl: %d  sda: %d \n",getscl(adap),
-+	printk("test_bus:2 scl: %d  sda: %d\n", getscl(adap),
- 	       getsda(adap));
- 	if ( 0 = getsda(adap) ) {
- 		printk("test_bus: %s SDA stuck low!\n",name);
-@@ -234,7 +234,7 @@ static int test_bus(struct i2c_algo_iic_
- 	goto bailout;
- 	}
- 	scllo(adap);
--	printk("test_bus:3 scl: %d  sda: %d \n",getscl(adap),
-+	printk("test_bus:3 scl: %d  sda: %d\n", getscl(adap),
- 	       getsda(adap));
- 	if ( 0 != getscl(adap) ) {
+--- linux-2.6.13-rc3.orig/drivers/hwmon/adm1021.c	2005-07-24 13:13:42.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/adm1021.c	2005-07-27 20:50:23.000000000 +0200
+@@ -328,10 +328,8 @@
  
-@@ -247,7 +247,7 @@ static int test_bus(struct i2c_algo_iic_
- 		goto bailout;
- 	}
- 	sclhi(adap);
--	printk("test_bus:4 scl: %d  sda: %d \n",getscl(adap),
-+	printk("test_bus:4 scl: %d  sda: %d\n", getscl(adap),
- 	       getsda(adap));
- 	if ( 0 = getscl(adap) ) {
- 		printk("test_bus: %s SCL stuck low!\n",name);
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -194,7 +194,7 @@ static int i801_transaction(void)
- 	/* Make sure the SMBus host is ready to start transmitting */
- 	/* 0x1f = Failed, Bus_Err, Dev_Err, Intr, Host_Busy */
- 	if ((temp = (0x1f & inb_p(SMBHSTSTS))) != 0x00) {
--		dev_dbg(&I801_dev->dev, "SMBus busy (%02x). Resetting... \n",
-+		dev_dbg(&I801_dev->dev, "SMBus busy (%02x). Resetting...\n",
- 			temp);
- 		outb_p(temp, SMBHSTSTS);
- 		if ((temp = (0x1f & inb_p(SMBHSTSTS))) != 0x00) {
-@@ -315,7 +315,7 @@ static int i801_block_transaction(union 
- 		}
- 		if (temp & errmask) {
- 			dev_dbg(&I801_dev->dev, "SMBus busy (%02x). "
--				"Resetting... \n", temp);
-+				"Resetting...\n", temp);
- 			outb_p(temp, SMBHSTSTS);
- 			if (((temp = inb_p(SMBHSTSTS)) & errmask) != 0x00) {
- 				dev_err(&I801_dev->dev,
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -243,7 +243,7 @@ static int piix4_transaction(void)
- 	/* Make sure the SMBus host is ready to start transmitting */
- 	if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
- 		dev_dbg(&piix4_adapter.dev, "SMBus busy (%02x). "
--			"Resetting... \n", temp);
-+			"Resetting...\n", temp);
- 		outb_p(temp, SMBHSTSTS);
- 		if ((temp = inb_p(SMBHSTSTS)) != 0x00) {
- 			dev_err(&piix4_adapter.dev, "Failed! (%02x)\n", temp);
-diff --git a/drivers/i2c/busses/i2c-sis5595.c b/drivers/i2c/busses/i2c-sis5595.c
---- a/drivers/i2c/busses/i2c-sis5595.c
-+++ b/drivers/i2c/busses/i2c-sis5595.c
-@@ -228,7 +228,7 @@ static int sis5595_transaction(struct i2
- 	/* Make sure the SMBus host is ready to start transmitting */
- 	temp = sis5595_read(SMB_STS_LO) + (sis5595_read(SMB_STS_HI) << 8);
- 	if (temp != 0x00) {
--		dev_dbg(&adap->dev, "SMBus busy (%04x). Resetting... \n", temp);
-+		dev_dbg(&adap->dev, "SMBus busy (%04x). Resetting...\n", temp);
- 		sis5595_write(SMB_STS_LO, temp & 0xff);
- 		sis5595_write(SMB_STS_HI, temp >> 8);
- 		if ((temp = sis5595_read(SMB_STS_LO) + (sis5595_read(SMB_STS_HI) << 8)) != 0x00) {
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/adm1025.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/adm1025.c	2005-07-27 20:50:17.000000000 +0200
+@@ -517,11 +517,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/adm9240.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/adm9240.c	2005-07-27 20:50:11.000000000 +0200
+@@ -645,11 +645,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-				"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/asb100.c	2005-07-24 13:13:42.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/asb100.c	2005-07-27 20:50:04.000000000 +0200
+@@ -867,11 +867,8 @@
+ 	if (data)
+ 		hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "client deregistration failed; "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	/* main client */
+ 	if (data)
+--- linux-2.6.13-rc3.orig/drivers/hwmon/ds1621.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/ds1621.c	2005-07-27 20:49:55.000000000 +0200
+@@ -282,11 +282,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 
+--- linux-2.6.13-rc3.orig/drivers/hwmon/fscher.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/fscher.c	2005-07-27 20:49:41.000000000 +0200
+@@ -383,11 +383,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/fscpos.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/fscpos.c	2005-07-27 20:49:29.000000000 +0200
+@@ -549,11 +549,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, client"
+-							" not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 	kfree(data);
+ 	return 0;
+ }
+--- linux-2.6.13-rc3.orig/drivers/hwmon/gl518sm.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/gl518sm.c	2005-07-27 20:49:22.000000000 +0200
+@@ -492,11 +492,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/gl520sm.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/gl520sm.c	2005-07-27 20:49:16.000000000 +0200
+@@ -654,11 +654,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/it87.c	2005-07-24 15:22:39.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/it87.c	2005-07-27 20:49:04.000000000 +0200
+@@ -945,11 +945,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-			"Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	if(i2c_is_isa_client(client))
+ 		release_region(client->addr, IT87_EXTENT);
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm63.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm63.c	2005-07-27 20:48:55.000000000 +0200
+@@ -520,11 +520,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm78.c	2005-07-24 15:13:04.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm78.c	2005-07-27 20:48:47.000000000 +0200
+@@ -683,11 +683,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-		    "Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	if(i2c_is_isa_client(client))
+ 		release_region(client->addr, LM78_EXTENT);
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm80.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm80.c	2005-07-27 20:48:41.000000000 +0200
+@@ -510,11 +510,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm83.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm83.c	2005-07-27 20:48:32.000000000 +0200
+@@ -363,11 +363,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-		    "Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm87.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm87.c	2005-07-27 20:48:26.000000000 +0200
+@@ -734,11 +734,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm90.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm90.c	2005-07-27 20:48:20.000000000 +0200
+@@ -562,11 +562,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm92.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm92.c	2005-07-27 20:48:14.000000000 +0200
+@@ -399,11 +399,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/max1619.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/max1619.c	2005-07-27 20:48:08.000000000 +0200
+@@ -322,11 +322,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/hwmon/pc87360.c	2005-07-24 15:22:39.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/pc87360.c	2005-07-27 20:47:56.000000000 +0200
+@@ -984,11 +984,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((i = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((i = i2c_detach_client(client)))
+ 		return i;
+-	}
+ 
+ 	for (i = 0; i < 3; i++) {
+ 		if (data->address[i]) {
+--- linux-2.6.13-rc3.orig/drivers/hwmon/sis5595.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/sis5595.c	2005-07-27 20:47:46.000000000 +0200
+@@ -618,11 +618,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-		    "Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	release_region(client->addr, SIS5595_EXTENT);
+ 
+--- linux-2.6.13-rc3.orig/drivers/hwmon/smsc47b397.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/smsc47b397.c	2005-07-27 20:47:39.000000000 +0200
+@@ -214,11 +214,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	release_region(client->addr, SMSC_EXTENT);
+ 	kfree(data);
+--- linux-2.6.13-rc3.orig/drivers/hwmon/smsc47m1.c	2005-07-24 15:32:32.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/smsc47m1.c	2005-07-27 20:47:33.000000000 +0200
+@@ -497,11 +497,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	release_region(client->addr, SMSC_EXTENT);
+ 	kfree(data);
+--- linux-2.6.13-rc3.orig/drivers/hwmon/via686a.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/via686a.c	2005-07-27 20:47:26.000000000 +0200
+@@ -700,11 +700,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-		"Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	release_region(client->addr, VIA686A_EXTENT);
+ 	kfree(data);
+--- linux-2.6.13-rc3.orig/drivers/hwmon/w83627ehf.c	2005-07-24 20:29:57.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/w83627ehf.c	2005-07-27 20:47:15.000000000 +0200
+@@ -774,11 +774,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 	release_region(client->addr, REGION_LENGTH);
+ 	kfree(data);
+ 
+--- linux-2.6.13-rc3.orig/drivers/hwmon/w83627hf.c	2005-07-24 15:22:39.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/w83627hf.c	2005-07-27 20:47:05.000000000 +0200
+@@ -1157,11 +1157,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-		       "Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	release_region(client->addr, WINB_EXTENT);
+ 	kfree(data);
+--- linux-2.6.13-rc3.orig/drivers/hwmon/w83781d.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/w83781d.c	2005-07-27 20:46:58.000000000 +0200
+@@ -1299,11 +1299,8 @@
+ 	if (i2c_is_isa_client(client))
+ 		release_region(client->addr, W83781D_EXTENT);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-		       "Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	/* main client */
+ 	if (data)
+--- linux-2.6.13-rc3.orig/drivers/hwmon/w83792d.c	2005-07-27 20:31:21.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/w83792d.c	2005-07-27 20:46:30.000000000 +0200
+@@ -1396,11 +1396,8 @@
+ 	if (data)
+ 		hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-			"Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	/* main client */
+ 	if (data)
+--- linux-2.6.13-rc3.orig/drivers/hwmon/w83l785ts.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/w83l785ts.c	2005-07-27 20:46:47.000000000 +0200
+@@ -267,11 +267,8 @@
+ 
+ 	hwmon_device_unregister(data->class_dev);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(data);
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/i2c/chips/ds1337.c	2005-07-27 20:31:21.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/chips/ds1337.c	2005-07-27 20:51:12.000000000 +0200
+@@ -353,11 +353,8 @@
+ 	int err;
+ 	struct ds1337_data *data = i2c_get_clientdata(client);
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed, "
+-			"client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	list_del(&data->list);
+ 	kfree(data);
+--- linux-2.6.13-rc3.orig/drivers/i2c/chips/eeprom.c	2005-07-27 20:30:04.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/chips/eeprom.c	2005-07-27 20:51:28.000000000 +0200
+@@ -230,10 +230,8 @@
+ 	int err;
+ 
+ 	err = i2c_detach_client(client);
+-	if (err) {
+-		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
++	if (err)
+ 		return err;
+-	}
+ 
+ 	kfree(i2c_get_clientdata(client));
+ 
+--- linux-2.6.13-rc3.orig/drivers/i2c/chips/max6875.c	2005-07-27 20:30:34.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/chips/max6875.c	2005-07-27 20:50:52.000000000 +0200
+@@ -239,10 +239,8 @@
+ 	int err;
+ 
+ 	err = i2c_detach_client(client);
+-	if (err) {
+-		dev_err(&client->dev, "i2c_detach_client() failed\n");
++	if (err)
+ 		return err;
+-	}
+ 	kfree(i2c_get_clientdata(client));
+ 	return 0;
+ }
+--- linux-2.6.13-rc3.orig/drivers/i2c/chips/pca9539.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/chips/pca9539.c	2005-07-27 20:50:38.000000000 +0200
+@@ -163,10 +163,8 @@
+ {
+ 	int err;
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev, "Client deregistration failed.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(i2c_get_clientdata(client));
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/i2c/chips/pcf8574.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/chips/pcf8574.c	2005-07-27 20:51:18.000000000 +0200
+@@ -185,11 +185,8 @@
+ {
+ 	int err;
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-			"Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(i2c_get_clientdata(client));
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/i2c/chips/pcf8591.c	2005-07-24 13:13:41.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/chips/pcf8591.c	2005-07-27 20:50:29.000000000 +0200
+@@ -240,11 +240,8 @@
+ {
+ 	int err;
+ 
+-	if ((err = i2c_detach_client(client))) {
+-		dev_err(&client->dev,
+-			"Client deregistration failed, client not detached.\n");
++	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	}
+ 
+ 	kfree(i2c_get_clientdata(client));
+ 	return 0;
+--- linux-2.6.13-rc3.orig/drivers/i2c/i2c-core.c	2005-07-20 18:19:46.000000000 +0200
++++ linux-2.6.13-rc3/drivers/i2c/i2c-core.c	2005-07-27 22:01:13.000000000 +0200
+@@ -449,8 +449,12 @@
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	int res = 0;
+ 	
+-	if ((client->flags & I2C_CLIENT_ALLOW_USE) && (client->usage_count > 0))
++	if ((client->flags & I2C_CLIENT_ALLOW_USE)
++	 && (client->usage_count > 0)) {
++		dev_warn(&client->dev, "Client [%s] still busy, "
++			 "can't detach\n", client->name);
+ 		return -EBUSY;
++	}
+ 
+ 	if (adapter->client_unregister)  {
+ 		res = adapter->client_unregister(client);
+--- linux-2.6.13-rc3.orig/Documentation/i2c/porting-clients	2005-07-24 13:13:42.000000000 +0200
++++ linux-2.6.13-rc3/Documentation/i2c/porting-clients	2005-07-27 20:57:08.000000000 +0200
+@@ -94,7 +94,8 @@
+   limited to the strictly necessary steps.
+ 
+ * [Detach] Get rid of data, remove the call to
+-  i2c_deregister_entry.
++  i2c_deregister_entry. Do not log an error message if
++  i2c_detach_client fails, as i2c-core will now do it for you.
+ 
+ * [Update] Don't access client->data directly, use
+   i2c_get_clientdata(client) instead.
+--- linux-2.6.13-rc3.orig/Documentation/i2c/writing-clients	2005-07-24 13:13:42.000000000 +0200
++++ linux-2.6.13-rc3/Documentation/i2c/writing-clients	2005-07-27 20:54:55.000000000 +0200
+@@ -489,10 +489,8 @@
+     /* SENSORS ONLY END */
+ 
+     /* Try to detach the client from i2c space */
+-    if ((err = i2c_detach_client(client))) {
+-      printk("foo.o: Client deregistration failed, client not detached.\n");
++    if ((err = i2c_detach_client(client)))
+       return err;
+-    }
+ 
+     /* HYBRID SENSORS CHIP ONLY START */
+     if i2c_is_isa_client(client)
 
+
+
+-- 
+Jean Delvare
