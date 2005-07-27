@@ -1,69 +1,42 @@
-From: gregkh@suse.de (Greg KH)
-Date: Tue, 12 Jul 2005 00:04:41 +0000
-Subject: [lm-sensors] [PATCH] i2c: make better use of IDR in i2c-core
-Message-Id: <1121119377358@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 27 Jul 2005 21:28:41 +0000
+Subject: [lm-sensors] [PATCH 2.6] hwmon: soften lm75 initialization
+Message-Id: <20050727212828.0df56e31.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <11211193773155@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: mhoffman@lightlink.com
+To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: make better use of IDR in i2c-core
+Hi Greg, all,
 
-This patch uses the already existing IDR mechanism to simplify and
-improve the i2c_get_adapter function in i2c-core.
+The LM75 initialization is a bit agressive, it arbitrarily reconfigures
+the chip. Make it only change the bit it needs. This is a port from
+the 2.4 kernel version of the driver (lm_sensors).
 
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
----
-commit a0920e10438e9fe8b22aba607083347c84458ed8
-tree 8953a2c3c19cab0d4e67fc0e396c23711388403b
-parent 5da69ba42aa42a479c0f5d8cb8351ebb6b51c12e
-author Mark M. Hoffman <mhoffman@lightlink.com> Tue, 28 Jun 2005 00:21:30 -0400
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
+ drivers/hwmon/lm75.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
- drivers/i2c/i2c-core.c |   17 ++++++-----------
- 1 files changed, 6 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -156,7 +156,7 @@ int i2c_add_adapter(struct i2c_adapter *
- 		goto out_unlock;
- 	}
+--- linux-2.6.13-rc3.orig/drivers/hwmon/lm75.c	2005-07-16 09:53:09.000000000 +0200
++++ linux-2.6.13-rc3/drivers/hwmon/lm75.c	2005-07-16 17:35:18.000000000 +0200
+@@ -264,8 +264,12 @@
  
--	res = idr_get_new(&i2c_adapter_idr, NULL, &id);
-+	res = idr_get_new(&i2c_adapter_idr, adap, &id);
- 	if (res < 0) {
- 		if (res = -EAGAIN)
- 			res = -ENOMEM;
-@@ -765,20 +765,15 @@ int i2c_adapter_id(struct i2c_adapter *a
- 
- struct i2c_adapter* i2c_get_adapter(int id)
+ static void lm75_init_client(struct i2c_client *client)
  {
--	struct list_head   *item;
- 	struct i2c_adapter *adapter;
- 	
- 	down(&core_lists);
--	list_for_each(item,&adapters) {
--		adapter = list_entry(item, struct i2c_adapter, list);
--		if (id = adapter->nr &&
--		    try_module_get(adapter->owner)) {
--			up(&core_lists);
--			return adapter;
--		}
--	}
-+	adapter = (struct i2c_adapter *)idr_find(&i2c_adapter_idr, id);
-+	if (adapter && !try_module_get(adapter->owner))
-+		adapter = NULL;
+-	/* Initialize the LM75 chip */
+-	lm75_write_value(client, LM75_REG_CONF, 0);
++	int reg;
 +
- 	up(&core_lists);
--	return NULL;
-+	return adapter;
++	/* Enable if in shutdown mode */
++	reg = lm75_read_value(client, LM75_REG_CONF);
++	if (reg >= 0 && (reg & 0x01))
++		lm75_write_value(client, LM75_REG_CONF, reg & 0xfe);
  }
  
- void i2c_put_adapter(struct i2c_adapter *adap)
+ static struct lm75_data *lm75_update_device(struct device *dev)
 
+
+-- 
+Jean Delvare
