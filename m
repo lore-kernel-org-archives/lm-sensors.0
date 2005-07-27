@@ -1,2096 +1,944 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Sat, 16 Jul 2005 03:39:40 +0000
-Subject: [lm-sensors] Re: [PATCH 2.6.13-rc3 3/3] hwmon: add hwmon sysfs
-Message-Id: <20050716013918.GD4265@jupiter.solarsys.private>
+From: gregkh@suse.de (gregkh@suse.de)
+Date: Wed, 27 Jul 2005 00:33:28 +0000
+Subject: [lm-sensors] patch i2c-hwmon-split-05.patch added to gregkh-2.6 tree
+Message-Id: <1DxXzA-8TZ-00@press.kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20050719235635.42eca56e.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, greg@kroah.com, gregkh@suse.de, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-This patch modifies sensors chip drivers to make use of the new
-sysfs class "hwmon".
 
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
+This is a note to let you know that I've just added the patch titled
 
-Index: linux-2.6.13-rc3/drivers/hwmon/adm1021.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/adm1021.c
-+++ linux-2.6.13-rc3/drivers/hwmon/adm1021.c
-@@ -25,6 +25,8 @@
+     Subject: I2C: Separate non-i2c hwmon drivers from i2c-core (5/9)
+
+to my gregkh-2.6 tree.  Its filename is
+
+     i2c-hwmon-split-05.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
+
+i2c/i2c-max6875-documentation-update.patch
+i2c/i2c-max6875-simplify.patch
+i2c/i2c-hwmon-class-01.patch
+i2c/i2c-hwmon-class-02.patch
+i2c/i2c-hwmon-class-03.patch
+i2c/i2c-missing-space.patch
+i2c/i2c-nforce2-cleanup.patch
+i2c/i2c-hwmon-split-01.patch
+i2c/i2c-hwmon-split-02.patch
+i2c/i2c-hwmon-split-03.patch
+i2c/i2c-hwmon-split-04.patch
+i2c/i2c-hwmon-split-05.patch
+i2c/i2c-hwmon-split-06.patch
+i2c/i2c-hwmon-split-07.patch
+i2c/i2c-hwmon-split-08.patch
+i2c/i2c-hwmon-split-09.patch
+
+
+From khali@linux-fr.org Tue Jul 19 18:00:07 2005
+Date: Tue, 19 Jul 2005 23:56:35 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LKML <linux-kernel@vger.kernel.org>, LM Sensors
+ <lm-sensors@lm-sensors.org>
+Cc: Greg KH <greg@kroah.com>
+Subject: I2C: Separate non-i2c hwmon drivers from i2c-core (5/9)
+Message-Id: <20050719235635.42eca56e.khali@linux-fr.org>
+
+Call the ISA chip drivers detection function directly instead of relying
+on i2c_detect. The net effect is that address lists won't be handled
+anymore, but they were mostly useless in the ISA case anyway (pc87360,
+smsc47m1, smsc47b397 had already dropped them).
+
+We don't need to handle multiple devices, all we may need is a way to
+force a given address instead of the original one (some drivers already
+do: sis5595, via686a, w83627hf), and, for drivers supporting multiple
+chips, a way to force one given kind. All this may be added later on
+demand, but I actually don't think there will be much demand.
+
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/hwmon/it87.c       |   16 ++++++++++----
+ drivers/hwmon/lm78.c       |   11 ++++++++--
+ drivers/hwmon/pc87360.c    |   38 ++++++++--------------------------
+ drivers/hwmon/sis5595.c    |   41 ++++++++-----------------------------
+ drivers/hwmon/smsc47b397.c |   48 +++++++++++---------------------------------
+ drivers/hwmon/smsc47m1.c   |   42 ++++++++------------------------------
+ drivers/hwmon/via686a.c    |   41 +++++++------------------------------
+ drivers/hwmon/w83627ehf.c  |   35 ++++++++------------------------
+ drivers/hwmon/w83627hf.c   |   49 +++++++++++----------------------------------
+ drivers/hwmon/w83781d.c    |   12 +++++++++--
+ 10 files changed, 98 insertions(+), 235 deletions(-)
+
+--- gregkh-2.6.orig/drivers/hwmon/pc87360.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/pc87360.c	2005-07-26 15:16:29.000000000 -0700
+@@ -39,25 +39,17 @@
  #include <linux/jiffies.h>
  #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- 
- /* Addresses to scan */
-@@ -89,6 +91,7 @@ clearing it.  Weird, ey?   --Phil  */
- /* Each client has this additional data */
- struct adm1021_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	enum chips type;
- 
- 	struct semaphore update_lock;
-@@ -295,6 +298,12 @@ static int adm1021_detect(struct i2c_ada
- 		adm1021_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto error2;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_temp1_max);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_min);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
-@@ -305,6 +314,8 @@ static int adm1021_detect(struct i2c_ada
- 
- 	return 0;
- 
-+error2:
-+	i2c_detach_client(new_client);
- error1:
- 	kfree(data);
- error0:
-@@ -322,14 +333,17 @@ static void adm1021_init_client(struct i
- 
- static int adm1021_detach_client(struct i2c_client *client)
- {
-+	struct adm1021_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/adm1025.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/adm1025.c
-+++ linux-2.6.13-rc3/drivers/hwmon/adm1025.c
-@@ -52,6 +52,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
+ #include <linux/i2c-isa.h>
+-#include <linux/i2c-sensor.h>
  #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
+ #include <asm/io.h>
  
- /*
-  * Addresses to scan
-@@ -132,6 +134,7 @@ static struct i2c_driver adm1025_driver 
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0, I2C_CLIENT_ISA_END };
+-static struct i2c_force_data forces[] = {{ NULL }};
+ static u8 devid;
+-static unsigned int extra_isa[3];
++static unsigned short address;
++static unsigned short extra_isa[3];
+ static u8 confreg[4];
  
- struct adm1025_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -416,6 +419,12 @@ static int adm1025_detect(struct i2c_ada
- 	adm1025_init_client(new_client);
+ enum chips { any_chip, pc87360, pc87363, pc87364, pc87365, pc87366 };
+-static struct i2c_address_data addr_data = {
+-	.normal_i2c		= normal_i2c,
+-	.normal_isa		= normal_isa,
+-	.forces			= forces,
+-};
  
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in1_input);
- 	device_create_file(&new_client->dev, &dev_attr_in2_input);
-@@ -452,6 +461,8 @@ static int adm1025_detect(struct i2c_ada
+ static int init = 1;
+ module_param(init, int, 0);
+@@ -228,8 +220,7 @@
+  * Functions declaration
+  */
  
- 	return 0;
+-static int pc87360_attach_adapter(struct i2c_adapter *adapter);
+-static int pc87360_detect(struct i2c_adapter *adapter, int address, int kind);
++static int pc87360_detect(struct i2c_adapter *adapter);
+ static int pc87360_detach_client(struct i2c_client *client);
  
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -502,15 +513,18 @@ static void adm1025_init_client(struct i
- 
- static int adm1025_detach_client(struct i2c_client *client)
- {
-+	struct adm1025_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/adm1026.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/adm1026.c
-+++ linux-2.6.13-rc3/drivers/hwmon/adm1026.c
-@@ -31,6 +31,8 @@
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
-@@ -259,6 +261,7 @@ struct pwm_data {
- 
- struct adm1026_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -324,8 +327,10 @@ int adm1026_attach_adapter(struct i2c_ad
- 
- int adm1026_detach_client(struct i2c_client *client)
- {
-+	struct adm1026_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->class_dev);
- 	i2c_detach_client(client);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-@@ -1555,6 +1560,12 @@ int adm1026_detect(struct i2c_adapter *a
- 	adm1026_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exitdetach;
-+	}
-+
- 	device_create_file(&new_client->dev, &sensor_dev_attr_in0_input.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_in0_max.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_in0_min.dev_attr);
-@@ -1690,6 +1701,8 @@ int adm1026_detect(struct i2c_adapter *a
- 	return 0;
- 
- 	/* Error out and cleanup code */
-+exitdetach:
-+	i2c_detach_client(new_client);
- exitfree:
- 	kfree(data);
- exit:
-Index: linux-2.6.13-rc3/drivers/hwmon/adm1031.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/adm1031.c
-+++ linux-2.6.13-rc3/drivers/hwmon/adm1031.c
-@@ -27,6 +27,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Following macros takes channel parameter starting from 0 to 2 */
- #define ADM1031_REG_FAN_SPEED(nr)	(0x08 + (nr))
-@@ -69,6 +71,7 @@ typedef u8 auto_chan_table_t[8][2];
- /* Each client has this additional data */
- struct adm1031_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	int chip_type;
- 	char valid;		/* !=0 if following fields are valid */
-@@ -788,6 +791,12 @@ static int adm1031_detect(struct i2c_ada
- 	adm1031_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_fan1_input);
- 	device_create_file(&new_client->dev, &dev_attr_fan1_div);
- 	device_create_file(&new_client->dev, &dev_attr_fan1_min);
-@@ -833,6 +842,8 @@ static int adm1031_detect(struct i2c_ada
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -841,11 +852,14 @@ exit:
- 
- static int adm1031_detach_client(struct i2c_client *client)
- {
-+	struct adm1031_data *data = i2c_get_clientdata(client);
- 	int ret;
-+
-+	hwmon_device_unregister(data->class_dev);
- 	if ((ret = i2c_detach_client(client)) != 0) {
- 		return ret;
- 	}
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/adm9240.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/adm9240.c
-+++ linux-2.6.13-rc3/drivers/hwmon/adm9240.c
-@@ -47,6 +47,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, 0x2f,
-@@ -150,6 +152,7 @@ static struct i2c_driver adm9240_driver 
- struct adm9240_data {
- 	enum chips type;
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid;
- 	unsigned long last_updated_measure;
-@@ -582,6 +585,12 @@ static int adm9240_detect(struct i2c_ada
- 	adm9240_init_client(new_client);
- 
- 	/* populate sysfs filesystem */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in0_min);
- 	device_create_file(&new_client->dev, &dev_attr_in0_max);
-@@ -615,6 +624,9 @@ static int adm9240_detect(struct i2c_ada
- 	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
- 
- 	return 0;
-+
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -630,15 +642,18 @@ static int adm9240_attach_adapter(struct
- 
- static int adm9240_detach_client(struct i2c_client *client)
- {
-+	struct adm9240_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 				"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/asb100.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/asb100.c
-+++ linux-2.6.13-rc3/drivers/hwmon/asb100.c
-@@ -41,6 +41,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <linux/init.h>
- #include <linux/jiffies.h>
- #include "lm75.h"
-@@ -183,6 +185,7 @@ static u8 DIV_TO_REG(long val)
-    dynamically allocated, at the same time the client itself is allocated. */
- struct asb100_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -821,6 +824,12 @@ static int asb100_detect(struct i2c_adap
- 	data->fan_min[2] = asb100_read_value(new_client, ASB100_REG_FAN_MIN(2));
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
-+
- 	device_create_file_in(new_client, 0);
- 	device_create_file_in(new_client, 1);
- 	device_create_file_in(new_client, 2);
-@@ -847,6 +856,11 @@ static int asb100_detect(struct i2c_adap
- 
- 	return 0;
- 
-+ERROR3:
-+	i2c_detach_client(data->lm75[1]);
-+	i2c_detach_client(data->lm75[0]);
-+	kfree(data->lm75[1]);
-+	kfree(data->lm75[0]);
- ERROR2:
- 	i2c_detach_client(new_client);
- ERROR1:
-@@ -857,21 +871,26 @@ ERROR0:
- 
- static int asb100_detach_client(struct i2c_client *client)
- {
-+	struct asb100_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	/* main client */
-+	if (data)
-+		hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "client deregistration failed; "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	if (i2c_get_clientdata(client)=NULL) {
--		/* subclients */
-+	/* main client */
-+	if (data)
-+		kfree(data);
-+
-+	/* subclient */
-+	else
- 		kfree(client);
--	} else {
--		/* main client */
--		kfree(i2c_get_clientdata(client));
--	}
- 
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/atxp1.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/atxp1.c
-+++ linux-2.6.13-rc3/drivers/hwmon/atxp1.c
-@@ -24,6 +24,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("System voltages control via Attansic ATXP1");
-@@ -58,6 +60,7 @@ static struct i2c_driver atxp1_driver = 
- 
- struct atxp1_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	unsigned long last_updated;
- 	u8 valid;
-@@ -318,6 +321,12 @@ static int atxp1_detect(struct i2c_adapt
- 		goto exit_free;
- 	}
- 
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_gpio1);
- 	device_create_file(&new_client->dev, &dev_attr_gpio2);
- 	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
-@@ -327,6 +336,8 @@ static int atxp1_detect(struct i2c_adapt
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -335,14 +346,17 @@ exit:
- 
- static int atxp1_detach_client(struct i2c_client * client)
- {
-+	struct atxp1_data * data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	err = i2c_detach_client(client);
- 
- 	if (err)
- 		dev_err(&client->dev, "Failed to detach client.\n");
- 	else
--		kfree(i2c_get_clientdata(client));
-+		kfree(data);
- 
- 	return err;
+ static int pc87360_read_value(struct pc87360_data *data, u8 ldi, u8 bank,
+@@ -246,8 +237,7 @@
+ static struct i2c_driver pc87360_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "pc87360",
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= pc87360_attach_adapter,
++	.attach_adapter	= pc87360_detect,
+ 	.detach_client	= pc87360_detach_client,
  };
-Index: linux-2.6.13-rc3/drivers/hwmon/ds1621.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/ds1621.c
-+++ linux-2.6.13-rc3/drivers/hwmon/ds1621.c
-@@ -27,6 +27,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include "lm75.h"
  
- /* Addresses to scan */
-@@ -71,6 +73,7 @@ MODULE_PARM_DESC(polarity, "Output's pol
- /* Each client has this additional data */
- struct ds1621_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid;			/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
-@@ -250,6 +253,12 @@ int ds1621_detect(struct i2c_adapter *ad
- 	ds1621_init_client(new_client);
+@@ -636,12 +626,7 @@
+  * Device detection, registration and update
+  */
  
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_min);
-@@ -259,6 +268,8 @@ int ds1621_detect(struct i2c_adapter *ad
- 
- /* OK, this is not exactly good programming practice, usually. But it is
-    very code-efficient in this case. */
-+      exit_detach:
-+	i2c_detach_client(new_client);
-       exit_free:
- 	kfree(data);
-       exit:
-@@ -267,15 +278,18 @@ int ds1621_detect(struct i2c_adapter *ad
- 
- static int ds1621_detach_client(struct i2c_client *client)
- {
-+	struct ds1621_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/fscher.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/fscher.c
-+++ linux-2.6.13-rc3/drivers/hwmon/fscher.c
-@@ -32,6 +32,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /*
-  * Addresses to scan
-@@ -132,6 +134,7 @@ static struct i2c_driver fscher_driver  
- struct fscher_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -341,6 +344,12 @@ static int fscher_detect(struct i2c_adap
- 	fscher_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file_revision(new_client);
- 	device_create_file_alarms(new_client);
- 	device_create_file_control(new_client);
-@@ -360,6 +369,8 @@ static int fscher_detect(struct i2c_adap
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -368,15 +379,18 @@ exit:
- 
- static int fscher_detach_client(struct i2c_client *client)
- {
-+	struct fscher_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/fscpos.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/fscpos.c
-+++ linux-2.6.13-rc3/drivers/hwmon/fscpos.c
-@@ -35,6 +35,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/init.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /*
-  * Addresses to scan
-@@ -112,6 +114,7 @@ static struct i2c_driver fscpos_driver   */
- struct fscpos_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; 		/* 0 until following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
-@@ -495,6 +498,12 @@ int fscpos_detect(struct i2c_adapter *ad
- 	dev_info(&new_client->dev, "Found fscpos chip, rev %u\n", data->revision);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_event);
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in1_input);
-@@ -525,6 +534,8 @@ int fscpos_detect(struct i2c_adapter *ad
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -533,14 +544,17 @@ exit:
- 
- static int fscpos_detach_client(struct i2c_client *client)
- {
-+	struct fscpos_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, client"
- 							" not detached.\n");
- 		return err;
- 	}
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/gl518sm.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/gl518sm.c
-+++ linux-2.6.13-rc3/drivers/hwmon/gl518sm.c
-@@ -42,6 +42,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
-@@ -117,6 +119,7 @@ static inline u8 FAN_TO_REG(long rpm, in
- /* Each client has this additional data */
- struct gl518_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	enum chips type;
- 
- 	struct semaphore update_lock;
-@@ -419,6 +422,12 @@ static int gl518_detect(struct i2c_adapt
- 	gl518_init_client((struct i2c_client *) new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in1_input);
- 	device_create_file(&new_client->dev, &dev_attr_in2_input);
-@@ -450,6 +459,8 @@ static int gl518_detect(struct i2c_adapt
- /* OK, this is not exactly good programming practice, usually. But it is
-    very code-efficient in this case. */
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -477,16 +488,18 @@ static void gl518_init_client(struct i2c
- 
- static int gl518_detach_client(struct i2c_client *client)
- {
-+	struct gl518_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
+-static int pc87360_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	return i2c_detect(adapter, &addr_data, pc87360_detect);
+-}
 -
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/gl520sm.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/gl520sm.c
-+++ linux-2.6.13-rc3/drivers/hwmon/gl520sm.c
-@@ -27,6 +27,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Type of the extra sensor */
- static unsigned short extra_sensor_type;
-@@ -119,6 +121,7 @@ static struct i2c_driver gl520_driver = 
- /* Client data */
- struct gl520_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid;		/* zero until the following fields are valid */
- 	unsigned long last_updated;	/* in jiffies */
-@@ -570,6 +573,12 @@ static int gl520_detect(struct i2c_adapt
- 	gl520_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file_vid(new_client, 0);
- 
- 	device_create_file_in(new_client, 0);
-@@ -591,6 +600,8 @@ static int gl520_detect(struct i2c_adapt
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -638,15 +649,18 @@ static void gl520_init_client(struct i2c
- 
- static int gl520_detach_client(struct i2c_client *client)
+-static int pc87360_find(int sioaddr, u8 *devid, int *address)
++static int pc87360_find(int sioaddr, u8 *devid, unsigned short *addresses)
  {
-+	struct gl520_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/it87.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/it87.c
-+++ linux-2.6.13-rc3/drivers/hwmon/it87.c
-@@ -39,6 +39,8 @@
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <asm/io.h>
- 
- 
-@@ -192,6 +194,7 @@ static int DIV_TO_REG(int val)
-    allocated. */
- struct it87_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -840,6 +843,12 @@ int it87_detect(struct i2c_adapter *adap
- 	it87_init_client(new_client, data);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
-+
- 	device_create_file(&new_client->dev, &sensor_dev_attr_in0_input.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_in1_input.dev_attr);
- 	device_create_file(&new_client->dev, &sensor_dev_attr_in2_input.dev_attr);
-@@ -904,6 +913,8 @@ int it87_detect(struct i2c_adapter *adap
- 
- 	return 0;
- 
-+ERROR3:
-+	i2c_detach_client(new_client);
- ERROR2:
- 	kfree(data);
- ERROR1:
-@@ -915,8 +926,11 @@ ERROR0:
- 
- static int it87_detach_client(struct i2c_client *client)
- {
-+	struct it87_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 			"Client deregistration failed, client not detached.\n");
-@@ -925,7 +939,7 @@ static int it87_detach_client(struct i2c
- 
- 	if(i2c_is_isa_client(client))
- 		release_region(client->addr, IT87_EXTENT);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/lm63.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm63.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm63.c
-@@ -44,6 +44,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /*
-  * Addresses to scan
-@@ -152,6 +154,7 @@ static struct i2c_driver lm63_driver = {
- 
- struct lm63_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -437,6 +440,12 @@ static int lm63_detect(struct i2c_adapte
- 	lm63_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	if (data->config & 0x04) { /* tachometer enabled */
- 		device_create_file(&new_client->dev,
- 				   &sensor_dev_attr_fan1_input.dev_attr);
-@@ -462,6 +471,8 @@ static int lm63_detect(struct i2c_adapte
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -505,15 +516,18 @@ static void lm63_init_client(struct i2c_
- 
- static int lm63_detach_client(struct i2c_client *client)
- {
-+	struct lm63_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm75.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm75.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm75.c
-@@ -24,6 +24,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include "lm75.h"
- 
- 
-@@ -46,6 +48,7 @@ SENSORS_INSMOD_1(lm75);
- /* Each client has this additional data */
- struct lm75_data {
- 	struct i2c_client	client;
-+	struct class_device *class_dev;
- 	struct semaphore	update_lock;
- 	char			valid;		/* !=0 if following fields are valid */
- 	unsigned long		last_updated;	/* In jiffies */
-@@ -208,12 +211,20 @@ static int lm75_detect(struct i2c_adapte
- 	lm75_init_client(new_client);
- 	
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_temp1_max);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -222,8 +233,10 @@ exit:
- 
- static int lm75_detach_client(struct i2c_client *client)
- {
-+	struct lm75_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->class_dev);
- 	i2c_detach_client(client);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm77.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm77.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm77.c
-@@ -31,7 +31,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
--
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, I2C_CLIENT_END };
-@@ -51,6 +52,7 @@ SENSORS_INSMOD_1(lm77);
- /* Each client has this additional data */
- struct lm77_data {
- 	struct i2c_client	client;
-+	struct class_device *class_dev;
- 	struct semaphore	update_lock;
- 	char			valid;
- 	unsigned long		last_updated;	/* In jiffies */
-@@ -317,6 +319,12 @@ static int lm77_detect(struct i2c_adapte
- 	lm77_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_crit);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_min);
-@@ -327,6 +335,8 @@ static int lm77_detect(struct i2c_adapte
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -335,8 +345,10 @@ exit:
- 
- static int lm77_detach_client(struct i2c_client *client)
- {
-+	struct lm77_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->class_dev);
- 	i2c_detach_client(client);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm78.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm78.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm78.c
-@@ -24,6 +24,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <asm/io.h>
- 
- /* Addresses to scan */
-@@ -134,6 +136,7 @@ static inline int VID_FROM_REG(u8 val)
-    allocated. */
- struct lm78_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -605,6 +608,12 @@ int lm78_detect(struct i2c_adapter *adap
- 	}
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in0_min);
- 	device_create_file(&new_client->dev, &dev_attr_in0_max);
-@@ -643,6 +652,8 @@ int lm78_detect(struct i2c_adapter *adap
- 
- 	return 0;
- 
-+ERROR3:
-+	i2c_detach_client(new_client);
- ERROR2:
- 	kfree(data);
- ERROR1:
-@@ -654,8 +665,11 @@ ERROR0:
- 
- static int lm78_detach_client(struct i2c_client *client)
- {
-+	struct lm78_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 		    "Client deregistration failed, client not detached.\n");
-@@ -665,7 +679,7 @@ static int lm78_detach_client(struct i2c
- 	if(i2c_is_isa_client(client))
- 		release_region(client->addr, LM78_EXTENT);
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/lm80.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm80.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm80.c
-@@ -27,6 +27,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c,
-@@ -107,6 +109,7 @@ static inline long TEMP_FROM_REG(u16 tem
- 
- struct lm80_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid;		/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
-@@ -451,6 +454,12 @@ int lm80_detect(struct i2c_adapter *adap
- 	data->fan_min[1] = lm80_read_value(new_client, LM80_REG_FAN_MIN(2));
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto error_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_min);
- 	device_create_file(&new_client->dev, &dev_attr_in1_min);
- 	device_create_file(&new_client->dev, &dev_attr_in2_min);
-@@ -487,6 +496,8 @@ int lm80_detect(struct i2c_adapter *adap
- 
- 	return 0;
- 
-+error_detach:
-+	i2c_detach_client(new_client);
- error_free:
- 	kfree(data);
- exit:
-@@ -495,15 +506,18 @@ exit:
- 
- static int lm80_detach_client(struct i2c_client *client)
- {
-+	struct lm80_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm83.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm83.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm83.c
-@@ -34,6 +34,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /*
-  * Addresses to scan
-@@ -138,6 +140,7 @@ static struct i2c_driver lm83_driver = {
- 
- struct lm83_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -312,6 +315,12 @@ static int lm83_detect(struct i2c_adapte
- 	 */
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp1_input.dev_attr);
- 	device_create_file(&new_client->dev,
-@@ -340,6 +349,8 @@ static int lm83_detect(struct i2c_adapte
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -348,15 +359,18 @@ exit:
- 
- static int lm83_detach_client(struct i2c_client *client)
- {
-+	struct lm83_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 		    "Client deregistration failed, client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm85.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm85.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm85.c
-@@ -30,6 +30,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
-@@ -339,6 +341,7 @@ struct lm85_autofan {
- 
- struct lm85_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -1166,6 +1169,12 @@ int lm85_detect(struct i2c_adapter *adap
- 	lm85_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR2;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_fan1_input);
- 	device_create_file(&new_client->dev, &dev_attr_fan2_input);
- 	device_create_file(&new_client->dev, &dev_attr_fan3_input);
-@@ -1235,6 +1244,8 @@ int lm85_detect(struct i2c_adapter *adap
- 	return 0;
- 
- 	/* Error out and cleanup code */
-+    ERROR2:
-+	i2c_detach_client(new_client);
-     ERROR1:
- 	kfree(data);
-     ERROR0:
-@@ -1243,8 +1254,10 @@ int lm85_detect(struct i2c_adapter *adap
- 
- int lm85_detach_client(struct i2c_client *client)
- {
-+	struct lm85_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->class_dev);
- 	i2c_detach_client(client);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm87.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm87.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm87.c
-@@ -59,6 +59,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /*
-  * Addresses to scan
-@@ -175,6 +177,7 @@ static struct i2c_driver lm87_driver = {
- 
- struct lm87_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* In jiffies */
-@@ -608,6 +611,12 @@ static int lm87_detect(struct i2c_adapte
- 	data->in_scale[7] = 1875;
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in1_input);
- 	device_create_file(&new_client->dev, &dev_attr_in1_min);
- 	device_create_file(&new_client->dev, &dev_attr_in1_max);
-@@ -673,6 +682,8 @@ static int lm87_detect(struct i2c_adapte
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -719,15 +730,18 @@ static void lm87_init_client(struct i2c_
- 
- static int lm87_detach_client(struct i2c_client *client)
- {
-+	struct lm87_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm90.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm90.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm90.c
-@@ -77,6 +77,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /*
-  * Addresses to scan
-@@ -200,6 +202,7 @@ static struct i2c_driver lm90_driver = {
- 
- struct lm90_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -500,6 +503,12 @@ static int lm90_detect(struct i2c_adapte
- 	lm90_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev,
- 			   &sensor_dev_attr_temp1_input.dev_attr);
- 	device_create_file(&new_client->dev,
-@@ -524,6 +533,8 @@ static int lm90_detect(struct i2c_adapte
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -547,15 +558,18 @@ static void lm90_init_client(struct i2c_
- 
- static int lm90_detach_client(struct i2c_client *client)
- {
-+	struct lm90_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/lm92.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/lm92.c
-+++ linux-2.6.13-rc3/drivers/hwmon/lm92.c
-@@ -45,7 +45,8 @@
- #include <linux/slab.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
--
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- /* The LM92 and MAX6635 have 2 two-state pins for address selection,
-    resulting in 4 possible addresses. */
-@@ -96,6 +97,7 @@ static struct i2c_driver lm92_driver;
- /* Client data (each client gets its own) */
- struct lm92_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -359,6 +361,12 @@ static int lm92_detect(struct i2c_adapte
- 	lm92_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_crit);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_crit_hyst);
-@@ -370,6 +378,8 @@ static int lm92_detect(struct i2c_adapte
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -385,15 +395,18 @@ static int lm92_attach_adapter(struct i2
- 
- static int lm92_detach_client(struct i2c_client *client)
- {
-+	struct lm92_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/max1619.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/max1619.c
-+++ linux-2.6.13-rc3/drivers/hwmon/max1619.c
-@@ -32,7 +32,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
--
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- 
- static unsigned short normal_i2c[] = { 0x18, 0x19, 0x1a,
- 					0x29, 0x2a, 0x2b,
-@@ -104,6 +105,7 @@ static struct i2c_driver max1619_driver 
- 
- struct max1619_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -275,6 +277,12 @@ static int max1619_detect(struct i2c_ada
- 	max1619_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
- 	device_create_file(&new_client->dev, &dev_attr_temp2_input);
- 	device_create_file(&new_client->dev, &dev_attr_temp2_min);
-@@ -285,6 +293,8 @@ static int max1619_detect(struct i2c_ada
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -308,15 +318,18 @@ static void max1619_init_client(struct i
- 
- static int max1619_detach_client(struct i2c_client *client)
- {
-+	struct max1619_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
- 	}
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
- }
- 
-Index: linux-2.6.13-rc3/drivers/hwmon/pc87360.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/pc87360.c
-+++ linux-2.6.13-rc3/drivers/hwmon/pc87360.c
-@@ -40,6 +40,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <asm/io.h>
- 
- static unsigned short normal_i2c[] = { I2C_CLIENT_END };
-@@ -186,6 +188,7 @@ static inline u8 PWM_TO_REG(int val, int
- 
- struct pc87360_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	struct semaphore update_lock;
- 	char valid;		/* !=0 if following fields are valid */
-@@ -838,6 +841,12 @@ int pc87360_detect(struct i2c_adapter *a
- 	}
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
-+
- 	if (data->innr) {
- 		device_create_file(&new_client->dev, &dev_attr_in0_input);
- 		device_create_file(&new_client->dev, &dev_attr_in1_input);
-@@ -974,6 +983,8 @@ int pc87360_detect(struct i2c_adapter *a
- 
- 	return 0;
- 
-+ERROR3:
-+	i2c_detach_client(new_client);
- ERROR2:
- 	for (i = 0; i < 3; i++) {
- 		if (data->address[i]) {
-@@ -990,6 +1001,8 @@ static int pc87360_detach_client(struct 
- 	struct pc87360_data *data = i2c_get_clientdata(client);
+ 	u16 val;
  	int i;
+@@ -687,7 +672,7 @@
+ 			continue;
+ 		}
  
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((i = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
-Index: linux-2.6.13-rc3/drivers/hwmon/sis5595.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/sis5595.c
-+++ linux-2.6.13-rc3/drivers/hwmon/sis5595.c
-@@ -56,6 +56,8 @@
- #include <linux/pci.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <linux/init.h>
- #include <linux/jiffies.h>
- #include <asm/io.h>
-@@ -168,6 +170,7 @@ static inline u8 DIV_TO_REG(int val)
-    allocated. */
- struct sis5595_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
+-		address[i] = val;
++		addresses[i] = val;
  
- 	struct semaphore update_lock;
-@@ -578,6 +581,12 @@ int sis5595_detect(struct i2c_adapter *a
- 	}
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in0_min);
- 	device_create_file(&new_client->dev, &dev_attr_in0_max);
-@@ -608,7 +617,9 @@ int sis5595_detect(struct i2c_adapter *a
- 		device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
- 	}
- 	return 0;
--	
-+
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit_release:
-@@ -619,8 +630,11 @@ exit:
- 
- static int sis5595_detach_client(struct i2c_client *client)
- {
-+	struct sis5595_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 		    "Client deregistration failed, client not detached.\n");
-@@ -630,7 +644,7 @@ static int sis5595_detach_client(struct 
- 	if (i2c_is_isa_client(client))
- 		release_region(client->addr, SIS5595_EXTENT);
- 
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
+ 		if (i=0) { /* Fans */
+ 			confreg[0] = superio_inb(sioaddr, 0xF0);
+@@ -731,9 +716,7 @@
  	return 0;
  }
-Index: linux-2.6.13-rc3/drivers/hwmon/smsc47b397.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/smsc47b397.c
-+++ linux-2.6.13-rc3/drivers/hwmon/smsc47b397.c
-@@ -32,6 +32,8 @@
+ 
+-/* We don't really care about the address.
+-   Read from extra_isa instead. */
+-int pc87360_detect(struct i2c_adapter *adapter, int address, int kind)
++static int pc87360_detect(struct i2c_adapter *adapter)
+ {
+ 	int i;
+ 	struct i2c_client *new_client;
+@@ -742,9 +725,6 @@
+ 	const char *name = "pc87360";
+ 	int use_thermistors = 0;
+ 
+-	if (!i2c_is_isa_adapter(adapter))
+-		return -ENODEV;
+-
+ 	if (!(data = kmalloc(sizeof(struct pc87360_data), GFP_KERNEL)))
+ 		return -ENOMEM;
+ 	memset(data, 0x00, sizeof(struct pc87360_data));
+@@ -1334,12 +1314,12 @@
+ 	/* Arbitrarily pick one of the addresses */
+ 	for (i = 0; i < 3; i++) {
+ 		if (extra_isa[i] != 0x0000) {
+-			normal_isa[0] = extra_isa[i];
++			address = extra_isa[i];
+ 			break;
+ 		}
+ 	}
+ 
+-	if (normal_isa[0] = 0x0000) {
++	if (address = 0x0000) {
+ 		printk(KERN_WARNING "pc87360: No active logical device, "
+ 		       "module not inserted.\n");
+ 		return -ENODEV;
+--- gregkh-2.6.orig/drivers/hwmon/sis5595.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/sis5595.c	2005-07-26 15:16:29.000000000 -0700
+@@ -71,14 +71,10 @@
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the sensors");
+ 
+-/* Addresses to scan.
++/* Device address
+    Note that we can't determine the ISA address until we have initialized
+    our module */
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0x0000, I2C_CLIENT_ISA_END };
+-
+-/* Insmod parameters */
+-SENSORS_INSMOD_1(sis5595);
++static unsigned short address;
+ 
+ /* Many SIS5595 constants specified below */
+ 
+@@ -194,8 +190,7 @@
+ 
+ static struct pci_dev *s_bridge;	/* pointer to the (only) sis5595 */
+ 
+-static int sis5595_attach_adapter(struct i2c_adapter *adapter);
+-static int sis5595_detect(struct i2c_adapter *adapter, int address, int kind);
++static int sis5595_detect(struct i2c_adapter *adapter);
+ static int sis5595_detach_client(struct i2c_client *client);
+ 
+ static int sis5595_read_value(struct i2c_client *client, u8 register);
+@@ -206,9 +201,7 @@
+ static struct i2c_driver sis5595_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "sis5595",
+-	.id		= I2C_DRIVERID_SIS5595,
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= sis5595_attach_adapter,
++	.attach_adapter	= sis5595_detect,
+ 	.detach_client	= sis5595_detach_client,
+ };
+ 
+@@ -480,14 +473,7 @@
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+  
+ /* This is called when the module is loaded */
+-static int sis5595_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_detect(adapter, &addr_data, sis5595_detect);
+-}
+-
+-int sis5595_detect(struct i2c_adapter *adapter, int address, int kind)
++static int sis5595_detect(struct i2c_adapter *adapter)
+ {
+ 	int err = 0;
+ 	int i;
+@@ -496,10 +482,6 @@
+ 	char val;
+ 	u16 a;
+ 
+-	/* Make sure we are probing the ISA bus!!  */
+-	if (!i2c_is_isa_adapter(adapter))
+-		goto exit;
+-
+ 	if (force_addr)
+ 		address = force_addr & ~(SIS5595_EXTENT - 1);
+ 	/* Reserve the ISA region */
+@@ -642,8 +624,7 @@
+ 		return err;
+ 	}
+ 
+-	if (i2c_is_isa_client(client))
+-		release_region(client->addr, SIS5595_EXTENT);
++	release_region(client->addr, SIS5595_EXTENT);
+ 
+ 	kfree(data);
+ 
+@@ -760,7 +741,6 @@
+ {
+ 	u16 val;
+ 	int *i;
+-	int addr = 0;
+ 
+ 	for (i = blacklist; *i != 0; i++) {
+ 		struct pci_dev *dev;
+@@ -776,19 +756,16 @@
+ 	    pci_read_config_word(dev, SIS5595_BASE_REG, &val))
+ 		return -ENODEV;
+ 	
+-	addr = val & ~(SIS5595_EXTENT - 1);
+-	if (addr = 0 && force_addr = 0) {
++	address = val & ~(SIS5595_EXTENT - 1);
++	if (address = 0 && force_addr = 0) {
+ 		dev_err(&dev->dev, "Base address not set - upgrade BIOS or use force_addr=0xaddr\n");
+ 		return -ENODEV;
+ 	}
+-	if (force_addr)
+-		addr = force_addr;	/* so detect will get called */
+ 
+-	if (!addr) {
++	if (!address) {
+ 		dev_err(&dev->dev,"No SiS 5595 sensors found.\n");
+ 		return -ENODEV;
+ 	}
+-	normal_isa[0] = addr;
+ 
+ 	s_bridge = pci_dev_get(dev);
+ 	if (i2c_isa_add_driver(&sis5595_driver)) {
+--- gregkh-2.6.orig/drivers/hwmon/via686a.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/via686a.c	2005-07-26 15:16:29.000000000 -0700
+@@ -50,14 +50,10 @@
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the sensors");
+ 
+-/* Addresses to scan.
++/* Device address
+    Note that we can't determine the ISA address until we have initialized
+    our module */
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0x0000, I2C_CLIENT_ISA_END };
+-
+-/* Insmod parameters */
+-SENSORS_INSMOD_1(via686a);
++static unsigned short address;
+ 
+ /*
+    The Via 686a southbridge has a LM78-like chip integrated on the same IC.
+@@ -319,8 +315,7 @@
+ 
+ static struct pci_dev *s_bridge;	/* pointer to the (only) via686a */
+ 
+-static int via686a_attach_adapter(struct i2c_adapter *adapter);
+-static int via686a_detect(struct i2c_adapter *adapter, int address, int kind);
++static int via686a_detect(struct i2c_adapter *adapter);
+ static int via686a_detach_client(struct i2c_client *client);
+ 
+ static inline int via686a_read_value(struct i2c_client *client, u8 reg)
+@@ -580,22 +575,13 @@
+ static struct i2c_driver via686a_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "via686a",
+-	.id		= I2C_DRIVERID_VIA686A,
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= via686a_attach_adapter,
++	.attach_adapter	= via686a_detect,
+ 	.detach_client	= via686a_detach_client,
+ };
+ 
+ 
+ /* This is called when the module is loaded */
+-static int via686a_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_detect(adapter, &addr_data, via686a_detect);
+-}
+-
+-static int via686a_detect(struct i2c_adapter *adapter, int address, int kind)
++static int via686a_detect(struct i2c_adapter *adapter)
+ {
+ 	struct i2c_client *new_client;
+ 	struct via686a_data *data;
+@@ -603,13 +589,6 @@
+ 	const char client_name[] = "via686a";
+ 	u16 val;
+ 
+-	/* Make sure we are probing the ISA bus!!  */
+-	if (!i2c_is_isa_adapter(adapter)) {
+-		dev_err(&adapter->dev,
+-		"via686a_detect called for an I2C bus adapter?!?\n");
+-		return 0;
+-	}
+-
+ 	/* 8231 requires multiple of 256, we enforce that on 686 as well */
+ 	if (force_addr)
+ 		address = force_addr & 0xFF00;
+@@ -825,26 +804,22 @@
+ 				       const struct pci_device_id *id)
+ {
+ 	u16 val;
+-	int addr = 0;
+ 
+ 	if (PCIBIOS_SUCCESSFUL ! 	    pci_read_config_word(dev, VIA686A_BASE_REG, &val))
+ 		return -ENODEV;
+ 
+-	addr = val & ~(VIA686A_EXTENT - 1);
+-	if (addr = 0 && force_addr = 0) {
++	address = val & ~(VIA686A_EXTENT - 1);
++	if (address = 0 && force_addr = 0) {
+ 		dev_err(&dev->dev, "base address not set - upgrade BIOS "
+ 			"or use force_addr=0xaddr\n");
+ 		return -ENODEV;
+ 	}
+-	if (force_addr)
+-		addr = force_addr;	/* so detect will get called */
+ 
+-	if (!addr) {
++	if (!address) {
+ 		dev_err(&dev->dev, "No Via 686A sensors found.\n");
+ 		return -ENODEV;
+ 	}
+-	normal_isa[0] = addr;
+ 
+ 	s_bridge = pci_dev_get(dev);
+ 	if (i2c_isa_add_driver(&via686a_driver)) {
+--- gregkh-2.6.orig/drivers/hwmon/it87.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/it87.c	2005-07-26 15:16:29.000000000 -0700
+@@ -48,7 +48,8 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+ 					0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0x0290, I2C_CLIENT_ISA_END };
++static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
++static unsigned short isa_address = 0x290;
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_2(it87, it8712);
+@@ -222,7 +223,7 @@
+ 
+ 
+ static int it87_attach_adapter(struct i2c_adapter *adapter);
+-static int it87_find(int *address);
++static int it87_isa_attach_adapter(struct i2c_adapter *adapter);
+ static int it87_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int it87_detach_client(struct i2c_client *client);
+ 
+@@ -246,7 +247,7 @@
+ static struct i2c_driver it87_isa_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "it87-isa",
+-	.attach_adapter	= it87_attach_adapter,
++	.attach_adapter	= it87_isa_attach_adapter,
+ 	.detach_client	= it87_detach_client,
+ };
+ 
+@@ -701,7 +702,12 @@
+ 	return i2c_detect(adapter, &addr_data, it87_detect);
+ }
+ 
+-/* SuperIO detection - will change normal_isa[0] if a chip is found */
++static int it87_isa_attach_adapter(struct i2c_adapter *adapter)
++{
++	return it87_detect(adapter, isa_address, -1);
++}
++
++/* SuperIO detection - will change isa_address if a chip is found */
+ static int it87_find(int *address)
+ {
+ 	int err = -ENODEV;
+@@ -1184,7 +1190,7 @@
+ 	int addr, res;
+ 
+ 	if (!it87_find(&addr)) {
+-		normal_isa[0] = addr;
++		isa_address = addr;
+ 	}
+ 
+ 	res = i2c_add_driver(&it87_driver);
+--- gregkh-2.6.orig/drivers/hwmon/lm78.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/lm78.c	2005-07-26 15:16:29.000000000 -0700
+@@ -34,7 +34,8 @@
+ 					0x25, 0x26, 0x27, 0x28, 0x29,
+ 					0x2a, 0x2b, 0x2c, 0x2d, 0x2e,
+ 					0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0x0290, I2C_CLIENT_ISA_END };
++static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
++static unsigned short isa_address = 0x290;
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_3(lm78, lm78j, lm79);
+@@ -160,6 +161,7 @@
+ 
+ 
+ static int lm78_attach_adapter(struct i2c_adapter *adapter);
++static int lm78_isa_attach_adapter(struct i2c_adapter *adapter);
+ static int lm78_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int lm78_detach_client(struct i2c_client *client);
+ 
+@@ -181,7 +183,7 @@
+ static struct i2c_driver lm78_isa_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "lm78-isa",
+-	.attach_adapter	= lm78_attach_adapter,
++	.attach_adapter	= lm78_isa_attach_adapter,
+ 	.detach_client	= lm78_detach_client,
+ };
+ 
+@@ -480,6 +482,11 @@
+ 	return i2c_detect(adapter, &addr_data, lm78_detect);
+ }
+ 
++static int lm78_isa_attach_adapter(struct i2c_adapter *adapter)
++{
++	return lm78_detect(adapter, isa_address, -1);
++}
++
+ /* This function is called by i2c_detect */
+ int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+--- gregkh-2.6.orig/drivers/hwmon/w83781d.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/w83781d.c	2005-07-26 15:16:29.000000000 -0700
+@@ -50,7 +50,8 @@
+ static unsigned short normal_i2c[] = { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
+ 					0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b,
+ 					0x2c, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0x0290, I2C_CLIENT_ISA_END };
++static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
++static unsigned short isa_address = 0x290;
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_5(w83781d, w83782d, w83783s, w83627hf, as99127f);
+@@ -259,6 +260,7 @@
+ };
+ 
+ static int w83781d_attach_adapter(struct i2c_adapter *adapter);
++static int w83781d_isa_attach_adapter(struct i2c_adapter *adapter);
+ static int w83781d_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int w83781d_detach_client(struct i2c_client *client);
+ 
+@@ -280,7 +282,7 @@
+ static struct i2c_driver w83781d_isa_driver = {
+ 	.owner = THIS_MODULE,
+ 	.name = "w83781d-isa",
+-	.attach_adapter = w83781d_attach_adapter,
++	.attach_adapter = w83781d_isa_attach_adapter,
+ 	.detach_client = w83781d_detach_client,
+ };
+ 
+@@ -871,6 +873,12 @@
+ 	return i2c_detect(adapter, &addr_data, w83781d_detect);
+ }
+ 
++static int
++w83781d_isa_attach_adapter(struct i2c_adapter *adapter)
++{
++	return w83781d_detect(adapter, isa_address, -1);
++}
++
+ /* Assumes that adapter is of I2C, not ISA variety.
+  * OTHERWISE DON'T CALL THIS
+  */
+--- gregkh-2.6.orig/drivers/hwmon/smsc47b397.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/smsc47b397.c	2005-07-26 15:16:29.000000000 -0700
+@@ -32,25 +32,13 @@
  #include <linux/jiffies.h>
  #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
+ #include <linux/i2c-isa.h>
+-#include <linux/i2c-sensor.h>
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
  #include <linux/init.h>
  #include <asm/io.h>
  
-@@ -100,6 +102,7 @@ static u8 smsc47b397_reg_temp[] = {0x25,
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+ /* Address is autodetected, there is no default value */
+-static unsigned int normal_isa[] = { 0x0000, I2C_CLIENT_ISA_END };
+-static struct i2c_force_data forces[] = {{NULL}};
+-
+-enum chips { any_chip, smsc47b397 };
+-static struct i2c_address_data addr_data = {
+-	.normal_i2c		= normal_i2c,
+-	.normal_isa		= normal_isa,
+-	.probe			= normal_i2c,		/* cheat */
+-	.ignore			= normal_i2c,		/* cheat */
+-	.forces			= forces,
+-};
++static unsigned short address;
  
- struct smsc47b397_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
+ /* Super-I/0 registers and commands */
  
- 	struct semaphore update_lock;
-@@ -226,8 +229,11 @@ static int smsc47b397_attach_adapter(str
+@@ -219,15 +207,6 @@
+ #define device_create_file_fan(client, num) \
+ 	device_create_file(&client->dev, &dev_attr_fan##num##_input)
  
+-static int smsc47b397_detect(struct i2c_adapter *adapter, int addr, int kind);
+-
+-static int smsc47b397_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_detect(adapter, &addr_data, smsc47b397_detect);
+-}
+-
  static int smsc47b397_detach_client(struct i2c_client *client)
  {
-+	struct smsc47b397_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
-@@ -235,7 +241,7 @@ static int smsc47b397_detach_client(stru
- 	}
- 
- 	release_region(client->addr, SMSC_EXTENT);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
+ 	struct smsc47b397_data *data = i2c_get_clientdata(client);
+@@ -247,27 +226,24 @@
  	return 0;
  }
-@@ -285,6 +291,12 @@ static int smsc47b397_detect(struct i2c_
- 	if ((err = i2c_attach_client(new_client)))
- 		goto error_free;
  
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto error_detach;
-+	}
++static int smsc47b397_detect(struct i2c_adapter *adapter);
 +
- 	device_create_file_temp(new_client, 1);
- 	device_create_file_temp(new_client, 2);
- 	device_create_file_temp(new_client, 3);
-@@ -297,6 +309,8 @@ static int smsc47b397_detect(struct i2c_
+ static struct i2c_driver smsc47b397_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "smsc47b397",
+-	.id		= I2C_DRIVERID_SMSC47B397,
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= smsc47b397_attach_adapter,
++	.attach_adapter	= smsc47b397_detect,
+ 	.detach_client	= smsc47b397_detach_client,
+ };
  
- 	return 0;
- 
-+error_detach:
-+	i2c_detach_client(new_client);
- error_free:
- 	kfree(data);
- error_release:
-Index: linux-2.6.13-rc3/drivers/hwmon/smsc47m1.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/smsc47m1.c
-+++ linux-2.6.13-rc3/drivers/hwmon/smsc47m1.c
-@@ -31,6 +31,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <linux/init.h>
- #include <asm/io.h>
- 
-@@ -108,6 +110,7 @@ superio_exit(void)
- 
- struct smsc47m1_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 
- 	struct semaphore update_lock;
-@@ -461,6 +464,13 @@ static int smsc47m1_detect(struct i2c_ad
- 	   function. */
- 	smsc47m1_update_device(&new_client->dev, 1);
- 
-+	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto error_detach;
-+	}
-+
- 	if (fan1) {
- 		device_create_file(&new_client->dev, &dev_attr_fan1_input);
- 		device_create_file(&new_client->dev, &dev_attr_fan1_min);
-@@ -494,6 +504,8 @@ static int smsc47m1_detect(struct i2c_ad
- 
- 	return 0;
- 
-+error_detach:
-+	i2c_detach_client(new_client);
- error_free:
- 	kfree(data);
- error_release:
-@@ -503,8 +515,11 @@ error_release:
- 
- static int smsc47m1_detach_client(struct i2c_client *client)
+-static int smsc47b397_detect(struct i2c_adapter *adapter, int addr, int kind)
++static int smsc47b397_detect(struct i2c_adapter *adapter)
  {
-+	struct smsc47m1_data *data = i2c_get_clientdata(client);
- 	int err;
+ 	struct i2c_client *new_client;
+ 	struct smsc47b397_data *data;
+ 	int err = 0;
  
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
-@@ -512,7 +527,7 @@ static int smsc47m1_detach_client(struct
+-	if (!i2c_is_isa_adapter(adapter)) {
+-		return 0;
+-	}
+-
+-	if (!request_region(addr, SMSC_EXTENT, smsc47b397_driver.name)) {
+-		dev_err(&adapter->dev, "Region 0x%x already in use!\n", addr);
++	if (!request_region(address, SMSC_EXTENT, smsc47b397_driver.name)) {
++		dev_err(&adapter->dev, "Region 0x%x already in use!\n",
++			address);
+ 		return -EBUSY;
  	}
  
- 	release_region(client->addr, SMSC_EXTENT);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
+@@ -279,7 +255,7 @@
  
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/via686a.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/via686a.c
-+++ linux-2.6.13-rc3/drivers/hwmon/via686a.c
-@@ -36,6 +36,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <linux/init.h>
- #include <asm/io.h>
- 
-@@ -297,6 +299,7 @@ static inline long TEMP_FROM_REG10(u16 v
-    via686a client is allocated. */
- struct via686a_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid;		/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
-@@ -637,7 +640,7 @@ static int via686a_detect(struct i2c_ada
- 
- 	if (!(data = kmalloc(sizeof(struct via686a_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
--		goto ERROR0;
-+		goto exit_release;
- 	}
- 	memset(data, 0, sizeof(struct via686a_data));
- 
-@@ -655,12 +658,18 @@ static int via686a_detect(struct i2c_ada
- 	init_MUTEX(&data->update_lock);
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(new_client)))
--		goto ERROR3;
-+		goto exit_free;
- 
- 	/* Initialize the VIA686A chip */
- 	via686a_init_client(new_client);
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_in0_input);
- 	device_create_file(&new_client->dev, &dev_attr_in1_input);
- 	device_create_file(&new_client->dev, &dev_attr_in2_input);
-@@ -695,17 +704,22 @@ static int via686a_detect(struct i2c_ada
- 
- 	return 0;
- 
--ERROR3:
-+exit_detach:
-+	i2c_detach_client(new_client);
-+exit_free:
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+-	new_client->addr = addr;
++	new_client->addr = address;
+ 	init_MUTEX(&data->lock);
+ 	new_client->adapter = adapter;
+ 	new_client->driver = &smsc47b397_driver;
+@@ -315,11 +291,11 @@
+ error_free:
  	kfree(data);
--ERROR0:
-+exit_release:
- 	release_region(address, VIA686A_EXTENT);
+ error_release:
+-	release_region(addr, SMSC_EXTENT);
++	release_region(address, SMSC_EXTENT);
  	return err;
  }
  
- static int via686a_detach_client(struct i2c_client *client)
+-static int __init smsc47b397_find(unsigned int *addr)
++static int __init smsc47b397_find(unsigned short *addr)
  {
-+	struct via686a_data *data = i2c_get_clientdata(client);
- 	int err;
+ 	u8 id, rev;
  
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 		"Client deregistration failed, client not detached.\n");
-@@ -713,7 +727,7 @@ static int via686a_detach_client(struct 
+@@ -348,7 +324,7 @@
+ {
+ 	int ret;
+ 
+-	if ((ret = smsc47b397_find(normal_isa)))
++	if ((ret = smsc47b397_find(&address)))
+ 		return ret;
+ 
+ 	return i2c_isa_add_driver(&smsc47b397_driver);
+--- gregkh-2.6.orig/drivers/hwmon/smsc47m1.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/smsc47m1.c	2005-07-26 15:16:29.000000000 -0700
+@@ -37,17 +37,8 @@
+ #include <linux/init.h>
+ #include <asm/io.h>
+ 
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+ /* Address is autodetected, there is no default value */
+-static unsigned int normal_isa[] = { 0x0000, I2C_CLIENT_ISA_END };
+-static struct i2c_force_data forces[] = {{NULL}};
+-
+-enum chips { any_chip, smsc47m1 };
+-static struct i2c_address_data addr_data = {
+-	.normal_i2c		= normal_i2c,
+-	.normal_isa		= normal_isa,
+-	.forces			= forces,
+-};
++static unsigned short address;
+ 
+ /* Super-I/0 registers and commands */
+ 
+@@ -125,9 +116,7 @@
+ };
+ 
+ 
+-static int smsc47m1_attach_adapter(struct i2c_adapter *adapter);
+-static int smsc47m1_find(int *address);
+-static int smsc47m1_detect(struct i2c_adapter *adapter, int address, int kind);
++static int smsc47m1_detect(struct i2c_adapter *adapter);
+ static int smsc47m1_detach_client(struct i2c_client *client);
+ 
+ static int smsc47m1_read_value(struct i2c_client *client, u8 reg);
+@@ -140,9 +129,7 @@
+ static struct i2c_driver smsc47m1_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "smsc47m1",
+-	.id		= I2C_DRIVERID_SMSC47M1,
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= smsc47m1_attach_adapter,
++	.attach_adapter	= smsc47m1_detect,
+ 	.detach_client	= smsc47m1_detach_client,
+ };
+ 
+@@ -358,14 +345,7 @@
+ 
+ static DEVICE_ATTR(alarms, S_IRUGO, get_alarms, NULL);
+ 
+-static int smsc47m1_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_detect(adapter, &addr_data, smsc47m1_detect);
+-}
+-
+-static int smsc47m1_find(int *address)
++static int smsc47m1_find(unsigned short *addr)
+ {
+ 	u8 val;
+ 
+@@ -392,10 +372,10 @@
  	}
  
- 	release_region(client->addr, VIA686A_EXTENT);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
+ 	superio_select();
+-	*address = (superio_inb(SUPERIO_REG_BASE) << 8)
+-		 |  superio_inb(SUPERIO_REG_BASE + 1);
++	*addr = (superio_inb(SUPERIO_REG_BASE) << 8)
++	      |  superio_inb(SUPERIO_REG_BASE + 1);
+ 	val = superio_inb(SUPERIO_REG_ACT);
+-	if (*address = 0 || (val & 0x01) = 0) {
++	if (*addr = 0 || (val & 0x01) = 0) {
+ 		printk(KERN_INFO "smsc47m1: Device is disabled, will not use\n");
+ 		superio_exit();
+ 		return -ENODEV;
+@@ -405,17 +385,13 @@
  	return 0;
  }
-Index: linux-2.6.13-rc3/drivers/hwmon/w83627ehf.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/w83627ehf.c
-+++ linux-2.6.13-rc3/drivers/hwmon/w83627ehf.c
-@@ -38,6 +38,8 @@
+ 
+-static int smsc47m1_detect(struct i2c_adapter *adapter, int address, int kind)
++static int smsc47m1_detect(struct i2c_adapter *adapter)
+ {
+ 	struct i2c_client *new_client;
+ 	struct smsc47m1_data *data;
+ 	int err = 0;
+ 	int fan1, fan2, pwm1, pwm2;
+ 
+-	if (!i2c_is_isa_adapter(adapter)) {
+-		return 0;
+-	}
+-
+ 	if (!request_region(address, SMSC_EXTENT, smsc47m1_driver.name)) {
+ 		dev_err(&adapter->dev, "Region 0x%x already in use!\n", address);
+ 		return -EBUSY;
+@@ -589,7 +565,7 @@
+ 
+ static int __init sm_smsc47m1_init(void)
+ {
+-	if (smsc47m1_find(normal_isa)) {
++	if (smsc47m1_find(&address)) {
+ 		return -ENODEV;
+ 	}
+ 
+--- gregkh-2.6.orig/drivers/hwmon/w83627ehf.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/w83627ehf.c	2005-07-26 15:16:29.000000000 -0700
+@@ -38,19 +38,13 @@
  #include <linux/slab.h>
  #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
+ #include <linux/i2c-isa.h>
+-#include <linux/i2c-sensor.h>
+ #include <linux/hwmon.h>
+ #include <linux/err.h>
  #include <asm/io.h>
  #include "lm75.h"
  
-@@ -174,6 +176,7 @@ temp1_to_reg(int temp)
+-/* Addresses to scan
+-   The actual ISA address is read from Super-I/O configuration space */
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0, I2C_CLIENT_ISA_END };
+-
+-/* Insmod parameters */
+-SENSORS_INSMOD_1(w83627ehf);
++/* The actual ISA address is read from Super-I/O configuration space */
++static unsigned short address;
  
- struct w83627ehf_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
+ /*
+  * Super-I/O constants and functions
+@@ -670,15 +664,12 @@
+ 	}
+ }
  
- 	struct semaphore update_lock;
-@@ -720,6 +723,12 @@ static int w83627ehf_detect(struct i2c_a
- 		data->has_fan |= (1 << 4);
+-static int w83627ehf_detect(struct i2c_adapter *adapter, int address, int kind)
++static int w83627ehf_detect(struct i2c_adapter *adapter)
+ {
+ 	struct i2c_client *client;
+ 	struct w83627ehf_data *data;
+ 	int i, err = 0;
  
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&client->dev, &dev_attr_fan1_input);
- 	device_create_file(&client->dev, &dev_attr_fan1_min);
- 	device_create_file(&client->dev, &dev_attr_fan1_div);
-@@ -753,6 +762,8 @@ static int w83627ehf_detect(struct i2c_a
+-	if (!i2c_is_isa_adapter(adapter))
+-		return 0;
+-
+ 	if (!request_region(address, REGION_LENGTH, w83627ehf_driver.name)) {
+ 		err = -EBUSY;
+ 		goto exit;
+@@ -773,13 +764,6 @@
+ 	return err;
+ }
  
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(client);
- exit_free:
- 	kfree(data);
- exit_release:
-@@ -770,15 +781,18 @@ static int w83627ehf_attach_adapter(stru
- 
+-static int w83627ehf_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	if (!(adapter->class & I2C_CLASS_HWMON))
+-		return 0;
+-	return i2c_detect(adapter, &addr_data, w83627ehf_detect);
+-}
+-
  static int w83627ehf_detach_client(struct i2c_client *client)
  {
-+	struct w83627ehf_data *data = i2c_get_clientdata(client);
- 	int err;
+ 	struct w83627ehf_data *data = i2c_get_clientdata(client);
+@@ -801,12 +785,11 @@
+ static struct i2c_driver w83627ehf_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "w83627ehf",
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= w83627ehf_attach_adapter,
++	.attach_adapter	= w83627ehf_detect,
+ 	.detach_client	= w83627ehf_detach_client,
+ };
  
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
+-static int __init w83627ehf_find(int sioaddr, int *address)
++static int __init w83627ehf_find(int sioaddr, unsigned short *addr)
+ {
+ 	u16 val;
+ 
+@@ -824,8 +807,8 @@
+ 	superio_select(W83627EHF_LD_HWM);
+ 	val = (superio_inb(SIO_REG_ADDR) << 8)
+ 	    | superio_inb(SIO_REG_ADDR + 1);
+-	*address = val & ~(REGION_LENGTH - 1);
+-	if (*address = 0) {
++	*addr = val & ~(REGION_LENGTH - 1);
++	if (*addr = 0) {
+ 		superio_exit();
+ 		return -ENODEV;
  	}
- 	release_region(client->addr, REGION_LENGTH);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
+@@ -841,8 +824,8 @@
  
+ static int __init sensors_w83627ehf_init(void)
+ {
+-	if (w83627ehf_find(0x2e, &normal_isa[0])
+-	 && w83627ehf_find(0x4e, &normal_isa[0]))
++	if (w83627ehf_find(0x2e, &address)
++	 && w83627ehf_find(0x4e, &address))
+ 		return -ENODEV;
+ 
+ 	return i2c_isa_add_driver(&w83627ehf_driver);
+--- gregkh-2.6.orig/drivers/hwmon/w83627hf.c	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/drivers/hwmon/w83627hf.c	2005-07-26 15:16:29.000000000 -0700
+@@ -59,12 +59,11 @@
+ MODULE_PARM_DESC(force_i2c,
+ 		 "Initialize the i2c address of the sensors");
+ 
+-/* Addresses to scan */
+-static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { 0, I2C_CLIENT_ISA_END };
++/* The actual ISA address is read from Super-I/O configuration space */
++static unsigned short address;
+ 
+ /* Insmod parameters */
+-SENSORS_INSMOD_4(w83627hf, w83627thf, w83697hf, w83637hf);
++enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf };
+ 
+ static int init = 1;
+ module_param(init, bool, 0);
+@@ -318,9 +317,7 @@
+ };
+ 
+ 
+-static int w83627hf_attach_adapter(struct i2c_adapter *adapter);
+-static int w83627hf_detect(struct i2c_adapter *adapter, int address,
+-			  int kind);
++static int w83627hf_detect(struct i2c_adapter *adapter);
+ static int w83627hf_detach_client(struct i2c_client *client);
+ 
+ static int w83627hf_read_value(struct i2c_client *client, u16 register);
+@@ -332,9 +329,7 @@
+ static struct i2c_driver w83627hf_driver = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "w83627hf",
+-	.id		= I2C_DRIVERID_W83627HF,
+-	.flags		= I2C_DF_NOTIFY,
+-	.attach_adapter	= w83627hf_attach_adapter,
++	.attach_adapter	= w83627hf_detect,
+ 	.detach_client	= w83627hf_detach_client,
+ };
+ 
+@@ -963,16 +958,7 @@
+ } while (0)
+ 
+ 
+-/* This function is called when:
+-     * w83627hf_driver is inserted (when this module is loaded), for each
+-       available adapter
+-     * when a new adapter is inserted (and w83627hf_driver is still present) */
+-static int w83627hf_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	return i2c_detect(adapter, &addr_data, w83627hf_detect);
+-}
+-
+-static int w83627hf_find(int sioaddr, int *address)
++static int w83627hf_find(int sioaddr, unsigned short *addr)
+ {
+ 	u16 val;
+ 
+@@ -992,32 +978,24 @@
+ 	superio_select(W83627HF_LD_HWM);
+ 	val = (superio_inb(WINB_BASE_REG) << 8) |
+ 	       superio_inb(WINB_BASE_REG + 1);
+-	*address = val & ~(WINB_EXTENT - 1);
+-	if (*address = 0 && force_addr = 0) {
++	*addr = val & ~(WINB_EXTENT - 1);
++	if (*addr = 0 && force_addr = 0) {
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+-	if (force_addr)
+-		*address = force_addr;	/* so detect will get called */
+ 
+ 	superio_exit();
  	return 0;
  }
-Index: linux-2.6.13-rc3/drivers/hwmon/w83627hf.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/w83627hf.c
-+++ linux-2.6.13-rc3/drivers/hwmon/w83627hf.c
-@@ -44,6 +44,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <asm/io.h>
- #include "lm75.h"
  
-@@ -277,6 +279,7 @@ static inline u8 DIV_TO_REG(long val)
-    dynamically allocated, at the same time when a new client is allocated. */
- struct w83627hf_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -1102,6 +1105,12 @@ int w83627hf_detect(struct i2c_adapter *
- 	data->fan_min[2] = w83627hf_read_value(new_client, W83781D_REG_FAN_MIN(3));
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
-+
- 	device_create_file_in(new_client, 0);
- 	if (kind != w83697hf)
- 		device_create_file_in(new_client, 1);
-@@ -1152,6 +1161,8 @@ int w83627hf_detect(struct i2c_adapter *
- 
- 	return 0;
- 
-+      ERROR3:
-+	i2c_detach_client(new_client);
-       ERROR2:
- 	kfree(data);
-       ERROR1:
-@@ -1162,8 +1173,11 @@ int w83627hf_detect(struct i2c_adapter *
- 
- static int w83627hf_detach_client(struct i2c_client *client)
+-int w83627hf_detect(struct i2c_adapter *adapter, int address,
+-		   int kind)
++static int w83627hf_detect(struct i2c_adapter *adapter)
  {
-+	struct w83627hf_data *data = i2c_get_clientdata(client);
- 	int err;
+-	int val;
++	int val, kind;
+ 	struct i2c_client *new_client;
+ 	struct w83627hf_data *data;
+ 	int err = 0;
+ 	const char *client_name = "";
  
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 		       "Client deregistration failed, client not detached.\n");
-@@ -1171,7 +1185,7 @@ static int w83627hf_detach_client(struct
- 	}
- 
- 	release_region(client->addr, WINB_EXTENT);
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/w83781d.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/w83781d.c
-+++ linux-2.6.13-rc3/drivers/hwmon/w83781d.c
-@@ -40,6 +40,8 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
- #include <asm/io.h>
- #include "lm75.h"
- 
-@@ -218,6 +220,7 @@ DIV_TO_REG(long val, enum chips type)
-    allocated. */
- struct w83781d_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -961,10 +964,10 @@ w83781d_detect_subclients(struct i2c_ada
- ERROR_SC_3:
- 	i2c_detach_client(data->lm75[0]);
- ERROR_SC_2:
--	if (NULL != data->lm75[1])
-+	if (data->lm75[1])
- 		kfree(data->lm75[1]);
- ERROR_SC_1:
--	if (NULL != data->lm75[0])
-+	if (data->lm75[0])
- 		kfree(data->lm75[0]);
- ERROR_SC_0:
- 	return err;
-@@ -1189,6 +1192,12 @@ w83781d_detect(struct i2c_adapter *adapt
- 			data->pwmenable[i] = 1;
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR4;
-+	}
-+
- 	device_create_file_in(new_client, 0);
- 	if (kind != w83783s)
- 		device_create_file_in(new_client, 1);
-@@ -1241,6 +1250,15 @@ w83781d_detect(struct i2c_adapter *adapt
- 
- 	return 0;
- 
-+ERROR4:
-+	if (data->lm75[1]) {
-+		i2c_detach_client(data->lm75[1]);
-+		kfree(data->lm75[1]);
-+	}
-+	if (data->lm75[0]) {
-+		i2c_detach_client(data->lm75[0]);
-+		kfree(data->lm75[0]);
-+	}
- ERROR3:
- 	i2c_detach_client(new_client);
- ERROR2:
-@@ -1255,8 +1273,13 @@ ERROR0:
- static int
- w83781d_detach_client(struct i2c_client *client)
- {
-+	struct w83781d_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	/* main client */
-+	if (data)
-+		hwmon_device_unregister(data->class_dev);
-+
- 	if (i2c_is_isa_client(client))
- 		release_region(client->addr, W83781D_EXTENT);
- 
-@@ -1266,13 +1289,13 @@ w83781d_detach_client(struct i2c_client 
- 		return err;
- 	}
- 
--	if (i2c_get_clientdata(client)=NULL) {
--		/* subclients */
-+	/* main client */
-+	if (data)
-+		kfree(data);
-+
-+	/* subclient */
-+	else
- 		kfree(client);
--	} else {
--		/* main client */
--		kfree(i2c_get_clientdata(client));
+-	if (!i2c_is_isa_adapter(adapter)) {
+-		err = -ENODEV;
+-		goto ERROR0;
 -	}
+-
+ 	if(force_addr)
+ 		address = force_addr & ~(WINB_EXTENT - 1);
  
- 	return 0;
- }
-Index: linux-2.6.13-rc3/drivers/hwmon/w83l785ts.c
-=================================--- linux-2.6.13-rc3.orig/drivers/hwmon/w83l785ts.c
-+++ linux-2.6.13-rc3/drivers/hwmon/w83l785ts.c
-@@ -37,6 +37,8 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
-+#include <linux/err.h>
+@@ -1500,13 +1478,10 @@
  
- /* How many retries on register read error */
- #define MAX_RETRIES	5
-@@ -105,6 +107,7 @@ static struct i2c_driver w83l785ts_drive
- 
- struct w83l785ts_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore update_lock;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
-@@ -239,11 +242,19 @@ static int w83l785ts_detect(struct i2c_a
- 	 */
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto exit_detach;
-+	}
-+
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_max);
- 
- 	return 0;
- 
-+exit_detach:
-+	i2c_detach_client(new_client);
- exit_free:
- 	kfree(data);
- exit:
-@@ -252,15 +263,18 @@ exit:
- 
- static int w83l785ts_detach_client(struct i2c_client *client)
+ static int __init sensors_w83627hf_init(void)
  {
-+	struct w83l785ts_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev, "Client deregistration failed, "
- 			"client not detached.\n");
- 		return err;
+-	int addr;
+-
+-	if (w83627hf_find(0x2e, &addr)
+-	 && w83627hf_find(0x4e, &addr)) {
++	if (w83627hf_find(0x2e, &address)
++	 && w83627hf_find(0x4e, &address)) {
+ 		return -ENODEV;
  	}
+-	normal_isa[0] = addr;
  
--	kfree(i2c_get_clientdata(client));
-+	kfree(data);
- 	return 0;
+ 	return i2c_isa_add_driver(&w83627hf_driver);
  }
- 
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
