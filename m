@@ -1,75 +1,90 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 28 Jul 2005 23:14:46 +0000
-Subject: [lm-sensors] [PATCH 2.6] hwmon: move SENSORS_LIMIT to hwmon.h
-Message-Id: <20050728231459.3c3585e4.khali@linux-fr.org>
+From: gregkh@suse.de (gregkh@suse.de)
+Date: Wed, 27 Jul 2005 00:33:29 +0000
+Subject: [lm-sensors] patch i2c-hwmon-split-09.patch added to gregkh-2.6 tree
+Message-Id: <1DxXzD-0g7-00@press.kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20050720000903.2f2cf8e3.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, greg@kroah.com, gregkh@suse.de, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Greg, Mark, all,
 
-Move SENSORS_LIMIT from i2c-sensor.h to hwmon.h, as it is in no way
-related to i2c.
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+     Subject: I2C: Separate non-i2c hwmon drivers from i2c-core (9/9)
 
- drivers/hwmon/lm75.h       |    2 +-
- include/linux/hwmon.h      |   11 +++++++++++
- include/linux/i2c-sensor.h |   12 ------------
- 3 files changed, 12 insertions(+), 13 deletions(-)
+to my gregkh-2.6 tree.  Its filename is
 
---- linux-2.6.13-rc3.orig/drivers/hwmon/lm75.h	2005-07-13 23:34:12.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/lm75.h	2005-07-28 20:37:34.000000000 +0200
-@@ -25,7 +25,7 @@
-     which contains this code, we don't worry about the wasted space.
- */
+     i2c-hwmon-split-09.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
+
+i2c/i2c-max6875-documentation-update.patch
+i2c/i2c-max6875-simplify.patch
+i2c/i2c-hwmon-class-01.patch
+i2c/i2c-hwmon-class-02.patch
+i2c/i2c-hwmon-class-03.patch
+i2c/i2c-missing-space.patch
+i2c/i2c-nforce2-cleanup.patch
+i2c/i2c-hwmon-split-01.patch
+i2c/i2c-hwmon-split-02.patch
+i2c/i2c-hwmon-split-03.patch
+i2c/i2c-hwmon-split-04.patch
+i2c/i2c-hwmon-split-05.patch
+i2c/i2c-hwmon-split-06.patch
+i2c/i2c-hwmon-split-07.patch
+i2c/i2c-hwmon-split-08.patch
+i2c/i2c-hwmon-split-09.patch
+
+
+From khali@linux-fr.org Tue Jul 19 18:12:04 2005
+Date: Wed, 20 Jul 2005 00:09:03 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LKML <linux-kernel@vger.kernel.org>, LM Sensors
+ <lm-sensors@lm-sensors.org>
+Cc: Greg KH <greg@kroah.com>
+Subject: I2C: Separate non-i2c hwmon drivers from i2c-core (9/9)
+Message-Id: <20050720000903.2f2cf8e3.khali@linux-fr.org>
+
+Move the definitions of i2c_is_isa_client and i2c_is_isa_adapter from
+i2c.h to i2c-isa.h. Only hybrid drivers still need them.
+
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ include/linux/i2c-isa.h |    7 +++++++
+ include/linux/i2c.h     |    7 -------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+--- gregkh-2.6.orig/include/linux/i2c-isa.h	2005-07-26 15:14:08.000000000 -0700
++++ gregkh-2.6/include/linux/i2c-isa.h	2005-07-26 15:16:51.000000000 -0700
+@@ -26,4 +26,11 @@
+ extern int i2c_isa_add_driver(struct i2c_driver *driver);
+ extern int i2c_isa_del_driver(struct i2c_driver *driver);
  
--#include <linux/i2c-sensor.h>
-+#include <linux/hwmon.h>
- 
- /* straight from the datasheet */
- #define LM75_TEMP_MIN (-55000)
---- linux-2.6.13-rc3.orig/include/linux/hwmon.h	2005-07-17 21:44:37.000000000 +0200
-+++ linux-2.6.13-rc3/include/linux/hwmon.h	2005-07-28 20:37:34.000000000 +0200
-@@ -20,5 +20,16 @@
- 
- void hwmon_device_unregister(struct class_device *cdev);
- 
-+/* Scale user input to sensible values */
-+static inline int SENSORS_LIMIT(long value, long low, long high)
-+{
-+	if (value < low)
-+		return low;
-+	else if (value > high)
-+		return high;
-+	else
-+		return value;
-+}
++/* Detect whether we are on the isa bus. This is only useful to hybrid
++   (i2c+isa) drivers. */
++#define i2c_is_isa_client(clientptr) \
++        ((clientptr)->adapter->algo->id = I2C_ALGO_ISA)
++#define i2c_is_isa_adapter(adapptr) \
++        ((adapptr)->algo->id = I2C_ALGO_ISA)
 +
- #endif
+ #endif /* _LINUX_I2C_ISA_H */
+--- gregkh-2.6.orig/include/linux/i2c.h	2005-07-26 15:16:45.000000000 -0700
++++ gregkh-2.6/include/linux/i2c.h	2005-07-26 15:16:51.000000000 -0700
+@@ -575,11 +575,4 @@
+ 			.force =		force,			\
+ 		}
  
---- linux-2.6.13-rc3.orig/include/linux/i2c-sensor.h	2005-07-28 18:55:02.000000000 +0200
-+++ linux-2.6.13-rc3/include/linux/i2c-sensor.h	2005-07-28 20:37:34.000000000 +0200
-@@ -242,16 +242,4 @@
- 		      struct i2c_address_data *address_data,
- 		      int (*found_proc) (struct i2c_adapter *, int, int));
- 
+-/* Detect whether we are on the isa bus. If this returns true, all i2c
+-   access will fail! */
+-#define i2c_is_isa_client(clientptr) \
+-        ((clientptr)->adapter->algo->id = I2C_ALGO_ISA)
+-#define i2c_is_isa_adapter(adapptr) \
+-        ((adapptr)->algo->id = I2C_ALGO_ISA)
 -
--/* This macro is used to scale user-input to sensible values in almost all
--   chip drivers. */
--static inline int SENSORS_LIMIT(long value, long low, long high)
--{
--	if (value < low)
--		return low;
--	else if (value > high)
--		return high;
--	else
--		return value;
--}
- #endif				/* def _LINUX_I2C_SENSOR_H */
-
-
--- 
-Jean Delvare
+ #endif /* _LINUX_I2C_H */
