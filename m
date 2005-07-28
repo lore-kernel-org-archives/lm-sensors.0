@@ -1,70 +1,62 @@
-From: mrumpf@yahoo.com (Michael Rumpf)
-Date: Wed, 06 Jul 2005 17:41:00 +0000
-Subject: [lm-sensors] busses/i2c-serport.c
-Message-Id: <20050706085729.54327.qmail@web32906.mail.mud.yahoo.com>
+From: jcromie@divsol.com (Jim Cromie)
+Date: Thu, 28 Jul 2005 14:52:42 +0000
+Subject: [lm-sensors] [patch] refactor SENSORS_DEV_ATTR: was pc87360
+Message-Id: <42E8D509.9020801@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Jean Delvare wrote:
 
-I'm currently looking into using the
-i2c-parport-light.c as a start for a
-bus driver that communicates over the serial port flag
-lines: (RTS, CTS,
-DSR, DTR for SCL Write, SDA Write, SCL Read, SDA Read)
-I have a device that is using these lines for
-communication and I would
-like to access the device.
+>Hi Jim,
+>
+>On 2005-07-28, Jim Cromie wrote:
+>  
+>
+>>attached is a patch which:
+>>
+>>1. adds an __ATTR_N macro to device.h,
+>>which takes an extra _index arg, and initializes device_attibute's new
+>>.index member.
+>>    
+>>
+>
+>This seems to be duplicating the SENSOR_DEVICE_ATTR macro as defined in
+>include/linux/hwmon-sysfs.h.
+>
+>  
+>
+its almost the same - and was heavily inspired by it.
+The difference is that __ATTR_N is a smaller building block,
+it has only the RHS of the initialization, it does not have the
+variable declaration or the assignment/initialization itself.
 
-The parport driver simply does a request_region() to
-get access to the
-parallel port range.
-When you try to do that with the serial port range
-then you get an error
-message that another driver already occupied the
-region: serial_core,
-8250, and 8250_pnp. Unfortunately these drivers are
-required in order to
-have a working serial port at all. When I remove them,
-reading from 0x3fc
-always returns 0xff which means: "No port over there".
-After searching the kernel for quite some time and
-explaining my problem
-on IRC #kernelnewbies the only solution would be to
-use the same approach
-as a user-space module, i.e. open the /dev/ttySx
-device and use ioctl
-calls to manipulate the serial lines.
+So attached patch refactors SENSOR_DEV_ATTR
+into a declaration and an initialization expression,
+allowing latter to be used in array initializations.
 
-The reason why I want to create a I2C bus driver
-kernel module is that the
-i2c-algo-bit provides all the low-level protocol stack
-functions in order
-to access the device. That is at least what I'm hoping
-for, as I don't
-want to write low-level I2C protocol code myself.
 
-Can someone explain me what the cleanest approach is
-here, from an I2C
-kernel hacker point of view:
-1. Use filp_open("/dev/ttySn", ...) from inside the
-module.
-2. Move completely to user-space. But how do I use the
-I2C algo-bit
-functionality then?
-3. Don't care about region allocations and just call
-inb or outb on the
-address. This is somewhat tied to the i386
-architecture and does not work
-on other architectures.
-
-Thanks in advance,
-   Michael
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+-------------- next part --------------
+diff -ruN -X exclude-diffs ../linux-2.6.13-rc3-mm1/include/linux/hwmon-sysfs.h linux/include/linux/hwmon-sysfs.h
+--- ../linux-2.6.13-rc3-mm1/include/linux/hwmon-sysfs.h	2005-07-18 12:36:48.000000000 -0600
++++ linux/include/linux/hwmon-sysfs.h	2005-07-28 06:38:08.000000000 -0600
+@@ -27,10 +27,13 @@
+ #define to_sensor_dev_attr(_dev_attr) \
+ 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+ 
+-#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
+-struct sensor_device_attribute sensor_dev_attr_##_name = {	\
+-	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
+-	.index =	_index,					\
++#define __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
++	{ .dev_attr =	__ATTR(_name,_mode,_show,_store),	\
++	  .index =	_index,					\
+ }
+ 
++#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
++struct sensor_device_attribute sensor_dev_attr_##_name		\
++	= __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
++
+ #endif /* _LINUX_HWMON_SYSFS_H */
