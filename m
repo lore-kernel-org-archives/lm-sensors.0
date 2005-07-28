@@ -1,7 +1,7 @@
 From: henryvician@gmail.com (Henry)
-Date: Thu, 28 Jul 2005 15:18:49 +0000
+Date: Thu, 28 Jul 2005 15:19:16 +0000
 Subject: [lm-sensors] Fancontrol
-Message-Id: <1122556452.1153.6.camel@localhost.localdomain>
+Message-Id: <1122556465.1153.7.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1122217880.3578.8.camel@localhost.localdomain>
 In-Reply-To: <1122217880.3578.8.camel@localhost.localdomain>
@@ -9,6 +9,8 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Thanks
 
 On Thu, 2005-07-28 at 10:19 +0200, Rudolf Marek wrote:
 > Hello,
