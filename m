@@ -1,81 +1,33 @@
-From: gregkh@suse.de (Greg KH)
-Date: Tue, 12 Jul 2005 00:04:35 +0000
-Subject: [lm-sensors] [PATCH] I2C: Coding style cleanups to via686a
-Message-Id: <11211193762794@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 28 Jul 2005 23:08:33 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: fix typo in documentation
+Message-Id: <20050728230843.702debf7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <1121119376361@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: vda@ilport.com.ua
+To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Coding style cleanups to via686a
+Hi Greg, all,
 
-On Wednesday 22 June 2005 08:17, Greg KH wrote:
-> [PATCH] I2C: Coding style cleanups to via686a
->
-> The via686a hardware monitoring driver has infamous coding style at the
-> moment. I'd like to clean up the mess before I start working on other
-> changes to this driver. Is the following patch acceptable? No code
-> change, only coding style (indentation, alignments, trailing white
-> space, a few parentheses and a typo).
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Fix a typo in the i2c documentation: the i2c bus scanning tool found in
+lm_sensors is called i2cdetect, not i2c_detect.
 
-Nice.
+ Documentation/i2c/functionality |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-You missed some. This one is on top of your patch:
-
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
-commit 6328c0e163abfce679b1beffb166f72900bf0a22
-tree d5fa7087c5d18b12bd1b93797de2277bddcb6300
-parent 200d481f28be4522464bb849dd0eb5f8cb6be781
-author Denis Vlasenko <vda@ilport.com.ua> Wed, 22 Jun 2005 10:25:13 +0300
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 11 Jul 2005 14:10:36 -0700
-
- drivers/i2c/chips/via686a.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/i2c/chips/via686a.c b/drivers/i2c/chips/via686a.c
---- a/drivers/i2c/chips/via686a.c
-+++ b/drivers/i2c/chips/via686a.c
-@@ -1,9 +1,9 @@
- /*
-     via686a.c - Part of lm_sensors, Linux kernel modules
--                for hardware monitoring
-+		for hardware monitoring
+--- linux-2.6.13-rc3.orig/Documentation/i2c/functionality	2004-12-24 22:35:28.000000000 +0100
++++ linux-2.6.13-rc3/Documentation/i2c/functionality	2005-07-28 19:01:25.000000000 +0200
+@@ -115,7 +115,7 @@
+ If you try to access an adapter from a userspace program, you will have
+ to use the /dev interface. You will still have to check whether the
+ functionality you need is supported, of course. This is done using
+-the I2C_FUNCS ioctl. An example, adapted from the lm_sensors i2c_detect
++the I2C_FUNCS ioctl. An example, adapted from the lm_sensors i2cdetect
+ program, is below:
  
-     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
--                        Ky?sti M?lkki <kmalkki@cc.hut.fi>,
-+			Ky?sti M?lkki <kmalkki@cc.hut.fi>,
- 			Mark Studebaker <mdsxyz123@yahoo.com>,
- 			and Bob Dougherty <bobd@stanford.edu>
-     (Some conversion-factor data were contributed by Jonathan Teh Soon Yew
-@@ -171,18 +171,18 @@ static inline u8 FAN_TO_REG(long rpm, in
- /******** TEMP CONVERSIONS (Bob Dougherty) *********/
- /* linear fits from HWMon.cpp (Copyright 1998-2000 Jonathan Teh Soon Yew)
-       if(temp<169)
--              return double(temp)*0.427-32.08;
-+	      return double(temp)*0.427-32.08;
-       else if(temp>9 && temp< 2)
--              return double(temp)*0.582-58.16;
-+	      return double(temp)*0.582-58.16;
-       else
--              return double(temp)*0.924-127.33;
-+	      return double(temp)*0.924-127.33;
- 
-  A fifth-order polynomial fits the unofficial data (provided by Alex van
-  Kaam <darkside@chello.nl>) a bit better.  It also give more reasonable
-  numbers on my machine (ie. they agree with what my BIOS tells me).
-  Here's the fifth-order fit to the 8-bit data:
-  temp = 1.625093e-10*val^5 - 1.001632e-07*val^4 + 2.457653e-05*val^3 -
--        2.967619e-03*val^2 + 2.175144e-01*val - 7.090067e+0.
-+	2.967619e-03*val^2 + 2.175144e-01*val - 7.090067e+0.
- 
-  (2000-10-25- RFD: thanks to Uwe Andersen <uandersen@mayah.com> for
-  finding my typos in this formula!)
+   int file;
 
+
+-- 
+Jean Delvare
