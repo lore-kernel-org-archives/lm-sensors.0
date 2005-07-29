@@ -1,93 +1,52 @@
-From: BGardner@Wabtec.com (BGardner@Wabtec.com)
-Date: Wed, 27 Jul 2005 19:10:14 +0000
-Subject: [lm-sensors] [PATCH] I2C: simplify max6875 driver
-Message-Id: <F06EB2894F3F0D45AD9BEA7246DE9C90E23CF6@WCSEXCMBS1.ad.wabtec.com>
+From: icampbell@arcom.com (Ian Campbell)
+Date: Fri, 29 Jul 2005 12:31:59 +0000
+Subject: [lm-sensors] [PATCH] i2c-algo-pca -- gracefully handle a busy bus
+Message-Id: <1122633085.19718.106.camel@icampbell-debian>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200507121321.11458.bgardner@wabtec.com>
-In-Reply-To: <200507121321.11458.bgardner@wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, 
+Hi,
 
-> Sorry for the delay. I see that Greg picked your patch, so it's about
-> time that I take a look and comment on it.
+I've been running with this patch for a while now, and while I've never
+seen it trigger except with buggy hardware I think it is a cleaner way
+to handle a busy bus. I had -EBUSY until about 10 minutes ago but -EIO
+seems to be what most of the existing algo drivers will return in the
+same circumstances.
 
-Thank you for taking time to review it.
-There's no rush on this, as I am probably the only one (currently)
-interested in it. =)
+Signed-off-by: Ian Campbell <icampbell@arcom.com>
+
+%patch
+Index: 2.6/drivers/i2c/algos/i2c-algo-pca.c
+=================================--- 2.6.orig/drivers/i2c/algos/i2c-algo-pca.c	2005-07-29 08:38:10.000000000 +0100
++++ 2.6/drivers/i2c/algos/i2c-algo-pca.c	2005-07-29 11:25:44.000000000 +0100
+@@ -187,12 +187,14 @@
+ 	int numbytes = 0;
+ 	int state;
+ 	int ret;
++	int timeout = 100;
  
-> > +static void max6875_update_slice(struct i2c_client 
-> *client, int slice)
-> >  {
-> >  	struct max6875_data *data = i2c_get_clientdata(client);
-> > -	int i, j, addr, count;
-> > -	u8 rdbuf[SLICE_SIZE];
-> > +	int i, j, addr;
-> > +	u8 *buf;
-> >  	int retval = 0;
-> 
-> retval is set in various place in this function, but not returned?
-
-I'll remove it.
-Funny how little things slip by no matter how much I look at the code.
-
-> > +static inline struct i2c_client *kobj_to_i2c_client(struct 
-> kobject *kobj)
-> 
-> I don't much like seeing a function with such a generic name in a
-> specific driver. This could easily collide with something similar
-> declared in a public header (i2c.h comes to mind). Shouldn't 
-> this inline
-> function be moved to i2c.h right now?
-
-I'll do that.  
-
-> > 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
-> > 				     | I2C_FUNC_SMBUS_READ_BYTE))
-> 
-> You don't seem to be calling i2c_smbus_read_byte_data() 
-> anywhere, so you
-> could check for only I2C_FUNC_SMBUS_WRITE_BYTE_DATA |
-> I2C_FUNC_SMBUS_READ_BYTE. Not that it should change anything 
-> practically
-> though.
->
-> > +	strlcpy(fake_client->name, "max6875-dummy", I2C_NAME_SIZE);
-> 
-> The typical name for "fake clients" is "<client name> subclient".
-
-I'll change those as suggested.
+-	state = pca_status(adap);
+-	if ( state != 0xF8 ) {
+-		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state );
+-		/* FIXME: what to do. Force stop ? */
+-		return -EREMOTEIO;
++	while((state = pca_status(adap)) != 0xf8 && timeout--) {
++		msleep(10);
++	}
++	if ( state != 0xf8 ) {
++		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state);
++		return -EIO;
+ 	}
  
-> On the documentation front:
-> 
-> > modprobe max6875 force=0,0x50
-> 
-> This made me realize that forcing eeprom drivers (eeprom and 
-> max6875) is
-> nor properly handled WRT 24RF08 corruption prevention. I will submit a
-> separate patch fixing this for both drivers.
-
-Sounds fine to me.
-
-> > Reads and write are performed differently depending on the 
-> address range.
-> 
-> I'd guess write_s_?
-
-I'll throw together three patches, then:
-1) move kobj_to_i2c_client() to i2c.h, under to_i2c_client()
-2) code: fix retval, SMB check, and 'fake' client name
-3) doc: fix 'writes' and name of the fake client
+ 	DEB1("{{{ XFER %d messages\n", num);
 
 
-> As Greg accepted your last updates already, any fix you would 
-> submit now
-> would be as an incremental patch.
-Will do.
-
-Thanks again,
-Ben
+-- 
+Ian Campbell, Senior Design Engineer
+                                        Web: http://www.arcom.com
+Arcom, Clifton Road,                    Direct: +44 (0)1223 403 465
+Cambridge CB1 7EA, United Kingdom       Phone:  +44 (0)1223 411 200
 
