@@ -1,7 +1,7 @@
 From: henryvician@gmail.com (Henry)
-Date: Thu, 28 Jul 2005 15:41:52 +0000
+Date: Sat, 30 Jul 2005 07:02:16 +0000
 Subject: [lm-sensors] Fancontrol
-Message-Id: <1122557829.1153.13.camel@localhost.localdomain>
+Message-Id: <1122699457.3955.4.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1122217880.3578.8.camel@localhost.localdomain>
 In-Reply-To: <1122217880.3578.8.camel@localhost.localdomain>
@@ -10,16 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Thanks this trick works!!!!
 
-will the echo ...>/sys/busi2c/...  have any effect when I kill
-the /sbin/fancontrol script?
-I mean will it control the fan?
+Henry
 
-I thought that all those files are for the fancontrol script to operate.
-If I kill the fancontrol script then no matter what the values are in in
-the files the fan is still spinning like crazy
-
-Henry 
 On Thu, 2005-07-28 at 10:19 +0200, Rudolf Marek wrote:
 > Hello,
 > 
