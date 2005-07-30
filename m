@@ -1,127 +1,36 @@
-From: gregkh@suse.de (gregkh@suse.de)
-Date: Wed, 27 Jul 2005 00:01:00 +0000
-Subject: [lm-sensors] patch i2c-hwmon-class-01.patch added to gregkh-2.6 tree
-Message-Id: <1DxXTM-3oj-00@press.kroah.org>
+From: rafael.espindola@gmail.com (Rafael =?iso-8859-1?q?=C1vila_de_Esp=EDndola?=)
+Date: Sat, 30 Jul 2005 21:52:37 +0000
+Subject: [lm-sensors] pwm3_min_ctl or pwm3_auto_pwm_minctl
+Message-Id: <200507301652.28356.rafael.espindola@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+I have a MB with an emc6d102 and I want  to configure the automatic fan 
+control. I was able to do so by altering the files in /sys, but wen I add (for 
+example)
+set pwm3_min_ctl 0
 
-This is a note to let you know that I've just added the patch titled
+to /etc/sensors.conf and run sensors -s I get the following error:
+emc6d102-i2c-0-2e: Can't access procfs/sysfs file for writing;
+Run as root?
 
-     Subject: I2C hwmon: kfree fixes
+running strace I see that it is trying to 
+open /sys/bus/i2c/devices/0-002e/pwm3_min_ctl. The correct name 
+is /sys/bus/i2c/devices/0-002e/pwm3_auto_pwm_minctl.
 
-to my gregkh-2.6 tree.  Its filename is
+I am running kernel 2.6.12 and lm-sensors 2.9.1-4 (debian).
 
-     i2c-hwmon-class-01.patch
+I am doing something wrong? Does lm-sensors needs to be updated?
 
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-Patches currently in gregkh-2.6 which might be from mhoffman@lightlink.com are
-
-i2c/i2c-hwmon-class-01.patch
-i2c/i2c-hwmon-class-02.patch
-i2c/i2c-hwmon-class-03.patch
-
-
-From mhoffman@lightlink.com Fri Jul 15 18:37:06 2005
-Date: Fri, 15 Jul 2005 21:36:50 -0400
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-To: Greg KH <greg@kroah.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Yani Ioannou <yani.ioannou@gmail.com>,
-	lm-sensors <lm-sensors@lm-sensors.org>
-Subject: I2C hwmon: kfree fixes
-Message-ID: <20050716013650.GB4265@jupiter.solarsys.private>
-
-This patch fixes several instances of hwmon drivers kfree'ing the
-"wrong" pointer; the existing code works somewhat by accident.
-
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/hwmon/adm1026.c    |    4 ++--
- drivers/hwmon/adm1031.c    |    4 ++--
- drivers/hwmon/adm9240.c    |    2 +-
- drivers/hwmon/smsc47b397.c |    2 +-
- drivers/hwmon/smsc47m1.c   |    2 +-
- 5 files changed, 7 insertions(+), 7 deletions(-)
-
---- gregkh-2.6.orig/drivers/hwmon/adm1026.c	2005-07-26 14:53:45.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/adm1026.c	2005-07-26 14:56:38.000000000 -0700
-@@ -325,7 +325,7 @@
- int adm1026_detach_client(struct i2c_client *client)
- {
- 	i2c_detach_client(client);
--	kfree(client);
-+	kfree(i2c_get_clientdata(client));
- 	return 0;
- }
- 
-@@ -1691,7 +1691,7 @@
- 
- 	/* Error out and cleanup code */
- exitfree:
--	kfree(new_client);
-+	kfree(data);
- exit:
- 	return err;
- }
---- gregkh-2.6.orig/drivers/hwmon/adm1031.c	2005-07-13 09:45:05.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/adm1031.c	2005-07-26 14:56:38.000000000 -0700
-@@ -834,7 +834,7 @@
- 	return 0;
- 
- exit_free:
--	kfree(new_client);
-+	kfree(data);
- exit:
- 	return err;
- }
-@@ -845,7 +845,7 @@
- 	if ((ret = i2c_detach_client(client)) != 0) {
- 		return ret;
- 	}
--	kfree(client);
-+	kfree(i2c_get_clientdata(client));
- 	return 0;
- }
- 
---- gregkh-2.6.orig/drivers/hwmon/adm9240.c	2005-07-13 09:45:05.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/adm9240.c	2005-07-26 14:56:38.000000000 -0700
-@@ -616,7 +616,7 @@
- 
- 	return 0;
- exit_free:
--	kfree(new_client);
-+	kfree(data);
- exit:
- 	return err;
- }
---- gregkh-2.6.orig/drivers/hwmon/smsc47b397.c	2005-07-13 09:45:05.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/smsc47b397.c	2005-07-26 14:56:38.000000000 -0700
-@@ -298,7 +298,7 @@
- 	return 0;
- 
- error_free:
--	kfree(new_client);
-+	kfree(data);
- error_release:
- 	release_region(addr, SMSC_EXTENT);
- 	return err;
---- gregkh-2.6.orig/drivers/hwmon/smsc47m1.c	2005-07-13 09:45:05.000000000 -0700
-+++ gregkh-2.6/drivers/hwmon/smsc47m1.c	2005-07-26 14:56:38.000000000 -0700
-@@ -495,7 +495,7 @@
- 	return 0;
- 
- error_free:
--	kfree(new_client);
-+	kfree(data);
- error_release:
- 	release_region(address, SMSC_EXTENT);
- 	return err;
+Thanks,
+Rafael
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050730/5ec39afb/attachment.bin
