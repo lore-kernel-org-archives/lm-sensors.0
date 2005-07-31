@@ -1,89 +1,91 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 15 Jul 2005 09:13:32 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: Missing space in split strings
-Message-Id: <20050715085305.4dc8c732.khali@linux-fr.org>
+Date: Sun, 31 Jul 2005 21:36:54 +0000
+Subject: [lm-sensors] [PATCH 2.6] (3/11) hwmon vs i2c, second round
+Message-Id: <20050731213624.0ebc73d3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050731205933.2e2a957f.khali@linux-fr.org>
+In-Reply-To: <20050731205933.2e2a957f.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: Greg KH <greg@kroah.com>
 
-Hi Greg,
-
-A few split string in i2c (and now hwmon) drivers lack a joining space,
-causing them to display incorrectly. This trivial patch fixes that up.
-Please apply, thanks.
+We now have two identical structures, i2c_address_data in i2c-sensor.h
+and i2c_client_address_data in i2c.h. We can kill one of them, I choose
+to keep the one in i2c.h as it makes more sense (this structure is not
+specific to sensors.)
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- drivers/hwmon/adm1026.c       |    2 +-
- drivers/hwmon/max1619.c       |    2 +-
- drivers/hwmon/pc87360.c       |    2 +-
- drivers/i2c/busses/i2c-i801.c |    6 +++---
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/i2c/i2c-sensor-detect.c |    2 +-
+ include/linux/i2c-sensor.h      |   30 +++---------------------------
+ 2 files changed, 4 insertions(+), 28 deletions(-)
 
---- linux-2.6.13-rc3.orig/drivers/hwmon/pc87360.c	2005-07-13 23:34:59.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/pc87360.c	2005-07-13 23:35:05.000000000 +0200
-@@ -1056,7 +1056,7 @@
- 	if (init >= 2 && data->innr) {
- 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
- 					 PC87365_REG_IN_CONVRATE);
--		dev_info(&client->dev, "VLM conversion set to"
-+		dev_info(&client->dev, "VLM conversion set to "
- 			 "1s period, 160us delay\n");
- 		pc87360_write_value(data, LD_IN, NO_BANK,
- 				    PC87365_REG_IN_CONVRATE,
---- linux-2.6.13-rc3.orig/drivers/i2c/busses/i2c-i801.c	2005-07-13 23:34:12.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/i2c/busses/i2c-i801.c	2005-07-13 23:35:05.000000000 +0200
-@@ -137,7 +137,7 @@
- 		pci_read_config_word(I801_dev, SMBBA, &i801_smba);
- 		i801_smba &= 0xfff0;
- 		if(i801_smba = 0) {
--			dev_err(&dev->dev, "SMB base address uninitialized"
-+			dev_err(&dev->dev, "SMB base address uninitialized "
- 				"- upgrade BIOS or use force_addr=0xaddr\n");
- 			return -ENODEV;
- 		}
-@@ -186,7 +186,7 @@
- 	int result = 0;
- 	int timeout = 0;
+--- linux-2.6.13-rc4.orig/drivers/i2c/i2c-sensor-detect.c	2005-07-31 16:07:56.000000000 +0200
++++ linux-2.6.13-rc4/drivers/i2c/i2c-sensor-detect.c	2005-07-31 20:56:02.000000000 +0200
+@@ -28,7 +28,7 @@
  
--	dev_dbg(&I801_dev->dev, "Transaction (pre): CNT=%02x, CMD=%02x,"
-+	dev_dbg(&I801_dev->dev, "Transaction (pre): CNT=%02x, CMD=%02x, "
- 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
- 		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
- 		inb_p(SMBHSTDAT1));
-@@ -240,7 +240,7 @@
- 		outb_p(inb(SMBHSTSTS), SMBHSTSTS);
+ /* Won't work for 10-bit addresses! */
+ int i2c_detect(struct i2c_adapter *adapter,
+-	       struct i2c_address_data *address_data,
++	       struct i2c_client_address_data *address_data,
+ 	       int (*found_proc) (struct i2c_adapter *, int, int))
+ {
+ 	int addr, i, found, j, err;
+--- linux-2.6.13-rc4.orig/include/linux/i2c-sensor.h	2005-07-31 16:07:56.000000000 +0200
++++ linux-2.6.13-rc4/include/linux/i2c-sensor.h	2005-07-31 20:56:02.000000000 +0200
+@@ -22,31 +22,7 @@
+ #ifndef _LINUX_I2C_SENSOR_H
+ #define _LINUX_I2C_SENSOR_H
  
- 	if ((temp = (0x1f & inb_p(SMBHSTSTS))) != 0x00) {
--		dev_dbg(&I801_dev->dev, "Failed reset at end of transaction"
-+		dev_dbg(&I801_dev->dev, "Failed reset at end of transaction "
- 			"(%02x)\n", temp);
- 	}
- 	dev_dbg(&I801_dev->dev, "Transaction (post): CNT=%02x, CMD=%02x, "
---- linux-2.6.13-rc3.orig/drivers/hwmon/adm1026.c	2005-07-13 23:34:59.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/adm1026.c	2005-07-13 23:35:05.000000000 +0200
-@@ -398,7 +398,7 @@
+-/* A structure containing the detect information.
+-   normal_i2c: filled in by the module writer. Terminated by I2C_CLIENT_END.
+-     A list of I2C addresses which should normally be examined.
+-   probe: insmod parameter. Initialize this list with I2C_CLIENT_END values.
+-     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
+-     I2C bus), the second is the address. These addresses are also probed,
+-     as if they were in the 'normal' list.
+-   ignore: insmod parameter. Initialize this list with I2C_CLIENT_END values.
+-     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
+-     I2C bus), the second is the I2C address. These addresses are never
+-     probed. This parameter overrules 'normal' and  probe', but not the
+-    'force' lists.
+-   forces: insmod parameters. A list, ending with a NULL element.
+-     Force variables overrule all other variables; they force a detection on
+-     that place. If a specific chip is given, the module blindly assumes this
+-     chip type is present; if a general force (kind = 0) is given, the module
+-     will still try to figure out what type of chip is present. This is useful
+-     if for some reasons the detect for SMBus address space filled fails.
+-*/
+-struct i2c_address_data {
+-	unsigned short *normal_i2c;
+-	unsigned short *probe;
+-	unsigned short *ignore;
+-	unsigned short **forces;
+-};
++#include <linux/i2c.h>
  
- 	value = data->config3;
- 	if (data->config3 & CFG3_GPIO16_ENABLE) {
--		dev_dbg(&client->dev, "GPIO16 enabled.  THERM"
-+		dev_dbg(&client->dev, "GPIO16 enabled.  THERM "
- 			"pin disabled.\n");
- 	} else {
- 		dev_dbg(&client->dev, "THERM pin enabled.  "
---- linux-2.6.13-rc3.orig/drivers/hwmon/max1619.c	2005-07-13 23:34:59.000000000 +0200
-+++ linux-2.6.13-rc3/drivers/hwmon/max1619.c	2005-07-13 23:35:05.000000000 +0200
-@@ -376,7 +376,7 @@
- 	i2c_del_driver(&max1619_driver);
- }
+ #define SENSORS_MODULE_PARM_FORCE(name) \
+   I2C_CLIENT_MODULE_PARM(force_ ## name, \
+@@ -60,7 +36,7 @@
+                       "List of adapter,address pairs to scan additionally"); \
+   I2C_CLIENT_MODULE_PARM(ignore, \
+                       "List of adapter,address pairs not to scan"); \
+-	static struct i2c_address_data addr_data = {			\
++	static struct i2c_client_address_data addr_data = {		\
+ 			.normal_i2c =		normal_i2c,		\
+ 			.probe =		probe,			\
+ 			.ignore =		ignore,			\
+@@ -228,7 +204,7 @@
+    SMBus addresses, it will only call found_proc if some client is connected
+    to the SMBus (unless a 'force' matched). */
+ extern int i2c_detect(struct i2c_adapter *adapter,
+-		      struct i2c_address_data *address_data,
++		      struct i2c_client_address_data *address_data,
+ 		      int (*found_proc) (struct i2c_adapter *, int, int));
  
--MODULE_AUTHOR("Alexey Fisher <fishor@mail.ru> and"
-+MODULE_AUTHOR("Alexey Fisher <fishor@mail.ru> and "
- 	"Jean Delvare <khali@linux-fr.org>");
- MODULE_DESCRIPTION("MAX1619 sensor driver");
- MODULE_LICENSE("GPL");
+ #endif				/* def _LINUX_I2C_SENSOR_H */
 
 
 -- 
