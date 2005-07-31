@@ -1,128 +1,211 @@
-From: gregkh@suse.de (gregkh@suse.de)
-Date: Thu, 28 Jul 2005 08:28:01 +0000
-Subject: [lm-sensors] patch i2c-24rf08-corruption-prevention.patch added to
-Message-Id: <1Dy1rZ-426-00@press.kroah.org>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 31 Jul 2005 19:03:27 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: Improve core debugging messages
+Message-Id: <20050731190253.42c1b76b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg, all,
 
-This is a note to let you know that I've just added the patch titled
+The debugging messages in i2c-core are more confusing than helpful. Some
+lack their trailing newline, some lack a prefix, some are redundant,
+some lack precious information. Here is my attempt to introduce some
+standardization in there.
 
-     Subject: I2C: 24RF08 corruption prevention (again)
-
-to my gregkh-2.6 tree.  Its filename is
-
-     i2c-24rf08-corruption-prevention.patch
-
-This tree can be found at 
-    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
-
-Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
-
-i2c/i2c-max6875-documentation-update.patch
-i2c/i2c-max6875-simplify.patch
-i2c/i2c-hwmon-class-01.patch
-i2c/i2c-hwmon-class-02.patch
-i2c/i2c-hwmon-class-03.patch
-i2c/i2c-missing-space.patch
-i2c/i2c-nforce2-cleanup.patch
-i2c/i2c-hwmon-split-01.patch
-i2c/i2c-hwmon-split-02.patch
-i2c/i2c-hwmon-split-03.patch
-i2c/i2c-hwmon-split-04.patch
-i2c/i2c-hwmon-split-05.patch
-i2c/i2c-hwmon-split-06.patch
-i2c/i2c-hwmon-split-07.patch
-i2c/i2c-hwmon-split-08.patch
-i2c/i2c-hwmon-split-09.patch
-i2c/i2c-max6875-cleanup.patch
-i2c/i2c-max6875-documentation-cleanup.patch
-i2c/i2c-max6875-kobj_to_i2c_client.patch
-i2c/i2c-24rf08-corruption-prevention.patch
-i2c/i2c-missing-newlines.patch
-i2c/i2c-refactor-message.patch
-i2c/i2c-use-time_after.patch
-
-
-From khali@linux-fr.org Wed Jul 27 12:39:30 2005
-Date: Wed, 27 Jul 2005 21:36:17 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Greg KH <greg@kroah.com>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, Ben Gardner
- <bgardner@Wabtec.com>
-Subject: I2C: 24RF08 corruption prevention (again)
-Message-Id: <20050727213617.6d97e251.khali@linux-fr.org>
-
-The 24RF08 corruption prevention in the eeprom and max6875 drivers wasn't
-complete. For one thing, the additional quick write should happen as soon
-as possible and unconditionally, while both drivers had error paths before.
-For another, when a given chip is forced, the core does not emit a quick
-write, so a second quick write would cause the corruption rather than
-prevent it.
-
-I plan to move the corruption prevention in the core in the long run, so
-that individual drivers don't have to care anymore. But I need to merge
-i2c_probe and i2c_detect before I do (work in progress).
-
-Note that this patch should be applied after all Ben Gardner's max6875
-patches.
+I also changed two messages in i2c-dev to make it clear they come from
+i2c-dev.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
- drivers/i2c/chips/eeprom.c  |    8 +++++---
- drivers/i2c/chips/max6875.c |    8 +++++---
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/i2c/i2c-core.c |   63 ++++++++++++++++++++-----------------------------
+ drivers/i2c/i2c-dev.c  |    5 ++-
+ 2 files changed, 29 insertions(+), 39 deletions(-)
 
---- gregkh-2.6.orig/drivers/i2c/chips/eeprom.c	2005-07-27 23:21:35.000000000 -0700
-+++ gregkh-2.6/drivers/i2c/chips/eeprom.c	2005-07-27 23:21:41.000000000 -0700
-@@ -163,6 +163,11 @@
- 	struct eeprom_data *data;
- 	int err = 0;
+--- linux-2.6.13-rc4.orig/drivers/i2c/i2c-core.c	2005-07-30 10:50:05.000000000 +0200
++++ linux-2.6.13-rc4/drivers/i2c/i2c-core.c	2005-07-30 20:03:26.000000000 +0200
+@@ -188,6 +188,8 @@
+ 	strlcpy(adap->class_dev.class_id, adap->dev.bus_id, BUS_ID_SIZE);
+ 	class_device_register(&adap->class_dev);
  
-+	/* prevent 24RF08 corruption */
-+	if (kind < 0)
-+		i2c_smbus_xfer(adapter, address, 0, 0, 0,
-+			       I2C_SMBUS_QUICK, NULL);
++	dev_dbg(&adap->dev, "adapter [%s] registered\n", adap->name);
 +
- 	/* There are three ways we can read the EEPROM data:
- 	   (1) I2C block reads (faster, but unsupported by most adapters)
- 	   (2) Consecutive byte reads (100% overhead)
-@@ -187,9 +192,6 @@
- 	new_client->driver = &eeprom_driver;
- 	new_client->flags = 0;
+ 	/* inform drivers of new adapters */
+ 	list_for_each(item,&drivers) {
+ 		driver = list_entry(item, struct i2c_driver, list);
+@@ -196,8 +198,6 @@
+ 			driver->attach_adapter(adap);
+ 	}
  
--	/* prevent 24RF08 corruption */
--	i2c_smbus_write_quick(new_client, 0);
+-	dev_dbg(&adap->dev, "registered as adapter #%d\n", adap->nr);
 -
- 	/* Fill in the remaining client fields */
- 	strlcpy(new_client->name, "eeprom", I2C_NAME_SIZE);
- 	data->valid = 0;
---- gregkh-2.6.orig/drivers/i2c/chips/max6875.c	2005-07-27 23:21:35.000000000 -0700
-+++ gregkh-2.6/drivers/i2c/chips/max6875.c	2005-07-27 23:21:41.000000000 -0700
-@@ -173,6 +173,11 @@
- 	struct max6875_data *data;
- 	int err = 0;
+ out_unlock:
+ 	up(&core_lists);
+ 	return res;
+@@ -220,8 +220,8 @@
+ 			break;
+ 	}
+ 	if (adap_from_list != adap) {
+-		pr_debug("I2C: Attempting to delete an unregistered "
+-			 "adapter\n");
++		pr_debug("i2c-core: attempting to delete unregistered "
++			 "adapter [%s]\n", adap->name);
+ 		res = -EINVAL;
+ 		goto out_unlock;
+ 	}
+@@ -230,9 +230,8 @@
+ 		driver = list_entry(item, struct i2c_driver, list);
+ 		if (driver->detach_adapter)
+ 			if ((res = driver->detach_adapter(adap))) {
+-				dev_warn(&adap->dev, "can't detach adapter "
+-					 "while detaching driver %s: driver "
+-					 "not detached!\n", driver->name);
++				dev_err(&adap->dev, "detach_adapter failed "
++					"for driver [%s]\n", driver->name);
+ 				goto out_unlock;
+ 			}
+ 	}
+@@ -247,9 +246,8 @@
+ 		 * must be deleted, as this would cause invalid states.
+ 		 */
+ 		if ((res=client->driver->detach_client(client))) {
+-			dev_err(&adap->dev, "adapter not "
+-				"unregistered, because client at "
+-				"address %02x can't be detached. ",
++			dev_err(&adap->dev, "detach_client failed for client "
++				"[%s] at address 0x%02x\n", client->name,
+ 				client->addr);
+ 			goto out_unlock;
+ 		}
+@@ -270,7 +268,7 @@
+ 	/* free dynamically allocated bus id */
+ 	idr_remove(&i2c_adapter_idr, adap->nr);
  
-+	/* Prevent 24RF08 corruption (in case of user error) */
-+	if (kind < 0)
-+		i2c_smbus_xfer(adapter, address, 0, 0, 0,
-+			       I2C_SMBUS_QUICK, NULL);
-+
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WRITE_BYTE_DATA
- 				     | I2C_FUNC_SMBUS_READ_BYTE))
- 		return 0;
-@@ -211,9 +216,6 @@
- 	fake_client->flags = 0;
- 	strlcpy(fake_client->name, "max6875 subclient", I2C_NAME_SIZE);
+-	dev_dbg(&adap->dev, "adapter unregistered\n");
++	dev_dbg(&adap->dev, "adapter [%s] unregistered\n", adap->name);
  
--	/* Prevent 24RF08 corruption (in case of user error) */
--	i2c_smbus_write_quick(real_client, 0);
--
- 	if ((err = i2c_attach_client(real_client)) != 0)
- 		goto exit_kfree2;
+  out_unlock:
+ 	up(&core_lists);
+@@ -303,7 +301,7 @@
+ 		goto out_unlock;
  	
+ 	list_add_tail(&driver->list,&drivers);
+-	pr_debug("i2c-core: driver %s registered.\n", driver->name);
++	pr_debug("i2c-core: driver [%s] registered\n", driver->name);
+ 
+ 	/* now look for instances of driver on our adapters */
+ 	if (driver->flags & I2C_DF_NOTIFY) {
+@@ -331,21 +329,17 @@
+ 	/* Have a look at each adapter, if clients of this driver are still
+ 	 * attached. If so, detach them to be able to kill the driver 
+ 	 * afterwards.
+-	 */
+-	pr_debug("i2c-core: unregister_driver - looking for clients.\n");
+-	/* removing clients does not depend on the notify flag, else 
++	 *
++	 * Removing clients does not depend on the notify flag, else
+ 	 * invalid operation might (will!) result, when using stale client
+ 	 * pointers.
+ 	 */
+ 	list_for_each(item1,&adapters) {
+ 		adap = list_entry(item1, struct i2c_adapter, list);
+-		dev_dbg(&adap->dev, "examining adapter\n");
+ 		if (driver->detach_adapter) {
+ 			if ((res = driver->detach_adapter(adap))) {
+-				dev_warn(&adap->dev, "while unregistering "
+-				       "dummy driver %s, adapter could "
+-				       "not be detached properly; driver "
+-				       "not unloaded!",driver->name);
++				dev_err(&adap->dev, "detach_adapter failed "
++					"for driver [%s]\n", driver->name);
+ 				goto out_unlock;
+ 			}
+ 		} else {
+@@ -353,16 +347,13 @@
+ 				client = list_entry(item2, struct i2c_client, list);
+ 				if (client->driver != driver)
+ 					continue;
+-				pr_debug("i2c-core.o: detaching client %s:\n", client->name);
++				dev_dbg(&adap->dev, "detaching client [%s] "
++					"at 0x%02x\n", client->name,
++					client->addr);
+ 				if ((res = driver->detach_client(client))) {
+-					dev_err(&adap->dev, "while "
+-						"unregistering driver "
+-						"`%s', the client at "
+-						"address %02x of "
+-						"adapter could not "
+-						"be detached; driver "
+-						"not unloaded!",
+-						driver->name,
++					dev_err(&adap->dev, "detach_client "
++						"failed for client [%s] at "
++						"0x%02x\n", client->name,
+ 						client->addr);
+ 					goto out_unlock;
+ 				}
+@@ -372,7 +363,7 @@
+ 
+ 	driver_unregister(&driver->driver);
+ 	list_del(&driver->list);
+-	pr_debug("i2c-core: driver unregistered: %s\n", driver->name);
++	pr_debug("i2c-core: driver [%s] unregistered\n", driver->name);
+ 
+  out_unlock:
+ 	up(&core_lists);
+@@ -417,15 +408,12 @@
+ 	
+ 	if (adapter->client_register)  {
+ 		if (adapter->client_register(client))  {
+-			dev_warn(&adapter->dev, "warning: client_register "
+-				"seems to have failed for client %02x\n",
+-				client->addr);
++			dev_dbg(&adapter->dev, "client_register "
++				"failed for client [%s] at 0x%02x\n",
++				client->name, client->addr);
+ 		}
+ 	}
+ 
+-	dev_dbg(&adapter->dev, "client [%s] registered to adapter\n",
+-		client->name);
+-
+ 	if (client->flags & I2C_CLIENT_ALLOW_USE)
+ 		client->usage_count = 0;
+ 
+@@ -436,7 +424,8 @@
+ 	
+ 	snprintf(&client->dev.bus_id[0], sizeof(client->dev.bus_id),
+ 		"%d-%04x", i2c_adapter_id(adapter), client->addr);
+-	pr_debug("registering %s\n", client->dev.bus_id);
++	dev_dbg(&adapter->dev, "client [%s] registered with bus id %s\n",
++		client->name, client->dev.bus_id);
+ 	device_register(&client->dev);
+ 	device_create_file(&client->dev, &dev_attr_client_name);
+ 	
+--- linux-2.6.13-rc4.orig/drivers/i2c/i2c-dev.c	2005-07-29 21:29:50.000000000 +0200
++++ linux-2.6.13-rc4/drivers/i2c/i2c-dev.c	2005-07-30 20:22:09.000000000 +0200
+@@ -434,7 +434,8 @@
+ 
+ 	devfs_mk_cdev(MKDEV(I2C_MAJOR, i2c_dev->minor),
+ 			S_IFCHR|S_IRUSR|S_IWUSR, "i2c/%d", i2c_dev->minor);
+-	dev_dbg(&adap->dev, "Registered as minor %d\n", i2c_dev->minor);
++	pr_debug("i2c-dev: adapter [%s] registered as minor %d\n",
++		 adap->name, i2c_dev->minor);
+ 
+ 	/* register this i2c device with the driver core */
+ 	i2c_dev->adap = adap;
+@@ -471,7 +472,7 @@
+ 	wait_for_completion(&i2c_dev->released);
+ 	kfree(i2c_dev);
+ 
+-	dev_dbg(&adap->dev, "Adapter unregistered\n");
++	pr_debug("i2c-dev: adapter [%s] unregistered\n", adap->name);
+ 	return 0;
+ }
+ 
+
+
+-- 
+Jean Delvare
