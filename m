@@ -1,74 +1,83 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Mon, 01 Aug 2005 22:10:26 +0000
-Subject: [lm-sensors] Re: [patchset 5/23] pc87360 fan , use attr->index
-Message-Id: <42EE814C.1010407@divsol.com>
+From: hvw59601@yahoo.com (Hugo Vanwoerkom)
+Date: Mon, 01 Aug 2005 21:03:54 +0000
+Subject: [lm-sensors] [SOLVED] Patch for support of Winbond W83687THF in
+Message-Id: <20050801190304.39511.qmail@web31001.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-use attr->index instead of offset in fan get/set macros
+Thanks Jean! I was so close! Forgot the i2c-isa
+module!
 
-[jimc@harpo pset]$ diffstat 03x-sda-fan-quell-warns
- pc87360.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+So I enclose a patch to lm_sensors-2.9.1 to support
+the chip.
 
-Signed-off-by:  Jim Cromie <jcromie@divsol.com>
--------------- next part --------------
-diff -ruNp -X exclude-diffs lxC-4/drivers/hwmon/pc87360.c lxC-5/drivers/hwmon/pc87360.c
---- lxC-4/drivers/hwmon/pc87360.c	2005-07-31 15:42:45.000000000 -0600
-+++ lxC-5/drivers/hwmon/pc87360.c	2005-07-31 15:54:43.000000000 -0600
-@@ -246,7 +246,7 @@ static struct i2c_driver pc87360_driver 
-  * Sysfs stuff
-  */
+This is what "sensors" reports:
+
+w83687thf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.63 V  (min =  +0.00 V, max =  +0.00 V)  
+           
+VCore 2:   +3.38 V  (min =  +0.00 V, max =  +0.00 V)  
+           
++3.3V:     +2.72 V  (min =  +3.14 V, max =  +3.46 V)  
+           
++5V:       +5.06 V  (min =  +4.74 V, max =  +5.24 V)  
+           
++12V:      +0.00 V  (min = +10.83 V, max = +13.19 V)  
+           
+V5SB:      +4.92 V  (min =  +4.74 V, max =  +5.24 V)  
+           
+VBat:      +3.15 V  (min =  +2.40 V, max =  +3.60 V)  
+           
+fan1:        0 RPM  (min = 2136 RPM, div = 8)         
+           
+fan2:     3813 RPM  (min = 2824 RPM, div = 2)         
+           
+fan3:        0 RPM  (min =  718 RPM, div = 8)         
+           
+temp1:       +29?C  (high =   -78?C, hyst =  +124?C)  
+sensor = thermistor   ALARM   
+temp2:     +40.0?C  (high =   +76?C, hyst =   +71?C)  
+sensor = diode           
+temp3:     +30.5?C  (high =   +76?C, hyst =   +71?C)  
+sensor = thermistor           
+vid:      -1.200 V  (VRM Version 8.2)
+alarms:   
+beep_enable:
+          Sound alarm disabled
+
+Note that some of the limits are wrong. Also the EPOX
+EP-8VTAI mobo that uses this chip has some confusion
+too, because it uses temp1 but says it is at 22C when
+the ambient temp is 25C, so that cannot be.
+
+So I get support in 2.4.31 by installing the 2 2.9.1
+tarballs, applying the patch to lm_sensors and Jean's
+i2c-patch to the kernel and then make + make install
+on the 2.
+
+Note that I change the Makefile of lm_sensors to
+install it in /usr instead of /usr/local.
+
+Thanks again!
+
+Hugo
+
+
+		
+____________________________________________________
+Start your day with Yahoo! - make it your home page 
+http://www.yahoo.com/r/hs 
  
--static ssize_t set_fan_min(struct device *dev, const char *buf,
-+static ssize_t _set_fan_min(struct device *dev, const char *buf,
- 	size_t count, int nr)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -280,35 +280,35 @@ static ssize_t show_fan##offset##_input(
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[offset-1], \
--		       FAN_DIV_FROM_REG(data->fan_status[offset-1]))); \
-+	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index-1], \
-+		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]))); \
- } \
- static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[offset-1], \
--		       FAN_DIV_FROM_REG(data->fan_status[offset-1]))); \
-+	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index-1], \
-+		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]))); \
- } \
- static ssize_t show_fan##offset##_div(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", \
--		       FAN_DIV_FROM_REG(data->fan_status[offset-1])); \
-+		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])); \
- } \
- static ssize_t show_fan##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", \
--		       FAN_STATUS_FROM_REG(data->fan_status[offset-1])); \
-+		       FAN_STATUS_FROM_REG(data->fan_status[attr->index-1])); \
- } \
- static ssize_t set_fan##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
- 	size_t count) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	return set_fan_min(dev, buf, count, offset-1); \
-+	return _set_fan_min(dev, buf, count, attr->index-1); \
- } \
- static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
- 	show_fan##offset##_input, NULL, offset); \
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm_sensors-2.9.1.patch
+Type: text/x-patch
+Size: 6887 bytes
+Desc: 1261993164-lm_sensors-2.9.1.patch
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050801/1f07d43d/lm_sensors-2.9.1.bin
