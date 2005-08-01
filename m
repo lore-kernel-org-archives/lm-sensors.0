@@ -1,7 +1,7 @@
 From: jcromie@divsol.com (Jim Cromie)
-Date: Tue, 02 Aug 2005 01:15:42 +0000
-Subject: [lm-sensors] [patchset 20/23] pc87360 convert temp dev-attrs from
-Message-Id: <42EEACFA.60805@divsol.com>
+Date: Mon, 01 Aug 2005 23:08:42 +0000
+Subject: [lm-sensors] [patchset 7/23] pc87360 pwm use attr->index
+Message-Id: <42EE8EC2.5050101@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,13 +9,37 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-convert temp dev-attrs from macro-initialization to array initialization,
-and call device_create_file() in loop on array
+use attr->index instead of offset in pwm get/set macros
 
-$ diffstat 18-temp-arrys-loop
- pc87360.c |   70 
-++++++++++++++++++++++++++++++++------------------------------
- 1 files changed, 37 insertions(+), 33 deletions(-)
+[jimc@harpo pset]$ diffstat 04x-sda-pwm-quell-warns
+ pc87360.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
 Signed-off-by:  Jim Cromie <jcromie@divsol.com>
 
+-------------- next part --------------
+diff -ruNp -X exclude-diffs lxC-6/drivers/hwmon/pc87360.c lxC-7/drivers/hwmon/pc87360.c
+--- lxC-6/drivers/hwmon/pc87360.c	2005-07-31 12:11:15.000000000 -0600
++++ lxC-7/drivers/hwmon/pc87360.c	2005-07-31 12:11:59.000000000 -0600
+@@ -328,7 +328,7 @@ static ssize_t show_pwm##offset(struct d
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+ 	struct pc87360_data *data = pc87360_update_device(dev); \
+ 	return sprintf(buf, "%u\n", \
+-		       PWM_FROM_REG(data->pwm[offset-1], \
++		       PWM_FROM_REG(data->pwm[attr->index-1], \
+ 				    FAN_CONFIG_INVERT(data->fan_conf, \
+ 						      offset-1))); \
+ } \
+@@ -341,10 +341,10 @@ static ssize_t set_pwm##offset(struct de
+ 	long val = simple_strtol(buf, NULL, 10); \
+  \
+ 	down(&data->update_lock); \
+-	data->pwm[offset-1] = PWM_TO_REG(val, \
++	data->pwm[attr->index-1] = PWM_TO_REG(val, \
+ 			      FAN_CONFIG_INVERT(data->fan_conf, offset-1)); \
+ 	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_PWM(offset-1), \
+-			    data->pwm[offset-1]); \
++			    data->pwm[attr->index-1]); \
+ 	up(&data->update_lock); \
+ 	return count; \
+ } \
