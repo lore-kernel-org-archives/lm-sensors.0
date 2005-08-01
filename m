@@ -1,164 +1,237 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Mon, 01 Aug 2005 21:58:26 +0000
-Subject: [lm-sensors] [patchset 4/23] pc87360 fan device_attributes -->
-Message-Id: <42EE7EBD.7060806@divsol.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 01 Aug 2005 22:52:00 +0000
+Subject: [lm-sensors] Re: [PATCH 2.6] (10/11, revised) hwmon vs i2c,
+Message-Id: <20050801225008.67594fea.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050731205933.2e2a957f.khali@linux-fr.org>
+	<20050731220224.23136906.khali@linux-fr.org>
+In-Reply-To: <20050731220224.23136906.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: Greg KH <greg@kroah.com>, Alexey Dobriyan <adobriyan@gmail.com>
 
+I see very little reason why vid_from_reg is inlined. It is not
+exactly short, its parameters are seldom known in advance, and it is
+never called in speed critical areas. Uninlining it should cause
+little performance loss if any, and saves a signficant space as well
+as compilation time.
 
+As suggested by Alexey Dobriyan, I am leaving vid_to_reg inline for now,
+as it is short and has a single user so far.
 
-upgrade fan device_attributes to sensor-device-attributes, following 
-Yani's form
-  a. change declarations: DEVICE_ATTR -> SENSOR_DEVICE_ATTR
-  b. compute sensor_dev_attr from dev_attr, with 
-to_sensor_dev_attr(devattr)
-  c. change calls to device_create_file() to match.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-[jimc@harpo pset]$ diffstat 03-sda-fan
-  pc87360.c |   65 
-+++++++++++++++++++++++++++++++++-----------------------------
- 1 files changed, 35 insertions(+), 30 deletions(-)
+ drivers/hwmon/hwmon-vid.c |   82 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/hwmon-vid.h |   83 ++++------------------------------------------
+ 2 files changed, 91 insertions(+), 74 deletions(-)
 
-
-Signed-off-by:  Jim Cromie <jcromie@divsol.com>
--------------- next part --------------
-diff -ruNp -X exclude-diffs lxC-3/drivers/hwmon/pc87360.c lxC-4/drivers/hwmon/pc87360.c
---- lxC-3/drivers/hwmon/pc87360.c	2005-07-31 12:09:03.000000000 -0600
-+++ lxC-4/drivers/hwmon/pc87360.c	2005-07-31 12:09:44.000000000 -0600
-@@ -276,43 +276,48 @@ static ssize_t set_fan_min(struct device
+--- linux-2.6.13-rc4.orig/drivers/hwmon/hwmon-vid.c	2005-07-31 21:13:11.000000000 +0200
++++ linux-2.6.13-rc4/drivers/hwmon/hwmon-vid.c	2005-08-01 19:55:25.000000000 +0200
+@@ -3,6 +3,10 @@
+ 
+     Copyright (c) 2004 Rudolf Marek <r.marek@sh.cvut.cz>
+ 
++    Partly imported from i2c-vid.h of the lm_sensors project
++    Copyright (c) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
++    With assistance from Trent Piepho <xyzzy@speakeasy.org>
++
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation; either version 2 of the License, or
+@@ -23,6 +27,83 @@
+ #include <linux/kernel.h>
+ #include <linux/hwmon-vid.h>
+ 
++/*
++    Common code for decoding VID pins.
++
++    References:
++
++    For VRM 8.4 to 9.1, "VRM x.y DC-DC Converter Design Guidelines",
++    available at http://developer.intel.com/.
++
++    For VRD 10.0 and up, "VRD x.y Design Guide",
++    available at http://developer.intel.com/.
++
++    AMD Opteron processors don't follow the Intel specifications.
++    I'm going to "make up" 2.4 as the spec number for the Opterons.
++    No good reason just a mnemonic for the 24x Opteron processor
++    series.
++
++    Opteron VID encoding is:
++       00000  =  1.550 V
++       00001  =  1.525 V
++        . . . .
++       11110  =  0.800 V
++       11111  =  0.000 V (off)
++*/
++
++/* vrm is the VRM/VRD document version multiplied by 10.
++   val is the 4-, 5- or 6-bit VID code.
++   Returned value is in mV to avoid floating point in the kernel. */
++int vid_from_reg(int val, int vrm)
++{
++	int vid;
++
++	switch(vrm) {
++
++	case  0:
++		return 0;
++
++	case 100:               /* VRD 10.0 */
++		if((val & 0x1f) = 0x1f)
++			return 0;
++		if((val & 0x1f) <= 0x09 || val = 0x0a)
++			vid = 10875 - (val & 0x1f) * 250;
++		else
++			vid = 18625 - (val & 0x1f) * 250;
++		if(val & 0x20)
++			vid -= 125;
++		vid /= 10;      /* only return 3 dec. places for now */
++		return vid;
++
++	case 24:                /* Opteron processor */
++		return(val = 0x1f ? 0 : 1550 - val * 25);
++
++	case 91:		/* VRM 9.1 */
++	case 90:		/* VRM 9.0 */
++		return(val = 0x1f ? 0 :
++		                       1850 - val * 25);
++
++	case 85:		/* VRM 8.5 */
++		return((val & 0x10  ? 25 : 0) +
++		       ((val & 0x0f) > 0x04 ? 2050 : 1250) -
++		       ((val & 0x0f) * 50));
++
++	case 84:		/* VRM 8.4 */
++		val &= 0x0f;
++				/* fall through */
++	default:		/* VRM 8.2 */
++		return(val = 0x1f ? 0 :
++		       val & 0x10  ? 5100 - (val) * 100 :
++		                     2050 - (val) * 50);
++	}
++}
++
++
++/*
++    After this point is the code to automatically determine which
++    VRM/VRD specification should be used depending on the CPU.
++*/
++
+ struct vrm_model {
+ 	u8 vendor;
+ 	u8 eff_family;
+@@ -96,6 +177,7 @@
  }
+ #endif
  
- #define show_and_set_fan(offset) \
--static ssize_t show_fan##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_input(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[offset-1], \
- 		       FAN_DIV_FROM_REG(data->fan_status[offset-1]))); \
- } \
--static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[offset-1], \
- 		       FAN_DIV_FROM_REG(data->fan_status[offset-1]))); \
- } \
--static ssize_t show_fan##offset##_div(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_div(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", \
- 		       FAN_DIV_FROM_REG(data->fan_status[offset-1])); \
- } \
--static ssize_t show_fan##offset##_status(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", \
- 		       FAN_STATUS_FROM_REG(data->fan_status[offset-1])); \
- } \
--static ssize_t set_fan##offset##_min(struct device *dev, struct device_attribute *attr, const char *buf, \
-+static ssize_t set_fan##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
- 	size_t count) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	return set_fan_min(dev, buf, count, offset-1); \
- } \
--static DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
--	show_fan##offset##_input, NULL); \
--static DEVICE_ATTR(fan##offset##_min, S_IWUSR | S_IRUGO, \
--	show_fan##offset##_min, set_fan##offset##_min); \
--static DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
--	show_fan##offset##_div, NULL); \
--static DEVICE_ATTR(fan##offset##_status, S_IRUGO, \
--	show_fan##offset##_status, NULL);
-+static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
-+	show_fan##offset##_input, NULL, offset); \
-+static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IWUSR | S_IRUGO, \
-+	show_fan##offset##_min, set_fan##offset##_min, offset); \
-+static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
-+	show_fan##offset##_div, NULL, offset); \
-+static SENSOR_DEVICE_ATTR(fan##offset##_status, S_IRUGO, \
-+	show_fan##offset##_status, NULL, offset);
- show_and_set_fan(1)
- show_and_set_fan(2)
- show_and_set_fan(3)
-@@ -341,8 +346,8 @@ static ssize_t set_pwm##offset(struct de
- 	up(&data->update_lock); \
- 	return count; \
- } \
--static DEVICE_ATTR(pwm##offset, S_IWUSR | S_IRUGO, \
--	show_pwm##offset, set_pwm##offset);
-+static SENSOR_DEVICE_ATTR(pwm##offset, S_IWUSR | S_IRUGO, \
-+	show_pwm##offset, set_pwm##offset, offset);
- show_and_set_pwm(1)
- show_and_set_pwm(2)
- show_and_set_pwm(3)
-@@ -928,45 +933,45 @@ static int pc87360_detect(struct i2c_ada
- 	if (data->fannr) {
- 		if (FAN_CONFIG_MONITOR(data->fan_conf, 0)) {
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan1_input);
-+					   &sensor_dev_attr_fan1_input.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan1_min);
-+					   &sensor_dev_attr_fan1_min.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan1_div);
-+					   &sensor_dev_attr_fan1_div.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan1_status);
-+					   &sensor_dev_attr_fan1_status.dev_attr);
- 		}
++EXPORT_SYMBOL(vid_from_reg);
+ EXPORT_SYMBOL(vid_which_vrm);
  
- 		if (FAN_CONFIG_MONITOR(data->fan_conf, 1)) {
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan2_input);
-+					   &sensor_dev_attr_fan2_input.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan2_min);
-+					   &sensor_dev_attr_fan2_min.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan2_div);
-+					   &sensor_dev_attr_fan2_div.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan2_status);
-+					   &sensor_dev_attr_fan2_status.dev_attr);
- 		}
+ MODULE_AUTHOR("Rudolf Marek <r.marek@sh.cvut.cz>");
+--- linux-2.6.13-rc4.orig/include/linux/hwmon-vid.h	2005-07-31 21:13:23.000000000 +0200
++++ linux-2.6.13-rc4/include/linux/hwmon-vid.h	2005-08-01 19:56:08.000000000 +0200
+@@ -20,83 +20,16 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
  
- 		if (FAN_CONFIG_CONTROL(data->fan_conf, 0))
--			device_create_file(&new_client->dev, &dev_attr_pwm1);
-+			device_create_file(&new_client->dev, &sensor_dev_attr_pwm1.dev_attr);
- 		if (FAN_CONFIG_CONTROL(data->fan_conf, 1))
--			device_create_file(&new_client->dev, &dev_attr_pwm2);
-+			device_create_file(&new_client->dev, &sensor_dev_attr_pwm2.dev_attr);
+-/*
+-    This file contains common code for decoding VID pins.
+-    This file is #included in various chip drivers in this directory.
+-    As the user is unlikely to load more than one driver which
+-    includes this code we don't worry about the wasted space.
+-    Reference: VRM x.y DC-DC Converter Design Guidelines,
+-    available at http://developer.intel.com
+-*/
+-
+-/*
+-    AMD Opteron processors don't follow the Intel VRM spec.
+-    I'm going to "make up" 2.4 as the VRM spec for the Opterons.
+-    No good reason just a mnemonic for the 24x Opteron processor
+-    series
+-
+-    Opteron VID encoding is:
+-
+-       00000  =  1.550 V
+-       00001  =  1.525 V
+-        . . . .
+-       11110  =  0.800 V
+-       11111  =  0.000 V (off)
+- */
+-
+-/*
+-    Legal val values 0x00 - 0x1f; except for VRD 10.0, 0x00 - 0x3f.
+-    vrm is the Intel VRM document version.
+-    Note: vrm version is scaled by 10 and the return value is scaled by 1000
+-    to avoid floating point in the kernel.
+-*/
++#ifndef _LINUX_HWMON_VID_H
++#define _LINUX_HWMON_VID_H
+ 
++int vid_from_reg(int val, int vrm);
+ int vid_which_vrm(void);
+ 
+-static inline int vid_from_reg(int val, int vrm)
+-{
+-	int vid;
+-
+-	switch(vrm) {
+-
+-	case  0:
+-		return 0;
+-
+-	case 100:               /* VRD 10.0 */
+-		if((val & 0x1f) = 0x1f)
+-			return 0;
+-		if((val & 0x1f) <= 0x09 || val = 0x0a)
+-			vid = 10875 - (val & 0x1f) * 250;
+-		else
+-			vid = 18625 - (val & 0x1f) * 250;
+-		if(val & 0x20)
+-			vid -= 125;
+-		vid /= 10;      /* only return 3 dec. places for now */
+-		return vid;
+-
+-	case 24:                /* Opteron processor */
+-		return(val = 0x1f ? 0 : 1550 - val * 25);
+-
+-	case 91:		/* VRM 9.1 */
+-	case 90:		/* VRM 9.0 */
+-		return(val = 0x1f ? 0 :
+-		                       1850 - val * 25);
+-
+-	case 85:		/* VRM 8.5 */
+-		return((val & 0x10  ? 25 : 0) +
+-		       ((val & 0x0f) > 0x04 ? 2050 : 1250) -
+-		       ((val & 0x0f) * 50));
+-
+-	case 84:		/* VRM 8.4 */
+-		val &= 0x0f;
+-				/* fall through */
+-	default:		/* VRM 8.2 */
+-		return(val = 0x1f ? 0 :
+-		       val & 0x10  ? 5100 - (val) * 100 :
+-		                     2050 - (val) * 50);
+-	}
+-}
+-
++/* vrm is the VRM/VRD document version multiplied by 10.
++   val is in mV to avoid floating point in the kernel.
++   Returned value is the 4-, 5- or 6-bit VID code.
++   Note that only VRM 9.x is supported for now. */
+ static inline int vid_to_reg(int val, int vrm)
+ {
+ 	switch (vrm) {
+@@ -108,3 +41,5 @@
+ 		return -1;
  	}
- 	if (data->fannr = 3) {
- 		if (FAN_CONFIG_MONITOR(data->fan_conf, 2)) {
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan3_input);
-+					   &sensor_dev_attr_fan3_input.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan3_min);
-+					   &sensor_dev_attr_fan3_min.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan3_div);
-+					   &sensor_dev_attr_fan3_div.dev_attr);
- 			device_create_file(&new_client->dev,
--					   &dev_attr_fan3_status);
-+					   &sensor_dev_attr_fan3_status.dev_attr);
- 		}
- 
- 		if (FAN_CONFIG_CONTROL(data->fan_conf, 2))
--			device_create_file(&new_client->dev, &dev_attr_pwm3);
-+			device_create_file(&new_client->dev, &sensor_dev_attr_pwm3.dev_attr);
- 	}
- 
- 	return 0;
+ }
++
++#endif /* _LINUX_HWMON_VID_H */
+
+
+-- 
+Jean Delvare
