@@ -1,132 +1,74 @@
-From: lutchann@litech.org (Nathan Lutchansky)
-Date: Mon, 15 Aug 2005 19:55:14 +0000
-Subject: [lm-sensors] [PATCH 4/5] add i2c_probe_device and i2c_remove_device
-Message-Id: <20050815175438.GE24959@litech.org>
+From: jcromie@divsol.com (Jim Cromie)
+Date: Mon, 01 Aug 2005 22:10:26 +0000
+Subject: [lm-sensors] Re: [patchset 5/23] pc87360 fan , use attr->index
+Message-Id: <42EE814C.1010407@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050815175106.GA24959@litech.org>
-In-Reply-To: <20050815175106.GA24959@litech.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
-Cc: Greg KH <greg@kroah.com>
+To: lm-sensors@vger.kernel.org
 
-Add new i2c_probe_device and i2c_remove_device functions to explicitly
-instantiate new i2c clients by adapter, driver id and bus address.
 
-These functions can be used for special-purpose adapters, such as those
-on TV tuner cards, where we generally know in advance what devices are
-attached.  This is important in cases where the adapter does not support
-probing or when probing is potentially dangerous to the connected
-devices.
+use attr->index instead of offset in fan get/set macros
 
-Signed-off-by: Nathan Lutchansky <lutchann@litech.org>
+[jimc@harpo pset]$ diffstat 03x-sda-fan-quell-warns
+ pc87360.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
- drivers/i2c/i2c-core.c |   71 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c.h    |    6 ++++
- 2 files changed, 77 insertions(+)
-
-Index: linux-2.6.13-rc6+gregkh/drivers/i2c/i2c-core.c
-=================================--- linux-2.6.13-rc6+gregkh.orig/drivers/i2c/i2c-core.c
-+++ linux-2.6.13-rc6+gregkh/drivers/i2c/i2c-core.c
-@@ -671,6 +671,75 @@ int i2c_control(struct i2c_client *clien
- }
+Signed-off-by:  Jim Cromie <jcromie@divsol.com>
+-------------- next part --------------
+diff -ruNp -X exclude-diffs lxC-4/drivers/hwmon/pc87360.c lxC-5/drivers/hwmon/pc87360.c
+--- lxC-4/drivers/hwmon/pc87360.c	2005-07-31 15:42:45.000000000 -0600
++++ lxC-5/drivers/hwmon/pc87360.c	2005-07-31 15:54:43.000000000 -0600
+@@ -246,7 +246,7 @@ static struct i2c_driver pc87360_driver 
+  * Sysfs stuff
+  */
  
- /* ----------------------------------------------------
-+ * direct add/remove functions to avoid probing
-+ * ----------------------------------------------------
-+ */
-+
-+int i2c_probe_device(struct i2c_adapter *adapter, int driver_id,
-+		     int addr, int kind)
-+{
-+	struct list_head   *item;
-+	struct i2c_driver  *driver = NULL;
-+
-+	/* There's no way to probe addresses on this adapter... */
-+	if (kind < 0 && !i2c_check_functionality(adapter,I2C_FUNC_SMBUS_QUICK))
-+		return -EINVAL;
-+
-+	down(&core_lists);
-+	list_for_each(item,&drivers) {
-+		driver = list_entry(item, struct i2c_driver, list);
-+		if (driver->id = driver_id)
-+			break;
-+	}
-+	up(&core_lists);
-+	if (!item)
-+		return -ENOENT;
-+
-+	/* Already in use? */
-+	if (i2c_check_addr(adapter, addr))
-+		return -EBUSY;
-+
-+	/* Make sure there is something at this address, unless forced */
-+	if (kind < 0) {
-+		if (i2c_smbus_xfer(adapter, addr, 0, 0, 0,
-+				   I2C_SMBUS_QUICK, NULL) < 0)
-+			return -ENODEV;
-+
-+		/* prevent 24RF08 corruption */
-+		if ((addr & ~0x0f) = 0x50)
-+			i2c_smbus_xfer(adapter, addr, 0, 0, 0,
-+				       I2C_SMBUS_QUICK, NULL);
-+	}
-+
-+	return driver->detect_client(adapter, addr, kind);
-+}
-+
-+int i2c_remove_device(struct i2c_adapter *adapter, int driver_id, int addr)
-+{
-+	struct list_head  *item, *_n;
-+	struct i2c_client *client;
-+	int res = 0;
-+
-+	down(&core_lists);
-+
-+	list_for_each_safe(item, _n, &adapter->clients) {
-+		client = list_entry(item, struct i2c_client, list);
-+		if (client->addr != addr || client->driver->id != driver_id)
-+			continue;
-+		if ((res=client->driver->detach_client(client)))
-+			dev_err(&adapter->dev, "detach_client failed for "
-+				"client [%s] at address 0x%02x\n",
-+				client->name, client->addr);
-+		goto out_unlock;
-+	}
-+	res = -ENOENT;
-+
-+ out_unlock:
-+	up(&core_lists);
-+	return res;
-+}
-+
-+/* ----------------------------------------------------
-  * the i2c address scanning function
-  * Will not work for 10-bit addresses!
-  * ----------------------------------------------------
-@@ -1230,6 +1299,8 @@ EXPORT_SYMBOL(i2c_control);
- EXPORT_SYMBOL(i2c_transfer);
- EXPORT_SYMBOL(i2c_get_adapter);
- EXPORT_SYMBOL(i2c_put_adapter);
-+EXPORT_SYMBOL(i2c_probe_device);
-+EXPORT_SYMBOL(i2c_remove_device);
- EXPORT_SYMBOL(i2c_probe);
- 
- EXPORT_SYMBOL(i2c_smbus_xfer);
-Index: linux-2.6.13-rc6+gregkh/include/linux/i2c.h
-=================================--- linux-2.6.13-rc6+gregkh.orig/include/linux/i2c.h
-+++ linux-2.6.13-rc6+gregkh/include/linux/i2c.h
-@@ -359,6 +359,12 @@ extern void i2c_clients_command(struct i
-    you can cheat by simply not registering. Not recommended, of course! */
- extern int i2c_check_addr (struct i2c_adapter *adapter, int addr);
- 
-+/* Direct add/remove functions to create or remove clients by address. */
-+extern int i2c_probe_device(struct i2c_adapter *adapter, int driver_id,
-+			    int addr, int kind);
-+extern int i2c_remove_device(struct i2c_adapter *adapter, int driver_id,
-+			     int addr);
-+
- /* Detect function. It iterates over all possible addresses itself.
-  * It will only call found_proc if some client is connected at the
-  * specific address (unless a 'force' matched);
+-static ssize_t set_fan_min(struct device *dev, const char *buf,
++static ssize_t _set_fan_min(struct device *dev, const char *buf,
+ 	size_t count, int nr)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -280,35 +280,35 @@ static ssize_t show_fan##offset##_input(
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+ 	struct pc87360_data *data = pc87360_update_device(dev); \
+-	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[offset-1], \
+-		       FAN_DIV_FROM_REG(data->fan_status[offset-1]))); \
++	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index-1], \
++		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]))); \
+ } \
+ static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+ 	struct pc87360_data *data = pc87360_update_device(dev); \
+-	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[offset-1], \
+-		       FAN_DIV_FROM_REG(data->fan_status[offset-1]))); \
++	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index-1], \
++		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]))); \
+ } \
+ static ssize_t show_fan##offset##_div(struct device *dev, struct device_attribute *devattr, char *buf) \
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+ 	struct pc87360_data *data = pc87360_update_device(dev); \
+ 	return sprintf(buf, "%u\n", \
+-		       FAN_DIV_FROM_REG(data->fan_status[offset-1])); \
++		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])); \
+ } \
+ static ssize_t show_fan##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+ 	struct pc87360_data *data = pc87360_update_device(dev); \
+ 	return sprintf(buf, "%u\n", \
+-		       FAN_STATUS_FROM_REG(data->fan_status[offset-1])); \
++		       FAN_STATUS_FROM_REG(data->fan_status[attr->index-1])); \
+ } \
+ static ssize_t set_fan##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
+ 	size_t count) \
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+-	return set_fan_min(dev, buf, count, offset-1); \
++	return _set_fan_min(dev, buf, count, attr->index-1); \
+ } \
+ static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
+ 	show_fan##offset##_input, NULL, offset); \
