@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (jim.cromie@gmail.com)
-Date: Wed, 31 Aug 2005 01:11:45 +0000
-Subject: [lm-sensors] [patch 2/6] pc87360 SDA callbacks - function renames
-Message-Id: <200508302241.j7UMfSge007941@harpo.jimc.earth>
+From: jcromie@divsol.com (Jim Cromie)
+Date: Tue, 02 Aug 2005 00:07:15 +0000
+Subject: [lm-sensors] [patchset 0/23] pc87360 convert pww dev-attr get-set
+Message-Id: <42EE9BD0.2000307@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,127 +9,87 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-02	i2c-pc87360-02-fn-renames.patch
+convert pww dev-attr get-set macros to functions.
 
-Several of the macro-d functions rely on the ##offset## in the name to
-disambiguate them from others, this patch alters the names so we can
-drop the ##offset## in the next patch.
+[jimc@harpo pset]$ diffstat 10-pwm-demacro
+ pc87360.c |   62 
+++++++++++++++++++++++++++++++++------------------------------
+ 1 files changed, 32 insertions(+), 30 deletions(-)
 
- pc87360.c |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
-
-
-
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by:  Jim Cromie <jcromie@divsol.com>
 
 
-
-
-diff -ruNp -X exclude-diffs A-1/drivers/hwmon/pc87360.c A-2/drivers/hwmon/pc87360.c
---- A-1/drivers/hwmon/pc87360.c	2005-08-29 11:29:55.000000000 -0600
-+++ A-2/drivers/hwmon/pc87360.c	2005-08-29 11:31:51.000000000 -0600
-@@ -252,7 +252,7 @@ static struct i2c_driver pc87360_driver 
-  * Sysfs stuff
-  */
+-------------- next part --------------
+diff -ruNp -X exclude-diffs lxE-2/drivers/hwmon/pc87360.c lxE-3/drivers/hwmon/pc87360.c
+--- lxE-2/drivers/hwmon/pc87360.c	2005-07-31 21:14:56.000000000 -0600
++++ lxE-3/drivers/hwmon/pc87360.c	2005-07-31 21:15:31.000000000 -0600
+@@ -323,37 +323,39 @@ show_and_set_fan(1)
+ show_and_set_fan(2)
+ show_and_set_fan(3)
  
--static ssize_t set_fan_min(struct device *dev, const char *buf,
-+static ssize_t _set_fan_min(struct device *dev, const char *buf,
- 	size_t count, int nr)
+-#define show_and_set_pwm(offset) \
+-static ssize_t show_pwm##offset(struct device *dev, struct device_attribute *devattr, char *buf) \
+-{ \
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+-	struct pc87360_data *data = pc87360_update_device(dev); \
+-	return sprintf(buf, "%u\n", \
+-		       PWM_FROM_REG(data->pwm[attr->index-1], \
+-				    FAN_CONFIG_INVERT(data->fan_conf, \
+-						      offset-1))); \
+-} \
+-static ssize_t set_pwm##offset(struct device *dev, struct device_attribute *devattr, const char *buf, \
+-	size_t count) \
+-{ \
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
+-	struct i2c_client *client = to_i2c_client(dev); \
+-	struct pc87360_data *data = i2c_get_clientdata(client); \
+-	long val = simple_strtol(buf, NULL, 10); \
+- \
+-	down(&data->update_lock); \
+-	data->pwm[attr->index-1] = PWM_TO_REG(val, \
+-			      FAN_CONFIG_INVERT(data->fan_conf, offset-1)); \
+-	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_PWM(offset-1), \
+-			    data->pwm[attr->index-1]); \
+-	up(&data->update_lock); \
+-	return count; \
+-} \
++static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pc87360_data *data = pc87360_update_device(dev);
++	return sprintf(buf, "%u\n",
++		       PWM_FROM_REG(data->pwm[attr->index-1],
++				    FAN_CONFIG_INVERT(data->fan_conf,
++						      attr->index-1)));
++}
++static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr, const char *buf,
++	size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct pc87360_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++
++	down(&data->update_lock);
++	data->pwm[attr->index-1] = PWM_TO_REG(val,
++			      FAN_CONFIG_INVERT(data->fan_conf, attr->index-1));
++	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_PWM(attr->index-1),
++			    data->pwm[attr->index-1]);
++	up(&data->update_lock);
++	return count;
++}
++
++#define declare_pwm_sdas(offset) \
+ static SENSOR_DEVICE_ATTR(pwm##offset, S_IWUSR | S_IRUGO, \
+-	show_pwm##offset, set_pwm##offset, offset);
+-show_and_set_pwm(1)
+-show_and_set_pwm(2)
+-show_and_set_pwm(3)
++	show_pwm, set_pwm, offset)
++
++declare_pwm_sdas(1);
++declare_pwm_sdas(2);
++declare_pwm_sdas(3);
+ 
+ static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -314,7 +314,7 @@ static ssize_t set_fan##offset##_min(str
- 	size_t count) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	return set_fan_min(dev, buf, count, attr->index-1); \
-+	return _set_fan_min(dev, buf, count, attr->index-1); \
- } \
- static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
- 	show_fan##offset##_input, NULL, offset); \
-@@ -440,41 +440,41 @@ show_and_set_in(9)
- show_and_set_in(10)
- 
- #define show_and_set_therm(offset) \
--static ssize_t show_temp##offset##_input(struct device *dev, struct device_attribute *devattr, char *buf) \
-+static ssize_t show_therm##offset##_input(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[attr->index+7], \
- 		       data->in_vref)); \
- } \
--static ssize_t show_temp##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
-+static ssize_t show_therm##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_min[attr->index+7], \
- 		       data->in_vref)); \
- } \
--static ssize_t show_temp##offset##_max(struct device *dev, struct device_attribute *devattr, char *buf) \
-+static ssize_t show_therm##offset##_max(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_max[attr->index+7], \
- 		       data->in_vref)); \
- } \
--static ssize_t show_temp##offset##_crit(struct device *dev, struct device_attribute *devattr, char *buf) \
-+static ssize_t show_therm##offset##_crit(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_crit[attr->index-4], \
- 		       data->in_vref)); \
- } \
--static ssize_t show_temp##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
-+static ssize_t show_therm##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", data->in_status[attr->index+7]); \
- } \
--static ssize_t set_temp##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
-+static ssize_t set_therm##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
- 	size_t count) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
-@@ -489,7 +489,7 @@ static ssize_t set_temp##offset##_min(st
- 	up(&data->update_lock); \
- 	return count; \
- } \
--static ssize_t set_temp##offset##_max(struct device *dev, struct device_attribute *devattr, const char *buf, \
-+static ssize_t set_therm##offset##_max(struct device *dev, struct device_attribute *devattr, const char *buf, \
- 	size_t count) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
-@@ -504,7 +504,7 @@ static ssize_t set_temp##offset##_max(st
- 	up(&data->update_lock); \
- 	return count; \
- } \
--static ssize_t set_temp##offset##_crit(struct device *dev, struct device_attribute *devattr, const char *buf, \
-+static ssize_t set_therm##offset##_crit(struct device *dev, struct device_attribute *devattr, const char *buf, \
- 	size_t count) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
-@@ -520,15 +520,15 @@ static ssize_t set_temp##offset##_crit(s
- 	return count; \
- } \
- static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, \
--	show_temp##offset##_input, NULL, offset); \
-+	show_therm##offset##_input, NULL, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IWUSR | S_IRUGO, \
--	show_temp##offset##_min, set_temp##offset##_min, offset); \
-+	show_therm##offset##_min, set_therm##offset##_min, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IWUSR | S_IRUGO, \
--	show_temp##offset##_max, set_temp##offset##_max, offset); \
-+	show_therm##offset##_max, set_therm##offset##_max, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IWUSR | S_IRUGO, \
--	show_temp##offset##_crit, set_temp##offset##_crit, offset); \
-+	show_therm##offset##_crit, set_therm##offset##_crit, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_status, S_IRUGO, \
--	show_temp##offset##_status, NULL, offset);
-+	show_therm##offset##_status, NULL, offset);
- show_and_set_therm(4)
- show_and_set_therm(5)
- show_and_set_therm(6)
