@@ -1,43 +1,240 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 25 Aug 2005 18:44:06 +0000
-Subject: [lm-sensors] [PATCH 2.6] hwmon: Off-by-one error in fscpos driver
-Message-Id: <20050825184337.5eafe364.khali@linux-fr.org>
+From: jcromie@divsol.com (Jim Cromie)
+Date: Tue, 02 Aug 2005 01:21:59 +0000
+Subject: [lm-sensors] [patchset 0/23] pc87360 remove offset skews from
+Message-Id: <42EEAE7B.80403@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Stefan Ott <stefan@desire.ch>, Greg KH <greg@kroah.com>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus, all,
 
-Coverity uncovered an off-by-one error in the fscpos driver, in function
-set_temp_reset(). Writing to the temp3_reset sysfs file will lead to an
-array overrun, in turn causing an I2C write to a random register of the
-FSC Poseidon chip. Additionally, writing to temp1_reset and temp2_reset
-will not work as expected. The fix is straightforward.
+remove offset skews from dev-attr get-set functions, as theyre
+now implemented in array initialization.
 
-This patch is a candidate for 2.6.13 (or 2.6.13.1 if it's too late for
-2.6.13.)
+$ diffstat 20-fixup-offset-skews
+ pc87360.c |   76 
++++++++++++++++++++++++++++++++-------------------------------
+ 1 files changed, 38 insertions(+), 38 deletions(-)
 
-Thanks.
+Signed-off-by:  Jim Cromie <jcromie@divsol.com>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- drivers/hwmon/fscpos.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-2.6.13-rc7.orig/drivers/hwmon/fscpos.c	2005-08-25 18:21:37.000000000 +0200
-+++ linux-2.6.13-rc7/drivers/hwmon/fscpos.c	2005-08-25 18:22:09.000000000 +0200
-@@ -167,7 +167,7 @@
- 				"experience to the module author.\n");
- 
- 	/* Supported value: 2 (clears the status) */
--	fscpos_write_value(client, FSCPOS_REG_TEMP_STATE[nr], 2);
-+	fscpos_write_value(client, FSCPOS_REG_TEMP_STATE[nr - 1], 2);
- 	return count;
+-------------- next part --------------
+diff -ruNp -X exclude-diffs lx-22/drivers/hwmon/pc87360.c lx-23/drivers/hwmon/pc87360.c
+--- lx-22/drivers/hwmon/pc87360.c	2005-08-01 12:47:37.000000000 -0600
++++ lx-23/drivers/hwmon/pc87360.c	2005-08-01 12:51:39.000000000 -0600
+@@ -279,35 +279,35 @@ static ssize_t show_fan_input(struct dev
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index-1],
+-		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])));
++	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index],
++		       FAN_DIV_FROM_REG(data->fan_status[attr->index])));
+ }
+ static ssize_t show_fan_min(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index-1],
+-		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])));
++	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index],
++		       FAN_DIV_FROM_REG(data->fan_status[attr->index])));
+ }
+ static ssize_t show_fan_div(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+ 	return sprintf(buf, "%u\n",
+-		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]));
++		       FAN_DIV_FROM_REG(data->fan_status[attr->index]));
+ }
+ static ssize_t show_fan_status(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+ 	return sprintf(buf, "%u\n",
+-		       FAN_STATUS_FROM_REG(data->fan_status[attr->index-1]));
++		       FAN_STATUS_FROM_REG(data->fan_status[attr->index]));
+ }
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+ 	size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	return _set_fan_min(dev, buf, count, attr->index-1);
++	return _set_fan_min(dev, buf, count, attr->index);
  }
  
-
--- 
-Jean Delvare
+ static struct sensor_device_attribute sda_fan_input[] @@ -341,9 +341,9 @@ static ssize_t show_pwm(struct device *d
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+ 	return sprintf(buf, "%u\n",
+-		       PWM_FROM_REG(data->pwm[attr->index-1],
++		       PWM_FROM_REG(data->pwm[attr->index],
+ 				    FAN_CONFIG_INVERT(data->fan_conf,
+-						      attr->index-1)));
++						      attr->index)));
+ }
+ static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr, const char *buf,
+ 	size_t count)
+@@ -354,10 +354,10 @@ static ssize_t set_pwm(struct device *de
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->pwm[attr->index-1] = PWM_TO_REG(val,
+-			      FAN_CONFIG_INVERT(data->fan_conf, attr->index-1));
+-	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_PWM(attr->index-1),
+-			    data->pwm[attr->index-1]);
++	data->pwm[attr->index] = PWM_TO_REG(val,
++			      FAN_CONFIG_INVERT(data->fan_conf, attr->index));
++	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_PWM(attr->index),
++			    data->pwm[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -490,21 +490,21 @@ static ssize_t show_therm_input(struct d
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[attr->index+7],
++	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[attr->index+11],
+ 		       data->in_vref));
+ }
+ static ssize_t show_therm_min(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_min[attr->index+7],
++	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_min[attr->index+11],
+ 		       data->in_vref));
+ }
+ static ssize_t show_therm_max(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_max[attr->index+7],
++	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_max[attr->index+11],
+ 		       data->in_vref));
+ }
+ static ssize_t show_therm_crit(struct device *dev, struct device_attribute *devattr, char *buf)
+@@ -518,7 +518,7 @@ static ssize_t show_therm_status(struct 
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%u\n", data->in_status[attr->index+7]);
++	return sprintf(buf, "%u\n", data->in_status[attr->index+11]);
+ }
+ static ssize_t set_therm_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+ 	size_t count)
+@@ -529,9 +529,9 @@ static ssize_t set_therm_min(struct devi
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->in_min[attr->index+7] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index+7, PC87365_REG_TEMP_MIN,
+-			    data->in_min[attr->index+7]);
++	data->in_min[attr->index+11] = IN_TO_REG(val, data->in_vref);
++	pc87360_write_value(data, LD_IN, attr->index+11, PC87365_REG_TEMP_MIN,
++			    data->in_min[attr->index+11]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -544,9 +544,9 @@ static ssize_t set_therm_max(struct devi
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->in_max[attr->index+7] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index+7, PC87365_REG_TEMP_MAX,
+-			    data->in_max[attr->index+7]);
++	data->in_max[attr->index+11] = IN_TO_REG(val, data->in_vref);
++	pc87360_write_value(data, LD_IN, attr->index+11, PC87365_REG_TEMP_MAX,
++			    data->in_max[attr->index+11]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -560,7 +560,7 @@ static ssize_t set_therm_crit(struct dev
+ 
+ 	down(&data->update_lock);
+ 	data->in_crit[attr->index] = IN_TO_REG(val, data->in_vref);
+-	pc87360_write_value(data, LD_IN, attr->index+7, PC87365_REG_TEMP_CRIT,
++	pc87360_write_value(data, LD_IN, attr->index+11, PC87365_REG_TEMP_CRIT,
+ 			    data->in_crit[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
+@@ -631,31 +631,31 @@ static ssize_t show_temp_input(struct de
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index-1]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index]));
+ }
+ static ssize_t show_temp_min(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[attr->index-1]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[attr->index]));
+ }
+ static ssize_t show_temp_max(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[attr->index-1]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[attr->index]));
+ }
+ static ssize_t show_temp_crit(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[attr->index-1]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[attr->index]));
+ }
+ static ssize_t show_temp_status(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+-	return sprintf(buf, "%d\n", data->temp_status[attr->index-1]);
++	return sprintf(buf, "%d\n", data->temp_status[attr->index]);
+ }
+ static ssize_t set_temp_min(struct device *dev, struct device_attribute *devattr, const char *buf,
+ 	size_t count)
+@@ -666,9 +666,9 @@ static ssize_t set_temp_min(struct devic
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->temp_min[attr->index-1] = TEMP_TO_REG(val);
+-	pc87360_write_value(data, LD_TEMP, attr->index-1, PC87365_REG_TEMP_MIN,
+-			    data->temp_min[attr->index-1]);
++	data->temp_min[attr->index] = TEMP_TO_REG(val);
++	pc87360_write_value(data, LD_TEMP, attr->index, PC87365_REG_TEMP_MIN,
++			    data->temp_min[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -681,9 +681,9 @@ static ssize_t set_temp_max(struct devic
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->temp_max[attr->index-1] = TEMP_TO_REG(val);
+-	pc87360_write_value(data, LD_TEMP, attr->index-1, PC87365_REG_TEMP_MAX,
+-			    data->temp_max[attr->index-1]);
++	data->temp_max[attr->index] = TEMP_TO_REG(val);
++	pc87360_write_value(data, LD_TEMP, attr->index, PC87365_REG_TEMP_MAX,
++			    data->temp_max[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -696,9 +696,9 @@ static ssize_t set_temp_crit(struct devi
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->temp_crit[attr->index-1] = TEMP_TO_REG(val);
+-	pc87360_write_value(data, LD_TEMP, attr->index-1, PC87365_REG_TEMP_CRIT,
+-			    data->temp_crit[attr->index-1]);
++	data->temp_crit[attr->index] = TEMP_TO_REG(val);
++	pc87360_write_value(data, LD_TEMP, attr->index, PC87365_REG_TEMP_CRIT,
++			    data->temp_crit[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
