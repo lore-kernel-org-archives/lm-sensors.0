@@ -1,7 +1,7 @@
 From: ericb@aspsys.com (Eric J. Bowersox)
-Date: Tue, 02 Aug 2005 21:10:37 +0000
+Date: Tue, 02 Aug 2005 22:48:52 +0000
 Subject: [lm-sensors] [PATCH] lm93 driver for 2.6, second try
-Message-Id: <1123009769.14749.9.camel@wiz.dev.aspsys.com>
+Message-Id: <1123015677.14754.11.camel@wiz.dev.aspsys.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1122934191.32459.18.camel@wiz.dev.aspsys.com>
 In-Reply-To: <1122934191.32459.18.camel@wiz.dev.aspsys.com>
@@ -46,10 +46,5 @@ Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
 <ericb@aspsys.com>                      3900 Youngfield Street
 Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
 Fax: +01 303 431 7196                   <http://www.aspsys.com>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: This is a digitally signed message part
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050802/3b35d621/attachment.bin
+
+
