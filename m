@@ -1,46 +1,70 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Mon, 01 Aug 2005 22:47:26 +0000
-Subject: [lm-sensors] Re: [pc87360.c 6/23] s/offset/attr->index/ in pwm
-Message-Id: <42EE89EE.2080302@divsol.com>
+From: ericb@aspsys.com (Eric J. Bowersox)
+Date: Wed, 03 Aug 2005 01:13:12 +0000
+Subject: [Fwd: Re: [lm-sensors] [PATCH] lm93 driver for 2.6, second try]
+Message-Id: <1123024348.14749.44.camel@wiz.dev.aspsys.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+(Dang...I keep forgetting to turn my auto-signature OFF before sending
+to the mailing list...)
 
-use attr->index instead of offset in voltage get/set macros
+On Tue, 2005-08-02 at 16:33, Mark M. Hoffman wrote:
+> "Hosation" - that's a new one.  You from up north eh? ;)
 
-[jimc@harpo pset]$ diffstat 04x-sda-pwm-quell-warns
- pc87360.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+No, actually, a coworker of mine came up with that many years ago, in
+the phrase "Enable hosation without representation." :-)
+
+> CVS/lm93.c, line 450:
+> 
+> 	result = i2c_smbus_read_block_data(client,
+> 
+> Your patch, at the equivalent place:
+> 
+> 	result = i2c_smbus_read_i2c_block_data(client,
+> 
+> Those two aren't synonyms - you changed the transaction type.  Why?
+
+Well, for one thing, the function i2c_smbus_read_block_data doesn't seem
+to exist anymore, though its twin, i2c_smbus_write_block_data, does. 
+(See: include/linux/i2c.h, lines 99-103, in 2.6.13-rc3-mm3.)
+
+You're right that there is a difference in the underlying
+implementations, but the old (and presumably correct, in this instance)
+function appears to have been removed sometime between 2.6.5 and
+2.6.13-rc3-mm3.  Anyone have any idea why that was done?  As a
+workaround, should I basically create my own implementation of the old
+i2c_smbus_read_block_data by calling i2c_smbus_xfer myself?
+
+> (You also reminded me that i2c-i801.c in 2.6.x should get synced up
+> a bit with its twin in lm-sensors CVS.  I'll do that later.)
+
+Yeah, in particular, in the "prochot" reporting, I noticed that you
+seemed to be reporting the "average" return value twice.  In
+kernel/chips/lm93.c, lines 1113-1115, it reads:
+
+                results[0] = data->prochot_max[nr];
+                results[1] = data->block4[nr].avg;
+                results[2] = data->block4[nr].avg;
+
+I'm thinking that middle line (1114) should be more like:
+
+                results[1] = data->block4[nr].cur;
+
+At least if it's to be consistent with what the docs say that /proc file
+should report.  (That actually threw me for awhile, and it's only in
+this version of my own patch that I think I've got that reporting
+correctly.  Not that it really concerns us here; we're more focused on
+getting the basic sensor readings.)
+
+					Eric
+
+-- 
+Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
+<ericb@aspsys.com>                      3900 Youngfield Street
+Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
+Fax: +01 303 431 7196                   <http://www.aspsys.com>
 
 
-Signed-off-by:  Jim Cromie <jcromie@divsol.com>
-
--------------- next part --------------
-diff -ruNp -X exclude-diffs lxC-6/drivers/hwmon/pc87360.c lxC-7/drivers/hwmon/pc87360.c
---- lxC-6/drivers/hwmon/pc87360.c	2005-07-31 12:11:15.000000000 -0600
-+++ lxC-7/drivers/hwmon/pc87360.c	2005-07-31 12:11:59.000000000 -0600
-@@ -328,7 +328,7 @@ static ssize_t show_pwm##offset(struct d
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", \
--		       PWM_FROM_REG(data->pwm[offset-1], \
-+		       PWM_FROM_REG(data->pwm[attr->index-1], \
- 				    FAN_CONFIG_INVERT(data->fan_conf, \
- 						      offset-1))); \
- } \
-@@ -341,10 +341,10 @@ static ssize_t set_pwm##offset(struct de
- 	long val = simple_strtol(buf, NULL, 10); \
-  \
- 	down(&data->update_lock); \
--	data->pwm[offset-1] = PWM_TO_REG(val, \
-+	data->pwm[attr->index-1] = PWM_TO_REG(val, \
- 			      FAN_CONFIG_INVERT(data->fan_conf, offset-1)); \
- 	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_PWM(offset-1), \
--			    data->pwm[offset-1]); \
-+			    data->pwm[attr->index-1]); \
- 	up(&data->update_lock); \
- 	return count; \
- } \
