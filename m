@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Wed, 03 Aug 2005 00:34:05 +0000
+From: ericb@aspsys.com (Eric J. Bowersox)
+Date: Wed, 03 Aug 2005 01:09:45 +0000
 Subject: [lm-sensors] [PATCH] lm93 driver for 2.6, second try
-Message-Id: <20050802223329.GA20614@jupiter.solarsys.private>
+Message-Id: <1123024125.14749.41.camel@wiz.dev.aspsys.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1122934191.32459.18.camel@wiz.dev.aspsys.com>
 In-Reply-To: <1122934191.32459.18.camel@wiz.dev.aspsys.com>
@@ -10,56 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Eric:
+On Tue, 2005-08-02 at 16:33, Mark M. Hoffman wrote:
+> "Hosation" - that's a new one.  You from up north eh? ;)
 
-* Eric J. Bowersox <ericb@aspsys.com> [2005-08-02 13:09:29 -0600]:
-> On Mon, 2005-08-01 at 16:09, Eric J. Bowersox wrote:
-> > I haven't tested this particular code yet, but that will happen shortly,
-> > once our production engineers find me an X6DHP box to tinker with.
+No, actually, a coworker of mine came up with that many years ago, in
+the phrase "Enable hosation without representation." :-)
+
+> CVS/lm93.c, line 450:
 > 
-> Well, that's changed...I *have* tested it now on an X6DHP box running
-> SuSE Enterprise 9 with the 2.6.13-rc3-mm3 kernel (plus the lm93 driver)
-> and lm_sensors 2.9.1.  When loaded normally, the driver puts these
-> messages into the system log:
+> 	result = i2c_smbus_read_block_data(client,
 > 
-> Aug  2 12:53:58 cr0219en kernel: i801_smbus 0000:00:1f.3:
-> I2C_SMBUS_I2C_BLOCK_READ not DB!
-> Aug  2 12:53:58 cr0219en kernel: lm93 0-002e: lm93: block read data
-> failed, command 0xf5.
+> Your patch, at the equivalent place:
 > 
-> (This gets repeated over and over, with the "command" value in the
-> message changing to values like 0xf9, 0xf6, 0xf7, and 0xf4.)
+> 	result = i2c_smbus_read_i2c_block_data(client,
 > 
-> And, under these circumstances, the sensor readings are essentially
-> blank; all 0's for voltage, all -1's for fan speed, and all 0's for
-> temperature.
-> 
-> I unloaded the module and reloaded it with disable_block=1 (thank you
-> Mark for thinking of that option!), and the sensor readings looked more
-> reasonable.
-> 
-> Any idea what's going on here?  Obviously, the block operations in the
-> driver are hosed somehow, I'm just not sure where to look for the source
-> of the hosation...
+> Those two aren't synonyms - you changed the transaction type.  Why?
 
-"Hosation" - that's a new one.  You from up north eh? ;)
+Well, for one thing, the function i2c_smbus_read_block_data doesn't seem
+to exist anymore, though its twin, i2c_smbus_write_block_data, does. 
+(See: include/linux/i2c.h, lines 99-103, in 2.6.13-rc3-mm3.)
 
-CVS/lm93.c, line 450:
+You're right that there is a difference in the underlying
+implementations, but the old (and presumably correct, in this instance)
+function appears to have been removed sometime between 2.6.5 and
+2.6.13-rc3-mm3.  Anyone have any idea why that was done?  As a
+workaround, should I basically create my own implementation of the old
+i2c_smbus_read_block_data by calling i2c_smbus_xfer myself?
 
-	result = i2c_smbus_read_block_data(client,
+> (You also reminded me that i2c-i801.c in 2.6.x should get synced up
+> a bit with its twin in lm-sensors CVS.  I'll do that later.)
 
-Your patch, at the equivalent place:
+Yeah, in particular, in the "prochot" reporting, I noticed that you
+seemed to be reporting the "average" return value twice.  In
+kernel/chips/lm93.c, lines 1113-1115, it reads:
 
-	result = i2c_smbus_read_i2c_block_data(client,
+                results[0] = data->prochot_max[nr];
+                results[1] = data->block4[nr].avg;
+                results[2] = data->block4[nr].avg;
 
-Those two aren't synonyms - you changed the transaction type.  Why?
+I'm thinking that middle line (1114) should be more like:
 
-(You also reminded me that i2c-i801.c in 2.6.x should get synced up
-a bit with its twin in lm-sensors CVS.  I'll do that later.)
+                results[1] = data->block4[nr].cur;
 
-Regards,
+At least if it's to be consistent with what the docs say that /proc file
+should report.  (That actually threw me for awhile, and it's only in
+this version of my own patch that I think I've got that reporting
+correctly.  Not that it really concerns us here; we're more focused on
+getting the basic sensor readings.)
+
+					Eric
 
 -- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
+<ericb@aspsys.com>                      3900 Youngfield Street
+Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
+Fax: +01 303 431 7196                   <http://www.aspsys.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050803/e88fd670/attachment.bin
