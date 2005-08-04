@@ -1,64 +1,31 @@
-From: support-squid@bfinance.fr (jonathan)
-Date: Tue, 09 Aug 2005 16:27:41 +0000
-Subject: [lm-sensors] bmcsensors and ipmi on Poweredge
-Message-Id: <1123604936.4449.6.camel@localhost.localdomain>
+From: harshadx.prabhu@intel.com (Prabhu, HarshadX)
+Date: Thu, 04 Aug 2005 15:20:22 +0000
+Subject: [lm-sensors] Query on compilation of lm_sensors
+Message-Id: <3D8B16F753179D4588D4B0C8FF7EAC450217D036@bgsmsx402.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1123503404.3182.14.camel@localhost.localdomain>
-In-Reply-To: <1123503404.3182.14.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2005-08-08 at 13:03 -0400, Yani Ioannou wrote:
-> Hi Jonathan,
-> 
-> It looks like you haven't loaded the ipmi modules, try loading all of
-> the ipmi modules before you load i2c-ipmi and bmcsensors and then
-> sensors -s, and then try sensors again.
-> 
-> Yani
+Hi ,
+ 
+ I am using lm_sensors to communicate to some devices on SMBus.
+ I tried to compile the "lm_sensors-2.9.1" and "i2c-2.9.1". But in one
+of our board which has Redhat RHEL 3.0.
+ The compilation is continuously going into infinite mode. I think it is
+recursively compiling the same stuff.
+ I was not able to install the i2c 2.9.1 also.
+ 
+ Has anyone faced the problem of continuous compilation (infinitely the
+same thing) of i2c and lm-sensors.
+ Please provide pointers if anyone knows it.
 
-thanks Yani, you were right, but it seems that the outputs values are a
-little bit strange, aren't they ?
+Thanks
+Harshad
 
-# sensors -s     --> no output ?
-# sensors
-bmc-i2c-1-00
-Adapter: IPMI adapter
-in1:       +1.48 V  (min =  +1.56 V, max =  +1.73 V)   
-in2:       +1.90 V  (min =  +1.56 V, max =  +1.73 V)   
-in3:       +1.90 V  (min =  +1.56 V, max =  +1.73 V)   
-in4:       +1.48 V  (min =  +1.56 V, max =  +1.73 V)   
-in5:       +1.90 V  (min =  +4.79 V, max =  +5.21 V)   
-in6:       +5.08 V  (min = +11.39 V, max = +12.61 V)   
-in7:      +11.90 V  (min =  +3.16 V, max =  +3.44 V)   
-in8:       +3.27 V  (min =  +2.49 V, max =  +3.28 V)   
-in9:       +3.12 V  (min =  +2.42 V, max =  +2.58 V)   
-in10:      +2.55 V  (min =  +2.42 V, max =  +2.58 V)   
-fan1:     6240 RPM  (min = 1080 RPM)                  
-fan2:     6360 RPM  (min = 1080 RPM)                  
-fan3:     6240 RPM  (min = 1080 RPM)                  
-fan4:     6720 RPM  (min = 1080 RPM)                  
-fan5:     6360 RPM  (min = 1080 RPM)                  
-fan6:     6240 RPM  (min = 1080 RPM)                  
-fan7:     6480 RPM  (min = 1080 RPM)                  
-temp1:    -128.0 C  (high =   +80 C, hyst =  -127 C)   
-temp2:    -930.0 C  (high =   +80 C, hyst =  -127 C)   
-temp3:    -1280.0 C  (high =   +80 C, hyst =  -127 C)   
-temp4:    -930.0 C  (high =   +80 C, hyst =  -127 C)   
-temp5:    +320.0 C  (high =   +55 C, hyst =  -127 C)   
-temp6:    +190.0 C  (high =   +40 C, hyst =  -127 C)   
-temp7:    -750.0 C  (high =   +55 C, hyst =  -127 C)   
-temp8:    -760.0 C  (high =   +55 C, hyst =  -127 C)   
-temp9:    -750.0 C  (high =   +55 C, hyst =  -127 C)   
-temp10:   +270.0 C  (high =   +55 C, hyst =  -127 C)   
-
-for example, why temp1 is set to -128.0 C ?   Is there a revolutionnary
-coolerator inside ? (joke)
-
-Seriously, must I configure something to get the right values or what's
-going on ?
-
-thanks
-
+PS: I am new to this list and this is the first message I am posting.
+ 
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050804/a0ae0bfc/attachment.html
