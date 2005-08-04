@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (jim.cromie@gmail.com)
-Date: Wed, 31 Aug 2005 00:42:43 +0000
-Subject: [lm-sensors] [patch 3/6] pc87360 SDA callbacks - callback demacro
-Message-Id: <200508302241.j7UMfSns007945@harpo.jimc.earth>
+From: jcromie@divsol.com (Jim Cromie)
+Date: Thu, 04 Aug 2005 02:26:15 +0000
+Subject: [lm-sensors] [patch pc87360 reroll 3/6] de-macro-ize dev-attr
+Message-Id: <42F16043.7020706@divsol.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,25 +9,21 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-03.	i2c-pc87360-03-attr-callback-demacro.patch
-
-Convert macro-repeated callback-fns to single declaration.  They're
-already using attr->index (patch 1), and are disambiguated (patch 2),
-so this is as close as possible to a white-space patch.
-
- pc87360.c |  586 +++++++++++++++++++++++++++++++-------------------------------
+> convert macro-repeated callback-fns to single declaration
+>    theyre already using attr->index (patch 1)
+>    so this is close to a white-space patch.
+>
+$ diffstat 03-pc87360-attr-callback-demacro.patch
+ pc87360.c |  586 
++++++++++++++++++++++++++++++++-------------------------------
  1 files changed, 296 insertions(+), 290 deletions(-)
 
-
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
-
-
-
-
-diff -ruNp -X exclude-diffs A-2/drivers/hwmon/pc87360.c A-3/drivers/hwmon/pc87360.c
---- A-2/drivers/hwmon/pc87360.c	2005-08-29 11:31:51.000000000 -0600
-+++ A-3/drivers/hwmon/pc87360.c	2005-08-29 11:33:45.000000000 -0600
-@@ -281,152 +281,154 @@ static ssize_t _set_fan_min(struct devic
+Signed-off-by:  Jim Cromie <jcromie@divsol.com>
+-------------- next part --------------
+diff -ruNp -X exclude-diffs gc-2/drivers/hwmon/pc87360.c gc-3/drivers/hwmon/pc87360.c
+--- gc-2/drivers/hwmon/pc87360.c	2005-08-03 17:12:16.000000000 -0600
++++ gc-3/drivers/hwmon/pc87360.c	2005-08-03 17:12:38.000000000 -0600
+@@ -275,152 +275,154 @@ static ssize_t _set_fan_min(struct devic
  	return count;
  }
  
@@ -308,7 +304,7 @@ diff -ruNp -X exclude-diffs A-2/drivers/hwmon/pc87360.c A-3/drivers/hwmon/pc8736
  show_and_set_in(0)
  show_and_set_in(1)
  show_and_set_in(2)
-@@ -439,96 +441,97 @@ show_and_set_in(8)
+@@ -433,96 +435,97 @@ show_and_set_in(8)
  show_and_set_in(9)
  show_and_set_in(10)
  
@@ -490,7 +486,7 @@ diff -ruNp -X exclude-diffs A-2/drivers/hwmon/pc87360.c A-3/drivers/hwmon/pc8736
  show_and_set_therm(4)
  show_and_set_therm(5)
  show_and_set_therm(6)
-@@ -561,96 +564,99 @@ static ssize_t show_in_alarms(struct dev
+@@ -555,96 +558,99 @@ static ssize_t show_in_alarms(struct dev
  }
  static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
  
