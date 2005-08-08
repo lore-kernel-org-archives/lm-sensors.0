@@ -1,111 +1,244 @@
-From: yani.ioannou@gmail.com (Yani Ioannou)
-Date: Sat, 13 Aug 2005 07:22:46 +0000
-Subject: [lm-sensors] Re: General Protection Fault with bcmsensors
-Message-Id: <253818670508122222581b2b1f@mail.gmail.com>
+From: support-squid@bfinance.fr (jonathan)
+Date: Mon, 08 Aug 2005 14:17:28 +0000
+Subject: [lm-sensors] bmcsensors and ipmi on Poweredge
+Message-Id: <1123503404.3182.14.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.60.0508081716070.24140@kepler.fjfi.cvut.cz>
-In-Reply-To: <Pine.LNX.4.60.0508081716070.24140@kepler.fjfi.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Martin,
 
-On 8/10/05, Yani Ioannou <yani.ioannou@gmail.com> wrote:
-> Hi,
-> 
-> I tested it out with 2.6.13-rc1, but I'll try it out with 2.6.13-rc6
-> and get back to you.
-> 
-> Yani
-> 
-> On 8/10/05, Martin Drab <drab@kepler.fjfi.cvut.cz> wrote:
-> > On Mon, 8 Aug 2005, Yani Ioannou wrote:
-> > > On 8/8/05, Martin Drab <drab@kepler.fjfi.cvut.cz> wrote:
-> > > > None of the kernel patches work for recent kernels. I'm not entirely sure
-> > > > since when exactly it began, but from a certain point those patches on
-> > > > the sf.net cased to work properly and began to crash like that.
-> > > >
-> > > > Recently there were some fixes that needed to be done in order to make
-> > > > those patches on sf.net compile (changes in i2c structures), but though it
-> > > > compiled, it crashed.
-> > > >
-> > > > So I thought I'll try the CVS bmcsensors-26. Those compiled without a
-> > > > problem (that's probably the patch you are referring to and perhaps
-> > > > simillar that I was using), but it crashes the same way as well. So I
-> > > > think there may be some other problem introduced somewhere else in recent
-> > > > kernels. Tomorrow when I get a chance to safely reboot the server I may
-> > > > try to find when it was last working. From what I can briefly see from the
-> > > > past kernel logs, it seems to have been working with the kernel 2.6.12.2,
-> > > > then I tried the 2.6.13-rc4-git4 and it crashed allready. (Both had to be
-> > > > patched to compile and for both I used the same patch.)
-> > >
-> > > lol..indeed the problem is something that was introduced into the
-> > > kernel at 2.6.13-rc1 - a change by myself :-). The sysfs callbacks
-> > > need to be updated (you should have got warnings complaining of an
-> > > invalid function pointer when you compiled the module) for newer
-> > > kernels, I'll fix that now, and commit it to CVS so you can try it out
-> > > tomorrow, and I will try to test this out on my own machines tonight
-> > > too.
-> >
-> > I've tested the current CVS again. It seems to be updated, and it no
-> > longer gives the compile warnings. But still it produces a crash. although
-> > the system isn't frozen, unless the IPMI watchdog is enabled, which runs
-> > out and reboots the comp. When I disable it, the system runs on. So,
-> > perhaps just the IPMI part crashes and the watchdog is no longer
-> > refreshed.
-> >
-> > Anyway, the crash again occurs when you try to read the sensors
-> > values (either directly through sysfs or using sensors) now produces this:
-> >
-> > ---------------
-> > Aug 10 16:58:39 neutron kernel: [  672.694754] Unable to handle kernel paging request at ffffffff89feb91c RIP:
-> > Aug 10 16:58:39 neutron kernel: [  672.694942] <ffffffff881e77cc>{:bmcsensors:show_sensor+44}
-> > Aug 10 16:58:39 neutron kernel: [  672.719842] PGD 103027 PUD 105027 PMD 0
-> > Aug 10 16:58:39 neutron kernel: [  672.719847] Oops: 0000 [1] SMP
-> > Aug 10 16:58:39 neutron kernel: [  672.719850] CPU 1
-> > Aug 10 16:58:39 neutron kernel: [  672.719852] Modules linked in: ipmi_si ipmi_devintf i2c_ipmi bmcsensors i2c_isa i2c_amd756 nfsd exportfs lockd nfs_acl parport_pc lp parport autofs4 sunrpc powernow_k8 freq_table binfmt_misc dm_mod video thermal processor hotkey fan container button battery ac ipv6 usbkbd usbhid ohci_hcd i2c_amd8111 i2c_core hw_random shpchp tg3 ide_cd cdrom sg usbcore ext3 jbd sd_mod
-> > Aug 10 16:58:39 neutron kernel: [  672.719868] Pid: 3364, comm: sensors Not tainted 2.6.13-rc6
-> > Aug 10 16:58:39 neutron kernel: [  672.719870] RIP: 0010:[<ffffffff881e77cc>] <ffffffff881e77cc>{:bmcsensors:show_sensor+44}
-> > Aug 10 16:58:39 neutron kernel: [  672.719878] RSP: 0018:ffff810076ff9ea8  EFLAGS: 00010216
-> > Aug 10 16:58:39 neutron kernel: [  672.719881] RAX: 0000000001dfff88 RBX: ffff810037c65240 RCX: fffffffffffffff4
-> > Aug 10 16:58:39 neutron kernel: [  672.719885] RDX: 00000000001ffff8 RSI: ffff810037c65240 RDI: ffffffff881eac00
-> > Aug 10 16:58:39 neutron kernel: [  672.719888] RBP: ffff810075f954a0 R08: ffff810040000000 R09: 0000000000000282
-> > Aug 10 16:58:39 neutron kernel: [  672.719891] R10: 0000000000000000 R11: ffffffff881e77a0 R12: ffff81007f3f0000
-> > Aug 10 16:58:39 neutron kernel: [  672.719895] R13: ffff810076ff9f50 R14: ffffffff80438440 R15: ffffffff881ead00
-> > Aug 10 16:58:39 neutron kernel: [  672.719899] FS:  00002aaaaaad9e40(0000) GS:ffffffff80541880(0000) knlGS:0000000061b80bb0
-> > Aug 10 16:58:39 neutron kernel: [  672.719902] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> > Aug 10 16:58:39 neutron kernel: [  672.719905] CR2: ffffffff89feb91c CR3: 000000003b70d000 CR4: 00000000000006e0
-> > Aug 10 16:58:39 neutron kernel: [  672.719908] Process sensors (pid: 3364, threadinfo ffff810076ff8000, task ffff81003c54c070)
-> > Aug 10 16:58:39 neutron kernel: [  672.719910] Stack: ffffffff881ead00 ffff810075f95480 0000000000001000 ffffffff801c48af
-> > Aug 10 16:58:39 neutron kernel: [  672.719916]        0000000000000000 00002aaaadb48000 ffff810037c65240 ffff81007df09180
-> > Aug 10 16:58:39 neutron kernel: [  672.719921]        0000000000000000 0000000000001000
-> > Aug 10 16:58:39 neutron kernel: [  672.719923] Call Trace:<ffffffff801c48af>{sysfs_read_file+175} <ffffffff8018342b>{vfs_read+219}
-> > Aug 10 16:58:39 neutron kernel: [  672.719942]        <ffffffff80183bf3>{sys_read+83} <ffffffff8010dcf2>{system_call+126}
-> > Aug 10 16:58:40 neutron kernel: [  672.719952]
-> > Aug 10 16:58:40 neutron kernel: [  672.719957]
-> > Aug 10 16:58:40 neutron kernel: [  672.719958] Code: 0f b6 b8 94 b9 1e 88 48 8d b0 60 b9 1e 88 e8 11 fe ff ff 4c
-> > Aug 10 16:58:40 neutron kernel: [  672.719965] RIP <ffffffff881e77cc>{:bmcsensors:show_sensor+44} RSP <ffff810076ff9ea8>
-> > Aug 10 16:58:40 neutron kernel: [  672.719972] CR2: ffffffff89feb91c
-> > ---------------
-> >
-> > Is it possible you forgot to update something? Or is it a different bug?
-> >
-> > Martin
-> >
-> >
-> 
+Hi,
+I want to check CPU temperature of my dell's poweredge 1750 server,
+running a debian.
+I have recompiled my 2.6.10 kernel including IPMI and I2C modules.
 
-Indeed with 2.6.13-rc6 I have the same problem, but I highly suspect
-it has to do with the new hwmon patch. To move bmcsensors to hwmon
-though I need a device struct in the IPMI subsystem to hang
-device_attributes off and that brings us back to the same place the
-re-write (ipmi-sensors) is stuck at right now (see my updated web page
-at http://bmcsensors-26.sourceforge.net/).
+I have installed lm-sensors but after a running sensors-detect and
+setting modules.conf ... nothing output on sensors command: No sensors
+found!
 
-I have quite a bit of work done on adding the driver model to the IPMI
-subsystem, but it is not in any state to be submitted yet, and I won't
-have the time to work on it for a week :-(.
 
-Yani
+this is my sensors-detect output :
+
+---------------------------------------------------------------------
+This program will help you determine which I2C/SMBus modules you need to
+load to use lm_sensors most effectively. You need to have i2c and
+lm_sensors installed before running this program.
+Also, you need to be `root', or at least have access to the /dev/i2c-*
+files, for most things.
+If you have patched your kernel and have some drivers built in, you can
+safely answer NO if asked to load some modules. In this case, things may
+seem a bit confusing, but they will still work.
+
+It is generally safe and recommended to accept the default answers to
+all
+questions, unless you know what you're doing.
+
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no): 
+Probing for PCI bus adapters...
+Use driver `i2c-piix4' for device 00:0f.0: ServerWorks CSB5 South Bridge
+Probe succesfully concluded.
+
+We will now try to load each adapter module in turn.
+Module `i2c-piix4' already loaded.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
+
+ To continue, we need module `i2c-dev' to be loaded.
+ If it is built-in into your kernel, you can safely skip this.
+i2c-dev is already loaded.
+
+ We are now going to do the adapter probings. Some adapters may hang
+halfway
+ through; we can't really help that. Also, some chips will be double
+detected;
+ we choose the one with the highest confidence value in that case.
+ If you found that the adapter hung after probing a certain address, you
+can
+ specify that address to remain unprobed. That often
+ includes address 0x69 (clock chip).
+
+Some chips are also accessible through the ISA bus. ISA probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
+
+Do you want to scan the ISA bus? (YES/no): 
+Probing for `National Semiconductor LM78'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM78-J'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM79'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83782D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Failed!
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT82C686 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT8231 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `ITE IT8712F'
+  Trying address 0x0290... Failed!
+Probing for `ITE IT8705F / SiS 950'
+  Trying address 0x0290... Failed!
+Probing for `IPMI BMC KCS'
+  Trying address 0x0ca0... Success!
+    (confidence 4, driver `bmcsensors')
+Probing for `IPMI BMC SMIC'
+  Trying address 0x0ca8... Failed!
+
+Some Super I/O chips may also contain sensors. Super I/O probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
+
+Do you want to scan for Super I/O sensors? (YES/no):          
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (0xee11)
+Probing for `ITE 8705F Super IO Sensors'
+  Failed! (0xee11)
+Probing for `ITE 8712F Super IO Sensors'
+  Failed! (0xee11)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87360 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87363 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87364 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87365 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87365 Super IO Voltage Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87365 Super IO Thermal Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87366 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87366 Super IO Voltage Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87366 Super IO Thermal Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87372 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87373 Super IO Fan Sensors'
+
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87591 Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87371 Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC97371 Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC8739x Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC8741x Super IO'
+  Success... (no hardware monitoring capabilities)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M10x/13x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M14x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M15x/192 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47S42x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47S45x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M172 Super IO'
+  Failed! (0xee)
+Probing for `SMSC LPC47B397-NC Super IO'
+  Failed! (0xee)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83627HF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83627THF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83637HF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83697HF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83697SF/UF Super IO PWM'
+  Failed! (0xee)
+Probing for `Winbond W83L517D Super IO'Do you want to scan for secondary
+Super I/O sensors? (YES/no):                                         
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Winbond W83627EHF Super IO Sensors'
+  Failed! (skipping family)
+
+ Now follows a summary of the probes I have just done.
+ Just press ENTER to continue: 
+
+Driver `bmcsensors' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0ca0 (Busdriver `i2c-isa')
+    Chip `IPMI BMC KCS' (confidence: 4)
+
+
+ I will now generate the commands needed to load the I2C modules.
+ Sometimes, a chip is available both through the ISA bus and an I2C bus.
+ ISA bus access is faster, but you need to load an additional driver
+module
+ for it. If you have the choice, do you want to use the ISA bus or the
+ I2C/SMBus (ISA/smbus)? 
+
+To make the sensors modules behave correctly, add these lines to
+/etc/modules:
+
+#----cut here----
+# I2C adapter drivers
+i2c-isa
+# You must also install and load the IPMI modules
+i2c-ipmi
+# I2C chip drivers
+# Warning: the required module bmcsensors is not currently installed on
+your system.
+# For status of 2.6 kernel ports see
+http://secure.netroedge.com/~lm78/supported.html
+# If driver is built-in to the kernel, or unavailable, comment out the
+following line.
+bmcsensors
+#----cut here----
+---------------------------------------------------------------------
+
+lsmod output :
+
+root@jaipur:/usr/src/linux# lsmod
+Module                  Size  Used by
+i2c_dev                15104  0 
+i2c_piix4              14096  0 
+i2c_isa                 6144  0 
+i2c_core               29696  3 i2c_dev,i2c_piix4,i2c_isa
+--------------
+
+I have tried to modprobe the modules:
+
+usr/src/linux# modprobe i2c-ipmi
+FATAL: Module i2c_ipmi not found.
+/usr/src/linux# modprobe bmcsensors
+FATAL: Module bmcsensors not found.
+
+why I have always a not found result ?:
+
+/usr/src/linux# sensors  
+No sensors found!
+
+
+thanks for helping me
+
+
+
