@@ -1,70 +1,234 @@
-From: ericb@aspsys.com (Eric J. Bowersox)
-Date: Wed, 03 Aug 2005 01:13:12 +0000
-Subject: [Fwd: Re: [lm-sensors] [PATCH] lm93 driver for 2.6, second try]
-Message-Id: <1123024348.14749.44.camel@wiz.dev.aspsys.com>
+From: jdelcampo@bfinance.com (jonathan)
+Date: Mon, 08 Aug 2005 12:17:56 +0000
+Subject: [lm-sensors] temperature monitor Poweredge 1750
+Message-Id: <1123496234.3182.10.camel@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-(Dang...I keep forgetting to turn my auto-signature OFF before sending
-to the mailing list...)
+Hi,
+I want to check CPU temperature of my dell's poweredge 1750 server,
+running a debian.
+I have recompiled my 2.6.10 kernel including IPMI and I2C modules.
 
-On Tue, 2005-08-02 at 16:33, Mark M. Hoffman wrote:
-> "Hosation" - that's a new one.  You from up north eh? ;)
+I have installed lm-sensors but after a running sensors-detect and
+setting modules.conf ... nothing output on sensors command: No sensors
+found!
 
-No, actually, a coworker of mine came up with that many years ago, in
-the phrase "Enable hosation without representation." :-)
 
-> CVS/lm93.c, line 450:
-> 
-> 	result = i2c_smbus_read_block_data(client,
-> 
-> Your patch, at the equivalent place:
-> 
-> 	result = i2c_smbus_read_i2c_block_data(client,
-> 
-> Those two aren't synonyms - you changed the transaction type.  Why?
+this is my sensors-detect output :
 
-Well, for one thing, the function i2c_smbus_read_block_data doesn't seem
-to exist anymore, though its twin, i2c_smbus_write_block_data, does. 
-(See: include/linux/i2c.h, lines 99-103, in 2.6.13-rc3-mm3.)
+---------------------------------------------------------------------
+This program will help you determine which I2C/SMBus modules you need to
+load to use lm_sensors most effectively. You need to have i2c and
+lm_sensors installed before running this program.
+Also, you need to be `root', or at least have access to the /dev/i2c-*
+files, for most things.
+If you have patched your kernel and have some drivers built in, you can
+safely answer NO if asked to load some modules. In this case, things may
+seem a bit confusing, but they will still work.
 
-You're right that there is a difference in the underlying
-implementations, but the old (and presumably correct, in this instance)
-function appears to have been removed sometime between 2.6.5 and
-2.6.13-rc3-mm3.  Anyone have any idea why that was done?  As a
-workaround, should I basically create my own implementation of the old
-i2c_smbus_read_block_data by calling i2c_smbus_xfer myself?
+It is generally safe and recommended to accept the default answers to
+all
+questions, unless you know what you're doing.
 
-> (You also reminded me that i2c-i801.c in 2.6.x should get synced up
-> a bit with its twin in lm-sensors CVS.  I'll do that later.)
+ We can start with probing for (PCI) I2C or SMBus adapters.
+ You do not need any special privileges for this.
+ Do you want to probe now? (YES/no): 
+Probing for PCI bus adapters...
+Use driver `i2c-piix4' for device 00:0f.0: ServerWorks CSB5 South Bridge
+Probe succesfully concluded.
 
-Yeah, in particular, in the "prochot" reporting, I noticed that you
-seemed to be reporting the "average" return value twice.  In
-kernel/chips/lm93.c, lines 1113-1115, it reads:
+We will now try to load each adapter module in turn.
+Module `i2c-piix4' already loaded.
+If you have undetectable or unsupported adapters, you can have them
+scanned by manually loading the modules before running this script.
 
-                results[0] = data->prochot_max[nr];
-                results[1] = data->block4[nr].avg;
-                results[2] = data->block4[nr].avg;
+ To continue, we need module `i2c-dev' to be loaded.
+ If it is built-in into your kernel, you can safely skip this.
+i2c-dev is already loaded.
 
-I'm thinking that middle line (1114) should be more like:
+ We are now going to do the adapter probings. Some adapters may hang
+halfway
+ through; we can't really help that. Also, some chips will be double
+detected;
+ we choose the one with the highest confidence value in that case.
+ If you found that the adapter hung after probing a certain address, you
+can
+ specify that address to remain unprobed. That often
+ includes address 0x69 (clock chip).
 
-                results[1] = data->block4[nr].cur;
+Some chips are also accessible through the ISA bus. ISA probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
 
-At least if it's to be consistent with what the docs say that /proc file
-should report.  (That actually threw me for awhile, and it's only in
-this version of my own patch that I think I've got that reporting
-correctly.  Not that it really concerns us here; we're more focused on
-getting the basic sensor readings.)
+Do you want to scan the ISA bus? (YES/no): 
+Probing for `National Semiconductor LM78'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM78-J'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM79'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83782D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Failed!
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT82C686 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT8231 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `ITE IT8712F'
+  Trying address 0x0290... Failed!
+Probing for `ITE IT8705F / SiS 950'
+  Trying address 0x0290... Failed!
+Probing for `IPMI BMC KCS'
+  Trying address 0x0ca0... Success!
+    (confidence 4, driver `bmcsensors')
+Probing for `IPMI BMC SMIC'
+  Trying address 0x0ca8... Failed!
 
-					Eric
+Some Super I/O chips may also contain sensors. Super I/O probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
 
--- 
-Eric J. Bowersox, Software Engineer     Aspen Systems, Inc.
-<ericb@aspsys.com>                      3900 Youngfield Street
-Tel: +01 303 431 4606 x113              Wheat Ridge, CO  80033, USA
-Fax: +01 303 431 7196                   <http://www.aspsys.com>
+Do you want to scan for Super I/O sensors? (YES/no):          
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (0xee11)
+Probing for `ITE 8705F Super IO Sensors'
+  Failed! (0xee11)
+Probing for `ITE 8712F Super IO Sensors'
+  Failed! (0xee11)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87360 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87363 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87364 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87365 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87365 Super IO Voltage Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87365 Super IO Thermal Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87366 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87366 Super IO Voltage Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87366 Super IO Thermal Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87372 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87373 Super IO Fan Sensors'
 
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87591 Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC87371 Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC97371 Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC8739x Super IO'
+  Failed! (0xee)
+Probing for `Nat. Semi. PC8741x Super IO'
+  Success... (no hardware monitoring capabilities)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M10x/13x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M14x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M15x/192 Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47S42x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47S45x Super IO Fan Sensors'
+  Failed! (0xee)
+Probing for `SMSC 47M172 Super IO'
+  Failed! (0xee)
+Probing for `SMSC LPC47B397-NC Super IO'
+  Failed! (0xee)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83627HF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83627THF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83637HF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83697HF Super IO Sensors'
+  Failed! (0xee)
+Probing for `Winbond W83697SF/UF Super IO PWM'
+  Failed! (0xee)
+Probing for `Winbond W83L517D Super IO'Do you want to scan for secondary
+Super I/O sensors? (YES/no):                                         
+Probing for `ITE 8702F Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `SMSC 47B27x Super IO Fan Sensors'
+  Failed! (skipping family)
+Probing for `VT1211 Super IO Sensors'
+  Failed! (skipping family)
+Probing for `Winbond W83627EHF Super IO Sensors'
+  Failed! (skipping family)
+
+ Now follows a summary of the probes I have just done.
+ Just press ENTER to continue: 
+
+Driver `bmcsensors' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0ca0 (Busdriver `i2c-isa')
+    Chip `IPMI BMC KCS' (confidence: 4)
+
+
+ I will now generate the commands needed to load the I2C modules.
+ Sometimes, a chip is available both through the ISA bus and an I2C bus.
+ ISA bus access is faster, but you need to load an additional driver
+module
+ for it. If you have the choice, do you want to use the ISA bus or the
+ I2C/SMBus (ISA/smbus)? 
+
+To make the sensors modules behave correctly, add these lines to
+/etc/modules:
+
+#----cut here----
+# I2C adapter drivers
+i2c-isa
+# You must also install and load the IPMI modules
+i2c-ipmi
+# I2C chip drivers
+# Warning: the required module bmcsensors is not currently installed on
+your system.
+# For status of 2.6 kernel ports see
+http://secure.netroedge.com/~lm78/supported.html
+# If driver is built-in to the kernel, or unavailable, comment out the
+following line.
+bmcsensors
+#----cut here----
+---------------------------------------------------------------------
+
+lsmod output :
+
+root@jaipur:/usr/src/linux# lsmod
+Module                  Size  Used by
+i2c_dev                15104  0 
+i2c_piix4              14096  0 
+i2c_isa                 6144  0 
+i2c_core               29696  3 i2c_dev,i2c_piix4,i2c_isa
+--------------
+
+why I have always ?:
+
+/usr/src/linux# sensors  
+No sensors found!
+
+
+thanks for helping me
 
