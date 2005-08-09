@@ -1,209 +1,102 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Tue, 02 Aug 2005 00:50:48 +0000
-Subject: [lm-sensors] [patchset 17/23] pc87360 convert temperature dev-attr
-Message-Id: <42EEA6EE.8090800@divsol.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 09 Aug 2005 20:28:38 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: Centralize 24RF08 corruption
+Message-Id: <20050809202810.692bf808.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg,
 
-convert temperature dev-attr get-set macros to functions.
+The 24RF08 corruption would better be prevented at i2c-core level than
+at chip driver level, for several reasons:
+* The second quick write should happen as soon as possible after the
+  first one, so as to limit the risk that another command is issued
+  on the bus inbetween, causing the corruption.
+* As a matter of fact, the protection code at driver level was reworked
+  at least three times already, which proves how hard it is to get it
+  right there, while it's straightforward at i2c-core level.
+* It's easy to add a new driver that would need the protection, and
+  forget to add it. This did happen already.
+* As additional probing addresses can be passed to most i2c chip drivers
+  as module parameters, virtually every i2c chip driver would need the
+  protection if we want to be really safe.
+* Why duplicate code when we can easily avoid it?
 
-[jimc@harpo pset]$ diffstat 12-temp-demacro
- pc87360.c |  172 
-+++++++++++++++++++++++++++++++-------------------------------
- 1 files changed, 88 insertions(+), 84 deletions(-)
+Note that this applies on top of my i2c_probe rewrite patch.
 
-Signed-off-by:  Jim Cromie <jcromie@divsol.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
+ Documentation/i2c/porting-clients |    2 ++
+ drivers/i2c/chips/eeprom.c        |    5 -----
+ drivers/i2c/chips/max6875.c       |    5 -----
+ drivers/i2c/i2c-core.c            |   13 ++++++++++---
+ 4 files changed, 12 insertions(+), 13 deletions(-)
 
--------------- next part --------------
-diff -ruNp -X exclude-diffs lxE-4/drivers/hwmon/pc87360.c lxE-5/drivers/hwmon/pc87360.c
---- lxE-4/drivers/hwmon/pc87360.c	2005-07-31 21:16:07.000000000 -0600
-+++ lxE-5/drivers/hwmon/pc87360.c	2005-07-31 21:16:46.000000000 -0600
-@@ -559,95 +559,99 @@ static ssize_t show_in_alarms(struct dev
- }
- static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
+--- linux-2.6.13-rc4.orig/Documentation/i2c/porting-clients	2005-07-31 16:59:30.000000000 +0200
++++ linux-2.6.13-rc4/Documentation/i2c/porting-clients	2005-07-31 18:10:33.000000000 +0200
+@@ -90,6 +90,8 @@
+   device_create_file. Move the driver initialization before any
+   sysfs file creation.
+   Drop client->id.
++  Drop any 24RF08 corruption prevention you find, as this is now done
++  at the i2c-core level, and doing it twice voids it.
  
--#define show_and_set_temp(offset) \
--static ssize_t show_temp##offset##_input(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index-1])); \
--} \
--static ssize_t show_temp##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[attr->index-1])); \
--} \
--static ssize_t show_temp##offset##_max(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[attr->index-1])); \
--}\
--static ssize_t show_temp##offset##_crit(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[attr->index-1])); \
--}\
--static ssize_t show_temp##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%d\n", data->temp_status[attr->index-1]); \
--}\
--static ssize_t set_temp##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
--	size_t count) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct i2c_client *client = to_i2c_client(dev); \
--	struct pc87360_data *data = i2c_get_clientdata(client); \
--	long val = simple_strtol(buf, NULL, 10); \
-- \
--	down(&data->update_lock); \
--	data->temp_min[attr->index-1] = TEMP_TO_REG(val); \
--	pc87360_write_value(data, LD_TEMP, offset-1, PC87365_REG_TEMP_MIN, \
--			    data->temp_min[attr->index-1]); \
--	up(&data->update_lock); \
--	return count; \
--} \
--static ssize_t set_temp##offset##_max(struct device *dev, struct device_attribute *devattr, const char *buf, \
--	size_t count) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct i2c_client *client = to_i2c_client(dev); \
--	struct pc87360_data *data = i2c_get_clientdata(client); \
--	long val = simple_strtol(buf, NULL, 10); \
-- \
--	down(&data->update_lock); \
--	data->temp_max[attr->index-1] = TEMP_TO_REG(val); \
--	pc87360_write_value(data, LD_TEMP, offset-1, PC87365_REG_TEMP_MAX, \
--			    data->temp_max[attr->index-1]); \
--	up(&data->update_lock); \
--	return count; \
--} \
--static ssize_t set_temp##offset##_crit(struct device *dev, struct device_attribute *devattr, const char *buf, \
--	size_t count) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct i2c_client *client = to_i2c_client(dev); \
--	struct pc87360_data *data = i2c_get_clientdata(client); \
--	long val = simple_strtol(buf, NULL, 10); \
-- \
--	down(&data->update_lock); \
--	data->temp_crit[attr->index-1] = TEMP_TO_REG(val); \
--	pc87360_write_value(data, LD_TEMP, offset-1, PC87365_REG_TEMP_CRIT, \
--			    data->temp_crit[attr->index-1]); \
--	up(&data->update_lock); \
--	return count; \
--} \
-+
-+static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index-1]));
-+}
-+static ssize_t show_temp_min(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[attr->index-1]));
-+}
-+static ssize_t show_temp_max(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[attr->index-1]));
-+}
-+static ssize_t show_temp_crit(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit[attr->index-1]));
-+}
-+static ssize_t show_temp_status(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%d\n", data->temp_status[attr->index-1]);
-+}
-+static ssize_t set_temp_min(struct device *dev, struct device_attribute *devattr, const char *buf,
-+	size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pc87360_data *data = i2c_get_clientdata(client);
-+	long val = simple_strtol(buf, NULL, 10);
-+
-+	down(&data->update_lock);
-+	data->temp_min[attr->index-1] = TEMP_TO_REG(val);
-+	pc87360_write_value(data, LD_TEMP, attr->index-1, PC87365_REG_TEMP_MIN,
-+			    data->temp_min[attr->index-1]);
-+	up(&data->update_lock);
-+	return count;
-+}
-+static ssize_t set_temp_max(struct device *dev, struct device_attribute *devattr, const char *buf,
-+	size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pc87360_data *data = i2c_get_clientdata(client);
-+	long val = simple_strtol(buf, NULL, 10);
-+
-+	down(&data->update_lock);
-+	data->temp_max[attr->index-1] = TEMP_TO_REG(val);
-+	pc87360_write_value(data, LD_TEMP, attr->index-1, PC87365_REG_TEMP_MAX,
-+			    data->temp_max[attr->index-1]);
-+	up(&data->update_lock);
-+	return count;
-+}
-+static ssize_t set_temp_crit(struct device *dev, struct device_attribute *devattr, const char *buf,
-+	size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pc87360_data *data = i2c_get_clientdata(client);
-+	long val = simple_strtol(buf, NULL, 10);
-+
-+	down(&data->update_lock);
-+	data->temp_crit[attr->index-1] = TEMP_TO_REG(val);
-+	pc87360_write_value(data, LD_TEMP, attr->index-1, PC87365_REG_TEMP_CRIT,
-+			    data->temp_crit[attr->index-1]);
-+	up(&data->update_lock);
-+	return count;
-+}
-+
-+#define declare_temp_sdas(offset) \
- static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, \
--	show_temp##offset##_input, NULL, offset); \
-+	show_temp_input, NULL, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IWUSR | S_IRUGO, \
--	show_temp##offset##_min, set_temp##offset##_min, offset); \
-+	show_temp_min, set_temp_min, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IWUSR | S_IRUGO, \
--	show_temp##offset##_max, set_temp##offset##_max, offset); \
-+	show_temp_max, set_temp_max, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IWUSR | S_IRUGO, \
--	show_temp##offset##_crit, set_temp##offset##_crit, offset); \
-+	show_temp_crit, set_temp_crit, offset); \
- static SENSOR_DEVICE_ATTR(temp##offset##_status, S_IRUGO, \
--	show_temp##offset##_status, NULL, offset);
--show_and_set_temp(1)
--show_and_set_temp(2)
--show_and_set_temp(3)
-+	show_temp_status, NULL, offset)
-+
-+declare_temp_sdas(1);
-+declare_temp_sdas(2);
-+declare_temp_sdas(3);
-+
+ * [Init] Limits must not be set by the driver (can be done later in
+   user-space). Chip should not be reset default (although a module
+--- linux-2.6.13-rc4.orig/drivers/i2c/chips/eeprom.c	2005-07-31 16:59:10.000000000 +0200
++++ linux-2.6.13-rc4/drivers/i2c/chips/eeprom.c	2005-07-31 18:10:33.000000000 +0200
+@@ -161,11 +161,6 @@
+ 	struct eeprom_data *data;
+ 	int err = 0;
  
- static ssize_t show_temp_alarms(struct device *dev, struct device_attribute *attr, char *buf)
- {
+-	/* prevent 24RF08 corruption */
+-	if (kind < 0)
+-		i2c_smbus_xfer(adapter, address, 0, 0, 0,
+-			       I2C_SMBUS_QUICK, NULL);
+-
+ 	/* There are three ways we can read the EEPROM data:
+ 	   (1) I2C block reads (faster, but unsupported by most adapters)
+ 	   (2) Consecutive byte reads (100% overhead)
+--- linux-2.6.13-rc4.orig/drivers/i2c/chips/max6875.c	2005-07-31 16:59:10.000000000 +0200
++++ linux-2.6.13-rc4/drivers/i2c/chips/max6875.c	2005-07-31 18:10:33.000000000 +0200
+@@ -171,11 +171,6 @@
+ 	struct max6875_data *data;
+ 	int err = 0;
+ 
+-	/* Prevent 24RF08 corruption (in case of user error) */
+-	if (kind < 0)
+-		i2c_smbus_xfer(adapter, address, 0, 0, 0,
+-			       I2C_SMBUS_QUICK, NULL);
+-
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WRITE_BYTE_DATA
+ 				     | I2C_FUNC_SMBUS_READ_BYTE))
+ 		return 0;
+--- linux-2.6.13-rc4.orig/drivers/i2c/i2c-core.c	2005-07-31 18:10:33.000000000 +0200
++++ linux-2.6.13-rc4/drivers/i2c/i2c-core.c	2005-07-31 18:10:33.000000000 +0200
+@@ -679,9 +679,16 @@
+ 		return 0;
+ 
+ 	/* Make sure there is something at this address, unless forced */
+-	if (kind < 0
+-	 && i2c_smbus_xfer(adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) < 0)
+-		return 0;
++	if (kind < 0) {
++		if (i2c_smbus_xfer(adapter, addr, 0, 0, 0,
++				   I2C_SMBUS_QUICK, NULL) < 0)
++			return 0;
++
++		/* prevent 24RF08 corruption */
++		if ((addr & ~0x0f) = 0x50)
++			i2c_smbus_xfer(adapter, addr, 0, 0, 0,
++				       I2C_SMBUS_QUICK, NULL);
++	}
+ 
+ 	/* Finally call the custom detection function */
+ 	err = found_proc(adapter, addr, kind);
+
+
+-- 
+Jean Delvare
