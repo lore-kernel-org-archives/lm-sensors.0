@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 11 Aug 2005 08:00:13 +0000
+Date: Thu, 11 Aug 2005 13:46:55 +0000
 Subject: [lm-sensors] Backport to 2.4 kernel of lm77 to use in wrap board
-Message-Id: <20050811080012.74d1be44.khali@linux-fr.org>
+Message-Id: <NvhGd4Z6.1123760050.6311920.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <42FA0A66.1050504@infovia.com.ar>
 In-Reply-To: <42FA0A66.1050504@infovia.com.ar>
@@ -10,35 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+
 Hi Beat,
 
-> > You certainly mean 48h.
->
-> The manual of the wrap board says the following:
-> 
-> The LM77 thermal sensor sits on the secondary I2C bus, at address 90h.
+Please reply to the list rather than to me only.
 
-And it's wrong. They're confusing the first byte sent in a write
-transaction ((48h << 1) + 0 = 90h) with the 7-bit address of the device
-(0x48). That's a common mistake.
+> The problem is that if I to
+>   modprobe scx200_acb in Linux 2.4
+> the message
+>   No such device
+> comes
+> If I try to use i2detect -a 1 etc. the messages
+>   No such device
+> comes also and i have created /dev/i2c-X
+> Do I need other modules form the kernel than scx200_acb?
+> I have a self compiled kernel
+> This is in fact for SCX200 and not SC1100. Can I use it?
 
-> > You need a bus driver for the I2C bus the LM77 chip is connected to.
->
-> This driver is not already available? How can I identify the bus?
-> How to I setup a bus?
->
-> I've seen that in openbsd there is support for LM77 and Nationl Geode 
-> SC1100.
-> Could we have a clue from there? I don't have BSD so I cannot
-> identify in which packages this stuff is ...
+I really don't know. I never used such boards myself, and I probably
+won't until someone decides to donate one.
 
-I don't know, I've never worked with such boards before.
+Reading the original post from Andras Bali (who wrote the lm77 driver)
+reveals that he was using the scx200_acb driver under Linux 2.6, but had
+to change some values to get it to work:
 
-> I'm trying since days to connect to the national web site with no luck
-> ...
+http://lists.lm-sensors.org/pipermail/lm-sensors/2004-July/008163.html
 
-Try the AMD website. National Semiconductor sold their Geode buisness to
-AMD some years ago.
+Maybe you need to do the same changes to the 2.4 driver, and maybe even
+more if the 2.6 driver is more up to date that the 2.4 driver.
 
--- 
+Maybe Andras Bali would be able to help you as he seemed to know the
+hardware very well.
+
+--
 Jean Delvare
