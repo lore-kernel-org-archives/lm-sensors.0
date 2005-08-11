@@ -1,7 +1,7 @@
-From: khc@pm.waw.pl (Krzysztof Halasa)
-Date: Thu, 11 Aug 2005 23:40:07 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 11 Aug 2005 23:49:49 +0000
 Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
-Message-Id: <m3iryctaou.fsf@defiant.localdomain>
+Message-Id: <20050811234946.0106afbe.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050809231328.0726537b.khali@linux-fr.org>
 	<42FA6406.4030901@cetrtapot.si>
@@ -10,38 +10,48 @@ References: <20050809231328.0726537b.khali@linux-fr.org>
 	<20050811185651.0ca4cd96.khali@linux-fr.org>
 	<m3fytgnv73.fsf@defiant.localdomain>
 	<20050811215929.1df5fab0.khali@linux-fr.org>
-In-Reply-To: <20050811215929.1df5fab0.khali@linux-fr.org> (Jean Delvare's
- message of "Thu, 11 Aug 2005 21:59:29 +0200")
+	<m3iryctaou.fsf@defiant.localdomain>
+In-Reply-To: <m3iryctaou.fsf@defiant.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
+To: Krzysztof Halasa <khc@pm.waw.pl>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Jean Delvare <khali@linux-fr.org> writes:
+Hi Krzysztof,
 
-> However,
-> EEPROMs are also often found on SMBus busses, those controller only
-> implement a subset of all possible I2C commands.
+> > However,
+> > EEPROMs are also often found on SMBus busses, those controller only
+> > implement a subset of all possible I2C commands.
+> 
+> You mean one can't drive clock and data lines at will, and the
+> controller (some hardware) does it instead, based on commands received
+> from the program (and, for example, the program interface is parallel,
+> not 2-wire serial). Right?
 
-You mean one can't drive clock and data lines at will, and the controller
-(some hardware) does it instead, based on commands received from the
-program (and, for example, the program interface is parallel, not 2-wire
-serial). Right?
+Partly right. Actually, most SMBus controllers work the following way:
+you program a number of registers (typically SMBus transaction type,
+target chip address, target register address or command, and the data to
+send in the case of a write transaction), then you tell the chip to
+initiate the transaction. Then you poll for the transaction to be over
+(or use an interupt, but most our SMBus drivers use polling), and read
+the result in some register in the case of a read transaction.
 
-But wait, even then does the controller really know anything about
-I^2C commands? How would it differentiate between, say, 8-bit and
-16-bit reads? Or is it just an 8-bit EEPROM bus?
+> But wait, even then does the controller really know anything about
+> I^2C commands? How would it differentiate between, say, 8-bit and
+> 16-bit reads? Or is it just an 8-bit EEPROM bus?
 
-Does it do START and STOP automatically as well?
+No, it is still physically a 2-wire serial bus. The limitation is due to
+the fast that the SMBus controller knows of a limited number of
+transactions, such as Send Byte, Read Byte, Read Word etc. If the SMBus
+controller doesn't know of the SMBus command you want to use (in my
+case, I2C block read), then there is no way to do it, because we have no
+direct control over the serial line.
 
-> [1] Due to an internal limitation in the Linux kernel, the maximum block
-> size that can be read is actually 32 bytes, so several block reads are
-> needed to retrieve larger chunks of data.
+> Does it do START and STOP automatically as well?
 
-BTW: Some devices can't output all their contents in one transaction (or
-with continuous byte/word read) - they are limited to one bank.
-If you want to access another bank, you have to select it first.
-But I think you know things like that better than me.
+Absolutely. The good thing is that SMBus masters are not CPU intensive,
+contrary to bit-banging I2C adapters.
+
 -- 
-Krzysztof Halasa
+Jean Delvare
