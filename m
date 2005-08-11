@@ -1,54 +1,61 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 11 Aug 2005 18:56:55 +0000
+Date: Thu, 11 Aug 2005 19:12:22 +0000
 Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
-Message-Id: <20050811185651.0ca4cd96.khali@linux-fr.org>
+Message-Id: <20050811191223.4294c57b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050809231328.0726537b.khali@linux-fr.org>
 	<42FA6406.4030901@cetrtapot.si>
 	<20050810230633.0cb8737b.khali@linux-fr.org>
-	<42FA89FE.9050101@cetrtapot.si>
-In-Reply-To: <42FA89FE.9050101@cetrtapot.si>
+	<Pine.LNX.4.60.0508110022030.3532@kepler.fjfi.cvut.cz>
+In-Reply-To: <Pine.LNX.4.60.0508110022030.3532@kepler.fjfi.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hinko Kocevar <hinko.kocevar@cetrtapot.si>
+To: Martin Drab <drab@kepler.fjfi.cvut.cz>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Hinko,
+Hi Martin,
 
-> > Could you try running "i2cdump 0 0x50" and "i2cdump 0 0x50 i" (with
-> > the patch still applied), and compare both the outputs and the time
-> > each command takes? You should see similar outputs, but the second
-> > command should be magnitudes faster. This would confirm that the I2C
-> > block mode works as intended on your VT8233 chip.
+> > But I don't know where the VT8231, VT8233 and VT8233A should be
+> > inserted in this list. If anyone can tell me...
 > 
-> Hmm, not really. Here it takes 6 seconds for the first test nad about
-> 5 seconds  for the second test (I just read the WARNING - need to
-> substract 5s from the  results...).
+> I guess it's just the way it seems:
+> 
+> VT82C596
+> VT82C596B
+> VT82C686A
+> VT82C686B
+> VT8231
+> VT8233
+> VT8233A
+> VT8235
+> VT8237
 
-With a recent version of i2cdump (2.8.8 or later), you can use the -y
-flag, which will skip this delay. This is very convenient for timing
-tests.
+I'd agree for VT8233 and VT8233A according to some searches I did this
+morning. However, the VT8231 doesn't seem to fit in the list. Here are
+the facts I am aware of that led me to this conclusion:
 
-That being said...
+* It seems to appear only on specific boards, such as the Epia ones, and
+is rarely mentioned on common hardware sites, compared to all the other
+ones.
 
-> noa xtrm # time i2cdump 0 0x50
-> (...)
-> real	0m6.033s
-> (...)
-> noa xtrm # time i2cdump 0 0x50 i
-> (...)
-> real	0m5.174s
+* It was presented by VIA at the Cebit in march 2002, which corresponds
+to the release of the VT8233A.
 
-This is 1.033s down to 0.174s. This is just great, I2C block reads work
-and allow faster dumps, as expected.
+* The support was added to the i2c-viapro driver in May 2002, that is,
+after VT8233 (October 2001) and VT8233A (March 2002.)
 
-> while simple cat takes a lot less time:
-> noa xtrm # time dd if=/sys/bus/i2c/devices/0-0050/eeprom bs=4
+* Its PCI ID is completely different (0x8231, while all other supported
+devices are in the 0x3000-0x31FF range.)
 
-This goes through the eeprom driver, which has an internal cache, so the
-results are not suitable for timing comparisons.
+So I think it doesn't exactly fit in the release timeline, and is more
+likely a custom product derived from the VT82C686 (A or B) rather than a
+linear evolution.
 
-Thanks a lot for the testing again :)
+For this reason, I won't extrapolate the results to the VT8231. I will
+only enable I2C block support for it if someone with such a chip agrees
+to test the support first.
+
+Thanks,
 -- 
 Jean Delvare
