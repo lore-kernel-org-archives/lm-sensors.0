@@ -1,61 +1,110 @@
-From: drab@kepler.fjfi.cvut.cz (Martin Drab)
-Date: Thu, 11 Aug 2005 00:25:37 +0000
+From: hinko.kocevar@cetrtapot.si (Hinko Kocevar)
+Date: Thu, 11 Aug 2005 01:13:51 +0000
 Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
-Message-Id: <Pine.LNX.4.60.0508110022030.3532@kepler.fjfi.cvut.cz>
+Message-Id: <42FA89FE.9050101@cetrtapot.si>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050809231328.0726537b.khali@linux-fr.org> <42FA6406.4030901@cetrtapot.si>
- <20050810230633.0cb8737b.khali@linux-fr.org>
+References: <20050809231328.0726537b.khali@linux-fr.org>	<42FA6406.4030901@cetrtapot.si> <20050810230633.0cb8737b.khali@linux-fr.org>
 In-Reply-To: <20050810230633.0cb8737b.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Hinko Kocevar <hinko.kocevar@cetrtapot.si>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-
-
-On Wed, 10 Aug 2005, Jean Delvare wrote:
-
-> Hi Hinko,
+Jean Delvare wrote:
 > 
-> > > In order to verify whether I2C block reads work for you, just
-> > > compare the contents of this file:
-> > >   /sys/bus/i2c/devices/0-0050/eeprom
-> > 
-> > I've tested your patch on gericom X5 with VIA chipset and it works
-> > fine without/with your patch (no diff in eeprom contents).
-> > (...)
-> > 0000:00:11.0 ISA bridge: VIA Technologies, Inc. VT8233 PCI to ISA Bridge
-> 
-> This is a surprising result, as the VT8233 datasheet didn't mention the
-> I2C block mode. I'll add this model to the list. This also suggests that
-> the VT8233A may support it as well - if someone could test that.
-> 
-> I have to admit I don't know exactly in which order the different south
-> bridges were designed and released by VIA. I think the following order
-> is correct:
-> 
-> VT82C596
-> VT82C596B
-> VT82C686A
-> VT82C686B
-> VT8235
-> VT8237
-> 
-> But I don't know where the VT8231, VT8233 and VT8233A should be inserted
-> in this list. If anyone can tell me...
+> Could you try running "i2cdump 0 0x50" and "i2cdump 0 0x50 i" (with the
+> patch still applied), and compare both the outputs and the time each
+> command takes? You should see similar outputs, but the second command
+> should be magnitudes faster. This would confirm that the I2C block mode
+> works as intended on your VT8233 chip.
 
-I guess it's just the way it seems:
+Hmm, not really. Here it takes 6 seconds for the first test nad about 5 seconds 
+for the second test (I just read the WARNING - need to substract 5s from the 
+results...).
 
-VT82C596
-VT82C596B
-VT82C686A
-VT82C686B
-VT8231
-VT8233
-VT8233A
-VT8235
-VT8237
+noa xtrm # time i2cdump 0 0x50
+No size specified (using byte-data access)
+   WARNING! This program can confuse your I2C bus, cause data loss and worse!
+   I will probe file /dev/i2c-0, address 0x50, mode byte
+   You have five seconds to reconsider and press CTRL-C!
 
-Martin
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 09 02 40 00 04 75 75 00 82 10 00 01    ??????@.?uu.??.?
+10: 0e 04 0c 01 02 20 00 a0 75 00 00 50 3c 50 2d 20    ????? .?u..P<P-
+20: 90 90 50 50 00 00 00 00 00 00 00 00 00 00 00 00    ??PP............
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a7    ...............?
+40: ce 00 00 00 00 00 00 00 01 4d 34 20 37 30 4c 33    ?.......?M4 70L3
+50: 32 32 34 44 54 30 2d 43 42 30 20 30 44 02 51 45    224DT0-CB0 0D?QE
+60: 0b c8 db 00 4c 39 41 37 43 33 4e 00 00 00 00 00    ???.L9A7C3N.....
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 00 20 12 02 22 07 ff ff ff ff ff 18 04 16 ff ff    . ??"?.....???..
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 
+real	0m6.033s
+user	0m0.000s
+sys	0m0.004s
+noa xtrm # time i2cdump 0 0x50 i
+   WARNING! This program can confuse your I2C bus, cause data loss and worse!
+   I will probe file /dev/i2c-0, address 0x50, mode i2c block
+   You have five seconds to reconsider and press CTRL-C!
+
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 09 02 40 00 04 75 75 00 82 10 00 01    ??????@.?uu.??.?
+10: 0e 04 0c 01 02 20 00 a0 75 00 00 50 3c 50 2d 20    ????? .?u..P<P-
+20: 90 90 50 50 00 00 00 00 00 00 00 00 00 00 00 00    ??PP............
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a7    ...............?
+40: ce 00 00 00 00 00 00 00 01 4d 34 20 37 30 4c 33    ?.......?M4 70L3
+50: 32 32 34 44 54 30 2d 43 42 30 20 30 44 02 51 45    224DT0-CB0 0D?QE
+60: 0b c8 db 00 4c 39 41 37 43 33 4e 00 00 00 00 00    ???.L9A7C3N.....
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 00 20 12 02 22 07 ff ff ff ff ff 18 04 16 ff ff    . ??"?.....???..
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+real	0m5.174s
+user	0m0.001s
+sys	0m0.002s
+
+while simple cat takes a lot less time:
+noa xtrm # time dd if=/sys/bus/i2c/devices/0-0050/eeprom bs=4 | hexdump -C
+00000000  80 08 07 0d 09 02 40 00  04 75 75 00 82 10 00 01  |......@..uu.....|
+00000010  0e 04 0c 01 02 20 00 a0  75 00 00 50 3c 50 2d 20  |..... ..u..P<P- |
+00000020  90 90 50 50 00 00 00 00  00 00 00 00 00 00 00 00  |..PP............|
+00000030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 a7  |................|
+00000040  ce 00 00 00 00 00 00 00  01 4d 34 20 37 30 4c 33  |.........M4 70L3|
+00000050  32 32 34 44 54 30 2d 43  42 30 20 30 44 02 51 45  |224DT0-CB0 0D.QE|
+00000060  0b c8 db 00 4c 39 41 37  43 33 4e 00 00 00 00 00  |....L9A7C3N.....|
+00000070  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000080  00 20 12 02 22 07 ff ff  ff ff ff 18 04 16 ff ff  |. .."...........|
+00000090  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+*
+64+0 zapisov na vhodu
+64+0 zapisov na izhodu
+00000100
+
+real	0m0.600s
+user	0m0.002s
+sys	0m0.005s
+
+It seems pretty fast in all cases (i2cdump, i2cdump block and cat) and results 
+are close too (taing WARNING delay into account).
+
+regards,
+hinko k
+-- 
+..because under Linux "if something is possible in principle,
+then it is already implemented or somebody is working on it".
+
+					--LKI
