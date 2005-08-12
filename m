@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 11 Aug 2005 23:49:49 +0000
+From: khc@pm.waw.pl (Krzysztof Halasa)
+Date: Fri, 12 Aug 2005 00:08:54 +0000
 Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
-Message-Id: <20050811234946.0106afbe.khali@linux-fr.org>
+Message-Id: <m3br44t9cv.fsf@defiant.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050809231328.0726537b.khali@linux-fr.org>
 	<42FA6406.4030901@cetrtapot.si>
@@ -11,47 +11,46 @@ References: <20050809231328.0726537b.khali@linux-fr.org>
 	<m3fytgnv73.fsf@defiant.localdomain>
 	<20050811215929.1df5fab0.khali@linux-fr.org>
 	<m3iryctaou.fsf@defiant.localdomain>
-In-Reply-To: <m3iryctaou.fsf@defiant.localdomain>
+	<20050811234946.0106afbe.khali@linux-fr.org>
+In-Reply-To: <20050811234946.0106afbe.khali@linux-fr.org> (Jean Delvare's
+ message of "Thu, 11 Aug 2005 23:49:46 +0200")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Krzysztof Halasa <khc@pm.waw.pl>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Krzysztof,
+Hi,
 
-> > However,
-> > EEPROMs are also often found on SMBus busses, those controller only
-> > implement a subset of all possible I2C commands.
-> 
-> You mean one can't drive clock and data lines at will, and the
-> controller (some hardware) does it instead, based on commands received
-> from the program (and, for example, the program interface is parallel,
-> not 2-wire serial). Right?
+Jean Delvare <khali@linux-fr.org> writes:
 
-Partly right. Actually, most SMBus controllers work the following way:
-you program a number of registers (typically SMBus transaction type,
-target chip address, target register address or command, and the data to
-send in the case of a write transaction), then you tell the chip to
-initiate the transaction. Then you poll for the transaction to be over
-(or use an interupt, but most our SMBus drivers use polling), and read
-the result in some register in the case of a read transaction.
+> Partly right. Actually, most SMBus controllers work the following way:
+> you program a number of registers (typically SMBus transaction type,
+> target chip address, target register address or command, and the data to
+> send in the case of a write transaction),
 
-> But wait, even then does the controller really know anything about
-> I^2C commands? How would it differentiate between, say, 8-bit and
-> 16-bit reads? Or is it just an 8-bit EEPROM bus?
+So, with one transaction, can I write an arbitrary number of bytes to
+the device, and then, in the same transaction, can I read one (or no,
+or with some controllers, more than one) byte(s) back?
 
-No, it is still physically a 2-wire serial bus. The limitation is due to
-the fast that the SMBus controller knows of a limited number of
-transactions, such as Send Byte, Read Byte, Read Word etc. If the SMBus
-controller doesn't know of the SMBus command you want to use (in my
-case, I2C block read), then there is no way to do it, because we have no
-direct control over the serial line.
+>> But wait, even then does the controller really know anything about
+>> I^2C commands? How would it differentiate between, say, 8-bit and
+>> 16-bit reads? Or is it just an 8-bit EEPROM bus?
+>
+> No, it is still physically a 2-wire serial bus.
 
-> Does it do START and STOP automatically as well?
+Sure, I rather meant "a bus _for_ I^2C EEPROMs which use 8-bit (+3)
+addressing".
 
-Absolutely. The good thing is that SMBus masters are not CPU intensive,
-contrary to bit-banging I2C adapters.
+> The limitation is due to
+> the fast that the SMBus controller knows of a limited number of
+> transactions, such as Send Byte, Read Byte, Read Word etc. If the SMBus
+> controller doesn't know of the SMBus command you want to use (in my
+> case, I2C block read), then there is no way to do it, because we have no
+> direct control over the serial line.
 
+Interesting. Still, that limits it to 8-bit-addressable EEPROMs.
+
+Are such things documented somewhere on the net (some datasheet maybe)?
 -- 
-Jean Delvare
+Krzysztof Halasa
