@@ -1,86 +1,68 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 12 Aug 2005 08:02:09 +0000
-Subject: [lm-sensors] I2C block reads with i2c-viapro: testers wanted
-Message-Id: <20050812080210.58573fe3.khali@linux-fr.org>
+Date: Fri, 12 Aug 2005 08:26:50 +0000
+Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
+Message-Id: <20050812082653.098a6aa3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050809231328.0726537b.khali@linux-fr.org>
-	<20050812010759.GA11361@jupiter.solarsys.private>
-In-Reply-To: <20050812010759.GA11361@jupiter.solarsys.private>
+	<42FA6406.4030901@cetrtapot.si>
+	<20050810230633.0cb8737b.khali@linux-fr.org>
+	<42FA89FE.9050101@cetrtapot.si>
+	<20050811185651.0ca4cd96.khali@linux-fr.org>
+	<m3fytgnv73.fsf@defiant.localdomain>
+	<20050811215929.1df5fab0.khali@linux-fr.org>
+	<m3iryctaou.fsf@defiant.localdomain>
+	<20050811234946.0106afbe.khali@linux-fr.org>
+	<m3br44t9cv.fsf@defiant.localdomain>
+In-Reply-To: <m3br44t9cv.fsf@defiant.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark M. Hoffman" <mhoffman@lightlink.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Mark,
+Hi Krzysztof,
 
-> > My experimental patch follows. I have enabled the I2C block read
-> > function for all VIA south bridges, so that it can be tested on all
-> > chips. I'll restrict that after the test phase, of course.
-> 
-> I fired it up on one of the older chipsets...
-> 
-> # lspci
-> (...)
-> 00:07.0 ISA bridge: VIA Technologies, Inc. VT82C596 ISA [Mobile South] (rev 23)
-> (...)
-> 00:07.3 Host bridge: VIA Technologies, Inc. VT82C596 Power Management (rev 30)
+> So, with one transaction, can I write an arbitrary number of bytes to
+> the device, and then, in the same transaction, can I read one (or no,
+> or with some controllers, more than one) byte(s) back?
 
-Oh, you do have one of these old 596 chips. Interesting. Could you
-possibly take a look at the i2c-viapro driver and comment on that part:
+In I2C mode, you can even alternate as many read and write sequences you
+want in a single transaction. The target chip would of course need to
+know how to interpret such a transaction though. I've never seen this
+possibility used so far.
 
-	if ((pci_read_config_word(pdev, id->driver_data, &vt596_smba)) ||
-	    !(vt596_smba & 0x1)) {
-		/* try 2nd address and config reg. for 596 */
-		if (id->device = PCI_DEVICE_ID_VIA_82C596_3 &&
-		    !pci_read_config_word(pdev, SMBBA2, &vt596_smba) &&
-		    (vt596_smba & 0x1)) {
-			smb_cf_hstcfg = 0x84;
+In SMBus mode, you are limited by the transaction types that have been
+defined, but a number of them are composed of a write transaction and a
+read transaction (separated by what is known as a "repeated start").
+Read Byte, Read Word, Read Block and Read I2C Block are such
+transactions. See the SMBus specification for the details.
 
-It looks like a hack to me, and I was wondering if we could clean it up
-(possibly by using pci quirks). I've not studied the problem in details
-yet, but comments and help would be welcome, and the fact that you do
-have a chip for testing will help anyway :)
+> Interesting. Still, that limits it to 8-bit-addressable EEPROMs.
 
-> As you suspected, it didn't work.
-> 
-> # i2cdump -y 0 0x50 i
-> Error: Block read failed, return code 0
+Depends on the SMBus. A SMBus controller could implement 16-bit address
+I2C block transfers. I don't think I saw one do so far, but it's still
+possible in theory.
 
-Alright, it matches the datasheet and my expectations.
+Also note that this can easily be emulated using a Write Byte command
+(which writes 2 bytes on the bus) to set the 16-bit addressed EEPROM
+offset, then using continuous Receive Byte commands to get the data.
+This is of course slower than a block read though.
 
-> I also found something interesting, by accident.  With a stock FC4
-> kernel, the i2cdump clocked at 1.02s total.  With 2.6.13-rc6, it took
-> 5.11s!  The only relevant difference that I can see is that the FC4
-> kernel uses HZ of 1000 while my 2.6.13-rc6 kernel uses 100.  Because
-> the i2c-viapro is a polling driver, it becomes slower as HZ decreases.
+> Are such things documented somewhere on the net (some datasheet
+> maybe)?
 
-Absolutely true. This is what improved the speed of most SMBus drivers
-in 2.6 when compared with 2.4: HZ00. Now we're stepping back a bit
-with HZ%0.
+The I2C specifications are available from Philips. The SMBus
+specifications are available from smbus.org. Intel also has good
+datasheets for all ICH chips.
 
-> I.e. the improvement you are seeing with byte vs. block xfers is quite
-> exaggerated because we poll the device relatively infrequently.  *All*
-> the xfers are slower than they could be w/ a non-polling driver.
+http://www.semiconductors.philips.com/markets/mms/protocols/i2c/
+http://www.smbus.org/specs/
 
-Oh well, even if we were using interrupts instead of polling, the block
-transactions are still better as they are still twice as fast, would
-generate less interrupts, and are generally less CPU-intensive. That
-being said, I plan to implement interrupts in i2c-viapro at a later
-time. I have no idea how to do that, but I'll take a look at what you
-did in your i2c-i801 reimplementation, it should help. I simply seem to
-remember that you expected problems for block transactions in interrupt
-more, and don't know why exactly.
+More generally, see the lm_sensors project's links page:
+http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/useful_addresses.html
+and also:
+http://secure.netroedge.com/~lm78/docs.html
 
-Maybe we can use interrupts for short commands and polling for big
-transactions. I see no technical problem doing that - although this
-would make the driver larger and more complex.
-
-BTW, it would be great if you could finalize your i2c-i801
-reimplementation so that we can add it to Linux 2.6. I remember it gave
-me much better performance than the original one, and the code was
-looking much nicer as well.
-
-Thanks for the tests :)
+Hope that helps,
 -- 
 Jean Delvare
