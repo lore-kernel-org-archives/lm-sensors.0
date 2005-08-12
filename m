@@ -1,56 +1,71 @@
-From: khc@pm.waw.pl (Krzysztof Halasa)
-Date: Fri, 12 Aug 2005 00:08:54 +0000
-Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
-Message-Id: <m3br44t9cv.fsf@defiant.localdomain>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Fri, 12 Aug 2005 03:08:18 +0000
+Subject: [lm-sensors] I2C block reads with i2c-viapro: testers wanted
+Message-Id: <20050812010759.GA11361@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050809231328.0726537b.khali@linux-fr.org>
-	<42FA6406.4030901@cetrtapot.si>
-	<20050810230633.0cb8737b.khali@linux-fr.org>
-	<42FA89FE.9050101@cetrtapot.si>
-	<20050811185651.0ca4cd96.khali@linux-fr.org>
-	<m3fytgnv73.fsf@defiant.localdomain>
-	<20050811215929.1df5fab0.khali@linux-fr.org>
-	<m3iryctaou.fsf@defiant.localdomain>
-	<20050811234946.0106afbe.khali@linux-fr.org>
-In-Reply-To: <20050811234946.0106afbe.khali@linux-fr.org> (Jean Delvare's
- message of "Thu, 11 Aug 2005 23:49:46 +0200")
+In-Reply-To: <20050809231328.0726537b.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi,
+Hi Jean:
 
-Jean Delvare <khali@linux-fr.org> writes:
+* Jean Delvare <khali@linux-fr.org> [2005-08-09 23:13:28 +0200]:
+> I am implementing I2C block reads in the i2c-viapro driver, and am
+> looking for testers. I was able to test on my own VT8237R chip, it works
+> OK, now I'd need to know how it works on older VIA south bridges, namely
+> the VT8235 and the VT82C686B. South bridges before that (VT82C686A,
+> VT8233A and older) are supposed not to work according to the datasheets,
+> but a confirmation would be welcome, who knows, it might simply not be
+> documented.
+> 
+> My experimental patch follows. I have enabled the I2C block read
+> function for all VIA south bridges, so that it can be tested on all
+> chips. I'll restrict that after the test phase, of course.
 
-> Partly right. Actually, most SMBus controllers work the following way:
-> you program a number of registers (typically SMBus transaction type,
-> target chip address, target register address or command, and the data to
-> send in the case of a write transaction),
+I fired it up on one of the older chipsets...
 
-So, with one transaction, can I write an arbitrary number of bytes to
-the device, and then, in the same transaction, can I read one (or no,
-or with some controllers, more than one) byte(s) back?
+# lspci
+00:00.0 Host bridge: VIA Technologies, Inc. VT82C693A/694x [Apollo PRO133x] (rev c4)
+00:01.0 PCI bridge: VIA Technologies, Inc. VT82C598/694x [Apollo MVP3/Pro133x AGP]
+00:07.0 ISA bridge: VIA Technologies, Inc. VT82C596 ISA [Mobile South] (rev 23)
+00:07.1 IDE interface: VIA Technologies, Inc. VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 10)
+00:07.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 11)
+00:07.3 Host bridge: VIA Technologies, Inc. VT82C596 Power Management (rev 30)
 
->> But wait, even then does the controller really know anything about
->> I^2C commands? How would it differentiate between, say, 8-bit and
->> 16-bit reads? Or is it just an 8-bit EEPROM bus?
->
-> No, it is still physically a 2-wire serial bus.
+# lspci -n
+00:00.0 Class 0600: 1106:0691 (rev c4)
+00:01.0 Class 0604: 1106:8598
+00:07.0 Class 0601: 1106:0596 (rev 23)
+00:07.1 Class 0101: 1106:0571 (rev 10)
+00:07.2 Class 0c03: 1106:3038 (rev 11)
+00:07.3 Class 0600: 1106:3050 (rev 30)
 
-Sure, I rather meant "a bus _for_ I^2C EEPROMs which use 8-bit (+3)
-addressing".
+As you suspected, it didn't work.
 
-> The limitation is due to
-> the fast that the SMBus controller knows of a limited number of
-> transactions, such as Send Byte, Read Byte, Read Word etc. If the SMBus
-> controller doesn't know of the SMBus command you want to use (in my
-> case, I2C block read), then there is no way to do it, because we have no
-> direct control over the serial line.
+# i2cdump -y 0 0x50 i
+Error: Block read failed, return code 0
 
-Interesting. Still, that limits it to 8-bit-addressable EEPROMs.
+> On my system, the dump is down from over 2 seconds without the patch to
+> below 0.2 second with the patch, which proves how efficient I2C block
+> reads are and explains why I want to implement this function.
 
-Are such things documented somewhere on the net (some datasheet maybe)?
+I also found something interesting, by accident.  With a stock FC4 kernel,
+the i2cdump clocked at 1.02s total.  With 2.6.13-rc6, it took 5.11s!  The
+only relevant difference that I can see is that the FC4 kernel uses HZ of
+1000 while my 2.6.13-rc6 kernel uses 100.  Because the i2c-viapro is a
+polling driver, it becomes slower as HZ decreases.
+
+I.e. the improvement you are seeing with byte vs. block xfers is quite
+exaggerated because we poll the device relatively infrequently.  *All*
+the xfers are slower than they could be w/ a non-polling driver.
+
+Regards,
+
 -- 
-Krzysztof Halasa
+Mark M. Hoffman
+mhoffman@lightlink.com
+
