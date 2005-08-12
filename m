@@ -1,7 +1,7 @@
-From: khc@pm.waw.pl (Krzysztof Halasa)
-Date: Fri, 12 Aug 2005 17:30:12 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 12 Aug 2005 19:58:42 +0000
 Subject: [lm-sensors] Re: I2C block reads with i2c-viapro: testers wanted
-Message-Id: <m3wtmri364.fsf@defiant.localdomain>
+Message-Id: <20050812195844.4f597d19.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050809231328.0726537b.khali@linux-fr.org>
 	<42FA6406.4030901@cetrtapot.si>
@@ -14,46 +14,35 @@ References: <20050809231328.0726537b.khali@linux-fr.org>
 	<20050811234946.0106afbe.khali@linux-fr.org>
 	<m3br44t9cv.fsf@defiant.localdomain>
 	<20050812082653.098a6aa3.khali@linux-fr.org>
-In-Reply-To: <20050812082653.098a6aa3.khali@linux-fr.org> (Jean Delvare's
- message of "Fri, 12 Aug 2005 08:26:53 +0200")
+	<m3wtmri364.fsf@defiant.localdomain>
+In-Reply-To: <m3wtmri364.fsf@defiant.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
+To: Krzysztof Halasa <khc@pm.waw.pl>
 Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Jean Delvare <khali@linux-fr.org> writes:
+Hi Krzysztof,
 
-> In I2C mode, you can even alternate as many read and write sequences you
-> want in a single transaction. The target chip would of course need to
-> know how to interpret such a transaction though. I've never seen this
-> possibility used so far.
+> > In I2C mode, you can even alternate as many read and write sequences
+> > you want in a single transaction. The target chip would of course
+> > need to know how to interpret such a transaction though. I've never
+> > seen this possibility used so far.
+> 
+> Is this mode supported by the common (such as VIA south bridge)
+> controllers?
 
-Is this mode supported by the common (such as VIA south bridge)
-controllers?
+No it's not, for the simple reason that south bridges are almost always
+SMBus controllers, not I2C controllers.
 
-> In SMBus mode, you are limited by the transaction types that have been
-> defined, but a number of them are composed of a write transaction and a
-> read transaction (separated by what is known as a "repeated start").
-> Read Byte, Read Word, Read Block and Read I2C Block are such
-> transactions. See the SMBus specification for the details.
+That being said, I'd be surprised if it ever matters. I never saw such
+transactions, and if some chip was to accept them, it would most
+probably also accept a sequence of more simple, SMBus-compatible
+transactions to achieve the same goal.
 
-Ok. I guest there are just different codes for 8- and 16-bit addressing.
+If you have further questions, they are welcome but I'd suggest that you
+drop LKML from the recipients and follow up on the lm_sensors list only,
+as we are getting somewhat off-topic now.
 
-> The I2C specifications are available from Philips. The SMBus
-> specifications are available from smbus.org. Intel also has good
-> datasheets for all ICH chips.
->
-> http://www.semiconductors.philips.com/markets/mms/protocols/i2c/
-> http://www.smbus.org/specs/
->
-> More generally, see the lm_sensors project's links page:
-> http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/useful_addresses.html
-> and also:
-> http://secure.netroedge.com/~lm78/docs.html
->
-> Hope that helps,
-
-Sure. Thanks.
 -- 
-Krzysztof Halasa
+Jean Delvare
