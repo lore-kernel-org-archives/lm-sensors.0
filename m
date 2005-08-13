@@ -1,7 +1,7 @@
-From: support-squid@bfinance.fr (jonathan)
-Date: Thu, 11 Aug 2005 09:24:53 +0000
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Sat, 13 Aug 2005 07:17:07 +0000
 Subject: [lm-sensors] wrong temperature values
-Message-Id: <1123744985.3212.2.camel@localhost.localdomain>
+Message-Id: <25381867050812221677f33dcb@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1123669211.4125.7.camel@localhost.localdomain>
 In-Reply-To: <1123669211.4125.7.camel@localhost.localdomain>
@@ -10,65 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2005-08-10 at 13:25 -0400, Yani Ioannou wrote:
-> Hi Jonathan,
+Hi Jonathan,
+
+> > On 8/10/05, jonathan <support-squid@bfinance.fr> wrote:
+> > > hi ,
+> > > I have installed lm-sensors with i2c, ipmi and bmcsensors modules but
+> > > the sensors command give me wrong values :
+> > >
+<snip>
+> > Well I don't think they aren't 'wrong' but they do need scaling :-)
+> > (although the negative ones are strange), see the example sensors.conf
+> > (http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/etc/sensors.conf.eg)
+> > for how to do so, specifically the compute lines. You will need to
+> > have some idea of what they normally should be, and if your bios gives
+> > you the same info you can compare with that. Also try ipmitool and see
+> > what it reads, it will probably give you the same thing though.
+> >
+> > Yani
 > 
-> On 8/10/05, jonathan <support-squid@bfinance.fr> wrote:
-> > hi ,
-> > I have installed lm-sensors with i2c, ipmi and bmcsensors modules but
-> > the sensors command give me wrong values :
-> > 
-> > # sensors -s     --> no output ?
-> > # sensors
-> > bmc-i2c-1-00
-> > Adapter: IPMI adapter
-> > in1:       +1.48 V  (min =  +1.56 V, max =  +1.73 V)
-> > in2:       +1.90 V  (min =  +1.56 V, max =  +1.73 V)
-> > in3:       +1.90 V  (min =  +1.56 V, max =  +1.73 V)
-> > in4:       +1.48 V  (min =  +1.56 V, max =  +1.73 V)
-> > in5:       +1.90 V  (min =  +4.79 V, max =  +5.21 V)
-> > in6:       +5.08 V  (min = +11.39 V, max = +12.61 V)
-> > in7:      +11.90 V  (min =  +3.16 V, max =  +3.44 V)
-> > in8:       +3.27 V  (min =  +2.49 V, max =  +3.28 V)
-> > in9:       +3.12 V  (min =  +2.42 V, max =  +2.58 V)
-> > in10:      +2.55 V  (min =  +2.42 V, max =  +2.58 V)
-> > fan1:     6240 RPM  (min = 1080 RPM)
-> > fan2:     6360 RPM  (min = 1080 RPM)
-> > fan3:     6240 RPM  (min = 1080 RPM)
-> > fan4:     6720 RPM  (min = 1080 RPM)
-> > fan5:     6360 RPM  (min = 1080 RPM)
-> > fan6:     6240 RPM  (min = 1080 RPM)
-> > fan7:     6480 RPM  (min = 1080 RPM)
-> > temp1:    -128.0 C  (high =   +80 C, hyst =  -127 C)
-> > temp2:    -930.0 C  (high =   +80 C, hyst =  -127 C)
-> > temp3:    -1280.0 C  (high =   +80 C, hyst =  -127 C)
-> > temp4:    -930.0 C  (high =   +80 C, hyst =  -127 C)
-> > temp5:    +320.0 C  (high =   +55 C, hyst =  -127 C)
-> > temp6:    +190.0 C  (high =   +40 C, hyst =  -127 C)
-> > temp7:    -750.0 C  (high =   +55 C, hyst =  -127 C)
-> > temp8:    -760.0 C  (high =   +55 C, hyst =  -127 C)
-> > temp9:    -750.0 C  (high =   +55 C, hyst =  -127 C)
-> > temp10:   +270.0 C  (high =   +55 C, hyst =  -127 C)
+> thanks Yani
+> but I don't understand why you are telling me that I have to scale the
+> result, because in the example sensors.conf it's written :
 > 
-> Well I don't think they aren't 'wrong' but they do need scaling :-)
-> (although the negative ones are strange), see the example sensors.conf
-> (http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/etc/sensors.conf.eg)
-> for how to do so, specifically the compute lines. You will need to
-> have some idea of what they normally should be, and if your bios gives
-> you the same info you can compare with that. Also try ipmitool and see
-> what it reads, it will probably give you the same thing though.
+> chip "bmc-*"
+> #
+> # You should not need compute lines here, the driver will
+> # do all the conversions.
 > 
-> Yani
+> So I don't need to scale anything with thic bmc chip, no ?
+> 
 
-thanks Yani
-but I don't understand why you are telling me that I have to scale the
-result, because in the example sensors.conf it's written :
+Good point, according to the IPMI spec the BMC threshold sensors
+should return a computed/scaled value rather than the raw value, and
+hence a compute line in sensors.conf would seem unnecessary.
 
-chip "bmc-*"
-#
-# You should not need compute lines here, the driver will
-# do all the conversions.
+However it seems that the theory doesn't match reality, and I often
+have seen people's temperature output from bmcsensors (2.6) need
+scaling, whether this is due to strange BMCs or a fault in bmcsensors.
+On the system I originally ported the driver on the values are fine,
+but with all the people who need to use compute lines I wonder if I'm
+the one with the bad implementation. I think my new system needs the
+temperatures scaled.
 
-So I don't need to scale anything with thic bmc chip, no ?
+MDS wrote that line though (and that code) so maybe he can enlighten
+us :-), any input Mark?
 
-
+Thanks,
+Yani
