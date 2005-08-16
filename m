@@ -1,59 +1,121 @@
-From: lutchann@litech.org (Nathan Lutchansky)
-Date: Mon, 15 Aug 2005 19:55:41 +0000
-Subject: [lm-sensors] [PATCH 5/5] new flag to disable i2c probing for an
-Message-Id: <20050815175505.GF24959@litech.org>
+From: gregkh@suse.de (gregkh@suse.de)
+Date: Tue, 16 Aug 2005 08:35:18 +0000
+Subject: [lm-sensors] patch hwmon-maintainer.patch added to gregkh-2.6 tree
+Message-Id: <1E4v1v-08v-00@press.kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050815175106.GA24959@litech.org>
-In-Reply-To: <20050815175106.GA24959@litech.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
-Cc: Greg KH <greg@kroah.com>
+To: lm-sensors@vger.kernel.org
 
-Re-add the flags field to the i2c_adapter structure so we can add a new
-flag I2C_ADAPTER_SKIP_PROBE.  When an adapter sets this flag, the bus
-will never be probed by any i2c client driver, even if forced addresses
-are listed.  Adapters that set this flag will need to use the
-i2c_probe_device function to attach new clients.
 
-Signed-off-by: Nathan Lutchansky <lutchann@litech.org>
+This is a note to let you know that I've just added the patch titled
 
- drivers/i2c/i2c-core.c |    3 +++
- include/linux/i2c.h    |    4 ++++
- 2 files changed, 7 insertions(+)
+     Subject: [PATHC 2.6] hwmon: separate maintainer
 
-Index: linux-2.6.13-rc6+gregkh/drivers/i2c/i2c-core.c
-=================================--- linux-2.6.13-rc6+gregkh.orig/drivers/i2c/i2c-core.c
-+++ linux-2.6.13-rc6+gregkh/drivers/i2c/i2c-core.c
-@@ -788,6 +788,9 @@ int i2c_probe(struct i2c_adapter *adapte
- 	int i, err;
- 	int adap_id = i2c_adapter_id(adapter);
+to my gregkh-2.6 tree.  Its filename is
+
+     hwmon-maintainer.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
+
+i2c/i2c-max6875-documentation-update.patch
+i2c/i2c-max6875-simplify.patch
+i2c/hwmon-lm85-cleanups.patch
+i2c/i2c-hwmon-class-01.patch
+i2c/i2c-hwmon-class-02.patch
+i2c/i2c-hwmon-class-03.patch
+i2c/i2c-nforce2-cleanup.patch
+i2c/i2c-hwmon-split-01.patch
+i2c/i2c-hwmon-split-02.patch
+i2c/i2c-hwmon-split-03.patch
+i2c/i2c-hwmon-split-04.patch
+i2c/i2c-hwmon-split-05.patch
+i2c/i2c-hwmon-split-06.patch
+i2c/i2c-hwmon-split-07.patch
+i2c/i2c-hwmon-split-08.patch
+i2c/i2c-hwmon-split-09.patch
+i2c/i2c-max6875-cleanup.patch
+i2c/i2c-max6875-documentation-cleanup.patch
+i2c/i2c-max6875-kobj_to_i2c_client.patch
+i2c/hwmon-move-SENSORS_LIMIT.patch
+i2c/i2c-core-debug-cleanup.patch
+i2c/i2c-refactor-message.patch
+i2c/i2c-hwmon-document-w83627ehg.patch
+i2c/i2c-hwmon-lm78-j.patch
+i2c/i2c-hwmon-soften-lm75.patch
+i2c/i2c-hwmon-tag-superio-functions-__init.patch
+i2c/i2c-documentation-typo.patch
+i2c/i2c-inline-i2c_adapter_id.patch
+i2c/hwmon-split-round2-01.patch
+i2c/hwmon-split-round2-02.patch
+i2c/hwmon-split-round2-03.patch
+i2c/hwmon-split-round2-04.patch
+i2c/hwmon-split-round2-05.patch
+i2c/hwmon-split-round2-06.patch
+i2c/hwmon-split-round2-07.patch
+i2c/hwmon-split-round2-08.patch
+i2c/hwmon-split-round2-09.patch
+i2c/hwmon-split-round2-10.patch
+i2c/hwmon-split-round2-11.patch
+i2c/i2c-centralize-24rf08-corruption-prevention.patch
+i2c/i2c-rewrite-i2c_probe.patch
+i2c/i2c-kill-i2c_algorithm-stuff-01.patch
+i2c/i2c-kill-i2c_algorithm-stuff-02.patch
+i2c/i2c-kill-i2c_algorithm-stuff-03.patch
+i2c/i2c-kill-i2c_algorithm-stuff-04.patch
+i2c/i2c-kill-i2c_algorithm-stuff-05.patch
+i2c/i2c-kill-i2c_algorithm-stuff-06.patch
+i2c/i2c-kill-i2c_algorithm-stuff-07.patch
+i2c/i2c-outdated-i2c_adapter-comment.patch
+i2c/hwmon-maintainer.patch
+i2c/i2c-drop-i2c_clientname.patch
+
+
+From khali@linux-fr.org Mon Aug 15 10:52:16 2005
+Date: Mon, 15 Aug 2005 19:51:02 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Greg KH <greg@kroah.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>
+Subject: [PATHC 2.6] hwmon: separate maintainer
+Message-Id: <20050815195102.0bdcfcfb.khali@linux-fr.org>
+
+Now that the hardware monitoring drivers are no more part of the i2c
+subsystem, they probably deserve their own entry in MAINTAINERS.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+
+---
+ MAINTAINERS |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
+
+--- gregkh-2.6.orig/MAINTAINERS	2005-08-15 23:32:55.000000000 -0700
++++ gregkh-2.6/MAINTAINERS	2005-08-15 23:33:33.000000000 -0700
+@@ -933,6 +933,13 @@
+ W:	http://www.kernel.org/pub/linux/utils/net/hdlc/
+ S:	Maintained
  
-+	if (adapter->flags & I2C_ADAPTER_SKIP_PROBE)
-+		return 0;
++HARDWARE MONITORING
++P:	Jean Delvare
++M:	khali@linux-fr.org
++L:	lm-sensors@lm-sensors.org
++W:	http://www.lm-sensors.nu/
++S:	Maintained
 +
- 	/* Forget it if we can't probe using SMBUS_QUICK */
- 	if (! i2c_check_functionality(adapter,I2C_FUNC_SMBUS_QUICK))
- 		return -1;
-Index: linux-2.6.13-rc6+gregkh/include/linux/i2c.h
-=================================--- linux-2.6.13-rc6+gregkh.orig/include/linux/i2c.h
-+++ linux-2.6.13-rc6+gregkh/include/linux/i2c.h
-@@ -233,6 +233,7 @@ struct i2c_adapter {
- 	unsigned int id;/* = is algo->id | hwdep.struct->id, 		*/
- 			/* for registered values see below		*/
- 	unsigned int class;
-+	unsigned int flags;		/* div., see below		*/
- 	struct i2c_algorithm *algo;/* the algorithm to access the bus	*/
- 	void *algo_data;
+ HARMONY SOUND DRIVER
+ P:	Kyle McMartin
+ M:	kyle@parisc-linux.org
+@@ -1007,7 +1014,7 @@
+ M:	wli@holomorphy.com
+ S:	Maintained
  
-@@ -290,6 +291,9 @@ static inline void i2c_set_adapdata (str
- #define I2C_CLIENT_TEN	0x10			/* we have a ten bit chip address	*/
- 						/* Must equal I2C_M_TEN below */
- 
-+/*flags for the adapter struct: */
-+#define I2C_ADAPTER_SKIP_PROBE		0x01	/* Don't probe for devices */
-+
- /* i2c adapter classes (bitmask) */
- #define I2C_CLASS_HWMON		(1<<0)	/* lm_sensors, ... */
- #define I2C_CLASS_TV_ANALOG	(1<<1)	/* bttv + friends */
+-I2C AND SENSORS DRIVERS
++I2C SUBSYSTEM
+ P:	Greg Kroah-Hartman
+ M:	greg@kroah.com
+ P:	Jean Delvare
