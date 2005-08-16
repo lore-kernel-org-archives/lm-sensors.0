@@ -1,8 +1,10 @@
 From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
-Date: Fri, 05 Aug 2005 17:40:30 +0000
+Date: Tue, 16 Aug 2005 08:36:20 +0000
 Subject: [lm-sensors] [PATCH] VID table update
-Message-Id: <20050805154011.23290.qmail@desitka.sh.cvut.cz>
+Message-Id: <20050816063605.12442.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050805154011.23290.qmail@desitka.sh.cvut.cz>
+In-Reply-To: <20050805154011.23290.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
