@@ -1,66 +1,71 @@
-From: alex@asyring.homeip.net (alex)
-Date: Thu, 18 Aug 2005 03:01:09 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 19 Aug 2005 19:09:28 +0000
 Subject: [lm-sensors] fancontrol wouldn't start
-Message-Id: <200508180300.11628.alex@asyring.homeip.net>
+Message-Id: <43061235.4080904@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200508180300.11628.alex@asyring.homeip.net>
+In-Reply-To: <200508180300.11628.alex@asyring.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-dGhhdCBzaG93cyBmYW5jb250cm9sIGF0IHN0YXJ0dXAKCkxvYWRpbmcgY29uZmlndXJhdGlvbiBm
-cm9tIC9ldGMvZmFuY29udHJvbCAuLi4KCkNvbW1vbiBzZXR0aW5nczoKICBJTlRFUlZBTBAKClNl
-dHRpbmdzIGZvciAyLTAyOTAvcHdtMjoKICBEZXBlbmRzIG9uIDItMDI5MC90ZW1wM19pbnB1dAog
-IENvbnRyb2xzIDItMDI5MC9mYW4yX2lucHV0CiAgTUlOVEVNUCAKICBNQVhURU1QQAogIE1JTlNU
-QVJUgAogIE1JTlNUT1B1CgpTZXR0aW5ncyBmb3IgMi0wMjkwL3B3bTE6CiAgRGVwZW5kcyBvbiAw
-LTAwMmUvdGVtcDJfaW5wdXQKICBDb250cm9scyAwLTAwMmUvZmFuNF9pbnB1dCswLTAwMmUvZmFu
-M19pbnB1dAogIE1JTlRFTVA1CiAgTUFYVEVNUEUKICBNSU5TVEFSVDAKICBNSU5TVE9QZQoKU2V0
-dGluZ3MgZm9yIDAtMDAyZS9wd20zOgogIERlcGVuZHMgb24gMC0wMDJlL3RlbXAzX2lucHV0CiAg
-Q29udHJvbHMgMC0wMDJlL2ZhbjJfaW5wdXQKICBNSU5URU1QQAogIE1BWFRFTVBgCiAgTUlOU1RB
-UlSQCiAgTUlOU1RPUHUKClNldHRpbmdzIGZvciAwLTAwMmUvcHdtMToKICBEZXBlbmRzIG9uIDAt
-MDAyZS90ZW1wMV9pbnB1dAogIENvbnRyb2xzCiAgTUlOVEVNUEUKICBNQVhURU1QYAogIE1JTlNU
-QVJUkAogIE1JTlNUT1BlCgpTZXR0aW5ncyBmb3IgMC0wMDJlL3B3bTI6CiAgRGVwZW5kcyBvbiAy
-LTAyOTAvdGVtcDFfaW5wdXQKICBDb250cm9scyAwLTAwMmUvZmFuMV9pbnB1dAogIE1JTlRFTVA1
-CiAgTUFYVEVNUEUKICBNSU5TVEFSVDAKICBNSU5TVE9QIAoKRW5hYmxpbmcgUFdNIG9uIGZhbnMu
-Li4KL3Vzci9zYmluL2ZhbmNvbnRyb2w6IGxpbmUgMjY1OiBwd21lbmFibGU6IGNvbW1hbmQgbm90
-IGZvdW5kCkVycm9yIGVuYWJsaW5nIFBXTSBvbiAvc3lzL2J1cy9pMmMvZGV2aWNlcy8yLTAyOTAv
-cHdtMgpBYm9ydGluZywgcmVzdG9yaW5nIGZhbnMuLi4KL3Vzci9zYmluL2ZhbmNvbnRyb2w6IGxp
-bmUgMTI3OiAwLTAwMmUvcHdtM19lbmFibGU6IEtlaW5lIEJlcmVjaHRpZ3VuZwovdXNyL3NiaW4v
-ZmFuY29udHJvbDogbGluZSAxMjc6IDAtMDAyZS9wd20xX2VuYWJsZTogS2VpbmUgQmVyZWNodGln
-dW5nCi91c3Ivc2Jpbi9mYW5jb250cm9sOiBsaW5lIDEyNzogMC0wMDJlL3B3bTJfZW5hYmxlOiBL
-ZWluZSBCZXJlY2h0aWd1bmcKVmVyaWZ5IGZhbnMgaGF2ZSByZXR1cm5lZCB0byBmdWxsIHNwZWVk
-CgppZiBJIGxvb2sgaW4gL3N5cy9idXMvaTJjL2RldmljZXMvMC0wMDJlIAoKLXJ3LXItLXItLSAg
-MSByb290IHJvb3QgICAgMCAyMDA1LTA4LTE4IDAyOjM1IC9zeXMvYnVzL2kyYy9kZXZpY2VzLzAt
-MDAyZS9wd20xCi1ydy1yLS1yLS0gIDEgcm9vdCByb290IDQwOTYgMjAwNS0wOC0xOCAwMjo1MyAv
-c3lzL2J1cy9pMmMvZGV2aWNlcy8wLTAwMmUvcHdtMV9hdXRvX2NoYW5uZWxzCi1ydy1yLS1yLS0g
-IDEgcm9vdCByb290IDQwOTYgMjAwNS0wOC0xOCAwMjo1MyAvc3lzL2J1cy9pMmMvZGV2aWNlcy8w
-LTAwMmUvcHdtMV9hdXRvX3B3bV9mcmVxCi1ydy1yLS1yLS0gIDEgcm9vdCByb290IDQwOTYgMjAw
-NS0wOC0xOCAwMjo1MyAvc3lzL2J1cy9pMmMvZGV2aWNlcy8wLTAwMmUvcHdtMV9hdXRvX3B3bV9t
-aW4KLXJ3LXItLXItLSAgMSByb290IHJvb3QgNDA5NiAyMDA1LTA4LTE4IDAyOjUzIC9zeXMvYnVz
-L2kyYy9kZXZpY2VzLzAtMDAyZS9wd20xX2F1dG9fcHdtX21pbmN0bAotci0tci0tci0tICAxIHJv
-b3Qgcm9vdCAgICAwIDIwMDUtMDgtMTggMDI6NDkgL3N5cy9idXMvaTJjL2RldmljZXMvMC0wMDJl
-L3B3bTFfZW5hYmxlCi1ydy1yLS1yLS0gIDEgcm9vdCByb290ICAgIDAgMjAwNS0wOC0xOCAwMjoz
-NSAvc3lzL2J1cy9pMmMvZGV2aWNlcy8wLTAwMmUvcHdtMgotcnctci0tci0tICAxIHJvb3Qgcm9v
-dCA0MDk2IDIwMDUtMDgtMTggMDI6NTMgL3N5cy9idXMvaTJjL2RldmljZXMvMC0wMDJlL3B3bTJf
-YXV0b19jaGFubmVscwotcnctci0tci0tICAxIHJvb3Qgcm9vdCA0MDk2IDIwMDUtMDgtMTggMDI6
-NTMgL3N5cy9idXMvaTJjL2RldmljZXMvMC0wMDJlL3B3bTJfYXV0b19wd21fZnJlcQotcnctci0t
-ci0tICAxIHJvb3Qgcm9vdCA0MDk2IDIwMDUtMDgtMTggMDI6NTMgL3N5cy9idXMvaTJjL2Rldmlj
-ZXMvMC0wMDJlL3B3bTJfYXV0b19wd21fbWluCi1ydy1yLS1yLS0gIDEgcm9vdCByb290IDQwOTYg
-MjAwNS0wOC0xOCAwMjo1MyAvc3lzL2J1cy9pMmMvZGV2aWNlcy8wLTAwMmUvcHdtMl9hdXRvX3B3
-bV9taW5jdGwKLXItLXItLXItLSAgMSByb290IHJvb3QgICAgMCAyMDA1LTA4LTE4IDAyOjQ5IC9z
-eXMvYnVzL2kyYy9kZXZpY2VzLzAtMDAyZS9wd20yX2VuYWJsZQotcnctci0tci0tICAxIHJvb3Qg
-cm9vdCAgICAwIDIwMDUtMDgtMTggMDI6MzUgL3N5cy9idXMvaTJjL2RldmljZXMvMC0wMDJlL3B3
-bTMKLXJ3LXItLXItLSAgMSByb290IHJvb3QgNDA5NiAyMDA1LTA4LTE4IDAyOjUzIC9zeXMvYnVz
-L2kyYy9kZXZpY2VzLzAtMDAyZS9wd20zX2F1dG9fY2hhbm5lbHMKLXJ3LXItLXItLSAgMSByb290
-IHJvb3QgNDA5NiAyMDA1LTA4LTE4IDAyOjUzIC9zeXMvYnVzL2kyYy9kZXZpY2VzLzAtMDAyZS9w
-d20zX2F1dG9fcHdtX2ZyZXEKLXJ3LXItLXItLSAgMSByb290IHJvb3QgNDA5NiAyMDA1LTA4LTE4
-IDAyOjUzIC9zeXMvYnVzL2kyYy9kZXZpY2VzLzAtMDAyZS9wd20zX2F1dG9fcHdtX21pbgotcnct
-ci0tci0tICAxIHJvb3Qgcm9vdCA0MDk2IDIwMDUtMDgtMTggMDI6NTMgL3N5cy9idXMvaTJjL2Rl
-dmljZXMvMC0wMDJlL3B3bTNfYXV0b19wd21fbWluY3RsCi1yLS1yLS1yLS0gIDEgcm9vdCByb290
-ICAgIDAgMjAwNS0wOC0xOCAwMjo0OSAvc3lzL2J1cy9pMmMvZGV2aWNlcy8wLTAwMmUvcHdtM19l
-bmFibGUKCgppbiBzeXMvYnVzL2kyYy9kZXZpY2VzLzItMDI5MCBpIHNlZSBvbmx5IAotcnctci0t
-ci0tICAxIHJvb3Qgcm9vdCAwIDIwMDUtMDgtMTggMDI6NDkgL3N5cy9idXMvaTJjL2RldmljZXMv
-Mi0wMjkwL3B3bTEKLXJ3LXItLXItLSAgMSByb290IHJvb3QgMCAyMDA1LTA4LTE4IDAyOjQ5IC9z
-eXMvYnVzL2kyYy9kZXZpY2VzLzItMDI5MC9wd20yCgpJIGhhdmUgdGhlIEFEVDc0NjMgb24gMC0w
-MDJlIGFuZCB0aGUgVzgzNjI3SEYgb24gMi0wMjkwCgpjb3VsZCBzb21lb25lIGhlbHAgbWUKClRo
-eApBbGV4Cg==
+Hi all,
+
+To Alex:
+
+You seem to hit an issue. If you want to allow the fans regulate itselfs according the temp you can
+use capabilities of the chip itself and you dont need the fancontrol script at all.
+
+Please consult the lm85 file in Documentation/hwmon or Documentation/i2c/chips of your kernel sources.
+(use commands like echo and cat to write/read values)
+If you have any other trouble with this automatic *chip* stuff let us now. In meanwhile we will try to solve
+the fancontrol issue with others.
+
+To rest of developers:
+
+> -r--r--r--  1 root root    0 2005-08-18 02:49 /sys/bus/i2c/devices/0-002e/pwm1_enable
+Maybe the script are trying to write something in it and get confused because it is read only.
+
+Our specs want this file RW.
+
+pwm[1-3]_enable
+                Switch PWM on and off.
+                Not always present even if fan*_pwm is.
+                0 to turn off
+                1 to turn on in manual mode
+                2 to turn on in automatic mode
+                Read/Write
+
+Current implementation:
+
+  return sprintf(buf,"%d\n", (pwm_zone != 0 && pwm_zone != -1) );
+
+/* Since we can't use strings, I'm abusing these numbers
+ *   to stand in for the following meanings:
+ *      1 -- PWM responds to Zone 1
+ *      2 -- PWM responds to Zone 2
+ *      3 -- PWM responds to Zone 3
+ *     23 -- PWM responds to the higher temp of Zone 2 or 3
+ *    123 -- PWM responds to highest of Zone 1, 2, or 3
+ *      0 -- PWM is always at 0% (ie, off)
+ *     -1 -- PWM is always at 100%
+ *     -2 -- PWM responds to manual control
+ */
+
+So it  returns 0 when is off or running fullspeed.
+
+My proposal:
+
+Allow to change to 0,1,2
+
+0 -> write to corresponding zone -1 (fan will run at full speed)
+1 -> write to corresponding zone -2 (fan esponds to manual control)
+
+Document the fact that automatic mode can be reenabled via writing to the pwm#_auto_channels
+
+Any one else has some other idea?
+
+Regards
+Rudolf
+
