@@ -1,56 +1,56 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 13 Aug 2005 08:46:13 +0000
-Subject: [lm-sensors] I2C block reads with i2c-viapro: testers wanted
-Message-Id: <20050813084616.55e8825b.khali@linux-fr.org>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Sat, 20 Aug 2005 09:32:45 +0000
+Subject: [lm-sensors] Working on Abit Uguru driver
+Message-Id: <4306DCBF.4000003@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050809231328.0726537b.khali@linux-fr.org>
-In-Reply-To: <20050809231328.0726537b.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+Hi,
 
-> > 	if ((pci_read_config_word(pdev, id->driver_data, &vt596_smba))
-> > 	 || !(vt596_smba & 0x1)) {
-> > 		/* try 2nd address and config reg. for 596 */
-> > 		if (id->device = PCI_DEVICE_ID_VIA_82C596_3 &&
-> > 		    !pci_read_config_word(pdev, SMBBA2, &vt596_smba) &&
-> > 		    (vt596_smba & 0x1)) {
-> > 			smb_cf_hstcfg = 0x84;
-> > 
-> > It looks like a hack to me, and I was wondering if we could clean it
-> > up (possibly by using pci quirks). I've not studied the problem in
-> > details yet, but comments and help would be welcome, and the fact
-> > that you do have a chip for testing will help anyway :)
-> 
-> I'm not sure what you don't like about it.  I can't see what a PCI
-> quirk would have to do with it, either.
+2 months ago bought an Abit KV8 Pro motherboard, because I thought it 
+was well supported under Linux. And to be fair it is well supported 
+under Linux except for the @#$% Uguru chip.
 
-The base address is read from a given PCI config word, and if it doesn't
-*seem* correct, a different config word is used. First of all, only
-testing for the evenness of the value doesn't look like a reliable test
-to me, I'd expect the last 3 bits to be tested - as this is the address
-of a 8-byte I/O range. Even then, I don't see what prevent the location
-from not being correct and the value read from it to still pass the
-test. So I would really hope that there is a real way to know which is
-the correct location even before reading from the first one. Maybe we
-can deduce the location from the PCI device revision. I'll study the
-datasheet when I get some time, but most likely we will need two
-real-world testers, one with each possible configuration, in order to
-come up with a solution.
+I've kindly requested Abit for programming info, and I believe you 
+already know the answer (NO).
 
-The reason why I am mentioning PCI quirks is this recent post on the
-LKML:
-  http://lkml.org/lkml/2005/8/8/32
+I did however find this little GPL openguru program on the internet 
+written by Olle Sandberg <ollebull@gmail.com>. You can find this program 
+at: http://hem.bredband.net/b330708/oguru/oguru.tar.gz
 
-This makes me believe that the config word the i2c-viapro driver reads
-from are at non-standard locations. We could use quirks similar to the
-patch in that post to copy the config words to standard locations, and
-then i2c-viapro could use the standard PCI API functions to get the
-values. I have not yet verified what the exact benefits would be, I need
-to ask some PCI expert I guess, it's only random thoughts at the moment.
+This program only supports reading the actual sensor values and does not 
+support reading/setting min/max and reading alarms. I've written an 
+lmsensors chip driver for the abituguru chip based on this program. This 
+driver thus is limited to only reading the sensor values like the 
+openguru program.
 
--- 
-Jean Delvare
+In my enthousiasm to get my abituguru sensors supported I didn't read
+doc/developers/new_drivers, but instead started working on a driver 
+immediatly, using the drivers (specific the via686a) in the 2.6 kernel 
+tree as a base.
+
+Currently I've a working 2.6 driver, it reports correct values when 
+catting /sys/bus/i2c/devices/xxx/xxx_input. I've made up an I2C_ID for 
+now, can you provide me with one?
+
+I still have a problem with my current driver sensors does see the 
+client (I've added it and a bunch of label statements to sensors.conf), 
+but doesn't report any values for it, do you know what could be the 
+cause of this?
+
+Last question. What todo now, I assume I need to port my driver to your 
+current CVS tree. Can you explain the difference between the in kernel 
+stuff and your stuff. And why is there a difference in the first place?
+
+Regards,
+
+Hans
+
+p.s.
+
+I know you're not enthousiastic about supporting sensorchips without 
+proper datasheets. But since I wanted to get this chip supported I've 
+just bitten the bullet. I promise I'll handle all support for THIS chip.
