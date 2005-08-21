@@ -1,48 +1,55 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Mon, 01 Aug 2005 22:18:26 +0000
-Subject: [lm-sensors] Re: [patchset 6/23] pc87360 pwm dev-attr -->
-Message-Id: <42EE833E.3090503@divsol.com>
+From: darksage@gmail.com (Johnathan Bunn)
+Date: Sun, 21 Aug 2005 08:25:08 +0000
+Subject: [lm-sensors] libsensors question
+Message-Id: <c1356f93050820232420205ef3@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-upgrade pwm device_attributes to sensor-device-attributes, following 
-Yani's form
- a. change declarations: DEVICE_ATTR -> SENSOR_DEVICE_ATTR
- b. compute sensor_dev_attr from dev_attr, with to_sensor_dev_attr(devattr)
- c. change calls to device_create_file() to match.
-
-[jimc@harpo pset]$ diffstat 04-sda-pwm
- pc87360.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-Signed-off-by:  Jim Cromie <jcromie@divsol.com>
+Skipped content of type multipart/alternative-------------- next part --------------
+tuxrox test # ./a.out it87-isa-0290 temp1
+in0-1-1
+in0_min-11-1
+in0_max-21-1
+in1-2-1
+in1_min-12-1
+in1_max-22-1
+in2-3-1
+in2_min-13-1
+in2_max-23-1
+in3-4-1
+in3_min-14-1
+in3_max-24-1
+in4-5-1
+in4_min-15-1
+in4_max-25-1
+in5-6-1
+in5_min-16-1
+in5_max-26-1
+in6-7-1
+in6_min-17-1
+in6_max-27-1
+in7-8-1
+in7_min-18-1
+in7_max-28-1
+in8-9-1
+fan1-31-1
+fan1_min-41-1
+fan1_div-71-1
+fan2-32-1
+fan2_min-42-1
+fan2_div-72-1
+fan3-33-1
+fan3_min-43-1
+fan3_div-73-1
+M/B Temp
+Segmentation fault
 -------------- next part --------------
-diff -ruNp -X exclude-diffs lxC-5/drivers/hwmon/pc87360.c lxC-6/drivers/hwmon/pc87360.c
---- lxC-5/drivers/hwmon/pc87360.c	2005-07-31 14:14:33.000000000 -0600
-+++ lxC-6/drivers/hwmon/pc87360.c	2005-07-31 14:27:34.000000000 -0600
-@@ -323,17 +323,19 @@ show_and_set_fan(2)
- show_and_set_fan(3)
- 
- #define show_and_set_pwm(offset) \
--static ssize_t show_pwm##offset(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_pwm##offset(struct device *dev, struct device_attribute *devattr, char *buf) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct pc87360_data *data = pc87360_update_device(dev); \
- 	return sprintf(buf, "%u\n", \
- 		       PWM_FROM_REG(data->pwm[offset-1], \
- 				    FAN_CONFIG_INVERT(data->fan_conf, \
- 						      offset-1))); \
- } \
--static ssize_t set_pwm##offset(struct device *dev, struct device_attribute *attr, const char *buf, \
-+static ssize_t set_pwm##offset(struct device *dev, struct device_attribute *devattr, const char *buf, \
- 	size_t count) \
- { \
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
- 	struct i2c_client *client = to_i2c_client(dev); \
- 	struct pc87360_data *data = i2c_get_clientdata(client); \
- 	long val = simple_strtol(buf, NULL, 10); \
+A non-text attachment was scrubbed...
+Name: test.cpp
+Type: application/octet-stream
+Size: 1627 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050821/51898040/test.obj
