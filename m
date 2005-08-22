@@ -1,59 +1,105 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 25 Aug 2005 15:40:59 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: Drop probe parameter of i2c-keywest
-Message-Id: <20050825154029.3438a861.khali@linux-fr.org>
+From: jcromie@divsol.com (jcromie@divsol.com)
+Date: Mon, 22 Aug 2005 19:50:01 +0000
+Subject: [lm-sensors] test-send vref-ext-email again
+Message-Id: <200508221702.j7MH2P36007729@harpo.jimc.earth>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, Ben, all,
+Jean, etal
 
-The i2c-keywest driver has a "probe" module parameter which enables bus
-scanning at load time. This can be done in userspace with the i2cdetect
-tool (part of the lm_sensors package) instead. What's more, i2cdetect
-gives more control on the way the bus is scanned, and is safer
-(i2c-keywest currently scans reserved addresses and doesn't properly
-handle the famous 24RF08 corruption case.)
+[ apologies in advance for any mail bogosity - 
+this is sent with a minimal sendmail script to avoid mime attachements.
+Ive tested it on myself, but u never know..
+pls advise if bogosity is subtle - if obvious I hope to know ]
 
-Thus, I would propose that this module parameter be simply dropped.
+This patch corrects a voltage-reference value swap in current code.
+It now agrees with your previous explanation; the internal voltage ref
+is higher than the value specd/recommended for an external reference.
 
- drivers/i2c/busses/i2c-keywest.c |   12 ------------
- 1 file changed, 12 deletions(-)
+This is a minimal change, and qualifies strictly as a bug-fix.
+After .13 is out, Id want to replace/add a module-param to specify the
+external ref voltage that is actually supplied, though on my board it is
+the recommended value, so I dont need the param.
 
---- linux-2.6.13-rc7.orig/drivers/i2c/busses/i2c-keywest.c	2005-08-24 21:35:14.000000000 +0200
-+++ linux-2.6.13-rc7/drivers/i2c/busses/i2c-keywest.c	2005-08-25 14:36:45.000000000 +0200
-@@ -87,12 +87,9 @@
- };
- #endif /* DEBUG */
- 
--static int probe;
--
- MODULE_AUTHOR("Benjamin Herrenschmidt <benh@kernel.crashing.org>");
- MODULE_DESCRIPTION("I2C driver for Apple's Keywest");
- MODULE_LICENSE("GPL");
--module_param(probe, bool, 0);
- 
- #ifdef POLLED_MODE
- /* Don't schedule, the g5 fan controller is too
-@@ -632,15 +629,6 @@
- 				chan->adapter.name);
- 			i2c_set_adapdata(&chan->adapter, NULL);
+heres a before and after:
+voltages drop approx 2%, which is in agreement with calcs: 1-(2966/3025)
+
+
+root@soekris:~# sensors
+pc87366-isa-6620
+Adapter: ISA adapter
+avi0:      +3.01 V  (min =  +0.00 V, max =  +3.01 V)
+VCORE:     +2.00 V  (min =  +0.00 V, max =  +3.01 V)
+VCC:       +4.96 V  (min =  +0.00 V, max =  +6.03 V)
+VPWR:     +13.55 V  (min =  +5.93 V, max = +28.02 V)
++12V:     +11.74 V  (min =  +0.00 V, max = +14.46 V)
+-12V:     -12.97 V  (min = -60.61 V, max =  -2.76 V)
+GND:       +0.00 V  (min =  +0.00 V, max =  +3.01 V)
+Vsb:       +3.28 V  (min =  +3.00 V, max =  +3.59 V)
+Vdd:       +2.91 V  (min =  +3.00 V, max =  +3.59 V)       ALARM
+Vbat:      +3.01 V  (min =  +2.40 V, max =  +3.01 V)
+AVdd:      +3.28 V  (min =  +3.00 V, max =  +3.59 V)
+Temp:       +107 C  (low  =    +0 C, high =   +70 C)   ALARM
+Critical:    +85 C ALARM
+
+root@soekris:~#
+root@soekris:~# rmmod pc87360; modprobe pc87360; sensors -s ; sensors
+pc87360: Device 0x09 not activated
+pc87360 9191-6620: VLM conversion set to 1s period, 160us delay
+pc87366-isa-6620
+Adapter: ISA adapter
+avi0:      +2.95 V  (min =  +0.00 V, max =  +2.95 V)
+VCORE:     +1.95 V  (min =  +0.00 V, max =  +2.95 V)
+VCC:       +4.87 V  (min =  +0.00 V, max =  +5.91 V)
+VPWR:     +12.34 V  (min =  +6.05 V, max = +27.94 V)
++12V:     +11.51 V  (min =  +0.00 V, max = +14.18 V)
+-12V:     -13.89 V  (min = -60.61 V, max =  -3.89 V)
+GND:       +0.00 V  (min =  +0.00 V, max =  +2.95 V)
+Vsb:       +3.22 V  (min =  +2.99 V, max =  +3.59 V)
+Vdd:       +2.85 V  (min =  +2.99 V, max =  +3.59 V)       ALARM
+Vbat:      +2.95 V  (min =  +2.40 V, max =  +2.95 V)
+AVdd:      +3.22 V  (min =  +2.99 V, max =  +3.59 V)
+Temp:       +106 C  (low  =    +0 C, high =   +70 C)   ALARM
+Critical:    +85 C ALARM
+
+
+Henrik Brix Anderson has kindly tested a version of this patch
+which added several new module-parameters, and is thus unsuitable
+for 13 at this late stage.  If this doesnt get in (for obvious
+reasons), Ill repost a version with a mod-param to set external vref.
+
+Im copy-pasting his words and signoff, and cc'g him.
+
+Brix, when you tested, you evidently measured your vrefext.
+The code default is 1.211mv, not your measured 1.210mv.
+Did you use the mod-param to tweak it down 1mv ?
+Or were the defaults also a 'great' improvment.
+Can you quantify 'great' ?  errs 10mv -> 1mv ??
+Did you mess about with the vrefscale setting ?
+
+thanks
+Signed-off-by:  Jim Cromie <jcromie@divsol.com>
+
+
+I have tested this patch with a measured vrefext of 1210mV - it greatly
+improves the precision of my sensor readings compared to the measured
+voltages.
+
+Signed-off-by: Henrik Brix Andersen <brix@gentoo.org>
+
+
+diff -ruNp -X exclude-diffs ../linux-2.6.13-rc5-mm1/drivers/hwmon/pc87360.c vref-int-ext/drivers/hwmon/pc87360.c
+--- ../linux-2.6.13-rc5-mm1/drivers/hwmon/pc87360.c	2005-08-07 13:17:29.000000000 -0600
++++ vref-int-ext/drivers/hwmon/pc87360.c	2005-08-14 10:29:20.000000000 -0600
+@@ -798,7 +798,7 @@ static int pc87360_detect(struct i2c_ada
+ 			i &= pc87360_read_value(data, LD_TEMP, NO_BANK,
+ 						PC87365_REG_TEMP_CONFIG);
  		}
--		if (probe) {
--			printk("Probe: ");
--			for (addr = 0x00; addr <= 0x7f; addr++) {
--				if (i2c_smbus_xfer(&chan->adapter,addr,
--				    0,0,0,I2C_SMBUS_QUICK,NULL) >= 0)
--					printk("%02x ", addr);
--			}
--			printk("\n");
--		}
- 	}
+-		data->in_vref = (i&0x02) ? 3025 : 2966;
++		data->in_vref = (i&0x02) ? 2966 : 3025; /* vref (mV) * 2.54 */
+ 		dev_dbg(&new_client->dev, "Using %s reference voltage\n",
+ 			(i&0x02) ? "external" : "internal");
  
- 	printk(KERN_INFO "Found KeyWest i2c on \"%s\", %d channel%s, stepping: %d bits\n",
-
-
--- 
-Jean Delvare
