@@ -1,7 +1,7 @@
-From: csyllac@gmail.com (Craig Sylla)
-Date: Tue, 23 Aug 2005 18:45:25 +0000
-Subject: [lm-sensors] Fw: Processes causing CPU to overheat
-Message-Id: <1fbc035c0508230944328fed5c@mail.gmail.com>
+From: jon.roland@the-spa.com (Jon Roland)
+Date: Tue, 23 Aug 2005 20:27:31 +0000
+Subject: [lm-sensors] Processes causing CPU to overheat
+Message-Id: <430B2447.6030004@the-spa.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <430A5153.2040604@linux-migration.net>
 In-Reply-To: <430A5153.2040604@linux-migration.net>
@@ -10,79 +10,82 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From your description, this only happens at 100% CPU load.  If that is
-correct, this sounds like the system is just not cooling well enough. 
-It could be a bad/inadequate fan, an insufficient heatsink, bad case
-airflow, etc.
+I am trying to write some scripts that would:
 
-There is a program called CPUburn that will give you instant 100% load
-and push the CPU temp as hard as possible.  I would suggested Googling
-for that, I use it for stress-testing my watercooled box when I do
-overclocking experiments.  That will give you an on-demand way to
-cause temperature rise.  Then I'd check the system and see if it's
-actually dropping the fan RPM or if the stock HSF set is just not up
-to the task.  I've seen off-the-shelf name-brand systems that were
-actually not capable of running 100% load full-time due to poor case
-design/layout.  Mini-ITX fanless boards are a good example of this.
+1. Sense when the CPU temperature rises above a preset threshold level, and if it 
+does, launch a program to remedy the condition.
 
-I use sensors just by loading the modules and checking the /sys files,
-although that requires knowing the chips and what the driver code puts
-into each file entry.  I've never seen it leave a perl script running
-even when using it normally.
+2. The launched program would kill the first process named "perl -w".
 
-Good luck!
-Craig
+3. It would then sleep for some period of time, say 30 seconds, to allow time for 
+the prelink process to start, which seems to always come after the perl processes, 
+and which itself threatens an overheat.
 
+4. Kill the prelink process.
 
-On 8/22/05, Jon Roland <jroland@linux-migration.net> wrote:
-> Thanks for your response. No, it's not dust. Problem hasn't recurred, so I can't
-> open the case to see if the fan has stopped or slowed when the temp begins to
-> rise, but that is an obvious next move if it does.
-> 
-> Of course, mechanical problems would not correlate with CPU load, processes, and
-> disk load, stopping the CPU fan (or increasing power to the CPU) when the nice
-> usage (not system or user) pegs at 100%, and dropping back to normal when the
-> first perl process is killed, which also causes all the other perl processes to
-> end, and the nice usage to drop to zero. Nothing else causes the CPU temp to rise.
-> I have done this process kill twice now, so it is not a coincidence.
-> 
-> I don't know why my log file is truncated at 80 columns to reveal more information
-> about those perl processes.
-> 
-> Phil Edelbrock wrote:
-> >
-> > Weird.  Something I would check is to make sure that dust hasn't  caused
-> > the CPU fan to slow (or stop).  I had problems with a server  this
-> > summer which had lots of dust, and a slightly mis-installed CPU
-> > heatsink.  The result was rapidly rising temps (and hangs) when the
-> > computer was loaded.
-> >
-> > I think you need to look inside the server to see just what is going  on
-> > there at the heatsink and CPU.  Are things installed right?  Is  there
-> > dust or something causing the heatsink/fan to not work  properly?  Is
-> > the environment the server is in OK (temp and humidity  should be low).
-> > Heatsinks sometimes have a piece of plastic which  needs to be peeled
-> > off the heatsink compound before installation.
-> >
-> > BTW- I hope you know what's causing the strange loading (those Perl
-> > processes?).  If that's unusual, then you could have some nasty  spammer
-> > or somebody using your box to do evil things.  BBTW- Your top  output
-> > doesn't show much becuase that it's cut off on the right side  where
-> > things are just get interesting. Oh, and I have no idea why  sensor
-> > values disappear unless the driver or something is being  unloaded(?).
-> >
-> >
-> > Phil
-> 
-> --
-> 
-> ----------------------------------------------------------------
-> Linux Migration Network   7793 Burnet Road #37, Austin, TX 78757
-> 512/374-9585 www.linux-migration.net jroland@linux-migration.net
-> ----------------------------------------------------------------
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+Some of the scripts I have written so far:
+
+psk:
+
+kill `ps -ef | grep "$1" | egrep -v grep | awk '{print $2}'`
+
+psu:
+
+ps -ef --colsP0 | grep "$1" | egrep -v grep 2>&1 | tee `date +%y%m%d%H%M`_ps.log
+
+soh (pseudocode):
+
+if [overheat trigger, returns true when CPU temp > 49 C]
+then
+   psk "perl -w"
+   sleep 30
+   psk prelink
+end
+
+My problem is to figure out how to write that overheat trigger, presumably based 
+on the sensors command in some way. Is there something already written that would 
+do that? I have been searching for one and haven't found one yet.
+
+It also appears there are two prelink processes, and it is the second one that 
+needs to be halted. Only the first perl process needs to be killed, and it is 
+distinguished by the "-w" flag.
+
+Attached are some diagnostic log files. It is clear that the prelink process is 
+luanched by anacron, but it is not clear what is launching the perl processes. I 
+have manually checked the CPU fan and it shows no sign of slowing or stopping when 
+the overheating condition arises.
+
+-- Jon
+
+----------------------------------------------------------------
+Linux Migration Network   7793 Burnet Road #37, Austin, TX 78757
+512/374-9585 www.linux-migration.net jroland@linux-migration.net
+----------------------------------------------------------------
+
+-- 
+
+----------------------------------------------------------------
+Starflight Corporation    7793 Burnet Road #37, Austin, TX 78757
+512/374-9585 www.the-spa.com/jon.roland/  jon.roland@the-spa.com
+----------------------------------------------------------------
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 0508230323_sensors.log
+Type: text/x-log
+Size: 12967 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050823/3806f365/0508230323_sensors-0001.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 050823_pst.log
+Type: text/x-log
+Size: 8169 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050823/3806f365/050823_pst-0001.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: 050823_psu.log
+Type: text/x-log
+Size: 1634 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050823/3806f365/050823_psu-0001.bin
