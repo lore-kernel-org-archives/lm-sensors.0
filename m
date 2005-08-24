@@ -1,7 +1,7 @@
 From: jon.roland@the-spa.com (Jon Roland)
-Date: Tue, 23 Aug 2005 20:27:31 +0000
+Date: Wed, 24 Aug 2005 17:59:06 +0000
 Subject: [lm-sensors] Processes causing CPU to overheat
-Message-Id: <430B2447.6030004@the-spa.com>
+Message-Id: <430C52F8.7060001@the-spa.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <430A5153.2040604@linux-migration.net>
 In-Reply-To: <430A5153.2040604@linux-migration.net>
@@ -10,57 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I am trying to write some scripts that would:
+Yes, I restored sensors by running sensors-detect.
 
-1. Sense when the CPU temperature rises above a preset threshold level, and if it 
-does, launch a program to remedy the condition.
+I doubt things have changed that much in going to FC4. If you could provide a 
+2.6.5 solution I can probably use or adapt it.
 
-2. The launched program would kill the first process named "perl -w".
+I am indeed working on a script that would extract the CPU temp from the output of 
+the sensors command and use it as a trigger. I was just hoping someone might have 
+already done something like that, preferably something a little more robust, and 
+that I could run in background like a watch xxx script. A cron job with only a 
+one-minute granularity does not seem to be fast enough for this problem, because 
+freezeup occurs in less than a minute once the processes begin that seem to cause it.
 
-3. It would then sleep for some period of time, say 30 seconds, to allow time for 
-the prelink process to start, which seems to always come after the perl processes, 
-and which itself threatens an overheat.
+Many of the respondents are also saying I need a better heatsink/fan. Funds for 
+that are low right now.
 
-4. Kill the prelink process.
+Craig Sylla wrote:
+> Unfortunately it varies from driver to driver.  :/
+> 
+> You would need to look at the source for the driver in question to see
+> exactly what it does.  Most of them actually provide a fairly useful
+> value in the sys entry.  Also you had mentioned earlier that sensors
+> had died, have you been able to get them working again?
+> 
+> I am also unsure of exactly what the newer methods are for this, as
+> I'm working with kernel 2.6.5, which is somewhat dated now.  FC4 is
+> running 2.6.12 iirc, I'd rather not give you info that is wrong and
+> waste your time.
+> 
+> One possibility - if the 'sensors' command and your sensors.conf file
+> are good/working/right you could just grep out the line for the temp
+> and parse that for your temperature and alarm status.  The command
+> uses the config file to do the conversions for you and knows how to
+> handle each driver correctly.  You can also set thresholds in the
+> config file.
+> 
+> Craig
+> 
+> 
+> On 8/23/05, Jon Roland <jon.roland@the-spa.com> wrote:
+> 
+>>This is a tantalizing suggestion, but it is insufficient information. Could you be
+>>more specific, or point me to some documentation that would help me make it work?
+>>Thanks.
+>>
+>>Craig Sylla wrote:
+>>
+>>>The 'raw' driver data comes from the sys file system.  You could read
+>>>the temp directly (it will require some math conversion but not much).
+>>> Or just check the 'alarm' value for a pass-fail type test.
+>>
+>>--
+>>
+>>----------------------------------------------------------------
+>>Starflight Corporation    7793 Burnet Road #37, Austin, TX 78757
+>>512/374-9585 www.the-spa.com/jon.roland/  jon.roland@the-spa.com
+>>----------------------------------------------------------------
+>>
+> 
+> 
 
-Some of the scripts I have written so far:
-
-psk:
-
-kill `ps -ef | grep "$1" | egrep -v grep | awk '{print $2}'`
-
-psu:
-
-ps -ef --colsP0 | grep "$1" | egrep -v grep 2>&1 | tee `date +%y%m%d%H%M`_ps.log
-
-soh (pseudocode):
-
-if [overheat trigger, returns true when CPU temp > 49 C]
-then
-   psk "perl -w"
-   sleep 30
-   psk prelink
-end
-
-My problem is to figure out how to write that overheat trigger, presumably based 
-on the sensors command in some way. Is there something already written that would 
-do that? I have been searching for one and haven't found one yet.
-
-It also appears there are two prelink processes, and it is the second one that 
-needs to be halted. Only the first perl process needs to be killed, and it is 
-distinguished by the "-w" flag.
-
-Attached are some diagnostic log files. It is clear that the prelink process is 
-luanched by anacron, but it is not clear what is launching the perl processes. I 
-have manually checked the CPU fan and it shows no sign of slowing or stopping when 
-the overheating condition arises.
-
--- Jon
-
-----------------------------------------------------------------
-Linux Migration Network   7793 Burnet Road #37, Austin, TX 78757
-512/374-9585 www.linux-migration.net jroland@linux-migration.net
-----------------------------------------------------------------
 
 -- 
 
@@ -68,24 +77,3 @@ Linux Migration Network   7793 Burnet Road #37, Austin, TX 78757
 Starflight Corporation    7793 Burnet Road #37, Austin, TX 78757
 512/374-9585 www.the-spa.com/jon.roland/  jon.roland@the-spa.com
 ----------------------------------------------------------------
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 0508230323_sensors.log
-Type: text/x-log
-Size: 12967 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050823/3806f365/0508230323_sensors-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 050823_pst.log
-Type: text/x-log
-Size: 8169 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050823/3806f365/050823_pst-0001.bin
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: 050823_psu.log
-Type: text/x-log
-Size: 1634 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050823/3806f365/050823_psu-0001.bin
