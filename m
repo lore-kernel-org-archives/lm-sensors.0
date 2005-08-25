@@ -1,28 +1,92 @@
-From: lutchann@litech.org (Nathan Lutchansky)
-Date: Sat, 20 Aug 2005 02:12:14 +0000
-Subject: [lm-sensors] Re: [PATCH 0/5] improve i2c probing
-Message-Id: <Pine.LNX.4.58.0508192010390.31004@puck.litech.org>
+From: adobriyan@gmail.com (Alexey Dobriyan)
+Date: Thu, 25 Aug 2005 23:41:09 +0000
+Subject: [lm-sensors] [PATCH] drivers/hwmon/*: kfree() correct pointers
+Message-Id: <20050825214913.GA31605@mipter.zuzino.mipt.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050815175106.GA24959@litech.org> <20050818185401.GA32684@kroah.com>
-In-Reply-To: <20050818185401.GA32684@kroah.com>
+References: <20050825205629.22372.qmail@lwn.net>
+In-Reply-To: <20050825205629.22372.qmail@lwn.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: Greg Kroah-Hartman <greg@kroah.com>, Jean Delvare <khali@linux-fr.org>
+Cc: torvalds@osdl.org, akpm@osdl.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jonathan Corbet <corbet@lwn.net>
 
-On Thu, 18 Aug 2005, Greg KH wrote:
-> On Mon, Aug 15, 2005 at 01:51:06PM -0400, Nathan Lutchansky wrote:
-> > This patch series makes a couple of improvements to the i2c device
-> > probing process.
-> 
-> <snip>
-> 
-> These all generally look quite good, thanks.  But it looks like you and
-> Jean went back and forth on a few issues, care to repost an updated
-> series of patches based on that exchange so I can have them get some
-> testing in the -mm tree?
+The adm9240 driver, in adm9240_detect(), allocates a structure.  The
+error path attempts to kfree() ->client field of it (second one),
+resulting in an oops (or slab corruption) if the hardware is not present.
 
-Yup, I'm going to break the series into two parts and post the first one 
-probably tomorrow.  I haven't been in a hurry since Jean's been away this 
-week.  -Nathan
+->client field in adm1026, adm1031, smsc47b397 and smsc47m1 is the first in
+${HWMON}_data structure, but fix them too.
+
+Signed-off-by: Jonathan Corbet <corbet@lwn.net
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
+
+ drivers/hwmon/adm1026.c    |    2 +-
+ drivers/hwmon/adm1031.c    |    2 +-
+ drivers/hwmon/adm9240.c    |    2 +-
+ drivers/hwmon/smsc47b397.c |    2 +-
+ drivers/hwmon/smsc47m1.c   |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
+
+diff -uprN linux-vanilla/drivers/hwmon/adm1026.c linux-hwmon/drivers/hwmon/adm1026.c
+--- linux-vanilla/drivers/hwmon/adm1026.c	2005-08-25 18:57:18.000000000 +0400
++++ linux-hwmon/drivers/hwmon/adm1026.c	2005-08-26 01:16:07.000000000 +0400
+@@ -1691,7 +1691,7 @@ int adm1026_detect(struct i2c_adapter *a
+ 
+ 	/* Error out and cleanup code */
+ exitfree:
+-	kfree(new_client);
++	kfree(data);
+ exit:
+ 	return err;
+ }
+diff -uprN linux-vanilla/drivers/hwmon/adm1031.c linux-hwmon/drivers/hwmon/adm1031.c
+--- linux-vanilla/drivers/hwmon/adm1031.c	2005-08-25 18:57:18.000000000 +0400
++++ linux-hwmon/drivers/hwmon/adm1031.c	2005-08-26 01:16:26.000000000 +0400
+@@ -834,7 +834,7 @@ static int adm1031_detect(struct i2c_ada
+ 	return 0;
+ 
+ exit_free:
+-	kfree(new_client);
++	kfree(data);
+ exit:
+ 	return err;
+ }
+diff -uprN linux-vanilla/drivers/hwmon/adm9240.c linux-hwmon/drivers/hwmon/adm9240.c
+--- linux-vanilla/drivers/hwmon/adm9240.c	2005-08-25 18:57:18.000000000 +0400
++++ linux-hwmon/drivers/hwmon/adm9240.c	2005-08-26 01:16:40.000000000 +0400
+@@ -616,7 +616,7 @@ static int adm9240_detect(struct i2c_ada
+ 
+ 	return 0;
+ exit_free:
+-	kfree(new_client);
++	kfree(data);
+ exit:
+ 	return err;
+ }
+diff -uprN linux-vanilla/drivers/hwmon/smsc47b397.c linux-hwmon/drivers/hwmon/smsc47b397.c
+--- linux-vanilla/drivers/hwmon/smsc47b397.c	2005-08-25 18:57:18.000000000 +0400
++++ linux-hwmon/drivers/hwmon/smsc47b397.c	2005-08-26 01:21:11.000000000 +0400
+@@ -298,7 +298,7 @@ static int smsc47b397_detect(struct i2c_
+ 	return 0;
+ 
+ error_free:
+-	kfree(new_client);
++	kfree(data);
+ error_release:
+ 	release_region(addr, SMSC_EXTENT);
+ 	return err;
+diff -uprN linux-vanilla/drivers/hwmon/smsc47m1.c linux-hwmon/drivers/hwmon/smsc47m1.c
+--- linux-vanilla/drivers/hwmon/smsc47m1.c	2005-08-25 18:57:18.000000000 +0400
++++ linux-hwmon/drivers/hwmon/smsc47m1.c	2005-08-26 01:21:28.000000000 +0400
+@@ -495,7 +495,7 @@ static int smsc47m1_detect(struct i2c_ad
+ 	return 0;
+ 
+ error_free:
+-	kfree(new_client);
++	kfree(data);
+ error_release:
+ 	release_region(address, SMSC_EXTENT);
+ 	return err;
+
