@@ -1,117 +1,50 @@
-From: jcromie@divsol.com (Jim Cromie)
-Date: Tue, 02 Aug 2005 00:14:59 +0000
-Subject: [lm-sensors] Re: [patchset 14/23] pc87360 convert fan-sensor
-Message-Id: <42EE9CD8.2000100@divsol.com>
+From: jim.cromie@gmail.com (jim.cromie@gmail.com)
+Date: Wed, 31 Aug 2005 00:43:57 +0000
+Subject: [lm-sensors] [patch 5/6] pc87360 SDA callbacks - SDA array init
+Message-Id: <200508302241.j7UMfTHN007953@harpo.jimc.earth>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jim Cromie wrote:
 
->
-> convert fan-sensor dev-attr get-set macros to functions.
->
-> [jimc@harpo pset]$ diffstat 09-fan-demacro
-> pc87360.c |   77 
-> +++++++++++++++++++++++++++++++-------------------------------
-> 1 files changed, 39 insertions(+), 38 deletions(-)
->
-> Signed-off-by:  Jim Cromie <jcromie@divsol.com>
->
->
-oops: attached
--------------- next part --------------
-diff -ruNp -X exclude-diffs lxE-1/drivers/hwmon/pc87360.c lxE-2/drivers/hwmon/pc87360.c
---- lxE-1/drivers/hwmon/pc87360.c	2005-07-31 21:14:00.000000000 -0600
-+++ lxE-2/drivers/hwmon/pc87360.c	2005-07-31 21:14:56.000000000 -0600
-@@ -275,49 +275,50 @@ static ssize_t _set_fan_min(struct devic
- 	return count;
+05.	i2c-pc87360-05-hwmon-sysfs-array-init.patch
+
+This patch refactors SENSOR_DEVICE_ATTR macro.  1st it creates a new
+macro __SENSOR_DEVICE_ATTR() which expands to an initialization
+expression, then it uses that in SENSOR_DEVICE_ATTR, which declares
+and initializes a struct sensor_device_attribute.
+
+IOW, __SENSOR_DEVICE_ATTR() imitates __ATTR in include/linux/device.h
+
+ hwmon-sysfs.h |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
+
+
+Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+
+
+
+
+diff -ruNp -X exclude-diffs A-4/include/linux/hwmon-sysfs.h A-5/include/linux/hwmon-sysfs.h
+--- A-4/include/linux/hwmon-sysfs.h	2005-08-29 10:44:11.000000000 -0600
++++ A-5/include/linux/hwmon-sysfs.h	2005-08-29 11:37:17.000000000 -0600
+@@ -27,10 +27,13 @@ struct sensor_device_attribute{
+ #define to_sensor_dev_attr(_dev_attr) \
+ 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+ 
+-#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
+-struct sensor_device_attribute sensor_dev_attr_##_name = {	\
+-	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
+-	.index =	_index,					\
++#define __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index) \
++{	.dev_attr =     __ATTR(_name,_mode,_show,_store),       \
++	.index =        _index,                                 \
  }
  
-+static ssize_t show_fan_input(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index-1],
-+		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])));
-+}
-+static ssize_t show_fan_min(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index-1],
-+		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])));
-+}
-+static ssize_t show_fan_div(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n",
-+		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]));
-+}
-+static ssize_t show_fan_status(struct device *dev, struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	return sprintf(buf, "%u\n",
-+		       FAN_STATUS_FROM_REG(data->fan_status[attr->index-1]));
-+}
-+static ssize_t set_fan_min(struct device *dev, struct device_attribute *devattr, const char *buf,
-+	size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	return _set_fan_min(dev, buf, count, attr->index-1);
-+}
++#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)   \
++struct sensor_device_attribute sensor_dev_attr_##_name        \
++	= __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
 +
- #define show_and_set_fan(offset) \
--static ssize_t show_fan##offset##_input(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan[attr->index-1], \
--		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]))); \
--} \
--static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%u\n", FAN_FROM_REG(data->fan_min[attr->index-1], \
--		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1]))); \
--} \
--static ssize_t show_fan##offset##_div(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%u\n", \
--		       FAN_DIV_FROM_REG(data->fan_status[attr->index-1])); \
--} \
--static ssize_t show_fan##offset##_status(struct device *dev, struct device_attribute *devattr, char *buf) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	struct pc87360_data *data = pc87360_update_device(dev); \
--	return sprintf(buf, "%u\n", \
--		       FAN_STATUS_FROM_REG(data->fan_status[attr->index-1])); \
--} \
--static ssize_t set_fan##offset##_min(struct device *dev, struct device_attribute *devattr, const char *buf, \
--	size_t count) \
--{ \
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
--	return _set_fan_min(dev, buf, count, attr->index-1); \
--} \
- static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
--	show_fan##offset##_input, NULL, offset); \
-+	show_fan_input, NULL, offset); \
- static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IWUSR | S_IRUGO, \
--	show_fan##offset##_min, set_fan##offset##_min, offset); \
-+	show_fan_min, set_fan_min, offset); \
- static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
--	show_fan##offset##_div, NULL, offset); \
-+	show_fan_div, NULL, offset); \
- static SENSOR_DEVICE_ATTR(fan##offset##_status, S_IRUGO, \
--	show_fan##offset##_status, NULL, offset);
-+	show_fan_status, NULL, offset);
- show_and_set_fan(1)
- show_and_set_fan(2)
- show_and_set_fan(3)
+ #endif /* _LINUX_HWMON_SYSFS_H */
