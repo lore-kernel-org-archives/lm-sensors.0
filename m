@@ -1,69 +1,126 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Fri, 19 Aug 2005 17:38:33 +0000
-Subject: [lm-sensors] A few remarks about the w83792d
-Message-Id: <4305FCE8.6040602@sh.cvut.cz>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Wed, 31 Aug 2005 20:29:25 +0000
+Subject: [lm-sensors] [patch-A 0/5] pc87360 SDA (sensor-dev-attr) callbacks
+Message-Id: <200508311827.j7VIRZ52006806@harpo.jimc.earth>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43045711.6040804@fr.thalesgroup.com>
-In-Reply-To: <43045711.6040804@fr.thalesgroup.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+This patch set reworks hwmon/pc87360.c to use the SENSOR_DEVICE_ATTR
+idiom by Yani Ioannou, then uses the new member field to distinguish
+which device is being accessed, eliminating the need for macro'd
+repetition of a bunch of sysfs callback routines.
 
-> we are starting to use the driver on our machines and we noticed to
-> things that we feel should be changed :
->  - the values in /etc/sensors.conf for the CPU temperature threshold are
-> very low (max:42? hyst:37?). This supersed the values set in the BIOS
-> and is very low, causing the PC to beep everytime the CPU is loaded at 100%
->  - when we read the sensors with sensors, we see the following message
+These patches apply to 2.6.13 + 
 
-Ahh correct. I will comment it out in example config. Must remained from driver testing.
-I will fix it in CVS.
+http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-02-i2c-2.6.13.patch
 
-> on the console :
->  w83792d 0-002f: Starting device update.
 
-Yes this was already fixed. The driver is now in -mm tree of linux and perhaps will show up in 2.6.14 kernel.
-Also the driver now contains latest sysfs subsystem updates and some cleanups. What was paticulary changed
-can be seen here: http://assembler.cz/download/w83792d/ (please note that this is not exactly what is in kernel now)
+The patches, Step-by-Step:
 
-I assume your customer is not running latest kernel so here is the list what you should fix:
+individual patches follow separately, but not in reply to this
+(scripted send to avoid MIME attachments).
 
-0) fix for this update issue (should fix)
-1) fix detection probe range (should fix)
-2) fix subclient registration (if you want to handle special cases when some of subclients are disabled in HW)
-3) fix documentation (should fix)
 
-Fix for 0)
-http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050706/3a674472/w83792d-driver-QUIET-2.6.x.patch-0001.gz
-(in this thread http://lists.lm-sensors.org/pipermail/lm-sensors/2005-July/012919.html)
+01	i2c-pc87360-sda-01-yani-callback-form.patch
 
-Fix for 1)
+a) Change DEVICE_ATTR declarations to SENSOR_DEVICE_ATTR declarations,
+which have an additional index member
 
-Please add two more addresses so it looks like this:
+b) Rework sysfs-callbacks (embedded in macros) to use
+to_sensor_dev_attr to do a typesefe conversion of a *device_attribute
+to a *sensor_device_attribute.  Use the index member instead of the
+offset macro-arg to access the right sensor.
 
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+c) Change the calls to device_create_file() to dereference the
+sensor_device_attribute to pass its device_attribute member
 
-Fix for 2)
+d) added #include <hwmon-sysfs.h>
 
-This patch is for modified driver but you should get the idea.
-http://assembler.cz/download/w83792d/04-fix-disabled-subclients
+Note that this change (DA -> SDA) isnt indiscriminate.  Only those
+attrs that would benefit from having an index have been converted; ie
+those which are macro-repeated.
 
-Here you can read more about this:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-July/012940.html
 
-Fix for 3)
+02	i2c-pc87360-sda-02-fn-renames.patch
 
-Contact at Winbond has been changed. Please ship this version of documenation
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-July/013099.html
+Several of the macro-d functions rely on the ##offset## in the name to
+disambiguate them from others, this patch alters the names so we can
+drop the ##offset## in the next patch.
 
->  thank you for your help and your work on lmsensors !
 
-Ahh it always makes me happy :)
+03.	i2c-pc87360-sda-03-attr-callback-demacro.patch
 
-Regards
+Convert macro-repeated callback-fns to single declaration.  They're
+already using attr->index (patch 1), and are disambiguated (patch 2),
+so this is as close as possible to a white-space patch.
 
-Rudolf
+
+04.	i2c-pc87360-sda-04-mv-offset-skew-to-init.patch
+
+The temp, therm, fan, pwm callbacks all have an offset skew in the
+code which accommodates attribute numbering conventions under
+/sys/bus/i2c/devices/9191-6620/ (ie they start at 1)
+
+This patch moves that skew into the declaration, and out of the
+functions (except for therm, where we simplify from 2 skews to 1).
+The declarative skew is clearer, less error-prone, and more efficient.
+
+
+05.	i2c-pc87360-sda-05-consolidate-fan-helper.patch
+
+This patch consolidates the _set_fan_min() helper routine into the 2
+line sysfs-callback wrapper that uses it.
+
+
+
+
+[jimc@harpo pset-pc87360-sda]$ diffstat i2c-pc87360-sda-0*
+ B-1/drivers/hwmon/pc87360.c |  444 +++++++++++++++++----------------
+ B-2/drivers/hwmon/pc87360.c |   30 +-
+ B-3/drivers/hwmon/pc87360.c |  586 ++++++++++++++++++++++----------------------
+ B-4/drivers/hwmon/pc87360.c |  112 ++++----
+ B-5/drivers/hwmon/pc87360.c |   56 +---
+ 5 files changed, 630 insertions(+), 598 deletions(-)
+
+and cumulative:
+
+[jimc@harpo i2c-stuff]$ diffstat diff.SDA.20050831.113244
+ pc87360.c |  792 ++++++++++++++++++++++++++++++++------------------------------
+ 1 files changed, 412 insertions(+), 380 deletions(-)
+
+
+heres ko size with debug on:
+
+[jimc@harpo i2c-stuff]$ ll B-*/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 254091 Aug 31 10:27 B-1/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 254140 Aug 31 10:29 B-2/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 161933 Aug 31 10:31 B-3/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 161933 Aug 31 10:31 B-4/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 161740 Aug 31 10:32 B-5/drivers/hwmon/pc87360.ko
+
+and with all i2c & hwmon debug off:  (small difference)
+
+[jimc@harpo i2c-stuff]$ ll C-*/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 250211 Aug 31 11:50 C-1/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 250260 Aug 31 11:50 C-2/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 158053 Aug 31 11:51 C-3/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 158053 Aug 31 11:51 C-4/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 157856 Aug 31 11:52 C-5/drivers/hwmon/pc87360.ko
+
+
+
+The 5 patches each incrementally; apply and compile clean, and pass
+this cursory test: 
+	rmmod pc87360; 
+	make modules_install; 
+	modprobe pc87360;
+	sensors -s; 
+	sensors;
+	ls /sys/bus/i2c/devices/9191-6620/
+
+
+Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+
