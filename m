@@ -1,109 +1,74 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:48:01 +0000
-Subject: [lm-sensors] [PATCH] I2C: W83792D add hwmon class register 2/3
-Message-Id: <11259567674063@kroah.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Thu, 01 Sep 2005 00:11:18 +0000
+Subject: [lm-sensors] [patch 0/2] pc87360 vref-int-ext - readme
+Message-Id: <200508312210.j7VMARRJ008318@harpo.jimc.earth>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: W83792D add hwmon class register 2/3
+This patchset has 2 parts, a bug-fix and a feature-add
 
-This patch adds registration of hwmon class. Tested with help of i2c-stub.
+01	pc87360-01-fix-vref-ext-int-mixup.patch
 
-Signed-off-by: Rudolf Marek <r.marek@sh.cvut.cz>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+fixes a 1-line bug in the internal vs external voltage reference
+selection, Old code used vrefint when vrefext was chosen, and vice
+versa.
 
----
-commit ce785ab460ce8728a9daf337ba8fab3ba692b6aa
-tree ff3bbb4d1f417b4db05ad8d3c7e96f1ee82caf93
-parent 5563e27d3a42667734e81c1cb8ad72bff76321f6
-author R.Marek@sh.cvut.cz <R.Marek@sh.cvut.cz> Wed, 27 Jul 2005 11:50:18 +0000
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:13 -0700
+Henrik Brix Andersen, who also has this chip on his soekris 4801,
+has indicated this improved the accuracy of his readings.
 
- drivers/hwmon/w83792d.c |   33 +++++++++++++++++++++++++++------
- 1 files changed, 27 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
---- a/drivers/hwmon/w83792d.c
-+++ b/drivers/hwmon/w83792d.c
-@@ -42,7 +42,9 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/i2c-vid.h>
-+#include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
-@@ -267,6 +269,7 @@ DIV_TO_REG(long val)
- 
- struct w83792d_data {
- 	struct i2c_client client;
-+	struct class_device *class_dev;
- 	struct semaphore lock;
- 	enum chips type;
- 
-@@ -1289,6 +1292,11 @@ w83792d_detect(struct i2c_adapter *adapt
- 	}
- 
- 	/* Register sysfs hooks */
-+	data->class_dev = hwmon_device_register(&new_client->dev);
-+	if (IS_ERR(data->class_dev)) {
-+		err = PTR_ERR(data->class_dev);
-+		goto ERROR3;
-+	}
- 	device_create_file_in(new_client, 0);
- 	device_create_file_in(new_client, 1);
- 	device_create_file_in(new_client, 2);
-@@ -1361,6 +1369,15 @@ w83792d_detect(struct i2c_adapter *adapt
- 
- 	return 0;
- 
-+ERROR3:
-+	if (data->lm75[0] != NULL) {
-+		i2c_detach_client(data->lm75[0]);
-+		kfree(data->lm75[0]);
-+	}
-+	if (data->lm75[1] != NULL) {
-+		i2c_detach_client(data->lm75[1]);
-+		kfree(data->lm75[1]);
-+	}
- ERROR2:
- 	i2c_detach_client(new_client);
- ERROR1:
-@@ -1372,21 +1389,25 @@ ERROR0:
- static int
- w83792d_detach_client(struct i2c_client *client)
- {
-+	struct w83792d_data *data = i2c_get_clientdata(client);
- 	int err;
- 
-+	/* main client */
-+	if (data)
-+		hwmon_device_unregister(data->class_dev);
-+
- 	if ((err = i2c_detach_client(client))) {
- 		dev_err(&client->dev,
- 			"Client deregistration failed, client not detached.\n");
- 		return err;
- 	}
- 
--	if (i2c_get_clientdata(client)=NULL) {
--		/* subclients */
-+	/* main client */
-+	if (data)
-+		kfree(data);
-+	/* subclient */
-+	else
- 		kfree(client);
--	} else {
--		/* main client */
--		kfree(i2c_get_clientdata(client));
--	}
- 
- 	return 0;
- }
+02	pc87360-02-vref-options.patch  *(RFC)*
+
+adds 3 new module-parameters, which allow the well-equipped user to
+improve the accuracy of her on-board voltage measurements.  
+
+Im seeking input for whether any/all of these parameters are useful or
+excessive, and where any additional commentary should go - Ive not put
+it in the parameter-info, though that would be the most usable place
+for it; I dont know the norms for verbosity here, and Ive already
+added a 2nd line for each.
+
+The following comments could reasonably go into Docs, but if so, where
+- theres none currently, and it feels a bit presumptuous to create it
+anew.
+
+The 3 params, most usable 1st, are:
+
+
++module_param(vrefext, int, 0);
+
+The PC87366 Spec recommends a that a voltage of 1.211 volts be fed to
+the external vref input, so the code matches that expectation, but
+your board may differ.  If you measure your boards actual voltage, you
+can tell the driver aobout it.
+
+This param could be used to workaround the bug fixed by the 1st patch,
+and ironically, it is more verifiable without that bug fixed.
+
+
++module_param(vrefscale, int, 0);
+
+If you *also* measure several of the other reported voltages, you can
+do some math (y=mx+b) to determine where your scaling factor is in the
+specified range; 2.45 V +/- 50 mV.  This parameter is clamped to that
+range.
+
+
++module_param(vrefint, int, 0);
+
+If youve tweaked both of the above, *and* have the ability to switch
+to an internal voltage reference, you can then do more math (y=mx+b)
+to determine what the internal voltage ref really is.
+
+
+[jimc@harpo pset-pc87360-vref]$ diffstat pc87360-0*
+ V-1/drivers/hwmon/pc87360.c |    2 +-
+ V-2/drivers/hwmon/pc87360.c |   30 +++++++++++++++++++++++++++++-
+ 2 files changed, 30 insertions(+), 2 deletions(-)
+
+
+Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
 
