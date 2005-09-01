@@ -1,27 +1,32 @@
 From: jim.cromie@gmail.com (Jim Cromie)
-Date: Wed, 07 Sep 2005 07:26:31 +0000
-Subject: [lm-sensors] [patch 2/2] pc87360 dynamic sysfs attr arrays - array
-Message-Id: <200509070525.j875POVa013032@harpo.jimc.earth>
+Date: Thu, 01 Sep 2005 00:29:35 +0000
+Subject: [lm-sensors] [patch 2/2] pc87360 SDA-Array - array declare/init,
+Message-Id: <200508312228.j7VMShgd008364@harpo.jimc.earth>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+06.	i2c-pc87360-06-array-init-loop.patch
 
-02
+With __SENSOR_DEVICE_ATTR's defined by 05, we now use them to
+initialize a whole array of struct sensor_device_attributes.  This
+allows us to loop over the array, and call device_create_file() for
+each element.
 
-replace uses of SENSOR_DEVICE_ATTR with an explicit declaration of a
-struct sensor_devie_attribute array[], and use a number of calls to
-__SENSOR_DEVICE_ATTR() to initialize each element.
+ pc87360.c |  349 ++++++++++++++++++++++++++++----------------------------------
+ 1 files changed, 162 insertions(+), 187 deletions(-)
 
-This allows us to replace long blocks of calls to device_create_file()
-with a a single call in a loop over that array.
 
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
-diff -ruNp -X exclude-diffs sda-array-1/drivers/hwmon/pc87360.c sda-array-2/drivers/hwmon/pc87360.c
---- sda-array-1/drivers/hwmon/pc87360.c	2005-09-04 16:21:29.000000000 -0600
-+++ sda-array-2/drivers/hwmon/pc87360.c	2005-09-04 20:27:11.000000000 -0600
+Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+
+
+
+
+diff -ruNp -X exclude-diffs D-1/drivers/hwmon/pc87360.c D-2/drivers/hwmon/pc87360.c
+--- D-1/drivers/hwmon/pc87360.c	2005-08-31 11:52:17.000000000 -0600
++++ D-2/drivers/hwmon/pc87360.c	2005-08-31 13:34:51.000000000 -0600
 @@ -304,18 +304,26 @@ static ssize_t set_fan_min(struct device
  	return count;
  }
@@ -39,24 +44,24 @@ diff -ruNp -X exclude-diffs sda-array-1/drivers/hwmon/pc87360.c sda-array-2/driv
 -show_and_set_fan(2)
 -show_and_set_fan(3)
 +static struct sensor_device_attribute sda_fan_input[] = {
-+	__SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan_input, NULL, 0),
-+	__SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan_input, NULL, 1),
-+	__SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan_input, NULL, 2),
++  __SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan_input, NULL, 0),
++  __SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan_input, NULL, 1),
++  __SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan_input, NULL, 2),
 +};
 +static struct sensor_device_attribute sda_fan_status[] = {
-+	__SENSOR_DEVICE_ATTR(fan1_status, S_IRUGO, show_fan_status, NULL, 0),
-+	__SENSOR_DEVICE_ATTR(fan2_status, S_IRUGO, show_fan_status, NULL, 1),
-+	__SENSOR_DEVICE_ATTR(fan3_status, S_IRUGO, show_fan_status, NULL, 2),
++  __SENSOR_DEVICE_ATTR(fan1_status, S_IRUGO, show_fan_status, NULL, 0),
++  __SENSOR_DEVICE_ATTR(fan2_status, S_IRUGO, show_fan_status, NULL, 1),
++  __SENSOR_DEVICE_ATTR(fan3_status, S_IRUGO, show_fan_status, NULL, 2),
 +};
 +static struct sensor_device_attribute sda_fan_div[] = {
-+	__SENSOR_DEVICE_ATTR(fan1_div, S_IRUGO, show_fan_div, NULL, 0),
-+	__SENSOR_DEVICE_ATTR(fan2_div, S_IRUGO, show_fan_div, NULL, 1),
-+	__SENSOR_DEVICE_ATTR(fan3_div, S_IRUGO, show_fan_div, NULL, 2),
++  __SENSOR_DEVICE_ATTR(fan1_div, S_IRUGO, show_fan_div, NULL, 0),
++  __SENSOR_DEVICE_ATTR(fan2_div, S_IRUGO, show_fan_div, NULL, 1),
++  __SENSOR_DEVICE_ATTR(fan3_div, S_IRUGO, show_fan_div, NULL, 2),
 +};
 +static struct sensor_device_attribute sda_fan_min[] = {
-+	__SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 0),
-+	__SENSOR_DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 1),
-+	__SENSOR_DEVICE_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 2),
++  __SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 0),
++  __SENSOR_DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 1),
++  __SENSOR_DEVICE_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, set_fan_min, 2),
 +};
  
  static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr, char *buf)
@@ -79,10 +84,10 @@ diff -ruNp -X exclude-diffs sda-array-1/drivers/hwmon/pc87360.c sda-array-2/driv
  
  static ssize_t show_in_input(struct device *dev, struct device_attribute *devattr, char *buf)
  {
-@@ -409,26 +416,58 @@ static ssize_t set_in_max(struct device 
+@@ -408,26 +415,59 @@ static ssize_t set_in_max(struct device 
+ 	up(&data->update_lock);
  	return count;
  }
- 
 -#define show_and_set_in(offset) \
 -static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, \
 -	show_in_input, NULL, offset); \
@@ -103,76 +108,77 @@ diff -ruNp -X exclude-diffs sda-array-1/drivers/hwmon/pc87360.c sda-array-2/driv
 -show_and_set_in(8)
 -show_and_set_in(9)
 -show_and_set_in(10)
++
 +static struct sensor_device_attribute sda_in_input[] = {
-+	__SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in_input, NULL, 0),
-+	__SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in_input, NULL, 1),
-+	__SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in_input, NULL, 2),
-+	__SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in_input, NULL, 3),
-+	__SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in_input, NULL, 4),
-+	__SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in_input, NULL, 5),
-+	__SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in_input, NULL, 6),
-+	__SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_in_input, NULL, 7),
-+	__SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_in_input, NULL, 8),
-+	__SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, show_in_input, NULL, 9),
-+	__SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, show_in_input, NULL, 10),
++  __SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in_input, NULL, 0),
++  __SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in_input, NULL, 1),
++  __SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in_input, NULL, 2),
++  __SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in_input, NULL, 3),
++  __SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in_input, NULL, 4),
++  __SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in_input, NULL, 5),
++  __SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in_input, NULL, 6),
++  __SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_in_input, NULL, 7),
++  __SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_in_input, NULL, 8),
++  __SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, show_in_input, NULL, 9),
++  __SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, show_in_input, NULL, 10),
 +};
 +static struct sensor_device_attribute sda_in_status[] = {
-+  	__SENSOR_DEVICE_ATTR(in0_status, S_IRUGO, show_in_status, NULL, 0),
-+	__SENSOR_DEVICE_ATTR(in1_status, S_IRUGO, show_in_status, NULL, 1),
-+	__SENSOR_DEVICE_ATTR(in2_status, S_IRUGO, show_in_status, NULL, 2),
-+	__SENSOR_DEVICE_ATTR(in3_status, S_IRUGO, show_in_status, NULL, 3),
-+	__SENSOR_DEVICE_ATTR(in4_status, S_IRUGO, show_in_status, NULL, 4),
-+	__SENSOR_DEVICE_ATTR(in5_status, S_IRUGO, show_in_status, NULL, 5),
-+	__SENSOR_DEVICE_ATTR(in6_status, S_IRUGO, show_in_status, NULL, 6),
-+	__SENSOR_DEVICE_ATTR(in7_status, S_IRUGO, show_in_status, NULL, 7),
-+	__SENSOR_DEVICE_ATTR(in8_status, S_IRUGO, show_in_status, NULL, 8),
-+	__SENSOR_DEVICE_ATTR(in9_status, S_IRUGO, show_in_status, NULL, 9),
-+	__SENSOR_DEVICE_ATTR(in10_status, S_IRUGO, show_in_status, NULL, 10),
++  __SENSOR_DEVICE_ATTR(in0_status, S_IRUGO, show_in_status, NULL, 0),
++  __SENSOR_DEVICE_ATTR(in1_status, S_IRUGO, show_in_status, NULL, 1),
++  __SENSOR_DEVICE_ATTR(in2_status, S_IRUGO, show_in_status, NULL, 2),
++  __SENSOR_DEVICE_ATTR(in3_status, S_IRUGO, show_in_status, NULL, 3),
++  __SENSOR_DEVICE_ATTR(in4_status, S_IRUGO, show_in_status, NULL, 4),
++  __SENSOR_DEVICE_ATTR(in5_status, S_IRUGO, show_in_status, NULL, 5),
++  __SENSOR_DEVICE_ATTR(in6_status, S_IRUGO, show_in_status, NULL, 6),
++  __SENSOR_DEVICE_ATTR(in7_status, S_IRUGO, show_in_status, NULL, 7),
++  __SENSOR_DEVICE_ATTR(in8_status, S_IRUGO, show_in_status, NULL, 8),
++  __SENSOR_DEVICE_ATTR(in9_status, S_IRUGO, show_in_status, NULL, 9),
++  __SENSOR_DEVICE_ATTR(in10_status, S_IRUGO, show_in_status, NULL, 10),
 +};
 +static struct sensor_device_attribute sda_in_min[] = {
-+	__SENSOR_DEVICE_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 0),
-+	__SENSOR_DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 1),
-+	__SENSOR_DEVICE_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 2),
-+	__SENSOR_DEVICE_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 3),
-+	__SENSOR_DEVICE_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 4),
-+	__SENSOR_DEVICE_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 5),
-+	__SENSOR_DEVICE_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 6),
-+	__SENSOR_DEVICE_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 7),
-+	__SENSOR_DEVICE_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 8),
-+	__SENSOR_DEVICE_ATTR(in9_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 9),
-+	__SENSOR_DEVICE_ATTR(in10_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 10),
++  __SENSOR_DEVICE_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 0),
++  __SENSOR_DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 1),
++  __SENSOR_DEVICE_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 2),
++  __SENSOR_DEVICE_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 3),
++  __SENSOR_DEVICE_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 4),
++  __SENSOR_DEVICE_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 5),
++  __SENSOR_DEVICE_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 6),
++  __SENSOR_DEVICE_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 7),
++  __SENSOR_DEVICE_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 8),
++  __SENSOR_DEVICE_ATTR(in9_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 9),
++  __SENSOR_DEVICE_ATTR(in10_min, S_IWUSR | S_IRUGO, show_in_min, set_in_min, 10),
 +};
 +static struct sensor_device_attribute sda_in_max[] = {
-+	__SENSOR_DEVICE_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 0),
-+	__SENSOR_DEVICE_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 1),
-+	__SENSOR_DEVICE_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 2),
-+	__SENSOR_DEVICE_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 3),
-+	__SENSOR_DEVICE_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 4),
-+	__SENSOR_DEVICE_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 5),
-+	__SENSOR_DEVICE_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 6),
-+	__SENSOR_DEVICE_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 7),
-+	__SENSOR_DEVICE_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 8),
-+	__SENSOR_DEVICE_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 9),
-+	__SENSOR_DEVICE_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
++  __SENSOR_DEVICE_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 0),
++  __SENSOR_DEVICE_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 1),
++  __SENSOR_DEVICE_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 2),
++  __SENSOR_DEVICE_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 3),
++  __SENSOR_DEVICE_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 4),
++  __SENSOR_DEVICE_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 5),
++  __SENSOR_DEVICE_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 6),
++  __SENSOR_DEVICE_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 7),
++  __SENSOR_DEVICE_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 8),
++  __SENSOR_DEVICE_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 9),
++  __SENSOR_DEVICE_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
 +};
  
  static ssize_t show_therm_input(struct device *dev, struct device_attribute *devattr, char *buf)
  {
-@@ -510,20 +549,34 @@ static ssize_t set_therm_crit(struct dev
+@@ -509,20 +549,34 @@ static ssize_t set_therm_crit(struct dev
  	return count;
  }
  
 -#define show_and_set_therm(offset) \
 -static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO, \
--	show_therm_input, NULL, 11+offset-4); \
+-	show_therm_input, NULL, offset+11-4); \
 -static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IWUSR | S_IRUGO, \
--	show_therm_min, set_therm_min, 11+offset-4); \
+-	show_therm_min, set_therm_min, offset+11-4); \
 -static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IWUSR | S_IRUGO, \
--	show_therm_max, set_therm_max, 11+offset-4); \
+-	show_therm_max, set_therm_max, offset+11-4); \
 -static SENSOR_DEVICE_ATTR(temp##offset##_crit, S_IWUSR | S_IRUGO, \
--	show_therm_crit, set_therm_crit, 11+offset-4); \
+-	show_therm_crit, set_therm_crit, offset+11-4); \
 -static SENSOR_DEVICE_ATTR(temp##offset##_status, S_IRUGO, \
--	show_therm_status, NULL, 11+offset-4);
+-	show_therm_status, NULL, offset+11-4);
 -show_and_set_therm(4)
 -show_and_set_therm(5)
 -show_and_set_therm(6)
@@ -180,34 +186,42 @@ diff -ruNp -X exclude-diffs sda-array-1/drivers/hwmon/pc87360.c sda-array-2/driv
 +   used in the chip to measure voltage across the thermistors
 +*/
 +static struct sensor_device_attribute sda_therm_input[] = {
-+	__SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_therm_input, NULL, 0+11),
-+	__SENSOR_DEVICE_ATTR(temp5_input, S_IRUGO, show_therm_input, NULL, 1+11),
-+	__SENSOR_DEVICE_ATTR(temp6_input, S_IRUGO, show_therm_input, NULL, 2+11),
++  __SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_therm_input, NULL, 0+11),
++  __SENSOR_DEVICE_ATTR(temp5_input, S_IRUGO, show_therm_input, NULL, 1+11),
++  __SENSOR_DEVICE_ATTR(temp6_input, S_IRUGO, show_therm_input, NULL, 2+11),
 +};
 +static struct sensor_device_attribute sda_therm_status[] = {
-+	__SENSOR_DEVICE_ATTR(temp4_status, S_IRUGO, show_therm_status, NULL, 0+11),
-+	__SENSOR_DEVICE_ATTR(temp5_status, S_IRUGO, show_therm_status, NULL, 1+11),
-+	__SENSOR_DEVICE_ATTR(temp6_status, S_IRUGO, show_therm_status, NULL, 2+11),
++  __SENSOR_DEVICE_ATTR(temp4_status, S_IRUGO, show_therm_status, NULL, 0+11),
++  __SENSOR_DEVICE_ATTR(temp5_status, S_IRUGO, show_therm_status, NULL, 1+11),
++  __SENSOR_DEVICE_ATTR(temp6_status, S_IRUGO, show_therm_status, NULL, 2+11),
 +};
 +static struct sensor_device_attribute sda_therm_min[] = {
-+	__SENSOR_DEVICE_ATTR(temp4_min, S_IRUGO | S_IWUSR, show_therm_min, set_therm_min, 0+11),
-+	__SENSOR_DEVICE_ATTR(temp5_min, S_IRUGO | S_IWUSR, show_therm_min, set_therm_min, 1+11),
-+	__SENSOR_DEVICE_ATTR(temp6_min, S_IRUGO | S_IWUSR, show_therm_min, set_therm_min, 2+11),
++  __SENSOR_DEVICE_ATTR(temp4_min, S_IRUGO | S_IWUSR, show_therm_min, set_therm_min, 0+11),
++  __SENSOR_DEVICE_ATTR(temp5_min, S_IRUGO | S_IWUSR, show_therm_min, set_therm_min, 1+11),
++  __SENSOR_DEVICE_ATTR(temp6_min, S_IRUGO | S_IWUSR, show_therm_min, set_therm_min, 2+11),
 +};
 +static struct sensor_device_attribute sda_therm_max[] = {
-+	__SENSOR_DEVICE_ATTR(temp4_max, S_IRUGO | S_IWUSR, show_therm_max, set_therm_max, 0+11),
-+	__SENSOR_DEVICE_ATTR(temp5_max, S_IRUGO | S_IWUSR, show_therm_max, set_therm_max, 1+11),
-+	__SENSOR_DEVICE_ATTR(temp6_max, S_IRUGO | S_IWUSR, show_therm_max, set_therm_max, 2+11),
++  __SENSOR_DEVICE_ATTR(temp4_max, S_IRUGO | S_IWUSR, show_therm_max, set_therm_max, 0+11),
++  __SENSOR_DEVICE_ATTR(temp5_max, S_IRUGO | S_IWUSR, show_therm_max, set_therm_max, 1+11),
++  __SENSOR_DEVICE_ATTR(temp6_max, S_IRUGO | S_IWUSR, show_therm_max, set_therm_max, 2+11),
 +};
 +static struct sensor_device_attribute sda_therm_crit[] = {
-+	__SENSOR_DEVICE_ATTR(temp4_crit, S_IRUGO | S_IWUSR, show_therm_crit, set_therm_crit, 0+11),
-+	__SENSOR_DEVICE_ATTR(temp5_crit, S_IRUGO | S_IWUSR, show_therm_crit, set_therm_crit, 1+11),
-+	__SENSOR_DEVICE_ATTR(temp6_crit, S_IRUGO | S_IWUSR, show_therm_crit, set_therm_crit, 2+11),
++  __SENSOR_DEVICE_ATTR(temp4_crit, S_IRUGO | S_IWUSR, show_therm_crit, set_therm_crit, 0+11),
++  __SENSOR_DEVICE_ATTR(temp5_crit, S_IRUGO | S_IWUSR, show_therm_crit, set_therm_crit, 1+11),
++  __SENSOR_DEVICE_ATTR(temp6_crit, S_IRUGO | S_IWUSR, show_therm_crit, set_therm_crit, 2+11),
 +};
  
  static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
  {
-@@ -629,20 +682,31 @@ static ssize_t set_temp_crit(struct devi
+@@ -553,7 +607,6 @@ static ssize_t show_in_alarms(struct dev
+ static DEVICE_ATTR(alarms_in, S_IRUGO, show_in_alarms, NULL);
+ 
+ 
+-
+ static ssize_t show_temp_input(struct device *dev, struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -630,22 +683,31 @@ static ssize_t set_temp_crit(struct devi
  	return count;
  }
  
@@ -225,35 +239,37 @@ diff -ruNp -X exclude-diffs sda-array-1/drivers/hwmon/pc87360.c sda-array-2/driv
 -show_and_set_temp(1)
 -show_and_set_temp(2)
 -show_and_set_temp(3)
+-
+-
 +static struct sensor_device_attribute sda_temp_input[] = {
-+	__SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL, 0+1),
-+	__SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input, NULL, 1+1),
-+	__SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_input, NULL, 2+1),
++  __SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL, 0+1),
++  __SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input, NULL, 1+1),
++  __SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_input, NULL, 2+1),
 +};
 +static struct sensor_device_attribute sda_temp_status[] = {
-+	__SENSOR_DEVICE_ATTR(temp1_status, S_IRUGO, show_temp_status, NULL, 0+1),
-+	__SENSOR_DEVICE_ATTR(temp2_status, S_IRUGO, show_temp_status, NULL, 1+1),
-+	__SENSOR_DEVICE_ATTR(temp3_status, S_IRUGO, show_temp_status, NULL, 2+1),
++  __SENSOR_DEVICE_ATTR(temp1_status, S_IRUGO, show_temp_status, NULL, 0+1),
++  __SENSOR_DEVICE_ATTR(temp2_status, S_IRUGO, show_temp_status, NULL, 1+1),
++  __SENSOR_DEVICE_ATTR(temp3_status, S_IRUGO, show_temp_status, NULL, 2+1),
 +};
 +static struct sensor_device_attribute sda_temp_min[] = {
-+	__SENSOR_DEVICE_ATTR(temp1_min, S_IRUGO | S_IWUSR, show_temp_min, set_temp_min, 0+1),
-+	__SENSOR_DEVICE_ATTR(temp2_min, S_IRUGO | S_IWUSR, show_temp_min, set_temp_min, 1+1),
-+	__SENSOR_DEVICE_ATTR(temp3_min, S_IRUGO | S_IWUSR, show_temp_min, set_temp_min, 2+1),
++  __SENSOR_DEVICE_ATTR(temp1_min, S_IRUGO | S_IWUSR, show_temp_min, set_temp_min, 0+1),
++  __SENSOR_DEVICE_ATTR(temp2_min, S_IRUGO | S_IWUSR, show_temp_min, set_temp_min, 1+1),
++  __SENSOR_DEVICE_ATTR(temp3_min, S_IRUGO | S_IWUSR, show_temp_min, set_temp_min, 2+1),
 +};
 +static struct sensor_device_attribute sda_temp_max[] = {
-+	__SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp_max, set_temp_max, 0+1),
-+	__SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR, show_temp_max, set_temp_max, 1+1),
-+	__SENSOR_DEVICE_ATTR(temp3_max, S_IRUGO | S_IWUSR, show_temp_max, set_temp_max, 2+1),
++  __SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp_max, set_temp_max, 0+1),
++  __SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR, show_temp_max, set_temp_max, 1+1),
++  __SENSOR_DEVICE_ATTR(temp3_max, S_IRUGO | S_IWUSR, show_temp_max, set_temp_max, 2+1),
 +};
 +static struct sensor_device_attribute sda_temp_crit[] = {
-+	__SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO | S_IWUSR, show_temp_crit, set_temp_crit, 0+1),
-+	__SENSOR_DEVICE_ATTR(temp2_crit, S_IRUGO | S_IWUSR, show_temp_crit, set_temp_crit, 1+1),
-+	__SENSOR_DEVICE_ATTR(temp3_crit, S_IRUGO | S_IWUSR, show_temp_crit, set_temp_crit, 2+1),
++  __SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO | S_IWUSR, show_temp_crit, set_temp_crit, 0+1),
++  __SENSOR_DEVICE_ATTR(temp2_crit, S_IRUGO | S_IWUSR, show_temp_crit, set_temp_crit, 1+1),
++  __SENSOR_DEVICE_ATTR(temp3_crit, S_IRUGO | S_IWUSR, show_temp_crit, set_temp_crit, 2+1),
 +};
  
  static ssize_t show_temp_alarms(struct device *dev, struct device_attribute *attr, char *buf)
  {
-@@ -858,137 +922,47 @@ static int pc87360_detect(struct i2c_ada
+@@ -861,137 +923,47 @@ static int pc87360_detect(struct i2c_ada
  	}
  
  	if (data->innr) {
