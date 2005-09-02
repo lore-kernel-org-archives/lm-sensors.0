@@ -1,28 +1,35 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 28 Sep 2005 09:29:52 +0000
-Subject: [lm-sensors] [PATCH] ICH6 ACPI and GPIO quirk
-Message-Id: <433A464E.9030908@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 02 Sep 2005 07:41:10 +0000
+Subject: [lm-sensors] [patch-A 0/5] pc87360 SDA (sensor-dev-attr)
+Message-Id: <20050902074101.5529241e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050927215451.19403.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20050927215451.19403.qmail@desitka.sh.cvut.cz>
+References: <200508311827.j7VIRZ52006806@harpo.jimc.earth>
+In-Reply-To: <200508311827.j7VIRZ52006806@harpo.jimc.earth>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Craig Sylla wrote:
+Hi Jim,
 
-> Pardon me - would it be advisable to apply this patch to a 2.6.5 kernel
-> running on an ICH6-equipped mainboard?  I have already tweaked the i801
-> driver to support the ICH6 (added PCI ID's).
+> > This patch set reworks hwmon/pc87360.c to use the SENSOR_DEVICE_ATTR
+> > idiom by Yani Ioannou, then uses the new member field to distinguish
+> > which device is being accessed, eliminating the need for macro'd
+> > repetition of a bunch of sysfs callback routines.
+> >
+> > These patches apply to 2.6.13 + 
+> > http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-02-i2c-2.6.13.patch
+>
+> sorry. should have mad this clear in the 1st post:
+> patches incorporate Jean's feadback on last revision,
+> so I ccd GregKH on them.
 
-Hello,
+I did not receive any of these patches. Browsing the list archives
+revealed 9 other patches from you that never made it to me, for a total
+of 15. You really will have to find a solution that goes past my
+greylisting for sending patches, else I will never be able to review
+them nor have them applied.
 
-This patch is not changing any stuff. It just registers with /proc/ioports the ACPI and GPIO regions
-provided by LPC bridge, so no other devices will think this IO addresses are free.
-It does not tweak any HW.
-
-To answer your question: it wont hurt if you port it to your kernel.
-
-Regards
-Rudolf
+Thanks,
+-- 
+Jean Delvare
