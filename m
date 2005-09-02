@@ -1,78 +1,29 @@
-From: rhp.lpt@gmail.com (rhp)
-Date: Fri, 16 Sep 2005 09:48:32 +0000
-Subject: [lm-sensors] no sensors found beyond eeproms - OEM laptop -
-Message-Id: <a2967b6d0509160047501715a8@mail.gmail.com>
+From: mgreer@mvista.com (Mark A. Greer)
+Date: Fri, 02 Sep 2005 03:06:28 +0000
+Subject: [lm-sensors] [PATCH 2.6.13-mm1] i2c: bug fix for
+Message-Id: <20050902010549.GD10106@mag.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <a2967b6d05090101374c7f1294@mail.gmail.com>
-In-Reply-To: <a2967b6d05090101374c7f1294@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-16-sep-05
+When an i2c transfer is successful, an incorrect value may be returned.
+This patch fixes that.
 
-Hello Jean:
+Signed-off-by: David Jenkins <davej@artesyncp.com>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+--
 
-I guess that settles it. I'll just have to live with what ACPI offers.
-
-Many thanks for your help.
-
-Brgds
-Bob
-
-
-On 9/15/05, Jean Delvare <khali@linux-fr.org> wrote:
-> 
-> Hi Bob,
-> 
-> > I already have the thermal_zone:
-> > ls /proc/acpi/thermal_zone/THM0/
-> > cooling_mode  polling_frequency  state  temperature  trip_points
-> >
-> > Additionally, GKRELLM recognizes and displays the cpu temperature.
-> 
-> Most likely it reads it straight from
-> /proc/acpi/thermal_zone/THM0/temperature.
-> 
-> > However, I tried your suggestion:
-> >
-> > 45 torus:~> sudo modprobe thermal
-> > FATAL: Module thermal not found.
-> >
-> > (So I guess the thermal zone is set up on this machine using a different
-> > module?).
-> 
-> No, it simply means that you have it built into your kernel. If not, you
-> wouldn't have a /proc/acpi/thermal_zone/THM0 directory.
-> 
-> > 49 torus:~> sudo i2cdump 0 0x6a
-> > (...)
-> > 50 torus:~> sudo i2cdump 0 0x10
-> 
-> No chances these were hardware monitoring chips with such addresses.
-> 
-> > In reviewing the previous 'sensors-detect' output I noticed that it found
-> > a "sensor" but that it is flagged 'no hardware monitoring capabilites':
-> 
-> It found a Super-I/O chip rather than a sensor. We have sensors-detect
-> list these even when they do not include sensors so that we don't have
-> to continuously check whether unrecognized Super-I/O chips fall into
-> that category when people report about them.
-> 
-> > There is no 'Hardware Monitor' section in the BIOS.
-> 
-> This is well in line with the lack of lm_sensors-supported chip.
-> 
-> I don't think there is anything more to be tried on this system, ACPI
-> seems to be your only monitoring information source. It's not as
-> powerful as what lm_sensors usually offers, but still better than
-> nothing at all.
-> 
-> --
-> Jean Delvare
-> 
-
-
--- 
-rhp.lpt@gmail.com
+diff -Nur linux-2.6.13-mm1/drivers/i2c/busses/i2c-mv64xxx.c linux-2.6.13-mm1-mag/drivers/i2c/busses/i2c-mv64xxx.c
+--- linux-2.6.13-mm1/drivers/i2c/busses/i2c-mv64xxx.c	2005-09-01 16:26:21.000000000 -0700
++++ linux-2.6.13-mm1-mag/drivers/i2c/busses/i2c-mv64xxx.c	2005-09-01 17:00:58.000000000 -0700
+@@ -429,7 +429,7 @@
+ 		if ((rc = mv64xxx_i2c_execute_msg(drv_data, &msgs[i])) != 0)
+ 			break;
+ 
+-	return rc;
++	return (rc < 0) ? rc : num;
+ }
+ 
+ static struct i2c_algorithm mv64xxx_i2c_algo = {
