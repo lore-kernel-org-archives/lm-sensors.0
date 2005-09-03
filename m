@@ -1,59 +1,36 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Wed, 07 Sep 2005 07:25:36 +0000
-Subject: [lm-sensors] [patch 1/2] pc87360 dynamic sysfs attr arrays -
-Message-Id: <200509070524.j875OOJ2013025@harpo.jimc.earth>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 03 Sep 2005 10:52:18 +0000
+Subject: [lm-sensors] [PATCH 2.6] I2C: Drop the I2C_ACK_TEST ioctl
+Message-Id: <20050903105211.5907174a.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg, all,
 
-split SENSOR_DEVICE_ATTR* into 2 parts: SENSOR_DEVICE_ATTR*, which
-declares the struct sensor_device_attribute variable and initializes
-it to the value of __SENSOR_DEVICE_ATTR*, which expands to an
-initialization expression.
+Drop the I2C_ACK_TEST ioctl, which was commented out. It never really
+existed (not after 1999 anyway), and there is no such thing as a ack
+test on I2C/SMBus anyway.
 
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
-diff -ruNp -X exclude-diffs jd1-3/include/linux/hwmon-sysfs.h sda-array-1/include/linux/hwmon-sysfs.h
---- jd1-3/include/linux/hwmon-sysfs.h	2005-08-31 06:54:51.000000000 -0600
-+++ sda-array-1/include/linux/hwmon-sysfs.h	2005-09-04 20:02:31.000000000 -0600
-@@ -27,12 +27,16 @@ struct sensor_device_attribute{
- #define to_sensor_dev_attr(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+ include/linux/i2c.h |    3 ---
+ 1 file changed, 3 deletions(-)
+
+--- linux-2.6.13.orig/include/linux/i2c.h	2005-09-03 10:37:31.000000000 +0200
++++ linux-2.6.13/include/linux/i2c.h	2005-09-03 10:43:35.000000000 +0200
+@@ -508,9 +508,6 @@
+ #define I2C_FUNCS	0x0705	/* Get the adapter functionality */
+ #define I2C_RDWR	0x0707	/* Combined R/W transfer (one stop only)*/
+ #define I2C_PEC		0x0708	/* != 0 for SMBus PEC                   */
+-#if 0
+-#define I2C_ACK_TEST	0x0710	/* See if a slave is at a specific address */
+-#endif
  
--#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
--struct sensor_device_attribute sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
-+#define __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
-+{	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
- 	.index =	_index,					\
- }
+ #define I2C_SMBUS	0x0720	/* SMBus-level access */
  
-+#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
-+struct sensor_device_attribute sensor_dev_attr_##_name  	\
-+	= __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
-+
-+
- struct sensor_device_attribute_2 {
- 	struct device_attribute dev_attr;
- 	u8 index;
-@@ -41,11 +45,15 @@ struct sensor_device_attribute_2 {
- #define to_sensor_dev_attr_2(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute_2, dev_attr)
- 
--#define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
--struct sensor_device_attribute_2 sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
-+#define __SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
-+{	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
- 	.index =	_index,					\
- 	.nr =		_nr,					\
- }
- 
-+#define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
-+struct sensor_device_attribute_2 sensor_dev_attr_##_name 		\
-+	= __SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)
-+
-+
- #endif /* _LINUX_HWMON_SYSFS_H */
+
+-- 
+Jean Delvare
