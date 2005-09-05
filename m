@@ -1,64 +1,59 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:49:04 +0000
-Subject: [lm-sensors] [PATCH] I2C: Drop debug eeprom dump code in pcilynx
-Message-Id: <11259567713638@kroah.com>
+Date: Mon, 05 Sep 2005 23:48:01 +0000
+Subject: [lm-sensors] [PATCH] I2C: add kobj_to_i2c_client
+Message-Id: <11259567642948@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Drop debug eeprom dump code in pcilynx
+[PATCH] I2C: add kobj_to_i2c_client
 
-The pcilynx driver includes code to dump the contents of an i2c eeprom
-for debugging purposes. The same can be done from userspace using the
-i2cdump tool (part of the lm_sensors project) instead, in a more
-efficient and flexible way.
+Move the inline function kobj_to_i2c_client() from max6875.c to i2c.h.
 
-Thus I would suggest that this functionality be simply dropped from the
-pcilynx driver.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 386625f9f5cd94d10a21241b555b130dcec484fb
-tree 15746d1a5c66fa476487a7f95d84115f86ac3f81
-parent 4e0c64cfc1126a2946487d4771168458bb9ba9be
-author Jean Delvare <khali@linux-fr.org> Thu, 25 Aug 2005 16:43:29 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:52 -0700
+commit a61fc683ae1b7871d8d81ac5025af1a923731547
+tree 8b141faa2d84653075b6baea18e64e7302345cbd
+parent 5033017c2678df9dc75be0139f19701ff224a498
+author bgardner@wabtec.com <bgardner@wabtec.com> Wed, 27 Jul 2005 12:43:03 -0500
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:05 -0700
 
- drivers/ieee1394/pcilynx.c |   20 --------------------
- 1 files changed, 0 insertions(+), 20 deletions(-)
+ drivers/i2c/chips/max6875.c |    5 -----
+ include/linux/i2c.h         |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/ieee1394/pcilynx.c b/drivers/ieee1394/pcilynx.c
---- a/drivers/ieee1394/pcilynx.c
-+++ b/drivers/ieee1394/pcilynx.c
-@@ -1464,26 +1464,6 @@ static int __devinit add_card(struct pci
-                                                   { 0x50, I2C_M_RD, 20, (unsigned char*) lynx->bus_info_block }
-                                                 };
+diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
+--- a/drivers/i2c/chips/max6875.c
++++ b/drivers/i2c/chips/max6875.c
+@@ -131,11 +131,6 @@ exit_up:
+ 	up(&data->update_lock);
+ }
  
+-static inline struct i2c_client *kobj_to_i2c_client(struct kobject *kobj)
+-{
+-	return to_i2c_client(container_of(kobj, struct device, kobj));
+-}
 -
--#ifdef CONFIG_IEEE1394_VERBOSEDEBUG
--                        union i2c_smbus_data data;
--
--                        if (i2c_smbus_xfer(i2c_ad, 80, 0, I2C_SMBUS_WRITE, 0, I2C_SMBUS_BYTE,NULL))
--                                PRINT(KERN_ERR, lynx->id,"eeprom read start has failed");
--                        else
--                        {
--                                u16 addr;
--                                for (addr=0x00; addr < 0x100; addr++) {
--                                        if (i2c_smbus_xfer(i2c_ad, 80, 0, I2C_SMBUS_READ, 0, I2C_SMBUS_BYTE,& data)) {
--                                                PRINT(KERN_ERR, lynx->id, "unable to read i2c %x", addr);
--                                                break;
--                                        }
--                                        else
--                                                PRINT(KERN_DEBUG, lynx->id,"got serial eeprom data at %x: %x",addr, data.byte);
--                                }
--                        }
--#endif
--
-                         /* we use i2c_transfer, because i2c_smbus_read_block_data does not work properly and we
-                            do it more efficiently in one transaction rather then using several reads */
-                         if (i2c_transfer(i2c_ad, msg, 2) < 0) {
+ static ssize_t max6875_read(struct kobject *kobj, char *buf, loff_t off,
+ 			    size_t count)
+ {
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -160,6 +160,11 @@ struct i2c_client {
+ };
+ #define to_i2c_client(d) container_of(d, struct i2c_client, dev)
+ 
++static inline struct i2c_client *kobj_to_i2c_client(struct kobject *kobj)
++{
++	return to_i2c_client(container_of(kobj, struct device, kobj));
++}
++
+ static inline void *i2c_get_clientdata (struct i2c_client *dev)
+ {
+ 	return dev_get_drvdata (&dev->dev);
 
