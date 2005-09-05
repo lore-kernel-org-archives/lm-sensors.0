@@ -1,62 +1,45 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 12 Sep 2005 22:10:48 +0000
-Subject: [lm-sensors] [PATCH] hwmon: fix sis5595,
-Message-Id: <11265555191080@kroah.com>
+Date: Mon, 05 Sep 2005 23:47:41 +0000
+Subject: [lm-sensors] [PATCH] hwmon: VID table update
+Message-Id: <11259567693419@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: fix sis5595, via686a force_addr module parameter
+[PATCH] hwmon: VID table update
 
-Recent changes to the i2c-isa design broke the force_addr parameter of
-two hardware monitoring drivers as a side effect: sis5595 and via686a.
-The last address test was in fact useless beforehand, and the redesign
-turned it into a bug. I'm sorry about that.
+This patch updates the VID entries, so any future
+Intel CPU will be detected as unknown rather than 9.0
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Rudolf Marek <r.marek@sh.cvut.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit b51f64c0de0355338480093abb35d5232f6d349a
-tree 5d72e0ef37629387c8613c2b48afadafbeaca6b4
-parent 860e1d6b46bd4cbc67d8d065f0f682143513382f
-author Jean Delvare <khali@linux-fr.org> Thu, 08 Sep 2005 22:42:36 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 09 Sep 2005 14:34:20 -0700
+commit 3b6c0634cc989f0735a1541ccf9288947685cab5
+tree 55c4697ce3835e35148d18572ceb7a30253b315e
+parent 19f673eddb5a406be72989fb57b7f286772b8cf4
+author R.Marek@sh.cvut.cz <R.Marek@sh.cvut.cz> Fri, 05 Aug 2005 15:40:11 +0000
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:24 -0700
 
- drivers/hwmon/sis5595.c |    5 -----
- drivers/hwmon/via686a.c |    5 -----
- 2 files changed, 0 insertions(+), 10 deletions(-)
+ drivers/hwmon/hwmon-vid.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
---- a/drivers/hwmon/sis5595.c
-+++ b/drivers/hwmon/sis5595.c
-@@ -758,11 +758,6 @@ static int __devinit sis5595_pci_probe(s
- 		return -ENODEV;
- 	}
- 
--	if (!address) {
--		dev_err(&dev->dev,"No SiS 5595 sensors found.\n");
--		return -ENODEV;
--	}
--
- 	s_bridge = pci_dev_get(dev);
- 	if (i2c_isa_add_driver(&sis5595_driver)) {
- 		pci_dev_put(s_bridge);
-diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
---- a/drivers/hwmon/via686a.c
-+++ b/drivers/hwmon/via686a.c
-@@ -812,11 +812,6 @@ static int __devinit via686a_pci_probe(s
- 		return -ENODEV;
- 	}
- 
--	if (!address) {
--		dev_err(&dev->dev, "No Via 686A sensors found.\n");
--		return -ENODEV;
--	}
--
- 	s_bridge = pci_dev_get(dev);
- 	if (i2c_isa_add_driver(&via686a_driver)) {
- 		pci_dev_put(s_bridge);
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -122,8 +122,11 @@ static struct vrm_model vrm_models[] = {
+ 	{X86_VENDOR_INTEL, 0x6, 0xB, 85},	/* Tualatin */
+ 	{X86_VENDOR_INTEL, 0x6, ANY, 82},	/* any P6 */
+ 	{X86_VENDOR_INTEL, 0x7, ANY, 0},	/* Itanium */
++	{X86_VENDOR_INTEL, 0xF, 0x0, 90},	/* P4 */
++	{X86_VENDOR_INTEL, 0xF, 0x1, 90},	/* P4 Willamette */
++	{X86_VENDOR_INTEL, 0xF, 0x2, 90},	/* P4 Northwood */
+ 	{X86_VENDOR_INTEL, 0xF, 0x3, 100},	/* P4 Prescott */
+-	{X86_VENDOR_INTEL, 0xF, ANY, 90},	/* P4 before Prescott */
++	{X86_VENDOR_INTEL, 0xF, 0x4, 100},	/* P4 Prescott */
+ 	{X86_VENDOR_INTEL, 0x10,ANY, 0},	/* Itanium 2 */
+ 	{X86_VENDOR_UNKNOWN, ANY, ANY, 0}	/* stop here */
+ };
 
