@@ -1,38 +1,43 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Thu, 01 Sep 2005 00:11:16 +0000
-Subject: [lm-sensors] [patch 1/2] pc87360 vref-int-ext - fix int/ext vref
-Message-Id: <200508312210.j7VMAS6k008322@harpo.jimc.earth>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:49:17 +0000
+Subject: [lm-sensors] [PATCH] I2C: Drop the I2C_ACK_TEST ioctl
+Message-Id: <11259567722697@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-01	pc87360-01-fix-vref-ext-int-mixup.patch
+[PATCH] I2C: Drop the I2C_ACK_TEST ioctl
 
-fixes a 1-line bug in the internal vs external voltage reference
-selection, Old code used vrefint when vrefext was chosen, and vice
-versa.
+Drop the I2C_ACK_TEST ioctl, which was commented out. It never really
+existed (not after 1999 anyway), and there is no such thing as a ack
+test on I2C/SMBus anyway.
 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-[jimc@harpo pset-pc87360-vref]$ diffstat pc87360-0*
- 2 files changed, 30 insertions(+), 2 deletions(-)
+---
+commit 77ae84554cc0178e03862391599a0cedf96fa4c4
+tree 8cfd81bdceb3720be7a96084c65019912e8b3e89
+parent 11be27ea9bfd0ea7bca797ba6937285d18d426c2
+author Jean Delvare <khali@linux-fr.org> Sat, 03 Sep 2005 10:52:11 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:56 -0700
 
+ include/linux/i2c.h |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
-
-
-
-
-diff -ruNp -X exclude-diffs gkh-i2c/drivers/hwmon/pc87360.c V-1/drivers/hwmon/pc87360.c
---- gkh-i2c/drivers/hwmon/pc87360.c	2005-08-31 06:54:47.000000000 -0600
-+++ V-1/drivers/hwmon/pc87360.c	2005-08-31 15:14:21.000000000 -0600
-@@ -798,7 +798,7 @@ static int pc87360_detect(struct i2c_ada
- 			i &= pc87360_read_value(data, LD_TEMP, NO_BANK,
- 						PC87365_REG_TEMP_CONFIG);
- 		}
--		data->in_vref = (i&0x02) ? 3025 : 2966;
-+		data->in_vref = (i&0x02) ? 2966 : 3025;
- 		dev_dbg(&new_client->dev, "Using %s reference voltage\n",
- 			(i&0x02) ? "external" : "internal");
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -508,9 +508,6 @@ union i2c_smbus_data {
+ #define I2C_FUNCS	0x0705	/* Get the adapter functionality */
+ #define I2C_RDWR	0x0707	/* Combined R/W transfer (one stop only)*/
+ #define I2C_PEC		0x0708	/* != 0 for SMBus PEC                   */
+-#if 0
+-#define I2C_ACK_TEST	0x0710	/* See if a slave is at a specific address */
+-#endif
  
+ #define I2C_SMBUS	0x0720	/* SMBus-level access */
+ 
+
