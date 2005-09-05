@@ -1,7 +1,7 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:48:39 +0000
+Date: Mon, 05 Sep 2005 23:48:40 +0000
 Subject: [lm-sensors] [PATCH] I2C: Separate non-i2c hwmon drivers from
-Message-Id: <1125956765535@kroah.com>
+Message-Id: <11259567662511@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <11259567663617@kroah.com>
 In-Reply-To: <11259567663617@kroah.com>
@@ -10,267 +10,602 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Separate non-i2c hwmon drivers from i2c-core (2/9)
+[PATCH] I2C: Separate non-i2c hwmon drivers from i2c-core (7/9)
 
-Convert i2c-isa from a dumb i2c_adapter into a pseudo i2c-core for ISA
-hardware monitoring drivers. The isa i2c_adapter is no more registered
-with i2c-core, drivers have to explicitely connect to it using the new
-i2c_isa_{add,del}_driver interface.
+Kill normal_isa in header files, documentation and all chip drivers, as
+it is no more used.
 
-At this point, all ISA chip drivers are useless, because they still
-register with i2c-core in the hope i2c-isa is registered there as well,
-but it isn't anymore.
-
-The fake bus will be named i2c-9191 in sysfs. This is the number it
-already had internally in various places, so it's not exactly new,
-except that now the number is seen in userspace as well. This shouldn't
-be a problem until someone really has 9192 I2C busses in a given system
-;)
-
-The fake bus will no more show in "i2cdetect -l", as it won't be seen by
-i2c-dev anymore (not being registered with i2c-core), which is a good
-thing, as i2cdetect/i2cdump/i2cset cannot operate on this fake bus
-anyway.
+normal_i2c could be renamed to normal, but I decided not to do so at the
+moment, so as to limit the number of changes. This might be done later
+as part of the i2c_probe/i2c_detect merge.
 
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 400c455eaa0d0819d18cd42a74070e0e238a73dc
-tree d8cbad347ec31ded7cac38ae18be71c9218cfcd6
-parent efde723fdac02111872bff606ef362074fc1efa8
-author Jean Delvare <khali@linux-fr.org> Tue, 19 Jul 2005 23:48:43 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:09 -0700
+commit 5071860aba7fc69279ab822638ed2c2e4549f9fd
+tree e23a3c7eba547c9d81c7680a40c41536c8a45da3
+parent 4926c0d4de77c5396a274ee7941ed7fc02afed26
+author Jean Delvare <khali@linux-fr.org> Wed, 20 Jul 2005 00:02:32 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:12 -0700
 
- drivers/i2c/busses/i2c-isa.c |  158 +++++++++++++++++++++++++++++++++++++++---
- include/linux/i2c-isa.h      |   29 ++++++++
- 2 files changed, 177 insertions(+), 10 deletions(-)
+ Documentation/i2c/porting-clients |    7 ++++---
+ Documentation/i2c/writing-clients |   35 +++++++++++++++--------------------
+ drivers/hwmon/adm1021.c           |    1 -
+ drivers/hwmon/adm1025.c           |    1 -
+ drivers/hwmon/adm1026.c           |    1 -
+ drivers/hwmon/adm1031.c           |    1 -
+ drivers/hwmon/adm9240.c           |    2 --
+ drivers/hwmon/asb100.c            |    3 ---
+ drivers/hwmon/atxp1.c             |    1 -
+ drivers/hwmon/ds1621.c            |    1 -
+ drivers/hwmon/fscher.c            |    1 -
+ drivers/hwmon/fscpos.c            |    1 -
+ drivers/hwmon/gl518sm.c           |    1 -
+ drivers/hwmon/gl520sm.c           |    1 -
+ drivers/hwmon/it87.c              |    1 -
+ drivers/hwmon/lm63.c              |    1 -
+ drivers/hwmon/lm75.c              |    1 -
+ drivers/hwmon/lm77.c              |    1 -
+ drivers/hwmon/lm78.c              |    1 -
+ drivers/hwmon/lm80.c              |    1 -
+ drivers/hwmon/lm83.c              |    1 -
+ drivers/hwmon/lm85.c              |    1 -
+ drivers/hwmon/lm87.c              |    1 -
+ drivers/hwmon/lm90.c              |    1 -
+ drivers/hwmon/lm92.c              |    1 -
+ drivers/hwmon/max1619.c           |    1 -
+ drivers/hwmon/w83781d.c           |    1 -
+ drivers/hwmon/w83l785ts.c         |    1 -
+ drivers/i2c/chips/ds1337.c        |    1 -
+ drivers/i2c/chips/eeprom.c        |    1 -
+ drivers/i2c/chips/max6875.c       |    1 -
+ drivers/i2c/chips/pca9539.c       |    1 -
+ drivers/i2c/chips/pcf8574.c       |    1 -
+ drivers/i2c/chips/pcf8591.c       |    1 -
+ include/linux/i2c-sensor.h        |   36 +++++++++++++++---------------------
+ include/linux/i2c.h               |    8 ++------
+ 36 files changed, 36 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
---- a/drivers/i2c/busses/i2c-isa.c
-+++ b/drivers/i2c/busses/i2c-isa.c
-@@ -1,6 +1,8 @@
+diff --git a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
+--- a/Documentation/i2c/porting-clients
++++ b/Documentation/i2c/porting-clients
+@@ -29,8 +29,8 @@ Technical changes:
+   Please respect this inclusion order. Some extra headers may be
+   required for a given driver (e.g. "lm75.h").
+ 
+-* [Addresses] SENSORS_I2C_END becomes I2C_CLIENT_END, SENSORS_ISA_END
+-  becomes I2C_CLIENT_ISA_END.
++* [Addresses] SENSORS_I2C_END becomes I2C_CLIENT_END, ISA addresses
++  are no more handled by the i2c core.
+ 
+ * [Client data] Get rid of sysctl_id. Try using standard names for
+   register values (for example, temp_os becomes temp_max). You're
+@@ -72,7 +72,8 @@ Technical changes:
+   name string, which will be filled with a lowercase, short string
+   (typically the driver name, e.g. "lm75").
+   In i2c-only drivers, drop the i2c_is_isa_adapter check, it's
+-  useless.
++  useless. Same for isa-only drivers, as the test would always be
++  true. Only hybrid drivers (which are quite rare) still need it.
+   The errorN labels are reduced to the number needed. If that number
+   is 2 (i2c-only drivers), it is advised that the labels are named
+   exit and exit_free. For i2c+isa drivers, labels should be named
+diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
+--- a/Documentation/i2c/writing-clients
++++ b/Documentation/i2c/writing-clients
+@@ -195,31 +195,28 @@ Probing classes (sensors)
+ -------------------------
+ 
+ If you write a `sensors' driver, you use a slightly different interface.
+-As well as I2C addresses, we have to cope with ISA addresses. Also, we
+-use a enum of chip types. Don't forget to include `sensors.h'.
++Also, we use a enum of chip types. Don't forget to include `sensors.h'.
+ 
+ The following lists are used internally. They are all lists of integers.
+ 
+-   normal_i2c: filled in by the module writer. Terminated by SENSORS_I2C_END.
++   normal_i2c: filled in by the module writer. Terminated by I2C_CLIENT_END.
+      A list of I2C addresses which should normally be examined.
+-   normal_isa: filled in by the module writer. Terminated by SENSORS_ISA_END.
+-     A list of ISA addresses which should normally be examined.
+-   probe: insmod parameter. Initialize this list with SENSORS_I2C_END values.
+-     A list of pairs. The first value is a bus number (SENSORS_ISA_BUS for
+-     the ISA bus, -1 for any I2C bus), the second is the address. These
+-     addresses are also probed, as if they were in the 'normal' list.
+-   ignore: insmod parameter. Initialize this list with SENSORS_I2C_END values.
+-     A list of pairs. The first value is a bus number (SENSORS_ISA_BUS for
+-     the ISA bus, -1 for any I2C bus), the second is the I2C address. These
+-     addresses are never probed. This parameter overrules 'normal' and 
+-     'probe', but not the 'force' lists.
++   probe: insmod parameter. Initialize this list with I2C_CLIENT_END values.
++     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
++     I2C bus), the second is the address. These addresses are also probed,
++     as if they were in the 'normal' list.
++   ignore: insmod parameter. Initialize this list with I2C_CLIENT_END values.
++     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
++     I2C bus), the second is the I2C address. These addresses are never
++     probed. This parameter overrules 'normal' and 'probe', but not the
++     'force' lists.
+ 
+ Also used is a list of pointers to sensors_force_data structures:
+    force_data: insmod parameters. A list, ending with an element of which
+      the force field is NULL.
+      Each element contains the type of chip and a list of pairs.
+-     The first value is a bus number (SENSORS_ISA_BUS for the ISA bus, 
+-     -1 for any I2C bus), the second is the address. 
++     The first value is a bus number (ANY_I2C_BUS for any I2C bus), the
++     second is the address.
+      These are automatically translated to insmod variables of the form
+      force_foo.
+ 
+@@ -227,13 +224,11 @@ So we have a generic insmod variabled `f
+ `force_CHIPNAME'.
+ 
+ Fortunately, as a module writer, you just have to define the `normal_i2c' 
+-and `normal_isa' parameters, and define what chip names are used. 
+-The complete declaration could look like this:
++parameter, and define what chip names are used. The complete declaration
++could look like this:
+   /* Scan i2c addresses 0x37, and 0x48 to 0x4f */
+   static unsigned short normal_i2c[] = { 0x37, 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+                                          0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+-  /* Scan ISA address 0x290 */
+-  static unsigned int normal_isa[] = {0x0290,SENSORS_ISA_END};
+ 
+   /* Define chips foo and bar, as well as all module parameters and things */
+   SENSORS_INSMOD_2(foo,bar);
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -34,7 +34,6 @@ static unsigned short normal_i2c[] = { 0
+ 					0x29, 0x2a, 0x2b,
+ 					0x4c, 0x4d, 0x4e, 
+ 					I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_8(adm1021, adm1023, max1617, max1617a, thmc10, lm84, gl523sm, mc1066);
+diff --git a/drivers/hwmon/adm1025.c b/drivers/hwmon/adm1025.c
+--- a/drivers/hwmon/adm1025.c
++++ b/drivers/hwmon/adm1025.c
+@@ -62,7 +62,6 @@
+  */
+ 
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
  /*
--    i2c-isa.c - Part of lm_sensors, Linux kernel modules for hardware
--            monitoring
-+    i2c-isa.c - an i2c-core-like thing for ISA hardware monitoring chips
-+    Copyright (C) 2005  Jean Delvare <khali@linux-fr.org>
-+
-+    Based on the i2c-isa pseudo-adapter from the lm_sensors project
-     Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> 
+  * Insmod parameters
+diff --git a/drivers/hwmon/adm1026.c b/drivers/hwmon/adm1026.c
+--- a/drivers/hwmon/adm1026.c
++++ b/drivers/hwmon/adm1026.c
+@@ -36,7 +36,6 @@
  
-     This program is free software; you can redistribute it and/or modify
-@@ -18,17 +20,24 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(adm1026);
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -61,7 +61,6 @@
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_2(adm1030, adm1031);
+diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
+--- a/drivers/hwmon/adm9240.c
++++ b/drivers/hwmon/adm9240.c
+@@ -54,8 +54,6 @@
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, 0x2f,
+ 					I2C_CLIENT_END };
+ 
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+-
+ /* Insmod parameters */
+ SENSORS_INSMOD_3(adm9240, ds1780, lm81);
+ 
+diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
+--- a/drivers/hwmon/asb100.c
++++ b/drivers/hwmon/asb100.c
+@@ -56,9 +56,6 @@
+ /* I2C addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2d, I2C_CLIENT_END };
+ 
+-/* ISA addresses to scan (none) */
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+-
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(asb100);
+ I2C_CLIENT_MODULE_PARM(force_subclients, "List of subclient addresses: "
+diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
+--- a/drivers/hwmon/atxp1.c
++++ b/drivers/hwmon/atxp1.c
+@@ -42,7 +42,6 @@ MODULE_AUTHOR("Sebastian Witt <se.witt@g
+ #define ATXP1_GPIO1MASK	0x0f
+ 
+ static unsigned short normal_i2c[] = { 0x37, 0x4e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ SENSORS_INSMOD_1(atxp1);
+ 
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -34,7 +34,6 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+ 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(ds1621);
+diff --git a/drivers/hwmon/fscher.c b/drivers/hwmon/fscher.c
+--- a/drivers/hwmon/fscher.c
++++ b/drivers/hwmon/fscher.c
+@@ -40,7 +40,6 @@
+  */
+ 
+ static unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/fscpos.c b/drivers/hwmon/fscpos.c
+--- a/drivers/hwmon/fscpos.c
++++ b/drivers/hwmon/fscpos.c
+@@ -43,7 +43,6 @@
+  * Addresses to scan
+  */
+ static unsigned short normal_i2c[] = { 0x73, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/gl518sm.c b/drivers/hwmon/gl518sm.c
+--- a/drivers/hwmon/gl518sm.c
++++ b/drivers/hwmon/gl518sm.c
+@@ -47,7 +47,6 @@
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_2(gl518sm_r00, gl518sm_r80);
+diff --git a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
+--- a/drivers/hwmon/gl520sm.c
++++ b/drivers/hwmon/gl520sm.c
+@@ -38,7 +38,6 @@ MODULE_PARM_DESC(extra_sensor_type, "Typ
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(gl520sm);
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -48,7 +48,6 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+ 					0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ static unsigned short isa_address = 0x290;
+ 
+ /* Insmod parameters */
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -53,7 +53,6 @@
+  */
+ 
+ static unsigned short normal_i2c[] = { 0x4c, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -32,7 +32,6 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+ 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(lm75);
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -36,7 +36,6 @@
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(lm77);
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -34,7 +34,6 @@ static unsigned short normal_i2c[] = { 0
+ 					0x25, 0x26, 0x27, 0x28, 0x29,
+ 					0x2a, 0x2b, 0x2c, 0x2d, 0x2e,
+ 					0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ static unsigned short isa_address = 0x290;
+ 
+ /* Insmod parameters */
+diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
+--- a/drivers/hwmon/lm80.c
++++ b/drivers/hwmon/lm80.c
+@@ -33,7 +33,6 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c,
+ 					0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(lm80);
+diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
+--- a/drivers/hwmon/lm83.c
++++ b/drivers/hwmon/lm83.c
+@@ -47,7 +47,6 @@ static unsigned short normal_i2c[] = { 0
+ 					0x29, 0x2a, 0x2b,
+ 					0x4c, 0x4d, 0x4e,
+ 					I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -35,7 +35,6 @@
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_6(lm85b, lm85c, adm1027, adt7463, emc6d100, emc6d102);
+diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
+--- a/drivers/hwmon/lm87.c
++++ b/drivers/hwmon/lm87.c
+@@ -68,7 +68,6 @@
+  */
+ 
+ static unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -91,7 +91,6 @@
+  */
+ 
+ static unsigned short normal_i2c[] = { 0x4c, 0x4d, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
+--- a/drivers/hwmon/lm92.c
++++ b/drivers/hwmon/lm92.c
+@@ -52,7 +52,6 @@
+    resulting in 4 possible addresses. */
+ static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
+ 				       I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(lm92);
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -39,7 +39,6 @@ static unsigned short normal_i2c[] = { 0
+ 					0x29, 0x2a, 0x2b,
+ 					0x4c, 0x4d, 0x4e,
+ 					I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+--- a/drivers/hwmon/w83781d.c
++++ b/drivers/hwmon/w83781d.c
+@@ -50,7 +50,6 @@
+ static unsigned short normal_i2c[] = { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
+ 					0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b,
+ 					0x2c, 0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ static unsigned short isa_address = 0x290;
+ 
+ /* Insmod parameters */
+diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
+--- a/drivers/hwmon/w83l785ts.c
++++ b/drivers/hwmon/w83l785ts.c
+@@ -49,7 +49,6 @@
+  */
+ 
+ static unsigned short normal_i2c[] = { 0x2e, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /*
+  * Insmod parameters
+diff --git a/drivers/i2c/chips/ds1337.c b/drivers/i2c/chips/ds1337.c
+--- a/drivers/i2c/chips/ds1337.c
++++ b/drivers/i2c/chips/ds1337.c
+@@ -39,7 +39,6 @@
+  * Functions declaration
+  */
+ static unsigned short normal_i2c[] = { 0x68, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ SENSORS_INSMOD_1(ds1337);
+ 
+diff --git a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
+--- a/drivers/i2c/chips/eeprom.c
++++ b/drivers/i2c/chips/eeprom.c
+@@ -38,7 +38,6 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x50, 0x51, 0x52, 0x53, 0x54,
+ 					0x55, 0x56, 0x57, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(eeprom);
+diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
+--- a/drivers/i2c/chips/max6875.c
++++ b/drivers/i2c/chips/max6875.c
+@@ -36,7 +36,6 @@
+ 
+ /* Do not scan - the MAX6875 access method will write to some EEPROM chips */
+ static unsigned short normal_i2c[] = {I2C_CLIENT_END};
+-static unsigned int normal_isa[] = {I2C_CLIENT_ISA_END};
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(max6875);
+diff --git a/drivers/i2c/chips/pca9539.c b/drivers/i2c/chips/pca9539.c
+--- a/drivers/i2c/chips/pca9539.c
++++ b/drivers/i2c/chips/pca9539.c
+@@ -17,7 +17,6 @@
+ 
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = {0x74, 0x75, 0x76, 0x77, I2C_CLIENT_END};
+-static unsigned int normal_isa[] = {I2C_CLIENT_ISA_END};
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(pca9539);
+diff --git a/drivers/i2c/chips/pcf8574.c b/drivers/i2c/chips/pcf8574.c
+--- a/drivers/i2c/chips/pcf8574.c
++++ b/drivers/i2c/chips/pcf8574.c
+@@ -45,7 +45,6 @@
+ static unsigned short normal_i2c[] = { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
+ 					0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
+ 					I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_2(pcf8574, pcf8574a);
+diff --git a/drivers/i2c/chips/pcf8591.c b/drivers/i2c/chips/pcf8591.c
+--- a/drivers/i2c/chips/pcf8591.c
++++ b/drivers/i2c/chips/pcf8591.c
+@@ -29,7 +29,6 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+ 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+-static unsigned int normal_isa[] = { I2C_CLIENT_ISA_END };
+ 
+ /* Insmod parameters */
+ SENSORS_INSMOD_1(pcf8591);
+diff --git a/include/linux/i2c-sensor.h b/include/linux/i2c-sensor.h
+--- a/include/linux/i2c-sensor.h
++++ b/include/linux/i2c-sensor.h
+@@ -27,11 +27,10 @@
+    that place. If a specific chip is given, the module blindly assumes this
+    chip type is present; if a general force (kind = 0) is given, the module
+    will still try to figure out what type of chip is present. This is useful
+-   if for some reasons the detect for SMBus or ISA address space filled
+-   fails.
+-   probe: insmod parameter. Initialize this list with I2C_CLIENT_ISA_END values.
+-     A list of pairs. The first value is a bus number (ANY_I2C_ISA_BUS for
+-     the ISA bus, -1 for any I2C bus), the second is the address. 
++   if for some reasons the detect for SMBus address space filled fails.
++   probe: insmod parameter. Initialize this list with I2C_CLIENT_END values.
++     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
++     I2C bus), the second is the address.
+    kind: The kind of chip. 0 equals any chip.
  */
+ struct i2c_force_data {
+@@ -40,25 +39,22 @@ struct i2c_force_data {
+ };
  
--/* This implements an i2c algorithm/adapter for ISA bus. Not that this is
--   on first sight very useful; almost no functionality is preserved.
--   Except that it makes writing drivers for chips which can be on both
--   the SMBus and the ISA bus very much easier. See lm78.c for an example
--   of this. */
-+/* This implements an i2c-core-like thing for ISA hardware monitoring
-+   chips. Such chips are linked to the i2c subsystem for historical
-+   reasons (because the early ISA hardware monitoring chips such as the
-+   LM78 had both an I2C and an ISA interface). They used to be
-+   registered with the main i2c-core, but as a first step in the
-+   direction of a clean separation between I2C and ISA chip drivers,
-+   we now have this separate core for ISA ones. It is significantly
-+   more simple than the real one, of course, because we don't have to
-+   handle multiple busses: there is only one (fake) ISA adapter.
-+   It is worth noting that we still rely on i2c-core for some things
-+   at the moment - but hopefully this won't last. */
+ /* A structure containing the detect information.
+-   normal_i2c: filled in by the module writer. Terminated by I2C_CLIENT_ISA_END.
++   normal_i2c: filled in by the module writer. Terminated by I2C_CLIENT_END.
+      A list of I2C addresses which should normally be examined.
+-   normal_isa: filled in by the module writer. Terminated by SENSORS_ISA_END.
+-     A list of ISA addresses which should normally be examined.
+-   probe: insmod parameter. Initialize this list with I2C_CLIENT_ISA_END values.
+-     A list of pairs. The first value is a bus number (ANY_I2C_ISA_BUS for
+-     the ISA bus, -1 for any I2C bus), the second is the address. These
+-     addresses are also probed, as if they were in the 'normal' list.
+-   ignore: insmod parameter. Initialize this list with I2C_CLIENT_ISA_END values.
+-     A list of pairs. The first value is a bus number (ANY_I2C_ISA_BUS for
+-     the ISA bus, -1 for any I2C bus), the second is the I2C address. These
+-     addresses are never probed. This parameter overrules 'normal' and 
+-     'probe', but not the 'force' lists.
++   probe: insmod parameter. Initialize this list with I2C_CLIENT_END values.
++     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
++     I2C bus), the second is the address. These addresses are also probed,
++     as if they were in the 'normal' list.
++   ignore: insmod parameter. Initialize this list with I2C_CLIENT_END values.
++     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
++     I2C bus), the second is the I2C address. These addresses are never
++     probed. This parameter overrules 'normal' and  probe', but not the
++    'force' lists.
+    force_data: insmod parameters. A list, ending with an element of which
+      the force field is NULL.
+ */
+ struct i2c_address_data {
+ 	unsigned short *normal_i2c;
+-	unsigned int *normal_isa;
+ 	unsigned short *probe;
+ 	unsigned short *ignore;
+ 	struct i2c_force_data *forces;
+@@ -78,7 +74,6 @@ struct i2c_address_data {
+                       "List of adapter,address pairs not to scan"); \
+ 	static struct i2c_address_data addr_data = {			\
+ 			.normal_i2c =		normal_i2c,		\
+-			.normal_isa =		normal_isa,		\
+ 			.probe =		probe,			\
+ 			.ignore =		ignore,			\
+ 			.forces =		forces,			\
+@@ -242,8 +237,7 @@ struct i2c_address_data {
  
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-isa.h>
+ /* Detect function. It iterates over all possible addresses itself. For
+    SMBus addresses, it will only call found_proc if some client is connected
+-   to the SMBus (unless a 'force' matched); for ISA detections, this is not
+-   done. */
++   to the SMBus (unless a 'force' matched). */
+ extern int i2c_detect(struct i2c_adapter *adapter,
+ 		      struct i2c_address_data *address_data,
+ 		      int (*found_proc) (struct i2c_adapter *, int, int));
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -150,12 +150,9 @@ struct i2c_driver {
+  */
+ struct i2c_client {
+ 	unsigned int flags;		/* div., see below		*/
+-	unsigned int addr;		/* chip address - NOTE: 7bit 	*/
++	unsigned short addr;		/* chip address - NOTE: 7bit 	*/
+ 					/* addresses are stored in the	*/
+-					/* _LOWER_ 7 bits of this char	*/
+-	/* addr: unsigned int to make lm_sensors i2c-isa adapter work
+-	  more cleanly. It does not take any more memory space, due to
+-	  alignment considerations */
++					/* _LOWER_ 7 bits		*/
+ 	struct i2c_adapter *adapter;	/* the adapter we sit on	*/
+ 	struct i2c_driver *driver;	/* and our access routines	*/
+ 	int usage_count;		/* How many accesses currently  */
+@@ -309,7 +306,6 @@ struct i2c_client_address_data {
  
- static u32 isa_func(struct i2c_adapter *adapter);
+ /* Internal numbers to terminate lists */
+ #define I2C_CLIENT_END		0xfffeU
+-#define I2C_CLIENT_ISA_END	0xfffefffeU
  
-@@ -53,17 +62,146 @@ static u32 isa_func(struct i2c_adapter *
- 	return 0;
- }
- 
-+
-+/* Copied from i2c-core */
-+static ssize_t show_adapter_name(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_adapter *adap = dev_to_i2c_adapter(dev);
-+	return sprintf(buf, "%s\n", adap->name);
-+}
-+static DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
-+
-+static int i2c_isa_device_probe(struct device *dev)
-+{
-+	return -ENODEV;
-+}
-+
-+static int i2c_isa_device_remove(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+
-+/* We implement an interface which resembles i2c_{add,del}_driver,
-+   but for i2c-isa drivers. We don't have to remember and handle lists
-+   of drivers and adapters so this is much more simple, of course. */
-+
-+int i2c_isa_add_driver(struct i2c_driver *driver)
-+{
-+	int res;
-+
-+	/* Add the driver to the list of i2c drivers in the driver core */
-+	driver->driver.name = driver->name;
-+	driver->driver.bus = &i2c_bus_type;
-+	driver->driver.probe = i2c_isa_device_probe;
-+	driver->driver.remove = i2c_isa_device_remove;
-+	res = driver_register(&driver->driver);
-+	if (res)
-+		return res;
-+	dev_dbg(&isa_adapter.dev, "Driver %s registered\n", driver->name);
-+
-+	/* Now look for clients */
-+	driver->attach_adapter(&isa_adapter);
-+
-+	return 0;
-+}
-+
-+int i2c_isa_del_driver(struct i2c_driver *driver)
-+{
-+	struct list_head *item, *_n;
-+	struct i2c_client *client;
-+	int res;
-+
-+	/* Detach all clients belonging to this one driver */
-+	list_for_each_safe(item, _n, &isa_adapter.clients) {
-+		client = list_entry(item, struct i2c_client, list);
-+		if (client->driver != driver)
-+			continue;
-+		dev_dbg(&isa_adapter.dev, "Detaching client %s at 0x%x\n",
-+			client->name, client->addr);
-+		if ((res = driver->detach_client(client))) {
-+			dev_err(&isa_adapter.dev, "Failed, driver "
-+				"%s not unregistered!\n",
-+				driver->name);
-+			return res;
-+		}
-+	}
-+
-+	/* Get the driver off the core list */
-+	driver_unregister(&driver->driver);
-+	dev_dbg(&isa_adapter.dev, "Driver %s unregistered\n", driver->name);
-+
-+	return 0;
-+}
-+
-+
- static int __init i2c_isa_init(void)
- {
--	return i2c_add_adapter(&isa_adapter);
-+	init_MUTEX(&isa_adapter.clist_lock);
-+	INIT_LIST_HEAD(&isa_adapter.clients);
-+
-+	isa_adapter.nr = ANY_I2C_ISA_BUS;
-+	isa_adapter.dev.parent = &platform_bus;
-+	sprintf(isa_adapter.dev.bus_id, "i2c-%d", isa_adapter.nr);
-+	isa_adapter.dev.driver = &i2c_adapter_driver;
-+	isa_adapter.dev.release = &i2c_adapter_dev_release;
-+	device_register(&isa_adapter.dev);
-+	device_create_file(&isa_adapter.dev, &dev_attr_name);
-+
-+	/* Add this adapter to the i2c_adapter class */
-+	memset(&isa_adapter.class_dev, 0x00, sizeof(struct class_device));
-+	isa_adapter.class_dev.dev = &isa_adapter.dev;
-+	isa_adapter.class_dev.class = &i2c_adapter_class;
-+	strlcpy(isa_adapter.class_dev.class_id, isa_adapter.dev.bus_id,
-+		BUS_ID_SIZE);
-+	class_device_register(&isa_adapter.class_dev);
-+
-+	dev_dbg(&isa_adapter.dev, "%s registered\n", isa_adapter.name);
-+
-+	return 0;
- }
- 
- static void __exit i2c_isa_exit(void)
- {
--	i2c_del_adapter(&isa_adapter);
-+#ifdef DEBUG
-+	struct list_head  *item, *_n;
-+	struct i2c_client *client = NULL;
-+#endif
-+
-+	/* There should be no more active client */
-+#ifdef DEBUG
-+	dev_dbg(&isa_adapter.dev, "Looking for clients\n");
-+	list_for_each_safe(item, _n, &isa_adapter.clients) {
-+		client = list_entry(item, struct i2c_client, list);
-+		dev_err(&isa_adapter.dev, "Driver %s still has an active "
-+			"ISA client at 0x%x\n", client->driver->name,
-+			client->addr);
-+	}
-+	if (client != NULL)
-+		return;
-+#endif
-+
-+	/* Clean up the sysfs representation */
-+	dev_dbg(&isa_adapter.dev, "Unregistering from sysfs\n");
-+	init_completion(&isa_adapter.dev_released);
-+	init_completion(&isa_adapter.class_dev_released);
-+	class_device_unregister(&isa_adapter.class_dev);
-+	device_remove_file(&isa_adapter.dev, &dev_attr_name);
-+	device_unregister(&isa_adapter.dev);
-+
-+	/* Wait for sysfs to drop all references */
-+	dev_dbg(&isa_adapter.dev, "Waiting for sysfs completion\n");
-+	wait_for_completion(&isa_adapter.dev_released);
-+	wait_for_completion(&isa_adapter.class_dev_released);
-+
-+	dev_dbg(&isa_adapter.dev, "%s unregistered\n", isa_adapter.name);
- }
- 
--MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>");
-+EXPORT_SYMBOL(i2c_isa_add_driver);
-+EXPORT_SYMBOL(i2c_isa_del_driver);
-+
-+MODULE_AUTHOR("Jean Delvare <khali@linux-fr.org>");
- MODULE_DESCRIPTION("ISA bus access through i2c");
- MODULE_LICENSE("GPL");
- 
-diff --git a/include/linux/i2c-isa.h b/include/linux/i2c-isa.h
-new file mode 100644
---- /dev/null
-+++ b/include/linux/i2c-isa.h
-@@ -0,0 +1,29 @@
-+/*
-+ * i2c-isa.h - definitions for the i2c-isa pseudo-i2c-adapter interface
-+ *
-+ * Copyright (C) 2005 Jean Delvare <khali@linux-fr.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef _LINUX_I2C_ISA_H
-+#define _LINUX_I2C_ISA_H
-+
-+#include <linux/i2c.h>
-+
-+extern int i2c_isa_add_driver(struct i2c_driver *driver);
-+extern int i2c_isa_del_driver(struct i2c_driver *driver);
-+
-+#endif /* _LINUX_I2C_ISA_H */
+ /* The numbers to use to set I2C bus address */
+ #define ANY_I2C_BUS		0xffff
 
