@@ -1,97 +1,61 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:49 +0000
+Date: Mon, 05 Sep 2005 23:48:15 +0000
 Subject: [lm-sensors] [PATCH] I2C: Separate non-i2c hwmon drivers from
-Message-Id: <11259567663617@kroah.com>
+Message-Id: <11259567671846@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <11259567663617@kroah.com>
+In-Reply-To: <11259567663617@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Separate non-i2c hwmon drivers from i2c-core (1/9)
+[PATCH] I2C: Separate non-i2c hwmon drivers from i2c-core (9/9)
 
-Temporarily export a few structures and functions from i2c-core, because we
-will soon need them in i2c-isa.
+Move the definitions of i2c_is_isa_client and i2c_is_isa_adapter from
+i2c.h to i2c-isa.h. Only hybrid drivers still need them.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit efde723fdac02111872bff606ef362074fc1efa8
-tree 31e5cff31af33f38dfdcaa65cebd935f2a3f7fdc
-parent 943b0830cebe4711354945ed3cb44e84152aaca0
-author Jean Delvare <khali@linux-fr.org> Wed, 20 Jul 2005 23:03:50 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:09 -0700
+commit 570aefc361d3315ec6749f573009286106b0b2d8
+tree e399b3e54cc81c1f3c014b882e0c9a261f36d0f7
+parent 02ff982c6911de1484e13a1d765d7bd31a0f8fee
+author Jean Delvare <khali@linux-fr.org> Wed, 20 Jul 2005 00:09:03 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:12 -0700
 
- drivers/i2c/i2c-core.c |   14 ++++++++++----
- include/linux/i2c.h    |    7 +++++++
- 2 files changed, 17 insertions(+), 4 deletions(-)
+ include/linux/i2c-isa.h |    7 +++++++
+ include/linux/i2c.h     |    7 -------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -61,7 +61,7 @@ static int i2c_bus_resume(struct device 
- 	return rc;
- }
+diff --git a/include/linux/i2c-isa.h b/include/linux/i2c-isa.h
+--- a/include/linux/i2c-isa.h
++++ b/include/linux/i2c-isa.h
+@@ -26,4 +26,11 @@
+ extern int i2c_isa_add_driver(struct i2c_driver *driver);
+ extern int i2c_isa_del_driver(struct i2c_driver *driver);
  
--static struct bus_type i2c_bus_type = {
-+struct bus_type i2c_bus_type = {
- 	.name =		"i2c",
- 	.match =	i2c_device_match,
- 	.suspend =      i2c_bus_suspend,
-@@ -78,13 +78,13 @@ static int i2c_device_remove(struct devi
- 	return 0;
- }
- 
--static void i2c_adapter_dev_release(struct device *dev)
-+void i2c_adapter_dev_release(struct device *dev)
- {
- 	struct i2c_adapter *adap = dev_to_i2c_adapter(dev);
- 	complete(&adap->dev_released);
- }
- 
--static struct device_driver i2c_adapter_driver = {
-+struct device_driver i2c_adapter_driver = {
- 	.name =	"i2c_adapter",
- 	.bus = &i2c_bus_type,
- 	.probe = i2c_device_probe,
-@@ -97,7 +97,7 @@ static void i2c_adapter_class_dev_releas
- 	complete(&adap->class_dev_released);
- }
- 
--static struct class i2c_adapter_class = {
-+struct class i2c_adapter_class = {
- 	.name =		"i2c-adapter",
- 	.release =	&i2c_adapter_class_dev_release,
- };
-@@ -1171,6 +1171,12 @@ s32 i2c_smbus_xfer(struct i2c_adapter * 
- }
- 
- 
-+/* Next four are needed by i2c-isa */
-+EXPORT_SYMBOL_GPL(i2c_adapter_dev_release);
-+EXPORT_SYMBOL_GPL(i2c_adapter_driver);
-+EXPORT_SYMBOL_GPL(i2c_adapter_class);
-+EXPORT_SYMBOL_GPL(i2c_bus_type);
++/* Detect whether we are on the isa bus. This is only useful to hybrid
++   (i2c+isa) drivers. */
++#define i2c_is_isa_client(clientptr) \
++        ((clientptr)->adapter->algo->id = I2C_ALGO_ISA)
++#define i2c_is_isa_adapter(adapptr) \
++        ((adapptr)->algo->id = I2C_ALGO_ISA)
 +
- EXPORT_SYMBOL(i2c_add_adapter);
- EXPORT_SYMBOL(i2c_del_adapter);
- EXPORT_SYMBOL(i2c_add_driver);
+ #endif /* _LINUX_I2C_ISA_H */
 diff --git a/include/linux/i2c.h b/include/linux/i2c.h
 --- a/include/linux/i2c.h
 +++ b/include/linux/i2c.h
-@@ -34,6 +34,13 @@
- #include <linux/device.h>	/* for struct device */
- #include <asm/semaphore.h>
+@@ -580,11 +580,4 @@ union i2c_smbus_data {
+ 			.force =		force,			\
+ 		}
  
-+/* --- For i2c-isa ---------------------------------------------------- */
-+
-+extern void i2c_adapter_dev_release(struct device *dev);
-+extern struct device_driver i2c_adapter_driver;
-+extern struct class i2c_adapter_class;
-+extern struct bus_type i2c_bus_type;
-+
- /* --- General options ------------------------------------------------	*/
- 
- struct i2c_msg;
+-/* Detect whether we are on the isa bus. If this returns true, all i2c
+-   access will fail! */
+-#define i2c_is_isa_client(clientptr) \
+-        ((clientptr)->adapter->algo->id = I2C_ALGO_ISA)
+-#define i2c_is_isa_adapter(adapptr) \
+-        ((adapptr)->algo->id = I2C_ALGO_ISA)
+-
+ #endif /* _LINUX_I2C_H */
 
