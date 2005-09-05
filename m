@@ -1,59 +1,48 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 04 Sep 2005 22:52:30 +0000
-Subject: [lm-sensors] [PATCH 2.6] hwmon: w83627hf: no reset by default
-Message-Id: <20050904225217.13625bd2.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:48:47 +0000
+Subject: [lm-sensors] [PATCH] I2C: max6875 documentation cleanup
+Message-Id: <11259567644070@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, all,
+[PATCH] I2C: max6875 documentation cleanup
 
-Make the reset of the chips in w83627hf optional rather than the
-default. This reset has been causing trouble several times already. It
-may even go completely away unless it proves to be useful to at least
-one user.
+Fix a spelling error and change a sysfs name.
 
-Closes bug #5168:
-http://bugzilla.kernel.org/show_bug.cgi?idQ68
+Signed-off-by: Ben Gardner <bgardner@wabtec.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+commit 0283fe6c3bdbe9ca9aefa28b24883ec1dee3ccbd
+tree df4e86f58dc1708606ad09d8aea7a872d7d1a8fe
+parent a61fc683ae1b7871d8d81ac5025af1a923731547
+author bgardner@wabtec.com <bgardner@wabtec.com> Wed, 27 Jul 2005 12:43:21 -0500
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:05 -0700
 
- drivers/hwmon/w83627hf.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ Documentation/i2c/chips/max6875 |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
---- linux-2.6.13.orig/drivers/hwmon/w83627hf.c	2005-08-29 20:54:29.000000000 +0200
-+++ linux-2.6.13/drivers/hwmon/w83627hf.c	2005-09-04 20:21:31.000000000 +0200
-@@ -64,6 +64,10 @@
- /* Insmod parameters */
- enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf };
+diff --git a/Documentation/i2c/chips/max6875 b/Documentation/i2c/chips/max6875
+--- a/Documentation/i2c/chips/max6875
++++ b/Documentation/i2c/chips/max6875
+@@ -49,14 +49,14 @@ $ modprobe max6875 force=0,0x50
  
-+static int reset;
-+module_param(reset, bool, 0);
-+MODULE_PARM_DESC(reset, "Set to one to reset chip on load");
-+
- static int init = 1;
- module_param(init, bool, 0);
- MODULE_PARM_DESC(init, "Set to zero to bypass chip initialization");
-@@ -1279,7 +1283,15 @@
- 	int type = data->type;
- 	u8 tmp;
+ The MAX6874/MAX6875 ignores address bit 0, so this driver attaches to multiple
+ addresses.  For example, for address 0x50, it also reserves 0x51.
+-The even-address instance is called 'max6875', the odd one is 'max6875-dummy'.
++The even-address instance is called 'max6875', the odd one is 'max6875 subclient'.
  
--	if(init) {
-+	if (reset) {
-+		/* Resetting the chip has been the default for a long time,
-+		   but repeatedly caused problems (fans going to full
-+		   speed...) so it is now optional. It might even go away if
-+		   nobody reports it as being useful, as I see very little
-+		   reason why this would be needed at all. */
-+		dev_info(&client->dev, "If reset=1 solved a problem you were "
-+			 "having, please report!\n");
-+
- 		/* save this register */
- 		i = w83627hf_read_value(client, W83781D_REG_BEEP_CONFIG);
- 		/* Reset all except Watchdog values and last conversion values
+ 
+ Programming the chip using i2c-dev
+ ----------------------------------
+ 
+ Use the i2c-dev interface to access and program the chips.
+-Reads and write are performed differently depending on the address range.
++Reads and writes are performed differently depending on the address range.
+ 
+ The configuration registers are at addresses 0x00 - 0x45.
+ Use i2c_smbus_write_byte_data() to write a register and
 
-
--- 
-Jean Delvare
