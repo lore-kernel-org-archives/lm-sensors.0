@@ -1,45 +1,55 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:41 +0000
-Subject: [lm-sensors] [PATCH] hwmon: VID table update
-Message-Id: <11259567693419@kroah.com>
+Date: Mon, 05 Sep 2005 23:47:15 +0000
+Subject: [lm-sensors] [PATCH] I2C: i2c-algo-pca -- gracefully handle a busy
+Message-Id: <11259567673174@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: VID table update
+[PATCH] I2C: i2c-algo-pca -- gracefully handle a busy bus
 
-This patch updates the VID entries, so any future
-Intel CPU will be detected as unknown rather than 9.0
+I've been running with this patch for a while now, and while I've never
+seen it trigger except with buggy hardware I think it is a cleaner way
+to handle a busy bus. I had -EBUSY until about 10 minutes ago but -EIO
+seems to be what most of the existing algo drivers will return in the
+same circumstances.
 
-Signed-off-by: Rudolf Marek <r.marek@sh.cvut.cz>
+Signed-off-by: Ian Campbell <icampbell@arcom.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 3b6c0634cc989f0735a1541ccf9288947685cab5
-tree 55c4697ce3835e35148d18572ceb7a30253b315e
-parent 19f673eddb5a406be72989fb57b7f286772b8cf4
-author R.Marek@sh.cvut.cz <R.Marek@sh.cvut.cz> Fri, 05 Aug 2005 15:40:11 +0000
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:24 -0700
+commit 48edcb65ddcd93b6421831ad133599aacea9724a
+tree 8897c3568fc5f6651fa0ddb80d7e60a8ca2adef4
+parent cdcb19219714c796ddef1202e952566c5f86354d
+author Ian Campbell <icampbell@arcom.com> Wed, 10 Aug 2005 08:51:16 +0100
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:15 -0700
 
- drivers/hwmon/hwmon-vid.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/i2c/algos/i2c-algo-pca.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
---- a/drivers/hwmon/hwmon-vid.c
-+++ b/drivers/hwmon/hwmon-vid.c
-@@ -122,8 +122,11 @@ static struct vrm_model vrm_models[] = {
- 	{X86_VENDOR_INTEL, 0x6, 0xB, 85},	/* Tualatin */
- 	{X86_VENDOR_INTEL, 0x6, ANY, 82},	/* any P6 */
- 	{X86_VENDOR_INTEL, 0x7, ANY, 0},	/* Itanium */
-+	{X86_VENDOR_INTEL, 0xF, 0x0, 90},	/* P4 */
-+	{X86_VENDOR_INTEL, 0xF, 0x1, 90},	/* P4 Willamette */
-+	{X86_VENDOR_INTEL, 0xF, 0x2, 90},	/* P4 Northwood */
- 	{X86_VENDOR_INTEL, 0xF, 0x3, 100},	/* P4 Prescott */
--	{X86_VENDOR_INTEL, 0xF, ANY, 90},	/* P4 before Prescott */
-+	{X86_VENDOR_INTEL, 0xF, 0x4, 100},	/* P4 Prescott */
- 	{X86_VENDOR_INTEL, 0x10,ANY, 0},	/* Itanium 2 */
- 	{X86_VENDOR_UNKNOWN, ANY, ANY, 0}	/* stop here */
- };
+diff --git a/drivers/i2c/algos/i2c-algo-pca.c b/drivers/i2c/algos/i2c-algo-pca.c
+--- a/drivers/i2c/algos/i2c-algo-pca.c
++++ b/drivers/i2c/algos/i2c-algo-pca.c
+@@ -187,12 +187,14 @@ static int pca_xfer(struct i2c_adapter *
+ 	int numbytes = 0;
+ 	int state;
+ 	int ret;
++	int timeout = 100;
+ 
+-	state = pca_status(adap);
+-	if ( state != 0xF8 ) {
+-		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state );
+-		/* FIXME: what to do. Force stop ? */
+-		return -EREMOTEIO;
++	while ((state = pca_status(adap)) != 0xf8 && timeout--) {
++		msleep(10);
++	}
++	if (state != 0xf8) {
++		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state);
++		return -EIO;
+ 	}
+ 
+ 	DEB1("{{{ XFER %d messages\n", num);
 
