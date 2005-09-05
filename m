@@ -1,356 +1,338 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 25 Sep 2005 16:37:45 +0000
-Subject: [lm-sensors] [PATCH] (6/13) i2c: Reuse name strings in i2c bus
-Message-Id: <20050925163704.7468caa2.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:49:13 +0000
+Subject: [lm-sensors] [PATCH] I2C: Kill i2c_algorithm.id (6/7)
+Message-Id: <11259567702508@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Clean up name string usage in 12 i2c bus drivers:
-* Use the i2c_adapter name for requesting the I/O region rather than
-  redefining a new string.
-* Do not initialize the i2c_adapter name to "unset".
-This should save a few data bytes here and there.
+[PATCH] I2C: Kill i2c_algorithm.id (6/7)
+
+In theory, there should be no more users of I2C_ALGO_* at this point.
+However, it happens that several drivers were using I2C_ALGO_* for
+adapter ids, so we need to correct these before we can get rid of all
+the I2C_ALGO_* definitions.
+
+Note that this also fixes a bug in media/video/tvaudio.c:
+
+	/* don't attach on saa7146 based cards,
+	   because dedicated drivers are used */
+	if ((adap->id & I2C_ALGO_SAA7146))
+		return 0;
+
+This test was plain broken, as it would succeed for many more adapters
+than just the saa7146: any those id would share at least one bit with
+the saa7146 id. We are really lucky that the few other adapters we want
+this driver to work with did not fulfill that condition.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/i2c/busses/i2c-ali1535.c |    6 +++---
- drivers/i2c/busses/i2c-ali1563.c |    6 ++++--
- drivers/i2c/busses/i2c-ali15x3.c |    5 +++--
- drivers/i2c/busses/i2c-amd756.c  |    5 ++---
- drivers/i2c/busses/i2c-amd8111.c |    4 +++-
- drivers/i2c/busses/i2c-i801.c    |    4 ++--
- drivers/i2c/busses/i2c-nforce2.c |    4 ++--
- drivers/i2c/busses/i2c-piix4.c   |    4 ++--
- drivers/i2c/busses/i2c-sis5595.c |    5 +++--
- drivers/i2c/busses/i2c-sis630.c  |    6 ++++--
- drivers/i2c/busses/i2c-sis96x.c  |    5 +++--
- drivers/i2c/busses/i2c-via.c     |    4 ++--
- 12 files changed, 33 insertions(+), 25 deletions(-)
+---
+commit 1684a984303abbfc39aa8b59b0fe825c717811a9
+tree 5ba646c7c81f1ed3a2bbc032a412dcff21fc7c37
+parent c7a46533ff7ef9e1c51bae6e54208527c5275b24
+author Jean Delvare <khali@linux-fr.org> Thu, 11 Aug 2005 23:51:10 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:32 -0700
 
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-ali1535.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-ali1535.c	2005-09-25 14:38:01.000000000 +0200
-@@ -134,7 +134,7 @@
- 					/*  -> Read  = 1		*/
- #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
+ drivers/i2c/busses/i2c-keywest.c                  |    1 -
+ drivers/i2c/busses/scx200_acb.c                   |    2 +-
+ drivers/media/common/saa7146_i2c.c                |    2 +-
+ drivers/media/dvb/b2c2/flexcop-i2c.c              |    1 -
+ drivers/media/dvb/dvb-usb/dvb-usb-i2c.c           |    1 -
+ drivers/media/dvb/pluto2/pluto2.c                 |    1 -
+ drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |    1 -
+ drivers/media/video/ir-kbd-i2c.c                  |    2 +-
+ drivers/media/video/saa7134/saa7134-i2c.c         |    2 +-
+ drivers/media/video/tda9840.c                     |    2 +-
+ drivers/media/video/tda9887.c                     |    2 +-
+ drivers/media/video/tea6415c.c                    |    2 +-
+ drivers/media/video/tea6420.c                     |    2 +-
+ drivers/media/video/tvaudio.c                     |    4 ++--
+ drivers/video/aty/radeon_i2c.c                    |    2 +-
+ drivers/video/nvidia/nv_i2c.c                     |    3 +--
+ drivers/video/riva/rivafb-i2c.c                   |    3 +--
+ drivers/video/savage/savagefb-i2c.c               |    3 +--
+ include/linux/i2c-id.h                            |    7 +++++++
+ include/media/id.h                                |    5 -----
+ 20 files changed, 21 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-keywest.c b/drivers/i2c/busses/i2c-keywest.c
+--- a/drivers/i2c/busses/i2c-keywest.c
++++ b/drivers/i2c/busses/i2c-keywest.c
+@@ -619,7 +619,6 @@ create_iface(struct device_node *np, str
+ 		sprintf(chan->adapter.name, "%s %d", np->parent->name, i);
+ 		chan->iface = iface;
+ 		chan->chan_no = i;
+-		chan->adapter.id = I2C_ALGO_SMBUS;
+ 		chan->adapter.algo = &keywest_algorithm;
+ 		chan->adapter.algo_data = NULL;
+ 		chan->adapter.client_register = NULL;
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -454,7 +454,7 @@ static int  __init scx200_acb_create(int
+ 	i2c_set_adapdata(adapter, iface);
+ 	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
+ 	adapter->owner = THIS_MODULE;
+-	adapter->id = I2C_ALGO_SMBUS;
++	adapter->id = I2C_HW_SMBUS_SCX200;
+ 	adapter->algo = &scx200_acb_algorithm;
+ 	adapter->class = I2C_CLASS_HWMON;
  
--
-+static struct pci_driver ali1535_driver;
- static unsigned short ali1535_smba;
- static DECLARE_MUTEX(i2c_ali1535_sem);
- 
-@@ -162,7 +162,8 @@
- 		goto exit;
+diff --git a/drivers/media/common/saa7146_i2c.c b/drivers/media/common/saa7146_i2c.c
+--- a/drivers/media/common/saa7146_i2c.c
++++ b/drivers/media/common/saa7146_i2c.c
+@@ -410,7 +410,7 @@ int saa7146_i2c_adapter_prepare(struct s
+ #endif
+ 		i2c_adapter->algo	   = &saa7146_algo;
+ 		i2c_adapter->algo_data     = NULL;
+-		i2c_adapter->id		   = I2C_ALGO_SAA7146;
++		i2c_adapter->id		   = I2C_HW_SAA7146;
+ 		i2c_adapter->timeout = SAA7146_I2C_TIMEOUT;
+ 		i2c_adapter->retries = SAA7146_I2C_RETRIES;
  	}
+diff --git a/drivers/media/dvb/b2c2/flexcop-i2c.c b/drivers/media/dvb/b2c2/flexcop-i2c.c
+--- a/drivers/media/dvb/b2c2/flexcop-i2c.c
++++ b/drivers/media/dvb/b2c2/flexcop-i2c.c
+@@ -190,7 +190,6 @@ int flexcop_i2c_init(struct flexcop_devi
+ 	fc->i2c_adap.class	    = I2C_CLASS_TV_DIGITAL;
+ 	fc->i2c_adap.algo       = &flexcop_algo;
+ 	fc->i2c_adap.algo_data  = NULL;
+-	fc->i2c_adap.id         = I2C_ALGO_BIT;
  
--	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE, "ali1535-smb")) {
-+	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
-+			    ali1535_driver.name)) {
- 		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
- 			ali1535_smba);
- 		goto exit;
-@@ -480,7 +481,6 @@
- 	.owner		= THIS_MODULE,
- 	.class          = I2C_CLASS_HWMON,
- 	.algo		= &smbus_algorithm,
--	.name		= "unset",
- };
+ 	if ((ret = i2c_add_adapter(&fc->i2c_adap)) < 0)
+ 		return ret;
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c b/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
+@@ -27,7 +27,6 @@ int dvb_usb_i2c_init(struct dvb_usb_devi
+ #endif
+ 	d->i2c_adap.algo      = d->props.i2c_algo;
+ 	d->i2c_adap.algo_data = NULL;
+-	d->i2c_adap.id        = I2C_ALGO_BIT;
  
- static struct pci_device_id ali1535_ids[] = {
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-ali15x3.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-ali15x3.c	2005-09-25 14:38:01.000000000 +0200
-@@ -130,6 +130,7 @@
- MODULE_PARM_DESC(force_addr,
- 		 "Initialize the base address of the i2c controller");
+ 	i2c_set_adapdata(&d->i2c_adap, d);
  
-+static struct pci_driver ali15x3_driver;
- static unsigned short ali15x3_smba;
+diff --git a/drivers/media/dvb/pluto2/pluto2.c b/drivers/media/dvb/pluto2/pluto2.c
+--- a/drivers/media/dvb/pluto2/pluto2.c
++++ b/drivers/media/dvb/pluto2/pluto2.c
+@@ -633,7 +633,6 @@ static int __devinit pluto2_probe(struct
+ 	i2c_set_adapdata(&pluto->i2c_adap, pluto);
+ 	strcpy(pluto->i2c_adap.name, DRIVER_NAME);
+ 	pluto->i2c_adap.owner = THIS_MODULE;
+-	pluto->i2c_adap.id = I2C_ALGO_BIT;
+ 	pluto->i2c_adap.class = I2C_CLASS_TV_DIGITAL;
+ 	pluto->i2c_adap.dev.parent = &pdev->dev;
+ 	pluto->i2c_adap.algo_data = &pluto->i2c_bit;
+diff --git a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+--- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
++++ b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+@@ -1523,7 +1523,6 @@ static int ttusb_probe(struct usb_interf
+ #endif
+ 	ttusb->i2c_adap.algo              = &ttusb_dec_algo;
+ 	ttusb->i2c_adap.algo_data         = NULL;
+-	ttusb->i2c_adap.id                = I2C_ALGO_BIT;
  
- static int ali15x3_setup(struct pci_dev *ALI15X3_dev)
-@@ -166,7 +167,8 @@
- 	if(force_addr)
- 		ali15x3_smba = force_addr & ~(ALI15X3_SMB_IOSIZE - 1);
- 
--	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE, "ali15x3-smb")) {
-+	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
-+			    ali15x3_driver.name)) {
- 		dev_err(&ALI15X3_dev->dev,
- 			"ALI15X3_smb region 0x%x already in use!\n",
- 			ali15x3_smba);
-@@ -470,7 +472,6 @@
- 	.owner		= THIS_MODULE,
- 	.class          = I2C_CLASS_HWMON,
- 	.algo		= &smbus_algorithm,
--	.name		= "unset",
- };
- 
- static struct pci_device_id ali15x3_ids[] = {
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-amd756.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-amd756.c	2005-09-25 14:41:52.000000000 +0200
-@@ -85,7 +85,7 @@
- #define AMD756_PROCESS_CALL	0x04
- #define AMD756_BLOCK_DATA	0x05
- 
--
-+static struct pci_driver amd756_driver;
- static unsigned short amd756_ioport;
- 
- /* 
-@@ -303,7 +303,6 @@
- 	.owner		= THIS_MODULE,
- 	.class          = I2C_CLASS_HWMON,
- 	.algo		= &smbus_algorithm,
--	.name		= "unset",
- };
- 
- enum chiptype { AMD756, AMD766, AMD768, NFORCE, AMD8111 };
-@@ -365,7 +364,7 @@
- 		amd756_ioport += SMB_ADDR_OFFSET;
+ 	result = i2c_add_adapter(&ttusb->i2c_adap);
+ 	if (result) {
+diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
+--- a/drivers/media/video/ir-kbd-i2c.c
++++ b/drivers/media/video/ir-kbd-i2c.c
+@@ -432,7 +432,7 @@ static int ir_probe(struct i2c_adapter *
+ 	case I2C_HW_B_BT848:
+ 		probe = probe_bttv;
+ 		break;
+-	case I2C_ALGO_SAA7134:
++	case I2C_HW_SAA7134:
+ 		probe = probe_saa7134;
+ 		break;
  	}
- 
--	if (!request_region(amd756_ioport, SMB_IOSIZE, "amd756-smbus")) {
-+	if (!request_region(amd756_ioport, SMB_IOSIZE, amd756_driver.name)) {
- 		dev_err(&pdev->dev, "SMB region 0x%x already in use!\n",
- 			amd756_ioport);
+diff --git a/drivers/media/video/saa7134/saa7134-i2c.c b/drivers/media/video/saa7134/saa7134-i2c.c
+--- a/drivers/media/video/saa7134/saa7134-i2c.c
++++ b/drivers/media/video/saa7134/saa7134-i2c.c
+@@ -381,7 +381,7 @@ static struct i2c_adapter saa7134_adap_t
+ 	.class         = I2C_CLASS_TV_ANALOG,
+ #endif
+ 	I2C_DEVNAME("saa7134"),
+-	.id            = I2C_ALGO_SAA7134,
++	.id            = I2C_HW_SAA7134,
+ 	.algo          = &saa7134_algo,
+ 	.client_register = attach_inform,
+ };
+diff --git a/drivers/media/video/tda9840.c b/drivers/media/video/tda9840.c
+--- a/drivers/media/video/tda9840.c
++++ b/drivers/media/video/tda9840.c
+@@ -205,7 +205,7 @@ static int detect(struct i2c_adapter *ad
+ static int attach(struct i2c_adapter *adapter)
+ {
+ 	/* let's see whether this is a know adapter we can attach to */
+-	if (adapter->id != I2C_ALGO_SAA7146) {
++	if (adapter->id != I2C_HW_SAA7146) {
+ 		dprintk("refusing to probe on unknown adapter [name='%s',id=0x%x]\n", adapter->name, adapter->id);
  		return -ENODEV;
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-i801.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-i801.c	2005-09-25 14:38:01.000000000 +0200
-@@ -110,6 +110,7 @@
- 				  char read_write, int command);
- 
- static unsigned short i801_smba;
-+static struct pci_driver i801_driver;
- static struct pci_dev *I801_dev;
- static int isich4;
- 
-@@ -143,7 +144,7 @@
- 		}
  	}
- 
--	if (!request_region(i801_smba, (isich4 ? 16 : 8), "i801-smbus")) {
-+	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
- 		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
- 			i801_smba);
- 		error_return = -EBUSY;
-@@ -543,7 +544,6 @@
- 	.owner		= THIS_MODULE,
- 	.class		= I2C_CLASS_HWMON,
- 	.algo		= &smbus_algorithm,
--	.name		= "unset",
- };
- 
- static struct pci_device_id i801_ids[] = {
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-nforce2.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-nforce2.c	2005-09-25 14:38:01.000000000 +0200
-@@ -97,6 +97,7 @@
- #define NVIDIA_SMB_PRTCL_I2C_BLOCK_DATA		0x4a
- #define NVIDIA_SMB_PRTCL_PEC			0x80
- 
-+static struct pci_driver nforce2_driver;
- 
- static s32 nforce2_access(struct i2c_adapter *adap, u16 addr,
- 		       unsigned short flags, char read_write,
-@@ -113,7 +114,6 @@
- 	.owner          = THIS_MODULE,
- 	.class          = I2C_CLASS_HWMON,
- 	.algo           = &smbus_algorithm,
--	.name   	= "unset",
- };
- 
- /* Return -1 on error. See smbus.h for more information */
-@@ -285,7 +285,7 @@
- 	smbus->base = iobase & 0xfffc;
- 	smbus->size = 8;
- 
--	if (!request_region(smbus->base, smbus->size, "nForce2 SMBus")) {
-+	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
- 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X for %s\n",
- 			smbus->base, smbus->base+smbus->size-1, name);
- 		return -1;
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-piix4.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-piix4.c	2005-09-25 14:38:01.000000000 +0200
-@@ -112,6 +112,7 @@
- static int piix4_transaction(void);
- 
- static unsigned short piix4_smba;
-+static struct pci_driver piix4_driver;
- static struct i2c_adapter piix4_adapter;
- 
- static struct dmi_system_id __devinitdata piix4_dmi_table[] = {
-@@ -157,7 +158,7 @@
- 		}
+diff --git a/drivers/media/video/tda9887.c b/drivers/media/video/tda9887.c
+--- a/drivers/media/video/tda9887.c
++++ b/drivers/media/video/tda9887.c
+@@ -620,7 +620,7 @@ static int tda9887_probe(struct i2c_adap
+ 	switch (adap->id) {
+ 	case I2C_HW_B_BT848:
+ 	case I2C_HW_B_RIVA:
+-	case I2C_ALGO_SAA7134:
++	case I2C_HW_SAA7134:
+ 		return i2c_probe(adap, &addr_data, tda9887_attach);
+ 		break;
  	}
- 
--	if (!request_region(piix4_smba, SMBIOSIZE, "piix4-smbus")) {
-+	if (!request_region(piix4_smba, SMBIOSIZE, piix4_driver.name)) {
- 		dev_err(&PIIX4_dev->dev, "SMB region 0x%x already in use!\n",
- 			piix4_smba);
+diff --git a/drivers/media/video/tea6415c.c b/drivers/media/video/tea6415c.c
+--- a/drivers/media/video/tea6415c.c
++++ b/drivers/media/video/tea6415c.c
+@@ -86,7 +86,7 @@ static int detect(struct i2c_adapter *ad
+ static int attach(struct i2c_adapter *adapter)
+ {
+ 	/* let's see whether this is a know adapter we can attach to */
+-	if (adapter->id != I2C_ALGO_SAA7146) {
++	if (adapter->id != I2C_HW_SAA7146) {
+ 		dprintk("refusing to probe on unknown adapter [name='%s',id=0x%x]\n", adapter->name, adapter->id);
  		return -ENODEV;
-@@ -407,7 +408,6 @@
- 	.owner		= THIS_MODULE,
- 	.class		= I2C_CLASS_HWMON,
- 	.algo		= &smbus_algorithm,
--	.name		= "unset",
- };
- 
- static struct pci_device_id piix4_ids[] = {
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-sis5595.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-sis5595.c	2005-09-25 14:38:01.000000000 +0200
-@@ -127,6 +127,7 @@
- module_param(force_addr, ushort, 0);
- MODULE_PARM_DESC(force_addr, "Initialize the base address of the i2c controller");
- 
-+static struct pci_driver sis5595_driver;
- static unsigned short sis5595_base;
- 
- static u8 sis5595_read(u8 reg)
-@@ -172,7 +173,8 @@
- 
- 	/* NB: We grab just the two SMBus registers here, but this may still
- 	 * interfere with ACPI :-(  */
--	if (!request_region(sis5595_base + SMB_INDEX, 2, "sis5595-smbus")) {
-+	if (!request_region(sis5595_base + SMB_INDEX, 2,
-+			    sis5595_driver.name)) {
- 		dev_err(&SIS5595_dev->dev, "SMBus registers 0x%04x-0x%04x already in use!\n",
- 			sis5595_base + SMB_INDEX, sis5595_base + SMB_INDEX + 1);
+ 	}
+diff --git a/drivers/media/video/tea6420.c b/drivers/media/video/tea6420.c
+--- a/drivers/media/video/tea6420.c
++++ b/drivers/media/video/tea6420.c
+@@ -135,7 +135,7 @@ static int tea6420_detect(struct i2c_ada
+ static int attach(struct i2c_adapter *adapter)
+ {
+ 	/* let's see whether this is a know adapter we can attach to */
+-	if (adapter->id != I2C_ALGO_SAA7146) {
++	if (adapter->id != I2C_HW_SAA7146) {
+ 		dprintk("refusing to probe on unknown adapter [name='%s',id=0x%x]\n", adapter->name, adapter->id);
  		return -ENODEV;
-@@ -364,7 +366,6 @@
- static struct i2c_adapter sis5595_adapter = {
- 	.owner		= THIS_MODULE,
- 	.class          = I2C_CLASS_HWMON,
--	.name		= "unset",
- 	.algo		= &smbus_algorithm,
- };
+ 	}
+diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
+--- a/drivers/media/video/tvaudio.c
++++ b/drivers/media/video/tvaudio.c
+@@ -1548,7 +1548,7 @@ static int chip_probe(struct i2c_adapter
+ {
+ 	/* don't attach on saa7146 based cards,
+ 	   because dedicated drivers are used */
+-	if ((adap->id & I2C_ALGO_SAA7146))
++	if (adap->id = I2C_HW_SAA7146)
+ 		return 0;
+ #ifdef I2C_CLASS_TV_ANALOG
+ 	if (adap->class & I2C_CLASS_TV_ANALOG)
+@@ -1557,7 +1557,7 @@ static int chip_probe(struct i2c_adapter
+ 	switch (adap->id) {
+ 	case I2C_HW_B_BT848:
+ 	case I2C_HW_B_RIVA:
+-	case I2C_ALGO_SAA7134:
++	case I2C_HW_SAA7134:
+ 		return i2c_probe(adap, &addr_data, chip_attach);
+ 	}
+ #endif
+diff --git a/drivers/video/aty/radeon_i2c.c b/drivers/video/aty/radeon_i2c.c
+--- a/drivers/video/aty/radeon_i2c.c
++++ b/drivers/video/aty/radeon_i2c.c
+@@ -75,7 +75,7 @@ static int radeon_setup_i2c_bus(struct r
  
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-sis630.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-sis630.c	2005-09-25 14:38:01.000000000 +0200
-@@ -92,6 +92,8 @@
- #define SIS630_PCALL		0x04
- #define SIS630_BLOCK_DATA	0x05
+ 	strcpy(chan->adapter.name, name);
+ 	chan->adapter.owner		= THIS_MODULE;
+-	chan->adapter.id		= I2C_ALGO_ATI;
++	chan->adapter.id		= I2C_HW_B_RADEON;
+ 	chan->adapter.algo_data		= &chan->algo;
+ 	chan->adapter.dev.parent	= &chan->rinfo->pdev->dev;
+ 	chan->algo.setsda		= radeon_gpio_setsda;
+diff --git a/drivers/video/nvidia/nv_i2c.c b/drivers/video/nvidia/nv_i2c.c
+--- a/drivers/video/nvidia/nv_i2c.c
++++ b/drivers/video/nvidia/nv_i2c.c
+@@ -90,14 +90,13 @@ static int nvidia_gpio_getsda(void *data
+ 	return val;
+ }
  
-+static struct pci_driver sis630_driver;
+-#define I2C_ALGO_NVIDIA   0x0e0000
+ static int nvidia_setup_i2c_bus(struct nvidia_i2c_chan *chan, const char *name)
+ {
+ 	int rc;
+ 
+ 	strcpy(chan->adapter.name, name);
+ 	chan->adapter.owner = THIS_MODULE;
+-	chan->adapter.id = I2C_ALGO_NVIDIA;
++	chan->adapter.id = I2C_HW_B_NVIDIA;
+ 	chan->adapter.algo_data = &chan->algo;
+ 	chan->adapter.dev.parent = &chan->par->pci_dev->dev;
+ 	chan->algo.setsda = nvidia_gpio_setsda;
+diff --git a/drivers/video/riva/rivafb-i2c.c b/drivers/video/riva/rivafb-i2c.c
+--- a/drivers/video/riva/rivafb-i2c.c
++++ b/drivers/video/riva/rivafb-i2c.c
+@@ -92,14 +92,13 @@ static int riva_gpio_getsda(void* data)
+ 	return val;
+ }
+ 
+-#define I2C_ALGO_RIVA   0x0e0000
+ static int riva_setup_i2c_bus(struct riva_i2c_chan *chan, const char *name)
+ {
+ 	int rc;
+ 
+ 	strcpy(chan->adapter.name, name);
+ 	chan->adapter.owner		= THIS_MODULE;
+-	chan->adapter.id		= I2C_ALGO_RIVA;
++	chan->adapter.id		= I2C_HW_B_RIVA;
+ 	chan->adapter.algo_data		= &chan->algo;
+ 	chan->adapter.dev.parent	= &chan->par->pdev->dev;
+ 	chan->algo.setsda		= riva_gpio_setsda;
+diff --git a/drivers/video/savage/savagefb-i2c.c b/drivers/video/savage/savagefb-i2c.c
+--- a/drivers/video/savage/savagefb-i2c.c
++++ b/drivers/video/savage/savagefb-i2c.c
+@@ -137,7 +137,6 @@ static int prosavage_gpio_getsda(void* d
+ 	return (0 != (GET_CR_DATA(chan->ioaddr) & PROSAVAGE_I2C_SDA_IN));
+ }
+ 
+-#define I2C_ALGO_SAVAGE   0x0f0000
+ static int savage_setup_i2c_bus(struct savagefb_i2c_chan *chan,
+ 				const char *name)
+ {
+@@ -147,7 +146,7 @@ static int savage_setup_i2c_bus(struct s
+ 	if (add_bus && chan->par) {
+ 		strcpy(chan->adapter.name, name);
+ 		chan->adapter.owner		= THIS_MODULE;
+-		chan->adapter.id		= I2C_ALGO_SAVAGE;
++		chan->adapter.id		= I2C_HW_B_SAVAGE;
+ 		chan->adapter.algo_data		= &chan->algo;
+ 		chan->adapter.dev.parent	= &chan->par->pcidev->dev;
+ 		chan->algo.udelay		= 40;
+diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
+--- a/include/linux/i2c-id.h
++++ b/include/linux/i2c-id.h
+@@ -245,6 +245,9 @@
+ #define I2C_HW_B_ZR36067	0x010019 /* Zoran-36057/36067 based boards */
+ #define I2C_HW_B_PCILYNX	0x01001a /* TI PCILynx I2C adapter */
+ #define I2C_HW_B_CX2388x	0x01001b /* connexant 2388x based tv cards */
++#define I2C_HW_B_NVIDIA		0x01001c /* nvidia framebuffer driver */
++#define I2C_HW_B_SAVAGE		0x01001d /* savage framebuffer driver */
++#define I2C_HW_B_RADEON		0x01001e /* radeon framebuffer driver */
+ 
+ /* --- PCF 8584 based algorithms					*/
+ #define I2C_HW_P_LP		0x020000 /* Parallel port interface */
+@@ -317,4 +320,8 @@
+ /* --- Marvell mv64xxx i2c adapter */
+ #define I2C_HW_MV64XXX		0x190000
+ 
++/* --- Miscellaneous adapters */
++#define I2C_HW_SAA7146		0x060000 /* SAA7146 video decoder bus */
++#define I2C_HW_SAA7134		0x090000 /* SAA7134 video decoder bus */
 +
- /* insmod parameters */
- static int high_clock;
- static int force;
-@@ -432,7 +434,8 @@
- 	dev_dbg(&sis630_dev->dev, "ACPI base at 0x%04x\n", acpi_base);
- 
- 	/* Everything is happy, let's grab the memory and set things up. */
--	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION, "sis630-smbus")) {
-+	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
-+			    sis630_driver.name)) {
- 		dev_err(&sis630_dev->dev, "SMBus registers 0x%04x-0x%04x already "
- 			"in use!\n", acpi_base + SMB_STS, acpi_base + SMB_SAA);
- 		goto exit;
-@@ -455,7 +458,6 @@
- static struct i2c_adapter sis630_adapter = {
- 	.owner		= THIS_MODULE,
- 	.class		= I2C_CLASS_HWMON,
--	.name		= "unset",
- 	.algo		= &smbus_algorithm,
- };
- 
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-sis96x.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-sis96x.c	2005-09-25 14:38:01.000000000 +0200
-@@ -82,6 +82,7 @@
- #define SIS96x_PROC_CALL  0x04
- #define SIS96x_BLOCK_DATA 0x05
- 
-+static struct pci_driver sis96x_driver;
- static struct i2c_adapter sis96x_adapter;
- static u16 sis96x_smbus_base;
- 
-@@ -257,7 +258,6 @@
- 	.owner		= THIS_MODULE,
- 	.class		= I2C_CLASS_HWMON,
- 	.algo		= &smbus_algorithm,
--	.name		= "unset",
- };
- 
- static struct pci_device_id sis96x_ids[] = {
-@@ -294,7 +294,8 @@
- 			sis96x_smbus_base);
- 
- 	/* Everything is happy, let's grab the memory and set things up. */
--	if (!request_region(sis96x_smbus_base, SMB_IOSIZE, "sis96x-smbus")) {
-+	if (!request_region(sis96x_smbus_base, SMB_IOSIZE,
-+			    sis96x_driver.name)) {
- 		dev_err(&dev->dev, "SMBus registers 0x%04x-0x%04x "
- 			"already in use!\n", sis96x_smbus_base,
- 			sis96x_smbus_base + SMB_IOSIZE - 1);
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-via.c	2005-09-25 14:32:07.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-via.c	2005-09-25 14:41:41.000000000 +0200
-@@ -43,8 +43,8 @@
- 
- /* io-region reservation */
- #define IOSPACE		0x06
--#define IOTEXT		"via-i2c"
- 
-+static struct pci_driver vt586b_driver;
- static u16 pm_io_base;
- 
- /*
-@@ -130,7 +130,7 @@
- 	pci_read_config_word(dev, base, &pm_io_base);
- 	pm_io_base &= (0xff << 8);
- 
--	if (!request_region(I2C_DIR, IOSPACE, IOTEXT)) {
-+	if (!request_region(I2C_DIR, IOSPACE, vt586b_driver.name)) {
- 		dev_err(&dev->dev, "IO 0x%x-0x%x already in use\n", I2C_DIR, I2C_DIR + IOSPACE);
- 		return -ENODEV;
- 	}
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-ali1563.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-ali1563.c	2005-09-25 14:38:01.000000000 +0200
-@@ -60,6 +60,7 @@
- 
- #define HST_CNTL2_SIZEMASK	0x38
- 
-+static struct pci_driver ali1563_pci_driver;
- static unsigned short ali1563_smba;
- 
- static int ali1563_transaction(struct i2c_adapter * a, int size)
-@@ -350,7 +351,8 @@
- 		dev_warn(&dev->dev,"ali1563_smba Uninitialized\n");
- 		goto Err;
- 	}
--	if (!request_region(ali1563_smba,ALI1563_SMB_IOSIZE,"i2c-ali1563")) {
-+	if (!request_region(ali1563_smba, ALI1563_SMB_IOSIZE,
-+			    ali1563_pci_driver.name)) {
- 		dev_warn(&dev->dev,"Could not allocate I/O space");
- 		goto Err;
- 	}
-@@ -406,7 +408,7 @@
- MODULE_DEVICE_TABLE (pci, ali1563_id_table);
- 
- static struct pci_driver ali1563_pci_driver = {
-- 	.name		= "ali1563_i2c",
-+ 	.name		= "ali1563_smbus",
- 	.id_table	= ali1563_id_table,
-  	.probe		= ali1563_probe,
- 	.remove		= __devexit_p(ali1563_remove),
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-amd8111.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-amd8111.c	2005-09-25 14:38:01.000000000 +0200
-@@ -30,6 +30,8 @@
- 	int size;
- };
- 
-+static struct pci_driver amd8111_driver;
-+
- /*
-  * AMD PCI control registers definitions.
-  */
-@@ -352,7 +354,7 @@
- 	smbus->base = pci_resource_start(dev, 0);
- 	smbus->size = pci_resource_len(dev, 0);
- 
--	if (!request_region(smbus->base, smbus->size, "amd8111 SMBus 2.0"))
-+	if (!request_region(smbus->base, smbus->size, amd8111_driver.name))
- 		goto out_kfree;
- 
- 	smbus->adapter.owner = THIS_MODULE;
+ #endif /* LINUX_I2C_ID_H */
+diff --git a/include/media/id.h b/include/media/id.h
+--- a/include/media/id.h
++++ b/include/media/id.h
+@@ -34,8 +34,3 @@
+ #ifndef  I2C_DRIVERID_SAA6752HS
+ # define I2C_DRIVERID_SAA6752HS I2C_DRIVERID_EXP0+8
+ #endif
+-
+-/* algorithms */
+-#ifndef I2C_ALGO_SAA7134
+-# define I2C_ALGO_SAA7134 0x090000
+-#endif
 
--- 
-Jean Delvare
