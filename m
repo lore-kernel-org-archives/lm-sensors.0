@@ -1,46 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 13 Sep 2005 22:53:59 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: Kill an unused i2c_adapter struct
-Message-Id: <20050913225419.59aac16f.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:49:08 +0000
+Subject: [lm-sensors] [PATCH] i2c: chips/ds1374.c fixup
+Message-Id: <11259567712262@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <greg@kroah.com>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, Joern Engel <joern@infradead.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Greg, all,
+[PATCH] i2c: chips/ds1374.c fixup
 
-Kill an unused member of the i2c_adapter structure. This additionally
-fixes a potential bug, because <linux/i2c.h> doesn't include
-<linux/config.h>, so different files including <linux/i2c.h> could see
-a different definition of the i2c_adapter structure, depending on them
-including <linux/config.h> (or other header files themselves including
-<linux/config.h>) before <linux/i2c.h>, or not.
+The 'new_time' variable should be static.
 
-Credits go to J?rn Engel for pointing me to the problem.
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+commit 8e14d6c173f8fff05a94e62669c87c26141766af
+tree 1df28e8ce3deab3a3a9ebaa4d6a5846f0ab5c733
+parent a44e40b4d8c2c6faa2158caf7114e1065fed3b34
+author Mark A. Greer <mgreer@mvista.com> Thu, 01 Sep 2005 18:12:04 -0700
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:53 -0700
 
- include/linux/i2c.h |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/i2c/chips/ds1374.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
---- linux-2.6.14-rc1.orig/include/linux/i2c.h	2005-09-13 21:21:25.000000000 +0200
-+++ linux-2.6.14-rc1/include/linux/i2c.h	2005-09-13 22:05:32.000000000 +0200
-@@ -230,11 +230,6 @@
- 	struct device dev;		/* the adapter device */
- 	struct class_device class_dev;	/* the class device */
+diff --git a/drivers/i2c/chips/ds1374.c b/drivers/i2c/chips/ds1374.c
+--- a/drivers/i2c/chips/ds1374.c
++++ b/drivers/i2c/chips/ds1374.c
+@@ -165,7 +165,7 @@ static void ds1374_set_tlet(ulong arg)
+ 			 "can't confirm time set from rtc chip\n");
+ }
  
--#ifdef CONFIG_PROC_FS 
--	/* No need to set this when you initialize the adapter          */
--	int inode;
--#endif /* def CONFIG_PROC_FS */
--
- 	int nr;
- 	struct list_head clients;
- 	struct list_head list;
+-ulong new_time;
++static ulong new_time;
+ 
+ DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet, (ulong) & new_time);
+ 
 
-
-
--- 
-Jean Delvare
