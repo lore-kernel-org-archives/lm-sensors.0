@@ -1,109 +1,473 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:48:40 +0000
-Subject: [lm-sensors] [PATCH] I2C: Centralize 24RF08 corruption prevention
-Message-Id: <11259567693076@kroah.com>
+Date: Mon, 05 Sep 2005 23:48:55 +0000
+Subject: [lm-sensors] [PATCH] I2C: Kill i2c_algorithm.id (4/7)
+Message-Id: <11259567703693@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Centralize 24RF08 corruption prevention
+[PATCH] I2C: Kill i2c_algorithm.id (4/7)
 
-The 24RF08 corruption would better be prevented at i2c-core level than
-at chip driver level, for several reasons:
-* The second quick write should happen as soon as possible after the
-  first one, so as to limit the risk that another command is issued on
-  the bus inbetween, causing the corruption.
-* As a matter of fact, the protection code at driver level was reworked
-  at least three times already, which proves how hard it is to get it
-  right there, while it's straightforward at i2c-core level.
-* It's easy to add a new driver that would need the protection, and
-  forget to add it. This did happen already.
-* As additional probing addresses can be passed to most i2c chip drivers
-  as module parameters, virtually every i2c chip driver would need the
-  protection if we want to be really safe.
-* Why duplicate code when we can easily avoid it?
+There are no more users of i2c_algorithm.id, so we can finally drop
+this structure member.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 4c9337da37c877e53a64696fc8524f642d446cba
-tree 30f34691bd61b55b11ec19f6fbc27ae69886eff8
-parent a89ba0bc02e82920a0f4137aa5d655ac0366cc28
-author Jean Delvare <khali@linux-fr.org> Tue, 09 Aug 2005 20:28:10 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:25 -0700
+commit 1d8b9e1bad35fa3ea829990b9056c2a257d8fe79
+tree f3bba0f4b011d3a608dae6be4f296484328b638f
+parent 87c3d7a8bc0ff5c8d4481e509b407b6be1859925
+author Jean Delvare <khali@linux-fr.org> Thu, 11 Aug 2005 23:40:19 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:29 -0700
 
- Documentation/i2c/porting-clients |    2 ++
- drivers/i2c/chips/eeprom.c        |    5 -----
- drivers/i2c/chips/max6875.c       |    5 -----
- drivers/i2c/i2c-core.c            |   13 ++++++++++---
- 4 files changed, 12 insertions(+), 13 deletions(-)
+ drivers/i2c/algos/i2c-algo-bit.c                  |    1 -
+ drivers/i2c/algos/i2c-algo-ite.c                  |    1 -
+ drivers/i2c/algos/i2c-algo-pca.c                  |    1 -
+ drivers/i2c/algos/i2c-algo-pcf.c                  |    1 -
+ drivers/i2c/algos/i2c-algo-sgi.c                  |    1 -
+ drivers/i2c/algos/i2c-algo-sibyte.c               |    1 -
+ drivers/i2c/busses/i2c-ali1535.c                  |    1 -
+ drivers/i2c/busses/i2c-ali1563.c                  |    1 -
+ drivers/i2c/busses/i2c-ali15x3.c                  |    1 -
+ drivers/i2c/busses/i2c-amd756.c                   |    1 -
+ drivers/i2c/busses/i2c-amd8111.c                  |    1 -
+ drivers/i2c/busses/i2c-au1550.c                   |    1 -
+ drivers/i2c/busses/i2c-i801.c                     |    1 -
+ drivers/i2c/busses/i2c-ibm_iic.c                  |    1 -
+ drivers/i2c/busses/i2c-iop3xx.c                   |    1 -
+ drivers/i2c/busses/i2c-isa.c                      |    1 -
+ drivers/i2c/busses/i2c-keywest.c                  |    1 -
+ drivers/i2c/busses/i2c-mpc.c                      |    1 -
+ drivers/i2c/busses/i2c-mv64xxx.c                  |    1 -
+ drivers/i2c/busses/i2c-nforce2.c                  |    1 -
+ drivers/i2c/busses/i2c-piix4.c                    |    1 -
+ drivers/i2c/busses/i2c-sis5595.c                  |    1 -
+ drivers/i2c/busses/i2c-sis630.c                   |    1 -
+ drivers/i2c/busses/i2c-sis96x.c                   |    1 -
+ drivers/i2c/busses/i2c-stub.c                     |    1 -
+ drivers/i2c/busses/i2c-viapro.c                   |    1 -
+ drivers/i2c/busses/scx200_acb.c                   |    1 -
+ drivers/media/common/saa7146_i2c.c                |    1 -
+ drivers/media/dvb/b2c2/flexcop-i2c.c              |    1 -
+ drivers/media/dvb/dvb-usb/cxusb.c                 |    1 -
+ drivers/media/dvb/dvb-usb/dibusb-common.c         |    1 -
+ drivers/media/dvb/dvb-usb/digitv.c                |    1 -
+ drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |    1 -
+ drivers/media/video/bttv-i2c.c                    |    1 -
+ drivers/media/video/saa7134/saa7134-i2c.c         |    1 -
+ drivers/usb/media/w9968cf.c                       |    1 -
+ include/linux/i2c.h                               |    2 --
+ 37 files changed, 0 insertions(+), 38 deletions(-)
 
-diff --git a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
---- a/Documentation/i2c/porting-clients
-+++ b/Documentation/i2c/porting-clients
-@@ -90,6 +90,8 @@ Technical changes:
-   device_create_file. Move the driver initialization before any
-   sysfs file creation.
-   Drop client->id.
-+  Drop any 24RF08 corruption prevention you find, as this is now done
-+  at the i2c-core level, and doing it twice voids it.
+diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
+--- a/drivers/i2c/algos/i2c-algo-bit.c
++++ b/drivers/i2c/algos/i2c-algo-bit.c
+@@ -519,7 +519,6 @@ static u32 bit_func(struct i2c_adapter *
+ /* -----exported algorithm data: -------------------------------------	*/
  
- * [Init] Limits must not be set by the driver (can be done later in
-   user-space). Chip should not be reset default (although a module
-diff --git a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
---- a/drivers/i2c/chips/eeprom.c
-+++ b/drivers/i2c/chips/eeprom.c
-@@ -161,11 +161,6 @@ int eeprom_detect(struct i2c_adapter *ad
- 	struct eeprom_data *data;
+ static struct i2c_algorithm i2c_bit_algo = {
+-	.id		= I2C_ALGO_BIT,
+ 	.master_xfer	= bit_xfer,
+ 	.functionality	= bit_func,
+ };
+diff --git a/drivers/i2c/algos/i2c-algo-ite.c b/drivers/i2c/algos/i2c-algo-ite.c
+--- a/drivers/i2c/algos/i2c-algo-ite.c
++++ b/drivers/i2c/algos/i2c-algo-ite.c
+@@ -713,7 +713,6 @@ static u32 iic_func(struct i2c_adapter *
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm iic_algo = {
+-	.id		= I2C_ALGO_IIC,
+ 	.master_xfer	= iic_xfer,
+ 	.algo_control	= algo_control, /* ioctl */
+ 	.functionality	= iic_func,
+diff --git a/drivers/i2c/algos/i2c-algo-pca.c b/drivers/i2c/algos/i2c-algo-pca.c
+--- a/drivers/i2c/algos/i2c-algo-pca.c
++++ b/drivers/i2c/algos/i2c-algo-pca.c
+@@ -356,7 +356,6 @@ static int pca_init(struct i2c_algo_pca_
+ }
+ 
+ static struct i2c_algorithm pca_algo = {
+-	.id		= I2C_ALGO_PCA,
+ 	.master_xfer	= pca_xfer,
+ 	.functionality	= pca_func,
+ };
+diff --git a/drivers/i2c/algos/i2c-algo-pcf.c b/drivers/i2c/algos/i2c-algo-pcf.c
+--- a/drivers/i2c/algos/i2c-algo-pcf.c
++++ b/drivers/i2c/algos/i2c-algo-pcf.c
+@@ -459,7 +459,6 @@ static u32 pcf_func(struct i2c_adapter *
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm pcf_algo = {
+-	.id		= I2C_ALGO_PCF,
+ 	.master_xfer	= pcf_xfer,
+ 	.functionality	= pcf_func,
+ };
+diff --git a/drivers/i2c/algos/i2c-algo-sgi.c b/drivers/i2c/algos/i2c-algo-sgi.c
+--- a/drivers/i2c/algos/i2c-algo-sgi.c
++++ b/drivers/i2c/algos/i2c-algo-sgi.c
+@@ -158,7 +158,6 @@ static u32 sgi_func(struct i2c_adapter *
+ }
+ 
+ static struct i2c_algorithm sgi_algo = {
+-	.id		= I2C_ALGO_SGI,
+ 	.master_xfer	= sgi_xfer,
+ 	.functionality	= sgi_func,
+ };
+diff --git a/drivers/i2c/algos/i2c-algo-sibyte.c b/drivers/i2c/algos/i2c-algo-sibyte.c
+--- a/drivers/i2c/algos/i2c-algo-sibyte.c
++++ b/drivers/i2c/algos/i2c-algo-sibyte.c
+@@ -135,7 +135,6 @@ static u32 bit_func(struct i2c_adapter *
+ /* -----exported algorithm data: -------------------------------------	*/
+ 
+ static struct i2c_algorithm i2c_sibyte_algo = {
+-	.id		= I2C_ALGO_SIBYTE,
+ 	.smbus_xfer	= smbus_xfer,
+ 	.algo_control	= algo_control, /* ioctl */
+ 	.functionality	= bit_func,
+diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
+--- a/drivers/i2c/busses/i2c-ali1535.c
++++ b/drivers/i2c/busses/i2c-ali1535.c
+@@ -472,7 +472,6 @@ static u32 ali1535_func(struct i2c_adapt
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= ali1535_access,
+ 	.functionality	= ali1535_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-ali1563.c b/drivers/i2c/busses/i2c-ali1563.c
+--- a/drivers/i2c/busses/i2c-ali1563.c
++++ b/drivers/i2c/busses/i2c-ali1563.c
+@@ -366,7 +366,6 @@ static void ali1563_shutdown(struct pci_
+ }
+ 
+ static struct i2c_algorithm ali1563_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= ali1563_access,
+ 	.functionality	= ali1563_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
+--- a/drivers/i2c/busses/i2c-ali15x3.c
++++ b/drivers/i2c/busses/i2c-ali15x3.c
+@@ -462,7 +462,6 @@ static u32 ali15x3_func(struct i2c_adapt
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= ali15x3_access,
+ 	.functionality	= ali15x3_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-amd756.c b/drivers/i2c/busses/i2c-amd756.c
+--- a/drivers/i2c/busses/i2c-amd756.c
++++ b/drivers/i2c/busses/i2c-amd756.c
+@@ -295,7 +295,6 @@ static u32 amd756_func(struct i2c_adapte
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= amd756_access,
+ 	.functionality	= amd756_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
+--- a/drivers/i2c/busses/i2c-amd8111.c
++++ b/drivers/i2c/busses/i2c-amd8111.c
+@@ -323,7 +323,6 @@ static u32 amd8111_func(struct i2c_adapt
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id = I2C_ALGO_SMBUS,
+ 	.smbus_xfer = amd8111_access,
+ 	.functionality = amd8111_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-au1550.c b/drivers/i2c/busses/i2c-au1550.c
+--- a/drivers/i2c/busses/i2c-au1550.c
++++ b/drivers/i2c/busses/i2c-au1550.c
+@@ -283,7 +283,6 @@ au1550_func(struct i2c_adapter *adap)
+ }
+ 
+ static struct i2c_algorithm au1550_algo = {
+-	.id		= I2C_ALGO_AU1550,
+ 	.master_xfer	= au1550_xfer,
+ 	.functionality	= au1550_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -535,7 +535,6 @@ static u32 i801_func(struct i2c_adapter 
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= i801_access,
+ 	.functionality	= i801_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
+--- a/drivers/i2c/busses/i2c-ibm_iic.c
++++ b/drivers/i2c/busses/i2c-ibm_iic.c
+@@ -627,7 +627,6 @@ static u32 iic_func(struct i2c_adapter *
+ }
+ 
+ static struct i2c_algorithm iic_algo = {
+-	.id   		= I2C_ALGO_OCP,
+ 	.master_xfer 	= iic_xfer,
+ 	.functionality	= iic_func
+ };
+diff --git a/drivers/i2c/busses/i2c-iop3xx.c b/drivers/i2c/busses/i2c-iop3xx.c
+--- a/drivers/i2c/busses/i2c-iop3xx.c
++++ b/drivers/i2c/busses/i2c-iop3xx.c
+@@ -399,7 +399,6 @@ iop3xx_i2c_func(struct i2c_adapter *adap
+ }
+ 
+ static struct i2c_algorithm iop3xx_i2c_algo = {
+-	.id		= I2C_ALGO_IOP3XX,
+ 	.master_xfer	= iop3xx_i2c_master_xfer,
+ 	.algo_control	= iop3xx_i2c_algo_control,
+ 	.functionality	= iop3xx_i2c_func,
+diff --git a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
+--- a/drivers/i2c/busses/i2c-isa.c
++++ b/drivers/i2c/busses/i2c-isa.c
+@@ -43,7 +43,6 @@ static u32 isa_func(struct i2c_adapter *
+ 
+ /* This is the actual algorithm we define */
+ static struct i2c_algorithm isa_algorithm = {
+-	.id		= I2C_ALGO_ISA,
+ 	.functionality	= isa_func,
+ };
+ 
+diff --git a/drivers/i2c/busses/i2c-keywest.c b/drivers/i2c/busses/i2c-keywest.c
+--- a/drivers/i2c/busses/i2c-keywest.c
++++ b/drivers/i2c/busses/i2c-keywest.c
+@@ -498,7 +498,6 @@ keywest_func(struct i2c_adapter * adapte
+ 
+ /* For now, we only handle combined mode (smbus) */
+ static struct i2c_algorithm keywest_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= keywest_smbus_xfer,
+ 	.master_xfer	= keywest_xfer,
+ 	.functionality	= keywest_func,
+diff --git a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
+--- a/drivers/i2c/busses/i2c-mpc.c
++++ b/drivers/i2c/busses/i2c-mpc.c
+@@ -272,7 +272,6 @@ static u32 mpc_functionality(struct i2c_
+ }
+ 
+ static struct i2c_algorithm mpc_algo = {
+-	.id = I2C_ALGO_MPC107,
+ 	.master_xfer = mpc_xfer,
+ 	.functionality = mpc_functionality,
+ };
+diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
+--- a/drivers/i2c/busses/i2c-mv64xxx.c
++++ b/drivers/i2c/busses/i2c-mv64xxx.c
+@@ -433,7 +433,6 @@ mv64xxx_i2c_xfer(struct i2c_adapter *ada
+ }
+ 
+ static struct i2c_algorithm mv64xxx_i2c_algo = {
+-	.id = I2C_ALGO_MV64XXX,
+ 	.master_xfer = mv64xxx_i2c_xfer,
+ 	.functionality = mv64xxx_i2c_functionality,
+ };
+diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
+--- a/drivers/i2c/busses/i2c-nforce2.c
++++ b/drivers/i2c/busses/i2c-nforce2.c
+@@ -110,7 +110,6 @@ static u32 nforce2_func(struct i2c_adapt
+ 
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id = I2C_ALGO_SMBUS,
+ 	.smbus_xfer = nforce2_access,
+ 	.functionality = nforce2_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -399,7 +399,6 @@ static u32 piix4_func(struct i2c_adapter
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= piix4_access,
+ 	.functionality	= piix4_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-sis5595.c b/drivers/i2c/busses/i2c-sis5595.c
+--- a/drivers/i2c/busses/i2c-sis5595.c
++++ b/drivers/i2c/busses/i2c-sis5595.c
+@@ -357,7 +357,6 @@ static u32 sis5595_func(struct i2c_adapt
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= sis5595_access,
+ 	.functionality	= sis5595_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-sis630.c b/drivers/i2c/busses/i2c-sis630.c
+--- a/drivers/i2c/busses/i2c-sis630.c
++++ b/drivers/i2c/busses/i2c-sis630.c
+@@ -448,7 +448,6 @@ exit:
+ 
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= sis630_access,
+ 	.functionality	= sis630_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-sis96x.c b/drivers/i2c/busses/i2c-sis96x.c
+--- a/drivers/i2c/busses/i2c-sis96x.c
++++ b/drivers/i2c/busses/i2c-sis96x.c
+@@ -249,7 +249,6 @@ static u32 sis96x_func(struct i2c_adapte
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= sis96x_access,
+ 	.functionality	= sis96x_func,
+ };
+diff --git a/drivers/i2c/busses/i2c-stub.c b/drivers/i2c/busses/i2c-stub.c
+--- a/drivers/i2c/busses/i2c-stub.c
++++ b/drivers/i2c/busses/i2c-stub.c
+@@ -109,7 +109,6 @@ static u32 stub_func(struct i2c_adapter 
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.functionality	= stub_func,
+ 	.smbus_xfer	= stub_xfer,
+ };
+diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+--- a/drivers/i2c/busses/i2c-viapro.c
++++ b/drivers/i2c/busses/i2c-viapro.c
+@@ -286,7 +286,6 @@ static u32 vt596_func(struct i2c_adapter
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= vt596_access,
+ 	.functionality	= vt596_func,
+ };
+diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
+--- a/drivers/i2c/busses/scx200_acb.c
++++ b/drivers/i2c/busses/scx200_acb.c
+@@ -395,7 +395,6 @@ static u32 scx200_acb_func(struct i2c_ad
+ 
+ /* For now, we only handle combined mode (smbus) */
+ static struct i2c_algorithm scx200_acb_algorithm = {
+-	.id		= I2C_ALGO_SMBUS,
+ 	.smbus_xfer	= scx200_acb_smbus_xfer,
+ 	.functionality	= scx200_acb_func,
+ };
+diff --git a/drivers/media/common/saa7146_i2c.c b/drivers/media/common/saa7146_i2c.c
+--- a/drivers/media/common/saa7146_i2c.c
++++ b/drivers/media/common/saa7146_i2c.c
+@@ -387,7 +387,6 @@ static int saa7146_i2c_xfer(struct i2c_a
+ 
+ /* exported algorithm data */
+ static struct i2c_algorithm saa7146_algo = {
+-	.id		= I2C_ALGO_SAA7146,
+ 	.master_xfer	= saa7146_i2c_xfer,
+ 	.functionality	= saa7146_i2c_func,
+ };
+diff --git a/drivers/media/dvb/b2c2/flexcop-i2c.c b/drivers/media/dvb/b2c2/flexcop-i2c.c
+--- a/drivers/media/dvb/b2c2/flexcop-i2c.c
++++ b/drivers/media/dvb/b2c2/flexcop-i2c.c
+@@ -172,7 +172,6 @@ static u32 flexcop_i2c_func(struct i2c_a
+ }
+ 
+ static struct i2c_algorithm flexcop_algo = {
+-	.id				= I2C_ALGO_BIT,
+ 	.master_xfer	= flexcop_master_xfer,
+ 	.functionality	= flexcop_i2c_func,
+ };
+diff --git a/drivers/media/dvb/dvb-usb/cxusb.c b/drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c
++++ b/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -141,7 +141,6 @@ static u32 cxusb_i2c_func(struct i2c_ada
+ }
+ 
+ static struct i2c_algorithm cxusb_i2c_algo = {
+-	.id            = I2C_ALGO_BIT,
+ 	.master_xfer   = cxusb_i2c_xfer,
+ 	.functionality = cxusb_i2c_func,
+ };
+diff --git a/drivers/media/dvb/dvb-usb/dibusb-common.c b/drivers/media/dvb/dvb-usb/dibusb-common.c
+--- a/drivers/media/dvb/dvb-usb/dibusb-common.c
++++ b/drivers/media/dvb/dvb-usb/dibusb-common.c
+@@ -156,7 +156,6 @@ static u32 dibusb_i2c_func(struct i2c_ad
+ }
+ 
+ struct i2c_algorithm dibusb_i2c_algo = {
+-	.id            = I2C_ALGO_BIT,
+ 	.master_xfer   = dibusb_i2c_xfer,
+ 	.functionality = dibusb_i2c_func,
+ };
+diff --git a/drivers/media/dvb/dvb-usb/digitv.c b/drivers/media/dvb/dvb-usb/digitv.c
+--- a/drivers/media/dvb/dvb-usb/digitv.c
++++ b/drivers/media/dvb/dvb-usb/digitv.c
+@@ -77,7 +77,6 @@ static u32 digitv_i2c_func(struct i2c_ad
+ }
+ 
+ static struct i2c_algorithm digitv_i2c_algo = {
+-	.id            = I2C_ALGO_BIT,
+ 	.master_xfer   = digitv_i2c_xfer,
+ 	.functionality = digitv_i2c_func,
+ };
+diff --git a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+--- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
++++ b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+@@ -1472,7 +1472,6 @@ static void frontend_init(struct ttusb* 
+ 
+ 
+ static struct i2c_algorithm ttusb_dec_algo = {
+-	.id		= I2C_ALGO_BIT,
+ 	.master_xfer	= master_xfer,
+ 	.functionality	= functionality,
+ };
+diff --git a/drivers/media/video/bttv-i2c.c b/drivers/media/video/bttv-i2c.c
+--- a/drivers/media/video/bttv-i2c.c
++++ b/drivers/media/video/bttv-i2c.c
+@@ -270,7 +270,6 @@ static int bttv_i2c_xfer(struct i2c_adap
+ }
+ 
+ static struct i2c_algorithm bttv_algo = {
+-	.id            = I2C_ALGO_BIT | I2C_HW_B_BT848 /* FIXME */,
+ 	.master_xfer   = bttv_i2c_xfer,
+ 	.algo_control  = algo_control,
+ 	.functionality = functionality,
+diff --git a/drivers/media/video/saa7134/saa7134-i2c.c b/drivers/media/video/saa7134/saa7134-i2c.c
+--- a/drivers/media/video/saa7134/saa7134-i2c.c
++++ b/drivers/media/video/saa7134/saa7134-i2c.c
+@@ -370,7 +370,6 @@ static int attach_inform(struct i2c_clie
+ }
+ 
+ static struct i2c_algorithm saa7134_algo = {
+-	.id            = I2C_ALGO_SAA7134,
+ 	.master_xfer   = saa7134_i2c_xfer,
+ 	.algo_control  = algo_control,
+ 	.functionality = functionality,
+diff --git a/drivers/usb/media/w9968cf.c b/drivers/usb/media/w9968cf.c
+--- a/drivers/usb/media/w9968cf.c
++++ b/drivers/usb/media/w9968cf.c
+@@ -1573,7 +1573,6 @@ static int w9968cf_i2c_init(struct w9968
  	int err = 0;
  
--	/* prevent 24RF08 corruption */
--	if (kind < 0)
--		i2c_smbus_xfer(adapter, address, 0, 0, 0,
--			       I2C_SMBUS_QUICK, NULL);
+ 	static struct i2c_algorithm algo = {
+-		.id =            I2C_ALGO_SMBUS,
+ 		.smbus_xfer =    w9968cf_i2c_smbus_xfer,
+ 		.algo_control =  w9968cf_i2c_control,
+ 		.functionality = w9968cf_i2c_func,
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -192,8 +192,6 @@ static inline char *i2c_clientname(struc
+  * to name two of the most common.
+  */
+ struct i2c_algorithm {
+-	unsigned int id;
 -
- 	/* There are three ways we can read the EEPROM data:
- 	   (1) I2C block reads (faster, but unsupported by most adapters)
- 	   (2) Consecutive byte reads (100% overhead)
-diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
---- a/drivers/i2c/chips/max6875.c
-+++ b/drivers/i2c/chips/max6875.c
-@@ -171,11 +171,6 @@ static int max6875_detect(struct i2c_ada
- 	struct max6875_data *data;
- 	int err = 0;
- 
--	/* Prevent 24rf08 corruption (in case of user error) */
--	if (kind < 0)
--		i2c_smbus_xfer(adapter, address, 0, 0, 0,
--			       I2C_SMBUS_QUICK, NULL);
--
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WRITE_BYTE_DATA
- 				     | I2C_FUNC_SMBUS_READ_BYTE))
- 		return 0;
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -679,9 +679,16 @@ static int i2c_probe_address(struct i2c_
- 		return 0;
- 
- 	/* Make sure there is something at this address, unless forced */
--	if (kind < 0
--	 && i2c_smbus_xfer(adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) < 0)
--		return 0;
-+	if (kind < 0) {
-+		if (i2c_smbus_xfer(adapter, addr, 0, 0, 0,
-+				   I2C_SMBUS_QUICK, NULL) < 0)
-+			return 0;
-+
-+		/* prevent 24RF08 corruption */
-+		if ((addr & ~0x0f) = 0x50)
-+			i2c_smbus_xfer(adapter, addr, 0, 0, 0,
-+				       I2C_SMBUS_QUICK, NULL);
-+	}
- 
- 	/* Finally call the custom detection function */
- 	err = found_proc(adapter, addr, kind);
+ 	/* If an adapter algorithm can't do I2C-level access, set master_xfer
+ 	   to NULL. If an adapter algorithm can do SMBus access, set 
+ 	   smbus_xfer. If set to NULL, the SMBus protocol is simulated
 
