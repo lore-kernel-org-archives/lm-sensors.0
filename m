@@ -1,43 +1,33 @@
-From: mlaia@fcav.unesp.br (Marcelo Luiz de Laia)
-Date: Sun, 25 Sep 2005 14:12:35 +0000
-Subject: [lm-sensors] my soyo syk7vem pro 1.0 shows 127 degrees for cpu
-Message-Id: <43369517.8050502@fcav.unesp.br>
+From: mirko@buholzer.com (Mirko Buholzer)
+Date: Mon, 05 Sep 2005 21:27:16 +0000
+Subject: [lm-sensors] Strange Values with pcf8591 chip driver
+Message-Id: <431C9BDD.3020708@buholzer.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43304984.7090309@fcav.unesp.br>
-In-Reply-To: <43304984.7090309@fcav.unesp.br>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear Rudolf,
+I am using a pcf8591 chip on a linux 2.6.8 Kernel. The Adapter Driver is 
+the scx200_i2c. When I do a sensors command I get random values on each 
+input channel. Channel 1/2/3 are all set to 0V.
 
+voyage:~# sensors
+pcf8591-i2c-1-49
+Adapter: NatSemi SCx200 I2C
+Chan. 0:    1.28 V
+Chan. 1:    1.28 V
+Chan. 2:    1.28 V
+Chan. 3:    1.28 V
+Output:     0.00 V (enabled)
 
-Thank you very much!
+Does anyone have any hints or tricks on how I can proceed with debugging 
+and error correction? Or is this a known problem?
 
-Now, it works fine with a little alarm. I will find out in documentation 
-how I change these ones for adjusting to my chipset. Of course, I will 
-learn the old output and yours commentary for understand more about 
-sensors and for increasing my known about it.
+Thanks and best Regards,
+Mirko
 
-Thank you very much
+-- 
 
-(i am sorry for my bad english)
-
-Best wishes and a nice day
-
-Marcelo
-
-via686a-isa-6000
-Adapter: ISA adapter
-CPU core:  +1.73 V  (min =  +0.06 V, max =  +3.10 V)  
-+2.5V:     +2.64 V  (min =  +2.36 V, max =  +2.61 V)   ALARM
-I/O:       +3.44 V  (min =  +3.12 V, max =  +3.45 V)  
-+5V:       +5.25 V  (min =  +4.73 V, max =  +5.20 V)   ALARM
-+12V:     +12.96 V  (min = +11.35 V, max = +12.48 V)   ALARM
-CPU Fan:  5000 RPM  (min = 18750 RPM, div = 2)          ALARM
-P/S Fan:     0 RPM  (min = 67500 RPM, div = 2)         
-SYS Temp:  +34.7?C  (high =  +146?C, hyst =   -71?C)   ALARM
-CPU Temp:  +41.3?C  (high =  +146?C, hyst =   -71?C)   ALARM
-SBr Temp:  +20.5?C  (high =   -43?C, hyst =   -33?C)   ALARM
-
+Mirko Buholzer
+mirko@buholzer.com
