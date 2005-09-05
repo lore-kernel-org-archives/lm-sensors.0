@@ -1,82 +1,68 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 22 Sep 2005 22:08:35 +0000
-Subject: [lm-sensors] [PATCH] (5/7) i2c-viapro: Update supported devices list
-Message-Id: <20050922220907.34c266cb.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:48:15 +0000
+Subject: [lm-sensors] [PATCH] I2C: Drop probe parameter of i2c-keywest
+Message-Id: <11259567713020@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, all,
+[PATCH] I2C: Drop probe parameter of i2c-keywest
 
-Make it clearer which chips are supported by the i2c-viapro driver,
-and which support I2C block transactions.
+The i2c-keywest driver has a "probe" module parameter which enables bus
+scanning at load time. This can be done in userspace with the i2cdetect
+tool (part of the lm_sensors package) instead. What's more, i2cdetect
+gives more control on the way the bus is scanned, and is safer
+(i2c-keywest currently scans reserved addresses and doesn't properly
+handle the famous 24RF08 corruption case.)
+
+Thus, I would propose that this module parameter be simply dropped.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- Documentation/i2c/busses/i2c-viapro |   12 ++++++------
- drivers/i2c/busses/i2c-viapro.c     |   22 +++++++++++++---------
- 2 files changed, 19 insertions(+), 15 deletions(-)
+---
+commit b280dab6d62c8d0434cbc0aaeebf56d1fa4fcc19
+tree 591ad43d6466310312254f6bd1766f9e1e92f010
+parent 386625f9f5cd94d10a21241b555b130dcec484fb
+author Jean Delvare <khali@linux-fr.org> Mon, 29 Aug 2005 21:10:31 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:52 -0700
 
---- linux-2.6.13.orig/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:13:30.000000000 +0200
-+++ linux-2.6.13/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:13:32.000000000 +0200
-@@ -22,15 +22,19 @@
- */
- 
- /*
--   Supports Via devices:
--	82C596A/B (0x3050)
--	82C596B (0x3051)
--	82C686A/B
--	8231
--	8233
--	8233A (0x3147 and 0x3177)
--	8235
--	8237
-+   Supports the following VIA south bridges:
-+
-+   Chip name          PCI ID  REV     I2C block
-+   VT82C596A          0x3050             no
-+   VT82C596B          0x3051             no
-+   VT82C686A          0x3057  0x30       no
-+   VT82C686B          0x3057  0x40       yes
-+   VT8231             0x8235             no?
-+   VT8233             0x3074             yes
-+   VT8233A            0x3147             yes?
-+   VT8235             0x3177             yes
-+   VT8237R            0x3227             yes
-+
-    Note: we assume there can only be one device, with one SMBus interface.
- */
- 
---- linux-2.6.13.orig/Documentation/i2c/busses/i2c-viapro	2005-09-04 16:13:26.000000000 +0200
-+++ linux-2.6.13/Documentation/i2c/busses/i2c-viapro	2005-09-04 16:13:32.000000000 +0200
-@@ -29,18 +29,18 @@
- -----------
- 
- i2c-viapro is a true SMBus host driver for motherboards with one of the
--supported VIA southbridges.
-+supported VIA south bridges.
- 
- Your lspci -n listing must show one of these :
- 
-- device 1106:3050   (VT82C596 function 3)
-- device 1106:3051   (VT82C596 function 3)
-+ device 1106:3050   (VT82C596A function 3)
-+ device 1106:3051   (VT82C596B function 3)
-  device 1106:3057   (VT82C686 function 4)
-  device 1106:3074   (VT8233)
-  device 1106:3147   (VT8233A)
-- device 1106:8235   (VT8231)
-- devide 1106:3177   (VT8235)
-- devide 1106:3227   (VT8237)
-+ device 1106:8235   (VT8231 function 4)
-+ device 1106:3177   (VT8235)
-+ device 1106:3227   (VT8237R)
- 
- If none of these show up, you should look in the BIOS for settings like
- enable ACPI / SMBus or even USB.
+ drivers/i2c/busses/i2c-keywest.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/i2c/busses/i2c-keywest.c b/drivers/i2c/busses/i2c-keywest.c
+--- a/drivers/i2c/busses/i2c-keywest.c
++++ b/drivers/i2c/busses/i2c-keywest.c
+@@ -87,12 +87,9 @@ static const char *__kw_state_names[] = 
+ };
+ #endif /* DEBUG */
+ 
+-static int probe;
+-
+ MODULE_AUTHOR("Benjamin Herrenschmidt <benh@kernel.crashing.org>");
+ MODULE_DESCRIPTION("I2C driver for Apple's Keywest");
+ MODULE_LICENSE("GPL");
+-module_param(probe, bool, 0);
+ 
+ #ifdef POLLED_MODE
+ /* Don't schedule, the g5 fan controller is too
+@@ -632,15 +629,6 @@ create_iface(struct device_node *np, str
+ 				chan->adapter.name);
+ 			i2c_set_adapdata(&chan->adapter, NULL);
+ 		}
+-		if (probe) {
+-			printk("Probe: ");
+-			for (addr = 0x00; addr <= 0x7f; addr++) {
+-				if (i2c_smbus_xfer(&chan->adapter,addr,
+-				    0,0,0,I2C_SMBUS_QUICK,NULL) >= 0)
+-					printk("%02x ", addr);
+-			}
+-			printk("\n");
+-		}
+ 	}
+ 
+ 	printk(KERN_INFO "Found KeyWest i2c on \"%s\", %d channel%s, stepping: %d bits\n",
+
