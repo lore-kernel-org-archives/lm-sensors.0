@@ -1,161 +1,206 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:49:18 +0000
-Subject: [lm-sensors] [PATCH] I2C: update max6875 documentation
-Message-Id: <11259567644131@kroah.com>
+Date: Mon, 05 Sep 2005 23:47:57 +0000
+Subject: [lm-sensors] [PATCH] I2C: W83792D documentation 3/3
+Message-Id: <11259567671599@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: update max6875 documentation
+[PATCH] I2C: W83792D documentation 3/3
 
-Updates to the max6875 driver documentation.
-This brings the documentation in sync with the code, which was recently
-simplified.
+This patch adds documentation entry for W83792D chip.
 
-This patch is based off 2.6.13-rc2-mm2.
-
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
+Signed-off-by: Rudolf Marek <r.marek@sh.cvut.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 93ffa435147abd47ebd7d7d24176b3c653aef940
-tree 451f9bdfa2ec7e2c4399dd6ca3cc3c97f12c27b9
-parent bc769ff8f5f6e3d249bfde082653e5bf1c2b5698
-author bgardner@wabtec.com <bgardner@wabtec.com> Tue, 12 Jul 2005 13:21:50 -0500
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:03 -0700
+commit 1ff4e3065b41847b6fe5908b1214cb508dd49e61
+tree 3e5974c1f611cd995717169a9caacb1a2f431561
+parent ce785ab460ce8728a9daf337ba8fab3ba692b6aa
+author R.Marek@sh.cvut.cz <R.Marek@sh.cvut.cz> Wed, 27 Jul 2005 09:25:28 +0000
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:14 -0700
 
- Documentation/i2c/chips/max6875 |   94 ++++++++++++++++++++++++++++-----------
- 1 files changed, 68 insertions(+), 26 deletions(-)
+ Documentation/hwmon/w83792d |  174 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 174 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/i2c/chips/max6875 b/Documentation/i2c/chips/max6875
---- a/Documentation/i2c/chips/max6875
-+++ b/Documentation/i2c/chips/max6875
-@@ -4,22 +4,13 @@ Kernel driver max6875
- Supported chips:
-   * Maxim MAX6874, MAX6875
-     Prefix: 'max6875'
--    Addresses scanned: 0x50, 0x52
-+    Addresses scanned: None (see below)
-     Datasheet:
-         http://pdfserv.maxim-ic.com/en/ds/MAX6874-MAX6875.pdf
- 
- Author: Ben Gardner <bgardner@wabtec.com>
- 
- 
--Module Parameters
-------------------
--
--* allow_write int
--  Set to non-zero to enable write permission:
--  *0: Read only
--   1: Read and write
--
--
- Description
- -----------
- 
-@@ -33,34 +24,85 @@ registers.
- 
- The Maxim MAX6874 is a similar, mostly compatible device, with more intputs
- and outputs:
--
-              vin     gpi    vout
- MAX6874        6       4       8
- MAX6875        4       3       5
- 
--MAX6874 chips can have four different addresses (as opposed to only two for
--the MAX6875). The additional addresses (0x54 and 0x56) are not probed by
--this driver by default, but the probe module parameter can be used if
--needed.
--
--See the datasheet for details on how to program the EEPROM.
-+See the datasheet for more information.
- 
- 
- Sysfs entries
- -------------
- 
--eeprom_user   - 512 bytes of user-defined EEPROM space. Only writable if
--                allow_write was set and register 0x43 is 0.
--
--eeprom_config - 70 bytes of config EEPROM. Note that changes will not get
--                loaded into register space until a power cycle or device reset.
--
--reg_config    - 70 bytes of register space. Any changes take affect immediately.
-+eeprom        - 512 bytes of user-defined EEPROM space.
- 
- 
- General Remarks
- ---------------
- 
--A typical application will require that the EEPROMs be programmed once and
--never altered afterwards.
-+Valid addresses for the MAX6875 are 0x50 and 0x52.
-+Valid addresses for the MAX6874 are 0x50, 0x52, 0x54 and 0x56.
-+The driver does not probe any address, so you must force the address.
+diff --git a/Documentation/hwmon/w83792d b/Documentation/hwmon/w83792d
+new file mode 100644
+--- /dev/null
++++ b/Documentation/hwmon/w83792d
+@@ -0,0 +1,174 @@
++Kernel driver w83792d
++==========+
++Supported chips:
++  * Winbond W83792D
++    Prefix: 'w83792d'
++    Addresses scanned: I2C 0x2c - 0x2f
++    Datasheet: http://www.winbond.com.tw/E-WINBONDHTM/partner/PDFresult.asp?Pname35
 +
-+Example:
-+$ modprobe max6875 force=0,0x50
-+
-+The MAX6874/MAX6875 ignores address bit 0, so this driver attaches to multiple
-+addresses.  For example, for address 0x50, it also reserves 0x51.
-+The even-address instance is called 'max6875', the odd one is 'max6875-dummy'.
++Author: Chunhao Huang
++Contact: DZShen <DZShen@Winbond.com.tw>
 +
 +
-+Programming the chip using i2c-dev
-+----------------------------------
++Module Parameters
++-----------------
 +
-+Use the i2c-dev interface to access and program the chips.
-+Reads and write are performed differently depending on the address range.
++* init int
++  (default 1)
++  Use 'init=0' to bypass initializing the chip.
++  Try this if your computer crashes when you load the module.
 +
-+The configuration registers are at addresses 0x00 - 0x45.
-+Use i2c_smbus_write_byte_data() to write a register and
-+i2c_smbus_read_byte_data() to read a register.
-+The command is the register number.
-+
-+Examples:
-+To write a 1 to register 0x45:
-+  i2c_smbus_write_byte_data(fd, 0x45, 1);
-+
-+To read register 0x45:
-+  value = i2c_smbus_read_byte_data(fd, 0x45);
++* force_subclients=bus,caddr,saddr,saddr
++  This is used to force the i2c addresses for subclients of
++  a certain chip. Example usage is `force_subclients=0,0x2f,0x4a,0x4b'
++  to force the subclients of chip 0x2f on bus 0 to i2c addresses
++  0x4a and 0x4b.
 +
 +
-+The configuration EEPROM is at addresses 0x8000 - 0x8045.
-+The user EEPROM is at addresses 0x8100 - 0x82ff.
++Description
++-----------
 +
-+Use i2c_smbus_write_word_data() to write a byte to EEPROM.
++This driver implements support for the Winbond W83792AD/D.
 +
-+The command is the upper byte of the address: 0x80, 0x81, or 0x82.
-+The data word is the lower part of the address or'd with data << 8.
-+  cmd = address >> 8;
-+  val = (address & 0xff) | (data << 8);
++Detection of the chip can sometimes be foiled because it can be in an
++internal state that allows no clean access (Bank with ID register is not
++currently selected). If you know the address of the chip, use a 'force'
++parameter; this will put it into a more well-behaved state first.
 +
-+Example:
-+To write 0x5a to address 0x8003:
-+  i2c_smbus_write_word_data(fd, 0x80, 0x5a03);
++The driver implements three temperature sensors, seven fan rotation speed
++sensors, nine voltage sensors, and two automatic fan regulation
++strategies called: Smart Fan I (Thermal Cruise mode) and Smart Fan II.
++Automatic fan control mode is possible only for fan1-fan3. Fan4-fan7 can run
++synchronized with selected fan (fan1-fan3). This functionality and manual PWM
++control for fan4-fan7 is not yet implemented.
++
++Temperatures are measured in degrees Celsius and measurement resolution is 1
++degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
++the temperature gets higher than the Overtemperature Shutdown value; it stays
++on until the temperature falls below the Hysteresis value.
++
++Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
++triggered if the rotation speed has dropped below a programmable limit. Fan
++readings can be divided by a programmable divider (1, 2, 4, 8, 16, 32, 64 or
++128) to give the readings more range or accuracy.
++
++Voltage sensors (also known as IN sensors) report their values in millivolts.
++An alarm is triggered if the voltage has crossed a programmable minimum
++or maximum limit.
++
++Alarms are provided as output from "realtime status register". Following bits
++are defined:
++
++bit - alarm on:
++0  - in0
++1  - in1
++2  - temp1
++3  - temp2
++4  - temp3
++5  - fan1
++6  - fan2
++7  - fan3
++8  - in2
++9  - in3
++10 - in4
++11 - in5
++12 - in6
++13 - VID change
++14 - chassis
++15 - fan7
++16 - tart1
++17 - tart2
++18 - tart3
++19 - in7
++20 - in8
++21 - fan4
++22 - fan5
++23 - fan6
++
++Tart will be asserted while target temperature cannot be achieved after 3 minutes
++of full speed rotation of corresponding fan.
++
++In addition to the alarms described above, there is a CHAS alarm on the chips
++which triggers if your computer case is open (This one is latched, contrary
++to realtime alarms).
++
++The chips only update values each 3 seconds; reading them more often will
++do no harm, but will return 'old' values.
 +
 +
-+Reading data from the EEPROM is a little more complicated.
-+Use i2c_smbus_write_byte_data() to set the read address and then
-+i2c_smbus_read_byte() or i2c_smbus_read_i2c_block_data() to read the data.
++W83792D PROBLEMS
++----------------
++Known problems:
++	- This driver is only for Winbond W83792D C version device, there
++	  are also some motherboards with B version W83792D device. The
++	  calculation method to in6-in7(measured value, limits) is a little
++	  different between C and B version. C or B version can be identified
++	  by CR[0x49h].
++	- The function of vid and vrm has not been finished, because I'm NOT
++	  very familiar with them. Adding support is welcome.
++?	- The function of chassis open detection needs more tests.
++	- If you have ASUS server board and chip was not found: Then you will
++	  need to upgrade to latest (or beta) BIOS. If it does not help please
++	  contact us.
 +
-+Example:
-+To read data starting at offset 0x8100, first set the address:
-+  i2c_smbus_write_byte_data(fd, 0x81, 0x00);
++Fan control
++-----------
 +
-+And then read the data
-+  value = i2c_smbus_read_byte(fd);
++Manual mode
++-----------
 +
-+  or
++Works as expected. You just need to specify desired PWM/DC value (fan speed)
++in appropriate pwm# file.
 +
-+  count = i2c_smbus_read_i2c_block_data(fd, 0x84, buffer);
++Thermal cruise
++--------------
 +
-+The block read should read 16 bytes.
-+0x84 is the block read command.
++In this mode, W83792D provides the Smart Fan system to automatically control
++fan speed to keep the temperatures of CPU and the system within specific
++range. At first a wanted temperature and interval must be set. This is done
++via thermal_cruise# file. The tolerance# file serves to create T +- tolerance
++interval. The fan speed will be lowered as long as the current temperature
++remains below the thermal_cruise# +- tolerance# value. Once the temperature
++exceeds the high limit (T+tolerance), the fan will be turned on with a
++specific speed set by pwm# and automatically controlled its PWM duty cycle
++with the temperature varying. Three conditions may occur:
 +
-+See the datasheet for more details.
- 
++(1) If the temperature still exceeds the high limit, PWM duty
++cycle will increase slowly.
++
++(2) If the temperature goes below the high limit, but still above the low
++limit (T-tolerance), the fan speed will be fixed at the current speed because
++the temperature is in the target range.
++
++(3) If the temperature goes below the low limit, PWM duty cycle will decrease
++slowly to 0 or a preset stop value until the temperature exceeds the low
++limit. (The preset stop value handling is not yet implemented in driver)
++
++Smart Fan II
++------------
++
++W83792D also provides a special mode for fan. Four temperature points are
++available. When related temperature sensors detects the temperature in preset
++temperature region (sf2_point@_fan# +- tolerance#) it will cause fans to run
++on programmed value from sf2_level@_fan#. You need to set four temperatures
++for each fan.
++
++
++/sys files
++----------
++
++pwm[1-3] - this file stores PWM duty cycle or DC value (fan speed) in range:
++	0 (stop) to 255 (full)
++pwm[1-3]_enable - this file controls mode of fan/temperature control:
++            * 0 Disabled
++            * 1 Manual mode
++            * 2 Smart Fan II
++            * 3 Thermal Cruise
++pwm[1-3]_mode - Select PWM of DC mode
++            * 0 DC
++            * 1 PWM
++thermal_cruise[1-3] - Selects the desired temperature for cruise (degC)
++tolerance[1-3] - Value in degrees of Celsius (degC) for +- T
++sf2_point[1-4]_fan[1-3] - four temperature points for each fan for Smart Fan II
++sf2_level[1-3]_fan[1-3] - three PWM/DC levels for each fan for Smart Fan II
 
