@@ -1,103 +1,281 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:36 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (3/3) pc87360 driver update
-Message-Id: <11259567712613@kroah.com>
+Date: Mon, 05 Sep 2005 23:47:42 +0000
+Subject: [lm-sensors] [PATCH] I2C: Rewrite i2c_probe
+Message-Id: <11259567701884@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: (3/3) pc87360 driver update
+[PATCH] I2C: Rewrite i2c_probe
 
-pc87360: consolidate fan helper
+i2c_probe was quite complex and slow, so I rewrote it in a more
+efficient and hopefully clearer way.
 
-This patch consolidates the _set_fan_min() helper routine into the 2
-line sysfs-callback wrapper that uses it.
+Note that this slightly changes the way the module parameters are
+handled. This shouldn't change anything for the most common cases
+though.
 
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+For one thing, the function now respects the order of the parameters
+for address probing. It used to always do lower addresses first. The
+new approach gives the user more control.
+
+For another, ignore addresses don't overrule probe addresses anymore.
+This could have been restored the way it was at the cost of a few more
+lines of code, but I don't think it's worth it. Both lists are given
+as module parameters, so a user would be quite silly to specify the
+same addresses in both lists. The normal addresses list is the only
+one that isn't controlled by a module parameter, thus is the only one
+the user may reasonably want to remove an address from.
+
+Another significant change is the fact that i2c_probe() will no more
+stop when a detection function returns -ENODEV. Just because a driver
+found a chip it doesn't support isn't a valid reason to stop all
+probings for this one driver. This closes the long standing lm_sensors
+ticket #1807.
+
+  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket07
+
+I updated the documentation accordingly.
+
+In terms of algorithmic complexity, the new code is way better. If
+I is the ignore address count, P the probe address count, N the
+normal address count and F the force address count, the old code
+was doing 128 * (F + I + P + N) iterations max, while the new code
+does F + P + ((I+1) * N) iterations max. For the most common case
+where F, I and P are empty, this is down from 128 * N to N.
+
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 11be27ea9bfd0ea7bca797ba6937285d18d426c2
-tree 84d4952d0784b42990a3fbe1836d47992a22448d
-parent 694fa056a60828ef54a5db958468cc600c3b3622
-author Jim Cromie <jim.cromie@gmail.com> Fri, 02 Sep 2005 23:05:07 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:55 -0700
+commit a89ba0bc02e82920a0f4137aa5d655ac0366cc28
+tree 98489ed77a287a81ff4ad7233fd543e59e58c328
+parent 3b6c0634cc989f0735a1541ccf9288947685cab5
+author Jean Delvare <khali@linux-fr.org> Tue, 09 Aug 2005 20:17:55 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:25 -0700
 
- drivers/hwmon/pc87360.c |   54 +++++++++++++++++++++--------------------------
- 1 files changed, 24 insertions(+), 30 deletions(-)
+ Documentation/i2c/writing-clients |    7 +-
+ drivers/i2c/i2c-core.c            |  167 ++++++++++++++++++++-----------------
+ 2 files changed, 94 insertions(+), 80 deletions(-)
 
-diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c
-+++ b/drivers/hwmon/pc87360.c
-@@ -246,35 +246,6 @@ static struct i2c_driver pc87360_driver 
-  * Sysfs stuff
-  */
+diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
+--- a/Documentation/i2c/writing-clients
++++ b/Documentation/i2c/writing-clients
+@@ -241,9 +241,10 @@ Below, some things are only needed if th
+ parts are between /* SENSORS ONLY START */ and /* SENSORS ONLY END */
+ markers. 
  
--static ssize_t _set_fan_min(struct device *dev, const char *buf,
--	size_t count, int nr)
+-This function should only return an error (any value != 0) if there is
+-some reason why no more detection should be done anymore. If the
+-detection just fails for this address, return 0.
++Returning an error different from -ENODEV in a detect function will cause
++the detection to stop: other addresses and adapters won't be scanned.
++This should only be done on fatal or internal errors, such as a memory
++shortage or i2c_attach_client failing.
+ 
+ For now, you can ignore the `flags' parameter. It is there for future use.
+ 
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -662,107 +662,120 @@ int i2c_control(struct i2c_client *clien
+  * Will not work for 10-bit addresses!
+  * ----------------------------------------------------
+  */
+-/* Return: kind (>= 0) if force found, -1 if not found */
+-static inline int i2c_probe_forces(struct i2c_adapter *adapter, int addr,
+-				   unsigned short **forces)
 -{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct pc87360_data *data = i2c_get_clientdata(client);
--	long fan_min = simple_strtol(buf, NULL, 10);
+-	unsigned short kind;
+-	int j, adap_id = i2c_adapter_id(adapter);
 -
--	down(&data->update_lock);
--	fan_min = FAN_TO_REG(fan_min, FAN_DIV_FROM_REG(data->fan_status[nr]));
--
--	/* If it wouldn't fit, change clock divisor */
--	while (fan_min > 255
--	    && (data->fan_status[nr] & 0x60) != 0x60) {
--		fan_min >>= 1;
--		data->fan[nr] >>= 1;
--		data->fan_status[nr] += 0x20;
--	}
--	data->fan_min[nr] = fan_min > 255 ? 255 : fan_min;
--	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_FAN_MIN(nr),
--			    data->fan_min[nr]);
--
--	/* Write new divider, preserve alarm bits */
--	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_FAN_STATUS(nr),
--			    data->fan_status[nr] & 0xF9);
--	up(&data->update_lock);
--
--	return count;
--}
--
- static ssize_t show_fan_input(struct device *dev, struct device_attribute *devattr, char *buf)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-@@ -307,7 +278,30 @@ static ssize_t set_fan_min(struct device
- 	size_t count)
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
--	return _set_fan_min(dev, buf, count, attr->index);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct pc87360_data *data = i2c_get_clientdata(client);
-+	long fan_min = simple_strtol(buf, NULL, 10);
+-	for (kind = 0; forces[kind]; kind++) {
+-		for (j = 0; forces[kind][j] != I2C_CLIENT_END; j += 2) {
+-			if ((forces[kind][j] = adap_id ||
+-			     forces[kind][j] = ANY_I2C_BUS)
+-			 && forces[kind][j + 1] = addr) {
+-				dev_dbg(&adapter->dev, "found force parameter, "
+-					"addr 0x%02x, kind %u\n", addr, kind);
+-				return kind;
+-			}
+-		}
++static int i2c_probe_address(struct i2c_adapter *adapter, int addr, int kind,
++			     int (*found_proc) (struct i2c_adapter *, int, int))
++{
++	int err;
 +
-+	down(&data->update_lock);
-+	fan_min = FAN_TO_REG(fan_min, FAN_DIV_FROM_REG(data->fan_status[attr->index]));
++	/* Make sure the address is valid */
++	if (addr < 0x03 || addr > 0x77) {
++		dev_warn(&adapter->dev, "Invalid probe address 0x%02x\n",
++			 addr);
++		return -EINVAL;
+ 	}
+ 
+-	return -1;
++	/* Skip if already in use */
++	if (i2c_check_addr(adapter, addr))
++		return 0;
 +
-+	/* If it wouldn't fit, change clock divisor */
-+	while (fan_min > 255
-+	    && (data->fan_status[attr->index] & 0x60) != 0x60) {
-+		fan_min >>= 1;
-+		data->fan[attr->index] >>= 1;
-+		data->fan_status[attr->index] += 0x20;
-+	}
-+	data->fan_min[attr->index] = fan_min > 255 ? 255 : fan_min;
-+	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_FAN_MIN(attr->index),
-+			    data->fan_min[attr->index]);
++	/* Make sure there is something at this address, unless forced */
++	if (kind < 0
++	 && i2c_smbus_xfer(adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) < 0)
++		return 0;
 +
-+	/* Write new divider, preserve alarm bits */
-+	pc87360_write_value(data, LD_FAN, NO_BANK, PC87360_REG_FAN_STATUS(attr->index),
-+			    data->fan_status[attr->index] & 0xF9);
-+	up(&data->update_lock);
++	/* Finally call the custom detection function */
++	err = found_proc(adapter, addr, kind);
 +
-+	return count;
++	/* -ENODEV can be returned if there is a chip at the given address
++	   but it isn't supported by this chip driver. We catch it here as
++	   this isn't an error. */
++	return (err = -ENODEV) ? 0 : err;
  }
  
- #define show_and_set_fan(offset) \
+ int i2c_probe(struct i2c_adapter *adapter,
+ 	      struct i2c_client_address_data *address_data,
+ 	      int (*found_proc) (struct i2c_adapter *, int, int))
+ {
+-	int addr,i,found,err;
++	int i, err;
+ 	int adap_id = i2c_adapter_id(adapter);
+ 
+ 	/* Forget it if we can't probe using SMBUS_QUICK */
+ 	if (! i2c_check_functionality(adapter,I2C_FUNC_SMBUS_QUICK))
+ 		return -1;
+ 
+-	for (addr = 0x00; addr <= 0x7f; addr++) {
+-
+-		/* Skip if already in use */
+-		if (i2c_check_addr(adapter,addr))
+-			continue;
+-
+-		/* If it is in one of the force entries, we don't do any detection
+-		   at all */
+-		found = 0;
+-
+-		if (address_data->forces) {
+-			int kind = i2c_probe_forces(adapter, addr,
+-						    address_data->forces);
+-			if (kind >= 0) { /* force found */
+-				if ((err = found_proc(adapter, addr, kind)))
+-					return err;
+-				continue;
+-			}
+-		}
+-
+-		/* If this address is in one of the ignores, we can forget about
+-		   it right now */
+-		for (i = 0;
+-		     !found && (address_data->ignore[i] != I2C_CLIENT_END);
+-		     i += 2) {
+-			if (((adap_id = address_data->ignore[i]) || 
+-			    ((address_data->ignore[i] = ANY_I2C_BUS))) &&
+-			    (addr = address_data->ignore[i+1])) {
+-				dev_dbg(&adapter->dev, "found ignore parameter for adapter %d, "
+-					"addr %04x\n", adap_id ,addr);
+-				found = 1;
++	/* Force entries are done first, and are not affected by ignore
++	   entries */
++	if (address_data->forces) {
++		unsigned short **forces = address_data->forces;
++		int kind;
++
++		for (kind = 0; forces[kind]; kind++) {
++			for (i = 0; forces[kind][i] != I2C_CLIENT_END;
++			     i += 2) {
++				if (forces[kind][i] = adap_id
++				 || forces[kind][i] = ANY_I2C_BUS) {
++					dev_dbg(&adapter->dev, "found force "
++						"parameter for adapter %d, "
++						"addr 0x%02x, kind %d\n",
++						adap_id, forces[kind][i + 1],
++						kind);
++					err = i2c_probe_address(adapter,
++						forces[kind][i + 1],
++						kind, found_proc);
++					if (err)
++						return err;
++				}
+ 			}
+ 		}
+-		if (found) 
+-			continue;
++	}
+ 
+-		/* Now, we will do a detection, but only if it is in the normal or 
+-		   probe entries */  
+-		for (i = 0;
+-		     !found && (address_data->normal_i2c[i] != I2C_CLIENT_END);
+-		     i += 1) {
+-			if (addr = address_data->normal_i2c[i]) {
+-				found = 1;
+-				dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, "
+-					"addr %02x\n", adap_id, addr);
+-			}
++	/* Probe entries are done second, and are not affected by ignore
++	   entries either */
++	for (i = 0; address_data->probe[i] != I2C_CLIENT_END; i += 2) {
++		if (address_data->probe[i] = adap_id
++		 || address_data->probe[i] = ANY_I2C_BUS) {
++			dev_dbg(&adapter->dev, "found probe parameter for "
++				"adapter %d, addr 0x%02x\n", adap_id,
++				address_data->probe[i + 1]);
++			err = i2c_probe_address(adapter,
++						address_data->probe[i + 1],
++						-1, found_proc);
++			if (err)
++				return err;
+ 		}
++	}
+ 
+-		for (i = 0;
+-		     !found && (address_data->probe[i] != I2C_CLIENT_END);
+-		     i += 2) {
+-			if (((adap_id = address_data->probe[i]) ||
+-			    ((address_data->probe[i] = ANY_I2C_BUS))) &&
+-			    (addr = address_data->probe[i+1])) {
+-				found = 1;
+-				dev_dbg(&adapter->dev, "found probe parameter for adapter %d, "
+-					"addr %04x\n", adap_id,addr);
++	/* Normal entries are done last, unless shadowed by an ignore entry */
++	for (i = 0; address_data->normal_i2c[i] != I2C_CLIENT_END; i += 1) {
++		int j, ignore;
++
++		ignore = 0;
++		for (j = 0; address_data->ignore[j] != I2C_CLIENT_END;
++		     j += 2) {
++			if ((address_data->ignore[j] = adap_id ||
++			     address_data->ignore[j] = ANY_I2C_BUS)
++			 && address_data->ignore[j + 1]
++			    = address_data->normal_i2c[i]) {
++				dev_dbg(&adapter->dev, "found ignore "
++					"parameter for adapter %d, "
++					"addr 0x%02x\n", adap_id,
++					address_data->ignore[j + 1]);
+ 			}
++			ignore = 1;
++			break;
+ 		}
+-		if (!found) 
++		if (ignore)
+ 			continue;
+ 
+-		/* OK, so we really should examine this address. First check
+-		   whether there is some client here at all! */
+-		if (i2c_smbus_xfer(adapter,addr,0,0,0,I2C_SMBUS_QUICK,NULL) >= 0)
+-			if ((err = found_proc(adapter,addr,-1)))
+-				return err;
++		dev_dbg(&adapter->dev, "found normal entry for adapter %d, "
++			"addr 0x%02x\n", adap_id,
++			address_data->normal_i2c[i]);
++		err = i2c_probe_address(adapter, address_data->normal_i2c[i],
++					-1, found_proc);
++		if (err)
++			return err;
+ 	}
++
+ 	return 0;
+ }
+ 
 
