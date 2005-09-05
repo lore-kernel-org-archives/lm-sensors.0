@@ -1,76 +1,195 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 25 Sep 2005 16:30:09 +0000
-Subject: [lm-sensors] [PATCH] (5/13) hwmon: Discard bogus comment about init
-Message-Id: <20050925162938.71c87823.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:48:46 +0000
+Subject: [lm-sensors] [PATCH] I2C hwmon: hwmon sysfs class
+Message-Id: <11259567652296@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Discard a common out-of-date comment in 5 hardware monitoring drivers.
-The hardware monitoring chip drivers are no more setting sensor limits
-at initialization time, for quite some time already.
+[PATCH] I2C hwmon: hwmon sysfs class
 
+This patch adds the sysfs class "hwmon" for use by hardware monitoring
+(sensors) chip drivers.  It also fixes up the related Kconfig/Makefile
+bits.
+
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/hwmon/lm78.c     |    1 -
- drivers/hwmon/via686a.c  |    1 -
- drivers/hwmon/w83627hf.c |    1 -
- drivers/hwmon/w83781d.c  |    1 -
- drivers/hwmon/w83792d.c  |    1 -
- 5 files changed, 5 deletions(-)
+---
+commit 1236441f38b6a98caf4c7983e7efdecc2d1527b5
+tree 496a7e86fc0da92812205e2783f41d3f860c362c
+parent 8dd2d2ca7fafdedaebd1862e954fccaef212f1e1
+author Mark M. Hoffman <mhoffman@lightlink.com> Fri, 15 Jul 2005 21:38:08 -0400
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:07 -0700
 
---- linux-2.6.14-rc2.orig/drivers/hwmon/lm78.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/hwmon/lm78.c	2005-09-25 14:36:30.000000000 +0200
-@@ -726,7 +726,6 @@
- 		return i2c_smbus_write_byte_data(client, reg, value);
- }
- 
--/* Called when we have found a new LM78. It should set limits, etc. */
- static void lm78_init_client(struct i2c_client *client)
- {
- 	u8 config = lm78_read_value(client, LM78_REG_CONFIG);
---- linux-2.6.14-rc2.orig/drivers/hwmon/via686a.c	2005-09-25 14:34:19.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/hwmon/via686a.c	2005-09-25 14:36:30.000000000 +0200
-@@ -712,7 +712,6 @@
- 	return 0;
- }
- 
--/* Called when we have found a new VIA686A. Set limits, etc. */
- static void via686a_init_client(struct i2c_client *client)
- {
- 	u8 reg;
---- linux-2.6.14-rc2.orig/drivers/hwmon/w83627hf.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/hwmon/w83627hf.c	2005-09-25 14:36:30.000000000 +0200
-@@ -1275,7 +1275,6 @@
- 	return 0;
- }
- 
--/* Called when we have found a new W83781D. It should set limits, etc. */
- static void w83627hf_init_client(struct i2c_client *client)
- {
- 	struct w83627hf_data *data = i2c_get_clientdata(client);
---- linux-2.6.14-rc2.orig/drivers/hwmon/w83781d.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/hwmon/w83781d.c	2005-09-25 14:36:30.000000000 +0200
-@@ -1451,7 +1451,6 @@
- 	return 0;
- }
- 
--/* Called when we have found a new W83781D. It should set limits, etc. */
- static void
- w83781d_init_client(struct i2c_client *client)
- {
---- linux-2.6.14-rc2.orig/drivers/hwmon/w83792d.c	2005-09-25 09:03:35.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/hwmon/w83792d.c	2005-09-25 14:36:30.000000000 +0200
-@@ -1429,7 +1429,6 @@
- 	return 0;
- }
- 
--/* Called when we have found a new W83792D. It should set limits, etc. */
- static void
- w83792d_init_client(struct i2c_client *client)
- {
+ drivers/hwmon/Kconfig  |    7 +++
+ drivers/hwmon/Makefile |    2 +
+ drivers/hwmon/hwmon.c  |   98 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/hwmon.h  |   24 ++++++++++++
+ 4 files changed, 130 insertions(+), 1 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -12,7 +12,12 @@ config HWMON
+ 	  of a system. Most modern motherboards include such a device. It
+ 	  can include temperature sensors, voltage sensors, fan speed
+ 	  sensors and various additional features such as the ability to
+-	  control the speed of the fans.
++	  control the speed of the fans.  If you want this support you
++	  should say Y here and also to the specific driver(s) for your
++	  sensors chip(s) below.
++
++	  This support can also be built as a module.  If so, the module
++	  will be called hwmon.
+ 
+ config SENSORS_ADM1021
+ 	tristate "Analog Devices ADM1021 and compatibles"
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for sensor chip drivers.
+ #
+ 
++obj-$(CONFIG_HWMON)		+= hwmon.o
++
+ # asb100, then w83781d go first, as they can override other drivers' addresses.
+ obj-$(CONFIG_SENSORS_ASB100)	+= asb100.o
+ obj-$(CONFIG_SENSORS_W83627HF)	+= w83627hf.o
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+new file mode 100644
+--- /dev/null
++++ b/drivers/hwmon/hwmon.c
+@@ -0,0 +1,98 @@
++/*
++    hwmon.c - part of lm_sensors, Linux kernel modules for hardware monitoring
++
++    This file defines the sysfs class "hwmon", for use by sensors drivers.
++
++    Copyright (C) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; version 2 of the License.
++*/
++
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/kdev_t.h>
++#include <linux/idr.h>
++#include <linux/hwmon.h>
++
++#define HWMON_ID_PREFIX "hwmon"
++#define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
++
++static struct class *hwmon_class;
++
++static DEFINE_IDR(hwmon_idr);
++
++/**
++ * hwmon_device_register - register w/ hwmon sysfs class
++ * @dev: the device to register
++ *
++ * hwmon_device_unregister() must be called when the class device is no
++ * longer needed.
++ *
++ * Returns the pointer to the new struct class device.
++ */
++struct class_device *hwmon_device_register(struct device *dev)
++{
++	struct class_device *cdev;
++	int id;
++
++	if (idr_pre_get(&hwmon_idr, GFP_KERNEL) = 0)
++		return ERR_PTR(-ENOMEM);
++
++	if (idr_get_new(&hwmon_idr, NULL, &id) < 0)
++		return ERR_PTR(-ENOMEM);
++
++	id = id & MAX_ID_MASK;
++	cdev = class_device_create(hwmon_class, MKDEV(0,0), dev,
++					HWMON_ID_FORMAT, id);
++
++	if (IS_ERR(cdev))
++		idr_remove(&hwmon_idr, id);
++
++	return cdev;
++}
++
++/**
++ * hwmon_device_unregister - removes the previously registered class device
++ *
++ * @cdev: the class device to destroy
++ */
++void hwmon_device_unregister(struct class_device *cdev)
++{
++	int id;
++
++	if (sscanf(cdev->class_id, HWMON_ID_FORMAT, &id) = 1) {
++		class_device_unregister(cdev);
++		idr_remove(&hwmon_idr, id);
++	} else
++		dev_dbg(cdev->dev,
++			"hwmon_device_unregister() failed: bad class ID!\n");
++}
++
++static int __init hwmon_init(void)
++{
++	hwmon_class = class_create(THIS_MODULE, "hwmon");
++	if (IS_ERR(hwmon_class)) {
++		printk(KERN_ERR "hwmon.c: couldn't create sysfs class\n");
++		return PTR_ERR(hwmon_class);
++	}
++	return 0;
++}
++
++static void __exit hwmon_exit(void)
++{
++	class_destroy(hwmon_class);
++}
++
++module_init(hwmon_init);
++module_exit(hwmon_exit);
++
++EXPORT_SYMBOL_GPL(hwmon_device_register);
++EXPORT_SYMBOL_GPL(hwmon_device_unregister);
++
++MODULE_AUTHOR("Mark M. Hoffman <mhoffman@lightlink.com>");
++MODULE_DESCRIPTION("hardware monitoring sysfs/class support");
++MODULE_LICENSE("GPL");
++
+diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
+new file mode 100644
+--- /dev/null
++++ b/include/linux/hwmon.h
+@@ -0,0 +1,24 @@
++/*
++    hwmon.h - part of lm_sensors, Linux kernel modules for hardware monitoring
++
++    This file declares helper functions for the sysfs class "hwmon",
++    for use by sensors drivers.
++
++    Copyright (C) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; version 2 of the License.
++*/
++
++#ifndef _HWMON_H_
++#define _HWMON_H_
++
++#include <linux/device.h>
++
++struct class_device *hwmon_device_register(struct device *dev);
++
++void hwmon_device_unregister(struct class_device *cdev);
++
++#endif
++
+
