@@ -1,7 +1,7 @@
 From: gregkh@suse.de (Greg KH)
 Date: Mon, 05 Sep 2005 23:48:04 +0000
-Subject: [lm-sensors] [PATCH] hwmon: hwmon vs i2c, second round (02/11)
-Message-Id: <11259567681148@kroah.com>
+Subject: [lm-sensors] [PATCH] hwmon: hwmon vs i2c, second round (05/11)
+Message-Id: <11259567693603@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <11259567691080@kroah.com>
 In-Reply-To: <11259567691080@kroah.com>
@@ -10,276 +10,193 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: hwmon vs i2c, second round (02/11)
+[PATCH] hwmon: hwmon vs i2c, second round (05/11)
 
-The way i2c-sensor handles forced addresses could be optimized. It
-defines a structure (i2c_force_data) to associate a module parameter
-with a given kind value, but in fact this kind value is always the
-index of the structure in each array it is used in. So this additional
-value can be omitted, and still be deduced in the code handling these
-arrays.
+The i2c_detect function has no more user, delete it.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit ef8dec5d8b3e96e359f377f35cd8caff42fe6d58
-tree ca83d278af5da3dfc9ef01f1d5bf479e67229d25
-parent 9fc6adfa9adf2be84119a3c2592287f33bd1dff2
-author Jean Delvare <khali@linux-fr.org> Sun, 31 Jul 2005 21:33:23 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:18 -0700
+commit 96478ef3f3f71fa929cc905cc794993e312d9a5d
+tree 0d2200f9b89937944029880cd24f18d157d91901
+parent 2ed2dc3c116d26fc6a9384e83d136b15cc203b6c
+author Jean Delvare <khali@linux-fr.org> Sun, 31 Jul 2005 21:45:27 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:20 -0700
 
- drivers/i2c/i2c-sensor-detect.c |   13 ++--
- include/linux/i2c-sensor.h      |  133 ++++++++++++++++++---------------------
- 2 files changed, 67 insertions(+), 79 deletions(-)
+ drivers/i2c/Makefile            |    2 -
+ drivers/i2c/i2c-sensor-detect.c |  125 ---------------------------------------
+ drivers/i2c/i2c-sensor-vid.c    |    5 ++
+ include/linux/i2c-sensor.h      |    7 --
+ 4 files changed, 6 insertions(+), 133 deletions(-)
 
+diff --git a/drivers/i2c/Makefile b/drivers/i2c/Makefile
+--- a/drivers/i2c/Makefile
++++ b/drivers/i2c/Makefile
+@@ -7,7 +7,7 @@ obj-$(CONFIG_I2C_CHARDEV)	+= i2c-dev.o
+ obj-$(CONFIG_I2C_SENSOR)	+= i2c-sensor.o
+ obj-y				+= busses/ chips/ algos/
+ 
+-i2c-sensor-objs := i2c-sensor-detect.o i2c-sensor-vid.o
++i2c-sensor-objs := i2c-sensor-vid.o
+ 
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_CORE),y)
 diff --git a/drivers/i2c/i2c-sensor-detect.c b/drivers/i2c/i2c-sensor-detect.c
+deleted file mode 100644
 --- a/drivers/i2c/i2c-sensor-detect.c
-+++ b/drivers/i2c/i2c-sensor-detect.c
-@@ -32,7 +32,6 @@ int i2c_detect(struct i2c_adapter *adapt
- 	       int (*found_proc) (struct i2c_adapter *, int, int))
- {
- 	int addr, i, found, j, err;
--	struct i2c_force_data *this_force;
- 	int adapter_id = i2c_adapter_id(adapter);
- 	unsigned short *normal_i2c;
- 	unsigned short *probe;
-@@ -58,13 +57,13 @@ int i2c_detect(struct i2c_adapter *adapt
- 		/* If it is in one of the force entries, we don't do any
- 		   detection at all */
- 		found = 0;
--		for (i = 0; !found && (this_force = address_data->forces + i, this_force->force); i++) {
--			for (j = 0; !found && (this_force->force[j] != I2C_CLIENT_END); j += 2) {
--				if ( ((adapter_id = this_force->force[j]) ||
--				      (this_force->force[j] = ANY_I2C_BUS)) &&
--				      (addr = this_force->force[j + 1]) ) {
-+		for (i = 0; address_data->forces[i]; i++) {
-+			for (j = 0; !found && (address_data->forces[i][j] != I2C_CLIENT_END); j += 2) {
-+				if ( ((adapter_id = address_data->forces[i][j]) ||
-+				      (address_data->forces[i][j] = ANY_I2C_BUS)) &&
-+				      (addr = address_data->forces[i][j + 1]) ) {
- 					dev_dbg(&adapter->dev, "found force parameter for adapter %d, addr %04x\n", adapter_id, addr);
--					if ((err = found_proc(adapter, addr, this_force->kind)))
-+					if ((err = found_proc(adapter, addr, i)))
- 						return err;
- 					found = 1;
- 				}
++++ /dev/null
+@@ -1,125 +0,0 @@
+-/*
+-    i2c-sensor-detect.c - Part of lm_sensors, Linux kernel modules for hardware
+-            		  monitoring
+-    Copyright (c) 1998 - 2001 Frodo Looijaard <frodol@dds.nl> and
+-    Mark D. Studebaker <mdsxyz123@yahoo.com>
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/i2c.h>
+-#include <linux/i2c-sensor.h>
+-
+-static unsigned short empty[] = {I2C_CLIENT_END};
+-
+-/* Won't work for 10-bit addresses! */
+-int i2c_detect(struct i2c_adapter *adapter,
+-	       struct i2c_client_address_data *address_data,
+-	       int (*found_proc) (struct i2c_adapter *, int, int))
+-{
+-	int addr, i, found, j, err;
+-	int adapter_id = i2c_adapter_id(adapter);
+-	unsigned short *normal_i2c;
+-	unsigned short *probe;
+-	unsigned short *ignore;
+-
+-	/* Forget it if we can't probe using SMBUS_QUICK */
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_QUICK))
+-		return -1;
+-	
+-	/* Use default "empty" list if the adapter doesn't specify any */
+-	normal_i2c = probe = ignore = empty;
+-	if (address_data->normal_i2c)
+-		normal_i2c = address_data->normal_i2c;
+-	if (address_data->probe)
+-		probe = address_data->probe;
+-	if (address_data->ignore)
+-		ignore = address_data->ignore;
+-
+-	for (addr = 0x00; addr <= 0x7f; addr++) {
+-		if (i2c_check_addr(adapter, addr))
+-			continue;
+-
+-		/* If it is in one of the force entries, we don't do any
+-		   detection at all */
+-		found = 0;
+-		for (i = 0; address_data->forces[i]; i++) {
+-			for (j = 0; !found && (address_data->forces[i][j] != I2C_CLIENT_END); j += 2) {
+-				if ( ((adapter_id = address_data->forces[i][j]) ||
+-				      (address_data->forces[i][j] = ANY_I2C_BUS)) &&
+-				      (addr = address_data->forces[i][j + 1]) ) {
+-					dev_dbg(&adapter->dev, "found force parameter for adapter %d, addr %04x\n", adapter_id, addr);
+-					if ((err = found_proc(adapter, addr, i)))
+-						return err;
+-					found = 1;
+-				}
+-			}
+-		}
+-		if (found)
+-			continue;
+-
+-		/* If this address is in one of the ignores, we can forget about it
+-		   right now */
+-		for (i = 0; !found && (ignore[i] != I2C_CLIENT_END); i += 2) {
+-			if ( ((adapter_id = ignore[i]) ||
+-			      (ignore[i] = ANY_I2C_BUS)) &&
+-			      (addr = ignore[i + 1])) {
+-				dev_dbg(&adapter->dev, "found ignore parameter for adapter %d, addr %04x\n", adapter_id, addr);
+-				found = 1;
+-			}
+-		}
+-		if (found)
+-			continue;
+-
+-		/* Now, we will do a detection, but only if it is in the normal or 
+-		   probe entries */
+-		for (i = 0; !found && (normal_i2c[i] != I2C_CLIENT_END); i += 1) {
+-			if (addr = normal_i2c[i]) {
+-				found = 1;
+-				dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, addr %02x\n", adapter_id, addr);
+-			}
+-		}
+-
+-		for (i = 0;
+-		     !found && (probe[i] != I2C_CLIENT_END);
+-		     i += 2) {
+-			if (((adapter_id = probe[i]) ||
+-			     (probe[i] = ANY_I2C_BUS))
+-			    && (addr = probe[i + 1])) {
+-				dev_dbg(&adapter->dev, "found probe parameter for adapter %d, addr %04x\n", adapter_id, addr);
+-				found = 1;
+-			}
+-		}
+-		if (!found)
+-			continue;
+-
+-		/* OK, so we really should examine this address. First check
+-		   whether there is some client here at all! */
+-		if (i2c_smbus_xfer(adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) >= 0)
+-			if ((err = found_proc(adapter, addr, -1)))
+-				return err;
+-	}
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(i2c_detect);
+-
+-MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
+-	      "Rudolf Marek <r.marek@sh.cvut.cz>");
+-
+-MODULE_DESCRIPTION("i2c-sensor driver");
+-MODULE_LICENSE("GPL");
+diff --git a/drivers/i2c/i2c-sensor-vid.c b/drivers/i2c/i2c-sensor-vid.c
+--- a/drivers/i2c/i2c-sensor-vid.c
++++ b/drivers/i2c/i2c-sensor-vid.c
+@@ -96,3 +96,8 @@ int i2c_which_vrm(void)
+ #endif
+ 
+ EXPORT_SYMBOL(i2c_which_vrm);
++
++MODULE_AUTHOR("Rudolf Marek <r.marek@sh.cvut.cz>");
++
++MODULE_DESCRIPTION("i2c-sensor driver");
++MODULE_LICENSE("GPL");
 diff --git a/include/linux/i2c-sensor.h b/include/linux/i2c-sensor.h
 --- a/include/linux/i2c-sensor.h
 +++ b/include/linux/i2c-sensor.h
-@@ -22,22 +22,6 @@
- #ifndef _LINUX_I2C_SENSOR_H
- #define _LINUX_I2C_SENSOR_H
+@@ -200,11 +200,4 @@
+ 				      NULL }; \
+   SENSORS_INSMOD
  
--/* A structure containing detect information.
--   Force variables overrule all other variables; they force a detection on
--   that place. If a specific chip is given, the module blindly assumes this
--   chip type is present; if a general force (kind = 0) is given, the module
--   will still try to figure out what type of chip is present. This is useful
--   if for some reasons the detect for SMBus address space filled fails.
--   probe: insmod parameter. Initialize this list with I2C_CLIENT_END values.
--     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
--     I2C bus), the second is the address.
--   kind: The kind of chip. 0 equals any chip.
--*/
--struct i2c_force_data {
--	unsigned short *force;
--	unsigned short kind;
--};
+-/* Detect function. It iterates over all possible addresses itself. For
+-   SMBus addresses, it will only call found_proc if some client is connected
+-   to the SMBus (unless a 'force' matched). */
+-extern int i2c_detect(struct i2c_adapter *adapter,
+-		      struct i2c_client_address_data *address_data,
+-		      int (*found_proc) (struct i2c_adapter *, int, int));
 -
- /* A structure containing the detect information.
-    normal_i2c: filled in by the module writer. Terminated by I2C_CLIENT_END.
-      A list of I2C addresses which should normally be examined.
-@@ -50,14 +34,18 @@ struct i2c_force_data {
-      I2C bus), the second is the I2C address. These addresses are never
-      probed. This parameter overrules 'normal' and  probe', but not the
-     'force' lists.
--   force_data: insmod parameters. A list, ending with an element of which
--     the force field is NULL.
-+   forces: insmod parameters. A list, ending with a NULL element.
-+     Force variables overrule all other variables; they force a detection on
-+     that place. If a specific chip is given, the module blindly assumes this
-+     chip type is present; if a general force (kind = 0) is given, the module
-+     will still try to figure out what type of chip is present. This is useful
-+     if for some reasons the detect for SMBus address space filled fails.
- */
- struct i2c_address_data {
- 	unsigned short *normal_i2c;
- 	unsigned short *probe;
- 	unsigned short *ignore;
--	struct i2c_force_data *forces;
-+	unsigned short **forces;
- };
- 
- #define SENSORS_MODULE_PARM_FORCE(name) \
-@@ -88,7 +76,8 @@ struct i2c_address_data {
-   I2C_CLIENT_MODULE_PARM(force, \
-                       "List of adapter,address pairs to boldly assume " \
-                       "to be present"); \
--  static struct i2c_force_data forces[] = {{force,any_chip},{NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_1(chip1) \
-@@ -97,9 +86,9 @@ struct i2c_address_data {
-                       "List of adapter,address pairs to boldly assume " \
-                       "to be present"); \
-   SENSORS_MODULE_PARM_FORCE(chip1); \
--  static struct i2c_force_data forces[] = {{force,any_chip},\
--                                                 {force_ ## chip1,chip1}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_2(chip1,chip2) \
-@@ -109,10 +98,10 @@ struct i2c_address_data {
-                       "to be present"); \
-   SENSORS_MODULE_PARM_FORCE(chip1); \
-   SENSORS_MODULE_PARM_FORCE(chip2); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_3(chip1,chip2,chip3) \
-@@ -123,11 +112,11 @@ struct i2c_address_data {
-   SENSORS_MODULE_PARM_FORCE(chip1); \
-   SENSORS_MODULE_PARM_FORCE(chip2); \
-   SENSORS_MODULE_PARM_FORCE(chip3); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {force_ ## chip3,chip3}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      force_##chip3, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_4(chip1,chip2,chip3,chip4) \
-@@ -139,12 +128,12 @@ struct i2c_address_data {
-   SENSORS_MODULE_PARM_FORCE(chip2); \
-   SENSORS_MODULE_PARM_FORCE(chip3); \
-   SENSORS_MODULE_PARM_FORCE(chip4); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {force_ ## chip3,chip3}, \
--                                                 {force_ ## chip4,chip4}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      force_##chip3, \
-+				      force_##chip4, \
-+				      NULL}; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_5(chip1,chip2,chip3,chip4,chip5) \
-@@ -157,13 +146,13 @@ struct i2c_address_data {
-   SENSORS_MODULE_PARM_FORCE(chip3); \
-   SENSORS_MODULE_PARM_FORCE(chip4); \
-   SENSORS_MODULE_PARM_FORCE(chip5); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {force_ ## chip3,chip3}, \
--                                                 {force_ ## chip4,chip4}, \
--                                                 {force_ ## chip5,chip5}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      force_##chip3, \
-+				      force_##chip4, \
-+				      force_##chip5, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_6(chip1,chip2,chip3,chip4,chip5,chip6) \
-@@ -177,14 +166,14 @@ struct i2c_address_data {
-   SENSORS_MODULE_PARM_FORCE(chip4); \
-   SENSORS_MODULE_PARM_FORCE(chip5); \
-   SENSORS_MODULE_PARM_FORCE(chip6); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {force_ ## chip3,chip3}, \
--                                                 {force_ ## chip4,chip4}, \
--                                                 {force_ ## chip5,chip5}, \
--                                                 {force_ ## chip6,chip6}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      force_##chip3, \
-+				      force_##chip4, \
-+				      force_##chip5, \
-+				      force_##chip6, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_7(chip1,chip2,chip3,chip4,chip5,chip6,chip7) \
-@@ -199,15 +188,15 @@ struct i2c_address_data {
-   SENSORS_MODULE_PARM_FORCE(chip5); \
-   SENSORS_MODULE_PARM_FORCE(chip6); \
-   SENSORS_MODULE_PARM_FORCE(chip7); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {force_ ## chip3,chip3}, \
--                                                 {force_ ## chip4,chip4}, \
--                                                 {force_ ## chip5,chip5}, \
--                                                 {force_ ## chip6,chip6}, \
--                                                 {force_ ## chip7,chip7}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      force_##chip3, \
-+				      force_##chip4, \
-+				      force_##chip5, \
-+				      force_##chip6, \
-+				      force_##chip7, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- #define SENSORS_INSMOD_8(chip1,chip2,chip3,chip4,chip5,chip6,chip7,chip8) \
-@@ -223,16 +212,16 @@ struct i2c_address_data {
-   SENSORS_MODULE_PARM_FORCE(chip6); \
-   SENSORS_MODULE_PARM_FORCE(chip7); \
-   SENSORS_MODULE_PARM_FORCE(chip8); \
--  static struct i2c_force_data forces[] = {{force,any_chip}, \
--                                                 {force_ ## chip1,chip1}, \
--                                                 {force_ ## chip2,chip2}, \
--                                                 {force_ ## chip3,chip3}, \
--                                                 {force_ ## chip4,chip4}, \
--                                                 {force_ ## chip5,chip5}, \
--                                                 {force_ ## chip6,chip6}, \
--                                                 {force_ ## chip7,chip7}, \
--                                                 {force_ ## chip8,chip8}, \
--                                                 {NULL}}; \
-+  static unsigned short *forces[] = { force, \
-+				      force_##chip1, \
-+				      force_##chip2, \
-+				      force_##chip3, \
-+				      force_##chip4, \
-+				      force_##chip5, \
-+				      force_##chip6, \
-+				      force_##chip7, \
-+				      force_##chip8, \
-+				      NULL }; \
-   SENSORS_INSMOD
- 
- /* Detect function. It iterates over all possible addresses itself. For
+ #endif				/* def _LINUX_I2C_SENSOR_H */
 
