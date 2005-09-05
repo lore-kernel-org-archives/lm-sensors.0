@@ -1,111 +1,55 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Fri, 23 Sep 2005 22:26:14 +0000
-Subject: =?GB2312?B?u9i4tKO6IFJlOiC72Li0o7ogUmU6IFtsbS1zZW5zb3JzXSBlZQ==?=
-Message-Id: <433464A1.6000806@mds.gotdns.com>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:47:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Document on the W83627EHG chip
+Message-Id: <11259567653910@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Feel free to look at or modify the source code in the kernel module,
-available at our website www.lm-sensors.org.
-We can't provide extensive help however,
-and we recommend you use the userspace tools instead.
+[PATCH] hwmon: Document on the W83627EHG chip
 
-junping feng wrote:
-> Thank you!
-> But I have another problem that how can I achieve writes function in the 
-> module eeprom.c(in the lm-sensors package) .Can you help me and give me 
-> the scource codes?
-> 
-> */Mark Studebaker <mds@mds.gotdns.com>/* ???
-> 
->     see the userspace programs and documents in prog/eepromer
->     in the lm-sensors package.
-> 
->     the kernel module does not support writes.
-> 
->     junping feng wrote:
->      > I am sorry for my fault of the eeprom. My eeprom is
->      > AT24C01A,and its size is 1Kbits(128Bytes).
->      > In the ile /lm_sensors-2.5.0/kernel/chips/eeprom.c,
->      > how can I complete the function of writing to the
->      > chip?
->      > please help me !
->      > Can you give me the source codes?
->      > Thanks!
->      >
->      >
->      > --- Ben Dooks ??:
->      >
->      >
->      >>On Tue, Sep 20, 2005 at 05:52:54PM +0800, junping
->      >>feng wrote:
->      >>
->      >>>Hi,
->      >>> My cpu is PowerPC8250.I2C device is eeprom
->      >>
->      >>AT24C01.
->      >>
->      >>>I want to access the eeprom,read from the eeprom
->      >>
->      >>and
->      >>
->      >>>write to it.
->      >>> I have read the file
->      >>>/lm_sensors-2.5.0/kernel/chips/eeprom.c,but this
->      >>
->      >>file
->      >>
->      >>>can't achieve writing function and only can read
->      >>
->      >>128
->      >>
->      >>>bytes.
->      >>> How can i complete the writing functions and
->      >>
->      >>read
->      >>
->      >>>total the chip (1024 bytes).
->      >>
->      >>The chip is only 128 bytes big. You are confusing
->      >>the
->      >>_bit_ size (which is 1024bits).
->      >>
->      >>I have no actual experience of this chip, but the
->      >>data-sheet implies it is only capable of page-write
->      >>of 4 bytes at a time, so it could be the eeprom
->      >>driver is trying to write too much data in one go.
->      >>
->      >>--
->      >>Ben (ben@fluff.org, http://www.fluff.org/)
->      >>
->      >> 'a smiley only costs 4 bytes'
->      >>
->      >
->      >
->      >
->      >
->      >
->      > ___________________________________________________________
->      > ???????????2G?????pop3??????????
->      > http://cn.mail.yahoo.com
->      >
->      > _______________________________________________
->      > lm-sensors mailing list
->      > lm-sensors@lm-sensors.org
->      > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-> ------------------------------------------------------------------------
-> ????G??????????????????? <http://cn.mail.yahoo.com>
-> ?????????????? <http://cn.zs.yahoo.com>
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Document the fact that the W83627EHG is compatible with the W83627EHF.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+commit 8dd2d2ca7fafdedaebd1862e954fccaef212f1e1
+tree b215d20fd866d3efa75d71a5ddd31cab029e34c8
+parent 27fe048eb3787d29bf9cf9d6d12077bb8af869a6
+author Jean Delvare <khali@linux-fr.org> Wed, 27 Jul 2005 21:33:15 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:07 -0700
+
+ drivers/hwmon/Kconfig     |    3 +++
+ drivers/hwmon/w83627ehf.c |    3 +++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -404,6 +404,9 @@ config SENSORS_W83627EHF
+ 	  Only fan and temperature inputs are supported at the moment, while
+ 	  the chip does much more than that.
+ 
++	  This driver also supports the W83627EHG, which is the lead-free
++	  version of the W83627EHF.
++
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called w83627ehf.
+ 
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -9,6 +9,9 @@
+     Thanks to Leon Moonen, Steve Cliffe and Grant Coady for their help
+     in testing and debugging this driver.
+ 
++    This driver also supports the W83627EHG, which is the lead-free
++    version of the W83627EHF.
++
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation; either version 2 of the License, or
 
