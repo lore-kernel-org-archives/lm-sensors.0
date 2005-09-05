@@ -1,24 +1,33 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 24 Sep 2005 09:08:19 +0000
-Subject: [lm-sensors] Re: [RFC PATCH] driver hwmon adm9240 whitespace cleanup
-Message-Id: <20050924090856.2ced6ed5.khali@linux-fr.org>
+From: mirko@buholzer.com (Mirko Buholzer)
+Date: Mon, 05 Sep 2005 22:52:23 +0000
+Subject: [lm-sensors] Random values with pcf8591 chip driver (Now as a new
+Message-Id: <431CAFE8.7020008@buholzer.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cig6j190via0um6297agj1odmt4c6oss8v@4ax.com>
-In-Reply-To: <cig6j190via0um6297agj1odmt4c6oss8v@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Grant,
+I am using a pcf8591 chip on a linux 2.6.8 Kernel. The Adapter Driver is 
+the scx200_i2c. When I do a sensors command I get random values on each 
+input channel. Channel 1/2/3 are all set to 0V.
 
-> Appended is new whitespace patch to cleanup after my confused ballsup 
-> with patch numbering.
-> (...)
-> This whitespace cleanup patch removes one trailing space and breaks 
-> lines longer than 80 characters.
+voyage:~# sensors
+pcf8591-i2c-1-49
+Adapter: NatSemi SCx200 I2C
+Chan. 0:    1.28 V
+Chan. 1:    1.28 V
+Chan. 2:    1.28 V
+Chan. 3:    1.28 V
+Output:     0.00 V (enabled)
 
-Enqueued, thanks.
+Does anyone have any hints or tricks on how I can proceed with debugging 
+and error correction? Or is this a known problem?
+
+Thanks and best Regards,
+Mirko
 
 -- 
-Jean Delvare
+
+Mirko Buholzer
+mirko@buholzer.com
