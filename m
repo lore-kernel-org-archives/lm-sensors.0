@@ -1,75 +1,290 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:28 +0000
-Subject: [lm-sensors] [PATCH] hwmon: hwmon vs i2c, second round (11/11)
-Message-Id: <11259567691080@kroah.com>
+Date: Mon, 05 Sep 2005 23:47:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon: hwmon vs i2c, second round (01/11)
+Message-Id: <11259567681073@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <11259567691080@kroah.com>
+In-Reply-To: <11259567691080@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: hwmon vs i2c, second round (11/11)
+[PATCH] hwmon: hwmon vs i2c, second round (01/11)
 
-Use the common vid_from_reg function in lm78 rather than
-reimplementing it.
+Add support for kind-forced addresses to i2c_probe, like i2c_detect
+has for (essentially) hardware monitoring drivers.
+
+Note that this change will slightly increase the size of the drivers
+using I2C_CLIENT_INSMOD, with no immediate benefit. This is a
+requirement if we want to merge i2c_probe and i2c_detect though, and
+seems a reasonable price to pay in comparison with the previous
+cleanups which saved much more than that (such as the i2c-isa cleanup
+or the i2c address ranges removal.)
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 19f673eddb5a406be72989fb57b7f286772b8cf4
-tree d552112cd0721467e6ff0a13f8eef7c3491c847c
-parent d0f282706df877f8fd8869419e308d24eedb523b
-author Jean Delvare <khali@linux-fr.org> Sun, 31 Jul 2005 22:12:09 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:24 -0700
+commit 9fc6adfa9adf2be84119a3c2592287f33bd1dff2
+tree 6a8e52520c4f99e52de428afc6cd24b844fcb72d
+parent 5cb802293e87035920d47979107af8cf42a2f62a
+author Jean Delvare <khali@linux-fr.org> Sun, 31 Jul 2005 21:20:43 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:18 -0700
 
- drivers/hwmon/Kconfig |    1 +
- drivers/hwmon/lm78.c  |   10 ++--------
- 2 files changed, 3 insertions(+), 8 deletions(-)
+ drivers/i2c/chips/ds1374.c       |    1 -
+ drivers/i2c/chips/m41t00.c       |    1 -
+ drivers/i2c/chips/rtc8564.c      |    1 -
+ drivers/i2c/i2c-core.c           |   38 ++++++++++++++++++++++++++++----------
+ drivers/media/video/adv7170.c    |    1 -
+ drivers/media/video/adv7175.c    |    1 -
+ drivers/media/video/bt819.c      |    1 -
+ drivers/media/video/bt856.c      |    1 -
+ drivers/media/video/saa7110.c    |    1 -
+ drivers/media/video/saa7111.c    |    1 -
+ drivers/media/video/saa7114.c    |    1 -
+ drivers/media/video/saa7185.c    |    1 -
+ drivers/media/video/tuner-3036.c |    1 -
+ drivers/media/video/vpx3220.c    |    1 -
+ include/linux/i2c.h              |    9 ++++++---
+ 15 files changed, 34 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -207,6 +207,7 @@ config SENSORS_LM78
- 	tristate "National Semiconductor LM78 and compatibles"
- 	depends on HWMON && I2C && EXPERIMENTAL
- 	select I2C_ISA
-+	select HWMON_VID
- 	help
- 	  If you say yes here you get support for National Semiconductor LM78,
- 	  LM78-J and LM79.
-diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
---- a/drivers/hwmon/lm78.c
-+++ b/drivers/hwmon/lm78.c
-@@ -25,6 +25,7 @@
- #include <linux/i2c.h>
- #include <linux/i2c-isa.h>
- #include <linux/hwmon.h>
-+#include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <asm/io.h>
+diff --git a/drivers/i2c/chips/ds1374.c b/drivers/i2c/chips/ds1374.c
+--- a/drivers/i2c/chips/ds1374.c
++++ b/drivers/i2c/chips/ds1374.c
+@@ -53,7 +53,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c = normal_addr,
+ 	.probe = ignore,
+ 	.ignore = ignore,
+-	.force = ignore,
+ };
  
-@@ -106,13 +107,6 @@ static inline int TEMP_FROM_REG(s8 val)
- 	return val * 1000;
- }
+ static ulong ds1374_read_rtc(void)
+diff --git a/drivers/i2c/chips/m41t00.c b/drivers/i2c/chips/m41t00.c
+--- a/drivers/i2c/chips/m41t00.c
++++ b/drivers/i2c/chips/m41t00.c
+@@ -42,7 +42,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_addr,
+ 	.probe			= ignore,
+ 	.ignore			= ignore,
+-	.force			= ignore,
+ };
  
--/* VID: mV
--   REG: (see doc/vid) */
--static inline int VID_FROM_REG(u8 val)
--{
--	return val=0x1f ? 0 : val>=0x10 ? 5100-val*100 : 2050-val*50;
--}
--
- #define DIV_FROM_REG(val) (1 << (val))
+ ulong
+diff --git a/drivers/i2c/chips/rtc8564.c b/drivers/i2c/chips/rtc8564.c
+--- a/drivers/i2c/chips/rtc8564.c
++++ b/drivers/i2c/chips/rtc8564.c
+@@ -67,7 +67,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_addr,
+ 	.probe			= ignore,
+ 	.ignore			= ignore,
+-	.force			= ignore,
+ };
  
- /* There are some complications in a module like this. First off, LM78 chips
-@@ -457,7 +451,7 @@ static DEVICE_ATTR(fan3_div, S_IRUGO, sh
- static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct lm78_data *data = lm78_update_device(dev);
--	return sprintf(buf, "%d\n", VID_FROM_REG(data->vid));
-+	return sprintf(buf, "%d\n", vid_from_reg(82, data->vid));
- }
- static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+ static int rtc8564_read_mem(struct i2c_client *client, struct mem *mem);
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -662,6 +662,28 @@ int i2c_control(struct i2c_client *clien
+  * Will not work for 10-bit addresses!
+  * ----------------------------------------------------
+  */
++/* Return: kind (>= 0) if force found, -1 if not found */
++static inline int i2c_probe_forces(struct i2c_adapter *adapter, int addr,
++				   unsigned short **forces)
++{
++	unsigned short kind;
++	int j, adap_id = i2c_adapter_id(adapter);
++
++	for (kind = 0; forces[kind]; kind++) {
++		for (j = 0; forces[kind][j] != I2C_CLIENT_END; j += 2) {
++			if ((forces[kind][j] = adap_id ||
++			     forces[kind][j] = ANY_I2C_BUS)
++			 && forces[kind][j + 1] = addr) {
++				dev_dbg(&adapter->dev, "found force parameter, "
++					"addr 0x%02x, kind %u\n", addr, kind);
++				return kind;
++			}
++		}
++	}
++
++	return -1;
++}
++
+ int i2c_probe(struct i2c_adapter *adapter,
+ 	      struct i2c_client_address_data *address_data,
+ 	      int (*found_proc) (struct i2c_adapter *, int, int))
+@@ -683,19 +705,15 @@ int i2c_probe(struct i2c_adapter *adapte
+ 		   at all */
+ 		found = 0;
  
+-		for (i = 0; !found && (address_data->force[i] != I2C_CLIENT_END); i += 2) {
+-			if (((adap_id = address_data->force[i]) || 
+-			     (address_data->force[i] = ANY_I2C_BUS)) &&
+-			     (addr = address_data->force[i+1])) {
+-				dev_dbg(&adapter->dev, "found force parameter for adapter %d, addr %04x\n",
+-					adap_id, addr);
+-				if ((err = found_proc(adapter,addr,0)))
++		if (address_data->forces) {
++			int kind = i2c_probe_forces(adapter, addr,
++						    address_data->forces);
++			if (kind >= 0) { /* force found */
++				if ((err = found_proc(adapter, addr, kind)))
+ 					return err;
+-				found = 1;
++				continue;
+ 			}
+ 		}
+-		if (found) 
+-			continue;
+ 
+ 		/* If this address is in one of the ignores, we can forget about
+ 		   it right now */
+diff --git a/drivers/media/video/adv7170.c b/drivers/media/video/adv7170.c
+--- a/drivers/media/video/adv7170.c
++++ b/drivers/media/video/adv7170.c
+@@ -391,7 +391,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_adv7170;
+diff --git a/drivers/media/video/adv7175.c b/drivers/media/video/adv7175.c
+--- a/drivers/media/video/adv7175.c
++++ b/drivers/media/video/adv7175.c
+@@ -441,7 +441,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_adv7175;
+diff --git a/drivers/media/video/bt819.c b/drivers/media/video/bt819.c
+--- a/drivers/media/video/bt819.c
++++ b/drivers/media/video/bt819.c
+@@ -507,7 +507,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_bt819;
+diff --git a/drivers/media/video/bt856.c b/drivers/media/video/bt856.c
+--- a/drivers/media/video/bt856.c
++++ b/drivers/media/video/bt856.c
+@@ -295,7 +295,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_bt856;
+diff --git a/drivers/media/video/saa7110.c b/drivers/media/video/saa7110.c
+--- a/drivers/media/video/saa7110.c
++++ b/drivers/media/video/saa7110.c
+@@ -470,7 +470,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_saa7110;
+diff --git a/drivers/media/video/saa7111.c b/drivers/media/video/saa7111.c
+--- a/drivers/media/video/saa7111.c
++++ b/drivers/media/video/saa7111.c
+@@ -489,7 +489,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_saa7111;
+diff --git a/drivers/media/video/saa7114.c b/drivers/media/video/saa7114.c
+--- a/drivers/media/video/saa7114.c
++++ b/drivers/media/video/saa7114.c
+@@ -827,7 +827,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_saa7114;
+diff --git a/drivers/media/video/saa7185.c b/drivers/media/video/saa7185.c
+--- a/drivers/media/video/saa7185.c
++++ b/drivers/media/video/saa7185.c
+@@ -387,7 +387,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver i2c_driver_saa7185;
+diff --git a/drivers/media/video/tuner-3036.c b/drivers/media/video/tuner-3036.c
+--- a/drivers/media/video/tuner-3036.c
++++ b/drivers/media/video/tuner-3036.c
+@@ -41,7 +41,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c	= normal_i2c,
+ 	.probe		= &ignore,
+ 	.ignore		= &ignore,
+-	.force		= &ignore,
+ };
+ 
+ /* ---------------------------------------------------------------------- */
+diff --git a/drivers/media/video/vpx3220.c b/drivers/media/video/vpx3220.c
+--- a/drivers/media/video/vpx3220.c
++++ b/drivers/media/video/vpx3220.c
+@@ -576,7 +576,6 @@ static struct i2c_client_address_data ad
+ 	.normal_i2c		= normal_i2c,
+ 	.probe			= &ignore,
+ 	.ignore			= &ignore,
+-	.force			= &ignore,
+ };
+ 
+ static struct i2c_driver vpx3220_i2c_driver;
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -48,7 +48,6 @@ struct i2c_algorithm;
+ struct i2c_adapter;
+ struct i2c_client;
+ struct i2c_driver;
+-struct i2c_client_address_data;
+ union i2c_smbus_data;
+ 
+ /*
+@@ -301,7 +300,7 @@ struct i2c_client_address_data {
+ 	unsigned short *normal_i2c;
+ 	unsigned short *probe;
+ 	unsigned short *ignore;
+-	unsigned short *force;
++	unsigned short **forces;
+ };
+ 
+ /* Internal numbers to terminate lists */
+@@ -575,11 +574,15 @@ union i2c_smbus_data {
+   I2C_CLIENT_MODULE_PARM(force, \
+                       "List of adapter,address pairs to boldly assume " \
+                       "to be present"); \
++	static unsigned short *addr_forces[] = {			\
++			force,						\
++			NULL						\
++		};							\
+ 	static struct i2c_client_address_data addr_data = {		\
+ 			.normal_i2c = 		normal_i2c,		\
+ 			.probe =		probe,			\
+ 			.ignore =		ignore,			\
+-			.force =		force,			\
++			.forces =		addr_forces,		\
+ 		}
+ 
+ #endif /* _LINUX_I2C_H */
 
