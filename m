@@ -1,34 +1,50 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 27 Sep 2005 20:20:24 +0000
-Subject: [lm-sensors] [PATCH] website/protocol.html
-Message-Id: <20050927201952.016420e8.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 05 Sep 2005 23:47:12 +0000
+Subject: [lm-sensors] [PATCH] i2c: bug fix for busses/i2c-mv64xxx.c
+Message-Id: <11259567713187@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200509240453.AA01316@k7.kit.hi-ho.ne.jp>
-In-Reply-To: <200509240453.AA01316@k7.kit.hi-ho.ne.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+[PATCH] i2c: bug fix for busses/i2c-mv64xxx.c
 
-QUoting myself:
-> Patch applied, thanks. I'll cleanup this page later today, BTW, the
-> HTML code is really ugly. Such a simple page shouldn't weight 16 kB.
+When an i2c transfer is successful, an incorrect value is returned.
+This patch fixes that.
 
-I've rewritten the page in proper HTML, looks much better now.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-While we're at it, could someone explain to me what the "i2c-dev.h
-macro" and "i2c-core.c i2c_smbus_xxx()" columns of the "w/ PEC" side
-are supposed to mean?
+---
+commit d1b2f0a9754d3087ee29b3e88b8f20f2d30090d3
+tree 292f29b437f14c9af06ac276be48004ec1df8460
+parent 8e14d6c173f8fff05a94e62669c87c26141766af
+author Jean Delvare <khali@linux-fr.org> Fri, 02 Sep 2005 21:25:47 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:53 -0700
 
-There are no particular macros for PEC transactions in i2c-dev.h, and
-no particular functions for PEC transactions in i2c-core.c either. Even
-the "i2c-dev.c ioctl" column doesn't make much sense to me, as there is
-no per-transaction PEC-specific code in i2c-dev.c. I'd as well drop
-these meaningless columns, which would have the nice benefit that the
-table would fit in my screen again. Opinions?
+ drivers/i2c/busses/i2c-mv64xxx.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Thanks,
--- 
-Jean Delvare
+diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
+--- a/drivers/i2c/busses/i2c-mv64xxx.c
++++ b/drivers/i2c/busses/i2c-mv64xxx.c
+@@ -423,13 +423,13 @@ static int
+ mv64xxx_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ {
+ 	struct mv64xxx_i2c_data *drv_data = i2c_get_adapdata(adap);
+-	int	i, rc = 0;
++	int	i, rc;
+ 
+ 	for (i=0; i<num; i++)
+-		if ((rc = mv64xxx_i2c_execute_msg(drv_data, &msgs[i])) != 0)
+-			break;
++		if ((rc = mv64xxx_i2c_execute_msg(drv_data, &msgs[i])) < 0)
++			return rc;
+ 
+-	return rc;
++	return num;
+ }
+ 
+ static struct i2c_algorithm mv64xxx_i2c_algo = {
+
