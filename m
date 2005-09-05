@@ -1,7 +1,7 @@
 From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:56 +0000
-Subject: [lm-sensors] [PATCH] hwmon: hwmon vs i2c, second round (04/11)
-Message-Id: <11259567681539@kroah.com>
+Date: Mon, 05 Sep 2005 23:48:04 +0000
+Subject: [lm-sensors] [PATCH] hwmon: hwmon vs i2c, second round (02/11)
+Message-Id: <11259567681148@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <11259567691080@kroah.com>
 In-Reply-To: <11259567691080@kroah.com>
@@ -10,563 +10,276 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: hwmon vs i2c, second round (04/11)
+[PATCH] hwmon: hwmon vs i2c, second round (02/11)
 
-i2c_probe and i2c_detect now do the exact same thing and operate on
-the same data structure, so we can have everyone call i2c_probe.
+The way i2c-sensor handles forced addresses could be optimized. It
+defines a structure (i2c_force_data) to associate a module parameter
+with a given kind value, but in fact this kind value is always the
+index of the structure in each array it is used in. So this additional
+value can be omitted, and still be deduced in the code handling these
+arrays.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 2ed2dc3c116d26fc6a9384e83d136b15cc203b6c
-tree c79308b2cfe55eaddc95c47cbcafa6e0cae27413
-parent b78ec31582c60578ee1d3bb470791d6dde96ccf7
-author Jean Delvare <khali@linux-fr.org> Sun, 31 Jul 2005 21:42:02 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:20 -0700
+commit ef8dec5d8b3e96e359f377f35cd8caff42fe6d58
+tree ca83d278af5da3dfc9ef01f1d5bf479e67229d25
+parent 9fc6adfa9adf2be84119a3c2592287f33bd1dff2
+author Jean Delvare <khali@linux-fr.org> Sun, 31 Jul 2005 21:33:23 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:18 -0700
 
- Documentation/i2c/porting-clients |    1 +
- Documentation/i2c/writing-clients |   19 +++++--------------
- drivers/hwmon/adm1021.c           |    2 +-
- drivers/hwmon/adm1025.c           |    2 +-
- drivers/hwmon/adm1026.c           |    2 +-
- drivers/hwmon/adm1031.c           |    4 ++--
- drivers/hwmon/adm9240.c           |    2 +-
- drivers/hwmon/asb100.c            |    2 +-
- drivers/hwmon/atxp1.c             |    2 +-
- drivers/hwmon/ds1621.c            |    4 ++--
- drivers/hwmon/fscher.c            |    2 +-
- drivers/hwmon/fscpos.c            |    2 +-
- drivers/hwmon/gl518sm.c           |    2 +-
- drivers/hwmon/gl520sm.c           |    2 +-
- drivers/hwmon/it87.c              |    4 ++--
- drivers/hwmon/lm63.c              |    2 +-
- drivers/hwmon/lm75.c              |    4 ++--
- drivers/hwmon/lm77.c              |    4 ++--
- drivers/hwmon/lm78.c              |    4 ++--
- drivers/hwmon/lm80.c              |    2 +-
- drivers/hwmon/lm83.c              |    2 +-
- drivers/hwmon/lm85.c              |    2 +-
- drivers/hwmon/lm87.c              |    2 +-
- drivers/hwmon/lm90.c              |    2 +-
- drivers/hwmon/lm92.c              |    2 +-
- drivers/hwmon/max1619.c           |    2 +-
- drivers/hwmon/w83781d.c           |    2 +-
- drivers/hwmon/w83792d.c           |    2 +-
- drivers/hwmon/w83l785ts.c         |    2 +-
- drivers/i2c/chips/ds1337.c        |    2 +-
- drivers/i2c/chips/eeprom.c        |    4 ++--
- drivers/i2c/chips/max6875.c       |    4 ++--
- drivers/i2c/chips/pca9539.c       |    4 ++--
- drivers/i2c/chips/pcf8574.c       |    4 ++--
- drivers/i2c/chips/pcf8591.c       |    4 ++--
- 35 files changed, 50 insertions(+), 58 deletions(-)
+ drivers/i2c/i2c-sensor-detect.c |   13 ++--
+ include/linux/i2c-sensor.h      |  133 ++++++++++++++++++---------------------
+ 2 files changed, 67 insertions(+), 79 deletions(-)
 
-diff --git a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
---- a/Documentation/i2c/porting-clients
-+++ b/Documentation/i2c/porting-clients
-@@ -66,6 +66,7 @@ Technical changes:
-   if (!(adapter->class & I2C_CLASS_HWMON))
-           return 0;
-   ISA-only drivers of course don't need this.
-+  Call i2c_probe() instead of i2c_detect().
+diff --git a/drivers/i2c/i2c-sensor-detect.c b/drivers/i2c/i2c-sensor-detect.c
+--- a/drivers/i2c/i2c-sensor-detect.c
++++ b/drivers/i2c/i2c-sensor-detect.c
+@@ -32,7 +32,6 @@ int i2c_detect(struct i2c_adapter *adapt
+ 	       int (*found_proc) (struct i2c_adapter *, int, int))
+ {
+ 	int addr, i, found, j, err;
+-	struct i2c_force_data *this_force;
+ 	int adapter_id = i2c_adapter_id(adapter);
+ 	unsigned short *normal_i2c;
+ 	unsigned short *probe;
+@@ -58,13 +57,13 @@ int i2c_detect(struct i2c_adapter *adapt
+ 		/* If it is in one of the force entries, we don't do any
+ 		   detection at all */
+ 		found = 0;
+-		for (i = 0; !found && (this_force = address_data->forces + i, this_force->force); i++) {
+-			for (j = 0; !found && (this_force->force[j] != I2C_CLIENT_END); j += 2) {
+-				if ( ((adapter_id = this_force->force[j]) ||
+-				      (this_force->force[j] = ANY_I2C_BUS)) &&
+-				      (addr = this_force->force[j + 1]) ) {
++		for (i = 0; address_data->forces[i]; i++) {
++			for (j = 0; !found && (address_data->forces[i][j] != I2C_CLIENT_END); j += 2) {
++				if ( ((adapter_id = address_data->forces[i][j]) ||
++				      (address_data->forces[i][j] = ANY_I2C_BUS)) &&
++				      (addr = address_data->forces[i][j + 1]) ) {
+ 					dev_dbg(&adapter->dev, "found force parameter for adapter %d, addr %04x\n", adapter_id, addr);
+-					if ((err = found_proc(adapter, addr, this_force->kind)))
++					if ((err = found_proc(adapter, addr, i)))
+ 						return err;
+ 					found = 1;
+ 				}
+diff --git a/include/linux/i2c-sensor.h b/include/linux/i2c-sensor.h
+--- a/include/linux/i2c-sensor.h
++++ b/include/linux/i2c-sensor.h
+@@ -22,22 +22,6 @@
+ #ifndef _LINUX_I2C_SENSOR_H
+ #define _LINUX_I2C_SENSOR_H
  
- * [Detect] As mentioned earlier, the flags parameter is gone.
-   The type_name and client_name strings are replaced by a single
-diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
---- a/Documentation/i2c/writing-clients
-+++ b/Documentation/i2c/writing-clients
-@@ -148,7 +148,7 @@ are defined in i2c.h to help you support
- detection algorithm.
- 
- You do not have to use this parameter interface; but don't try to use
--function i2c_probe() (or i2c_detect()) if you don't.
-+function i2c_probe() if you don't.
- 
- NOTE: If you want to write a `sensors' driver, the interface is slightly
-       different! See below.
-@@ -259,17 +259,10 @@ detected at a specific address, another 
-     return i2c_probe(adapter,&addr_data,&foo_detect_client);
-   }
- 
--For `sensors' drivers, use the i2c_detect function instead:
--  
--  int foo_attach_adapter(struct i2c_adapter *adapter)
--  { 
--    return i2c_detect(adapter,&addr_data,&foo_detect_client);
--  }
+-/* A structure containing detect information.
+-   Force variables overrule all other variables; they force a detection on
+-   that place. If a specific chip is given, the module blindly assumes this
+-   chip type is present; if a general force (kind = 0) is given, the module
+-   will still try to figure out what type of chip is present. This is useful
+-   if for some reasons the detect for SMBus address space filled fails.
+-   probe: insmod parameter. Initialize this list with I2C_CLIENT_END values.
+-     A list of pairs. The first value is a bus number (ANY_I2C_BUS for any
+-     I2C bus), the second is the address.
+-   kind: The kind of chip. 0 equals any chip.
+-*/
+-struct i2c_force_data {
+-	unsigned short *force;
+-	unsigned short kind;
+-};
 -
- Remember, structure `addr_data' is defined by the macros explained above,
- so you do not have to define it yourself.
- 
--The i2c_probe or i2c_detect function will call the foo_detect_client
-+The i2c_probe function will call the foo_detect_client
- function only for those i2c addresses that actually have a device on
- them (unless a `force' parameter was used). In addition, addresses that
- are already in use (by some other registered client) are skipped.
-@@ -278,11 +271,9 @@ are already in use (by some other regist
- The detect client function
- --------------------------
- 
--The detect client function is called by i2c_probe or i2c_detect.
--The `kind' parameter contains 0 if this call is due to a `force'
--parameter, and -1 otherwise (for i2c_detect, it contains 0 if
--this call is due to the generic `force' parameter, and the chip type
--number if it is due to a specific `force' parameter).
-+The detect client function is called by i2c_probe. The `kind' parameter
-+contains -1 for a probed detection, 0 for a forced detection, or a positive
-+number for a forced detection with a chip type forced.
- 
- Below, some things are only needed if this is a `sensors' driver. Those
- parts are between /* SENSORS ONLY START */ and /* SENSORS ONLY END */
-diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
---- a/drivers/hwmon/adm1021.c
-+++ b/drivers/hwmon/adm1021.c
-@@ -187,7 +187,7 @@ static int adm1021_attach_adapter(struct
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, adm1021_detect);
-+	return i2c_probe(adapter, &addr_data, adm1021_detect);
- }
- 
- static int adm1021_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/adm1025.c b/drivers/hwmon/adm1025.c
---- a/drivers/hwmon/adm1025.c
-+++ b/drivers/hwmon/adm1025.c
-@@ -314,7 +314,7 @@ static int adm1025_attach_adapter(struct
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, adm1025_detect);
-+	return i2c_probe(adapter, &addr_data, adm1025_detect);
- }
- 
- /*
-diff --git a/drivers/hwmon/adm1026.c b/drivers/hwmon/adm1026.c
---- a/drivers/hwmon/adm1026.c
-+++ b/drivers/hwmon/adm1026.c
-@@ -321,7 +321,7 @@ int adm1026_attach_adapter(struct i2c_ad
- 	if (!(adapter->class & I2C_CLASS_HWMON)) {
- 		return 0;
- 	}
--	return i2c_detect(adapter, &addr_data, adm1026_detect);
-+	return i2c_probe(adapter, &addr_data, adm1026_detect);
- }
- 
- int adm1026_detach_client(struct i2c_client *client)
-diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
---- a/drivers/hwmon/adm1031.c
-+++ b/drivers/hwmon/adm1031.c
-@@ -727,10 +727,10 @@ static int adm1031_attach_adapter(struct
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, adm1031_detect);
-+	return i2c_probe(adapter, &addr_data, adm1031_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- static int adm1031_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
-diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
---- a/drivers/hwmon/adm9240.c
-+++ b/drivers/hwmon/adm9240.c
-@@ -635,7 +635,7 @@ static int adm9240_attach_adapter(struct
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, adm9240_detect);
-+	return i2c_probe(adapter, &addr_data, adm9240_detect);
- }
- 
- static int adm9240_detach_client(struct i2c_client *client)
-diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
---- a/drivers/hwmon/asb100.c
-+++ b/drivers/hwmon/asb100.c
-@@ -621,7 +621,7 @@ static int asb100_attach_adapter(struct 
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, asb100_detect);
-+	return i2c_probe(adapter, &addr_data, asb100_detect);
- }
- 
- static int asb100_detect_subclients(struct i2c_adapter *adapter, int address,
-diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
---- a/drivers/hwmon/atxp1.c
-+++ b/drivers/hwmon/atxp1.c
-@@ -254,7 +254,7 @@ static DEVICE_ATTR(gpio2, S_IRUGO | S_IW
- 
- static int atxp1_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, &atxp1_detect);
-+	return i2c_probe(adapter, &addr_data, &atxp1_detect);
+ /* A structure containing the detect information.
+    normal_i2c: filled in by the module writer. Terminated by I2C_CLIENT_END.
+      A list of I2C addresses which should normally be examined.
+@@ -50,14 +34,18 @@ struct i2c_force_data {
+      I2C bus), the second is the I2C address. These addresses are never
+      probed. This parameter overrules 'normal' and  probe', but not the
+     'force' lists.
+-   force_data: insmod parameters. A list, ending with an element of which
+-     the force field is NULL.
++   forces: insmod parameters. A list, ending with a NULL element.
++     Force variables overrule all other variables; they force a detection on
++     that place. If a specific chip is given, the module blindly assumes this
++     chip type is present; if a general force (kind = 0) is given, the module
++     will still try to figure out what type of chip is present. This is useful
++     if for some reasons the detect for SMBus address space filled fails.
+ */
+ struct i2c_address_data {
+ 	unsigned short *normal_i2c;
+ 	unsigned short *probe;
+ 	unsigned short *ignore;
+-	struct i2c_force_data *forces;
++	unsigned short **forces;
  };
  
- static int atxp1_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
---- a/drivers/hwmon/ds1621.c
-+++ b/drivers/hwmon/ds1621.c
-@@ -181,10 +181,10 @@ static DEVICE_ATTR(temp1_max, S_IWUSR | 
+ #define SENSORS_MODULE_PARM_FORCE(name) \
+@@ -88,7 +76,8 @@ struct i2c_address_data {
+   I2C_CLIENT_MODULE_PARM(force, \
+                       "List of adapter,address pairs to boldly assume " \
+                       "to be present"); \
+-  static struct i2c_force_data forces[] = {{force,any_chip},{NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      NULL }; \
+   SENSORS_INSMOD
  
- static int ds1621_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, ds1621_detect);
-+	return i2c_probe(adapter, &addr_data, ds1621_detect);
- }
+ #define SENSORS_INSMOD_1(chip1) \
+@@ -97,9 +86,9 @@ struct i2c_address_data {
+                       "List of adapter,address pairs to boldly assume " \
+                       "to be present"); \
+   SENSORS_MODULE_PARM_FORCE(chip1); \
+-  static struct i2c_force_data forces[] = {{force,any_chip},\
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      NULL }; \
+   SENSORS_INSMOD
  
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- int ds1621_detect(struct i2c_adapter *adapter, int address,
-                   int kind)
- {
-diff --git a/drivers/hwmon/fscher.c b/drivers/hwmon/fscher.c
---- a/drivers/hwmon/fscher.c
-+++ b/drivers/hwmon/fscher.c
-@@ -289,7 +289,7 @@ static int fscher_attach_adapter(struct 
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, fscher_detect);
-+	return i2c_probe(adapter, &addr_data, fscher_detect);
- }
+ #define SENSORS_INSMOD_2(chip1,chip2) \
+@@ -109,10 +98,10 @@ struct i2c_address_data {
+                       "to be present"); \
+   SENSORS_MODULE_PARM_FORCE(chip1); \
+   SENSORS_MODULE_PARM_FORCE(chip2); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      NULL }; \
+   SENSORS_INSMOD
  
- static int fscher_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/fscpos.c b/drivers/hwmon/fscpos.c
---- a/drivers/hwmon/fscpos.c
-+++ b/drivers/hwmon/fscpos.c
-@@ -436,7 +436,7 @@ static int fscpos_attach_adapter(struct 
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, fscpos_detect);
-+	return i2c_probe(adapter, &addr_data, fscpos_detect);
- }
+ #define SENSORS_INSMOD_3(chip1,chip2,chip3) \
+@@ -123,11 +112,11 @@ struct i2c_address_data {
+   SENSORS_MODULE_PARM_FORCE(chip1); \
+   SENSORS_MODULE_PARM_FORCE(chip2); \
+   SENSORS_MODULE_PARM_FORCE(chip3); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {force_ ## chip3,chip3}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      force_##chip3, \
++				      NULL }; \
+   SENSORS_INSMOD
  
- int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/gl518sm.c b/drivers/hwmon/gl518sm.c
---- a/drivers/hwmon/gl518sm.c
-+++ b/drivers/hwmon/gl518sm.c
-@@ -348,7 +348,7 @@ static int gl518_attach_adapter(struct i
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, gl518_detect);
-+	return i2c_probe(adapter, &addr_data, gl518_detect);
- }
+ #define SENSORS_INSMOD_4(chip1,chip2,chip3,chip4) \
+@@ -139,12 +128,12 @@ struct i2c_address_data {
+   SENSORS_MODULE_PARM_FORCE(chip2); \
+   SENSORS_MODULE_PARM_FORCE(chip3); \
+   SENSORS_MODULE_PARM_FORCE(chip4); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {force_ ## chip3,chip3}, \
+-                                                 {force_ ## chip4,chip4}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      force_##chip3, \
++				      force_##chip4, \
++				      NULL}; \
+   SENSORS_INSMOD
  
- static int gl518_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
---- a/drivers/hwmon/gl520sm.c
-+++ b/drivers/hwmon/gl520sm.c
-@@ -520,7 +520,7 @@ static int gl520_attach_adapter(struct i
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, gl520_detect);
-+	return i2c_probe(adapter, &addr_data, gl520_detect);
- }
+ #define SENSORS_INSMOD_5(chip1,chip2,chip3,chip4,chip5) \
+@@ -157,13 +146,13 @@ struct i2c_address_data {
+   SENSORS_MODULE_PARM_FORCE(chip3); \
+   SENSORS_MODULE_PARM_FORCE(chip4); \
+   SENSORS_MODULE_PARM_FORCE(chip5); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {force_ ## chip3,chip3}, \
+-                                                 {force_ ## chip4,chip4}, \
+-                                                 {force_ ## chip5,chip5}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      force_##chip3, \
++				      force_##chip4, \
++				      force_##chip5, \
++				      NULL }; \
+   SENSORS_INSMOD
  
- static int gl520_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -698,7 +698,7 @@ static int it87_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, it87_detect);
-+	return i2c_probe(adapter, &addr_data, it87_detect);
- }
+ #define SENSORS_INSMOD_6(chip1,chip2,chip3,chip4,chip5,chip6) \
+@@ -177,14 +166,14 @@ struct i2c_address_data {
+   SENSORS_MODULE_PARM_FORCE(chip4); \
+   SENSORS_MODULE_PARM_FORCE(chip5); \
+   SENSORS_MODULE_PARM_FORCE(chip6); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {force_ ## chip3,chip3}, \
+-                                                 {force_ ## chip4,chip4}, \
+-                                                 {force_ ## chip5,chip5}, \
+-                                                 {force_ ## chip6,chip6}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      force_##chip3, \
++				      force_##chip4, \
++				      force_##chip5, \
++				      force_##chip6, \
++				      NULL }; \
+   SENSORS_INSMOD
  
- static int it87_isa_attach_adapter(struct i2c_adapter *adapter)
-@@ -738,7 +738,7 @@ exit:
- 	return err;
- }
+ #define SENSORS_INSMOD_7(chip1,chip2,chip3,chip4,chip5,chip6,chip7) \
+@@ -199,15 +188,15 @@ struct i2c_address_data {
+   SENSORS_MODULE_PARM_FORCE(chip5); \
+   SENSORS_MODULE_PARM_FORCE(chip6); \
+   SENSORS_MODULE_PARM_FORCE(chip7); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {force_ ## chip3,chip3}, \
+-                                                 {force_ ## chip4,chip4}, \
+-                                                 {force_ ## chip5,chip5}, \
+-                                                 {force_ ## chip6,chip6}, \
+-                                                 {force_ ## chip7,chip7}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      force_##chip3, \
++				      force_##chip4, \
++				      force_##chip5, \
++				      force_##chip6, \
++				      force_##chip7, \
++				      NULL }; \
+   SENSORS_INSMOD
  
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- int it87_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -360,7 +360,7 @@ static int lm63_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm63_detect);
-+	return i2c_probe(adapter, &addr_data, lm63_detect);
- }
+ #define SENSORS_INSMOD_8(chip1,chip2,chip3,chip4,chip5,chip6,chip7,chip8) \
+@@ -223,16 +212,16 @@ struct i2c_address_data {
+   SENSORS_MODULE_PARM_FORCE(chip6); \
+   SENSORS_MODULE_PARM_FORCE(chip7); \
+   SENSORS_MODULE_PARM_FORCE(chip8); \
+-  static struct i2c_force_data forces[] = {{force,any_chip}, \
+-                                                 {force_ ## chip1,chip1}, \
+-                                                 {force_ ## chip2,chip2}, \
+-                                                 {force_ ## chip3,chip3}, \
+-                                                 {force_ ## chip4,chip4}, \
+-                                                 {force_ ## chip5,chip5}, \
+-                                                 {force_ ## chip6,chip6}, \
+-                                                 {force_ ## chip7,chip7}, \
+-                                                 {force_ ## chip8,chip8}, \
+-                                                 {NULL}}; \
++  static unsigned short *forces[] = { force, \
++				      force_##chip1, \
++				      force_##chip2, \
++				      force_##chip3, \
++				      force_##chip4, \
++				      force_##chip5, \
++				      force_##chip6, \
++				      force_##chip7, \
++				      force_##chip8, \
++				      NULL }; \
+   SENSORS_INSMOD
  
- /*
-diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
---- a/drivers/hwmon/lm75.c
-+++ b/drivers/hwmon/lm75.c
-@@ -109,10 +109,10 @@ static int lm75_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm75_detect);
-+	return i2c_probe(adapter, &addr_data, lm75_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- static int lm75_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
-diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
---- a/drivers/hwmon/lm77.c
-+++ b/drivers/hwmon/lm77.c
-@@ -209,10 +209,10 @@ static int lm77_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm77_detect);
-+	return i2c_probe(adapter, &addr_data, lm77_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- static int lm77_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
-diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
---- a/drivers/hwmon/lm78.c
-+++ b/drivers/hwmon/lm78.c
-@@ -478,7 +478,7 @@ static int lm78_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm78_detect);
-+	return i2c_probe(adapter, &addr_data, lm78_detect);
- }
- 
- static int lm78_isa_attach_adapter(struct i2c_adapter *adapter)
-@@ -486,7 +486,7 @@ static int lm78_isa_attach_adapter(struc
- 	return lm78_detect(adapter, isa_address, -1);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i, err;
-diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
---- a/drivers/hwmon/lm80.c
-+++ b/drivers/hwmon/lm80.c
-@@ -391,7 +391,7 @@ static int lm80_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm80_detect);
-+	return i2c_probe(adapter, &addr_data, lm80_detect);
- }
- 
- int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
-diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
---- a/drivers/hwmon/lm83.c
-+++ b/drivers/hwmon/lm83.c
-@@ -214,7 +214,7 @@ static int lm83_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm83_detect);
-+	return i2c_probe(adapter, &addr_data, lm83_detect);
- }
- 
- /*
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -1012,7 +1012,7 @@ int lm85_attach_adapter(struct i2c_adapt
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm85_detect);
-+	return i2c_probe(adapter, &addr_data, lm85_detect);
- }
- 
- int lm85_detect(struct i2c_adapter *adapter, int address,
-diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
---- a/drivers/hwmon/lm87.c
-+++ b/drivers/hwmon/lm87.c
-@@ -539,7 +539,7 @@ static int lm87_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm87_detect);
-+	return i2c_probe(adapter, &addr_data, lm87_detect);
- }
- 
- /*
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -354,7 +354,7 @@ static int lm90_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm90_detect);
-+	return i2c_probe(adapter, &addr_data, lm90_detect);
- }
- 
- /*
-diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
---- a/drivers/hwmon/lm92.c
-+++ b/drivers/hwmon/lm92.c
-@@ -389,7 +389,7 @@ static int lm92_attach_adapter(struct i2
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, lm92_detect);
-+	return i2c_probe(adapter, &addr_data, lm92_detect);
- }
- 
- static int lm92_detach_client(struct i2c_client *client)
-diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
---- a/drivers/hwmon/max1619.c
-+++ b/drivers/hwmon/max1619.c
-@@ -180,7 +180,7 @@ static int max1619_attach_adapter(struct
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, max1619_detect);
-+	return i2c_probe(adapter, &addr_data, max1619_detect);
- }
- 
- /*
-diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
---- a/drivers/hwmon/w83781d.c
-+++ b/drivers/hwmon/w83781d.c
-@@ -869,7 +869,7 @@ w83781d_attach_adapter(struct i2c_adapte
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, w83781d_detect);
-+	return i2c_probe(adapter, &addr_data, w83781d_detect);
- }
- 
- static int
-diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
---- a/drivers/hwmon/w83792d.c
-+++ b/drivers/hwmon/w83792d.c
-@@ -1076,7 +1076,7 @@ w83792d_attach_adapter(struct i2c_adapte
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, w83792d_detect);
-+	return i2c_probe(adapter, &addr_data, w83792d_detect);
- }
- 
- 
-diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
---- a/drivers/hwmon/w83l785ts.c
-+++ b/drivers/hwmon/w83l785ts.c
-@@ -142,7 +142,7 @@ static int w83l785ts_attach_adapter(stru
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
--	return i2c_detect(adapter, &addr_data, w83l785ts_detect);
-+	return i2c_probe(adapter, &addr_data, w83l785ts_detect);
- }
- 
- /*
-diff --git a/drivers/i2c/chips/ds1337.c b/drivers/i2c/chips/ds1337.c
---- a/drivers/i2c/chips/ds1337.c
-+++ b/drivers/i2c/chips/ds1337.c
-@@ -226,7 +226,7 @@ int ds1337_do_command(int bus, int cmd, 
- 
- static int ds1337_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, ds1337_detect);
-+	return i2c_probe(adapter, &addr_data, ds1337_detect);
- }
- 
- /*
-diff --git a/drivers/i2c/chips/eeprom.c b/drivers/i2c/chips/eeprom.c
---- a/drivers/i2c/chips/eeprom.c
-+++ b/drivers/i2c/chips/eeprom.c
-@@ -152,10 +152,10 @@ static struct bin_attribute eeprom_attr 
- 
- static int eeprom_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, eeprom_detect);
-+	return i2c_probe(adapter, &addr_data, eeprom_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
-diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
---- a/drivers/i2c/chips/max6875.c
-+++ b/drivers/i2c/chips/max6875.c
-@@ -161,10 +161,10 @@ static struct bin_attribute user_eeprom_
- 
- static int max6875_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, max6875_detect);
-+	return i2c_probe(adapter, &addr_data, max6875_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- static int max6875_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *real_client;
-diff --git a/drivers/i2c/chips/pca9539.c b/drivers/i2c/chips/pca9539.c
---- a/drivers/i2c/chips/pca9539.c
-+++ b/drivers/i2c/chips/pca9539.c
-@@ -108,10 +108,10 @@ static struct attribute_group pca9539_de
- 
- static int pca9539_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, pca9539_detect);
-+	return i2c_probe(adapter, &addr_data, pca9539_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- static int pca9539_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
-diff --git a/drivers/i2c/chips/pcf8574.c b/drivers/i2c/chips/pcf8574.c
---- a/drivers/i2c/chips/pcf8574.c
-+++ b/drivers/i2c/chips/pcf8574.c
-@@ -112,10 +112,10 @@ static DEVICE_ATTR(write, S_IWUSR | S_IR
- 
- static int pcf8574_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, pcf8574_detect);
-+	return i2c_probe(adapter, &addr_data, pcf8574_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- int pcf8574_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
-diff --git a/drivers/i2c/chips/pcf8591.c b/drivers/i2c/chips/pcf8591.c
---- a/drivers/i2c/chips/pcf8591.c
-+++ b/drivers/i2c/chips/pcf8591.c
-@@ -163,10 +163,10 @@ static DEVICE_ATTR(out0_enable, S_IWUSR 
-  */
- static int pcf8591_attach_adapter(struct i2c_adapter *adapter)
- {
--	return i2c_detect(adapter, &addr_data, pcf8591_detect);
-+	return i2c_probe(adapter, &addr_data, pcf8591_detect);
- }
- 
--/* This function is called by i2c_detect */
-+/* This function is called by i2c_probe */
- int pcf8591_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
+ /* Detect function. It iterates over all possible addresses itself. For
 
