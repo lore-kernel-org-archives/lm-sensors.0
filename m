@@ -1,7 +1,7 @@
-From: phil@netroedge.com (Philip Edelbrock)
-Date: Tue, 06 Sep 2005 22:16:48 +0000
+From: brix@gentoo.org (Henrik Brix Andersen)
+Date: Tue, 06 Sep 2005 23:33:46 +0000
 Subject: [lm-sensors] Call for 2.9.2
-Message-Id: <15E332FA-1BB3-4528-B68B-0E647CD13B7E@netroedge.com>
+Message-Id: <1126042383.13666.2.camel@sponge.fungus>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050716170208.7c1f7e3d.khali@linux-fr.org>
 In-Reply-To: <20050716170208.7c1f7e3d.khali@linux-fr.org>
@@ -10,17 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Tue, 2005-09-06 at 13:16 -0700, Philip Edelbrock wrote:
+> Whew!  OK, done. MDS, you can do the Freshmeat announce if you wish.
 
-On Sep 6, 2005, at 12:16 PM, Jean Delvare wrote:
+I've added ebuilds for lm_sensors-2.9.2 and i2c-2.9.2 to Gentoo Portage.
 
->
->
-> Philip, the next steps are up to you: bump the library version to  
-> 3.0.9,
-> and release!
-
-Whew!  OK, done. MDS, you can do the Freshmeat announce if you wish.
-
-
-Phil
-
+Regards,
+Brix
+-- 
+Henrik Brix Andersen <brix@gentoo.org>
+Gentoo Metadistribution | Mobile computing herd
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 189 bytes
+Desc: This is a digitally signed message part
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050906/44a49e12/attachment-0001.bin
