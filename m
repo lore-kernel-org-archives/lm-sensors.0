@@ -1,29 +1,111 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Mon, 05 Sep 2005 01:37:58 +0000
-Subject: [lm-sensors] Re: RFC PATCH patch-13-mm1-hwmon-adm9240-whitespace-1
-Message-Id: <e41nh1ht18p7dheui6dis7s0ug72krn4pi@4ax.com>
+From: vandrove@vc.cvut.cz (Petr Vandrovec)
+Date: Wed, 07 Sep 2005 20:15:02 +0000
+Subject: [lm-sensors] [PATCH] Request only really used I/O ports in w83627hf
+Message-Id: <20050907181415.GA468@vana.vc.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <uvhkh19nggg4s7rv03ab6tetdu06jlmk42@4ax.com>
-In-Reply-To: <uvhkh19nggg4s7rv03ab6tetdu06jlmk42@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Sun, 4 Sep 2005 13:29:09 +0200, Jean Delvare <khali@linux-fr.org> wrote:
->
->> > Are you referring to Yani Ioannou's dynamic sysfs callbacks? That
->> > would be very welcome, thanks for looking into that.
->> 
->> Yes, it finally seems to have settled some?
->
->Yes it has. There are 6 drivers converted already (lm63, lm83, lm90,
->it87, adm1026 and w83792d) and one more in the works (pc87360.)
->Considering the size shrink and code readability improvement that was
->obtained each time, converting more drivers is very welcome.
+Hello,
+  my motherboard (Tyan S2885) reports range 295-296 in its PNP hardware
+descriptors, and due to this w83627hf driver fails to load, as it requests
+290-297 range, which is not subrange of this PNP resource.  As hardware 
+monitor chip responds to 295/296 addresses only, there is no reason to 
+request full 8 byte I/O.
 
-Okay, I can work on and test lm78 and W83697HF drivers as well then.
+  While I was doing that, I also changed W83781D_*_REG_OFFSET definitions
+from 5/6 to 0/1.  Code is a bit smaller after doing that, and it looks
+better now since we do not allocate full 8 byte range.
 
-Thanks,
-Grant
+  cat /proc/ioports is now much happier and monitor finally works.
+...
+0295-0296 : pnp 00:09
+  0295-0296 : w83627hf
+...
 
+						Thanks,
+							Petr Vandrovec
+
+Signed-off-by:  Petr Vandrovec <vandrove@vc.cvut.cz>
+
+
+diff -urN linux-2.6.13-5bca.dist/drivers/hwmon/w83627hf.c linux-2.6.13-5bca/drivers/hwmon/w83627hf.c
+--- linux-2.6.13-5bca.dist/drivers/hwmon/w83627hf.c     2005-09-06 13:50:03.000000000 +0200
++++ linux-2.6.13-5bca/drivers/hwmon/w83627hf.c  2005-09-07 19:54:08.000000000 +0200
+@@ -138,12 +138,16 @@
+ #define WINB_BASE_REG 0x60
+ /* Constants specified below */
+ 
+-/* Length of ISA address segment */
+-#define WINB_EXTENT 8
++/* Alignment of ISA address */
++#define WINB_ALIGNMENT		~7
+ 
+-/* Where are the ISA address/data registers relative to the base address */
+-#define W83781D_ADDR_REG_OFFSET 5
+-#define W83781D_DATA_REG_OFFSET 6
++/* Offset & size of I/O region we are interested in */
++#define WINB_REGION_OFFSET	5
++#define WINB_REGION_SIZE	2
++
++/* Where are the ISA address/data registers relative to the region start */
++#define W83781D_ADDR_REG_OFFSET 0
++#define W83781D_DATA_REG_OFFSET 1
+ 
+ /* The W83781D registers */
+ /* The W83782D registers for nr=7,8 are in bank 5 */
+@@ -977,7 +981,7 @@
+ 	superio_select(W83627HF_LD_HWM);
+ 	val = (superio_inb(WINB_BASE_REG) << 8) |
+ 	       superio_inb(WINB_BASE_REG + 1);
+-	*addr = val & ~(WINB_EXTENT - 1);
++	*addr = val & WINB_ALIGNMENT;
+ 	if (*addr = 0 && force_addr = 0) {
+ 		superio_exit();
+ 		return -ENODEV;
+@@ -994,11 +998,13 @@
+ 	struct w83627hf_data *data;
+ 	int err = 0;
+ 	const char *client_name = "";
++	unsigned short addr;
+ 
+ 	if(force_addr)
+-		address = force_addr & ~(WINB_EXTENT - 1);
++		address = force_addr & WINB_ALIGNMENT;
++	addr = address + WINB_REGION_OFFSET;
+ 
+-	if (!request_region(address, WINB_EXTENT, w83627hf_driver.name)) {
++	if (!request_region(addr, WINB_REGION_SIZE, w83627hf_driver.name)) {
+ 		err = -EBUSY;
+ 		goto ERROR0;
+ 	}
+@@ -1045,7 +1051,7 @@
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+-	new_client->addr = address;
++	new_client->addr = addr;
+ 	init_MUTEX(&data->lock);
+ 	new_client->adapter = adapter;
+ 	new_client->driver = &w83627hf_driver;
+@@ -1144,7 +1150,7 @@
+       ERROR2:
+ 	kfree(data);
+       ERROR1:
+-	release_region(address, WINB_EXTENT);
++	release_region(addr, WINB_REGION_SIZE);
+       ERROR0:
+ 	return err;
+ }
+@@ -1159,7 +1165,7 @@
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
+-	release_region(client->addr, WINB_EXTENT);
++	release_region(client->addr, WINB_REGION_SIZE);
+ 	kfree(data);
+ 
+ 	return 0;
