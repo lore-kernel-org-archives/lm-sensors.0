@@ -1,111 +1,57 @@
-From: vandrove@vc.cvut.cz (Petr Vandrovec)
-Date: Wed, 07 Sep 2005 20:15:02 +0000
-Subject: [lm-sensors] [PATCH] Request only really used I/O ports in w83627hf
-Message-Id: <20050907181415.GA468@vana.vc.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 07 Sep 2005 21:07:49 +0000
+Subject: [lm-sensors] Re: [PATCH] Request only really used I/O ports in
+Message-Id: <20050907210753.3dbad61b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050907181415.GA468@vana.vc.cvut.cz>
+In-Reply-To: <20050907181415.GA468@vana.vc.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Petr Vandrovec <vandrove@vc.cvut.cz>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hello,
-  my motherboard (Tyan S2885) reports range 295-296 in its PNP hardware
-descriptors, and due to this w83627hf driver fails to load, as it requests
-290-297 range, which is not subrange of this PNP resource.  As hardware 
-monitor chip responds to 295/296 addresses only, there is no reason to 
-request full 8 byte I/O.
+Hi Petr,
 
-  While I was doing that, I also changed W83781D_*_REG_OFFSET definitions
-from 5/6 to 0/1.  Code is a bit smaller after doing that, and it looks
-better now since we do not allocate full 8 byte range.
+> my motherboard (Tyan S2885) reports range 295-296 in its PNP hardware
+> descriptors, and due to this w83627hf driver fails to load, as it
+> requests 290-297 range, which is not subrange of this PNP resource. 
+> As hardware monitor chip responds to 295/296 addresses only, there is
+> no reason to request full 8 byte I/O.
 
-  cat /proc/ioports is now much happier and monitor finally works.
-...
-0295-0296 : pnp 00:09
-  0295-0296 : w83627hf
-...
+Another point of view would be: as the physical address of the chip is
+0x290-0x297, there is no reason to even think of requesting a different
+range. And there is a very valid reason to request the full 8 byte I/O
+range: to let the user know that this range is not available for other
+devices. Mapping another device to the unused I/O ports of the W83627HF
+would not work, right? Also consider that future chips of this family
+could use additional ports.
 
-						Thanks,
-							Petr Vandrovec
+The cause of your trouble is, IMVHO, a buggy BIOS. Ask Tyan to fix their
+BIOS to allocate the real I/O range to the W83627HF chip, and you're
+done.
 
-Signed-off-by:  Petr Vandrovec <vandrove@vc.cvut.cz>
+http://bugzilla.kernel.org/show_bug.cgi?id@14
 
+Your fix might come in handy for your own situation, but it looks wrong
+in the long run. We are not going to shrink the requested I/O range of
+every random driver each time a motherboard manufacturer releases a
+buggy BIOS.
 
-diff -urN linux-2.6.13-5bca.dist/drivers/hwmon/w83627hf.c linux-2.6.13-5bca/drivers/hwmon/w83627hf.c
---- linux-2.6.13-5bca.dist/drivers/hwmon/w83627hf.c     2005-09-06 13:50:03.000000000 +0200
-+++ linux-2.6.13-5bca/drivers/hwmon/w83627hf.c  2005-09-07 19:54:08.000000000 +0200
-@@ -138,12 +138,16 @@
- #define WINB_BASE_REG 0x60
- /* Constants specified below */
- 
--/* Length of ISA address segment */
--#define WINB_EXTENT 8
-+/* Alignment of ISA address */
-+#define WINB_ALIGNMENT		~7
- 
--/* Where are the ISA address/data registers relative to the base address */
--#define W83781D_ADDR_REG_OFFSET 5
--#define W83781D_DATA_REG_OFFSET 6
-+/* Offset & size of I/O region we are interested in */
-+#define WINB_REGION_OFFSET	5
-+#define WINB_REGION_SIZE	2
-+
-+/* Where are the ISA address/data registers relative to the region start */
-+#define W83781D_ADDR_REG_OFFSET 0
-+#define W83781D_DATA_REG_OFFSET 1
- 
- /* The W83781D registers */
- /* The W83782D registers for nr=7,8 are in bank 5 */
-@@ -977,7 +981,7 @@
- 	superio_select(W83627HF_LD_HWM);
- 	val = (superio_inb(WINB_BASE_REG) << 8) |
- 	       superio_inb(WINB_BASE_REG + 1);
--	*addr = val & ~(WINB_EXTENT - 1);
-+	*addr = val & WINB_ALIGNMENT;
- 	if (*addr = 0 && force_addr = 0) {
- 		superio_exit();
- 		return -ENODEV;
-@@ -994,11 +998,13 @@
- 	struct w83627hf_data *data;
- 	int err = 0;
- 	const char *client_name = "";
-+	unsigned short addr;
- 
- 	if(force_addr)
--		address = force_addr & ~(WINB_EXTENT - 1);
-+		address = force_addr & WINB_ALIGNMENT;
-+	addr = address + WINB_REGION_OFFSET;
- 
--	if (!request_region(address, WINB_EXTENT, w83627hf_driver.name)) {
-+	if (!request_region(addr, WINB_REGION_SIZE, w83627hf_driver.name)) {
- 		err = -EBUSY;
- 		goto ERROR0;
- 	}
-@@ -1045,7 +1051,7 @@
- 
- 	new_client = &data->client;
- 	i2c_set_clientdata(new_client, data);
--	new_client->addr = address;
-+	new_client->addr = addr;
- 	init_MUTEX(&data->lock);
- 	new_client->adapter = adapter;
- 	new_client->driver = &w83627hf_driver;
-@@ -1144,7 +1150,7 @@
-       ERROR2:
- 	kfree(data);
-       ERROR1:
--	release_region(address, WINB_EXTENT);
-+	release_region(addr, WINB_REGION_SIZE);
-       ERROR0:
- 	return err;
- }
-@@ -1159,7 +1165,7 @@
- 	if ((err = i2c_detach_client(client)))
- 		return err;
- 
--	release_region(client->addr, WINB_EXTENT);
-+	release_region(client->addr, WINB_REGION_SIZE);
- 	kfree(data);
- 
- 	return 0;
+If getting the manufacturers to provide fixed BIOSes doesn't seem to be
+feasable, then the PNPACPI code certainly needs to be extended to handle
+this case transparently. This could be achived using quirks similar to
+what we have for PCI, or PNPACPI could simply accept requests of I/O
+ranges which include a single PNP range as defined by the BIOS. Note
+that everything was working just fine for everyone before PNPACPI was
+added to the kernel.
+
+> While I was doing that, I also changed W83781D_*_REG_OFFSET definitions
+> from 5/6 to 0/1.  Code is a bit smaller after doing that, and it looks
+> better now since we do not allocate full 8 byte range.
+
+I find this change rather confusing myself, and it makes the code
+bigger, not smaller.
+
+-- 
+Jean Delvare
