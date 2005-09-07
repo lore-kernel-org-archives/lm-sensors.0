@@ -1,7 +1,7 @@
 From: jim.cromie@gmail.com (Jim Cromie)
-Date: Thu, 01 Sep 2005 00:29:29 +0000
-Subject: [lm-sensors] [patch 0/2] pc87360 SDA-Array - readme - (resend w
-Message-Id: <200508312228.j7VMSadj008356@harpo.jimc.earth>
+Date: Wed, 07 Sep 2005 07:25:36 +0000
+Subject: [lm-sensors] [patch 1/2] pc87360 dynamic sysfs attr arrays -
+Message-Id: <200509070524.j875OOJ2013025@harpo.jimc.earth>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,87 +9,51 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-This patch set applies on top of:
+split SENSOR_DEVICE_ATTR* into 2 parts: SENSOR_DEVICE_ATTR*, which
+declares the struct sensor_device_attribute variable and initializes
+it to the value of __SENSOR_DEVICE_ATTR*, which expands to an
+initialization expression.
 
-  2.6.13
-  + http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-02-i2c-2.6.13.patch
-  + my previous i2c-pc87360-sda-* patchset
-
-
-These 2 patches are the culmination of my previous patchset - but are
-seen as more controversial -- insofar that they set a direction for
-other work.  They therefore warrant a separate patchset, and extra
-scrutiny to insure that they go someplace good.
-
-To support my explicit array-declare+init approach, Ive dug up this
-citation 
-
-http://groups.google.com/group/linux.kernel/browse_frm/thread/fa10a47a3c843d08/2a1465afa2f83afe?q=dynamic+sysfs+callbacks&rnum&hl=en#2a1465afa2f83afe
-
-(msg 9 in thread, from GregKH):
-
-No, I hate HEAD and TAIL macros.  This really isn't buying you much code
-savings, you could do it yourself with the __ATTR() macro yourself with
-the same ammount of code I bet... 
-
-(msg 11, also Greg)
-
-Hm, which makes me want to go look at trying to convert those attributes
-to an array right now...
-
-So I went with it..
-
-
-
-01.	i2c-pc87360-sda-array-01-hwmon-sysfs-array-init.patch
-
-This patch refactors SENSOR_DEVICE_ATTR macro.  1st it creates a new
-macro __SENSOR_DEVICE_ATTR() which expands to an initialization
-expression, then it uses that in SENSOR_DEVICE_ATTR, which declares
-and initializes a struct sensor_device_attribute.
-
-The split allows use of the initialization expression separately, in
-array declaration/initializations, as done in following patch.
-
-__SENSOR_DEVICE_ATTR() imitates __ATTR in include/linux/device.h
-
-
-
-02.	i2c-pc87360-sda-array-02-array-init-loop.patch
-
-With __SENSOR_DEVICE_ATTR's defined by 05, we now use them to
-initialize a whole array of struct sensor_device_attributes.  This
-allows us to loop over the array, and call device_create_file() for
-each element.
-
-The 'skews' are now expressed in 2 of __SENSOR_DEVICE_ATTR's args; 1st
-arg is sysfs-label, often starting at 1_, last arg is index, always 0
-except for therm-units, which are using VLMs 11,12,13, and hence have
-a +11 term in them.
-
-
-[jimc@harpo pset-pc87360-sda-array]$ diffstat i2c-pc87360-sda-array-0*
- D-1/include/linux/hwmon-sysfs.h |   20 +-
- D-2/drivers/hwmon/pc87360.c     |  347 ++++++++++++++++++----------------------
- 2 files changed, 175 insertions(+), 192 deletions(-)
-
-
-and non-debug module sizes:
-
-[jimc@harpo i2c-stuff]$ ll D-*/drivers/hwmon/pc87360.ko
--rw-rw-r--  1 jimc jimc 157856 Aug 31 13:04 D-1/drivers/hwmon/pc87360.ko
--rw-rw-r--  1 jimc jimc 143256 Aug 31 13:05 D-2/drivers/hwmon/pc87360.ko
-
-
-
-
-The 2 patches each incrementally; apply and compile clean, and pass
-this cursory test: 
-	rmmod pc87360; 
-	make modules_install; 
-	modprobe pc87360;
-	sensors -s; 
-	sensors
-
-
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+diff -ruNp -X exclude-diffs jd1-3/include/linux/hwmon-sysfs.h sda-array-1/include/linux/hwmon-sysfs.h
+--- jd1-3/include/linux/hwmon-sysfs.h	2005-08-31 06:54:51.000000000 -0600
++++ sda-array-1/include/linux/hwmon-sysfs.h	2005-09-04 20:02:31.000000000 -0600
+@@ -27,12 +27,16 @@ struct sensor_device_attribute{
+ #define to_sensor_dev_attr(_dev_attr) \
+ 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+ 
+-#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
+-struct sensor_device_attribute sensor_dev_attr_##_name = {	\
+-	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
++#define __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
++{	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
+ 	.index =	_index,					\
+ }
+ 
++#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
++struct sensor_device_attribute sensor_dev_attr_##_name  	\
++	= __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
++
++
+ struct sensor_device_attribute_2 {
+ 	struct device_attribute dev_attr;
+ 	u8 index;
+@@ -41,11 +45,15 @@ struct sensor_device_attribute_2 {
+ #define to_sensor_dev_attr_2(_dev_attr) \
+ 	container_of(_dev_attr, struct sensor_device_attribute_2, dev_attr)
+ 
+-#define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
+-struct sensor_device_attribute_2 sensor_dev_attr_##_name = {	\
+-	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
++#define __SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
++{	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
+ 	.index =	_index,					\
+ 	.nr =		_nr,					\
+ }
+ 
++#define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
++struct sensor_device_attribute_2 sensor_dev_attr_##_name 		\
++	= __SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)
++
++
+ #endif /* _LINUX_HWMON_SYSFS_H */
