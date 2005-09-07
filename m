@@ -1,56 +1,62 @@
-From: dmitry.torokhov@gmail.com (Dmitry Torokhov)
-Date: Wed, 14 Sep 2005 01:24:33 +0000
-Subject: [lm-sensors] [PATCH] updated hdaps driver.
-Message-Id: <d120d50005091316235912bcf9@mail.gmail.com>
+From: rhirst@levanta.com (Richard Hirst)
+Date: Wed, 07 Sep 2005 23:36:58 +0000
+Subject: [lm-sensors] i801_smbus 0000:00:1f.3: Bus collision!
+Message-Id: <20050907213603.GW8392@levanta.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1126555518797@kroah.com>
-In-Reply-To: <1126555518797@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 9/12/05, Greg KH <gregkh@suse.de> wrote:
+This is on an Intel motherboard running an FC3 2.6.10-1.766.FC3smp
+kernel with these additional patches:
 
-> +static void hdaps_mousedev_enable(void)
-> +{
-> +       down(&hdaps_sem);
-> +
-> +       /* calibrate the device before enabling */
-> +       hdaps_calibrate();
-> +
-> +       /* initialize the input class */
-> +       init_input_dev(&hdaps_idev);
-> +       hdaps_idev.dev = &pdev->dev;
-> +       hdaps_idev.evbit[0] = BIT(EV_KEY) | BIT(EV_REL);
-> +       hdaps_idev.relbit[0] = BIT(REL_X) | BIT(REL_Y);
-> +       hdaps_idev.keybit[LONG(BTN_LEFT)] = BIT(BTN_LEFT);
-> +       input_register_device(&hdaps_idev);
-> +
+linux-ipmi-2.6.10-base.diff
+linux-i2c-2.6.10-nonblock.diff
+linux-i2c-2.6.10-i801_nonblock.diff
+linux-ipmi-2.6.10-smb.diff
+patch-linux-2.6.11.5-bmcsensors.diff
 
-I do not see the device ever reporting BTN_LEFT, why is its presence advertised?
+The board has an mBMC which is basically working in that I can read
+the sensors either by 'ipmitool' or 'sensors'.
 
-> +
-> +/*
-> + * hdaps_mousedev_disable - disable the input class device.  Caller must hold
-> + * hdaps_sem.
-> + */
-> +static void hdaps_mousedev_disable(void)
-> +{
-> +       down(&hdaps_sem);
+However, round about every 10 reboots or so, I get the Bus collision
+message and the system locks up solid during boot after outputting a
+few messages such as
 
-Bad comment. The function itself holds the semaphore.
+i801_smbus 0000:00:1f.3: Bus collision!
+i801_smbus 0000:00:1f.3: Reset failed! (01)
+i801_smbus 0000:00:1f.3: Reset failed! (01)
+i801_smbus 0000:00:1f.3: Reset failed! (01)
+bmcsensors.o: Error 0xff on cmd 0xa/0x23; state = 2; probably fatal.
+i801_smbus 0000:00:1f.3: Reset failed! (01)
+i801_smbus 0000:00:1f.3: Reset failed! (01)
+i801_smbus 0000:00:1f.3: Reset failed! (01)
 
-> +
-> +       if (hdaps_mousedev)
-> +               hdaps_mousedev_enable();
-> +
 
-Please consider converting the input device to an absolute device
-(reporting ABS_X/ABS_Y). This way it will be bound to a joystick
-interface (/dev/input/jsX) and won't mess your /dev/input/mice so you
-won't have to fiddle with enabling/disabling and will be able to have
-the device turned on unconditionally.
+I'm assuming this indicates that two things have tried to use the
+i2c bus at the same time, and I guess one of them is the bmcsensors
+code.
 
--- 
-Dmitry
+I also tried adding code to check 'd->in_use' at the beginning of
+i801_start() because it looked to me like in_use should perhaps
+normally be zero at that point.  Don't know if that is valid, but
+I did get a few indications of i801_start() getting called with
+d->in_use non-zero.
+
+It's a single cpu box with hyperthreading, running an SMP kernel.
+
+Anyway,
+
+a) has anyone else seen problems like this?
+
+b) is it a known problem that is likely fixed in later code?
+
+c) could it be a bug triggered by the SMP kernel?
+
+d) any suggestions as to where I go from here ;-)
+
+
+Thanks,
+  Richard
+
