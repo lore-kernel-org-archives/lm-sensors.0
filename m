@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 07 Sep 2005 09:09:31 +0000
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Wed, 07 Sep 2005 10:09:19 +0000
 Subject: [lm-sensors] lm78 on ep-61lxa-m not detected (#2042)
-Message-Id: <kbE7sU4c.1126076480.7374120.khali@localhost>
+Message-Id: <d77th1d7tsa9r3jil6gfe0nlri4olqn9dk@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <lcdlh19r75vv5je60he27tap49ggekrvfu@4ax.com>
 In-Reply-To: <lcdlh19r75vv5je60he27tap49ggekrvfu@4ax.com>
@@ -10,22 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Wed, 7 Sep 2005 09:01:20 +0200 (CEST), "Jean Delvare" <khali@linux-fr.org> wrote:
+>
+>OK, that's great, but I still would like the output of:
+>isadump -y -f 0x290 8
 
-Hi Grant,
+Hi Jean,
 
-> root@silly:~# modprobe i2c_isa
-> root@silly:~# sensors
-> lm78-isa-0290
-> Adapter: ISA adapter
-> VCore 1:   +2.03 V  (min =  +0.13 V, max =  +0.77 V)   ALARM
-> (...)
+# isadump -y -f 0x290 8
+Error: Invalid range!
+Hint: Must be a multiple of 16 no greater than 256.
+Syntax for I2C-like access:
+  isadump [-y] [-k V1,V2...] ADDRREG DATAREG [BANK [BANKREG]]
+Syntax for flat address space:
+  isadump [-y] -f ADDRESS [RANGE [BANK [BANKREG]]]
 
-OK, that's great, but I still would like the output of:
-isadump -y -f 0x290 8
 
-So that we can fix the misdetection problem and you don't have to use
-the force parameter in future revisions of the driver.
+# isadump -y -f 0x290 16
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 01 ff ff 00 00 00 1a 80 ff ff ff ff 00 00 00 00
 
-Thanks,
---
-Jean Delvare
+I also confirmed 2.9.2 sensors-detect has same behaviour as 2.9.1.
+
+Cheers,
+Grant.
