@@ -1,98 +1,149 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:30 +0000
-Subject: [lm-sensors] [PATCH] I2C: cleanup of i2c-nforce2
-Message-Id: <11259567643583@kroah.com>
+From: vandrove@vc.cvut.cz (Petr Vandrovec)
+Date: Wed, 07 Sep 2005 20:27:28 +0000
+Subject: [lm-sensors] [PATCH] Add code for completely disabling I2C
+Message-Id: <20050907182653.GB468@vana.vc.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-[PATCH] I2C: cleanup of i2c-nforce2
+Hello,
+  While getting w83627hf driver to work on Tyan Thunder K7 (BIOS disables
+hardware monitoring and forwards only addresses 0xC00 - 0xDFF to the LPC,
+so force_address's value must be in this range...) I've noticed that it
+is possible to completely disable I2C interface on the w83627hf chip
+(BIOS left chip in this state...; other three chips supported by w83627hf 
+do not have I2C interface at all).  So this code does that - by default 
+it disables w83627hf's I2C interface by switching these pins from I2C 
+to the input GPIO pins.  This is sufficient to stop chip from being 
+accessible through I2C bus, and as there are no I2C devices on chip, 
+it seems like right thing to do, instead of programming chip with I2C 
+address 0x1F.
 
-attached is a small patch that removes unused code from i2c-nforce2 and
-adds a single debug message. The patch is against 2.6.13-rc3-mm1.
-I have tested the patch with 2.6.13-rc3: compiles cleanly and works as
-without the patch (as expected).
+  I've tested this on w83627hf in Tyan Thunder K7 and Tyan S2885, and
+with w83627thf in Asus A8V.  I have no computer with w637hf & w697hf
+chips, but their datasheets suggest that they do not have I2C bus like
+w627thf, so there should be no problem.
 
-Signed-off-by: Hans-Frieder Vogt <hfvogt@arcor.de>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+  To revert to old behavior it is still possible to use force_i2c=0x1F,
+but note that driver does not reenable i2c bus under any circumstances,
+so if you want to reenable i2c you have to clear bits 7,6 in GPIO2_MUX_REG
+manually.
 
----
-commit 5033017c2678df9dc75be0139f19701ff224a498
-tree 8be76d0a5c08d37230ecd66c06d08d39650b4d31
-parent a8decc658a8800e61f13b9240125f2a34d7fd3f5
-author Hans-Frieder Vogt <hfvogt@gmx.net> Sat, 23 Jul 2005 15:33:39 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:04 -0700
+  Although watchdog driver (w83627hf_wdt) uses GPIO2 bank too (and enables 
+it), there is no problem, as when GPIO2 logical device is going from 
+disabled to enabled state, it automatically sets direction for all GPIO2 pins
+to input, exactly in the way we want, and watchdog driver itself does
+not touch GPIO2 pins at all.
+							Thanks,
+								Petr Vandrovec
 
- drivers/i2c/busses/i2c-nforce2.c |   31 +++----------------------------
- 1 files changed, 3 insertions(+), 28 deletions(-)
+Signed-off-by: Petr Vandrovec <vandrove@vc.cvut.cz>
 
-diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
---- a/drivers/i2c/busses/i2c-nforce2.c
-+++ b/drivers/i2c/busses/i2c-nforce2.c
-@@ -131,7 +131,6 @@ static s32 nforce2_access(struct i2c_ada
- 	struct nforce2_smbus *smbus = adap->algo_data;
- 	unsigned char protocol, pec, temp;
- 	unsigned char len = 0; /* to keep the compiler quiet */
--	int timeout = 0;
- 	int i;
+
+diff -urN linux-2.6.13-5bca.dist/drivers/hwmon/w83627hf.c linux-2.6.13-5bca/drivers/hwmon/w83627hf.c
+--- linux-2.6.13-5bca.dist/drivers/hwmon/w83627hf.c     2005-09-06 13:50:03.000000000 +0200
++++ linux-2.6.13-5bca/drivers/hwmon/w83627hf.c  2005-09-07 19:54:08.000000000 +0200
+@@ -25,7 +25,7 @@
+     Supports following chips:
  
- 	protocol = (read_write = I2C_SMBUS_READ) ? NVIDIA_SMB_PRTCL_READ :
-@@ -191,29 +190,10 @@ static s32 nforce2_access(struct i2c_ada
- 		case I2C_SMBUS_PROC_CALL:
- 			dev_err(&adap->dev, "I2C_SMBUS_PROC_CALL not supported!\n");
- 			return -1;
--			/*
--			outb_p(command, NVIDIA_SMB_CMD);
--			outb_p(data->word, NVIDIA_SMB_DATA);
--			outb_p(data->word >> 8, NVIDIA_SMB_DATA + 1);
--			protocol = NVIDIA_SMB_PRTCL_PROC_CALL | pec;
--			read_write = I2C_SMBUS_READ;
--			break;
--			 */
+     Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
+-    w83627hf	9	3	2	3	0x20	0x5ca3	no	yes(LPC)
++    w83627hf	9	3	2	3	0x20	0x5ca3	yes	yes(LPC)
+     w83627thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
+     w83637hf	7	3	3	3	0x80	0x5ca3	no	yes(LPC)
+     w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
+@@ -53,8 +53,8 @@
+ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the sensors");
+-static u8 force_i2c = 0x1f;
+-module_param(force_i2c, byte, 0);
++static s16 force_i2c = -1;
++module_param(force_i2c, short, 0);
+ MODULE_PARM_DESC(force_i2c,
+ 		 "Initialize the i2c address of the sensors");
  
- 		case I2C_SMBUS_BLOCK_PROC_CALL:
- 			dev_err(&adap->dev, "I2C_SMBUS_BLOCK_PROC_CALL not supported!\n");
- 			return -1;
--			/*
--			protocol |= pec;
--			len = min_t(u8, data->block[0], 31);
--			outb_p(command, NVIDIA_SMB_CMD);
--			outb_p(len, NVIDIA_SMB_BCNT);
--			for (i = 0; i < len; i++)
--				outb_p(data->block[i + 1], NVIDIA_SMB_DATA + i);
--			protocol = NVIDIA_SMB_PRTCL_BLOCK_PROC_CALL | pec;
--			read_write = I2C_SMBUS_READ;
--			break;
--			*/
+@@ -134,8 +134,10 @@
+ #define W627THF_DEVID 0x82
+ #define W697_DEVID 0x60
+ #define W637_DEVID 0x70
+-#define WINB_ACT_REG 0x30
+-#define WINB_BASE_REG 0x60
++#define WINB_ACT_REG		0x30	/* Common for all banks */
++#define WINB_BASE_REG		0x60	/* Common for all banks */
++#define WINB_GPIO2_MUX_REG	0x2B	/* Not banked */
++#define WINB_GPIO2_DIR_REG	0xF0	/* In LD_GPIO2 bank */
+ /* Constants specified below */
  
- 		case I2C_SMBUS_WORD_DATA_PEC:
- 		case I2C_SMBUS_BLOCK_DATA_PEC:
-@@ -232,12 +212,6 @@ static s32 nforce2_access(struct i2c_ada
- 
- 	temp = inb_p(NVIDIA_SMB_STS);
- 
--#if 0
--	do {
--		i2c_do_pause(1);
--		temp = inb_p(NVIDIA_SMB_STS);
--	} while (((temp & NVIDIA_SMB_STS_DONE) = 0) && (timeout++ < MAX_TIMEOUT));
--#endif
- 	if (~temp & NVIDIA_SMB_STS_DONE) {
- 		udelay(500);
- 		temp = inb_p(NVIDIA_SMB_STS);
-@@ -247,9 +221,10 @@ static s32 nforce2_access(struct i2c_ada
- 		temp = inb_p(NVIDIA_SMB_STS);
+ /* Alignment of ISA address */
+@@ -1035,7 +1037,7 @@
  	}
  
--	if ((timeout >= MAX_TIMEOUT) || (~temp & NVIDIA_SMB_STS_DONE)
--		|| (temp & NVIDIA_SMB_STS_STATUS))
-+	if ((~temp & NVIDIA_SMB_STS_DONE) || (temp & NVIDIA_SMB_STS_STATUS)) {
-+		dev_dbg(&adap->dev, "SMBus Timeout! (0x%02x)\n", temp);
- 		return -1;
+ 	superio_select(W83627HF_LD_HWM);
+-	if((val = 0x01 & superio_inb(WINB_ACT_REG)) = 0)
++	if((superio_inb(WINB_ACT_REG) & 0x01) = 0)
+ 		superio_outb(WINB_ACT_REG, 1);
+ 	superio_exit();
+ 
+@@ -1277,6 +1279,30 @@
+ 	return 0;
+ }
+ 
++/* Invoked with superio extended access enabled. */
++static void w83627hf_disable_i2c(void)
++{
++	int mux;
++
++	/* SCL/SDA pins already GPIO => i2c is (already) disabled, or */
++	/* not connected, or whatever.  Do not touch.                 */
++	mux = superio_inb(WINB_GPIO2_MUX_REG);
++	if ((mux & 0xC0) = 0xC0)
++		return;
++	superio_select(W83627HF_LD_GPIO2);
++	/* If GPIO2 function is disabled, GPIO2 pins are always input and */
++	/*   GPIO2 direction configuration register is hardwired to 0xFF. */
++	/* If GPIO2 function is enabled, GPIO2 pins are bidirectional and */
++	/*   GPIO2 direction configuration register matters.              */
++	if (superio_inb(WINB_ACT_REG) & 0x01) {
++		/* Switch GPIO21 (mux with SCL) & GPIO22 (SDA) pins to input. */
++		int dir = superio_inb(WINB_GPIO2_DIR_REG);
++		superio_outb(WINB_GPIO2_DIR_REG, dir | 0x06);
++	}
++	/* Select GPIO functionality on GPIO21/SCL & GPIO22/SDA pins. */
++	superio_outb(WINB_GPIO2_MUX_REG, mux | 0xC0);
++}
++
+ /* Called when we have found a new W83781D. It should set limits, etc. */
+ static void w83627hf_init_client(struct i2c_client *client)
+ {
+@@ -1300,11 +1326,23 @@
+ 		w83627hf_write_value(client, W83781D_REG_BEEP_INTS2, 0);
+ 	}
+ 
+-	/* Minimize conflicts with other winbond i2c-only clients...  */
+-	/* disable i2c subclients... how to disable main i2c client?? */
+-	/* force i2c address to relatively uncommon address */
++	/* Minimize conflicts with other winbond i2c-only clients... */
++	/* disable i2c subclients... and either force main client to */
++	/* relatively uncommon address, or disable i2c interface     */
++	/* completely.   Note that only 627hf has i2c interface, so  */
++	/* there is nothing to disable on other chips - but as we    */
++	/* were touching these reserved registers for years and      */
++	/* nothing exploded, let's continue doing that.              */
+ 	w83627hf_write_value(client, W83781D_REG_I2C_SUBADDR, 0x89);
+-	w83627hf_write_value(client, W83781D_REG_I2C_ADDR, force_i2c);
++	if (force_i2c < 0) {
++		if (w83627hf = data->type) {
++			superio_enter();
++			w83627hf_disable_i2c();
++			superio_exit();
++		}
++	} else {
++		w83627hf_write_value(client, W83781D_REG_I2C_ADDR, force_i2c);
 +	}
  
- 	if (read_write = I2C_SMBUS_WRITE)
- 		return 0;
-
+ 	/* Read VID only once */
+ 	if (w83627hf = data->type || w83637hf = data->type) {
