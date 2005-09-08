@@ -1,43 +1,55 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:49:17 +0000
-Subject: [lm-sensors] [PATCH] I2C: Drop the I2C_ACK_TEST ioctl
-Message-Id: <11259567722697@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 08 Sep 2005 22:42:36 +0000
+Subject: [lm-sensors] [PATCH 2.6] hwmon: fix sis5595,
+Message-Id: <20050908224236.1f2d5d78.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Drop the I2C_ACK_TEST ioctl
+Hi Greg,
 
-Drop the I2C_ACK_TEST ioctl, which was commented out. It never really
-existed (not after 1999 anyway), and there is no such thing as a ack
-test on I2C/SMBus anyway.
+Recent changes to the i2c-isa design broke the force_addr parameter of
+two hardware monitoring drivers as a side effect: sis5595 and via686a.
+The last address test was in fact useless beforehand, and the redesign
+turned it into a bug. I'm sorry about that.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
-commit 77ae84554cc0178e03862391599a0cedf96fa4c4
-tree 8cfd81bdceb3720be7a96084c65019912e8b3e89
-parent 11be27ea9bfd0ea7bca797ba6937285d18d426c2
-author Jean Delvare <khali@linux-fr.org> Sat, 03 Sep 2005 10:52:11 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:56 -0700
+ drivers/hwmon/sis5595.c |    5 -----
+ drivers/hwmon/via686a.c |    5 -----
+ 2 files changed, 10 deletions(-)
 
- include/linux/i2c.h |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -508,9 +508,6 @@ union i2c_smbus_data {
- #define I2C_FUNCS	0x0705	/* Get the adapter functionality */
- #define I2C_RDWR	0x0707	/* Combined R/W transfer (one stop only)*/
- #define I2C_PEC		0x0708	/* != 0 for SMBus PEC                   */
--#if 0
--#define I2C_ACK_TEST	0x0710	/* See if a slave is at a specific address */
--#endif
+--- linux-2.6.13-git7.orig/drivers/hwmon/sis5595.c	2005-09-08 10:42:51.000000000 +0200
++++ linux-2.6.13-git7/drivers/hwmon/sis5595.c	2005-09-08 11:51:46.000000000 +0200
+@@ -758,11 +758,6 @@
+ 		return -ENODEV;
+ 	}
  
- #define I2C_SMBUS	0x0720	/* SMBus-level access */
+-	if (!address) {
+-		dev_err(&dev->dev,"No SiS 5595 sensors found.\n");
+-		return -ENODEV;
+-	}
+-
+ 	s_bridge = pci_dev_get(dev);
+ 	if (i2c_isa_add_driver(&sis5595_driver)) {
+ 		pci_dev_put(s_bridge);
+--- linux-2.6.13-git7.orig/drivers/hwmon/via686a.c	2005-09-08 11:42:22.000000000 +0200
++++ linux-2.6.13-git7/drivers/hwmon/via686a.c	2005-09-08 11:51:37.000000000 +0200
+@@ -812,11 +812,6 @@
+ 		return -ENODEV;
+ 	}
  
+-	if (!address) {
+-		dev_err(&dev->dev, "No Via 686A sensors found.\n");
+-		return -ENODEV;
+-	}
+-
+ 	s_bridge = pci_dev_get(dev);
+ 	if (i2c_isa_add_driver(&via686a_driver)) {
+ 		pci_dev_put(s_bridge);
 
+
+-- 
+Jean Delvare
