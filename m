@@ -1,7 +1,7 @@
-From: rhirst@levanta.com (Richard Hirst)
-Date: Thu, 08 Sep 2005 09:54:23 +0000
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Thu, 08 Sep 2005 16:25:15 +0000
 Subject: [lm-sensors] i801_smbus 0000:00:1f.3: Bus collision!
-Message-Id: <20050908075327.GC8392@levanta.com>
+Message-Id: <2538186705090806563ce902fd@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050907213603.GW8392@levanta.com>
 In-Reply-To: <20050907213603.GW8392@levanta.com>
@@ -10,93 +10,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 07, 2005 at 08:05:53PM -0400, Mark M. Hoffman wrote:
-> Hello Richard:
+On 9/8/05, Richard Hirst <rhirst@levanta.com> wrote:
+
+> > > The board has an mBMC which is basically working in that I can read
+> > > the sensors either by 'ipmitool' or 'sensors'.
+> > >
+> > > However, round about every 10 reboots or so, I get the Bus collision
+> > > message and the system locks up solid during boot after outputting a
+> > > few messages such as
+> > >
+> > > i801_smbus 0000:00:1f.3: Bus collision!
+> > > i801_smbus 0000:00:1f.3: Reset failed! (01)
+> > > i801_smbus 0000:00:1f.3: Reset failed! (01)
+> > > i801_smbus 0000:00:1f.3: Reset failed! (01)
+> > > bmcsensors.o: Error 0xff on cmd 0xa/0x23; state = 2; probably fatal.
+> > > i801_smbus 0000:00:1f.3: Reset failed! (01)
+> > > i801_smbus 0000:00:1f.3: Reset failed! (01)
+> > > i801_smbus 0000:00:1f.3: Reset failed! (01)
+
+The bus collisions are expected - both the IPMI BMC (not bmcsensors
+directly) and the i2c modules you have loaded are competing for the
+smbus. However although I've done this (loaded both bmcsensors and i2c
+modules and got bus collisions) its never resulted in a lockup.
+
+> > > I'm assuming this indicates that two things have tried to use the
+> > > i2c bus at the same time, and I guess one of them is the bmcsensors
+> > > code.
+No, not directly. bmcsensors uses the IPMI messaging interface to send
+out queries to the IPMI BMC which then reads the sensors readings over
+the i2c/smbus (which is sometimes shared with the system).
+
+> > > I also tried adding code to check 'd->in_use' at the beginning of
+> > > i801_start() because it looked to me like in_use should perhaps
+> > > normally be zero at that point.  Don't know if that is valid, but
+> > > I did get a few indications of i801_start() getting called with
+> > > d->in_use non-zero.
+
+The IPMI BMC won't be using the i801 interface driver...its basically
+another computer on your motherboard :), I'd suspect the i2c drivers
+or i801 are causing the system lockup, as Mark says though you
+shouldn't be using both (but it shouldn't lockup IHMO).
+ 
+> OK; at the point where it dies I certianly havn't used ipmitool.
+> Not sure if startup scripts have used sensors or not.
+
+You will encounter the same problems if you use ipmitool as frequently
+while using sensors.
+
+> > > c) could it be a bug triggered by the SMP kernel?
+All my IPMI machines (and I venture to guess the vast majority of IPMI
+boxes) are SMP so I doubt its an SMP problem.
+
+> > >
+> > > d) any suggestions as to where I go from here ;-)
+
+
+> > Have you tried the openipmi mailing list?
+> > http://lists.sourceforge.net/lists/listinfo/openipmi-developer
 > 
-> * Richard Hirst <rhirst@levanta.com> [2005-09-07 22:36:03 +0100]:
-> > This is on an Intel motherboard running an FC3 2.6.10-1.766.FC3smp
-> > kernel with these additional patches:
-> > 
-> > linux-ipmi-2.6.10-base.diff
-> > linux-i2c-2.6.10-nonblock.diff
-> > linux-i2c-2.6.10-i801_nonblock.diff
-> > linux-ipmi-2.6.10-smb.diff
-> > patch-linux-2.6.11.5-bmcsensors.diff
-> 
-> I assume these patches came from here:
-> http://openipmi.sourceforge.net/
+> Yeah, that might be a good place to ask, thanks!
 
-Yes.
+I don't think your problem has anything to do with the IPMI subsystem,
+so that isn't a good place to ask.
 
-> > The board has an mBMC which is basically working in that I can read
-> > the sensors either by 'ipmitool' or 'sensors'.
-> > 
-> > However, round about every 10 reboots or so, I get the Bus collision
-> > message and the system locks up solid during boot after outputting a
-> > few messages such as
-> > 
-> > i801_smbus 0000:00:1f.3: Bus collision!
-> > i801_smbus 0000:00:1f.3: Reset failed! (01)
-> > i801_smbus 0000:00:1f.3: Reset failed! (01)
-> > i801_smbus 0000:00:1f.3: Reset failed! (01)
-> > bmcsensors.o: Error 0xff on cmd 0xa/0x23; state = 2; probably fatal.
-> > i801_smbus 0000:00:1f.3: Reset failed! (01)
-> > i801_smbus 0000:00:1f.3: Reset failed! (01)
-> > i801_smbus 0000:00:1f.3: Reset failed! (01)
-> > 
-> > 
-> > I'm assuming this indicates that two things have tried to use the
-> > i2c bus at the same time, and I guess one of them is the bmcsensors
-> > code.
-> > 
-> > I also tried adding code to check 'd->in_use' at the beginning of
-> > i801_start() because it looked to me like in_use should perhaps
-> > normally be zero at that point.  Don't know if that is valid, but
-> > I did get a few indications of i801_start() getting called with
-> > d->in_use non-zero.
-> 
-> I looked at the patch *very* briefly... I don't think 'd->in_use' is used to
-> prevent concurrent accesses.  It looks like a kind of adapter ref-count to me.
-
-Yeah, it could be, but it isn't very clear at all.  It looked like
-i801_finish() sets d->finished = 1, and then the next call to
-i801_poll() sets in_use = 0.  d->in_use certainly isn't used to
-prevent concurrent access, I guess something higher up should be
-preventing that.
-
-> I would suggest you use either of sensors or ipmitool, but not both.  If you're
-> using ipmitool, perhaps make sure you're *not* loading any of the sensors drivers:
-> eeprom, lm78, etc.
-
-OK; at the point where it dies I certianly havn't used ipmitool.
-Not sure if startup scripts have used sensors or not.
-
-> > It's a single cpu box with hyperthreading, running an SMP kernel.
-> > 
-> > Anyway,
-> > 
-> > a) has anyone else seen problems like this?
-> > 
-> > b) is it a known problem that is likely fixed in later code?
-> > 
-> > c) could it be a bug triggered by the SMP kernel?
-> > 
-> > d) any suggestions as to where I go from here ;-)
-> 
-> Have you tried the openipmi mailing list?
-> http://lists.sourceforge.net/lists/listinfo/openipmi-developer
-
-Yeah, that might be a good place to ask, thanks!
-
-I did get another failure where the console output ended in
-
-i801_smbus 0000:00:1f.3: Reset failed! (01)
-i801_smbus 0000:00:1f.3: Reset failed! (01)
-i801_smbus 0000:00:1f.3: Reset failed! (01)
-i80<4>do_IRQ: stack overflow: 116
-
-which gives me a few more ideas of things to look at.
-
-Thanks,
-  Richard
-
+Yani
