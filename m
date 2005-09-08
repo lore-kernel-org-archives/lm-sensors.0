@@ -1,26 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Sep 2005 14:24:57 +0000
-Subject: [lm-sensors] Re: [PATCH] i2c: bug fix for busses/i2c-mv64xxx.c
-Message-Id: <YylucL9b.1126009025.3161800.khali@localhost>
+From: mathog@mendel.bio.caltech.edu (David Mathog)
+Date: Thu, 08 Sep 2005 22:25:38 +0000
+Subject: [lm-sensors] ticket 2054 and ticket 2015
+Message-Id: <E1EDSxA-0003ek-00@mendel.bio.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <11259567713187@kroah.com>
-In-Reply-To: <11259567713187@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-> [PATCH] i2c: bug fix for busses/i2c-mv64xxx.c
->
-> When an i2c transfer is successful, an incorrect value is returned.
-> This patch fixes that.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+After posting ticket 2054 I found ticket 2015.  I applied the
+changes mentioned in 2015 to sensors.conf (commenting out
+the temp2 and temp3 lines) and then did sensors -s.  That
+brought the CPU reading into line and ALSO restored memory
+bandwidth.  The difference between what I saw (ticket 2054, slow
+CPU) and what 2015 saw (system shutdown) is determined by the
+BIOS setting Power -> CPU Thermal Option which can be either
+"throttle" or "shutdown".  On my machine it was the former
+setting and for the 2015 ticket it was almost certainly
+the latter setting.
 
-Let it be noted that David Jenkins and Mark A. Greer definitely deserve
-credit for this one.
+In any case, the issue is resolved.
 
---
-Jean Delvare
+Regards,
+
+David Mathog
+mathog@caltech.edu
+Manager, Sequence Analysis Facility, Biology Division, Caltech
