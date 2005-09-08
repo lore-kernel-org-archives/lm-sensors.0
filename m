@@ -1,7 +1,7 @@
-From: rhirst@levanta.com (Richard Hirst)
-Date: Thu, 08 Sep 2005 17:51:34 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 08 Sep 2005 18:57:38 +0000
 Subject: [lm-sensors] i801_smbus 0000:00:1f.3: Bus collision!
-Message-Id: <20050908155100.GL8392@levanta.com>
+Message-Id: <20050908165644.GA21714@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050907213603.GW8392@levanta.com>
 In-Reply-To: <20050907213603.GW8392@levanta.com>
@@ -10,27 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Sep 08, 2005 at 09:56:29AM -0400, Yani Ioannou wrote:
-> The bus collisions are expected - both the IPMI BMC (not bmcsensors
-> directly) and the i2c modules you have loaded are competing for the
-> smbus. However although I've done this (loaded both bmcsensors and i2c
-> modules and got bus collisions) its never resulted in a lockup.
+Hi Yani:
 
-The code does this in i801_check_hststs():
+I wrote:
+> > > Have you tried the openipmi mailing list?
+> > > http://lists.sourceforge.net/lists/listinfo/openipmi-developer
 
-        } else if (d->hststs & 0x08) {
-                entry->result = -EIO;
-                dev_err(&I801_dev->dev, "Bus collision!\n");
-                /* Clock stops and slave is stuck in mid-transmission */
-        } else if (d->hststs & 0x04) {
+> On 9/8/05, Richard Hirst <rhirst@levanta.com> wrote:
+> > Yeah, that might be a good place to ask, thanks!
 
-and on return from i801_check_hststs() can continue to poke at the
-hardware.  That presumably breaks both this transaction and whatever
-one it clashed with.  I'd taken the "slave is stuck" comment to be
-pretty serious, and assumed this was a "shouldn't happen" error
-condition.  Wouldn't it make more sense to use a semaphore or similar
-to avoid even attempting the second transaction when the first is
-in progress?
+* Yani Ioannou <yani.ioannou@gmail.com> [2005-09-08 09:56:29 -0400]:
+> I don't think your problem has anything to do with the IPMI subsystem,
+> so that isn't a good place to ask.
 
-Richard
+I disagree: Richard is running with large & nontrivial patches to both
+i2c-i801 and i2c-core that are maintained there, at least for now.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
