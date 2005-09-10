@@ -1,31 +1,59 @@
-From: greg@kroah.com (Greg KH)
-Date: Fri, 09 Sep 2005 23:33:48 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 10 Sep 2005 23:01:03 +0000
 Subject: [lm-sensors] Re: [PATCH 2.6] hwmon: via686a: save 0.5k by long
-Message-Id: <20050909213250.GA29011@kroah.com>
+Message-Id: <20050910230046.724a3132.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200509010910.14824.vda@ilport.com.ua> <20050901155915.GB1235@kroah.com> <200509020854.37192.vda@ilport.com.ua> <20050903102227.03312247.khali@linux-fr.org> <20050903161331.1c76153d.khali@linux-fr.org>
-In-Reply-To: <20050903161331.1c76153d.khali@linux-fr.org>
+References: <200509010910.14824.vda@ilport.com.ua>
+	<20050901155915.GB1235@kroah.com>
+	<200509020854.37192.vda@ilport.com.ua>
+	<20050903102227.03312247.khali@linux-fr.org>
+	<20050903161331.1c76153d.khali@linux-fr.org>
+	<20050909213250.GA29011@kroah.com>
+In-Reply-To: <20050909213250.GA29011@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Denis Vlasenko <vda@ilport.com.ua>, LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Greg KH <greg@kroah.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, Denis Vlasenko <vda@ilport.com.ua>
 
-On Sat, Sep 03, 2005 at 04:13:31PM +0200, Jean Delvare wrote:
-> Hi Greg, all,
-> 
-> > This patch doesn't apply on top of my stack, first because the
-> > hardware monitoring drivers have been moved to drivers/hwmon, second
-> > because the via686a driver had indentation cleanups since 2.6.12.
-> > 
-> > Could you please provide this patch against 2.6.13-mm1?
-> 
-> On Denis' request, I have done that myself.
+Hi Greg,
 
-Unfortunatly, no one noticed that this patch adds a build warning :(
+> Unfortunatly, no one noticed that this patch adds a build warning :(
 
-So I'm not going to apply it, sorry.
+I'm sorry about that, I though I had checked but now it seems not. A new
+patch addressing the issue follows.
 
-thanks,
+Thanks.
 
-greg k-h
+----------------------
+
+We can save 0.5kB of data in the via686a driver.
+
+From: Denis Vlasenko <vda@ilport.com.ua>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+ drivers/hwmon/via686a.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- linux-2.6.13-git7.orig/drivers/hwmon/via686a.c	2005-09-08 22:40:16.000000000 +0200
++++ linux-2.6.13-git7/drivers/hwmon/via686a.c	2005-09-10 10:56:12.000000000 +0200
+@@ -198,7 +198,7 @@
+  but the function is very linear in the useful range (0-80 deg C), so
+  we'll just use linear interpolation for 10-bit readings.)  So, tempLUT
+  is the temp at via register values 0-255: */
+-static const long tempLUT[] +static const s16 tempLUT[]  { -709, -688, -667, -646, -627, -607, -589, -570, -553, -536, -519,
+ 	-503, -487, -471, -456, -442, -428, -414, -400, -387, -375,
+ 	-362, -350, -339, -327, -316, -305, -295, -285, -275, -265,
+@@ -270,7 +270,7 @@
+ }
+ 
+ /* for 8-bit temperature hyst and over registers */
+-#define TEMP_FROM_REG(val) (tempLUT[(val)] * 100)
++#define TEMP_FROM_REG(val)	((long)tempLUT[val] * 100)
+ 
+ /* for 10-bit temperature readings */
+ static inline long TEMP_FROM_REG10(u16 val)
+
+
+-- 
+Jean Delvare
