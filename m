@@ -1,605 +1,484 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:49 +0000
-Subject: [lm-sensors] [PATCH] I2C: simplify max6875 driver
-Message-Id: <11259567641687@kroah.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Wed, 14 Sep 2005 00:51:00 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: adm9240 updates
+Message-Id: <7tlei19d70iml9efbligligc92vebjlq9l@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200507121321.11458.bgardner@wabtec.com>
-In-Reply-To: <200507121321.11458.bgardner@wabtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: simplify max6875 driver
 
-This is an update to the max6875 driver.
-It no longer does any detection, so the address must be forced on module load.
-It only makes available the user EEPROM (read-only).
+hwmon: adm9240 update 3/3: convert to dynamic sysfs accessors
 
-This patch is based off 2.6.13-rc2-mm2.
+This patch converts adm9240 to use Yani Ioannou's dynamic sysfs callbacks,
+reducing driver memory footprint from 16312 to 14104 bytes on 2.6.14-rc1,
+removing the old driver macro mess.
 
-Signed-off-by: Ben Gardner <bgardner@wabtec.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Run tested on Intel SE440BX-2 mobo.
+
+Signed-off-by: Grant Coady <gcoady@gmail.com>
 
 ---
-commit bc769ff8f5f6e3d249bfde082653e5bf1c2b5698
-tree c37b4ad67525591ec2df4fa54e61d348d44306f7
-parent da1f136c26d45c57e8b2d711bf17a6e5ec4de2d1
-author bgardner@wabtec.com <bgardner@wabtec.com> Tue, 12 Jul 2005 13:21:11 -0500
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:03 -0700
+ adm9240.c |  340 ++++++++++++++++++++++++++++++--------------------------------
+ 1 files changed, 165 insertions(+), 175 deletions(-)
 
- drivers/i2c/chips/max6875.c |  445 ++++++++++++-------------------------------
- 1 files changed, 123 insertions(+), 322 deletions(-)
-
-diff --git a/drivers/i2c/chips/max6875.c b/drivers/i2c/chips/max6875.c
---- a/drivers/i2c/chips/max6875.c
-+++ b/drivers/i2c/chips/max6875.c
-@@ -5,97 +5,62 @@
- 
-     Based on i2c/chips/eeprom.c
- 
--    The MAX6875 has two EEPROM sections: config and user.
--    At reset, the config EEPROM is read into the registers.
-+    The MAX6875 has a bank of registers and two banks of EEPROM.
-+    Address ranges are defined as follows:
-+     * 0x0000 - 0x0046 = configuration registers
-+     * 0x8000 - 0x8046 = configuration EEPROM
-+     * 0x8100 - 0x82FF = user EEPROM
- 
--    This driver make 3 binary files available in sysfs:
--      reg_config    - direct access to the registers
--      eeprom_config - acesses configuration eeprom space
--      eeprom_user   - free for application use
--
--    In our application, we put device serial & model numbers in user eeprom.
--
--    Notes:
--      1) The datasheet says that register 0x44 / EEPROM 0x8044 should NOT
--         be overwritten, so the driver explicitly prevents that.
--      2) It's a good idea to keep the config (0x45) locked in config EEPROM.
--         You can temporarily enable config writes by changing register 0x45.
-+    This driver makes the user EEPROM available for read.
-+
-+    The registers & config EEPROM should be accessed via i2c-dev.
-+
-+    The MAX6875 ignores the lowest address bit, so each chip responds to
-+    two addresses - 0x50/0x51 and 0x52/0x53.
-+
-+    Note that the MAX6875 uses i2c_smbus_write_byte_data() to set the read
-+    address, so this driver is destructive if loaded for the wrong EEPROM chip.
- 
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; version 2 of the License.
- */
- 
--#include <linux/config.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
+--- linux-2.6.14-rc1b/drivers/hwmon/adm9240.c-whitespace+cleanup	2005-09-14 07:28:42.000000000 +1000
++++ linux-2.6.14-rc1b/drivers/hwmon/adm9240.c	2005-09-14 08:14:41.000000000 +1000
+@@ -45,6 +45,7 @@
  #include <linux/module.h>
  #include <linux/slab.h>
--#include <linux/sched.h>
--#include <linux/delay.h>
  #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
-+#include <asm/semaphore.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+@@ -69,8 +70,7 @@
+ #define ADM9240_REG_INT(nr)		(0x41 + (nr))
+ #define ADM9240_REG_INT_MASK(nr)	(0x43 + (nr))
+ #define ADM9240_REG_TEMP		0x27
+-#define ADM9240_REG_TEMP_HIGH		0x39
+-#define ADM9240_REG_TEMP_HYST		0x3a
++#define ADM9240_REG_TEMP_MAX(nr)	(0x39 + (nr)) /* 0, 1 = high, hyst */
+ #define ADM9240_REG_ANALOG_OUT		0x19
+ #define ADM9240_REG_CHASSIS_CLEAR	0x46
+ #define ADM9240_REG_VID_FAN_DIV		0x47
+@@ -164,8 +164,7 @@
+ 	u8 fan_min[2];		/* rw	fan1_min */
+ 	u8 fan_div[2];		/* rw	fan1_div, read-only accessor */
+ 	s16 temp;		/* ro	temp1_input, 9-bit sign-extended */
+-	s8 temp_high;		/* rw	temp1_max */
+-	s8 temp_hyst;		/* rw	temp1_max_hyst */
++	s8 temp_max[2];		/* rw	0 -> temp_max, 1 -> temp_max_hyst */
+ 	u16 alarms;		/* ro	alarms */
+ 	u8 aout;		/* rw	aout_output */
+ 	u8 vid;			/* ro	vid */
+@@ -175,157 +174,143 @@
+ /*** sysfs accessors ***/
  
--/* Addresses to scan */
--/* No address scanned by default, as this could corrupt standard EEPROMS. */
-+/* Do not scan - the MAX6875 access method will write to some EEPROM chips */
- static unsigned short normal_i2c[] = {I2C_CLIENT_END};
- static unsigned int normal_isa[] = {I2C_CLIENT_ISA_END};
- 
- /* Insmod parameters */
- SENSORS_INSMOD_1(max6875);
- 
--/* this param will prevent 'accidental' writes to the eeprom */
--static int allow_write = 0;
--module_param(allow_write, int, 0);
--MODULE_PARM_DESC(allow_write,
--		 "Enable write access:\n"
--		 "*0: Read only\n"
--		 " 1: Read/Write access");
+ /* temperature */
+-#define show_temp(value, scale)					\
+-static ssize_t show_##value(struct device *dev,			\
+-			    struct device_attribute *attr,	\
+-			    char *buf)				\
+-{								\
+-	struct adm9240_data *data = adm9240_update_device(dev);	\
+-	return sprintf(buf, "%d\n", data->value * scale);	\
+-}
+-show_temp(temp_high, 1000);
+-show_temp(temp_hyst, 1000);
+-show_temp(temp, 500); /* 0.5'C per bit */
 -
- /* The MAX6875 can only read/write 16 bytes at a time */
- #define SLICE_SIZE			16
- #define SLICE_BITS			4
- 
--/* CONFIG EEPROM is at addresses 0x8000 - 0x8045, registers are at 0 - 0x45 */
--#define CONFIG_EEPROM_BASE		0x8000
--#define CONFIG_EEPROM_SIZE		0x0046
--#define CONFIG_EEPROM_SLICES		5
+-#define set_temp(value, reg)					\
+-static ssize_t set_##value(struct device *dev, 			\
+-			   struct device_attribute *attr,	\
+-			   const char *buf, size_t count)	\
+-{								\
+-	struct i2c_client *client = to_i2c_client(dev);		\
+-	struct adm9240_data *data = adm9240_update_device(dev);	\
+-	long temp = simple_strtoul(buf, NULL, 10);		\
+-								\
+-	down(&data->update_lock);				\
+-	data->value = TEMP_TO_REG(temp);			\
+-	i2c_smbus_write_byte_data(client, reg, data->value);	\
+-	up(&data->update_lock);					\
+-	return count;						\
+-}
 -
- /* USER EEPROM is at addresses 0x8100 - 0x82FF */
- #define USER_EEPROM_BASE		0x8100
- #define USER_EEPROM_SIZE		0x0200
- #define USER_EEPROM_SLICES		32
- 
- /* MAX6875 commands */
--#define MAX6875_CMD_BLOCK_WRITE		0x83
--#define MAX6875_CMD_BLOCK_READ		0x84
--#define MAX6875_CMD_REBOOT		0x88
+-set_temp(temp_high, ADM9240_REG_TEMP_HIGH);
+-set_temp(temp_hyst, ADM9240_REG_TEMP_HYST);
 -
--enum max6875_area_type {
--	max6875_register_config=0,
--	max6875_eeprom_config,
--	max6875_eeprom_user,
--	max6857_max
--};
--
--struct eeprom_block {
--	enum max6875_area_type	type;
--	u8			slices;
--	u32			size;
--	u32			valid;
--	u32			base;
--	unsigned long		*updated;
--	u8			*data;
--};
-+#define MAX6875_CMD_BLK_READ		0x84
- 
- /* Each client has this additional data */
- struct max6875_data {
- 	struct i2c_client	client;
- 	struct semaphore	update_lock;
--	struct eeprom_block	blocks[max6857_max];
--	/* the above structs point into the arrays below */
--	u8 data[USER_EEPROM_SIZE + (CONFIG_EEPROM_SIZE*2)];
--	unsigned long last_updated[USER_EEPROM_SLICES + (CONFIG_EEPROM_SLICES*2)];
+-static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
+-		show_temp_high, set_temp_high);
+-static DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
+-		show_temp_hyst, set_temp_hyst);
++static ssize_t show_temp(struct device *dev, struct device_attribute *dummy,
++		char *buf)
++{
++	struct adm9240_data *data = adm9240_update_device(dev);
++	return sprintf(buf, "%d\n", data->temp * 500); /* 9-bit value */
++}
 +
-+	u32			valid;
-+	u8			data[USER_EEPROM_SIZE];
-+	unsigned long		last_updated[USER_EEPROM_SLICES];
- };
++static ssize_t show_max(struct device *dev, struct device_attribute *devattr,
++		char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct adm9240_data *data = adm9240_update_device(dev);
++	return sprintf(buf, "%d\n", data->temp_max[attr->index] * 1000);
++}
++
++static ssize_t set_max(struct device *dev, struct device_attribute *devattr,
++		const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm9240_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++
++	down(&data->update_lock);
++	data->temp_max[attr->index] = TEMP_TO_REG(val);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_TEMP_MAX(attr->index),
++			data->temp_max[attr->index]);
++	up(&data->update_lock);
++	return count;
++}
++
+ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
++		show_max, set_max, 0);
++static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
++		show_max, set_max, 1);
  
- static int max6875_attach_adapter(struct i2c_adapter *adapter);
-@@ -111,224 +76,98 @@ static struct i2c_driver max6875_driver 
- 	.detach_client	= max6875_detach_client,
- };
- 
--static int max6875_update_slice(struct i2c_client *client,
--				struct eeprom_block *blk,
--				int slice)
-+static void max6875_update_slice(struct i2c_client *client, int slice)
+ /* voltage */
+-static ssize_t show_in(struct device *dev, char *buf, int nr)
++static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
++		char *buf)
  {
- 	struct max6875_data *data = i2c_get_clientdata(client);
--	int i, j, addr, count;
--	u8 rdbuf[SLICE_SIZE];
-+	int i, j, addr;
-+	u8 *buf;
- 	int retval = 0;
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr], nr));
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[attr->index],
++				attr->index));
+ }
  
--	if (slice >= blk->slices)
--		return -1;
-+	if (slice >= USER_EEPROM_SLICES)
-+		return;
+-static ssize_t show_in_min(struct device *dev, char *buf, int nr)
++static ssize_t show_in_min(struct device *dev, struct device_attribute *devattr,
++		char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr], nr));
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[attr->index],
++				attr->index));
+ }
+ 
+-static ssize_t show_in_max(struct device *dev, char *buf, int nr)
++static ssize_t show_in_max(struct device *dev, struct device_attribute *devattr,
++		char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr], nr));
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[attr->index],
++				attr->index));
+ }
+ 
+-static ssize_t set_in_min(struct device *dev, const char *buf,
+-		size_t count, int nr)
++static ssize_t set_in_min(struct device *dev, struct device_attribute *devattr,
++		const char *buf, size_t count)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
  
  	down(&data->update_lock);
- 
--	if (!(blk->valid & (1 << slice)) ||
--	    (jiffies - blk->updated[slice] > 300 * HZ) ||
--	    (jiffies < blk->updated[slice])) {
--		dev_dbg(&client->dev, "Starting eeprom update, slice %u, base %u\n",
-+	buf = &data->data[slice << SLICE_BITS];
-+
-+	if (!(data->valid & (1 << slice)) ||
-+	    time_after(jiffies, data->last_updated[slice])) {
-+
-+		dev_dbg(&client->dev, "Starting update of slice %u\n",
- 			slice, blk->base);
- 
--		addr = blk->base + (slice << SLICE_BITS);
--		count = blk->size - (slice << SLICE_BITS);
--		if (count > SLICE_SIZE) {
--			count = SLICE_SIZE;
--		}
-+		data->valid &= ~(1 << slice);
- 
--		/* Preset the read address */
--		if (addr < 0x100) {
--			/* select the register */
--			if (i2c_smbus_write_byte(client, addr & 0xFF)) {
--				dev_dbg(&client->dev, "max6875 register select has failed!\n");
--				retval = -1;
--				goto exit;
--			}
--		} else {
--			/* select the eeprom */
--			if (i2c_smbus_write_byte_data(client, addr >> 8, addr & 0xFF)) {
--				dev_dbg(&client->dev, "max6875 address set has failed!\n");
--				retval = -1;
--				goto exit;
--			}
-+		addr = USER_EEPROM_BASE + (slice << SLICE_BITS);
-+
-+		/* select the eeprom address */
-+		if (i2c_smbus_write_byte_data(client, addr >> 8, addr & 0xFF)) {
-+			dev_err(&client->dev, "address set failed\n");
-+			retval = -1;
-+			goto exit_up;
- 		}
- 
--		if (i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_READ_I2C_BLOCK)) {
--			if (i2c_smbus_read_i2c_block_data(client, MAX6875_CMD_BLOCK_READ,
--							  rdbuf) != SLICE_SIZE)
--			{
-+		if (i2c_check_functionality(client->adapter,
-+					    I2C_FUNC_SMBUS_READ_I2C_BLOCK)) {
-+			if (i2c_smbus_read_i2c_block_data(client,
-+							  MAX6875_CMD_BLK_READ,
-+							  buf) != SLICE_SIZE) {
- 				retval = -1;
--				goto exit;
-+				goto exit_up;
- 			}
--
--			memcpy(&blk->data[slice << SLICE_BITS], rdbuf, count);
- 		} else {
--			for (i = 0; i < count; i++) {
-+			for (i = 0; i < SLICE_SIZE; i++) {
- 				j = i2c_smbus_read_byte(client);
--				if (j < 0)
--				{
-+				if (j < 0) {
- 					retval = -1;
--					goto exit;
-+					goto exit_up;
- 				}
--				blk->data[(slice << SLICE_BITS) + i] = (u8) j;
-+				buf[i] = j;
- 			}
- 		}
--		blk->updated[slice] = jiffies;
--		blk->valid |= (1 << slice);
-+		data->last_updated[slice] = jiffies;
-+		data->valid |= (1 << slice);
- 	}
--	exit:
-+exit_up:
+-	data->in_min[nr] = IN_TO_REG(val, nr);
+-	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(nr),
+-			data->in_min[nr]);
++	data->in_min[attr->index] = IN_TO_REG(val, attr->index);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(attr->index),
++			data->in_min[attr->index]);
  	up(&data->update_lock);
--	return retval;
--}
--
--static ssize_t max6875_read(struct kobject *kobj, char *buf, loff_t off, size_t count,
--			    enum max6875_area_type area_type)
--{
--	struct i2c_client *client = to_i2c_client(container_of(kobj, struct device, kobj));
--	struct max6875_data *data = i2c_get_clientdata(client);
--	struct eeprom_block *blk;
--	int slice;
--
--	blk = &data->blocks[area_type];
--
--	if (off > blk->size)
--		return 0;
--	if (off + count > blk->size)
--		count = blk->size - off;
--
--	/* Only refresh slices which contain requested bytes */
--	for (slice = (off >> SLICE_BITS); slice <= ((off + count - 1) >> SLICE_BITS); slice++)
--		max6875_update_slice(client, blk, slice);
--
--	memcpy(buf, &blk->data[off], count);
--
--	return count;
--}
--
--static ssize_t max6875_user_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	return max6875_read(kobj, buf, off, count, max6875_eeprom_user);
--}
--
--static ssize_t max6875_config_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	return max6875_read(kobj, buf, off, count, max6875_eeprom_config);
+ 	return count;
  }
  
--static ssize_t max6875_cfgreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+static inline struct i2c_client *kobj_to_i2c_client(struct kobject *kobj)
+-static ssize_t set_in_max(struct device *dev, const char *buf,
+-		size_t count, int nr)
++static ssize_t set_in_max(struct device *dev, struct device_attribute *devattr,
++		const char *buf, size_t count)
  {
--	return max6875_read(kobj, buf, off, count, max6875_register_config);
-+	return to_i2c_client(container_of(kobj, struct device, kobj));
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->in_max[nr] = IN_TO_REG(val, nr);
+-	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(nr),
+-			data->in_max[nr]);
++	data->in_max[attr->index] = IN_TO_REG(val, attr->index);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(attr->index),
++			data->in_max[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
  }
  
+-#define show_in_offset(offset)						\
+-static ssize_t show_in##offset(struct device *dev,			\
+-			       struct device_attribute *attr,		\
+-			       char *buf)				\
+-{									\
+-	return show_in(dev, buf, offset);				\
+-}									\
+-static DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in##offset, NULL);	\
+-static ssize_t show_in##offset##_min(struct device *dev,		\
+-				     struct device_attribute *attr,	\
+-				     char *buf)				\
+-{									\
+-	return show_in_min(dev, buf, offset);				\
+-}									\
+-static ssize_t show_in##offset##_max(struct device *dev,		\
+-				     struct device_attribute *attr,	\
+-				     char *buf)				\
+-{									\
+-	return show_in_max(dev, buf, offset);				\
+-}									\
+-static ssize_t								\
+-set_in##offset##_min(struct device *dev,				\
+-		     struct device_attribute *attr, const char *buf,	\
+-		     size_t count)					\
+-{									\
+-	return set_in_min(dev, buf, count, offset);			\
+-}									\
+-static ssize_t								\
+-set_in##offset##_max(struct device *dev,				\
+-		     struct device_attribute *attr, const char *buf,	\
+-		     size_t count)					\
+-{									\
+-	return set_in_max(dev, buf, count, offset);			\
+-}									\
+-static DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,			\
+-		show_in##offset##_min, set_in##offset##_min);		\
+-static DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,			\
+-		show_in##offset##_max, set_in##offset##_max);
 -
--static ssize_t max6875_write(struct kobject *kobj, char *buf, loff_t off, size_t count,
--			     enum max6875_area_type area_type)
-+static ssize_t max6875_read(struct kobject *kobj, char *buf, loff_t off,
-+			    size_t count)
+-show_in_offset(0);
+-show_in_offset(1);
+-show_in_offset(2);
+-show_in_offset(3);
+-show_in_offset(4);
+-show_in_offset(5);
++#define vin(nr)							\
++static SENSOR_DEVICE_ATTR(in##nr##_input, S_IRUGO, 		\
++		show_in, NULL, nr);				\
++static SENSOR_DEVICE_ATTR(in##nr##_min, S_IRUGO | S_IWUSR,	\
++		show_in_min, set_in_min, nr);			\
++static SENSOR_DEVICE_ATTR(in##nr##_max, S_IRUGO | S_IWUSR,	\
++		show_in_max, set_in_max, nr);
++
++vin(0);
++vin(1);
++vin(2);
++vin(3);
++vin(4);
++vin(5);
+ 
+ /* fans */
+-static ssize_t show_fan(struct device *dev, char *buf, int nr)
++static ssize_t show_fan(struct device *dev,
++		struct device_attribute *devattr, char *buf)
  {
--	struct i2c_client *client = to_i2c_client(container_of(kobj, struct device, kobj));
-+	struct i2c_client *client = kobj_to_i2c_client(kobj);
- 	struct max6875_data *data = i2c_get_clientdata(client);
--	struct eeprom_block *blk;
--	int slice, addr, retval;
--	ssize_t sent = 0;
-+	int slice, max_slice;
- 
--	blk = &data->blocks[area_type];
--
--	if (off > blk->size)
-+	if (off > USER_EEPROM_SIZE)
- 		return 0;
--	if ((off + count) > blk->size)
--		count = blk->size - off;
--
--	if (down_interruptible(&data->update_lock))
--		return -EAGAIN;
--
--	/* writing to a register is done with i2c_smbus_write_byte_data() */
--	if (blk->type = max6875_register_config) {
--		for (sent = 0; sent < count; sent++) {
--			addr = off + sent;
--			if (addr = 0x44)
--				continue;
--
--			retval = i2c_smbus_write_byte_data(client, addr, buf[sent]);
--		}
--	} else {
--		int cmd, val;
- 
--		/* We are writing to EEPROM */
--		for (sent = 0; sent < count; sent++) {
--			addr = blk->base + off + sent;
--			cmd = addr >> 8;
--			val = (addr & 0xff) | (buf[sent] << 8);	// reversed
-+	if (off + count > USER_EEPROM_SIZE)
-+		count = USER_EEPROM_SIZE - off;
- 
--			if (addr = 0x8044)
--				continue;
-+	/* refresh slices which contain requested bytes */
-+	max_slice = (off + count - 1) >> SLICE_BITS;
-+	for (slice = (off >> SLICE_BITS); slice <= max_slice; slice++)
-+		max6875_update_slice(client, slice);
- 
--			retval = i2c_smbus_write_word_data(client, cmd, val);
-+	memcpy(buf, &data->data[off], count);
- 
--			if (retval) {
--				goto error_exit;
--			}
--
--			/* A write takes up to 11 ms */
--			msleep(11);
--		}
--	}
--
--	/* Invalidate the scratch buffer */
--	for (slice = (off >> SLICE_BITS); slice <= ((off + count - 1) >> SLICE_BITS); slice++)
--		blk->valid &= ~(1 << slice);
--
--	error_exit:
--	up(&data->update_lock);
--
--	return sent;
--}
--
--static ssize_t max6875_user_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	return max6875_write(kobj, buf, off, count, max6875_eeprom_user);
--}
--
--static ssize_t max6875_config_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	return max6875_write(kobj, buf, off, count, max6875_eeprom_config);
--}
--
--static ssize_t max6875_cfgreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	return max6875_write(kobj, buf, off, count, max6875_register_config);
-+	return count;
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
+-				1 << data->fan_div[nr]));
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
++				1 << data->fan_div[attr->index]));
  }
  
- static struct bin_attribute user_eeprom_attr = {
- 	.attr = {
--		.name = "eeprom_user",
--		.mode = S_IRUGO | S_IWUSR | S_IWGRP,
--		.owner = THIS_MODULE,
--	},
--	.size  = USER_EEPROM_SIZE,
--	.read  = max6875_user_read,
--	.write = max6875_user_write,
--};
--
--static struct bin_attribute config_eeprom_attr = {
--	.attr = {
--		.name = "eeprom_config",
--		.mode = S_IRUGO | S_IWUSR,
--		.owner = THIS_MODULE,
--	},
--	.size  = CONFIG_EEPROM_SIZE,
--	.read  = max6875_config_read,
--	.write = max6875_config_write,
--};
--
--static struct bin_attribute config_register_attr = {
--	.attr = {
--		.name = "reg_config",
--		.mode = S_IRUGO | S_IWUSR,
-+		.name = "eeprom",
-+		.mode = S_IRUGO,
- 		.owner = THIS_MODULE,
- 	},
--	.size  = CONFIG_EEPROM_SIZE,
--	.read  = max6875_cfgreg_read,
--	.write = max6875_cfgreg_write,
-+	.size = USER_EEPROM_SIZE,
-+	.read = max6875_read,
- };
- 
- static int max6875_attach_adapter(struct i2c_adapter *adapter)
-@@ -339,109 +178,73 @@ static int max6875_attach_adapter(struct
- /* This function is called by i2c_detect */
- static int max6875_detect(struct i2c_adapter *adapter, int address, int kind)
+-static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
++static ssize_t show_fan_min(struct device *dev,
++		struct device_attribute *devattr, char *buf)
  {
--	struct i2c_client *new_client;
-+	struct i2c_client *real_client;
-+	struct i2c_client *fake_client;
- 	struct max6875_data *data;
- 	int err = 0;
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
+-				1 << data->fan_div[nr]));
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[attr->index],
++				1 << data->fan_div[attr->index]));
+ }
  
--	/* Prevent 24RF08 corruption (in case of user error) */
-+	/* Prevent 24rf08 corruption (in case of user error) */
- 	if (kind < 0)
- 		i2c_smbus_xfer(adapter, address, 0, 0, 0,
- 			       I2C_SMBUS_QUICK, NULL);
+-static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
++static ssize_t show_fan_div(struct device *dev,
++		struct device_attribute *devattr, char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", 1 << data->fan_div[nr]);
++	return sprintf(buf, "%d\n", 1 << data->fan_div[attr->index]);
+ }
  
--	/* There are three ways we can read the EEPROM data:
--	   (1) I2C block reads (faster, but unsupported by most adapters)
--	   (2) Consecutive byte reads (100% overhead)
--	   (3) Regular byte data reads (200% overhead)
--	   The third method is not implemented by this driver because all
--	   known adapters support at least the second. */
--	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA |
--				     I2C_FUNC_SMBUS_BYTE |
--				     I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
--		goto exit;
--
--	/* OK. For now, we presume we have a valid client. We now create the
--	   client structure, even though we cannot fill it completely yet.
--	   But it allows us to access eeprom_{read,write}_value. */
--	if (!(data = kmalloc(sizeof(struct max6875_data), GFP_KERNEL))) {
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
-+				     | I2C_FUNC_SMBUS_READ_BYTE))
-+		return 0;
-+
-+	/* Only check even addresses */
-+	if (address & 1)
-+		return 0;
-+
-+	if (!(data = kmalloc(sizeof(struct max6875_data), GFP_KERNEL)))
-+		return -ENOMEM;
-+	memset(data, 0, sizeof(struct max6875_data));
-+
-+	/* A fake client is created on the odd address */
-+	if (!(fake_client = kmalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
- 		err = -ENOMEM;
--		goto exit;
-+		goto exit_kfree1;
+ /* write new fan div, callers must hold data->update_lock */
+@@ -354,12 +339,15 @@
+  * - otherwise: select fan clock divider to suit fan speed low limit,
+  *   measurement code may adjust registers to ensure fan speed reading
+  */
+-static ssize_t set_fan_min(struct device *dev, const char *buf,
+-		size_t count, int nr)
++static ssize_t set_fan_min(struct device *dev,
++		struct device_attribute *devattr,
++		const char *buf, size_t count)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
++	int nr = attr->index;
+ 	u8 new_div;
+ 
+ 	down(&data->update_lock);
+@@ -406,40 +394,16 @@
+ 	return count;
+ }
+ 
+-#define show_fan_offset(offset)						\
+-static ssize_t show_fan_##offset (struct device *dev,			\
+-				  struct device_attribute *attr,	\
+-				  char *buf)				\
+-{									\
+-return show_fan(dev, buf, offset - 1);					\
+-}									\
+-static ssize_t show_fan_##offset##_div (struct device *dev,		\
+-					struct device_attribute *attr,	\
+-					char *buf)			\
+-{									\
+-return show_fan_div(dev, buf, offset - 1);				\
+-}									\
+-static ssize_t show_fan_##offset##_min (struct device *dev,		\
+-					struct device_attribute *attr,	\
+-					char *buf)			\
+-{									\
+-return show_fan_min(dev, buf, offset - 1);				\
+-}									\
+-static ssize_t set_fan_##offset##_min (struct device *dev, 		\
+-				       struct device_attribute *attr,	\
+-				       const char *buf, size_t count)	\
+-{									\
+-return set_fan_min(dev, buf, count, offset - 1);			\
+-}									\
+-static DEVICE_ATTR(fan##offset##_input, S_IRUGO, 			\
+-		show_fan_##offset, NULL);				\
+-static DEVICE_ATTR(fan##offset##_div, S_IRUGO, 				\
+-		show_fan_##offset##_div, NULL);				\
+-static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, 		\
+-		show_fan_##offset##_min, set_fan_##offset##_min);
++#define fan(nr)							\
++static SENSOR_DEVICE_ATTR(fan##nr##_input, S_IRUGO,		\
++		show_fan, NULL, nr - 1);			\
++static SENSOR_DEVICE_ATTR(fan##nr##_div, S_IRUGO,		\
++		show_fan_div, NULL, nr - 1);			\
++static SENSOR_DEVICE_ATTR(fan##nr##_min, S_IRUGO | S_IWUSR,	\
++		show_fan_min, set_fan_min, nr - 1);
+ 
+-show_fan_offset(1);
+-show_fan_offset(2);
++fan(1);
++fan(2);
+ 
+ /* alarms */
+ static ssize_t show_alarms(struct device *dev,
+@@ -587,33 +551,59 @@
+ 		goto exit_detach;
  	}
--	memset(data, 0, sizeof(struct max6875_data));
-+	memset(fake_client, 0, sizeof(struct i2c_client));
  
--	new_client = &data->client;
--	i2c_set_clientdata(new_client, data);
--	new_client->addr = address;
--	new_client->adapter = adapter;
--	new_client->driver = &max6875_driver;
--	new_client->flags = 0;
--
--	/* Setup the user section */
--	data->blocks[max6875_eeprom_user].type    = max6875_eeprom_user;
--	data->blocks[max6875_eeprom_user].slices  = USER_EEPROM_SLICES;
--	data->blocks[max6875_eeprom_user].size    = USER_EEPROM_SIZE;
--	data->blocks[max6875_eeprom_user].base    = USER_EEPROM_BASE;
--	data->blocks[max6875_eeprom_user].data    = data->data;
--	data->blocks[max6875_eeprom_user].updated = data->last_updated;
--
--	/* Setup the config section */
--	data->blocks[max6875_eeprom_config].type    = max6875_eeprom_config;
--	data->blocks[max6875_eeprom_config].slices  = CONFIG_EEPROM_SLICES;
--	data->blocks[max6875_eeprom_config].size    = CONFIG_EEPROM_SIZE;
--	data->blocks[max6875_eeprom_config].base    = CONFIG_EEPROM_BASE;
--	data->blocks[max6875_eeprom_config].data    = &data->data[USER_EEPROM_SIZE];
--	data->blocks[max6875_eeprom_config].updated = &data->last_updated[USER_EEPROM_SLICES];
--
--	/* Setup the register section */
--	data->blocks[max6875_register_config].type    = max6875_register_config;
--	data->blocks[max6875_register_config].slices  = CONFIG_EEPROM_SLICES;
--	data->blocks[max6875_register_config].size    = CONFIG_EEPROM_SIZE;
--	data->blocks[max6875_register_config].base    = 0;
--	data->blocks[max6875_register_config].data    = &data->data[USER_EEPROM_SIZE+CONFIG_EEPROM_SIZE];
--	data->blocks[max6875_register_config].updated = &data->last_updated[USER_EEPROM_SLICES+CONFIG_EEPROM_SLICES];
-+	/* Init real i2c_client */
-+	real_client = &data->client;
-+	i2c_set_clientdata(real_client, data);
-+	real_client->addr = address;
-+	real_client->adapter = adapter;
-+	real_client->driver = &max6875_driver;
-+	real_client->flags = 0;
-+	strlcpy(real_client->name, "max6875", I2C_NAME_SIZE);
-+	init_MUTEX(&data->update_lock);
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	device_create_file(&new_client->dev, &dev_attr_in4_input);
+-	device_create_file(&new_client->dev, &dev_attr_in4_min);
+-	device_create_file(&new_client->dev, &dev_attr_in4_max);
+-	device_create_file(&new_client->dev, &dev_attr_in5_input);
+-	device_create_file(&new_client->dev, &dev_attr_in5_min);
+-	device_create_file(&new_client->dev, &dev_attr_in5_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in0_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in0_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in0_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in1_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in1_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in1_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in2_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in2_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in2_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in3_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in3_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in3_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in4_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in4_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in4_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in5_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in5_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in5_max.dev_attr);
+ 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_temp1_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_temp1_max_hyst.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan1_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan1_div.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan1_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan2_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan2_div.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan2_min.dev_attr);
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 	device_create_file(&new_client->dev, &dev_attr_aout_output);
+ 	device_create_file(&new_client->dev, &dev_attr_chassis_clear);
+@@ -681,9 +671,9 @@
+ 		i2c_smbus_write_byte_data(client,
+ 				ADM9240_REG_FAN_MIN(1), 255);
+ 		i2c_smbus_write_byte_data(client,
+-				ADM9240_REG_TEMP_HIGH, 127);
++				ADM9240_REG_TEMP_MAX(0), 127);
+ 		i2c_smbus_write_byte_data(client,
+-				ADM9240_REG_TEMP_HYST, 127);
++				ADM9240_REG_TEMP_MAX(1), 127);
  
--	/* Init the data */
--	memset(data->data, 0xff, sizeof(data->data));
-+	/* Init fake client data */
-+	/* set the client data to the i2c_client so that it will get freed */
-+	i2c_set_clientdata(fake_client, fake_client);
-+	fake_client->addr = address | 1;
-+	fake_client->adapter = adapter;
-+	fake_client->driver = &max6875_driver;
-+	fake_client->flags = 0;
-+	strlcpy(fake_client->name, "max6875-dummy", I2C_NAME_SIZE);
+ 		/* start measurement cycle */
+ 		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
+@@ -760,10 +750,10 @@
+ 			data->fan_min[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_FAN_MIN(i));
+ 		}
+-		data->temp_high = i2c_smbus_read_byte_data(client,
+-				ADM9240_REG_TEMP_HIGH);
+-		data->temp_hyst = i2c_smbus_read_byte_data(client,
+-				ADM9240_REG_TEMP_HYST);
++		data->temp_max[0] = i2c_smbus_read_byte_data(client,
++				ADM9240_REG_TEMP_MAX(0));
++		data->temp_max[1] = i2c_smbus_read_byte_data(client,
++				ADM9240_REG_TEMP_MAX(1));
  
--	/* Fill in the remaining client fields */
--	strlcpy(new_client->name, "max6875", I2C_NAME_SIZE);
--	init_MUTEX(&data->update_lock);
-+	/* Prevent 24RF08 corruption (in case of user error) */
-+	i2c_smbus_write_quick(real_client, 0);
- 
--	/* Verify that the chip is really what we think it is */
--	if ((max6875_update_slice(new_client, &data->blocks[max6875_eeprom_config], 4) < 0) ||
--	    (max6875_update_slice(new_client, &data->blocks[max6875_register_config], 4) < 0))
--		goto exit_kfree;
--
--	/* 0x41,0x42 must be zero and 0x40 must match in eeprom and registers */
--	if ((data->blocks[max6875_eeprom_config].data[0x41] != 0) ||
--	    (data->blocks[max6875_eeprom_config].data[0x42] != 0) ||
--	    (data->blocks[max6875_register_config].data[0x41] != 0) ||
--	    (data->blocks[max6875_register_config].data[0x42] != 0) ||
--	    (data->blocks[max6875_eeprom_config].data[0x40] !-	     data->blocks[max6875_register_config].data[0x40]))
--		goto exit_kfree;
--
--	/* Tell the I2C layer a new client has arrived */
--	if ((err = i2c_attach_client(new_client)))
--		goto exit_kfree;
--
--	/* create the sysfs eeprom files with the correct permissions */
--	if (allow_write = 0) {
--		user_eeprom_attr.attr.mode &= ~S_IWUGO;
--		user_eeprom_attr.write = NULL;
--		config_eeprom_attr.attr.mode &= ~S_IWUGO;
--		config_eeprom_attr.write = NULL;
--		config_register_attr.attr.mode &= ~S_IWUGO;
--		config_register_attr.write = NULL;
--	}
--	sysfs_create_bin_file(&new_client->dev.kobj, &user_eeprom_attr);
--	sysfs_create_bin_file(&new_client->dev.kobj, &config_eeprom_attr);
--	sysfs_create_bin_file(&new_client->dev.kobj, &config_register_attr);
-+	if ((err = i2c_attach_client(real_client)) != 0)
-+		goto exit_kfree2;
-+
-+	if ((err = i2c_attach_client(fake_client)) != 0)
-+		goto exit_detach;
-+
-+	sysfs_create_bin_file(&real_client->dev.kobj, &user_eeprom_attr);
- 
- 	return 0;
- 
--exit_kfree:
-+exit_detach:
-+	i2c_detach_client(real_client);
-+exit_kfree2:
-+	kfree(fake_client);
-+exit_kfree1:
- 	kfree(data);
--exit:
- 	return err;
- }
- 
-@@ -451,12 +254,10 @@ static int max6875_detach_client(struct 
- 
- 	err = i2c_detach_client(client);
- 	if (err) {
--		dev_err(&client->dev, "Client deregistration failed, client not detached.\n");
-+		dev_err(&client->dev, "i2c_detach_client() failed\n");
- 		return err;
- 	}
--
- 	kfree(i2c_get_clientdata(client));
--
- 	return 0;
- }
- 
-
+ 		/* read fan divs and 5-bit VID */
+ 		i = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
