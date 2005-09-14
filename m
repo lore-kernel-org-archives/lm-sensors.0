@@ -1,44 +1,34 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:08 +0000
-Subject: [lm-sensors] [PATCH] I2C: Fix sgi_xfer return value
-Message-Id: <11259567711229@kroah.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Wed, 14 Sep 2005 00:48:53 +0000
+Subject: [lm-sensors] [PATCH 0/3] hwmon: adm9240 updates
+Message-Id: <b6lei150dlsi9sq9lvko2jen2pscaps5l3@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Fix sgi_xfer return value
+Greetings,
 
-The sgi_xfer function returns 0 on success instead of the number of
-transfered messages as it is supposed to. This patch fixes that.
+This patch series updates the adm9240 driver with some cleanups and 
+conversion to dynamic sysfs.
 
-Let's just hope that no client chip driver was relying on this
-misbehavior.
+hwmon: adm9240 update 1/3: whitespace  >>> Resend, for complete set <<<
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+hwmon: adm9240 update 2/3: cleanups
 
----
-commit a89923fff79f8eeed0ccdf51e13453754e48a71e
-tree 8fbf4d2ad1fce9452404b081035b30c579f3753a
-parent d1b2f0a9754d3087ee29b3e88b8f20f2d30090d3
-author Jean Delvare <khali@linux-fr.org> Fri, 02 Sep 2005 21:28:00 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:26:54 -0700
+make SCALE function return zero for zero input,
+remove i2c read/write wrapper interface,
+change kmalloc + memset to kzalloc
 
- drivers/i2c/algos/i2c-algo-sgi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+hwmon: adm9240 update 3/3: convert to dynamic sysfs accessors
 
-diff --git a/drivers/i2c/algos/i2c-algo-sgi.c b/drivers/i2c/algos/i2c-algo-sgi.c
---- a/drivers/i2c/algos/i2c-algo-sgi.c
-+++ b/drivers/i2c/algos/i2c-algo-sgi.c
-@@ -149,7 +149,7 @@ static int sgi_xfer(struct i2c_adapter *
- 			err = i2c_write(adap, p->buf, p->len);
- 	}
- 
--	return err;
-+	return (err < 0) ? err : i;
- }
- 
- static u32 sgi_func(struct i2c_adapter *adap)
+This patch converts adm9240 to use Yani Ioannou's dynamic sysfs callbacks,
+reducing driver memory footprint from 16312 to 14104 bytes on 2.6.14-rc1,
+removing the old driver macro mess.
+
+Run tested on Intel SE440BX-2 mobo.
+
+Thanks,
+Grant.
 
