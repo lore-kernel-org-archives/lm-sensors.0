@@ -1,15 +1,17 @@
 From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Wed, 14 Sep 2005 00:51:00 +0000
+Date: Thu, 15 Sep 2005 00:31:47 +0000
 Subject: [lm-sensors] [PATCH 3/3] hwmon: adm9240 updates
-Message-Id: <7tlei19d70iml9efbligligc92vebjlq9l@4ax.com>
+Message-Id: <559hi1169g8fj3tmtvl5ufhctftns81mpq@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <7tlei19d70iml9efbligligc92vebjlq9l@4ax.com>
+In-Reply-To: <7tlei19d70iml9efbligligc92vebjlq9l@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-hwmon: adm9240 update 3/3: convert to dynamic sysfs accessors
+hwmon: adm9240 update 3/3: convert to use dynamic sysfs accessors
 
 This patch converts adm9240 to use Yani Ioannou's dynamic sysfs callbacks,
 reducing driver memory footprint from 16312 to 14104 bytes on 2.6.14-rc1,
@@ -23,8 +25,8 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  adm9240.c |  340 ++++++++++++++++++++++++++++++--------------------------------
  1 files changed, 165 insertions(+), 175 deletions(-)
 
---- linux-2.6.14-rc1b/drivers/hwmon/adm9240.c-whitespace+cleanup	2005-09-14 07:28:42.000000000 +1000
-+++ linux-2.6.14-rc1b/drivers/hwmon/adm9240.c	2005-09-14 08:14:41.000000000 +1000
+--- linux-2.6.14-rc1b/drivers/hwmon/adm9240.c-cleanup2	2005-09-15 08:07:26.000000000 +1000
++++ linux-2.6.14-rc1b/drivers/hwmon/adm9240.c	2005-09-15 08:07:29.000000000 +1000
 @@ -45,6 +45,7 @@
  #include <linux/module.h>
  #include <linux/slab.h>
@@ -43,7 +45,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  #define ADM9240_REG_ANALOG_OUT		0x19
  #define ADM9240_REG_CHASSIS_CLEAR	0x46
  #define ADM9240_REG_VID_FAN_DIV		0x47
-@@ -164,8 +164,7 @@
+@@ -162,8 +162,7 @@
  	u8 fan_min[2];		/* rw	fan1_min */
  	u8 fan_div[2];		/* rw	fan1_div, read-only accessor */
  	s16 temp;		/* ro	temp1_input, 9-bit sign-extended */
@@ -53,7 +55,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  	u16 alarms;		/* ro	alarms */
  	u8 aout;		/* rw	aout_output */
  	u8 vid;			/* ro	vid */
-@@ -175,157 +174,143 @@
+@@ -173,157 +172,143 @@
  /*** sysfs accessors ***/
  
  /* temperature */
@@ -301,7 +303,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  }
  
  /* write new fan div, callers must hold data->update_lock */
-@@ -354,12 +339,15 @@
+@@ -352,12 +337,15 @@
   * - otherwise: select fan clock divider to suit fan speed low limit,
   *   measurement code may adjust registers to ensure fan speed reading
   */
@@ -319,7 +321,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  	u8 new_div;
  
  	down(&data->update_lock);
-@@ -406,40 +394,16 @@
+@@ -404,40 +392,16 @@
  	return count;
  }
  
@@ -369,7 +371,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  
  /* alarms */
  static ssize_t show_alarms(struct device *dev,
-@@ -587,33 +551,59 @@
+@@ -585,33 +549,59 @@
  		goto exit_detach;
  	}
  
@@ -455,7 +457,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  	device_create_file(&new_client->dev, &dev_attr_alarms);
  	device_create_file(&new_client->dev, &dev_attr_aout_output);
  	device_create_file(&new_client->dev, &dev_attr_chassis_clear);
-@@ -681,9 +671,9 @@
+@@ -679,9 +669,9 @@
  		i2c_smbus_write_byte_data(client,
  				ADM9240_REG_FAN_MIN(1), 255);
  		i2c_smbus_write_byte_data(client,
@@ -467,7 +469,7 @@ Signed-off-by: Grant Coady <gcoady@gmail.com>
  
  		/* start measurement cycle */
  		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
-@@ -760,10 +750,10 @@
+@@ -758,10 +748,10 @@
  			data->fan_min[i] = i2c_smbus_read_byte_data(client,
  					ADM9240_REG_FAN_MIN(i));
  		}
