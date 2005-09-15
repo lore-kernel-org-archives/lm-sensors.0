@@ -1,43 +1,47 @@
-From: aurelien@aurel32.net (Aurelien Jarno)
-Date: Mon, 05 Sep 2005 22:48:07 +0000
-Subject: [lm-sensors] Strange Values with pcf8591 chip driver
-Message-Id: <431CAEDA.5040704@aurel32.net>
+From: whereami@gmail.com (David Sharp)
+Date: Thu, 15 Sep 2005 12:58:18 +0000
+Subject: [lm-sensors] read()ing an i2c node results in errno=ENOSYS
+Message-Id: <b4e191e7050915035768c521ef@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <431C9BDD.3020708@buholzer.com>
-In-Reply-To: <431C9BDD.3020708@buholzer.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi!
+we're working on a robotics project, and are tryng using an i2c bus to
+communicate between our microcontrollers and our mini-itx pc
+(via-embedded Epia ML).
 
-Mirko Buholzer a ?crit :
-> I am using a pcf8591 chip on a linux 2.6.8 Kernel. The Adapter Driver is 
-> the scx200_i2c. When I do a sensors command I get random values on each 
-> input channel. Channel 1/2/3 are all set to 0V.
-> 
-> voyage:~# sensors
-> pcf8591-i2c-1-49
-> Adapter: NatSemi SCx200 I2C
-> Chan. 0:    1.28 V
-> Chan. 1:    1.28 V
-> Chan. 2:    1.28 V
-> Chan. 3:    1.28 V
-> Output:     0.00 V (enabled)
-> 
-> Does anyone have any hints or tricks on how I can proceed with debugging 
-> and error correction? Or is this a known problem?
+the kernel is rather patched to support the hardware, but i think the
+important bits are untouched (I didn't do the kernel patching myself).
+It is fairly a recent kernel, i'm pretty sure 2.6.11 (i'd check, but
+the box is not in front of me atm).
 
-Have you set the voltage reference of the chip correctly?
+We have been trying to write some preliminary testing code to
+communicate over the i2c bus. some of the original testing code used
+i2c-dev.h from the lm_sensors project to use the SMBus functions.
+These seem to work correctly. However, we don't want to use SMBus, as
+it is more difficult to implement in the microcontrollers. Instead, we
+would like to use plain i2c.
 
-Note that you can also change the mode of the chip (single ended or 
-differential inputs) with the input_mode parameter.
+From my reading of Documentation/i2c/dev-inteface and some of the
+kernel source, we should be able to open(), then use ioctl() to set
+the slave address, and finally use read() and write() to make i2c
+reads and writes.
 
-Aurelien
+although the dev-interface file seems to be outdated (the i2c_smbus_*
+"macro's" it refers to are no longer in the kernel headers, and are
+now only in the lm_sensors' i2c-dev.h), my amateur reading of the
+kernel source supports that this should work. However, a read call
+results in errno=ENOSYS (Function not implemented), although on one
+run, i actually got EPERM, and another time resulted in SEGV.
 
--- 
-   .''`.  Aurelien Jarno	            | GPG: 1024D/F1BCDB73
-  : :' :  Debian GNU/Linux developer | Electrical Engineer
-  `. `'   aurel32@debian.org         | aurelien@aurel32.net
-    `-    people.debian.org/~aurel32 | www.aurel32.net
+I'm sure we've done something wrong, but I can't figure out what it
+is, and the ENOSYS mystifies me. I'm fairly sure all necessary kernel
+modules are loaded (i2c-core, i2c-dev, i2c-viapro, some others...)
+since i2cdetect works, as well as the test using
+i2c_smbus_write_block_data().
+
+Thanks,
+David Sharp
+CalPoly Robotics Club
