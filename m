@@ -1,485 +1,484 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:44 +0000
-Subject: [lm-sensors] [PATCH] I2C: Kill i2c_algorithm.name (1/7)
-Message-Id: <11259567701398@kroah.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Fri, 16 Sep 2005 21:34:18 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: adm9240 driver update - dynamic
+Message-Id: <p87mi1ddqd684ueg9p6a4mqhlmjelminl6@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Kill i2c_algorithm.name (1/7)
 
-The name member of the i2c_algorithm is never used, although all
-drivers conscientiously fill it. We can drop it completely, this
-structure doesn't need to have a name.
+hwmon: adm9240 update 2/2: convert to use dynamic sysfs accessors
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+This patch converts adm9240 to use Yani Ioannou's dynamic sysfs callbacks,
+reducing driver memory footprint from 16312 to 14104 bytes on 2.6.14-rc1,
+removing the old driver macro mess.
+
+Run tested on Intel SE440BX-2 mobo.
+
+Signed-off-by: Grant Coady <gcoady@gmail.com>
 
 ---
-commit 975185880d55676b1352047e82a0cb84173c6c28
-tree 613fdd41f1f967d3795144aae304ce20d3e40b19
-parent 4c9337da37c877e53a64696fc8524f642d446cba
-author Jean Delvare <khali@linux-fr.org> Thu, 11 Aug 2005 23:33:24 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:27 -0700
+ adm9240.c |  340 ++++++++++++++++++++++++++++++--------------------------------
+ 1 files changed, 165 insertions(+), 175 deletions(-)
 
- drivers/i2c/algos/i2c-algo-bit.c                  |    1 -
- drivers/i2c/algos/i2c-algo-ite.c                  |    1 -
- drivers/i2c/algos/i2c-algo-pca.c                  |    1 -
- drivers/i2c/algos/i2c-algo-pcf.c                  |    1 -
- drivers/i2c/algos/i2c-algo-sgi.c                  |    1 -
- drivers/i2c/algos/i2c-algo-sibyte.c               |    1 -
- drivers/i2c/busses/i2c-ali1535.c                  |    1 -
- drivers/i2c/busses/i2c-ali1563.c                  |    1 -
- drivers/i2c/busses/i2c-ali15x3.c                  |    1 -
- drivers/i2c/busses/i2c-amd756.c                   |    1 -
- drivers/i2c/busses/i2c-amd8111.c                  |    1 -
- drivers/i2c/busses/i2c-au1550.c                   |    1 -
- drivers/i2c/busses/i2c-i801.c                     |    1 -
- drivers/i2c/busses/i2c-ibm_iic.c                  |    1 -
- drivers/i2c/busses/i2c-iop3xx.c                   |    1 -
- drivers/i2c/busses/i2c-isa.c                      |    1 -
- drivers/i2c/busses/i2c-keywest.c                  |    1 -
- drivers/i2c/busses/i2c-mpc.c                      |    1 -
- drivers/i2c/busses/i2c-mv64xxx.c                  |    1 -
- drivers/i2c/busses/i2c-nforce2.c                  |    1 -
- drivers/i2c/busses/i2c-piix4.c                    |    1 -
- drivers/i2c/busses/i2c-s3c2410.c                  |    1 -
- drivers/i2c/busses/i2c-sis5595.c                  |    1 -
- drivers/i2c/busses/i2c-sis630.c                   |    1 -
- drivers/i2c/busses/i2c-sis96x.c                   |    1 -
- drivers/i2c/busses/i2c-stub.c                     |    1 -
- drivers/i2c/busses/i2c-viapro.c                   |    1 -
- drivers/i2c/busses/scx200_acb.c                   |    1 -
- drivers/media/common/saa7146_i2c.c                |    1 -
- drivers/media/dvb/b2c2/flexcop-i2c.c              |    1 -
- drivers/media/dvb/dvb-usb/cxusb.c                 |    1 -
- drivers/media/dvb/dvb-usb/dibusb-common.c         |    1 -
- drivers/media/dvb/dvb-usb/digitv.c                |    1 -
- drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |    1 -
- drivers/media/video/bttv-i2c.c                    |    1 -
- drivers/media/video/saa7134/saa7134-i2c.c         |    1 -
- drivers/usb/media/w9968cf.c                       |    1 -
- include/linux/i2c.h                               |    1 -
- 38 files changed, 0 insertions(+), 38 deletions(-)
-
-diff --git a/drivers/i2c/algos/i2c-algo-bit.c b/drivers/i2c/algos/i2c-algo-bit.c
---- a/drivers/i2c/algos/i2c-algo-bit.c
-+++ b/drivers/i2c/algos/i2c-algo-bit.c
-@@ -519,7 +519,6 @@ static u32 bit_func(struct i2c_adapter *
- /* -----exported algorithm data: -------------------------------------	*/
+--- linux-2.6.14-rc1b/drivers/hwmon/adm9240.c-cleanup2	2005-09-15 08:07:26.000000000 +1000
++++ linux-2.6.14-rc1b/drivers/hwmon/adm9240.c	2005-09-15 08:07:29.000000000 +1000
+@@ -45,6 +45,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+@@ -69,8 +70,7 @@
+ #define ADM9240_REG_INT(nr)		(0x41 + (nr))
+ #define ADM9240_REG_INT_MASK(nr)	(0x43 + (nr))
+ #define ADM9240_REG_TEMP		0x27
+-#define ADM9240_REG_TEMP_HIGH		0x39
+-#define ADM9240_REG_TEMP_HYST		0x3a
++#define ADM9240_REG_TEMP_MAX(nr)	(0x39 + (nr)) /* 0, 1 = high, hyst */
+ #define ADM9240_REG_ANALOG_OUT		0x19
+ #define ADM9240_REG_CHASSIS_CLEAR	0x46
+ #define ADM9240_REG_VID_FAN_DIV		0x47
+@@ -162,8 +162,7 @@
+ 	u8 fan_min[2];		/* rw	fan1_min */
+ 	u8 fan_div[2];		/* rw	fan1_div, read-only accessor */
+ 	s16 temp;		/* ro	temp1_input, 9-bit sign-extended */
+-	s8 temp_high;		/* rw	temp1_max */
+-	s8 temp_hyst;		/* rw	temp1_max_hyst */
++	s8 temp_max[2];		/* rw	0 -> temp_max, 1 -> temp_max_hyst */
+ 	u16 alarms;		/* ro	alarms */
+ 	u8 aout;		/* rw	aout_output */
+ 	u8 vid;			/* ro	vid */
+@@ -173,157 +172,143 @@
+ /*** sysfs accessors ***/
  
- static struct i2c_algorithm i2c_bit_algo = {
--	.name		= "Bit-shift algorithm",
- 	.id		= I2C_ALGO_BIT,
- 	.master_xfer	= bit_xfer,
- 	.functionality	= bit_func,
-diff --git a/drivers/i2c/algos/i2c-algo-ite.c b/drivers/i2c/algos/i2c-algo-ite.c
---- a/drivers/i2c/algos/i2c-algo-ite.c
-+++ b/drivers/i2c/algos/i2c-algo-ite.c
-@@ -713,7 +713,6 @@ static u32 iic_func(struct i2c_adapter *
- /* -----exported algorithm data: -------------------------------------	*/
+ /* temperature */
+-#define show_temp(value, scale)					\
+-static ssize_t show_##value(struct device *dev,			\
+-			    struct device_attribute *attr,	\
+-			    char *buf)				\
+-{								\
+-	struct adm9240_data *data = adm9240_update_device(dev);	\
+-	return sprintf(buf, "%d\n", data->value * scale);	\
+-}
+-show_temp(temp_high, 1000);
+-show_temp(temp_hyst, 1000);
+-show_temp(temp, 500); /* 0.5'C per bit */
+-
+-#define set_temp(value, reg)					\
+-static ssize_t set_##value(struct device *dev, 			\
+-			   struct device_attribute *attr,	\
+-			   const char *buf, size_t count)	\
+-{								\
+-	struct i2c_client *client = to_i2c_client(dev);		\
+-	struct adm9240_data *data = adm9240_update_device(dev);	\
+-	long temp = simple_strtoul(buf, NULL, 10);		\
+-								\
+-	down(&data->update_lock);				\
+-	data->value = TEMP_TO_REG(temp);			\
+-	i2c_smbus_write_byte_data(client, reg, data->value);	\
+-	up(&data->update_lock);					\
+-	return count;						\
+-}
+-
+-set_temp(temp_high, ADM9240_REG_TEMP_HIGH);
+-set_temp(temp_hyst, ADM9240_REG_TEMP_HYST);
+-
+-static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
+-		show_temp_high, set_temp_high);
+-static DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
+-		show_temp_hyst, set_temp_hyst);
++static ssize_t show_temp(struct device *dev, struct device_attribute *dummy,
++		char *buf)
++{
++	struct adm9240_data *data = adm9240_update_device(dev);
++	return sprintf(buf, "%d\n", data->temp * 500); /* 9-bit value */
++}
++
++static ssize_t show_max(struct device *dev, struct device_attribute *devattr,
++		char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct adm9240_data *data = adm9240_update_device(dev);
++	return sprintf(buf, "%d\n", data->temp_max[attr->index] * 1000);
++}
++
++static ssize_t set_max(struct device *dev, struct device_attribute *devattr,
++		const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm9240_data *data = i2c_get_clientdata(client);
++	long val = simple_strtol(buf, NULL, 10);
++
++	down(&data->update_lock);
++	data->temp_max[attr->index] = TEMP_TO_REG(val);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_TEMP_MAX(attr->index),
++			data->temp_max[attr->index]);
++	up(&data->update_lock);
++	return count;
++}
++
+ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
++		show_max, set_max, 0);
++static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
++		show_max, set_max, 1);
  
- static struct i2c_algorithm iic_algo = {
--	.name		= "ITE IIC algorithm",
- 	.id		= I2C_ALGO_IIC,
- 	.master_xfer	= iic_xfer,
- 	.algo_control	= algo_control, /* ioctl */
-diff --git a/drivers/i2c/algos/i2c-algo-pca.c b/drivers/i2c/algos/i2c-algo-pca.c
---- a/drivers/i2c/algos/i2c-algo-pca.c
-+++ b/drivers/i2c/algos/i2c-algo-pca.c
-@@ -356,7 +356,6 @@ static int pca_init(struct i2c_algo_pca_
+ /* voltage */
+-static ssize_t show_in(struct device *dev, char *buf, int nr)
++static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
++		char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr], nr));
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[attr->index],
++				attr->index));
  }
  
- static struct i2c_algorithm pca_algo = {
--	.name		= "PCA9564 algorithm",
- 	.id		= I2C_ALGO_PCA,
- 	.master_xfer	= pca_xfer,
- 	.functionality	= pca_func,
-diff --git a/drivers/i2c/algos/i2c-algo-pcf.c b/drivers/i2c/algos/i2c-algo-pcf.c
---- a/drivers/i2c/algos/i2c-algo-pcf.c
-+++ b/drivers/i2c/algos/i2c-algo-pcf.c
-@@ -459,7 +459,6 @@ static u32 pcf_func(struct i2c_adapter *
- /* -----exported algorithm data: -------------------------------------	*/
- 
- static struct i2c_algorithm pcf_algo = {
--	.name		= "PCF8584 algorithm",
- 	.id		= I2C_ALGO_PCF,
- 	.master_xfer	= pcf_xfer,
- 	.functionality	= pcf_func,
-diff --git a/drivers/i2c/algos/i2c-algo-sgi.c b/drivers/i2c/algos/i2c-algo-sgi.c
---- a/drivers/i2c/algos/i2c-algo-sgi.c
-+++ b/drivers/i2c/algos/i2c-algo-sgi.c
-@@ -158,7 +158,6 @@ static u32 sgi_func(struct i2c_adapter *
+-static ssize_t show_in_min(struct device *dev, char *buf, int nr)
++static ssize_t show_in_min(struct device *dev, struct device_attribute *devattr,
++		char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr], nr));
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[attr->index],
++				attr->index));
  }
  
- static struct i2c_algorithm sgi_algo = {
--	.name		= "SGI algorithm",
- 	.id		= I2C_ALGO_SGI,
- 	.master_xfer	= sgi_xfer,
- 	.functionality	= sgi_func,
-diff --git a/drivers/i2c/algos/i2c-algo-sibyte.c b/drivers/i2c/algos/i2c-algo-sibyte.c
---- a/drivers/i2c/algos/i2c-algo-sibyte.c
-+++ b/drivers/i2c/algos/i2c-algo-sibyte.c
-@@ -135,7 +135,6 @@ static u32 bit_func(struct i2c_adapter *
- /* -----exported algorithm data: -------------------------------------	*/
- 
- static struct i2c_algorithm i2c_sibyte_algo = {
--	.name		= "SiByte algorithm",
- 	.id		= I2C_ALGO_SIBYTE,
- 	.smbus_xfer	= smbus_xfer,
- 	.algo_control	= algo_control, /* ioctl */
-diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
---- a/drivers/i2c/busses/i2c-ali1535.c
-+++ b/drivers/i2c/busses/i2c-ali1535.c
-@@ -472,7 +472,6 @@ static u32 ali1535_func(struct i2c_adapt
+-static ssize_t show_in_max(struct device *dev, char *buf, int nr)
++static ssize_t show_in_max(struct device *dev, struct device_attribute *devattr,
++		char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr], nr));
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[attr->index],
++				attr->index));
  }
  
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-i2c SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= ali1535_access,
- 	.functionality	= ali1535_func,
-diff --git a/drivers/i2c/busses/i2c-ali1563.c b/drivers/i2c/busses/i2c-ali1563.c
---- a/drivers/i2c/busses/i2c-ali1563.c
-+++ b/drivers/i2c/busses/i2c-ali1563.c
-@@ -366,7 +366,6 @@ static void ali1563_shutdown(struct pci_
+-static ssize_t set_in_min(struct device *dev, const char *buf,
+-		size_t count, int nr)
++static ssize_t set_in_min(struct device *dev, struct device_attribute *devattr,
++		const char *buf, size_t count)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->in_min[nr] = IN_TO_REG(val, nr);
+-	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(nr),
+-			data->in_min[nr]);
++	data->in_min[attr->index] = IN_TO_REG(val, attr->index);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(attr->index),
++			data->in_min[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
  }
  
- static struct i2c_algorithm ali1563_algorithm = {
--	.name		= "Non-i2c SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= ali1563_access,
- 	.functionality	= ali1563_func,
-diff --git a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
---- a/drivers/i2c/busses/i2c-ali15x3.c
-+++ b/drivers/i2c/busses/i2c-ali15x3.c
-@@ -462,7 +462,6 @@ static u32 ali15x3_func(struct i2c_adapt
+-static ssize_t set_in_max(struct device *dev, const char *buf,
+-		size_t count, int nr)
++static ssize_t set_in_max(struct device *dev, struct device_attribute *devattr,
++		const char *buf, size_t count)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	data->in_max[nr] = IN_TO_REG(val, nr);
+-	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(nr),
+-			data->in_max[nr]);
++	data->in_max[attr->index] = IN_TO_REG(val, attr->index);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(attr->index),
++			data->in_max[attr->index]);
+ 	up(&data->update_lock);
+ 	return count;
  }
  
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= ali15x3_access,
- 	.functionality	= ali15x3_func,
-diff --git a/drivers/i2c/busses/i2c-amd756.c b/drivers/i2c/busses/i2c-amd756.c
---- a/drivers/i2c/busses/i2c-amd756.c
-+++ b/drivers/i2c/busses/i2c-amd756.c
-@@ -295,7 +295,6 @@ static u32 amd756_func(struct i2c_adapte
+-#define show_in_offset(offset)						\
+-static ssize_t show_in##offset(struct device *dev,			\
+-			       struct device_attribute *attr,		\
+-			       char *buf)				\
+-{									\
+-	return show_in(dev, buf, offset);				\
+-}									\
+-static DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in##offset, NULL);	\
+-static ssize_t show_in##offset##_min(struct device *dev,		\
+-				     struct device_attribute *attr,	\
+-				     char *buf)				\
+-{									\
+-	return show_in_min(dev, buf, offset);				\
+-}									\
+-static ssize_t show_in##offset##_max(struct device *dev,		\
+-				     struct device_attribute *attr,	\
+-				     char *buf)				\
+-{									\
+-	return show_in_max(dev, buf, offset);				\
+-}									\
+-static ssize_t								\
+-set_in##offset##_min(struct device *dev,				\
+-		     struct device_attribute *attr, const char *buf,	\
+-		     size_t count)					\
+-{									\
+-	return set_in_min(dev, buf, count, offset);			\
+-}									\
+-static ssize_t								\
+-set_in##offset##_max(struct device *dev,				\
+-		     struct device_attribute *attr, const char *buf,	\
+-		     size_t count)					\
+-{									\
+-	return set_in_max(dev, buf, count, offset);			\
+-}									\
+-static DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,			\
+-		show_in##offset##_min, set_in##offset##_min);		\
+-static DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,			\
+-		show_in##offset##_max, set_in##offset##_max);
+-
+-show_in_offset(0);
+-show_in_offset(1);
+-show_in_offset(2);
+-show_in_offset(3);
+-show_in_offset(4);
+-show_in_offset(5);
++#define vin(nr)							\
++static SENSOR_DEVICE_ATTR(in##nr##_input, S_IRUGO, 		\
++		show_in, NULL, nr);				\
++static SENSOR_DEVICE_ATTR(in##nr##_min, S_IRUGO | S_IWUSR,	\
++		show_in_min, set_in_min, nr);			\
++static SENSOR_DEVICE_ATTR(in##nr##_max, S_IRUGO | S_IWUSR,	\
++		show_in_max, set_in_max, nr);
++
++vin(0);
++vin(1);
++vin(2);
++vin(3);
++vin(4);
++vin(5);
+ 
+ /* fans */
+-static ssize_t show_fan(struct device *dev, char *buf, int nr)
++static ssize_t show_fan(struct device *dev,
++		struct device_attribute *devattr, char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
+-				1 << data->fan_div[nr]));
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
++				1 << data->fan_div[attr->index]));
  }
  
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= amd756_access,
- 	.functionality	= amd756_func,
-diff --git a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
---- a/drivers/i2c/busses/i2c-amd8111.c
-+++ b/drivers/i2c/busses/i2c-amd8111.c
-@@ -323,7 +323,6 @@ static u32 amd8111_func(struct i2c_adapt
+-static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
++static ssize_t show_fan_min(struct device *dev,
++		struct device_attribute *devattr, char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
+-				1 << data->fan_div[nr]));
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[attr->index],
++				1 << data->fan_div[attr->index]));
  }
  
- static struct i2c_algorithm smbus_algorithm = {
--	.name = "Non-I2C SMBus 2.0 adapter",
- 	.id = I2C_ALGO_SMBUS,
- 	.smbus_xfer = amd8111_access,
- 	.functionality = amd8111_func,
-diff --git a/drivers/i2c/busses/i2c-au1550.c b/drivers/i2c/busses/i2c-au1550.c
---- a/drivers/i2c/busses/i2c-au1550.c
-+++ b/drivers/i2c/busses/i2c-au1550.c
-@@ -283,7 +283,6 @@ au1550_func(struct i2c_adapter *adap)
+-static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
++static ssize_t show_fan_div(struct device *dev,
++		struct device_attribute *devattr, char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+-	return sprintf(buf, "%d\n", 1 << data->fan_div[nr]);
++	return sprintf(buf, "%d\n", 1 << data->fan_div[attr->index]);
  }
  
- static struct i2c_algorithm au1550_algo = {
--	.name		= "Au1550 algorithm",
- 	.id		= I2C_ALGO_AU1550,
- 	.master_xfer	= au1550_xfer,
- 	.functionality	= au1550_func,
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -535,7 +535,6 @@ static u32 i801_func(struct i2c_adapter 
- }
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= i801_access,
- 	.functionality	= i801_func,
-diff --git a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
---- a/drivers/i2c/busses/i2c-ibm_iic.c
-+++ b/drivers/i2c/busses/i2c-ibm_iic.c
-@@ -627,7 +627,6 @@ static u32 iic_func(struct i2c_adapter *
- }
- 
- static struct i2c_algorithm iic_algo = {
--	.name 		= "IBM IIC algorithm",
- 	.id   		= I2C_ALGO_OCP,
- 	.master_xfer 	= iic_xfer,
- 	.functionality	= iic_func
-diff --git a/drivers/i2c/busses/i2c-iop3xx.c b/drivers/i2c/busses/i2c-iop3xx.c
---- a/drivers/i2c/busses/i2c-iop3xx.c
-+++ b/drivers/i2c/busses/i2c-iop3xx.c
-@@ -399,7 +399,6 @@ iop3xx_i2c_func(struct i2c_adapter *adap
- }
- 
- static struct i2c_algorithm iop3xx_i2c_algo = {
--	.name		= "IOP3xx I2C algorithm",
- 	.id		= I2C_ALGO_IOP3XX,
- 	.master_xfer	= iop3xx_i2c_master_xfer,
- 	.algo_control	= iop3xx_i2c_algo_control,
-diff --git a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
---- a/drivers/i2c/busses/i2c-isa.c
-+++ b/drivers/i2c/busses/i2c-isa.c
-@@ -43,7 +43,6 @@ static u32 isa_func(struct i2c_adapter *
- 
- /* This is the actual algorithm we define */
- static struct i2c_algorithm isa_algorithm = {
--	.name		= "ISA bus algorithm",
- 	.id		= I2C_ALGO_ISA,
- 	.functionality	= isa_func,
- };
-diff --git a/drivers/i2c/busses/i2c-keywest.c b/drivers/i2c/busses/i2c-keywest.c
---- a/drivers/i2c/busses/i2c-keywest.c
-+++ b/drivers/i2c/busses/i2c-keywest.c
-@@ -498,7 +498,6 @@ keywest_func(struct i2c_adapter * adapte
- 
- /* For now, we only handle combined mode (smbus) */
- static struct i2c_algorithm keywest_algorithm = {
--	.name		= "Keywest i2c",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= keywest_smbus_xfer,
- 	.master_xfer	= keywest_xfer,
-diff --git a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
---- a/drivers/i2c/busses/i2c-mpc.c
-+++ b/drivers/i2c/busses/i2c-mpc.c
-@@ -272,7 +272,6 @@ static u32 mpc_functionality(struct i2c_
- }
- 
- static struct i2c_algorithm mpc_algo = {
--	.name = "MPC algorithm",
- 	.id = I2C_ALGO_MPC107,
- 	.master_xfer = mpc_xfer,
- 	.functionality = mpc_functionality,
-diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
---- a/drivers/i2c/busses/i2c-mv64xxx.c
-+++ b/drivers/i2c/busses/i2c-mv64xxx.c
-@@ -433,7 +433,6 @@ mv64xxx_i2c_xfer(struct i2c_adapter *ada
- }
- 
- static struct i2c_algorithm mv64xxx_i2c_algo = {
--	.name = MV64XXX_I2C_CTLR_NAME " algorithm",
- 	.id = I2C_ALGO_MV64XXX,
- 	.master_xfer = mv64xxx_i2c_xfer,
- 	.functionality = mv64xxx_i2c_functionality,
-diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
---- a/drivers/i2c/busses/i2c-nforce2.c
-+++ b/drivers/i2c/busses/i2c-nforce2.c
-@@ -110,7 +110,6 @@ static u32 nforce2_func(struct i2c_adapt
- 
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name = "Non-I2C SMBus adapter",
- 	.id = I2C_ALGO_SMBUS,
- 	.smbus_xfer = nforce2_access,
- 	.functionality = nforce2_func,
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -399,7 +399,6 @@ static u32 piix4_func(struct i2c_adapter
- }
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= piix4_access,
- 	.functionality	= piix4_func,
-diff --git a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
---- a/drivers/i2c/busses/i2c-s3c2410.c
-+++ b/drivers/i2c/busses/i2c-s3c2410.c
-@@ -568,7 +568,6 @@ static u32 s3c24xx_i2c_func(struct i2c_a
- /* i2c bus registration info */
- 
- static struct i2c_algorithm s3c24xx_i2c_algorithm = {
--	.name			= "S3C2410-I2C-Algorithm",
- 	.master_xfer		= s3c24xx_i2c_xfer,
- 	.functionality		= s3c24xx_i2c_func,
- };
-diff --git a/drivers/i2c/busses/i2c-sis5595.c b/drivers/i2c/busses/i2c-sis5595.c
---- a/drivers/i2c/busses/i2c-sis5595.c
-+++ b/drivers/i2c/busses/i2c-sis5595.c
-@@ -357,7 +357,6 @@ static u32 sis5595_func(struct i2c_adapt
- }
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= sis5595_access,
- 	.functionality	= sis5595_func,
-diff --git a/drivers/i2c/busses/i2c-sis630.c b/drivers/i2c/busses/i2c-sis630.c
---- a/drivers/i2c/busses/i2c-sis630.c
-+++ b/drivers/i2c/busses/i2c-sis630.c
-@@ -448,7 +448,6 @@ exit:
- 
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= sis630_access,
- 	.functionality	= sis630_func,
-diff --git a/drivers/i2c/busses/i2c-sis96x.c b/drivers/i2c/busses/i2c-sis96x.c
---- a/drivers/i2c/busses/i2c-sis96x.c
-+++ b/drivers/i2c/busses/i2c-sis96x.c
-@@ -249,7 +249,6 @@ static u32 sis96x_func(struct i2c_adapte
- }
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= sis96x_access,
- 	.functionality	= sis96x_func,
-diff --git a/drivers/i2c/busses/i2c-stub.c b/drivers/i2c/busses/i2c-stub.c
---- a/drivers/i2c/busses/i2c-stub.c
-+++ b/drivers/i2c/busses/i2c-stub.c
-@@ -109,7 +109,6 @@ static u32 stub_func(struct i2c_adapter 
- }
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.functionality	= stub_func,
- 	.smbus_xfer	= stub_xfer,
-diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
---- a/drivers/i2c/busses/i2c-viapro.c
-+++ b/drivers/i2c/busses/i2c-viapro.c
-@@ -286,7 +286,6 @@ static u32 vt596_func(struct i2c_adapter
- }
- 
- static struct i2c_algorithm smbus_algorithm = {
--	.name		= "Non-I2C SMBus adapter",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= vt596_access,
- 	.functionality	= vt596_func,
-diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
---- a/drivers/i2c/busses/scx200_acb.c
-+++ b/drivers/i2c/busses/scx200_acb.c
-@@ -395,7 +395,6 @@ static u32 scx200_acb_func(struct i2c_ad
- 
- /* For now, we only handle combined mode (smbus) */
- static struct i2c_algorithm scx200_acb_algorithm = {
--	.name		= "NatSemi SCx200 ACCESS.bus",
- 	.id		= I2C_ALGO_SMBUS,
- 	.smbus_xfer	= scx200_acb_smbus_xfer,
- 	.functionality	= scx200_acb_func,
-diff --git a/drivers/media/common/saa7146_i2c.c b/drivers/media/common/saa7146_i2c.c
---- a/drivers/media/common/saa7146_i2c.c
-+++ b/drivers/media/common/saa7146_i2c.c
-@@ -387,7 +387,6 @@ static int saa7146_i2c_xfer(struct i2c_a
- 
- /* exported algorithm data */
- static struct i2c_algorithm saa7146_algo = {
--	.name		= "saa7146 i2c algorithm",
- 	.id		= I2C_ALGO_SAA7146,
- 	.master_xfer	= saa7146_i2c_xfer,
- 	.functionality	= saa7146_i2c_func,
-diff --git a/drivers/media/dvb/b2c2/flexcop-i2c.c b/drivers/media/dvb/b2c2/flexcop-i2c.c
---- a/drivers/media/dvb/b2c2/flexcop-i2c.c
-+++ b/drivers/media/dvb/b2c2/flexcop-i2c.c
-@@ -172,7 +172,6 @@ static u32 flexcop_i2c_func(struct i2c_a
- }
- 
- static struct i2c_algorithm flexcop_algo = {
--	.name			= "FlexCop I2C algorithm",
- 	.id				= I2C_ALGO_BIT,
- 	.master_xfer	= flexcop_master_xfer,
- 	.functionality	= flexcop_i2c_func,
-diff --git a/drivers/media/dvb/dvb-usb/cxusb.c b/drivers/media/dvb/dvb-usb/cxusb.c
---- a/drivers/media/dvb/dvb-usb/cxusb.c
-+++ b/drivers/media/dvb/dvb-usb/cxusb.c
-@@ -141,7 +141,6 @@ static u32 cxusb_i2c_func(struct i2c_ada
- }
- 
- static struct i2c_algorithm cxusb_i2c_algo = {
--	.name          = "Conexant USB I2C algorithm",
- 	.id            = I2C_ALGO_BIT,
- 	.master_xfer   = cxusb_i2c_xfer,
- 	.functionality = cxusb_i2c_func,
-diff --git a/drivers/media/dvb/dvb-usb/dibusb-common.c b/drivers/media/dvb/dvb-usb/dibusb-common.c
---- a/drivers/media/dvb/dvb-usb/dibusb-common.c
-+++ b/drivers/media/dvb/dvb-usb/dibusb-common.c
-@@ -156,7 +156,6 @@ static u32 dibusb_i2c_func(struct i2c_ad
- }
- 
- struct i2c_algorithm dibusb_i2c_algo = {
--	.name          = "DiBcom USB I2C algorithm",
- 	.id            = I2C_ALGO_BIT,
- 	.master_xfer   = dibusb_i2c_xfer,
- 	.functionality = dibusb_i2c_func,
-diff --git a/drivers/media/dvb/dvb-usb/digitv.c b/drivers/media/dvb/dvb-usb/digitv.c
---- a/drivers/media/dvb/dvb-usb/digitv.c
-+++ b/drivers/media/dvb/dvb-usb/digitv.c
-@@ -77,7 +77,6 @@ static u32 digitv_i2c_func(struct i2c_ad
- }
- 
- static struct i2c_algorithm digitv_i2c_algo = {
--	.name          = "Nebula DigiTV USB I2C algorithm",
- 	.id            = I2C_ALGO_BIT,
- 	.master_xfer   = digitv_i2c_xfer,
- 	.functionality = digitv_i2c_func,
-diff --git a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
---- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-@@ -1472,7 +1472,6 @@ static void frontend_init(struct ttusb* 
- 
- 
- static struct i2c_algorithm ttusb_dec_algo = {
--	.name		= "ttusb dec i2c algorithm",
- 	.id		= I2C_ALGO_BIT,
- 	.master_xfer	= master_xfer,
- 	.functionality	= functionality,
-diff --git a/drivers/media/video/bttv-i2c.c b/drivers/media/video/bttv-i2c.c
---- a/drivers/media/video/bttv-i2c.c
-+++ b/drivers/media/video/bttv-i2c.c
-@@ -270,7 +270,6 @@ static int bttv_i2c_xfer(struct i2c_adap
- }
- 
- static struct i2c_algorithm bttv_algo = {
--	.name          = "bt878",
- 	.id            = I2C_ALGO_BIT | I2C_HW_B_BT848 /* FIXME */,
- 	.master_xfer   = bttv_i2c_xfer,
- 	.algo_control  = algo_control,
-diff --git a/drivers/media/video/saa7134/saa7134-i2c.c b/drivers/media/video/saa7134/saa7134-i2c.c
---- a/drivers/media/video/saa7134/saa7134-i2c.c
-+++ b/drivers/media/video/saa7134/saa7134-i2c.c
-@@ -370,7 +370,6 @@ static int attach_inform(struct i2c_clie
- }
- 
- static struct i2c_algorithm saa7134_algo = {
--	.name          = "saa7134",
- 	.id            = I2C_ALGO_SAA7134,
- 	.master_xfer   = saa7134_i2c_xfer,
- 	.algo_control  = algo_control,
-diff --git a/drivers/usb/media/w9968cf.c b/drivers/usb/media/w9968cf.c
---- a/drivers/usb/media/w9968cf.c
-+++ b/drivers/usb/media/w9968cf.c
-@@ -1573,7 +1573,6 @@ static int w9968cf_i2c_init(struct w9968
- 	int err = 0;
- 
- 	static struct i2c_algorithm algo = {
--		.name =          "W996[87]CF algorithm",
- 		.id =            I2C_ALGO_SMBUS,
- 		.smbus_xfer =    w9968cf_i2c_smbus_xfer,
- 		.algo_control =  w9968cf_i2c_control,
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -192,7 +192,6 @@ static inline char *i2c_clientname(struc
-  * to name two of the most common.
+ /* write new fan div, callers must hold data->update_lock */
+@@ -352,12 +337,15 @@
+  * - otherwise: select fan clock divider to suit fan speed low limit,
+  *   measurement code may adjust registers to ensure fan speed reading
   */
- struct i2c_algorithm {
--	char name[32];				/* textual description 	*/
- 	unsigned int id;
+-static ssize_t set_fan_min(struct device *dev, const char *buf,
+-		size_t count, int nr)
++static ssize_t set_fan_min(struct device *dev,
++		struct device_attribute *devattr,
++		const char *buf, size_t count)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+ 	unsigned long val = simple_strtoul(buf, NULL, 10);
++	int nr = attr->index;
+ 	u8 new_div;
  
- 	/* If an adapter algorithm can't do I2C-level access, set master_xfer
-
+ 	down(&data->update_lock);
+@@ -404,40 +392,16 @@
+ 	return count;
+ }
+ 
+-#define show_fan_offset(offset)						\
+-static ssize_t show_fan_##offset (struct device *dev,			\
+-				  struct device_attribute *attr,	\
+-				  char *buf)				\
+-{									\
+-return show_fan(dev, buf, offset - 1);					\
+-}									\
+-static ssize_t show_fan_##offset##_div (struct device *dev,		\
+-					struct device_attribute *attr,	\
+-					char *buf)			\
+-{									\
+-return show_fan_div(dev, buf, offset - 1);				\
+-}									\
+-static ssize_t show_fan_##offset##_min (struct device *dev,		\
+-					struct device_attribute *attr,	\
+-					char *buf)			\
+-{									\
+-return show_fan_min(dev, buf, offset - 1);				\
+-}									\
+-static ssize_t set_fan_##offset##_min (struct device *dev, 		\
+-				       struct device_attribute *attr,	\
+-				       const char *buf, size_t count)	\
+-{									\
+-return set_fan_min(dev, buf, count, offset - 1);			\
+-}									\
+-static DEVICE_ATTR(fan##offset##_input, S_IRUGO, 			\
+-		show_fan_##offset, NULL);				\
+-static DEVICE_ATTR(fan##offset##_div, S_IRUGO, 				\
+-		show_fan_##offset##_div, NULL);				\
+-static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, 		\
+-		show_fan_##offset##_min, set_fan_##offset##_min);
++#define fan(nr)							\
++static SENSOR_DEVICE_ATTR(fan##nr##_input, S_IRUGO,		\
++		show_fan, NULL, nr - 1);			\
++static SENSOR_DEVICE_ATTR(fan##nr##_div, S_IRUGO,		\
++		show_fan_div, NULL, nr - 1);			\
++static SENSOR_DEVICE_ATTR(fan##nr##_min, S_IRUGO | S_IWUSR,	\
++		show_fan_min, set_fan_min, nr - 1);
+ 
+-show_fan_offset(1);
+-show_fan_offset(2);
++fan(1);
++fan(2);
+ 
+ /* alarms */
+ static ssize_t show_alarms(struct device *dev,
+@@ -585,33 +549,59 @@
+ 		goto exit_detach;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_in0_input);
+-	device_create_file(&new_client->dev, &dev_attr_in0_min);
+-	device_create_file(&new_client->dev, &dev_attr_in0_max);
+-	device_create_file(&new_client->dev, &dev_attr_in1_input);
+-	device_create_file(&new_client->dev, &dev_attr_in1_min);
+-	device_create_file(&new_client->dev, &dev_attr_in1_max);
+-	device_create_file(&new_client->dev, &dev_attr_in2_input);
+-	device_create_file(&new_client->dev, &dev_attr_in2_min);
+-	device_create_file(&new_client->dev, &dev_attr_in2_max);
+-	device_create_file(&new_client->dev, &dev_attr_in3_input);
+-	device_create_file(&new_client->dev, &dev_attr_in3_min);
+-	device_create_file(&new_client->dev, &dev_attr_in3_max);
+-	device_create_file(&new_client->dev, &dev_attr_in4_input);
+-	device_create_file(&new_client->dev, &dev_attr_in4_min);
+-	device_create_file(&new_client->dev, &dev_attr_in4_max);
+-	device_create_file(&new_client->dev, &dev_attr_in5_input);
+-	device_create_file(&new_client->dev, &dev_attr_in5_min);
+-	device_create_file(&new_client->dev, &dev_attr_in5_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in0_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in0_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in0_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in1_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in1_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in1_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in2_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in2_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in2_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in3_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in3_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in3_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in4_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in4_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in4_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in5_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in5_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_in5_max.dev_attr);
+ 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan1_min);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_input);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_div);
+-	device_create_file(&new_client->dev, &dev_attr_fan2_min);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_temp1_max.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_temp1_max_hyst.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan1_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan1_div.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan1_min.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan2_input.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan2_div.dev_attr);
++	device_create_file(&new_client->dev,
++			&sensor_dev_attr_fan2_min.dev_attr);
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 	device_create_file(&new_client->dev, &dev_attr_aout_output);
+ 	device_create_file(&new_client->dev, &dev_attr_chassis_clear);
+@@ -679,9 +669,9 @@
+ 		i2c_smbus_write_byte_data(client,
+ 				ADM9240_REG_FAN_MIN(1), 255);
+ 		i2c_smbus_write_byte_data(client,
+-				ADM9240_REG_TEMP_HIGH, 127);
++				ADM9240_REG_TEMP_MAX(0), 127);
+ 		i2c_smbus_write_byte_data(client,
+-				ADM9240_REG_TEMP_HYST, 127);
++				ADM9240_REG_TEMP_MAX(1), 127);
+ 
+ 		/* start measurement cycle */
+ 		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
+@@ -758,10 +748,10 @@
+ 			data->fan_min[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_FAN_MIN(i));
+ 		}
+-		data->temp_high = i2c_smbus_read_byte_data(client,
+-				ADM9240_REG_TEMP_HIGH);
+-		data->temp_hyst = i2c_smbus_read_byte_data(client,
+-				ADM9240_REG_TEMP_HYST);
++		data->temp_max[0] = i2c_smbus_read_byte_data(client,
++				ADM9240_REG_TEMP_MAX(0));
++		data->temp_max[1] = i2c_smbus_read_byte_data(client,
++				ADM9240_REG_TEMP_MAX(1));
+ 
+ 		/* read fan divs and 5-bit VID */
+ 		i = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
