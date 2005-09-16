@@ -1,281 +1,268 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:42 +0000
-Subject: [lm-sensors] [PATCH] I2C: Rewrite i2c_probe
-Message-Id: <11259567701884@kroah.com>
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Fri, 16 Sep 2005 21:34:13 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: adm9240 driver update - cleanups
+Message-Id: <947mi1lbnr076k5mgac360btfco7uiumg2@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Rewrite i2c_probe
 
-i2c_probe was quite complex and slow, so I rewrote it in a more
-efficient and hopefully clearer way.
+hwmon: adm9240 update 1/2: cleanups:
 
-Note that this slightly changes the way the module parameters are
-handled. This shouldn't change anything for the most common cases
-though.
+o remove i2c read/write wrapper interface as it does nothing,
+o change kmalloc + memset to kzalloc
 
-For one thing, the function now respects the order of the parameters
-for address probing. It used to always do lower addresses first. The
-new approach gives the user more control.
-
-For another, ignore addresses don't overrule probe addresses anymore.
-This could have been restored the way it was at the cost of a few more
-lines of code, but I don't think it's worth it. Both lists are given
-as module parameters, so a user would be quite silly to specify the
-same addresses in both lists. The normal addresses list is the only
-one that isn't controlled by a module parameter, thus is the only one
-the user may reasonably want to remove an address from.
-
-Another significant change is the fact that i2c_probe() will no more
-stop when a detection function returns -ENODEV. Just because a driver
-found a chip it doesn't support isn't a valid reason to stop all
-probings for this one driver. This closes the long standing lm_sensors
-ticket #1807.
-
-  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket07
-
-I updated the documentation accordingly.
-
-In terms of algorithmic complexity, the new code is way better. If
-I is the ignore address count, P the probe address count, N the
-normal address count and F the force address count, the old code
-was doing 128 * (F + I + P + N) iterations max, while the new code
-does F + P + ((I+1) * N) iterations max. For the most common case
-where F, I and P are empty, this is down from 128 * N to N.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Grant Coady <gcoady@gmail.com>
 
 ---
-commit a89ba0bc02e82920a0f4137aa5d655ac0366cc28
-tree 98489ed77a287a81ff4ad7233fd543e59e58c328
-parent 3b6c0634cc989f0735a1541ccf9288947685cab5
-author Jean Delvare <khali@linux-fr.org> Tue, 09 Aug 2005 20:17:55 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:25 -0700
+ adm9240.c |   92 +++++++++++++++++++++++++++++---------------------------------
+ 1 files changed, 44 insertions(+), 48 deletions(-)
 
- Documentation/i2c/writing-clients |    7 +-
- drivers/i2c/i2c-core.c            |  167 ++++++++++++++++++++-----------------
- 2 files changed, 94 insertions(+), 80 deletions(-)
-
-diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
---- a/Documentation/i2c/writing-clients
-+++ b/Documentation/i2c/writing-clients
-@@ -241,9 +241,10 @@ Below, some things are only needed if th
- parts are between /* SENSORS ONLY START */ and /* SENSORS ONLY END */
- markers. 
+--- linux-2.6.14-rc1b/drivers/hwmon/adm9240.c-whitespace	2005-09-14 07:10:45.000000000 +1000
++++ linux-2.6.14-rc1b/drivers/hwmon/adm9240.c	2005-09-15 08:15:18.000000000 +1000
+@@ -170,17 +170,6 @@
+ 	u8 vrm;			/* --	vrm set on startup, no accessor */
+ };
  
--This function should only return an error (any value != 0) if there is
--some reason why no more detection should be done anymore. If the
--detection just fails for this address, return 0.
-+Returning an error different from -ENODEV in a detect function will cause
-+the detection to stop: other addresses and adapters won't be scanned.
-+This should only be done on fatal or internal errors, such as a memory
-+shortage or i2c_attach_client failing.
- 
- For now, you can ignore the `flags' parameter. It is there for future use.
- 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -662,107 +662,120 @@ int i2c_control(struct i2c_client *clien
-  * Will not work for 10-bit addresses!
-  * ----------------------------------------------------
-  */
--/* Return: kind (>= 0) if force found, -1 if not found */
--static inline int i2c_probe_forces(struct i2c_adapter *adapter, int addr,
--				   unsigned short **forces)
+-/* i2c byte read/write interface */
+-static int adm9240_read_value(struct i2c_client *client, u8 reg)
 -{
--	unsigned short kind;
--	int j, adap_id = i2c_adapter_id(adapter);
+-	return i2c_smbus_read_byte_data(client, reg);
+-}
 -
--	for (kind = 0; forces[kind]; kind++) {
--		for (j = 0; forces[kind][j] != I2C_CLIENT_END; j += 2) {
--			if ((forces[kind][j] = adap_id ||
--			     forces[kind][j] = ANY_I2C_BUS)
--			 && forces[kind][j + 1] = addr) {
--				dev_dbg(&adapter->dev, "found force parameter, "
--					"addr 0x%02x, kind %u\n", addr, kind);
--				return kind;
--			}
--		}
-+static int i2c_probe_address(struct i2c_adapter *adapter, int addr, int kind,
-+			     int (*found_proc) (struct i2c_adapter *, int, int))
-+{
-+	int err;
-+
-+	/* Make sure the address is valid */
-+	if (addr < 0x03 || addr > 0x77) {
-+		dev_warn(&adapter->dev, "Invalid probe address 0x%02x\n",
-+			 addr);
-+		return -EINVAL;
- 	}
+-static int adm9240_write_value(struct i2c_client *client, u8 reg, u8 value)
+-{
+-	return i2c_smbus_write_byte_data(client, reg, value);
+-}
+-
+ /*** sysfs accessors ***/
  
--	return -1;
-+	/* Skip if already in use */
-+	if (i2c_check_addr(adapter, addr))
-+		return 0;
-+
-+	/* Make sure there is something at this address, unless forced */
-+	if (kind < 0
-+	 && i2c_smbus_xfer(adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) < 0)
-+		return 0;
-+
-+	/* Finally call the custom detection function */
-+	err = found_proc(adapter, addr, kind);
-+
-+	/* -ENODEV can be returned if there is a chip at the given address
-+	   but it isn't supported by this chip driver. We catch it here as
-+	   this isn't an error. */
-+	return (err = -ENODEV) ? 0 : err;
+ /* temperature */
+@@ -207,7 +196,7 @@
+ 								\
+ 	down(&data->update_lock);				\
+ 	data->value = TEMP_TO_REG(temp);			\
+-	adm9240_write_value(client, reg, data->value);		\
++	i2c_smbus_write_byte_data(client, reg, data->value);	\
+ 	up(&data->update_lock);					\
+ 	return count;						\
  }
+@@ -249,7 +238,8 @@
  
- int i2c_probe(struct i2c_adapter *adapter,
- 	      struct i2c_client_address_data *address_data,
- 	      int (*found_proc) (struct i2c_adapter *, int, int))
+ 	down(&data->update_lock);
+ 	data->in_min[nr] = IN_TO_REG(val, nr);
+-	adm9240_write_value(client, ADM9240_REG_IN_MIN(nr), data->in_min[nr]);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(nr),
++			data->in_min[nr]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -263,7 +253,8 @@
+ 
+ 	down(&data->update_lock);
+ 	data->in_max[nr] = IN_TO_REG(val, nr);
+-	adm9240_write_value(client, ADM9240_REG_IN_MAX(nr), data->in_max[nr]);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(nr),
++			data->in_max[nr]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -341,11 +332,11 @@
  {
--	int addr,i,found,err;
-+	int i, err;
- 	int adap_id = i2c_adapter_id(adapter);
+ 	u8 reg, old, shift = (nr + 2) * 2;
  
- 	/* Forget it if we can't probe using SMBUS_QUICK */
- 	if (! i2c_check_functionality(adapter,I2C_FUNC_SMBUS_QUICK))
- 		return -1;
- 
--	for (addr = 0x00; addr <= 0x7f; addr++) {
--
--		/* Skip if already in use */
--		if (i2c_check_addr(adapter,addr))
--			continue;
--
--		/* If it is in one of the force entries, we don't do any detection
--		   at all */
--		found = 0;
--
--		if (address_data->forces) {
--			int kind = i2c_probe_forces(adapter, addr,
--						    address_data->forces);
--			if (kind >= 0) { /* force found */
--				if ((err = found_proc(adapter, addr, kind)))
--					return err;
--				continue;
--			}
--		}
--
--		/* If this address is in one of the ignores, we can forget about
--		   it right now */
--		for (i = 0;
--		     !found && (address_data->ignore[i] != I2C_CLIENT_END);
--		     i += 2) {
--			if (((adap_id = address_data->ignore[i]) || 
--			    ((address_data->ignore[i] = ANY_I2C_BUS))) &&
--			    (addr = address_data->ignore[i+1])) {
--				dev_dbg(&adapter->dev, "found ignore parameter for adapter %d, "
--					"addr %04x\n", adap_id ,addr);
--				found = 1;
-+	/* Force entries are done first, and are not affected by ignore
-+	   entries */
-+	if (address_data->forces) {
-+		unsigned short **forces = address_data->forces;
-+		int kind;
-+
-+		for (kind = 0; forces[kind]; kind++) {
-+			for (i = 0; forces[kind][i] != I2C_CLIENT_END;
-+			     i += 2) {
-+				if (forces[kind][i] = adap_id
-+				 || forces[kind][i] = ANY_I2C_BUS) {
-+					dev_dbg(&adapter->dev, "found force "
-+						"parameter for adapter %d, "
-+						"addr 0x%02x, kind %d\n",
-+						adap_id, forces[kind][i + 1],
-+						kind);
-+					err = i2c_probe_address(adapter,
-+						forces[kind][i + 1],
-+						kind, found_proc);
-+					if (err)
-+						return err;
-+				}
- 			}
- 		}
--		if (found) 
--			continue;
-+	}
- 
--		/* Now, we will do a detection, but only if it is in the normal or 
--		   probe entries */  
--		for (i = 0;
--		     !found && (address_data->normal_i2c[i] != I2C_CLIENT_END);
--		     i += 1) {
--			if (addr = address_data->normal_i2c[i]) {
--				found = 1;
--				dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, "
--					"addr %02x\n", adap_id, addr);
--			}
-+	/* Probe entries are done second, and are not affected by ignore
-+	   entries either */
-+	for (i = 0; address_data->probe[i] != I2C_CLIENT_END; i += 2) {
-+		if (address_data->probe[i] = adap_id
-+		 || address_data->probe[i] = ANY_I2C_BUS) {
-+			dev_dbg(&adapter->dev, "found probe parameter for "
-+				"adapter %d, addr 0x%02x\n", adap_id,
-+				address_data->probe[i + 1]);
-+			err = i2c_probe_address(adapter,
-+						address_data->probe[i + 1],
-+						-1, found_proc);
-+			if (err)
-+				return err;
- 		}
-+	}
- 
--		for (i = 0;
--		     !found && (address_data->probe[i] != I2C_CLIENT_END);
--		     i += 2) {
--			if (((adap_id = address_data->probe[i]) ||
--			    ((address_data->probe[i] = ANY_I2C_BUS))) &&
--			    (addr = address_data->probe[i+1])) {
--				found = 1;
--				dev_dbg(&adapter->dev, "found probe parameter for adapter %d, "
--					"addr %04x\n", adap_id,addr);
-+	/* Normal entries are done last, unless shadowed by an ignore entry */
-+	for (i = 0; address_data->normal_i2c[i] != I2C_CLIENT_END; i += 1) {
-+		int j, ignore;
-+
-+		ignore = 0;
-+		for (j = 0; address_data->ignore[j] != I2C_CLIENT_END;
-+		     j += 2) {
-+			if ((address_data->ignore[j] = adap_id ||
-+			     address_data->ignore[j] = ANY_I2C_BUS)
-+			 && address_data->ignore[j + 1]
-+			    = address_data->normal_i2c[i]) {
-+				dev_dbg(&adapter->dev, "found ignore "
-+					"parameter for adapter %d, "
-+					"addr 0x%02x\n", adap_id,
-+					address_data->ignore[j + 1]);
- 			}
-+			ignore = 1;
-+			break;
- 		}
--		if (!found) 
-+		if (ignore)
- 			continue;
- 
--		/* OK, so we really should examine this address. First check
--		   whether there is some client here at all! */
--		if (i2c_smbus_xfer(adapter,addr,0,0,0,I2C_SMBUS_QUICK,NULL) >= 0)
--			if ((err = found_proc(adapter,addr,-1)))
--				return err;
-+		dev_dbg(&adapter->dev, "found normal entry for adapter %d, "
-+			"addr 0x%02x\n", adap_id,
-+			address_data->normal_i2c[i]);
-+		err = i2c_probe_address(adapter, address_data->normal_i2c[i],
-+					-1, found_proc);
-+		if (err)
-+			return err;
- 	}
-+
- 	return 0;
+-	reg = adm9240_read_value(client, ADM9240_REG_VID_FAN_DIV);
++	reg = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
+ 	old = (reg >> shift) & 3;
+ 	reg &= ~(3 << shift);
+ 	reg |= (fan_div << shift);
+-	adm9240_write_value(client, ADM9240_REG_VID_FAN_DIV, reg);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_VID_FAN_DIV, reg);
+ 	dev_dbg(&client->dev, "fan%d clock divider changed from %u "
+ 			"to %u\n", nr + 1, 1 << old, 1 << fan_div);
  }
+@@ -406,7 +397,7 @@
+ 		data->fan_div[nr] = new_div;
+ 		adm9240_write_fan_div(client, nr, new_div);
+ 	}
+-	adm9240_write_value(client, ADM9240_REG_FAN_MIN(nr),
++	i2c_smbus_write_byte_data(client, ADM9240_REG_FAN_MIN(nr),
+ 			data->fan_min[nr]);
  
-
+ 	up(&data->update_lock);
+@@ -483,7 +474,7 @@
+ 
+ 	down(&data->update_lock);
+ 	data->aout = AOUT_TO_REG(val);
+-	adm9240_write_value(client, ADM9240_REG_ANALOG_OUT, data->aout);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_ANALOG_OUT, data->aout);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -497,7 +488,8 @@
+ 	unsigned long val = simple_strtol(buf, NULL, 10);
+ 
+ 	if (val = 1) {
+-		adm9240_write_value(client, ADM9240_REG_CHASSIS_CLEAR, 0x80);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_CHASSIS_CLEAR, 0x80);
+ 		dev_dbg(&client->dev, "chassis intrusion latch cleared\n");
+ 	}
+ 	return count;
+@@ -518,11 +510,10 @@
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct adm9240_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(*data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct adm9240_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+@@ -538,7 +529,7 @@
+ 	if (kind < 0) {
+ 
+ 		/* verify chip: reg address should match i2c address */
+-		if (adm9240_read_value(new_client, ADM9240_REG_I2C_ADDR)
++		if (i2c_smbus_read_byte_data(new_client, ADM9240_REG_I2C_ADDR)
+ 				!= address) {
+ 			dev_err(&adapter->dev, "detect fail: address match, "
+ 					"0x%02x\n", address);
+@@ -546,8 +537,8 @@
+ 		}
+ 
+ 		/* check known chip manufacturer */
+-		man_id = adm9240_read_value(new_client, ADM9240_REG_MAN_ID);
+-
++		man_id = i2c_smbus_read_byte_data(new_client,
++				ADM9240_REG_MAN_ID);
+ 		if (man_id = 0x23) {
+ 			kind = adm9240;
+ 		} else if (man_id = 0xda) {
+@@ -561,7 +552,8 @@
+ 		}
+ 
+ 		/* successful detect, print chip info */
+-		die_rev = adm9240_read_value(new_client, ADM9240_REG_DIE_REV);
++		die_rev = i2c_smbus_read_byte_data(new_client,
++				ADM9240_REG_DIE_REV);
+ 		dev_info(&adapter->dev, "found %s revision %u\n",
+ 				man_id = 0x23 ? "ADM9240" :
+ 				man_id = 0xda ? "DS1780" : "LM81", die_rev);
+@@ -659,8 +651,8 @@
+ static void adm9240_init_client(struct i2c_client *client)
+ {
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+-	u8 conf = adm9240_read_value(client, ADM9240_REG_CONFIG);
+-	u8 mode = adm9240_read_value(client, ADM9240_REG_TEMP_CONF) & 3;
++	u8 conf = i2c_smbus_read_byte_data(client, ADM9240_REG_CONFIG);
++	u8 mode = i2c_smbus_read_byte_data(client, ADM9240_REG_TEMP_CONF) & 3;
+ 
+ 	data->vrm = vid_which_vrm(); /* need this to report vid as mV */
+ 
+@@ -677,18 +669,22 @@
+ 
+ 		for (i = 0; i < 6; i++)
+ 		{
+-			adm9240_write_value(client,
++			i2c_smbus_write_byte_data(client,
+ 					ADM9240_REG_IN_MIN(i), 0);
+-			adm9240_write_value(client,
++			i2c_smbus_write_byte_data(client,
+ 					ADM9240_REG_IN_MAX(i), 255);
+ 		}
+-		adm9240_write_value(client, ADM9240_REG_FAN_MIN(0), 255);
+-		adm9240_write_value(client, ADM9240_REG_FAN_MIN(1), 255);
+-		adm9240_write_value(client, ADM9240_REG_TEMP_HIGH, 127);
+-		adm9240_write_value(client, ADM9240_REG_TEMP_HYST, 127);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_FAN_MIN(0), 255);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_FAN_MIN(1), 255);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_TEMP_HIGH, 127);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_TEMP_HYST, 127);
+ 
+ 		/* start measurement cycle */
+-		adm9240_write_value(client, ADM9240_REG_CONFIG, 1);
++		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
+ 
+ 		dev_info(&client->dev, "cold start: config was 0x%02x "
+ 				"mode %u\n", conf, mode);
+@@ -709,25 +705,25 @@
+ 
+ 		for (i = 0; i < 6; i++) /* read voltages */
+ 		{
+-			data->in[i] = adm9240_read_value(client,
++			data->in[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_IN(i));
+ 		}
+-		data->alarms = adm9240_read_value(client,
++		data->alarms = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_INT(0)) |
+-					adm9240_read_value(client,
++					i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_INT(1)) << 8;
+ 
+ 		/* read temperature: assume temperature changes less than
+ 		 * 0.5'C per two measurement cycles thus ignore possible
+ 		 * but unlikely aliasing error on lsb reading. --Grant */
+-		data->temp = ((adm9240_read_value(client,
++		data->temp = ((i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_TEMP) << 8) |
+-					adm9240_read_value(client,
++					i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_TEMP_CONF)) / 128;
+ 
+ 		for (i = 0; i < 2; i++) /* read fans */
+ 		{
+-			data->fan[i] = adm9240_read_value(client,
++			data->fan[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_FAN(i));
+ 
+ 			/* adjust fan clock divider on overflow */
+@@ -752,30 +748,30 @@
+ 
+ 		for (i = 0; i < 6; i++)
+ 		{
+-			data->in_min[i] = adm9240_read_value(client,
++			data->in_min[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_IN_MIN(i));
+-			data->in_max[i] = adm9240_read_value(client,
++			data->in_max[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_IN_MAX(i));
+ 		}
+ 		for (i = 0; i < 2; i++)
+ 		{
+-			data->fan_min[i] = adm9240_read_value(client,
++			data->fan_min[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_FAN_MIN(i));
+ 		}
+-		data->temp_high = adm9240_read_value(client,
++		data->temp_high = i2c_smbus_read_byte_data(client,
+ 				ADM9240_REG_TEMP_HIGH);
+-		data->temp_hyst = adm9240_read_value(client,
++		data->temp_hyst = i2c_smbus_read_byte_data(client,
+ 				ADM9240_REG_TEMP_HYST);
+ 
+ 		/* read fan divs and 5-bit VID */
+-		i = adm9240_read_value(client, ADM9240_REG_VID_FAN_DIV);
++		i = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
+ 		data->fan_div[0] = (i >> 4) & 3;
+ 		data->fan_div[1] = (i >> 6) & 3;
+ 		data->vid = i & 0x0f;
+-		data->vid |= (adm9240_read_value(client,
++		data->vid |= (i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_VID4) & 1) << 4;
+ 		/* read analog out */
+-		data->aout = adm9240_read_value(client,
++		data->aout = i2c_smbus_read_byte_data(client,
+ 				ADM9240_REG_ANALOG_OUT);
+ 
+ 		data->last_updated_config = jiffies;
