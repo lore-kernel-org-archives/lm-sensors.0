@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Sep 2005 09:22:16 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Sun, 18 Sep 2005 23:34:54 +0000
 Subject: [lm-sensors] read()ing an i2c node results in errno=ENOSYS
-Message-Id: <20050918092253.1b199195.khali@linux-fr.org>
+Message-Id: <20050918213441.GB6263@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <b4e191e7050915035768c521ef@mail.gmail.com>
 In-Reply-To: <b4e191e7050915035768c521ef@mail.gmail.com>
@@ -10,36 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Hi Jean, David:
 
-> We've now implemented simple SMBus on our microcontrollers, and it is
-> mostly working. block writes work perfectly, but we are having a small
-> problem with block reads on the PC side. It seems from the register
-> dumps in the kernel logs that the first byte is going to the DAT0
-> register instead of into the BLK, so in userspace, it appears like the
-> first byte is lost. (DAT1 remains 00, though). As far as we can tell,
-> the data on the bus is correct, but our oscilloscope is nice and old,
-> making it impossible to see the whole transaction.
+* Jean Delvare <khali@linux-fr.org> [2005-09-18 09:22:53 +0200]:
+> Note that a client chip can only support one of the two kinds of block
+> reads at any register address ("command byte" in the SMBus
+> specification), as there is no way to distinguish between both commands
+> from the client's point of view. It's up to the master (PC) to use the
+> correct one depending on what the client implements.
 
-There are two kinds of block reads defined in the SMBus specification,
-regular Block Read and I2C Block Read. In the former, the first byte
-received is an information of how many bytes follow. This first byte
-typically goes in DAT0 rather than the BLK buffer. In the latter, data
-is send directly and all bytes are stored in BLK. I guess that you
-currently use the former when what you need is actually the latter.
+Actually: SMBus read byte data, SMBus read word data, and SMBus block read
+*all* have the same setup:
 
-Note that a client chip can only support one of the two kinds of block
-reads at any register address ("command byte" in the SMBus
-specification), as there is no way to distinguish between both commands
-from the client's point of view. It's up to the master (PC) to use the
-correct one depending on what the client implements.
+	S Addr Wr [A] Comm [A] S Addr Rd [A] (...)
 
-> The EPERMs reappeared as we were working, but disappeared when we
-> started doing things correctly on the bus. They were probably actually
-> a Good Thing, better than getting garbage or something more fatal, so
-> I don't think you should worry about it.
+As Jean mentions: you'll need to decide how your slave device responds on
+each register address (comm), and then program the master accordingly.
 
-OK, thanks for lettng me know.
+Regards,
 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
