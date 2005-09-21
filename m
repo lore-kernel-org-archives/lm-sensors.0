@@ -1,46 +1,62 @@
-From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
-Date: Sat, 24 Sep 2005 14:19:33 +0000
-Subject: [lm-sensors] [PATCH] remove broken SW PEC support for read_byte
-Message-Id: <200509241219.AA01318@k7.kit.hi-ho.ne.jp>
+From: junpingfeng@yahoo.com.cn (junping feng)
+Date: Wed, 21 Sep 2005 03:58:32 +0000
+Subject: =?gb2312?q?=BB=D8=B8=B4=A3=BA=20Re:=20[lm-sensors]=20eeprom=20write!?=
+Message-Id: <20050921015726.58808.qmail@web15704.mail.cnb.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Index: TODO
-=================================RCS file: /home/cvs/i2c/TODO,v
-retrieving revision 1.20
-diff -u -r1.20 TODO
---- TODO	15 May 2005 10:02:39 -0000	1.20
-+++ TODO	24 Sep 2005 12:15:07 -0000
-@@ -14,7 +14,7 @@
- * SMBus 2.0 Completion
-   SMBus 2.0 adds PEC, ARP, and a block process call message.
-   All is complete in release 2.6.4 except for:
--	- SW PEC for Word Data and Process Call. No place to put PEC
-+	- SW PEC for Read Byte, Word Data and Process Call. No place to put PEC
- 	  in the current i2c_smbus_data structure.
-   For a summary of SMBus protocol support, see
- 	http://www2.lm-sensors.nu/~lm78/protocol.html
-Index: kernel/i2c-core.c
-=================================RCS file: /home/cvs/i2c/kernel/i2c-core.c,v
-retrieving revision 1.110
-diff -u -r1.110 i2c-core.c
---- kernel/i2c-core.c	12 Aug 2005 20:39:21 -0000	1.110
-+++ kernel/i2c-core.c	24 Sep 2005 12:15:07 -0000
-@@ -1002,11 +1002,6 @@
- 
- 	buf[1] = command;
- 	switch(size) {
--		case I2C_SMBUS_BYTE_DATA:
--			buf[0] = (addr << 1) | 1;
--			cpec = i2c_smbus_pec(2, buf, NULL);
--			rpec = data->byte;
--			break;
- 		case I2C_SMBUS_WORD_DATA:
- 			buf[0] = (addr << 1) | 1;
- 			buf[2] = data->word & 0xff;
 
-----
-Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
+   I am sorry for my fault of the eeprom. My eeprom is
+AT24C01A,and its size is 1Kbits(128Bytes).
+   In the ile /lm_sensors-2.5.0/kernel/chips/eeprom.c,
+how can I complete the function of writing to the
+chip?
+please help me !
+   Can you give me the source codes?
+   Thanks!
+
+
+--- Ben Dooks <ben@fluff.org.uk>??:
+
+> On Tue, Sep 20, 2005 at 05:52:54PM +0800, junping
+> feng wrote:
+> > Hi,
+> >   My cpu is PowerPC8250.I2C device is eeprom
+> AT24C01.
+> > I want to access the eeprom,read from the eeprom
+> and
+> > write to it.
+> >   I have read the file
+> > /lm_sensors-2.5.0/kernel/chips/eeprom.c,but this
+> file
+> > can't achieve writing function and only can read
+> 128
+> > bytes.
+> >   How can i complete the writing functions and
+> read
+> > total the chip (1024 bytes).
+> 
+> The chip is only 128 bytes big. You are confusing
+> the
+> _bit_ size (which is 1024bits).
+> 
+> I have no actual experience of this chip, but the
+> data-sheet implies it is only capable of page-write
+> of 4 bytes at a time, so it could be the eeprom
+> driver is trying to write too much data in one go.
+> 
+> -- 
+> Ben (ben@fluff.org, http://www.fluff.org/)
+> 
+>   'a smiley only costs 4 bytes'
+> 
+
+
+
+		
+___________________________________________________________ 
+???????????2G?????pop3?????????? 
+http://cn.mail.yahoo.com
