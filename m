@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 03 Sep 2005 10:52:18 +0000
-Subject: [lm-sensors] [PATCH 2.6] I2C: Drop the I2C_ACK_TEST ioctl
-Message-Id: <20050903105211.5907174a.khali@linux-fr.org>
+Date: Thu, 22 Sep 2005 21:39:56 +0000
+Subject: [lm-sensors] [PATCH] (0/7) i2c-viapro driver update
+Message-Id: <20050922213930.4b834f69.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,27 +10,32 @@ To: lm-sensors@vger.kernel.org
 
 Hi Greg, all,
 
-Drop the I2C_ACK_TEST ioctl, which was commented out. It never really
-existed (not after 1999 anyway), and there is no such thing as a ack
-test on I2C/SMBus anyway.
+Here comes a 7-piece patchset updating the i2c-viapro driver. I have a
+VT8237R on my new motherboard, which I could use to test my work. I had
+a few testers for other VIA chips as well for some of the patches
+already, but more testers would of course be welcome. The i2c-viapro
+driver supports many VIA south bridges, not all of which behave the
+same way.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+I would like to thank VIA for releasing datasheets for some of their
+south bridges recently. I couldn't have improved the i2c-viapro driver
+the way I did without this technical information. Their position isn't
+exactly clear yet, as the datasheets are no more available for download
+from their web site. I hope they will restore them soon, as making
+datasheets freely available to open-source developers is the only way
+the support for their chips in Linux can improve.
 
- include/linux/i2c.h |    3 ---
- 1 file changed, 3 deletions(-)
+The patches are against 2.6.14-rc2, and I would like them to spend some
+time in -mm, as some of the changes definitely deserve wide testing. So
+it's definitely not meant for inclusion into 2.6.14 (if it wasn't
+obvious enough). I hope they'll make it into 2.6.15 though.
 
---- linux-2.6.13.orig/include/linux/i2c.h	2005-09-03 10:37:31.000000000 +0200
-+++ linux-2.6.13/include/linux/i2c.h	2005-09-03 10:43:35.000000000 +0200
-@@ -508,9 +508,6 @@
- #define I2C_FUNCS	0x0705	/* Get the adapter functionality */
- #define I2C_RDWR	0x0707	/* Combined R/W transfer (one stop only)*/
- #define I2C_PEC		0x0708	/* != 0 for SMBus PEC                   */
--#if 0
--#define I2C_ACK_TEST	0x0710	/* See if a slave is at a specific address */
--#endif
- 
- #define I2C_SMBUS	0x0720	/* SMBus-level access */
- 
+Thanks.
+
+ Documentation/i2c/busses/i2c-viapro |   27 +++-
+ MAINTAINERS                         |    6 +
+ drivers/i2c/busses/i2c-viapro.c     |  272 +++++++++++++++++++-----------------
+ 3 files changed, 166 insertions(+), 139 deletions(-)
 
 -- 
 Jean Delvare
