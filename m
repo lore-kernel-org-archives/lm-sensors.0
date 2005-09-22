@@ -1,35 +1,31 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 02 Sep 2005 07:41:10 +0000
-Subject: [lm-sensors] [patch-A 0/5] pc87360 SDA (sensor-dev-attr)
-Message-Id: <20050902074101.5529241e.khali@linux-fr.org>
+From: michal.mleczko@gmail.com (=?ISO-8859-2?Q?Micha=B3_Mleczko?=)
+Date: Thu, 22 Sep 2005 01:47:51 +0000
+Subject: [lm-sensors] Asus Z80V/M6V i2c support
+Message-Id: <318b1df00509211647a24cdec@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200508311827.j7VIRZ52006806@harpo.jimc.earth>
-In-Reply-To: <200508311827.j7VIRZ52006806@harpo.jimc.earth>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jim,
+Hello everyone,
 
-> > This patch set reworks hwmon/pc87360.c to use the SENSOR_DEVICE_ATTR
-> > idiom by Yani Ioannou, then uses the new member field to distinguish
-> > which device is being accessed, eliminating the need for macro'd
-> > repetition of a bunch of sysfs callback routines.
-> >
-> > These patches apply to 2.6.13 + 
-> > http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-02-i2c-2.6.13.patch
->
-> sorry. should have mad this clear in the 1st post:
-> patches incorporate Jean's feadback on last revision,
-> so I ccd GregKH on them.
+I have a few problems reading sensor data on an ASUS M6V notebook. The
+notebook has an Intel 915PM chipset which should be supported by the
+i2c-i801 driver. The problem is that the SMBus device is hidden by the bios
+at startup similar to other boards (as I have already seen in
+drivers/pci/quirks.c of the kernel source). The problem is that with the
+ICH6 the SMBus device cannot be enabled anymore as with ICH[2-5] chipsets.
+The data sheet indicates that the SMBus device can be enabled by setting the
+Function Disable register which is listed in the chipset configuration
+register memory map (p. 248 of the data sheet). Unfortunately I do not have
+a clue as how to get access to these registers.
+It would be really great if somebody could give me some pointers as how I
+could interface these registers or at least some links with further
+information as I am new to kernel programming.
+Thanks a lot in advance for any suggestions.
 
-I did not receive any of these patches. Browsing the list archives
-revealed 9 other patches from you that never made it to me, for a total
-of 15. You really will have to find a solution that goes past my
-greylisting for sending patches, else I will never be able to review
-them nor have them applied.
-
-Thanks,
--- 
-Jean Delvare
+Michal
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050922/e5777cc6/attachment.html
