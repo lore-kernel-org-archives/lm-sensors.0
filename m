@@ -1,55 +1,150 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:15 +0000
-Subject: [lm-sensors] [PATCH] I2C: i2c-algo-pca -- gracefully handle a busy
-Message-Id: <11259567673174@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 22 Sep 2005 21:58:10 +0000
+Subject: [lm-sensors] [PATCH] (3/7) i2c-viapro: Implement I2C Block
+Message-Id: <20050922215841.424507df.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: i2c-algo-pca -- gracefully handle a busy bus
+Hi Greg, all,
 
-I've been running with this patch for a while now, and while I've never
-seen it trigger except with buggy hardware I think it is a cleaner way
-to handle a busy bus. I had -EBUSY until about 10 minutes ago but -EIO
-seems to be what most of the existing algo drivers will return in the
-same circumstances.
+Implement the I2C block transactions on VIA chips which support them:
+VT82C686B, VT8233, VT8233A, VT8235 and VT8237R. This speeds up EEPROM
+accesses by a factor 10 or so.
 
-Signed-off-by: Ian Campbell <icampbell@arcom.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+I would like to thank Antonino A. Daplas, Hinko Kocevar, Salah Coronya
+and Andreas Henriksson for their help in testing this new feature.
 
----
-commit 48edcb65ddcd93b6421831ad133599aacea9724a
-tree 8897c3568fc5f6651fa0ddb80d7e60a8ca2adef4
-parent cdcb19219714c796ddef1202e952566c5f86354d
-author Ian Campbell <icampbell@arcom.com> Wed, 10 Aug 2005 08:51:16 +0100
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:15 -0700
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- drivers/i2c/algos/i2c-algo-pca.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ Documentation/i2c/busses/i2c-viapro |    7 +++++-
+ drivers/i2c/busses/i2c-viapro.c     |   39 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 42 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/i2c/algos/i2c-algo-pca.c b/drivers/i2c/algos/i2c-algo-pca.c
---- a/drivers/i2c/algos/i2c-algo-pca.c
-+++ b/drivers/i2c/algos/i2c-algo-pca.c
-@@ -187,12 +187,14 @@ static int pca_xfer(struct i2c_adapter *
- 	int numbytes = 0;
- 	int state;
- 	int ret;
-+	int timeout = 100;
+--- linux-2.6.13.orig/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:13:20.000000000 +0200
++++ linux-2.6.13/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:13:26.000000000 +0200
+@@ -4,6 +4,7 @@
+     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
+     Philip Edelbrock <phil@netroedge.com>, Ky?sti M?lkki <kmalkki@cc.hut.fi>,
+     Mark D. Studebaker <mdsxyz123@yahoo.com>
++    Copyright (C) 2005  Jean Delvare <khali@linux-fr.org>
  
--	state = pca_status(adap);
--	if ( state != 0xF8 ) {
--		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state );
--		/* FIXME: what to do. Force stop ? */
--		return -EREMOTEIO;
-+	while ((state = pca_status(adap)) != 0xf8 && timeout--) {
-+		msleep(10);
-+	}
-+	if (state != 0xf8) {
-+		dev_dbg(&i2c_adap->dev, "bus is not idle. status is %#04x\n", state);
-+		return -EIO;
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -88,6 +89,7 @@
+ #define VT596_BYTE_DATA		0x08
+ #define VT596_WORD_DATA		0x0C
+ #define VT596_BLOCK_DATA	0x14
++#define VT596_I2C_BLOCK_DATA	0x34
+ 
+ 
+ /* If force is set to anything different from 0, we forcibly enable the
+@@ -107,6 +109,9 @@
+ 
+ static struct i2c_adapter vt596_adapter;
+ 
++#define FEATURE_I2CBLOCK	(1<<0)
++static unsigned int vt596_features;
++
+ /* Another internally used function */
+ static int vt596_transaction(void)
+ {
+@@ -225,6 +230,12 @@
+ 		}
+ 		size = VT596_WORD_DATA;
+ 		break;
++	case I2C_SMBUS_I2C_BLOCK_DATA:
++		if (!(vt596_features & FEATURE_I2CBLOCK))
++			return -1;
++		if (read_write = I2C_SMBUS_READ)
++			outb_p(I2C_SMBUS_BLOCK_MAX, SMBHSTDAT0);
++		/* Fall through */
+ 	case I2C_SMBUS_BLOCK_DATA:
+ 		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+ 		       SMBHSTADD);
+@@ -240,11 +251,12 @@
+ 			for (i = 1; i <= len; i++)
+ 				outb_p(data->block[i], SMBBLKDAT);
+ 		}
+-		size = VT596_BLOCK_DATA;
++		size = (size = I2C_SMBUS_I2C_BLOCK_DATA) ?
++		       VT596_I2C_BLOCK_DATA : VT596_BLOCK_DATA;
+ 		break;
  	}
  
- 	DEB1("{{{ XFER %d messages\n", num);
+-	outb_p((size & 0x1C) + (ENABLE_INT9 & 1), SMBHSTCNT);
++	outb_p((size & 0x3C) + (ENABLE_INT9 & 1), SMBHSTCNT);
+ 
+ 	if (vt596_transaction()) /* Error in transaction */
+ 		return -1;
+@@ -266,6 +278,7 @@
+ 	case VT596_WORD_DATA:
+ 		data->word = inb_p(SMBHSTDAT0) + (inb_p(SMBHSTDAT1) << 8);
+ 		break;
++	case VT596_I2C_BLOCK_DATA:
+ 	case VT596_BLOCK_DATA:
+ 		data->block[0] = inb_p(SMBHSTDAT0);
+ 		if (data->block[0] > I2C_SMBUS_BLOCK_MAX)
+@@ -280,9 +293,13 @@
+ 
+ static u32 vt596_func(struct i2c_adapter *adapter)
+ {
+-	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
++	u32 func = I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+ 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+ 	    I2C_FUNC_SMBUS_BLOCK_DATA;
++
++	if (vt596_features & FEATURE_I2CBLOCK)
++		func |= I2C_FUNC_SMBUS_I2C_BLOCK;
++	return func;
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+@@ -379,6 +396,22 @@
+ 	dev_dbg(&pdev->dev, "SMBREV = 0x%X\n", temp);
+ 	dev_dbg(&pdev->dev, "VT596_smba = 0x%X\n", vt596_smba);
+ 
++	switch (pdev->device) {
++	case PCI_DEVICE_ID_VIA_8237:
++	case PCI_DEVICE_ID_VIA_8235:
++	case PCI_DEVICE_ID_VIA_8233A:
++	case PCI_DEVICE_ID_VIA_8233_0:
++		vt596_features |= FEATURE_I2CBLOCK;
++		break;
++	case PCI_DEVICE_ID_VIA_82C686_4:
++		/* The VT82C686B (rev 0x40) does support I2C block
++		   transactions, but the VT82C686A (rev 0x30) doesn't */
++		if (!pci_read_config_byte(pdev, PCI_REVISION_ID, &temp)
++		 && temp >= 0x40)
++			vt596_features |= FEATURE_I2CBLOCK;
++		break;
++	}
++
+ 	vt596_adapter.dev.parent = &pdev->dev;
+ 	snprintf(vt596_adapter.name, I2C_NAME_SIZE,
+ 		 "SMBus Via Pro adapter at %04x", vt596_smba);
+--- linux-2.6.13.orig/Documentation/i2c/busses/i2c-viapro	2005-09-04 16:13:20.000000000 +0200
++++ linux-2.6.13/Documentation/i2c/busses/i2c-viapro	2005-09-04 16:13:26.000000000 +0200
+@@ -14,7 +14,8 @@
+ 	Frodo Looijaard <frodol@dds.nl>,
+ 	Philip Edelbrock <phil@netroedge.com>,
+ 	Ky?sti M?lkki <kmalkki@cc.hut.fi>,
+-	Mark D. Studebaker <mdsxyz123@yahoo.com>
++	Mark D. Studebaker <mdsxyz123@yahoo.com>,
++	Jean Delvare <khali@linux-fr.org>
+ 
+ Module Parameters
+ -----------------
+@@ -43,3 +44,7 @@
+ 
+ If none of these show up, you should look in the BIOS for settings like
+ enable ACPI / SMBus or even USB.
++
++Except for the oldest chips (VT82C596A/B, VT82C686A and most probably
++VT8231), this driver supports I2C block transactions. Such transactions
++are mainly useful to read from and write to EEPROMs.
 
+-- 
+Jean Delvare
