@@ -1,484 +1,252 @@
-From: grant_lkml@dodo.com.au (Grant Coady)
-Date: Fri, 16 Sep 2005 21:34:18 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: adm9240 driver update - dynamic
-Message-Id: <p87mi1ddqd684ueg9p6a4mqhlmjelminl6@4ax.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 22 Sep 2005 21:50:01 +0000
+Subject: [lm-sensors] [PATCH] (2/7) i2c-viapro: Coding style fixes
+Message-Id: <20050922215047.78084409.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Greg, all,
 
-hwmon: adm9240 update 2/2: convert to use dynamic sysfs accessors
+Before I go on cleaning up and improving the i2c-viapro driver, let's
+fix all the coding style issues: mostly trailing white space, and
+spaces used where tabs should be.
 
-This patch converts adm9240 to use Yani Ioannou's dynamic sysfs callbacks,
-reducing driver memory footprint from 16312 to 14104 bytes on 2.6.14-rc1,
-removing the old driver macro mess.
+Signed-off-by: Jean Delvare <khali@linux-fr>
 
-Run tested on Intel SE440BX-2 mobo.
+ Documentation/i2c/busses/i2c-viapro |   12 +++---
+ drivers/i2c/busses/i2c-viapro.c     |   76 +++++++++++++++++-----------------
+ 2 files changed, 43 insertions(+), 45 deletions(-)
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
-
----
- adm9240.c |  340 ++++++++++++++++++++++++++++++--------------------------------
- 1 files changed, 165 insertions(+), 175 deletions(-)
-
---- linux-2.6.14-rc1b/drivers/hwmon/adm9240.c-cleanup2	2005-09-15 08:07:26.000000000 +1000
-+++ linux-2.6.14-rc1b/drivers/hwmon/adm9240.c	2005-09-15 08:07:29.000000000 +1000
-@@ -45,6 +45,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-+#include <linux/hwmon-sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
-@@ -69,8 +70,7 @@
- #define ADM9240_REG_INT(nr)		(0x41 + (nr))
- #define ADM9240_REG_INT_MASK(nr)	(0x43 + (nr))
- #define ADM9240_REG_TEMP		0x27
--#define ADM9240_REG_TEMP_HIGH		0x39
--#define ADM9240_REG_TEMP_HYST		0x3a
-+#define ADM9240_REG_TEMP_MAX(nr)	(0x39 + (nr)) /* 0, 1 = high, hyst */
- #define ADM9240_REG_ANALOG_OUT		0x19
- #define ADM9240_REG_CHASSIS_CLEAR	0x46
- #define ADM9240_REG_VID_FAN_DIV		0x47
-@@ -162,8 +162,7 @@
- 	u8 fan_min[2];		/* rw	fan1_min */
- 	u8 fan_div[2];		/* rw	fan1_div, read-only accessor */
- 	s16 temp;		/* ro	temp1_input, 9-bit sign-extended */
--	s8 temp_high;		/* rw	temp1_max */
--	s8 temp_hyst;		/* rw	temp1_max_hyst */
-+	s8 temp_max[2];		/* rw	0 -> temp_max, 1 -> temp_max_hyst */
- 	u16 alarms;		/* ro	alarms */
- 	u8 aout;		/* rw	aout_output */
- 	u8 vid;			/* ro	vid */
-@@ -173,157 +172,143 @@
- /*** sysfs accessors ***/
+--- linux-2.6.13.orig/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:12:20.000000000 +0200
++++ linux-2.6.13/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:13:20.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*
+     i2c-viapro.c - Part of lm_sensors, Linux kernel modules for hardware
+               monitoring
+-    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>, 
++    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
+     Philip Edelbrock <phil@netroedge.com>, Ky?sti M?lkki <kmalkki@cc.hut.fi>,
+     Mark D. Studebaker <mdsxyz123@yahoo.com>
  
- /* temperature */
--#define show_temp(value, scale)					\
--static ssize_t show_##value(struct device *dev,			\
--			    struct device_attribute *attr,	\
--			    char *buf)				\
--{								\
--	struct adm9240_data *data = adm9240_update_device(dev);	\
--	return sprintf(buf, "%d\n", data->value * scale);	\
--}
--show_temp(temp_high, 1000);
--show_temp(temp_hyst, 1000);
--show_temp(temp, 500); /* 0.5'C per bit */
--
--#define set_temp(value, reg)					\
--static ssize_t set_##value(struct device *dev, 			\
--			   struct device_attribute *attr,	\
--			   const char *buf, size_t count)	\
--{								\
--	struct i2c_client *client = to_i2c_client(dev);		\
--	struct adm9240_data *data = adm9240_update_device(dev);	\
--	long temp = simple_strtoul(buf, NULL, 10);		\
--								\
--	down(&data->update_lock);				\
--	data->value = TEMP_TO_REG(temp);			\
--	i2c_smbus_write_byte_data(client, reg, data->value);	\
--	up(&data->update_lock);					\
--	return count;						\
--}
--
--set_temp(temp_high, ADM9240_REG_TEMP_HIGH);
--set_temp(temp_hyst, ADM9240_REG_TEMP_HYST);
--
--static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
--		show_temp_high, set_temp_high);
--static DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
--		show_temp_hyst, set_temp_hyst);
-+static ssize_t show_temp(struct device *dev, struct device_attribute *dummy,
-+		char *buf)
-+{
-+	struct adm9240_data *data = adm9240_update_device(dev);
-+	return sprintf(buf, "%d\n", data->temp * 500); /* 9-bit value */
-+}
+@@ -46,9 +46,9 @@
+ 
+ static struct pci_dev *vt596_pdev;
+ 
+-#define SMBBA1	   	 0x90
+-#define SMBBA2     	 0x80
+-#define SMBBA3     	 0xD0
++#define SMBBA1		0x90
++#define SMBBA2		0x80
++#define SMBBA3		0xD0
+ 
+ /* SMBus address offsets */
+ static unsigned short vt596_smba;
+@@ -68,26 +68,26 @@
+ /* PCI Address Constants */
+ 
+ /* SMBus data in configuration space can be found in two places,
+-   We try to select the better one*/
++   We try to select the better one */
+ 
+ static unsigned short smb_cf_hstcfg = 0xD2;
+ 
+-#define SMBHSTCFG   (smb_cf_hstcfg)
+-#define SMBSLVC     (smb_cf_hstcfg + 1)
+-#define SMBSHDW1    (smb_cf_hstcfg + 2)
+-#define SMBSHDW2    (smb_cf_hstcfg + 3)
+-#define SMBREV      (smb_cf_hstcfg + 4)
++#define SMBHSTCFG	(smb_cf_hstcfg)
++#define SMBSLVC		(smb_cf_hstcfg + 1)
++#define SMBSHDW1	(smb_cf_hstcfg + 2)
++#define SMBSHDW2	(smb_cf_hstcfg + 3)
++#define SMBREV		(smb_cf_hstcfg + 4)
+ 
+ /* Other settings */
+ #define MAX_TIMEOUT	500
+ #define ENABLE_INT9	0
+ 
+ /* VT82C596 constants */
+-#define VT596_QUICK      0x00
+-#define VT596_BYTE       0x04
+-#define VT596_BYTE_DATA  0x08
+-#define VT596_WORD_DATA  0x0C
+-#define VT596_BLOCK_DATA 0x14
++#define VT596_QUICK		0x00
++#define VT596_BYTE		0x04
++#define VT596_BYTE_DATA		0x08
++#define VT596_WORD_DATA		0x0C
++#define VT596_BLOCK_DATA	0x14
+ 
+ 
+ /* If force is set to anything different from 0, we forcibly enable the
+@@ -115,19 +115,19 @@
+ 	int timeout = 0;
+ 
+ 	dev_dbg(&vt596_adapter.dev, "Transaction (pre): CNT=%02x, CMD=%02x, "
+-		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT), 
+-		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
++		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
++		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
+ 		inb_p(SMBHSTDAT1));
+ 
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 		dev_dbg(&vt596_adapter.dev, "SMBus busy (0x%02x). "
+-				"Resetting...\n", temp);
+-		
++			"Resetting...\n", temp);
 +
-+static ssize_t show_max(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adm9240_data *data = adm9240_update_device(dev);
-+	return sprintf(buf, "%d\n", data->temp_max[attr->index] * 1000);
-+}
+ 		outb_p(temp, SMBHSTSTS);
+ 		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 			dev_dbg(&vt596_adapter.dev, "Failed! (0x%02x)\n", temp);
+-			
 +
-+static ssize_t set_max(struct device *dev, struct device_attribute *devattr,
-+		const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adm9240_data *data = i2c_get_clientdata(client);
-+	long val = simple_strtol(buf, NULL, 10);
+ 			return -1;
+ 		} else {
+ 			dev_dbg(&vt596_adapter.dev, "Successfull!\n");
+@@ -137,7 +137,7 @@
+ 	/* start the transaction by setting bit 6 */
+ 	outb_p(inb(SMBHSTCNT) | 0x040, SMBHSTCNT);
+ 
+-	/* We will always wait for a fraction of a second! 
++	/* We will always wait for a fraction of a second!
+ 	   I don't know if VIA needs this, Intel did  */
+ 	do {
+ 		msleep(1);
+@@ -177,16 +177,16 @@
+ 
+ 	dev_dbg(&vt596_adapter.dev, "Transaction (post): CNT=%02x, CMD=%02x, "
+ 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
+-		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
++		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
+ 		inb_p(SMBHSTDAT1));
+-	
 +
-+	down(&data->update_lock);
-+	data->temp_max[attr->index] = TEMP_TO_REG(val);
-+	i2c_smbus_write_byte_data(client, ADM9240_REG_TEMP_MAX(attr->index),
-+			data->temp_max[attr->index]);
-+	up(&data->update_lock);
-+	return count;
-+}
+ 	return result;
+ }
+ 
+ /* Return -1 on error. */
+ static s32 vt596_access(struct i2c_adapter *adap, u16 addr,
+-		unsigned short flags,  char read_write, u8 command,
+-		int size,  union i2c_smbus_data *data)
++		unsigned short flags, char read_write, u8 command,
++		int size, union i2c_smbus_data *data)
+ {
+ 	int i, len;
+ 
+@@ -256,7 +256,7 @@
+ 	case VT596_BYTE:
+ 		/* Where is the result put? I assume here it is in
+ 		 * SMBHSTDAT0 but it might just as well be in the
+-		 * SMBHSTCMD. No clue in the docs 
++		 * SMBHSTCMD. No clue in the docs
+ 		 */
+ 		data->byte = inb_p(SMBHSTDAT0);
+ 		break;
+@@ -302,7 +302,7 @@
+ {
+ 	unsigned char temp;
+ 	int error = -ENODEV;
+-	
 +
- static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-+		show_max, set_max, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
-+		show_max, set_max, 1);
- 
- /* voltage */
--static ssize_t show_in(struct device *dev, char *buf, int nr)
-+static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr], nr));
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[attr->index],
-+				attr->index));
- }
- 
--static ssize_t show_in_min(struct device *dev, char *buf, int nr)
-+static ssize_t show_in_min(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr], nr));
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[attr->index],
-+				attr->index));
- }
- 
--static ssize_t show_in_max(struct device *dev, char *buf, int nr)
-+static ssize_t show_in_max(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr], nr));
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[attr->index],
-+				attr->index));
- }
- 
--static ssize_t set_in_min(struct device *dev, const char *buf,
--		size_t count, int nr)
-+static ssize_t set_in_min(struct device *dev, struct device_attribute *devattr,
-+		const char *buf, size_t count)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm9240_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	down(&data->update_lock);
--	data->in_min[nr] = IN_TO_REG(val, nr);
--	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(nr),
--			data->in_min[nr]);
-+	data->in_min[attr->index] = IN_TO_REG(val, attr->index);
-+	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(attr->index),
-+			data->in_min[attr->index]);
- 	up(&data->update_lock);
- 	return count;
- }
- 
--static ssize_t set_in_max(struct device *dev, const char *buf,
--		size_t count, int nr)
-+static ssize_t set_in_max(struct device *dev, struct device_attribute *devattr,
-+		const char *buf, size_t count)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm9240_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	down(&data->update_lock);
--	data->in_max[nr] = IN_TO_REG(val, nr);
--	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(nr),
--			data->in_max[nr]);
-+	data->in_max[attr->index] = IN_TO_REG(val, attr->index);
-+	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(attr->index),
-+			data->in_max[attr->index]);
- 	up(&data->update_lock);
- 	return count;
- }
- 
--#define show_in_offset(offset)						\
--static ssize_t show_in##offset(struct device *dev,			\
--			       struct device_attribute *attr,		\
--			       char *buf)				\
--{									\
--	return show_in(dev, buf, offset);				\
--}									\
--static DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in##offset, NULL);	\
--static ssize_t show_in##offset##_min(struct device *dev,		\
--				     struct device_attribute *attr,	\
--				     char *buf)				\
--{									\
--	return show_in_min(dev, buf, offset);				\
--}									\
--static ssize_t show_in##offset##_max(struct device *dev,		\
--				     struct device_attribute *attr,	\
--				     char *buf)				\
--{									\
--	return show_in_max(dev, buf, offset);				\
--}									\
--static ssize_t								\
--set_in##offset##_min(struct device *dev,				\
--		     struct device_attribute *attr, const char *buf,	\
--		     size_t count)					\
--{									\
--	return set_in_min(dev, buf, count, offset);			\
--}									\
--static ssize_t								\
--set_in##offset##_max(struct device *dev,				\
--		     struct device_attribute *attr, const char *buf,	\
--		     size_t count)					\
--{									\
--	return set_in_max(dev, buf, count, offset);			\
--}									\
--static DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,			\
--		show_in##offset##_min, set_in##offset##_min);		\
--static DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,			\
--		show_in##offset##_max, set_in##offset##_max);
--
--show_in_offset(0);
--show_in_offset(1);
--show_in_offset(2);
--show_in_offset(3);
--show_in_offset(4);
--show_in_offset(5);
-+#define vin(nr)							\
-+static SENSOR_DEVICE_ATTR(in##nr##_input, S_IRUGO, 		\
-+		show_in, NULL, nr);				\
-+static SENSOR_DEVICE_ATTR(in##nr##_min, S_IRUGO | S_IWUSR,	\
-+		show_in_min, set_in_min, nr);			\
-+static SENSOR_DEVICE_ATTR(in##nr##_max, S_IRUGO | S_IWUSR,	\
-+		show_in_max, set_in_max, nr);
-+
-+vin(0);
-+vin(1);
-+vin(2);
-+vin(3);
-+vin(4);
-+vin(5);
- 
- /* fans */
--static ssize_t show_fan(struct device *dev, char *buf, int nr)
-+static ssize_t show_fan(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
--				1 << data->fan_div[nr]));
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
-+				1 << data->fan_div[attr->index]));
- }
- 
--static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
-+static ssize_t show_fan_min(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
--				1 << data->fan_div[nr]));
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[attr->index],
-+				1 << data->fan_div[attr->index]));
- }
- 
--static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
-+static ssize_t show_fan_div(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", 1 << data->fan_div[nr]);
-+	return sprintf(buf, "%d\n", 1 << data->fan_div[attr->index]);
- }
- 
- /* write new fan div, callers must hold data->update_lock */
-@@ -352,12 +337,15 @@
-  * - otherwise: select fan clock divider to suit fan speed low limit,
-  *   measurement code may adjust registers to ensure fan speed reading
-  */
--static ssize_t set_fan_min(struct device *dev, const char *buf,
--		size_t count, int nr)
-+static ssize_t set_fan_min(struct device *dev,
-+		struct device_attribute *devattr,
-+		const char *buf, size_t count)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm9240_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
-+	int nr = attr->index;
- 	u8 new_div;
- 
- 	down(&data->update_lock);
-@@ -404,40 +392,16 @@
- 	return count;
- }
- 
--#define show_fan_offset(offset)						\
--static ssize_t show_fan_##offset (struct device *dev,			\
--				  struct device_attribute *attr,	\
--				  char *buf)				\
--{									\
--return show_fan(dev, buf, offset - 1);					\
--}									\
--static ssize_t show_fan_##offset##_div (struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
--{									\
--return show_fan_div(dev, buf, offset - 1);				\
--}									\
--static ssize_t show_fan_##offset##_min (struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
--{									\
--return show_fan_min(dev, buf, offset - 1);				\
--}									\
--static ssize_t set_fan_##offset##_min (struct device *dev, 		\
--				       struct device_attribute *attr,	\
--				       const char *buf, size_t count)	\
--{									\
--return set_fan_min(dev, buf, count, offset - 1);			\
--}									\
--static DEVICE_ATTR(fan##offset##_input, S_IRUGO, 			\
--		show_fan_##offset, NULL);				\
--static DEVICE_ATTR(fan##offset##_div, S_IRUGO, 				\
--		show_fan_##offset##_div, NULL);				\
--static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, 		\
--		show_fan_##offset##_min, set_fan_##offset##_min);
-+#define fan(nr)							\
-+static SENSOR_DEVICE_ATTR(fan##nr##_input, S_IRUGO,		\
-+		show_fan, NULL, nr - 1);			\
-+static SENSOR_DEVICE_ATTR(fan##nr##_div, S_IRUGO,		\
-+		show_fan_div, NULL, nr - 1);			\
-+static SENSOR_DEVICE_ATTR(fan##nr##_min, S_IRUGO | S_IWUSR,	\
-+		show_fan_min, set_fan_min, nr - 1);
- 
--show_fan_offset(1);
--show_fan_offset(2);
-+fan(1);
-+fan(2);
- 
- /* alarms */
- static ssize_t show_alarms(struct device *dev,
-@@ -585,33 +549,59 @@
- 		goto exit_detach;
+ 	/* Determine the address of the SMBus areas */
+ 	if (force_addr) {
+ 		vt596_smba = force_addr & 0xfff0;
+@@ -333,10 +333,10 @@
+ 		return -ENODEV;
  	}
  
--	device_create_file(&new_client->dev, &dev_attr_in0_input);
--	device_create_file(&new_client->dev, &dev_attr_in0_min);
--	device_create_file(&new_client->dev, &dev_attr_in0_max);
--	device_create_file(&new_client->dev, &dev_attr_in1_input);
--	device_create_file(&new_client->dev, &dev_attr_in1_min);
--	device_create_file(&new_client->dev, &dev_attr_in1_max);
--	device_create_file(&new_client->dev, &dev_attr_in2_input);
--	device_create_file(&new_client->dev, &dev_attr_in2_min);
--	device_create_file(&new_client->dev, &dev_attr_in2_max);
--	device_create_file(&new_client->dev, &dev_attr_in3_input);
--	device_create_file(&new_client->dev, &dev_attr_in3_min);
--	device_create_file(&new_client->dev, &dev_attr_in3_max);
--	device_create_file(&new_client->dev, &dev_attr_in4_input);
--	device_create_file(&new_client->dev, &dev_attr_in4_min);
--	device_create_file(&new_client->dev, &dev_attr_in4_max);
--	device_create_file(&new_client->dev, &dev_attr_in5_input);
--	device_create_file(&new_client->dev, &dev_attr_in5_min);
--	device_create_file(&new_client->dev, &dev_attr_in5_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in0_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in0_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in0_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in1_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in1_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in1_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in2_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in2_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in2_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in3_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in3_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in3_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in4_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in4_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in4_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in5_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in5_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in5_max.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_fan1_input);
--	device_create_file(&new_client->dev, &dev_attr_fan1_div);
--	device_create_file(&new_client->dev, &dev_attr_fan1_min);
--	device_create_file(&new_client->dev, &dev_attr_fan2_input);
--	device_create_file(&new_client->dev, &dev_attr_fan2_div);
--	device_create_file(&new_client->dev, &dev_attr_fan2_min);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_temp1_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_temp1_max_hyst.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan1_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan1_div.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan1_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan2_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan2_div.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan2_min.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 	device_create_file(&new_client->dev, &dev_attr_aout_output);
- 	device_create_file(&new_client->dev, &dev_attr_chassis_clear);
-@@ -679,9 +669,9 @@
- 		i2c_smbus_write_byte_data(client,
- 				ADM9240_REG_FAN_MIN(1), 255);
- 		i2c_smbus_write_byte_data(client,
--				ADM9240_REG_TEMP_HIGH, 127);
-+				ADM9240_REG_TEMP_MAX(0), 127);
- 		i2c_smbus_write_byte_data(client,
--				ADM9240_REG_TEMP_HYST, 127);
-+				ADM9240_REG_TEMP_MAX(1), 127);
+- found:
++found:
+ 	if (!request_region(vt596_smba, 8, "viapro-smbus")) {
+ 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
+-		        vt596_smba);
++			vt596_smba);
+ 		return -ENODEV;
+ 	}
  
- 		/* start measurement cycle */
- 		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
-@@ -758,10 +748,10 @@
- 			data->fan_min[i] = i2c_smbus_read_byte_data(client,
- 					ADM9240_REG_FAN_MIN(i));
- 		}
--		data->temp_high = i2c_smbus_read_byte_data(client,
--				ADM9240_REG_TEMP_HIGH);
--		data->temp_hyst = i2c_smbus_read_byte_data(client,
--				ADM9240_REG_TEMP_HYST);
-+		data->temp_max[0] = i2c_smbus_read_byte_data(client,
-+				ADM9240_REG_TEMP_MAX(0));
-+		data->temp_max[1] = i2c_smbus_read_byte_data(client,
-+				ADM9240_REG_TEMP_MAX(1));
+@@ -348,13 +348,13 @@
+ 		pci_write_config_word(pdev, id->driver_data, vt596_smba);
+ 		pci_write_config_byte(pdev, SMBHSTCFG, temp | 0x01);
+ 		dev_warn(&pdev->dev, "WARNING: SMBus interface set to new "
+-		     "address 0x%04x!\n", vt596_smba);
++			 "address 0x%04x!\n", vt596_smba);
+ 	} else if ((temp & 1) = 0) {
+ 		if (force) {
+-			/* NOTE: This assumes I/O space and other allocations 
+-			 * WERE done by the Bios!  Don't complain if your 
+-			 * hardware does weird things after enabling this. 
+-			 * :') Check for Bios updates before resorting to 
++			/* NOTE: This assumes I/O space and other allocations
++			 * WERE done by the Bios!  Don't complain if your
++			 * hardware does weird things after enabling this.
++			 * :') Check for Bios updates before resorting to
+ 			 * this.
+ 			 */
+ 			pci_write_config_byte(pdev, SMBHSTCFG, temp | 1);
+@@ -381,8 +381,8 @@
  
- 		/* read fan divs and 5-bit VID */
- 		i = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
+ 	vt596_adapter.dev.parent = &pdev->dev;
+ 	snprintf(vt596_adapter.name, I2C_NAME_SIZE,
+-			"SMBus Via Pro adapter at %04x", vt596_smba);
+-	
++		 "SMBus Via Pro adapter at %04x", vt596_smba);
++
+ 	vt596_pdev = pci_dev_get(pdev);
+ 	if (i2c_add_adapter(&vt596_adapter)) {
+ 		pci_dev_put(vt596_pdev);
+@@ -395,7 +395,7 @@
+ 	 */
+ 	return -ENODEV;
+ 
+- release_region:
++release_region:
+ 	release_region(vt596_smba, 8);
+ 	return error;
+ }
+@@ -420,7 +420,7 @@
+ 	{ 0, }
+ };
+ 
+-MODULE_DEVICE_TABLE (pci, vt596_ids);
++MODULE_DEVICE_TABLE(pci, vt596_ids);
+ 
+ static struct pci_driver vt596_driver = {
+ 	.name		= "vt596_smbus",
+--- linux-2.6.13.orig/Documentation/i2c/busses/i2c-viapro	2005-09-04 15:54:20.000000000 +0200
++++ linux-2.6.13/Documentation/i2c/busses/i2c-viapro	2005-09-04 16:13:20.000000000 +0200
+@@ -4,17 +4,17 @@
+   * VIA Technologies, Inc. VT82C596A/B
+     Datasheet: Sometimes available at the VIA website
+ 
+-  * VIA Technologies, Inc. VT82C686A/B 
++  * VIA Technologies, Inc. VT82C686A/B
+     Datasheet: Sometimes available at the VIA website
+ 
+   * VIA Technologies, Inc. VT8231, VT8233, VT8233A, VT8235, VT8237
+     Datasheet: available on request from Via
+ 
+ Authors:
+-	Frodo Looijaard <frodol@dds.nl>,  
+-	Philip Edelbrock <phil@netroedge.com>, 
+-	Ky?sti M?lkki <kmalkki@cc.hut.fi>, 
+-	Mark D. Studebaker <mdsxyz123@yahoo.com> 
++	Frodo Looijaard <frodol@dds.nl>,
++	Philip Edelbrock <phil@netroedge.com>,
++	Ky?sti M?lkki <kmalkki@cc.hut.fi>,
++	Mark D. Studebaker <mdsxyz123@yahoo.com>
+ 
+ Module Parameters
+ -----------------
+@@ -43,5 +43,3 @@
+ 
+ If none of these show up, you should look in the BIOS for settings like
+ enable ACPI / SMBus or even USB.
+-
+-
+
+-- 
+Jean Delvare
