@@ -1,71 +1,86 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Thu, 01 Sep 2005 00:29:26 +0000
-Subject: [lm-sensors] [patch 1/2] pc87360 SDA-Array - refactor hwmon-sysfs.h
-Message-Id: <200508312228.j7VMSg0w008360@harpo.jimc.earth>
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Fri, 23 Sep 2005 00:36:15 +0000
+Subject: =?GB2312?B?u9i4tKO6IFJlOiBbbG0tc2Vuc29yc10gZWVwcm9tIHdyaXRlIQ==?=
+Message-Id: <433331A8.5050801@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+see the userspace programs and documents in prog/eepromer
+in the lm-sensors package.
 
-05.	i2c-pc87360-05-hwmon-sysfs-array-init.patch
+the kernel module does not support writes.
 
-This patch refactors SENSOR_DEVICE_ATTR macro.  1st it creates a new
-macro __SENSOR_DEVICE_ATTR() which expands to an initialization
-expression, then it uses that in SENSOR_DEVICE_ATTR, which declares
-and initializes a struct sensor_device_attribute.
+junping feng wrote:
+>    I am sorry for my fault of the eeprom. My eeprom is
+> AT24C01A,and its size is 1Kbits(128Bytes).
+>    In the ile /lm_sensors-2.5.0/kernel/chips/eeprom.c,
+> how can I complete the function of writing to the
+> chip?
+> please help me !
+>    Can you give me the source codes?
+>    Thanks!
+> 
+> 
+> --- Ben Dooks <ben@fluff.org.uk>??:
+> 
+> 
+>>On Tue, Sep 20, 2005 at 05:52:54PM +0800, junping
+>>feng wrote:
+>>
+>>>Hi,
+>>>  My cpu is PowerPC8250.I2C device is eeprom
+>>
+>>AT24C01.
+>>
+>>>I want to access the eeprom,read from the eeprom
+>>
+>>and
+>>
+>>>write to it.
+>>>  I have read the file
+>>>/lm_sensors-2.5.0/kernel/chips/eeprom.c,but this
+>>
+>>file
+>>
+>>>can't achieve writing function and only can read
+>>
+>>128
+>>
+>>>bytes.
+>>>  How can i complete the writing functions and
+>>
+>>read
+>>
+>>>total the chip (1024 bytes).
+>>
+>>The chip is only 128 bytes big. You are confusing
+>>the
+>>_bit_ size (which is 1024bits).
+>>
+>>I have no actual experience of this chip, but the
+>>data-sheet implies it is only capable of page-write
+>>of 4 bytes at a time, so it could be the eeprom
+>>driver is trying to write too much data in one go.
+>>
+>>-- 
+>>Ben (ben@fluff.org, http://www.fluff.org/)
+>>
+>>  'a smiley only costs 4 bytes'
+>>
+> 
+> 
+> 
+> 
+> 		
+> ___________________________________________________________ 
+> ???????????2G?????pop3?????????? 
+> http://cn.mail.yahoo.com
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
-IOW, __SENSOR_DEVICE_ATTR() imitates __ATTR in include/linux/device.h
-
- hwmon-sysfs.h |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
-
-
-Signed-off-by:  Jim Cromie <jim.cromie@gmail.com>
-
-
-
-
-diff -ruNp -X exclude-diffs C-5/include/linux/hwmon-sysfs.h D-1/include/linux/hwmon-sysfs.h
---- C-5/include/linux/hwmon-sysfs.h	2005-08-31 06:54:51.000000000 -0600
-+++ D-1/include/linux/hwmon-sysfs.h	2005-08-31 13:04:25.000000000 -0600
-@@ -27,12 +27,16 @@ struct sensor_device_attribute{
- #define to_sensor_dev_attr(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
- 
--#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
--struct sensor_device_attribute sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
-+#define __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
-+{	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
- 	.index =	_index,					\
- }
- 
-+#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
-+struct sensor_device_attribute sensor_dev_attr_##_name  	\
-+	= __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
-+
-+
- struct sensor_device_attribute_2 {
- 	struct device_attribute dev_attr;
- 	u8 index;
-@@ -41,11 +45,15 @@ struct sensor_device_attribute_2 {
- #define to_sensor_dev_attr_2(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute_2, dev_attr)
- 
--#define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
--struct sensor_device_attribute_2 sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
-+#define __SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
-+{	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
- 	.index =	_index,					\
- 	.nr =		_nr,					\
- }
- 
-+#define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
-+struct sensor_device_attribute_2 sensor_dev_attr_##_name 		\
-+	= __SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)
-+
-+
- #endif /* _LINUX_HWMON_SYSFS_H */
