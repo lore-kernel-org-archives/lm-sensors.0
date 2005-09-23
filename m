@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 22 Sep 2005 20:56:26 +0000
+From: grant_lkml@dodo.com.au (Grant Coady)
+Date: Fri, 23 Sep 2005 00:56:14 +0000
 Subject: [lm-sensors] [PATCH 1/3] hwmon: adm9240 updates
-Message-Id: <20050922205651.02b3b176.khali@linux-fr.org>
+Message-Id: <ecc6j15eb5v9akpshg9lnoaflll755boco@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3qlei19r8ek8sk32o3osekefl3b9l853tc@4ax.com>
 In-Reply-To: <3qlei19r8ek8sk32o3osekefl3b9l853tc@4ax.com>
@@ -10,16 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Grant, Greg,
+On Wed, 21 Sep 2005 22:38:52 +0200, Jean Delvare <khali@linux-fr.org> wrote:
 
-> Nothing missing, 2.6.14-rc2-mm1 looks fine, works as well, thank
-> you.
+>Hi Grant,
+>
+>> hwmon: adm9240 update 1/3: whitespace
+>> 
+>> Signed-off-by: Grant Coady <gcoady@gmail.com>
+>
+>I see that your latter series had only two patches, this one not being
+>there anymore. It looks correct to me though. Do you still want me to
+>apply it, or not?
 
-I just double-checked, the patch I had pointed Greg to is NOT in
-2.6.14-rc2-mm1.
+Please, I thought you already had, on Sept 10?
 
-Nevermind, just forget about it for now, I'll respin it and include it
-in my next batch of patches to Greg.
+Thanks,
+Grant.
 
--- 
-Jean Delvare
