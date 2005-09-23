@@ -1,41 +1,97 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 22 Sep 2005 21:39:56 +0000
-Subject: [lm-sensors] [PATCH] (0/7) i2c-viapro driver update
-Message-Id: <20050922213930.4b834f69.khali@linux-fr.org>
+From: junpingfeng@yahoo.com.cn (junping feng)
+Date: Fri, 23 Sep 2005 04:17:40 +0000
+Subject: =?gb2312?q?=BB=D8=B8=B4=A3=BA=20Re:=20=BB=D8=B8=B4=A3=BA=20Re:=20[lm-sens?=
+Message-Id: <20050923021631.8976.qmail@web15704.mail.cnb.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, all,
+Thank you!
+But I have another problem that how can I achieve writes function in the module eeprom.c(in the lm-sensors package) .Can you help me and give me the scource codes?
 
-Here comes a 7-piece patchset updating the i2c-viapro driver. I have a
-VT8237R on my new motherboard, which I could use to test my work. I had
-a few testers for other VIA chips as well for some of the patches
-already, but more testers would of course be welcome. The i2c-viapro
-driver supports many VIA south bridges, not all of which behave the
-same way.
+Mark Studebaker <mds@mds.gotdns.com> ???
+see the userspace programs and documents in prog/eepromer
+in the lm-sensors package.
 
-I would like to thank VIA for releasing datasheets for some of their
-south bridges recently. I couldn't have improved the i2c-viapro driver
-the way I did without this technical information. Their position isn't
-exactly clear yet, as the datasheets are no more available for download
-from their web site. I hope they will restore them soon, as making
-datasheets freely available to open-source developers is the only way
-the support for their chips in Linux can improve.
+the kernel module does not support writes.
 
-The patches are against 2.6.14-rc2, and I would like them to spend some
-time in -mm, as some of the changes definitely deserve wide testing. So
-it's definitely not meant for inclusion into 2.6.14 (if it wasn't
-obvious enough). I hope they'll make it into 2.6.15 though.
+junping feng wrote:
+> I am sorry for my fault of the eeprom. My eeprom is
+> AT24C01A,and its size is 1Kbits(128Bytes).
+> In the ile /lm_sensors-2.5.0/kernel/chips/eeprom.c,
+> how can I complete the function of writing to the
+> chip?
+> please help me !
+> Can you give me the source codes?
+> Thanks!
+> 
+> 
+> --- Ben Dooks ??:
+> 
+> 
+>>On Tue, Sep 20, 2005 at 05:52:54PM +0800, junping
+>>feng wrote:
+>>
+>>>Hi,
+>>> My cpu is PowerPC8250.I2C device is eeprom
+>>
+>>AT24C01.
+>>
+>>>I want to access the eeprom,read from the eeprom
+>>
+>>and
+>>
+>>>write to it.
+>>> I have read the file
+>>>/lm_sensors-2.5.0/kernel/chips/eeprom.c,but this
+>>
+>>file
+>>
+>>>can't achieve writing function and only can read
+>>
+>>128
+>>
+>>>bytes.
+>>> How can i complete the writing functions and
+>>
+>>read
+>>
+>>>total the chip (1024 bytes).
+>>
+>>The chip is only 128 bytes big. You are confusing
+>>the
+>>_bit_ size (which is 1024bits).
+>>
+>>I have no actual experience of this chip, but the
+>>data-sheet implies it is only capable of page-write
+>>of 4 bytes at a time, so it could be the eeprom
+>>driver is trying to write too much data in one go.
+>>
+>>-- 
+>>Ben (ben@fluff.org, http://www.fluff.org/)
+>>
+>> 'a smiley only costs 4 bytes'
+>>
+> 
+> 
+> 
+> 
+> 
+> ___________________________________________________________ 
+> ???????????2G?????pop3?????????? 
+> http://cn.mail.yahoo.com
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
-Thanks.
-
- Documentation/i2c/busses/i2c-viapro |   27 +++-
- MAINTAINERS                         |    6 +
- drivers/i2c/busses/i2c-viapro.c     |  272 +++++++++++++++++++-----------------
- 3 files changed, 166 insertions(+), 139 deletions(-)
-
--- 
-Jean Delvare
+		
+---------------------------------
+ ????G???????????????????
+ ??????????????  
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050923/0fa297d0/attachment-0001.html
