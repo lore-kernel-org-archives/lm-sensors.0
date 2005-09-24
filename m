@@ -1,104 +1,46 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 25 Sep 2005 16:41:48 +0000
-Subject: [lm-sensors] [PATCH] (7/13) hwmon: w83l785ts converted to dynamic
-Message-Id: <20050925164118.3f059cee.khali@linux-fr.org>
+From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
+Date: Sat, 24 Sep 2005 14:19:33 +0000
+Subject: [lm-sensors] [PATCH] remove broken SW PEC support for read_byte
+Message-Id: <200509241219.AA01318@k7.kit.hi-ho.ne.jp>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert the w83l785ts driver to use dynamic sysfs callbacks. This is a
-small driver so the benefit is thin, but still worth it.
+Index: TODO
+=================================RCS file: /home/cvs/i2c/TODO,v
+retrieving revision 1.20
+diff -u -r1.20 TODO
+--- TODO	15 May 2005 10:02:39 -0000	1.20
++++ TODO	24 Sep 2005 12:15:07 -0000
+@@ -14,7 +14,7 @@
+ * SMBus 2.0 Completion
+   SMBus 2.0 adds PEC, ARP, and a block process call message.
+   All is complete in release 2.6.4 except for:
+-	- SW PEC for Word Data and Process Call. No place to put PEC
++	- SW PEC for Read Byte, Word Data and Process Call. No place to put PEC
+ 	  in the current i2c_smbus_data structure.
+   For a summary of SMBus protocol support, see
+ 	http://www2.lm-sensors.nu/~lm78/protocol.html
+Index: kernel/i2c-core.c
+=================================RCS file: /home/cvs/i2c/kernel/i2c-core.c,v
+retrieving revision 1.110
+diff -u -r1.110 i2c-core.c
+--- kernel/i2c-core.c	12 Aug 2005 20:39:21 -0000	1.110
++++ kernel/i2c-core.c	24 Sep 2005 12:15:07 -0000
+@@ -1002,11 +1002,6 @@
+ 
+ 	buf[1] = command;
+ 	switch(size) {
+-		case I2C_SMBUS_BYTE_DATA:
+-			buf[0] = (addr << 1) | 1;
+-			cpec = i2c_smbus_pec(2, buf, NULL);
+-			rpec = data->byte;
+-			break;
+ 		case I2C_SMBUS_WORD_DATA:
+ 			buf[0] = (addr << 1) | 1;
+ 			buf[2] = data->word & 0xff;
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-
- drivers/hwmon/w83l785ts.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
-
---- linux-2.6.13.orig/drivers/hwmon/w83l785ts.c	2005-08-29 20:54:28.000000000 +0200
-+++ linux-2.6.13/drivers/hwmon/w83l785ts.c	2005-09-05 18:21:14.000000000 +0200
-@@ -37,6 +37,7 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- 
- /* How many retries on register read error */
-@@ -111,27 +112,24 @@
- 	unsigned long last_updated; /* in jiffies */
- 
- 	/* registers values */
--	u8 temp, temp_over;
-+	u8 temp[2]; /* 0: input
-+		       1: critical limit */
- };
- 
- /*
-  * Sysfs stuff
-  */
- 
--static ssize_t show_temp(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-+	char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct w83l785ts_data *data = w83l785ts_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp));
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index]));
- }
- 
--static ssize_t show_temp_over(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct w83l785ts_data *data = w83l785ts_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_over));
--}
--
--static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
--static DEVICE_ATTR(temp1_max, S_IRUGO, show_temp_over, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_temp, NULL, 1);
- 
- /*
-  * Real code
-@@ -228,7 +226,7 @@
- 	init_MUTEX(&data->update_lock);
- 
- 	/* Default values in case the first read fails (unlikely). */
--	data->temp_over = data->temp = 0;
-+	data->temp[1] = data->temp[0] = 0;
- 
- 	/* Tell the I2C layer a new client has arrived. */
- 	if ((err = i2c_attach_client(new_client))) 
-@@ -246,8 +244,10 @@
- 		goto exit_detach;
- 	}
- 
--	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max.dev_attr);
- 
- 	return 0;
- 
-@@ -305,10 +305,10 @@
- 
- 	if (!data->valid || time_after(jiffies, data->last_updated + HZ * 2)) {
- 		dev_dbg(&client->dev, "Updating w83l785ts data.\n");
--		data->temp = w83l785ts_read_value(client,
--			     W83L785TS_REG_TEMP, data->temp);
--		data->temp_over = w83l785ts_read_value(client,
--				  W83L785TS_REG_TEMP_OVER, data->temp_over);
-+		data->temp[0] = w83l785ts_read_value(client,
-+				W83L785TS_REG_TEMP, data->temp[0]);
-+		data->temp[1] = w83l785ts_read_value(client,
-+				W83L785TS_REG_TEMP_OVER, data->temp[1]);
- 
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-
--- 
-Jean Delvare
+----
+Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
