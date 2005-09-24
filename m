@@ -1,42 +1,61 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 28 Sep 2005 10:52:38 +0000
-Subject: [lm-sensors] Re: [PATCH] unhide ICH6 SMBus
-Message-Id: <20050928082816.GA11704@kroah.com>
+From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
+Date: Sat, 24 Sep 2005 06:59:27 +0000
+Subject: [lm-sensors] [PATCH] website/protocol.html
+Message-Id: <200509240453.AA01316@k7.kit.hi-ho.ne.jp>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050927215412.29072.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20050927215412.29072.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 27, 2005 at 09:54:12PM -0000, R.Marek@sh.cvut.cz wrote:
-> Hello,
-> 
-> This patch unhides hidden SMBus on ICH6 chipset installed in
-> Asus M6V notebook. I would like to thank Michal Mleczko for 
-> testing and help.
-> 
-> Please apply.
-> 
-> Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
-> 
-> Regards
-> Rudolf
-> 
-> diff -Naur a/drivers/pci/quirks.c c/drivers/pci/quirks.c
-> --- a/drivers/pci/quirks.c	2005-09-20 05:00:41.000000000 +0200
-> +++ c/drivers/pci/quirks.c	2005-09-27 23:37:56.432160500 +0200
-> @@ -847,6 +847,13 @@
->  			case 0x186a: /* M6Ne notebook */
->  				asus_hides_smbus = 1;
->  			}
-> +		if (dev->device = PCI_DEVICE_ID_INTEL_82915GM_HB)
-> +		{
+* Implementation of SW PEC for read_byte and read_byte_data is incomplete.
+* There is no release of 2.6.6.=20
 
-Wrong brace placement according to the kernel coding style.  Care to
-resend?
+Index: protocol.html
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3DRCS file: /home/cvs/website/protocol.html,v
+retrieving revision 1.7
+diff -u -r1.7 protocol.html
+--- protocol.html	17 May 2005 17:18:17 -0000	1.7
++++ protocol.html	24 Sep 2005 04:39:45 -0000
+@@ -114,8 +114,7 @@
+ <td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times"><font s=
+ize=3D+0>x
+ (2.6.4)</font></font></td>
+=20
+-<td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times"><font s=
+ize=3D+0>x
+-(2.6.4)</font></font></td>
++<td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times"><font s=
+ize=3D+0>&nbsp;</font></font></td>
+ </tr>
+=20
+ <tr>
+@@ -156,8 +155,7 @@
+ <td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times"><font s=
+ize=3D+0>x
+ (2.6.4)</font></font></td>
+=20
+-<td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times"><font s=
+ize=3D+0>x
+-(2.6.4)</font></font></td>
++<td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times"><font s=
+ize=3D+0>&nbsp;</font></font></td>
+ </tr>
+=20
+ <tr>
+@@ -335,7 +333,7 @@
+=20
+ <td ALIGN=CENTER VALIGN=3DTOP><font face=3D"Times New Roman,Times">x</font=
+></td>
+=20
+-<td ALIGN=CENTER><font face=3D"Times New Roman,Times">x (fixed in 2.6.6)</=
+font></td>
++<td ALIGN=CENTER><font face=3D"Times New Roman,Times">x (fixed in 2.7.0)</=
+font></td>
+ </tr>
+=20
+ <tr>
 
-thanks,
-
-greg k-h
+----
+Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
