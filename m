@@ -1,60 +1,126 @@
-From: perezmeyer@infovia.com.ar (Lisandro =?ISO-8859-1?Q?Dami=E1n?= Nicanor =?ISO-8859
-Date: Fri, 23 Sep 2005 00:23:20 +0000
-Subject: [lm-sensors] Difference in a statement in sensors.conf and my
-Message-Id: <1127427705.16229.0.camel@localhost.localdomain>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 25 Sep 2005 16:14:46 +0000
+Subject: [lm-sensors] [PATCH] (1/13) hwmon: adm9240 whitespace cleanups
+Message-Id: <20050925161418.34c03db7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I found the following:
+This whitespace cleanup patch removes one trailing space and breaks 
+lines longer than 80 characters.
 
-# The A7V8X-X has temperatures inverted, and needs a conversion for
-# CPU temp. Thanks to Preben Randhol for the formula.
-   label temp1       "CPU Temp"
-   label temp2       "M/B Temp"
-  #compute temp1     (-15.096+1.4893*@), (@+15.096)/1.4893
+Signed-off-by: Grant Coady <gcoady@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-The last commented formula is not true (or at least comparing it to the
-BIOS one). In fact, if I uncomment it, I get more than 10? of difference
-between mother and CPU (which is not the case in the BIOS, and I also
-found it rather extrange).
+ drivers/hwmon/adm9240.c |   33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
 
-More info:
+--- linux-2.6.14-rc2.orig/drivers/hwmon/adm9240.c	2005-09-25 11:52:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/hwmon/adm9240.c	2005-09-25 11:52:37.000000000 +0200
+@@ -219,8 +219,8 @@
+ 				attr->index));
+ }
+ 
+-static ssize_t show_in_min(struct device *dev, struct device_attribute *devattr,
+-		char *buf)
++static ssize_t show_in_min(struct device *dev,
++		struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+@@ -228,8 +228,8 @@
+ 				attr->index));
+ }
+ 
+-static ssize_t show_in_max(struct device *dev, struct device_attribute *devattr,
+-		char *buf)
++static ssize_t show_in_max(struct device *dev,
++		struct device_attribute *devattr, char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+@@ -237,7 +237,8 @@
+ 				attr->index));
+ }
+ 
+-static ssize_t set_in_min(struct device *dev, struct device_attribute *devattr,
++static ssize_t set_in_min(struct device *dev,
++		struct device_attribute *devattr,
+ 		const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -253,7 +254,8 @@
+ 	return count;
+ }
+ 
+-static ssize_t set_in_max(struct device *dev, struct device_attribute *devattr,
++static ssize_t set_in_max(struct device *dev,
++		struct device_attribute *devattr,
+ 		const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -326,7 +328,7 @@
+ 			"to %u\n", nr + 1, 1 << old, 1 << fan_div);
+ }
+ 
+-/* 
++/*
+  * set fan speed low limit:
+  *
+  * - value is zero: disable fan speed low limit alarm
+@@ -404,7 +406,8 @@
+ fan(2);
+ 
+ /* alarms */
+-static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_alarms(struct device *dev,
++		struct device_attribute *attr, char *buf)
+ {
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+ 	return sprintf(buf, "%u\n", data->alarms);
+@@ -412,7 +415,8 @@
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+ /* vid */
+-static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_vid(struct device *dev,
++		struct device_attribute *attr, char *buf)
+ {
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+ 	return sprintf(buf, "%d\n", vid_from_reg(data->vid, data->vrm));
+@@ -420,13 +424,16 @@
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+ 
+ /* analog output */
+-static ssize_t show_aout(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_aout(struct device *dev,
++		struct device_attribute *attr, char *buf)
+ {
+ 	struct adm9240_data *data = adm9240_update_device(dev);
+ 	return sprintf(buf, "%d\n", AOUT_FROM_REG(data->aout));
+ }
+ 
+-static ssize_t set_aout(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
++static ssize_t set_aout(struct device *dev,
++		struct device_attribute *attr,
++		const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+@@ -441,7 +448,9 @@
+ static DEVICE_ATTR(aout_output, S_IRUGO | S_IWUSR, show_aout, set_aout);
+ 
+ /* chassis_clear */
+-static ssize_t chassis_clear(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
++static ssize_t chassis_clear(struct device *dev,
++		struct device_attribute *attr,
++		const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	unsigned long val = simple_strtol(buf, NULL, 10);
 
-ASUS A7V8X-X, Debian Sarge, libsensors3-2.8.8-7, lm-sensors-2.8.8-7, and
-idem for sensord.
 
-lisandro@dumbledore:~$ uname -a
-Linux dumbledore 2.6.8-1-k7 #1 Thu Nov 25 04:13:37 UTC 2004 i686
-GNU/Linux
-
-lisandro@dumbledore:~$ sensors
-it87-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.60 V  (min =  +1.42 V, max =  +1.58 V)   ALARM
-VCore 2:   +0.00 V  (min =  +2.40 V, max =  +2.61 V)   ALARM
-+3.3V:     +3.22 V  (min =  +3.14 V, max =  +3.47 V)
-+5V:       +4.78 V  (min =  +4.76 V, max =  +5.24 V)
-+12V:     +12.10 V  (min = +11.39 V, max = +12.61 V)
--12V:     -27.36 V  (min = -12.63 V, max = -11.41 V)   ALARM
--5V:      -13.64 V  (min =  -5.26 V, max =  -4.77 V)   ALARM
-Stdby:     +4.92 V  (min =  +4.76 V, max =  +5.24 V)
-VBat:      +4.08 V
-fan1:     3013 RPM  (min =    0 RPM, div = 2)
-fan2:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
-fan3:        0 RPM  (min = 3000 RPM, div = 2)          ALARM
-CPU Temp:    +44?C  (low  =   +15?C, high =   +40?C)   sensor thermistor
-M/B Temp:    +40?C  (low  =   +15?C, high =   +45?C)   sensor thermistor
-Temp3:        -1?C  (low  =   +15?C, high =   +45?C)   sensor = disabled
-
-eeprom-i2c-0-50
-Adapter: SMBus Via Pro adapter at e800
-Memory type:            DDR SDRAM DIMM
-Memory size (MB):       512
-
-
-Cheers, Damian.-
-
-
+-- 
+Jean Delvare
