@@ -1,97 +1,104 @@
-From: junpingfeng@yahoo.com.cn (junping feng)
-Date: Fri, 23 Sep 2005 04:17:40 +0000
-Subject: =?gb2312?q?=BB=D8=B8=B4=A3=BA=20Re:=20=BB=D8=B8=B4=A3=BA=20Re:=20[lm-sens?=
-Message-Id: <20050923021631.8976.qmail@web15704.mail.cnb.yahoo.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 25 Sep 2005 16:41:48 +0000
+Subject: [lm-sensors] [PATCH] (7/13) hwmon: w83l785ts converted to dynamic
+Message-Id: <20050925164118.3f059cee.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thank you!
-But I have another problem that how can I achieve writes function in the module eeprom.c(in the lm-sensors package) .Can you help me and give me the scource codes?
+Convert the w83l785ts driver to use dynamic sysfs callbacks. This is a
+small driver so the benefit is thin, but still worth it.
 
-Mark Studebaker <mds@mds.gotdns.com> ???
-see the userspace programs and documents in prog/eepromer
-in the lm-sensors package.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-the kernel module does not support writes.
+ drivers/hwmon/w83l785ts.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-junping feng wrote:
-> I am sorry for my fault of the eeprom. My eeprom is
-> AT24C01A,and its size is 1Kbits(128Bytes).
-> In the ile /lm_sensors-2.5.0/kernel/chips/eeprom.c,
-> how can I complete the function of writing to the
-> chip?
-> please help me !
-> Can you give me the source codes?
-> Thanks!
-> 
-> 
-> --- Ben Dooks ??:
-> 
-> 
->>On Tue, Sep 20, 2005 at 05:52:54PM +0800, junping
->>feng wrote:
->>
->>>Hi,
->>> My cpu is PowerPC8250.I2C device is eeprom
->>
->>AT24C01.
->>
->>>I want to access the eeprom,read from the eeprom
->>
->>and
->>
->>>write to it.
->>> I have read the file
->>>/lm_sensors-2.5.0/kernel/chips/eeprom.c,but this
->>
->>file
->>
->>>can't achieve writing function and only can read
->>
->>128
->>
->>>bytes.
->>> How can i complete the writing functions and
->>
->>read
->>
->>>total the chip (1024 bytes).
->>
->>The chip is only 128 bytes big. You are confusing
->>the
->>_bit_ size (which is 1024bits).
->>
->>I have no actual experience of this chip, but the
->>data-sheet implies it is only capable of page-write
->>of 4 bytes at a time, so it could be the eeprom
->>driver is trying to write too much data in one go.
->>
->>-- 
->>Ben (ben@fluff.org, http://www.fluff.org/)
->>
->> 'a smiley only costs 4 bytes'
->>
-> 
-> 
-> 
-> 
-> 
-> ___________________________________________________________ 
-> ???????????2G?????pop3?????????? 
-> http://cn.mail.yahoo.com
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--- linux-2.6.13.orig/drivers/hwmon/w83l785ts.c	2005-08-29 20:54:28.000000000 +0200
++++ linux-2.6.13/drivers/hwmon/w83l785ts.c	2005-09-05 18:21:14.000000000 +0200
+@@ -37,6 +37,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ 
+ /* How many retries on register read error */
+@@ -111,27 +112,24 @@
+ 	unsigned long last_updated; /* in jiffies */
+ 
+ 	/* registers values */
+-	u8 temp, temp_over;
++	u8 temp[2]; /* 0: input
++		       1: critical limit */
+ };
+ 
+ /*
+  * Sysfs stuff
+  */
+ 
+-static ssize_t show_temp(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
++	char *buf)
+ {
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct w83l785ts_data *data = w83l785ts_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index]));
+ }
+ 
+-static ssize_t show_temp_over(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct w83l785ts_data *data = w83l785ts_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_over));
+-}
+-
+-static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
+-static DEVICE_ATTR(temp1_max, S_IRUGO, show_temp_over, NULL);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_temp, NULL, 1);
+ 
+ /*
+  * Real code
+@@ -228,7 +226,7 @@
+ 	init_MUTEX(&data->update_lock);
+ 
+ 	/* Default values in case the first read fails (unlikely). */
+-	data->temp_over = data->temp = 0;
++	data->temp[1] = data->temp[0] = 0;
+ 
+ 	/* Tell the I2C layer a new client has arrived. */
+ 	if ((err = i2c_attach_client(new_client))) 
+@@ -246,8 +244,10 @@
+ 		goto exit_detach;
+ 	}
+ 
+-	device_create_file(&new_client->dev, &dev_attr_temp1_input);
+-	device_create_file(&new_client->dev, &dev_attr_temp1_max);
++	device_create_file(&new_client->dev,
++			   &sensor_dev_attr_temp1_input.dev_attr);
++	device_create_file(&new_client->dev,
++			   &sensor_dev_attr_temp1_max.dev_attr);
+ 
+ 	return 0;
+ 
+@@ -305,10 +305,10 @@
+ 
+ 	if (!data->valid || time_after(jiffies, data->last_updated + HZ * 2)) {
+ 		dev_dbg(&client->dev, "Updating w83l785ts data.\n");
+-		data->temp = w83l785ts_read_value(client,
+-			     W83L785TS_REG_TEMP, data->temp);
+-		data->temp_over = w83l785ts_read_value(client,
+-				  W83L785TS_REG_TEMP_OVER, data->temp_over);
++		data->temp[0] = w83l785ts_read_value(client,
++				W83L785TS_REG_TEMP, data->temp[0]);
++		data->temp[1] = w83l785ts_read_value(client,
++				W83L785TS_REG_TEMP_OVER, data->temp[1]);
+ 
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
 
-		
----------------------------------
- ????G???????????????????
- ??????????????  
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050923/0fa297d0/attachment-0001.html
+-- 
+Jean Delvare
