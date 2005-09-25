@@ -1,85 +1,36 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 22 Sep 2005 22:23:45 +0000
-Subject: [lm-sensors] [PATCH] (7/7) i2c-viapro: Improve register dump
-Message-Id: <20050922222332.000eaa7f.khali@linux-fr.org>
+From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
+Date: Sun, 25 Sep 2005 13:57:49 +0000
+Subject: [lm-sensors] [PATCH] fix SMBus write_byte ioctl
+Message-Id: <200509251157.AA01319@k7.kit.hi-ho.ne.jp>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg, all,
+i2c_smbus_xfer needs the structure i2c_smbus_data for write_byte with SW PEC.
+However, NULL is passed from i2cdev_ioctl.
+Currently
+	ioctl(fd,I2C_PEC,1);
+	i2c_smbus_write_byte(fd,value);
+causes NULL pointer access in i2c_smbus_add_pec.
 
-Improve the register dump used to debug the i2c-viapro driver. The
-original dump was missing the HSTSTS register and the block data
-buffer.
+Index: kernel/i2c-dev.c
+=================================RCS file: /home/cvs/i2c/kernel/i2c-dev.c,v
+retrieving revision 1.61
+diff -u -r1.61 i2c-dev.c
+--- kernel/i2c-dev.c	19 May 2005 20:50:29 -0000	1.61
++++ kernel/i2c-dev.c	25 Sep 2005 09:33:21 -0000
+@@ -329,7 +329,8 @@
+ 			                      client->flags,
+ 			                      data_arg.read_write,
+ 			                      data_arg.command,
+-			                      data_arg.size, NULL);
++			                      data_arg.size,
++			                      (data_arg.size = I2C_SMBUS_QUICK) ? NULL : &temp);
+ 
+ 		if (data_arg.data = NULL) {
+ #ifdef DEBUG
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-
- drivers/i2c/busses/i2c-viapro.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
-
---- linux-2.6.13.orig/drivers/i2c/busses/i2c-viapro.c	2005-09-03 15:11:58.000000000 +0200
-+++ linux-2.6.13/drivers/i2c/busses/i2c-viapro.c	2005-09-04 16:09:00.000000000 +0200
-@@ -104,6 +104,30 @@
- #define FEATURE_I2CBLOCK	(1<<0)
- static unsigned int vt596_features;
- 
-+#ifdef DEBUG
-+static void vt596_dump_regs(const char *msg, u8 size)
-+{
-+	dev_dbg(&vt596_adapter.dev, "%s: STS=%02x CNT=%02x CMD=%02x ADD=%02x "
-+		"DAT=%02x,%02x\n", msg, inb_p(SMBHSTSTS), inb_p(SMBHSTCNT),
-+		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
-+		inb_p(SMBHSTDAT1));
-+
-+	if (size = VT596_BLOCK_DATA
-+	 || size = VT596_I2C_BLOCK_DATA) {
-+		int i;
-+
-+		dev_dbg(&vt596_adapter.dev, "BLK=");
-+		for (i = 0; i < I2C_SMBUS_BLOCK_MAX / 2; i++)
-+			printk("%02x,", inb_p(SMBBLKDAT));
-+		printk("\n");
-+		dev_dbg(&vt596_adapter.dev, "    ");
-+		for (; i < I2C_SMBUS_BLOCK_MAX - 1; i++)
-+			printk("%02x,", inb_p(SMBBLKDAT));
-+		printk("%02x\n", inb_p(SMBBLKDAT));
-+	}
-+}
-+#endif
-+
- /* Return -1 on error, 0 on success */
- static int vt596_transaction(u8 size)
- {
-@@ -111,10 +135,9 @@
- 	int result = 0;
- 	int timeout = 0;
- 
--	dev_dbg(&vt596_adapter.dev, "Transaction (pre): CNT=%02x, CMD=%02x, "
--		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
--		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
--		inb_p(SMBHSTDAT1));
-+#ifdef DEBUG
-+	vt596_dump_regs("Transaction (pre)", size);
-+#endif
- 
- 	/* Make sure the SMBus host is ready to start transmitting */
- 	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
-@@ -169,10 +192,9 @@
- 	if (temp & 0x1F)
- 		outb_p(temp, SMBHSTSTS);
- 
--	dev_dbg(&vt596_adapter.dev, "Transaction (post): CNT=%02x, CMD=%02x, "
--		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
--		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
--		inb_p(SMBHSTDAT1));
-+#ifdef DEBUG
-+	vt596_dump_regs("Transaction (post)", size);
-+#endif
- 
- 	return result;
- }
-
--- 
-Jean Delvare
+----
+Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
