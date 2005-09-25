@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 25 Sep 2005 13:00:37 +0000
+From: mlaia@fcav.unesp.br (Marcelo Luiz de Laia)
+Date: Sun, 25 Sep 2005 14:12:35 +0000
 Subject: [lm-sensors] my soyo syk7vem pro 1.0 shows 127 degrees for cpu
-Message-Id: <4336833C.4080906@sh.cvut.cz>
+Message-Id: <43369517.8050502@fcav.unesp.br>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43304984.7090309@fcav.unesp.br>
 In-Reply-To: <43304984.7090309@fcav.unesp.br>
@@ -10,28 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Marcelo Luiz de Laia wrote:
-> Dear Marek,
+Dear Rudolf,
 
-You can call me with my first name, I know this is confusing. I will add you to my internal list of people that
-exchanged my name and surname :)
 
-Ok this is telling you to load lm80. But this is not correct.
-You have integrated via686a on your board. This chip has no assigned address but you can fix it.
-And because you are using old kernel you cant use i2c-viapro and via686a at the same time.
+Thank you very much!
 
-So all you need is todo:
+Now, it works fine with a little alarm. I will find out in documentation 
+how I change these ones for adjusting to my chipset. Of course, I will 
+learn the old output and yours commentary for understand more about 
+sensors and for increasing my known about it.
 
-rmmod lm80
-rmmod i2c-viapro
-modprobe i2c-isa
-modprobe via686a force_addr=0x6000
-sensors
+Thank you very much
 
-So all you need to ensure is:
-load i2c-isa via686a with force parameter, DO NOT load i2c-viapro
+(i am sorry for my bad english)
 
-> Thank you very much
-no problem :)
+Best wishes and a nice day
 
-Rudolf
+Marcelo
+
+via686a-isa-6000
+Adapter: ISA adapter
+CPU core:  +1.73 V  (min =  +0.06 V, max =  +3.10 V)  
++2.5V:     +2.64 V  (min =  +2.36 V, max =  +2.61 V)   ALARM
+I/O:       +3.44 V  (min =  +3.12 V, max =  +3.45 V)  
++5V:       +5.25 V  (min =  +4.73 V, max =  +5.20 V)   ALARM
++12V:     +12.96 V  (min = +11.35 V, max = +12.48 V)   ALARM
+CPU Fan:  5000 RPM  (min = 18750 RPM, div = 2)          ALARM
+P/S Fan:     0 RPM  (min = 67500 RPM, div = 2)         
+SYS Temp:  +34.7?C  (high =  +146?C, hyst =   -71?C)   ALARM
+CPU Temp:  +41.3?C  (high =  +146?C, hyst =   -71?C)   ALARM
+SBr Temp:  +20.5?C  (high =   -43?C, hyst =   -33?C)   ALARM
+
