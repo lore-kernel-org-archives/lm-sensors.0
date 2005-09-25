@@ -1,195 +1,174 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:48:46 +0000
-Subject: [lm-sensors] [PATCH] I2C hwmon: hwmon sysfs class
-Message-Id: <11259567652296@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 25 Sep 2005 16:23:36 +0000
+Subject: [lm-sensors] [PATCH] (3/13) i2c: Discard explicit static
+Message-Id: <20050925162307.0957c197.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C hwmon: hwmon sysfs class
+Kill explicit static initializations to 0 in 10 i2c drivers.
 
-This patch adds the sysfs class "hwmon" for use by hardware monitoring
-(sensors) chip drivers.  It also fixes up the related Kconfig/Makefile
-bits.
-
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
-commit 1236441f38b6a98caf4c7983e7efdecc2d1527b5
-tree 496a7e86fc0da92812205e2783f41d3f860c362c
-parent 8dd2d2ca7fafdedaebd1862e954fccaef212f1e1
-author Mark M. Hoffman <mhoffman@lightlink.com> Fri, 15 Jul 2005 21:38:08 -0400
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:07 -0700
+ drivers/i2c/algos/i2c-algo-pca.c    |    2 +-
+ drivers/i2c/algos/i2c-algo-sibyte.c |    2 +-
+ drivers/i2c/busses/i2c-ali15x3.c    |    4 ++--
+ drivers/i2c/busses/i2c-amd756.c     |    2 +-
+ drivers/i2c/busses/i2c-iop3xx.c     |    2 +-
+ drivers/i2c/busses/i2c-piix4.c      |    8 ++++----
+ drivers/i2c/busses/i2c-sis5595.c    |    4 ++--
+ drivers/i2c/busses/i2c-sis630.c     |    2 +-
+ drivers/i2c/busses/i2c-sis96x.c     |    2 +-
+ drivers/i2c/busses/i2c-via.c        |    2 +-
+ 10 files changed, 15 insertions(+), 15 deletions(-)
 
- drivers/hwmon/Kconfig  |    7 +++
- drivers/hwmon/Makefile |    2 +
- drivers/hwmon/hwmon.c  |   98 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/hwmon.h  |   24 ++++++++++++
- 4 files changed, 130 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -12,7 +12,12 @@ config HWMON
- 	  of a system. Most modern motherboards include such a device. It
- 	  can include temperature sensors, voltage sensors, fan speed
- 	  sensors and various additional features such as the ability to
--	  control the speed of the fans.
-+	  control the speed of the fans.  If you want this support you
-+	  should say Y here and also to the specific driver(s) for your
-+	  sensors chip(s) below.
-+
-+	  This support can also be built as a module.  If so, the module
-+	  will be called hwmon.
+--- linux-2.6.14-rc2.orig/drivers/i2c/algos/i2c-algo-pca.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/algos/i2c-algo-pca.c	2005-09-25 14:32:07.000000000 +0200
+@@ -34,7 +34,7 @@
+ #define DEB2(fmt, args...) do { if (i2c_debug>=2) printk(fmt, ## args); } while(0)
+ #define DEB3(fmt, args...) do { if (i2c_debug>=3) printk(fmt, ## args); } while(0)
  
- config SENSORS_ADM1021
- 	tristate "Analog Devices ADM1021 and compatibles"
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -2,6 +2,8 @@
- # Makefile for sensor chip drivers.
- #
+-static int i2c_debug=0;
++static int i2c_debug;
  
-+obj-$(CONFIG_HWMON)		+= hwmon.o
-+
- # asb100, then w83781d go first, as they can override other drivers' addresses.
- obj-$(CONFIG_SENSORS_ASB100)	+= asb100.o
- obj-$(CONFIG_SENSORS_W83627HF)	+= w83627hf.o
-diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
-new file mode 100644
---- /dev/null
-+++ b/drivers/hwmon/hwmon.c
-@@ -0,0 +1,98 @@
-+/*
-+    hwmon.c - part of lm_sensors, Linux kernel modules for hardware monitoring
-+
-+    This file defines the sysfs class "hwmon", for use by sensors drivers.
-+
-+    Copyright (C) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; version 2 of the License.
-+*/
-+
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/kdev_t.h>
-+#include <linux/idr.h>
-+#include <linux/hwmon.h>
-+
-+#define HWMON_ID_PREFIX "hwmon"
-+#define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
-+
-+static struct class *hwmon_class;
-+
-+static DEFINE_IDR(hwmon_idr);
-+
-+/**
-+ * hwmon_device_register - register w/ hwmon sysfs class
-+ * @dev: the device to register
-+ *
-+ * hwmon_device_unregister() must be called when the class device is no
-+ * longer needed.
-+ *
-+ * Returns the pointer to the new struct class device.
-+ */
-+struct class_device *hwmon_device_register(struct device *dev)
-+{
-+	struct class_device *cdev;
-+	int id;
-+
-+	if (idr_pre_get(&hwmon_idr, GFP_KERNEL) = 0)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (idr_get_new(&hwmon_idr, NULL, &id) < 0)
-+		return ERR_PTR(-ENOMEM);
-+
-+	id = id & MAX_ID_MASK;
-+	cdev = class_device_create(hwmon_class, MKDEV(0,0), dev,
-+					HWMON_ID_FORMAT, id);
-+
-+	if (IS_ERR(cdev))
-+		idr_remove(&hwmon_idr, id);
-+
-+	return cdev;
-+}
-+
-+/**
-+ * hwmon_device_unregister - removes the previously registered class device
-+ *
-+ * @cdev: the class device to destroy
-+ */
-+void hwmon_device_unregister(struct class_device *cdev)
-+{
-+	int id;
-+
-+	if (sscanf(cdev->class_id, HWMON_ID_FORMAT, &id) = 1) {
-+		class_device_unregister(cdev);
-+		idr_remove(&hwmon_idr, id);
-+	} else
-+		dev_dbg(cdev->dev,
-+			"hwmon_device_unregister() failed: bad class ID!\n");
-+}
-+
-+static int __init hwmon_init(void)
-+{
-+	hwmon_class = class_create(THIS_MODULE, "hwmon");
-+	if (IS_ERR(hwmon_class)) {
-+		printk(KERN_ERR "hwmon.c: couldn't create sysfs class\n");
-+		return PTR_ERR(hwmon_class);
-+	}
-+	return 0;
-+}
-+
-+static void __exit hwmon_exit(void)
-+{
-+	class_destroy(hwmon_class);
-+}
-+
-+module_init(hwmon_init);
-+module_exit(hwmon_exit);
-+
-+EXPORT_SYMBOL_GPL(hwmon_device_register);
-+EXPORT_SYMBOL_GPL(hwmon_device_unregister);
-+
-+MODULE_AUTHOR("Mark M. Hoffman <mhoffman@lightlink.com>");
-+MODULE_DESCRIPTION("hardware monitoring sysfs/class support");
-+MODULE_LICENSE("GPL");
-+
-diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
-new file mode 100644
---- /dev/null
-+++ b/include/linux/hwmon.h
-@@ -0,0 +1,24 @@
-+/*
-+    hwmon.h - part of lm_sensors, Linux kernel modules for hardware monitoring
-+
-+    This file declares helper functions for the sysfs class "hwmon",
-+    for use by sensors drivers.
-+
-+    Copyright (C) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; version 2 of the License.
-+*/
-+
-+#ifndef _HWMON_H_
-+#define _HWMON_H_
-+
-+#include <linux/device.h>
-+
-+struct class_device *hwmon_device_register(struct device *dev);
-+
-+void hwmon_device_unregister(struct class_device *cdev);
-+
-+#endif
-+
+ #define pca_outw(adap, reg, val) adap->write_byte(adap, reg, val)
+ #define pca_inw(adap, reg) adap->read_byte(adap, reg)
+--- linux-2.6.14-rc2.orig/drivers/i2c/algos/i2c-algo-sibyte.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/algos/i2c-algo-sibyte.c	2005-09-25 14:32:07.000000000 +0200
+@@ -42,7 +42,7 @@
+ 
+ /* module parameters:
+  */
+-static int bit_scan=0;	/* have a look at what's hanging 'round		*/
++static int bit_scan;	/* have a look at what's hanging 'round		*/
+ 
+ 
+ static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr, 
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-ali15x3.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-ali15x3.c	2005-09-25 14:32:07.000000000 +0200
+@@ -125,12 +125,12 @@
+ 
+ /* If force_addr is set to anything different from 0, we forcibly enable
+    the device at the given address. */
+-static u16 force_addr = 0;
++static u16 force_addr;
+ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the i2c controller");
+ 
+-static unsigned short ali15x3_smba = 0;
++static unsigned short ali15x3_smba;
+ 
+ static int ali15x3_setup(struct pci_dev *ALI15X3_dev)
+ {
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-amd756.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-amd756.c	2005-09-25 14:32:07.000000000 +0200
+@@ -86,7 +86,7 @@
+ #define AMD756_BLOCK_DATA	0x05
+ 
+ 
+-static unsigned short amd756_ioport = 0;
++static unsigned short amd756_ioport;
+ 
+ /* 
+   SMBUS event = I/O 28-29 bit 11
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-iop3xx.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-iop3xx.c	2005-09-25 14:32:07.000000000 +0200
+@@ -43,7 +43,7 @@
+ #include "i2c-iop3xx.h"
+ 
+ /* global unit counter */
+-static int i2c_id = 0;
++static int i2c_id;
+ 
+ static inline unsigned char 
+ iic_cook_addr(struct i2c_msg *msg) 
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-piix4.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-piix4.c	2005-09-25 14:32:07.000000000 +0200
+@@ -90,13 +90,13 @@
+ 
+ /* If force is set to anything different from 0, we forcibly enable the
+    PIIX4. DANGEROUS! */
+-static int force = 0;
++static int force;
+ module_param (force, int, 0);
+ MODULE_PARM_DESC(force, "Forcibly enable the PIIX4. DANGEROUS!");
+ 
+ /* If force_addr is set to anything different from 0, we forcibly enable
+    the PIIX4 at the given address. VERY DANGEROUS! */
+-static int force_addr = 0;
++static int force_addr;
+ module_param (force_addr, int, 0);
+ MODULE_PARM_DESC(force_addr,
+ 		 "Forcibly enable the PIIX4 at the given address. "
+@@ -104,14 +104,14 @@
+ 
+ /* If fix_hstcfg is set to anything different from 0, we reset one of the
+    registers to be a valid value. */
+-static int fix_hstcfg = 0;
++static int fix_hstcfg;
+ module_param (fix_hstcfg, int, 0);
+ MODULE_PARM_DESC(fix_hstcfg,
+ 		"Fix config register. Needed on some boards (Force CPCI735).");
+ 
+ static int piix4_transaction(void);
+ 
+-static unsigned short piix4_smba = 0;
++static unsigned short piix4_smba;
+ static struct i2c_adapter piix4_adapter;
+ 
+ static struct dmi_system_id __devinitdata piix4_dmi_table[] = {
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-sis5595.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-sis5595.c	2005-09-25 14:32:07.000000000 +0200
+@@ -123,11 +123,11 @@
+ 
+ /* If force_addr is set to anything different from 0, we forcibly enable
+    the device at the given address. */
+-static u16 force_addr = 0;
++static u16 force_addr;
+ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr, "Initialize the base address of the i2c controller");
+ 
+-static unsigned short sis5595_base = 0;
++static unsigned short sis5595_base;
+ 
+ static u8 sis5595_read(u8 reg)
+ {
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-sis630.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-sis630.c	2005-09-25 14:32:07.000000000 +0200
+@@ -101,7 +101,7 @@
+ MODULE_PARM_DESC(force, "Forcibly enable the SIS630. DANGEROUS!");
+ 
+ /* acpi base address */
+-static unsigned short acpi_base = 0;
++static unsigned short acpi_base;
+ 
+ /* supported chips */
+ static int supported[] = {
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-sis96x.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-sis96x.c	2005-09-25 14:32:07.000000000 +0200
+@@ -83,7 +83,7 @@
+ #define SIS96x_BLOCK_DATA 0x05
+ 
+ static struct i2c_adapter sis96x_adapter;
+-static u16 sis96x_smbus_base = 0;
++static u16 sis96x_smbus_base;
+ 
+ static inline u8 sis96x_read(u8 reg)
+ {
+--- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-via.c	2005-09-25 14:29:35.000000000 +0200
++++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-via.c	2005-09-25 14:32:07.000000000 +0200
+@@ -45,7 +45,7 @@
+ #define IOSPACE		0x06
+ #define IOTEXT		"via-i2c"
+ 
+-static u16 pm_io_base = 0;
++static u16 pm_io_base;
+ 
+ /*
+    It does not appear from the datasheet that the GPIO pins are
 
+-- 
+Jean Delvare
