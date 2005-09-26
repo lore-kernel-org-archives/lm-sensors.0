@@ -1,7 +1,7 @@
 From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Mon, 26 Sep 2005 23:10:47 +0000
+Date: Mon, 26 Sep 2005 23:13:21 +0000
 Subject: [lm-sensors] question about comment in i2c.h
-Message-Id: <43386395.1000004@mds.gotdns.com>
+Message-Id: <4338642F.7040403@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200509221706.AA01312@k7.kit.hi-ho.ne.jp>
 In-Reply-To: <200509221706.AA01312@k7.kit.hi-ho.ne.jp>
@@ -10,9 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Your research matches my recollection.
-sorry I left the comment in and thanks Hideki and  Khali for researching.
-mds
+One other thing,
+the change in 2.4 / CVS probably won't create a binary compatibility problem because
+of alignment, but to be safe we may want to change it back. 
+2.6 change of course is fine. Comments?
 
 
 Jean Delvare wrote:
