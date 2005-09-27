@@ -1,35 +1,45 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Sun, 18 Sep 2005 23:34:54 +0000
-Subject: [lm-sensors] read()ing an i2c node results in errno=ENOSYS
-Message-Id: <20050918213441.GB6263@jupiter.solarsys.private>
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
+Date: Tue, 27 Sep 2005 23:55:28 +0000
+Subject: [lm-sensors] [PATCH] ICH6 ACPI and GPIO quirk
+Message-Id: <20050927215451.19403.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <b4e191e7050915035768c521ef@mail.gmail.com>
-In-Reply-To: <b4e191e7050915035768c521ef@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, David:
+Hello,
 
-* Jean Delvare <khali@linux-fr.org> [2005-09-18 09:22:53 +0200]:
-> Note that a client chip can only support one of the two kinds of block
-> reads at any register address ("command byte" in the SMBus
-> specification), as there is no way to distinguish between both commands
-> from the client's point of view. It's up to the master (PC) to use the
-> correct one depending on what the client implements.
+This patch just adds ACPI and GPIO regions to its LPC bridge, similar
+way as ICH4 did. I would like to thank Michal Mleczko for testing.
 
-Actually: SMBus read byte data, SMBus read word data, and SMBus block read
-*all* have the same setup:
+Please apply.
 
-	S Addr Wr [A] Comm [A] S Addr Rd [A] (...)
+Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
 
-As Jean mentions: you'll need to decide how your slave device responds on
-each register address (comm), and then program the master accordingly.
+Regards
+Rudolf
 
-Regards,
-
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+diff -Naur c/drivers/pci/quirks.c d/drivers/pci/quirks.c
+--- c/drivers/pci/quirks.c	2005-09-27 23:37:56.432160500 +0200
++++ d/drivers/pci/quirks.c	2005-09-27 23:38:22.197770750 +0200
+@@ -339,6 +339,19 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
+ 
++static void __devinit quirk_ich6_lpc_acpi(struct pci_dev *dev)
++{
++	        u32 region;
++
++	        pci_read_config_dword(dev, 0x40, &region);
++	        quirk_io_region(dev, region, 128, PCI_BRIDGE_RESOURCES);
++
++	        pci_read_config_dword(dev, 0x48, &region);
++	        quirk_io_region(dev, region, 64, PCI_BRIDGE_RESOURCES+1);
++}
++
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1, quirk_ich6_lpc_acpi );
++
+ /*
+  * VIA ACPI: One IO region pointed to by longword at
+  *	0x48 or 0x20 (256 bytes of ACPI registers)
