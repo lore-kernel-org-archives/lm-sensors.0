@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 26 Sep 2005 23:21:58 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Tue, 27 Sep 2005 05:56:55 +0000
 Subject: [lm-sensors] [PATCH] fix functionality constant for read_byte_pec
-Message-Id: <20050926232023.4cd45be5.khali@linux-fr.org>
+Message-Id: <20050927025514.GA16254@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200509240308.AA01315@k7.kit.hi-ho.ne.jp>
 In-Reply-To: <200509240308.AA01315@k7.kit.hi-ho.ne.jp>
@@ -10,462 +10,138 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Konbanwa Hideki, hi all,
+Hi Jean:
 
-> Implementing read_byte_pec using read_byte_data is impossible.
+* Jean Delvare <khali@linux-fr.org> [2005-09-25 23:32:39 +0200]:
+> This bug report (and the other ones Hideki sent before) made me look at
+> the PEC-related code more carefully. I had never actually looked at it
+> before. I don't much like the way it was implemented, it is awfully
+> complex, which must explain why it has so many bugs, and why PEC is
+> almost unused while the feature was implemented more than 3 years ago.
+
+If there was a need, it would get fixed.  Actually, it's a wonder that it
+wasn't ripped out of 2.6.x by the bloat police. ;)
+
+> I think this is the right time to analyze the situation, and rework the
+> whole PEC implementation to make it better. I think I understand that
+
+I question whether it's the "right time" if there are no in-kernel users.
+OTOH, I won't try to talk you out of working on it.
+
+> the current implementation was made with in a "do as much as we can on
+> every hardware combination" perspective. While this was a noble
+> intention, I don't think this was the right thing to do. Given that PEC
+> is optional in almost all cases (the only exception being ARP), I would
+> prefer a much simpler, more robust and less buggy implementation.
 > 
-> SMBus read byte with PEC:
->     S Addr Rd [A] [Data] A [PEC] NA P
+> Let me summarize what I understood from the current implementation:
 > 
-> SMBus read byte data:
->     S Addr Wr [A] Comm [A] S Addr Rd [A] [Data] NA P
+> (1) Bus drivers are supposed to explicitely list all SMBus transactions
+> they are able to do with PEC, in addition to all transactions they can
+> do without PEC (using the "functionality" bitfield). Clients can check
+> for PEC support on individual transactions.
 > 
-> Index: i2c/kernel/i2c.h
-> =================================> RCS file: /home/cvs/i2c/kernel/i2c.h,v
-> retrieving revision 1.95
-> diff -u -r1.95 i2c.h
-> --- i2c/kernel/i2c.h	6 Sep 2005 20:08:39 -0000	1.95
-> +++ i2c/kernel/i2c.h	24 Sep 2005 02:36:03 -0000
-> @@ -397,6 +397,7 @@
->  #define I2C_FUNC_10BIT_ADDR		0x00000002
->  #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
->  #define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
-> +#define I2C_FUNC_SMBUS_READ_BYTE_PEC	0x00000400 /* SMBus 2.0 */
->  #define I2C_FUNC_SMBUS_READ_WORD_DATA_PEC  0x00000800 /* SMBus 2.0 */ 
->  #define I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC 0x00001000 /* SMBus 2.0 */ 
->  #define I2C_FUNC_SMBUS_PROC_CALL_PEC	0x00002000 /* SMBus 2.0 */
-> @@ -435,12 +436,12 @@
->                                         I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC)
->  #define I2C_FUNC_SMBUS_WORD_DATA_PEC  (I2C_FUNC_SMBUS_READ_WORD_DATA_PEC | \
->                                         I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC)
-> +#define I2C_FUNC_SMBUS_BYTE_PEC (I2C_FUNC_SMBUS_READ_BYTE_PEC | \
-> +                                 I2C_FUNC_SMBUS_WRITE_BYTE_PEC)
->  
-> -#define I2C_FUNC_SMBUS_READ_BYTE_PEC		I2C_FUNC_SMBUS_READ_BYTE_DATA
->  #define I2C_FUNC_SMBUS_WRITE_BYTE_PEC		I2C_FUNC_SMBUS_WRITE_BYTE_DATA
->  #define I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC	I2C_FUNC_SMBUS_READ_WORD_DATA
->  #define I2C_FUNC_SMBUS_WRITE_BYTE_DATA_PEC	I2C_FUNC_SMBUS_WRITE_WORD_DATA
-> -#define I2C_FUNC_SMBUS_BYTE_PEC			I2C_FUNC_SMBUS_BYTE_DATA
->  #define I2C_FUNC_SMBUS_BYTE_DATA_PEC		I2C_FUNC_SMBUS_WORD_DATA
->  
->  #define I2C_FUNC_SMBUS_EMUL (I2C_FUNC_SMBUS_QUICK | \
-> Index: lm_sensors2/kernel/include/i2c-dev.h
-> =================================> RCS file: /home/cvs/lm_sensors2/kernel/include/i2c-dev.h,v
-> retrieving revision 1.7
-> diff -u -r1.7 i2c-dev.h
-> --- lm_sensors2/kernel/include/i2c-dev.h	21 Jan 2003 20:01:26 -0000	1.7
-> +++ lm_sensors2/kernel/include/i2c-dev.h	24 Sep 2005 02:36:03 -0000
-> @@ -55,6 +55,7 @@
->  #define I2C_FUNC_10BIT_ADDR		0x00000002
->  #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
->  #define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
-> +#define I2C_FUNC_SMBUS_READ_BYTE_PEC	0x00000400 /* SMBus 2.0 */
->  #define I2C_FUNC_SMBUS_READ_WORD_DATA_PEC  0x00000800 /* SMBus 2.0 */ 
->  #define I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC 0x00001000 /* SMBus 2.0 */ 
->  #define I2C_FUNC_SMBUS_PROC_CALL_PEC	0x00002000 /* SMBus 2.0 */
-> @@ -93,12 +94,12 @@
->                                        I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC
->  #define I2C_FUNC_SMBUS_WORD_DATA_PEC  I2C_FUNC_SMBUS_READ_WORD_DATA_PEC | \
->                                        I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC
-> +#define I2C_FUNC_SMBUS_BYTE_PEC I2C_FUNC_SMBUS_READ_BYTE_PEC | \
-> +                                I2C_FUNC_SMBUS_WRITE_BYTE_PEC
->  
-> -#define I2C_FUNC_SMBUS_READ_BYTE_PEC		I2C_FUNC_SMBUS_READ_BYTE_DATA
->  #define I2C_FUNC_SMBUS_WRITE_BYTE_PEC		I2C_FUNC_SMBUS_WRITE_BYTE_DATA
->  #define I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC	I2C_FUNC_SMBUS_READ_WORD_DATA
->  #define I2C_FUNC_SMBUS_WRITE_BYTE_DATA_PEC	I2C_FUNC_SMBUS_WRITE_WORD_DATA
-> -#define I2C_FUNC_SMBUS_BYTE_PEC			I2C_FUNC_SMBUS_BYTE_DATA
->  #define I2C_FUNC_SMBUS_BYTE_DATA_PEC		I2C_FUNC_SMBUS_WORD_DATA
->  
->  #define I2C_FUNC_SMBUS_EMUL I2C_FUNC_SMBUS_QUICK | \
+> (2) Clients can explicitely ask for PEC on every transaction.
+> 
+> (3) Clients can declare themselves PEC-capable, letting bus drivers use
+> the PEC-version of each transaction without explicitely requesting it.
+> 
+> (4) For non-SMBus I2C adapters, PEC is implemented in software by
+> i2c-core.
+> 
+> (5) For SMBus adapters, PEC can be implemented in hardware. If it is
+> not, i2c-core attempts to do as much as possible, using the fact that
+> some non-PEC transactions can be used to emulate some PEC transactions.
+> This results in a partial PEC support on these adapters, and tricky
+> code (my opinion at least).
 
-As a consequence of the opinion I exposed yesterday, I would like to
-propose a different fix: I think we should simply drop all
-I2C_FUNC_SMBUS_*_PEC constants. i2c clients are not supposed to check
-whether an adapter can do PEC on a specific SMBus transaction. Instead,
-they should declare themselves PEC-capable (flags |= I2C_CLIENT_PEC)
-and ask for the regular (non-PEC) transaction, leaving it to the bus
-driver to do PEC or not.
+Looks right to me.
 
-Attached are three patches doing that: one for i2c CVS, one for
-lm_sensors2 CVS and one for linux-2.6. Note that the latter should be
-applied after the i2c-i801 patch I posted on this list earlier today.
+> Additionally, my reading of the SMBus 2.0 specification is that:
+> 
+> (6) PEC is always optional, except for ARP. This means that a client
+> should never ask explicitely for a PEC transaction. Instead, it should
+> declare itself PEC-capable, ask for a standard transaction and let the
+> bus driver decide whether or not to use PEC depending on its own
+> capabilities.
 
-In details, here's what these patches do:
+I can't think of a reason this won't work.
 
-i2c-func-pec-i2c-CVS.diff:
-* i2c-algo-bit.c: No need to explicitely declare the ability to do
-Block Process Call and Block Read with PEC.
-* i2c.h: Drop I2C_FUNC_SMBUS_*_PEC constants.
+> Finally, my knowledge of the various hardware SMBus chips (masters and
+> slaves) suggests that:
+> 
+> (7) SMBus slaves will support PEC on all transactions they use, or none.
+> 
+> (8) SMBus masters will support PEC an all transactions they support, or
+> none. Not sure it actually matters though.
 
-i2c-func-pec-lm_sensors2-CVS.diff:
-* i2c-i801.c: Rely on I2C_CLIENT_PEC to detect the PEC support in core.
-No need to explicitely declare the ability to do Block Read/Write with
-PEC.
-* smbus-arp.c: Use a different way to detect SW PEC capabilities. It's
-probably not a definitive fix, but that will do for now.
-* i2c-dev.h: Drop I2C_FUNC_SMBUS_*_PEC constants.
-* i2cdump.c: Do not check explictely for individual PEC transactions
-support. Check for global PEC support instead. It's not reliable at
-this point (which is why I made it a warning rather than an error) so
-the fix isn't definitive either.
+Yes that's probably true of the hardware at least.  The drivers are a
+different story though.  I'd rather have the option (as a bus driver
+author) to *not* implement a bus xfer that I can't test and/or don't need.
+If I want just one PEC xfer, now I have to implement all of them?
 
-i2c-func-pec-linux-2.6.diff:
-* i2c.h: Drop I2C_FUNC_SMBUS_*_PEC constants.
-* i2c-i801.c: Rely on I2C_CLIENT_PEC to detect the PEC support in core.
-No need to explicitely declare the ability to do Block Read/Write with
-PEC.
+That said, I'm busy attacking the "can't test" problem anyway, so it
+should be moot.  Stay tuned...
 
-Are there objections to this approach? If not, I'll just apply these
-patches.
+> My conclusions are:
+> 
+> (6) implies that (1) is not needed for SMBus masters. Clients do not
+> need to be aware of PEC support for individual transactions. It's
+> actually questionable whether they need to know about the bus PEC
+> capabilities at all (except for ARP, maybe.) They certainly don't need
+> to know whether PEC support is hardware or software.
 
-Note that the bug Hideki found here (read_byte_pec cannot be emulated
-with read_byte_data) seems to be a proof that the design of the current
-PEC implementation is broken. This implementation (or at least the
-software PEC part) was relying on the fact that one transaction
-"size" (really more a transaction type) would always lead to another,
-unique "size" when adding PEC. Now we see that this isn't true anymore
-for size = byte: the new size is byte_data for writes, and something
-different (no #define yet) for reads. This means that we will need to
-rewrite a part of the code if we want to support SW PEC on byte reads.
-I'll work on this. My idea is that we shouldn't be considering PEC
-transactions as new or reused "sizes", but as an independant flag. I'll
-see what code changes are needed to do this.
+If you're planning to kill all the individual PEC func flags, I guess
+that's OK.  If you're going to make PEC support all-or-nothing for
+bus drivers, then you can just have a single PEC-capable flag for them.
+(That will solve the smbus-arp.c problem in your patch in a later msg.)
 
-Arigato/thanks,
+> (5) is what makes (1) needed in the current implementation, but I do
+> not this it is worth the additional code and complexity. Software PEC
+> support on non-PEC SMBus masters is partial by construction, and has
+> proven to be broken.
+> 
+> (6) implies that (2) is not wanted. Clients ask for a normal
+> transaction, PEC or not is the master's decision.
+
+Again: keep a single PEC-capable flag though.
+
+> (6) and (7) imply that (3) is wanted. That's what I2C_CLIENT_PEC is for.
+> 
+> (4) looks sane to me. We can add PEC support to any transaction in I2C
+> emulation mode, it's only a matter of writing the code.
+> 
+> Which leads me to the point that we should consider dropping (1), (2)
+> and (5). This would make the i2c-core smaller and faster, more readable
+> and less buggy as a consequence, for almost no functionality loss if
+> any. I wouldn't expect SMBus slaves which can do PEC connected to SMBus
+> masters which cannot. If it happens, this means that the designer did
+> not think PEC was required, so we are most certainly fine without it.
+
+Agreed.
+
+> The good thing here is that PEC is not used right now. Just consider
+> the number of bugs Hideki reported these last few days, anyone actually
+> using PEC would have reported at least one of them. So nobody tried to
+> use it, or they all gave up quickly (understandably). I searched the
+> kernel source and couldn't find any real use case, neither in 2.4 nor
+> 2.6, except for smbus-arp in lm_sensors CVS. In user-space, the only
+> user seems to be i2cdump. This means that we can probably change the
+> way PEC works without affecting anyone. Let's just hope that such a
+> cleanup would invite people to use PEC in chip drivers, and implement
+> it in bus drivers where hardware can do it, once it is properly
+> implemented.
+
+I still think you've reversed the cause & effect: if it *was* in common
+use, it would *be* in better shape.  But I guess we'll see... maybe
+"If you build it, they will come."
+
+BTW: I wouldn't object if you instead decided to just rip it all out.
+My bloat police badge should arrive any day now.
+
+Regards,
+
 -- 
-Jean Delvare
--------------- next part --------------
-Index: kernel/i2c-algo-bit.c
-=================================RCS file: /home/cvs/i2c/kernel/i2c-algo-bit.c,v
-retrieving revision 1.53
-diff -u -r1.53 i2c-algo-bit.c
---- kernel/i2c-algo-bit.c	30 Apr 2005 19:53:50 -0000	1.53
-+++ kernel/i2c-algo-bit.c	26 Sep 2005 20:55:47 -0000
-@@ -534,9 +534,7 @@
- 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL |
- 	       I2C_FUNC_10BIT_ADDR | I2C_FUNC_PROTOCOL_MANGLING |
- 	       I2C_FUNC_SMBUS_BLOCK_PROC_CALL |
--	       I2C_FUNC_SMBUS_READ_BLOCK_DATA |
--	       I2C_FUNC_SMBUS_BLOCK_PROC_CALL_PEC |
--	       I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC;
-+	       I2C_FUNC_SMBUS_READ_BLOCK_DATA;
- }
- 
- 
-Index: kernel/i2c.h
-=================================RCS file: /home/cvs/i2c/kernel/i2c.h,v
-retrieving revision 1.96
-diff -u -r1.96 i2c.h
---- kernel/i2c.h	24 Sep 2005 09:38:17 -0000	1.96
-+++ kernel/i2c.h	26 Sep 2005 20:55:48 -0000
-@@ -397,10 +397,6 @@
- #define I2C_FUNC_10BIT_ADDR		0x00000002
- #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
- #define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_READ_WORD_DATA_PEC  0x00000800 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC 0x00001000 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_PROC_CALL_PEC	0x00002000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_BLOCK_PROC_CALL_PEC 0x00004000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_BLOCK_PROC_CALL	0x00008000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_QUICK		0x00010000 
- #define I2C_FUNC_SMBUS_READ_BYTE	0x00020000 
-@@ -416,8 +412,6 @@
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK	0x08000000 /* w/ 1-byte reg. addr. */
- #define I2C_FUNC_SMBUS_READ_I2C_BLOCK_2	 0x10000000 /* I2C-like block xfer  */
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2 0x20000000 /* w/ 2-byte reg. addr. */
--#define I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC  0x40000000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC 0x80000000 /* SMBus 2.0 */
- 
- #define I2C_FUNC_SMBUS_BYTE (I2C_FUNC_SMBUS_READ_BYTE | \
-                              I2C_FUNC_SMBUS_WRITE_BYTE)
-@@ -431,17 +425,6 @@
-                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK)
- #define I2C_FUNC_SMBUS_I2C_BLOCK_2 (I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 | \
-                                     I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2)
--#define I2C_FUNC_SMBUS_BLOCK_DATA_PEC (I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC | \
--                                       I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC)
--#define I2C_FUNC_SMBUS_WORD_DATA_PEC  (I2C_FUNC_SMBUS_READ_WORD_DATA_PEC | \
--                                       I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC)
--
--#define I2C_FUNC_SMBUS_READ_BYTE_PEC		I2C_FUNC_SMBUS_READ_BYTE_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_PEC		I2C_FUNC_SMBUS_WRITE_BYTE_DATA
--#define I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC	I2C_FUNC_SMBUS_READ_WORD_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_DATA_PEC	I2C_FUNC_SMBUS_WRITE_WORD_DATA
--#define I2C_FUNC_SMBUS_BYTE_PEC			I2C_FUNC_SMBUS_BYTE_DATA
--#define I2C_FUNC_SMBUS_BYTE_DATA_PEC		I2C_FUNC_SMBUS_WORD_DATA
- 
- #define I2C_FUNC_SMBUS_EMUL (I2C_FUNC_SMBUS_QUICK | \
-                              I2C_FUNC_SMBUS_BYTE | \
-@@ -449,7 +432,6 @@
-                              I2C_FUNC_SMBUS_WORD_DATA | \
-                              I2C_FUNC_SMBUS_PROC_CALL | \
-                              I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
--                             I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC | \
-                              I2C_FUNC_SMBUS_I2C_BLOCK)
- 
- /* 
--------------- next part --------------
-Index: kernel/busses/i2c-i801.c
-=================================RCS file: /home/cvs/lm_sensors2/kernel/busses/i2c-i801.c,v
-retrieving revision 1.48
-diff -u -r1.48 i2c-i801.c
---- kernel/busses/i2c-i801.c	26 Jun 2005 08:48:04 -0000	1.48
-+++ kernel/busses/i2c-i801.c	26 Sep 2005 20:58:08 -0000
-@@ -91,7 +91,7 @@
- #define PCI_DEVICE_ID_INTEL_ICH7_17	0x27da
- #endif
- 
--#ifdef I2C_FUNC_SMBUS_BLOCK_DATA_PEC
-+#ifdef I2C_CLIENT_PEC
- #define HAVE_PEC
- #endif
- 
-@@ -594,8 +594,7 @@
- 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
- 	    I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
- #ifdef HAVE_PEC
--	     | (isich4 ? I2C_FUNC_SMBUS_BLOCK_DATA_PEC |
--	                 I2C_FUNC_SMBUS_HWPEC_CALC
-+	     | (isich4 ? I2C_FUNC_SMBUS_HWPEC_CALC
- 	               : 0)
- #endif
- #if 0
-Index: kernel/chips/smbus-arp.c
-=================================RCS file: /home/cvs/lm_sensors2/kernel/chips/smbus-arp.c,v
-retrieving revision 1.14
-diff -u -r1.14 smbus-arp.c
---- kernel/chips/smbus-arp.c	23 Jan 2005 18:02:43 -0000	1.14
-+++ kernel/chips/smbus-arp.c	26 Sep 2005 20:58:08 -0000
-@@ -184,8 +184,7 @@
- 	/* must support block data w/ HW PEC or SW PEC */
- 	if ((!i2c_check_functionality(adapter,
- 	        I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_HWPEC_CALC)) &&
--	    (!i2c_check_functionality(adapter,
--	        I2C_FUNC_SMBUS_BLOCK_DATA_PEC)))
-+	    (!i2c_check_functionality(adapter, I2C_FUNC_I2C)))
- 		return(0);
- 
- 	if (!(data = kmalloc(sizeof(struct arp_data), GFP_KERNEL))) {
-Index: kernel/include/i2c-dev.h
-=================================RCS file: /home/cvs/lm_sensors2/kernel/include/i2c-dev.h,v
-retrieving revision 1.9
-diff -u -r1.9 i2c-dev.h
---- kernel/include/i2c-dev.h	26 Sep 2005 17:35:48 -0000	1.9
-+++ kernel/include/i2c-dev.h	26 Sep 2005 20:58:08 -0000
-@@ -55,10 +55,6 @@
- #define I2C_FUNC_10BIT_ADDR		0x00000002
- #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
- #define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_READ_WORD_DATA_PEC  0x00000800 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC 0x00001000 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_PROC_CALL_PEC	0x00002000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_BLOCK_PROC_CALL_PEC 0x00004000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_BLOCK_PROC_CALL	0x00008000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_QUICK		0x00010000 
- #define I2C_FUNC_SMBUS_READ_BYTE	0x00020000 
-@@ -74,8 +70,6 @@
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK	0x08000000 /* w/ 1-byte reg. addr. */
- #define I2C_FUNC_SMBUS_READ_I2C_BLOCK_2	 0x10000000 /* I2C-like block xfer  */
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2 0x20000000 /* w/ 2-byte reg. addr. */
--#define I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC  0x40000000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC 0x80000000 /* SMBus 2.0 */
- 
- #define I2C_FUNC_SMBUS_BYTE I2C_FUNC_SMBUS_READ_BYTE | \
-                             I2C_FUNC_SMBUS_WRITE_BYTE
-@@ -89,17 +83,6 @@
-                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
- #define I2C_FUNC_SMBUS_I2C_BLOCK_2 I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 | \
-                                    I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2
--#define I2C_FUNC_SMBUS_BLOCK_DATA_PEC I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC | \
--                                      I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC
--#define I2C_FUNC_SMBUS_WORD_DATA_PEC  I2C_FUNC_SMBUS_READ_WORD_DATA_PEC | \
--                                      I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC
--
--#define I2C_FUNC_SMBUS_READ_BYTE_PEC		I2C_FUNC_SMBUS_READ_BYTE_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_PEC		I2C_FUNC_SMBUS_WRITE_BYTE_DATA
--#define I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC	I2C_FUNC_SMBUS_READ_WORD_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_DATA_PEC	I2C_FUNC_SMBUS_WRITE_WORD_DATA
--#define I2C_FUNC_SMBUS_BYTE_PEC			I2C_FUNC_SMBUS_BYTE_DATA
--#define I2C_FUNC_SMBUS_BYTE_DATA_PEC		I2C_FUNC_SMBUS_WORD_DATA
- 
- #define I2C_FUNC_SMBUS_EMUL I2C_FUNC_SMBUS_QUICK | \
-                             I2C_FUNC_SMBUS_BYTE | \
-@@ -107,7 +90,6 @@
-                             I2C_FUNC_SMBUS_WORD_DATA | \
-                             I2C_FUNC_SMBUS_PROC_CALL | \
-                             I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
--                            I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC | \
-                             I2C_FUNC_SMBUS_I2C_BLOCK
- 
- /* 
-Index: prog/dump/i2cdump.c
-=================================RCS file: /home/cvs/lm_sensors2/prog/dump/i2cdump.c,v
-retrieving revision 1.35
-diff -u -r1.35 i2cdump.c
---- prog/dump/i2cdump.c	25 Sep 2005 18:57:42 -0000	1.35
-+++ prog/dump/i2cdump.c	26 Sep 2005 20:58:08 -0000
-@@ -183,74 +183,35 @@
- 
- 	switch(size) {
- 	case I2C_SMBUS_BYTE:
--		if (pec) {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_BYTE_PEC)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have read w/ PEC "
--				        "capability\n", i2cbus);
--				exit(1);
--			}
--		} else {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_BYTE)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have read capability\n",
--				        i2cbus);
--				exit(1);
--			}
-+		if (!(funcs & I2C_FUNC_SMBUS_READ_BYTE)) {
-+			fprintf(stderr, "Error: Adapter for i2c bus %d does "
-+				"not have read capability\n", i2cbus);
-+			exit(1);
- 		}
- 		break;
- 
- 	case I2C_SMBUS_BYTE_DATA:
--		if (pec) {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have byte read w/ PEC "
--				        "capability\n", i2cbus);
--				exit(1);
--			}
--		} else {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_BYTE_DATA)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have byte read "
--				        "capability\n", i2cbus);
--				exit(1);
--			}
-+		if (!(funcs & I2C_FUNC_SMBUS_READ_BYTE_DATA)) {
-+			fprintf(stderr, "Error: Adapter for i2c bus %d does "
-+				"not have byte read capability\n", i2cbus);
-+			exit(1);
- 		}
- 		break;
- 
- 	case I2C_SMBUS_WORD_DATA:
--		if (pec) {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_WORD_DATA_PEC)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have word read w/ PEC "
--					"capability\n", i2cbus);
--				exit(1);
--			}
--		} else {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_WORD_DATA)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have word read "
--				        "capability\n", i2cbus);
--				exit(1);
--			}
-+		if (!(funcs & I2C_FUNC_SMBUS_READ_WORD_DATA)) {
-+			fprintf(stderr, "Error: Adapter for i2c bus %d does "
-+				"not have word read capability\n", i2cbus);
-+			exit(1);
- 		}
- 		break;
- 
- 	case I2C_SMBUS_BLOCK_DATA:
--		if (pec) {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have smbus block read "
--					"w/ PEC capability\n", i2cbus);
--				exit(1);
--			}
--		} else {
--			if (!(funcs & I2C_FUNC_SMBUS_READ_BLOCK_DATA)) {
--				fprintf(stderr, "Error: Adapter for i2c bus "
--				        "%d does not have smbus block read "
--				        "capability\n", i2cbus);
--				exit(1);
--			}
-+		if (!(funcs & I2C_FUNC_SMBUS_READ_BLOCK_DATA)) {
-+			fprintf(stderr, "Error: Adapter for i2c bus %d does "
-+				"not have smbus block read capability\n",
-+				i2cbus);
-+			exit(1);
- 		}
- 		break;
- 
-@@ -278,6 +239,10 @@
- 			        strerror(errno));
- 			exit(1);
- 		}
-+		if (!(funcs & (I2C_FUNC_SMBUS_HWPEC_CALC | I2C_FUNC_I2C))) {
-+			fprintf(stderr, "Warning: Adapter for i2c bus %d does "
-+			        "not seem to actually support PEC\n", i2cbus);
-+		}
- 	}
- 
- 	if (!yes) {
--------------- next part --------------
---- linux-2.6.14-rc2.orig/include/linux/i2c.h	2005-09-26 19:26:40.000000000 +0200
-+++ linux-2.6.14-rc2/include/linux/i2c.h	2005-09-26 19:43:23.000000000 +0200
-@@ -391,10 +391,6 @@
- #define I2C_FUNC_10BIT_ADDR		0x00000002
- #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
- #define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_READ_WORD_DATA_PEC  0x00000800 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC 0x00001000 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_PROC_CALL_PEC	0x00002000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_BLOCK_PROC_CALL_PEC 0x00004000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_BLOCK_PROC_CALL	0x00008000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_QUICK		0x00010000 
- #define I2C_FUNC_SMBUS_READ_BYTE	0x00020000 
-@@ -410,8 +406,6 @@
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK	0x08000000 /* w/ 1-byte reg. addr. */
- #define I2C_FUNC_SMBUS_READ_I2C_BLOCK_2	 0x10000000 /* I2C-like block xfer  */
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2 0x20000000 /* w/ 2-byte reg. addr. */
--#define I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC  0x40000000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC 0x80000000 /* SMBus 2.0 */
- 
- #define I2C_FUNC_SMBUS_BYTE (I2C_FUNC_SMBUS_READ_BYTE | \
-                              I2C_FUNC_SMBUS_WRITE_BYTE)
-@@ -425,17 +419,6 @@
-                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK)
- #define I2C_FUNC_SMBUS_I2C_BLOCK_2 (I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 | \
-                                     I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2)
--#define I2C_FUNC_SMBUS_BLOCK_DATA_PEC (I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC | \
--                                       I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC)
--#define I2C_FUNC_SMBUS_WORD_DATA_PEC  (I2C_FUNC_SMBUS_READ_WORD_DATA_PEC | \
--                                       I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC)
--
--#define I2C_FUNC_SMBUS_READ_BYTE_PEC		I2C_FUNC_SMBUS_READ_BYTE_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_PEC		I2C_FUNC_SMBUS_WRITE_BYTE_DATA
--#define I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC	I2C_FUNC_SMBUS_READ_WORD_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_DATA_PEC	I2C_FUNC_SMBUS_WRITE_WORD_DATA
--#define I2C_FUNC_SMBUS_BYTE_PEC			I2C_FUNC_SMBUS_BYTE_DATA
--#define I2C_FUNC_SMBUS_BYTE_DATA_PEC		I2C_FUNC_SMBUS_WORD_DATA
- 
- #define I2C_FUNC_SMBUS_EMUL (I2C_FUNC_SMBUS_QUICK | \
-                              I2C_FUNC_SMBUS_BYTE | \
-@@ -443,7 +426,6 @@
-                              I2C_FUNC_SMBUS_WORD_DATA | \
-                              I2C_FUNC_SMBUS_PROC_CALL | \
-                              I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
--                             I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC | \
-                              I2C_FUNC_SMBUS_I2C_BLOCK)
- 
- /* 
---- linux-2.6.14-rc2.orig/drivers/i2c/busses/i2c-i801.c	2005-09-26 19:36:34.000000000 +0200
-+++ linux-2.6.14-rc2/drivers/i2c/busses/i2c-i801.c	2005-09-26 19:47:48.000000000 +0200
-@@ -513,8 +513,7 @@
- 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
- 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
- 	    I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
--	     | (isich4 ? I2C_FUNC_SMBUS_BLOCK_DATA_PEC |
--	                 I2C_FUNC_SMBUS_HWPEC_CALC
-+	     | (isich4 ? I2C_FUNC_SMBUS_HWPEC_CALC
- 	               : 0)
- 	    ;
- }
+Mark M. Hoffman
+mhoffman@lightlink.com
+
