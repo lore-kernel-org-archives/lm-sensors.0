@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Mon, 26 Sep 2005 23:27:44 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 27 Sep 2005 09:46:03 +0000
 Subject: [lm-sensors] [PATCH] fix SW PEC for write byte data
-Message-Id: <43386789.3010004@mds.gotdns.com>
+Message-Id: <UoHUXn10.1127806597.6190400.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200509240819.AA01317@k7.kit.hi-ho.ne.jp>
 In-Reply-To: <200509240819.AA01317@k7.kit.hi-ho.ne.jp>
@@ -10,29 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Konbanwa Hideki,
-> 
-> 
->>@@ -979,7 +979,7 @@
->> 			break;
->> 		case I2C_SMBUS_BYTE_DATA:
->> 			buf[2] = data->byte;
->>-			data->word = buf[2] ||
->>+			data->word = buf[2] |
->> 			            (i2c_smbus_pec(3, buf, NULL) << 8);
->> 			size = I2C_SMBUS_WORD_DATA;
->> 			break;
-> 
-> 
-> Eek, this one was weird :( Looks like nobody ever used this code.
-> Thanks a lot for reporting all these errors in our code. I've committed
-> your fix to i2c CVS already and will port it to Linux 2.6 as well.
-> 
-> Arigato,
 
-ha
-of course I take blame and credit for PEC bugs.
-PEC really used for block transfers (including ARP and the IPMI-over-I2C_, not familiar with any chip using it
-for single bytes.
+Hi Mark, all,
 
+On 2005-09-26, Mark Studebaker wrote:
+> PEC really used for block transfers (including ARP and the IPMI-over-I2C),
+> not familiar with any chip using it for single bytes.
+
+Maybe the overhead in the case of short transactions frightened
+designers. Nevertheless, I have an ADM1032 evaluation board, and the
+ADM1032 is supposed to support PEC. I tried i2cdump in "bp" mode and
+it failed, but I guess this isn't surprising with Hideki reporting
+read_byte and read_byte_data w/PEC being broken. At least this should
+help me test any fix (or rewrite) I may do on software PEC support.
+
+--
+Jean Delvare
