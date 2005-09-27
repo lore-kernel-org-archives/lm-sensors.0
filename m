@@ -1,146 +1,72 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:48:56 +0000
-Subject: [lm-sensors] [PATCH] I2C: Separate non-i2c hwmon drivers from
-Message-Id: <11259567662975@kroah.com>
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
+Date: Tue, 27 Sep 2005 23:54:44 +0000
+Subject: [lm-sensors] [PATCH] unhide ICH6 SMBus
+Message-Id: <20050927215412.29072.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <11259567663617@kroah.com>
-In-Reply-To: <11259567663617@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Separate non-i2c hwmon drivers from i2c-core (6/9)
+Hello,
 
-Kill all isa-related stuff from i2c_detect, it's not used anymore.
+This patch unhides hidden SMBus on ICH6 chipset installed in
+Asus M6V notebook. I would like to thank Michal Mleczko for 
+testing and help.
 
-This is one major step in the directiom of merging i2c_probe and
-i2c_detect. The last obstacle I can think of is the different way forced
-addresses work between sensors and non-sensors i2c drivers. I'll deal
-with that in a later patchset.
+Please apply.
 
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
 
----
-commit 4926c0d4de77c5396a274ee7941ed7fc02afed26
-tree 64a2d9b6502f861f97afc47637527367b08881ae
-parent 2d8672c5a6ba0d3f1d8d3ad61ef67868941364f0
-author Jean Delvare <khali@linux-fr.org> Tue, 19 Jul 2005 23:57:54 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:11 -0700
+Regards
+Rudolf
 
- drivers/i2c/i2c-sensor-detect.c |   45 +++++++++++----------------------------
- 1 files changed, 13 insertions(+), 32 deletions(-)
-
-diff --git a/drivers/i2c/i2c-sensor-detect.c b/drivers/i2c/i2c-sensor-detect.c
---- a/drivers/i2c/i2c-sensor-detect.c
-+++ b/drivers/i2c/i2c-sensor-detect.c
-@@ -25,42 +25,34 @@
- #include <linux/i2c-sensor.h>
- 
- static unsigned short empty[] = {I2C_CLIENT_END};
--static unsigned int empty_isa[] = {I2C_CLIENT_ISA_END};
- 
--/* Very inefficient for ISA detects, and won't work for 10-bit addresses! */
-+/* Won't work for 10-bit addresses! */
- int i2c_detect(struct i2c_adapter *adapter,
- 	       struct i2c_address_data *address_data,
- 	       int (*found_proc) (struct i2c_adapter *, int, int))
- {
- 	int addr, i, found, j, err;
- 	struct i2c_force_data *this_force;
--	int is_isa = i2c_is_isa_adapter(adapter);
--	int adapter_id -	    is_isa ? ANY_I2C_ISA_BUS : i2c_adapter_id(adapter);
-+	int adapter_id = i2c_adapter_id(adapter);
- 	unsigned short *normal_i2c;
--	unsigned int *normal_isa;
- 	unsigned short *probe;
- 	unsigned short *ignore;
- 
- 	/* Forget it if we can't probe using SMBUS_QUICK */
--	if ((!is_isa) &&
--	    !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_QUICK))
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_QUICK))
- 		return -1;
- 	
- 	/* Use default "empty" list if the adapter doesn't specify any */
- 	normal_i2c = probe = ignore = empty;
--	normal_isa = empty_isa;
- 	if (address_data->normal_i2c)
- 		normal_i2c = address_data->normal_i2c;
--	if (address_data->normal_isa)
--		normal_isa = address_data->normal_isa;
- 	if (address_data->probe)
- 		probe = address_data->probe;
- 	if (address_data->ignore)
- 		ignore = address_data->ignore;
- 
--	for (addr = 0x00; addr <= (is_isa ? 0xffff : 0x7f); addr++) {
--		if (!is_isa && i2c_check_addr(adapter, addr))
-+	for (addr = 0x00; addr <= 0x7f; addr++) {
-+		if (i2c_check_addr(adapter, addr))
- 			continue;
- 
- 		/* If it is in one of the force entries, we don't do any
-@@ -69,7 +61,7 @@ int i2c_detect(struct i2c_adapter *adapt
- 		for (i = 0; !found && (this_force = address_data->forces + i, this_force->force); i++) {
- 			for (j = 0; !found && (this_force->force[j] != I2C_CLIENT_END); j += 2) {
- 				if ( ((adapter_id = this_force->force[j]) ||
--				      ((this_force->force[j] = ANY_I2C_BUS) && !is_isa)) &&
-+				      (this_force->force[j] = ANY_I2C_BUS)) &&
- 				      (addr = this_force->force[j + 1]) ) {
- 					dev_dbg(&adapter->dev, "found force parameter for adapter %d, addr %04x\n", adapter_id, addr);
- 					if ((err = found_proc(adapter, addr, this_force->kind)))
-@@ -85,8 +77,7 @@ int i2c_detect(struct i2c_adapter *adapt
- 		   right now */
- 		for (i = 0; !found && (ignore[i] != I2C_CLIENT_END); i += 2) {
- 			if ( ((adapter_id = ignore[i]) ||
--			      ((ignore[i] = ANY_I2C_BUS) &&
--			       !is_isa)) &&
-+			      (ignore[i] = ANY_I2C_BUS)) &&
- 			      (addr = ignore[i + 1])) {
- 				dev_dbg(&adapter->dev, "found ignore parameter for adapter %d, addr %04x\n", adapter_id, addr);
- 				found = 1;
-@@ -97,19 +88,10 @@ int i2c_detect(struct i2c_adapter *adapt
- 
- 		/* Now, we will do a detection, but only if it is in the normal or 
- 		   probe entries */
--		if (is_isa) {
--			for (i = 0; !found && (normal_isa[i] != I2C_CLIENT_ISA_END); i += 1) {
--				if (addr = normal_isa[i]) {
--					dev_dbg(&adapter->dev, "found normal isa entry for adapter %d, addr %04x\n", adapter_id, addr);
--					found = 1;
--				}
--			}
--		} else {
--			for (i = 0; !found && (normal_i2c[i] != I2C_CLIENT_END); i += 1) {
--				if (addr = normal_i2c[i]) {
--					found = 1;
--					dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, addr %02x\n", adapter_id, addr);
--				}
-+		for (i = 0; !found && (normal_i2c[i] != I2C_CLIENT_END); i += 1) {
-+			if (addr = normal_i2c[i]) {
-+				found = 1;
-+				dev_dbg(&adapter->dev, "found normal i2c entry for adapter %d, addr %02x\n", adapter_id, addr);
+diff -Naur a/drivers/pci/quirks.c c/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c	2005-09-20 05:00:41.000000000 +0200
++++ c/drivers/pci/quirks.c	2005-09-27 23:37:56.432160500 +0200
+@@ -847,6 +847,13 @@
+ 			case 0x186a: /* M6Ne notebook */
+ 				asus_hides_smbus = 1;
  			}
- 		}
++		if (dev->device = PCI_DEVICE_ID_INTEL_82915GM_HB)
++		{
++			switch (dev->subsystem_device) {
++			case 0x1882: /* M6V notebook */
++				asus_hides_smbus = 1;
++			}
++		}
+ 	} else if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_HP)) {
+ 		if (dev->device =  PCI_DEVICE_ID_INTEL_82855PM_HB)
+ 			switch(dev->subsystem_device) {
+@@ -891,6 +898,7 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_7205_0,	asus_hides_smbus_hostbridge );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82855PM_HB,	asus_hides_smbus_hostbridge );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82855GM_HB,	asus_hides_smbus_hostbridge );
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82915GM_HB, asus_hides_smbus_hostbridge );
  
-@@ -117,7 +99,7 @@ int i2c_detect(struct i2c_adapter *adapt
- 		     !found && (probe[i] != I2C_CLIENT_END);
- 		     i += 2) {
- 			if (((adapter_id = probe[i]) ||
--			     ((probe[i] = ANY_I2C_BUS) && !is_isa))
-+			     (probe[i] = ANY_I2C_BUS))
- 			    && (addr = probe[i + 1])) {
- 				dev_dbg(&adapter->dev, "found probe parameter for adapter %d, addr %04x\n", adapter_id, addr);
- 				found = 1;
-@@ -128,8 +110,7 @@ int i2c_detect(struct i2c_adapter *adapt
+ static void __init asus_hides_smbus_lpc(struct pci_dev *dev)
+ {
+@@ -915,6 +923,23 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801DB_12,	asus_hides_smbus_lpc );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801EB_0,	asus_hides_smbus_lpc );
  
- 		/* OK, so we really should examine this address. First check
- 		   whether there is some client here at all! */
--		if (is_isa ||
--		    (i2c_smbus_xfer (adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) >= 0))
-+		if (i2c_smbus_xfer(adapter, addr, 0, 0, 0, I2C_SMBUS_QUICK, NULL) >= 0)
- 			if ((err = found_proc(adapter, addr, -1)))
- 				return err;
- 	}
-
++static void __init asus_hides_smbus_lpc_ich6(struct pci_dev *dev)
++{
++	u32 val, rcba;
++	void __iomem *base;
++
++	if (likely(!asus_hides_smbus))
++		return;
++	pci_read_config_dword(dev, 0xF0, &rcba);
++	base = ioremap_nocache(rcba & 0xFFFFC000, 0x4000); /* use bits 31:14, 16 kB aligned */
++	if (base = NULL) return;
++	val=readl(base + 0x3418); /* read the Function Disable register, dword mode only */
++	writel(val & 0xFFFFFFF7, base + 0x3418); /* enable the SMBus device */
++	iounmap(base);
++	printk(KERN_INFO "PCI: Enabled ICH6/i801 SMBus device\n");
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6 );
++
+ /*
+  * SiS 96x south bridge: BIOS typically hides SMBus device...
+  */
