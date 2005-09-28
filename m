@@ -1,45 +1,28 @@
-From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
-Date: Tue, 27 Sep 2005 23:55:28 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 28 Sep 2005 09:29:52 +0000
 Subject: [lm-sensors] [PATCH] ICH6 ACPI and GPIO quirk
-Message-Id: <20050927215451.19403.qmail@desitka.sh.cvut.cz>
+Message-Id: <433A464E.9030908@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20050927215451.19403.qmail@desitka.sh.cvut.cz>
+In-Reply-To: <20050927215451.19403.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Craig Sylla wrote:
+
+> Pardon me - would it be advisable to apply this patch to a 2.6.5 kernel
+> running on an ICH6-equipped mainboard?  I have already tweaked the i801
+> driver to support the ICH6 (added PCI ID's).
+
 Hello,
 
-This patch just adds ACPI and GPIO regions to its LPC bridge, similar
-way as ICH4 did. I would like to thank Michal Mleczko for testing.
+This patch is not changing any stuff. It just registers with /proc/ioports the ACPI and GPIO regions
+provided by LPC bridge, so no other devices will think this IO addresses are free.
+It does not tweak any HW.
 
-Please apply.
-
-Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
+To answer your question: it wont hurt if you port it to your kernel.
 
 Regards
 Rudolf
-
-diff -Naur c/drivers/pci/quirks.c d/drivers/pci/quirks.c
---- c/drivers/pci/quirks.c	2005-09-27 23:37:56.432160500 +0200
-+++ d/drivers/pci/quirks.c	2005-09-27 23:38:22.197770750 +0200
-@@ -339,6 +339,19 @@
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_82801EB_0,		quirk_ich4_lpc_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,    PCI_DEVICE_ID_INTEL_ESB_1,		quirk_ich4_lpc_acpi );
- 
-+static void __devinit quirk_ich6_lpc_acpi(struct pci_dev *dev)
-+{
-+	        u32 region;
-+
-+	        pci_read_config_dword(dev, 0x40, &region);
-+	        quirk_io_region(dev, region, 128, PCI_BRIDGE_RESOURCES);
-+
-+	        pci_read_config_dword(dev, 0x48, &region);
-+	        quirk_io_region(dev, region, 64, PCI_BRIDGE_RESOURCES+1);
-+}
-+
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1, quirk_ich6_lpc_acpi );
-+
- /*
-  * VIA ACPI: One IO region pointed to by longword at
-  *	0x48 or 0x20 (256 bytes of ACPI registers)
