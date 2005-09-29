@@ -1,42 +1,27 @@
-From: gregkh@suse.de (Greg KH)
-Date: Mon, 05 Sep 2005 23:47:30 +0000
-Subject: [lm-sensors] [PATCH] I2C: Outdated i2c_adapter comment
-Message-Id: <11259567701915@kroah.com>
+From: greg@kroah.com (Greg KH)
+Date: Thu, 29 Sep 2005 14:03:15 +0000
+Subject: [lm-sensors] Change of I2C kernel subsystem maintainer
+Message-Id: <20050928200547.GA10995@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-[PATCH] I2C: Outdated i2c_adapter comment
+If people hadn't noticed anymore, I've passed on the full I2C subsystem
+maintainership to Jean Delvare <khali@linux-fr.org>.  He and I had been
+"sharing" it for the past months, but now he's more than capable of
+handling the whole thing, and I know it is in good hands now.
 
-Delete an outdated comment about i2c_algorithm.id being computed
-from algo->id.
+So, for any I2C driver questions or patches, please feel free to let him
+know, don't send them to me anymore, please :)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+I'll still be paying attention to the I2C core work, especially where it
+touches the driver core interfaces, and have some pending work to clean
+up in that area.  I'll also remain the conduit for sending I2C and hwmon
+stuff on to Andrew for the -mm tree, and Linus for the mainline tree, so
+nothing will change there.
 
----
-commit 020789e9cb688ac8b15a9950d25fe45492b23398
-tree 71634ce861f1bed2159a9db16c83004015996e59
-parent c2459cf257106cea5adbc83f084b76d0030eb700
-author Jean Delvare <khali@linux-fr.org> Sat, 13 Aug 2005 13:04:32 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Mon, 05 Sep 2005 09:14:33 -0700
+thanks,
 
- include/linux/i2c.h |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -219,8 +219,7 @@ struct i2c_algorithm {
-  */
- struct i2c_adapter {
- 	struct module *owner;
--	unsigned int id;/* = is algo->id | hwdep.struct->id, 		*/
--			/* for registered values see below		*/
-+	unsigned int id;
- 	unsigned int class;
- 	struct i2c_algorithm *algo;/* the algorithm to access the bus	*/
- 	void *algo_data;
-
+greg k-h
