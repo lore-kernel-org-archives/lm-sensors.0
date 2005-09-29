@@ -1,62 +1,73 @@
-From: junpingfeng@yahoo.com.cn (junping feng)
-Date: Wed, 21 Sep 2005 03:58:32 +0000
-Subject: =?gb2312?q?=BB=D8=B8=B4=A3=BA=20Re:=20[lm-sensors]=20eeprom=20write!?=
-Message-Id: <20050921015726.58808.qmail@web15704.mail.cnb.yahoo.com>
+From: R.Marek@sh.cvut.cz (R.Marek@sh.cvut.cz)
+Date: Thu, 29 Sep 2005 10:36:06 +0000
+Subject: [lm-sensors] [PATCH] unhide ICH6 SMBus - take 2
+Message-Id: <20050929083541.5116.qmail@desitka.sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
-   I am sorry for my fault of the eeprom. My eeprom is
-AT24C01A,and its size is 1Kbits(128Bytes).
-   In the ile /lm_sensors-2.5.0/kernel/chips/eeprom.c,
-how can I complete the function of writing to the
-chip?
-please help me !
-   Can you give me the source codes?
-   Thanks!
+Oops. Sorry. Here we go again.
 
+This patch unhides hidden SMBus on ICH6 chipset installed in
+Asus M6V notebook. I would like to thank Michal Mleczko for 
+testing and help.
 
---- Ben Dooks <ben@fluff.org.uk>??:
+Please apply.
 
-> On Tue, Sep 20, 2005 at 05:52:54PM +0800, junping
-> feng wrote:
-> > Hi,
-> >   My cpu is PowerPC8250.I2C device is eeprom
-> AT24C01.
-> > I want to access the eeprom,read from the eeprom
-> and
-> > write to it.
-> >   I have read the file
-> > /lm_sensors-2.5.0/kernel/chips/eeprom.c,but this
-> file
-> > can't achieve writing function and only can read
-> 128
-> > bytes.
-> >   How can i complete the writing functions and
-> read
-> > total the chip (1024 bytes).
-> 
-> The chip is only 128 bytes big. You are confusing
-> the
-> _bit_ size (which is 1024bits).
-> 
-> I have no actual experience of this chip, but the
-> data-sheet implies it is only capable of page-write
-> of 4 bytes at a time, so it could be the eeprom
-> driver is trying to write too much data in one go.
-> 
-> -- 
-> Ben (ben@fluff.org, http://www.fluff.org/)
-> 
->   'a smiley only costs 4 bytes'
-> 
+Signed-Off-By: Rudolf Marek <r.marek@sh.cvut.cz>
 
+Regards
+Rudolf
 
-
-		
-___________________________________________________________ 
-???????????2G?????pop3?????????? 
-http://cn.mail.yahoo.com
+diff -Naur a/drivers/pci/quirks.c c/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c	2005-09-20 05:00:41.000000000 +0200
++++ c/drivers/pci/quirks.c	2005-09-27 23:37:56.432160500 +0200
+@@ -847,6 +847,12 @@
+ 			case 0x186a: /* M6Ne notebook */
+ 				asus_hides_smbus = 1;
+ 			}
++		if (dev->device = PCI_DEVICE_ID_INTEL_82915GM_HB) {
++			switch (dev->subsystem_device) {
++			case 0x1882: /* M6V notebook */
++				asus_hides_smbus = 1;
++			}
++		}
+ 	} else if (unlikely(dev->subsystem_vendor = PCI_VENDOR_ID_HP)) {
+ 		if (dev->device =  PCI_DEVICE_ID_INTEL_82855PM_HB)
+ 			switch(dev->subsystem_device) {
+@@ -891,6 +898,7 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_7205_0,	asus_hides_smbus_hostbridge );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82855PM_HB,	asus_hides_smbus_hostbridge );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82855GM_HB,	asus_hides_smbus_hostbridge );
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82915GM_HB, asus_hides_smbus_hostbridge );
+ 
+ static void __init asus_hides_smbus_lpc(struct pci_dev *dev)
+ {
+@@ -915,6 +923,23 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801DB_12,	asus_hides_smbus_lpc );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82801EB_0,	asus_hides_smbus_lpc );
+ 
++static void __init asus_hides_smbus_lpc_ich6(struct pci_dev *dev)
++{
++	u32 val, rcba;
++	void __iomem *base;
++
++	if (likely(!asus_hides_smbus))
++		return;
++	pci_read_config_dword(dev, 0xF0, &rcba);
++	base = ioremap_nocache(rcba & 0xFFFFC000, 0x4000); /* use bits 31:14, 16 kB aligned */
++	if (base = NULL) return;
++	val=readl(base + 0x3418); /* read the Function Disable register, dword mode only */
++	writel(val & 0xFFFFFFF7, base + 0x3418); /* enable the SMBus device */
++	iounmap(base);
++	printk(KERN_INFO "PCI: Enabled ICH6/i801 SMBus device\n");
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_ICH6_1,	asus_hides_smbus_lpc_ich6 );
++
+ /*
+  * SiS 96x south bridge: BIOS typically hides SMBus device...
+  */
