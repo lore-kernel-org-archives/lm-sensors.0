@@ -1,42 +1,38 @@
-From: mgreer@mvista.com (Mark A. Greer)
-Date: Wed, 07 Sep 2005 00:39:29 +0000
-Subject: [lm-sensors] [PATCH 2.6.13-mm1] i2c: bug fix for
-Message-Id: <20050906223926.GH10346@mag.az.mvista.com>
+From: laurent.riffard@free.fr (Laurent Riffard)
+Date: Fri, 30 Sep 2005 16:52:38 +0000
+Subject: [lm-sensors] [PATCH 2.6-mm 5/5] i2c: make i2c-isa drivers inherits
+Message-Id: <433D50FC.30907@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20050902010549.GD10106@mag.az.mvista.com>
-In-Reply-To: <20050902010549.GD10106@mag.az.mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 06, 2005 at 10:20:25PM +0200, Jean Delvare wrote:
-> Hi Mark,
-> 
-> > >  mv64xxx_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
-> > >  int num) {
-> > >  	struct mv64xxx_i2c_data *drv_data = i2c_get_adapdata(adap);
-> > > -	int	i, rc = 0;
-> > > +	int	i, rc;
-> > >  
-> > >  	for (i=0; i<num; i++)
-> > > -		if ((rc = mv64xxx_i2c_execute_msg(drv_data, &msgs[i])) != 0)
-> > > -			break;
-> > > +		if ((rc = mv64xxx_i2c_execute_msg(drv_data, &msgs[i])) < 0)
-> > > +			return rc;
-> > >  
-> > > -	return rc;
-> > > +	return num;
-> > >  }
-> > 
-> > Agreed.  However, I think we still need to init 'rc' to 0 in case
-> > 'num' is ever 0 to prevent random data from being returned.
-> 
-> If num is 0, the for loop is never entered and num, not rc, is returned.
-> Thus I don't see why initializing rc to 0 would be needed. Or am I
-> missing something obvious?
+In function i2c_isa_add_driver, copied driver should inherit the owner field
+as well as the name field.
 
-Ahh, nope, I missed something obvious.
-Your patch looks good to me.
 
-Mark
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+---
+
+Index: linux-2.6-mm/drivers/i2c/busses/i2c-isa.c
+=================================--- linux-2.6-mm.orig/drivers/i2c/busses/i2c-isa.c      2005-09-30 16:27:50.000000000 +0200
++++ linux-2.6-mm/drivers/i2c/busses/i2c-isa.c   2005-09-30 16:34:00.903153000 +0200
+@@ -92,6 +92,7 @@
+
+        /* Add the driver to the list of i2c drivers in the driver core */
+        driver->driver.name = driver->name;
++       driver->driver.owner = driver->owner;
+        driver->driver.bus = &i2c_bus_type;
+        driver->driver.probe = i2c_isa_device_probe;
+        driver->driver.remove = i2c_isa_device_remove;
+
+
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 252 bytes
+Desc: OpenPGP digital signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20050930/d6b71bde/signature.bin
