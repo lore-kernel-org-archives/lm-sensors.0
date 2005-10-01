@@ -1,45 +1,51 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:32:08 +0000
-Subject: [lm-sensors] [PATCH] i2c: Cleanup i2c-dev ioctl debug message
-Message-Id: <11305336594090@kroah.com>
+From: dsaxena@plexity.net (Deepak Saxena)
+Date: Sat, 01 Oct 2005 07:02:45 +0000
+Subject: [lm-sensors] [PATCH] [I2C] kmalloc + memzero -> kzalloc conversion
+Message-Id: <20051001050202.GE11137@plexity.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-[PATCH] i2c: Cleanup i2c-dev ioctl debug message
 
-Cleanup the ioctl debug message in i2c-dev. In particular, the minor
-number is redundant now that the minor number and the adapter number
-are kept in sync.
+Signed-off-by: Deepak Saxena <dsaxena@mvista.com>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
-commit e8aafcb2bba1fe122907161701a167e38174c7a5
-tree 1353e18055286d52d7f4f3a1d4a5cf028f024f5f
-parent 8a1b028bca95b5af36e94a660c4d284fe3313f74
-author Jean Delvare <khali@linux-fr.org> Fri, 07 Oct 2005 23:06:27 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
-
- drivers/i2c/i2c-dev.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index aa7a4fa..89f54a5 100644
---- a/drivers/i2c/i2c-dev.c
-+++ b/drivers/i2c/i2c-dev.c
-@@ -177,8 +177,8 @@ static int i2cdev_ioctl(struct inode *in
- 	int i,datasize,res;
- 	unsigned long funcs;
+diff --git a/drivers/i2c/busses/i2c-ixp2000.c b/drivers/i2c/busses/i2c-ixp2000.c
+--- a/drivers/i2c/busses/i2c-ixp2000.c
++++ b/drivers/i2c/busses/i2c-ixp2000.c
+@@ -104,11 +104,10 @@ static int ixp2000_i2c_probe(struct devi
+ 	struct platform_device *plat_dev = to_platform_device(dev);
+ 	struct ixp2000_i2c_pins *gpio = plat_dev->dev.platform_data;
+ 	struct ixp2000_i2c_data *drv_data = 
+-		kmalloc(sizeof(struct ixp2000_i2c_data), GFP_KERNEL);
++		kzalloc(sizeof(struct ixp2000_i2c_data), GFP_KERNEL);
  
--	dev_dbg(&client->adapter->dev, "i2c-%d ioctl, cmd: 0x%x, arg: %lx.\n",
--		iminor(inode),cmd, arg);
-+	dev_dbg(&client->adapter->dev, "ioctl, cmd=0x%02x, arg=0x%02lx\n",
-+		cmd, arg);
+ 	if (!drv_data)
+ 		return -ENOMEM;
+-	memzero(drv_data, sizeof(*drv_data));
+ 	drv_data->gpio_pins = gpio;
  
- 	switch ( cmd ) {
- 	case I2C_SLAVE:
+ 	drv_data->algo_data.data = gpio;
+diff --git a/drivers/i2c/busses/i2c-ixp4xx.c b/drivers/i2c/busses/i2c-ixp4xx.c
+--- a/drivers/i2c/busses/i2c-ixp4xx.c
++++ b/drivers/i2c/busses/i2c-ixp4xx.c
+@@ -105,12 +105,11 @@ static int ixp4xx_i2c_probe(struct devic
+ 	struct platform_device *plat_dev = to_platform_device(dev);
+ 	struct ixp4xx_i2c_pins *gpio = plat_dev->dev.platform_data;
+ 	struct ixp4xx_i2c_data *drv_data = 
+-		kmalloc(sizeof(struct ixp4xx_i2c_data), GFP_KERNEL);
++		kzalloc(sizeof(struct ixp4xx_i2c_data), GFP_KERNEL);
+ 
+ 	if(!drv_data)
+ 		return -ENOMEM;
+ 
+-	memzero(drv_data, sizeof(struct ixp4xx_i2c_data));
+ 	drv_data->gpio_pins = gpio;
+ 
+ 	/*
+-- 
+Deepak Saxena - dsaxena@plexity.net - http://www.plexity.net
 
+Even a stopped clock gives the right time twice a day.
