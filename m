@@ -1,45 +1,41 @@
-From: h-iwamoto@kit.hi-ho.ne.jp (Hideki IWAMOTO)
-Date: Sat, 01 Oct 2005 15:31:22 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 02 Oct 2005 11:35:37 +0000
 Subject: [lm-sensors] [PATCH 2.6] Documentation fix (writing-clients)
-Message-Id: <200510011330.AA01323@k7.kit.hi-ho.ne.jp>
+Message-Id: <20051002113530.141ce698.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200510011330.AA01323@k7.kit.hi-ho.ne.jp>
+In-Reply-To: <200510011330.AA01323@k7.kit.hi-ho.ne.jp>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-o Remove flags parameter from detect function. 
-o i2c_smbus_read_i2c_block_data is not deleted in 2.6.10. It still exists.
+Ohaio Hideki,
 
---- linux-2.6.14-rc3/Documentation/i2c/writing-clients.org	2005-10-01 21:58:59.830765256 +0900
-+++ linux-2.6.14-rc3/Documentation/i2c/writing-clients	2005-10-01 22:14:18.964035760 +0900
-@@ -246,10 +246,7 @@ the detection to stop: other addresses a
- This should only be done on fatal or internal errors, such as a memory
- shortage or i2c_attach_client failing.
- 
--For now, you can ignore the `flags' parameter. It is there for future use.
--
--  int foo_detect_client(struct i2c_adapter *adapter, int address, 
--                        unsigned short flags, int kind)
-+  int foo_detect_client(struct i2c_adapter *adapter, int address, int kind)
-   {
-     int err = 0;
-     int i;
-@@ -576,12 +573,12 @@ SMBus communication
-   extern s32 i2c_smbus_write_block_data(struct i2c_client * client,
-                                         u8 command, u8 length,
-                                         u8 *values);
-+  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
-+                                           u8 command, u8 *values);
- 
- These ones were removed in Linux 2.6.10 because they had no users, but could
- be added back later if needed:
- 
--  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
--                                           u8 command, u8 *values);
-   extern s32 i2c_smbus_read_block_data(struct i2c_client * client,
-                                        u8 command, u8 *values);
-   extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
+> o Remove flags parameter from detect function.
 
-----
-Hideki IWAMOTO  h-iwamoto@kit.hi-ho.ne.jp
+This one I already fixed in one of Jeff Garzik's trees, as part of a
+larger documentation patch. It's just a matter of time before it
+reaches mainline.
+
+http://www.kernel.org/git/?p=3Dlinux/kernel/git/jgarzik/misc-2.6.git;a=3Dbl=
+obdiff;h=9B9b7d0e54f24d447fc07e3a25ac1696e5d60143;hp=CC25797017453600a686bb=
+ed6c18e0b8d07e6d03;hb=0Fc9dcdae08ec08daf1efd8e4bda78395a655240;f=3DDocument=
+ation/i2c/writing-clients
+
+> o i2c_smbus_read_i2c_block_data is not deleted in 2.6.10. It still exists.
+
+Correct, I've applied this one, thanks.
+
+BTW, do not hesitate to sign the patches you send, by adding the
+following line in the header comments:
+
+Signed-off-by: Hideki Iwamoto <h-iwamoto@kit.hi-ho.ne.jp>
+
+That way you'll always get properly credited for your work. This also
+allows for easier tracking of changes if anyone has questions about a
+particular patch.
+
+Arigato,
+--=20
+Jean Delvare
