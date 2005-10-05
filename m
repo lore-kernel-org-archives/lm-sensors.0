@@ -1,7 +1,7 @@
-From: xanni@glasswings.com.au (Andrew Pam)
-Date: Wed, 05 Oct 2005 18:51:54 +0000
+From: tonu@jes.ee (Tonu Samuel)
+Date: Wed, 05 Oct 2005 19:25:44 +0000
 Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <20051005165117.GW7167@kira.glasswings.com.au>
+Message-Id: <200510052024.45261.tonu@jes.ee>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051004125511.GI7154@kira.glasswings.com.au>
 In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
@@ -10,17 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 05, 2005 at 05:12:12PM +0200, Jean Delvare wrote:
-> OK, that was only a quick review (still took over an hour, *sigh*)
+On Tuesday 04 October 2005 15:55, Andrew Pam wrote:
+> I got sick of waiting for someone else to do it, and ported the Myson
+> MTP008 chip driver to the Linux 2.6 kernel.  I have successfully compiled
+> and loaded the module on a Tyan Thunder LE ServerWorks dual P3 motherboard
+> with two of these chips.
 
-Notwithstanding my earlier comments, thanks for taking the time to do
-this review.  It's very helpful.  (I tried to do a minimal port of the 2.4
-driver, but I must admit I was sorely tempted to rewrite the whole thing!)
+I have same motherboard here and can use it for testing. While it is 
+production system all nighthours are free :). I try to follow thread, get 
+patches and try them in next few days. Just too many plans already.
 
-Thanks,
-	Andrew
--- 
-mailto:xanni@xanadu.net                         Andrew Pam
-http://www.xanadu.com.au/                       Chief Scientist, Xanadu
-http://www.glasswings.com.au/                   Partner, Glass Wings
-http://www.sericyb.com.au/                      Manager, Serious Cybernetics
+   T?nu
