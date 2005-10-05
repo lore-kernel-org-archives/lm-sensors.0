@@ -1,7 +1,7 @@
-From: tonu@jes.ee (Tonu Samuel)
-Date: Wed, 05 Oct 2005 19:25:44 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 05 Oct 2005 20:46:14 +0000
 Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <200510052024.45261.tonu@jes.ee>
+Message-Id: <20051005204529.3e233cf9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051004125511.GI7154@kira.glasswings.com.au>
 In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
@@ -10,14 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tuesday 04 October 2005 15:55, Andrew Pam wrote:
-> I got sick of waiting for someone else to do it, and ported the Myson
-> MTP008 chip driver to the Linux 2.6 kernel.  I have successfully compiled
-> and loaded the module on a Tyan Thunder LE ServerWorks dual P3 motherboard
-> with two of these chips.
+Hi Andrew,
 
-I have same motherboard here and can use it for testing. While it is 
-production system all nighthours are free :). I try to follow thread, get 
-patches and try them in next few days. Just too many plans already.
+> > > /* Addresses to scan */
+> > > static unsigned short normal_i2c[] = {0x2c, 0x2e, I2C_CLIENT_END};
+> > 
+> > 0x2d is missing.
+> 
+> Is the chip ever actually implemented at that address?
 
-   T?nu
+Why not? The datasheet says it can. It even says that the 24-pin
+version of the chip always has this address.
+
+> It may be that all known implementations use 0x2c for a single chip
+> motherboard and 0x2c + 0x2e for a dual chip motherboard.
+
+Why would we assume this? Adding 0x2d doesn't cost us much. The
+original driver did support it (it supported 0x2c - 0x2e as a *range*,
+not individual values!) and sensors-detect as well.
+
+Thanks,
+-- 
+Jean Delvare
