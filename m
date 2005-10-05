@@ -1,7 +1,7 @@
 From: xanni@glasswings.com.au (Andrew Pam)
-Date: Wed, 05 Oct 2005 18:41:16 +0000
+Date: Wed, 05 Oct 2005 18:48:59 +0000
 Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <20051005164010.GU7167@kira.glasswings.com.au>
+Message-Id: <20051005164810.GV7167@kira.glasswings.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051004125511.GI7154@kira.glasswings.com.au>
 In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
@@ -11,15 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 On Wed, Oct 05, 2005 at 05:12:12PM +0200, Jean Delvare wrote:
-> > /* Addresses to scan */
-> > static unsigned short normal_i2c[] = {0x2c, 0x2e, I2C_CLIENT_END};
+> > #define SENS_FROM_REG(val)	((val) = 0 ? 0	: ((val) ^ 0x03))
+> > #define SENS_TO_REG(val)	SENS_FROM_REG(val)
 > 
-> 0x2d is missing.
+> This looks like a trick. Don't use tricks. You're really not saving
+> anything, but are increasing the chances that a bug sneaks in.
 
-Is the chip ever actually implemented at that address?
+OK, these are two alternatives:
 
-It may be that all known implementations use 0x2c for a single chip
-motherboard and 0x2c + 0x2e for a dual chip motherboard.
+#define SENS_FROM_REG(val)	((val) = 0 ? 0	: (1 - (val - 1)) + 1)
+
+#define SENS_FROM_REG(val)	((val) = 0 ? 0	: (val) = 1 ? 2 : 1)
+
+Do you really find either of these more readable?  I don't.
+This code is also clearly commented:
+
+/* sysfs temperature sensor types       mtp008 sensor types
+ * 0: Not defined                       0: Analog input (voltage)
+ * 1: PII/Celeron Diode                 2: PII Diode
+ * 2: 3904 transistor                   1: Thermistor
 
 Regards,
 	Andrew
