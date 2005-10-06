@@ -1,7 +1,7 @@
-From: xanni@glasswings.com.au (Andrew Pam)
-Date: Thu, 06 Oct 2005 11:13:17 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 06 Oct 2005 11:57:55 +0000
 Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <20051006091223.GU7173@kira.glasswings.com.au>
+Message-Id: <fqsd8T9n.1128591999.3452220.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051004125511.GI7154@kira.glasswings.com.au>
 In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
@@ -10,31 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 05, 2005 at 05:12:12PM +0200, Jean Delvare wrote:
-> A note on hardware layout. As I understand it, the MTP008 has some pins
-> which can have different functions. The original driver gave the user
-> the possibility to change that, right? I do not think this is the
-> correct approach. In the real world, the hardware layout is defined and
-> doesn't change. The BIOS is supposed to properly setup the chip
-> according to this. Unless you have evidences that systems exists with
-> MTP008 chips, those BIOSes do NOT properly initialize the chip, I would
-> like the driver to trust the original settings, and stick to them. This
-> is less error-prone for the user, and should save some code and memory.
-> 
-> If we go that way, then you do not have to handle the conditions in each
-> callback function. Simply do not create the sysfs files which do not
-> match the current setup (that is, create in4* or temp2*, but not both
-> sets.)
 
-I agree, but according to Documentation/hwmon/sysfs-interface the
-temp[1-3]_type file is Read/Write which suggests that either the driver
-needs to support writes and the changes to the chip configuration that
-implies, or the documentation needs to be changed.
+Hi Andrew,
 
-Regards,
-	Andrew
--- 
-mailto:xanni@xanadu.net                         Andrew Pam
-http://www.xanadu.com.au/                       Chief Scientist, Xanadu
-http://www.glasswings.com.au/                   Partner, Glass Wings
-http://www.sericyb.com.au/                      Manager, Serious Cybernetics
+> > The conditional would not be needed if you were using an s8 to store the
+> > value rather than an u8.
+>
+> Unfortunately two of the temperatures are stored in variables also
+> used for the voltage inputs, which are unsigned when being used for
+> that function.  Should these variables be a union of an s8 and a u8?
+
+Good point, I had missed that. Using a union would be technically correct
+but would make the code somewhat more complex. I guess you can keep
+things as they are.
+
+> In fact, I may be missing something obvious, but why does the code
+> maintain all these variables and read all the chip registers every time
+> any value is read?  Wouldn't it be more efficient to just read the
+> register that was actually requested?
+
+All hardware monitoring drivers work that way because some chips stop
+monitoring when they are accessed for register I/O. If we were reading
+all registers individually, it could happen that the chip can never
+actually refresh the monitored values. Using burst reads solve the
+problem. Additionally, as any user can read the monitored values through
+sysfs, we have to cache them, else any random user could saturate the
+bus by continuously reading from these sysfs files, causing a DoS.
+Caching is easy with burst reads, but would be much more complex with
+individual reads.
+
+Note that burst reads with caching does not really cause much loss over
+individual reads. Most of the time, you want to read all the values at
+the same time anyway (when you run "sensors" for example), so the
+first request will trigger the burst read, the cache will be refreshed
+if needed, and all other values will be read from the cache.
+
+Also note that some drivers (lm85 at least) split the registers into two
+groups with separate cache expiration delay. I think this is a good idea
+for I2C/SMBus chips with many registers, as it spares some bus bandwidth
+and speeds up the readings refresh operation.
+
+--
+Jean Delvare
