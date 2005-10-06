@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 05 Oct 2005 21:46:45 +0000
+From: xanni@glasswings.com.au (Andrew Pam)
+Date: Thu, 06 Oct 2005 11:09:28 +0000
 Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <20051005214556.3b50a1ea.khali@linux-fr.org>
+Message-Id: <20051006090800.GT7173@kira.glasswings.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051004125511.GI7154@kira.glasswings.com.au>
 In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
@@ -10,49 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Andrew,
-
-> On Wed, Oct 05, 2005 at 05:12:12PM +0200, Jean Delvare wrote:
-> > > #define SENS_FROM_REG(val)	((val) = 0 ? 0	: ((val) ^ 0x03))
-> > > #define SENS_TO_REG(val)	SENS_FROM_REG(val)
-> > 
-> > This looks like a trick. Don't use tricks. You're really not saving
-> > anything, but are increasing the chances that a bug sneaks in.
+On Wed, Oct 05, 2005 at 05:12:12PM +0200, Jean Delvare wrote:
+> > #define TEMP_FROM_REG(val)	(					\
+> > 				 (					\
+> > 				  (val) > 0x80 ? (val) - 0x100		\
+> > 					       : (val)			\
+> > 				 ) * 1000				\
+> > 				)
 > 
-> OK, these are two alternatives:
-> 
-> #define SENS_FROM_REG(val)	((val) = 0 ? 0	: (1 - (val - 1)) + 1)
-> 
-> #define SENS_FROM_REG(val)	((val) = 0 ? 0	: (val) = 1 ? 2 : 1)
-> 
-> Do you really find either of these more readable?  I don't.
+> The conditional would not be needed if you were using an s8 to store the
+> value rather than an u8.
 
-I tend to prefer the second one, a matter of personnal taste I presume.
-But actually, it would probably be much better to simply not use macros
-for these conversions. This would certainly result in more readable and
-more efficient code.
+Unfortunately two of the temperatures are stored in variables also
+used for the voltage inputs, which are unsigned when being used for
+that function.  Should these variables be a union of an s8 and a u8?
 
-> This code is also clearly commented:
-> 
-> /* sysfs temperature sensor types       mtp008 sensor types
->  * 0: Not defined                       0: Analog input (voltage)
->  * 1: PII/Celeron Diode                 2: PII Diode
->  * 2: 3904 transistor                   1: Thermistor
-
-Thanks for documenting it, this is helpful. Now that I pay more
-attention to this though, it doesn't look correct to me. In the
-standard sysfs convention, thermisor is 3, not 2. So you should convert
-MTP008's type 1 to 3, not 2. Additionally, note that using type 0 for
-analog input is not totally conform to the sysfs standard. Type 0 means
-that the temperature input it disabled and unused, *not* that it is
-used for something different. This is the reason why I would prefer
-that we trust the BIOS settings and don't allow pin function change at
-runtime at all.
-
-Anyway, this is just a suggestion, I leave the final decision to Helge
-or anyone actually working on the code. As long as the code is correct,
-fine with me.
+In fact, I may be missing something obvious, but why does the code
+maintain all these variables and read all the chip registers every time
+any value is read?  Wouldn't it be more efficient to just read the
+register that was actually requested?
 
 Thanks,
+	Andrew
 -- 
-Jean Delvare
+mailto:xanni@xanadu.net                         Andrew Pam
+http://www.xanadu.com.au/                       Chief Scientist, Xanadu
+http://www.glasswings.com.au/                   Partner, Glass Wings
+http://www.sericyb.com.au/                      Manager, Serious Cybernetics
