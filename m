@@ -1,7 +1,7 @@
-From: greg@kroah.com (Greg KH)
-Date: Tue, 04 Oct 2005 23:51:51 +0000
+From: lmsensors@lizardlogic.co.uk (Stig Telfer)
+Date: Thu, 06 Oct 2005 12:46:56 +0000
 Subject: [lm-sensors] Patch for i2c-elektor driver
-Message-Id: <20051004215003.GA16958@kroah.com>
+Message-Id: <0df0fd52cc4cf66bb208818606726170@lizardlogic.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <eeae3ce2cd160ac835fcb05bb9a2d829@lizardlogic.co.uk>
 In-Reply-To: <eeae3ce2cd160ac835fcb05bb9a2d829@lizardlogic.co.uk>
@@ -10,34 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 04, 2005 at 11:38:13PM +0200, Jean Delvare wrote:
-> Hi Stig,
-> 
-> One preliminary question: Did you attempt to contact Hans Berglund or
-> Oleg I. Vdovikin for their opinion on and testing of your patch?
-> 
-> > I have split the patch into two, annotated and signed off.  Patch 1 is 
-> > the bug fixes.  Patch 2 is a bit of code cleanup.  Some of patch 2 you 
-> > may think is not worth changing.  I have no problem with that.
-> > 
-> > On my system, the current elektor driver will oops on module load and 
-> > has no chance of working because the IO regions are not mapped.  Patch 
-> > 1 fixes it (for me).
-> 
-> Are you using mmapped=0 or 1? Wasn't it just a matter of using the
-> other? I guess there is a reason why this option exists.
-> 
-> I don't really feel qualified to review the first patch, as I have
-> relatively little idea how I/O mapping is supposed to work. Greg, want
-> to comment? All the (relatively) recent changes to the driver are
-> yours, although I'm not sure it actually means anything.
+Wow, this is getting to be quite a spring-cleaning now.
 
-the iomap stuff looks good, did you run it through sparse to make sure
-you got it all correct?
+I have incorporated all your suggestions into this patch, except for 
+these two:
 
-Also, all of the printk() and pr_debug() lines should be changed to use
-dev_dbg(), dev_err() and friends.
+* Jean: use of val & 255 in printk statement in pcf_isa_setbyte() - I 
+think this is actually required because parameter val is an integer 
+quantity and could have been sign-extended?  I would prefer to change 
+the function parameter to u8, but this violates the types of struct 
+i2c_algo_pcf_data.
 
-thanks,
+* Greg: I haven't changed the printk and pr_debug calls yet, because 
+there are some printk calls before a struct device is initialised (this 
+is done when the device is registered to i2c_algo_pcf at the end of 
+driver init).  What is the policy relating to driver output before 
+there is an associated struct device initialised?
 
-greg k-h
+I took a look at the code with sparse, there were no reported problems. 
+  However, am I right in thinking that sparse is x86-centric?  I was 
+running the compilation on an Alpha system.  With more than a little 
+irony considering the political harangue against gcc in the sparse 
+documentation, it didn't compile on my RH8 x86 system: gcc gave an 
+internal compiler error...
+
+The attached patch is for code cleanup and is a direct replacement for 
+patch 2.
+
+Regards,
+Stig Telfer
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: elektor-alpha-3.patch
+Type: application/octet-stream
+Size: 5054 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051006/196ffd32/elektor-alpha-3.obj
