@@ -1,145 +1,67 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 08 Oct 2005 00:10:31 +0000
-Subject: [lm-sensors] [PATCH 09/16] hwmon: Drop legacy ISA address support
-Message-Id: <20051008001000.101d39e7.khali@linux-fr.org>
+Date: Fri, 07 Oct 2005 23:09:38 +0000
+Subject: [lm-sensors] [PATCH 03/16] i2c: Drop useless CVS revision IDs
+Message-Id: <20051007230904.1a956707.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Drop legacy ISA address support from the it87 driver. All supported
-chips are Super-I/O chips, so the device ISA address can be safely read
-from Super-I/O space rather than blindly assumed.
-
-Two nearby inaccurate documentation statements have been fixed as well:
-* The IT8705F doesn't have an SMBus interface.
-* The SiS950 doesn't have a distinct prefix.
+CVS revision IDs are totally useless and irrelevant by now.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- Documentation/hwmon/it87 |    8 +++---
- drivers/hwmon/it87.c     |   51 ++++++++++------------------------------------
- 2 files changed, 15 insertions(+), 44 deletions(-)
+ include/linux/i2c-algo-bit.h |    2 --
+ include/linux/i2c-algo-pcf.h |    2 --
+ include/linux/i2c-dev.h      |    2 --
+ include/linux/i2c.h          |    2 --
+ 4 files changed, 8 deletions(-)
 
---- linux-2.6.14-rc3.orig/drivers/hwmon/it87.c	2005-10-07 20:08:16.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/hwmon/it87.c	2005-10-07 21:22:31.000000000 +0200
-@@ -2,7 +2,7 @@
-     it87.c - Part of lm_sensors, Linux kernel modules for hardware
-              monitoring.
+--- linux-2.6.14-rc2.orig/include/linux/i2c-algo-bit.h	2005-09-30 20:45:18.000000000 +0200
++++ linux-2.6.14-rc2/include/linux/i2c-algo-bit.h	2005-09-30 20:48:44.000000000 +0200
+@@ -21,8 +21,6 @@
+ /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
+    Frodo Looijaard <frodol@dds.nl> */
  
--    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
-+    Supports: IT8705F  Super I/O chip w/LPC interface
-               IT8712F  Super I/O chip w/LPC interface & SMBus
-               Sis950   A clone of the IT8705F
- 
-@@ -47,7 +47,7 @@
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
- 					0x2e, 0x2f, I2C_CLIENT_END };
--static unsigned short isa_address = 0x290;
-+static unsigned short isa_address;
- 
- /* Insmod parameters */
- I2C_CLIENT_INSMOD_2(it87, it8712);
-@@ -706,7 +706,7 @@
- }
- 
- /* SuperIO detection - will change isa_address if a chip is found */
--static int __init it87_find(int *address)
-+static int __init it87_find(unsigned short *address)
- {
- 	int err = -ENODEV;
- 
-@@ -757,34 +757,7 @@
- 		if (!request_region(address, IT87_EXTENT, it87_isa_driver.name))
- 			goto ERROR0;
- 
--	/* Probe whether there is anything available on this address. Already
--	   done for SMBus and Super-I/O clients */
--	if (kind < 0) {
--		if (is_isa && !chip_type) {
--#define REALLY_SLOW_IO
--			/* We need the timeouts for at least some IT87-like chips. But only
--			   if we read 'undefined' registers. */
--			i = inb_p(address + 1);
--			if (inb_p(address + 2) != i
--			 || inb_p(address + 3) != i
--			 || inb_p(address + 7) != i) {
--		 		err = -ENODEV;
--				goto ERROR1;
--			}
--#undef REALLY_SLOW_IO
+-/* $Id: i2c-algo-bit.h,v 1.10 2003/01/21 08:08:16 kmalkki Exp $ */
 -
--			/* Let's just hope nothing breaks here */
--			i = inb_p(address + 5) & 0x7f;
--			outb_p(~i & 0x7f, address + 5);
--			if ((inb_p(address + 5) & 0x7f) != (~i & 0x7f)) {
--				outb_p(i, address + 5);
--				err = -ENODEV;
--				goto ERROR1;
--			}
--		}
--	}
+ #ifndef _LINUX_I2C_ALGO_BIT_H
+ #define _LINUX_I2C_ALGO_BIT_H
+ 
+--- linux-2.6.14-rc2.orig/include/linux/i2c-algo-pcf.h	2005-09-30 20:45:18.000000000 +0200
++++ linux-2.6.14-rc2/include/linux/i2c-algo-pcf.h	2005-09-30 20:48:44.000000000 +0200
+@@ -22,8 +22,6 @@
+ /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
+    Frodo Looijaard <frodol@dds.nl> */
+ 
+-/* $Id: i2c-algo-pcf.h,v 1.8 2003/01/21 08:08:16 kmalkki Exp $ */
 -
--	/* OK. For now, we presume we have a valid client. We now create the
-+	/* For now, we presume we have a valid client. We create the
- 	   client structure, even though we cannot fill it completely yet.
- 	   But it allows us to access it87_{read,write}_value. */
+ #ifndef _LINUX_I2C_ALGO_PCF_H
+ #define _LINUX_I2C_ALGO_PCF_H
  
-@@ -1182,20 +1155,18 @@
+--- linux-2.6.14-rc2.orig/include/linux/i2c-dev.h	2005-09-30 20:45:18.000000000 +0200
++++ linux-2.6.14-rc2/include/linux/i2c-dev.h	2005-09-30 20:48:44.000000000 +0200
+@@ -19,8 +19,6 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
  
- static int __init sm_it87_init(void)
- {
--	int addr, res;
+-/* $Id: i2c-dev.h,v 1.13 2003/01/21 08:08:16 kmalkki Exp $ */
 -
--	if (!it87_find(&addr)) {
--		isa_address = addr;
--	}
-+	int res;
+ #ifndef _LINUX_I2C_DEV_H
+ #define _LINUX_I2C_DEV_H
  
- 	res = i2c_add_driver(&it87_driver);
- 	if (res)
- 		return res;
+--- linux-2.6.14-rc2.orig/include/linux/i2c.h	2005-09-30 20:45:18.000000000 +0200
++++ linux-2.6.14-rc2/include/linux/i2c.h	2005-09-30 20:48:44.000000000 +0200
+@@ -23,8 +23,6 @@
+ /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and
+    Frodo Looijaard <frodol@dds.nl> */
  
--	res = i2c_isa_add_driver(&it87_isa_driver);
--	if (res) {
--		i2c_del_driver(&it87_driver);
--		return res;
-+	if (!it87_find(&isa_address)) {
-+		res = i2c_isa_add_driver(&it87_isa_driver);
-+		if (res) {
-+			i2c_del_driver(&it87_driver);
-+			return res;
-+		}
- 	}
+-/* $Id: i2c.h,v 1.68 2003/01/21 08:08:16 kmalkki Exp $ */
+-
+ #ifndef _LINUX_I2C_H
+ #define _LINUX_I2C_H
  
- 	return 0;
---- linux-2.6.14-rc3.orig/Documentation/hwmon/it87	2005-10-07 20:08:16.000000000 +0200
-+++ linux-2.6.14-rc3/Documentation/hwmon/it87	2005-10-07 21:22:31.000000000 +0200
-@@ -4,18 +4,18 @@
- Supported chips:
-   * IT8705F
-     Prefix: 'it87'
--    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-   * IT8712F
-     Prefix: 'it8712'
-     Addresses scanned: I2C 0x28 - 0x2f
--                       from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+                       from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-   * SiS950   [clone of IT8705F]
--    Prefix: 'sis950'
--    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+    Prefix: 'it87'
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: No longer be available
- 
- Author: Christophe Gauthron <chrisg@0-in.com>
 
 -- 
 Jean Delvare
