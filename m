@@ -1,48 +1,149 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:03:02 +0000
-Subject: [lm-sensors] [PATCH] i2c-viapro: New maintainer
-Message-Id: <11305336582278@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 07 Oct 2005 23:11:22 +0000
+Subject: [lm-sensors] [PATCH 04/16] hwmon: Fix w83627ehf/hf vs PNPACPI
+Message-Id: <20051007231103.71e6b2d6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c-viapro: New maintainer
+From: Petr Vandrovec <vandrove@vc.cvut.cz>
 
-I am taking over the maintenance of the i2c-viapro SMBus driver.
+This patch changes w83627hf and w83627ehf drivers to reserve only ports
+0x295-0x296, instead of full 0x290-0x297 range.  While some other sensors
+chips respond to all addresses in 0x290-0x297 range, Winbond chips respond
+to 0x295-0x296 only (this behavior is implied by documentation, and matches
+behavior observed on real systems).  This is not problem alone, as no
+BIOS was found to put something at these unused addresses, and sensors
+chip itself provides nothing there as well.
 
+But in addition to only respond to these two addresses, also BIOS vendors 
+report in their ACPI-PnP structures that there is some resource at I/O 
+address 0x295 of length 2.  And when later this hwmon driver attempts to
+request region with base 0x290/length 8, it fails as one request_region
+cannot span more than one device.
+
+Due to this we have to ask only for region this hardware really occupies,
+otherwise driver cannot be loaded on systems with ACPI-PnP enabled.
+
+Signed-off-by: Petr Vandrovec <vandrove@vc.cvut.cz>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/hwmon/w83627ehf.c |   13 ++++++++-----
+ drivers/hwmon/w83627hf.c  |   21 +++++++++++++--------
+ 2 files changed, 21 insertions(+), 13 deletions(-)
 
----
-commit 32c0a520f506c046f241de2a3a9b02a395ef76d2
-tree 4af8da918c808be2d0dc444cf96df0a829c5ccf6
-parent 5c50d1885981537ff3b8df6433951de6c9cb72cb
-author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 21:47:58 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
-
- MAINTAINERS |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 248b93b..3928dc7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2736,6 +2736,12 @@ P:	Roger Luethi
- M:	rl@hellgate.ch
- S:	Maintained
+--- linux-2.6.14-rc3.orig/drivers/hwmon/w83627ehf.c	2005-10-07 20:08:16.000000000 +0200
++++ linux-2.6.14-rc3/drivers/hwmon/w83627ehf.c	2005-10-07 20:42:22.000000000 +0200
+@@ -105,7 +105,9 @@
+  * ISA constants
+  */
  
-+VIAPRO SMBUS DRIVER
-+P:	Jean Delvare
-+M:	khali@linux-fr.org
-+L:	lm-sensors@lm-sensors.org
-+S:	Maintained
+-#define REGION_LENGTH		8
++#define REGION_ALIGNMENT	~7
++#define REGION_OFFSET		5
++#define REGION_LENGTH		2
+ #define ADDR_REG_OFFSET		5
+ #define DATA_REG_OFFSET		6
+ 
+@@ -673,7 +675,8 @@
+ 	struct w83627ehf_data *data;
+ 	int i, err = 0;
+ 
+-	if (!request_region(address, REGION_LENGTH, w83627ehf_driver.name)) {
++	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
++	                    w83627ehf_driver.name)) {
+ 		err = -EBUSY;
+ 		goto exit;
+ 	}
+@@ -762,7 +765,7 @@
+ exit_free:
+ 	kfree(data);
+ exit_release:
+-	release_region(address, REGION_LENGTH);
++	release_region(address + REGION_OFFSET, REGION_LENGTH);
+ exit:
+ 	return err;
+ }
+@@ -776,7 +779,7 @@
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	release_region(client->addr, REGION_LENGTH);
++	release_region(client->addr + REGION_OFFSET, REGION_LENGTH);
+ 	kfree(data);
+ 
+ 	return 0;
+@@ -807,7 +810,7 @@
+ 	superio_select(W83627EHF_LD_HWM);
+ 	val = (superio_inb(SIO_REG_ADDR) << 8)
+ 	    | superio_inb(SIO_REG_ADDR + 1);
+-	*addr = val & ~(REGION_LENGTH - 1);
++	*addr = val & REGION_ALIGNMENT;
+ 	if (*addr = 0) {
+ 		superio_exit();
+ 		return -ENODEV;
+--- linux-2.6.14-rc3.orig/drivers/hwmon/w83627hf.c	2005-10-07 20:08:16.000000000 +0200
++++ linux-2.6.14-rc3/drivers/hwmon/w83627hf.c	2005-10-07 20:42:22.000000000 +0200
+@@ -142,10 +142,14 @@
+ #define WINB_BASE_REG 0x60
+ /* Constants specified below */
+ 
+-/* Length of ISA address segment */
+-#define WINB_EXTENT 8
++/* Alignment of the base address */
++#define WINB_ALIGNMENT		~7
+ 
+-/* Where are the ISA address/data registers relative to the base address */
++/* Offset & size of I/O region we are interested in */
++#define WINB_REGION_OFFSET	5
++#define WINB_REGION_SIZE	2
 +
- UCLINUX (AND M68KNOMMU)
- P:	Greg Ungerer
- M:	gerg@uclinux.org
++/* Where are the sensors address/data registers relative to the base address */
+ #define W83781D_ADDR_REG_OFFSET 5
+ #define W83781D_DATA_REG_OFFSET 6
+ 
+@@ -981,7 +985,7 @@
+ 	superio_select(W83627HF_LD_HWM);
+ 	val = (superio_inb(WINB_BASE_REG) << 8) |
+ 	       superio_inb(WINB_BASE_REG + 1);
+-	*addr = val & ~(WINB_EXTENT - 1);
++	*addr = val & WINB_ALIGNMENT;
+ 	if (*addr = 0 && force_addr = 0) {
+ 		superio_exit();
+ 		return -ENODEV;
+@@ -1000,9 +1004,10 @@
+ 	const char *client_name = "";
+ 
+ 	if(force_addr)
+-		address = force_addr & ~(WINB_EXTENT - 1);
++		address = force_addr & WINB_ALIGNMENT;
+ 
+-	if (!request_region(address, WINB_EXTENT, w83627hf_driver.name)) {
++	if (!request_region(address + WINB_REGION_OFFSET, WINB_REGION_SIZE,
++	                    w83627hf_driver.name)) {
+ 		err = -EBUSY;
+ 		goto ERROR0;
+ 	}
+@@ -1148,7 +1153,7 @@
+       ERROR2:
+ 	kfree(data);
+       ERROR1:
+-	release_region(address, WINB_EXTENT);
++	release_region(address + WINB_REGION_OFFSET, WINB_REGION_SIZE);
+       ERROR0:
+ 	return err;
+ }
+@@ -1163,7 +1168,7 @@
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+ 
+-	release_region(client->addr, WINB_EXTENT);
++	release_region(client->addr + WINB_REGION_OFFSET, WINB_REGION_SIZE);
+ 	kfree(data);
+ 
+ 	return 0;
 
+-- 
+Jean Delvare
