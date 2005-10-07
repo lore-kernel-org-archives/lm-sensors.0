@@ -1,65 +1,39 @@
-From: laurent.riffard@free.fr (Laurent Riffard)
-Date: Sat, 01 Oct 2005 23:07:18 +0000
-Subject: [lm-sensors] Re: [PATCH 2.6-mm 5/5] i2c: make i2c-isa drivers
-Message-Id: <433EFA3F.3070500@free.fr>
+From: tonu@jes.ee (Tonu Samuel)
+Date: Fri, 07 Oct 2005 23:15:49 +0000
+Subject: [lm-sensors] PCA9539 patch to support PCA9538  - please comment
+Message-Id: <200510080015.10318.tonu@jes.ee>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <433D50FC.30907@free.fr>
-In-Reply-To: <433D50FC.30907@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi!
 
-Le 01.10.2005 21:49, Jean Delvare a ?crit :
-> Hi Laurent,
-> 
->>In function i2c_isa_add_driver, copied driver should inherit the owner field
->>as well as the name field.
->>
->>
->>Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
->>---
->>
-[snip]
-> 
-> This one doesn't apply, because of tabs/spaces conversions it seems.
-> Please resend in a suitable form.
-> 
-> BTW, I appreciate diffstat output in the patch headers, it helps
-> figuring out at a glance which files a patch affects and how.
-> 
-> Thanks,
+Did some work on adding PCA9538 support. This is again some 8-bit IO chip 
+which is nearly identical to PCA9539 whose support already exists in kernel. 
+I had just to modify slightly some stuff. I am going through it and will test 
+it with hardware tomorrow but I need your comments! Not sure if my coding 
+style etc fits your rules. So, please tell something. Patch is:
 
-Oops ! Sorry about that... here is an updated version:
-
----
-In function i2c_isa_add_driver, copied driver should inherit the owner field
-as well as the name field.
-
-Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
----
-
- i2c-isa.c |    1 +
- 1 files changed, 1 insertion(+)
-
-Index: linux-2.6-mm/drivers/i2c/busses/i2c-isa.c
-=================================--- linux-2.6-mm.orig/drivers/i2c/busses/i2c-isa.c	2005-09-09 23:39:50.000000000 +0200
-+++ linux-2.6-mm/drivers/i2c/busses/i2c-isa.c	2005-09-10 10:55:14.425721250 +0200
-@@ -92,6 +92,7 @@
- 
- 	/* Add the driver to the list of i2c drivers in the driver core */
- 	driver->driver.name = driver->name;
-+	driver->driver.owner = driver->owner;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_isa_device_probe;
- 	driver->driver.remove = i2c_isa_device_remove;
+http://www.jes.ee/~tonu/pca9539.patch
 
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: signature.asc
-Type: application/pgp-signature
-Size: 252 bytes
-Desc: OpenPGP digital signature
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051001/55d9e139/signature.bin
+Some example output:
+
+test:/usr/src/se95 # modprobe pca9539
+test:/usr/src/se95 # !ca
+cat /sys/bus/i2c/devices/0-0073/name
+pca9538
+test:/usr/src/se95 # cat /sys/bus/i2c/devices/0-0073/
+bus/        direction0  driver/     input0      invert0     name        
+output0     power/
+test:/usr/src/se95 # cat /sys/bus/i2c/devices/0-0077/
+bus/        direction1  input0      invert0     name        output1
+direction0  driver/     input1      invert1     output0     power/
+test:/usr/src/se95 # cat /sys/bus/i2c/devices/0-0077/name
+pca9539
+test:/usr/src/se95 #         
+
+
+  Tonu
