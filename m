@@ -1,67 +1,47 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 07 Oct 2005 23:09:38 +0000
-Subject: [lm-sensors] [PATCH 03/16] i2c: Drop useless CVS revision IDs
-Message-Id: <20051007230904.1a956707.khali@linux-fr.org>
+Date: Sat, 08 Oct 2005 00:12:20 +0000
+Subject: [lm-sensors] [PATCH 10/16] hwmon: Drop useless w83627hf
+Message-Id: <20051008001201.33cb9a33.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-CVS revision IDs are totally useless and irrelevant by now.
+Drop a useless initialization step in the w83627hf driver. The comment
+says that the W83627HF PWM2 can be disabled, but it can't. I suppose
+this is a leftover from the w83781d driver (from which the w83627hf
+driver is derived), as for example the W83782D had the ability to
+disable PWM2.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- include/linux/i2c-algo-bit.h |    2 --
- include/linux/i2c-algo-pcf.h |    2 --
- include/linux/i2c-dev.h      |    2 --
- include/linux/i2c.h          |    2 --
- 4 files changed, 8 deletions(-)
+ drivers/hwmon/w83627hf.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- linux-2.6.14-rc2.orig/include/linux/i2c-algo-bit.h	2005-09-30 20:45:18.000000000 +0200
-+++ linux-2.6.14-rc2/include/linux/i2c-algo-bit.h	2005-09-30 20:48:44.000000000 +0200
-@@ -21,8 +21,6 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
-    Frodo Looijaard <frodol@dds.nl> */
+--- linux-2.6.14-rc3.orig/drivers/hwmon/w83627hf.c	2005-10-07 20:42:22.000000000 +0200
++++ linux-2.6.14-rc3/drivers/hwmon/w83627hf.c	2005-10-07 21:30:53.000000000 +0200
+@@ -201,7 +201,6 @@
  
--/* $Id: i2c-algo-bit.h,v 1.10 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_ALGO_BIT_H
- #define _LINUX_I2C_ALGO_BIT_H
+ #define W83627HF_REG_PWM1 0x5A
+ #define W83627HF_REG_PWM2 0x5B
+-#define W83627HF_REG_PWMCLK12 0x5C
  
---- linux-2.6.14-rc2.orig/include/linux/i2c-algo-pcf.h	2005-09-30 20:45:18.000000000 +0200
-+++ linux-2.6.14-rc2/include/linux/i2c-algo-pcf.h	2005-09-30 20:48:44.000000000 +0200
-@@ -22,8 +22,6 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
-    Frodo Looijaard <frodol@dds.nl> */
+ #define W83627THF_REG_PWM1		0x01	/* 697HF and 637HF too */
+ #define W83627THF_REG_PWM2		0x03	/* 697HF and 637HF too */
+@@ -1373,12 +1372,6 @@
+ 			}
+ 		}
  
--/* $Id: i2c-algo-pcf.h,v 1.8 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_ALGO_PCF_H
- #define _LINUX_I2C_ALGO_PCF_H
- 
---- linux-2.6.14-rc2.orig/include/linux/i2c-dev.h	2005-09-30 20:45:18.000000000 +0200
-+++ linux-2.6.14-rc2/include/linux/i2c-dev.h	2005-09-30 20:48:44.000000000 +0200
-@@ -19,8 +19,6 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
- 
--/* $Id: i2c-dev.h,v 1.13 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_DEV_H
- #define _LINUX_I2C_DEV_H
- 
---- linux-2.6.14-rc2.orig/include/linux/i2c.h	2005-09-30 20:45:18.000000000 +0200
-+++ linux-2.6.14-rc2/include/linux/i2c.h	2005-09-30 20:48:44.000000000 +0200
-@@ -23,8 +23,6 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and
-    Frodo Looijaard <frodol@dds.nl> */
- 
--/* $Id: i2c.h,v 1.68 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_H
- #define _LINUX_I2C_H
- 
+-		if (type = w83627hf) {
+-			/* enable PWM2 control (can't hurt since PWM reg
+-		           should have been reset to 0xff) */
+-			w83627hf_write_value(client, W83627HF_REG_PWMCLK12,
+-					    0x19);
+-		}
+ 		/* enable comparator mode for temp2 and temp3 so
+ 	           alarm indication will work correctly */
+ 		i = w83627hf_read_value(client, W83781D_REG_IRQ);
 
 -- 
 Jean Delvare
