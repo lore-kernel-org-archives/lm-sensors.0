@@ -1,78 +1,172 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:24:54 +0000
-Subject: [lm-sensors] [PATCH] i2c: Documentation fixes
-Message-Id: <1130533660431@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 08 Oct 2005 00:22:23 +0000
+Subject: [lm-sensors] [PATCH 15/16] i2c: Fix i2c-elektor on Alpha
+Message-Id: <20051008002148.74087360.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Documentation fixes
+From: Stig Telfer <stig@lizardlogic.co.uk>
 
-i2c documentation fixes.
+This patch updates the i2c-elektor driver, enabling it to compile
+cleanly, load and run.  The key change is that it uses the new
+__iomem/iowrite8/ioread8 functions to abstract the direct or
+memory-mapped variants of register access.  Also, the original driver
+would crash on module load on the Alpha because the PCI memory region
+was not remapped into kernel memory.
 
-From Hideki Iwamoto:
-* i2c_smbus_read_i2c_block_data is not deleted in 2.6.10. It still
-  exists.
-* The name which can be set to i2c_driver is up to 31 characters.
+I have managed the following testing: 
 
-From Jean Delvare:
-* Reword the paragraph about i2c_driver.name, to reflect the "new"
-  naming policy.
-* Delete the out-of-date note about now gone inc_use and dec_use
-  fields.
+* compiled and tested it on my Alpha UP2000+ system.
+* compiles cleanly for x86 but I don't have the hardware to test.
 
+Signed-off-by: Stig Telfer <stig@lizardlogic.co.uk>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
-commit 7865e24935ec7e76fb482c749015a23052e51f76
-tree 9a5fc835415cccc57ec2b7bf86365d4d6ac3f2ba
-parent 47b8b103f7f50d56568eb8d6cff0e3a2373f0eb3
-author Jean Delvare <khali@linux-fr.org> Sat, 08 Oct 2005 00:00:31 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:09 -0700
+ drivers/i2c/busses/i2c-elektor.c |   74 +++++++++++++++++++++++++-------------
+ 1 file changed, 49 insertions(+), 25 deletions(-)
 
- Documentation/i2c/writing-clients |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
-index 0772757..1882811 100644
---- a/Documentation/i2c/writing-clients
-+++ b/Documentation/i2c/writing-clients
-@@ -33,8 +33,8 @@ static struct i2c_driver foo_driver = {
- 	.command	= &foo_command /* may be NULL */
- }
-  
--The name can be chosen freely, and may be upto 40 characters long. Please
--use something descriptive here.
-+The name field must match the driver name, including the case. It must not
-+contain spaces, and may be up to 31 characters long.
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-elektor.c	2005-10-05 21:55:34.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-elektor.c	2005-10-06 22:18:20.000000000 +0200
+@@ -46,6 +46,8 @@
+ #define DEFAULT_BASE 0x330
  
- Don't worry about the flags field; just put I2C_DF_NOTIFY into it. This
- means that your driver will be notified when new adapters are found.
-@@ -43,9 +43,6 @@ This is almost always what you want.
- All other fields are for call-back functions which will be explained 
- below.
+ static int base;
++static u8 __iomem *base_iomem;
++
+ static int irq;
+ static int clock  = 0x1c;
+ static int own    = 0x55;
+@@ -64,36 +66,27 @@
  
--There use to be two additional fields in this structure, inc_use et dec_use,
--for module usage count, but these fields were obsoleted and removed.
+ static void pcf_isa_setbyte(void *data, int ctl, int val)
+ {
+-	int address = ctl ? (base + 1) : base;
++	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
+ 
+ 	/* enable irq if any specified for serial operation */
+ 	if (ctl && irq && (val & I2C_PCF_ESO)) {
+ 		val |= I2C_PCF_ENI;
+ 	}
+ 
+-	pr_debug("i2c-elektor: Write 0x%X 0x%02X\n", address, val & 255);
 -
+-	switch (mmapped) {
+-	case 0: /* regular I/O */
+-		outb(val, address);
+-		break;
+-	case 2: /* double mapped I/O needed for UP2000 board,
+-                   I don't know why this... */
+-		writeb(val, (void *)address);
+-		/* fall */
+-	case 1: /* memory mapped I/O */
+-		writeb(val, (void *)address);
+-		break;
+-	}
++	pr_debug("i2c-elektor: Write %p 0x%02X\n", address, val);
++	iowrite8(val, address);
++#ifdef __alpha__
++	/* API UP2000 needs some hardware fudging to make the write stick */
++	iowrite8(val, address);
++#endif
+ }
  
- Extra client data
- ========@@ -576,12 +573,12 @@ SMBus communication
-   extern s32 i2c_smbus_write_block_data(struct i2c_client * client,
-                                         u8 command, u8 length,
-                                         u8 *values);
-+  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
-+                                           u8 command, u8 *values);
+ static int pcf_isa_getbyte(void *data, int ctl)
+ {
+-	int address = ctl ? (base + 1) : base;
+-	int val = mmapped ? readb((void *)address) : inb(address);
+-
+-	pr_debug("i2c-elektor: Read 0x%X 0x%02X\n", address, val);
++	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
++	int val = ioread8(address);
  
- These ones were removed in Linux 2.6.10 because they had no users, but could
- be added back later if needed:
++	pr_debug("i2c-elektor: Read %p 0x%02X\n", address, val);
+ 	return (val);
+ }
  
--  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
--                                           u8 command, u8 *values);
-   extern s32 i2c_smbus_read_block_data(struct i2c_client * client,
-                                        u8 command, u8 *values);
-   extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
+@@ -155,7 +148,30 @@
+ 			       "is in use.\n", base);
+ 			return -ENODEV;
+ 		}
++		base_iomem = ioport_map(base, 2);
++		if (!base_iomem) {
++			printk(KERN_ERR "i2c-elektor: remap of I/O region "
++			       "%#x failed\n", base);
++			release_region(base, 2);
++			return -ENODEV;
++		}
++	} else {
++		if (!request_mem_region(base, 2, "i2c-elektor")) {
++			printk(KERN_ERR "i2c-elektor: requested memory region "
++			       "(%#x:2) is in use\n", base);
++			return -ENODEV;
++		}
++		base_iomem = ioremap(base, 2);
++		if (base_iomem = NULL) {
++			printk(KERN_ERR "i2c-elektor: remap of memory region "
++			       "%#x failed\n", base);
++			release_mem_region(base, 2);
++			return -ENODEV;
++		}
+ 	}
++	pr_debug("i2c-elektor: registers %#x remapped to %p\n", base,
++		 base_iomem);
++
+ 	if (irq > 0) {
+ 		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
+ 			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
+@@ -200,7 +216,7 @@
+ 		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ, 
+ 					   PCI_DEVICE_ID_CONTAQ_82C693, NULL);
+ 		if (cy693_dev) {
+-			char config;
++			unsigned char config;
+ 			/* yeap, we've found cypress, let's check config */
+ 			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
+ 				
+@@ -219,9 +235,7 @@
+ 				if ((config & 0x7f) = 0x61) {
+ 					/* seems to be UP2000 like board */
+ 					base = 0xe0000;
+-                                        /* I don't know why we need to
+-                                           write twice */
+-					mmapped = 2;
++					mmapped = 1;
+                                         /* UP2000 drives ISA with
+ 					   8.25 MHz (PCI/4) clock
+ 					   (this can be read from cypress) */
+@@ -262,8 +276,13 @@
+ 		free_irq(irq, NULL);
+ 	}
+ 
+-	if (!mmapped)
++	if (!mmapped) {
++		ioport_unmap(base_iomem);
+ 		release_region(base , 2);
++	} else {
++		iounmap(base_iomem);
++		release_mem_region(base, 2);
++	}
+ 	return -ENODEV;
+ }
+ 
+@@ -276,8 +295,13 @@
+ 		free_irq(irq, NULL);
+ 	}
+ 
+-	if (!mmapped)
++	if (!mmapped) {
++		ioport_unmap(base_iomem);
+ 		release_region(base , 2);
++	} else {
++		iounmap(base_iomem);
++		release_mem_region(base, 2);
++	}
+ }
+ 
+ MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
 
+-- 
+Jean Delvare
