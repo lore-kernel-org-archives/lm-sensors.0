@@ -1,95 +1,145 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:05:39 +0000
-Subject: [lm-sensors] [PATCH] hwmon: New device ID for the smsc47b397 driver
-Message-Id: <1130533662436@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 08 Oct 2005 00:10:31 +0000
+Subject: [lm-sensors] [PATCH 09/16] hwmon: Drop legacy ISA address support
+Message-Id: <20051008001000.101d39e7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: New device ID for the smsc47b397 driver
+Drop legacy ISA address support from the it87 driver. All supported
+chips are Super-I/O chips, so the device ISA address can be safely read
+from Super-I/O space rather than blindly assumed.
 
-This patch adds a new ID to the SMSC LPC47B397-NC hardware
-monitoring driver - for a chip that is claimed to be 100%
-compatible otherwise.
+Two nearby inaccurate documentation statements have been fixed as well:
+* The IT8705F doesn't have an SMBus interface.
+* The SiS950 doesn't have a distinct prefix.
 
-Signed-off-by: Bryan Young (Utilitek Systems, Inc.)
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
----
-commit 7ab83a9137ccd3e092fb6ad0cb105b4d1fb617ae
-tree e76341e6617eac19514ce2e41768514f7c9acedb
-parent 1747ef1b8c9b7b9c6a9aae3543a9b99acabb7e10
-author Mark M. Hoffman <mhoffman@lightlink.com> Mon, 17 Oct 2005 23:01:45 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:11 -0700
+ Documentation/hwmon/it87 |    8 +++---
+ drivers/hwmon/it87.c     |   51 ++++++++++------------------------------------
+ 2 files changed, 15 insertions(+), 44 deletions(-)
 
- Documentation/hwmon/smsc47b397 |    8 ++++++--
- drivers/hwmon/smsc47b397.c     |    7 ++++---
- 2 files changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/Documentation/hwmon/smsc47b397 b/Documentation/hwmon/smsc47b397
-index da9d80c..20682f1 100644
---- a/Documentation/hwmon/smsc47b397
-+++ b/Documentation/hwmon/smsc47b397
-@@ -3,6 +3,7 @@ Kernel driver smsc47b397
+--- linux-2.6.14-rc3.orig/drivers/hwmon/it87.c	2005-10-07 20:08:16.000000000 +0200
++++ linux-2.6.14-rc3/drivers/hwmon/it87.c	2005-10-07 21:22:31.000000000 +0200
+@@ -2,7 +2,7 @@
+     it87.c - Part of lm_sensors, Linux kernel modules for hardware
+              monitoring.
  
- Supported chips:
-   * SMSC LPC47B397-NC
-+  * SMSC SCH5307-NS
-     Prefix: 'smsc47b397'
-     Addresses scanned: none, address read from Super I/O config space
-     Datasheet: In this file
-@@ -12,11 +13,14 @@ Authors: Mark M. Hoffman <mhoffman@light
+-    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
++    Supports: IT8705F  Super I/O chip w/LPC interface
+               IT8712F  Super I/O chip w/LPC interface & SMBus
+               Sis950   A clone of the IT8705F
  
- November 23, 2004
+@@ -47,7 +47,7 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+ 					0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned short isa_address = 0x290;
++static unsigned short isa_address;
  
--The following specification describes the SMSC LPC47B397-NC sensor chip
-+The following specification describes the SMSC LPC47B397-NC[1] sensor chip
- (for which there is no public datasheet available). This document was
- provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
- by Mark M. Hoffman <mhoffman@lightlink.com>.
+ /* Insmod parameters */
+ I2C_CLIENT_INSMOD_2(it87, it8712);
+@@ -706,7 +706,7 @@
+ }
  
-+[1] And SMSC SCH5307-NS, which has a different device ID but is otherwise
-+compatible.
-+
- * * * * *
+ /* SuperIO detection - will change isa_address if a chip is found */
+-static int __init it87_find(int *address)
++static int __init it87_find(unsigned short *address)
+ {
+ 	int err = -ENODEV;
  
- Methods for detecting the HP SIO and reading the thermal data on a dc7100.
-@@ -127,7 +131,7 @@ OUT	DX,AL
- The registers of interest for identifying the SIO on the dc7100 are Device ID
- (0x20) and Device Rev  (0x21).
+@@ -757,34 +757,7 @@
+ 		if (!request_region(address, IT87_EXTENT, it87_isa_driver.name))
+ 			goto ERROR0;
  
--The Device ID will read 0X6F
-+The Device ID will read 0x6F (for SCH5307-NS, 0x81)
- The Device Rev currently reads 0x01
+-	/* Probe whether there is anything available on this address. Already
+-	   done for SMBus and Super-I/O clients */
+-	if (kind < 0) {
+-		if (is_isa && !chip_type) {
+-#define REALLY_SLOW_IO
+-			/* We need the timeouts for at least some IT87-like chips. But only
+-			   if we read 'undefined' registers. */
+-			i = inb_p(address + 1);
+-			if (inb_p(address + 2) != i
+-			 || inb_p(address + 3) != i
+-			 || inb_p(address + 7) != i) {
+-		 		err = -ENODEV;
+-				goto ERROR1;
+-			}
+-#undef REALLY_SLOW_IO
+-
+-			/* Let's just hope nothing breaks here */
+-			i = inb_p(address + 5) & 0x7f;
+-			outb_p(~i & 0x7f, address + 5);
+-			if ((inb_p(address + 5) & 0x7f) != (~i & 0x7f)) {
+-				outb_p(i, address + 5);
+-				err = -ENODEV;
+-				goto ERROR1;
+-			}
+-		}
+-	}
+-
+-	/* OK. For now, we presume we have a valid client. We now create the
++	/* For now, we presume we have a valid client. We create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access it87_{read,write}_value. */
  
- Obtaining the HWM Base Address.
-diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
-index 7fe7157..37ed8b3 100644
---- a/drivers/hwmon/smsc47b397.c
-+++ b/drivers/hwmon/smsc47b397.c
-@@ -299,7 +299,7 @@ static int __init smsc47b397_find(unsign
- 	superio_enter();
- 	id = superio_inb(SUPERIO_REG_DEVID);
+@@ -1182,20 +1155,18 @@
  
--	if (id != 0x6f) {
-+	if ((id != 0x6f) && (id != 0x81)) {
- 		superio_exit();
- 		return -ENODEV;
+ static int __init sm_it87_init(void)
+ {
+-	int addr, res;
+-
+-	if (!it87_find(&addr)) {
+-		isa_address = addr;
+-	}
++	int res;
+ 
+ 	res = i2c_add_driver(&it87_driver);
+ 	if (res)
+ 		return res;
+ 
+-	res = i2c_isa_add_driver(&it87_isa_driver);
+-	if (res) {
+-		i2c_del_driver(&it87_driver);
+-		return res;
++	if (!it87_find(&isa_address)) {
++		res = i2c_isa_add_driver(&it87_isa_driver);
++		if (res) {
++			i2c_del_driver(&it87_driver);
++			return res;
++		}
  	}
-@@ -310,8 +310,9 @@ static int __init smsc47b397_find(unsign
- 	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
- 		 |  superio_inb(SUPERIO_REG_BASE_LSB);
  
--	printk(KERN_INFO "smsc47b397: found SMSC LPC47B397-NC "
--		"(base address 0x%04x, revision %u)\n", *addr, rev);
-+	printk(KERN_INFO "smsc47b397: found SMSC %s "
-+		"(base address 0x%04x, revision %u)\n",
-+		id = 0x81 ? "SCH5307-NS" : "LPC47B397-NC", *addr, rev);
- 
- 	superio_exit();
  	return 0;
+--- linux-2.6.14-rc3.orig/Documentation/hwmon/it87	2005-10-07 20:08:16.000000000 +0200
++++ linux-2.6.14-rc3/Documentation/hwmon/it87	2005-10-07 21:22:31.000000000 +0200
+@@ -4,18 +4,18 @@
+ Supported chips:
+   * IT8705F
+     Prefix: 'it87'
+-    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
++    Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/
+   * IT8712F
+     Prefix: 'it8712'
+     Addresses scanned: I2C 0x28 - 0x2f
+-                       from Super I/O config space, or default ISA 0x290 (8 I/O ports)
++                       from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/
+   * SiS950   [clone of IT8705F]
+-    Prefix: 'sis950'
+-    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
++    Prefix: 'it87'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: No longer be available
+ 
+ Author: Christophe Gauthron <chrisg@0-in.com>
 
+-- 
+Jean Delvare
