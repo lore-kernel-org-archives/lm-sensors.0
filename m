@@ -1,155 +1,240 @@
-From: laurent.riffard@free.fr (Laurent riffard)
-Date: Mon, 24 Oct 2005 23:31:16 +0000
-Subject: [lm-sensors] [patch 1/9] I2C: remove i2c_driver's .owner and .name
-Message-Id: <20051024212540.426764000@antares.localdomain>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 08 Oct 2005 00:23:54 +0000
+Subject: [lm-sensors] [PATCH 16/16] i2c: Big i2c-elektor cleanup
+Message-Id: <20051008002327.7f886b32.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We should use the i2c_driver.driver's .name and .owner fields
-instead of the i2c_drivers's ones.
+From: Stig Telfer <stig@lizardlogic.co.uk>
 
-This patch updates the core of the i2c drivers: it removes .name and
-.owner fields from the struct i2c_device and modify various
-functions to use struct device fields instead.
+Cleanups to the i2c-elektor driver:
 
-Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
---
+* Set the i2c_adapter name field to "i2c-elektor" and use this string
+  in all resource requests and printks.
+* Change space-padding for tab indentation, kill trailing white space,
+  remove space before comma.
+* Use dev_info, pr_info and pr_debug instead of printk.
+* Lines chopped to 80 columns.
 
- drivers/i2c/busses/i2c-isa.c |    4 +---
- drivers/i2c/i2c-core.c       |   18 +++++++++---------
- drivers/i2c/i2c-dev.c        |    6 ++++--
- include/linux/i2c.h          |    5 +++--
- 4 files changed, 17 insertions(+), 16 deletions(-)
+Signed-off-by: Stig Telfer <stig@lizardlogic.co.uk>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-Index: linux-2.6-mm/drivers/i2c/i2c-core.c
-=================================--- linux-2.6-mm.orig/drivers/i2c/i2c-core.c
-+++ linux-2.6-mm/drivers/i2c/i2c-core.c
-@@ -233,7 +233,8 @@
- 		if (driver->detach_adapter)
- 			if ((res = driver->detach_adapter(adap))) {
- 				dev_err(&adap->dev, "detach_adapter failed "
--					"for driver [%s]\n", driver->name);
-+					"for driver [%s]\n",
-+					driver->driver.name);
- 				goto out_unlock;
- 			}
- 	}
-@@ -293,8 +294,6 @@
- 	down(&core_lists);
+ drivers/i2c/busses/i2c-elektor.c |   84 ++++++++++++++++++++------------------
+ 1 file changed, 45 insertions(+), 39 deletions(-)
+
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-elektor.c	2005-10-07 22:11:01.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-elektor.c	2005-10-07 22:16:57.000000000 +0200
+@@ -22,7 +22,7 @@
+ /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
+    Frodo Looijaard <frodol@dds.nl> */
  
- 	/* add the driver to the list of i2c drivers in the driver core */
--	driver->driver.owner = driver->owner;
--	driver->driver.name = driver->name;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_device_probe;
- 	driver->driver.remove = i2c_device_remove;
-@@ -342,7 +341,8 @@
- 		if (driver->detach_adapter) {
- 			if ((res = driver->detach_adapter(adap))) {
- 				dev_err(&adap->dev, "detach_adapter failed "
--					"for driver [%s]\n", driver->name);
-+					"for driver [%s]\n",
-+					driver->driver.name);
- 				goto out_unlock;
- 			}
- 		} else {
-@@ -473,10 +473,10 @@
- static int i2c_inc_use_client(struct i2c_client *client)
- {
+-/* Partialy rewriten by Oleg I. Vdovikin for mmapped support of 
++/* Partialy rewriten by Oleg I. Vdovikin for mmapped support of
+    for Alpha Processor Inc. UP-2000(+) boards */
  
--	if (!try_module_get(client->driver->owner))
-+	if (!try_module_get(client->driver->driver.owner))
- 		return -ENODEV;
- 	if (!try_module_get(client->adapter->owner)) {
--		module_put(client->driver->owner);
-+		module_put(client->driver->driver.owner);
- 		return -ENODEV;
+ #include <linux/kernel.h>
+@@ -53,7 +53,7 @@
+ static int own    = 0x55;
+ static int mmapped;
+ 
+-/* vdovikin: removed static struct i2c_pcf_isa gpi; code - 
++/* vdovikin: removed static struct i2c_pcf_isa gpi; code -
+   this module in real supports only one device, due to missing arguments
+   in some functions, called from the algo-pcf module. Sometimes it's
+   need to be rewriten - but for now just remove this for simpler reading */
+@@ -62,6 +62,8 @@
+ static int pcf_pending;
+ static spinlock_t lock;
+ 
++static struct i2c_adapter pcf_isa_ops;
++
+ /* ----- local functions ----------------------------------------------	*/
+ 
+ static void pcf_isa_setbyte(void *data, int ctl, int val)
+@@ -73,7 +75,7 @@
+ 		val |= I2C_PCF_ENI;
  	}
  
-@@ -485,7 +485,7 @@
+-	pr_debug("i2c-elektor: Write %p 0x%02X\n", address, val);
++	pr_debug("%s: Write %p 0x%02X\n", pcf_isa_ops.name, address, val);
+ 	iowrite8(val, address);
+ #ifdef __alpha__
+ 	/* API UP2000 needs some hardware fudging to make the write stick */
+@@ -86,7 +88,7 @@
+ 	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
+ 	int val = ioread8(address);
  
- static void i2c_dec_use_client(struct i2c_client *client)
- {
--	module_put(client->driver->owner);
-+	module_put(client->driver->driver.owner);
- 	module_put(client->adapter->owner);
+-	pr_debug("i2c-elektor: Read %p 0x%02X\n", address, val);
++	pr_debug("%s: Read %p 0x%02X\n", pcf_isa_ops.name, address, val);
+ 	return (val);
  }
  
-@@ -537,14 +537,14 @@
- 	down(&adap->clist_lock);
- 	list_for_each(item,&adap->clients) {
- 		client = list_entry(item, struct i2c_client, list);
--		if (!try_module_get(client->driver->owner))
-+		if (!try_module_get(client->driver->driver.owner))
- 			continue;
- 		if (NULL != client->driver->command) {
- 			up(&adap->clist_lock);
- 			client->driver->command(client,cmd,arg);
- 			down(&adap->clist_lock);
+@@ -142,39 +144,40 @@
+ {
+ 	spin_lock_init(&lock);
+ 	if (!mmapped) {
+-		if (!request_region(base, 2, "i2c (isa bus adapter)")) {
+-			printk(KERN_ERR
+-			       "i2c-elektor: requested I/O region (0x%X:2) "
+-			       "is in use.\n", base);
++		if (!request_region(base, 2, pcf_isa_ops.name)) {
++			printk(KERN_ERR "%s: requested I/O region (%#x:2) is "
++			       "in use\n", pcf_isa_ops.name, base);
+ 			return -ENODEV;
  		}
--		module_put(client->driver->owner);
-+		module_put(client->driver->driver.owner);
-        }
-        up(&adap->clist_lock);
- }
-Index: linux-2.6-mm/include/linux/i2c.h
-=================================--- linux-2.6-mm.orig/include/linux/i2c.h
-+++ linux-2.6-mm/include/linux/i2c.h
-@@ -105,11 +105,12 @@
-  * A driver is capable of handling one or more physical devices present on
-  * I2C adapters. This information is used to inform the driver of adapter
-  * events.
-+ *
-+ * The driver.owner field should be set to the module owner of this driver.
-+ * The driver.name field should be set to the name of this driver.
-  */
- 
- struct i2c_driver {
--	struct module *owner;
--	char name[32];
- 	int id;
- 	unsigned int class;
- 	unsigned int flags;		/* div., see below		*/
-Index: linux-2.6-mm/drivers/i2c/busses/i2c-isa.c
-=================================--- linux-2.6-mm.orig/drivers/i2c/busses/i2c-isa.c
-+++ linux-2.6-mm/drivers/i2c/busses/i2c-isa.c
-@@ -91,8 +91,6 @@
- 	int res;
- 
- 	/* Add the driver to the list of i2c drivers in the driver core */
--	driver->driver.name = driver->name;
--	driver->driver.owner = driver->owner;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_isa_device_probe;
- 	driver->driver.remove = i2c_isa_device_remove;
-@@ -123,7 +121,7 @@
- 		if ((res = driver->detach_client(client))) {
- 			dev_err(&isa_adapter.dev, "Failed, driver "
- 				"%s not unregistered!\n",
--				driver->name);
-+				driver->driver.name);
- 			return res;
+ 		base_iomem = ioport_map(base, 2);
+ 		if (!base_iomem) {
+-			printk(KERN_ERR "i2c-elektor: remap of I/O region "
+-			       "%#x failed\n", base);
++			printk(KERN_ERR "%s: remap of I/O region %#x failed\n",
++			       pcf_isa_ops.name, base);
+ 			release_region(base, 2);
+ 			return -ENODEV;
+ 		}
+ 	} else {
+-		if (!request_mem_region(base, 2, "i2c-elektor")) {
+-			printk(KERN_ERR "i2c-elektor: requested memory region "
+-			       "(%#x:2) is in use\n", base);
++		if (!request_mem_region(base, 2, pcf_isa_ops.name)) {
++			printk(KERN_ERR "%s: requested memory region (%#x:2) "
++			       "is in use\n", pcf_isa_ops.name, base);
+ 			return -ENODEV;
+ 		}
+ 		base_iomem = ioremap(base, 2);
+ 		if (base_iomem = NULL) {
+-			printk(KERN_ERR "i2c-elektor: remap of memory region "
+-			       "%#x failed\n", base);
++			printk(KERN_ERR "%s: remap of memory region %#x "
++			       "failed\n", pcf_isa_ops.name, base);
+ 			release_mem_region(base, 2);
+ 			return -ENODEV;
  		}
  	}
-Index: linux-2.6-mm/drivers/i2c/i2c-dev.c
-=================================--- linux-2.6-mm.orig/drivers/i2c/i2c-dev.c
-+++ linux-2.6-mm/drivers/i2c/i2c-dev.c
-@@ -487,8 +487,10 @@
- }
+-	pr_debug("i2c-elektor: registers %#x remapped to %p\n", base,
++	pr_debug("%s: registers %#x remapped to %p\n", pcf_isa_ops.name, base,
+ 		 base_iomem);
  
- static struct i2c_driver i2cdev_driver = {
--	.owner		= THIS_MODULE,
--	.name		= "dev_driver",
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "dev_driver",
-+	},
- 	.id		= I2C_DRIVERID_I2CDEV,
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= i2cdev_attach_adapter,
+ 	if (irq > 0) {
+-		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
+-			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
++		if (request_irq(irq, pcf_isa_handler, 0, pcf_isa_ops.name,
++				NULL) < 0) {
++			printk(KERN_ERR "%s: Request irq%d failed\n",
++			       pcf_isa_ops.name, irq);
+ 			irq = 0;
+ 		} else
+ 			enable_irq(irq);
+@@ -202,45 +205,49 @@
+ 	.class		= I2C_CLASS_HWMON,
+ 	.id		= I2C_HW_P_ELEK,
+ 	.algo_data	= &pcf_isa_data,
+-	.name		= "PCF8584 ISA adapter",
++	.name		= "i2c-elektor",
+ };
+ 
+-static int __init i2c_pcfisa_init(void) 
++static int __init i2c_pcfisa_init(void)
+ {
+ #ifdef __alpha__
+-	/* check to see we have memory mapped PCF8584 connected to the 
++	/* check to see we have memory mapped PCF8584 connected to the
+ 	Cypress cy82c693 PCI-ISA bridge as on UP2000 board */
+ 	if (base = 0) {
+ 		struct pci_dev *cy693_dev;
+-		
+-		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ, 
++
++		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ,
+ 					   PCI_DEVICE_ID_CONTAQ_82C693, NULL);
+ 		if (cy693_dev) {
+ 			unsigned char config;
+ 			/* yeap, we've found cypress, let's check config */
+ 			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
+-				
+-				pr_debug("i2c-elektor: found cy82c693, config register 0x47 = 0x%02x.\n", config);
++
++				pr_debug("%s: found cy82c693, config "
++					 "register 0x47 = 0x%02x\n",
++					 pcf_isa_ops.name, config);
+ 
+ 				/* UP2000 board has this register set to 0xe1,
+-                                   but the most significant bit as seems can be 
++				   but the most significant bit as seems can be
+ 				   reset during the proper initialisation
+-                                   sequence if guys from API decides to do that
+-                                   (so, we can even enable Tsunami Pchip
+-                                   window for the upper 1 Gb) */
++				   sequence if guys from API decides to do that
++				   (so, we can even enable Tsunami Pchip
++				   window for the upper 1 Gb) */
+ 
+ 				/* so just check for ROMCS at 0xe0000,
+-                                   ROMCS enabled for writes
++				   ROMCS enabled for writes
+ 				   and external XD Bus buffer in use. */
+ 				if ((config & 0x7f) = 0x61) {
+ 					/* seems to be UP2000 like board */
+ 					base = 0xe0000;
+ 					mmapped = 1;
+-                                        /* UP2000 drives ISA with
++					/* UP2000 drives ISA with
+ 					   8.25 MHz (PCI/4) clock
+ 					   (this can be read from cypress) */
+ 					clock = I2C_PCF_CLK | I2C_PCF_TRNS90;
+-					printk(KERN_INFO "i2c-elektor: found API UP2000 like board, will probe PCF8584 later.\n");
++					pr_info("%s: found API UP2000 like "
++						"board, will probe PCF8584 "
++						"later\n", pcf_isa_ops.name);
+ 				}
+ 			}
+ 			pci_dev_put(cy693_dev);
+@@ -250,12 +257,11 @@
+ 
+ 	/* sanity checks for mmapped I/O */
+ 	if (mmapped && base < 0xc8000) {
+-		printk(KERN_ERR "i2c-elektor: incorrect base address (0x%0X) specified for mmapped I/O.\n", base);
++		printk(KERN_ERR "%s: incorrect base address (%#x) specified "
++		       "for mmapped I/O\n", pcf_isa_ops.name, base);
+ 		return -ENODEV;
+ 	}
+ 
+-	printk(KERN_INFO "i2c-elektor: i2c pcf8584-isa adapter driver\n");
+-
+ 	if (base = 0) {
+ 		base = DEFAULT_BASE;
+ 	}
+@@ -265,8 +271,8 @@
+ 		return -ENODEV;
+ 	if (i2c_pcf_add_bus(&pcf_isa_ops) < 0)
+ 		goto fail;
+-	
+-	printk(KERN_ERR "i2c-elektor: found device at %#x.\n", base);
++
++	dev_info(&pcf_isa_ops.dev, "found device at %#x\n", base);
+ 
+ 	return 0;
+ 
+@@ -278,7 +284,7 @@
+ 
+ 	if (!mmapped) {
+ 		ioport_unmap(base_iomem);
+-		release_region(base , 2);
++		release_region(base, 2);
+ 	} else {
+ 		iounmap(base_iomem);
+ 		release_mem_region(base, 2);
+@@ -297,7 +303,7 @@
+ 
+ 	if (!mmapped) {
+ 		ioport_unmap(base_iomem);
+-		release_region(base , 2);
++		release_region(base, 2);
+ 	} else {
+ 		iounmap(base_iomem);
+ 		release_mem_region(base, 2);
 
---
-
+-- 
+Jean Delvare
