@@ -1,7 +1,7 @@
 From: xanni@glasswings.com.au (Andrew Pam)
-Date: Thu, 06 Oct 2005 16:02:53 +0000
+Date: Sun, 09 Oct 2005 20:03:06 +0000
 Subject: [lm-sensors] Myson MTP008 driver ported to 2.6 kernel
-Message-Id: <20051006140138.GY7173@kira.glasswings.com.au>
+Message-Id: <20051009180129.GH7170@kira.glasswings.com.au>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051004125511.GI7154@kira.glasswings.com.au>
 In-Reply-To: <20051004125511.GI7154@kira.glasswings.com.au>
@@ -10,496 +10,383 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 05, 2005 at 05:12:12PM +0200, Jean Delvare wrote:
-> Here is a preliminary review of Andrew's version of the driver, so that
-> you can fix all the problems I've noticed when porting the code to work
-> with 2.6.14-rc3.
+On Thu, Oct 06, 2005 at 12:09:47PM +0200, Jean Delvare wrote:
+> So it is OK to have tempN_type read/write, as long as writing only allows
+> a sensor type change and not a function change.
 
-OK, I've made some of the easier suggested changes, compiled,
-installed and tested with Linux 2.6.12.3.  This new version is now at
-http://www.sericyb.com.au/mtp008.c and I include a diff against the
-previous version below:
+OK, I have made this change and some others that you suggested, and at
+the cost of an extra six bytes of memory have also refactored the code
+to keep the (possible) extra two temperature sensor settings separately,
+which simplifies the code.
+
+Once again the code has been successfully compiled and tested under
+Linux 2.6.12.3 and the full source is at http://www.sericyb.com.au/mtp008.c
+
+The differences from the 6 October version are as follows:
 
 Regards,
 	Andrew
 
---- mtp008.c.20050104	2005-10-06 22:31:26.395417872 +1000
-+++ mtp008.c	2005-10-06 19:25:22.928522800 +1000
-@@ -24,9 +24,11 @@
- #include <linux/i2c.h>
- #include <linux/i2c-sensor.h>
- #include <linux/init.h>
-+#include <linux/jiffies.h>
-+#include <linux/err.h>
- 
- /* Addresses to scan */
--static unsigned short normal_i2c[] = {0x2c, 0x2e, I2C_CLIENT_END};
-+static unsigned short normal_i2c[] = {0x2c, 0x2d, 0x2e, I2C_CLIENT_END};
- static unsigned int normal_isa[] = {I2C_CLIENT_ISA_END};
- 
- /* Insmod parameters */
-@@ -51,12 +53,6 @@
- #define MTP008_REG_INT_STAT1		0x41
- #define MTP008_REG_INT_STAT2		0x42
- 
--#define MTP008_REG_SMI_MASK1		0x43
--#define MTP008_REG_SMI_MASK2		0x44
--
--#define MTP008_REG_NMI_MASK1		0x45
--#define MTP008_REG_NMI_MASK2		0x46
--
- #define MTP008_REG_VID_FANDIV		0x47
- 
- #define MTP008_REG_I2C_ADDR		0x48
-@@ -105,25 +101,22 @@
- 	if (rpm <= 0)
- 		return 255;
- 
--	rpm = SENSORS_LIMIT(rpm, 1, 1000000);
--
- 	return SENSORS_LIMIT( (1350000 + rpm * div / 2) / (rpm * div), 1, 254);
- }
- 
--#define FAN_FROM_REG(val, div)	((val) = 0 ? -1			      \
--					    : (val) = 255 ? 0		      \
--							   : 1350000 /	      \
--							     ((val) * (div))  \
-+#define FAN_FROM_REG(val, div)	( (val) = 0 ? -1		\
-+				: (val) = 255 ? 0		\
-+			        : 1350000 / ((val) * (div))	\
- 				)
- 
+--- mtp008.c.20051006	2005-10-10 03:46:54.877505592 +1000
++++ mtp008.c	2005-10-10 03:44:45.618156000 +1000
+@@ -112,18 +112,11 @@
  /* TEMP: mC (-128C to +127C)
     REG: 1C/bit, two's complement */
--#define TEMP_TO_REG(val)	(					      \
--				 (val) < 0				      \
--				    ? SENSORS_LIMIT(((val) - 500) / 1000,     \
--						    0, 255) \
--				    : SENSORS_LIMIT(((val) + 500) / 1000,     \
--						    0, 255) \
-+#define TEMP_TO_REG(val)	(					\
-+				 (					\
-+				  ( (val) < 0 ? ((val) - 500)		\
-+				 	      : ((val) + 500)		\
-+			          ) / 1000				\
-+				 ) & 0xff				\
+ #define TEMP_TO_REG(val)	(					\
+-				 (					\
+-				  ( (val) < 0 ? ((val) - 500)		\
+-				 	      : ((val) + 500)		\
+-			          ) / 1000				\
+-				 ) & 0xff				\
+-				)
+-#define TEMP_FROM_REG(val)	(					      \
+-				 (					      \
+-				  (val) > 0x80 ? (val) - 0x100		      \
+-					       : (val)			      \
+-				 ) * 1000				      \
++				 ( (val) < 0 ? ((val) - 500)		\
++				 	     : ((val) + 500)		\
++			         ) / 1000				\
  				)
- #define TEMP_FROM_REG(val)	(					      \
- 				 (					      \
-@@ -146,21 +139,6 @@
-  * Fan divider.
++#define TEMP_FROM_REG(val)	( (val) * 1000 )
+ 
+ /* VID: mV
+  * REG: 0x00 to 0x0f    = 2.05 to 1.30 (0.05 per unit)
+@@ -150,11 +143,11 @@
+ /* sysfs temperature sensor types	mtp008 sensor types
+  * 0: Not defined			0: Analog input (voltage)
+  * 1: PII/Celeron Diode			2: PII Diode
+- * 2: 3904 transistor			1: Thermistor
+- * 3: thermal diode
++ * 2: 3904 transistor
++ * 3: thermal diode			1: Thermistor
   */
- #define DIV_FROM_REG(val)	(1 << (val))
--#define DIV_TO_REG(val)		((val) = 8 ? 3				      \
--					    : (val) = 4 ? 2		      \
--							 : (val) = 2 ? 1     \
--								      : 0)
--
--/*
-- * Alarms (interrupt status).
-- */
--#define ALARMS_FROM_REG(val)	(val)
--
--/*
-- * Beep controls.
-- */
--#define BEEPS_FROM_REG(val)	(val)
--#define BEEPS_TO_REG(val)	(val)
+-#define SENS_FROM_REG(val)	((val) = 0 ? 0	: ((val) ^ 0x03))
+-#define SENS_TO_REG(val)	SENS_FROM_REG(val)
++#define SENS_FROM_REG(val)	((val) = 0 ? 0	: (val) = 1 ? 3 : 1)
++#define SENS_TO_REG(val)	((val) = 0 ? 0 : (val) = 1 ? 2 : 1)
  
  /*
-  * PWM control.  (nr is 0..2)
-@@ -185,7 +163,6 @@
-  */
- struct mtp008_data {
- 	struct i2c_client client;
--	enum chips type;
- 
- 	struct semaphore update_lock;
- 	char valid;				/* !=0 if fields are valid */
-@@ -203,7 +180,7 @@
- 	u8 fan_div[3];				/* Register encoding */
- 	u16 alarms;				/* Register encoding */
- 	u16 beeps;				/* Register encoding */
--	u8 pwm[4];				/* Register value */
-+	u8 pwm[3];				/* Register value */
- 	u8 sens[3];				/* 0 = Analog input,
- 						   1 = Thermistor,
- 						   2 = PII/Celeron diode */
-@@ -214,8 +191,6 @@
- static int mtp008_detect(struct i2c_adapter *adapter, int address, int kind);
- static int mtp008_detach_client(struct i2c_client *client);
- 
--static int mtp008_read_value(struct i2c_client *client, u8 register);
--static int mtp008_write_value(struct i2c_client *client, u8 register, u8 value);
- static struct mtp008_data *mtp008_update_device(struct device *dev);
- static void mtp008_init_client(struct i2c_client *client);
- 
-@@ -267,7 +242,7 @@
- 	if ((nr != 4 && nr != 5) || data->sens[nr - 3] = 0) {
- 		down(&data->update_lock);
- 		data->in_min[nr] = IN_TO_REG(val);
--		mtp008_write_value(client, MTP008_REG_IN_MIN(nr),
-+		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MIN(nr),
- 				data->in_min[nr]);
- 		up(&data->update_lock);
- 	}
-@@ -284,7 +259,7 @@
- 	if ((nr != 4 && nr != 5) || data->sens[nr - 3] = 0) {
- 		down(&data->update_lock);
- 		data->in_max[nr] = IN_TO_REG(val);
--		mtp008_write_value(client, MTP008_REG_IN_MAX(nr),
-+		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MAX(nr),
- 				data->in_max[nr]);
- 		up(&data->update_lock);
- 	}
-@@ -365,11 +340,12 @@
- 	down(&data->update_lock);
- 	if (nr = 1) {
- 		data->temp_max = TEMP_TO_REG(val);
--		mtp008_write_value(client, MTP008_REG_TEMP_MAX, data->temp_max);
-+		i2c_smbus_write_byte_data(client, MTP008_REG_TEMP_MAX,
-+				data->temp_max);
- 	}
- 	else if (data->sens[nr - 1] != 0) {
- 		data->in_max[nr + 2] = TEMP_TO_REG(val);
--		mtp008_write_value(client, MTP008_REG_IN_MAX(nr + 2),
-+		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MAX(nr + 2),
- 				data->in_max[nr + 2]);
- 	}
- 	up(&data->update_lock);
-@@ -397,11 +373,12 @@
- 	down(&data->update_lock);
- 	if (nr = 1) {
- 		data->temp_min = TEMP_TO_REG(val);
--		mtp008_write_value(client, MTP008_REG_TEMP_MIN, data->temp_min);
-+		i2c_smbus_write_byte_data(client, MTP008_REG_TEMP_MIN,
-+				data->temp_min);
- 	}
- 	else if (data->sens[nr - 1] != 0) {
- 		data->in_min[nr + 2] = TEMP_TO_REG(val);
--		mtp008_write_value(client, MTP008_REG_IN_MIN(nr + 2),
-+		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MIN(nr + 2),
- 				data->in_min[nr + 2]);
- 	}
- 	up(&data->update_lock);
-@@ -456,7 +433,7 @@
- static ssize_t show_fan_min(struct device *dev, char *buf, const int nr)
+  * For each registered MTP008, we need to keep some data in memory.  The
+@@ -171,9 +164,9 @@
+ 	u8 in[7];				/* Register value */
+ 	u8 in_max[7];				/* Register value */
+ 	u8 in_min[7];				/* Register value */
+-	u8 temp;				/* Register value */
+-	u8 temp_max;				/* Register value */
+-	u8 temp_min;				/* Register value */
++	s8 temp[3];				/* Register value */
++	s8 temp_max[3];				/* Register value */
++	s8 temp_min[3];				/* Register value */
+ 	u8 fan[3];				/* Register value */
+ 	u8 fan_min[3];				/* Register value */
+ 	u8 vid;					/* Register encoding */
+@@ -208,28 +201,19 @@
+ static ssize_t show_in(struct device *dev, char *buf, const int nr)
  {
  	struct mtp008_data *data = mtp008_update_device(dev);
--	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan_min[nr],
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
- 		DIV_FROM_REG(data->fan_div[nr])) );
+-	int result = 0;
+-	if ((nr != 4 && nr != 5) || data->sens[nr - 3] = 0)
+-		result = IN_FROM_REG(data->in[nr]);
+-	return sprintf(buf, "%d\n", result);
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr]));
  }
  
-@@ -469,7 +446,8 @@
+ static ssize_t show_in_min(struct device *dev, char *buf, const int nr)
+ {
+ 	struct mtp008_data *data = mtp008_update_device(dev);
+-	int result = 0;
+-	if ((nr != 4 && nr != 5) || data->sens[nr - 3] = 0)
+-		result = IN_FROM_REG(data->in_min[nr]);
+-	return sprintf(buf, "%d\n", result);
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr]));
+ }
+ 
+ static ssize_t show_in_max(struct device *dev, char *buf, const int nr)
+ {
+ 	struct mtp008_data *data = mtp008_update_device(dev);
+-	int result = 0;
+-	if ((nr != 4 && nr != 5) || data->sens[nr - 3] = 0)
+-		result = IN_FROM_REG(data->in_max[nr]);
+-	return sprintf(buf, "%d\n", result);
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr]));
+ }
+ 
+ static ssize_t set_in_min(struct device *dev, const char *buf,
+@@ -311,23 +295,13 @@
+ static ssize_t show_temp(struct device *dev, char *buf, const int nr)
+ {
+ 	struct mtp008_data *data = mtp008_update_device(dev);
+-	int result = 0;
+-	if (nr = 1)
+-		result = TEMP_FROM_REG(data->temp);
+-	else if (data->sens[nr - 1] != 0)
+-		result = TEMP_FROM_REG(data->in[nr + 2]);
+-	return sprintf(buf, "%d\n", result);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
+ }
+ 
+ static ssize_t show_temp_max(struct device *dev, char *buf, const int nr)
+ {
+ 	struct mtp008_data *data = mtp008_update_device(dev);
+-	int result = 0;
+-	if (nr = 1)
+-		result = TEMP_FROM_REG(data->temp_max);
+-	else if (data->sens[nr - 1] != 0)
+-		result = TEMP_FROM_REG(data->in_max[nr + 2]);
+-	return sprintf(buf, "%d\n", result);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_max[nr]));
+ }
+ 
+ static ssize_t set_temp_max(struct device *dev, const char *buf,
+@@ -338,15 +312,14 @@
+ 	long val = simple_strtol(buf, NULL, 10);
  
  	down(&data->update_lock);
- 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
--	mtp008_write_value(client, MTP008_REG_FAN_MIN(nr), data->fan_min[nr]);
-+	i2c_smbus_write_byte_data(client, MTP008_REG_FAN_MIN(nr),
-+			data->fan_min[nr]);
+-	if (nr = 1) {
+-		data->temp_max = TEMP_TO_REG(val);
++	data->temp_max[nr] = TEMP_TO_REG(val);
++	if (nr = 0) {
+ 		i2c_smbus_write_byte_data(client, MTP008_REG_TEMP_MAX,
+-				data->temp_max);
++				data->temp_max[nr]);
+ 	}
+-	else if (data->sens[nr - 1] != 0) {
+-		data->in_max[nr + 2] = TEMP_TO_REG(val);
+-		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MAX(nr + 2),
+-				data->in_max[nr + 2]);
++	else if (data->sens[nr] != 0) {
++		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MAX(nr + 3),
++				data->temp_max[nr]);
+ 	}
  	up(&data->update_lock);
  	return count;
+@@ -355,12 +328,7 @@
+ static ssize_t show_temp_min(struct device *dev, char *buf, const int nr)
+ {
+ 	struct mtp008_data *data = mtp008_update_device(dev);
+-	int result = 0;
+-	if (nr = 1)
+-		result = TEMP_FROM_REG(data->temp_min);
+-	else if (data->sens[nr - 1] != 0)
+-		result = TEMP_FROM_REG(data->in_min[nr + 2]);
+-	return sprintf(buf, "%d\n", result);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_min[nr]));
  }
-@@ -511,25 +489,26 @@
  
- 	switch (nr) {
- 	case 0:
--		reg = mtp008_read_value(client, MTP008_REG_VID_FANDIV);
-+		reg = i2c_smbus_read_byte_data(client, MTP008_REG_VID_FANDIV);
- 		reg = (reg & 0xcf) | ((data->fan_div[nr] & 0x03) << 4);
--		mtp008_write_value(client, MTP008_REG_VID_FANDIV, reg);
-+		i2c_smbus_write_byte_data(client, MTP008_REG_VID_FANDIV, reg);
- 		break;
- 	case 1:
--		reg = mtp008_read_value(client, MTP008_REG_VID_FANDIV);
-+		reg = i2c_smbus_read_byte_data(client, MTP008_REG_VID_FANDIV);
- 		reg = (reg & 0x3f) | ((data->fan_div[nr] & 0x03) << 6);
--		mtp008_write_value(client, MTP008_REG_VID_FANDIV, reg);
-+		i2c_smbus_write_byte_data(client, MTP008_REG_VID_FANDIV, reg);
- 		break;
- 	case 2:
--		reg = mtp008_read_value(client, MTP008_REG_PIN_CTRL1);
-+		reg = i2c_smbus_read_byte_data(client, MTP008_REG_PIN_CTRL1);
- 		reg = (reg & 0x3f) | ((data->fan_div[nr] & 0x03) << 6);
--		mtp008_write_value(client, MTP008_REG_PIN_CTRL1, reg);
-+		i2c_smbus_write_byte_data(client, MTP008_REG_PIN_CTRL1, reg);
- 		break;
+ static ssize_t set_temp_min(struct device *dev, const char *buf,
+@@ -371,15 +339,14 @@
+ 	long val = simple_strtol(buf, NULL, 10);
+ 
+ 	down(&data->update_lock);
+-	if (nr = 1) {
+-		data->temp_min = TEMP_TO_REG(val);
++	data->temp_min[nr] = TEMP_TO_REG(val);
++	if (nr = 0) {
+ 		i2c_smbus_write_byte_data(client, MTP008_REG_TEMP_MIN,
+-				data->temp_min);
++				data->temp_min[nr]);
  	}
- 
- 	data->fan_min[nr]  		FAN_TO_REG(min, DIV_FROM_REG(data->fan_div[nr]));
--	mtp008_write_value(client, MTP008_REG_FAN_MIN(nr), data->fan_min[nr]);
-+	i2c_smbus_write_byte_data(client, MTP008_REG_FAN_MIN(nr),
-+			data->fan_min[nr]);
+-	else if (data->sens[nr - 1] != 0) {
+-		data->in_min[nr + 2] = TEMP_TO_REG(val);
+-		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MIN(nr + 2),
+-				data->in_min[nr + 2]);
++	else if (data->sens[nr] != 0) {
++		i2c_smbus_write_byte_data(client, MTP008_REG_IN_MIN(nr + 3),
++				data->temp_min[nr]);
+ 	}
  	up(&data->update_lock);
- 
  	return count;
-@@ -580,7 +559,7 @@
- static ssize_t show_alarms(struct device *dev, char *buf)
- {
- 	struct mtp008_data *data = mtp008_update_device(dev);
--	return sprintf(buf, "%u\n", ALARMS_FROM_REG(data->alarms));
-+	return sprintf(buf, "%u\n", data->alarms);
- }
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-@@ -588,7 +567,7 @@
- static ssize_t show_beeps(struct device *dev, char *buf)
- {
- 	struct mtp008_data *data = mtp008_update_device(dev);
--	return sprintf(buf, "%u\n", BEEPS_FROM_REG(data->beeps));
-+	return sprintf(buf, "%u\n", data->beeps);
- }
- 
- static ssize_t set_beeps(struct device *dev, const char *buf,
-@@ -599,9 +578,11 @@
+@@ -389,29 +356,29 @@
+ static ssize_t								\
+ 	show_temp##offset (struct device *dev, char *buf)		\
+ {									\
+-	return show_temp(dev, buf, offset);				\
++	return show_temp(dev, buf, offset - 1);				\
+ }									\
+ static DEVICE_ATTR(temp##offset##_input, S_IRUGO, 			\
+ 		show_temp##offset, NULL);				\
+ static ssize_t								\
+ 	show_temp##offset##_min (struct device *dev, char *buf)		\
+ {									\
+-	return show_temp_min(dev, buf, offset);				\
++	return show_temp_min(dev, buf, offset - 1);			\
+ }									\
+ static ssize_t								\
+ 	show_temp##offset##_max (struct device *dev, char *buf)		\
+ {									\
+-	return show_temp_max(dev, buf, offset);				\
++	return show_temp_max(dev, buf, offset - 1);			\
+ }									\
+ static ssize_t set_temp##offset##_min (struct device *dev,		\
+ 		const char *buf, size_t count)				\
+ {									\
+-	return set_temp_min(dev, buf, count, offset);			\
++	return set_temp_min(dev, buf, count, offset - 1);		\
+ }									\
+ static ssize_t set_temp##offset##_max (struct device *dev,		\
+ 		const char *buf, size_t count)				\
+ {									\
+-	return set_temp_max(dev, buf, count, offset);			\
++	return set_temp_max(dev, buf, count, offset - 1);		\
+ }									\
+ static DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,		\
+ 		show_temp##offset##_min, set_temp##offset##_min);	\
+@@ -676,13 +643,17 @@
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct mtp008_data *data = i2c_get_clientdata(client);
  	unsigned long val = simple_strtoul(buf, NULL, 10);
+-	u8 reg, mask;
++	u8 reg, mask, bits;
  
- 	down(&data->update_lock);
--	data->beeps = BEEPS_TO_REG(val) & 0xdf8f;
--	mtp008_write_value(client, MTP008_REG_BEEP_CTRL1, data->beeps & 0xff);
--	mtp008_write_value(client, MTP008_REG_BEEP_CTRL2, data->beeps >> 8);
-+	data->beeps = val & 0xdf8f;
-+	i2c_smbus_write_byte_data(client, MTP008_REG_BEEP_CTRL1,
-+			data->beeps & 0xff);
-+	i2c_smbus_write_byte_data(client, MTP008_REG_BEEP_CTRL2,
-+			data->beeps >> 8);
- 	up(&data->update_lock);
- 	return count;
- }
-@@ -622,8 +603,9 @@
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	mask = (nr = 0) ? MTP008_CFG_VT1_MASK
+ 			 : (nr = 1) ? MTP008_CFG_VT2_MASK
+ 			 	     : MTP008_CFG_VT3_MASK;
++	bits = SENS_TO_REG(val) << ((2 - nr) + 1);
  
- 	down(&data->update_lock);
--	data->pwm[nr-1] = PWM_TO_REG(val);
--	mtp008_write_value(client, MTP008_REG_PWM_CTRL(nr), data->pwm[nr]);
-+	data->pwm[nr] = PWM_TO_REG(val);
-+	i2c_smbus_write_byte_data(client, MTP008_REG_PWM_CTRL(nr),
-+			data->pwm[nr]);
- 	up(&data->update_lock);
- 	return count;
- }
-@@ -647,7 +629,8 @@
- 		data->pwmenable |= (0x10 << nr);
- 	else
- 		data->pwmenable &= ~(0x10 << nr);
--	mtp008_write_value(client, MTP008_REG_PIN_CTRL2, data->pwmenable);
-+	i2c_smbus_write_byte_data(client, MTP008_REG_PIN_CTRL2,
-+			data->pwmenable);
- 	up(&data->update_lock);
- 	return count;
- }
-@@ -706,9 +689,9 @@
- 	else {
+-	if ((SENS_TO_REG(val) << ((2 - nr) + 1)) & ~mask)
++	if ( (val = 0)				/* Undefined */
++	     || (data->sens[nr] = 0)		/* Voltage sensor */
++	     || ((bits & ~mask) != 0)		/* Invalid setting */
++	   )
+ 		dev_err(&client->dev,
+ 			"Invalid sensor type %ld for sensor %d.\n",
+ 			val, nr + 1);
+@@ -690,7 +661,7 @@
  		down(&data->update_lock);
  		data->sens[nr] = SENS_TO_REG(val);
--		reg = (mtp008_read_value(client, MTP008_REG_PIN_CTRL2)
-+		reg = (i2c_smbus_read_byte_data(client, MTP008_REG_PIN_CTRL2)
- 			& ~mask) | (data->sens[nr] << ((2 - nr) + 1));
--		mtp008_write_value(client, MTP008_REG_PIN_CTRL2, reg);
-+		i2c_smbus_write_byte_data(client, MTP008_REG_PIN_CTRL2, reg);
+ 		reg = (i2c_smbus_read_byte_data(client, MTP008_REG_PIN_CTRL2)
+-			& ~mask) | (data->sens[nr] << ((2 - nr) + 1));
++			& ~mask) | bits;
+ 		i2c_smbus_write_byte_data(client, MTP008_REG_PIN_CTRL2, reg);
  		up(&data->update_lock);
  	}
- 	return count;
-@@ -745,7 +728,6 @@
- 
- int mtp008_detect(struct i2c_adapter *adapter, int address, int kind)
- {
--	const char *client_name = "";
- 	int err, i;
- 	struct i2c_client *new_client;
- 	struct mtp008_data *data;
-@@ -772,7 +754,10 @@
+@@ -753,15 +724,15 @@
+ 	new_client->flags = 0;
  
  	/* Remaining detection. */
- 	if (kind < 0) {
--		if (mtp008_read_value(new_client, MTP008_REG_CHIPID) != 0xac) {
-+		if ( i2c_smbus_read_byte_data(new_client, MTP008_REG_CHIPID)
-+			!= 0xac
-+		||   i2c_smbus_read_byte_data(new_client, MTP008_REG_I2C_ADDR)
-+			!= address)	{
- 			err = -ENODEV;
- 			goto exit_free;
- 		}
-@@ -780,9 +765,7 @@
+-	if (kind < 0) {
+-		if ( i2c_smbus_read_byte_data(new_client, MTP008_REG_CHIPID)
+-			!= 0xac
+-		||   i2c_smbus_read_byte_data(new_client, MTP008_REG_I2C_ADDR)
+-			!= address)	{
+-			err = -ENODEV;
+-			goto exit_free;
+-		}
++	if ((kind < 0)
++	    && (i2c_smbus_read_byte_data(new_client, MTP008_REG_CHIPID) != 0xac
++		|| i2c_smbus_read_byte_data(new_client, MTP008_REG_I2C_ADDR)
++			!= address)
++	   ) {
++		err = -ENODEV;
++		goto exit_free;
+ 	}
++
  	/*
  	 * Fill in the remaining client fields and put it into the global list.
  	 */
--	client_name = "mtp008";
--	strlcpy(new_client->name, client_name, I2C_NAME_SIZE);
--	data->type = kind;
-+	strlcpy(new_client->name, "mtp008", I2C_NAME_SIZE);
- 	data->valid = 0;
- 	init_MUTEX(&data->update_lock);
+@@ -874,9 +845,7 @@
+ 	mtp008_getsensortype(data, i2c_smbus_read_byte_data(client,
+ 				MTP008_REG_PIN_CTRL2) );
  
-@@ -795,7 +778,7 @@
- 
- 	/* A few vars need to be filled upon startup */
- 	for (i = 0; i < 3; i++) {
--		data->fan_min[i] = mtp008_read_value(new_client,
-+		data->fan_min[i] = i2c_smbus_read_byte_data(new_client,
- 					MTP008_REG_FAN_MIN(i));
- 	}
- 
-@@ -875,17 +858,6 @@
- 	return 0;
- }
- 
--
--static int mtp008_read_value(struct i2c_client *client, u8 reg)
--{
--	return i2c_smbus_read_byte_data(client, reg) & 0xff;
--}
--
--static int mtp008_write_value(struct i2c_client *client, u8 reg, u8 value)
--{
--	return i2c_smbus_write_byte_data(client, reg, value);
--}
--
- static void mtp008_getsensortype(struct mtp008_data *data, u8 inp)
- {
- 	inp &= 0x0f;
-@@ -898,28 +870,17 @@
- static void mtp008_init_client(struct i2c_client *client)
- {
- 	struct mtp008_data *data = i2c_get_clientdata(client);
--	u8 save1, save2;
--
 -	/*
--	 * Initialize the Myson MTP008 hardware monitoring chip.
--	 * Save the pin settings that the BIOS hopefully set.
+-	 * Start monitoring.
 -	 */
--	save1 = mtp008_read_value(client, MTP008_REG_PIN_CTRL1);
--	save2 = mtp008_read_value(client, MTP008_REG_PIN_CTRL2);
--	mtp008_write_value(client, MTP008_REG_CONFIG,
--	     (mtp008_read_value(client, MTP008_REG_CONFIG) & 0x7f) | 0x80);
--	mtp008_write_value(client, MTP008_REG_PIN_CTRL1, save1);
--	mtp008_write_value(client, MTP008_REG_PIN_CTRL2, save2);
--
--	mtp008_getsensortype(data, save2);
- 
-+	mtp008_getsensortype(data, i2c_smbus_read_byte_data(client,
-+				MTP008_REG_PIN_CTRL2) );
- 
- 	/*
- 	 * Start monitoring.
- 	 */
--	mtp008_write_value(
-+	i2c_smbus_write_byte_data(
++	/* Start monitoring. */
+ 	i2c_smbus_write_byte_data(
  		client, MTP008_REG_CONFIG,
--		(mtp008_read_value(client, MTP008_REG_CONFIG) & 0xf7) | 0x01
-+		(i2c_smbus_read_byte_data(client, MTP008_REG_CONFIG) & 0xf7)
-+		| 0x01
- 	);
- }
- 
-@@ -945,66 +906,70 @@
+ 		(i2c_smbus_read_byte_data(client, MTP008_REG_CONFIG) & 0xf7)
+@@ -902,7 +871,7 @@
+ 		 * Read in the analog inputs.  We're reading AIN4 and AIN5 as
+ 		 * regular analog inputs, even though they may have been
+ 		 * configured as temperature readings instead.  Interpretation
+-		 * of these values is done elsewhere.
++		 * of these values is done below.
  		 */
  		for (i = 0; i < 7; i++) {
- 			data->in[i] -				mtp008_read_value(client, MTP008_REG_IN(i));
-+				i2c_smbus_read_byte_data(client,
-+						MTP008_REG_IN(i));
- 			data->in_max[i] -				mtp008_read_value(client, MTP008_REG_IN_MAX(i));
-+				i2c_smbus_read_byte_data(client,
-+						MTP008_REG_IN_MAX(i));
- 			data->in_min[i] -				mtp008_read_value(client, MTP008_REG_IN_MIN(i));
-+				i2c_smbus_read_byte_data(client,
-+						MTP008_REG_IN_MIN(i));
+ 			data->in[i] @@ -916,13 +885,12 @@
+ 						MTP008_REG_IN_MIN(i));
  		}
  
- 		/*
- 		 * Read the temperature sensor.
- 		 */
--		data->temp = mtp008_read_value(client, MTP008_REG_TEMP);
--		data->temp_max = mtp008_read_value(client, MTP008_REG_TEMP_MAX);
--		data->temp_min = mtp008_read_value(client, MTP008_REG_TEMP_MIN);
-+		data->temp = i2c_smbus_read_byte_data(client, MTP008_REG_TEMP);
-+		data->temp_max = i2c_smbus_read_byte_data(client,
-+				MTP008_REG_TEMP_MAX);
-+		data->temp_min = i2c_smbus_read_byte_data(client,
-+				MTP008_REG_TEMP_MIN);
+-		/*
+-		 * Read the temperature sensor.
+-		 */
+-		data->temp = i2c_smbus_read_byte_data(client, MTP008_REG_TEMP);
+-		data->temp_max = i2c_smbus_read_byte_data(client,
++		/* Read the temperature sensor. */
++		data->temp[0] = i2c_smbus_read_byte_data(client,
++				MTP008_REG_TEMP);
++		data->temp_max[0] = i2c_smbus_read_byte_data(client,
+ 				MTP008_REG_TEMP_MAX);
+-		data->temp_min = i2c_smbus_read_byte_data(client,
++		data->temp_min[0] = i2c_smbus_read_byte_data(client,
+ 				MTP008_REG_TEMP_MIN);
  
  		/*
- 		 * Read the first 2 fan dividers and the VID setting.  Read the
- 		 * third fan divider from a different register.
- 		 */
--		inp = mtp008_read_value(client, MTP008_REG_VID_FANDIV);
-+		inp = i2c_smbus_read_byte_data(client, MTP008_REG_VID_FANDIV);
- 		data->vid = inp & 0x0f;
--		data->vid |= (mtp008_read_value(client,
--				     MTP008_REG_RESET_VID4) & 0x01) << 4;
-+		data->vid |= (i2c_smbus_read_byte_data(client,
-+				MTP008_REG_RESET_VID4) & 0x01) << 4;
+@@ -939,34 +907,42 @@
+ 		data->fan_div[2] = i2c_smbus_read_byte_data(client,
+ 				MTP008_REG_PIN_CTRL1) >> 6;
  
- 		data->fan_div[0] = (inp >> 4) & 0x03;
- 		data->fan_div[1] = inp >> 6;
--		data->fan_div[2] -			mtp008_read_value(client, MTP008_REG_PIN_CTRL1) >> 6;
-+		data->fan_div[2] = i2c_smbus_read_byte_data(client,
-+				MTP008_REG_PIN_CTRL1) >> 6;
- 
- 		/*
- 		 * Read the interrupt status registers.
- 		 */
- 		data->alarms -			(mtp008_read_value(client,
-+			(i2c_smbus_read_byte_data(client,
+-		/*
+-		 * Read the interrupt status registers.
+-		 */
++		/* Read the interrupt status registers. */
+ 		data->alarms  			(i2c_smbus_read_byte_data(client,
  					   MTP008_REG_INT_STAT1) & 0xdf) |
--			(mtp008_read_value(client,
-+			(i2c_smbus_read_byte_data(client,
+ 			(i2c_smbus_read_byte_data(client,
  					   MTP008_REG_INT_STAT2) & 0x0f) << 8;
  
- 		/*
- 		 * Read the beep control registers.
- 		 */
- 		data->beeps -			(mtp008_read_value(client,
-+			(i2c_smbus_read_byte_data(client,
+-		/*
+-		 * Read the beep control registers.
+-		 */
++		/* Read the beep control registers. */
+ 		data->beeps  			(i2c_smbus_read_byte_data(client,
  					   MTP008_REG_BEEP_CTRL1) & 0xdf) |
--			(mtp008_read_value(client,
-+			(i2c_smbus_read_byte_data(client,
+ 			(i2c_smbus_read_byte_data(client,
  					   MTP008_REG_BEEP_CTRL2) & 0x8f) << 8;
  
- 		/*
- 		 * Read the sensor configuration.
- 		 */
--		inp = mtp008_read_value(client, MTP008_REG_PIN_CTRL2);
-+		inp = i2c_smbus_read_byte_data(client, MTP008_REG_PIN_CTRL2);
+-		/*
+-		 * Read the sensor configuration.
+-		 */
++		/* Read the sensor configuration. */
+ 		inp = i2c_smbus_read_byte_data(client, MTP008_REG_PIN_CTRL2);
  		mtp008_getsensortype(data, inp);
  		data->pwmenable = inp;
  
- 		/*
- 		 * Read the PWM registers if enabled.
- 		 */
--		for (i = 0; i < 3; i++)
--		{
-+		for (i = 0; i < 3; i++) {
+-		/*
+-		 * Read the PWM registers if enabled.
+-		 */
++		/* Deal with the configuration of sensors 2 and 3. */
++		for (i = 1; i < 3; i++)
++			if (data->sens[i] = 0) {	/* Voltage */
++				data->temp[i] = 0;
++				data->temp_max[i] = 0;
++				data->temp_min[i] = 0;
++			}
++			else {
++				data->temp[i] = data->in[i + 3];
++				data->in[i + 3] = 0;
++				data->temp_max[i] = data->in_max[i + 3];
++				data->in_max[i + 3] = 0;
++				data->temp_min[i] = data->in_min[i + 3];
++				data->in_min[i + 3] = 0;
++			}
++
++		/* Read the PWM registers if enabled. */
+ 		for (i = 0; i < 3; i++) {
  			if(PWMENABLE_FROM_REG(i, inp))
--				data->pwm[i] = mtp008_read_value(client,
-+				data->pwm[i] = i2c_smbus_read_byte_data(client,
- 						  MTP008_REG_PWM_CTRL(i));
- 			else
+ 				data->pwm[i] = i2c_smbus_read_byte_data(client,
+@@ -975,9 +951,7 @@
  				data->pwm[i] = 255;
-@@ -1018,9 +983,10 @@
- 				data->fan[2] = 0;
- 				data->fan_min[2] = 0;
- 			} else {
--				data->fan[i] = mtp008_read_value(client,
-+				data->fan[i] = i2c_smbus_read_byte_data(client,
- 					  MTP008_REG_FAN(i));
--				data->fan_min[i] = mtp008_read_value(client,
-+				data->fan_min[i] +					i2c_smbus_read_byte_data(client,
- 					  MTP008_REG_FAN_MIN(i));
- 			}
  		}
-@@ -1045,9 +1011,7 @@
  
- 
- 
--MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
--	      "Philip Edelbrock <phil@netroedge.com>, "
--	      "Kris Van Hees <aedil@alchar.org> "
-+MODULE_AUTHOR("Kris Van Hees <aedil@alchar.org> "
- 	      "and Andrew Pam <andrew@sericyb.com.au>");
- MODULE_DESCRIPTION("MTP008 driver");
- MODULE_LICENSE("GPL");
+-		/*
+-		 * Read the fan sensors. Skip 3 if PWM1 enabled.
+-		 */
++		/* Read the fan sensors. Skip 3 if PWM1 enabled. */
+ 		for (i = 0; i < 3; i++) {
+ 			if (i = 2 && PWMENABLE_FROM_REG(0, inp)) {
+ 				data->fan[2] = 0;
 
 -- 
 mailto:xanni@xanadu.net                         Andrew Pam
