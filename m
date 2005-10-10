@@ -1,28 +1,27 @@
-From: list0570@paradise.net.nz (Volker Kuhlmann)
-Date: Mon, 31 Oct 2005 00:59:37 +0000
-Subject: [lm-sensors] SiS630 sensors.conf errors
-Message-Id: <20051030235843.GF26397@paradise.net.nz>
+From: rob.teel@gmail.com (Robert Teel)
+Date: Mon, 10 Oct 2005 23:06:07 +0000
+Subject: [lm-sensors] lm_sensors in an embedded environment
+Message-Id: <6db3e120510101405xdbb6920wfdf863ba55896477@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Minor bugs, but can be confusing:
+I am curious if anyone has tried to use the lm_sensor software in an embedded
+environment.  I would like to get uClinux up on an FPGA or small micro, and run
+lm_sensors on top of that to monitor other rack mount processor boards.
 
-  # The following is for the Inside Technologies 786LCD which uses either a
-  # IT8705F or a SIS950 for monitoring with the SIS630.
-  # You will need to load the it87 module as follows to select the correct
-  # temperature sensor type.
-  # modprobe it87 temp_type=0x31
+In other words, I want to a small embedded linux disto to monitor and alert the
+maintenance personnel when there are chassis over heat / over voltage
+situation.  Has this
+type of thing been done?  I'm not concerned with the temperature of
+the small micro, only the temps of chassis.
 
-Module it87 doesn't have a temp_type option.
+Feel free to reply to robt(at)Colmek.com.
 
-The settings for low and high temperature values are missing for all
-temperatures.
 
-Volker
-
--- 
-Volker Kuhlmann			is possibly list0570 with the domain in header
-http://volker.dnsalias.net/		Please do not CC list postings to me.
+Thanks in advance!
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051010/ea2d3760/attachment.html
