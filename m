@@ -1,7 +1,7 @@
-From: rob.teel@gmail.com (Robert Teel)
-Date: Tue, 11 Oct 2005 10:04:29 +0000
+From: kjeld.flarup@liberalismen.dk (Kjeld Flarup)
+Date: Tue, 11 Oct 2005 14:27:53 +0000
 Subject: [lm-sensors] lm_sensors in an embedded environment
-Message-Id: <6db3e120510110103w3c290a43o7b9da958f813f5a5@mail.gmail.com>
+Message-Id: <434BAF9D.3070409@liberalismen.dk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <6db3e120510101405xdbb6920wfdf863ba55896477@mail.gmail.com>
 In-Reply-To: <6db3e120510101405xdbb6920wfdf863ba55896477@mail.gmail.com>
@@ -10,34 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I did some research on this subject, and I think lm_sensors would fit my
-purposes well. I haven't confirmed if it would work on an non-mmu distro
-(uClinux) though.
+Jean Delvare wrote:
 
-My goal for this is, as I have said, get uClinux running on a PPC core
-inside and FPGA, or use some other small micro to run the lm_sensor package
-in order to sense ambient temperature, fan tachs, and voltage levels. I'm
-not interested in the core's internal temps or anything like that.
+>Helly Kjeld,
+>
+>On 2005-10-10, Kjeld Flarup wrote:
+>  
+>
+>>You would most likely have to write the drivers your self.
+>>    
+>>
+>
+>Why would he? What would the benefit be, please?
+>  
+>
+Of course it ould be a good idea to check this list first: 
+http://secure.netroedge.com/~lm78/supported.html
+And verify that the chips on the embedded device is on that list.
+Many embedded devices does not have anything intended for monitoring 
+temperature.
 
-So far I have decided lm_sensors would work great, and I read somewhere that
-someone had it working on a blackfin. Not to sure though since the
-information was limited.
+-- 
+-------------------- Med Liberalistiske Hilsner ----------------------
+  Civilingeni?r, Kjeld Flarup - Mit sind er mere ?bent end min tegnebog
+  Forssavej 49, 7600 Struer, Tlf: 40 29 41 49
+  Den ikke akademiske hjemmeside for liberalismen - www.liberalismen.dk
 
-Rob
 
-On 10/11/05, Jean Delvare <khali@linux-fr.org> wrote:
->
->
-> Helly Kjeld,
->
-> On 2005-10-10, Kjeld Flarup wrote:
-> > You would most likely have to write the drivers your self.
->
-> Why would he? What would the benefit be, please?
->
-> --
-> Jean Delvare
->
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051011/c2c421d8/attachment.html
