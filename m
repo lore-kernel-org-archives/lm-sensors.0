@@ -1,87 +1,57 @@
-From: pavouk@pavouk.org (Pavel Ruzicka)
-Date: Tue, 25 Oct 2005 00:47:46 +0000
-Subject: [lm-sensors] Support for SMSC 47M15x/192
-Message-Id: <200510250046.42719.pavouk@pavouk.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Wed, 12 Oct 2005 05:22:49 +0000
+Subject: [lm-sensors] [PATCH 2.6.14-rc2-mm2] hwmon: add a new ID to SMSC
+Message-Id: <20051012032205.GA20051@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200510162303.21468.pavouk@pavouk.org>
-In-Reply-To: <200510162303.21468.pavouk@pavouk.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
 
-> It is expected due to the hardware implementation. The lowest speed that
-> can be monitored (and thus the lowest limit you can set) depends on an
-> internal clock speed and a clock divider. For a divider of 8, this is
-> (32768*60)/(2*8*192) = 640. For lower dividers, the value is even
-> greater.
+This patch adds a new ID to the SMSC LPC47B397-NC hardware
+monitoring driver - for a chip that is claimed to be 100%
+compatible otherwise.
 
-Thanks for good explaining.
+Signed-off-by: Bryan Young (Utilitek Systems, Inc.)
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-> > smsc47m1-isa-0800
-> > Adapter: ISA adapter
-> > fan1:        0 RPM  (min =  640 RPM, div = 8)          ALARM
-> > fan2:     1050 RPM  (min = 1280 RPM, div = 4)          ALARM
->
-> This is more surprising, as the driver should try to preserve the low
-> limit on divider increment. Unless you actually did it the other way
-> around (4 then 1)? I took a look at the code and it looks correct to me.
->
-> Anyway, you can set the value again by writing it to fan2_min.
+---
 
-Other experiment:
------
-[root@home 1-0800]# echo 4 >fan2_div
-fan2:     1041 RPM  (min = 1280 RPM, div = 4)          ALARM
-[root@home 1-0800]# echo 1 >fan2_div
-fan2:        0 RPM  (min = 5120 RPM, div = 1)          ALARM
-[root@home 1-0800]# echo 4 >fan2_div
-fan2:        0 RPM  (min = 5120 RPM, div = 4)          ALARM
-[root@home 1-0800]# echo 8 >fan2_div
-fan2:        0 RPM  (min = 5120 RPM, div = 8)          ALARM
-[root@home 1-0800]# echo 640 >fan2_min
-fan2:     1059 RPM  (min =  640 RPM, div = 8)          ALARM
------
+Hi Jean: I should have sent this some time ago.  Please queue it
+up for 2.6.15.
 
->
-> That's expected, as libsensors doesn't know about fan speed control
-> except for a few chips. Typically, PWM operations are done directly
-> through sysfs. Check in /sys/bus/i2c/devices, you should find a
-> directory for your chip and pwm files here. Use with caution, of course.
+--- linux-2.6.14-rc2-mm2.orig/drivers/hwmon/smsc47b397.c
++++ linux-2.6.14-rc2-mm2/drivers/hwmon/smsc47b397.c
+@@ -299,7 +299,7 @@ static int __init smsc47b397_find(unsign
+ 	superio_enter();
+ 	id = superio_inb(SUPERIO_REG_DEVID);
+ 
+-	if (id != 0x6f) {
++	if ((id != 0x6f) && (id != 0x81)) {
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+@@ -310,8 +310,16 @@ static int __init smsc47b397_find(unsign
+ 	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
+ 		 |  superio_inb(SUPERIO_REG_BASE_LSB);
+ 
+-	printk(KERN_INFO "smsc47b397: found SMSC LPC47B397-NC "
+-		"(base address 0x%04x, revision %u)\n", *addr, rev);
++	switch (id) {
++	case 0x6f:
++		printk(KERN_INFO "smsc47b397: found SMSC LPC47B397-NC "
++			"(base address 0x%04x, revision %u)\n", *addr, rev);
++		break;
++	case 0x81:
++		printk(KERN_INFO "smsc47b397: found SMSC SCH5307-NS"
++			"(base address 0x%04x, revision %u)\n", *addr, rev);
++		break;
++	}
+ 
+ 	superio_exit();
+ 	return 0;
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
 
-Yes, it works perfectly!
-
-I can set values 1 to 252 for pwm.
-With echo 0 >pwm2_enable my secondary fan totally stops.
-
-There is some experiments:
--------------
-[root@home 1-0800]# pwd
-/sys/bus/i2c/devices/1-0800
-[root@home 1-0800]# cat pwm2
-144
-[root@home 1-0800]# echo 10 >pwm2
-fan2:     3072 RPM  (min =  640 RPM, div = 8)
-[root@home 1-0800]# cat pwm2
-8
-[root@home 1-0800]# echo 128 >pwm2
-fan2:     1307 RPM  (min =  640 RPM, div = 8)
-[root@home 1-0800]# cat pwm2_enable
-1
-[root@home 1-0800]# echo 0 >pwm2_enable
-fan2:        0 RPM  (min =  640 RPM, div = 8)          ALARM
-[root@home 1-0800]# echo 1 >pwm2_enable
-fan2:     1307 RPM  (min =  640 RPM, div = 8)
---------------
-
-> Anyway, the tests above are sufficient to convince me that your chip is
-> compatible with the LPC47M192 as fan as fan control and monitoring is
-> concerned. We will have to update our documentation accordingly.
-
-Thank you very much.
-
-Best regards,
-
-Pavel Ruzicka
