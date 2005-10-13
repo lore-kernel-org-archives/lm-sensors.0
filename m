@@ -1,39 +1,27 @@
-From: kjeld.flarup@liberalismen.dk (Kjeld Flarup)
-Date: Tue, 11 Oct 2005 14:27:53 +0000
-Subject: [lm-sensors] lm_sensors in an embedded environment
-Message-Id: <434BAF9D.3070409@liberalismen.dk>
+From: ben-linux@fluff.org (Ben Dooks)
+Date: Thu, 13 Oct 2005 12:16:10 +0000
+Subject: [lm-sensors] [PATCH] drivers/i2c/chips/eeprom.c - missing static
+Message-Id: <20051013101444.GA26868@home.fluff.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <6db3e120510101405xdbb6920wfdf863ba55896477@mail.gmail.com>
-In-Reply-To: <6db3e120510101405xdbb6920wfdf863ba55896477@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+eeprom_detect is first declared static and then when
+the function is actually implemented, there is no
+static.
 
->Helly Kjeld,
->
->On 2005-10-10, Kjeld Flarup wrote:
->  
->
->>You would most likely have to write the drivers your self.
->>    
->>
->
->Why would he? What would the benefit be, please?
->  
->
-Of course it ould be a good idea to check this list first: 
-http://secure.netroedge.com/~lm78/supported.html
-And verify that the chips on the embedded device is on that list.
-Many embedded devices does not have anything intended for monitoring 
-temperature.
-
--- 
--------------------- Med Liberalistiske Hilsner ----------------------
-  Civilingeni?r, Kjeld Flarup - Mit sind er mere ?bent end min tegnebog
-  Forssavej 49, 7600 Struer, Tlf: 40 29 41 49
-  Den ikke akademiske hjemmeside for liberalismen - www.liberalismen.dk
-
-
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+-------------- next part --------------
+--- linux-2.6.14-rc4-bjd1/drivers/i2c/chips/eeprom.c	2005-10-11 10:56:32.000000000 +0100
++++ linux-2.6.14-rc4-bjd2/drivers/i2c/chips/eeprom.c	2005-10-13 11:11:40.000000000 +0100
+@@ -155,7 +155,7 @@ static int eeprom_attach_adapter(struct 
+ }
+ 
+ /* This function is called by i2c_probe */
+-int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
++static int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *new_client;
+ 	struct eeprom_data *data;
