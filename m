@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 14 Oct 2005 14:04:40 +0000
+Date: Fri, 14 Oct 2005 16:46:42 +0000
 Subject: [lm-sensors] lm_sensors 2.9.2 & kernel 2.6.8-24
-Message-Id: <RexXovHz.1129290791.6467740.khali@localhost>
+Message-Id: <fzUCYolL.1129300517.6487670.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <434F973D.5080607@scs.co.uk>
 In-Reply-To: <434F973D.5080607@scs.co.uk>
@@ -11,45 +11,41 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Charles.
+Hi Charles,
 
-On 2005-10-14, Charles Whittington wrote:
-> I am having freeze-ups and reboots on an MTC8640 laptop running SuSE 9.2
-> which I suspect may be caused by hardware problems, possibly
-> clock/powersave related. I have installed lm_sensors 2.9.2, kernel is
-> 2.6.8-24. I am OK with software but sometimes a bit dim where h/w is
-> concerned. I have read the docs on the website, I am still not sure
-> whether precisely this combination is supposed to be supported. The
-> website sort of indicates that SiS996x is supported but the outputs are
-> as below. Could you advise?
+Please answer to the list, not to me only!
 
-If the laptop is recent, I'd advise a kernel upgrade to start with.
-2.6.8 is aging. ACPI and cpufreq are areas in which many developments
-have been done in the past months. Maybe this would fix the problems you
-observe altogether.
+> nport1:~ # i2cdetect 0
+> Error: Could not open file `/dev/i2c-0': No such device
+> nport1:~ #
 
-> Next adapter: SiS96x SMBus adapter at 0x1000 (Algorithm unavailable)
-> Do you want to scan it? (YES/no/selectively):
+modprobe i2c-dev
 
-Surpisingly, nothing is found on the SMBus, this is quite rare not to
-even see an EEPROM or a clock chip here. Can you please provide the
-output of "i2cdetect 0"?
+Sorry for nor telling you, sensors-detect loads it for you and I didn't
+figure out you'd have rebooted since.
 
-It is probable that you actually have nothing here, but that could also
-be an SMBus driver issue.
+> > So you have a Super-I/O chip, most probably from National Semiconductor.
+> > Do you happen to know what it is? Our script doesn't seem to know.
+> > Sometimes Super-I/O chips include hardware monitoring capabilities.
+>
+> No - I don't - and I don't really want to go digging under the keyboard
+> to look for the MB unless I have to!!
 
-> Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
->   Failed! (0xea)
+Yeah, I understand. I wasn't even able to open my own laptop. But
+sometimes you have some technical documentation which states which chips
+you have. Unfortunately, more often than not, the Super-I/O chip isn't
+listed.
 
-So you have a Super-I/O chip, most probably from National Semiconductor.
-Do you happen to know what it is? Our script doesn't seem to know.
-Sometimes Super-I/O chips include hardware monitoring capabilities.
+> No - not certain at all. It does support ACPI which was off when I did
+> previous results (trying to see if it was causing the problem). I can't
+> seem to turn it on again - removing acpi=off from boot loader should do
+> it I think - but it hangs the system - maybe this is a clue? Or am I
+> being dim?. Therefore no /proc/acpi files at the moment!
 
-Are you certain that your laptop does support hardware monitoring ? It's
-quite frequent that they don't. You may take a chance with ACPI (look
-at /proc/acpi/thermal_zone and /proc/acpi/fan). This is rather limited
-compared to what lm_sensors offers, but better than nothing, and quite
-often that's the best you can get on laptops.
+I can't say. ACPI is a very complex area, some laptops need it, some
+don't like it at all, there are quirks required for half of them.
+Depending on the model, it might work on a version and not on another.
+We can't help you with this, see with the linux-acpi folks.
 
 --
 Jean Delvare
