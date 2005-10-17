@@ -1,72 +1,47 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:18:52 +0000
-Subject: [lm-sensors] [PATCH] i2c: Static function fixes, 4 of 4
-Message-Id: <1130533663774@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 17 Oct 2005 23:02:26 +0000
+Subject: [lm-sensors] [PATCH 07/14] hwmon: Missing class check in two hwmon
+Message-Id: <20051017230242.1b29cbd6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Static function fixes, 4 of 4
+Content-Disposition: inline; filename=hwmon-missing-driver-class.patch
 
-Fix functions declared static and then implemented
-without the static in drivers/i2c/chips.
+The atxp1 and ds1621 drivers should make sure they do not probe
+non-hwmon i2c adapters.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 6344a8ece0bacccf61817450e8ccf78c973fc0c5
-tree 2cfb965523a097ce90163dee5482ffa5fd5ab009
-parent c49efceffa599299ab3f38b1cdf8c2f1bf9811c4
-author Ben Dooks <ben-linux@fluff.org> Wed, 26 Oct 2005 21:09:41 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:13 -0700
+ drivers/hwmon/atxp1.c  |    2 ++
+ drivers/hwmon/ds1621.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
- drivers/i2c/chips/ds1374.c  |    3 ++-
- drivers/i2c/chips/pcf8574.c |    2 +-
- drivers/i2c/chips/pcf8591.c |    2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/i2c/chips/ds1374.c b/drivers/i2c/chips/ds1374.c
-index 1596e64..da488b7 100644
---- a/drivers/i2c/chips/ds1374.c
-+++ b/drivers/i2c/chips/ds1374.c
-@@ -167,7 +167,8 @@ static void ds1374_set_tlet(ulong arg)
+--- linux-2.6.14-rc3.orig/drivers/hwmon/atxp1.c	2005-10-12 10:30:04.000000000 +0200
++++ linux-2.6.14-rc3/drivers/hwmon/atxp1.c	2005-10-12 15:30:42.000000000 +0200
+@@ -253,6 +253,8 @@
  
- static ulong new_time;
- 
--DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet, (ulong) & new_time);
-+static DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet,
-+				(ulong) & new_time);
- 
- int ds1374_set_rtc_time(ulong nowtime)
+ static int atxp1_attach_adapter(struct i2c_adapter *adapter)
  {
-diff --git a/drivers/i2c/chips/pcf8574.c b/drivers/i2c/chips/pcf8574.c
-index 2c2555d..c323c2d 100644
---- a/drivers/i2c/chips/pcf8574.c
-+++ b/drivers/i2c/chips/pcf8574.c
-@@ -115,7 +115,7 @@ static int pcf8574_attach_adapter(struct
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
+ 	return i2c_probe(adapter, &addr_data, &atxp1_detect);
+ };
+ 
+--- linux-2.6.14-rc3.orig/drivers/hwmon/ds1621.c	2005-10-12 10:30:04.000000000 +0200
++++ linux-2.6.14-rc3/drivers/hwmon/ds1621.c	2005-10-12 15:30:29.000000000 +0200
+@@ -180,6 +180,8 @@
+ 
+ static int ds1621_attach_adapter(struct i2c_adapter *adapter)
+ {
++	if (!(adapter->class & I2C_CLASS_HWMON))
++		return 0;
+ 	return i2c_probe(adapter, &addr_data, ds1621_detect);
  }
  
- /* This function is called by i2c_probe */
--int pcf8574_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int pcf8574_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct pcf8574_data *data;
-diff --git a/drivers/i2c/chips/pcf8591.c b/drivers/i2c/chips/pcf8591.c
-index 3c815b1..ce420a6 100644
---- a/drivers/i2c/chips/pcf8591.c
-+++ b/drivers/i2c/chips/pcf8591.c
-@@ -166,7 +166,7 @@ static int pcf8591_attach_adapter(struct
- }
- 
- /* This function is called by i2c_probe */
--int pcf8591_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int pcf8591_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct pcf8591_data *data;
 
+-- 
+Jean Delvare
