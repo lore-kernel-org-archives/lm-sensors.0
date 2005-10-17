@@ -1,180 +1,129 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:30:59 +0000
-Subject: [lm-sensors] [PATCH] i2c: Fix i2c-elektor on Alpha
-Message-Id: <1130533661606@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 17 Oct 2005 22:37:41 +0000
+Subject: [lm-sensors] [PATCH 00/14] hwmon and i2c updates
+Message-Id: <20051017223757.7fe6672c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Fix i2c-elektor on Alpha
+Hi Greg,
 
-This patch updates the i2c-elektor driver, enabling it to compile
-cleanly, load and run.  The key change is that it uses the new
-__iomem/iowrite8/ioread8 functions to abstract the direct or
-memory-mapped variants of register access.  Also, the original driver
-would crash on module load on the Alpha because the PCI memory region
-was not remapped into kernel memory.
+Here comes a 14-piece hwmon and i2c update patchset. These are fixes I
+gathered in the last few weeks or wrote myself. Details are given in
+the header of each patch. None of these are meant for Linux 2.6.14. I'd
+like you to have them included in the next -mm releases so that they get
+enough testing and can be merged in Linux 2.6.15.
 
-I have managed the following testing:
+Here's the summary:
 
-* compiled and tested it on my Alpha UP2000+ system.
-* compiles cleanly for x86 but I don't have the hardware to test.
+Alessandro Zummo:
+ o New Xicor X1205 RTC driver
 
-Signed-off-by: Stig Telfer <stig@lizardlogic.co.uk>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Deepak Saxena:
+ o Mass kzalloc conversion
 
----
-commit 3634ff6a32e90d9db0ec19297e80059143c1aa7f
-tree c07cf34e839b70d9ab1c604b179943b199d542f3
-parent 00bffb6e29c5ef12cea7904905f8b959187076c9
-author Stig Telfer <stig@lizardlogic.co.uk> Sat, 08 Oct 2005 00:21:48 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:10 -0700
+Jean Delvare:
+ o Missing class check in two hwmon drivers
+ o More kzalloc cleanups
+ o i2c documentation update
 
- drivers/i2c/busses/i2c-elektor.c |   74 +++++++++++++++++++++++++-------------
- 1 files changed, 49 insertions(+), 25 deletions(-)
+Laurent Riffard:
+ o Owner field additions to many i2c drivers
 
-diff --git a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
-index 6930b66..75b4b44 100644
---- a/drivers/i2c/busses/i2c-elektor.c
-+++ b/drivers/i2c/busses/i2c-elektor.c
-@@ -46,6 +46,8 @@
- #define DEFAULT_BASE 0x330
- 
- static int base;
-+static u8 __iomem *base_iomem;
-+
- static int irq;
- static int clock  = 0x1c;
- static int own    = 0x55;
-@@ -64,36 +66,27 @@ static spinlock_t lock;
- 
- static void pcf_isa_setbyte(void *data, int ctl, int val)
- {
--	int address = ctl ? (base + 1) : base;
-+	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
- 
- 	/* enable irq if any specified for serial operation */
- 	if (ctl && irq && (val & I2C_PCF_ESO)) {
- 		val |= I2C_PCF_ENI;
- 	}
- 
--	pr_debug("i2c-elektor: Write 0x%X 0x%02X\n", address, val & 255);
--
--	switch (mmapped) {
--	case 0: /* regular I/O */
--		outb(val, address);
--		break;
--	case 2: /* double mapped I/O needed for UP2000 board,
--                   I don't know why this... */
--		writeb(val, (void *)address);
--		/* fall */
--	case 1: /* memory mapped I/O */
--		writeb(val, (void *)address);
--		break;
--	}
-+	pr_debug("i2c-elektor: Write %p 0x%02X\n", address, val);
-+	iowrite8(val, address);
-+#ifdef __alpha__
-+	/* API UP2000 needs some hardware fudging to make the write stick */
-+	iowrite8(val, address);
-+#endif
- }
- 
- static int pcf_isa_getbyte(void *data, int ctl)
- {
--	int address = ctl ? (base + 1) : base;
--	int val = mmapped ? readb((void *)address) : inb(address);
--
--	pr_debug("i2c-elektor: Read 0x%X 0x%02X\n", address, val);
-+	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
-+	int val = ioread8(address);
- 
-+	pr_debug("i2c-elektor: Read %p 0x%02X\n", address, val);
- 	return (val);
- }
- 
-@@ -155,7 +148,30 @@ static int pcf_isa_init(void)
- 			       "is in use.\n", base);
- 			return -ENODEV;
- 		}
-+		base_iomem = ioport_map(base, 2);
-+		if (!base_iomem) {
-+			printk(KERN_ERR "i2c-elektor: remap of I/O region "
-+			       "%#x failed\n", base);
-+			release_region(base, 2);
-+			return -ENODEV;
-+		}
-+	} else {
-+		if (!request_mem_region(base, 2, "i2c-elektor")) {
-+			printk(KERN_ERR "i2c-elektor: requested memory region "
-+			       "(%#x:2) is in use\n", base);
-+			return -ENODEV;
-+		}
-+		base_iomem = ioremap(base, 2);
-+		if (base_iomem = NULL) {
-+			printk(KERN_ERR "i2c-elektor: remap of memory region "
-+			       "%#x failed\n", base);
-+			release_mem_region(base, 2);
-+			return -ENODEV;
-+		}
- 	}
-+	pr_debug("i2c-elektor: registers %#x remapped to %p\n", base,
-+		 base_iomem);
-+
- 	if (irq > 0) {
- 		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
- 			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
-@@ -200,7 +216,7 @@ static int __init i2c_pcfisa_init(void) 
- 		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ, 
- 					   PCI_DEVICE_ID_CONTAQ_82C693, NULL);
- 		if (cy693_dev) {
--			char config;
-+			unsigned char config;
- 			/* yeap, we've found cypress, let's check config */
- 			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
- 				
-@@ -219,9 +235,7 @@ static int __init i2c_pcfisa_init(void) 
- 				if ((config & 0x7f) = 0x61) {
- 					/* seems to be UP2000 like board */
- 					base = 0xe0000;
--                                        /* I don't know why we need to
--                                           write twice */
--					mmapped = 2;
-+					mmapped = 1;
-                                         /* UP2000 drives ISA with
- 					   8.25 MHz (PCI/4) clock
- 					   (this can be read from cypress) */
-@@ -262,8 +276,13 @@ static int __init i2c_pcfisa_init(void) 
- 		free_irq(irq, NULL);
- 	}
- 
--	if (!mmapped)
-+	if (!mmapped) {
-+		ioport_unmap(base_iomem);
- 		release_region(base , 2);
-+	} else {
-+		iounmap(base_iomem);
-+		release_mem_region(base, 2);
-+	}
- 	return -ENODEV;
- }
- 
-@@ -276,8 +295,13 @@ static void i2c_pcfisa_exit(void)
- 		free_irq(irq, NULL);
- 	}
- 
--	if (!mmapped)
-+	if (!mmapped) {
-+		ioport_unmap(base_iomem);
- 		release_region(base , 2);
-+	} else {
-+		iounmap(base_iomem);
-+		release_mem_region(base, 2);
-+	}
- }
- 
- MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
+Mark M. Hoffman:
+ o New device ID for the smsc47b397 driver
 
+Statistics:
+
+ Documentation/hwmon/smsc47b397        |    8 +
+ Documentation/i2c/chips/x1205         |   38 ++
+ Documentation/i2c/porting-clients     |    2 
+ Documentation/i2c/writing-clients     |   16 -
+ drivers/hwmon/adm1021.c               |    3 -
+ drivers/hwmon/adm1025.c               |    3 -
+ drivers/hwmon/adm1026.c               |    4 -
+ drivers/hwmon/adm1031.c               |    3 -
+ drivers/hwmon/asb100.c                |   11 -
+ drivers/hwmon/atxp1.c                 |    5 +
+ drivers/hwmon/ds1621.c                |    5 +
+ drivers/hwmon/fscher.c                |    3 -
+ drivers/hwmon/fscpos.c                |    3 -
+ drivers/hwmon/gl518sm.c               |    3 -
+ drivers/hwmon/gl520sm.c               |    3 -
+ drivers/hwmon/it87.c                  |    3 -
+ drivers/hwmon/lm63.c                  |    3 -
+ drivers/hwmon/lm75.c                  |    3 -
+ drivers/hwmon/lm77.c                  |    3 -
+ drivers/hwmon/lm78.c                  |    3 -
+ drivers/hwmon/lm80.c                  |    3 -
+ drivers/hwmon/lm83.c                  |    3 -
+ drivers/hwmon/lm85.c                  |    3 -
+ drivers/hwmon/lm87.c                  |    3 -
+ drivers/hwmon/lm90.c                  |    3 -
+ drivers/hwmon/lm92.c                  |    3 -
+ drivers/hwmon/max1619.c               |    3 -
+ drivers/hwmon/pc87360.c               |    3 -
+ drivers/hwmon/sis5595.c               |    3 -
+ drivers/hwmon/smsc47b397.c            |   10 
+ drivers/hwmon/smsc47m1.c              |    3 -
+ drivers/hwmon/via686a.c               |    3 -
+ drivers/hwmon/w83627ehf.c             |    3 -
+ drivers/hwmon/w83627hf.c              |    3 -
+ drivers/hwmon/w83781d.c               |   10 -
+ drivers/hwmon/w83792d.c               |    6 -
+ drivers/hwmon/w83l785ts.c             |    4 -
+ drivers/i2c/busses/i2c-ali1535.c      |    1 +
+ drivers/i2c/busses/i2c-ali1563.c      |    1 +
+ drivers/i2c/busses/i2c-ali15x3.c      |    1 +
+ drivers/i2c/busses/i2c-amd756-s4882.c |    4 
+ drivers/i2c/busses/i2c-amd756.c       |    1 +
+ drivers/i2c/busses/i2c-amd8111.c      |    4 
+ drivers/i2c/busses/i2c-hydra.c        |    1 +
+ drivers/i2c/busses/i2c-i801.c         |    1 +
+ drivers/i2c/busses/i2c-i810.c         |    1 +
+ drivers/i2c/busses/i2c-ibm_iic.c      |    3 -
+ drivers/i2c/busses/i2c-iop3xx.c       |    7 -
+ drivers/i2c/busses/i2c-isa.c          |    1 +
+ drivers/i2c/busses/i2c-ixp2000.c      |    4 
+ drivers/i2c/busses/i2c-ixp4xx.c       |    4 
+ drivers/i2c/busses/i2c-keywest.c      |    5 +
+ drivers/i2c/busses/i2c-mpc.c          |    4 
+ drivers/i2c/busses/i2c-mv64xxx.c      |    6 -
+ drivers/i2c/busses/i2c-nforce2.c      |    5 -
+ drivers/i2c/busses/i2c-parport.c      |    5 -
+ drivers/i2c/busses/i2c-piix4.c        |    1 +
+ drivers/i2c/busses/i2c-pmac-smu.c     |    3 -
+ drivers/i2c/busses/i2c-prosavage.c    |    5 -
+ drivers/i2c/busses/i2c-s3c2410.c      |    2 +
+ drivers/i2c/busses/i2c-savage4.c      |    1 +
+ drivers/i2c/busses/i2c-sis5595.c      |    1 +
+ drivers/i2c/busses/i2c-sis630.c       |    1 +
+ drivers/i2c/busses/i2c-sis96x.c       |    1 +
+ drivers/i2c/busses/i2c-via.c          |    1 +
+ drivers/i2c/busses/i2c-viapro.c       |    1 +
+ drivers/i2c/busses/i2c-voodoo3.c      |    1 +
+ drivers/i2c/busses/scx200_acb.c       |    3 -
+ drivers/i2c/chips/Kconfig             |    9 +
+ drivers/i2c/chips/Makefile            |    1 +
+ drivers/i2c/chips/ds1337.c            |    3 -
+ drivers/i2c/chips/ds1374.c            |    3 -
+ drivers/i2c/chips/eeprom.c            |    3 -
+ drivers/i2c/chips/isp1301_omap.c      |    1 +
+ drivers/i2c/chips/m41t00.c            |    3 -
+ drivers/i2c/chips/max6875.c           |    6 -
+ drivers/i2c/chips/pca9539.c           |    3 -
+ drivers/i2c/chips/pcf8574.c           |    3 -
+ drivers/i2c/chips/pcf8591.c           |    3 -
+ drivers/i2c/chips/rtc8564.c           |    3 -
+ drivers/i2c/chips/tps65010.c          |    3 -
+ drivers/i2c/chips/x1205.c             |  698 ++++++++++++++++++++++++++++++++++
+ drivers/i2c/i2c-core.c                |    3 +
+ drivers/i2c/i2c-dev.c                 |    3 -
+ include/linux/x1205.h                 |   31 ++
+ 85 files changed, 897 insertions(+), 156 deletions(-)
+
+Thanks,
+-- 
+Jean Delvare
