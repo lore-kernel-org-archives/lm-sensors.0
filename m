@@ -1,87 +1,113 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 23:01:28 +0000
-Subject: [lm-sensors] [PATCH 06/14] hwmon: New device ID for the smsc47b397
-Message-Id: <20051017230145.4a7fdf44.khali@linux-fr.org>
+Date: Mon, 17 Oct 2005 22:51:19 +0000
+Subject: [lm-sensors] [PATCH 02/14] Owner field additions to many i2c
+Message-Id: <20051017225137.75a0adfb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Content-Disposition: inline; filename=hwmon-smsc47b397-new-id.patch
+From: Laurent Riffard <laurent.riffard@free.fr>
+Content-Disposition: inline; filename=i2c-owner-field-02-struct-device-driver.patch
 
-This patch adds a new ID to the SMSC LPC47B397-NC hardware
-monitoring driver - for a chip that is claimed to be 100%
-compatible otherwise.
+This patch updates the .owner field for various struct xxxx_driver variables,
+other than pci_driver.
 
-Signed-off-by: Bryan Young (Utilitek Systems, Inc.)
-Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+Signed-off-by: Jean Delvare <khali@linux-fr>
+Acked-by: Mark A. Greer <mgreer@mvista.com>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
+Acked-by: Deepak Saxena <dsaxena@mvista.com>
 
 ---
- Documentation/hwmon/smsc47b397 |    8 ++++++--
- drivers/hwmon/smsc47b397.c     |    7 ++++---
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-iop3xx.c  |    1 +
+ drivers/i2c/busses/i2c-ixp2000.c |    1 +
+ drivers/i2c/busses/i2c-ixp4xx.c  |    1 +
+ drivers/i2c/busses/i2c-mpc.c     |    1 +
+ drivers/i2c/busses/i2c-mv64xxx.c |    1 +
+ drivers/i2c/busses/i2c-s3c2410.c |    2 ++
+ drivers/i2c/chips/isp1301_omap.c |    1 +
+ 7 files changed, 8 insertions(+)
 
---- linux-2.6.14-rc4.orig/drivers/hwmon/smsc47b397.c	2005-09-13 21:21:06.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/hwmon/smsc47b397.c	2005-10-12 20:09:13.000000000 +0200
-@@ -299,7 +299,7 @@
- 	superio_enter();
- 	id = superio_inb(SUPERIO_REG_DEVID);
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-iop3xx.c	2005-10-07 19:56:10.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-iop3xx.c	2005-10-08 16:43:17.000000000 +0200
+@@ -525,6 +525,7 @@
  
--	if (id != 0x6f) {
-+	if ((id != 0x6f) && (id != 0x81)) {
- 		superio_exit();
- 		return -ENODEV;
- 	}
-@@ -310,8 +310,9 @@
- 	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
- 		 |  superio_inb(SUPERIO_REG_BASE_LSB);
  
--	printk(KERN_INFO "smsc47b397: found SMSC LPC47B397-NC "
--		"(base address 0x%04x, revision %u)\n", *addr, rev);
-+	printk(KERN_INFO "smsc47b397: found SMSC %s "
-+		"(base address 0x%04x, revision %u)\n",
-+		id = 0x81 ? "SCH5307-NS" : "LPC47B397-NC", *addr, rev);
+ static struct device_driver iop3xx_i2c_driver = {
++	.owner		= THIS_MODULE,
+ 	.name		= "IOP3xx-I2C",
+ 	.bus		= &platform_bus_type,
+ 	.probe		= iop3xx_i2c_probe,
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-ixp2000.c	2005-10-07 20:15:52.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-ixp2000.c	2005-10-08 16:43:17.000000000 +0200
+@@ -146,6 +146,7 @@
+ }
  
- 	superio_exit();
- 	return 0;
---- linux-2.6.14-rc4.orig/Documentation/hwmon/smsc47b397	2005-08-29 20:34:46.000000000 +0200
-+++ linux-2.6.14-rc4/Documentation/hwmon/smsc47b397	2005-10-12 20:09:13.000000000 +0200
-@@ -3,6 +3,7 @@
+ static struct device_driver ixp2000_i2c_driver = {
++	.owner		= THIS_MODULE,
+ 	.name		= "IXP2000-I2C",
+ 	.bus		= &platform_bus_type,
+ 	.probe		= ixp2000_i2c_probe,
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-ixp4xx.c	2005-10-07 20:15:52.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-ixp4xx.c	2005-10-08 16:43:17.000000000 +0200
+@@ -155,6 +155,7 @@
+ }
  
- Supported chips:
-   * SMSC LPC47B397-NC
-+  * SMSC SCH5307-NS
-     Prefix: 'smsc47b397'
-     Addresses scanned: none, address read from Super I/O config space
-     Datasheet: In this file
-@@ -12,11 +13,14 @@
+ static struct device_driver ixp4xx_i2c_driver = {
++	.owner		= THIS_MODULE,
+ 	.name		= "IXP4XX-I2C",
+ 	.bus		= &platform_bus_type,
+ 	.probe		= ixp4xx_i2c_probe,
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-mpc.c	2005-10-07 19:56:10.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-mpc.c	2005-10-08 16:43:17.000000000 +0200
+@@ -361,6 +361,7 @@
  
- November 23, 2004
+ /* Structure for a device driver */
+ static struct device_driver fsl_i2c_driver = {
++	.owner = THIS_MODULE,
+ 	.name = "fsl-i2c",
+ 	.bus = &platform_bus_type,
+ 	.probe = fsl_i2c_probe,
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-mv64xxx.c	2005-10-07 19:56:10.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-mv64xxx.c	2005-10-08 16:43:17.000000000 +0200
+@@ -570,6 +570,7 @@
+ }
  
--The following specification describes the SMSC LPC47B397-NC sensor chip
-+The following specification describes the SMSC LPC47B397-NC[1] sensor chip
- (for which there is no public datasheet available). This document was
- provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
- by Mark M. Hoffman <mhoffman@lightlink.com>.
+ static struct device_driver mv64xxx_i2c_driver = {
++	.owner	= THIS_MODULE,
+ 	.name	= MV64XXX_I2C_CTLR_NAME,
+ 	.bus	= &platform_bus_type,
+ 	.probe	= mv64xxx_i2c_probe,
+--- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-s3c2410.c	2005-10-07 19:56:10.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-s3c2410.c	2005-10-08 16:43:18.000000000 +0200
+@@ -898,6 +898,7 @@
+ /* device driver for platform bus bits */
  
-+[1] And SMSC SCH5307-NS, which has a different device ID but is otherwise
-+compatible.
-+
- * * * * *
+ static struct device_driver s3c2410_i2c_driver = {
++	.owner		= THIS_MODULE,
+ 	.name		= "s3c2410-i2c",
+ 	.bus		= &platform_bus_type,
+ 	.probe		= s3c24xx_i2c_probe,
+@@ -906,6 +907,7 @@
+ };
  
- Methods for detecting the HP SIO and reading the thermal data on a dc7100.
-@@ -127,7 +131,7 @@
- The registers of interest for identifying the SIO on the dc7100 are Device ID
- (0x20) and Device Rev  (0x21).
+ static struct device_driver s3c2440_i2c_driver = {
++	.owner		= THIS_MODULE,
+ 	.name		= "s3c2440-i2c",
+ 	.bus		= &platform_bus_type,
+ 	.probe		= s3c24xx_i2c_probe,
+--- linux-2.6.14-rc3.orig/drivers/i2c/chips/isp1301_omap.c	2005-10-07 19:56:10.000000000 +0200
++++ linux-2.6.14-rc3/drivers/i2c/chips/isp1301_omap.c	2005-10-08 16:43:18.000000000 +0200
+@@ -888,6 +888,7 @@
+ }
  
--The Device ID will read 0X6F
-+The Device ID will read 0x6F (for SCH5307-NS, 0x81)
- The Device Rev currently reads 0x01
- 
- Obtaining the HWM Base Address.
+ struct device_driver omap_otg_driver = {
++	.owner		= THIS_MODULE,
+ 	.name		= "omap_otg",
+ 	.bus		= &platform_bus_type,
+ 	.probe		= otg_probe,
 
 -- 
 Jean Delvare
