@@ -1,102 +1,87 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:10:28 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Static function fixes, 2 of 4
-Message-Id: <11305336633202@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 17 Oct 2005 23:01:28 +0000
+Subject: [lm-sensors] [PATCH 06/14] hwmon: New device ID for the smsc47b397
+Message-Id: <20051017230145.4a7fdf44.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: Static function fixes, 2 of 4
+From: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Content-Disposition: inline; filename=hwmon-smsc47b397-new-id.patch
 
-lm78.c and lm85.c have a number of items declared static
-then implemented without the static on them. The following
-patch fixes these sparse errors.
+This patch adds a new ID to the SMSC LPC47B397-NC hardware
+monitoring driver - for a chip that is claimed to be 100%
+compatible otherwise.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Bryan Young (Utilitek Systems, Inc.)
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit d8d2061590c87c20bf78133461bc74df78803ecb
-tree 39ca3da820be362cabfff53f9d5446f6c3dc8059
-parent 6536c49a1ee2bd85eee0e7fa41e67c5743f2f93e
-author Ben Dooks <ben-linux@fluff.org> Wed, 26 Oct 2005 21:05:46 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:13 -0700
+ Documentation/hwmon/smsc47b397 |    8 ++++++--
+ drivers/hwmon/smsc47b397.c     |    7 ++++---
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
- drivers/hwmon/lm78.c |    2 +-
- drivers/hwmon/lm85.c |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+--- linux-2.6.14-rc4.orig/drivers/hwmon/smsc47b397.c	2005-09-13 21:21:06.000000000 +0200
++++ linux-2.6.14-rc4/drivers/hwmon/smsc47b397.c	2005-10-12 20:09:13.000000000 +0200
+@@ -299,7 +299,7 @@
+ 	superio_enter();
+ 	id = superio_inb(SUPERIO_REG_DEVID);
+ 
+-	if (id != 0x6f) {
++	if ((id != 0x6f) && (id != 0x81)) {
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+@@ -310,8 +310,9 @@
+ 	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
+ 		 |  superio_inb(SUPERIO_REG_BASE_LSB);
+ 
+-	printk(KERN_INFO "smsc47b397: found SMSC LPC47B397-NC "
+-		"(base address 0x%04x, revision %u)\n", *addr, rev);
++	printk(KERN_INFO "smsc47b397: found SMSC %s "
++		"(base address 0x%04x, revision %u)\n",
++		id = 0x81 ? "SCH5307-NS" : "LPC47B397-NC", *addr, rev);
+ 
+ 	superio_exit();
+ 	return 0;
+--- linux-2.6.14-rc4.orig/Documentation/hwmon/smsc47b397	2005-08-29 20:34:46.000000000 +0200
++++ linux-2.6.14-rc4/Documentation/hwmon/smsc47b397	2005-10-12 20:09:13.000000000 +0200
+@@ -3,6 +3,7 @@
+ 
+ Supported chips:
+   * SMSC LPC47B397-NC
++  * SMSC SCH5307-NS
+     Prefix: 'smsc47b397'
+     Addresses scanned: none, address read from Super I/O config space
+     Datasheet: In this file
+@@ -12,11 +13,14 @@
+ 
+ November 23, 2004
+ 
+-The following specification describes the SMSC LPC47B397-NC sensor chip
++The following specification describes the SMSC LPC47B397-NC[1] sensor chip
+ (for which there is no public datasheet available). This document was
+ provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
+ by Mark M. Hoffman <mhoffman@lightlink.com>.
+ 
++[1] And SMSC SCH5307-NS, which has a different device ID but is otherwise
++compatible.
++
+ * * * * *
+ 
+ Methods for detecting the HP SIO and reading the thermal data on a dc7100.
+@@ -127,7 +131,7 @@
+ The registers of interest for identifying the SIO on the dc7100 are Device ID
+ (0x20) and Device Rev  (0x21).
+ 
+-The Device ID will read 0X6F
++The Device ID will read 0x6F (for SCH5307-NS, 0x81)
+ The Device Rev currently reads 0x01
+ 
+ Obtaining the HWM Base Address.
 
-diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
-index 9244623..bde0cda 100644
---- a/drivers/hwmon/lm78.c
-+++ b/drivers/hwmon/lm78.c
-@@ -480,7 +480,7 @@ static int lm78_isa_attach_adapter(struc
- }
- 
- /* This function is called by i2c_probe */
--int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int lm78_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i, err;
- 	struct i2c_client *new_client;
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-index d5537a5..d1070ed 100644
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -1007,14 +1007,14 @@ temp_auto(1);
- temp_auto(2);
- temp_auto(3);
- 
--int lm85_attach_adapter(struct i2c_adapter *adapter)
-+static int lm85_attach_adapter(struct i2c_adapter *adapter)
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
- 		return 0;
- 	return i2c_probe(adapter, &addr_data, lm85_detect);
- }
- 
--int lm85_detect(struct i2c_adapter *adapter, int address,
-+static int lm85_detect(struct i2c_adapter *adapter, int address,
- 		int kind)
- {
- 	int company, verstep ;
-@@ -1235,7 +1235,7 @@ int lm85_detect(struct i2c_adapter *adap
- 	return err;
- }
- 
--int lm85_detach_client(struct i2c_client *client)
-+static int lm85_detach_client(struct i2c_client *client)
- {
- 	struct lm85_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->class_dev);
-@@ -1245,7 +1245,7 @@ int lm85_detach_client(struct i2c_client
- }
- 
- 
--int lm85_read_value(struct i2c_client *client, u8 reg)
-+static int lm85_read_value(struct i2c_client *client, u8 reg)
- {
- 	int res;
- 
-@@ -1275,7 +1275,7 @@ int lm85_read_value(struct i2c_client *c
- 	return res ;
- }
- 
--int lm85_write_value(struct i2c_client *client, u8 reg, int value)
-+static int lm85_write_value(struct i2c_client *client, u8 reg, int value)
- {
- 	int res ;
- 
-@@ -1304,7 +1304,7 @@ int lm85_write_value(struct i2c_client *
- 	return res ;
- }
- 
--void lm85_init_client(struct i2c_client *client)
-+static void lm85_init_client(struct i2c_client *client)
- {
- 	int value;
- 	struct lm85_data *data = i2c_get_clientdata(client);
-
+-- 
+Jean Delvare
