@@ -1,107 +1,48 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:04:10 +0000
-Subject: [lm-sensors] [PATCH] hwmon: lm90 documentation update
-Message-Id: <1130533664625@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 17 Oct 2005 23:12:19 +0000
+Subject: [lm-sensors] [PATCH 12/14] i2c: kzalloc cleanups, 1 of 2
+Message-Id: <20051017231236.111e196d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: lm90 documentation update
+Content-Disposition: inline; filename=kzalloc-04-drop-useless-casts.patch
 
-Update the I2C addresses for the ADM1032 and ADT7461 chips.
-Also update the links to the Analog Devices web site.
+Drop useless casts on kzalloc returned values, as suggested by
+Jiri Slaby.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 90209b42d0498d57a804bf81fea427bf39c5315c
-tree e6668317e71a45ed585ecdb27eafa0b285dc9f33
-parent c3df5806cdae6fac678c662b527cb974bef4b60c
-author Jean Delvare <khali@linux-fr.org> Wed, 26 Oct 2005 22:20:21 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:14 -07=
-00
+ drivers/i2c/busses/i2c-keywest.c |    2 +-
+ drivers/i2c/busses/i2c-nforce2.c |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
- Documentation/hwmon/lm90 |    8 ++++----
- drivers/hwmon/lm90.c     |   16 +++++++---------
- 2 files changed, 11 insertions(+), 13 deletions(-)
+--- linux-2.6.14-rc4.orig/drivers/i2c/busses/i2c-keywest.c	2005-10-13 22:21:36.000000000 +0200
++++ linux-2.6.14-rc4/drivers/i2c/busses/i2c-keywest.c	2005-10-13 22:46:35.000000000 +0200
+@@ -535,7 +535,7 @@
+ 
+ 	tsize = sizeof(struct keywest_iface) +
+ 		(sizeof(struct keywest_chan) + 4) * nchan;
+-	iface = (struct keywest_iface *) kzalloc(tsize, GFP_KERNEL);
++	iface = kzalloc(tsize, GFP_KERNEL);
+ 	if (iface = NULL) {
+ 		printk(KERN_ERR "i2c-keywest: can't allocate inteface !\n");
+ 		pmac_low_i2c_unlock(np);
+--- linux-2.6.14-rc4.orig/drivers/i2c/busses/i2c-nforce2.c	2005-10-13 22:21:36.000000000 +0200
++++ linux-2.6.14-rc4/drivers/i2c/busses/i2c-nforce2.c	2005-10-13 22:46:22.000000000 +0200
+@@ -313,8 +313,7 @@
+ 	int res1, res2;
+ 
+ 	/* we support 2 SMBus adapters */
+-	if (!(smbuses = (void *)kzalloc(2*sizeof(struct nforce2_smbus),
+-				       	GFP_KERNEL)))
++	if (!(smbuses = kzalloc(2*sizeof(struct nforce2_smbus), GFP_KERNEL)))
+ 		return -ENOMEM;
+ 	pci_set_drvdata(dev, smbuses);
+ 
 
-diff --git a/Documentation/hwmon/lm90 b/Documentation/hwmon/lm90
-index 70abf93..438cb24 100644
---- a/Documentation/hwmon/lm90
-+++ b/Documentation/hwmon/lm90
-@@ -24,14 +24,14 @@ Supported chips:
-                http://www.national.com/pf/LM/LM86.html
-   * Analog Devices ADM1032
-     Prefix: 'adm1032'
--    Addresses scanned: I2C 0x4c
-+    Addresses scanned: I2C 0x4c and 0x4d
-     Datasheet: Publicly available at the Analog Devices website
--               http://products.analog.com/products/info.asp?product=ADM1032
-+               http://www.analog.com/en/prod/0,2877,ADM1032,00.html
-   * Analog Devices ADT7461
-     Prefix: 'adt7461'
--    Addresses scanned: I2C 0x4c
-+    Addresses scanned: I2C 0x4c and 0x4d
-     Datasheet: Publicly available at the Analog Devices website
--               http://products.analog.com/products/info.asp?product=ADT7461
-+               http://www.analog.com/en/prod/0,2877,ADT7461,00.html
-     Note: Only if in ADM1032 compatibility mode
-   * Maxim MAX6657
-     Prefix: 'max6657'
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index fa0793e..83cf2e1 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -31,7 +31,7 @@
-  * Devices. That chip is similar to the LM90, with a few differences
-  * that are not handled by this driver. Complete datasheet can be
-  * obtained from Analog's website at:
-- *   http://products.analog.com/products/info.asp?product=ADM1032
-+ *   http://www.analog.com/en/prod/0,2877,ADM1032,00.html
-  * Among others, it has a higher accuracy than the LM90, much like the
-  * LM86 does.
-  *
-@@ -49,7 +49,7 @@
-  * register values are decoded differently) it is ignored by this
-  * driver. Complete datasheet can be obtained from Analog's website
-  * at:
-- *   http://products.analog.com/products/info.asp?product=ADT7461
-+ *   http://www.analog.com/en/prod/0,2877,ADT7461,00.html
-  *
-  * Since the LM90 was the first chipset supported by this driver, most
-  * comments will refer to this chipset, but are actually general and
-@@ -83,10 +83,10 @@
-  * Addresses to scan
-  * Address is fully defined internally and cannot be changed except for
-  * MAX6659.
-- * LM86, LM89, LM90, LM99, ADM1032, MAX6657 and MAX6658 have address 0x4c.
-- * LM89-1, and LM99-1 have address 0x4d.
-+ * LM86, LM89, LM90, LM99, ADM1032, ADM1032-1, ADT7461, MAX6657 and MAX6658
-+ * have address 0x4c.
-+ * ADM1032-2, ADT7461-2, LM89-1, and LM99-1 have address 0x4d.
-  * MAX6659 can have address 0x4c, 0x4d or 0x4e (unsupported).
-- * ADT7461 always has address 0x4c.
-  */
-=20
- static unsigned short normal_i2c[] =3D { 0x4c, 0x4d, I2C_CLIENT_END };
-@@ -500,14 +500,12 @@ static int lm90_detect(struct i2c_adapte
- 			}
- 		} else
- 		if (man_id =3D 0x41) { /* Analog Devices */
--			if (address =3D 0x4C
--			 && (chip_id & 0xF0) =3D 0x40 /* ADM1032 */
-+			if ((chip_id & 0xF0) =3D 0x40 /* ADM1032 */
- 			 && (reg_config1 & 0x3F) =3D 0x00
- 			 && reg_convrate <=3D 0x0A) {
- 				kind =3D adm1032;
- 			} else
--			if (address =3D 0x4c
--			 && chip_id =3D 0x51 /* ADT7461 */
-+			if (chip_id =3D 0x51 /* ADT7461 */
- 			 && (reg_config1 & 0x1F) =3D 0x00 /* check compat mode */
- 			 && reg_convrate <=3D 0x0A) {
- 				kind =3D adt7461;
-
+-- 
+Jean Delvare
