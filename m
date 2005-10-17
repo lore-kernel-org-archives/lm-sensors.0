@@ -1,84 +1,149 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 23:16:07 +0000
-Subject: [lm-sensors] [PATCH 14/14] i2c: Documentation update
-Message-Id: <20051017231625.6ea8183f.khali@linux-fr.org>
+From: ben@fluff.org.uk (Ben Dooks)
+Date: Mon, 17 Oct 2005 23:05:30 +0000
+Subject: [lm-sensors] [PATCH] drivers/hwmon - fix static function
+Message-Id: <20051017210412.GA7485@home.fluff.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=kzalloc-06-i2c-documentation-update.patch
+Fixup functions that have been declared static
+and then actually defined without the static on
 
-Update the i2c documentation: kzalloc should be used instead of
-kmalloc.
+ adm1026.c |   18 +++++++++---------
+ ds1621.c  |    4 ++--
+ fscpos.c  |    2 +-
+ it87.c    |    2 +-
+ lm80.c    |    2 +-
+ 5 files changed, 14 insertions(+), 14 deletions(-)
 
-I also fixed a couple other things nearby in writing-clients, as several
-past changes had never been reported there.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-
----
- Documentation/i2c/porting-clients |    2 +-
- Documentation/i2c/writing-clients |   16 +++++-----------
- 2 files changed, 6 insertions(+), 12 deletions(-)
-
---- linux-2.6.14-rc4.orig/Documentation/i2c/writing-clients	2005-10-13 23:14:21.000000000 +0200
-+++ linux-2.6.14-rc4/Documentation/i2c/writing-clients	2005-10-13 23:15:45.000000000 +0200
-@@ -55,6 +55,7 @@
- An example structure is below.
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+-------------- next part --------------
+diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/adm1026.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/adm1026.c
+--- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/adm1026.c	2005-10-11 10:56:32.000000000 +0100
++++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/adm1026.c	2005-10-17 21:55:21.000000000 +0100
+@@ -315,7 +315,7 @@ static struct i2c_driver adm1026_driver 
+ 	.detach_client  = adm1026_detach_client,
+ };
  
-   struct foo_data {
-+    struct i2c_client client;
-     struct semaphore lock; /* For ISA access in `sensors' drivers. */
-     int sysctl_id;         /* To keep the /proc directory entry for 
-                               `sensors' drivers. */
-@@ -307,22 +308,15 @@
-        client structure, even though we cannot fill it completely yet.
-        But it allows us to access several i2c functions safely */
-     
--    /* Note that we reserve some space for foo_data too. If you don't
--       need it, remove it. We do it here to help to lessen memory
--       fragmentation. */
--    if (! (new_client = kmalloc(sizeof(struct i2c_client) + 
--                                sizeof(struct foo_data),
--                                GFP_KERNEL))) {
-+    if (!(data = kzalloc(sizeof(struct foo_data), GFP_KERNEL))) {
-       err = -ENOMEM;
-       goto ERROR0;
-     }
+-int adm1026_attach_adapter(struct i2c_adapter *adapter)
++static int adm1026_attach_adapter(struct i2c_adapter *adapter)
+ {
+ 	if (!(adapter->class & I2C_CLASS_HWMON)) {
+ 		return 0;
+@@ -323,7 +323,7 @@ int adm1026_attach_adapter(struct i2c_ad
+ 	return i2c_probe(adapter, &addr_data, adm1026_detect);
+ }
  
--    /* This is tricky, but it will set the data to the right value. */
--    client->data = new_client + 1;
--    data = (struct foo_data *) (client->data);
-+    new_client = &data->client;
-+    i2c_set_clientdata(new_client, data);
+-int adm1026_detach_client(struct i2c_client *client)
++static int adm1026_detach_client(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->class_dev);
+@@ -332,7 +332,7 @@ int adm1026_detach_client(struct i2c_cli
+ 	return 0;
+ }
  
-     new_client->addr = address;
--    new_client->data = data;
-     new_client->adapter = adapter;
-     new_client->driver = &foo_driver;
-     new_client->flags = 0;
-@@ -448,7 +442,7 @@
-       release_region(client->addr,LM78_EXTENT);
-     /* HYBRID SENSORS CHIP ONLY END */
+-int adm1026_read_value(struct i2c_client *client, u8 reg)
++static int adm1026_read_value(struct i2c_client *client, u8 reg)
+ {
+ 	int res;
  
--    kfree(client); /* Frees client data too, if allocated at the same time */
-+    kfree(data);
-     return 0;
-   }
+@@ -346,7 +346,7 @@ int adm1026_read_value(struct i2c_client
+ 	return res;
+ }
  
---- linux-2.6.14-rc4.orig/Documentation/i2c/porting-clients	2005-09-13 21:20:58.000000000 +0200
-+++ linux-2.6.14-rc4/Documentation/i2c/porting-clients	2005-10-13 23:16:28.000000000 +0200
-@@ -82,7 +82,7 @@
-   exit and exit_free. For i2c+isa drivers, labels should be named
-   ERROR0, ERROR1 and ERROR2. Don't forget to properly set err before
-   jumping to error labels. By the way, labels should be left-aligned.
--  Use memset to fill the client and data area with 0x00.
-+  Use kzalloc instead of kmalloc.
-   Use i2c_set_clientdata to set the client data (as opposed to
-   a direct access to client->data).
-   Use strlcpy instead of strcpy to copy the client name.
-
--- 
-Jean Delvare
+-int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
++static int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
+ {
+ 	int res;
+ 
+@@ -360,7 +360,7 @@ int adm1026_write_value(struct i2c_clien
+ 	return res;
+ }
+ 
+-void adm1026_init_client(struct i2c_client *client)
++static void adm1026_init_client(struct i2c_client *client)
+ {
+ 	int value, i;
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+@@ -460,7 +460,7 @@ void adm1026_init_client(struct i2c_clie
+ 	}
+ }
+ 
+-void adm1026_print_gpio(struct i2c_client *client)
++static void adm1026_print_gpio(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int  i;
+@@ -492,7 +492,7 @@ void adm1026_print_gpio(struct i2c_clien
+ 	}
+ }
+ 
+-void adm1026_fixup_gpio(struct i2c_client *client)
++static void adm1026_fixup_gpio(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int  i;
+@@ -1452,8 +1452,8 @@ static DEVICE_ATTR(temp1_auto_point2_pwm
+ static DEVICE_ATTR(temp2_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
+ static DEVICE_ATTR(temp3_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
+ 
+-int adm1026_detect(struct i2c_adapter *adapter, int address,
+-		int kind)
++static int adm1026_detect(struct i2c_adapter *adapter, int address,
++			  int kind)
+ {
+ 	int company, verstep;
+ 	struct i2c_client *new_client;
+diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/ds1621.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/ds1621.c
+--- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/ds1621.c	2005-10-11 10:56:32.000000000 +0100
++++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/ds1621.c	2005-10-17 21:56:26.000000000 +0100
+@@ -184,8 +184,8 @@ static int ds1621_attach_adapter(struct 
+ }
+ 
+ /* This function is called by i2c_probe */
+-int ds1621_detect(struct i2c_adapter *adapter, int address,
+-                  int kind)
++static int ds1621_detect(struct i2c_adapter *adapter, int address,
++			 int kind)
+ {
+ 	int conf, temp;
+ 	struct i2c_client *new_client;
+diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/fscpos.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/fscpos.c
+--- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/fscpos.c	2005-10-11 10:56:32.000000000 +0100
++++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/fscpos.c	2005-10-17 21:56:49.000000000 +0100
+@@ -438,7 +438,7 @@ static int fscpos_attach_adapter(struct 
+ 	return i2c_probe(adapter, &addr_data, fscpos_detect);
+ }
+ 
+-int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
++static int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *new_client;
+ 	struct fscpos_data *data;
+diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/it87.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/it87.c
+--- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/it87.c	2005-10-11 10:56:32.000000000 +0100
++++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/it87.c	2005-10-17 21:57:11.000000000 +0100
+@@ -738,7 +738,7 @@ exit:
+ }
+ 
+ /* This function is called by i2c_probe */
+-int it87_detect(struct i2c_adapter *adapter, int address, int kind)
++static int it87_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i;
+ 	struct i2c_client *new_client;
+diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/lm80.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/lm80.c
+--- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/lm80.c	2005-10-11 10:56:32.000000000 +0100
++++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/lm80.c	2005-10-17 21:57:43.000000000 +0100
+@@ -393,7 +393,7 @@ static int lm80_attach_adapter(struct i2
+ 	return i2c_probe(adapter, &addr_data, lm80_detect);
+ }
+ 
+-int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
++static int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i, cur;
+ 	struct i2c_client *new_client;
