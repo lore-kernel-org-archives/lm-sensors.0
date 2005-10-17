@@ -1,266 +1,84 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:31:13 +0000
-Subject: [lm-sensors] [PATCH] i2c-viapro: Coding style fixes
-Message-Id: <11305336581001@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 17 Oct 2005 23:16:07 +0000
+Subject: [lm-sensors] [PATCH 14/14] i2c: Documentation update
+Message-Id: <20051017231625.6ea8183f.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c-viapro: Coding style fixes
+Content-Disposition: inline; filename=kzalloc-06-i2c-documentation-update.patch
 
-Before I go on cleaning up and improving the i2c-viapro driver, let's
-fix all the coding style issues: mostly trailing white space, and
-spaces used where tabs should be.
+Update the i2c documentation: kzalloc should be used instead of
+kmalloc.
 
-Signed-off-by: Jean Delvare <khali@linux-fr>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+I also fixed a couple other things nearby in writing-clients, as several
+past changes had never been reported there.
 
- Documentation/i2c/busses/i2c-viapro |   12 ++---
- drivers/i2c/busses/i2c-viapro.c     |   76 ++++++++++++++++++------------------
- 2 files changed, 43 insertions(+), 45 deletions(-)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
 ---
-commit 5f49ef8e8cefe0a95948b4270db28507c1c287d4
-tree ea50363d9480a9ccae000bd46633866561a62cea
-parent 32c0a520f506c046f241de2a3a9b02a395ef76d2
-author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 21:50:47 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
+ Documentation/i2c/porting-clients |    2 +-
+ Documentation/i2c/writing-clients |   16 +++++-----------
+ 2 files changed, 6 insertions(+), 12 deletions(-)
 
- Documentation/i2c/busses/i2c-viapro |   12 ++----
- drivers/i2c/busses/i2c-viapro.c     |   76 ++++++++++++++++++-----------------
- 2 files changed, 43 insertions(+), 45 deletions(-)
+--- linux-2.6.14-rc4.orig/Documentation/i2c/writing-clients	2005-10-13 23:14:21.000000000 +0200
++++ linux-2.6.14-rc4/Documentation/i2c/writing-clients	2005-10-13 23:15:45.000000000 +0200
+@@ -55,6 +55,7 @@
+ An example structure is below.
+ 
+   struct foo_data {
++    struct i2c_client client;
+     struct semaphore lock; /* For ISA access in `sensors' drivers. */
+     int sysctl_id;         /* To keep the /proc directory entry for 
+                               `sensors' drivers. */
+@@ -307,22 +308,15 @@
+        client structure, even though we cannot fill it completely yet.
+        But it allows us to access several i2c functions safely */
+     
+-    /* Note that we reserve some space for foo_data too. If you don't
+-       need it, remove it. We do it here to help to lessen memory
+-       fragmentation. */
+-    if (! (new_client = kmalloc(sizeof(struct i2c_client) + 
+-                                sizeof(struct foo_data),
+-                                GFP_KERNEL))) {
++    if (!(data = kzalloc(sizeof(struct foo_data), GFP_KERNEL))) {
+       err = -ENOMEM;
+       goto ERROR0;
+     }
+ 
+-    /* This is tricky, but it will set the data to the right value. */
+-    client->data = new_client + 1;
+-    data = (struct foo_data *) (client->data);
++    new_client = &data->client;
++    i2c_set_clientdata(new_client, data);
+ 
+     new_client->addr = address;
+-    new_client->data = data;
+     new_client->adapter = adapter;
+     new_client->driver = &foo_driver;
+     new_client->flags = 0;
+@@ -448,7 +442,7 @@
+       release_region(client->addr,LM78_EXTENT);
+     /* HYBRID SENSORS CHIP ONLY END */
+ 
+-    kfree(client); /* Frees client data too, if allocated at the same time */
++    kfree(data);
+     return 0;
+   }
+ 
+--- linux-2.6.14-rc4.orig/Documentation/i2c/porting-clients	2005-09-13 21:20:58.000000000 +0200
++++ linux-2.6.14-rc4/Documentation/i2c/porting-clients	2005-10-13 23:16:28.000000000 +0200
+@@ -82,7 +82,7 @@
+   exit and exit_free. For i2c+isa drivers, labels should be named
+   ERROR0, ERROR1 and ERROR2. Don't forget to properly set err before
+   jumping to error labels. By the way, labels should be left-aligned.
+-  Use memset to fill the client and data area with 0x00.
++  Use kzalloc instead of kmalloc.
+   Use i2c_set_clientdata to set the client data (as opposed to
+   a direct access to client->data).
+   Use strlcpy instead of strcpy to copy the client name.
 
-diff --git a/Documentation/i2c/busses/i2c-viapro b/Documentation/i2c/busses/i2c-viapro
-index 702f5ac..ef0f1e9 100644
---- a/Documentation/i2c/busses/i2c-viapro
-+++ b/Documentation/i2c/busses/i2c-viapro
-@@ -4,17 +4,17 @@ Supported adapters:
-   * VIA Technologies, Inc. VT82C596A/B
-     Datasheet: Sometimes available at the VIA website
- 
--  * VIA Technologies, Inc. VT82C686A/B 
-+  * VIA Technologies, Inc. VT82C686A/B
-     Datasheet: Sometimes available at the VIA website
- 
-   * VIA Technologies, Inc. VT8231, VT8233, VT8233A, VT8235, VT8237
-     Datasheet: available on request from Via
- 
- Authors:
--	Frodo Looijaard <frodol@dds.nl>,  
--	Philip Edelbrock <phil@netroedge.com>, 
--	Ky?sti M?lkki <kmalkki@cc.hut.fi>, 
--	Mark D. Studebaker <mdsxyz123@yahoo.com> 
-+	Frodo Looijaard <frodol@dds.nl>,
-+	Philip Edelbrock <phil@netroedge.com>,
-+	Ky?sti M?lkki <kmalkki@cc.hut.fi>,
-+	Mark D. Studebaker <mdsxyz123@yahoo.com>
- 
- Module Parameters
- -----------------
-@@ -43,5 +43,3 @@ Your lspci -n listing must show one of t
- 
- If none of these show up, you should look in the BIOS for settings like
- enable ACPI / SMBus or even USB.
--
--
-diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
-index 99d209e..262755e 100644
---- a/drivers/i2c/busses/i2c-viapro.c
-+++ b/drivers/i2c/busses/i2c-viapro.c
-@@ -1,7 +1,7 @@
- /*
-     i2c-viapro.c - Part of lm_sensors, Linux kernel modules for hardware
-               monitoring
--    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>, 
-+    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
-     Philip Edelbrock <phil@netroedge.com>, Ky?sti M?lkki <kmalkki@cc.hut.fi>,
-     Mark D. Studebaker <mdsxyz123@yahoo.com>
- 
-@@ -46,9 +46,9 @@
- 
- static struct pci_dev *vt596_pdev;
- 
--#define SMBBA1	   	 0x90
--#define SMBBA2     	 0x80
--#define SMBBA3     	 0xD0
-+#define SMBBA1		0x90
-+#define SMBBA2		0x80
-+#define SMBBA3		0xD0
- 
- /* SMBus address offsets */
- static unsigned short vt596_smba;
-@@ -68,26 +68,26 @@ static unsigned short vt596_smba;
- /* PCI Address Constants */
- 
- /* SMBus data in configuration space can be found in two places,
--   We try to select the better one*/
-+   We try to select the better one */
- 
- static unsigned short smb_cf_hstcfg = 0xD2;
- 
--#define SMBHSTCFG   (smb_cf_hstcfg)
--#define SMBSLVC     (smb_cf_hstcfg + 1)
--#define SMBSHDW1    (smb_cf_hstcfg + 2)
--#define SMBSHDW2    (smb_cf_hstcfg + 3)
--#define SMBREV      (smb_cf_hstcfg + 4)
-+#define SMBHSTCFG	(smb_cf_hstcfg)
-+#define SMBSLVC		(smb_cf_hstcfg + 1)
-+#define SMBSHDW1	(smb_cf_hstcfg + 2)
-+#define SMBSHDW2	(smb_cf_hstcfg + 3)
-+#define SMBREV		(smb_cf_hstcfg + 4)
- 
- /* Other settings */
- #define MAX_TIMEOUT	500
- #define ENABLE_INT9	0
- 
- /* VT82C596 constants */
--#define VT596_QUICK      0x00
--#define VT596_BYTE       0x04
--#define VT596_BYTE_DATA  0x08
--#define VT596_WORD_DATA  0x0C
--#define VT596_BLOCK_DATA 0x14
-+#define VT596_QUICK		0x00
-+#define VT596_BYTE		0x04
-+#define VT596_BYTE_DATA		0x08
-+#define VT596_WORD_DATA		0x0C
-+#define VT596_BLOCK_DATA	0x14
- 
- 
- /* If force is set to anything different from 0, we forcibly enable the
-@@ -115,19 +115,19 @@ static int vt596_transaction(void)
- 	int timeout = 0;
- 
- 	dev_dbg(&vt596_adapter.dev, "Transaction (pre): CNT=%02x, CMD=%02x, "
--		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT), 
--		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
-+		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
-+		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
- 		inb_p(SMBHSTDAT1));
- 
- 	/* Make sure the SMBus host is ready to start transmitting */
- 	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
- 		dev_dbg(&vt596_adapter.dev, "SMBus busy (0x%02x). "
--				"Resetting...\n", temp);
--		
-+			"Resetting...\n", temp);
-+
- 		outb_p(temp, SMBHSTSTS);
- 		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
- 			dev_dbg(&vt596_adapter.dev, "Failed! (0x%02x)\n", temp);
--			
-+
- 			return -1;
- 		} else {
- 			dev_dbg(&vt596_adapter.dev, "Successfull!\n");
-@@ -137,7 +137,7 @@ static int vt596_transaction(void)
- 	/* start the transaction by setting bit 6 */
- 	outb_p(inb(SMBHSTCNT) | 0x040, SMBHSTCNT);
- 
--	/* We will always wait for a fraction of a second! 
-+	/* We will always wait for a fraction of a second!
- 	   I don't know if VIA needs this, Intel did  */
- 	do {
- 		msleep(1);
-@@ -177,16 +177,16 @@ static int vt596_transaction(void)
- 
- 	dev_dbg(&vt596_adapter.dev, "Transaction (post): CNT=%02x, CMD=%02x, "
- 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
--		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
-+		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
- 		inb_p(SMBHSTDAT1));
--	
-+
- 	return result;
- }
- 
- /* Return -1 on error. */
- static s32 vt596_access(struct i2c_adapter *adap, u16 addr,
--		unsigned short flags,  char read_write, u8 command,
--		int size,  union i2c_smbus_data *data)
-+		unsigned short flags, char read_write, u8 command,
-+		int size, union i2c_smbus_data *data)
- {
- 	int i, len;
- 
-@@ -256,7 +256,7 @@ static s32 vt596_access(struct i2c_adapt
- 	case VT596_BYTE:
- 		/* Where is the result put? I assume here it is in
- 		 * SMBHSTDAT0 but it might just as well be in the
--		 * SMBHSTCMD. No clue in the docs 
-+		 * SMBHSTCMD. No clue in the docs
- 		 */
- 		data->byte = inb_p(SMBHSTDAT0);
- 		break;
-@@ -302,7 +302,7 @@ static int __devinit vt596_probe(struct 
- {
- 	unsigned char temp;
- 	int error = -ENODEV;
--	
-+
- 	/* Determine the address of the SMBus areas */
- 	if (force_addr) {
- 		vt596_smba = force_addr & 0xfff0;
-@@ -333,10 +333,10 @@ static int __devinit vt596_probe(struct 
- 		return -ENODEV;
- 	}
- 
-- found:
-+found:
- 	if (!request_region(vt596_smba, 8, "viapro-smbus")) {
- 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
--		        vt596_smba);
-+			vt596_smba);
- 		return -ENODEV;
- 	}
- 
-@@ -348,13 +348,13 @@ static int __devinit vt596_probe(struct 
- 		pci_write_config_word(pdev, id->driver_data, vt596_smba);
- 		pci_write_config_byte(pdev, SMBHSTCFG, temp | 0x01);
- 		dev_warn(&pdev->dev, "WARNING: SMBus interface set to new "
--		     "address 0x%04x!\n", vt596_smba);
-+			 "address 0x%04x!\n", vt596_smba);
- 	} else if ((temp & 1) = 0) {
- 		if (force) {
--			/* NOTE: This assumes I/O space and other allocations 
--			 * WERE done by the Bios!  Don't complain if your 
--			 * hardware does weird things after enabling this. 
--			 * :') Check for Bios updates before resorting to 
-+			/* NOTE: This assumes I/O space and other allocations
-+			 * WERE done by the Bios!  Don't complain if your
-+			 * hardware does weird things after enabling this.
-+			 * :') Check for Bios updates before resorting to
- 			 * this.
- 			 */
- 			pci_write_config_byte(pdev, SMBHSTCFG, temp | 1);
-@@ -381,8 +381,8 @@ static int __devinit vt596_probe(struct 
- 
- 	vt596_adapter.dev.parent = &pdev->dev;
- 	snprintf(vt596_adapter.name, I2C_NAME_SIZE,
--			"SMBus Via Pro adapter at %04x", vt596_smba);
--	
-+		 "SMBus Via Pro adapter at %04x", vt596_smba);
-+
- 	vt596_pdev = pci_dev_get(pdev);
- 	if (i2c_add_adapter(&vt596_adapter)) {
- 		pci_dev_put(vt596_pdev);
-@@ -395,7 +395,7 @@ static int __devinit vt596_probe(struct 
- 	 */
- 	return -ENODEV;
- 
-- release_region:
-+release_region:
- 	release_region(vt596_smba, 8);
- 	return error;
- }
-@@ -420,7 +420,7 @@ static struct pci_device_id vt596_ids[] 
- 	{ 0, }
- };
- 
--MODULE_DEVICE_TABLE (pci, vt596_ids);
-+MODULE_DEVICE_TABLE(pci, vt596_ids);
- 
- static struct pci_driver vt596_driver = {
- 	.name		= "vt596_smbus",
-
+-- 
+Jean Delvare
