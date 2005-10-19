@@ -1,31 +1,28 @@
-From: greg@kroah.com (Greg KH)
-Date: Tue, 25 Oct 2005 19:27:33 +0000
-Subject: [lm-sensors] Re: [patch 0/9] I2C: remove i2c_driver's .owner and
-Message-Id: <20051025172645.GB20644@kroah.com>
+From: S.Bieganski@tue.nl (Szymon Bieganski)
+Date: Wed, 19 Oct 2005 17:42:31 +0000
+Subject: [lm-sensors] feedback request: i2c bus and v4l driver for PCRadio
+Message-Id: <op.sywgjvmjbj4yoq@mailhost.ics.ele.tue.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051024212201.485176000@antares.localdomain>
-In-Reply-To: <20051024212201.485176000@antares.localdomain>
+References: <opsik3vcn0bj4yoq@mailhost.ics.ele.tue.nl>
+In-Reply-To: <opsik3vcn0bj4yoq@mailhost.ics.ele.tue.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 25, 2005 at 03:13:07PM +0200, Jean Delvare wrote:
-> 
-> Hi Laurent,
-> 
-> On 2005-10-25, Laurent Riffard wrote:
-> > i2c_driver and i2c_driver.driver both have "owner" and "name"
-> > field.  One should go - there's no point needlessly duplicating
-> > stuff like this.
-> 
-> Looks alright to me, I'll merge this in my tree and will send it to Greg
-> quickly.
-> 
-> Greg, can you please confirm you are fine with this change?
 
-Yes I am, I made the same changes to the usb-serial core last week :)
+Perhaps my request is not as usual as others. I have written an experimental i2c driver for my radio card which is basically bit-banging i2c bus controlling radio chips on board. I would like to ask you just to take a look at my code. I would be greateful for any remarks.
 
-thanks,
-
-greg k-h
+Regards
+Szymon
+-- 
+----                                 ----
+Szymon Bieganski, PhD candidate
+TU/e EE dept ICS group, (+31) 40 247 3394
+----                                 ----
+Bill Gates about bug fixing time: We went from 40 hours on average to  24 hours.
+With Linux, several weeks.
+Liars!!! It's ALWAYS much more than the opposite!
+Statement: http://www.theregister.co.uk/content/4/33397.html
+Shocking counter evidence: http://www.eeye.com/html/Research/Upcoming/index.html
+----                                 ----
