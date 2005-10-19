@@ -1,35 +1,31 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 02 Oct 2005 22:57:55 +0000
-Subject: [lm-sensors] lm78 on ep-61lxa-m not detected (#2042)
-Message-Id: <20051002225724.0b9de179.khali@linux-fr.org>
+From: tonu@jes.ee (Tonu Samuel)
+Date: Wed, 19 Oct 2005 15:01:35 +0000
+Subject: [lm-sensors] SE95 AGAIN! Houston, we have a problem
+Message-Id: <200510191559.59358.tonu@jes.ee>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <lcdlh19r75vv5je60he27tap49ggekrvfu@4ax.com>
-In-Reply-To: <lcdlh19r75vv5je60he27tap49ggekrvfu@4ax.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Grant,
+Well, I can't get the point. Anyway, this is my last post till I do not get 
+response. Probably I do something wrong or just people are lazy and 
+lm_sensors project needs some refreshing fork.
 
-> > Hm, that's odd. The device is supposed not to decode offsets 0-4 and 7.
-> > I checked on my own LM78 and it actually doesn't (they all return
-> > 0xff). I suspect that you have another device mapped in the same I/O
-> > region, maybe in such a way that there is no major conflict, but it
-> > still makes the LM78 very hard to detect.
-> 
-> Hmm, so an ISA NIC at 0x280 is probably a bad idea?  Wasn't showing 
-> in /proc/ioports as the driver wasn't loaded.  Sorry about that, me 
-> not think of it.
-> 
-> Removing the offending NIC, we get:
-> 
-> root@silly:~# isadump -y -f 0x290 16
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: ff ff ff ff ff 40 01 ff ff ff ff ff ff ff ff ff
+I already posted some patches and questions here. I see then from archives and 
+cannot see ANY replies.
 
-OK, that explains it all ! Thanks for the info, I'll update the support
-ticket.
+References:
 
--- 
-Jean Delvare
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/013795.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/013809.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/013878.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/013818.html
+
+If I did something wrong here and not welcome - please explain it in private. 
+I have no clue what's going on. Of course I am little bit upset too but this 
+is not so fatal. We all are overloaded with different stuff but being a 
+maintainer is responsibility. At least this is how I understand it. So 
+probably something is wrong with my patches but what?
+
+   T?nu
