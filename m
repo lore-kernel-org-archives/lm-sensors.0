@@ -1,7 +1,7 @@
-From: S.Bieganski@tue.nl (Szymon Bieganski)
-Date: Wed, 19 Oct 2005 22:17:30 +0000
-Subject: [lm-sensors] feedback request: i2c bus and v4l driver for PCRadio
-Message-Id: <op.syws98wxbj4yoq@mail.tue.nl>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 19 Oct 2005 22:46:48 +0000
+Subject: [lm-sensors] feedback request: i2c bus and v4l driver for
+Message-Id: <20051019224642.7f798690.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <opsik3vcn0bj4yoq@mailhost.ics.ele.tue.nl>
 In-Reply-To: <opsik3vcn0bj4yoq@mailhost.ics.ele.tue.nl>
@@ -10,16 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello
-Is this what you meant ?
-http://www.ics.ele.tue.nl/~sbiegans/spase.diff
+Hi Szymon,
 
-With kind regards
-Szymon
+> Is this what you meant ?
+> http://www.ics.ele.tue.nl/~sbiegans/spase.diff
+
+Yes, this is. Even better would be to post it to the list directly
+(preferably inline, if your mail client doesn't break the layout).
+Bonus points if you include a diffstat output.
+
+A quick look at the patch reveals that you are not respecting the
+kernel coding style (indentations must be made using tabs, not spaces),
+so you'll want to fix this before posting to the list.
+
 -- 
-----                                                                                          
-----
-Szymon Bieganski, PhD candidate S.Bieganski@tue.nl
-TU/e EE dept ICS group, (+31) 40 247 3394
-----                                                                                          
-----
+Jean Delvare
