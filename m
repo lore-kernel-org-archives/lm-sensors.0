@@ -1,7 +1,7 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Fri, 21 Oct 2005 19:41:03 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 21 Oct 2005 20:01:47 +0000
 Subject: [lm-sensors] New Abit uGuru driver + libsensors patch, review
-Message-Id: <43592895.8040504@hhs.nl>
+Message-Id: <20051021195634.658db16b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4358B291.6070702@hhs.nl>
 In-Reply-To: <4358B291.6070702@hhs.nl>
@@ -10,24 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-Jean Delvare wrote:
-> Hi Hans,
+> > >The driver.
+> > 
+> > -ENOPATCH
 > 
-> 
->>The driver.
-> 
-> 
-> -ENOPATCH
-> 
+> Yes, its a new driver, so nothing to diff against, would a diff against 
+> /dev/null really make you happier?
 
-Yes, its a new driver, so nothing to diff against, would a diff against 
-/dev/null really make you happier?
+No, I mean, there is no attachement at all.
 
-Can someone please take a look at the driver and give me some proper 
-feedback?
+And yes, a patch would still make me happier, because it would include
+the relevant changes to the kernel build system so that we can check
+that your code compiles properly, and people could test your driver
+more easily too.
 
-Thanks & Regards,
+> Can someone please take a look at the driver and give me some proper 
+> feedback?
 
-Hans
+Not before you actually send something to us ;)
+
+Note that the mailing list is configured to drop any unacceptable
+attachement. Maybe that's what happened. Accepted types are text/plain
+and text/x-patch. Make sure your attachement has the proper type. If
+you think there is a different type we should accept, please let us
+know.
+
+-- 
+Jean Delvare
