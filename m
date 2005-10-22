@@ -1,176 +1,213 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 21:37:08 +0000
-Subject: [lm-sensors] [PATCH 13/16] hwmon: Separate the lm90 register read
-Message-Id: <20051026213752.3a3e2715.khali@linux-fr.org>
+From: wd@denx.de (Wolfgang Denk)
+Date: Sat, 22 Oct 2005 23:05:55 +0000
+Subject: [lm-sensors] [PATCH 2.6] Add generic support for DS1377 RTC
+Message-Id: <20051022210511.9DFA9352B25@atlas.denx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linuxppc-dev@ozlabs.org
+Cc: lm-sensors@lm-sensors.org
 
-Content-Disposition: inline; filename=hwmon-lm90-01-separate-read-reg.patch
 
-Preparatory patch to add PEC support to the lm90 driver. We need a
-centralized function to read register values, where the PEC code will
-be later inserted. A positive side effect is that read errors are now
-handled properly.
+The following patch (against current Linux 2.6  tree)  moves  generic
+DS1377  RTC  support from the "radstone_ppc7d" platform specific file
+to it's proper place ("drivers/i2c/chips/ds1337.c") and makes it thus
+common and available for other boards too.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
 ---
- drivers/hwmon/lm90.c |  107 +++++++++++++++++++++++++-------------------------
- 1 file changed, 53 insertions(+), 54 deletions(-)
+Add common ds1337_get_rtc_time() and ds1337_set_rtc_time() routines.
+Derived from radstone platform specific code.
 
---- linux-2.6.14-rc5.orig/drivers/hwmon/lm90.c	2005-10-23 09:53:06.000000000 +0200
-+++ linux-2.6.14-rc5/drivers/hwmon/lm90.c	2005-10-23 15:25:51.000000000 +0200
-@@ -349,6 +349,22 @@
-  * Real code
-  */
+Fix BIN2BCD month conversion.
+
+Signed-off-by: Marian Balakowicz <m8@semihalf.com>
+Signed-off-by: Wolfgang Denk <wd@denx.de>
+
+---
+commit 80387b45146a9e397c1fec1138f3eb3884c42ed8
+tree 690680af98e271f64025a49c30b1bfcb5b5c465c
+parent d85b5d8b85163f43dd2d7d62dbd3db630cbe2663
+author Marian Balakowicz <m8@semihalf.com> Tue, 18 Oct 2005 18:32:28 +0200
+committer Marian Balakowicz <m8@semihalf.com> Tue, 18 Oct 2005 18:32:28 +0200
+
+ arch/ppc/platforms/radstone_ppc7d.c |   48 ++++++++---------------------------
+ drivers/i2c/chips/ds1337.c          |   44 +++++++++++++++++++++++++++++++-
+ 2 files changed, 53 insertions(+), 39 deletions(-)
+
+diff --git a/arch/ppc/platforms/radstone_ppc7d.c b/arch/ppc/platforms/radstone_ppc7d.c
+--- a/arch/ppc/platforms/radstone_ppc7d.c
++++ b/arch/ppc/platforms/radstone_ppc7d.c
+@@ -1,6 +1,11 @@
+ /*
+  * arch/ppc/platforms/radstone_ppc7d.c
+  *
++ * Copyright 2005 DENX Software Engineering
++ * ppc7d_get_rtc_time(), ppc7d_set_rtc_time() renamed
++ * to generic ds1337_get_rtc_time() and ds1337_set_rtc_time()
++ * and moved to ds1337.c
++ *
+  * Board setup routines for the Radstone PPC7D boards.
+  *
+  * Author: James Chapman <jchapman@katalix.com>
+@@ -74,10 +79,10 @@ static int ppc7d_has_alma;
+ extern void gen550_progress(char *, unsigned short);
+ extern void gen550_init(int, struct uart_port *);
  
-+static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
+-/* FIXME - move to h file */
+-extern int ds1337_do_command(int id, int cmd, void *arg);
+-#define DS1337_GET_DATE         0
+-#define DS1337_SET_DATE         1
++/* Real Time Clock support.
++ * PPC7D has a DS1337 accessed by I2C. */
++extern ulong ds1337_get_rtc_time(void);
++extern int ds1337_set_rtc_time(unsigned long nowtime);
+ 
+ /* residual data */
+ unsigned char __res[sizeof(bd_t)];
+@@ -1249,37 +1254,6 @@ static void __init ppc7d_setup_arch(void
+ 
+ }
+ 
+-/* Real Time Clock support.
+- * PPC7D has a DS1337 accessed by I2C.
+- */
+-static ulong ppc7d_get_rtc_time(void)
+-{
+-        struct rtc_time tm;
+-        int result;
+-
+-        spin_lock(&rtc_lock);
+-        result = ds1337_do_command(0, DS1337_GET_DATE, &tm);
+-        spin_unlock(&rtc_lock);
+-
+-        if (result = 0)
+-                result = mktime(tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+-
+-        return result;
+-}
+-
+-static int ppc7d_set_rtc_time(unsigned long nowtime)
+-{
+-        struct rtc_time tm;
+-        int result;
+-
+-        spin_lock(&rtc_lock);
+-        to_tm(nowtime, &tm);
+-        result = ds1337_do_command(0, DS1337_SET_DATE, &tm);
+-        spin_unlock(&rtc_lock);
+-
+-        return result;
+-}
+-
+ /* This kernel command line parameter can be used to have the target
+  * wait for a JTAG debugger to attach. Of course, a JTAG debugger
+  * with hardware breakpoint support can have the target stop at any
+@@ -1336,8 +1310,8 @@ static void ppc7d_init2(void)
+ 	outb(data8, PPC7D_CPLD_LEDS);
+ 
+         /* Hook up RTC. We couldn't do this earlier because we need the I2C subsystem */
+-        ppc_md.set_rtc_time = ppc7d_set_rtc_time;
+-        ppc_md.get_rtc_time = ppc7d_get_rtc_time;
++        ppc_md.set_rtc_time = ds1337_set_rtc_time;
++        ppc_md.get_rtc_time = ds1337_get_rtc_time;
+ 
+ 	pr_debug("%s: exit\n", __FUNCTION__);
+ }
+diff --git a/drivers/i2c/chips/ds1337.c b/drivers/i2c/chips/ds1337.c
+--- a/drivers/i2c/chips/ds1337.c
++++ b/drivers/i2c/chips/ds1337.c
+@@ -1,6 +1,10 @@
+ /*
+  *  linux/drivers/i2c/chips/ds1337.c
+  *
++ *  Copyright 2005 DENX Software Engineering
++ *  Added ds1337_get_rtc_time and ds1337_set_rtc_time routines.
++ *  Based on radstone platform specific code.
++ * 
+  *  Copyright (C) 2005 James Chapman <jchapman@katalix.com>
+  *
+  *	based on linux/drivers/acorn/char/pcf8583.c
+@@ -21,6 +25,7 @@
+ #include <linux/rtc.h>		/* get the user-level API */
+ #include <linux/bcd.h>
+ #include <linux/list.h>
++#include <asm/time.h>
+ 
+ /* Device registers */
+ #define DS1337_REG_HOUR		2
+@@ -34,6 +39,8 @@
+ #define DS1337_GET_DATE		0
+ #define DS1337_SET_DATE		1
+ 
++extern spinlock_t rtc_lock;
++
+ /*
+  * Functions declaration
+  */
+@@ -164,9 +171,9 @@ static int ds1337_set_datetime(struct i2
+ 	buf[1] = BIN2BCD(dt->tm_sec);
+ 	buf[2] = BIN2BCD(dt->tm_min);
+ 	buf[3] = BIN2BCD(dt->tm_hour);
+-	buf[4] = BIN2BCD(dt->tm_wday) + 1;
++	buf[4] = BIN2BCD(dt->tm_wday + 1);
+ 	buf[5] = BIN2BCD(dt->tm_mday);
+-	buf[6] = BIN2BCD(dt->tm_mon) + 1;
++	buf[6] = BIN2BCD(dt->tm_mon + 1);
+ 	val = dt->tm_year;
+ 	if (val >= 100) {
+ 		val -= 100;
+@@ -223,6 +230,37 @@ int ds1337_do_command(int bus, int cmd, 
+ 	return -ENODEV;
+ }
+ 
++ulong ds1337_get_rtc_time(void)
 +{
-+	int err;
++	struct rtc_time tm;
++	int result;
 +
-+	err = i2c_smbus_read_byte_data(client, reg);
++	spin_lock(&rtc_lock);
++	result = ds1337_do_command(0, DS1337_GET_DATE, &tm);
++	spin_unlock(&rtc_lock);
 +
-+	if (err < 0) {
-+		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
-+			 reg, err);
-+		return err;
-+	}
-+	*value = err;
++	if (result = 0)
++		result = mktime(tm.tm_year + 1900, tm.tm_mon + 1,
++				tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 +
-+	return 0;
++	return result;
 +}
 +
- static int lm90_attach_adapter(struct i2c_adapter *adapter)
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
-@@ -402,20 +418,22 @@
- 	if (kind < 0) { /* detection and identification */
- 		u8 man_id, chip_id, reg_config1, reg_convrate;
- 
--		man_id = i2c_smbus_read_byte_data(new_client,
--			 LM90_REG_R_MAN_ID);
--		chip_id = i2c_smbus_read_byte_data(new_client,
--			  LM90_REG_R_CHIP_ID);
--		reg_config1 = i2c_smbus_read_byte_data(new_client,
--			      LM90_REG_R_CONFIG1);
--		reg_convrate = i2c_smbus_read_byte_data(new_client,
--			       LM90_REG_R_CONVRATE);
-+		if (lm90_read_reg(new_client, LM90_REG_R_MAN_ID,
-+				  &man_id) < 0
-+		 || lm90_read_reg(new_client, LM90_REG_R_CHIP_ID,
-+		 		  &chip_id) < 0
-+		 || lm90_read_reg(new_client, LM90_REG_R_CONFIG1,
-+		 		  &reg_config1) < 0
-+		 || lm90_read_reg(new_client, LM90_REG_R_CONVRATE,
-+		 		  &reg_convrate) < 0)
-+			goto exit_free;
- 		
- 		if (man_id = 0x01) { /* National Semiconductor */
- 			u8 reg_config2;
- 
--			reg_config2 = i2c_smbus_read_byte_data(new_client,
--				      LM90_REG_R_CONFIG2);
-+			if (lm90_read_reg(new_client, LM90_REG_R_CONFIG2,
-+					  &reg_config2) < 0)
-+				goto exit_free;
- 
- 			if ((reg_config1 & 0x2A) = 0x00
- 			 && (reg_config2 & 0xF8) = 0x00
-@@ -547,7 +565,10 @@
- 	 */
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
- 				  5); /* 2 Hz */
--	config = i2c_smbus_read_byte_data(client, LM90_REG_R_CONFIG1);
-+	if (lm90_read_reg(client, LM90_REG_R_CONFIG1, &config) < 0) {
-+		dev_warn(&client->dev, "Initialization failed!\n");
-+		return;
-+	}
- 	if (config & 0x40)
- 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
- 					  config & 0xBF); /* run */
-@@ -575,21 +596,15 @@
- 	down(&data->update_lock);
- 
- 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
--		u8 oldh, newh;
-+		u8 oldh, newh, l;
- 
- 		dev_dbg(&client->dev, "Updating lm90 data.\n");
--		data->temp8[0] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_TEMP);
--		data->temp8[1] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_LOW);
--		data->temp8[2] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_HIGH);
--		data->temp8[3] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_CRIT);
--		data->temp8[4] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_REMOTE_CRIT);
--		data->temp_hyst = i2c_smbus_read_byte_data(client,
--				  LM90_REG_R_TCRIT_HYST);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP, &data->temp8[0]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW, &data->temp8[1]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH, &data->temp8[2]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT, &data->temp8[3]);
-+		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[4]);
-+		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
- 
- 		/*
- 		 * There is a trick here. We have to read two registers to
-@@ -605,36 +620,20 @@
- 		 * then we have a valid reading. Else we have to read the low
- 		 * byte again, and now we believe we have a correct reading.
- 		 */
--		oldh = i2c_smbus_read_byte_data(client,
--		       LM90_REG_R_REMOTE_TEMPH);
--		data->temp11[0] = i2c_smbus_read_byte_data(client,
--				  LM90_REG_R_REMOTE_TEMPL);
--		newh = i2c_smbus_read_byte_data(client,
--		       LM90_REG_R_REMOTE_TEMPH);
--		if (newh != oldh) {
--			data->temp11[0] = i2c_smbus_read_byte_data(client,
--					  LM90_REG_R_REMOTE_TEMPL);
--#ifdef DEBUG
--			oldh = i2c_smbus_read_byte_data(client,
--			       LM90_REG_R_REMOTE_TEMPH);
--			/* oldh is actually newer */
--			if (newh != oldh)
--				dev_warn(&client->dev, "Remote temperature may be "
--					 "wrong.\n");
--#endif
--		}
--		data->temp11[0] |= (newh << 8);
--
--		data->temp11[1] = (i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_LOWH) << 8) +
--				   i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_LOWL);
--		data->temp11[2] = (i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_HIGHH) << 8) +
--				   i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_HIGHL);
--		data->alarms = i2c_smbus_read_byte_data(client,
--			       LM90_REG_R_STATUS);
-+		if (lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &oldh) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &newh) = 0
-+		 && (newh = oldh
-+		  || lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0))
-+			data->temp11[0] = (newh << 8) | l;
++int ds1337_set_rtc_time(unsigned long nowtime)
++{
++	struct rtc_time tm;
++	int result;
 +
-+		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &newh) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL, &l) = 0)
-+			data->temp11[1] = (newh << 8) | l;
-+		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &newh) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL, &l) = 0)
-+			data->temp11[2] = (newh << 8) | l;
-+		lm90_read_reg(client, LM90_REG_R_STATUS, &data->alarms);
++	spin_lock(&rtc_lock);
++	to_tm(nowtime, &tm);
++	tm.tm_year -= 1900;
++	tm.tm_mon -= 1;
++	result = ds1337_do_command(0, DS1337_SET_DATE, &tm);
++	spin_unlock(&rtc_lock);
++
++	return result;
++}
++
+ static int ds1337_attach_adapter(struct i2c_adapter *adapter)
+ {
+ 	return i2c_probe(adapter, &addr_data, ds1337_detect);
+@@ -375,6 +413,8 @@ MODULE_DESCRIPTION("DS1337 RTC driver");
+ MODULE_LICENSE("GPL");
  
- 		data->last_updated = jiffies;
- 		data->valid = 1;
+ EXPORT_SYMBOL_GPL(ds1337_do_command);
++EXPORT_SYMBOL_GPL(ds1337_get_rtc_time);
++EXPORT_SYMBOL_GPL(ds1337_set_rtc_time);
+ 
+ module_init(ds1337_init);
+ module_exit(ds1337_exit);
 
--- 
-Jean Delvare
+
+
+!-------------------------------------------------------------flip-
+
+
