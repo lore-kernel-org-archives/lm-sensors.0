@@ -1,38 +1,60 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 05 Oct 2005 10:42:57 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Cleanup w83627hf initialization
-Message-Id: <nLu76Kd1.1128501171.2234810.khali@localhost>
+From: mds@mds.gotdns.com (Mark Studebaker)
+Date: Sun, 23 Oct 2005 20:37:50 +0000
+Subject: [lm-sensors] 87431 update
+Message-Id: <435BD852.9040703@mds.gotdns.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051004200848.5f4f0182.khali@linux-fr.org>
-In-Reply-To: <20051004200848.5f4f0182.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Great news,
+I've successfully implemented bmcsensors-over-IPMI-over-SMB, working
+on the Intel Server donated by Aweta.
 
-Hi Salah,
+HW:
+	Intel Server Platform SR1325TP1-E w/ 6300ESB SMBus and PC87431 at 0x42
 
-On 2005-10-05, Salah Coronya wrote:
-> It works for me just fine, actually it works BETTER. before pwm1 and
-> pwm2 were reversed (pwm1 controlled fan2; and pwm2 controller fan1), and
-> the fan2 would always report 0 no matter what the fan speed was. Now the
-> reading and controls are correct, or at least more plausible. (Unless it
-> was another patch between 2.6.13 and 2.6.13-r3).
+SW:
+	kernel-2.6.12-1.1380_FC3.src.rpm
+	linux-ipmi-2.6.12-base.diff
+	linux-ipmi-2.6.12-smb.diff
+	linux-i2c-2.6.12-nonblock.diff
+	linux-i2c-2.6.12-i801-nonblock.diff
+	bmcsensors-26-20050808.tar.bz2
 
-I assume you mean 2.6.14-rc3? Yes there was a patch which made the chip
-reset on driver load optional (and off by default). This is much more
-likely to cause the improvements you observe than my new patch. You
-could try loading the w83627hf driver with reset=1 and see if everything
-reverts to the old behavior. I admit I'm a bit surprised that PWM
-outputs were swapped, as I don't think the W83627HF hardware monitoring
-logical device can actually do that.
+sensors output:
 
-Also note that the second patch really only affects the W83627HF chip,
-not W83637HF, W83627THF nor W83697HF. Not sure which one you have.
+bmc-i2c-2-00
+Adapter: IPMI adapter
+Baseboard 1.5V:
+           +1.52 V  (min =  +1.35 V, max =  +1.65 V)   
+Baseboard 3.3V:
+           +3.34 V  (min =  +2.99 V, max =  +3.62 V)   
+Baseboard 5.0V:
+           +5.05 V  (min =  +4.54 V, max =  +5.48 V)   
+Baseboard 12V:
+          +11.80 V  (min =  +9.97 V, max = +13.28 V)   
+MCH Vtt:   +1.17 V  (min =  +1.25 V, max =  +1.60 V)   
+Processor Vccp:
+           +1.36 V  (min =  +1.15 V, max =  +1.71 V)   
+Baseboard Fan 1:
+          15408 RPM  (min = 7369 RPM)                  
+Baseboard Fan 2:
+          15408 RPM  (min = 7369 RPM)                  
+Baseboard Fan 3:
+          13037 RPM  (min = 7369 RPM)                  
+Baseboard Fan 5:
+          14124 RPM  (min = 7369 RPM)                  
+Baseboard Fan 6:
+          15408 RPM  (min = 7369 RPM)                  
+Baseboard Temp:
+           +37.0??C  (high =   +54??C, hyst =    +2??C)   
+Processor1 Temp:
+           +51.0??C  (high =   +80??C, hyst =    +2??C)   
 
-Anyway, if everything works OK for you with these two patches applied,
-that's great :) Thanks for testing.
+IPMI-i2c-0-42
+Adapter: SMBus I801 adapter at 0400
 
---
-Jean Delvare
+
+
