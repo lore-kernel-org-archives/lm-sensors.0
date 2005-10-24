@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 21 Oct 2005 13:11:33 +0000
+From: pavouk@pavouk.org (Pavel Ruzicka)
+Date: Mon, 24 Oct 2005 01:21:55 +0000
 Subject: [lm-sensors] Support for SMSC 47M15x/192
-Message-Id: <K5teArDV.1129892324.1254350.khali@localhost>
+Message-Id: <200510240119.29314.pavouk@pavouk.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200510162303.21468.pavouk@pavouk.org>
 In-Reply-To: <200510162303.21468.pavouk@pavouk.org>
@@ -10,58 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Pavel,
-
-On 2005-10-20, Pavel Ruzicka wrote:
-
-> Thanks for help. Fan measuring works now with lm_sensors 2.9.2.
+> > I look at motherboard, and there is exactly LPC47M997-NR SMSC I/O chip.
 >
-> sensors output:
-> --------------
-> smsc47m1-isa-0800
-> Adapter: ISA adapter
-> fan1:        0 RPM  (min =  640 RPM, div = 8)          ALARM
-> fan2:     1059 RPM  (min =  640 RPM, div = 8)
-> --------------
->
-> I look at motherboard, and there is exactly LPC47M997-NR SMSC I/O chip.
+> OK, so this suggests that this chip is compatible with the LPC47M15x and
+> LPC47M192 chips as far as fan monitoring is concerned. You can set
+> fan1_min to 0 to get rid of the alarm. That's a slow fan you have here,
+> BTW.
 
-OK, so this suggests that this chip is compatible with the LPC47M15x and
-LPC47M192 chips as far as fan monitoring is concerned. You can set
-fan1_min to 0 to get rid of the alarm. That's a slow fan you have here,
-BTW.
+It's a little strange. I can't set fan1_min lower than 640.
+fan2_div it's possible to change to 1, 2, 4, 8, but minimal limits
+are increased. Example of output:
+smsc47m1-isa-0800
+Adapter: ISA adapter
+fan1:        0 RPM  (min =  640 RPM, div = 8)          ALARM
+fan2:        0 RPM  (min = 5120 RPM, div = 1)          ALARM
 
-Could you please try changing limits, clock dividers, and playing with
-PWM outputs? This would confirm that this chip is fully compatible. If
-it is, we will need to update our documentation (and sensors-detect) to
-reflect the fact that our smsc47m1 driver supports that chip.
+smsc47m1-isa-0800
+Adapter: ISA adapter
+fan1:        0 RPM  (min =  640 RPM, div = 8)          ALARM
+fan2:     1050 RPM  (min = 1280 RPM, div = 4)          ALARM
 
-> There are probably hardware monitoring block, which is not supported by
-> this driver. I look at bios and Winblows program PC Alert, and there are
-> available System and CPU Temperature. Voltages are not supported.
-> I searched with Google, but datasheet for this chip is not available.
-> What can I do next for temperature reporting?
+Setting of pwm doesn't work for me, but maybe I can do something wrong.
 
-The LPC47M15x and LPC47M192 do have a hardware monitoring block, so maybe
-your chip does too. However, we can't be certain without a datasheet,
-and the SMSC web site still doesn't even mention this chip.
+sensors -s tells me:
+-----------------------
+Error: Line 2047: Unknown feature name
+smsc47m1-isa-0800: No such feature known
+-----------------------
 
-The problem is that your system SMBus uses an ATI chip which we have no
-driver for, and I don't even think a datasheet is available. Since the
-hardware monitoring block is accessed through the SMBus, you won't be
-able to even access it without an ATI SMBus driver. Sorry.
+This is part of /etc/sensors.conf:
+-------------------
+chip "smsc47m1-*"
+    set fan2_min 640
+    set fan2_div 8
+    set pwm1 1
+-------------------
 
-You may try the ACPI "thermal" driver and look in
-/proc/acpi/thermal_zone. Maybe it'll at least let you know the CPU
-temperature.
+> The problem is that your system SMBus uses an ATI chip which we have no
+> driver for, and I don't even think a datasheet is available. Since the
+> hardware monitoring block is accessed through the SMBus, you won't be
+> able to even access it without an ATI SMBus driver. Sorry.
 
-> There was some discussion about this chip:
-> http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket76
+This is probably on a good way :-)
+Rudolf Marek working on it.
 
-We'll update this ticket to mention the supposed compatibility with the
-other chips, once you have reported your test results.
+> You may try the ACPI "thermal" driver and look in
+> /proc/acpi/thermal_zone. Maybe it'll at least let you know the CPU
+> temperature.
 
-Thanks,
---
-Jean Delvare
+This doesn't work for me.
+
+Best regards,
+
+Pavel Ruzicka
