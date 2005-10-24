@@ -1,41 +1,39 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 23:14:11 +0000
-Subject: [lm-sensors] [PATCH 13/14] i2c: kzalloc cleanups, 2 of 2
-Message-Id: <20051017231431.05f69953.khali@linux-fr.org>
+From: laurent.riffard@free.fr (Laurent riffard)
+Date: Mon, 24 Oct 2005 23:31:23 +0000
+Subject: [lm-sensors] [patch 7/9] I2C: remove i2c_driver's .owner and .name
+Message-Id: <20051024212542.827677000@antares.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=kzalloc-05-i2c-amd756-s4882.patch
+We should use the i2c_driver.driver's .name and .owner fields
+instead of the i2c_drivers's ones.
 
-Use kzalloc instead of kmalloc in the S4882 SMBus multiplexing driver.
-I guess it's safer that way.
+This patch updates the drivers for ppc arch.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+--
 
----
- drivers/i2c/busses/i2c-amd756-s4882.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ sound/ppc/keywest.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
---- linux-2.6.14-rc4.orig/drivers/i2c/busses/i2c-amd756-s4882.c	2005-10-13 22:55:48.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/i2c/busses/i2c-amd756-s4882.c	2005-10-13 23:04:50.000000000 +0200
-@@ -169,12 +169,12 @@
- 	init_MUTEX(&amd756_lock);
+Index: linux-2.6-mm/sound/ppc/keywest.c
+=================================--- linux-2.6-mm.orig/sound/ppc/keywest.c
++++ linux-2.6-mm/sound/ppc/keywest.c
+@@ -41,7 +41,10 @@
+ static int keywest_detach_client(struct i2c_client *client);
  
- 	/* Define the 5 virtual adapters and algorithms structures */
--	if (!(s4882_adapter = kmalloc(5 * sizeof(struct i2c_adapter),
-+	if (!(s4882_adapter = kzalloc(5 * sizeof(struct i2c_adapter),
- 				      GFP_KERNEL))) {
- 		error = -ENOMEM;
- 		goto ERROR1;
- 	}
--	if (!(s4882_algo = kmalloc(5 * sizeof(struct i2c_algorithm),
-+	if (!(s4882_algo = kzalloc(5 * sizeof(struct i2c_algorithm),
- 				   GFP_KERNEL))) {
- 		error = -ENOMEM;
- 		goto ERROR2;
+ struct i2c_driver keywest_driver = {  
+-	.name = "PMac Keywest Audio",
++	.driver = {
++		.owner = THIS_MODULE,
++		.name = "PMac Keywest Audio",
++	},
+ 	.id = I2C_DRIVERID_KEYWEST,
+ 	.flags = I2C_DF_NOTIFY,
+ 	.attach_adapter = &keywest_attach_adapter,
 
--- 
-Jean Delvare
+--
+
