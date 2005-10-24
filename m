@@ -1,7 +1,7 @@
 From: laurent.riffard@free.fr (Laurent riffard)
-Date: Mon, 24 Oct 2005 23:31:11 +0000
-Subject: [lm-sensors] [patch 4/9] I2C: remove i2c_driver's .owner and .name
-Message-Id: <20051024212541.721970000@antares.localdomain>
+Date: Mon, 24 Oct 2005 23:31:19 +0000
+Subject: [lm-sensors] [patch 6/9] I2C: remove i2c_driver's .owner and .name
+Message-Id: <20051024212542.275966000@antares.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -11,80 +11,47 @@ To: lm-sensors@vger.kernel.org
 We should use the i2c_driver.driver's .name and .owner fields
 instead of the i2c_drivers's ones.
 
-This patch updates the drivers for macintosh.
+This patch updates the OSS drivers.
 
 Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
 --
 
- drivers/macintosh/therm_adt746x.c        |    6 ++++--
- drivers/macintosh/therm_pm72.c           |    6 ++++--
- drivers/macintosh/therm_windtunnel.c     |    6 ++++--
- drivers/macintosh/windfarm_lm75_sensor.c |    6 ++++--
- 4 files changed, 16 insertions(+), 8 deletions(-)
+ sound/oss/dmasound/dac3550a.c   |    6 ++++--
+ sound/oss/dmasound/tas_common.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-Index: linux-2.6-mm/drivers/macintosh/therm_adt746x.c
-=================================--- linux-2.6-mm.orig/drivers/macintosh/therm_adt746x.c
-+++ linux-2.6-mm/drivers/macintosh/therm_adt746x.c
-@@ -171,8 +171,10 @@
- }
+Index: linux-2.6-mm/sound/oss/dmasound/dac3550a.c
+=================================--- linux-2.6-mm.orig/sound/oss/dmasound/dac3550a.c
++++ linux-2.6-mm/sound/oss/dmasound/dac3550a.c
+@@ -41,8 +41,10 @@
+ static int daca_detach_client(struct i2c_client *client);
  
- static struct i2c_driver thermostat_driver = {  
+ struct i2c_driver daca_driver = {  
+-	.owner			= THIS_MODULE,
+-	.name			= "DAC3550A driver  V " DACA_VERSION,
++	.driver = {
++		.owner		= THIS_MODULE,
++		.name		= "DAC3550A driver  V " DACA_VERSION,
++	},
+ 	.id			= I2C_DRIVERID_DACA,
+ 	.flags			= I2C_DF_NOTIFY,
+ 	.attach_adapter		= daca_attach_adapter,
+Index: linux-2.6-mm/sound/oss/dmasound/tas_common.c
+=================================--- linux-2.6-mm.orig/sound/oss/dmasound/tas_common.c
++++ linux-2.6-mm/sound/oss/dmasound/tas_common.c
+@@ -47,8 +47,10 @@
+ static int tas_detach_client(struct i2c_client *);
+ 
+ struct i2c_driver tas_driver = {
 -	.owner		= THIS_MODULE,
--	.name		= "therm_adt746x",
+-	.name		= "tas",
 +	.driver = {
 +		.owner	= THIS_MODULE,
-+		.name	= "therm_adt746x",
++		.name	= "tas",
 +	},
  	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= attach_thermostat,
- 	.detach_adapter	= detach_thermostat,
-Index: linux-2.6-mm/drivers/macintosh/therm_pm72.c
-=================================--- linux-2.6-mm.orig/drivers/macintosh/therm_pm72.c
-+++ linux-2.6-mm/drivers/macintosh/therm_pm72.c
-@@ -283,8 +283,10 @@
- 
- static struct i2c_driver therm_pm72_driver  {
--	.owner		= THIS_MODULE,
--	.name		= "therm_pm72",
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "therm_pm72",
-+	},
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= therm_pm72_attach,
- 	.detach_adapter	= therm_pm72_detach,
-Index: linux-2.6-mm/drivers/macintosh/therm_windtunnel.c
-=================================--- linux-2.6-mm.orig/drivers/macintosh/therm_windtunnel.c
-+++ linux-2.6-mm/drivers/macintosh/therm_windtunnel.c
-@@ -354,8 +354,10 @@
- }
- 
- static struct i2c_driver g4fan_driver = {  
--	.owner		= THIS_MODULE,
--	.name		= "therm_windtunnel",
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "therm_windtunnel",
-+	},
- 	.id		= I2C_DRIVERID_G4FAN,
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter = do_attach,
-Index: linux-2.6-mm/drivers/macintosh/windfarm_lm75_sensor.c
-=================================--- linux-2.6-mm.orig/drivers/macintosh/windfarm_lm75_sensor.c
-+++ linux-2.6-mm/drivers/macintosh/windfarm_lm75_sensor.c
-@@ -39,8 +39,10 @@
- static int wf_lm75_detach(struct i2c_client *client);
- 
- static struct i2c_driver wf_lm75_driver = {
--	.owner		= THIS_MODULE,
--	.name		= "wf_lm75",
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "wf_lm75",
-+	},
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= wf_lm75_attach,
- 	.detach_client	= wf_lm75_detach,
+ 	.attach_adapter	= tas_attach_adapter,
+ 	.detach_client	= tas_detach_client,
 
 --
 
