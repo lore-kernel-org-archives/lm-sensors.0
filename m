@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 24 Oct 2005 16:39:44 +0000
+Date: Mon, 24 Oct 2005 19:40:03 +0000
 Subject: [lm-sensors] Re: [PATCH 2.6] i2c: Fix incorrect ID uses
-Message-Id: <S2WHduaW.1130164030.4462810.khali@localhost>
+Message-Id: <20051024194031.4ab298fb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051022154830.0b7688ab.khali@linux-fr.org>
 In-Reply-To: <20051022154830.0b7688ab.khali@linux-fr.org>
@@ -10,18 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Ladislav,
 
-Hi Mark,
+> Please exclude above change. I already fixed driver in linux-mips.org
+> CVS (git these times) [1] and change was sent upstream [2] by Ralf Baechle
+> - linux-mips maintainer.
 
-On 2005-10-24, Mark McClelland wrote:
-> Thanks for cleaning this up!
->
-> BTW, someone might want to take a look at include/media/id.h. It could
-> stand to be cleaned up or deleted altogether:
+OK, done.
 
-You're right. I'll do a second patch for these ones, thanks for
-pointing this out. Deleting the file sounds sane, it makes no sense to
-have such a file in-tree.
-
---
+Thanks,
+-- 
 Jean Delvare
