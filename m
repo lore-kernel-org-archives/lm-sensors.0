@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 22 Oct 2005 22:13:15 +0000
+From: pavouk@pavouk.org (Pavel Ruzicka)
+Date: Mon, 24 Oct 2005 01:06:55 +0000
 Subject: [lm-sensors] ATI SMBus - new information
-Message-Id: <435A9D3D.2030309@sh.cvut.cz>
+Message-Id: <200510240105.54886.pavouk@pavouk.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <435A1BA9.9080009@sh.cvut.cz>
 In-Reply-To: <435A1BA9.9080009@sh.cvut.cz>
@@ -10,75 +10,176 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all,
+Hello,
 
-Update. Please send me the DSDT tables directly. The mailing list will throw them away.(bin attachment)
-See the attachment for the patch.
+> Please note, the code was not tested. I belive it should work, but it may
+> do bad things to your HW. On the other hand you want the ATI SMBUS support
+> :)
 
-Please note, the code was not tested. I belive it should work, but it may do bad things to your HW.
-On the other hand you want the ATI SMBUS support :)
+It looks like it works.
 
-This patch is for 2.6 driver of i2c-i801.c After applying the patch you should be able to modprobe i2c-i801
-if you modprobe i2c-dev then you should be able to run i2cdetect and i2cdump.
+There are some informations from my system:
 
-i2cdump 0
-should show that 0x50 or above is used.
+[root@home /]# i2cdetect -l
+i2c-0   unknown         SMBus I801 adapter at 0400              Algorithm 
+unavailable
 
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-
-If you see all XX it means there is nothing or my patch does not work.
-
-If so you can try to dump the address:
-i2cdump 0 0x50
-
+[root@home /]# i2cdump 0 0x50
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x50, mode byte
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
 00: 80 08 07 0d 0a 02 40 00 04 50 60 00 82 08 00 01    ??????@.?P`.??.?
-10: 0e 04 0c 01 02 20 00 60 70 00 00 3c 28 3c 28 40    ????? .`p..<(<(@
+10: 0e 04 08 01 02 20 00 60 70 00 00 3c 28 3c 28 40    ????? .`p..<(<(@
+20: 60 60 40 40 00 00 00 00 00 00 00 00 00 00 00 00    ``@@............
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7c    ...............|
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 
-....
+--------------------------------------------------------------
+#sensors-detect
+Probing for `Myson MTP008'... Failed!
+Probing for `National Semiconductor LM78'... Failed!
+Probing for `National Semiconductor LM78-J'... Failed!
+Probing for `National Semiconductor LM79'... Failed!
+Probing for `National Semiconductor LM80'... Failed!
+Probing for `National Semiconductor LM85 or LM96000'... Failed!
+Probing for `Analog Devices ADM1027, ADT7460 or ADT7463'... Failed!
+Probing for `SMSC EMC6D100, EMC6D101 or EMC6D102'... Failed!
+Probing for `National Semiconductor LM87'... Failed!
+Probing for `National Semiconductor LM93'... Failed!
+Probing for `Winbond W83781D'... Failed!
+Probing for `Winbond W83782D'... Failed!
+Probing for `Winbond W83783S'... Failed!
+Probing for `Winbond W83791D'... Failed!
+Probing for `Winbond W83792D'... Failed!
+Probing for `Winbond W83791SD'... Failed!
+Probing for `Winbond W83627HF'... Failed!
+Probing for `Winbond W83627EHF'... Failed!
+Probing for `Asus AS99127F (rev.1)'... Failed!
+Probing for `Asus AS99127F (rev.2)'... Failed!
+Probing for `Asus ASB100 Bach'... Failed!
+Probing for `Winbond W83L784R/AR'... Failed!
+Probing for `Winbond W83L785R'... Failed!
+Probing for `Genesys Logic GL518SM Revision 0x00'... Failed!
+Probing for `Genesys Logic GL518SM Revision 0x80'... Failed!
+Probing for `Genesys Logic GL520SM'... Failed!
+Probing for `Genesys Logic GL525SM'... Failed!
+Probing for `Analog Devices ADM9240'... Failed!
+Probing for `Dallas Semiconductor DS1780'... Failed!
+Probing for `National Semiconductor LM81'... Failed!
+Probing for `Analog Devices ADM1026'... Failed!
+Probing for `Analog Devices ADM1025'... Failed!
+Probing for `Philips NE1619'... Failed!
+Probing for `Analog Devices ADM1024'... Failed!
+Probing for `Analog Devices ADM1029'... Failed!
+Probing for `Analog Devices ADM1030'... Failed!
+Probing for `Analog Devices ADM1031'... Failed!
+Probing for `Analog Devices ADM1022'... Failed!
+Probing for `Texas Instruments THMC50'... Failed!
+Probing for `VIA VT1211 (I2C)'... Failed!
+Probing for `ITE IT8712F'... Failed!
+Probing for `ALi M5879'... Failed!
+Probing for `SMSC LPC47M15x or LPC47M192'... Success!
+    (confidence 6, driver `to-be-written')
+Client found at address 0x2f
+Probing for `National Semiconductor LM78'... Failed!
+Probing for `National Semiconductor LM78-J'... Failed!
+Probing for `National Semiconductor LM79'... Failed!
+Probing for `National Semiconductor LM80'... Failed!
+Probing for `Winbond W83781D'... Failed!
+Probing for `Winbond W83782D'... Failed!
+Probing for `Winbond W83791D'... Failed!
+Probing for `Winbond W83792D'... Failed!
+Probing for `Winbond W83791SD'... Failed!
+Probing for `Winbond W83627HF'... Failed!
+Probing for `Winbond W83627EHF'... Failed!
+Probing for `Asus AS99127F (rev.1)'... Failed!
+Probing for `Asus AS99127F (rev.2)'... Failed!
+Probing for `Asus ASB100 Bach'... Failed!
+Probing for `Analog Devices ADM9240'... Failed!
+Probing for `Dallas Semiconductor DS1780'... Failed!
+Probing for `National Semiconductor LM81'... Failed!
+Probing for `Analog Devices ADM1029'... Failed!
+Probing for `ITE IT8712F'... Failed!
+Client found at address 0x38
+Probing for `Philips Semiconductors SAA1064'... Failed!
+Client found at address 0x50
+Probing for `SPD EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Probing for `DDC monitor'... Failed!
+Probing for `Maxim MAX6900'... Failed!
+Client found at address 0x51
+Probing for `SPD EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Client found at address 0x69
 
-If the output is similar to this one then you can run sensors-detect to detect the chips (leave the i2c-i801 loaded)
+Some chips are also accessible through the ISA bus. ISA probes are
+typically a bit more dangerous, as we have to write to I/O ports to do
+this. This is usually safe though.
 
-Please report how it goes.
-Good luck.
+Do you want to scan the ISA bus? (YES/no): YES
+Probing for `National Semiconductor LM78'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM78-J'
+  Trying address 0x0290... Failed!
+Probing for `National Semiconductor LM79'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83781D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83782D'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83627EHF'
+  Trying address 0x0290... Failed!
+Probing for `Winbond W83697HF'
+  Trying address 0x0290... Failed!
+Probing for `Silicon Integrated Systems SIS5595'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT82C686 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `VIA Technologies VT8231 Integrated Sensors'
+  Trying general detect... Failed!
+Probing for `ITE IT8712F'
+  Trying address 0x0290... Failed!
+Probing for `ITE IT8705F / SiS 950'
+  Trying address 0x0290... Failed!
+Probing for `IPMI BMC KCS'
+  Trying address 0x0ca0... Failed!
+Probing for `IPMI BMC SMIC'
+  Trying address 0x0ca8... Failed!
 
-Thanks,
-Regards
-Rudolf
--------------- next part --------------
-diff -Naur a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c	2005-09-30 23:17:35.000000000 +0200
-+++ b/drivers/i2c/busses/i2c-i801.c	2005-10-22 21:36:20.000000000 +0200
-@@ -119,6 +119,22 @@
- 	unsigned char temp;
- 
- 	/* Note: we keep on searching until we have found 'function 3' */
-+	
-+	if (PCI_DEVFN(0x14,0) = dev->devfn) {
-+		I801_dev = dev;
-+		pci_read_config_word(I801_dev, 0x90, &i801_smba);
-+		i801_smba &= 0xfff0;
-+		isich4 = 0; //dont know yet
-+
-+		if (!request_region(i801_smba, (isich4 ? 16 : 8), "i801-smbus")) {
-+			dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
-+				i801_smba);
-+			error_return = -EBUSY;
-+			goto END;
-+		}
-+		return 0;
-+	}	
-+
- 	if(PCI_FUNC(dev->devfn) != 3)
- 		return -ENODEV;
- 
-@@ -557,6 +573,9 @@
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_16) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_17) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_17) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, 0x4353) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, 0x4363) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, 0x4372) },
- 	{ 0, }
- };
- 
+Probing for `SMSC 47M15x/192 Super IO Fan Sensors'
+  Success... found at address 0x0800
+
+#lsmod
+smsc47m1                9552  0
+eeprom                  7056  0
+i2c_isa                 2624  0
+i2c_i801                8852  0
+i2c_sensor              3136  2 smsc47m1,eeprom
+i2c_dev                10176  0
+i2c_core               19416  6 
+smsc47m1,eeprom,i2c_isa,i2c_i801,i2c_sensor,i2c_dev
+
+[root@home linux]# sensors
+smsc47m1-isa-0800
+Adapter: ISA adapter
+fan1:        0 RPM  (min =  640 RPM, div = 8)          ALARM
+fan2:     1050 RPM  (min =  640 RPM, div = 8)
+
+Best regards,
+
+Pavel Ruzicka
