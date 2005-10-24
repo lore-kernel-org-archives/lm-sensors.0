@@ -1,38 +1,22 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 24 Oct 2005 10:19:04 +0000
-Subject: [lm-sensors] Re: [PATCH] add back i2c_smbus_read_block_data
-Message-Id: <yy6qoA8T.1130141209.1766120.khali@localhost>
+From: laurent.riffard@free.fr (Laurent riffard)
+Date: Mon, 24 Oct 2005 23:30:47 +0000
+Subject: [lm-sensors] [patch 0/9] I2C: remove i2c_driver's .owner and .name
+Message-Id: <20051024212201.485176000@antares.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051023195202.17325.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20051023195202.17325.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+i2c_driver and i2c_driver.driver both have "owner" and "name"
+field.  One should go - there's no point needlessly duplicating
+stuff like this.
 
-Hi Rudolf,
+The first patch updates the core usage of i2c_driver. Subsequent
+updates drivers to explicitly use i2cdriver.driver fields.
 
-On 2005-10-23, Rudolf Marek wrote:
-> This patch just adds back the i2c_smbus_read_block_data, it will be used
-> with lm93 driver.
->
-> This patch originated from Eric J. Bowersox [1], but never made it to
-> mainline.
-> (...)
-> [1] http://lists.lm-sensors.org/pipermail/lm-sensors/2005-August/013228.html
-
-It's more likely this one:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-August/013235.html
-
-I have it already in my queue:
-http://khali.linux-fr.org/devel/i2c/linux-2.6/i2c-add-smbus-block-read.diff
-
-I couldn't get it into mainline without a driver using it. So you can
-consider it is available for the lm93 driver, and I'll send this patch
-to Greg together with the lm93 driver patch when the latter is ready for
-inclusion.
-
-Thanks,
+(patches 0,1 and 5 copied to video4linux list)
 --
-Jean Delvare
+laurent
+--
+
