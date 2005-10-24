@@ -1,110 +1,155 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:04:13 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Do not forcibly enable via686a by
-Message-Id: <11305336574100@kroah.com>
+From: laurent.riffard@free.fr (Laurent riffard)
+Date: Mon, 24 Oct 2005 23:31:16 +0000
+Subject: [lm-sensors] [patch 1/9] I2C: remove i2c_driver's .owner and .name
+Message-Id: <20051024212540.426764000@antares.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: Do not forcibly enable via686a by default
+We should use the i2c_driver.driver's .name and .owner fields
+instead of the i2c_drivers's ones.
 
-Do not enable the VIA VT82C686A/B integrated sensors by default, as
-disabled sensors usually means that this feature is not used so the
-values won't make any sense. This has been confusing many users in the
-past:
+This patch updates the core of the i2c drivers: it removes .name and
+.owner fields from the struct i2c_device and modify various
+functions to use struct device fields instead.
 
-  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket86
-  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket11
-  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket 52
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+--
 
-It is still possible to forcibly enable the sensors by using the
-force_addr module parameter.
+ drivers/i2c/busses/i2c-isa.c |    4 +---
+ drivers/i2c/i2c-core.c       |   18 +++++++++---------
+ drivers/i2c/i2c-dev.c        |    6 ++++--
+ include/linux/i2c.h          |    5 +++--
+ 4 files changed, 17 insertions(+), 16 deletions(-)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
- Documentation/hwmon/via686a |   17 +++++++++++++++--
- drivers/hwmon/via686a.c     |   18 +++++++++++-------
- 2 files changed, 26 insertions(+), 9 deletions(-)
-
----
-commit b918ecd2429e1a89b846d9e49ca4520b963c13e8
-tree 396e8a1f2e958f713722b53c2ab68c66e9b265b3
-parent e415e48b68155bea8b5452113dedba4ec486f3f6
-author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:18:49 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:06 -0700
-
- Documentation/hwmon/via686a |   17 +++++++++++++++--
- drivers/hwmon/via686a.c     |   18 +++++++++++-------
- 2 files changed, 26 insertions(+), 9 deletions(-)
-
-diff --git a/Documentation/hwmon/via686a b/Documentation/hwmon/via686a
-index b82014c..a936fb3 100644
---- a/Documentation/hwmon/via686a
-+++ b/Documentation/hwmon/via686a
-@@ -18,8 +18,9 @@ Authors:
- Module Parameters
- -----------------
+Index: linux-2.6-mm/drivers/i2c/i2c-core.c
+=================================--- linux-2.6-mm.orig/drivers/i2c/i2c-core.c
++++ linux-2.6-mm/drivers/i2c/i2c-core.c
+@@ -233,7 +233,8 @@
+ 		if (driver->detach_adapter)
+ 			if ((res = driver->detach_adapter(adap))) {
+ 				dev_err(&adap->dev, "detach_adapter failed "
+-					"for driver [%s]\n", driver->name);
++					"for driver [%s]\n",
++					driver->driver.name);
+ 				goto out_unlock;
+ 			}
+ 	}
+@@ -293,8 +294,6 @@
+ 	down(&core_lists);
  
--force_addr=0xaddr       Set the I/O base address. Useful for Asus A7V boards
--                        that don't set the address in the BIOS. Does not do a
-+force_addr=0xaddr       Set the I/O base address. Useful for boards that
-+                        don't set the address in the BIOS. Look for a BIOS
-+                        upgrade before resorting to this. Does not do a
-                         PCI force; the via686a must still be present in lspci.
-                         Don't use this unless the driver complains that the
-                         base address is not set.
-@@ -63,3 +64,15 @@ miss once-only alarms.
+ 	/* add the driver to the list of i2c drivers in the driver core */
+-	driver->driver.owner = driver->owner;
+-	driver->driver.name = driver->name;
+ 	driver->driver.bus = &i2c_bus_type;
+ 	driver->driver.probe = i2c_device_probe;
+ 	driver->driver.remove = i2c_device_remove;
+@@ -342,7 +341,8 @@
+ 		if (driver->detach_adapter) {
+ 			if ((res = driver->detach_adapter(adap))) {
+ 				dev_err(&adap->dev, "detach_adapter failed "
+-					"for driver [%s]\n", driver->name);
++					"for driver [%s]\n",
++					driver->driver.name);
+ 				goto out_unlock;
+ 			}
+ 		} else {
+@@ -473,10 +473,10 @@
+ static int i2c_inc_use_client(struct i2c_client *client)
+ {
  
- The driver only updates its values each 1.5 seconds; reading it more often
- will do no harm, but will return 'old' values.
-+
-+Known Issues
-+------------
-+
-+This driver handles sensors integrated in some VIA south bridges. It is
-+possible that a motherboard maker used a VT82C686A/B chip as part of a
-+product design but was not interested in its hardware monitoring features,
-+in which case the sensor inputs will not be wired. This is the case of
-+the Asus K7V, A7V and A7V133 motherboards, to name only a few of them.
-+So, if you need the force_addr parameter, and end up with values which
-+don't seem to make any sense, don't look any further: your chip is simply
-+not wired for hardware monitoring.
-diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
-index 60e9487..688ccf9 100644
---- a/drivers/hwmon/via686a.c
-+++ b/drivers/hwmon/via686a.c
-@@ -589,10 +589,8 @@ static int via686a_detect(struct i2c_ada
- 	u16 val;
- 
- 	/* 8231 requires multiple of 256, we enforce that on 686 as well */
--	if (force_addr)
--		address = force_addr & 0xFF00;
--
- 	if (force_addr) {
-+		address = force_addr & 0xFF00;
- 		dev_warn(&adapter->dev, "forcing ISA address 0x%04X\n",
- 			 address);
- 		if (PCIBIOS_SUCCESSFUL !@@ -603,11 +601,17 @@ static int via686a_detect(struct i2c_ada
- 	    pci_read_config_word(s_bridge, VIA686A_ENABLE_REG, &val))
+-	if (!try_module_get(client->driver->owner))
++	if (!try_module_get(client->driver->driver.owner))
  		return -ENODEV;
- 	if (!(val & 0x0001)) {
--		dev_warn(&adapter->dev, "enabling sensors\n");
--		if (PCIBIOS_SUCCESSFUL !-		    pci_write_config_word(s_bridge, VIA686A_ENABLE_REG,
--					  val | 0x0001))
-+		if (force_addr) {
-+			dev_info(&adapter->dev, "enabling sensors\n");
-+			if (PCIBIOS_SUCCESSFUL !+			    pci_write_config_word(s_bridge, VIA686A_ENABLE_REG,
-+						  val | 0x0001))
-+				return -ENODEV;
-+		} else {
-+			dev_warn(&adapter->dev, "sensors disabled - enable "
-+				 "with force_addr=0x%x\n", address);
- 			return -ENODEV;
-+		}
+ 	if (!try_module_get(client->adapter->owner)) {
+-		module_put(client->driver->owner);
++		module_put(client->driver->driver.owner);
+ 		return -ENODEV;
  	}
  
- 	/* Reserve the ISA region */
+@@ -485,7 +485,7 @@
+ 
+ static void i2c_dec_use_client(struct i2c_client *client)
+ {
+-	module_put(client->driver->owner);
++	module_put(client->driver->driver.owner);
+ 	module_put(client->adapter->owner);
+ }
+ 
+@@ -537,14 +537,14 @@
+ 	down(&adap->clist_lock);
+ 	list_for_each(item,&adap->clients) {
+ 		client = list_entry(item, struct i2c_client, list);
+-		if (!try_module_get(client->driver->owner))
++		if (!try_module_get(client->driver->driver.owner))
+ 			continue;
+ 		if (NULL != client->driver->command) {
+ 			up(&adap->clist_lock);
+ 			client->driver->command(client,cmd,arg);
+ 			down(&adap->clist_lock);
+ 		}
+-		module_put(client->driver->owner);
++		module_put(client->driver->driver.owner);
+        }
+        up(&adap->clist_lock);
+ }
+Index: linux-2.6-mm/include/linux/i2c.h
+=================================--- linux-2.6-mm.orig/include/linux/i2c.h
++++ linux-2.6-mm/include/linux/i2c.h
+@@ -105,11 +105,12 @@
+  * A driver is capable of handling one or more physical devices present on
+  * I2C adapters. This information is used to inform the driver of adapter
+  * events.
++ *
++ * The driver.owner field should be set to the module owner of this driver.
++ * The driver.name field should be set to the name of this driver.
+  */
+ 
+ struct i2c_driver {
+-	struct module *owner;
+-	char name[32];
+ 	int id;
+ 	unsigned int class;
+ 	unsigned int flags;		/* div., see below		*/
+Index: linux-2.6-mm/drivers/i2c/busses/i2c-isa.c
+=================================--- linux-2.6-mm.orig/drivers/i2c/busses/i2c-isa.c
++++ linux-2.6-mm/drivers/i2c/busses/i2c-isa.c
+@@ -91,8 +91,6 @@
+ 	int res;
+ 
+ 	/* Add the driver to the list of i2c drivers in the driver core */
+-	driver->driver.name = driver->name;
+-	driver->driver.owner = driver->owner;
+ 	driver->driver.bus = &i2c_bus_type;
+ 	driver->driver.probe = i2c_isa_device_probe;
+ 	driver->driver.remove = i2c_isa_device_remove;
+@@ -123,7 +121,7 @@
+ 		if ((res = driver->detach_client(client))) {
+ 			dev_err(&isa_adapter.dev, "Failed, driver "
+ 				"%s not unregistered!\n",
+-				driver->name);
++				driver->driver.name);
+ 			return res;
+ 		}
+ 	}
+Index: linux-2.6-mm/drivers/i2c/i2c-dev.c
+=================================--- linux-2.6-mm.orig/drivers/i2c/i2c-dev.c
++++ linux-2.6-mm/drivers/i2c/i2c-dev.c
+@@ -487,8 +487,10 @@
+ }
+ 
+ static struct i2c_driver i2cdev_driver = {
+-	.owner		= THIS_MODULE,
+-	.name		= "dev_driver",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "dev_driver",
++	},
+ 	.id		= I2C_DRIVERID_I2CDEV,
+ 	.flags		= I2C_DF_NOTIFY,
+ 	.attach_adapter	= i2cdev_attach_adapter,
+
+--
 
