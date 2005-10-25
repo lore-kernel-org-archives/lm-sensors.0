@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 24 Oct 2005 13:39:03 +0000
+From: pavouk@pavouk.org (Pavel Ruzicka)
+Date: Tue, 25 Oct 2005 00:18:39 +0000
 Subject: [lm-sensors] ATI SMBus - new information
-Message-Id: <435CC7B9.50007@sh.cvut.cz>
+Message-Id: <200510250017.38919.pavouk@pavouk.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <435A1BA9.9080009@sh.cvut.cz>
 In-Reply-To: <435A1BA9.9080009@sh.cvut.cz>
@@ -10,25 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-David Goodenough wrote:
-> Rudolf,
-> 
-> I am not quite sure why I am included in the CC list for this note.  I do not 
-> have one of these chips on my system as far as I know, the only only
-> ATI chip I have is a Radeon video chip.
-> 
+Hi,
 
-> I have a laptop (a Samsumg P28) which has lots of ATI chips in it.  One of 
-> them (according to lspci) is an SmBus controller, and it has a PCI id of
-> 1002:4353.  Looking at the lmsensors web site there are no bus drivers
-> for any ATI chips.  This seems to be one of the functions in the Ati 
-> 9000 IGP chip, which is also the video driver.  It is marked as being
-> the 9100 IGP chip in the linux PCI repository, but I guess they use the
-> same silicon in both chips.
+> > Client found at address 0x2f
+>
+> Pavel:
+> I wonder what is there. Can you please do:
+>
+> i2cdump 0 0x2f b
+> --
+> Jean Delvare
 
-You wrote this correct :) ?
+There is dump, what do you want:
 
-The PCI ID matches so my driver will work for you too.
+[root@home pavouk]# i2cdump 0 0x2f b
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x2f, mode byte
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 0f 00 00 07 00 18 00 00 ff ff ff ff ff ff ff    ??..?.?.........
+10: ff ff ff ff 14 62 02 05 ff ff ff ff ff ff ff ff    ....?b??........
+20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
 
-Regards
-Rudolf
+Best regards,
+
+Pavel Ruzicka
