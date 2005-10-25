@@ -1,8 +1,10 @@
 From: Eric.Pascal@itesoft.com (Eric Pascal)
-Date: Tue, 25 Oct 2005 11:34:35 +0000
-Subject: [lm-sensors] Patch for 'w83627thf' Chipset add SmartFan control
-Message-Id: <4A9A21CEA07B1F4A973CFCD89B9446C90111853C@sermaila.itesoft.local>
+Date: Tue, 25 Oct 2005 11:48:46 +0000
+Subject: [lm-sensors] Patch for 'w83627thf' Chipset add SmartFan control bis
+Message-Id: <4A9A21CEA07B1F4A973CFCD89B9446C90111853D@sermaila.itesoft.local>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4A9A21CEA07B1F4A973CFCD89B9446C90111853C@sermaila.itesoft.local>
+In-Reply-To: <4A9A21CEA07B1F4A973CFCD89B9446C90111853C@sermaila.itesoft.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -40,7 +42,7 @@ mode) remains the same. So any front-end application can use all the old
 functions as before.
 ---------------------------------------------------------------------------
 
-I have adapted the patch to the successive versions of the kernel and here is the latest that can be applied to the 2.6.15rc5 kernel.
+I have adapted the patch to the successive versions of the kernel and here is the latest that can be applied to the 2.6.14rc5 kernel.
 Can someone using a w83627thf validate it so that Linus will know it works from at least another person?
 
 Thank you.
