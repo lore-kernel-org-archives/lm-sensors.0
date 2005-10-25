@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Oct 2005 14:48:21 +0000
+Date: Tue, 25 Oct 2005 15:01:30 +0000
 Subject: [lm-sensors] Patch for 'w83627thf' Chipset add SmartFan control
-Message-Id: <d6QUwPJE.1130243801.0579010.khali@localhost>
+Message-Id: <iSjNq5Zt.1130244578.0708400.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4A9A21CEA07B1F4A973CFCD89B9446C90111853C@sermaila.itesoft.local>
 In-Reply-To: <4A9A21CEA07B1F4A973CFCD89B9446C90111853C@sermaila.itesoft.local>
@@ -11,23 +11,23 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi again Henrique,
+Hi Eric,
 
-On 2005-10-25, Henrique de Moraes Holschuh wrote:
-> Here is the LM85 interface (as per 2.6.13.3):
+Do not bother CCing Frodo, he is totally retired from the lm_sensors
+project.
 
-The lm85 interface doesn't follow the standard, so pointing Pascal to it
-for the w83627hf is a bad idea. See the standard interface in
-Documentation/hwmon/sysfs-interface, and implement that.
+On 2005-10-25, Eric Pascal wrote:
+> I have adapted the patch to the successive versions of the kernel and here
+> is the latest that can be applied to the 2.6.15rc5 kernel.
 
-> Where # is a number that varies with the number of channels.  Some of
-> these entries are RW, others are RO, and some are automatically updated
-> if others are changed.
+I don't see no patch here. Note that the mailing list system drops all
+attachement types others than text/plain and text/x-patch, so make sure
+you use the proper MIME type.
 
-Entries which change automatically depending on the value written to
-other entries should always be read-only, so as to avoid confusion and
-cycles.
+> Can someone using a w83627thf validate it so that Linus will know it works
+> from at least another person?
 
-Thanks,
+I do not own such a chip myself, sorry.
+
 --
 Jean Delvare
