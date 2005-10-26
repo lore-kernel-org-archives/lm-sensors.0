@@ -1,234 +1,227 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 28 Oct 2005 23:06:56 +0000
-Subject: [lm-sensors] [GIT PATCH] I2C and hwmon patches for 2.6.14
-Message-Id: <20051028210607.GA18845@kroah.com>
+From: mchehab@brturbo.com.br (Mauro Carvalho Chehab)
+Date: Wed, 26 Oct 2005 22:17:12 +0000
+Subject: [lm-sensors]
+Message-Id: <1130357744.23547.21.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <87ekb9s3tn.wl%info@wore.ma.cx>
+In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Here are some i2c and hwmon patches.  They have all been in the past few
--mm releases with no problem.  They fix a number of different bugs, and
-add a new driver.
+Greg,
 
-Please pull from:
-	rsync://rsync.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
-or from:
-	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
-if it isn't synced up yet.
+	Please don't send this patch to Andrew or mainstream. I'll apply it on
+my tree and I will send it at the end my patchset series, for not
+breaking these.
 
-The full patch series will sent to the sensors mailing lists, if anyone
-wants to see them.
+	I have several patches that are including newer IDs on
+linux/media/i2c-id.h and I'm just preparing a patch, on V4L tree, to
+remove this file from kernel.
 
-thanks,
+	If this is applied, it may break dozens of patches I've already
+prepared (at
+http://wwwlinuxtv.org/download/video4linux/patches/2.6.14-rc5)
 
-greg k-h
+	Maybe it would be wiser if patches that touches drivers/media devices
+maintained on V4L go first to me, and I send to Andrew. This way, it
+would help us not to redo an entire patchset for fixing broken stuff
+because they would be included on a wrong order.
 
- Documentation/hwmon/it87              |    8 
- Documentation/hwmon/lm90              |   47 +-
- Documentation/hwmon/smsc47b397        |    8 
- Documentation/hwmon/smsc47m1          |    7 
- Documentation/hwmon/sysfs-interface   |    3 
- Documentation/hwmon/via686a           |   17 
- Documentation/i2c/busses/i2c-i810     |    1 
- Documentation/i2c/busses/i2c-viapro   |   31 -
- Documentation/i2c/chips/x1205         |   38 +
- Documentation/i2c/functionality       |    7 
- Documentation/i2c/porting-clients     |    2 
- Documentation/i2c/writing-clients     |   27 -
- MAINTAINERS                           |    6 
- drivers/hwmon/adm1021.c               |    5 
- drivers/hwmon/adm1025.c               |    3 
- drivers/hwmon/adm1026.c               |   22 -
- drivers/hwmon/adm1031.c               |    3 
- drivers/hwmon/adm9240.c               |  465 +++++++++++-----------
- drivers/hwmon/asb100.c                |   11 
- drivers/hwmon/atxp1.c                 |    5 
- drivers/hwmon/ds1621.c                |    9 
- drivers/hwmon/fscher.c                |    3 
- drivers/hwmon/fscpos.c                |    5 
- drivers/hwmon/gl518sm.c               |    3 
- drivers/hwmon/gl520sm.c               |    3 
- drivers/hwmon/it87.c                  |   56 --
- drivers/hwmon/lm63.c                  |    3 
- drivers/hwmon/lm75.c                  |    3 
- drivers/hwmon/lm77.c                  |    3 
- drivers/hwmon/lm78.c                  |    6 
- drivers/hwmon/lm80.c                  |    5 
- drivers/hwmon/lm83.c                  |    3 
- drivers/hwmon/lm85.c                  |   15 
- drivers/hwmon/lm87.c                  |    3 
- drivers/hwmon/lm90.c                  |  183 +++++---
- drivers/hwmon/lm92.c                  |    3 
- drivers/hwmon/max1619.c               |    3 
- drivers/hwmon/pc87360.c               |    3 
- drivers/hwmon/sis5595.c               |    3 
- drivers/hwmon/smsc47b397.c            |   10 
- drivers/hwmon/smsc47m1.c              |   10 
- drivers/hwmon/via686a.c               |   28 -
- drivers/hwmon/w83627ehf.c             |   16 
- drivers/hwmon/w83627hf.c              |   32 -
- drivers/hwmon/w83781d.c               |   11 
- drivers/hwmon/w83792d.c               |    7 
- drivers/hwmon/w83l785ts.c             |   44 +-
- drivers/i2c/algos/i2c-algo-pca.c      |    2 
- drivers/i2c/algos/i2c-algo-sibyte.c   |    2 
- drivers/i2c/busses/Kconfig            |    3 
- drivers/i2c/busses/i2c-ali1535.c      |    7 
- drivers/i2c/busses/i2c-ali1563.c      |    7 
- drivers/i2c/busses/i2c-ali15x3.c      |   10 
- drivers/i2c/busses/i2c-amd756-s4882.c |    4 
- drivers/i2c/busses/i2c-amd756.c       |    8 
- drivers/i2c/busses/i2c-amd8111.c      |   16 
- drivers/i2c/busses/i2c-elektor.c      |  158 ++++---
- drivers/i2c/busses/i2c-hydra.c        |    1 
- drivers/i2c/busses/i2c-i801.c         |   65 ---
- drivers/i2c/busses/i2c-i810.c         |    2 
- drivers/i2c/busses/i2c-ibm_iic.c      |    3 
- drivers/i2c/busses/i2c-iop3xx.c       |    9 
- drivers/i2c/busses/i2c-isa.c          |    1 
- drivers/i2c/busses/i2c-ixp2000.c      |    8 
- drivers/i2c/busses/i2c-ixp4xx.c       |    8 
- drivers/i2c/busses/i2c-keywest.c      |    7 
- drivers/i2c/busses/i2c-mpc.c          |    4 
- drivers/i2c/busses/i2c-mv64xxx.c      |    6 
- drivers/i2c/busses/i2c-nforce2.c      |   18 
- drivers/i2c/busses/i2c-parport.c      |   11 
- drivers/i2c/busses/i2c-piix4.c        |   13 
- drivers/i2c/busses/i2c-pmac-smu.c     |    3 
- drivers/i2c/busses/i2c-prosavage.c    |   10 
- drivers/i2c/busses/i2c-s3c2410.c      |    2 
- drivers/i2c/busses/i2c-savage4.c      |    1 
- drivers/i2c/busses/i2c-sis5595.c      |   10 
- drivers/i2c/busses/i2c-sis630.c       |    9 
- drivers/i2c/busses/i2c-sis96x.c       |    8 
- drivers/i2c/busses/i2c-via.c          |    7 
- drivers/i2c/busses/i2c-viapro.c       |  311 +++++++--------
- drivers/i2c/busses/i2c-voodoo3.c      |    1 
- drivers/i2c/busses/scx200_acb.c       |    3 
- drivers/i2c/chips/Kconfig             |    9 
- drivers/i2c/chips/Makefile            |    1 
- drivers/i2c/chips/ds1337.c            |    3 
- drivers/i2c/chips/ds1374.c            |    7 
- drivers/i2c/chips/eeprom.c            |    9 
- drivers/i2c/chips/isp1301_omap.c      |    1 
- drivers/i2c/chips/m41t00.c            |    4 
- drivers/i2c/chips/max6875.c           |    6 
- drivers/i2c/chips/pca9539.c           |    3 
- drivers/i2c/chips/pcf8574.c           |    5 
- drivers/i2c/chips/pcf8591.c           |    5 
- drivers/i2c/chips/rtc8564.c           |    5 
- drivers/i2c/chips/tps65010.c          |    3 
- drivers/i2c/chips/x1205.c             |  698 ++++++++++++++++++++++++++++++++++
- drivers/i2c/i2c-core.c                |  196 +++------
- drivers/i2c/i2c-dev.c                 |   17 
- include/linux/i2c-algo-bit.h          |    4 
- include/linux/i2c-algo-pca.h          |    2 
- include/linux/i2c-algo-pcf.h          |    4 
- include/linux/i2c-dev.h               |    2 
- include/linux/i2c-id.h                |    3 
- include/linux/i2c.h                   |   38 -
- include/linux/mod_devicetable.h       |    5 
- include/linux/x1205.h                 |   31 +
- include/media/ovcamchip.h             |   14 
- scripts/mod/file2alias.c              |   10 
- 108 files changed, 1872 insertions(+), 1140 deletions(-)
+Cheers,
+Mauro.
 
 
-Alessandro Zummo:
-      i2c: New Xicor X1205 RTC driver
-
-Ben Dooks:
-      i2c: Static function fixes, 1 of 4
-      i2c: Static function fixes, 4 of 4
-      hwmon: Static function fixes, 3 of 4
-      hwmon: Static function fixes, 2 of 4
-
-Deepak Saxena:
-      i2c: kzalloc conversion, ixp bus drivers
-      i2c: kzalloc conversion, other drivers
-      hwmon: kzalloc conversion
-
-Grant Coady:
-      hwmon: adm9240 driver update - cleanups
-      hwmon: adm9240 driver update - dynamic sysfs
-
-Greg KH:
-      i2c-viapro: Cleanup ifdef usage
-
-Greg Kroah-Hartman:
-      I2C: remove devfs support from i2c-dev driver
-      I2C: add i2c module alias for i2c drivers to use
-
-Hideki Iwamoto:
-      i2c: Fix union i2c_smbus_data definition
-      i2c: Several PEC-related fixes in software SMBus emulation
-      i2c: Fix I2C_FUNC_PROTOCOL_MANGLING documentation
-
-Jean Delvare:
-      hwmon: via686a: save 0.5k by long v[256] -> s16 v[256]
-      hwmon: Discard explicit static initializations to 0
-      i2c: Discard explicit static initializations to 0
-      hwmon: w83l785ts converted to dynamic sysfs callbacks
-      hwmon: Discard bogus comment about init setting limits
-      hwmon: Do not forcibly enable via686a by default
-      i2c: Reuse name strings in i2c bus drivers
-      hwmon: adm9240 whitespace cleanups
-      i2c: Minor i2c-amd8111 cleanup
-      i2c-viapro: New maintainer
-      i2c: Adjust i2c_probe() for busses without SMBUS_QUICK
-      i2c-viapro: Coding style fixes
-      hwmon: Minor w83l785ts optimization
-      i2c-viapro: Refactor control outb
-      i2c: Add missing i2c-ixp2000/4xx adapter name
-      i2c-viapro: Update supported devices list
-      i2c-viapro: Code cleanups
-      i2c: Cleanup i2c-dev ioctl debug message
-      i2c-viapro: Improve register dump
-      i2c-viapro: Implement I2C Block transactions
-      i2c: Fix misplaced i2c.h comment
-      i2c: Cleanup i2c-i801 ifdefs
-      i2c: Documentation fixes
-      i2c: Drop out-of-date, colliding ioctl definitions
-      hwmon: Drop legacy ISA address support from it87
-      i2c: Drop useless CVS revision IDs
-      i2c: Drop meaningless use of I2C_DF_NOTIFY in i2c_client structures
-      i2c: Drop I2C_SMBUS_I2C_BLOCK_MAX
-      i2c: Rename i2c-parport variable to avoid confusion
-      hwmon: Drop useless w83627hf initialization step
-      i2c: Drop unused per-i2c-algorithm adapter max
-      hwmon: Missing class check in two hwmon drivers
-      i2c: kzalloc cleanups, 1 of 2
-      i2c: Documentation update
-      i2c: kzalloc cleanups, 2 of 2
-      i2c: i2c-i810 documentation update
-      i2c: SMBus PEC support rewrite, 1 of 3
-      i2c: ID redefinition cleanups
-      i2c: Drop unused parport i2c IDs
-      i2c: SMBus PEC support rewrite, 2 of 3
-      i2c: SMBus PEC support rewrite, 3 of 3
-      hwmon: Separate the lm90 register read function
-      hwmon: lm90 documentation update
-      hwmon: smsc47m1 documentation update
-      hwmon: Add PEC support to the lm90 driver
-      i2c: i2c-i801 PEC code cleanups
-
-Laurent Riffard:
-      Owner field additions to many i2c drivers, 2 of 5
-      Owner field additions to many i2c drivers, 5 of 5
-      Owner field additions to many i2c drivers, 4 of 5
-      Owner field additions to many i2c drivers, 1 of 5
-      Owner field additions to many i2c drivers, 3 of 5
-
-Mark M. Hoffman:
-      hwmon: New device ID for the smsc47b397 driver
-
-Petr Vandrovec:
-      hwmon: Fix w83627ehf/hf vs PNPACPI conflict (bug #4014)
-
-Stig Telfer:
-      i2c: Fix i2c-elektor on Alpha
-      i2c: Big i2c-elektor cleanup
+Em Qua, 2005-10-26 ?s 21:17 +0200, Jean Delvare escreveu:
+> Content-Disposition: inline; filename=i2c-id-clean-redefinitions-2.patch
+> 
+> Second round of i2c IDs redefinition cleanup.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> CC: Mauro Carvalho Chehab <mchehab@brturbo.com.br>
+> CC: John Klar <linpvr@projectplasma.com>
+> 
+> ---
+>  drivers/media/video/bt832.c             |    1 -
+>  drivers/media/video/msp3400.c           |    1 -
+>  drivers/media/video/saa6588.c           |    2 --
+>  drivers/media/video/saa7134/saa6752hs.c |    2 --
+>  drivers/media/video/saa7134/saa7134.h   |    1 -
+>  drivers/media/video/tda7432.c           |    1 -
+>  drivers/media/video/tda9875.c           |    1 -
+>  drivers/media/video/tda9887.c           |    1 -
+>  drivers/media/video/tvaudio.c           |    3 +--
+>  drivers/media/video/tveeprom.c          |    4 ----
+>  include/linux/i2c-id.h                  |    3 +++
+>  include/media/id.h                      |   35 -------------------------------
+>  12 files changed, 4 insertions(+), 51 deletions(-)
+> 
+> --- linux-2.6.14-rc5.orig/drivers/media/video/tvaudio.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/tvaudio.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -31,7 +31,6 @@
+>  #include <linux/smp_lock.h>
+>  
+>  #include <media/audiochip.h>
+> -#include <media/id.h>
+>  
+>  #include "tvaudio.h"
+>  
+> @@ -1438,7 +1437,7 @@
+>  	},
+>  	{
+>  		.name       = "pic16c54 (PV951)",
+> -		.id         = I2C_DRIVERID_PIC16C54_PV951,
+> +		.id         = I2C_DRIVERID_PIC16C54_PV9,
+>  		.insmodopt  = &pic16c54,
+>  		.addr_lo    = I2C_PIC16C54 >> 1,
+>  		.addr_hi    = I2C_PIC16C54>> 1,
+> --- linux-2.6.14-rc5.orig/include/linux/i2c-id.h	2005-10-24 19:38:22.000000000 +0200
+> +++ linux-2.6.14-rc5/include/linux/i2c-id.h	2005-10-24 19:43:05.000000000 +0200
+> @@ -99,6 +99,9 @@
+>  #define I2C_DRIVERID_MAX6900	63	/* MAX6900 real-time clock	*/
+>  #define I2C_DRIVERID_SAA7114H	64	/* video decoder		*/
+>  #define I2C_DRIVERID_DS1374	65	/* DS1374 real time clock	*/
+> +#define I2C_DRIVERID_TDA9874	66	/* TV sound decoder		*/
+> +#define I2C_DRIVERID_SAA6752HS	67	/* MPEG2 encoder		*/
+> +#define I2C_DRIVERID_TVEEPROM	68	/* TV EEPROM			*/
+>  
+> 
+>  #define I2C_DRIVERID_EXP0	0xF0	/* experimental use id's	*/
+> --- linux-2.6.14-rc5.orig/include/media/id.h	2005-09-13 21:21:25.000000000 +0200
+> +++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+> @@ -1,35 +0,0 @@
+> -/*
+> - */
+> -
+> -/* FIXME: this temporarely, until these are included in linux/i2c-id.h */
+> -
+> -/* drivers */
+> -#ifndef  I2C_DRIVERID_TVMIXER
+> -# define I2C_DRIVERID_TVMIXER I2C_DRIVERID_EXP0
+> -#endif
+> -#ifndef  I2C_DRIVERID_TVAUDIO
+> -# define I2C_DRIVERID_TVAUDIO I2C_DRIVERID_EXP1
+> -#endif
+> -
+> -/* chips */
+> -#ifndef  I2C_DRIVERID_DPL3518
+> -# define I2C_DRIVERID_DPL3518 I2C_DRIVERID_EXP2
+> -#endif
+> -#ifndef  I2C_DRIVERID_TDA9873
+> -# define I2C_DRIVERID_TDA9873 I2C_DRIVERID_EXP3
+> -#endif
+> -#ifndef  I2C_DRIVERID_TDA9875
+> -# define I2C_DRIVERID_TDA9875 I2C_DRIVERID_EXP0+4
+> -#endif
+> -#ifndef  I2C_DRIVERID_PIC16C54_PV951
+> -# define I2C_DRIVERID_PIC16C54_PV951 I2C_DRIVERID_EXP0+5
+> -#endif
+> -#ifndef  I2C_DRIVERID_TDA7432
+> -# define I2C_DRIVERID_TDA7432 I2C_DRIVERID_EXP0+6
+> -#endif
+> -#ifndef  I2C_DRIVERID_TDA9874
+> -# define I2C_DRIVERID_TDA9874 I2C_DRIVERID_EXP0+7
+> -#endif
+> -#ifndef  I2C_DRIVERID_SAA6752HS
+> -# define I2C_DRIVERID_SAA6752HS I2C_DRIVERID_EXP0+8
+> -#endif
+> --- linux-2.6.14-rc5.orig/drivers/media/video/tveeprom.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/tveeprom.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -590,10 +590,6 @@
+>  /* run, just call the exported tveeprom_* directly, there is no point in   */
+>  /* using the indirect way via i2c_driver->command()                        */
+>  
+> -#ifndef I2C_DRIVERID_TVEEPROM
+> -# define I2C_DRIVERID_TVEEPROM I2C_DRIVERID_EXP2
+> -#endif
+> -
+>  static unsigned short normal_i2c[] = {
+>  	0xa0 >> 1,
+>  	I2C_CLIENT_END,
+> --- linux-2.6.14-rc5.orig/drivers/media/video/bt832.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/bt832.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -32,7 +32,6 @@
+>  #include <linux/slab.h>
+>  
+>  #include <media/audiochip.h>
+> -#include <media/id.h>
+>  #include "bttv.h"
+>  #include "bt832.h"
+>  
+> --- linux-2.6.14-rc5.orig/drivers/media/video/msp3400.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/msp3400.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -54,7 +54,6 @@
+>  #include <asm/pgtable.h>
+>  
+>  #include <media/audiochip.h>
+> -#include <media/id.h>
+>  #include "msp3400.h"
+>  
+>  #define OPMODE_AUTO    -1
+> --- linux-2.6.14-rc5.orig/drivers/media/video/saa6588.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/saa6588.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -31,8 +31,6 @@
+>  #include <linux/wait.h>
+>  #include <asm/uaccess.h>
+>  
+> -#include <media/id.h>
+> -
+>  #include "rds.h"
+>  
+>  /* Addresses to scan */
+> --- linux-2.6.14-rc5.orig/drivers/media/video/saa7134/saa6752hs.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/saa7134/saa6752hs.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -13,8 +13,6 @@
+>  #include <linux/init.h>
+>  #include <linux/crc32.h>
+>  
+> -#include <media/id.h>
+> -
+>  #define MPEG_VIDEO_TARGET_BITRATE_MAX  27000
+>  #define MPEG_VIDEO_MAX_BITRATE_MAX     27000
+>  #define MPEG_TOTAL_TARGET_BITRATE_MAX  27000
+> --- linux-2.6.14-rc5.orig/drivers/media/video/saa7134/saa7134.h	2005-09-13 21:21:09.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/saa7134/saa7134.h	2005-10-24 19:43:05.000000000 +0200
+> @@ -32,7 +32,6 @@
+>  
+>  #include <media/tuner.h>
+>  #include <media/audiochip.h>
+> -#include <media/id.h>
+>  #include <media/ir-common.h>
+>  #include <media/video-buf.h>
+>  #include <media/video-buf-dvb.h>
+> --- linux-2.6.14-rc5.orig/drivers/media/video/tda7432.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/tda7432.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -50,7 +50,6 @@
+>  
+>  #include "bttv.h"
+>  #include <media/audiochip.h>
+> -#include <media/id.h>
+>  
+>  #ifndef VIDEO_AUDIO_BALANCE
+>  # define VIDEO_AUDIO_BALANCE 32
+> --- linux-2.6.14-rc5.orig/drivers/media/video/tda9875.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/tda9875.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -32,7 +32,6 @@
+>  
+>  #include "bttv.h"
+>  #include <media/audiochip.h>
+> -#include <media/id.h>
+>  
+>  static int debug; /* insmod parameter */
+>  module_param(debug, int, S_IRUGO | S_IWUSR);
+> --- linux-2.6.14-rc5.orig/drivers/media/video/tda9887.c	2005-10-23 17:42:05.000000000 +0200
+> +++ linux-2.6.14-rc5/drivers/media/video/tda9887.c	2005-10-24 19:43:05.000000000 +0200
+> @@ -11,7 +11,6 @@
+>  
+>  #include <media/audiochip.h>
+>  #include <media/tuner.h>
+> -#include <media/id.h>
+>  
+>  /* Chips:
+>     TDA9885 (PAL, NTSC)
+> 
+Cheers, 
+Mauro.
 
