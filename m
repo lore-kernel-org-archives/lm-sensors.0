@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 25 Oct 2005 10:29:16 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 26 Oct 2005 00:14:15 +0000
 Subject: [lm-sensors] ATI SMBus - new information
-Message-Id: <9akwSkjQ.1130228254.9367350.khali@localhost>
+Message-Id: <435EAE3D.3@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <435A1BA9.9080009@sh.cvut.cz>
 In-Reply-To: <435A1BA9.9080009@sh.cvut.cz>
@@ -11,34 +11,18 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Hi Pavel,
+> It looks like it works.
 
-On 2005-10-24, Pavel Ruzicka wrote:
-> There is dump, what do you want:
->
-> [root@home pavouk]# i2cdump 0 0x2f b
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c/0, address 0x2f, mode byte
-> Continue? [Y/n]
->     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 80 0f 00 00 07 00 18 00 00 ff ff ff ff ff ff ff    ??..?.?.........
-> 10: ff ff ff ff 14 62 02 05 ff ff ff ff ff ff ff ff    ....?b??........
-> 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+Cool.
 
-Hm, I have no idea what this can be, sorry.
+I will add some more information to the archive. It seems it is ICH4 compatible because it reserves for ACPI the 16 bytes.
+So HW PEC should be supported too.
 
---
-Jean Delvare
+Pavel could you please dump with isadump:
+
+isadump -f 0x400 16
+
+Thanks
+
+Regards
+Rudolf
