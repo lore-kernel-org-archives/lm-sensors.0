@@ -1,117 +1,37 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:29:10 +0000
-Subject: [lm-sensors] [PATCH] hwmon: w83l785ts converted to dynamic sysfs
-Message-Id: <11305336572409@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 26 Oct 2005 21:03:42 +0000
+Subject: [lm-sensors] [PATCH 01/16] i2c: Static function fixes, 1 of 4
+Message-Id: <20051026210412.5080cf67.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: w83l785ts converted to dynamic sysfs callbacks
+From: Ben Dooks <ben-linux@fluff.org>
+Content-Disposition: inline; filename=static-01-i2c-eeprom.patch
 
-Convert the w83l785ts driver to use dynamic sysfs callbacks. This is a
-small driver so the benefit is thin, but still worth it.
+eeprom_detect is first declared static and then when
+the function is actually implemented, there is no static.
 
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
- drivers/hwmon/w83l785ts.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
 
 ---
-commit 709439a284bc5b7d42a70fee7119feb186c1ca99
-tree 12b41b5091cac96e2cff9d3ee878944689642616
-parent d6072f842a77014220683ee5b781b7cee8f020d1
-author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:41:18 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:06 -0700
+ drivers/i2c/chips/eeprom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/hwmon/w83l785ts.c |   36 ++++++++++++++++++------------------
- 1 files changed, 18 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
-index 133e34a..fcb2c39 100644
---- a/drivers/hwmon/w83l785ts.c
-+++ b/drivers/hwmon/w83l785ts.c
-@@ -37,6 +37,7 @@
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
- #include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- 
- /* How many retries on register read error */
-@@ -111,27 +112,24 @@ struct w83l785ts_data {
- 	unsigned long last_updated; /* in jiffies */
- 
- 	/* registers values */
--	u8 temp, temp_over;
-+	u8 temp[2]; /* 0: input
-+		       1: critical limit */
- };
- 
- /*
-  * Sysfs stuff
-  */
- 
--static ssize_t show_temp(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-+	char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct w83l785ts_data *data = w83l785ts_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp));
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index]));
+--- linux-2.6.14-rc4.orig/drivers/i2c/chips/eeprom.c	2005-10-13 22:59:00.000000000 +0200
++++ linux-2.6.14-rc4/drivers/i2c/chips/eeprom.c	2005-10-14 19:06:12.000000000 +0200
+@@ -155,7 +155,7 @@
  }
  
--static ssize_t show_temp_over(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct w83l785ts_data *data = w83l785ts_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_over));
--}
--
--static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
--static DEVICE_ATTR(temp1_max, S_IRUGO, show_temp_over, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_temp, NULL, 1);
- 
- /*
-  * Real code
-@@ -228,7 +226,7 @@ static int w83l785ts_detect(struct i2c_a
- 	init_MUTEX(&data->update_lock);
- 
- 	/* Default values in case the first read fails (unlikely). */
--	data->temp_over = data->temp = 0;
-+	data->temp[1] = data->temp[0] = 0;
- 
- 	/* Tell the I2C layer a new client has arrived. */
- 	if ((err = i2c_attach_client(new_client))) 
-@@ -246,8 +244,10 @@ static int w83l785ts_detect(struct i2c_a
- 		goto exit_detach;
- 	}
- 
--	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			   &sensor_dev_attr_temp1_max.dev_attr);
- 
- 	return 0;
- 
-@@ -305,10 +305,10 @@ static struct w83l785ts_data *w83l785ts_
- 
- 	if (!data->valid || time_after(jiffies, data->last_updated + HZ * 2)) {
- 		dev_dbg(&client->dev, "Updating w83l785ts data.\n");
--		data->temp = w83l785ts_read_value(client,
--			     W83L785TS_REG_TEMP, data->temp);
--		data->temp_over = w83l785ts_read_value(client,
--				  W83L785TS_REG_TEMP_OVER, data->temp_over);
-+		data->temp[0] = w83l785ts_read_value(client,
-+				W83L785TS_REG_TEMP, data->temp[0]);
-+		data->temp[1] = w83l785ts_read_value(client,
-+				W83L785TS_REG_TEMP_OVER, data->temp[1]);
- 
- 		data->last_updated = jiffies;
- 		data->valid = 1;
+ /* This function is called by i2c_probe */
+-int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
++static int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *new_client;
+ 	struct eeprom_data *data;
 
+-- 
+Jean Delvare
