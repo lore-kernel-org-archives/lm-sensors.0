@@ -1,81 +1,64 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:12:48 +0000
-Subject: [lm-sensors] [PATCH] I2C: remove devfs support from i2c-dev driver
-Message-Id: <1130533664130@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 26 Oct 2005 21:13:32 +0000
+Subject: [lm-sensors] [PATCH 05/16] i2c: ID redefinition cleanups, 1 of 2
+Message-Id: <20051026211416.293d8e42.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: remove devfs support from i2c-dev driver
+Content-Disposition: inline; filename=i2c-id-clean-redefinitions-1.patch
 
-as devfs is gone, this isn't needed anymore.
+Fix several redefinitions of i2c IDs. i2c IDs must not be defined
+outside of i2c-id.h.
 
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Henk Vergonet <henk@god.dyndns.org>
+Acked-by: Mark McClelland <mark@alpha.dyndns.org>
 
 ---
-commit 0dc9a32d9a975ccd25b9f531451165c93e1c7313
-tree df2c1fd2bd0f98d305a9630da86737a91201d8f9
-parent b890a07f7b002ee473986fa85ae3582de399a4cf
-author Greg Kroah-Hartman <gregkh@suse.de> Sat, 22 Oct 2005 00:23:27 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:14 -0700
+ drivers/i2c/busses/i2c-prosavage.c |    5 -----
+ include/media/ovcamchip.h          |   14 --------------
+ 2 files changed, 19 deletions(-)
 
- drivers/i2c/i2c-dev.c |   10 ----------
- 1 files changed, 0 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index 276ec42..ea14c8f 100644
---- a/drivers/i2c/i2c-dev.c
-+++ b/drivers/i2c/i2c-dev.c
-@@ -26,15 +26,11 @@
- 
- /* The I2C_RDWR ioctl code is written by Kolja Waschk <waschk@telos.de> */
- 
--/* The devfs code is contributed by Philipp Matthias Hahn 
--   <pmhahn@titan.lahn.de> */
+--- linux-2.6.14-rc5.orig/drivers/i2c/busses/i2c-prosavage.c	2005-10-23 17:35:36.000000000 +0200
++++ linux-2.6.14-rc5/drivers/i2c/busses/i2c-prosavage.c	2005-10-23 17:35:46.000000000 +0200
+@@ -83,11 +83,6 @@
+ /*
+  * i2c configuration
+  */
+-#ifndef I2C_HW_B_S3VIA
+-#define I2C_HW_B_S3VIA	0x18	/* S3VIA ProSavage adapter		*/
+-#endif
 -
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/smp_lock.h>
--#include <linux/devfs_fs_kernel.h>
- #include <linux/init.h>
+-/* delays */
+ #define CYCLE_DELAY	10
+ #define TIMEOUT		(HZ / 2)
+ 
+--- linux-2.6.14-rc5.orig/include/media/ovcamchip.h	2005-10-23 17:35:21.000000000 +0200
++++ linux-2.6.14-rc5/include/media/ovcamchip.h	2005-10-23 17:35:46.000000000 +0200
+@@ -17,20 +17,6 @@
+ #include <linux/videodev.h>
  #include <linux/i2c.h>
- #include <linux/i2c-dev.h>
-@@ -431,8 +427,6 @@ static int i2cdev_attach_adapter(struct 
- 	if (IS_ERR(i2c_dev))
- 		return PTR_ERR(i2c_dev);
  
--	devfs_mk_cdev(MKDEV(I2C_MAJOR, i2c_dev->minor),
--			S_IFCHR|S_IRUSR|S_IWUSR, "i2c/%d", i2c_dev->minor);
- 	pr_debug("i2c-dev: adapter [%s] registered as minor %d\n",
- 		 adap->name, i2c_dev->minor);
- 
-@@ -465,7 +459,6 @@ static int i2cdev_detach_adapter(struct 
- 		return -ENODEV;
- 
- 	init_completion(&i2c_dev->released);
--	devfs_remove("i2c/%d", i2c_dev->minor);
- 	return_i2c_dev(i2c_dev);
- 	class_device_unregister(&i2c_dev->class_dev);
- 	wait_for_completion(&i2c_dev->released);
-@@ -521,8 +514,6 @@ static int __init i2c_dev_init(void)
- 	if (res)
- 		goto out_unreg_class;
- 
--	devfs_mk_dir("i2c");
+-/* Remove these once they are officially defined */
+-#ifndef I2C_DRIVERID_OVCAMCHIP
+-	#define I2C_DRIVERID_OVCAMCHIP	0xf00f
+-#endif
+-#ifndef I2C_HW_SMBUS_OV511
+-	#define I2C_HW_SMBUS_OV511	0xfe
+-#endif
+-#ifndef I2C_HW_SMBUS_OV518
+-	#define I2C_HW_SMBUS_OV518	0xff
+-#endif
+-#ifndef I2C_HW_SMBUS_OVFX2
+-	#define I2C_HW_SMBUS_OVFX2	0xfd
+-#endif
 -
- 	return 0;
- 
- out_unreg_class:
-@@ -538,7 +529,6 @@ static void __exit i2c_dev_exit(void)
- {
- 	i2c_del_driver(&i2cdev_driver);
- 	class_unregister(&i2c_dev_class);
--	devfs_remove("i2c");
- 	unregister_chrdev(I2C_MAJOR,"i2c");
- }
- 
+ /* --------------------------------- */
+ /*           ENUMERATIONS            */
+ /* --------------------------------- */
 
+-- 
+Jean Delvare
