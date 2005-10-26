@@ -1,151 +1,176 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 04 Oct 2005 19:59:56 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Cleanup it87 detection
-Message-Id: <20051004195919.0b34add4.khali@linux-fr.org>
+Date: Wed, 26 Oct 2005 21:37:08 +0000
+Subject: [lm-sensors] [PATCH 13/16] hwmon: Separate the lm90 register read
+Message-Id: <20051026213752.3a3e2715.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Content-Disposition: inline; filename=hwmon-lm90-01-separate-read-reg.patch
 
-I am enqueuing the following patch. Testers and comments are welcome.
-Thanks.
-
-Drop legacy ISA address support from the it87 driver. All supported
-chips are Super-I/O chips, so the device ISA address can be safely read
-from Super-I/O space rather than blindly assumed.
-
-Two nearby inaccurate documentation statements have been fixed as well:
-* The IT8705F doesn't have an SMBus interface.
-* The SiS950 doesn't have a distinct prefix.
+Preparatory patch to add PEC support to the lm90 driver. We need a
+centralized function to read register values, where the PEC code will
+be later inserted. A positive side effect is that read errors are now
+handled properly.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
- Documentation/hwmon/it87 |    8 +++---
- drivers/hwmon/it87.c     |   51 ++++++++++------------------------------------
- 2 files changed, 15 insertions(+), 44 deletions(-)
+---
+ drivers/hwmon/lm90.c |  107 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 53 insertions(+), 54 deletions(-)
 
---- linux-2.6.14-rc3.orig/drivers/hwmon/it87.c	2005-09-13 21:21:06.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/hwmon/it87.c	2005-10-04 19:30:59.000000000 +0200
-@@ -2,7 +2,7 @@
-     it87.c - Part of lm_sensors, Linux kernel modules for hardware
-              monitoring.
+--- linux-2.6.14-rc5.orig/drivers/hwmon/lm90.c	2005-10-23 09:53:06.000000000 +0200
++++ linux-2.6.14-rc5/drivers/hwmon/lm90.c	2005-10-23 15:25:51.000000000 +0200
+@@ -349,6 +349,22 @@
+  * Real code
+  */
  
--    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
-+    Supports: IT8705F  Super I/O chip w/LPC interface
-               IT8712F  Super I/O chip w/LPC interface & SMBus
-               Sis950   A clone of the IT8705F
- 
-@@ -47,7 +47,7 @@
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
- 					0x2e, 0x2f, I2C_CLIENT_END };
--static unsigned short isa_address = 0x290;
-+static unsigned short isa_address;
- 
- /* Insmod parameters */
- I2C_CLIENT_INSMOD_2(it87, it8712);
-@@ -706,7 +706,7 @@
- }
- 
- /* SuperIO detection - will change isa_address if a chip is found */
--static int __init it87_find(int *address)
-+static int __init it87_find(unsigned short *address)
++static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
++{
++	int err;
++
++	err = i2c_smbus_read_byte_data(client, reg);
++
++	if (err < 0) {
++		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
++			 reg, err);
++		return err;
++	}
++	*value = err;
++
++	return 0;
++}
++
+ static int lm90_attach_adapter(struct i2c_adapter *adapter)
  {
- 	int err = -ENODEV;
+ 	if (!(adapter->class & I2C_CLASS_HWMON))
+@@ -402,20 +418,22 @@
+ 	if (kind < 0) { /* detection and identification */
+ 		u8 man_id, chip_id, reg_config1, reg_convrate;
  
-@@ -757,34 +757,7 @@
- 		if (!request_region(address, IT87_EXTENT, it87_isa_driver.name))
- 			goto ERROR0;
+-		man_id = i2c_smbus_read_byte_data(new_client,
+-			 LM90_REG_R_MAN_ID);
+-		chip_id = i2c_smbus_read_byte_data(new_client,
+-			  LM90_REG_R_CHIP_ID);
+-		reg_config1 = i2c_smbus_read_byte_data(new_client,
+-			      LM90_REG_R_CONFIG1);
+-		reg_convrate = i2c_smbus_read_byte_data(new_client,
+-			       LM90_REG_R_CONVRATE);
++		if (lm90_read_reg(new_client, LM90_REG_R_MAN_ID,
++				  &man_id) < 0
++		 || lm90_read_reg(new_client, LM90_REG_R_CHIP_ID,
++		 		  &chip_id) < 0
++		 || lm90_read_reg(new_client, LM90_REG_R_CONFIG1,
++		 		  &reg_config1) < 0
++		 || lm90_read_reg(new_client, LM90_REG_R_CONVRATE,
++		 		  &reg_convrate) < 0)
++			goto exit_free;
+ 		
+ 		if (man_id = 0x01) { /* National Semiconductor */
+ 			u8 reg_config2;
  
--	/* Probe whether there is anything available on this address. Already
--	   done for SMBus and Super-I/O clients */
--	if (kind < 0) {
--		if (is_isa && !chip_type) {
--#define REALLY_SLOW_IO
--			/* We need the timeouts for at least some IT87-like chips. But only
--			   if we read 'undefined' registers. */
--			i = inb_p(address + 1);
--			if (inb_p(address + 2) != i
--			 || inb_p(address + 3) != i
--			 || inb_p(address + 7) != i) {
--		 		err = -ENODEV;
--				goto ERROR1;
--			}
--#undef REALLY_SLOW_IO
--
--			/* Let's just hope nothing breaks here */
--			i = inb_p(address + 5) & 0x7f;
--			outb_p(~i & 0x7f, address + 5);
--			if ((inb_p(address + 5) & 0x7f) != (~i & 0x7f)) {
--				outb_p(i, address + 5);
--				err = -ENODEV;
--				goto ERROR1;
--			}
+-			reg_config2 = i2c_smbus_read_byte_data(new_client,
+-				      LM90_REG_R_CONFIG2);
++			if (lm90_read_reg(new_client, LM90_REG_R_CONFIG2,
++					  &reg_config2) < 0)
++				goto exit_free;
+ 
+ 			if ((reg_config1 & 0x2A) = 0x00
+ 			 && (reg_config2 & 0xF8) = 0x00
+@@ -547,7 +565,10 @@
+ 	 */
+ 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
+ 				  5); /* 2 Hz */
+-	config = i2c_smbus_read_byte_data(client, LM90_REG_R_CONFIG1);
++	if (lm90_read_reg(client, LM90_REG_R_CONFIG1, &config) < 0) {
++		dev_warn(&client->dev, "Initialization failed!\n");
++		return;
++	}
+ 	if (config & 0x40)
+ 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+ 					  config & 0xBF); /* run */
+@@ -575,21 +596,15 @@
+ 	down(&data->update_lock);
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
+-		u8 oldh, newh;
++		u8 oldh, newh, l;
+ 
+ 		dev_dbg(&client->dev, "Updating lm90 data.\n");
+-		data->temp8[0] = i2c_smbus_read_byte_data(client,
+-				 LM90_REG_R_LOCAL_TEMP);
+-		data->temp8[1] = i2c_smbus_read_byte_data(client,
+-				 LM90_REG_R_LOCAL_LOW);
+-		data->temp8[2] = i2c_smbus_read_byte_data(client,
+-				 LM90_REG_R_LOCAL_HIGH);
+-		data->temp8[3] = i2c_smbus_read_byte_data(client,
+-				 LM90_REG_R_LOCAL_CRIT);
+-		data->temp8[4] = i2c_smbus_read_byte_data(client,
+-				 LM90_REG_R_REMOTE_CRIT);
+-		data->temp_hyst = i2c_smbus_read_byte_data(client,
+-				  LM90_REG_R_TCRIT_HYST);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP, &data->temp8[0]);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW, &data->temp8[1]);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH, &data->temp8[2]);
++		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT, &data->temp8[3]);
++		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[4]);
++		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
+ 
+ 		/*
+ 		 * There is a trick here. We have to read two registers to
+@@ -605,36 +620,20 @@
+ 		 * then we have a valid reading. Else we have to read the low
+ 		 * byte again, and now we believe we have a correct reading.
+ 		 */
+-		oldh = i2c_smbus_read_byte_data(client,
+-		       LM90_REG_R_REMOTE_TEMPH);
+-		data->temp11[0] = i2c_smbus_read_byte_data(client,
+-				  LM90_REG_R_REMOTE_TEMPL);
+-		newh = i2c_smbus_read_byte_data(client,
+-		       LM90_REG_R_REMOTE_TEMPH);
+-		if (newh != oldh) {
+-			data->temp11[0] = i2c_smbus_read_byte_data(client,
+-					  LM90_REG_R_REMOTE_TEMPL);
+-#ifdef DEBUG
+-			oldh = i2c_smbus_read_byte_data(client,
+-			       LM90_REG_R_REMOTE_TEMPH);
+-			/* oldh is actually newer */
+-			if (newh != oldh)
+-				dev_warn(&client->dev, "Remote temperature may be "
+-					 "wrong.\n");
+-#endif
 -		}
--	}
+-		data->temp11[0] |= (newh << 8);
 -
--	/* OK. For now, we presume we have a valid client. We now create the
-+	/* For now, we presume we have a valid client. We create the
- 	   client structure, even though we cannot fill it completely yet.
- 	   But it allows us to access it87_{read,write}_value. */
+-		data->temp11[1] = (i2c_smbus_read_byte_data(client,
+-				   LM90_REG_R_REMOTE_LOWH) << 8) +
+-				   i2c_smbus_read_byte_data(client,
+-				   LM90_REG_R_REMOTE_LOWL);
+-		data->temp11[2] = (i2c_smbus_read_byte_data(client,
+-				   LM90_REG_R_REMOTE_HIGHH) << 8) +
+-				   i2c_smbus_read_byte_data(client,
+-				   LM90_REG_R_REMOTE_HIGHL);
+-		data->alarms = i2c_smbus_read_byte_data(client,
+-			       LM90_REG_R_STATUS);
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &oldh) = 0
++		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0
++		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &newh) = 0
++		 && (newh = oldh
++		  || lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0))
++			data->temp11[0] = (newh << 8) | l;
++
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &newh) = 0
++		 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL, &l) = 0)
++			data->temp11[1] = (newh << 8) | l;
++		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &newh) = 0
++		 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL, &l) = 0)
++			data->temp11[2] = (newh << 8) | l;
++		lm90_read_reg(client, LM90_REG_R_STATUS, &data->alarms);
  
-@@ -1182,20 +1155,18 @@
- 
- static int __init sm_it87_init(void)
- {
--	int addr, res;
--
--	if (!it87_find(&addr)) {
--		isa_address = addr;
--	}
-+	int res;
- 
- 	res = i2c_add_driver(&it87_driver);
- 	if (res)
- 		return res;
- 
--	res = i2c_isa_add_driver(&it87_isa_driver);
--	if (res) {
--		i2c_del_driver(&it87_driver);
--		return res;
-+	if (!it87_find(&isa_address)) {
-+		res = i2c_isa_add_driver(&it87_isa_driver);
-+		if (res) {
-+			i2c_del_driver(&it87_driver);
-+			return res;
-+		}
- 	}
- 
- 	return 0;
---- linux-2.6.14-rc3.orig/Documentation/hwmon/it87	2005-08-29 20:34:46.000000000 +0200
-+++ linux-2.6.14-rc3/Documentation/hwmon/it87	2005-10-04 19:30:59.000000000 +0200
-@@ -4,18 +4,18 @@
- Supported chips:
-   * IT8705F
-     Prefix: 'it87'
--    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-   * IT8712F
-     Prefix: 'it8712'
-     Addresses scanned: I2C 0x28 - 0x2f
--                       from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+                       from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-   * SiS950   [clone of IT8705F]
--    Prefix: 'sis950'
--    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+    Prefix: 'it87'
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: No longer be available
- 
- Author: Christophe Gauthron <chrisg@0-in.com>
-
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
 
 -- 
 Jean Delvare
