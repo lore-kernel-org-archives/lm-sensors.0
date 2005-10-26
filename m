@@ -1,48 +1,39 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 23:12:19 +0000
-Subject: [lm-sensors] [PATCH 12/14] i2c: kzalloc cleanups, 1 of 2
-Message-Id: <20051017231236.111e196d.khali@linux-fr.org>
+Date: Wed, 26 Oct 2005 21:19:32 +0000
+Subject: [lm-sensors] [PATCH 07/16] i2c: Drop unused parport i2c IDs
+Message-Id: <20051026212017.23a70d41.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=kzalloc-04-drop-useless-casts.patch
+Content-disposition: inline; filename=i2c-id-drop-old-parport.patch
 
-Drop useless casts on kzalloc returned values, as suggested by
-Jiri Slaby.
+Drop unused i2c-over-parallel-port i2c IDs:
+* I2C_HW_B_LPC was never actually used as far as I could search.
+* I2C_HW_B_ELV and I2C_HW_B_VELLE are no more used since the
+  introduction of the unified i2c-parport driver in Linux 2.6.2.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
 ---
- drivers/i2c/busses/i2c-keywest.c |    2 +-
- drivers/i2c/busses/i2c-nforce2.c |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/i2c-id.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- linux-2.6.14-rc4.orig/drivers/i2c/busses/i2c-keywest.c	2005-10-13 22:21:36.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/i2c/busses/i2c-keywest.c	2005-10-13 22:46:35.000000000 +0200
-@@ -535,7 +535,7 @@
+--- linux-2.6.14-rc5.orig/include/linux/i2c-id.h	2005-09-13 21:21:25.000000000 +0200
++++ linux-2.6.14-rc5/include/linux/i2c-id.h	2005-10-23 10:46:00.000000000 +0200
+@@ -164,10 +164,7 @@
  
- 	tsize = sizeof(struct keywest_iface) +
- 		(sizeof(struct keywest_chan) + 4) * nchan;
--	iface = (struct keywest_iface *) kzalloc(tsize, GFP_KERNEL);
-+	iface = kzalloc(tsize, GFP_KERNEL);
- 	if (iface = NULL) {
- 		printk(KERN_ERR "i2c-keywest: can't allocate inteface !\n");
- 		pmac_low_i2c_unlock(np);
---- linux-2.6.14-rc4.orig/drivers/i2c/busses/i2c-nforce2.c	2005-10-13 22:21:36.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/i2c/busses/i2c-nforce2.c	2005-10-13 22:46:22.000000000 +0200
-@@ -313,8 +313,7 @@
- 	int res1, res2;
- 
- 	/* we support 2 SMBus adapters */
--	if (!(smbuses = (void *)kzalloc(2*sizeof(struct nforce2_smbus),
--				       	GFP_KERNEL)))
-+	if (!(smbuses = kzalloc(2*sizeof(struct nforce2_smbus), GFP_KERNEL)))
- 		return -ENOMEM;
- 	pci_set_drvdata(dev, smbuses);
- 
+ /* --- Bit algorithm adapters 						*/
+ #define I2C_HW_B_LP		0x010000 /* Parallel port Philips style */
+-#define I2C_HW_B_LPC		0x010001 /* Parallel port control reg. */
+ #define I2C_HW_B_SER		0x010002 /* Serial line interface */
+-#define I2C_HW_B_ELV		0x010003 /* ELV Card */
+-#define I2C_HW_B_VELLE		0x010004 /* Vellemann K8000 */
+ #define I2C_HW_B_BT848		0x010005 /* BT848 video boards */
+ #define I2C_HW_B_WNV		0x010006 /* Winnov Videums */
+ #define I2C_HW_B_VIA		0x010007 /* Via vt82c586b */
 
 -- 
 Jean Delvare
