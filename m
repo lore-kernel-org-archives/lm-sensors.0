@@ -1,52 +1,188 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 22:54:26 +0000
-Subject: [lm-sensors] [PATCH 04/14] Owner field additions to many i2c
-Message-Id: <20051017225445.60bd4297.khali@linux-fr.org>
+Date: Wed, 26 Oct 2005 21:39:02 +0000
+Subject: [lm-sensors] [PATCH 14/16] hwmon: Add PEC support to the lm90 driver
+Message-Id: <20051026213940.601406a8.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Laurent Riffard <laurent.riffard@free.fr>
-Content-Disposition: inline; filename=i2c-owner-field-04-i2c-core.patch
+Content-Disposition: inline; filename=hwmon-lm90-02-add-pec-adm1032.patch
 
-This patch updates the .owner field for the i2c core struct xxxx_driver
-variables. 
+Add PEC support to the lm90 driver. Only the ADM1032 chip supports it,
+and in a rather tricky way, which is why this patch comes with
+documentation reinforcements. At least, this demonstrates that the new
+PEC support logic in i2c-core can properly deal with chips with partial
+PEC support.
 
-Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+As enabling PEC causes a significant performance drop, it can be
+disabled through a sysfs file (unsurprisingly named "pec").
+
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
 ---
- drivers/i2c/i2c-core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/hwmon/lm90            |   39 +++++++++++++++++++++++-
+ Documentation/hwmon/sysfs-interface |    3 ++
+ drivers/hwmon/lm90.c                |   57 ++++++++++++++++++++++++++++++++++-
+ 3 files changed, 96 insertions(+), 3 deletions(-)
 
---- linux-2.6.14-rc3.orig/drivers/i2c/i2c-core.c	2005-10-07 21:35:59.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/i2c-core.c	2005-10-08 18:07:52.000000000 +0200
-@@ -85,6 +85,7 @@
- }
+--- linux-2.6.14-rc5.orig/drivers/hwmon/lm90.c	2005-10-23 15:25:51.000000000 +0200
++++ linux-2.6.14-rc5/drivers/hwmon/lm90.c	2005-10-23 16:39:32.000000000 +0200
+@@ -345,15 +345,63 @@
+ static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 4);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
  
- struct device_driver i2c_adapter_driver = {
-+	.owner = THIS_MODULE,
- 	.name =	"i2c_adapter",
- 	.bus = &i2c_bus_type,
- 	.probe = i2c_device_probe,
-@@ -98,6 +99,7 @@
- }
++/* pec used for ADM1032 only */
++static ssize_t show_pec(struct device *dev, struct device_attribute *dummy,
++			char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	return sprintf(buf, "%d\n", !!(client->flags & I2C_CLIENT_PEC));
++}
++
++static ssize_t set_pec(struct device *dev, struct device_attribute *dummy,
++		       const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	long val = simple_strtol(buf, NULL, 10);
++
++	switch (val) {
++	case 0:
++		client->flags &= ~I2C_CLIENT_PEC;
++		break;
++	case 1:
++		client->flags |= I2C_CLIENT_PEC;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return count;
++}
++
++static DEVICE_ATTR(pec, S_IWUSR | S_IRUGO, show_pec, set_pec);
++
+ /*
+  * Real code
+  */
  
- struct class i2c_adapter_class = {
-+	.owner =	THIS_MODULE,
- 	.name =		"i2c-adapter",
- 	.release =	&i2c_adapter_class_dev_release,
- };
-@@ -291,6 +293,7 @@
- 	down(&core_lists);
++/* The ADM1032 supports PEC but not on write byte transactions, so we need
++   to explicitely ask for a transaction without PEC. */
++static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
++{
++	return i2c_smbus_xfer(client->adapter, client->addr,
++			      client->flags & ~I2C_CLIENT_PEC,
++			      I2C_SMBUS_WRITE, value, I2C_SMBUS_BYTE, NULL);
++}
++
++/* It is assumed that client->update_lock is held (unless we are in
++   detection or initialization steps). This matters when PEC is enabled,
++   because we don't want the address pointer to change between the write
++   byte and the read byte transactions. */
+ static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
+ {
+ 	int err;
  
- 	/* add the driver to the list of i2c drivers in the driver core */
-+	driver->driver.owner = driver->owner;
- 	driver->driver.name = driver->name;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_device_probe;
+-	err = i2c_smbus_read_byte_data(client, reg);
++ 	if (client->flags & I2C_CLIENT_PEC) {
++ 		err = adm1032_write_byte(client, reg);
++ 		if (err >= 0)
++ 			err = i2c_smbus_read_byte(client);
++ 	} else
++ 		err = i2c_smbus_read_byte_data(client, reg);
+ 
+ 	if (err < 0) {
+ 		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
+@@ -494,6 +542,10 @@
+ 		name = "lm90";
+ 	} else if (kind = adm1032) {
+ 		name = "adm1032";
++		/* The ADM1032 supports PEC, but only if combined
++		   transactions are not used. */
++		if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
++			new_client->flags |= I2C_CLIENT_PEC;
+ 	} else if (kind = lm99) {
+ 		name = "lm99";
+ 	} else if (kind = lm86) {
+@@ -546,6 +598,9 @@
+ 			   &sensor_dev_attr_temp2_crit_hyst.dev_attr);
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 
++	if (new_client->flags & I2C_CLIENT_PEC)
++		device_create_file(&new_client->dev, &dev_attr_pec);
++
+ 	return 0;
+ 
+ exit_detach:
+--- linux-2.6.14-rc5.orig/Documentation/hwmon/lm90	2005-10-23 15:24:00.000000000 +0200
++++ linux-2.6.14-rc5/Documentation/hwmon/lm90	2005-10-23 16:42:30.000000000 +0200
+@@ -71,8 +71,8 @@
+ 
+ The different chipsets of the family are not strictly identical, although
+ very similar. This driver doesn't handle any specific feature for now,
+-but could if there ever was a need for it. For reference, here comes a
+-non-exhaustive list of specific features:
++with the exception of SMBus PEC. For reference, here comes a non-exhaustive
++list of specific features:
+ 
+ LM90:
+   * Filter and alert configuration register at 0xBF.
+@@ -91,6 +91,7 @@
+   * Conversion averaging.
+   * Up to 64 conversions/s.
+   * ALERT is triggered by open remote sensor.
++  * SMBus PEC support for Write Byte and Receive Byte transactions.
+ 
+ ADT7461
+   * Extended temperature range (breaks compatibility)
+@@ -119,3 +120,37 @@
+ other second; reading them more often will do no harm, but will return
+ 'old' values.
+ 
++PEC Support
++-----------
++
++The ADM1032 is the only chip of the family which supports PEC. It does
++not support PEC on all transactions though, so some care must be taken.
++
++When reading a register value, the PEC byte is computed and sent by the
++ADM1032 chip. However, in the case of a combined transaction (SMBus Read
++Byte), the ADM1032 computes the CRC value over only the second half of
++the message rather than its entirety, because it thinks the first half
++of the message belongs to a different transaction. As a result, the CRC
++value differs from what the SMBus master expects, and all reads fail.
++
++For this reason, the lm90 driver will enable PEC for the ADM1032 only if
++the bus supports the SMBus Send Byte and Receive Byte transaction types.
++These transactions will be used to read register values, instead of
++SMBus Read Byte, and PEC will work properly.
++
++Additionally, the ADM1032 doesn't support SMBus Send Byte with PEC.
++Instead, it will try to write the PEC value to the register (because the
++SMBus Send Byte transaction with PEC is similar to a Write Byte transaction
++without PEC), which is not what we want. Thus, PEC is explicitely disabled
++on SMBus Send Byte transactions in the lm90 driver.
++
++PEC on byte data transactions represents a significant increase in bandwidth
++usage (+33% for writes, +25% for reads) in normal conditions. With the need
++to use two SMBus transaction for reads, this overhead jumps to +50%. Worse,
++two transactions will typically mean twice as much delay waiting for
++transaction completion, effectively doubling the register cache refresh time.
++I guess reliability comes at a price, but it's quite expensive this time.
++
++So, as not everyone might enjoy the slowdown, PEC can be disabled through
++sysfs. Just write 0 to the "pec" file and PEC will be disabled. Write 1
++to that file to enable PEC again.
+--- linux-2.6.14-rc5.orig/Documentation/hwmon/sysfs-interface	2005-08-29 20:34:46.000000000 +0200
++++ linux-2.6.14-rc5/Documentation/hwmon/sysfs-interface	2005-10-23 16:33:26.000000000 +0200
+@@ -272,3 +272,6 @@
+ 
+ eeprom		Raw EEPROM data in binary form.
+ 		Read only.
++
++pec		Enable or disable PEC (SMBus only)
++		Read/Write
 
 -- 
 Jean Delvare
