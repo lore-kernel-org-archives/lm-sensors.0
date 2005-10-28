@@ -1,96 +1,108 @@
-From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:25:16 +0000
-Subject: [lm-sensors] [PATCH] i2c-viapro: Update supported devices list
-Message-Id: <11305336594163@kroah.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 28 Oct 2005 21:07:27 +0000
+Subject: [lm-sensors] interesting ASUS acpi feature - ATK0110
+Message-Id: <436276D3.3080407@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c-viapro: Update supported devices list
+Hello,
 
-Make it clearer which chips are supported by the i2c-viapro driver,
-and which support I2C block transactions.
+As some of people round lm-sensors might know I bought new motherboard ASUS A8V-E SE.
+While reading its DSDT and investigating Windows ADDons (which I can only read but not run :)
+I found something interresting.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+In short:
 
- Documentation/i2c/busses/i2c-viapro |   12 ++++++------
- drivers/i2c/busses/i2c-viapro.c     |   22 +++++++++++++---------
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ASUS has implemented ACPI methods for obtaining the temps, voltages and fanspeeds plus smart fan control plus
+overclocking stuff.
 
----
-commit aaf7f1477668f34dda65aba17e87c0bc2ebe84d1
-tree 116946873388e7d90a70823a9211be76a9dd6316
-parent c2f559d5df5751780c0bd3ea0bd0aa17d47c0b39
-author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 22:09:07 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
+It seems those features are in all ASUS AI NOS or proactive motherboards.
 
- Documentation/i2c/busses/i2c-viapro |   12 ++++++------
- drivers/i2c/busses/i2c-viapro.c     |   22 +++++++++++++---------
- 2 files changed, 19 insertions(+), 15 deletions(-)
+There is one virtual device in APCI namespace called ASOC
 
-diff --git a/Documentation/i2c/busses/i2c-viapro b/Documentation/i2c/busses/i2c-viapro
-index 387cbd4..9363b8b 100644
---- a/Documentation/i2c/busses/i2c-viapro
-+++ b/Documentation/i2c/busses/i2c-viapro
-@@ -29,18 +29,18 @@ Description
- -----------
- 
- i2c-viapro is a true SMBus host driver for motherboards with one of the
--supported VIA southbridges.
-+supported VIA south bridges.
- 
- Your lspci -n listing must show one of these :
- 
-- device 1106:3050   (VT82C596 function 3)
-- device 1106:3051   (VT82C596 function 3)
-+ device 1106:3050   (VT82C596A function 3)
-+ device 1106:3051   (VT82C596B function 3)
-  device 1106:3057   (VT82C686 function 4)
-  device 1106:3074   (VT8233)
-  device 1106:3147   (VT8233A)
-- device 1106:8235   (VT8231)
-- devide 1106:3177   (VT8235)
-- devide 1106:3227   (VT8237)
-+ device 1106:8235   (VT8231 function 4)
-+ device 1106:3177   (VT8235)
-+ device 1106:3227   (VT8237R)
- 
- If none of these show up, you should look in the BIOS for settings like
- enable ACPI / SMBus or even USB.
-diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
-index 5cf8fe1..3be476c 100644
---- a/drivers/i2c/busses/i2c-viapro.c
-+++ b/drivers/i2c/busses/i2c-viapro.c
-@@ -22,15 +22,19 @@
- */
- 
- /*
--   Supports Via devices:
--	82C596A/B (0x3050)
--	82C596B (0x3051)
--	82C686A/B
--	8231
--	8233
--	8233A (0x3147 and 0x3177)
--	8235
--	8237
-+   Supports the following VIA south bridges:
-+
-+   Chip name          PCI ID  REV     I2C block
-+   VT82C596A          0x3050             no
-+   VT82C596B          0x3051             no
-+   VT82C686A          0x3057  0x30       no
-+   VT82C686B          0x3057  0x40       yes
-+   VT8231             0x8235             no?
-+   VT8233             0x3074             yes
-+   VT8233A            0x3147             yes?
-+   VT8235             0x3177             yes
-+   VT8237R            0x3227             yes
-+
-    Note: we assume there can only be one device, with one SMBus interface.
- */
- 
+Device (ASOC)
+            {
+                Name (_HID, "ATK0110")
+                Name (_UID, 0x01010110)
 
+When this device is present it exposes some methods to read the monitored values and also to ENUMERATE what is
+supported on that motheboard.
+
+In shourt what it means to lm-sensors:
+
+Support for all asus ACPI/ASOC powered motherboards. Correct values without need of scaling values. THis driver could be
+used by the people that have yet unsupported chip or they just want to overclock or drive the smart fan features that
+are not implemented in our drivers. Unfortunately I'm quite busy nowdays with my master thesis, so I'm afraid I cant work
+on the driver. I hope I might find some people interrested on the list.
+
+The driver would use the ACPI API to talk to those methods (as ibm-acpi or thoshiba acpi do). As far I can see the comunication
+is quite easy:
+
+I will present it for voltages (for fans, temps, overclocking it is similar)
+
+Method (VSIF, 0, NotSerialized)
+
+Returns a structure of suppored monitoring objects
+ Name (VBUF, Package (0x05)
+                {
+                    0x04,
+                    VCRE,
+                    V333,
+                    V500,
+                    V120 }
+
+Like this.
+
+Each member has following fields:
+Name (V500, Package (0x05)
+                {
+                    0x06020002,
+                    " +5.0 Voltage",
+                    0x1194,
+                    0x157C,
+                    0x01
+                })
+
+You can see ID, label, limits
+
+So when you know the IDS and names you can just call a method that will give you actual value:
+  Method (RVLT, 1, NotSerialized)
+
+Like this Just call with ID.
+Return value is integer in mV with the actual value. As you can see it is not complicated.
+
+As side effect we can use this to dig for the conversion formulas, because they are there too:
+  Store (DerefOf (Index (V120, 0x00)), Local0)
+                    If (LEqual (Arg0, Local0))
+                    {
+                        Store (V12V, Local0)
+                        Store (0x38, Local1)
+                        Add (0x0A, Local1, Local1)
+                        Multiply (Local1, 0x08, Local1)
+                        Multiply (Local0, Local1, Local0)
+                        Divide (Local0, 0x0A, Local3, Local0)
+                        Return (Local0)
+                    }
+
+This is the formula for 12V. V12V is raw value.
+
+Fans and temps are working similar way
+I have there even:
+ "CPU Q-Fan Control",
+"CPU Q-Fan Ratio",
+  "CPU Target Temperature",
+"CPU Multiplier",
+"Memory Freq",
+....
+ "Twin Turbo N.O.S.",
+"DRAM Voltage"
+
+Thats all for now. If someone is interrested to develop a driver for this let me know.
+To get the DSDT code you need to store the DSDT table cat /proc/acpi/dsdt >mytable.dsdt and then ./iasl -dc mytable.dsdt
+to decompile it. If you need more details let me know.
+
+Regards
+Rudolf
