@@ -1,7 +1,7 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Fri, 28 Oct 2005 00:58:21 +0000
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Fri, 28 Oct 2005 05:32:43 +0000
 Subject: [lm-sensors] New Abit uGuru driver + libsensors patch,
-Message-Id: <43615CBD.7030501@hhs.nl>
+Message-Id: <20051028033223.GC3981@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4358B291.6070702@hhs.nl>
 In-Reply-To: <4358B291.6070702@hhs.nl>
@@ -10,26 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Hans:
 
+* Hans de Goede <j.w.r.degoede@hhs.nl> [2005-10-21 11:19:13 +0200]:
+> As promised some time ago here is a new version of the Abit uGuru 
+> driver, this version fully supports the sensor part of the uGuru, that 
+> means it supports the following:
+> 
+> -reading all sensors
+> -reading and writing min/max settings for all sensors
+> -reading/writing settings for all sensors (enable alarm, beep, shutdown)
+> -reading alarms
+> -configuring the fan speed control (quiet fan or whatever buzzword)
+> 
+> I would like to submit the libsensors part here and the driver upstream, 
+> so please review.
 
-Matt Stamp wrote:
-> I am getting an error when trying to insert module and it will not force.
-> 
-> I get.
-> 
-> insmod abituguru.ko
-> insmod: error inserting 'abituguru.ko' : -1 Unknown symbol in module
-> 
-> I am using debian unstable with kernel 2.6.13.4.
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
+BTW: "driver upstream" = this same mailing list.
 
-Yes, my mistake (in the docs), you should use kernel 2.6.14rc4 or newer 
-2.6.13 is not new enough.
+> Thanks,
+> 
+> Hans
+> 
+> 
+> For some more info I've also written a small readme, see Attachment.
+
+For starters, you should add this readme as a new file in doc/chips in
+your lm_sensors2 patch.  Try to use a similar format as the documentation
+already there.
+
+> Abit Uguru driver README.
+> ============[...]
 
 Regards,
 
-Hans
+-- 
+Mark M. Hoffman
+mhoffman@lightlink.com
+
