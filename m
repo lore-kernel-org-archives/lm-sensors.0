@@ -1,7 +1,7 @@
-From: gcoady@gmail.com (Grant Coady)
-Date: Sat, 22 Oct 2005 00:17:11 +0000
-Subject: [lm-sensors] New Abit uGuru driver + libsensors patch, review
-Message-Id: <435968B0.9000706@gmail.com>
+From: mattstamp@verizon.net (Matt Stamp)
+Date: Fri, 28 Oct 2005 00:27:46 +0000
+Subject: [lm-sensors] New Abit uGuru driver + libsensors patch,
+Message-Id: <000501c5db45$905e4250$6601a8c0@unicron>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4358B291.6070702@hhs.nl>
 In-Reply-To: <4358B291.6070702@hhs.nl>
@@ -10,21 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hans de Goede wrote:
-> 
-> Jean Delvare wrote:
-> 
->>-ENOPATCH
-> 
-> Yes, its a new driver, so nothing to diff against, would a diff against 
-> /dev/null really make you happier?
+I am getting an error when trying to insert module and it will not force.
 
-diff -Nrup (or -Naur) is your friend, you going to offer at least two files,
-the driver, and the documentation file for that driver?
+I get.
 
-> Can someone please take a look at the driver and give me some proper 
-> feedback?
+insmod abituguru.ko
+insmod: error inserting 'abituguru.ko' : -1 Unknown symbol in module
 
-As soon you send a patch :o)
-
-Grant.
+I am using debian unstable with kernel 2.6.13.4.
