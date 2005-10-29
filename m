@@ -1,101 +1,367 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 22:19:48 +0000
-Subject: [lm-sensors] [PATCH 15/16] hwmon: lm90 documentation update
-Message-Id: <20051026222021.39cc28bd.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:31:34 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: Code cleanups
+Message-Id: <11305336593343@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=3Dhwmon-lm90-03-new-addresses.patch
+[PATCH] i2c-viapro: Code cleanups
 
-Update the I2C addresses for the ADM1032 and ADT7461 chips.
-Also update the links to the Analog Devices web site.
+Cleanups to the i2c-viapro driver:
+* Kill unused defines.
+* Kill interrupt-related code, as the driver doesn't use interrupts.
+* Fix broken comments (some copied from i2c-piix4.)
+* Centralize the unsupported command error case in vt596_access.
+  That way we'll catch all unsupported commands, not only
+  I2C_SMBUS_PROC_CALL.
+* Refactor some code.
+* Convert some dev_dbg into dev_err. Errors better be reported even in
+  non-debug mode.
+* Do not verify that the final reset succeeded. It'll be checked at
+  the beginning of the next transaction anyway.
+* Use the driver name to reserve the I/O region.
+* Do not print the contents of the SMBREV register, it reads 0 on all
+  chips I've seen so far.
+* Some other minor fixes all over the place.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+ drivers/i2c/busses/i2c-viapro.c |  122 +++++++++++++---------------------------
+ 1 file changed, 41 insertions(+), 81 deletions(-)
 
 ---
- Documentation/hwmon/lm90 |    8 ++++----
- drivers/hwmon/lm90.c     |   16 +++++++---------
- 2 files changed, 11 insertions(+), 13 deletions(-)
+commit c2f559d5df5751780c0bd3ea0bd0aa17d47c0b39
+tree 96af915d018b5145b6e57bf450f5cd29cebeca79
+parent f118301416953d677de738100c33eb8cfb7adecb
+author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 22:01:07 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
 
---- linux-2.6.14-rc5.orig/Documentation/hwmon/lm90	2005-10-23 17:04:55.0000=
-00000 +0200
-+++ linux-2.6.14-rc5/Documentation/hwmon/lm90	2005-10-23 17:16:45.000000000=
- +0200
-@@ -24,14 +24,14 @@
-                http://www.national.com/pf/LM/LM86.html
-   * Analog Devices ADM1032
-     Prefix: 'adm1032'
--    Addresses scanned: I2C 0x4c
-+    Addresses scanned: I2C 0x4c and 0x4d
-     Datasheet: Publicly available at the Analog Devices website
--               http://products.analog.com/products/info.asp?product=ADM1032
-+               http://www.analog.com/en/prod/0,2877,ADM1032,00.html
-   * Analog Devices ADT7461
-     Prefix: 'adt7461'
--    Addresses scanned: I2C 0x4c
-+    Addresses scanned: I2C 0x4c and 0x4d
-     Datasheet: Publicly available at the Analog Devices website
--               http://products.analog.com/products/info.asp?product=ADT7461
-+               http://www.analog.com/en/prod/0,2877,ADT7461,00.html
-     Note: Only if in ADM1032 compatibility mode
-   * Maxim MAX6657
-     Prefix: 'max6657'
---- linux-2.6.14-rc5.orig/drivers/hwmon/lm90.c	2005-10-23 17:04:55.00000000=
-0 +0200
-+++ linux-2.6.14-rc5/drivers/hwmon/lm90.c	2005-10-23 17:17:37.000000000 +02=
-00
-@@ -31,7 +31,7 @@
-  * Devices. That chip is similar to the LM90, with a few differences
-  * that are not handled by this driver. Complete datasheet can be
-  * obtained from Analog's website at:
-- *   http://products.analog.com/products/info.asp?product=ADM1032
-+ *   http://www.analog.com/en/prod/0,2877,ADM1032,00.html
-  * Among others, it has a higher accuracy than the LM90, much like the
-  * LM86 does.
-  *
-@@ -49,7 +49,7 @@
-  * register values are decoded differently) it is ignored by this
-  * driver. Complete datasheet can be obtained from Analog's website
-  * at:
-- *   http://products.analog.com/products/info.asp?product=ADT7461
-+ *   http://www.analog.com/en/prod/0,2877,ADT7461,00.html
-  *
-  * Since the LM90 was the first chipset supported by this driver, most
-  * comments will refer to this chipset, but are actually general and
-@@ -83,10 +83,10 @@
-  * Addresses to scan
-  * Address is fully defined internally and cannot be changed except for
-  * MAX6659.
-- * LM86, LM89, LM90, LM99, ADM1032, MAX6657 and MAX6658 have address 0x4c.
-- * LM89-1, and LM99-1 have address 0x4d.
-+ * LM86, LM89, LM90, LM99, ADM1032, ADM1032-1, ADT7461, MAX6657 and MAX6658
-+ * have address 0x4c.
-+ * ADM1032-2, ADT7461-2, LM89-1, and LM99-1 have address 0x4d.
-  * MAX6659 can have address 0x4c, 0x4d or 0x4e (unsupported).
-- * ADT7461 always has address 0x4c.
-  */
-=20
- static unsigned short normal_i2c[] =3D { 0x4c, 0x4d, I2C_CLIENT_END };
-@@ -500,14 +500,12 @@
- 			}
- 		} else
- 		if (man_id =3D 0x41) { /* Analog Devices */
--			if (address =3D 0x4C
--			 && (chip_id & 0xF0) =3D 0x40 /* ADM1032 */
-+			if ((chip_id & 0xF0) =3D 0x40 /* ADM1032 */
- 			 && (reg_config1 & 0x3F) =3D 0x00
- 			 && reg_convrate <=3D 0x0A) {
- 				kind =3D adm1032;
- 			} else
--			if (address =3D 0x4c
--			 && chip_id =3D 0x51 /* ADT7461 */
-+			if (chip_id =3D 0x51 /* ADT7461 */
- 			 && (reg_config1 & 0x1F) =3D 0x00 /* check compat mode */
- 			 && reg_convrate <=3D 0x0A) {
- 				kind =3D adt7461;
+ drivers/i2c/busses/i2c-viapro.c |  122 +++++++++++++--------------------------
+ 1 files changed, 41 insertions(+), 81 deletions(-)
 
---=20
-Jean Delvare
+diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+index b420e75..5cf8fe1 100644
+--- a/drivers/i2c/busses/i2c-viapro.c
++++ b/drivers/i2c/busses/i2c-viapro.c
+@@ -39,7 +39,6 @@
+ #include <linux/pci.h>
+ #include <linux/kernel.h>
+ #include <linux/stddef.h>
+-#include <linux/sched.h>
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
+@@ -54,34 +53,22 @@ static struct pci_dev *vt596_pdev;
+ /* SMBus address offsets */
+ static unsigned short vt596_smba;
+ #define SMBHSTSTS	(vt596_smba + 0)
+-#define SMBHSLVSTS	(vt596_smba + 1)
+ #define SMBHSTCNT	(vt596_smba + 2)
+ #define SMBHSTCMD	(vt596_smba + 3)
+ #define SMBHSTADD	(vt596_smba + 4)
+ #define SMBHSTDAT0	(vt596_smba + 5)
+ #define SMBHSTDAT1	(vt596_smba + 6)
+ #define SMBBLKDAT	(vt596_smba + 7)
+-#define SMBSLVCNT	(vt596_smba + 8)
+-#define SMBSHDWCMD	(vt596_smba + 9)
+-#define SMBSLVEVT	(vt596_smba + 0xA)
+-#define SMBSLVDAT	(vt596_smba + 0xC)
+ 
+ /* PCI Address Constants */
+ 
+ /* SMBus data in configuration space can be found in two places,
+    We try to select the better one */
+ 
+-static unsigned short smb_cf_hstcfg = 0xD2;
+-
+-#define SMBHSTCFG	(smb_cf_hstcfg)
+-#define SMBSLVC		(smb_cf_hstcfg + 1)
+-#define SMBSHDW1	(smb_cf_hstcfg + 2)
+-#define SMBSHDW2	(smb_cf_hstcfg + 3)
+-#define SMBREV		(smb_cf_hstcfg + 4)
++static unsigned short SMBHSTCFG = 0xD2;
+ 
+ /* Other settings */
+ #define MAX_TIMEOUT	500
+-#define ENABLE_INT9	0
+ 
+ /* VT82C596 constants */
+ #define VT596_QUICK		0x00
+@@ -107,12 +94,13 @@ MODULE_PARM_DESC(force_addr,
+ 		 "EXTREMELY DANGEROUS!");
+ 
+ 
++static struct pci_driver vt596_driver;
+ static struct i2c_adapter vt596_adapter;
+ 
+ #define FEATURE_I2CBLOCK	(1<<0)
+ static unsigned int vt596_features;
+ 
+-/* Another internally used function */
++/* Return -1 on error, 0 on success */
+ static int vt596_transaction(void)
+ {
+ 	int temp;
+@@ -127,23 +115,21 @@ static int vt596_transaction(void)
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 		dev_dbg(&vt596_adapter.dev, "SMBus busy (0x%02x). "
+-			"Resetting...\n", temp);
++			"Resetting... ", temp);
+ 
+ 		outb_p(temp, SMBHSTSTS);
+ 		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+-			dev_dbg(&vt596_adapter.dev, "Failed! (0x%02x)\n", temp);
+-
++			printk("Failed! (0x%02x)\n", temp);
+ 			return -1;
+ 		} else {
+-			dev_dbg(&vt596_adapter.dev, "Successfull!\n");
++			printk("Successful!\n");
+ 		}
+ 	}
+ 
+-	/* start the transaction by setting bit 6 */
+-	outb_p(inb(SMBHSTCNT) | 0x040, SMBHSTCNT);
++	/* Start the transaction by setting bit 6 */
++	outb_p(inb(SMBHSTCNT) | 0x40, SMBHSTCNT);
+ 
+-	/* We will always wait for a fraction of a second!
+-	   I don't know if VIA needs this, Intel did  */
++	/* We will always wait for a fraction of a second */
+ 	do {
+ 		msleep(1);
+ 		temp = inb_p(SMBHSTSTS);
+@@ -152,33 +138,32 @@ static int vt596_transaction(void)
+ 	/* If the SMBus is still busy, we give up */
+ 	if (timeout >= MAX_TIMEOUT) {
+ 		result = -1;
+-		dev_dbg(&vt596_adapter.dev, "SMBus Timeout!\n");
++		dev_err(&vt596_adapter.dev, "SMBus timeout!\n");
+ 	}
+ 
+ 	if (temp & 0x10) {
+ 		result = -1;
+-		dev_dbg(&vt596_adapter.dev, "Error: Failed bus transaction\n");
++		dev_err(&vt596_adapter.dev, "Transaction failed (0x%02x)\n",
++			inb_p(SMBHSTCNT) & 0x3C);
+ 	}
+ 
+ 	if (temp & 0x08) {
+ 		result = -1;
+-		dev_info(&vt596_adapter.dev, "Bus collision! SMBus may be "
+-			"locked until next hard\nreset. (sorry!)\n");
+-		/* Clock stops and slave is stuck in mid-transmission */
++		dev_err(&vt596_adapter.dev, "SMBus collision!\n");
+ 	}
+ 
+ 	if (temp & 0x04) {
+ 		result = -1;
+-		dev_dbg(&vt596_adapter.dev, "Error: no response!\n");
++		/* Quick commands are used to probe for chips, so
++		   errors are expected, and we don't want to frighten the
++		   user. */
++		if ((inb_p(SMBHSTCNT) & 0x3C) != VT596_QUICK)
++			dev_err(&vt596_adapter.dev, "Transaction error!\n");
+ 	}
+ 
+-	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
++	/* Resetting status register */
++	if (temp & 0x1F)
+ 		outb_p(temp, SMBHSTSTS);
+-		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+-			dev_warn(&vt596_adapter.dev, "Failed reset at end "
+-				 "of transaction (%02x)\n", temp);
+-		}
+-	}
+ 
+ 	dev_dbg(&vt596_adapter.dev, "Transaction (post): CNT=%02x, CMD=%02x, "
+ 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
+@@ -188,41 +173,29 @@ static int vt596_transaction(void)
+ 	return result;
+ }
+ 
+-/* Return -1 on error. */
++/* Return -1 on error, 0 on success */
+ static s32 vt596_access(struct i2c_adapter *adap, u16 addr,
+ 		unsigned short flags, char read_write, u8 command,
+ 		int size, union i2c_smbus_data *data)
+ {
+-	int i, len;
++	int i;
+ 
+ 	switch (size) {
+-	case I2C_SMBUS_PROC_CALL:
+-		dev_info(&vt596_adapter.dev,
+-			 "I2C_SMBUS_PROC_CALL not supported!\n");
+-		return -1;
+ 	case I2C_SMBUS_QUICK:
+-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+-		       SMBHSTADD);
+ 		size = VT596_QUICK;
+ 		break;
+ 	case I2C_SMBUS_BYTE:
+-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+-		       SMBHSTADD);
+ 		if (read_write = I2C_SMBUS_WRITE)
+ 			outb_p(command, SMBHSTCMD);
+ 		size = VT596_BYTE;
+ 		break;
+ 	case I2C_SMBUS_BYTE_DATA:
+-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+-		       SMBHSTADD);
+ 		outb_p(command, SMBHSTCMD);
+ 		if (read_write = I2C_SMBUS_WRITE)
+ 			outb_p(data->byte, SMBHSTDAT0);
+ 		size = VT596_BYTE_DATA;
+ 		break;
+ 	case I2C_SMBUS_WORD_DATA:
+-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+-		       SMBHSTADD);
+ 		outb_p(command, SMBHSTCMD);
+ 		if (read_write = I2C_SMBUS_WRITE) {
+ 			outb_p(data->word & 0xff, SMBHSTDAT0);
+@@ -232,31 +205,30 @@ static s32 vt596_access(struct i2c_adapt
+ 		break;
+ 	case I2C_SMBUS_I2C_BLOCK_DATA:
+ 		if (!(vt596_features & FEATURE_I2CBLOCK))
+-			return -1;
++			goto exit_unsupported;
+ 		if (read_write = I2C_SMBUS_READ)
+ 			outb_p(I2C_SMBUS_BLOCK_MAX, SMBHSTDAT0);
+ 		/* Fall through */
+ 	case I2C_SMBUS_BLOCK_DATA:
+-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+-		       SMBHSTADD);
+ 		outb_p(command, SMBHSTCMD);
+ 		if (read_write = I2C_SMBUS_WRITE) {
+-			len = data->block[0];
+-			if (len < 0)
+-				len = 0;
++			u8 len = data->block[0];
+ 			if (len > I2C_SMBUS_BLOCK_MAX)
+ 				len = I2C_SMBUS_BLOCK_MAX;
+ 			outb_p(len, SMBHSTDAT0);
+-			i = inb_p(SMBHSTCNT);	/* Reset SMBBLKDAT */
++			inb_p(SMBHSTCNT);	/* Reset SMBBLKDAT */
+ 			for (i = 1; i <= len; i++)
+ 				outb_p(data->block[i], SMBBLKDAT);
+ 		}
+ 		size = (size = I2C_SMBUS_I2C_BLOCK_DATA) ?
+ 		       VT596_I2C_BLOCK_DATA : VT596_BLOCK_DATA;
+ 		break;
++	default:
++		goto exit_unsupported;
+ 	}
+ 
+-	outb_p((size & 0x3C) + (ENABLE_INT9 & 1), SMBHSTCNT);
++	outb_p(((addr & 0x7f) << 1) | read_write, SMBHSTADD);
++	outb_p((size & 0x3C), SMBHSTCNT);
+ 
+ 	if (vt596_transaction()) /* Error in transaction */
+ 		return -1;
+@@ -266,12 +238,6 @@ static s32 vt596_access(struct i2c_adapt
+ 
+ 	switch (size) {
+ 	case VT596_BYTE:
+-		/* Where is the result put? I assume here it is in
+-		 * SMBHSTDAT0 but it might just as well be in the
+-		 * SMBHSTCMD. No clue in the docs
+-		 */
+-		data->byte = inb_p(SMBHSTDAT0);
+-		break;
+ 	case VT596_BYTE_DATA:
+ 		data->byte = inb_p(SMBHSTDAT0);
+ 		break;
+@@ -283,12 +249,17 @@ static s32 vt596_access(struct i2c_adapt
+ 		data->block[0] = inb_p(SMBHSTDAT0);
+ 		if (data->block[0] > I2C_SMBUS_BLOCK_MAX)
+ 			data->block[0] = I2C_SMBUS_BLOCK_MAX;
+-		i = inb_p(SMBHSTCNT);	/* Reset SMBBLKDAT */
++		inb_p(SMBHSTCNT);	/* Reset SMBBLKDAT */
+ 		for (i = 1; i <= data->block[0]; i++)
+ 			data->block[i] = inb_p(SMBBLKDAT);
+ 		break;
+ 	}
+ 	return 0;
++
++exit_unsupported:
++	dev_warn(&vt596_adapter.dev, "Unsupported command invoked! (0x%02x)\n",
++		 size);
++	return -1;
+ }
+ 
+ static u32 vt596_func(struct i2c_adapter *adapter)
+@@ -311,7 +282,6 @@ static struct i2c_adapter vt596_adapter 
+ 	.owner		= THIS_MODULE,
+ 	.class		= I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ static int __devinit vt596_probe(struct pci_dev *pdev,
+@@ -328,12 +298,12 @@ static int __devinit vt596_probe(struct 
+ 	}
+ 
+ 	if ((pci_read_config_word(pdev, id->driver_data, &vt596_smba)) ||
+-	    !(vt596_smba & 0x1)) {
++	    !(vt596_smba & 0x0001)) {
+ 		/* try 2nd address and config reg. for 596 */
+ 		if (id->device = PCI_DEVICE_ID_VIA_82C596_3 &&
+ 		    !pci_read_config_word(pdev, SMBBA2, &vt596_smba) &&
+-		    (vt596_smba & 0x1)) {
+-			smb_cf_hstcfg = 0x84;
++		    (vt596_smba & 0x0001)) {
++			SMBHSTCFG = 0x84;
+ 		} else {
+ 			/* no matches at all */
+ 			dev_err(&pdev->dev, "Cannot configure "
+@@ -351,7 +321,7 @@ static int __devinit vt596_probe(struct 
+ 	}
+ 
+ found:
+-	if (!request_region(vt596_smba, 8, "viapro-smbus")) {
++	if (!request_region(vt596_smba, 8, vt596_driver.name)) {
+ 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
+ 			vt596_smba);
+ 		return -ENODEV;
+@@ -366,7 +336,7 @@ found:
+ 		pci_write_config_byte(pdev, SMBHSTCFG, temp | 0x01);
+ 		dev_warn(&pdev->dev, "WARNING: SMBus interface set to new "
+ 			 "address 0x%04x!\n", vt596_smba);
+-	} else if ((temp & 1) = 0) {
++	} else if (!(temp & 0x01)) {
+ 		if (force) {
+ 			/* NOTE: This assumes I/O space and other allocations
+ 			 * WERE done by the Bios!  Don't complain if your
+@@ -374,7 +344,7 @@ found:
+ 			 * :') Check for Bios updates before resorting to
+ 			 * this.
+ 			 */
+-			pci_write_config_byte(pdev, SMBHSTCFG, temp | 1);
++			pci_write_config_byte(pdev, SMBHSTCFG, temp | 0x01);
+ 			dev_info(&pdev->dev, "Enabling SMBus device\n");
+ 		} else {
+ 			dev_err(&pdev->dev, "SMBUS: Error: Host SMBus "
+@@ -384,16 +354,6 @@ found:
+ 		}
+ 	}
+ 
+-	if ((temp & 0x0E) = 8)
+-		dev_dbg(&pdev->dev, "using Interrupt 9 for SMBus.\n");
+-	else if ((temp & 0x0E) = 0)
+-		dev_dbg(&pdev->dev, "using Interrupt SMI# for SMBus.\n");
+-	else
+-		dev_dbg(&pdev->dev, "Illegal Interrupt configuration "
+-			"(or code out of date)!\n");
+-
+-	pci_read_config_byte(pdev, SMBREV, &temp);
+-	dev_dbg(&pdev->dev, "SMBREV = 0x%X\n", temp);
+ 	dev_dbg(&pdev->dev, "VT596_smba = 0x%X\n", vt596_smba);
+ 
+ 	switch (pdev->device) {
+
