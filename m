@@ -1,49 +1,83 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 00:15:52 +0000
-Subject: [lm-sensors] [PATCH] i2c: Fix union i2c_smbus_data definition
-Message-Id: <11305336582121@kroah.com>
+Date: Sat, 29 Oct 2005 01:19:02 +0000
+Subject: [lm-sensors] [PATCH] I2C: add i2c module alias for i2c drivers to
+Message-Id: <1130533664960@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Fix union i2c_smbus_data definition
+[PATCH] I2C: add i2c module alias for i2c drivers to use
 
-The i2c_smbus_data union block member has a comment stating that an
-extra byte is required for SMBus Block Process Call transactions. This
-has been true for three weeks around June 2002, but no more since, so
-it is about time that we drop this comment and fix the definition.
+This is the start of adding hotplug-like support for i2c devices.
 
-From: Hideki Iwamoto <h-iwamoto@kit.hi-ho.ne.jp>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- include/linux/i2c.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
 ---
-commit 332bf92b3338e140cbcfc25f69911e8ca59788c7
-tree d6d8a3ee39fc08a3bc23b76c62403dbfe0fad36d
-parent d057c96cab72bc6b70570d25b90404f81d98e886
-author Hideki Iwamoto <h-iwamoto@kit.hi-ho.ne.jp> Sun, 25 Sep 2005 16:56:43 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
+commit a9d1b24d91f91b77db3da8aeacb414764f789b9c
+tree a7400c6154b7e5b6839b3c25fecc2daac75c4a2b
+parent 0dc9a32d9a975ccd25b9f531451165c93e1c7313
+author Greg Kroah-Hartman <gregkh@suse.de> Sat, 22 Oct 2005 00:23:27 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:15 -0700
 
- include/linux/i2c.h |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ include/linux/i2c.h             |    1 +
+ include/linux/mod_devicetable.h |    5 +++++
+ scripts/mod/file2alias.c        |   10 ++++++++++
+ 3 files changed, 16 insertions(+), 0 deletions(-)
 
 diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 3d49a30..17d63c1 100644
+index 32977fb..f88577c 100644
 --- a/include/linux/i2c.h
 +++ b/include/linux/i2c.h
-@@ -454,8 +454,7 @@ struct i2c_msg {
- union i2c_smbus_data {
- 	__u8 byte;
- 	__u16 word;
--	__u8 block[I2C_SMBUS_BLOCK_MAX + 3]; /* block[0] is used for length */
--                          /* one more for read length in block process call */
-+	__u8 block[I2C_SMBUS_BLOCK_MAX + 2]; /* block[0] is used for length */
- 	                                            /* and one more for PEC */
- };
+@@ -29,6 +29,7 @@
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/i2c-id.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/device.h>	/* for struct device */
+ #include <asm/semaphore.h>
+ 
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index 2f0299a..7b08c11 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -244,4 +244,9 @@ struct pcmcia_device_id {
+ #define PCMCIA_DEV_ID_MATCH_FAKE_CIS	0x0200
+ #define PCMCIA_DEV_ID_MATCH_ANONYMOUS	0x0400
+ 
++/* I2C */
++struct i2c_device_id {
++	__u16 id;
++};
++
+ #endif /* LINUX_MOD_DEVICETABLE_H */
+diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+index f2ee673..e3d144a 100644
+--- a/scripts/mod/file2alias.c
++++ b/scripts/mod/file2alias.c
+@@ -359,6 +359,13 @@ static int do_vio_entry(const char *file
+ 	return 1;
+ }
+ 
++static int do_i2c_entry(const char *filename, struct i2c_device_id *i2c, char *alias)
++{
++	strcpy(alias, "i2c:");
++	ADD(alias, "id", 1, i2c->id);
++	return 1;
++}
++
+ /* Ignore any prefix, eg. v850 prepends _ */
+ static inline int sym_is(const char *symbol, const char *name)
+ {
+@@ -443,6 +450,9 @@ void handle_moddevtable(struct module *m
+         else if (sym_is(symname, "__mod_vio_device_table"))
+ 		do_table(symval, sym->st_size, sizeof(struct vio_device_id),
+ 			 do_vio_entry, mod);
++	else if (sym_is(symname, "__mod_i2c_device_table"))
++		do_table(symval, sym->st_size, sizeof(struct i2c_device_id),
++			 do_i2c_entry, mod);
+ 
+ }
  
 
