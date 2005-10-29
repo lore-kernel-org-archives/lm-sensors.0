@@ -1,49 +1,48 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 00:16:47 +0000
-Subject: [lm-sensors] [PATCH] hwmon: via686a: save 0.5k by long v[256] ->
-Message-Id: <1130533656553@kroah.com>
+Date: Sat, 29 Oct 2005 01:03:02 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: New maintainer
+Message-Id: <11305336582278@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: via686a: save 0.5k by long v[256] -> s16 v[256]
+[PATCH] i2c-viapro: New maintainer
 
-We can save 0.5kB of data in the via686a driver.
+I am taking over the maintenance of the i2c-viapro SMBus driver.
 
-From: Denis Vlasenko <vda@ilport.com.ua>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
 ---
-commit 088341bd0c78143bf82ff21f7f0a715f99568c73
-tree 5044d28b37f1a7f46575810e5e2bb8bcee78d965
-parent c7461a6652f40ce4f8e19d7368c7a807a618fb68
-author Jean Delvare <khali@linux-fr.org> Sat, 10 Sep 2005 23:00:46 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:05 -0700
+commit 32c0a520f506c046f241de2a3a9b02a395ef76d2
+tree 4af8da918c808be2d0dc444cf96df0a829c5ccf6
+parent 5c50d1885981537ff3b8df6433951de6c9cb72cb
+author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 21:47:58 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
 
- drivers/hwmon/via686a.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
-index 05ddc88..60e9487 100644
---- a/drivers/hwmon/via686a.c
-+++ b/drivers/hwmon/via686a.c
-@@ -198,7 +198,7 @@ static inline u8 FAN_TO_REG(long rpm, in
-  but the function is very linear in the useful range (0-80 deg C), so
-  we'll just use linear interpolation for 10-bit readings.)  So, tempLUT
-  is the temp at via register values 0-255: */
--static const long tempLUT[] +static const s16 tempLUT[]  { -709, -688, -667, -646, -627, -607, -589, -570, -553, -536, -519,
- 	-503, -487, -471, -456, -442, -428, -414, -400, -387, -375,
- 	-362, -350, -339, -327, -316, -305, -295, -285, -275, -265,
-@@ -270,7 +270,7 @@ static inline u8 TEMP_TO_REG(long val)
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 248b93b..3928dc7 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2736,6 +2736,12 @@ P:	Roger Luethi
+ M:	rl@hellgate.ch
+ S:	Maintained
  
- /* for 8-bit temperature hyst and over registers */
--#define TEMP_FROM_REG(val) (tempLUT[(val)] * 100)
-+#define TEMP_FROM_REG(val)	((long)tempLUT[val] * 100)
- 
- /* for 10-bit temperature readings */
- static inline long TEMP_FROM_REG10(u16 val)
++VIAPRO SMBUS DRIVER
++P:	Jean Delvare
++M:	khali@linux-fr.org
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++
+ UCLINUX (AND M68KNOMMU)
+ P:	Greg Ungerer
+ M:	gerg@uclinux.org
 
