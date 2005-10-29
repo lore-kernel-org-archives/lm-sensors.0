@@ -1,240 +1,57 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 08 Oct 2005 00:23:54 +0000
-Subject: [lm-sensors] [PATCH 16/16] i2c: Big i2c-elektor cleanup
-Message-Id: <20051008002327.7f886b32.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 00:16:58 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Drop useless w83627hf initialization
+Message-Id: <1130533661554@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Stig Telfer <stig@lizardlogic.co.uk>
+[PATCH] hwmon: Drop useless w83627hf initialization step
 
-Cleanups to the i2c-elektor driver:
+Drop a useless initialization step in the w83627hf driver. The comment
+says that the W83627HF PWM2 can be disabled, but it can't. I suppose
+this is a leftover from the w83781d driver (from which the w83627hf
+driver is derived), as for example the W83782D had the ability to
+disable PWM2.
 
-* Set the i2c_adapter name field to "i2c-elektor" and use this string
-  in all resource requests and printks.
-* Change space-padding for tab indentation, kill trailing white space,
-  remove space before comma.
-* Use dev_info, pr_info and pr_debug instead of printk.
-* Lines chopped to 80 columns.
-
-Signed-off-by: Stig Telfer <stig@lizardlogic.co.uk>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/i2c/busses/i2c-elektor.c |   84 ++++++++++++++++++++------------------
- 1 file changed, 45 insertions(+), 39 deletions(-)
+---
+commit 862bc36f682b25dd97833f702b4f8c97661b8811
+tree bdafe5326e72ec7cc9a677746ca7332ae73e7bd3
+parent 91749996287c230671788014f422f72e594e7b86
+author Jean Delvare <khali@linux-fr.org> Sat, 08 Oct 2005 00:12:01 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:10 -0700
 
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-elektor.c	2005-10-07 22:11:01.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-elektor.c	2005-10-07 22:16:57.000000000 +0200
-@@ -22,7 +22,7 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
-    Frodo Looijaard <frodol@dds.nl> */
+ drivers/hwmon/w83627hf.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 494274d..4827081 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -201,7 +201,6 @@ superio_exit(void)
  
--/* Partialy rewriten by Oleg I. Vdovikin for mmapped support of 
-+/* Partialy rewriten by Oleg I. Vdovikin for mmapped support of
-    for Alpha Processor Inc. UP-2000(+) boards */
+ #define W83627HF_REG_PWM1 0x5A
+ #define W83627HF_REG_PWM2 0x5B
+-#define W83627HF_REG_PWMCLK12 0x5C
  
- #include <linux/kernel.h>
-@@ -53,7 +53,7 @@
- static int own    = 0x55;
- static int mmapped;
- 
--/* vdovikin: removed static struct i2c_pcf_isa gpi; code - 
-+/* vdovikin: removed static struct i2c_pcf_isa gpi; code -
-   this module in real supports only one device, due to missing arguments
-   in some functions, called from the algo-pcf module. Sometimes it's
-   need to be rewriten - but for now just remove this for simpler reading */
-@@ -62,6 +62,8 @@
- static int pcf_pending;
- static spinlock_t lock;
- 
-+static struct i2c_adapter pcf_isa_ops;
-+
- /* ----- local functions ----------------------------------------------	*/
- 
- static void pcf_isa_setbyte(void *data, int ctl, int val)
-@@ -73,7 +75,7 @@
- 		val |= I2C_PCF_ENI;
- 	}
- 
--	pr_debug("i2c-elektor: Write %p 0x%02X\n", address, val);
-+	pr_debug("%s: Write %p 0x%02X\n", pcf_isa_ops.name, address, val);
- 	iowrite8(val, address);
- #ifdef __alpha__
- 	/* API UP2000 needs some hardware fudging to make the write stick */
-@@ -86,7 +88,7 @@
- 	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
- 	int val = ioread8(address);
- 
--	pr_debug("i2c-elektor: Read %p 0x%02X\n", address, val);
-+	pr_debug("%s: Read %p 0x%02X\n", pcf_isa_ops.name, address, val);
- 	return (val);
- }
- 
-@@ -142,39 +144,40 @@
- {
- 	spin_lock_init(&lock);
- 	if (!mmapped) {
--		if (!request_region(base, 2, "i2c (isa bus adapter)")) {
--			printk(KERN_ERR
--			       "i2c-elektor: requested I/O region (0x%X:2) "
--			       "is in use.\n", base);
-+		if (!request_region(base, 2, pcf_isa_ops.name)) {
-+			printk(KERN_ERR "%s: requested I/O region (%#x:2) is "
-+			       "in use\n", pcf_isa_ops.name, base);
- 			return -ENODEV;
- 		}
- 		base_iomem = ioport_map(base, 2);
- 		if (!base_iomem) {
--			printk(KERN_ERR "i2c-elektor: remap of I/O region "
--			       "%#x failed\n", base);
-+			printk(KERN_ERR "%s: remap of I/O region %#x failed\n",
-+			       pcf_isa_ops.name, base);
- 			release_region(base, 2);
- 			return -ENODEV;
- 		}
- 	} else {
--		if (!request_mem_region(base, 2, "i2c-elektor")) {
--			printk(KERN_ERR "i2c-elektor: requested memory region "
--			       "(%#x:2) is in use\n", base);
-+		if (!request_mem_region(base, 2, pcf_isa_ops.name)) {
-+			printk(KERN_ERR "%s: requested memory region (%#x:2) "
-+			       "is in use\n", pcf_isa_ops.name, base);
- 			return -ENODEV;
- 		}
- 		base_iomem = ioremap(base, 2);
- 		if (base_iomem = NULL) {
--			printk(KERN_ERR "i2c-elektor: remap of memory region "
--			       "%#x failed\n", base);
-+			printk(KERN_ERR "%s: remap of memory region %#x "
-+			       "failed\n", pcf_isa_ops.name, base);
- 			release_mem_region(base, 2);
- 			return -ENODEV;
- 		}
- 	}
--	pr_debug("i2c-elektor: registers %#x remapped to %p\n", base,
-+	pr_debug("%s: registers %#x remapped to %p\n", pcf_isa_ops.name, base,
- 		 base_iomem);
- 
- 	if (irq > 0) {
--		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
--			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
-+		if (request_irq(irq, pcf_isa_handler, 0, pcf_isa_ops.name,
-+				NULL) < 0) {
-+			printk(KERN_ERR "%s: Request irq%d failed\n",
-+			       pcf_isa_ops.name, irq);
- 			irq = 0;
- 		} else
- 			enable_irq(irq);
-@@ -202,45 +205,49 @@
- 	.class		= I2C_CLASS_HWMON,
- 	.id		= I2C_HW_P_ELEK,
- 	.algo_data	= &pcf_isa_data,
--	.name		= "PCF8584 ISA adapter",
-+	.name		= "i2c-elektor",
- };
- 
--static int __init i2c_pcfisa_init(void) 
-+static int __init i2c_pcfisa_init(void)
- {
- #ifdef __alpha__
--	/* check to see we have memory mapped PCF8584 connected to the 
-+	/* check to see we have memory mapped PCF8584 connected to the
- 	Cypress cy82c693 PCI-ISA bridge as on UP2000 board */
- 	if (base = 0) {
- 		struct pci_dev *cy693_dev;
--		
--		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ, 
-+
-+		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ,
- 					   PCI_DEVICE_ID_CONTAQ_82C693, NULL);
- 		if (cy693_dev) {
- 			unsigned char config;
- 			/* yeap, we've found cypress, let's check config */
- 			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
--				
--				pr_debug("i2c-elektor: found cy82c693, config register 0x47 = 0x%02x.\n", config);
-+
-+				pr_debug("%s: found cy82c693, config "
-+					 "register 0x47 = 0x%02x\n",
-+					 pcf_isa_ops.name, config);
- 
- 				/* UP2000 board has this register set to 0xe1,
--                                   but the most significant bit as seems can be 
-+				   but the most significant bit as seems can be
- 				   reset during the proper initialisation
--                                   sequence if guys from API decides to do that
--                                   (so, we can even enable Tsunami Pchip
--                                   window for the upper 1 Gb) */
-+				   sequence if guys from API decides to do that
-+				   (so, we can even enable Tsunami Pchip
-+				   window for the upper 1 Gb) */
- 
- 				/* so just check for ROMCS at 0xe0000,
--                                   ROMCS enabled for writes
-+				   ROMCS enabled for writes
- 				   and external XD Bus buffer in use. */
- 				if ((config & 0x7f) = 0x61) {
- 					/* seems to be UP2000 like board */
- 					base = 0xe0000;
- 					mmapped = 1;
--                                        /* UP2000 drives ISA with
-+					/* UP2000 drives ISA with
- 					   8.25 MHz (PCI/4) clock
- 					   (this can be read from cypress) */
- 					clock = I2C_PCF_CLK | I2C_PCF_TRNS90;
--					printk(KERN_INFO "i2c-elektor: found API UP2000 like board, will probe PCF8584 later.\n");
-+					pr_info("%s: found API UP2000 like "
-+						"board, will probe PCF8584 "
-+						"later\n", pcf_isa_ops.name);
- 				}
+ #define W83627THF_REG_PWM1		0x01	/* 697HF and 637HF too */
+ #define W83627THF_REG_PWM2		0x03	/* 697HF and 637HF too */
+@@ -1373,12 +1372,6 @@ static void w83627hf_init_client(struct 
  			}
- 			pci_dev_put(cy693_dev);
-@@ -250,12 +257,11 @@
+ 		}
  
- 	/* sanity checks for mmapped I/O */
- 	if (mmapped && base < 0xc8000) {
--		printk(KERN_ERR "i2c-elektor: incorrect base address (0x%0X) specified for mmapped I/O.\n", base);
-+		printk(KERN_ERR "%s: incorrect base address (%#x) specified "
-+		       "for mmapped I/O\n", pcf_isa_ops.name, base);
- 		return -ENODEV;
- 	}
- 
--	printk(KERN_INFO "i2c-elektor: i2c pcf8584-isa adapter driver\n");
--
- 	if (base = 0) {
- 		base = DEFAULT_BASE;
- 	}
-@@ -265,8 +271,8 @@
- 		return -ENODEV;
- 	if (i2c_pcf_add_bus(&pcf_isa_ops) < 0)
- 		goto fail;
--	
--	printk(KERN_ERR "i2c-elektor: found device at %#x.\n", base);
-+
-+	dev_info(&pcf_isa_ops.dev, "found device at %#x\n", base);
- 
- 	return 0;
- 
-@@ -278,7 +284,7 @@
- 
- 	if (!mmapped) {
- 		ioport_unmap(base_iomem);
--		release_region(base , 2);
-+		release_region(base, 2);
- 	} else {
- 		iounmap(base_iomem);
- 		release_mem_region(base, 2);
-@@ -297,7 +303,7 @@
- 
- 	if (!mmapped) {
- 		ioport_unmap(base_iomem);
--		release_region(base , 2);
-+		release_region(base, 2);
- 	} else {
- 		iounmap(base_iomem);
- 		release_mem_region(base, 2);
+-		if (type = w83627hf) {
+-			/* enable PWM2 control (can't hurt since PWM reg
+-		           should have been reset to 0xff) */
+-			w83627hf_write_value(client, W83627HF_REG_PWMCLK12,
+-					    0x19);
+-		}
+ 		/* enable comparator mode for temp2 and temp3 so
+ 	           alarm indication will work correctly */
+ 		i = w83627hf_read_value(client, W83781D_REG_IRQ);
 
--- 
-Jean Delvare
