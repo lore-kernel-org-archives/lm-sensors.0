@@ -1,83 +1,110 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:11:05 +0000
-Subject: [lm-sensors] [PATCH] i2c: Drop useless CVS revision IDs
-Message-Id: <11305336601376@kroah.com>
+Date: Sat, 29 Oct 2005 01:04:13 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Do not forcibly enable via686a by
+Message-Id: <11305336574100@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Drop useless CVS revision IDs
+[PATCH] hwmon: Do not forcibly enable via686a by default
 
-CVS revision IDs are totally useless and irrelevant by now.
+Do not enable the VIA VT82C686A/B integrated sensors by default, as
+disabled sensors usually means that this feature is not used so the
+values won't make any sense. This has been confusing many users in the
+past:
+
+  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket86
+  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket11
+  http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket 52
+
+It is still possible to forcibly enable the sensors by using the
+force_addr module parameter.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+ Documentation/hwmon/via686a |   17 +++++++++++++++--
+ drivers/hwmon/via686a.c     |   18 +++++++++++-------
+ 2 files changed, 26 insertions(+), 9 deletions(-)
+
 ---
-commit bf813b314a2271c3f3903eb3279ebf5e09b3d27a
-tree da029880a66422cd5aebe0191287a215e9d273b0
-parent e8aafcb2bba1fe122907161701a167e38174c7a5
-author Jean Delvare <khali@linux-fr.org> Fri, 07 Oct 2005 23:09:04 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:09 -0700
+commit b918ecd2429e1a89b846d9e49ca4520b963c13e8
+tree 396e8a1f2e958f713722b53c2ab68c66e9b265b3
+parent e415e48b68155bea8b5452113dedba4ec486f3f6
+author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:18:49 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:06 -0700
 
- include/linux/i2c-algo-bit.h |    2 --
- include/linux/i2c-algo-pcf.h |    2 --
- include/linux/i2c-dev.h      |    2 --
- include/linux/i2c.h          |    2 --
- 4 files changed, 0 insertions(+), 8 deletions(-)
+ Documentation/hwmon/via686a |   17 +++++++++++++++--
+ drivers/hwmon/via686a.c     |   18 +++++++++++-------
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff --git a/include/linux/i2c-algo-bit.h b/include/linux/i2c-algo-bit.h
-index 1109044..fb59214 100644
---- a/include/linux/i2c-algo-bit.h
-+++ b/include/linux/i2c-algo-bit.h
-@@ -21,8 +21,6 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
-    Frodo Looijaard <frodol@dds.nl> */
+diff --git a/Documentation/hwmon/via686a b/Documentation/hwmon/via686a
+index b82014c..a936fb3 100644
+--- a/Documentation/hwmon/via686a
++++ b/Documentation/hwmon/via686a
+@@ -18,8 +18,9 @@ Authors:
+ Module Parameters
+ -----------------
  
--/* $Id: i2c-algo-bit.h,v 1.10 2003/01/21 08:08:16 kmalkki Exp $ */
+-force_addr=0xaddr       Set the I/O base address. Useful for Asus A7V boards
+-                        that don't set the address in the BIOS. Does not do a
++force_addr=0xaddr       Set the I/O base address. Useful for boards that
++                        don't set the address in the BIOS. Look for a BIOS
++                        upgrade before resorting to this. Does not do a
+                         PCI force; the via686a must still be present in lspci.
+                         Don't use this unless the driver complains that the
+                         base address is not set.
+@@ -63,3 +64,15 @@ miss once-only alarms.
+ 
+ The driver only updates its values each 1.5 seconds; reading it more often
+ will do no harm, but will return 'old' values.
++
++Known Issues
++------------
++
++This driver handles sensors integrated in some VIA south bridges. It is
++possible that a motherboard maker used a VT82C686A/B chip as part of a
++product design but was not interested in its hardware monitoring features,
++in which case the sensor inputs will not be wired. This is the case of
++the Asus K7V, A7V and A7V133 motherboards, to name only a few of them.
++So, if you need the force_addr parameter, and end up with values which
++don't seem to make any sense, don't look any further: your chip is simply
++not wired for hardware monitoring.
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index 60e9487..688ccf9 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -589,10 +589,8 @@ static int via686a_detect(struct i2c_ada
+ 	u16 val;
+ 
+ 	/* 8231 requires multiple of 256, we enforce that on 686 as well */
+-	if (force_addr)
+-		address = force_addr & 0xFF00;
 -
- #ifndef _LINUX_I2C_ALGO_BIT_H
- #define _LINUX_I2C_ALGO_BIT_H
+ 	if (force_addr) {
++		address = force_addr & 0xFF00;
+ 		dev_warn(&adapter->dev, "forcing ISA address 0x%04X\n",
+ 			 address);
+ 		if (PCIBIOS_SUCCESSFUL !@@ -603,11 +601,17 @@ static int via686a_detect(struct i2c_ada
+ 	    pci_read_config_word(s_bridge, VIA686A_ENABLE_REG, &val))
+ 		return -ENODEV;
+ 	if (!(val & 0x0001)) {
+-		dev_warn(&adapter->dev, "enabling sensors\n");
+-		if (PCIBIOS_SUCCESSFUL !-		    pci_write_config_word(s_bridge, VIA686A_ENABLE_REG,
+-					  val | 0x0001))
++		if (force_addr) {
++			dev_info(&adapter->dev, "enabling sensors\n");
++			if (PCIBIOS_SUCCESSFUL !+			    pci_write_config_word(s_bridge, VIA686A_ENABLE_REG,
++						  val | 0x0001))
++				return -ENODEV;
++		} else {
++			dev_warn(&adapter->dev, "sensors disabled - enable "
++				 "with force_addr=0x%x\n", address);
+ 			return -ENODEV;
++		}
+ 	}
  
-diff --git a/include/linux/i2c-algo-pcf.h b/include/linux/i2c-algo-pcf.h
-index 2a50856..a0e534b 100644
---- a/include/linux/i2c-algo-pcf.h
-+++ b/include/linux/i2c-algo-pcf.h
-@@ -22,8 +22,6 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and even
-    Frodo Looijaard <frodol@dds.nl> */
- 
--/* $Id: i2c-algo-pcf.h,v 1.8 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_ALGO_PCF_H
- #define _LINUX_I2C_ALGO_PCF_H
- 
-diff --git a/include/linux/i2c-dev.h b/include/linux/i2c-dev.h
-index 5416956..81c229a 100644
---- a/include/linux/i2c-dev.h
-+++ b/include/linux/i2c-dev.h
-@@ -19,8 +19,6 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
- 
--/* $Id: i2c-dev.h,v 1.13 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_DEV_H
- #define _LINUX_I2C_DEV_H
- 
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 17d63c1..ec81884 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -23,8 +23,6 @@
- /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi> and
-    Frodo Looijaard <frodol@dds.nl> */
- 
--/* $Id: i2c.h,v 1.68 2003/01/21 08:08:16 kmalkki Exp $ */
--
- #ifndef _LINUX_I2C_H
- #define _LINUX_I2C_H
- 
+ 	/* Reserve the ISA region */
 
