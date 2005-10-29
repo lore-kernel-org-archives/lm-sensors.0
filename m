@@ -1,164 +1,266 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:03:43 +0000
-Subject: [lm-sensors] [PATCH] i2c-viapro: Implement I2C Block transactions
-Message-Id: <11305336603904@kroah.com>
+Date: Sat, 29 Oct 2005 01:31:13 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: Coding style fixes
+Message-Id: <11305336581001@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c-viapro: Implement I2C Block transactions
+[PATCH] i2c-viapro: Coding style fixes
 
-Implement the I2C block transactions on VIA chips which support them:
-VT82C686B, VT8233, VT8233A, VT8235 and VT8237R. This speeds up EEPROM
-accesses by a factor 10 or so.
+Before I go on cleaning up and improving the i2c-viapro driver, let's
+fix all the coding style issues: mostly trailing white space, and
+spaces used where tabs should be.
 
-I would like to thank Antonino A. Daplas, Hinko Kocevar, Salah Coronya
-and Andreas Henriksson for their help in testing this new feature.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Jean Delvare <khali@linux-fr>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- Documentation/i2c/busses/i2c-viapro |    7 +++++-
- drivers/i2c/busses/i2c-viapro.c     |   39 +++++++++++++++++++++++++++++++++---
- 2 files changed, 42 insertions(+), 4 deletions(-)
+ Documentation/i2c/busses/i2c-viapro |   12 ++---
+ drivers/i2c/busses/i2c-viapro.c     |   76 ++++++++++++++++++------------------
+ 2 files changed, 43 insertions(+), 45 deletions(-)
 
 ---
-commit f118301416953d677de738100c33eb8cfb7adecb
-tree 145997f9c2159d1657dcaca8c56ee93341d8b5f9
-parent 5f49ef8e8cefe0a95948b4270db28507c1c287d4
-author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 21:58:41 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
+commit 5f49ef8e8cefe0a95948b4270db28507c1c287d4
+tree ea50363d9480a9ccae000bd46633866561a62cea
+parent 32c0a520f506c046f241de2a3a9b02a395ef76d2
+author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 21:50:47 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
 
- Documentation/i2c/busses/i2c-viapro |    7 +++++-
- drivers/i2c/busses/i2c-viapro.c     |   39 ++++++++++++++++++++++++++++++++---
- 2 files changed, 42 insertions(+), 4 deletions(-)
+ Documentation/i2c/busses/i2c-viapro |   12 ++----
+ drivers/i2c/busses/i2c-viapro.c     |   76 ++++++++++++++++++-----------------
+ 2 files changed, 43 insertions(+), 45 deletions(-)
 
 diff --git a/Documentation/i2c/busses/i2c-viapro b/Documentation/i2c/busses/i2c-viapro
-index ef0f1e9..387cbd4 100644
+index 702f5ac..ef0f1e9 100644
 --- a/Documentation/i2c/busses/i2c-viapro
 +++ b/Documentation/i2c/busses/i2c-viapro
-@@ -14,7 +14,8 @@ Authors:
- 	Frodo Looijaard <frodol@dds.nl>,
- 	Philip Edelbrock <phil@netroedge.com>,
- 	Ky?sti M?lkki <kmalkki@cc.hut.fi>,
--	Mark D. Studebaker <mdsxyz123@yahoo.com>
-+	Mark D. Studebaker <mdsxyz123@yahoo.com>,
-+	Jean Delvare <khali@linux-fr.org>
+@@ -4,17 +4,17 @@ Supported adapters:
+   * VIA Technologies, Inc. VT82C596A/B
+     Datasheet: Sometimes available at the VIA website
+ 
+-  * VIA Technologies, Inc. VT82C686A/B 
++  * VIA Technologies, Inc. VT82C686A/B
+     Datasheet: Sometimes available at the VIA website
+ 
+   * VIA Technologies, Inc. VT8231, VT8233, VT8233A, VT8235, VT8237
+     Datasheet: available on request from Via
+ 
+ Authors:
+-	Frodo Looijaard <frodol@dds.nl>,  
+-	Philip Edelbrock <phil@netroedge.com>, 
+-	Ky?sti M?lkki <kmalkki@cc.hut.fi>, 
+-	Mark D. Studebaker <mdsxyz123@yahoo.com> 
++	Frodo Looijaard <frodol@dds.nl>,
++	Philip Edelbrock <phil@netroedge.com>,
++	Ky?sti M?lkki <kmalkki@cc.hut.fi>,
++	Mark D. Studebaker <mdsxyz123@yahoo.com>
  
  Module Parameters
  -----------------
-@@ -43,3 +44,7 @@ Your lspci -n listing must show one of t
+@@ -43,5 +43,3 @@ Your lspci -n listing must show one of t
  
  If none of these show up, you should look in the BIOS for settings like
  enable ACPI / SMBus or even USB.
-+
-+Except for the oldest chips (VT82C596A/B, VT82C686A and most probably
-+VT8231), this driver supports I2C block transactions. Such transactions
-+are mainly useful to read from and write to EEPROMs.
+-
+-
 diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
-index 262755e..b420e75 100644
+index 99d209e..262755e 100644
 --- a/drivers/i2c/busses/i2c-viapro.c
 +++ b/drivers/i2c/busses/i2c-viapro.c
-@@ -4,6 +4,7 @@
-     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
+@@ -1,7 +1,7 @@
+ /*
+     i2c-viapro.c - Part of lm_sensors, Linux kernel modules for hardware
+               monitoring
+-    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>, 
++    Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
      Philip Edelbrock <phil@netroedge.com>, Ky?sti M?lkki <kmalkki@cc.hut.fi>,
      Mark D. Studebaker <mdsxyz123@yahoo.com>
-+    Copyright (C) 2005  Jean Delvare <khali@linux-fr.org>
  
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-@@ -88,6 +89,7 @@ static unsigned short smb_cf_hstcfg = 0x
- #define VT596_BYTE_DATA		0x08
- #define VT596_WORD_DATA		0x0C
- #define VT596_BLOCK_DATA	0x14
-+#define VT596_I2C_BLOCK_DATA	0x34
+@@ -46,9 +46,9 @@
+ 
+ static struct pci_dev *vt596_pdev;
+ 
+-#define SMBBA1	   	 0x90
+-#define SMBBA2     	 0x80
+-#define SMBBA3     	 0xD0
++#define SMBBA1		0x90
++#define SMBBA2		0x80
++#define SMBBA3		0xD0
+ 
+ /* SMBus address offsets */
+ static unsigned short vt596_smba;
+@@ -68,26 +68,26 @@ static unsigned short vt596_smba;
+ /* PCI Address Constants */
+ 
+ /* SMBus data in configuration space can be found in two places,
+-   We try to select the better one*/
++   We try to select the better one */
+ 
+ static unsigned short smb_cf_hstcfg = 0xD2;
+ 
+-#define SMBHSTCFG   (smb_cf_hstcfg)
+-#define SMBSLVC     (smb_cf_hstcfg + 1)
+-#define SMBSHDW1    (smb_cf_hstcfg + 2)
+-#define SMBSHDW2    (smb_cf_hstcfg + 3)
+-#define SMBREV      (smb_cf_hstcfg + 4)
++#define SMBHSTCFG	(smb_cf_hstcfg)
++#define SMBSLVC		(smb_cf_hstcfg + 1)
++#define SMBSHDW1	(smb_cf_hstcfg + 2)
++#define SMBSHDW2	(smb_cf_hstcfg + 3)
++#define SMBREV		(smb_cf_hstcfg + 4)
+ 
+ /* Other settings */
+ #define MAX_TIMEOUT	500
+ #define ENABLE_INT9	0
+ 
+ /* VT82C596 constants */
+-#define VT596_QUICK      0x00
+-#define VT596_BYTE       0x04
+-#define VT596_BYTE_DATA  0x08
+-#define VT596_WORD_DATA  0x0C
+-#define VT596_BLOCK_DATA 0x14
++#define VT596_QUICK		0x00
++#define VT596_BYTE		0x04
++#define VT596_BYTE_DATA		0x08
++#define VT596_WORD_DATA		0x0C
++#define VT596_BLOCK_DATA	0x14
  
  
  /* If force is set to anything different from 0, we forcibly enable the
-@@ -107,6 +109,9 @@ MODULE_PARM_DESC(force_addr,
+@@ -115,19 +115,19 @@ static int vt596_transaction(void)
+ 	int timeout = 0;
  
- static struct i2c_adapter vt596_adapter;
+ 	dev_dbg(&vt596_adapter.dev, "Transaction (pre): CNT=%02x, CMD=%02x, "
+-		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT), 
+-		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
++		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
++		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
+ 		inb_p(SMBHSTDAT1));
  
-+#define FEATURE_I2CBLOCK	(1<<0)
-+static unsigned int vt596_features;
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 		dev_dbg(&vt596_adapter.dev, "SMBus busy (0x%02x). "
+-				"Resetting...\n", temp);
+-		
++			"Resetting...\n", temp);
 +
- /* Another internally used function */
- static int vt596_transaction(void)
- {
-@@ -225,6 +230,12 @@ static s32 vt596_access(struct i2c_adapt
- 		}
- 		size = VT596_WORD_DATA;
- 		break;
-+	case I2C_SMBUS_I2C_BLOCK_DATA:
-+		if (!(vt596_features & FEATURE_I2CBLOCK))
-+			return -1;
-+		if (read_write = I2C_SMBUS_READ)
-+			outb_p(I2C_SMBUS_BLOCK_MAX, SMBHSTDAT0);
-+		/* Fall through */
- 	case I2C_SMBUS_BLOCK_DATA:
- 		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
- 		       SMBHSTADD);
-@@ -240,11 +251,12 @@ static s32 vt596_access(struct i2c_adapt
- 			for (i = 1; i <= len; i++)
- 				outb_p(data->block[i], SMBBLKDAT);
- 		}
--		size = VT596_BLOCK_DATA;
-+		size = (size = I2C_SMBUS_I2C_BLOCK_DATA) ?
-+		       VT596_I2C_BLOCK_DATA : VT596_BLOCK_DATA;
- 		break;
- 	}
- 
--	outb_p((size & 0x1C) + (ENABLE_INT9 & 1), SMBHSTCNT);
-+	outb_p((size & 0x3C) + (ENABLE_INT9 & 1), SMBHSTCNT);
- 
- 	if (vt596_transaction()) /* Error in transaction */
- 		return -1;
-@@ -266,6 +278,7 @@ static s32 vt596_access(struct i2c_adapt
- 	case VT596_WORD_DATA:
- 		data->word = inb_p(SMBHSTDAT0) + (inb_p(SMBHSTDAT1) << 8);
- 		break;
-+	case VT596_I2C_BLOCK_DATA:
- 	case VT596_BLOCK_DATA:
- 		data->block[0] = inb_p(SMBHSTDAT0);
- 		if (data->block[0] > I2C_SMBUS_BLOCK_MAX)
-@@ -280,9 +293,13 @@ static s32 vt596_access(struct i2c_adapt
- 
- static u32 vt596_func(struct i2c_adapter *adapter)
- {
--	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
-+	u32 func = I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
- 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
- 	    I2C_FUNC_SMBUS_BLOCK_DATA;
+ 		outb_p(temp, SMBHSTSTS);
+ 		if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+ 			dev_dbg(&vt596_adapter.dev, "Failed! (0x%02x)\n", temp);
+-			
 +
-+	if (vt596_features & FEATURE_I2CBLOCK)
-+		func |= I2C_FUNC_SMBUS_I2C_BLOCK;
-+	return func;
+ 			return -1;
+ 		} else {
+ 			dev_dbg(&vt596_adapter.dev, "Successfull!\n");
+@@ -137,7 +137,7 @@ static int vt596_transaction(void)
+ 	/* start the transaction by setting bit 6 */
+ 	outb_p(inb(SMBHSTCNT) | 0x040, SMBHSTCNT);
+ 
+-	/* We will always wait for a fraction of a second! 
++	/* We will always wait for a fraction of a second!
+ 	   I don't know if VIA needs this, Intel did  */
+ 	do {
+ 		msleep(1);
+@@ -177,16 +177,16 @@ static int vt596_transaction(void)
+ 
+ 	dev_dbg(&vt596_adapter.dev, "Transaction (post): CNT=%02x, CMD=%02x, "
+ 		"ADD=%02x, DAT0=%02x, DAT1=%02x\n", inb_p(SMBHSTCNT),
+-		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), 
++		inb_p(SMBHSTCMD), inb_p(SMBHSTADD), inb_p(SMBHSTDAT0),
+ 		inb_p(SMBHSTDAT1));
+-	
++
+ 	return result;
  }
  
- static struct i2c_algorithm smbus_algorithm = {
-@@ -379,6 +396,22 @@ found:
- 	dev_dbg(&pdev->dev, "SMBREV = 0x%X\n", temp);
- 	dev_dbg(&pdev->dev, "VT596_smba = 0x%X\n", vt596_smba);
+ /* Return -1 on error. */
+ static s32 vt596_access(struct i2c_adapter *adap, u16 addr,
+-		unsigned short flags,  char read_write, u8 command,
+-		int size,  union i2c_smbus_data *data)
++		unsigned short flags, char read_write, u8 command,
++		int size, union i2c_smbus_data *data)
+ {
+ 	int i, len;
  
-+	switch (pdev->device) {
-+	case PCI_DEVICE_ID_VIA_8237:
-+	case PCI_DEVICE_ID_VIA_8235:
-+	case PCI_DEVICE_ID_VIA_8233A:
-+	case PCI_DEVICE_ID_VIA_8233_0:
-+		vt596_features |= FEATURE_I2CBLOCK;
-+		break;
-+	case PCI_DEVICE_ID_VIA_82C686_4:
-+		/* The VT82C686B (rev 0x40) does support I2C block
-+		   transactions, but the VT82C686A (rev 0x30) doesn't */
-+		if (!pci_read_config_byte(pdev, PCI_REVISION_ID, &temp)
-+		 && temp >= 0x40)
-+			vt596_features |= FEATURE_I2CBLOCK;
-+		break;
-+	}
+@@ -256,7 +256,7 @@ static s32 vt596_access(struct i2c_adapt
+ 	case VT596_BYTE:
+ 		/* Where is the result put? I assume here it is in
+ 		 * SMBHSTDAT0 but it might just as well be in the
+-		 * SMBHSTCMD. No clue in the docs 
++		 * SMBHSTCMD. No clue in the docs
+ 		 */
+ 		data->byte = inb_p(SMBHSTDAT0);
+ 		break;
+@@ -302,7 +302,7 @@ static int __devinit vt596_probe(struct 
+ {
+ 	unsigned char temp;
+ 	int error = -ENODEV;
+-	
 +
+ 	/* Determine the address of the SMBus areas */
+ 	if (force_addr) {
+ 		vt596_smba = force_addr & 0xfff0;
+@@ -333,10 +333,10 @@ static int __devinit vt596_probe(struct 
+ 		return -ENODEV;
+ 	}
+ 
+- found:
++found:
+ 	if (!request_region(vt596_smba, 8, "viapro-smbus")) {
+ 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
+-		        vt596_smba);
++			vt596_smba);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -348,13 +348,13 @@ static int __devinit vt596_probe(struct 
+ 		pci_write_config_word(pdev, id->driver_data, vt596_smba);
+ 		pci_write_config_byte(pdev, SMBHSTCFG, temp | 0x01);
+ 		dev_warn(&pdev->dev, "WARNING: SMBus interface set to new "
+-		     "address 0x%04x!\n", vt596_smba);
++			 "address 0x%04x!\n", vt596_smba);
+ 	} else if ((temp & 1) = 0) {
+ 		if (force) {
+-			/* NOTE: This assumes I/O space and other allocations 
+-			 * WERE done by the Bios!  Don't complain if your 
+-			 * hardware does weird things after enabling this. 
+-			 * :') Check for Bios updates before resorting to 
++			/* NOTE: This assumes I/O space and other allocations
++			 * WERE done by the Bios!  Don't complain if your
++			 * hardware does weird things after enabling this.
++			 * :') Check for Bios updates before resorting to
+ 			 * this.
+ 			 */
+ 			pci_write_config_byte(pdev, SMBHSTCFG, temp | 1);
+@@ -381,8 +381,8 @@ static int __devinit vt596_probe(struct 
+ 
  	vt596_adapter.dev.parent = &pdev->dev;
  	snprintf(vt596_adapter.name, I2C_NAME_SIZE,
- 		 "SMBus Via Pro adapter at %04x", vt596_smba);
+-			"SMBus Via Pro adapter at %04x", vt596_smba);
+-	
++		 "SMBus Via Pro adapter at %04x", vt596_smba);
++
+ 	vt596_pdev = pci_dev_get(pdev);
+ 	if (i2c_add_adapter(&vt596_adapter)) {
+ 		pci_dev_put(vt596_pdev);
+@@ -395,7 +395,7 @@ static int __devinit vt596_probe(struct 
+ 	 */
+ 	return -ENODEV;
+ 
+- release_region:
++release_region:
+ 	release_region(vt596_smba, 8);
+ 	return error;
+ }
+@@ -420,7 +420,7 @@ static struct pci_device_id vt596_ids[] 
+ 	{ 0, }
+ };
+ 
+-MODULE_DEVICE_TABLE (pci, vt596_ids);
++MODULE_DEVICE_TABLE(pci, vt596_ids);
+ 
+ static struct pci_driver vt596_driver = {
+ 	.name		= "vt596_smbus",
 
