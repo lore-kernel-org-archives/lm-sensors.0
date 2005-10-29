@@ -1,149 +1,78 @@
-From: ben@fluff.org.uk (Ben Dooks)
-Date: Mon, 17 Oct 2005 23:05:30 +0000
-Subject: [lm-sensors] [PATCH] drivers/hwmon - fix static function
-Message-Id: <20051017210412.GA7485@home.fluff.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:24:54 +0000
+Subject: [lm-sensors] [PATCH] i2c: Documentation fixes
+Message-Id: <1130533660431@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fixup functions that have been declared static
-and then actually defined without the static on
+[PATCH] i2c: Documentation fixes
 
- adm1026.c |   18 +++++++++---------
- ds1621.c  |    4 ++--
- fscpos.c  |    2 +-
- it87.c    |    2 +-
- lm80.c    |    2 +-
- 5 files changed, 14 insertions(+), 14 deletions(-)
+i2c documentation fixes.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
--------------- next part --------------
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/adm1026.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/adm1026.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/adm1026.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/adm1026.c	2005-10-17 21:55:21.000000000 +0100
-@@ -315,7 +315,7 @@ static struct i2c_driver adm1026_driver 
- 	.detach_client  = adm1026_detach_client,
- };
- 
--int adm1026_attach_adapter(struct i2c_adapter *adapter)
-+static int adm1026_attach_adapter(struct i2c_adapter *adapter)
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON)) {
- 		return 0;
-@@ -323,7 +323,7 @@ int adm1026_attach_adapter(struct i2c_ad
- 	return i2c_probe(adapter, &addr_data, adm1026_detect);
+From Hideki Iwamoto:
+* i2c_smbus_read_i2c_block_data is not deleted in 2.6.10. It still
+  exists.
+* The name which can be set to i2c_driver is up to 31 characters.
+
+From Jean Delvare:
+* Reword the paragraph about i2c_driver.name, to reflect the "new"
+  naming policy.
+* Delete the out-of-date note about now gone inc_use and dec_use
+  fields.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+commit 7865e24935ec7e76fb482c749015a23052e51f76
+tree 9a5fc835415cccc57ec2b7bf86365d4d6ac3f2ba
+parent 47b8b103f7f50d56568eb8d6cff0e3a2373f0eb3
+author Jean Delvare <khali@linux-fr.org> Sat, 08 Oct 2005 00:00:31 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:09 -0700
+
+ Documentation/i2c/writing-clients |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
+index 0772757..1882811 100644
+--- a/Documentation/i2c/writing-clients
++++ b/Documentation/i2c/writing-clients
+@@ -33,8 +33,8 @@ static struct i2c_driver foo_driver = {
+ 	.command	= &foo_command /* may be NULL */
  }
+  
+-The name can be chosen freely, and may be upto 40 characters long. Please
+-use something descriptive here.
++The name field must match the driver name, including the case. It must not
++contain spaces, and may be up to 31 characters long.
  
--int adm1026_detach_client(struct i2c_client *client)
-+static int adm1026_detach_client(struct i2c_client *client)
- {
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->class_dev);
-@@ -332,7 +332,7 @@ int adm1026_detach_client(struct i2c_cli
- 	return 0;
- }
+ Don't worry about the flags field; just put I2C_DF_NOTIFY into it. This
+ means that your driver will be notified when new adapters are found.
+@@ -43,9 +43,6 @@ This is almost always what you want.
+ All other fields are for call-back functions which will be explained 
+ below.
  
--int adm1026_read_value(struct i2c_client *client, u8 reg)
-+static int adm1026_read_value(struct i2c_client *client, u8 reg)
- {
- 	int res;
+-There use to be two additional fields in this structure, inc_use et dec_use,
+-for module usage count, but these fields were obsoleted and removed.
+-
  
-@@ -346,7 +346,7 @@ int adm1026_read_value(struct i2c_client
- 	return res;
- }
+ Extra client data
+ ========@@ -576,12 +573,12 @@ SMBus communication
+   extern s32 i2c_smbus_write_block_data(struct i2c_client * client,
+                                         u8 command, u8 length,
+                                         u8 *values);
++  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
++                                           u8 command, u8 *values);
  
--int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
-+static int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
- {
- 	int res;
+ These ones were removed in Linux 2.6.10 because they had no users, but could
+ be added back later if needed:
  
-@@ -360,7 +360,7 @@ int adm1026_write_value(struct i2c_clien
- 	return res;
- }
- 
--void adm1026_init_client(struct i2c_client *client)
-+static void adm1026_init_client(struct i2c_client *client)
- {
- 	int value, i;
- 	struct adm1026_data *data = i2c_get_clientdata(client);
-@@ -460,7 +460,7 @@ void adm1026_init_client(struct i2c_clie
- 	}
- }
- 
--void adm1026_print_gpio(struct i2c_client *client)
-+static void adm1026_print_gpio(struct i2c_client *client)
- {
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	int  i;
-@@ -492,7 +492,7 @@ void adm1026_print_gpio(struct i2c_clien
- 	}
- }
- 
--void adm1026_fixup_gpio(struct i2c_client *client)
-+static void adm1026_fixup_gpio(struct i2c_client *client)
- {
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	int  i;
-@@ -1452,8 +1452,8 @@ static DEVICE_ATTR(temp1_auto_point2_pwm
- static DEVICE_ATTR(temp2_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
- static DEVICE_ATTR(temp3_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
- 
--int adm1026_detect(struct i2c_adapter *adapter, int address,
--		int kind)
-+static int adm1026_detect(struct i2c_adapter *adapter, int address,
-+			  int kind)
- {
- 	int company, verstep;
- 	struct i2c_client *new_client;
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/ds1621.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/ds1621.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/ds1621.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/ds1621.c	2005-10-17 21:56:26.000000000 +0100
-@@ -184,8 +184,8 @@ static int ds1621_attach_adapter(struct 
- }
- 
- /* This function is called by i2c_probe */
--int ds1621_detect(struct i2c_adapter *adapter, int address,
--                  int kind)
-+static int ds1621_detect(struct i2c_adapter *adapter, int address,
-+			 int kind)
- {
- 	int conf, temp;
- 	struct i2c_client *new_client;
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/fscpos.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/fscpos.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/fscpos.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/fscpos.c	2005-10-17 21:56:49.000000000 +0100
-@@ -438,7 +438,7 @@ static int fscpos_attach_adapter(struct 
- 	return i2c_probe(adapter, &addr_data, fscpos_detect);
- }
- 
--int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct fscpos_data *data;
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/it87.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/it87.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/it87.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/it87.c	2005-10-17 21:57:11.000000000 +0100
-@@ -738,7 +738,7 @@ exit:
- }
- 
- /* This function is called by i2c_probe */
--int it87_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int it87_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
- 	struct i2c_client *new_client;
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/lm80.c linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/lm80.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/hwmon/lm80.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/hwmon/lm80.c	2005-10-17 21:57:43.000000000 +0100
-@@ -393,7 +393,7 @@ static int lm80_attach_adapter(struct i2
- 	return i2c_probe(adapter, &addr_data, lm80_detect);
- }
- 
--int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i, cur;
- 	struct i2c_client *new_client;
+-  extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
+-                                           u8 command, u8 *values);
+   extern s32 i2c_smbus_read_block_data(struct i2c_client * client,
+                                        u8 command, u8 *values);
+   extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
+
