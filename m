@@ -1,27 +1,401 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 05 Oct 2005 23:11:09 +0000
-Subject: [lm-sensors] FAQ update
-Message-Id: <20051005231026.383df683.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:31:41 +0000
+Subject: [lm-sensors] [PATCH] i2c: Reuse name strings in i2c bus drivers
+Message-Id: <11305336573332@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+[PATCH] i2c: Reuse name strings in i2c bus drivers
 
-Ticket #2068 suggested that we add a FAQ entry about our position
-towards undocumented chips. I thought it was a good idea, and did that.
-This is FAQ 5.9. As this is supposed to reflect a relatively collective
-position, active contributors are invited to comment and reword if
-needed.
+Clean up name string usage in 12 i2c bus drivers:
+* Use the i2c_adapter name for requesting the I/O region rather than
+  redefining a new string.
+* Do not initialize the i2c_adapter name to "unset".
+This should save a few data bytes here and there.
 
-I also dropped FAQ 6.9, which was related to the old mailing list and
-doesn't apply to the new one.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-BTW, any objection to me dropping the whole section dedicated to
-lm_sensors 1? Looks like noise to me now.
+ drivers/i2c/busses/i2c-ali1535.c |    6 +++---
+ drivers/i2c/busses/i2c-ali1563.c |    6 ++++--
+ drivers/i2c/busses/i2c-ali15x3.c |    5 +++--
+ drivers/i2c/busses/i2c-amd756.c  |    5 ++---
+ drivers/i2c/busses/i2c-amd8111.c |    4 +++-
+ drivers/i2c/busses/i2c-i801.c    |    4 ++--
+ drivers/i2c/busses/i2c-nforce2.c |    4 ++--
+ drivers/i2c/busses/i2c-piix4.c   |    4 ++--
+ drivers/i2c/busses/i2c-sis5595.c |    5 +++--
+ drivers/i2c/busses/i2c-sis630.c  |    6 ++++--
+ drivers/i2c/busses/i2c-sis96x.c  |    5 +++--
+ drivers/i2c/busses/i2c-via.c     |    4 ++--
+ 12 files changed, 33 insertions(+), 25 deletions(-)
 
-Thanks,
--- 
-Jean Delvare
+---
+commit d6072f842a77014220683ee5b781b7cee8f020d1
+tree d9409d911987815a73f6c08e1f1f67fe4d16bb3a
+parent 7d845b10d06fa20a595a5161edabc5e846ed28a6
+author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:37:04 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:06 -0700
+
+ drivers/i2c/busses/i2c-ali1535.c |    6 +++---
+ drivers/i2c/busses/i2c-ali1563.c |    6 ++++--
+ drivers/i2c/busses/i2c-ali15x3.c |    5 +++--
+ drivers/i2c/busses/i2c-amd756.c  |    5 ++---
+ drivers/i2c/busses/i2c-amd8111.c |    4 +++-
+ drivers/i2c/busses/i2c-i801.c    |    4 ++--
+ drivers/i2c/busses/i2c-nforce2.c |    4 ++--
+ drivers/i2c/busses/i2c-piix4.c   |    4 ++--
+ drivers/i2c/busses/i2c-sis5595.c |    5 +++--
+ drivers/i2c/busses/i2c-sis630.c  |    6 ++++--
+ drivers/i2c/busses/i2c-sis96x.c  |    5 +++--
+ drivers/i2c/busses/i2c-via.c     |    4 ++--
+ 12 files changed, 33 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
+index f021acd..3eb4789 100644
+--- a/drivers/i2c/busses/i2c-ali1535.c
++++ b/drivers/i2c/busses/i2c-ali1535.c
+@@ -134,7 +134,7 @@
+ 					/*  -> Read  = 1		*/
+ #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
+ 
+-
++static struct pci_driver ali1535_driver;
+ static unsigned short ali1535_smba;
+ static DECLARE_MUTEX(i2c_ali1535_sem);
+ 
+@@ -162,7 +162,8 @@ static int ali1535_setup(struct pci_dev 
+ 		goto exit;
+ 	}
+ 
+-	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE, "ali1535-smb")) {
++	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
++			    ali1535_driver.name)) {
+ 		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
+ 			ali1535_smba);
+ 		goto exit;
+@@ -480,7 +481,6 @@ static struct i2c_adapter ali1535_adapte
+ 	.owner		= THIS_MODULE,
+ 	.class          = I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ static struct pci_device_id ali1535_ids[] = {
+diff --git a/drivers/i2c/busses/i2c-ali1563.c b/drivers/i2c/busses/i2c-ali1563.c
+index 8694750..e6f6320 100644
+--- a/drivers/i2c/busses/i2c-ali1563.c
++++ b/drivers/i2c/busses/i2c-ali1563.c
+@@ -60,6 +60,7 @@
+ 
+ #define HST_CNTL2_SIZEMASK	0x38
+ 
++static struct pci_driver ali1563_pci_driver;
+ static unsigned short ali1563_smba;
+ 
+ static int ali1563_transaction(struct i2c_adapter * a, int size)
+@@ -350,7 +351,8 @@ static int __devinit ali1563_setup(struc
+ 		dev_warn(&dev->dev,"ali1563_smba Uninitialized\n");
+ 		goto Err;
+ 	}
+-	if (!request_region(ali1563_smba,ALI1563_SMB_IOSIZE,"i2c-ali1563")) {
++	if (!request_region(ali1563_smba, ALI1563_SMB_IOSIZE,
++			    ali1563_pci_driver.name)) {
+ 		dev_warn(&dev->dev,"Could not allocate I/O space");
+ 		goto Err;
+ 	}
+@@ -406,7 +408,7 @@ static struct pci_device_id __devinitdat
+ MODULE_DEVICE_TABLE (pci, ali1563_id_table);
+ 
+ static struct pci_driver ali1563_pci_driver = {
+- 	.name		= "ali1563_i2c",
++ 	.name		= "ali1563_smbus",
+ 	.id_table	= ali1563_id_table,
+  	.probe		= ali1563_probe,
+ 	.remove		= __devexit_p(ali1563_remove),
+diff --git a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
+index e13d60c..7a5c094 100644
+--- a/drivers/i2c/busses/i2c-ali15x3.c
++++ b/drivers/i2c/busses/i2c-ali15x3.c
+@@ -130,6 +130,7 @@ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the i2c controller");
+ 
++static struct pci_driver ali15x3_driver;
+ static unsigned short ali15x3_smba;
+ 
+ static int ali15x3_setup(struct pci_dev *ALI15X3_dev)
+@@ -166,7 +167,8 @@ static int ali15x3_setup(struct pci_dev 
+ 	if(force_addr)
+ 		ali15x3_smba = force_addr & ~(ALI15X3_SMB_IOSIZE - 1);
+ 
+-	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE, "ali15x3-smb")) {
++	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
++			    ali15x3_driver.name)) {
+ 		dev_err(&ALI15X3_dev->dev,
+ 			"ALI15X3_smb region 0x%x already in use!\n",
+ 			ali15x3_smba);
+@@ -470,7 +472,6 @@ static struct i2c_adapter ali15x3_adapte
+ 	.owner		= THIS_MODULE,
+ 	.class          = I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ static struct pci_device_id ali15x3_ids[] = {
+diff --git a/drivers/i2c/busses/i2c-amd756.c b/drivers/i2c/busses/i2c-amd756.c
+index 3bbac2f..1750ded 100644
+--- a/drivers/i2c/busses/i2c-amd756.c
++++ b/drivers/i2c/busses/i2c-amd756.c
+@@ -85,7 +85,7 @@
+ #define AMD756_PROCESS_CALL	0x04
+ #define AMD756_BLOCK_DATA	0x05
+ 
+-
++static struct pci_driver amd756_driver;
+ static unsigned short amd756_ioport;
+ 
+ /* 
+@@ -303,7 +303,6 @@ struct i2c_adapter amd756_smbus = {
+ 	.owner		= THIS_MODULE,
+ 	.class          = I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ enum chiptype { AMD756, AMD766, AMD768, NFORCE, AMD8111 };
+@@ -365,7 +364,7 @@ static int __devinit amd756_probe(struct
+ 		amd756_ioport += SMB_ADDR_OFFSET;
+ 	}
+ 
+-	if (!request_region(amd756_ioport, SMB_IOSIZE, "amd756-smbus")) {
++	if (!request_region(amd756_ioport, SMB_IOSIZE, amd756_driver.name)) {
+ 		dev_err(&pdev->dev, "SMB region 0x%x already in use!\n",
+ 			amd756_ioport);
+ 		return -ENODEV;
+diff --git a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
+index 45ea24b..49ff11e 100644
+--- a/drivers/i2c/busses/i2c-amd8111.c
++++ b/drivers/i2c/busses/i2c-amd8111.c
+@@ -30,6 +30,8 @@ struct amd_smbus {
+ 	int size;
+ };
+ 
++static struct pci_driver amd8111_driver;
++
+ /*
+  * AMD PCI control registers definitions.
+  */
+@@ -352,7 +354,7 @@ static int __devinit amd8111_probe(struc
+ 	smbus->base = pci_resource_start(dev, 0);
+ 	smbus->size = pci_resource_len(dev, 0);
+ 
+-	if (!request_region(smbus->base, smbus->size, "amd8111 SMBus 2.0"))
++	if (!request_region(smbus->base, smbus->size, amd8111_driver.name))
+ 		goto out_kfree;
+ 
+ 	smbus->adapter.owner = THIS_MODULE;
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index 709beab..5885835 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -110,6 +110,7 @@ static int i801_block_transaction(union 
+ 				  char read_write, int command);
+ 
+ static unsigned short i801_smba;
++static struct pci_driver i801_driver;
+ static struct pci_dev *I801_dev;
+ static int isich4;
+ 
+@@ -143,7 +144,7 @@ static int i801_setup(struct pci_dev *de
+ 		}
+ 	}
+ 
+-	if (!request_region(i801_smba, (isich4 ? 16 : 8), "i801-smbus")) {
++	if (!request_region(i801_smba, (isich4 ? 16 : 8), i801_driver.name)) {
+ 		dev_err(&dev->dev, "I801_smb region 0x%x already in use!\n",
+ 			i801_smba);
+ 		error_return = -EBUSY;
+@@ -543,7 +544,6 @@ static struct i2c_adapter i801_adapter  	.owner		= THIS_MODULE,
+ 	.class		= I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ static struct pci_device_id i801_ids[] = {
+diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
+index fe9c0f4..dd4b6d8 100644
+--- a/drivers/i2c/busses/i2c-nforce2.c
++++ b/drivers/i2c/busses/i2c-nforce2.c
+@@ -97,6 +97,7 @@ struct nforce2_smbus {
+ #define NVIDIA_SMB_PRTCL_I2C_BLOCK_DATA		0x4a
+ #define NVIDIA_SMB_PRTCL_PEC			0x80
+ 
++static struct pci_driver nforce2_driver;
+ 
+ static s32 nforce2_access(struct i2c_adapter *adap, u16 addr,
+ 		       unsigned short flags, char read_write,
+@@ -113,7 +114,6 @@ static struct i2c_adapter nforce2_adapte
+ 	.owner          = THIS_MODULE,
+ 	.class          = I2C_CLASS_HWMON,
+ 	.algo           = &smbus_algorithm,
+-	.name   	= "unset",
+ };
+ 
+ /* Return -1 on error. See smbus.h for more information */
+@@ -285,7 +285,7 @@ static int __devinit nforce2_probe_smb (
+ 	smbus->base = iobase & 0xfffc;
+ 	smbus->size = 8;
+ 
+-	if (!request_region(smbus->base, smbus->size, "nForce2 SMBus")) {
++	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
+ 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X for %s\n",
+ 			smbus->base, smbus->base+smbus->size-1, name);
+ 		return -1;
+diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+index 1b2d3eb..692f473 100644
+--- a/drivers/i2c/busses/i2c-piix4.c
++++ b/drivers/i2c/busses/i2c-piix4.c
+@@ -112,6 +112,7 @@ MODULE_PARM_DESC(fix_hstcfg,
+ static int piix4_transaction(void);
+ 
+ static unsigned short piix4_smba;
++static struct pci_driver piix4_driver;
+ static struct i2c_adapter piix4_adapter;
+ 
+ static struct dmi_system_id __devinitdata piix4_dmi_table[] = {
+@@ -157,7 +158,7 @@ static int __devinit piix4_setup(struct 
+ 		}
+ 	}
+ 
+-	if (!request_region(piix4_smba, SMBIOSIZE, "piix4-smbus")) {
++	if (!request_region(piix4_smba, SMBIOSIZE, piix4_driver.name)) {
+ 		dev_err(&PIIX4_dev->dev, "SMB region 0x%x already in use!\n",
+ 			piix4_smba);
+ 		return -ENODEV;
+@@ -407,7 +408,6 @@ static struct i2c_adapter piix4_adapter 
+ 	.owner		= THIS_MODULE,
+ 	.class		= I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ static struct pci_device_id piix4_ids[] = {
+diff --git a/drivers/i2c/busses/i2c-sis5595.c b/drivers/i2c/busses/i2c-sis5595.c
+index 3fd38f4..b57ab74 100644
+--- a/drivers/i2c/busses/i2c-sis5595.c
++++ b/drivers/i2c/busses/i2c-sis5595.c
+@@ -127,6 +127,7 @@ static u16 force_addr;
+ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr, "Initialize the base address of the i2c controller");
+ 
++static struct pci_driver sis5595_driver;
+ static unsigned short sis5595_base;
+ 
+ static u8 sis5595_read(u8 reg)
+@@ -172,7 +173,8 @@ static int sis5595_setup(struct pci_dev 
+ 
+ 	/* NB: We grab just the two SMBus registers here, but this may still
+ 	 * interfere with ACPI :-(  */
+-	if (!request_region(sis5595_base + SMB_INDEX, 2, "sis5595-smbus")) {
++	if (!request_region(sis5595_base + SMB_INDEX, 2,
++			    sis5595_driver.name)) {
+ 		dev_err(&SIS5595_dev->dev, "SMBus registers 0x%04x-0x%04x already in use!\n",
+ 			sis5595_base + SMB_INDEX, sis5595_base + SMB_INDEX + 1);
+ 		return -ENODEV;
+@@ -364,7 +366,6 @@ static struct i2c_algorithm smbus_algori
+ static struct i2c_adapter sis5595_adapter = {
+ 	.owner		= THIS_MODULE,
+ 	.class          = I2C_CLASS_HWMON,
+-	.name		= "unset",
+ 	.algo		= &smbus_algorithm,
+ };
+ 
+diff --git a/drivers/i2c/busses/i2c-sis630.c b/drivers/i2c/busses/i2c-sis630.c
+index 44c4e68..acb75e2 100644
+--- a/drivers/i2c/busses/i2c-sis630.c
++++ b/drivers/i2c/busses/i2c-sis630.c
+@@ -92,6 +92,8 @@
+ #define SIS630_PCALL		0x04
+ #define SIS630_BLOCK_DATA	0x05
+ 
++static struct pci_driver sis630_driver;
++
+ /* insmod parameters */
+ static int high_clock;
+ static int force;
+@@ -432,7 +434,8 @@ static int sis630_setup(struct pci_dev *
+ 	dev_dbg(&sis630_dev->dev, "ACPI base at 0x%04x\n", acpi_base);
+ 
+ 	/* Everything is happy, let's grab the memory and set things up. */
+-	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION, "sis630-smbus")) {
++	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
++			    sis630_driver.name)) {
+ 		dev_err(&sis630_dev->dev, "SMBus registers 0x%04x-0x%04x already "
+ 			"in use!\n", acpi_base + SMB_STS, acpi_base + SMB_SAA);
+ 		goto exit;
+@@ -455,7 +458,6 @@ static struct i2c_algorithm smbus_algori
+ static struct i2c_adapter sis630_adapter = {
+ 	.owner		= THIS_MODULE,
+ 	.class		= I2C_CLASS_HWMON,
+-	.name		= "unset",
+ 	.algo		= &smbus_algorithm,
+ };
+ 
+diff --git a/drivers/i2c/busses/i2c-sis96x.c b/drivers/i2c/busses/i2c-sis96x.c
+index 9ddd910..3024907 100644
+--- a/drivers/i2c/busses/i2c-sis96x.c
++++ b/drivers/i2c/busses/i2c-sis96x.c
+@@ -82,6 +82,7 @@
+ #define SIS96x_PROC_CALL  0x04
+ #define SIS96x_BLOCK_DATA 0x05
+ 
++static struct pci_driver sis96x_driver;
+ static struct i2c_adapter sis96x_adapter;
+ static u16 sis96x_smbus_base;
+ 
+@@ -257,7 +258,6 @@ static struct i2c_adapter sis96x_adapter
+ 	.owner		= THIS_MODULE,
+ 	.class		= I2C_CLASS_HWMON,
+ 	.algo		= &smbus_algorithm,
+-	.name		= "unset",
+ };
+ 
+ static struct pci_device_id sis96x_ids[] = {
+@@ -294,7 +294,8 @@ static int __devinit sis96x_probe(struct
+ 			sis96x_smbus_base);
+ 
+ 	/* Everything is happy, let's grab the memory and set things up. */
+-	if (!request_region(sis96x_smbus_base, SMB_IOSIZE, "sis96x-smbus")) {
++	if (!request_region(sis96x_smbus_base, SMB_IOSIZE,
++			    sis96x_driver.name)) {
+ 		dev_err(&dev->dev, "SMBus registers 0x%04x-0x%04x "
+ 			"already in use!\n", sis96x_smbus_base,
+ 			sis96x_smbus_base + SMB_IOSIZE - 1);
+diff --git a/drivers/i2c/busses/i2c-via.c b/drivers/i2c/busses/i2c-via.c
+index 0b3edd4..484bbac 100644
+--- a/drivers/i2c/busses/i2c-via.c
++++ b/drivers/i2c/busses/i2c-via.c
+@@ -43,8 +43,8 @@
+ 
+ /* io-region reservation */
+ #define IOSPACE		0x06
+-#define IOTEXT		"via-i2c"
+ 
++static struct pci_driver vt586b_driver;
+ static u16 pm_io_base;
+ 
+ /*
+@@ -130,7 +130,7 @@ static int __devinit vt586b_probe(struct
+ 	pci_read_config_word(dev, base, &pm_io_base);
+ 	pm_io_base &= (0xff << 8);
+ 
+-	if (!request_region(I2C_DIR, IOSPACE, IOTEXT)) {
++	if (!request_region(I2C_DIR, IOSPACE, vt586b_driver.name)) {
+ 		dev_err(&dev->dev, "IO 0x%x-0x%x already in use\n", I2C_DIR, I2C_DIR + IOSPACE);
+ 		return -ENODEV;
+ 	}
+
