@@ -1,152 +1,157 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 21:06:37 +0000
-Subject: [lm-sensors] [PATCH 03/16] hwmon: Static function fixes, 3 of 4
-Message-Id: <20051026210725.577b12ec.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:04:02 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Drop legacy ISA address support from
+Message-Id: <1130533660690@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Dooks <ben-linux@fluff.org>
-Content-Disposition: inline; filename=static-03-hwmon-other.patch
+[PATCH] hwmon: Drop legacy ISA address support from it87
 
-Fixup functions that have been declared static
-and then actually defined without the static on.
+Drop legacy ISA address support from the it87 driver. All supported
+chips are Super-I/O chips, so the device ISA address can be safely read
+from Super-I/O space rather than blindly assumed.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Two nearby inaccurate documentation statements have been fixed as well:
+* The IT8705F doesn't have an SMBus interface.
+* The SiS950 doesn't have a distinct prefix.
+
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- drivers/hwmon/adm1026.c |   18 +++++++++---------
- drivers/hwmon/ds1621.c  |    4 ++--
- drivers/hwmon/fscpos.c  |    2 +-
- drivers/hwmon/it87.c    |    2 +-
- drivers/hwmon/lm80.c    |    2 +-
- 5 files changed, 14 insertions(+), 14 deletions(-)
+commit 91749996287c230671788014f422f72e594e7b86
+tree 65da0e02eba42ad395db31e36cc673b65a2c5706
+parent 80ce3b7d0f52877b80cddc3ace8b332d888f0131
+author Jean Delvare <khali@linux-fr.org> Sat, 08 Oct 2005 00:10:00 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:09 -0700
 
---- linux-2.6.14-rc4.orig/drivers/hwmon/adm1026.c	2005-10-18 22:49:10.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/hwmon/adm1026.c	2005-10-18 23:02:13.000000000 +0200
-@@ -315,7 +315,7 @@
- 	.detach_client  = adm1026_detach_client,
- };
+ Documentation/hwmon/it87 |    8 ++++---
+ drivers/hwmon/it87.c     |   51 ++++++++++------------------------------------
+ 2 files changed, 15 insertions(+), 44 deletions(-)
+
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 0d01950..7f42e44 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -4,18 +4,18 @@ Kernel driver it87
+ Supported chips:
+   * IT8705F
+     Prefix: 'it87'
+-    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
++    Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/
+   * IT8712F
+     Prefix: 'it8712'
+     Addresses scanned: I2C 0x28 - 0x2f
+-                       from Super I/O config space, or default ISA 0x290 (8 I/O ports)
++                       from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/
+   * SiS950   [clone of IT8705F]
+-    Prefix: 'sis950'
+-    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
++    Prefix: 'it87'
++    Addresses scanned: from Super I/O config space (8 I/O ports)
+     Datasheet: No longer be available
  
--int adm1026_attach_adapter(struct i2c_adapter *adapter)
-+static int adm1026_attach_adapter(struct i2c_adapter *adapter)
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON)) {
- 		return 0;
-@@ -323,7 +323,7 @@
- 	return i2c_probe(adapter, &addr_data, adm1026_detect);
+ Author: Christophe Gauthron <chrisg@0-in.com>
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 53cc2b6..55e1c83 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -2,7 +2,7 @@
+     it87.c - Part of lm_sensors, Linux kernel modules for hardware
+              monitoring.
+ 
+-    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
++    Supports: IT8705F  Super I/O chip w/LPC interface
+               IT8712F  Super I/O chip w/LPC interface & SMBus
+               Sis950   A clone of the IT8705F
+ 
+@@ -47,7 +47,7 @@
+ /* Addresses to scan */
+ static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+ 					0x2e, 0x2f, I2C_CLIENT_END };
+-static unsigned short isa_address = 0x290;
++static unsigned short isa_address;
+ 
+ /* Insmod parameters */
+ I2C_CLIENT_INSMOD_2(it87, it8712);
+@@ -706,7 +706,7 @@ static int it87_isa_attach_adapter(struc
  }
  
--int adm1026_detach_client(struct i2c_client *client)
-+static int adm1026_detach_client(struct i2c_client *client)
+ /* SuperIO detection - will change isa_address if a chip is found */
+-static int __init it87_find(int *address)
++static int __init it87_find(unsigned short *address)
  {
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->class_dev);
-@@ -332,7 +332,7 @@
+ 	int err = -ENODEV;
+ 
+@@ -757,34 +757,7 @@ int it87_detect(struct i2c_adapter *adap
+ 		if (!request_region(address, IT87_EXTENT, it87_isa_driver.name))
+ 			goto ERROR0;
+ 
+-	/* Probe whether there is anything available on this address. Already
+-	   done for SMBus and Super-I/O clients */
+-	if (kind < 0) {
+-		if (is_isa && !chip_type) {
+-#define REALLY_SLOW_IO
+-			/* We need the timeouts for at least some IT87-like chips. But only
+-			   if we read 'undefined' registers. */
+-			i = inb_p(address + 1);
+-			if (inb_p(address + 2) != i
+-			 || inb_p(address + 3) != i
+-			 || inb_p(address + 7) != i) {
+-		 		err = -ENODEV;
+-				goto ERROR1;
+-			}
+-#undef REALLY_SLOW_IO
+-
+-			/* Let's just hope nothing breaks here */
+-			i = inb_p(address + 5) & 0x7f;
+-			outb_p(~i & 0x7f, address + 5);
+-			if ((inb_p(address + 5) & 0x7f) != (~i & 0x7f)) {
+-				outb_p(i, address + 5);
+-				err = -ENODEV;
+-				goto ERROR1;
+-			}
+-		}
+-	}
+-
+-	/* OK. For now, we presume we have a valid client. We now create the
++	/* For now, we presume we have a valid client. We create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access it87_{read,write}_value. */
+ 
+@@ -1182,20 +1155,18 @@ static struct it87_data *it87_update_dev
+ 
+ static int __init sm_it87_init(void)
+ {
+-	int addr, res;
+-
+-	if (!it87_find(&addr)) {
+-		isa_address = addr;
+-	}
++	int res;
+ 
+ 	res = i2c_add_driver(&it87_driver);
+ 	if (res)
+ 		return res;
+ 
+-	res = i2c_isa_add_driver(&it87_isa_driver);
+-	if (res) {
+-		i2c_del_driver(&it87_driver);
+-		return res;
++	if (!it87_find(&isa_address)) {
++		res = i2c_isa_add_driver(&it87_isa_driver);
++		if (res) {
++			i2c_del_driver(&it87_driver);
++			return res;
++		}
+ 	}
+ 
  	return 0;
- }
- 
--int adm1026_read_value(struct i2c_client *client, u8 reg)
-+static int adm1026_read_value(struct i2c_client *client, u8 reg)
- {
- 	int res;
- 
-@@ -346,7 +346,7 @@
- 	return res;
- }
- 
--int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
-+static int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
- {
- 	int res;
- 
-@@ -360,7 +360,7 @@
- 	return res;
- }
- 
--void adm1026_init_client(struct i2c_client *client)
-+static void adm1026_init_client(struct i2c_client *client)
- {
- 	int value, i;
- 	struct adm1026_data *data = i2c_get_clientdata(client);
-@@ -460,7 +460,7 @@
- 	}
- }
- 
--void adm1026_print_gpio(struct i2c_client *client)
-+static void adm1026_print_gpio(struct i2c_client *client)
- {
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	int  i;
-@@ -492,7 +492,7 @@
- 	}
- }
- 
--void adm1026_fixup_gpio(struct i2c_client *client)
-+static void adm1026_fixup_gpio(struct i2c_client *client)
- {
- 	struct adm1026_data *data = i2c_get_clientdata(client);
- 	int  i;
-@@ -1452,8 +1452,8 @@
- static DEVICE_ATTR(temp2_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
- static DEVICE_ATTR(temp3_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
- 
--int adm1026_detect(struct i2c_adapter *adapter, int address,
--		int kind)
-+static int adm1026_detect(struct i2c_adapter *adapter, int address,
-+			  int kind)
- {
- 	int company, verstep;
- 	struct i2c_client *new_client;
---- linux-2.6.14-rc4.orig/drivers/hwmon/ds1621.c	2005-10-18 22:49:10.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/hwmon/ds1621.c	2005-10-18 23:02:13.000000000 +0200
-@@ -186,8 +186,8 @@
- }
- 
- /* This function is called by i2c_probe */
--int ds1621_detect(struct i2c_adapter *adapter, int address,
--                  int kind)
-+static int ds1621_detect(struct i2c_adapter *adapter, int address,
-+			 int kind)
- {
- 	int conf, temp;
- 	struct i2c_client *new_client;
---- linux-2.6.14-rc4.orig/drivers/hwmon/fscpos.c	2005-10-18 22:49:10.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/hwmon/fscpos.c	2005-10-18 23:02:13.000000000 +0200
-@@ -438,7 +438,7 @@
- 	return i2c_probe(adapter, &addr_data, fscpos_detect);
- }
- 
--int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct fscpos_data *data;
---- linux-2.6.14-rc4.orig/drivers/hwmon/it87.c	2005-10-18 22:49:10.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/hwmon/it87.c	2005-10-18 23:02:13.000000000 +0200
-@@ -738,7 +738,7 @@
- }
- 
- /* This function is called by i2c_probe */
--int it87_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int it87_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i;
- 	struct i2c_client *new_client;
---- linux-2.6.14-rc4.orig/drivers/hwmon/lm80.c	2005-10-18 22:49:10.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/hwmon/lm80.c	2005-10-18 23:02:13.000000000 +0200
-@@ -393,7 +393,7 @@
- 	return i2c_probe(adapter, &addr_data, lm80_detect);
- }
- 
--int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	int i, cur;
- 	struct i2c_client *new_client;
 
--- 
-Jean Delvare
