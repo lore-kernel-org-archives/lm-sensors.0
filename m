@@ -1,188 +1,95 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 21:39:02 +0000
-Subject: [lm-sensors] [PATCH 14/16] hwmon: Add PEC support to the lm90 driver
-Message-Id: <20051026213940.601406a8.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:05:39 +0000
+Subject: [lm-sensors] [PATCH] hwmon: New device ID for the smsc47b397 driver
+Message-Id: <1130533662436@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-lm90-02-add-pec-adm1032.patch
+[PATCH] hwmon: New device ID for the smsc47b397 driver
 
-Add PEC support to the lm90 driver. Only the ADM1032 chip supports it,
-and in a rather tricky way, which is why this patch comes with
-documentation reinforcements. At least, this demonstrates that the new
-PEC support logic in i2c-core can properly deal with chips with partial
-PEC support.
+This patch adds a new ID to the SMSC LPC47B397-NC hardware
+monitoring driver - for a chip that is claimed to be 100%
+compatible otherwise.
 
-As enabling PEC causes a significant performance drop, it can be
-disabled through a sysfs file (unsurprisingly named "pec").
-
+Signed-off-by: Bryan Young (Utilitek Systems, Inc.)
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- Documentation/hwmon/lm90            |   39 +++++++++++++++++++++++-
- Documentation/hwmon/sysfs-interface |    3 ++
- drivers/hwmon/lm90.c                |   57 ++++++++++++++++++++++++++++++++++-
- 3 files changed, 96 insertions(+), 3 deletions(-)
+commit 7ab83a9137ccd3e092fb6ad0cb105b4d1fb617ae
+tree e76341e6617eac19514ce2e41768514f7c9acedb
+parent 1747ef1b8c9b7b9c6a9aae3543a9b99acabb7e10
+author Mark M. Hoffman <mhoffman@lightlink.com> Mon, 17 Oct 2005 23:01:45 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:11 -0700
 
---- linux-2.6.14-rc5.orig/drivers/hwmon/lm90.c	2005-10-23 15:25:51.000000000 +0200
-+++ linux-2.6.14-rc5/drivers/hwmon/lm90.c	2005-10-23 16:39:32.000000000 +0200
-@@ -345,15 +345,63 @@
- static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 4);
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ Documentation/hwmon/smsc47b397 |    8 ++++++--
+ drivers/hwmon/smsc47b397.c     |    7 ++++---
+ 2 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/hwmon/smsc47b397 b/Documentation/hwmon/smsc47b397
+index da9d80c..20682f1 100644
+--- a/Documentation/hwmon/smsc47b397
++++ b/Documentation/hwmon/smsc47b397
+@@ -3,6 +3,7 @@ Kernel driver smsc47b397
  
-+/* pec used for ADM1032 only */
-+static ssize_t show_pec(struct device *dev, struct device_attribute *dummy,
-+			char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return sprintf(buf, "%d\n", !!(client->flags & I2C_CLIENT_PEC));
-+}
-+
-+static ssize_t set_pec(struct device *dev, struct device_attribute *dummy,
-+		       const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	long val = simple_strtol(buf, NULL, 10);
-+
-+	switch (val) {
-+	case 0:
-+		client->flags &= ~I2C_CLIENT_PEC;
-+		break;
-+	case 1:
-+		client->flags |= I2C_CLIENT_PEC;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(pec, S_IWUSR | S_IRUGO, show_pec, set_pec);
-+
- /*
-  * Real code
-  */
+ Supported chips:
+   * SMSC LPC47B397-NC
++  * SMSC SCH5307-NS
+     Prefix: 'smsc47b397'
+     Addresses scanned: none, address read from Super I/O config space
+     Datasheet: In this file
+@@ -12,11 +13,14 @@ Authors: Mark M. Hoffman <mhoffman@light
  
-+/* The ADM1032 supports PEC but not on write byte transactions, so we need
-+   to explicitely ask for a transaction without PEC. */
-+static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
-+{
-+	return i2c_smbus_xfer(client->adapter, client->addr,
-+			      client->flags & ~I2C_CLIENT_PEC,
-+			      I2C_SMBUS_WRITE, value, I2C_SMBUS_BYTE, NULL);
-+}
+ November 23, 2004
+ 
+-The following specification describes the SMSC LPC47B397-NC sensor chip
++The following specification describes the SMSC LPC47B397-NC[1] sensor chip
+ (for which there is no public datasheet available). This document was
+ provided by Craig Kelly (In-Store Broadcast Network) and edited/corrected
+ by Mark M. Hoffman <mhoffman@lightlink.com>.
+ 
++[1] And SMSC SCH5307-NS, which has a different device ID but is otherwise
++compatible.
 +
-+/* It is assumed that client->update_lock is held (unless we are in
-+   detection or initialization steps). This matters when PEC is enabled,
-+   because we don't want the address pointer to change between the write
-+   byte and the read byte transactions. */
- static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
- {
- 	int err;
+ * * * * *
  
--	err = i2c_smbus_read_byte_data(client, reg);
-+ 	if (client->flags & I2C_CLIENT_PEC) {
-+ 		err = adm1032_write_byte(client, reg);
-+ 		if (err >= 0)
-+ 			err = i2c_smbus_read_byte(client);
-+ 	} else
-+ 		err = i2c_smbus_read_byte_data(client, reg);
+ Methods for detecting the HP SIO and reading the thermal data on a dc7100.
+@@ -127,7 +131,7 @@ OUT	DX,AL
+ The registers of interest for identifying the SIO on the dc7100 are Device ID
+ (0x20) and Device Rev  (0x21).
  
- 	if (err < 0) {
- 		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
-@@ -494,6 +542,10 @@
- 		name = "lm90";
- 	} else if (kind = adm1032) {
- 		name = "adm1032";
-+		/* The ADM1032 supports PEC, but only if combined
-+		   transactions are not used. */
-+		if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
-+			new_client->flags |= I2C_CLIENT_PEC;
- 	} else if (kind = lm99) {
- 		name = "lm99";
- 	} else if (kind = lm86) {
-@@ -546,6 +598,9 @@
- 			   &sensor_dev_attr_temp2_crit_hyst.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
+-The Device ID will read 0X6F
++The Device ID will read 0x6F (for SCH5307-NS, 0x81)
+ The Device Rev currently reads 0x01
  
-+	if (new_client->flags & I2C_CLIENT_PEC)
-+		device_create_file(&new_client->dev, &dev_attr_pec);
-+
+ Obtaining the HWM Base Address.
+diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
+index 7fe7157..37ed8b3 100644
+--- a/drivers/hwmon/smsc47b397.c
++++ b/drivers/hwmon/smsc47b397.c
+@@ -299,7 +299,7 @@ static int __init smsc47b397_find(unsign
+ 	superio_enter();
+ 	id = superio_inb(SUPERIO_REG_DEVID);
+ 
+-	if (id != 0x6f) {
++	if ((id != 0x6f) && (id != 0x81)) {
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+@@ -310,8 +310,9 @@ static int __init smsc47b397_find(unsign
+ 	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
+ 		 |  superio_inb(SUPERIO_REG_BASE_LSB);
+ 
+-	printk(KERN_INFO "smsc47b397: found SMSC LPC47B397-NC "
+-		"(base address 0x%04x, revision %u)\n", *addr, rev);
++	printk(KERN_INFO "smsc47b397: found SMSC %s "
++		"(base address 0x%04x, revision %u)\n",
++		id = 0x81 ? "SCH5307-NS" : "LPC47B397-NC", *addr, rev);
+ 
+ 	superio_exit();
  	return 0;
- 
- exit_detach:
---- linux-2.6.14-rc5.orig/Documentation/hwmon/lm90	2005-10-23 15:24:00.000000000 +0200
-+++ linux-2.6.14-rc5/Documentation/hwmon/lm90	2005-10-23 16:42:30.000000000 +0200
-@@ -71,8 +71,8 @@
- 
- The different chipsets of the family are not strictly identical, although
- very similar. This driver doesn't handle any specific feature for now,
--but could if there ever was a need for it. For reference, here comes a
--non-exhaustive list of specific features:
-+with the exception of SMBus PEC. For reference, here comes a non-exhaustive
-+list of specific features:
- 
- LM90:
-   * Filter and alert configuration register at 0xBF.
-@@ -91,6 +91,7 @@
-   * Conversion averaging.
-   * Up to 64 conversions/s.
-   * ALERT is triggered by open remote sensor.
-+  * SMBus PEC support for Write Byte and Receive Byte transactions.
- 
- ADT7461
-   * Extended temperature range (breaks compatibility)
-@@ -119,3 +120,37 @@
- other second; reading them more often will do no harm, but will return
- 'old' values.
- 
-+PEC Support
-+-----------
-+
-+The ADM1032 is the only chip of the family which supports PEC. It does
-+not support PEC on all transactions though, so some care must be taken.
-+
-+When reading a register value, the PEC byte is computed and sent by the
-+ADM1032 chip. However, in the case of a combined transaction (SMBus Read
-+Byte), the ADM1032 computes the CRC value over only the second half of
-+the message rather than its entirety, because it thinks the first half
-+of the message belongs to a different transaction. As a result, the CRC
-+value differs from what the SMBus master expects, and all reads fail.
-+
-+For this reason, the lm90 driver will enable PEC for the ADM1032 only if
-+the bus supports the SMBus Send Byte and Receive Byte transaction types.
-+These transactions will be used to read register values, instead of
-+SMBus Read Byte, and PEC will work properly.
-+
-+Additionally, the ADM1032 doesn't support SMBus Send Byte with PEC.
-+Instead, it will try to write the PEC value to the register (because the
-+SMBus Send Byte transaction with PEC is similar to a Write Byte transaction
-+without PEC), which is not what we want. Thus, PEC is explicitely disabled
-+on SMBus Send Byte transactions in the lm90 driver.
-+
-+PEC on byte data transactions represents a significant increase in bandwidth
-+usage (+33% for writes, +25% for reads) in normal conditions. With the need
-+to use two SMBus transaction for reads, this overhead jumps to +50%. Worse,
-+two transactions will typically mean twice as much delay waiting for
-+transaction completion, effectively doubling the register cache refresh time.
-+I guess reliability comes at a price, but it's quite expensive this time.
-+
-+So, as not everyone might enjoy the slowdown, PEC can be disabled through
-+sysfs. Just write 0 to the "pec" file and PEC will be disabled. Write 1
-+to that file to enable PEC again.
---- linux-2.6.14-rc5.orig/Documentation/hwmon/sysfs-interface	2005-08-29 20:34:46.000000000 +0200
-+++ linux-2.6.14-rc5/Documentation/hwmon/sysfs-interface	2005-10-23 16:33:26.000000000 +0200
-@@ -272,3 +272,6 @@
- 
- eeprom		Raw EEPROM data in binary form.
- 		Read only.
-+
-+pec		Enable or disable PEC (SMBus only)
-+		Read/Write
 
--- 
-Jean Delvare
