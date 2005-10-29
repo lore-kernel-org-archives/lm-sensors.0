@@ -1,97 +1,59 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:29:24 +0000
-Subject: [lm-sensors] [PATCH] i2c: SMBus PEC support rewrite, 1 of 3
-Message-Id: <1130533663936@kroah.com>
+Date: Sat, 29 Oct 2005 01:12:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Discard explicit static initializations
+Message-Id: <11305336573408@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <11305336641964@kroah.com>
-In-Reply-To: <11305336641964@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: SMBus PEC support rewrite, 1 of 3
+[PATCH] hwmon: Discard explicit static initializations to 0
 
-Discard I2C_FUNC_SMBUS_*_PEC defines. i2c clients are not supposed to
-check for PEC support of i2c bus drivers on individual SMBus
-transactions, and i2c bus drivers are not supposed to advertise them.
+Kill explicit static initializations to 0 in 2 hwmon drivers.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
+ drivers/hwmon/adm1021.c |    2 +-
+ drivers/hwmon/via686a.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
 ---
-commit b8095544bc27044a7aa79e1e073b781a249910c3
-tree 2e7f92c1d6765d44531a5d5c830e53fc2f8d760f
-parent 142078f6f09986c2b8f5ebe215ce405438080317
-author Jean Delvare <khali@linux-fr.org> Wed, 26 Oct 2005 21:25:04 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:13 -0700
+commit 0200296310a454b39efc995e676f9ff60e641edb
+tree 9567c8d36528a4118e45c4d589dc40ea4af1cc85
+parent 605070952f0b41caaa211c47b02eeac703529008
+author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:26:44 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:06 -0700
 
- drivers/i2c/busses/i2c-i801.c |    3 +--
- include/linux/i2c.h           |   18 ------------------
- 2 files changed, 1 insertions(+), 20 deletions(-)
+ drivers/hwmon/adm1021.c |    2 +-
+ drivers/hwmon/via686a.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index e90b6c4..b05e045 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -513,8 +513,7 @@ static u32 i801_func(struct i2c_adapter 
- 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
- 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
- 	    I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_WRITE_I2C_BLOCK
--	     | (isich4 ? I2C_FUNC_SMBUS_BLOCK_DATA_PEC |
--	                 I2C_FUNC_SMBUS_HWPEC_CALC : 0);
-+	     | (isich4 ? I2C_FUNC_SMBUS_HWPEC_CALC : 0);
- }
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+index e928cdb..58aee3a 100644
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -121,7 +121,7 @@ static int adm1021_write_value(struct i2
+ static struct adm1021_data *adm1021_update_device(struct device *dev);
  
- static struct i2c_algorithm smbus_algorithm = {
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 64c13c0..bcd4bb1 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -389,10 +389,6 @@ struct i2c_msg {
- #define I2C_FUNC_10BIT_ADDR		0x00000002
- #define I2C_FUNC_PROTOCOL_MANGLING	0x00000004 /* I2C_M_{REV_DIR_ADDR,NOSTART,..} */
- #define I2C_FUNC_SMBUS_HWPEC_CALC	0x00000008 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_READ_WORD_DATA_PEC  0x00000800 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC 0x00001000 /* SMBus 2.0 */ 
--#define I2C_FUNC_SMBUS_PROC_CALL_PEC	0x00002000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_BLOCK_PROC_CALL_PEC 0x00004000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_BLOCK_PROC_CALL	0x00008000 /* SMBus 2.0 */
- #define I2C_FUNC_SMBUS_QUICK		0x00010000 
- #define I2C_FUNC_SMBUS_READ_BYTE	0x00020000 
-@@ -408,8 +404,6 @@ struct i2c_msg {
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK	0x08000000 /* w/ 1-byte reg. addr. */
- #define I2C_FUNC_SMBUS_READ_I2C_BLOCK_2	 0x10000000 /* I2C-like block xfer  */
- #define I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2 0x20000000 /* w/ 2-byte reg. addr. */
--#define I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC  0x40000000 /* SMBus 2.0 */
--#define I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC 0x80000000 /* SMBus 2.0 */
+ /* (amalysh) read only mode, otherwise any limit's writing confuse BIOS */
+-static int read_only = 0;
++static int read_only;
  
- #define I2C_FUNC_SMBUS_BYTE (I2C_FUNC_SMBUS_READ_BYTE | \
-                              I2C_FUNC_SMBUS_WRITE_BYTE)
-@@ -423,17 +417,6 @@ struct i2c_msg {
-                                   I2C_FUNC_SMBUS_WRITE_I2C_BLOCK)
- #define I2C_FUNC_SMBUS_I2C_BLOCK_2 (I2C_FUNC_SMBUS_READ_I2C_BLOCK_2 | \
-                                     I2C_FUNC_SMBUS_WRITE_I2C_BLOCK_2)
--#define I2C_FUNC_SMBUS_BLOCK_DATA_PEC (I2C_FUNC_SMBUS_READ_BLOCK_DATA_PEC | \
--                                       I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC)
--#define I2C_FUNC_SMBUS_WORD_DATA_PEC  (I2C_FUNC_SMBUS_READ_WORD_DATA_PEC | \
--                                       I2C_FUNC_SMBUS_WRITE_WORD_DATA_PEC)
--
--#define I2C_FUNC_SMBUS_READ_BYTE_PEC		I2C_FUNC_SMBUS_READ_BYTE_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_PEC		I2C_FUNC_SMBUS_WRITE_BYTE_DATA
--#define I2C_FUNC_SMBUS_READ_BYTE_DATA_PEC	I2C_FUNC_SMBUS_READ_WORD_DATA
--#define I2C_FUNC_SMBUS_WRITE_BYTE_DATA_PEC	I2C_FUNC_SMBUS_WRITE_WORD_DATA
--#define I2C_FUNC_SMBUS_BYTE_PEC			I2C_FUNC_SMBUS_BYTE_DATA
--#define I2C_FUNC_SMBUS_BYTE_DATA_PEC		I2C_FUNC_SMBUS_WORD_DATA
  
- #define I2C_FUNC_SMBUS_EMUL (I2C_FUNC_SMBUS_QUICK | \
-                              I2C_FUNC_SMBUS_BYTE | \
-@@ -441,7 +424,6 @@ struct i2c_msg {
-                              I2C_FUNC_SMBUS_WORD_DATA | \
-                              I2C_FUNC_SMBUS_PROC_CALL | \
-                              I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
--                             I2C_FUNC_SMBUS_WRITE_BLOCK_DATA_PEC | \
-                              I2C_FUNC_SMBUS_I2C_BLOCK)
+ /* This is the driver that will be inserted */
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index 688ccf9..54861f1 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -44,7 +44,7 @@
  
- /* 
+ /* If force_addr is set to anything different from 0, we forcibly enable
+    the device at the given address. */
+-static unsigned short force_addr = 0;
++static unsigned short force_addr;
+ module_param(force_addr, ushort, 0);
+ MODULE_PARM_DESC(force_addr,
+ 		 "Initialize the base address of the sensors");
 
