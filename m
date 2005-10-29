@@ -1,157 +1,87 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:04:02 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Drop legacy ISA address support from
-Message-Id: <1130533660690@kroah.com>
+Date: Sat, 29 Oct 2005 01:15:50 +0000
+Subject: [lm-sensors] [PATCH] hwmon: smsc47m1 documentation update
+Message-Id: <11305336643038@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: Drop legacy ISA address support from it87
+[PATCH] hwmon: smsc47m1 documentation update
 
-Drop legacy ISA address support from the it87 driver. All supported
-chips are Super-I/O chips, so the device ISA address can be safely read
-from Super-I/O space rather than blindly assumed.
-
-Two nearby inaccurate documentation statements have been fixed as well:
-* The IT8705F doesn't have an SMBus interface.
-* The SiS950 doesn't have a distinct prefix.
+The SMSC LPC47M997 Super-I/O chip seems to be compatible with the
+LPC47M192, so it is supported by the smsc47m1 driver.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 91749996287c230671788014f422f72e594e7b86
-tree 65da0e02eba42ad395db31e36cc673b65a2c5706
-parent 80ce3b7d0f52877b80cddc3ace8b332d888f0131
-author Jean Delvare <khali@linux-fr.org> Sat, 08 Oct 2005 00:10:00 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:09 -0700
+commit b890a07f7b002ee473986fa85ae3582de399a4cf
+tree d29b5a2d41d0a6ce7b5da57576cb876f53e29eac
+parent 90209b42d0498d57a804bf81fea427bf39c5315c
+author Jean Delvare <khali@linux-fr.org> Wed, 26 Oct 2005 22:21:24 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:14 -0700
 
- Documentation/hwmon/it87 |    8 ++++---
- drivers/hwmon/it87.c     |   51 ++++++++++------------------------------------
- 2 files changed, 15 insertions(+), 44 deletions(-)
+ Documentation/hwmon/smsc47m1 |    7 +++++++
+ drivers/hwmon/smsc47m1.c     |    7 +++++--
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
-index 0d01950..7f42e44 100644
---- a/Documentation/hwmon/it87
-+++ b/Documentation/hwmon/it87
-@@ -4,18 +4,18 @@ Kernel driver it87
- Supported chips:
-   * IT8705F
-     Prefix: 'it87'
--    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-   * IT8712F
-     Prefix: 'it8712'
-     Addresses scanned: I2C 0x28 - 0x2f
--                       from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+                       from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
-   * SiS950   [clone of IT8705F]
--    Prefix: 'sis950'
--    Addresses scanned: from Super I/O config space, or default ISA 0x290 (8 I/O ports)
-+    Prefix: 'it87'
-+    Addresses scanned: from Super I/O config space (8 I/O ports)
-     Datasheet: No longer be available
+diff --git a/Documentation/hwmon/smsc47m1 b/Documentation/hwmon/smsc47m1
+index 34e6478..c15bbe6 100644
+--- a/Documentation/hwmon/smsc47m1
++++ b/Documentation/hwmon/smsc47m1
+@@ -12,6 +12,10 @@ Supported chips:
+         http://www.smsc.com/main/datasheets/47m14x.pdf
+         http://www.smsc.com/main/tools/discontinued/47m15x.pdf
+         http://www.smsc.com/main/datasheets/47m192.pdf
++  * SMSC LPC47M997
++    Addresses scanned: none, address read from Super I/O config space
++    Prefix: 'smsc47m1'
++    Datasheet: none
  
- Author: Christophe Gauthron <chrisg@0-in.com>
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 53cc2b6..55e1c83 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -2,7 +2,7 @@
-     it87.c - Part of lm_sensors, Linux kernel modules for hardware
-              monitoring.
+ Authors:
+         Mark D. Studebaker <mdsxyz123@yahoo.com>,
+@@ -30,6 +34,9 @@ The 47M15x and 47M192 chips contain a fu
+ in addition to the fan monitoring and control. The hardware monitoring
+ block is not supported by the driver.
  
--    Supports: IT8705F  Super I/O chip w/LPC interface & SMBus
-+    Supports: IT8705F  Super I/O chip w/LPC interface
-               IT8712F  Super I/O chip w/LPC interface & SMBus
-               Sis950   A clone of the IT8705F
++No documentation is available for the 47M997, but it has the same device
++ID as the 47M15x and 47M192 chips and seems to be compatible.
++
+ Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
+ triggered if the rotation speed has dropped below a programmable limit. Fan
+ readings can be divided by a programmable divider (1, 2, 4 or 8) to give
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index bbe93a0..5905c1a 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -3,7 +3,7 @@
+                  for hardware monitoring
  
-@@ -47,7 +47,7 @@
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
- 					0x2e, 0x2f, I2C_CLIENT_END };
--static unsigned short isa_address = 0x290;
-+static unsigned short isa_address;
+     Supports the SMSC LPC47B27x, LPC47M10x, LPC47M13x, LPC47M14x,
+-    LPC47M15x and LPC47M192 Super-I/O chips.
++    LPC47M15x, LPC47M192 and LPC47M997 Super-I/O chips.
  
- /* Insmod parameters */
- I2C_CLIENT_INSMOD_2(it87, it8712);
-@@ -706,7 +706,7 @@ static int it87_isa_attach_adapter(struc
- }
- 
- /* SuperIO detection - will change isa_address if a chip is found */
--static int __init it87_find(int *address)
-+static int __init it87_find(unsigned short *address)
- {
- 	int err = -ENODEV;
- 
-@@ -757,34 +757,7 @@ int it87_detect(struct i2c_adapter *adap
- 		if (!request_region(address, IT87_EXTENT, it87_isa_driver.name))
- 			goto ERROR0;
- 
--	/* Probe whether there is anything available on this address. Already
--	   done for SMBus and Super-I/O clients */
--	if (kind < 0) {
--		if (is_isa && !chip_type) {
--#define REALLY_SLOW_IO
--			/* We need the timeouts for at least some IT87-like chips. But only
--			   if we read 'undefined' registers. */
--			i = inb_p(address + 1);
--			if (inb_p(address + 2) != i
--			 || inb_p(address + 3) != i
--			 || inb_p(address + 7) != i) {
--		 		err = -ENODEV;
--				goto ERROR1;
--			}
--#undef REALLY_SLOW_IO
--
--			/* Let's just hope nothing breaks here */
--			i = inb_p(address + 5) & 0x7f;
--			outb_p(~i & 0x7f, address + 5);
--			if ((inb_p(address + 5) & 0x7f) != (~i & 0x7f)) {
--				outb_p(i, address + 5);
--				err = -ENODEV;
--				goto ERROR1;
--			}
--		}
--	}
--
--	/* OK. For now, we presume we have a valid client. We now create the
-+	/* For now, we presume we have a valid client. We create the
- 	   client structure, even though we cannot fill it completely yet.
- 	   But it allows us to access it87_{read,write}_value. */
- 
-@@ -1182,20 +1155,18 @@ static struct it87_data *it87_update_dev
- 
- static int __init sm_it87_init(void)
- {
--	int addr, res;
--
--	if (!it87_find(&addr)) {
--		isa_address = addr;
--	}
-+	int res;
- 
- 	res = i2c_add_driver(&it87_driver);
- 	if (res)
- 		return res;
- 
--	res = i2c_isa_add_driver(&it87_isa_driver);
--	if (res) {
--		i2c_del_driver(&it87_driver);
--		return res;
-+	if (!it87_find(&isa_address)) {
-+		res = i2c_isa_add_driver(&it87_isa_driver);
-+		if (res) {
-+			i2c_del_driver(&it87_driver);
-+			return res;
-+		}
- 	}
- 
- 	return 0;
+     Copyright (C) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
+     Copyright (C) 2004 Jean Delvare <khali@linux-fr.org>
+@@ -356,6 +356,8 @@ static int __init smsc47m1_find(unsigned
+ 	 * 0x5F) and LPC47B27x (device id 0x51) have fan control.
+ 	 * The LPC47M15x and LPC47M192 chips "with hardware monitoring block"
+ 	 * can do much more besides (device id 0x60).
++	 * The LPC47M997 is undocumented, but seems to be compatible with
++	 * the LPC47M192, and has the same device id.
+ 	 */
+ 	if (val = 0x51)
+ 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47B27x\n");
+@@ -364,7 +366,8 @@ static int __init smsc47m1_find(unsigned
+ 	else if (val = 0x5F)
+ 		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M14x\n");
+ 	else if (val = 0x60)
+-		printk(KERN_INFO "smsc47m1: Found SMSC LPC47M15x/LPC47M192\n");
++		printk(KERN_INFO "smsc47m1: Found SMSC "
++		       "LPC47M15x/LPC47M192/LPC47M997\n");
+ 	else {
+ 		superio_exit();
+ 		return -ENODEV;
 
