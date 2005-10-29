@@ -1,44 +1,49 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:02:53 +0000
-Subject: [lm-sensors] [PATCH] i2c: Minor i2c-amd8111 cleanup
-Message-Id: <1130533658412@kroah.com>
+Date: Sat, 29 Oct 2005 00:15:52 +0000
+Subject: [lm-sensors] [PATCH] i2c: Fix union i2c_smbus_data definition
+Message-Id: <11305336582121@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Minor i2c-amd8111 cleanup
+[PATCH] i2c: Fix union i2c_smbus_data definition
 
-I noticed a useless instruction in the i2c-amd8111 driver.
+The i2c_smbus_data union block member has a comment stating that an
+extra byte is required for SMBus Block Process Call transactions. This
+has been true for three weeks around June 2002, but no more since, so
+it is about time that we drop this comment and fix the definition.
 
+From: Hideki Iwamoto <h-iwamoto@kit.hi-ho.ne.jp>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-CC: Vojtech Pavlik <vojtech@suse.cz>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/i2c/busses/i2c-amd8111.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/i2c.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 ---
-commit 0f69a612f950f7508e556bf1b09390087d112115
-tree f27080ba61dd0f51e328c25add031c61204f1c7f
-parent 332bf92b3338e140cbcfc25f69911e8ca59788c7
-author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:58:22 +0200
+commit 332bf92b3338e140cbcfc25f69911e8ca59788c7
+tree d6d8a3ee39fc08a3bc23b76c62403dbfe0fad36d
+parent d057c96cab72bc6b70570d25b90404f81d98e886
+author Hideki Iwamoto <h-iwamoto@kit.hi-ho.ne.jp> Sun, 25 Sep 2005 16:56:43 +0200
 committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
 
- drivers/i2c/busses/i2c-amd8111.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ include/linux/i2c.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
-index 49ff11e..6200c9a 100644
---- a/drivers/i2c/busses/i2c-amd8111.c
-+++ b/drivers/i2c/busses/i2c-amd8111.c
-@@ -244,7 +244,6 @@ static s32 amd8111_access(struct i2c_ada
- 			break;
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 3d49a30..17d63c1 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -454,8 +454,7 @@ struct i2c_msg {
+ union i2c_smbus_data {
+ 	__u8 byte;
+ 	__u16 word;
+-	__u8 block[I2C_SMBUS_BLOCK_MAX + 3]; /* block[0] is used for length */
+-                          /* one more for read length in block process call */
++	__u8 block[I2C_SMBUS_BLOCK_MAX + 2]; /* block[0] is used for length */
+ 	                                            /* and one more for PEC */
+ };
  
- 		case I2C_SMBUS_BLOCK_PROC_CALL:
--			protocol |= pec;
- 			len = min_t(u8, data->block[0], 31);
- 			amd_ec_write(smbus, AMD_SMB_CMD, command);
- 			amd_ec_write(smbus, AMD_SMB_BCNT, len);
 
