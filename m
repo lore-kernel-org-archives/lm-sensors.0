@@ -1,57 +1,48 @@
-From: laurent.riffard@free.fr (Laurent riffard)
-Date: Mon, 24 Oct 2005 23:31:19 +0000
-Subject: [lm-sensors] [patch 6/9] I2C: remove i2c_driver's .owner and .name
-Message-Id: <20051024212542.275966000@antares.localdomain>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 00:56:28 +0000
+Subject: [lm-sensors] [PATCH] i2c: Drop out-of-date,
+Message-Id: <1130533660668@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We should use the i2c_driver.driver's .name and .owner fields
-instead of the i2c_drivers's ones.
+[PATCH] i2c: Drop out-of-date, colliding ioctl definitions
 
-This patch updates the OSS drivers.
+Delete 2 out-of-date, colliding ioctl defines. I2C_UDELAY and
+I2C_MDELAY are supposed to be used by i2c-algo-bit, but actually
+aren't (and I suspect never were). Moreover, their values are the same
+as I2C_FUNCS and I2C_SLAVE_FORCE, respectively, which *are* widely
+used.
 
-Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
---
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- sound/oss/dmasound/dac3550a.c   |    6 ++++--
- sound/oss/dmasound/tas_common.c |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+---
+commit 80ce3b7d0f52877b80cddc3ace8b332d888f0131
+tree 8ca3be85ad953a8a9c874e1c0e805dcd7314c19a
+parent 31ec5bc57146a479fac6f6878146059180413e43
+author Jean Delvare <khali@linux-fr.org> Sat, 08 Oct 2005 00:06:09 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:09 -0700
 
-Index: linux-2.6-mm/sound/oss/dmasound/dac3550a.c
-=================================--- linux-2.6-mm.orig/sound/oss/dmasound/dac3550a.c
-+++ linux-2.6-mm/sound/oss/dmasound/dac3550a.c
-@@ -41,8 +41,10 @@
- static int daca_detach_client(struct i2c_client *client);
+ include/linux/i2c.h |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 6a1f342..74103d0 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -503,11 +503,6 @@ union i2c_smbus_data {
  
- struct i2c_driver daca_driver = {  
--	.owner			= THIS_MODULE,
--	.name			= "DAC3550A driver  V " DACA_VERSION,
-+	.driver = {
-+		.owner		= THIS_MODULE,
-+		.name		= "DAC3550A driver  V " DACA_VERSION,
-+	},
- 	.id			= I2C_DRIVERID_DACA,
- 	.flags			= I2C_DF_NOTIFY,
- 	.attach_adapter		= daca_attach_adapter,
-Index: linux-2.6-mm/sound/oss/dmasound/tas_common.c
-=================================--- linux-2.6-mm.orig/sound/oss/dmasound/tas_common.c
-+++ linux-2.6-mm/sound/oss/dmasound/tas_common.c
-@@ -47,8 +47,10 @@
- static int tas_detach_client(struct i2c_client *);
+ #define I2C_SMBUS	0x0720	/* SMBus-level access */
  
- struct i2c_driver tas_driver = {
--	.owner		= THIS_MODULE,
--	.name		= "tas",
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "tas",
-+	},
- 	.flags		= I2C_DF_NOTIFY,
- 	.attach_adapter	= tas_attach_adapter,
- 	.detach_client	= tas_detach_client,
-
---
+-/* ... algo-bit.c recognizes */
+-#define I2C_UDELAY	0x0705	/* set delay in microsecs between each	*/
+-				/* written byte (except address)	*/
+-#define I2C_MDELAY	0x0706	/* millisec delay between written bytes */
+-
+ /* ----- I2C-DEV: char device interface stuff ------------------------- */
+ 
+ #define I2C_MAJOR	89		/* Device major number		*/
 
