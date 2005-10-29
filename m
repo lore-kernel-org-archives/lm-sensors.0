@@ -1,56 +1,164 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 08 Oct 2005 00:20:34 +0000
-Subject: [lm-sensors] [PATCH 14/16] i2c: Drop meaningless use of
-Message-Id: <20051008001952.08a96d53.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:03:43 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: Implement I2C Block transactions
+Message-Id: <11305336603904@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I2C_DF_NOTIFY is an i2c_driver flag, using it as an i2c_client flag
-doesn't make any sense.
+[PATCH] i2c-viapro: Implement I2C Block transactions
+
+Implement the I2C block transactions on VIA chips which support them:
+VT82C686B, VT8233, VT8233A, VT8235 and VT8237R. This speeds up EEPROM
+accesses by a factor 10 or so.
+
+I would like to thank Antonino A. Daplas, Hinko Kocevar, Salah Coronya
+and Andreas Henriksson for their help in testing this new feature.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Mark A. Greer <mgreer@mvista.com>
-Acked-by: Randy Vinson <rvinson@mvista.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/i2c/chips/ds1374.c  |    1 -
- drivers/i2c/chips/m41t00.c  |    1 -
- drivers/i2c/chips/rtc8564.c |    2 +-
- 3 files changed, 1 insertion(+), 3 deletions(-)
+ Documentation/i2c/busses/i2c-viapro |    7 +++++-
+ drivers/i2c/busses/i2c-viapro.c     |   39 +++++++++++++++++++++++++++++++++---
+ 2 files changed, 42 insertions(+), 4 deletions(-)
 
---- linux-2.6.14-rc3.orig/drivers/i2c/chips/ds1374.c	2005-10-07 20:08:15.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/chips/ds1374.c	2005-10-07 22:08:27.000000000 +0200
-@@ -199,7 +199,6 @@
- 
- 	memset(client, 0, sizeof(struct i2c_client));
- 	strncpy(client->name, DS1374_DRV_NAME, I2C_NAME_SIZE);
--	client->flags = I2C_DF_NOTIFY;
- 	client->addr = addr;
- 	client->adapter = adap;
- 	client->driver = &ds1374_driver;
---- linux-2.6.14-rc3.orig/drivers/i2c/chips/m41t00.c	2005-10-07 20:08:15.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/chips/m41t00.c	2005-10-07 22:08:27.000000000 +0200
-@@ -180,7 +180,6 @@
- 
- 	memset(client, 0, sizeof(struct i2c_client));
- 	strncpy(client->name, M41T00_DRV_NAME, I2C_NAME_SIZE);
--	client->flags = I2C_DF_NOTIFY;
- 	client->addr = addr;
- 	client->adapter = adap;
- 	client->driver = &m41t00_driver;
---- linux-2.6.14-rc3.orig/drivers/i2c/chips/rtc8564.c	2005-10-07 20:08:15.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/chips/rtc8564.c	2005-10-07 22:08:27.000000000 +0200
-@@ -158,7 +158,7 @@
- 
- 	strlcpy(new_client->name, "RTC8564", I2C_NAME_SIZE);
- 	i2c_set_clientdata(new_client, d);
--	new_client->flags = I2C_CLIENT_ALLOW_USE | I2C_DF_NOTIFY;
-+	new_client->flags = I2C_CLIENT_ALLOW_USE;
- 	new_client->addr = addr;
- 	new_client->adapter = adap;
- 	new_client->driver = &rtc8564_driver;
+---
+commit f118301416953d677de738100c33eb8cfb7adecb
+tree 145997f9c2159d1657dcaca8c56ee93341d8b5f9
+parent 5f49ef8e8cefe0a95948b4270db28507c1c287d4
+author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 21:58:41 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
 
--- 
-Jean Delvare
+ Documentation/i2c/busses/i2c-viapro |    7 +++++-
+ drivers/i2c/busses/i2c-viapro.c     |   39 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 42 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/i2c/busses/i2c-viapro b/Documentation/i2c/busses/i2c-viapro
+index ef0f1e9..387cbd4 100644
+--- a/Documentation/i2c/busses/i2c-viapro
++++ b/Documentation/i2c/busses/i2c-viapro
+@@ -14,7 +14,8 @@ Authors:
+ 	Frodo Looijaard <frodol@dds.nl>,
+ 	Philip Edelbrock <phil@netroedge.com>,
+ 	Ky?sti M?lkki <kmalkki@cc.hut.fi>,
+-	Mark D. Studebaker <mdsxyz123@yahoo.com>
++	Mark D. Studebaker <mdsxyz123@yahoo.com>,
++	Jean Delvare <khali@linux-fr.org>
+ 
+ Module Parameters
+ -----------------
+@@ -43,3 +44,7 @@ Your lspci -n listing must show one of t
+ 
+ If none of these show up, you should look in the BIOS for settings like
+ enable ACPI / SMBus or even USB.
++
++Except for the oldest chips (VT82C596A/B, VT82C686A and most probably
++VT8231), this driver supports I2C block transactions. Such transactions
++are mainly useful to read from and write to EEPROMs.
+diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+index 262755e..b420e75 100644
+--- a/drivers/i2c/busses/i2c-viapro.c
++++ b/drivers/i2c/busses/i2c-viapro.c
+@@ -4,6 +4,7 @@
+     Copyright (c) 1998 - 2002  Frodo Looijaard <frodol@dds.nl>,
+     Philip Edelbrock <phil@netroedge.com>, Ky?sti M?lkki <kmalkki@cc.hut.fi>,
+     Mark D. Studebaker <mdsxyz123@yahoo.com>
++    Copyright (C) 2005  Jean Delvare <khali@linux-fr.org>
+ 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -88,6 +89,7 @@ static unsigned short smb_cf_hstcfg = 0x
+ #define VT596_BYTE_DATA		0x08
+ #define VT596_WORD_DATA		0x0C
+ #define VT596_BLOCK_DATA	0x14
++#define VT596_I2C_BLOCK_DATA	0x34
+ 
+ 
+ /* If force is set to anything different from 0, we forcibly enable the
+@@ -107,6 +109,9 @@ MODULE_PARM_DESC(force_addr,
+ 
+ static struct i2c_adapter vt596_adapter;
+ 
++#define FEATURE_I2CBLOCK	(1<<0)
++static unsigned int vt596_features;
++
+ /* Another internally used function */
+ static int vt596_transaction(void)
+ {
+@@ -225,6 +230,12 @@ static s32 vt596_access(struct i2c_adapt
+ 		}
+ 		size = VT596_WORD_DATA;
+ 		break;
++	case I2C_SMBUS_I2C_BLOCK_DATA:
++		if (!(vt596_features & FEATURE_I2CBLOCK))
++			return -1;
++		if (read_write = I2C_SMBUS_READ)
++			outb_p(I2C_SMBUS_BLOCK_MAX, SMBHSTDAT0);
++		/* Fall through */
+ 	case I2C_SMBUS_BLOCK_DATA:
+ 		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+ 		       SMBHSTADD);
+@@ -240,11 +251,12 @@ static s32 vt596_access(struct i2c_adapt
+ 			for (i = 1; i <= len; i++)
+ 				outb_p(data->block[i], SMBBLKDAT);
+ 		}
+-		size = VT596_BLOCK_DATA;
++		size = (size = I2C_SMBUS_I2C_BLOCK_DATA) ?
++		       VT596_I2C_BLOCK_DATA : VT596_BLOCK_DATA;
+ 		break;
+ 	}
+ 
+-	outb_p((size & 0x1C) + (ENABLE_INT9 & 1), SMBHSTCNT);
++	outb_p((size & 0x3C) + (ENABLE_INT9 & 1), SMBHSTCNT);
+ 
+ 	if (vt596_transaction()) /* Error in transaction */
+ 		return -1;
+@@ -266,6 +278,7 @@ static s32 vt596_access(struct i2c_adapt
+ 	case VT596_WORD_DATA:
+ 		data->word = inb_p(SMBHSTDAT0) + (inb_p(SMBHSTDAT1) << 8);
+ 		break;
++	case VT596_I2C_BLOCK_DATA:
+ 	case VT596_BLOCK_DATA:
+ 		data->block[0] = inb_p(SMBHSTDAT0);
+ 		if (data->block[0] > I2C_SMBUS_BLOCK_MAX)
+@@ -280,9 +293,13 @@ static s32 vt596_access(struct i2c_adapt
+ 
+ static u32 vt596_func(struct i2c_adapter *adapter)
+ {
+-	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
++	u32 func = I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
+ 	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+ 	    I2C_FUNC_SMBUS_BLOCK_DATA;
++
++	if (vt596_features & FEATURE_I2CBLOCK)
++		func |= I2C_FUNC_SMBUS_I2C_BLOCK;
++	return func;
+ }
+ 
+ static struct i2c_algorithm smbus_algorithm = {
+@@ -379,6 +396,22 @@ found:
+ 	dev_dbg(&pdev->dev, "SMBREV = 0x%X\n", temp);
+ 	dev_dbg(&pdev->dev, "VT596_smba = 0x%X\n", vt596_smba);
+ 
++	switch (pdev->device) {
++	case PCI_DEVICE_ID_VIA_8237:
++	case PCI_DEVICE_ID_VIA_8235:
++	case PCI_DEVICE_ID_VIA_8233A:
++	case PCI_DEVICE_ID_VIA_8233_0:
++		vt596_features |= FEATURE_I2CBLOCK;
++		break;
++	case PCI_DEVICE_ID_VIA_82C686_4:
++		/* The VT82C686B (rev 0x40) does support I2C block
++		   transactions, but the VT82C686A (rev 0x30) doesn't */
++		if (!pci_read_config_byte(pdev, PCI_REVISION_ID, &temp)
++		 && temp >= 0x40)
++			vt596_features |= FEATURE_I2CBLOCK;
++		break;
++	}
++
+ 	vt596_adapter.dev.parent = &pdev->dev;
+ 	snprintf(vt596_adapter.name, I2C_NAME_SIZE,
+ 		 "SMBus Via Pro adapter at %04x", vt596_smba);
+
