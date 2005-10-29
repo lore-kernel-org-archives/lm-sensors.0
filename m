@@ -1,129 +1,64 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 22:37:41 +0000
-Subject: [lm-sensors] [PATCH 00/14] hwmon and i2c updates
-Message-Id: <20051017223757.7fe6672c.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 00:16:11 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: Cleanup ifdef usage
+Message-Id: <11305336594054@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+[PATCH] i2c-viapro: Cleanup ifdef usage
 
-Here comes a 14-piece hwmon and i2c update patchset. These are fixes I
-gathered in the last few weeks or wrote myself. Details are given in
-the header of each patch. None of these are meant for Linux 2.6.14. I'd
-like you to have them included in the next -mm releases so that they get
-enough testing and can be merged in Linux 2.6.15.
+It's not nice to put #ifdef in the middle of functions.
 
-Here's the summary:
+CC: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-Alessandro Zummo:
- o New Xicor X1205 RTC driver
+ drivers/i2c/busses/i2c-viapro.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-Deepak Saxena:
- o Mass kzalloc conversion
+---
+commit ca68f1193e8fc86470d4222d563d13b5584dc4f8
+tree 6bfb26f76e4a0986bfed32080d6aa6cec45f1b38
+parent ed5453e54f0c4a29605fd8399f58649d8739f5f0
+author Greg KH <greg@kroah.com> Thu, 22 Sep 2005 22:23:32 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
 
-Jean Delvare:
- o Missing class check in two hwmon drivers
- o More kzalloc cleanups
- o i2c documentation update
+ drivers/i2c/busses/i2c-viapro.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-Laurent Riffard:
- o Owner field additions to many i2c drivers
+diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+index c1c9eb1..566342d 100644
+--- a/drivers/i2c/busses/i2c-viapro.c
++++ b/drivers/i2c/busses/i2c-viapro.c
+@@ -126,6 +126,8 @@ static void vt596_dump_regs(const char *
+ 		printk("%02x\n", inb_p(SMBBLKDAT));
+ 	}
+ }
++#else
++static inline void vt596_dump_regs(const char *msg, u8 size) { }
+ #endif
+ 
+ /* Return -1 on error, 0 on success */
+@@ -135,9 +137,7 @@ static int vt596_transaction(u8 size)
+ 	int result = 0;
+ 	int timeout = 0;
+ 
+-#ifdef DEBUG
+ 	vt596_dump_regs("Transaction (pre)", size);
+-#endif
+ 
+ 	/* Make sure the SMBus host is ready to start transmitting */
+ 	if ((temp = inb_p(SMBHSTSTS)) & 0x1F) {
+@@ -192,9 +192,7 @@ static int vt596_transaction(u8 size)
+ 	if (temp & 0x1F)
+ 		outb_p(temp, SMBHSTSTS);
+ 
+-#ifdef DEBUG
+ 	vt596_dump_regs("Transaction (post)", size);
+-#endif
+ 
+ 	return result;
+ }
 
-Mark M. Hoffman:
- o New device ID for the smsc47b397 driver
-
-Statistics:
-
- Documentation/hwmon/smsc47b397        |    8 +
- Documentation/i2c/chips/x1205         |   38 ++
- Documentation/i2c/porting-clients     |    2 
- Documentation/i2c/writing-clients     |   16 -
- drivers/hwmon/adm1021.c               |    3 -
- drivers/hwmon/adm1025.c               |    3 -
- drivers/hwmon/adm1026.c               |    4 -
- drivers/hwmon/adm1031.c               |    3 -
- drivers/hwmon/asb100.c                |   11 -
- drivers/hwmon/atxp1.c                 |    5 +
- drivers/hwmon/ds1621.c                |    5 +
- drivers/hwmon/fscher.c                |    3 -
- drivers/hwmon/fscpos.c                |    3 -
- drivers/hwmon/gl518sm.c               |    3 -
- drivers/hwmon/gl520sm.c               |    3 -
- drivers/hwmon/it87.c                  |    3 -
- drivers/hwmon/lm63.c                  |    3 -
- drivers/hwmon/lm75.c                  |    3 -
- drivers/hwmon/lm77.c                  |    3 -
- drivers/hwmon/lm78.c                  |    3 -
- drivers/hwmon/lm80.c                  |    3 -
- drivers/hwmon/lm83.c                  |    3 -
- drivers/hwmon/lm85.c                  |    3 -
- drivers/hwmon/lm87.c                  |    3 -
- drivers/hwmon/lm90.c                  |    3 -
- drivers/hwmon/lm92.c                  |    3 -
- drivers/hwmon/max1619.c               |    3 -
- drivers/hwmon/pc87360.c               |    3 -
- drivers/hwmon/sis5595.c               |    3 -
- drivers/hwmon/smsc47b397.c            |   10 
- drivers/hwmon/smsc47m1.c              |    3 -
- drivers/hwmon/via686a.c               |    3 -
- drivers/hwmon/w83627ehf.c             |    3 -
- drivers/hwmon/w83627hf.c              |    3 -
- drivers/hwmon/w83781d.c               |   10 -
- drivers/hwmon/w83792d.c               |    6 -
- drivers/hwmon/w83l785ts.c             |    4 -
- drivers/i2c/busses/i2c-ali1535.c      |    1 +
- drivers/i2c/busses/i2c-ali1563.c      |    1 +
- drivers/i2c/busses/i2c-ali15x3.c      |    1 +
- drivers/i2c/busses/i2c-amd756-s4882.c |    4 
- drivers/i2c/busses/i2c-amd756.c       |    1 +
- drivers/i2c/busses/i2c-amd8111.c      |    4 
- drivers/i2c/busses/i2c-hydra.c        |    1 +
- drivers/i2c/busses/i2c-i801.c         |    1 +
- drivers/i2c/busses/i2c-i810.c         |    1 +
- drivers/i2c/busses/i2c-ibm_iic.c      |    3 -
- drivers/i2c/busses/i2c-iop3xx.c       |    7 -
- drivers/i2c/busses/i2c-isa.c          |    1 +
- drivers/i2c/busses/i2c-ixp2000.c      |    4 
- drivers/i2c/busses/i2c-ixp4xx.c       |    4 
- drivers/i2c/busses/i2c-keywest.c      |    5 +
- drivers/i2c/busses/i2c-mpc.c          |    4 
- drivers/i2c/busses/i2c-mv64xxx.c      |    6 -
- drivers/i2c/busses/i2c-nforce2.c      |    5 -
- drivers/i2c/busses/i2c-parport.c      |    5 -
- drivers/i2c/busses/i2c-piix4.c        |    1 +
- drivers/i2c/busses/i2c-pmac-smu.c     |    3 -
- drivers/i2c/busses/i2c-prosavage.c    |    5 -
- drivers/i2c/busses/i2c-s3c2410.c      |    2 +
- drivers/i2c/busses/i2c-savage4.c      |    1 +
- drivers/i2c/busses/i2c-sis5595.c      |    1 +
- drivers/i2c/busses/i2c-sis630.c       |    1 +
- drivers/i2c/busses/i2c-sis96x.c       |    1 +
- drivers/i2c/busses/i2c-via.c          |    1 +
- drivers/i2c/busses/i2c-viapro.c       |    1 +
- drivers/i2c/busses/i2c-voodoo3.c      |    1 +
- drivers/i2c/busses/scx200_acb.c       |    3 -
- drivers/i2c/chips/Kconfig             |    9 +
- drivers/i2c/chips/Makefile            |    1 +
- drivers/i2c/chips/ds1337.c            |    3 -
- drivers/i2c/chips/ds1374.c            |    3 -
- drivers/i2c/chips/eeprom.c            |    3 -
- drivers/i2c/chips/isp1301_omap.c      |    1 +
- drivers/i2c/chips/m41t00.c            |    3 -
- drivers/i2c/chips/max6875.c           |    6 -
- drivers/i2c/chips/pca9539.c           |    3 -
- drivers/i2c/chips/pcf8574.c           |    3 -
- drivers/i2c/chips/pcf8591.c           |    3 -
- drivers/i2c/chips/rtc8564.c           |    3 -
- drivers/i2c/chips/tps65010.c          |    3 -
- drivers/i2c/chips/x1205.c             |  698 ++++++++++++++++++++++++++++++++++
- drivers/i2c/i2c-core.c                |    3 +
- drivers/i2c/i2c-dev.c                 |    3 -
- include/linux/x1205.h                 |   31 ++
- 85 files changed, 897 insertions(+), 156 deletions(-)
-
-Thanks,
--- 
-Jean Delvare
