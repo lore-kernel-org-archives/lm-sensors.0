@@ -1,222 +1,279 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 17 Oct 2005 22:47:37 +0000
-Subject: [lm-sensors] [PATCH 01/14] Owner field additions to many i2c
-Message-Id: <20051017224748.75cdda3f.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:03:21 +0000
+Subject: [lm-sensors] [PATCH] hwmon: adm9240 driver update - cleanups
+Message-Id: <11305336561415@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Laurent Riffard <laurent.riffard@free.fr>
-Content-Disposition: inline; filename=i2c-owner-field-01-struct-pci-driver.patch
+[PATCH] hwmon: adm9240 driver update - cleanups
 
-This patch updates .owner field for various struct pci_driver variables. 
+hwmon: adm9240 update 1/2: cleanups:
 
-Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+o remove i2c read/write wrapper interface as it does nothing,
+o change kmalloc + memset to kzalloc
+
+Signed-off-by: Grant Coady <gcoady@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- drivers/i2c/busses/i2c-ali1535.c   |    1 +
- drivers/i2c/busses/i2c-ali1563.c   |    1 +
- drivers/i2c/busses/i2c-ali15x3.c   |    1 +
- drivers/i2c/busses/i2c-amd756.c    |    1 +
- drivers/i2c/busses/i2c-amd8111.c   |    1 +
- drivers/i2c/busses/i2c-hydra.c     |    1 +
- drivers/i2c/busses/i2c-i801.c      |    1 +
- drivers/i2c/busses/i2c-i810.c      |    1 +
- drivers/i2c/busses/i2c-nforce2.c   |    1 +
- drivers/i2c/busses/i2c-piix4.c     |    1 +
- drivers/i2c/busses/i2c-prosavage.c |    1 +
- drivers/i2c/busses/i2c-savage4.c   |    1 +
- drivers/i2c/busses/i2c-sis5595.c   |    1 +
- drivers/i2c/busses/i2c-sis630.c    |    1 +
- drivers/i2c/busses/i2c-sis96x.c    |    1 +
- drivers/i2c/busses/i2c-via.c       |    1 +
- drivers/i2c/busses/i2c-viapro.c    |    1 +
- drivers/i2c/busses/i2c-voodoo3.c   |    1 +
- 18 files changed, 18 insertions(+)
+commit 205cf13e0b57500e2cc6442effa991c1a63f4db7
+tree 8519455083b045e270e0513646a76d351567b3bb
+parent 84860bf0644d7c45afe7ddbd30731c3e3c371fae
+author Grant Coady <grant_lkml@dodo.com.au> Sat, 17 Sep 2005 05:32:55 +1000
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:05 -0700
 
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-ali1535.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-ali1535.c	2005-10-08 16:35:36.000000000 +0200
-@@ -513,6 +513,7 @@
- }
- 
- static struct pci_driver ali1535_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "ali1535_smbus",
- 	.id_table	= ali1535_ids,
- 	.probe		= ali1535_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-ali1563.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-ali1563.c	2005-10-08 16:35:36.000000000 +0200
-@@ -408,6 +408,7 @@
- MODULE_DEVICE_TABLE (pci, ali1563_id_table);
- 
- static struct pci_driver ali1563_pci_driver = {
-+	.owner		= THIS_MODULE,
-  	.name		= "ali1563_smbus",
- 	.id_table	= ali1563_id_table,
-  	.probe		= ali1563_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-ali15x3.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-ali15x3.c	2005-10-08 16:35:36.000000000 +0200
-@@ -504,6 +504,7 @@
- }
- 
- static struct pci_driver ali15x3_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "ali15x3_smbus",
- 	.id_table	= ali15x3_ids,
- 	.probe		= ali15x3_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-amd756.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-amd756.c	2005-10-08 16:35:36.000000000 +0200
-@@ -401,6 +401,7 @@
- }
- 
- static struct pci_driver amd756_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "amd756_smbus",
- 	.id_table	= amd756_ids,
- 	.probe		= amd756_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-amd8111.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-amd8111.c	2005-10-08 16:35:36.000000000 +0200
-@@ -392,6 +392,7 @@
- }
- 
- static struct pci_driver amd8111_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "amd8111_smbus2",
- 	.id_table	= amd8111_ids,
- 	.probe		= amd8111_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-hydra.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-hydra.c	2005-10-08 16:35:36.000000000 +0200
-@@ -155,6 +155,7 @@
- 
- 
- static struct pci_driver hydra_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "hydra_smbus",
- 	.id_table	= hydra_ids,
- 	.probe		= hydra_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-i801.c	2005-10-07 20:50:16.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-i801.c	2005-10-08 16:35:36.000000000 +0200
-@@ -568,6 +568,7 @@
- }
- 
- static struct pci_driver i801_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "i801_smbus",
- 	.id_table	= i801_ids,
- 	.probe		= i801_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-i810.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-i810.c	2005-10-08 16:35:36.000000000 +0200
-@@ -232,6 +232,7 @@
- }
- 
- static struct pci_driver i810_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "i810_smbus",
- 	.id_table	= i810_ids,
- 	.probe		= i810_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-nforce2.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-nforce2.c	2005-10-08 16:35:36.000000000 +0200
-@@ -356,6 +356,7 @@
- }
- 
- static struct pci_driver nforce2_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "nForce2_smbus",
- 	.id_table	= nforce2_ids,
- 	.probe		= nforce2_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-piix4.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-piix4.c	2005-10-08 16:35:36.000000000 +0200
-@@ -462,6 +462,7 @@
- }
- 
- static struct pci_driver piix4_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "piix4_smbus",
- 	.id_table	= piix4_ids,
- 	.probe		= piix4_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-prosavage.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-prosavage.c	2005-10-08 16:35:36.000000000 +0200
-@@ -308,6 +308,7 @@
- MODULE_DEVICE_TABLE (pci, prosavage_pci_tbl);
- 
- static struct pci_driver prosavage_driver = {
-+	.owner		=	THIS_MODULE,
- 	.name		=	"prosavage_smbus",
- 	.id_table	=	prosavage_pci_tbl,
- 	.probe		=	prosavage_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-savage4.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-savage4.c	2005-10-08 16:35:36.000000000 +0200
-@@ -179,6 +179,7 @@
- }
- 
- static struct pci_driver savage4_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "savage4_smbus",
- 	.id_table	= savage4_ids,
- 	.probe		= savage4_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-sis5595.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-sis5595.c	2005-10-08 16:35:36.000000000 +0200
-@@ -398,6 +398,7 @@
- }
- 
- static struct pci_driver sis5595_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "sis5595_smbus",
- 	.id_table	= sis5595_ids,
- 	.probe		= sis5595_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-sis630.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-sis630.c	2005-10-08 16:35:36.000000000 +0200
-@@ -496,6 +496,7 @@
- 
- 
- static struct pci_driver sis630_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "sis630_smbus",
- 	.id_table	= sis630_ids,
- 	.probe		= sis630_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-sis96x.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-sis96x.c	2005-10-08 16:35:36.000000000 +0200
-@@ -329,6 +329,7 @@
- }
- 
- static struct pci_driver sis96x_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "sis96x_smbus",
- 	.id_table	= sis96x_ids,
- 	.probe		= sis96x_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-via.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-via.c	2005-10-08 16:35:36.000000000 +0200
-@@ -159,6 +159,7 @@
- 
- 
- static struct pci_driver vt586b_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "vt586b_smbus",
- 	.id_table	= vt586b_ids,
- 	.probe		= vt586b_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-viapro.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-viapro.c	2005-10-08 16:35:36.000000000 +0200
-@@ -439,6 +439,7 @@
- MODULE_DEVICE_TABLE(pci, vt596_ids);
- 
- static struct pci_driver vt596_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "vt596_smbus",
- 	.id_table	= vt596_ids,
- 	.probe		= vt596_probe,
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-voodoo3.c	2005-10-07 19:56:11.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-voodoo3.c	2005-10-08 16:35:36.000000000 +0200
-@@ -225,6 +225,7 @@
- }
- 
- static struct pci_driver voodoo3_driver = {
-+	.owner		= THIS_MODULE,
- 	.name		= "voodoo3_smbus",
- 	.id_table	= voodoo3_ids,
- 	.probe		= voodoo3_probe,
+ drivers/hwmon/adm9240.c |   92 ++++++++++++++++++++++-------------------------
+ 1 files changed, 44 insertions(+), 48 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
+index bc7faef..ecef342 100644
+--- a/drivers/hwmon/adm9240.c
++++ b/drivers/hwmon/adm9240.c
+@@ -170,17 +170,6 @@ struct adm9240_data {
+ 	u8 vrm;			/* --	vrm set on startup, no accessor */
+ };
+ 
+-/* i2c byte read/write interface */
+-static int adm9240_read_value(struct i2c_client *client, u8 reg)
+-{
+-	return i2c_smbus_read_byte_data(client, reg);
+-}
+-
+-static int adm9240_write_value(struct i2c_client *client, u8 reg, u8 value)
+-{
+-	return i2c_smbus_write_byte_data(client, reg, value);
+-}
+-
+ /*** sysfs accessors ***/
+ 
+ /* temperature */
+@@ -207,7 +196,7 @@ static ssize_t set_##value(struct device
+ 								\
+ 	down(&data->update_lock);				\
+ 	data->value = TEMP_TO_REG(temp);			\
+-	adm9240_write_value(client, reg, data->value);		\
++	i2c_smbus_write_byte_data(client, reg, data->value);	\
+ 	up(&data->update_lock);					\
+ 	return count;						\
+ }
+@@ -249,7 +238,8 @@ static ssize_t set_in_min(struct device 
+ 
+ 	down(&data->update_lock);
+ 	data->in_min[nr] = IN_TO_REG(val, nr);
+-	adm9240_write_value(client, ADM9240_REG_IN_MIN(nr), data->in_min[nr]);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(nr),
++			data->in_min[nr]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -263,7 +253,8 @@ static ssize_t set_in_max(struct device 
+ 
+ 	down(&data->update_lock);
+ 	data->in_max[nr] = IN_TO_REG(val, nr);
+-	adm9240_write_value(client, ADM9240_REG_IN_MAX(nr), data->in_max[nr]);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(nr),
++			data->in_max[nr]);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -341,11 +332,11 @@ static void adm9240_write_fan_div(struct
+ {
+ 	u8 reg, old, shift = (nr + 2) * 2;
+ 
+-	reg = adm9240_read_value(client, ADM9240_REG_VID_FAN_DIV);
++	reg = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
+ 	old = (reg >> shift) & 3;
+ 	reg &= ~(3 << shift);
+ 	reg |= (fan_div << shift);
+-	adm9240_write_value(client, ADM9240_REG_VID_FAN_DIV, reg);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_VID_FAN_DIV, reg);
+ 	dev_dbg(&client->dev, "fan%d clock divider changed from %u "
+ 			"to %u\n", nr + 1, 1 << old, 1 << fan_div);
+ }
+@@ -406,7 +397,7 @@ static ssize_t set_fan_min(struct device
+ 		data->fan_div[nr] = new_div;
+ 		adm9240_write_fan_div(client, nr, new_div);
+ 	}
+-	adm9240_write_value(client, ADM9240_REG_FAN_MIN(nr),
++	i2c_smbus_write_byte_data(client, ADM9240_REG_FAN_MIN(nr),
+ 			data->fan_min[nr]);
+ 
+ 	up(&data->update_lock);
+@@ -479,7 +470,7 @@ static ssize_t set_aout(struct device *d
+ 
+ 	down(&data->update_lock);
+ 	data->aout = AOUT_TO_REG(val);
+-	adm9240_write_value(client, ADM9240_REG_ANALOG_OUT, data->aout);
++	i2c_smbus_write_byte_data(client, ADM9240_REG_ANALOG_OUT, data->aout);
+ 	up(&data->update_lock);
+ 	return count;
+ }
+@@ -492,7 +483,8 @@ static ssize_t chassis_clear(struct devi
+ 	unsigned long val = simple_strtol(buf, NULL, 10);
+ 
+ 	if (val = 1) {
+-		adm9240_write_value(client, ADM9240_REG_CHASSIS_CLEAR, 0x80);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_CHASSIS_CLEAR, 0x80);
+ 		dev_dbg(&client->dev, "chassis intrusion latch cleared\n");
+ 	}
+ 	return count;
+@@ -513,11 +505,10 @@ static int adm9240_detect(struct i2c_ada
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct adm9240_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(*data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct adm9240_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+@@ -533,7 +524,7 @@ static int adm9240_detect(struct i2c_ada
+ 	if (kind < 0) {
+ 
+ 		/* verify chip: reg address should match i2c address */
+-		if (adm9240_read_value(new_client, ADM9240_REG_I2C_ADDR)
++		if (i2c_smbus_read_byte_data(new_client, ADM9240_REG_I2C_ADDR)
+ 				!= address) {
+ 			dev_err(&adapter->dev, "detect fail: address match, "
+ 					"0x%02x\n", address);
+@@ -541,8 +532,8 @@ static int adm9240_detect(struct i2c_ada
+ 		}
+ 
+ 		/* check known chip manufacturer */
+-		man_id = adm9240_read_value(new_client, ADM9240_REG_MAN_ID);
+-
++		man_id = i2c_smbus_read_byte_data(new_client,
++				ADM9240_REG_MAN_ID);
+ 		if (man_id = 0x23) {
+ 			kind = adm9240;
+ 		} else if (man_id = 0xda) {
+@@ -556,7 +547,8 @@ static int adm9240_detect(struct i2c_ada
+ 		}
+ 
+ 		/* successful detect, print chip info */
+-		die_rev = adm9240_read_value(new_client, ADM9240_REG_DIE_REV);
++		die_rev = i2c_smbus_read_byte_data(new_client,
++				ADM9240_REG_DIE_REV);
+ 		dev_info(&adapter->dev, "found %s revision %u\n",
+ 				man_id = 0x23 ? "ADM9240" :
+ 				man_id = 0xda ? "DS1780" : "LM81", die_rev);
+@@ -654,8 +646,8 @@ static int adm9240_detach_client(struct 
+ static void adm9240_init_client(struct i2c_client *client)
+ {
+ 	struct adm9240_data *data = i2c_get_clientdata(client);
+-	u8 conf = adm9240_read_value(client, ADM9240_REG_CONFIG);
+-	u8 mode = adm9240_read_value(client, ADM9240_REG_TEMP_CONF) & 3;
++	u8 conf = i2c_smbus_read_byte_data(client, ADM9240_REG_CONFIG);
++	u8 mode = i2c_smbus_read_byte_data(client, ADM9240_REG_TEMP_CONF) & 3;
+ 
+ 	data->vrm = vid_which_vrm(); /* need this to report vid as mV */
+ 
+@@ -672,18 +664,22 @@ static void adm9240_init_client(struct i
+ 
+ 		for (i = 0; i < 6; i++)
+ 		{
+-			adm9240_write_value(client,
++			i2c_smbus_write_byte_data(client,
+ 					ADM9240_REG_IN_MIN(i), 0);
+-			adm9240_write_value(client,
++			i2c_smbus_write_byte_data(client,
+ 					ADM9240_REG_IN_MAX(i), 255);
+ 		}
+-		adm9240_write_value(client, ADM9240_REG_FAN_MIN(0), 255);
+-		adm9240_write_value(client, ADM9240_REG_FAN_MIN(1), 255);
+-		adm9240_write_value(client, ADM9240_REG_TEMP_HIGH, 127);
+-		adm9240_write_value(client, ADM9240_REG_TEMP_HYST, 127);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_FAN_MIN(0), 255);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_FAN_MIN(1), 255);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_TEMP_HIGH, 127);
++		i2c_smbus_write_byte_data(client,
++				ADM9240_REG_TEMP_HYST, 127);
+ 
+ 		/* start measurement cycle */
+-		adm9240_write_value(client, ADM9240_REG_CONFIG, 1);
++		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
+ 
+ 		dev_info(&client->dev, "cold start: config was 0x%02x "
+ 				"mode %u\n", conf, mode);
+@@ -704,25 +700,25 @@ static struct adm9240_data *adm9240_upda
+ 
+ 		for (i = 0; i < 6; i++) /* read voltages */
+ 		{
+-			data->in[i] = adm9240_read_value(client,
++			data->in[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_IN(i));
+ 		}
+-		data->alarms = adm9240_read_value(client,
++		data->alarms = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_INT(0)) |
+-					adm9240_read_value(client,
++					i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_INT(1)) << 8;
+ 
+ 		/* read temperature: assume temperature changes less than
+ 		 * 0.5'C per two measurement cycles thus ignore possible
+ 		 * but unlikely aliasing error on lsb reading. --Grant */
+-		data->temp = ((adm9240_read_value(client,
++		data->temp = ((i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_TEMP) << 8) |
+-					adm9240_read_value(client,
++					i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_TEMP_CONF)) / 128;
+ 
+ 		for (i = 0; i < 2; i++) /* read fans */
+ 		{
+-			data->fan[i] = adm9240_read_value(client,
++			data->fan[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_FAN(i));
+ 
+ 			/* adjust fan clock divider on overflow */
+@@ -747,30 +743,30 @@ static struct adm9240_data *adm9240_upda
+ 
+ 		for (i = 0; i < 6; i++)
+ 		{
+-			data->in_min[i] = adm9240_read_value(client,
++			data->in_min[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_IN_MIN(i));
+-			data->in_max[i] = adm9240_read_value(client,
++			data->in_max[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_IN_MAX(i));
+ 		}
+ 		for (i = 0; i < 2; i++)
+ 		{
+-			data->fan_min[i] = adm9240_read_value(client,
++			data->fan_min[i] = i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_FAN_MIN(i));
+ 		}
+-		data->temp_high = adm9240_read_value(client,
++		data->temp_high = i2c_smbus_read_byte_data(client,
+ 				ADM9240_REG_TEMP_HIGH);
+-		data->temp_hyst = adm9240_read_value(client,
++		data->temp_hyst = i2c_smbus_read_byte_data(client,
+ 				ADM9240_REG_TEMP_HYST);
+ 
+ 		/* read fan divs and 5-bit VID */
+-		i = adm9240_read_value(client, ADM9240_REG_VID_FAN_DIV);
++		i = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
+ 		data->fan_div[0] = (i >> 4) & 3;
+ 		data->fan_div[1] = (i >> 6) & 3;
+ 		data->vid = i & 0x0f;
+-		data->vid |= (adm9240_read_value(client,
++		data->vid |= (i2c_smbus_read_byte_data(client,
+ 					ADM9240_REG_VID4) & 1) << 4;
+ 		/* read analog out */
+-		data->aout = adm9240_read_value(client,
++		data->aout = i2c_smbus_read_byte_data(client,
+ 				ADM9240_REG_ANALOG_OUT);
+ 
+ 		data->last_updated_config = jiffies;
+
