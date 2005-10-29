@@ -1,51 +1,691 @@
-From: dsaxena@plexity.net (Deepak Saxena)
-Date: Sat, 01 Oct 2005 07:02:45 +0000
-Subject: [lm-sensors] [PATCH] [I2C] kmalloc + memzero -> kzalloc conversion
-Message-Id: <20051001050202.GE11137@plexity.net>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:32:05 +0000
+Subject: [lm-sensors] [PATCH] hwmon: kzalloc conversion
+Message-Id: <11305336631129@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
+[PATCH] hwmon: kzalloc conversion
 
-Signed-off-by: Deepak Saxena <dsaxena@mvista.com>
+Use kzalloc instead of kmalloc+memset in all hardware monitoring
+drivers.
 
-diff --git a/drivers/i2c/busses/i2c-ixp2000.c b/drivers/i2c/busses/i2c-ixp2000.c
---- a/drivers/i2c/busses/i2c-ixp2000.c
-+++ b/drivers/i2c/busses/i2c-ixp2000.c
-@@ -104,11 +104,10 @@ static int ixp2000_i2c_probe(struct devi
- 	struct platform_device *plat_dev = to_platform_device(dev);
- 	struct ixp2000_i2c_pins *gpio = plat_dev->dev.platform_data;
- 	struct ixp2000_i2c_data *drv_data = 
--		kmalloc(sizeof(struct ixp2000_i2c_data), GFP_KERNEL);
-+		kzalloc(sizeof(struct ixp2000_i2c_data), GFP_KERNEL);
+Signed-off-by: Deepak Saxena <dsaxena@plexity.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+commit ba9c2e8d15da029ea3051c95e446b2d638ef02e2
+tree 28272b92080f18f16008c09464190939183c8698
+parent 2286066faf51890e49ad61e2ceab683666cd9108
+author Deepak Saxena <dsaxena@plexity.net> Mon, 17 Oct 2005 23:08:32 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:12 -0700
+
+ drivers/hwmon/adm1021.c    |    3 +--
+ drivers/hwmon/adm1025.c    |    3 +--
+ drivers/hwmon/adm1026.c    |    4 +---
+ drivers/hwmon/adm1031.c    |    3 +--
+ drivers/hwmon/asb100.c     |   11 ++++-------
+ drivers/hwmon/atxp1.c      |    3 +--
+ drivers/hwmon/ds1621.c     |    3 +--
+ drivers/hwmon/fscher.c     |    3 +--
+ drivers/hwmon/fscpos.c     |    3 +--
+ drivers/hwmon/gl518sm.c    |    3 +--
+ drivers/hwmon/gl520sm.c    |    3 +--
+ drivers/hwmon/it87.c       |    3 +--
+ drivers/hwmon/lm63.c       |    3 +--
+ drivers/hwmon/lm75.c       |    3 +--
+ drivers/hwmon/lm77.c       |    3 +--
+ drivers/hwmon/lm78.c       |    3 +--
+ drivers/hwmon/lm80.c       |    3 +--
+ drivers/hwmon/lm83.c       |    3 +--
+ drivers/hwmon/lm85.c       |    3 +--
+ drivers/hwmon/lm87.c       |    3 +--
+ drivers/hwmon/lm90.c       |    3 +--
+ drivers/hwmon/lm92.c       |    3 +--
+ drivers/hwmon/max1619.c    |    3 +--
+ drivers/hwmon/pc87360.c    |    3 +--
+ drivers/hwmon/sis5595.c    |    3 +--
+ drivers/hwmon/smsc47b397.c |    3 +--
+ drivers/hwmon/smsc47m1.c   |    3 +--
+ drivers/hwmon/via686a.c    |    3 +--
+ drivers/hwmon/w83627ehf.c  |    3 +--
+ drivers/hwmon/w83627hf.c   |    3 +--
+ drivers/hwmon/w83781d.c    |   10 +++-------
+ drivers/hwmon/w83792d.c    |    6 ++----
+ drivers/hwmon/w83l785ts.c  |    4 +---
+ 33 files changed, 39 insertions(+), 80 deletions(-)
+
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+index 58aee3a..8102876 100644
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -204,11 +204,10 @@ static int adm1021_detect(struct i2c_ada
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access adm1021_{read,write}_value. */
  
- 	if (!drv_data)
+-	if (!(data = kmalloc(sizeof(struct adm1021_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct adm1021_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto error0;
+ 	}
+-	memset(data, 0, sizeof(struct adm1021_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/adm1025.c b/drivers/hwmon/adm1025.c
+index 526b7ff..3ec1242 100644
+--- a/drivers/hwmon/adm1025.c
++++ b/drivers/hwmon/adm1025.c
+@@ -331,11 +331,10 @@ static int adm1025_detect(struct i2c_ada
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct adm1025_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct adm1025_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct adm1025_data));
+ 
+ 	/* The common I2C client data is placed right before the
+ 	   ADM1025-specific data. */
+diff --git a/drivers/hwmon/adm1026.c b/drivers/hwmon/adm1026.c
+index 6251581..3b58141 100644
+--- a/drivers/hwmon/adm1026.c
++++ b/drivers/hwmon/adm1026.c
+@@ -1470,13 +1470,11 @@ int adm1026_detect(struct i2c_adapter *a
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access adm1026_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct adm1026_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct adm1026_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	memset(data, 0, sizeof(struct adm1026_data));
+-
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index 58338ed..7c545d5 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -740,11 +740,10 @@ static int adm1031_detect(struct i2c_ada
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct adm1031_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct adm1031_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct adm1031_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
+index 8e34855..52c4697 100644
+--- a/drivers/hwmon/asb100.c
++++ b/drivers/hwmon/asb100.c
+@@ -629,19 +629,17 @@ static int asb100_detect_subclients(stru
+ 	int i, id, err;
+ 	struct asb100_data *data = i2c_get_clientdata(new_client);
+ 
+-	data->lm75[0] = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
++	data->lm75[0] = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+ 	if (!(data->lm75[0])) {
+ 		err = -ENOMEM;
+ 		goto ERROR_SC_0;
+ 	}
+-	memset(data->lm75[0], 0x00, sizeof(struct i2c_client));
+ 
+-	data->lm75[1] = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
++	data->lm75[1] = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+ 	if (!(data->lm75[1])) {
+ 		err = -ENOMEM;
+ 		goto ERROR_SC_1;
+ 	}
+-	memset(data->lm75[1], 0x00, sizeof(struct i2c_client));
+ 
+ 	id = i2c_adapter_id(adapter);
+ 
+@@ -724,12 +722,11 @@ static int asb100_detect(struct i2c_adap
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access asb100_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct asb100_data), GFP_KERNEL))) {
+-		pr_debug("asb100.o: detect failed, kmalloc failed!\n");
++	if (!(data = kzalloc(sizeof(struct asb100_data), GFP_KERNEL))) {
++		pr_debug("asb100.o: detect failed, kzalloc failed!\n");
+ 		err = -ENOMEM;
+ 		goto ERROR0;
+ 	}
+-	memset(data, 0, sizeof(struct asb100_data));
+ 
+ 	new_client = &data->client;
+ 	init_MUTEX(&data->lock);
+diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
+index 441324f..53324f5 100644
+--- a/drivers/hwmon/atxp1.c
++++ b/drivers/hwmon/atxp1.c
+@@ -268,12 +268,11 @@ static int atxp1_detect(struct i2c_adapt
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct atxp1_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct atxp1_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	memset(data, 0, sizeof(struct atxp1_data));
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+ 
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index e1ff22c..c5afa00 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -202,11 +202,10 @@ int ds1621_detect(struct i2c_adapter *ad
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access ds1621_{read,write}_value. */
+-	if (!(data = kmalloc(sizeof(struct ds1621_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct ds1621_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct ds1621_data));
+ 	
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/fscher.c b/drivers/hwmon/fscher.c
+index eef6061..a02e1c3 100644
+--- a/drivers/hwmon/fscher.c
++++ b/drivers/hwmon/fscher.c
+@@ -303,11 +303,10 @@ static int fscher_detect(struct i2c_adap
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	 * client structure, even though we cannot fill it completely yet.
+ 	 * But it allows us to access i2c_smbus_read_byte_data. */
+-	if (!(data = kmalloc(sizeof(struct fscher_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct fscher_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+   	}
+-	memset(data, 0, sizeof(struct fscher_data));
+ 
+ 	/* The common I2C client data is placed right before the
+ 	 * Hermes-specific data. */
+diff --git a/drivers/hwmon/fscpos.c b/drivers/hwmon/fscpos.c
+index 5fc77a5..a378e4f 100644
+--- a/drivers/hwmon/fscpos.c
++++ b/drivers/hwmon/fscpos.c
+@@ -453,11 +453,10 @@ int fscpos_detect(struct i2c_adapter *ad
+ 	 * But it allows us to access fscpos_{read,write}_value.
+ 	 */
+ 
+-	if (!(data = kmalloc(sizeof(struct fscpos_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct fscpos_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct fscpos_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/gl518sm.c b/drivers/hwmon/gl518sm.c
+index 256b932..2f178db 100644
+--- a/drivers/hwmon/gl518sm.c
++++ b/drivers/hwmon/gl518sm.c
+@@ -365,11 +365,10 @@ static int gl518_detect(struct i2c_adapt
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access gl518_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct gl518_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct gl518_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct gl518_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
+index 12fd757..c39ba12 100644
+--- a/drivers/hwmon/gl520sm.c
++++ b/drivers/hwmon/gl520sm.c
+@@ -536,11 +536,10 @@ static int gl520_detect(struct i2c_adapt
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access gl520_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct gl520_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct gl520_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct gl520_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 55e1c83..9a5b8b2 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -761,11 +761,10 @@ int it87_detect(struct i2c_adapter *adap
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access it87_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct it87_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct it87_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto ERROR1;
+ 	}
+-	memset(data, 0, sizeof(struct it87_data));
+ 
+ 	new_client = &data->client;
+ 	if (is_isa)
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index be5c709..954ec24 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -375,11 +375,10 @@ static int lm63_detect(struct i2c_adapte
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct lm63_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm63_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm63_data));
+ 
+ 	/* The common I2C client data is placed right before the
+ 	   LM63-specific data. */
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index 9a3ebdf..d70f4c8 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -127,11 +127,10 @@ static int lm75_detect(struct i2c_adapte
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access lm75_{read,write}_value. */
+-	if (!(data = kmalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm75_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm75_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+index 866eab9..9380fda 100644
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -226,11 +226,10 @@ static int lm77_detect(struct i2c_adapte
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access lm77_{read,write}_value. */
+-	if (!(data = kmalloc(sizeof(struct lm77_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm77_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm77_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+index d697a55..9244623 100644
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -540,11 +540,10 @@ int lm78_detect(struct i2c_adapter *adap
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access lm78_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct lm78_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm78_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto ERROR1;
+ 	}
+-	memset(data, 0, sizeof(struct lm78_data));
+ 
+ 	new_client = &data->client;
+ 	if (is_isa)
+diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
+index 83af8b3..b4cd6c6 100644
+--- a/drivers/hwmon/lm80.c
++++ b/drivers/hwmon/lm80.c
+@@ -407,11 +407,10 @@ int lm80_detect(struct i2c_adapter *adap
+ 	/* OK. For now, we presume we have a valid client. We now create the
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access lm80_{read,write}_value. */
+-	if (!(data = kmalloc(sizeof(struct lm80_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm80_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm80_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
+index d74b2c2..9a70611 100644
+--- a/drivers/hwmon/lm83.c
++++ b/drivers/hwmon/lm83.c
+@@ -230,11 +230,10 @@ static int lm83_detect(struct i2c_adapte
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct lm83_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm83_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm83_data));
+ 
+ 	/* The common I2C client data is placed right after the
+ 	 * LM83-specific data. */
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index ab214df..d5537a5 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -1033,11 +1033,10 @@ int lm85_detect(struct i2c_adapter *adap
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access lm85_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct lm85_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm85_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto ERROR0;
+ 	}
+-	memset(data, 0, sizeof(struct lm85_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
+index dca996d..eeec181 100644
+--- a/drivers/hwmon/lm87.c
++++ b/drivers/hwmon/lm87.c
+@@ -554,11 +554,10 @@ static int lm87_detect(struct i2c_adapte
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct lm87_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm87_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm87_data));
+ 
+ 	/* The common I2C client data is placed right before the
+ 	   LM87-specific data. */
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 14de05f..dad0f10 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -370,11 +370,10 @@ static int lm90_detect(struct i2c_adapte
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct lm90_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm90_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm90_data));
+ 
+ 	/* The common I2C client data is placed right before the
+ 	   LM90-specific data. */
+diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
+index 647b7c7..7a4b370 100644
+--- a/drivers/hwmon/lm92.c
++++ b/drivers/hwmon/lm92.c
+@@ -300,11 +300,10 @@ static int lm92_detect(struct i2c_adapte
+ 					    | I2C_FUNC_SMBUS_WORD_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct lm92_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct lm92_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct lm92_data));
+ 
+ 	/* Fill in enough client fields so that we can read from the chip,
+ 	   which is required for identication */
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+index 16bf71f..6a82ffa 100644
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -197,11 +197,10 @@ static int max1619_detect(struct i2c_ada
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct max1619_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct max1619_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct max1619_data));
+ 
+ 	/* The common I2C client data is placed right before the
+ 	   MAX1619-specific data. */
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index cf2a357..17f745a 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -754,9 +754,8 @@ static int pc87360_detect(struct i2c_ada
+ 	const char *name = "pc87360";
+ 	int use_thermistors = 0;
+ 
+-	if (!(data = kmalloc(sizeof(struct pc87360_data), GFP_KERNEL)))
++	if (!(data = kzalloc(sizeof(struct pc87360_data), GFP_KERNEL)))
  		return -ENOMEM;
--	memzero(drv_data, sizeof(*drv_data));
- 	drv_data->gpio_pins = gpio;
+-	memset(data, 0x00, sizeof(struct pc87360_data));
  
- 	drv_data->algo_data.data = gpio;
-diff --git a/drivers/i2c/busses/i2c-ixp4xx.c b/drivers/i2c/busses/i2c-ixp4xx.c
---- a/drivers/i2c/busses/i2c-ixp4xx.c
-+++ b/drivers/i2c/busses/i2c-ixp4xx.c
-@@ -105,12 +105,11 @@ static int ixp4xx_i2c_probe(struct devic
- 	struct platform_device *plat_dev = to_platform_device(dev);
- 	struct ixp4xx_i2c_pins *gpio = plat_dev->dev.platform_data;
- 	struct ixp4xx_i2c_data *drv_data = 
--		kmalloc(sizeof(struct ixp4xx_i2c_data), GFP_KERNEL);
-+		kzalloc(sizeof(struct ixp4xx_i2c_data), GFP_KERNEL);
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 21aa9a4..9c6cade 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -518,11 +518,10 @@ static int sis5595_detect(struct i2c_ada
+ 			goto exit_release;
+ 	}
  
- 	if(!drv_data)
+-	if (!(data = kmalloc(sizeof(struct sis5595_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct sis5595_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit_release;
+ 	}
+-	memset(data, 0, sizeof(struct sis5595_data));
+ 
+ 	new_client = &data->client;
+ 	new_client->addr = address;
+diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
+index 37ed8b3..2a3e21b 100644
+--- a/drivers/hwmon/smsc47b397.c
++++ b/drivers/hwmon/smsc47b397.c
+@@ -244,11 +244,10 @@ static int smsc47b397_detect(struct i2c_
+ 		return -EBUSY;
+ 	}
+ 
+-	if (!(data = kmalloc(sizeof(struct smsc47b397_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct smsc47b397_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto error_release;
+ 	}
+-	memset(data, 0x00, sizeof(struct smsc47b397_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index c9cc683..bbe93a0 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -396,11 +396,10 @@ static int smsc47m1_detect(struct i2c_ad
+ 		return -EBUSY;
+ 	}
+ 
+-	if (!(data = kmalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto error_release;
+ 	}
+-	memset(data, 0x00, sizeof(struct smsc47m1_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index c6e64f4..6f696f8 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -621,11 +621,10 @@ static int via686a_detect(struct i2c_ada
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!(data = kmalloc(sizeof(struct via686a_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct via686a_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit_release;
+ 	}
+-	memset(data, 0, sizeof(struct via686a_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 685eeb7..eee22a5 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -681,11 +681,10 @@ static int w83627ehf_detect(struct i2c_a
+ 		goto exit;
+ 	}
+ 
+-	if (!(data = kmalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit_release;
+ 	}
+-	memset(data, 0, sizeof(struct w83627ehf_data));
+ 
+ 	client = &data->client;
+ 	i2c_set_clientdata(client, data);
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 4827081..70ef926 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -1045,11 +1045,10 @@ static int w83627hf_detect(struct i2c_ad
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access w83627hf_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct w83627hf_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct w83627hf_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto ERROR1;
+ 	}
+-	memset(data, 0, sizeof(struct w83627hf_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+index 26b1fac..9265f32 100644
+--- a/drivers/hwmon/w83781d.c
++++ b/drivers/hwmon/w83781d.c
+@@ -889,12 +889,11 @@ w83781d_detect_subclients(struct i2c_ada
+ 	const char *client_name = "";
+ 	struct w83781d_data *data = i2c_get_clientdata(new_client);
+ 
+-	data->lm75[0] = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
++	data->lm75[0] = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+ 	if (!(data->lm75[0])) {
+ 		err = -ENOMEM;
+ 		goto ERROR_SC_0;
+ 	}
+-	memset(data->lm75[0], 0x00, sizeof (struct i2c_client));
+ 
+ 	id = i2c_adapter_id(adapter);
+ 
+@@ -919,13 +918,11 @@ w83781d_detect_subclients(struct i2c_ada
+ 	}
+ 
+ 	if (kind != w83783s) {
+-
+-		data->lm75[1] = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
++		data->lm75[1] = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+ 		if (!(data->lm75[1])) {
+ 			err = -ENOMEM;
+ 			goto ERROR_SC_1;
+ 		}
+-		memset(data->lm75[1], 0x0, sizeof(struct i2c_client));
+ 
+ 		if (force_subclients[0] = id &&
+ 		    force_subclients[1] = address) {
+@@ -1064,11 +1061,10 @@ w83781d_detect(struct i2c_adapter *adapt
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access w83781d_{read,write}_value. */
+ 
+-	if (!(data = kmalloc(sizeof(struct w83781d_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct w83781d_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto ERROR1;
+ 	}
+-	memset(data, 0, sizeof(struct w83781d_data));
+ 
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
+index 7bbd188..4be59db 100644
+--- a/drivers/hwmon/w83792d.c
++++ b/drivers/hwmon/w83792d.c
+@@ -1086,11 +1086,10 @@ w83792d_create_subclient(struct i2c_adap
+ 	int err;
+ 	struct i2c_client *sub_client;
+ 
+-	(*sub_cli) = sub_client = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
++	(*sub_cli) = sub_client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+ 	if (!(sub_client)) {
  		return -ENOMEM;
+ 	}
+-	memset(sub_client, 0x00, sizeof(struct i2c_client));
+ 	sub_client->addr = 0x48 + addr;
+ 	i2c_set_clientdata(sub_client, NULL);
+ 	sub_client->adapter = adapter;
+@@ -1184,11 +1183,10 @@ w83792d_detect(struct i2c_adapter *adapt
+ 	   client structure, even though we cannot fill it completely yet.
+ 	   But it allows us to access w83792d_{read,write}_value. */
  
--	memzero(drv_data, sizeof(struct ixp4xx_i2c_data));
- 	drv_data->gpio_pins = gpio;
+-	if (!(data = kmalloc(sizeof(struct w83792d_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct w83792d_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto ERROR0;
+ 	}
+-	memset(data, 0, sizeof(struct w83792d_data));
  
- 	/*
--- 
-Deepak Saxena - dsaxena@plexity.net - http://www.plexity.net
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
+index db12a62..f495b63 100644
+--- a/drivers/hwmon/w83l785ts.c
++++ b/drivers/hwmon/w83l785ts.c
+@@ -156,12 +156,10 @@ static int w83l785ts_detect(struct i2c_a
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		goto exit;
+ 
+-	if (!(data = kmalloc(sizeof(struct w83l785ts_data), GFP_KERNEL))) {
++	if (!(data = kzalloc(sizeof(struct w83l785ts_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+-	memset(data, 0, sizeof(struct w83l785ts_data));
+-
+ 
+ 	/* The common I2C client data is placed right before the
+ 	 * W83L785TS-specific data. */
 
-Even a stopped clock gives the right time twice a day.
