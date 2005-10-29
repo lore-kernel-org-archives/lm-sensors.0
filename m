@@ -1,172 +1,166 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 08 Oct 2005 00:22:23 +0000
-Subject: [lm-sensors] [PATCH 15/16] i2c: Fix i2c-elektor on Alpha
-Message-Id: <20051008002148.74087360.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:03:48 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Static function fixes, 3 of 4
+Message-Id: <11305336632602@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Stig Telfer <stig@lizardlogic.co.uk>
+[PATCH] hwmon: Static function fixes, 3 of 4
 
-This patch updates the i2c-elektor driver, enabling it to compile
-cleanly, load and run.  The key change is that it uses the new
-__iomem/iowrite8/ioread8 functions to abstract the direct or
-memory-mapped variants of register access.  Also, the original driver
-would crash on module load on the Alpha because the PCI memory region
-was not remapped into kernel memory.
+Fixup functions that have been declared static
+and then actually defined without the static on.
 
-I have managed the following testing: 
-
-* compiled and tested it on my Alpha UP2000+ system.
-* compiles cleanly for x86 but I don't have the hardware to test.
-
-Signed-off-by: Stig Telfer <stig@lizardlogic.co.uk>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
- drivers/i2c/busses/i2c-elektor.c |   74 +++++++++++++++++++++++++-------------
- 1 file changed, 49 insertions(+), 25 deletions(-)
+---
+commit c49efceffa599299ab3f38b1cdf8c2f1bf9811c4
+tree e7b0124f85ad5563875c92679545f4c2fb38c956
+parent d8d2061590c87c20bf78133461bc74df78803ecb
+author Ben Dooks <ben-linux@fluff.org> Wed, 26 Oct 2005 21:07:25 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:13 -0700
 
---- linux-2.6.14-rc3.orig/drivers/i2c/busses/i2c-elektor.c	2005-10-05 21:55:34.000000000 +0200
-+++ linux-2.6.14-rc3/drivers/i2c/busses/i2c-elektor.c	2005-10-06 22:18:20.000000000 +0200
-@@ -46,6 +46,8 @@
- #define DEFAULT_BASE 0x330
+ drivers/hwmon/adm1026.c |   18 +++++++++---------
+ drivers/hwmon/ds1621.c  |    4 ++--
+ drivers/hwmon/fscpos.c  |    2 +-
+ drivers/hwmon/it87.c    |    2 +-
+ drivers/hwmon/lm80.c    |    2 +-
+ 5 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/hwmon/adm1026.c b/drivers/hwmon/adm1026.c
+index 3b58141..e0f5654 100644
+--- a/drivers/hwmon/adm1026.c
++++ b/drivers/hwmon/adm1026.c
+@@ -315,7 +315,7 @@ static struct i2c_driver adm1026_driver 
+ 	.detach_client  = adm1026_detach_client,
+ };
  
- static int base;
-+static u8 __iomem *base_iomem;
-+
- static int irq;
- static int clock  = 0x1c;
- static int own    = 0x55;
-@@ -64,36 +66,27 @@
- 
- static void pcf_isa_setbyte(void *data, int ctl, int val)
+-int adm1026_attach_adapter(struct i2c_adapter *adapter)
++static int adm1026_attach_adapter(struct i2c_adapter *adapter)
  {
--	int address = ctl ? (base + 1) : base;
-+	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
- 
- 	/* enable irq if any specified for serial operation */
- 	if (ctl && irq && (val & I2C_PCF_ESO)) {
- 		val |= I2C_PCF_ENI;
- 	}
- 
--	pr_debug("i2c-elektor: Write 0x%X 0x%02X\n", address, val & 255);
--
--	switch (mmapped) {
--	case 0: /* regular I/O */
--		outb(val, address);
--		break;
--	case 2: /* double mapped I/O needed for UP2000 board,
--                   I don't know why this... */
--		writeb(val, (void *)address);
--		/* fall */
--	case 1: /* memory mapped I/O */
--		writeb(val, (void *)address);
--		break;
--	}
-+	pr_debug("i2c-elektor: Write %p 0x%02X\n", address, val);
-+	iowrite8(val, address);
-+#ifdef __alpha__
-+	/* API UP2000 needs some hardware fudging to make the write stick */
-+	iowrite8(val, address);
-+#endif
+ 	if (!(adapter->class & I2C_CLASS_HWMON)) {
+ 		return 0;
+@@ -323,7 +323,7 @@ int adm1026_attach_adapter(struct i2c_ad
+ 	return i2c_probe(adapter, &addr_data, adm1026_detect);
  }
  
- static int pcf_isa_getbyte(void *data, int ctl)
+-int adm1026_detach_client(struct i2c_client *client)
++static int adm1026_detach_client(struct i2c_client *client)
  {
--	int address = ctl ? (base + 1) : base;
--	int val = mmapped ? readb((void *)address) : inb(address);
--
--	pr_debug("i2c-elektor: Read 0x%X 0x%02X\n", address, val);
-+	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
-+	int val = ioread8(address);
- 
-+	pr_debug("i2c-elektor: Read %p 0x%02X\n", address, val);
- 	return (val);
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->class_dev);
+@@ -332,7 +332,7 @@ int adm1026_detach_client(struct i2c_cli
+ 	return 0;
  }
  
-@@ -155,7 +148,30 @@
- 			       "is in use.\n", base);
- 			return -ENODEV;
- 		}
-+		base_iomem = ioport_map(base, 2);
-+		if (!base_iomem) {
-+			printk(KERN_ERR "i2c-elektor: remap of I/O region "
-+			       "%#x failed\n", base);
-+			release_region(base, 2);
-+			return -ENODEV;
-+		}
-+	} else {
-+		if (!request_mem_region(base, 2, "i2c-elektor")) {
-+			printk(KERN_ERR "i2c-elektor: requested memory region "
-+			       "(%#x:2) is in use\n", base);
-+			return -ENODEV;
-+		}
-+		base_iomem = ioremap(base, 2);
-+		if (base_iomem = NULL) {
-+			printk(KERN_ERR "i2c-elektor: remap of memory region "
-+			       "%#x failed\n", base);
-+			release_mem_region(base, 2);
-+			return -ENODEV;
-+		}
- 	}
-+	pr_debug("i2c-elektor: registers %#x remapped to %p\n", base,
-+		 base_iomem);
-+
- 	if (irq > 0) {
- 		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
- 			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
-@@ -200,7 +216,7 @@
- 		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ, 
- 					   PCI_DEVICE_ID_CONTAQ_82C693, NULL);
- 		if (cy693_dev) {
--			char config;
-+			unsigned char config;
- 			/* yeap, we've found cypress, let's check config */
- 			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
- 				
-@@ -219,9 +235,7 @@
- 				if ((config & 0x7f) = 0x61) {
- 					/* seems to be UP2000 like board */
- 					base = 0xe0000;
--                                        /* I don't know why we need to
--                                           write twice */
--					mmapped = 2;
-+					mmapped = 1;
-                                         /* UP2000 drives ISA with
- 					   8.25 MHz (PCI/4) clock
- 					   (this can be read from cypress) */
-@@ -262,8 +276,13 @@
- 		free_irq(irq, NULL);
- 	}
+-int adm1026_read_value(struct i2c_client *client, u8 reg)
++static int adm1026_read_value(struct i2c_client *client, u8 reg)
+ {
+ 	int res;
  
--	if (!mmapped)
-+	if (!mmapped) {
-+		ioport_unmap(base_iomem);
- 		release_region(base , 2);
-+	} else {
-+		iounmap(base_iomem);
-+		release_mem_region(base, 2);
-+	}
- 	return -ENODEV;
+@@ -346,7 +346,7 @@ int adm1026_read_value(struct i2c_client
+ 	return res;
  }
  
-@@ -276,8 +295,13 @@
- 		free_irq(irq, NULL);
- 	}
+-int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
++static int adm1026_write_value(struct i2c_client *client, u8 reg, int value)
+ {
+ 	int res;
  
--	if (!mmapped)
-+	if (!mmapped) {
-+		ioport_unmap(base_iomem);
- 		release_region(base , 2);
-+	} else {
-+		iounmap(base_iomem);
-+		release_mem_region(base, 2);
-+	}
+@@ -360,7 +360,7 @@ int adm1026_write_value(struct i2c_clien
+ 	return res;
  }
  
- MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
+-void adm1026_init_client(struct i2c_client *client)
++static void adm1026_init_client(struct i2c_client *client)
+ {
+ 	int value, i;
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+@@ -460,7 +460,7 @@ void adm1026_init_client(struct i2c_clie
+ 	}
+ }
+ 
+-void adm1026_print_gpio(struct i2c_client *client)
++static void adm1026_print_gpio(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int  i;
+@@ -492,7 +492,7 @@ void adm1026_print_gpio(struct i2c_clien
+ 	}
+ }
+ 
+-void adm1026_fixup_gpio(struct i2c_client *client)
++static void adm1026_fixup_gpio(struct i2c_client *client)
+ {
+ 	struct adm1026_data *data = i2c_get_clientdata(client);
+ 	int  i;
+@@ -1452,8 +1452,8 @@ static DEVICE_ATTR(temp1_auto_point2_pwm
+ static DEVICE_ATTR(temp2_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
+ static DEVICE_ATTR(temp3_auto_point2_pwm, S_IRUGO, show_auto_pwm_max, NULL);
+ 
+-int adm1026_detect(struct i2c_adapter *adapter, int address,
+-		int kind)
++static int adm1026_detect(struct i2c_adapter *adapter, int address,
++			  int kind)
+ {
+ 	int company, verstep;
+ 	struct i2c_client *new_client;
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index c5afa00..34f71b7 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -186,8 +186,8 @@ static int ds1621_attach_adapter(struct 
+ }
+ 
+ /* This function is called by i2c_probe */
+-int ds1621_detect(struct i2c_adapter *adapter, int address,
+-                  int kind)
++static int ds1621_detect(struct i2c_adapter *adapter, int address,
++			 int kind)
+ {
+ 	int conf, temp;
+ 	struct i2c_client *new_client;
+diff --git a/drivers/hwmon/fscpos.c b/drivers/hwmon/fscpos.c
+index a378e4f..64e4edc 100644
+--- a/drivers/hwmon/fscpos.c
++++ b/drivers/hwmon/fscpos.c
+@@ -438,7 +438,7 @@ static int fscpos_attach_adapter(struct 
+ 	return i2c_probe(adapter, &addr_data, fscpos_detect);
+ }
+ 
+-int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
++static int fscpos_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	struct i2c_client *new_client;
+ 	struct fscpos_data *data;
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 9a5b8b2..6c41e25 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -738,7 +738,7 @@ exit:
+ }
+ 
+ /* This function is called by i2c_probe */
+-int it87_detect(struct i2c_adapter *adapter, int address, int kind)
++static int it87_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i;
+ 	struct i2c_client *new_client;
+diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
+index b4cd6c6..c359fde 100644
+--- a/drivers/hwmon/lm80.c
++++ b/drivers/hwmon/lm80.c
+@@ -393,7 +393,7 @@ static int lm80_attach_adapter(struct i2
+ 	return i2c_probe(adapter, &addr_data, lm80_detect);
+ }
+ 
+-int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
++static int lm80_detect(struct i2c_adapter *adapter, int address, int kind)
+ {
+ 	int i, cur;
+ 	struct i2c_client *new_client;
 
--- 
-Jean Delvare
