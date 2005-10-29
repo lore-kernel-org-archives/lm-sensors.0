@@ -1,64 +1,67 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 21:13:32 +0000
-Subject: [lm-sensors] [PATCH 05/16] i2c: ID redefinition cleanups, 1 of 2
-Message-Id: <20051026211416.293d8e42.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:14:59 +0000
+Subject: [lm-sensors] [PATCH] i2c: Adjust i2c_probe() for busses without
+Message-Id: <11305336583202@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-id-clean-redefinitions-1.patch
+[PATCH] i2c: Adjust i2c_probe() for busses without SMBUS_QUICK
 
-Fix several redefinitions of i2c IDs. i2c IDs must not be defined
-outside of i2c-id.h.
+Move the check for SMBUS_QUICK in i2c_probe() after the forced
+addresses have been handled. This makes it possible for a driver to
+leave the probed address lists empty, only providing forced addresses,
+and get i2c_probe to work even if the bus doesn't support SMBUS_QUICK.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Henk Vergonet <henk@god.dyndns.org>
-Acked-by: Mark McClelland <mark@alpha.dyndns.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+ drivers/i2c/i2c-core.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
 ---
- drivers/i2c/busses/i2c-prosavage.c |    5 -----
- include/media/ovcamchip.h          |   14 --------------
- 2 files changed, 19 deletions(-)
+commit 4366dc946c01305cff49b07dabb806d2364f1edb
+tree 0cc9f6a086d47f3b8688f2f8c8ce6d924be97d03
+parent cb929eae78ec0b243dbf58039bce4af354f6020c
+author Jean Delvare <khali@linux-fr.org> Sun, 25 Sep 2005 16:50:06 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:07 -0700
 
---- linux-2.6.14-rc5.orig/drivers/i2c/busses/i2c-prosavage.c	2005-10-23 17:35:36.000000000 +0200
-+++ linux-2.6.14-rc5/drivers/i2c/busses/i2c-prosavage.c	2005-10-23 17:35:46.000000000 +0200
-@@ -83,11 +83,6 @@
- /*
-  * i2c configuration
-  */
--#ifndef I2C_HW_B_S3VIA
--#define I2C_HW_B_S3VIA	0x18	/* S3VIA ProSavage adapter		*/
--#endif
--
--/* delays */
- #define CYCLE_DELAY	10
- #define TIMEOUT		(HZ / 2)
- 
---- linux-2.6.14-rc5.orig/include/media/ovcamchip.h	2005-10-23 17:35:21.000000000 +0200
-+++ linux-2.6.14-rc5/include/media/ovcamchip.h	2005-10-23 17:35:46.000000000 +0200
-@@ -17,20 +17,6 @@
- #include <linux/videodev.h>
- #include <linux/i2c.h>
- 
--/* Remove these once they are officially defined */
--#ifndef I2C_DRIVERID_OVCAMCHIP
--	#define I2C_DRIVERID_OVCAMCHIP	0xf00f
--#endif
--#ifndef I2C_HW_SMBUS_OV511
--	#define I2C_HW_SMBUS_OV511	0xfe
--#endif
--#ifndef I2C_HW_SMBUS_OV518
--	#define I2C_HW_SMBUS_OV518	0xff
--#endif
--#ifndef I2C_HW_SMBUS_OVFX2
--	#define I2C_HW_SMBUS_OVFX2	0xfd
--#endif
--
- /* --------------------------------- */
- /*           ENUMERATIONS            */
- /* --------------------------------- */
+ drivers/i2c/i2c-core.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 45aa0e5..b55097d 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -706,10 +706,6 @@ int i2c_probe(struct i2c_adapter *adapte
+ 	int i, err;
+ 	int adap_id = i2c_adapter_id(adapter);
+ 
+-	/* Forget it if we can't probe using SMBUS_QUICK */
+-	if (! i2c_check_functionality(adapter,I2C_FUNC_SMBUS_QUICK))
+-		return -1;
+-
+ 	/* Force entries are done first, and are not affected by ignore
+ 	   entries */
+ 	if (address_data->forces) {
+@@ -736,6 +732,17 @@ int i2c_probe(struct i2c_adapter *adapte
+ 		}
+ 	}
+ 
++	/* Stop here if we can't use SMBUS_QUICK */
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_QUICK)) {
++		if (address_data->probe[0] = I2C_CLIENT_END
++		 && address_data->normal_i2c[0] = I2C_CLIENT_END)
++		 	return 0;
++
++		dev_warn(&adapter->dev, "SMBus Quick command not supported, "
++			 "can't probe for chips\n");
++		return -1;
++	}
++
+ 	/* Probe entries are done second, and are not affected by ignore
+ 	   entries either */
+ 	for (i = 0; address_data->probe[i] != I2C_CLIENT_END; i += 2) {
+
