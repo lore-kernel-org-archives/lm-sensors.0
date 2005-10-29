@@ -1,495 +1,180 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:31:51 +0000
-Subject: [lm-sensors] [PATCH] hwmon: adm9240 driver update - dynamic sysfs
-Message-Id: <11305336572831@kroah.com>
+Date: Sat, 29 Oct 2005 01:30:59 +0000
+Subject: [lm-sensors] [PATCH] i2c: Fix i2c-elektor on Alpha
+Message-Id: <1130533661606@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: adm9240 driver update - dynamic sysfs
+[PATCH] i2c: Fix i2c-elektor on Alpha
 
-hwmon: adm9240 update 2/2: convert to use dynamic sysfs accessors
+This patch updates the i2c-elektor driver, enabling it to compile
+cleanly, load and run.  The key change is that it uses the new
+__iomem/iowrite8/ioread8 functions to abstract the direct or
+memory-mapped variants of register access.  Also, the original driver
+would crash on module load on the Alpha because the PCI memory region
+was not remapped into kernel memory.
 
-This patch converts adm9240 to use Yani Ioannou's dynamic sysfs callbacks,
-reducing driver memory footprint from 16312 to 14104 bytes on 2.6.14-rc1,
-removing the old driver macro mess.
+I have managed the following testing:
 
-Run tested on Intel SE440BX-2 mobo.
+* compiled and tested it on my Alpha UP2000+ system.
+* compiles cleanly for x86 but I don't have the hardware to test.
 
-Signed-off-by: Grant Coady <gcoady@gmail.com>
+Signed-off-by: Stig Telfer <stig@lizardlogic.co.uk>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit c7461a6652f40ce4f8e19d7368c7a807a618fb68
-tree b70812c3be404c00d6733c0cf95a8f0bcbab0ab7
-parent 205cf13e0b57500e2cc6442effa991c1a63f4db7
-author Grant Coady <grant_lkml@dodo.com.au> Sat, 17 Sep 2005 05:32:57 +1000
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:05 -0700
+commit 3634ff6a32e90d9db0ec19297e80059143c1aa7f
+tree c07cf34e839b70d9ab1c604b179943b199d542f3
+parent 00bffb6e29c5ef12cea7904905f8b959187076c9
+author Stig Telfer <stig@lizardlogic.co.uk> Sat, 08 Oct 2005 00:21:48 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:10 -0700
 
- drivers/hwmon/adm9240.c |  340 +++++++++++++++++++++++------------------------
- 1 files changed, 165 insertions(+), 175 deletions(-)
+ drivers/i2c/busses/i2c-elektor.c |   74 +++++++++++++++++++++++++-------------
+ 1 files changed, 49 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
-index ecef342..8bb6d6e 100644
---- a/drivers/hwmon/adm9240.c
-+++ b/drivers/hwmon/adm9240.c
-@@ -45,6 +45,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-+#include <linux/hwmon-sysfs.h>
- #include <linux/hwmon.h>
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
-@@ -69,8 +70,7 @@ I2C_CLIENT_INSMOD_3(adm9240, ds1780, lm8
- #define ADM9240_REG_INT(nr)		(0x41 + (nr))
- #define ADM9240_REG_INT_MASK(nr)	(0x43 + (nr))
- #define ADM9240_REG_TEMP		0x27
--#define ADM9240_REG_TEMP_HIGH		0x39
--#define ADM9240_REG_TEMP_HYST		0x3a
-+#define ADM9240_REG_TEMP_MAX(nr)	(0x39 + (nr)) /* 0, 1 = high, hyst */
- #define ADM9240_REG_ANALOG_OUT		0x19
- #define ADM9240_REG_CHASSIS_CLEAR	0x46
- #define ADM9240_REG_VID_FAN_DIV		0x47
-@@ -162,8 +162,7 @@ struct adm9240_data {
- 	u8 fan_min[2];		/* rw	fan1_min */
- 	u8 fan_div[2];		/* rw	fan1_div, read-only accessor */
- 	s16 temp;		/* ro	temp1_input, 9-bit sign-extended */
--	s8 temp_high;		/* rw	temp1_max */
--	s8 temp_hyst;		/* rw	temp1_max_hyst */
-+	s8 temp_max[2];		/* rw	0 -> temp_max, 1 -> temp_max_hyst */
- 	u16 alarms;		/* ro	alarms */
- 	u8 aout;		/* rw	aout_output */
- 	u8 vid;			/* ro	vid */
-@@ -173,157 +172,143 @@ struct adm9240_data {
- /*** sysfs accessors ***/
+diff --git a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
+index 6930b66..75b4b44 100644
+--- a/drivers/i2c/busses/i2c-elektor.c
++++ b/drivers/i2c/busses/i2c-elektor.c
+@@ -46,6 +46,8 @@
+ #define DEFAULT_BASE 0x330
  
- /* temperature */
--#define show_temp(value, scale)					\
--static ssize_t show_##value(struct device *dev,			\
--			    struct device_attribute *attr,	\
--			    char *buf)				\
--{								\
--	struct adm9240_data *data = adm9240_update_device(dev);	\
--	return sprintf(buf, "%d\n", data->value * scale);	\
--}
--show_temp(temp_high, 1000);
--show_temp(temp_hyst, 1000);
--show_temp(temp, 500); /* 0.5'C per bit */
--
--#define set_temp(value, reg)					\
--static ssize_t set_##value(struct device *dev, 			\
--			   struct device_attribute *attr,	\
--			   const char *buf, size_t count)	\
--{								\
--	struct i2c_client *client = to_i2c_client(dev);		\
--	struct adm9240_data *data = adm9240_update_device(dev);	\
--	long temp = simple_strtoul(buf, NULL, 10);		\
--								\
--	down(&data->update_lock);				\
--	data->value = TEMP_TO_REG(temp);			\
--	i2c_smbus_write_byte_data(client, reg, data->value);	\
--	up(&data->update_lock);					\
--	return count;						\
--}
--
--set_temp(temp_high, ADM9240_REG_TEMP_HIGH);
--set_temp(temp_hyst, ADM9240_REG_TEMP_HYST);
--
--static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
--		show_temp_high, set_temp_high);
--static DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
--		show_temp_hyst, set_temp_hyst);
-+static ssize_t show_temp(struct device *dev, struct device_attribute *dummy,
-+		char *buf)
-+{
-+	struct adm9240_data *data = adm9240_update_device(dev);
-+	return sprintf(buf, "%d\n", data->temp * 500); /* 9-bit value */
-+}
+ static int base;
++static u8 __iomem *base_iomem;
 +
-+static ssize_t show_max(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adm9240_data *data = adm9240_update_device(dev);
-+	return sprintf(buf, "%d\n", data->temp_max[attr->index] * 1000);
-+}
-+
-+static ssize_t set_max(struct device *dev, struct device_attribute *devattr,
-+		const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adm9240_data *data = i2c_get_clientdata(client);
-+	long val = simple_strtol(buf, NULL, 10);
-+
-+	down(&data->update_lock);
-+	data->temp_max[attr->index] = TEMP_TO_REG(val);
-+	i2c_smbus_write_byte_data(client, ADM9240_REG_TEMP_MAX(attr->index),
-+			data->temp_max[attr->index]);
-+	up(&data->update_lock);
-+	return count;
-+}
-+
- static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-+		show_max, set_max, 0);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
-+		show_max, set_max, 1);
+ static int irq;
+ static int clock  = 0x1c;
+ static int own    = 0x55;
+@@ -64,36 +66,27 @@ static spinlock_t lock;
  
- /* voltage */
--static ssize_t show_in(struct device *dev, char *buf, int nr)
-+static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
+ static void pcf_isa_setbyte(void *data, int ctl, int val)
  {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[nr], nr));
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in[attr->index],
-+				attr->index));
- }
+-	int address = ctl ? (base + 1) : base;
++	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
  
--static ssize_t show_in_min(struct device *dev, char *buf, int nr)
-+static ssize_t show_in_min(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[nr], nr));
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_min[attr->index],
-+				attr->index));
- }
- 
--static ssize_t show_in_max(struct device *dev, char *buf, int nr)
-+static ssize_t show_in_max(struct device *dev, struct device_attribute *devattr,
-+		char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[nr], nr));
-+	return sprintf(buf, "%d\n", IN_FROM_REG(data->in_max[attr->index],
-+				attr->index));
- }
- 
--static ssize_t set_in_min(struct device *dev, const char *buf,
--		size_t count, int nr)
-+static ssize_t set_in_min(struct device *dev, struct device_attribute *devattr,
-+		const char *buf, size_t count)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm9240_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	down(&data->update_lock);
--	data->in_min[nr] = IN_TO_REG(val, nr);
--	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(nr),
--			data->in_min[nr]);
-+	data->in_min[attr->index] = IN_TO_REG(val, attr->index);
-+	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MIN(attr->index),
-+			data->in_min[attr->index]);
- 	up(&data->update_lock);
- 	return count;
- }
- 
--static ssize_t set_in_max(struct device *dev, const char *buf,
--		size_t count, int nr)
-+static ssize_t set_in_max(struct device *dev, struct device_attribute *devattr,
-+		const char *buf, size_t count)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm9240_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
- 	down(&data->update_lock);
--	data->in_max[nr] = IN_TO_REG(val, nr);
--	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(nr),
--			data->in_max[nr]);
-+	data->in_max[attr->index] = IN_TO_REG(val, attr->index);
-+	i2c_smbus_write_byte_data(client, ADM9240_REG_IN_MAX(attr->index),
-+			data->in_max[attr->index]);
- 	up(&data->update_lock);
- 	return count;
- }
- 
--#define show_in_offset(offset)						\
--static ssize_t show_in##offset(struct device *dev,			\
--			       struct device_attribute *attr,		\
--			       char *buf)				\
--{									\
--	return show_in(dev, buf, offset);				\
--}									\
--static DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in##offset, NULL);	\
--static ssize_t show_in##offset##_min(struct device *dev,		\
--				     struct device_attribute *attr,	\
--				     char *buf)				\
--{									\
--	return show_in_min(dev, buf, offset);				\
--}									\
--static ssize_t show_in##offset##_max(struct device *dev,		\
--				     struct device_attribute *attr,	\
--				     char *buf)				\
--{									\
--	return show_in_max(dev, buf, offset);				\
--}									\
--static ssize_t								\
--set_in##offset##_min(struct device *dev,				\
--		     struct device_attribute *attr, const char *buf,	\
--		     size_t count)					\
--{									\
--	return set_in_min(dev, buf, count, offset);			\
--}									\
--static ssize_t								\
--set_in##offset##_max(struct device *dev,				\
--		     struct device_attribute *attr, const char *buf,	\
--		     size_t count)					\
--{									\
--	return set_in_max(dev, buf, count, offset);			\
--}									\
--static DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,			\
--		show_in##offset##_min, set_in##offset##_min);		\
--static DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,			\
--		show_in##offset##_max, set_in##offset##_max);
--
--show_in_offset(0);
--show_in_offset(1);
--show_in_offset(2);
--show_in_offset(3);
--show_in_offset(4);
--show_in_offset(5);
-+#define vin(nr)							\
-+static SENSOR_DEVICE_ATTR(in##nr##_input, S_IRUGO, 		\
-+		show_in, NULL, nr);				\
-+static SENSOR_DEVICE_ATTR(in##nr##_min, S_IRUGO | S_IWUSR,	\
-+		show_in_min, set_in_min, nr);			\
-+static SENSOR_DEVICE_ATTR(in##nr##_max, S_IRUGO | S_IWUSR,	\
-+		show_in_max, set_in_max, nr);
-+
-+vin(0);
-+vin(1);
-+vin(2);
-+vin(3);
-+vin(4);
-+vin(5);
- 
- /* fans */
--static ssize_t show_fan(struct device *dev, char *buf, int nr)
-+static ssize_t show_fan(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
--				1 << data->fan_div[nr]));
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
-+				1 << data->fan_div[attr->index]));
- }
- 
--static ssize_t show_fan_min(struct device *dev, char *buf, int nr)
-+static ssize_t show_fan_min(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
--				1 << data->fan_div[nr]));
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[attr->index],
-+				1 << data->fan_div[attr->index]));
- }
- 
--static ssize_t show_fan_div(struct device *dev, char *buf, int nr)
-+static ssize_t show_fan_div(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct adm9240_data *data = adm9240_update_device(dev);
--	return sprintf(buf, "%d\n", 1 << data->fan_div[nr]);
-+	return sprintf(buf, "%d\n", 1 << data->fan_div[attr->index]);
- }
- 
- /* write new fan div, callers must hold data->update_lock */
-@@ -352,12 +337,15 @@ static void adm9240_write_fan_div(struct
-  * - otherwise: select fan clock divider to suit fan speed low limit,
-  *   measurement code may adjust registers to ensure fan speed reading
-  */
--static ssize_t set_fan_min(struct device *dev, const char *buf,
--		size_t count, int nr)
-+static ssize_t set_fan_min(struct device *dev,
-+		struct device_attribute *devattr,
-+		const char *buf, size_t count)
- {
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm9240_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
-+	int nr = attr->index;
- 	u8 new_div;
- 
- 	down(&data->update_lock);
-@@ -404,40 +392,16 @@ static ssize_t set_fan_min(struct device
- 	return count;
- }
- 
--#define show_fan_offset(offset)						\
--static ssize_t show_fan_##offset (struct device *dev,			\
--				  struct device_attribute *attr,	\
--				  char *buf)				\
--{									\
--return show_fan(dev, buf, offset - 1);					\
--}									\
--static ssize_t show_fan_##offset##_div (struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
--{									\
--return show_fan_div(dev, buf, offset - 1);				\
--}									\
--static ssize_t show_fan_##offset##_min (struct device *dev,		\
--					struct device_attribute *attr,	\
--					char *buf)			\
--{									\
--return show_fan_min(dev, buf, offset - 1);				\
--}									\
--static ssize_t set_fan_##offset##_min (struct device *dev, 		\
--				       struct device_attribute *attr,	\
--				       const char *buf, size_t count)	\
--{									\
--return set_fan_min(dev, buf, count, offset - 1);			\
--}									\
--static DEVICE_ATTR(fan##offset##_input, S_IRUGO, 			\
--		show_fan_##offset, NULL);				\
--static DEVICE_ATTR(fan##offset##_div, S_IRUGO, 				\
--		show_fan_##offset##_div, NULL);				\
--static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, 		\
--		show_fan_##offset##_min, set_fan_##offset##_min);
-+#define fan(nr)							\
-+static SENSOR_DEVICE_ATTR(fan##nr##_input, S_IRUGO,		\
-+		show_fan, NULL, nr - 1);			\
-+static SENSOR_DEVICE_ATTR(fan##nr##_div, S_IRUGO,		\
-+		show_fan_div, NULL, nr - 1);			\
-+static SENSOR_DEVICE_ATTR(fan##nr##_min, S_IRUGO | S_IWUSR,	\
-+		show_fan_min, set_fan_min, nr - 1);
- 
--show_fan_offset(1);
--show_fan_offset(2);
-+fan(1);
-+fan(2);
- 
- /* alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
-@@ -580,33 +544,59 @@ static int adm9240_detect(struct i2c_ada
- 		goto exit_detach;
+ 	/* enable irq if any specified for serial operation */
+ 	if (ctl && irq && (val & I2C_PCF_ESO)) {
+ 		val |= I2C_PCF_ENI;
  	}
  
--	device_create_file(&new_client->dev, &dev_attr_in0_input);
--	device_create_file(&new_client->dev, &dev_attr_in0_min);
--	device_create_file(&new_client->dev, &dev_attr_in0_max);
--	device_create_file(&new_client->dev, &dev_attr_in1_input);
--	device_create_file(&new_client->dev, &dev_attr_in1_min);
--	device_create_file(&new_client->dev, &dev_attr_in1_max);
--	device_create_file(&new_client->dev, &dev_attr_in2_input);
--	device_create_file(&new_client->dev, &dev_attr_in2_min);
--	device_create_file(&new_client->dev, &dev_attr_in2_max);
--	device_create_file(&new_client->dev, &dev_attr_in3_input);
--	device_create_file(&new_client->dev, &dev_attr_in3_min);
--	device_create_file(&new_client->dev, &dev_attr_in3_max);
--	device_create_file(&new_client->dev, &dev_attr_in4_input);
--	device_create_file(&new_client->dev, &dev_attr_in4_min);
--	device_create_file(&new_client->dev, &dev_attr_in4_max);
--	device_create_file(&new_client->dev, &dev_attr_in5_input);
--	device_create_file(&new_client->dev, &dev_attr_in5_min);
--	device_create_file(&new_client->dev, &dev_attr_in5_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max);
--	device_create_file(&new_client->dev, &dev_attr_temp1_max_hyst);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in0_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in0_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in0_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in1_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in1_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in1_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in2_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in2_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in2_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in3_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in3_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in3_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in4_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in4_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in4_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in5_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in5_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_in5_max.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_temp1_input);
--	device_create_file(&new_client->dev, &dev_attr_fan1_input);
--	device_create_file(&new_client->dev, &dev_attr_fan1_div);
--	device_create_file(&new_client->dev, &dev_attr_fan1_min);
--	device_create_file(&new_client->dev, &dev_attr_fan2_input);
--	device_create_file(&new_client->dev, &dev_attr_fan2_div);
--	device_create_file(&new_client->dev, &dev_attr_fan2_min);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_temp1_max.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_temp1_max_hyst.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan1_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan1_div.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan1_min.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan2_input.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan2_div.dev_attr);
-+	device_create_file(&new_client->dev,
-+			&sensor_dev_attr_fan2_min.dev_attr);
- 	device_create_file(&new_client->dev, &dev_attr_alarms);
- 	device_create_file(&new_client->dev, &dev_attr_aout_output);
- 	device_create_file(&new_client->dev, &dev_attr_chassis_clear);
-@@ -674,9 +664,9 @@ static void adm9240_init_client(struct i
- 		i2c_smbus_write_byte_data(client,
- 				ADM9240_REG_FAN_MIN(1), 255);
- 		i2c_smbus_write_byte_data(client,
--				ADM9240_REG_TEMP_HIGH, 127);
-+				ADM9240_REG_TEMP_MAX(0), 127);
- 		i2c_smbus_write_byte_data(client,
--				ADM9240_REG_TEMP_HYST, 127);
-+				ADM9240_REG_TEMP_MAX(1), 127);
+-	pr_debug("i2c-elektor: Write 0x%X 0x%02X\n", address, val & 255);
+-
+-	switch (mmapped) {
+-	case 0: /* regular I/O */
+-		outb(val, address);
+-		break;
+-	case 2: /* double mapped I/O needed for UP2000 board,
+-                   I don't know why this... */
+-		writeb(val, (void *)address);
+-		/* fall */
+-	case 1: /* memory mapped I/O */
+-		writeb(val, (void *)address);
+-		break;
+-	}
++	pr_debug("i2c-elektor: Write %p 0x%02X\n", address, val);
++	iowrite8(val, address);
++#ifdef __alpha__
++	/* API UP2000 needs some hardware fudging to make the write stick */
++	iowrite8(val, address);
++#endif
+ }
  
- 		/* start measurement cycle */
- 		i2c_smbus_write_byte_data(client, ADM9240_REG_CONFIG, 1);
-@@ -753,10 +743,10 @@ static struct adm9240_data *adm9240_upda
- 			data->fan_min[i] = i2c_smbus_read_byte_data(client,
- 					ADM9240_REG_FAN_MIN(i));
+ static int pcf_isa_getbyte(void *data, int ctl)
+ {
+-	int address = ctl ? (base + 1) : base;
+-	int val = mmapped ? readb((void *)address) : inb(address);
+-
+-	pr_debug("i2c-elektor: Read 0x%X 0x%02X\n", address, val);
++	u8 __iomem *address = ctl ? (base_iomem + 1) : base_iomem;
++	int val = ioread8(address);
+ 
++	pr_debug("i2c-elektor: Read %p 0x%02X\n", address, val);
+ 	return (val);
+ }
+ 
+@@ -155,7 +148,30 @@ static int pcf_isa_init(void)
+ 			       "is in use.\n", base);
+ 			return -ENODEV;
  		}
--		data->temp_high = i2c_smbus_read_byte_data(client,
--				ADM9240_REG_TEMP_HIGH);
--		data->temp_hyst = i2c_smbus_read_byte_data(client,
--				ADM9240_REG_TEMP_HYST);
-+		data->temp_max[0] = i2c_smbus_read_byte_data(client,
-+				ADM9240_REG_TEMP_MAX(0));
-+		data->temp_max[1] = i2c_smbus_read_byte_data(client,
-+				ADM9240_REG_TEMP_MAX(1));
++		base_iomem = ioport_map(base, 2);
++		if (!base_iomem) {
++			printk(KERN_ERR "i2c-elektor: remap of I/O region "
++			       "%#x failed\n", base);
++			release_region(base, 2);
++			return -ENODEV;
++		}
++	} else {
++		if (!request_mem_region(base, 2, "i2c-elektor")) {
++			printk(KERN_ERR "i2c-elektor: requested memory region "
++			       "(%#x:2) is in use\n", base);
++			return -ENODEV;
++		}
++		base_iomem = ioremap(base, 2);
++		if (base_iomem = NULL) {
++			printk(KERN_ERR "i2c-elektor: remap of memory region "
++			       "%#x failed\n", base);
++			release_mem_region(base, 2);
++			return -ENODEV;
++		}
+ 	}
++	pr_debug("i2c-elektor: registers %#x remapped to %p\n", base,
++		 base_iomem);
++
+ 	if (irq > 0) {
+ 		if (request_irq(irq, pcf_isa_handler, 0, "PCF8584", NULL) < 0) {
+ 			printk(KERN_ERR "i2c-elektor: Request irq%d failed\n", irq);
+@@ -200,7 +216,7 @@ static int __init i2c_pcfisa_init(void) 
+ 		cy693_dev = pci_get_device(PCI_VENDOR_ID_CONTAQ, 
+ 					   PCI_DEVICE_ID_CONTAQ_82C693, NULL);
+ 		if (cy693_dev) {
+-			char config;
++			unsigned char config;
+ 			/* yeap, we've found cypress, let's check config */
+ 			if (!pci_read_config_byte(cy693_dev, 0x47, &config)) {
+ 				
+@@ -219,9 +235,7 @@ static int __init i2c_pcfisa_init(void) 
+ 				if ((config & 0x7f) = 0x61) {
+ 					/* seems to be UP2000 like board */
+ 					base = 0xe0000;
+-                                        /* I don't know why we need to
+-                                           write twice */
+-					mmapped = 2;
++					mmapped = 1;
+                                         /* UP2000 drives ISA with
+ 					   8.25 MHz (PCI/4) clock
+ 					   (this can be read from cypress) */
+@@ -262,8 +276,13 @@ static int __init i2c_pcfisa_init(void) 
+ 		free_irq(irq, NULL);
+ 	}
  
- 		/* read fan divs and 5-bit VID */
- 		i = i2c_smbus_read_byte_data(client, ADM9240_REG_VID_FAN_DIV);
+-	if (!mmapped)
++	if (!mmapped) {
++		ioport_unmap(base_iomem);
+ 		release_region(base , 2);
++	} else {
++		iounmap(base_iomem);
++		release_mem_region(base, 2);
++	}
+ 	return -ENODEV;
+ }
+ 
+@@ -276,8 +295,13 @@ static void i2c_pcfisa_exit(void)
+ 		free_irq(irq, NULL);
+ 	}
+ 
+-	if (!mmapped)
++	if (!mmapped) {
++		ioport_unmap(base_iomem);
+ 		release_region(base , 2);
++	} else {
++		iounmap(base_iomem);
++		release_mem_region(base, 2);
++	}
+ }
+ 
+ MODULE_AUTHOR("Hans Berglund <hb@spacetec.no>");
 
