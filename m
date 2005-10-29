@@ -1,65 +1,65 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 21:09:01 +0000
-Subject: [lm-sensors] [PATCH 04/16] i2c: Static function fixes, 4 of 4
-Message-Id: <20051026210941.28517044.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:14:42 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: Refactor control outb
+Message-Id: <1130533659577@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Dooks <ben-linux@fluff.org>
-Content-Disposition: inline; filename=static-04-i2c-chips-other.patch
+[PATCH] i2c-viapro: Refactor control outb
 
-Fix functions declared static and then implemented
-without the static in drivers/i2c/chips.
+By slightly shifting the interface between vt596_access and
+vt596_transaction, we can save two I/O accesses per SMBus transaction.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+ drivers/i2c/busses/i2c-viapro.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 ---
- drivers/i2c/chips/ds1374.c  |    3 ++-
- drivers/i2c/chips/pcf8574.c |    2 +-
- drivers/i2c/chips/pcf8591.c |    2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+commit 50c1cc339ca72f7cb95d440d384346f4238dc494
+tree 061a3c28705b77386f9598bee2c154d688d6d4cd
+parent aaf7f1477668f34dda65aba17e87c0bc2ebe84d1
+author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 22:15:53 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
 
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/i2c/chips/ds1374.c linux-2.6.14-rc4-git4-bjd2/drivers/i2c/chips/ds1374.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/i2c/chips/ds1374.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/i2c/chips/ds1374.c	2005-10-17 22:08:33.000000000 +0100
-@@ -167,7 +167,8 @@ static void ds1374_set_tlet(ulong arg)
- 
- static ulong new_time;
- 
--DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet, (ulong) & new_time);
-+static DECLARE_TASKLET_DISABLED(ds1374_tasklet, ds1374_set_tlet,
-+				(ulong) & new_time);
- 
- int ds1374_set_rtc_time(ulong nowtime)
- {
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/i2c/chips/pcf8574.c linux-2.6.14-rc4-git4-bjd2/drivers/i2c/chips/pcf8574.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/i2c/chips/pcf8574.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/i2c/chips/pcf8574.c	2005-10-17 22:08:03.000000000 +0100
-@@ -115,7 +115,7 @@ static int pcf8574_attach_adapter(struct
- }
- 
- /* This function is called by i2c_probe */
--int pcf8574_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int pcf8574_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct pcf8574_data *data;
-diff -urpN -X ../dontdiff linux-2.6.14-rc4-git4-bjd1/drivers/i2c/chips/pcf8591.c linux-2.6.14-rc4-git4-bjd2/drivers/i2c/chips/pcf8591.c
---- linux-2.6.14-rc4-git4-bjd1/drivers/i2c/chips/pcf8591.c	2005-10-11 10:56:32.000000000 +0100
-+++ linux-2.6.14-rc4-git4-bjd2/drivers/i2c/chips/pcf8591.c	2005-10-17 22:07:59.000000000 +0100
-@@ -166,7 +166,7 @@ static int pcf8591_attach_adapter(struct
- }
- 
- /* This function is called by i2c_probe */
--int pcf8591_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int pcf8591_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct pcf8591_data *data;
+ drivers/i2c/busses/i2c-viapro.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+index 3be476c..a89a212 100644
+--- a/drivers/i2c/busses/i2c-viapro.c
++++ b/drivers/i2c/busses/i2c-viapro.c
+@@ -105,7 +105,7 @@ static struct i2c_adapter vt596_adapter;
+ static unsigned int vt596_features;
+ 
+ /* Return -1 on error, 0 on success */
+-static int vt596_transaction(void)
++static int vt596_transaction(u8 size)
+ {
+ 	int temp;
+ 	int result = 0;
+@@ -131,7 +131,7 @@ static int vt596_transaction(void)
+ 	}
+ 
+ 	/* Start the transaction by setting bit 6 */
+-	outb_p(inb(SMBHSTCNT) | 0x40, SMBHSTCNT);
++	outb_p(0x40 | (size & 0x3C), SMBHSTCNT);
+ 
+ 	/* We will always wait for a fraction of a second */
+ 	do {
+@@ -232,9 +232,8 @@ static s32 vt596_access(struct i2c_adapt
+ 	}
+ 
+ 	outb_p(((addr & 0x7f) << 1) | read_write, SMBHSTADD);
+-	outb_p((size & 0x3C), SMBHSTCNT);
+ 
+-	if (vt596_transaction()) /* Error in transaction */
++	if (vt596_transaction(size)) /* Error in transaction */
+ 		return -1;
+ 
+ 	if ((read_write = I2C_SMBUS_WRITE) || (size = VT596_QUICK))
+
