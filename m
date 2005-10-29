@@ -1,37 +1,96 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 26 Oct 2005 21:03:42 +0000
-Subject: [lm-sensors] [PATCH 01/16] i2c: Static function fixes, 1 of 4
-Message-Id: <20051026210412.5080cf67.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:25:16 +0000
+Subject: [lm-sensors] [PATCH] i2c-viapro: Update supported devices list
+Message-Id: <11305336594163@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Dooks <ben-linux@fluff.org>
-Content-Disposition: inline; filename=static-01-i2c-eeprom.patch
+[PATCH] i2c-viapro: Update supported devices list
 
-eeprom_detect is first declared static and then when
-the function is actually implemented, there is no static.
+Make it clearer which chips are supported by the i2c-viapro driver,
+and which support I2C block transactions.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+ Documentation/i2c/busses/i2c-viapro |   12 ++++++------
+ drivers/i2c/busses/i2c-viapro.c     |   22 +++++++++++++---------
+ 2 files changed, 19 insertions(+), 15 deletions(-)
 
 ---
- drivers/i2c/chips/eeprom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+commit aaf7f1477668f34dda65aba17e87c0bc2ebe84d1
+tree 116946873388e7d90a70823a9211be76a9dd6316
+parent c2f559d5df5751780c0bd3ea0bd0aa17d47c0b39
+author Jean Delvare <khali@linux-fr.org> Thu, 22 Sep 2005 22:09:07 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
 
---- linux-2.6.14-rc4.orig/drivers/i2c/chips/eeprom.c	2005-10-13 22:59:00.000000000 +0200
-+++ linux-2.6.14-rc4/drivers/i2c/chips/eeprom.c	2005-10-14 19:06:12.000000000 +0200
-@@ -155,7 +155,7 @@
- }
+ Documentation/i2c/busses/i2c-viapro |   12 ++++++------
+ drivers/i2c/busses/i2c-viapro.c     |   22 +++++++++++++---------
+ 2 files changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/Documentation/i2c/busses/i2c-viapro b/Documentation/i2c/busses/i2c-viapro
+index 387cbd4..9363b8b 100644
+--- a/Documentation/i2c/busses/i2c-viapro
++++ b/Documentation/i2c/busses/i2c-viapro
+@@ -29,18 +29,18 @@ Description
+ -----------
  
- /* This function is called by i2c_probe */
--int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
-+static int eeprom_detect(struct i2c_adapter *adapter, int address, int kind)
- {
- 	struct i2c_client *new_client;
- 	struct eeprom_data *data;
+ i2c-viapro is a true SMBus host driver for motherboards with one of the
+-supported VIA southbridges.
++supported VIA south bridges.
+ 
+ Your lspci -n listing must show one of these :
+ 
+- device 1106:3050   (VT82C596 function 3)
+- device 1106:3051   (VT82C596 function 3)
++ device 1106:3050   (VT82C596A function 3)
++ device 1106:3051   (VT82C596B function 3)
+  device 1106:3057   (VT82C686 function 4)
+  device 1106:3074   (VT8233)
+  device 1106:3147   (VT8233A)
+- device 1106:8235   (VT8231)
+- devide 1106:3177   (VT8235)
+- devide 1106:3227   (VT8237)
++ device 1106:8235   (VT8231 function 4)
++ device 1106:3177   (VT8235)
++ device 1106:3227   (VT8237R)
+ 
+ If none of these show up, you should look in the BIOS for settings like
+ enable ACPI / SMBus or even USB.
+diff --git a/drivers/i2c/busses/i2c-viapro.c b/drivers/i2c/busses/i2c-viapro.c
+index 5cf8fe1..3be476c 100644
+--- a/drivers/i2c/busses/i2c-viapro.c
++++ b/drivers/i2c/busses/i2c-viapro.c
+@@ -22,15 +22,19 @@
+ */
+ 
+ /*
+-   Supports Via devices:
+-	82C596A/B (0x3050)
+-	82C596B (0x3051)
+-	82C686A/B
+-	8231
+-	8233
+-	8233A (0x3147 and 0x3177)
+-	8235
+-	8237
++   Supports the following VIA south bridges:
++
++   Chip name          PCI ID  REV     I2C block
++   VT82C596A          0x3050             no
++   VT82C596B          0x3051             no
++   VT82C686A          0x3057  0x30       no
++   VT82C686B          0x3057  0x40       yes
++   VT8231             0x8235             no?
++   VT8233             0x3074             yes
++   VT8233A            0x3147             yes?
++   VT8235             0x3177             yes
++   VT8237R            0x3227             yes
++
+    Note: we assume there can only be one device, with one SMBus interface.
+ */
+ 
 
--- 
-Jean Delvare
