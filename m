@@ -1,183 +1,45 @@
 From: gregkh@suse.de (Greg KH)
-Date: Sat, 29 Oct 2005 01:03:37 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Separate the lm90 register read function
-Message-Id: <11305336643573@kroah.com>
+Date: Sat, 29 Oct 2005 01:32:08 +0000
+Subject: [lm-sensors] [PATCH] i2c: Cleanup i2c-dev ioctl debug message
+Message-Id: <11305336594090@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: Separate the lm90 register read function
+[PATCH] i2c: Cleanup i2c-dev ioctl debug message
 
-Preparatory patch to add PEC support to the lm90 driver. We need a
-centralized function to read register values, where the PEC code will
-be later inserted. A positive side effect is that read errors are now
-handled properly.
+Cleanup the ioctl debug message in i2c-dev. In particular, the minor
+number is redundant now that the minor number and the adapter number
+are kept in sync.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
-commit 8256fe0f40f1cd72f80f2c46fe0ab1638f03a98d
-tree 7a61802fe469ad3f199506ed832ad460d32b3649
-parent e8aac4a9b417643dd9739b48473790a09b8b6cbe
-author Jean Delvare <khali@linux-fr.org> Wed, 26 Oct 2005 21:37:52 +0200
-committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:14 -0700
+commit e8aafcb2bba1fe122907161701a167e38174c7a5
+tree 1353e18055286d52d7f4f3a1d4a5cf028f024f5f
+parent 8a1b028bca95b5af36e94a660c4d284fe3313f74
+author Jean Delvare <khali@linux-fr.org> Fri, 07 Oct 2005 23:06:27 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:08 -0700
 
- drivers/hwmon/lm90.c |  107 +++++++++++++++++++++++++-------------------------
- 1 files changed, 53 insertions(+), 54 deletions(-)
+ drivers/i2c/i2c-dev.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index dad0f10..5acc12a 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -349,6 +349,22 @@ static DEVICE_ATTR(alarms, S_IRUGO, show
-  * Real code
-  */
+diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+index aa7a4fa..89f54a5 100644
+--- a/drivers/i2c/i2c-dev.c
++++ b/drivers/i2c/i2c-dev.c
+@@ -177,8 +177,8 @@ static int i2cdev_ioctl(struct inode *in
+ 	int i,datasize,res;
+ 	unsigned long funcs;
  
-+static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
-+{
-+	int err;
-+
-+	err = i2c_smbus_read_byte_data(client, reg);
-+
-+	if (err < 0) {
-+		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
-+			 reg, err);
-+		return err;
-+	}
-+	*value = err;
-+
-+	return 0;
-+}
-+
- static int lm90_attach_adapter(struct i2c_adapter *adapter)
- {
- 	if (!(adapter->class & I2C_CLASS_HWMON))
-@@ -402,20 +418,22 @@ static int lm90_detect(struct i2c_adapte
- 	if (kind < 0) { /* detection and identification */
- 		u8 man_id, chip_id, reg_config1, reg_convrate;
+-	dev_dbg(&client->adapter->dev, "i2c-%d ioctl, cmd: 0x%x, arg: %lx.\n",
+-		iminor(inode),cmd, arg);
++	dev_dbg(&client->adapter->dev, "ioctl, cmd=0x%02x, arg=0x%02lx\n",
++		cmd, arg);
  
--		man_id = i2c_smbus_read_byte_data(new_client,
--			 LM90_REG_R_MAN_ID);
--		chip_id = i2c_smbus_read_byte_data(new_client,
--			  LM90_REG_R_CHIP_ID);
--		reg_config1 = i2c_smbus_read_byte_data(new_client,
--			      LM90_REG_R_CONFIG1);
--		reg_convrate = i2c_smbus_read_byte_data(new_client,
--			       LM90_REG_R_CONVRATE);
-+		if (lm90_read_reg(new_client, LM90_REG_R_MAN_ID,
-+				  &man_id) < 0
-+		 || lm90_read_reg(new_client, LM90_REG_R_CHIP_ID,
-+		 		  &chip_id) < 0
-+		 || lm90_read_reg(new_client, LM90_REG_R_CONFIG1,
-+		 		  &reg_config1) < 0
-+		 || lm90_read_reg(new_client, LM90_REG_R_CONVRATE,
-+		 		  &reg_convrate) < 0)
-+			goto exit_free;
- 		
- 		if (man_id = 0x01) { /* National Semiconductor */
- 			u8 reg_config2;
- 
--			reg_config2 = i2c_smbus_read_byte_data(new_client,
--				      LM90_REG_R_CONFIG2);
-+			if (lm90_read_reg(new_client, LM90_REG_R_CONFIG2,
-+					  &reg_config2) < 0)
-+				goto exit_free;
- 
- 			if ((reg_config1 & 0x2A) = 0x00
- 			 && (reg_config2 & 0xF8) = 0x00
-@@ -547,7 +565,10 @@ static void lm90_init_client(struct i2c_
- 	 */
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
- 				  5); /* 2 Hz */
--	config = i2c_smbus_read_byte_data(client, LM90_REG_R_CONFIG1);
-+	if (lm90_read_reg(client, LM90_REG_R_CONFIG1, &config) < 0) {
-+		dev_warn(&client->dev, "Initialization failed!\n");
-+		return;
-+	}
- 	if (config & 0x40)
- 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
- 					  config & 0xBF); /* run */
-@@ -575,21 +596,15 @@ static struct lm90_data *lm90_update_dev
- 	down(&data->update_lock);
- 
- 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
--		u8 oldh, newh;
-+		u8 oldh, newh, l;
- 
- 		dev_dbg(&client->dev, "Updating lm90 data.\n");
--		data->temp8[0] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_TEMP);
--		data->temp8[1] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_LOW);
--		data->temp8[2] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_HIGH);
--		data->temp8[3] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_LOCAL_CRIT);
--		data->temp8[4] = i2c_smbus_read_byte_data(client,
--				 LM90_REG_R_REMOTE_CRIT);
--		data->temp_hyst = i2c_smbus_read_byte_data(client,
--				  LM90_REG_R_TCRIT_HYST);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_TEMP, &data->temp8[0]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_LOW, &data->temp8[1]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_HIGH, &data->temp8[2]);
-+		lm90_read_reg(client, LM90_REG_R_LOCAL_CRIT, &data->temp8[3]);
-+		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[4]);
-+		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
- 
- 		/*
- 		 * There is a trick here. We have to read two registers to
-@@ -605,36 +620,20 @@ static struct lm90_data *lm90_update_dev
- 		 * then we have a valid reading. Else we have to read the low
- 		 * byte again, and now we believe we have a correct reading.
- 		 */
--		oldh = i2c_smbus_read_byte_data(client,
--		       LM90_REG_R_REMOTE_TEMPH);
--		data->temp11[0] = i2c_smbus_read_byte_data(client,
--				  LM90_REG_R_REMOTE_TEMPL);
--		newh = i2c_smbus_read_byte_data(client,
--		       LM90_REG_R_REMOTE_TEMPH);
--		if (newh != oldh) {
--			data->temp11[0] = i2c_smbus_read_byte_data(client,
--					  LM90_REG_R_REMOTE_TEMPL);
--#ifdef DEBUG
--			oldh = i2c_smbus_read_byte_data(client,
--			       LM90_REG_R_REMOTE_TEMPH);
--			/* oldh is actually newer */
--			if (newh != oldh)
--				dev_warn(&client->dev, "Remote temperature may be "
--					 "wrong.\n");
--#endif
--		}
--		data->temp11[0] |= (newh << 8);
--
--		data->temp11[1] = (i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_LOWH) << 8) +
--				   i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_LOWL);
--		data->temp11[2] = (i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_HIGHH) << 8) +
--				   i2c_smbus_read_byte_data(client,
--				   LM90_REG_R_REMOTE_HIGHL);
--		data->alarms = i2c_smbus_read_byte_data(client,
--			       LM90_REG_R_STATUS);
-+		if (lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &oldh) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPH, &newh) = 0
-+		 && (newh = oldh
-+		  || lm90_read_reg(client, LM90_REG_R_REMOTE_TEMPL, &l) = 0))
-+			data->temp11[0] = (newh << 8) | l;
-+
-+		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &newh) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL, &l) = 0)
-+			data->temp11[1] = (newh << 8) | l;
-+		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &newh) = 0
-+		 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL, &l) = 0)
-+			data->temp11[2] = (newh << 8) | l;
-+		lm90_read_reg(client, LM90_REG_R_STATUS, &data->alarms);
- 
- 		data->last_updated = jiffies;
- 		data->valid = 1;
+ 	switch ( cmd ) {
+ 	case I2C_SLAVE:
 
