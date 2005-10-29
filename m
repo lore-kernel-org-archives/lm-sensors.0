@@ -1,58 +1,346 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 27 Oct 2005 22:39:40 +0000
-Subject: [lm-sensors] Re: [patch 5/9] I2C: remove i2c_driver's .owner and
-Message-Id: <20051027224032.2191a2b4.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:03:15 +0000
+Subject: [lm-sensors] [PATCH] i2c: SMBus PEC support rewrite, 2 of 3
+Message-Id: <11305336641964@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051024212541.892926000@antares.localdomain>
-In-Reply-To: <20051024212541.892926000@antares.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mauro,
+[PATCH] i2c: SMBus PEC support rewrite, 2 of 3
 
-Please don't forget to explicitely list Laurent in To: or CC:.
+This is my rewrite of the SMBus PEC support. The original
+implementation was known to have bugs (credits go to Hideki Iwamoto
+for reporting many of them recently), and was incomplete due to a
+conceptual limitation.
 
-> We've included several new I2C drivers on V4L CVS tree, and I'm about
-> to send the newer patchset series to -mm. If you want to see it, these
-> are early available at:
->   http://linuxtv.org/download/video4linux/patches/2.6.14-rc5
+The rewrite affects only software PEC. Hardware PEC needs very little
+code and is mostly untouched.
 
-About this, I've noticed two issues with these patches:
+Technically, both implementations differ in that the original one
+was emulating PEC in software by modifying the contents of an
+i2c_smbus_data union (changing the transaction to a different type),
+while the new one works one level lower, on i2c_msg structures (working
+on message contents). Due to the definition of the i2c_smbus_data union,
+not all SMBus transactions could be handled (at least not without
+changing the definition of this union, which would break user-space
+compatibility), and those which could had to be implemented
+individually. At the opposite, adding PEC to an i2c_msg structure
+can be done on any SMBus transaction with common code.
 
-v4l_635_add_bttv_card_137_conceptronic_ctvfmi_v2.patch
-Creates a bttv-cards.c.orig file.
+Advantages of the new implementation:
 
-v4l_801_whitespaces_cleanups.patch
-Creates a tvaudio.c.orig file.
+* It's about twice as small (from ~136 lines before to ~70 now, only
+  counting i2c-core, including blank and comment lines). The memory
+  used by i2c-core is down by ~640 bytes (~3.5%).
 
-I would also suggest that you limit the length of the patch file names. v4l_716_from_markus_rechberger_mrechberger_gmail_com_ludovico_cavedon_cavedon_sssup_it_mauro_carvalho_chehab_mchehab_brturbo_com_br_.patch is a bit too long IMHO ;)
+* Easier to validate, less tricky code. The code being common to all
+  transactions by design, the risk that a bug can stay uncovered is
+  lower.
 
-> Basically, your patches should be go after the V4L patchsets, and
-> should also include some newer boards, like:
-> 	em2820-i2c.c
-> 	cs53l32a.c
-> 	wm8775.c
-> 	saa711x.c
-> 	tvp5150.c
+* All SMBus transactions have PEC support in I2C emulation mode
+  (providing the non-PEC transaction is also implemented). Transactions
+  which have no emulation code right now will get PEC support for free
+  when they finally get implemented.
 
-No, it doesn't work that way. i2c patches are applied before the v4l
-patches in -mm, and I doubt Andrew is going to reorder patchsets every
-now and then. There simply are too many dependencies to deal with.
+* Allows for code simplifications in header files and bus drivers
+  (patch follows).
 
-So, just send your v4l patches to Andrew when they're ready. I'll send
-my i2c patches (including Laurent's) when they are ready, with a note
-to Andrew on how to fix drivers which might break, and he'll deal with
-that just fine.
+Drawbacks (I guess there had to be at least one):
 
-You shouldn't underestimate Andrew's ability to deal with conflicts of
-all sorts. He's damn good at it.
+* PEC emulation for non-PEC capable non-I2C SMBus masters was dropped.
+  It was based on SMBus tricks and doesn't quite fit in the new design.
+  I don't think it's really a problem, as the benefit was certainly
+  not worth the additional complexity, but it's only fair that I at
+  least mention it.
 
-When either the i2c or v4l patches finally get merged into Linus' tree,
-the other one of us will have to update his patchset. That shouldn't be
-difficult either.
+Lastly, let's note that the new implementation does slightly affect
+compatibility (both in kernel and user-space), but doesn't actually
+break it. Some defines will be dropped, but the code can always be
+changed in a way that will work with both the old and the new
+implementations. It shouldn't be a problem as there doesn't seem to be
+many users of SMBus PEC to date anyway.
 
-Thanks,
--- 
-Jean Delvare
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+commit 421ef47be20c5454b12ae0ec918d5073a9d2b938
+tree a7225bd055acb418693d0e6ed4f8d886dc68ec55
+parent b8095544bc27044a7aa79e1e073b781a249910c3
+author Jean Delvare <khali@linux-fr.org> Wed, 26 Oct 2005 21:28:55 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:14 -0700
+
+ drivers/i2c/i2c-core.c |  162 ++++++++++++++----------------------------------
+ include/linux/i2c.h    |    2 -
+ 2 files changed, 49 insertions(+), 115 deletions(-)
+
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 0040981..02e335a 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -19,7 +19,8 @@
+ 
+ /* With some changes from Ky?sti M?lkki <kmalkki@cc.hut.fi>.
+    All SMBus-related things are written by Frodo Looijaard <frodol@dds.nl>
+-   SMBus 2.0 support by Mark Studebaker <mdsxyz123@yahoo.com>                */
++   SMBus 2.0 support by Mark Studebaker <mdsxyz123@yahoo.com> and
++   Jean Delvare <khali@linux-fr.org> */
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+@@ -830,101 +831,44 @@ crc8(u16 data)
+ 	return (u8)(data >> 8);
+ }
+ 
+-/* CRC over count bytes in the first array plus the bytes in the rest
+-   array if it is non-null. rest[0] is the (length of rest) - 1
+-   and is included. */
+-static u8 i2c_smbus_partial_pec(u8 crc, int count, u8 *first, u8 *rest)
++/* Incremental CRC8 over count bytes in the array pointed to by p */
++static u8 i2c_smbus_pec(u8 crc, u8 *p, size_t count)
+ {
+ 	int i;
+ 
+ 	for(i = 0; i < count; i++)
+-		crc = crc8((crc ^ first[i]) << 8);
+-	if(rest != NULL)
+-		for(i = 0; i <= rest[0]; i++)
+-			crc = crc8((crc ^ rest[i]) << 8);
++		crc = crc8((crc ^ p[i]) << 8);
+ 	return crc;
+ }
+ 
+-static u8 i2c_smbus_pec(int count, u8 *first, u8 *rest)
++/* Assume a 7-bit address, which is reasonable for SMBus */
++static u8 i2c_smbus_msg_pec(u8 pec, struct i2c_msg *msg)
+ {
+-	return i2c_smbus_partial_pec(0, count, first, rest);
++	/* The address will be sent first */
++	u8 addr = (msg->addr << 1) | !!(msg->flags & I2C_M_RD);
++	pec = i2c_smbus_pec(pec, &addr, 1);
++
++	/* The data buffer follows */
++	return i2c_smbus_pec(pec, msg->buf, msg->len);
+ }
+ 
+-/* Returns new "size" (transaction type)
+-   Note that we convert byte to byte_data and byte_data to word_data
+-   rather than invent new xxx_PEC transactions. */
+-static int i2c_smbus_add_pec(u16 addr, u8 command, int size,
+-			     union i2c_smbus_data *data)
++/* Used for write only transactions */
++static inline void i2c_smbus_add_pec(struct i2c_msg *msg)
+ {
+-	u8 buf[3];
+-
+-	buf[0] = addr << 1;
+-	buf[1] = command;
+-	switch(size) {
+-		case I2C_SMBUS_BYTE:
+-			data->byte = i2c_smbus_pec(2, buf, NULL);
+-			size = I2C_SMBUS_BYTE_DATA;
+-			break;
+-		case I2C_SMBUS_BYTE_DATA:
+-			buf[2] = data->byte;
+-			data->word = buf[2] |
+-			            (i2c_smbus_pec(3, buf, NULL) << 8);
+-			size = I2C_SMBUS_WORD_DATA;
+-			break;
+-		case I2C_SMBUS_WORD_DATA:
+-			/* unsupported */
+-			break;
+-		case I2C_SMBUS_BLOCK_DATA:
+-			data->block[data->block[0] + 1] -			             i2c_smbus_pec(2, buf, data->block);
+-			size = I2C_SMBUS_BLOCK_DATA_PEC;
+-			break;
+-	}
+-	return size;	
++	msg->buf[msg->len] = i2c_smbus_msg_pec(0, msg);
++	msg->len++;
+ }
+ 
+-static int i2c_smbus_check_pec(u16 addr, u8 command, int size, u8 partial,
+-			       union i2c_smbus_data *data)
++/* Return <0 on CRC error
++   If there was a write before this read (most cases) we need to take the
++   partial CRC from the write part into account.
++   Note that this function does modify the message (we need to decrease the
++   message length to hide the CRC byte from the caller). */
++static int i2c_smbus_check_pec(u8 cpec, struct i2c_msg *msg)
+ {
+-	u8 buf[3], rpec, cpec;
++	u8 rpec = msg->buf[--msg->len];
++	cpec = i2c_smbus_msg_pec(cpec, msg);
+ 
+-	buf[1] = command;
+-	switch(size) {
+-		case I2C_SMBUS_BYTE_DATA:
+-			buf[0] = (addr << 1) | 1;
+-			cpec = i2c_smbus_pec(2, buf, NULL);
+-			rpec = data->byte;
+-			break;
+-		case I2C_SMBUS_WORD_DATA:
+-			buf[0] = (addr << 1) | 1;
+-			buf[2] = data->word & 0xff;
+-			cpec = i2c_smbus_pec(3, buf, NULL);
+-			rpec = data->word >> 8;
+-			break;
+-		case I2C_SMBUS_WORD_DATA_PEC:
+-			/* unsupported */
+-			cpec = rpec = 0;
+-			break;
+-		case I2C_SMBUS_PROC_CALL_PEC:
+-			/* unsupported */
+-			cpec = rpec = 0;
+-			break;
+-		case I2C_SMBUS_BLOCK_DATA_PEC:
+-			buf[0] = (addr << 1);
+-			buf[2] = (addr << 1) | 1;
+-			cpec = i2c_smbus_pec(3, buf, data->block);
+-			rpec = data->block[data->block[0] + 1];
+-			break;
+-		case I2C_SMBUS_BLOCK_PROC_CALL_PEC:
+-			buf[0] = (addr << 1) | 1;
+-			rpec = i2c_smbus_partial_pec(partial, 1,
+-			                             buf, data->block);
+-			cpec = data->block[data->block[0] + 1];
+-			break;
+-		default:
+-			cpec = rpec = 0;
+-			break;
+-	}
+ 	if (rpec != cpec) {
+ 		pr_debug("i2c-core: Bad PEC 0x%02x vs. 0x%02x\n",
+ 			rpec, cpec);
+@@ -951,9 +895,8 @@ s32 i2c_smbus_read_byte(struct i2c_clien
+ 
+ s32 i2c_smbus_write_byte(struct i2c_client *client, u8 value)
+ {
+-	union i2c_smbus_data data;	/* only for PEC */
+ 	return i2c_smbus_xfer(client->adapter,client->addr,client->flags,
+-	                      I2C_SMBUS_WRITE,value, I2C_SMBUS_BYTE,&data);
++	                      I2C_SMBUS_WRITE, value, I2C_SMBUS_BYTE, NULL);
+ }
+ 
+ s32 i2c_smbus_read_byte_data(struct i2c_client *client, u8 command)
+@@ -1043,6 +986,7 @@ static s32 i2c_smbus_xfer_emulated(struc
+ 	                          { addr, flags | I2C_M_RD, 0, msgbuf1 }
+ 	                        };
+ 	int i;
++	u8 partial_pec = 0;
+ 
+ 	msgbuf0[0] = command;
+ 	switch(size) {
+@@ -1085,7 +1029,6 @@ static s32 i2c_smbus_xfer_emulated(struc
+ 		msgbuf0[2] = (data->word >> 8) & 0xff;
+ 		break;
+ 	case I2C_SMBUS_BLOCK_DATA:
+-	case I2C_SMBUS_BLOCK_DATA_PEC:
+ 		if (read_write = I2C_SMBUS_READ) {
+ 			dev_err(&adapter->dev, "Block read not supported "
+ 			       "under I2C emulation!\n");
+@@ -1098,14 +1041,11 @@ static s32 i2c_smbus_xfer_emulated(struc
+ 				       data->block[0]);
+ 				return -1;
+ 			}
+-			if(size = I2C_SMBUS_BLOCK_DATA_PEC)
+-				(msg[0].len)++;
+ 			for (i = 1; i < msg[0].len; i++)
+ 				msgbuf0[i] = data->block[i-1];
+ 		}
+ 		break;
+ 	case I2C_SMBUS_BLOCK_PROC_CALL:
+-	case I2C_SMBUS_BLOCK_PROC_CALL_PEC:
+ 		dev_dbg(&adapter->dev, "Block process call not supported "
+ 		       "under I2C emulation!\n");
+ 		return -1;
+@@ -1130,9 +1070,30 @@ static s32 i2c_smbus_xfer_emulated(struc
+ 		return -1;
+ 	}
+ 
++	i = ((flags & I2C_CLIENT_PEC) && size != I2C_SMBUS_QUICK
++				      && size != I2C_SMBUS_I2C_BLOCK_DATA);
++	if (i) {
++		/* Compute PEC if first message is a write */
++		if (!(msg[0].flags & I2C_M_RD)) {
++		 	if (num = 1) /* Write only */
++				i2c_smbus_add_pec(&msg[0]);
++			else /* Write followed by read */
++				partial_pec = i2c_smbus_msg_pec(0, &msg[0]);
++		}
++		/* Ask for PEC if last message is a read */
++		if (msg[num-1].flags & I2C_M_RD)
++		 	msg[num-1].len++;
++	}
++
+ 	if (i2c_transfer(adapter, msg, num) < 0)
+ 		return -1;
+ 
++	/* Check PEC if last message is a read */
++	if (i && (msg[num-1].flags & I2C_M_RD)) {
++		if (i2c_smbus_check_pec(partial_pec, &msg[num-1]) < 0)
++			return -1;
++	}
++
+ 	if (read_write = I2C_SMBUS_READ)
+ 		switch(size) {
+ 			case I2C_SMBUS_BYTE:
+@@ -1161,28 +1122,8 @@ s32 i2c_smbus_xfer(struct i2c_adapter * 
+                    union i2c_smbus_data * data)
+ {
+ 	s32 res;
+-	int swpec = 0;
+-	u8 partial = 0;
+ 
+ 	flags &= I2C_M_TEN | I2C_CLIENT_PEC;
+-	if((flags & I2C_CLIENT_PEC) &&
+-	   !(i2c_check_functionality(adapter, I2C_FUNC_SMBUS_HWPEC_CALC))) {
+-		swpec = 1;
+-		if(read_write = I2C_SMBUS_READ &&
+-		   size = I2C_SMBUS_BLOCK_DATA)
+-			size = I2C_SMBUS_BLOCK_DATA_PEC;
+-		else if(size = I2C_SMBUS_PROC_CALL)
+-			size = I2C_SMBUS_PROC_CALL_PEC;
+-		else if(size = I2C_SMBUS_BLOCK_PROC_CALL) {
+-			i2c_smbus_add_pec(addr, command,
+-		                          I2C_SMBUS_BLOCK_DATA, data);
+-			partial = data->block[data->block[0] + 1];
+-			size = I2C_SMBUS_BLOCK_PROC_CALL_PEC;
+-		} else if(read_write = I2C_SMBUS_WRITE &&
+-		          size != I2C_SMBUS_QUICK &&
+-		          size != I2C_SMBUS_I2C_BLOCK_DATA)
+-			size = i2c_smbus_add_pec(addr, command, size, data);
+-	}
+ 
+ 	if (adapter->algo->smbus_xfer) {
+ 		down(&adapter->bus_lock);
+@@ -1193,13 +1134,6 @@ s32 i2c_smbus_xfer(struct i2c_adapter * 
+ 		res = i2c_smbus_xfer_emulated(adapter,addr,flags,read_write,
+ 	                                      command,size,data);
+ 
+-	if(res >= 0 && swpec &&
+-	   size != I2C_SMBUS_QUICK && size != I2C_SMBUS_I2C_BLOCK_DATA &&
+-	   (read_write = I2C_SMBUS_READ || size = I2C_SMBUS_PROC_CALL_PEC ||
+-	    size = I2C_SMBUS_BLOCK_PROC_CALL_PEC)) {
+-		if(i2c_smbus_check_pec(addr, command, size, partial, data))
+-			return -1;
+-	}
+ 	return res;
+ }
+ 
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index bcd4bb1..78c64f7 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -434,7 +434,7 @@ union i2c_smbus_data {
+ 	__u8 byte;
+ 	__u16 word;
+ 	__u8 block[I2C_SMBUS_BLOCK_MAX + 2]; /* block[0] is used for length */
+-	                                            /* and one more for PEC */
++	                       /* and one more for user-space compatibility */
+ };
+ 
+ /* smbus_access read or write markers */
+
