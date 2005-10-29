@@ -1,108 +1,107 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Fri, 28 Oct 2005 21:07:27 +0000
-Subject: [lm-sensors] interesting ASUS acpi feature - ATK0110
-Message-Id: <436276D3.3080407@sh.cvut.cz>
+From: gregkh@suse.de (Greg KH)
+Date: Sat, 29 Oct 2005 01:04:10 +0000
+Subject: [lm-sensors] [PATCH] hwmon: lm90 documentation update
+Message-Id: <1130533664625@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hello,
+[PATCH] hwmon: lm90 documentation update
 
-As some of people round lm-sensors might know I bought new motherboard ASUS A8V-E SE.
-While reading its DSDT and investigating Windows ADDons (which I can only read but not run :)
-I found something interresting.
+Update the I2C addresses for the ADM1032 and ADT7461 chips.
+Also update the links to the Analog Devices web site.
 
-In short:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-ASUS has implemented ACPI methods for obtaining the temps, voltages and fanspeeds plus smart fan control plus
-overclocking stuff.
+---
+commit 90209b42d0498d57a804bf81fea427bf39c5315c
+tree e6668317e71a45ed585ecdb27eafa0b285dc9f33
+parent c3df5806cdae6fac678c662b527cb974bef4b60c
+author Jean Delvare <khali@linux-fr.org> Wed, 26 Oct 2005 22:20:21 +0200
+committer Greg Kroah-Hartman <gregkh@suse.de> Fri, 28 Oct 2005 14:02:14 -07=
+00
 
-It seems those features are in all ASUS AI NOS or proactive motherboards.
+ Documentation/hwmon/lm90 |    8 ++++----
+ drivers/hwmon/lm90.c     |   16 +++++++---------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
-There is one virtual device in APCI namespace called ASOC
+diff --git a/Documentation/hwmon/lm90 b/Documentation/hwmon/lm90
+index 70abf93..438cb24 100644
+--- a/Documentation/hwmon/lm90
++++ b/Documentation/hwmon/lm90
+@@ -24,14 +24,14 @@ Supported chips:
+                http://www.national.com/pf/LM/LM86.html
+   * Analog Devices ADM1032
+     Prefix: 'adm1032'
+-    Addresses scanned: I2C 0x4c
++    Addresses scanned: I2C 0x4c and 0x4d
+     Datasheet: Publicly available at the Analog Devices website
+-               http://products.analog.com/products/info.asp?product=ADM1032
++               http://www.analog.com/en/prod/0,2877,ADM1032,00.html
+   * Analog Devices ADT7461
+     Prefix: 'adt7461'
+-    Addresses scanned: I2C 0x4c
++    Addresses scanned: I2C 0x4c and 0x4d
+     Datasheet: Publicly available at the Analog Devices website
+-               http://products.analog.com/products/info.asp?product=ADT7461
++               http://www.analog.com/en/prod/0,2877,ADT7461,00.html
+     Note: Only if in ADM1032 compatibility mode
+   * Maxim MAX6657
+     Prefix: 'max6657'
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index fa0793e..83cf2e1 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -31,7 +31,7 @@
+  * Devices. That chip is similar to the LM90, with a few differences
+  * that are not handled by this driver. Complete datasheet can be
+  * obtained from Analog's website at:
+- *   http://products.analog.com/products/info.asp?product=ADM1032
++ *   http://www.analog.com/en/prod/0,2877,ADM1032,00.html
+  * Among others, it has a higher accuracy than the LM90, much like the
+  * LM86 does.
+  *
+@@ -49,7 +49,7 @@
+  * register values are decoded differently) it is ignored by this
+  * driver. Complete datasheet can be obtained from Analog's website
+  * at:
+- *   http://products.analog.com/products/info.asp?product=ADT7461
++ *   http://www.analog.com/en/prod/0,2877,ADT7461,00.html
+  *
+  * Since the LM90 was the first chipset supported by this driver, most
+  * comments will refer to this chipset, but are actually general and
+@@ -83,10 +83,10 @@
+  * Addresses to scan
+  * Address is fully defined internally and cannot be changed except for
+  * MAX6659.
+- * LM86, LM89, LM90, LM99, ADM1032, MAX6657 and MAX6658 have address 0x4c.
+- * LM89-1, and LM99-1 have address 0x4d.
++ * LM86, LM89, LM90, LM99, ADM1032, ADM1032-1, ADT7461, MAX6657 and MAX6658
++ * have address 0x4c.
++ * ADM1032-2, ADT7461-2, LM89-1, and LM99-1 have address 0x4d.
+  * MAX6659 can have address 0x4c, 0x4d or 0x4e (unsupported).
+- * ADT7461 always has address 0x4c.
+  */
+=20
+ static unsigned short normal_i2c[] =3D { 0x4c, 0x4d, I2C_CLIENT_END };
+@@ -500,14 +500,12 @@ static int lm90_detect(struct i2c_adapte
+ 			}
+ 		} else
+ 		if (man_id =3D 0x41) { /* Analog Devices */
+-			if (address =3D 0x4C
+-			 && (chip_id & 0xF0) =3D 0x40 /* ADM1032 */
++			if ((chip_id & 0xF0) =3D 0x40 /* ADM1032 */
+ 			 && (reg_config1 & 0x3F) =3D 0x00
+ 			 && reg_convrate <=3D 0x0A) {
+ 				kind =3D adm1032;
+ 			} else
+-			if (address =3D 0x4c
+-			 && chip_id =3D 0x51 /* ADT7461 */
++			if (chip_id =3D 0x51 /* ADT7461 */
+ 			 && (reg_config1 & 0x1F) =3D 0x00 /* check compat mode */
+ 			 && reg_convrate <=3D 0x0A) {
+ 				kind =3D adt7461;
 
-Device (ASOC)
-            {
-                Name (_HID, "ATK0110")
-                Name (_UID, 0x01010110)
-
-When this device is present it exposes some methods to read the monitored values and also to ENUMERATE what is
-supported on that motheboard.
-
-In shourt what it means to lm-sensors:
-
-Support for all asus ACPI/ASOC powered motherboards. Correct values without need of scaling values. THis driver could be
-used by the people that have yet unsupported chip or they just want to overclock or drive the smart fan features that
-are not implemented in our drivers. Unfortunately I'm quite busy nowdays with my master thesis, so I'm afraid I cant work
-on the driver. I hope I might find some people interrested on the list.
-
-The driver would use the ACPI API to talk to those methods (as ibm-acpi or thoshiba acpi do). As far I can see the comunication
-is quite easy:
-
-I will present it for voltages (for fans, temps, overclocking it is similar)
-
-Method (VSIF, 0, NotSerialized)
-
-Returns a structure of suppored monitoring objects
- Name (VBUF, Package (0x05)
-                {
-                    0x04,
-                    VCRE,
-                    V333,
-                    V500,
-                    V120 }
-
-Like this.
-
-Each member has following fields:
-Name (V500, Package (0x05)
-                {
-                    0x06020002,
-                    " +5.0 Voltage",
-                    0x1194,
-                    0x157C,
-                    0x01
-                })
-
-You can see ID, label, limits
-
-So when you know the IDS and names you can just call a method that will give you actual value:
-  Method (RVLT, 1, NotSerialized)
-
-Like this Just call with ID.
-Return value is integer in mV with the actual value. As you can see it is not complicated.
-
-As side effect we can use this to dig for the conversion formulas, because they are there too:
-  Store (DerefOf (Index (V120, 0x00)), Local0)
-                    If (LEqual (Arg0, Local0))
-                    {
-                        Store (V12V, Local0)
-                        Store (0x38, Local1)
-                        Add (0x0A, Local1, Local1)
-                        Multiply (Local1, 0x08, Local1)
-                        Multiply (Local0, Local1, Local0)
-                        Divide (Local0, 0x0A, Local3, Local0)
-                        Return (Local0)
-                    }
-
-This is the formula for 12V. V12V is raw value.
-
-Fans and temps are working similar way
-I have there even:
- "CPU Q-Fan Control",
-"CPU Q-Fan Ratio",
-  "CPU Target Temperature",
-"CPU Multiplier",
-"Memory Freq",
-....
- "Twin Turbo N.O.S.",
-"DRAM Voltage"
-
-Thats all for now. If someone is interrested to develop a driver for this let me know.
-To get the DSDT code you need to store the DSDT table cat /proc/acpi/dsdt >mytable.dsdt and then ./iasl -dc mytable.dsdt
-to decompile it. If you need more details let me know.
-
-Regards
-Rudolf
