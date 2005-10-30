@@ -1,7 +1,7 @@
-From: mail@schaefer-raumgestaltung.de (=?iso-8859-1?Q?Sch=E4fer_Raumgestaltung?=)
-Date: Sun, 30 Oct 2005 11:26:14 +0000
-Subject: [lm-sensors] Re: 87431 update
-Message-Id: <002b01c5dd3d$06e40ec0$fe78a8c0@doppelhertz>
+From: yani.ioannou@gmail.com (Yani Ioannou)
+Date: Sun, 30 Oct 2005 17:15:59 +0000
+Subject: [lm-sensors] 87431 update
+Message-Id: <253818670510300815x3d02092dp68647a7630040e3@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <435BD852.9040703@mds.gotdns.com>
 In-Reply-To: <435BD852.9040703@mds.gotdns.com>
@@ -12,32 +12,25 @@ To: lm-sensors@vger.kernel.org
 
 Hi Mark,
 
+Nice work :)
 
->Hmm it's basically working but the fan and temp values aren't read.
->Perhaps there was a sysfs name change in 2.6.13?
-
-Do you have any idea how to check this ?
-is anyone of your lm_sensors crew involved in SUSE's  OPENSUSE development ?
-
->Do you have sensors 2.9.2? (sensors -v)
-
-I had sensors 2.9.1 (delivered with Suse 10.0)
-now updated to sensors 2.9.2....  no effect
-
+On 10/29/05, Mark Studebaker <mds@mds.gotdns.com> wrote:
+> Hmm it's basically working but the fan and temp values aren't read.
+> Perhaps there was a sysfs name change in 2.6.13?
+> Do you have sensors 2.9.2? (sensors -v)
 >
->For the labels in 'sensors', copy the label statements that appear in dmesg after bmcsensors module load
->and copy it to the bmcsensors section of /etc/sensors.conf.
 
-OK: this will show the correct labeling but still get wrong/no reading and incorrect min/max values
+2.6.13 was the whole hwmon moveover. Bmcsensors-26 won't work with
+>=2.6.13 at the moment simply because there is no way to register it
+as a hwmon class when the IPMI subsystem hasn't got any driver
+model/sysfs support. I have a patch that adds the support to IPMI (see
+ipmi mailing list/lkml) but I need to update it and send it to Corey
+again and I just haven't had the time (university getting in the way).
 
-e.g. from sensor:
+I'll update the patch (there isn't much to do) and send it in to Corey
+next weekend, and then there is a bit of work which I've mostly done
+(ipmisensors) to re-write bmcsensors so that it uses hwmon, the new
+sysfs callbacks and gets rid of any i2c-ipmi references.
 
-001a SDR Full 01 34 20 04 snum 25 Proc1 Fan        = 0f OK   5602.24 RPM
-
-from sensors:
-MY_CHANGED_LABEL_FAN:        0 RPM  (min = 1343 RPM)
-
-
-hope you can help me
-
-Uli
+Thanks,
+Yani
