@@ -1,49 +1,69 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 07 Oct 2005 22:21:45 +0000
-Subject: [lm-sensors] Patch for i2c-elektor driver
-Message-Id: <20051007222019.23b2c3ac.khali@linux-fr.org>
+Date: Sun, 30 Oct 2005 17:14:03 +0000
+Subject: [lm-sensors] PEC support in i2c/lm_sensors CVS
+Message-Id: <20051030171335.34da6461.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <eeae3ce2cd160ac835fcb05bb9a2d829@lizardlogic.co.uk>
-In-Reply-To: <eeae3ce2cd160ac835fcb05bb9a2d829@lizardlogic.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Stig,
+Hi all,
 
-> Thanks for the new patches.  I tested them and they appear to work.  
-> However, the problem with dev_dbg message prefixes early in driver 
-> initialisation is still there:
-> 
-> i2c-elektor: found cy82c693, config register 0x47 = 0xe1
-> i2c-elektor: found API UP2000 like board, will probe PCF8584 later
-> i2c-elektor: registers 0xe0000 remapped to fffffd00000e0000
->   : Write fffffd00000e0001 0x80
->   : Read fffffd00000e0001 0x00
->   : Write fffffd00000e0000 0x55
->   : Read fffffd00000e0000 0x55
->   : Write fffffd00000e0001 0xA0
->   : Read fffffd00000e0001 0x20
->   : Write fffffd00000e0000 0x18
->   : Read fffffd00000e0000 0xF8
->   : Write fffffd00000e0001 0xC1
->   : Read fffffd00000e0001 0x81
-> i2c-algo-pcf.o: deteted and initialized PCF8584.
-> i2c_adapter i2c-0: Registered as minor 0
-> i2c_adapter i2c-0: registered as adapter #0
-> i2c_adapter i2c-0: found device at 0xe0000
-> 
-> We don't get the driver name until we call i2c_add_adapter in 
-> i2c-algo-pcf.c.
+I am almost done backporting many of the i2c and hwmon changes which
+made it into Linux 2.6.14-git1 to i2c/lm_sensors CVS. As these are
+backports, I am quite confident that these changes are all safe, but
+you never know. So everyone still using a 2.4 kernel is welcome to give
+a try to i2c and lm_sensors CVS, and report any problem.
 
-I get it now. I had missed the fact that pcf_isa_{set,get}byte would be
-called during the initialization step.
+One set of changes I did not backport yet is the software PEC support
+rewrite and all the related changes. Usually we avoid large changes to
+i2c CVS, but for this one time I would like to make an exception, and
+backport the new PEC code so that i2c/lm_sensors CVS and Linux 2.6
+behave the same way.
 
-> Should we revert the dev_dbg statements to pr_debugs for device byte
-> read/writes?  That doesn't sound very consistent though...
+My arguments in favor of doing so are as follow:
 
-That's the only option as far as I can see. I'll do that.
+* PEC support has a user-space interface part (i2c-dev.h). The new
+interface is not incompatible with the old one, but still slightly
+different. It's probably better for application writers to have a
+common interface to deal with.
+
+* The old PEC code was buggy. Hideki Iwamoto reported several problems,
+some of which are already fixed in i2c CVS, but some others are still
+not, and I also know of at least one more which wasn't reported. If we
+don't replace the old implementation with the new one, we will at least
+need to fix it - or delete it altogether.
+
+* The fact that the old code was not working and nobody reported before
+Hideki did proves that PEC is not widely used, if at all. So, there is
+very little risk of upsetting anyone by changing the PEC code now.
+Having a common implementation in CVS and Linux 2.6 will make it easier
+for future driver authors. We have seen that people are still writing
+drivers for Linux 2.4, which will be ported to 2.6 in the long run.
+
+* The old PEC support was not even in Linux 2.4, so we don't break any
+kind of compatibility at this level if changing the PEC code in
+i2c/lm_sensors CVS.
+
+* As a maintainer, I would very much prefer to have a single
+implementation to support.
+
+So, unless someone comes up with good reasons for not backporting the
+new PEC code to i2c/lm_sensors CVS, I will probably do so. I would
+appreciate if someone could take a look at the new Linux 2.6 code
+(2.6.14-git1 and later) and confirm that I got it right. I don't think
+it got any form of review so far, except for the fact that It Works For
+Me (TM).
+
+I would like to publicly thank Hideki for his work on the old PEC code.
+Arigato, Hideki-san! Don't go thinking that your investigations and
+reports were in vain. Even if later versions of i2c/lm_sensors CVS use
+a completely different PEC code, you still much helped me understand
+the old implementation and its weaknesses, so I could design something
+(hopefully) better. And this is also very valuable to know the bugs
+that existed in older versions of our software, as people are likely to
+continue to use it for a long time.
 
 Thanks,
 -- 
