@@ -1,7 +1,7 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Sat, 29 Oct 2005 21:33:57 +0000
-Subject: [lm-sensors] 87431 update
-Message-Id: <4363CE84.7000606@mds.gotdns.com>
+From: mail@schaefer-raumgestaltung.de (=?iso-8859-1?Q?Sch=E4fer_Raumgestaltung?=)
+Date: Sun, 30 Oct 2005 11:26:14 +0000
+Subject: [lm-sensors] Re: 87431 update
+Message-Id: <002b01c5dd3d$06e40ec0$fe78a8c0@doppelhertz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <435BD852.9040703@mds.gotdns.com>
 In-Reply-To: <435BD852.9040703@mds.gotdns.com>
@@ -10,53 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Mark Studebaker wrote:
-> 
->>Great news,
->>I've successfully implemented bmcsensors-over-IPMI-over-SMB, working
->>on the Intel Server donated by Aweta.
-> 
-> 
-> Cool. Congrats :)
-> 
-> 
-> 
->>HW:
->>    Intel Server Platform SR1325TP1-E w/ 6300ESB SMBus and PC87431 at 0x42
-> 
-> 
-> Please will you go through mailing list and notify other people that were fighting with it?
-> (I'm CCing Uli) and I think some of other asked in ticket system.
-> 
-
-will do
+Hi Mark,
 
 
-> Unfortunately I'm not very skilled on this IMPI/BMC field. Please could you write the general HOWTO for
-> people with server boards? (and for me to point them to this howto)
-> 
+>Hmm it's basically working but the fan and temp values aren't read.
+>Perhaps there was a sysfs name change in 2.6.13?
 
-not a bad idea but for now here are the short answers:
+Do you have any idea how to check this ?
+is anyone of your lm_sensors crew involved in SUSE's  OPENSUSE development ?
 
-> 1) How to know they have bmc, ipmi ..
+>Do you have sensors 2.9.2? (sensors -v)
 
-sensors-detect will tell them if they have a KCS or SMIC IPMI interface.
-The 87431 is a IPMI-over-SMBus chip and I'll be working on sensors-detect
-support for it.
+I had sensors 2.9.1 (delivered with Suse 10.0)
+now updated to sensors 2.9.2....  no effect
 
-> 2) what patches they need
+>
+>For the labels in 'sensors', copy the label statements that appear in dmesg after bmcsensors module load
+>and copy it to the bmcsensors section of /etc/sensors.conf.
 
-I updated  the new drivers page to specifically identify the patches required for 87431.
+OK: this will show the correct labeling but still get wrong/no reading and incorrect min/max values
 
-> 3) how to obtain results.
-> 
+e.g. from sensor:
 
-load modules, type 'sensors' :)
+001a SDR Full 01 34 20 04 snum 25 Proc1 Fan        = 0f OK   5602.24 RPM
 
-> Thank you very much.
-> 
-> Regards
-> Rudolf
+from sensors:
+MY_CHANGED_LABEL_FAN:        0 RPM  (min = 1343 RPM)
 
 
+hope you can help me
+
+Uli
