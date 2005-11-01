@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 01 Nov 2005 16:33:48 +0000
+From: list0570@paradise.net.nz (Volker Kuhlmann)
+Date: Tue, 01 Nov 2005 20:46:14 +0000
 Subject: [lm-sensors] SiS630 sensors.conf errors
-Message-Id: <20051101163322.36e372ae.khali@linux-fr.org>
+Message-Id: <20051101194450.GA3074@paradise.net.nz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051030235843.GF26397@paradise.net.nz>
 In-Reply-To: <20051030235843.GF26397@paradise.net.nz>
@@ -10,29 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Volker,
+Thanks Jean.
 
-> Minor bugs, but can be confusing:
-> 
->   # The following is for the Inside Technologies 786LCD which uses either a
->   # IT8705F or a SIS950 for monitoring with the SIS630.
->   # You will need to load the it87 module as follows to select the correct
->   # temperature sensor type.
->   # modprobe it87 temp_type=0x31
-> 
-> Module it87 doesn't have a temp_type option.
+> This is only an example. You are free to change, delete or add
+> statements. Also feel free to submit a patch to etc/sensors.conf.eg if
+> you think it's worth it.
 
-It used to, but has no more. Thanks for reporting. I've dropped that
-part, as well as the comment about the misdetection in the paragraph
-right after, as I believe this is no more true.
+I had posted my complete settings. IMHO sensors-detect should not
+require any user interaction for coming up with a correct and functional
+configuration. The average Linux (and other) desktop user doesn't know
+how to edit a configuration file anyway.
 
-> The settings for low and high temperature values are missing for all
-> temperatures.
+Thanks for the good work,
 
-This is only an example. You are free to change, delete or add
-statements. Also feel free to submit a patch to etc/sensors.conf.eg if
-you think it's worth it.
+Volker
 
-Thanks,
 -- 
-Jean Delvare
+Volker Kuhlmann			is possibly list0570 with the domain in header
+http://volker.dnsalias.net/		Please do not CC list postings to me.
