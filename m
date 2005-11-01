@@ -1,32 +1,38 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 21 Nov 2005 22:21:57 +0000
-Subject: [lm-sensors] Re: [PATCH] VRM table update - take2
-Message-Id: <2p4xSCLC.1132607293.2327230.khali@localhost>
+Date: Tue, 01 Nov 2005 16:33:48 +0000
+Subject: [lm-sensors] SiS630 sensors.conf errors
+Message-Id: <20051101163322.36e372ae.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051121203251.19023.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20051121203251.19023.qmail@desitka.sh.cvut.cz>
+References: <20051030235843.GF26397@paradise.net.nz>
+In-Reply-To: <20051030235843.GF26397@paradise.net.nz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Volker,
 
-Hi Rudolf,
+> Minor bugs, but can be confusing:
+> 
+>   # The following is for the Inside Technologies 786LCD which uses either a
+>   # IT8705F or a SIS950 for monitoring with the SIS630.
+>   # You will need to load the it87 module as follows to select the correct
+>   # temperature sensor type.
+>   # modprobe it87 temp_type=0x31
+> 
+> Module it87 doesn't have a temp_type option.
 
-On 2005-11-21, Rudolf Marek wrote:
+It used to, but has no more. Thanks for reporting. I've dropped that
+part, as well as the comment about the misdetection in the paragraph
+right after, as I believe this is no more true.
 
-> -int vid_from_reg(int val, int vrm)
-> +int vid_from_reg(int val, u8 vrm)
+> The settings for low and high temperature values are missing for all
+> temperatures.
 
-You need to reflect that change in include/linux/hwmon-vid.h. Same for
-vid_which_vrm().
-
-> -static int find_vrm(u8 eff_family, u8 eff_model, u8 vendor)
-> +static int find_vrm(u8 eff_family, u8 eff_model, u8 eff_stepping, u8
->      vendor)
-
-Should return u8?
+This is only an example. You are free to change, delete or add
+statements. Also feel free to submit a patch to etc/sensors.conf.eg if
+you think it's worth it.
 
 Thanks,
---
+-- 
 Jean Delvare
