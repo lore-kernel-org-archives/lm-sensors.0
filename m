@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 01 Nov 2005 18:27:37 +0000
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Tue, 01 Nov 2005 19:17:53 +0000
 Subject: [lm-sensors] Running lm-sensors on EPIA 5000 with Debian SARGE 2.6
-Message-Id: <20051101182706.74b187e4.khali@linux-fr.org>
+Message-Id: <20051101181659.EFD3D12E9E@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051012133202.9303523324@box1.planbit.co.uk>
 In-Reply-To: <20051012133202.9303523324@box1.planbit.co.uk>
@@ -10,20 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Attached is the updated patch file for the vt8231 with kernel 2.6.14.
+
+I believe that this has all the corrections requested by Jean in his mail
+below. Thanks for reviewing it, Jean, your quick response was appreciated. 
+
+It insmod's, runs and rmmod's OK on my Via Epia 5000 box, but it needs
+testing on a wider range of machines if possible...
+
+- Roger
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: 01 November 2005 17:27
+To: Roger Lucas
+Cc: Rudolf Marek; LM Sensors
+Subject: Re: [lm-sensors] Running lm-sensors on EPIA 5000 with Debian SARGE
+2.6
+
 Hi Roger,
 
 Please answer to the list rather than to me only.
 
-> I have a patch for the vt8231 driver now (attached).  It seems OK but I get
+> I have a patch for the vt8231 driver now (attached).  It seems OK but I
+get
 > a compilation warning:
 > 
 > drivers/hwmon/vt8231.c:63: warning: `addr_data' defined but not used
 > 
-> This is generated because I am using the macro "I2C_CLIENT_INSMOD_1(vt8231)"
+> This is generated because I am using the macro
+"I2C_CLIENT_INSMOD_1(vt8231)"
 > to register the module, but then never use the addr_data structure that is
 > created by it.
 > 
-> I cannot see a reason to use this structure, so I suppose I should be using
+> I cannot see a reason to use this structure, so I suppose I should be
+using
 > a different macro to register the driver...  Any thoughts ?
 
 Don't use I2C_CLIENT_INSMOD_1. The VT8231 is not an I2C chip. It is
@@ -43,14 +64,20 @@ You should make it depend on EXPERIMENTAL too.
 > +** Change log:
 > +**
 > +**  2005-11-01: Roger Lucas (roger@planbit.co.uk)
-> +**     Updated to work with the 2.6.14 kernel that I have.  This is the first
-> +**     lm-sensors port that I have done, so there may be nasty mistakes in it.
-> +**     That having been said, insmod and rmmod seem to work cleanly on my 
+> +**     Updated to work with the 2.6.14 kernel that I have.  This is the
+first
+> +**     lm-sensors port that I have done, so there may be nasty mistakes
+in it.
+> +**     That having been said, insmod and rmmod seem to work cleanly on my
+
 > +**	   system and the values reported are reasonable.
-> +**     I merged the Aaron Marsh vt8231 port with the most recent via686a driver 
+> +**     I merged the Aaron Marsh vt8231 port with the most recent via686a
+driver 
 > +**     in the 2.6.14 kernel source to create this code.
-> +**     VRM doesn't work on the Via Epia 5000 that I have as the kernel call
-> +**	   vid_which_vrm() returns -1.  Apparently the Via CPU is unrecognised....
+> +**     VRM doesn't work on the Via Epia 5000 that I have as the kernel
+call
+> +**	   vid_which_vrm() returns -1.  Apparently the Via CPU is
+unrecognised....
 > +*/
 
 Changelog doesn't belong to the code. You can add whatever comment you
