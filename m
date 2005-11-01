@@ -1,56 +1,59 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 20 Nov 2005 17:45:14 +0000
-Subject: [lm-sensors] decode-dimms.pl
-Message-Id: <20051120174546.2ab062e1.khali@linux-fr.org>
+From: nivv@cs.bgu.ac.il (niv)
+Date: Tue, 01 Nov 2005 17:48:37 +0000
+Subject: [lm-sensors] Good news , bad news
+Message-Id: <43679C33.5010605@cs.bgu.ac.il>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000601c5eddd$372e8c80$3224050a@avilespaxp>
-In-Reply-To: <000601c5eddd$372e8c80$3224050a@avilespaxp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Paul,
+Hi all,
 
-Please start a new thread for new topics.
+I am glad to report lm_sensors works on my IDEQ 210V . This pc has the 
+via KM400 and VT8378. sensors-detect found the it87 and it looks good.
 
-> Qucik question on decode-dimms,
-> 
-> I have 3 dimms insalled 512, 256 and 256 for a total of 1 Gb.
-> 
-> Is the total memory per dimm a combination of :
-> 
-> Total number of bytes in EEPROM 256
-> Number of Module Rows   2
+I also have a TV card on this pc , and it uses I2C.
 
-No. The "total number of bytes in EEPROM" really is, well, the number
-of bytes in the EEPROM which contains the configuration and information
-data for the memory module. It isn't related with the size of the
-memory module itself.
 
-The number of rows is one of the components which is used to compute
-the total size. Others are:
+Question: How to omit the other chips that show up in the sensors command?
 
-> Number of Row Address Bits (SDRAM only) 13
-> Number of Col Address Bits (SDRAM only) 10
-> (...)
-> Number of Device Banks  4
+I mean the eeprom-i2c-1-51,Philips -i2c-0-61,tveeprom
 
-The way to compute the exact size is quite complex and depend on the
-memory type.
+I cant find a section in the sensors.conf that lists the chips used. 
+looks like sensors shows all the I2C devices.
 
-Since we want to remove eeprom support from "sensors" in a near future,
-we probably should improve decode-dimms.pl so that it gives the total
-memory module size like "sensors" did.
 
-It also seems that "Row Densities" would give the size of one row,
-which we would then multiply by the number of rows to get the total
-size. I wonder if it always works. I'd guess not, else why would we
-have used more complex computations?
 
-Is anyone up to copy sensors' computations into decode-dimms.pl and let
-that script print the total memory module size?
+it87-isa-0290
+Adapter: ISA adapter
++5V:       +5.00 V  (min =  +4.76 V, max =  +5.24 V)
++12V:     +11.65 V  (min = +11.39 V, max = +12.61 V)
+Stdby:     +4.84 V  (min =  +4.76 V, max =  +5.24 V)
+VBat:      +3.25 V
+fan1:        0 RPM  (min =    0 RPM, div = 8)
+fan2:     1654 RPM  (min =  664 RPM, div = 8)          ALARM
+M/B Temp:    +29 C  (low  =   +15 C, high =   +40 C)   sensor = thermistor
+CPU Temp:    +42 C  (low  =   +15 C, high =   +45 C)   sensor = thermistor
+Temp3:       +43 C  (low  =   +15 C, high =   +45 C)   sensor = thermistor
+
+eeprom-i2c-1-51
+Adapter: SMBus Via Pro adapter at 5000
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
+
+Philips -i2c-0-61
+Adapter: bt878 #0 [sw]
+
+tveeprom-i2c-0-50
+Adapter: bt878 #0 [sw]
+
+
+
 
 Thanks,
+
+Niv
+
 -- 
-Jean Delvare
+"??? ???"
