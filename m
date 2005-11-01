@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 01 Nov 2005 09:30:21 +0000
+Date: Tue, 01 Nov 2005 18:27:37 +0000
 Subject: [lm-sensors] Running lm-sensors on EPIA 5000 with Debian SARGE 2.6
-Message-Id: <20051101093000.0b9d91e1.khali@linux-fr.org>
+Message-Id: <20051101182706.74b187e4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051012133202.9303523324@box1.planbit.co.uk>
 In-Reply-To: <20051012133202.9303523324@box1.planbit.co.uk>
@@ -12,36 +12,117 @@ To: lm-sensors@vger.kernel.org
 
 Hi Roger,
 
-Sorry for the delay.
+Please answer to the list rather than to me only.
 
-> I noticed that the vt8231 driver would not start if the i2c-viapro module
-> was installed. I suspect this is because they both try and control the same
-> PCI device (the VT8231 chip) and therefore you can only have one installed
-> at a time.  If you install the i2c-viapro first then the vt8231 driver never
-> gets started and you never get the temp/voltage information.
+> I have a patch for the vt8231 driver now (attached).  It seems OK but I get
+> a compilation warning:
 > 
-> The i2c-viapro driver allows the i2c bus to be accessed, so if it is
-> installed then I can see the RAMs that are on the bus.  If I remove the
-> i2c-viapro and install the vt8231 then I get the voltage and temperature
-> information.
+> drivers/hwmon/vt8231.c:63: warning: `addr_data' defined but not used
+> 
+> This is generated because I am using the macro "I2C_CLIENT_INSMOD_1(vt8231)"
+> to register the module, but then never use the addr_data structure that is
+> created by it.
+> 
+> I cannot see a reason to use this structure, so I suppose I should be using
+> a different macro to register the driver...  Any thoughts ?
 
-There was a similar conflict between i2c-viapro and via686a, but it was
-solved in Linux 2.6.10. These drivers do not actually use the PCI
-device, they only need it to read some resource values at load time, so
-they now release the PCI device when they are done. That way, both
-drivers can be loaded in sequence.
+Don't use I2C_CLIENT_INSMOD_1. The VT8231 is not an I2C chip. It is
+attached to the i2c subsystem for historical reasons, but we are trying
+to separate such chips from the i2c subsystem now.
 
-A similar change would be required for your vt8231 driver. Just look at
-how the via686a driver does in Linux 2.6.14, and do the same. That
-should work just fine.
+A few additional comments about your code:
 
-> 1)       Does anyone know what the plan is for combining the vt8231 and
-> i2c-viapro modules so that a single module can access both the I2C bus and
-> the temperature/voltage information at the same time ?
+> +config SENSORS_VT8231
+> +	tristate "VT8231"
+> +	depends on HWMON && I2C && PCI
 
-We were able to fix the issue in a different way (see above) so merging
-the drivers won't be necessary. Else we would have had to merge the
-i2c-viapro, vt8231, vt1211 and via686a drivers all in one. What a mess!
+You should make it depend on EXPERIMENTAL too.
 
+> +/* Supports VIA VT8231 South Bridge embedded sensors 
+> +**
+> +** Change log:
+> +**
+> +**  2005-11-01: Roger Lucas (roger@planbit.co.uk)
+> +**     Updated to work with the 2.6.14 kernel that I have.  This is the first
+> +**     lm-sensors port that I have done, so there may be nasty mistakes in it.
+> +**     That having been said, insmod and rmmod seem to work cleanly on my 
+> +**	   system and the values reported are reasonable.
+> +**     I merged the Aaron Marsh vt8231 port with the most recent via686a driver 
+> +**     in the 2.6.14 kernel source to create this code.
+> +**     VRM doesn't work on the Via Epia 5000 that I have as the kernel call
+> +**	   vid_which_vrm() returns -1.  Apparently the Via CPU is unrecognised....
+> +*/
+
+Changelog doesn't belong to the code. You can add whatever comment you
+want at the top of the patch, and it'll be used in the git commit.
+
+The vid_which_vrm issue is interesting. Rudolf, can you please look
+into it?
+
+> +static int force_addr = 0;
+
+Do not explicitely intialize static globals to 0, the compiler does it
+for you.
+
+> +MODULE_PARM(force_addr, "i");
+
+Please use module_param instead. MODULE_PARM is deprecated.
+
+> +static unsigned short normal_i2c[] = { I2C_CLIENT_END };
+
+You shouldn't need this one.
+
+> +static DEVICE_ATTR(alarms, S_IRUGO | S_IWUSR, show_alarms, NULL);
+
+S_IWUSR is not correct, that file is read-only.
+
+> +static DEVICE_ATTR(in0_ref, S_IRUGO, show_vid, NULL);
+
+This attribute has been renamed to cpu0_vid.
+
+> +        struct vt8231_data *data = vt8231_update_device(dev);
+
+Indentation issue, you use spaces instead of a tab. Same in other
+places, please fix them all.
+
+> +	return sprintf(buf,"%ld\n", (long)data->vrm);
+
+Please use a space after the comma. Same in other places, please fix
+them all.
+
+> +	printk("Setting VRM to \"%s\" = %d\n", buf, val );
+
+No space before closing parenthesis.
+
+> +	if (!request_region(isa_address, VT8231_EXTENT, "vt8231-sensors")) {
+
+Please use the driver name to request the region.
+
+> +	if (!(data = kmalloc(sizeof(struct vt8231_data), GFP_KERNEL))) {
+> +		err = -ENOMEM;
+> +		goto exit_release;
+> +	}
+> +
+> +	memset(data, 0, sizeof(struct vt8231_data));
+
+Please use kzalloc instead of kmalloc + memset.
+
+> +	snprintf(new_client->name, I2C_NAME_SIZE, type_name);
+
+strlcpy will do the same, more efficiently.
+
+> +	/* TODO: vid and vrm */
+> +       	device_create_file(&new_client->dev, &dev_attr_in0_ref);
+> +	device_create_file(&new_client->dev, &dev_attr_vrm);
+
+Bad indentation. Why this "TODO" comment?
+
+This was only a quick and partial review, I've been reviewing too much
+code today already, I'll go mad if I do more.
+
+One last general comment: please cut long lines so that the code fits
+in 80 columns.
+
+Thanks,
 -- 
 Jean Delvare
