@@ -1,7 +1,7 @@
-From: Knut_Petersen@t-online.de (Knut Petersen)
-Date: Wed, 02 Nov 2005 19:47:28 +0000
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Wed, 02 Nov 2005 20:15:46 +0000
 Subject: [lm-sensors] RE: vt8231.c
-Message-Id: <436909D8.9030904@t-online.de>
+Message-Id: <20051102191501.E56F412E9E@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
 In-Reply-To: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
@@ -9,6 +9,20 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi Knut,
+
+I'm not sure exactly how the VT8251 generates its alarms.  I'll have to look
+into the device spec and see exactly what it does then get back to you.
+
+- Roger
+
+-----Original Message-----
+From: Knut Petersen [mailto:Knut_Petersen@t-online.de] 
+Sent: 02 November 2005 18:48
+To: Roger Lucas
+Cc: 'Jean Delvare'; 'LM Sensors'
+Subject: Re: [lm-sensors] RE: vt8231.c
 
 Roger Lucas schrieb:
 
@@ -48,3 +62,4 @@ The previous patch also behaved wrong for a "set fan1_min 0".
 
 cu,
  Knut
+
