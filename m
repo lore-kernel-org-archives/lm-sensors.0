@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 02 Nov 2005 12:05:22 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Wed, 02 Nov 2005 12:17:04 +0000
 Subject: [lm-sensors] Running lm-sensors on EPIA 5000 with Debian SARGE 2.6
-Message-Id: <ciiXOTvF.1130928737.7508800.khali@localhost>
+Message-Id: <4368A02C.80903@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051012133202.9303523324@box1.planbit.co.uk>
 In-Reply-To: <20051012133202.9303523324@box1.planbit.co.uk>
@@ -10,36 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Roger Lucas wrote:
+> Hi Rudolf,
+> 
+> I have done some digging on my motherboard (a Via Epia 5000).
+> 
+> http://www.viaembedded.com/product/epia_mini_itx_spec.jsp?motherboardId!
+> 
+> The processor is a Via EDEN ESP 5000.  This has a 533 MHz clock and 1.2v
+> supply.  You can find the datasheet for the chip on the link below (see
+> section 1.3 on page 7 for the speed/voltage model information).
+> 
+> http://www.viaembedded.com/product/6/14/Eden20v115.pdf
 
-Hi Rudolf,
+Yes I have read that yesterday.
 
-On 2005-11-01, Rudolf Marek wrote:
-> VID "something special"
-> 1 1 1 1  1.30V
-> 1 1 1 0  1.35V
-> 0 0 0 0  2.05V
+> Fortunately, I am running Debian, so the "apt-get install cupid" worked
+> smoothly and returned the results below.  I have absolutely no idea what
+> they mean :-)
+> 
+> edensnake:~# cpuid
+>  eax in    eax      ebx      ecx      edx
+> 00000000 00000001 746e6543 736c7561 48727561
+> 00000001 00000673 00000000 00000000 00803135
 
-This looks like standard VRM 8.4 to me, nothing special.
+Family is 6 model 7 stepping 3
 
-> We need to define 2 new VIDs one is something called
->
-> IMVP-II (I dont know anything about -I and -III  => will call it 1718
->
-> and the that really strange samuel 2 VID codding. => will call it 670
->
-> Ideas? Questions?
-> If not I will develop the patch.
 
-Sure, add new VRM-like values if needed. We might end up defining
-constant for these so that the number do not look like magic.
+0       6       7       0+   something special EDEN ESP samuel 2
 
-While you're at it, I think we should do some changes to vid_from_reg: I
-think VRM 8.2 was the default for historical reasons, but it's not
-safe. We shouldn't have no default. 8.2 should be handled explicitely
-as other values are. Any non-zero, non-handled value should trigger a
-debug log message. Any non-handled value should result in 0 being
-returned. OK?
+This could be also this processor which seems to follow VRM 8.4 instead of VRM8.5. Dig around the datsheets I have and it seems some contradict
+the other. I think correct would be VRM 8.5 for this case.
 
-Thanks,
---
-Jean Delvare
+Regards
+Rudolf
