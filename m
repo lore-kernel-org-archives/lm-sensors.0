@@ -1,567 +1,123 @@
-From: alessandro.zummo@towertech.it (Alessandro Zummo)
-Date: Mon, 21 Nov 2005 20:44:07 +0000
-Subject: [lm-sensors] [PATCH]	I2C:	Added support for the PCF8563 chip.
-Message-Id: <20051121204316.2ed7c25c@inspiron>
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Wed, 02 Nov 2005 10:25:26 +0000
+Subject: [lm-sensors] RE: vt8231.c
+Message-Id: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AHEILKONAKAEJPHNMOPNEELMCDAA.hs@denx.de>
-In-Reply-To: <AHEILKONAKAEJPHNMOPNEELMCDAA.hs@denx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 21 Nov 2005 17:00:56 +0100
-"Heiko Schocher" <hs@denx.de> wrote:
+Hi Knut,
 
-> Hello,
-> 
-> the following Patch (against 2.6 kernel.org tree, COMMIT_ID:
-> f093182d313edde9b1f86dbdaf40ba4da2dbd0e7) adds support for
-> the PCF8563 RTC on the PM82X Boards from Microsys.
+It looks like it is working on your system too. :-)
 
- Hi,
+Thanks for you help in testing this out.
 
-   I was working on the same chip and wrote my own version
- of the driver. In my case, the chip is used
- on the Iomega NAS100D (ARM), but I've left out of the
- core the glue code to interface it to the ARM rtc subsytem.
+I posted a revised patch update to the mailing list yesterday - I got a
+whole load of change requests from Jean.  Most of these were cosmetic or
+minor performance changes, but I would suggest that you update if possible.
 
- (we should really have a kernel-wide rtc subsys.. :( )
+The fan is handled correctly, but you have the nasty condition where if you
+set a minimum speed that is too low, it is set to zero.  The Via speed
+sensor works on period rather than frequency, so there is a 1/x conversion
+done in the driver.  If you select a frequency that is too low, then the
+conversion to a period creates a period that is too large for the counters
+and the resulting illegal result is rejected.  If you want very slow fan
+speeds then you must make sure the divider is set high enough so that the
+resulting period is within the limits of the device.
 
- patch attached. if it prove useful to you we could maybe
- join some efforts...
- 
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-nas100d/drivers/i2c/chips/pcf8563.c	2005-11-21 18:06:00.000000000 +0100
-@@ -0,0 +1,466 @@
-+/*
-+ * pcf8563.c - An i2c driver for the Philips PCF8563 RTC
-+ * Copyright 2005 Tower Technologies
-+ *
-+ * Author: Alessandro Zummo <a.zummo@towertech.it>
-+ * Maintainers: http://www.nslu2-linux.org/
-+ *
-+ * based on the other drivers in this same directory.
-+ *
-+ * http://www.semiconductors.philips.com/acrobat/datasheets/PCF8563-04.pdf
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/string.h>
-+#include <linux/bcd.h>
-+#include <linux/rtc.h>
-+#include <linux/list.h>
-+
-+#include <linux/pcf8563.h>
-+
-+#define DRV_VERSION "0.3.3"
-+
-+/* Addresses to scan */
-+static unsigned short normal_i2c[] = { 0x51, I2C_CLIENT_END };
-+
-+/* Module parameters */
-+I2C_CLIENT_INSMOD;
-+I2C_CLIENT_MODULE_PARM(hctosys,
-+	"Set the system time from the hardware clock upon initialization");
-+
-+#define PCF8563_REG_ST1		0x00 /* status */
-+#define PCF8563_REG_ST2		0x01
-+
-+#define PCF8563_REG_SC		0x02 /* datetime */
-+#define PCF8563_REG_MN		0x03
-+#define PCF8563_REG_HR		0x04
-+#define PCF8563_REG_DM		0x05
-+#define PCF8563_REG_DW		0x06
-+#define PCF8563_REG_MO		0x07
-+#define PCF8563_REG_YR		0x08
-+
-+#define PCF8563_REG_AMN		0x09 /* alarm */
-+#define PCF8563_REG_AHR		0x0A
-+#define PCF8563_REG_ADM		0x0B
-+#define PCF8563_REG_ADW		0x0C
-+
-+#define PCF8563_REG_CLKO	0x0D /* clock out */
-+#define PCF8563_REG_TMRC	0x0E /* timer control */
-+#define PCF8563_REG_TMR		0x0F /* timer */
-+
-+#define PCF8563_SC_LV		0x80 /* low voltage */
-+#define PCF8563_MO_C		0x80 /* century */
-+
-+/* Prototypes */
-+static int pcf8563_attach(struct i2c_adapter *adapter);
-+static int pcf8563_detach(struct i2c_client *client);
-+static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind);
-+static int pcf8563_command(struct i2c_client *client, unsigned int cmd,
-+	void *arg);
-+
-+static struct i2c_driver pcf8563_driver = {
-+	.owner		= THIS_MODULE,
-+	.name		= "pcf8563",
-+	.flags		= I2C_DF_NOTIFY,
-+	.attach_adapter = &pcf8563_attach,
-+	.detach_client	= &pcf8563_detach,
-+};
-+
-+struct pcf8563_data {
-+	struct i2c_client client;
-+	struct list_head list;
-+};
-+
-+static const unsigned char days_in_mo[] +	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-+
-+static LIST_HEAD(pcf8563_clients);
-+
-+/* Workaround until the I2C subsytem will allow to send
-+ * commands to a specific client. This function will send the command
-+ * to the first client.
-+ */
-+int pcf8563_do_command(unsigned int cmd, void *arg)
-+{
-+	struct list_head *walk;
-+	struct list_head *tmp;
-+	struct pcf8563_data *data;
-+
-+	list_for_each_safe(walk, tmp, &pcf8563_clients) {
-+		data = list_entry(walk, struct pcf8563_data, list);
-+		return pcf8563_command(&data->client, cmd, arg);
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+#define is_leap(year) \
-+	((year) % 4 = 0 && ((year) % 100 != 0 || (year) % 400 = 0))
-+
-+/* make sure the rtc_time values are in bounds */
-+
-+static int pcf8563_validate_tm(struct rtc_time *tm)
-+{
-+	int year = tm->tm_year + 1900;
-+
-+	if ((tm->tm_year < 70) || (tm->tm_year > 255))
-+		return -EINVAL;
-+
-+	if ((tm->tm_mon > 11) || (tm->tm_mday = 0))
-+		return -EINVAL;
-+
-+	if (tm->tm_mday > days_in_mo[tm->tm_mon]
-+		+ ((tm->tm_mon = 1) && is_leap(year)))
-+		return -EINVAL;
-+
-+	if ((tm->tm_hour >= 24) || (tm->tm_min >= 60) || (tm->tm_sec >= 60))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+/*
-+ * In the routines that deal directly with the pcf8563 hardware, we use
-+ * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
-+ */
-+static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
-+{
-+	unsigned char buf[13];
-+	unsigned char addr = PCF8563_REG_ST1;
-+
-+	struct i2c_msg msgs[] = {
-+		{ client->addr, 0, 1, &addr },	/* setup read ptr */
-+		{ client->addr, I2C_M_RD, 13, buf },	/* read status + date */
-+	};
-+
-+	/* read registers */
-+	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
-+		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
-+		return -EIO;
-+	}
-+
-+	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV)
-+		dev_info(&client->dev,
-+			"low voltage detected, date/time is not reliable.\n");
-+
-+	dev_dbg(&client->dev,
-+		"%s: raw data is st1=%02x, st2=%02x, sec=%02x, min=%02x, hr=%02x, "
-+		"mday=%02x, wday=%02x, mon=%02x, year=%02x\n",
-+		__FUNCTION__,
-+		buf[0], buf[1], buf[2], buf[3],
-+		buf[4], buf[5], buf[6], buf[7],
-+		buf[8]);
-+
-+
-+	tm->tm_sec = BCD2BIN(buf[PCF8563_REG_SC] & 0x7F);
-+	tm->tm_min = BCD2BIN(buf[PCF8563_REG_MN] & 0x7F);
-+	tm->tm_hour = BCD2BIN(buf[PCF8563_REG_HR] & 0x3F); /* rtc hr 0-23 */
-+	tm->tm_mday = BCD2BIN(buf[PCF8563_REG_DM] & 0x3F);
-+	tm->tm_wday = buf[PCF8563_REG_DW] & 0x07;
-+	tm->tm_mon = BCD2BIN(buf[PCF8563_REG_MO] & 0x1F) - 1; /* rtc mn 1-12 */
-+	tm->tm_year = BCD2BIN(buf[PCF8563_REG_YR])
-+		+ (buf[PCF8563_REG_MO] & PCF8563_MO_C ? 100 : 0);
-+
-+	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
-+		__FUNCTION__,
-+		tm->tm_sec, tm->tm_min, tm->tm_hour,
-+		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	if (pcf8563_validate_tm(tm) < 0) {
-+		dev_err(&client->dev, "retrieved date/time is not valid.\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm,
-+				int datetoo)
-+{
-+	int i, err;
-+	unsigned char buf[9];
-+
-+	/* check if all values in the tm struct are correct */
-+	if ((err = pcf8563_validate_tm(tm)) < 0)
-+		return err;
-+
-+	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
-+		__FUNCTION__,
-+		tm->tm_sec, tm->tm_min, tm->tm_hour,
-+		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	/* hours, minutes and seconds */
-+	buf[PCF8563_REG_SC] = BIN2BCD(tm->tm_sec);
-+	buf[PCF8563_REG_MN] = BIN2BCD(tm->tm_min);
-+	buf[PCF8563_REG_HR] = BIN2BCD(tm->tm_hour);
-+
-+	/* should we also set the date? */
-+	if (datetoo) {
-+		buf[PCF8563_REG_DM] = BIN2BCD(tm->tm_mday);
-+
-+		/* month, 1 - 12 */
-+		buf[PCF8563_REG_MO] = BIN2BCD(tm->tm_mon + 1);
-+
-+		/* year and century */
-+		buf[PCF8563_REG_YR] = BIN2BCD(tm->tm_year % 100);
-+		if (tm->tm_year / 100)
-+			buf[PCF8563_REG_MO] |= PCF8563_MO_C;
-+
-+		buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
-+	}
-+
-+	/* write register's data */
-+	for (i = 0; i < (datetoo ? 7 : 3); i++) {
-+		unsigned char data[2] = { PCF8563_REG_SC + i,
-+						buf[PCF8563_REG_SC + i] };
-+
-+		err = i2c_master_send(client, data, sizeof(data));
-+		if (err != sizeof(data)) {
-+			dev_err(&client->dev,
-+				"%s: err=%d addr=%02x, data=%02x\n",
-+				__FUNCTION__, err, data[0], data[1]);
-+			return -EIO;
-+		}
-+	};
-+
-+	return 0;
-+}
-+
-+static int pcf8563_hctosys(struct i2c_client *client)
-+{
-+	int err;
-+
-+	struct rtc_time tm;
-+	struct timespec tv;
-+
-+	err = pcf8563_command(client, PCF8563_CMD_GETDATETIME, &tm);
-+
-+	if (err) {
-+		dev_err(&client->dev,
-+			"Unable to set the system clock\n");
-+		return err;
-+	}
-+
-+	/* IMPORTANT: the RTC only stores whole seconds. It is arbitrary
-+	 * whether it stores the most close value or the value with partial
-+	 * seconds truncated. However, it is important that we use it to store
-+	 * the truncated value. This is because otherwise it is necessary,
-+	 * in an rtc sync function, to read both xtime.tv_sec and
-+	 * xtime.tv_nsec. On some processors (i.e. ARM), an atomic read
-+	 * of >32bits is not possible. So storing the most close value would
-+	 * slow down the sync API. So here we have the truncated value and
-+	 * the best guess is to add 0.5s.
-+	 */
-+
-+	tv.tv_nsec = NSEC_PER_SEC >> 1;
-+
-+	/* WARNING: this is not the C library 'mktime' call, it is a built in
-+	 * inline function from include/linux/time.h.  It expects (requires)
-+	 * the month to be in the range 1-12
-+	 */
-+
-+	tv.tv_sec  = mktime(tm.tm_year + 1900, tm.tm_mon + 1,
-+				tm.tm_mday, tm.tm_hour,
-+				tm.tm_min, tm.tm_sec);
-+
-+	do_settimeofday(&tv);
-+
-+	dev_info(&client->dev,
-+		"setting the system clock to %d-%d-%d %d:%d:%d\n",
-+		tm.tm_year + 1900, tm.tm_mon + 1,
-+		tm.tm_mday, tm.tm_hour, tm.tm_min,
-+		tm.tm_sec);
-+
-+	return 0;
-+}
-+
-+struct pcf8563_limit
-+{
-+	unsigned char reg;
-+	unsigned char mask;
-+	unsigned char min;
-+	unsigned char max;
-+};
-+
-+static int pcf8563_validate_client(struct i2c_client *client)
-+{
-+	int i, xfer;
-+
-+	static const struct pcf8563_limit probe_limits_pattern[] = {
-+		/* register, mask, min, max */
-+		{ PCF8563_REG_SC,	0x7F,	0,	59	},
-+		{ PCF8563_REG_MN,	0x7F,	0,	59	},
-+		{ PCF8563_REG_HR,	0x3F,	0,	23	},
-+		{ PCF8563_REG_DM,	0x3F,	1,	31	},
-+		{ PCF8563_REG_MO,	0x1F,	1,	12	},
-+		{ PCF8563_REG_YR,	0xFF,	0,	99	},
-+	};
-+
-+	/* check limits (only registers with bcd values) */
-+	for (i = 0; i < ARRAY_SIZE(probe_limits_pattern); i++) {
-+		unsigned char addr, buf, value;
-+
-+		addr = probe_limits_pattern[i].reg;
-+
-+		struct i2c_msg msgs[2] = {
-+			{ client->addr, 0, 2, &addr },
-+			{ client->addr, I2C_M_RD, 1, &buf },
-+		};
-+
-+		xfer = i2c_transfer(client->adapter, msgs, 2);
-+
-+		if (xfer != 2) {
-+			dev_err(&client->adapter->dev,
-+				"%s: could not read register %x\n",
-+				__FUNCTION__, probe_limits_pattern[i].reg);
-+
-+			return -EIO;
-+		}
-+
-+		value = BCD2BIN(buf & probe_limits_pattern[i].mask);
-+
-+		if (value > probe_limits_pattern[i].max ||
-+			value < probe_limits_pattern[i].min) {
-+			dev_dbg(&client->adapter->dev,
-+				"%s: register=%x, lim pattern=%d, value=%d\n",
-+				__FUNCTION__, probe_limits_pattern[i].reg, i, value);
-+
-+			return -ENODEV;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int pcf8563_attach(struct i2c_adapter *adapter)
-+{
-+	return i2c_probe(adapter, &addr_data, pcf8563_probe);
-+}
-+
-+static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *client;
-+	struct pcf8563_data *data;
-+
-+	int err = 0;
-+
-+	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
-+		err = -ENODEV;
-+		goto exit;
-+	}
-+
-+	if (!(data = kzalloc(sizeof(struct pcf8563_data), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	client = &data->client;
-+	client->addr = address;
-+	client->driver = &pcf8563_driver;
-+	client->adapter	= adapter;
-+
-+	strlcpy(client->name, pcf8563_driver.name, I2C_NAME_SIZE);
-+
-+	i2c_set_clientdata(client, data);
-+
-+	/* Verify the chip is really an PCF8563 */
-+	if (kind < 0) {
-+		if (pcf8563_validate_client(client) < 0) {
-+			err = -ENODEV;
-+			goto exit_kfree;
-+		}
-+	}
-+
-+	/* Inform the i2c layer */
-+	if ((err = i2c_attach_client(client)))
-+		goto exit_kfree;
-+
-+	list_add(&data->list, &pcf8563_clients);
-+
-+	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
-+
-+	/* If requested, set the system time */
-+	if (hctosys)
-+		pcf8563_hctosys(client);
-+
-+	return 0;
-+
-+exit_kfree:
-+	kfree(data);
-+
-+exit:
-+	return err;
-+}
-+
-+static int pcf8563_detach(struct i2c_client *client)
-+{
-+	int err;
-+	struct pcf8563_data *data = i2c_get_clientdata(client);
-+
-+	if ((err = i2c_detach_client(client)))
-+		return err;
-+
-+	list_del(&data->list);
-+
-+	kfree(data);
-+
-+	return 0;
-+}
-+
-+static int pcf8563_command(struct i2c_client *client, unsigned int cmd,
-+	void *param)
-+{
-+	if (param = NULL)
-+		return -EINVAL;
-+
-+	if (!capable(CAP_SYS_TIME))
-+		return -EACCES;
-+
-+	dev_dbg(&client->dev, "%s: cmd=%d\n", __FUNCTION__, cmd);
-+
-+	switch (cmd) {
-+	case PCF8563_CMD_GETDATETIME:
-+		return pcf8563_get_datetime(client, param);
-+
-+	case PCF8563_CMD_SETTIME:
-+		return pcf8563_set_datetime(client, param, 0);
-+
-+	case PCF8563_CMD_SETDATETIME:
-+		return pcf8563_set_datetime(client, param, 1);
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int __init pcf8563_init(void)
-+{
-+	return i2c_add_driver(&pcf8563_driver);
-+}
-+
-+static void __exit pcf8563_exit(void)
-+{
-+	i2c_del_driver(&pcf8563_driver);
-+}
-+
-+MODULE_AUTHOR("Alessandro Zummo <a.zummo@towertech.it>");
-+MODULE_DESCRIPTION("Philips PCF8563 RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
-+
-+EXPORT_SYMBOL_GPL(pcf8563_do_command);
-+
-+module_init(pcf8563_init);
-+module_exit(pcf8563_exit);
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-nas100d/include/linux/pcf8563.h	2005-11-21 18:05:03.000000000 +0100
-@@ -0,0 +1,27 @@
-+/*
-+ * pcf8563.h - defines for drivers/i2c/chips/pcf8563.c
-+ * Copyright 2005 Tower Technologies
-+ *
-+ * Author: Alessandro Zummo <a.zummo@towertech.it>
-+ * Maintainers: http://www.nslu2-linux.org/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __LINUX_PCF8563_H__
-+#define __LINUX_PCF8563_H__
-+
-+/* commands */
-+
-+#define PCF8563_CMD_GETDATETIME	0
-+#define PCF8563_CMD_SETTIME	1
-+#define PCF8563_CMD_SETDATETIME	2
-+#define PCF8563_CMD_GETALARM	3
-+#define PCF8563_CMD_SETALARM	4
-+
-+extern int pcf8563_do_command(unsigned int cmd, void *arg);
-+
-+#endif /* __LINUX_PCF8563_H__ */
---- linux-nas100d.orig/drivers/i2c/chips/Kconfig	2005-11-16 23:09:48.000000000 +0100
-+++ linux-nas100d/drivers/i2c/chips/Kconfig	2005-11-16 23:10:02.000000000 +0100
-@@ -135,4 +135,13 @@ config RTC_X1205_I2C
- 	  This driver can also be built as a module. If so, the module
- 	  will be called x1205.
- 
-+config RTC_PCF8563_I2C
-+	tristate "Philips PCF8563 RTC"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the Philips PCF8563
-+	  Real Time Clock chip. This chip is used by the Iomega NAS100D.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called pcf8563.
- endmenu
---- linux-nas100d.orig/drivers/i2c/chips/Makefile	2005-11-16 23:09:48.000000000 +0100
-+++ linux-nas100d/drivers/i2c/chips/Makefile	2005-11-16 23:10:02.000000000 +0100
-@@ -14,6 +14,7 @@ obj-$(CONFIG_SENSORS_RTC8564)	+= rtc8564
- obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
- obj-$(CONFIG_TPS65010)		+= tps65010.o
- obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
-+obj-$(CONFIG_RTC_PCF8563_I2C)	+= pcf8563.o
- 
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
+Personally, I don't like this.  It isn't really a massive amount of work to
+get the driver to automatically either:
 
--- 
+1) Automatically select the appropriate divider for the minimum speed that
+you have requested (i.e. pick the highest divider ratio that can give the
+speed you want range)
 
- Best regards,
+Or
+2) Select the lowest possible minimum speed if the one you selected is still
+too low.
 
- Alessandro Zummo,
-  Tower Technologies - Turin, Italy
+A minimum speed of 0 should always disable the minimum speed detection.
+Resetting the minimum speed to zero when you select a non-zero minimum speed
+is just plain wrong, however, as it is not obvious exactly what is happening
+"behind the scenes".  I spent quite a bit of time debugging the system to
+convince myself it was working "correctly".
 
-  http://www.towertech.it
+What are your thoughts on this?
+
+Anyone else have thoughts on this?
+
+- Roger
+
+-----Original Message-----
+From: Knut Petersen [mailto:Knut_Petersen@t-online.de] 
+Sent: 02 November 2005 08:53
+To: Roger Lucas
+Subject: Re: vt8231.c
+
+Hi Roger,
+
+>
+>
+>Attached is a patch file for the 2.6.14 kernel tree.  I have also attached
+>my sensors.conf file.
+>
+>Please could you try this and let me know if it works for you?
+>
+>
+
+linux:/etc # sensors
+vt8231-isa-6000
+Adapter: ISA adapter
++12v:     +11.96 V  (min = +11.37 V, max = +12.56 V)  
++5v:       +5.21 V  (min =  +4.73 V, max =  +5.24 V)  
++2.5v:     +2.46 V  (min =  +2.42 V, max =  +2.57 V)  
+Vcore1 (1.2v):
+           +1.22 V  (min =  +1.14 V, max =  +1.25 V)  
++3.3V:     +3.35 V  (min =  +3.13 V, max =  +3.45 V)  
+fan1:     11808 RPM  (min =    0 RPM, div = 1)         
+fan2:        0 RPM  (min =    0 RPM, div = 2)         
+Proc Temp: +45.1?C  (high =  +268?C, hyst =   -59?C)  
+vid:       +1.85 V
+
+eeprom-i2c-0-51
+Adapter: SMBus Via Pro adapter at 5000
+Memory type:            SDR SDRAM DIMM
+Memory size (MB):       512
+
+
+
+Voltages:
+===+5V is within 0.02V with my multimeter,
++12V is about 0.16V low according to my multimeter
+
+Temperature:
+====The displayed value is believable.
+
+Fans:
+==
+I connected a fan for tests. It?s a Verax fan with 9 pulses / revolution.
+
+In sensors.conf I used the four dividers 1,2,4,9 instead of the *:
+
+    set fan1_div *
+    set fan1_min 1000
+
+Here are the results
+
+1:    fan1:     12024 RPM  (min =    0 RPM, div = 1)
+2:    fan1:     11702 RPM  (min =    0 RPM, div = 2)
+4:    fan1:     11702 RPM  (min =    0 RPM, div = 4)
+8:    fan1:     12603 RPM  (min =  999 RPM, div = 8)
+9:    fan1:     11915 RPM  (min =    0 RPM, div = 2)
+
+Obviously the fan1_min are ignored most of the time and dividers are not 
+handled correctly.
+The datasheet of the fan lists 1500 rpm for a temperature of 30? Celsius 
+and about 1200 rpm
+for 20? Celsius. So 12024/9 = 1336 rpm is believable.
+
+cu,
+ knut
 
