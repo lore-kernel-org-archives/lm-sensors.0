@@ -1,32 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 01 Nov 2005 18:31:20 +0000
-Subject: [lm-sensors] Good news , bad news
-Message-Id: <20051101183055.4878f52b.khali@linux-fr.org>
+From: CyTech@telenet.be (stein)
+Date: Wed, 02 Nov 2005 12:38:05 +0000
+Subject: [lm-sensors] as99127f rev2.0
+Message-Id: <1130931549.9178.9.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43679C33.5010605@cs.bgu.ac.il>
-In-Reply-To: <43679C33.5010605@cs.bgu.ac.il>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Niv,
+hi all, i'm currently working on a asus cuv4x-dls motherboard with a
+as99127f chip on the i?c bus..
 
-> I am glad to report lm_sensors works on my IDEQ 210V . This pc has the 
-> via KM400 and VT8378. sensors-detect found the it87 and it looks good.
+currently i can snoop my i?c bus thruogh another pc, and have an asus
+i-panel.. 
 
-Great :)
+i'm able to control the fan speend trough the 0x59 register with values
+like 0x8?h
+where 0x8F is full speed, 
+      0x8E is slightly lower
+       ...    ...
+0x8A is what the asus control panel (software) uses for low speed.. 
+altough 0x89 also works (more slow..)
 
-> I also have a TV card on this pc , and it uses I2C.
-> 
-> Question: How to omit the other chips that show up in the sensors command?
-> 
-> I mean the eeprom-i2c-1-51,Philips -i2c-0-61,tveeprom
 
-I think that "sensors -U" is what you are looking for.
 
-Starting with lm_sensors 2.9.2 and Linux 2.6.14,
-non-hardware-monitoring will no more show in "sensors" anyway.
-
--- 
-Jean Delvare
