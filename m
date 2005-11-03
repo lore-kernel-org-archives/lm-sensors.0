@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 02 Nov 2005 21:56:52 +0000
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Thu, 03 Nov 2005 00:28:18 +0000
 Subject: [lm-sensors] RE: vt8231.c
-Message-Id: <20051102215628.389ce215.khali@linux-fr.org>
+Message-Id: <20051102232752.C637B12EB5@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
 In-Reply-To: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
@@ -9,6 +9,19 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi Jean,
+
+No problem.  I appreciate the effort you are spending on the code review.
+
+- Roger
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: 02 November 2005 20:56
+To: Roger Lucas
+Cc: Knut_Petersen@t-online.de; LM Sensors
+Subject: Re: [lm-sensors] RE: vt8231.c
 
 Hi Roger, Knut,
 
@@ -22,7 +35,8 @@ Hi Roger, Knut,
 > > 
 > >    fan1:     1324 RPM  (min =    0 RPM, div = 1)          ALARM
 >
-> I'm not sure exactly how the VT8231 generates its alarms.  I'll have to look
+> I'm not sure exactly how the VT8231 generates its alarms.  I'll have to
+look
 > into the device spec and see exactly what it does then get back to you.
 
 This means that my suggestion of changing FAN_FROM_REG earlier today
@@ -54,3 +68,4 @@ hopefully it will be OK tomorrow.
 Thanks,
 -- 
 Jean Delvare
+
