@@ -1,14 +1,18 @@
-From: g_r_a_n_t_@dodo.com.au (Grant)
-Date: Wed, 02 Nov 2005 00:17:07 +0000
+From: gcoady@gmail.com (Grant Coady)
+Date: Fri, 04 Nov 2005 04:07:04 +0000
 Subject: [lm-sensors] [PATCH] hwmon: adm1025,
-Message-Id: <4367F73B.3060206@dodo.com.au>
+Message-Id: <436AD02F.4050806@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4367F73B.3060206@dodo.com.au>
+In-Reply-To: <4367F73B.3060206@dodo.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Greetings,
+Apologies if this turns up multiple times, resent as mesg dated 2005-11-02 10:16
+not turn up on list.
 
 From: Grant Coady <gcoady@gmail.com>
 
@@ -85,3 +89,4 @@ diff -X dontdiff -Naur linux-2.6.14a/drivers/hwmon/adm1026.c linux-2.6.14b/drive
  	device_create_file(&new_client->dev, &dev_attr_cpu0_vid);
  	device_create_file(&new_client->dev, &dev_attr_vrm);
  	device_create_file(&new_client->dev, &dev_attr_alarms);
+
