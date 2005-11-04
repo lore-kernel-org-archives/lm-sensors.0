@@ -1,24 +1,27 @@
-From: hwang@circadiant.com (Howard Wang)
-Date: Thu, 03 Nov 2005 20:57:24 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 04 Nov 2005 20:40:49 +0000
 Subject: [lm-sensors] i2c -dev and i2c bus driver
-Message-Id: <24EB6743805F45478251E18DEBF3F6BE8133DD@csserver.circadiant.com>
+Message-Id: <436BB90F.1080006@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <24EB6743805F45478251E18DEBF3F6BE8133DD@csserver.circadiant.com>
+In-Reply-To: <24EB6743805F45478251E18DEBF3F6BE8133DD@csserver.circadiant.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All,
+Howard Wang wrote:
+> Hi All,
+> 
+> I have got  a question about i2c:
+> 
+> is it possible for one i2c bus driver to be used for two i2c busses ?
+> if yes, then how ?
 
-I have got  a question about i2c:
+Yes, all you need to register it to the subsystem. (They can share common functions). Please have a look to i2c-nvidia.c
+If you have more questions, just write.
 
-is it possible for one i2c bus driver to be used for two i2c busses ?
-if yes, then how ?
+Thanks,
 
-currently I am using scx200_i2c bus driver and i2c-dev device driver, it
-can only detect one bus. the i2c device is microchip 24C04. 
-
-thanks for the help.
-
-howard
-
+Regards
+Rudolf
