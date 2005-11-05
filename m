@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 03 Nov 2005 10:10:51 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 05 Nov 2005 20:01:25 +0000
 Subject: [lm-sensors] Running lm-sensors on EPIA 5000 with Debian SARGE 2.6
-Message-Id: <9JkalMvz.1131008308.7160720.khali@localhost>
+Message-Id: <436D015A.1050704@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051012133202.9303523324@box1.planbit.co.uk>
 In-Reply-To: <20051012133202.9303523324@box1.planbit.co.uk>
@@ -10,63 +10,155 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Roger Lucas wrote:
+> Hi Rudolf,
+> 
+> Unfortunately, by this time of the evening I am in a similar state to you,
+> so I'll try this along when I do the changes from Jean's code review
+> (hopefully tomorrow).
 
-Hi Rudolf,
+Hello,
 
-On 2005-11-02, Rudolf Marek wrote:
-> TYPE  FAMILY  MODEL  STEPPING
-> 0       6       7       0+   this should be 85? -  EDEN ESP samuel 2
-> 0       6       7       8+   VRM85 C3 EZRA
-> 0       6       8       0-7  VRM85 C3 EZRA T
-> 0       6       9       0+   VRM85 NEMIAH
-> 0       6       9       8+  max 1718 C3-M
+Khali thanks for the comments. Here comes much better version that should work.
 
-This table doesn't make much sense to me. Having 0+ and 8+ for the same
-model is a bit weird. Isn't if rather 0-7 and 8+?
-
-Comments on the code:
-
-> -		                     2050 - (val) * 50);
-> +			2050 - (val) * 50);
-
-Broken whitespace change.
-
-> +	case 1718:		/* Intel IMVP-II */
-
-If a specification is available, please point to it in the big comment on
-top of the file. If not, explain the table like was done for the Opteron
-in that same comment.
-
-> +		if (val & 0x10)
-> +			return 0975 - ((val & 0xF) * 25);
-
-That "0975" will be taken as an invalid octal value by the compiler.
-
-> +	default:		/* report 0 for unknown */
-> +		return 0;
-
-Debug message if vrm != 0?
-
->  	{X86_VENDOR_UNKNOWN, ANY, ANY, 0}	/* stop here */
-
-This one misses one "ANY" now.
-
-> +			     (vrm_models[i].eff_model=ANY)) &&
-> +			     (eff_stepping =< vrm_models[i].eff_stepping))
-
-=< should be <=.
-
-Also, you forgot to pass eff_stepping as a parameter so it's undefined
-here.
-
-It also seems that you are not handling the case
-vrm_models[i].eff_stepping = ANY. I understand that ANY happens to be a
-large value so it will be silently handled by the comparison test, but
-this is tricky programming. The value of ANY could change in the future.
-
-It would be great if you could at least test that your patches compile
-properly before sending them.
+See attachment. Please test it.
 
 Thanks,
---
-Jean Delvare
+Regards
+Rudolf
+-------------- next part --------------
+diff -Naur a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+--- a/drivers/hwmon/hwmon-vid.c	2005-10-28 02:02:08.000000000 +0200
++++ b/drivers/hwmon/hwmon-vid.c	2005-11-05 19:35:58.306905250 +0100
+@@ -49,6 +49,11 @@
+         . . . .
+        11110  =  0.800 V
+        11111  =  0.000 V (off)
++
++    The 1718 specification is in fact Intel Mobile Voltage Positioning -
++    (IMVP-II). You can find more information in the datasheet of Max1718
++    http://www.maxim-ic.com/quick_view2.cfm/qv_pk/2452
++
+ */
+ 
+ /* vrm is the VRM/VRD document version multiplied by 10.
+@@ -60,9 +65,6 @@
+ 
+ 	switch(vrm) {
+ 
+-	case  0:
+-		return 0;
+-
+ 	case 100:               /* VRD 10.0 */
+ 		if((val & 0x1f) = 0x1f)
+ 			return 0;
+@@ -91,10 +93,16 @@
+ 	case 84:		/* VRM 8.4 */
+ 		val &= 0x0f;
+ 				/* fall through */
+-	default:		/* VRM 8.2 */
++	case 82:		/* VRM 8.2 */
+ 		return(val = 0x1f ? 0 :
+ 		       val & 0x10  ? 5100 - (val) * 100 :
+ 		                     2050 - (val) * 50);
++	case 1718:		/* Intel IMVP-II */
++		return(val & 0x10 ? 975 - (val & 0xF) * 25 :
++				    1750 - val * 50);
++	default:		/* report 0 for unknown */
++		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
++		return 0;
+ 	}
+ }
+ 
+@@ -108,6 +116,7 @@
+ 	u8 vendor;
+ 	u8 eff_family;
+ 	u8 eff_model;
++	u8 eff_stepping;
+ 	int vrm_type;
+ };
+ 
+@@ -115,23 +124,28 @@
+ 
+ #ifdef CONFIG_X86
+ 
++/* the stepping parameter is highest acceptable stepping for current line */
++
+ static struct vrm_model vrm_models[] = {
+-	{X86_VENDOR_AMD, 0x6, ANY, 90},		/* Athlon Duron etc */
+-	{X86_VENDOR_AMD, 0xF, ANY, 24},		/* Athlon 64, Opteron */
+-	{X86_VENDOR_INTEL, 0x6, 0x9, 85},	/* 0.13um too */
+-	{X86_VENDOR_INTEL, 0x6, 0xB, 85},	/* Tualatin */
+-	{X86_VENDOR_INTEL, 0x6, ANY, 82},	/* any P6 */
+-	{X86_VENDOR_INTEL, 0x7, ANY, 0},	/* Itanium */
+-	{X86_VENDOR_INTEL, 0xF, 0x0, 90},	/* P4 */
+-	{X86_VENDOR_INTEL, 0xF, 0x1, 90},	/* P4 Willamette */
+-	{X86_VENDOR_INTEL, 0xF, 0x2, 90},	/* P4 Northwood */
+-	{X86_VENDOR_INTEL, 0xF, 0x3, 100},	/* P4 Prescott */
+-	{X86_VENDOR_INTEL, 0xF, 0x4, 100},	/* P4 Prescott */
+-	{X86_VENDOR_INTEL, 0x10,ANY, 0},	/* Itanium 2 */
+-	{X86_VENDOR_UNKNOWN, ANY, ANY, 0}	/* stop here */
++	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
++	{X86_VENDOR_AMD, 0xF, ANY, ANY, 24},		/* Athlon 64, Opteron and above VRM 24 */
++	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 85},		/* 0.13um too */
++	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
++	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
++	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
++	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
++	{X86_VENDOR_INTEL, 0xF, 0x1, ANY, 90},		/* P4 Willamette */
++	{X86_VENDOR_INTEL, 0xF, 0x2, ANY, 90},		/* P4 Northwood */
++	{X86_VENDOR_INTEL, 0xF, ANY, ANY, 100},		/* Prescott and above assume VRD 10 */
++	{X86_VENDOR_INTEL, 0x10, ANY, ANY, 0},		/* Itanium 2 */
++	{X86_VENDOR_CENTAUR, 0x6, 0x7, ANY, 85},	/* Eden ESP/Ezra */
++	{X86_VENDOR_CENTAUR, 0x6, 0x8, 0x7, 85},	/* Ezra T */
++	{X86_VENDOR_CENTAUR, 0x6, 0x9, 0x7, 85},	/* Nemiah */
++	{X86_VENDOR_CENTAUR, 0x6, 0x9, ANY, 1718},	/* C3-M */
++	{X86_VENDOR_UNKNOWN, ANY, ANY, ANY, 0}		/* stop here */
+ };
+ 
+-static int find_vrm(u8 eff_family, u8 eff_model, u8 vendor)
++static int find_vrm(u8 eff_family, u8 eff_model, u8 eff_stepping, u8 vendor)
+ {
+ 	int i = 0;
+ 
+@@ -139,7 +153,8 @@
+ 		if (vrm_models[i].vendor=vendor)
+ 			if ((vrm_models[i].eff_family=eff_family)
+ 			 && ((vrm_models[i].eff_model=eff_model) ||
+-			     (vrm_models[i].eff_model=ANY)))
++			     (vrm_models[i].eff_model=ANY)) &&
++			     (eff_stepping <= vrm_models[i].eff_stepping))
+ 				return vrm_models[i].vrm_type;
+ 		i++;
+ 	}
+@@ -151,7 +166,7 @@
+ {
+ 	struct cpuinfo_x86 *c = cpu_data;
+ 	u32 eax;
+-	u8 eff_family, eff_model;
++	u8 eff_family, eff_model, eff_stepping;
+ 	int vrm_ret;
+ 
+ 	if (c->x86 < 6)		/* Any CPU with family lower than 6 */
+@@ -160,18 +175,19 @@
+ 	eax = cpuid_eax(1);
+ 	eff_family = ((eax & 0x00000F00)>>8);
+ 	eff_model  = ((eax & 0x000000F0)>>4);
++	eff_stepping = eax & 0xF;
+ 	if (eff_family = 0xF) {	/* use extended model & family */
+ 		eff_family += ((eax & 0x00F00000)>>20);
+ 		eff_model += ((eax & 0x000F0000)>>16)<<4;
+ 	}
+-	vrm_ret = find_vrm(eff_family,eff_model,c->x86_vendor);
++	vrm_ret = find_vrm(eff_family, eff_model, eff_stepping, c->x86_vendor);
+ 	if (vrm_ret = 0)
+ 		printk(KERN_INFO "hwmon-vid: Unknown VRM version of your "
+ 		       "x86 CPU\n");
+ 	return vrm_ret;
+ }
+ 
+-/* and now something completely different for the non-x86 world */
++/* and now for something completely different for the non-x86 world */
+ #else
+ int vid_which_vrm(void)
+ {
