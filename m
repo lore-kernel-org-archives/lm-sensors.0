@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 05 Nov 2005 22:01:08 +0000
+From: pavouk@pavouk.org (Pavel Ruzicka)
+Date: Sat, 05 Nov 2005 23:49:36 +0000
 Subject: [lm-sensors] ATI SMBus - new information
-Message-Id: <436D1D6E.5000002@sh.cvut.cz>
+Message-Id: <200511052348.43595.pavouk@pavouk.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <435A1BA9.9080009@sh.cvut.cz>
 In-Reply-To: <435A1BA9.9080009@sh.cvut.cz>
@@ -10,62 +10,170 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> 
-> Here is requested isadump:
-> -----------------------------------
-> [root@home ~]# isadump -f 0x400 16
-> WARNING! Running this program can cause system crashes, data loss and worse!
-> I will probe address range 0x400 to 0x40f.
-> Continue? [Y/n]
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 37 ae 3c 00 00 00 00 00 00 00 00 a0 00
-> -----------------------------------
+Hi,
 
-Thanks,
+> I developed new patch. Please see attachment. As you can see it is quite
+> simple one. It just add PCI IDs to PIIX4 driver.
+>
+> Please can you repeat your tests with this patch?
+> (apply patch to i2c-piix4 and modprobe i2c-piix4; modprobe i2c-dev)
 
-This is slightly different that what should be the default of i801 conteroller. There are two other candidates left:
-i2c-viapro and i2c-piix4.
+It works for me.
 
-They have both compatible commands and both have even the base addr at PCI config space 0x90.
-Intel PIIX4 is used inside Serverworks and other chipsets so this leads me to the fact that they sold it to ATI too.
-(or ATI copied it). I checked all PCI config space dumps I had (thank you all for posting them!) and it seems that
-the registers are same.
+> Additionaly I want to know:
+> i2cdetect 0
+> i2cdump 0 0x50
+> i2cdump 0 0x50 c
+> i2cdump 0 0x50
+> i2cdetect 0
+> If this sequence produces same results. Also please modprobe eeprom driver
+> and try to read from the chip this way: hexdump -C
+> /sys/bus/i2c/devices/0-0050/eeprom
 
-I developed new patch. Please see attachment. As you can see it is quite simple one. It just add PCI IDs to PIIX4 driver.
+Dump is in attachment.
+I tried decode-dimms.pl and it works for my two dimms.
 
-Please can you repeat your tests with this patch?
-(apply patch to i2c-piix4 and modprobe i2c-piix4; modprobe i2c-dev)
+There are found clients with sensors-detect:
+------------------------------ 
+Client found at address 0x2d
+Probing for `SMSC LPC47M15x or LPC47M192'... Success!
+    (confidence 6, driver `to-be-written')
+Client found at address 0x2f
+Client found at address 0x38
+Client found at address 0x50
+Probing for `SPD EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Client found at address 0x51
+Probing for `SPD EEPROM'... Success!
+    (confidence 8, driver `eeprom')
+Client found at address 0x69
+------------------------------
 
-Additionaly I want to know:
-i2cdetect 0
-i2cdump 0 0x50
-i2cdump 0 0x50 c
-i2cdump 0 0x50
-i2cdetect 0
+If I understand correctly, is it possible to access chip LPC47MXXX
+through i2c or isa?
+Driver smsc47m1 always use i2c-isa driver.
 
-If this sequence produces same results. Also please modprobe eeprom driver and try to read from the chip this way:
-hexdump -C /sys/bus/i2c/devices/0-0050/eeprom
+Best regards,
 
-Thank you very much
-
-Regards
-Rudolf
-
-
+Pavel Ruzicka
 -------------- next part --------------
-diff -Naur c/drivers/i2c/busses/i2c-piix4.c d/drivers/i2c/busses/i2c-piix4.c
---- c/drivers/i2c/busses/i2c-piix4.c	2005-10-28 02:02:08.000000000 +0200
-+++ d/drivers/i2c/busses/i2c-piix4.c	2005-11-05 21:20:02.801161750 +0100
-@@ -423,6 +423,12 @@
- 	  .driver_data = 3 },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_EFAR, PCI_DEVICE_ID_EFAR_SLC90E66_3),
- 	  .driver_data = 0 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, 0x4353),
-+	  .driver_data = 0 },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, 0x4363),
-+	  .driver_data = 0 },	
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, 0x4372),
-+	  .driver_data = 0 },
- 	{ 0, }
- };
- 
+[root@home i2c_adapter]# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d XX 2f
+30: XX XX XX XX XX XX XX XX 38 XX XX XX XX XX XX XX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+70: XX XX XX XX XX XX XX XX
+
+[root@home i2c_adapter]# i2cdump 0 0x50
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x50, mode byte
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0a 02 40 00 04 50 60 00 82 08 00 01    ??????@.?P`.??.?
+10: 0e 04 08 01 02 20 00 60 70 00 00 3c 28 3c 28 40    ????? .`p..<(<(@
+20: 60 60 40 40 00 00 00 00 00 00 00 00 00 00 00 00    ``@@............
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7c    ...............|
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+[root@home i2c_adapter]# i2cdump 0 0x50 c
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x50, mode byte consecutive read
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0a 02 40 00 04 50 60 00 82 08 00 01    ??????@.?P`.??.?
+10: 0e 04 08 01 02 20 00 60 70 00 00 3c 28 3c 28 40    ????? .`p..<(<(@
+20: 60 60 40 40 00 00 00 00 00 00 00 00 00 00 00 00    ``@@............
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7c    ...............|
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+[root@home i2c_adapter]# i2cdump 0 0x50
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0, address 0x50, mode byte
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0a 02 40 00 04 50 60 00 82 08 00 01    ??????@.?P`.??.?
+10: 0e 04 08 01 02 20 00 60 70 00 00 3c 28 3c 28 40    ????? .`p..<(<(@
+20: 60 60 40 40 00 00 00 00 00 00 00 00 00 00 00 00    ``@@............
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7c    ...............|
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
+
+[root@home i2c_adapter]# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c/0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n]
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX 2d XX 2f
+30: XX XX XX XX XX XX XX XX 38 XX XX XX XX XX XX XX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
+70: XX XX XX XX XX XX XX XX
+
+
+[root@home i2c_adapter]# hexdump -C /sys/bus/i2c/devices/0-0050/eeprom
+00000000  80 08 07 0d 0a 02 40 00  04 50 60 00 82 08 00 01  |......@..P`.....|
+00000010  0e 04 08 01 02 20 00 60  70 00 00 3c 28 3c 28 40  |..... .`p..<(<(@|
+00000020  60 60 40 40 00 00 00 00  00 00 00 00 00 00 00 00  |``@@............|
+00000030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 7c  |...............||
+00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00000080  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |????????????????|
+*
+00000100
+
+[root@home devices]# hexdump -C /sys/bus/i2c/devices/0-0051/eeprom
+00000000  80 08 07 0d 0a 02 40 00  04 50 60 00 82 08 00 01  |......@..P`.....|
+00000010  0e 04 08 01 02 20 00 60  70 00 00 3c 28 3c 28 40  |..... .`p..<(<(@|
+00000020  60 60 40 40 00 00 00 00  00 00 00 00 00 00 00 00  |``@@............|
+00000030  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 7c  |...............||
+00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00000080  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |????????????????|
+*
+00000100
