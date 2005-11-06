@@ -1,63 +1,49 @@
-From: jacques.facquet@free.fr (Jacques Facquet)
-Date: Fri, 04 Nov 2005 02:16:22 +0000
-Subject: [lm-sensors] problem with w83627hf and kernel-2.6.14
-Message-Id: <200511040215.30355.jacques.facquet@free.fr>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 06 Nov 2005 11:14:25 +0000
+Subject: [lm-sensors] Re: ATI SMBus - here is more info
+Message-Id: <436DD75A.5080205@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-this driver was working fine with kernel-2.6.9.
-I had problem with 2.6.10...2.6.13, so I had a look at the code and 
-found this :
-in routine :
-int w83627hf_detect(struct i2c_adapter *adapter, int address,int kind)
+Patrick wrote:
+> Rudolf,
+> 
+> Googling around I found your posting at
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/013946.html
+> I have an Acer Ferrari with the ATI Xpress 200 chipset and am interested
+> in a module for the ATI SMBus so I can see temps and fan speed with
+> gkrellm. In your posting I read the info you require so have attached
+> it. If you need anything else please let me know.
+> 
+> Thanks for your great work. Much appreciated!
+> 
 
-I changed the lines :
-	if (!request_region(address, WINB_EXTENT, w83627hf_driver.name)) {
-		err = -EBUSY;
-		goto ERROR0;
-	}
-by :
-	(void)request_region(address,WINB_EXTENT,w83627hf_driver.name);
+Hello, thanks.
 
-Sure, I have a log when I "rmmod" this module, but, I can control the 
-fans speed.
+I read the DSDT table so far I could see temperatures and fan speed on this notebook are handled by Emmbedded controller,
+Perhaps it could be possible  to develop some ACPI module like ibm-acpi for the ACER extras. It seems it has no ordinary chip
+for HW monitoring.
 
-So, I did the same thing with kernel-2.6.14 ... failed.
-I can't control the fans.
-Without modification, the module is loaded (if I remember well) but 
-nothing in the /sys/bus/i2c/devices/ directory.
+(this should not be so difficult)
 
-I think of a major modification after kernel-2.6.9.
-When request_region() return an error ?
-I have nothing else at the address of the chip (I suppose ...)
-#sensors
-w83627thf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.48 V  (min =  +0.94 V, max =  +0.96 V)
-+12V:     +12.34 V  (min = +10.82 V, max = +13.19 V)
-+3.3V:     +3.10 V  (min =  +3.14 V, max =  +3.47 V)
-+5V:       +5.01 V  (min =  +4.75 V, max =  +5.25 V)
--12V:     -14.91 V  (min = -10.80 V, max = -13.18 V)
-V5SB:      +4.84 V  (min =  +4.76 V, max =  +5.24 V)
-VBat:      +3.33 V  (min =  +2.40 V, max =  +3.60 V)
-M/B Fan:  1171 RPM  (min =  750 RPM, div = 8)
-CPU Fan:  1622 RPM  (min =  750 RPM, div = 8)
-M/B Temp:    +29?C  (high =   +40?C, hyst =   +30?C)   sensor = 
-thermistor
-CPU Temp:  +40.5?C  (high =   +60?C, hyst =   +45?C)   sensor = diode
-temp3:     +28.5?C  (high =   +40?C, hyst =   +30?C)   sensor = 
-thermistor
+                   Name (CPUT, Zero)
+                    Method (_Q80, 0, NotSerialized)
+                    {
+                        If (ECOK)
+                        {
+                            Acquire (MUT1, 0xFFFF)
+                            Store (CTMP, Local0)
+                            Release (MUT1)
+                        }
 
-Loading the module at boot time or later give the same effect.
-Any idea ?
+You just need to call right methods...
 
-Thank you.
+Maybe you can have at least some temp with:
 
-Regards.
+acpi -V command...
 
--- 
-Jacques Facquet.
+Regards
+Rudolf
