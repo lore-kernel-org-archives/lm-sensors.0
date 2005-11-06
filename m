@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 06 Nov 2005 17:00:54 +0000
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Sun, 06 Nov 2005 20:22:54 +0000
 Subject: [lm-sensors] RE: vt8231.c
-Message-Id: <20051106170022.5c6a5bda.khali@linux-fr.org>
+Message-Id: <20051106191132.56A4812E9E@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
 In-Reply-To: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
@@ -9,6 +9,61 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+Hi Jean,
+
+Thanks for taking the time to review the code.  There was a lot of code in
+there that I did not understand and felt that I didn't need to understand as
+it wasn't in areas that I was directly changing.  Your comments have
+clarified a lot, and any new knowledge is a good thing.
+
+One question I have is regarding the "1 mV" calibration, and this returns me
+to a general comment/question with the LM-Sensors system:
+
+The LM-Sensors system appears to be based on what the sensors chips are on
+the motherboard, rather than what the motherboard is.  From the "probe and
+find out what I have" concept, this is reasonable, but it does cause a LOT
+of problems for users who are less educated.  Many of the sensors devices
+are wired up in different ways on different motherboards, with (for example)
+a voltage input being used for a 12v rail monitor on one motherboard and a
+5v rail monitor on another.  The motherboard manufacturer is completely at
+liberty to wire a device in any way they choose.
+
+This therefore makes a sensors.conf file really a motherboard-specific
+rather than a device specific file.  If you use the configuration file
+according to the device that you have, rather than the motherboard that you
+have, then you run a very high risk of reporting nonsense to a user, or
+(arguably worse) reporting information that looks correct but is actually
+wrong.
+
+Following this through, when you request that the driver report the voltage
+detected in mV, I am _hoping_ that you are asking for the voltage at the pin
+of the device, rather than the voltage that the device happens to be
+ultimately connected to on this particular motherboard?  Reporting the
+voltage at the device pin is the only consistent behaviour that I can see
+for a motherboard-independent device driver.
+
+If the above makes sense, then would there be any interest in building some
+kind of database of known good sensors.conf files for specific motherboards?
+I would suggest that the output of "LSHW" or a similar utility is used to
+obtain unique identifying details for the motherboard, and then this used to
+determine the appropriate motherboard conf file.  A simple web page with
+known motherboards on it and their associated .conf would be a very good
+start.  New motherboards could then be added by people with their matching
+.conf file.
+
+Thanks,
+
+Roger
+
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: 06 November 2005 16:00
+To: Roger Lucas
+Cc: LM Sensors; Knut Petersen
+Subject: Re: [lm-sensors] RE: vt8231.c
 
 Hi Roger,
 
@@ -25,9 +80,11 @@ not yours, they come from the original driver. Don't take it
 personally ;) but we need to fix them all before the driver can
 be accepted in Linux 2.6.
 
-> diff -Naur reference/drivers/hwmon/Kconfig linux-2.6.14/drivers/hwmon/Kconfig
+> diff -Naur reference/drivers/hwmon/Kconfig
+linux-2.6.14/drivers/hwmon/Kconfig
 > --- reference/drivers/hwmon/Kconfig	2005-10-28 01:02:08.000000000 +0100
-> +++ linux-2.6.14/drivers/hwmon/Kconfig	2005-11-01 17:35:18.000000000 +0000
+> +++ linux-2.6.14/drivers/hwmon/Kconfig	2005-11-01
+17:35:18.000000000 +0000
 > @@ -350,6 +350,18 @@
 >  	  This driver can also be built as a module.  If so, the module
 >  	  will be called via686a.
@@ -38,18 +95,22 @@ be accepted in Linux 2.6.
 > +	select HWMON_VID
 > +	select I2C_ISA
 > +	help
-> +	  If you say yes here then you get support for the integrated sensors
+> +	  If you say yes here then you get support for the integrated
+sensors
 > +	  in the Via VT8231 device.
 
 VIA should never be spelled Via.
 
-> diff -Naur reference/drivers/hwmon/vt8231.c linux-2.6.14/drivers/hwmon/vt8231.c
+> diff -Naur reference/drivers/hwmon/vt8231.c
+linux-2.6.14/drivers/hwmon/vt8231.c
 > --- reference/drivers/hwmon/vt8231.c	1970-01-01 01:00:00.000000000 +0100
-> +++ linux-2.6.14/drivers/hwmon/vt8231.c	2005-11-01 18:06:17.000000000 +0000
+> +++ linux-2.6.14/drivers/hwmon/vt8231.c	2005-11-01
+18:06:17.000000000 +0000
 > @@ -0,0 +1,785 @@
 > +static int force_addr;
 > +module_param(force_addr, int,0644);
-> +MODULE_PARM_DESC(force_addr, "Initialize the base address of the sensors");
+> +MODULE_PARM_DESC(force_addr, "Initialize the base address of the
+sensors");
 
 The "0644" doesn't make sense. It means that a sysfs file will be created
 for this parameter. Given that the parameter is only needed at
@@ -200,17 +261,20 @@ Delete that line, no point in keeping comments about something which
 doesn't exist.
 
 > +/**** VRM and VID *****/
-> +static ssize_t show_vid(struct device *dev, struct device_attribute *attr, 
+> +static ssize_t show_vid(struct device *dev, struct device_attribute
+*attr, 
 > +			char *buf) {
 > +	struct vt8231_data *data = vt8231_update_device(dev);
-> +	return sprintf(buf, "%ld\n", (long)vid_from_reg(data->cpu0_vid, data->vrm)); 
+> +	return sprintf(buf, "%ld\n", (long)vid_from_reg(data->cpu0_vid,
+data->vrm)); 
 > +}
 
 The (long) cast is not needed, simply use %d instead of %ld.
 
 > +static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
 > +
-> +static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, 
+> +static ssize_t show_vrm(struct device *dev, struct device_attribute
+*attr, 
 > +			char *buf) {
 > +	struct vt8231_data *data = vt8231_update_device(dev);
 > +	return sprintf(buf, "%ld\n", (long)data->vrm);
@@ -218,7 +282,8 @@ The (long) cast is not needed, simply use %d instead of %ld.
 
 Same here.
 
-> +static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, 
+> +static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+
 > +			const char *buf, size_t count) {
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	struct vt8231_data *data = i2c_get_clientdata(client);
@@ -255,7 +320,8 @@ I don't think you need to explicitely set it to 0, as kzalloc did it
 for you. We'd need to fix all other drivers too.
 
 
-> +	/* Fill in the remaining client fields and put into the global list */
+> +	/* Fill in the remaining client fields and put into the global list
+*/
 > +	strlcpy(new_client->name, type_name, I2C_NAME_SIZE);
 
 As this is now the only usage of type_name, you'd better put the string
@@ -309,9 +375,11 @@ set unused values to 0.
 > +				data->in[i] = vt8231_read_value(client, 
 > +							VT8231_REG_IN(i));
 > +				data->in_min[i] = vt8231_read_value(client, 
-> +							VT8231_REG_IN_MIN(i));
+> +
+VT8231_REG_IN_MIN(i));
 > +				data->in_max[i] = vt8231_read_value(client, 
-> +							VT8231_REG_IN_MAX(i));
+> +
+VT8231_REG_IN_MAX(i));
 > +			} else {
 > +				data->in[i] = 0;
 > +				data->in_min[i] = 0;
@@ -323,8 +391,9 @@ I'd have a clear preference for "< 6" instead of <=5.
 
 > +		for (i = 2; i <= 7; i++) {
 > +			if(ISTEMP(i, data->uch_config)) {
-> +				data->temp[i - 1] = vt8231_read_value(client, 
-> +						       VT8231_REG_TEMP(i)) << 2;
+> +				data->temp[i - 1] vt8231_read_value(client, 
+> +						       VT8231_REG_TEMP(i))
+<< 2;
 > +				switch(i) {
 > +					case 1:
 > +						/* ? */
@@ -334,13 +403,15 @@ I'd have a clear preference for "< 6" instead of <=5.
 This case can obviously be dropped.
 
 > +					case 2:
-> +						j = (vt8231_read_value(client, 
-> +							VT8231_REG_TEMP_LOW2) &
+> +						j (vt8231_read_value(client, 
+> +
+VT8231_REG_TEMP_LOW2) &
 > +							0x30) >> 4;
 > +						break;
 > +					case 3:
-> +						j = (vt8231_read_value(client, 
-> +							VT8231_REG_TEMP_LOW3) &
+> +						j (vt8231_read_value(client, 
+> +
+VT8231_REG_TEMP_LOW3) &
 > +							0xc0) >> 6;
 > +						break;
 > +					case 4:
@@ -351,9 +422,11 @@ This case can obviously be dropped.
 
 Either keep only default, or drop it.
 
-> +						j = (vt8231_read_value(client, 
-> +						  	VT8231_REG_TEMP_LOW47)
-> +							 >> ((i-4)*2)) & 0x03;	
+> +						j (vt8231_read_value(client, 
+> +
+VT8231_REG_TEMP_LOW47)
+> +							 >> ((i-4)*2)) &
+0x03;	
 > +						break;
 > +	
 > +				}
@@ -449,16 +522,20 @@ rules. It's not all settled yet. If anyone provides a userspace daemon
 and modifies some drivers so that we can see how the userspace approach
 would work, that's fine with me.
 
-> On the other hand, however, the way the DIV_TO_REG() function was coded, it
-> would be almost impossible for any application to determine the legal values
-> for DIV without knowing the details of the device.  Any illegal value would
+> On the other hand, however, the way the DIV_TO_REG() function was coded,
+it
+> would be almost impossible for any application to determine the legal
+values
+> for DIV without knowing the details of the device.  Any illegal value
+would
 > end up with DIV set at zero - not very helpful.
 
 The old code defaulted to a divider of 2 actually. But see my comments
 in the code above, 2.6 does things differently.
 
 > As an alternative, this
-> attached patch includes a code revision that sets DIV to the smallest legal
+> attached patch includes a code revision that sets DIV to the smallest
+legal
 > DIV value that is the same as or larger than the requested DIV value.
 > Hence, the mapping is as below:
 > 
@@ -481,8 +558,10 @@ as all drivers in 2.6 now tend to do.
 > accordingly.
 > 
 > With this revised code, if you ask for a low limit 1000 RPM with a divisor
-> of 4, you get a low limit of 1285 RPM returned.  If you ask for a low limit
-> of 1000 RPM with a divisor of 5 then you get a low limit of 999 RPM returned
+> of 4, you get a low limit of 1285 RPM returned.  If you ask for a low
+limit
+> of 1000 RPM with a divisor of 5 then you get a low limit of 999 RPM
+returned
 > with a divisor of 8.
 
 The div returned is not predictable. Some chips have dividers up to
@@ -517,7 +596,8 @@ from user-space. Nobody sane will try them.
 > 	set_low_limit_rpm(requested_limit_rpm);
 > }
 > 
-> This will iterate through the valid DIV values and stop when it reaches the
+> This will iterate through the valid DIV values and stop when it reaches
+the
 > best RPM match or the highest valid DIV setting.
 
 Sorry, I can't make any sense of this pseudo code. What part is in user
@@ -539,3 +619,4 @@ though, so as to not duplicate the code.
 Thanks,
 -- 
 Jean Delvare
+
