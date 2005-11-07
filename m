@@ -1,50 +1,86 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 26 Nov 2005 10:11:34 +0000
-Subject: [lm-sensors] Ticket #2103
-Message-Id: <20051126101229.3e5f7949.khali@linux-fr.org>
+From: remy.de.ruysscher@marketxs.com (Remy de Ruysscher)
+Date: Mon, 07 Nov 2005 14:59:52 +0000
+Subject: [lm-sensors] Problem with WINBOND_W83792D
+Message-Id: <BE81C2566829DC43849F0373D0CBCAA2140234@SRV-EXCHBE02.thecamelsnose.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <op.s0t5dwepn40jst@localhost.localdomain>
-In-Reply-To: <op.s0t5dwepn40jst@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alexey,
+Following up instructions:
+ 
+See: http://secure.netroedge.com/~lm78/readticket.cgi?ticket 93
+ 
+ 
+[root@Hahn /]# sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +4.08 V  (min =  +0.00 V, max =  +0.00 V)
+VCore 2:   +4.08 V  (min =  +0.00 V, max =  +0.00 V)
++3.3V:     +4.08 V  (min =  +3.14 V, max =  +3.46 V)
++5V:       +5.07 V  (min =  +4.74 V, max =  +5.24 V)
++12V:     +11.55 V  (min = +10.83 V, max = +13.19 V)
+-12V:      +0.82 V  (min = -13.16 V, max = -10.90 V)
+-5V:       +1.90 V  (min =  -5.26 V, max =  -4.76 V)
+V5SB:      +5.56 V  (min =  +4.74 V, max =  +5.24 V)
+VBat:      +0.00 V  (min =  +2.40 V, max =  +3.60 V)
+fan1:        0 RPM  (min = 2848 RPM, div = 2)
+fan2:        0 RPM  (min = 2848 RPM, div = 2)
+fan3:        0 RPM  (min =  712 RPM, div = 8)
+temp1:       -48??C  (high =  +124??C, hyst =  +125??C)   sensor = thermistor
+temp2:     -48.0??C  (high =   +80??C, hyst =   +75??C)   sensor = thermistor
+temp3:     -48.0??C  (high =   +80??C, hyst =   +75??C)   sensor = thermistor
+vid:      +0.000 V  (VRM Version 8.2)
+alarms:
+beep_enable:
+          Sound alarm disabled
+ 
+arp-i2c-0-61
+Adapter: SMBus I801 adapter at 1100
+ 
+ 
+[root@Hahn /]# i2cdump 0 0x29
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x29, mode byte
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
 
-> > I don't think we ever saw an IT8705F or IT8712F chip, it's usually found  
-> > in desktop systems. It may be a misdetection. Please follow up on our  
-> > mailing list, provide the complete output of "sensors detect".
-> (...)
->   IF THIS IS AN IBM THINKPAD, PRESS CTRL-C NOW!
->   IBM Thinkpads have a severely broken i2c/SMBus implementation, just scanning
->   the bus will break your Thinkpad forever!
->   If this is a non-Thinkpad IBM, we still suggest you press CTRL+C. We have
->   had users reporting system breakage on other IBM systems as well.
+ 
+ 
 
-Your ticket states that you are using lm_sensors 2.9.2. However, the
-message above was removed from the sensors-detect script before 2.9.0
-was released, so you cannot possibly be using lm_sensors 2.9.2.
+Met vriendelijke groet / kind regards,
 
-What version of lm_sensors are you really using? We can't help you if
-you provide inaccurate information.
+Remy de Ruysscher
 
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for `ITE 8702F Super IO Sensors'
->    Failed! (0x8705)
-> Probing for `ITE 8705F Super IO Sensors'
->    Success... found at address 0x0800
-> Probing for `ITE 8712F Super IO Sensors'
->    Failed! (0x8705)
+Operations Engineer 
+H. Walaardt Sacr?straat 413
+1117 BM Schiphol Oost
+The Netherlands
+T   +31 (0)20 5025800
+F   +31 (0)20 5025 801
+M   +31 (0)6 24748987
+E   remy.de.ruysscher@marketxs.com <mailto:remy.de.ruysscher@marketxs.com> 
 
-OK, so it's really an IT8705F chip, or SiS950 clone.
+I    www.marketxs.com <http://www.marketxs.com/>  
 
-Did the it87 driver ever work properly for you with another kernel?
-
-How are you loading it? Manually, or through some script?
-
-Please provide the output of "isadump 0x805 0x806" before loading the
-it87 driver.
-
--- 
-Jean Delvare
+ 
+______________________________
+DISCLAIMER: This e-mail message is intended for the addressee(s) or authorized recipient only. If you are not the addressee, or an authorized recipient, you are specifically advised that any use, distribution, publication, copying or repetition of this information is prohibited. If you have received this information in error, please notify us immediately (+31 (0)20 50 25 800) and destroy this message.
