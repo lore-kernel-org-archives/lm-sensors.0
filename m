@@ -1,42 +1,90 @@
-From: socialhacker@socialhacker.com (anton)
-Date: Tue, 22 Nov 2005 01:23:56 +0000
-Subject: [lm-sensors] it87.c fan_div patch
-Message-Id: <Pine.LNX.4.21.0511211816160.8297-100000@sterling.propagation.net>
+From: mauro_chehab@yahoo.com.br (Mauro Carvalho Chehab)
+Date: Mon, 07 Nov 2005 17:24:54 +0000
+Subject: [lm-sensors] Re: [patch 5/9] I2C: remove i2c_driver's .owner and
+Message-Id: <1131380582.6632.92.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.21.0511210218160.2818-200000@sterling.propagation.net>
-In-Reply-To: <Pine.LNX.4.21.0511210218160.2818-200000@sterling.propagation.net>
+References: <20051024212541.892926000@antares.localdomain>
+In-Reply-To: <20051024212541.892926000@antares.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi, Jean,
 
-	:) Excellent.  Glad to be of help.
+	Sorry for the late answer... I've suffered a bad filtering rule on this
+account, and this went to a different folder... Only today I noticed and
+fixed the rule.
 
-	-Anton
+Em Qui, 2005-10-27 ?s 22:40 +0200, Jean Delvare escreveu:
+> Hi Mauro,
+> 
+> Please don't forget to explicitely list Laurent in To: or CC:.
+	Ok, I will at the next patches.
+> 
+> > We've included several new I2C drivers on V4L CVS tree, and I'm about
+> > to send the newer patchset series to -mm. If you want to see it, these
+> > are early available at:
+> >   http://linuxtv.org/download/video4linux/patches/2.6.14-rc5
+> 
+> About this, I've noticed two issues with these patches:
+> 
+> v4l_635_add_bttv_card_137_conceptronic_ctvfmi_v2.patch
+> Creates a bttv-cards.c.orig file.
 
-On Mon, 21 Nov 2005, Jean Delvare wrote:
-
+> v4l_801_whitespaces_cleanups.patch
+> Creates a tvaudio.c.orig file.
+	Auch! I need to review my scripts... It is supposed to had a rule there
+to avoid this stuff...
 > 
-> Hi Anton,
+> I would also suggest that you limit the length of the patch file names. v4l_716_from_markus_rechberger_mrechberger_gmail_com_ludovico_cavedon_cavedon_sssup_it_mauro_carvalho_chehab_mchehab_brturbo_com_br_.patch is a bit too long IMHO ;)
+	This patch name was wrongly generated, but I'll include such rule on my
+stript.
 > 
-> On 2005-11-21, Anton V. Staaf wrote:
-> > 	Hi, I just got lm_sensors (v2.9.2) up and running on my Shuttle
-> > (SN41G) and am loving it.  In setting things up I found what I think is a
-> > bug in the it87_fan_div setting code.  I've included a patch vs. TOT
-> > CVS.  What was happening was that the check to make sure the third fan's
-> > divisor was either 2 or 8 was using the wrong member of the it87 data
-> > structure.  This was causing the if to always fail and thus always force
-> > the divisor to 2.
+> > Basically, your patches should be go after the V4L patchsets, and
+> > should also include some newer boards, like:
+> > 	em2820-i2c.c
+> > 	cs53l32a.c
+> > 	wm8775.c
+> > 	saa711x.c
+> > 	tvp5150.c
 > 
-> Good catch! You're all correct. We'll commit your patch to lm_sensors
-> CVS shortly. Amazing this bug was left unnoticed while the driver is
-> widely used and more than 4 year old.
+> No, it doesn't work that way. i2c patches are applied before the v4l
+> patches in -mm, and I doubt Andrew is going to reorder patchsets every
+> now and then. There simply are too many dependencies to deal with.
 > 
-> At least the Linux 2.6 driver isn't affected by this problem.
+> So, just send your v4l patches to Andrew when they're ready. I'll send
+> my i2c patches (including Laurent's) when they are ready, with a note
+> to Andrew on how to fix drivers which might break, and he'll deal with
+> that just fine.
 > 
+> You shouldn't underestimate Andrew's ability to deal with conflicts of
+> all sorts. He's damn good at it.
+	I know :) I just try to avoid overcharge him with unnecessary
+conflicts.
+> 
+> When either the i2c or v4l patches finally get merged into Linus' tree,
+> the other one of us will have to update his patchset. That shouldn't be
+> difficult either.
+	For sure. Btw, for now, I didn't sent a patch including wm8775 and
+saa711x on Makefile/Kconfig. I'll send two or tree more drivers from
+ivtv tree (cx25840 - a big one, saa7127 and a different version of
+saa711x that will replace the current version and provide support for
+more chips). With these, I'll include Makefile/Kconfig, so we should
+notice what were broken because of Laurent (and other I2c) recent
+changes.
 > Thanks,
-> --
-> Jean Delvare
-> 
+Cheers, 
+Mauro.
+
+
+	
+
+	
+		
+_______________________________________________________ 
+Yahoo! Acesso Gr?tis: Internet r?pida e gr?tis. 
+Instale o discador agora!
+http://br.acesso.yahoo.com/
+
 
