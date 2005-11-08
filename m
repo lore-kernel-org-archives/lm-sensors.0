@@ -1,37 +1,47 @@
-From: avolkov@varma-el.com (Andrey Volkov)
-Date: Mon, 21 Nov 2005 13:36:09 +0000
-Subject: [lm-sensors] Re: [PATCH 1/1] Added support of ST m41t85 rtc chip
-Message-Id: <4381BF17.5000305@varma-el.com>
+From: gregkh@suse.de (Greg KH)
+Date: Tue, 08 Nov 2005 06:53:25 +0000
+Subject: [lm-sensors] [GIT PATCH] More I2C and hwmon patches for 2.6.14
+Message-Id: <20051108055108.GA7006@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051116031520.GL5546@mag.az.mvista.com> <20051116185513.GB18217@hexapodia.org> <20051116222423.GG30014@mag.az.mvista.com> <20051118203540.GD16728@mag.az.mvista.com>
-In-Reply-To: <20051118203540.GD16728@mag.az.mvista.com>
+References: <20050912200441.GA22930@kroah.com>
+In-Reply-To: <20050912200441.GA22930@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark A. Greer" <mgreer@mvista.com>
-Cc: Andy Isaacson <adi@hexapodia.org>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
+Here are some small i2c and hwmon patches.  They fix some bugs that were
+caused by the previous round of i2c patches, and should go in before
+2.6.15-rc1 is out.  Most of these are in the last -mm release.
 
+Please pull from:
+	rsync://rsync.kernel.org/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+or from:
+	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
+if it isn't synced up yet.
 
-Mark A. Greer wrote:
-> On Wed, Nov 16, 2005 at 03:24:23PM -0700, Mark A. Greer wrote:
-> 
-> 
->>I'm off to read datasheets now...  :)
-> 
-> 
-> Well, the people who sign my paychecks wanted me to do something else
-> for the last couple days so I haven't looked at this yet.  And now I'm
-> leaving soon and will be taking next week off so I won't even start on
-> this until the week of Nov 28.  Sorry...
-> 
-> Mark
+The full patch series will sent to the sensors mailing lists, if anyone
+wants to see them.
 
-Ok, it's not a problem to wait for me (since anyway we couldn't release
-it before 2.6.15).
+thanks,
 
-Mark, may I help you?
+greg k-h
 
--- 
-Regards
-Andrey Volkov
+ Documentation/i2c/busses/i2c-viapro |    6 ++----
+ Documentation/i2c/writing-clients   |    4 ++--
+ drivers/hwmon/w83627hf.c            |   16 ++++------------
+ drivers/i2c/busses/i2c-viapro.c     |   27 ++++++++++++++-------------
+ drivers/i2c/chips/ds1337.c          |    4 ++--
+ 5 files changed, 24 insertions(+), 33 deletions(-)
+
+James Chapman:
+      i2c: ds1337 BCD conversion fix
+
+Jean Delvare:
+      i2c: writing-client doc update complement
+      i2c-viapro: Some adjustments
+
+Yuan Mu:
+      hwmon: Fix two w83627hf bugs
+
