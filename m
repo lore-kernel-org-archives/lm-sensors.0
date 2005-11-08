@@ -1,21 +1,26 @@
-From: pavouk@pavouk.org (Pavel Ruzicka)
-Date: Mon, 07 Nov 2005 00:46:35 +0000
-Subject: [lm-sensors] ATI SMBus - new information
-Message-Id: <200511070045.47261.pavouk@pavouk.org>
+From: maillist@roomity.com (shenanigans)
+Date: Tue, 08 Nov 2005 17:41:21 +0000
+Subject: [lm-sensors] [OTAnn] Feedback
+Message-Id: <30134090.1841131468097244.JavaMail.tomcat5@slave1.roomity.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <435A1BA9.9080009@sh.cvut.cz>
-In-Reply-To: <435A1BA9.9080009@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+I was interested in getting feedback from current mail group users.
 
-> I don't understand how limits works on a 0x37 to 0x3A offsets.
-> Can you point me to a documentation or a little explain, how they works?
+We have mirrored your mail list in a new application that provides a more aggregated and safe environment which utilizes the power of broadband.
 
-I found explanation of my question on page 135 of this datasheet:
-http://www.smsc.com/main/tools/discontinued/47m15x.pdf
+Roomity.com v 1.5 is a web 2.01 community webapp. Our newest version adds broadcast video and social networking such as favorite authors and an html editor.
 
-Pavel Ruzicka
+It?s free to join and any feedback would be appreciated.
+
+S.
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Broadband interface (RIA) + mail box saftey = <a href="http://LM_Sensors_Discussion_List.roomity.com">LM_Sensors_Discussion_List.roomity.com</a>
+*Your* clubs, no sign up to read, ad supported; try broadband internet. ~~1131468097241~~
+------------------------------------------------------------------------------------------------------------------------------------------------
