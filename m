@@ -1,76 +1,56 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 08 Nov 2005 11:19:05 +0000
-Subject: [lm-sensors] Re: adm1027 on 2.6.9-5.EL
-Message-Id: <XVkq04oM.1131444138.7357880.khali@localhost>
+From: paul.aviles@palei.com (Paul Aviles)
+Date: Tue, 08 Nov 2005 13:40:16 +0000
+Subject: [lm-sensors] adm1027 on 2.6.9-5.EL
+Message-Id: <000601c5e461$75be17c0$3224050a@avilespaxp>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <XVkq04oM.1131444138.7357880.khali@localhost>
+In-Reply-To: <XVkq04oM.1131444138.7357880.khali@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+In a previous 2.4 kernel install I had stuff under /proc/sys/dev/sensors and 
+I cannot see it in 2.6.9-5. I have nothing under/sys/bus/i2c or 
+/sys/class/hwmon though I do get sensors to work as the report below.
 
-Hi Paul,
+When I compared to my 2.4 working machine i2c-proc which I "guess" is normal 
+when reading the doc from i2c-2.8.8 as i2c-core is supposed to provide 
+this??. What I am missing is the fan stuff it used to be in the procs dir.
 
-First of all, you really shouldn't send mails with a subject line which
-reads "Hello". Unless you like the idea that it'll end up in my spam
-folder, of course, which is exactly what happened to this one.
+What am I missing?
 
-Second, please send your requests for help to the lm-sensors mailing list
-rather than me directly. This increases your chances to actually get
-help.
+I used the sensors.init script to load the modules and this is the result of 
+my lsmod.
 
-> 2.6.9-5.EL kernel what is the "Can't get alarm mask data" error? and also,
-> I get an alarm on in4 but I already have that ignored in the sensors.conf.
-> Some of the min and max values are not looking right, maybe this is part
-> of the mark data but google it and found nothing to go by. More
-> importantly I downloaded i2c and lm_sensors 2.9.2 but the doc inside
-> states:
->
-> "FOR 2.5/2.6 KERNELS, do not attempt to compile the modules in this
-> package. Use the drivers already in the 2.5/2.6 kernel tree."
->
-> so.. I am confused. No need to compile then? Centos comes with 2.8.7 and
-> I thought some updates will be on 2.9.2
+i2c_dev                11329  0
+eeprom                  8545  0
+lm85                   19433  0
+i2c_sensor              3521  2 eeprom,lm85
+i2c_i801                7757  0
+i2c_core               22081  5 i2c_dev,eeprom,lm85,i2c_sensor,i2c_i801
 
-The above warning is about kernel modules only. There still is the
-user-space library and tools which both 2.4 and 2.6 kernels need. You
-can compile these with "make user" and install them in /usr/local by
-default with "make user_install".
+and sensors
 
-If you do install it on your own, I suggest that you uninstall the
-package that comes with your distribution so as to avoid library version
-conflicts.
+adm1027-i2c-0-2e
+Adapter: SMBus I801 adapter at 1480
++2.6V:     +2.591 V  (min =  +2.47 V, max =  +2.73 V)
+CPU Volt:  +1.359 V  (min =  +1.25 V, max =  +1.52 V)
++3.3V:     +3.386 V  (min =  +3.13 V, max =  +3.47 V)
++5V:      +5.104 V  (min =  +4.74 V, max =  +5.26 V)
+Fan2:      8083 RPM  (min = 4800 RPM)
+Fan3:      6129 RPM  (min = 2200 RPM)
+Fan1:      8095 RPM  (min = 4800 RPM)
+CPU Temp: +40.00?C  (low  =    +5?C, high =   +68?C)
+Loc Temp: +34.00?C  (low  =    +5?C, high =   +40?C)
+Sys Temp: +36.00?C  (low  =    +5?C, high =   +50?C)
+pwm2:       64
+pwm3:       64
+pwm1:       64
+vid:      -3.425 V  (VRM Version 9.1)
 
-> Also, I used to be able to see /proc/sys/dev/sensors with 2.4 kernels and
-> now nothing.... I am not versed on the main differences of kernels or
-> their changes.
+Thanks guys, particularly to Jean.
 
-In Linux 2.6, the same data is available, although in a slightly
-different form, under /sys/bus/i2c. On the latest versions you
-additionally have /sys/class/hwmon, which is more or less a set of
-pointers to the former. In the long run, /sys/class/hwmon will become
-the right place to look at.
+Paul 
 
-> My conf stuff is below.
-> (...)
-> adm1027-i2c-0-2e
-> Adapter: SMBus I801 adapter at 1480
-> ERROR: Can't get alarm mask data!
-> (...)
-> ***********************************
-> # cat sensors.conf
->
-> chip "lm85-*" "adt7463-*"
 
-First problem, your chip is an adm1027, so you should add "adm1027-*"
-here, else your configuration file is useless. This explains why your
-"ignore in4" did not work.
-
-The alarm mask error can be safely ignored. The feature is simply not
-implemented in the Linux 2.6 version of the lm85 driver. Starting with
-lm_sensors 2.8.8, "sensors" conveniently hides this error message. In
-the meanwhile, you may try to add an "ignore alarm_mask" statement in
-the configuration file, but I wouldn't swear it'll work.
-
---
-Jean Delvare
