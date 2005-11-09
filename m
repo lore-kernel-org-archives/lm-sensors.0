@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 08 Nov 2005 16:47:49 +0000
+From: hwang@circadiant.com (Howard Wang)
+Date: Wed, 09 Nov 2005 15:34:31 +0000
 Subject: [lm-sensors] i2c -dev and i2c bus driver
-Message-Id: <4370C89C.5090309@sh.cvut.cz>
+Message-Id: <24EB6743805F45478251E18DEBF3F6BE8133F8@csserver.circadiant.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <24EB6743805F45478251E18DEBF3F6BE8133DD@csserver.circadiant.com>
 In-Reply-To: <24EB6743805F45478251E18DEBF3F6BE8133DD@csserver.circadiant.com>
@@ -10,42 +10,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+	 
 
-> yes, that's what I loaded after booing and using i2c-dev driver to talk to
-> our i2c device, for the devices connnected to the ACB 2 of superIO from the
-> microporcessor, every thing works. however, for the device, connected to
-> ACB 1 of superIO, I won't be able to talk to them.
+	I sent you an email with the sc1200 datasheet attached, unfortunately, it bounced back due to large
 
-Hmm bad is that I dont know the hardware.
-But from the driver i can see:
+	size. since I don't have access to the target today, I just briefly reply answer your questions and
 
+	tomorrow I'll try to post more detailed info from the target as well as the datasheet.
+	
 
-         for (i = 0; i < MAX_DEVICES; ++i) {
-                if (base[i] > 0)
-                        rc = scx200_acb_create(base[i], i);
-        }
+	>Hmm bad is that I dont know the hardware.
+	But from the driver i can see:
+	         for (i = 0; i < MAX_DEVICES; ++i) {
+	                if (base[i] > 0)
+	                        rc = scx200_acb_create(base[i], i);
+	        }
+	And there are two base defined.
+	So this could create two busses.
+	When you modprobe i2c-dev and the scx driver you should see
+	in
+	i2cdump -l
+	
+	Listed two ACB busses
+	Do you see them?
 
-And there are two base defined.
-So this could create two busses.
+	No. I only saw one: i2c-0 with the bus type of unknown. but this doesn't matter. the smbus just works fine
 
-When you modprobe i2c-dev and the scx driver you should see
-in
+	with i2cdump 0 0x50 and 0x51. 
 
-i2cdump -l
+	i2cdump -l
 
-Listed two ACB busses
-Do you see them?
+	Installed I2C busses:
 
-If so I would suggest:
+	i2c-0  unknown  netSemi sc1200
 
-1) plug your device to ACB 2 where it works
-   do: i2cdetect (put acb2 bus number here)
-       i2cdump (put acb2 bus number here) 0xyourdeviceaddr
+	
+	>
+	If so I would suggest:
+	1) plug your device to ACB 2 where it works
+	   do: i2cdetect (put acb2 bus number here)
+	       i2cdump (put acb2 bus number here) 0xyourdeviceaddr
 
-2) repeat with plugged to ACB1
+	this works fine. no problem. 
+	
 
-Please post results here. Also, please point me to some documenattion of ACCESS bus... I'm really very short with my time...
+	>
+	2) repeat with plugged to ACB1
 
-Thanks
-Regards
-Rudolf
+	 
+
+	i2cdump 1 0x57 ( a same type of device is connected to bus 1 with A0,A1,A2 pulled to high )
+
+	return with open error. no such device. for i2c-1. ( the i2c node: 0 to32  under /dev/ do exist).
+
+	Error: Could not open file '/dev/i2c-1': No such device
+
+	one question for you: if let's say: 
+
+	the acb1 has been configured to use different protocol other than acb2, how can I find out and reconfigure
+
+	the acb1 to be the same as acb2 ?
+
+	 
+
+	appreciated your help.
+
+	 
+
+	howard
+
+	 
