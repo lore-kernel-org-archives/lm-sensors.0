@@ -1,7 +1,7 @@
 From: gregkh@suse.de (Greg KH)
-Date: Tue, 08 Nov 2005 06:53:25 +0000
-Subject: [lm-sensors] [GIT PATCH] More I2C and hwmon patches for 2.6.14
-Message-Id: <20051108055108.GA7006@kroah.com>
+Date: Wed, 09 Nov 2005 23:03:34 +0000
+Subject: [lm-sensors] [GIT PATCH] More I2C and hwmon patches for 2.6.14 -
+Message-Id: <20051109220235.GB8729@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20050912200441.GA22930@kroah.com>
 In-Reply-To: <20050912200441.GA22930@kroah.com>
@@ -21,8 +21,8 @@ or from:
 	master.kernel.org:/pub/scm/linux/kernel/git/gregkh/i2c-2.6.git/
 if it isn't synced up yet.
 
-The full patch series will sent to the sensors mailing lists, if anyone
-wants to see them.
+The full patch series was sent already to sensors mailing list, if
+anyone wants to see them.
 
 thanks,
 
