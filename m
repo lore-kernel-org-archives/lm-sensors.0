@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 10 Nov 2005 16:03:09 +0000
+From: Eric.Pascal@itesoft.com (Eric Pascal)
+Date: Thu, 10 Nov 2005 16:54:47 +0000
 Subject: [lm-sensors] reset=1 required for PWM control on Asus P4P800
-Message-Id: <lZFjH3NK.1131634172.3798950.khali@localhost>
+Message-Id: <4A9A21CEA07B1F4A973CFCD89B9446C901118594@sermaila.itesoft.local>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051106224429.533f13b7@heffalump.sk2.org>
 In-Reply-To: <20051106224429.533f13b7@heffalump.sk2.org>
@@ -9,6 +9,17 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+It works with 2.6.14rc5
+
+-----Message d'origine-----
+De : Jean Delvare [mailto:khali@linux-fr.org]
+Envoy? : jeudi 10 novembre 2005 15:50
+? : lists@sk2.org; Eric Pascal
+Cc : LM Sensors
+Objet : Re: [lm-sensors] reset=1 required for PWM control on Asus P4P800
+Deluxe
+
 
 
 Hi Stephen, Eric,
