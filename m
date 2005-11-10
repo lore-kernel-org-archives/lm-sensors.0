@@ -1,38 +1,45 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 21 Nov 2005 19:49:45 +0000
-Subject: [lm-sensors] Re: [PATCH] VRM table update
-Message-Id: <20051121195027.58f5f8c9.khali@linux-fr.org>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Thu, 10 Nov 2005 04:55:24 +0000
+Subject: [lm-sensors] [PATCH 2.6.14-mm1] hwmon: w83627thf documentation
+Message-Id: <20051110035507.GB31576@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051108220930.10413.qmail@desitka.sh.cvut.cz>
-In-Reply-To: <20051108220930.10413.qmail@desitka.sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi again Rudolf,
+This patch clarifies the w83627thf VID documentation.
 
-> > This patch adds the VIA CENTAUR CPUs to detection table.
-> > Table was updated to treat future Intel x86 CPUs as VRD10.
-> > Stepping field was added, because some VIA CPUs have
-> > different VRM specs across stepping.
-> > 
-> > Please apply.
-> 
-> Applied, thanks.
+Signed-off-by: Mark M. Hoffman <mhoffman@lightlink.com>
 
-On second thought, there's a problem with that patch. The new VRM value
-you introduce, 1718, doesn't fit in a u8, while all hwmon driver (but
-it87) use a u8 to store the value.
-
-We could change all hardware monitoring drivers to use an int instead
-of a u8 for vrm, but as the VRM values are totally arbitrary, I think we
-should rather simply use values which fit in 8-bit, have find_vrm and
-vid_which_vrm return a u8, and have vid_from_reg take a u8 as its
-second parameter. In other words, make it clear that vrm values are u8.
-
-Care to respin a patch?
-
-Thanks,
+--- linux-2.6.14-mm1.orig/Documentation/hwmon/w83627hf
++++ linux-2.6.14-mm1/Documentation/hwmon/w83627hf
+@@ -54,13 +54,16 @@ If you really want i2c accesses for thes
+ use the w83781d driver. However this is not the preferred method
+ now that this ISA driver has been developed.
+ 
+-Technically, the w83627thf does not support a VID reading. However, it's
+-possible or even likely that your mainboard maker has routed these signals
+-to a specific set of general purpose IO pins (the Asus P4C800-E is one such
+-board). The w83627thf driver now interprets these as VID. If the VID on
+-your board doesn't work, first see doc/vid in the lm_sensors package. If
+-that still doesn't help, email us at lm-sensors@lm-sensors.org.
++The w83627_HF_ uses pins 110-106 as VID0-VID4. The w83627_THF_ uses the
++same pins as GPIO[0:4]. Technically, the w83627_THF_ does not support a
++VID reading. However the two chips have the identical 128 pin package. So,
++it is possible or even likely for a w83627thf to have the VID signals routed
++to these pins despite their not being labeled for that purpose. Therefore,
++the w83627thf driver interprets these as VID. If the VID on your board
++doesn't work, first see doc/vid in the lm_sensors package[1]. If that still
++doesn't help, you may just ignore the bogus VID reading with no harm done.
+ 
+-For further information on this driver see the w83781d driver
+-documentation.
++For further information on this driver see the w83781d driver documentation.
++
++[1] http://www2.lm-sensors.nu/~lm78/cvs/browse.cgi/lm_sensors2/doc/vid
+ 
 -- 
-Jean Delvare
+Mark M. Hoffman
+mhoffman@lightlink.com
+
