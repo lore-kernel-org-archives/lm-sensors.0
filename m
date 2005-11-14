@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 01 Nov 2005 22:59:46 +0000
+From: list0570@paradise.net.nz (Volker Kuhlmann)
+Date: Mon, 14 Nov 2005 02:08:34 +0000
 Subject: [lm-sensors] SiS630 sensors.conf errors
-Message-Id: <20051101225911.1d1d72b7.khali@linux-fr.org>
+Message-Id: <20051114010739.GE18834@paradise.net.nz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051030235843.GF26397@paradise.net.nz>
 In-Reply-To: <20051030235843.GF26397@paradise.net.nz>
@@ -10,49 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Volker,
+On Wed 02 Nov 2005 10:59:11 NZDT +1300, Jean Delvare wrote:
 
-> > This is only an example. You are free to change, delete or add
-> > statements. Also feel free to submit a patch to etc/sensors.conf.eg if
-> > you think it's worth it.
-> 
-> I had posted my complete settings. IMHO sensors-detect should not
-> require any user interaction for coming up with a correct and functional
-> configuration. The average Linux (and other) desktop user doesn't know
-> how to edit a configuration file anyway.
+Hi Jean,
 
-What do you propose?
+Thanks for your reply.
 
-There are a few thousand different motherboards out there, only
-counting PC hardware. Each motherboard needs its own configuration
-file. Without the hardware, we can't tell. Even with it, it's not
-always easy. Only one motherboard manufacturer (Tyan) provides
-configuration files for his boards. Most other manufacturers don't
-even provide the technical data a user needs to write a configuration
-file.
+> > I had posted my complete settings. IMHO sensors-detect should not
+> > require any user interaction for coming up with a correct and functional
+> > configuration. The average Linux (and other) desktop user doesn't know
+> > how to edit a configuration file anyway.
 
-If sensors-detect isn't supposed to be interactive and users are not
-supposed to edit configuration files, then we need a complete database
-of configuration files for all motherboards out there. Are you going to
-provide this?
+> If sensors-detect isn't supposed to be interactive and users are not
+> supposed to edit configuration files, then we need a complete database
+> of configuration files for all motherboards out there. Are you going to
+> provide this?
 
-Face it, hardware monitoring is not meant for the average user. It's
-not a matter of how sensors-detect works, although it can certainly be
-improved. The problem is that this topic is fundamentally complex, and
-you can hardly simplify it without voiding the whole point of hardware
-monitoring. You can only monitor something if you know what the normal
-situation is, and this can only be defined on a case by case basis by
-advanced users.
+I was unclear. What I meant was that running sensors-detect should
+always find a functional configuration, or it's not much use for the
+desktop user. Of course it's not going to happen any time soon,
+unfortunately. In view of the lack of support from the board makers I
+don't see how this goal can be achieved without a collection of
+information on the various board models. Collecting functional
+configuration files for boards would not be too difficult, and
+sensors-detect should be capable of picking the correct one, if
+available. This prevents duplication of effort, and really helps the
+majority of users who don't have the education to be able to construct
+their own. Ship the board config files with the software, and have a
+"get the latest from". It's not so different from scanModem, and lspci
+and lsusb work the same way.
 
-Things will improve greatly the day motherboard manufacturers ship
-BIOSes which do setup the hardware monitoring chip properly. They have
-the knowledge to do so, we don't. If they did their job, most users
-could live without ever running "sensors -s". This wouldn't solve the
-other issues though: labels, scaling resistors, etc.
+> Face it, hardware monitoring is not meant for the average user.
 
-> Thanks for the good work,
+Sure, I can see it is not for the average user. But it should be, and
+regardless of whether it is like that under you-know-OS.
 
-Thanks :)
+> Things will improve greatly the day motherboard manufacturers ship
+> BIOSes which do setup the hardware monitoring chip properly.
+
+Oh yes. Blast them.
+
+Volker
 
 -- 
-Jean Delvare
+Volker Kuhlmann			is possibly list0570 with the domain in header
+http://volker.dnsalias.net/		Please do not CC list postings to me.
