@@ -1,62 +1,92 @@
-From: Ymu@winbond.com.tw (Ymu@winbond.com.tw)
-Date: Tue, 15 Nov 2005 10:26:18 +0000
-Subject: [lm-sensors] [PATCH] hwmon : Fix W83627THF VID reading
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEAF7CB7@weshml03.winbond.com.tw>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 15 Nov 2005 11:30:48 +0000
+Subject: [lm-sensors] Re: [PATCH] hwmon : Fix W83627THF VID reading
+Message-Id: <If7dVZfe.1132049812.6440050.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECEAF7CB7@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEAF7CB7@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sClRoaXMgcGF0Y2ggZml4ZXMgdGhlIFZJRCByZWFkaW5nOyBubyBjcHUwX3ZpZCBhbmQg
-dnJtIGZpbGVzIGNyZWF0ZWQgaWYKdGhlIGNoaXAgaXMgdzgzNjI3dGhmIGFuZCBHUElPNSBub3Qg
-ZW5hYmxlZC4KUGxlYXNlIGNoZWNrLgoKU2lnbmVkLW9mZi1ieTogWXVhbiBNdSA8eW11QHdpbmJv
-bmQuY29tLnR3PgoKLS0tIGxpbnV4LTIuNi4xNC1yYzUub3JpZy9kcml2ZXJzL2h3bW9uL3c4MzYy
-N2hmLmMJMjAwNS0xMS0wOQoxMToyNzo0NC4wMDAwMDAwMDAgKzA4MDAKKysrIGxpbnV4LTIuNi4x
-NC1yYzUvZHJpdmVycy9od21vbi93ODM2MjdoZi5jCTIwMDUtMTEtMTUKMTQ6MDU6MTQuMDAwMDAw
-MDAwICswODAwCkBAIC0xMTE2LDExICsxMTE2LDExIEBAIHN0YXRpYyBpbnQgdzgzNjI3aGZfZGV0
-ZWN0KHN0cnVjdCBpMmNfYWQKIAlpZiAoa2luZCAhPSB3ODM2OTdoZikKIAkJZGV2aWNlX2NyZWF0
-ZV9maWxlX3RlbXAobmV3X2NsaWVudCwgMyk7CiAKLQlpZiAoa2luZCAhPSB3ODM2OTdoZikKKwlp
-ZiAoa2luZCAhPSB3ODM2OTdoZiAmJgorCQkhKGtpbmQgPSB3ODM2Mjd0aGYgJiYgZGF0YS0+dmlk
-ID0gMHhmZikpIHsKIAkJZGV2aWNlX2NyZWF0ZV9maWxlX3ZpZChuZXdfY2xpZW50KTsKLQotCWlm
-IChraW5kICE9IHc4MzY5N2hmKQogCQlkZXZpY2VfY3JlYXRlX2ZpbGVfdnJtKG5ld19jbGllbnQp
-OworCX0KIAogCWRldmljZV9jcmVhdGVfZmlsZV9mYW5fZGl2KG5ld19jbGllbnQsIDEpOwogCWRl
-dmljZV9jcmVhdGVfZmlsZV9mYW5fZGl2KG5ld19jbGllbnQsIDIpOwpAQCAtMTMxOCwxOSArMTMx
-OCwxOCBAQCBzdGF0aWMgdm9pZCB3ODM2MjdoZl9pbml0X2NsaWVudChzdHJ1Y3QgCiAJCWludCBo
-aSA9IHc4MzYyN2hmX3JlYWRfdmFsdWUoY2xpZW50LApXODM3ODFEX1JFR19DSElQSUQpOwogCQlk
-YXRhLT52aWQgPSAobG8gJiAweDBmKSB8ICgoaGkgJiAweDAxKSA8PCA0KTsKIAl9IGVsc2UgaWYg
-KHc4MzYyN3RoZiA9IGRhdGEtPnR5cGUpIHsKLQkJZGF0YS0+dmlkID0gdzgzNjI3dGhmX3JlYWRf
-Z3BpbzUoY2xpZW50KSAmIDB4M2Y7CisJCWRhdGEtPnZpZCA9IHc4MzYyN3RoZl9yZWFkX2dwaW81
-KGNsaWVudCk7CiAJfQogCiAJLyogUmVhZCBWUk0gJiBPVlQgQ29uZmlnIG9ubHkgb25jZSAqLwog
-CWlmICh3ODM2Mjd0aGYgPSBkYXRhLT50eXBlIHx8IHc4MzYzN2hmID0gZGF0YS0+dHlwZSkgewog
-CQlkYXRhLT52cm1fb3Z0ID0gCiAJCQl3ODM2MjdoZl9yZWFkX3ZhbHVlKGNsaWVudCwKVzgzNjI3
-VEhGX1JFR19WUk1fT1ZUX0NGRyk7Ci0JCWRhdGEtPnZybSA9IChkYXRhLT52cm1fb3Z0ICYgMHgw
-MSkgPyA5MCA6IDgyOwotCX0gZWxzZSB7Ci0JCS8qIENvbnZlcnQgVklEIHRvIHZvbHRhZ2UgYmFz
-ZWQgb24gZGVmYXVsdCBWUk0gKi8KLQkJZGF0YS0+dnJtID0gdmlkX3doaWNoX3ZybSgpOwogCX0K
-IAorCS8qIENvbnZlcnQgVklEIHRvIHZvbHRhZ2UgYmFzZWQgb24gZGVmYXVsdCBWUk0gKi8KKwlk
-YXRhLT52cm0gPSB2aWRfd2hpY2hfdnJtKCk7CisKIAl0bXAgPSB3ODM2MjdoZl9yZWFkX3ZhbHVl
-KGNsaWVudCwgVzgzNzgxRF9SRUdfU0NGRzEpOwogCWZvciAoaSA9IDE7IGkgPD0gMzsgaSsrKSB7
-CiAJCWlmICghKHRtcCAmIEJJVF9TQ0ZHMVtpIC0gMV0pKSB7CgoKQmVzdCBSZWdhcmRzCll1YW4g
-TXUKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHBy
-aXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWls
-IGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQg
-YnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUg
-YWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUg
-Zm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRs
-eSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxs
-IGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVk
-aWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2
-aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlv
-biBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24g
-aW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5i
-b25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5i
-b25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91
-ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9y
-ZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVt
-ZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73
-sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tE
-s1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMs
-IL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCj
-LiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuo
-z6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRs
-wOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+Hi Yuan,
+
+> This patch fixes the VID reading; no cpu0_vid and vrm files created if
+> the chip is w83627thf and GPIO5 not enabled.
+> Please check.
+
+Looks good to me. I had to fix the patch manually this time again though.
+
+I have done three minor edits to your patch, I hope you won't mind:
+
+1* I think the following test:
++	if (kind != w83697hf &&
++		!(kind = w83627thf && data->vid = 0xff)) {
+Can be simplified to:
++	if (kind != w83697hf && data->vid != 0xff)) {
+Because data->vid can only have value 0xff for type w83627thf anyway.
+
+2* In w83627thf_read_gpio5, I did:
+-	sel = superio_inb(W83627THF_GPIO5_IOSR);
++	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
+The datasheet suggests that the two unused bits of register CRF4
+(W83627THF_GPIO5_DR) are always zero, but better safe than sorry.
+
+3* I dropped "default" in that comment:
+        /* Convert VID to voltage based on default VRM */
+It's not more a default value, it's deduced from the CPU model.
+
+I'll stack your patch and will get it into -mm soon so that it gets some
+testing. It should then go into mainline for 2.6.16. Thanks for your
+contribution!
+
+While checking the W83627THF datasheet, I noticed that there is an
+additional GPIO configuration register, CRF5, named "inversion
+register". Wouldn't it make sense to check the value of this register
+and make sure all pins supposedly used as VID inputs are not inverted?
+Mark, can you please confirm that your system which does use GPIO5 for
+VID would pass that test? Proposed patch attached, comments and testers
+welcome.
+
+Thanks,
+--
+Jean Delvare
+-------------- next part --------------
+Improve the W83627THF GPIO5 testing, so that we don't think these pins
+are used as VID inputs when they cannot be. This is done by checking
+that none of these pins are in inverted mode.
+---
+
+ drivers/hwmon/w83627hf.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+--- linux-2.6.15-rc1.orig/drivers/hwmon/w83627hf.c	2005-11-15 11:03:52.000000000 +0100
++++ linux-2.6.15-rc1/drivers/hwmon/w83627hf.c	2005-11-15 11:19:49.000000000 +0100
+@@ -99,6 +99,7 @@
+ #define W83627THF_GPIO5_EN	0x30 /* w83627thf only */
+ #define W83627THF_GPIO5_IOSR	0xf3 /* w83627thf only */
+ #define W83627THF_GPIO5_DR	0xf4 /* w83627thf only */
++#define W83627THF_GPIO5_INV	0xf5 /* w83627thf only */
+ 
+ static inline void
+ superio_outb(int reg, int val)
+@@ -1218,7 +1219,7 @@
+ 
+ static int w83627thf_read_gpio5(struct i2c_client *client)
+ {
+-	int res = 0xff, sel;
++	int res = 0xff, sel, inv;
+ 
+ 	superio_enter();
+ 	superio_select(W83627HF_LD_GPIO5);
+@@ -1232,7 +1233,8 @@
+ 	/* Make sure the pins are configured for input
+ 	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
+ 	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
+-	if ((sel & 0x1f) != 0x1f) {
++	inv = superio_inb(W83627THF_GPIO5_INV) & 0x3f;
++	if ((sel & 0x1f) != 0x1f || (inv & sel) != 0x00) {
+ 		dev_dbg(&client->dev, "GPIO5 not configured for VID "
+ 			"function\n");
+ 		goto exit;
