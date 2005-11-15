@@ -1,105 +1,102 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 15 Nov 2005 21:52:04 +0000
+From: avolkov@varma-el.com (Andrey Volkov)
+Date: Tue, 15 Nov 2005 22:25:07 +0000
 Subject: [lm-sensors] Re: [PATCH 1/1] Added support of ST m41t85 rtc chip
-Message-Id: <20051115215226.4e6494e0.khali@linux-fr.org>
+Message-Id: <437A5202.2080807@varma-el.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4378960F.8030800@varma-el.com>
-In-Reply-To: <4378960F.8030800@varma-el.com>
+References: <4378960F.8030800@varma-el.com> <20051114164118.7270c6ce.akpm@osdl.org>
+In-Reply-To: <20051114164118.7270c6ce.akpm@osdl.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrey Volkov <avolkov@varma-el.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, "Mark A. Greer" <mgreer@mvista.com>
+To: Andrew Morton <akpm@osdl.org>
+Cc: khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Andrey,
+Andrew Morton wrote:
+> Andrey Volkov <avolkov@varma-el.com> wrote:
+> 
+>>...
+>>Added support of ST M41T85 RTC
+>>
+>>...
+>>
+>>+ulong
+>>+m41t85_get_rtc_time(void)
+> 
+> 
+> Does this need to have global scope?
+> 
+> It appears to have no callers.
 
-> Possible too late to include in 2.6.15,
-> but better later then never :).
+I use this function(s) in platform driver (which still in dev stage) of
+our board as platform get_rtc_time/set_rtc_time by same way as Mark in
+the katana does.
 
-You must be kidding. It might be too late for 2.6._16_. Reviewing takes
-time, reworking afterwards takes time, then you get some testing in -mm
-and it takes time again.
+May be better create special header in include/linux?
+(And convert m41t80.c and arch/ppc/katana.c too)
 
-> Comments?
+>>+static void
+>>+m41t85_set_tlet(ulong arg)
+>>+{
+>>+	struct rtc_time	tm;
+>>+	ulong	nowtime = *(ulong *)arg;
+>>+
+>>+	to_tm(nowtime, &tm);
+>>+	tm.tm_year = (tm.tm_year - 1900) % 100;
+>>+
+>>+	tm.tm_sec = BIN2BCD(tm.tm_sec);
+>>+	tm.tm_min = BIN2BCD(tm.tm_min);
+>>+	tm.tm_hour = BIN2BCD(tm.tm_hour);
+>>+	tm.tm_mon = BIN2BCD(tm.tm_mon);
+>>+	tm.tm_mday = BIN2BCD(tm.tm_mday);
+>>+	tm.tm_year = BIN2BCD(tm.tm_year);
+>>+
+>>+	down(&m41t85_mutex);
+> 
+> 
+> Cannot do down() in a tasklet handler!  Enable CONFIG_DEBUG_PREEMPT and
+> CONFIG_DEBUG_SPINLOCK_SLEEP, retest.
 
-Sure, although I don't really have the time right now for a complete
-review. And I'd rather not review the code if it finally isn't used.
+Oops, you're right. It's copy-paste bug from m41t00.c
+(which then buggy too).
 
-First, a question. Can't you merge the M41T85 support into the m41t00
-driver?
+> 
+> schedule_work() might be an appropriate fix.
+> 
+> 
+>>+int
+>>+m41t85_set_rtc_time(ulong nowtime)
+>>+{
+>>+	new_time = nowtime;
+>>+
+>>+	if (in_interrupt())
+>>+		tasklet_schedule(&m41t85_tasklet);
+>>+	else
+>>+		m41t85_set_tlet((ulong)&new_time);
+>>+
+>>+	return 0;
+>>+}
+> 
+> 
+> hm, this function isn't referenced from within this patch either.
 
-Mark, care to comment on that possibility, and/or on the code itself?
+Same as above.
 
-> +config SENSORS_M41T85
-> +	tristate "ST M41T85 RTC chip"
-> +	depends on I2C
+> 
+> 
+>>+	#if defined (CONFIG_SENSORS_M41T85_SQW_FRQ)
+> 
+> 
+> #if's normally start in column zero.
+> 
+> 
+>>+		ret = i2c_smbus_write_byte_data(client, RTC_SQW_ADDR, CONFIG_SENSORS_M41T85_SQW_FRQ);
+> 
+> 
+> My, what large xterms you have ;)
 
-I would pretty much likt it named RTC_M41T85 or RTC_M41T85_I2C instead.
-It's not a sensor in any way. And it must depend on EXPERIMENTAL to
-start with.
+Tabs=4 and 1280 full screened :). Ok I fix it to 80 columns.
 
-> +config SENSORS_M41T85_SQW_FRQ_ENABLE
-> +	depends on SENSORS_M41T85
-> +	bool "Square Wave Output"
+--
+Regards
+Andrey Volkov
 
-What a mess. Please just have a sysfs file for that, it's more flexible
-and less intrusive.
-
-> +/*
-> + * drivers/i2c/chips/m41t85.c
-> + *
-
-Redundant, you know where the file is if you found it.
-
-> + * HISTORY:
-> + *	 2005-10-12	Created
-> + */
-
-History doesn't belong to the source code.
-
-> +/*
-> + * This i2c client/driver wedges between the drivers/char/genrtc.c RTC
-> + * interface and the SMBus interface of the i2c subsystem.
-> + * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
-> + * recommened in .../Documentation/i2c/writing-clients section
-> + * "Sending and receiving", using SMBus level communication is preferred.
-> + */
-
-The i2c_transfer interface wouldn't exist if nobody was ever supposed
-to use it. Using the SMBus compatible interface makes it possible to
-use your chip in conjunction with more I2C or SMBus masters. But maybe
-you just need a specific driver for a specific case, and you just don't
-care about the other cases. In that case, go with i2c_transfer for
-smaller and faster code.
-
-Also, use <file:Documentation/...> for referencing document files.
-
-> +#define	M41T85_DRV_NAME		"m41t85"
-
-Please define m41t85_driver.name directly, and use references to it
-where needed. This avoids duplicating string constants.
-
-> +static void
-> +m41t85_set_tlet(ulong arg)
-> +{
-> +	struct rtc_time	tm;
-> +	ulong	nowtime = *(ulong *)arg;
-
-What's the idea behind this cast?
-
-> +	strncpy(client->name, M41T85_DRV_NAME, I2C_NAME_SIZE);
-
-Please use strlcpy instead.
-
-> +static void __exit
-> +m41t85_exit(void)
-> +{
-> +	i2c_del_driver(&m41t85_driver);
-> +	return;
-> +}
-
-Drop this "return" statement, it is useless.
-
-Thanks,
--- 
-Jean Delvare
