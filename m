@@ -1,7 +1,7 @@
-From: roger@planbit.co.uk (Roger Lucas)
-Date: Tue, 15 Nov 2005 12:14:24 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 15 Nov 2005 13:15:24 +0000
 Subject: [lm-sensors] RE: vt8231.c
-Message-Id: <20051115111350.3D6C212E9E@bluewhale.planbit.co.uk>
+Message-Id: <P5kp9Axl.1132056103.6789130.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
 In-Reply-To: <20051102092453.47B1712E9E@bluewhale.planbit.co.uk>
@@ -10,109 +10,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
 
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: 15 November 2005 07:13
-> To: Roger Lucas
-> Cc: Knut Petersen; LM Sensors; Mark Studebaker
-> Subject: Re: [lm-sensors] RE: vt8231.c
-> 
-> Hi Roger,
-> 
-> Once again, sorry for the delay... :(
-> 
-> > > temp3 is a bit special, it is diode-based. The conversion which is
-> > > currently done in userspace should be moved into the driver, so that
-> the
-> > > exported value is a temperature rather than a random register value.
-> > > Other temps are thermistor based, a part of the conversion has to be
-> > > moved into the driver so that we export the voltage value at the chip
-> > > pin. The thermistor bridge computation (voltag -> temperature) belongs
-> > > to userspace because different thermistors can be used on different
-> > > motherboards. The same is done for the PC87366 temp4-6 already.
-> >
-> > We know what the datasheet and porting guide say about the temperatures,
-> but
-> > I am not sure that this matches reality.  On my VIA EPIA 500
-> motherboard,
-> > the CPU is a VIA EPIA 5000 and not an Intel CPU.  I don't doubt that the
-> > sensor scale is correct for an Intel CPU, but the VIA EPIA CPU is
-> different.
-> > If I use the scaling values in the porting guide then my temperatures
-> are
-> > over 30C off.
-> >
-> > For reference,
-> > 	VIA's equation:  REG = TEMP * 0.9686 + 65
-> > 	My EPIA Mobo:    REG = TEMP * 0.7809 + 45
-> 
-> Good point. Do these constant have any kind of physical meaning? Is the
-> information publicly available? How did you come up with the correct
-> one for your VIA CPU?
+Hi Roger,
 
-We have been running some thermal tests on the VIA board and the values from
-LM-Sensors were significantly off.  We therefore ran our own thermal cycling
-tests with a probe attached to the center of the heatsink directly above the
-CPU.  We were then able to obtain a set of measurements for the probe
-temperature versus the register value.  This gave us a very linear response
-with the above equation.  We did not get the curve information from VIA.
+On 2005-11-15, Roger Lucas wrote:
+> We have another sample of the board here now, so we will be repeating the
+> measurements to ensure that the VIA results are predictable from board to
+> board.
 
-We have another sample of the board here now, so we will be repeating the
-measurements to ensure that the VIA results are predictable from board to
-board.
+OK, great. I've tried some mathematics on the formulae to find out if
+anything obvious with regards to the physical meaning of the constants
+would spring out, but did not find anything.
 
-> 
-> What would the formula required for VIA CPUs look like if the Intel one
-> was integrated into the driver as I first proposed?
-> 
+> I agree that whatever we do, the VIA users must apply some kind of
+> equation to get their correct temperature, but I feel that the safest
+> approach is "first do no wrong".
 
-It would still be a simple y=mx+c style graph but just with different
-constants.
+Fair enough.
 
-> > We can put the VIA official Intel scaling into the driver, but this
-> would be
-> > very misleading as the VT8231 is used on the VIA EPIA platform which is
-> in
-> > widespread use, and all users of that board would therefore need to know
-> > that additional scaling was required.  If they didn't then they would be
-> > panicking when they see the CPU temperature (since the motherboard is
-> only
-> > passively cooled).
-> 
-> Well, whatever we do, the VIA CPU users will have an incorrect reading
-> at first and will have to edit some lines in their configuration file
-> to get the proper reading. So this point doesn't really weight in
-> either direction. All it really means is that we will have to improve
-> the vt8231's sensors.conf.eg section to make the point clear.
+> I am extremely uncomfortable with the situation where we release a
+> driver that we know will give incorrect information under some
+> conditions.  I feel that it is much better to return the result from
+> the driver as a register value and put the text below:
 
-I agree that whatever we do, the VIA users must apply some kind of equation
-to get their correct temperature, but I feel that the safest approach is
-"first do no wrong".  
+The problem is that the standard sysfs interface sets some contraints on
+what we can or cannot do. In particular, it dictates that the magnitude
+for temperature values is 3. This suggests that the value we would be
+returning would be REG * 1000. As it seems that there are an additional
+2 bits of resolution, that would be (REG << 2 + ADDREG) * 250.
 
-I am extremely uncomfortable with the situation where we release a driver
-that we know will give incorrect information under some conditions.  I feel
-that it is much better to return the result from the driver as a register
-value and put the text below:
+> # If you have an Intel CPU, then uncomment the line below
+> # temp0_input = (@-65)/0.9686, (@*0.9686)+65
+>
+> # If you have an VIA EPIA CPU, then uncomment the line below
+> # temp0_input = (@-45)/0.7809, (@*0.7809)+45
 
-# If you have an Intel CPU, then uncomment the line below
-# temp0_input = (@-65)/0.9686, (@*0.9686)+65
+s/temp0_input =/compute temp1/, but yes.
 
-# If you have an VIA EPIA CPU, then uncomment the line below
-# temp0_input = (@-45)/0.7809, (@*0.7809)+45
+BTW, does this suggest that you decided that the diode temperature would
+be temp1, and thermistor-based ones are temp2+? I have no objection a
+priori, just curious.
 
-This way, an incorrect value is never returned and the user must correctly
-set the board configuration before a temperature is returned.
+> This way, an incorrect value is never returned and the user must
+> correctly set the board configuration before a temperature is
+> returned.
 
-> 
-> Thanks,
-> --
-> Jean Delvare
+By commenting out both compute lines, I'd rather say that an incorrect
+value will *always* be returned. I'd prefer to keep the Intel line by
+default so as to preserve backward compatibility as much as we can.
 
-Thanks for the work you are doing on reviewing this driver. 
+I think you will end up with a dedicated configuration file for your
+board anyway. The best we can do to help out VIA EPIA users is to make
+this file publicly available.
 
-Best regards,
-
-Roger
-
+Thanks,
+--
+Jean Delvare
