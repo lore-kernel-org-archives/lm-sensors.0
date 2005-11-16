@@ -1,45 +1,57 @@
 From: mgreer@mvista.com (Mark A. Greer)
-Date: Wed, 16 Nov 2005 22:25:05 +0000
+Date: Wed, 16 Nov 2005 22:55:29 +0000
 Subject: [lm-sensors] Re: [PATCH 1/1] Added support of ST m41t85 rtc chip
-Message-Id: <20051116212447.GE30014@mag.az.mvista.com>
+Message-Id: <20051116213623.GF30014@mag.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <437B4619.6050805@varma-el.com> <6dEExmJ9.1132154398.1580970.khali@localhost>
-In-Reply-To: <6dEExmJ9.1132154398.1580970.khali@localhost>
+References: <6dEExmJ9.1132154398.1580970.khali@localhost> <437B61B1.50003@varma-el.com>
+In-Reply-To: <437B61B1.50003@varma-el.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: avolkov@varma-el.com, "Mark A. Greer" <mgreer@mvista.com>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: Andrey Volkov <avolkov@varma-el.com>
+Cc: Jean Delvare <khali@linux-fr.org>, "Mark A. Greer" <mgreer@mvista.com>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, Nov 16, 2005 at 04:19:58PM +0100, Jean Delvare wrote:
+On Wed, Nov 16, 2005 at 07:43:29PM +0300, Andrey Volkov wrote:
 
 <snip>
 
-> This is why you want to move the decision at the run time level rather
-> than the compilation time level whenever possible. The clock output
-> option can't be a configuration option. I previously suggested a sysfs
-> file, because this gives the greatest flexibility. If you don't like
-> the idea for whatever reason, you may go for a module parameter instead.
-> 
-> Same reasonment holds for the m41t00 vs. m41t85 choice. You can't decide
-> at compilation time. If we go for a common driver, it has to support
-> both devices at the same time. Mark suggested to use platform-specific
-> data. I'm not familiar with this, but it sounds reasonable.
+> > Same reasonment holds for the m41t00 vs. m41t85 choice. You can't decide
+> > at compilation time. If we go for a common driver, it has to support
+> > both devices at the same time. Mark suggested to use platform-specific
+> > data. I'm not familiar with this, but it sounds reasonable.
+> It's pity, but all chips of m41xx family (approx. 20 members) have same
+> i2c slave address (0x68) and have not some hwd model specific id
+> registers. Hence I couldn't made any clue about chip specific
+> regs/pins/... at run-time
 
-I don't know the entire history behind platform_data but my
-understanding is that it was designed to provide a mechanism for
-platform-specific code to pass info to drivers.
+The hope is that your platform determines the type of rtc chip and then
+passes that into the m41txx driver.  If your platform can have different
+rtc chips and no way to determine which one is there at runtime, we have
+a problem.
 
-I *believe* that this would be a proper use of platform_data but I'm
-hoping someone out in lkml-land who knows better than I will confirm that.
+> (and couldn't use two or more chips in one i2c subnet :)).
+> And the situation worsens, as various chips have various
+> time regs offsets, as ex. REG_SEC of m41t00 have offset 0, but
+> in m41t85 _SAME_ REG_SEC have offset 1, etc (God, who in ST was so,
+> hm, ...., so made such decision?).
 
-> I don't know for sure at this point whether having a single driver is
-> the right choice, I'll let you and Mark check it out and decide. But
-> the right way to determine this is definitely not through the use of
-> #if/#endif preprocessing stuff.
+I'll peruse the datasheets to see how feasible it is to merge.  At this
+point, I think its possible but that may be my ignorance talking.
 
-I agree.  We can and absolutely should do this at run-time if a merged
-driver is feasible.  I'll dig thru the datasheets today and start
-prototyping some code if it looks like we can merge the code.
+> So I coldn't see any suitable run-time method of detection which
+> function driver could use for current "unknown" m41xx chip (from driver
+> probe point of view) whithout Kconfig/module parameter prompting.
+
+See above.
+
+> > I don't know for sure at this point whether having a single driver is
+> > the right choice, I'll let you and Mark check it out and decide. But
+> > the right way to determine this is definitely not through the use of
+> > #if/#endif preprocessing stuff.
+> IMHO - single driver for all m41xx will be nice thing, but I'm not
+> sure that it will not be monster- alike when it be released.
+
+Understood.  I'll see what I can come up with.  If it looks reasonable,
+I'll run it past everyone.
 
 Mark
