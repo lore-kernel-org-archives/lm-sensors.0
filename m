@@ -1,74 +1,73 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 26 Nov 2005 20:12:21 +0000
-Subject: [lm-sensors] [PATCH 03/25] hwmon: W83627THF VID fixes
-Message-Id: <20051126201318.0c86d9d3.khali@linux-fr.org>
+From: azummo-lists@towertech.it (Alessandro Zummo)
+Date: Wed, 16 Nov 2005 13:12:49 +0000
+Subject: [lm-sensors] [RFC PATCH] differentiate ioctls from commands
+Message-Id: <20051116131203.3a22bea5@inspiron>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Yuan Mu <ymu@winbond.com.tw>
-Content-Disposition: inline; filename=hwmon-w83627thf-fix-vrm-and-vid.patch
 
-This patch fixes the VID reading; no cpu0_vid and vrm files created if
-the chip is w83627thf and GPIO5 not enabled.
+ Hello,
 
-Signed-off-by: Yuan Mu <ymu@winbond.com.tw>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83627hf.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+   the attached patch introduces an ioctl function pointer in the i2c_driver
+ structure. This is functionally equivalent to the actual command function
+ but with different scope:
 
---- linux-2.6.15-rc1.orig/drivers/hwmon/w83627hf.c	2005-11-15 19:17:10.000000000 +0100
-+++ linux-2.6.15-rc1/drivers/hwmon/w83627hf.c	2005-11-15 19:50:33.000000000 +0100
-@@ -1122,11 +1122,10 @@
- 	if (kind != w83697hf)
- 		device_create_file_temp(new_client, 3);
+ - ioctl shall be used to send STANDARD ioctls to devices
+ - command shall be used to send SPECIFIC commands to devices
  
--	if (kind != w83697hf)
-+	if (kind != w83697hf && data->vid != 0xff) {
- 		device_create_file_vid(new_client);
--
--	if (kind != w83697hf)
- 		device_create_file_vrm(new_client);
-+	}
- 
- 	device_create_file_fan_div(new_client, 1);
- 	device_create_file_fan_div(new_client, 2);
-@@ -1232,7 +1231,7 @@
- 
- 	/* Make sure the pins are configured for input
- 	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
--	sel = superio_inb(W83627THF_GPIO5_IOSR);
-+	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
- 	if ((sel & 0x1f) != 0x1f) {
- 		dev_dbg(&client->dev, "GPIO5 not configured for VID "
- 			"function\n");
-@@ -1323,19 +1322,18 @@
- 		int hi = w83627hf_read_value(client, W83781D_REG_CHIPID);
- 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
- 	} else if (w83627thf = data->type) {
--		data->vid = w83627thf_read_gpio5(client) & 0x3f;
-+		data->vid = w83627thf_read_gpio5(client);
- 	}
- 
- 	/* Read VRM & OVT Config only once */
- 	if (w83627thf = data->type || w83637hf = data->type) {
- 		data->vrm_ovt = 
- 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
--		data->vrm = (data->vrm_ovt & 0x01) ? 90 : 82;
--	} else {
--		/* Convert VID to voltage based on default VRM */
--		data->vrm = vid_which_vrm();
- 	}
- 
-+	/* Convert VID to voltage based on VRM */
-+	data->vrm = vid_which_vrm();
-+
- 	tmp = w83627hf_read_value(client, W83781D_REG_SCFG1);
- 	for (i = 1; i <= 3; i++) {
- 		if (!(tmp & BIT_SCFG1[i - 1])) {
+ The actual command function is used only by some rtc and media drivers,
+ with mixed implementation. i2c_clients_command will send a command
+ to every device, regardless of the implementation. This could lead
+ to a situation in which an rtc driver receives a command meant for
+ a tuner device.
+
+ The attached patch also corrects the relevant client drivers to
+ appropriately use each interface. i2c_clients_command has been
+ renamed i2c_clients_ioctl.
+
+ The i2c core still misses a function to send a command or an ioctl
+ directly to a specific device, but it is something I'd like to address
+ in the short term.
+
+ If this gets approved, I plan to write a generic high-layer rtc device
+ which can use any of the low level i2c rtc drivers as the system rtc.
+ This will be used on a number of embedded devices, like the Linksys NSLU2
+ and the Iomega NAS100D.
+
+ Please note that this patch applies only OVER Jean's current stack. 
+
+ Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 
 -- 
-Jean Delvare
+
+ Best regards,
+
+ Alessandro Zummo,
+  Tower Technologies - Turin, Italy
+
+  http://www.towertech.it
+
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-ioctl-core.patch
+Type: text/x-patch
+Size: 4134 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051116/eca708c4/i2c-ioctl-core-0001.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-ioctl-drivers.patch
+Type: text/x-patch
+Size: 3820 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051116/eca708c4/i2c-ioctl-drivers-0001.bin
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: i2c-ioctl-media.patch
+Type: text/x-patch
+Size: 39014 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051116/eca708c4/i2c-ioctl-media-0001.bin
