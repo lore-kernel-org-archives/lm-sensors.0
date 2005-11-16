@@ -1,27 +1,41 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 15 Nov 2005 21:03:25 +0000
-Subject: [lm-sensors] Re: [PATCH] lm_sensors2 : Fix W83627THF VID reading
-Message-Id: <20051115210344.6ae6e076.khali@linux-fr.org>
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Wed, 16 Nov 2005 02:24:39 +0000
+Subject: [lm-sensors] RE: [PATCH] lm_sensors2 : Fix W83627THF VID reading
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEAF7D76@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECEAF7CB6@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEAF7CB6@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Yuan,
-
-> This patch fixes the VID reading; VID will always return 0 when GPIO5 of
-> w83627thf is not enabled.
-
-Will apply, with the same modifications I proposed for the Linux 2.6
-patch, if you agree with these.
-
-> Signed-off-by: Yuan Mu <ymu@winbond.com.tw>
-
-Note that you do not have to sign lm_sensors2 CVS patches that way ;)
-
-Thanks,
--- 
-Jean Delvare
+SGkgSmVhbiwKCj4gV2lsbCBhcHBseSwgd2l0aCB0aGUgc2FtZSBtb2RpZmljYXRpb25zIEkgcHJv
+cG9zZWQgZm9yIHRoZSBMaW51eCAyLjYKPiBwYXRjaCwgaWYgeW91IGFncmVlIHdpdGggdGhlc2Uu
+ClRoYXQncyBPSzsgYW55IGltcHJvdmVtZW50IHdpbGwgYmUgd2VsY29tZSA7KQoKPiA+IFNpZ25l
+ZC1vZmYtYnk6IFl1YW4gTXUgPHltdUB3aW5ib25kLmNvbS50dz4KPiAKPiBOb3RlIHRoYXQgeW91
+IGRvIG5vdCBoYXZlIHRvIHNpZ24gbG1fc2Vuc29yczIgQ1ZTIHBhdGNoZXMgdGhhdCB3YXkgOykK
+PgoKT0sgdG9vICwgdGhhbmtzIDopCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCgo9PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlk
+ZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZv
+ciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFs
+IHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGlj
+YXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9m
+IHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUg
+c2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBm
+cm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNv
+b3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1
+bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlz
+IHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBp
+cnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRl
+ZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1
+bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5n
+IG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2gg
+Z2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLF
+dq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEip
+zqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tI
+pEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0As
+IKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73
+sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUs
+pKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
