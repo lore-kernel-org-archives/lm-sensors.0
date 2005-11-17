@@ -1,51 +1,40 @@
-From: Mingkun.Gu@GTECH.COM (Gu, Mingkun)
-Date: Mon, 07 Nov 2005 19:57:04 +0000
-Subject: [lm-sensors] Helps: how to use i801--SMBus functions viai2c-dev
-Message-Id: <83B4F97F11FDDF4C98DFE32FF982A96A721AA4@cspmail2.gtk.gtech.com>
+From: azummo-lists@towertech.it (Alessandro Zummo)
+Date: Thu, 17 Nov 2005 00:34:41 +0000
+Subject: [lm-sensors] [RFC] adding back i2c_get_clients
+Message-Id: <20051117003330.21bfff26@inspiron>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051101104855.41881.qmail@web31214.mail.mud.yahoo.com>
-In-Reply-To: <20051101104855.41881.qmail@web31214.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
 
+ Hello,
 
->> I am actually accessing the master ICH6 SMBus controller's registers
-and
->> memory instead of the slave control on the customized board.
-According
->> to the data sheet of ICH6, it supports block data transfer. 
+  I'd like to restart a topic that was discussed before, regarding the infrastructure
+ required to send a command/ioctl directly to an i2c client.
 
-> Sure it does, that's not the point. The question is, is the slave
-> device you are talking to expecting an SMBus block transfer for the
-> command byte you are using? As I already said, SMBus transactions only
-> work if the master and client agree on the transaction type. If you
-are
-> trying random block reads/writes, no wonder it doesn't work.
+  The topic was discussed in [1] and [2] more than one year ago. This missing
+ functionality led to all sort of tricks in both i2c rtc drivers and media drivers.
 
-Yes, the slave device has a TI's MSP430 mixed signal microcontroller
-which supports block read and write of message/data packets for the
-SMBus standard protocol. I'm trying to send the command/data packets in
-data blocks. But our board with the microcontroller was not attached to
-the PC motherboard during my tests mentioned above. Would this be the
-cause for transaction errors?
+  My previous proposal ([3]) addressed the separation between ioctls and
+ commands. We now need a way to actually send those commands to the
+ device we are interested in.
 
----
-MK
+  I'd like to introduce one or more functions to be able
+ to retrieve a client based on its driver id and/or i2c class.
 
+  If there's general consensus, I'd be happy to take care of it.
 
------------------------------------------
-This email may contain confidential and privileged material for the
-sole use of the intended recipient(s). Any review, use, retention,
-distribution or disclosure by others is strictly prohibited. If you are
-not the intended recipient (or authorized to receive for the
-recipient), please contact the sender by reply email and delete all
-copies of this message. Also, email is susceptible to data corruption,
-interception, tampering, unauthorized amendment and viruses. We only
-send and receive emails on the basis that we are not liable for any
-such corruption, interception, tampering, amendment or viruses or any
-consequence thereof.
+[1] http://marc.theaimsgroup.com/?t8307854200001&r=1&w=2
+[2] http://marc.theaimsgroup.com/?t8324800400004&r=1&w=2
+[3] http://lists.lm-sensors.org/pipermail/lm-sensors/2005-November/014343.html
 
+-- 
+
+ Best regards,
+
+ Alessandro Zummo,
+  Tower Technologies - Turin, Italy
+
+  http://www.towertech.it
