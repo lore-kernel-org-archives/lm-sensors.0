@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 17 Nov 2005 13:03:31 +0000
+From: azummo-lists@towertech.it (Alessandro Zummo)
+Date: Thu, 17 Nov 2005 13:20:22 +0000
 Subject: [lm-sensors] [RFC] adding back i2c_get_clients
-Message-Id: <MI8VkP9d.1132228154.0638950.khali@localhost>
+Message-Id: <20051117131940.66037b1c@inspiron>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051117003330.21bfff26@inspiron>
 In-Reply-To: <20051117003330.21bfff26@inspiron>
@@ -10,98 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Thu, 17 Nov 2005 12:49:14 +0100 (CET)
+"Jean Delvare" <khali@linux-fr.org> wrote:
 
-Hi Alessandro,
+> OK, so what you call "specific", I call "generic" ;) Sure, exporting
+> functions is not suitable for a generic interface. You want to either
+> define an ioctl-like interface (f(target, command, &parameter), but Greg
 
-On 2005-11-17, Alessandro Zummo wrote:
-> > If the command is really specific, I see no reason why exporting a
-> > function would be avoided.
->
-> abstraction. If we can abstract some rtc specific commands, less code
-> will have to be written and maintaining it will be easier.
+ exactly. or, at least, document what i2c_driver->command should be used
+ for. If it can be used for ioctls, and only for them, then we have no problems.
 
-OK, so what you call "specific", I call "generic" ;) Sure, exporting
-functions is not suitable for a generic interface. You want to either
-define an ioctl-like interface (f(target, command, &parameter), but Greg
-doesn't seem to be happy with that solution?), or a structure with
-attributes and function pointers to specific implementations of the
-interface. Something like:
+ If we can use command for whatever we want, the i2c_clients_commands
+ must be removed, otherwise we are going to have oopses.
 
-struct rtc_operations
-{
-        int(* set_time)(struct rtc_time),
-        int(* get_time)(strcut rtc_time *),
-}
+ It's just a matter of writing things down.
 
-> > The fact that your RTC chip is I2C-based is an implementation detail.
-> > If you want a command to work on all RTC drivers, you certainly do
-> > not want to rely on i2c-core in any way. Better have some rtc-core
-> > driver (if it doesn't already exist) and have your RTC driver register
-> > with it.
->
-> That would bind the i2c driver definitely with its rtc counterpart.
 
-Exactly the contrary. There would no more be a specific rtc counterpart,
-or at least it would no more bound directly to the i2c part. This is the
-point of having a core and well-defined interfaces.
 
-> as I have said, rtc are not always rtcs. they may have memory, they may
-> be used or not as a system rtc, thay may be timers. Should I have
->
-> rtc-generic -> rtc-mychip -> i2c-myrtcchip *repeated* for each
-> i2c rtc chip?
->
-> that makes no sense to me.
->
-> I'd rather prefer having
->
-> rtc-i2c -> i2c-anyrtcchip .
+> > That would bind the i2c driver definitely with its rtc counterpart.
+> 
+> Exactly the contrary. There would no more be a specific rtc counterpart,
+> or at least it would no more bound directly to the i2c part. This is the
+> point of having a core and well-defined interfaces.
 
-And I'd rather have:
+ I agree, but we still have to define the interface between the i2c_driver
+ and the external world, as i2c_driver->command is not adeguately documented.
 
-platform-rtc <-> rtc-core <-> rtc-i2c
 
-What you call "rtc counterpart of the rtc-i2c driver" is actually
-platform-specific. The same RTC chip could be used as the system RTC on
-one system, and used differently on other systems. We don't want to
-write as many drivers as platforms for the same chip.
 
-There is an additional difficulty due to the lack of possible
-indentification of I2C-based RTC chips. The "rtc-i2c" driver above may
-need platform-specific data. This is being discussed in a different
-thread on this list.
+> platform-rtc <-> rtc-core <-> rtc-i2c
+> 
+> What you call "rtc counterpart of the rtc-i2c driver" is actually
+> platform-specific. The same RTC chip could be used as the system RTC on
+> one system, and used differently on other systems. We don't want to
+> write as many drivers as platforms for the same chip.
 
-All an rtc-i2c driver needs to do is offer a standard interface to get,
-and set, the date and/or time. And maybe other things (alarms?). It does
-not need to know how these functions will be used.
+ I agree. I think we are saying similar things with different
+ terms.. Let's do an example with the X1205: 
 
-> This way, the i2c part could also be used to do other things on the rtc.
+ if you want to use it you must
 
-This is true regardless of how it interfaces with the hypothetical
-rtc-core or "rtc-counterpart" or anything else.
+ modprobe x1205
 
-> If one needs to use it as the system rtc, you can simply modprobe the
-> generic rtc i2c driver.
+ if you want to _also_ use it as the system RTC, you should
+ _also_
 
-There is no such thing as a "generic rtc i2c driver", and won't ever
-be. I2C is really only the transport layer here. Whatever you want to
-implement here doesn't belong to the i2c-core in any way.
+ modprobe rtc-i2c-interfacing-driver
 
-> I don't expect the i2c core to do anything specific, but I need to be
-> sure all the i2c drivers conform to a standard, whatever that standard
-> is.
+ which will take care of interfacing x1205 with the kernel rtc 
+ subsytem.
 
-Again, no. You want to be sure that all *RTC* drivers conform to a
-standard. I am very surprised that it ain't the case already, given the
-large number of rtc drivers which already exist.
+ Do we agree here?
 
-Whatever, we should really implement the alternative driver attaching
-method which was discussed earlier before doing anything else, because
-once we have that, it will probably help us think of better solutions to
-all the other i2c-related problems which are currently being discussed
-here and there. I will try to work on this again as soon as possible. Oh
-my, why am I so short of time all the time? :(
 
-Thanks,
---
-Jean Delvare
+-- 
+
+ Best regards,
+
+ Alessandro Zummo,
+  Tower Technologies - Turin, Italy
+
+  http://www.towertech.it
+
