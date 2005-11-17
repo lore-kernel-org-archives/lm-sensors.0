@@ -1,41 +1,43 @@
-From: mgreer@mvista.com (Mark A. Greer)
-Date: Wed, 16 Nov 2005 23:24:54 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 17 Nov 2005 10:34:18 +0000
 Subject: [lm-sensors] Re: [PATCH 1/1] Added support of ST m41t85 rtc chip
-Message-Id: <20051116222423.GG30014@mag.az.mvista.com>
+Message-Id: <Vljn9pXR.1132219253.1222760.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051116031520.GL5546@mag.az.mvista.com> <20051116185513.GB18217@hexapodia.org>
-In-Reply-To: <20051116185513.GB18217@hexapodia.org>
+In-Reply-To: <437B61B1.50003@varma-el.com>
+References: <4378960F.8030800@varma-el.com>
+In-Reply-To: <4378960F.8030800@varma-el.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Isaacson <adi@hexapodia.org>
-Cc: "Mark A. Greer" <mgreer@mvista.com>, Andrey Volkov <avolkov@varma-el.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: avolkov@varma-el.com
+Cc: "Mark A. Greer" <mgreer@mvista.com>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, Nov 16, 2005 at 10:55:13AM -0800, Andy Isaacson wrote:
-> On Tue, Nov 15, 2005 at 08:15:20PM -0700, Mark A. Greer wrote:
-> > On Wed, Nov 16, 2005 at 12:48:59AM +0300, Andrey Volkov wrote:
-> > > > Mark, care to comment on that possibility, and/or on the code itself?
-> > > > 
-> > > And, please, remove unnecessary PPC dependence from Kconfig.
-> > 
-> > When I originally submitted the m41t00 patch, I made it clear that it
-> > was PPC only and gave the reason why:
-> > 
-> > http://archives.andrew.net.au/lm-sensors/msg29280.html
-> 
-> I have a MIPS platform with M41T81 (SiByte SWARM,
-> arch/mips/sibyte/swarm/rtc_m41t81.c) that I would dearly love to
-> decruftify.  (Don't pay too much attention to the kernel.org trees for
-> MIPS, you need to pull the git repo on linux-mips.org for the real
-> stuff.)
-> 
-> So I'm definitely interested in this work.
 
-Thanks Andy.  I'll check out the m41t81 datasheet and see how well it
-blends with the others.  Also, ppc and mips will have different
-interfaces but it should be acceptable to have two sets of interface
-routines with #ifdef CONFIG_PPC/MIPS around them.
+Hi Andrey,
 
-I'm off to read datasheets now...  :)
+On 2005-11-16, Andrey Volkov wrote:
+> It's pity, but all chips of m41xx family (approx. 20 members) have same
+> i2c slave address (0x68) and have not some hwd model specific id
+> registers. Hence I couldn't made any clue about chip specific
+> regs/pins/... at run-time (and couldn't use two or more chips in one i2c
+> subnet :)). And the situation worsens, as various chips have various
+> time regs offsets, as ex. REG_SEC of m41t00 have offset 0, but
+> in m41t85 _SAME_ REG_SEC have offset 1, etc (God, who in ST was so,
+> hm, ...., so made such decision?).
 
-Mark
+I wholeheartedly second your views, it would be way way better if all I2C
+chips had an ID register. However, having a separate driver for every
+chip doesn't actually solve the undifferenciability issue. You can't
+prevent the user from loading the wrong driver. Also, the problem isn't
+specific to the m41txx family of chips, many other families of chips
+suffer the same.
+
+The main problem here is that i2c-core currently lacks a mechanism which
+would let us explicitely attach a given driver (and chip type within
+that driver) to an arbitrary adapter, address pair. I will be working on
+implementing this with the help of others in the next few weeks. RTC
+drivers and media/video drivers should enjoy this new interface.
+
+Thanks,
+--
+Jean Delvare
