@@ -1,46 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 16 Nov 2005 12:32:21 +0000
-Subject: [lm-sensors] Call for help -- Problems in using i2c- i801 to
-Message-Id: <PN8PdOQv.1132139935.7662920.khali@localhost>
+From: johannes.beekhuizen@duinheks.xs4all.nl (johannes.beekhuizen@duinheks.xs4all.nl)
+Date: Mon, 21 Nov 2005 16:46:08 +0000
+Subject: [lm-sensors] ALARM messages - why ?
+Message-Id: <20051121154527.6F4D34BEC5@duinheks.xs4all.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <83B4F97F11FDDF4C98DFE32FF982A96A721AAB@cspmail2.gtk.gtech.com>
-In-Reply-To: <83B4F97F11FDDF4C98DFE32FF982A96A721AAB@cspmail2.gtk.gtech.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hallo,
 
-Hi Michael,
+I just installed lm_sensors 2.9.2 on my system. Motherboard
+Intel D845EBG2, kernel 2.6.13.4. When I run sensors, I see
+two alarms which I don't understand. Does somebody know why
+I get them and how I should interpret them?
+Thanking you in advance.
 
-> I'm trying to write block data on the ICH6 SMBus controller by using the
-> i2c-i801 module. But I always got error message "Error: no response
-> (0x44)!". A scope shows that only the first four bytes of a data packet,
-> i.e.
->
->	Slave address, command code, byte count, 1st data byte
->
-> will be sent. The other data bytes are not sent.
+Groetjes,
 
-This would happen if the slave doesn't ack the 1st data byte. Do you see
-the ack on the scope (SDA held low by the slave receiver on the next
-clock cycle after the last data bit)? I'd guess not.
+           Hans.
 
-> -----------------------------------------
-> This email may contain confidential and privileged material for the
-> sole use of the intended recipient(s). Any review, use, retention,
-> distribution or disclosure by others is strictly prohibited. If you are
-> not the intended recipient (or authorized to receive for the
-> recipient), please contact the sender by reply email and delete all
-> copies of this message. Also, email is susceptible to data corruption,
-> interception, tampering, unauthorized amendment and viruses. We only
-> send and receive emails on the basis that we are not liable for any
-> such corruption, interception, tampering, amendment or viruses or any
-> consequence thereof.
+jdh punt beekhuizen bij duinheks punt xs4all punt nl
 
-And could you please just strip this useless paragraph out of your posts?
-We couldn't care less.
+== import =smsc47m1-isa-0680
+Adapter: ISA adapter
+fan1:     3150 RPM  (min =  640 RPM, div = 8)
+fan2:        0 RPM  (min =  640 RPM, div = 8)
 
-Thanks,
---
-Jean Delvare
+adm1025-i2c-0-2d
+Adapter: SMBus I801 adapter at e000
++2.5V:     +1.51 V  (min =  +2.25 V, max =  +2.75 V)   ALARM
+VCore:     +1.48 V  (min =  +1.43 V, max =  +1.57 V)
++3.3V:     +3.35 V  (min =  +2.97 V, max =  +3.63 V)
++5V:       +5.05 V  (min =  +4.50 V, max =  +5.50 V)
++12V:      +0.00 V  (min = +10.81 V, max = +13.19 V)   ALARM
+VCC:       +3.30 V  (min =  +2.97 V, max =  +3.63 V)
+CPU Temp:  +34.0 C  (low  =   +10 C, high =   +60 C)
+M/B Temp:  +34.0 C  (low  =   +10 C, high =   +45 C)
+vid:      +1.500 V  (VRM Version 9.0)
+
+== tropmi =
+--- GoldED+/LNX 1.1.5/050823
+ * Origin: The Wizard is using MBSE/Linux (2:280/1018)
