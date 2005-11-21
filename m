@@ -1,520 +1,129 @@
-From: hs@denx.de (Heiko Schocher)
-Date: Mon, 21 Nov 2005 17:18:52 +0000
+From: alessandro.zummo@towertech.it (Alessandro Zummo)
+Date: Mon, 21 Nov 2005 20:44:07 +0000
 Subject: [lm-sensors] [PATCH]	I2C:	Added support for the PCF8563 chip.
-Message-Id: <AHEILKONAKAEJPHNMOPNEELMCDAA.hs@denx.de>
+Message-Id: <20051121204316.2ed7c25c@inspiron>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <AHEILKONAKAEJPHNMOPNEELMCDAA.hs@denx.de>
+In-Reply-To: <AHEILKONAKAEJPHNMOPNEELMCDAA.hs@denx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org
-Cc: lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hello,
+On Mon, 21 Nov 2005 17:00:56 +0100
+"Heiko Schocher" <hs@denx.de> wrote:
 
-the following Patch (against 2.6 kernel.org tree, COMMIT_ID:
-f093182d313edde9b1f86dbdaf40ba4da2dbd0e7) adds support for
-the PCF8563 RTC on the PM82X Boards from Microsys.
+> Hello,
+> 
+> the following Patch (against 2.6 kernel.org tree, COMMIT_ID:
+> f093182d313edde9b1f86dbdaf40ba4da2dbd0e7) adds support for
+> the PCF8563 RTC on the PM82X Boards from Microsys.
 
-Signed-off-by: Heiko Schocher <hs@denx.de>
+ Hi,
 
----
+   I was working on the same chip and wrote my own version
+ of the driver. In my case, the chip is used
+ on the Iomega NAS100D (ARM), but I've left out of the
+ core the glue code to interface it to the ARM rtc subsytem.
 
- drivers/i2c/chips/Kconfig   |    9 +
- drivers/i2c/chips/Makefile  |    1
- drivers/i2c/chips/pcf8563.c |  549 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c-id.h      |    1
- 4 files changed, 560 insertions(+), 0 deletions(-)
+ (we should really have a kernel-wide rtc subsys.. :( )
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index f9fae28..c470b0d 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -46,6 +46,15 @@ config SENSORS_PCF8574
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called pcf8574.
-
-+config SENSORS_PCF8563
-+	tristate "Philips PCF8563 RTC Chip"
-+	depends on I2C && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for Philips PCF8563 RTC chip.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called i2c-pcf8563.
-+
- config SENSORS_PCA9539
- 	tristate "Philips PCA9539 16-bit I/O port"
- 	depends on I2C && EXPERIMENTAL
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 46178b5..e37835a 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_SENSORS_MAX6875)	+= max6875
- obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
- obj-$(CONFIG_SENSORS_PCA9539)	+= pca9539.o
- obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574.o
-+obj-$(CONFIG_SENSORS_PCF8563)	+= pcf8563.o
- obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
- obj-$(CONFIG_SENSORS_RTC8564)	+= rtc8564.o
- obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
-diff --git a/drivers/i2c/chips/pcf8563.c b/drivers/i2c/chips/pcf8563.c
-new file mode 100644
-index 0000000..8c4018b
---- /dev/null
-+++ b/drivers/i2c/chips/pcf8563.c
-@@ -0,0 +1,549 @@
+ patch attached. if it prove useful to you we could maybe
+ join some efforts...
+ 
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-nas100d/drivers/i2c/chips/pcf8563.c	2005-11-21 18:06:00.000000000 +0100
+@@ -0,0 +1,466 @@
 +/*
-+ *  linux/drivers/i2c/chips/pcf8563.c
++ * pcf8563.c - An i2c driver for the Philips PCF8563 RTC
++ * Copyright 2005 Tower Technologies
 + *
-+ *  Copyright (C) 2002-2004 Stefan Eletzhofer
++ * Author: Alessandro Zummo <a.zummo@towertech.it>
++ * Maintainers: http://www.nslu2-linux.org/
 + *
-+ *	based on linux/drivers/acron/char/pcf8583.c
-+ *  Copyright (C) 2000 Russell King
++ * based on the other drivers in this same directory.
++ *
++ * http://www.semiconductors.philips.com/acrobat/datasheets/PCF8563-04.pdf
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Driver for system3's PHILIPS PCF 8563 chip
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
++
 +#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/i2c.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/rtc.h>		/* get the user-level API */
 +#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/string.h>
++#include <linux/bcd.h>
++#include <linux/rtc.h>
 +#include <linux/list.h>
-+#include <asm/time.h>
-+#include <asm/machdep.h>
 +
-+#include "rtc8564.h"
++#include <linux/pcf8563.h>
 +
-+#ifdef DEBUG
-+# define _DBG(x, fmt, args...) do{ if (debug>=x) printk(KERN_DEBUG"%s: " fmt "\n", __FUNCTION__, ##args); } while(0);
-+#else
-+# define _DBG(x, fmt, args...) do { } while(0);
-+#endif
++#define DRV_VERSION "0.3.3"
 +
-+#define _DBGRTCTM(x, rtctm) if (debug>x) printk("%s: secs=%d, mins=%d, hours=%d, mday=%d, " \
-+			"mon=%d, year=%d, wday=%d\n", __FUNCTION__, \
-+			(rtctm).tm_sec, (rtctm).tm_min, (rtctm).tm_hour, (rtctm).tm_mday, \
-+			(rtctm).tm_mon, (rtctm).tm_year, (rtctm).tm_wday);
++/* Addresses to scan */
++static unsigned short normal_i2c[] = { 0x51, I2C_CLIENT_END };
++
++/* Module parameters */
++I2C_CLIENT_INSMOD;
++I2C_CLIENT_MODULE_PARM(hctosys,
++	"Set the system time from the hardware clock upon initialization");
++
++#define PCF8563_REG_ST1		0x00 /* status */
++#define PCF8563_REG_ST2		0x01
++
++#define PCF8563_REG_SC		0x02 /* datetime */
++#define PCF8563_REG_MN		0x03
++#define PCF8563_REG_HR		0x04
++#define PCF8563_REG_DM		0x05
++#define PCF8563_REG_DW		0x06
++#define PCF8563_REG_MO		0x07
++#define PCF8563_REG_YR		0x08
++
++#define PCF8563_REG_AMN		0x09 /* alarm */
++#define PCF8563_REG_AHR		0x0A
++#define PCF8563_REG_ADM		0x0B
++#define PCF8563_REG_ADW		0x0C
++
++#define PCF8563_REG_CLKO	0x0D /* clock out */
++#define PCF8563_REG_TMRC	0x0E /* timer control */
++#define PCF8563_REG_TMR		0x0F /* timer */
++
++#define PCF8563_SC_LV		0x80 /* low voltage */
++#define PCF8563_MO_C		0x80 /* century */
++
++/* Prototypes */
++static int pcf8563_attach(struct i2c_adapter *adapter);
++static int pcf8563_detach(struct i2c_client *client);
++static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind);
++static int pcf8563_command(struct i2c_client *client, unsigned int cmd,
++	void *arg);
++
++static struct i2c_driver pcf8563_driver = {
++	.owner		= THIS_MODULE,
++	.name		= "pcf8563",
++	.flags		= I2C_DF_NOTIFY,
++	.attach_adapter = &pcf8563_attach,
++	.detach_client	= &pcf8563_detach,
++};
 +
 +struct pcf8563_data {
 +	struct i2c_client client;
 +	struct list_head list;
-+	u16 ctrl;
 +};
 +
-+/*
-+ * Internal variables
-+ */
++static const unsigned char days_in_mo[] +	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
++
 +static LIST_HEAD(pcf8563_clients);
 +
-+static 	struct i2c_client *myclient = NULL;
-+
-+static inline u8 _pcf8563_ctrl1(struct i2c_client *client)
-+{
-+	struct pcf8563_data *data = i2c_get_clientdata(client);
-+	return data->ctrl & 0xff;
-+}
-+static inline u8 _pcf8563_ctrl2(struct i2c_client *client)
-+{
-+	struct pcf8563_data *data = i2c_get_clientdata(client);
-+	return (data->ctrl & 0xff00) >> 8;
-+}
-+
-+#define CTRL1(c) _pcf8563_ctrl1(c)
-+#define CTRL2(c) _pcf8563_ctrl2(c)
-+
-+#define BCD_TO_BIN(val) (((val)&15) + ((val)>>4)*10)
-+#define BIN_TO_BCD(val) ((((val)/10)<<4) + (val)%10)
-+
-+static int debug = 0;
-+module_param(debug, int, S_IRUGO | S_IWUSR);
-+
-+static struct i2c_driver pcf8563_driver;
-+
-+static int pcf8563_read_mem(struct i2c_client *client, struct mem *mem);
-+static int pcf8563_write_mem(struct i2c_client *client, struct mem *mem);
-+static unsigned long	pcf8563_get_rtc_time(void);
-+static int		pcf8563_set_rtc_time(unsigned long now);
-+
-+/* save/restore old machdep pointers */
-+int		(*save_set_rtc_time)(unsigned long);
-+unsigned long	(*save_get_rtc_time)(void);
-+
-+static int pcf8563_read(struct i2c_client *client, unsigned char adr,
-+			unsigned char *buf, unsigned char len)
-+{
-+	int ret = -EIO;
-+	unsigned char addr[1] = { adr };
-+	struct i2c_msg msgs[2] = {
-+		{client->addr, 0, 1, addr},
-+		{client->addr, I2C_M_RD, len, buf}
-+	};
-+
-+	_DBG(1, "client=%p, adr=%d, buf=%p, len=%d", client, adr, buf, len);
-+
-+	if (!buf) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	ret = i2c_transfer(client->adapter, msgs, 2);
-+	if (ret = 2) {
-+		ret = 0;
-+	}
-+
-+done:
-+	return ret;
-+}
-+
-+static int pcf8563_write(struct i2c_client *client, unsigned char adr,
-+			 unsigned char *data, unsigned char len)
-+{
-+	int ret = 0;
-+	unsigned char _data[16];
-+	struct i2c_msg wr;
-+	int i;
-+
-+	if (!data || len > 15) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	_DBG(1, "client=%p, adr=%d, buf=%p, len=%d", client, adr, data, len);
-+
-+	_data[0] = adr;
-+	for (i = 0; i < len; i++) {
-+		_data[i + 1] = data[i];
-+		_DBG(5, "data[%d] = 0x%02x (%d)", i, data[i], data[i]);
-+	}
-+
-+	wr.addr = client->addr;
-+	wr.flags = 0;
-+	wr.len = len + 1;
-+	wr.buf = _data;
-+
-+	ret = i2c_transfer(client->adapter, &wr, 1);
-+	if (ret = 1) {
-+		ret = 0;
-+	}
-+
-+done:
-+	return ret;
-+}
-+
-+static void pcf8563_set_system_time (void)
-+{
-+	unsigned long now, flags;
-+	extern time_t last_rtc_update;
-+	extern seqlock_t xtime_lock;
-+
-+	/* Switching kernel RTC pointers */
-+	_DBG (2,"RTC switching kernel pointers\n");
-+
-+	save_set_rtc_time   = ppc_md.set_rtc_time;
-+	save_get_rtc_time   = ppc_md.get_rtc_time;
-+
-+	ppc_md.set_rtc_time = pcf8563_set_rtc_time;
-+	ppc_md.get_rtc_time = pcf8563_get_rtc_time;
-+
-+	/*
-+	 * Set system time
-+	 * Code copied from arch/ppc/kernel/time.c
-+	 */
-+	write_seqlock_irqsave(&xtime_lock, flags);
-+
-+	now = pcf8563_get_rtc_time();
-+	_DBG (2,"Set System Time from RTC Time: %lu\n", now);
-+	xtime.tv_nsec = 0;
-+	xtime.tv_sec  = now;
-+
-+	last_rtc_update = now - 658;
-+
-+	time_adjust   = 0;		/* stop active adjtime() */
-+	time_status  |= STA_UNSYNC;
-+	time_state    = TIME_ERROR;
-+	time_maxerror = NTP_PHASE_LIMIT;
-+	time_esterror = NTP_PHASE_LIMIT;
-+
-+	write_sequnlock_irqrestore(&xtime_lock, flags);
-+
-+#if 0
-+	/*
-+	 * Check for low voltage
-+	 */
-+	if (rtc_rd (0x02) & 0x80) {
-+		printk (KERN_CRIT
-+			"PCF8563 RTC Low Voltage - date/time not reliable\n");
-+	}
-+
-+	/*
-+	 * Reset any error conditions, alarms, etc.
-+	 */
-+	pcf8563_reset_rtc ();
-+#endif
-+}
-+
-+static int pcf8563_attach(struct i2c_adapter *adap, int addr, int kind)
-+{
-+	int ret;
-+	struct i2c_client *new_client;
-+	struct pcf8563_data *d;
-+	unsigned char data[10];
-+	unsigned char ad[1] = { 0 };
-+	struct i2c_msg ctrl_wr[1] = {
-+		{addr, 0, 2, data}
-+	};
-+	struct i2c_msg ctrl_rd[2] = {
-+		{addr, 0, 1, ad},
-+		{addr, I2C_M_RD, 2, data}
-+	};
-+
-+	d = kmalloc(sizeof(struct pcf8563_data), GFP_KERNEL);
-+	if (!d) {
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+	memset(d, 0, sizeof(struct pcf8563_data));
-+	INIT_LIST_HEAD(&d->list);
-+
-+	new_client = &d->client;
-+
-+	strlcpy(new_client->name, "RTC8563", I2C_NAME_SIZE);
-+	i2c_set_clientdata(new_client, d);
-+	new_client->flags = I2C_CLIENT_ALLOW_USE | I2C_DF_NOTIFY;
-+	new_client->addr = addr;
-+	new_client->adapter = adap;
-+	new_client->driver = &pcf8563_driver;
-+
-+	_DBG(1, "client=%p", new_client);
-+
-+	/* init ctrl1 reg */
-+	data[0] = 0;
-+	data[1] = 0;
-+	ret = i2c_transfer(new_client->adapter, ctrl_wr, 1);
-+	if (ret != 1) {
-+		printk(KERN_INFO "pcf8563: cant init ctrl1\n");
-+		ret = -ENODEV;
-+		goto done;
-+	}
-+	/* read back ctrl1 and ctrl2 */
-+	ret = i2c_transfer(new_client->adapter, ctrl_rd, 2);
-+	if (ret != 2) {
-+		printk(KERN_INFO "pcf8563: cant read ctrl\n");
-+		ret = -ENODEV;
-+		goto done;
-+	}
-+	d->ctrl = data[0] | (data[1] << 8);
-+
-+	_DBG(1, "RTC8564_REG_CTRL1=%02x, RTC8564_REG_CTRL2=%02x",
-+	     data[0], data[1]);
-+
-+	ret = i2c_attach_client(new_client);
-+
-+	/* Add client to local list */
-+	list_add(&d->list, &pcf8563_clients);
-+
-+done:
-+	if (ret) {
-+		kfree(d);
-+	} else {
-+		myclient = new_client;
-+		pcf8563_set_system_time();
-+	}
-+	return ret;
-+}
-+
-+static int pcf8563_probe(struct i2c_adapter *adap)
-+{
-+	/*
-+	 * Probing seems to confuse the RTC on PM826 and CPU86 and UC100.
-+	 * Not sure if it's true for other boards though - thus the
-+	 * conditional.
-+	 */
-+#if defined(CONFIG_PM82X)
-+	pcf8563_attach(adap, 0x51, 0);
-+	return 0;
-+#else
-+	return i2c_probe(adap, &addr_data, pcf8563_attach);
-+#endif
-+}
-+
-+static int pcf8563_detach(struct i2c_client *client)
-+{
-+	struct pcf8563_data *data = i2c_get_clientdata(client);
-+
-+	i2c_detach_client(client);
-+	kfree(i2c_get_clientdata(client));
-+	list_del(&data->list);
-+	return 0;
-+}
-+
-+static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *dt)
-+{
-+	int ret = -EIO;
-+	unsigned char buf[15];
-+
-+	_DBG(1, "client=%p, dt=%p", client, dt);
-+
-+	if (!dt)
-+		return -EINVAL;
-+
-+	memset(buf, 0, sizeof(buf));
-+
-+	ret = pcf8563_read(client, 0, buf, 15);
-+	if (ret)
-+		return ret;
-+
-+	dt->tm_year = 1900 + BCD_TO_BIN(buf[RTC8564_REG_YEAR]);
-+	if (buf[RTC8564_REG_MON_CENT] & 0x80)
-+		dt->tm_year += 100;
-+	dt->tm_mday = BCD_TO_BIN(buf[RTC8564_REG_DAY] & 0x3f);
-+	dt->tm_wday = BCD_TO_BIN(buf[RTC8564_REG_WDAY] & 7);
-+	dt->tm_mon = BCD_TO_BIN(buf[RTC8564_REG_MON_CENT] & 0x1f);
-+
-+	dt->tm_sec = BCD_TO_BIN(buf[RTC8564_REG_SEC] & 0x7f);
-+/*	dt->vl = (buf[RTC8564_REG_SEC] & 0x80) = 0x80; */
-+	dt->tm_min = BCD_TO_BIN(buf[RTC8564_REG_MIN] & 0x7f);
-+	dt->tm_hour = BCD_TO_BIN(buf[RTC8564_REG_HR] & 0x3f);
-+
-+	_DBGRTCTM(2, *dt);
-+	return 0;
-+}
-+
-+static int
-+pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *dt, int datetoo)
-+{
-+	int ret, len = 5;
-+	unsigned char buf[15];
-+	unsigned char val;
-+
-+	_DBG(1, "client=%p, dt=%p", client, dt);
-+
-+	if (!dt)
-+		return -EINVAL;
-+
-+	_DBGRTCTM(2, *dt);
-+
-+	buf[RTC8564_REG_CTRL1] = CTRL1(client) | RTC8564_CTRL1_STOP;
-+	buf[RTC8564_REG_CTRL2] = CTRL2(client);
-+	buf[RTC8564_REG_SEC] = BIN_TO_BCD(dt->tm_sec);
-+	buf[RTC8564_REG_MIN] = BIN_TO_BCD(dt->tm_min);
-+	buf[RTC8564_REG_HR] = BIN_TO_BCD(dt->tm_hour);
-+
-+	if (datetoo) {
-+		len += 5;
-+		buf[RTC8564_REG_DAY] = BIN_TO_BCD(dt->tm_mday);
-+		buf[RTC8564_REG_WDAY] = BIN_TO_BCD(dt->tm_wday);
-+		buf[RTC8564_REG_MON_CENT] = BIN_TO_BCD(dt->tm_mon) & 0x1f;
-+		if (dt->tm_year >= 2000) {
-+			val = dt->tm_year - 2000;
-+			buf[RTC8564_REG_MON_CENT] |= (1 << 7);
-+		} else {
-+			val = dt->tm_year - 1900;
-+		}
-+		buf[RTC8564_REG_YEAR] = BIN_TO_BCD(val);
-+	}
-+
-+	ret = pcf8563_write(client, 0, buf, len);
-+	if (ret) {
-+		_DBG(1, "error writing data! %d", ret);
-+	}
-+
-+	buf[RTC8564_REG_CTRL1] = CTRL1(client);
-+	ret = pcf8563_write(client, 0, buf, 1);
-+	if (ret) {
-+		_DBG(1, "error writing data! %d", ret);
-+	}
-+
-+	return ret;
-+}
-+
-+static int pcf8563_get_ctrl(struct i2c_client *client, unsigned int *ctrl)
-+{
-+	struct pcf8563_data *data = i2c_get_clientdata(client);
-+
-+	if (!ctrl)
-+		return -1;
-+
-+	*ctrl = data->ctrl;
-+	return 0;
-+}
-+
-+static int pcf8563_set_ctrl(struct i2c_client *client, unsigned int *ctrl)
-+{
-+	struct pcf8563_data *data = i2c_get_clientdata(client);
-+	unsigned char buf[2];
-+
-+	if (!ctrl)
-+		return -1;
-+
-+	buf[0] = *ctrl & 0xff;
-+	buf[1] = (*ctrl & 0xff00) >> 8;
-+	data->ctrl = *ctrl;
-+
-+	return pcf8563_write(client, 0, buf, 2);
-+}
-+
-+static int pcf8563_read_mem(struct i2c_client *client, struct mem *mem)
-+{
-+
-+	if (!mem)
-+		return -EINVAL;
-+
-+	return pcf8563_read(client, mem->loc, mem->data, mem->nr);
-+}
-+
-+static int pcf8563_write_mem(struct i2c_client *client, struct mem *mem)
-+{
-+
-+	if (!mem)
-+		return -EINVAL;
-+
-+	return pcf8563_write(client, mem->loc, mem->data, mem->nr);
-+}
-+
-+static int
-+pcf8563_command(struct i2c_client *client, unsigned int cmd, void *arg)
-+{
-+
-+	_DBG(1, "cmd=%d", cmd);
-+
-+	switch (cmd) {
-+	case RTC_GETDATETIME:
-+		return pcf8563_get_datetime(client, arg);
-+
-+	case RTC_SETTIME:
-+		return pcf8563_set_datetime(client, arg, 0);
-+
-+	case RTC_SETDATETIME:
-+		return pcf8563_set_datetime(client, arg, 1);
-+
-+	case RTC_GETCTRL:
-+		return pcf8563_get_ctrl(client, arg);
-+
-+	case RTC_SETCTRL:
-+		return pcf8563_set_ctrl(client, arg);
-+
-+	case MEM_READ:
-+		return pcf8563_read_mem(client, arg);
-+
-+	case MEM_WRITE:
-+		return pcf8563_write_mem(client, arg);
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+/*
-+ * Public API for access to specific device. Useful for low-level
-+ * RTC access from kernel code.
++/* Workaround until the I2C subsytem will allow to send
++ * commands to a specific client. This function will send the command
++ * to the first client.
 + */
-+int pcf8563_do_command(int bus, int cmd, void *arg)
++int pcf8563_do_command(unsigned int cmd, void *arg)
 +{
 +	struct list_head *walk;
 +	struct list_head *tmp;
@@ -522,112 +131,437 @@ index 0000000..8c4018b
 +
 +	list_for_each_safe(walk, tmp, &pcf8563_clients) {
 +		data = list_entry(walk, struct pcf8563_data, list);
-+		if (data->client.adapter->nr = bus) {
-+			return pcf8563_command(&data->client, cmd, arg);
-+		}
++		return pcf8563_command(&data->client, cmd, arg);
 +	}
 +
 +	return -ENODEV;
 +}
 +
-+extern spinlock_t rtc_lock;
-+/***************************************************************************
-+ *
-+ * get RTC time:
-+ */
-+static unsigned long pcf8563_get_rtc_time(void)
++#define is_leap(year) \
++	((year) % 4 = 0 && ((year) % 100 != 0 || (year) % 400 = 0))
++
++/* make sure the rtc_time values are in bounds */
++
++static int pcf8563_validate_tm(struct rtc_time *tm)
 +{
-+	struct rtc_time tm;
-+	int result;
++	int year = tm->tm_year + 1900;
 +
-+	spin_lock(&rtc_lock);
-+	result = pcf8563_do_command(0, RTC_GETDATETIME, &tm);
-+	spin_unlock(&rtc_lock);
++	if ((tm->tm_year < 70) || (tm->tm_year > 255))
++		return -EINVAL;
 +
-+	if (result = 0)
-+		result = mktime(tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
++	if ((tm->tm_mon > 11) || (tm->tm_mday = 0))
++		return -EINVAL;
 +
-+	return result;
++	if (tm->tm_mday > days_in_mo[tm->tm_mon]
++		+ ((tm->tm_mon = 1) && is_leap(year)))
++		return -EINVAL;
++
++	if ((tm->tm_hour >= 24) || (tm->tm_min >= 60) || (tm->tm_sec >= 60))
++		return -EINVAL;
++
++	return 0;
 +}
 +
-+/***************************************************************************
-+ *
-+ * set RTC time:
++/*
++ * In the routines that deal directly with the pcf8563 hardware, we use
++ * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
 + */
-+static int pcf8563_set_rtc_time(unsigned long now)
++static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
 +{
-+	struct rtc_time tm;
-+	unsigned char century, year, mon, wday, mday, hour, min, sec;
++	unsigned char buf[13];
++	unsigned char addr = PCF8563_REG_ST1;
 +
-+	to_tm (now, &tm);
++	struct i2c_msg msgs[] = {
++		{ client->addr, 0, 1, &addr },	/* setup read ptr */
++		{ client->addr, I2C_M_RD, 13, buf },	/* read status + date */
++	};
 +
-+	_DBG (2, "Set RTC [dec] year=%d mon=%d day=%d hour=%d min=%d sec=%d\n",
-+		tm.tm_year, tm.tm_mon, tm.tm_mday,
-+		tm.tm_hour, tm.tm_min, tm.tm_sec);
++	/* read registers */
++	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
++		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		return -EIO;
++	}
 +
-+	century = (tm.tm_year >= 2000) ? 0x80 : 0;
-+	year = BIN_TO_BCD (tm.tm_year % 100);
-+	mon  = BIN_TO_BCD (tm.tm_mon) | century;
-+	wday = BIN_TO_BCD (tm.tm_wday);
-+	mday = BIN_TO_BCD (tm.tm_mday);
-+	hour = BIN_TO_BCD (tm.tm_hour);
-+	min  = BIN_TO_BCD (tm.tm_min);
-+	sec  = BIN_TO_BCD (tm.tm_sec);
++	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV)
++		dev_info(&client->dev,
++			"low voltage detected, date/time is not reliable.\n");
 +
-+	_DBG (2, "Set RTC [bcd] year=%X mon=%X day=%X "
-+		"hour=%X min=%X sec=%X wday=%X\n",
-+		year, mon, mday, hour, min, sec, wday);
++	dev_dbg(&client->dev,
++		"%s: raw data is st1=%02x, st2=%02x, sec=%02x, min=%02x, hr=%02x, "
++		"mday=%02x, wday=%02x, mon=%02x, year=%02x\n",
++		__FUNCTION__,
++		buf[0], buf[1], buf[2], buf[3],
++		buf[4], buf[5], buf[6], buf[7],
++		buf[8]);
 +
-+	pcf8563_set_datetime(myclient, &tm, 1);
 +
-+	return (0);
++	tm->tm_sec = BCD2BIN(buf[PCF8563_REG_SC] & 0x7F);
++	tm->tm_min = BCD2BIN(buf[PCF8563_REG_MN] & 0x7F);
++	tm->tm_hour = BCD2BIN(buf[PCF8563_REG_HR] & 0x3F); /* rtc hr 0-23 */
++	tm->tm_mday = BCD2BIN(buf[PCF8563_REG_DM] & 0x3F);
++	tm->tm_wday = buf[PCF8563_REG_DW] & 0x07;
++	tm->tm_mon = BCD2BIN(buf[PCF8563_REG_MO] & 0x1F) - 1; /* rtc mn 1-12 */
++	tm->tm_year = BCD2BIN(buf[PCF8563_REG_YR])
++		+ (buf[PCF8563_REG_MO] & PCF8563_MO_C ? 100 : 0);
++
++	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
++		"mday=%d, mon=%d, year=%d, wday=%d\n",
++		__FUNCTION__,
++		tm->tm_sec, tm->tm_min, tm->tm_hour,
++		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	if (pcf8563_validate_tm(tm) < 0) {
++		dev_err(&client->dev, "retrieved date/time is not valid.\n");
++		return -EINVAL;
++	}
++
++	return 0;
 +}
 +
-+static struct i2c_driver pcf8563_driver = {
-+	.owner		= THIS_MODULE,
-+	.name		= "PCF8563",
-+	.id		= I2C_DRIVERID_RTC8564,
-+	.flags		= I2C_DF_NOTIFY,
-+	.attach_adapter = pcf8563_probe,
-+	.detach_client	= pcf8563_detach,
-+	.command	= pcf8563_command
++static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm,
++				int datetoo)
++{
++	int i, err;
++	unsigned char buf[9];
++
++	/* check if all values in the tm struct are correct */
++	if ((err = pcf8563_validate_tm(tm)) < 0)
++		return err;
++
++	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
++		"mday=%d, mon=%d, year=%d, wday=%d\n",
++		__FUNCTION__,
++		tm->tm_sec, tm->tm_min, tm->tm_hour,
++		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	/* hours, minutes and seconds */
++	buf[PCF8563_REG_SC] = BIN2BCD(tm->tm_sec);
++	buf[PCF8563_REG_MN] = BIN2BCD(tm->tm_min);
++	buf[PCF8563_REG_HR] = BIN2BCD(tm->tm_hour);
++
++	/* should we also set the date? */
++	if (datetoo) {
++		buf[PCF8563_REG_DM] = BIN2BCD(tm->tm_mday);
++
++		/* month, 1 - 12 */
++		buf[PCF8563_REG_MO] = BIN2BCD(tm->tm_mon + 1);
++
++		/* year and century */
++		buf[PCF8563_REG_YR] = BIN2BCD(tm->tm_year % 100);
++		if (tm->tm_year / 100)
++			buf[PCF8563_REG_MO] |= PCF8563_MO_C;
++
++		buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
++	}
++
++	/* write register's data */
++	for (i = 0; i < (datetoo ? 7 : 3); i++) {
++		unsigned char data[2] = { PCF8563_REG_SC + i,
++						buf[PCF8563_REG_SC + i] };
++
++		err = i2c_master_send(client, data, sizeof(data));
++		if (err != sizeof(data)) {
++			dev_err(&client->dev,
++				"%s: err=%d addr=%02x, data=%02x\n",
++				__FUNCTION__, err, data[0], data[1]);
++			return -EIO;
++		}
++	};
++
++	return 0;
++}
++
++static int pcf8563_hctosys(struct i2c_client *client)
++{
++	int err;
++
++	struct rtc_time tm;
++	struct timespec tv;
++
++	err = pcf8563_command(client, PCF8563_CMD_GETDATETIME, &tm);
++
++	if (err) {
++		dev_err(&client->dev,
++			"Unable to set the system clock\n");
++		return err;
++	}
++
++	/* IMPORTANT: the RTC only stores whole seconds. It is arbitrary
++	 * whether it stores the most close value or the value with partial
++	 * seconds truncated. However, it is important that we use it to store
++	 * the truncated value. This is because otherwise it is necessary,
++	 * in an rtc sync function, to read both xtime.tv_sec and
++	 * xtime.tv_nsec. On some processors (i.e. ARM), an atomic read
++	 * of >32bits is not possible. So storing the most close value would
++	 * slow down the sync API. So here we have the truncated value and
++	 * the best guess is to add 0.5s.
++	 */
++
++	tv.tv_nsec = NSEC_PER_SEC >> 1;
++
++	/* WARNING: this is not the C library 'mktime' call, it is a built in
++	 * inline function from include/linux/time.h.  It expects (requires)
++	 * the month to be in the range 1-12
++	 */
++
++	tv.tv_sec  = mktime(tm.tm_year + 1900, tm.tm_mon + 1,
++				tm.tm_mday, tm.tm_hour,
++				tm.tm_min, tm.tm_sec);
++
++	do_settimeofday(&tv);
++
++	dev_info(&client->dev,
++		"setting the system clock to %d-%d-%d %d:%d:%d\n",
++		tm.tm_year + 1900, tm.tm_mon + 1,
++		tm.tm_mday, tm.tm_hour, tm.tm_min,
++		tm.tm_sec);
++
++	return 0;
++}
++
++struct pcf8563_limit
++{
++	unsigned char reg;
++	unsigned char mask;
++	unsigned char min;
++	unsigned char max;
 +};
 +
-+static __init int pcf8563_init(void)
++static int pcf8563_validate_client(struct i2c_client *client)
++{
++	int i, xfer;
++
++	static const struct pcf8563_limit probe_limits_pattern[] = {
++		/* register, mask, min, max */
++		{ PCF8563_REG_SC,	0x7F,	0,	59	},
++		{ PCF8563_REG_MN,	0x7F,	0,	59	},
++		{ PCF8563_REG_HR,	0x3F,	0,	23	},
++		{ PCF8563_REG_DM,	0x3F,	1,	31	},
++		{ PCF8563_REG_MO,	0x1F,	1,	12	},
++		{ PCF8563_REG_YR,	0xFF,	0,	99	},
++	};
++
++	/* check limits (only registers with bcd values) */
++	for (i = 0; i < ARRAY_SIZE(probe_limits_pattern); i++) {
++		unsigned char addr, buf, value;
++
++		addr = probe_limits_pattern[i].reg;
++
++		struct i2c_msg msgs[2] = {
++			{ client->addr, 0, 2, &addr },
++			{ client->addr, I2C_M_RD, 1, &buf },
++		};
++
++		xfer = i2c_transfer(client->adapter, msgs, 2);
++
++		if (xfer != 2) {
++			dev_err(&client->adapter->dev,
++				"%s: could not read register %x\n",
++				__FUNCTION__, probe_limits_pattern[i].reg);
++
++			return -EIO;
++		}
++
++		value = BCD2BIN(buf & probe_limits_pattern[i].mask);
++
++		if (value > probe_limits_pattern[i].max ||
++			value < probe_limits_pattern[i].min) {
++			dev_dbg(&client->adapter->dev,
++				"%s: register=%x, lim pattern=%d, value=%d\n",
++				__FUNCTION__, probe_limits_pattern[i].reg, i, value);
++
++			return -ENODEV;
++		}
++	}
++
++	return 0;
++}
++
++static int pcf8563_attach(struct i2c_adapter *adapter)
++{
++	return i2c_probe(adapter, &addr_data, pcf8563_probe);
++}
++
++static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind)
++{
++	struct i2c_client *client;
++	struct pcf8563_data *data;
++
++	int err = 0;
++
++	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
++		err = -ENODEV;
++		goto exit;
++	}
++
++	if (!(data = kzalloc(sizeof(struct pcf8563_data), GFP_KERNEL))) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	client = &data->client;
++	client->addr = address;
++	client->driver = &pcf8563_driver;
++	client->adapter	= adapter;
++
++	strlcpy(client->name, pcf8563_driver.name, I2C_NAME_SIZE);
++
++	i2c_set_clientdata(client, data);
++
++	/* Verify the chip is really an PCF8563 */
++	if (kind < 0) {
++		if (pcf8563_validate_client(client) < 0) {
++			err = -ENODEV;
++			goto exit_kfree;
++		}
++	}
++
++	/* Inform the i2c layer */
++	if ((err = i2c_attach_client(client)))
++		goto exit_kfree;
++
++	list_add(&data->list, &pcf8563_clients);
++
++	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
++
++	/* If requested, set the system time */
++	if (hctosys)
++		pcf8563_hctosys(client);
++
++	return 0;
++
++exit_kfree:
++	kfree(data);
++
++exit:
++	return err;
++}
++
++static int pcf8563_detach(struct i2c_client *client)
++{
++	int err;
++	struct pcf8563_data *data = i2c_get_clientdata(client);
++
++	if ((err = i2c_detach_client(client)))
++		return err;
++
++	list_del(&data->list);
++
++	kfree(data);
++
++	return 0;
++}
++
++static int pcf8563_command(struct i2c_client *client, unsigned int cmd,
++	void *param)
++{
++	if (param = NULL)
++		return -EINVAL;
++
++	if (!capable(CAP_SYS_TIME))
++		return -EACCES;
++
++	dev_dbg(&client->dev, "%s: cmd=%d\n", __FUNCTION__, cmd);
++
++	switch (cmd) {
++	case PCF8563_CMD_GETDATETIME:
++		return pcf8563_get_datetime(client, param);
++
++	case PCF8563_CMD_SETTIME:
++		return pcf8563_set_datetime(client, param, 0);
++
++	case PCF8563_CMD_SETDATETIME:
++		return pcf8563_set_datetime(client, param, 1);
++
++	default:
++		return -EINVAL;
++	}
++}
++
++static int __init pcf8563_init(void)
 +{
 +	return i2c_add_driver(&pcf8563_driver);
 +}
 +
-+static __exit void pcf8563_exit(void)
++static void __exit pcf8563_exit(void)
 +{
-+	ppc_md.set_rtc_time = save_set_rtc_time;
-+	ppc_md.get_rtc_time = save_get_rtc_time;
-+
 +	i2c_del_driver(&pcf8563_driver);
 +}
 +
-+MODULE_AUTHOR("Stefan Eletzhofer <Stefan.Eletzhofer@eletztrick.de>");
-+MODULE_DESCRIPTION("EPSON RTC8563 Driver");
++MODULE_AUTHOR("Alessandro Zummo <a.zummo@towertech.it>");
++MODULE_DESCRIPTION("Philips PCF8563 RTC driver");
 +MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++EXPORT_SYMBOL_GPL(pcf8563_do_command);
 +
 +module_init(pcf8563_init);
 +module_exit(pcf8563_exit);
-diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
-index 1ce4b54..b16c548 100644
---- a/include/linux/i2c-id.h
-+++ b/include/linux/i2c-id.h
-@@ -99,6 +99,7 @@
- #define I2C_DRIVERID_MAX6900	63	/* MAX6900 real-time clock	*/
- #define I2C_DRIVERID_SAA7114H	64	/* video decoder		*/
- #define I2C_DRIVERID_DS1374	65	/* DS1374 real time clock	*/
-+#define I2C_DRIVERID_PCF8563	66	/* real time clock		*/
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-nas100d/include/linux/pcf8563.h	2005-11-21 18:05:03.000000000 +0100
+@@ -0,0 +1,27 @@
++/*
++ * pcf8563.h - defines for drivers/i2c/chips/pcf8563.c
++ * Copyright 2005 Tower Technologies
++ *
++ * Author: Alessandro Zummo <a.zummo@towertech.it>
++ * Maintainers: http://www.nslu2-linux.org/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef __LINUX_PCF8563_H__
++#define __LINUX_PCF8563_H__
++
++/* commands */
++
++#define PCF8563_CMD_GETDATETIME	0
++#define PCF8563_CMD_SETTIME	1
++#define PCF8563_CMD_SETDATETIME	2
++#define PCF8563_CMD_GETALARM	3
++#define PCF8563_CMD_SETALARM	4
++
++extern int pcf8563_do_command(unsigned int cmd, void *arg);
++
++#endif /* __LINUX_PCF8563_H__ */
+--- linux-nas100d.orig/drivers/i2c/chips/Kconfig	2005-11-16 23:09:48.000000000 +0100
++++ linux-nas100d/drivers/i2c/chips/Kconfig	2005-11-16 23:10:02.000000000 +0100
+@@ -135,4 +135,13 @@ config RTC_X1205_I2C
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called x1205.
+ 
++config RTC_PCF8563_I2C
++	tristate "Philips PCF8563 RTC"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the Philips PCF8563
++	  Real Time Clock chip. This chip is used by the Iomega NAS100D.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called pcf8563.
+ endmenu
+--- linux-nas100d.orig/drivers/i2c/chips/Makefile	2005-11-16 23:09:48.000000000 +0100
++++ linux-nas100d/drivers/i2c/chips/Makefile	2005-11-16 23:10:02.000000000 +0100
+@@ -14,6 +14,7 @@ obj-$(CONFIG_SENSORS_RTC8564)	+= rtc8564
+ obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
+ obj-$(CONFIG_TPS65010)		+= tps65010.o
+ obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
++obj-$(CONFIG_RTC_PCF8563_I2C)	+= pcf8563.o
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
+ EXTRA_CFLAGS += -DDEBUG
 
+-- 
 
- #define I2C_DRIVERID_EXP0	0xF0	/* experimental use id's	*/
+ Best regards,
 
+ Alessandro Zummo,
+  Tower Technologies - Turin, Italy
 
-
-!-------------------------------------------------------------flip-
-
-
+  http://www.towertech.it
 
