@@ -1,42 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 20 Nov 2005 23:26:42 +0000
-Subject: [lm-sensors] VT8231 patch for review
-Message-Id: <20051120232719.0a7a9102.khali@linux-fr.org>
+From: socialhacker@socialhacker.com (anton)
+Date: Mon, 21 Nov 2005 09:38:50 +0000
+Subject: [lm-sensors] it87.c fan_div patch
+Message-Id: <Pine.LNX.4.21.0511210218160.2818-200000@sterling.propagation.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051116150825.2410D12E9E@bluewhale.planbit.co.uk>
-In-Reply-To: <20051116150825.2410D12E9E@bluewhale.planbit.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Roger,
 
-> Please can you send me a copy of the changed file that you have, then we are
-> in sync.
+	Hi, I just got lm_sensors (v2.9.2) up and running on my Shuttle
+(SN41G) and am loving it.  In setting things up I found what I think is a
+bug in the it87_fan_div setting code.  I've included a patch vs. TOT
+CVS.  What was happening was that the check to make sure the third fan's
+divisor was either 2 or 8 was using the wrong member of the it87 data
+structure.  This was causing the if to always fail and thus always force
+the divisor to 2.
 
-See my other post on the list. The patch is here:
-http://khali.linux-fr.org/devel/i2c/linux-2.6/hwmon-vt8231-new-driver.patch
+	Let me know what you think.
 
-I'll updated it in-place if needed, until it gets merged.
-
-> I am happy to take a look at the latest 2.9.2 sensors library and user space
-> utility to bring it in line with the current numbering scheme - these should
-> be minor changes.  I don't have a 2.4-based system here, however, so it
-> won't be easy for me to update the 2.4 version of the VT8231 kernel module
-> unless I reinstall a system here, which I am not really too keen to do.  Is
-> there anyone who is responsible for the 2.4 version of the module who can
-> take on that work?
-
-That would be Mark D. Studebaker, but as you can see it doesn't look
-like he will help us, at least not now.
-
-Anyway, I've done all the necessary changes in lm_sensors CVS already.
-Please confirm that it works for you at least. I've taken my chance
-with the 2.4 driver as well, but I have no chip so I definitely cannot
-test anything myself. I hope my call for testers, both on our site and
-on the list, will have some effect.
-
-Thanks,
--- 
-Jean Delvare
+	Thanks again,
+		Anton V. Staaf (http://www.socialhacker.com/)
+-------------- next part --------------
+? fan_div.anton.11.21.2005.patch
+Index: kernel/chips/it87.c
+=================================RCS file: /home/cvs/lm_sensors2/kernel/chips/it87.c,v
+retrieving revision 1.37
+diff -u -p -r1.37 it87.c
+--- kernel/chips/it87.c	30 Oct 2005 11:52:13 -0000	1.37
++++ kernel/chips/it87.c	21 Nov 2005 08:41:06 -0000
+@@ -1019,7 +1019,7 @@ void it87_fan_div(struct i2c_client *cli
+ 		old = it87_read_value(client, IT87_REG_FAN_DIV);
+ 		if (*nrels_mag >= 3) {
+ 			data->fan_div[2] = DIV_TO_REG(results[2]);
+-			if( data->fan[2]!=3 ) {
++			if( data->fan_div[2]!=3 ) {
+ 				data->fan_div[2] = 1;
+ 				old = (old & 0xbf);
+ 			} else {
