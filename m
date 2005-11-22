@@ -1,56 +1,32 @@
-From: reuben-lmsensors@reub.net (Reuben Farrelly)
-Date: Sat, 26 Nov 2005 14:11:36 +0000
-Subject: [lm-sensors] Analogue Devices ADT7476ARQZ chip status
-Message-Id: <43885EEC.5000509@reub.net>
+From: iksas@bustas.lt (Arturas)
+Date: Tue, 22 Nov 2005 18:13:50 +0000
+Subject: [lm-sensors] Reading LM96000 on an Intel SE7221BK1 server board
+Message-Id: <438351AA.1050002@bustas.lt>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4387E587.20302@reub.net>
-In-Reply-To: <4387E587.20302@reub.net>
+References: <20050622212816.GD7554@levanta.com>
+In-Reply-To: <20050622212816.GD7554@levanta.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hello Richard,
 
-On 11/27/2005 12:59 AM, Jean Delvare wrote:
-> Hi Reuben,
-> 
->>> Please provide a dump of the Analog Devices chip:
->>> i2cdump 0 0x2e b
->> [root@typhoon ~]# i2cdump 0 0x2e b
->> (...)
->>       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
->> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
->> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
->> 20: 77 6c c3 c5 be 36 29 27 62 0c 57 0d 46 36 ff ff    wl???6)'b?W?F6..
->> 30: 33 4c 4c 00 00 00 00 00 ff ff ff 00 00 76 41 69    3LL..........vAi
-> 
-> This matches what the ADT7476 datasheet says. I've added support in
-> sensors-detect (in CVS). Please test if possible.
+I have found Your messages in the list have simmilar hardware and same
+problems:
 
-sensors-detect in CVS works great:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2005-June/012847.html
 
-Probing for `SMSC EMC6D100, EMC6D101 or EMC6D102'... Failed!
-Probing for `Analog Devices ADT7467 or ADT7468'... Failed!
-Probing for `Analog Devices ADT7476'... Success!
-     (confidence 7, driver `to-be-written')
-Probing for `National Semiconductor LM87'... Failed!
+I want to read IPMI sensors data and no success :(
 
-and of course finishes up with:
+Could you describe witch patches have applied to kernel, to get sensor
+data? As I understod Intel provides ISM with closed drivers (IPMI also)
+only for RedHat and Suse. I have Debian...
+Maybe You have found intresting links about that.
+My MB is Intel E7221BK, not sure about PC87431M (maybe PC87427), but
+LM96000 is mentioned.
 
-#----cut here----
-# I2C adapter drivers
-modprobe i2c-i801
-# I2C chip drivers
-# no driver for Analog Devices ADT7476 yet
-modprobe eeprom
-# sleep 2 # optional
-/usr/local/bin/sensors -s # recommended
-#----cut here----
+Thank You and sorry for my english.
 
-This is good.  At least from an end user perspective now it looks like it is 
-known to the system even if a driver hasn't yet been written.
+Arturas Gudas
 
-Thank for the quick response :)
-
-Reuben
