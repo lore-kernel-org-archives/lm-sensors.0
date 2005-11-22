@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 21 Nov 2005 18:08:15 +0000
+From: johannes.beekhuizen@duinheks.xs4all.nl (johannes.beekhuizen@duinheks.xs4all.nl)
+Date: Tue, 22 Nov 2005 16:31:12 +0000
 Subject: [lm-sensors] ALARM messages - why ?
-Message-Id: <hnrias85.1132592064.0822590.khali@localhost>
+Message-Id: <20051122153035.53FE33543@duinheks.xs4all.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051121154527.6F4D34BEC5@duinheks.xs4all.nl>
 In-Reply-To: <20051121154527.6F4D34BEC5@duinheks.xs4all.nl>
@@ -10,68 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hallo Jean,
 
-Hallo Johannes,
+Op 21 Nov 05 schreef Jean Delvare aan johannes.beekhuizen@duinheks.xs4all:
 
-On 2005-11-21, Johannes Beekhuizen wrote:
-> I just installed lm_sensors 2.9.2 on my system. Motherboard
-> Intel D845EBG2, kernel 2.6.13.4. When I run sensors, I see
-> two alarms which I don't understand. Does somebody know why
-> I get them and how I should interpret them?
-> (...)
-> adm1025-i2c-0-2d
-> Adapter: SMBus I801 adapter at e000
-> +2.5V:     +1.51 V  (min =  +2.25 V, max =  +2.75 V)   ALARM
+ >> adm1025-i2c-0-2d
+ >> Adapter: SMBus I801 adapter at e000
+ >> +2.5V:     +1.51 V  (min =  +2.25 V, max =  +2.75 V)   ALARM
+ JD> This first one is quite easy to understand. The alarm is caused by the
+ JD> measurement being off-limits. If this line is actually supposed to be at
+ JD> +2.5V, yours is way too low and you should expect problems.
 
-This first one is quite easy to understand. The alarm is caused by the
-measurement being off-limits. If this line is actually supposed to be at
-+2.5V, yours is way too low and you should expect problems.
+I obviously did not express myself clearly. What I wanted to ask is:
+why do I get alarms; there seems to be nothing wrong with the hardware.
+That the alarms appeared because the values were out of limits I
+understood :)
 
-However, it is also possible that Intel decided to monitor something
-else. The most probable candidate there is AGP, those nominal voltage is
-1.5V. You could check in the BIOS setup screen (if there is a hardware
-monitoring item there) or technical documentation.
+ JD> However, it is also possible that Intel decided to monitor something
+ JD> else. The most probable candidate there is AGP, those nominal voltage is
+ JD> 1.5V. You could check in the BIOS setup screen (if there is a hardware
+ JD> monitoring item there) or technical documentation.
 
-If I am right, the way to correct this would be to edit
-/etc/sensors.conf. Search for the adm1025-* section, and replace:
+Unfortunately there is no screen for hardware monitoring configuration
+in the BIOS setup. Until I find tecnical documemtation for my ,mother
+board I just assume the you guessed correctly. At least the value is
+within limits after the changes you suggested.
 
-    label in0 "+2.5V"
+ JD> If I am right, the way to correct this would be to edit
+ JD> /etc/sensors.conf. Search for the adm1025-* section, and replace:
+ JD>     set in0_min 1.5 * 0.92
+ JD>     set in0_max 1.5 * 1.08
 
-with:
+Why the 8% margin?
 
-    label in0 "Vagp"
+ >> +12V:      +0.00 V  (min = +10.81 V, max = +13.19 V)   ALARM
+ JD> This one is more tricky.
+   >cut<
+ JD> the fact that your CPU uses VRM 9.0, which uses 5-bit VID values, makes
+ JD> me guess that your chip has the shared pin wired to VID4, not +12V.
 
-and:
+Thank you for explaining this in such a way that even I could
+understand it!
 
-    set in0_min 2.5 * 0.90
-    set in0_max 2.5 * 1.10
+ JD> try to reconfigure the chip by using the following command: "i2cset 0
+ JD> 0x2d 0x40 0x20 b 0x20". Then reload the adm1025 driver, and the bogus
+ JD> +12V line should be gone.
 
-with:
+It has gone indeed. But the change causes another problem. Now
+'sensors -s' reports an error:
+adm1025-i2c-0-2d: Can't access procfs/sysfs file for writing;
+Run as root?
 
-    set in0_min 1.5 * 0.92
-    set in0_max 1.5 * 1.08
+After a cold boot and when I don't use i2cset I do not see this
+error. Any ideas?
 
-> VCore:     +1.48 V  (min =  +1.43 V, max =  +1.57 V)
-> +3.3V:     +3.35 V  (min =  +2.97 V, max =  +3.63 V)
-> +5V:       +5.05 V  (min =  +4.50 V, max =  +5.50 V)
-> +12V:      +0.00 V  (min = +10.81 V, max = +13.19 V)   ALARM
+Groetjes,
 
-This one is more tricky. The fifth voltage input line (in4) is shared
-with the fifth digital VID input (VID4) on the ADM1025. You can't have
-both at the same time. The board manufacturer can use it in either way,
-but the chip must then be properly configured.
+           Hans.
 
-The default function is in4 (+12V measurement), which seems to be the way
-your own chip is configured. However, the 0 reading, together with the
-fact that your CPU uses VRM 9.0, which uses 5-bit VID values, makes me
-guess that your chip has the shared pin wired to VID4, not +12V.
+jdh punt beekhuizen bij duinheks punt xs4all punt nl
 
-Ideally, the BIOS should configure the chip properly, but it doesn't
-seem to be your case. You can provide the output of "i2cdump 0 0x2d b"
-(after a cold boot and before loading adm1025) for confirmation. You can
-try to reconfigure the chip by using the following command: "i2cset 0
-0x2d 0x40 0x20 b 0x20". Then reload the adm1025 driver, and the bogus
-+12V line should be gone.
-
---
-Jean Delvare
+--- GoldED+/LNX 1.1.5/050823
+ * Origin: The Wizard is using MBSE/Linux (2:280/1018)
