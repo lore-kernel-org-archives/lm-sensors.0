@@ -1,7 +1,7 @@
-From: johannes.beekhuizen@duinheks.xs4all.nl (johannes.beekhuizen@duinheks.xs4all.nl)
-Date: Tue, 22 Nov 2005 16:31:12 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 22 Nov 2005 17:04:00 +0000
 Subject: [lm-sensors] ALARM messages - why ?
-Message-Id: <20051122153035.53FE33543@duinheks.xs4all.nl>
+Message-Id: <G7aOtjMX.1132674574.7169170.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051121154527.6F4D34BEC5@duinheks.xs4all.nl>
 In-Reply-To: <20051121154527.6F4D34BEC5@duinheks.xs4all.nl>
@@ -10,65 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hallo Jean,
 
-Op 21 Nov 05 schreef Jean Delvare aan johannes.beekhuizen@duinheks.xs4all:
+Hi Johannes,
 
- >> adm1025-i2c-0-2d
- >> Adapter: SMBus I801 adapter at e000
- >> +2.5V:     +1.51 V  (min =  +2.25 V, max =  +2.75 V)   ALARM
- JD> This first one is quite easy to understand. The alarm is caused by the
- JD> measurement being off-limits. If this line is actually supposed to be at
- JD> +2.5V, yours is way too low and you should expect problems.
+On 2005-11-22, Johannes Beekhuizen wrote:
+> JD> If I am right, the way to correct this would be to edit
+> JD> /etc/sensors.conf. Search for the adm1025-* section, and replace:
+> JD>     set in0_min 1.5 * 0.92
+> JD>     set in0_max 1.5 * 1.08
+>
+> Why the 8% margin?
 
-I obviously did not express myself clearly. What I wanted to ask is:
-why do I get alarms; there seems to be nothing wrong with the hardware.
-That the alarms appeared because the values were out of limits I
-understood :)
+Why not? :) Our 10% default is a bit too permissive IMHO, I would expect
+a good power supply unit to be within 5%. As I don't know what hardware
+you have, I proposed 8% as a compromise. The final choice is really up
+to you, depends on how good you hardware is, and how picky you are.
 
- JD> However, it is also possible that Intel decided to monitor something
- JD> else. The most probable candidate there is AGP, those nominal voltage is
- JD> 1.5V. You could check in the BIOS setup screen (if there is a hardware
- JD> monitoring item there) or technical documentation.
+> JD> try to reconfigure the chip by using the following command: "i2cset 0
+> JD> 0x2d 0x40 0x20 b 0x20". Then reload the adm1025 driver, and the bogus
+> JD> +12V line should be gone.
+>
+> It has gone indeed. But the change causes another problem. Now
+> 'sensors -s' reports an error:
+> adm1025-i2c-0-2d: Can't access procfs/sysfs file for writing;
+> Run as root?
+>
+> After a cold boot and when I don't use i2cset I do not see this
+> error. Any ideas?
 
-Unfortunately there is no screen for hardware monitoring configuration
-in the BIOS setup. Until I find tecnical documemtation for my ,mother
-board I just assume the you guessed correctly. At least the value is
-within limits after the changes you suggested.
+Simply comment out the "set in4_min" and "set in4_max" lines in your
+configuration file, and the error should disappear. The program is
+complaining that you are trying to set limits for a voltage channel
+which the adm1025 driver no more has.
 
- JD> If I am right, the way to correct this would be to edit
- JD> /etc/sensors.conf. Search for the adm1025-* section, and replace:
- JD>     set in0_min 1.5 * 0.92
- JD>     set in0_max 1.5 * 1.08
+If the i2cset command works OK, you should consider adding it in some
+boot script on your system before the adm1025 driver is loaded.
 
-Why the 8% margin?
+Have you searched Intel's website for an updated BIOS? I believe this is
+the BIOS' job to configure the chip properly.
 
- >> +12V:      +0.00 V  (min = +10.81 V, max = +13.19 V)   ALARM
- JD> This one is more tricky.
-   >cut<
- JD> the fact that your CPU uses VRM 9.0, which uses 5-bit VID values, makes
- JD> me guess that your chip has the shared pin wired to VID4, not +12V.
+Ideally, if the latest BIOS available doesn't configure the chip
+properly, you should report the problem to Intel and ask them for an
+updated BIOS. However, their site clearly states that this motherboard
+is no more supported, so it's probably not even worth trying.
 
-Thank you for explaining this in such a way that even I could
-understand it!
-
- JD> try to reconfigure the chip by using the following command: "i2cset 0
- JD> 0x2d 0x40 0x20 b 0x20". Then reload the adm1025 driver, and the bogus
- JD> +12V line should be gone.
-
-It has gone indeed. But the change causes another problem. Now
-'sensors -s' reports an error:
-adm1025-i2c-0-2d: Can't access procfs/sysfs file for writing;
-Run as root?
-
-After a cold boot and when I don't use i2cset I do not see this
-error. Any ideas?
-
-Groetjes,
-
-           Hans.
-
-jdh punt beekhuizen bij duinheks punt xs4all punt nl
-
---- GoldED+/LNX 1.1.5/050823
- * Origin: The Wizard is using MBSE/Linux (2:280/1018)
+--
+Jean Delvare
