@@ -1,7 +1,7 @@
 From: hmh@debian.org (Henrique de Moraes Holschuh)
-Date: Wed, 23 Nov 2005 18:53:55 +0000
+Date: Wed, 23 Nov 2005 20:02:55 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051123175333.GA29646@khazad-dum.debian.net>
+Message-Id: <20051123190233.GB8899@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,15 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 23 Nov 2005, Keith wrote:
-> http://valaran.com/~kw/lms/dmidecode.txt
+On Wed, 23 Nov 2005, Jean Delvare wrote:
+> driver didn't support it properly, including on SMP.
 
-Thanks.  It doesn't help much, but at least I am sure it is not a board I've
-come across before.
+I use a 80875P+lm85 under SMT (using a SMP kernel) all the time, and
+stress-test it a lot. If 2.6.8-2.6.13 had any easy-to-hit problems with the
+SMBus i2c driver for the 80875P, I'd have hit it.
 
-I have a board here with a 80875P and a ADM1027 from Intel. We shall see in
-about 5 days if 2.6.14.3 + lm-sensors works fine or not in another testcase
-(mine).  2.6.13 sure does work right.
+> The pretty much rules out the i2c-i801 driver guilt IMHO, on its own at
+> least.
+
+Yeah, it would have to be a corner case, or something else equally rare.
+
+> > 60: XX 61 XX XX 64 XX XX XX XX 69 XX XX XX XX XX XX
+> > 70: XX XX XX XX XX XX XX XX
+> 
+> I am really curious what the device at 0x64 can be. We don't know of any
+> device living at that address.
+
+And that 0x61? What would be that one?
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
