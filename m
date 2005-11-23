@@ -1,44 +1,138 @@
-From: udovdh@xs4all.nl (Udo van den Heuvel)
-Date: Wed, 23 Nov 2005 16:46:05 +0000
-Subject: [lm-sensors] Re: hwmon-vid: Unknown VRM version of your x86 CPU
-Message-Id: <43848E98.7070303@xs4all.nl>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Wed, 23 Nov 2005 01:51:17 +0000
+Subject: [lm-sensors] [2.6 patch] drivers/w1/: misc cleanups
+Message-Id: <20051123005015.GG3963@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43834A86.6090205@sh.cvut.cz>
-In-Reply-To: <43834A86.6090205@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: johnpol@2ka.mipt.ru
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hello Rudolf,
+This patch contains the following cleanups:
+- make needlessly global code static
+- declarations for global code belong into header files
+- w1.c: #if 0 the unused struct w1_slave_device
 
-Rudolf Marek wrote:
-> Please can you test attached patch? Because I cant see how it can fail.
-When compiling I get:
 
-# patch -p1 < /mnt/samba/download/linux/patches/via_vrm_patch_test7
-(Stripping trailing CRs from patch.)
-patching file drivers/hwmon/hwmon-vid.c
-(Stripping trailing CRs from patch.)
-patching file include/linux/hwmon-vid.h
-[root@epia linux]# make bzImage modules modules_install install
-  CHK     include/linux/version.h
-  CHK     include/linux/compile.h
-  CHK     usr/initramfs_list
-  CC [M]  drivers/hwmon/hwmon-vid.o
-drivers/hwmon/hwmon-vid.c:166: error: conflicting types for ?vid_which_vrm?
-include/linux/hwmon-vid.h:27: error: previous declaration of
-?vid_which_vrm? was here
-make[2]: *** [drivers/hwmon/hwmon-vid.o] Error 1
-make[1]: *** [drivers/hwmon] Error 2
-make: *** [drivers] Error 2
-[root@epia linux]#
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-This is on a 2.6.14.2 kernel.
+---
 
-Any ideas?
-Maybe just put in the right code file (i.e.: replace)?
+ drivers/w1/w1.c        |    6 ++++--
+ drivers/w1/w1.h        |   10 ++++++++++
+ drivers/w1/w1_family.c |    2 +-
+ drivers/w1/w1_int.c    |   13 ++-----------
+ drivers/w1/w1_io.c     |    2 +-
+ 5 files changed, 18 insertions(+), 15 deletions(-)
 
-Kind regards,
-Udo
+--- linux-2.6.15-rc1-mm2-full/drivers/w1/w1.h.old	2005-11-22 22:16:06.000000000 +0100
++++ linux-2.6.15-rc1-mm2-full/drivers/w1/w1.h	2005-11-22 22:31:28.000000000 +0100
+@@ -203,6 +203,16 @@
+ 	return container_of(dev, struct w1_master, dev);
+ }
+ 
++extern int w1_max_slave_count;
++extern int w1_max_slave_ttl;
++extern spinlock_t w1_mlock;
++extern struct list_head w1_masters;
++extern struct device_driver w1_master_driver;
++extern struct device w1_master_device;
++
++int w1_process(void *data);
++void w1_reconnect_slaves(struct w1_family *f);
++
+ #endif /* __KERNEL__ */
+ 
+ #endif /* __W1_H */
+--- linux-2.6.15-rc1-mm2-full/drivers/w1/w1.c.old	2005-11-22 22:13:54.000000000 +0100
++++ linux-2.6.15-rc1-mm2-full/drivers/w1/w1.c	2005-11-22 22:31:54.000000000 +0100
+@@ -164,11 +164,12 @@
+ 	.release = &w1_master_release
+ };
+ 
+-struct device_driver w1_slave_driver = {
++static struct device_driver w1_slave_driver = {
+ 	.name = "w1_slave_driver",
+ 	.bus = &w1_bus_type,
+ };
+ 
++#if 0
+ struct device w1_slave_device = {
+ 	.parent = NULL,
+ 	.bus = &w1_bus_type,
+@@ -176,6 +177,7 @@
+ 	.driver = &w1_slave_driver,
+ 	.release = &w1_slave_release
+ };
++#endif  /*  0  */
+ 
+ static ssize_t w1_master_attribute_show_name(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+@@ -355,7 +357,7 @@
+ 	return sysfs_create_group(&master->dev.kobj, &w1_master_defattr_group);
+ }
+ 
+-void w1_destroy_master_attributes(struct w1_master *master)
++static void w1_destroy_master_attributes(struct w1_master *master)
+ {
+ 	sysfs_remove_group(&master->dev.kobj, &w1_master_defattr_group);
+ }
+--- linux-2.6.15-rc1-mm2-full/drivers/w1/w1_family.c.old	2005-11-22 22:19:20.000000000 +0100
++++ linux-2.6.15-rc1-mm2-full/drivers/w1/w1_family.c	2005-11-22 22:25:18.000000000 +0100
+@@ -25,10 +25,10 @@
+ #include <linux/delay.h>
+ 
+ #include "w1_family.h"
++#include "w1.h"
+ 
+ DEFINE_SPINLOCK(w1_flock);
+ static LIST_HEAD(w1_families);
+-extern void w1_reconnect_slaves(struct w1_family *f);
+ 
+ int w1_register_family(struct w1_family *newf)
+ {
+--- linux-2.6.15-rc1-mm2-full/drivers/w1/w1_int.c.old	2005-11-22 22:20:46.000000000 +0100
++++ linux-2.6.15-rc1-mm2-full/drivers/w1/w1_int.c	2005-11-22 22:33:02.000000000 +0100
+@@ -26,19 +26,10 @@
+ #include "w1.h"
+ #include "w1_log.h"
+ #include "w1_netlink.h"
++#include "w1_int.h"
+ 
+ static u32 w1_ids = 1;
+ 
+-extern struct device_driver w1_master_driver;
+-extern struct bus_type w1_bus_type;
+-extern struct device w1_master_device;
+-extern int w1_max_slave_count;
+-extern int w1_max_slave_ttl;
+-extern struct list_head w1_masters;
+-extern spinlock_t w1_mlock;
+-
+-extern int w1_process(void *);
+-
+ static struct w1_master * w1_alloc_dev(u32 id, int slave_count, int slave_ttl,
+ 				       struct device_driver *driver,
+ 				       struct device *device)
+@@ -103,7 +94,7 @@
+ 	return dev;
+ }
+ 
+-void w1_free_dev(struct w1_master *dev)
++static void w1_free_dev(struct w1_master *dev)
+ {
+ 	device_unregister(&dev->dev);
+ }
+--- linux-2.6.15-rc1-mm2-full/drivers/w1/w1_io.c.old	2005-11-22 22:29:01.000000000 +0100
++++ linux-2.6.15-rc1-mm2-full/drivers/w1/w1_io.c	2005-11-22 22:29:10.000000000 +0100
+@@ -28,7 +28,7 @@
+ #include "w1_log.h"
+ #include "w1_io.h"
+ 
+-int w1_delay_parm = 1;
++static int w1_delay_parm = 1;
+ module_param_named(delay_coef, w1_delay_parm, int, 0);
+ 
+ static u8 w1_crc8_table[] = {
 
