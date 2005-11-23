@@ -1,48 +1,37 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Wed, 30 Nov 2005 07:43:55 +0000
-Subject: [lm-sensors] RE: [PATCH] Misc cleanups to the w83792d driver
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7B947@weshml03.winbond.com.tw>
+From: daniel.n.nilsson@home.se (Daniel Nilsson)
+Date: Wed, 23 Nov 2005 11:01:09 +0000
+Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
+Message-Id: <20051123100021.GA29473@oden.homeip.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051128193452.2d474a8d.khali@linux-fr.org>
-In-Reply-To: <20051128193452.2d474a8d.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCkl0IHdvcmtzIE9LIGZvciBtZSA7KQoKQmVzdCBSZWdhcmRzCll1YW4gTXUKPiAt
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IGxtLXNlbnNvcnMtYm91bmNlc0BsbS1z
-ZW5zb3JzLm9yZwpbbWFpbHRvOmxtLXNlbnNvcnMtYm91bmNlc0BsbS1zZW5zb3JzLm9yZ10gT24g
-QmVoYWxmIE9mIEplYW4gRGVsdmFyZQo+IFNlbnQ6IFR1ZXNkYXksIE5vdmVtYmVyIDI5LCAyMDA1
-IDk6NDkgUE0KPiBUbzogUEkxNCBZTVUKPiBDYzogUnVkb2xmIE1hcmVrOyBMTSBTZW5zb3JzCj4g
-U3ViamVjdDogW2xtLXNlbnNvcnNdIFJFOiBbUEFUQ0hdIE1pc2MgY2xlYW51cHMgdG8gdGhlIHc4
-Mzc5MmQgZHJpdmVyCj4gCj4gSGkgWXVhbiwKPiAKPiBPbiAyMDA1LTExLTI5LCBZdWFuIE11IHdy
-b3RlOgo+ID4gSXQgU2VlbXMgT0sgOikKPiA+IEhvdyBhYm91dCBpbl9jb3VudF9mcm9tX3JlZyBm
-dW5jdGlvbiwgd291bGQgeW91IHBsZWFzZSBzaW1wbGlmeSB0aGlzCj4gPiBmdW5jdGlvbiBpZiB5
-b3UgYWxzbyB0aGluayBpdCB3b3J0aCB0byBkby4KPiA+IEkgdGhpbmsgZ2V0IGxvdyBiaXRzIGRv
-IG5vdCBuZWVkIHNvIG11Y2ggY29kZS4KPiAKPiBXaGF0IGFib3V0IHRoZSBhdHRhY2hlZCBwYXRj
-aD8gUGxlYXNlIHRlc3QgaXQsIGlmIGl0IHdvcmtzIE9LIGZvciB5b3UKPiBJJ2xsIGdldCBpdCBh
-cHBsaWVkLgo+IAo+IC0tCj4gSmVhbiBEZWx2YXJlCgo9PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0
-aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0
-aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlz
-IGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVt
-YWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBz
-dWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRp
-bmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0
-ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhp
-Z2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNl
-IG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hp
-Yml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRo
-ZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVy
-IGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2Rl
-IENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNz
-ZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupbur
-SKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6Sn
-pqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8
-uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOx
-cblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4g
-r1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+z
-UcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGk
-bKSnpd+z9anOt06ooy4K
+Hi,
+
+Last night I reported ticket #2116[1] which is related to the kernel
+hanging when attempting to set the sensor limits with sensors -s. I
+started reading on the list of other open tickets on other chips to
+see if I could find something similar, and I found ticket #2111[2]
+reported by Keith.
+
+The common thing between botf our problems is that:
+
+1. We both use kernel 2.6.14 (either 2.6.14 or 2.6.14.2).
+2. We both use the i2c-i801 driver.
+3. We both have SMP enabled kernels running on P4 CPUs with HT enabled.
+
+In my case I have the w83792d driver for my sensor chip while Keith is
+using the lm85 driver. But since we both experience the same lockup
+under the same conditions I'm more suspicious of the i2c-i801 driver
+and how that driver is behaving in kernel 2.6.14 on SMP systems. Any
+other experience where this driver is find under these conditions?
+
+Please CC me as I'm not on the list.
+
+Thanks
+Daniel Nilsson
+
+[1]: http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket!16
+[2]: http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket!11
