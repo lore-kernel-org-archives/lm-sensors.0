@@ -1,7 +1,7 @@
-From: daniel.n.nilsson@home.se (Daniel Nilsson)
-Date: Wed, 23 Nov 2005 14:12:22 +0000
+From: n4phth4@yahoo.com (Keith)
+Date: Wed, 23 Nov 2005 14:17:18 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051123131115.GA3180@oden.homeip.net>
+Message-Id: <20051123131607.41552.qmail@web32606.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,79 +10,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+--- Jean Delvare <khali@linux-fr.org> wrote:
 
-On Wed, Nov 23, 2005 at 01:18:32PM +0100, Jean Delvare wrote:
-> "sensors -s" does too many things so it'll be hard to find out what
-> exactly causes the hang. Could be any write on the bus, or a specific
-> limit change. Better would be to try writing to the /sysfs files
-> directly, manually, and see if any write causes the problem, or only to
-> certain files.
+> The i2c-i801 did not receive any recent change which
+> could explain the
+> problem, and the driver is widely used (including by
+> me on UP) so it is
+> certainly not fundamentally broken. It must have
+> been widely tested on
+> SMP systems too. You have an ICH7 though, which is
+> one of the most
+> recent incarnation of the i801, and this one may not
+> have received
+> extended testing. Keith, is it an ICH7 on your
+> system too, or another
+> incarnation?
 
-I will try this later, probably tomorrow since I only have remote
-access right now and no way to reset the machine :-( Should I attempt
-to write arbitrary values to all writeable files under
-/sys/bus/i2c/devices/0-002c/ ?
 
-> Please also try to reproduce the hang without loading the eeprom
-> driver.
+Hiya fellas.  Sorry I'm not on the list either but
+will be eventually.  Anyway I haven't done anything
+sensor-related lately, but here's what lspci has to
+say (sorry if the lines wrap; yahoo mail is
+braindead):
 
-Ok, I'll include that in the testing proposed above.
 
-> I would additionally be interested in the SMBus topology (output of
-> "i2cdetect 0" to start with, or whatever the bus number is for
-> i2c-i801).
+00:00.0 Host bridge: Intel Corporation 82875P/E7210
+Memory Controller Hub (rev 02)
+00:01.0 PCI bridge: Intel Corporation 82875P Processor
+to AGP Controller (rev 02)
+00:1d.0 USB Controller: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) USB UHCI Controller #1 (rev 02)
+00:1d.1 USB Controller: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) USB UHCI Controller #2 (rev 02)
+00:1d.2 USB Controller: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) USB UHCI Controller #3 (rev 02)
+00:1d.3 USB Controller: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) USB UHCI Controller #4 (rev 02)
+00:1d.7 USB Controller: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) USB2 EHCI Controller (rev 02)
+00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge
+(rev c2)
+00:1f.0 ISA bridge: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) LPC Interface Bridge (rev 02)
+00:1f.1 IDE interface: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) IDE Controller (rev 02)
+00:1f.2 IDE interface: Intel Corporation 82801EB
+(ICH5) SATA Controller (rev 02)
+00:1f.3 SMBus: Intel Corporation 82801EB/ER
+(ICH5/ICH5R) SMBus Controller (rev 02)
+01:00.0 VGA compatible controller: nVidia Corporation
+NV43 [GeForce 6600/GeForce 6600 GT] (rev a2)
+02:01.0 SCSI storage controller: Adaptec AIC-7892A
+U160/m (rev 02)
+02:02.0 Multimedia audio controller: Creative Labs SB
+Live! EMU10k1 (rev 08)
+02:02.1 Input device controller: Creative Labs SB
+Live! MIDI/Game Port (rev 08)
+02:0c.0 Ethernet controller: Intel Corporation 82540EM
+Gigabit Ethernet Controller (rev 02)
 
-i2c-i801 is bus 0 on my machine, the only i2c bus.
 
-oden:~# i2cdetect 0
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
+> Please also try to reproduce the hang without
+> loading the eeprom driver.
+
+
+Haven't tried this yet but will this weekend.
+
+
+> I would additionally be interested in the SMBus
+> topology (output of
+> "i2cdetect 0" to start with, or whatever the bus
+> number is for
+> i2c-i801). Do you happen to know if the SMBus on
+> that board is
+> multiplexed or shared with another bus type.?
+
+
 I will probe file /dev/i2c-0.
 I will probe address range 0x03-0x77.
 Continue? [Y/n] 
      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
 00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX 
 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 
-20: XX XX XX XX XX XX XX XX XX XX XX XX UU XX XX XX 
-30: XX 31 XX 33 XX XX XX XX XX XX XX XX XX XX XX XX 
-40: XX XX XX XX 44 XX XX XX UU XX XX XX UU XX XX XX 
-50: XX UU XX UU XX XX XX XX XX XX XX XX XX XX XX XX 
-60: 60 61 XX XX XX XX XX XX XX 69 XX XX XX XX XX XX 
-70: XX XX XX XX XX XX XX XX                         
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX 
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX 
+40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX 
+50: 50 51 52 53 XX XX XX XX XX XX XX XX XX XX XX XX 
+60: XX 61 XX XX 64 XX XX XX XX 69 XX XX XX XX XX XX 
+70: XX XX XX XX XX XX XX XX
 
-> Do you happen to know if the SMBus on that board is
-> multiplexed or shared with another bus type.?
 
-Well, I'm not sure. What I can tell though is that sensors-detect
-suggested to insert the it87 driver as well. If I do, I get the
-message:
 
-it87: Found IT8712F chip at 0x290, revision 7
 
-in the kernel log. The output of sensors then reads:
 
-oden:~# sensors
-it8712-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.26 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-VCore 2:   +1.47 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
-+3.3V:     +6.59 V  (min =  +8.16 V, max =  +8.16 V)   ALARM
-+5V:       +6.85 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
-+12V:     +11.58 V  (min = +16.32 V, max = +16.32 V)   ALARM
--12V:     -13.86 V  (min =  +3.93 V, max =  +3.93 V)   ALARM
--5V:       -8.51 V  (min =  +4.03 V, max =  +4.03 V)   ALARM
-Stdby:     +5.56 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
-VBat:      +3.17 V
-fan1:        0 RPM  (min =    0 RPM, div = 8)          
-fan2:        0 RPM  (min =    0 RPM, div = 8)          
-fan3:       -1 RPM  (min =    0 RPM, div = 8)          
-M/B Temp:    +80?C  (low  =    -1?C, high =    -1?C)   sensor = thermistor   
-CPU Temp:    +64?C  (low  =    -1?C, high =    -1?C)   sensor = diode   
-Temp3:       +75?C  (low  =    -1?C, high =    -1?C)   sensor = thermistor   
 
-I'm not sure if there is a second I2C master on the bus or if the same
-master is also mapped to the ISA bus address space somehow? Except for
-that, I don't know how to answer the question...
 
--- 
-Daniel Nilsson
+	
+		
+__________________________________ 
+Yahoo! Mail - PC Magazine Editors' Choice 2005 
+http://mail.yahoo.com
