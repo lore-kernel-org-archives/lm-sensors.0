@@ -1,7 +1,7 @@
-From: n4phth4@yahoo.com (Keith)
-Date: Wed, 23 Nov 2005 16:06:07 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 23 Nov 2005 16:22:09 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051123150536.61652.qmail@web32613.mail.mud.yahoo.com>
+Message-Id: <wQmA1K3L.1132759311.5781220.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,72 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---- Jean Delvare <khali@linux-fr.org> wrote:
-> I would start by writing safe values to the limit
-> files: 0 to min voltage
-> limits, 10000 to max voltage limits (the driver will
-> automatically trim
-> down to the max possible limit), 100000 to max
-> temperature limits,
-> etc... The idea is to find out whether the write
-> transactions themselves
-> are causing problems (unlikely) or if the problem is
-> triggered by an
-> alarm condition which results from setting some
-> limits too tight. If the
-> safe writes seem to work OK, try more dangerous ones
-> and see when it
-> breaks.
 
+Hi Keith,
 
-Hm it's worth noting now (and I should've put it in
-the ticket) that after the first time the system froze
-from a ``sensors -s'', I was able to reboot
-(subsequent times I was not able to; had to pull the
-battery to clear whatever was fouled) and the BIOS log
-mentioned something along the lines of the CPU
-overheating.  So maybe the limits were set too tight. 
-I then set the upper limit (temp1_max) higher but it
-made no difference.  However I didn't touch the
-"Board" and "Remote" limits...
- 
+> > Keith, is it an ICH7 on your system too, or another
+> > incarnation?
+> (...)
+> 00:1f.3 SMBus: Intel Corporation 82801EB/ER (ICH5/ICH5R) SMBus
+> Controller (rev 02)
 
-> I seem to understand that "sensors -s" does not
-> always hang. 
+OK, that's an ICH5, so it's a different model. The ICH5 is out there
+since quite some times now, we probably would know if the i2c-i801
+driver didn't support it properly, including on SMP.
 
+The pretty much rules out the i2c-i801 driver guilt IMHO, on its own at
+least.
 
-This is true.  I had it run to completion (got the
-bash prompt back) once, and then it hung.
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00:          XX XX XX XX XX 08 XX XX XX XX XX XX XX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX UU XX
+> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 40: XX XX XX XX 44 XX XX XX XX XX XX XX XX XX XX XX
+> 50: 50 51 52 53 XX XX XX XX XX XX XX XX XX XX XX XX
+> 60: XX 61 XX XX 64 XX XX XX XX 69 XX XX XX XX XX XX
+> 70: XX XX XX XX XX XX XX XX
 
+I am really curious what the device at 0x64 can be. We don't know of any
+device living at that address.
 
-> If you could try an older kernel (for example
-> 2.6.13.4) and see if you
-> have the problem there too, that would be
-> interesting. Just because the
-> i2c-i801 driver didn't change doesn't mean that
-> nothing in the kernel
-> did change. If the monitoring chip is generating
-> some hardware interrupt
-> on alarm conditions, the i2c-i801 driver may not be
-> involved at all.
-> 
-> Oh, another thing to try I forgot to mention (for
-> Keith too) would be to
-> run an UP kernel on the same hardware and see if the
-> problem disappears.
-> It would be nice if we can at least assert that SMP
-> is one triggering
-> factor.
-
-
-I'll try both of these over the next few days.
-
- 
-
-
-
-	
-		
-__________________________________ 
-Yahoo! Mail - PC Magazine Editors' Choice 2005 
-http://mail.yahoo.com
+--
+Jean Delvare
