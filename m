@@ -1,7 +1,7 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Fri, 25 Nov 2005 17:54:40 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 25 Nov 2005 20:52:32 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051125165429.GC9425@jupiter.solarsys.private>
+Message-Id: <43876B44.4070703@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,30 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello:
+Hello all,
 
-* Henrique de Moraes Holschuh <hmh@debian.org> [2005-11-23 23:57:57 -0200]:
-> On Wed, 23 Nov 2005, Jean Delvare wrote:
-> > abandonned. I wish I had an SMBus 2.0 system myself to experiment with,
-> > but unfortunately even the most recent systems I have don't support
-> > SMBus 2.0.
-> 
-> Well, I suppose this means there is a device in that bus doing it, because I
+I have a theory that changing limit values will assert SMI interrupt and SMI code will hang the machine.
+Maybe the interrupt is raised via SMBALERT line which can be disabled in the i2c-i801.c driver.
 
-Correct.
+Eventualy i think if we switch the interrupt generation to IRQ9 so inux should report
+"IRQ9 nobody cared" instead of crarsh ... if I'm correct with the SMI assumption.
 
-> have the same SMBus controller and there is no such 0x61 (neither is there a
-> 0x64) device in the scan report.
+you can try to:
+setpci  -s 0:1f.3 40.b=1
 
-If a device supports SMBus 2.0, it will answer on 0x61.  In fact, there may
-be *multiple* devices answering on 0x61... which is perfectly normal, until
-the host assigns them all individual addresses.
+This will set the SMB routing interrupt to IRQ9 (or some other but not on SMI)
 
-But as was mentioned, that is not supported in Linux at the moment.
+and then repeat with sensors -s
+This is a bit dangerous so please do it with filesystems mouted RO.
 
-Regards,
+If you get instead of crash no crash and/or some message in dmesg we have won :)
 
--- 
-Mark M. Hoffman
-mhoffman@lightlink.com
-
+Ruik
