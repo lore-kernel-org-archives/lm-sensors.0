@@ -1,7 +1,7 @@
 From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Fri, 25 Nov 2005 17:51:31 +0000
+Date: Fri, 25 Nov 2005 17:54:40 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051125165114.GB9425@jupiter.solarsys.private>
+Message-Id: <20051125165429.GC9425@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -12,16 +12,24 @@ To: lm-sensors@vger.kernel.org
 
 Hello:
 
-* Henrique de Moraes Holschuh <hmh@debian.org> [2005-11-23 17:02:33 -0200]:
+* Henrique de Moraes Holschuh <hmh@debian.org> [2005-11-23 23:57:57 -0200]:
 > On Wed, 23 Nov 2005, Jean Delvare wrote:
-> > driver didn't support it properly, including on SMP.
+> > abandonned. I wish I had an SMBus 2.0 system myself to experiment with,
+> > but unfortunately even the most recent systems I have don't support
+> > SMBus 2.0.
 > 
-> I use a 80875P+lm85 under SMT (using a SMP kernel) all the time, and
-> stress-test it a lot. If 2.6.8-2.6.13 had any easy-to-hit problems with the
-> SMBus i2c driver for the 80875P, I'd have hit it.
+> Well, I suppose this means there is a device in that bus doing it, because I
 
-I also have an i875 SMT/SMP; I've never seen 'sensors -s' hang like that
-either.
+Correct.
+
+> have the same SMBus controller and there is no such 0x61 (neither is there a
+> 0x64) device in the scan report.
+
+If a device supports SMBus 2.0, it will answer on 0x61.  In fact, there may
+be *multiple* devices answering on 0x61... which is perfectly normal, until
+the host assigns them all individual addresses.
+
+But as was mentioned, that is not supported in Linux at the moment.
 
 Regards,
 
