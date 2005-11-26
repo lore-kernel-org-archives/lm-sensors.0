@@ -1,59 +1,70 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Tue, 29 Nov 2005 17:48:36 +0000
-Subject: [lm-sensors] How to support 2.6.9 kernel with w83792d driver
-Message-Id: <438C8663.8080100@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 26 Nov 2005 20:28:59 +0000
+Subject: [lm-sensors] [PATCH 09/25] i2c:Drop i2c_driver.flags, 3 of 3
+Message-Id: <20051126203001.2b911d0b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF9D611BFCDB1E42B37FAA148096BECEB7B75F@weshml03.winbond.com.tw>
-In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEB7B75F@weshml03.winbond.com.tw>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-> Hi Rudolf,
-> Nice to see you again, I think you have gone back to your hometown these
-> days, so I did not resend that mail ;)
+Content-Disposition: inline; filename=i2c-client-use-03-allow-multiple-use.patch
 
-I'm going there regulary every weekend.
+Do not limit the usage count of i2c clients to 1. In other words,
+change the client usage count behavior from the old I2C_CLIENT_ALLOW_USE
+to the old I2C_CLIENT_ALLOW_MULTIPLE_USE. The rationale is that no
+driver actually needs the limiting behavior, and the unlimiting
+behavior is slightly easier to implement.
 
-> I have one question to ask you,(I have so many questions ...)
+Update the documentation to reflect this change.
 
-Well why not... :)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ Documentation/i2c/porting-clients |    1 +
+ drivers/i2c/i2c-core.c            |    5 -----
+ include/linux/i2c.h               |    4 +---
+ 3 files changed, 2 insertions(+), 8 deletions(-)
 
-> 
-> We just received a request from our customer ASUS and they would like to
-> use 792D lm-sensor driver on Redhat Enterprise Edition Workstation
-> Update 2 with kernel 2.6.9. The original 792D driver Chunhao implemented
-> did work on 2.6.10 kernel but it quitted working on 2.6.9 (the one
-> Redhat uses for Enterprise edition). I made some tiny modification to
-> original driver and it works now.
+--- linux-2.6.15-rc2.orig/Documentation/i2c/porting-clients	2005-11-26 14:15:06.000000000 +0100
++++ linux-2.6.15-rc2/Documentation/i2c/porting-clients	2005-11-26 14:34:31.000000000 +0100
+@@ -92,6 +92,7 @@
+   Drop client->id.
+   Drop any 24RF08 corruption prevention you find, as this is now done
+   at the i2c-core level, and doing it twice voids it.
++  Don't add I2C_CLIENT_ALLOW_USE to client->flags, it's the default now.
+ 
+ * [Init] Limits must not be set by the driver (can be done later in
+   user-space). Chip should not be reset default (although a module
+--- linux-2.6.15-rc2.orig/drivers/i2c/i2c-core.c	2005-11-26 14:21:37.000000000 +0100
++++ linux-2.6.15-rc2/drivers/i2c/i2c-core.c	2005-11-26 14:27:12.000000000 +0100
+@@ -497,14 +497,9 @@
+ 	if (ret)
+ 		return ret;
+ 
+-	if (client->usage_count > 0)
+-		goto busy;
+ 	client->usage_count++;
+ 
+ 	return 0;
+- busy:
+-	i2c_dec_use_client(client);
+-	return -EBUSY;
+ }
+ 
+ int i2c_release_client(struct i2c_client *client)
+--- linux-2.6.15-rc2.orig/include/linux/i2c.h	2005-11-26 14:34:31.000000000 +0100
++++ linux-2.6.15-rc2/include/linux/i2c.h	2005-11-26 14:37:06.000000000 +0100
+@@ -308,9 +308,7 @@
+    extern struct i2c_client *i2c_get_client(int,int,struct i2c_client *);
+    to make sure that client-struct is valid and that it is okay to access
+    the i2c-client. 
+-   returns -EACCES if client doesn't allow use (default)
+-   returns -EBUSY if client doesn't allow multiple use (default) and 
+-   usage_count >0 */
++   returns -ENODEV if client has gone in the meantime */
+ extern int i2c_use_client(struct i2c_client *);
+ extern int i2c_release_client(struct i2c_client *);
+ 
 
-
-OK I once told TeCheng that I have also some backport which can be found here:
-http://www.assembler.cz/download/w83792d/
-
-If you did backport the driver please consider applying the
-http://www.assembler.cz/download/w83792d/04-fix-disabled-subclients
-
-For sure, and optionally the:
-http://www.assembler.cz/download/w83792d/03-cleanups (or check what is really wrong)
-
-Plus dont forget your recent fixes.
-
-> My question is that should we send this patch to you? As far as I know,
-> there are some changes in lm-sensor architecture as of 2.6.14 kernel.
-> The patch should be applied to the ORIGINAL source Chunhao submitted
-> instead of the newest one. What's your opinion on this issue? Many of
-> ASUS customers might use Redhat Enterprise edition instead of free
-> Fedora core so that it would be a good idea if we can figure out this
-> before the real problem comes.
-
-I can put it to that website as another version of the driver and link this page from lm-sensors
-if you want.
-
-My backport is without your recent fixes so I will fix it someday too...
-
-I hope this helps, If anything more let me know.
-Regards
-Rudolf
+-- 
+Jean Delvare
