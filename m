@@ -1,53 +1,96 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 26 Nov 2005 20:54:34 +0000
-Subject: [lm-sensors] [PATCH 20/25] i2c: Drop i2c_driver.{owner, name},
-Message-Id: <20051126205535.7a7f6a76.khali@linux-fr.org>
+Date: Sat, 26 Nov 2005 20:14:22 +0000
+Subject: [lm-sensors] [PATCH 04/25] i2c: Remove duplicate rtc8564 BCD macros
+Message-Id: <20051126201523.0f1f682d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-11-documentation.patch
+From: Nicolas Kaiser <nikai@nikai.net>
+Content-Disposition: inline; filename=i2c-rtc8564-remove-duplicate-bcd-macros.patch
 
-Document the drop of the owner and name fields of the i2c_driver
-structure.
+Remove duplicate of BCD macros.
 
+Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-CC: Laurent Riffard <laurent.riffard@free.fr>
 ---
- Documentation/i2c/porting-clients |    4 ++++
- Documentation/i2c/writing-clients |    6 ++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/i2c/chips/rtc8564.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
---- linux-2.6.15-rc2.orig/Documentation/i2c/porting-clients	2005-11-20 11:23:58.000000000 +0100
-+++ linux-2.6.15-rc2/Documentation/i2c/porting-clients	2005-11-20 11:31:02.000000000 +0100
-@@ -111,6 +111,10 @@
+--- linux-2.6.15-rc2.orig/drivers/i2c/chips/rtc8564.c	2005-11-21 19:06:23.000000000 +0100
++++ linux-2.6.15-rc2/drivers/i2c/chips/rtc8564.c	2005-11-22 21:10:38.000000000 +0100
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/kernel.h>
++#include <linux/bcd.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+@@ -52,9 +53,6 @@
+ #define CTRL1(c) _rtc8564_ctrl1(c)
+ #define CTRL2(c) _rtc8564_ctrl2(c)
  
- * [Driver] The flags field of the i2c_driver structure is gone.
-   I2C_DF_NOTIFY is now the default behavior.
-+  The i2c_driver structure has a driver member, which is itself a
-+  structure, those owner and name members should be initialized to
-+  THIS_MODULE and a driver name string, respectively. i2c_driver
-+  itself has no name member anymore.
+-#define BCD_TO_BIN(val) (((val)&15) + ((val)>>4)*10)
+-#define BIN_TO_BCD(val) ((((val)/10)<<4) + (val)%10)
+-
+ static int debug;;
+ module_param(debug, int, S_IRUGO | S_IWUSR);
  
- Coding policy:
+@@ -224,16 +222,16 @@
+ 		return ret;
  
---- linux-2.6.15-rc2.orig/Documentation/i2c/writing-clients	2005-11-20 09:29:48.000000000 +0100
-+++ linux-2.6.15-rc2/Documentation/i2c/writing-clients	2005-11-20 11:30:22.000000000 +0100
-@@ -25,8 +25,10 @@
- address.
+ 	/* century stored in minute alarm reg */
+-	dt->year = BCD_TO_BIN(buf[RTC8564_REG_YEAR]);
+-	dt->year += 100 * BCD_TO_BIN(buf[RTC8564_REG_AL_MIN] & 0x3f);
+-	dt->mday = BCD_TO_BIN(buf[RTC8564_REG_DAY] & 0x3f);
+-	dt->wday = BCD_TO_BIN(buf[RTC8564_REG_WDAY] & 7);
+-	dt->mon = BCD_TO_BIN(buf[RTC8564_REG_MON_CENT] & 0x1f);
++	dt->year = BCD2BIN(buf[RTC8564_REG_YEAR]);
++	dt->year += 100 * BCD2BIN(buf[RTC8564_REG_AL_MIN] & 0x3f);
++	dt->mday = BCD2BIN(buf[RTC8564_REG_DAY] & 0x3f);
++	dt->wday = BCD2BIN(buf[RTC8564_REG_WDAY] & 7);
++	dt->mon = BCD2BIN(buf[RTC8564_REG_MON_CENT] & 0x1f);
  
- static struct i2c_driver foo_driver = {
--	.owner		= THIS_MODULE,
--	.name		= "Foo version 2.3 driver",
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "foo",
-+	},
- 	.attach_adapter	= &foo_attach_adapter,
- 	.detach_client	= &foo_detach_client,
- 	.command	= &foo_command /* may be NULL */
+-	dt->secs = BCD_TO_BIN(buf[RTC8564_REG_SEC] & 0x7f);
++	dt->secs = BCD2BIN(buf[RTC8564_REG_SEC] & 0x7f);
+ 	dt->vl = (buf[RTC8564_REG_SEC] & 0x80) = 0x80;
+-	dt->mins = BCD_TO_BIN(buf[RTC8564_REG_MIN] & 0x7f);
+-	dt->hours = BCD_TO_BIN(buf[RTC8564_REG_HR] & 0x3f);
++	dt->mins = BCD2BIN(buf[RTC8564_REG_MIN] & 0x7f);
++	dt->hours = BCD2BIN(buf[RTC8564_REG_HR] & 0x3f);
+ 
+ 	_DBGRTCTM(2, *dt);
+ 
+@@ -255,18 +253,18 @@
+ 
+ 	buf[RTC8564_REG_CTRL1] = CTRL1(client) | RTC8564_CTRL1_STOP;
+ 	buf[RTC8564_REG_CTRL2] = CTRL2(client);
+-	buf[RTC8564_REG_SEC] = BIN_TO_BCD(dt->secs);
+-	buf[RTC8564_REG_MIN] = BIN_TO_BCD(dt->mins);
+-	buf[RTC8564_REG_HR] = BIN_TO_BCD(dt->hours);
++	buf[RTC8564_REG_SEC] = BIN2BCD(dt->secs);
++	buf[RTC8564_REG_MIN] = BIN2BCD(dt->mins);
++	buf[RTC8564_REG_HR] = BIN2BCD(dt->hours);
+ 
+ 	if (datetoo) {
+ 		len += 5;
+-		buf[RTC8564_REG_DAY] = BIN_TO_BCD(dt->mday);
+-		buf[RTC8564_REG_WDAY] = BIN_TO_BCD(dt->wday);
+-		buf[RTC8564_REG_MON_CENT] = BIN_TO_BCD(dt->mon) & 0x1f;
++		buf[RTC8564_REG_DAY] = BIN2BCD(dt->mday);
++		buf[RTC8564_REG_WDAY] = BIN2BCD(dt->wday);
++		buf[RTC8564_REG_MON_CENT] = BIN2BCD(dt->mon) & 0x1f;
+ 		/* century stored in minute alarm reg */
+-		buf[RTC8564_REG_YEAR] = BIN_TO_BCD(dt->year % 100);
+-		buf[RTC8564_REG_AL_MIN] = BIN_TO_BCD(dt->year / 100);
++		buf[RTC8564_REG_YEAR] = BIN2BCD(dt->year % 100);
++		buf[RTC8564_REG_AL_MIN] = BIN2BCD(dt->year / 100);
+ 	}
+ 
+ 	ret = rtc8564_write(client, 0, buf, len);
 
 -- 
 Jean Delvare
