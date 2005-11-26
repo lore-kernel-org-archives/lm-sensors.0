@@ -1,65 +1,89 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 04 Nov 2005 11:26:29 +0000
-Subject: [lm-sensors] PEC support in i2c/lm_sensors CVS
-Message-Id: <8g9OcsGg.1131099242.2561290.khali@localhost>
+Date: Sat, 26 Nov 2005 20:39:33 +0000
+Subject: [lm-sensors] [PATCH 13/25] i2c: Drop i2c_driver.{owner, name},
+Message-Id: <20051126204034.4c195439.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051030171335.34da6461.khali@linux-fr.org>
-In-Reply-To: <20051030171335.34da6461.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Laurent Riffard <laurent.riffard@free.fr>
+Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-04-macintosh.patch
 
-Hi Mark,
+We should use the i2c_driver.driver's .name and .owner fields
+instead of the i2c_driver's ones.
 
-On 2005-11-04, Mark M. Hoffman wrote:
-> Since you insist, heh... there was this bit from lm90.c for ADM1032 PEC:
->
-> +/* The ADM1032 supports PEC but not on write byte transactions, so we need
-> +   to explicitely ask for a transaction without PEC. */
-> +static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
-> +{
-> +	return i2c_smbus_xfer(client->adapter, client->addr,
-> +			      client->flags & ~I2C_CLIENT_PEC,
-> +			      I2C_SMBUS_WRITE, value, I2C_SMBUS_BYTE, NULL);
-> +}
->
-> It's a bit of a hack, but in practice I hope it won't be necessary very
-> often.  Although, here we have the very first PEC capable device requiring
-> that.  But I don't have a better idea, so I wasn't going to mention it.
+This patch updates the drivers for macintosh.
 
-I have to agree it's not exactly elegant, and I totally share your
-analysis. I am waiting to see more chips implementing PEC to decide what
-to do with this case and similar ones.
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/macintosh/therm_adt746x.c        |    6 ++++--
+ drivers/macintosh/therm_pm72.c           |    6 ++++--
+ drivers/macintosh/therm_windtunnel.c     |    6 ++++--
+ drivers/macintosh/windfarm_lm75_sensor.c |    6 ++++--
+ 4 files changed, 16 insertions(+), 8 deletions(-)
 
-I fear that all chips will have the problem with this one transaction
-type, because SMBus Send Byte with PEC is the same as SMBus Write Byte
-without PEC. I consider this a specification weakness. Due to the fact
-that PEC must always be optional as per the same specification, any chip
-supporting SMBus Write Byte and SMBus Send Byte with the same
-"command" value can obviously not support the latter with PEC.
+--- linux-2.6.15-rc1.orig/drivers/macintosh/therm_adt746x.c	2005-11-13 10:51:02.000000000 +0100
++++ linux-2.6.15-rc1/drivers/macintosh/therm_adt746x.c	2005-11-13 11:20:11.000000000 +0100
+@@ -171,8 +171,10 @@
+ }
+ 
+ static struct i2c_driver thermostat_driver = {  
+-	.owner		= THIS_MODULE,
+-	.name		= "therm_adt746x",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "therm_adt746x",
++	},
+ 	.attach_adapter	= attach_thermostat,
+ 	.detach_adapter	= detach_thermostat,
+ };
+--- linux-2.6.15-rc1.orig/drivers/macintosh/therm_pm72.c	2005-11-13 10:51:02.000000000 +0100
++++ linux-2.6.15-rc1/drivers/macintosh/therm_pm72.c	2005-11-13 11:20:11.000000000 +0100
+@@ -283,8 +283,10 @@
+ 
+ static struct i2c_driver therm_pm72_driver  {
+-	.owner		= THIS_MODULE,
+-	.name		= "therm_pm72",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "therm_pm72",
++	},
+ 	.attach_adapter	= therm_pm72_attach,
+ 	.detach_adapter	= therm_pm72_detach,
+ };
+--- linux-2.6.15-rc1.orig/drivers/macintosh/therm_windtunnel.c	2005-11-13 10:51:02.000000000 +0100
++++ linux-2.6.15-rc1/drivers/macintosh/therm_windtunnel.c	2005-11-13 11:20:11.000000000 +0100
+@@ -354,8 +354,10 @@
+ }
+ 
+ static struct i2c_driver g4fan_driver = {  
+-	.owner		= THIS_MODULE,
+-	.name		= "therm_windtunnel",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "therm_windtunnel",
++	},
+ 	.id		= I2C_DRIVERID_G4FAN,
+ 	.attach_adapter = do_attach,
+ 	.detach_client	= do_detach,
+--- linux-2.6.15-rc1.orig/drivers/macintosh/windfarm_lm75_sensor.c	2005-11-13 10:58:52.000000000 +0100
++++ linux-2.6.15-rc1/drivers/macintosh/windfarm_lm75_sensor.c	2005-11-13 11:20:11.000000000 +0100
+@@ -47,8 +47,10 @@
+ static int wf_lm75_detach(struct i2c_client *client);
+ 
+ static struct i2c_driver wf_lm75_driver = {
+-	.owner		= THIS_MODULE,
+-	.name		= "wf_lm75",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "wf_lm75",
++	},
+ 	.attach_adapter	= wf_lm75_attach,
+ 	.detach_client	= wf_lm75_detach,
+ };
 
-Anyway, this is a side problem. The old PEC implementation would not have
-handled this case better as far as I can see, so this is no regression.
-
-> No worries - I don't see anything glaring.  And there's one user for which
-> it works, right?  Not that I think it will, but if it did need to be
-> reworked again later, so be it.
-
-That one user is me, so I'm not sure if it counts ;) I am still waiting
-for a "works for me too" type of report.
-
-> (Except that, by this time next year, maybe we should deep-freeze the I2C
-> CVS tree, delete all the kernel 2.4 bits in lm_sensors2, and advance the
-> version to 3.0.0)
-
-This implies that, by that time, the sysfs interface in Linux 2.6 will
-have been fully stabilized and completed in a totally chip-independant
-way, and we will have a brand new, essentially chip-independant library
-to interface with it. I wish it really happens, but it doesn't sound
-too realistic with the little manpower we have available at the moment.
-
-Thanks,
---
+-- 
 Jean Delvare
