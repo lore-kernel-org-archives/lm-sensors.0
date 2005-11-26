@@ -1,53 +1,58 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 26 Nov 2005 20:23:57 +0000
-Subject: [lm-sensors] [PATCH 07/25] i2c: Drop i2c_driver.flags, 1 of 3
-Message-Id: <20051126202459.080d3091.khali@linux-fr.org>
+Date: Sat, 26 Nov 2005 20:45:31 +0000
+Subject: [lm-sensors] [PATCH 15/25] i2c: Drop i2c_driver.{owner, name},
+Message-Id: <20051126204632.23576e62.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-drop-driver-flags-01-df-dummy.patch
+From: Laurent Riffard <laurent.riffard@free.fr>
+Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-06-oss.patch
 
-The I2C_DF_DUMMY flag is gone since 2.5.70, it's about time to
-drop all ifdef'd out references thereto.
+We should use the i2c_driver.driver's .name and .owner fields
+instead of the i2c_driver's ones.
 
+This patch updates the OSS drivers.
+
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/media/video/tvmixer.c |    4 ----
- include/linux/i2c.h           |    5 -----
- 2 files changed, 9 deletions(-)
+ sound/oss/dmasound/dac3550a.c   |    6 ++++--
+ sound/oss/dmasound/tas_common.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
---- linux-2.6.15-rc1.orig/drivers/media/video/tvmixer.c	2005-11-14 22:31:06.000000000 +0100
-+++ linux-2.6.15-rc1/drivers/media/video/tvmixer.c	2005-11-15 23:05:41.000000000 +0100
-@@ -232,12 +232,8 @@
- #endif
- 	.name            = "tv card mixer driver",
- 	.id              = I2C_DRIVERID_TVMIXER,
--#ifdef I2C_DF_DUMMY
--	.flags           = I2C_DF_DUMMY,
--#else
- 	.flags           = I2C_DF_NOTIFY,
- 	.detach_adapter  = tvmixer_adapters,
--#endif
- 	.attach_adapter  = tvmixer_adapters,
- 	.detach_client   = tvmixer_clients,
+--- linux-2.6.15-rc1.orig/sound/oss/dmasound/dac3550a.c	2005-11-15 23:05:48.000000000 +0100
++++ linux-2.6.15-rc1/sound/oss/dmasound/dac3550a.c	2005-11-15 23:06:18.000000000 +0100
+@@ -41,8 +41,10 @@
+ static int daca_detach_client(struct i2c_client *client);
+ 
+ struct i2c_driver daca_driver = {  
+-	.owner			= THIS_MODULE,
+-	.name			= "DAC3550A driver  V " DACA_VERSION,
++	.driver = {
++		.owner		= THIS_MODULE,
++		.name		= "DAC3550A driver  V " DACA_VERSION,
++	},
+ 	.id			= I2C_DRIVERID_DACA,
+ 	.attach_adapter		= daca_attach_adapter,
+ 	.detach_client		= daca_detach_client,
+--- linux-2.6.15-rc1.orig/sound/oss/dmasound/tas_common.c	2005-11-15 23:05:48.000000000 +0100
++++ linux-2.6.15-rc1/sound/oss/dmasound/tas_common.c	2005-11-15 23:06:18.000000000 +0100
+@@ -47,8 +47,10 @@
+ static int tas_detach_client(struct i2c_client *);
+ 
+ struct i2c_driver tas_driver = {
+-	.owner		= THIS_MODULE,
+-	.name		= "tas",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "tas",
++	},
+ 	.attach_adapter	= tas_attach_adapter,
+ 	.detach_client	= tas_detach_client,
  };
---- linux-2.6.15-rc1.orig/include/linux/i2c.h	2005-11-14 22:31:06.000000000 +0100
-+++ linux-2.6.15-rc1/include/linux/i2c.h	2005-11-15 23:05:41.000000000 +0100
-@@ -252,11 +252,6 @@
- 
- /*flags for the driver struct: */
- #define I2C_DF_NOTIFY	0x01		/* notify on bus (de/a)ttaches 	*/
--#if 0
--/* this flag is gone -- there is a (optional) driver->detach_adapter
-- * callback now which can be used instead */
--# define I2C_DF_DUMMY	0x02
--#endif
- 
- /*flags for the client struct: */
- #define I2C_CLIENT_ALLOW_USE		0x01	/* Client allows access */
 
 -- 
 Jean Delvare
