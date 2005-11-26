@@ -1,37 +1,41 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Mon, 07 Nov 2005 17:45:40 +0000
-Subject: [lm-sensors] ADM1026
-Message-Id: <436F8492.2010903@penguincomputing.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 26 Nov 2005 20:50:05 +0000
+Subject: [lm-sensors] [PATCH 17/25] i2c: Drop i2c_driver.{owner, name},
+Message-Id: <20051126205106.154b3d4d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3E9446D4.8080905@netroedge.com>
-In-Reply-To: <3E9446D4.8080905@netroedge.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The battery input is in10...
+From: Laurent Riffard <laurent.riffard@free.fr>
+Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-08-acorn.patch
 
-You may want to check out the sample config in doc/chips/adm1026
+We should use the i2c_driver.driver's .name and .owner fields
+instead of the i2c_driver's ones.
 
-:v)
+This patch updates the drivers for acorn arch.
 
-Stefano Baglioni wrote:
+Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/acorn/char/pcf8583.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
->Hi.
->
->I have a pc with Linux Kernel 2.4.24 using lm_sensors for ADM1026 handling.
->
->What is the procedure to read the Vbat input information on ADM1026 register?
->
->Thanks
->
->Stefano Baglioni
->
->_______________________________________________
->lm-sensors mailing list
->lm-sensors@lm-sensors.org
->http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->  
->
+--- linux-2.6.15-rc1.orig/drivers/acorn/char/pcf8583.c	2005-11-13 10:51:02.000000000 +0100
++++ linux-2.6.15-rc1/drivers/acorn/char/pcf8583.c	2005-11-13 12:26:38.000000000 +0100
+@@ -257,7 +257,10 @@
+ }
+ 
+ static struct i2c_driver pcf8583_driver = {
+-	.name		= "PCF8583",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "PCF8583",
++	},
+ 	.id		= I2C_DRIVERID_PCF8583,
+ 	.attach_adapter	= pcf8583_probe,
+ 	.detach_client	= pcf8583_detach,
 
+-- 
+Jean Delvare
