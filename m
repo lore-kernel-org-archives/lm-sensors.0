@@ -1,172 +1,53 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 26 Nov 2005 20:33:05 +0000
-Subject: [lm-sensors] [PATCH 10/25] i2c: Drop i2c_driver.{owner, name},
-Message-Id: <20051126203405.438b6713.khali@linux-fr.org>
+Date: Sat, 26 Nov 2005 20:54:34 +0000
+Subject: [lm-sensors] [PATCH 20/25] i2c: Drop i2c_driver.{owner, name},
+Message-Id: <20051126205535.7a7f6a76.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Laurent Riffard <laurent.riffard@free.fr>
-Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-01-core.patch
+Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-11-documentation.patch
 
-We should use the i2c_driver.driver's .name and .owner fields
-instead of the i2c_driver's ones.
+Document the drop of the owner and name fields of the i2c_driver
+structure.
 
-This patch updates the core of the i2c drivers: it removes .name and
-.owner fields from the struct i2c_device and modify various
-functions to use struct device fields instead.
-
-Signed-off-by: Laurent Riffard <laurent.riffard@free.fr>
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+CC: Laurent Riffard <laurent.riffard@free.fr>
 ---
- drivers/i2c/busses/i2c-isa.c |    4 +---
- drivers/i2c/i2c-core.c       |   22 +++++++++++-----------
- drivers/i2c/i2c-dev.c        |    6 ++++--
- include/linux/i2c.h          |    5 +++--
- 4 files changed, 19 insertions(+), 18 deletions(-)
+ Documentation/i2c/porting-clients |    4 ++++
+ Documentation/i2c/writing-clients |    6 ++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- linux-2.6.15-rc2.orig/drivers/i2c/busses/i2c-isa.c	2005-11-25 22:42:38.000000000 +0100
-+++ linux-2.6.15-rc2/drivers/i2c/busses/i2c-isa.c	2005-11-26 13:45:24.000000000 +0100
-@@ -92,8 +92,6 @@
- 	int res;
+--- linux-2.6.15-rc2.orig/Documentation/i2c/porting-clients	2005-11-20 11:23:58.000000000 +0100
++++ linux-2.6.15-rc2/Documentation/i2c/porting-clients	2005-11-20 11:31:02.000000000 +0100
+@@ -111,6 +111,10 @@
  
- 	/* Add the driver to the list of i2c drivers in the driver core */
--	driver->driver.name = driver->name;
--	driver->driver.owner = driver->owner;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_isa_device_probe;
- 	driver->driver.remove = i2c_isa_device_remove;
-@@ -124,7 +122,7 @@
- 		if ((res = driver->detach_client(client))) {
- 			dev_err(&isa_adapter.dev, "Failed, driver "
- 				"%s not unregistered!\n",
--				driver->name);
-+				driver->driver.name);
- 			return res;
- 		}
- 	}
---- linux-2.6.15-rc2.orig/drivers/i2c/i2c-core.c	2005-11-26 13:42:27.000000000 +0100
-+++ linux-2.6.15-rc2/drivers/i2c/i2c-core.c	2005-11-26 13:45:24.000000000 +0100
-@@ -235,7 +235,8 @@
- 		if (driver->detach_adapter)
- 			if ((res = driver->detach_adapter(adap))) {
- 				dev_err(&adap->dev, "detach_adapter failed "
--					"for driver [%s]\n", driver->name);
-+					"for driver [%s]\n",
-+					driver->driver.name);
- 				goto out_unlock;
- 			}
- 	}
-@@ -295,8 +296,6 @@
- 	down(&core_lists);
+ * [Driver] The flags field of the i2c_driver structure is gone.
+   I2C_DF_NOTIFY is now the default behavior.
++  The i2c_driver structure has a driver member, which is itself a
++  structure, those owner and name members should be initialized to
++  THIS_MODULE and a driver name string, respectively. i2c_driver
++  itself has no name member anymore.
  
- 	/* add the driver to the list of i2c drivers in the driver core */
--	driver->driver.owner = driver->owner;
--	driver->driver.name = driver->name;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_device_probe;
- 	driver->driver.remove = i2c_device_remove;
-@@ -306,7 +305,7 @@
- 		goto out_unlock;
- 	
- 	list_add_tail(&driver->list,&drivers);
--	pr_debug("i2c-core: driver [%s] registered\n", driver->name);
-+	pr_debug("i2c-core: driver [%s] registered\n", driver->driver.name);
+ Coding policy:
  
- 	/* now look for instances of driver on our adapters */
- 	if (driver->attach_adapter) {
-@@ -344,7 +343,8 @@
- 		if (driver->detach_adapter) {
- 			if ((res = driver->detach_adapter(adap))) {
- 				dev_err(&adap->dev, "detach_adapter failed "
--					"for driver [%s]\n", driver->name);
-+					"for driver [%s]\n",
-+					driver->driver.name);
- 				goto out_unlock;
- 			}
- 		} else {
-@@ -368,7 +368,7 @@
+--- linux-2.6.15-rc2.orig/Documentation/i2c/writing-clients	2005-11-20 09:29:48.000000000 +0100
++++ linux-2.6.15-rc2/Documentation/i2c/writing-clients	2005-11-20 11:30:22.000000000 +0100
+@@ -25,8 +25,10 @@
+ address.
  
- 	driver_unregister(&driver->driver);
- 	list_del(&driver->list);
--	pr_debug("i2c-core: driver [%s] unregistered\n", driver->name);
-+	pr_debug("i2c-core: driver [%s] unregistered\n", driver->driver.name);
- 
-  out_unlock:
- 	up(&core_lists);
-@@ -475,10 +475,10 @@
- static int i2c_inc_use_client(struct i2c_client *client)
- {
- 
--	if (!try_module_get(client->driver->owner))
-+	if (!try_module_get(client->driver->driver.owner))
- 		return -ENODEV;
- 	if (!try_module_get(client->adapter->owner)) {
--		module_put(client->driver->owner);
-+		module_put(client->driver->driver.owner);
- 		return -ENODEV;
- 	}
- 
-@@ -487,7 +487,7 @@
- 
- static void i2c_dec_use_client(struct i2c_client *client)
- {
--	module_put(client->driver->owner);
-+	module_put(client->driver->driver.owner);
- 	module_put(client->adapter->owner);
- }
- 
-@@ -539,14 +539,14 @@
- 	down(&adap->clist_lock);
- 	list_for_each(item,&adap->clients) {
- 		client = list_entry(item, struct i2c_client, list);
--		if (!try_module_get(client->driver->owner))
-+		if (!try_module_get(client->driver->driver.owner))
- 			continue;
- 		if (NULL != client->driver->command) {
- 			up(&adap->clist_lock);
- 			client->driver->command(client,cmd,arg);
- 			down(&adap->clist_lock);
- 		}
--		module_put(client->driver->owner);
-+		module_put(client->driver->driver.owner);
-        }
-        up(&adap->clist_lock);
- }
---- linux-2.6.15-rc2.orig/drivers/i2c/i2c-dev.c	2005-11-26 13:42:27.000000000 +0100
-+++ linux-2.6.15-rc2/drivers/i2c/i2c-dev.c	2005-11-26 13:45:24.000000000 +0100
-@@ -481,8 +481,10 @@
- }
- 
- static struct i2c_driver i2cdev_driver = {
+ static struct i2c_driver foo_driver = {
 -	.owner		= THIS_MODULE,
--	.name		= "dev_driver",
+-	.name		= "Foo version 2.3 driver",
 +	.driver = {
 +		.owner	= THIS_MODULE,
-+		.name	= "dev_driver",
++		.name	= "foo",
 +	},
- 	.id		= I2C_DRIVERID_I2CDEV,
- 	.attach_adapter	= i2cdev_attach_adapter,
- 	.detach_adapter	= i2cdev_detach_adapter,
---- linux-2.6.15-rc2.orig/include/linux/i2c.h	2005-11-26 13:45:17.000000000 +0100
-+++ linux-2.6.15-rc2/include/linux/i2c.h	2005-11-26 13:45:24.000000000 +0100
-@@ -105,11 +105,12 @@
-  * A driver is capable of handling one or more physical devices present on
-  * I2C adapters. This information is used to inform the driver of adapter
-  * events.
-+ *
-+ * The driver.owner field should be set to the module owner of this driver.
-+ * The driver.name field should be set to the name of this driver.
-  */
- 
- struct i2c_driver {
--	struct module *owner;
--	char name[32];
- 	int id;
- 	unsigned int class;
- 
+ 	.attach_adapter	= &foo_attach_adapter,
+ 	.detach_client	= &foo_detach_client,
+ 	.command	= &foo_command /* may be NULL */
 
 -- 
 Jean Delvare
