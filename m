@@ -1,39 +1,74 @@
-From: akennedy@niesc.k12.in.us (Adam Kennedy)
-Date: Fri, 11 Nov 2005 16:33:42 +0000
-Subject: [lm-sensors] ServerWorks HT-1000 sensors
-Message-Id: <4374BAC3.7050003@niesc.k12.in.us>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 26 Nov 2005 20:12:21 +0000
+Subject: [lm-sensors] [PATCH 03/25] hwmon: W83627THF VID fixes
+Message-Id: <20051126201318.0c86d9d3.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+From: Yuan Mu <ymu@winbond.com.tw>
+Content-Disposition: inline; filename=hwmon-w83627thf-fix-vrm-and-vid.patch
 
-I saw on the website that a ticket was opened by someone asking about
-HT-1000 support.
+This patch fixes the VID reading; no cpu0_vid and vrm files created if
+the chip is w83627thf and GPIO5 not enabled.
 
-I saw that donation, datasheet, etc. would be needed to write a driver.
-Unfortunately I'm pretty much not allowed to release this motherboard to
-anyone except myself and our development team. It's not officially
-released yet. However, we do need sensors support.
+Signed-off-by: Yuan Mu <ymu@winbond.com.tw>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627hf.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-What I can provide is SSH access to the machine with root. Will that
-help at all? I assume the datasheet you need is from the motherboard
-manufacturer?
+--- linux-2.6.15-rc1.orig/drivers/hwmon/w83627hf.c	2005-11-15 19:17:10.000000000 +0100
++++ linux-2.6.15-rc1/drivers/hwmon/w83627hf.c	2005-11-15 19:50:33.000000000 +0100
+@@ -1122,11 +1122,10 @@
+ 	if (kind != w83697hf)
+ 		device_create_file_temp(new_client, 3);
+ 
+-	if (kind != w83697hf)
++	if (kind != w83697hf && data->vid != 0xff) {
+ 		device_create_file_vid(new_client);
+-
+-	if (kind != w83697hf)
+ 		device_create_file_vrm(new_client);
++	}
+ 
+ 	device_create_file_fan_div(new_client, 1);
+ 	device_create_file_fan_div(new_client, 2);
+@@ -1232,7 +1231,7 @@
+ 
+ 	/* Make sure the pins are configured for input
+ 	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
+-	sel = superio_inb(W83627THF_GPIO5_IOSR);
++	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
+ 	if ((sel & 0x1f) != 0x1f) {
+ 		dev_dbg(&client->dev, "GPIO5 not configured for VID "
+ 			"function\n");
+@@ -1323,19 +1322,18 @@
+ 		int hi = w83627hf_read_value(client, W83781D_REG_CHIPID);
+ 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
+ 	} else if (w83627thf = data->type) {
+-		data->vid = w83627thf_read_gpio5(client) & 0x3f;
++		data->vid = w83627thf_read_gpio5(client);
+ 	}
+ 
+ 	/* Read VRM & OVT Config only once */
+ 	if (w83627thf = data->type || w83637hf = data->type) {
+ 		data->vrm_ovt = 
+ 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
+-		data->vrm = (data->vrm_ovt & 0x01) ? 90 : 82;
+-	} else {
+-		/* Convert VID to voltage based on default VRM */
+-		data->vrm = vid_which_vrm();
+ 	}
+ 
++	/* Convert VID to voltage based on VRM */
++	data->vrm = vid_which_vrm();
++
+ 	tmp = w83627hf_read_value(client, W83781D_REG_SCFG1);
+ 	for (i = 1; i <= 3; i++) {
+ 		if (!(tmp & BIT_SCFG1[i - 1])) {
 
-- --
-Adam Kennedy
-Digital Crossing Guard
-A Division of Northern Indiana ESC
-Linux Specialist / Network Administrator
-Phone: (574) 254-5210
-Toll Free: 866-254-5322
-Fax: (574) 254-0148
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFDdLrDV72KWYU3lA0RAglwAJ9lSQ1G74H7+IHZcqnn0ns69ELoLACgy3MO
-2pDPuY8+Uks/XKz1AE9EiYA^uZ
------END PGP SIGNATURE-----
+-- 
+Jean Delvare
