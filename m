@@ -1,45 +1,41 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 26 Nov 2005 21:05:08 +0000
-Subject: [lm-sensors] [PATCH 25/25] i2c: i2c_get_client is gone
-Message-Id: <20051126210608.5a9bd8c6.khali@linux-fr.org>
+Date: Sat, 26 Nov 2005 20:53:09 +0000
+Subject: [lm-sensors] [PATCH 19/25] i2c: Drop i2c_driver.{owner, name},
+Message-Id: <20051126205410.4305279b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-core-get-client-is-gone.patch
+Content-Disposition: inline; filename=i2c-drop-driver-owner-and-name-10-arm.patch
 
-The i2c_get_client function doesn't exist anymore, so we shouldn't
-have a definition for it in i2c.h.
+We should use the i2c_driver.driver's .name and .owner fields
+instead of the i2c_driver's ones.
+
+This patch updates the drivers for arm arch.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+CC: Laurent Riffard <laurent.riffard@free.fr>
 ---
- include/linux/i2c.h |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ arch/arm/mach-pxa/akita-ioexp.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- linux-2.6.15-rc2.orig/include/linux/i2c.h	2005-11-26 14:37:06.000000000 +0100
-+++ linux-2.6.15-rc2/include/linux/i2c.h	2005-11-26 14:43:51.000000000 +0100
-@@ -297,17 +297,8 @@
- extern int i2c_attach_client(struct i2c_client *);
- extern int i2c_detach_client(struct i2c_client *);
+--- linux-2.6.15-rc2.orig/arch/arm/mach-pxa/akita-ioexp.c	2005-11-26 14:05:30.000000000 +0100
++++ linux-2.6.15-rc2/arch/arm/mach-pxa/akita-ioexp.c	2005-11-26 14:12:20.000000000 +0100
+@@ -124,8 +124,10 @@
+ }
  
--/* New function: This is to get an i2c_client-struct for controlling the 
--   client either by using i2c_control-function or having the 
--   client-module export functions that can be used with the i2c_client
--   -struct. */
--extern struct i2c_client *i2c_get_client(int driver_id, int adapter_id, 
--					struct i2c_client *prev);
--
--/* Should be used with new function
--   extern struct i2c_client *i2c_get_client(int,int,struct i2c_client *);
--   to make sure that client-struct is valid and that it is okay to access
--   the i2c-client. 
-+/* Should be used to make sure that client-struct is valid and that it
-+   is okay to access the i2c-client.
-    returns -ENODEV if client has gone in the meantime */
- extern int i2c_use_client(struct i2c_client *);
- extern int i2c_release_client(struct i2c_client *);
+ static struct i2c_driver max7310_i2c_driver = {
+-	.owner		= THIS_MODULE,
+-	.name		= "akita-max7310",
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "akita-max7310",
++	},
+ 	.id		= I2C_DRIVERID_AKITAIOEXP,
+ 	.attach_adapter	= max7310_attach_adapter,
+ 	.detach_client	= max7310_detach_client,
 
 -- 
 Jean Delvare
