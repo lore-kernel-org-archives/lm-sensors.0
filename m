@@ -1,85 +1,105 @@
-From: Mingkun.Gu@GTECH.COM (Gu, Mingkun)
-Date: Fri, 04 Nov 2005 21:28:01 +0000
-Subject: [lm-sensors] RE: Helps: how to use i801--SMBus functions
-Message-Id: <83B4F97F11FDDF4C98DFE32FF982A96A721A9D@cspmail2.gtk.gtech.com>
+From: gregkh@suse.de (gregkh@suse.de)
+Date: Mon, 28 Nov 2005 23:28:57 +0000
+Subject: [lm-sensors] patch hwmon-w83627thf-fix-vrm-and-vid.patch added to
+Message-Id: <1EgrP0-3C3-00@press.kroah.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Rudolf,
 
-Thanks for your reply. I've managed to access the ICH6 SMBus controller
-with 
-the i2c-i801 and i2c-dev modules. But I got some other problems as
-follows:
+This is a note to let you know that I've just added the patch titled
 
-a) When I issued a command with size=I2C_SMBUS_QUICK first time, I got
-successful return (>0) of function call to ioctl(). Then I tried to
-issue a command with size=I2C_SMBUS_BYTE or I2C_SMBUS_BYTE_DATA, I got
-an unsuccessful return (<=0) of function call to ioctl(). I saw one or
-more of the following error messages:
+     Subject: [PATCH 03/25] hwmon: W83627THF VID fixes
 
-"Error: no response!"
-"SMBus timeout"
-"Bus collision! SMBus may be locked until next hard reset. (sorry!)", or
-"SMBus busy (01). Resetting..."
-"Failed! (01)" 
+to my gregkh-2.6 tree.  Its filename is
 
-b) After I saw the above error messages, I was unable to access the
-registers of the SMBus controller. 
+     hwmon-w83627thf-fix-vrm-and-vid.patch
 
-Any ideas about the causes for these error messages and how I can
-prevent these errors?
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
 
-Thanks.
-MK
+Patches currently in gregkh-2.6 which might be from khali@linux-fr.org are
+
+i2c/hwmon-adm1025-adm1026-remove-deprecated-symbols.patch
+i2c/i2c-ds1337-init.patch
+i2c/i2c-i801-explicitly-set-smbauxctl.patch
+i2c/hwmon-lm85-adt7463-vrm-10.patch
+i2c/hwmon-vt8231-new-driver.patch
+i2c/hwmon-w83627thf-fix-vrm-and-vid.patch
+i2c/hwmon-w83627thf-vid-documentation-update.patch
+i2c/i2c-parport-barco-ltp-dvi.patch
+i2c/i2c-rtc8564-remove-duplicate-bcd-macros.patch
+
+
+From khali@linux-fr.org Sat Nov 26 19:23:50 2005
+Date: Sat, 26 Nov 2005 20:13:18 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Greg KH <greg@kroah.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, Yuan Mu <ymu@winbond.com.tw>
+Subject: [PATCH 03/25] hwmon: W83627THF VID fixes
+Message-Id: <20051126201318.0c86d9d3.khali@linux-fr.org>
+Content-Disposition: inline; filename=hwmon-w83627thf-fix-vrm-and-vid.patch
+
+From: Yuan Mu <ymu@winbond.com.tw>
+
+This patch fixes the VID reading; no cpu0_vid and vrm files created if
+the chip is w83627thf and GPIO5 not enabled.
+
+Signed-off-by: Yuan Mu <ymu@winbond.com.tw>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ drivers/hwmon/w83627hf.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
+
+--- gregkh-2.6.orig/drivers/hwmon/w83627hf.c
++++ gregkh-2.6/drivers/hwmon/w83627hf.c
+@@ -1122,11 +1122,10 @@ static int w83627hf_detect(struct i2c_ad
+ 	if (kind != w83697hf)
+ 		device_create_file_temp(new_client, 3);
  
------Original Message-----
-From: Rudolf Marek [mailto:r.marek@sh.cvut.cz] 
-Sent: Friday, November 04, 2005 3:48 PM
-To: Gu, Mingkun
-Cc: lm-sensors@lm-sensors.org
-Subject: Re: [lm-sensors] RE: Helps: how to use i801--SMBus functions
-viai2c-dev module in Linux?
-
-Gu, Mingkun wrote:
-> Could anyone advise how I can make use i2c-i801 and/or i2c-dev to
-access
-> ICH6 SMBus controller on a PC motherboard? I have Linux 2.6.10 and
-> loaded i2c-core, i2c-i801and i2c-dev modules. lsmod command gave me
-the
-> following info:
-
-> 
-> It seems that i2c-i801 is not used by other modules.
-
-This is OK.
-
-If I understand it correctly all you want is to create the _userspace_
-program that will send commands to the specific device on the bus.
-If so please have a look to linux-2.6.x/Documentation/i2c/dev-interface
-
-
-Further example could be found in lm-sensors package.
-i2cdump.c   i2cset.c etc...
-
-I hope this helps,
-
-Regards
-Rudolf
-
-
------------------------------------------
-This email may contain confidential and privileged material for the
-sole use of the intended recipient(s). Any review, use, retention,
-distribution or disclosure by others is strictly prohibited. If you are
-not the intended recipient (or authorized to receive for the
-recipient), please contact the sender by reply email and delete all
-copies of this message. Also, email is susceptible to data corruption,
-interception, tampering, unauthorized amendment and viruses. We only
-send and receive emails on the basis that we are not liable for any
-such corruption, interception, tampering, amendment or viruses or any
-consequence thereof.
-
+-	if (kind != w83697hf)
++	if (kind != w83697hf && data->vid != 0xff) {
+ 		device_create_file_vid(new_client);
+-
+-	if (kind != w83697hf)
+ 		device_create_file_vrm(new_client);
++	}
+ 
+ 	device_create_file_fan_div(new_client, 1);
+ 	device_create_file_fan_div(new_client, 2);
+@@ -1232,7 +1231,7 @@ static int w83627thf_read_gpio5(struct i
+ 
+ 	/* Make sure the pins are configured for input
+ 	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
+-	sel = superio_inb(W83627THF_GPIO5_IOSR);
++	sel = superio_inb(W83627THF_GPIO5_IOSR) & 0x3f;
+ 	if ((sel & 0x1f) != 0x1f) {
+ 		dev_dbg(&client->dev, "GPIO5 not configured for VID "
+ 			"function\n");
+@@ -1323,19 +1322,18 @@ static void w83627hf_init_client(struct 
+ 		int hi = w83627hf_read_value(client, W83781D_REG_CHIPID);
+ 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
+ 	} else if (w83627thf = data->type) {
+-		data->vid = w83627thf_read_gpio5(client) & 0x3f;
++		data->vid = w83627thf_read_gpio5(client);
+ 	}
+ 
+ 	/* Read VRM & OVT Config only once */
+ 	if (w83627thf = data->type || w83637hf = data->type) {
+ 		data->vrm_ovt = 
+ 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
+-		data->vrm = (data->vrm_ovt & 0x01) ? 90 : 82;
+-	} else {
+-		/* Convert VID to voltage based on default VRM */
+-		data->vrm = vid_which_vrm();
+ 	}
+ 
++	/* Convert VID to voltage based on VRM */
++	data->vrm = vid_which_vrm();
++
+ 	tmp = w83627hf_read_value(client, W83781D_REG_SCFG1);
+ 	for (i = 1; i <= 3; i++) {
+ 		if (!(tmp & BIT_SCFG1[i - 1])) {
