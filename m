@@ -1,39 +1,115 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 29 Nov 2005 03:31:57 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 29 Nov 2005 14:50:28 +0000
 Subject: [lm-sensors] RE: [PATCH] Misc cleanups to the w83792d driver
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7B763@weshml03.winbond.com.tw>
+Message-Id: <rhyDwr8N.1133272156.1660620.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051128193452.2d474a8d.khali@linux-fr.org>
 In-Reply-To: <20051128193452.2d474a8d.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKSXQgU2VlbXMgT0sgOikKSG93IGFib3V0IGluX2NvdW50X2Zyb21fcmVnIGZ1bmN0
-aW9uLCB3b3VsZCB5b3UgcGxlYXNlIHNpbXBsaWZ5IHRoaXMKZnVuY3Rpb24gaWYgeW91IGFsc28g
-dGhpbmsgaXQgd29ydGggdG8gZG8uCkkgdGhpbmsgZ2V0IGxvdyBiaXRzIGRvIG5vdCBuZWVkIHNv
-IG11Y2ggY29kZS4KVGhhbmtzLgoKQmVzdCBSZWdhcmRzCll1YW4gTXUKCgoKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
-dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBz
-ZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
-ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
-aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNl
-bmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJv
-bSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29w
-ZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5h
-dXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBz
-dHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJy
-ZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVt
-ZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5h
-YmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBt
-ZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdp
-dmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat
-7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6m
-XaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRI
-qMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn
-2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FL
-uOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSj
-sW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
+Hi Yuan,
+
+On 2005-11-29, Yuan Mu wrote:
+> It Seems OK :)
+> How about in_count_from_reg function, would you please simplify this
+> function if you also think it worth to do.
+> I think get low bits do not need so much code.
+
+What about the attached patch? Please test it, if it works OK for you
+I'll get it applied.
+
+--
+Jean Delvare
+-------------- next part --------------
+Content-Disposition: inline; filename=hwmon-w83792d-simplify-in-low-bits.patch
+
+Simplify the way the w83792d driver handles the extra resolution
+bits of voltage input channels.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+ drivers/hwmon/w83792d.c |   48 ++++++++++--------------------------------------
+ 1 files changed, 10 insertions(+), 38 deletions(-)
+
+--- linux-2.6.15-rc2.orig/drivers/hwmon/w83792d.c	2005-11-29 12:58:37.000000000 +0100
++++ linux-2.6.15-rc2/drivers/hwmon/w83792d.c	2005-11-29 14:47:36.000000000 +0100
+@@ -281,7 +281,7 @@
+ 	u8 in[9];		/* Register value */
+ 	u8 in_max[9];		/* Register value */
+ 	u8 in_min[9];		/* Register value */
+-	u8 low_bits[2];		/* Additional resolution to voltage in0-6 */
++	u16 low_bits;		/* Additional resolution to voltage in6-0 */
+ 	u8 fan[7];		/* Register value */
+ 	u8 fan_min[7];		/* Register value */
+ 	u8 temp1[3];		/* current, over, thyst */
+@@ -324,38 +324,10 @@
+ 	.detach_client = w83792d_detach_client,
+ };
+ 
+-static long in_count_from_reg(int nr, struct w83792d_data *data)
++static inline long in_count_from_reg(int nr, struct w83792d_data *data)
+ {
+-	u16 vol_count = data->in[nr];
+-	u16 low_bits = 0;
+-	vol_count = (vol_count << 2);
+-	switch (nr)
+-	{
+-	case 0:  /* vin0 */
+-		low_bits = (data->low_bits[0]) & 0x03;
+-		break;
+-	case 1:  /* vin1 */
+-		low_bits = ((data->low_bits[0]) & 0x0c) >> 2;
+-		break;
+-	case 2:  /* vin2 */
+-		low_bits = ((data->low_bits[0]) & 0x30) >> 4;
+-		break;
+-	case 3:  /* vin3 */
+-		low_bits = ((data->low_bits[0]) & 0xc0) >> 6;
+-		break;
+-	case 4:  /* vin4 */
+-		low_bits = (data->low_bits[1]) & 0x03;
+-		break;
+-	case 5:  /* vin5 */
+-		low_bits = ((data->low_bits[1]) & 0x0c) >> 2;
+-		break;
+-	case 6:  /* vin6 */
+-		low_bits = ((data->low_bits[1]) & 0x30) >> 4;
+-	default:
+-		break;
+-	}
+-	vol_count = vol_count | low_bits;
+-	return vol_count;
++	/* in7 and in8 do not have low bits, but the formula still works */
++	return ((data->in[nr] << 2) | ((data->low_bits >> (2 * nr)) & 0x03));
+ }
+ 
+ /* following are the sysfs callback functions */
+@@ -1484,10 +1456,10 @@
+ 			data->in_min[i] = w83792d_read_value(client,
+ 						W83792D_REG_IN_MIN[i]);
+ 		}
+-		data->low_bits[0] = w83792d_read_value(client,
+-						W83792D_REG_LOW_BITS1);
+-		data->low_bits[1] = w83792d_read_value(client,
+-						W83792D_REG_LOW_BITS2);
++		data->low_bits = w83792d_read_value(client,
++						W83792D_REG_LOW_BITS1) +
++				 (w83792d_read_value(client,
++						W83792D_REG_LOW_BITS2) << 8);
+ 		for (i = 0; i < 7; i++) {
+ 			/* Update the Fan measured value and limits */
+ 			data->fan[i] = w83792d_read_value(client,
+@@ -1599,8 +1571,8 @@
+ 		dev_dbg(dev, "vin[%d] max is: 0x%x\n", i, data->in_max[i]);
+ 		dev_dbg(dev, "vin[%d] min is: 0x%x\n", i, data->in_min[i]);
+ 	}
+-	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits[0]);
+-	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits[1]);
++	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits & 0xff);
++	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits >> 8);
+ 	dev_dbg(dev, "7 set of Fan Counts and Duty Cycles: ===>\n");
+ 	for (i=0; i<7; i++) {
+ 		dev_dbg(dev, "fan[%d] is: 0x%x\n", i, data->fan[i]);
