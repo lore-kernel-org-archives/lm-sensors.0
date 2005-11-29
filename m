@@ -1,101 +1,49 @@
-From: belle@bazuin.nl (L.P.H. van Belle)
-Date: Tue, 29 Nov 2005 10:18:33 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Tue, 29 Nov 2005 10:52:16 +0000
 Subject: [lm-sensors] Asus P4S533-E need help with CPU Fan.
-Message-Id: <200511290918.jAT9IPZ10439@engine.bazuin.nl>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7B84F@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200511290918.jAT9IPZ10439@engine.bazuin.nl>
+In-Reply-To: <200511290918.jAT9IPZ10439@engine.bazuin.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-
-Im running Debian Sarge with kernel 2.6.12 from testing.
-This is on a asus P4S533-E mainboard.
-
-Everything execpt 1 is running fine, so is there somebody who
-know's how to get the CPU Fan speed out of this.
-I checked the bios hardware monitor and 
-there is a Fan Speed (running at 2549 RPM)
-
-and yes there is "ignore fan1" => 3, but when i enable it ( all three ) 
-the output is 0
-
-i need help with this one.
-So if somebody knows the solution .. 
-please.. 
-
-this is my config and output now:
-
-as99127f-i2c-0-2d
-Adapter: SiS96x SMBus adapter at 0xe600
-VCore:     +1.55 V  (min =  +1.44 V, max =  +1.60 V)
-+3.3V:     +3.30 V  (min =  +3.14 V, max =  +3.46 V)
-+5V:       +5.00 V  (min =  +4.73 V, max =  +5.24 V)
-+12V:     +11.19 V  (min = +11.37 V, max = +12.59 V)       ALARM  => 
-=> ignore this, is under control, i need a new Powersupply ;-)
-
-M/B Temp:    +31?C  (high =   +45?C, hyst =   +38?C)
-SYS Temp:  +32.0?C  (high =   +52?C, hyst =   +47?C)
-CPU Temp:  +48.0?C  (high =   +62?C, hyst =   +56?C)
-vid:      +1.525 V  (VRM Version 9.0)
-alarms:
-beep_enable:
-          Sound alarm disabled
-
-
-/etc/sensors.conf
-### for ASUS P4S533-E
-chip "as99127f-*"
-    label in0 "VCore"
-    ignore in1
-    label in2 "+3.3V"
-    label in3 "+5V"
-    label in4 "+12V"
-    ignore in5
-    ignore in6
-
-    compute in3 ((6.8/10)+1)*@ ,  @/((6.8/10)+1)
-    compute in4 ((28/10)+1)*@  ,  @/((28/10)+1)
-    compute in5 -(240/60.4)*@ ,  -@/(240/60.4)
-    compute in6 -(90.9/60.4)*@ ,  -@/(90.9/60.4)
-
-    label temp1 "M/B Temp"
-    label temp2 "SYS Temp"
-	## TEMP2 ?? is this System temp ? 
-    label temp3 "CPU Temp"
-    compute temp3  @/2,  2*@
-
-# set limits to  5% for the critical voltages
-# set limits to 10% for the non-critical voltages
-# set limits to 20% for the battery voltage
-
-    set in0_min vid*0.95
-    set in0_max vid*1.05
-    set in1_min vid*0.95
-    set in1_max vid*1.05
-    set in2_min 3.3 * 0.95
-    set in2_max 3.3 * 1.05
-    set in3_min 5.0 * 0.95
-    set in3_max 5.0 * 1.05
-    set in4_min 12 * 0.95
-    set in4_max 12 * 1.05
-
-    set temp1_over 45
-    set temp1_hyst 38
-    set temp2_over 52
-    set temp2_hyst 47
-    set temp3_over 63
-    set temp3_hyst 56
-
-#   set sensor1 1
-#   set sensor2 2
-#   set sensor3 3435
-
-    ignore fan1
-    ignore fan2
-    ignore fan3
-
-    set beep_enable 0
---
-*** Bazuin & Partners Managed E-mail Filter scanned this email for viruses ***
+SGVsbG8sCgo+IAo+IEltIHJ1bm5pbmcgRGViaWFuIFNhcmdlIHdpdGgga2VybmVsIDIuNi4xMiBm
+cm9tIHRlc3RpbmcuCj4gVGhpcyBpcyBvbiBhIGFzdXMgUDRTNTMzLUUgbWFpbmJvYXJkLgo+IAo+
+IEV2ZXJ5dGhpbmcgZXhlY3B0IDEgaXMgcnVubmluZyBmaW5lLCBzbyBpcyB0aGVyZSBzb21lYm9k
+eSB3aG8KPiBrbm93J3MgaG93IHRvIGdldCB0aGUgQ1BVIEZhbiBzcGVlZCBvdXQgb2YgdGhpcy4K
+PiBJIGNoZWNrZWQgdGhlIGJpb3MgaGFyZHdhcmUgbW9uaXRvciBhbmQKPiB0aGVyZSBpcyBhIEZh
+biBTcGVlZCAocnVubmluZyBhdCAyNTQ5IFJQTSkKPiAKPiBhbmQgeWVzIHRoZXJlIGlzICJpZ25v
+cmUgZmFuMSIgPT4gMywgYnV0IHdoZW4gaSBlbmFibGUgaXQgKCBhbGwgdGhyZWUKKQo+IHRoZSBv
+dXRwdXQgaXMgMAo+CgpTaW5jZSBJIGtub3cgYWxtb3N0IG5vdGhpbmcgYWJvdXQgdGhpcyBjaGlw
+LCBJIHdvdWxkIGdpdmUgeW91IHR3byBsaW5rcwoKaHR0cDovL3d3dzIubG0tc2Vuc29ycy5udS9+
+bG03OC9jdnMvbG1fc2Vuc29yczIvZG9jL2xtX3NlbnNvcnMtRkFRLmh0bWwjClNlY3Rpb24tNF8w
+MDJlMQpEaWQgeW91IHNldCB0aGUgZmFuMV9kaXYgcHJvcGVybHk/IFRyeSBlY2hvIDggPgovc3lz
+L2J1cy9pMmMvZGV2aWNlcy8wLTAwMmQvZmFuMV9kaXYKCkFub3RoZXIgbGluazoKaHR0cDovL3d3
+dzIubG0tc2Vuc29ycy5udS9+bG03OC9jdnMvbG1fc2Vuc29yczIvZG9jL2xtX3NlbnNvcnMtRkFR
+Lmh0bWwjClNlY3Rpb24tNF8wMDJlMTYKCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCgo9PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29u
+ZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVk
+IGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdp
+bmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGlu
+ZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5
+IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0
+aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBp
+dCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3Vy
+IGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFu
+eSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25k
+IGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFp
+bCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJl
+IGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBp
+cyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93
+aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xp
+c2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbI
+scLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtI
+pEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1
+b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZY
+p0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyq
+ur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6
+rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
