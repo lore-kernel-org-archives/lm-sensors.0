@@ -1,39 +1,37 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 29 Nov 2005 04:34:44 +0000
-Subject: [lm-sensors] [PATCH] hwmon: w83792d fix unused fan pins
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7B7A0@weshml03.winbond.com.tw>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 29 Nov 2005 15:06:49 +0000
+Subject: [lm-sensors] Re: [PATCH] hwmon: w83792d fix unused fan pins
+Message-Id: <AVmfoR1y.1133273164.0283370.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECEB7B7A0@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEB7B7A0@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGksIEplYW4sClRoaXMgaXMgdGhlIHBhdGNoIHdlIGhhdmUgZGlzY3Vzc2VkLCBwbGVhc2UgY2hl
-Y2ssIHRoYW5rIHlvdSBhbGwgOikKCjEuVGhpcyBwYXRjaCBhZGQgY2hlY2sgZm9yIGZhbjQsNSw2
-LDcgYW5kIGRvIG5vdCBjcmVhdGUgZGV2aWNlIGZpbGUgaWYKdGhlaXIKICBQaW5zIGFyZSBub3Qg
-Y29uZmlndXJlZCBhcyBmYW4uCjIuRml4IHRoZSBpc3N1ZSB0aGF0IGNhbiBub3Qgc2V0IGZhbiBk
-aXZpc29yIHRvIDEyOC4KMy5GaXggdGhlIGluZGV4IG91dCBvZiBib3VuZHMgYnVnIGluIHc4Mzc5
-MmRfZGV0ZWN0IGZ1bmN0aW9uLgoKQmVzdCBSZWdhcmRzCll1YW4gTXUKCgoKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
-dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBz
-ZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
-ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
-aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNl
-bmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJv
-bSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29w
-ZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5h
-dXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBz
-dHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJy
-ZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVt
-ZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5h
-YmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBt
-ZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdp
-dmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat
-7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6m
-XaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRI
-qMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn
-2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FL
-uOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSj
-sW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCg==
+
+Hi Yuan,
+
+On 2005-11-29, Yuan Mu wrote:
+> This is the patch we have discussed, please check, thank you all :)
+>
+> 1. This patch add check for fan4,5,6,7 and do not create device file if
+>    their pins are not configured as fan.
+> 2. Fix the issue that can not set fan divisor to 128.
+> 3. Fix the index out of bounds bug in w83792d_detect function.
+
+Looks good, I'll apply that. Thanks!
+
+Please note that the list didn't receive your patch, because you did not
+use the proper attachement type. You used application/octet-stream
+(binary) while the list only accepts text types (text/plain,
+text/x-patch, text/x-diff). Please use the proper type next time. Your
+e-mail client may pick the correct type for you if the file name
+includes an extension (e.g. fix_fan_pins_divs_w83792d.patch instead of
+patch_fix_fan_pins_divs_w83792d). Or you may even have to add ".txt"
+to the name (like I just did for my previous post, because by braindead
+webmail client doesn't recognize .patch and .diff as text extensions.)
+
+--
+Jean Delvare
