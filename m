@@ -1,52 +1,59 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 29 Nov 2005 03:22:15 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Tue, 29 Nov 2005 17:48:36 +0000
 Subject: [lm-sensors] How to support 2.6.9 kernel with w83792d driver
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7B75F@weshml03.winbond.com.tw>
+Message-Id: <438C8663.8080100@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECEB7B75F@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEB7B75F@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmLApOaWNlIHRvIHNlZSB5b3UgYWdhaW4sIEkgdGhpbmsgeW91IGhhdmUgZ29uZSBi
-YWNrIHRvIHlvdXIgaG9tZXRvd24gdGhlc2UKZGF5cywgc28gSSBkaWQgbm90IHJlc2VuZCB0aGF0
-IG1haWwgOykKCkkgaGF2ZSBvbmUgcXVlc3Rpb24gdG8gYXNrIHlvdSwoSSBoYXZlIHNvIG1hbnkg
-cXVlc3Rpb25zIC4uLikKCldlIGp1c3QgcmVjZWl2ZWQgYSByZXF1ZXN0IGZyb20gb3VyIGN1c3Rv
-bWVyIEFTVVMgYW5kIHRoZXkgd291bGQgbGlrZSB0bwp1c2UgNzkyRCBsbS1zZW5zb3IgZHJpdmVy
-IG9uIFJlZGhhdCBFbnRlcnByaXNlIEVkaXRpb24gV29ya3N0YXRpb24KVXBkYXRlIDIgd2l0aCBr
-ZXJuZWwgMi42LjkuIFRoZSBvcmlnaW5hbCA3OTJEIGRyaXZlciBDaHVuaGFvIGltcGxlbWVudGVk
-CmRpZCB3b3JrIG9uIDIuNi4xMCBrZXJuZWwgYnV0IGl0IHF1aXR0ZWQgd29ya2luZyBvbiAyLjYu
-OSAodGhlIG9uZQpSZWRoYXQgdXNlcyBmb3IgRW50ZXJwcmlzZSBlZGl0aW9uKS4gSSBtYWRlIHNv
-bWUgdGlueSBtb2RpZmljYXRpb24gdG8Kb3JpZ2luYWwgZHJpdmVyIGFuZCBpdCB3b3JrcyBub3cu
-CgpNeSBxdWVzdGlvbiBpcyB0aGF0IHNob3VsZCB3ZSBzZW5kIHRoaXMgcGF0Y2ggdG8geW91PyBB
-cyBmYXIgYXMgSSBrbm93LAp0aGVyZSBhcmUgc29tZSBjaGFuZ2VzIGluIGxtLXNlbnNvciBhcmNo
-aXRlY3R1cmUgYXMgb2YgMi42LjE0IGtlcm5lbC4KVGhlIHBhdGNoIHNob3VsZCBiZSBhcHBsaWVk
-IHRvIHRoZSBPUklHSU5BTCBzb3VyY2UgQ2h1bmhhbyBzdWJtaXR0ZWQKaW5zdGVhZCBvZiB0aGUg
-bmV3ZXN0IG9uZS4gV2hhdCdzIHlvdXIgb3BpbmlvbiBvbiB0aGlzIGlzc3VlPyBNYW55IG9mCkFT
-VVMgY3VzdG9tZXJzIG1pZ2h0IHVzZSBSZWRoYXQgRW50ZXJwcmlzZSBlZGl0aW9uIGluc3RlYWQg
-b2YgZnJlZQpGZWRvcmEgY29yZSBzbyB0aGF0IGl0IHdvdWxkIGJlIGEgZ29vZCBpZGVhIGlmIHdl
-IGNhbiBmaWd1cmUgb3V0IHRoaXMKYmVmb3JlIHRoZSByZWFsIHByb2JsZW0gY29tZXMuCgoKQmVz
-dCBSZWdhcmRzCll1YW4gTXUKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5l
-ZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2Vl
-cyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5
-b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBu
-b3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNv
-biwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0
-IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdv
-cmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNp
-YXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBh
-bnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBi
-dXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBl
-bmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9u
-dCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVw
-ZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdio
-ublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFyk
-p6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafO
-pKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm
-+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0
-pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrou
-IKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06o
-oy4K
+Hello,
+> Hi Rudolf,
+> Nice to see you again, I think you have gone back to your hometown these
+> days, so I did not resend that mail ;)
+
+I'm going there regulary every weekend.
+
+> I have one question to ask you,(I have so many questions ...)
+
+Well why not... :)
+
+> 
+> We just received a request from our customer ASUS and they would like to
+> use 792D lm-sensor driver on Redhat Enterprise Edition Workstation
+> Update 2 with kernel 2.6.9. The original 792D driver Chunhao implemented
+> did work on 2.6.10 kernel but it quitted working on 2.6.9 (the one
+> Redhat uses for Enterprise edition). I made some tiny modification to
+> original driver and it works now.
+
+
+OK I once told TeCheng that I have also some backport which can be found here:
+http://www.assembler.cz/download/w83792d/
+
+If you did backport the driver please consider applying the
+http://www.assembler.cz/download/w83792d/04-fix-disabled-subclients
+
+For sure, and optionally the:
+http://www.assembler.cz/download/w83792d/03-cleanups (or check what is really wrong)
+
+Plus dont forget your recent fixes.
+
+> My question is that should we send this patch to you? As far as I know,
+> there are some changes in lm-sensor architecture as of 2.6.14 kernel.
+> The patch should be applied to the ORIGINAL source Chunhao submitted
+> instead of the newest one. What's your opinion on this issue? Many of
+> ASUS customers might use Redhat Enterprise edition instead of free
+> Fedora core so that it would be a good idea if we can figure out this
+> before the real problem comes.
+
+I can put it to that website as another version of the driver and link this page from lm-sensors
+if you want.
+
+My backport is without your recent fixes so I will fix it someday too...
+
+I hope this helps, If anything more let me know.
+Regards
+Rudolf
