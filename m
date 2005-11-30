@@ -1,115 +1,48 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 29 Nov 2005 14:50:28 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Wed, 30 Nov 2005 07:43:55 +0000
 Subject: [lm-sensors] RE: [PATCH] Misc cleanups to the w83792d driver
-Message-Id: <rhyDwr8N.1133272156.1660620.khali@localhost>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7B947@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051128193452.2d474a8d.khali@linux-fr.org>
 In-Reply-To: <20051128193452.2d474a8d.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Yuan,
-
-On 2005-11-29, Yuan Mu wrote:
-> It Seems OK :)
-> How about in_count_from_reg function, would you please simplify this
-> function if you also think it worth to do.
-> I think get low bits do not need so much code.
-
-What about the attached patch? Please test it, if it works OK for you
-I'll get it applied.
-
---
-Jean Delvare
--------------- next part --------------
-Content-Disposition: inline; filename=hwmon-w83792d-simplify-in-low-bits.patch
-
-Simplify the way the w83792d driver handles the extra resolution
-bits of voltage input channels.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-
- drivers/hwmon/w83792d.c |   48 ++++++++++--------------------------------------
- 1 files changed, 10 insertions(+), 38 deletions(-)
-
---- linux-2.6.15-rc2.orig/drivers/hwmon/w83792d.c	2005-11-29 12:58:37.000000000 +0100
-+++ linux-2.6.15-rc2/drivers/hwmon/w83792d.c	2005-11-29 14:47:36.000000000 +0100
-@@ -281,7 +281,7 @@
- 	u8 in[9];		/* Register value */
- 	u8 in_max[9];		/* Register value */
- 	u8 in_min[9];		/* Register value */
--	u8 low_bits[2];		/* Additional resolution to voltage in0-6 */
-+	u16 low_bits;		/* Additional resolution to voltage in6-0 */
- 	u8 fan[7];		/* Register value */
- 	u8 fan_min[7];		/* Register value */
- 	u8 temp1[3];		/* current, over, thyst */
-@@ -324,38 +324,10 @@
- 	.detach_client = w83792d_detach_client,
- };
- 
--static long in_count_from_reg(int nr, struct w83792d_data *data)
-+static inline long in_count_from_reg(int nr, struct w83792d_data *data)
- {
--	u16 vol_count = data->in[nr];
--	u16 low_bits = 0;
--	vol_count = (vol_count << 2);
--	switch (nr)
--	{
--	case 0:  /* vin0 */
--		low_bits = (data->low_bits[0]) & 0x03;
--		break;
--	case 1:  /* vin1 */
--		low_bits = ((data->low_bits[0]) & 0x0c) >> 2;
--		break;
--	case 2:  /* vin2 */
--		low_bits = ((data->low_bits[0]) & 0x30) >> 4;
--		break;
--	case 3:  /* vin3 */
--		low_bits = ((data->low_bits[0]) & 0xc0) >> 6;
--		break;
--	case 4:  /* vin4 */
--		low_bits = (data->low_bits[1]) & 0x03;
--		break;
--	case 5:  /* vin5 */
--		low_bits = ((data->low_bits[1]) & 0x0c) >> 2;
--		break;
--	case 6:  /* vin6 */
--		low_bits = ((data->low_bits[1]) & 0x30) >> 4;
--	default:
--		break;
--	}
--	vol_count = vol_count | low_bits;
--	return vol_count;
-+	/* in7 and in8 do not have low bits, but the formula still works */
-+	return ((data->in[nr] << 2) | ((data->low_bits >> (2 * nr)) & 0x03));
- }
- 
- /* following are the sysfs callback functions */
-@@ -1484,10 +1456,10 @@
- 			data->in_min[i] = w83792d_read_value(client,
- 						W83792D_REG_IN_MIN[i]);
- 		}
--		data->low_bits[0] = w83792d_read_value(client,
--						W83792D_REG_LOW_BITS1);
--		data->low_bits[1] = w83792d_read_value(client,
--						W83792D_REG_LOW_BITS2);
-+		data->low_bits = w83792d_read_value(client,
-+						W83792D_REG_LOW_BITS1) +
-+				 (w83792d_read_value(client,
-+						W83792D_REG_LOW_BITS2) << 8);
- 		for (i = 0; i < 7; i++) {
- 			/* Update the Fan measured value and limits */
- 			data->fan[i] = w83792d_read_value(client,
-@@ -1599,8 +1571,8 @@
- 		dev_dbg(dev, "vin[%d] max is: 0x%x\n", i, data->in_max[i]);
- 		dev_dbg(dev, "vin[%d] min is: 0x%x\n", i, data->in_min[i]);
- 	}
--	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits[0]);
--	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits[1]);
-+	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits & 0xff);
-+	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits >> 8);
- 	dev_dbg(dev, "7 set of Fan Counts and Duty Cycles: ===>\n");
- 	for (i=0; i<7; i++) {
- 		dev_dbg(dev, "fan[%d] is: 0x%x\n", i, data->fan[i]);
+SGkgSmVhbiwKCkl0IHdvcmtzIE9LIGZvciBtZSA7KQoKQmVzdCBSZWdhcmRzCll1YW4gTXUKPiAt
+LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+IEZyb206IGxtLXNlbnNvcnMtYm91bmNlc0BsbS1z
+ZW5zb3JzLm9yZwpbbWFpbHRvOmxtLXNlbnNvcnMtYm91bmNlc0BsbS1zZW5zb3JzLm9yZ10gT24g
+QmVoYWxmIE9mIEplYW4gRGVsdmFyZQo+IFNlbnQ6IFR1ZXNkYXksIE5vdmVtYmVyIDI5LCAyMDA1
+IDk6NDkgUE0KPiBUbzogUEkxNCBZTVUKPiBDYzogUnVkb2xmIE1hcmVrOyBMTSBTZW5zb3JzCj4g
+U3ViamVjdDogW2xtLXNlbnNvcnNdIFJFOiBbUEFUQ0hdIE1pc2MgY2xlYW51cHMgdG8gdGhlIHc4
+Mzc5MmQgZHJpdmVyCj4gCj4gSGkgWXVhbiwKPiAKPiBPbiAyMDA1LTExLTI5LCBZdWFuIE11IHdy
+b3RlOgo+ID4gSXQgU2VlbXMgT0sgOikKPiA+IEhvdyBhYm91dCBpbl9jb3VudF9mcm9tX3JlZyBm
+dW5jdGlvbiwgd291bGQgeW91IHBsZWFzZSBzaW1wbGlmeSB0aGlzCj4gPiBmdW5jdGlvbiBpZiB5
+b3UgYWxzbyB0aGluayBpdCB3b3J0aCB0byBkby4KPiA+IEkgdGhpbmsgZ2V0IGxvdyBiaXRzIGRv
+IG5vdCBuZWVkIHNvIG11Y2ggY29kZS4KPiAKPiBXaGF0IGFib3V0IHRoZSBhdHRhY2hlZCBwYXRj
+aD8gUGxlYXNlIHRlc3QgaXQsIGlmIGl0IHdvcmtzIE9LIGZvciB5b3UKPiBJJ2xsIGdldCBpdCBh
+cHBsaWVkLgo+IAo+IC0tCj4gSmVhbiBEZWx2YXJlCgo9PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0
+aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0
+aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlz
+IGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVt
+YWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBz
+dWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRp
+bmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0
+ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhp
+Z2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNl
+IG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hp
+Yml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRo
+ZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVy
+IGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2Rl
+IENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNz
+ZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupbur
+SKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6Sn
+pqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8
+uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOx
+cblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4g
+r1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+z
+UcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGk
+bKSnpd+z9anOt06ooy4K
