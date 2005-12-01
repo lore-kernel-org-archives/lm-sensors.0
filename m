@@ -1,8 +1,10 @@
 From: kuolas@gmail.com (Alvaro Kuolas)
-Date: Thu, 01 Dec 2005 01:38:48 +0000
+Date: Thu, 01 Dec 2005 02:14:46 +0000
 Subject: [lm-sensors] W83782M... Yes "M". What is this?
-Message-Id: <438E7DF5.4070506@gmail.com>
+Message-Id: <438E8634.4080200@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <438E7DF5.4070506@gmail.com>
+In-Reply-To: <438E7DF5.4070506@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -40,9 +42,9 @@ seem a bit confusing, but they will still work.
 It is generally safe and recommended to accept the default answers to all
 questions, unless you know what you're doing.
 
- We can start with probing for (PCI) I2C or SMBus adapters.
- You do not need any special privileges for this.
- Do you want to probe now? (YES/no): YES
+We can start with probing for (PCI) I2C or SMBus adapters.
+You do not need any special privileges for this.
+Do you want to probe now? (YES/no): YES
 Probing for PCI bus adapters...
 Use driver `i2c-viapro' for device 00:07.3: VIA Technologies VT82C596 
 Apollo ACPI
@@ -55,18 +57,18 @@ Module `i2c-voodoo3' already loaded.
 If you have undetectable or unsupported adapters, you can have them
 scanned by manually loading the modules before running this script.
 
- To continue, we need module `i2c-dev' to be loaded.
- If it is built-in into your kernel, you can safely skip this.
- i2c-dev is not loaded. Do you want to load it now? (YES/no): YES
- Module loaded succesfully.
+To continue, we need module `i2c-dev' to be loaded.
+If it is built-in into your kernel, you can safely skip this.
+i2c-dev is not loaded. Do you want to load it now? (YES/no): YES
+Module loaded succesfully.
 
- We are now going to do the adapter probings. Some adapters may hang halfway
- through; we can't really help that. Also, some chips will be double 
+We are now going to do the adapter probings. Some adapters may hang halfway
+through; we can't really help that. Also, some chips will be double 
 detected;
- we choose the one with the highest confidence value in that case.
- If you found that the adapter hung after probing a certain address, you can
- specify that address to remain unprobed. That often
- includes address 0x69 (clock chip).
+we choose the one with the highest confidence value in that case.
+If you found that the adapter hung after probing a certain address, you can
+specify that address to remain unprobed. That often
+includes address 0x69 (clock chip).
 
 Next adapter: DDC Voodoo3/Banshee adapter (Algorithm unavailable)
 Do you want to scan it? (YES/no/selectively): YES
@@ -76,13 +78,13 @@ Client found at address 0x07
 Client found at address 0x08
 Client found at address 0x09
 Probing for `Smart Battery Charger'... Success!
-    (confidence 5, driver `to-be-written')
+   (confidence 5, driver `to-be-written')
 Client found at address 0x0a
 Probing for `Smart Battery Manager/Selector'... Success!
-    (confidence 5, driver `to-be-written')
+   (confidence 5, driver `to-be-written')
 Client found at address 0x0b
 Probing for `Smart Battery'... Success!
-    (confidence 5, driver `smartbatt')
+   (confidence 5, driver `smartbatt')
 Client found at address 0x0c
 Client found at address 0x0d
 Client found at address 0x0e
@@ -135,7 +137,7 @@ Client found at address 0x3b
 Probing for `Philips Semiconductors SAA1064'... Failed!
 Client found at address 0x41
 Probing for `Maxim MAX6633/MAX6634/MAX6635'... Success!
-    (confidence 2, driver `lm92')
+   (confidence 2, driver `lm92')
 Client found at address 0x42
 Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
 Client found at address 0x43
@@ -155,7 +157,7 @@ Probing for `Maxim MAX1617'... Failed!
 Probing for `Maxim MAX1617A'... Failed!
 Probing for `TI THMC10'... Failed!
 Probing for `National Semiconductor LM84'... Success!
-    (confidence 3, driver `adm1021')
+   (confidence 3, driver `adm1021')
 Probing for `Genesys Logic GL523SM'... Failed!
 Probing for `Onsemi MC1066'... Failed!
 Probing for `Maxim MAX1619'... Failed!
@@ -166,16 +168,16 @@ Probing for `Maxim MAX6659'... Failed!
 Probing for `Maxim MAX6633/MAX6634/MAX6635'... Failed!
 Client found at address 0x54
 Probing for `SPD EEPROM'... Success!
-    (confidence 1, driver `eeprom')
+   (confidence 1, driver `eeprom')
 Client found at address 0x55
 Probing for `SPD EEPROM'... Success!
-    (confidence 1, driver `eeprom')
+   (confidence 1, driver `eeprom')
 Client found at address 0x56
 Probing for `SPD EEPROM'... Success!
-    (confidence 1, driver `eeprom')
+   (confidence 1, driver `eeprom')
 Client found at address 0x57
 Probing for `SPD EEPROM'... Success!
-    (confidence 1, driver `eeprom')
+   (confidence 1, driver `eeprom')
 Probing for `Sony Vaio EEPROM'... Failed!
 Client found at address 0x58
 Client found at address 0x59
@@ -195,7 +197,7 @@ Client found at address 0x6e
 Client found at address 0x6f
 Client found at address 0x70
 Probing for `Philips Semiconductors PCA9540'... Success!
-    (confidence 1, driver `pca9540')
+   (confidence 1, driver `pca9540')
 Client found at address 0x74
 Client found at address 0x75
 Client found at address 0x76
@@ -219,32 +221,32 @@ this. This is usually safe though.
 
 Do you want to scan the ISA bus? (YES/no): YES
 Probing for `National Semiconductor LM78'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `National Semiconductor LM78-J'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `National Semiconductor LM79'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `Winbond W83781D'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `Winbond W83782D'
-  Trying address 0x0290... Success!
-    (confidence 8, driver `w83781d')
+ Trying address 0x0290... Success!
+   (confidence 8, driver `w83781d')
 Probing for `Winbond W83627HF'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `Winbond W83697HF'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `Silicon Integrated Systems SIS5595'
-  Trying general detect... Failed!
+ Trying general detect... Failed!
 Probing for `VIA Technologies VT82C686 Integrated Sensors'
-  Trying general detect... Failed!
+ Trying general detect... Failed!
 Probing for `VIA Technologies VT8231 Integrated Sensors'
-  Trying general detect... Failed!
+ Trying general detect... Failed!
 Probing for `ITE IT8705F / IT8712F / SiS 950'
-  Trying address 0x0290... Failed!
+ Trying address 0x0290... Failed!
 Probing for `IPMI BMC KCS'
-  Trying address 0x0ca0... Failed!
+ Trying address 0x0ca0... Failed!
 Probing for `IPMI BMC SMIC'
-  Trying address 0x0ca8... Failed!
+ Trying address 0x0ca8... Failed!
 
 Some Super I/O chips may also contain sensors. Super I/O probes are
 typically a bit more dangerous, as we have to write to I/O ports to do
@@ -252,86 +254,86 @@ this. This is usually safe though.
 
 Do you want to scan for Super I/O sensors? (YES/no): YES
 Probing for `ITE 8702F Super IO Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 Probing for `SMSC 47B27x Super IO Fan Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 Probing for `VT1211 Super IO Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 
 Do you want to scan for secondary Super I/O sensors? (YES/no): YES
 Probing for `ITE 8702F Super IO Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 Probing for `SMSC 47B27x Super IO Fan Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 Probing for `VT1211 Super IO Sensors'
-  Failed! (skipping family)
+ Failed! (skipping family)
 
- Now follows a summary of the probes I have just done.
- Just press ENTER to continue:
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
 Driver `to-be-written' (should be inserted):
-  Detects correctly:
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x09
-    Chip `Smart Battery Charger' (confidence: 5)
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x0a
-    Chip `Smart Battery Manager/Selector' (confidence: 5)
+ Detects correctly:
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x09
+   Chip `Smart Battery Charger' (confidence: 5)
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x0a
+   Chip `Smart Battery Manager/Selector' (confidence: 5)
 
 Driver `smartbatt' (should be inserted):
-  Detects correctly:
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x0b
-    Chip `Smart Battery' (confidence: 5)
+ Detects correctly:
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x0b
+   Chip `Smart Battery' (confidence: 5)
 
 Driver `lm92' (should be inserted):
-  Detects correctly:
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x41
-    Chip `Maxim MAX6633/MAX6634/MAX6635' (confidence: 2)
+ Detects correctly:
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x41
+   Chip `Maxim MAX6633/MAX6634/MAX6635' (confidence: 2)
 
 Driver `adm1021' (should be inserted):
-  Detects correctly:
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x4d
-    Chip `National Semiconductor LM84' (confidence: 3)
+ Detects correctly:
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x4d
+   Chip `National Semiconductor LM84' (confidence: 3)
 
 Driver `eeprom' (should be inserted):
-  Detects correctly:
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x54
-    Chip `SPD EEPROM' (confidence: 1)
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x55
-    Chip `SPD EEPROM' (confidence: 1)
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x56
-    Chip `SPD EEPROM' (confidence: 1)
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x57
-    Chip `SPD EEPROM' (confidence: 1)
+ Detects correctly:
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x54
+   Chip `SPD EEPROM' (confidence: 1)
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x55
+   Chip `SPD EEPROM' (confidence: 1)
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x56
+   Chip `SPD EEPROM' (confidence: 1)
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x57
+   Chip `SPD EEPROM' (confidence: 1)
 
 Driver `pca9540' (should be inserted):
-  Detects correctly:
-  * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
-    Busdriver `i2c-voodoo3', I2C address 0x70
-    Chip `Philips Semiconductors PCA9540' (confidence: 1)
+ Detects correctly:
+ * Bus `DDC Voodoo3/Banshee adapter' (Algorithm unavailable)
+   Busdriver `i2c-voodoo3', I2C address 0x70
+   Chip `Philips Semiconductors PCA9540' (confidence: 1)
 
 Driver `w83781d' (should be inserted):
-  Detects correctly:
-  * ISA bus address 0x0290 (Busdriver `i2c-isa')
-    Chip `Winbond W83782D' (confidence: 8)
+ Detects correctly:
+ * ISA bus address 0x0290 (Busdriver `i2c-isa')
+   Chip `Winbond W83782D' (confidence: 8)
 
 
- I will now generate the commands needed to load the I2C modules.
- Sometimes, a chip is available both through the ISA bus and an I2C bus.
- ISA bus access is faster, but you need to load an additional driver module
- for it. If you have the choice, do you want to use the ISA bus or the
- I2C/SMBus (ISA/smbus)? ISA
+I will now generate the commands needed to load the I2C modules.
+Sometimes, a chip is available both through the ISA bus and an I2C bus.
+ISA bus access is faster, but you need to load an additional driver module
+for it. If you have the choice, do you want to use the ISA bus or the
+I2C/SMBus (ISA/smbus)? ISA
 Use of uninitialized value in numeric eq (=) at 
 /usr/sbin/sensors-detect line 4423.
 Use of uninitialized value in numeric eq (=) at 
@@ -375,5 +377,3 @@ to /etc/init.d/lm_sensors for initialization at boot time.
 -----------------------
 
 Thank for all!
-
- .
