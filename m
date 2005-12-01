@@ -1,51 +1,54 @@
-From: gregkh@suse.de (Greg Kroah-Hartman)
-Date: Fri, 16 Dec 2005 19:08:43 +0000
-Subject: [lm-sensors] [patch 1/4] i2c: Fix i2c-mv64xxx compilation error
-Message-Id: <20051216190843.GB4594@kroah.com>
+From: a_titov82@mail.ru (Alexey Titov)
+Date: Thu, 01 Dec 2005 16:26:43 +0000
+Subject: [lm-sensors] Ticket #2103
+Message-Id: <op.s032q7i7n40jst@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051216185442.633779000@press.kroah.org>
-In-Reply-To: <20051216190828.GA4594@kroah.com>
+References: <op.s0t5dwepn40jst@localhost.localdomain>
+In-Reply-To: <op.s0t5dwepn40jst@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, mgreer@mvista.com, khali@linux-fr.org
+To: lm-sensors@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer at mvista.com>
+> What version of lm_sensors are you really using? We can't help you if
+> you provide inaccurate information.
+Well.. Now I'm using lm_sensors-2.8.8-5. Perhaps, I used lm_sensors 2.9.2  
+when I wrote the ticket...
 
-The busses/i2c-mv64xxx.c driver doesn't currently compile because of an
-incorrect argument to dev_err().  This patch fixes that.
+> Did the it87 driver ever work properly for you with another kernel?
+I built my own kernel, but there was the same problem.
 
-Signed-off-by: Mark A. Greer <mgreer at mvista.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
----
- drivers/i2c/busses/i2c-mv64xxx.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+> How are you loading it? Manually, or through some script?
+I load it manually, using "modprobe it87". It was wrote in sensors-detect  
+output.
+Maybe I should pass some parameters to the module?
 
---- gregkh-2.6.orig/drivers/i2c/busses/i2c-mv64xxx.c
-+++ gregkh-2.6/drivers/i2c/busses/i2c-mv64xxx.c
-@@ -529,14 +529,15 @@ mv64xxx_i2c_probe(struct platform_device
- 	i2c_set_adapdata(&drv_data->adapter, drv_data);
- 
- 	if (request_irq(drv_data->irq, mv64xxx_i2c_intr, 0,
--		MV64XXX_I2C_CTLR_NAME, drv_data)) {
--
--		dev_err(dev, "mv64xxx: Can't register intr handler "
--			"irq: %d\n", drv_data->irq);
-+			MV64XXX_I2C_CTLR_NAME, drv_data)) {
-+		dev_err(&drv_data->adapter.dev,
-+			"mv64xxx: Can't register intr handler irq: %d\n",
-+			drv_data->irq);
- 		rc = -EINVAL;
- 		goto exit_unmap_regs;
- 	} else if ((rc = i2c_add_adapter(&drv_data->adapter)) != 0) {
--		dev_err(dev, "mv64xxx: Can't add i2c adapter, rc: %d\n", -rc);
-+		dev_err(&drv_data->adapter.dev,
-+			"mv64xxx: Can't add i2c adapter, rc: %d\n", -rc);
- 		goto exit_free_irq;
- 	}
- 
+> Please provide the output of "isadump 0x805 0x806" before loading the  
+> it87 driver.
+Here is the output. Driver was not loaded.
 
---
+isadump 0x805 0x806
+WARNING! Running this program can cause system crashes, data loss and  
+worse!
+I will probe address register 0x805 and data register 0x806.
+Continue? [Y/n]
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 13 01 ff 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
+10: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+40: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
+50: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
+60: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
+70: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
+80: 13 00 00 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
+90: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+c0: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
+d0: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
+e0: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
+f0: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
 
+
+Thank you for answer.
