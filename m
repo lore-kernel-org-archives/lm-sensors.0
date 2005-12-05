@@ -1,8 +1,10 @@
 From: gardner.ben@gmail.com (Ben Gardner)
-Date: Mon, 05 Dec 2005 18:12:49 +0000
-Subject: [lm-sensors] [PATCH 3/3] w1 : add master ds2482 driver
-Message-Id: <808c8e9d0512051012q57d69ce3g8c366e642af2e218@mail.gmail.com>
+Date: Mon, 05 Dec 2005 21:02:40 +0000
+Subject: [lm-sensors] [PATCH 3/3] w1 : add master ds2482 driver (replacement)
+Message-Id: <808c8e9d0512051302v724884cck1d4356921a3216e1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <808c8e9d0512051012q57d69ce3g8c366e642af2e218@mail.gmail.com>
+In-Reply-To: <808c8e9d0512051012q57d69ce3g8c366e642af2e218@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -11,6 +13,15 @@ To: lm-sensors@vger.kernel.org
 Add the DS2482 I2C-to-w1 bridge driver.
 
 Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+
+---
+
+I failed to refresh the ds2482 patch before sending it, so it did not
+get the (void *) changes.
+Please use the attached version instead of the one I sent a few hours ago.
+
+Thanks,
+Ben
 -------------- next part --------------
  Documentation/w1/masters/ds2482 |   31 ++
  drivers/w1/masters/Kconfig      |   10=20
@@ -359,9 +370,9 @@ vel.
 + * @param bit	The level to write: 0 or non-zero
 + * @return	The level read: 0 or 1
 + */
-+static u8 ds2482_w1_touch_bit(unsigned long data, u8 bit)
++static u8 ds2482_w1_touch_bit(void *data, u8 bit)
 +{
-+	struct ds2482_w1_chan *pchan =3D (struct ds2482_w1_chan *)data;
++	struct ds2482_w1_chan *pchan =3D data;
 +	struct ds2482_data    *pdev =3D pchan->pdev;
 +	int status =3D -1;
 +
@@ -391,9 +402,9 @@ vel.
 + * @param dbit	The direction to choose if both branches are valid
 + * @return	b0=3Dread1 b1=3Dread2 b3=3Dbit written
 + */
-+static u8 ds2482_w1_triplet(unsigned long data, u8 dbit)
++static u8 ds2482_w1_triplet(void *data, u8 dbit)
 +{
-+	struct ds2482_w1_chan *pchan =3D (struct ds2482_w1_chan *)data;
++	struct ds2482_w1_chan *pchan =3D data;
 +	struct ds2482_data    *pdev =3D pchan->pdev;
 +	int status =3D (3 << 5);
 +
@@ -421,9 +432,9 @@ vel.
 + * @param data	The ds2482 channel pointer
 + * @param byte	The value to write
 + */
-+static void ds2482_w1_write_byte(unsigned long data, u8 byte)
++static void ds2482_w1_write_byte(void *data, u8 byte)
 +{
-+	struct ds2482_w1_chan *pchan =3D (struct ds2482_w1_chan *)data;
++	struct ds2482_w1_chan *pchan =3D data;
 +	struct ds2482_data    *pdev =3D pchan->pdev;
 +
 +	down(&pdev->access_lock);
@@ -445,9 +456,9 @@ vel.
 + * @param data	The ds2482 channel pointer
 + * @return	The value read
 + */
-+static u8 ds2482_w1_read_byte(unsigned long data)
++static u8 ds2482_w1_read_byte(void *data)
 +{
-+	struct ds2482_w1_chan *pchan =3D (struct ds2482_w1_chan *)data;
++	struct ds2482_w1_chan *pchan =3D data;
 +	struct ds2482_data    *pdev =3D pchan->pdev;
 +	int result;
 +
@@ -482,9 +493,9 @@ vel.
 + * @param data	The ds2482 channel pointer
 + * @return	0=DEvice present, 1=3DNo device present or error
 + */
-+static u8 ds2482_w1_reset_bus(unsigned long data)
++static u8 ds2482_w1_reset_bus(void *data)
 +{
-+	struct ds2482_w1_chan *pchan =3D (struct ds2482_w1_chan *)data;
++	struct ds2482_w1_chan *pchan =3D data;
 +	struct ds2482_data    *pdev =3D pchan->pdev;
 +	int err;
 +	u8 retval =3D 1;
@@ -595,7 +606,7 @@ d)
 +		data->w1_ch[idx].channel =3D idx;
 +
 +		/* Populate all the w1 bus master stuff */
-+		data->w1_ch[idx].w1_bm.data =3D (unsigned long)&data->w1_ch[idx];
++		data->w1_ch[idx].w1_bm.data       =3D &data->w1_ch[idx];
 +		data->w1_ch[idx].w1_bm.read_byte  =3D ds2482_w1_read_byte;
 +		data->w1_ch[idx].w1_bm.write_byte =3D ds2482_w1_write_byte;
 +		data->w1_ch[idx].w1_bm.touch_bit  =3D ds2482_w1_touch_bit;
@@ -663,3 +674,5 @@ d)
 +
 +module_init(sensors_ds2482_init);
 +module_exit(sensors_ds2482_exit);
+
+
