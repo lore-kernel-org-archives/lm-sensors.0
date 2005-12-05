@@ -1,143 +1,140 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 05 Dec 2005 08:19:55 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Mon, 05 Dec 2005 11:16:52 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <4393E9DD.5040500@sh.cvut.cz>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7BDF9@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hello Yuan,
-
-Please can you help (and new datasheet would be nice too :) ?
-I'm afraid that I cant move any further without your help.
-
-Thanks
-Regards
-Rudolf
-
-Daniel Nilsson wrote:
-> Hi Rudolf,
-> 
-> On Wed, Nov 30, 2005 at 11:11:00PM +0100, Rudolf Marek wrote:
-> 
->>Never give up, never surrender :) Lets focus on SMI. This should disable
->>the SMI from this chip. So we can at least eliminate this source.
->>OVT# is also unused so this should point if you have HW or SW (bus driver)
->>problem.
-> 
-> 
-> That's the spirit :-)
-> 
-> 
->>Please can you try with this sequence, which is same except of new first
->>line.
->>
->>Quoting Jean:
->>
->>You can use the i2cset program to write to the W83792D chip directly. You
->>can try using the following commands in your script, without loading the
->>w83792d driver. Let us know if it hangs of not.
->>
->>i2cset -y 0 0x2c 0x40 0x1  # DISABLE SMI
->>i2cset -y 0 0x2c 0x2b 0xff # in0_max
->>... 
->>This should completly disable the SMI.	Lets see how it works :)
-> 
-> 
-> Ok, I've tried this and a few other things. First of all, I can't shut
-> off SMI which seems really odd.
-> 
-> The first time a ran this sequence I got this result and the machine
-> did not hang:
-> 
-> oden:~# ./set_safe_direct_wo_smi.sh
-> + i2cset -y 0 0x2c 0x40 0x1
-> No size specified (using byte-data access)
-> Warning - data mismatch - wrote 0x01, read back 0x06
-> + i2cset -y 0 0x2c 0x2b 0xff
-> No size specified (using byte-data access)
-> Value 0xff written, readback matched
-> + i2cset -y 0 0x2c 0x2c 0x00
-> [all the remaining writes succeeded]
-> 
-> The second time I got this result and the machine did still not hang:
-> 
-> oden:~# ./set_safe_direct_wo_smi.sh
-> + i2cset -y 0 0x2c 0x40 0x1
-> No size specified (using byte-data access)
-> Warning - data mismatch - wrote 0x01, read back 0x03
-> + i2cset -y 0 0x2c 0x2b 0xff
-> No size specified (using byte-data access)
-> Value 0xff written, readback matched
-> + i2cset -y 0 0x2c 0x2c 0x00
-> [all the remaining writes succeeded]
-> 
-> Finally the third time the machine just got this far and then hung:
-> 
-> oden:~# ./set_safe_direct_wo_smi.sh
-> + i2cset -y 0 0x2c 0x40 0x1
-> No size specified (using byte-data access)
-> 
-> 
-> So according to the datasheet writing 0x01 to this register should
-> shut off EN_SMI, but that doesn't seem to work since the readback
-> still shows 0x03 (should be 0x01, right?). I've been trying all sorts
-> of things to disable this EN_SMI bit but I can't seem to do it.
-> 
-> For example, writing 0x80 should re-init the whole chip:
-> 
-> oden:~# i2cset -y 0 0x2c 0x40 0x80
-> No size specified (using byte-data access)
-> Warning - data mismatch - wrote 0x80, read back 0x03
-> 
-> But that still has the EN_SMI bit set??? It shouldn't according to my
-> datasheet at least, that bit should be reset to '0'...
-> 
-> I've also played around in the BIOS for a while, there seems to be
-> some king of "MiniBMC" functionality in the BIOS that is logging
-> overtemp events someplace. That log was filled with events since BIOS
-> enabled all fan monitors by default. I've shut off all those monitors
-> and even the whole MiniBMC funtionality but I still get the same hangs
-> when writing the sensor limits. I honestly don't know if there is some
-> other device on this bus that is communicating with the w82792d chip
-> to read these levels as well that might be interfering here. Since
-> this MiniBMC thing might be of interest I actually wrote Gigabyte
-> support about this whole issue, I'm keeping my fingers crossed but I
-> doubt that the question will reach the appropriate people at Gigabyte.
-> 
-> One more thing I observed;
-> 
-> oden:~# i2cdump -y 0 0x2c
-> No size specified (using byte-data access)
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-> 10: 00 00 64 64 bf 00 00 63 00 ff 00 00 f5 00 8f 80    ..dd?..c....?.??
-> 20: d3 d4 b9 b9 b8 b8 cd 15 ff ff ff ff 00 96 64 d7    ????????.....?d?
-> 30: af d9 b1 d9 b1 d7 af ff 00 25 00 f0 f0 f0 2f 39    ???????..%.???/9
-> 40: 03 00 00 00 00 ff ff 11 2c 13 40 c3 51 ff 80 5c    ?......?,?@?Q.?\
-> 50: ff ff ff ff ff ff ff ff 7a 60 ff 11 11 c1 05 7f    ........z`.?????
-> 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> 80: 01 8f 01 8f 00 00 00 00 11 11 ff ff 3c 3c 0a 0a    ????....??..<<??
-> 90: 00 00 00 01 8f ff 00 00 11 ff 3c 00 00 01 01 ff    ...??...?.<..??.
-> a0: 01 01 01 8f 8f 8f 8f ff 3e e2 00 e0 ff ff 00 00    ???????.>?.?....
-> b0: d3 cb ff ff ff 00 e2 b9 ff ff ff f0 f0 f0 ff ff    ??....??...???..
-> c0: f2 80 02 39 00 3c 00 ff 2c 00 00 5d 00 60 00 ff    ???9.<..,..].`..
-> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-> e0: 8b 8b 8b 28 3c 50 28 3c 50 28 3c 50 ff ff ff ff    ???(<P(<P(<P....
-> f0: ff ff 80 ff 00 01 00 00 ff 02 ff 00 00 00 00 ff    ..?..?...?......
-> 
-> Look at index 49, it says "13". According to the datasheet I have a
-> revision C chip should have "12". Is this a newer chip then what the
-> datasheet covers? In this case there might be some confusion on
-> disabling SMI...
-> 
-> Yuan, could you offer some help and guidance as to why the EN_SMI bit
-> can't be turned off and what this revision "13" chip is? My
-> motherboard is a Gigabyte GA-4MXSV by the way.
-> 
-> Regards
+SGkgUnVkb2xmLCBEYW5pZWwsCgpJIGhhdmUgZ29uZSB0aHJvdWdoIHRoZSB0b3BpYyBqdXN0IG5v
+dywgc29ycnkgSSBoYXZlIG5vIG11Y2ggaWRlYSBhYm91dAppdCA6KApUaGUgbWFpbCBoYXMgYmVl
+biBzZW50IHRvIEhXIGVuZ2luZWVycyBhbmQgYXNrcyB0aGVtIGlmIHRoZXJlIGlzIG5ld2VyCmRh
+dGFzaGVldC4KCkJlc3QgUmVnYXJkcwpZdWFuIE11Cgo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
+LS0tCj4gRnJvbTogUnVkb2xmIE1hcmVrIFttYWlsdG86ci5tYXJla0BzaC5jdnV0LmN6XQo+IFNl
+bnQ6IE1vbmRheSwgRGVjZW1iZXIgMDUsIDIwMDUgMzoxOSBQTQo+IFRvOiBQSTE0IFlNVQo+IENj
+OiBEYW5pZWwgTmlsc3NvbjsgTE0gU2Vuc29ycwo+IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10g
+S2VybmVsIGhhbmdzIHdpdGggaTJjLWk4MDEgZHJpdmVyPwo+IAo+IEhlbGxvIFl1YW4sCj4gCj4g
+UGxlYXNlIGNhbiB5b3UgaGVscCAoYW5kIG5ldyBkYXRhc2hlZXQgd291bGQgYmUgbmljZSB0b28g
+OikgPwo+IEknbSBhZnJhaWQgdGhhdCBJIGNhbnQgbW92ZSBhbnkgZnVydGhlciB3aXRob3V0IHlv
+dXIgaGVscC4KPiAKPiBUaGFua3MKPiBSZWdhcmRzCj4gUnVkb2xmCj4gCj4gRGFuaWVsIE5pbHNz
+b24gd3JvdGU6Cj4gPiBIaSBSdWRvbGYsCj4gPgo+ID4gT24gV2VkLCBOb3YgMzAsIDIwMDUgYXQg
+MTE6MTE6MDBQTSArMDEwMCwgUnVkb2xmIE1hcmVrIHdyb3RlOgo+ID4KPiA+Pk5ldmVyIGdpdmUg
+dXAsIG5ldmVyIHN1cnJlbmRlciA6KSBMZXRzIGZvY3VzIG9uIFNNSS4gVGhpcyBzaG91bGQKZGlz
+YWJsZQo+ID4+dGhlIFNNSSBmcm9tIHRoaXMgY2hpcC4gU28gd2UgY2FuIGF0IGxlYXN0IGVsaW1p
+bmF0ZSB0aGlzIHNvdXJjZS4KPiA+Pk9WVCMgaXMgYWxzbyB1bnVzZWQgc28gdGhpcyBzaG91bGQg
+cG9pbnQgaWYgeW91IGhhdmUgSFcgb3IgU1cgKGJ1cwpkcml2ZXIpCj4gPj5wcm9ibGVtLgo+ID4K
+PiA+Cj4gPiBUaGF0J3MgdGhlIHNwaXJpdCA6LSkKPiA+Cj4gPgo+ID4+UGxlYXNlIGNhbiB5b3Ug
+dHJ5IHdpdGggdGhpcyBzZXF1ZW5jZSwgd2hpY2ggaXMgc2FtZSBleGNlcHQgb2YgbmV3CmZpcnN0
+Cj4gPj5saW5lLgo+ID4+Cj4gPj5RdW90aW5nIEplYW46Cj4gPj4KPiA+PllvdSBjYW4gdXNlIHRo
+ZSBpMmNzZXQgcHJvZ3JhbSB0byB3cml0ZSB0byB0aGUgVzgzNzkyRCBjaGlwCmRpcmVjdGx5LiBZ
+b3UKPiA+PmNhbiB0cnkgdXNpbmcgdGhlIGZvbGxvd2luZyBjb21tYW5kcyBpbiB5b3VyIHNjcmlw
+dCwgd2l0aG91dCBsb2FkaW5nCnRoZQo+ID4+dzgzNzkyZCBkcml2ZXIuIExldCB1cyBrbm93IGlm
+IGl0IGhhbmdzIG9mIG5vdC4KPiA+Pgo+ID4+aTJjc2V0IC15IDAgMHgyYyAweDQwIDB4MSAgIyBE
+SVNBQkxFIFNNSQo+ID4+aTJjc2V0IC15IDAgMHgyYyAweDJiIDB4ZmYgIyBpbjBfbWF4Cj4gPj4u
+Li4KPiA+PlRoaXMgc2hvdWxkIGNvbXBsZXRseSBkaXNhYmxlIHRoZSBTTUkuCUxldHMgc2VlIGhv
+dyBpdCB3b3JrcyA6KQo+ID4KPiA+Cj4gPiBPaywgSSd2ZSB0cmllZCB0aGlzIGFuZCBhIGZldyBv
+dGhlciB0aGluZ3MuIEZpcnN0IG9mIGFsbCwgSSBjYW4ndApzaHV0Cj4gPiBvZmYgU01JIHdoaWNo
+IHNlZW1zIHJlYWxseSBvZGQuCj4gPgo+ID4gVGhlIGZpcnN0IHRpbWUgYSByYW4gdGhpcyBzZXF1
+ZW5jZSBJIGdvdCB0aGlzIHJlc3VsdCBhbmQgdGhlIG1hY2hpbmUKPiA+IGRpZCBub3QgaGFuZzoK
+PiA+Cj4gPiBvZGVuOn4jIC4vc2V0X3NhZmVfZGlyZWN0X3dvX3NtaS5zaAo+ID4gKyBpMmNzZXQg
+LXkgMCAweDJjIDB4NDAgMHgxCj4gPiBObyBzaXplIHNwZWNpZmllZCAodXNpbmcgYnl0ZS1kYXRh
+IGFjY2VzcykKPiA+IFdhcm5pbmcgLSBkYXRhIG1pc21hdGNoIC0gd3JvdGUgMHgwMSwgcmVhZCBi
+YWNrIDB4MDYKPiA+ICsgaTJjc2V0IC15IDAgMHgyYyAweDJiIDB4ZmYKPiA+IE5vIHNpemUgc3Bl
+Y2lmaWVkICh1c2luZyBieXRlLWRhdGEgYWNjZXNzKQo+ID4gVmFsdWUgMHhmZiB3cml0dGVuLCBy
+ZWFkYmFjayBtYXRjaGVkCj4gPiArIGkyY3NldCAteSAwIDB4MmMgMHgyYyAweDAwCj4gPiBbYWxs
+IHRoZSByZW1haW5pbmcgd3JpdGVzIHN1Y2NlZWRlZF0KPiA+Cj4gPiBUaGUgc2Vjb25kIHRpbWUg
+SSBnb3QgdGhpcyByZXN1bHQgYW5kIHRoZSBtYWNoaW5lIGRpZCBzdGlsbCBub3QKaGFuZzoKPiA+
+Cj4gPiBvZGVuOn4jIC4vc2V0X3NhZmVfZGlyZWN0X3dvX3NtaS5zaAo+ID4gKyBpMmNzZXQgLXkg
+MCAweDJjIDB4NDAgMHgxCj4gPiBObyBzaXplIHNwZWNpZmllZCAodXNpbmcgYnl0ZS1kYXRhIGFj
+Y2VzcykKPiA+IFdhcm5pbmcgLSBkYXRhIG1pc21hdGNoIC0gd3JvdGUgMHgwMSwgcmVhZCBiYWNr
+IDB4MDMKPiA+ICsgaTJjc2V0IC15IDAgMHgyYyAweDJiIDB4ZmYKPiA+IE5vIHNpemUgc3BlY2lm
+aWVkICh1c2luZyBieXRlLWRhdGEgYWNjZXNzKQo+ID4gVmFsdWUgMHhmZiB3cml0dGVuLCByZWFk
+YmFjayBtYXRjaGVkCj4gPiArIGkyY3NldCAteSAwIDB4MmMgMHgyYyAweDAwCj4gPiBbYWxsIHRo
+ZSByZW1haW5pbmcgd3JpdGVzIHN1Y2NlZWRlZF0KPiA+Cj4gPiBGaW5hbGx5IHRoZSB0aGlyZCB0
+aW1lIHRoZSBtYWNoaW5lIGp1c3QgZ290IHRoaXMgZmFyIGFuZCB0aGVuIGh1bmc6Cj4gPgo+ID4g
+b2Rlbjp+IyAuL3NldF9zYWZlX2RpcmVjdF93b19zbWkuc2gKPiA+ICsgaTJjc2V0IC15IDAgMHgy
+YyAweDQwIDB4MQo+ID4gTm8gc2l6ZSBzcGVjaWZpZWQgKHVzaW5nIGJ5dGUtZGF0YSBhY2Nlc3Mp
+Cj4gPgo+ID4KPiA+IFNvIGFjY29yZGluZyB0byB0aGUgZGF0YXNoZWV0IHdyaXRpbmcgMHgwMSB0
+byB0aGlzIHJlZ2lzdGVyIHNob3VsZAo+ID4gc2h1dCBvZmYgRU5fU01JLCBidXQgdGhhdCBkb2Vz
+bid0IHNlZW0gdG8gd29yayBzaW5jZSB0aGUgcmVhZGJhY2sKPiA+IHN0aWxsIHNob3dzIDB4MDMg
+KHNob3VsZCBiZSAweDAxLCByaWdodD8pLiBJJ3ZlIGJlZW4gdHJ5aW5nIGFsbApzb3J0cwo+ID4g
+b2YgdGhpbmdzIHRvIGRpc2FibGUgdGhpcyBFTl9TTUkgYml0IGJ1dCBJIGNhbid0IHNlZW0gdG8g
+ZG8gaXQuCj4gPgo+ID4gRm9yIGV4YW1wbGUsIHdyaXRpbmcgMHg4MCBzaG91bGQgcmUtaW5pdCB0
+aGUgd2hvbGUgY2hpcDoKPiA+Cj4gPiBvZGVuOn4jIGkyY3NldCAteSAwIDB4MmMgMHg0MCAweDgw
+Cj4gPiBObyBzaXplIHNwZWNpZmllZCAodXNpbmcgYnl0ZS1kYXRhIGFjY2VzcykKPiA+IFdhcm5p
+bmcgLSBkYXRhIG1pc21hdGNoIC0gd3JvdGUgMHg4MCwgcmVhZCBiYWNrIDB4MDMKPiA+Cj4gPiBC
+dXQgdGhhdCBzdGlsbCBoYXMgdGhlIEVOX1NNSSBiaXQgc2V0Pz8/IEl0IHNob3VsZG4ndCBhY2Nv
+cmRpbmcgdG8KbXkKPiA+IGRhdGFzaGVldCBhdCBsZWFzdCwgdGhhdCBiaXQgc2hvdWxkIGJlIHJl
+c2V0IHRvICcwJy4uLgo+ID4KPiA+IEkndmUgYWxzbyBwbGF5ZWQgYXJvdW5kIGluIHRoZSBCSU9T
+IGZvciBhIHdoaWxlLCB0aGVyZSBzZWVtcyB0byBiZQo+ID4gc29tZSBraW5nIG9mICJNaW5pQk1D
+IiBmdW5jdGlvbmFsaXR5IGluIHRoZSBCSU9TIHRoYXQgaXMgbG9nZ2luZwo+ID4gb3ZlcnRlbXAg
+ZXZlbnRzIHNvbWVwbGFjZS4gVGhhdCBsb2cgd2FzIGZpbGxlZCB3aXRoIGV2ZW50cyBzaW5jZQpC
+SU9TCj4gPiBlbmFibGVkIGFsbCBmYW4gbW9uaXRvcnMgYnkgZGVmYXVsdC4gSSd2ZSBzaHV0IG9m
+ZiBhbGwgdGhvc2UKbW9uaXRvcnMKPiA+IGFuZCBldmVuIHRoZSB3aG9sZSBNaW5pQk1DIGZ1bnRp
+b25hbGl0eSBidXQgSSBzdGlsbCBnZXQgdGhlIHNhbWUKaGFuZ3MKPiA+IHdoZW4gd3JpdGluZyB0
+aGUgc2Vuc29yIGxpbWl0cy4gSSBob25lc3RseSBkb24ndCBrbm93IGlmIHRoZXJlIGlzCnNvbWUK
+PiA+IG90aGVyIGRldmljZSBvbiB0aGlzIGJ1cyB0aGF0IGlzIGNvbW11bmljYXRpbmcgd2l0aCB0
+aGUgdzgyNzkyZCBjaGlwCj4gPiB0byByZWFkIHRoZXNlIGxldmVscyBhcyB3ZWxsIHRoYXQgbWln
+aHQgYmUgaW50ZXJmZXJpbmcgaGVyZS4gU2luY2UKPiA+IHRoaXMgTWluaUJNQyB0aGluZyBtaWdo
+dCBiZSBvZiBpbnRlcmVzdCBJIGFjdHVhbGx5IHdyb3RlIEdpZ2FieXRlCj4gPiBzdXBwb3J0IGFi
+b3V0IHRoaXMgd2hvbGUgaXNzdWUsIEknbSBrZWVwaW5nIG15IGZpbmdlcnMgY3Jvc3NlZCBidXQg
+SQo+ID4gZG91YnQgdGhhdCB0aGUgcXVlc3Rpb24gd2lsbCByZWFjaCB0aGUgYXBwcm9wcmlhdGUg
+cGVvcGxlIGF0CkdpZ2FieXRlLgo+ID4KPiA+IE9uZSBtb3JlIHRoaW5nIEkgb2JzZXJ2ZWQ7Cj4g
+Pgo+ID4gb2Rlbjp+IyBpMmNkdW1wIC15IDAgMHgyYwo+ID4gTm8gc2l6ZSBzcGVjaWZpZWQgKHVz
+aW5nIGJ5dGUtZGF0YSBhY2Nlc3MpCj4gPiAgICAgIDAgIDEgIDIgIDMgIDQgIDUgIDYgIDcgIDgg
+IDkgIGEgIGIgIGMgIGQgIGUgIGYKMDEyMzQ1Njc4OWFiY2RlZgo+ID4gMDA6IDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCi4uLi4uLi4uLi4uLi4uLi4KPiA+
+IDEwOiAwMCAwMCA2NCA2NCBiZiAwMCAwMCA2MyAwMCBmZiAwMCAwMCBmNSAwMCA4ZiA4MAouLmRk
+Py4uYy4uLi4/Lj8/Cj4gPiAyMDogZDMgZDQgYjkgYjkgYjggYjggY2QgMTUgZmYgZmYgZmYgZmYg
+MDAgOTYgNjQgZDcKPz8/Pz8/Pz8uLi4uLj9kPwo+ID4gMzA6IGFmIGQ5IGIxIGQ5IGIxIGQ3IGFm
+IGZmIDAwIDI1IDAwIGYwIGYwIGYwIDJmIDM5Cj8/Pz8/Pz8uLiUuPz8/LzkKPiA+IDQwOiAwMyAw
+MCAwMCAwMCAwMCBmZiBmZiAxMSAyYyAxMyA0MCBjMyA1MSBmZiA4MCA1Ywo/Li4uLi4uPyw/QD9R
+Lj9cCj4gPiA1MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgN2EgNjAgZmYgMTEgMTEgYzEgMDUg
+N2YKLi4uLi4uLi56YC4/Pz8/Pwo+ID4gNjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmCi4uLi4uLi4uLi4uLi4uLi4KPiA+IDcwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgouLi4uLi4uLi4uLi4uLi4uCj4gPiA4
+MDogMDEgOGYgMDEgOGYgMDAgMDAgMDAgMDAgMTEgMTEgZmYgZmYgM2MgM2MgMGEgMGEKPz8/Py4u
+Li4/Py4uPDw/Pwo+ID4gOTA6IDAwIDAwIDAwIDAxIDhmIGZmIDAwIDAwIDExIGZmIDNjIDAwIDAw
+IDAxIDAxIGZmCi4uLj8/Li4uPy48Li4/Py4KPiA+IGEwOiAwMSAwMSAwMSA4ZiA4ZiA4ZiA4ZiBm
+ZiAzZSBlMiAwMCBlMCBmZiBmZiAwMCAwMAo/Pz8/Pz8/Lj4/Lj8uLi4uCj4gPiBiMDogZDMgY2Ig
+ZmYgZmYgZmYgMDAgZTIgYjkgZmYgZmYgZmYgZjAgZjAgZjAgZmYgZmYKPz8uLi4uPz8uLi4/Pz8u
+Lgo+ID4gYzA6IGYyIDgwIDAyIDM5IDAwIDNjIDAwIGZmIDJjIDAwIDAwIDVkIDAwIDYwIDAwIGZm
+Cj8/PzkuPC4uLC4uXS5gLi4KPiA+IGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZgouLi4uLi4uLi4uLi4uLi4uCj4gPiBlMDogOGIgOGIgOGIgMjggM2Mg
+NTAgMjggM2MgNTAgMjggM2MgNTAgZmYgZmYgZmYgZmYKPz8/KDxQKDxQKDxQLi4uLgo+ID4gZjA6
+IGZmIGZmIDgwIGZmIDAwIDAxIDAwIDAwIGZmIDAyIGZmIDAwIDAwIDAwIDAwIGZmCi4uPy4uPy4u
+Lj8uLi4uLi4KPiA+Cj4gPiBMb29rIGF0IGluZGV4IDQ5LCBpdCBzYXlzICIxMyIuIEFjY29yZGlu
+ZyB0byB0aGUgZGF0YXNoZWV0IEkgaGF2ZSBhCj4gPiByZXZpc2lvbiBDIGNoaXAgc2hvdWxkIGhh
+dmUgIjEyIi4gSXMgdGhpcyBhIG5ld2VyIGNoaXAgdGhlbiB3aGF0IHRoZQo+ID4gZGF0YXNoZWV0
+IGNvdmVycz8gSW4gdGhpcyBjYXNlIHRoZXJlIG1pZ2h0IGJlIHNvbWUgY29uZnVzaW9uIG9uCj4g
+PiBkaXNhYmxpbmcgU01JLi4uCj4gPgo+ID4gWXVhbiwgY291bGQgeW91IG9mZmVyIHNvbWUgaGVs
+cCBhbmQgZ3VpZGFuY2UgYXMgdG8gd2h5IHRoZSBFTl9TTUkKYml0Cj4gPiBjYW4ndCBiZSB0dXJu
+ZWQgb2ZmIGFuZCB3aGF0IHRoaXMgcmV2aXNpb24gIjEzIiBjaGlwIGlzPyBNeQo+ID4gbW90aGVy
+Ym9hcmQgaXMgYSBHaWdhYnl0ZSBHQS00TVhTViBieSB0aGUgd2F5Lgo+ID4KPiA+IFJlZ2FyZHMK
+Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmls
+ZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMg
+aW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0
+aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRy
+ZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3Ig
+ZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJl
+cGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29w
+aWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRl
+bHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2Vk
+IHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9m
+IFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0
+aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQg
+c2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQu
+Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNv
+bXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRo
+ZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3NlbnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQg
+aW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nK
+uOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8
+qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCx
+eqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnv
+qfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc61
+2Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+
+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
