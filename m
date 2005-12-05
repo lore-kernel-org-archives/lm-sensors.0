@@ -1,17 +1,29 @@
 From: filip.tsachev@gmail.com (Filip Tsachev)
-Date: Mon, 05 Dec 2005 12:36:41 +0000
+Date: Mon, 05 Dec 2005 12:40:20 +0000
 Subject: [lm-sensors] lm-sensors Digest, Vol 8, Issue 10
-Message-Id: <ea9ff50b0512050436x2531a6f4k9e1be1690ec7d9e4@mail.gmail.com>
+Message-Id: <ea9ff50b0512050440s7412523cib7a60607d5238d3b@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <ea9ff50b0512050436x2531a6f4k9e1be1690ec7d9e4@mail.gmail.com>
+In-Reply-To: <ea9ff50b0512050436x2531a6f4k9e1be1690ec7d9e4@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-it8712 chip on GB-7N400E-l, My temp1 is sometimes ~40, and in the next
-moment (after some time) ~80C, It can't be a offset issue, rather
-formula something... can someone shred some light please, thanks
+I even use cpufreq to keep at 1.12GHz, so temp is really not changing
+like that...
 
-Regards,
+On 12/5/05, Filip Tsachev <filip.tsachev at gmail.com> wrote:
+> it8712 chip on GB-7N400E-l, My temp1 is sometimes ~40, and in the next
+> moment (after some time) ~80C, It can't be a offset issue, rather
+> formula something... can someone shred some light please, thanks
+>
+> Regards,
+> Filip
+>
+
+
+--
+Cheers,
 Filip
 
