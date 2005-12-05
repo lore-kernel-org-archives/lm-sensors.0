@@ -1,45 +1,100 @@
-From: mrenzmann@otaku42.de (Michael Renzmann)
-Date: Mon, 19 Dec 2005 10:12:16 +0000
-Subject: [lm-sensors] Question regarding temperature readings
-Message-Id: <1134987137.4463.27.camel@gimli>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 05 Dec 2005 21:00:53 +0000
+Subject: [lm-sensors] [PATCH] i2c: driver IDs cleanups
+Message-Id: <20051205220053.2571761d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1134675134.4454.90.camel@gimli>
-In-Reply-To: <1134675134.4454.90.camel@gimli>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
+Hi all,
 
-On Sun, 2005-12-18 at 17:38 +0100, Jean Delvare wrote:
-> I just checked and doc/developers/proc doesn't say that, which is good
-> because that's not true. 
+As proposed recently in another thread, I am enqueuing the following
+patch:
 
-Hmm, indeed, seems that I mixed up something here. Maybe I shouldn't
-report things like that after working for 14+ hours. :(
-Sorry for the confusion that might have caused.
+Content-Disposition: inline; filename=i2c-id-cleanups.patch
 
-> As the LM77 reports temperature values with a resolution of 0.5 degree
-> Celsius, your driver should declare a magnitude (number of digits after
-> the decimal point) of 1, and should report the temperature values with
-> a LSB representing 0.1 degree Celsius.
+Cleanups to i2c driver IDs:
+* Remove mostly bogus comments on driver ID ranges.
+* Drop experimental driver IDs, as the concept is pretty broken.
+* Drop now unused IDs of non-I2C (ISA) drivers.
+* Drop a few more IDs which are no more used.
 
-After having a closer look how the LM87 does these things (and after
-enabling that sensor on a second box I have at hands for testing
-purposes) I got that working now. With this and your comments in mind it
-ended up to be an issue of "RTFM" - I somehow missed to check the
-meaning of SENSORS_PROC_REAL_INFO, which would have cleared up a lot.
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ include/linux/i2c-id.h |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-> lm75 driver for an example. The lm77 case should be very similar. If
-> the driver currently reports 4200.0 for 42 degrees, it means that the
-> magnitude is properly set to 1, but the temperature value has been
-> multiplied by 500 (from the register value) instead of 5.
+--- linux-2.6.15-rc5.orig/include/linux/i2c-id.h	2005-12-04 09:54:04.000000000 +0100
++++ linux-2.6.15-rc5/include/linux/i2c-id.h	2005-12-05 21:04:49.000000000 +0100
+@@ -25,12 +25,6 @@
+ 
+ /*
+  * ---- Driver types -----------------------------------------------------
+- *       device id name + number        function description, i2c address(es)
+- *
+- *  Range 1000-1999 range is defined in sensors/sensors.h
+- *  Range 0x100 - 0x1ff is for V4L2 Common Components
+- *  Range 0xf000 - 0xffff is reserved for local experimentation, and should
+- *        never be used in official drivers
+  */
+ 
+ #define I2C_DRIVERID_MSP3400	 1
+@@ -110,13 +104,7 @@
+ #define I2C_DRIVERID_AKITAIOEXP	74	/* IO Expander on Sharp SL-C1000 */
+ #define I2C_DRIVERID_I2C_IR	75	/* I2C InfraRed on Video boards */
+ 
+-#define I2C_DRIVERID_EXP0	0xF0	/* experimental use id's	*/
+-#define I2C_DRIVERID_EXP1	0xF1
+-#define I2C_DRIVERID_EXP2	0xF2
+-#define I2C_DRIVERID_EXP3	0xF3
+-
+ #define I2C_DRIVERID_I2CDEV	900
+-#define I2C_DRIVERID_I2CPROC	901
+ #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
+ #define I2C_DRIVERID_ALERT      903    /* SMBus Alert Responder Client  */
+ 
+@@ -131,15 +119,12 @@
+ #define I2C_DRIVERID_ADM1021 1008
+ #define I2C_DRIVERID_ADM9240 1009
+ #define I2C_DRIVERID_LTC1710 1010
+-#define I2C_DRIVERID_SIS5595 1011
+ #define I2C_DRIVERID_ICSPLL 1012
+ #define I2C_DRIVERID_BT869 1013
+ #define I2C_DRIVERID_MAXILIFE 1014
+ #define I2C_DRIVERID_MATORB 1015
+ #define I2C_DRIVERID_GL520 1016
+ #define I2C_DRIVERID_THMC50 1017
+-#define I2C_DRIVERID_DDCMON 1018
+-#define I2C_DRIVERID_VIA686A 1019
+ #define I2C_DRIVERID_ADM1025 1020
+ #define I2C_DRIVERID_LM87 1021
+ #define I2C_DRIVERID_PCF8574 1022
+@@ -151,21 +136,16 @@
+ #define I2C_DRIVERID_FSCPOS 1028
+ #define I2C_DRIVERID_FSCSCY 1029
+ #define I2C_DRIVERID_PCF8591 1030
+-#define I2C_DRIVERID_SMSC47M1 1031
+-#define I2C_DRIVERID_VT1211 1032
+ #define I2C_DRIVERID_LM92 1033
+-#define I2C_DRIVERID_VT8231 1034
+ #define I2C_DRIVERID_SMARTBATT 1035
+ #define I2C_DRIVERID_BMCSENSORS 1036
+ #define I2C_DRIVERID_FS451 1037
+-#define I2C_DRIVERID_W83627HF 1038
+ #define I2C_DRIVERID_LM85 1039
+ #define I2C_DRIVERID_LM83 1040
+ #define I2C_DRIVERID_LM90 1042
+ #define I2C_DRIVERID_ASB100 1043
+ #define I2C_DRIVERID_FSCHER 1046
+ #define I2C_DRIVERID_W83L785TS 1047
+-#define I2C_DRIVERID_SMSC47B397 1050
+ 
+ /*
+  * ---- Adapter types ----------------------------------------------------
 
-Yeah, that was exactly the kind of problem I was facing. Thanks a lot
-for your comments on that and for the patience to explain it rather than
-giving the "RTFM" I'd deserve :)
 
-Bye, Mike
-
+-- 
+Jean Delvare
 
