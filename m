@@ -1,27 +1,17 @@
-From: fredantispam@free.fr (fred)
-Date: Tue, 20 Dec 2005 22:11:00 +0000
-Subject: [lm-sensors] [it8712] +5 V/+12 V are ok, but not -5 V/-12 V....
-Message-Id: <43A88174.7060306@free.fr>
+From: filip.tsachev@gmail.com (Filip Tsachev)
+Date: Mon, 05 Dec 2005 12:36:41 +0000
+Subject: [lm-sensors] lm-sensors Digest, Vol 8, Issue 10
+Message-Id: <ea9ff50b0512050436x2531a6f4k9e1be1690ec7d9e4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43A6FE61.1030104@free.fr>
-In-Reply-To: <43A6FE61.1030104@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare a ?crit :
+it8712 chip on GB-7N400E-l, My temp1 is sometimes ~40, and in the next
+moment (after some time) ~80C, It can't be a offset issue, rather
+formula something... can someone shred some light please, thanks
 
-> It's a matter of board, not chip. And 0 is a pretty good indication
-> that these inputs are not used (wired to the ground) in your case. You
-> can compare with what your BIOS shows if it has hardware monitoring
-> information.
-
-Ok, Jean.
-
-Thanks.
-
-
--- 
-Fred.
+Regards,
+Filip
 
