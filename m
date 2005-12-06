@@ -1,105 +1,38 @@
-From: mchehab@brturbo.com.br (Mauro Carvalho Chehab)
-Date: Thu, 08 Dec 2005 20:46:22 +0000
-Subject: [lm-sensors] [PATCH] i2c: driver IDs cleanups
-Message-Id: <1134074782.7047.146.camel@localhost>
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Tue, 06 Dec 2005 10:23:08 +0000
+Subject: [lm-sensors] [PATCH] lm_sensors2 w83792d fix fan auto adjust
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7BF78@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051205220053.2571761d.khali@linux-fr.org>
-In-Reply-To: <20051205220053.2571761d.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Em Seg, 2005-12-05 ?s 22:00 +0100, Jean Delvare escreveu:
-> Hi all,
-> 
-> As proposed recently in another thread, I am enqueuing the following
-> patch:
-> 
-> Content-Disposition: inline; filename=i2c-id-cleanups.patch
-> 
-> Cleanups to i2c driver IDs:
-> * Remove mostly bogus comments on driver ID ranges.
-> * Drop experimental driver IDs, as the concept is pretty broken.
-> * Drop now unused IDs of non-I2C (ISA) drivers.
-> * Drop a few more IDs which are no more used.
-> 
-> Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Acked-off-by: Mauro Carvalho Chehab
-> ---
->  include/linux/i2c-id.h |   20 --------------------
->  1 file changed, 20 deletions(-)
-> 
-> --- linux-2.6.15-rc5.orig/include/linux/i2c-id.h	2005-12-04 09:54:04.000000000 +0100
-> +++ linux-2.6.15-rc5/include/linux/i2c-id.h	2005-12-05 21:04:49.000000000 +0100
-> @@ -25,12 +25,6 @@
->  
->  /*
->   * ---- Driver types -----------------------------------------------------
-> - *       device id name + number        function description, i2c address(es)
-> - *
-> - *  Range 1000-1999 range is defined in sensors/sensors.h
-> - *  Range 0x100 - 0x1ff is for V4L2 Common Components
-> - *  Range 0xf000 - 0xffff is reserved for local experimentation, and should
-> - *        never be used in official drivers
->   */
->  
->  #define I2C_DRIVERID_MSP3400	 1
-> @@ -110,13 +104,7 @@
->  #define I2C_DRIVERID_AKITAIOEXP	74	/* IO Expander on Sharp SL-C1000 */
->  #define I2C_DRIVERID_I2C_IR	75	/* I2C InfraRed on Video boards */
->  
-> -#define I2C_DRIVERID_EXP0	0xF0	/* experimental use id's	*/
-> -#define I2C_DRIVERID_EXP1	0xF1
-> -#define I2C_DRIVERID_EXP2	0xF2
-> -#define I2C_DRIVERID_EXP3	0xF3
-> -
->  #define I2C_DRIVERID_I2CDEV	900
-> -#define I2C_DRIVERID_I2CPROC	901
->  #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
->  #define I2C_DRIVERID_ALERT      903    /* SMBus Alert Responder Client  */
->  
-> @@ -131,15 +119,12 @@
->  #define I2C_DRIVERID_ADM1021 1008
->  #define I2C_DRIVERID_ADM9240 1009
->  #define I2C_DRIVERID_LTC1710 1010
-> -#define I2C_DRIVERID_SIS5595 1011
->  #define I2C_DRIVERID_ICSPLL 1012
->  #define I2C_DRIVERID_BT869 1013
->  #define I2C_DRIVERID_MAXILIFE 1014
->  #define I2C_DRIVERID_MATORB 1015
->  #define I2C_DRIVERID_GL520 1016
->  #define I2C_DRIVERID_THMC50 1017
-> -#define I2C_DRIVERID_DDCMON 1018
-> -#define I2C_DRIVERID_VIA686A 1019
->  #define I2C_DRIVERID_ADM1025 1020
->  #define I2C_DRIVERID_LM87 1021
->  #define I2C_DRIVERID_PCF8574 1022
-> @@ -151,21 +136,16 @@
->  #define I2C_DRIVERID_FSCPOS 1028
->  #define I2C_DRIVERID_FSCSCY 1029
->  #define I2C_DRIVERID_PCF8591 1030
-> -#define I2C_DRIVERID_SMSC47M1 1031
-> -#define I2C_DRIVERID_VT1211 1032
->  #define I2C_DRIVERID_LM92 1033
-> -#define I2C_DRIVERID_VT8231 1034
->  #define I2C_DRIVERID_SMARTBATT 1035
->  #define I2C_DRIVERID_BMCSENSORS 1036
->  #define I2C_DRIVERID_FS451 1037
-> -#define I2C_DRIVERID_W83627HF 1038
->  #define I2C_DRIVERID_LM85 1039
->  #define I2C_DRIVERID_LM83 1040
->  #define I2C_DRIVERID_LM90 1042
->  #define I2C_DRIVERID_ASB100 1043
->  #define I2C_DRIVERID_FSCHER 1046
->  #define I2C_DRIVERID_W83L785TS 1047
-> -#define I2C_DRIVERID_SMSC47B397 1050
->  
->  /*
->   * ---- Adapter types ----------------------------------------------------
-> 
-> 
-Cheers, 
-Mauro.
-
-
+SGkgUnVkb2xmLAoKVGhpcyBwYXRjaCBmaXggdGhlIGF1dG8gYWRqdXN0IGZhbiBkaXZpc29yIGJ1
+ZywgYW5kIHNhdmUgdGhlIGxvdyBsaW1pdAp3aGlsZSBjaGFuZ2UgdGhlIGRpdmlzb3IuCkkgaGF2
+ZSB0ZXN0ZWQgaXQgYW5kIGl0IHdvcmtzIHdlbGwgb24gbXkgTUIuIEl0IGRlcGVuZHMgb24gdGhl
+IHByZXZpb3VzCnBhdGNoICh3ODM3OTJkX2xtMl9jbGVhcl9jb2RlLnBhdGNoKQpQbGVhc2UgY2Fu
+IHlvdSBjaGVjayBpdD8gCgpUaGFua3MgYSBsb3QuCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCgo9
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVn
+ZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGlu
+dGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhl
+IG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVz
+c2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRl
+bGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBs
+eSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGll
+cyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5
+LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0
+aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBX
+aW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhp
+cyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNo
+YWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21w
+dXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUg
+Zm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGlu
+IEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjq
+sFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3
+pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqn
+aaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nz
+sXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdio
+ublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVM
+w/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
