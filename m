@@ -1,53 +1,38 @@
-From: hidden@paradise.net.nz (Volker Kuhlmann)
-Date: Mon, 12 Dec 2005 23:37:54 +0000
-Subject: [lm-sensors] lm_sensors and nvidia graphic card	temperature
-Message-Id: <20051212233754.GD6589@paradise.net.nz>
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Tue, 06 Dec 2005 10:16:42 +0000
+Subject: [lm-sensors] [PATCH] lm_sensors2 w83792d clear/simplify code
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7BF77@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051212191628.14d6ea0c.khali@linux-fr.org>
-In-Reply-To: <20051212191628.14d6ea0c.khali@linux-fr.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-> i2c-nvidia2 doesn't exist as far as I know. You must refer to
-> i2c-nforce2, I presume?
-
-Yes, sorry.
-
-> Search for rivatv instead - see my other post.
-
-Yes, very informative, thanks!
-
-The 0.86 release doesn't compile, but the cvs one does. The module loads
-fine, syslog:
-
- kernel: Linux video capture interface: v1.00
- kernel: rivatv: module not supported by Novell, setting U taint flag.
- kernel: rivatv: Video4Linux driver for NVIDIA cards
- kernel: rivatv: MMX processor extension enabled
-
-> Rudolf's w83785 driver is meant for the Winbond W83L785R chips, which
-> is a full-featured hardware monitoring chip. My w83l785ts driver, OTOH,
-> is meant for the Winbond W83L785TS-S, which is a very simple
-> single-temperature sensor.
-
-Thanks for the clarification. I can't get modprobe w83l785ts with
-various probe= and force= options to do anything useful. Loading
-i2c-nforce2 makes two i2c busesses avilable, numbered 0 and 1.
-Presumably something similar would have to happen if the graphics card
-has an i2c bus too? Dunno how though. :(
-I've insmoded all /lib/modules/2.6.13-15.7-default/kernel/drivers/i2c/busses/*
-ignoring the errors, and rivafb and rivatv, sensors-detect finds a lot
-more but it's all bogus. sensors -s (with the original sensors.conf),
-then sensors outputs only zeros for anything that wasn't there before.
-Might have to give up. :((
-
-Thanks again for all your insights.
-
-Volker
-
--- 
-Volker Kuhlmann			is possibly list0570 with the domain in header
-http://volker.dnsalias.net/		Please do not CC list postings to me.
-
+SGVsbG8gUnVkb2xmLCBKZWFuLAoKVGhpcyBwYXRjaCBjb2xsZWN0IHNpbXBsaWZpZXMgYW5kIGNs
+ZWFyIHBhdGNoZXMgSmVhbiBoYXMgZG9uZSB3aXRoIGh3bW9uCnc4Mzc5MmQgZHJpdmVyLgpBbmQg
+Rml4IHRoZSB0b2xlcmFuY2UgMiBhbmQgdG9sZXJhbmNlIDMgY2FuIG5vdCBiZSBzZXQgYnVnLgoK
+SSBob3BlIHRoaXMgcGF0Y2ggaXMgcmlnaHQsIHBsZWFzZSBjYW4geW91IGNoZWNrIDopCgpCZXN0
+IFJlZ2FyZHMKWXVhbiBNdQoKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5l
+ZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2Vl
+cyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5
+b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBu
+b3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNv
+biwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0
+IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdv
+cmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNp
+YXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVu
+dGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBh
+bnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBi
+dXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBl
+bmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9u
+dCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVw
+ZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdio
+ublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFyk
+p6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafO
+pKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm
++KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0
+pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrou
+IKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06o
+oy4K
