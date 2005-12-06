@@ -1,31 +1,40 @@
-From: mrenzmann@otaku42.de (Michael Renzmann)
-Date: Tue, 27 Dec 2005 09:43:28 +0000
-Subject: [lm-sensors] how to use the struct : i2c_client_address_data
-Message-Id: <1135676608.4471.8.camel@gimli>
+From: JesseD@VersaLogic.com (Jesse Davis)
+Date: Tue, 06 Dec 2005 00:22:41 +0000
+Subject: [lm-sensors] Sensors for ADM1032
+Message-Id: <DE69869583DEF2488E588C2908121E100DB839@vlmail1.versalogic.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <dfc7f2810512240116g7bb24a1cvf39d38a6e18b0317@mail.gmail.com>
-In-Reply-To: <dfc7f2810512240116g7bb24a1cvf39d38a6e18b0317@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
+Hello there.
 
-On Sat, 2005-12-24 at 17:16 +0800, herb wrote:
->       I think the struct   i2c_client_address_data   is used to probe
-> a chip attached to the i2c bus,  but I can't see  how to set it
-> properly.
+I work in the support department for Versalogic Corporation. We have a
+board called the EBX-12. This board contains the ADM1032 chip that
+should be supported by the lm90 module. The Smbus adapter is
+successfully located but the Analog Devices chip is not successfully
+probed. I have attached my output from "sensors-detect", "i2cdetect" and
+"i2cdump". I know that this device works because I possess a DOS utility
+that detects the internal CPU temperature.
 
-I'm new to i2c, so take everything I say with a grain of salt.
+Other information:
+Fedora 3 kernel 2.6.9
+lm-sensors version 2.8.7
+Running as root user.
 
-Maybe having a look at how the probing is done with entries of this
-struct helps to understand how it works. For example i2c_probe() in
-drivers/i2c/i2c-core.c. In addition, the comments in include/linux/i2c.h
-might add to the picture.
-
-Hth.
-
-Bye, Mike
+Thank you for any help or guidance you can provide.
+Jesse Davis
+VersaLogic Corporation
+541-485-8575
+2175 West 7th Avenue
+Eugene, OR      97402
 
 
+
+ <<sensors.txt>> 
+
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051206/50907449/sensors-0001.txt
