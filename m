@@ -1,40 +1,49 @@
-From: JesseD@VersaLogic.com (Jesse Davis)
-Date: Tue, 06 Dec 2005 00:22:41 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 06 Dec 2005 21:56:59 +0000
 Subject: [lm-sensors] Sensors for ADM1032
-Message-Id: <DE69869583DEF2488E588C2908121E100DB839@vlmail1.versalogic.net>
+Message-Id: <20051206225659.1a5d59ec.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <DE69869583DEF2488E588C2908121E100DB839@vlmail1.versalogic.net>
+In-Reply-To: <DE69869583DEF2488E588C2908121E100DB839@vlmail1.versalogic.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello there.
+Hi Jesse,
 
-I work in the support department for Versalogic Corporation. We have a
-board called the EBX-12. This board contains the ADM1032 chip that
-should be supported by the lm90 module. The Smbus adapter is
-successfully located but the Analog Devices chip is not successfully
-probed. I have attached my output from "sensors-detect", "i2cdetect" and
-"i2cdump". I know that this device works because I possess a DOS utility
-that detects the internal CPU temperature.
+> I work in the support department for Versalogic Corporation. We have a
+> board called the EBX-12. This board contains the ADM1032 chip that
+> should be supported by the lm90 module. The Smbus adapter is
+> successfully located but the Analog Devices chip is not successfully
+> probed. I have attached my output from "sensors-detect", "i2cdetect" and
+> "i2cdump". I know that this device works because I possess a DOS utility
+> that detects the internal CPU temperature.
 
-Other information:
-Fedora 3 kernel 2.6.9
-lm-sensors version 2.8.7
-Running as root user.
+The chip detection failed because of an unusual configuration register
+value (at 0x03). Bits 5-0 are tagged as unused in the datasheet and
+should always read 0. The default value of this register is 0x00, which
+is compatible with this assertion. However, your dump shows a value of
+0x15. The only reason I can think of is that, between the power-up and
+the probing/dump time, something wrote value 0x15 to address 0x09 (the
+write address of register 0x03) of your ADM1032 chip. Maybe the BIOS of
+your EBX-12 did that for some reason, or your system initialization
+scripts include some misuse of i2cset. I can hardly guess, you'll have
+to figure out by yourself.
 
-Thank you for any help or guidance you can provide.
-Jesse Davis
-VersaLogic Corporation
-541-485-8575
-2175 West 7th Avenue
-Eugene, OR      97402
+In the meantime, you can issue the following command before loading the
+lm90 driver:
+  i2cset -y 0 0x4c 0x09 0x00
+You'll need to load the i2c-dev driver beforehand. This will restore
+the configuration file value to what the driver expects, so the chip
+detection should work again.
 
+Alternatively, you can load the lm90 driver with force_adm1032=0,0x4c,
+this should work just fine.
 
+Anyway, I would really suggest that you investigate the cause of that
+incorrect configuration register value before resorting to this.
 
- <<sensors.txt>> 
+-- 
+Jean Delvare
 
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: sensors.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051206/50907449/sensors-0001.txt
