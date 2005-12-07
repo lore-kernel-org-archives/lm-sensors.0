@@ -1,23 +1,28 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 23 Dec 2005 02:38:13 +0000
-Subject: [lm-sensors] [PATCH]  add SENSOR_ATTR_2 to hwmon-sysfs.h
-Message-Id: <43AB6315.1010407@gmail.com>
+From: gardner.ben@gmail.com (Ben Gardner)
+Date: Wed, 07 Dec 2005 17:28:30 +0000
+Subject: [lm-sensors] [PATCH 0/3] i386: CS5535 chip support (Geode companion
+Message-Id: <808c8e9d0512070928y6f50be0arcba9404de2f68f78@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org
 
+This patch series adds support for the AMD CS5535, which is the Geode
+companion chip.  It targets the DIVIL (Diverse Integrated Logic)
+components.
 
-add SENSOR_ATTR_2 to complement  SENSOR_ATTR.
-This is needed for reworking w83792d.c to use sensor-attr-arrays,
-and perhaps others.
+Patch 1 does the following:
+ - verifies the existence of the CS5535 by checking the DIVIL signature
+ - configures UART1 as a NS16550A
+ - (optionally) enables UART2 and configures it as a NS16550A
+ - (optionally) enables the SMBus/I2C interface
 
-Signed-off-by:   Jim Cromie <jim.cromie at gmail.com>
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: hwmon-sensor-attr-array-2.patch
-Type: text/x-patch
-Size: 950 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051223/984f08df/hwmon-sensor-attr-array-2.bin
+Patch 2 provides a simple GPIO char driver, modeled after the
+scx200_gpio driver.
+
+Patch 3 provides a SMBus/I2C driver, modeled after the scx200_acb driver.
+
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+
