@@ -1,59 +1,263 @@
-From: mchehab@brturbo.com.br (Mauro Carvalho Chehab)
-Date: Fri, 02 Dec 2005 02:45:28 +0000
-Subject: [lm-sensors] Re: [Patch 11/31] V4L (0999) Some funcions now static
-Message-Id: <1133464867.23362.15.camel@localhost>
+From: gardner.ben@gmail.com (Ben Gardner)
+Date: Wed, 07 Dec 2005 17:33:04 +0000
+Subject: [lm-sensors] [PATCH 2/3] i386: CS5535 chip support - GPIO
+Message-Id: <808c8e9d0512070933re472072x43f35d454be699f1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1133400730.21135.62.camel@localhost>
-	 <20051201201121.1c09cec7.khali@linux-fr.org>
-In-Reply-To: <20051201201121.1c09cec7.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@osdl.org>, js@linuxtv.org, LM Sensors <lm-sensors@lm-sensors.org>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@osdl.org>
+Cc: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org
 
-Em Qui, 2005-12-01 ?s 20:11 +0100, Jean Delvare escreveu:
-> Hi Mauro,
-> 
-> [As a side note, it looks like there have been some distribution
-> problems with this patchset... I can only see 0/31 (twice) on LKML and
-> 11/31 didn't make it to the lm-sensors list as it was supposed to. I
-> received it twice though.]
-	In fact, all were sent to lkml... for some unknown reason, my ISP
-didn't sent it (or lkml anti-spam rules filtered?). I even tried to send
-a second time...
-> 
-> > From: Mauro Carvalho Chehab <mchehab@brturbo.com.br>
-> >
-> > - Some funcions are now declared as static
-> > - Added a I2C code for InfraRed.
-> 
-> Unrelated changes, this should have been two separate patches. Also,
-> "I2C driver ID" would better describe what the second change is about
-> than "I2C code".
-	Ok. I'll do it next time. I tried to consolidate into one due the
-ammount of patches we have to send. Up now, we sent more than 250
-patches, just v4l updates to 2.6.15.
-> 
-> > --- git.orig/drivers/media/video/ir-kbd-i2c.c
-> > +++ git/drivers/media/video/ir-kbd-i2c.c
-> > @@ -278,7 +278,7 @@ static int ir_probe(struct i2c_adapter *
-> >
-> > static struct i2c_driver driver = {
-> > 	.name           = "ir remote kbd driver",
-> > -	.id             = I2C_DRIVERID_EXP3, /* FIXME */
-> > +	.id             = I2C_DRIVERID_I2C_IR,
-> > 	.flags          = I2C_DF_NOTIFY,
-> > 	.attach_adapter = ir_probe,
-> > 	.detach_client  = ir_detach,
-> 
-> That's a poor ID name you chose. The second "I2C" is totally redundant,
-> and "IR" is a bit short and could mean about anything. Please change it to
-> I2C_DRIVERID_IRKBD or I2C_DRIVERID_INFRARED or something.
-	Ok. (We have also other non-i2c ir.. that's why I called it I2C_IR).
-I'll prepare a patch for it. I2C_DRIVERID_INFRARED seems a good name.
-> 
-> Thanks,
-Cheers, 
-Mauro.
+Provides a simple GPIO char driver for the AMD CS5535, modeled after
+the scx200_gpio driver.
 
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+-------------- next part --------------
+ drivers/char/Kconfig       |    9 +
+ drivers/char/Makefile      |    1 
+ drivers/char/cs5535_gpio.c |  209 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 219 insertions(+)
+
+Index: linux-2.6.14/drivers/char/cs5535_gpio.c
+=================================--- /dev/null
++++ linux-2.6.14/drivers/char/cs5535_gpio.c
+@@ -0,0 +1,209 @@
++/*
++ * linux/drivers/char/cs5535_gpio.c
++ *
++ * AMD CS5535 GPIO driver.
++ * Allows a user space process to play with the GPIO pins.
++ *
++ * Heavily inspired by scx200_gpio, by Christer Weinigel
++ *
++ * Copyright (c) 2005 Ben Gardner <bgardner at wabtec.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the smems of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ */
++
++#include <linux/config.h>
++#include <linux/fs.h>
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/cdev.h>
++#include <linux/ioport.h>
++#include <asm/uaccess.h>
++#include <asm/io.h>
++
++
++#define NAME			"cs5535_gpio"
++
++MODULE_AUTHOR("Ben Gardner <bgardner at wabtec.com>");
++MODULE_DESCRIPTION("AMD CS5535 GPIO Pin Driver");
++MODULE_LICENSE("GPL");
++
++static int major = 0;		/* default to dynamic major */
++module_param(major, int, 0);
++MODULE_PARM_DESC(major, "Major device number");
++
++/* These are defined in cs5535.c */
++extern u32 cs5535_gpio_base;
++extern u32 cs5535_gpio_mask;
++
++static struct cdev cs5535_gpio_cdev;
++
++/* reserve 32 entries even though some aren't usable */
++#define CS5535_GPIO_COUNT	32
++
++/* IO block size */
++#define CS5535_GPIO_SIZE	256
++
++struct gpio_regmap {
++	u32 rd_offset;
++	u32 wr_offset;
++	char on;
++	char off;
++};
++static struct gpio_regmap rm[] +{
++	{ 0x30, 0x00, '1', '0' },	/* GPIOx_READ_BACK / GPIOx_OUT_VAL */
++	{ 0x20, 0x20, 'I', 'i' },	/* GPIOx_IN_EN */
++	{ 0x04, 0x04, 'O', 'o' },	/* GPIOx_OUT_EN */
++	{ 0x08, 0x08, 't', 'T' },	/* GPIOx_OUT_OD_EN */
++	{ 0x18, 0x18, 'P', 'p' },	/* GPIOL_OUT_PU_EN */
++	{ 0x1c, 0x1c, 'D', 'd' },	/* GPIOx_OUT_PD_EN */
++};
++
++
++/**
++ * Gets the register offset for the GPIO bank.
++ * Low (0-15) starts at 0x00, high (16-31) starts at 0x80
++ */
++static inline u32 cs5535_lowhigh_base(int reg)
++{
++	return (reg & 0x10) << 3;
++}
++
++static ssize_t cs5535_gpio_write(struct file *file, const char __user *data,
++				 size_t len, loff_t *ppos)
++{
++	u32	m = iminor(file->f_dentry->d_inode);
++	int	i, j;
++	u32	base = cs5535_gpio_base + cs5535_lowhigh_base(m);
++	u32	m0, m1;
++	char	c;
++
++	/**
++	 * Creates the mask for atomic bit programming.
++	 * The high 16 bits and the low 16 bits are used to set the mask.
++	 * For example, GPIO 15 maps to 31,15: 0,1 => On; 1,0=> Off
++	 */
++	m1 = 1 << (m & 0x0F);
++	m0 = m1 << 16;
++
++	for (i = 0; i < len; ++i) {
++		if (get_user(c, data+i))
++			return -EFAULT;
++
++		for (j = 0; j < ARRAY_SIZE(rm); j++) {
++			if (c = rm[j].on) {
++				outl(m1, base + rm[j].wr_offset);
++				break;
++			} else if (c = rm[j].off) {
++				outl(m0, base + rm[j].wr_offset);
++				break;
++			}
++		}
++	}
++	*ppos = 0;
++	return len;
++}
++
++static ssize_t cs5535_gpio_read(struct file *file, char __user *buf,
++				size_t len, loff_t *ppos)
++{
++	u32	m = iminor(file->f_dentry->d_inode);
++	u32	base = cs5535_gpio_base + cs5535_lowhigh_base(m);
++	int	mask = 1 << (m & 0x0f);
++	int	i;
++	char	ch;
++	ssize_t	count = 0;
++
++	if (*ppos >= ARRAY_SIZE(rm))
++		return 0;
++
++	for (i = *ppos; (i < (*ppos + len)) && (i < ARRAY_SIZE(rm)); i++) {
++		ch = (inl(base + rm[i].rd_offset) & mask) ?
++		     rm[i].on : rm[i].off;
++
++		if (put_user(ch, buf+count))
++			return -EFAULT;
++
++		count++;
++	}
++
++	/* add a line-feed if there is room */
++	if ((i = ARRAY_SIZE(rm)) && (count < len)) {
++		put_user('\n', buf + count);
++		count++;
++	}
++
++	*ppos += count;
++	return count;
++}
++
++static int cs5535_gpio_open(struct inode *inode, struct file *file)
++{
++	u32 m = iminor(inode);
++
++	/* the mask says which pins are usable by this driver */
++	if ((cs5535_gpio_mask & (1 << m)) = 0)
++		return -EINVAL;
++
++	return nonseekable_open(inode, file);
++}
++
++static struct file_operations cs5535_gpio_fops = {
++	.owner	= THIS_MODULE,
++	.write	= cs5535_gpio_write,
++	.read	= cs5535_gpio_read,
++	.open	= cs5535_gpio_open
++};
++
++static int __init cs5535_gpio_init(void)
++{
++	dev_t dev_id;
++	int retval;
++
++	if (cs5535_gpio_base = 0) {
++		printk(KERN_WARNING NAME ": GPIO not available\n");
++		return -ENODEV;
++	}
++
++	if (request_region(cs5535_gpio_base, CS5535_GPIO_SIZE, NAME) = 0) {
++		printk(KERN_ERR NAME ": can't allocate I/O for GPIO\n");
++		return -ENODEV;
++	}
++
++	printk(KERN_DEBUG NAME ": AMD CS5535 GPIO Driver: mask=%x\n",
++	       cs5535_gpio_mask);
++
++	if (major) {
++		dev_id = MKDEV(major, 0);
++		retval = register_chrdev_region(dev_id, CS5535_GPIO_COUNT,
++						NAME);
++	} else {
++		retval = alloc_chrdev_region(&dev_id, 0, CS5535_GPIO_COUNT,
++					     NAME);
++		major = MAJOR(dev_id);
++	}
++
++	if (retval) {
++		release_region(cs5535_gpio_base, CS5535_GPIO_SIZE);
++		return -1;
++	}
++
++	cdev_init(&cs5535_gpio_cdev, &cs5535_gpio_fops);
++	cdev_add(&cs5535_gpio_cdev, dev_id, CS5535_GPIO_COUNT);
++
++	return 0;
++}
++
++static void __exit cs5535_gpio_cleanup(void)
++{
++	dev_t dev_id = MKDEV(major, 0);
++	unregister_chrdev_region(dev_id, CS5535_GPIO_COUNT);
++	release_region(cs5535_gpio_base, CS5535_GPIO_SIZE);
++}
++
++module_init(cs5535_gpio_init);
++module_exit(cs5535_gpio_cleanup);
+Index: linux-2.6.14/drivers/char/Kconfig
+=================================--- linux-2.6.14.orig/drivers/char/Kconfig
++++ linux-2.6.14/drivers/char/Kconfig
+@@ -936,6 +936,15 @@ config SCx200_GPIO
+ 
+ 	  If compiled as a module, it will be called scx200_gpio.
+ 
++config CS5535_GPIO
++	tristate "AMD CS5535 GPIO (Geode GX)"
++	depends on CS5535
++	help
++	  Give userspace access to the GPIO pins on the AMD CS5535 Geode GX
++	  companion device.
++
++	  If compiled as a module, it will be called cs5535_gpio.
++
+ config GPIO_VR41XX
+ 	tristate "NEC VR4100 series General-purpose I/O Unit support"
+ 	depends on CPU_VR41XX
+Index: linux-2.6.14/drivers/char/Makefile
+=================================--- linux-2.6.14.orig/drivers/char/Makefile
++++ linux-2.6.14/drivers/char/Makefile
+@@ -81,6 +81,7 @@ obj-$(CONFIG_PPDEV) += ppdev.o
+ obj-$(CONFIG_NWBUTTON) += nwbutton.o
+ obj-$(CONFIG_NWFLASH) += nwflash.o
+ obj-$(CONFIG_SCx200_GPIO) += scx200_gpio.o
++obj-$(CONFIG_CS5535_GPIO) += cs5535_gpio.o
+ obj-$(CONFIG_GPIO_VR41XX) += vr41xx_giu.o
+ obj-$(CONFIG_TANBAC_TB0219) += tb0219.o
+ obj-$(CONFIG_TELCLOCK) += tlclk.o
