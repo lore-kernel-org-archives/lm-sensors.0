@@ -1,71 +1,72 @@
-From: daniel.n.nilsson@home.se (Daniel Nilsson)
-Date: Wed, 07 Dec 2005 08:20:41 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Wed, 07 Dec 2005 09:59:50 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051207092041.2ffmutyauqcgo0c4@oden.homeip.net>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC22043@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Yuan, Rudolf,
-
-Quoting Ymu at Winbond.com.tw:
-
->> Is there a chance that you have test hardware available with the
->> w83792d chip where you could try to run the same commands that I did?
->>
-> Yes, I have a board on hand; it's a C version chip.
-
-Your chip seems to behave differently from mine, but then again it is has '12'
-as revision ID where my chip has '13'. So I guess we still need to wait for
-that updated datasheet to understand if there are programming differences.
-
-Meanwhile, I wrote back to Gigabyte support and got a slightly better answer
-this time...
-
-Quoting Gigabyte support:
-
-"Hi Daniel,
-
-We are sorry for the late reply. Here are some of the answers from our R&D
-department:
-
-The interrupt pin of the W83792D is connected to one of the GPIO pin of south
-bridge. And that GPIO can trigger SMI.
-
-If the sensor limit interrupt enable bit is enabled and the sensor reading is
-beyond its limit, the chip will assert the interrupt pin.
-
-The BIOS logs the events and does fan controls based on the interrupts of
-w83792. But BIOS always enables interrupt of W83792 even when miniBMC is
-disabled because BIOS needs it for fan controls.
-
-Attached a simple diagram to show you how the W83792D chip is connected 
-to south
-bridge.
-
-Best regards,
-
-GBT Tech Support"
-
-The picture attached is a very simple drawing showing the south bridge in one
-box and the w83792d in another box. There is one arrow from the south 
-bridge to
-the w83792d labelled "SMI bus" and the there is one arrow from the w83792d to
-the south bridge labelled interrupt.
-
-Does this provide any more insight? Could this be more of an issue with the
-interrupt coming into the south bridge causing a hang since no code is
-servicing that interrupt? I don't know the kernel that well to guess any
-further though...
-
-Regards
-Daniel Nilsson
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
-
+SGkgUnVkb2xmLCBKZWFuLAoKQ2FuIHlvdSBnaXZlIHNvbWUgaGludHMgbm93PwpGcmFua2x5IEkg
+aGF2ZSBubyBpZGVhIGFib3V0IHRoaXMgaXNzdWUgeWV0LgpJdCBzZWVtcyB0aGUgU01JIGNhdXNl
+ZCBzeXN0ZW0gaGFuZz8KCgpIaSBEYW5pZWwsClllc3RlcmRheSBJIHNlbmQgdGhlIG5ldyBkYXRh
+c2hlZXQgdG8geW91LgpJIHJlY2VpdmVkIHRoZSByZWplY3QgbWFpbCBmcm9tIEplYW4ganVzdCBu
+b3csIHNvIGxldCBhc3N1bWUgeW91IGhhdmUKcmVjZWl2ZWQgdGhlIGRhdGFzaGVldCBub3cgOikK
+SW4gdGhhdCBtYWlsIEkgbWVudGlvbmVkIHRoZSBTTUkjL0lSUSBtYXNrIHJlZ2lzdGVycywgaG93
+IGFib3V0IHNldAp0aGVzZSBtYXNrPyBJJ20gdHJ5aW5nIHRvIGRpc2FibGUgU01JLgpJJ20gaG9w
+aW5nIHRvIGdldCB0aGUgcmVhZCBiYWNrIHZhbHVlIG9mIHRoZXNlIGNvbW1hbmRzLgoKaTJjc2V0
+IC15IDAgMHgyYyAweDQzIDB4ZmYKaTJjc2V0IC15IDAgMHgyYyAweDQ0IDB4N2YKaTJjc2V0IC15
+IDAgMHgyYyAweDljIDB4ZmYKCklmIGl0IGRvZXMgbm90IHdvcmssIGxldCB1c2UgZm9sbG93aW5n
+IGNvbW1hbmQgdG8gdHJ5IG90aGVyIFNNSSBtb2RlLgpOb3cgdGhlIG1vZGUgb2YgeW91ciBib2Fy
+ZCBpcyB0d28gdGltZSBpbnRlcnJ1cHQgbW9kZS4KaTJjc2V0IC15IDAgMHgyYyAweDRjIDB4MDEg
+I2NvbXBhcmF0b3IgaW50ZXJydXB0IG1vZGUKb3IKaTJjc2V0IC15IDAgMHgyYyAweDRjIDB4ODEg
+I09uZSB0aW1lIGludGVycnVwdCBtb2RlCgpPciBCSU9TIHdpbGwgbm90IGxldCB1cyBkbyB0aGlz
+IHRvby4uLi4gSSBkb24ndCBrbm93LgoKT3IgdGhlIFNNSSBpcyB0cmlnZ2VyZWQgYnkgZmFuIGxp
+bWl0LyB2b2x0YWdlIGxpbWl0Li4uIFRoZSBmYW4gNC81LzYgbG93CmxpbWl0IG9mIHlvdXIgTUIg
+aXMgbm90IDAuClRyeSB0byBzZXQgYWxsIHlvdXIgZmFuIGxpbWl0IHZhbHVlIHRvIHplcm8uCmky
+Y3NldCAteSAwIDB4MmMgMHgzYiAweGZmCmkyY3NldCAteSAwIDB4MmMgMHgzYyAweGZmCmkyY3Nl
+dCAteSAwIDB4MmMgMHgzZCAweGZmCmkyY3NldCAteSAwIDB4MmMgMHhiYiAweGZmCmkyY3NldCAt
+eSAwIDB4MmMgMHhiYyAweGZmCmkyY3NldCAteSAwIDB4MmMgMHhiZCAweGZmCmkyY3NldCAteSAw
+IDB4MmMgMHhiZiAweGZmCgoKPiA+PiBJcyB0aGVyZSBhIGNoYW5jZSB0aGF0IHlvdSBoYXZlIHRl
+c3QgaGFyZHdhcmUgYXZhaWxhYmxlIHdpdGggdGhlCj4gPj4gdzgzNzkyZCBjaGlwIHdoZXJlIHlv
+dSBjb3VsZCB0cnkgdG8gcnVuIHRoZSBzYW1lIGNvbW1hbmRzIHRoYXQgSQpkaWQ/Cj4gPj4KPiA+
+IFllcywgSSBoYXZlIGEgYm9hcmQgb24gaGFuZDsgaXQncyBhIEMgdmVyc2lvbiBjaGlwLgo+IAo+
+IFlvdXIgY2hpcCBzZWVtcyB0byBiZWhhdmUgZGlmZmVyZW50bHkgZnJvbSBtaW5lLCBidXQgdGhl
+biBhZ2FpbiBpdCBpcwpoYXMgJzEyJwo+IGFzIHJldmlzaW9uIElEIHdoZXJlIG15IGNoaXAgaGFz
+ICcxMycuIFNvIEkgZ3Vlc3Mgd2Ugc3RpbGwgbmVlZCB0bwp3YWl0IGZvcgo+IHRoYXQgdXBkYXRl
+ZCBkYXRhc2hlZXQgdG8gdW5kZXJzdGFuZCBpZiB0aGVyZSBhcmUgcHJvZ3JhbW1pbmcKZGlmZmVy
+ZW5jZXMuCj4KWWVzLCB5b3VycyBpcyBkaWZmZXJlbnQgZnJvbSBtaW5lLiBCdXQgSSBjYW4gbm90
+IGZpbmQgbW9yZSB1c2VmdWwKY29tbWVudHMgZnJvbSB0aGUgbmV3IGRhdGFzaGVldC4uLiBjYW4g
+eW91PwoKPiBUaGUgcGljdHVyZSBhdHRhY2hlZCBpcyBhIHZlcnkgc2ltcGxlIGRyYXdpbmcgc2hv
+d2luZyB0aGUgc291dGggYnJpZGdlCmluIG9uZQo+IGJveCBhbmQgdGhlIHc4Mzc5MmQgaW4gYW5v
+dGhlciBib3guIFRoZXJlIGlzIG9uZSBhcnJvdyBmcm9tIHRoZSBzb3V0aAo+IGJyaWRnZSB0bwo+
+IHRoZSB3ODM3OTJkIGxhYmVsbGVkICJTTUkgYnVzIiBhbmQgdGhlIHRoZXJlIGlzIG9uZSBhcnJv
+dyBmcm9tIHRoZQp3ODM3OTJkIHRvCj4gdGhlIHNvdXRoIGJyaWRnZSBsYWJlbGxlZCBpbnRlcnJ1
+cHQuCj4KClNvcnJ5IEkgZG9uJ3Qga25vdyBob3cgYW5kIHdoeSB0aGUgYXJyb3cgaXMgZnJvbSBz
+b3V0aCBicmlkZ2UgdG8gdzgzNzkyZAo6KAoKCkJlc3QgUmVnYXJkcwpZdWFuIE11CgoKPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNv
+bmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRl
+ZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmln
+aW5hbCBzZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBp
+bmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVy
+eSBvZiB0aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8g
+dGhlIHNlbmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2Yg
+aXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91
+ciBjb29wZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBh
+bnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9u
+ZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1h
+aWwgaXJyZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBi
+ZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIg
+aXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxv
+d2luZyBtZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmds
+aXNoIGdpdmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2
+yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6Snpqyr
+SKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3s
+tW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqm
+WKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRs
+qrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKek
+uq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCgo=
