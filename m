@@ -1,37 +1,43 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 23 Dec 2005 09:27:52 +0000
-Subject: [lm-sensors] [PATCH 0/7] i2c: scx200_acb - cleanup and add
-Message-Id: <20051223102752.6bff1dcd.khali@linux-fr.org>
+From: mgreer@mvista.com (Mark A. Greer)
+Date: Wed, 07 Dec 2005 01:44:49 +0000
+Subject: [lm-sensors] [PATCH 2.6.15-rc5-mm1] i2c: i2c-mv64xxx - Compilation
+Message-Id: <20051207014449.GA21553@mag.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <808c8e9d0512191048sec4f9c9pc799ba10cebcbb68@mail.gmail.com>
-In-Reply-To: <808c8e9d0512191048sec4f9c9pc799ba10cebcbb68@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ben,
+The busses/i2c-mv64xxx.c driver doesn't currently compile because of an
+incorrect argument to dev_err().  This patch fixes that.
 
-> Clean up the scx200_acb driver and add support for the AMD CS5535/CS5536 chips.
-> 
-> The series goes like this:
-> 1. Whitespace and comment cleanup
-> 2. debug log cleanup
-> 3. refactor/simplify code (no functional changes)
-> 4. remove use of lock_kernel()
-> 5. Add support for the CS5535/CS5536
-> 6. Fix and speed up the poll loop
-> 7. Minimal documentation update
-> 
-> Signed-off-by: Ben Gardner <bgardner at wabtec.com>
-> ---
-> This is the second version of the series.
+[Since it currently doesn't compile, I'm hoping this can get in ASAP.]
 
-Looks all OK to me this time. I would only ask for a Kconfig update for
-this driver. This could be folded into either patch 5 or patch 7. No
-need to resend the whole series.
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
+--
 
-Thanks,
--- 
-Jean Delvare
+diff -Nur linux-2.6.15-rc5-mm1.orig/drivers/i2c/busses/i2c-mv64xxx.c linux-2.6.15-rc5-mm1-p1/drivers/i2c/busses/i2c-mv64xxx.c
+--- linux-2.6.15-rc5-mm1.orig/drivers/i2c/busses/i2c-mv64xxx.c	2005-12-03 22:10:42.000000000 -0700
++++ linux-2.6.15-rc5-mm1-p1/drivers/i2c/busses/i2c-mv64xxx.c	2005-12-06 18:08:59.000000000 -0700
+@@ -529,14 +529,15 @@
+ 	i2c_set_adapdata(&drv_data->adapter, drv_data);
+ 
+ 	if (request_irq(drv_data->irq, mv64xxx_i2c_intr, 0,
+-		MV64XXX_I2C_CTLR_NAME, drv_data)) {
+-
+-		dev_err(dev, "mv64xxx: Can't register intr handler "
+-			"irq: %d\n", drv_data->irq);
++			MV64XXX_I2C_CTLR_NAME, drv_data)) {
++		dev_err(&drv_data->adapter.dev,
++			"mv64xxx: Can't register intr handler irq: %d\n",
++			drv_data->irq);
+ 		rc = -EINVAL;
+ 		goto exit_unmap_regs;
+ 	} else if ((rc = i2c_add_adapter(&drv_data->adapter)) != 0) {
+-		dev_err(dev, "mv64xxx: Can't add i2c adapter, rc: %d\n", -rc);
++		dev_err(&drv_data->adapter.dev,
++			"mv64xxx: Can't add i2c adapter, rc: %d\n", -rc);
+ 		goto exit_free_irq;
+ 	}
+ 
 
