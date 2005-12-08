@@ -1,109 +1,60 @@
-From: daniel.n.nilsson@home.se (Daniel Nilsson)
-Date: Wed, 07 Dec 2005 20:06:03 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Thu, 08 Dec 2005 07:46:23 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051207200602.GA7664@dnil.homelinux.net>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC22162@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Wed, Dec 07, 2005 at 05:59:50PM +0800, Ymu at Winbond.com.tw wrote:
-> Hi Rudolf, Jean,
-> 
-> Can you give some hints now?
-> Frankly I have no idea about this issue yet.
-> It seems the SMI caused system hang?
-> 
-> 
-> Hi Daniel,
-> Yesterday I send the new datasheet to you.
-> I received the reject mail from Jean just now, so let assume you have
-> received the datasheet now :)
-> In that mail I mentioned the SMI#/IRQ mask registers, how about set
-> these mask? I'm trying to disable SMI.
-> I'm hoping to get the read back value of these commands.
-> 
-> i2cset -y 0 0x2c 0x43 0xff
-> i2cset -y 0 0x2c 0x44 0x7f
-> i2cset -y 0 0x2c 0x9c 0xff
-
-Hi Yuan,
-
-Setting those 3 registers to mask off the interrupts worked, I have
-the following register values after setting the masks:
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-10: 00 00 64 64 bf 00 00 63 00 ff 04 00 f5 00 8f b3    ..dd?..c..?.?.??
-20: d4 d4 b9 b9 b7 b8 ce 18 42 ff 74 ff 00 96 64 d7    ????????B.t..?d?
-30: af d9 b1 d9 b1 d7 af ff 00 25 00 f0 f0 f0 67 30    ???????..%.???g0
-40: 03 00 00 ff 7f ff ff bb 2c 13 40 c3 51 ff 80 5c    ?...?..?,?@?Q.?\
-50: ff ff ff ff ff ff ff ff 7a 40 ff bb bb c1 05 7f    ........z at .?????
-60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-80: 81 8f 81 8f 00 00 00 00 11 11 ff ff 3c 3c 0a 0a    ????....??..<<??
-90: 00 00 00 81 8f ff 00 00 11 ff 3c 00 ff 01 01 ff    ...??...?.<..??.
-a0: 81 81 81 8f 8f 8f 8f ff 3e 42 00 e0 ff ff 00 00    ???????.>B.?....
-b0: d3 cb ff ff ff 00 e2 b9 ff ff ff f0 f0 f0 ff ff    ??....??...???..
-c0: 29 80 02 39 00 3c 00 ff 30 00 00 5d 00 60 00 ff    )??9.<..0..].`..
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
-e0: 8b 8b 8b 28 3c 50 28 3c 50 28 3c 50 ff ff ff ff    ???(<P(<P(<P....
-f0: ff ff 00 ff 00 01 00 00 ff 02 ff 00 00 00 00 ff    .....?...?......
-
-With the masks in place, I'm able to set all the sensor limits without
-the machine hanging. I reproduced the hand to make sure that setting
-those 3 registers actually did have an effect and it seem like that is
-the case.
-
-
-> If it does not work, let use following command to try other SMI mode.
-> Now the mode of your board is two time interrupt mode.
-> i2cset -y 0 0x2c 0x4c 0x01 #comparator interrupt mode
-
-Tried this one as well, that did not solve the issue with the system
-hanging but the register write did succeed. When performing this test
-I did not change the mask registers though so that seems to still
-point in the direction that it is the interrupt that is causing the hang.
-
-> i2cset -y 0 0x2c 0x4c 0x81 #One time interrupt mode
-
-Same result as above, system still hangs.
-
-> Or BIOS will not let us do this too.... I don't know.
-> 
-> Or the SMI is triggered by fan limit/ voltage limit... The fan 4/5/6 low
-> limit of your MB is not 0.
-> Try to set all your fan limit value to zero.
-> i2cset -y 0 0x2c 0x3b 0xff
-> i2cset -y 0 0x2c 0x3c 0xff
-> i2cset -y 0 0x2c 0x3d 0xff
-> i2cset -y 0 0x2c 0xbb 0xff
-> i2cset -y 0 0x2c 0xbc 0xff
-> i2cset -y 0 0x2c 0xbd 0xff
-> i2cset -y 0 0x2c 0xbf 0xff
-
-This also seems to avoid the hang. After setting the above registers I
-can proceed to set the other sensor limits.
-
-My conclusion from this is that it is probably the interrupt that is
-causing the system to hang and we can work around that in this case by
-masking off those interrupts. I suppose this could be done in the
-w83792d driver since that will prevent the hang from occuring once
-that driver is loaded.
-
-Now, thinking a little further here though, this motherboard and
-potentially other motherboards comes with all these sensor interrupts
-armed and all that seems to be required is for one fan to stop in the
-system and the kernel will hang if the w83792d driver hasn't been
-loaded... That's not a good thing... Wouldn't a better solution be for
-the kernel to be able to survive this SMI interrupt? I really don't
-know much about the complexity of that though, I did notice however
-that Dell seems to support SMI on some of their servers with the
-dcdbas driver.
-
-Thanks!
-Daniel
-
+Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBsbS1zZW5zb3JzLWJvdW5jZXMg
+YXQgbG0tc2Vuc29ycy5vcmcKW21haWx0bzpsbS1zZW5zb3JzLWJvdW5jZXMgYXQgbG0tc2Vuc29y
+cy5vcmddIE9uIEJlaGFsZiBPZiBIZW5yaXF1ZSBkZQpNb3JhZXMgSG9sc2NodWgKPiBTZW50OiBX
+ZWRuZXNkYXksIERlY2VtYmVyIDA3LCAyMDA1IDc6MDggUE0KPiBUbzogbG0tc2Vuc29ycyBhdCBs
+bS1zZW5zb3JzLm9yZwo+IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gS2VybmVsIGhhbmdzIHdp
+dGggaTJjLWk4MDEgZHJpdmVyPwo+IAo+IE9uIFdlZCwgMDcgRGVjIDIwMDUsIERhbmllbCBOaWxz
+c29uIHdyb3RlOgo+ID4gVGhlIEJJT1MgbG9ncyB0aGUgZXZlbnRzIGFuZCBkb2VzIGZhbiBjb250
+cm9scyBiYXNlZCBvbiB0aGUKaW50ZXJydXB0cyBvZgo+ID4gdzgzNzkyLiBCdXQgQklPUyBhbHdh
+eXMgZW5hYmxlcyBpbnRlcnJ1cHQgb2YgVzgzNzkyIGV2ZW4gd2hlbgptaW5pQk1DIGlzCj4gPiBk
+aXNhYmxlZCBiZWNhdXNlIEJJT1MgbmVlZHMgaXQgZm9yIGZhbiBjb250cm9scy4KPiAKPiBNYXli
+ZSBJIGFtIGFza2luZyBzb21ldGhpbmcgdG9vIHN0dXBpZCwgYnV0IHdoYXQgd291bGQgaGFwcGVu
+IGlmIHRoZXJlCmlzIGEKPiByYWNlIGNvbmRpdGlvbiBiZXR3ZWVuIHRoZSBsaW51eCBrZXJuZWwg
+YW5kIHRoZSBCSU9TIEFQTSBjb2RlIGFuZCBib3RoCnRyeQo+IHRvIGFjY2VzcyB0aGUgY2hpcCBh
+dCB0aGUgc2FtZSB0aW1lPyAgQSBMaW51eCBrZXJuZWwgc3BpbmxvY2sgd29uJ3QKcHJvdGVjdAo+
+IHRoZSBjaGlwIGFnYWluc3Qgcm9ndWUgaGFyZHdhcmUgYWNjZXNzIGJ5IHRoZSBCSU9TLCB1bmxl
+c3MgdGhhdCBHUElPCj4gaW50ZXJydXB0IGlzIGRpc2FibGVkIGluIHRoZSBTb3V0aCBCcmlkZ2Uu
+Cj4gCj4gLS0KPiAgICJPbmUgZGlzayB0byBydWxlIHRoZW0gYWxsLCBPbmUgZGlzayB0byBmaW5k
+IHRoZW0uIE9uZSBkaXNrIHRvIGJyaW5nCj4gICB0aGVtIGFsbCBhbmQgaW4gdGhlIGRhcmtuZXNz
+IGdyaW5kIHRoZW0uIEluIHRoZSBMYW5kIG9mIFJlZG1vbmQKPiAgIHdoZXJlIHRoZSBzaGFkb3dz
+IGxpZS4iIC0tIFRoZSBTaWxpY29uIFZhbGxleSBUYXJvdAo+ICAgSGVucmlxdWUgSG9sc2NodWgK
+PiAKSGVsbG8gSGVucmlxdWUsCgpUaGFua3MgZm9yIHlvdXIgY29tbWVudHMuCkp1c3QgYXMgd2hh
+dCB5b3UgZGVzY3JpYmVkLApJdCBzZWVtcyB0aGF0IGFsbCBoYW5nIGhhcHBlbmVkIHdoZW4gd2Ug
+YWNjZXNzIHRoZSBjaGlwIChzZW5zb3JzIC1zCmNvbW1hbmQgb3IgaTJjc2V0IGNvbW1hbmQpLgpE
+byB5b3UgdGhpbmsgaXQncyBzaG91bGQgYmUgdGhlIGZhdWx0eSBvZiB0aGUgbWFuIG1hZGUgQklP
+Uz8KSWYgc28sIEknbSBxdWlldCBhZ3JlZSB3aXRoIHlvdSA7KQoKQmVzdCBSZWdhcmRzCll1YW4g
+TXUKCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBw
+cml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFp
+bCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVk
+IGJ5IHRoZSBvcmlnaW5hbCBzZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhl
+IGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxl
+IGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5k
+bHkgcmVwbHkgdG8gdGhlIHNlbmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFs
+bCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1l
+ZGlhdGVseS4gWW91ciBjb29wZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFk
+dmlzZWQgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRp
+b24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9u
+IGluIHRoaXMgZW1haWwgaXJyZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2lu
+Ym9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2lu
+Ym9uZC4KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlv
+dXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25v
+cmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRl
+bWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+
+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOr
+RLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXz
+LCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviw
+oy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abb
+qM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGk
+bMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCgo=
