@@ -1,49 +1,27 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 06 Dec 2005 21:56:59 +0000
-Subject: [lm-sensors] Sensors for ADM1032
-Message-Id: <20051206225659.1a5d59ec.khali@linux-fr.org>
+From: list0570@paradise.net.nz (Volker Kuhlmann)
+Date: Thu, 08 Dec 2005 23:41:44 +0000
+Subject: [lm-sensors] Gigabyte GA-K8NF-9 sensors.conf?
+Message-Id: <20051208234144.GG890@paradise.net.nz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <DE69869583DEF2488E588C2908121E100DB839@vlmail1.versalogic.net>
-In-Reply-To: <DE69869583DEF2488E588C2908121E100DB839@vlmail1.versalogic.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jesse,
+Has anyone managed to produce a functional sensors.conf for a Gigabyte
+GA-K8NF-9 board and wouldn't mind sharing it? I'm not sure about some of
+the details.
 
-> I work in the support department for Versalogic Corporation. We have a
-> board called the EBX-12. This board contains the ADM1032 chip that
-> should be supported by the lm90 module. The Smbus adapter is
-> successfully located but the Analog Devices chip is not successfully
-> probed. I have attached my output from "sensors-detect", "i2cdetect" and
-> "i2cdump". I know that this device works because I possess a DOS utility
-> that detects the internal CPU temperature.
+E.g. Vcore1 is 1.42V, Vcore2 2.61V. Is this reasonable for an AMD64 CPU?
+Where is the M/B temp sensor located? I don't believe its 25?C when the
+room temperature is 27?C.
+The CPU temp is about 2?C to low when compared with BIOS.
 
-The chip detection failed because of an unusual configuration register
-value (at 0x03). Bits 5-0 are tagged as unused in the datasheet and
-should always read 0. The default value of this register is 0x00, which
-is compatible with this assertion. However, your dump shows a value of
-0x15. The only reason I can think of is that, between the power-up and
-the probing/dump time, something wrote value 0x15 to address 0x09 (the
-write address of register 0x03) of your ADM1032 chip. Maybe the BIOS of
-your EBX-12 did that for some reason, or your system initialization
-scripts include some misuse of i2cset. I can hardly guess, you'll have
-to figure out by yourself.
+Thanks,
 
-In the meantime, you can issue the following command before loading the
-lm90 driver:
-  i2cset -y 0 0x4c 0x09 0x00
-You'll need to load the i2c-dev driver beforehand. This will restore
-the configuration file value to what the driver expects, so the chip
-detection should work again.
-
-Alternatively, you can load the lm90 driver with force_adm1032=0,0x4c,
-this should work just fine.
-
-Anyway, I would really suggest that you investigate the cause of that
-incorrect configuration register value before resorting to this.
+Volker
 
 -- 
-Jean Delvare
+Volker Kuhlmann			is possibly list0570 with the domain in header
+http://volker.dnsalias.net/		Please do not CC list postings to me.
 
