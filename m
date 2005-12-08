@@ -1,60 +1,62 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Thu, 08 Dec 2005 07:46:23 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 08 Dec 2005 21:22:40 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC22162@weshml03.winbond.com.tw>
+Message-Id: <20051208222240.045352d6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KPiBGcm9tOiBsbS1zZW5zb3JzLWJvdW5jZXMg
-YXQgbG0tc2Vuc29ycy5vcmcKW21haWx0bzpsbS1zZW5zb3JzLWJvdW5jZXMgYXQgbG0tc2Vuc29y
-cy5vcmddIE9uIEJlaGFsZiBPZiBIZW5yaXF1ZSBkZQpNb3JhZXMgSG9sc2NodWgKPiBTZW50OiBX
-ZWRuZXNkYXksIERlY2VtYmVyIDA3LCAyMDA1IDc6MDggUE0KPiBUbzogbG0tc2Vuc29ycyBhdCBs
-bS1zZW5zb3JzLm9yZwo+IFN1YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gS2VybmVsIGhhbmdzIHdp
-dGggaTJjLWk4MDEgZHJpdmVyPwo+IAo+IE9uIFdlZCwgMDcgRGVjIDIwMDUsIERhbmllbCBOaWxz
-c29uIHdyb3RlOgo+ID4gVGhlIEJJT1MgbG9ncyB0aGUgZXZlbnRzIGFuZCBkb2VzIGZhbiBjb250
-cm9scyBiYXNlZCBvbiB0aGUKaW50ZXJydXB0cyBvZgo+ID4gdzgzNzkyLiBCdXQgQklPUyBhbHdh
-eXMgZW5hYmxlcyBpbnRlcnJ1cHQgb2YgVzgzNzkyIGV2ZW4gd2hlbgptaW5pQk1DIGlzCj4gPiBk
-aXNhYmxlZCBiZWNhdXNlIEJJT1MgbmVlZHMgaXQgZm9yIGZhbiBjb250cm9scy4KPiAKPiBNYXli
-ZSBJIGFtIGFza2luZyBzb21ldGhpbmcgdG9vIHN0dXBpZCwgYnV0IHdoYXQgd291bGQgaGFwcGVu
-IGlmIHRoZXJlCmlzIGEKPiByYWNlIGNvbmRpdGlvbiBiZXR3ZWVuIHRoZSBsaW51eCBrZXJuZWwg
-YW5kIHRoZSBCSU9TIEFQTSBjb2RlIGFuZCBib3RoCnRyeQo+IHRvIGFjY2VzcyB0aGUgY2hpcCBh
-dCB0aGUgc2FtZSB0aW1lPyAgQSBMaW51eCBrZXJuZWwgc3BpbmxvY2sgd29uJ3QKcHJvdGVjdAo+
-IHRoZSBjaGlwIGFnYWluc3Qgcm9ndWUgaGFyZHdhcmUgYWNjZXNzIGJ5IHRoZSBCSU9TLCB1bmxl
-c3MgdGhhdCBHUElPCj4gaW50ZXJydXB0IGlzIGRpc2FibGVkIGluIHRoZSBTb3V0aCBCcmlkZ2Uu
-Cj4gCj4gLS0KPiAgICJPbmUgZGlzayB0byBydWxlIHRoZW0gYWxsLCBPbmUgZGlzayB0byBmaW5k
-IHRoZW0uIE9uZSBkaXNrIHRvIGJyaW5nCj4gICB0aGVtIGFsbCBhbmQgaW4gdGhlIGRhcmtuZXNz
-IGdyaW5kIHRoZW0uIEluIHRoZSBMYW5kIG9mIFJlZG1vbmQKPiAgIHdoZXJlIHRoZSBzaGFkb3dz
-IGxpZS4iIC0tIFRoZSBTaWxpY29uIFZhbGxleSBUYXJvdAo+ICAgSGVucmlxdWUgSG9sc2NodWgK
-PiAKSGVsbG8gSGVucmlxdWUsCgpUaGFua3MgZm9yIHlvdXIgY29tbWVudHMuCkp1c3QgYXMgd2hh
-dCB5b3UgZGVzY3JpYmVkLApJdCBzZWVtcyB0aGF0IGFsbCBoYW5nIGhhcHBlbmVkIHdoZW4gd2Ug
-YWNjZXNzIHRoZSBjaGlwIChzZW5zb3JzIC1zCmNvbW1hbmQgb3IgaTJjc2V0IGNvbW1hbmQpLgpE
-byB5b3UgdGhpbmsgaXQncyBzaG91bGQgYmUgdGhlIGZhdWx0eSBvZiB0aGUgbWFuIG1hZGUgQklP
-Uz8KSWYgc28sIEknbSBxdWlldCBhZ3JlZSB3aXRoIHlvdSA7KQoKQmVzdCBSZWdhcmRzCll1YW4g
-TXUKCgoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBw
-cml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFp
-bCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVk
-IGJ5IHRoZSBvcmlnaW5hbCBzZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhl
-IGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxl
-IGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5k
-bHkgcmVwbHkgdG8gdGhlIHNlbmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFs
-bCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1l
-ZGlhdGVseS4gWW91ciBjb29wZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFk
-dmlzZWQgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRp
-b24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9u
-IGluIHRoaXMgZW1haWwgaXJyZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2lu
-Ym9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2lu
-Ym9uZC4KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlv
-dXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25v
-cmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRl
-bWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+
-97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOr
-RLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXz
-LCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviw
-oy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abb
-qM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGk
-bMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCgo=
+Hi Daniel,
+
+> Quoting Gigabyte support:
+> 
+> "Hi Daniel,
+> 
+> We are sorry for the late reply. Here are some of the answers from our R&D
+> department:
+> 
+> The interrupt pin of the W83792D is connected to one of the GPIO pin of south
+> bridge. And that GPIO can trigger SMI.
+> 
+> If the sensor limit interrupt enable bit is enabled and the sensor reading is
+> beyond its limit, the chip will assert the interrupt pin.
+> 
+> The BIOS logs the events and does fan controls based on the interrupts of
+> w83792. But BIOS always enables interrupt of W83792 even when miniBMC is
+> disabled because BIOS needs it for fan controls.
+> 
+> Attached a simple diagram to show you how the W83792D chip is connected 
+> to south
+> bridge.
+> 
+> Best regards,
+> 
+> GBT Tech Support"
+
+Wow, this is way better than they used me to. I'll try to remember
+that. This doesn't help me as an individual, but at least they seem to
+provide some useful technical detail.
+
+> The picture attached is a very simple drawing showing the south bridge in one
+> box and the w83792d in another box. There is one arrow from the south 
+> bridge to
+> the w83792d labelled "SMI bus" and the there is one arrow from the w83792d to
+> the south bridge labelled interrupt.
+> 
+> Does this provide any more insight? Could this be more of an issue with the
+> interrupt coming into the south bridge causing a hang since no code is
+> servicing that interrupt? I don't know the kernel that well to guess any
+> further though...
+
+I don't know much either, but the schematics would need to mention pin
+numbers or names so that we know *which* GPIOs of the i801 are
+involved. Is that the case? Without that information, it probably
+doesn't help us much.
+
+-- 
+Jean Delvare
+
