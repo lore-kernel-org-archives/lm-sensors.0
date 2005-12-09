@@ -1,35 +1,29 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Fri, 09 Dec 2005 02:53:48 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 09 Dec 2005 19:28:06 +0000
 Subject: [lm-sensors] [PATCH] lm_sensors2 w83627thf fix set VCORE max
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC2223D@weshml03.winbond.com.tw>
+Message-Id: <20051209202806.66f5aa92.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECEC2223D@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEC2223D@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gSmVhbiwKClRoaXMgcGF0Y2ggRml4IHRoZSB0eXBvIGluIHNldCBWQ09SRSBmdW5jdGlv
-biwgaW5fbWluIHNob3VsZCBiZSBpbl9tYXguClBsZWFzZSBhcHBseS4KCkJlc3QgUmVnYXJkcwpZ
-dWFuIE11CgoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1U
-aGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMg
-ZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGlj
-YXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90
-IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25z
-aWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Ug
-a2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0
-ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIg
-aW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBp
-cyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9y
-bWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1h
-dGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9m
-IFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5
-IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1J
-ZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2Ug
-aWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3NlbnRpYWxseSByZXBlYXRzIHRoZSBz
-dGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2y
-o6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cXKSnpc4uILCyqM+x
-eqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7
-q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKml
-SK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2
-vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdio
-ublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgo=
+Hi Yuan,
+
+> This patch Fix the typo in set VCORE function, in_min should be
+> in_max. Please apply.
+
+Wow, good catch once again. Applied, thanks.
+
+Note that the patch was attached with an incorrect mime type
+(application/octet-stream), so it didn't make it to the list. Please
+make sure you use a text attachement type next time, so that everyone
+on the list can read the patch and possibly comment on it. This is the
+whole point of our open development model.
+
+Thanks again,
+-- 
+Jean Delvare
+
