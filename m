@@ -1,7 +1,7 @@
-From: daniel.n.nilsson@home.se (Daniel Nilsson)
-Date: Fri, 09 Dec 2005 06:06:21 +0000
+From: hmh@debian.org (Henrique de Moraes Holschuh)
+Date: Fri, 09 Dec 2005 12:26:23 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051209060620.GA9957@dnil.homelinux.net>
+Message-Id: <20051209122623.GD6659@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,40 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Do we already know whether the problem is the SMI interrupt itself, or in
+the BIOS (it crashes because there are other users of the chip), or in the
+chip (it heavily opposes being accessed by two threads at once at
+innoportune times)?
 
-On Thu, Dec 08, 2005 at 10:22:40PM +0100, Jean Delvare wrote:
-> 
-> > The picture attached is a very simple drawing showing the south bridge in one
-> > box and the w83792d in another box. There is one arrow from the south 
-> > bridge to
-> > the w83792d labelled "SMI bus" and the there is one arrow from the w83792d to
-> > the south bridge labelled interrupt.
-> > 
-> > Does this provide any more insight? Could this be more of an issue with the
-> > interrupt coming into the south bridge causing a hang since no code is
-> > servicing that interrupt? I don't know the kernel that well to guess any
-> > further though...
-> 
-> I don't know much either, but the schematics would need to mention pin
-> numbers or names so that we know *which* GPIOs of the i801 are
-> involved. Is that the case? Without that information, it probably
-> doesn't help us much.
+IMHO we can work around the problem without that information (which means no
+more crashing, that's good), but we need to pinpoint the culprit to provide
+the proper *fix*.
 
-The simple drawings didn't have either pin names or numbers so I wrote
-back to GBT support asking for this additional piece of information.
+If it is a SMI interrupt problem, the correct fix is to teach linux to
+handle SMI interrupts and have that generic code always enabled. This is
+probable desireable anyway, if it is possible to do so.
 
-Now, assuming that we have this piece of information, how would we use
-it? I guess we could disable that GPIO somehow, but that fix is very
-specific to this motherboard... Isn't it likely that other motherboard
-would need some similar patch to prevent this kind of issue?
+IMHO if it is a chip/BIOS issue, the fix either belongs into lm-sensors
+(chip specific: disable all interrupt sources if during startup we detect
+that SMI interrupt generation is enabled) or to the quirks layer (machine:
+disable SMI interrupts on this motherboard).
 
-I guess what I'm wondering is, is it hard to support the SMI
-functionality and would that be a more generic solution that would
-make the kernel survive the SMI? Or is the issue rather with a GPIO
-setup as an interrupt triggering an interrupt for which there is no
-handler installed?
-
-Regards
-Daniel Nilsson
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
