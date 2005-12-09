@@ -1,44 +1,49 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Fri, 09 Dec 2005 02:47:22 +0000
+From: daniel.n.nilsson@home.se (Daniel Nilsson)
+Date: Fri, 09 Dec 2005 06:06:21 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC22239@weshml03.winbond.com.tw>
+Message-Id: <20051209060620.GA9957@dnil.homelinux.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gSGVucmlxdWUsCj4gPiBEbyB5b3UgdGhpbmsgaXQncyBzaG91bGQgYmUgdGhlIGZhdWx0
-eSBvZiB0aGUgbWFuIG1hZGUgQklPUz8KPiAKPiBBY3R1YWxseSwgbm8uICBJdCdzIGp1c3QgdGhh
-dCB3ZSBoYXZlIHRvIG1ha2Ugc3VyZSBub2JvZHkgZWxzZSBpcwpib3RoZXJpbmcKPiB0aGUgY2hp
-cCB3aGlsZSB3ZSBhcmUuCgpIbW0sIHdoYXQgc2hvdWxkIHdlIGRvIHRvIG1ha2Ugc3VyZSBpdCBp
-biB0aGlzIGNhc2UuLi4KCj4gCj4gT2YgY291cnNlLCBpZiB0aGUgaGFyZHdhcmUgb25seSBoYWQg
-YXRvbWljIG9wZXJhdGlvbnMsIHRoYXQgd291bGQgYmUKZXZlbgo+IGJldHRlciA7LSkgIChub3Qg
-dGhhdCB0aGlzIGlzIGFsd2F5cyBwb3NzaWJsZSB3aXRoIGkyYywgYnV0IHN0aWxsLi4uKQpZZXMs
-IGl0IHdvdWxkIGJlIG11Y2ggYmV0dGVyLCBidXQgSSBkb24ndCB0aGluayBpdCdzIHBvc3NpYmxl
-IDooCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBj
-b250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFk
-ZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBzZW5kZXIgb2YgdGhpcyBlbWFp
-bC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBv
-ciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCAg
-YSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNlbmRlciBpbmRpY2F0aW5nIHRo
-aXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFu
-ZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29wZXJhdGlvbiBpcyBoaWdobHkg
-YXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBj
-b25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVk
-OyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJyZWxldmFudCB0byB0aGUgb2Zm
-aWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZl
-biBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGlu
-ZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0IGVzc2VudGlh
-bGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3ZlLqW7q0il86S6
-qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ik
-SKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLF
-dqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbij
-u1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0
-o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7m
-uFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xf
-s/WpzrdOqKMuCgo=
+Hi Jean,
+
+On Thu, Dec 08, 2005 at 10:22:40PM +0100, Jean Delvare wrote:
+> 
+> > The picture attached is a very simple drawing showing the south bridge in one
+> > box and the w83792d in another box. There is one arrow from the south 
+> > bridge to
+> > the w83792d labelled "SMI bus" and the there is one arrow from the w83792d to
+> > the south bridge labelled interrupt.
+> > 
+> > Does this provide any more insight? Could this be more of an issue with the
+> > interrupt coming into the south bridge causing a hang since no code is
+> > servicing that interrupt? I don't know the kernel that well to guess any
+> > further though...
+> 
+> I don't know much either, but the schematics would need to mention pin
+> numbers or names so that we know *which* GPIOs of the i801 are
+> involved. Is that the case? Without that information, it probably
+> doesn't help us much.
+
+The simple drawings didn't have either pin names or numbers so I wrote
+back to GBT support asking for this additional piece of information.
+
+Now, assuming that we have this piece of information, how would we use
+it? I guess we could disable that GPIO somehow, but that fix is very
+specific to this motherboard... Isn't it likely that other motherboard
+would need some similar patch to prevent this kind of issue?
+
+I guess what I'm wondering is, is it hard to support the SMI
+functionality and would that be a more generic solution that would
+make the kernel survive the SMI? Or is the issue rather with a GPIO
+setup as an interrupt triggering an interrupt for which there is no
+handler installed?
+
+Regards
+Daniel Nilsson
+
