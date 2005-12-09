@@ -1,54 +1,121 @@
-From: a_titov82@mail.ru (Alexey Titov)
-Date: Thu, 01 Dec 2005 16:26:43 +0000
-Subject: [lm-sensors] Ticket #2103
-Message-Id: <op.s032q7i7n40jst@localhost.localdomain>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Fri, 09 Dec 2005 16:51:01 +0000
+Subject: [lm-sensors] [PLUG] lm_sensors and fan speed
+Message-Id: <20051209165101.GA23690@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <op.s0t5dwepn40jst@localhost.localdomain>
-In-Reply-To: <op.s0t5dwepn40jst@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> What version of lm_sensors are you really using? We can't help you if
-> you provide inaccurate information.
-Well.. Now I'm using lm_sensors-2.8.8-5. Perhaps, I used lm_sensors 2.9.2  
-when I wrote the ticket...
+Hi Art:
 
-> Did the it87 driver ever work properly for you with another kernel?
-I built my own kernel, but there was the same problem.
+(cc'ed lm_sensors mailing list)
 
-> How are you loading it? Manually, or through some script?
-I load it manually, using "modprobe it87". It was wrote in sensors-detect  
-output.
-Maybe I should pass some parameters to the module?
+> >* Art Alexion <art.alexion at verizon.net> [2005-12-08 09:29:59 -0500]:
+> >>I set up lm_sensors with a display in the KDE panel, everything seems
+> >>fine, except the fan occasionally slows down for a few seconds.  No
+> >>noise.  Should I be concerned?  Temp remains constant at safe levels.  I
+> >>have the side off the tower which should help with temp.
 
-> Please provide the output of "isadump 0x805 0x806" before loading the  
-> it87 driver.
-Here is the output. Driver was not loaded.
+> Mark M. Hoffman wrote:
+> >Did you notice this only *after* you set up lm_sensors?  
 
-isadump 0x805 0x806
-WARNING! Running this program can cause system crashes, data loss and  
-worse!
-I will probe address register 0x805 and data register 0x806.
-Continue? [Y/n]
-      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 13 01 ff 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
-10: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
-30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-40: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
-50: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
-60: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
-70: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
-80: 13 00 00 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
-90: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
-b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-c0: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
-d0: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
-e0: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
-f0: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
+* Art Alexion <art.alexion at verizon.net> [2005-12-09 10:51:27 -0500]:
+> Yes.
+> 
+> >If so, what kind
+> >of hardware monitoring chip do you have?
+> >  
+> >
+> Don't know.
+
+Given the sensors-detect output, looks like Winbond w83627hf.
+
+> >The standard questions...
+> >
+> >What version of lm_sensors? 
+> >
+> 2.8.8-7ubuntu2.1
+> 
+> >Installed from source or distro package?
+> >  
+> >
+> .deb
+> 
+> >What kernel version?
+> >  
+> >
+> 2.6
+
+Be more specific please.  Output from 'uname -a' will suffice.
+
+[I ask this because there has been a lot of w83627hf driver work recently -
+for 2.6 kernels this happens in mainline (as opposed to lm_sensors CVS).]
+
+> >What did sensors-detect report?
+> >  
+> >
+> Driver `eeprom' (may not be inserted):
+>   Misdetects:
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x50
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x51
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x52
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x53
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x54
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x55
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x56
+>     Chip `SPD EEPROM' (confidence: 1)
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x57
+>     Chip `SPD EEPROM' (confidence: 1)
+> 
+> Driver `ddcmon' (should be inserted):
+>   Detects correctly:
+>   * Bus `I810/I815 DDC Adapter' (Algorithm unavailable)
+>     Busdriver `i2c-i810', I2C address 0x50 (and 0x51 0x52 0x53 0x54 0x55
+> 0x56 0x57)
+>     Chip `DDC monitor' (confidence: 8)
+> 
+> Driver `w83781d' (may not be inserted):
+>   Misdetects:
+>   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+>     Chip `Winbond W83627HF' (confidence: 8)
+> 
+> Driver `w83627hf' (should be inserted):
+>   Detects correctly:
+>   * ISA bus address 0x0290 (Busdriver `i2c-isa')
+>     Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
+> 
+> 
+> 
+> >Did you modify /etc/sensors.conf at all?  
+> >  
+> >
+> No.
+
+OK, could you please send the output of 'sensors'.
+
+One more question... does your BIOS have any kind of automatic fan controls?
+They are usually on the same BIOS screen that shows temperatures.
+
+Regards,
+
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
 
 
-Thank you for answer.
