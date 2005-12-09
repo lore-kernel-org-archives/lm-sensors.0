@@ -1,49 +1,45 @@
-From: fredantispam@free.fr (fred)
-Date: Fri, 09 Dec 2005 18:55:14 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 09 Dec 2005 20:35:22 +0000
 Subject: [lm-sensors] i2cdetect fails on a Asus P5ND2-Sli Deluxe
-Message-Id: <4399D312.1010109@free.fr>
+Message-Id: <20051209213522.4415984b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4399D312.1010109@free.fr>
+In-Reply-To: <4399D312.1010109@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Fred,
 
-My kernel is 2.6.14, i2c-nforce2 & it87, which are known to work
-with lm-sensors, are built-in kernel, on a Debian sarge.
+> And lspci sounds good :
+> 
+> 0000:00:0a.0 ISA bridge: nVidia Corporation: Unknown device 0030 (rev a3)
+>         Subsystem: Asustek Computer, Inc.: Unknown device 818a
+>         Flags: bus master, 66MHz, fast devsel, latency 0
+> 
+> 0000:00:0a.1 SMBus: nVidia Corporation: Unknown device 0034 (rev a2)
+>         Subsystem: Asustek Computer, Inc.: Unknown device 818a
+>         Flags: 66MHz, fast devsel, IRQ 3
+>         I/O ports at e400 [size2]
+>         I/O ports at 5000 [sized]
+>         I/O ports at 5100 [sized]
+>         Capabilities: <available only to root>
 
-it87 works fine (I'll come back later on this, I have a few questions),
-but i2c-nforce2 fails :
-marsu{pts/0}:~/[1]/> i2cdetect
-Error: No i2c-bus specified!
-Syntax: i2cdetect [-y] [-a] [-q|-r] I2CBUS [FIRST LAST]
-        i2cdetect -l
-        i2cdetect -V
-  I2CBUS is an integer
-  With -a, probe all addresses (NOT RECOMMENDED)
-  With -q, uses only quick write commands for probing (NOT RECOMMENDED)
-  With -r, uses only read byte commands for probing (NOT RECOMMENDED)
-  If provided, FIRST and LAST limit the probing range.
-  With -l, lists installed busses only
-Error: No I2C busses found!
-Be sure you have done 'modprobe i2c-dev'
-and also modprobed your i2c bus drivers
+It doesn't, actually. Device 0x0034 isn't supported by the i2c-nforce2
+driver (yet). No wonder it doesn't work.
 
-My kernel is set as :
+What kind of nForce chip is it? If it brand new?
 
-CONFIG_I2C=y
-CONFIG_I2C_CHARDEV=y
-CONFIG_I2C_ALGOBIT=y
-CONFIG_I2C_ISA=y
-CONFIG_I2C_NFORCE2=y
-CONFIG_FB_NVIDIA_I2C=y (for framebuffer, but now, it's not the problem)
+You may take your chance and add 0x0034 to the list of IDs in
+drivers/i2c/busses/i2c-nforce2.c. If your chip is actually compatible
+with the earlier incarnations, it may work. Or it may not work, and
+may even do bad things. Unless you have a datasheet, it's impossible
+for us to tell. And you're on your own if something bad happens, of
+course.
 
-
-What's wrong ??
-
-Thanks in advance.
+If you try it out, please let us know the outcome.
 
 -- 
-Fred.
+Jean Delvare
 
