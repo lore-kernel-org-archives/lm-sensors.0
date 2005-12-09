@@ -1,27 +1,44 @@
-From: hmh@debian.org (Henrique de Moraes Holschuh)
-Date: Fri, 09 Dec 2005 02:10:38 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Fri, 09 Dec 2005 02:47:22 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051209021038.GA10978@khazad-dum.debian.net>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC22239@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Thu, 08 Dec 2005, Ymu at Winbond.com.tw wrote:
-> Do you think it's should be the faulty of the man made BIOS?
-
-Actually, no.  It's just that we have to make sure nobody else is bothering
-the chip while we are.
-
-Of course, if the hardware only had atomic operations, that would be even
-better ;-)  (not that this is always possible with i2c, but still...)
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
+SGVsbG8gSGVucmlxdWUsCj4gPiBEbyB5b3UgdGhpbmsgaXQncyBzaG91bGQgYmUgdGhlIGZhdWx0
+eSBvZiB0aGUgbWFuIG1hZGUgQklPUz8KPiAKPiBBY3R1YWxseSwgbm8uICBJdCdzIGp1c3QgdGhh
+dCB3ZSBoYXZlIHRvIG1ha2Ugc3VyZSBub2JvZHkgZWxzZSBpcwpib3RoZXJpbmcKPiB0aGUgY2hp
+cCB3aGlsZSB3ZSBhcmUuCgpIbW0sIHdoYXQgc2hvdWxkIHdlIGRvIHRvIG1ha2Ugc3VyZSBpdCBp
+biB0aGlzIGNhc2UuLi4KCj4gCj4gT2YgY291cnNlLCBpZiB0aGUgaGFyZHdhcmUgb25seSBoYWQg
+YXRvbWljIG9wZXJhdGlvbnMsIHRoYXQgd291bGQgYmUKZXZlbgo+IGJldHRlciA7LSkgIChub3Qg
+dGhhdCB0aGlzIGlzIGFsd2F5cyBwb3NzaWJsZSB3aXRoIGkyYywgYnV0IHN0aWxsLi4uKQpZZXMs
+IGl0IHdvdWxkIGJlIG11Y2ggYmV0dGVyLCBidXQgSSBkb24ndCB0aGluayBpdCdzIHBvc3NpYmxl
+IDooCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBj
+b250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNlIG9ubHkgYnkgdGhlIGFk
+ZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBzZW5kZXIgb2YgdGhpcyBlbWFp
+bC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQgaW4gdGhpcyBlbWFpbCBv
+ciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUgZW1haWwgdG8gc3VjaCAg
+YSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNlbmRlciBpbmRpY2F0aW5nIHRo
+aXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5b3VyIGNvbXB1dGVyIGFu
+ZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29wZXJhdGlvbiBpcyBoaWdobHkg
+YXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5hdXRob3JpemVkIHVzZSBvZiBj
+b25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJpY3RseSBwcm9oaWJpdGVk
+OyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJyZWxldmFudCB0byB0aGUgb2Zm
+aWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQgYXMgbmVpdGhlciBnaXZl
+biBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxlIHRvIGRlY29kZSBDaGlu
+ZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNzYWdlLkl0IGVzc2VudGlh
+bGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdpdmVuIGFib3ZlLqW7q0il86S6
+qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVvq0ikSKv8qXekp6asq0ik
+SKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0pvOt7KZdpmKlvLhnscLF
+dqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl36dZsU6rSKXzsXG5cbij
+u1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3Mpf2mua1QwcIuIK9Tprm0
+o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqwVKq6puassKxPs1HEWa7m
+uFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1+KywtdioublxpGykp6Xf
+s/WpzrdOqKMuCgo=
