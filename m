@@ -1,63 +1,84 @@
-From: petit.frederic@free.fr (fred)
-Date: Fri, 09 Dec 2005 19:41:12 +0000
-Subject: [lm-sensors] i2cdetect fails on a Asus P5ND2-Sli
-Message-Id: <4399DDD8.2060608@free.fr>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sat, 10 Dec 2005 16:01:00 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Allow sensor attribute arrays
+Message-Id: <439AFBBC.2000501@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fred a ?crit :
-> Hi,
-> 
-> My kernel is 2.6.14, i2c-nforce2 & it87, which are known to work
-> with lm-sensors, are built-in kernel, on a Debian sarge.
-> 
-> it87 works fine (I'll come back later on this, I have a few questions),
-> but i2c-nforce2 fails :
-> marsu{pts/0}:~/[1]/> i2cdetect
-> Error: No i2c-bus specified!
-> Syntax: i2cdetect [-y] [-a] [-q|-r] I2CBUS [FIRST LAST]
->         i2cdetect -l
->         i2cdetect -V
->   I2CBUS is an integer
->   With -a, probe all addresses (NOT RECOMMENDED)
->   With -q, uses only quick write commands for probing (NOT RECOMMENDED)
->   With -r, uses only read byte commands for probing (NOT RECOMMENDED)
->   If provided, FIRST and LAST limit the probing range.
->   With -l, lists installed busses only
-> Error: No I2C busses found!
-> Be sure you have done 'modprobe i2c-dev'
-> and also modprobed your i2c bus drivers
-> 
-> My kernel is set as :
-> 
-> CONFIG_I2C=y
-> CONFIG_I2C_CHARDEV=y
-> CONFIG_I2C_ALGOBIT=y
-> CONFIG_I2C_ISA=y
-> CONFIG_I2C_NFORCE2=y
-> CONFIG_FB_NVIDIA_I2C=y (for framebuffer, but now, it's not the problem)
-> 
-> 
-> What's wrong ??
-And lspci sounds good :
+Jean Delvare wrote:
 
-0000:00:0a.0 ISA bridge: nVidia Corporation: Unknown device 0030 (rev a3)
-        Subsystem: Asustek Computer, Inc.: Unknown device 818a
-        Flags: bus master, 66MHz, fast devsel, latency 0
+>Hi Jim,
+>
+>Some times ago, you proposed a change to include/linux/hwmon-sysfs.h
+>that would have made it easier to declare arrays of struct
+>sensor_device_attribute. Back then we gave it up because other
+>important changes to the pc87360 driver (which was your first target
+>for that patch) needed to be done first, but I think it is now the
+>right time to think of that patch again.
+>
+>I have made some cosmetic cleanups to it, and here it is again. I need
+>it for a driver of mine. Could you please confirm you're still OK with
+>it, and maybe propose a patch for the pc87360 driver?
+>
+>  
+>
+Brilliant!, erm Ack.
+ (Im not sure if theres a formal procedure for this,
+since youve already got my Signed-off-by;)
 
-0000:00:0a.1 SMBus: nVidia Corporation: Unknown device 0034 (rev a2)
-        Subsystem: Asustek Computer, Inc.: Unknown device 818a
-        Flags: 66MHz, fast devsel, IRQ 3
-        I/O ports at e400 [size2]
-        I/O ports at 5000 [sized]
-        I/O ports at 5100 [sized]
-        Capabilities: <available only to root>
+I'll rework my semi-recycled patch (sent separately) and resend.
+BTW, Id not seen this msg until you responded to mine.
+It must be an obvious zeitgeist if even I picked up on it ;)
 
+>The size benefit when converting my own driver to use arrays of
+>attributes is pretty impressive (from 12.0 kB down to 9.4kB in memory).
+>The pc87360 driver should benefit at least as much and probably even
+>more (in absolute amount of spared memory).
+>
+>Thanks.
+>
+>* * * * *
+>
+>This patch refactors SENSOR_DEVICE_ATTR macro.  First it creates a new
+>macro SENSOR_ATTR() which expands to an initialization expression, then
+>it uses that in SENSOR_DEVICE_ATTR, which declares and initializes a
+>struct sensor_device_attribute.
+>
+>IOW, SENSOR_ATTR() imitates __ATTR() in include/linux/device.h.
+>
+>Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+>Signed-off-by: Jean Delvare <khali at linux-fr.org>
+>---
+> include/linux/hwmon-sysfs.h |   12 +++++++-----
+> 1 file changed, 7 insertions(+), 5 deletions(-)
+>
+>--- linux-2.6.15-rc2.orig/include/linux/hwmon-sysfs.h	2005-10-28 17:20:54.000000000 +0200
+>+++ linux-2.6.15-rc2/include/linux/hwmon-sysfs.h	2005-11-21 21:44:14.000000000 +0100
+>@@ -27,11 +27,13 @@
+> #define to_sensor_dev_attr(_dev_attr) \
+> 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+> 
+>-#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
+>-struct sensor_device_attribute sensor_dev_attr_##_name = {	\
+>-	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
+>-	.index =	_index,					\
+>-}
+>+#define SENSOR_ATTR(_name, _mode, _show, _store, _index)	\
+>+	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
+>+	  .index = _index }
+>+
+>+#define SENSOR_DEVICE_ATTR(_name, _mode, _show, _store, _index)	\
+>+struct sensor_device_attribute sensor_dev_attr_##_name		\
+>+	= SENSOR_ATTR(_name, _mode, _show, _store, _index)
+> 
+> struct sensor_device_attribute_2 {
+> 	struct device_attribute dev_attr;
+>
+>
+>  
+>
 
-
--- 
-Fred.
 
