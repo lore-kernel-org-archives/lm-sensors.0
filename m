@@ -1,48 +1,44 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Sat, 31 Dec 2005 16:26:47 +0000
-Subject: [lm-sensors] trac, svn, mediawiki
-Message-Id: <20051231162647.GA13066@neu.nirvana>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sat, 10 Dec 2005 06:43:29 +0000
+Subject: [lm-sensors] revisiting __SENSOR_DEVICE_ATTR() and array
+Message-Id: <439A7911.5020904@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43B58964.2010309@edgedesign.us>
-In-Reply-To: <43B58964.2010309@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Dec 30, 2005 at 01:44:34PM -0800, Philip Edelbrock wrote:
-> Axel Thimm wrote:
-> > I need the raw CVS bits. Can you upload them to your account? I'd also
-> > need every commiters' public ssh key.
-> 
-> OK, it's there.  Let me know if I need to send another later.
+Jean, everyone
 
-OK, it's all set. We can play around and later recreate the svn repo.
+back in pre-14 days, I proposed a set of patches to hwmon/pc87360.c
+Id like to revisit the parts that didnt make it into 2.6.14,
+and see whether it might be consistent with some of Greg KHs
+longer term plans for sysfs rework  LWN 12/1
 
-svn:
-http://lm-sensors.org/svn/
+So, attached (sorry) is a patch (for discussion purposes), doing:
 
-trac:
-http://lm-sensors.org/trac/
+hwmon-sysfs.h:
 
-trac's ticketing:
-http://lm-sensors.org/trac/report
-http://lm-sensors.org/trac/newticket
+gets a new __SENSOR_DEVICE_ATTR, which expands into an initialization, 
+like so:
 
-trac's source code browsing:
-http://lm-sensors.org/trac/browser/lm-sensors/trunk/lm_sensors2/prog/eeprom/decode-dimms.pl
++#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)    \
++struct sensor_device_attribute sensor_dev_attr_##_name         \
++       = __SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)
 
-last changeset:
-http://lm-sensors.org/trac/changeset/4719
 
-svn is under /srv/lm-sensors.org/svn and trac's installation under
-/srv/lm-sensors.org/trac.
--- 
-Axel.Thimm at ATrpms.net
+pc87360.c:
+
+replaces many uses of SENSOR_DEVICE_ATTR with
+struct sensor_device_attribute array[] = { ..} 
+declarations and initializations using the new macro,
+and rolls lists of device_create_file into loops over those arrays.
+
+Also includes a few macros that probly arent general enough for a .h,
+but are useful abbreviations here
+
+
 -------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051231/19647b53/attachment.bin
+An embedded and charset-unspecified text was scrubbed...
+Name: diff.SDA-1-okcomp
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051210/0b08065c/diff-0001.pl
