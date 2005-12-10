@@ -1,7 +1,7 @@
-From: hmh@debian.org (Henrique de Moraes Holschuh)
-Date: Fri, 09 Dec 2005 12:26:23 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 10 Dec 2005 09:14:30 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051209122623.GD6659@khazad-dum.debian.net>
+Message-Id: <439A9C76.6080906@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,27 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Do we already know whether the problem is the SMI interrupt itself, or in
-the BIOS (it crashes because there are other users of the chip), or in the
-chip (it heavily opposes being accessed by two threads at once at
-innoportune times)?
+Hello all
 
-IMHO we can work around the problem without that information (which means no
-more crashing, that's good), but we need to pinpoint the culprit to provide
-the proper *fix*.
+> The simple drawings didn't have either pin names or numbers so I wrote
+> back to GBT support asking for this additional piece of information.
+> 
+> Now, assuming that we have this piece of information, how would we use
+> it? I guess we could disable that GPIO somehow, but that fix is very
+> specific to this motherboard... Isn't it likely that other motherboard
+> would need some similar patch to prevent this kind of issue?
 
-If it is a SMI interrupt problem, the correct fix is to teach linux to
-handle SMI interrupts and have that generic code always enabled. This is
-probable desireable anyway, if it is possible to do so.
+Yes this is verys specific to this motherboard, question is
 
-IMHO if it is a chip/BIOS issue, the fix either belongs into lm-sensors
-(chip specific: disable all interrupt sources if during startup we detect
-that SMI interrupt generation is enabled) or to the quirks layer (machine:
-disable SMI interrupts on this motherboard).
+1) why the SMI is generated when setting limits?
+   (Possible answer like Yuan suggested that the fans limit are above zero? (and readings are 0)
+   But this whould mean that actually writing to registeters will somehow do SMI which is I must admit strange
+   Unfortunately I'm very busy this weeks so I dont have much time left to dig in the chip dumps.
+   Perhaps someone else could spot why the SMI is generated?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+2) why it hangs
+
+> I guess what I'm wondering is, is it hard to support the SMI
+> functionality and would that be a more generic solution that would
+> make the kernel survive the SMI? Or is the issue rather with a GPIO
+> setup as an interrupt triggering an interrupt for which there is no
+> handler installed?
+
+SMI is a very special interrupt. It is completly transparent to operating system. When
+SMI will come it will switch the processor to so called System Management Mode.
+It is similar to real mode but limited to small piece of memory. Even you cant find
+the SMM routine in memory because it its "hidden" bellow the video RAM (0x0A0000) (ususally)
+If this routine has a bug it will hang...
+
+You can spot the SMI only by measuring clock in system. You wont notice if smi ever occured.
+(SMI is rather anoying for realtime stuff on x86)
+
+Lets try:
+
+Generate the SMI from other source than the fans limits (if it hangs too)
+Then we will know if the complete handler is wrong or only parts.
+
+Also are you using HIGHMEM support in kernel? I guess this might be right reason why it fails
+(Due to 4MB PAE)
+
+If so please disable and try all stuff again. If it wont freeze we spot the bug.
+
+So what to do:
+1) why is SMI generated when writing limits?
+2) if SMI fan event is specific to hang or any other SMI will hang too.
+3) what about highmem?
+
+Regards
+Rudolf
 
