@@ -1,18 +1,21 @@
 From: cam@mathematica.scientia.net (Christoph Anton Mitterer)
-Date: Fri, 09 Dec 2005 17:27:46 +0000
+Date: Sun, 11 Dec 2005 20:07:45 +0000
 Subject: [lm-sensors] lm_sensors and nvidia graphic card temperature
-Message-Id: <4399BE92.9020705@mathematica.scientia.net>
+Message-Id: <439C8711.4050008@mathematica.scientia.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4399BE92.9020705@mathematica.scientia.net>
+In-Reply-To: <4399BE92.9020705@mathematica.scientia.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
+Rudolf Marek wrote:
 
-Modern Nvidia graphic cards support temperature monitoring of the GPU.
-It would be nice to see lm_sensors support that. Is there anything going 
-on in that field?
+>You can try:
+>1) load i2c-rivatv (or whatever driver for the i2c nvidia bus)
+>  
+>
+Is this going to be available for 2.6.x kernels?
 
-Greetings,
 Chris.
