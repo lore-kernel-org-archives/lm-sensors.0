@@ -1,38 +1,32 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 06 Dec 2005 10:16:42 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 11 Dec 2005 09:54:20 +0000
 Subject: [lm-sensors] [PATCH] lm_sensors2 w83792d clear/simplify code
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7BF77@weshml03.winbond.com.tw>
+Message-Id: <20051211105420.5d135d7b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECEB7BF77@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEB7BF77@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gUnVkb2xmLCBKZWFuLAoKVGhpcyBwYXRjaCBjb2xsZWN0IHNpbXBsaWZpZXMgYW5kIGNs
-ZWFyIHBhdGNoZXMgSmVhbiBoYXMgZG9uZSB3aXRoIGh3bW9uCnc4Mzc5MmQgZHJpdmVyLgpBbmQg
-Rml4IHRoZSB0b2xlcmFuY2UgMiBhbmQgdG9sZXJhbmNlIDMgY2FuIG5vdCBiZSBzZXQgYnVnLgoK
-SSBob3BlIHRoaXMgcGF0Y2ggaXMgcmlnaHQsIHBsZWFzZSBjYW4geW91IGNoZWNrIDopCgpCZXN0
-IFJlZ2FyZHMKWXVhbiBNdQoKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5l
-ZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2Vl
-cyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5
-b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBu
-b3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNv
-biwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0
-IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdv
-cmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNp
-YXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBh
-bnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBi
-dXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBl
-bmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9u
-dCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVw
-ZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdio
-ublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFyk
-p6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafO
-pKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm
-+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0
-pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrou
-IKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06o
-oy4K
+Hi Yuan,
+
+> This patch collect simplifies and clear patches Jean has done with hwmon
+> w83792d driver.
+> And Fix the tolerance 2 and tolerance 3 can not be set bug.
+> 
+> I hope this patch is right, please can you check :)
+
+Patch looks OK, except for data->low_bits which you had set to u8 while
+it must be u16 (you have to fit 14 bits in there). I've just applied
+it. Thanks for your contribution!
+
+I noticed another bug in the w83792d driver while verifying your patch:
+the fan control mode (PWM/DC) was not reported properly due to a typo
+([1] instead of [i]). I've fixed that too. Linux 2.6 is not affected.
+
+Thanks,
+-- 
+Jean Delvare
+
