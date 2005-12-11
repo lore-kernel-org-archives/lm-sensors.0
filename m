@@ -1,38 +1,44 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 06 Dec 2005 10:23:08 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 11 Dec 2005 10:05:55 +0000
 Subject: [lm-sensors] [PATCH] lm_sensors2 w83792d fix fan auto adjust
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEB7BF78@weshml03.winbond.com.tw>
+Message-Id: <20051211110555.04f0af45.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECEB7BF78@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECEB7BF78@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgUnVkb2xmLAoKVGhpcyBwYXRjaCBmaXggdGhlIGF1dG8gYWRqdXN0IGZhbiBkaXZpc29yIGJ1
-ZywgYW5kIHNhdmUgdGhlIGxvdyBsaW1pdAp3aGlsZSBjaGFuZ2UgdGhlIGRpdmlzb3IuCkkgaGF2
-ZSB0ZXN0ZWQgaXQgYW5kIGl0IHdvcmtzIHdlbGwgb24gbXkgTUIuIEl0IGRlcGVuZHMgb24gdGhl
-IHByZXZpb3VzCnBhdGNoICh3ODM3OTJkX2xtMl9jbGVhcl9jb2RlLnBhdGNoKQpQbGVhc2UgY2Fu
-IHlvdSBjaGVjayBpdD8gCgpUaGFua3MgYSBsb3QuCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCgo9
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVn
-ZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGlu
-dGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhl
-IG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVz
-c2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRl
-bGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBs
-eSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGll
-cyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5
-LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0
-aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBX
-aW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhp
-cyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNo
-YWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21w
-dXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUg
-Zm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGlu
-IEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjq
-sFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3
-pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqn
-aaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nz
-sXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdio
-ublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVM
-w/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4K
+Hi Yuan,
+
+> This patch fix the auto adjust fan divisor bug, and save the low limit
+> while change the divisor.
+> I have tested it and it works well on my MB. It depends on the previous
+> patch (w83792d_lm2_clear_code.patch)
+> Please can you check it? 
+
+I've taken a look and the patch looks rather good. However there's
+something I am not happy with in the w83792d driver. It's not directly
+related to this patch, as the current code in lm_sensors CVS has the
+same issue. But as you are working in the same area, maybe you could
+fix it.
+
+The w83792d driver changes the fan clock dividers automatically. I'm
+fine with that, however it also lets the user change the divider values
+manually. This does not make sense! At the next fan speed reading,
+chances are that the driver will change the divider value if it wasn't
+optimal anyway.
+
+So I would like fan_div to be read-only for the user. If you do that,
+you'll see that you can simplify the automatic fan div change code,
+because you will no more need to convert from divider to register value
+(e.g. 8 -> 0x03). Your new "w83792d_set_fan_div" function will take a
+register value as its "divisor" parameter rather that a divider value.
+
+Can you please rework your patch in that direction?
+
+Thanks,
+-- 
+Jean Delvare
+
