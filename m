@@ -1,40 +1,35 @@
-From: udovdh@xs4all.nl (Udo van den Heuvel)
-Date: Sun, 04 Dec 2005 14:46:12 +0000
-Subject: [lm-sensors] Re: hwmon-vid: Unknown VRM version of your x86 CPU
-Message-Id: <4392F308.10407@xs4all.nl>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 11 Dec 2005 14:52:05 +0000
+Subject: [lm-sensors] lm_sensors and nvidia graphic
+Message-Id: <439C3D15.6020207@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43834A86.6090205@sh.cvut.cz>
-In-Reply-To: <43834A86.6090205@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Rudolf,
-
-Rudolf Marek wrote:
->>Dec  4 12:56:59 epia kernel: vt1211: Ignoring new-style parameters in
->>presence of obsolete ones
->>Dec  4 12:56:59 epia kernel: CALLING WITH: 6 7 3 5
->>Dec  4 12:56:59 epia kernel: 85 is back
->>
->>Is that enough info?
->>At least it's no error?
+> Well it already works for me (using the nvidia-settings tool, nvclock
+> badly crashes my system), however I thought it would be good to have
+> lm_sensors supportet this natively.
 > 
-> Hmm so previous version must have worked too. I did not change anything in the code...
-> (except int->u8)
+> Chris.
 
-I use this at the moment:
-Linux epia 2.6.14.3-dbg #3 PREEMPT Sun Dec 4 07:45:24 CET 2005 i686 i686
-i386 GNU/Linux
+You can try:
+1) load i2c-rivatv (or whatever driver for the i2c nvidia bus)
 
--dbg because of via rhine ethernet driver fix
+Run sensors detect it  should find he w83785
 
-> Anyway this is good. I will post new patch to Jean so it finaly will be in 2.6.16...
+If so blow out the dust from that driver and try it for yourself.
+I have no time for this must finish my university studies.
+Regards
+Rudolf
 
-OK, would be interested to see this in the kernel.
-Thank you!
-
-Kind regards,
-Udo
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors at lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
