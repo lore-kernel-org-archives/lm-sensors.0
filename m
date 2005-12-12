@@ -1,64 +1,53 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 12 Dec 2005 18:16:28 +0000
+From: hidden@paradise.net.nz (Volker Kuhlmann)
+Date: Mon, 12 Dec 2005 23:37:54 +0000
 Subject: [lm-sensors] lm_sensors and nvidia graphic card	temperature
-Message-Id: <20051212191628.14d6ea0c.khali@linux-fr.org>
+Message-Id: <20051212233754.GD6589@paradise.net.nz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20051212191628.14d6ea0c.khali@linux-fr.org>
+In-Reply-To: <20051212191628.14d6ea0c.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Volker,
+> i2c-nvidia2 doesn't exist as far as I know. You must refer to
+> i2c-nforce2, I presume?
 
-> [nvidia graphics card temp monitoring]
-> 
-> > You can try:
-> > 1) load i2c-rivatv (or whatever driver for the i2c nvidia bus)
-> 
-> i2c-nvidia2 is loaded automatically, but sensors-detect only finds 2
-> dimm eeproms and the mobo's it8712. However, it finds two adapters, but
-> no success on the first: 
-> 
-> Next adapter: SMBus nForce2 adapter at 1c40
-> Do you want to scan it? (YES/no/selectively): 
-> Client found at address 0x08
-> Client found at address 0x4e
-> [all failed]
-> 
-> Next adapter: SMBus nForce2 adapter at 1c00
-> Do you want to scan it? (YES/no/selectively): 
-> Client found at address 0x08
-> Client found at address 0x50
-> [2 eeproms found]
+Yes, sorry.
 
-i2c-nvidia2 doesn't exist as far as I know. You must refer to
-i2c-nforce2, I presume? If so, this is totally unrelated with the
-busses found on graphics adapters. i2c-nforce2 is meant for motherboard
-SMBus.
+> Search for rivatv instead - see my other post.
 
-> What kernel module should I load exactly? Google doesn't know anything
-> about i2c-rivatv.
+Yes, very informative, thanks!
 
-Search for rivatv instead - see my other post.
+The 0.86 release doesn't compile, but the cvs one does. The module loads
+fine, syslog:
 
-> > Run sensors detect it  should find he w83785
-> 
-> modprobe w83l785ts is fine. No change with sensors-detect though.
+ kernel: Linux video capture interface: v1.00
+ kernel: rivatv: module not supported by Novell, setting U taint flag.
+ kernel: rivatv: Video4Linux driver for NVIDIA cards
+ kernel: rivatv: MMX processor extension enabled
 
-Rudolf's w83785 driver is meant for the Winbond W83L785R chips, which
-is a full-featured hardware monitoring chip. My w83l785ts driver, OTOH,
-is meant for the Winbond W83L785TS-S, which is a very simple
-single-temperature sensor. I think I remember both devices are
-compatible, in that you should get proper temperature readings if
-forcing the w83l785ts driver on a W83L785R chip. Both drivers could be
-merged to make things easier, but nobody had an interest in working on
-it so far, it seems.
+> Rudolf's w83785 driver is meant for the Winbond W83L785R chips, which
+> is a full-featured hardware monitoring chip. My w83l785ts driver, OTOH,
+> is meant for the Winbond W83L785TS-S, which is a very simple
+> single-temperature sensor.
 
-> Being able to get the temp of the geforce 6600 chip would be cool, as I
-> have a temp problem with it. What else could I try?
+Thanks for the clarification. I can't get modprobe w83l785ts with
+various probe= and force= options to do anything useful. Loading
+i2c-nforce2 makes two i2c busesses avilable, numbered 0 and 1.
+Presumably something similar would have to happen if the graphics card
+has an i2c bus too? Dunno how though. :(
+I've insmoded all /lib/modules/2.6.13-15.7-default/kernel/drivers/i2c/busses/*
+ignoring the errors, and rivafb and rivatv, sensors-detect finds a lot
+more but it's all bogus. sensors -s (with the original sensors.conf),
+then sensors outputs only zeros for anything that wasn't there before.
+Might have to give up. :((
 
-rivafb, nvidiafb.
+Thanks again for all your insights.
+
+Volker
 
 -- 
-Jean Delvare
+Volker Kuhlmann			is possibly list0570 with the domain in header
+http://volker.dnsalias.net/		Please do not CC list postings to me.
 
