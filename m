@@ -1,7 +1,7 @@
-From: cam@mathematica.scientia.net (Christoph Anton Mitterer)
-Date: Sun, 11 Dec 2005 20:07:45 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 12 Dec 2005 18:09:58 +0000
 Subject: [lm-sensors] lm_sensors and nvidia graphic card temperature
-Message-Id: <439C8711.4050008@mathematica.scientia.net>
+Message-Id: <20051212190958.4698b034.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4399BE92.9020705@mathematica.scientia.net>
 In-Reply-To: <4399BE92.9020705@mathematica.scientia.net>
@@ -10,12 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
+Hi Christoph,
 
->You can try:
->1) load i2c-rivatv (or whatever driver for the i2c nvidia bus)
->  
+> > You can try:
+> > 1) load i2c-rivatv (or whatever driver for the i2c nvidia bus)
 >
-Is this going to be available for 2.6.x kernels?
+> Is this going to be available for 2.6.x kernels?
 
-Chris.
+It is supposed to be already, except that the exact name is "rivatv",
+not "i2c-rivatv".
+
+http://rivatv.sourceforge.net/
+
+Alternatively, you should be able to gain control of the nVidia I2C
+busses using the in-kernel-tree rivafb or nvidiafb framebuffer drivers.
+Make sure to enable "DDC support" in either case.
+
+-- 
+Jean Delvare
+
