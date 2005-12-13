@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 10 Dec 2005 09:14:30 +0000
+From: daniel.n.nilsson@home.se (Daniel Nilsson)
+Date: Tue, 13 Dec 2005 22:06:33 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <439A9C76.6080906@sh.cvut.cz>
+Message-Id: <20051213220633.GA23644@dnil.homelinux.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,56 +10,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello all
+Hi All,
 
-> The simple drawings didn't have either pin names or numbers so I wrote
-> back to GBT support asking for this additional piece of information.
+On Sat, Dec 10, 2005 at 10:14:30AM +0100, Rudolf Marek wrote:
 > 
-> Now, assuming that we have this piece of information, how would we use
-> it? I guess we could disable that GPIO somehow, but that fix is very
-> specific to this motherboard... Isn't it likely that other motherboard
-> would need some similar patch to prevent this kind of issue?
+> Lets try:
+> 
+> Generate the SMI from other source than the fans limits (if it hangs too)
+> Then we will know if the complete handler is wrong or only parts.
 
-Yes this is verys specific to this motherboard, question is
+So I've done some more debugging, but things are looking pretty
+strange. First of all, I'm setting all the fan limits to 0xff as far
+as I can tell which should mean that I will accept an inifinite amount
+of time between each pulse or in other words 0 fan speed. So I don't
+follow what you mean by setting the limits to 0? Isn't that what I'm
+doing now in the script? At least according to 'sensors' that is the
+effect of writing 0xff to all the fan speed limit registers.
 
-1) why the SMI is generated when setting limits?
-   (Possible answer like Yuan suggested that the fans limit are above zero? (and readings are 0)
-   But this whould mean that actually writing to registeters will somehow do SMI which is I must admit strange
-   Unfortunately I'm very busy this weeks so I dont have much time left to dig in the chip dumps.
-   Perhaps someone else could spot why the SMI is generated?
+> Also are you using HIGHMEM support in kernel? I guess this might be
+> right reason why it fails (Due to 4MB PAE)
 
-2) why it hangs
+I am using HIGHMEM support and I tried to disable it, didn't notice a
+difference in behaviour... 
 
-> I guess what I'm wondering is, is it hard to support the SMI
-> functionality and would that be a more generic solution that would
-> make the kernel survive the SMI? Or is the issue rather with a GPIO
-> setup as an interrupt triggering an interrupt for which there is no
-> handler installed?
+> So what to do:
+> 1) why is SMI generated when writing limits?
+> 2) if SMI fan event is specific to hang or any other SMI will hang too.
+> 3) what about highmem?
 
-SMI is a very special interrupt. It is completly transparent to operating system. When
-SMI will come it will switch the processor to so called System Management Mode.
-It is similar to real mode but limited to small piece of memory. Even you cant find
-the SMM routine in memory because it its "hidden" bellow the video RAM (0x0A0000) (ususally)
-If this routine has a bug it will hang...
+I've also noticed that register at 0x40 is programmed to 0x03 after a
+reboot which emans that the interrupt output is active (supposedly the
+one connected to the GPIO that Gigabyte mentions in their mail). But
+EN_SMI# output is disabled. So I guess that the chip isn't setup to
+generate an SMI event on it's own but rather through that GPIO pin
+somehow.
 
-You can spot the SMI only by measuring clock in system. You wont notice if smi ever occured.
-(SMI is rather anoying for realtime stuff on x86)
+I enabled that EN_SMI# output and now I can reproduce the freeze
+easily by setting a voltage limit to low:
 
-Lets try:
+oden:~# i2cset -y 0 0x2c 0x2b 0xff # in0_max
+No size specified (using byte-data access)
+Value 0xff written, readback matched
+oden:~# i2cset -y 0 0x2c 0x40 0x7 # enable EN_SMI#
+No size specified (using byte-data access)
+Value 0x07 written, readback matched
+oden:~# i2cset -y 0 0x2c 0x2b 0x10 # in0_max
+No size specified (using byte-data access)
+[machine freezes]
 
-Generate the SMI from other source than the fans limits (if it hangs too)
-Then we will know if the complete handler is wrong or only parts.
-
-Also are you using HIGHMEM support in kernel? I guess this might be right reason why it fails
-(Due to 4MB PAE)
-
-If so please disable and try all stuff again. If it wont freeze we spot the bug.
-
-So what to do:
-1) why is SMI generated when writing limits?
-2) if SMI fan event is specific to hang or any other SMI will hang too.
-3) what about highmem?
+I guess this proves the point that it's not the fan event that causes
+the hang but rather any SMI event? Is the SMI code installed by the
+BIOS?
 
 Regards
-Rudolf
+-- 
+Daniel Nilsson
 
