@@ -1,47 +1,232 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Dec 2005 15:51:55 +0000
-Subject: [lm-sensors] [PATCH 07/11] i2c: update i2c_driver.command
-Message-Id: <20051218165155.7d51c135.khali@linux-fr.org>
+From: azummo-lists@towertech.it (Alessandro Zummo)
+Date: Tue, 13 Dec 2005 20:47:42 +0000
+Subject: [lm-sensors] [PATCH] x1205 fix osc on startup
+Message-Id: <20051213214742.6044dde1@inspiron>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-update-command-documentation.patch
 
-Document i2c_driver.command as being deprecated, and don't suggest an
-empty implementation of this callback as it doesn't make any sense.
+Content-Disposition: inline; filename=i2c-x1205-fix-osc.patch
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
+When the battery fails, the x1205 will refuse to run the oscillator
+unless something is written to its date/time register.
+
+On platforms where this driver is actually used (NSLU2), along with
+a class based RTC core, the time is updated via /dev/rtc 
+using the hwclock utility.
+
+hwclock will wait for a seconds increment before writing the new
+date/time and that's why this patch is required for it to work.
+
+Requires i2c-x1205-cleanup.patch
+
+Signed-off-by: Alessandro Zummo <a.zummo at towertech.it>
 ---
- Documentation/i2c/writing-clients |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/i2c/chips/x1205.c |  116 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 76 insertions(+), 40 deletions(-)
 
---- linux-2.6.15-rc5.orig/Documentation/i2c/writing-clients	2005-12-14 21:04:28.000000000 +0100
-+++ linux-2.6.15-rc5/Documentation/i2c/writing-clients	2005-12-14 21:14:18.000000000 +0100
-@@ -492,17 +492,13 @@
- by `__init_data'.  Hose functions and structures can be removed after
- kernel booting (or module loading) is completed.
+--- linux-nslu2.orig/drivers/i2c/chips/x1205.c	2005-12-12 18:59:07.000000000 +0100
++++ linux-nslu2/drivers/i2c/chips/x1205.c	2005-12-13 21:31:32.000000000 +0100
+@@ -22,9 +22,9 @@
+ #include <linux/string.h>
+ #include <linux/bcd.h>
+ #include <linux/rtc.h>
++#include <linux/delay.h>
  
-+
- Command function
- ========
- 
- A generic ioctl-like function call back is supported. You will seldom
--need this. You may even set it to NULL.
 -
--  /* No commands defined */
--  int foo_command(struct i2c_client *client, unsigned int cmd, void *arg)
--  {
--    return 0;
--  }
-+need this, and its use is deprecated anyway, so newer design should not
-+use it. Set it to NULL.
+-#define DRV_VERSION "1.0.0"
++#define DRV_VERSION "1.0.1"
  
+ /* Addresses to scan: none. This chip is located at
+  * 0x6f and uses a two bytes register addressing.
+@@ -141,35 +141,19 @@ static int x1205_validate_tm(struct rtc_
+  * Epoch is initialized as 2000. Time is set to UTC.
+  */
+ static int x1205_get_datetime(struct i2c_client *client, struct rtc_time *tm,
+-				u8 reg_base)
++				unsigned char reg_base)
+ {
+ 	unsigned char dt_addr[2] = { 0, reg_base };
+-	static unsigned char sr_addr[2] = { 0, X1205_REG_SR };
  
- Sending and receiving
-
--- 
-Jean Delvare
+-	unsigned char buf[8], sr;
++	unsigned char buf[8];
+ 
+ 	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 2, sr_addr },	/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 1, &sr }, 	/* read status */
+ 		{ client->addr, 0, 2, dt_addr },	/* setup read ptr */
+ 		{ client->addr, I2C_M_RD, 8, buf },	/* read date */
+ 	};
+ 
+-	/* read status register */
+-	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
+-		return -EIO;
+-	}
+-
+-	/* check for battery failure */
+-	if (sr & X1205_SR_RTCF) {
+-		dev_warn(&client->dev,
+-			"Clock had a power failure, you must set the date.\n");
+-		return -EINVAL;
+-	}
+-
+ 	/* read date registers */
+-	if ((i2c_transfer(client->adapter, &msgs[2], 2)) != 2) {
++	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+ 		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
+ 		return -EIO;
+ 	}
+@@ -199,11 +183,28 @@ static int x1205_get_datetime(struct i2c
+ 	return 0;
+ }
+ 
++static int x1205_get_status(struct i2c_client *client, unsigned char *sr)
++{
++	static unsigned char sr_addr[2] = { 0, X1205_REG_SR };
++
++	struct i2c_msg msgs[] = {
++		{ client->addr, 0, 2, sr_addr },	/* setup read ptr */
++		{ client->addr, I2C_M_RD, 1, sr },	/* read status */
++	};
++
++	/* read status register */
++	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
++		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		return -EIO;
++	}
++
++	return 0;
++}
++
+ static int x1205_set_datetime(struct i2c_client *client, struct rtc_time *tm,
+ 				int datetoo, u8 reg_base)
+ {
+-	int i, err, xfer;
+-
++	int i, xfer;
+ 	unsigned char buf[8];
+ 
+ 	static const unsigned char wel[3] = { 0, X1205_REG_SR,
+@@ -214,15 +215,10 @@ static int x1205_set_datetime(struct i2c
+ 
+ 	static const unsigned char diswe[3] = { 0, X1205_REG_SR, 0 };
+ 
+-	/* check if all values in the tm struct are correct */
+-	if ((err = x1205_validate_tm(tm)) < 0)
+-		return err;
+-
+-	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+-		"mday=%d, mon=%d, year=%d, wday=%d\n",
++	dev_dbg(&client->dev,
++		"%s: secs=%d, mins=%d, hours=%d\n",
+ 		__FUNCTION__,
+-		tm->tm_sec, tm->tm_min, tm->tm_hour,
+-		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++		tm->tm_sec, tm->tm_min, tm->tm_hour);
+ 
+ 	buf[CCR_SEC] = BIN2BCD(tm->tm_sec);
+ 	buf[CCR_MIN] = BIN2BCD(tm->tm_min);
+@@ -232,6 +228,11 @@ static int x1205_set_datetime(struct i2c
+ 
+ 	/* should we also set the date? */
+ 	if (datetoo) {
++		dev_dbg(&client->dev,
++			"%s: mday=%d, mon=%d, year=%d, wday=%d\n",
++			__FUNCTION__,
++			tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
+ 		buf[CCR_MDAY] = BIN2BCD(tm->tm_mday);
+ 
+ 		/* month, 0 - 11 */
+@@ -280,6 +281,22 @@ static int x1205_set_datetime(struct i2c
+ 	return 0;
+ }
+ 
++static int x1205_fix_osc(struct i2c_client *client)
++{
++	int err;
++	struct rtc_time tm;
++
++	tm.tm_hour = 0;
++	tm.tm_min = 0;
++	tm.tm_sec = 0;
++
++	if ((err = x1205_set_datetime(client, &tm, 0, X1205_CCR_BASE)) < 0)
++		dev_err(&client->dev,
++			"unable to restart the clock\n");
++
++	return err;
++}
++
+ static int x1205_get_dtrim(struct i2c_client *client, int *trim)
+ {
+ 	unsigned char dtr;
+@@ -352,14 +369,17 @@ static int x1205_hctosys(struct i2c_clie
+ 
+ 	struct rtc_time tm;
+ 	struct timespec tv;
++	unsigned char sr;
+ 
++	if ((err = x1205_get_status(client, &sr)) < 0)
++		return err;
+ 
+-	err = x1205_get_datetime(client, &tm, X1205_CCR_BASE);
+-	if (err) {
+-		dev_err(&client->dev,
+-			"Unable to set the system clock\n");
++	/* Don't set if we had a power failure */
++	if (sr & X1205_SR_RTCF)
++		return -EINVAL;
++
++	if ((err = x1205_get_datetime(client, &tm, X1205_CCR_BASE)) < 0)
+ 		return err;
+-	}
+ 
+ 	/* IMPORTANT: the RTC only stores whole seconds. It is arbitrary
+ 	 * whether it stores the most close value or the value with partial
+@@ -506,9 +526,9 @@ static int x1205_attach(struct i2c_adapt
+ 
+ static int x1205_probe(struct i2c_adapter *adapter, int address, int kind)
+ {
+-	struct i2c_client *client;
+-
+ 	int err = 0;
++	unsigned char sr;
++	struct i2c_client *client;
+ 
+ 	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
+ 
+@@ -543,9 +563,25 @@ static int x1205_probe(struct i2c_adapte
+ 
+ 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+ 
++	/* Check for power failures and eventualy enable the osc */
++	if ((err = x1205_get_status(client, &sr)) = 0) {
++		if (sr & X1205_SR_RTCF) {
++			dev_err(&client->dev,
++				"power failure detected, "
++				"please set the clock\n");
++			udelay(50);
++			x1205_fix_osc(client);
++		}
++	}
++	else
++		dev_err(&client->dev, "couldn't read status\n");
++
+ 	/* If requested, set the system time */
+-	if (hctosys)
+-		x1205_hctosys(client);
++	if (hctosys) {
++		if ((err = x1205_hctosys(client)) < 0)
++			dev_err(&client->dev,
++				"unable to set the system clock\n");
++	}
+ 
+ 	return 0;
+ 
 
