@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 13 Dec 2005 20:08:14 +0000
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Wed, 14 Dec 2005 16:53:23 +0000
 Subject: [lm-sensors] Backport of lm77.c for 2.4.x
-Message-Id: <20051213210814.0aad9857.khali@linux-fr.org>
+Message-Id: <1134579204.4459.189.camel@gimli>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1134463317.4459.36.camel@gimli>
 In-Reply-To: <1134463317.4459.36.camel@gimli>
@@ -10,92 +10,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Michael,
+Hi.
 
-> I'm currently working on a backport of Andras Bali's lm77.c (as found in
-> current 2.6.x kernels) to kernel series 2.4.x. The driver is basically
-> working on my local test platform (PC Engines WRAP2). Now the
-> fine-tuning has to be done, which brings up several questions.
-> 
-> 1.
-> I'd like to hear some suggestions on what proc files the driver should
-> create, apart from the usual "temp". This might be necessary as Jean
-> pointed out in IRC yesterday, since the LM77 offers 5 values rather than
-> just 3:
-> 
-> * Tmin, minimum temperature (if the current temperature goes below this
-> value, an alarm bit is set)
-> * Tmax, maximum temperature (if the current temperature goes above this
-> value, an alarm bit is set)
-> * Tcrit, critical temperature (if the current temperature reaches or
-> goes above this limit, the LM77 will reset the system until temperature
-> reaches Tcrit - Thyst
-> * T, current temperature
-> * Thyst, hysteresis
-> 
-> There is just one hysteresis value that is used wit Tmin, Tmax and
-> Tcrit.
-> 
-> Currently I think of putting Tmin, Tmax and T into the "temp" proc file,
-> and:
-> a. Tcrit and Thyst into two distinct files, or
-> b. Tcrit and Thyst into one file.
-> 
-> Suggestions?
+On Tue, 2005-12-13 at 21:08 +0100, Jean Delvare wrote:
+> > Currently I think of putting Tmin, Tmax and T into the "temp" proc file,
+> > and:
+> > a. Tcrit and Thyst into two distinct files, or
+> > b. Tcrit and Thyst into one file.
+> > 
+> > Suggestions?
+> I'm fine with this proposal, with a preference for option (b).
 
-I'm fine with this proposal, with a preference for option (b).
+I decided to choose option (a) nevertheless. I felt that having Tcrit
+and Thyst might lead to confusions, making users think that Thyst is
+only related to Tcrit, for example. The driver therefore currently has
+the following proc files: temp, temp_crit, temp_hyst and alarms.
 
-> 2.
-> I'd like to allow the user to enable the "fault queue" feature that the
-> LM77 provides. Quoting the data sheet:
-> 
-> "A fault queue of up to 4 faults is provided to prevent false
-> tripping when the LM77 is used in noisy environments. The 4
-> faults must occur consecutively to set flags as well as INT
-> and T_CRIT_A outputs."
-> 
-> I'll add a module parameter that allows the user to enable the fault
-> queue upon initialization. But I think it might be useful to also add a
-> proc file that allows to enable/disable the fault queue at a later
-> point, without the need of reloading the module.
-> 
-> Objections? Any suggestion regarding the name for the corresponding proc
-> file?
+> My personal opinion is that this kind of tuning should be done by the
+> BIOS, as the system manufacturer should know whether the fault queue is
+> needed for the hardware combination used and the expected conditions of
+> the system.
 
-My personal opinion is that this kind of tuning should be done by the
-BIOS, as the system manufacturer should know whether the fault queue is
-needed for the hardware combination used and the expected conditions of
-the system.
+Agreed.
 
-Do you have a personnal need for this feature? Supporting every feature
-of every chip isn't our goal. However, if you have the need and insist
-on including this feature in your driver, I won't object. "fault_queue"
-seems to be a sensible name for the feature.
+On the other hand WRAPs don't offer BIOS support for this feature. I'm
+not sure if it is needed at all, but it might still be handy for some
+people out there. I made it a compile time decision: when
+LM77_FAULT_QUEUE is defined, the fault queue will be enabled on every
+chip (LM77 only, of course) the driver takes care of. By default that
+feature is turned off.
 
-> 3.
-> The LM77 offers a shutdown mode which reduces power consumption. Is
-> there any support in the lm_sensors package for suspend/resume (ACPI)? I
-> think it would make sense to enable the shutdown mode upon suspend and
-> disable it upon resume.
+Do you think this is an acceptable compromise?
 
-No power state support in lm_sensors CVS (for Linux 2.4) and there
-won't ever be.
+> to work on this. I have no idea how difficult this would be. Please
+> realize that hardware monitoring is a risky area when it comes to
+> stopping chips. Any hardware monitoring chip can virtually be used to
+> control the cooling of the system.
 
-No support in Linux 2.6 either, but this could change if anyone wants
-to work on this. I have no idea how difficult this would be. Please
-realize that hardware monitoring is a risky area when it comes to
-stopping chips. Any hardware monitoring chip can virtually be used to
-control the cooling of the system. If the system is put to sleep, it is
-questionable whether we really want to immediately stop any fan which
-could be controlled by the chip. Of course, it is reasonable to assume
-that a sleeping system shouldn't produce too much heat, but we still
-must pay attention to every possible situation if we ever want to add
-power states support to our hardware monitoring drivers.
+Oh, yes, indeed. I didn't think of that before, when I introduced
+shutting down the LM77 once the driver is unloaded. In case of the WRAPs
+one would expect that the "pull reset when Tcrit is reached" feature is
+working even without the driver being loaded (anymore). I removed
+shutdown mode support.
 
-I also wonder if the power consumption of these chips is high enough to
-simply care about it.
+> I also wonder if the power consumption of these chips is high enough to
+> simply care about it.
 
-Thanks,
--- 
-Jean Delvare
+Good point :)
+
+
+Well, it seems that the backport is done then. I'll test the driver a
+bit more locally. If I don't find any further problems/bugs, I'll send
+it to the list during the next days.
+
+
+Another question: which is the right place to talk about the scx200_acb
+driver? I've done some modifications of the version that can be found in
+Kernel 2.4.32 so that it correctly recognizes and handles SC1100-based
+systems as well - 2.6.x handles this correctly, but 2.4.x only probes
+for SCx200-type systems.
+
+Bye, Mike
+
 
