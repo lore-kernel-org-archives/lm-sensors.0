@@ -1,7 +1,7 @@
 From: daniel.n.nilsson@home.se (Daniel Nilsson)
-Date: Tue, 13 Dec 2005 22:06:33 +0000
+Date: Thu, 15 Dec 2005 19:15:35 +0000
 Subject: [lm-sensors] Kernel hangs with i2c-i801 driver?
-Message-Id: <20051213220633.GA23644@dnil.homelinux.net>
+Message-Id: <20051215191535.GA28437@dnil.homelinux.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051123100021.GA29473@oden.homeip.net>
 In-Reply-To: <20051123100021.GA29473@oden.homeip.net>
@@ -10,59 +10,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All,
+Hi Jean,
 
-On Sat, Dec 10, 2005 at 10:14:30AM +0100, Rudolf Marek wrote:
+On Thu, Dec 08, 2005 at 10:22:40PM +0100, Jean Delvare wrote:
 > 
-> Lets try:
+> > The picture attached is a very simple drawing showing the south bridge in one
+> > box and the w83792d in another box. There is one arrow from the south 
+> > bridge to
+> > the w83792d labelled "SMI bus" and the there is one arrow from the w83792d to
+> > the south bridge labelled interrupt.
+> > 
+> > Does this provide any more insight? Could this be more of an issue with the
+> > interrupt coming into the south bridge causing a hang since no code is
+> > servicing that interrupt? I don't know the kernel that well to guess any
+> > further though...
 > 
-> Generate the SMI from other source than the fans limits (if it hangs too)
-> Then we will know if the complete handler is wrong or only parts.
+> I don't know much either, but the schematics would need to mention pin
+> numbers or names so that we know *which* GPIOs of the i801 are
+> involved. Is that the case? Without that information, it probably
+> doesn't help us much.
 
-So I've done some more debugging, but things are looking pretty
-strange. First of all, I'm setting all the fan limits to 0xff as far
-as I can tell which should mean that I will accept an inifinite amount
-of time between each pulse or in other words 0 fan speed. So I don't
-follow what you mean by setting the limits to 0? Isn't that what I'm
-doing now in the script? At least according to 'sensors' that is the
-effect of writing 0xff to all the fan speed limit registers.
+I've got another answer fro GBT Support:
 
-> Also are you using HIGHMEM support in kernel? I guess this might be
-> right reason why it fails (Due to 4MB PAE)
+"We are sorry for the late response. Here is an answer from our R&D team:
+The GPI7 is the interrupt pin of 83792. Please disable the SMI bus of
+GPI7 from South bridge.
 
-I am using HIGHMEM support and I tried to disable it, didn't notice a
-difference in behaviour... 
+Hope this helps.
 
-> So what to do:
-> 1) why is SMI generated when writing limits?
-> 2) if SMI fan event is specific to hang or any other SMI will hang too.
-> 3) what about highmem?
+Best regards,
 
-I've also noticed that register at 0x40 is programmed to 0x03 after a
-reboot which emans that the interrupt output is active (supposedly the
-one connected to the GPIO that Gigabyte mentions in their mail). But
-EN_SMI# output is disabled. So I guess that the chip isn't setup to
-generate an SMI event on it's own but rather through that GPIO pin
-somehow.
+GBT Tech Support"
 
-I enabled that EN_SMI# output and now I can reproduce the freeze
-easily by setting a voltage limit to low:
+I actually didn't expect to get this questin answered from GBT, not
+that the answers are that exhaustive but at least we are getting bits
+and pieces here and there...
 
-oden:~# i2cset -y 0 0x2c 0x2b 0xff # in0_max
-No size specified (using byte-data access)
-Value 0xff written, readback matched
-oden:~# i2cset -y 0 0x2c 0x40 0x7 # enable EN_SMI#
-No size specified (using byte-data access)
-Value 0x07 written, readback matched
-oden:~# i2cset -y 0 0x2c 0x2b 0x10 # in0_max
-No size specified (using byte-data access)
-[machine freezes]
+So I assume we are talking about GPI7 on my ICH7R bridge. In the
+datasheet,
 
-I guess this proves the point that it's not the fan event that causes
-the hang but rather any SMI event? Is the SMI code installed by the
-BIOS?
+http://download.intel.com/design/chipsets/datashts/30701301.pdf
 
-Regards
--- 
-Daniel Nilsson
+of the ICH7R I understand that this pins can be set to cause either
+SCI and/or SMI#. This should be programmed by the BIOS though, right?
+Linux should be messing around with these chipset registers?
+Regardless, the register of interrest I think is the one in chapter
+10.8.1.5. Now how would I read the value in that register from user
+space in Linux? It says that the registers that this specific register
+is part of is distributed within PCI Device 31:Function 0 space as
+well as a separate I/O range but this still doesn't tell me much on
+how to read it...
+
+Thanks!
+Daniel
 
