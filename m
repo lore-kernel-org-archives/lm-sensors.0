@@ -1,10 +1,10 @@
 From: gregkh@suse.de (Greg Kroah-Hartman)
-Date: Mon, 12 Dec 2005 20:01:05 +0000
+Date: Fri, 16 Dec 2005 19:08:43 +0000
 Subject: [lm-sensors] [patch 1/4] i2c: Fix i2c-mv64xxx compilation error
-Message-Id: <20051212200105.GB27657@kroah.com>
+Message-Id: <20051216190843.GB4594@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051212192030.873030000@press.kroah.org>
-In-Reply-To: <20051212200044.GA27657@kroah.com>
+References: <20051216185442.633779000@press.kroah.org>
+In-Reply-To: <20051216190828.GA4594@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,8 +23,8 @@ Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
  drivers/i2c/busses/i2c-mv64xxx.c |   11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
---- greg-2.6.orig/drivers/i2c/busses/i2c-mv64xxx.c
-+++ greg-2.6/drivers/i2c/busses/i2c-mv64xxx.c
+--- gregkh-2.6.orig/drivers/i2c/busses/i2c-mv64xxx.c
++++ gregkh-2.6/drivers/i2c/busses/i2c-mv64xxx.c
 @@ -529,14 +529,15 @@ mv64xxx_i2c_probe(struct platform_device
  	i2c_set_adapdata(&drv_data->adapter, drv_data);
  
