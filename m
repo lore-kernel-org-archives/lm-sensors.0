@@ -1,62 +1,110 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 20 Dec 2005 01:37:16 +0000
-Subject: [lm-sensors] Ticket #2124, K8N-DL Readings
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECEC22BB3@weshml03.winbond.com.tw>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 18 Dec 2005 15:29:40 +0000
+Subject: [lm-sensors] [PATCH 01/11] hwmon: w83792d misc cleanups
+Message-Id: <20051218162940.702a24ac.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <50277.193.113.58.233.1135005674.squirrel@mail.fcse.co.uk>
-In-Reply-To: <50277.193.113.58.233.1135005674.squirrel@mail.fcse.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sCj4gCj4gVGhlIGJhc2ljIHByb2JsZW0gd2FzIHdpdGggYW4gQXN1cyBLOG4tREwgbW90
-aGVyYm9hcmQuIEZvbGxvd2luZwpSdWRvbGYncwo+IHN1Z2dlc3Rpb25zLCBJIGhhdmUgYmVlbiBh
-YmxlIHRvIGdldCB2aXJ0dWFsbHkgYWxsIHRoZSBwcm9ibGVtcyBpcm9uZWQKPiBvdXQsIGFuZCBh
-bHRob3VnaCB0aGVyZSBpcyB0aGUgdzgzNjI3dGhmIGNoaXAgb24gdGhlIGJvYXJkLCBpdCBkb2Vz
-Cmxvb2sKPiBsaWtlIHRoaXMgaXMgdXNlbGVzcywgYW5kIG9ubHkgdGhlIHc4Mzc5MmQgaXMgdmFs
-aWQuCj4gCj4gVGhlcmUgYXJlIGp1c3QgMiB2YWx1ZXMgd2hpY2ggYXJlIGJlaW5nIHJlcG9ydGVk
-IGluY29ycmVjdGx5LiBGYW4xIGlzCj4gcmVwb3J0aW5nIDExMjUwUlBNLCBob3dldmVyIHRoZSBi
-aW9zIGlzIHNob3dpbmcgb25seSA1NTU0UlBNLiBJIGhhdmUKdHJpZWQKPiBhZGp1c3RpbmcgdGhl
-IGRpdiBiZXR3ZWVuIDIsIDQgYW5kIDggaG93ZXZlciB0aGlzIGhhcyBub3QgY2hhbmdlZCB0aGUK
-PiByZWFkaW5nICh0aGUgb3V0cHV0IGZyb20gc2Vuc29ycyBkb2VzIHNob3cgdGhlIGNoYW5nZSBp
-biBkaXYgdmFsdWUpLgpGQVE6IDQuMSBNeSBmYW5zIHJlcG9ydCBleGFjdGx5IGhhbGYvZG91Ymxl
-IHRoZWlyIHZhbHVlcyBjb21wYXJlZCB0byB0aGUKQklPUz8KaHR0cDovL3d3dzIubG0tc2Vuc29y
-cy5udS9+bG03OC9jdnMvbG1fc2Vuc29yczIvZG9jL2xtX3NlbnNvcnMtRkFRLmh0bWwjClNlY3Rp
-b24tNF8wMDJlMQoKPiBBbHNvLCBjb21wYXJpbmcgdGhlIHZvbHRhZ2Ugb3V0cHV0cyBmcm9tIHRo
-YXQgb2Ygc2Vuc29ycywgdG8gdGhvc2UgaW4KdGhlCj4gYmlvcywgd2l0aCB0aGUgZXhjZXB0aW9u
-IG9mIFZJTjEsIGFsbCB0aGUgaW5wdXRzIGFwcGVhciBjb3JyZWN0LCBhbmQKZG8KPiBtYXRjaCB1
-cC4gSG93ZXZlciB0aGUgYmlvcyBzaG93cyBhIHJlYWRpbmcgb2YgKzEyViwgd2hpY2ggaXMgbm90
-IHNob3duCmluCj4gc2Vuc29ycy4gVGhlIHBvc2l0aW9uIHdpdGhpbiB0aGUgYmlvcyBzY3JlZW4g
-aXMgYXQgdGhlIHNhbWUgcGxhY2UgYXMKVklOMQo+ICh3aGljaCByZWFkcyArMy4xNFYpLCBhbmQg
-dGhlICszLjE0ViBkb2VzIG5vdCBzaG93IGFueXdoZXJlIHdpdGhpbiB0aGUKPiBiaW9zIC0gdGhl
-cmVmb3JlIEkgYW0gYXNzdW1pbmcgdGhpcyBzaG91bGQgYmUgKzEyViBidXQgYmVpbmcgbWlzcmVh
-ZC4KSXQgc2VlbXMgdGhhdCB0aGUgc2Vuc29ycy5jb25mIGlzIG5vdCBjb3JyZWN0IGZvciB5b3Vy
-IGJvYXJkLCBidXQgaXQncwpoYXJkIHRvIGdpdmUgYSBnZW5lcmFsIHNlbnNvcnMuY29uZiBmb3Ig
-YWxsIGJvYXJkcyB1c2luZyB3ODM3OTJkLgpCZXN0IHdvdWxkIGlmIHlvdSBjYW4gZ2l2ZSBhIGNv
-bXB1dGUgZm9ybXVsYSBpbiBzZW5zb3JzLmNvbmYgYnkKeW91cnNlbGYuCmh0dHA6Ly93d3cyLmxt
-LXNlbnNvcnMubnUvfmxtNzgvY3ZzL2xtX3NlbnNvcnMyL2RvYy9sbV9zZW5zb3JzLUZBUS5odG1s
-IwpTZWN0aW9uLTNfMDAyZTQKCkJlc3QgUmVnYXJkcwpZdWFuIE11CgoKPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVudGlh
-bCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3IgdXNl
-IG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBzZW5k
-ZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0ZWQg
-aW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0aGUg
-ZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNlbmRl
-ciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJvbSB5
-b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29wZXJh
-dGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5hdXRo
-b3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBzdHJp
-Y3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJyZWxl
-dmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVtZWQg
-YXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5hYmxl
-IHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBtZXNz
-YWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdpdmVu
-IGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat7LVv
-q0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6mXaX0
-pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRIqMOl
-36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn2q3M
-pf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FLuOqw
-VKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSjsW+1
-+KywtdioublxpGykp6Xfs/WpzrdOqKMuCgo=
+Content-Disposition: inline; filename=hwmon-w83792d-misc-cleanups.patch
+
+Cleanup the w83792d driver a bit:
+* Discard unused lock and irrelevant comments inherited from the
+  w83781d driver.
+* Inline and simplify w83792d_{read,write}_value functions.
+* Drop useless address test during detection.
+* Drop useless bitmasking.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Acked-by: Yuan Mu <Ymu at winbond.com.tw>
+---
+ drivers/hwmon/w83792d.c |   31 +++++++++++--------------------
+ 1 file changed, 11 insertions(+), 20 deletions(-)
+
+--- linux-2.6.15-rc5.orig/drivers/hwmon/w83792d.c	2005-12-11 17:11:58.000000000 +0100
++++ linux-2.6.15-rc5/drivers/hwmon/w83792d.c	2005-12-11 17:46:26.000000000 +0100
+@@ -269,7 +269,6 @@
+ struct w83792d_data {
+ 	struct i2c_client client;
+ 	struct class_device *class_dev;
+-	struct semaphore lock;
+ 	enum chips type;
+ 
+ 	struct semaphore update_lock;
+@@ -305,8 +304,8 @@
+ static int w83792d_detect(struct i2c_adapter *adapter, int address, int kind);
+ static int w83792d_detach_client(struct i2c_client *client);
+ 
+-static int w83792d_read_value(struct i2c_client *client, u8 register);
+-static int w83792d_write_value(struct i2c_client *client, u8 register,
++static inline int w83792d_read_value(struct i2c_client *client, u8 register);
++static inline int w83792d_write_value(struct i2c_client *client, u8 register,
+ 				u8 value);
+ static struct w83792d_data *w83792d_update_device(struct device *dev);
+ 
+@@ -1192,7 +1191,6 @@
+ 	new_client = &data->client;
+ 	i2c_set_clientdata(new_client, data);
+ 	new_client->addr = address;
+-	init_MUTEX(&data->lock);
+ 	new_client->adapter = adapter;
+ 	new_client->driver = &w83792d_driver;
+ 	new_client->flags = 0;
+@@ -1243,7 +1241,7 @@
+ 			goto ERROR1;
+ 		}
+ 		val1 = w83792d_read_value(new_client, W83792D_REG_WCHIPID);
+-		if (val1 = 0x7a && address >= 0x2c) {
++		if (val1 = 0x7a) {
+ 			kind = w83792d;
+ 		} else {
+ 			if (kind = 0)
+@@ -1416,26 +1414,19 @@
+ 	return 0;
+ }
+ 
+-/* The SMBus locks itself, usually, but nothing may access the Winbond between
+-   bank switches. ISA access must always be locked explicitly!
+-   We ignore the W83792D BUSY flag at this moment - it could lead to deadlocks,
+-   would slow down the W83792D access and should not be necessary.
+-   There are some ugly typecasts here, but the good news is - they should
+-   nowhere else be necessary! */
+-static int
++/* The SMBus locks itself. The Winbond W83792D chip has a bank register,
++   but the driver only accesses registers in bank 0, so we don't have
++   to switch banks and lock access between switches. */
++static inline int
+ w83792d_read_value(struct i2c_client *client, u8 reg)
+ {
+-	int res=0;
+-	res = i2c_smbus_read_byte_data(client, reg);
+-
+-	return res;
++	return i2c_smbus_read_byte_data(client, reg);
+ }
+ 
+-static int
++static inline int
+ w83792d_write_value(struct i2c_client *client, u8 reg, u8 value)
+ {
+-	i2c_smbus_write_byte_data(client, reg,  value);
+-	return 0;
++	return i2c_smbus_write_byte_data(client, reg, value);
+ }
+ 
+ static void
+@@ -1506,7 +1497,7 @@
+ 			pwm_array_tmp[i] = w83792d_read_value(client,
+ 						W83792D_REG_PWM[i]);
+ 			data->pwm[i] = pwm_array_tmp[i] & 0x0f;
+-			data->pwm_mode[i] = (pwm_array_tmp[i] >> 7) & 0x01;
++			data->pwm_mode[i] = pwm_array_tmp[i] >> 7;
+ 		}
+ 
+ 		reg_tmp = w83792d_read_value(client, W83792D_REG_FAN_CFG);
+
+-- 
+Jean Delvare
+
