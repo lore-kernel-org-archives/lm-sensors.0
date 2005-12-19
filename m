@@ -1,98 +1,76 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 28 Dec 2005 22:39:41 +0000
-Subject: [lm-sensors] [PATCH 01/11] hwmon: w83792d misc cleanups
-Message-Id: <20051228233941.53d125e2.khali@linux-fr.org>
+From: steve@hassard.net (Stephen Hassard)
+Date: Mon, 19 Dec 2005 18:50:29 +0000
+Subject: [lm-sensors] report: ATI IXP use via i2c-piix4
+Message-Id: <43A700F5.4020606@hassard.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051218162940.702a24ac.khali@linux-fr.org>
-In-Reply-To: <20051218162940.702a24ac.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Greg,
+I've got an MSI RS482M4-ILD motherboard that I've managed to get going 
+with lm-sensors.
 
-> > Can you explain please? We have four other hardware monitoring drivers
-> > with similar code, and no problem was ever reported. This change to the
-> > w83792d driver was compiling just fine for me with both gcc 2.95.3 and
-> > gcc 3.3.6. What exactly is supposed to cause problems, and with which
-> > compiler?
-> 
-> I'm using gcc 3.4.4 here, and this change caused build errors.  You
-> can't declare a function "static inline" and not actually declare the
-> full function before calling it, like this driver did (it called
-> w83792d_write_value() before that function was fully written.)  I think
-> older versions of gcc just ignore this and don't inline it.
-> 
-> The other drivers that do this, properly define the functions fully
-> before calling them, that's why it works.
+Hardware info page:
+http://www.msicomputer.com/product/p_spec.asp?model=RS482M4-ILD&class=mb
 
-OK, thanks for the clarification. It all makes perfect sense now. Here
-comes a fixup patch. Can you please fold it into your version of
-hwmon-w83792d-misc-cleanups.patch? Thanks.
+I'm using kernel 2.6.15-rc6-ck1 w/ the patch from 
+http://assembler.cz/download/ati2_patch
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Acked-by: Yuan Mu <Ymu at winbond.com.tw>
 ---
- drivers/hwmon/w83792d.c |   31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
 
---- linux-2.6.15-rc6.orig/drivers/hwmon/w83792d.c	2005-12-23 17:54:52.000000000 +0100
-+++ linux-2.6.15-rc6/drivers/hwmon/w83792d.c	2005-12-23 17:58:12.000000000 +0100
-@@ -303,10 +303,6 @@
- static int w83792d_attach_adapter(struct i2c_adapter *adapter);
- static int w83792d_detect(struct i2c_adapter *adapter, int address, int kind);
- static int w83792d_detach_client(struct i2c_client *client);
--
--static int w83792d_read_value(struct i2c_client *client, u8 register);
--static int w83792d_write_value(struct i2c_client *client, u8 register,
--				u8 value);
- static struct w83792d_data *w83792d_update_device(struct device *dev);
- 
- #ifdef DEBUG
-@@ -329,6 +325,20 @@
- 	return ((data->in[nr] << 2) | ((data->low_bits >> (2 * nr)) & 0x03));
- }
- 
-+/* The SMBus locks itself. The Winbond W83792D chip has a bank register,
-+   but the driver only accesses registers in bank 0, so we don't have
-+   to switch banks and lock access between switches. */
-+static inline int w83792d_read_value(struct i2c_client *client, u8 reg)
-+{
-+	return i2c_smbus_read_byte_data(client, reg);
-+}
-+
-+static inline int
-+w83792d_write_value(struct i2c_client *client, u8 reg, u8 value)
-+{
-+	return i2c_smbus_write_byte_data(client, reg, value);
-+}
-+
- /* following are the sysfs callback functions */
- static ssize_t show_in(struct device *dev, struct device_attribute *attr,
- 			char *buf)
-@@ -1386,19 +1396,6 @@
- 	return 0;
- }
- 
--/* The SMBus locks itself. The Winbond W83792D chip has a bank register,
--   but the driver only accesses registers in bank 0, so we don't have
--   to switch banks and lock access between switches. */
--static int w83792d_read_value(struct i2c_client *client, u8 reg)
--{
--	return i2c_smbus_read_byte_data(client, reg);
--}
--
--static int w83792d_write_value(struct i2c_client *client, u8 reg, u8 value)
--{
--	return i2c_smbus_write_byte_data(client, reg, value);
--}
--
- static void
- w83792d_init_client(struct i2c_client *client)
- {
-
-
--- 
-Jean Delvare
+Dec 19 10:38:38 localhost sensord: sensord started
+Dec 19 10:38:38 localhost sensord: Sensor alarm: Chip 
+w83627thf-isa-0600: VCore: +1.15 V (min = +1.94 V, max = +1.94 V) [ALARM]
+Dec 19 10:38:38 localhost sensord: Sensor alarm: Chip 
+w83627thf-isa-0600: -12V: -12.28 V (min = -10.80 V, max = -13.18 V) [ALARM]
+Dec 19 10:38:38 localhost sensord: Sensor alarm: Chip 
+w83627thf-isa-0600: CPU Fan: 0 RPM (min = 1318 RPM, div = 8) [ALARM]
+Dec 19 10:38:38 localhost sensord: Sensor alarm: Chip 
+w83627thf-isa-0600: fan3: 0 RPM (min = 2343 RPM, div = 8) [ALARM]
+Dec 19 10:38:38 localhost sensord: Sensor alarm: Chip 
+w83627thf-isa-0600: alarms: Chassis intrusion detection [ALARM]
+Dec 19 10:38:38 localhost sensord: Chip: w83627thf-isa-0600
+Dec 19 10:38:38 localhost sensord: Adapter: ISA adapter
+Dec 19 10:38:38 localhost sensord: Algorithm: ISA algorithm
+Dec 19 10:38:38 localhost sensord:   VCore: +1.15 V (min = +1.94 V, max 
+= +1.94 V) [ALARM]
+Dec 19 10:38:38 localhost sensord:   +12V: +12.89 V (min = +10.82 V, max 
+= +13.19 V)
+Dec 19 10:38:38 localhost sensord:   +3.3V: +3.20 V (min = +3.14 V, max 
+= +3.47 V)
+Dec 19 10:38:38 localhost sensord:   +5V: +5.04 V (min = +4.75 V, max = 
++5.25 V)
+Dec 19 10:38:38 localhost sensord:   -12V: -12.28 V (min = -10.80 V, max 
+= -13.18 V) [ALARM]
+Dec 19 10:38:38 localhost sensord:   V5SB: +5.08 V (min = +4.76 V, max = 
++5.24 V)
+Dec 19 10:38:38 localhost sensord:   VBat: +3.36 V (min = +2.40 V, max = 
++3.60 V)
+Dec 19 10:38:38 localhost sensord:   fan1: 3245 RPM (min = 703 RPM, div 
+= 8) (beep)
+Dec 19 10:38:38 localhost sensord:   CPU Fan: 0 RPM (min = 1318 RPM, div 
+= 8) [ALARM]
+Dec 19 10:38:38 localhost sensord:   fan3: 0 RPM (min = 2343 RPM, div = 
+8) [ALARM]
+Dec 19 10:38:38 localhost sensord:   M/B Temp: 30 C (limit = 70 C, 
+sensors = thermistor)
+Dec 19 10:38:38 localhost sensord:   CPU Temp: 25.0 C (limit = 80 C, 
+hysteresis = 75 C, sensor = thermistor)
+Dec 19 10:38:38 localhost sensord:   temp3: -5.5 C (limit = 80 C, 
+hysteresis = 75 C, sensor = PII/Celeron diode)
+Dec 19 10:38:38 localhost sensord:   vid: +0.275 V
+Dec 19 10:38:38 localhost sensord:   alarms: Chassis intrusion detection 
+[ALARM]
+Dec 19 10:38:38 localhost sensord:   beep_enable: Sound alarm enabled
+Dec 19 10:38:38 localhost sensord: Chip: eeprom-i2c-0-51
+Dec 19 10:38:38 localhost sensord: Adapter: SMBus PIIX4 adapter at 0b00
+Dec 19 10:38:38 localhost sensord: Algorithm: Unavailable from sysfs
+Dec 19 10:38:38 localhost sensord:   Memory type: DDR SDRAM DIMM SPD
+Dec 19 10:38:38 localhost sensord:   Memory size (MB): Invalid 13 10 2 4
+Dec 19 10:38:38 localhost sensord: Chip: eeprom-i2c-0-50
+Dec 19 10:38:38 localhost sensord: Adapter: SMBus PIIX4 adapter at 0b00
+Dec 19 10:38:38 localhost sensord: Algorithm: Unavailable from sysfs
+Dec 19 10:38:38 localhost sensord:   Memory type: DDR SDRAM DIMM SPD
+Dec 19 10:38:38 localhost sensord:   Memory size (MB): Invalid 13 10 2 4
 
