@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 19 Dec 2005 21:35:01 +0000
+From: gardner.ben@gmail.com (Ben Gardner)
+Date: Mon, 19 Dec 2005 22:05:45 +0000
 Subject: [lm-sensors] [PATCH 2/7] i2c: scx200_acb - debug log cleanup
-Message-Id: <20051219223501.4a1fb395.khali@linux-fr.org>
+Message-Id: <808c8e9d0512191405j71b70f7cw6a0cc557ad0982f1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <808c8e9d0512191051u6f7c0b38k2c9843a6baed00bf@mail.gmail.com>
 In-Reply-To: <808c8e9d0512191051u6f7c0b38k2c9843a6baed00bf@mail.gmail.com>
@@ -10,49 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ben,
+Hi Jean,
 
-> scx200_acb debug log cleanup.
+On 12/19/05, Jean Delvare <khali at linux-fr.org> wrote:
+> Hi Ben,
+>
+> > scx200_acb debug log cleanup.
+>
+> >       if (!len && rw = I2C_SMBUS_READ) {
+> > -             dev_warn(&adapter->dev, "zero length read\n");
+> > +             dev_dbg(&adapter->dev, "zero length read\n");
+> >               return -EINVAL;
+> >       }
+>
+> It just happened to me that this test is bogus. len = 0 && rw =
+> I2C_SMBUS_READ is perfectly valid according to the SMBus specification.
+> It's a "quick command" with data (1 bit) = 1. I never saw it used in
+> practice, and everyone seems to agree that this is a weirdness in SMBus'
+> specification (using the read/write bit as data in this specific case)
+> but it's still valid.
 
-> @@ -413,7 +408,7 @@ static int scx200_acb_probe(struct scx20
->  	outb(0x70, ACBCTL2);
->  
->  	if (inb(ACBCTL2) != 0x70) {
-> -		DBG("ACBCTL2 readback failed\n");
-> +		dev_dbg(&iface->adapter.dev, "ACBCTL2 readback failed\n");
->  		return -ENXIO;
->  	}
->  
-> @@ -421,7 +416,8 @@ static int scx200_acb_probe(struct scx20
->  
->  	val = inb(ACBCTL1);
->  	if (val) {
-> -		DBG("disabled, but ACBCTL1=0x%02x\n", val);
-> +		dev_dbg(&iface->adapter.dev, "disabled, but ACBCTL1=0x%02x\n",
-> +			val);
->  		return -ENXIO;
->  	}
->  
-> @@ -431,7 +427,9 @@ static int scx200_acb_probe(struct scx20
->  
->  	val = inb(ACBCTL1);
->  	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
-> -		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
-> +		dev_dbg(&iface->adapter.dev,
-> +			"enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n",
-> +			val);
->  		return -ENXIO;
->  	}
+It looks like the case for state_quick won't work for 0-len reads.
+It should unconditionally jump to state_write for a 0-len state_quick operation.
+I'll write up a separate patch to fix that and remove the check tomorrow.
 
-On second thought, these ones are probably not correct:
-scx200_acb_probe is called before i2c_add_adapter, so the adapter's
-device isn't properly setup at this point. You have to use pr_debug
-instead of dev_dbg.
+> >       if (len && !buffer) {
+> > -             dev_warn(&adapter->dev, "nonzero length but no buffer\n");
+> > +             dev_dbg(&adapter->dev, "nonzero length but no buffer\n");
+> >               return -EFAULT;
+> >       }
+>
+> I think that the whole block should be enclosed by #ifdef DEBUG/#endif,
+> as this error condition is simply not supposed to happen.
 
-This also means that the uses of dev_err and dev_warn in
-scx200_acb_create are not correct either, and should be changed to
-boring printk calls.
+I assume other drivers don't check for this... why not just delete it?
 
--- 
-Jean Delvare
+Thanks,
+Ben
 
