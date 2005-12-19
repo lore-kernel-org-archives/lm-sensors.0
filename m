@@ -1,71 +1,60 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Tue, 06 Dec 2005 08:19:56 +0000
-Subject: [lm-sensors] [PATCH 2/3] w1 : move master and slave code into
-Message-Id: <20051206081956.GA27786@2ka.mipt.ru>
+From: sf@fcse.co.uk (Jeff Fern)
+Date: Mon, 19 Dec 2005 15:21:14 +0000
+Subject: [lm-sensors] Ticket #2124, K8N-DL Readings
+Message-Id: <50277.193.113.58.233.1135005674.squirrel@mail.fcse.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <808c8e9d0512051011q2dc21d45l8998f40d3cae1803@mail.gmail.com>
-In-Reply-To: <808c8e9d0512051011q2dc21d45l8998f40d3cae1803@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 05, 2005 at 12:11:32PM -0600, Ben Gardner (gardner.ben at gmail.com) wrote:
-> Move w1 bus master code into 'w1/masters' and move w1 slave code into
-> 'w1/slaves'.
-> 
-> Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+With regards ticket number 2124, which was replied by Rudolf end of last
+week.
 
->  drivers/w1/Kconfig                |   60 --
->  drivers/w1/Makefile               |   10 
->  drivers/w1/ds_w1_bridge.c         |  174 --------
->  drivers/w1/dscore.c               |  795 --------------------------------------
->  drivers/w1/dscore.h               |  166 -------
->  drivers/w1/masters/Kconfig        |   38 +
->  drivers/w1/masters/Makefile       |   11 
->  drivers/w1/masters/ds_w1_bridge.c |  174 ++++++++
->  drivers/w1/masters/dscore.c       |  795 ++++++++++++++++++++++++++++++++++++++
->  drivers/w1/masters/dscore.h       |  166 +++++++
->  drivers/w1/masters/matrox_w1.c    |  247 +++++++++++
->  drivers/w1/matrox_w1.c            |  247 -----------
->  drivers/w1/slaves/Kconfig         |   38 +
->  drivers/w1/slaves/Makefile        |   12 
->  drivers/w1/slaves/w1_ds2433.c     |  329 +++++++++++++++
->  drivers/w1/slaves/w1_smem.c       |   71 +++
->  drivers/w1/slaves/w1_therm.c      |  268 ++++++++++++
->  drivers/w1/w1_ds2433.c            |  329 ---------------
->  drivers/w1/w1_smem.c              |   71 ---
->  drivers/w1/w1_therm.c             |  268 ------------
->  20 files changed, 2152 insertions(+), 2117 deletions(-)
+The basic problem was with an Asus K8n-DL motherboard. Following Rudolf's
+suggestions, I have been able to get virtually all the problems ironed
+out, and although there is the w83627thf chip on the board, it does look
+like this is useless, and only the w83792d is valid.
 
-I failed to apply this one:
-...
-patching file drivers/w1/matrox_w1.c
-Reversed (or previously applied) patch detected!  Assume -R? [n]
-Apply anyway? [n]
-Skipping patch.
-1 out of 1 hunk ignored -- saving rejects to file
-drivers/w1/matrox_w1.c.rej
-...
-patching file drivers/w1/dscore.c
-Reversed (or previously applied) patch detected!  Assume -R? [n]
-Apply anyway? [n]
-Skipping patch.
-1 out of 1 hunk ignored -- saving rejects to file
-drivers/w1/dscore.c.rej
-...
-patching file drivers/w1/w1_ds2433.c
-Reversed (or previously applied) patch detected!  Assume -R? [n]
-Apply anyway? [n]
-Skipping patch.
-1 out of 1 hunk ignored -- saving rejects to file
-drivers/w1/w1_ds2433.c.rej
+There are just 2 values which are being reported incorrectly. Fan1 is
+reporting 11250RPM, however the bios is showing only 5554RPM. I have tried
+adjusting the div between 2, 4 and 8 however this has not changed the
+reading (the output from sensors does show the change in div value).
 
-Everything except this seems OK, so I will clean this moving up and push
-it upstream.
+Also, comparing the voltage outputs from that of sensors, to those in the
+bios, with the exception of VIN1, all the inputs appear correct, and do
+match up. However the bios shows a reading of +12V, which is not shown in
+sensors. The position within the bios screen is at the same place as VIN1
+(which reads +3.14V), and the +3.14V does not show anywhere within the
+bios - therefore I am assuming this should be +12V but being misread.
 
-Thank you.
+Does anyone have any suggestions for fixing these 2 bugs? I have pasted a
+copy of my sensors output below.
 
--- 
-	Evgeniy Polyakov
+Many thanks,
+
+-Jeff Fern
+
+jeff at triton:~$ sensors
+w83792d-i2c-0-2f
+Adapter: SMBus nForce2 adapter at 1c00
+VCoreA:    +1.38 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
+VCoreB:    +1.39 V  (min =  +1.40 V, max =  +1.60 V)       ALARM
++3.3V:     +3.29 V  (min =  +3.20 V, max =  +3.39 V)
++12V:      +3.14 V  (min =  +3.09 V, max =  +3.30 V)
++1.5V:     +1.50 V  (min =  +1.39 V, max =  +1.49 V)
++2.5V:     +2.52 V  (min =  +2.59 V, max =  +2.64 V)       ALARM
+5VCC:      +5.01 V  (min =  +4.73 V, max =  +5.23 V)
+5VSB:      +4.99 V  (min =  +4.73 V, max =  +5.23 V)
+VBAT:      +3.04 V  (min =  +2.85 V, max =  +3.14 V)
+N/bridge: 11250 RPM  (min =    0 RPM, div = 8)
+Rear:     2360 RPM  (min =    0 RPM, div = 4)
+Pump:     2191 RPM  (min =    0 RPM, div = 4)
+System:    +45.0?C  (high = +127.0?C, hyst =  +0.0?C)
+CPU1:      +45.0?C  (high = +80.0?C, hyst = +75.0?C)
+CPU2:      +45.5?C  (high = +80.0?C, hyst = +75.0?C)
+
+
+
+
 
