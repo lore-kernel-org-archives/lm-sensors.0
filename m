@@ -1,29 +1,63 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Mon, 05 Dec 2005 18:19:47 +0000
-Subject: [lm-sensors] [PATCH 0/3] w1 : change data type, move code,
-Message-Id: <20051205181947.GA20634@2ka.mipt.ru>
+From: gardner.ben@gmail.com (Ben Gardner)
+Date: Mon, 19 Dec 2005 18:54:16 +0000
+Subject: [lm-sensors] [PATCH 4/7] i2c: scx200_acb - remove lock_kernel
+Message-Id: <808c8e9d0512191054mee603f9j7a231457b96acd3@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <808c8e9d0512051006s125a86bp1e96bf58f29b6b7@mail.gmail.com>
-In-Reply-To: <808c8e9d0512051006s125a86bp1e96bf58f29b6b7@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 05, 2005 at 12:06:46PM -0600, Ben Gardner (gardner.ben at gmail.com) wrote:
-> This three-part series does the following:
-> 1. Change the type 'unsigned long' member of 'struct w1_bus_master' to 'void *'
-> 2. Move w1 bus master code into 'w1/masters' and move w1 slave code
-> into 'w1/slaves'
-> 3. Add the DS2482 I2C-to-w1 bridge driver
-> 
-> Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+Remove calls to lock_kernel() and unlock_kernel().
+Replace with a mutex.
 
-I will take a look tomorrow and if there are no problems will push it
-upstrem.
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+-------------- next part --------------
+ drivers/i2c/busses/scx200_acb.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-Thank you.
-
--- 
-	Evgeniy Polyakov
-
+--- linux-2.6.15-rc5-mm1.orig/drivers/i2c/busses/scx200_acb.c
++++ linux-2.6.15-rc5-mm1/drivers/i2c/busses/scx200_acb.c
+@@ -384,6 +384,7 @@ static struct i2c_algorithm scx200_acb_a
+ };
+ 
+ static struct scx200_acb_iface *scx200_acb_list;
++static DECLARE_MUTEX(scx200_acb_list_mutex);
+ 
+ static int scx200_acb_probe(struct scx200_acb_iface *iface)
+ {
+@@ -469,10 +470,10 @@ static int  __init scx200_acb_create(int
+ 		goto errout_release;
+ 	}
+ 
+-	lock_kernel();
++	down(&scx200_acb_list_mutex);
+ 	iface->next     = scx200_acb_list;
+ 	scx200_acb_list = iface;
+-	unlock_kernel();
++	up(&scx200_acb_list_mutex);
+ 
+ 	return 0;
+ 
+@@ -514,17 +515,17 @@ static void __exit scx200_acb_cleanup(vo
+ {
+ 	struct scx200_acb_iface *iface;
+ 
+-	lock_kernel();
++	down(&scx200_acb_list_mutex);
+ 	while ((iface = scx200_acb_list) != NULL) {
+ 		scx200_acb_list = iface->next;
+-		unlock_kernel();
++		up(&scx200_acb_list_mutex);
+ 
+ 		i2c_del_adapter(&iface->adapter);
+ 		release_region(iface->base, 8);
+ 		kfree(iface);
+-		lock_kernel();
++		down(&scx200_acb_list_mutex);
+ 	}
+-	unlock_kernel();
++	up(&scx200_acb_list_mutex);
+ }
+ 
+ module_init(scx200_acb_init);
