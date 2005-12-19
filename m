@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 19 Dec 2005 19:15:28 +0000
+From: steve@hassard.net (Stephen Hassard)
+Date: Mon, 19 Dec 2005 19:19:30 +0000
 Subject: [lm-sensors] report: ATI IXP use via i2c-piix4
-Message-Id: <43A706D0.7080200@sh.cvut.cz>
+Message-Id: <43A707C2.30900@hassard.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43A700F5.4020606@hassard.net>
 In-Reply-To: <43A700F5.4020606@hassard.net>
@@ -10,31 +10,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Stephen Hassard wrote:
-> I've got an MSI RS482M4-ILD motherboard that I've managed to get going 
-> with lm-sensors.
+Rudolf Marek wrote:
+> Hmm I dont like this.
+> 
+> Will the sensors command produce correct result?
+> 
+> Can you please provide dumps in this order:
+> 
+> i2cdump 0 0x51
+> i2cdump 0 0x51 c
+> i2cdump 0 0x51
 
-Good.
-> [ALARM]
-> Dec 19 10:38:38 localhost sensord:   beep_enable: Sound alarm enabled
-> Dec 19 10:38:38 localhost sensord: Chip: eeprom-i2c-0-51
-> Dec 19 10:38:38 localhost sensord: Adapter: SMBus PIIX4 adapter at 0b00
-> Dec 19 10:38:38 localhost sensord: Algorithm: Unavailable from sysfs
-> Dec 19 10:38:38 localhost sensord:   Memory type: DDR SDRAM DIMM SPD
-> Dec 19 10:38:38 localhost sensord:   Memory size (MB): Invalid 13 10 2 4
+Hi Rudolf,
 
-Hmm I dont like this.
+Here's the requested output:
 
-Will the sensors command produce correct result?
-
-Can you please provide dumps in this order:
+---
 
 i2cdump 0 0x51
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x51, mode byte
+Continue? [Y/n]
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0a 02 40 00 04 50 70 00 82 08 00 01    ??????@.?Pp.??.?
+10: 0e 04 04 01 02 20 c0 00 00 00 00 3c 28 3c 23 40    ????? ?....<(<#@
+20: 60 60 40 40 00 00 00 00 00 37 46 28 28 32 00 00    ``@@.....7F((2..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 73    ..............?s
+40: 7f 7f 7f 7f b0 00 00 00 00 4f 43 5a 34 30 30 31    ?????....OCZ4001
+50: 30 32 34 45 4c 44 43 47 45 43 32 00 00 00 00 00    024ELDCGEC2.....
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 05 09 02 00 00 00 00 00 00 00 00 00 00 00 00 00    ???.............
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+
+
 i2cdump 0 0x51 c
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x51, mode byte consecutive read
+Continue? [Y/n]
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0a 02 40 00 04 50 70 00 82 08 00 01    ??????@.?Pp.??.?
+10: 0e 04 04 01 02 20 c0 00 00 00 00 3c 28 3c 23 40    ????? ?....<(<#@
+20: 60 60 40 40 00 00 00 00 00 37 46 28 28 32 00 00    ``@@.....7F((2..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 73    ..............?s
+40: 7f 7f 7f 7f b0 00 00 00 00 4f 43 5a 34 30 30 31    ?????....OCZ4001
+50: 30 32 34 45 4c 44 43 47 45 43 32 00 00 00 00 00    024ELDCGEC2.....
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 05 09 02 00 00 00 00 00 00 00 00 00 00 00 00 00    ???.............
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+
 i2cdump 0 0x51
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x51, mode byte
+Continue? [Y/n]
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 80 08 07 0d 0a 02 40 00 04 50 70 00 82 08 00 01    ??????@.?Pp.??.?
+10: 0e 04 04 01 02 20 c0 00 00 00 00 3c 28 3c 23 40    ????? ?....<(<#@
+20: 60 60 40 40 00 00 00 00 00 37 46 28 28 32 00 00    ``@@.....7F((2..
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 73    ..............?s
+40: 7f 7f 7f 7f b0 00 00 00 00 4f 43 5a 34 30 30 31    ?????....OCZ4001
+50: 30 32 34 45 4c 44 43 47 45 43 32 00 00 00 00 00    024ELDCGEC2.....
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+80: 05 09 02 00 00 00 00 00 00 00 00 00 00 00 00 00    ???.............
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
 
-Thank you
+---
 
-Regards
-Rudolf
+Thanks,
+Steve Hassard
 
