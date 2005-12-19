@@ -1,41 +1,75 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Fri, 23 Dec 2005 23:19:04 +0000
-Subject: [lm-sensors] cp6000 smbus driver
-Message-Id: <43AC85E8.40807@mds.gotdns.com>
+From: gardner.ben@gmail.com (Ben Gardner)
+Date: Mon, 19 Dec 2005 18:59:01 +0000
+Subject: [lm-sensors] [PATCH 6/7] i2c: scx200_acb - fix poll loop
+Message-Id: <808c8e9d0512191059h1cae3745k2a77b32f56ac2349@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <24EB6743805F45478251E18DEBF3F6BE813467@csserver.circadiant.com>
-In-Reply-To: <24EB6743805F45478251E18DEBF3F6BE813467@csserver.circadiant.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-IPMB is not supported.
-There's the beginnings of a driver for 2.4 in the lm_sensors tree
-but I never got it to work because my BMC didn't support it.
+Fix and speed up the poll loop.
+The delay(10) was just too much of a delay, I changed it to a yield().
+The large delay was causing the NACK in the address state to be
+missed, so instead of getting a NACK, we were getting a timeout.
+I also shortened the timeout to HZ/5, as 1 second was excessive.
 
-Howard Wang wrote:
-> HI All,
-> 
-> I have a question: 
-> 
-> my machine is cp6000 from kontron, the system has pentium M + 6300 ESB hub.
-> there is an smbus and an ipmb bus, I have no trouble talking to the smbus,
-> but I have no way to talk to the ipmb bus, which is also supposed to use 
-> smbus protocol.
-> 
-> my question is: to talk to the ipmb bus using pure i2c access,
-> which one is the bus driver, the i801 or 6300 ESB
-> and which driver is needed to talk the device on that ipmb bus ?
-> 
-> your help is greatly appreciated.
-> 
-> howard
-> 
-> 
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+-------------- next part --------------
+ drivers/i2c/busses/scx200_acb.c |   13 ++-----------
+ 1 files changed, 2 insertions(+), 11 deletions(-)
+
+--- linux-2.6.15-rc5-mm1.orig/drivers/i2c/busses/scx200_acb.c
++++ linux-2.6.15-rc5-mm1/drivers/i2c/busses/scx200_acb.c
+@@ -47,10 +47,7 @@ static int base[MAX_DEVICES] = { 0x820, 
+ module_param_array(base, int, NULL, 0);
+ MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
+ 
+-/* The hardware supports interrupt driven mode too, but I haven't
+-   implemented that. */
+-#define POLLED_MODE	1
+-#define POLL_TIMEOUT	(HZ)
++#define POLL_TIMEOUT	(HZ/5)
+ 
+ enum scx200_acb_state {
+ 	state_idle,
+@@ -223,7 +220,6 @@ static void scx200_acb_machine(struct sc
+ 	iface->needs_reset = 1;
+ }
+ 
+-#ifdef POLLED_MODE
+ static void scx200_acb_poll(struct scx200_acb_iface *iface)
+ {
+ 	u8		status;
+@@ -236,7 +232,7 @@ static void scx200_acb_poll(struct scx20
+ 			scx200_acb_machine(iface, status);
+ 			return;
+ 		}
+-		msleep(10);
++		yield();
+ 	}
+ 
+ 	dev_err(&iface->adapter.dev, "timeout in state %s\n",
+@@ -246,7 +242,6 @@ static void scx200_acb_poll(struct scx20
+ 	iface->result      = -EIO;
+ 	iface->needs_reset = 1;
+ }
+-#endif /* POLLED_MODE */
+ 
+ static void scx200_acb_reset(struct scx200_acb_iface *iface)
+ {
+@@ -341,12 +336,8 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 	else
+ 		iface->state = state_address;
+ 
+-#ifdef POLLED_MODE
+ 	while (iface->state != state_idle)
+ 		scx200_acb_poll(iface);
+-#else /* POLLED_MODE */
+-#error Interrupt driven mode not implemented
+-#endif /* POLLED_MODE */	
+ 
+ 	if (iface->needs_reset)
+ 		scx200_acb_reset(iface);
+
 
