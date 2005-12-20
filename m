@@ -1,7 +1,7 @@
 From: gardner.ben@gmail.com (Ben Gardner)
-Date: Tue, 20 Dec 2005 22:44:22 +0000
+Date: Tue, 20 Dec 2005 23:00:59 +0000
 Subject: [lm-sensors] [PATCH 5/7] i2c: scx200_acb - add cs5535 support
-Message-Id: <808c8e9d0512201444lb4b1b50mdd27737e991bdd1a@mail.gmail.com>
+Message-Id: <808c8e9d0512201500i6f8ed84q544e42c88763aa7@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <808c8e9d0512191055i1419fc08ra8f2b27cb9642c6f@mail.gmail.com>
 In-Reply-To: <808c8e9d0512191055i1419fc08ra8f2b27cb9642c6f@mail.gmail.com>
@@ -10,26 +10,121 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+scx200_acb: Add support for the CS5535/CS5536
 
-On 12/20/05, Jean Delvare <khali at linux-fr.org> wrote:
-> (...)
-> Anyway, patch looks OK, and so do patches 4, 6 and 7. Just one question:
->
-> > +static struct pci_device_id divil_pci[] = {
->
-> Why "divil"?
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+---
+This is the second version of the series.
+-------------- next part --------------
+ drivers/i2c/busses/scx200_acb.c |   57 ++++++++++++++++++++++++++++++----------
+ 1 files changed, 43 insertions(+), 14 deletions(-)
 
-DIVIL (DIVerse Integrated Logic) is the name of the component/block in
-the CS5535 & CS5536 chips that contains the SMBus controller (as well
-as the GPIO, ACPI, IRQ controller, etc)
-
-> As the respin of patch 1 prevents most of the next patches to apply,
-> you'll have to provide a new set of patches. Patch 2 seems to need
-> significant rework too anyway.
-
-Will do.
-
-Thanks,
-Ben
-
+--- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
++++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
+@@ -2,6 +2,7 @@
+     Copyright (c) 2001,2002 Christer Weinigel <wingel at nano-system.com>
+ 
+     National Semiconductor SCx200 ACCESS.bus support
++    Also supports the AMD CS5535 and AMD CS5536
+ 
+     Based on i2c-keywest.c which is:
+         Copyright (c) 2001 Benjamin Herrenschmidt <benh at kernel.crashing.org>
+@@ -31,6 +32,7 @@
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <asm/io.h>
++#include <asm/msr.h>
+ 
+ #include <linux/scx200.h>
+ 
+@@ -416,7 +418,7 @@ static int scx200_acb_probe(struct scx20
+ 	return 0;
+ }
+ 
+-static int  __init scx200_acb_create(int base, int index)
++static int  __init scx200_acb_create(const char *text, int base, int index)
+ {
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+@@ -432,7 +434,7 @@ static int  __init scx200_acb_create(int
+ 
+ 	adapter = &iface->adapter;
+ 	i2c_set_adapdata(adapter, iface);
+-	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
++	snprintf(adapter->name, I2C_NAME_SIZE, "%s ACB%d", text, index);
+ 	adapter->owner = THIS_MODULE;
+ 	adapter->id = I2C_HW_SMBUS_SCX200;
+ 	adapter->algo = &scx200_acb_algorithm;
+@@ -440,8 +442,9 @@ static int  __init scx200_acb_create(int
+ 
+ 	init_MUTEX(&iface->sem);
+ 
+-	snprintf(description, sizeof(description),
+-		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
++	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
++		 text, adapter->name);
++
+ 	if (request_region(base, 8, description) = 0) {
+ 		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+ 			base, base + 8-1);
+@@ -485,24 +488,50 @@ static struct pci_device_id scx200[] = {
+ 	{ },
+ };
+ 
++static struct pci_device_id divil_pci[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
++	{ } /* NULL entry */
++};
++
++#define MSR_LBAR_SMB		0x5140000B
++
++static int scx200_add_cs553x(void)
++{
++	u32	low, hi;
++	u32	smb_base;
++
++	/* Grab & reserve the SMB I/O range */
++	rdmsr(MSR_LBAR_SMB, low, hi);
++
++	/* Check the IO mask and whether SMB is enabled */
++	if (hi != 0x0000F001) {
++		printk(KERN_WARNING NAME ": SMBus not enabled\n");
++		return -ENODEV;
++	}
++
++	/* SMBus IO size is 8 bytes */
++	smb_base = low & 0x0000FFF8;
++
++	return scx200_acb_create("CS5535", smb_base, 0);
++}
++
+ static int __init scx200_acb_init(void)
+ {
+ 	int i;
+-	int rc;
++	int	rc = -ENODEV;
+ 
+ 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
+ 
+ 	/* Verify that this really is a SCx200 processor */
+-	if (pci_dev_present(scx200) = 0)
+-		return -ENODEV;
++	if (pci_dev_present(scx200)) {
++		for (i = 0; i < MAX_DEVICES; ++i) {
++			if (base[i] > 0)
++				rc = scx200_acb_create("SCx200", base[i], i);
++		}
++	} else if (pci_dev_present(divil_pci))
++		rc = scx200_add_cs553x();
+ 
+-	rc = -ENXIO;
+-	for (i = 0; i < MAX_DEVICES; ++i) {
+-		if (base[i] > 0)
+-			rc = scx200_acb_create(base[i], i);
+-	}
+-	if (scx200_acb_list)
+-		return 0;
+ 	return rc;
+ }
+ 
