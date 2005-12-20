@@ -1,8 +1,10 @@
 From: gardner.ben@gmail.com (Ben Gardner)
-Date: Mon, 19 Dec 2005 18:48:12 +0000
+Date: Tue, 20 Dec 2005 22:52:04 +0000
 Subject: [lm-sensors] [PATCH 0/7] i2c: scx200_acb - cleanup and add cs5535
-Message-Id: <808c8e9d0512191048sec4f9c9pc799ba10cebcbb68@mail.gmail.com>
+Message-Id: <808c8e9d0512201452v1d3a6b35v6a130b0ff76d53b0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <808c8e9d0512191048sec4f9c9pc799ba10cebcbb68@mail.gmail.com>
+In-Reply-To: <808c8e9d0512191048sec4f9c9pc799ba10cebcbb68@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,4 +22,6 @@ The series goes like this:
 7. Minimal documentation update
 
 Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+---
+This is the second version of the series.
 
