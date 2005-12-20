@@ -1,74 +1,39 @@
-From: hidden@paradise.net.nz (Volker Kuhlmann)
-Date: Tue, 20 Dec 2005 19:08:02 +0000
-Subject: [lm-sensors] pwmconfig fails to find useful range
-Message-Id: <20051220190802.GB7320@paradise.net.nz>
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Tue, 20 Dec 2005 10:13:18 +0000
+Subject: [lm-sensors] [PATCH] LM77: correction of "register to temperature"
+Message-Id: <1135073598.4459.63.camel@gimli>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The active range for the PWM values for an Athlon64 3200+ CPU fan is
-<= 16, above that it's full speed. The gnuplot data from pwmconfig:
+Temperature conversion in lm77.c is currently broken for negative
+temperatures, as discovered in
+http://list.voyage.hk/pipermail/voyage-linux/2005-December/000540.html
 
-255 3125
-...
-30 3125
-28 3068
-26 3068
-24 3068
-22 3068
-20 3068
-18 3068
-16 3068
-14 3013
-12 2960
-10 2909
-8 2909
-6 2721
-4 2518
-2 2163
-0 0
+National uses the upper 4 bits of the temperature registers to represent
+the sign (all these are either set or unset at the same time), while the
+lower 3 bits are either unused or represent the alarm status (depending
+on which of the temperature registers you look at).
 
-The BIOS defaults to 8, 12, and 80 for 3 different speed settings (none
-quiet).
+The "register to temperature" conversion doesn't properly consider these
+sign bits. In the result they are used as part of the absolute
+temperature value, so that negative temperatures are incorrectly
+converted to huge positive values instead. 
+(Side note: the "temperature to register" conversion works fine with
+positive and negative values.)
 
-pwmconfig fails to find the useful range because the step size during
-its tests is far too big, therefore apply the patch below.
+The attached patch (which is against kernel 2.6.14.4) solves this issue.
+It has been tested against all the sample values given in the LM77
+datasheet (section 1.4) to proof it is working correctly.
 
-I don't think fancontrol can really handle this either, the temp/speed
-curve is far too steep. It assumes the active range goes up to 255. I'll
-work on it later.
+Signed-off-by: Michael Renzmann <mrenzmann at otaku42.de>
 
-Now what would be really handy is some integrated
-monitor/alarm/fancontrol/logging daemon...
-
-Volker
-
-
---- /usr/sbin/pwmconfig.orig	2005-09-13 12:34:49.000000000 +1200
-+++ /usr/sbin/pwmconfig	2005-12-20 23:47:34.000000000 +1300
-@@ -188,7 +188,9 @@
- 
- PLOTTER=gnuplot
- STEP
--PDELAY=2
-+STEP2=2
-+STEP2_BELOW1
-+PDELAY=3
- 
- function pwmdetail()
- {
-@@ -256,6 +258,7 @@
- 			fi
- 			break
- 		fi
-+		test $pwm -lt $STEP2_BELOW && let STEP=$STEP2
- 		let pwm=$pwm-$STEP
- 	done
- 	pwmdisable $P	
-
--- 
-Volker Kuhlmann			is possibly list0570 with the domain in header
-http://volker.dnsalias.net/		Please do not CC list postings to me.
-
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: lm77-2.6.14.4-temperature-conversion.patch
+Type: text/x-patch
+Size: 1076 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051220/c2b18c8e/lm77-2.6.14.4-temperature-conversion.bin
