@@ -1,117 +1,84 @@
-From: avolkov@varma-el.com (Andrey Volkov)
-Date: Tue, 20 Dec 2005 10:05:34 +0000
+From: mgreer@mvista.com (Mark A. Greer)
+Date: Wed, 21 Dec 2005 21:25:44 +0000
 Subject: [lm-sensors] [RFC] i2c: Combined ST m41txx i2c rtc chip driver
-Message-Id: <43A7D76E.5050008@varma-el.com>
+Message-Id: <20051221212544.GA4958@mag.az.mvista.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4378960F.8030800@varma-el.com> <20051115215226.4e6494e0.khali@linux-fr.org> <20051116025714.GK5546@mag.az.mvista.com> <20051219210325.GA21696@mag.az.mvista.com>
-In-Reply-To: <20051219210325.GA21696@mag.az.mvista.com>
+References: <4378960F.8030800@varma-el.com> <20051115215226.4e6494e0.khali@linux-fr.org> <20051116025714.GK5546@mag.az.mvista.com> <20051219210325.GA21696@mag.az.mvista.com> <43A7D76E.5050008@varma-el.com>
+In-Reply-To: <43A7D76E.5050008@varma-el.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Mark A. Greer" <mgreer@mvista.com>
-Cc: Jean Delvare <khali@linux-fr.org>, adi@hexapodia.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Andrey Volkov <avolkov@varma-el.com>
+Cc: "Mark A. Greer" <mgreer@mvista.com>, Jean Delvare <khali@linux-fr.org>, adi@hexapodia.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hello Mark
+Hi Andrey,
 
-Big Thanks, I check it on my board today-tomorrow.
-But check some comments below.
+On Tue, Dec 20, 2005 at 01:05:34PM +0300, Andrey Volkov wrote:
+> Hello Mark
+> 
+> Big Thanks, I check it on my board today-tomorrow.
+> But check some comments below.
+> 
+> Mark A. Greer wrote:
+> > On Tue, Nov 15, 2005 at 07:57:14PM -0700, Mark A. Greer wrote:
+<snip>
+> > +	down(&m41txx_mutex);
+> > +	do {
+> > +		retries = M41TXX_MAX_RETRIES;
+> > +
+> > +		do {
+> > +			if (((sec = i2c_smbus_read_byte_data(save_client,
+> > +						m41txx_chip->sec)) >= 0)
+> > +				&& ((min = i2c_smbus_read_byte_data(save_client,
+> > +						m41txx_chip->min)) >= 0)
+> > +				&& ((hour= i2c_smbus_read_byte_data(save_client,
+> > +						m41txx_chip->hour)) >= 0)
+> > +				&& ((day = i2c_smbus_read_byte_data(save_client,
+> > +						m41txx_chip->day)) >= 0)
+> > +				&& ((mon = i2c_smbus_read_byte_data(save_client,
+> > +						m41txx_chip->mon)) >= 0)
+> > +				&& ((year= i2c_smbus_read_byte_data(save_client,
+> > +						m41txx_chip->year)) >= 0))
+> > +				break;
+> > +		} while (--retries > 0);
+> > +
+> > +		if ((retries = 0) || ((sec = sec1) && (min = min1)
+> > +				&& (hour = hour1) && (day = day1)
+> > +				&& (mon = mon1) && (year = year1)))
+> > +			break;
+> 
+> I think this code is overburdened (I forgot to point on it last time,
+> sorry) and may be wrong for m41t8x, since when you send i2c stop
+> condition (in read_byte_data), you release time registers of m41t8x,
+> and as a consequence, in the worst case, you must compare/read it an
+> undetermined number of times, but not 3 times (however, for m41t00 this
+> code is correct).
 
-Mark A. Greer wrote:
-> On Tue, Nov 15, 2005 at 07:57:14PM -0700, Mark A. Greer wrote:
-> 
->>I think we can combine the two into an m41txx.c and pass the exact type
->>in via platform_data--that would be the correct mechanism, right?
->>The platform_data could also be used to seed the correct SQW freq and
->>eliminate all the Kconfig noise.
->>
->>Comments?
->>
->>As for Jean's and Andrew's comments about the driver, they seem valid
->>to me and should be addressed.  In Andrey's defense, many of them are my
->>fault.  Once there is a consensus on the merging m41t00 & m41t85
->>question, I'll try to get a fixed up patch within a couple weeks.
-> 
-> 
-> I've made what I think should be close to an acceptable driver that
-> supports the m41t00, m41t81, and m41t85 i2c rtc chips.  I only have hw
-> to test the m41t00 on a ppc platform, though.
-> 
-> It was suggested to me a while back to add retries when reading &
-> writing the rtc regs.  Personally, I think its overkill but I added the
-> code anyway.  You will see in m41txx_get_rtc_time() that 3 tries are
-> made to get a good read of all the regs then up to 10 tries are made to
-> make sure that the time didn't change while we were doing the reads.
-> Something similar is done in m41txx_set().
-> 
-> Andrey, would you please apply and test this patch on your 5200?
-> 
-> Andy, I apologize but I didn't take the time to look at the mips tree in
-> depth.  I did do a quick scan and I think that you should be able to set
-> 'rtc_get_time' to 'm41txx_get_rtc_time' and 'rtc_set_time' to
-> 'm41txx_set_rtc_time', and it'll work.  You'll have to hook up the proper
-> driver for your host i2c ctlr, though.
-> 
-> Jean, Andrew, I think I addressed your coding style, etc. issues with
-> the driver.  If not, just point out the problems an I'll fix them.
-> 
-> The patch is against the 2.6.15-rc5-mm3 tree.  Comments welcome.
-> 
-> [I will send a second patch that contains the changes I made to the ppc
-> katana platform that has the m41t00 that I tested with.]
-> 
-> Thanks,
-> 
-> Mark
+The 3 tries isn't to make sure that the registers didn't change, its to
+make sure we actually successfully read all of the registers.  There are
+10 tries to make sure the registers didn't change.  I doubt it will ever
+take more than 2 or 3 so I don't see a problem with a limit of 10.
 
-> +	down(&m41txx_mutex);
-> +	do {
-> +		retries = M41TXX_MAX_RETRIES;
-> +
-> +		do {
-> +			if (((sec = i2c_smbus_read_byte_data(save_client,
-> +						m41txx_chip->sec)) >= 0)
-> +				&& ((min = i2c_smbus_read_byte_data(save_client,
-> +						m41txx_chip->min)) >= 0)
-> +				&& ((hour= i2c_smbus_read_byte_data(save_client,
-> +						m41txx_chip->hour)) >= 0)
-> +				&& ((day = i2c_smbus_read_byte_data(save_client,
-> +						m41txx_chip->day)) >= 0)
-> +				&& ((mon = i2c_smbus_read_byte_data(save_client,
-> +						m41txx_chip->mon)) >= 0)
-> +				&& ((year= i2c_smbus_read_byte_data(save_client,
-> +						m41txx_chip->year)) >= 0))
-> +				break;
-> +		} while (--retries > 0);
-> +
-> +		if ((retries = 0) || ((sec = sec1) && (min = min1)
-> +				&& (hour = hour1) && (day = day1)
-> +				&& (mon = mon1) && (year = year1)))
-> +			break;
+I *think* I understand you point, though.  You would prefer I not use
+the smbus calls, correct?  If so, I disagree.  I think its better to use
+the smbus calls b/c they're the most generic (read: will work with the
+most i2c host ctlr drivers).  Perhaps Jean or someone else can make an
+executive decision on this.
 
-I think this code is overburdened (I forgot to point on it last time,
-sorry) and may be wrong for m41t8x, since when you send i2c stop
-condition (in read_byte_data), you release time registers of m41t8x,
-and as a consequence, in the worst case, you must compare/read it an
-undetermined number of times, but not 3 times (however, for m41t00 this
-code is correct).
+> I think i2c_master_recv here and i2c_master_send above in m41txx_set
+> will be more appropriate, since for m41t00 it will have no meaning when
+> you send STOP (250ms stall), but for m41t8x you could drop this
+> while-loop completely.
 
-I think i2c_master_recv here and i2c_master_send above in m41txx_set
-will be more appropriate, since for m41t00 it will have no meaning when
-you send STOP (250ms stall), but for m41t8x you could drop this
-while-loop completely.
+I understand but its an issue of being more generic.
 
-Hint: quotation from m41st85w.pdf p13/34
-"The system-to-user transfer of clock data will be
-halted whenever the address being read is a clock
-address (00h to 07h). The update will resume either
-due to a Stop Condition or when the pointer
-increments to a non-clock or RAM address."
+<snip>
 
-Also, please, change _obsoleted_ BCD_TO_BIN to BCD2BIN
-(see include/linux/bcd.h)
+> Also, please, change _obsoleted_ BCD_TO_BIN to BCD2BIN
+> (see include/linux/bcd.h)
 
+I figured one of those was deprecated but didn't know which one.  I'll
+change them.
 
--- 
-Regards
-Andrey Volkov
+Mark
 
