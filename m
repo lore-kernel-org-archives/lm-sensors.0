@@ -1,64 +1,43 @@
-From: johnpol@2ka.mipt.ru (Evgeniy Polyakov)
-Date: Mon, 05 Dec 2005 16:25:40 +0000
-Subject: [lm-sensors] [patch] ds2482: i2c to 1-wire bridge
-Message-Id: <20051205162540.GA14643@2ka.mipt.ru>
+From: mrenzmann@otaku42.de (mrenzmann@otaku42.de)
+Date: Wed, 21 Dec 2005 21:45:53 +0000
+Subject: [lm-sensors] RFC: Backport of lm77.c to kernel 2.4.x
+Message-Id: <1715.84.58.133.46.1135201553.squirrel@webmail.otaku42.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <808c8e9d0512020734rb7d351bla98161d14c8cb70@mail.gmail.com>
-In-Reply-To: <808c8e9d0512020734rb7d351bla98161d14c8cb70@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 05, 2005 at 10:10:37AM -0600, Ben Gardner (gardner.ben at gmail.com) wrote:
-> It seems that most w1 documentation refers to them as masters and
-> slaves, so how about:
-> drivers/w1/masters
-> drivers/w1/slaves
-> 
-> I'll create three patch series:
->  - change 'unsigned long' to 'void *'
->  - move master and slave code into subfolders
->  - add ds2482
-> 
-> Does that sound OK?
+Hi all.
 
-Yes, it definitely does.
-Thank you.
+As mentioned before I've been working on backporting lm77.c to 2.4.x. I
+still have some minor adjustments on my to-do list for it, but it's
+already working for me.
 
-> Thanks,
-> Ben
-> 
-> On 12/5/05, Evgeniy Polyakov <johnpol at 2ka.mipt.ru> wrote:
-> > On Mon, Dec 05, 2005 at 09:40:20AM -0600, Ben Gardner (gardner.ben at gmail.com) wrote:
-> > > If there aren't any objections, I'll follow the i2c layout and create
-> > > a drivers/w1/busses folder and put the driver there.
-> > > Should I also create a few patches to move the matrox_w1 and
-> > > ds_w1_bridge stuff to that folder?
-> > > Should I also create a drivers/w1/chips folder and move the family drivers?
-> >
-> > Hmm, any other names? There are no at least busses in the w1 world.
-> > Maybe masters/bus_masters/controllers/something...?
-> >
-> > > > > +static u8 ds2482_w1_touch_bit(unsigned long data, u8 bit)
-> > > > > +{
-> > > > > +     struct ds2482_w1_chan *pchan = (struct ds2482_w1_chan *)data;
-> > > >
-> > > > That's an ugly cast. Can't it be avoided?
-> > >
-> > > Sure, if we change the w1 subsystem to use 'void *' as the user-data
-> > > type instead of 'unsigned long'.
-> > > Eugeniy - are you OK with that change?
-> >
-> > No problem, but make it in a separate patch.
-> >
-> > > Thanks,
-> > > Ben
-> >
-> > --
-> >         Evgeniy Polyakov
-> >
+Since this is my first i2c-related work and I already did some... well,
+let's call it "suboptimal" things during the last days in this regard, I'd
+like to ask for a review of the result. Any feedback and suggestion is
+welcome, but answers might take some days (I'll be offline until next
+Tuesday, Dec 27th).
 
--- 
-	Evgeniy Polyakov
+The driver is available via Subversion at
+http://projects.otaku42.de/svn/lm77/trunk but you can also view the source
+with your browser at http://projects.otaku42.de/viewcvs/lm77/trunk/ .
+
+If you want to compile the driver, copy lm77.[ch] to the kernel/chips
+subdirectory of your local lm_sensors-2.9.2 copy. Then edit
+kernel/chips/Module.mk and add the line:
+
+KERNELCHIPSTARGETS += $(MODULE_DIR)/lm77.o
+
+right after
+
+KERNELCHIPSTARGETS += $(MODULE_DIR)/smbus-arp.o
+
+Now (re)compile as usual.
+
+Thanks in advance, and merry christmas!
+
+Bye, Mike
+
 
