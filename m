@@ -1,110 +1,26 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Dec 2005 15:29:40 +0000
+From: greg@kroah.com (Greg KH)
+Date: Wed, 21 Dec 2005 23:30:07 +0000
 Subject: [lm-sensors] [PATCH 01/11] hwmon: w83792d misc cleanups
-Message-Id: <20051218162940.702a24ac.khali@linux-fr.org>
+Message-Id: <20051221233007.GA11092@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20051218162940.702a24ac.khali@linux-fr.org>
+In-Reply-To: <20051218162940.702a24ac.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-w83792d-misc-cleanups.patch
+On Sun, Dec 18, 2005 at 04:29:40PM +0100, Jean Delvare wrote:
+> -static int w83792d_read_value(struct i2c_client *client, u8 register);
+> -static int w83792d_write_value(struct i2c_client *client, u8 register,
+> +static inline int w83792d_read_value(struct i2c_client *client, u8 register);
+> +static inline int w83792d_write_value(struct i2c_client *client, u8 register,
+>  				u8 value);
 
-Cleanup the w83792d driver a bit:
-* Discard unused lock and irrelevant comments inherited from the
-  w83781d driver.
-* Inline and simplify w83792d_{read,write}_value functions.
-* Drop useless address test during detection.
-* Drop useless bitmasking.
+Will cause compile errors, so I've dropped this portion of the patch
+(see the patch I sent back to you for details.)
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Acked-by: Yuan Mu <Ymu at winbond.com.tw>
----
- drivers/hwmon/w83792d.c |   31 +++++++++++--------------------
- 1 file changed, 11 insertions(+), 20 deletions(-)
+thanks,
 
---- linux-2.6.15-rc5.orig/drivers/hwmon/w83792d.c	2005-12-11 17:11:58.000000000 +0100
-+++ linux-2.6.15-rc5/drivers/hwmon/w83792d.c	2005-12-11 17:46:26.000000000 +0100
-@@ -269,7 +269,6 @@
- struct w83792d_data {
- 	struct i2c_client client;
- 	struct class_device *class_dev;
--	struct semaphore lock;
- 	enum chips type;
- 
- 	struct semaphore update_lock;
-@@ -305,8 +304,8 @@
- static int w83792d_detect(struct i2c_adapter *adapter, int address, int kind);
- static int w83792d_detach_client(struct i2c_client *client);
- 
--static int w83792d_read_value(struct i2c_client *client, u8 register);
--static int w83792d_write_value(struct i2c_client *client, u8 register,
-+static inline int w83792d_read_value(struct i2c_client *client, u8 register);
-+static inline int w83792d_write_value(struct i2c_client *client, u8 register,
- 				u8 value);
- static struct w83792d_data *w83792d_update_device(struct device *dev);
- 
-@@ -1192,7 +1191,6 @@
- 	new_client = &data->client;
- 	i2c_set_clientdata(new_client, data);
- 	new_client->addr = address;
--	init_MUTEX(&data->lock);
- 	new_client->adapter = adapter;
- 	new_client->driver = &w83792d_driver;
- 	new_client->flags = 0;
-@@ -1243,7 +1241,7 @@
- 			goto ERROR1;
- 		}
- 		val1 = w83792d_read_value(new_client, W83792D_REG_WCHIPID);
--		if (val1 = 0x7a && address >= 0x2c) {
-+		if (val1 = 0x7a) {
- 			kind = w83792d;
- 		} else {
- 			if (kind = 0)
-@@ -1416,26 +1414,19 @@
- 	return 0;
- }
- 
--/* The SMBus locks itself, usually, but nothing may access the Winbond between
--   bank switches. ISA access must always be locked explicitly!
--   We ignore the W83792D BUSY flag at this moment - it could lead to deadlocks,
--   would slow down the W83792D access and should not be necessary.
--   There are some ugly typecasts here, but the good news is - they should
--   nowhere else be necessary! */
--static int
-+/* The SMBus locks itself. The Winbond W83792D chip has a bank register,
-+   but the driver only accesses registers in bank 0, so we don't have
-+   to switch banks and lock access between switches. */
-+static inline int
- w83792d_read_value(struct i2c_client *client, u8 reg)
- {
--	int res=0;
--	res = i2c_smbus_read_byte_data(client, reg);
--
--	return res;
-+	return i2c_smbus_read_byte_data(client, reg);
- }
- 
--static int
-+static inline int
- w83792d_write_value(struct i2c_client *client, u8 reg, u8 value)
- {
--	i2c_smbus_write_byte_data(client, reg,  value);
--	return 0;
-+	return i2c_smbus_write_byte_data(client, reg, value);
- }
- 
- static void
-@@ -1506,7 +1497,7 @@
- 			pwm_array_tmp[i] = w83792d_read_value(client,
- 						W83792D_REG_PWM[i]);
- 			data->pwm[i] = pwm_array_tmp[i] & 0x0f;
--			data->pwm_mode[i] = (pwm_array_tmp[i] >> 7) & 0x01;
-+			data->pwm_mode[i] = pwm_array_tmp[i] >> 7;
- 		}
- 
- 		reg_tmp = w83792d_read_value(client, W83792D_REG_FAN_CFG);
-
--- 
-Jean Delvare
+greg k-h
 
