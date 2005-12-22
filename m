@@ -1,29 +1,35 @@
-From: filip.tsachev@gmail.com (Filip Tsachev)
-Date: Mon, 05 Dec 2005 12:40:20 +0000
-Subject: [lm-sensors] lm-sensors Digest, Vol 8, Issue 10
-Message-Id: <ea9ff50b0512050440s7412523cib7a60607d5238d3b@mail.gmail.com>
+From: DOSProfi@web.de (Enrico Bartky)
+Date: Thu, 22 Dec 2005 17:38:06 +0000
+Subject: [lm-sensors] PC87591x
+Message-Id: <43AAE47E.6070508@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <ea9ff50b0512050436x2531a6f4k9e1be1690ec7d9e4@mail.gmail.com>
-In-Reply-To: <ea9ff50b0512050436x2531a6f4k9e1be1690ec7d9e4@mail.gmail.com>
+References: <42418B75.3080707@web.de>
+In-Reply-To: <42418B75.3080707@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I even use cpufreq to keep at 1.12GHz, so temp is really not changing
-like that...
+Hi,
 
-On 12/5/05, Filip Tsachev <filip.tsachev at gmail.com> wrote:
-> it8712 chip on GB-7N400E-l, My temp1 is sometimes ~40, and in the next
-> moment (after some time) ~80C, It can't be a offset issue, rather
-> formula something... can someone shred some light please, thanks
->
-> Regards,
-> Filip
->
+I have (new?) information about the PC87591x Super-I/O Chip. I have 
+talked to Winbond and they said, the only way to access this chip is 
+through the PowerManagement channels. The problem is, there exists 
+verious firmware implementations, so (I think) there exists different 
+commands through these channels.
 
+To support this chip, there are 2 possibilities. The first is we need to 
+develope a firmware. The second is to analyze the firmware. On the 
+Uniwill website, there is a reader/writer for this chip 
+(http://www.uniwill.com/UserDownload/N243S/N243S2.htm), included in the 
+BIOS Update archive and is called ecf11t.exe. And on National's page 
+there is a programming reference for the core of the chip (CR16B). The 
+datasheet is available at 
+http://www.national.com/appinfo/compactrisc/pdf/cr16b-prog-ref.pdf.
 
---
-Cheers,
-Filip
+Have anyone an idea, how to proceed the support? I know, none of these 
+possibilities are easy to manage.
+
+EnricoB
+
 
