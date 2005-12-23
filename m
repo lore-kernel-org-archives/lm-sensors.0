@@ -1,27 +1,22 @@
-From: vbordug@ru.mvista.com (Vitaly Bordug)
-Date: Wed, 28 Dec 2005 18:59:25 +0000
-Subject: [lm-sensors] I2C for ppc 8xx
-Message-Id: <43B2E08D.4010901@ru.mvista.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 23 Dec 2005 03:11:39 +0000
+Subject: [lm-sensors] [PATCH]  rework w83792d  to use sensor-attr arrays
+Message-Id: <43AB6AEB.6030504@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean,
-I have a working example of ppc 8xx family I2C within 2.6 kernel,
-and I am wondering how to push it upstream.
+hi Yuan, everyone,
 
-It seems there are no official "merge point" between lm_sensors stuff and linus git, since
-i2c repo contains, for instance, 8xx algo once 2.6 does not.
+attached patch reworks w83792d  to use sensor-attr arrays.
+this results in ~ 13K  shrink in object code.
 
-Another interesting thing is i2c-mpc.c stuff which exists  the mainline but does not in the lm_sensors and i2c repos.
+I dont have one of these chips, so this is compile-tested only,
+ but Winbond does ;-) and they're evidently supporting the driver (yay),
+so Im hopeful that they will try this, and clean up the mistakes Ive 
+inevitably made.
 
-Hereby I am confused a bit how to proceed properly.
-
-TIA!
-
--- 
-Sincerely,
-Vitaly
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
 
