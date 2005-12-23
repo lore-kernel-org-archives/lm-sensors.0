@@ -1,21 +1,32 @@
-From: mrachao@telus.net (M Rachao)
-Date: Mon, 26 Dec 2005 18:42:29 +0000
-Subject: [lm-sensors] reset=1 required for PWM control on Asus P4P800	Deluxe
-Message-Id: <43B03995.2010904@telus.net>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 23 Dec 2005 03:16:19 +0000
+Subject: [lm-sensors] [PATCH] rework w83792d to use sensor-attr arrays
+Message-Id: <43AB6C03.6040206@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051106224429.533f13b7@heffalump.sk2.org>
-In-Reply-To: <20051106224429.533f13b7@heffalump.sk2.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi, I found this page through google.  Can you tell me where to find the 
-windows version of the 'patch' that enables me to control the cpu fan 
-speed ?
-Im really glad you wrote it.
-Thanks
--Manuel
+Jim Cromie wrote:
 
-
-
+> hi Yuan, everyone,
+>
+> attached patch reworks w83792d  to use sensor-attr arrays.
+> this results in ~ 13K  shrink in object code.
+>
+> I dont have one of these chips, so this is compile-tested only,
+> but Winbond does ;-) and they're evidently supporting the driver (yay),
+> so Im hopeful that they will try this, and clean up the mistakes Ive 
+> inevitably made.
+>
+> Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+>
+now attached.  That really was a mousing error.
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: sensor-attr-array-w83792d.patch
+Type: text/x-patch
+Size: 75784 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051223/5d696f66/sensor-attr-array-w83792d-0001.bin
