@@ -1,27 +1,30 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Dec 2005 18:39:17 +0000
-Subject: [lm-sensors] [PATCH 3/3] i386: CS5535 chip support - SMBus
-Message-Id: <20051218193917.1a021ac7.khali@linux-fr.org>
+From: fredantispam@free.fr (fred)
+Date: Sat, 24 Dec 2005 18:16:37 +0000
+Subject: [lm-sensors] [it8712] temperatures...
+Message-Id: <43AD9085.5050906@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <808c8e9d0512070934m25fb4a10pd0df8702b9228f2a@mail.gmail.com>
-In-Reply-To: <808c8e9d0512070934m25fb4a10pd0df8702b9228f2a@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ben,
+Hi all,
 
-> > Why not extend that driver then, rather than having a separate one?
-> (...)
-> I started off thinking that the two wouldn't be compatible... and
-> never re-examined what I was doing.
-> Oh, well. I hope I didn't waste too much of your time!
+In /etc/sensors.conf, one can read that Asus mobo A7V8X-X and A7V600
+have cpu and mobo temp inverted.
 
-No worry. It's still better to realize it now than having duplicated
-code with twice as much maintenance work.
+On a P5ND2-Sli Deluxe, who knows ?
 
-Thanks,
+Should mobo temp be always under cpu temp ?
+
+I have QFan enabled, so I'm not sure (more cpu task implies more rpm for
+CPU fan,
+so cpu temp could be under mobo temp, no ?)
+
+Thanks.
+
+Merry Xmas.
+
 -- 
-Jean Delvare
+Fred.
 
