@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 24 Dec 2005 15:46:20 +0000
+Date: Sat, 24 Dec 2005 16:04:01 +0000
 Subject: [lm-sensors] revisiting __SENSOR_DEVICE_ATTR() and array
-Message-Id: <20051224164620.6e274936.khali@linux-fr.org>
+Message-Id: <20051224170401.793153ac.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <439A7911.5020904@gmail.com>
 In-Reply-To: <439A7911.5020904@gmail.com>
@@ -12,66 +12,77 @@ To: lm-sensors@vger.kernel.org
 
 Hi Jim,
 
-> > I'm awaiting for your MAINTAINERS patch :) 
->
-> now included.
+> Thanks for the review, heres the respin against rc5-mm3
+> with corrections to the above.
 
-Thanks, however, this is a bit confusing as you are moving an entry
-around while adding your own. Please send a separate patch (to Linus or
-Andrew) reordering "PERSONALITY HANDLING" where it belongs. Then send a
-separate patch to me adding your own entry for PC87360.
+Looks OK, except:
 
-About the pc87360 patch itself:
+> diff -ruNp -X exclude-diffs ../linux-2.6.15-rc5-mm3-sk/include/linux/hwmon-sysfs.h adm/include/linux/hwmon-sysfs.h
+> --- ../linux-2.6.15-rc5-mm3-sk/include/linux/hwmon-sysfs.h	2005-10-28 15:32:08.000000000 -0600
+> +++ adm/include/linux/hwmon-sysfs.h	2005-12-19 05:12:15.000000000 -0700
+> @@ -27,11 +27,13 @@ struct sensor_device_attribute{
+>  #define to_sensor_dev_attr(_dev_attr) \
+>  	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+>  
+> -#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
+> -struct sensor_device_attribute sensor_dev_attr_##_name = {	\
+> -	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
+> -	.index =	_index,					\
+> -}
+> +#define SENSOR_ATTR(_name, _mode, _show, _store, _index)	\
+> +	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
+> +	  .index = _index }
+> +
+> +#define SENSOR_DEVICE_ATTR(_name, _mode, _show, _store, _index)	\
+> +struct sensor_device_attribute sensor_dev_attr_##_name		\
+> +	= SENSOR_ATTR(_name, _mode, _show, _store, _index)
+>  
+>  struct sensor_device_attribute_2 {
+>  	struct device_attribute dev_attr;
 
-> -       struct i2c_client *new_client;
-> +       struct i2c_client *cli;
+This change is already provided by an earlier patch of mine - so you
+shouldn't include it here.
 
-I wholeheartedly agree that "new_client" was a uselessly long
-identifier (inherited from the first Linux hardware monitoring drivers
-6 years ago!) However, "cli" might be a bit short now and possibly
-confusing (makes one think of the "clear interrupt" assembly operand).
-"client" would probably be a reasonable compromise.
+> +       for (i=0; i<16; i++) {
 
-Now I understand that one of the reasons beyind the choice of the new
-variable name is to keep lines short and avoid repeated line breaks.
-There are a few tricks you could use to achieve the same, while using
-"client" instead of "cli":
+Same comment here as for pc87360.c: please try to respect the coding
+style around.
 
-1* Define the following inline function:
+> +        /* vid deprecated in favour of cpu0_vid, remove after 2005-11-11 */
 
-static inline int client_create_file(i2c_client *client, struct device_attribute *attr)
-{
-        return device_create_file(&client->dev, attr):
-}
+You are reintroducing a comment which was removed some times ago.
 
-Then you can create the files that way:
+> hmm,  it has no maintainer listed.  I hope someone can test it.
+> Im CCg the authors named in the file, in case theyre not on lm-sensors.
 
-client_create_file(client, &sensor_dev_attr_in0_input.dev_attr);
+I know they are, but they might not be paying attention to everthing so
+an explicit Cc couldn't hurt.
 
-2* Keep a pointer to client->dev handy, and use it everywhere is
-possible:
+> also, it looks like the following could also benefit some (I havent 
+> looked closely)
+> adm1025,
+> adm1031.
+> adm9240 ,
+> asb100,
+> gl520sm.c
+> lm{78,85}               several *_fan_##ofset##_{min,max,div,input}
+> 
+> A sligthly sloppy grep for DEVICE_ATTR or  '##' shows 905 lines.
+> in hwmon/*, some of them are junk, but others are legitimate opportunities
+> to lose weight.
 
-struct device *dev = &client->dev;
+Yes, virtually every driver can benefit. Just like with Yani Ioannou's
+"dynamic sysfs callbacks", the larger the driver, the more it benefits.
 
-device_create_file(dev, &sensor_dev_attr_in0_input.dev_attr);
+> Also.  I noticed some repeated uses like this:
+> ../../linux-2.6.14.3/drivers/hwmon/gl518sm.c:327:static 
+> DEVICE_ATTR(in3_input, S_IRUGO, show_in_input3, NULL);
+> 
+> It suggests that DEVICE_ATTR needs a helper initialization macro
+> just like SENSOR_ATTR, thoughts ?
 
-This second option is probably better as it avoids repeated dereferences
-of the same pointer, so I think it should be more efficient
-performance-wise - although such a change doesn't seem to affect the
-binary size; maybe gcc optimizes it on its own already.
-
-This change might be a separate, preliminary patch to the SENSOR_ATTR()
-one, at your option.
-
-> -       strcpy(new_client->name, name);
-> +       strcpy(cli->name, name);
-
-While you're at it, strlcpy is prefered in this case.
-
-> +               for (i=0; i<11; i++) {
-
-Please respect the coding style that was used for this file WRT spaces
-around assignment and comparison symbols.
+It already exists, it's named __ATTR. I'm using it in my (not yet
+published) f71805f driver.
 
 Thanks,
 -- 
