@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Mon, 19 Dec 2005 16:52:46 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 24 Dec 2005 15:46:20 +0000
 Subject: [lm-sensors] revisiting __SENSOR_DEVICE_ATTR() and array
-Message-Id: <43A6E55E.60100@gmail.com>
+Message-Id: <20051224164620.6e274936.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <439A7911.5020904@gmail.com>
 In-Reply-To: <439A7911.5020904@gmail.com>
@@ -10,80 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
+Hi Jim,
 
->Hi Jim,
+> > I'm awaiting for your MAINTAINERS patch :) 
 >
->  
->
->>Start converting adm1026 to use arrays of sensor device attributes.
->>This is compile-tested only, and needs someone with hardware to
->>clean it up, fix the overlooked bits, and test it.
->>
->>Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
->>    
->>
->
->The compiler complains about unused functions, and is right:
->  
->
->show_in should be show_in_min...
->  
->
->... and show_in_max.
->show_fan should be show_fan_min...
->  
->
->... and show_fan_div.
->
->I also had to edit the patch in order to apply it, due to recent
->patches to the adm1026 driver.
->
->Can you respin it based on 2.6.15-rc5-mm1 or later, fixing the bugs
->above?
->
->  
->
-Thanks for the review, heres the respin against rc5-mm3
-with corrections to the above.
+> now included.
 
->I'll need someone to test this patch on a real ADM1026 device before I
->can accept it.
->
->Thanks,
->  
->
-hmm,  it has no maintainer listed.  I hope someone can test it.
-Im CCg the authors named in the file, in case theyre not on lm-sensors.
+Thanks, however, this is a bit confusing as you are moving an entry
+around while adding your own. Please send a separate patch (to Linus or
+Andrew) reordering "PERSONALITY HANDLING" where it belongs. Then send a
+separate patch to me adding your own entry for PC87360.
 
-also, it looks like the following could also benefit some (I havent 
-looked closely)
-adm1025,
-adm1031.
-adm9240 ,
-asb100,
-gl520sm.c
-lm{78,85}               several *_fan_##ofset##_{min,max,div,input}
+About the pc87360 patch itself:
 
-A sligthly sloppy grep for DEVICE_ATTR or  '##' shows 905 lines.
-in hwmon/*, some of them are junk, but others are legitimate opportunities
-to lose weight.
+> -       struct i2c_client *new_client;
+> +       struct i2c_client *cli;
 
-Also.  I noticed some repeated uses like this:
-../../linux-2.6.14.3/drivers/hwmon/gl518sm.c:327:static 
-DEVICE_ATTR(in3_input, S_IRUGO, show_in_input3, NULL);
+I wholeheartedly agree that "new_client" was a uselessly long
+identifier (inherited from the first Linux hardware monitoring drivers
+6 years ago!) However, "cli" might be a bit short now and possibly
+confusing (makes one think of the "clear interrupt" assembly operand).
+"client" would probably be a reasonable compromise.
 
-It suggests that DEVICE_ATTR needs a helper initialization macro
-just like SENSOR_ATTR, thoughts ?
+Now I understand that one of the reasons beyind the choice of the new
+variable name is to keep lines short and avoid repeated line breaks.
+There are a few tricks you could use to achieve the same, while using
+"client" instead of "cli":
 
+1* Define the following inline function:
 
-thanks.
+static inline int client_create_file(i2c_client *client, struct device_attribute *attr)
+{
+        return device_create_file(&client->dev, attr):
+}
 
+Then you can create the files that way:
 
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: adm1026-use-sensor-attr-arrays.patch
-Type: text/x-patch
-Size: 23846 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051219/7cbbc854/adm1026-use-sensor-attr-arrays-0001.bin
+client_create_file(client, &sensor_dev_attr_in0_input.dev_attr);
+
+2* Keep a pointer to client->dev handy, and use it everywhere is
+possible:
+
+struct device *dev = &client->dev;
+
+device_create_file(dev, &sensor_dev_attr_in0_input.dev_attr);
+
+This second option is probably better as it avoids repeated dereferences
+of the same pointer, so I think it should be more efficient
+performance-wise - although such a change doesn't seem to affect the
+binary size; maybe gcc optimizes it on its own already.
+
+This change might be a separate, preliminary patch to the SENSOR_ATTR()
+one, at your option.
+
+> -       strcpy(new_client->name, name);
+> +       strcpy(cli->name, name);
+
+While you're at it, strlcpy is prefered in this case.
+
+> +               for (i=0; i<11; i++) {
+
+Please respect the coding style that was used for this file WRT spaces
+around assignment and comparison symbols.
+
+Thanks,
+-- 
+Jean Delvare
+
