@@ -1,146 +1,95 @@
-From: gardner.ben@gmail.com (Ben Gardner)
-Date: Tue, 20 Dec 2005 22:56:51 +0000
-Subject: [lm-sensors] [PATCH 2/7] i2c: scx200_acb - debug log cleanup
-Message-Id: <808c8e9d0512201456x9c90ec1tc8d220dab5a517e2@mail.gmail.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sun, 25 Dec 2005 22:33:46 +0000
+Subject: [lm-sensors] project status and future
+Message-Id: <43AF1E4A.90902@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <808c8e9d0512191051u6f7c0b38k2c9843a6baed00bf@mail.gmail.com>
-In-Reply-To: <808c8e9d0512191051u6f7c0b38k2c9843a6baed00bf@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-scx200_acb: debug log cleanup
+Hello all,
 
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
----
-This is the second version of the series.
--------------- next part --------------
- drivers/i2c/busses/scx200_acb.c |   42 ++++++++++++++++------------------------
- 1 files changed, 17 insertions(+), 25 deletions(-)
+In this holiday time most of us is resting and maybe thinking about the future plans
+for a new year. Maybe you want to do something for other people, to help, to support,
+simply to create something that will help other people. Well as you will read further
+here is your chance ;)
 
---- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
-+++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
-@@ -45,12 +45,6 @@ static int base[MAX_DEVICES] = { 0x820, 
- module_param_array(base, int, NULL, 0);
- MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
- 
--#ifdef DEBUG
--#define DBG(x...) printk(KERN_DEBUG NAME ": " x)
--#else
--#define DBG(x...)
--#endif
--
- /* The hardware supports interrupt driven mode too, but I haven't
-    implemented that. */
- #define POLLED_MODE 1
-@@ -119,8 +113,8 @@ static void scx200_acb_machine(struct sc
- {
- 	const char *errmsg;
- 
--	DBG("state %s, status = 0x%02x\n",
--	    scx200_acb_state_name[iface->state], status);
-+	dev_dbg(&iface->adapter.dev, "state %s, status = 0x%02x\n",
-+		scx200_acb_state_name[iface->state], status);
- 
- 	if (status & ACBST_BER) {
- 		errmsg = "bus error";
-@@ -209,8 +203,8 @@ static void scx200_acb_machine(struct sc
- 	return;
- 
-  negack:
--	DBG("negative acknowledge in state %s\n",
--	    scx200_acb_state_name[iface->state]);
-+	dev_dbg(&iface->adapter.dev, "negative ack in state %s\n",
-+		scx200_acb_state_name[iface->state]);
- 
- 	iface->state = state_idle;
- 	iface->result = -ENXIO;
-@@ -326,19 +320,15 @@ static s32 scx200_acb_smbus_xfer(struct 
- 		return -EINVAL;
- 	}
- 
--	DBG("size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
--	    size, address, command, len, rw = I2C_SMBUS_READ);
-+	dev_dbg(&adapter->dev,
-+		"size=%d, address=0x%x, command=0x%x, len=%d, read=%d\n",
-+		size, address, command, len, rw);
- 
- 	if (!len && rw = I2C_SMBUS_READ) {
--		dev_warn(&adapter->dev, "zero length read\n");
-+		dev_dbg(&adapter->dev, "zero length read\n");
- 		return -EINVAL;
- 	}
- 
--	if (len && !buffer) {
--		dev_warn(&adapter->dev, "nonzero length but no buffer\n");
--		return -EFAULT;
--	}
--
- 	down(&iface->sem);
- 
- 	iface->address_byte = address<<1;
-@@ -375,7 +365,7 @@ static s32 scx200_acb_smbus_xfer(struct 
- 		data->word = le16_to_cpu(cur_word);
- 
- #ifdef DEBUG
--	DBG(": transfer done, result: %d", rc);
-+	dev_dbg(&adapter->dev, "transfer done, result: %d", rc);
- 	if (buffer) {
- 		int i;
- 		printk(" data:");
-@@ -412,7 +402,7 @@ static int scx200_acb_probe(struct scx20
- 	outb(0x70, ACBCTL2);
- 
- 	if (inb(ACBCTL2) != 0x70) {
--		DBG("ACBCTL2 readback failed\n");
-+		pr_debug(NAME ": ACBCTL2 readback failed\n");
- 		return -ENXIO;
- 	}
- 
-@@ -420,7 +410,8 @@ static int scx200_acb_probe(struct scx20
- 
- 	val = inb(ACBCTL1);
- 	if (val) {
--		DBG("disabled, but ACBCTL1=0x%02x\n", val);
-+		pr_debug(NAME ": disabled, but ACBCTL1=0x%02x\n",
-+			val);
- 		return -ENXIO;
- 	}
- 
-@@ -430,7 +421,8 @@ static int scx200_acb_probe(struct scx20
- 
- 	val = inb(ACBCTL1);
- 	if ((val & ACBCTL1_NMINTE) != ACBCTL1_NMINTE) {
--		DBG("enabled, but NMINTE won't be set, ACBCTL1=0x%02x\n", val);
-+		pr_debug(NAME ": enabled, but NMINTE won't be set, "
-+			 "ACBCTL1=0x%02x\n", val);
- 		return -ENXIO;
- 	}
- 
-@@ -464,7 +456,7 @@ static int  __init scx200_acb_create(int
- 	snprintf(description, sizeof(description),
- 		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
- 	if (request_region(base, 8, description) = 0) {
--		dev_err(&adapter->dev, "can't allocate io 0x%x-0x%x\n",
-+		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
- 			base, base + 8-1);
- 		rc = -EBUSY;
- 		goto errout;
-@@ -473,14 +465,14 @@ static int  __init scx200_acb_create(int
- 
- 	rc = scx200_acb_probe(iface);
- 	if (rc) {
--		dev_warn(&adapter->dev, "probe failed\n");
-+		printk(KERN_WARNING NAME ": probe failed\n");
- 		goto errout;
- 	}
- 
- 	scx200_acb_reset(iface);
- 
- 	if (i2c_add_adapter(adapter) < 0) {
--		dev_err(&adapter->dev, "failed to register\n");
-+		printk(KERN_ERR NAME ": failed to register\n");
- 		rc = -ENODEV;
- 		goto errout;
- 	}
+Executive summary is bellow the article ;)
+
+I would like to write here few notes and visions about lm-sensors project. Let me begin
+with current state. The project is managed by Jean Delvare, who also maintains the kernel
+part of the project. He is doing his job very well and I would like to thank him very much for this effort.
+
+He always tries hard to go through every single byte of C source and find out if code will work in all cases as
+expected. Well this review work is very hard and takes a lot of time in magintude of hours just to review
+single patch. He also manages the stack of patches that he accepted and  pushes them to kernel. Of course
+he must keep everything in sync. As the project leader he must resolve all issues that are in question,
+architectural and implemntation specific. This also takes some time to think out.
+
+He is doing his work very well but he is quite overloaded, so please dont blame him for not reviewing your work
+for some time or dont expect that you will receive polite answer to some obvious question. He is only a human
+and after 8 hours in regular job is quite difficult not to be tired. You might thing there is a weekend too.
+Well there is but even developers want to have a social life :), and rememeber there should be some time
+that is devoted to actual coding and thoughts about the future plans. This all is hard to do when you dont
+have time, because you must solve all other issues - but  not for different project but for this project.
+
+This was just a first part, the patches. We have also different work. We call them "support questions". Maybe
+this is why you are on the list. You came with question but you left yourself subscribed.
+
+Handling the user questions is mainly my "job" I'm trying to help them as much I can, sometimes I win, sometimes
+not. We have also a support system on our pages but it is quite unfonfortable for our needs. The answers are written
+by me or Jean, and it takes tenth of minutes to reply single one.
+
+Time is my enemy too. I'm finishing university -> master thesis, have already part time jobs... So I cant spend
+so much time for this project as I want. Things will go better like round end of February but I'm having hard time now.
+I had to stop my theora optimization work because I simply dont have more free time left.
+
+Well this is the end of "active" team. We have some hidden staff, that helps us run the list and website.
+I would like to thank Philip Edelbrock and Axel Thimm (iirc) for their efforts.
+
+We have here also past developers of the project and they do help when
+they can, but as we all are busy with other stuff and by defintion of past developers lm-sensors is now not
+their main project. I would like to thank them for a help too, most notably to Mark Hoffman and Mark Studebaker.
+
+And then we have you and next like 150 of others on the list. Well I know that some of you is trying to help, when
+it comes to some work you preiously did. Yeah it is good, but as you can see it is simply not enough.
+
+We have some visions and plans for a future but we cant turn them into reality because we are burried with "must do"
+work then will never ever stop to come.
+
+We need your help with our work so we can go for future!
+
+And the future plans that are PITA for now:
+
+1) new support system, - (it died previously and never has been finished)
+2) new userspace library - new config file system and all stuff around.
+3) wiki like pages, so other people can contribute to sensors know-how -> it should "concentrate" our wisdom
+   and wisdom from mailing list.
+Pi) configuration file repository - this can hide in wiki as first step.
+4) patches that were not included in mainline simply because Jean did not have time to handle them :(
+5) and many others ...(multiplexed bus handling, driver cleanup, decode-dimms update... etc etc)
+(hope I did not forget something)
+
+
+Well thats it. If you have some free time and willing to help with someting mentioned here, please reply to
+this mail and we can discuss further. I also would like to hear what you wish to change and how we should
+change...
+
+Executive summary:
+
+Please join us and help to maintain/create even better project!
+
+We need help with:
+1) with this new projects
+2) with the support
+3) With the reviews
+
+Thank you all for staying with us on ML.
+
+Regards
+Rudolf
+
+PS: sorry for the long email and my english, this was written just with one and half pass and it came directly from
+my mind.
+
