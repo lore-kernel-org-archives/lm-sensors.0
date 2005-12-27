@@ -1,37 +1,31 @@
-From: herb.cavalier@gmail.com (herb)
-Date: Sat, 24 Dec 2005 09:16:09 +0000
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Tue, 27 Dec 2005 09:43:28 +0000
 Subject: [lm-sensors] how to use the struct : i2c_client_address_data
-Message-Id: <dfc7f2810512240116g7bb24a1cvf39d38a6e18b0317@mail.gmail.com>
+Message-Id: <1135676608.4471.8.camel@gimli>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <dfc7f2810512240116g7bb24a1cvf39d38a6e18b0317@mail.gmail.com>
+In-Reply-To: <dfc7f2810512240116g7bb24a1cvf39d38a6e18b0317@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello everyone:
+Hi.
 
-      I'm writing a driver for a chip named tvp5150a on at51rm9200 platform.
+On Sat, 2005-12-24 at 17:16 +0800, herb wrote:
+>       I think the struct   i2c_client_address_data   is used to probe
+> a chip attached to the i2c bus,  but I can't see  how to set it
+> properly.
 
-      I tried to understand the architecture of i2c driver for linux,
-but there're some points that I couldnt understand.
+I'm new to i2c, so take everything I say with a grain of salt.
 
-      I think the struct   i2c_client_address_data   is used to probe
-a chip attached to the i2c bus,  but I can't see  how to set it
-properly.    I've  checked others drivers such as msp3400.c, 
-ds1307.c, saa5249.c, i2c.h, i2c-dev.h, i2c-core.c,   and the documents
-for i2c in src/Documentation/i2c,  but I didnt find any information
-useful.
+Maybe having a look at how the probing is done with entries of this
+struct helps to understand how it works. For example i2c_probe() in
+drivers/i2c/i2c-core.c. In addition, the comments in include/linux/i2c.h
+might add to the picture.
 
-     I guess it may work by simply setting the fields of
-i2c_client_address_data with "I2C_CLIENT_END",  but I dont kno why it
-works!
+Hth.
 
-    Can somebody tell me the exact meanning of the fields in
-i2c_client_address_data?  And how should I set them?
-
-    Any reply will be appreciate. Thanks.
+Bye, Mike
 
 
-regards.
-
-herb
