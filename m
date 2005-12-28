@@ -1,34 +1,35 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 28 Dec 2005 22:28:19 +0000
-Subject: [lm-sensors] [PATCH] X1205 cleanup
-Message-Id: <20051228232819.545163e8.khali@linux-fr.org>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Wed, 28 Dec 2005 21:43:23 +0000
+Subject: [lm-sensors] hwmon-sensor-attr-array-2.patch
+Message-Id: <43B306FB.9040301@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051213214058.2781e657@inspiron>
-In-Reply-To: <20051213214058.2781e657@inspiron>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Alessandro,
+Hi Jean, Hans,
 
-> > What is the point of your cleanup? As I understand it, the driver is no
-> > more exporting any functionality to the rest of the kernel. As it has no
-> > user-space interface either, this means that the only thing the driver
-> > is useful for is running x1205_hctosys at runtime - and even this only
-> > happens if the module parameter hctosys has been set, which isn't the
-> > default.
-> 
-> This cleanup was in preparation for the new rtc subsystem I'm writing,
-> so I thought it was better to leave those functions there.
+This patch refactors SENSOR_DEVICE_ATTR_2 macro, following pattern set by
+SENSOR_ATTR.  First it creates a new macro SENSOR_ATTR_2() which expands 
+to an initialization expression, then it uses that in SENSOR_DEVICE_ATTR_2, 
+which declares and initializes a struct sensor_device_attribute_2.
 
-In that case, you are doing things in the wrong order. You should first
-introduce your new RTC subsystem (which I think is a good idea,
-although I lack time to actually look into your implementation), then
-convert your driver directly to use it. Having an intermediate state
-where your driver is mostly useless doesn't make much sense.
 
-Thanks,
--- 
-Jean Delvare
+This version differs from that in Hans' abituguru driver,
+in that it preserves the argument order used in the original 
+SENSOR_DEVICE_ATTR_2 macro, Hans' version invites confusion by
+transposing _nr and _index between 2 closely related macros.
 
+Happily though, Hans coded with __SENSOR_DEVICE_ATTR2,
+so his driver could coexist with the macro defined here,
+and he could switch at his discretion.
+
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-sensor-attr-array-2.patch
+Type: text/x-patch
+Size: 969 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20051228/ba4081e3/hwmon-sensor-attr-array-2.bin
