@@ -1,7 +1,7 @@
-From: list0570@paradise.net.nz (Volker Kuhlmann)
-Date: Wed, 28 Dec 2005 10:09:16 +0000
+From: phil@edgedesign.us (Philip Edelbrock)
+Date: Wed, 28 Dec 2005 19:07:39 +0000
 Subject: [lm-sensors] project status and future
-Message-Id: <20051228100916.GD6616@paradise.net.nz>
+Message-Id: <43B2E27B.5000100@edgedesign.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43AF1E4A.90902@sh.cvut.cz>
 In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
@@ -10,30 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I would like to write here few notes and visions about lm-sensors project.
 
-Let me add some ;)
 
-I found that the fancontrol script works impressively well for
-controlling the CPU fan, although it needed tweaking (the code, not just
-the config params). It doesn't adjust well enough to the sorts of fans
-existing "out there". It's also not integrated into a service startup
-script.
+Rudolf Marek wrote:
 
-There ought to be a general desktop suitable GUI to the sensors
-monitored values, with proper reaction when they're found to be out of
-range. The good news is, there is a framework for that already:
-http://sourceforge.net/projects/powersave Powersave already keeps tabs
-on resources, and is capable to optimise in various directions
-(performance, noise, battery) and react if necessary (suspend box when
-battery flat). It has a daemon part, and a KDE panel GUI part, and some
-other GUI part. In other words, it's a monitor and control construction
-with Joe-Average-capable interface. Sounds perfect to me for adding
-lm_sensors into.
+> [...]
+> Well this is the end of "active" team. We have some hidden staff, that helps us run the list and website.
+> I would like to thank Philip Edelbrock and Axel Thimm (iirc) for their efforts.
 
-Volker
+Thanks!  I've been very proud of being involved since its inception when 
+I posted to the LKML and recruited Frodo. :')
 
--- 
-Volker Kuhlmann			is possibly list0570 with the domain in header
-http://volker.dnsalias.net/		Please do not CC list postings to me.
+> And the future plans that are PITA for now:
+> 
+> 1) new support system, - (it died previously and never has been finished)
+[...]
+> 3) wiki like pages, so other people can contribute to sensors know-how -> it should "concentrate" our wisdom
+>    and wisdom from mailing list.
+> Pi) configuration file repository - this can hide in wiki as first step.
+
+I've receintly been toying with Trac and importing a legacy bug database 
+into it for another project.  It's a bug tracker and wiki.  You've 
+probably used it before?
+
+http://www.edgewall.com/trac/
+
+What do you guys think of this?
+
+
+Phil
 
