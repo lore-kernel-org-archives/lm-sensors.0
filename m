@@ -1,7 +1,7 @@
-From: hmh@debian.org (Henrique de Moraes Holschuh)
-Date: Wed, 28 Dec 2005 21:32:57 +0000
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Thu, 29 Dec 2005 07:33:54 +0000
 Subject: [lm-sensors] project status and future
-Message-Id: <20051228213257.GA963@khazad-dum.debian.net>
+Message-Id: <1135841634.4728.6.camel@gimli>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43AF1E4A.90902@sh.cvut.cz>
 In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
@@ -10,16 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 28 Dec 2005, Philip Edelbrock wrote:
+Hi.
+
+On Wed, 2005-12-28 at 11:07 -0800, Philip Edelbrock wrote:
+> I've receintly been toying with Trac and importing a legacy bug database 
+> into it for another project.  It's a bug tracker and wiki.  You've 
+> probably used it before?
+> 
 > http://www.edgewall.com/trac/
 > 
 > What do you guys think of this?
 
-It certainly seems to be working just fine for madwifi.org...
+As mentioned in my posting, I really like Trac. I already told it to
+Rudolf in IRC, but nevertheless: I'd be happy to help in case there are
+any questions/problems in case you guys want to try Trac for lm_sensors.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Bye, Mike
+
 
