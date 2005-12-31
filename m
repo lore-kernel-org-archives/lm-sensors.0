@@ -1,48 +1,56 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Sat, 31 Dec 2005 09:18:39 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 31 Dec 2005 19:12:16 +0000
 Subject: [lm-sensors] w83627ehf fan controll?
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCDC6C@weshml03.winbond.com.tw>
+Message-Id: <20051231201216.0db828bd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051230143805.GA21201@Apollo>
 In-Reply-To: <20051230143805.GA21201@Apollo>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gU2ViYXN0aWFuLAoKPiBJcyB0aGVyZSBhbnkgcG9zc2libGUgd2F5LCB0byBjb250cm9s
-bCB0aGUgZmFuIHNwZWVkIHdpdGggdGhlCnc4MzYyN2VoZiBjaGlwPwo+IEknbSBhYmxlIHRvIG1v
-bml0b3IgdGhlIGZhbiBhbmQgdGhlIHRlbXAgd2l0aG91dCBhbnkgcHJvYmxlbSwgYnV0IEkKZG9u
-J3QgaGF2ZSBhbnkgKnB3bQo+IGVudHJpZXMgaW4gL3N5cy9idXMvaTJjL2RldmljZXMvOTE5MS0w
-MjkwLy4KWWVzLCB0aGVyZSBzaG91bGQgYmUgOikgQnV0IGFzIHlvdSBzZWUgdGhlcmUgYXJlIG5v
-IHB3bSBlbnRyaWVzIHlldC4gRG8KeW91IGhhdmUgaW50ZXJlc3QgaW4gdXNpbmcgYSB0ZXN0IHZl
-cnNpb24/CgpIaSBKZWFuLApJIGhhdmUgYWRkIHNvbWUgZW50cmllcyB0byB0ZXN0IHRoZSBjaGlw
-IChpbiBteSBsb2NhbCBDVlMpLCBCdXQgSSBoYXZlCm5vdCBmaW5pc2hlZCB0aGUgdGVzdC4gRGlk
-IGFueW9uZSBkbyB0aGUgc2FtZSB3b3JrIG9uIHRoaXMgZHJpdmVyPwpBY3R1YWxseSBJJ20gcXVp
-ZXQgY29uZnVzaW5nIGFib3V0IHRoZSBuYW1pbmcgcnVsZSBvZiBkZXZpY2UgZmlsZSwgaXQKZGlk
-IG5vdCBjb3ZlciBhbGwgdGhlIFBXTS9TbWFydEZhbiBmdW5jdGlvbnMuCkFuZCBob3cgYWJvdXQg
-dG8gYmFja3BvcnQgdzgzNjI3ZWhmIGRyaXZlciB0byBsbV9zZW5zb3JzMiAsIE9yIHRoZXJlJ3MK
-bm8gbmVlZCB0byBkbyBpdC4uLi4KCkJlc3QgUmVnYXJkcwpZdWFuIE11CgoKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
-dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBz
-ZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
-ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
-aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNl
-bmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJv
-bSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29w
-ZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5h
-dXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBz
-dHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJy
-ZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVt
-ZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5h
-YmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBt
-ZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdp
-dmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat
-7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6m
-XaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRI
-qMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn
-2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FL
-uOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSj
-sW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCgo=
+Hi Yuan & all,
+
+> I have add some entries to test the chip (in my local CVS), But I have
+> not finished the test. Did anyone do the same work on this driver?
+
+A number of persons are supposedly working on improving this driver.
+Cadu said he would improve the driver back in July but we didn't hear
+back since. I think Rudolf has a W83627EHF chip and may be willing to
+help too. And I also seem to remember that Aurelien has such a chip and
+wanted to help with the driver some times ago.
+
+It's rare to have that many persons working on the same driver, so it's
+quite sad that nothing has been merged into the driver yet :(
+
+If you have a patch to contribute, please do! :)
+
+> Actually I'm quiet confusing about the naming rule of device file, it
+> did not cover all the PWM/SmartFan functions.
+
+Same old story. We tried to standardize the PWM interface, but in the
+end nobody seems to be happy with that standard. I'm a bit tired of all
+this, so just implement any interface you like as long as it makes
+sense. All I am asking for is that fan stopped is PWM=0 and fan at full
+speed is PWM%5.
+
+> And how about to backport w83627ehf driver to lm_sensors2 , Or there's
+> no need to do it....
+
+Until a user asks for it, I consider there is no need. If several users
+do ask for it and someone wants to work on backporting it, fine with
+me. But this is a recent chip and the 2.4 kernel is aging, so I
+wouldn't be surprised if we had no request for a backport, ever.
+
+As far as I am concerned, I started working on the w83627ehf driver
+long ago because I happened to have some spare time and someone needed
+support for that chip, but as I do not have a chip to test this driver,
+it's really better is someone else goes on working on the driver. And I
+also don't have that much spare time these days, as most of you
+probably have noticed already.
+
+Thanks,
+-- 
+Jean Delvare
+
