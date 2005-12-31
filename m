@@ -1,25 +1,18 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 08 Dec 2005 20:13:40 +0000
-Subject: [lm-sensors] lm75 on a ppc405
-Message-Id: <20051208211340.44ae02fe.khali@linux-fr.org>
+From: ultima_2k@msn.com (Henrik Holmberg)
+Date: Sat, 31 Dec 2005 21:40:10 +0000
+Subject: [lm-sensors] Problem with viapro
+Message-Id: <BAY105-F339D1E6A30421492165B80CB2B0@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051207210919.GF3085@bork.org>
-In-Reply-To: <20051207210919.GF3085@bork.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Martin,
+I ran the "sensors-detect" script and found out that I should use 
+i2c-viapro, but the module is missing.
+I found it on your homepage, but what do I do with it then?
 
-> > The correct approach is to add I2C_CLASS_HWMON to i2c-ibm_iic's class
-> > flags. I'd take a patch doing that.
-> 
-> Excellent.  Tested against 2.6.11.9, and compile tested with Linus'
-> latest git tree.
+Want it to work :(
 
-Applied, thanks.
 
--- 
-Jean Delvare
 
