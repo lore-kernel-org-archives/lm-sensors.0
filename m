@@ -1,50 +1,46 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 23 Jan 2006 22:23:51 +0000
-Subject: [lm-sensors] kacpid vs sensors and fan problem
-Message-Id: <43D55777.8050506@sh.cvut.cz>
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Mon, 02 Jan 2006 16:41:57 +0000
+Subject: [lm-sensors] project status and future
+Message-Id: <1136220117.4459.50.camel@gimli>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060123184912.GA25092@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <20060123184912.GA25092@atrey.karlin.mff.cuni.cz>
+References: <43AF1E4A.90902@sh.cvut.cz>
+In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hi,
+Hi all.
 
-> 
-> i have tried to run acpi and sensors on asus m6va notebook,
-> but i have come accross problems im not able to solve.
-> 
-> sensors-detect found i2c-i801 bus and lm85 and eeprom chips.
-> i can probe all kernel modules without difficulty, sensors
-> seem to work as far as statistics concerned.
-> 
-> first problem starts, when boot initscript tries to intialize
-> sensors - kacpid kernel module takes 99% CPU and stick to this
-> usage. i found, this happens whenever "sensors -s" is executed.
-> when i switched off initialization (INITSENSORS=no), notebook
-> boots without difficulty.
+On Thu, 2005-12-29 at 23:49 +0100, Rudolf Marek wrote:
+> I guess Phul and Michael knows better the workflow and configuration of trac, so
+> I can help with the content filling itself. (convert some pages we already have, create new
+> docs ideas etc etc.)
 
-Please send me in private output of cat /proc/acpi/dsdt > /tmp/dsdt.bin
-It may be the reason that acpi is trying to access the chip too.
+I've started to port over content from the old, static website to the
+wiki of the lm_sensors Trac. Almost all of the easier pages are already
+ported, some are still missing (which are listed at
+http://lm-sensors.org/trac/ticket/1 ).
+
+Some of the remaining pages, most notably the "supported devices" and
+"new drivers" ones, use tables with cells that span more than one row
+and/or column. This type of table can be better rendered when support
+for "restructured text" is enabled, see:
+http://lm-sensors.org/trac/wiki/WikiRestructuredText - any chance we get
+this on the lm_sensors Trac installation?
+
+Something else that I've found while working: it seems there is a
+problem regarding the graphics. Pages that have graphics embedded - such
+as http://lm-sensors.org/trac/wiki/HardwareHacking - don't show all the
+graphics at all. Reloading the page will enable the graphics that were
+hidden in the first try, and hide those that were visible. Strange
+thing.
 
 
-> second problem is, that i can't setup fans, although i can read
-> their current state. when i run pwmconfig, there are errors such as: 
->    
->    0-002d/pwm1
->    /usr/sbin/pwmconfig: line 102: 0-002d/pwm1_enable: Permission denied
-> 
-> can be this problem caused by skipping sensors initialization ?
+By the way: Rudolf found a nice converter which is a great help when
+converting HTML to Trac-wiki-markup:
+http://diberri.dyndns.org/html2wiki.html .
 
-This is long term problem. The driver is too complex to fix it without having
-this chip and nobody else (Khali and me) never show up with a patch fixing this.
+Bye, Mike
 
-(I recall someone already worked on this but never finished)
-
-I hope this helps,
-
-regards
-Rudolf
 
