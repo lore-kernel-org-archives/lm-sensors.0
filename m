@@ -1,54 +1,39 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Sat, 28 Jan 2006 22:10:03 +0000
-Subject: [lm-sensors] packaging problem with latest CVS snapshot ?
-Message-Id: <43DBEBBB.4080206@gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 02 Jan 2006 10:01:54 +0000
+Subject: [lm-sensors] hwmon-sensor-attr-array-2.patch
+Message-Id: <20060102110154.258f920d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43DBB097.2020100@gmail.com>
-In-Reply-To: <43DBB097.2020100@gmail.com>
+References: <43B306FB.9040301@gmail.com>
+In-Reply-To: <43B306FB.9040301@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> Hi Jim,
->
->   
->>> See our news. You need libsysfs (or package)
->>>       
->> OK.   neccessary but insufficient:
->>
->> [jimc at harpo lm_sensors2]$ make user
->> ...
->> gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include 
->> -I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cdump.c | \
->> sed -e 's@^\(.*\)\.o:@prog/dump/i2cdump.rd prog/dump/i2cdump.ro: 
->> Makefile '`dirname prog/dump/i2cdump.rd`/Module.mk' @' > 
->> prog/dump/i2cdump.rd
->> gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include 
->> -I/usr/local/include  -Wundef -Wall -O2  prog/detect/i2cdetect.c | \
->> sed -e 's@^\(.*\)\.o:@prog/detect/i2cdetect.rd prog/detect/i2cdetect.ro: 
->> Makefile '`dirname prog/detect/i2cdetect.rd`/Module.mk' @' > 
->> prog/detect/i2cdetect.rd
->> make: *** No rule to make target `sysfs/libsysfs.h', needed by 
->> `lib/sysfs.ad'.  Stop.
->>
->>
->> its there:
->> $ ll /usr/local/include/sysfs/
->> total 20
->> -rw-r--r--  1 root root 7401 Jan 28 12:35 dlist.h
->> -rw-r--r--  1 root root 8586 Jan 28 12:35 libsysfs.h
->>
->> still looking..  any idea ?
->>     
->
-> Make sure you run "make clean" before running "make user" again. Our
-> build system is not very robust (to say the least) and gets easily
-> confused.
->
->   
+Hi Jim,
 
-BINGO!  ( in case that doesnt translate, its"I win!" ) 
-thanks
+Jim Cromie wrote:
+> This patch refactors SENSOR_DEVICE_ATTR_2 macro, following pattern set by
+> SENSOR_ATTR.  First it creates a new macro SENSOR_ATTR_2() which expands 
+> to an initialization expression, then it uses that in SENSOR_DEVICE_ATTR_2, 
+> which declares and initializes a struct sensor_device_attribute_2.
+
+Looks OK to me, consider it applied. I won't push it until I am also
+able to push a driver which uses it though (but that should happen soon
+enough.)
+
+We should probably think of this part of the code and see what can be
+done to improve it. struct sensor_device_attribute is currently
+*larger* than struct sensor_device_attribute_2, which makes one wonder
+if we shouldn't use sensor_device_attribute_2 everywhere even when we
+don't actually need the second parameter. Also, the field names "index"
+and "nr" are too generic IMHO and this might get confusing in the long
+run. I was thinking of "channel" instead of "index". No idea for "nr"
+though. Or maybe we are generic on purpose for reusability, but then
+"index" and "nr" should be "nr0" and "nr1" or something equally
+symmetrical. Thoughts?
+
+Thanks,
+-- 
+Jean Delvare
 
