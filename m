@@ -1,7 +1,7 @@
-From: mrenzmann@otaku42.de (Michael Renzmann)
-Date: Mon, 02 Jan 2006 16:41:57 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Mon, 02 Jan 2006 22:19:07 +0000
 Subject: [lm-sensors] project status and future
-Message-Id: <1136220117.4459.50.camel@gimli>
+Message-Id: <43B9A6DB.80509@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43AF1E4A.90902@sh.cvut.cz>
 In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
@@ -10,37 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all.
+Hi all,
 
-On Thu, 2005-12-29 at 23:49 +0100, Rudolf Marek wrote:
-> I guess Phul and Michael knows better the workflow and configuration of trac, so
-> I can help with the content filling itself. (convert some pages we already have, create new
-> docs ideas etc etc.)
+I just added the FAQ, feel free to fix it. (several fixme is left there)
 
-I've started to port over content from the old, static website to the
-wiki of the lm_sensors Trac. Almost all of the easier pages are already
-ported, some are still missing (which are listed at
-http://lm-sensors.org/trac/ticket/1 ).
+I tried to create the Configuration specific part of wiki.
+First shot is linked from main page.
 
-Some of the remaining pages, most notably the "supported devices" and
-"new drivers" ones, use tables with cells that span more than one row
-and/or column. This type of table can be better rendered when support
-for "restructured text" is enabled, see:
-http://lm-sensors.org/trac/wiki/WikiRestructuredText - any chance we get
-this on the lm_sensors Trac installation?
+We agreed with Jean:
 
-Something else that I've found while working: it seems there is a
-problem regarding the graphics. Pages that have graphics embedded - such
-as http://lm-sensors.org/trac/wiki/HardwareHacking - don't show all the
-graphics at all. Reloading the page will enable the graphics that were
-hidden in the first try, and hide those that were visible. Strange
-thing.
+1) upload files via wiki (no svn module)
+2) Directories for manufacturers, subdirectiories with model specific pages
 
+http://www.lm-sensors.org/trac/wiki/Configurations/Asus
+http://www.lm-sensors.org/trac/wiki/Configurations/Asus/TX97-E
 
-By the way: Rudolf found a nice converter which is a great help when
-converting HTML to Trac-wiki-markup:
-http://diberri.dyndns.org/html2wiki.html .
+I also hacked up some quick guide how to setup such pages. Anyone here please feel free to enhance it.
 
-Bye, Mike
+The "Identify flow diagram" can wait it is needed to rebuild that anyway.
 
+The only missing thing is the Supported & New drivers pages. They should look like they had to (as Jean wishes)
+So lets wait to switch that feature on.
+
+Also someone with trac admin please update the logo ;)
+
+Thanks
+
+regards
+Rudolf
 
