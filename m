@@ -1,88 +1,61 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 08 Jan 2006 13:50:48 +0000
-Subject: [lm-sensors] Lmsensors and Asus CUSL2
-Message-Id: <43C118B8.4070106@sh.cvut.cz>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 03 Jan 2006 19:21:23 +0000
+Subject: [lm-sensors] [it8712] temperatures...
+Message-Id: <20060103202123.005ee800.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000301c6142c$ec8c6be0$0200a8c0@administrator>
-In-Reply-To: <000301c6142c$ec8c6be0$0200a8c0@administrator>
+References: <43AD9085.5050906@free.fr>
+In-Reply-To: <43AD9085.5050906@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Danke f?r deine schnelle Antwort!
+Hi Fred,
 
-Kein Problemm.
-
-> Das du wie ich sehen kann gut deutsch kannst schreibe ich jetzt auch
-> einfach mal auf deutsch... ;)
->  
-> Also bei mir handelt es sich um die Kernel-Version : *2.4.31 #1 Sun Nov
-> 6 21:51:04 GMT 2005 i686* Und bei Lmsensors um die Version: *sensors
-> version 2.9.1 with libsensors version 2.9.1*
-> ** 
-> ** 
-
-Danke.
-
-> /Driver `w83781d' (should be inserted):
->   Detects correctly:
->   * Bus `SMBus I801 adapter at e800' (Non-I2C SMBus adapter)
->     Busdriver `i2c-i801', I2C address 0x2d (and 0x48 0x49)
->     Chip `Asus AS99127F (rev.1)' (confidence: 8)/
-> // 
-> /Driver `ds1621' (may not be inserted):
->   Misdetects:
->   * Bus `SMBus I801 adapter at e800' (Non-I2C SMBus adapter)
->     Busdriver `i2c-i801', I2C address 0x48
->     Chip `Dallas Semiconductor DS1621' (confidence: 3)
->   * Bus `SMBus I801 adapter at e800' (Non-I2C SMBus adapter)
->     Busdriver `i2c-i801', I2C address 0x49
->     Chip `Dallas Semiconductor DS1621' (confidence: 3)/
-> //root at ipcop:/tmp/lmsensors/ <mailto:root at ipcop:/tmp/lmsensors>/ #/
-> // 
-> Und wenn ich auf der IPCop oberfl?che bin und mal in das Sensoren Men?
-> gehe sehe ich Folgendes:
->  
-> *root at ipcop : / #** show lmsensors *
+> In /etc/sensors.conf, one can read that Asus mobo A7V8X-X and A7V600
+> have cpu and mobo temp inverted.
 > 
-> as99127f-i2c-0-2d
-> Adapter: SMBus I801 adapter at e800
-> VCore 1:   +1.81 V  (min =  +1.66 V, max =  +1.82 V)              
-> VCore 2:   +1.81 V  (min =  +1.66 V, max =  +1.82 V)              
-> +3.3V:     +3.52 V  (min =  +3.14 V, max =  +3.46 V)       ALARM  
-> +5V:       +5.06 V  (min =  +4.74 V, max =  +5.24 V)              
-> +12V:     +11.67 V  (min = +10.83 V, max = +13.19 V)              
-> -12V:     -12.08 V  (min = -13.23 V, max = -10.73 V)              
-> -5V:       -5.06 V  (min =  -5.25 V, max =  -4.74 V)              
-> fan1:     3813 RPM  (min =    0 RPM, div = 2)                     
-> fan2:        0 RPM  (min =    0 RPM, div = 2)                     
-> fan3:        0 RPM  (min =    0 RPM, div = 2)                     
-> M/B Temp:    +21 C  (high =  +105 C, hyst =    +0 C)          
-> CPU Temp:   -1.0 C  (high =  +100 C, hyst =   +92 C)          
-> temp3:     -31.5 C  (high =  +122 C, hyst =  +121 C)          
-> vid:      +1.750 V  (VRM Version 8.2)
-> alarms:   
-> beep_enable:
->           Sound alarm enabled
+> On a P5ND2-Sli Deluxe, who knows ?
+
+I don't. It would be nice if motherboard manufacturers in general, and
+Asus in particular, could stick to one wiring scheme. But no, they
+really seem to enjoy changing the wiring on every new board they
+design...
+
+> Should mobo temp be always under cpu temp ?
 > 
-> Weist du was ich noch machen kann?
+> I have QFan enabled, so I'm not sure (more cpu task implies more rpm for
+> CPU fan, so cpu temp could be under mobo temp, no ?)
 
-Du kannst versuchen richtiges CPU temperatur gewinnen.
-Finde diese Zeile im /etc/sensors.conf
-#   compute temp2 (@*30/43)+25, (@-25)*43/30
+It is possible, but quite rare. The CPU is almost always hotter,
+because it is the most important heat source in your computer, and it
+is cooled by the air in the case, those temperature is reported as
+"motherboard temperature".
 
-Und # weg schmeisssen so:
-compute temp2 (@*30/43)+25, (@-25)*43/30
+There are a few exceptions to the rule:
 
-Spare die Datei.
-Dann musst du sensors -s laufen und dan wieder sensors
-Die CPU temperatur soll Gut sein.
+* If you use watercooling.
 
-Du kannst auch andere Programme die lm-sensors nutzen probieren, versuch ein bisschen googeln.
+* If the motherboard sensor is next to the graphics adapter and that
+adapter is a very high end model which heats much, and the CPU is a low
+power consumption one (or is set to low power mode.) In that case, the
+motherboard temperature can actually be greater.
 
-Ich hoffe es wird helfen.
+* If your case is completely closed, with no air flow (but don't do
+that!) In that case the CPU and motherboard temperature will be the
+same after a few minutes.
 
-Tsch?ss
-Rudolf
+Also note that the reported values have a limited accuracy, and
+additionally, some sensors need to be offset and it's often hard to
+figure that out.
+
+The easiest way to determine which sensor is the CPU temperature is to
+put the CPU under load (uncompress some large file, or compile a large
+project, or use cpuburn [1]). The CPU temperature should always react
+first and more significantly than the motherboard temperature.
+
+[1] http://pages.sbcglobal.net/redelm/
+
+-- 
+Jean Delvare
 
