@@ -1,37 +1,42 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Thu, 26 Jan 2006 18:56:14 +0000
-Subject: [lm-sensors] [patch 0/6] hwmon/pc87360: various locking touches
-Message-Id: <43D91B4E.9070007@gmail.com>
+From: mrenzmann@otaku42.de (Michael Renzmann)
+Date: Tue, 03 Jan 2006 07:52:47 +0000
+Subject: [lm-sensors] scx200_acb: unexpected ACBCTL2 readback
+Message-Id: <1136274767.4455.22.camel@gimli>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43D7FB0B.9090108@gmail.com>
-In-Reply-To: <43D7FB0B.9090108@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jim Cromie wrote:
+Hi.
 
-> hi Jean, everyone,
->
-> This patchset applies on 16rc1-mm3.  Individual descriptions
-> follow my series-file.  The 1st 3 patches are solid, and I think
-> ready for review and submission, 4-6 need discussion.
-> Also, 6 obsoletes 1.
->
-Scratch this -
-Im gonna send patches 2,3 separately, since theyre not locking related,
-they work, and should be non-controversial.
+On the voyage-linux mailing list there recently has been a report about
+a problem related to scx200_acb in 2.6.x kernels. The original report is
+at [1], a short but more detailed analysis of the problem is at [2]. 
 
-Then Ill send 4.5 as an RFC.
+The problem seems to be that loading scx200_acb fails during the probing
+phase, but loading and using LM77 after that still works fine. Quoting
+[2]:
 
+== cut =Same here with a non-voyage 2.6.11 kernel. I enabled debugging and added
+a bit more info into the relevant message and I get:
 
-> 1. diff.pc-update-lock-only-when-refetching
-> 2. hwmon-pc87360-use-sensor-attr-2.patch
-> 3. hwmon-pc87360-sysfs-combo-callbacks.patch
-> 4. diff.siolocks-beta2
-> 5. diff.uselocks.hilock
+i2c /dev entries driver
+scx200_acb: ACBCTL2 readback failed, got 0xff
+  : probe failed
 
+The driver write 0x70 to ACBCTL2 and expects to read 0x70 back, but it
+gets 0xff instead. Looked into the manual briefly, but seems too
+complicated to figure out quickly. As you mention, lm77 works fine
+thereafter. Weird...
+== cut =
+Comments?
 
-hope this clarifies.
+Bye, Mike
+
+[1]
+http://list.voyage.hk/pipermail/voyage-linux/2005-December/000548.html
+[2]
+http://list.voyage.hk/pipermail/voyage-linux/2006-January/000565.html
+
 
