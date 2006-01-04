@@ -1,43 +1,27 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Sat, 28 Jan 2006 10:20:53 +0000
-Subject: [lm-sensors] Patch: abituguru driver version 1.1.1
-Message-Id: <43DB4585.3010404@hhs.nl>
+From: spblaguard-linux@yahoo.com (blabuard)
+Date: Wed, 04 Jan 2006 18:23:13 +0000
+Subject: [lm-sensors] LPC47M192 HW Monitoring Block
+Message-Id: <20060104182313.15922.qmail@web81009.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43AD5940.1090900@hhs.nl>
-In-Reply-To: <43AD5940.1090900@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-One last reply to a remark which I mist yesterday:
+Hello, I'm interested in the status of the LPC47M192
+chip, in particular, thermal info.
 
->> 	/* After this the ABIT_UGURU_DATA port should contain
->> 	   ABIT_UGURU_STATUS_INPUT */
->> 	while(inb_p(client->addr+ABIT_UGURU_DATA) != ABIT_UGURU_STATUS_INPUT){
->> 		timeout--;
->> 		if (timeout = 0) {
->> #if ABIT_UGURU_DEBUG_LEVEL >= 1
->> 			printk(KERN_DEBUG "abituguru: error: state != more input after ready command\n");
->> #endif	
-> dev_dbg
->> 			return -EIO;
->> 		}
-> Maybe you should also lock access (mutex
-> or semaphore, see Linux device drivers third edition as pdf) to the chip in _read _write functions so no other
-> concurrect access to achip from different part of driver  could occur.
-> 
+I saw in the lm-sensors archives that Tomas Holmqvist
+and "wore" each had written hardware monitor block
+code (similiar chip and 2.4 respectively), but it
+seems to dead-end Mar/Apr of 2005.  Following "wore's"
+post
+(http://archives.andrew.net.au/lm-sensors/msg30964.html),
+I can use i2cdump to raw read the temperature data of
+this chip.  
 
-This is already taken care of. The detect_sensor_type function where 
-this comments was made is called before i2c_client_register, thus none 
-of the sysfs show/store will get called, so no race.
+Is anyone aware of any progress to support the thermal
+data of LPC47M192, probably via smsc47m1?
 
-All the sysfs show/store functions either call abituguru_update_data 
-which does locking, or do the locking themselves directly. This locking 
-of the data thus protects against any races involving simultanious use 
-of read/write functions.
-
-Regards,
-
-Hans
+Thanks!
 
