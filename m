@@ -1,7 +1,7 @@
 From: jim.cromie@gmail.com (Jim Cromie)
-Date: Mon, 02 Jan 2006 19:20:17 +0000
+Date: Thu, 05 Jan 2006 04:52:45 +0000
 Subject: [lm-sensors] hwmon-sensor-attr-array-2.patch
-Message-Id: <43B97CF1.1050506@gmail.com>
+Message-Id: <43BCA61D.3060607@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43B306FB.9040301@gmail.com>
 In-Reply-To: <43B306FB.9040301@gmail.com>
@@ -12,92 +12,145 @@ To: lm-sensors@vger.kernel.org
 
 Hans de Goede wrote:
 
+
+what the hey, Ill give it a cursory look.
+
+dont feel the need to ack whatever I say here (I havent started yet),
+unless you want to disagree.
+
+I assume Jean will eventually get to it, but perhaps I can save him a 
+few words.
+Hopefully Im not so far off base that he spends them correcting me ;-)
+
+
+1.  strip trailing whitespace :-O
+    Im just saying it preemptively.
+
+
+
+
+strip macro eventually.
+
+>/* This is needed untill this gets merged upstream */
+>#ifndef SENSOR_ATTR_2
+>#define SENSOR_ATTR_2(_name, _mode, _show, _store, _nr, _index)	\
+>	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
+>	  .index = _index,					\
+>	  .nr = _nr }
+>#endif
 >
->
-> Jean Delvare wrote:
->
->> Hi Jim,
->>
->> Jim Cromie wrote:
->>
->>> This patch refactors SENSOR_DEVICE_ATTR_2 macro, following pattern 
->>> set by
->>> SENSOR_ATTR.  First it creates a new macro SENSOR_ATTR_2() which 
->>> expands to an initialization expression, then it uses that in 
->>> SENSOR_DEVICE_ATTR_2, which declares and initializes a struct 
->>> sensor_device_attribute_2.
->>
->>
->> Looks OK to me, consider it applied. I won't push it until I am also
->> able to push a driver which uses it though (but that should happen soon
->> enough.)
->>
->> We should probably think of this part of the code and see what can be
->> done to improve it. struct sensor_device_attribute is currently
->> *larger* than struct sensor_device_attribute_2, which makes one wonder
->> if we shouldn't use sensor_device_attribute_2 everywhere even when we
->> don't actually need the second parameter. 
->
-
-I cant help but suspect that alignment issues will eat the space savings,
-particularly at non-word boundaries.  But perhaps not on some archs (x86).
-
->> Also, the field names "index"
->> and "nr" are too generic IMHO and this might get confusing in the long
->> run. I was thinking of "channel" instead of "index". No idea for "nr"
->> though. Or maybe we are generic on purpose for reusability, but then
->> "index" and "nr" should be "nr0" and "nr1" or something equally
->> symmetrical. Thoughts?
->>
-
-Im thinking of a union, something like the following,
-
-struct sensor_device_attribute_2 {
-        struct device_attribute dev_attr;
-    union {
-        u8 info[4];
-        struct {
-            u8 index, nr;
-       } u;
-};
-
-but I cant declare the union without giving the element a name 'u',
-so derefs to its members would have to change, defeating the point of it.
-But maybe Im missing something.
-
-And perhaps a one-time churn isnt too far OOB,
-though Im not sufficiently fire-proof to propose it myself ;-)
-
-I agree that the names and (particularly) order are unfortunate.
-Normally, when an interface extends another (ie SENSOR_DEVICE_ATTR_2) ,
-new params are added to the end of the sig, not inserted in the middle.
-(In contrast, .nr was added to end of the struct).
-
-Lastly, it sounds like there may be opporunity to coordinate
-any churn of the field names with plans inimated here:
-
-http://lwn.net/Articles/161236/
-in Future Driver core changes section.
-
-
-
-
-
-Hans,  I noticed a few doc-nits.  (havent read for anything else)
-
->/* Const names for use in the dynamicly genererated in and temp sysfs attr,
->   16 is a bit over kill since there are know known mainboards with 16 in
 >  
 >
-s/know known/no known/
 
-s/over kill/overkill/
+>/* Debugging output level:
+>   0 no debug output
+>   1 log errors with printk
+>   2 also log sensors type probing info
+>   3 log retryable errors
+>   This is at 2 for now, since this driver is still in the testing fase */
+>#define ABIT_UGURU_DEBUG_LEVEL	2
+>  
+>
+make this a module-param ?
+how much object code does it add ?
+maybe a param, which is also gated by ifdefs
+(or a debug_() macro to hide ifdefs) ?
 
-<aside>
-I thank the Germans (really) for the English willingness to create new 
-words out of
-smaller ones.   Why say 'pomme de terre' when you can say kartoffel ? 
-With apologies to the nation of France  :-D
+see dev_dbg, for a start, though I think youll want to
+wrap it so that you can pass in a level 1,2,3,
+while keeping 1 ifdef to remove the debug-code entirely.
 
+$ grep dev_dbg pc87360.c
+                dev_dbg(&new_client->dev, "Using %s reference voltage\n",
+                                dev_dbg(&client->dev, "Forcibly "
+                                dev_dbg(&client->dev, "Forcibly "
+                                        dev_dbg(&client->dev, "Skipping "
+                                        dev_dbg(&client->dev, "Forcibly "
+
+
+
+
+
+
+>/* For the Abit uGuru, we need to keep some data in memory.
+>   The structure is dynamically allocated, at the same time when a new
+>   abituguru client is allocated. */
+>  
+>
+do you foresee / have you tried  multiple chips ?
+
+
+>/* Put the uguru in ready for input state, this code assumes that
+>   the uguru is not already in this state.
+>   It is the callers responsibility to make sure it isn't! */
+>  
+>
+
+what do you save by making this assumption ?
+yes its static, so less ripe for abuse, but if its 1 flag ..
+
+
+
+
+
+
+>		/* The first try the uguru normally will be ready for the first
+>		   input and thus in ABIT_UGURU_STATUS_INPUT state. If however
+>		   something went wrong previously it might not be, so then we
+>		   try to force it into ready state.
+>  
+>
+
+is this forcing something the user should have to explicitly enable ?
+
+
+
+>/* Following are the sysfs callback functions. These functions use
+>   sensor_device_attribute_2->nr and sensor_device_attribute_2->index
+>   in the following ways:
+>		nr selects 			index selects
+>_value/pwm_*	NA				sensor/pwm *
+>_setting	auto/min/max       (offset)	sensor/pwm
+>_alarms/_mask	beep/shutdown/flag (bitmask)	sensor_type (volt/temp) **
+>
+>   *)  Except for pwm_setting which uses nr and index as _setting
+>   **) NA for bank2 as bank2 only contains fan sensors */
+>  
+>
+
+following are nearly identical
+
+>static ssize_t show_bank1_value(struct device *dev,
+>	struct device_attribute *devattr, char *buf)
+>
+>static ssize_t show_bank1_setting(struct device *dev,
+>	struct device_attribute *devattr, char *buf)
+>
+>static ssize_t show_bank2_value(struct device *dev,
+>	struct device_attribute *devattr, char *buf)
+>
+>  
+>
++ others below I think.   
+it looks like attr->index, and bank 1,2  could drive a constants & formula
+lookup to provide many calcs reachable by 1/few handers.
+
+
+Im beginning to think you could make good use of SENSOR_ATTR_4,
+which Jean blue-sky'd, but you could make concrete easily.
+
+with it, you could squeeze these many handlers down to a few,
+ doing scale and offset lookups and calcs, forex.
+
+
+
+All right, Im fresh out of insights
+
+hth
 jimc
+
+
+PS.  what boxes have this chip in them ?
+/me thinks it might be in comments.
+/me should just look myself, instead of asking :-O
 
