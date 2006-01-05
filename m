@@ -1,51 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 31 Jan 2006 07:09:45 +0000
-Subject: [lm-sensors] ITE8712F-A Chip problems
-Message-Id: <Ofo4qdi3.1138691385.8119070.khali@localhost>
+From: tejerina@chem.northwestern.edu (Baudilio Tejerina)
+Date: Thu, 05 Jan 2006 01:03:06 +0000
+Subject: [lm-sensors] ERROR: Can't get VID data!
+Message-Id: <80665230-2626-423D-AD28-EAE2BF931B1E@chem.northwestern.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <35c952d60601301928h51a3cf28v80a40ea4247b2539@mail.gmail.com>
-In-Reply-To: <35c952d60601301928h51a3cf28v80a40ea4247b2539@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hi Nick,
 
-On 2005-01-31, Nick Rapp wrote:
-> Hey guys, I just got a new motherboard, and i'm having a strange issue
-> with the ITE chip. First of all, when sensors-detect is probing, my
-> computer shuts itself off instantly.
-> I've tried to narrow it down a little further... I know I have that chip,
-> so I tried to modprobe the it86 driver manually. The result is the same,
-> computer just shuts off, so I assume that the initial problem and the
-> ladder are one in the same.
->
-> Any suggestions? The board is a DFI Lanparty nF4 Expert. Thanks!
+I've just installed 'lm_sensors' on a dual AMD Opteron 248 on a  
+motherboard with AMD 8000 chipset. I am concerned about an error  
+message I get when I run 'sensors'. Is this condition OK or, should I  
+do anything to fix it?
 
-We had one similar report for that board (or a very similar one) a few
-days ago :
-  http://bugzilla.kernel.org/show_bug.cgi?idX89
+Here is the output.
 
-Long story short: there is a mysterious chip on this motherboard's SMBus
-which shuts down the system when probed.
 
-Workaround for sensors-detect: when asked to probe the nForce2 bus,
-choose "selectively" and enter the value "0x2e" as not being probed.
+[root at argon ~]# sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.54 V  (min =  +0.00 V, max =  +0.00 V)
+VCore 2:   +1.54 V  (min =  +0.00 V, max =  +0.00 V)
++3.3V:     +3.38 V  (min =  +3.14 V, max =  +3.47 V)
++5V:       +5.08 V  (min =  +4.76 V, max =  +5.24 V)
++12V:      +4.86 V  (min = +10.82 V, max = +13.19 V)
+-12V:      -1.59 V  (min = -13.18 V, max = -10.80 V)
+-5V:       -3.79 V  (min =  -5.25 V, max =  -4.75 V)
+V5SB:      +5.73 V  (min =  +4.76 V, max =  +5.24 V)
+VBat:      +2.42 V  (min =  +2.40 V, max =  +3.60 V)
+fan1:     7758 RPM  (min = 11065 RPM, div = 2)
+fan2:     7500 RPM  (min = 3214 RPM, div = 2)
+fan3:     4326 RPM  (min = 2860 RPM, div = 8)
+Ambient:     +35?C  (high =   +40?C, hyst =   +37?C)   sensor =  
+thermistor
+CPU1:      +35.5?C  (high =   +52?C, hyst =   +47?C)   sensor =  
+thermistor
+CPU2:      +40.5?C  (high =   +52?C, hyst =   +47?C)   sensor =  
+thermistor
+ERROR: Can't get VID data!
+alarms:
+beep_enable:
+           Sound alarm disabled
 
-Fix for the it87 driver: this patch:
-  http://bugzilla.kernel.org/attachment.cgi?idp32&action=view
-It is present in -mm since 2.6.16-rc1-mm2, but hasn't been merged in
-mainline yet. It should be merged soon now (before 2.6.16 is released,
-at the very least) and might be backported to 2.6.15 and lm_sensors CVS
-(for Linux 2.4) as well.
 
-If you don't feel comfortable with patching your kernel, you can try
-adding the following line to /etc/modprobe.conf instead:
-  modprobe it87 ignore=1,0x2e
-It should work equally well.
 
---
-Jean Delvare
+
 
