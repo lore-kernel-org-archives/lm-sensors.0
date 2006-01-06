@@ -1,65 +1,80 @@
-From: a_titov82@mail.ru (Alexey Titov)
-Date: Sun, 15 Jan 2006 16:38:56 +0000
-Subject: [lm-sensors] Fwd: Re:  Ticket #2103
-Message-Id: <op.s3fhu6ion40jst@localhost.localdomain>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 06 Jan 2006 22:07:33 +0000
+Subject: [lm-sensors] [PATCH] i2c: Extend ds1337 initialization
+Message-Id: <11365852532253@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello. Not so long ago I wrote you about my problem with lm_sensors. And I  
-have not solved this problem yet... Maybe you can help me? My last message  
-was:
+[PATCH] i2c: Extend ds1337 initialization
 
-------- Forwarded message -------
-From: "Alexey Titov" <a_titov82 at mail.ru>
-To: "LM Sensors" <lm-sensors at lm-sensors.org>
-Cc:
-Subject: Re: [lm-sensors] Ticket #2103
-Date: Thu, 01 Dec 2005 18:31:45 +0300
+Add code to handle case where board firmware does not start the
+RTC.
 
-> What version of lm_sensors are you really using? We can't help you if
-> you provide inaccurate information.
-Well.. Now I'm using lm_sensors-2.8.8-5. Perhaps, I used lm_sensors 2.9.2
-when I wrote the ticket...
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+CC: James Chapman <jchapman at katalix.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-> Did the it87 driver ever work properly for you with another kernel?
-I built my own kernel, but there was the same problem.
+---
+commit f9e8957937ebf60d22732a5ca9130f48a7603f60
+tree c36adb2b1c9e3ef69bf598ee3084966ef7085596
+parent 2e3e13f8e9d9b2111404cdccaa4e1b988b70acce
+author Michael Burian <dynmail1 at gassner-waagen.at> Mon, 07 Nov 2005 22:30:14 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:20 -0800
 
-> How are you loading it? Manually, or through some script?
-I load it manually, using "modprobe it87". It was wrote in sensors-detect
-output.
-Maybe I should pass some parameters to the module?
+ drivers/i2c/chips/ds1337.c |   37 +++++++++++++++++++++++++++++++------
+ 1 files changed, 31 insertions(+), 6 deletions(-)
 
-> Please provide the output of "isadump 0x805 0x806" before loading the  
-> it87 driver.
-Here is the output. Driver was not loaded.
-
-isadump 0x805 0x806
-WARNING! Running this program can cause system crashes, data loss and
-worse!
-I will probe address register 0x805 and data register 0x806.
-Continue? [Y/n]
-       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00: 13 01 ff 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
-10: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
-30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-40: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
-50: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
-60: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
-70: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
-80: 13 00 00 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
-90: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
-b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-c0: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
-d0: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
-e0: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
-f0: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
-
-
-Thank you for answer.
+diff --git a/drivers/i2c/chips/ds1337.c b/drivers/i2c/chips/ds1337.c
+index 02682fb..1822895 100644
+--- a/drivers/i2c/chips/ds1337.c
++++ b/drivers/i2c/chips/ds1337.c
+@@ -337,13 +337,38 @@ exit:
+ 
+ static void ds1337_init_client(struct i2c_client *client)
+ {
+-	s32 val;
++	u8 status, control;
+ 
+-	/* Ensure that device is set in 24-hour mode */
+-	val = i2c_smbus_read_byte_data(client, DS1337_REG_HOUR);
+-	if ((val >= 0) && (val & (1 << 6)))
+-		i2c_smbus_write_byte_data(client, DS1337_REG_HOUR,
+-					  val & 0x3f);
++	/* On some boards, the RTC isn't configured by boot firmware.
++	 * Handle that case by starting/configuring the RTC now.
++	 */
++	status = i2c_smbus_read_byte_data(client, DS1337_REG_STATUS);
++	control = i2c_smbus_read_byte_data(client, DS1337_REG_CONTROL);
++
++	if ((status & 0x80) || (control & 0x80)) {
++		/* RTC not running */
++		u8 buf[16];
++		struct i2c_msg msg[1];
++
++		dev_dbg(&client->dev, "%s: RTC not running!\n", __FUNCTION__);
++
++		/* Initialize all, including STATUS and CONTROL to zero */
++		memset(buf, 0, sizeof(buf));
++		msg[0].addr = client->addr;
++		msg[0].flags = 0;
++		msg[0].len = sizeof(buf);
++		msg[0].buf = &buf[0];
++
++		i2c_transfer(client->adapter, msg, 1);
++	} else {
++		/* Running: ensure that device is set in 24-hour mode */
++		s32 val;
++
++		val = i2c_smbus_read_byte_data(client, DS1337_REG_HOUR);
++		if ((val >= 0) && (val & (1 << 6)))
++			i2c_smbus_write_byte_data(client, DS1337_REG_HOUR,
++						  val & 0x3f);
++	}
+ }
+ 
+ static int ds1337_detach_client(struct i2c_client *client)
 
 
