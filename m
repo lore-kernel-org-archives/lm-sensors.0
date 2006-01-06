@@ -1,144 +1,77 @@
 From: gregkh@suse.de (Greg KH)
 Date: Fri, 06 Jan 2006 22:07:38 +0000
-Subject: [lm-sensors] [PATCH] i2c: i2c-mv64xxx fix transaction abortion
-Message-Id: <1136585258435@kroah.com>
+Subject: [lm-sensors] [PATCH] i2c: i2c-nforce2 add nforce4 MCP-04 device ID
+Message-Id: <11365852582543@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: i2c-mv64xxx fix transaction abortion
+[PATCH] i2c: i2c-nforce2 add nforce4 MCP-04 device ID
 
-When the i2c-mv64xxx i2c driver is signalled to abort a transaction,
-it aborts it immediately by issuing a stop condition on the bus.
-This violates the i2c protocol and can cause what appears to be an i2c
-bus hang.  This patch delays issuing the stop condition until the i2c
-device can reasonably expect a stop condition.
+One more supported PCI ID for the i2c-nforce2 driver.
 
-Also includes a minor fixup.
-
-Signed-off-by: Mark A. Greer <mgreer at mvista.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
-commit e91c021c487110386a07facd0396e6c3b7cf9c1f
-tree 50cd2a5ab8bba9711dd0185e3d232e323e8d6c39
-parent 7c72ccf09b6debe55b8e049377ad3183ed4f4cb3
-author Mark A. Greer <mgreer at mvista.com> Sun, 18 Dec 2005 17:22:01 +0100
+commit 7c72ccf09b6debe55b8e049377ad3183ed4f4cb3
+tree d9a4cfd4074c90a7ea1565449c304dcde8693c32
+parent a4787c0d232e16e727b37205dc647337b8974f35
+author Jean Delvare <khali at linux-fr.org> Sun, 18 Dec 2005 17:25:18 +0100
 committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:27 -0800
 
- drivers/i2c/busses/i2c-mv64xxx.c |   33 +++++++++++++++------------------
- 1 files changed, 15 insertions(+), 18 deletions(-)
+ Documentation/i2c/busses/i2c-nforce2 |    3 ++-
+ drivers/i2c/busses/i2c-nforce2.c     |    2 ++
+ include/linux/pci_ids.h              |    1 +
+ 3 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
-index 81031eb..22781d8 100644
---- a/drivers/i2c/busses/i2c-mv64xxx.c
-+++ b/drivers/i2c/busses/i2c-mv64xxx.c
-@@ -1,6 +1,4 @@
- /*
-- * drivers/i2c/busses/i2c-mv64xxx.c
-- * 
-  * Driver for the i2c controller on the Marvell line of host bridges for MIPS
-  * and PPC (e.g, gt642[46]0, mv643[46]0, mv644[46]0).
-  *
-@@ -65,7 +63,6 @@ enum {
- 	MV64XXX_I2C_STATE_WAITING_FOR_ADDR_2_ACK,
- 	MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_ACK,
- 	MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_DATA,
--	MV64XXX_I2C_STATE_ABORTING,
+diff --git a/Documentation/i2c/busses/i2c-nforce2 b/Documentation/i2c/busses/i2c-nforce2
+index e379e18..d751282 100644
+--- a/Documentation/i2c/busses/i2c-nforce2
++++ b/Documentation/i2c/busses/i2c-nforce2
+@@ -5,7 +5,8 @@ Supported adapters:
+   * nForce2 Ultra 400 MCP      10de:0084 
+   * nForce3 Pro150 MCP         10de:00D4 
+   * nForce3 250Gb MCP          10de:00E4 
+-  * nForce4 MCP	       	       10de:0052
++  * nForce4 MCP                10de:0052
++  * nForce4 MCP-04             10de:0034
+ 
+ Datasheet: not publically available, but seems to be similar to the
+            AMD-8111 SMBus 2.0 adapter.
+diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
+index 4d18e6e..2d80eb2 100644
+--- a/drivers/i2c/busses/i2c-nforce2.c
++++ b/drivers/i2c/busses/i2c-nforce2.c
+@@ -30,6 +30,7 @@
+     nForce3 Pro150 MCP		00D4
+     nForce3 250Gb MCP		00E4
+     nForce4 MCP			0052
++    nForce4 MCP-04		0034
+ 
+     This driver supports the 2 SMBuses that are included in the MCP of the
+     nForce2/3/4 chipsets.
+@@ -257,6 +258,7 @@ static struct pci_device_id nforce2_ids[
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3_SMBUS) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3S_SMBUS) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE4_SMBUS) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SMBUS) },
+ 	{ 0 }
  };
  
- /* Driver actions */
-@@ -85,6 +82,7 @@ struct mv64xxx_i2c_data {
- 	int			irq;
- 	u32			state;
- 	u32			action;
-+	u32			aborting;
- 	u32			cntl_bits;
- 	void __iomem		*reg_base;
- 	u32			reg_base_p;
-@@ -122,12 +120,6 @@ mv64xxx_i2c_fsm(struct mv64xxx_i2c_data 
- 		return;
- 	}
- 
--	if (drv_data->state = MV64XXX_I2C_STATE_ABORTING) {
--		drv_data->action = MV64XXX_I2C_ACTION_SEND_STOP;
--		drv_data->state = MV64XXX_I2C_STATE_IDLE;
--		return;
--	}
--
- 	/* The status from the ctlr [mostly] tells us what to do next */
- 	switch (status) {
- 	/* Start condition interrupt */
-@@ -148,14 +140,16 @@ mv64xxx_i2c_fsm(struct mv64xxx_i2c_data 
- 		/* FALLTHRU */
- 	case MV64XXX_I2C_STATUS_MAST_WR_ADDR_2_ACK: /* 0xd0 */
- 	case MV64XXX_I2C_STATUS_MAST_WR_ACK: /* 0x28 */
--		if (drv_data->bytes_left > 0) {
-+		if ((drv_data->bytes_left = 0)
-+				|| (drv_data->aborting
-+					&& (drv_data->byte_posn != 0))) {
-+			drv_data->action = MV64XXX_I2C_ACTION_SEND_STOP;
-+			drv_data->state = MV64XXX_I2C_STATE_IDLE;
-+		} else {
- 			drv_data->action = MV64XXX_I2C_ACTION_SEND_DATA;
- 			drv_data->state  				MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_ACK;
- 			drv_data->bytes_left--;
--		} else {
--			drv_data->action = MV64XXX_I2C_ACTION_SEND_STOP;
--			drv_data->state = MV64XXX_I2C_STATE_IDLE;
- 		}
- 		break;
- 
-@@ -184,7 +178,7 @@ mv64xxx_i2c_fsm(struct mv64xxx_i2c_data 
- 		}
- 		drv_data->state = MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_DATA;
- 
--		if (drv_data->bytes_left = 1)
-+		if ((drv_data->bytes_left = 1) || drv_data->aborting)
- 			drv_data->cntl_bits &= ~MV64XXX_I2C_REG_CONTROL_ACK;
- 		break;
- 
-@@ -320,6 +314,7 @@ mv64xxx_i2c_prepare_for_io(struct mv64xx
- 	drv_data->msg = msg;
- 	drv_data->byte_posn = 0;
- 	drv_data->bytes_left = msg->len;
-+	drv_data->aborting = 0;
- 	drv_data->rc = 0;
- 	drv_data->cntl_bits = MV64XXX_I2C_REG_CONTROL_ACK |
- 		MV64XXX_I2C_REG_CONTROL_INTEN | MV64XXX_I2C_REG_CONTROL_TWSIEN;
-@@ -359,17 +354,19 @@ mv64xxx_i2c_wait_for_completion(struct m
- 	}
- 
- 	if (abort && drv_data->block) {
--		drv_data->state = MV64XXX_I2C_STATE_ABORTING;
-+		drv_data->aborting = 1;
- 		spin_unlock_irqrestore(&drv_data->lock, flags);
- 
- 		time_left = wait_event_timeout(drv_data->waitq,
- 			!drv_data->block,
- 			msecs_to_jiffies(drv_data->adapter.timeout));
- 
--		if (time_left <= 0) {
-+		if ((time_left <= 0) && drv_data->block) {
- 			drv_data->state = MV64XXX_I2C_STATE_IDLE;
- 			dev_err(&drv_data->adapter.dev,
--				"mv64xxx: I2C bus locked\n");
-+				"mv64xxx: I2C bus locked, block: %d, "
-+				"time_left: %d\n", drv_data->block,
-+				(int)time_left);
- 		}
- 	} else
- 		spin_unlock_irqrestore(&drv_data->lock, flags);
-@@ -510,7 +507,7 @@ mv64xxx_i2c_probe(struct platform_device
- 		goto exit_kfree;
- 	}
- 
--	strncpy(drv_data->adapter.name, MV64XXX_I2C_CTLR_NAME " adapter",
-+	strlcpy(drv_data->adapter.name, MV64XXX_I2C_CTLR_NAME " adapter",
- 		I2C_NAME_SIZE);
- 
- 	init_waitqueue_head(&drv_data->waitq);
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index 4f01710..96a0403 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -976,6 +976,7 @@
+ #define PCI_DEVICE_ID_NVIDIA_TNT_UNKNOWN        0x002a
+ #define PCI_DEVICE_ID_NVIDIA_VTNT2		0x002C
+ #define PCI_DEVICE_ID_NVIDIA_UVTNT2		0x002D
++#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SMBUS	0x0034
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_IDE	0x0035
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SATA	0x0036
+ #define PCI_DEVICE_ID_NVIDIA_NVENET_10		0x0037
 
 
