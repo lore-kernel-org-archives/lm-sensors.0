@@ -1,454 +1,822 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:35 +0000
-Subject: [lm-sensors] [PATCH] i2c: Rework client usage count, 2 of 3
-Message-Id: <1136585255392@kroah.com>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Fri, 06 Jan 2006 17:39:14 +0000
+Subject: [lm-sensors] [-mm patch] remove drivers/w1/dscore.c
+Message-Id: <20060106173914.GS12131@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <11365852552960@kroah.com>
-In-Reply-To: <11365852552960@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: johnpol@2ka.mipt.ru, gregkh@suse.de
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-[PATCH] i2c: Rework client usage count, 2 of 3
+drivers/w1/masters/dscore.c was created but drivers/w1/dscore.c wasn't 
+removed.
 
-Make I2C_CLIENT_ALLOW_USE the default for all i2c clients. It doesn't
-hurt if the usage count is actually never used for any given driver,
-and allows for nice code simplifications in i2c-core.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+Signed-off-by: Adrian Bunk <bunk at stusta.de>
 
 ---
-commit cde7859bda0d1124392b44e50aa11df99707e1d9
-tree c852e7ff9b44b5e59f6ae75951514585f0ff10d9
-parent cb748fb20186d4b345c68a7f580429f379fdd268
-author Jean Delvare <khali at linux-fr.org> Sat, 26 Nov 2005 21:00:54 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:22 -0800
 
- arch/arm/mach-pxa/akita-ioexp.c            |    1 -
- drivers/i2c/chips/rtc8564.c                |    1 -
- drivers/i2c/i2c-core.c                     |   28 ++++++++++------------------
- drivers/media/video/adv7170.c              |    1 -
- drivers/media/video/adv7175.c              |    1 -
- drivers/media/video/bt819.c                |    1 -
- drivers/media/video/bt832.c                |    1 -
- drivers/media/video/bt856.c                |    1 -
- drivers/media/video/cs53l32a.c             |    1 -
- drivers/media/video/cx25840/cx25840-core.c |    1 -
- drivers/media/video/em28xx/em28xx-i2c.c    |    1 -
- drivers/media/video/msp3400.c              |    1 -
- drivers/media/video/saa6588.c              |    1 -
- drivers/media/video/saa7110.c              |    1 -
- drivers/media/video/saa7111.c              |    1 -
- drivers/media/video/saa7114.c              |    1 -
- drivers/media/video/saa7115.c              |    1 -
- drivers/media/video/saa711x.c              |    1 -
- drivers/media/video/saa7127.c              |    1 -
- drivers/media/video/saa7134/saa6752hs.c    |    1 -
- drivers/media/video/saa7185.c              |    1 -
- drivers/media/video/tda9887.c              |    1 -
- drivers/media/video/tuner-core.c           |    1 -
- drivers/media/video/tvaudio.c              |    1 -
- drivers/media/video/tveeprom.c             |    1 -
- drivers/media/video/tvp5150.c              |    1 -
- drivers/media/video/vpx3220.c              |    1 -
- drivers/media/video/wm8775.c               |    1 -
- include/linux/i2c.h                        |    1 -
- 29 files changed, 10 insertions(+), 46 deletions(-)
+ drivers/w1/dscore.c |  795 --------------------------------------------
+ 1 file changed, 795 deletions(-)
 
-diff --git a/arch/arm/mach-pxa/akita-ioexp.c b/arch/arm/mach-pxa/akita-ioexp.c
-index 440ebb3..b6bff55 100644
---- a/arch/arm/mach-pxa/akita-ioexp.c
-+++ b/arch/arm/mach-pxa/akita-ioexp.c
-@@ -133,7 +133,6 @@ static struct i2c_driver max7310_i2c_dri
- 
- static struct i2c_client max7310_template = {
- 	name:   "akita-max7310",
--	flags:  I2C_CLIENT_ALLOW_USE,
- 	driver: &max7310_i2c_driver,
- };
- 
-diff --git a/drivers/i2c/chips/rtc8564.c b/drivers/i2c/chips/rtc8564.c
-index e586f75..07494d3 100644
---- a/drivers/i2c/chips/rtc8564.c
-+++ b/drivers/i2c/chips/rtc8564.c
-@@ -155,7 +155,6 @@ static int rtc8564_attach(struct i2c_ada
- 
- 	strlcpy(new_client->name, "RTC8564", I2C_NAME_SIZE);
- 	i2c_set_clientdata(new_client, d);
--	new_client->flags = I2C_CLIENT_ALLOW_USE;
- 	new_client->addr = addr;
- 	new_client->adapter = adap;
- 	new_client->driver = &rtc8564_driver;
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 2f0bc95..d16b499 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -419,8 +419,7 @@ int i2c_attach_client(struct i2c_client 
- 		}
- 	}
- 
--	if (client->flags & I2C_CLIENT_ALLOW_USE)
--		client->usage_count = 0;
-+	client->usage_count = 0;
- 
- 	client->dev.parent = &client->adapter->dev;
- 	client->dev.driver = &client->driver->driver;
-@@ -443,8 +442,7 @@ int i2c_detach_client(struct i2c_client 
- 	struct i2c_adapter *adapter = client->adapter;
- 	int res = 0;
- 	
--	if ((client->flags & I2C_CLIENT_ALLOW_USE)
--	 && (client->usage_count > 0)) {
-+	if (client->usage_count > 0) {
- 		dev_warn(&client->dev, "Client [%s] still busy, "
- 			 "can't detach\n", client->name);
- 		return -EBUSY;
-@@ -499,12 +497,9 @@ int i2c_use_client(struct i2c_client *cl
- 	if (ret)
- 		return ret;
- 
--	if (client->flags & I2C_CLIENT_ALLOW_USE) {
--		if (client->usage_count > 0)
--			goto busy;
--		else 
--			client->usage_count++;
+--- linux-2.6.15-mm1-full/drivers/w1/dscore.c	2006-01-05 15:55:12.000000000 +0100
++++ /dev/null	2005-11-08 19:07:57.000000000 +0100
+@@ -1,795 +0,0 @@
+-/*
+- *	dscore.c
+- *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol at 2ka.mipt.ru>
+- *
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/mod_devicetable.h>
+-#include <linux/usb.h>
+-
+-#include "dscore.h"
+-
+-static struct usb_device_id ds_id_table [] = {
+-	{ USB_DEVICE(0x04fa, 0x2490) },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(usb, ds_id_table);
+-
+-static int ds_probe(struct usb_interface *, const struct usb_device_id *);
+-static void ds_disconnect(struct usb_interface *);
+-
+-int ds_touch_bit(struct ds_device *, u8, u8 *);
+-int ds_read_byte(struct ds_device *, u8 *);
+-int ds_read_bit(struct ds_device *, u8 *);
+-int ds_write_byte(struct ds_device *, u8);
+-int ds_write_bit(struct ds_device *, u8);
+-static int ds_start_pulse(struct ds_device *, int);
+-int ds_reset(struct ds_device *, struct ds_status *);
+-struct ds_device * ds_get_device(void);
+-void ds_put_device(struct ds_device *);
+-
+-static inline void ds_dump_status(unsigned char *, unsigned char *, int);
+-static int ds_send_control(struct ds_device *, u16, u16);
+-static int ds_send_control_mode(struct ds_device *, u16, u16);
+-static int ds_send_control_cmd(struct ds_device *, u16, u16);
+-
+-
+-static struct usb_driver ds_driver = {
+-	.name =		"DS9490R",
+-	.probe =	ds_probe,
+-	.disconnect =	ds_disconnect,
+-	.id_table =	ds_id_table,
+-};
+-
+-static struct ds_device *ds_dev;
+-
+-struct ds_device * ds_get_device(void)
+-{
+-	if (ds_dev)
+-		atomic_inc(&ds_dev->refcnt);
+-	return ds_dev;
+-}
+-
+-void ds_put_device(struct ds_device *dev)
+-{
+-	atomic_dec(&dev->refcnt);
+-}
+-
+-static int ds_send_control_cmd(struct ds_device *dev, u16 value, u16 index)
+-{
+-	int err;
+-
+-	err = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, dev->ep[EP_CONTROL]),
+-			CONTROL_CMD, 0x40, value, index, NULL, 0, 1000);
+-	if (err < 0) {
+-		printk(KERN_ERR "Failed to send command control message %x.%x: err=%d.\n",
+-				value, index, err);
+-		return err;
 -	}
-+	if (client->usage_count > 0)
-+		goto busy;
-+	client->usage_count++;
- 
- 	return 0;
-  busy:
-@@ -514,16 +509,13 @@ int i2c_use_client(struct i2c_client *cl
- 
- int i2c_release_client(struct i2c_client *client)
- {
--	if(client->flags & I2C_CLIENT_ALLOW_USE) {
--		if(client->usage_count>0)
--			client->usage_count--;
--		else {
--			pr_debug("i2c-core: %s used one too many times\n",
--				__FUNCTION__);
--			return -EPERM;
+-
+-	return err;
+-}
+-
+-static int ds_send_control_mode(struct ds_device *dev, u16 value, u16 index)
+-{
+-	int err;
+-
+-	err = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, dev->ep[EP_CONTROL]),
+-			MODE_CMD, 0x40, value, index, NULL, 0, 1000);
+-	if (err < 0) {
+-		printk(KERN_ERR "Failed to send mode control message %x.%x: err=%d.\n",
+-				value, index, err);
+-		return err;
+-	}
+-
+-	return err;
+-}
+-
+-static int ds_send_control(struct ds_device *dev, u16 value, u16 index)
+-{
+-	int err;
+-
+-	err = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, dev->ep[EP_CONTROL]),
+-			COMM_CMD, 0x40, value, index, NULL, 0, 1000);
+-	if (err < 0) {
+-		printk(KERN_ERR "Failed to send control message %x.%x: err=%d.\n",
+-				value, index, err);
+-		return err;
+-	}
+-
+-	return err;
+-}
+-
+-static inline void ds_dump_status(unsigned char *buf, unsigned char *str, int off)
+-{
+-	printk("%45s: %8x\n", str, buf[off]);
+-}
+-
+-static int ds_recv_status_nodump(struct ds_device *dev, struct ds_status *st,
+-				 unsigned char *buf, int size)
+-{
+-	int count, err;
+-
+-	memset(st, 0, sizeof(st));
+-
+-	count = 0;
+-	err = usb_bulk_msg(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_STATUS]), buf, size, &count, 100);
+-	if (err < 0) {
+-		printk(KERN_ERR "Failed to read 1-wire data from 0x%x: err=%d.\n", dev->ep[EP_STATUS], err);
+-		return err;
+-	}
+-
+-	if (count >= sizeof(*st))
+-		memcpy(st, buf, sizeof(*st));
+-
+-	return count;
+-}
+-
+-static int ds_recv_status(struct ds_device *dev, struct ds_status *st)
+-{
+-	unsigned char buf[64];
+-	int count, err = 0, i;
+-
+-	memcpy(st, buf, sizeof(*st));
+-
+-	count = ds_recv_status_nodump(dev, st, buf, sizeof(buf));
+-	if (count < 0)
+-		return err;
+-
+-	printk("0x%x: count=%d, status: ", dev->ep[EP_STATUS], count);
+-	for (i=0; i<count; ++i)
+-		printk("%02x ", buf[i]);
+-	printk("\n");
+-
+-	if (count >= 16) {
+-		ds_dump_status(buf, "enable flag", 0);
+-		ds_dump_status(buf, "1-wire speed", 1);
+-		ds_dump_status(buf, "strong pullup duration", 2);
+-		ds_dump_status(buf, "programming pulse duration", 3);
+-		ds_dump_status(buf, "pulldown slew rate control", 4);
+-		ds_dump_status(buf, "write-1 low time", 5);
+-		ds_dump_status(buf, "data sample offset/write-0 recovery time", 6);
+-		ds_dump_status(buf, "reserved (test register)", 7);
+-		ds_dump_status(buf, "device status flags", 8);
+-		ds_dump_status(buf, "communication command byte 1", 9);
+-		ds_dump_status(buf, "communication command byte 2", 10);
+-		ds_dump_status(buf, "communication command buffer status", 11);
+-		ds_dump_status(buf, "1-wire data output buffer status", 12);
+-		ds_dump_status(buf, "1-wire data input buffer status", 13);
+-		ds_dump_status(buf, "reserved", 14);
+-		ds_dump_status(buf, "reserved", 15);
+-	}
+-
+-	memcpy(st, buf, sizeof(*st));
+-
+-	if (st->status & ST_EPOF) {
+-		printk(KERN_INFO "Resetting device after ST_EPOF.\n");
+-		err = ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
+-		if (err)
+-			return err;
+-		count = ds_recv_status_nodump(dev, st, buf, sizeof(buf));
+-		if (count < 0)
+-			return err;
+-	}
+-#if 0
+-	if (st->status & ST_IDLE) {
+-		printk(KERN_INFO "Resetting pulse after ST_IDLE.\n");
+-		err = ds_start_pulse(dev, PULLUP_PULSE_DURATION);
+-		if (err)
+-			return err;
+-	}
+-#endif
+-
+-	return err;
+-}
+-
+-static int ds_recv_data(struct ds_device *dev, unsigned char *buf, int size)
+-{
+-	int count, err;
+-	struct ds_status st;
+-
+-	count = 0;
+-	err = usb_bulk_msg(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_DATA_IN]),
+-				buf, size, &count, 1000);
+-	if (err < 0) {
+-		printk(KERN_INFO "Clearing ep0x%x.\n", dev->ep[EP_DATA_IN]);
+-		usb_clear_halt(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_DATA_IN]));
+-		ds_recv_status(dev, &st);
+-		return err;
+-	}
+-
+-#if 0
+-	{
+-		int i;
+-
+-		printk("%s: count=%d: ", __func__, count);
+-		for (i=0; i<count; ++i)
+-			printk("%02x ", buf[i]);
+-		printk("\n");
+-	}
+-#endif
+-	return count;
+-}
+-
+-static int ds_send_data(struct ds_device *dev, unsigned char *buf, int len)
+-{
+-	int count, err;
+-
+-	count = 0;
+-	err = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, dev->ep[EP_DATA_OUT]), buf, len, &count, 1000);
+-	if (err < 0) {
+-		printk(KERN_ERR "Failed to read 1-wire data from 0x02: err=%d.\n", err);
+-		return err;
+-	}
+-
+-	return err;
+-}
+-
+-#if 0
+-
+-int ds_stop_pulse(struct ds_device *dev, int limit)
+-{
+-	struct ds_status st;
+-	int count = 0, err = 0;
+-	u8 buf[0x20];
+-
+-	do {
+-		err = ds_send_control(dev, CTL_HALT_EXE_IDLE, 0);
+-		if (err)
+-			break;
+-		err = ds_send_control(dev, CTL_RESUME_EXE, 0);
+-		if (err)
+-			break;
+-		err = ds_recv_status_nodump(dev, &st, buf, sizeof(buf));
+-		if (err)
+-			break;
+-
+-		if ((st.status & ST_SPUA) = 0) {
+-			err = ds_send_control_mode(dev, MOD_PULSE_EN, 0);
+-			if (err)
+-				break;
 -		}
-+	if (!client->usage_count) {
-+		pr_debug("i2c-core: %s used one too many times\n",
-+			 __FUNCTION__);
-+		return -EPERM;
- 	}
- 	
-+	client->usage_count--;
- 	i2c_dec_use_client(client);
- 	
- 	return 0;
-diff --git a/drivers/media/video/adv7170.c b/drivers/media/video/adv7170.c
-index c4f2265..622b161 100644
---- a/drivers/media/video/adv7170.c
-+++ b/drivers/media/video/adv7170.c
-@@ -420,7 +420,6 @@ adv7170_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_adv7170;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	if ((client->addr = I2C_ADV7170 >> 1) ||
- 	    (client->addr = (I2C_ADV7170 >> 1) + 1)) {
- 		dname = adv7170_name;
-diff --git a/drivers/media/video/adv7175.c b/drivers/media/video/adv7175.c
-index 4fc08b1..d4859b4 100644
---- a/drivers/media/video/adv7175.c
-+++ b/drivers/media/video/adv7175.c
-@@ -470,7 +470,6 @@ adv7175_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_adv7175;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	if ((client->addr = I2C_ADV7175 >> 1) ||
- 	    (client->addr = (I2C_ADV7175 >> 1) + 1)) {
- 		dname = adv7175_name;
-diff --git a/drivers/media/video/bt819.c b/drivers/media/video/bt819.c
-index 7bba697..741e59a 100644
---- a/drivers/media/video/bt819.c
-+++ b/drivers/media/video/bt819.c
-@@ -535,7 +535,6 @@ bt819_detect_client (struct i2c_adapter 
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_bt819;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 
- 	decoder = kmalloc(sizeof(struct bt819), GFP_KERNEL);
- 	if (decoder = NULL) {
-diff --git a/drivers/media/video/bt832.c b/drivers/media/video/bt832.c
-index 0ba8652..4ed1386 100644
---- a/drivers/media/video/bt832.c
-+++ b/drivers/media/video/bt832.c
-@@ -240,7 +240,6 @@ static struct i2c_driver driver = {
- static struct i2c_client client_template  {
- 	.name       = "bt832",
--	.flags      = I2C_CLIENT_ALLOW_USE,
- 	.driver     = &driver,
- };
- 
-diff --git a/drivers/media/video/bt856.c b/drivers/media/video/bt856.c
-index 4c9acd1..d4bba8e 100644
---- a/drivers/media/video/bt856.c
-+++ b/drivers/media/video/bt856.c
-@@ -323,7 +323,6 @@ bt856_detect_client (struct i2c_adapter 
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_bt856;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	strlcpy(I2C_NAME(client), "bt856", sizeof(I2C_NAME(client)));
- 
- 	encoder = kmalloc(sizeof(struct bt856), GFP_KERNEL);
-diff --git a/drivers/media/video/cs53l32a.c b/drivers/media/video/cs53l32a.c
-index fce5d89..f442ce3 100644
---- a/drivers/media/video/cs53l32a.c
-+++ b/drivers/media/video/cs53l32a.c
-@@ -154,7 +154,6 @@ static int cs53l32a_attach(struct i2c_ad
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	snprintf(client->name, sizeof(client->name) - 1, "cs53l32a");
- 
- 	cs53l32a_info("chip found @ 0x%x (%s)\n", address << 1, adapter->name);
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index c66bc14..0b278ab 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -773,7 +773,6 @@ static int cx25840_detect_client(struct 
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_cx25840;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	snprintf(client->name, sizeof(client->name) - 1, "cx25840");
- 
- 	cx25840_dbg("detecting cx25840 client on address 0x%x\n", address << 1);
-diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
-index 7f56030..d14bcf4 100644
---- a/drivers/media/video/em28xx/em28xx-i2c.c
-+++ b/drivers/media/video/em28xx/em28xx-i2c.c
-@@ -497,7 +497,6 @@ static struct i2c_adapter em28xx_adap_te
- 
- static struct i2c_client em28xx_client_template = {
- 	.name = "em28xx internal",
--	.flags = I2C_CLIENT_ALLOW_USE,
- };
- 
- /* ----------------------------------------------------------- */
-diff --git a/drivers/media/video/msp3400.c b/drivers/media/video/msp3400.c
-index 46328fb..c5e8ad3 100644
---- a/drivers/media/video/msp3400.c
-+++ b/drivers/media/video/msp3400.c
-@@ -1576,7 +1576,6 @@ static struct i2c_driver driver = {
- static struct i2c_client client_template  {
- 	.name      = "(unset)",
--	.flags     = I2C_CLIENT_ALLOW_USE,
- 	.driver    = &driver,
- };
- 
-diff --git a/drivers/media/video/saa6588.c b/drivers/media/video/saa6588.c
-index 18a0b71..3d4076c 100644
---- a/drivers/media/video/saa6588.c
-+++ b/drivers/media/video/saa6588.c
-@@ -505,7 +505,6 @@ static struct i2c_driver driver = {
- 
- static struct i2c_client client_template = {
- 	.name = "saa6588",
--	.flags = I2C_CLIENT_ALLOW_USE,
- 	.driver = &driver,
- };
- 
-diff --git a/drivers/media/video/saa7110.c b/drivers/media/video/saa7110.c
-index f266b35..8affa63 100644
---- a/drivers/media/video/saa7110.c
-+++ b/drivers/media/video/saa7110.c
-@@ -501,7 +501,6 @@ saa7110_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa7110;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	strlcpy(I2C_NAME(client), "saa7110", sizeof(I2C_NAME(client)));
- 
- 	decoder = kmalloc(sizeof(struct saa7110), GFP_KERNEL);
-diff --git a/drivers/media/video/saa7111.c b/drivers/media/video/saa7111.c
-index 687beaf..2b22045 100644
---- a/drivers/media/video/saa7111.c
-+++ b/drivers/media/video/saa7111.c
-@@ -518,7 +518,6 @@ saa7111_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa7111;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	strlcpy(I2C_NAME(client), "saa7111", sizeof(I2C_NAME(client)));
- 
- 	decoder = kmalloc(sizeof(struct saa7111), GFP_KERNEL);
-diff --git a/drivers/media/video/saa7114.c b/drivers/media/video/saa7114.c
-index 4748cf0..285f6c7 100644
---- a/drivers/media/video/saa7114.c
-+++ b/drivers/media/video/saa7114.c
-@@ -859,7 +859,6 @@ saa7114_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa7114;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	strlcpy(I2C_NAME(client), "saa7114", sizeof(I2C_NAME(client)));
- 
- 	decoder = kmalloc(sizeof(struct saa7114), GFP_KERNEL);
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index b1079de..79aadd2 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -1270,7 +1270,6 @@ static int saa7115_attach(struct i2c_ada
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa7115;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	snprintf(client->name, sizeof(client->name) - 1, "saa7115");
- 
- 	saa7115_dbg("detecting saa7115 client on address 0x%x\n", address << 1);
-diff --git a/drivers/media/video/saa711x.c b/drivers/media/video/saa711x.c
-index 734a709..44bfc04 100644
---- a/drivers/media/video/saa711x.c
-+++ b/drivers/media/video/saa711x.c
-@@ -494,7 +494,6 @@ saa711x_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa711x;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	strlcpy(I2C_NAME(client), "saa711x", sizeof(I2C_NAME(client)));
- 	decoder = kmalloc(sizeof(struct saa711x), GFP_KERNEL);
- 	if (decoder = NULL) {
-diff --git a/drivers/media/video/saa7127.c b/drivers/media/video/saa7127.c
-index a2fab98..1f4b415 100644
---- a/drivers/media/video/saa7127.c
-+++ b/drivers/media/video/saa7127.c
-@@ -719,7 +719,6 @@ static int saa7127_attach(struct i2c_ada
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa7127;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	snprintf(client->name, sizeof(client->name) - 1, "saa7127");
- 
- 	saa7127_dbg("detecting saa7127 client on address 0x%x\n", address << 1);
-diff --git a/drivers/media/video/saa7134/saa6752hs.c b/drivers/media/video/saa7134/saa6752hs.c
-index 6fc298e..6820606 100644
---- a/drivers/media/video/saa7134/saa6752hs.c
-+++ b/drivers/media/video/saa7134/saa6752hs.c
-@@ -608,7 +608,6 @@ static struct i2c_driver driver = {
- static struct i2c_client client_template  {
- 	.name       = "saa6752hs",
--	.flags      = I2C_CLIENT_ALLOW_USE,
- 	.driver     = &driver,
- };
- 
-diff --git a/drivers/media/video/saa7185.c b/drivers/media/video/saa7185.c
-index e24aa16..9f37585 100644
---- a/drivers/media/video/saa7185.c
-+++ b/drivers/media/video/saa7185.c
-@@ -415,7 +415,6 @@ saa7185_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_saa7185;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	strlcpy(I2C_NAME(client), "saa7185", sizeof(I2C_NAME(client)));
- 
- 	encoder = kmalloc(sizeof(struct saa7185), GFP_KERNEL);
-diff --git a/drivers/media/video/tda9887.c b/drivers/media/video/tda9887.c
-index 049b44e..324f61b 100644
---- a/drivers/media/video/tda9887.c
-+++ b/drivers/media/video/tda9887.c
-@@ -833,7 +833,6 @@ static struct i2c_driver driver = {
- static struct i2c_client client_template  {
- 	.name      = "tda9887",
--	.flags     = I2C_CLIENT_ALLOW_USE,
- 	.driver    = &driver,
- };
- 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 3c75121..6328f09 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -755,7 +755,6 @@ static struct i2c_driver driver = {
- };
- static struct i2c_client client_template = {
- 	.name = "(tuner unset)",
--	.flags = I2C_CLIENT_ALLOW_USE,
- 	.driver = &driver,
- };
- 
-diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
-index 3565f35..4f1f339 100644
---- a/drivers/media/video/tvaudio.c
-+++ b/drivers/media/video/tvaudio.c
-@@ -1713,7 +1713,6 @@ static struct i2c_driver driver = {
- static struct i2c_client client_template  {
- 	.name       = "(unset)",
--	.flags      = I2C_CLIENT_ALLOW_USE,
- 	.driver     = &driver,
- };
- 
-diff --git a/drivers/media/video/tveeprom.c b/drivers/media/video/tveeprom.c
-index 195bc51..d833b65 100644
---- a/drivers/media/video/tveeprom.c
-+++ b/drivers/media/video/tveeprom.c
-@@ -751,7 +751,6 @@ tveeprom_detect_client(struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver_tveeprom;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	snprintf(client->name, sizeof(client->name), "tveeprom");
- 	i2c_attach_client(client);
- 
-diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
-index 4f3ee20..3734554 100644
---- a/drivers/media/video/tvp5150.c
-+++ b/drivers/media/video/tvp5150.c
-@@ -714,7 +714,6 @@ static struct i2c_driver driver;
- 
- static struct i2c_client client_template = {
- 	.name = "(unset)",
--	.flags = I2C_CLIENT_ALLOW_USE,
- 	.driver = &driver,
- };
- 
-diff --git a/drivers/media/video/vpx3220.c b/drivers/media/video/vpx3220.c
-index c66d285..54bc888 100644
---- a/drivers/media/video/vpx3220.c
-+++ b/drivers/media/video/vpx3220.c
-@@ -631,7 +631,6 @@ vpx3220_detect_client (struct i2c_adapte
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &vpx3220_i2c_driver;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 
- 	/* Check for manufacture ID and part number */
- 	if (kind < 0) {
-diff --git a/drivers/media/video/wm8775.c b/drivers/media/video/wm8775.c
-index 7b07717..527c259 100644
---- a/drivers/media/video/wm8775.c
-+++ b/drivers/media/video/wm8775.c
-@@ -168,7 +168,6 @@ static int wm8775_attach(struct i2c_adap
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &i2c_driver;
--	client->flags = I2C_CLIENT_ALLOW_USE;
- 	snprintf(client->name, sizeof(client->name) - 1, "wm8775");
- 
- 	wm8775_info("chip found @ 0x%x (%s)\n", address << 1, adapter->name);
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 4487c51..8b4d469 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -250,7 +250,6 @@ static inline void i2c_set_adapdata (str
- }
- 
- /*flags for the client struct: */
--#define I2C_CLIENT_ALLOW_USE		0x01	/* Client allows access */
- #define I2C_CLIENT_PEC  0x04			/* Use Packet Error Checking */
- #define I2C_CLIENT_TEN	0x10			/* we have a ten bit chip address	*/
- 						/* Must equal I2C_M_TEN below */
+-	} while(++count < limit);
+-
+-	return err;
+-}
+-
+-int ds_detect(struct ds_device *dev, struct ds_status *st)
+-{
+-	int err;
+-
+-	err = ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
+-	if (err)
+-		return err;
+-
+-	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, 0);
+-	if (err)
+-		return err;
+-
+-	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM | COMM_TYPE, 0x40);
+-	if (err)
+-		return err;
+-
+-	err = ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_PROG);
+-	if (err)
+-		return err;
+-
+-	err = ds_recv_status(dev, st);
+-
+-	return err;
+-}
+-
+-#endif  /*  0  */
+-
+-static int ds_wait_status(struct ds_device *dev, struct ds_status *st)
+-{
+-	u8 buf[0x20];
+-	int err, count = 0;
+-
+-	do {
+-		err = ds_recv_status_nodump(dev, st, buf, sizeof(buf));
+-#if 0
+-		if (err >= 0) {
+-			int i;
+-			printk("0x%x: count=%d, status: ", dev->ep[EP_STATUS], err);
+-			for (i=0; i<err; ++i)
+-				printk("%02x ", buf[i]);
+-			printk("\n");
+-		}
+-#endif
+-	} while(!(buf[0x08] & 0x20) && !(err < 0) && ++count < 100);
+-
+-
+-	if (((err > 16) && (buf[0x10] & 0x01)) || count >= 100 || err < 0) {
+-		ds_recv_status(dev, st);
+-		return -1;
+-	} else
+-		return 0;
+-}
+-
+-int ds_reset(struct ds_device *dev, struct ds_status *st)
+-{
+-	int err;
+-
+-	//err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_F | COMM_IM | COMM_SE, SPEED_FLEXIBLE);
+-	err = ds_send_control(dev, 0x43, SPEED_NORMAL);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, st);
+-#if 0
+-	if (st->command_buffer_status) {
+-		printk(KERN_INFO "Short circuit.\n");
+-		return -EIO;
+-	}
+-#endif
+-	
+-	return 0;
+-}
+-
+-#if 0
+-int ds_set_speed(struct ds_device *dev, int speed)
+-{
+-	int err;
+-	
+-	if (speed != SPEED_NORMAL && speed != SPEED_FLEXIBLE && speed != SPEED_OVERDRIVE)
+-		return -EINVAL;
+-
+-	if (speed != SPEED_OVERDRIVE)
+-		speed = SPEED_FLEXIBLE;
+-
+-	speed &= 0xff;
+-
+-	err = ds_send_control_mode(dev, MOD_1WIRE_SPEED, speed);
+-	if (err)
+-		return err;
+-
+-	return err;
+-}
+-#endif  /*  0  */
+-
+-static int ds_start_pulse(struct ds_device *dev, int delay)
+-{
+-	int err;
+-	u8 del = 1 + (u8)(delay >> 4);
+-	struct ds_status st;
+-
+-#if 0
+-	err = ds_stop_pulse(dev, 10);
+-	if (err)
+-		return err;
+-
+-	err = ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE);
+-	if (err)
+-		return err;
+-#endif
+-	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
+-	if (err)
+-		return err;
+-
+-	err = ds_send_control(dev, COMM_PULSE | COMM_IM | COMM_F, 0);
+-	if (err)
+-		return err;
+-
+-	mdelay(delay);
+-
+-	ds_wait_status(dev, &st);
+-
+-	return err;
+-}
+-
+-int ds_touch_bit(struct ds_device *dev, u8 bit, u8 *tbit)
+-{
+-	int err, count;
+-	struct ds_status st;
+-	u16 value = (COMM_BIT_IO | COMM_IM) | ((bit) ? COMM_D : 0);
+-	u16 cmd;
+-
+-	err = ds_send_control(dev, value, 0);
+-	if (err)
+-		return err;
+-
+-	count = 0;
+-	do {
+-		err = ds_wait_status(dev, &st);
+-		if (err)
+-			return err;
+-
+-		cmd = st.command0 | (st.command1 << 8);
+-	} while (cmd != value && ++count < 10);
+-
+-	if (err < 0 || count >= 10) {
+-		printk(KERN_ERR "Failed to obtain status.\n");
+-		return -EINVAL;
+-	}
+-
+-	err = ds_recv_data(dev, tbit, sizeof(*tbit));
+-	if (err < 0)
+-		return err;
+-
+-	return 0;
+-}
+-
+-int ds_write_bit(struct ds_device *dev, u8 bit)
+-{
+-	int err;
+-	struct ds_status st;
+-
+-	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit) ? COMM_D : 0, 0);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	return 0;
+-}
+-
+-int ds_write_byte(struct ds_device *dev, u8 byte)
+-{
+-	int err;
+-	struct ds_status st;
+-	u8 rbyte;
+-
+-	err = ds_send_control(dev, COMM_BYTE_IO | COMM_IM | COMM_SPU, byte);
+-	if (err)
+-		return err;
+-
+-	err = ds_wait_status(dev, &st);
+-	if (err)
+-		return err;
+-
+-	err = ds_recv_data(dev, &rbyte, sizeof(rbyte));
+-	if (err < 0)
+-		return err;
+-
+-	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
+-
+-	return !(byte = rbyte);
+-}
+-
+-int ds_read_bit(struct ds_device *dev, u8 *bit)
+-{
+-	int err;
+-
+-	err = ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE);
+-	if (err)
+-		return err;
+-
+-	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | COMM_SPU | COMM_D, 0);
+-	if (err)
+-		return err;
+-
+-	err = ds_recv_data(dev, bit, sizeof(*bit));
+-	if (err < 0)
+-		return err;
+-
+-	return 0;
+-}
+-
+-int ds_read_byte(struct ds_device *dev, u8 *byte)
+-{
+-	int err;
+-	struct ds_status st;
+-
+-	err = ds_send_control(dev, COMM_BYTE_IO | COMM_IM , 0xff);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	err = ds_recv_data(dev, byte, sizeof(*byte));
+-	if (err < 0)
+-		return err;
+-
+-	return 0;
+-}
+-
+-int ds_read_block(struct ds_device *dev, u8 *buf, int len)
+-{
+-	struct ds_status st;
+-	int err;
+-
+-	if (len > 64*1024)
+-		return -E2BIG;
+-
+-	memset(buf, 0xFF, len);
+-
+-	err = ds_send_data(dev, buf, len);
+-	if (err < 0)
+-		return err;
+-
+-	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	memset(buf, 0x00, len);
+-	err = ds_recv_data(dev, buf, len);
+-
+-	return err;
+-}
+-
+-int ds_write_block(struct ds_device *dev, u8 *buf, int len)
+-{
+-	int err;
+-	struct ds_status st;
+-
+-	err = ds_send_data(dev, buf, len);
+-	if (err < 0)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	err = ds_recv_data(dev, buf, len);
+-	if (err < 0)
+-		return err;
+-
+-	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
+-
+-	return !(err = len);
+-}
+-
+-#if 0
+-
+-int ds_search(struct ds_device *dev, u64 init, u64 *buf, u8 id_number, int conditional_search)
+-{
+-	int err;
+-	u16 value, index;
+-	struct ds_status st;
+-
+-	memset(buf, 0, sizeof(buf));
+-
+-	err = ds_send_data(ds_dev, (unsigned char *)&init, 8);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(ds_dev, &st);
+-
+-	value = COMM_SEARCH_ACCESS | COMM_IM | COMM_SM | COMM_F | COMM_RTS;
+-	index = (conditional_search ? 0xEC : 0xF0) | (id_number << 8);
+-	err = ds_send_control(ds_dev, value, index);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(ds_dev, &st);
+-
+-	err = ds_recv_data(ds_dev, (unsigned char *)buf, 8*id_number);
+-	if (err < 0)
+-		return err;
+-
+-	return err/8;
+-}
+-
+-int ds_match_access(struct ds_device *dev, u64 init)
+-{
+-	int err;
+-	struct ds_status st;
+-
+-	err = ds_send_data(dev, (unsigned char *)&init, sizeof(init));
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	err = ds_send_control(dev, COMM_MATCH_ACCESS | COMM_IM | COMM_RST, 0x0055);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	return 0;
+-}
+-
+-int ds_set_path(struct ds_device *dev, u64 init)
+-{
+-	int err;
+-	struct ds_status st;
+-	u8 buf[9];
+-
+-	memcpy(buf, &init, 8);
+-	buf[8] = BRANCH_MAIN;
+-
+-	err = ds_send_data(dev, buf, sizeof(buf));
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	err = ds_send_control(dev, COMM_SET_PATH | COMM_IM | COMM_RST, 0);
+-	if (err)
+-		return err;
+-
+-	ds_wait_status(dev, &st);
+-
+-	return 0;
+-}
+-
+-#endif  /*  0  */
+-
+-static int ds_probe(struct usb_interface *intf,
+-		    const struct usb_device_id *udev_id)
+-{
+-	struct usb_device *udev = interface_to_usbdev(intf);
+-	struct usb_endpoint_descriptor *endpoint;
+-	struct usb_host_interface *iface_desc;
+-	int i, err;
+-
+-	ds_dev = kmalloc(sizeof(struct ds_device), GFP_KERNEL);
+-	if (!ds_dev) {
+-		printk(KERN_INFO "Failed to allocate new DS9490R structure.\n");
+-		return -ENOMEM;
+-	}
+-
+-	ds_dev->udev = usb_get_dev(udev);
+-	usb_set_intfdata(intf, ds_dev);
+-
+-	err = usb_set_interface(ds_dev->udev, intf->altsetting[0].desc.bInterfaceNumber, 3);
+-	if (err) {
+-		printk(KERN_ERR "Failed to set alternative setting 3 for %d interface: err=%d.\n",
+-				intf->altsetting[0].desc.bInterfaceNumber, err);
+-		return err;
+-	}
+-
+-	err = usb_reset_configuration(ds_dev->udev);
+-	if (err) {
+-		printk(KERN_ERR "Failed to reset configuration: err=%d.\n", err);
+-		return err;
+-	}
+-
+-	iface_desc = &intf->altsetting[0];
+-	if (iface_desc->desc.bNumEndpoints != NUM_EP-1) {
+-		printk(KERN_INFO "Num endpoints=%d. It is not DS9490R.\n", iface_desc->desc.bNumEndpoints);
+-		return -ENODEV;
+-	}
+-
+-	atomic_set(&ds_dev->refcnt, 0);
+-	memset(ds_dev->ep, 0, sizeof(ds_dev->ep));
+-
+-	/*
+-	 * This loop doesn'd show control 0 endpoint,
+-	 * so we will fill only 1-3 endpoints entry.
+-	 */
+-	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
+-		endpoint = &iface_desc->endpoint[i].desc;
+-
+-		ds_dev->ep[i+1] = endpoint->bEndpointAddress;
+-
+-		printk("%d: addr=%x, size=%d, dir=%s, type=%x\n",
+-			i, endpoint->bEndpointAddress, le16_to_cpu(endpoint->wMaxPacketSize),
+-			(endpoint->bEndpointAddress & USB_DIR_IN)?"IN":"OUT",
+-			endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK);
+-	}
+-
+-#if 0
+-	{
+-		int err, i;
+-		u64 buf[3];
+-		u64 init=0xb30000002078ee81ull;
+-		struct ds_status st;
+-
+-		ds_reset(ds_dev, &st);
+-		err = ds_search(ds_dev, init, buf, 3, 0);
+-		if (err < 0)
+-			return err;
+-		for (i=0; i<err; ++i)
+-			printk("%d: %llx\n", i, buf[i]);
+-
+-		printk("Resetting...\n");
+-		ds_reset(ds_dev, &st);
+-		printk("Setting path for %llx.\n", init);
+-		err = ds_set_path(ds_dev, init);
+-		if (err)
+-			return err;
+-		printk("Calling MATCH_ACCESS.\n");
+-		err = ds_match_access(ds_dev, init);
+-		if (err)
+-			return err;
+-
+-		printk("Searching the bus...\n");
+-		err = ds_search(ds_dev, init, buf, 3, 0);
+-
+-		printk("ds_search() returned %d\n", err);
+-
+-		if (err < 0)
+-			return err;
+-		for (i=0; i<err; ++i)
+-			printk("%d: %llx\n", i, buf[i]);
+-
+-		return 0;
+-	}
+-#endif
+-
+-	return 0;
+-}
+-
+-static void ds_disconnect(struct usb_interface *intf)
+-{
+-	struct ds_device *dev;
+-
+-	dev = usb_get_intfdata(intf);
+-	usb_set_intfdata(intf, NULL);
+-
+-	while (atomic_read(&dev->refcnt)) {
+-		printk(KERN_INFO "Waiting for DS to become free: refcnt=%d.\n",
+-				atomic_read(&dev->refcnt));
+-
+-		if (msleep_interruptible(1000))
+-			flush_signals(current);
+-	}
+-
+-	usb_put_dev(dev->udev);
+-	kfree(dev);
+-	ds_dev = NULL;
+-}
+-
+-static int ds_init(void)
+-{
+-	int err;
+-
+-	err = usb_register(&ds_driver);
+-	if (err) {
+-		printk(KERN_INFO "Failed to register DS9490R USB device: err=%d.\n", err);
+-		return err;
+-	}
+-
+-	return 0;
+-}
+-
+-static void ds_fini(void)
+-{
+-	usb_deregister(&ds_driver);
+-}
+-
+-module_init(ds_init);
+-module_exit(ds_fini);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Evgeniy Polyakov <johnpol at 2ka.mipt.ru>");
+-
+-EXPORT_SYMBOL(ds_touch_bit);
+-EXPORT_SYMBOL(ds_read_byte);
+-EXPORT_SYMBOL(ds_read_bit);
+-EXPORT_SYMBOL(ds_read_block);
+-EXPORT_SYMBOL(ds_write_byte);
+-EXPORT_SYMBOL(ds_write_bit);
+-EXPORT_SYMBOL(ds_write_block);
+-EXPORT_SYMBOL(ds_reset);
+-EXPORT_SYMBOL(ds_get_device);
+-EXPORT_SYMBOL(ds_put_device);
+-
+-/*
+- * This functions can be used for EEPROM programming,
+- * when driver will be included into mainline this will
+- * require uncommenting.
+- */
+-#if 0
+-EXPORT_SYMBOL(ds_start_pulse);
+-EXPORT_SYMBOL(ds_set_speed);
+-EXPORT_SYMBOL(ds_detect);
+-EXPORT_SYMBOL(ds_stop_pulse);
+-EXPORT_SYMBOL(ds_search);
+-#endif
 
 
