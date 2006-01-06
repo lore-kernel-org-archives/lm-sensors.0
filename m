@@ -1,49 +1,31 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 29 Jan 2006 21:31:33 +0000
-Subject: [lm-sensors] w83627ehf fan controll?
-Message-Id: <20060129223133.73376b5b.khali@linux-fr.org>
+From: stevenkaratnyk@rogers.com (Steven Karatnyk)
+Date: Fri, 06 Jan 2006 05:23:58 +0000
+Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket 1944)
+Message-Id: <43BDFEEE.4070408@rogers.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20051230143805.GA21201@Apollo>
-In-Reply-To: <20051230143805.GA21201@Apollo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Yuan,
+Hi Jean,
 
-> The attachments is the diff of linux-2.6.16-rc1 and my local CVS, These
-> two patches use new sensor attr and add more functions, any comments and
-> modify are welcome. Hope someone can help fix the bugs in these patches
-> and send it out.Thanks.
-> 
-> It depends on "[PATCH 15/17] hwmon: Semaphore to mutex conversions"
-> hwmon-convert-semaphores-to-mutexes.patch
-> The first patch is w83627ehf_use_new_sensor_device_attr.patch.txt
-> w83627ehf_add_more_functions.patch.txt is the second.
+I have the misfortune of having the Windbond W83687THF Super I/O IC on 
+my Soltek motherboard (SL-B9D-FGR). 
 
-I've applied the first one to start with (use new sensor device attr),
-it was really good. Let alone a few minor alignment issues, the only
-change I'd like to do is:
+I tried manually patching the w83627hf.c file contained in the 2.6.15 
+sources with the changes outlined in the experimental patch for 
+2.6.13-rc3 found on the lm_sensors drivers page.  There were a few 
+differences in line numbers but thats about it (i.e. it was pretty 
+straightforward what to change).  Unfortunately, it didn't work for me 
+(sensors-detect didn't detect...didn't even probe for this chip).  This 
+was probably predictable, as I'm not at all familiar with what was 
+required and what all else would have needed to have been changed (i.e. 
+I was just taking a stab in the dark in hopes that I might get it right). 
 
- 	for (i = 0; i < 5; i++) {
--		if (!(data->has_fan & (1 << i)))
--			continue;
--		device_create_file_fan(dev, i);
-+		if (data->has_fan & (1 << i))
-+			device_create_file_fan(dev, i);
- 	}
+Which brings me to my question: how do I go about applying the 
+experimental code/patch in order to gain support for my board' w83687thf ?
 
-It's clearer and shorter that way. OK?
+Thanks, CK
 
-Also, next time, please provide -p1-style patches so that I can apply
-them easily using quilt. And please also include your Signed-off-by
-line.
-
-I'll try to find some time tomorrow to review the second patch, unless
-Rudolf Marek (or anyone else for that matter) beats me to it.
-
-Thanks,
--- 
-Jean Delvare
 
