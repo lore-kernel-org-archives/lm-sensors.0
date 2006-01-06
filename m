@@ -1,71 +1,55 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 21:46:26 +0000
-Subject: [lm-sensors] [PATCH 05/17] i2c: scx200_acb remove use of lock_kernel
-Message-Id: <20060118224626.03f91248.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 06 Jan 2006 22:07:33 +0000
+Subject: [lm-sensors] [PATCH] i2c: i2c-i801 explicitly enables/disables PEC
+Message-Id: <11365852532723@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Gardner <bgardner at wabtec.com>
-Content-Disposition: inline; filename=i2c-scx200_acb-04-lock_kernel.patch
+[PATCH] i2c: i2c-i801 explicitly enables/disables PEC
 
-scx200_acb: remove use of lock_kernel()
+This patch tweaks i2c-i801.c so that the driver always sets the SMBAUXCTL
+register (which enables/disables PEC) explicitly before each transaction.
 
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+Signed-off-by: Mark M. Hoffman <mhoffman at lightlink.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/i2c/busses/scx200_acb.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+commit 2e3e13f8e9d9b2111404cdccaa4e1b988b70acce
+tree de95ee215c2189cbfb98829e32e7fb117c94a160
+parent 46f25dffbaba48c571d75f5f574f31978287b8d2
+author Mark M. Hoffman <mhoffman at lightlink.com> Sun, 06 Nov 2005 23:04:51 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:20 -0800
 
---- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
-+++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
-@@ -378,6 +378,7 @@ static struct i2c_algorithm scx200_acb_a
- };
- 
- static struct scx200_acb_iface *scx200_acb_list;
-+static DECLARE_MUTEX(scx200_acb_list_mutex);
- 
- static int scx200_acb_probe(struct scx200_acb_iface *iface)
- {
-@@ -463,10 +464,10 @@ static int  __init scx200_acb_create(int
- 		goto errout_release;
+ drivers/i2c/busses/i2c-i801.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index ac3eafa..1c752dd 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -468,8 +468,7 @@ static s32 i801_access(struct i2c_adapte
+ 		return -1;
  	}
  
--	lock_kernel();
-+	down(&scx200_acb_list_mutex);
- 	iface->next = scx200_acb_list;
- 	scx200_acb_list = iface;
--	unlock_kernel();
-+	up(&scx200_acb_list_mutex);
+-	if (hwpec)
+-		outb_p(1, SMBAUXCTL);	/* enable hardware PEC */
++	outb_p(hwpec, SMBAUXCTL);	/* enable/disable hardware PEC */
  
- 	return 0;
- 
-@@ -509,17 +510,17 @@ static void __exit scx200_acb_cleanup(vo
- {
- 	struct scx200_acb_iface *iface;
- 
--	lock_kernel();
-+	down(&scx200_acb_list_mutex);
- 	while ((iface = scx200_acb_list) != NULL) {
- 		scx200_acb_list = iface->next;
--		unlock_kernel();
-+		up(&scx200_acb_list_mutex);
- 
- 		i2c_del_adapter(&iface->adapter);
- 		release_region(iface->base, 8);
- 		kfree(iface);
--		lock_kernel();
-+		down(&scx200_acb_list_mutex);
+ 	if(block)
+ 		ret = i801_block_transaction(data, read_write, size, hwpec);
+@@ -478,9 +477,6 @@ static s32 i801_access(struct i2c_adapte
+ 		ret = i801_transaction();
  	}
--	unlock_kernel();
-+	up(&scx200_acb_list_mutex);
- }
  
- module_init(scx200_acb_init);
+-	if (hwpec)
+-		outb_p(0, SMBAUXCTL);	/* disable hardware PEC */
+-
+ 	if(block)
+ 		return ret;
+ 	if(ret)
 
-
--- 
-Jean Delvare
 
