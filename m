@@ -1,51 +1,45 @@
-From: tejerina@chem.northwestern.edu (Baudilio Tejerina)
-Date: Thu, 05 Jan 2006 01:03:06 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Fri, 06 Jan 2006 07:35:20 +0000
 Subject: [lm-sensors] ERROR: Can't get VID data!
-Message-Id: <80665230-2626-423D-AD28-EAE2BF931B1E@chem.northwestern.edu>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE047@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <80665230-2626-423D-AD28-EAE2BF931B1E@chem.northwestern.edu>
+In-Reply-To: <80665230-2626-423D-AD28-EAE2BF931B1E@chem.northwestern.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-
-I've just installed 'lm_sensors' on a dual AMD Opteron 248 on a  
-motherboard with AMD 8000 chipset. I am concerned about an error  
-message I get when I run 'sensors'. Is this condition OK or, should I  
-do anything to fix it?
-
-Here is the output.
-
-
-[root at argon ~]# sensors
-w83627hf-isa-0290
-Adapter: ISA adapter
-VCore 1:   +1.54 V  (min =  +0.00 V, max =  +0.00 V)
-VCore 2:   +1.54 V  (min =  +0.00 V, max =  +0.00 V)
-+3.3V:     +3.38 V  (min =  +3.14 V, max =  +3.47 V)
-+5V:       +5.08 V  (min =  +4.76 V, max =  +5.24 V)
-+12V:      +4.86 V  (min = +10.82 V, max = +13.19 V)
--12V:      -1.59 V  (min = -13.18 V, max = -10.80 V)
--5V:       -3.79 V  (min =  -5.25 V, max =  -4.75 V)
-V5SB:      +5.73 V  (min =  +4.76 V, max =  +5.24 V)
-VBat:      +2.42 V  (min =  +2.40 V, max =  +3.60 V)
-fan1:     7758 RPM  (min = 11065 RPM, div = 2)
-fan2:     7500 RPM  (min = 3214 RPM, div = 2)
-fan3:     4326 RPM  (min = 2860 RPM, div = 8)
-Ambient:     +35?C  (high =   +40?C, hyst =   +37?C)   sensor =  
-thermistor
-CPU1:      +35.5?C  (high =   +52?C, hyst =   +47?C)   sensor =  
-thermistor
-CPU2:      +40.5?C  (high =   +52?C, hyst =   +47?C)   sensor =  
-thermistor
-ERROR: Can't get VID data!
-alarms:
-beep_enable:
-           Sound alarm disabled
-
-
-
-
-
+SGVsbG8sCgo+IEkndmUganVzdCBpbnN0YWxsZWQgJ2xtX3NlbnNvcnMnIG9uIGEgZHVhbCBBTUQg
+T3B0ZXJvbiAyNDggb24gYQo+IG1vdGhlcmJvYXJkIHdpdGggQU1EIDgwMDAgY2hpcHNldC4gSSBh
+bSBjb25jZXJuZWQgYWJvdXQgYW4gZXJyb3IKPiBtZXNzYWdlIEkgZ2V0IHdoZW4gSSBydW4gJ3Nl
+bnNvcnMnLiBJcyB0aGlzIGNvbmRpdGlvbiBPSyBvciwgc2hvdWxkIEkKPiBkbyBhbnl0aGluZyB0
+byBmaXggaXQ/CgpZb3UgbWF5IGRvd25sb2FkIGxtX3NlbnNvcnMyIApodHRwOi8vc2VjdXJlLm5l
+dHJvZWRnZS5jb20vfmxtNzgvZG93bmxvYWQuaHRtbCAKYW5kIGluc3RhbGwgdGhlIHVzZXJzcGFj
+ZSB0b29scywgdHJ5IHRoZSAnc2Vuc29ycycgY29tbWFuZCBhZ2Fpbi4KSSB0aGluayB0aGUgdmlk
+IGZpbGUgaXMgbWlzc2luZyBidXQgSSBkb24ndCBrbm93IHdoeSBub3cgOigKQ2FuIHlvdSB0ZWxs
+IHVzIHlvdXIga2VybmVsIHZlcnNpb24/CkhhdmUgeW91IGFueSBwYXRjaCB0byB3ODM2MjdoZiBk
+cml2ZXI/CgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRp
+b24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRo
+ZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMg
+ZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1h
+aWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1
+Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGlu
+ZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRl
+ciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGln
+aGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ug
+b2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGli
+aXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhl
+IG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIg
+Z2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUg
+Q2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3Nl
+bnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tI
+pfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKem
+rKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4
+Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87Fx
+uXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCv
+U6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NR
+xFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRs
+pKel37P1qc63TqijLgoK
