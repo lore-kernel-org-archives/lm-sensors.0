@@ -1,7 +1,7 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 06 Jan 2006 07:08:29 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Fri, 06 Jan 2006 20:01:52 +0000
 Subject: [lm-sensors] project status and future
-Message-Id: <43BE176D.7070302@gmail.com>
+Message-Id: <43BECCB0.4010804@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43AF1E4A.90902@sh.cvut.cz>
 In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
@@ -10,29 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello all,
 
-hi Axel and friends,  (were all friends here ;-)
+>>>I'd say no. While mediawiki might be more powerful regarding the markup
+>>>it uses, we will loose one of the features of Trac: the possibility to
+>>>easily link between tickets, wiki, changeset comments, and other Trac
+>>>objects.
+>>
+>>Is it really that helpful?
 
-just hopping on this thread since the activists are here ;-)
+Well sometimes I guess it could be...
 
-Could someone with access add a few more URLs to the email footer ?
-http://lm-sensors.org/trac/   & FAQ
-http://lm-sensors.org/wiki/   & FAQ
+> I also won't insist. Let the majority decide that. :)
 
+As far I know trac wiki markup is the subset of media wiki so we can switch to mediawiki when there is
+something we will need. Until now we found nothing what could not be handled with the trac wiki.
 
-+$0.02 - everyone knows that the 2nd line is an email addy,
-and dont need the 1st line to tell them that.
-Lets use it for something more informative ;-)
+I'm for the trac wiki right now.
 
+Axel,
+can please you enable that extended features as Mike requested (and fix the logo)
 
-Yes, right here, just below this..    \|/
+I'm also observing the disappearing of pictures on every second page reload, can you please fix it too?
 
->_______________________________________________
->lm-sensors mailing list
->lm-sensors at lm-sensors.org
->http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
->  
->
-
+Thanks
+Regards
+Rudolf
 
