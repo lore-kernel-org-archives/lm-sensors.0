@@ -1,45 +1,75 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Fri, 06 Jan 2006 07:35:20 +0000
+From: tejerina@chem.northwestern.edu (Baudilio Tejerina)
+Date: Fri, 06 Jan 2006 18:31:23 +0000
 Subject: [lm-sensors] ERROR: Can't get VID data!
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE047@weshml03.winbond.com.tw>
+Message-Id: <B43EF2DA-FDE5-43A6-978D-5D0EB48AF191@chem.northwestern.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <80665230-2626-423D-AD28-EAE2BF931B1E@chem.northwestern.edu>
 In-Reply-To: <80665230-2626-423D-AD28-EAE2BF931B1E@chem.northwestern.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sCgo+IEkndmUganVzdCBpbnN0YWxsZWQgJ2xtX3NlbnNvcnMnIG9uIGEgZHVhbCBBTUQg
-T3B0ZXJvbiAyNDggb24gYQo+IG1vdGhlcmJvYXJkIHdpdGggQU1EIDgwMDAgY2hpcHNldC4gSSBh
-bSBjb25jZXJuZWQgYWJvdXQgYW4gZXJyb3IKPiBtZXNzYWdlIEkgZ2V0IHdoZW4gSSBydW4gJ3Nl
-bnNvcnMnLiBJcyB0aGlzIGNvbmRpdGlvbiBPSyBvciwgc2hvdWxkIEkKPiBkbyBhbnl0aGluZyB0
-byBmaXggaXQ/CgpZb3UgbWF5IGRvd25sb2FkIGxtX3NlbnNvcnMyIApodHRwOi8vc2VjdXJlLm5l
-dHJvZWRnZS5jb20vfmxtNzgvZG93bmxvYWQuaHRtbCAKYW5kIGluc3RhbGwgdGhlIHVzZXJzcGFj
-ZSB0b29scywgdHJ5IHRoZSAnc2Vuc29ycycgY29tbWFuZCBhZ2Fpbi4KSSB0aGluayB0aGUgdmlk
-IGZpbGUgaXMgbWlzc2luZyBidXQgSSBkb24ndCBrbm93IHdoeSBub3cgOigKQ2FuIHlvdSB0ZWxs
-IHVzIHlvdXIga2VybmVsIHZlcnNpb24/CkhhdmUgeW91IGFueSBwYXRjaCB0byB3ODM2MjdoZiBk
-cml2ZXI/CgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRp
-b24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRo
-ZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMg
-ZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1h
-aWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1
-Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGlu
-ZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRl
-ciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGln
-aGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ug
-b2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGli
-aXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhl
-IG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIg
-Z2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUg
-Q2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3Nl
-bnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tI
-pfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKem
-rKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4
-Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87Fx
-uXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCv
-U6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NR
-xFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRs
-pKel37P1qc63TqijLgoK
+Hi Yuan.
+
+On Jan 6, 2006, at 1:35 AM, <Ymu at Winbond.com.tw> <Ymu at Winbond.com.tw>  
+wrote:
+
+> Hello,
+>
+>> I've just installed 'lm_sensors' on a dual AMD Opteron 248 on a
+>> motherboard with AMD 8000 chipset. I am concerned about an error
+>> message I get when I run 'sensors'. Is this condition OK or, should I
+>> do anything to fix it?
+>
+> You may download lm_sensors2
+> http://secure.netroedge.com/~lm78/download.html
+> and install the userspace tools, try the 'sensors' command again.
+
+I'll give it a try. Thanks.
+
+> I think the vid file is missing but I don't know why now :(
+> Can you tell us your kernel version?
+
+Linux 2.6.9-22.ELsmp #1 SMP Sat Oct 8 21:32:36 BST 2005 x86_64 x86_64  
+x86_64 GNU/Linux
+
+> Have you any patch to w83627hf driver?
+
+I haven't any.
+
+> Best Regards
+> Yuan Mu
+>
+
+
+Thanks for the reply, Yuan.
+
+Baudilio
+
+>
+> =================================== 
+> ===========The privileged confidential information  
+> contained in this email is intended for use only by the addressees  
+> as indicated by the original sender of this email. If you are not  
+> the addressee indicated in this email or are not responsible for  
+> delivery of the email to such  a person, please kindly reply to the  
+> sender indicating this fact and delete all copies of it from your  
+> computer and network server immediately. Your cooperation is highly  
+> appreciated. It is advised that any unauthorized use of  
+> confidential information of Winbond is strictly prohibited; and any  
+> information in this email irrelevant to the official business of  
+> Winbond shall be deemed as neither given nor endorsed by Winbond.
+> =================================== 
+> ===========If your computer is unable to decode Chinese  
+> font, please ignore the following message.It essentially repeats  
+> the statement in English given above.???H???????t?????q?l???]?????? 
+> ?K?????T, ?????v ??o?H?H???w?????H?H???\\????. ?????z???D?Q???w 
+> ?????H?H???]???? ??]?b???g???v?????????U???????H??, ???z?i?? ??o?H 
+> ?H?????Y?N?H???q?q???P???????A???????H????. ?????z???X?@, ?? ?????  
+> P??. ?S??????, ???????g???v?????????????q?l?????K???T?????? 
+> ?O?Q?Y???T????. ?H???P?????q?l???~?L???????e,???o?????????q?l?? 
+> ???????N??.
+>
+
+
