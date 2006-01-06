@@ -1,31 +1,112 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Mon, 23 Jan 2006 22:26:42 +0000
-Subject: [lm-sensors] I switched from AMD XP TB to AMD Mobile
-Message-Id: <43D55822.9020102@sh.cvut.cz>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 06 Jan 2006 22:07:37 +0000
+Subject: [lm-sensors] [PATCH] hwmon: w83792d simplify in low bits handling
+Message-Id: <1136585257904@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-hello,
+[PATCH] hwmon: w83792d simplify in low bits handling
 
-> I switched from AMD XP TB to AMD Mobile Barton on a GB 7n400e-l (it8217)
-> and now CPU temp reading has gone to -74*C from the previous +45*C
-> readings. In bios temp readings are just it's fine.. right now it looks
-> as a diode (meaning auto selected by sensors) but if I change it to
-> thermistor (which I doubt is the type in this MB) it just changes to
-> +74*C or something similar, please tell me how to reset all-together
-> sensors data about the diode/thermistor settings or to pastebin my
-> config? there is no offset for cputemp in bios. Many thanks in advance!
+Simplify the way the w83792d driver handles the extra resolution
+bits of voltage input channels.
 
-Hmm thats really strange. Maybe the temp reading are inverted for some reason?
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Acked-by: Yuan Mu <Ymu at winbond.com.tw>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-Please have a look to propper /etc/sensors.conf section
-(look for:  compute temp1     (-15.096+1.4893*@), (@+15.096)/1.4893 ) or similar)
+---
+commit 99d855602c1d7968ca6b6cc99b773b0b47909690
+tree 3e79339c40f1819f90911c6d96b72cb73781dbdd
+parent c9152deaa635cab09cb43c17cf80130b9e6ee29d
+author Jean Delvare <khali at linux-fr.org> Sun, 18 Dec 2005 16:34:28 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:25 -0800
 
-Maybe other people round can have some idea?
+ drivers/hwmon/w83792d.c |   48 ++++++++++-------------------------------------
+ 1 files changed, 10 insertions(+), 38 deletions(-)
 
-Regards,
-Rudolf
+diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
+index 0ad1ae5..b176bf0 100644
+--- a/drivers/hwmon/w83792d.c
++++ b/drivers/hwmon/w83792d.c
+@@ -281,7 +281,7 @@ struct w83792d_data {
+ 	u8 in[9];		/* Register value */
+ 	u8 in_max[9];		/* Register value */
+ 	u8 in_min[9];		/* Register value */
+-	u8 low_bits[2];		/* Additional resolution to voltage in0-6 */
++	u16 low_bits;		/* Additional resolution to voltage in6-0 */
+ 	u8 fan[7];		/* Register value */
+ 	u8 fan_min[7];		/* Register value */
+ 	u8 temp1[3];		/* current, over, thyst */
+@@ -323,38 +323,10 @@ static struct i2c_driver w83792d_driver 
+ 	.detach_client = w83792d_detach_client,
+ };
+ 
+-static long in_count_from_reg(int nr, struct w83792d_data *data)
++static inline long in_count_from_reg(int nr, struct w83792d_data *data)
+ {
+-	u16 vol_count = data->in[nr];
+-	u16 low_bits = 0;
+-	vol_count = (vol_count << 2);
+-	switch (nr)
+-	{
+-	case 0:  /* vin0 */
+-		low_bits = (data->low_bits[0]) & 0x03;
+-		break;
+-	case 1:  /* vin1 */
+-		low_bits = ((data->low_bits[0]) & 0x0c) >> 2;
+-		break;
+-	case 2:  /* vin2 */
+-		low_bits = ((data->low_bits[0]) & 0x30) >> 4;
+-		break;
+-	case 3:  /* vin3 */
+-		low_bits = ((data->low_bits[0]) & 0xc0) >> 6;
+-		break;
+-	case 4:  /* vin4 */
+-		low_bits = (data->low_bits[1]) & 0x03;
+-		break;
+-	case 5:  /* vin5 */
+-		low_bits = ((data->low_bits[1]) & 0x0c) >> 2;
+-		break;
+-	case 6:  /* vin6 */
+-		low_bits = ((data->low_bits[1]) & 0x30) >> 4;
+-	default:
+-		break;
+-	}
+-	vol_count = vol_count | low_bits;
+-	return vol_count;
++	/* in7 and in8 do not have low bits, but the formula still works */
++	return ((data->in[nr] << 2) | ((data->low_bits >> (2 * nr)) & 0x03));
+ }
+ 
+ /* following are the sysfs callback functions */
+@@ -1481,10 +1453,10 @@ static struct w83792d_data *w83792d_upda
+ 			data->in_min[i] = w83792d_read_value(client,
+ 						W83792D_REG_IN_MIN[i]);
+ 		}
+-		data->low_bits[0] = w83792d_read_value(client,
+-						W83792D_REG_LOW_BITS1);
+-		data->low_bits[1] = w83792d_read_value(client,
+-						W83792D_REG_LOW_BITS2);
++		data->low_bits = w83792d_read_value(client,
++						W83792D_REG_LOW_BITS1) +
++				 (w83792d_read_value(client,
++						W83792D_REG_LOW_BITS2) << 8);
+ 		for (i = 0; i < 7; i++) {
+ 			/* Update the Fan measured value and limits */
+ 			data->fan[i] = w83792d_read_value(client,
+@@ -1596,8 +1568,8 @@ static void w83792d_print_debug(struct w
+ 		dev_dbg(dev, "vin[%d] max is: 0x%x\n", i, data->in_max[i]);
+ 		dev_dbg(dev, "vin[%d] min is: 0x%x\n", i, data->in_min[i]);
+ 	}
+-	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits[0]);
+-	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits[1]);
++	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits & 0xff);
++	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits >> 8);
+ 	dev_dbg(dev, "7 set of Fan Counts and Duty Cycles: ===>\n");
+ 	for (i=0; i<7; i++) {
+ 		dev_dbg(dev, "fan[%d] is: 0x%x\n", i, data->fan[i]);
+
 
