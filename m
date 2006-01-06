@@ -1,40 +1,61 @@
-From: timm@fnal.gov (Steven Timm)
-Date: Wed, 04 Jan 2006 15:03:03 +0000
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Fri, 06 Jan 2006 06:40:33 +0000
 Subject: [lm-sensors] Tips for Red Hat Enterprise Linux 4 Update 2?
-Message-Id: <Pine.LNX.4.62.0601040857210.21136@snowball.fnal.gov>
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE01E@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.62.0601040857210.21136@snowball.fnal.gov>
+In-Reply-To: <Pine.LNX.4.62.0601040857210.21136@snowball.fnal.gov>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-Can anyone give a few pointers on what the status of the
-drivers are in Red Hat Enterprise Linux 4 Update 2?
-This distro advertises a kernel of 2.6.9-22.0.1
-and the lm_sensors userspace rpm that ships with it
-claims to be lm_sensors 2.8.7.
-
-Does anyone know if Red Hat has in fact patched their
-kernel with newer i2c/lm_sensors stuff  and kept the version
-numbers the same, as they often do?  If not, is there
-any other recourse to get the latest drivers?  i.e. is there
-a good set of patches somewhere on the web site to patch and
-recompile i2c/lm_sensors 2.9.2 (latest version) into the
-heavily patched 2.6.9 series of kernels that redhat puts out?
-
-The tests I have done on older hardware thus far indicate
-that the lm_sensors that ships with the redhat kernel supports
-most of the older stuff, but there are some newer boards with
-w83792d chips where I definitely need the new w83792d driver,
-and that is certainly not in the stock redhat packag.
-
-Steve Timm
-
--- 
-------------------------------------------------------------------
-Steven C. Timm, Ph.D  (630) 840-8525  timm at fnal.gov  http://home.fnal.gov/~timm/
-Fermilab Computing Div/Core Support Services Dept./Scientific Computing Section
-Assistant Group Leader, Farms and Clustered Systems Group
-Lead of Computing Farms Team
-
+SGVsbG8gU3RldmVuLAoKPiBDYW4gYW55b25lIGdpdmUgYSBmZXcgcG9pbnRlcnMgb24gd2hhdCB0
+aGUgc3RhdHVzIG9mIHRoZQo+IGRyaXZlcnMgYXJlIGluIFJlZCBIYXQgRW50ZXJwcmlzZSBMaW51
+eCA0IFVwZGF0ZSAyPwo+IFRoaXMgZGlzdHJvIGFkdmVydGlzZXMgYSBrZXJuZWwgb2YgMi42Ljkt
+MjIuMC4xCj4gYW5kIHRoZSBsbV9zZW5zb3JzIHVzZXJzcGFjZSBycG0gdGhhdCBzaGlwcyB3aXRo
+IGl0Cj4gY2xhaW1zIHRvIGJlIGxtX3NlbnNvcnMgMi44LjcuCj4gCj4gRG9lcyBhbnlvbmUga25v
+dyBpZiBSZWQgSGF0IGhhcyBpbiBmYWN0IHBhdGNoZWQgdGhlaXIKPiBrZXJuZWwgd2l0aCBuZXdl
+ciBpMmMvbG1fc2Vuc29ycyBzdHVmZiAgYW5kIGtlcHQgdGhlIHZlcnNpb24KPiBudW1iZXJzIHRo
+ZSBzYW1lLCBhcyB0aGV5IG9mdGVuIGRvPyAgSWYgbm90LCBpcyB0aGVyZQo+IGFueSBvdGhlciBy
+ZWNvdXJzZSB0byBnZXQgdGhlIGxhdGVzdCBkcml2ZXJzPyAgaS5lLiBpcyB0aGVyZQo+IGEgZ29v
+ZCBzZXQgb2YgcGF0Y2hlcyBzb21ld2hlcmUgb24gdGhlIHdlYiBzaXRlIHRvIHBhdGNoIGFuZAo+
+IHJlY29tcGlsZSBpMmMvbG1fc2Vuc29ycyAyLjkuMiAobGF0ZXN0IHZlcnNpb24pIGludG8gdGhl
+Cj4gaGVhdmlseSBwYXRjaGVkIDIuNi45IHNlcmllcyBvZiBrZXJuZWxzIHRoYXQgcmVkaGF0IHB1
+dHMgb3V0Pwo+IAo+IFRoZSB0ZXN0cyBJIGhhdmUgZG9uZSBvbiBvbGRlciBoYXJkd2FyZSB0aHVz
+IGZhciBpbmRpY2F0ZQo+IHRoYXQgdGhlIGxtX3NlbnNvcnMgdGhhdCBzaGlwcyB3aXRoIHRoZSBy
+ZWRoYXQga2VybmVsIHN1cHBvcnRzCj4gbW9zdCBvZiB0aGUgb2xkZXIgc3R1ZmYsIGJ1dCB0aGVy
+ZSBhcmUgc29tZSBuZXdlciBib2FyZHMgd2l0aAo+IHc4Mzc5MmQgY2hpcHMgd2hlcmUgSSBkZWZp
+bml0ZWx5IG5lZWQgdGhlIG5ldyB3ODM3OTJkIGRyaXZlciwKPiBhbmQgdGhhdCBpcyBjZXJ0YWlu
+bHkgbm90IGluIHRoZSBzdG9jayByZWRoYXQgcGFja2FnLgo+IAoKU29ycnkgSSBkb24ndCBrbm93
+IG11Y2ggaW5mb3JtYXRpb24uCkkgaGFwcGVuIHRvIGtub3cgdzgzNzkyZCBkcml2ZXIgZGlkIG5v
+dCBpbiB0aGUgUkhFTCBVUDIsIApSdWRvbGYgaGFzIHNvbWUgYmFja3BvcnQgd2hpY2ggY2FuIGJl
+IGZvdW5kIGhlcmU6Cmh0dHA6Ly93d3cuYXNzZW1ibGVyLmN6L2Rvd25sb2FkL3c4Mzc5MmQvCkJ1
+dCBpdCBuZWVkcyBhIGxpdHRsZSBtb2RpZmljYXRpb24gd2hlbiB1c2luZyBvbiBSSEVMNCBVUDIg
+KDIuNi45LTIyKS4KSSBoYXZlIGEgdmVyc2lvbiB0aGF0IGNhbiB3b3JrIG9uIFJIRUw0IFVQMiAo
+Mi42LjktMjIpLCBidXQgaXQgd29uJ3QKd29yayBpZiB0aGUgZHJpdmVycyBpdCBkZXBlbmRzIG9u
+IGFyZSBub3Qgd2l0aCBSSEVMIFVQMi4KSSB3b3VsZCBzZW5kIGl0IHRvIHlvdSBpZiB5b3Ugd2Fu
+dCB0cnkuCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5mb3JtYXRp
+b24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5IGJ5IHRo
+ZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9mIHRoaXMg
+ZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRoaXMgZW1h
+aWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWlsIHRvIHN1
+Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5kaWNhdGlu
+ZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBjb21wdXRl
+ciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24gaXMgaGln
+aGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXplZCB1c2Ug
+b2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkgcHJvaGli
+aXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQgdG8gdGhl
+IG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5laXRoZXIg
+Z2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBkZWNvZGUg
+Q2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5JdCBlc3Nl
+bnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92ZS6lu6tI
+pfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir/Kl3pKem
+rKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9KbzreymXaZipby4
+Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFOq0il87Fx
+uXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmtUMHCLiCv
+U6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbmrLCsT7NR
+xFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXYqLm5caRs
+pKel37P1qc63TqijLgoK
