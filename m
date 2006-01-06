@@ -1,52 +1,30 @@
-From: philippe.roubach@free.fr (ROUBACH Philippe)
-Date: Sun, 29 Jan 2006 18:19:32 +0000
-Subject: [lm-sensors] pwmconfig minstart minstop problem
-Message-Id: <200601291919.32588.philippe.roubach@free.fr>
+From: bunk@stusta.de (Adrian Bunk)
+Date: Fri, 06 Jan 2006 17:41:01 +0000
+Subject: [lm-sensors] [-mm patch] fix W1_MASTER_DS9490_BRIDGE dependencies
+Message-Id: <20060106174101.GT12131@stusta.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: johnpol@2ka.mipt.ru, gregkh@suse.de
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hello
+W1_DS9490 was renamed to W1_MASTER_DS9490, but the entry in the 
+dependencies of W1_MASTER_DS9490_BRIDGE was forgotten.
 
-1. My config
-Asus A7N8X-X with asb100 and w83l785ts
-Q-fan features disabled
 
-MDV 2006
-kernel 2.6.12.15mdk-1-1mdk
-lm_sensors-2.9.1-4mdk
-liblm_sensors3-2.9.1-4mdk
+Signed-off-by: Adrian Bunk <bunk at stusta.de>
 
-2. pwmconfig pb
+--- linux-2.6.15-mm1-full/drivers/w1/masters/Kconfig.old	2006-01-06 18:17:23.000000000 +0100
++++ linux-2.6.15-mm1-full/drivers/w1/masters/Kconfig	2006-01-06 18:17:53.000000000 +0100
+@@ -26,7 +26,7 @@
+ 
+ config W1_MASTER_DS9490_BRIDGE
+ 	tristate "DS9490R USB <-> W1 transport layer for 1-wire"
+-	depends on W1_DS9490
++	depends on W1_MASTER_DS9490
+ 	help
+ 	  Say Y here if you want to communicate with your 1-wire devices
+ 	  using DS9490R USB bridge.
 
-the first part of pwmconfig works well
-- pwm discovery
-- correlation generation
-- speed control works during these steps
-
-but when we try to layout the discovered pwm and we want to use minstart or 
-minstop test that does not work.
-Fan is not stopped
-fan speed is not increased
-fan speed is not decreased
-
-after quitting pwconfig i have no control over fan speed with echo control.
-i must restart my PC to have again control over fan speed.
-
-I think perhaps there is a bad management with enable/disable state or else?
-
-3. fancontrol pb
-
-fancontrol use raw values, not computed values.
-it will be better to use ?values  from lm_sensors software?
-
-in my case
-- raw cpu fan speed must be divided by 2
-- raw cpu temperature must be divided by 1.305
-
-thanks in advance
--- 
-Philippe ROUBACH
 
