@@ -1,67 +1,59 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Fri, 06 Jan 2006 09:06:12 +0000
-Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re:
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE073@weshml03.winbond.com.tw>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 06 Jan 2006 18:53:32 +0000
+Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket
+Message-Id: <20060106195332.45aed75e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43BDFEEE.4070408@rogers.com>
 In-Reply-To: <43BDFEEE.4070408@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sCgo+ID4KPiA+SSBoYXZlIHRoZSBtaXNmb3J0dW5lIG9mIGhhdmluZyB0aGUgV2luZGJv
-bmQgVzgzNjg3VEhGIFN1cGVyIEkvTyBJQwpvbgo+ID5teSBTb2x0ZWsgbW90aGVyYm9hcmQgKFNM
-LUI5RC1GR1IpLgo+ID4KPiA+SSB0cmllZCBtYW51YWxseSBwYXRjaGluZyB0aGUgdzgzNjI3aGYu
-YyBmaWxlIGNvbnRhaW5lZCBpbiB0aGUgMi42LjE1Cj4gPnNvdXJjZXMgd2l0aCB0aGUgY2hhbmdl
-cyBvdXRsaW5lZCBpbiB0aGUgZXhwZXJpbWVudGFsIHBhdGNoIGZvcgo+ID4yLjYuMTMtcmMzIGZv
-dW5kIG9uIHRoZSBsbV9zZW5zb3JzIGRyaXZlcnMgcGFnZS4gIFRoZXJlIHdlcmUgYSBmZXcKPiA+
-ZGlmZmVyZW5jZXMgaW4gbGluZSBudW1iZXJzIGJ1dCB0aGF0cyBhYm91dCBpdCAoaS5lLiBpdCB3
-YXMgcHJldHR5Cj4gPnN0cmFpZ2h0Zm9yd2FyZCB3aGF0IHRvIGNoYW5nZSkuICBVbmZvcnR1bmF0
-ZWx5LCBpdCBkaWRuJ3Qgd29yayBmb3IKbWUKPiA+KHNlbnNvcnMtZGV0ZWN0IGRpZG4ndCBkZXRl
-Y3QuLi5kaWRuJ3QgZXZlbiBwcm9iZSBmb3IgdGhpcyBjaGlwKS4KVGhpcwo+ID53YXMgcHJvYmFi
-bHkgcHJlZGljdGFibGUsIGFzIEknbSBub3QgYXQgYWxsIGZhbWlsaWFyIHdpdGggd2hhdCB3YXMK
-PiA+cmVxdWlyZWQgYW5kIHdoYXQgYWxsIGVsc2Ugd291bGQgaGF2ZSBuZWVkZWQgdG8gaGF2ZSBi
-ZWVuIGNoYW5nZWQKKGkuZS4KPiA+SSB3YXMganVzdCB0YWtpbmcgYSBzdGFiIGluIHRoZSBkYXJr
-IGluIGhvcGVzIHRoYXQgSSBtaWdodCBnZXQgaXQKcmlnaHQpLgo+ID4KPiA+V2hpY2ggYnJpbmdz
-IG1lIHRvIG15IHF1ZXN0aW9uOiBob3cgZG8gSSBnbyBhYm91dCBhcHBseWluZyB0aGUKPiA+ZXhw
-ZXJpbWVudGFsIGNvZGUvcGF0Y2ggaW4gb3JkZXIgdG8gZ2FpbiBzdXBwb3J0IGZvciBteSBib2Fy
-ZCcKdzgzNjg3dGhmID8KCgpTb3JyeSBJIGhhdmUgbm90IHJlYWQgdGhlIHc4MzY4N3RoZiBzcGVj
-IGJlZm9yZSwgSXQgc2VlbXMgYSBzaW1pbGFyIGNoaXAKdG8gdzgzNjI3dGhmLCBzbyBJIHdvdWxk
-IGxpa2UgdG8gZ2l2ZSBhIHBhdGNoIHRvIHRyeSBtYWtlIHRoZSBkcml2ZXIKd29yayBmaXJzdC4g
-SSdtIG5vdCBzdXJlIGlmIGl0IGNhbiB3b3JrIGJ1dCBJJ20gc3VyZSB0aGVyZSBzaG91bGQgYmUg
-YQpiZXR0ZXIgc29sdXRpb24uCgpJIHdvdWxkIGxpa2UgdG8gc3VnZ2VzdCB5b3UgdG8gZG93bmxv
-YWQgbG1fc2Vuc29yczIgZnJvbSB0aGUgd2Vic2l0ZSwKSW5zdGFsbCB0aGUgdXNlciBzcGFjZSB0
-b29scywgcnVuIHNlbnNvcnMtZGV0ZWN0IGFuZCBkbyB3aGF0IGl0IHN1Z2dlc3QuClRoZW4gcGF0
-Y2ggeW91ciB3ODM2MjdoZi5jIHdpdGggdGhlIHBhdGNoIGF0dGFjaGVkLgpZb3UgY2FuIHRyeSB1
-c2luZyB0aGlzIHc4MzYyN2hmIGRyaXZlciBub3cuCgpRdW90aW5nIEppbTogCj4gQlRXIC0geW91
-ZCBkbyB3ZWxsIHRvIGRyb3AgdGhlICptaXNmb3J0dW5hdGUqIHBvc3R1cmUuCkkgd2lsbCB0cnkg
-dG8gdGVsbCBteSBIVyBjb2xsZWFndWVzIHlvdXIgZGlzc2F0aXNmYWN0aW9uLi4uClRoYW5rIHlv
-dSBKaW0gOykgCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCgo9PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09VGhlIHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9y
-bWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVtYWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBi
-eSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0
-aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlz
-IGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2libGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0
-byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtpbmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGlj
-YXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUgYWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29t
-cHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGltbWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlz
-IGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMgYWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQg
-dXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHBy
-b2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRpb24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRv
-IHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBXaW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0
-aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBXaW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09SWYgeW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVj
-b2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGlnbm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQg
-ZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3RhdGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUu
-pburSKXzpLqp0qd0tdioublxpGyqurBdsqOpyr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/yp
-d6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqow6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2m
-YqW8uGexwsV2qrqxoafOpKekVaasqOylu6tIpfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtI
-pfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDB
-wi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7Vptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qyw
-rE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5
-uXGkbKSnpd+z9anOt06ooy4KLS0tLS0tLS0tLS0tLS0gbmV4dCBwYXJ0IC0tLS0tLS0tLS0tLS0t
-CkFuIGVtYmVkZGVkIGFuZCBjaGFyc2V0LXVuc3BlY2lmaWVkIHRleHQgd2FzIHNjcnViYmVkLi4u
-Ck5hbWU6IHBhdGNoNHc4MzY4N3RoZi50eHQKVXJsOiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvYXR0YWNobWVudHMvMjAwNjAxMDYvOWYyYmQyNDIvcGF0
-Y2g0dzgzNjg3dGhmLnR4dAo=
+Hi Steven,
+
+> I have the misfortune of having the Windbond W83687THF Super I/O IC on 
+> my Soltek motherboard (SL-B9D-FGR).
+
+Nothing to worry about. Sure we don't support this chip right now, but
+given the good relationship that exists between the lm_sensors group
+and Winbond, I am certain we should be able to come up with a solution
+fast.
+
+> I tried manually patching the w83627hf.c file contained in the 2.6.15 
+> sources with the changes outlined in the experimental patch for 
+> 2.6.13-rc3 found on the lm_sensors drivers page.  There were a few 
+> differences in line numbers but thats about it (i.e. it was pretty 
+> straightforward what to change).  Unfortunately, it didn't work for me 
+> (sensors-detect didn't detect...didn't even probe for this chip).  This 
+> was probably predictable, as I'm not at all familiar with what was 
+> required and what all else would have needed to have been changed (i.e. 
+> I was just taking a stab in the dark in hopes that I might get it right). 
+
+Which version of lm_sensors (user-space) are you using? The W83687THF
+detection was added in version 2.9.2, so you need at least this
+version. Please note also that the detection code was written without
+the benefit of a datasheet, so it might simply be incomplete.
+
+You could provide the output of "isadump -k 0x87,0x87 0x2e 0x2f 0x0b"
+so that I compare the ID of your chip with what is believed to the the
+W83687THF chip ID. Note that you need isadump from lm_sensors 2.9.2 for
+it to work.
+
+> Which brings me to my question: how do I go about applying the 
+> experimental code/patch in order to gain support for my board' w83687thf ?
+
+I just updated the patch for Linux 2.6.15:
+http://jdelvare.net2.nerim.net/sensors/linux-2.6.15-hwmon-w83687thf.diff
+
+But this shouldn't be fundamentally different from what you had
+starting from the 2.6.13-rc3 patch, if you fixed it properly.
+
+Please also keep in mind that for user-space support you need to apply
+the following patch to the lm_sensors sources:
+  http://jdelvare.net2.nerim.net/sensors/CVS-w83687thf.diff
+I checked it and it still applies to CVS with some offset.
+
+-- 
+Jean Delvare
+
