@@ -1,7 +1,7 @@
-From: mrenzmann@otaku42.de (Michael Renzmann)
-Date: Tue, 03 Jan 2006 14:45:12 +0000
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 06 Jan 2006 07:08:29 +0000
 Subject: [lm-sensors] project status and future
-Message-Id: <1136299512.4455.113.camel@gimli>
+Message-Id: <43BE176D.7070302@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43AF1E4A.90902@sh.cvut.cz>
 In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
@@ -10,25 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
 
-On Tue, 2006-01-03 at 15:05 +0100, Axel Thimm wrote:
-> > I'd say no. While mediawiki might be more powerful regarding the markup
-> > it uses, we will loose one of the features of Trac: the possibility to
-> > easily link between tickets, wiki, changeset comments, and other Trac
-> > objects.
-> Is it really that helpful?
+hi Axel and friends,  (were all friends here ;-)
 
-I'm quite used to it now, yes. It's a lot easier to refer to a fixed
-ticket by just mentioning "#123" rather than by
-"http://madwifi.org/ticket/123" in a commit message, for example.
+just hopping on this thread since the activists are here ;-)
 
-> > Bottom line: personally I'd strongly vote for the Trac-internal wiki
-> > rather than Mediawiki in this case.
-> Well, as I said I personally prefer mediawiki, but I'm not insisting :)
+Could someone with access add a few more URLs to the email footer ?
+http://lm-sensors.org/trac/   & FAQ
+http://lm-sensors.org/wiki/   & FAQ
 
-I also won't insist. Let the majority decide that. :)
 
-Bye, Mike
++$0.02 - everyone knows that the 2nd line is an email addy,
+and dont need the 1st line to tell them that.
+Lets use it for something more informative ;-)
+
+
+Yes, right here, just below this..    \|/
+
+>_______________________________________________
+>lm-sensors mailing list
+>lm-sensors at lm-sensors.org
+>http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
+>  
+>
 
 
