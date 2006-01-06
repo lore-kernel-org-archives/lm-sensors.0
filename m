@@ -1,34 +1,52 @@
-From: mgreer@mvista.com (Mark A. Greer)
-Date: Wed, 18 Jan 2006 21:46:56 +0000
-Subject: [lm-sensors] [PATCH] m41t00.c: sleepable i2c transfer cannot be
-Message-Id: <20060118214656.GB15714@mag.az.mvista.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 06 Jan 2006 20:57:34 +0000
+Subject: [lm-sensors] OT OT OT Re: seeking a W83687THF patch for 2.6.15 (re:
+Message-Id: <43BED9BE.9000007@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060118175510.GB13367@dmt.cnet>
-In-Reply-To: <20060118175510.GB13367@dmt.cnet>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jan 18, 2006 at 03:55:10PM -0200, Marcelo Tosatti wrote:
-> 
-> Reported-by: Helio Fujimoto <Helio.Fujimoto at cyclades.com>
-> 
-> drivers/i2c/chips/m41t00.c RTC driver has a serious bug: it performs sleepable i2c 
-> transfer at soft interrupt context, resulting in:
+Steven Karatnyk wrote:
 
-Marcelo, Helio,
+>Hello Yuan,
+>
+>Ymu at Winbond.com.tw wrote:
+>  
+>
+>>Quoting Jim: 
+>>  
+>>    
+>>
+>>>BTW - youd do well to drop the *misfortunate* posture.
+>>>    
+>>>      
+>>>
+>>I will try to tell my HW colleagues your dissatisfaction...
+>>Thank you Jim ;) 
+>>
+>>  
+>>    
+>>
 
-This is a known bug and fixed in a patch that has been presented to
-lm-sensors.
+<tongue in cheek>
 
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-December/014724.html
+Ive just one more comment Ive just *got* to make..
 
-In addition to the bug fix, that patch adds support for some other m41txx
-rtc chips and there is an outstanding question that needs to be answered
-before it can continue on (read: a final patch presented & accepted).
+Yuan, 
 
-Please bear with me and hopefully it will be fixed soon.
+You should inform your marketing department about the wisdom
+of avoiding part numbers like
 
-Mark
+W*THF
+
+it is *way* too close to the web-wide TLA:  *WTF*
+
+it even has one of the &@#!@#  (cleaned-up-swear-word) characters.
+Not an association they want to engender.
+
+</ goes off laughing about another untouched pun>
+
+
 
