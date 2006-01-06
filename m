@@ -1,57 +1,58 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 21:53:09 +0000
-Subject: [lm-sensors] [PATCH 08/17] i2c: scx200_acb minimal documentation
-Message-Id: <20060118225309.708129dd.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 06 Jan 2006 22:07:37 +0000
+Subject: [lm-sensors] [PATCH] I2C: Fix up debug build error for previous i2c
+Message-Id: <113658525775@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Gardner <bgardner at wabtec.com>
-Content-Disposition: inline; filename=i2c-scx200_acb-07-docs.patch
+[PATCH] I2C: Fix up debug build error for previous i2c structure changes
 
-scx200_acb: Minimal documentation update
-
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+
 ---
- Documentation/i2c/busses/scx200_acb |    5 +++--
- drivers/i2c/busses/Kconfig          |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+commit e1c489b0e4fbb1687f8227fe78b4769c123768c1
+tree 406a079669c46f5978621a80fe95056dd0b93730
+parent d45d204f0c3daa01a393dfe81415573f9459506a
+author Greg Kroah-Hartman <gregkh at suse.de> Wed, 30 Nov 2005 16:35:09 -0800
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:24 -0800
 
---- linux-2.6.15-git.orig/Documentation/i2c/busses/scx200_acb	2006-01-08 19:26:27.000000000 +0100
-+++ linux-2.6.15-git/Documentation/i2c/busses/scx200_acb	2006-01-11 20:22:55.000000000 +0100
-@@ -6,9 +6,10 @@
- -----------------
- 
- * base: int
--  Base addresses for the ACCESS.bus controllers
-+  Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
- 
- Description
- -----------
- 
--Enable the use of the ACCESS.bus controllers of a SCx200 processor.
-+Enable the use of the ACCESS.bus controller on the Geode SCx200 and
-+SC1100 processors and the CS5535 and CS5536 Geode companion devices.
---- linux-2.6.15-git.orig/drivers/i2c/busses/Kconfig	2006-01-11 20:08:39.000000000 +0100
-+++ linux-2.6.15-git/drivers/i2c/busses/Kconfig	2006-01-11 20:22:55.000000000 +0100
-@@ -389,10 +389,11 @@
- 	  also be specified with a module parameter.
- 
- config SCx200_ACB
--	tristate "NatSemi SCx200 ACCESS.bus"
-+	tristate "Geode ACCESS.bus support"
- 	depends on I2C && PCI
- 	help
--	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
-+	  Enable the use of the ACCESS.bus controllers on the Geode SCx200 and
-+	  SC1100 processors and the CS5535 and CS5536 Geode companion devices.
- 
- 	  If you don't know what to do here, say N.
- 
+ drivers/i2c/busses/i2c-isa.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
+index 9f93fb8..9f2ffef 100644
+--- a/drivers/i2c/busses/i2c-isa.c
++++ b/drivers/i2c/busses/i2c-isa.c
+@@ -98,7 +98,7 @@ int i2c_isa_add_driver(struct i2c_driver
+ 	res = driver_register(&driver->driver);
+ 	if (res)
+ 		return res;
+-	dev_dbg(&isa_adapter.dev, "Driver %s registered\n", driver->name);
++	dev_dbg(&isa_adapter.dev, "Driver %s registered\n", driver->driver.name);
+ 
+ 	/* Now look for clients */
+ 	driver->attach_adapter(&isa_adapter);
+@@ -129,7 +129,7 @@ int i2c_isa_del_driver(struct i2c_driver
+ 
+ 	/* Get the driver off the core list */
+ 	driver_unregister(&driver->driver);
+-	dev_dbg(&isa_adapter.dev, "Driver %s unregistered\n", driver->name);
++	dev_dbg(&isa_adapter.dev, "Driver %s unregistered\n", driver->driver.name);
+ 
+ 	return 0;
+ }
+@@ -174,7 +174,7 @@ static void __exit i2c_isa_exit(void)
+ 	list_for_each_safe(item, _n, &isa_adapter.clients) {
+ 		client = list_entry(item, struct i2c_client, list);
+ 		dev_err(&isa_adapter.dev, "Driver %s still has an active "
+-			"ISA client at 0x%x\n", client->driver->name,
++			"ISA client at 0x%x\n", client->driver->driver.name,
+ 			client->addr);
+ 	}
+ 	if (client != NULL)
+
 
