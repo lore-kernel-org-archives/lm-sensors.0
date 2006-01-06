@@ -1,198 +1,144 @@
 From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:35 +0000
-Subject: [lm-sensors] [PATCH] i2c: Chip driver porting guide update
-Message-Id: <11365852551745@kroah.com>
+Date: Fri, 06 Jan 2006 22:07:38 +0000
+Subject: [lm-sensors] [PATCH] i2c: i2c-mv64xxx fix transaction abortion
+Message-Id: <1136585258435@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Chip driver porting guide update
+[PATCH] i2c: i2c-mv64xxx fix transaction abortion
 
-Update Documentation/i2c/porting-clients. Many recent changes to the i2c
-and hwmon subsystems were never reported there.
+When the i2c-mv64xxx i2c driver is signalled to abort a transaction,
+it aborts it immediately by issuing a stop condition on the bus.
+This violates the i2c protocol and can cause what appears to be an i2c
+bus hang.  This patch delays issuing the stop condition until the i2c
+device can reasonably expect a stop condition.
 
+Also includes a minor fixup.
+
+Signed-off-by: Mark A. Greer <mgreer at mvista.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
 ---
-commit 92b429461228f0f06a994dd3d4ccf1c9ff7596bd
-tree 1a32a26d6536076aa9d7eaf91aa25ecc0a086fbf
-parent cf02df770228350254251fde520007a2709db785
-author Jean Delvare <khali at linux-fr.org> Sat, 26 Nov 2005 21:05:17 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:22 -0800
+commit e91c021c487110386a07facd0396e6c3b7cf9c1f
+tree 50cd2a5ab8bba9711dd0185e3d232e323e8d6c39
+parent 7c72ccf09b6debe55b8e049377ad3183ed4f4cb3
+author Mark A. Greer <mgreer at mvista.com> Sun, 18 Dec 2005 17:22:01 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:27 -0800
 
- Documentation/i2c/porting-clients |   83 +++++++++++++++++++++----------------
- 1 files changed, 46 insertions(+), 37 deletions(-)
+ drivers/i2c/busses/i2c-mv64xxx.c |   33 +++++++++++++++------------------
+ 1 files changed, 15 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
-index 6b07f23..856274f 100644
---- a/Documentation/i2c/porting-clients
-+++ b/Documentation/i2c/porting-clients
-@@ -1,10 +1,13 @@
--Revision 5, 2005-07-29
-+Revision 6, 2005-11-20
- Jean Delvare <khali at linux-fr.org>
- Greg KH <greg at kroah.com>
+diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
+index 81031eb..22781d8 100644
+--- a/drivers/i2c/busses/i2c-mv64xxx.c
++++ b/drivers/i2c/busses/i2c-mv64xxx.c
+@@ -1,6 +1,4 @@
+ /*
+- * drivers/i2c/busses/i2c-mv64xxx.c
+- * 
+  * Driver for the i2c controller on the Marvell line of host bridges for MIPS
+  * and PPC (e.g, gt642[46]0, mv643[46]0, mv644[46]0).
+  *
+@@ -65,7 +63,6 @@ enum {
+ 	MV64XXX_I2C_STATE_WAITING_FOR_ADDR_2_ACK,
+ 	MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_ACK,
+ 	MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_DATA,
+-	MV64XXX_I2C_STATE_ABORTING,
+ };
  
- This is a guide on how to convert I2C chip drivers from Linux 2.4 to
- Linux 2.6. I have been using existing drivers (lm75, lm78) as examples.
- Then I converted a driver myself (lm83) and updated this document.
-+Note that this guide is strongly oriented towards hardware monitoring
-+drivers. Many points are still valid for other type of drivers, but
-+others may be irrelevant.
+ /* Driver actions */
+@@ -85,6 +82,7 @@ struct mv64xxx_i2c_data {
+ 	int			irq;
+ 	u32			state;
+ 	u32			action;
++	u32			aborting;
+ 	u32			cntl_bits;
+ 	void __iomem		*reg_base;
+ 	u32			reg_base_p;
+@@ -122,12 +120,6 @@ mv64xxx_i2c_fsm(struct mv64xxx_i2c_data 
+ 		return;
+ 	}
  
- There are two sets of points below. The first set concerns technical
- changes. The second set concerns coding policy. Both are mandatory.
-@@ -22,16 +25,20 @@ Technical changes:
-   #include <linux/module.h>
-   #include <linux/init.h>
-   #include <linux/slab.h>
-+  #include <linux/jiffies.h>
-   #include <linux/i2c.h>
-+  #include <linux/i2c-isa.h>	/* for ISA drivers */
-   #include <linux/hwmon.h>	/* for hardware monitoring drivers */
-   #include <linux/hwmon-sysfs.h>
-   #include <linux/hwmon-vid.h>	/* if you need VRM support */
-+  #include <linux/err.h>	/* for class registration */
-   #include <asm/io.h>		/* if you have I/O operations */
-   Please respect this inclusion order. Some extra headers may be
-   required for a given driver (e.g. "lm75.h").
- 
- * [Addresses] SENSORS_I2C_END becomes I2C_CLIENT_END, ISA addresses
--  are no more handled by the i2c core.
-+  are no more handled by the i2c core. Address ranges are no more
-+  supported either, define each individual address separately.
-   SENSORS_INSMOD_<n> becomes I2C_CLIENT_INSMOD_<n>.
- 
- * [Client data] Get rid of sysctl_id. Try using standard names for
-@@ -48,23 +55,23 @@ Technical changes:
-       int kind);
-   static void lm75_init_client(struct i2c_client *client);
-   static int lm75_detach_client(struct i2c_client *client);
--  static void lm75_update_client(struct i2c_client *client);
-+  static struct lm75_data lm75_update_device(struct device *dev);
- 
- * [Sysctl] All sysctl stuff is of course gone (defines, ctl_table
-   and functions). Instead, you have to define show and set functions for
-   each sysfs file. Only define set for writable values. Take a look at an
--  existing 2.6 driver for details (lm78 for example). Don't forget
-+  existing 2.6 driver for details (it87 for example). Don't forget
-   to define the attributes for each file (this is that step that
-   links callback functions). Use the file names specified in
--  Documentation/i2c/sysfs-interface for the individual files. Also
-+  Documentation/hwmon/sysfs-interface for the individual files. Also
-   convert the units these files read and write to the specified ones.
-   If you need to add a new type of file, please discuss it on the
-   sensors mailing list <lm-sensors at lm-sensors.org> by providing a
--  patch to the Documentation/i2c/sysfs-interface file.
-+  patch to the Documentation/hwmon/sysfs-interface file.
- 
- * [Attach] For I2C drivers, the attach function should make sure
--  that the adapter's class has I2C_CLASS_HWMON, using the
--  following construct:
-+  that the adapter's class has I2C_CLASS_HWMON (or whatever class is
-+  suitable for your driver), using the following construct:
-   if (!(adapter->class & I2C_CLASS_HWMON))
-           return 0;
-   ISA-only drivers of course don't need this.
-@@ -72,23 +79,23 @@ Technical changes:
- 
- * [Detect] As mentioned earlier, the flags parameter is gone.
-   The type_name and client_name strings are replaced by a single
--  name string, which will be filled with a lowercase, short string
--  (typically the driver name, e.g. "lm75").
-+  name string, which will be filled with a lowercase, short string.
-   In i2c-only drivers, drop the i2c_is_isa_adapter check, it's
-   useless. Same for isa-only drivers, as the test would always be
-   true. Only hybrid drivers (which are quite rare) still need it.
--  The errorN labels are reduced to the number needed. If that number
--  is 2 (i2c-only drivers), it is advised that the labels are named
--  exit and exit_free. For i2c+isa drivers, labels should be named
--  ERROR0, ERROR1 and ERROR2. Don't forget to properly set err before
-+  The labels used for error paths are reduced to the number needed.
-+  It is advised that the labels are given descriptive names such as
-+  exit and exit_free. Don't forget to properly set err before
-   jumping to error labels. By the way, labels should be left-aligned.
-   Use kzalloc instead of kmalloc.
-   Use i2c_set_clientdata to set the client data (as opposed to
-   a direct access to client->data).
--  Use strlcpy instead of strcpy to copy the client name.
-+  Use strlcpy instead of strcpy or snprintf to copy the client name.
-   Replace the sysctl directory registration by calls to
-   device_create_file. Move the driver initialization before any
-   sysfs file creation.
-+  Register the client with the hwmon class (using hwmon_device_register)
-+  if applicable.
-   Drop client->id.
-   Drop any 24RF08 corruption prevention you find, as this is now done
-   at the i2c-core level, and doing it twice voids it.
-@@ -96,19 +103,25 @@ Technical changes:
- 
- * [Init] Limits must not be set by the driver (can be done later in
-   user-space). Chip should not be reset default (although a module
--  parameter may be used to force is), and initialization should be
-+  parameter may be used to force it), and initialization should be
-   limited to the strictly necessary steps.
- 
--* [Detach] Get rid of data, remove the call to
--  i2c_deregister_entry. Do not log an error message if
--  i2c_detach_client fails, as i2c-core will now do it for you.
+-	if (drv_data->state = MV64XXX_I2C_STATE_ABORTING) {
+-		drv_data->action = MV64XXX_I2C_ACTION_SEND_STOP;
+-		drv_data->state = MV64XXX_I2C_STATE_IDLE;
+-		return;
+-	}
 -
--* [Update] Don't access client->data directly, use
--  i2c_get_clientdata(client) instead.
--
--* [Interface] Init function should not print anything. Make sure
--  there is a MODULE_LICENSE() line, at the bottom of the file
--  (after MODULE_AUTHOR() and MODULE_DESCRIPTION(), in this order).
-+* [Detach] Remove the call to i2c_deregister_entry. Do not log an
-+  error message if i2c_detach_client fails, as i2c-core will now do
-+  it for you.
-+  Unregister from the hwmon class if applicable.
-+
-+* [Update] The function prototype changed, it is now
-+  passed a device structure, which you have to convert to a client
-+  using to_i2c_client(dev). The update function should return a
-+  pointer to the client data.
-+  Don't access client->data directly, use i2c_get_clientdata(client)
-+  instead.
-+  Use time_after() instead of direct jiffies comparison.
-+
-+* [Interface] Make sure there is a MODULE_LICENSE() line, at the bottom
-+  of the file (after MODULE_AUTHOR() and MODULE_DESCRIPTION(), in this
-+  order).
+ 	/* The status from the ctlr [mostly] tells us what to do next */
+ 	switch (status) {
+ 	/* Start condition interrupt */
+@@ -148,14 +140,16 @@ mv64xxx_i2c_fsm(struct mv64xxx_i2c_data 
+ 		/* FALLTHRU */
+ 	case MV64XXX_I2C_STATUS_MAST_WR_ADDR_2_ACK: /* 0xd0 */
+ 	case MV64XXX_I2C_STATUS_MAST_WR_ACK: /* 0x28 */
+-		if (drv_data->bytes_left > 0) {
++		if ((drv_data->bytes_left = 0)
++				|| (drv_data->aborting
++					&& (drv_data->byte_posn != 0))) {
++			drv_data->action = MV64XXX_I2C_ACTION_SEND_STOP;
++			drv_data->state = MV64XXX_I2C_STATE_IDLE;
++		} else {
+ 			drv_data->action = MV64XXX_I2C_ACTION_SEND_DATA;
+ 			drv_data->state  				MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_ACK;
+ 			drv_data->bytes_left--;
+-		} else {
+-			drv_data->action = MV64XXX_I2C_ACTION_SEND_STOP;
+-			drv_data->state = MV64XXX_I2C_STATE_IDLE;
+ 		}
+ 		break;
  
- * [Driver] The flags field of the i2c_driver structure is gone.
-   I2C_DF_NOTIFY is now the default behavior.
-@@ -118,21 +131,17 @@ Coding policy:
- * [Copyright] Use (C), not (c), for copyright.
+@@ -184,7 +178,7 @@ mv64xxx_i2c_fsm(struct mv64xxx_i2c_data 
+ 		}
+ 		drv_data->state = MV64XXX_I2C_STATE_WAITING_FOR_SLAVE_DATA;
  
- * [Debug/log] Get rid of #ifdef DEBUG/#endif constructs whenever you
--  can. Calls to printk/pr_debug for debugging purposes are replaced
--  by calls to dev_dbg. Here is an example on how to call it (taken
--  from lm75_detect):
-+  can. Calls to printk for debugging purposes are replaced by calls to
-+  dev_dbg where possible, else to pr_debug. Here is an example of how
-+  to call it (taken from lm75_detect):
-   dev_dbg(&client->dev, "Starting lm75 update\n");
-   Replace other printk calls with the dev_info, dev_err or dev_warn
-   function, as appropriate.
+-		if (drv_data->bytes_left = 1)
++		if ((drv_data->bytes_left = 1) || drv_data->aborting)
+ 			drv_data->cntl_bits &= ~MV64XXX_I2C_REG_CONTROL_ACK;
+ 		break;
  
--* [Constants] Constants defines (registers, conversions, initial
--  values) should be aligned. This greatly improves readability.
--  Same goes for variables declarations. Alignments are achieved by the
--  means of tabs, not spaces. Remember that tabs are set to 8 in the
--  Linux kernel code.
--
--* [Structure definition] The name field should be standardized. All
--  lowercase and as simple as the driver name itself (e.g. "lm75").
-+* [Constants] Constants defines (registers, conversions) should be
-+  aligned. This greatly improves readability.
-+  Alignments are achieved by the means of tabs, not spaces. Remember
-+  that tabs are set to 8 in the Linux kernel code.
+@@ -320,6 +314,7 @@ mv64xxx_i2c_prepare_for_io(struct mv64xx
+ 	drv_data->msg = msg;
+ 	drv_data->byte_posn = 0;
+ 	drv_data->bytes_left = msg->len;
++	drv_data->aborting = 0;
+ 	drv_data->rc = 0;
+ 	drv_data->cntl_bits = MV64XXX_I2C_REG_CONTROL_ACK |
+ 		MV64XXX_I2C_REG_CONTROL_INTEN | MV64XXX_I2C_REG_CONTROL_TWSIEN;
+@@ -359,17 +354,19 @@ mv64xxx_i2c_wait_for_completion(struct m
+ 	}
  
- * [Layout] Avoid extra empty lines between comments and what they
-   comment. Respect the coding style (see Documentation/CodingStyle),
+ 	if (abort && drv_data->block) {
+-		drv_data->state = MV64XXX_I2C_STATE_ABORTING;
++		drv_data->aborting = 1;
+ 		spin_unlock_irqrestore(&drv_data->lock, flags);
+ 
+ 		time_left = wait_event_timeout(drv_data->waitq,
+ 			!drv_data->block,
+ 			msecs_to_jiffies(drv_data->adapter.timeout));
+ 
+-		if (time_left <= 0) {
++		if ((time_left <= 0) && drv_data->block) {
+ 			drv_data->state = MV64XXX_I2C_STATE_IDLE;
+ 			dev_err(&drv_data->adapter.dev,
+-				"mv64xxx: I2C bus locked\n");
++				"mv64xxx: I2C bus locked, block: %d, "
++				"time_left: %d\n", drv_data->block,
++				(int)time_left);
+ 		}
+ 	} else
+ 		spin_unlock_irqrestore(&drv_data->lock, flags);
+@@ -510,7 +507,7 @@ mv64xxx_i2c_probe(struct platform_device
+ 		goto exit_kfree;
+ 	}
+ 
+-	strncpy(drv_data->adapter.name, MV64XXX_I2C_CTLR_NAME " adapter",
++	strlcpy(drv_data->adapter.name, MV64XXX_I2C_CTLR_NAME " adapter",
+ 		I2C_NAME_SIZE);
+ 
+ 	init_waitqueue_head(&drv_data->waitq);
 
 
