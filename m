@@ -1,85 +1,152 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 21:39:48 +0000
-Subject: [lm-sensors] [PATCH 01/17] hwmon: Fix reboot on it87 driver load
-Message-Id: <20060118223948.16bd611a.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 06 Jan 2006 22:07:37 +0000
+Subject: [lm-sensors] [PATCH] I2C: move i2c-dev to use dynamic class devices
+Message-Id: <11365852573455@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-it87-probe-i2c-0x2d-only.patch
+[PATCH] I2C: move i2c-dev to use dynamic class devices
 
-Only scan I2C address 0x2d. This is the default address and no IT87xxF
-chip was ever seen on I2C at a different address. These chips are
-better accessed through their ISA interface anyway.
+i2c-dev doesn't use the reference counting logic of struct class_device so move
+it to the dynamic method.  This makes the code paths simpler and the driver
+smaller.
 
-This fixes bug #5889, although it doesn't address the whole class
-of problems. We'd need the ability to blacklist arbitrary I2C addresses
-on systems known to contain I2C devices which behave badly when probed.
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+Cc: Jean Delvare <khali at linux-fr.org>
 
-Plan the I2C interface for removal as well. If nobody complains within
-a year, it will confirm my impression that the I2C interface isn't
-actually needed by anyone.
-
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- Documentation/feature-removal-schedule.txt |    9 +++++++++
- Documentation/hwmon/it87                   |    2 +-
- drivers/hwmon/it87.c                       |    8 ++++++--
- 3 files changed, 16 insertions(+), 3 deletions(-)
+commit 79472132f555ae1e912699e116e5c82f338872f6
+tree 5f2b69e43b8797cab242f6524f6bb0d55694c849
+parent d82c0bf88fa97c1993ea9d6051488e7cb012b440
+author Greg Kroah-Hartman <gregkh at suse.de> Tue, 06 Dec 2005 15:33:15 -0800
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:25 -0800
 
---- linux-2.6.16-rc1.orig/Documentation/hwmon/it87	2006-01-18 18:23:01.000000000 +0100
-+++ linux-2.6.16-rc1/Documentation/hwmon/it87	2006-01-18 19:54:16.000000000 +0100
-@@ -9,7 +9,7 @@
-                http://www.ite.com.tw/
-   * IT8712F
-     Prefix: 'it8712'
--    Addresses scanned: I2C 0x28 - 0x2f
-+    Addresses scanned: I2C 0x2d
-                        from Super I/O config space (8 I/O ports)
-     Datasheet: Publicly available at the ITE website
-                http://www.ite.com.tw/
---- linux-2.6.16-rc1.orig/drivers/hwmon/it87.c	2006-01-18 18:28:57.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/hwmon/it87.c	2006-01-18 19:54:16.000000000 +0100
-@@ -45,8 +45,7 @@
- 
- 
- /* Addresses to scan */
--static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
--					0x2e, 0x2f, I2C_CLIENT_END };
-+static unsigned short normal_i2c[] = { 0x2d, I2C_CLIENT_END };
- static unsigned short isa_address;
- 
- /* Insmod parameters */
-@@ -830,6 +829,11 @@
- 	if ((err = i2c_attach_client(new_client)))
- 		goto ERROR2;
- 
-+	if (!is_isa)
-+		dev_info(&new_client->dev, "The I2C interface to IT87xxF "
-+			 "hardware monitoring chips is deprecated. Please "
-+			 "report if you still rely on it.\n");
-+
- 	/* Check PWM configuration */
- 	enable_pwm_interface = it87_check_pwm(new_client);
- 
---- linux-2.6.16-rc1.orig/Documentation/feature-removal-schedule.txt	2006-01-18 18:28:38.000000000 +0100
-+++ linux-2.6.16-rc1/Documentation/feature-removal-schedule.txt	2006-01-18 19:54:16.000000000 +0100
-@@ -148,3 +148,12 @@
- 	brother on Alchemy SOCs.  The loss of features is not considered an
- 	issue.
- Who:	Ralf Baechle <ralf at linux-mips.org>
-+
-+---------------------------
-+
-+What:	I2C interface of the it87 driver
-+When:	January 2007
-+Why:	The ISA interface is faster and should be always available. The I2C
-+	probing is also known to cause trouble in at least one case (see
-+	bug #5889.)
-+Who:	Jean Delvare <khali at linux-fr.org>
+ drivers/i2c/i2c-dev.c |   50 ++++++++++++++++++++-----------------------------
+ 1 files changed, 20 insertions(+), 30 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
+index e140dd7..ad6e04f 100644
+--- a/drivers/i2c/i2c-dev.c
++++ b/drivers/i2c/i2c-dev.c
+@@ -42,8 +42,7 @@ static struct i2c_client i2cdev_client_t
+ struct i2c_dev {
+ 	int minor;
+ 	struct i2c_adapter *adap;
+-	struct class_device class_dev;
+-	struct completion released;	/* FIXME, we need a class_device_unregister() */
++	struct class_device *class_dev;
+ };
+ #define to_i2c_dev(d) container_of(d, struct i2c_dev, class_dev)
+ 
+@@ -105,7 +104,10 @@ static void return_i2c_dev(struct i2c_de
+ 
+ static ssize_t show_adapter_name(struct class_device *class_dev, char *buf)
+ {
+-	struct i2c_dev *i2c_dev = to_i2c_dev(class_dev);
++	struct i2c_dev *i2c_dev = i2c_dev_get_by_minor(MINOR(class_dev->devt));
++
++	if (!i2c_dev)
++		return -ENODEV;
+ 	return sprintf(buf, "%s\n", i2c_dev->adap->name);
+ }
+ static CLASS_DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
+@@ -408,21 +410,12 @@ static struct file_operations i2cdev_fop
+ 	.release	= i2cdev_release,
+ };
+ 
+-static void release_i2c_dev(struct class_device *dev)
+-{
+-	struct i2c_dev *i2c_dev = to_i2c_dev(dev);
+-	complete(&i2c_dev->released);
+-}
+-
+-static struct class i2c_dev_class = {
+-	.name		= "i2c-dev",
+-	.release	= &release_i2c_dev,
+-};
++static struct class *i2c_dev_class;
+ 
+ static int i2cdev_attach_adapter(struct i2c_adapter *adap)
+ {
+ 	struct i2c_dev *i2c_dev;
+-	int retval;
++	struct device *dev;
+ 
+ 	i2c_dev = get_free_i2c_dev(adap);
+ 	if (IS_ERR(i2c_dev))
+@@ -434,21 +427,20 @@ static int i2cdev_attach_adapter(struct 
+ 	/* register this i2c device with the driver core */
+ 	i2c_dev->adap = adap;
+ 	if (adap->dev.parent = &platform_bus)
+-		i2c_dev->class_dev.dev = &adap->dev;
++		dev = &adap->dev;
+ 	else
+-		i2c_dev->class_dev.dev = adap->dev.parent;
+-	i2c_dev->class_dev.class = &i2c_dev_class;
+-	i2c_dev->class_dev.devt = MKDEV(I2C_MAJOR, i2c_dev->minor);
+-	snprintf(i2c_dev->class_dev.class_id, BUS_ID_SIZE, "i2c-%d", i2c_dev->minor);
+-	retval = class_device_register(&i2c_dev->class_dev);
+-	if (retval)
++		dev = adap->dev.parent;
++	i2c_dev->class_dev = class_device_create(i2c_dev_class, NULL,
++						 MKDEV(I2C_MAJOR, i2c_dev->minor),
++						 dev, "i2c-%d", i2c_dev->minor);
++	if (!i2c_dev->class_dev)
+ 		goto error;
+-	class_device_create_file(&i2c_dev->class_dev, &class_device_attr_name);
++	class_device_create_file(i2c_dev->class_dev, &class_device_attr_name);
+ 	return 0;
+ error:
+ 	return_i2c_dev(i2c_dev);
+ 	kfree(i2c_dev);
+-	return retval;
++	return -ENODEV;
+ }
+ 
+ static int i2cdev_detach_adapter(struct i2c_adapter *adap)
+@@ -459,10 +451,8 @@ static int i2cdev_detach_adapter(struct 
+ 	if (!i2c_dev)
+ 		return -ENODEV;
+ 
+-	init_completion(&i2c_dev->released);
+ 	return_i2c_dev(i2c_dev);
+-	class_device_unregister(&i2c_dev->class_dev);
+-	wait_for_completion(&i2c_dev->released);
++	class_device_destroy(i2c_dev_class, MKDEV(I2C_MAJOR, i2c_dev->minor));
+ 	kfree(i2c_dev);
+ 
+ 	pr_debug("i2c-dev: adapter [%s] unregistered\n", adap->name);
+@@ -507,8 +497,8 @@ static int __init i2c_dev_init(void)
+ 	if (res)
+ 		goto out;
+ 
+-	res = class_register(&i2c_dev_class);
+-	if (res)
++	i2c_dev_class = class_create(THIS_MODULE, "i2c-dev");
++	if (IS_ERR(i2c_dev_class))
+ 		goto out_unreg_chrdev;
+ 
+ 	res = i2c_add_driver(&i2cdev_driver);
+@@ -518,7 +508,7 @@ static int __init i2c_dev_init(void)
+ 	return 0;
+ 
+ out_unreg_class:
+-	class_unregister(&i2c_dev_class);
++	class_destroy(i2c_dev_class);
+ out_unreg_chrdev:
+ 	unregister_chrdev(I2C_MAJOR, "i2c");
+ out:
+@@ -529,7 +519,7 @@ out:
+ static void __exit i2c_dev_exit(void)
+ {
+ 	i2c_del_driver(&i2cdev_driver);
+-	class_unregister(&i2c_dev_class);
++	class_destroy(i2c_dev_class);
+ 	unregister_chrdev(I2C_MAJOR,"i2c");
+ }
+ 
+
 
