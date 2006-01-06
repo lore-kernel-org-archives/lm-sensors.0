@@ -1,94 +1,80 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 18 Dec 2005 15:42:35 +0000
-Subject: [lm-sensors] [PATCH 05/11] i2c: driver ID list cleanups
-Message-Id: <20051218164235.1ac0707c.khali@linux-fr.org>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 06 Jan 2006 18:11:15 +0000
+Subject: [lm-sensors] describe the patch flow, review process
+Message-Id: <43BEB2C3.5050706@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-id-cleanups.patch
 
-Cleanups to i2c driver ID list:
-* Remove mostly bogus comments about driver ID ranges.
-* Drop experimental driver IDs, as the concept is pretty broken.
-* Drop now unused IDs of non-I2C (ISA) drivers.
-* Drop a few more IDs which are no more used.
+rather than just ask,  Ill guess (hopefully educated ;-)
+pls correct / elaborate as necessary.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- include/linux/i2c-id.h |   20 --------------------
- 1 file changed, 20 deletions(-)
 
---- linux-2.6.15-rc5.orig/include/linux/i2c-id.h	2005-12-14 20:20:45.000000000 +0100
-+++ linux-2.6.15-rc5/include/linux/i2c-id.h	2005-12-14 21:05:25.000000000 +0100
-@@ -25,12 +25,6 @@
- 
- /*
-  * ---- Driver types -----------------------------------------------------
-- *       device id name + number        function description, i2c address(es)
-- *
-- *  Range 1000-1999 range is defined in sensors/sensors.h
-- *  Range 0x100 - 0x1ff is for V4L2 Common Components
-- *  Range 0xf000 - 0xffff is reserved for local experimentation, and should
-- *        never be used in official drivers
-  */
- 
- #define I2C_DRIVERID_MSP3400	 1
-@@ -110,13 +104,7 @@
- #define I2C_DRIVERID_AKITAIOEXP	74	/* IO Expander on Sharp SL-C1000 */
- #define I2C_DRIVERID_INFRARED	75	/* I2C InfraRed on Video boards */
- 
--#define I2C_DRIVERID_EXP0	0xF0	/* experimental use id's	*/
--#define I2C_DRIVERID_EXP1	0xF1
--#define I2C_DRIVERID_EXP2	0xF2
--#define I2C_DRIVERID_EXP3	0xF3
--
- #define I2C_DRIVERID_I2CDEV	900
--#define I2C_DRIVERID_I2CPROC	901
- #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
- #define I2C_DRIVERID_ALERT      903    /* SMBus Alert Responder Client  */
- 
-@@ -131,15 +119,12 @@
- #define I2C_DRIVERID_ADM1021 1008
- #define I2C_DRIVERID_ADM9240 1009
- #define I2C_DRIVERID_LTC1710 1010
--#define I2C_DRIVERID_SIS5595 1011
- #define I2C_DRIVERID_ICSPLL 1012
- #define I2C_DRIVERID_BT869 1013
- #define I2C_DRIVERID_MAXILIFE 1014
- #define I2C_DRIVERID_MATORB 1015
- #define I2C_DRIVERID_GL520 1016
- #define I2C_DRIVERID_THMC50 1017
--#define I2C_DRIVERID_DDCMON 1018
--#define I2C_DRIVERID_VIA686A 1019
- #define I2C_DRIVERID_ADM1025 1020
- #define I2C_DRIVERID_LM87 1021
- #define I2C_DRIVERID_PCF8574 1022
-@@ -151,21 +136,16 @@
- #define I2C_DRIVERID_FSCPOS 1028
- #define I2C_DRIVERID_FSCSCY 1029
- #define I2C_DRIVERID_PCF8591 1030
--#define I2C_DRIVERID_SMSC47M1 1031
--#define I2C_DRIVERID_VT1211 1032
- #define I2C_DRIVERID_LM92 1033
--#define I2C_DRIVERID_VT8231 1034
- #define I2C_DRIVERID_SMARTBATT 1035
- #define I2C_DRIVERID_BMCSENSORS 1036
- #define I2C_DRIVERID_FS451 1037
--#define I2C_DRIVERID_W83627HF 1038
- #define I2C_DRIVERID_LM85 1039
- #define I2C_DRIVERID_LM83 1040
- #define I2C_DRIVERID_LM90 1042
- #define I2C_DRIVERID_ASB100 1043
- #define I2C_DRIVERID_FSCHER 1046
- #define I2C_DRIVERID_W83L785TS 1047
--#define I2C_DRIVERID_SMSC47B397 1050
- 
- /*
-  * ---- Adapter types ----------------------------------------------------
+1.  Jean Delvare is main reviewer of patches here.
+    he'd like help.
+    half/baked reviews (like the one I just did ;-) are still better 
+than none.
+    if you give bad advice, youll get corrected,
+    you'll learn more, and it wont hurt.
 
--- 
-Jean Delvare
+    the dialog will help you, the reviewee, and others
+       And I cant resist a quote (boy, arent I clever ;-)
+        from http://plato-dialogues.org/plato.htm
+
+       Plato wrote *dialogues* rather than philosophy treatises, and, 
+what's more, dialogues in which he never stages himself as a 
+participant, it is because his purpose was not to tell his readers what 
+/he himself/ thought, what were the answers /he himself/ had given to 
+the most fundamental questions in life about *what it means to be a 
+(wo)man*, but to teach them *to think by themselves*
+
+    (see, talk is good !  It just has to go somewhere, not over same old 
+'talking-points')
+
+    Jean wont mind the 'extra' work of reviewing reviews
+       its an 'investment' in a more vibrant lm-sensors community.
+       (he still dreams about just playing freecell or Duke-Nukem  ;-)
+
+2.   When Jean approves he:
+    a. adds it to his http://khali.linux-fr.org/devel/i2c/linux-2.6/
+            with comments in series file.
+    b. sends it to GregKH for further review and occaisional pushback.
+        that doesnt happen much, Jean is thorough.
+             Greg's happy about that.
+             Jean would be too.  See 1.
+
+3.   Greg then
+    a. puts them here ??  (I dont see them)
+        http://www.kernel.org/pub/linux/kernel/people/gregkh/
+    b.  pushes them to AKPM for inclusion in -mm
+          does he consolidate them to 1 patch ?
+             I think not, that would lose the attributions
+
+
+and this is where I get a bit fuzzy.
+
+2.6.15-mm1 came out recently  
+    http://lkml.org/lkml/2006/1/5/149
+
+but none of the stuff in 2.a  is there   (I looked for mine).
+
+Is that because theyre going to Linus  / main / git  instead ?
+and if so (not going to -mm)  why ?
+        dont they warrant more testing / exposure there ?
+
+Im not second-guessing here (hope thats obvious, but..)
+just trying to understand, and more tothe point,
+to know where to look, so I can check myself.  
+(optimistically thinking here ;-)
+
+
+Theres a less elaborate version of this at
+    http://lm-sensors.org/wiki/FAQ
+Ill update at some point, but wont mind if you do..
+
+tia
+jimc
 
