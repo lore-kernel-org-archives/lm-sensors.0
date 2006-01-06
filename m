@@ -1,78 +1,51 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 21:52:06 +0000
-Subject: [lm-sensors] [PATCH 07/17] i2c: scx200_acb fix and speed up the
-Message-Id: <20060118225206.50e42a42.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Fri, 06 Jan 2006 22:07:38 +0000
+Subject: [lm-sensors] [PATCH] hwmon: it87 use u8 for vrm
+Message-Id: <11365852581582@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Gardner <bgardner at wabtec.com>
-Content-Disposition: inline; filename=i2c-scx200_acb-06-poll.patch
+[PATCH] hwmon: it87 use u8 for vrm
 
-scx200_acb: Fix and speed up the poll loop
+VRM values fit in u8 by design now.
 
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/i2c/busses/scx200_acb.c |   13 ++-----------
- 1 files changed, 2 insertions(+), 11 deletions(-)
+commit a7be58a126d4cd9f0588df23f58796ed996c1835
+tree 26d0556bee4b8c241702fb9b49ea1936fc70ee4d
+parent 734a12a36676ad3b9418fa5a829c518afec02b8a
+author Jean Delvare <khali at linux-fr.org> Sun, 18 Dec 2005 16:40:14 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:26 -0800
 
---- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
-+++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
-@@ -47,10 +47,7 @@ static int base[MAX_DEVICES] = { 0x820, 
- module_param_array(base, int, NULL, 0);
- MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
- 
--/* The hardware supports interrupt driven mode too, but I haven't
--   implemented that. */
--#define POLLED_MODE 1
--#define POLL_TIMEOUT (HZ)
-+#define POLL_TIMEOUT	(HZ/5)
- 
- enum scx200_acb_state {
- 	state_idle,
-@@ -222,7 +219,6 @@ static void scx200_acb_machine(struct sc
- 	iface->needs_reset = 1;
- }
- 
--#ifdef POLLED_MODE
- static void scx200_acb_poll(struct scx200_acb_iface *iface)
+ drivers/hwmon/it87.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 29b74a8..0da7c9c 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -213,7 +213,7 @@ struct it87_data {
+ 	u8 sensor;		/* Register value */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+ 	u8 vid;			/* Register encoding, combined */
+-	int vrm;
++	u8 vrm;
+ 	u32 alarms;		/* Register encoding, combined */
+ 	u8 fan_main_ctrl;	/* Register value */
+ 	u8 manual_pwm_ctl[3];   /* manual PWM value set by user */
+@@ -669,7 +669,7 @@ static ssize_t
+ show_vrm_reg(struct device *dev, struct device_attribute *attr, char *buf)
  {
- 	u8 status;
-@@ -235,7 +231,7 @@ static void scx200_acb_poll(struct scx20
- 			scx200_acb_machine(iface, status);
- 			return;
- 		}
--		msleep(10);
-+		yield();
- 	}
- 
- 	dev_err(&iface->adapter.dev, "timeout in state %s\n",
-@@ -245,7 +241,6 @@ static void scx200_acb_poll(struct scx20
- 	iface->result = -EIO;
- 	iface->needs_reset = 1;
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%ld\n", (long) data->vrm);
++	return sprintf(buf, "%u\n", data->vrm);
  }
--#endif /* POLLED_MODE */
- 
- static void scx200_acb_reset(struct scx200_acb_iface *iface)
- {
-@@ -335,12 +330,8 @@ static s32 scx200_acb_smbus_xfer(struct 
- 	else
- 		iface->state = state_address;
- 
--#ifdef POLLED_MODE
- 	while (iface->state != state_idle)
- 		scx200_acb_poll(iface);
--#else /* POLLED_MODE */
--#error Interrupt driven mode not implemented
--#endif /* POLLED_MODE */	
- 
- 	if (iface->needs_reset)
- 		scx200_acb_reset(iface);
+ static ssize_t
+ store_vrm_reg(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
 
-
--- 
-Jean Delvare
 
