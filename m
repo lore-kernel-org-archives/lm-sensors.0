@@ -1,89 +1,104 @@
 From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:36 +0000
-Subject: [lm-sensors] [PATCH] I2C: Make i2c_add_driver automatically set the
-Message-Id: <1136585256316@kroah.com>
+Date: Fri, 06 Jan 2006 22:07:34 +0000
+Subject: [lm-sensors] [PATCH] i2c: Remove duplicate rtc8564 BCD macros
+Message-Id: <1136585254153@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: Make i2c_add_driver automatically set the proper module owner
+[PATCH] i2c: Remove duplicate rtc8564 BCD macros
 
-This prevents i2c drivers from messing up and forgetting to set the
-module owner of their driver.  It also reduces the size of their drivers
-by one line :)
+Remove duplicate of BCD macros.
 
+Signed-off-by: Nicolas Kaiser <nikai at nikai.net>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-Cc: Jean Delvare <khali at linux-fr.org>
 
 ---
-commit de59cf9ed44f64991e52a9de6094729537f0420c
-tree 038f6fb83228d09812f729d19fb7bdc8a324dd55
-parent e1c489b0e4fbb1687f8227fe78b4769c123768c1
-author Greg Kroah-Hartman <gregkh at suse.de> Tue, 06 Dec 2005 15:33:15 -0800
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:24 -0800
+commit 7e94436942a7517d08c0cd1a8831122a0fea289e
+tree f67263807fb5ce39796dc75525323a2c6753c143
+parent 5b319400f5e2cd31a82b38405856ff2b46a9bb83
+author Nicolas Kaiser <nikai at nikai.net> Sat, 26 Nov 2005 20:15:23 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:21 -0800
 
- drivers/i2c/i2c-core.c |    5 +++--
- include/linux/i2c.h    |    7 ++++++-
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/rtc8564.c |   36 +++++++++++++++++-------------------
+ 1 files changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 4ce5f0f..c23443e 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -287,7 +287,7 @@ int i2c_del_adapter(struct i2c_adapter *
-  * chips.
+diff --git a/drivers/i2c/chips/rtc8564.c b/drivers/i2c/chips/rtc8564.c
+index 916cdc1..26e498d 100644
+--- a/drivers/i2c/chips/rtc8564.c
++++ b/drivers/i2c/chips/rtc8564.c
+@@ -14,6 +14,7 @@
   */
+ #include <linux/module.h>
+ #include <linux/kernel.h>
++#include <linux/bcd.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+@@ -52,9 +53,6 @@ static inline u8 _rtc8564_ctrl2(struct i
+ #define CTRL1(c) _rtc8564_ctrl1(c)
+ #define CTRL2(c) _rtc8564_ctrl2(c)
  
--int i2c_add_driver(struct i2c_driver *driver)
-+int i2c_register_driver(struct module *owner, struct i2c_driver *driver)
- {
- 	struct list_head   *item;
- 	struct i2c_adapter *adapter;
-@@ -296,6 +296,7 @@ int i2c_add_driver(struct i2c_driver *dr
- 	down(&core_lists);
+-#define BCD_TO_BIN(val) (((val)&15) + ((val)>>4)*10)
+-#define BIN_TO_BCD(val) ((((val)/10)<<4) + (val)%10)
+-
+ static int debug;;
+ module_param(debug, int, S_IRUGO | S_IWUSR);
  
- 	/* add the driver to the list of i2c drivers in the driver core */
-+	driver->driver.owner = owner;
- 	driver->driver.bus = &i2c_bus_type;
- 	driver->driver.probe = i2c_device_probe;
- 	driver->driver.remove = i2c_device_remove;
-@@ -319,6 +320,7 @@ int i2c_add_driver(struct i2c_driver *dr
- 	up(&core_lists);
- 	return res;
- }
-+EXPORT_SYMBOL(i2c_register_driver);
+@@ -224,16 +222,16 @@ static int rtc8564_get_datetime(struct i
+ 		return ret;
  
- int i2c_del_driver(struct i2c_driver *driver)
- {
-@@ -1132,7 +1134,6 @@ EXPORT_SYMBOL_GPL(i2c_bus_type);
+ 	/* century stored in minute alarm reg */
+-	dt->year = BCD_TO_BIN(buf[RTC8564_REG_YEAR]);
+-	dt->year += 100 * BCD_TO_BIN(buf[RTC8564_REG_AL_MIN] & 0x3f);
+-	dt->mday = BCD_TO_BIN(buf[RTC8564_REG_DAY] & 0x3f);
+-	dt->wday = BCD_TO_BIN(buf[RTC8564_REG_WDAY] & 7);
+-	dt->mon = BCD_TO_BIN(buf[RTC8564_REG_MON_CENT] & 0x1f);
++	dt->year = BCD2BIN(buf[RTC8564_REG_YEAR]);
++	dt->year += 100 * BCD2BIN(buf[RTC8564_REG_AL_MIN] & 0x3f);
++	dt->mday = BCD2BIN(buf[RTC8564_REG_DAY] & 0x3f);
++	dt->wday = BCD2BIN(buf[RTC8564_REG_WDAY] & 7);
++	dt->mon = BCD2BIN(buf[RTC8564_REG_MON_CENT] & 0x1f);
  
- EXPORT_SYMBOL(i2c_add_adapter);
- EXPORT_SYMBOL(i2c_del_adapter);
--EXPORT_SYMBOL(i2c_add_driver);
- EXPORT_SYMBOL(i2c_del_driver);
- EXPORT_SYMBOL(i2c_attach_client);
- EXPORT_SYMBOL(i2c_detach_client);
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 75aa18e..7863a59 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -291,9 +291,14 @@ struct i2c_client_address_data {
- extern int i2c_add_adapter(struct i2c_adapter *);
- extern int i2c_del_adapter(struct i2c_adapter *);
+-	dt->secs = BCD_TO_BIN(buf[RTC8564_REG_SEC] & 0x7f);
++	dt->secs = BCD2BIN(buf[RTC8564_REG_SEC] & 0x7f);
+ 	dt->vl = (buf[RTC8564_REG_SEC] & 0x80) = 0x80;
+-	dt->mins = BCD_TO_BIN(buf[RTC8564_REG_MIN] & 0x7f);
+-	dt->hours = BCD_TO_BIN(buf[RTC8564_REG_HR] & 0x3f);
++	dt->mins = BCD2BIN(buf[RTC8564_REG_MIN] & 0x7f);
++	dt->hours = BCD2BIN(buf[RTC8564_REG_HR] & 0x3f);
  
--extern int i2c_add_driver(struct i2c_driver *);
-+extern int i2c_register_driver(struct module *, struct i2c_driver *);
- extern int i2c_del_driver(struct i2c_driver *);
+ 	_DBGRTCTM(2, *dt);
  
-+static inline int i2c_add_driver(struct i2c_driver *driver)
-+{
-+	return i2c_register_driver(THIS_MODULE, driver);
-+}
-+
- extern int i2c_attach_client(struct i2c_client *);
- extern int i2c_detach_client(struct i2c_client *);
+@@ -255,18 +253,18 @@ rtc8564_set_datetime(struct i2c_client *
  
+ 	buf[RTC8564_REG_CTRL1] = CTRL1(client) | RTC8564_CTRL1_STOP;
+ 	buf[RTC8564_REG_CTRL2] = CTRL2(client);
+-	buf[RTC8564_REG_SEC] = BIN_TO_BCD(dt->secs);
+-	buf[RTC8564_REG_MIN] = BIN_TO_BCD(dt->mins);
+-	buf[RTC8564_REG_HR] = BIN_TO_BCD(dt->hours);
++	buf[RTC8564_REG_SEC] = BIN2BCD(dt->secs);
++	buf[RTC8564_REG_MIN] = BIN2BCD(dt->mins);
++	buf[RTC8564_REG_HR] = BIN2BCD(dt->hours);
+ 
+ 	if (datetoo) {
+ 		len += 5;
+-		buf[RTC8564_REG_DAY] = BIN_TO_BCD(dt->mday);
+-		buf[RTC8564_REG_WDAY] = BIN_TO_BCD(dt->wday);
+-		buf[RTC8564_REG_MON_CENT] = BIN_TO_BCD(dt->mon) & 0x1f;
++		buf[RTC8564_REG_DAY] = BIN2BCD(dt->mday);
++		buf[RTC8564_REG_WDAY] = BIN2BCD(dt->wday);
++		buf[RTC8564_REG_MON_CENT] = BIN2BCD(dt->mon) & 0x1f;
+ 		/* century stored in minute alarm reg */
+-		buf[RTC8564_REG_YEAR] = BIN_TO_BCD(dt->year % 100);
+-		buf[RTC8564_REG_AL_MIN] = BIN_TO_BCD(dt->year / 100);
++		buf[RTC8564_REG_YEAR] = BIN2BCD(dt->year % 100);
++		buf[RTC8564_REG_AL_MIN] = BIN2BCD(dt->year / 100);
+ 	}
+ 
+ 	ret = rtc8564_write(client, 0, buf, len);
 
 
