@@ -1,7 +1,7 @@
-From: Axel.Thimm@ATrpms.net (Axel Thimm)
-Date: Fri, 06 Jan 2006 21:48:20 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 07 Jan 2006 11:06:08 +0000
 Subject: [lm-sensors] project status and future
-Message-Id: <20060106214820.GJ28372@neu.nirvana>
+Message-Id: <20060107120608.7d5f3504.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43AF1E4A.90902@sh.cvut.cz>
 In-Reply-To: <43AF1E4A.90902@sh.cvut.cz>
@@ -10,31 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jan 06, 2006 at 01:42:07PM -0800, Philip Edelbrock wrote:
-> 
-> 
-> Rudolf Marek wrote:
-> > I'm also observing the disappearing of pictures on every second
-> > page reload, can you please fix it too?
-> 
-> Ah, are you using Safari?  (Or another KHMTL browser?)  I see the
-> disappearing images/stylesheets too.  Same thing on the ivtv site.
-> I suspect that it might be because the images/stylesheet are marked
-> as not cachable and expire even before the page renders, but I'm not
-> sure.
+Hi Axel,
 
-I think it's independent of the browser, I see it with firefox, too (at
-least the logo flipping on and off).
+> > can please you enable that extended features as Mike requested (and fix the logo)
+> 
+> I added logo (& favicon), but which extended features are you
+> referring to?
 
-I think this is a regression in 0.9.2, because I hadn't seen this
-before. Mike has contact to a trac guy and I also contacted the trac
-list to get this fixed.
+Quoting Michael Renzmann a few days ago:
+
+<< Some of the remaining pages, most notably the "supported devices" and
+"new drivers" ones, use tables with cells that span more than one row
+and/or column. This type of table can be better rendered when support
+for "restructured text" is enabled, see:
+http://lm-sensors.org/trac/wiki/WikiRestructuredText - any chance we get
+this on the lm_sensors Trac installation? >>
+
+I think that's what Rudolf was referring to here.
+
 -- 
-Axel.Thimm at ATrpms.net
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060106/2dd2d987/attachment.bin
+Jean Delvare
+
