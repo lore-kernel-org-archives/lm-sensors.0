@@ -1,45 +1,31 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Sat, 14 Jan 2006 04:09:14 +0000
-Subject: [lm-sensors] Loaded Modules but 'No sensors found'
-Message-Id: <20060114040914.GB29747@jupiter.solarsys.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 07 Jan 2006 11:11:31 +0000
+Subject: [lm-sensors] trac, svn, mediawiki
+Message-Id: <20060107121131.2e1deea0.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <W5422813796241071136954279@webmail2>
-In-Reply-To: <W5422813796241071136954279@webmail2>
+References: <43B58964.2010309@edgedesign.us>
+In-Reply-To: <43B58964.2010309@edgedesign.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean, Kevin:
+Hi Phil and all,
 
-Kevin wrote:
-> > > > I've followed all instructions I could find. It seems as if all modules get
-> > > > detected and load fine. Yet running 'sensors returns 'No sensors found'. Any
-> > > > thoughts?????
+> I can also prep the tickets and get them moved over, too.
 
-Mark wrote:
-> > > I guess: unload eeprom, i2c-amd756, and i2c-amd8111; then try again.  Your
-> > > hardware monitor (w83627hf or some such) is probably visible through i2c-isa
-> > > alone.  If that doesn't work, please send the output from sensors-detect.
+About this, it would be great if we could move the tickets to trac
+while keeping their original numbers. This means that new tickets in
+trac should start at number 2130 or more (we might make it 2201 for
+convenience).
 
-Kevin wrote:
-> > I haven't had the chance yet to try this but I did try a new kernel and 
-> > that worked.
-> > I tried kernel 2.6.15 w/ gentoo and ck patches. I will try you above 
-> > suggestion and also vanilla kernel 2.6.15 for comparison.
+This is a problem as we already have a ticket #1 in trac. Can it be
+renumbered to 2201? Can we tell trac to increase the ticket numbers
+from there?
 
-* Jean Delvare <khali at linux-fr.org> [2006-01-13 23:29:35 +0100]:
-> My own guess is the conflict between PNPACPI and the w83627hf driver,
-> which is known to have affected the Linux kernels from 2.6.10 to 2.6.14:
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id@14
+Also, Phil, how does the old tickets conversion look like? Doable?
 
-Oops, I forgot about that one.  You're probably right.
-
-Regards,
-
+Thanks,
 -- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+Jean Delvare
 
