@@ -1,26 +1,42 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 21 Jan 2006 12:45:08 +0000
-Subject: [lm-sensors] wrong readings for w83627ehf on p5mt-m
-Message-Id: <43D22CD4.3060902@sh.cvut.cz>
+From: langlott@arcor.de (Michael Langlott)
+Date: Sun, 08 Jan 2006 08:24:20 +0000
+Subject: [lm-sensors] Lmsensors and Asus CUSL2
+Message-Id: <000301c6142c$ec8c6be0$0200a8c0@administrator>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <aaa5cd0c0601131819j5692f460yb447692c03341732@mail.gmail.com>
-In-Reply-To: <aaa5cd0c0601131819j5692f460yb447692c03341732@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Rudolf Marek wrote:
-> Hello,
-> 
-> 
-> Please can you send me a copy of your DSDT acpi table?
-> cat /proc/acpi/dsdt > /tmp/dsdt.file
-> 
-> (enough is to me in private because mailing list is not allowing binary attachments)
+Hi,
 
-Thanks, for the record there is nothing interresting in ACPI.
+i using the MB Asus CUSL2 and want to use Lmsensors with it, but he dont 
+detect my chipset. Can u make support for my CHIPSET also so i can use it 
+couse its a verrygood programm!
 
-Regards
-Rudolf
+Please answer
+
+Michael
+
+
+
+
+=========================
+
+Michael Langlott
+Heinrich-L?bke-Str.15
+33104 Paderborn
+
+Tel: +495254-806774
+Fax: +495254-806286
+
+E-Mail: langlott at arcor.de
+ICQ: 68872313
+Yahoo: michi1978pb
+
+Homepage: http://www.mlanglott.de
+
+========================= 
+
+
 
