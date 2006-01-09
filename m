@@ -1,52 +1,42 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 06 Jan 2006 20:57:34 +0000
-Subject: [lm-sensors] OT OT OT Re: seeking a W83687THF patch for 2.6.15 (re:
-Message-Id: <43BED9BE.9000007@gmail.com>
+From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
+Date: Mon, 09 Jan 2006 02:26:02 +0000
+Subject: [lm-sensors] OT OT OT Re: seeking a W83687THF patch for 2.6.15
+Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE132@weshml03.winbond.com.tw>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <43BED9BE.9000007@gmail.com>
+In-Reply-To: <43BED9BE.9000007@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Steven Karatnyk wrote:
-
->Hello Yuan,
->
->Ymu at Winbond.com.tw wrote:
->  
->
->>Quoting Jim: 
->>  
->>    
->>
->>>BTW - youd do well to drop the *misfortunate* posture.
->>>    
->>>      
->>>
->>I will try to tell my HW colleagues your dissatisfaction...
->>Thank you Jim ;) 
->>
->>  
->>    
->>
-
-<tongue in cheek>
-
-Ive just one more comment Ive just *got* to make..
-
-Yuan, 
-
-You should inform your marketing department about the wisdom
-of avoiding part numbers like
-
-W*THF
-
-it is *way* too close to the web-wide TLA:  *WTF*
-
-it even has one of the &@#!@#  (cleaned-up-swear-word) characters.
-Not an association they want to engender.
-
-</ goes off laughing about another untouched pun>
-
-
-
+PiBZdWFuLAo+IAo+IFlvdSBzaG91bGQgaW5mb3JtIHlvdXIgbWFya2V0aW5nIGRlcGFydG1lbnQg
+YWJvdXQgdGhlIHdpc2RvbQo+IG9mIGF2b2lkaW5nIHBhcnQgbnVtYmVycyBsaWtlCj4gCj4gVypU
+SEYKPiAKPiBpdCBpcyAqd2F5KiB0b28gY2xvc2UgdG8gdGhlIHdlYi13aWRlIFRMQTogICpXVEYq
+Cj4gCj4gaXQgZXZlbiBoYXMgb25lIG9mIHRoZSAmQCMhQCMgIChjbGVhbmVkLXVwLXN3ZWFyLXdv
+cmQpIGNoYXJhY3RlcnMuCj4gTm90IGFuIGFzc29jaWF0aW9uIHRoZXkgd2FudCB0byBlbmdlbmRl
+ci4KPiAKPiA8LyBnb2VzIG9mZiBsYXVnaGluZyBhYm91dCBhbm90aGVyIHVudG91Y2hlZCBwdW4+
+Cj4gCk9LIDpwIApUaGV5IHdpbGwgbWFyayBhbGwgbXkgbWFpbCBhcyBzcGFtLgoKCj09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25m
+aWRlbnRpYWwgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQg
+Zm9yIHVzZSBvbmx5IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2lu
+YWwgc2VuZGVyIG9mIHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5k
+aWNhdGVkIGluIHRoaXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkg
+b2YgdGhlIGVtYWlsIHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRo
+ZSBzZW5kZXIgaW5kaWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0
+IGZyb20geW91ciBjb21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIg
+Y29vcGVyYXRpb24gaXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55
+IHVuYXV0aG9yaXplZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQg
+aXMgc3RyaWN0bHkgcHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWls
+IGlycmVsZXZhbnQgdG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUg
+ZGVlbWVkIGFzIG5laXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlz
+IHVuYWJsZSB0byBkZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dp
+bmcgbWVzc2FnZS5JdCBlc3NlbnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlz
+aCBnaXZlbiBhYm92ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsix
+wsV2rey1b6tIpEir/Kl3pKemrKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ik
+SKnOpl2l9KbzreymXaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVv
+q0ikSKjDpd+nWbFOq0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plin
+QCwgp9qtzKX9prmtUMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6
+vvexS7jqsFSquqbmrLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLqu
+ZSyko7FvtfissLXYqLm5caRspKel37P1qc63TqijLgoK
