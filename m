@@ -1,48 +1,36 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 22:10:49 +0000
-Subject: [lm-sensors] [PATCH 09/17] hwmon: Refactor SENSOR_DEVICE_ATTR_2
-Message-Id: <20060118231049.0e73d173.khali@linux-fr.org>
+Date: Mon, 09 Jan 2006 22:09:57 +0000
+Subject: [lm-sensors] [PATCH 05/11] i2c: Use module_param in i2c-algo-sibyte
+Message-Id: <20060109230957.041f41af.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
-Content-Disposition: inline; filename=hwmon-sensor-attr-array-2.patch
+From: Eric Sesterhenn <snakebyte at gmx.de>
+Content-Disposition: inline; filename=i2c-algo-sibyte-module-param.patch
 
-This patch refactors SENSOR_DEVICE_ATTR_2 macro, following pattern set by
-SENSOR_ATTR.  First it creates a new macro SENSOR_ATTR_2() which expands 
-to an initialization expression, then it uses that in SENSOR_DEVICE_ATTR_2, 
-which declares and initializes a struct sensor_device_attribute_2.
+this patch changes MODULE_PARM usage
+to module_param in i2c-algo-sibyte.c
 
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+Signed-off-by: Eric Sesterhenn <snakebyte at gmx.de>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- include/linux/hwmon-sysfs.h |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/i2c/algos/i2c-algo-sibyte.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-2.6.15-rc7.orig/include/linux/hwmon-sysfs.h	2005-12-30 10:54:40.000000000 +0100
-+++ linux-2.6.15-rc7/include/linux/hwmon-sysfs.h	2006-01-02 11:02:22.000000000 +0100
-@@ -43,11 +43,13 @@
- #define to_sensor_dev_attr_2(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute_2, dev_attr)
+--- linux-2.6.15-rc6.orig/drivers/i2c/algos/i2c-algo-sibyte.c	2005-11-12 15:49:51.000000000 +0100
++++ linux-2.6.15-rc6/drivers/i2c/algos/i2c-algo-sibyte.c	2005-12-23 10:50:12.000000000 +0100
+@@ -202,7 +202,7 @@
+ #ifdef MODULE
+ MODULE_AUTHOR("Kip Walker, Broadcom Corp.");
+ MODULE_DESCRIPTION("SiByte I2C-Bus algorithm");
+-MODULE_PARM(bit_scan, "i");
++module_param(bit_scan, int, 0);
+ MODULE_PARM_DESC(bit_scan, "Scan for active chips on the bus");
+ MODULE_LICENSE("GPL");
  
-+#define SENSOR_ATTR_2(_name, _mode, _show, _store, _nr, _index)	\
-+	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
-+	  .index = _index,					\
-+	  .nr = _nr }
-+
- #define SENSOR_DEVICE_ATTR_2(_name,_mode,_show,_store,_nr,_index)	\
--struct sensor_device_attribute_2 sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
--	.index =	_index,					\
--	.nr =		_nr,					\
--}
-+struct sensor_device_attribute_2 sensor_dev_attr_##_name		\
-+	= SENSOR_ATTR_2(_name, _mode, _show, _store, _nr, _index)
- 
- #endif /* _LINUX_HWMON_SYSFS_H */
 
 -- 
 Jean Delvare
