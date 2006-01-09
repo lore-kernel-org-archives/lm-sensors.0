@@ -1,80 +1,90 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:33 +0000
-Subject: [lm-sensors] [PATCH] i2c: Extend ds1337 initialization
-Message-Id: <11365852532253@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 09 Jan 2006 22:19:51 +0000
+Subject: [lm-sensors] [PATCH 06/11] i2c: Use ARRAY_SIZE macro
+Message-Id: <20060109231951.2b9634ff.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Extend ds1337 initialization
+From: Tobias Klauser <tklauser at nuerscht.ch>
+Content-Disposition: inline; filename=i2c-busses-use-array-size-macro.patch
 
-Add code to handle case where board firmware does not start the
-RTC.
+Use ARRAY_SIZE macro instead of sizeof(x)/sizeof(x[0]). Some trailing
+whitespaces are also removed.
 
+Signed-off-by: Tobias Klauser <tklauser at nuerscht.ch>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-CC: James Chapman <jchapman at katalix.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
+Cc: Russell King <rmk+kernel at arm.linux.org.uk>
 ---
-commit f9e8957937ebf60d22732a5ca9130f48a7603f60
-tree c36adb2b1c9e3ef69bf598ee3084966ef7085596
-parent 2e3e13f8e9d9b2111404cdccaa4e1b988b70acce
-author Michael Burian <dynmail1 at gassner-waagen.at> Mon, 07 Nov 2005 22:30:14 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:20 -0800
+ i2c-parport-light.c |    9 +++------
+ i2c-parport.c       |    7 ++-----
+ i2c-pxa.c           |    2 +-
+ 3 files changed, 6 insertions(+), 12 deletions(-)
 
- drivers/i2c/chips/ds1337.c |   37 +++++++++++++++++++++++++++++++------
- 1 files changed, 31 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/i2c/chips/ds1337.c b/drivers/i2c/chips/ds1337.c
-index 02682fb..1822895 100644
---- a/drivers/i2c/chips/ds1337.c
-+++ b/drivers/i2c/chips/ds1337.c
-@@ -337,13 +337,38 @@ exit:
+diff -urpN -X dontdiff linux-2.6.15/drivers/i2c/busses/i2c-parport.c linux-2.6.15~array_size/drivers/i2c/busses/i2c-parport.c
+--- linux-2.6.15/drivers/i2c/busses/i2c-parport.c	2006-01-03 14:41:55.000000000 +0100
++++ linux-2.6.15~array_size/drivers/i2c/busses/i2c-parport.c	2006-01-03 15:36:13.000000000 +0100
+@@ -241,14 +241,11 @@ static struct parport_driver i2c_parport
  
- static void ds1337_init_client(struct i2c_client *client)
+ static int __init i2c_parport_init(void)
  {
--	s32 val;
-+	u8 status, control;
- 
--	/* Ensure that device is set in 24-hour mode */
--	val = i2c_smbus_read_byte_data(client, DS1337_REG_HOUR);
--	if ((val >= 0) && (val & (1 << 6)))
--		i2c_smbus_write_byte_data(client, DS1337_REG_HOUR,
--					  val & 0x3f);
-+	/* On some boards, the RTC isn't configured by boot firmware.
-+	 * Handle that case by starting/configuring the RTC now.
-+	 */
-+	status = i2c_smbus_read_byte_data(client, DS1337_REG_STATUS);
-+	control = i2c_smbus_read_byte_data(client, DS1337_REG_CONTROL);
+-	int type_count;
+-
+-	type_count = sizeof(adapter_parm)/sizeof(struct adapter_parm);
+-	if (type < 0 || type >= type_count) {
++	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
+ 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
+ 		type = 0;
+ 	}
+-	
 +
-+	if ((status & 0x80) || (control & 0x80)) {
-+		/* RTC not running */
-+		u8 buf[16];
-+		struct i2c_msg msg[1];
-+
-+		dev_dbg(&client->dev, "%s: RTC not running!\n", __FUNCTION__);
-+
-+		/* Initialize all, including STATUS and CONTROL to zero */
-+		memset(buf, 0, sizeof(buf));
-+		msg[0].addr = client->addr;
-+		msg[0].flags = 0;
-+		msg[0].len = sizeof(buf);
-+		msg[0].buf = &buf[0];
-+
-+		i2c_transfer(client->adapter, msg, 1);
-+	} else {
-+		/* Running: ensure that device is set in 24-hour mode */
-+		s32 val;
-+
-+		val = i2c_smbus_read_byte_data(client, DS1337_REG_HOUR);
-+		if ((val >= 0) && (val & (1 << 6)))
-+			i2c_smbus_write_byte_data(client, DS1337_REG_HOUR,
-+						  val & 0x3f);
-+	}
+ 	return parport_register_driver(&i2c_parport_driver);
  }
  
- static int ds1337_detach_client(struct i2c_client *client)
+diff -urpN -X dontdiff linux-2.6.15/drivers/i2c/busses/i2c-parport-light.c linux-2.6.15~array_size/drivers/i2c/busses/i2c-parport-light.c
+--- linux-2.6.15/drivers/i2c/busses/i2c-parport-light.c	2005-08-29 01:41:01.000000000 +0200
++++ linux-2.6.15~array_size/drivers/i2c/busses/i2c-parport-light.c	2006-01-03 15:35:14.000000000 +0100
+@@ -121,14 +121,11 @@ static struct i2c_adapter parport_adapte
+ 
+ static int __init i2c_parport_init(void)
+ {
+-	int type_count;
+-
+-	type_count = sizeof(adapter_parm)/sizeof(struct adapter_parm);
+-	if (type < 0 || type >= type_count) {
++	if (type < 0 || type >= ARRAY_SIZE(adapter_parm)) {
+ 		printk(KERN_WARNING "i2c-parport: invalid type (%d)\n", type);
+ 		type = 0;
+ 	}
+-	
++
+ 	if (base = 0) {
+ 		printk(KERN_INFO "i2c-parport: using default base 0x%x\n", DEFAULT_BASE);
+ 		base = DEFAULT_BASE;
+@@ -152,7 +149,7 @@ static int __init i2c_parport_init(void)
+ 		release_region(base, 3);
+ 		return -ENODEV;
+ 	}
+-	
++
+ 	return 0;
+ }
+ 
+diff -urpN -X dontdiff linux-2.6.15/drivers/i2c/busses/i2c-pxa.c linux-2.6.15~array_size/drivers/i2c/busses/i2c-pxa.c
+--- linux-2.6.15/drivers/i2c/busses/i2c-pxa.c	2006-01-03 14:41:55.000000000 +0100
++++ linux-2.6.15~array_size/drivers/i2c/busses/i2c-pxa.c	2006-01-03 15:16:10.000000000 +0100
+@@ -861,7 +861,7 @@ static irqreturn_t i2c_pxa_handler(int t
+ 		decode_ISR(isr);
+ 	}
+ 
+-	if (i2c->irqlogidx < sizeof(i2c->isrlog)/sizeof(u32))
++	if (i2c->irqlogidx < ARRAY_SIZE(i2c->isrlog))
+ 		i2c->isrlog[i2c->irqlogidx++] = isr;
+ 
+ 	show_state(i2c);
 
+-- 
+Jean Delvare
 
