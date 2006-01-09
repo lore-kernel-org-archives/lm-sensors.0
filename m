@@ -1,64 +1,69 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:34 +0000
-Subject: [lm-sensors] [PATCH] i2c: Drop i2c_driver.flags, 1 of 3
-Message-Id: <11365852543794@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 09 Jan 2006 21:49:11 +0000
+Subject: [lm-sensors] [PATCH 03/11] i2c: Resurrect
+Message-Id: <20060109224911.163e5927.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Drop i2c_driver.flags, 1 of 3
+Content-Disposition: inline; filename=i2c-add-i2c-block-write.patch
 
-The I2C_DF_DUMMY flag is gone since 2.5.70, it's about time to
-drop all ifdef'd out references thereto.
+Resurrect i2c_smbus_write_i2c_block_data. Benjamin Herrenschmidt
+needs it.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
+Cc: Benjamin Herrenschmidt <benh at kernel.crashing.org>
 ---
-commit ff179c8cf5caa17bf3d407edbb5872aa2eee6900
-tree ac10dc7a3c5be7f8cd1d88736cf508600c19b8d7
-parent 1de9e371b89e1cf4da123f0d92efa8eb134ca5e8
-author Jean Delvare <khali at linux-fr.org> Sat, 26 Nov 2005 20:24:59 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:21 -0800
+ drivers/i2c/i2c-core.c |   15 +++++++++++++++
+ include/linux/i2c.h    |    3 +++
+ 2 files changed, 18 insertions(+)
 
- drivers/media/video/tvmixer.c |    4 ----
- include/linux/i2c.h           |    5 -----
- 2 files changed, 0 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/video/tvmixer.c b/drivers/media/video/tvmixer.c
-index 8318bd1..5897e5d 100644
---- a/drivers/media/video/tvmixer.c
-+++ b/drivers/media/video/tvmixer.c
-@@ -232,12 +232,8 @@ static struct i2c_driver driver = {
- #endif
- 	.name            = "tv card mixer driver",
- 	.id              = I2C_DRIVERID_TVMIXER,
--#ifdef I2C_DF_DUMMY
--	.flags           = I2C_DF_DUMMY,
--#else
- 	.flags           = I2C_DF_NOTIFY,
- 	.detach_adapter  = tvmixer_adapters,
--#endif
- 	.attach_adapter  = tvmixer_adapters,
- 	.detach_client   = tvmixer_clients,
- };
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 5e19a7b..0316ba1 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -252,11 +252,6 @@ static inline void i2c_set_adapdata (str
+--- linux-2.6.15-git.orig/drivers/i2c/i2c-core.c	2006-01-08 10:55:58.000000000 +0100
++++ linux-2.6.15-git/drivers/i2c/i2c-core.c	2006-01-08 11:17:57.000000000 +0100
+@@ -948,6 +948,20 @@
+ 	}
+ }
  
- /*flags for the driver struct: */
- #define I2C_DF_NOTIFY	0x01		/* notify on bus (de/a)ttaches 	*/
--#if 0
--/* this flag is gone -- there is a (optional) driver->detach_adapter
-- * callback now which can be used instead */
--# define I2C_DF_DUMMY	0x02
--#endif
++s32 i2c_smbus_write_i2c_block_data(struct i2c_client *client, u8 command,
++				   u8 length, u8 *values)
++{
++	union i2c_smbus_data data;
++
++	if (length > I2C_SMBUS_BLOCK_MAX)
++		length = I2C_SMBUS_BLOCK_MAX;
++	data.block[0] = length;
++	memcpy(data.block + 1, values, length);
++	return i2c_smbus_xfer(client->adapter, client->addr, client->flags,
++			      I2C_SMBUS_WRITE, command,
++			      I2C_SMBUS_I2C_BLOCK_DATA, &data);
++}
++
+ /* Simulate a SMBus command using the i2c protocol 
+    No checking of parameters is done!  */
+ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter * adapter, u16 addr, 
+@@ -1152,6 +1166,7 @@
+ EXPORT_SYMBOL(i2c_smbus_write_word_data);
+ EXPORT_SYMBOL(i2c_smbus_write_block_data);
+ EXPORT_SYMBOL(i2c_smbus_read_i2c_block_data);
++EXPORT_SYMBOL(i2c_smbus_write_i2c_block_data);
  
- /*flags for the client struct: */
- #define I2C_CLIENT_ALLOW_USE		0x01	/* Client allows access */
+ MODULE_AUTHOR("Simon G. Vogl <simon at tk.uni-linz.ac.at>");
+ MODULE_DESCRIPTION("I2C-Bus main module");
+--- linux-2.6.15-git.orig/include/linux/i2c.h	2006-01-08 10:56:08.000000000 +0100
++++ linux-2.6.15-git/include/linux/i2c.h	2006-01-08 11:02:00.000000000 +0100
+@@ -100,6 +100,9 @@
+ /* Returns the number of read bytes */
+ extern s32 i2c_smbus_read_i2c_block_data(struct i2c_client * client,
+ 					 u8 command, u8 *values);
++extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client * client,
++					  u8 command, u8 length,
++					  u8 *values);
+ 
+ /*
+  * A driver is capable of handling one or more physical devices present on
 
+-- 
+Jean Delvare
 
