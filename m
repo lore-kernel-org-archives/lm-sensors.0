@@ -1,45 +1,839 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Mon, 09 Jan 2006 09:19:38 +0000
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 09 Jan 2006 13:53:37 +0000
 Subject: [lm-sensors] [PATCH] hwmon: w83792d use sensor-attr arrays
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
+Message-Id: <43C26AE1.2040401@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
+In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKVGhpcyBwYXRjaCB1c2VzIHRoZSBuZXcgc2Vuc29yLWF0dHIgYXJyYXlzLCBwbGVh
-c2UgY2hlY2suCkl0IGJhc2VkIG9uIGxpbnV4LTIuNi4xNS1yYzcgYW5kIGRlcGVuZHMgb24gdGhl
-IGZvbGxvd2luZyBwYXRjaGVzOgpod21vbi13ODM3OTJkLW1pc2MtY2xlYW51cHMucGF0Y2gKaHdt
-b24tdzgzNzkyZC1zaW1wbGlmeS1pbi1sb3ctYml0cy5wYXRjaApod21vbi13ODM3OTJkLWlubGlu
-ZS1yZWdpc3Rlci1hY2Nlc3MtZnVuY3Rpb25zLnBhdGNoCgpTaWduZWQtb2ZmLWJ5OiBKaW0gQ3Jv
-bWllIDxqaW0uY3JvbWllIGF0IGdtYWlsLmNvbT4KU2lnbmVkLW9mZi1ieTogWXVhbiBNdSA8eW11
-IGF0IHdpbmJvbmQuY29tLnR3PgoKQmVzdCBSZWdhcmRzCll1YW4gTXUKCgoKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVRoZSBwcml2aWxlZ2VkIGNvbmZpZGVu
-dGlhbCBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBpcyBpbnRlbmRlZCBmb3Ig
-dXNlIG9ubHkgYnkgdGhlIGFkZHJlc3NlZXMgYXMgaW5kaWNhdGVkIGJ5IHRoZSBvcmlnaW5hbCBz
-ZW5kZXIgb2YgdGhpcyBlbWFpbC4gSWYgeW91IGFyZSBub3QgdGhlIGFkZHJlc3NlZSBpbmRpY2F0
-ZWQgaW4gdGhpcyBlbWFpbCBvciBhcmUgbm90IHJlc3BvbnNpYmxlIGZvciBkZWxpdmVyeSBvZiB0
-aGUgZW1haWwgdG8gc3VjaCAgYSBwZXJzb24sIHBsZWFzZSBraW5kbHkgcmVwbHkgdG8gdGhlIHNl
-bmRlciBpbmRpY2F0aW5nIHRoaXMgZmFjdCBhbmQgZGVsZXRlIGFsbCBjb3BpZXMgb2YgaXQgZnJv
-bSB5b3VyIGNvbXB1dGVyIGFuZCBuZXR3b3JrIHNlcnZlciBpbW1lZGlhdGVseS4gWW91ciBjb29w
-ZXJhdGlvbiBpcyBoaWdobHkgYXBwcmVjaWF0ZWQuIEl0IGlzIGFkdmlzZWQgdGhhdCBhbnkgdW5h
-dXRob3JpemVkIHVzZSBvZiBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb2YgV2luYm9uZCBpcyBz
-dHJpY3RseSBwcm9oaWJpdGVkOyBhbmQgYW55IGluZm9ybWF0aW9uIGluIHRoaXMgZW1haWwgaXJy
-ZWxldmFudCB0byB0aGUgb2ZmaWNpYWwgYnVzaW5lc3Mgb2YgV2luYm9uZCBzaGFsbCBiZSBkZWVt
-ZWQgYXMgbmVpdGhlciBnaXZlbiBub3IgZW5kb3JzZWQgYnkgV2luYm9uZC4KPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PUlmIHlvdXIgY29tcHV0ZXIgaXMgdW5h
-YmxlIHRvIGRlY29kZSBDaGluZXNlIGZvbnQsIHBsZWFzZSBpZ25vcmUgdGhlIGZvbGxvd2luZyBt
-ZXNzYWdlLkl0IGVzc2VudGlhbGx5IHJlcGVhdHMgdGhlIHN0YXRlbWVudCBpbiBFbmdsaXNoIGdp
-dmVuIGFib3ZlLqW7q0il86S6qdKndLXYqLm5caRsqrqwXbKjqcq+97FLqcq46rBULCC2yLHCxXat
-7LVvq0ikSKv8qXekp6asq0ikSKj6vlxcpKelzi4gsLKoz7F6qMOrRLNRq/ypd6SnpqyrSKRIqc6m
-XaX0pvOt7KZdpmKlvLhnscLFdqq6saGnzqSnpFWmrKjspburSKXzLCC90LF6p2mqvq3stW+rSKRI
-qMOl36dZsU6rSKXzsXG5cbiju1C69Lj0pviqQb65pKSkqaVIrviwoy4gue+p87F6qrqmWKdALCCn
-2q3Mpf2mua1QwcIuIK9Tprm0o7/0LCCl9Kbzpby4Z7HCxXa+1abbqM+lzrXYqLm5caRsqrq+97FL
-uOqwVKq6puassKxPs1HEWa7muFSk7qq6LiCrSKXzu1C12Ki5uXGkbMDnt361TMP2pKekuq5lLKSj
-sW+1+KywtdioublxpGykp6Xfs/WpzrdOqKMuCi0tLS0tLS0tLS0tLS0tIG5leHQgcGFydCAtLS0t
-LS0tLS0tLS0tLQpBbiBlbWJlZGRlZCBhbmQgY2hhcnNldC11bnNwZWNpZmllZCB0ZXh0IHdhcyBz
-Y3J1YmJlZC4uLgpOYW1lOiBod21vbi13ODM3OTJkLXVzZS1uZXctYXJyYXkucGF0Y2gudHh0ClVy
-bDogaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL3BpcGVybWFpbC9sbS1zZW5zb3JzL2F0dGFj
-aG1lbnRzLzIwMDYwMTA5Lzg1ODA4NGEwL2h3bW9uLXc4Mzc5MmQtdXNlLW5ldy1hcnJheS5wYXRj
-aC0wMDAxLnR4dAo=
+Ymu at Winbond.com.tw wrote:
+
+>Hi Jean,
+>This patch uses the new sensor-attr arrays, please check.
+>It based on linux-2.6.15-rc7 and depends on the following patches:
+>hwmon-w83792d-misc-cleanups.patch
+>hwmon-w83792d-simplify-in-low-bits.patch
+>hwmon-w83792d-inline-register-access-functions.patch
+>
+>Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+>Signed-off-by: Yuan Mu <ymu at winbond.com.tw>
+>
+>Best Regards
+>Yuan Mu
+>
+>
+>
+>  
+>
+
+
+Havent looked too closely, but I think you missed part of Jeans feedback:
+I quote, cut-pasted:
+
+>> +static struct sensor_device_attribute sda_fan_min[] = {
+>> +	SENSOR_ATTR(fan1_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 1),
+>> +	SENSOR_ATTR(fan2_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 2),
+>> +	SENSOR_ATTR(fan3_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 3),
+>> +	SENSOR_ATTR(fan4_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 4),
+>> +	SENSOR_ATTR(fan5_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 5),
+>> +	SENSOR_ATTR(fan6_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 6),
+>> +	SENSOR_ATTR(fan7_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 7)
+>> +};
+>  
+>
+
+Also, please add spaces around "|" each time.
+
+
+>> +static void device_create_file_fan(struct i2c_client *client, int i)
+>> +{
+>> +	i--;
+>> +	device_create_file(&client->dev, &sda_fan_input[i].dev_attr);
+>> +	device_create_file(&client->dev, &sda_fan_div[i].dev_attr);
+>> +	device_create_file(&client->dev, &sda_fan_min[i].dev_attr);
+>> +}
+>  
+>
+
+This is inefficient. Please just call device_create_file_fan() with the
+proper value of i, so that you don't have to decrease it there. It
+would also be more efficient to pass the device as the first parameter,
+rather than the client, so that you only have to dereference once.
+
+
+AFAICT, you removed the i--
+but didnt build it (that -1 offset) into the initializations,
+and now your fan attributes have a skew of 1.
+
+IOW, ITYW something like this.
+
+> +static struct sensor_device_attribute sda_fan_min[] = {
+> +	SENSOR_ATTR(fan1_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 0),
+> +	SENSOR_ATTR(fan2_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 1),
+> +	SENSOR_ATTR(fan3_min, S_IWUSR|S_IRUGO, show_fan_min, store_fan_min, 2),
+>
+
+
+HTH,
+TLA-MAN, aka acronym-boy
+
+
+
+
+
+
+
+
+
+>==============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+>==============================================If your computer is unable to decode Chinese font, please ignore the following message.It essentially repeats the statement in English given above.???H???????t?????q?l???]???????K?????T, ?????v???o?H?H???w?????H?H???\\????. ?????z???D?Q???w?????H?H???]???????]?b???g???v?????????U???????H??, ???z?i?????o?H?H?????Y?N?H???q?q???P???????A???????H????. ?????z???X?@, ?????????P??. ?S??????, ???????g???v?????????????q?l?????K???T???????O?Q?Y???T????. ?H???P?????q?l???~?L???????e,???o?????????q?l?????????N??.
+>  
+>
+>------------------------------------------------------------------------
+>
+>[PATCH] hwmon: w83792d use sensor-attr arrays
+>
+>This patch uses the new sensor-attr arrays.
+>It based on linux-2.6.15-rc7 and depends on the following patches:
+>hwmon-w83792d-misc-cleanups.patch
+>hwmon-w83792d-simplify-in-low-bits.patch
+>hwmon-w83792d-inline-register-access-functions.patch
+>
+>Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
+>Signed-off-by: Yuan Mu <ymu at winbond.com.tw>
+>
+>--- a/drivers/hwmon/w83792d.c	2006-01-09 15:46:41.000000000 +0800
+>+++ b/drivers/hwmon/w83792d.c	2006-01-09 17:01:28.000000000 +0800
+>@@ -382,30 +382,40 @@ static ssize_t store_in_##reg (struct de
+> store_in_reg(MIN, min);
+> store_in_reg(MAX, max);
+>
+>-#define sysfs_in_reg(offset) \
+>-static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in, \
+>-				NULL, offset); \
+>-static SENSOR_DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR, \
+>-				show_in_min, store_in_min, offset); \
+>-static SENSOR_DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR, \
+>-				show_in_max, store_in_max, offset);
+>-
+>-sysfs_in_reg(0);
+>-sysfs_in_reg(1);
+>-sysfs_in_reg(2);
+>-sysfs_in_reg(3);
+>-sysfs_in_reg(4);
+>-sysfs_in_reg(5);
+>-sysfs_in_reg(6);
+>-sysfs_in_reg(7);
+>-sysfs_in_reg(8);
+>+static struct sensor_device_attribute sda_in_input[] = {
+>+	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
+>+	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
+>+	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
+>+	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
+>+	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
+>+	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
+>+	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
+>+	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
+>+	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
+>+};
+>+static struct sensor_device_attribute sda_in_min[] = {
+>+       SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
+>+       SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
+>+       SENSOR_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 2),
+>+       SENSOR_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 3),
+>+       SENSOR_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 4),
+>+       SENSOR_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 5),
+>+       SENSOR_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 6),
+>+       SENSOR_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 7),
+>+       SENSOR_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 8),
+>+};
+>+static struct sensor_device_attribute sda_in_max[] = {
+>+       SENSOR_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 0),
+>+       SENSOR_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 1),
+>+       SENSOR_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 2),
+>+       SENSOR_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 3),
+>+       SENSOR_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 4),
+>+       SENSOR_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 5),
+>+       SENSOR_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 6),
+>+       SENSOR_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 7),
+>+       SENSOR_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 8),
+>+};
+>
+>-#define device_create_file_in(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_in##offset##_input.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_in##offset##_max.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_in##offset##_min.dev_attr); \
+>-} while (0)
+>
+> #define show_fan_reg(reg) \
+> static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, \
+>@@ -486,28 +496,33 @@ store_fan_div(struct device *dev, struct
+> 	return count;
+> }
+>
+>-#define sysfs_fan(offset) \
+>-static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO, show_fan, NULL, \
+>-				offset); \
+>-static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
+>-				show_fan_div, store_fan_div, offset); \
+>-static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, \
+>-				show_fan_min, store_fan_min, offset);
+>-
+>-sysfs_fan(1);
+>-sysfs_fan(2);
+>-sysfs_fan(3);
+>-sysfs_fan(4);
+>-sysfs_fan(5);
+>-sysfs_fan(6);
+>-sysfs_fan(7);
+>-
+>-#define device_create_file_fan(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_fan##offset##_input.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_fan##offset##_div.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_fan##offset##_min.dev_attr); \
+>-} while (0)
+>+static struct sensor_device_attribute sda_fan_input[] = {
+>+	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 1),
+>+	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 2),
+>+	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 3),
+>+	SENSOR_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 4),
+>+	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 5),
+>+	SENSOR_ATTR(fan6_input, S_IRUGO, show_fan, NULL, 6),
+>+	SENSOR_ATTR(fan7_input, S_IRUGO, show_fan, NULL, 7),
+>+};
+>+static struct sensor_device_attribute sda_fan_min[] = {
+>+	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 1),
+>+	SENSOR_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 2),
+>+	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 3),
+>+	SENSOR_ATTR(fan4_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 4),
+>+	SENSOR_ATTR(fan5_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 5),
+>+	SENSOR_ATTR(fan6_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 6),
+>+	SENSOR_ATTR(fan7_min, S_IWUSR | S_IRUGO, show_fan_min, store_fan_min, 7),
+>+};
+>+static struct sensor_device_attribute sda_fan_div[] = {
+>+	SENSOR_ATTR(fan1_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 1),
+>+	SENSOR_ATTR(fan2_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 2),
+>+	SENSOR_ATTR(fan3_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 3),
+>+	SENSOR_ATTR(fan4_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 4),
+>+	SENSOR_ATTR(fan5_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 5),
+>+	SENSOR_ATTR(fan6_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 6),
+>+	SENSOR_ATTR(fan7_div, S_IWUSR | S_IRUGO, show_fan_div, store_fan_div, 7),
+>+};
+>
+>
+> /* read/write the temperature1, includes measured value and limits */
+>@@ -539,21 +554,6 @@ static ssize_t store_temp1(struct device
+> 	return count;
+> }
+>
+>-
+>-static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp1, NULL, 0);
+>-static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp1,
+>-				store_temp1, 1);
+>-static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp1,
+>-				store_temp1, 2);
+>-
+>-#define device_create_file_temp1(client) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_temp1_input.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_temp1_max.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_temp1_max_hyst.dev_attr); \
+>-} while (0)
+>-
+>-
+> /* read/write the temperature2-3, includes measured value and limits */
+>
+> static ssize_t show_temp23(struct device *dev, struct device_attribute *attr,
+>@@ -590,25 +590,23 @@ static ssize_t store_temp23(struct devic
+> 	return count;
+> }
+>
+>-#define sysfs_temp23(name,idx) \
+>-static SENSOR_DEVICE_ATTR_2(name##_input, S_IRUGO, show_temp23, NULL, \
+>-				idx, 0); \
+>-static SENSOR_DEVICE_ATTR_2(name##_max, S_IRUGO | S_IWUSR, \
+>-				show_temp23, store_temp23, idx, 2); \
+>-static SENSOR_DEVICE_ATTR_2(name##_max_hyst, S_IRUGO | S_IWUSR, \
+>-				show_temp23, store_temp23, idx, 4);
+>-
+>-sysfs_temp23(temp2,0)
+>-sysfs_temp23(temp3,1)
+>-
+>-#define device_create_file_temp_add(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_temp##offset##_input.dev_attr); \
+>-device_create_file(&client->dev, &sensor_dev_attr_temp##offset##_max.dev_attr); \
+>-device_create_file(&client->dev, \
+>-&sensor_dev_attr_temp##offset##_max_hyst.dev_attr); \
+>-} while (0)
+>-
+>+static struct sensor_device_attribute_2 sda_temp_input[] = {
+>+	SENSOR_ATTR_2(temp1_input, S_IRUGO, show_temp1, NULL, 0, 0),
+>+	SENSOR_ATTR_2(temp2_input, S_IRUGO, show_temp23, NULL, 0, 0),
+>+	SENSOR_ATTR_2(temp3_input, S_IRUGO, show_temp23, NULL, 1, 0),
+>+};
+>+
+>+static struct sensor_device_attribute_2 sda_temp_max[] = {
+>+	SENSOR_ATTR_2(temp1_max, S_IRUGO | S_IWUSR, show_temp1, store_temp1, 0, 1),
+>+	SENSOR_ATTR_2(temp2_max, S_IRUGO | S_IWUSR, show_temp23, store_temp23, 0, 2),
+>+	SENSOR_ATTR_2(temp3_max, S_IRUGO | S_IWUSR, show_temp23, store_temp23, 1, 2),
+>+};
+>+
+>+static struct sensor_device_attribute_2 sda_temp_max_hyst[] = {
+>+	SENSOR_ATTR_2(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp1, store_temp1, 0, 2),
+>+	SENSOR_ATTR_2(temp2_max_hyst, S_IRUGO | S_IWUSR, show_temp23, store_temp23, 0, 4),
+>+	SENSOR_ATTR_2(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp23, store_temp23, 1, 4),
+>+};
+>
+> /* get reatime status of all sensors items: voltage, temp, fan */
+> static ssize_t
+>@@ -620,8 +618,8 @@ show_alarms_reg(struct device *dev, stru
+>
+> static
+> DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+>-#define device_create_file_alarms(client) \
+>-device_create_file(&client->dev, &dev_attr_alarms);
+>+#define device_create_file_alarms() \
+>+device_create_file(dev, &dev_attr_alarms);
+>
+>
+>
+>@@ -711,26 +709,19 @@ store_pwmenable(struct device *dev, stru
+> 	return count;
+> }
+>
+>-#define sysfs_pwm(offset) \
+>-static SENSOR_DEVICE_ATTR(pwm##offset, S_IRUGO | S_IWUSR, \
+>-				show_pwm, store_pwm, offset); \
+>-static SENSOR_DEVICE_ATTR(pwm##offset##_enable, S_IRUGO | S_IWUSR, \
+>-				show_pwmenable, store_pwmenable, offset); \
+>-
+>-sysfs_pwm(1);
+>-sysfs_pwm(2);
+>-sysfs_pwm(3);
+>-
+>-
+>-#define device_create_file_pwm(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_pwm##offset.dev_attr); \
+>-} while (0)
+>-
+>-#define device_create_file_pwmenable(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_pwm##offset##_enable.dev_attr); \
+>-} while (0)
+>+static struct sensor_device_attribute sda_pwm[] = {
+>+	SENSOR_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1),
+>+	SENSOR_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2),
+>+	SENSOR_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 3),
+>+};
+>+static struct sensor_device_attribute sda_pwm_enable[] = {
+>+	SENSOR_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
+>+		    show_pwmenable, store_pwmenable, 1),
+>+	SENSOR_ATTR(pwm2_enable, S_IWUSR | S_IRUGO,
+>+		    show_pwmenable, store_pwmenable, 2),
+>+	SENSOR_ATTR(pwm3_enable, S_IWUSR | S_IRUGO,
+>+		    show_pwmenable, store_pwmenable, 3),
+>+};
+>
+>
+> static ssize_t
+>@@ -764,18 +755,14 @@ store_pwm_mode(struct device *dev, struc
+> 	return count;
+> }
+>
+>-#define sysfs_pwm_mode(offset) \
+>-static SENSOR_DEVICE_ATTR(pwm##offset##_mode, S_IRUGO | S_IWUSR, \
+>-				show_pwm_mode, store_pwm_mode, offset);
+>-
+>-sysfs_pwm_mode(1);
+>-sysfs_pwm_mode(2);
+>-sysfs_pwm_mode(3);
+>-
+>-#define device_create_file_pwm_mode(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_pwm##offset##_mode.dev_attr); \
+>-} while (0)
+>+static struct sensor_device_attribute sda_pwm_mode[] = {
+>+	SENSOR_ATTR(pwm1_mode, S_IWUSR | S_IRUGO,
+>+		    show_pwm_mode, store_pwm_mode, 1),
+>+	SENSOR_ATTR(pwm2_mode, S_IWUSR | S_IRUGO,
+>+		    show_pwm_mode, store_pwm_mode, 2),
+>+	SENSOR_ATTR(pwm3_mode, S_IWUSR | S_IRUGO,
+>+		    show_pwm_mode, store_pwm_mode, 3),
+>+};
+>
+>
+> static ssize_t
+>@@ -788,9 +775,9 @@ show_regs_chassis(struct device *dev, st
+>
+> static DEVICE_ATTR(chassis, S_IRUGO, show_regs_chassis, NULL);
+>
+>-#define device_create_file_chassis(client) \
+>+#define device_create_file_chassis() \
+> do { \
+>-device_create_file(&client->dev, &dev_attr_chassis); \
+>+device_create_file(dev, &dev_attr_chassis); \
+> } while (0)
+>
+>
+>@@ -824,9 +811,9 @@ store_chassis_clear(struct device *dev,
+> static DEVICE_ATTR(chassis_clear, S_IRUGO | S_IWUSR,
+> 		show_chassis_clear, store_chassis_clear);
+>
+>-#define device_create_file_chassis_clear(client) \
+>+#define device_create_file_chassis_clear() \
+> do { \
+>-device_create_file(&client->dev, &dev_attr_chassis_clear); \
+>+device_create_file(dev, &dev_attr_chassis_clear); \
+> } while (0)
+>
+>
+>@@ -864,20 +851,14 @@ store_thermal_cruise(struct device *dev,
+> 	return count;
+> }
+>
+>-#define sysfs_thermal_cruise(offset) \
+>-static SENSOR_DEVICE_ATTR(thermal_cruise##offset, S_IRUGO | S_IWUSR, \
+>-			show_thermal_cruise, store_thermal_cruise, offset);
+>-
+>-sysfs_thermal_cruise(1);
+>-sysfs_thermal_cruise(2);
+>-sysfs_thermal_cruise(3);
+>-
+>-#define device_create_file_thermal_cruise(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, \
+>-&sensor_dev_attr_thermal_cruise##offset.dev_attr); \
+>-} while (0)
+>-
+>+static struct sensor_device_attribute sda_thermal_cruise[] = {
+>+	SENSOR_ATTR(thermal_cruise1, S_IWUSR | S_IRUGO,
+>+		    show_thermal_cruise, store_thermal_cruise, 1),
+>+	SENSOR_ATTR(thermal_cruise2, S_IWUSR | S_IRUGO,
+>+		    show_thermal_cruise, store_thermal_cruise, 2),
+>+	SENSOR_ATTR(thermal_cruise3, S_IWUSR | S_IRUGO,
+>+		    show_thermal_cruise, store_thermal_cruise, 3),
+>+};
+>
+> /* For Smart Fan I/Thermal Cruise and Smart Fan II */
+> static ssize_t
+>@@ -916,19 +897,14 @@ store_tolerance(struct device *dev, stru
+> 	return count;
+> }
+>
+>-#define sysfs_tolerance(offset) \
+>-static SENSOR_DEVICE_ATTR(tolerance##offset, S_IRUGO | S_IWUSR, \
+>-				show_tolerance, store_tolerance, offset);
+>-
+>-sysfs_tolerance(1);
+>-sysfs_tolerance(2);
+>-sysfs_tolerance(3);
+>-
+>-#define device_create_file_tolerance(client, offset) \
+>-do { \
+>-device_create_file(&client->dev, &sensor_dev_attr_tolerance##offset.dev_attr); \
+>-} while (0)
+>-
+>+static struct sensor_device_attribute sda_tolerance[] = {
+>+	SENSOR_ATTR(tolerance1, S_IWUSR | S_IRUGO,
+>+		    show_tolerance, store_tolerance, 1),
+>+	SENSOR_ATTR(tolerance2, S_IWUSR | S_IRUGO,
+>+		    show_tolerance, store_tolerance, 2),
+>+	SENSOR_ATTR(tolerance3, S_IWUSR | S_IRUGO,
+>+		    show_tolerance, store_tolerance, 3),
+>+};
+>
+> /* For Smart Fan II */
+> static ssize_t
+>@@ -964,28 +940,34 @@ store_sf2_point(struct device *dev, stru
+> 	return count;
+> }
+>
+>-#define sysfs_sf2_point(offset, index) \
+>-static SENSOR_DEVICE_ATTR_2(sf2_point##offset##_fan##index, S_IRUGO | S_IWUSR, \
+>-				show_sf2_point, store_sf2_point, offset, index);
+>-
+>-sysfs_sf2_point(1, 1);	/* Fan1 */
+>-sysfs_sf2_point(2, 1);	/* Fan1 */
+>-sysfs_sf2_point(3, 1);	/* Fan1 */
+>-sysfs_sf2_point(4, 1);	/* Fan1 */
+>-sysfs_sf2_point(1, 2);	/* Fan2 */
+>-sysfs_sf2_point(2, 2);	/* Fan2 */
+>-sysfs_sf2_point(3, 2);	/* Fan2 */
+>-sysfs_sf2_point(4, 2);	/* Fan2 */
+>-sysfs_sf2_point(1, 3);	/* Fan3 */
+>-sysfs_sf2_point(2, 3);	/* Fan3 */
+>-sysfs_sf2_point(3, 3);	/* Fan3 */
+>-sysfs_sf2_point(4, 3);	/* Fan3 */
+>-
+>-#define device_create_file_sf2_point(client, offset, index) \
+>-do { \
+>-device_create_file(&client->dev, \
+>-&sensor_dev_attr_sf2_point##offset##_fan##index.dev_attr); \
+>-} while (0)
+>+static struct sensor_device_attribute_2 sda_sf2_point[] = {
+>+	SENSOR_ATTR_2(sf2_point1_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 1, 1),
+>+	SENSOR_ATTR_2(sf2_point2_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 2, 1),
+>+	SENSOR_ATTR_2(sf2_point3_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 3, 1),
+>+	SENSOR_ATTR_2(sf2_point4_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 4, 1),
+>+
+>+	SENSOR_ATTR_2(sf2_point1_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 1, 2),
+>+	SENSOR_ATTR_2(sf2_point2_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 2, 2),
+>+	SENSOR_ATTR_2(sf2_point3_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 3, 2),
+>+	SENSOR_ATTR_2(sf2_point4_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 4, 2),
+>+
+>+	SENSOR_ATTR_2(sf2_point1_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 1, 3),
+>+	SENSOR_ATTR_2(sf2_point2_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 2, 3),
+>+	SENSOR_ATTR_2(sf2_point3_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 3, 3),
+>+	SENSOR_ATTR_2(sf2_point4_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_point, store_sf2_point, 4, 3),
+>+};
+>
+>
+> static ssize_t
+>@@ -1026,26 +1008,28 @@ store_sf2_level(struct device *dev, stru
+> 	return count;
+> }
+>
+>-#define sysfs_sf2_level(offset, index) \
+>-static SENSOR_DEVICE_ATTR_2(sf2_level##offset##_fan##index, S_IRUGO | S_IWUSR, \
+>-				show_sf2_level, store_sf2_level, offset, index);
+>-
+>-sysfs_sf2_level(1, 1);	/* Fan1 */
+>-sysfs_sf2_level(2, 1);	/* Fan1 */
+>-sysfs_sf2_level(3, 1);	/* Fan1 */
+>-sysfs_sf2_level(1, 2);	/* Fan2 */
+>-sysfs_sf2_level(2, 2);	/* Fan2 */
+>-sysfs_sf2_level(3, 2);	/* Fan2 */
+>-sysfs_sf2_level(1, 3);	/* Fan3 */
+>-sysfs_sf2_level(2, 3);	/* Fan3 */
+>-sysfs_sf2_level(3, 3);	/* Fan3 */
+>-
+>-#define device_create_file_sf2_level(client, offset, index) \
+>-do { \
+>-device_create_file(&client->dev, \
+>-&sensor_dev_attr_sf2_level##offset##_fan##index.dev_attr); \
+>-} while (0)
+>-
+>+static struct sensor_device_attribute_2 sda_sf2_level[] = {
+>+	SENSOR_ATTR_2(sf2_level1_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 1, 1),
+>+	SENSOR_ATTR_2(sf2_level2_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 2, 1),
+>+	SENSOR_ATTR_2(sf2_level3_fan1, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 3, 1),
+>+
+>+	SENSOR_ATTR_2(sf2_level1_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 1, 2),
+>+	SENSOR_ATTR_2(sf2_level2_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 2, 2),
+>+	SENSOR_ATTR_2(sf2_level3_fan2, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 3, 2),
+>+
+>+	SENSOR_ATTR_2(sf2_level1_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 1, 3),
+>+	SENSOR_ATTR_2(sf2_level2_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 2, 3),
+>+	SENSOR_ATTR_2(sf2_level3_fan3, S_IRUGO | S_IWUSR,
+>+		      show_sf2_level, store_sf2_level, 3, 3),
+>+};
+>
+> /* This function is called when:
+>      * w83792d_driver is inserted (when this module is loaded), for each
+>@@ -1147,12 +1131,19 @@ ERROR_SC_0:
+> 	return err;
+> }
+>
+>+static void device_create_file_fan(struct device *dev, int i)
+>+{
+>+	device_create_file(dev, &sda_fan_input[i].dev_attr);
+>+	device_create_file(dev, &sda_fan_div[i].dev_attr);
+>+	device_create_file(dev, &sda_fan_min[i].dev_attr);
+>+}
+>
+> static int
+> w83792d_detect(struct i2c_adapter *adapter, int address, int kind)
+> {
+> 	int i = 0, val1 = 0, val2;
+>-	struct i2c_client *new_client;
+>+	struct i2c_client *client;
+>+	struct device *dev;
+> 	struct w83792d_data *data;
+> 	int err = 0;
+> 	const char *client_name = "";
+>@@ -1170,12 +1161,13 @@ w83792d_detect(struct i2c_adapter *adapt
+> 		goto ERROR0;
+> 	}
+>
+>-	new_client = &data->client;
+>-	i2c_set_clientdata(new_client, data);
+>-	new_client->addr = address;
+>-	new_client->adapter = adapter;
+>-	new_client->driver = &w83792d_driver;
+>-	new_client->flags = 0;
+>+	client = &data->client;
+>+	dev = &client->dev;
+>+	i2c_set_clientdata(client, data);
+>+	client->addr = address;
+>+	client->adapter = adapter;
+>+	client->driver = &w83792d_driver;
+>+	client->flags = 0;
+>
+> 	/* Now, we do the remaining detection. */
+>
+>@@ -1184,13 +1176,12 @@ w83792d_detect(struct i2c_adapter *adapt
+> 	   force_*=... parameter, and the Winbond will be reset to the right
+> 	   bank. */
+> 	if (kind < 0) {
+>-		if (w83792d_read_value(new_client, W83792D_REG_CONFIG) & 0x80) {
+>-			dev_warn(&new_client->dev, "Detection failed at step "
+>-				"3\n");
+>+		if (w83792d_read_value(client, W83792D_REG_CONFIG) & 0x80) {
+>+			dev_warn(dev, "Detection failed at step 3\n");
+> 			goto ERROR1;
+> 		}
+>-		val1 = w83792d_read_value(new_client, W83792D_REG_BANK);
+>-		val2 = w83792d_read_value(new_client, W83792D_REG_CHIPMAN);
+>+		val1 = w83792d_read_value(client, W83792D_REG_BANK);
+>+		val2 = w83792d_read_value(client, W83792D_REG_CHIPMAN);
+> 		/* Check for Winbond ID if in bank 0 */
+> 		if (!(val1 & 0x07)) {  /* is Bank0 */
+> 			if (((!(val1 & 0x80)) && (val2 != 0xa3)) ||
+>@@ -1200,34 +1191,33 @@ w83792d_detect(struct i2c_adapter *adapt
+> 		}
+> 		/* If Winbond chip, address of chip and W83792D_REG_I2C_ADDR
+> 		   should match */
+>-		if (w83792d_read_value(new_client,
+>+		if (w83792d_read_value(client,
+> 					W83792D_REG_I2C_ADDR) != address) {
+>-			dev_warn(&new_client->dev, "Detection failed "
+>-				"at step 5\n");
+>+			dev_warn(dev, "Detection failed at step 5\n");
+> 			goto ERROR1;
+> 		}
+> 	}
+>
+> 	/* We have either had a force parameter, or we have already detected the
+> 	   Winbond. Put it now into bank 0 and Vendor ID High Byte */
+>-	w83792d_write_value(new_client,
+>+	w83792d_write_value(client,
+> 			    W83792D_REG_BANK,
+>-			    (w83792d_read_value(new_client,
+>+			    (w83792d_read_value(client,
+> 				W83792D_REG_BANK) & 0x78) | 0x80);
+>
+> 	/* Determine the chip type. */
+> 	if (kind <= 0) {
+> 		/* get vendor ID */
+>-		val2 = w83792d_read_value(new_client, W83792D_REG_CHIPMAN);
+>+		val2 = w83792d_read_value(client, W83792D_REG_CHIPMAN);
+> 		if (val2 != 0x5c) {  /* the vendor is NOT Winbond */
+> 			goto ERROR1;
+> 		}
+>-		val1 = w83792d_read_value(new_client, W83792D_REG_WCHIPID);
+>+		val1 = w83792d_read_value(client, W83792D_REG_WCHIPID);
+> 		if (val1 = 0x7a) {
+> 			kind = w83792d;
+> 		} else {
+> 			if (kind = 0)
+>-					dev_warn(&new_client->dev,
+>+					dev_warn(dev,
+> 					"w83792d: Ignoring 'force' parameter for"
+> 					" unknown chip at adapter %d, address"
+> 					" 0x%02x\n", i2c_adapter_id(adapter),
+>@@ -1239,120 +1229,87 @@ w83792d_detect(struct i2c_adapter *adapt
+> 	if (kind = w83792d) {
+> 		client_name = "w83792d";
+> 	} else {
+>-		dev_err(&new_client->dev, "w83792d: Internal error: unknown"
+>+		dev_err(dev, "w83792d: Internal error: unknown"
+> 					  " kind (%d)?!?", kind);
+> 		goto ERROR1;
+> 	}
+>
+> 	/* Fill in the remaining client fields and put into the global list */
+>-	strlcpy(new_client->name, client_name, I2C_NAME_SIZE);
+>+	strlcpy(client->name, client_name, I2C_NAME_SIZE);
+> 	data->type = kind;
+>
+> 	data->valid = 0;
+> 	init_MUTEX(&data->update_lock);
+>
+> 	/* Tell the I2C layer a new client has arrived */
+>-	if ((err = i2c_attach_client(new_client)))
+>+	if ((err = i2c_attach_client(client)))
+> 		goto ERROR1;
+>
+> 	if ((err = w83792d_detect_subclients(adapter, address,
+>-			kind, new_client)))
+>+			kind, client)))
+> 		goto ERROR2;
+>
+> 	/* Initialize the chip */
+>-	w83792d_init_client(new_client);
+>+	w83792d_init_client(client);
+>
+> 	/* A few vars need to be filled upon startup */
+> 	for (i = 0; i < 7; i++) {
+>-		data->fan_min[i] = w83792d_read_value(new_client,
+>+		data->fan_min[i] = w83792d_read_value(client,
+> 					W83792D_REG_FAN_MIN[i]);
+> 	}
+>
+> 	/* Register sysfs hooks */
+>-	data->class_dev = hwmon_device_register(&new_client->dev);
+>+	data->class_dev = hwmon_device_register(dev);
+> 	if (IS_ERR(data->class_dev)) {
+> 		err = PTR_ERR(data->class_dev);
+> 		goto ERROR3;
+> 	}
+>-	device_create_file_in(new_client, 0);
+>-	device_create_file_in(new_client, 1);
+>-	device_create_file_in(new_client, 2);
+>-	device_create_file_in(new_client, 3);
+>-	device_create_file_in(new_client, 4);
+>-	device_create_file_in(new_client, 5);
+>-	device_create_file_in(new_client, 6);
+>-	device_create_file_in(new_client, 7);
+>-	device_create_file_in(new_client, 8);
+>-
+>-	device_create_file_fan(new_client, 1);
+>-	device_create_file_fan(new_client, 2);
+>-	device_create_file_fan(new_client, 3);
+>+	for (i = 0; i < 9; i++) {
+>+		device_create_file(dev, &sda_in_input[i].dev_attr);
+>+		device_create_file(dev, &sda_in_max[i].dev_attr);
+>+		device_create_file(dev, &sda_in_min[i].dev_attr);
+>+	}
+>+	for (i = 0; i < 3; i++)
+>+		device_create_file_fan(dev, i);
+>
+> 	/* Read GPIO enable register to check if pins for fan 4,5 are used as
+> 	   GPIO */
+>-	val1 = w83792d_read_value(new_client, W83792D_REG_GPIO_EN);
+>+	val1 = w83792d_read_value(client, W83792D_REG_GPIO_EN);
+> 	if (!(val1 & 0x40))
+>-		device_create_file_fan(new_client, 4);
+>+		device_create_file_fan(dev, 3);
+> 	if (!(val1 & 0x20))
+>-		device_create_file_fan(new_client, 5);
+>+		device_create_file_fan(dev, 4);
+>
+>-	val1 = w83792d_read_value(new_client, W83792D_REG_PIN);
+>+	val1 = w83792d_read_value(client, W83792D_REG_PIN);
+> 	if (val1 & 0x40)
+>-		device_create_file_fan(new_client, 6);
+>+		device_create_file_fan(dev, 5);
+> 	if (val1 & 0x04)
+>-		device_create_file_fan(new_client, 7);
+>+		device_create_file_fan(dev, 6);
+>+
+>+	for (i = 0; i < 3; i++) {
+>+		device_create_file(dev, &sda_temp_input[i].dev_attr);
+>+		device_create_file(dev, &sda_temp_max[i].dev_attr);
+>+		device_create_file(dev, &sda_temp_max_hyst[i].dev_attr);
+>+		device_create_file(dev, &sda_thermal_cruise[i].dev_attr);
+>+		device_create_file(dev, &sda_tolerance[i].dev_attr);
+>+	}
+>+
+>+	device_create_file_alarms();
+>+
+>+	for (i = 0; i < ARRAY_SIZE(sda_pwm); i++) {
+>+		device_create_file(dev, &sda_pwm[i].dev_attr);
+>+		device_create_file(dev, &sda_pwm_enable[i].dev_attr);
+>+		device_create_file(dev, &sda_pwm_mode[i].dev_attr);
+>+	}
+>+
+>+	device_create_file_chassis();
+>+	device_create_file_chassis_clear();
+>+
+>+	for (i = 0; i < ARRAY_SIZE(sda_sf2_point); i++)
+>+		device_create_file(dev, &sda_sf2_point[i].dev_attr);
+>
+>-	device_create_file_temp1(new_client);		/* Temp1 */
+>-	device_create_file_temp_add(new_client, 2);	/* Temp2 */
+>-	device_create_file_temp_add(new_client, 3);	/* Temp3 */
+>-
+>-	device_create_file_alarms(new_client);
+>-
+>-	device_create_file_pwm(new_client, 1);
+>-	device_create_file_pwm(new_client, 2);
+>-	device_create_file_pwm(new_client, 3);
+>-
+>-	device_create_file_pwmenable(new_client, 1);
+>-	device_create_file_pwmenable(new_client, 2);
+>-	device_create_file_pwmenable(new_client, 3);
+>-
+>-	device_create_file_pwm_mode(new_client, 1);
+>-	device_create_file_pwm_mode(new_client, 2);
+>-	device_create_file_pwm_mode(new_client, 3);
+>-
+>-	device_create_file_chassis(new_client);
+>-	device_create_file_chassis_clear(new_client);
+>-
+>-	device_create_file_thermal_cruise(new_client, 1);
+>-	device_create_file_thermal_cruise(new_client, 2);
+>-	device_create_file_thermal_cruise(new_client, 3);
+>-
+>-	device_create_file_tolerance(new_client, 1);
+>-	device_create_file_tolerance(new_client, 2);
+>-	device_create_file_tolerance(new_client, 3);
+>-
+>-	device_create_file_sf2_point(new_client, 1, 1);	/* Fan1 */
+>-	device_create_file_sf2_point(new_client, 2, 1);	/* Fan1 */
+>-	device_create_file_sf2_point(new_client, 3, 1);	/* Fan1 */
+>-	device_create_file_sf2_point(new_client, 4, 1);	/* Fan1 */
+>-	device_create_file_sf2_point(new_client, 1, 2);	/* Fan2 */
+>-	device_create_file_sf2_point(new_client, 2, 2);	/* Fan2 */
+>-	device_create_file_sf2_point(new_client, 3, 2);	/* Fan2 */
+>-	device_create_file_sf2_point(new_client, 4, 2);	/* Fan2 */
+>-	device_create_file_sf2_point(new_client, 1, 3);	/* Fan3 */
+>-	device_create_file_sf2_point(new_client, 2, 3);	/* Fan3 */
+>-	device_create_file_sf2_point(new_client, 3, 3);	/* Fan3 */
+>-	device_create_file_sf2_point(new_client, 4, 3);	/* Fan3 */
+>-
+>-	device_create_file_sf2_level(new_client, 1, 1);	/* Fan1 */
+>-	device_create_file_sf2_level(new_client, 2, 1);	/* Fan1 */
+>-	device_create_file_sf2_level(new_client, 3, 1);	/* Fan1 */
+>-	device_create_file_sf2_level(new_client, 1, 2);	/* Fan2 */
+>-	device_create_file_sf2_level(new_client, 2, 2);	/* Fan2 */
+>-	device_create_file_sf2_level(new_client, 3, 2);	/* Fan2 */
+>-	device_create_file_sf2_level(new_client, 1, 3);	/* Fan3 */
+>-	device_create_file_sf2_level(new_client, 2, 3);	/* Fan3 */
+>-	device_create_file_sf2_level(new_client, 3, 3);	/* Fan3 */
+>+	for (i = 0; i < ARRAY_SIZE(sda_sf2_level); i++)
+>+		device_create_file(dev, &sda_sf2_level[i].dev_attr);
+>
+> 	return 0;
+>
+>@@ -1366,7 +1323,7 @@ ERROR3:
+> 		kfree(data->lm75[1]);
+> 	}
+> ERROR2:
+>-	i2c_detach_client(new_client);
+>+	i2c_detach_client(client);
+> ERROR1:
+> 	kfree(data);
+> ERROR0:
+>  
+>
+
+
