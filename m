@@ -1,102 +1,314 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:37 +0000
-Subject: [lm-sensors] [PATCH] i2c: driver ID list cleanups
-Message-Id: <11365852572292@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 09 Jan 2006 22:29:11 +0000
+Subject: [lm-sensors] [PATCH 10/11] hwmon: Use attribute arrays in f71805f
+Message-Id: <20060109232911.7370e554.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: driver ID list cleanups
+Content-Disposition: inline; filename=hwmon-f71805f-use-attr-arrays.patch
 
-Cleanups to i2c driver ID list:
-* Remove mostly bogus comments about driver ID ranges.
-* Drop experimental driver IDs, as the concept is pretty broken.
-* Drop now unused IDs of non-I2C (ISA) drivers.
-* Drop a few more IDs which are no more used.
+Convert the f71805f driver to use arrays of attributes. This shrinks the
+compiled module from 12.0 kB to 9.6 kB. We certainly should do the same
+for as many hardware monitoring drivers as possible.
+
+This, together with a nice chip design by Fintek, makes this driver
+very small, both in terms of number of lines of code and memory
+consumption.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
-commit 04b4b8434a92b9ef127985113c0bd961957778b7
-tree a43fbba69676e540cb864369c819d69ffb42fe67
-parent a7be58a126d4cd9f0588df23f58796ed996c1835
-author Jean Delvare <khali at linux-fr.org> Sun, 18 Dec 2005 16:42:35 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:26 -0800
+ drivers/hwmon/f71805f.c |  224 ++++++++++++++++++++++-------------------------
+ 1 file changed, 106 insertions(+), 118 deletions(-)
 
- include/linux/i2c-id.h |   20 --------------------
- 1 files changed, 0 insertions(+), 20 deletions(-)
-
-diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
-index 006c81e..fb46f8d 100644
---- a/include/linux/i2c-id.h
-+++ b/include/linux/i2c-id.h
-@@ -25,12 +25,6 @@
+--- linux-2.6.15-git.orig/drivers/hwmon/f71805f.c	2006-01-09 20:46:05.000000000 +0100
++++ linux-2.6.15-git/drivers/hwmon/f71805f.c	2006-01-09 20:58:39.000000000 +0100
+@@ -384,10 +384,6 @@
+ 	return count;
+ }
  
- /*
-  * ---- Driver types -----------------------------------------------------
-- *       device id name + number        function description, i2c address(es)
-- *
-- *  Range 1000-1999 range is defined in sensors/sensors.h
-- *  Range 0x100 - 0x1ff is for V4L2 Common Components
-- *  Range 0xf000 - 0xffff is reserved for local experimentation, and should
-- *        never be used in official drivers
-  */
- 
- #define I2C_DRIVERID_MSP3400	 1
-@@ -110,13 +104,7 @@
- #define I2C_DRIVERID_AKITAIOEXP	74	/* IO Expander on Sharp SL-C1000 */
- #define I2C_DRIVERID_INFRARED	75	/* I2C InfraRed on Video boards */
- 
--#define I2C_DRIVERID_EXP0	0xF0	/* experimental use id's	*/
--#define I2C_DRIVERID_EXP1	0xF1
--#define I2C_DRIVERID_EXP2	0xF2
--#define I2C_DRIVERID_EXP3	0xF3
+-static DEVICE_ATTR(in0_input, S_IRUGO, show_in0, NULL);
+-static DEVICE_ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max);
+-static DEVICE_ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min);
 -
- #define I2C_DRIVERID_I2CDEV	900
--#define I2C_DRIVERID_I2CPROC	901
- #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
- #define I2C_DRIVERID_ALERT      903    /* SMBus Alert Responder Client  */
+ static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
+ 		       char *buf)
+ {
+@@ -450,23 +446,6 @@
+ 	return count;
+ }
  
-@@ -131,15 +119,12 @@
- #define I2C_DRIVERID_ADM1021 1008
- #define I2C_DRIVERID_ADM9240 1009
- #define I2C_DRIVERID_LTC1710 1010
--#define I2C_DRIVERID_SIS5595 1011
- #define I2C_DRIVERID_ICSPLL 1012
- #define I2C_DRIVERID_BT869 1013
- #define I2C_DRIVERID_MAXILIFE 1014
- #define I2C_DRIVERID_MATORB 1015
- #define I2C_DRIVERID_GL520 1016
- #define I2C_DRIVERID_THMC50 1017
--#define I2C_DRIVERID_DDCMON 1018
--#define I2C_DRIVERID_VIA686A 1019
- #define I2C_DRIVERID_ADM1025 1020
- #define I2C_DRIVERID_LM87 1021
- #define I2C_DRIVERID_PCF8574 1022
-@@ -151,21 +136,16 @@
- #define I2C_DRIVERID_FSCPOS 1028
- #define I2C_DRIVERID_FSCSCY 1029
- #define I2C_DRIVERID_PCF8591 1030
--#define I2C_DRIVERID_SMSC47M1 1031
--#define I2C_DRIVERID_VT1211 1032
- #define I2C_DRIVERID_LM92 1033
--#define I2C_DRIVERID_VT8231 1034
- #define I2C_DRIVERID_SMARTBATT 1035
- #define I2C_DRIVERID_BMCSENSORS 1036
- #define I2C_DRIVERID_FS451 1037
--#define I2C_DRIVERID_W83627HF 1038
- #define I2C_DRIVERID_LM85 1039
- #define I2C_DRIVERID_LM83 1040
- #define I2C_DRIVERID_LM90 1042
- #define I2C_DRIVERID_ASB100 1043
- #define I2C_DRIVERID_FSCHER 1046
- #define I2C_DRIVERID_W83L785TS 1047
--#define I2C_DRIVERID_SMSC47B397 1050
+-#define sysfs_in(offset)					\
+-static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO,		\
+-		show_in, NULL, offset);				\
+-static SENSOR_DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,	\
+-		show_in_max, set_in_max, offset);		\
+-static SENSOR_DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,	\
+-		show_in_min, set_in_min, offset)
+-
+-sysfs_in(1);
+-sysfs_in(2);
+-sysfs_in(3);
+-sysfs_in(4);
+-sysfs_in(5);
+-sysfs_in(6);
+-sysfs_in(7);
+-sysfs_in(8);
+-
+ static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
+ 			char *buf)
+ {
+@@ -503,16 +482,6 @@
+ 	return count;
+ }
+ 
+-#define sysfs_fan(offset)					\
+-static SENSOR_DEVICE_ATTR(fan##offset##_input, S_IRUGO,		\
+-		show_fan, NULL, offset - 1);			\
+-static SENSOR_DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR,	\
+-		show_fan_min, set_fan_min, offset - 1)
+-
+-sysfs_fan(1);
+-sysfs_fan(2);
+-sysfs_fan(3);
+-
+ static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
+ 			 char *buf)
+ {
+@@ -586,20 +555,6 @@
+ 	return count;
+ }
+ 
+-#define sysfs_temp(offset)						\
+-static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO,		\
+-		show_temp, NULL, offset - 1);				\
+-static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
+-		show_temp_max, set_temp_max, offset - 1);		\
+-static SENSOR_DEVICE_ATTR(temp##offset##_max_hyst, S_IRUGO | S_IWUSR,	\
+-		show_temp_hyst, set_temp_hyst, offset - 1);		\
+-static SENSOR_DEVICE_ATTR(temp##offset##_type, S_IRUGO,			\
+-		show_temp_type, NULL, offset - 1)
+-
+-sysfs_temp(1);
+-sysfs_temp(2);
+-sysfs_temp(3);
+-
+ static ssize_t show_alarms_in(struct device *dev, struct device_attribute
+ 			      *devattr, char *buf)
+ {
+@@ -625,10 +580,6 @@
+ 	return sprintf(buf, "%d\n", (data->alarms[1] >> 3) & 0x07);
+ }
+ 
+-static DEVICE_ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL);
+-static DEVICE_ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL);
+-static DEVICE_ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL);
+-
+ static ssize_t show_name(struct device *dev, struct device_attribute
+ 			 *devattr, char *buf)
+ {
+@@ -637,7 +588,89 @@
+ 	return sprintf(buf, "%s\n", data->name);
+ }
+ 
+-static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++static struct device_attribute f71805f_dev_attr[] = {
++	__ATTR(in0_input, S_IRUGO, show_in0, NULL),
++	__ATTR(in0_max, S_IRUGO| S_IWUSR, show_in0_max, set_in0_max),
++	__ATTR(in0_min, S_IRUGO| S_IWUSR, show_in0_min, set_in0_min),
++	__ATTR(alarms_in, S_IRUGO, show_alarms_in, NULL),
++	__ATTR(alarms_fan, S_IRUGO, show_alarms_fan, NULL),
++	__ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL),
++	__ATTR(name, S_IRUGO, show_name, NULL),
++};
++
++static struct sensor_device_attribute f71805f_sensor_attr[] = {
++	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
++	SENSOR_ATTR(in1_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 1),
++	SENSOR_ATTR(in1_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 1),
++	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
++	SENSOR_ATTR(in2_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 2),
++	SENSOR_ATTR(in2_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 2),
++	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
++	SENSOR_ATTR(in3_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 3),
++	SENSOR_ATTR(in3_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 3),
++	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
++	SENSOR_ATTR(in4_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 4),
++	SENSOR_ATTR(in4_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 4),
++	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
++	SENSOR_ATTR(in5_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 5),
++	SENSOR_ATTR(in5_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 5),
++	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
++	SENSOR_ATTR(in6_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 6),
++	SENSOR_ATTR(in6_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 6),
++	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
++	SENSOR_ATTR(in7_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 7),
++	SENSOR_ATTR(in7_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 7),
++	SENSOR_ATTR(in8_input, S_IRUGO, show_in, NULL, 8),
++	SENSOR_ATTR(in8_max, S_IRUGO | S_IWUSR,
++		    show_in_max, set_in_max, 8),
++	SENSOR_ATTR(in8_min, S_IRUGO | S_IWUSR,
++		    show_in_min, set_in_min, 8),
++
++	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
++	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR,
++		    show_temp_max, set_temp_max, 0),
++	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
++		    show_temp_hyst, set_temp_hyst, 0),
++	SENSOR_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0),
++	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
++	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR,
++		    show_temp_max, set_temp_max, 1),
++	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
++		    show_temp_hyst, set_temp_hyst, 1),
++	SENSOR_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1),
++	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
++	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR,
++		    show_temp_max, set_temp_max, 2),
++	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
++		    show_temp_hyst, set_temp_hyst, 2),
++	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
++};
++
++static struct sensor_device_attribute f71805f_fan_attr[] = {
++	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
++	SENSOR_ATTR(fan1_min, S_IRUGO | S_IWUSR,
++		    show_fan_min, set_fan_min, 0),
++	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
++	SENSOR_ATTR(fan2_min, S_IRUGO | S_IWUSR,
++		    show_fan_min, set_fan_min, 1),
++	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
++	SENSOR_ATTR(fan3_min, S_IRUGO | S_IWUSR,
++		    show_fan_min, set_fan_min, 2),
++};
  
  /*
-  * ---- Adapter types ----------------------------------------------------
+  * Device registration and initialization
+@@ -668,7 +701,7 @@
+ {
+ 	struct f71805f_data *data;
+ 	struct resource *res;
+-	int err;
++	int i, err;
+ 
+ 	if (!(data = kzalloc(sizeof(struct f71805f_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+@@ -695,76 +728,31 @@
+ 	f71805f_init_device(data);
+ 
+ 	/* Register sysfs interface files */
+-	device_create_file(&pdev->dev, &dev_attr_in0_input);
+-	device_create_file(&pdev->dev, &dev_attr_in0_max);
+-	device_create_file(&pdev->dev, &dev_attr_in0_min);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in1_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in2_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in3_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in4_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in5_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in6_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in7_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in8_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in1_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in2_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in3_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in4_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in5_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in6_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in7_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in8_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in1_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in2_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in3_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in4_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in5_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in6_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in7_min.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_in8_min.dev_attr);
+-	if (data->fan_enabled & (1 << 0)) {
+-		device_create_file(&pdev->dev,
+-				   &sensor_dev_attr_fan1_input.dev_attr);
+-		device_create_file(&pdev->dev,
+-				   &sensor_dev_attr_fan1_min.dev_attr);
+-	}
+-	if (data->fan_enabled & (1 << 1)) {
+-		device_create_file(&pdev->dev,
+-				   &sensor_dev_attr_fan2_input.dev_attr);
+-		device_create_file(&pdev->dev,
+-				   &sensor_dev_attr_fan2_min.dev_attr);
+-	}
+-	if (data->fan_enabled & (1 << 2)) {
+-		device_create_file(&pdev->dev,
+-				   &sensor_dev_attr_fan3_input.dev_attr);
+-		device_create_file(&pdev->dev,
+-				   &sensor_dev_attr_fan3_min.dev_attr);
+-	}
+-	device_create_file(&pdev->dev,
+-			   &sensor_dev_attr_temp1_input.dev_attr);
+-	device_create_file(&pdev->dev,
+-			   &sensor_dev_attr_temp2_input.dev_attr);
+-	device_create_file(&pdev->dev,
+-			   &sensor_dev_attr_temp3_input.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_temp1_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_temp2_max.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_temp3_max.dev_attr);
+-	device_create_file(&pdev->dev,
+-			   &sensor_dev_attr_temp1_max_hyst.dev_attr);
+-	device_create_file(&pdev->dev,
+-			   &sensor_dev_attr_temp2_max_hyst.dev_attr);
+-	device_create_file(&pdev->dev,
+-			   &sensor_dev_attr_temp3_max_hyst.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_temp1_type.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_temp2_type.dev_attr);
+-	device_create_file(&pdev->dev, &sensor_dev_attr_temp3_type.dev_attr);
+-	device_create_file(&pdev->dev, &dev_attr_alarms_in);
+-	device_create_file(&pdev->dev, &dev_attr_alarms_fan);
+-	device_create_file(&pdev->dev, &dev_attr_alarms_temp);
+-	device_create_file(&pdev->dev, &dev_attr_name);
++	for (i = 0; i < ARRAY_SIZE(f71805f_dev_attr); i++) {
++		err = device_create_file(&pdev->dev, &f71805f_dev_attr[i]);
++		if (err)
++			goto exit_class;
++	}
++	for (i = 0; i < ARRAY_SIZE(f71805f_sensor_attr); i++) {
++		err = device_create_file(&pdev->dev,
++					 &f71805f_sensor_attr[i].dev_attr);
++		if (err)
++			goto exit_class;
++	}
++	for (i = 0; i < ARRAY_SIZE(f71805f_fan_attr); i++) {
++		if (!(data->fan_enabled & (1 << (i / 2))))
++			continue;
++		err = device_create_file(&pdev->dev,
++					 &f71805f_fan_attr[i].dev_attr);
++		if (err)
++			goto exit_class;
++	}
+ 
+ 	return 0;
+ 
++exit_class:
++	dev_err(&pdev->dev, "Sysfs interface creation failed\n");
++	hwmon_device_unregister(data->class_dev);
+ exit_free:
+ 	kfree(data);
+ exit:
 
+-- 
+Jean Delvare
 
