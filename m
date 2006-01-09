@@ -1,208 +1,179 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:38 +0000
-Subject: [lm-sensors] [PATCH] hwmon: add VRM/VID support for some VIA CPUs
-Message-Id: <11365852583871@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 09 Jan 2006 21:46:14 +0000
+Subject: [lm-sensors] [PATCH 02/11] i2c: Rename i2c-sis96x documentation file
+Message-Id: <20060109224614.4d55d8a2.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: add VRM/VID support for some VIA CPUs
+From: Rudolf Marek <r.marek at sh.cvut.cz>
+Content-Disposition: inline; filename=i2c-sis96x-rename-documentation.patch
 
-This patch adds the VIA CENTAUR CPUs to detection table.
-Table was updated to treat future Intel x86 CPUs as VRD10.
-Stepping field was added, because some VIA CPUs have
-different VRM specs across stepping. I changed the vrm type
-to u8 because all drivers use u8 anyway.
+This patch just renames the documentation file to correct file name.
+i2c-sis69x -> i2c-sis96x.
 
 Signed-off-by: Rudolf Marek <r.marek at sh.cvut.cz>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
-commit 734a12a36676ad3b9418fa5a829c518afec02b8a
-tree 2d59c180d831162b6afcdad9180965e7ead44883
-parent 99d855602c1d7968ca6b6cc99b773b0b47909690
-author Rudolf Marek <r.marek at sh.cvut.cz> Sun, 18 Dec 2005 16:36:52 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:26 -0800
+ Documentation/i2c/busses/i2c-sis69x |   73 -----------------------------------
+ Documentation/i2c/busses/i2c-sis96x |   73 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+), 73 deletions(-)
 
- drivers/hwmon/hwmon-vid.c |   69 +++++++++++++++++++++++++++------------------
- include/linux/hwmon-vid.h |    6 ++--
- 2 files changed, 45 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
-index 312769a..e497274 100644
---- a/drivers/hwmon/hwmon-vid.c
-+++ b/drivers/hwmon/hwmon-vid.c
-@@ -49,20 +49,22 @@
-         . . . .
-        11110  =  0.800 V
-        11111  =  0.000 V (off)
-+
-+    The 17 specification is in fact Intel Mobile Voltage Positioning -
-+    (IMVP-II). You can find more information in the datasheet of Max1718
-+    http://www.maxim-ic.com/quick_view2.cfm/qv_pk/2452
-+
- */
- 
- /* vrm is the VRM/VRD document version multiplied by 10.
-    val is the 4-, 5- or 6-bit VID code.
-    Returned value is in mV to avoid floating point in the kernel. */
--int vid_from_reg(int val, int vrm)
-+int vid_from_reg(int val, u8 vrm)
- {
- 	int vid;
- 
- 	switch(vrm) {
- 
--	case  0:
--		return 0;
+--- linux-2.6.15-git.orig/Documentation/i2c/busses/i2c-sis69x	2006-01-03 04:21:10.000000000 +0100
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,73 +0,0 @@
+-Kernel driver i2c-sis96x
 -
- 	case 100:               /* VRD 10.0 */
- 		if((val & 0x1f) = 0x1f)
- 			return 0;
-@@ -91,10 +93,16 @@ int vid_from_reg(int val, int vrm)
- 	case 84:		/* VRM 8.4 */
- 		val &= 0x0f;
- 				/* fall through */
--	default:		/* VRM 8.2 */
-+	case 82:		/* VRM 8.2 */
- 		return(val = 0x1f ? 0 :
- 		       val & 0x10  ? 5100 - (val) * 100 :
- 		                     2050 - (val) * 50);
-+	case 17:		/* Intel IMVP-II */
-+		return(val & 0x10 ? 975 - (val & 0xF) * 25 :
-+				    1750 - val * 50);
-+	default:		/* report 0 for unknown */
-+		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
-+		return 0;
- 	}
- }
- 
-@@ -108,30 +116,36 @@ struct vrm_model {
- 	u8 vendor;
- 	u8 eff_family;
- 	u8 eff_model;
--	int vrm_type;
-+	u8 eff_stepping;
-+	u8 vrm_type;
- };
- 
- #define ANY 0xFF
- 
- #ifdef CONFIG_X86
- 
-+/* the stepping parameter is highest acceptable stepping for current line */
+-Replaces 2.4.x i2c-sis645
+-
+-Supported adapters:
+-  * Silicon Integrated Systems Corp (SiS)
+-    Any combination of these host bridges:
+-	645, 645DX (aka 646), 648, 650, 651, 655, 735, 745, 746
+-    and these south bridges:
+-    	961, 962, 963(L) 
+-
+-Author: Mark M. Hoffman <mhoffman at lightlink.com>
+-
+-Description
+------------
+-
+-This SMBus only driver is known to work on motherboards with the above
+-named chipset combinations. The driver was developed without benefit of a
+-proper datasheet from SiS. The SMBus registers are assumed compatible with
+-those of the SiS630, although they are located in a completely different
+-place. Thanks to Alexander Malysh <amalysh at web.de> for providing the
+-SiS630 datasheet (and  driver).
+-
+-The command "lspci" as root should produce something like these lines:
+-
+-00:00.0 Host bridge: Silicon Integrated Systems [SiS]: Unknown device 0645
+-00:02.0 ISA bridge: Silicon Integrated Systems [SiS] 85C503/5513
+-00:02.1 SMBus: Silicon Integrated Systems [SiS]: Unknown device 0016
+-
+-or perhaps this...
+-
+-00:00.0 Host bridge: Silicon Integrated Systems [SiS]: Unknown device 0645 
+-00:02.0 ISA bridge: Silicon Integrated Systems [SiS]: Unknown device 0961
+-00:02.1 SMBus: Silicon Integrated Systems [SiS]: Unknown device 0016
+-
+-(kernel versions later than 2.4.18 may fill in the "Unknown"s)
+-
+-If you cant see it please look on quirk_sis_96x_smbus
+-(drivers/pci/quirks.c) (also if southbridge detection fails)
+-
+-I suspect that this driver could be made to work for the following SiS
+-chipsets as well: 635, and 635T. If anyone owns a board with those chips
+-AND is willing to risk crashing & burning an otherwise well-behaved kernel
+-in the name of progress... please contact me at <mhoffman at lightlink.com> or
+-via the project's mailing list: <lm-sensors at lm-sensors.org>.  Please
+-send bug reports and/or success stories as well.
+-
+-
+-TO DOs
+-------
+-
+-* The driver does not support SMBus block reads/writes; I may add them if a
+-scenario is found where they're needed.
+-
+-
+-Thank You
+----------
+-
+-Mark D. Studebaker <mdsxyz123 at yahoo.com>
+- - design hints and bug fixes
+-Alexander Maylsh <amalysh at web.de>
+- - ditto, plus an important datasheet... almost the one I really wanted
+-Hans-G?nter L?tke Uphues <hg_lu at t-online.de>
+- - patch for SiS735
+-Robert Zwerus <arzie at dds.nl>
+- - testing for SiS645DX
+-Kianusch Sayah Karadji <kianusch at sk-tech.net>
+- - patch for SiS645DX/962
+-Ken Healy
+- - patch for SiS655
+-
+-To anyone else who has written w/ feedback, thanks!
+-
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.15-git/Documentation/i2c/busses/i2c-sis96x	2006-01-07 22:42:27.000000000 +0100
+@@ -0,0 +1,73 @@
++Kernel driver i2c-sis96x
 +
- static struct vrm_model vrm_models[] = {
--	{X86_VENDOR_AMD, 0x6, ANY, 90},		/* Athlon Duron etc */
--	{X86_VENDOR_AMD, 0xF, ANY, 24},		/* Athlon 64, Opteron */
--	{X86_VENDOR_INTEL, 0x6, 0x9, 85},	/* 0.13um too */
--	{X86_VENDOR_INTEL, 0x6, 0xB, 85},	/* Tualatin */
--	{X86_VENDOR_INTEL, 0x6, ANY, 82},	/* any P6 */
--	{X86_VENDOR_INTEL, 0x7, ANY, 0},	/* Itanium */
--	{X86_VENDOR_INTEL, 0xF, 0x0, 90},	/* P4 */
--	{X86_VENDOR_INTEL, 0xF, 0x1, 90},	/* P4 Willamette */
--	{X86_VENDOR_INTEL, 0xF, 0x2, 90},	/* P4 Northwood */
--	{X86_VENDOR_INTEL, 0xF, 0x3, 100},	/* P4 Prescott */
--	{X86_VENDOR_INTEL, 0xF, 0x4, 100},	/* P4 Prescott */
--	{X86_VENDOR_INTEL, 0x10,ANY, 0},	/* Itanium 2 */
--	{X86_VENDOR_UNKNOWN, ANY, ANY, 0}	/* stop here */
-+	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
-+	{X86_VENDOR_AMD, 0xF, ANY, ANY, 24},		/* Athlon 64, Opteron and above VRM 24 */
-+	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 85},		/* 0.13um too */
-+	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
-+	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
-+	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
-+	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
-+	{X86_VENDOR_INTEL, 0xF, 0x1, ANY, 90},		/* P4 Willamette */
-+	{X86_VENDOR_INTEL, 0xF, 0x2, ANY, 90},		/* P4 Northwood */
-+	{X86_VENDOR_INTEL, 0xF, ANY, ANY, 100},		/* Prescott and above assume VRD 10 */
-+	{X86_VENDOR_INTEL, 0x10, ANY, ANY, 0},		/* Itanium 2 */
-+	{X86_VENDOR_CENTAUR, 0x6, 0x7, ANY, 85},	/* Eden ESP/Ezra */
-+	{X86_VENDOR_CENTAUR, 0x6, 0x8, 0x7, 85},	/* Ezra T */
-+	{X86_VENDOR_CENTAUR, 0x6, 0x9, 0x7, 85},	/* Nemiah */
-+	{X86_VENDOR_CENTAUR, 0x6, 0x9, ANY, 17},	/* C3-M */
-+	{X86_VENDOR_UNKNOWN, ANY, ANY, ANY, 0}		/* stop here */
- };
- 
--static int find_vrm(u8 eff_family, u8 eff_model, u8 vendor)
-+static u8 find_vrm(u8 eff_family, u8 eff_model, u8 eff_stepping, u8 vendor)
- {
- 	int i = 0;
- 
-@@ -139,7 +153,8 @@ static int find_vrm(u8 eff_family, u8 ef
- 		if (vrm_models[i].vendor=vendor)
- 			if ((vrm_models[i].eff_family=eff_family)
- 			 && ((vrm_models[i].eff_model=eff_model) ||
--			     (vrm_models[i].eff_model=ANY)))
-+			     (vrm_models[i].eff_model=ANY)) &&
-+			     (eff_stepping <= vrm_models[i].eff_stepping))
- 				return vrm_models[i].vrm_type;
- 		i++;
- 	}
-@@ -147,12 +162,11 @@ static int find_vrm(u8 eff_family, u8 ef
- 	return 0;
- }
- 
--int vid_which_vrm(void)
-+u8 vid_which_vrm(void)
- {
- 	struct cpuinfo_x86 *c = cpu_data;
- 	u32 eax;
--	u8 eff_family, eff_model;
--	int vrm_ret;
-+	u8 eff_family, eff_model, eff_stepping, vrm_ret;
- 
- 	if (c->x86 < 6)		/* Any CPU with family lower than 6 */
- 		return 0;	/* doesn't have VID and/or CPUID */
-@@ -160,20 +174,21 @@ int vid_which_vrm(void)
- 	eax = cpuid_eax(1);
- 	eff_family = ((eax & 0x00000F00)>>8);
- 	eff_model  = ((eax & 0x000000F0)>>4);
-+	eff_stepping = eax & 0xF;
- 	if (eff_family = 0xF) {	/* use extended model & family */
- 		eff_family += ((eax & 0x00F00000)>>20);
- 		eff_model += ((eax & 0x000F0000)>>16)<<4;
- 	}
--	vrm_ret = find_vrm(eff_family,eff_model,c->x86_vendor);
-+	vrm_ret = find_vrm(eff_family, eff_model, eff_stepping, c->x86_vendor);
- 	if (vrm_ret = 0)
- 		printk(KERN_INFO "hwmon-vid: Unknown VRM version of your "
- 		       "x86 CPU\n");
- 	return vrm_ret;
- }
- 
--/* and now something completely different for the non-x86 world */
-+/* and now for something completely different for the non-x86 world */
- #else
--int vid_which_vrm(void)
-+u8 vid_which_vrm(void)
- {
- 	printk(KERN_INFO "hwmon-vid: Unknown VRM version of your CPU\n");
- 	return 0;
-diff --git a/include/linux/hwmon-vid.h b/include/linux/hwmon-vid.h
-index cd4b7a0..f346e4d 100644
---- a/include/linux/hwmon-vid.h
-+++ b/include/linux/hwmon-vid.h
-@@ -23,14 +23,14 @@
- #ifndef _LINUX_HWMON_VID_H
- #define _LINUX_HWMON_VID_H
- 
--int vid_from_reg(int val, int vrm);
--int vid_which_vrm(void);
-+int vid_from_reg(int val, u8 vrm);
-+u8 vid_which_vrm(void);
- 
- /* vrm is the VRM/VRD document version multiplied by 10.
-    val is in mV to avoid floating point in the kernel.
-    Returned value is the 4-, 5- or 6-bit VID code.
-    Note that only VRM 9.x is supported for now. */
--static inline int vid_to_reg(int val, int vrm)
-+static inline int vid_to_reg(int val, u8 vrm)
- {
- 	switch (vrm) {
- 	case 91:		/* VRM 9.1 */
++Replaces 2.4.x i2c-sis645
++
++Supported adapters:
++  * Silicon Integrated Systems Corp (SiS)
++    Any combination of these host bridges:
++	645, 645DX (aka 646), 648, 650, 651, 655, 735, 745, 746
++    and these south bridges:
++    	961, 962, 963(L) 
++
++Author: Mark M. Hoffman <mhoffman at lightlink.com>
++
++Description
++-----------
++
++This SMBus only driver is known to work on motherboards with the above
++named chipset combinations. The driver was developed without benefit of a
++proper datasheet from SiS. The SMBus registers are assumed compatible with
++those of the SiS630, although they are located in a completely different
++place. Thanks to Alexander Malysh <amalysh at web.de> for providing the
++SiS630 datasheet (and  driver).
++
++The command "lspci" as root should produce something like these lines:
++
++00:00.0 Host bridge: Silicon Integrated Systems [SiS]: Unknown device 0645
++00:02.0 ISA bridge: Silicon Integrated Systems [SiS] 85C503/5513
++00:02.1 SMBus: Silicon Integrated Systems [SiS]: Unknown device 0016
++
++or perhaps this...
++
++00:00.0 Host bridge: Silicon Integrated Systems [SiS]: Unknown device 0645 
++00:02.0 ISA bridge: Silicon Integrated Systems [SiS]: Unknown device 0961
++00:02.1 SMBus: Silicon Integrated Systems [SiS]: Unknown device 0016
++
++(kernel versions later than 2.4.18 may fill in the "Unknown"s)
++
++If you cant see it please look on quirk_sis_96x_smbus
++(drivers/pci/quirks.c) (also if southbridge detection fails)
++
++I suspect that this driver could be made to work for the following SiS
++chipsets as well: 635, and 635T. If anyone owns a board with those chips
++AND is willing to risk crashing & burning an otherwise well-behaved kernel
++in the name of progress... please contact me at <mhoffman at lightlink.com> or
++via the project's mailing list: <lm-sensors at lm-sensors.org>.  Please
++send bug reports and/or success stories as well.
++
++
++TO DOs
++------
++
++* The driver does not support SMBus block reads/writes; I may add them if a
++scenario is found where they're needed.
++
++
++Thank You
++---------
++
++Mark D. Studebaker <mdsxyz123 at yahoo.com>
++ - design hints and bug fixes
++Alexander Maylsh <amalysh at web.de>
++ - ditto, plus an important datasheet... almost the one I really wanted
++Hans-G?nter L?tke Uphues <hg_lu at t-online.de>
++ - patch for SiS735
++Robert Zwerus <arzie at dds.nl>
++ - testing for SiS645DX
++Kianusch Sayah Karadji <kianusch at sk-tech.net>
++ - patch for SiS645DX/962
++Ken Healy
++ - patch for SiS655
++
++To anyone else who has written w/ feedback, thanks!
++
 
+-- 
+Jean Delvare
 
