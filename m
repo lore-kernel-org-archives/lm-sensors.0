@@ -1,7 +1,7 @@
-From: stevenkaratnyk@rogers.com (Steven Karatnyk)
-Date: Wed, 11 Jan 2006 07:01:56 +0000
-Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket 1944)
-Message-Id: <43C4AD64.2080608@rogers.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 11 Jan 2006 22:20:25 +0000
+Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket
+Message-Id: <20060111232025.0257667b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43BDFEEE.4070408@rogers.com>
 In-Reply-To: <43BDFEEE.4070408@rogers.com>
@@ -10,72 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Steven,
 
-Steven Karatnyk wrote:
-      Jean Delvare wrote:
+> My  problem was that 2.9.1 user-space tools were still in 
+> /usr/[bin;sbin] and these were being utilized instead of the >2.9.2 
+> versions located /usr/local/[bin;sbin].  After I got that straightened 
+> out, sensors-detect did indeed find the chip.
 
->> Please also keep in mind that for user-space support you need to apply
->> the following patch to the lm_sensors sources:
->>   http://jdelvare.net2.nerim.net/sensors/CVS-w83687thf.diff
->> I checked it and it still applies to CVS with some offset.
->>       
->
-> It Applied without issue, but your wording ("it still applies with 
-> some offset") makes me think I may have missed something or done 
-> something wrong here.  And indeed, although sensors-detect now detects 
-> the IC, I haven't succeeded with getting the support implemented yet.  
-> I will re-look at this later tonight, time permitting.
->
->   
+OK, great :) The /usr/local variants should always be before the /usr
+variants in $PATH, but depending on the distribution and/or the user,
+it might not actually be the case.
 
-Ummmm, lets just say I'm a monkey (i.e. I hadn't modprobe w83627hf ).
+> As an aside, the 2.9.2 version generated several errors during "make 
+> user" (sorry, can't recall what was stated, and a quick google search 
+> didn't illuminate for me what may have been generating the problem(s)).  
+> However, I grabbed the CVS version (which provides sensors-detect 
+> revision 1.405 (2005/12/09 19:44:49) ) and it worked without problem.   
+> [Let me know if you're interested in what the errors were for my "make 
+> user" attempt with the 2.9.2 d/l and I will revisit that issue].
 
-Anyways, here's the successful output:
+If this is fixed in CVS already, don't bother. There's nothing more
+we'll be able to do, can't kill a bug that's already dead ;)
 
-# sensors
-lm90-i2c-0-4c
-Adapter: SMBus Via Pro adapter at 5000
+> isadump -k 0x87,0x87 0x2e 0x2f 0x0b
+> (...)
+> In case an"isadump 0x295 0x296" is also of assistance, it yields:
 
-M/B Temp: +37?C (low = +0?C, high = +70?C)
-CPU Temp: +54.4?C (low = +0.0?C, high = +70.0?C)
-M/B Crit: +85?C (hyst = +75?C)
-CPU Crit: +85?C (hyst = +75?C)
+Thanks for the dumps, I've stored them in my personal collection, this
+might come in handy to answer future support requests.
 
-w83687thf-isa-0290
-Adapter: ISA adapter
-in0: +1.10 V (min = +0.70 V, max = +1.87 V)
-in1: +1.52 V (min = +2.54 V, max = +2.11 V) ALARM
-in2: +3.30 V (min = +2.86 V, max = +1.66 V) ALARM
-in3: +2.99 V (min = +2.05 V, max = +3.36 V)
-in4: +2.59 V (min = +3.49 V, max = +2.14 V) ALARM
-in7: +2.94 V (min = +0.16 V, max = +0.42 V) ALARM
-in8: +3.30 V (min = +0.38 V, max = +3.14 V) ALARM
-fan1: 1328 RPM (min = 9375 RPM, div = 8) ALARM
-fan2: 1339 RPM (min = 1016 RPM, div = 8)
-fan3: 0 RPM (min = 6136 RPM, div = 2) ALARM
-temp1: +39?C (high = -122?C, hyst = -41?C) sensor = diode ALARM
-temp2: +39.0?C (high = +80?C, hyst = +75?C) sensor = diode
-temp3: +59.0?C (high = +80?C, hyst = +75?C) sensor = diode
-vid: +0.275 V (VRM Version 9.0)
-alarms:
-beep_enable:
-Sound alarm enabled
+You may have noticed that I have been committing the user-space part of
+the W83687THF support to CVS already. I also modified the Linux 2.4
+w83627hf driver to fully support the W83687THF chip. I still need to
+rework the 2.6 patch based on what I found in the datasheet, and then
+we'll have to work on a sample configuration file for the chip. I hope
+to get all this done by the end of the week. Stay tuned! :)
 
-
-Pretty happy camper here! Thanks so much guys.
-
-Looking back to what Hugo also reported with the experimental code 
-(http://lists.lm-sensors.org/pipermail/lm-sensors/2005-June/012769.html), 
-on a glance it seems like I get pretty similar results.
-
-Anyways, definitely count me in for testing any revised/changed code as 
-the result of info gleaned from the data sheet. Looking forward to it!
-
-Thanks, Steven
-
-Sorry - probably a duplicate message...replied from one of my other 
-accounts (CK) by mistake.
-
-
-
+-- 
+Jean Delvare
 
