@@ -1,49 +1,98 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 10 Jan 2006 01:51:18 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 11 Jan 2006 20:19:00 +0000
 Subject: [lm-sensors] [PATCH] hwmon: w83792d use sensor-attr arrays
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECECCE266@weshml03.winbond.com.tw>
+Message-Id: <20060111211900.69139db6.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
 In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmltLAoKPiBBRkFJQ1QsIHlvdSByZW1vdmVkIHRoZSBpLS0KPiBidXQgZGlkbnQgYnVpbGQg
-aXQgKHRoYXQgLTEgb2Zmc2V0KSBpbnRvIHRoZSBpbml0aWFsaXphdGlvbnMsCj4gYW5kIG5vdyB5
-b3VyIGZhbiBhdHRyaWJ1dGVzIGhhdmUgYSBza2V3IG9mIDEuCj4gCj4gSU9XLCBJVFlXIHNvbWV0
-aGluZyBsaWtlIHRoaXMuCj4gCj4gPiArc3RhdGljIHN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJp
-YnV0ZSBzZGFfZmFuX21pbltdID0gewo+ID4gKwlTRU5TT1JfQVRUUihmYW4xX21pbiwgU19JV1VT
-UnxTX0lSVUdPLCBzaG93X2Zhbl9taW4sCnN0b3JlX2Zhbl9taW4sIDApLAo+ID4gKwlTRU5TT1Jf
-QVRUUihmYW4yX21pbiwgU19JV1VTUnxTX0lSVUdPLCBzaG93X2Zhbl9taW4sCnN0b3JlX2Zhbl9t
-aW4sIDEpLAo+ID4gKwlTRU5TT1JfQVRUUihmYW4zX21pbiwgU19JV1VTUnxTX0lSVUdPLCBzaG93
-X2Zhbl9taW4sCnN0b3JlX2Zhbl9taW4sIDIpLAo+ID4KVGhlcmUgd2FzIG5vIHNrZXcgaW4gbXkg
-dGVzdCwgdGhlIGZsb3cgaXMgCmRldmljZV9jcmVhdGVfZmlsZV9mYW4oZGV2LCAwKTsgPT4gZGV2
-aWNlX2NyZWF0ZV9maWxlKGRldiwKJnNkYV9mYW5fbWluWzBdLmRldl9hdHRyKTsKQnV0IHdoYXQg
-eW91IHN1Z2dlc3RlZCBpcyBnb29kLCBhbmQgaXQgYWxzbyBuZWVkIHRvIG1vZGlmeQpzaG93X2Zh
-bl9taW4oKSBhbmQgc3RvcmVfZmFuX21pbigpLCBzYW1lIHdpdGggZmFuKl9pbnB1dCBhbmQgZmFu
-Kl9kaXYsIEkKaG9wZSB3ZSBjYW4gZG8gaXQgbmV4dCBwYXRjaCA7KQoKQmVzdCBSZWdhcmRzCll1
-YW4gTXUKCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09VGhl
-IHByaXZpbGVnZWQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGVt
-YWlsIGlzIGludGVuZGVkIGZvciB1c2Ugb25seSBieSB0aGUgYWRkcmVzc2VlcyBhcyBpbmRpY2F0
-ZWQgYnkgdGhlIG9yaWdpbmFsIHNlbmRlciBvZiB0aGlzIGVtYWlsLiBJZiB5b3UgYXJlIG5vdCB0
-aGUgYWRkcmVzc2VlIGluZGljYXRlZCBpbiB0aGlzIGVtYWlsIG9yIGFyZSBub3QgcmVzcG9uc2li
-bGUgZm9yIGRlbGl2ZXJ5IG9mIHRoZSBlbWFpbCB0byBzdWNoICBhIHBlcnNvbiwgcGxlYXNlIGtp
-bmRseSByZXBseSB0byB0aGUgc2VuZGVyIGluZGljYXRpbmcgdGhpcyBmYWN0IGFuZCBkZWxldGUg
-YWxsIGNvcGllcyBvZiBpdCBmcm9tIHlvdXIgY29tcHV0ZXIgYW5kIG5ldHdvcmsgc2VydmVyIGlt
-bWVkaWF0ZWx5LiBZb3VyIGNvb3BlcmF0aW9uIGlzIGhpZ2hseSBhcHByZWNpYXRlZC4gSXQgaXMg
-YWR2aXNlZCB0aGF0IGFueSB1bmF1dGhvcml6ZWQgdXNlIG9mIGNvbmZpZGVudGlhbCBpbmZvcm1h
-dGlvbiBvZiBXaW5ib25kIGlzIHN0cmljdGx5IHByb2hpYml0ZWQ7IGFuZCBhbnkgaW5mb3JtYXRp
-b24gaW4gdGhpcyBlbWFpbCBpcnJlbGV2YW50IHRvIHRoZSBvZmZpY2lhbCBidXNpbmVzcyBvZiBX
-aW5ib25kIHNoYWxsIGJlIGRlZW1lZCBhcyBuZWl0aGVyIGdpdmVuIG5vciBlbmRvcnNlZCBieSBX
-aW5ib25kLgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09SWYg
-eW91ciBjb21wdXRlciBpcyB1bmFibGUgdG8gZGVjb2RlIENoaW5lc2UgZm9udCwgcGxlYXNlIGln
-bm9yZSB0aGUgZm9sbG93aW5nIG1lc3NhZ2UuSXQgZXNzZW50aWFsbHkgcmVwZWF0cyB0aGUgc3Rh
-dGVtZW50IGluIEVuZ2xpc2ggZ2l2ZW4gYWJvdmUupburSKXzpLqp0qd0tdioublxpGyqurBdsqOp
-yr73sUupyrjqsFQsILbIscLFdq3stW+rSKRIq/ypd6SnpqyrSKRIqPq+XFykp6XOLiCwsqjPsXqo
-w6tEs1Gr/Kl3pKemrKtIpEipzqZdpfSm863spl2mYqW8uGexwsV2qrqxoafOpKekVaasqOylu6tI
-pfMsIL3QsXqnaaq+rey1b6tIpEiow6Xfp1mxTqtIpfOxcblxuKO7ULr0uPSm+KpBvrmkpKSppUiu
-+LCjLiC576nzsXqquqZYp0AsIKfarcyl/aa5rVDBwi4gr1OmubSjv/QsIKX0pvOlvLhnscLFdr7V
-ptuoz6XOtdioublxpGyqur73sUu46rBUqrqm5qywrE+zUcRZrua4VKTuqrouIKtIpfO7ULXYqLm5
-caRswOe3frVMw/akp6S6rmUspKOxb7X4rLC12Ki5uXGkbKSnpd+z9anOt06ooy4KCg==
+Hi Yuan,
+
+> This patch uses the new sensor-attr arrays, please check.
+
+Alright! I've applied it.
+
+Additionally, I would like to apply the following patch on top of it.
+It simplifies the creation of the alarm and chassis files. Are you OK
+with it?
+
+Thanks.
+
+Content-Disposition: inline; filename=hwmon-w83792d-drop-useless-macros.patch
+
+Drop 3 useless macros in the w83792d hardware monitoring driver.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/w83792d.c |   24 +++---------------------
+ 1 file changed, 3 insertions(+), 21 deletions(-)
+
+--- linux-2.6.15-git.orig/drivers/hwmon/w83792d.c	2006-01-11 20:38:49.000000000 +0100
++++ linux-2.6.15-git/drivers/hwmon/w83792d.c	2006-01-11 21:12:40.000000000 +0100
+@@ -618,10 +618,6 @@
+ 
+ static
+ DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+-#define device_create_file_alarms() \
+-device_create_file(dev, &dev_attr_alarms);
+-
+-
+ 
+ static ssize_t
+ show_pwm(struct device *dev, struct device_attribute *attr,
+@@ -775,12 +771,6 @@
+ 
+ static DEVICE_ATTR(chassis, S_IRUGO, show_regs_chassis, NULL);
+ 
+-#define device_create_file_chassis() \
+-do { \
+-device_create_file(dev, &dev_attr_chassis); \
+-} while (0)
+-
+-
+ static ssize_t
+ show_chassis_clear(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+@@ -811,13 +801,6 @@
+ static DEVICE_ATTR(chassis_clear, S_IRUGO | S_IWUSR,
+ 		show_chassis_clear, store_chassis_clear);
+ 
+-#define device_create_file_chassis_clear() \
+-do { \
+-device_create_file(dev, &dev_attr_chassis_clear); \
+-} while (0)
+-
+-
+-
+ /* For Smart Fan I / Thermal Cruise */
+ static ssize_t
+ show_thermal_cruise(struct device *dev, struct device_attribute *attr,
+@@ -1294,16 +1277,15 @@
+ 		device_create_file(dev, &sda_tolerance[i].dev_attr);
+ 	}
+ 
+-	device_create_file_alarms();
+-
+ 	for (i = 0; i < ARRAY_SIZE(sda_pwm); i++) {
+ 		device_create_file(dev, &sda_pwm[i].dev_attr);
+ 		device_create_file(dev, &sda_pwm_enable[i].dev_attr);
+ 		device_create_file(dev, &sda_pwm_mode[i].dev_attr);
+ 	}
+ 
+-	device_create_file_chassis();
+-	device_create_file_chassis_clear();
++	device_create_file(dev, &dev_attr_alarms);
++	device_create_file(dev, &dev_attr_chassis);
++	device_create_file(dev, &dev_attr_chassis_clear);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sda_sf2_point); i++)
+ 		device_create_file(dev, &sda_sf2_point[i].dev_attr);
+
+
+-- 
+Jean Delvare
+
