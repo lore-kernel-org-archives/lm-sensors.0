@@ -1,7 +1,7 @@
-From: CityK@rogers.com (CityK)
-Date: Wed, 11 Jan 2006 06:56:30 +0000
-Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket
-Message-Id: <43C4AC1E.9070508@rogers.com>
+From: stevenkaratnyk@rogers.com (Steven Karatnyk)
+Date: Wed, 11 Jan 2006 07:01:56 +0000
+Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket 1944)
+Message-Id: <43C4AD64.2080608@rogers.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43BDFEEE.4070408@rogers.com>
 In-Reply-To: <43BDFEEE.4070408@rogers.com>
@@ -10,21 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+
 Steven Karatnyk wrote:
-Jean Delvare wrote:
+      Jean Delvare wrote:
 
 >> Please also keep in mind that for user-space support you need to apply
 >> the following patch to the lm_sensors sources:
 >>   http://jdelvare.net2.nerim.net/sensors/CVS-w83687thf.diff
 >> I checked it and it still applies to CVS with some offset.
->>   
->>     
+>>       
 >
-> It Applied without issue, but your wording ("it still applies with some 
-> offset") makes me think I may have missed something or done something 
-> wrong here.  And indeed, although sensors-detect now detects the IC, I 
-> haven't succeeded with getting the support implemented yet.  I will 
-> re-look at this later tonight, time permitting.
+> It Applied without issue, but your wording ("it still applies with 
+> some offset") makes me think I may have missed something or done 
+> something wrong here.  And indeed, although sensors-detect now detects 
+> the IC, I haven't succeeded with getting the support implemented yet.  
+> I will re-look at this later tonight, time permitting.
 >
 >   
 
@@ -73,6 +73,8 @@ the result of info gleaned from the data sheet. Looking forward to it!
 
 Thanks, Steven
 
+Sorry - probably a duplicate message...replied from one of my other 
+accounts (CK) by mistake.
 
 
 
