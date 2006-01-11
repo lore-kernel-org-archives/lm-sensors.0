@@ -1,61 +1,60 @@
-From: greg@kroah.com (Greg KH)
-Date: Wed, 11 Jan 2006 19:03:49 +0000
-Subject: [lm-sensors] describe the patch flow, review process
-Message-Id: <20060111190349.GA3608@kroah.com>
+From: avolkov@varma-el.com (Andrey Volkov)
+Date: Wed, 11 Jan 2006 19:03:24 +0000
+Subject: [lm-sensors] [RFC] i2c: Combined ST m41txx i2c rtc chip driver
+Message-Id: <43C5567C.8070106@varma-el.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43BEB2C3.5050706@gmail.com>
-In-Reply-To: <43BEB2C3.5050706@gmail.com>
+References: <4378960F.8030800@varma-el.com> <20051115215226.4e6494e0.khali@linux-fr.org> <20051116025714.GK5546@mag.az.mvista.com> <20051219210325.GA21696@mag.az.mvista.com> <43A7D76E.5050008@varma-el.com> <20060111000912.GA11471@mag.az.mvista.com> <43C4D275.2070505@varma-el.com> <20060111161954.GB6405@mag.az.mvista.com>
+In-Reply-To: <20060111161954.GB6405@mag.az.mvista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Mark A. Greer" <mgreer@mvista.com>, Jean Delvare <khali@linux-fr.org>
+Cc: adi@hexapodia.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Fri, Jan 06, 2006 at 11:11:15AM -0700, Jim Cromie wrote:
-> 3.   Greg then
->     a. puts them here ??  (I dont see them)
->         http://www.kernel.org/pub/linux/kernel/people/gregkh/
+Hi Mark,
 
-Close:
-	kernel.org/pub/linuc/kernel/people/gregkh/gregkh-2.6/patches/
-Note that there is a lot of non-sensor stuff in there so you probably
-only care about:
-	kernel.org/pub/linuc/kernel/people/gregkh/gregkh-2.6/patches/i2c/
-but not always.
-
->     b.  pushes them to AKPM for inclusion in -mm
-
-No, Andrew picks them up from:
-	kernel.org/pub/linuc/kernel/people/gregkh/gregkh-2.6/gregkh-02-i2c/
-which is the staging area for him.
-
->           does he consolidate them to 1 patch ?
-
-No.
-
->              I think not, that would lose the attributions
+Mark A. Greer wrote:
+> On Wed, Jan 11, 2006 at 12:40:05PM +0300, Andrey Volkov wrote:
+> 
+>>
+>>Mark A. Greer wrote:
+>>
+>>>On Tue, Dec 20, 2005 at 01:05:34PM +0300, Andrey Volkov wrote:
+>>>
+>>>
+>>>>Hello Mark
+>>>>
+>>>>Big Thanks, I check it on my board today-tomorrow.
+>>>>But check some comments below.
+>>>
+>>>
+>>>Did you have a chance to test it?
+>>>
+>>
+>>I testing it now (holidays, sorry).
+>>Aprrox 3-4 hours delay.
 > 
 > 
-> and this is where I get a bit fuzzy.
-
-I then push them to Linus when it's ok to do so, by taking the patches,
-creating a temporary git tree and asking Linus to pull it.  I also post
-the patches that I'm asking Linus to pull to this list.
-
-> 2.6.15-mm1 came out recently  
->     http://lkml.org/lkml/2006/1/5/149
+> No problem.  Just curious if it works for you.
+> Please let me know.
 > 
-> but none of the stuff in 2.a  is there   (I looked for mine).
+> Thanks,
+> 
+> Mark
+> 
+Attached patch fix some misspellings and, mainly,
+_reset_ HT flag. If this flag is set, then STM418xx
+doesn't run in spite of ST flag state.
+With this patch my board work ok.
 
-It takes a while to bubble up :)
+P.S. Jean, "i2c_master_send vs i2c_smbus_write_byte_data"
+problem still open.
+Could you made executive decision about it?
 
-> Is that because theyre going to Linus  / main / git  instead ?
-> and if so (not going to -mm)  why ?
->         dont they warrant more testing / exposure there ?
-
-If I've already sent the patches to Linus, and he's applied them, then
-they get into -mm with the "latest linus patch".
-
-Hope this helps,
-
-greg k-h
-
+-- 
+Regards
+Andrey Volkov
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: 01-stm_combind_fixes.diff
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060111/662a70d3/01-stm_combind_fixes.pl
