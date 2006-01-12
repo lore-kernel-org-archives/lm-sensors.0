@@ -1,45 +1,98 @@
-From: cpollock@earthlink.net (Chris)
-Date: Tue, 10 Jan 2006 01:33:18 +0000
-Subject: [lm-sensors] Temp and voltage on Gigabyte MB
-Message-Id: <200601091933.25661.cpollock@earthlink.net>
+From: marcus@quintic.co.uk (Marcus Williams)
+Date: Thu, 12 Jan 2006 15:30:52 +0000
+Subject: [lm-sensors] Incorrect SiS chipset detection?
+Message-Id: <43C6762C.3040001@quintic.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200601082152.57625.cpollock@earthlink.net>
-In-Reply-To: <200601082152.57625.cpollock@earthlink.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Monday 09 January 2006 2:09 am, Jean Delvare wrote:
+Hi -
 
->
-> Maybe it's simply not wired. I have a Gigabyte motherboard (K8V
-> Ultra-939) where the "motherboard temperature" is reported as a
-> constant 25 degrees C due to a lack of actual sensor. Does your BIOS
-> display a value for motherboard temperature? If not, there probably is
-> no sensor at all.
+I'm trying to monitor my CPU temp to track down what looks like an 
+overheating problem. I've install lm-sensors (debian sarge, 
+2.9.1-1sarge2) and I'm using kernel 2.4.27 (debian 2.4.27-2-686-smp)
 
-No it doesn't. All that the BIOS reports is:
+Motherboard manual claims chipsets are SiS 963L, SiS 661FX, IT8705 
+although I'm not sure which ones are relevant...
 
-Vcore; DDR25V; +3.3V; +12V and CPU Temp and CPU Fan.  Odd too since the 
-other board I had, and FIC, was much older and reported supported much 
-more.
+I cant make sense of any of the readings though as they pretty much all 
+seem wrong:
 
-I've downloaded your setup and the newer one you had the link to. I'll go 
-over them and see if I can get this straightened out. I've also contacted 
-tech support at Gigabyte and asked just what is supported by this board.
+--------------------
 
-Thanks again for your reply.
+it8712-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.34 V  (min =  +1.42 V, max =  +1.57 V)   ALARM
+VCore 2:   +2.69 V  (min =  +2.40 V, max =  +2.61 V)   ALARM
++3.3V:     +6.56 V  (min =  +3.14 V, max =  +3.46 V)   ALARM
++5V:       +3.12 V  (min =  +4.74 V, max =  +5.24 V)   ALARM
++12V:     +11.60 V  (min = +11.40 V, max = +12.60 V)
+-12V:     -12.02 V  (min = -12.63 V, max = -11.41 V)   ALARM
+-5V:       -4.98 V  (min =  -5.24 V, max =  -4.76 V)   ALARM
+Stdby:     +4.84 V  (min =  +4.74 V, max =  +5.24 V)
+VBat:      +4.08 V
+fan1:     7336 RPM  (min =    0 RPM, div = 8)
+fan2:        0 RPM  (min = 3013 RPM, div = 8)
+fan3:        0 RPM  (min = 3013 RPM, div = 8)
+M/B Temp:     +8?C  (low  =   +15?C, high =   +40?C)   sensor = 
+thermistor   ALARM
+CPU Temp:    +37?C  (low  =   +15?C, high =   +45?C)   sensor = diode
+Temp3:        +9?C  (low  =   +15?C, high =   +45?C)   sensor = diode 
+ALARM
+
+sis5595-isa-8008
+Adapter: ISA adapter
+VCore 1:   +4.08 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
+VCore 2:   +4.08 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
++3.3V:     +4.08 V  (min =  +4.08 V, max =  +4.08 V)   ALARM
++5V:       +6.85 V  (min =  +6.85 V, max =  +6.85 V)   ALARM
++12V:      +0.00 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+fan1:        0 RPM  (min =    0 RPM, div = 8)          ALARM
+fan2:        0 RPM  (min =    0 RPM, div = 8)          ALARM
+temp:        +51?C  (high =   +51?C, hyst =   +51?C)   ALARM
+alarms:   Board temperature input (usually LM75 chips) ALARM
+
+--------------------
+
+Output from lspci:
+
+0000:00:00.0 Host bridge: Silicon Integrated Systems [SiS] 
+661FX/M661FX/M661MX Host (rev 11)
+0000:00:01.0 PCI bridge: Silicon Integrated Systems [SiS]: Unknown 
+device 0003
+0000:00:02.0 ISA bridge: Silicon Integrated Systems [SiS] SiS85C503/5513 
+(LPC Bridge) (rev 25)
+0000:00:02.5 IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE]
+0000:00:03.0 USB Controller: Silicon Integrated Systems [SiS] USB 1.0 
+Controller (rev 0f)
+0000:00:03.1 USB Controller: Silicon Integrated Systems [SiS] USB 1.0 
+Controller (rev 0f)
+0000:00:03.3 USB Controller: Silicon Integrated Systems [SiS] USB 2.0 
+Controller
+0000:00:04.0 Ethernet controller: Silicon Integrated Systems [SiS] 
+SiS900 PCI Fast Ethernet (rev 90)
+0000:01:00.0 VGA compatible controller: Silicon Integrated Systems [SiS] 
+661FX/M661FX/M661MX/741/M741/760/M760 PCI/AGP
+
+Sensors-detect recommended the following modules:
+
+#----cut here----
+# I2C adapter drivers
+i2c-isa
+# I2C chip drivers
+sis5595
+it87
+#----cut here----
+
+Is sis5595 right??
+
+Thanks
+
+Marcus
 
 -- 
-Chris
-Registered Linux User 283774 http://counter.li.org
-19:28:42 up 1:15, 1 user, load average: 0.04, 0.14, 0.17
-Mandriva Linux 10.1 Official, kernel 2.6.8.1-12mdk
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: not available
-Type: application/pgp-signature
-Size: 189 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060110/3c5d74a6/attachment.bin
+Marcus Williams -- http://www.cad-schroer.co.uk
+CAD Schroer UK, 39 Newnham Road, Cambridge, UK
+
