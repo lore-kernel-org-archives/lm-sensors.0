@@ -1,7 +1,7 @@
-From: ppokorny@penguincomputing.com (Philip Pokorny)
-Date: Fri, 13 Jan 2006 02:18:10 +0000
+From: jschrod@acm.org (Joachim Schrod)
+Date: Fri, 13 Jan 2006 11:57:51 +0000
 Subject: [lm-sensors] Questions on sensors.conf
-Message-Id: <43C70DE2.20707@penguincomputing.com>
+Message-Id: <dq84k0$d0l$1@sea.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <dq6sc5$n2s$1@sea.gmane.org>
 In-Reply-To: <dq6sc5$n2s$1@sea.gmane.org>
@@ -10,126 +10,136 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Joachim Schrod wrote:
+Philip Pokorny wrote:
 
->Hi,
->
->I started to use lm_sensors to monitor my hardware. In particular, I want to
->monitor temperature and fan functionality.
->  
->
-Welcome!
+>>The system has an Intel D865GBF ATX Mainboard
+>>
+> That should be fairly similar to the D865PERL which was one of the MB on 
+> which the lm85 driver was originally developed and tested.
 
->The system has an Intel D865GBF ATX Mainboard, with a Pentium 4 3 GHz processor,
->800 MHz FSB, 1 MB Cache. I'm using lm_sensors version 2.9.1 that came with SUSE 
->10.0.
->  
->
-That should be fairly similar to the D865PERL which was one of the MB on 
-which the lm85 driver was originally developed and tested.
+That's interesting. Anybody has a sensors.conf for a D865PERL board that he is 
+willing to share? I didn't found one in the list archive.
 
->sensors-detect went fine, it detected the LM85 sensor chip "lm85b-i2c-0-2e";
->start of the lm_sensors service as well, then calling sensors got:
->
->CPU_Fan:   2669 RPM  (min = 4000 RPM)                     ALARM
->fan2:         0 RPM  (min =    0 RPM)
->fan3:         0 RPM  (min =    0 RPM)
->fan4:         0 RPM  (min =    0 RPM)
->CPU:         +45 C  (low  =   +10 C, high =   +50 C)
->Board:       +36 C  (low  =   +10 C, high =   +35 C)     ALARM
->Remote:      +37 C  (low  =   +10 C, high =   +35 C)     ALARM
->
->Oops, obviouslsy too much alarms for my taste. ;-)
->So I learned that I have to configure /etc/sensors.cfg.
->  
->
-Have you read the lm85 chip documentation in doc/chips/lm85 ?
+The example configuration in sensors.conf.eg is for an Intel S845WD1-E and I 
+started with that.
 
->First, I wanted to check the measured values. So I rebooted and looked into the 
->BIOS read-out.
->My BIOS reports the CPU temperature to be 56?C, System Zone 1 as 40?C, and 
->System Zone 2 as 45?C. (Wherever zone 1 and 2 are -- I assume that they match 
->temp2_* and temp3_* whereas temp1_* is the CPU.)
->The CPU fan speed is the same, so that doesn't need any adaption.
->  
->
-Be careful.  When a CPU is sitting in the BIOS, it is usually in a 
-spin-loop which usually puts the CPU in a maximum power situation.  So 
-the CPU temperatures in the BIOS will frequently be higher than you 
-observe under an operating system like Linux where the CPU is put into 
-the HALT state when there isn't any work to do.
+ >> [temperature is higher in BIOS than reported by lm_sensors]
+ >
+> Be careful.  When a CPU is sitting in the BIOS, it is usually in a 
+> spin-loop which usually puts the CPU in a maximum power situation.  So 
+> the CPU temperatures in the BIOS will frequently be higher than you 
+> observe under an operating system like Linux where the CPU is put into 
+> the HALT state when there isn't any work to do.
+ >
+ > Unless the values are *way* off, or you have a way to measure the same
+ > temperature or value using independant means _at the same time_, I would
+ > recommend you *not* adjust the readings returned by an lm_sensors chip
+ > driver.
 
-The "Board" sensor (temp2) is actually internal to the lm85 chip.  So if 
-you can *find* the chip which is labeled lm85, that will be the location 
-of that temperature...
+OK, then I'll trust the sensors readings. Sadly, ACPI doesn't have thermal 
+information (the board's DSDT also has no _TMP variable, so this seems to be 
+deliberate), so I cannot get at the temperature in an independent way.
 
-Generally, I'm surprised that the limits are set this low.  They are too 
-low for a P4 CPU.  If you know your fan is spinning slower, then set a 
-more appropriate low limit.  If the system temperatures are above the 
-limit, then set a higher limit that makes sense.  Most comercial 
-electronics are capable of operating up to 70degC.  But a reasonable 
-case internal ambient temperature is 42 degC.  A temperature sensor on 
-the motherboard that is close to a high power component or function like 
-the VRM (Vcore power supply) for the CPU *will* read higher than ambient 
-because heat from the power transistors in the VRM disipate heat through 
-the copper traces on the motherboard and the motherboard itself.  This 
-heats components near them on the motherboard.  It wouldn't be 
-unreasonable for the "Remote" temperature sensor to in fact be located 
-very near the VRM to in effect measure the temperature of the VRM.
+ > Did the BIOS program the temp#_offset registers?  Can you report the
+ > values from those configuration registers?
 
->So here's my first question:
->Is it best practice to assume that the BIOS values are OK and to add compute 
->statements to increase the lm_sensors values to match them?
->  
->
-Unless the values are *way* off, or you have a way to measure the same 
-temperature or value using independant means _at the same time_, I would 
-recommend you *not* adjust the readings returned by an lm_sensors chip 
-driver.
+I assume that they would appear in /sys, if they would be registered, right?
+There are no temp#_offset variables.
+There are temp#_auto_temp_off variables, with 86000 as content.
 
-Did the BIOS program the temp#_offset registers?  Can you report the 
-values from those configuration registers?
+> The "Board" sensor (temp2) is actually internal to the lm85 chip.  So if 
+> you can *find* the chip which is labeled lm85, that will be the location 
+> of that temperature...
+ >
+ > A temperature sensor on
+ > the motherboard that is close to a high power component or function like
+ > the VRM (Vcore power supply) for the CPU *will* read higher than ambient
+ > because heat from the power transistors in the VRM disipate heat through
+ > the copper traces on the motherboard and the motherboard itself.  This
+ > heats components near them on the motherboard.  It wouldn't be
+ > unreasonable for the "Remote" temperature sensor to in fact be located
+ > very near the VRM to in effect measure the temperature of the VRM.
 
->And my second question:
->The semantics of the temperature limits in sensors.conf are still unclear to me.
->
->There is temp#_min, temp#_max, temp#_hyst, and temp#_over.
->  
->
-Some chips use "over" and "hyst" while others use "min" and "max".  A 
-given temperature sensor almost never has both.
+Hmm, didn't find the lm85 chip at first sight. And I don't want to rip out all 
+cards to check the board more thoroughly. Sadly, the board documentation (from
+http://www.intel.com/design/motherbd/bf/bf_documentation.htm, in the spec 
+update) has information about its hot zones -- but not about the temperature 
+measurement zones.
 
->min and max are not explained.
->  
->
-What documentation are you reading?
+So I think I don't have much further chance to associate the temp# measurements 
+to board or chassis areas. Maybe temp3 is near such a `hot zone' because it's 
+higher than temp2.
 
->hyst and over are not used in the LM85 example configuration.
->  
->
-Because the lm85 uses minimum and maximum temperature limits.
+> Generally, I'm surprised that the limits are set this low.  They are too 
+> low for a P4 CPU. 
 
-If the temperature is less than the minimum or greater than the maximum, 
-an ALARM is signalled.  If it's between the values, then there is no error.
+That would have been my next question -- what are good limits? :-)
 
->In addition, the documentation of lm85 mentions other sensors.conf variables 
->named zone#_{limit,hyst,range,critical} which aren't used at all. It looks as if 
->the documentation is out of date and these variables don't exist any more. Is 
->that assumption true?
->  
->
-The zone#_ values were originally implemented in the 2.4 version of the 
-driver.  They control the automatic fan speed control features of the 
-lm85 chip.  The first port of the lm85 driver to the 2.6 kernel did not 
-include those configuration registers.  They have since been added back 
-to the 2.6 driver.
+I looked up the P4 specs, at 
+http://download.intel.com/design/Pentium4/datashts/29864312.pdf
 
-But in the 2.6 kernel, the lm_sensors team tried to enforce a consistent 
-set of values for automatic fan speed control.  So at least in 2.6.13, 
-the name and values have changed and things are worked around in the 
-driver to present the "standard" interface values:
-   temp#_auto_temp_{off,min,max,crit}
-   pwm#_auto_pwm_{min,minctl,freq}
+It tells that the chassis temperature shall be between 5 and 70?C, that would 
+have been my first guess at temp1_min and temp1_max.
 
-:v)
+But both the P4 and the board documentation also tell me that the ``chassis' 
+maximum internal ambient temperatur'' shall be 38?C. Actually, that shall be the 
+temperature at the CPU's fan heatsink, with a worst case limit of 40?C (on p.84 
+of the P4 datasheet).
+
+So, maybe that 38 or 40? are good values for temp2_max or temp3_max?
+
+
+On i2c/lm_sensors documentation:
+
+>>There is temp#_min, temp#_max, temp#_hyst, and temp#_over.
+>>  
+>>min and max are not explained.
+>>  
+> What documentation are you reading?
+
+All that I could found. I downloaded the current 2.9.2 distribution to be sure 
+that I got the current docs. I even checked some of the files in CVS.
+
+I looked in sensors.conf.eg, doc/chips/lm85, the FAQ and did a grep of 
+'temp.*_min' over doc/chips/*. I also looked at the Web site. I found the 
+explanation of hyst and over in sensors.conf.eg, but none for min and max.
+
+Anyhow, your following explanation was sufficient for me. :-)
+
+> But in the 2.6 kernel, the lm_sensors team tried to enforce a consistent 
+> set of values for automatic fan speed control.  So at least in 2.6.13, 
+> the name and values have changed and things are worked around in the 
+> driver to present the "standard" interface values:
+>    temp#_auto_temp_{off,min,max,crit}
+>    pwm#_auto_pwm_{min,minctl,freq}
+
+OK. Is there a documentation that explains them?
+Neither the lm_sensors nor the i2c distribution mentions them.
+I also checked the list's archive and couldn't locate an explanation.
+
+In some emails to this list a Linux kernel documentation file 
+i2c/sysfs-interface is mentioned, but I only have one from Linux 2.6.8 (SUSE 
+9.2) where these variables are not mentioned; and in 2.6.13 (SUSE 10.0) this 
+file disappeared.
+
+I ask because the values in these files are quite high. (If I interpret them 
+correctly as millidegrees C.)
+
+temp1_auto_temp_off	86000
+temp1_auto_temp_min	90000
+temp1_auto_temp_crit	100000
+temp1_auto_temp_max	122000
+
+Do they make sense? What are their semantics?
+
+Sorry for the loads of questions, but I actually want to understand what's going 
+on on my system. :-)
+
+	Joachim
+
+--
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Joachim Schrod				Email: jschrod at acm.org
+Roedermark, Germany
+
 
