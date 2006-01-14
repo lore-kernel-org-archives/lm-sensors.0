@@ -1,73 +1,100 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 14 Jan 2006 21:20:32 +0000
+From: arvidjaar@newmail.ru (Andrey Borzenkov)
+Date: Sat, 14 Jan 2006 21:45:25 +0000
 Subject: [lm-sensors] 2.6.15: lm90 0-004c: Register 0x13 read failed (-1)
-Message-Id: <20060114222032.1c2ff252.khali@linux-fr.org>
+Message-Id: <200601150045.30942.arvidjaar@newmail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200601142223.35838.arvidjaar@newmail.ru>
-In-Reply-To: <200601142223.35838.arvidjaar@newmail.ru>
+References: <200601142223.35838.arvidjaar@newmail.ru> <20060114222032.1c2ff252.khali@linux-fr.org>
+In-Reply-To: <20060114222032.1c2ff252.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrey Borzenkov <arvidjaar@newmail.ru>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Andrey,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> Vanilla 2.6.15 on Toshiba Portege 4000. I get constant messages in dmesg:
-> 
-> i2c_adapter i2c-0: Error: command never completed
-> lm90 0-004c: Register 0x1 read failed (-1)
-> i2c_adapter i2c-0: Error: command never completed
-> lm90 0-004c: Register 0x14 read failed (-1)
-> i2c_adapter i2c-0: Error: command never completed
-> lm90 0-004c: Register 0x8 read failed (-1)
-> i2c_adapter i2c-0: Error: command never completed
-> lm90 0-004c: Register 0x0 read failed (-1)
-> 
-> for quite a number of registers. Apparently I can read sensors just fine still 
-> I am uneasy seeing those.
+On Sunday 15 January 2006 00:20, Jean Delvare wrote:
+> Hi Andrey,
+>
+> > Vanilla 2.6.15 on Toshiba Portege 4000. I get constant messages in dmesg:
+> >
+> > i2c_adapter i2c-0: Error: command never completed
+> > lm90 0-004c: Register 0x1 read failed (-1)
+> > i2c_adapter i2c-0: Error: command never completed
+> > lm90 0-004c: Register 0x14 read failed (-1)
+> > i2c_adapter i2c-0: Error: command never completed
+> > lm90 0-004c: Register 0x8 read failed (-1)
+> > i2c_adapter i2c-0: Error: command never completed
+> > lm90 0-004c: Register 0x0 read failed (-1)
+> >
+> > for quite a number of registers. Apparently I can read sensors just fine
+> > still I am uneasy seeing those.
+>
+> Before 2.6.15, the lm90 driver did not handle read errors in any way,
+> so they were probably already there, you simply were not aware of it.
+> However, I guess that you already had the "command never completed"
+> errors? These come from the i2c-ali1535 bus driver.
+>
 
-Before 2.6.15, the lm90 driver did not handle read errors in any way,
-so they were probably already there, you simply were not aware of it.
-However, I guess that you already had the "command never completed"
-errors? These come from the i2c-ali1535 bus driver.
+Before 2.6.15 I run Mandriva kernel 2.6.12-12mdk. I do not remember them but 
+may be I just never actually looked in dmesg :)
 
-It would be possible to add a retry-on-failure mechanism in the lm90
-driver. However, the real problem is more likely in the i2c-ali1535
-driver so fixing this one driver would be preferable.
+> It would be possible to add a retry-on-failure mechanism in the lm90
+> driver. However, the real problem is more likely in the i2c-ali1535
+> driver so fixing this one driver would be preferable.
+>
+> > eeprom-i2c-0-50
+> > Adapter: SMBus ALI1535 adapter at ef00
+> > Memory type:            SDR SDRAM DIMM
+> > Memory size (MB):       256
+> >
+> > adm1032-i2c-0-4c
+> > Adapter: SMBus ALI1535 adapter at ef00
+> > M/B Temp:    +43?C  (low  =   -65?C, high =  +127?C)
+> > CPU Temp:  +47.6?C  (low  = +43.0?C, high = +51.0?C)   ALARM
+> > M/B Crit:   +127?C  (hyst =  +122?C)
+> > CPU Crit:   +100?C  (hyst =   +95?C)
+>
+> Do you also have "command never completed" errors without an associated
+> error from the lm90 driver?
 
-> eeprom-i2c-0-50
-> Adapter: SMBus ALI1535 adapter at ef00
-> Memory type:            SDR SDRAM DIMM
-> Memory size (MB):       256
-> 
-> adm1032-i2c-0-4c
-> Adapter: SMBus ALI1535 adapter at ef00
-> M/B Temp:    +43?C  (low  =   -65?C, high =  +127?C)
-> CPU Temp:  +47.6?C  (low  = +43.0?C, high = +51.0?C)   ALARM
-> M/B Crit:   +127?C  (hyst =  +122?C)
-> CPU Crit:   +100?C  (hyst =   +95?C)
+yes, on boot.
 
-Do you also have "command never completed" errors without an associated
-error from the lm90 driver? This would suggest that the eeprom driver
-too is triggering errors, which in turn would confirm that we need to
-fix the i2c-ali1535 driver rather than adding a workaround to the lm90
-driver.
+> This would suggest that the eeprom driver 
+> too is triggering errors, which in turn would confirm that we need to
+> fix the i2c-ali1535 driver rather than adding a workaround to the lm90
+> driver.
+>
+> It looks like the i2c-ali1535 driver as it exists in the lm_sensors CVS
+> repository (for Linux 2.4 kernels) did receive a major change in March
+> 2005. These changes were supposed to "fix stability problems" (by
+> adding delay loops pretty much everywhere). They were never ported to
+> the Linux 2.6 version of the driver. Maybe we should try doing so now.
+>
+> This is a 400 lines patch, porting it won't be trivial, I am not
+> familiar with this driver myself and I don't have a chip to test my
+> changes on, so if someone else wants to take his/her chance, go. If
+> not, I'll do it.
+>
+> Andrey, will you be able to test a i2c-ali1535 patch if we come up with
+> one?
 
-It looks like the i2c-ali1535 driver as it exists in the lm_sensors CVS
-repository (for Linux 2.4 kernels) did receive a major change in March
-2005. These changes were supposed to "fix stability problems" (by
-adding delay loops pretty much everywhere). They were never ported to
-the Linux 2.6 version of the driver. Maybe we should try doing so now.
+Yes. Send me a patch (or give a link) and I'll try what I can do to port it. I 
+ask if I have a question :)
 
-This is a 400 lines patch, porting it won't be trivial, I am not
-familiar with this driver myself and I don't have a chip to test my
-changes on, so if someone else wants to take his/her chance, go. If
-not, I'll do it.
+BTW that reminds me - I actually have two 256M modules. Sensors show just one. 
+Both are from Toshiba so it is unlikely that one does not have SPD - any idea 
+why eeprom does not find second one? Oh, and it was the same when I had two 
+128M modules so it is unlikely caused by modules.
 
-Andrey, will you be able to test a i2c-ali1535 patch if we come up with
-one?
+thank you for reply
 
--- 
-Jean Delvare
+- -andrey
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDyXD6R6LMutpd94wRAsIqAJwP5CdEisSKsA/iGqv2ouZ58xLe8ACgvRIY
+WfuwZrsE996ZEtSoYvElgnQ=SSCR
+-----END PGP SIGNATURE-----
 
