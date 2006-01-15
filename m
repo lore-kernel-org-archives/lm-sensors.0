@@ -1,7 +1,7 @@
-From: stevenkaratnyk@rogers.com (Steven Karatnyk)
-Date: Sat, 14 Jan 2006 23:54:33 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 15 Jan 2006 17:54:12 +0000
 Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket
-Message-Id: <43C98F39.6010602@rogers.com>
+Message-Id: <20060115185412.297ef8e9.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43BDFEEE.4070408@rogers.com>
 In-Reply-To: <43BDFEEE.4070408@rogers.com>
@@ -10,157 +10,118 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Steven,
 
->>> in3: +2.99 V (min = +2.05 V, max = +3.36 V)
->>> in4: +2.59 V (min = +3.49 V, max = +2.14 V) ALARM
->>> in7: +2.94 V (min = +0.16 V, max = +0.42 V) ALARM 
->>>       
->> These ones are probably greater voltages (+5V, +12V...) scaled down. Or
->> in4 may be Vdimm.
->>   
->>     
-> I think in4 is the Vdimm. IIRC, I have it set at 2.6V in the BIOS. Will
-> have to check, but think its a safe bet.
->
+> Interesting, I'm noticing the limits for temp1 are fluctuating on their 
+> own. For example,
 
+That's really weird. These registers are not supposed to change values
+unless you ask for a change. Please see if you can refine your
+observations as to when and how these values change.
 
-Indeed, in4 is Vdimm.  I bumped the value in the BIOS up to 2.70V and 
-sensors now reports in4 at 2.72V.  
+> > http://jdelvare.net2.nerim.net/sensors/hwmon-w83627hf-add-w83687thf-support.patch
+> >
+> > Note that it only applies to Linus' git tree (or any recent mm tree),
+> > not 2.6.15 - unless you fix the few rejects manually.
+> > ...
+> > If you happen to test the patch linked above, please
+> > report the result.
+> 
+> Haven't tried the patch yet - been busy tracking down some other 
+> problems.   Will probably hold off till 2.6.15.1 comes out and then 
+> manually make the changes then.
 
-Interestingly  enough, in the process of confirming the relation of the 
-in4 setting, I discovered a bug in the BIOS:  After testing, I returned 
-the Vdimm value in the BIOS to default (2.60V).  After the boot, Sensors 
-then reported in4 still at 2.72V.  I rebooted back into the BIOS, and 
-its own monitoring display confirmed the same value for Vdimm.  I 
-switched the Vdimm setting from default to a manual setting of 2.60V.  
-Sensors again reports 2.72V,  and rebooting again confirms this in the 
-BIOS reading.  I'll check later on after a cold boot, if things are 
-different.  Anyways, I digress.
+2.6.15.1 is out now. I've generated a patch which will apply properly
+on top of it:
+http://jdelvare.net2.nerim.net/sensors/linux-2.6.15.1-hwmon-w83687thf.diff
 
+> (...) Anyways, when I had a look at my BIOS settings,  I recorded 
+> the following:
+> 
+> CPU Internal Temp.    43C
+> CPU External Temp   51C
 
->>> temp1: +39?C (high = -122?C, hyst = -41?C) sensor = diode ALARM
->>> temp2: +39.0?C (high = +80?C, hyst = +75?C) sensor = diode
->>> temp3: +59.0?C (high = +80?C, hyst = +75?C) sensor = diode    
->>>       
->> May be OK too. You should set temp1's limits to something more
->> reasonable though.  
->>     
-> Temp3 is definitely CPU, but it looks a bit off .... I suspect the lm90
-> output (CPU Temp: +54.4?C) is closer to accurate.
-> Temp2 looks to be the Mobo, but it too is a bit off ... again, I suspect
-> the lm90 output (M/B Temp: +37?C) is closer to the true value
->
-> I'm a little uncertain about temp1 (i.e what it actually is) or why its
-> limits are like that (I did do a sensors -s first.....haven't touched
-> the etc/sensors.conf file yet though). I'm wondering if its a bogus
-> sensor....although the "diode Alarm " makes me wonder if its actually
-> tied to the BIOS alarm temp setting in anyway.
+It's odd that the external temperature is higher than the internal
+temperature. The picture you pointed us to above is much more logical
+(internal temperature is higher).
 
-Interesting, I'm noticing the limits for temp1 are fluctuating on their 
-own. For example,
+It's really hard to guess which temperature sensors correspond to which
+BIOS measurement. I guess that the motherboard manufacturer wouldn't
+have added a secondary monitoring chip (the LM90) if not to monitor the
+CPU temperature more accurately, so my guess is that "CPU External
+Temp" is lm90 temp2. "CPU Internal Temp" may be w83687thf temp2 or
+temp3.
 
-$ sensors
-lm90-i2c-0-4c
-Adapter: SMBus Via Pro adapter at 5000
+> System Temp                 41C
 
-M/B Temp:    +38?C  (low  =    +0?C, high =   +70?C)
-CPU Temp:  +55.9?C  (low  =  +0.0?C, high = +70.0?C)
-M/B Crit:    +85?C  (hyst =   +75?C)
-CPU Crit:    +85?C  (hyst =   +75?C)
+And this would be w83687thf temp1. This is really only a guess at this
+point though. A BIOS disassembly and/or additional information from DFI
+would be needed here.
 
-w83687thf-isa-0290
-Adapter: ISA adapter
-in0:       +1.09 V  (min =  +0.00 V, max =  +3.84 V)
-in1:       +1.50 V  (min =  +2.48 V, max =  +2.11 V)       ALARM
-in2:       +3.33 V  (min =  +2.86 V, max =  +1.15 V)       ALARM
-in3:       +2.99 V  (min =  +2.05 V, max =  +3.36 V)
-in4:       +2.72 V  (min =  +3.49 V, max =  +0.03 V)       ALARM
-in7:       +2.94 V  (min =  +0.16 V, max =  +0.42 V)       ALARM
-in8:       +3.30 V  (min =  +0.38 V, max =  +3.14 V)       ALARM
-fan1:     1339 RPM  (min = 9375 RPM, div = 8)              ALARM
-fan2:     1394 RPM  (min = 1016 RPM, div = 8)
-fan3:        0 RPM  (min = 6367 RPM, div = 2)              ALARM
-temp1:       +43?C  (high =    +6?C, hyst =   -43?C)   sensor = diode   
-ALARM
-temp2:     +44.5?C  (high =   +80?C, hyst =   +75?C)   sensor = diode
-temp3:     +59.5?C  (high =   +80?C, hyst =   +75?C)   sensor = diode
-vid:      -1.200 V  (VRM Version 8.2)
-alarms:
-beep_enable:
-          Sound alarm enabled
+You may also put the CPU under load under Linux (with some compilation
+or compression work, or by using cpuburn) and see which temperatures
+raise quickly.
 
+> Fan1 Speed                  1394 RPM
+> Fan2 Speed                  1360RPM
 
->> a new patch is available here:
->>
->> http://jdelvare.net2.nerim.net/sensors/hwmon-w83627hf-add-w83687thf-support.patch
->>
->> Note that it only applies to Linus' git tree (or any recent mm tree),
->> not 2.6.15 - unless you fix the few rejects manually.
->> ...
->> If you happen to test the patch linked above, please
->> report the result.
->>     
-> Awesome. I'll look into that. Will report back.
+Both values are similar so it'll be hard to say which is which. You may
+try to physically slow down either fan to differenciate between them.
 
-Haven't tried the patch yet - been busy tracking down some other 
-problems.   Will probably hold off till 2.6.15.1 comes out and then 
-manually make the changes then.
+> Vcore                             1.40V
 
->> maybe we can simply write a configuration file for your board. Can you please visit the
->> BIOS setup screens of your system and report all the hardware
->> monitoring items listed there, in order, with value? Then I'll provide
->> a configuration file for you to test.  
->>     
->
-> Will do.
+in0
 
-There is a "SmartDoc Anti-Burn Shield" Menu in my BIOS that can be seen 
-here: http://www.silentpcreview.com/files/images/soltek3901/Fan-control.jpg
-However, I just noticed that the user adjustable "Shutdown Temperature" 
-in the BIOS version I'm running has been removed (although , as 
-illustrated in the pic above, it was available in earlier revisions of 
-the BIOS!).  Anyways, when I had a look at my BIOS settings,  I recorded 
-the following:
+> +1.5V                              1.50V
 
-CPU Internal Temp.    43C
-CPU External Temp   51C
-System Temp                 41C
-Fan1 Speed                  1394 RPM
-Fan2 Speed                  1360RPM
-Vcore                             1.40V
-+1.5V                              1.50V
-+3.3V                              3.29V
-VDIMM                         2.59V       ....... although, of course, 
-its now at 2.72V, as described above
-+5V                                 5.04V
-VBAT                              3.29V
-5VSB                              4.96V
+in1
 
-Smart Fan1 Temperature 60C
-Fan1 Tolerance Value [1]
-Smart Fan2 Temperature 45C
-Fan2 Tolerance Value [1]
+> +3.3V                              3.29V
 
-- Interesting that there is no +12V reading
-- Of course, only the bottom Smart Fan stuff is user adjustable
+in2
 
-In the " Frequency / Voltage Control " BIOS menu, there are relevant 
-entries for:
+> VDIMM                         2.59V       ....... although, of course, 
+> its now at 2.72V, as described above
 
-CPU Vcore Select
-AGP Voltage Select
-DIMM Voltage Select
+in4
 
-All of which I have set on "Default"
+> +5V                                 5.04V
 
+most probably in3
 
-Let me know if you need anything else, or clarification of anything.
+> VBAT                              3.29V
 
-Thanks, Steven
+in8
 
+> 5VSB                              4.96V
 
+most probably in7
 
+> Smart Fan1 Temperature 60C
+> Fan1 Tolerance Value [1]
+> Smart Fan2 Temperature 45C
+> Fan2 Tolerance Value [1]
 
+These must correspond to the "thermal cruise" mode. We don't support it
+for now.
 
+> - Interesting that there is no +12V reading
 
+True, that's unusual, but not unseen.
+
+> Let me know if you need anything else, or clarification of anything.
+
+Well, any additional information you can get regarding the temperature
+sensors is welcome. For now, please find attached a sample
+configuration file which should be suitable for your motherboard. Copy
+it to /etc/sensors.conf and give it a try, please.
+
+This is really only a first short, voltages should be OK, but fans and
+temperatures will need more work to find out the appropriate labels.
+
+-- 
+Jean Delvare
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: sensors-Soltek-B9D-FGR.conf
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060115/a0096a26/sensors-Soltek-B9D-FGR.pl
