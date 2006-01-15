@@ -1,115 +1,50 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sun, 15 Jan 2006 20:33:59 +0000
+From: arvidjaar@newmail.ru (Andrey Borzenkov)
+Date: Sun, 15 Jan 2006 20:58:34 +0000
 Subject: [lm-sensors] 2.6.15: lm90 0-004c: Register 0x13 read failed (-1)
-Message-Id: <43CAB1B7.6020903@sh.cvut.cz>
+Message-Id: <200601152358.38095.arvidjaar@newmail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200601142223.35838.arvidjaar@newmail.ru>	<200601150045.30942.arvidjaar@newmail.ru>	<200601152212.31491.arvidjaar@newmail.ru> <200601152248.07800.arvidjaar@newmail.ru>
-In-Reply-To: <200601152248.07800.arvidjaar@newmail.ru>
+References: <200601142223.35838.arvidjaar@newmail.ru> <200601152248.07800.arvidjaar@newmail.ru> <43CAB1B7.6020903@sh.cvut.cz>
+In-Reply-To: <43CAB1B7.6020903@sh.cvut.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: Andrey Borzenkov <arvidjaar@newmail.ru>
+To: Rudolf Marek <r.marek@sh.cvut.cz>
 Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hello all,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
->=20
-> this appears simply a probing for non-existent i2c ports (correct me if I=
- am=20
-> wrong) presumably by eeprom driver.
+On Sunday 15 January 2006 23:33, Rudolf Marek wrote:
+>
+> Well it seems this ali 15x3 has maybe same hardware bug? It was mentioned
+> already here: http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket 30
+>
+> > In the log below you can see that the ALI15X3 chip seems to keep in
+> > idle-state without reporting "done", but it does not turn in "busy"
+> > state. I patched the driver to do the reset procedure (with
+> > ALI15X3_T_OUT) after the error, but afterwards, the chip turns to "busy"
+> > state until next reboot.
+>
 
-yes I think you are right. (ADD/2 is the address of chip, that it tries to =
-access)
+This is already done in i2c-ali1535 in current kernel. So it looks like HW =
 
-> Second block are errors from lm90 for different registers:
->=20
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Transaction (pre): STS=
-=04,=20
-> TYP=10, CMD=01, ADD=99, DAT0=A0, DAT1=10
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Transaction (post): STS=
-=14,=20
-> TYP=10, CMD=01, ADD=99, DAT0), DAT1=10
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Transaction (pre): STS=
-=04,=20
-> TYP=10, CMD=08, ADD=98, DAT0), DAT1=10
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Error: command never=20
-> completed
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Transaction (post): STS=
-=04,=20
-> TYP=10, CMD=08, ADD=98, DAT0), DAT1=10
-> Jan 15 22:24:02 cooker kernel: lm90 0-004c: Register 0x8 read failed (-1)
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Transaction (pre): STS=
-=04,=20
-> TYP=10, CMD=07, ADD=98, DAT0), DAT1=10
-> Jan 15 22:24:02 cooker kernel: i2c_adapter i2c-0: Transaction (post): STS=
-=14,=20
-> TYP=10, CMD=07, ADD=98, DAT0), DAT1=10
->=20
-> Here I do not see SMBus errors - it appears really that i2c device did no=
-t=20
-> respond. OTOH interesting is that there is no timeout. Apparently command=
+issue that can be ignored at best. After reset SMBus continues to work. The=
 =20
-> completed without setting DONE bit. As I have zero knowledge about hardwa=
-re I=20
-> cannot interpret it. Next driver resets SMBus and it works for some time =
+only question is, should we provide an option to shut up those errors;=20
+assuming user knows (s)he has buggy controller there is no reason to spam=20
+dmesg with known issue. Will patch be accepted? I will emit first occurence=
+=20
+of this error to let users know something is fishy and supress further ones=
+.=20
+But this has to wait for next week, it is already too late here.
 
-> again. Judging by comments in source, it apprently signifies hung ali1535=
-,=20
-> not external i2c device (it is using KILL, and "this doesn't seem to clea=
-r=20
-> the controller if an external device is hung")
+Thank you for information
 
-Well it seems this ali 15x3 has maybe same hardware bug? It was mentioned a=
-lready here:
-http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket 30
+- -andrey
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-> In the log below you can see that the ALI15X3 chip seems to keep in idle-=
-state
-> without reporting "done", but it does not turn in "busy" state. I patched=
- the
-> driver to do the reset procedure (with ALI15X3_T_OUT) after the error, but
-> afterwards, the chip turns to "busy" state until next reboot.
+iD8DBQFDyrd9R6LMutpd94wRAuNVAKCwq+yTwvFt6jYLS1wL5pIDr68IMwCbBHb+
+yXAnHp+jzVFW1ddKVbZVkY8=ABky
+-----END PGP SIGNATURE-----
 
-And it continued:
-
-http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/013808.html
-
-I asked for a patch and what I have received like a month after is patch th=
-at works for them:
-
-> Dear Rudolf,
->=20
-> unfortunately i do not have cvs installed on my machine. I hope it's okay=
- if
-> i send you the complete patched module (the only file i changed was the
-> i2c-ali15x3.c) so you can do the patch yourself. Since i'm not a experien=
-ced
-> driver developer i do not know what you ment with your last sentence and i
-> did not find any remarks on the website.
->=20
-> However, feel free to contact me if you have still any questions.
->=20
-> This version works fine and without any problems over many days in our te=
-st
-> system.
->=20
-> Regards,
-> Claudio Klingler
-
-I'm putting it into attachment. (this is against the lmsensors CVS so 2.4 d=
-river)
-
-Since I dont own the motherboard with this chip (nor the datasheet) and the=
- resulting driver was hard to read I just left this issue.
-I hope it can help now.
-
-Regards
-Rudolf
--------------- next part --------------
-A non-text attachment was scrubbed...
-Name: i2c-ali15x3.c
-Type: text/x-csrc
-Size: 16990 bytes
-Desc: not available
-Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060115=
-/0b2bfd6b/i2c-ali15x3-0001.bin
