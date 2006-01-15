@@ -1,59 +1,65 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:37 +0000
-Subject: [lm-sensors] [PATCH] i2c: Documentation update
-Message-Id: <11365852571074@kroah.com>
+From: a_titov82@mail.ru (Alexey Titov)
+Date: Sun, 15 Jan 2006 16:38:56 +0000
+Subject: [lm-sensors] Fwd: Re:  Ticket #2103
+Message-Id: <op.s3fhu6ion40jst@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: Documentation update
+Hello. Not so long ago I wrote you about my problem with lm_sensors. And I  
+have not solved this problem yet... Maybe you can help me? My last message  
+was:
 
-Update the i2c documentation to reflect the recent change to
-i2c_add_driver.
+------- Forwarded message -------
+From: "Alexey Titov" <a_titov82 at mail.ru>
+To: "LM Sensors" <lm-sensors at lm-sensors.org>
+Cc:
+Subject: Re: [lm-sensors] Ticket #2103
+Date: Thu, 01 Dec 2005 18:31:45 +0300
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+> What version of lm_sensors are you really using? We can't help you if
+> you provide inaccurate information.
+Well.. Now I'm using lm_sensors-2.8.8-5. Perhaps, I used lm_sensors 2.9.2
+when I wrote the ticket...
 
----
-commit d82c0bf88fa97c1993ea9d6051488e7cb012b440
-tree 60ecbf9971ee125f84f063d153328f9d7ec5ea98
-parent 2b48716d1d2f2edb1e7cbc5ecf1cb2cb39373e33
-author Jean Delvare <khali at linux-fr.org> Wed, 07 Dec 2005 21:54:26 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:25 -0800
+> Did the it87 driver ever work properly for you with another kernel?
+I built my own kernel, but there was the same problem.
 
- Documentation/i2c/porting-clients |    5 ++---
- Documentation/i2c/writing-clients |    1 -
- 2 files changed, 2 insertions(+), 4 deletions(-)
+> How are you loading it? Manually, or through some script?
+I load it manually, using "modprobe it87". It was wrote in sensors-detect
+output.
+Maybe I should pass some parameters to the module?
 
-diff --git a/Documentation/i2c/porting-clients b/Documentation/i2c/porting-clients
-index f997c72..f03c2a0 100644
---- a/Documentation/i2c/porting-clients
-+++ b/Documentation/i2c/porting-clients
-@@ -126,9 +126,8 @@ Technical changes:
- * [Driver] The flags field of the i2c_driver structure is gone.
-   I2C_DF_NOTIFY is now the default behavior.
-   The i2c_driver structure has a driver member, which is itself a
--  structure, those owner and name members should be initialized to
--  THIS_MODULE and a driver name string, respectively. i2c_driver
--  itself has no name member anymore.
-+  structure, those name member should be initialized to a driver name
-+  string. i2c_driver itself has no name member anymore.
- 
- Coding policy:
- 
-diff --git a/Documentation/i2c/writing-clients b/Documentation/i2c/writing-clients
-index 95eed2b..27c425a 100644
---- a/Documentation/i2c/writing-clients
-+++ b/Documentation/i2c/writing-clients
-@@ -26,7 +26,6 @@ address.
- 
- static struct i2c_driver foo_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "foo",
- 	},
- 	.attach_adapter	= &foo_attach_adapter,
+> Please provide the output of "isadump 0x805 0x806" before loading the  
+> it87 driver.
+Here is the output. Driver was not loaded.
+
+isadump 0x805 0x806
+WARNING! Running this program can cause system crashes, data loss and
+worse!
+I will probe address register 0x805 and data register 0x806.
+Continue? [Y/n]
+       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: 13 01 ff 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
+10: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
+30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+40: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
+50: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
+60: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
+70: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
+80: 13 00 00 00 ff ff 00 ff ff ff 00 09 00 fb ff ff
+90: 00 ff ff 11 b0 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 7f 2f 2f 2f 00 00 00 00
+b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+c0: 4c 4b 55 50 48 3e 00 00 2d 00 00 00 00 00 00 00
+d0: 00 07 7f 7f 7f 00 00 00 90 69 00 00 00 00 00 00
+e0: 7f 7f 7f 7f 7f 00 00 00 7f 7f 7f 7f 7f 00 00 00
+f0: 7f 7f 7f 7f 7f 00 00 00 00 00 00 00 00 00 00 00
+
+
+Thank you for answer.
 
 
