@@ -1,20 +1,34 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Fri, 13 Jan 2006 00:38:59 +0000
-Subject: [lm-sensors] [Fwd: Fwd: Re: Oops in kernel 2.6.14.5]
-Message-Id: <43C6F6A3.1070409@mds.gotdns.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Mon, 16 Jan 2006 01:18:16 +0000
+Subject: [lm-sensors] Super-IO locking
+Message-Id: <43CAF458.8080707@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43C6F695.5070408@mds.gotdns.com>
-In-Reply-To: <43C6F695.5070408@mds.gotdns.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
--------------- next part --------------
-An embedded message was scrubbed...
-From: Mark Studebaker <mdsxyz123 at yahoo.com>
-Subject: Fwd: Re: Oops in kernel 2.6.14.5
-Date: Thu, 12 Jan 2006 16:35:10 -0800 (PST)
-Size: 8723
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060113/b612e8a2/Oopsinkernel2.6.14.mht
+Jean and friends,
+
+SuperIO devices typically hide many functional units behind 2 io-bus 
+addresses.
+These various units/devices will obviously have separate drivers to 
+control them,
+leading to the potential that 2 drivers will clash over the 'port'.
+
+As I see it, we need a place to put a lock for the sio port, ideally without
+creating a dependency of one driver on another. That said, its seems a 
+bit like
+overkill to create a 3rd module which merely holds the lock that both 
+drivers use,
+and therefore depend upon.  IOW, this replaces one dependency for another.
+
+OTOH, an sio-lock manager which provides a lock for any sio port user
+(that uses the helper) could be justified.  There are a bunch of SuperIO
+units in the hwmon/* world, so this seems like the right place to find
+potential module clients.
+
+Any comments ?
+
+
