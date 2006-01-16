@@ -1,131 +1,167 @@
-From: arvidjaar@newmail.ru (Andrey Borzenkov)
-Date: Mon, 16 Jan 2006 19:40:05 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Mon, 16 Jan 2006 21:17:47 +0000
 Subject: [lm-sensors] 2.6.15: lm90 0-004c: Register 0x13 read failed (-1)
-Message-Id: <200601162240.09985.arvidjaar@newmail.ru>
+Message-Id: <43CC0D7B.4090309@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200601142223.35838.arvidjaar@newmail.ru> <200601152248.07800.arvidjaar@newmail.ru> <43CAB1B7.6020903@sh.cvut.cz>
-In-Reply-To: <43CAB1B7.6020903@sh.cvut.cz>
+References: <200601142223.35838.arvidjaar@newmail.ru> <200601152248.07800.arvidjaar@newmail.ru> <43CAB1B7.6020903@sh.cvut.cz> <200601162240.09985.arvidjaar@newmail.ru>
+In-Reply-To: <200601162240.09985.arvidjaar@newmail.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Rudolf Marek <r.marek@sh.cvut.cz>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrey Borzenkov <arvidjaar@newmail.ru>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, klingler@newtec.de
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hello all,
 
-On Sunday 15 January 2006 23:33, Rudolf Marek wrote:
-> Well it seems this ali 15x3 has maybe same hardware bug? It was mentioned
-> already here: http://www2.lm-sensors.nu/~lm78/readticket.cgi?ticket 30
->
-[...]
-> Since I dont own the motherboard with this chip (nor the datasheet) and t=
-he
-> resulting driver was hard to read I just left this issue. I hope it can
-> help now.
+> Actually it did. I realized that 15x3 you sent attempted recovery while 
+> current 1535 not. After some experiments I came up with this patch (it is not 
+> meant for inclusion but only for discussion) that seems to work. I had hard 
+> rime finding the exact place where to retry command but now I get
+> 
+> so it appears to recover nicely. Does it look like it returns correct value 
+> after retry?
 
-Actually it did. I realized that 15x3 you sent attempted recovery while=20
-current 1535 not. After some experiments I came up with this patch (it is n=
-ot=20
-meant for inclusion but only for discussion) that seems to work. I had hard=
-=20
-rime finding the exact place where to retry command but now I get
+This can be possible. I may know why this is happening. I have now the datasheets
+for both ali 1535 and 15x3. I found that there are special bits that are used to
+control somehow when bus is considered idle.
 
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Transaction (pre): STS=04=
-,=20
-TYP=10, CMD=01, ADD=99, DAT0=05, DAT1=10
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Transaction (post): STS=
-=14,=20
-TYP=10, CMD=01, ADD=99, DAT0,, DAT1=10
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Transaction (pre): STS=04=
-,=20
-TYP=10, CMD=10, ADD=98, DAT0,, DAT1=10
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Error: command never=20
-completed
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Transaction (post): STS=
-=04,=20
-TYP=10, CMD=10, ADD=98, DAT0,, DAT1=10
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Adapter hung, retrying af=
-ter=20
-reset
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Transaction (pre): STS=00=
-,=20
-TYP=00, CMD=10, ADD=98, DAT0,, DAT1=10
-Jan 16 22:20:14 cooker kernel: i2c_adapter i2c-0: Transaction (post): STS=
-=14,=20
-TYP=00, CMD=10, ADD=98, DAT0,, DAT1=10
+Those bits are in PCI config space of same device as the smbus base addr is.
 
-so it appears to recover nicely. Does it look like it returns correct value=
-=20
-after retry?
+For the ali 15x3 the register is located at 0xe2 and bits are:
 
-I intend to squash errors, leaving only the first occurence but making it m=
-ore=20
-verbose. Probably:
+Bit        Description
+7-5 (001b) SMB Clock Select.
+           [7:5] : "clock"
+           000 :     149K
+           001 :     74K (recommended)
+           010 :      37K
+           100 :     223K
+           101 :     111K
+           110 :     55K
+           These three bits are used to select the base clock for internal state machine. All the
+           timings will be based on this clock. The clock is derived from OSC14M.
+4-3 (0h)   Idle Delay Setting.
+           [4:3] :   "idle time"
+           00 :       BaseClk*64 53.76 us ref. 1.19M base clock. (default)
+           01 :       BaseClk*32
+           10 :       BaseClk*128
+           Others : Reserved
+           These two bits are used to decide the idle time to qualify SMBus is in idle state. The
+           time is calculated based on the base clock defined in bits[7:5].
+2-0 (0h)   Reserved.
 
-Error: command never completed. It is probably hardware bug
-Command will be retried after controller is reset
-further occurences of this error won't be reported as long as retry is=20
-sucessful
+For the 1535 is the register offset 0xF2
 
-is wording OK (I am not native english speaker)?
+Bit       Description
+7-5 (001) The base clock referenced by the SMB host controller.
+          000: 149K.
+          001: 74K.
+          010: 31K.
+          100: 223K.
+          101: 111K.
+          110: 55K.
+4-3       Bus Delay Timer Setting. The base clock is set in the previous field. This timer decides
+          when the SMB bus is actually idle.
+          00: Base Clock ? 4.
+          01: Base Clock ? 2.
+          10: Base Clock ? 8.
+          11: Reserved.
+2-0       Reserved.
+
+What is interresting both drivers sets this to 0x20, overwriting two reserved bits - this is no good.
+       /* set SMB clock to 74KHz as recommended in data sheet */
+        pci_write_config_byte(dev, SMBCLK, 0x20);
+
+Andrey and Claudio,
+please can you send back output of lscpi -d 10b9:7101 -x -x -x  before you load the ali driver?
+
+Also you both can try to change the delay a bit, after the driver loads (or kill the above line that sets it).
+
+for andrey (1535):  setpci -d 10b9:7101 f2.b(
+(this should set it to base*8)
+
+for Claudio:
+I dont know if you want to dig into this, but if you want so please try with such driver that reports that it reset the controller.
+setpci -d 10b9:7101 e2.b(
+(this should set it to base*128)
+
+when done please load your chip device driver and let it run, observe if it resets more or less often. You may play with the smbus clock too if you want.
+I hope this helps.
+
+> I intend to squash errors, leaving only the first occurence but making it more 
+> verbose. Probably:
+> 
+> Error: command never completed. It is probably hardware bug
+> Command will be retried after controller is reset
+> further occurences of this error won't be reported as long as retry is 
+> sucessful
+> 
+> is wording OK (I am not native english speaker)?
+
+I guess best would be to to emit some kind of error after all retries, but question
+is how to do it cleanly.
+
+
+> regards
+> 
+> -andrey
+> 
+> --- linux-2.6.15/drivers/i2c/busses/i2c-ali1535.c	2006-01-03 
+> 06:21:10.000000000 +0300
+> +++ i2c-ali1535.c	2006-01-16 22:22:51.000000000 +0300
+> @@ -311,8 +311,8 @@ static int ali1535_transaction(struct i2
+>  	}
+>  
+>  	/* check to see if the "command complete" indication is set */
+> -	if (!(temp & ALI1535_STS_DONE)) {
+> -		result = -1;
+> +	if (!result && !(temp & ALI1535_STS_DONE)) {
+> +		result = -2;
+>  		dev_err(&adap->dev, "Error: command never completed\n");
+
+Perhaps this dev_err can be move down
+
+>  	}
+>  
+> @@ -344,6 +344,7 @@ static s32 ali1535_access(struct i2c_ada
+>  	int temp;
+>  	int timeout;
+>  	s32 result = 0;
+> +	int retry = 1;
+>  
+>  	down(&i2c_ali1535_sem);
+>  	/* make sure SMBus is idle */
+> @@ -360,6 +361,7 @@ static s32 ali1535_access(struct i2c_ada
+>  	/* clear status register (clear-on-write) */
+>  	outb_p(0xFF, SMBHSTSTS);
+>  
+> +retry:
+>  	switch (size) {
+>  	case I2C_SMBUS_PROC_CALL:
+>  		dev_err(&adap->dev, "I2C_SMBUS_PROC_CALL not supported!\n");
+> @@ -424,7 +426,14 @@ static s32 ali1535_access(struct i2c_ada
+>  		break;
+>  	}
+>  
+> -	if (ali1535_transaction(adap)) {
+> +	if (((result = ali1535_transaction(adap)) = -2) && retry--) {
+> +		/* Adapter hung and was reset; retry */
+> +		dev_dbg(&adap->dev, "Adapter hung, retrying after reset\n");
+> +		result = 0;
+> +		goto retry;
+> +	}
+> +
+> +	if (result) {
+
+perhaps here to test if result is -2 and tell user that never completed?
+
+>  		/* Error in transaction */
+>  		result = -1;
+>  		goto EXIT;
+>  
+
+Thats all from me,
 
 regards
-
-- -andrey
-
-- --- linux-2.6.15/drivers/i2c/busses/i2c-ali1535.c	2006-01-03=20
-06:21:10.000000000 +0300
-+++ i2c-ali1535.c	2006-01-16 22:22:51.000000000 +0300
-@@ -311,8 +311,8 @@ static int ali1535_transaction(struct i2
- 	}
-=20
- 	/* check to see if the "command complete" indication is set */
-- -	if (!(temp & ALI1535_STS_DONE)) {
-- -		result =3D -1;
-+	if (!result && !(temp & ALI1535_STS_DONE)) {
-+		result =3D -2;
- 		dev_err(&adap->dev, "Error: command never completed\n");
- 	}
-=20
-@@ -344,6 +344,7 @@ static s32 ali1535_access(struct i2c_ada
- 	int temp;
- 	int timeout;
- 	s32 result =3D 0;
-+	int retry =3D 1;
-=20
- 	down(&i2c_ali1535_sem);
- 	/* make sure SMBus is idle */
-@@ -360,6 +361,7 @@ static s32 ali1535_access(struct i2c_ada
- 	/* clear status register (clear-on-write) */
- 	outb_p(0xFF, SMBHSTSTS);
-=20
-+retry:
- 	switch (size) {
- 	case I2C_SMBUS_PROC_CALL:
- 		dev_err(&adap->dev, "I2C_SMBUS_PROC_CALL not supported!\n");
-@@ -424,7 +426,14 @@ static s32 ali1535_access(struct i2c_ada
- 		break;
- 	}
-=20
-- -	if (ali1535_transaction(adap)) {
-+	if (((result =3D ali1535_transaction(adap)) =3D -2) && retry--) {
-+		/* Adapter hung and was reset; retry */
-+		dev_dbg(&adap->dev, "Adapter hung, retrying after reset\n");
-+		result =3D 0;
-+		goto retry;
-+	}
-+
-+	if (result) {
- 		/* Error in transaction */
- 		result =3D -1;
- 		goto EXIT;
-=20
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD4DBQFDy/aZR6LMutpd94wRAoBlAJ0ZLlhPMIBC5Fmz0Iw4NBoNjM7wfwCUCB0t
-+sFjdErqBnZatcpLmiPTKA=3D
-=3DMW/Q
------END PGP SIGNATURE-----
+Rudolf
 
