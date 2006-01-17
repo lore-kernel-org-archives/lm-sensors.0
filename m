@@ -1,41 +1,57 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Thu, 12 Jan 2006 01:58:14 +0000
-Subject: [lm-sensors] [PATCH] hwmon: w83792d use sensor-attr arrays
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECED81E70@weshml03.winbond.com.tw>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Tue, 17 Jan 2006 07:31:14 +0000
+Subject: [lm-sensors] ISA vs. SMBus
+Message-Id: <20060117083114.7f2e826b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
-In-Reply-To: <FF9D611BFCDB1E42B37FAA148096BECECCE220@weshml03.winbond.com.tw>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCj4gPiBUaGlzIHBhdGNoIHVzZXMgdGhlIG5ldyBzZW5zb3ItYXR0ciBhcnJheXMs
-IHBsZWFzZSBjaGVjay4KPiAKPiBBbHJpZ2h0ISBJJ3ZlIGFwcGxpZWQgaXQuCj4KVGhhbmtzLgoK
-PiBBZGRpdGlvbmFsbHksIEkgd291bGQgbGlrZSB0byBhcHBseSB0aGUgZm9sbG93aW5nIHBhdGNo
-IG9uIHRvcCBvZiBpdC4KPiBJdCBzaW1wbGlmaWVzIHRoZSBjcmVhdGlvbiBvZiB0aGUgYWxhcm0g
-YW5kIGNoYXNzaXMgZmlsZXMuIEFyZSB5b3UgT0sKPiB3aXRoIGl0Pwo+Ck9mIGNvdXJzZSwgdGhh
-dCdzIGdyZWF0IDspCgpCZXN0IFJlZ2FyZHMKWXVhbiBNdQoKCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT1UaGUgcHJpdmlsZWdlZCBjb25maWRlbnRpYWwgaW5m
-b3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgZW1haWwgaXMgaW50ZW5kZWQgZm9yIHVzZSBvbmx5
-IGJ5IHRoZSBhZGRyZXNzZWVzIGFzIGluZGljYXRlZCBieSB0aGUgb3JpZ2luYWwgc2VuZGVyIG9m
-IHRoaXMgZW1haWwuIElmIHlvdSBhcmUgbm90IHRoZSBhZGRyZXNzZWUgaW5kaWNhdGVkIGluIHRo
-aXMgZW1haWwgb3IgYXJlIG5vdCByZXNwb25zaWJsZSBmb3IgZGVsaXZlcnkgb2YgdGhlIGVtYWls
-IHRvIHN1Y2ggIGEgcGVyc29uLCBwbGVhc2Uga2luZGx5IHJlcGx5IHRvIHRoZSBzZW5kZXIgaW5k
-aWNhdGluZyB0aGlzIGZhY3QgYW5kIGRlbGV0ZSBhbGwgY29waWVzIG9mIGl0IGZyb20geW91ciBj
-b21wdXRlciBhbmQgbmV0d29yayBzZXJ2ZXIgaW1tZWRpYXRlbHkuIFlvdXIgY29vcGVyYXRpb24g
-aXMgaGlnaGx5IGFwcHJlY2lhdGVkLiBJdCBpcyBhZHZpc2VkIHRoYXQgYW55IHVuYXV0aG9yaXpl
-ZCB1c2Ugb2YgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG9mIFdpbmJvbmQgaXMgc3RyaWN0bHkg
-cHJvaGliaXRlZDsgYW5kIGFueSBpbmZvcm1hdGlvbiBpbiB0aGlzIGVtYWlsIGlycmVsZXZhbnQg
-dG8gdGhlIG9mZmljaWFsIGJ1c2luZXNzIG9mIFdpbmJvbmQgc2hhbGwgYmUgZGVlbWVkIGFzIG5l
-aXRoZXIgZ2l2ZW4gbm9yIGVuZG9yc2VkIGJ5IFdpbmJvbmQuCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT1JZiB5b3VyIGNvbXB1dGVyIGlzIHVuYWJsZSB0byBk
-ZWNvZGUgQ2hpbmVzZSBmb250LCBwbGVhc2UgaWdub3JlIHRoZSBmb2xsb3dpbmcgbWVzc2FnZS5J
-dCBlc3NlbnRpYWxseSByZXBlYXRzIHRoZSBzdGF0ZW1lbnQgaW4gRW5nbGlzaCBnaXZlbiBhYm92
-ZS6lu6tIpfOkuqnSp3S12Ki5uXGkbKq6sF2yo6nKvvexS6nKuOqwVCwgtsixwsV2rey1b6tIpEir
-/Kl3pKemrKtIpEio+r5cXKSnpc4uILCyqM+xeqjDq0SzUav8qXekp6asq0ikSKnOpl2l9Kbzreym
-XaZipby4Z7HCxXaqurGhp86kp6RVpqyo7KW7q0il8ywgvdCxeqdpqr6t7LVvq0ikSKjDpd+nWbFO
-q0il87FxuXG4o7tQuvS49Kb4qkG+uaSkpKmlSK74sKMuILnvqfOxeqq6plinQCwgp9qtzKX9prmt
-UMHCLiCvU6a5tKO/9CwgpfSm86W8uGexwsV2vtWm26jPpc612Ki5uXGkbKq6vvexS7jqsFSquqbm
-rLCsT7NRxFmu5rhUpO6qui4gq0il87tQtdioublxpGzA57d+tUzD9qSnpLquZSyko7FvtfissLXY
-qLm5caRspKel37P1qc63TqijLgoK
+Hi all,
+
+After all detections have been done, sensors-detect currently asks the
+user whether he/she prefers ISA access or SMBus access when both are
+possible. This option only makes sense for "hybrid" drivers (lm78,
+w83781d, it87), and only in a few cases (i.e. at least one alias has
+been detected by sensors-detect).
+
+This question tends to confuse people, precisely due to the fact that
+it is asked unconditionally while most people simply don't need to
+care. Also, I see very little reason why someone would prefer not to
+use the ISA access, given the increased speed and reliability. Thus, I
+propose that we drop this question and assume "ISA" as the answer for
+everyone:
+
+--- sensors-detect.orig	2006-01-16 08:46:44.000000000 +0100
++++ sensors-detect	2006-01-16 13:49:13.000000000 +0100
+@@ -5226,17 +5226,9 @@
+   }
+ 
+   print "\n\n",
+-        " I will now generate the commands needed to load the I2C modules.\n",
+-        " Sometimes, a chip is available both through the ISA bus and an ",
+-        "I2C bus.\n",
+-        " ISA bus access is faster, but you need to load an additional driver ",
+-        "module\n",
+-        " for it. If you have the choice, do you want to use the ISA bus or ",
+-        "the\n",
+-        " I2C/SMBus (ISA/smbus)? ";
+-  my $use_isa = not <STDIN> =~ /\s*[Ss]/;
++        " I will now generate the commands needed to load the I2C modules.\n";
+      
+-  my ($modprobes,$configfile) = generate_modprobes $use_isa;
++  my ($modprobes, $configfile) = generate_modprobes 1;	# 1 = prefer ISA
+   print "\nTo make the sensors modules behave correctly, add these lines to\n",
+         "$modules_conf:\n\n";
+   print "#----cut here----\n";
+
+Note that I didn't discard all the now-dead code in sub
+generate_modprobes, just in case anyone needs to manually revert to
+SMBus preference. If no problem arises in the next year we may drop that
+additional code.
+
+Thanks,
+-- 
+Jean Delvare
+
