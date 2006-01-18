@@ -1,27 +1,78 @@
-From: geriksen@gmail.com (Glenn Eriksen)
-Date: Tue, 31 Jan 2006 08:23:35 +0000
-Subject: [lm-sensors] PC87591: will sign up for testing when available
-Message-Id: <80cadf970601310023w1ce06059n3b54ec57be2bed4c@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 18 Jan 2006 21:52:06 +0000
+Subject: [lm-sensors] [PATCH 07/17] i2c: scx200_acb fix and speed up the
+Message-Id: <20060118225206.50e42a42.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I would like to sign up for testing the (hopefully) upcoming  driver
-for the PC87591  chip. I am using an Acer TravelMate 8100 WLMi laptop
-with a 2.6.12 kernel (compiled from source). Distro is currrently
-Ubuntu.
+From: Ben Gardner <bgardner at wabtec.com>
+Content-Disposition: inline; filename=i2c-scx200_acb-06-poll.patch
 
-Please contact me whenever a testing driver is available.
+scx200_acb: Fix and speed up the poll loop
 
-# sensors-detect
---- snip ---
-Probing for `Nat. Semi. PC87591 Super IO'
-  Success... but not activated
----- snip ---
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/i2c/busses/scx200_acb.c |   13 ++-----------
+ 1 files changed, 2 insertions(+), 11 deletions(-)
+
+--- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
++++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
+@@ -47,10 +47,7 @@ static int base[MAX_DEVICES] = { 0x820, 
+ module_param_array(base, int, NULL, 0);
+ MODULE_PARM_DESC(base, "Base addresses for the ACCESS.bus controllers");
+ 
+-/* The hardware supports interrupt driven mode too, but I haven't
+-   implemented that. */
+-#define POLLED_MODE 1
+-#define POLL_TIMEOUT (HZ)
++#define POLL_TIMEOUT	(HZ/5)
+ 
+ enum scx200_acb_state {
+ 	state_idle,
+@@ -222,7 +219,6 @@ static void scx200_acb_machine(struct sc
+ 	iface->needs_reset = 1;
+ }
+ 
+-#ifdef POLLED_MODE
+ static void scx200_acb_poll(struct scx200_acb_iface *iface)
+ {
+ 	u8 status;
+@@ -235,7 +231,7 @@ static void scx200_acb_poll(struct scx20
+ 			scx200_acb_machine(iface, status);
+ 			return;
+ 		}
+-		msleep(10);
++		yield();
+ 	}
+ 
+ 	dev_err(&iface->adapter.dev, "timeout in state %s\n",
+@@ -245,7 +241,6 @@ static void scx200_acb_poll(struct scx20
+ 	iface->result = -EIO;
+ 	iface->needs_reset = 1;
+ }
+-#endif /* POLLED_MODE */
+ 
+ static void scx200_acb_reset(struct scx200_acb_iface *iface)
+ {
+@@ -335,12 +330,8 @@ static s32 scx200_acb_smbus_xfer(struct 
+ 	else
+ 		iface->state = state_address;
+ 
+-#ifdef POLLED_MODE
+ 	while (iface->state != state_idle)
+ 		scx200_acb_poll(iface);
+-#else /* POLLED_MODE */
+-#error Interrupt driven mode not implemented
+-#endif /* POLLED_MODE */	
+ 
+ 	if (iface->needs_reset)
+ 		scx200_acb_reset(iface);
 
 
-Glenn Eriksen
-LPIC-1 Linux+ SAIR/Linux-GNU
+-- 
+Jean Delvare
 
