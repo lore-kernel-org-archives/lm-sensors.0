@@ -1,134 +1,61 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 21:48:26 +0000
-Subject: [lm-sensors] [PATCH 06/17] i2c: scx200_acb add support for the
-Message-Id: <20060118224826.20019da4.khali@linux-fr.org>
+Date: Wed, 18 Jan 2006 22:14:55 +0000
+Subject: [lm-sensors] [PATCH 12/17] i2c: Speed up block transfers
+Message-Id: <20060118231455.71b0c12e.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ben Gardner <bgardner at wabtec.com>
-Content-Disposition: inline; filename=i2c-scx200_acb-05-cs5535.patch
+Content-Disposition: inline; filename=i2c-speedup-block-transfers.patch
 
-scx200_acb: Add support for the CS5535/CS5536
+Speed up i2c_smbus_write_block_data and i2c_smbus_read_i2c_block_data
+a bit by using memcpy instead of an explicit loop.
 
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- drivers/i2c/busses/scx200_acb.c |   57 ++++++++++++++++++++++++++++++----------
- 1 files changed, 43 insertions(+), 14 deletions(-)
+ drivers/i2c/i2c-core.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
-+++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
-@@ -2,6 +2,7 @@
-     Copyright (c) 2001,2002 Christer Weinigel <wingel at nano-system.com>
- 
-     National Semiconductor SCx200 ACCESS.bus support
-+    Also supports the AMD CS5535 and AMD CS5536
- 
-     Based on i2c-keywest.c which is:
-         Copyright (c) 2001 Benjamin Herrenschmidt <benh at kernel.crashing.org>
-@@ -31,6 +32,7 @@
- #include <linux/pci.h>
- #include <linux/delay.h>
- #include <asm/io.h>
-+#include <asm/msr.h>
- 
- #include <linux/scx200.h>
- 
-@@ -416,7 +418,7 @@ static int scx200_acb_probe(struct scx20
- 	return 0;
- }
- 
--static int  __init scx200_acb_create(int base, int index)
-+static int  __init scx200_acb_create(const char *text, int base, int index)
+--- linux-2.6.16-rc1.orig/drivers/i2c/i2c-core.c	2006-01-18 19:54:04.000000000 +0100
++++ linux-2.6.16-rc1/drivers/i2c/i2c-core.c	2006-01-18 20:52:26.000000000 +0100
+@@ -920,12 +920,11 @@
+ 			       u8 length, u8 *values)
  {
- 	struct scx200_acb_iface *iface;
- 	struct i2c_adapter *adapter;
-@@ -432,7 +434,7 @@ static int  __init scx200_acb_create(int
- 
- 	adapter = &iface->adapter;
- 	i2c_set_adapdata(adapter, iface);
--	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
-+	snprintf(adapter->name, I2C_NAME_SIZE, "%s ACB%d", text, index);
- 	adapter->owner = THIS_MODULE;
- 	adapter->id = I2C_HW_SMBUS_SCX200;
- 	adapter->algo = &scx200_acb_algorithm;
-@@ -440,8 +442,9 @@ static int  __init scx200_acb_create(int
- 
- 	init_MUTEX(&iface->sem);
- 
--	snprintf(description, sizeof(description),
--		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
-+	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
-+		 text, adapter->name);
+ 	union i2c_smbus_data data;
+-	int i;
 +
- 	if (request_region(base, 8, description) = 0) {
- 		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
- 			base, base + 8-1);
-@@ -485,24 +488,50 @@ static struct pci_device_id scx200[] = {
- 	{ },
- };
- 
-+static struct pci_device_id divil_pci[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
-+	{ } /* NULL entry */
-+};
-+
-+#define MSR_LBAR_SMB		0x5140000B
-+
-+static int scx200_add_cs553x(void)
-+{
-+	u32	low, hi;
-+	u32	smb_base;
-+
-+	/* Grab & reserve the SMB I/O range */
-+	rdmsr(MSR_LBAR_SMB, low, hi);
-+
-+	/* Check the IO mask and whether SMB is enabled */
-+	if (hi != 0x0000F001) {
-+		printk(KERN_WARNING NAME ": SMBus not enabled\n");
-+		return -ENODEV;
-+	}
-+
-+	/* SMBus IO size is 8 bytes */
-+	smb_base = low & 0x0000FFF8;
-+
-+	return scx200_acb_create("CS5535", smb_base, 0);
-+}
-+
- static int __init scx200_acb_init(void)
+ 	if (length > I2C_SMBUS_BLOCK_MAX)
+ 		length = I2C_SMBUS_BLOCK_MAX;
+-	for (i = 1; i <= length; i++)
+-		data.block[i] = values[i-1];
+ 	data.block[0] = length;
++	memcpy(&data.block[1], values, length);
+ 	return i2c_smbus_xfer(client->adapter,client->addr,client->flags,
+ 			      I2C_SMBUS_WRITE,command,
+ 			      I2C_SMBUS_BLOCK_DATA,&data);
+@@ -935,16 +934,14 @@
+ s32 i2c_smbus_read_i2c_block_data(struct i2c_client *client, u8 command, u8 *values)
  {
- 	int i;
--	int rc;
-+	int	rc = -ENODEV;
- 
- 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
- 
- 	/* Verify that this really is a SCx200 processor */
--	if (pci_dev_present(scx200) = 0)
--		return -ENODEV;
-+	if (pci_dev_present(scx200)) {
-+		for (i = 0; i < MAX_DEVICES; ++i) {
-+			if (base[i] > 0)
-+				rc = scx200_acb_create("SCx200", base[i], i);
-+		}
-+	} else if (pci_dev_present(divil_pci))
-+		rc = scx200_add_cs553x();
- 
--	rc = -ENXIO;
--	for (i = 0; i < MAX_DEVICES; ++i) {
--		if (base[i] > 0)
--			rc = scx200_acb_create(base[i], i);
+ 	union i2c_smbus_data data;
+-	int i;
++
+ 	if (i2c_smbus_xfer(client->adapter,client->addr,client->flags,
+ 	                      I2C_SMBUS_READ,command,
+ 	                      I2C_SMBUS_I2C_BLOCK_DATA,&data))
+ 		return -1;
+-	else {
+-		for (i = 1; i <= data.block[0]; i++)
+-			values[i-1] = data.block[i];
+-		return data.block[0];
 -	}
--	if (scx200_acb_list)
--		return 0;
- 	return rc;
++
++	memcpy(values, &data.block[1], data.block[0]);
++	return data.block[0];
  }
  
-
+ s32 i2c_smbus_write_i2c_block_data(struct i2c_client *client, u8 command,
 
 -- 
 Jean Delvare
