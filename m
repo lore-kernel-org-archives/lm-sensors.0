@@ -1,77 +1,135 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:38 +0000
-Subject: [lm-sensors] [PATCH] i2c: i2c-nforce2 add nforce4 MCP-04 device ID
-Message-Id: <11365852582543@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 18 Jan 2006 21:48:26 +0000
+Subject: [lm-sensors] [PATCH 06/17] i2c: scx200_acb add support for the
+Message-Id: <20060118224826.20019da4.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] i2c: i2c-nforce2 add nforce4 MCP-04 device ID
+From: Ben Gardner <bgardner at wabtec.com>
+Content-Disposition: inline; filename=i2c-scx200_acb-05-cs5535.patch
 
-One more supported PCI ID for the i2c-nforce2 driver.
+scx200_acb: Add support for the CS5535/CS5536
 
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
-commit 7c72ccf09b6debe55b8e049377ad3183ed4f4cb3
-tree d9a4cfd4074c90a7ea1565449c304dcde8693c32
-parent a4787c0d232e16e727b37205dc647337b8974f35
-author Jean Delvare <khali at linux-fr.org> Sun, 18 Dec 2005 17:25:18 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:27 -0800
+ drivers/i2c/busses/scx200_acb.c |   57 ++++++++++++++++++++++++++++++----------
+ 1 files changed, 43 insertions(+), 14 deletions(-)
 
- Documentation/i2c/busses/i2c-nforce2 |    3 ++-
- drivers/i2c/busses/i2c-nforce2.c     |    2 ++
- include/linux/pci_ids.h              |    1 +
- 3 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/i2c/busses/i2c-nforce2 b/Documentation/i2c/busses/i2c-nforce2
-index e379e18..d751282 100644
---- a/Documentation/i2c/busses/i2c-nforce2
-+++ b/Documentation/i2c/busses/i2c-nforce2
-@@ -5,7 +5,8 @@ Supported adapters:
-   * nForce2 Ultra 400 MCP      10de:0084 
-   * nForce3 Pro150 MCP         10de:00D4 
-   * nForce3 250Gb MCP          10de:00E4 
--  * nForce4 MCP	       	       10de:0052
-+  * nForce4 MCP                10de:0052
-+  * nForce4 MCP-04             10de:0034
+--- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
++++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
+@@ -2,6 +2,7 @@
+     Copyright (c) 2001,2002 Christer Weinigel <wingel at nano-system.com>
  
- Datasheet: not publically available, but seems to be similar to the
-            AMD-8111 SMBus 2.0 adapter.
-diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
-index 4d18e6e..2d80eb2 100644
---- a/drivers/i2c/busses/i2c-nforce2.c
-+++ b/drivers/i2c/busses/i2c-nforce2.c
-@@ -30,6 +30,7 @@
-     nForce3 Pro150 MCP		00D4
-     nForce3 250Gb MCP		00E4
-     nForce4 MCP			0052
-+    nForce4 MCP-04		0034
+     National Semiconductor SCx200 ACCESS.bus support
++    Also supports the AMD CS5535 and AMD CS5536
  
-     This driver supports the 2 SMBuses that are included in the MCP of the
-     nForce2/3/4 chipsets.
-@@ -257,6 +258,7 @@ static struct pci_device_id nforce2_ids[
- 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3_SMBUS) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE3S_SMBUS) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE4_SMBUS) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SMBUS) },
- 	{ 0 }
+     Based on i2c-keywest.c which is:
+         Copyright (c) 2001 Benjamin Herrenschmidt <benh at kernel.crashing.org>
+@@ -31,6 +32,7 @@
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+ #include <asm/io.h>
++#include <asm/msr.h>
+ 
+ #include <linux/scx200.h>
+ 
+@@ -416,7 +418,7 @@ static int scx200_acb_probe(struct scx20
+ 	return 0;
+ }
+ 
+-static int  __init scx200_acb_create(int base, int index)
++static int  __init scx200_acb_create(const char *text, int base, int index)
+ {
+ 	struct scx200_acb_iface *iface;
+ 	struct i2c_adapter *adapter;
+@@ -432,7 +434,7 @@ static int  __init scx200_acb_create(int
+ 
+ 	adapter = &iface->adapter;
+ 	i2c_set_adapdata(adapter, iface);
+-	snprintf(adapter->name, I2C_NAME_SIZE, "SCx200 ACB%d", index);
++	snprintf(adapter->name, I2C_NAME_SIZE, "%s ACB%d", text, index);
+ 	adapter->owner = THIS_MODULE;
+ 	adapter->id = I2C_HW_SMBUS_SCX200;
+ 	adapter->algo = &scx200_acb_algorithm;
+@@ -440,8 +442,9 @@ static int  __init scx200_acb_create(int
+ 
+ 	init_MUTEX(&iface->sem);
+ 
+-	snprintf(description, sizeof(description),
+-		 "NatSemi SCx200 ACCESS.bus [%s]", adapter->name);
++	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
++		 text, adapter->name);
++
+ 	if (request_region(base, 8, description) = 0) {
+ 		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
+ 			base, base + 8-1);
+@@ -485,24 +488,50 @@ static struct pci_device_id scx200[] = {
+ 	{ },
  };
  
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index 4f01710..96a0403 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -976,6 +976,7 @@
- #define PCI_DEVICE_ID_NVIDIA_TNT_UNKNOWN        0x002a
- #define PCI_DEVICE_ID_NVIDIA_VTNT2		0x002C
- #define PCI_DEVICE_ID_NVIDIA_UVTNT2		0x002D
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SMBUS	0x0034
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_IDE	0x0035
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SATA	0x0036
- #define PCI_DEVICE_ID_NVIDIA_NVENET_10		0x0037
++static struct pci_device_id divil_pci[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
++	{ } /* NULL entry */
++};
++
++#define MSR_LBAR_SMB		0x5140000B
++
++static int scx200_add_cs553x(void)
++{
++	u32	low, hi;
++	u32	smb_base;
++
++	/* Grab & reserve the SMB I/O range */
++	rdmsr(MSR_LBAR_SMB, low, hi);
++
++	/* Check the IO mask and whether SMB is enabled */
++	if (hi != 0x0000F001) {
++		printk(KERN_WARNING NAME ": SMBus not enabled\n");
++		return -ENODEV;
++	}
++
++	/* SMBus IO size is 8 bytes */
++	smb_base = low & 0x0000FFF8;
++
++	return scx200_acb_create("CS5535", smb_base, 0);
++}
++
+ static int __init scx200_acb_init(void)
+ {
+ 	int i;
+-	int rc;
++	int	rc = -ENODEV;
+ 
+ 	pr_debug(NAME ": NatSemi SCx200 ACCESS.bus Driver\n");
+ 
+ 	/* Verify that this really is a SCx200 processor */
+-	if (pci_dev_present(scx200) = 0)
+-		return -ENODEV;
++	if (pci_dev_present(scx200)) {
++		for (i = 0; i < MAX_DEVICES; ++i) {
++			if (base[i] > 0)
++				rc = scx200_acb_create("SCx200", base[i], i);
++		}
++	} else if (pci_dev_present(divil_pci))
++		rc = scx200_add_cs553x();
+ 
+-	rc = -ENXIO;
+-	for (i = 0; i < MAX_DEVICES; ++i) {
+-		if (base[i] > 0)
+-			rc = scx200_acb_create(base[i], i);
+-	}
+-	if (scx200_acb_list)
+-		return 0;
+ 	return rc;
+ }
+ 
 
+
+-- 
+Jean Delvare
 
