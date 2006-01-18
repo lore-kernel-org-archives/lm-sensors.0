@@ -1,112 +1,83 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:37 +0000
-Subject: [lm-sensors] [PATCH] hwmon: w83792d simplify in low bits handling
-Message-Id: <1136585257904@kroah.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 18 Jan 2006 22:13:09 +0000
+Subject: [lm-sensors] [PATCH 11/17] hwmon: w83792d drop useless macros
+Message-Id: <20060118231309.1509ba3d.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] hwmon: w83792d simplify in low bits handling
+Content-Disposition: inline; filename=hwmon-w83792d-drop-useless-macros.patch
 
-Simplify the way the w83792d driver handles the extra resolution
-bits of voltage input channels.
+Drop 3 useless macros in the w83792d hardware monitoring driver.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-Acked-by: Yuan Mu <Ymu at winbond.com.tw>
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-
 ---
-commit 99d855602c1d7968ca6b6cc99b773b0b47909690
-tree 3e79339c40f1819f90911c6d96b72cb73781dbdd
-parent c9152deaa635cab09cb43c17cf80130b9e6ee29d
-author Jean Delvare <khali at linux-fr.org> Sun, 18 Dec 2005 16:34:28 +0100
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:25 -0800
+ drivers/hwmon/w83792d.c |   24 +++---------------------
+ 1 file changed, 3 insertions(+), 21 deletions(-)
 
- drivers/hwmon/w83792d.c |   48 ++++++++++-------------------------------------
- 1 files changed, 10 insertions(+), 38 deletions(-)
-
-diff --git a/drivers/hwmon/w83792d.c b/drivers/hwmon/w83792d.c
-index 0ad1ae5..b176bf0 100644
---- a/drivers/hwmon/w83792d.c
-+++ b/drivers/hwmon/w83792d.c
-@@ -281,7 +281,7 @@ struct w83792d_data {
- 	u8 in[9];		/* Register value */
- 	u8 in_max[9];		/* Register value */
- 	u8 in_min[9];		/* Register value */
--	u8 low_bits[2];		/* Additional resolution to voltage in0-6 */
-+	u16 low_bits;		/* Additional resolution to voltage in6-0 */
- 	u8 fan[7];		/* Register value */
- 	u8 fan_min[7];		/* Register value */
- 	u8 temp1[3];		/* current, over, thyst */
-@@ -323,38 +323,10 @@ static struct i2c_driver w83792d_driver 
- 	.detach_client = w83792d_detach_client,
- };
+--- linux-2.6.15-git.orig/drivers/hwmon/w83792d.c	2006-01-11 20:38:49.000000000 +0100
++++ linux-2.6.15-git/drivers/hwmon/w83792d.c	2006-01-11 21:12:40.000000000 +0100
+@@ -618,10 +618,6 @@
  
--static long in_count_from_reg(int nr, struct w83792d_data *data)
-+static inline long in_count_from_reg(int nr, struct w83792d_data *data)
+ static
+ DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
+-#define device_create_file_alarms() \
+-device_create_file(dev, &dev_attr_alarms);
+-
+-
+ 
+ static ssize_t
+ show_pwm(struct device *dev, struct device_attribute *attr,
+@@ -775,12 +771,6 @@
+ 
+ static DEVICE_ATTR(chassis, S_IRUGO, show_regs_chassis, NULL);
+ 
+-#define device_create_file_chassis() \
+-do { \
+-device_create_file(dev, &dev_attr_chassis); \
+-} while (0)
+-
+-
+ static ssize_t
+ show_chassis_clear(struct device *dev, struct device_attribute *attr, char *buf)
  {
--	u16 vol_count = data->in[nr];
--	u16 low_bits = 0;
--	vol_count = (vol_count << 2);
--	switch (nr)
--	{
--	case 0:  /* vin0 */
--		low_bits = (data->low_bits[0]) & 0x03;
--		break;
--	case 1:  /* vin1 */
--		low_bits = ((data->low_bits[0]) & 0x0c) >> 2;
--		break;
--	case 2:  /* vin2 */
--		low_bits = ((data->low_bits[0]) & 0x30) >> 4;
--		break;
--	case 3:  /* vin3 */
--		low_bits = ((data->low_bits[0]) & 0xc0) >> 6;
--		break;
--	case 4:  /* vin4 */
--		low_bits = (data->low_bits[1]) & 0x03;
--		break;
--	case 5:  /* vin5 */
--		low_bits = ((data->low_bits[1]) & 0x0c) >> 2;
--		break;
--	case 6:  /* vin6 */
--		low_bits = ((data->low_bits[1]) & 0x30) >> 4;
--	default:
--		break;
--	}
--	vol_count = vol_count | low_bits;
--	return vol_count;
-+	/* in7 and in8 do not have low bits, but the formula still works */
-+	return ((data->in[nr] << 2) | ((data->low_bits >> (2 * nr)) & 0x03));
- }
+@@ -811,13 +801,6 @@
+ static DEVICE_ATTR(chassis_clear, S_IRUGO | S_IWUSR,
+ 		show_chassis_clear, store_chassis_clear);
  
- /* following are the sysfs callback functions */
-@@ -1481,10 +1453,10 @@ static struct w83792d_data *w83792d_upda
- 			data->in_min[i] = w83792d_read_value(client,
- 						W83792D_REG_IN_MIN[i]);
- 		}
--		data->low_bits[0] = w83792d_read_value(client,
--						W83792D_REG_LOW_BITS1);
--		data->low_bits[1] = w83792d_read_value(client,
--						W83792D_REG_LOW_BITS2);
-+		data->low_bits = w83792d_read_value(client,
-+						W83792D_REG_LOW_BITS1) +
-+				 (w83792d_read_value(client,
-+						W83792D_REG_LOW_BITS2) << 8);
- 		for (i = 0; i < 7; i++) {
- 			/* Update the Fan measured value and limits */
- 			data->fan[i] = w83792d_read_value(client,
-@@ -1596,8 +1568,8 @@ static void w83792d_print_debug(struct w
- 		dev_dbg(dev, "vin[%d] max is: 0x%x\n", i, data->in_max[i]);
- 		dev_dbg(dev, "vin[%d] min is: 0x%x\n", i, data->in_min[i]);
+-#define device_create_file_chassis_clear() \
+-do { \
+-device_create_file(dev, &dev_attr_chassis_clear); \
+-} while (0)
+-
+-
+-
+ /* For Smart Fan I / Thermal Cruise */
+ static ssize_t
+ show_thermal_cruise(struct device *dev, struct device_attribute *attr,
+@@ -1294,16 +1277,15 @@
+ 		device_create_file(dev, &sda_tolerance[i].dev_attr);
  	}
--	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits[0]);
--	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits[1]);
-+	dev_dbg(dev, "Low Bit1 is: 0x%x\n", data->low_bits & 0xff);
-+	dev_dbg(dev, "Low Bit2 is: 0x%x\n", data->low_bits >> 8);
- 	dev_dbg(dev, "7 set of Fan Counts and Duty Cycles: ===>\n");
- 	for (i=0; i<7; i++) {
- 		dev_dbg(dev, "fan[%d] is: 0x%x\n", i, data->fan[i]);
+ 
+-	device_create_file_alarms();
+-
+ 	for (i = 0; i < ARRAY_SIZE(sda_pwm); i++) {
+ 		device_create_file(dev, &sda_pwm[i].dev_attr);
+ 		device_create_file(dev, &sda_pwm_enable[i].dev_attr);
+ 		device_create_file(dev, &sda_pwm_mode[i].dev_attr);
+ 	}
+ 
+-	device_create_file_chassis();
+-	device_create_file_chassis_clear();
++	device_create_file(dev, &dev_attr_alarms);
++	device_create_file(dev, &dev_attr_chassis);
++	device_create_file(dev, &dev_attr_chassis_clear);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sda_sf2_point); i++)
+ 		device_create_file(dev, &sda_sf2_point[i].dev_attr);
 
+-- 
+Jean Delvare
 
