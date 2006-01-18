@@ -1,50 +1,92 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 09 Jan 2006 22:22:24 +0000
-Subject: [lm-sensors] [PATCH 07/11] hwmon: Allow sensor attributes arrays
-Message-Id: <20060109232224.053ae9ff.khali@linux-fr.org>
+Date: Wed, 18 Jan 2006 22:17:01 +0000
+Subject: [lm-sensors] [PATCH 14/17] i2c: Semaphore to mutex conversions,
+Message-Id: <20060118231701.3d26b007.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Jim Cromie <jim.cromie at gmail.com>
-Content-Disposition: inline; filename=hwmon-allow-sensor-attr-arrays.patch
+Content-Disposition: inline; filename=i2c-convert-semaphores-to-mutexes-3.patch
 
-This patch refactors SENSOR_DEVICE_ATTR macro.  First it creates a new
-macro SENSOR_ATTR() which expands to an initialization expression, then
-it uses that in SENSOR_DEVICE_ATTR, which declares and initializes a
-struct sensor_device_attribute.
+Cleanup after the semaphores to mutexes conversions in the i2c
+subsystem.
 
-IOW, SENSOR_ATTR() imitates __ATTR() in include/linux/device.h.
-
-Signed-off-by: Jim Cromie <jim.cromie at gmail.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- include/linux/hwmon-sysfs.h |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-ali1535.c |    1 -
+ drivers/i2c/busses/i2c-pxa.c     |    2 +-
+ drivers/i2c/busses/scx200_acb.c  |    9 +++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- linux-2.6.15-rc2.orig/include/linux/hwmon-sysfs.h	2005-10-28 17:20:54.000000000 +0200
-+++ linux-2.6.15-rc2/include/linux/hwmon-sysfs.h	2005-11-21 21:44:14.000000000 +0100
-@@ -27,11 +27,13 @@
- #define to_sensor_dev_attr(_dev_attr) \
- 	container_of(_dev_attr, struct sensor_device_attribute, dev_attr)
+--- linux-2.6.16-rc1.orig/drivers/i2c/busses/i2c-ali1535.c	2006-01-18 20:49:40.000000000 +0100
++++ linux-2.6.16-rc1/drivers/i2c/busses/i2c-ali1535.c	2006-01-18 21:19:30.000000000 +0100
+@@ -64,7 +64,6 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <asm/io.h>
+-#include <asm/semaphore.h>
  
--#define SENSOR_DEVICE_ATTR(_name,_mode,_show,_store,_index)	\
--struct sensor_device_attribute sensor_dev_attr_##_name = {	\
--	.dev_attr =	__ATTR(_name,_mode,_show,_store),	\
--	.index =	_index,					\
--}
-+#define SENSOR_ATTR(_name, _mode, _show, _store, _index)	\
-+	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
-+	  .index = _index }
-+
-+#define SENSOR_DEVICE_ATTR(_name, _mode, _show, _store, _index)	\
-+struct sensor_device_attribute sensor_dev_attr_##_name		\
-+	= SENSOR_ATTR(_name, _mode, _show, _store, _index)
  
- struct sensor_device_attribute_2 {
- 	struct device_attribute dev_attr;
+ /* ALI1535 SMBus address offsets */
+--- linux-2.6.16-rc1.orig/drivers/i2c/busses/i2c-pxa.c	2006-01-18 20:49:40.000000000 +0100
++++ linux-2.6.16-rc1/drivers/i2c/busses/i2c-pxa.c	2006-01-18 21:19:30.000000000 +0100
+@@ -647,7 +647,7 @@
+ }
+ 
+ /*
+- * We are protected by the adapter bus semaphore.
++ * We are protected by the adapter bus mutex.
+  */
+ static int i2c_pxa_do_xfer(struct pxa_i2c *i2c, struct i2c_msg *msg, int num)
+ {
+--- linux-2.6.16-rc1.orig/drivers/i2c/busses/scx200_acb.c	2006-01-18 20:59:10.000000000 +0100
++++ linux-2.6.16-rc1/drivers/i2c/busses/scx200_acb.c	2006-01-18 21:19:30.000000000 +0100
+@@ -31,6 +31,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/pci.h>
+ #include <linux/delay.h>
++#include <linux/mutex.h>
+ #include <asm/io.h>
+ #include <asm/msr.h>
+ 
+@@ -74,7 +75,7 @@
+ 	struct scx200_acb_iface *next;
+ 	struct i2c_adapter adapter;
+ 	unsigned base;
+-	struct semaphore sem;
++	struct mutex mutex;
+ 
+ 	/* State machine data */
+ 	enum scx200_acb_state state;
+@@ -314,7 +315,7 @@
+ 		return -EINVAL;
+ 	}
+ 
+-	down(&iface->sem);
++	mutex_lock(&iface->mutex);
+ 
+ 	iface->address_byte = (address << 1) | rw;
+ 	iface->command = command;
+@@ -338,7 +339,7 @@
+ 
+ 	rc = iface->result;
+ 
+-	up(&iface->sem);
++	mutex_unlock(&iface->mutex);
+ 
+ 	if (rc = 0 && size = I2C_SMBUS_WORD_DATA && rw = I2C_SMBUS_READ)
+ 		data->word = le16_to_cpu(cur_word);
+@@ -431,7 +432,7 @@
+ 	adapter->algo = &scx200_acb_algorithm;
+ 	adapter->class = I2C_CLASS_HWMON;
+ 
+-	init_MUTEX(&iface->sem);
++	mutex_init(&iface->mutex);
+ 
+ 	snprintf(description, sizeof(description), "%s ACCESS.bus [%s]",
+ 		 text, adapter->name);
 
 -- 
 Jean Delvare
