@@ -1,181 +1,87 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 21:44:04 +0000
-Subject: [lm-sensors] [PATCH 04/17] i2c: scx200_acb refactor/simplify code
-Message-Id: <20060118224404.0a55d834.khali@linux-fr.org>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Wed, 18 Jan 2006 20:52:40 +0000
+Subject: [lm-sensors] sensors-success
+Message-Id: <cfe85dfa0601181252l6ddde944k2109e6ebcf06dda6@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-From: Ben Gardner <bgardner at wabtec.com>
-Content-Disposition: inline; filename=i2c-scx200_acb-03-refactor.patch
+after a tiny bit of poking, I got sensors working on an
+AMD N-Force2 mobo, model M7NCG 400, manufacturer not named
+in the damn user-manual.
 
-scx200_acb: refactor/simplify code (no functional changes)
+the pokes were:
+sudo sensors-detect,  said yes to everything
+sudo service lm_sensors start
 
-Signed-off-by: Ben Gardner <bgardner at wabtec.com>
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/i2c/busses/scx200_acb.c |   73 +++++++++++++++-------------------------
- 1 files changed, 29 insertions(+), 44 deletions(-)
+The only 'glitch' was this:
 
---- linux-2.6.15-rc5-mm3.orig/drivers/i2c/busses/scx200_acb.c
-+++ linux-2.6.15-rc5-mm3/drivers/i2c/busses/scx200_acb.c
-@@ -124,8 +124,17 @@ static void scx200_acb_machine(struct sc
- 		errmsg = "not master";
- 		goto error;
- 	}
--	if (status & ACBST_NEGACK)
--		goto negack;
-+	if (status & ACBST_NEGACK) {
-+		dev_dbg(&iface->adapter.dev, "negative ack in state %s\n",
-+			scx200_acb_state_name[iface->state]);
-+
-+		iface->state = state_idle;
-+		iface->result = -ENXIO;
-+
-+		outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
-+		outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
-+		return;
-+	}
- 
- 	switch (iface->state) {
- 	case state_idle:
-@@ -202,17 +211,6 @@ static void scx200_acb_machine(struct sc
- 
- 	return;
- 
-- negack:
--	dev_dbg(&iface->adapter.dev, "negative ack in state %s\n",
--		scx200_acb_state_name[iface->state]);
--
--	iface->state = state_idle;
--	iface->result = -ENXIO;
--
--	outb(inb(ACBCTL1) | ACBCTL1_STOP, ACBCTL1);
--	outb(ACBST_STASTR | ACBST_NEGACK, ACBST);
--	return;
--
-  error:
- 	dev_err(&iface->adapter.dev, "%s in state %s\n", errmsg,
- 		scx200_acb_state_name[iface->state]);
-@@ -222,20 +220,10 @@ static void scx200_acb_machine(struct sc
- 	iface->needs_reset = 1;
- }
- 
--static void scx200_acb_timeout(struct scx200_acb_iface *iface)
--{
--	dev_err(&iface->adapter.dev, "timeout in state %s\n",
--		scx200_acb_state_name[iface->state]);
--
--	iface->state = state_idle;
--	iface->result = -EIO;
--	iface->needs_reset = 1;
--}
--
- #ifdef POLLED_MODE
- static void scx200_acb_poll(struct scx200_acb_iface *iface)
- {
--	u8 status = 0;
-+	u8 status;
- 	unsigned long timeout;
- 
- 	timeout = jiffies + POLL_TIMEOUT;
-@@ -248,7 +236,12 @@ static void scx200_acb_poll(struct scx20
- 		msleep(10);
- 	}
- 
--	scx200_acb_timeout(iface);
-+	dev_err(&iface->adapter.dev, "timeout in state %s\n",
-+		scx200_acb_state_name[iface->state]);
-+
-+	iface->state = state_idle;
-+	iface->result = -EIO;
-+	iface->needs_reset = 1;
- }
- #endif /* POLLED_MODE */
- 
-@@ -291,13 +284,8 @@ static s32 scx200_acb_smbus_xfer(struct 
- 		break;
- 
- 	case I2C_SMBUS_BYTE:
--		if (rw = I2C_SMBUS_READ) {
--			len = 1;
--			buffer = &data->byte;
--		} else {
--			len = 1;
--			buffer = &command;
--		}
-+		len = 1;
-+		buffer = rw ? &data->byte : &command;
- 		break;
- 
- 	case I2C_SMBUS_BYTE_DATA:
-@@ -331,9 +319,7 @@ static s32 scx200_acb_smbus_xfer(struct 
- 
- 	down(&iface->sem);
- 
--	iface->address_byte = address<<1;
--	if (rw = I2C_SMBUS_READ)
--		iface->address_byte |= 1;
-+	iface->address_byte = (address << 1) | rw;
- 	iface->command = command;
- 	iface->ptr = buffer;
- 	iface->len = len;
-@@ -433,7 +419,7 @@ static int  __init scx200_acb_create(int
- {
- 	struct scx200_acb_iface *iface;
- 	struct i2c_adapter *adapter;
--	int rc = 0;
-+	int rc;
- 	char description[64];
- 
- 	iface = kzalloc(sizeof(*iface), GFP_KERNEL);
-@@ -459,14 +445,14 @@ static int  __init scx200_acb_create(int
- 		printk(KERN_ERR NAME ": can't allocate io 0x%x-0x%x\n",
- 			base, base + 8-1);
- 		rc = -EBUSY;
--		goto errout;
-+		goto errout_free;
- 	}
- 	iface->base = base;
- 
- 	rc = scx200_acb_probe(iface);
- 	if (rc) {
- 		printk(KERN_WARNING NAME ": probe failed\n");
--		goto errout;
-+		goto errout_release;
- 	}
- 
- 	scx200_acb_reset(iface);
-@@ -474,7 +460,7 @@ static int  __init scx200_acb_create(int
- 	if (i2c_add_adapter(adapter) < 0) {
- 		printk(KERN_ERR NAME ": failed to register\n");
- 		rc = -ENODEV;
--		goto errout;
-+		goto errout_release;
- 	}
- 
- 	lock_kernel();
-@@ -484,12 +470,11 @@ static int  __init scx200_acb_create(int
- 
- 	return 0;
- 
-+ errout_release:
-+	release_region(iface->base, 8);
-+ errout_free:
-+	kfree(iface);
-  errout:
--	if (iface) {
--		if (iface->base)
--			release_region(iface->base, 8);
--		kfree(iface);
--	}
- 	return rc;
- }
- 
+Do you want to generate /etc/sysconfig/lm_sensors? (YES/no):
+Copy prog/init/lm_sensors.init to /etc/rc.d/init.d/lm_sensors
+for initialization at boot time.
+
+there was no prog/init/lm_sensors.init that I could find,
+and the /etc/rc.d/init.d/lm_sensors had this (unsuprisingly)
+
+# Generated by sensors-detect on Wed Jan 18 12:52:53 2006
+MODULE_0=3Di2c-nforce2
+MODULE_1=3Di2c-isa
+MODULE_2=EEprom
+MODULE_3=3Dw83627hf
 
 
--- 
-Jean Delvare
+Then, this:
 
+[jimc at groucho ~]$ sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+VCore 1:   +1.66 V  (min =3D  +1.57 V, max =3D  +1.73 V)
+VCore 2:   +1.50 V  (min =3D  +1.57 V, max =3D  +1.73 V)       ALARM
++3.3V:     +3.02 V  (min =3D  +3.14 V, max =3D  +3.47 V)       ALARM
++5V:       +4.87 V  (min =3D  +4.76 V, max =3D  +5.24 V)       ALARM
++12V:     +12.16 V  (min =3D +10.82 V, max =3D +13.19 V)       ALARM
+-12V:     -12.36 V  (min =3D -13.18 V, max =3D -10.80 V)       ALARM
+-5V:       -5.20 V  (min =3D  -5.25 V, max =3D  -4.75 V)       ALARM
+V5SB:      +5.46 V  (min =3D  +4.76 V, max =3D  +5.24 V)
+VBat:      +3.12 V  (min =3D  +2.40 V, max =3D  +3.60 V)       ALARM
+fan1:        0 RPM  (min =3D  551 RPM, div =3D 16)
+fan2:     3375 RPM  (min =3D  508 RPM, div =3D 16)
+fan3:        0 RPM  (min =3D  659 RPM, div =3D 16)
+temp1:       -48?C  (high =3D   +50?C, hyst =3D  -118?C)   sensor =3D therm=
+istor
+temp2:     +37.5?C  (high =3D  +120?C, hyst =3D  +115?C)   sensor =3D therm=
+istor
+temp3:     +38.5?C  (high =3D  +120?C, hyst =3D  +115?C)   sensor =3D therm=
+istor
+vid:      +1.650 V  (VRM Version 9.0)
+alarms:
+beep_enable:
+          Sound alarm enabled
+
+eeprom-i2c-0-51
+Adapter: SMBus nForce2 adapter at 5000
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
+
+eeprom-i2c-0-50
+Adapter: SMBus nForce2 adapter at 5000
+Memory type:            DDR SDRAM DIMM
+Memory size (MB):       512
+
+
+Finally, sudo sensors -s fixed all the ALARMs but 1:
+
+-5V:       -5.25 V  (min =3D  -5.25 V, max =3D  -4.75 V)       ALARM
+
+since its right at the line, I feel ok about it,
+but welcome any comments.
+
+
+I'll presume momentarily to speak for the silent majority,
+Thanks everyone for stuff that *just works*
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060118/=
+9701254b/attachment.html
