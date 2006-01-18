@@ -1,7 +1,7 @@
-From: Ymu@winbond.com.tw (Ymu@winbond.com.tw)
-Date: Wed, 18 Jan 2006 06:17:00 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 18 Jan 2006 12:28:56 +0000
 Subject: [lm-sensors] wrong readings for w83627ehf on p5mt-m
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECED82400@weshml03.winbond.com.tw>
+Message-Id: <20060118132856.6033fef7.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <aaa5cd0c0601131819j5692f460yb447692c03341732@mail.gmail.com>
 In-Reply-To: <aaa5cd0c0601131819j5692f460yb447692c03341732@mail.gmail.com>
@@ -10,23 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello
- 
-> I have some additional information - may be it will help.
-> SpeedFan (under Win2k) can detect the system and processor temperaure
-> correctly  - I compared with ASUS proprietary monitor.
-> Is it possible to figure out how this is done in SpeedFan?
+Hi Alexander,
 
-Can you give me some pictures about SpeedFan?
- 
-> Also, when I change the load, the isadump output changes in many places.
-> My humble guess is that the EHF datasheet does not work with EHF-A.
-I have a board with W83627EHF-A chip and it works with lm_sensors. So I would believe the datasheet should work on EHF-A :)
- 
-Best Regards
-Yuan Mu
+> I have kernel 2.6.14 and have installed lm_sensors 2.9.2
+> 
+> sensors-detect find the chip (see the output below), and after all the
+> suggested steps,
+> sensors output is apparently nothing for fans and temps (see below).
+> 
+> I will be happy to quickly provide any additional information if any of
+> developers decide to resolve this problem.
 
+Please provide the output of:
+  isadump -k 0x87,0x87 0x2e 0x2f 0xb
 
+I want to check the value of registers 0x22, which may be used to shut
+down the hardware monitoring part of the device, and 0x30, which may
+disable that part. I guess that you wouldn't even be able to dump the
+device contents if it was shut down or disabled, but it doesn't hurt to
+make sure.
 
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
+> sensors output:
+> 
+> w83627ehf-isa-0290
+> Adapter: ISA adapter
+> fan1:        0 RPM  (min = 10546 RPM, div = 128)
+> fan2:        0 RPM  (min =    0 RPM, div = 128)
+> fan3:        0 RPM  (min =    0 RPM, div = 128)
+> fan4:        0 RPM  (min = 10546 RPM, div = 128)
+> temp1:       -48?C  (high =    +0?C, hyst =   +64?C)
+> temp2:     -48.0?C  (high = +80.0?C, hyst = +75.0?C)
+> temp3:     -48.0?C  (high = +80.0?C, hyst = +75.0?C)
+
+For fans, try setting the limits to something reasonable like 1000 RPM.
+It might help.
+
+For temperatures, try:
+  isaset 0x295 0x296 0x4e 0x00
+  isaset 0x295 0x296 0x59 0x00
+This will change the diode measurement type from Pentium II to 2N3904.
+Maybe you'll have different readings after that. If it doesn't help,
+try:
+  isaset 0x295 0x296 0x5d 0x07
+This will change the measurement mode from diode to thermistor. This
+should change the reported values, although I can't promise the new
+values will make more sense than the old ones.
+
+Ideally, the driver should at least report the currently selected
+thermal sensor type, and may even let the user change it to workaround
+broken BIOSes. The w83627ehf driver is still in a preliminary stage
+though.
+
+We have a patch floating around which adds voltage input support to the
+driver. Do you want to give it a try? Maybe you'll be more lucky with
+voltages than with fans and temperatures. The dump you provided
+elsewhere in this thread shows that at least some voltage values make
+sense.
+
+-- 
+Jean Delvare
 
