@@ -1,599 +1,254 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 22:16:04 +0000
-Subject: [lm-sensors] [PATCH 13/17] i2c: Semaphore to mutex conversions,
-Message-Id: <20060118231604.2b07615c.khali@linux-fr.org>
+Date: Wed, 18 Jan 2006 22:22:12 +0000
+Subject: [lm-sensors] [PATCH 17/17] hwmon: Add support for the Winbond
+Message-Id: <20060118232212.74619ffb.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Ingo Molnar <mingo at elte.hu>
-Content-Disposition: inline; filename=i2c-convert-semaphores-to-mutexes-2.patch
+Content-Disposition: inline; filename=hwmon-w83627hf-add-w83687thf-support.patch
 
-semaphore to mutex conversion.
+Add support for the Winbond W83687THF chip to the w83627hf hardware
+monitoring driver. This new chip is almost similar to the already
+supported W83627THF chip, except for VID and a few other minor
+changes.
 
-the conversion was generated via scripts, and the result was validated
-automatically via a script as well.
-
-build tested.
-
-Signed-off-by: Ingo Molnar <mingo at elte.hu>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
-----
- drivers/i2c/busses/i2c-amd756-s4882.c |   13 +++++-----
- drivers/i2c/busses/i2c-isa.c          |    2 
- drivers/i2c/chips/eeprom.c            |    9 ++++---
- drivers/i2c/chips/max6875.c           |   10 +++---
- drivers/i2c/chips/pcf8591.c           |   13 +++++-----
- drivers/i2c/chips/tps65010.c          |   45 +++++++++++++++++----------------
- drivers/i2c/i2c-core.c                |   34 ++++++++++++------------
- include/linux/i2c.h                   |    6 ++--
- 8 files changed, 68 insertions(+), 64 deletions(-)
+---
+ Documentation/hwmon/w83627hf |    4 ++
+ drivers/hwmon/Kconfig        |    7 ++--
+ drivers/hwmon/w83627hf.c     |   72 ++++++++++++++++++++++++++++++++++--------
+ 3 files changed, 66 insertions(+), 17 deletions(-)
 
---- linux-2.6.16-rc1.orig/drivers/i2c/busses/i2c-amd756-s4882.c	2006-01-18 20:52:26.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/busses/i2c-amd756-s4882.c	2006-01-18 21:00:41.000000000 +0100
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/i2c.h>
-+#include <linux/mutex.h>
+--- linux-2.6.16-rc1.orig/drivers/hwmon/w83627hf.c	2006-01-18 21:22:35.000000000 +0100
++++ linux-2.6.16-rc1/drivers/hwmon/w83627hf.c	2006-01-18 21:26:46.000000000 +0100
+@@ -28,6 +28,7 @@
+     w83627hf	9	3	2	3	0x20	0x5ca3	no	yes(LPC)
+     w83627thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
+     w83637hf	7	3	3	3	0x80	0x5ca3	no	yes(LPC)
++    w83687thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
+     w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
  
- extern struct i2c_adapter amd756_smbus;
+     For other winbond chips, and for i2c support in the above chips,
+@@ -63,7 +64,7 @@
+ static unsigned short address;
  
-@@ -45,7 +46,7 @@
- static struct i2c_algorithm *s4882_algo;
+ /* Insmod parameters */
+-enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf };
++enum chips { any_chip, w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
  
- /* Wrapper access functions for multiplexed SMBus */
--static struct semaphore amd756_lock;
-+static struct mutex amd756_lock;
+ static int reset;
+ module_param(reset, bool, 0);
+@@ -101,6 +102,10 @@
+ #define W83627THF_GPIO5_IOSR	0xf3 /* w83627thf only */
+ #define W83627THF_GPIO5_DR	0xf4 /* w83627thf only */
  
- static s32 amd756_access_virt0(struct i2c_adapter * adap, u16 addr,
- 			       unsigned short flags, char read_write,
-@@ -59,12 +60,12 @@
- 	 || addr = 0x18)
- 		return -1;
- 
--	down(&amd756_lock);
-+	mutex_lock(&amd756_lock);
- 
- 	error = amd756_smbus.algo->smbus_xfer(adap, addr, flags, read_write,
- 					      command, size, data);
- 
--	up(&amd756_lock);
-+	mutex_unlock(&amd756_lock);
- 
- 	return error;
- }
-@@ -87,7 +88,7 @@
- 	if (addr != 0x4c && (addr & 0xfc) != 0x50 && (addr & 0xfc) != 0x30)
- 		return -1;
- 
--	down(&amd756_lock);
-+	mutex_lock(&amd756_lock);
- 
- 	if (last_channels != channels) {
- 		union i2c_smbus_data mplxdata;
-@@ -105,7 +106,7 @@
- 					      command, size, data);
- 
- UNLOCK:
--	up(&amd756_lock);
-+	mutex_unlock(&amd756_lock);
- 	return error;
- }
- 
-@@ -166,7 +167,7 @@
- 	}
- 
- 	printk(KERN_INFO "Enabling SMBus multiplexing for Tyan S4882\n");
--	init_MUTEX(&amd756_lock);
-+	mutex_init(&amd756_lock);
- 
- 	/* Define the 5 virtual adapters and algorithms structures */
- 	if (!(s4882_adapter = kzalloc(5 * sizeof(struct i2c_adapter),
---- linux-2.6.16-rc1.orig/drivers/i2c/busses/i2c-isa.c	2006-01-18 20:52:26.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/busses/i2c-isa.c	2006-01-18 21:00:41.000000000 +0100
-@@ -137,7 +137,7 @@
- 
- static int __init i2c_isa_init(void)
++#define W83687THF_VID_EN	0x29 /* w83687thf only */
++#define W83687THF_VID_CFG	0xF0 /* w83687thf only */
++#define W83687THF_VID_DATA	0xF1 /* w83687thf only */
++
+ static inline void
+ superio_outb(int reg, int val)
  {
--	init_MUTEX(&isa_adapter.clist_lock);
-+	mutex_init(&isa_adapter.clist_lock);
- 	INIT_LIST_HEAD(&isa_adapter.clients);
- 
- 	isa_adapter.nr = ANY_I2C_ISA_BUS;
---- linux-2.6.16-rc1.orig/drivers/i2c/chips/eeprom.c	2006-01-18 20:52:26.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/chips/eeprom.c	2006-01-18 21:00:41.000000000 +0100
-@@ -33,6 +33,7 @@
- #include <linux/sched.h>
- #include <linux/jiffies.h>
- #include <linux/i2c.h>
-+#include <linux/mutex.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x50, 0x51, 0x52, 0x53, 0x54,
-@@ -54,7 +55,7 @@
- /* Each client has this additional data */
- struct eeprom_data {
- 	struct i2c_client client;
--	struct semaphore update_lock;
-+	struct mutex update_lock;
- 	u8 valid;			/* bitfield, bit!=0 if slice is valid */
- 	unsigned long last_updated[8];	/* In jiffies, 8 slices */
- 	u8 data[EEPROM_SIZE];		/* Register values */
-@@ -81,7 +82,7 @@
- 	struct eeprom_data *data = i2c_get_clientdata(client);
- 	int i, j;
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 
- 	if (!(data->valid & (1 << slice)) ||
- 	    time_after(jiffies, data->last_updated[slice] + 300 * HZ)) {
-@@ -107,7 +108,7 @@
- 		data->valid |= (1 << slice);
- 	}
- exit:
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- }
- 
- static ssize_t eeprom_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-@@ -187,7 +188,7 @@
- 	/* Fill in the remaining client fields */
- 	strlcpy(new_client->name, "eeprom", I2C_NAME_SIZE);
- 	data->valid = 0;
--	init_MUTEX(&data->update_lock);
-+	mutex_init(&data->update_lock);
- 	data->nature = UNKNOWN;
- 
- 	/* Tell the I2C layer a new client has arrived */
---- linux-2.6.16-rc1.orig/drivers/i2c/chips/max6875.c	2006-01-18 20:52:26.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/chips/max6875.c	2006-01-18 21:00:41.000000000 +0100
-@@ -31,7 +31,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
- 
- /* Do not scan - the MAX6875 access method will write to some EEPROM chips */
- static unsigned short normal_i2c[] = {I2C_CLIENT_END};
-@@ -54,7 +54,7 @@
- /* Each client has this additional data */
- struct max6875_data {
- 	struct i2c_client	client;
--	struct semaphore	update_lock;
-+	struct mutex		update_lock;
- 
- 	u32			valid;
- 	u8			data[USER_EEPROM_SIZE];
-@@ -83,7 +83,7 @@
- 	if (slice >= USER_EEPROM_SLICES)
- 		return;
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 
- 	buf = &data->data[slice << SLICE_BITS];
- 
-@@ -122,7 +122,7 @@
- 		data->valid |= (1 << slice);
- 	}
- exit_up:
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- }
- 
- static ssize_t max6875_read(struct kobject *kobj, char *buf, loff_t off,
-@@ -196,7 +196,7 @@
- 	real_client->driver = &max6875_driver;
- 	real_client->flags = 0;
- 	strlcpy(real_client->name, "max6875", I2C_NAME_SIZE);
--	init_MUTEX(&data->update_lock);
-+	mutex_init(&data->update_lock);
- 
- 	/* Init fake client data */
- 	/* set the client data to the i2c_client so that it will get freed */
---- linux-2.6.16-rc1.orig/drivers/i2c/chips/pcf8591.c	2006-01-18 20:52:26.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/chips/pcf8591.c	2006-01-18 21:00:41.000000000 +0100
-@@ -24,6 +24,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-+#include <linux/mutex.h>
- 
- /* Addresses to scan */
- static unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
-@@ -74,7 +75,7 @@
- 
- struct pcf8591_data {
- 	struct i2c_client client;
--	struct semaphore update_lock;
-+	struct mutex update_lock;
- 
- 	u8 control;
- 	u8 aout;
-@@ -144,13 +145,13 @@
- 	struct pcf8591_data *data = i2c_get_clientdata(client);
- 	unsigned long val = simple_strtoul(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	if (val)
- 		data->control |= PCF8591_CONTROL_AOEF;
- 	else
- 		data->control &= ~PCF8591_CONTROL_AOEF;
- 	i2c_smbus_write_byte(client, data->control);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 	return count;
- }
- 
-@@ -200,7 +201,7 @@
- 	/* Fill in the remaining client fields and put it into the global 
- 	   list */
- 	strlcpy(new_client->name, "pcf8591", I2C_NAME_SIZE);
--	init_MUTEX(&data->update_lock);
-+	mutex_init(&data->update_lock);
- 
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(new_client)))
-@@ -265,7 +266,7 @@
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct pcf8591_data *data = i2c_get_clientdata(client);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 
- 	if ((data->control & PCF8591_CONTROL_AICH_MASK) != channel) {
- 		data->control = (data->control & ~PCF8591_CONTROL_AICH_MASK)
-@@ -278,7 +279,7 @@
- 	}
- 	value = i2c_smbus_read_byte(client);
- 
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	if ((channel = 2 && input_mode = 2) ||
- 	    (channel != 3 && (input_mode = 1 || input_mode = 3)))
---- linux-2.6.16-rc1.orig/drivers/i2c/chips/tps65010.c	2006-01-18 20:58:20.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/chips/tps65010.c	2006-01-18 21:00:53.000000000 +0100
-@@ -32,6 +32,7 @@
- #include <linux/suspend.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/mutex.h>
- 
- #include <asm/irq.h>
- #include <asm/mach-types.h>
-@@ -81,7 +82,7 @@
- 
- struct tps65010 {
- 	struct i2c_client	client;
--	struct semaphore	lock;
-+	struct mutex		lock;
- 	int			irq;
- 	struct work_struct	work;
- 	struct dentry		*file;
-@@ -218,7 +219,7 @@
- 	seq_printf(s, "driver  %s\nversion %s\nchip    %s\n\n",
- 			DRIVER_NAME, DRIVER_VERSION, chip);
- 
--	down(&tps->lock);
-+	mutex_lock(&tps->lock);
- 
- 	/* FIXME how can we tell whether a battery is present?
- 	 * likely involves a charge gauging chip (like BQ26501).
-@@ -300,7 +301,7 @@
- 				(v2 & (1 << (4 + i))) ? "rising" : "falling");
- 	}
- 
--	up(&tps->lock);
-+	mutex_unlock(&tps->lock);
- 	return 0;
- }
- 
-@@ -416,7 +417,7 @@
- {
- 	struct tps65010		*tps = _tps;
- 
--	down(&tps->lock);
-+	mutex_lock(&tps->lock);
- 
- 	tps65010_interrupt(tps);
- 
-@@ -444,7 +445,7 @@
- 	if (test_and_clear_bit(FLAG_IRQ_ENABLE, &tps->flags))
- 		enable_irq(tps->irq);
- 
--	up(&tps->lock);
-+	mutex_unlock(&tps->lock);
- }
- 
- static irqreturn_t tps65010_irq(int irq, void *_tps, struct pt_regs *regs)
-@@ -505,7 +506,7 @@
- 	if (!tps)
- 		return 0;
- 
--	init_MUTEX(&tps->lock);
-+	mutex_init(&tps->lock);
- 	INIT_WORK(&tps->work, tps65010_work, tps);
- 	tps->irq = -1;
- 	tps->client.addr = address;
-@@ -695,7 +696,7 @@
- 	if ((gpio < GPIO1) || (gpio > GPIO4))
- 		return -EINVAL;
- 
--	down(&the_tps->lock);
-+	mutex_lock(&the_tps->lock);
- 
- 	defgpio = i2c_smbus_read_byte_data(&the_tps->client, TPS_DEFGPIO);
- 
-@@ -720,7 +721,7 @@
- 		gpio, value ? "high" : "low",
- 		i2c_smbus_read_byte_data(&the_tps->client, TPS_DEFGPIO));
- 
--	up(&the_tps->lock);
-+	mutex_unlock(&the_tps->lock);
- 	return status;
- }
- EXPORT_SYMBOL(tps65010_set_gpio_out_value);
-@@ -745,7 +746,7 @@
- 		led = LED2;
- 	}
- 
--	down(&the_tps->lock);
-+	mutex_lock(&the_tps->lock);
- 
- 	pr_debug("%s: led%i_on   0x%02x\n", DRIVER_NAME, led,
- 		i2c_smbus_read_byte_data(&the_tps->client,
-@@ -771,7 +772,7 @@
- 	default:
- 		printk(KERN_ERR "%s: Wrong mode parameter for set_led()\n",
- 		       DRIVER_NAME);
--		up(&the_tps->lock);
-+		mutex_unlock(&the_tps->lock);
- 		return -EINVAL;
- 	}
- 
-@@ -781,7 +782,7 @@
- 	if (status != 0) {
- 		printk(KERN_ERR "%s: Failed to write led%i_on register\n",
- 		       DRIVER_NAME, led);
--		up(&the_tps->lock);
-+		mutex_unlock(&the_tps->lock);
- 		return status;
- 	}
- 
-@@ -794,7 +795,7 @@
- 	if (status != 0) {
- 		printk(KERN_ERR "%s: Failed to write led%i_per register\n",
- 		       DRIVER_NAME, led);
--		up(&the_tps->lock);
-+		mutex_unlock(&the_tps->lock);
- 		return status;
- 	}
- 
-@@ -802,7 +803,7 @@
- 		i2c_smbus_read_byte_data(&the_tps->client,
- 				TPS_LED1_PER + offs));
- 
--	up(&the_tps->lock);
-+	mutex_unlock(&the_tps->lock);
- 
- 	return status;
- }
-@@ -820,7 +821,7 @@
- 	if (!the_tps)
- 		return -ENODEV;
- 
--	down(&the_tps->lock);
-+	mutex_lock(&the_tps->lock);
- 
- 	vdcdc2 = i2c_smbus_read_byte_data(&the_tps->client, TPS_VDCDC2);
- 	vdcdc2 &= ~(1 << 1);
-@@ -831,7 +832,7 @@
- 
- 	pr_debug("%s: vibrator %s\n", DRIVER_NAME, value ? "on" : "off");
- 
--	up(&the_tps->lock);
-+	mutex_unlock(&the_tps->lock);
- 	return status;
- }
- EXPORT_SYMBOL(tps65010_set_vib);
-@@ -848,7 +849,7 @@
- 	if (!the_tps)
- 		return -ENODEV;
- 
--	down(&the_tps->lock);
-+	mutex_lock(&the_tps->lock);
- 
- 	pr_debug("%s: %s low_pwr, vdcdc1 0x%02x\n", DRIVER_NAME,
- 		mode ? "enable" : "disable",
-@@ -876,7 +877,7 @@
- 		pr_debug("%s: vdcdc1 0x%02x\n", DRIVER_NAME,
- 			i2c_smbus_read_byte_data(&the_tps->client, TPS_VDCDC1));
- 
--	up(&the_tps->lock);
-+	mutex_unlock(&the_tps->lock);
- 
- 	return status;
- }
-@@ -894,7 +895,7 @@
- 	if (!the_tps)
- 		return -ENODEV;
- 
--	down(&the_tps->lock);
-+	mutex_lock(&the_tps->lock);
- 
- 	pr_debug("%s: vregs1 0x%02x\n", DRIVER_NAME,
- 			i2c_smbus_read_byte_data(&the_tps->client, TPS_VREGS1));
-@@ -909,7 +910,7 @@
- 		pr_debug("%s: vregs1 0x%02x\n", DRIVER_NAME,
- 			i2c_smbus_read_byte_data(&the_tps->client, TPS_VREGS1));
- 
--	up(&the_tps->lock);
-+	mutex_unlock(&the_tps->lock);
- 
- 	return status;
- }
-@@ -931,7 +932,7 @@
- 	if (!the_tps || the_tps->por)
- 		return -ENODEV;
- 
--	down(&the_tps->lock);
-+	mutex_lock(&the_tps->lock);
- 
- 	pr_debug("%s: %s low_pwr, chgconfig 0x%02x vdcdc1 0x%02x\n",
- 		DRIVER_NAME,
-@@ -959,7 +960,7 @@
- 	if (status != 0) {
- 		printk(KERN_ERR "%s: Failed to write chconfig register\n",
- 	 DRIVER_NAME);
--		up(&the_tps->lock);
-+		mutex_unlock(&the_tps->lock);
- 		return status;
- 	}
- 
-@@ -977,7 +978,7 @@
- 		pr_debug("%s: vdcdc1 0x%02x\n", DRIVER_NAME,
- 			i2c_smbus_read_byte_data(&the_tps->client, TPS_VDCDC1));
- 
--	up(&the_tps->lock);
-+	mutex_unlock(&the_tps->lock);
- 
- 	return status;
- }
---- linux-2.6.16-rc1.orig/drivers/i2c/i2c-core.c	2006-01-18 20:59:10.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/i2c-core.c	2006-01-18 21:00:41.000000000 +0100
-@@ -169,8 +169,8 @@
- 	}
- 
- 	adap->nr =  id & MAX_ID_MASK;
--	init_MUTEX(&adap->bus_lock);
--	init_MUTEX(&adap->clist_lock);
-+	mutex_init(&adap->bus_lock);
-+	mutex_init(&adap->clist_lock);
- 	list_add_tail(&adap->list,&adapters);
- 	INIT_LIST_HEAD(&adap->clients);
- 
-@@ -385,9 +385,9 @@
- {
- 	int rval;
- 
--	down(&adapter->clist_lock);
-+	mutex_lock(&adapter->clist_lock);
- 	rval = __i2c_check_addr(adapter, addr);
--	up(&adapter->clist_lock);
-+	mutex_unlock(&adapter->clist_lock);
- 
- 	return rval;
- }
-@@ -396,13 +396,13 @@
- {
- 	struct i2c_adapter *adapter = client->adapter;
- 
--	down(&adapter->clist_lock);
-+	mutex_lock(&adapter->clist_lock);
- 	if (__i2c_check_addr(client->adapter, client->addr)) {
--		up(&adapter->clist_lock);
-+		mutex_unlock(&adapter->clist_lock);
- 		return -EBUSY;
- 	}
- 	list_add_tail(&client->list,&adapter->clients);
--	up(&adapter->clist_lock);
-+	mutex_unlock(&adapter->clist_lock);
+@@ -139,6 +144,7 @@
+ #define W627THF_DEVID 0x82
+ #define W697_DEVID 0x60
+ #define W637_DEVID 0x70
++#define W687THF_DEVID 0x85
+ #define WINB_ACT_REG 0x30
+ #define WINB_BASE_REG 0x60
+ /* Constants specified below */
+@@ -202,11 +208,11 @@
+ #define W83627HF_REG_PWM1 0x5A
+ #define W83627HF_REG_PWM2 0x5B
+ 
+-#define W83627THF_REG_PWM1		0x01	/* 697HF and 637HF too */
+-#define W83627THF_REG_PWM2		0x03	/* 697HF and 637HF too */
+-#define W83627THF_REG_PWM3		0x11	/* 637HF too */
++#define W83627THF_REG_PWM1		0x01	/* 697HF/637HF/687THF too */
++#define W83627THF_REG_PWM2		0x03	/* 697HF/637HF/687THF too */
++#define W83627THF_REG_PWM3		0x11	/* 637HF/687THF too */
+ 
+-#define W83627THF_REG_VRM_OVT_CFG 	0x18	/* 637HF too */
++#define W83627THF_REG_VRM_OVT_CFG 	0x18	/* 637HF/687THF too */
+ 
+ static const u8 regpwm_627hf[] = { W83627HF_REG_PWM1, W83627HF_REG_PWM2 };
+ static const u8 regpwm[] = { W83627THF_REG_PWM1, W83627THF_REG_PWM2,
+@@ -319,7 +325,7 @@
+ 				   Default = 3435.
+ 				   Other Betas unimplemented */
+ 	u8 vrm;
+-	u8 vrm_ovt;		/* Register value, 627thf & 637hf only */
++	u8 vrm_ovt;		/* Register value, 627THF/637HF/687THF only */
+ };
+ 
+ 
+@@ -414,7 +420,8 @@
+ 	long in0;
+ 
+ 	if ((data->vrm_ovt & 0x01) &&
+-		(w83627thf = data->type || w83637hf = data->type))
++		(w83627thf = data->type || w83637hf = data->type
++		 || w83687thf = data->type))
+ 
+ 		/* use VRM9 calculation */
+ 		in0 = (long)((reg * 488 + 70000 + 50) / 100);
+@@ -455,7 +462,8 @@
+ 	mutex_lock(&data->update_lock);
  	
- 	if (adapter->client_register)  {
- 		if (adapter->client_register(client))  {
-@@ -451,12 +451,12 @@
- 		}
+ 	if ((data->vrm_ovt & 0x01) &&
+-		(w83627thf = data->type || w83637hf = data->type))
++		(w83627thf = data->type || w83637hf = data->type
++		 || w83687thf = data->type))
+ 
+ 		/* use VRM9 calculation */
+ 		data->in_min[0] @@ -482,7 +490,8 @@
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if ((data->vrm_ovt & 0x01) &&
+-		(w83627thf = data->type || w83637hf = data->type))
++		(w83627thf = data->type || w83637hf = data->type
++		 || w83687thf = data->type))
+ 		
+ 		/* use VRM9 calculation */
+ 		data->in_max[0] @@ -981,7 +990,8 @@
+ 	if(val != W627_DEVID &&
+ 	   val != W627THF_DEVID &&
+ 	   val != W697_DEVID &&
+-	   val != W637_DEVID) {
++	   val != W637_DEVID &&
++	   val != W687THF_DEVID) {
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+@@ -1035,6 +1045,8 @@
+ 		kind = w83627thf;
+ 	else if(val = W637_DEVID)
+ 		kind = w83637hf;
++	else if (val = W687THF_DEVID)
++		kind = w83687thf;
+ 	else {
+ 		dev_info(&adapter->dev,
+ 			 "Unsupported chip (dev_id=0x%02X).\n", val);
+@@ -1072,6 +1084,8 @@
+ 		client_name = "w83697hf";
+ 	} else if (kind = w83637hf) {
+ 		client_name = "w83637hf";
++	} else if (kind = w83687thf) {
++		client_name = "w83687thf";
  	}
  
--	down(&adapter->clist_lock);
-+	mutex_lock(&adapter->clist_lock);
- 	list_del(&client->list);
- 	init_completion(&client->released);
- 	device_remove_file(&client->dev, &dev_attr_client_name);
- 	device_unregister(&client->dev);
--	up(&adapter->clist_lock);
-+	mutex_unlock(&adapter->clist_lock);
- 	wait_for_completion(&client->released);
+ 	/* Fill in the remaining client fields and put into the global list */
+@@ -1107,7 +1121,7 @@
+ 	device_create_file_in(new_client, 2);
+ 	device_create_file_in(new_client, 3);
+ 	device_create_file_in(new_client, 4);
+-	if (kind != w83627thf && kind != w83637hf) {
++	if (kind = w83627hf || kind = w83697hf) {
+ 		device_create_file_in(new_client, 5);
+ 		device_create_file_in(new_client, 6);
+ 	}
+@@ -1140,7 +1154,7 @@
  
-  out:
-@@ -514,19 +514,19 @@
- 	struct list_head  *item;
- 	struct i2c_client *client;
+ 	device_create_file_pwm(new_client, 1);
+ 	device_create_file_pwm(new_client, 2);
+-	if (kind = w83627thf || kind = w83637hf)
++	if (kind = w83627thf || kind = w83637hf || kind = w83687thf)
+ 		device_create_file_pwm(new_client, 3);
  
--	down(&adap->clist_lock);
-+	mutex_lock(&adap->clist_lock);
- 	list_for_each(item,&adap->clients) {
- 		client = list_entry(item, struct i2c_client, list);
- 		if (!try_module_get(client->driver->driver.owner))
- 			continue;
- 		if (NULL != client->driver->command) {
--			up(&adap->clist_lock);
-+			mutex_unlock(&adap->clist_lock);
- 			client->driver->command(client,cmd,arg);
--			down(&adap->clist_lock);
-+			mutex_lock(&adap->clist_lock);
- 		}
- 		module_put(client->driver->driver.owner);
-        }
--       up(&adap->clist_lock);
-+       mutex_unlock(&adap->clist_lock);
+ 	device_create_file_sensor(new_client, 1);
+@@ -1248,6 +1262,33 @@
+ 	return res;
  }
  
- static int __init i2c_init(void)
-@@ -570,9 +570,9 @@
- 		}
- #endif
++static int w83687thf_read_vid(struct i2c_client *client)
++{
++	int res = 0xff;
++
++	superio_enter();
++	superio_select(W83627HF_LD_HWM);
++
++	/* Make sure these GPIO pins are enabled */
++	if (!(superio_inb(W83687THF_VID_EN) & (1 << 2))) {
++		dev_dbg(&client->dev, "VID disabled, no VID function\n");
++		goto exit;
++	}
++
++	/* Make sure the pins are configured for input */
++	if (!(superio_inb(W83687THF_VID_CFG) & (1 << 4))) {
++		dev_dbg(&client->dev, "VID configured as output, "
++			"no VID function\n");
++		goto exit;
++	}
++
++	res = superio_inb(W83687THF_VID_DATA) & 0x3f;
++
++exit:
++	superio_exit();
++	return res;
++}
++
+ static int w83627hf_write_value(struct i2c_client *client, u16 reg, u16 value)
+ {
+ 	struct w83627hf_data *data = i2c_get_clientdata(client);
+@@ -1325,10 +1366,13 @@
+ 		data->vid = (lo & 0x0f) | ((hi & 0x01) << 4);
+ 	} else if (w83627thf = data->type) {
+ 		data->vid = w83627thf_read_gpio5(client);
++	} else if (w83687thf = data->type) {
++		data->vid = w83687thf_read_vid(client);
+ 	}
  
--		down(&adap->bus_lock);
-+		mutex_lock(&adap->bus_lock);
- 		ret = adap->algo->master_xfer(adap,msgs,num);
--		up(&adap->bus_lock);
-+		mutex_unlock(&adap->bus_lock);
+ 	/* Read VRM & OVT Config only once */
+-	if (w83627thf = data->type || w83637hf = data->type) {
++	if (w83627thf = data->type || w83637hf = data->type
++	 || w83687thf = data->type) {
+ 		data->vrm_ovt = 
+ 			w83627hf_read_value(client, W83627THF_REG_VRM_OVT_CFG);
+ 	}
+@@ -1395,7 +1439,7 @@
+ 		for (i = 0; i <= 8; i++) {
+ 			/* skip missing sensors */
+ 			if (((data->type = w83697hf) && (i = 1)) ||
+-			    ((data->type = w83627thf || data->type = w83637hf)
++			    ((data->type != w83627hf && data->type != w83697hf)
+ 			    && (i = 5 || i = 6)))
+ 				continue;
+ 			data->in[i] --- linux-2.6.16-rc1.orig/Documentation/hwmon/w83627hf	2006-01-18 18:28:38.000000000 +0100
++++ linux-2.6.16-rc1/Documentation/hwmon/w83627hf	2006-01-18 21:26:46.000000000 +0100
+@@ -18,6 +18,10 @@
+     Prefix: 'w83637hf'
+     Addresses scanned: ISA address retrieved from Super I/O registers
+     Datasheet: http://www.winbond.com/PDF/sheet/w83637hf.pdf
++  * Winbond W83687THF
++    Prefix: 'w83687thf'
++    Addresses scanned: ISA address retrieved from Super I/O registers
++    Datasheet: Provided by Winbond on request
  
- 		return ret;
- 	} else {
-@@ -1116,10 +1116,10 @@
- 	flags &= I2C_M_TEN | I2C_CLIENT_PEC;
+ Authors:
+         Frodo Looijaard <frodol at dds.nl>,
+--- linux-2.6.16-rc1.orig/drivers/hwmon/Kconfig	2006-01-18 19:54:01.000000000 +0100
++++ linux-2.6.16-rc1/drivers/hwmon/Kconfig	2006-01-18 21:26:46.000000000 +0100
+@@ -406,13 +406,14 @@
+ 	  will be called w83l785ts.
  
- 	if (adapter->algo->smbus_xfer) {
--		down(&adapter->bus_lock);
-+		mutex_lock(&adapter->bus_lock);
- 		res = adapter->algo->smbus_xfer(adapter,addr,flags,read_write,
- 		                                command,size,data);
--		up(&adapter->bus_lock);
-+		mutex_unlock(&adapter->bus_lock);
- 	} else
- 		res = i2c_smbus_xfer_emulated(adapter,addr,flags,read_write,
- 	                                      command,size,data);
---- linux-2.6.16-rc1.orig/include/linux/i2c.h	2006-01-18 20:52:26.000000000 +0100
-+++ linux-2.6.16-rc1/include/linux/i2c.h	2006-01-18 21:00:41.000000000 +0100
-@@ -32,7 +32,7 @@
- #include <linux/mod_devicetable.h>
- #include <linux/device.h>	/* for struct device */
- #include <linux/sched.h>	/* for completion */
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
+ config SENSORS_W83627HF
+-	tristate "Winbond W83627HF, W83627THF, W83637HF, W83697HF"
+-	depends on HWMON && I2C && EXPERIMENTAL
++	tristate "Winbond W83627HF, W83627THF, W83637HF, W83687THF, W83697HF"
++	depends on HWMON && I2C
+ 	select I2C_ISA
+ 	select HWMON_VID
+ 	help
+ 	  If you say yes here you get support for the Winbond W836X7 series
+-	  of sensor chips: the W83627HF, W83627THF, W83637HF, and the W83697HF
++	  of sensor chips: the W83627HF, W83627THF, W83637HF, W83687THF and
++	  W83697HF.
  
- /* --- For i2c-isa ---------------------------------------------------- */
- 
-@@ -225,8 +225,8 @@
- 	int (*client_unregister)(struct i2c_client *);
- 
- 	/* data fields that are valid for all devices	*/
--	struct semaphore bus_lock;
--	struct semaphore clist_lock;
-+	struct mutex bus_lock;
-+	struct mutex clist_lock;
- 
- 	int timeout;
- 	int retries;
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called w83627hf.
 
 -- 
 Jean Delvare
