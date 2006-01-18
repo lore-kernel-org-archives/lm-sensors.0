@@ -1,82 +1,56 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 22:13:09 +0000
-Subject: [lm-sensors] [PATCH 11/17] hwmon: w83792d drop useless macros
-Message-Id: <20060118231309.1509ba3d.khali@linux-fr.org>
+Date: Wed, 18 Jan 2006 21:53:09 +0000
+Subject: [lm-sensors] [PATCH 08/17] i2c: scx200_acb minimal documentation
+Message-Id: <20060118225309.708129dd.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-w83792d-drop-useless-macros.patch
+From: Ben Gardner <bgardner at wabtec.com>
+Content-Disposition: inline; filename=i2c-scx200_acb-07-docs.patch
 
-Drop 3 useless macros in the w83792d hardware monitoring driver.
+scx200_acb: Minimal documentation update
 
+Signed-off-by: Ben Gardner <bgardner at wabtec.com>
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- drivers/hwmon/w83792d.c |   24 +++---------------------
- 1 file changed, 3 insertions(+), 21 deletions(-)
+ Documentation/i2c/busses/scx200_acb |    5 +++--
+ drivers/i2c/busses/Kconfig          |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- linux-2.6.15-git.orig/drivers/hwmon/w83792d.c	2006-01-11 20:38:49.000000000 +0100
-+++ linux-2.6.15-git/drivers/hwmon/w83792d.c	2006-01-11 21:12:40.000000000 +0100
-@@ -618,10 +618,6 @@
+--- linux-2.6.15-git.orig/Documentation/i2c/busses/scx200_acb	2006-01-08 19:26:27.000000000 +0100
++++ linux-2.6.15-git/Documentation/i2c/busses/scx200_acb	2006-01-11 20:22:55.000000000 +0100
+@@ -6,9 +6,10 @@
+ -----------------
  
- static
- DEVICE_ATTR(alarms, S_IRUGO, show_alarms_reg, NULL);
--#define device_create_file_alarms() \
--device_create_file(dev, &dev_attr_alarms);
--
--
+ * base: int
+-  Base addresses for the ACCESS.bus controllers
++  Base addresses for the ACCESS.bus controllers on SCx200 and SC1100 devices
  
- static ssize_t
- show_pwm(struct device *dev, struct device_attribute *attr,
-@@ -775,12 +771,6 @@
+ Description
+ -----------
  
- static DEVICE_ATTR(chassis, S_IRUGO, show_regs_chassis, NULL);
+-Enable the use of the ACCESS.bus controllers of a SCx200 processor.
++Enable the use of the ACCESS.bus controller on the Geode SCx200 and
++SC1100 processors and the CS5535 and CS5536 Geode companion devices.
+--- linux-2.6.15-git.orig/drivers/i2c/busses/Kconfig	2006-01-11 20:08:39.000000000 +0100
++++ linux-2.6.15-git/drivers/i2c/busses/Kconfig	2006-01-11 20:22:55.000000000 +0100
+@@ -389,10 +389,11 @@
+ 	  also be specified with a module parameter.
  
--#define device_create_file_chassis() \
--do { \
--device_create_file(dev, &dev_attr_chassis); \
--} while (0)
--
--
- static ssize_t
- show_chassis_clear(struct device *dev, struct device_attribute *attr, char *buf)
- {
-@@ -811,13 +801,6 @@
- static DEVICE_ATTR(chassis_clear, S_IRUGO | S_IWUSR,
- 		show_chassis_clear, store_chassis_clear);
+ config SCx200_ACB
+-	tristate "NatSemi SCx200 ACCESS.bus"
++	tristate "Geode ACCESS.bus support"
+ 	depends on I2C && PCI
+ 	help
+-	  Enable the use of the ACCESS.bus controllers of a SCx200 processor.
++	  Enable the use of the ACCESS.bus controllers on the Geode SCx200 and
++	  SC1100 processors and the CS5535 and CS5536 Geode companion devices.
  
--#define device_create_file_chassis_clear() \
--do { \
--device_create_file(dev, &dev_attr_chassis_clear); \
--} while (0)
--
--
--
- /* For Smart Fan I / Thermal Cruise */
- static ssize_t
- show_thermal_cruise(struct device *dev, struct device_attribute *attr,
-@@ -1294,16 +1277,15 @@
- 		device_create_file(dev, &sda_tolerance[i].dev_attr);
- 	}
+ 	  If you don't know what to do here, say N.
  
--	device_create_file_alarms();
--
- 	for (i = 0; i < ARRAY_SIZE(sda_pwm); i++) {
- 		device_create_file(dev, &sda_pwm[i].dev_attr);
- 		device_create_file(dev, &sda_pwm_enable[i].dev_attr);
- 		device_create_file(dev, &sda_pwm_mode[i].dev_attr);
- 	}
- 
--	device_create_file_chassis();
--	device_create_file_chassis_clear();
-+	device_create_file(dev, &dev_attr_alarms);
-+	device_create_file(dev, &dev_attr_chassis);
-+	device_create_file(dev, &dev_attr_chassis_clear);
- 
- 	for (i = 0; i < ARRAY_SIZE(sda_sf2_point); i++)
- 		device_create_file(dev, &sda_sf2_point[i].dev_attr);
 
 -- 
 Jean Delvare
