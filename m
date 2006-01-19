@@ -1,7 +1,7 @@
 From: stevenkaratnyk@rogers.com (Steven Karatnyk)
-Date: Thu, 19 Jan 2006 05:20:09 +0000
+Date: Thu, 19 Jan 2006 05:27:28 +0000
 Subject: [lm-sensors] seeking a W83687THF patch for 2.6.15 (re: ticket
-Message-Id: <43CF2189.9070409@rogers.com>
+Message-Id: <43CF2340.10200@rogers.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43BDFEEE.4070408@rogers.com>
 In-Reply-To: <43BDFEEE.4070408@rogers.com>
@@ -10,49 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
->> Looking in /usr/lib I notice only one library: libsensors.a (which is 
->> from Sept 12th/05 ... marking it as being from v2.9.1)
->>
->> Looking in /usr/local/lib reveals 4 files (all of which dated Jan 9th/06):
->> libsensors.a
->> libsensors.so ... which is a link to libsensors.so.3
->> libsensors.so.3 .... which is a link to libsensors.so.3.0.9
->> libsensors.so.3.0.9
->>
->> Should I just copy the libsensors.a and libsensors.so.3.0.9 into /usr/lib ?
->>     
+Hi Mark,
+
+Mark M. Hoffman wrote:
+> Steven, you can use the following command to see which libraries would be
+> used by sensors:
 >
-> No! Don't touch anything. Static libraries (.a files) shouldn't cause
-> any trouble, they are not even used by "sensors". So you have a single
-> dynamic library (libsensors.so.3.0.9 under /usr/local/lib) and that's
-> alright that way. If it ain't broken, don't fix it! :)
+> 	$ ldd `which sensors`
 >
->   
->> Any potential for error if the the wrong library is being read?
->>     
+> E.g., mine says this:
 >
-> You would miss the improvements brought by the newer version if this
-> was happening to you. Additionally you might enounter missing symbol
-> errors. It's quite frequent that people install lm_sensors CVS
-> in /usr/local and still have lm_sensors from their distribution
-> in /usr. Usually they will run the right (new) version of "sensors" (if
-> their PATH is correct, that is) but that version of sensors may link
-> dynamically with libsensors from /usr/lib - the old version.
->   
-Thanks for explaining.
+> 	$ ldd `which sensors`
+>         	linux-gate.so.1 =>  (0xffffe000)
+>         	libsensors.so.3 => /usr/local/lib/libsensors.so.3 (0xb7f65000)
+>         	libc.so.6 => /lib/tls/libc.so.6 (0xb7e22000)
+>         	libm.so.6 => /lib/tls/libm.so.6 (0xb7dff000)
+>         	libsysfs.so.1 => /usr/lib/libsysfs.so.1 (0xb7df5000)
+>         	/lib/ld-linux.so.2 (0xb7f9f000)
 
-> Our installation process tries to detect the case and should warn about
-> it, but it might not always work and not everyone pays attention to the
-> warnings, unfortunately.
+Now there's a neat trick :)
 
-I do remember such a message. I also remember there was also a step 
-which was going to copy something over to something else, and I wasn't 
-sure if that had automagically resolved any problems/conflicts or 
-not.....and I didn't follow this up .... I was probably too lost in 
-thought debating whether I had made the right choice of ISA or smbus ;)
+As user I get:
 
-Regards, Steven
+$ ldd `which sensors`
+linux-gate.so.1 => (0xffffe000)
+libsensors.so.3 => /usr/local/lib/libsensors.so.3 (0x40017000)
+libc.so.6 => /lib/tls/libc.so.6 (0x40065000)
+libm.so.6 => /lib/tls/libm.so.6 (0x40184000)
+libsysfs.so.1 => /lib/libsysfs.so.1 (0x401aa000)
+/lib/ld-linux.so.2 (0x40000000)
 
+As root, there is a slight difference (libsensors.so.3):
+
+# ldd `which sensors`
+linux-gate.so.1 => (0xffffe000)
+libsensors.so.3 => /usr/local/lib/libsensors.so.3 (0x40018000)
+libc.so.6 => /lib/tls/libc.so.6 (0x40065000)
+libm.so.6 => /lib/tls/libm.so.6 (0x40184000)
+libsysfs.so.1 => /lib/libsysfs.so.1 (0x401aa000)
+/lib/ld-linux.so.2 (0x40000000)
+
+Thanks, Steven
 
 
