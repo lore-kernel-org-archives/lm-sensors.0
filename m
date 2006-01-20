@@ -1,222 +1,42 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 18 Jan 2006 22:20:53 +0000
-Subject: [lm-sensors] [PATCH 16/17] hwmon: f71805f semaphore to mutex
-Message-Id: <20060118232053.036f5a7c.khali@linux-fr.org>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 20 Jan 2006 01:12:54 +0000
+Subject: [lm-sensors] [patch 2/X] pc87360 - consolidate show_X_Y callbacks
+Message-Id: <43D03916.7080805@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-f71805f-convert-semaphore-to-mutex.patch
 
-Convert the new f71805f hardware monitoring driver to use mutexes
-instead of semaphores.
+This patch uses the NR member in SENSOR_ATTR_2 to collapse
+the multiple show_X_Y callbacks into show_X callbacks.
+This saves 540 bytes of .text, and 5kb of disk.
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/hwmon/f71805f.c |   57 ++++++++++++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 28 deletions(-)
+Given that this patch replaces ~20 functions with 4 new ones, its 
+unlikely that
+further consolidation of the 4 into 1 is worth it, esp as it means lots 
+of code movement.
 
---- linux-2.6.15-git.orig/drivers/hwmon/f71805f.c	2006-01-13 18:38:11.000000000 +0100
-+++ linux-2.6.15-git/drivers/hwmon/f71805f.c	2006-01-13 20:28:09.000000000 +0100
-@@ -30,6 +30,7 @@
- #include <linux/hwmon.h>
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
-+#include <linux/mutex.h>
- #include <asm/io.h>
- 
- static struct platform_device *pdev;
-@@ -131,10 +132,10 @@
- struct f71805f_data {
- 	unsigned short addr;
- 	const char *name;
--	struct semaphore lock;
-+	struct mutex lock;
- 	struct class_device *class_dev;
- 
--	struct semaphore update_lock;
-+	struct mutex update_lock;
- 	char valid;		/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
- 	unsigned long last_limits;	/* In jiffies */
-@@ -224,20 +225,20 @@
- {
- 	u8 val;
- 
--	down(&data->lock);
-+	mutex_lock(&data->lock);
- 	outb(reg, data->addr + ADDR_REG_OFFSET);
- 	val = inb(data->addr + DATA_REG_OFFSET);
--	up(&data->lock);
-+	mutex_unlock(&data->lock);
- 
- 	return val;
- }
- 
- static void f71805f_write8(struct f71805f_data *data, u8 reg, u8 val)
- {
--	down(&data->lock);
-+	mutex_lock(&data->lock);
- 	outb(reg, data->addr + ADDR_REG_OFFSET);
- 	outb(val, data->addr + DATA_REG_OFFSET);
--	up(&data->lock);
-+	mutex_unlock(&data->lock);
- }
- 
- /* It is important to read the MSB first, because doing so latches the
-@@ -246,24 +247,24 @@
- {
- 	u16 val;
- 
--	down(&data->lock);
-+	mutex_lock(&data->lock);
- 	outb(reg, data->addr + ADDR_REG_OFFSET);
- 	val = inb(data->addr + DATA_REG_OFFSET) << 8;
- 	outb(++reg, data->addr + ADDR_REG_OFFSET);
- 	val |= inb(data->addr + DATA_REG_OFFSET);
--	up(&data->lock);
-+	mutex_unlock(&data->lock);
- 
- 	return val;
- }
- 
- static void f71805f_write16(struct f71805f_data *data, u8 reg, u16 val)
- {
--	down(&data->lock);
-+	mutex_lock(&data->lock);
- 	outb(reg, data->addr + ADDR_REG_OFFSET);
- 	outb(val >> 8, data->addr + DATA_REG_OFFSET);
- 	outb(++reg, data->addr + ADDR_REG_OFFSET);
- 	outb(val & 0xff, data->addr + DATA_REG_OFFSET);
--	up(&data->lock);
-+	mutex_unlock(&data->lock);
- }
- 
- static struct f71805f_data *f71805f_update_device(struct device *dev)
-@@ -271,7 +272,7 @@
- 	struct f71805f_data *data = dev_get_drvdata(dev);
- 	int nr;
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 
- 	/* Limit registers cache is refreshed after 60 seconds */
- 	if (time_after(jiffies, data->last_updated + 60 * HZ)
-@@ -323,7 +324,7 @@
- 		data->valid = 1;
- 	}
- 
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return data;
- }
-@@ -362,10 +363,10 @@
- 	struct f71805f_data *data = dev_get_drvdata(dev);
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->in_high[0] = in0_to_reg(val);
- 	f71805f_write8(data, F71805F_REG_IN_HIGH(0), data->in_high[0]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -376,10 +377,10 @@
- 	struct f71805f_data *data = dev_get_drvdata(dev);
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->in_low[0] = in0_to_reg(val);
- 	f71805f_write8(data, F71805F_REG_IN_LOW(0), data->in_low[0]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -422,10 +423,10 @@
- 	int nr = attr->index;
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->in_high[nr] = in_to_reg(val);
- 	f71805f_write8(data, F71805F_REG_IN_HIGH(nr), data->in_high[nr]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -438,10 +439,10 @@
- 	int nr = attr->index;
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->in_low[nr] = in_to_reg(val);
- 	f71805f_write8(data, F71805F_REG_IN_LOW(nr), data->in_low[nr]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -474,10 +475,10 @@
- 	int nr = attr->index;
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->fan_low[nr] = fan_to_reg(val);
- 	f71805f_write16(data, F71805F_REG_FAN_LOW(nr), data->fan_low[nr]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -531,10 +532,10 @@
- 	int nr = attr->index;
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->temp_high[nr] = temp_to_reg(val);
- 	f71805f_write8(data, F71805F_REG_TEMP_HIGH(nr), data->temp_high[nr]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -547,10 +548,10 @@
- 	int nr = attr->index;
- 	long val = simple_strtol(buf, NULL, 10);
- 
--	down(&data->update_lock);
-+	mutex_lock(&data->update_lock);
- 	data->temp_hyst[nr] = temp_to_reg(val);
- 	f71805f_write8(data, F71805F_REG_TEMP_HYST(nr), data->temp_hyst[nr]);
--	up(&data->update_lock);
-+	mutex_unlock(&data->update_lock);
- 
- 	return count;
- }
-@@ -711,9 +712,9 @@
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	data->addr = res->start;
--	init_MUTEX(&data->lock);
-+	mutex_init(&data->lock);
- 	data->name = "f71805f";
--	init_MUTEX(&data->update_lock);
-+	mutex_init(&data->update_lock);
- 
- 	platform_set_drvdata(pdev, data);
- 
+$ size a2-pc-*/drivers/hwmon/pc87360.ko
+   text    data     bss     dec     hex filename
+  12114    3144      16   15274    3baa a2-pc-0/drivers/hwmon/pc87360.ko
+  12046    3144      16   15206    3b66 a2-pc-1/drivers/hwmon/pc87360.ko
+  11506    3144      16   14666    394a a2-pc-2/drivers/hwmon/pc87360.ko
+$ ll a2-pc-*/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 135521 Jan 19 16:06 a2-pc-1/drivers/hwmon/pc87360.ko
+-rw-rw-r--  1 jimc jimc 130166 Jan 19 17:08 a2-pc-2/drivers/hwmon/pc87360.ko
 
--- 
-Jean Delvare
+$ diffstat diff.a2-pc-2.20060119.174325
+ pc87360.c |  398 
++++++++++++++++++++++++++++++---------------------------------
+ 1 files changed, 187 insertions(+), 211 deletions(-)
 
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-pc87360-squeeze-show-callbacks.patch
+Type: text/x-patch
+Size: 25176 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060120/89b2cfb2/hwmon-pc87360-squeeze-show-callbacks.bin
