@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 22 Jan 2006 10:42:40 +0000
+From: brix@gentoo.org (Henrik Brix Andersen)
+Date: Sun, 22 Jan 2006 11:48:31 +0000
 Subject: [lm-sensors] scx200_acb compilation breakage
-Message-Id: <20060122114240.4ceb970c.khali@linux-fr.org>
+Message-Id: <20060122114831.GB29407@osgiliath.brixandersen.dk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060120210612.6bcb6e8e.khali@linux-fr.org>
 In-Reply-To: <20060120210612.6bcb6e8e.khali@linux-fr.org>
@@ -10,26 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi again Ben,
+On Sun, Jan 22, 2006 at 11:42:40AM +0100, Jean Delvare wrote:
+> Basically it adds a dependency on SCX200 rather than X86. It's more
+> specific so I would tend to prefer it.
 
-> > The scx200/CS5535/etc only exist with/on the Geode processor, which is
-> > x86.
-> > So, I think the best option is to make it depend on X86.
+An alternative would be to make it depend on MGEODEGX1, but I don't
+know if that covers all Geode based boards. It's what I use for my
+Soekris units, though.
 
-I just found this proposed patch from Dave Jones:
-
-http://lkml.org/lkml/2006/1/20/121
-
-Basically it adds a dependency on SCX200 rather than X86. It's more
-specific so I would tend to prefer it.
-
-However, is it OK with regards to the CS5535/CS5536? Is SCX200 set for
-them? If not, Dave's fix isn't acceptable. Is there something more
-specific than X86 for the CS5535/CS5536 case? If there is we could make
-the driver depend on (SCX200 || CS553X) or something like that. If not
-we'll have to stick to X86.
-
-Thanks,
+Regards,
+Brix
 -- 
-Jean Delvare
-
+Henrik Brix Andersen <brix at gentoo.org>
+Gentoo Metadistribution | Mobile computing herd
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: not available
+Type: application/pgp-signature
+Size: 211 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060122/8c430202/attachment.bin
