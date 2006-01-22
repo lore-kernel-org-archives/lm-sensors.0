@@ -1,7 +1,7 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sat, 21 Jan 2006 09:05:41 +0000
+Date: Sun, 22 Jan 2006 10:42:40 +0000
 Subject: [lm-sensors] scx200_acb compilation breakage
-Message-Id: <20060121100541.7db4835f.khali@linux-fr.org>
+Message-Id: <20060122114240.4ceb970c.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20060120210612.6bcb6e8e.khali@linux-fr.org>
 In-Reply-To: <20060120210612.6bcb6e8e.khali@linux-fr.org>
@@ -10,37 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ben,
+Hi again Ben,
 
-> The scx200/CS5535/etc only exist with/on the Geode processor, which is
-> x86.
-> So, I think the best option is to make it depend on X86.
+> > The scx200/CS5535/etc only exist with/on the Geode processor, which is
+> > x86.
+> > So, I think the best option is to make it depend on X86.
 
-OK, here's a patch then:
+I just found this proposed patch from Dave Jones:
 
-scx200_acb is only useful on a few Geode-based systems, and won't
-compile on non-x86 systems due to the lack of asm/msr.h, as reported
-by Andrew Morton. Thus, we should make that driver depend on X86.
+http://lkml.org/lkml/2006/1/20/121
 
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
----
- drivers/i2c/busses/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Basically it adds a dependency on SCX200 rather than X86. It's more
+specific so I would tend to prefer it.
 
---- linux-2.6.16-rc1.orig/drivers/i2c/busses/Kconfig	2006-01-20 19:50:19.000000000 +0100
-+++ linux-2.6.16-rc1/drivers/i2c/busses/Kconfig	2006-01-21 09:57:55.000000000 +0100
-@@ -390,7 +390,7 @@
- 
- config SCx200_ACB
- 	tristate "Geode ACCESS.bus support"
--	depends on I2C && PCI
-+	depends on I2C && PCI && X86
- 	help
- 	  Enable the use of the ACCESS.bus controllers on the Geode SCx200 and
- 	  SC1100 processors and the CS5535 and CS5536 Geode companion devices.
-
-I'll post it shortly on LKML as a reply to Andrew's 2.6.16-rc1-mm2
-announce.
+However, is it OK with regards to the CS5535/CS5536? Is SCX200 set for
+them? If not, Dave's fix isn't acceptable. Is there something more
+specific than X86 for the CS5535/CS5536 case? If there is we could make
+the driver depend on (SCX200 || CS553X) or something like that. If not
+we'll have to stick to X86.
 
 Thanks,
 -- 
