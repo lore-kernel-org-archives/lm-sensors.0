@@ -1,43 +1,78 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Wed, 18 Jan 2006 19:59:30 +0000
-Subject: [lm-sensors] support for Asus K8N-DL
-Message-Id: <43CE9E22.9090502@sh.cvut.cz>
+From: timmcross@hotmail.com (Tim Cross)
+Date: Sun, 22 Jan 2006 19:17:59 +0000
+Subject: [lm-sensors] support for Soyo motherboard
+Message-Id: <BAY107-F32A65DEB24FE12F9BBA109AC110@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43CE3DEF.9060207@cox.net>
-In-Reply-To: <43CE3DEF.9060207@cox.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dave Shiels wrote:
-> This is the Nvidia Crush chip output from lspci -v
-> 00:01.1 SMBus: nVidia Corporation CK804 SMBus (rev a2)
->         Subsystem: ASUSTeK Computer Inc.: Unknown device 8162
->         Flags: 66Mhz, fast devsel, IRQ 5
->         I/O ports at fc00 [size2]
->         I/O ports at 1c00 [sized]
->         I/O ports at 1c40 [sized]
->         Capabilities: [44] Power Management version 2
+I was using lm_sensors on a Soyo SY-P4I865PE Plus Dragon 2 v1.0 motherboard 
+without issue for some time.  At some point, the sensors command now reports 
+No sensors found!  I am currently using Fedora Core 4.  Installing Windows 
+on this server and using Speedfan will allow me to access this data.
 
+Speedfan reports this:
 
-Hello,
+Scanning ISA BUS at $0290...
+Winbond W83627HF (ID=$21) found on ISA at $290
+SuperIO Chip=Winbond W83627HF
 
-What kernel are you using? (uname -a)
+[root at localhost ~]# sensors -v
+sensors version 2.9.1 with libsensors version 2.9.1
 
-Did you run sensors-detect script?
+Sensors-detect reports this:
+Probing for `Winbond W83627HF'
+  Trying address 0x0290... Success!
+    (confidence 8, driver `w83781d')
 
-If so, nvidia smbus was not detected? (or driver was not working?)
-Please send us output of lspci -n
+Probing for `Winbond W83627HF Super IO Sensors'
+  Success... found at address 0x0290
 
-If you have nforce4 you can try following patch:
-http://khali.linux-fr.org/devel/i2c/linux-2.6/i2c-nforce2-support-nforce4-mcp04.patch
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-If sensors-detect fail to find the chip W83792D (you must use lm-sensors version 2.9.2)
-then you will need to upgrade the BIOS.
+Driver `w83781d' (may not be inserted):
+  Misdetects:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83627HF' (confidence: 8)
 
-If any problems, contact us please,
+Driver `w83627hf' (should be inserted):
+  Detects correctly:
+  * ISA bus address 0x0290 (Busdriver `i2c-isa')
+    Chip `Winbond W83627HF Super IO Sensors' (confidence: 9)
 
-regards,
-Rudolf
+I added these lines:
+/etc/modprobe.conf:
+
+#----cut here----
+# I2C module options
+alias char-major-89 i2c-dev
+#----cut here----
+
+and these:
+
+To load everything that is needed, add this to some /etc/rc* file:
+
+#----cut here----
+# I2C adapter drivers
+modprobe i2c-isa
+# I2C chip drivers
+modprobe w83627hf
+# sleep 2 # optional
+/usr/bin/sensors -s # recommended
+#----cut here----
+
+yet I still get this:
+
+[root at localhost ~]# sensors
+No sensors found!
+
+Any ideas?
+
+_________________________________________________________________
+Express yourself instantly with MSN Messenger! Download today - it's FREE! 
+http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
+
 
