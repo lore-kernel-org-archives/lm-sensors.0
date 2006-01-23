@@ -1,36 +1,31 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 06 Jan 2006 16:51:06 +0000
-Subject: [lm-sensors] Better ML footers  (was: project status and future)
-Message-Id: <43BE9FFA.10908@gmail.com>
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Mon, 23 Jan 2006 22:26:42 +0000
+Subject: [lm-sensors] I switched from AMD XP TB to AMD Mobile
+Message-Id: <43D55822.9020102@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+hello,
 
+> I switched from AMD XP TB to AMD Mobile Barton on a GB 7n400e-l (it8217)
+> and now CPU temp reading has gone to -74*C from the previous +45*C
+> readings. In bios temp readings are just it's fine.. right now it looks
+> as a diode (meaning auto selected by sensors) but if I change it to
+> thermistor (which I doubt is the type in this MB) it just changes to
+> +74*C or something similar, please tell me how to reset all-together
+> sensors data about the diode/thermistor settings or to pastebin my
+> config? there is no offset for cputemp in bios. Many thanks in advance!
 
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Hmm thats really strange. Maybe the temp reading are inverted for some reason?
 
-would be better as
+Please have a look to propper /etc/sensors.conf section
+(look for:  compute temp1     (-15.096+1.4893*@), (@+15.096)/1.4893 ) or similar)
 
-http://lists.lm-sensors.org/pipermail/lm-sensors/
-which has a link to listinfo right at top.
+Maybe other people round can have some idea?
 
-Id hope that most uses of the ML footer link are to get to the archive, 
-via 2 clicks.
-Lets make it one (maybe it gets more used :-)
-
-Also FAQ, wiki, trac links.
-
-tia
-
->>------------------------------------------------------------------------
->>
->>_______________________________________________
->>lm-sensors mailing list
->>lm-sensors at lm-sensors.org
->>http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>
-
+Regards,
+Rudolf
 
