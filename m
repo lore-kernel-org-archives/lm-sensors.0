@@ -1,38 +1,43 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Thu, 19 Jan 2006 04:29:54 +0000
-Subject: [lm-sensors] ISA vs. SMBus
-Message-Id: <20060119042954.GC17365@jupiter.solarsys.private>
+From: ps@ucw.cz (Sanda Pavel)
+Date: Mon, 23 Jan 2006 18:49:12 +0000
+Subject: [lm-sensors] kacpid vs sensors and fan problem
+Message-Id: <20060123184912.GA25092@atrey.karlin.mff.cuni.cz>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060117083114.7f2e826b.khali@linux-fr.org>
-In-Reply-To: <20060117083114.7f2e826b.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean:
+hi,
 
-* Jean Delvare <khali at linux-fr.org> [2006-01-17 08:31:14 +0100]:
-> After all detections have been done, sensors-detect currently asks the
-> user whether he/she prefers ISA access or SMBus access when both are
-> possible. This option only makes sense for "hybrid" drivers (lm78,
-> w83781d, it87), and only in a few cases (i.e. at least one alias has
-> been detected by sensors-detect).
-> 
-> This question tends to confuse people, precisely due to the fact that
-> it is asked unconditionally while most people simply don't need to
-> care. Also, I see very little reason why someone would prefer not to
-> use the ISA access, given the increased speed and reliability. Thus, I
-> propose that we drop this question and assume "ISA" as the answer for
-> everyone:
-> [...]
+i have tried to run acpi and sensors on asus m6va notebook,
+but i have come accross problems im not able to solve.
 
-FWIW, I agree.
+sensors-detect found i2c-i801 bus and lm85 and eeprom chips.
+i can probe all kernel modules without difficulty, sensors
+seem to work as far as statistics concerned.
 
-Regards,
+first problem starts, when boot initscript tries to intialize
+sensors - kacpid kernel module takes 99% CPU and stick to this
+usage. i found, this happens whenever "sensors -s" is executed.
+when i switched off initialization (INITSENSORS=no), notebook
+boots without difficulty.
 
--- 
-Mark M. Hoffman
-mhoffman at lightlink.com
+second problem is, that i can't setup fans, although i can read
+their current state. when i run pwmconfig, there are errors such as: 
+   
+   0-002d/pwm1
+   /usr/sbin/pwmconfig: line 102: 0-002d/pwm1_enable: Permission denied
 
+can be this problem caused by skipping sensors initialization ?
+
+i tried to change permissions and write directly some values to pwm files
+in sys/bus/i2c/drivers/lm85/0-002d, but without success.
+i have tried 2.6.12/15/16 kernels, using 2.9.2 sensors.
+i filed kacpid bug #5872 in kernel bugzilla, where i put additional log-attachments
+few weeks ago.
+
+have anybody idea whats wrong ?
+
+pavel
 
