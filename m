@@ -1,180 +1,239 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Sat, 21 Jan 2006 00:59:09 +0000
-Subject: [lm-sensors] Super-IO locking
-Message-Id: <43D1875D.2040002@gmail.com>
+From: samag70-2@yahoo.ca (samag70-2@yahoo.ca)
+Date: Thu, 26 Jan 2006 17:53:13 +0000
+Subject: [lm-sensors] No sensors found!
+Message-Id: <20060126175313.69866.qmail@web88204.mail.re2.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43CAF458.8080707@gmail.com>
-In-Reply-To: <43CAF458.8080707@gmail.com>
+References: <62A29338972397468405C79C4FE13C3B916AFA@ex1.messagegate.local>
+In-Reply-To: <62A29338972397468405C79C4FE13C3B916AFA@ex1.messagegate.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-
->Hi Jim,
->
->  
->
->>SuperIO devices typically hide many functional units behind 2 io-bus 
->>addresses.  These various units/devices will obviously have separate
->>drivers to control them, leading to the potential that 2 drivers
->>will clash over the 'port'.
->>    
->>
->
->This is true. There have been a proposal from Evgeniy Poliakov in year
->2004 for a new superio subsystem which would have addressed the issue.
->Back then, it looked awfully complex to me. It seems to have vanished
->since, so the problem is still there.
->
->  
->
->>As I see it, we need a place to put a lock for the sio port, ideally
->>without creating a dependency of one driver on another. That said,
->>it seems a bit like overkill to create a 3rd module which merely
->>holds the lock that both drivers use, and therefore depend upon.
->>IOW, this replaces one dependency for another.
->>    
->>
->
->Direct dependencies aren't realistic, as you may have more than two
->drivers interested in one given Super-I/O device. Also, two devices
->from the same family may require a different set of drivers to cover
->all the functions, so you may end up with a complex network of
->dependencies. The only realistic solution is a centralized one, where
->one dedicated piece of code controls the access to the I/O ports, and
->other drivers kindly ask for the permission when they need to access it.
->
->  
->
->>OTOH, an sio-lock manager which provides a lock for any sio port user
->>(that uses the helper) could be justified.  There are a bunch of SuperIO
->>units in the hwmon/* world, so this seems like the right place to find
->>potential module clients.
->>
->>Any comments ?
->>    
->>
->
->So far, we have been limiting the possible problems for hardware
->monitoring drivers by only accessing the Super-I/O ports during module
->initialization. This has some limitations (like VID pins being read
->only once, or some runtime configuration changes being impossible) but
->is sufficient in most cases.
->
->Implementing a centralized superio controller is not trivial. There are
->decisions to be made. Do we want a complete subsystem, or a simple
->helper? Do we want to provide a complete API to the specific LPC
->registers (logical device selection, activation register, I/O base
->registers, interrupt configuration, etc)? Or do we simply want a
->generic I/O ports multiplexer, with a very simple interface? Or both?
->Most Super-I/O chips follow the Intel LPC standard, living at 0x2e or
->0x4e, but I think some live at strange addresses, and/or do not follow
->the regular register mapping. How do we handle these?
->
->The detection part won't be easy either. While answering the question
->"is this Super-I/O device present at address X" is pretty simple
->(that's what individual drivers do at the moment), pre-detecting
->Super-I/O devices promises to be a difficult task. What ports do we
->want to probe? Given that probing these ports means writing to them, we
->better be careful. Also, each Super-I/O chip may have a different
->"access key", so we'd need to try all known keys. Once we're in, the
->different chips use different registers for identification. Register
->0x20 is the most commonly used, but some chips use other registers in
->the 0x21-0x2f range for a complete identification.
->
->Now, if anyone wants to take his/her chance with an experimental
->implementation, I'll be happy to review it. I'm fine with a simple
->implementation local to hardware monitoring drivers to start with.
->
->Thanks,
->
->
->  
->
-Curiously, I have one ;-)  Its *unready* for serious review, but I can 
-outline it.
-I went for a simple helper approach:
-
-- provides an array of lock-structs (mod-param sets size), which are 
-handed out upon request.
-- does no sio-lock search, expects drivers to request them specifically.
-- but it does simplify the request. (implements the boilerplate)
-- reserves locks for 1st requester of a (sio-port,device-id) tuple.
-- 2nd requester shares that lock.
-- ie its a singleton
-
-- doesnt attempt to stop anti-social behavior (I wouldnt know how)
-- drivers are expected to do their own lock/unlock-ing
-    driver chooses  efficiency vs long-lock-time (maybe debug-mutexes 
-will help here)
-
-- lock-struct is a lock, sio-addr, dev_id, and (TBD) cur_cmd, cur_val
-- returning a lock-struct gives some type-based protection against 
-inadvertent misuse.
-- sio_lock(), sio_unlock()  further distinguish it.
-- but user can still reach inside the lock-struct to the lock itself
-- currently semaphore based, will be mutex.
-
-Also provides sio_inb() and sio_outb(), which are correlates of s
-uperio_inb() and superio_outb().  Currently, these functions attempt to 
-avoid
-unnecessary outb()s to sioaddr (the command address), but thats likely 
-to be a
-rarely used code-path, and I plan to rip it out, and maybe revisit it later.
-
-
-So, the API:
-
-+struct superio_gate {
-+       struct semaphore sema;  /* lock is here, for no-offset cast */
-+       int sioaddr;            /* this port's cmd-address */
-+       int cur_cmd;            /* of cmd-addr, avoid slow io-access */
-+       int cur_val;            /* of data-addr, avoid slow io-access */
-+};
-+
-+struct superio_gate* get_sio_gate(int sioaddr, int devid_addr, int 
-devid_val);
-+void sio_lock(struct superio_gate*);
-+void sio_unlock(struct superio_gate*);
-+int  sio_inb(struct superio_gate*, int reg);
-+void sio_outb(struct superio_gate*, int reg, int val );
-+void sio_exit(struct superio_gate*);
-
-
-users will do:
-  struct superio_gate* gate = get_sio_gate( sioaddr, devid_addr, 
-wanted_id );
-
-and then either
-    sio_lock(gate);
-or
-    lock_mutex(&gate->sema);
-
-Once users have taken the lock, they can use
-
-    superio_inb(gate->sioaddr);
-    superio_inb(sioaddr);               // if they know which was found
-
-    sio_inb(gate);            //
-    inb(..)
-
-wrt get_sio_gate(),  Im thinking about  get_oneof_sio_gates(), which would
-accept null-terminated arrays for each arg (maybe not devid_addr, since
-thats typically fixed across a family of chips - and the drivers that 
-can operate them),
-and do the looping so clients dont have to.
-
-
-So, with all that said, you can choose to defer a detailed review, since 
-Ill be
-cleaning it up a bunch.  I suspect we could chew on the API itself for a 
-while 1st.
-
-tia
-jimc
+I have followed the  directions, but I am having a tough time making this work.  After  going through all the steps, I still get the messageNo sensors found! 
+  
+  Here are the steps I went through, sorry if this is long.
+  
+  [root at dieppe ~]# rpm -qa | grep lm_sensors
+  lm_sensors-devel-2.9.2-42.rhfc4.at
+  lm_sensors-2.9.2-42.rhfc4.at
+  
+  [root at dieppe ~]# lsmod
+  Module                  Size  Used by
+  eeprom                  7377  0
+  i2c_piix4               9041  0
+  i2c_core               22081  2 eeprom,i2c_piix4
+  ipv6                  249761  18
+  autofs4                19653  2
+  sunrpc                141437  1
+  ipt_REJECT              5953  1
+  ipt_state               1985  8
+  ip_conntrack           51953  1 ipt_state
+  nfnetlink               6617  1 ip_conntrack
+  iptable_filter          3137  1
+  ip_tables               20033  3 ipt_REJECT,ipt_state,iptable_filter
+  video                  16197  0
+  button                  6737  0
+  battery                 9541  0
+  ac                       4933  0
+  uhci_hcd               32465  0
+  eepro100               30673  0
+  e100                   36545  0
+  mii                      5313  2 eepro100,e100
+  floppy                 61957  0
+  dm_snapshot            17773  0
+  dm_zero                 2113  0
+  dm_mirror              22421  0
+  ext3                  129993  8
+  jbd                     57813  1 ext3
+  dm_mod                  56797  12 dm_snapshot,dm_zero,dm_mirror
+  sym53c8xx              79193  2
+  scsi_transport_spi     21185  1 sym53c8xx
+  sd_mod                 18625  3
+  scsi_mod               135529  3 sym53c8xx,scsi_transport_spi,sd_mod
+  
+  [root at dieppe ~]# rmmod eeprom i2c_piix4 i2c_core
+  
+  [root at dieppe ~]# sensors-detect
+  # sensors-detect revision 1.393 (2005/08/30 18:51:18)
+  
+  This program will help you determine which I2C/SMBus modules you need to
+  load to use lm_sensors most effectively. You need to have i2c and
+  lm_sensors installed before running this program.
+  Also, you need to be `root', or at least have access to the /dev/i2c-*
+  files, for most things.
+  If you have patched your kernel and have some drivers built in, you can
+  safely answer NO if asked to load some modules. In this case, things may
+  seem a bit confusing, but they will still work.
+  
+  It is generally safe and recommended to accept the default answers to all
+  questions, unless you know what you're doing.
+  
+   We can start with probing for (PCI) I2C or SMBus adapters.
+   You do not need any special privileges for this.
+   Do you want to probe now? (YES/no): YES
+  Probing for PCI bus adapters...
+  Use driver `i2c-piix4' for device 00:14.3: Intel 82371AB PIIX4 ACPI
+  Probe succesfully concluded.
+  
+  We will now try to load each adapter module in turn.
+  Load `i2c-piix4' (say NO if built into your kernel)? (YES/no): YES
+  Module loaded succesfully.
+  If you have undetectable or unsupported adapters, you can have them
+  scanned by manually loading the modules before running this script.
+  
+   To continue, we need module `i2c-dev' to be loaded.
+   If it is built-in into your kernel, you can safely skip this.
+   i2c-dev is not loaded. Do you want to load it now? (YES/no): YES
+   Module loaded succesfully.
+  
+   We are now going to do the adapter probings. Some adapters may hang halfway
+   through; we can't really help that. Also, some chips will be double detected;
+   we choose the one with the highest confidence value in that case.
+   If you found that the adapter hung after probing a certain address, you can
+   specify that address to remain unprobed. That often
+   includes address 0x69 (clock chip).
+  
+  Next adapter: SMBus PIIX4 adapter at fc00
+  Do you want to scan it? (YES/no/selectively): YES
+  Client found at address 0x32
+  Client found at address 0x50
+  Probing for `SPD EEPROM'... Success!
+      (confidence 8, driver `eeprom')
+  Probing for `DDC monitor'... Failed!
+  Probing for `Maxim MAX6900'... Failed!
+  Client found at address 0x51
+  Probing for `SPD EEPROM'... Success!
+      (confidence 8, driver `eeprom')
+  Client found at address 0x52
+  Probing for `SPD EEPROM'... Success!
+      (confidence 8, driver `eeprom')
+  Client found at address 0x69
+  
+  Some chips are also accessible through the ISA bus. ISA probes are
+  typically a bit more dangerous, as we have to write to I/O ports to do
+  this. This is usually safe though.
+  
+  Do you want to scan the ISA bus? (YES/no): YES
+  Probing for `National Semiconductor LM78'
+    Trying address 0x0290... Failed!
+  Probing for `National Semiconductor LM78-J'
+    Trying address 0x0290... Failed!
+  Probing for `National Semiconductor LM79'
+    Trying address 0x0290... Failed!
+  Probing for `Winbond W83781D'
+    Trying address 0x0290... Failed!
+  Probing for `Winbond W83782D'
+    Trying address 0x0290... Failed!
+  Probing for `Winbond W83627HF'
+    Trying address 0x0290... Failed!
+  Probing for `Winbond W83627EHF'
+    Trying address 0x0290... Failed!
+  Probing for `Winbond W83697HF'
+    Trying address 0x0290... Failed!
+  Probing for `Silicon Integrated Systems SIS5595'
+    Trying general detect... Failed!
+  Probing for `VIA Technologies VT82C686 Integrated Sensors'
+    Trying general detect... Failed!
+  Probing for `VIA Technologies VT8231 Integrated Sensors'
+    Trying general detect... Failed!
+  Probing for `ITE IT8712F'
+    Trying address 0x0290... Failed!
+  Probing for `ITE IT8705F / SiS 950'
+    Trying address 0x0290... Failed!
+  Probing for `IPMI BMC KCS'
+    Trying address 0x0ca0... Failed!
+  Probing for `IPMI BMC SMIC'
+    Trying address 0x0ca8... Failed!
+  
+  Some Super I/O chips may also contain sensors. Super I/O probes are
+  typically a bit more dangerous, as we have to write to I/O ports to do
+  this. This is usually safe though.
+  
+  Do you want to scan for Super I/O sensors? (YES/no): YES
+  Probing for `ITE 8702F Super IO Sensors'
+    Failed! (skipping family)
+  Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+    Failed! (skipping family)
+  Probing for `SMSC 47B27x Super IO Fan Sensors'
+    Failed! (skipping family)
+  Probing for `VT1211 Super IO Sensors'
+    Failed! (skipping family)
+  Probing for `Winbond W83627EHF/EHG Super IO Sensors'
+    Failed! (skipping family)
+  
+  Do you want to scan for secondary Super I/O sensors? (YES/no): YES
+  Probing for `ITE 8702F Super IO Sensors'
+    Failed! (skipping family)
+  Probing for `Nat. Semi. PC87351 Super IO Fan Sensors'
+    Failed! (skipping family)
+  Probing for `SMSC 47B27x Super IO Fan Sensors'
+    Failed! (skipping family)
+  Probing for `VT1211 Super IO Sensors'
+    Failed! (skipping family)
+  Probing for `Winbond W83627EHF/EHG Super IO Sensors'
+    Failed! (skipping family)
+  
+   Now follows a summary of the probes I have just done.
+   Just press ENTER to continue:
+  
+  Driver `eeprom' (should be inserted):
+    Detects correctly:
+    * Bus `SMBus PIIX4 adapter at fc00'
+      Busdriver `i2c-piix4', I2C address 0x50
+      Chip `SPD EEPROM' (confidence: 8)
+    * Bus `SMBus PIIX4 adapter at fc00'
+      Busdriver `i2c-piix4', I2C address 0x51
+      Chip `SPD EEPROM' (confidence: 8)
+    * Bus `SMBus PIIX4 adapter at fc00'
+      Busdriver `i2c-piix4', I2C address 0x52
+      Chip `SPD EEPROM' (confidence: 8)
+  
+  
+   I will now generate the commands needed to load the I2C modules.
+   Sometimes, a chip is available both through the ISA bus and an I2C bus.
+   ISA bus access is faster, but you need to load an additional driver module
+   for it. If you have the choice, do you want to use the ISA bus or the
+   I2C/SMBus (ISA/smbus)? smbus
+  
+  To make the sensors modules behave correctly, add these lines to
+  /etc/modules.conf:
+  
+  #----cut here----
+  # I2C module options
+  alias char-major-89 i2c-dev
+  #----cut here----
+  
+  To load everything that is needed, add this to some /etc/rc* file:
+  
+  #----cut here----
+  # I2C adapter drivers
+  modprobe i2c-piix4
+  # I2C chip drivers
+  modprobe eeprom
+  # sleep 2 # optional
+  /usr/bin/sensors -s # recommended
+  #----cut here----
+  
+  WARNING! If you have some things built into your kernel, the list above
+  will contain too many modules. Skip the appropriate ones! You really should
+  try these commands right now to make sure everything is working properly.
+  Monitoring programs won't work until it's done.
+  
+  Do you want to generate /etc/sysconfig/lm_sensors? (YES/no): YES
+  Copy prog/init/lm_sensors.init to /etc/rc.d/init.d/lm_sensors
+  for initialization at boot time.
+  
+  [root at dieppe ~]# modprobe i2c-piix4
+  [root at dieppe ~]# modprobe eeprom
+  [root at dieppe ~]# /usr/bin/sensors -s
+  No sensors found!
+  
+  
+  ---------
+  
+  Any suggestions?
+  
 -------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: diff.siolocks-alpha1
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060121/987a91f4/diff-0001.pl
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060126/59286516/attachment.html
