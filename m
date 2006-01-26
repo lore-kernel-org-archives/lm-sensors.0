@@ -1,152 +1,44 @@
-From: gregkh@suse.de (Greg KH)
-Date: Fri, 06 Jan 2006 22:07:37 +0000
-Subject: [lm-sensors] [PATCH] I2C: move i2c-dev to use dynamic class devices
-Message-Id: <11365852573455@kroah.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Thu, 26 Jan 2006 19:57:31 +0000
+Subject: [lm-sensors] [patch 2/2] hwmon/pc87360: combine sysfs callbacks
+Message-Id: <43D929AB.9060508@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-[PATCH] I2C: move i2c-dev to use dynamic class devices
+From: Jim Cromie <jim.cromie at gmail.com>
 
-i2c-dev doesn't use the reference counting logic of struct class_device so move
-it to the dynamic method.  This makes the code paths simpler and the driver
-smaller.
+2. hwmon-pc87360-sysfs-combo-callbacks.patch
 
-Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
-Cc: Jean Delvare <khali at linux-fr.org>
+This combines individual  (show|set)_Sensor_Attr callbacks into
+(show|set)_Sensor callbacks that handle all that Sensor's Attrs,
+based upon value in sensor_device_attribute_2.nr
 
+Signed-off-by:  Jim Cromie <jim.cromie at gmail.com>
 ---
-commit 79472132f555ae1e912699e116e5c82f338872f6
-tree 5f2b69e43b8797cab242f6524f6bb0d55694c849
-parent d82c0bf88fa97c1993ea9d6051488e7cb012b440
-author Greg Kroah-Hartman <gregkh at suse.de> Tue, 06 Dec 2005 15:33:15 -0800
-committer Greg Kroah-Hartman <gregkh at suse.de> Thu, 05 Jan 2006 22:16:25 -0800
 
- drivers/i2c/i2c-dev.c |   50 ++++++++++++++++++++-----------------------------
- 1 files changed, 20 insertions(+), 30 deletions(-)
+diffstat hwmon-pc87360-sysfs-combo-callbacks.patch
+ pc87360.c |  545 
++++++++++++++++++++++++++++-----------------------------------
+ 1 files changed, 246 insertions(+), 299 deletions(-)
 
-diff --git a/drivers/i2c/i2c-dev.c b/drivers/i2c/i2c-dev.c
-index e140dd7..ad6e04f 100644
---- a/drivers/i2c/i2c-dev.c
-+++ b/drivers/i2c/i2c-dev.c
-@@ -42,8 +42,7 @@ static struct i2c_client i2cdev_client_t
- struct i2c_dev {
- 	int minor;
- 	struct i2c_adapter *adap;
--	struct class_device class_dev;
--	struct completion released;	/* FIXME, we need a class_device_unregister() */
-+	struct class_device *class_dev;
- };
- #define to_i2c_dev(d) container_of(d, struct i2c_dev, class_dev)
- 
-@@ -105,7 +104,10 @@ static void return_i2c_dev(struct i2c_de
- 
- static ssize_t show_adapter_name(struct class_device *class_dev, char *buf)
- {
--	struct i2c_dev *i2c_dev = to_i2c_dev(class_dev);
-+	struct i2c_dev *i2c_dev = i2c_dev_get_by_minor(MINOR(class_dev->devt));
-+
-+	if (!i2c_dev)
-+		return -ENODEV;
- 	return sprintf(buf, "%s\n", i2c_dev->adap->name);
- }
- static CLASS_DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
-@@ -408,21 +410,12 @@ static struct file_operations i2cdev_fop
- 	.release	= i2cdev_release,
- };
- 
--static void release_i2c_dev(struct class_device *dev)
--{
--	struct i2c_dev *i2c_dev = to_i2c_dev(dev);
--	complete(&i2c_dev->released);
--}
--
--static struct class i2c_dev_class = {
--	.name		= "i2c-dev",
--	.release	= &release_i2c_dev,
--};
-+static struct class *i2c_dev_class;
- 
- static int i2cdev_attach_adapter(struct i2c_adapter *adap)
- {
- 	struct i2c_dev *i2c_dev;
--	int retval;
-+	struct device *dev;
- 
- 	i2c_dev = get_free_i2c_dev(adap);
- 	if (IS_ERR(i2c_dev))
-@@ -434,21 +427,20 @@ static int i2cdev_attach_adapter(struct 
- 	/* register this i2c device with the driver core */
- 	i2c_dev->adap = adap;
- 	if (adap->dev.parent = &platform_bus)
--		i2c_dev->class_dev.dev = &adap->dev;
-+		dev = &adap->dev;
- 	else
--		i2c_dev->class_dev.dev = adap->dev.parent;
--	i2c_dev->class_dev.class = &i2c_dev_class;
--	i2c_dev->class_dev.devt = MKDEV(I2C_MAJOR, i2c_dev->minor);
--	snprintf(i2c_dev->class_dev.class_id, BUS_ID_SIZE, "i2c-%d", i2c_dev->minor);
--	retval = class_device_register(&i2c_dev->class_dev);
--	if (retval)
-+		dev = adap->dev.parent;
-+	i2c_dev->class_dev = class_device_create(i2c_dev_class, NULL,
-+						 MKDEV(I2C_MAJOR, i2c_dev->minor),
-+						 dev, "i2c-%d", i2c_dev->minor);
-+	if (!i2c_dev->class_dev)
- 		goto error;
--	class_device_create_file(&i2c_dev->class_dev, &class_device_attr_name);
-+	class_device_create_file(i2c_dev->class_dev, &class_device_attr_name);
- 	return 0;
- error:
- 	return_i2c_dev(i2c_dev);
- 	kfree(i2c_dev);
--	return retval;
-+	return -ENODEV;
- }
- 
- static int i2cdev_detach_adapter(struct i2c_adapter *adap)
-@@ -459,10 +451,8 @@ static int i2cdev_detach_adapter(struct 
- 	if (!i2c_dev)
- 		return -ENODEV;
- 
--	init_completion(&i2c_dev->released);
- 	return_i2c_dev(i2c_dev);
--	class_device_unregister(&i2c_dev->class_dev);
--	wait_for_completion(&i2c_dev->released);
-+	class_device_destroy(i2c_dev_class, MKDEV(I2C_MAJOR, i2c_dev->minor));
- 	kfree(i2c_dev);
- 
- 	pr_debug("i2c-dev: adapter [%s] unregistered\n", adap->name);
-@@ -507,8 +497,8 @@ static int __init i2c_dev_init(void)
- 	if (res)
- 		goto out;
- 
--	res = class_register(&i2c_dev_class);
--	if (res)
-+	i2c_dev_class = class_create(THIS_MODULE, "i2c-dev");
-+	if (IS_ERR(i2c_dev_class))
- 		goto out_unreg_chrdev;
- 
- 	res = i2c_add_driver(&i2cdev_driver);
-@@ -518,7 +508,7 @@ static int __init i2c_dev_init(void)
- 	return 0;
- 
- out_unreg_class:
--	class_unregister(&i2c_dev_class);
-+	class_destroy(i2c_dev_class);
- out_unreg_chrdev:
- 	unregister_chrdev(I2C_MAJOR, "i2c");
- out:
-@@ -529,7 +519,7 @@ out:
- static void __exit i2c_dev_exit(void)
- {
- 	i2c_del_driver(&i2cdev_driver);
--	class_unregister(&i2c_dev_class);
-+	class_destroy(i2c_dev_class);
- 	unregister_chrdev(I2C_MAJOR,"i2c");
- }
- 
+patch yields a non-trivial size reduction (b4, after)
+ 14588    3224      16   17828    45a4 A-2/drivers/hwmon/pc87360.ko
+ 13124    3224      16   16364    3fec A-3/drivers/hwmon/pc87360.ko
+ie about 10%
+
+Combining all show_X (for all X) together is possible, but would 
+compromise clarity,
+(ie the separation of the sensor code) and would save only ~ 1/5 th 
+additional space.
 
 
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: hwmon-pc87360-sysfs-combo-callbacks.patch
+Type: text/x-patch
+Size: 31627 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060126/ff45db23/hwmon-pc87360-sysfs-combo-callbacks-0001.bin
