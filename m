@@ -1,63 +1,100 @@
-From: dhylands@gmail.com (Dave Hylands)
-Date: Mon, 09 Jan 2006 07:14:50 +0000
-Subject: [lm-sensors] Bug in i2c-pxa.c?
-Message-Id: <c32efac40601082314i4f2db6c5j64dc2fd2c6270a7e@mail.gmail.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Fri, 27 Jan 2006 05:47:10 +0000
+Subject: [lm-sensors] [patch 0/2] hwmon: add a superio_locks coordinator
+Message-Id: <43D9B3DE.3030208@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-I believe that I've found a bug in i2c-pxa.c
+this 2 part patch-set adds a superio_locks module to hwmon.
+The module makes it simple for a driver using a Super-IO chip
+to obtain a shared lock, and thereby coordinate with any other users
+of that chip, without knowing who they are.
 
-Q1: Does anybody know where the PXA 250 i2c code is maintained?
+I went for a simple helper approach:
 
-There is a global variable called irq which never seems to be assigned
-any value other than zero.
+- provides an array of lock-structs (mod-param sets size),
+    which are handed out upon request.
 
-This routine:
+- does *not* search for super-IO ports,
+    it expects drivers to know what ports are on the chips theyre 
+written for,
+    and to request them specifically.
+    (forex: pc87360 must be at 2e or 4e)
 
-static void i2c_pxa_wait_for_ite(void)
-{
-	unsigned long flags;
-	if (irq > 0) {
-	    spin_lock_irqsave(&i2c_pxa_irqlock, flags);
-		if (i2c_pending = 0) {
-			interruptible_sleep_on_timeout(&i2c_wait, I2C_SLEEP_TIMEOUT );
-		}
-		i2c_pending = 0;
-		spin_unlock_irqrestore(&i2c_pxa_irqlock, flags);
-	} else {
-		udelay(100);
-	}
-}
+- supports driver doing the 'search'
+    driver makes 1 call to get_superio_gate_any() to:
+       check several command-addresses, for several device ids
+       save the return value, which is the gate* (locks are in gates)
+    assumes data-addr is *always* command-addr + 1
 
-will always call udelay(100). Since i2c_pxa_wait_for_ite is only
-called 3 times, this means that it will only wait about 300 usec for a
-response, whereas if irq were defined, it will wait for 6 jiffies (or
-60 msec since HZ is 100 for me).
+- allocates a lock for 1st requester of a (sio-port,device-id) pair, if 
+found
+    2nd requester shares that lock.
+    ie its a singleton
 
-From looking at the code, I think that the correct fix is to modify:
+- doesnt / cannot protect against rogue driver
+    (I wouldnt know how)
 
-static int i2c_pxa_resource_init(void)
-{
-	init_waitqueue_head(&i2c_wait);
+- drivers are expected to do their own locking, unlocking
+   driver chooses efficiency vs long-lock-time
 
-	if (request_irq(IRQ_I2C, &i2c_pxa_handler, 0, "I2C", 0) < 0) {
-		irq = 0;
-		if (i2c_debug)
-			printk(KERN_INFO "I2C: Failed to register I2C irq %i\n", IRQ_I2C);
-		return -ENODEV;
-	}
-	return 0;
-}
+- superio lock structure (gate) is exposed in header
+    allow user-drivers to get inside it
+    sioaddr and devid are both useful to driver logic.
 
-to assign irq to be I2C_IRQ just before the return 0;
+So, the API:
 
---
-Dave Hylands
-Vancouver, BC, Canada
-http://www.DaveHylands.com/
+struct superio_gate {
+       struct semaphore sema;  /* lock is here, for no-offset cast */
+       int sioaddr;            /* this port's cmd-address */
+       int devid;            /* device id found by 1st user */
+};
+ 
+struct superio_gate* get_sio_gate(int sioaddr, int devid_addr, int 
+devid_val);
+struct superio_gate* get_sio_gate_any(u8 sioaddr[], int devid_addr, u8 
+devid_val[]);
+void sio_lock(struct superio_gate*);
+void sio_unlock(struct superio_gate*);
+int  sio_inb(struct superio_gate*, int reg);
+void sio_outb(struct superio_gate*, int reg, int val );
+void sio_exit(struct superio_gate*);
+
+
+users will do:
+    struct superio_gate* gate = get_sio_gate_any( sioaddrs, devid_addr, 
+wanted_ids );
+
+and then either:
+   superio_lock(gate);
+   lock_mutex(&gate->mutex);
+
+Once users have taken the lock, they can use (with some prep in latter 
+examples)
+   superio_inb(gate->sioaddr);
+   superio_inb(mysioaddr);
+   sio_inb(gate);
+   inb(..)
+
+
+
+2nd patch converts pc87360 to use it.   This patch has 2 versions;
+    diff.uselocks.alpha-hilock
+    diff.uselocks.alpha-lolock
+
+the lolock version puts the lock-unlock pair around the low level routines;
+pc87360_write_value, pc87360_read_value.  This is the way to do it
+if your priority is short lock times.
+
+the hilock version puts the locking in users of those routines,
+which means less locking, but holds the lock much longer,
+(thru a full scan of all sensor-attrs)
+
+
+
+
 
