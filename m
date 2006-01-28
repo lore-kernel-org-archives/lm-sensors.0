@@ -1,7 +1,7 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 28 Jan 2006 20:56:26 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sat, 28 Jan 2006 22:04:55 +0000
 Subject: [lm-sensors] packaging problem with latest CVS snapshot ?
-Message-Id: <43DBDA7A.6090804@sh.cvut.cz>
+Message-Id: <20060128230455.20d48d9b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43DBB097.2020100@gmail.com>
 In-Reply-To: <43DBB097.2020100@gmail.com>
@@ -10,22 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Jim,
 
+> > See our news. You need libsysfs (or package)
+>
 > OK.   neccessary but insufficient:
 > 
 > [jimc at harpo lm_sensors2]$ make user
 > ...
-> gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+> gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include 
 > -I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cdump.c | \
-> sed -e 's@^\(.*\)\.o:@prog/dump/i2cdump.rd prog/dump/i2cdump.ro:
-> Makefile '`dirname prog/dump/i2cdump.rd`/Module.mk' @' >
+> sed -e 's@^\(.*\)\.o:@prog/dump/i2cdump.rd prog/dump/i2cdump.ro: 
+> Makefile '`dirname prog/dump/i2cdump.rd`/Module.mk' @' > 
 > prog/dump/i2cdump.rd
-> gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+> gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include 
 > -I/usr/local/include  -Wundef -Wall -O2  prog/detect/i2cdetect.c | \
-> sed -e 's@^\(.*\)\.o:@prog/detect/i2cdetect.rd prog/detect/i2cdetect.ro:
-> Makefile '`dirname prog/detect/i2cdetect.rd`/Module.mk' @' >
+> sed -e 's@^\(.*\)\.o:@prog/detect/i2cdetect.rd prog/detect/i2cdetect.ro: 
+> Makefile '`dirname prog/detect/i2cdetect.rd`/Module.mk' @' > 
 > prog/detect/i2cdetect.rd
-> make: *** No rule to make target `sysfs/libsysfs.h', needed by
+> make: *** No rule to make target `sysfs/libsysfs.h', needed by 
 > `lib/sysfs.ad'.  Stop.
 > 
 > 
@@ -35,12 +38,12 @@ To: lm-sensors@vger.kernel.org
 > -rw-r--r--  1 root root 7401 Jan 28 12:35 dlist.h
 > -rw-r--r--  1 root root 8586 Jan 28 12:35 libsysfs.h
 > 
-> 
 > still looking..  any idea ?
-hmm no, sorry, I'm not very good with Makefiles...
-Please try to fix it and send a patch.
 
-Thanks,
-regards
-Rudolf
+Make sure you run "make clean" before running "make user" again. Our
+build system is not very robust (to say the least) and gets easily
+confused.
+
+-- 
+Jean Delvare
 
