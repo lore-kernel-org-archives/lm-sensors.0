@@ -1,69 +1,54 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Mon, 30 Jan 2006 02:28:03 +0000
-Subject: [lm-sensors] vt1211 questions
-Message-Id: <191fb4ca0601291828s4d4db8ccle5411811e9c91141@mail.gmail.com>
+From: jim.cromie@gmail.com (Jim Cromie)
+Date: Sat, 28 Jan 2006 17:57:43 +0000
+Subject: [lm-sensors] packaging problem with latest CVS snapshot ?
+Message-Id: <43DBB097.2020100@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0512131244y460b368do91d586d73f21c258@mail.gmail.com>
-In-Reply-To: <191fb4ca0512131244y460b368do91d586d73f21c258@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
 
-Thanks for the reply.
+I just pulled lm_sensors-daily.tar.gz, unpacked and ran make,
+got this error:
 
->> I can certainly generate a patch and make it available for people to
->> test it. Speaking of making kernel patches: I'm not too familiar with
->> that. Am I supposed to generate a patch against the latest (devel)
->> kernel or is 2.6.14 good enough?
->
-> I can only accept patches against a recent tree. Ideally, the latest
-> -mm tree. At the very least, Linus' latest (-git).
-
-OK, will do that.
-
->
->> I'll try to do that over the next couple of days. I also need to
->> supply some basic information on how to use the PWM feature and it
->> also requires a new sensors.conf since the 2.6 driver doesn't do weird
->> scaling of temperature and voltage numbers anymore. It just returns
->> the true register values and any scaling is performed via the compute
->> lines in sensors.conf.
->
-> This might not be acceptable with regards to the standard interface as
-> defined in Documentation/hwmon/sysfs-interface. As much as possible,
-> the values you pass through sysfs must make some physical sense, even
-> if they are not direct readings. See how we did for the VT8231, it has
-> many common points with the VT1211 so you should be able to do the same.
-
-I did look at the documentation and it states that the return values
-are supposed to be in millivolts or millicelcius. But since the
-conversion from register values to physically meaningful values is
-highly dependent on the board implementation I believe the whole
-conversion needs to happen in userspace. I also looked at the vt8231
-and the driver doesn't scale the voltage register values at all but
-scales the temperature readings. It multiplies 8bit register values by
-10 and 10bit register values by 2.5. I don't understand why there is
-prescaling in the driver. Can't that all be done by libsensors (except
-for the truncation to 8bits)?
->
->> Is it possible to host the patch on the lm-sensors webpage and maybe
->> issue a call to VT1211 users? Just like you did it with the VT8231.
->
-> We can't really host temporary files on the lm-sensors webpage, but we
-> can make annoucements and point to any external URI you'd have set up.
-> If you can't host the patch yourself, just send it to me and I'll make
-> it available on my server (if so, I'll also update it after that as
-> needed.)
-
-OK great, thanks!
-...juerg
+[jimc at harpo lm_sensors2]$ make user
+...
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT 
+-fpic -Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ld lib/error.lo: Makefile '`dirname 
+lib/error.ld`/Module.mk' @' > lib/error.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT 
+-fpic -Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ld lib/general.lo: Makefile '`dirname 
+lib/general.ld`/Module.mk' @' > lib/general.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT 
+-fpic -Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ld lib/data.lo: Makefile '`dirname 
+lib/data.ld`/Module.mk' @' > lib/data.ld
+( grep 'SENSORS SYSCTL START' /dev/null kernel/chips/*.c | \
+  sed -e 's/:.*//' -e 's#^#kernel/include/sensors.h: #' ) > 
+kernel/include/sensors.hd
+cat kernel/include/sensors.h.template > kernel/include/sensors.h
+awk '/SENSORS SYSCTL START/,/SENSORS SYSCTL END/' kernel/chips/*.c >> 
+kernel/include/sensors.h
+echo '#endif' >> kernel/include/sensors.h
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include 
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/chips.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/chips.rd prog/sensors/chips.ro: 
+Makefile '`dirname prog/sensors/chips.rd`/Module.mk' @' > 
+prog/sensors/chips.rd
+make: *** No rule to make target `sysfs/libsysfs.h', needed by 
+`lib/sysfs.ad'.  Stop.
 
 
-> Thanks,
-> --
-> Jean Delvare
->
+
+
+
+A very similar thing happened when I pulled from SVN.
+I pulled the entire tree, was unhappy with the great gobs of stuff I 
+didnt need,
+and pruned everything but the lmsensors2 stuff.
+When I got the error (like above) I figured I over-trimmed,
+but seeing above, maybe that wasnt the trouble.
 
