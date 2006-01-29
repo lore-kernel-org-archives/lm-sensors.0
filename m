@@ -1,77 +1,52 @@
-From: arvidjaar@mail.ru (Andrey Borzenkov)
-Date: Tue, 03 Jan 2006 13:41:45 +0000
-Subject: [lm-sensors] lm90: i2c_adapter i2c-0: Error: command never completed
-Message-Id: <200601031641.46499.arvidjaar@mail.ru>
+From: philippe.roubach@free.fr (ROUBACH Philippe)
+Date: Sun, 29 Jan 2006 18:19:32 +0000
+Subject: [lm-sensors] pwmconfig minstart minstop problem
+Message-Id: <200601291919.32588.philippe.roubach@free.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hello
 
-Using 2.6.14.5 and 2.6.15 I get in dmesg:
+1. My config
+Asus A7N8X-X with asb100 and w83l785ts
+Q-fan features disabled
 
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-i2c_adapter i2c-0: Error: command never completed
-...
-i2c_adapter i2c-0: Error: command never completed
-lm90 0-004c: Register 0x14 read failed (-1)
-i2c_adapter i2c-0: Error: command never completed
-lm90 0-004c: Register 0x14 read failed (-1)
+MDV 2006
+kernel 2.6.12.15mdk-1-1mdk
+lm_sensors-2.9.1-4mdk
+liblm_sensors3-2.9.1-4mdk
 
-I did not remember having something like it before, running Mandriva kernels 
-(up to 2.6.12-12mdk).
+2. pwmconfig pb
 
-{pts/1}% sensors
-eeprom-i2c-0-50
-Adapter: SMBus ALI1535 adapter at ef00
-Memory type:            SDR SDRAM DIMM
-Memory size (MB):       256
+the first part of pwmconfig works well
+- pwm discovery
+- correlation generation
+- speed control works during these steps
 
-adm1032-i2c-0-4c
-Adapter: SMBus ALI1535 adapter at ef00
-M/B Temp:    +41?C  (low  =   -65?C, high =  +127?C)
-CPU Temp:  +49.4?C  (low  = +45.0?C, high = +53.0?C)
-M/B Crit:   +127?C  (hyst =  +122?C)
-CPU Crit:   +100?C  (hyst =   +95?C)
-{pts/1}% lspci
-00:00.0 Host bridge: ALi Corporation M1644/M1644T Northbridge+Trident (rev 01)
-00:01.0 PCI bridge: ALi Corporation PCI to AGP Controller
-00:02.0 USB Controller: ALi Corporation USB 1.1 Controller (rev 03)
-00:04.0 IDE interface: ALi Corporation M5229 IDE (rev c3)
-00:06.0 Multimedia audio controller: ALi Corporation M5451 PCI AC-Link 
-Controller Audio Device (rev 01)
-00:07.0 ISA bridge: ALi Corporation M1533 PCI to ISA Bridge [Aladdin IV]
-00:08.0 Bridge: ALi Corporation M7101 Power Management Controller [PMU]
-00:0a.0 Ethernet controller: Intel Corporation 82557/8/9 [Ethernet Pro 100] 
-(rev 08)
-00:10.0 CardBus bridge: Texas Instruments PCI1410 PC card Cardbus Controller 
-(rev 01)
-00:11.0 CardBus bridge: Toshiba America Info Systems ToPIC100 PCI to Cardbus 
-Bridge with ZV Support (rev 32)
-00:11.1 CardBus bridge: Toshiba America Info Systems ToPIC100 PCI to Cardbus 
-Bridge with ZV Support (rev 32)
-00:12.0 System peripheral: Toshiba America Info Systems SD TypA Controller 
-(rev 03)
-01:00.0 VGA compatible controller: Trident Microsystems CyberBlade XPAi1 (rev 
-82)
+but when we try to layout the discovered pwm and we want to use minstart or 
+minstop test that does not work.
+Fan is not stopped
+fan speed is not increased
+fan speed is not decreased
 
-I am ready to provide any additional information on request.
+after quitting pwconfig i have no control over fan speed with echo control.
+i must restart my PC to have again control over fan speed.
 
-- -andrey
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+I think perhaps there is a bad management with enable/disable state or else?
 
-iD8DBQFDun8aR6LMutpd94wRArwMAKCwcleffkIWuhjcp7xD062eCZc9QQCfcRvm
-312hhzT2yKx4cqcbYCjnSiY=L/KJ
------END PGP SIGNATURE-----
+3. fancontrol pb
+
+fancontrol use raw values, not computed values.
+it will be better to use ?values  from lm_sensors software?
+
+in my case
+- raw cpu fan speed must be divided by 2
+- raw cpu temperature must be divided by 1.305
+
+thanks in advance
+-- 
+Philippe ROUBACH
 
