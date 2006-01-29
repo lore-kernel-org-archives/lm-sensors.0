@@ -1,7 +1,7 @@
-From: Ymu@Winbond.com.tw (Ymu@Winbond.com.tw)
-Date: Tue, 24 Jan 2006 06:05:36 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 29 Jan 2006 21:31:33 +0000
 Subject: [lm-sensors] w83627ehf fan controll?
-Message-Id: <FF9D611BFCDB1E42B37FAA148096BECED827CB@weshml03.winbond.com.tw>
+Message-Id: <20060129223133.73376b5b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20051230143805.GA21201@Apollo>
 In-Reply-To: <20051230143805.GA21201@Apollo>
@@ -10,28 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-The attachments is the diff of linux-2.6.16-rc1 and my local CVS, These
-two patches use new sensor attr and add more functions, any comments and
-modify are welcome. Hope someone can help fix the bugs in these patches
-and send it out.Thanks.
+Hi Yuan,
 
-It depends on "[PATCH 15/17] hwmon: Semaphore to mutex conversions"
-hwmon-convert-semaphores-to-mutexes.patch
-The first patch is w83627ehf_use_new_sensor_device_attr.patch.txt
-w83627ehf_add_more_functions.patch.txt is the second.
+> The attachments is the diff of linux-2.6.16-rc1 and my local CVS, These
+> two patches use new sensor attr and add more functions, any comments and
+> modify are welcome. Hope someone can help fix the bugs in these patches
+> and send it out.Thanks.
+> 
+> It depends on "[PATCH 15/17] hwmon: Semaphore to mutex conversions"
+> hwmon-convert-semaphores-to-mutexes.patch
+> The first patch is w83627ehf_use_new_sensor_device_attr.patch.txt
+> w83627ehf_add_more_functions.patch.txt is the second.
 
-Best Regards
-Yuan Mu
+I've applied the first one to start with (use new sensor device attr),
+it was really good. Let alone a few minor alignment issues, the only
+change I'd like to do is:
 
+ 	for (i = 0; i < 5; i++) {
+-		if (!(data->has_fan & (1 << i)))
+-			continue;
+-		device_create_file_fan(dev, i);
++		if (data->has_fan & (1 << i))
++			device_create_file_fan(dev, i);
+ 	}
 
+It's clearer and shorter that way. OK?
 
-=============================================The privileged confidential information contained in this email is intended for use only by the addressees as indicated by the original sender of this email. If you are not the addressee indicated in this email or are not responsible for delivery of the email to such  a person, please kindly reply to the sender indicating this fact and delete all copies of it from your computer and network server immediately. Your cooperation is highly appreciated. It is advised that any unauthorized use of confidential information of Winbond is strictly prohibited; and any information in this email irrelevant to the official business of Winbond shall be deemed as neither given nor endorsed by Winbond.
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: w83627ehf_use_new_sensor_device_attr.patch.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060124/d5f60576/w83627ehf_use_new_sensor_device_attr.patch-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: w83627ehf_add_more_functions.patch.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060124/d5f60576/w83627ehf_add_more_functions.patch-0001.txt
+Also, next time, please provide -p1-style patches so that I can apply
+them easily using quilt. And please also include your Signed-off-by
+line.
+
+I'll try to find some time tomorrow to review the second patch, unless
+Rudolf Marek (or anyone else for that matter) beats me to it.
+
+Thanks,
+-- 
+Jean Delvare
+
