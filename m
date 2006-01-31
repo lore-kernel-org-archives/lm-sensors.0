@@ -1,31 +1,24 @@
-From: fredantispam@free.fr (fred)
-Date: Wed, 04 Jan 2006 18:43:10 +0000
-Subject: [lm-sensors] [it8712] temperatures...
-Message-Id: <43BC173E.1060705@free.fr>
+From: nrapp@usc.edu (Nick Rapp)
+Date: Tue, 31 Jan 2006 03:28:08 +0000
+Subject: [lm-sensors] ITE8712F-A Chip problems
+Message-Id: <35c952d60601301928h51a3cf28v80a40ea4247b2539@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43AD9085.5050906@free.fr>
-In-Reply-To: <43AD9085.5050906@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare a ?crit :
-> Hi Fred,
-> 
-> 
->>In /etc/sensors.conf, one can read that Asus mobo A7V8X-X and A7V600
->>have cpu and mobo temp inverted.
->>
->>On a P5ND2-Sli Deluxe, who knows ?
+Hey guys, I just got a new motherboard, and i'm having a strange issue with
+the ITE chip. First of all, when sensors-detect is probing, my computer
+shuts itself off instantly.
+I've tried to narrow it down a little further... I know I have that chip, so
+I tried to modprobe the it86 driver manually. The result is the same,
+computer just shuts off, so I assume that the initial problem and the ladder
+are one in the same.
 
-[snip]
+Any suggestions? The board is a DFI Lanparty nF4 Expert. Thanks!
 
-Thanks, Jean.
-
-So it's the same for the P5ND2-SLI Deluxe : mobo & cpu temps
-are inverted.
-
--- 
-Fred.
-
+Nick
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060131/5e8411a9/attachment.html
