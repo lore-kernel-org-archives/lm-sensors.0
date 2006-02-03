@@ -1,39 +1,42 @@
-From: mds@mds.gotdns.com (Mark Studebaker)
-Date: Mon, 20 Feb 2006 19:11:15 +0000
-Subject: [lm-sensors] LM78
-Message-Id: <43FA1453.8000909@mds.gotdns.com>
+From: Uwe_Zeisberger@digi.com (Uwe Zeisberger)
+Date: Fri, 03 Feb 2006 13:42:26 +0000
+Subject: [lm-sensors] new [PATCH] I2C: add new rx8025 driver
+Message-Id: <20060203134225.GA4398@digi.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <009b01c63642$e67d9890$4100000a@thaley>
-In-Reply-To: <009b01c63642$e67d9890$4100000a@thaley>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-We don't have anything listed in the list below but it may give you some 
-ideas. Of course check with Nat'l and with Maxim-Dallas.
-Good luck.
+Hello Jean,
 
-http://www2.lm-sensors.nu/%7Elm78/cvs/lm_sensors2/doc/chips/SUMMARY
+here comes a reworked driver (in a seperate e-mail to ease applying it).
+I didn't implemented all your suggestions, as commented below.
 
-Tony Haley wrote:
-> Hi,
->  
-> Can anybody say if there is a pin compatible device available to use in 
-> place of the National LM78 which is obsolete and not going RoHS compliant?
->  
-> Apologies if this message is inappropriate.
->  
-> Thanks for any leads or advice.
->  
-> Regards,
-> Tony
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors at lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+I didn't (yet) used Alessandro's rtc core as it doesn't compile on
+current HEAD.  (Moreover my driver has to work on 2.6.12.5, because
+that's the version our customer has to stick to.)
+
+You told me not to initialize a static global to NULL explicitly, I
+thought about it and prefer to state this assumption just to make it
+clear that I assume it to be zero.
+
+Still open: I don't know if the mutex is needed.  I didn't see it in
+other drivers but in my eyes it must be there.  Any comments?
+
+I didn't switch over to smbus as you said in your follow-up mail[1].
+
+I hope I catched all the remaining points to your satisfaction.
+
+Best regards
+Uwe
+
+[1] Message-Id: <20060203101642.167cb18c.khali at linux-fr.org>
+
+-- 
+Uwe Zeisberger
+FS Forth-Systeme GmbH, A Digi International Company
+Kueferstrasse 8, D-79206 Breisach, Germany
+Phone: +49 (7667) 908 0 Fax: +49 (7667) 908 200
+Web: www.fsforth.de, www.digi.com
 
