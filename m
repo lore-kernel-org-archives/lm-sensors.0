@@ -1,45 +1,39 @@
-From: j.w.r.degoede@hhs.nl (Hans de Goede)
-Date: Sun, 19 Feb 2006 21:20:39 +0000
-Subject: [lm-sensors] Sensors.conf file for Abit AA8XE Fatal1ty
-Message-Id: <43F8E127.5040304@hhs.nl>
+From: roger@planbit.co.uk (Roger Lucas)
+Date: Fri, 03 Feb 2006 09:16:31 +0000
+Subject: [lm-sensors] LM-Sensors with 2.6.14 and SMSC 47M997 on
+Message-Id: <20060203091816.783B912E9E@bluewhale.planbit.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060219153638.2C9DE12ECC@bluewhale.planbit.co.uk>
-In-Reply-To: <20060219153638.2C9DE12ECC@bluewhale.planbit.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi All,
+
+I am looking to get full sensors support for both fan and temperature
+monitoring on my Gigabyte 8I865GVMF motherboard.  I have run sensors-detect
+and determined that I have an SMSC 47M192 or compatible (motherboard
+inspection shows a SMSC 47M997 device which is allegedly compatible) and I
+have successfully installed the sm47m1 driver which was with the kernel.
+
+I now have fan speed detection working fine but no voltage or temperature
+detection.
+
+I would like to have the full fan/temp/voltage information available, so I
+have a few questions:
+
+1) Do I just have an old version of the code and a later version (?2.6.15?)
+has a full functioning hardware monitor?
+2) If the 2.6 version only supports fan monitoring, is anyone else working
+on adding the temp/volt functionality (I know that there is a 2.4 kernel
+version of such code)?
+3) Does anyone know the reason why the temp/volt monitoring wasn't included
+in the 2.6 driver (it seems odd to go to all the work of creating the driver
+just to monitor the fan speeds)?
+
+Thanks in advance,
+
+Roger
 
 
-Roger Lucas wrote:
-> All,
-> 
-> Should anyone be wanting to use the Abit AA8XE Fatal1ty motherboard (which
-> is a rather nice one), it uses both the uGuru and w83627hf sensors devices
-> to give you the full information on the system's status.
-> 
-> I believe I have found the correct configuration file for this motherboard,
-> so I have attached it to this mail.  Should anyone find errors in it, please
-> can you pass the information back.
-> 
-> Thanks,
-> 
-> Roger
-> 
-> 
-
-For clearity:
-
-This sensors.conf assumes one is using the latest revision of the still 
-to be merged abituguru driver, which can be had for now by a personal 
-mail to me.
-
-A review for merging has been done, and I'll try to make some time to 
-process all the comments from the review and put the necessary 
-improvements into the driver and then post a PATCH for merging soon.
-
-Regards,
-
-Hans
 
