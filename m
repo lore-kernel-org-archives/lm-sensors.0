@@ -1,33 +1,40 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Feb 2006 13:02:10 +0000
-Subject: [lm-sensors] Bug in initialisation of stopped RTC's in ds1337.c
-Message-Id: <CIncD2Wf.1140699730.2844290.khali@localhost>
+From: j.w.r.degoede@hhs.nl (Hans de Goede)
+Date: Sat, 04 Feb 2006 09:44:44 +0000
+Subject: [lm-sensors] some remarks over platform_device use in f71805f.c
+Message-Id: <43E4778C.6000103@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43FDAF51.50207@gassner-waagen.at>
-In-Reply-To: <43FDAF51.50207@gassner-waagen.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
-Hallo Michael,
+After reading the discussion about the usage of platform_device in 
+f71805f.c, I've been busy converting the Abit uGuru driver to a 
+platform_driver.
 
-On 2006-02-23, Michael Burian wrote:
-> The current initialisation code for handling the "RTC not running" case
-> is buggy. Overwritting the whole 16 regs with zero turned out to be a
-> bad idea.
-> (...)
-> The attached patch can be applied against mainline and should fix the
-> problem by detecting if the RTC is not running, changing 2 bits (OSF,
-> EOSC) as necessary, and no longer overwriting the whole 16 regs.
->
-> Please review, thanks
+I've taken the f71805f.c file as an example and see some room for 
+improvements there:
 
-Looks sane to me, but I don't have a device to test it, and the 16-reg
-zeroing might have been done for a reason. James, can you please comment
-on the patch and test it?
+-f71805f_device_add can effectively be removed by using
+  platform_device_register_simple, which does all this in 1 step except
+  for filling the resource struct.
 
---
-Jean Delvare
+-Also you pass in the base address as the id, this will lead to a dir
+  name in sysfs of f71805f<baseaddr> where base addr will be decimal.
+
+  Since you clearly plan on supporting only one device for now, you
+  should / could pass -1 as id, which will get you a sysfs dir entry of
+  just f71805f.
+
+-You've made the resource struct a static global, but it can be
+  a normal local variable since the platform_device copy allocs its own
+  copy, see the lifetime is not an issue.
+
+
+Regards,
+
+Hans
+
 
