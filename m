@@ -1,71 +1,57 @@
-From: filip.tsachev@gmail.com (Filip Tsachev)
-Date: Mon, 13 Feb 2006 14:07:22 +0000
-Subject: [lm-sensors] lm-sensors Digest, Vol 10, Issue 23
-Message-Id: <ea9ff50b0602130607t4d74b6cem@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 05 Feb 2006 22:21:05 +0000
+Subject: [lm-sensors] [PATCH 04/11] hwmon: Support the Pentium M VID code
+Message-Id: <20060205232105.41cbfcac.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Content-Disposition: inline; filename=hwmon-vid-pentium-m.patch
 
-I have a brand new Fedora 5 rawhide box with lm_sensors-2.9.1-6.1, sensors
-output is not normal,
+Add support for the Intel Pentium M series to the hwmon-vid driver.
 
-VCore 1:   +1.60 V  (min =  +1.42 V, max =  +1.57 V)   ALARM
-VCore 2:   +2.61 V  (min =  +2.40 V, max =  +2.61 V)   ALARM
-+3.3V:     +6.50 V  (min =  +3.14 V, max =  +3.46 V)   ALARM
-I know how to fix 3.3V (example from conf)
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Cc: Rudolf Marek <r.marek at sh.cvut.cz>
+---
+ drivers/hwmon/hwmon-vid.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-+5V:       +4.22 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-?? No idea here (Fortron PSU)
+--- linux-2.6.16-rc1.orig/drivers/hwmon/hwmon-vid.c	2006-01-18 18:28:57.000000000 +0100
++++ linux-2.6.16-rc1/drivers/hwmon/hwmon-vid.c	2006-02-02 22:41:54.000000000 +0100
+@@ -54,6 +54,10 @@
+     (IMVP-II). You can find more information in the datasheet of Max1718
+     http://www.maxim-ic.com/quick_view2.cfm/qv_pk/2452
+ 
++    The 13 specification corresponds to the Intel Pentium M series. There
++    doesn't seem to be any named specification for these. The conversion
++    tables are detailed directly in the various Pentium M datasheets:
++    http://www.intel.com/design/intarch/pentiumm/docs_pentiumm.htm
+ */
+ 
+ /* vrm is the VRM/VRD document version multiplied by 10.
+@@ -100,6 +104,8 @@
+ 	case 17:		/* Intel IMVP-II */
+ 		return(val & 0x10 ? 975 - (val & 0xF) * 25 :
+ 				    1750 - val * 50);
++	case 13:
++		return(1708 - (val & 0x3f) * 16);
+ 	default:		/* report 0 for unknown */
+ 		printk(KERN_INFO "hwmon-vid: requested unknown VRM version\n");
+ 		return 0;
+@@ -129,8 +135,9 @@
+ static struct vrm_model vrm_models[] = {
+ 	{X86_VENDOR_AMD, 0x6, ANY, ANY, 90},		/* Athlon Duron etc */
+ 	{X86_VENDOR_AMD, 0xF, ANY, ANY, 24},		/* Athlon 64, Opteron and above VRM 24 */
+-	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 85},		/* 0.13um too */
++	{X86_VENDOR_INTEL, 0x6, 0x9, ANY, 13},		/* Pentium M (130 nm) */
+ 	{X86_VENDOR_INTEL, 0x6, 0xB, ANY, 85},		/* Tualatin */
++	{X86_VENDOR_INTEL, 0x6, 0xD, ANY, 13},		/* Pentium M (90 nm) */
+ 	{X86_VENDOR_INTEL, 0x6, ANY, ANY, 82},		/* any P6 */
+ 	{X86_VENDOR_INTEL, 0x7, ANY, ANY, 0},		/* Itanium */
+ 	{X86_VENDOR_INTEL, 0xF, 0x0, ANY, 90},		/* P4 */
 
-+12V:     +11.78 V  (min = +11.39 V, max = +12.61 V)
--12V:     -15.70 V  (min = -12.63 V, max = -11.41 V)   ALARM
--5V:       -8.03 V  (min =  -5.26 V, max =  -4.77 V)   ALARM
-Stdby:     +4.54 V  (min =  +4.76 V, max =  +5.24 V)   ALARM
-??
+-- 
+Jean Delvare
 
-VBat:      +4.08 V
-??
-
-fan1:     2481 RPM  (min =    0 RPM, div = 8)
-
-M/B Temp:    +34 C  (low  =   +15??C, high =   +40??C)   sensor = thermistor
-CPU Temp:    +26 C  (low  =   +15??C, high =   +45??C)   sensor = thermistor
-Temp3:       -76 C  (low  =   +15??C, high =   +45??C)   sensor = diode
-
-CPU is around 45C, MB - 40..only estimated and taking in account bios
-reading,  but for sure it's not 26 and 34 or vice versa.
-
-Rudolf checked my bios was so helpful, it was ok back then
-
-Dec 11 16:43:12 ruik    temp2 might have offset of +23
-Dec 11 16:43:22 ruik    but I dont know if this code is uded
-Dec 11 16:43:24 ruik    used
-Dec 11 16:43:31 ruik    temp3 and temp1 has no offset
-Dec 11 16:43:45 ruik    question is what is correct confuguration for
-Dec 11 16:43:52 ruik    the thermal x diode settings
-Dec 11 16:44:00 ruik    the chip at boot said 0x0
-Dec 11 16:44:06 ruik    so all thermistors
-Dec 11 16:44:26 ruik    but may agree with you that you should switch temp3
-Dec 11 16:44:28 ruik    to diode
-
-but when I changed the CPU to a mobile barton from a desktop TB Athlon the
-reading had gone wild again... and considering the new box I have - brand
-new sensors.conf file and our discussion regarding the bios... what could be
-done?
-
-
-I have a hardware sensors applet for gnome panel and right now it's quite
-useless, just for 12V line I can use it...
-
-Temperature readings is most important to me, please any idea would be
-really appreciated.
-
-Cheers,
-Filip
--------------- next part --------------
-An HTML attachment was scrubbed...
-URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060213/97682846/attachment.html
