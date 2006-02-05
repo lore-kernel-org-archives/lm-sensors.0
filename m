@@ -1,63 +1,95 @@
-From: mhoffman@lightlink.com (Mark M. Hoffman)
-Date: Fri, 17 Feb 2006 02:29:13 +0000
-Subject: [lm-sensors] clevo 470DW
-Message-Id: <20060217022913.GA10369@jupiter.solarsys.private>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 05 Feb 2006 22:13:48 +0000
+Subject: [lm-sensors] [PATCH 02/11] w83781d: Use real-time status registers
+Message-Id: <20060205231348.1e273c69.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi James:
+Content-Disposition: inline; filename=hwmon-w83781d-real-time-alarms.patch
 
-I've CC'ed the lm-sensors mailing list... please reply there (although
-you may also continue to CC me).
+Use the real-time status registers of the Winbond W83782D, W83783S and
+W83627HF chips, instead of the interrupt status registers. Interrupts
+cannot be trusted at least for voltage inputs, as they are two-times
+triggers (as opposed to comparator mode, which we want.) The w83627hf
+driver was fixed in a similar way some times ago.
 
-* James <james at buffer.net> [2006-02-13 07:52:00 +0000]:
-> Hello,
-> 
-> My laptop's lspci reveals:
-> 
-> 00:00.0 Host bridge: Silicon Integrated Systems [SiS] SiS645DX Host &
-> Memory & AGP Controller (rev 01)
-> 00:01.0 PCI bridge: Silicon Integrated Systems [SiS] Virtual PCI-to-PCI
-> bridge (AGP)
-> 00:02.0 ISA bridge: Silicon Integrated Systems [SiS] SiS962 [MuTIOL
-> Media IO] (rev 14)
-> 00:02.1 SMBus: Silicon Integrated Systems [SiS] SiS961/2 SMBus Controller
-> 00:02.3 FireWire (IEEE 1394): Silicon Integrated Systems [SiS] FireWire
-> Controller
-> 00:02.5 IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE]
-> 00:02.6 Modem: Silicon Integrated Systems [SiS] AC'97 Modem Controller
-> (rev a0)
-> 00:02.7 Multimedia audio controller: Silicon Integrated Systems [SiS]
-> Sound Controller (rev a0)
-> 00:03.0 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
-> Controller (rev 0f)
-> 00:03.1 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
-> Controller (rev 0f)
-> 00:03.2 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
-> Controller (rev 0f)
-> 00:03.3 USB Controller: Silicon Integrated Systems [SiS] USB 2.0 Controller
-> 00:0a.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
-> RTL-8139/8139C/8139C+ (rev 10)
-> 00:0c.0 CardBus bridge: ENE Technology Inc CB1410 Cardbus Controller
-> (rev 01)
-> 01:00.0 VGA compatible controller: ATI Technologies Inc Radeon R250 Lf
-> [FireGL 9000] (rev 01)
-> 
-> 
-> I'm running gentoo, 2.6.15.4 and having trouble getting lm_sensors to
-> recognize
-> chipsets that are know to be working. I'll be your tester, if you like?
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/hwmon/w83781d.c |   43 +++++++++++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 18 deletions(-)
 
-What does sensors-detect say?  What "known to be working" chips do you have
-that are not recognized?
-
-Regards,
+--- linux-2.6.16-rc2.orig/drivers/hwmon/w83781d.c	2006-02-05 21:09:41.000000000 +0100
++++ linux-2.6.16-rc2/drivers/hwmon/w83781d.c	2006-02-05 21:10:17.000000000 +0100
+@@ -95,11 +95,16 @@
+ 						     (0x39)))
+ 
+ #define W83781D_REG_CONFIG		0x40
++
++/* Interrupt status (W83781D, AS99127F) */
+ #define W83781D_REG_ALARM1		0x41
+ #define W83781D_REG_ALARM2		0x42
+-#define W83781D_REG_ALARM3		0x450	/* not on W83781D */
+ 
+-#define W83781D_REG_IRQ			0x4C
++/* Real-time status (W83782D, W83783S, W83627HF) */
++#define W83782D_REG_ALARM1		0x459
++#define W83782D_REG_ALARM2		0x45A
++#define W83782D_REG_ALARM3		0x45B
++
+ #define W83781D_REG_BEEP_CONFIG		0x4D
+ #define W83781D_REG_BEEP_INTS1		0x56
+ #define W83781D_REG_BEEP_INTS2		0x57
+@@ -1513,15 +1518,6 @@
+ 					W83781D_REG_TEMP3_CONFIG, tmp & 0xfe);
+ 			}
+ 		}
+-
+-		if (type != w83781d) {
+-			/* enable comparator mode for temp2 and temp3 so
+-			   alarm indication will work correctly */
+-			i = w83781d_read_value(client, W83781D_REG_IRQ);
+-			if (!(i & 0x40))
+-				w83781d_write_value(client, W83781D_REG_IRQ,
+-						    i | 0x40);
+-		}
+ 	}
+ 
+ 	/* Start monitoring */
+@@ -1612,14 +1608,25 @@
+ 			data->fan_div[1] |= (i >> 4) & 0x04;
+ 			data->fan_div[2] |= (i >> 5) & 0x04;
+ 		}
+-		data->alarms -		    w83781d_read_value(client,
+-				       W83781D_REG_ALARM1) +
+-		    (w83781d_read_value(client, W83781D_REG_ALARM2) << 8);
+ 		if ((data->type = w83782d) || (data->type = w83627hf)) {
+-			data->alarms |-			    w83781d_read_value(client,
+-					       W83781D_REG_ALARM3) << 16;
++			data->alarms = w83781d_read_value(client,
++						W83782D_REG_ALARM1)
++				     | (w83781d_read_value(client,
++						W83782D_REG_ALARM2) << 8)
++				     | (w83781d_read_value(client,
++						W83782D_REG_ALARM3) << 16);
++		} else if (data->type = w83783s) {
++			data->alarms = w83781d_read_value(client,
++						W83782D_REG_ALARM1)
++				     | (w83781d_read_value(client,
++						W83782D_REG_ALARM2) << 8);
++		} else {
++			/* No real-time status registers, fall back to
++			   interrupt status registers */
++			data->alarms = w83781d_read_value(client,
++						W83781D_REG_ALARM1)
++				     | (w83781d_read_value(client,
++						W83781D_REG_ALARM2) << 8);
+ 		}
+ 		i = w83781d_read_value(client, W83781D_REG_BEEP_INTS2);
+ 		data->beep_enable = i >> 7;
 
 -- 
-Mark M. Hoffman
-mhoffman at lightlink.com
-
+Jean Delvare
 
