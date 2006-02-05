@@ -1,85 +1,328 @@
 From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 05 Feb 2006 22:26:51 +0000
-Subject: [lm-sensors] [PATCH 07/11] w83781d: Don't reset the chip by default
-Message-Id: <20060205232651.5a0be1e4.khali@linux-fr.org>
+Date: Sun, 05 Feb 2006 22:24:16 +0000
+Subject: [lm-sensors] [PATCH 05/11] w83627ehf: Refactor the sysfs interface
+Message-Id: <20060205232416.77fe5912.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-w83781d-no-reset-by-default.patch
+From: Yuan Mu <ymu at winbond.com.tw>
+Content-Disposition: inline; filename=hwmon-w83627ehf-use-attr-arrays.patch
 
-Stop resetting the chip on load by default, so as to preserve the BIOS
-initializations. Same was done in the w83627hf driver some times ago
-for the same reasons.
+Use dynamic sysfs callbacks and array of attributes to reduce the
+w83627ehf driver size.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
 ---
- Documentation/hwmon/w83781d |    5 +++++
- drivers/hwmon/w83781d.c     |   22 +++++++++++++++++++++-
- 2 files changed, 26 insertions(+), 1 deletion(-)
+ drivers/hwmon/w83627ehf.c |  208 ++++++++++++++++++---------------------------
+ 1 file changed, 81 insertions(+), 127 deletions(-)
 
---- linux-2.6.16-rc2.orig/drivers/hwmon/w83781d.c	2006-02-05 16:01:49.000000000 +0100
-+++ linux-2.6.16-rc2/drivers/hwmon/w83781d.c	2006-02-05 16:02:00.000000000 +0100
-@@ -57,6 +57,10 @@
- I2C_CLIENT_MODULE_PARM(force_subclients, "List of subclient addresses: "
- 		    "{bus, clientaddr, subclientaddr1, subclientaddr2}");
+--- linux-2.6.16-rc1.orig/drivers/hwmon/w83627ehf.c	2006-01-29 21:41:33.000000000 +0100
++++ linux-2.6.16-rc1/drivers/hwmon/w83627ehf.c	2006-01-29 22:00:06.000000000 +0100
+@@ -42,6 +42,7 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c-isa.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <asm/io.h>
+@@ -408,9 +409,12 @@
  
-+static int reset;
-+module_param(reset, bool, 0);
-+MODULE_PARM_DESC(reset, "Set to one to reset chip on load");
-+
- static int init = 1;
- module_param(init, bool, 0);
- MODULE_PARM_DESC(init, "Set to zero to bypass chip initialization");
-@@ -1460,8 +1464,17 @@
- 	int type = data->type;
- 	u8 tmp;
+ #define show_fan_reg(reg) \
+ static ssize_t \
+-show_##reg(struct device *dev, char *buf, int nr) \
++show_##reg(struct device *dev, struct device_attribute *attr, \
++	   char *buf) \
+ { \
+ 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
+ 	return sprintf(buf, "%d\n", \
+ 		       fan_from_reg(data->reg[nr], \
+ 				    div_from_reg(data->fan_div[nr]))); \
+@@ -419,18 +423,23 @@
+ show_fan_reg(fan_min);
  
--	if (init && type != as99127f) {	/* this resets registers we don't have
-+	if (reset && type != as99127f) { /* this resets registers we don't have
- 					   documentation for on the as99127f */
-+		/* Resetting the chip has been the default for a long time,
-+		   but it causes the BIOS initializations (fan clock dividers,
-+		   thermal sensor types...) to be lost, so it is now optional.
-+		   It might even go away if nobody reports it as being useful,
-+		   as I see very little reason why this would be needed at
-+		   all. */
-+		dev_info(&client->dev, "If reset=1 solved a problem you were "
-+			 "having, please report!\n");
+ static ssize_t
+-show_fan_div(struct device *dev, char *buf, int nr)
++show_fan_div(struct device *dev, struct device_attribute *attr,
++	     char *buf)
+ {
+ 	struct w83627ehf_data *data = w83627ehf_update_device(dev);
+-	return sprintf(buf, "%u\n",
+-		       div_from_reg(data->fan_div[nr]));
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	return sprintf(buf, "%u\n", div_from_reg(data->fan_div[nr]));
+ }
+ 
+ static ssize_t
+-store_fan_min(struct device *dev, const char *buf, size_t count, int nr)
++store_fan_min(struct device *dev, struct device_attribute *attr,
++	      const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83627ehf_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
+ 	unsigned int val = simple_strtoul(buf, NULL, 10);
+ 	unsigned int reg;
+ 	u8 new_div;
+@@ -488,58 +497,41 @@
+ 	return count;
+ }
+ 
+-#define sysfs_fan_offset(offset) \
+-static ssize_t \
+-show_reg_fan_##offset(struct device *dev, struct device_attribute *attr, \
+-		      char *buf) \
+-{ \
+-	return show_fan(dev, buf, offset-1); \
+-} \
+-static DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
+-		   show_reg_fan_##offset, NULL);
++static struct sensor_device_attribute sda_fan_input[] = {
++	SENSOR_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0),
++	SENSOR_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1),
++	SENSOR_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2),
++	SENSOR_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 3),
++	SENSOR_ATTR(fan5_input, S_IRUGO, show_fan, NULL, 4),
++};
+ 
+-#define sysfs_fan_min_offset(offset) \
+-static ssize_t \
+-show_reg_fan##offset##_min(struct device *dev, struct device_attribute *attr, \
+-			   char *buf) \
+-{ \
+-	return show_fan_min(dev, buf, offset-1); \
+-} \
+-static ssize_t \
+-store_reg_fan##offset##_min(struct device *dev, struct device_attribute *attr, \
+-			    const char *buf, size_t count) \
+-{ \
+-	return store_fan_min(dev, buf, count, offset-1); \
+-} \
+-static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, \
+-		   show_reg_fan##offset##_min, \
+-		   store_reg_fan##offset##_min);
++static struct sensor_device_attribute sda_fan_min[] = {
++	SENSOR_ATTR(fan1_min, S_IWUSR | S_IRUGO, show_fan_min,
++		    store_fan_min, 0),
++	SENSOR_ATTR(fan2_min, S_IWUSR | S_IRUGO, show_fan_min,
++		    store_fan_min, 1),
++	SENSOR_ATTR(fan3_min, S_IWUSR | S_IRUGO, show_fan_min,
++		    store_fan_min, 2),
++	SENSOR_ATTR(fan4_min, S_IWUSR | S_IRUGO, show_fan_min,
++		    store_fan_min, 3),
++	SENSOR_ATTR(fan5_min, S_IWUSR | S_IRUGO, show_fan_min,
++		    store_fan_min, 4),
++};
+ 
+-#define sysfs_fan_div_offset(offset) \
+-static ssize_t \
+-show_reg_fan##offset##_div(struct device *dev, struct device_attribute *attr, \
+-			   char *buf) \
+-{ \
+-	return show_fan_div(dev, buf, offset - 1); \
+-} \
+-static DEVICE_ATTR(fan##offset##_div, S_IRUGO, \
+-		   show_reg_fan##offset##_div, NULL);
+-
+-sysfs_fan_offset(1);
+-sysfs_fan_min_offset(1);
+-sysfs_fan_div_offset(1);
+-sysfs_fan_offset(2);
+-sysfs_fan_min_offset(2);
+-sysfs_fan_div_offset(2);
+-sysfs_fan_offset(3);
+-sysfs_fan_min_offset(3);
+-sysfs_fan_div_offset(3);
+-sysfs_fan_offset(4);
+-sysfs_fan_min_offset(4);
+-sysfs_fan_div_offset(4);
+-sysfs_fan_offset(5);
+-sysfs_fan_min_offset(5);
+-sysfs_fan_div_offset(5);
++static struct sensor_device_attribute sda_fan_div[] = {
++	SENSOR_ATTR(fan1_div, S_IRUGO, show_fan_div, NULL, 0),
++	SENSOR_ATTR(fan2_div, S_IRUGO, show_fan_div, NULL, 1),
++	SENSOR_ATTR(fan3_div, S_IRUGO, show_fan_div, NULL, 2),
++	SENSOR_ATTR(fan4_div, S_IRUGO, show_fan_div, NULL, 3),
++	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
++};
 +
- 		/* save these registers */
- 		i = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
- 		p = w83781d_read_value(client, W83781D_REG_PWMCLK12);
-@@ -1478,6 +1491,13 @@
- 		w83781d_write_value(client, W83781D_REG_BEEP_INTS2, 0);
++static void device_create_file_fan(struct device *dev, int i)
++{
++	device_create_file(dev, &sda_fan_input[i].dev_attr);
++	device_create_file(dev, &sda_fan_div[i].dev_attr);
++	device_create_file(dev, &sda_fan_min[i].dev_attr);
++}
+ 
+ #define show_temp1_reg(reg) \
+ static ssize_t \
+@@ -572,17 +564,14 @@
+ store_temp1_reg(OVER, max);
+ store_temp1_reg(HYST, max_hyst);
+ 
+-static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp1, NULL);
+-static DEVICE_ATTR(temp1_max, S_IRUGO| S_IWUSR,
+-		   show_temp1_max, store_temp1_max);
+-static DEVICE_ATTR(temp1_max_hyst, S_IRUGO| S_IWUSR,
+-		   show_temp1_max_hyst, store_temp1_max_hyst);
+-
+ #define show_temp_reg(reg) \
+ static ssize_t \
+-show_##reg (struct device *dev, char *buf, int nr) \
++show_##reg(struct device *dev, struct device_attribute *attr, \
++	   char *buf) \
+ { \
+ 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
+ 	return sprintf(buf, "%d\n", \
+ 		       LM75_TEMP_FROM_REG(data->reg[nr])); \
+ }
+@@ -592,10 +581,13 @@
+ 
+ #define store_temp_reg(REG, reg) \
+ static ssize_t \
+-store_##reg (struct device *dev, const char *buf, size_t count, int nr) \
++store_##reg(struct device *dev, struct device_attribute *attr, \
++	    const char *buf, size_t count) \
+ { \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct w83627ehf_data *data = i2c_get_clientdata(client); \
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
++	int nr = sensor_attr->index; \
+ 	u32 val = simple_strtoul(buf, NULL, 10); \
+  \
+ 	mutex_lock(&data->update_lock); \
+@@ -608,39 +600,23 @@
+ store_temp_reg(OVER, temp_max);
+ store_temp_reg(HYST, temp_max_hyst);
+ 
+-#define sysfs_temp_offset(offset) \
+-static ssize_t \
+-show_reg_temp##offset (struct device *dev, struct device_attribute *attr, \
+-		       char *buf) \
+-{ \
+-	return show_temp(dev, buf, offset - 2); \
+-} \
+-static DEVICE_ATTR(temp##offset##_input, S_IRUGO, \
+-		   show_reg_temp##offset, NULL);
+-
+-#define sysfs_temp_reg_offset(reg, offset) \
+-static ssize_t \
+-show_reg_temp##offset##_##reg(struct device *dev, struct device_attribute *attr, \
+-			      char *buf) \
+-{ \
+-	return show_temp_##reg(dev, buf, offset - 2); \
+-} \
+-static ssize_t \
+-store_reg_temp##offset##_##reg(struct device *dev, struct device_attribute *attr, \
+-			       const char *buf, size_t count) \
+-{ \
+-	return store_temp_##reg(dev, buf, count, offset - 2); \
+-} \
+-static DEVICE_ATTR(temp##offset##_##reg, S_IRUGO| S_IWUSR, \
+-		   show_reg_temp##offset##_##reg, \
+-		   store_reg_temp##offset##_##reg);
+-
+-sysfs_temp_offset(2);
+-sysfs_temp_reg_offset(max, 2);
+-sysfs_temp_reg_offset(max_hyst, 2);
+-sysfs_temp_offset(3);
+-sysfs_temp_reg_offset(max, 3);
+-sysfs_temp_reg_offset(max_hyst, 3);
++static struct sensor_device_attribute sda_temp[] = {
++	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp1, NULL, 0),
++	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 0),
++	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 1),
++	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp1_max,
++		    store_temp1_max, 0),
++	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR, show_temp_max,
++		    store_temp_max, 0),
++	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR, show_temp_max,
++		    store_temp_max, 1),
++	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp1_max_hyst,
++		    store_temp1_max_hyst, 0),
++	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
++		    store_temp_max_hyst, 0),
++	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
++		    store_temp_max_hyst, 1),
++};
+ 
+ /*
+  * Driver and client management
+@@ -674,6 +650,7 @@
+ {
+ 	struct i2c_client *client;
+ 	struct w83627ehf_data *data;
++	struct device *dev;
+ 	int i, err = 0;
+ 
+ 	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
+@@ -694,6 +671,7 @@
+ 	client->adapter = adapter;
+ 	client->driver = &w83627ehf_driver;
+ 	client->flags = 0;
++	dev = &client->dev;
+ 
+ 	strlcpy(client->name, "w83627ehf", I2C_NAME_SIZE);
+ 	data->valid = 0;
+@@ -721,42 +699,18 @@
+ 		data->has_fan |= (1 << 4);
+ 
+ 	/* Register sysfs hooks */
+-	data->class_dev = hwmon_device_register(&client->dev);
++	data->class_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->class_dev)) {
+ 		err = PTR_ERR(data->class_dev);
+ 		goto exit_detach;
  	}
  
-+	/* Disable power-on abnormal beep, as advised by the datasheet.
-+	   Already done if reset=1. */
-+	if (init && !reset && type != as99127f) {
-+		i = w83781d_read_value(client, W83781D_REG_BEEP_CONFIG);
-+		w83781d_write_value(client, W83781D_REG_BEEP_CONFIG, i | 0x80);
+-	device_create_file(&client->dev, &dev_attr_fan1_input);
+-	device_create_file(&client->dev, &dev_attr_fan1_min);
+-	device_create_file(&client->dev, &dev_attr_fan1_div);
+-	device_create_file(&client->dev, &dev_attr_fan2_input);
+-	device_create_file(&client->dev, &dev_attr_fan2_min);
+-	device_create_file(&client->dev, &dev_attr_fan2_div);
+-	device_create_file(&client->dev, &dev_attr_fan3_input);
+-	device_create_file(&client->dev, &dev_attr_fan3_min);
+-	device_create_file(&client->dev, &dev_attr_fan3_div);
+-
+-	if (data->has_fan & (1 << 3)) {
+-		device_create_file(&client->dev, &dev_attr_fan4_input);
+-		device_create_file(&client->dev, &dev_attr_fan4_min);
+-		device_create_file(&client->dev, &dev_attr_fan4_div);
+-	}
+-	if (data->has_fan & (1 << 4)) {
+-		device_create_file(&client->dev, &dev_attr_fan5_input);
+-		device_create_file(&client->dev, &dev_attr_fan5_min);
+-		device_create_file(&client->dev, &dev_attr_fan5_div);
+-	}
+-
+-	device_create_file(&client->dev, &dev_attr_temp1_input);
+-	device_create_file(&client->dev, &dev_attr_temp1_max);
+-	device_create_file(&client->dev, &dev_attr_temp1_max_hyst);
+-	device_create_file(&client->dev, &dev_attr_temp2_input);
+-	device_create_file(&client->dev, &dev_attr_temp2_max);
+-	device_create_file(&client->dev, &dev_attr_temp2_max_hyst);
+-	device_create_file(&client->dev, &dev_attr_temp3_input);
+-	device_create_file(&client->dev, &dev_attr_temp3_max);
+-	device_create_file(&client->dev, &dev_attr_temp3_max_hyst);
++	for (i = 0; i < 5; i++) {
++		if (data->has_fan & (1 << i))
++			device_create_file_fan(dev, i);
 +	}
-+
- 	data->vrm = vid_which_vrm();
++	for (i = 0; i < ARRAY_SIZE(sda_temp); i++)
++		device_create_file(dev, &sda_temp[i].dev_attr);
  
- 	if ((type != w83781d) && (type != as99127f)) {
---- linux-2.6.16-rc2.orig/Documentation/hwmon/w83781d	2006-02-05 16:01:53.000000000 +0100
-+++ linux-2.6.16-rc2/Documentation/hwmon/w83781d	2006-02-05 16:02:00.000000000 +0100
-@@ -36,6 +36,11 @@
-   Use 'init=0' to bypass initializing the chip.
-   Try this if your computer crashes when you load the module.
+ 	return 0;
  
-+* reset int
-+  (default 0)
-+  The driver used to reset the chip on load, but does no more. Use
-+  'reset=1' to restore the old behavior. Report if you need to do this.
-+
- force_subclients=bus,caddr,saddr,saddr
-   This is used to force the i2c addresses for subclients of
-   a certain chip. Typical usage is `force_subclients=0,0x2d,0x4a,0x4b'
 
 -- 
 Jean Delvare
