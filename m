@@ -1,43 +1,54 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 27 Feb 2006 22:09:22 +0000
-Subject: [lm-sensors] [PATCH 2/6] i2c-amd756-s4882: Improve static mutex
-Message-Id: <20060227230922.e540201d.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 06 Feb 2006 20:18:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Fix negative temperature readings in
+Message-Id: <11392571371598@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=i2c-amd756-s4882-mutex-init.patch
+[PATCH] hwmon: Fix negative temperature readings in lm77 driver
 
-Static mutexes can be initialized at declaration time.
+Fix negative temperature readings in lm77 driver.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Acked-by: Michael Renzmann <mrenzmann at otaku42.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/i2c/busses/i2c-amd756-s4882.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+commit 413b64515079a4063776d81067f69cc41bdb34ad
+tree 1353d1b285b84963ad48abac3327a397cbc818d2
+parent 21bbd691827e3610ef975a88863859381ac8d8e0
+author Jean Delvare <khali at linux-fr.org> Mon, 09 Jan 2006 22:43:08 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Mon, 06 Feb 2006 12:02:14 -0800
 
---- linux-2.6.16-rc2.orig/drivers/i2c/busses/i2c-amd756-s4882.c	2006-02-07 10:56:24.000000000 +0100
-+++ linux-2.6.16-rc2/drivers/i2c/busses/i2c-amd756-s4882.c	2006-02-07 10:57:17.000000000 +0100
-@@ -46,7 +46,7 @@
- static struct i2c_algorithm *s4882_algo;
- 
- /* Wrapper access functions for multiplexed SMBus */
--static struct mutex amd756_lock;
-+static DEFINE_MUTEX(amd756_lock);
- 
- static s32 amd756_access_virt0(struct i2c_adapter * adap, u16 addr,
- 			       unsigned short flags, char read_write,
-@@ -167,8 +167,6 @@
- 	}
- 
- 	printk(KERN_INFO "Enabling SMBus multiplexing for Tyan S4882\n");
--	mutex_init(&amd756_lock);
--
- 	/* Define the 5 virtual adapters and algorithms structures */
- 	if (!(s4882_adapter = kzalloc(5 * sizeof(struct i2c_adapter),
- 				      GFP_KERNEL))) {
+ drivers/hwmon/lm77.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+index a2f420d..df9e02a 100644
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -87,15 +87,15 @@ static struct i2c_driver lm77_driver = {
+ 
+ /* In the temperature registers, the low 3 bits are not part of the
+    temperature values; they are the status bits. */
+-static inline u16 LM77_TEMP_TO_REG(int temp)
++static inline s16 LM77_TEMP_TO_REG(int temp)
+ {
+ 	int ntemp = SENSORS_LIMIT(temp, LM77_TEMP_MIN, LM77_TEMP_MAX);
+-	return (u16)((ntemp / 500) * 8);
++	return (ntemp / 500) * 8;
+ }
+ 
+-static inline int LM77_TEMP_FROM_REG(u16 reg)
++static inline int LM77_TEMP_FROM_REG(s16 reg)
+ {
+-	return ((int)reg / 8) * 500;
++	return (reg / 8) * 500;
+ }
+ 
+ /* sysfs stuff */
+
 
