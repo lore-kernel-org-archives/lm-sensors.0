@@ -1,25 +1,62 @@
-From: mdsxyz123@yahoo.com (Mark Studebaker)
-Date: Fri, 03 Feb 2006 03:34:55 +0000
-Subject: [lm-sensors] Fwd: ASUS P5P800 and winbond chip w83627hf -
-Message-Id: <20060203033455.6243.qmail@web31705.mail.mud.yahoo.com>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 06 Feb 2006 20:18:57 +0000
+Subject: [lm-sensors] [PATCH] i2c-i801: I2C patch for Intel ICH8
+Message-Id: <11392571373264@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+[PATCH] i2c-i801: I2C patch for Intel ICH8
 
-Note: forwarded message attached.
+This patch adds the Intel ICH8 DID to the i2c-i801.c and Kconfig files for I2C
+support.
+
+Signed-off-by: Jason Gaston <Jason.d.gaston at intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+commit 8254fc4afcc81e69428c453cc216aa612c80e98b
+tree 812d22ca03a3fd1067136061c47d3c93e9be97fa
+parent e3f749c4af69c4344d89f11e2293e3790eb4eaca
+author Jason Gaston <jason.d.gaston at intel.com> Mon, 09 Jan 2006 10:58:08 -0800
+committer Greg Kroah-Hartman <gregkh at suse.de> Mon, 06 Feb 2006 12:02:14 -0800
+
+ drivers/i2c/busses/Kconfig    |    1 +
+ drivers/i2c/busses/i2c-i801.c |    2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index 08d5b8f..ff92735 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -124,6 +124,7 @@ config I2C_I801
+ 	    ICH6
+ 	    ICH7
+ 	    ESB2
++	    ICH8
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-i801.
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index 1c752dd..8e0f315 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -32,6 +32,7 @@
+     ICH6		266A
+     ICH7		27DA
+     ESB2		269B
++    ICH8		283E
+     This driver supports several versions of Intel's I/O Controller Hubs (ICH).
+     For SMBus support, they are similar to the PIIX4 and are part
+     of Intel's '810' and other chipsets.
+@@ -527,6 +528,7 @@ static struct pci_device_id i801_ids[]  	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_16) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_17) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_17) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_5) },
+ 	{ 0, }
+ };
+ 
 
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
--------------- next part --------------
-An embedded message was scrubbed...
-From: Slux <slux83 at gmail.com>
-Subject: ASUS P5P800 and winbond chip w83627hf - suggestion / bug
-Date: Tue, 31 Jan 2006 19:53:49 +0100
-Size: 40456
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060203/fa29efd4/attachment-0001.mht
