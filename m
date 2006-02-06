@@ -1,95 +1,97 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Sun, 05 Feb 2006 22:13:48 +0000
-Subject: [lm-sensors] [PATCH 02/11] w83781d: Use real-time status registers
-Message-Id: <20060205231348.1e273c69.khali@linux-fr.org>
+From: gregkh@suse.de (Greg KH)
+Date: Mon, 06 Feb 2006 20:18:58 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Fix reboot on it87 driver load
+Message-Id: <11392571381198@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Content-Disposition: inline; filename=hwmon-w83781d-real-time-alarms.patch
+[PATCH] hwmon: Fix reboot on it87 driver load
 
-Use the real-time status registers of the Winbond W83782D, W83783S and
-W83627HF chips, instead of the interrupt status registers. Interrupts
-cannot be trusted at least for voltage inputs, as they are two-times
-triggers (as opposed to comparator mode, which we want.) The w83627hf
-driver was fixed in a similar way some times ago.
+Only scan I2C address 0x2d. This is the default address and no IT87xxF
+chip was ever seen on I2C at a different address. These chips are
+better accessed through their ISA interface anyway.
+
+This fixes bug #5889, although it doesn't address the whole class
+of problems. We'd need the ability to blacklist arbitrary I2C addresses
+on systems known to contain I2C devices which behave badly when probed.
+
+Plan the I2C interface for removal as well. If nobody complains within
+a year, it will confirm my impression that the I2C interface isn't
+actually needed by anyone.
 
 Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
 ---
- drivers/hwmon/w83781d.c |   43 +++++++++++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+commit c5e3fbf22ccba0879b174fab7ec0e322b1266c2c
+tree 37529cd21d0f546a4e5578a554cac0371dbf4e85
+parent e53004e20a58e9d28347e02adccb37a33e0d771a
+author Jean Delvare <khali at linux-fr.org> Wed, 18 Jan 2006 22:39:48 +0100
+committer Greg Kroah-Hartman <gregkh at suse.de> Mon, 06 Feb 2006 12:02:15 -0800
 
---- linux-2.6.16-rc2.orig/drivers/hwmon/w83781d.c	2006-02-05 21:09:41.000000000 +0100
-+++ linux-2.6.16-rc2/drivers/hwmon/w83781d.c	2006-02-05 21:10:17.000000000 +0100
-@@ -95,11 +95,16 @@
- 						     (0x39)))
- 
- #define W83781D_REG_CONFIG		0x40
-+
-+/* Interrupt status (W83781D, AS99127F) */
- #define W83781D_REG_ALARM1		0x41
- #define W83781D_REG_ALARM2		0x42
--#define W83781D_REG_ALARM3		0x450	/* not on W83781D */
- 
--#define W83781D_REG_IRQ			0x4C
-+/* Real-time status (W83782D, W83783S, W83627HF) */
-+#define W83782D_REG_ALARM1		0x459
-+#define W83782D_REG_ALARM2		0x45A
-+#define W83782D_REG_ALARM3		0x45B
-+
- #define W83781D_REG_BEEP_CONFIG		0x4D
- #define W83781D_REG_BEEP_INTS1		0x56
- #define W83781D_REG_BEEP_INTS2		0x57
-@@ -1513,15 +1518,6 @@
- 					W83781D_REG_TEMP3_CONFIG, tmp & 0xfe);
- 			}
- 		}
--
--		if (type != w83781d) {
--			/* enable comparator mode for temp2 and temp3 so
--			   alarm indication will work correctly */
--			i = w83781d_read_value(client, W83781D_REG_IRQ);
--			if (!(i & 0x40))
--				w83781d_write_value(client, W83781D_REG_IRQ,
--						    i | 0x40);
--		}
- 	}
- 
- 	/* Start monitoring */
-@@ -1612,14 +1608,25 @@
- 			data->fan_div[1] |= (i >> 4) & 0x04;
- 			data->fan_div[2] |= (i >> 5) & 0x04;
- 		}
--		data->alarms -		    w83781d_read_value(client,
--				       W83781D_REG_ALARM1) +
--		    (w83781d_read_value(client, W83781D_REG_ALARM2) << 8);
- 		if ((data->type = w83782d) || (data->type = w83627hf)) {
--			data->alarms |-			    w83781d_read_value(client,
--					       W83781D_REG_ALARM3) << 16;
-+			data->alarms = w83781d_read_value(client,
-+						W83782D_REG_ALARM1)
-+				     | (w83781d_read_value(client,
-+						W83782D_REG_ALARM2) << 8)
-+				     | (w83781d_read_value(client,
-+						W83782D_REG_ALARM3) << 16);
-+		} else if (data->type = w83783s) {
-+			data->alarms = w83781d_read_value(client,
-+						W83782D_REG_ALARM1)
-+				     | (w83781d_read_value(client,
-+						W83782D_REG_ALARM2) << 8);
-+		} else {
-+			/* No real-time status registers, fall back to
-+			   interrupt status registers */
-+			data->alarms = w83781d_read_value(client,
-+						W83781D_REG_ALARM1)
-+				     | (w83781d_read_value(client,
-+						W83781D_REG_ALARM2) << 8);
- 		}
- 		i = w83781d_read_value(client, W83781D_REG_BEEP_INTS2);
- 		data->beep_enable = i >> 7;
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ Documentation/hwmon/it87                   |    2 +-
+ drivers/hwmon/it87.c                       |    8 ++++++--
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
--- 
-Jean Delvare
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 4d4897c..b730d76 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -162,3 +162,12 @@ What:	pci_module_init(driver)
+ When:	January 2007
+ Why:	Is replaced by pci_register_driver(pci_driver).
+ Who:	Richard Knutsson <ricknu-0 at student.ltu.se> and Greg Kroah-Hartman <gregkh at suse.de>
++
++---------------------------
++
++What:	I2C interface of the it87 driver
++When:	January 2007
++Why:	The ISA interface is faster and should be always available. The I2C
++	probing is also known to cause trouble in at least one case (see
++	bug #5889.)
++Who:	Jean Delvare <khali at linux-fr.org>
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 7f42e44..9555be1 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -9,7 +9,7 @@ Supported chips:
+                http://www.ite.com.tw/
+   * IT8712F
+     Prefix: 'it8712'
+-    Addresses scanned: I2C 0x28 - 0x2f
++    Addresses scanned: I2C 0x2d
+                        from Super I/O config space (8 I/O ports)
+     Datasheet: Publicly available at the ITE website
+                http://www.ite.com.tw/
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 0da7c9c..e87d52c 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -45,8 +45,7 @@
+ 
+ 
+ /* Addresses to scan */
+-static unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+-					0x2e, 0x2f, I2C_CLIENT_END };
++static unsigned short normal_i2c[] = { 0x2d, I2C_CLIENT_END };
+ static unsigned short isa_address;
+ 
+ /* Insmod parameters */
+@@ -830,6 +829,11 @@ static int it87_detect(struct i2c_adapte
+ 	if ((err = i2c_attach_client(new_client)))
+ 		goto ERROR2;
+ 
++	if (!is_isa)
++		dev_info(&new_client->dev, "The I2C interface to IT87xxF "
++			 "hardware monitoring chips is deprecated. Please "
++			 "report if you still rely on it.\n");
++
+ 	/* Check PWM configuration */
+ 	enable_pwm_interface = it87_check_pwm(new_client);
+ 
+
 
