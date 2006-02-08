@@ -1,31 +1,64 @@
-From: bezaur@gmail.com (Charles Spirakis)
-Date: Fri, 03 Feb 2006 18:17:34 +0000
-Subject: [lm-sensors] kernel driver (2.6.15.1) for w83791d...
-Message-Id: <5bfe43f80602031017u1e588306v9a51ce258b65d479@mail.gmail.com>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 08 Feb 2006 19:38:29 +0000
+Subject: [lm-sensors] [PATCH] i2c: Drop outdated probe/remove code in i2c-isa
+Message-Id: <20060208203829.694cd90b.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-All --
+Hi Greg,
 
-I noticed that there is partial support for the w83791d chip in the
-older 2.4 drivers but not in the 2.6 kernel drivers. In looking at the
-chip datasheets, it appears that the 83791d is somewhere between the
-83781d and 83792d, but different enough that it seemed like the right
-answer was a new driver file (based partially on the w83781d and
-partly on the w83792d).
+I guess this should be pushed to Linus before 2.6.16?
 
-I have the a patch for the 2.6.15.1 tree available, but I also have a
-couple of questions:
+Thanks.
 
-1) Should I just post the patch on this mailing list or is there some
-sort of repository where I should place it (the patch is ~1700 lines)?
-2) Is this the right place for this discussion?
-3) Any suggestions on how to get this into the 2.6 kernel tree?
+* * * * *
 
-Thanks!
+Probe and remove methods are now defined at bus level. No more need to
+redefine them at driver level in i2c-isa.
 
--- charles
+This lets us get rid of these annoying messages:
+Driver 'it87-isa' needs updating - please use bus_type methods
+
+Thanks to Nicolas Mailhot for reporting the problem and testing the fix.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+---
+ drivers/i2c/busses/i2c-isa.c |   12 ------------
+ 1 file changed, 12 deletions(-)
+
+--- linux-2.6.16-rc2.orig/drivers/i2c/busses/i2c-isa.c	2006-02-07 09:15:08.000000000 +0100
++++ linux-2.6.16-rc2/drivers/i2c/busses/i2c-isa.c	2006-02-07 18:22:46.000000000 +0100
+@@ -72,16 +72,6 @@
+ }
+ static DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
+ 
+-static int i2c_isa_device_probe(struct device *dev)
+-{
+-	return -ENODEV;
+-}
+-
+-static int i2c_isa_device_remove(struct device *dev)
+-{
+-	return 0;
+-}
+-
+ 
+ /* We implement an interface which resembles i2c_{add,del}_driver,
+    but for i2c-isa drivers. We don't have to remember and handle lists
+@@ -93,8 +83,6 @@
+ 
+ 	/* Add the driver to the list of i2c drivers in the driver core */
+ 	driver->driver.bus = &i2c_bus_type;
+-	driver->driver.probe = i2c_isa_device_probe;
+-	driver->driver.remove = i2c_isa_device_remove;
+ 	res = driver_register(&driver->driver);
+ 	if (res)
+ 		return res;
+
+
+-- 
+Jean Delvare
 
