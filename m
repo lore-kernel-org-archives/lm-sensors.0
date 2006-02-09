@@ -1,110 +1,274 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 21 Feb 2006 08:50:20 +0000
-Subject: [lm-sensors] Ticket
-Message-Id: <sEqILkw0.1140511820.6712780.khali@localhost>
+From: wah@uiuc.edu (Benjamin W. Wah)
+Date: Thu, 09 Feb 2006 21:49:01 +0000
+Subject: [lm-sensors] Question on PowerEdge 1850
+Message-Id: <006901c62dc2$a3b855f0$2b8e7e82@trace3>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2dedd0680602192048m4639ac6awb9a720207a9d3de1@mail.gmail.com>
-In-Reply-To: <2dedd0680602192048m4639ac6awb9a720207a9d3de1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+ 
 
-Hi Istvan,
+Would you please tell me whether lmsensors would run on the Dell PowerEduge
+1850?  The following is the information on the machine:
 
-Please answer to the list rather than to me only.
+ 
 
-On 2006-02-21, Kis Istvan Csaba wrote:
-> [root at cl-86-125-141-8 ~]# sensors -v
-> sensors version 2.10.0 with libsensors version 2.10.0
+[root at el236gw lm_sensors-2.9.2]# lspci
 
-OK so "sensors" links with the right library.
+00:00.0 Host bridge: Intel Corporation E7520 Memory Controller Hub (rev 09)
 
-> Boot log:
->
-> Feb 21 08:23:26 cl-86-125-141-8 lm_sensors: Starting lm_sensors: loading
-> module
-> Feb 21 08:23:26 cl-86-125-141-8 lm_sensors: i2c-viapro
-> Feb 21 08:23:26 cl-86-125-141-8 lm_sensors: i2c-isa
-> Feb 21 08:23:26 cl-86-125-141-8 lm_sensors: eeprom
-> Feb 21 08:23:26 cl-86-125-141-8 lm_sensors: it87
-> Feb 21 08:23:27 cl-86-125-141-8 lm_sensors: Can't access procfs/sysfs file
-> Feb 21 08:23:27 cl-86-125-141-8 lm_sensors:
-> Feb 21 08:23:27 cl-86-125-141-8 lm_sensors: Unable to find i2c bus
-> information;
-> Feb 21 08:23:27 cl-86-125-141-8 lm_sensors: For 2.6 kernels, make sure you
-> have mounted sysfs and libsensors
-> Feb 21 08:23:27 cl-86-125-141-8 lm_sensors: was compiled with sysfs
-> support!
-> Feb 21 08:23:27 cl-86-125-141-8 lm_sensors: For older kernels, make sure
-> you
-> have done 'modprobe i2c-proc'!
-> Feb 21 08:23:27 cl-86-125-141-8 rc: Starting lm_sensors:  failed
+00:02.0 PCI bridge: Intel Corporation E7525/E7520/E7320 PCI Express Port A
+(rev 09)
 
-This is a user-space log. What I was interested was the kernel log (as
-displayed by dmesg and often available as /var/log/syslog too). But the
-other tests below should be sufficient for now.
+00:04.0 PCI bridge: Intel Corporation E7525/E7520 PCI Express Port B (rev
+09)
 
-> [root at cl-86-125-141-8 ~]# ls -l /sys/bus/i2c/*
-> /sys/bus/i2c/devices:
-> total 0
-> lrwxrwxrwx  1 root root 0 Feb 21 08:32 0-0050 ->
-> ../../../devices/pci0000:00/0000:00:11.0/i2c-0/0-0050
-> lrwxrwxrwx  1 root root 0 Feb 21 08:32 1-0290 ->
-> ../../../devices/platform/i2c-1/1-0290
+00:05.0 PCI bridge: Intel Corporation E7520 PCI Express Port B1 (rev 09)
 
-Two devices found, one EEPROM and one IT87xxF chip. So the drivers are
-working properly.
+00:06.0 PCI bridge: Intel Corporation E7520 PCI Express Port C (rev 09)
 
-> [root at cl-86-125-141-8 ~]# ls -l /sys/class/
-> total 0
-> drwxr-xr-x    2 root root 0 Feb 21 08:33 firmware
-> drwxr-xr-x    2 root root 0 Feb 21  2006 graphics
-> drwxr-xr-x    4 root root 0 Feb 21 08:23 i2c-adapter
-> drwxr-xr-x    8 root root 0 Feb 21  2006 input
-> drwxr-xr-x   10 root root 0 Feb 21  2006 mem
-> drwxr-xr-x    6 root root 0 Feb 21 08:23 misc
-> drwxr-xr-x    5 root root 0 Feb 21  2006 net
-> drwxr-xr-x    4 root root 0 Feb 21  2006 pci_bus
-> drwxr-xr-x    3 root root 0 Feb 21 08:23 printer
-> drwxr-xr-x    2 root root 0 Feb 21  2006 scsi_device
-> drwxr-xr-x    4 root root 0 Feb 21  2006 scsi_host
-> drwxr-xr-x   12 root root 0 Feb 21  2006 sound
-> drwxr-xr-x  145 root root 0 Feb 21  2006 tty
-> drwxr-xr-x    2 root root 0 Feb 21  2006 usb
-> drwxr-xr-x    7 root root 0 Feb 21  2006 usb_host
-> drwxr-xr-x   18 root root 0 Feb 21 08:23 vc
+00:1d.0 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI
+Controller #1 (rev 02)
 
-No hwmon class, but on second thought this is expected: this class was
-not yet introduced in kernel 2.6.12.
+00:1d.1 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI
+Controller #2 (rev 02)
 
-> [root at cl-86-125-141-8 eeprom]# ./decode-dimms.pl
->
-> PC DIMM Serial Presence Detect Tester/Decoder
-> By Philip Edelbrock, Christian Zuckschwerdt, Burkart Lingner,
-> Jean Delvare and others
-> Version 2.10.0
->
->
-> Decoding EEPROM: /sys/bus/i2c/drivers/eeprom/0-0050
-> Guessing DIMM is in                             bank 1
-> (...)
+00:1d.2 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI
+#3 (rev 02)
 
-This successful run proves that the i2c-viapro and eeprom drivers work
-properly.
+00:1d.7 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB2 EHCI
+Controller (rev 02)
 
-So everything seems to be working properly on the kernel side. This has
-to be a user-space issue. How did you build lm_sensors? Manually or
-kernel package? The error suggests that libsensors was built without
-Linux 2.6 (sysfs) support. This would happen if it was built under a 2.4
-kernel, or if you manually disabled sysfs support at built time. Do you
-have libsysfs installed on your system? You need it.
+00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev c2)
 
-Assuming that libsensors was installed under /usr/local/lib, please
-provide the output of "ldd /usr/local/lib/libsensors.so". This will
-tell us for sure if it was built with sysfs support or not.
+00:1f.0 ISA bridge: Intel Corporation 82801EB/ER (ICH5/ICH5R) LPC Interface
+Bridge (rev 02)
 
---
-Jean Delvare
+00:1f.1 IDE interface: Intel Corporation 82801EB/ER (ICH5/ICH5R) IDE
+Controller (rev 02)
 
+01:00.0 PCI bridge: Intel Corporation 80332 [Dobson] I/O processor (rev 06)
+
+01:00.2 PCI bridge: Intel Corporation 80332 [Dobson] I/O processor (rev 06)
+
+02:05.0 SCSI storage controller: LSI Logic / Symbios Logic 53c1030 PCI-X
+Fusion-MPT Dual Ultra320 SCSI (rev 08)
+
+02:0c.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+RTL-8139/8139C/8139C+ (rev 10)
+
+03:0b.0 Network controller: Texas Instruments ACX 111 54Mbps Wireless
+Interface
+
+05:00.0 PCI bridge: Intel Corporation 6700PXH PCI Express-to-PCI Bridge A
+(rev 09)
+
+05:00.2 PCI bridge: Intel Corporation 6700PXH PCI Express-to-PCI Bridge B
+(rev 09)
+
+06:07.0 Ethernet controller: Intel Corporation 82541GI/PI Gigabit Ethernet
+Controller (rev 05)
+
+07:08.0 Ethernet controller: Intel Corporation 82541GI/PI Gigabit Ethernet
+Controller (rev 05)
+
+09:0d.0 VGA compatible controller: ATI Technologies Inc Radeon RV100 QY
+[Radeon 7000/VE]
+
+ 
+
+[root at el236gw lm_sensors-2.9.2]# cat //proc/pci
+
+PCI devices found:
+
+  Bus  0, device   0, function  0:
+
+    Class 0600: PCI device 8086:3590 (rev 9).
+
+  Bus  0, device   2, function  0:
+
+    Class 0604: PCI device 8086:3595 (rev 9).
+
+      IRQ 169.
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  0, device   4, function  0:
+
+    Class 0604: PCI device 8086:3597 (rev 9).
+
+      IRQ 169.
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  0, device   5, function  0:
+
+    Class 0604: PCI device 8086:3598 (rev 9).
+
+      IRQ 169.
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  0, device   6, function  0:
+
+    Class 0604: PCI device 8086:3599 (rev 9).
+
+      IRQ 169.
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  0, device  29, function  0:
+
+    Class 0c03: PCI device 8086:24d2 (rev 2).
+
+      IRQ 169.
+
+      I/O at 0xace0 [0xacff].
+
+  Bus  0, device  29, function  1:
+
+    Class 0c03: PCI device 8086:24d4 (rev 2).
+
+      IRQ 217.
+
+      I/O at 0xacc0 [0xacdf].
+
+  Bus  0, device  29, function  2:
+
+    Class 0c03: PCI device 8086:24d7 (rev 2).
+
+      IRQ 225.
+
+      I/O at 0xaca0 [0xacbf].
+
+  Bus  0, device  29, function  7:
+
+    Class 0c03: PCI device 8086:24dd (rev 2).
+
+      IRQ 209.
+
+      Non-prefetchable 32 bit memory at 0xdff00000 [0xdff003ff].
+
+  Bus  0, device  30, function  0:
+
+    Class 0604: PCI device 8086:244e (rev 194).
+
+      Master Capable.  No bursts.  Min Gnt.
+
+  Bus  0, device  31, function  0:
+
+    Class 0601: PCI device 8086:24d0 (rev 2).
+
+  Bus  0, device  31, function  1:
+
+    Class 0101: PCI device 8086:24db (rev 2).
+
+      I/O at 0xfc00 [0xfc0f].
+
+      Non-prefetchable 32 bit memory at 0x40000000 [0x400003ff].
+
+  Bus  1, device   0, function  0:
+
+    Class 0604: PCI device 8086:0330 (rev 6).
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  1, device   0, function  2:
+
+    Class 0604: PCI device 8086:0332 (rev 6).
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  2, device   5, function  0:
+
+    Class 0100: PCI device 1000:0030 (rev 8).
+
+      IRQ 177.
+
+      Master Capable.  Latencyr.  Min Gnt.Max Lat.
+
+      I/O at 0xec00 [0xecff].
+
+      Non-prefetchable 64 bit memory at 0xdfdf0000 [0xdfdfffff].
+
+      Non-prefetchable 64 bit memory at 0xdfde0000 [0xdfdeffff].
+
+  Bus  2, device  12, function  0:
+
+    Class 0200: PCI device 10ec:8139 (rev 16).
+
+      IRQ 201.
+
+      Master Capable.  Latency2.  Min Gnt2.Max Latd.
+
+      I/O at 0xe800 [0xe8ff].
+
+      Non-prefetchable 32 bit memory at 0xdfddfc00 [0xdfddfcff].
+
+  Bus  3, device  11, function  0:
+
+    Class 0280: PCI device 104c:9066 (rev 0).
+
+      IRQ 7.
+
+      Master Capable.  Latency2.  
+
+      Non-prefetchable 32 bit memory at 0xdfbfe000 [0xdfbfffff].
+
+      Non-prefetchable 32 bit memory at 0xdfbc0000 [0xdfbdffff].
+
+  Bus  5, device   0, function  0:
+
+    Class 0604: PCI device 8086:0329 (rev 9).
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  5, device   0, function  2:
+
+    Class 0604: PCI device 8086:032a (rev 9).
+
+      Master Capable.  No bursts.  Min Gnt=7.
+
+  Bus  6, device   7, function  0:
+
+    Class 0200: PCI device 8086:1076 (rev 5).
+
+      IRQ 185.
+
+      Master Capable.  Latency2.  Min Gnt%5.
+
+      Non-prefetchable 32 bit memory at 0xdf8e0000 [0xdf8fffff].
+
+      I/O at 0xdcc0 [0xdcff].
+
+  Bus  7, device   8, function  0:
+
+    Class 0200: PCI device 8086:1076 (rev 5).
+
+      IRQ 193.
+
+      Master Capable.  Latency2.  Min Gnt%5.
+
+      Non-prefetchable 32 bit memory at 0xdf6e0000 [0xdf6fffff].
+
+      I/O at 0xccc0 [0xccff].
+
+  Bus  9, device  13, function  0:
+
+    Class 0300: PCI device 1002:5159 (rev 0).
+
+      IRQ 225.
+
+      Master Capable.  Latency2.  Min Gnt=8.
+
+      Prefetchable 32 bit memory at 0xd0000000 [0xd7ffffff].
+
+      I/O at 0xbc00 [0xbcff].
+
+      Non-prefetchable 32 bit memory at 0xdf3f0000 [0xdf3fffff].
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060209/bb7d0e11/attachment-0001.html
