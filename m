@@ -1,7 +1,7 @@
-From: matt@lqx.net (Matt Kulka)
-Date: Thu, 09 Feb 2006 19:15:06 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Fri, 10 Feb 2006 10:17:48 +0000
 Subject: [lm-sensors] lm93 driver for 2.6
-Message-Id: <55F0BEFC-1AA3-486A-BF3E-FA06EAA5895B@lqx.net>
+Message-Id: <6WQvmLRB.1139566668.7302330.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1121815671.1604.16.camel@wiz.dev.aspsys.com>
 In-Reply-To: <1121815671.1604.16.camel@wiz.dev.aspsys.com>
@@ -10,48 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-I'm attempting to build the lm93 driver on kernel 2.6.14. The patches  
-(specifically the 2.6.13-rc3-mm3 version) provided by Eric Bowersox  
-patch the appropriate source files successfully. However, building  
-fails due to some missing files and undeclared variables, below is  
-the output. Is there an appropriate patch for 2.6.14?
+Hi Matt,
 
-drivers/hwmon/lm93.c:42:30: linux/i2c-sensor.h: No such file or  
-directory
-drivers/hwmon/lm93.c:43:27: linux/i2c-vid.h: No such file or directory
-drivers/hwmon/lm93.c:59: warning: type defaults to `int' in  
-declaration of `SENSORS_INSMOD_1'
-drivers/hwmon/lm93.c:59: warning: parameter names (without types) in  
-function declaration
-drivers/hwmon/lm93.c:59: warning: data definition has no type or  
-storage class
-drivers/hwmon/lm93.c:141: error: field `type' has incomplete type
-drivers/hwmon/lm93.c: In function `LM93_VID_FROM_REG':
-drivers/hwmon/lm93.c:242: warning: implicit declaration of function  
-`vid_from_reg'
-drivers/hwmon/lm93.c: In function `lm93_detect':
-drivers/hwmon/lm93.c:2261: error: `lm93' undeclared (first use in  
-this function)
-drivers/hwmon/lm93.c:2261: error: (Each undeclared identifier is  
-reported only once
-drivers/hwmon/lm93.c:2261: error: for each function it appears in.)
-drivers/hwmon/lm93.c: In function `lm93_attach_adapter':
-drivers/hwmon/lm93.c:2363: warning: implicit declaration of function  
-`i2c_detect'
-drivers/hwmon/lm93.c:2363: error: `addr_data' undeclared (first use  
-in this function)
-drivers/hwmon/lm93.c: At top level:
-drivers/hwmon/lm93.c:56: warning: 'normal_i2c' defined but not used
-make[2]: *** [drivers/hwmon/lm93.o] Error 1
-make[1]: *** [drivers/hwmon] Error 2
-make: *** [drivers] Error 2
+On 2006-02-09, Matt Kulka wrote:
+> I'm attempting to build the lm93 driver on kernel 2.6.14. The patches
+> (specifically the 2.6.13-rc3-mm3 version) provided by Eric Bowersox
+> patch the appropriate source files successfully. However, building
+> fails due to some missing files and undeclared variables, below is
+> the output. Is there an appropriate patch for 2.6.14?
 
+Not that I know of, but others may have worked on it. There have been
+some changes in the i2c/hwmon realm since 2.6.13 so I'm not surprised
+that the old patch doesn't work anymore.
 
-Matt Kulka
-matt at lqx.net
+> drivers/hwmon/lm93.c:42:30: linux/i2c-sensor.h: No such file or
+> directory
 
+Has been renamed to linux/hwmon.h.
 
+> drivers/hwmon/lm93.c:43:27: linux/i2c-vid.h: No such file or directory
 
+Has been renamed to linux/hwmon-vid.h.
+
+> drivers/hwmon/lm93.c:59: warning: type defaults to `int' in
+> declaration of `SENSORS_INSMOD_1'
+
+Has been renamed to I2C_CLIENT_INSMOD_1.
+
+Just changing these three changes should let you go somewhat further.
+Also note that you'll need an additional patch which restores the an
+SMBus block read function needed by the lm93 driver:
+
+http://khali.linux-fr.org/devel/i2c/linux-2.6/i2c-add-smbus-block-read.patch
+
+Ideally we would merge the lm93 driver into mainline so that users can
+just use it, but that's a very large driver which would need some more
+review before I can accept it - and I don't have the time for that
+review work myself.
+
+--
+Jean Delvare
 
