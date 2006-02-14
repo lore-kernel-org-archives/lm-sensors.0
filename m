@@ -1,25 +1,37 @@
-From: rigelf@gmail.com (Rigel Freden)
-Date: Mon, 27 Feb 2006 04:07:04 +0000
-Subject: [lm-sensors] asm58 for 2.10.0, linux 2.6.15
-Message-Id: <9328bcc00602262007h79e1b9ffu5f9c463b486b1da@mail.gmail.com>
+From: bezaur@gmail.com (Charles Spirakis)
+Date: Tue, 14 Feb 2006 21:17:28 +0000
+Subject: [lm-sensors] [patch] hwmon: Add support for w83791d sensor chip
+Message-Id: <5bfe43f80602141317i5e7e08d7q989e5d717598bd7d@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-attached are my latest patches to a 2.6.15 kernel and lm-sensors
-2.10.0.  these have been tested and refined on my asus p4b533-vm for
-over a month.  please consider these patches as candidates for
-inclusion into the next release of lm-sensors.  if i have committed
-any grave injustices in my code, please let me know.
---
-Rigel Freden
+From: Charles Spirakis <bezaur at hotmail.com>
+
+Add support for the w83791d sensor chip. The w83791d hardware is
+somewhere between the w83781d and the w83792d and this driver code is derived
+from the code that supports those chips.
+
+Signed-off by: Charles Spirakis <bezaur at gmail.com>
+
+---
+
+  Documentation/hwmon/w83791d |  117 +++
+  drivers/hwmon/Kconfig       |   10
+  drivers/hwmon/Kconfig.orig  |  462 ++++++++++++
+  drivers/hwmon/Makefile      |    1
+  drivers/hwmon/w83791d.c     | 1647
+++++++++++++++++++++++++++++++++++++++++++++ 5 files changed, 2237
+insertions(+)
+
+
+Full patch included in attachement.
 -------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: linux-2.6.15-asm58.patch.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060227/0bf98dea/linux-2.6.15-asm58.patch-0001.txt
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: lm_sensors-2.10.0-asm58.patch.txt
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060227/0bf98dea/lm_sensors-2.10.0-asm58.patch-0001.txt
+A non-text attachment was scrubbed...
+Name: w83791d_support.patch
+Type: text/x-patch
+Size: 71394 bytes
+Desc: not available
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060214/8c325fe5/w83791d_support-0001.bin
