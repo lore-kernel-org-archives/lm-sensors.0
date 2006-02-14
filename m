@@ -1,27 +1,60 @@
-From: slagathor@charter.net (Ziggy)
-Date: Sun, 26 Feb 2006 06:44:54 +0000
-Subject: [lm-sensors] EVGA NF41
-Message-Id: <44014E66.6040202@charter.net>
+From: gregkh@suse.de (Greg Kroah-Hartman)
+Date: Tue, 14 Feb 2006 06:48:21 +0000
+Subject: [lm-sensors] [PATCH 5/5] i2c: Drop outdated probe/remove code in
+Message-Id: <11398997013245-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-(I hope this is the correct way to do this...)
+Probe and remove methods are now defined at bus level. No more need to
+redefine them at driver level in i2c-isa.
 
-I did some searching on this motherboard, here is some of the info I 
-have discovered as far as the tmp sensor stuff.
-Sensor Properties:
-Sensor Type Fintek F71872F (ISA 290h)
-GPU Sensor Type Diode (NV-Diode)
+This lets us get rid of these annoying messages:
+Driver 'it87-isa' needs updating - please use bus_type methods
 
-It is an nForce 4 SLi motherboard.
+Thanks to Nicolas Mailhot for reporting the problem and testing the fix.
+
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
+
+---
+
+ drivers/i2c/busses/i2c-isa.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
+
+41d9c98fe76298cebc5907bcebfb2db28017a277
+diff --git a/drivers/i2c/busses/i2c-isa.c b/drivers/i2c/busses/i2c-isa.c
+index 9f2ffef..4344ae6 100644
+--- a/drivers/i2c/busses/i2c-isa.c
++++ b/drivers/i2c/busses/i2c-isa.c
+@@ -72,16 +72,6 @@ static ssize_t show_adapter_name(struct 
+ }
+ static DEVICE_ATTR(name, S_IRUGO, show_adapter_name, NULL);
+ 
+-static int i2c_isa_device_probe(struct device *dev)
+-{
+-	return -ENODEV;
+-}
+-
+-static int i2c_isa_device_remove(struct device *dev)
+-{
+-	return 0;
+-}
+-
+ 
+ /* We implement an interface which resembles i2c_{add,del}_driver,
+    but for i2c-isa drivers. We don't have to remember and handle lists
+@@ -93,8 +83,6 @@ int i2c_isa_add_driver(struct i2c_driver
+ 
+ 	/* Add the driver to the list of i2c drivers in the driver core */
+ 	driver->driver.bus = &i2c_bus_type;
+-	driver->driver.probe = i2c_isa_device_probe;
+-	driver->driver.remove = i2c_isa_device_remove;
+ 	res = driver_register(&driver->driver);
+ 	if (res)
+ 		return res;
 
 
-Is there an existing driver I can use for this? If not, could I request 
-one???
-
-Thanks for your time
-Jerry Z.
 
