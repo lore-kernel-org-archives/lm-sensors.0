@@ -1,52 +1,39 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 25 Feb 2006 18:04:39 +0000
-Subject: [lm-sensors] [patch 0/2] hwmon: add a superio_locks coordinator
-Message-Id: <44009C37.1030601@sh.cvut.cz>
+From: gregkh@suse.de (Greg Kroah-Hartman)
+Date: Tue, 14 Feb 2006 06:48:21 +0000
+Subject: [lm-sensors] [PATCH 4/5] it87: Fix oops on removal
+Message-Id: <1139899701180-git-send-email-gregkh@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello
+Fix an oops on it87 module removal when no supported hardware was
+found.
 
-Sorry for the delay I have been rather busy with the school finishing stuff.
-And now my comments. I studied both patches and I really like a simplistic aproach
+Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh at suse.de>
 
-So far I know sio is used in:
+---
 
-mmc card driver wbsd.c
-parallel port drivers parport_pc.c
-several watchdog drivers
-irda drivers
+ drivers/hwmon/it87.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-After studying those drivers and your minimalistic approach in mind I came to this conclusion
+be79c383254cd3eb50953d8c0a7cacdbf6db31c0
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index e87d52c..d7a9401 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -1186,7 +1186,8 @@ static int __init sm_it87_init(void)
+ 
+ static void __exit sm_it87_exit(void)
+ {
+-	i2c_isa_del_driver(&it87_isa_driver);
++	if (isa_address)
++		i2c_isa_del_driver(&it87_isa_driver);
+ 	i2c_del_driver(&it87_driver);
+ }
+ 
 
-what about to create this API:
 
-
-unlock_seq[] = {0x87,0x87,0x00} maybe 0x00 to terminate the list?
-
-sio_enter(u8 port, u8 *unlock_seq)
-sio_exit(u8 port, u8 *lock_seq)
-sio_inb(u8 port)
-sio_outb(u8 port, u8 val)
-sio_select(u8 port, u8 ldn)
-
-Now the big thing ;) the semaphore/mutex for the access locking would be hidden in sio_enter
-and sio_exit
-
-there could be just some port-> index mapping so you will try to lock/unlock just a lock to right address
-This would solve all problems with concurrent access.
-
-This approach should work and it is consistent with the idea of SIO, just enter the configuration space,
-alter something and exit... Just lock it between enter and exit.
-
-The locking in some other places cannot be done because the drivers can switch the bank and this is
-not good. They can try to lock/unlock the sio itself. This approach will solve those problems...
-
-What do you say? If you like it maybe you can implement it or come with something else...
-
-Regards
-Rudolf
 
