@@ -1,7 +1,7 @@
-From: devik@cdi.cz (Martin Devera)
-Date: Tue, 14 Feb 2006 16:21:18 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Wed, 15 Feb 2006 22:38:21 +0000
 Subject: [lm-sensors] HT-1000 smbus
-Message-Id: <43F2037E.104@cdi.cz>
+Message-Id: <20060215233821.5628e8ac.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <43F105D6.7000500@cdi.cz>
 In-Reply-To: <43F105D6.7000500@cdi.cz>
@@ -10,22 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> 
->> I will not leave the effort un-appreciated ;-)
->> Going to dig into smbus.sys more for now.
-> 
-> Good. I must study for final exams...
+Hi Martin,
 
-good luck :) I just found it was working all the time only I was fooled
-by I2C warnings so I even didn't test it. Now after I successfully 
-disasembled and commented whole smbus.sys I found that it is really
-working :-) Well dumb me ... but at least nice rev-engineering experience.
-I owe you a beer, if you have some time, say, at Monday :)
+> Patch is attached. Is it enough to post it here to be considered ?
 
-Patch is attached. Is it enough to post it here to be considered ?
+Well the fix is quite simple so yes I'll consider it. However there are
+a few things I'd like to see added before I accept the patch.
 
-Martin
--------------- next part --------------
-An embedded and charset-unspecified text was scrubbed...
-Name: ht1000-smb.diff
-Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060214/865c4149/ht1000-smb.pl
+Firstly, please include a Signed-off-by line (see
+Documentation/SubmittingPatches for details.)
+
+Secondly, some minimalistic Kconfig and documentation updates would be
+needed to mention the HT-1000.
+
+Also, I do agree that the warning about SMBHSTCFG triggers in many
+cases where it shouldn't and doing what it suggests then breaks things
+more than it helps. We might discard the warning as long as the
+documentation is clear about the module parameter which "fixes" the
+problem for people who have it (a couple boards only as far as I know -
+and I consider it a BIOS bug.) However, this should be made a different
+patch as this isn't related to the HT-1000.
+
+Thanks,
+-- 
+Jean Delvare
+
