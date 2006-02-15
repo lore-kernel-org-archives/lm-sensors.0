@@ -1,7 +1,7 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Wed, 15 Feb 2006 11:18:24 +0000
+From: vr@aradio.ru (Victor A. Bykov)
+Date: Wed, 15 Feb 2006 11:29:17 +0000
 Subject: [lm-sensors] w83781d and empty /sys/class/hwmon
-Message-Id: <7jqNfyvT.1140002304.9171290.khali@localhost>
+Message-Id: <035501c63223$0e8cf200$5964a8c0@office.aradio.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
 In-Reply-To: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
@@ -10,21 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+"?????????"
+????:  lm-sensors at lm-sensors.org
+       Jean Delvare
+??: ????????? ????????????? ????? ?????? ?????????
+????: Re: [lm-sensors] w83781d and empty /sys/class/hwmon
 
-Hi Victor
+Hi, Jean
 
-> Strange thing, in kernel 2.6.15.4 I have following modules loaded w83781d,
-> hwmon_vid, hwmon, w83781d, i2c_isa, i2c_piix4, i2c_dev,
-> i2c_core.
+>> But directory /sys/class/hwmon is empty, and sensors -s does not work!
+>Does the device show under /sys/bus/i2c/devices?
+/sys/bus/i2c/devices is empty too 
 
-Hm, do you really have w83781d loaded twice? I hope not ;)
+but there is simlink to device in /sys/class/i2c-dev/i2c-0
 
-> But directory /sys/class/hwmon is empty, and sensors -s does not work!
+>Does "sensors" (without -s) work?
+no, it does not (strace shows it tries to read /sys/class/hwmon and exits with error)
 
-Does the device show under /sys/bus/i2c/devices?
 
-Does "sensors" (without -s) work?
 
---
-Jean Delvare
+????/?????: 15.02.2006 14:29:25
+???????: + 7 (495) 258-33-44
+E-mail: vr at aradio.ru
+??? ????: http://www.avtoradio.ru
 
