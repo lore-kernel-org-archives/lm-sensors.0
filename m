@@ -1,23 +1,29 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Fri, 17 Feb 2006 21:49:06 +0000
-Subject: [lm-sensors] CPU amd MB temperature never change on Asus A7N8X
-Message-Id: <43F644D2.1030705@sh.cvut.cz>
+From: theslash1337@gmail.com (The Slash)
+Date: Wed, 15 Feb 2006 21:28:21 +0000
+Subject: [lm-sensors] Winbond PC87591 request for driver
+Message-Id: <2afd0d230602151328x3c42e1fcr3efd6f87acedf2cc@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43F1EFBB.5060607@web.de>
-In-Reply-To: <43F1EFBB.5060607@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-> Any Ideas what is going wrong here?
+Hello. I have a PC87591 chip without a driver. I looked on the new drivers
+page, and it seems there is one request but no plans for development. Can
+anyone be so kind as to write one? I would offer my help, but I have no
+experience in writing drivers of any kind.
 
-Yes you might have other chip for CPU temp. sensors-detect should find it too
-(http://mbm.livewiredev.com/comp/asus.html says it is the W83L785TS)
+--
+This is The Slash, signing off **click**
 
-Please provide the output of sensors-detect if the chip is not found.
+Registered Linux user #386739
 
-Regards
-Rudolf
-
+-----BEGIN GEEK CODE BLOCK-----
+Version: 1.7.3
+GCM/CS/MU/O/U d--(---) s-:--(---) a---(?) C++++ UL++++ P+> L+++> E-@ W+++
+N+++ o? K++ !w--- O- M-- V-- PS+++ PE Y+ PGP+++@ t-- 5- X R* tv(+)
+b+++(++++) DI(+) D---(----) G++ e*(-)> h! r++ y-
+------END GEEK CODE BLOCK------
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060215/c352ee57/attachment.html
