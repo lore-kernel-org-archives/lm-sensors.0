@@ -1,31 +1,44 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Thu, 23 Feb 2006 12:38:03 +0000
-Subject: [lm-sensors] Relax probing for ds1337.c
-Message-Id: <YAWYXUWv.1140698283.4048850.khali@localhost>
+From: d.juergens@tu-bs.de (Dominik =?ISO-8859-1?Q?J=FCrgens?=)
+Date: Wed, 15 Feb 2006 13:17:50 +0000
+Subject: [lm-sensors] sysfs
+Message-Id: <1140009470.4260.18.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43FD7385.8020304@gassner-waagen.at>
-In-Reply-To: <43FD7385.8020304@gassner-waagen.at>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hallo lm-sensors-list.
+Long time ago I adapted a simple Program named varyfan to the use of
+sysfs.
+Since I did it the first time, I had to adapt many things over the time
+again and again, because there were many changes in the i2c part of
+sysfs.
 
-Hi Michael,
+Now I again installed the current kernel onto my machine and nothing of
+my stuff works any more. There were adaptions made in the kernel code
+again, I think. No Problem, but as I wanted to read the documentation
+in the kernel sources I found some black-holes ;-)
 
-On 2006-02-23 Michael Burian wrote:
-> > * Use the force module parameter to force detection of the chip even when
-> > in invalid state. This is no different from what your patch does, but at
-> > least this is an optional module parameter rather than the default.
->
-> This would fix the problem in a clean way - but I'd prefer not having to
-> use modules.
+porting-clients says:
 
-You don't have to compile the driver as a module in order to pass
-parameters to it. With the ds1337 driver built-in, use
-ds1337.force=0,0x68 on the boot command line and it should work just as
-well. (Replace 0 with the correct i2c bus number if needed.)
+Use the file names specified in
+  Documentation/i2c/sysfs-interface 
 
---
-Jean Delvare
+But this file does not exist in the Tree since 2.6.13 .
+
+So you see... I need help... since I don't want to use old informations
+from 2.6.12 kernel tree to adapt to an already changed interface.
+
+To which (future) point in time do you see some convergence in the
+interface. Why do you generally ever touch a running system? 
+
+Never the less... Thanks for your work in this field 
+
+Greetings and Thanks
+
+
+-- 
+Dominik J?rgens <d.juergens at tu-bs.de>
+
 
