@@ -1,42 +1,32 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Wed, 22 Feb 2006 03:28:01 +0000
-Subject: [lm-sensors] infinite loop during 2.10.0 compilation
-Message-Id: <191fb4ca0602211928l20b4cdcdq45a377e8380e425c@mail.gmail.com>
+From: vr@aradio.ru (Victor A. Bykov)
+Date: Wed, 15 Feb 2006 11:10:06 +0000
+Subject: [lm-sensors] w83781d and empty /sys/class/hwmon
+Message-Id: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0602191356u1b0e19dq1729de2b1b9649c9@mail.gmail.com>
-In-Reply-To: <191fb4ca0602191356u1b0e19dq1729de2b1b9649c9@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+???????????
+????:  lm-sensors at lm-sensors.org
+??: ????????? ????????????? ????? ?????? ?????????
+????: w83781d and empty /sys/class/hwmon
 
-Well, uhmm, this is emberassing :-)
-I *did* check the date but never bothered to look at the year. Don't
-know how it got set to 2000.
-I fixed the date and it compiles cleanly now.
+Strange thing, in kernel 2.6.15.4 I have following modules loaded w83781d, hwmon_vid, hwmon, w83781d, i2c_isa, i2c_piix4, i2c_dev, 
+i2c_core.
+But directory /sys/class/hwmon is empty, and sensors -s does not work!
+while sensors-detect shows
+Driver `w83781d' (should be inserted):
+  Detects correctly:
+  * Bus `SMBus PIIX4 adapter at e800'
+    Busdriver `i2c-piix4', I2C address 0x2d (and 0x48 0x49)
+    Chip `Asus AS99127F (rev.1)' (confidence: 8)
 
-Sorry about that.
-
-...juerg
 
 
->
-> Hi Juerg,
->
->> I'm trying to build lm_sensors-2.10.0 (kernel 2.6.16-rc3-mm1) but the
->> compile process goes into an infinite loop.
->>
->> Any ideas what's going on?
->> (...)
->> make: Warning: File `etc/Module.mk' has modification time 1.2e+08 s in
->> the future
->
-> Check your system date, you seem to leave 4 years in the past. You won't
-> be able to build anything until your system date is correct.
->
-> --
-> Jean Delvare
->
+????/?????: 15.02.2006 14:10:14
+???????: + 7 (495) 258-33-44
+E-mail: vr at aradio.ru
+??? ????: http://www.avtoradio.ru
 
