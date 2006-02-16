@@ -1,7 +1,7 @@
-From: vr@aradio.ru (Victor A. Bykov)
-Date: Thu, 16 Feb 2006 08:01:30 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Thu, 16 Feb 2006 08:53:26 +0000
 Subject: [lm-sensors] w83781d and empty /sys/class/hwmon
-Message-Id: <03d001c632cf$32078310$5964a8c0@office.aradio.ru>
+Message-Id: <GNeod1q7.1140080006.1537810.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
 In-Reply-To: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
@@ -10,30 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"?????????"
-????:  lm-sensors at lm-sensors.org
-       Jean Delvare
-??: ????????? ????????????? ????? ?????? ?????????
-????: Re: [lm-sensors] w83781d and empty /sys/class/hwmon
 
+Hi Victor,
 
->> > Which motherboard is this?
->>
->> It says "Version: ASUS P3B-F ACPI BIOS Revision 1006 "
+> here's debug when loading w83781d
+>
+> Feb 16 10:56:18 gw kernel: i2c-core: driver [w83781d] registered
+> Feb 16 10:56:18 gw kernel: i2c_adapter i2c-0: found ignore parameter for
+>                            adapter 0, addr 0x2d
 
->The dump you provided looks OK to me, the w83718d driver should work >fine
+You are explicitely preventing the driver to attach to device 0,0x2d
+which is precisely your AS99127F chip! No wonder sensors then doesn't
+work.
 
-here's debug when loading w83781d
+How is the w83781d driver loaded? Check your init scripts, and
+double-check /etc/modprobe.conf. There *must* be an "ignore=0,0x2d"
+parameter passed to the w83781d driver somehow, and you have to get rid
+of it. "sensors" should then work just fine.
 
-Feb 16 10:56:18 gw kernel: i2c-core: driver [w83781d] registered
-Feb 16 10:56:18 gw kernel: i2c_adapter i2c-0: found ignore parameter for adapter 0, addr 0x2d
-Feb 16 10:56:18 gw kernel: i2c_adapter i2c-9191: Driver w83781d-isa registered
-Feb 16 10:56:18 gw kernel: i2c_adapter i2c-9191: Detection of w83781d chip failed at step 2 (0x7f != 0x0 at 0x295)
-
-
-
-????/?????: 16.02.2006 11:01:35
-???????: + 7 (495) 258-33-44
-E-mail: vr at aradio.ru
-??? ????: http://www.avtoradio.ru
+--
+Jean Delvare
 
