@@ -1,115 +1,175 @@
-From: juergh@gmail.com (Juerg Haefliger)
-Date: Sat, 25 Feb 2006 19:27:50 +0000
-Subject: [lm-sensors] Question on platform drivers
-Message-Id: <191fb4ca0602251127r1189bd56h32f8c205f0f803a@mail.gmail.com>
+From: jordan.crouse@amd.com (Jordan Crouse)
+Date: Thu, 16 Feb 2006 17:59:30 +0000
+Subject: [lm-sensors] [HWMON] Add LM82 support
+Message-Id: <20060216175930.GE20157@cosmic.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca0602191403u1392a3b4hc5d7b93720c57355@mail.gmail.com>
-In-Reply-To: <191fb4ca0602191403u1392a3b4hc5d7b93720c57355@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, info-linux@ldcmail.amd.com
 
-Hi Jean,
+This patch adds support for the LM82 temperature sensor from National
+Semiconductor.  The chip is very much like the LM83 with less temperature
+sensors.  The really only goofy thing here, is that the registers for the
+2nd temperature sensor on the LM82 are marked as the *3rd* sensor on the
+LM83, so I play a little magic to keep things all nice and linear.
 
-Yes, your patch below works for me. Thanks!
+For all you Geode users, the LM82 is the temperature sensor of choice
+on most of our platforms, so this should be valuable for you.
 
-...juerg
+Regards,
+Jordan
+-- 
+Jordan Crouse
+Senior Linux Engineer
+AMD - Personal Connectivity Solutions Group
+<www.amd.com/embeddedprocessors>
+-------------- next part --------------
+[HWMON] Add LM82 support
 
--bash-3.00# sensors
-vt1211-isa-6000
-Adapter: ISA adapter
-ERROR: Can't get alarm data!
-+3.3V:     +3.31 V  (min =  +3.03 V, max =  +3.17 V)
-+2.5V:     +2.42 V  (min =  +2.17 V, max =  +2.27 V)
-VCore:     +1.39 V  (min =  +1.36 V, max =  +1.44 V)
-+5V:       +4.66 V  (min =  +4.73 V, max =  +5.23 V)
-+12V:     +12.07 V  (min = +10.77 V, max = +13.14 V)
-+3.3V(i):  +3.27 V  (min =  +3.13 V, max =  +3.46 V)
-fan1:        0 RPM  (min = 3006 RPM, div = 2)
-fan2:     3877 RPM  (min = 3006 RPM, div = 2)
-Int Temp:  +48.0?C  (high =  +204?C, hyst =    +0?C)
-CPU Temp:  +98.0?C  (high =   +65?C, hyst =   +60?C)
-vid:      +1.250 V  (VRM Version 8.5)
+Add LM82 thermal detector support (similar to the LM83, but less featureful).
 
+Signed-off-by: Jordan Crouse <jordan.crouse at amd.com>
+---
 
-> Hi Mark, Juerg,
->
-> On 2006-02-24, Mark M. Hoffman wrote:
->> > Hmmm... I guess it's a libsensors bug - try this patch.
->> >
->> > Jean: comments?
->> >
->> > Index: lib/sysfs.c
->> > =================================>> > RCS file: /home/cvs/lm_sensors2/lib/sysfs.c,v
->> > retrieving revision 1.4
->> > diff -u -r1.4 sysfs.c
->> > --- lib/sysfs.c	9 Jan 2006 19:55:18 -0000	1.4
->> > +++ lib/sysfs.c	24 Feb 2006 05:23:58 -0000
->> > @@ -171,7 +171,7 @@
->> >  	int ret = 0;
->> >
->> >  	if (!(cls = sysfs_open_class("i2c-adapter"))) {
->> > -		ret = -SENSORS_ERR_PROC;
->> > +		/* not an error - sensors completely without I2C is
->> > +                  possible */
->> >  		goto exit0;
->> >  	}
->>
->> Seems so. I could reproduce the bug yesterday evening by removing all
->> i2c
->> stuff from my kernel. I had never tried that before, because even on the
->> system where I can use a totally i2c-free hardware monitoring driver
->> (f71805f), I have other devices which use i2c (my DC10+ grabber).
->>
->> I did not send a patch yesterday as I first wanted to make sure it would
->> work properly, and I was short of time for the additional tests. We need
->> to make sure that nowhere in the libsensors code we assumed that at
->> least one i2c adapter had been found. I'll look into it this evening.
->
-> Further investigations reveal that the patch above isn't sufficient. It
-> covers the case where no i2c driver at all is loaded, but fails again
-> is i2c-core is loaded but no bus driver is. It is also a bit too loose
-> with error checking in my opinion.
->
-> Here is the patch I have come up with. Juerg, please give it a try and
-> report. It works fine for me at least.
->
-> Index: lib/sysfs.c
-> =================================> RCS file: /home/cvs/lm_sensors2/lib/sysfs.c,v
-> retrieving revision 1.4
-> diff -u -r1.4 sysfs.c
-> --- lib/sysfs.c	9 Jan 2006 19:55:18 -0000	1.4
-> +++ lib/sysfs.c	24 Feb 2006 22:49:09 -0000
-> @@ -22,6 +22,7 @@
->
->  #include <string.h>
->  #include <limits.h>
-> +#include <errno.h>
->  #include <sysfs/libsysfs.h>
->  #include "data.h"
->  #include "error.h"
-> @@ -171,12 +172,14 @@
->  	int ret = 0;
->
->  	if (!(cls = sysfs_open_class("i2c-adapter"))) {
-> -		ret = -SENSORS_ERR_PROC;
-> +		if (errno && errno != ENOENT)
-> +			ret = -SENSORS_ERR_PROC;
->  		goto exit0;
->  	}
->
->  	if (!(clsdevs = sysfs_get_class_devices(cls))) {
-> -		ret = -SENSORS_ERR_PROC;
-> +		if (errno)
-> +			ret = -SENSORS_ERR_PROC;
->  		goto exit1;
->  	}
->
->
-> Thanks,
-> --
-> Jean Delvare
->
->
+ drivers/hwmon/lm83.c |   63 +++++++++++++++++++++++++++++++++++++++-----------
+ 1 files changed, 49 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
+index 26dfa9e..aa8b74d 100644
+--- a/drivers/hwmon/lm83.c
++++ b/drivers/hwmon/lm83.c
+@@ -12,6 +12,11 @@
+  * Since the datasheet omits to give the chip stepping code, I give it
+  * here: 0x03 (at register 0xff).
+  *
++ * <jordan.crouse at amd.com>: Added LM82 support
++ * http://www.national.com/pf/LM/LM82.html - basically a stripped down
++ * model of the LM83, with only two temperatures reported.  The stepping
++ * is 0x01 (at least according to the datasheet).
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -51,7 +56,7 @@ static unsigned short normal_i2c[] = { 0
+  * Insmod parameters
+  */
+ 
+-I2C_CLIENT_INSMOD_1(lm83);
++I2C_CLIENT_INSMOD_2(lm83, lm82);
+ 
+ /*
+  * The LM83 registers
+@@ -142,6 +147,7 @@ struct lm83_data {
+ 	struct semaphore update_lock;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
++	int type;  /* Remember the type of chip */
+ 
+ 	/* registers values */
+ 	s8 temp[9];	/* 0..3: input 1-4,
+@@ -159,7 +165,14 @@ static ssize_t show_temp(struct device *
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct lm83_data *data = lm83_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[attr->index]));
++	int index = attr->index;
++
++	if (data->type = lm82) {
++		if (index = 1 || index = 5)
++			index++;
++	}
++
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[index]));
+ }
+ 
+ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
+@@ -172,6 +185,12 @@ static ssize_t set_temp(struct device *d
+ 	int nr = attr->index;
+ 
+ 	down(&data->update_lock);
++
++	if (data->type = lm82) {
++		if (nr = 1 || nr = 5)
++			nr++;
++	}
++
+ 	data->temp[nr] = TEMP_TO_REG(val);
+ 	i2c_smbus_write_byte_data(client, LM83_REG_W_HIGH[nr - 4],
+ 				  data->temp[nr]);
+@@ -283,6 +302,9 @@ static int lm83_detect(struct i2c_adapte
+ 			if (chip_id = 0x03) {
+ 				kind = lm83;
+ 			}
++			else if (chip_id = 0x01) {
++				kind = lm82;
++			}
+ 		}
+ 
+ 		if (kind <= 0) { /* identification failed */
+@@ -296,10 +318,15 @@ static int lm83_detect(struct i2c_adapte
+ 	if (kind = lm83) {
+ 		name = "lm83";
+ 	}
++	else if (kind = lm82) {
++		name = "lm82";
++	}
+ 
+ 	/* We can fill in the remaining client fields */
+ 	strlcpy(new_client->name, name, I2C_NAME_SIZE);
+ 	data->valid = 0;
++	data->type = kind;
++
+ 	init_MUTEX(&data->update_lock);
+ 
+ 	/* Tell the I2C layer a new client has arrived */
+@@ -322,28 +349,36 @@ static int lm83_detect(struct i2c_adapte
+ 			   &sensor_dev_attr_temp1_input.dev_attr);
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp2_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_input.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp4_input.dev_attr);
++
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp1_max.dev_attr);
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp2_max.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_max.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp4_max.dev_attr);
++
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp1_crit.dev_attr);
+ 	device_create_file(&new_client->dev,
+ 			   &sensor_dev_attr_temp2_crit.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp3_crit.dev_attr);
+-	device_create_file(&new_client->dev,
+-			   &sensor_dev_attr_temp4_crit.dev_attr);
++
+ 	device_create_file(&new_client->dev, &dev_attr_alarms);
+ 
++	if (kind = lm83) {
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp3_input.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp4_input.dev_attr);
++
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp3_max.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp4_max.dev_attr);
++
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp3_crit.dev_attr);
++		device_create_file(&new_client->dev,
++				   &sensor_dev_attr_temp4_crit.dev_attr);
++	}
++
+ 	return 0;
+ 
+ exit_detach:
