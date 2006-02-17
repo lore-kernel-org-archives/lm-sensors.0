@@ -1,8 +1,10 @@
 From: Andre.Weidemann@web.de (=?ISO-8859-1?Q?Andr=E9_Weidemann?=)
-Date: Tue, 14 Feb 2006 14:56:59 +0000
+Date: Fri, 17 Feb 2006 11:04:04 +0000
 Subject: [lm-sensors] CPU amd MB temperature never change on Asus A7N8X
-Message-Id: <43F1EFBB.5060607@web.de>
+Message-Id: <43F5ADA4.3080401@web.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <43F1EFBB.5060607@web.de>
+In-Reply-To: <43F1EFBB.5060607@web.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -11,10 +13,10 @@ To: lm-sensors@vger.kernel.org
 Hi,
 I am using the above mainboard in my server and would like to read the 
 CPU and Motherboard temperature. I am running Kernel 2.6.15.1 and the 
-latestes lm_sensors package (2.9.2).
-The mainboard has the asb100 built in(soldered on) and calling "sensors" 
-always shows the output below. The CPU Temp(AMD) is always 25?C and the 
-Power Temp is at scary 127?C.
+lm_sensors package (2.9.2).
+The mainboard has the asb100 built in(soldered on) and calling "sensors"
+always shows the output below. The CPU Temp(AMD) is *always* 25?C and 
+the Power Temp(what ever it is) is at scary 127?C.
 
 Output:
 
@@ -48,4 +50,5 @@ alarms:
 Any Ideas what is going wrong here?
 
   Andr?.
+
 
