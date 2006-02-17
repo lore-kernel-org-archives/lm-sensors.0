@@ -1,69 +1,63 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 06 Feb 2006 09:10:06 +0000
-Subject: [lm-sensors] reading CPU temp from kernel module
-Message-Id: <oq0vLp4y.1139217006.3795890.khali@localhost>
+From: mhoffman@lightlink.com (Mark M. Hoffman)
+Date: Fri, 17 Feb 2006 02:29:13 +0000
+Subject: [lm-sensors] clevo 470DW
+Message-Id: <20060217022913.GA10369@jupiter.solarsys.private>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <6030766.1138809619345.JavaMail.ngmail@webmail-05.arcor-online.net>
-In-Reply-To: <6030766.1138809619345.JavaMail.ngmail@webmail-05.arcor-online.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi James:
 
-Hallo Andreas,
+I've CC'ed the lm-sensors mailing list... please reply there (although
+you may also continue to CC me).
 
-> I'm sorry because of the advertisement, but it is added by my email
-> provider.
+* James <james at buffer.net> [2006-02-13 07:52:00 +0000]:
+> Hello,
+> 
+> My laptop's lspci reveals:
+> 
+> 00:00.0 Host bridge: Silicon Integrated Systems [SiS] SiS645DX Host &
+> Memory & AGP Controller (rev 01)
+> 00:01.0 PCI bridge: Silicon Integrated Systems [SiS] Virtual PCI-to-PCI
+> bridge (AGP)
+> 00:02.0 ISA bridge: Silicon Integrated Systems [SiS] SiS962 [MuTIOL
+> Media IO] (rev 14)
+> 00:02.1 SMBus: Silicon Integrated Systems [SiS] SiS961/2 SMBus Controller
+> 00:02.3 FireWire (IEEE 1394): Silicon Integrated Systems [SiS] FireWire
+> Controller
+> 00:02.5 IDE interface: Silicon Integrated Systems [SiS] 5513 [IDE]
+> 00:02.6 Modem: Silicon Integrated Systems [SiS] AC'97 Modem Controller
+> (rev a0)
+> 00:02.7 Multimedia audio controller: Silicon Integrated Systems [SiS]
+> Sound Controller (rev a0)
+> 00:03.0 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
+> Controller (rev 0f)
+> 00:03.1 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
+> Controller (rev 0f)
+> 00:03.2 USB Controller: Silicon Integrated Systems [SiS] USB 1.0
+> Controller (rev 0f)
+> 00:03.3 USB Controller: Silicon Integrated Systems [SiS] USB 2.0 Controller
+> 00:0a.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+> RTL-8139/8139C/8139C+ (rev 10)
+> 00:0c.0 CardBus bridge: ENE Technology Inc CB1410 Cardbus Controller
+> (rev 01)
+> 01:00.0 VGA compatible controller: ATI Technologies Inc Radeon R250 Lf
+> [FireGL 9000] (rev 01)
+> 
+> 
+> I'm running gentoo, 2.6.15.4 and having trouble getting lm_sensors to
+> recognize
+> chipsets that are know to be working. I'll be your tester, if you like?
 
-I would urge you to change providers then. I guess you get the mail
-service for "free" in echange of an advertisement being inserted in
-each e-mail you send? Nothing is really free, you know, and someone has
-to pay. In this case, the ones who pay are the recipients of your post -
-150 people or so reading this list. Sure, we don't pay with money; but
-we pay with bandwidth, storage space and time, and these have a value
-too.
+What does sensors-detect say?  What "known to be working" chips do you have
+that are not recognized?
 
-So, put in short, not only you are asking us for technical help (which is
-OK, that's was the list was created for) but you ask us to pay in order
-to help you. How acceptable is this? Not much, I fear.
+Regards,
 
-> I want to measure the influence of temperature on the performance of the
-> CPU. Due to this I have an external hardware which generates a very
-> precise signal every second. This signal causes an interrupt and in the
-> interrupt service routine (= kernel-mode / kernel module) I want to
-> printk the timestamp counter and the temperature of the CPU. First I
-> wanted to use a user-mode application, but this way I get a too big and
-> variing latencies. Unfortenately I don't know how to read from the bus
-> which can deliver the temperature information.
+-- 
+Mark M. Hoffman
+mhoffman at lightlink.com
 
-This is an interesting experiment, but I am not sure your experimental
-setup is right. What exactly are you measuring? The time the kernel will
-take to handle the interrupt, as I understand it. The variations of it
-will probably be neglectable compared to the time spent by printk (and
-the consequent logging, either on screen or on disk) and the noise from
-the rest of the system.
-
-What CPU are you working with, BTW? As far as I know, almost all CPUs
-work at a fixed clock rate anyway, so how could the speed depend on the
-temperature?
-
-> How can I give ACPI a try? Is there a code example?
-
-No idea, sorry. You better ask this question on the linux-acpi list (see
-MAINTAINERS). Make sure that your test system supports ACPI temperature
-reporting first (enable ACPI thermal and look in
-/proc/acpi/thermal_zone).
-
-Note that if your experiment is meant to be only run on one specific
-system, and ACPI thermal doesn't work, and lm_sensors does, then you
-may just hack the relevant hardware monitoring driver to do just what
-you need: export a function which probes for just one temperature and
-prints it. It might be preferable over ACPI anyway, because ACPI thermal
-seems to report the measured temperature with limited resolution (1
-degree C) and may also cache the measured value for some times, like the
-hardware monitoring drivers do by default.
-
---
-Jean Delvare
 
