@@ -1,42 +1,33 @@
-From: claus.gindhart@kontron-modular.com (Claus Gindhart)
-Date: Wed, 08 Feb 2006 16:18:04 +0000
+From: r.marek@sh.cvut.cz (Rudolf Marek)
+Date: Sat, 18 Feb 2006 20:37:45 +0000
 Subject: [lm-sensors] Fwd: Linux 2.6 Driver for MAX6650/66551
-Message-Id: <200602081718.04898.claus.gindhart@kontron-modular.com>
+Message-Id: <43F78599.3090201@sh.cvut.cz>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200602081718.04898.claus.gindhart@kontron-modular.com>
+In-Reply-To: <200602081718.04898.claus.gindhart@kontron-modular.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello,
 
+Sorry for delay, I think I have some of those chips in a drawer
+so I can try interface them a and give a try if you want. I must solder
+those tiny chips somehow to wires which I admit would be not so easy task,
+but anyway I can give a try if you dont have any testers so far.
 
-----------  Weitergeleitete Nachricht  ----------
+If you want to submit the driver to a kernel, this is a correct mailing list for that.
+(Please read the SubmittingPatches and CodingStyle first)
 
-Subject: Linux 2.6 Driver for MAX6650/66551
-Date: Wednesday 08 February 2006 17:13
-From: Claus Gindhart <claus.gindhart at kontron-modular.com>
-To: lm-sensors at lm-sensors.org.
+We need:
 
-I have a Kernel 2.6-patch available for MAX6650/6651.
-I would submit it to kernel.org, however, it would be good to have some
-volunteer testers.
-Contact me, if you are interested in obtaining this patch.
+1) Signed-off-by line
+2) patch inline or in TEXT attachment
+3) form of diff -Naur
 
---
-Mit freundlichen Gruessen / Best regards
+I think you got the idea :)
 
-Claus Gindhart
-SW R&D
-Kontron Modular Computers
-mailto:claus.gindhart at kontron-modular.com
-http://www.kontron.com
-
------BEGIN GEEK CODE BLOCK-----
-  Version: 3.1
-  GU d- s++:>++:+ a+ C++$ !U !P L++>$ E-- W+(-) N- o?
-  K? w !O !M V !PS PE- Y+ PGP+ t 5? X R* tv- b+ DI+++
-  D-- G e++> h--- !r x+++
-------END GEEK CODE BLOCK------
-
--------------------------------------------------------
+Regards
+Rudolf
 
