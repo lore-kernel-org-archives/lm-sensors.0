@@ -1,117 +1,49 @@
-From: konstantin.lazarev@panasonic.aero (Konstantin Lazarev)
-Date: Wed, 01 Feb 2006 21:13:22 +0000
-Subject: [lm-sensors] "Lacking functionality" of i2c EEPROM driver
-Message-Id: <172914A33B859E4E8C006D16DFF018A4947EB9@exch-socal04.mascorp.com>
+From: mail@hiereinwerfen.de (Torsten)
+Date: Sat, 18 Feb 2006 16:57:58 +0000
+Subject: [lm-sensors] Implementation of FSCSCY?
+Message-Id: <43F75216.9040309@hiereinwerfen.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060201211107.4af1863d.khali@linux-fr.org>
-In-Reply-To: <20060201211107.4af1863d.khali@linux-fr.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hello,
 
-Sorry, it was my bad. I checked original code. It looks that the source
-code I used before was modified from kernel.org one to add write
-functionality.
+I'm really new to linux, so please be patient... ;)
 
-Thank you for pointing at my mistake. Although I do not see reason do
-not have write functionality in driver as soon as eeprom.c creates file
-entry in sysfs and sysfs supports it. But this is for another
-discussion.
+I've got a FSC Dual-Mainboard (D1306) on which I'm trying to setup a
+server-system based on the actual Ubuntu ("Breezy Badger"). So the
+kernel must be a 2.6.
 
-Thanks again.
+The board contains a "Scylla"-chip, which is found by sensors-detect. As
+far as I found within the docs, this must be ok, because the developer
+of the required module "fscscy" notes, the driver is "beta" but
+well-tested on exactly THIS board.
 
-Konstantin Lazarev.
+Anyway, sensors-detect wants to load "fscscy" in modules.conf, but this
+module doesn't exist!
+The only module next to piix4 ist "eeprom" which doesn't seem to be very
+useful...
 
------Original Message-----
-From: Jean Delvare [mailto:khali at linux-fr.org] 
-Sent: Wednesday, February 01, 2006 12:11 PM
-To: Konstantin Lazarev
-Cc: Philip Edelbrock; Greg KH; LM Sensors
-Subject: Re: "Lacking functionality" of i2c EEPROM driver
+I searched the whole drive, but only found the note mentioned above.
+Google didn't come out with more and I couldn't find an open bug/ticket...
 
-Hello Konstantin,
+Where can I get it and why is it missing?
 
-Don't bother CC'ing Frodo, he is retired. CC'ing the lm-sensors list,
-OTOH, would have been a good idea. Doing it now.
+PS: Another strange thing, when installing piix4, the bootlog shows
+something about "unusual config register value" and I should set
+"fix_hstcfg=1". When I do so, sensors-detect searches longer and finds
+more... Anyway, the only new modules to load are smbus-arp (for which
+the doc reads "if you don't know what this is you don't need it"???) and
+another unsupported chip called Philips "PCA9556". :-(
 
-> Recently I started to use Linux kernel 2.6.15 and was unpleasantly
-> surprised to find some "Lacking functionality" which presented in
-> earlier versions. I am talking about I2C EEPROM write support.
-
-The eeprom driver as found in the Linux tree never ever had write
-support.
-
-The eeprom driver as found in the lm_sensors CVS repository used to
-have some write support code, but it was ifdef'd out. So this version
-of the driver never really had write support either.
-
-> (...) I found
-> especially frustrating comment in Documentation about why this
-> functionality is suddenly lacking. I admit that I did have problem
-with
-> DIMM module that I made unusable by mistakenly rewritten EEPROM. But I
-> still think that it is not reason at all to remove code for i2c EEPROM
-> write from kernel sources. It is not technically difficult for me to
-> restore this code. But I took some time and caused frustration in
-people
-> who used new kernel when applications which worked perfectly before
-> failed with new kernel.
-
-Again, it was not removed. It was never there in the first place, at
-least not without you manually editing the code. So the story you're
-telling here is simply not true.
-
-> Sincerely, I do not see technical reason at all for removing this
-> functionality from sources (as I don't for removing ANY
-functionality).
-> If you were such concerned that it "makes it easy to disable the
-DIMMs",
-> you could make this functionality optional, but do not remove it at
-all.
-
-Write support could be *added* to the eeprom driver. As you found out,
-it would have to be an option, not the default. But even then, it
-wouldn't be very convenient for EEPROMs larger than 2 kb as they appear
-as separate devices. The eeprom driver also doesn't support EEPROMs
-using two-byte addressing, so even more work would be needed to support
-these devices.
-
-Write support for EEPROMs is available in user-space (using the i2c-dev
-driver). See the directory prog/eepromer in the lm_sensors package.
-There are different tools for various EEPROM sizes, including 2-byte
-addressed devices. This is the recommended way to write to EEPROMs, and
-it works just fine, which is the reason why no efforts were made to
-improve the eeprom driver.
-
-> I would suggest to do that if ,of cause, M$ Windows approach to
-> implement security through obscurity (I would say "through absurdity")
-> is not more preferable for you.
-
-Off topic. First, it's a matter of safety, not security. Second, the
-code is open for everyone to read and modify, so where is the obscurity?
-
-> Disclaimer: The information contained in this transmission, including
-any 
-> attachments, may contain confidential information of Panasonic
-Avionics
-> Corporation.  This transmission is intended only for the use of the 
-> addressee(s) listed above.  Unauthorized review, dissemination or
-other use 
-> of the information contained in this transmission is strictly
-prohibited. 
-> If you have received this transmission in error or have reason to
-believe 
-> you are not authorized to receive it, please notify the sender by
-return 
-> email and promptly delete the transmission.
-
-Can you please remove this functionality?
-
-Thanks,
--- 
-Jean Delvare
-
-
+cu/2
+Tom
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: smime.p7s
+Type: application/x-pkcs7-signature
+Size: 3635 bytes
+Desc: S/MIME Cryptographic Signature
+Url : http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060218/ea2b79f6/smime.bin
