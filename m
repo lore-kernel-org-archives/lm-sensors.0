@@ -1,44 +1,66 @@
-From: vr@aradio.ru (Victor A. Bykov)
-Date: Thu, 16 Feb 2006 09:26:17 +0000
-Subject: [lm-sensors] w83781d and empty /sys/class/hwmon
-Message-Id: <075e01c632db$0a120ea0$5964a8c0@office.aradio.ru>
+From: khali@linux-fr.org (Jean Delvare)
+Date: Sun, 19 Feb 2006 12:47:07 +0000
+Subject: [lm-sensors] move to new website - status?
+Message-Id: <20060219134707.4db5fc55.khali@linux-fr.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
-In-Reply-To: <030d01c63220$60c0ace0$5964a8c0@office.aradio.ru>
+References: <43D15E0D.1020309@sh.cvut.cz>
+In-Reply-To: <43D15E0D.1020309@sh.cvut.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-"?????????"
-????:  lm-sensors at lm-sensors.org
-       Jean Delvare
-??: ????????? ????????????? ????? ?????? ?????????
-????: Re: [lm-sensors] w83781d and empty /sys/class/hwmon
+Hi Axel,
 
->> here's debug when loading w83781d
->>
->> Feb 16 10:56:18 gw kernel: i2c-core: driver [w83781d] registered
->> Feb 16 10:56:18 gw kernel: i2c_adapter i2c-0: found ignore parameter >>for
-> >                           adapter 0, addr 0x2d
+> On Fri, Jan 20, 2006 at 11:02:53PM +0100, Rudolf Marek wrote:
+> > What is missing to complete the move to trac? Here is the list what
+> > I think needs to be fixed:
+> > 
+> > 1) picture issue?
+> > 2) "extended formating" wiki feature is not enabled?
+> > 3) port the newdrivers/supported table (implies 2 is enabled)
+> > 4) port ticket system
+> > 5) switch to svn completely
+> > 
+> > Anything else?
+> 
+> The flipping picture issue in trac seems to be a known issue, but
+> there is still no upstream fix for it. I'd place that further back in
+> the queue to give upstream a chance to fix it. OR to allow
+> experimenting with switching from cgi to mod_python serving, which
+> might fix the issue (since the bug seems to be in trac's cgi methods).
 
->You are explicitely preventing the driver to attach to device 0,0x2d
->which is precisely your AS99127F chip! No wonder sensors then doesn't
->work.
+Any news about this? I don't see the picture flipping anymore myself,
+so it seems to be fixed. Anyone still having the problem?
 
->How is the w83781d driver loaded? Check your init scripts, and
->double-check /etc/modprobe.conf. There *must* be an "ignore=0,0x2d"
->parameter passed to the w83781d driver somehow, and you have to get >rid
->of it. "sensors" should then work just fine.
+Axel, did you enable the extended formating as Rudolf asked? We need it.
 
-You were right, there was string "options w83781d ignore=0,0x2d" in modprobe.conf .... Who did it? probably, configuration 
-script....
-Now everything works fine! Great! Thanks a lot!!
+> The switch to svn can be done as soon as everyone with current CVS
+> write access is comfortable with the test svn repo. The repo can be
+> remigrated from current CVS within short time, so as soon as there is
+> agreement, give us the go, and we'll set it up for good.
 
+Do you have enough ssh key by now? We can't switch until you have at
+least mine, Rudolf's and Mark Hoffman's. Others can send their key
+later, after we have collectively agreed to grant them write access, of
+course.
 
+BTW, will it be possible to have different permissions for the i2c and
+lm_sensors2 repositories? I'd like to grant more people developer
+access to lm_sensors2, but write access to the i2c repository needs to
+be restricted as changes to it are supposed to be very rare now.
 
-????/?????: 16.02.2006 12:26:09
-???????: + 7 (495) 258-33-44
-E-mail: vr at aradio.ru
-??? ????: http://www.avtoradio.ru
+Now that lm_sensors 2.10.0 has been released, I think it is a really
+good time to switch to SVN, if nobody objects. Phil, could you switch
+the i2c and lm_sensors2 CVS repositories to read-only? So we are
+certain that changes are not lost. Note that the website repository
+should be kept writable so that we can at least announce the website
+change.
+
+About the tickets, I think Phil was done with porting the old tickets
+to Trac, is it true? Anything left to do on this front?
+
+Thanks,
+-- 
+Jean Delvare
 
