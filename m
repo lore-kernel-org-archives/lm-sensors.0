@@ -1,116 +1,458 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Mon, 20 Feb 2006 09:24:03 +0000
-Subject: [lm-sensors] QDI Platinix 2E/333 chip w83627hf-isa-0290
-Message-Id: <Y5j9Kih2.1140427443.3504950.khali@localhost>
+From: juergh@gmail.com (Juerg Haefliger)
+Date: Sun, 19 Feb 2006 21:56:41 +0000
+Subject: [lm-sensors] infinite loop during 2.10.0 compilation
+Message-Id: <191fb4ca0602191356u1b0e19dq1729de2b1b9649c9@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200602200845.32417.condor@stz-bg.com>
-In-Reply-To: <200602200845.32417.condor@stz-bg.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi all,
 
-Hi John,
+I'm trying to build lm_sensors-2.10.0 (kernel 2.6.16-rc3-mm1) but the
+compile process goes into an infinite loop.
 
-> i use lm_sensors 2.10.0 and i have problems:
->
-> lsmod:
-> ----
-> i2c_i801                8588  0
-> eepro100               27280  0
-> w83627hf               22800  0
-> hwmon_vid               3072  1 w83627hf
-> hwmon                   3204  1 w83627hf
-> eeprom                  6416  0
-> i2c_isa                 4480  1 w83627hf
-> i2c_core               17664  4 i2c_i801,w83627hf,eeprom,i2c_isa
-> ----
->
-> w83627hf-isa-0290
-> Adapter: ISA adapter
-> VCore 1:   +1.47 V  (min =  +1.41 V, max =  +1.55 V)
-> VCore 2:   +4.08 V  (min =  +1.41 V, max =  +1.55 V)       ALARM
+Any ideas what's going on?
 
-+4.08V is the max possible measurement on this chip, which means that
-this input is saturated. Most likely it isn't used, and should be
-ignored. The specifications for your motherboard mention 8 monitored
-voltages, and the Winbond W83627HF has 9, so it is expected that one of
-them is unused.
+Thanks
+...juerg
 
-You'll have to edit /etc/sensors.conf. Find the "w83627hf-*" section,
-and there, comment out the following lines:
-#    set in1_min vid*0.95
-#    set in1_max vid*1.05
 
-And instead, add:
-    ignore in1
-
-> +3.3V:     +3.30 V  (min =  +3.14 V, max =  +3.47 V)
-> +5V:       +5.13 V  (min =  +4.76 V, max =  +5.24 V)
-> +12V:     +12.22 V  (min = +10.82 V, max = +13.19 V)
-> -12V:     -11.95 V  (min = -13.18 V, max = -10.80 V)
-> -5V:       +2.84 V  (min =  -5.25 V, max =  -4.75 V)       ALARM
-
-This input is probably used for something different, or maybe not used at
-all. Try temporarily commenting out the "compute in6", "set in6_min"
-and "set in6_max" lines and see if the new reading makes sense. If it
-changes all the time, it means it isn't connected. If it is stable, it
-must be connected and we'll have to find out to what.
-
-> V5SB:      +5.51 V  (min =  +4.76 V, max =  +5.24 V)       ALARM
-
-The value is a bit high, but not by that much. Maybe your PSU is really
-providing this voltage. You should check in the BIOS setup screen, anc
-compare with the value displayed there (same is true for all other
-values, BTW). If 5VSB has the same value in your BIOS, you may consider
-increasing in8_max to get rid of the alarm. If the value is different in
-the BIOS, write it down, and we'll have to figure out the proper
-compute line for this input.
-
-> VBat:      +3.23 V  (min =  +2.40 V, max =  +3.60 V)
-> fan1:        0 RPM  (min = 168750 RPM, div = 8)              ALARM
-> fan2:     3183 RPM  (min =   -1 RPM, div = 8)              ALARM
-> fan3:        0 RPM  (min = 168750 RPM, div = 8)              ALARM
-
-I guess you have only one fan connected to the motherboard. If so, try
-the following settings:
-
-   set fan1_min 0
-   ignore fan1
-   set fan2_min 3000
-   label fan2 "CPU Fan"
-   set fan3_min 0
-   ignore fan3
-
-> temp1:       +34?C  (high =    +0?C, hyst =    +1?C)   sensor = thermistor
-> ALARM
-> temp2:     +45.0?C  (high =   +75?C, hyst =   +70?C)   sensor = diode
-> (beep)
-> temp3:     +57.0?C  (high =   +75?C, hyst =   +70?C)   sensor = thermistor
-
-Temperature readings look sane, but the temp1 limits need to be set to
-prevent the alarm from triggering. Try:
-
-   set temp1_over 50
-   set temp1_hyst 45
-
-By comparing with the values displayed by your BIOS, you should be able
-to find out appropriate labels for the temperature inputs. Don't expect
-the exact same temperature values though, as the BIOS usually isn't
-idling as efficiently as Linux is.
-
-> Do any body can say me how i fix these ALARM's because this is impossible
-> i to have +4.08V for VCore 2 that the max is +1.55V and anothers ALARM's
-
-The hints above should get you started.
-
-Keep in mind that max and min limits are kind of misnomers. They really
-are high and low limits. This is about monitoring, not setting
-constraints. Setting max to +1.55V, for example, is simply going to
-trigger an alarm if the measured value is above +1.55V. It cannot force
-the input to stay below +1.55V.
-
---
-Jean Delvare
+-bash-3.00#
+-bash-3.00# make user
+Makefile:297: kernel/include/sensors.hd: No such file or directory
+Makefile:297: lib/data.ld: No such file or directory
+Makefile:297: lib/general.ld: No such file or directory
+Makefile:297: lib/error.ld: No such file or directory
+Makefile:297: lib/chips.ld: No such file or directory
+Makefile:297: lib/proc.ld: No such file or directory
+Makefile:297: lib/access.ld: No such file or directory
+Makefile:297: lib/init.ld: No such file or directory
+Makefile:297: lib/sysfs.ld: No such file or directory
+Makefile:297: lib/data.ad: No such file or directory
+Makefile:297: lib/general.ad: No such file or directory
+Makefile:297: lib/error.ad: No such file or directory
+Makefile:297: lib/chips.ad: No such file or directory
+Makefile:297: lib/proc.ad: No such file or directory
+Makefile:297: lib/access.ad: No such file or directory
+Makefile:297: lib/init.ad: No such file or directory
+Makefile:297: lib/sysfs.ad: No such file or directory
+Makefile:297: prog/detect/i2cdetect.rd: No such file or directory
+Makefile:297: prog/dump/i2cdump.rd: No such file or directory
+Makefile:297: prog/dump/i2cset.rd: No such file or directory
+Makefile:297: prog/dump/i2cget.rd: No such file or directory
+Makefile:297: prog/dump/i2cbusses.rd: No such file or directory
+Makefile:297: prog/dump/isadump.rd: No such file or directory
+Makefile:297: prog/dump/isaset.rd: No such file or directory
+Makefile:297: prog/dump/superio.rd: No such file or directory
+Makefile:297: prog/sensors/main.rd: No such file or directory
+Makefile:297: prog/sensors/chips.rd: No such file or directory
+make: Warning: File `etc/Module.mk' has modification time 1.2e+08 s in
+the future
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/chips.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/chips.rd prog/sensors/chips.ro:
+Makefile '`dirname prog/sensors/chips.rd`/Module.mk' @' >
+prog/sensors/chips.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/main.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/main.rd prog/sensors/main.ro:
+Makefile '`dirname prog/sensors/main.rd`/Module.mk' @' >
+prog/sensors/main.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/superio.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/superio.rd prog/dump/superio.ro:
+Makefile '`dirname prog/dump/superio.rd`/Module.mk' @' >
+prog/dump/superio.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isaset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isaset.rd prog/dump/isaset.ro:
+Makefile '`dirname prog/dump/isaset.rd`/Module.mk' @' >
+prog/dump/isaset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isadump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isadump.rd prog/dump/isadump.ro:
+Makefile '`dirname prog/dump/isadump.rd`/Module.mk' @' >
+prog/dump/isadump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cbusses.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cbusses.rd prog/dump/i2cbusses.ro:
+Makefile '`dirname prog/dump/i2cbusses.rd`/Module.mk' @' >
+prog/dump/i2cbusses.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cget.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cget.rd prog/dump/i2cget.ro:
+Makefile '`dirname prog/dump/i2cget.rd`/Module.mk' @' >
+prog/dump/i2cget.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cset.rd prog/dump/i2cset.ro:
+Makefile '`dirname prog/dump/i2cset.rd`/Module.mk' @' >
+prog/dump/i2cset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cdump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cdump.rd prog/dump/i2cdump.ro:
+Makefile '`dirname prog/dump/i2cdump.rd`/Module.mk' @' >
+prog/dump/i2cdump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/detect/i2cdetect.c | \
+sed -e 's@^\(.*\)\.o:@prog/detect/i2cdetect.rd
+prog/detect/i2cdetect.ro: Makefile '`dirname
+prog/detect/i2cdetect.rd`/Module.mk' @' > prog/detect/i2cdetect.rd
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/sysfs.c | \
+sed -e 's@^\(.*\)\.o:@lib/sysfs.ad lib/sysfs.ao: Makefile '`dirname
+lib/sysfs.ad`/Module.mk' @' > lib/sysfs.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/init.c | \
+sed -e 's@^\(.*\)\.o:@lib/init.ad lib/init.ao: Makefile '`dirname
+lib/init.ad`/Module.mk' @' > lib/init.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/access.c | \
+sed -e 's@^\(.*\)\.o:@lib/access.ad lib/access.ao: Makefile '`dirname
+lib/access.ad`/Module.mk' @' > lib/access.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/proc.c | \
+sed -e 's@^\(.*\)\.o:@lib/proc.ad lib/proc.ao: Makefile '`dirname
+lib/proc.ad`/Module.mk' @' > lib/proc.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/chips.c | \
+sed -e 's@^\(.*\)\.o:@lib/chips.ad lib/chips.ao: Makefile '`dirname
+lib/chips.ad`/Module.mk' @' > lib/chips.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ad lib/error.ao: Makefile '`dirname
+lib/error.ad`/Module.mk' @' > lib/error.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ad lib/general.ao: Makefile
+'`dirname lib/general.ad`/Module.mk' @' > lib/general.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ad lib/data.ao: Makefile '`dirname
+lib/data.ad`/Module.mk' @' > lib/data.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/sysfs.c | \
+sed -e 's@^\(.*\)\.o:@lib/sysfs.ld lib/sysfs.lo: Makefile '`dirname
+lib/sysfs.ld`/Module.mk' @' > lib/sysfs.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/init.c | \
+sed -e 's@^\(.*\)\.o:@lib/init.ld lib/init.lo: Makefile '`dirname
+lib/init.ld`/Module.mk' @' > lib/init.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/access.c | \
+sed -e 's@^\(.*\)\.o:@lib/access.ld lib/access.lo: Makefile '`dirname
+lib/access.ld`/Module.mk' @' > lib/access.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/proc.c | \
+sed -e 's@^\(.*\)\.o:@lib/proc.ld lib/proc.lo: Makefile '`dirname
+lib/proc.ld`/Module.mk' @' > lib/proc.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/chips.c | \
+sed -e 's@^\(.*\)\.o:@lib/chips.ld lib/chips.lo: Makefile '`dirname
+lib/chips.ld`/Module.mk' @' > lib/chips.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ld lib/error.lo: Makefile '`dirname
+lib/error.ld`/Module.mk' @' > lib/error.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ld lib/general.lo: Makefile
+'`dirname lib/general.ld`/Module.mk' @' > lib/general.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ld lib/data.lo: Makefile '`dirname
+lib/data.ld`/Module.mk' @' > lib/data.ld
+( grep 'SENSORS SYSCTL START' /dev/null kernel/chips/*.c | \
+  sed -e 's/:.*//' -e 's#^#kernel/include/sensors.h: #' ) >
+kernel/include/sensors.hd
+make: Warning: File `etc/Module.mk' has modification time 1.2e+08 s in
+the future
+cat kernel/include/sensors.h.template > kernel/include/sensors.h
+awk '/SENSORS SYSCTL START/,/SENSORS SYSCTL END/' kernel/chips/*.c >>
+kernel/include/sensors.h
+echo '#endif' >> kernel/include/sensors.h
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/chips.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/chips.rd prog/sensors/chips.ro:
+Makefile '`dirname prog/sensors/chips.rd`/Module.mk' @' >
+prog/sensors/chips.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/main.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/main.rd prog/sensors/main.ro:
+Makefile '`dirname prog/sensors/main.rd`/Module.mk' @' >
+prog/sensors/main.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/superio.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/superio.rd prog/dump/superio.ro:
+Makefile '`dirname prog/dump/superio.rd`/Module.mk' @' >
+prog/dump/superio.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isaset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isaset.rd prog/dump/isaset.ro:
+Makefile '`dirname prog/dump/isaset.rd`/Module.mk' @' >
+prog/dump/isaset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isadump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isadump.rd prog/dump/isadump.ro:
+Makefile '`dirname prog/dump/isadump.rd`/Module.mk' @' >
+prog/dump/isadump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cbusses.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cbusses.rd prog/dump/i2cbusses.ro:
+Makefile '`dirname prog/dump/i2cbusses.rd`/Module.mk' @' >
+prog/dump/i2cbusses.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cget.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cget.rd prog/dump/i2cget.ro:
+Makefile '`dirname prog/dump/i2cget.rd`/Module.mk' @' >
+prog/dump/i2cget.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cset.rd prog/dump/i2cset.ro:
+Makefile '`dirname prog/dump/i2cset.rd`/Module.mk' @' >
+prog/dump/i2cset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cdump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cdump.rd prog/dump/i2cdump.ro:
+Makefile '`dirname prog/dump/i2cdump.rd`/Module.mk' @' >
+prog/dump/i2cdump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/detect/i2cdetect.c | \
+sed -e 's@^\(.*\)\.o:@prog/detect/i2cdetect.rd
+prog/detect/i2cdetect.ro: Makefile '`dirname
+prog/detect/i2cdetect.rd`/Module.mk' @' > prog/detect/i2cdetect.rd
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/sysfs.c | \
+sed -e 's@^\(.*\)\.o:@lib/sysfs.ad lib/sysfs.ao: Makefile '`dirname
+lib/sysfs.ad`/Module.mk' @' > lib/sysfs.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/init.c | \
+sed -e 's@^\(.*\)\.o:@lib/init.ad lib/init.ao: Makefile '`dirname
+lib/init.ad`/Module.mk' @' > lib/init.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/access.c | \
+sed -e 's@^\(.*\)\.o:@lib/access.ad lib/access.ao: Makefile '`dirname
+lib/access.ad`/Module.mk' @' > lib/access.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/proc.c | \
+sed -e 's@^\(.*\)\.o:@lib/proc.ad lib/proc.ao: Makefile '`dirname
+lib/proc.ad`/Module.mk' @' > lib/proc.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/chips.c | \
+sed -e 's@^\(.*\)\.o:@lib/chips.ad lib/chips.ao: Makefile '`dirname
+lib/chips.ad`/Module.mk' @' > lib/chips.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ad lib/error.ao: Makefile '`dirname
+lib/error.ad`/Module.mk' @' > lib/error.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ad lib/general.ao: Makefile
+'`dirname lib/general.ad`/Module.mk' @' > lib/general.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ad lib/data.ao: Makefile '`dirname
+lib/data.ad`/Module.mk' @' > lib/data.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/sysfs.c | \
+sed -e 's@^\(.*\)\.o:@lib/sysfs.ld lib/sysfs.lo: Makefile '`dirname
+lib/sysfs.ld`/Module.mk' @' > lib/sysfs.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/init.c | \
+sed -e 's@^\(.*\)\.o:@lib/init.ld lib/init.lo: Makefile '`dirname
+lib/init.ld`/Module.mk' @' > lib/init.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/access.c | \
+sed -e 's@^\(.*\)\.o:@lib/access.ld lib/access.lo: Makefile '`dirname
+lib/access.ld`/Module.mk' @' > lib/access.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/proc.c | \
+sed -e 's@^\(.*\)\.o:@lib/proc.ld lib/proc.lo: Makefile '`dirname
+lib/proc.ld`/Module.mk' @' > lib/proc.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/chips.c | \
+sed -e 's@^\(.*\)\.o:@lib/chips.ld lib/chips.lo: Makefile '`dirname
+lib/chips.ld`/Module.mk' @' > lib/chips.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ld lib/error.lo: Makefile '`dirname
+lib/error.ld`/Module.mk' @' > lib/error.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ld lib/general.lo: Makefile
+'`dirname lib/general.ld`/Module.mk' @' > lib/general.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ld lib/data.lo: Makefile '`dirname
+lib/data.ld`/Module.mk' @' > lib/data.ld
+make: Warning: File `etc/Module.mk' has modification time 1.2e+08 s in
+the future
+cat kernel/include/sensors.h.template > kernel/include/sensors.h
+awk '/SENSORS SYSCTL START/,/SENSORS SYSCTL END/' kernel/chips/*.c >>
+kernel/include/sensors.h
+echo '#endif' >> kernel/include/sensors.h
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/chips.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/chips.rd prog/sensors/chips.ro:
+Makefile '`dirname prog/sensors/chips.rd`/Module.mk' @' >
+prog/sensors/chips.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/main.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/main.rd prog/sensors/main.ro:
+Makefile '`dirname prog/sensors/main.rd`/Module.mk' @' >
+prog/sensors/main.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/superio.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/superio.rd prog/dump/superio.ro:
+Makefile '`dirname prog/dump/superio.rd`/Module.mk' @' >
+prog/dump/superio.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isaset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isaset.rd prog/dump/isaset.ro:
+Makefile '`dirname prog/dump/isaset.rd`/Module.mk' @' >
+prog/dump/isaset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isadump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isadump.rd prog/dump/isadump.ro:
+Makefile '`dirname prog/dump/isadump.rd`/Module.mk' @' >
+prog/dump/isadump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cbusses.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cbusses.rd prog/dump/i2cbusses.ro:
+Makefile '`dirname prog/dump/i2cbusses.rd`/Module.mk' @' >
+prog/dump/i2cbusses.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cget.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cget.rd prog/dump/i2cget.ro:
+Makefile '`dirname prog/dump/i2cget.rd`/Module.mk' @' >
+prog/dump/i2cget.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cset.rd prog/dump/i2cset.ro:
+Makefile '`dirname prog/dump/i2cset.rd`/Module.mk' @' >
+prog/dump/i2cset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cdump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cdump.rd prog/dump/i2cdump.ro:
+Makefile '`dirname prog/dump/i2cdump.rd`/Module.mk' @' >
+prog/dump/i2cdump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/detect/i2cdetect.c | \
+sed -e 's@^\(.*\)\.o:@prog/detect/i2cdetect.rd
+prog/detect/i2cdetect.ro: Makefile '`dirname
+prog/detect/i2cdetect.rd`/Module.mk' @' > prog/detect/i2cdetect.rd
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/sysfs.c | \
+sed -e 's@^\(.*\)\.o:@lib/sysfs.ad lib/sysfs.ao: Makefile '`dirname
+lib/sysfs.ad`/Module.mk' @' > lib/sysfs.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/init.c | \
+sed -e 's@^\(.*\)\.o:@lib/init.ad lib/init.ao: Makefile '`dirname
+lib/init.ad`/Module.mk' @' > lib/init.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/access.c | \
+sed -e 's@^\(.*\)\.o:@lib/access.ad lib/access.ao: Makefile '`dirname
+lib/access.ad`/Module.mk' @' > lib/access.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/proc.c | \
+sed -e 's@^\(.*\)\.o:@lib/proc.ad lib/proc.ao: Makefile '`dirname
+lib/proc.ad`/Module.mk' @' > lib/proc.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/chips.c | \
+sed -e 's@^\(.*\)\.o:@lib/chips.ad lib/chips.ao: Makefile '`dirname
+lib/chips.ad`/Module.mk' @' > lib/chips.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ad lib/error.ao: Makefile '`dirname
+lib/error.ad`/Module.mk' @' > lib/error.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ad lib/general.ao: Makefile
+'`dirname lib/general.ad`/Module.mk' @' > lib/general.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ad lib/data.ao: Makefile '`dirname
+lib/data.ad`/Module.mk' @' > lib/data.ad
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/sysfs.c | \
+sed -e 's@^\(.*\)\.o:@lib/sysfs.ld lib/sysfs.lo: Makefile '`dirname
+lib/sysfs.ld`/Module.mk' @' > lib/sysfs.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/init.c | \
+sed -e 's@^\(.*\)\.o:@lib/init.ld lib/init.lo: Makefile '`dirname
+lib/init.ld`/Module.mk' @' > lib/init.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/access.c | \
+sed -e 's@^\(.*\)\.o:@lib/access.ld lib/access.lo: Makefile '`dirname
+lib/access.ld`/Module.mk' @' > lib/access.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/proc.c | \
+sed -e 's@^\(.*\)\.o:@lib/proc.ld lib/proc.lo: Makefile '`dirname
+lib/proc.ld`/Module.mk' @' > lib/proc.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/chips.c | \
+sed -e 's@^\(.*\)\.o:@lib/chips.ld lib/chips.lo: Makefile '`dirname
+lib/chips.ld`/Module.mk' @' > lib/chips.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/error.c | \
+sed -e 's@^\(.*\)\.o:@lib/error.ld lib/error.lo: Makefile '`dirname
+lib/error.ld`/Module.mk' @' > lib/error.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/general.c | \
+sed -e 's@^\(.*\)\.o:@lib/general.ld lib/general.lo: Makefile
+'`dirname lib/general.ld`/Module.mk' @' > lib/general.ld
+gcc -M -MG -I. -Ikernel/include -I/usr/local/include  -DSYSFS_SUPPORT
+-fpic -Wall -O2  lib/data.c | \
+sed -e 's@^\(.*\)\.o:@lib/data.ld lib/data.lo: Makefile '`dirname
+lib/data.ld`/Module.mk' @' > lib/data.ld
+make: Warning: File `etc/Module.mk' has modification time 1.2e+08 s in
+the future
+cat kernel/include/sensors.h.template > kernel/include/sensors.h
+awk '/SENSORS SYSCTL START/,/SENSORS SYSCTL END/' kernel/chips/*.c >>
+kernel/include/sensors.h
+echo '#endif' >> kernel/include/sensors.h
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/chips.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/chips.rd prog/sensors/chips.ro:
+Makefile '`dirname prog/sensors/chips.rd`/Module.mk' @' >
+prog/sensors/chips.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/sensors/main.c | \
+sed -e 's@^\(.*\)\.o:@prog/sensors/main.rd prog/sensors/main.ro:
+Makefile '`dirname prog/sensors/main.rd`/Module.mk' @' >
+prog/sensors/main.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/superio.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/superio.rd prog/dump/superio.ro:
+Makefile '`dirname prog/dump/superio.rd`/Module.mk' @' >
+prog/dump/superio.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isaset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isaset.rd prog/dump/isaset.ro:
+Makefile '`dirname prog/dump/isaset.rd`/Module.mk' @' >
+prog/dump/isaset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/isadump.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/isadump.rd prog/dump/isadump.ro:
+Makefile '`dirname prog/dump/isadump.rd`/Module.mk' @' >
+prog/dump/isadump.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cbusses.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cbusses.rd prog/dump/i2cbusses.ro:
+Makefile '`dirname prog/dump/i2cbusses.rd`/Module.mk' @' >
+prog/dump/i2cbusses.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cget.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cget.rd prog/dump/i2cget.ro:
+Makefile '`dirname prog/dump/i2cget.rd`/Module.mk' @' >
+prog/dump/i2cget.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2cset.c | \
+sed -e 's@^\(.*\)\.o:@prog/dump/i2cset.rd prog/dump/i2cset.ro:
+Makefile '`dirname prog/dump/i2cset.rd`/Module.mk' @' >
+prog/dump/i2cset.rd
+gcc -M -MG -DETCDIR="\"/etc\"" -I. -Ikernel/include
+-I/usr/local/include  -Wundef -Wall -O2  prog/dump/i2c
 
