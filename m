@@ -1,70 +1,53 @@
-From: s.kostka@arcor.de (Sebastian Kostka)
-Date: Sun, 19 Feb 2006 20:29:02 +0000
+From: khali@linux-fr.org (Jean Delvare)
+Date: Mon, 20 Feb 2006 09:42:19 +0000
 Subject: [lm-sensors] Output (i2cdump) for ULI M1695 Chipset
-Message-Id: <200602192129.02414.s.kostka@arcor.de>
+Message-Id: <RADiPUpX.1140428539.4397450.khali@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <200602192129.02414.s.kostka@arcor.de>
+In-Reply-To: <200602192129.02414.s.kostka@arcor.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-Thank you all again for helping me in the IRC this morning.
 
-I Tried to test a little, to get an output that could help you for providing 
-ULI M1695 Support.
+Hallo Sebastian,
 
-So here is my Output of i2cdumo which unfortunaltely never changed - But i 
-wenbt back to Windows and wrote down what Speedfan detected, i hope this 
-helps you a little.
+On 2006-02-19, Sebastian Kostka wrote:
+> So here is my output of i2cdump which unfortunaltely never changed - But i
+> went back to Windows and wrote down what Speedfan detected, i hope this
+> helps you a little.
+> (...)
+> Default:(vcore 1,1v)
+> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
+> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+> 
+> Default: (vcore 1,4volt)
+> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
+> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+> 
+> Overclocked: (vcore 1,4v)
+> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
+> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+> 
+> Overclocked (100% CPU) (vcore 1,4v)
+> 00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
+> 10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
 
+No change, so it has to be a control device and not a monitoring device.
 
-MFG,
+> Scanning Uli SMBus at $0400...
+> LM80 found on SMBus at $22
 
-Sebastian
--------------- next part --------------
-Default:(vcore 1,1v)
+I'm pretty certain this is a misdetection, as the LM80 has most of its
+registers between 0x20 and 0x3b, and the chip you have doesn't even
+seem to have registers there.
 
-00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+At this point, the only way to figure out what this mysterious chip is,
+is to ask the motherboard manufacturer directly - if you want to do that
+at all. After all, you have monitoring working on your system and
+that's what you wanted in the first place, I guess.
 
-Default: (vcore 1,4volt)
-00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
+--
+Jean Delvare
 
-
-Overclocked: (vcore 1,4v)
-00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
-
-Overclocked (100% CPU) (vcore 1,4v)
-
-00: c3 8b 18 00 03 45 02 00 9c 34 3f 00 00 03 09 00    ???.?E?.?4?..??.
-10: 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00    ?...?...........
-
-
--------------- next part --------------
-Linked ISA BUS at $0290
-Linked Ali M1563 SMBUS at $0400
-Found nVidia GeForce 6800
-Linked nVidiaI2C0 SMBUS at $3D403E3F
-Linked nVidiaI2C1 SMBUS at $3D403637
-Linked nVidiaI2C2 SMBUS at $3D405051
-Scanning ISA BUS at $0290...
-Winbond W83627HF (ID=$21) found on ISA at $290
-SuperIO Chip=Winbond W83627HF
-Scanning Uli SMBus at $0400...
-LM80 found on SMBus at $22
-Scanning I2CNVidia SMBus at $3D403E3F...
-Scanning I2CNVidia SMBus at $3D403637...
-Scanning I2CNVidia SMBus at $3D405051...
-Winbond W83L785R (ID=$60) found on SMBus at $2D
-SMART Enabled for drive 0
-Found IBM-DJNA-371350 (13,6GB)
-SMART Enabled for drive 1
-Found SAMSUNG SP1614C (160,0GB)
-End of detection
-Error loading event -->
-  CfgVersion.0001
-  EventsVersion.0001
-Loaded 0 events
