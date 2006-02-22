@@ -1,61 +1,78 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Tue, 07 Feb 2006 16:17:45 +0000
-Subject: [lm-sensors] [PATCH] i2c-ali1535: Drop redundant mutex
-Message-Id: <20060207171745.3fee3620.khali@linux-fr.org>
+From: devik@cdi.cz (Martin Devera)
+Date: Wed, 22 Feb 2006 12:25:35 +0000
+Subject: [lm-sensors] [PATCH 1/1 RESEND 3] i2c: add BroadCom HT-1000 to
+Message-Id: <E1FBt3n-0005KU-00@devix>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+From: Martin Devera <devik at cdi.cz>
 
-I am adding the following patch to my stack.
+Add BroadCom HT-1000 south bridge's PCI ID to i2c-piix driver. Note
+that at least on Supermicro H8SSL it uses non-standard SMBHSTCFG = 3
+and standard values like 0 or 9 causes hangup.
 
-Drop a redundant mutex in driver i2c-ali1535. The struct i2c_adapter
-includes a mutex for the same purpose, operated by i2c-core.
-
-Signed-off-by: Jean Delvare <khali at linux-fr.org>
+Signed-off-by: Martin Devera <devik at cdi.cz>
 ---
- drivers/i2c/busses/i2c-ali1535.c |    4 ----
- 1 file changed, 4 deletions(-)
+Kudos to Rudolf Marek for its helpful comments.
+In v3 of the patch I removed comment where I guessed that fix_hstcfg
+might be useful on HT-1000 too but it was only speculation based
+on SMBHSTCFG value.
 
---- linux-2.6.16-rc2.orig/drivers/i2c/busses/i2c-ali1535.c	2006-02-07 09:15:08.000000000 +0100
-+++ linux-2.6.16-rc2/drivers/i2c/busses/i2c-ali1535.c	2006-02-07 10:04:44.000000000 +0100
-@@ -62,7 +62,6 @@
- #include <linux/ioport.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
--#include <linux/mutex.h>
- #include <asm/io.h>
+diff -upr a/Documentation/i2c/busses/i2c-piix4 b/Documentation/i2c/busses/i2c-piix4
+--- a/Documentation/i2c/busses/i2c-piix4	Thu Feb 16 00:52:01 2006
++++ b/Documentation/i2c/busses/i2c-piix4	Thu Feb 16 00:55:37 2006
+@@ -4,7 +4,7 @@ Supported adapters:
+   * Intel 82371AB PIIX4 and PIIX4E
+   * Intel 82443MX (440MX)
+     Datasheet: Publicly available at the Intel website
+-  * ServerWorks OSB4, CSB5 and CSB6 southbridges
++  * ServerWorks OSB4, CSB5, CSB6 and HT-1000 southbridges
+     Datasheet: Only available via NDA from ServerWorks
+   * Standard Microsystems (SMSC) SLC90E66 (Victory66) southbridge
+     Datasheet: Publicly available at the SMSC website http://www.smsc.com
+diff -upr a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig	Thu Feb 16 00:56:32 2006
++++ b/drivers/i2c/busses/Kconfig	Thu Feb 16 00:58:24 2006
+@@ -167,12 +167,14 @@ config I2C_PIIX4
+ 	help
+ 	  If you say yes to this option, support will be included for the Intel
+ 	  PIIX4 family of mainboard I2C interfaces.  Specifically, the following
+-	  versions of the chipset are supported:
++	  versions of the chipset are supported (note that Serverworks is part
++	  of BroadCom):
+ 	    Intel PIIX4
+ 	    Intel 440MX
+ 	    Serverworks OSB4
+ 	    Serverworks CSB5
+ 	    Serverworks CSB6
++	    Serverworks HT-1000
+ 	    SMSC Victory66
  
- 
-@@ -136,7 +135,6 @@
- 
- static struct pci_driver ali1535_driver;
- static unsigned short ali1535_smba;
--static DEFINE_MUTEX(i2c_ali1535_mutex);
- 
- /* Detect whether a ALI1535 can be found, and initialize it, where necessary.
-    Note the differences between kernels with the old PCI BIOS interface and
-@@ -345,7 +343,6 @@
- 	int timeout;
- 	s32 result = 0;
- 
--	mutex_lock(&i2c_ali1535_mutex);
- 	/* make sure SMBus is idle */
- 	temp = inb_p(SMBHSTSTS);
- 	for (timeout = 0;
-@@ -460,7 +457,6 @@
- 		break;
- 	}
- EXIT:
--	mutex_unlock(&i2c_ali1535_mutex);
- 	return result;
- }
- 
-
-
--- 
-Jean Delvare
+ 	  This driver can also be built as a module.  If so, the module
+diff -upr a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c	Tue Feb 14 17:03:23 2006
++++ b/drivers/i2c/busses/i2c-piix4.c	Tue Feb 14 16:57:29 2006
+@@ -419,6 +419,8 @@ static struct pci_device_id piix4_ids[] 
+ 	  .driver_data = 0 },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_CSB6),
+ 	  .driver_data = 0 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_HT1000SB),
++	  .driver_data = 0 },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443MX_3),
+ 	  .driver_data = 3 },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_EFAR, PCI_DEVICE_ID_EFAR_SLC90E66_3),
+diff -upr a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h	Tue Feb 14 17:03:36 2006
++++ b/include/linux/pci_ids.h	Tue Feb 14 16:55:16 2006
+@@ -1343,6 +1343,7 @@
+ #define PCI_DEVICE_ID_SERVERWORKS_OSB4	  0x0200
+ #define PCI_DEVICE_ID_SERVERWORKS_CSB5	  0x0201
+ #define PCI_DEVICE_ID_SERVERWORKS_CSB6    0x0203
++#define PCI_DEVICE_ID_SERVERWORKS_HT1000SB 0x0205
+ #define PCI_DEVICE_ID_SERVERWORKS_OSB4IDE 0x0211
+ #define PCI_DEVICE_ID_SERVERWORKS_CSB5IDE 0x0212
+ #define PCI_DEVICE_ID_SERVERWORKS_CSB6IDE 0x0213
 
