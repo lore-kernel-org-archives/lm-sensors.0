@@ -1,22 +1,19 @@
-From: pavouk@pavouk.org (Pavel Ruzicka)
-Date: Mon, 27 Feb 2006 22:29:20 +0000
-Subject: [lm-sensors] Radeon LM63 support
-Message-Id: <200602272329.20330.pavouk@pavouk.org>
+From: mblakeman@netspace.net.au (Murray Blakeman)
+Date: Wed, 22 Feb 2006 10:39:46 +0000
+Subject: [lm-sensors] ADM1024
+Message-Id: <20060222103945.860B14B6E0@mail.netspace.net.au>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
+In-Reply-To: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Where can I get this module from?
 
-I have ATI Radeon X800 card with passive heatsink.
-Winblows program ATITOOL displays two temperatures and can control fan.
-In a log I see that he found LM63 chip. This chip is supported by latest
-kernel, but I didn't found support for Radeon SMBus or I2C.
-It's possible to read temperatures? (or control fan for others...)
+I am running Linux Kernel 2.6.15.1 and the ADM1024 module doesn't appear to
+be part of it.
 
-Thanks,
 
-Pavel Ruzicka
 
