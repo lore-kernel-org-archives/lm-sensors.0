@@ -1,33 +1,29 @@
-From: khali@linux-fr.org (Jean Delvare)
-Date: Fri, 17 Feb 2006 18:42:46 +0000
-Subject: [lm-sensors] Add LM82 support
-Message-Id: <20060217194246.1955d576.khali@linux-fr.org>
+From: RaphaelD@tyan.com (Raphael Deng)
+Date: Wed, 22 Feb 2006 03:01:33 +0000
+Subject: [lm-sensors] Broadcom HT1000 support request
+Message-Id: <3174569B9743D511922F00A0C94314230E8709F3@TYANWEB>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20060216175930.GE20157@cosmic.amd.com>
-	<LYRIS-4270-26349-2006.02.17-07.32.29--jordan.crouse#amd.com@whitestar.amd.com>
-	<20060217162922.GP20157@cosmic.amd.com>
-In-Reply-To: <20060217162922.GP20157@cosmic.amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Nick Warne <nick@linicks.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, info-linux@ldcmail.amd.com
+To: lm-sensors@vger.kernel.org
 
-Hi Jordan,
+On you website, I found lm-sensors didn't have any plan to support HT1000.
+But as I know, it's very easy to support it.
 
-> On 17/02/06 13:09 +0000, Nick Warne wrote:
-> > > +       else if (kind = lm82) {
-> > > +               name = "lm82";
-> > > +       }
-> > 
-> > Is that a '=' typo in the 'else if' there?
-> 
-> Yep - thats what that would be.  That must be my typo of the week, since
-> I just had it in another driver I'm writing.
+ 
 
-Given that gcc clearly warns on this kind of typo, how could it go
-unnoticed?
+HT1000 still use the PIIX4 SMBus controller, and current i2c-piix4.c file
+can support it by adding new chip Device ID 0x0205.
 
--- 
-Jean Delvare
+The vendor id is still formal Serverworks ID(0x1166).
 
+ 
+
+Raphael Deng
+
+Tyan Computer Corp
+
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060222/3077d244/attachment.html
