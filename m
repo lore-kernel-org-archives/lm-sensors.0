@@ -1,32 +1,31 @@
-From: jim.cromie@gmail.com (Jim Cromie)
-Date: Fri, 24 Feb 2006 21:52:04 +0000
-Subject: [lm-sensors] ADM1024
-Message-Id: <43FF8004.6090604@gmail.com>
+From: dynmail1@gassner-waagen.at (Michael Burian)
+Date: Thu, 23 Feb 2006 12:49:21 +0000
+Subject: [lm-sensors] Bug in initialisation of stopped RTC's in ds1337.c
+Message-Id: <43FDAF51.50207@gassner-waagen.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
-In-Reply-To: <002a01c23476$84783190$0201d00a@hq.pc3.xstreamis.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Murray Blakeman wrote:
-> Where can I get this module from?
->
-> I am running Linux Kernel 2.6.15.1 and the ADM1024 module doesn't appear to
-> be part of it.
->
->
->   
-forgive me for not knowing, but you presume it to be supported ? but 
-omitted ?
+The current initialisation code for handling the "RTC not running" case
+is buggy. Overwritting the whole 16 regs with zero turned out to be a
+bad idea.
 
-IOW, did you check if it is supported ?  and if not, are you interested 
-in adding it ?
+This was hard to track down, as initscripts used to overwrite that
+invalid date with a valid one and that date was written back to the RTC
+on shutdown - everything looked fine.
 
-Im not trying to be snide here; there are other adm 102x devices supported,
-(I hacked at 1026.c, but I dont have the chip to sanity test the patch,
-and apparently no-one else does either)
+Recently a fsck caused an immediate reboot so initscripts had no chance
+to fix this. Afterwards the probing failed (because of the invalid date)
+and I ended up with the problems described in the previous mail.
 
+The attached patch can be applied against mainline and should fix the
+problem by detecting if the RTC is not running, changing 2 bits (OSF,
+EOSC) as necessary, and no longer overwriting the whole 16 regs.
 
-
+Please review, thanks
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: 0001-Improve-initialisation-of-stopped-RTC.txt
+Url: http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20060223/e34e9ca0/0001-Improve-initialisation-of-stopped-RTC.txt
