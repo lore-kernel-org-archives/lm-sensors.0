@@ -1,35 +1,50 @@
-From: r.marek@sh.cvut.cz (Rudolf Marek)
-Date: Sat, 25 Feb 2006 19:58:06 +0000
-Subject: [lm-sensors] I switched from AMD XP TB to AMD Mobile Barton
-Message-Id: <4400B6CE.1010204@sh.cvut.cz>
+From: wipwap19@hotmail.com (Warren Wilder)
+Date: Fri, 24 Feb 2006 19:51:45 +0000
+Subject: [lm-sensors] Can't access procfs/sysfs file  - 2.6.14.6
+Message-Id: <BAY115-F2032313B519534D280592CCFF30@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <ea9ff50b0601230528q3f9e2f26j@mail.gmail.com>
-In-Reply-To: <ea9ff50b0601230528q3f9e2f26j@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Filip Tsachev wrote:
-> As I ran prime95 torture the "watch sensors" made me notice that CPU
-> temp is going from -70 to -65, could you please elaborate on reverting
-> the readings? It would be really nice then I could make some offset
-> like -20*C and it should become very accurate...
+I have noticed others had this problem, but it turned out to be some=20
+configuration issue. Hopefully this is the case for me as well. I am=20
+slightly worried that I have to wait for the 'eeprom' module, which my Via =
 
+VT1211 chip seems to need.
 
-Well you can use the compute lines in /etc/sensors.conf to do that.
+My system:  (Via SP13000)
+HLFS (Hardened Linux From Scratch) with kernel 2.6.14.6
+sysfs compiled and mounted
 
-> Maybe it is possible to be BIOS fault?? since it's recognized as:
-> cat /proc/cpuinfo
-> model name      : Unknown CPU Typ
-> 
-> p.s. I also could find only about A64 some type of diode offset but no
-> info for XP-Ms..
+running sensors-detect notifies me of these required modules:
+i2c-viapro
+i2c-dev
+I can succesfully load both.
 
-Well also bad luck for me. I just found some screenshots of some program mentioning the offset of diode
-on bartons CPU (no datasheet was found on the AMD website). I'm sorry I can help more maybe you can
-try to create the compute line for temp and put it into the sensors.conf (run sensors -s to apply the changes)
+When I run sensors I get this notice:
+Can't access procfs/sysfs file
+Unable to find i2c bus information;
+For 2.6 kernels, make sure you have mounted sysfs and libsensors
+was compiled with sysfs support!
+For older kernels, make sure you have done 'modprobe i2c-proc'!
 
-Regards
-Rudolf
+The thing is, I haven't build libsensors with sysfs support, since the=20
+INSTALL and QUICKSTART files inform me of not having to do anything, beside=
+s=20
+'make user and make user_install' if I have a 2.6 kernel with i2c modules=20
+compiled.
+Since I also have udev on my system I am leaning towards missing some sort =
+
+of udev rule.
+
+Please inform me of the next step.
+
+Warren
+
+_________________________________________________________________
+Don=92t just search. Find. Check out the new MSN Search!=20
+http://search.msn.click-url.com/go/onm00200636ave/direct/01/
+
 
